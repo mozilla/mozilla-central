@@ -195,6 +195,7 @@ function InitMsgWindow()
 
   var messagepane = getMessageBrowser();
   messagepane.docShell.allowAuth = false;
+  messagepane.docShell.allowDNSPrefetch = false;
   msgWindow.rootDocShell.allowAuth = true;
   msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
   // Ensure we don't load xul error pages into the main window

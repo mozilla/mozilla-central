@@ -604,6 +604,10 @@ function EditorSharedStartup()
   // Just for convenience
   gContentWindow = window.content;
 
+  // Disable DNS Prefetching on the docshell - we don't need it for composer
+  // type windows.
+  GetCurrentEditorElement().docShell.allowDNSPrefetch = false;
+
   // Set up the mime type and register the commands.
   if (IsHTMLEditor())
     SetupHTMLEditorCommands();

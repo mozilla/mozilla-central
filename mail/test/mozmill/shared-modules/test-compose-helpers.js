@@ -65,8 +65,25 @@ function installInto(module) {
   setupModule();
 
   // Now copy helper functions
+  module.open_compose_new_mail = open_compose_new_mail;
   module.open_compose_with_reply = open_compose_with_reply;
   module.open_compose_with_forward = open_compose_with_forward;
+}
+
+/**
+ * Opens the compose window by starting a new message
+ *
+ * @return The loaded window of type "msgcompose" wrapped in a MozmillController
+ *         that is augmented using augment_controller.
+ */
+function open_compose_new_mail(aController) {
+  if (aController === undefined)
+    aController = mc;
+
+  windowHelper.plan_for_new_window("msgcompose");
+  aController.keypress(null, "n", {shiftKey: false, accelKey: true});
+
+  return wait_for_compose_window();
 }
 
 /**
@@ -86,6 +103,13 @@ function open_compose_with_reply(aController) {
   return wait_for_compose_window();
 }
 
+/**
+ * Opens the compose window by forwarding the selected message and waits for it
+ * to load.
+ *
+ * @return The loaded window of type "msgcompose" wrapped in a MozmillController
+ *         that is augmented using augment_controller.
+ */
 function open_compose_with_forward(aController) {
   if (aController === undefined)
     aController = mc;
