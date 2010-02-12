@@ -278,6 +278,14 @@ NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(PRInt32 ageInDays);
 NS_MSG_BASE nsresult MsgTermListToString(nsISupportsArray *aTermList, nsCString &aOutString);
 
 /**
+ * convert string to PRUint64
+ *
+ * @param str conveted string
+ * @returns   PRUint64 vaule for success, 0 for parse failure
+ */
+NS_MSG_BASE PRUint64 ParseUint64Str(const char *str);
+
+/**
  * The following definitons exist for compatibility between the internal and
  * external APIs. Where possible they just forward to the existing API.
  */

@@ -2009,3 +2009,15 @@ NS_MSG_BASE nsresult MsgTermListToString(nsISupportsArray *aTermList, nsCString 
   }
   return rv;
 }
+
+NS_MSG_BASE PRUint64 ParseUint64Str(const char *str)
+{
+#ifdef XP_WIN
+  {
+    char *endPtr;
+    return _strtoui64(str, &endPtr, 10);
+  }
+#else
+  return strtoull(str, nsnull, 10);
+#endif
+}

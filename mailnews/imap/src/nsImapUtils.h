@@ -70,9 +70,6 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount, nsImapFlagAndU
 void ParseUidString(const char *uidString, nsTArray<nsMsgKey> &keys);
 void AppendUid(nsCString &msgIds, PRUint32 uid);
 
-/* returns 0 for parse failure */
-PRUint64 ParseUint64Str(const char *str);
-
 class nsImapMailboxSpec : public nsIMailboxSpec
 {
 public:

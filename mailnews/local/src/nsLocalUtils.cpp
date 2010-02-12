@@ -237,14 +237,8 @@ nsresult nsParseLocalMessageURI(const char* uri,
     else
       keyStr = StringTail(uriStr, uriStr.Length() - (keySeparator + 1));
 
-#if MOZILLA_INTERNAL_API
-    PRInt32 errorCode;
-#else
-    nsresult errorCode;
-#endif
-    *key = keyStr.ToInteger(&errorCode, 10);
-
-    return errorCode;
+    *key = (PRUint32) ParseUint64Str(keyStr.get());
+    return NS_OK;
   }
   return NS_ERROR_FAILURE;
 

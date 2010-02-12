@@ -384,15 +384,3 @@ void AppendUid(nsCString &msgIds, PRUint32 uid)
   PR_snprintf(buf, sizeof(buf), "%u", uid);
   msgIds.Append(buf);
 }
-
-PRUint64 ParseUint64Str(const char *str)
-{
-#ifdef XP_WIN
-  {
-    char *endPtr;
-    return _strtoui64(str, &endPtr, 10);
-  }
-#else
-  return strtoull(str, nsnull, 10);
-#endif
-}

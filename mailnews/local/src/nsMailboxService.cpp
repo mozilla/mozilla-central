@@ -479,13 +479,13 @@ nsresult nsMailboxService::PrepareMessageUrl(const char * aSrcMsgMailboxURI, nsI
       MsgEscapeURL(folderPath,
                    nsINetUtil::ESCAPE_URL_DIRECTORY | nsINetUtil::ESCAPE_URL_FORCED, buf);
       if (mPrintingOperation)
-        urlSpec = PR_smprintf("mailbox://%s?number=%d&header=print", buf.get(), msgKey);
+        urlSpec = PR_smprintf("mailbox://%s?number=%lu&header=print", buf.get(), msgKey);
       else if (part)
-        urlSpec = PR_smprintf("mailbox://%s?number=%d&%s", buf.get(), msgKey, part);
+        urlSpec = PR_smprintf("mailbox://%s?number=%lu&%s", buf.get(), msgKey, part);
       else if (header)
-        urlSpec = PR_smprintf("mailbox://%s?number=%d&%s", buf.get(), msgKey, header);
+        urlSpec = PR_smprintf("mailbox://%s?number=%lu&%s", buf.get(), msgKey, header);
       else
-        urlSpec = PR_smprintf("mailbox://%s?number=%d", buf.get(), msgKey);
+        urlSpec = PR_smprintf("mailbox://%s?number=%lu", buf.get(), msgKey);
 
       nsCOMPtr <nsIMsgMailNewsUrl> url = do_QueryInterface(*aMailboxUrl);
       url->SetSpec(nsDependentCString(urlSpec));

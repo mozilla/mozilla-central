@@ -53,6 +53,7 @@
 #include "nsIMAPNamespace.h"
 #include "nsImapStringBundle.h"
 #include "nsImapUtils.h"
+#include "nsMsgUtils.h"
 
 ////////////////// nsImapServerResponseParser /////////////////////////
 

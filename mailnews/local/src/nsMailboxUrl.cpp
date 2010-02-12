@@ -339,7 +339,7 @@ nsresult nsMailboxUrl::ParseSearchPart()
     char * messageKey = extractAttributeValue(searchPart.get(), "number=");
     m_messageID = extractAttributeValue(searchPart.get(),"messageid=");
     if (messageKey)
-      m_messageKey = atol(messageKey); // convert to a long...
+      m_messageKey = (nsMsgKey) ParseUint64Str(messageKey); // convert to a PRUint32...
 
     PR_Free(msgPart);
     PR_Free(messageKey);
