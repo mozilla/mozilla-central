@@ -215,7 +215,7 @@ function test_message_pane_persistence_generally_works() {
   // close everything but the first tab.
   function closeTabs() {
     while (mc.tabmail.tabInfo.length > 1)
-      mc.tabmail.closeTab(1);
+      close_tab(1);
   }
 
   function verifyTabs(aConfig) {
@@ -238,6 +238,14 @@ function test_message_pane_persistence_generally_works() {
   for each (let [, config] in Iterator(configs)) {
     openTabs(config);
     verifyTabs(config); // make sure openTabs did its job right
+
+    // Switch to the first tab, so that we don't cause a double message load
+    // while restoring tabs (one by the first tab, one by the currently selected
+    // one). This is fine because we only restore tabs at startup, and we know
+    // that we don't select a message at startup.
+    // XXX This should probably be fixed properly, though.
+    switch_tab(0);
+
     let state = mc.tabmail.persistTabs();
     closeTabs();
     // toggle the state for the current tab so we can be sure that it knows how
