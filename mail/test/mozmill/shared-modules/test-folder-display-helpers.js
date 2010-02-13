@@ -612,18 +612,34 @@ function assert_tab_titled_from(aTab, aWhat) {
  *  current tab.
  */
 function close_tab(aTabToClose) {
+  if (typeof aTabToClose == "number")
+    aTabToClose = mc.tabmail.tabInfo[aTabToClose];
+
   // get the current tab count so we can make sure the tab actually opened.
   let preCount = mc.tabmail.tabContainer.childNodes.length;
+
+  // If we're closing the current tab, a message or summary might be displayed
+  // in the tab we'll select next.
+  let nextTab = null;
+  if (aTabToClose == mc.tabmail.currentTabInfo) {
+    let selectedIndex = mc.tabmail.tabContainer.selectedIndex;
+    let nextIndex = (selectedIndex == preCount - 1) ? selectedIndex - 1 :
+      selectedIndex + 1;
+    nextTab = mc.tabmail.tabInfo[nextIndex];
+    if (nextTab.messageDisplay.visible && nextTab.folderDisplay.selectedCount)
+      plan_for_message_display(nextTab);
+  }
 
   mc.tabmail.closeTab(aTabToClose);
 
   // if there is a message visible in the tab, make sure we wait for the load
-  if (mc.folderDisplay.selectedCount)
-    wait_for_message_display_completion(
-      mc, mc.messageDisplay.displayedMessage != null);
-  // otherwise wait for the pane to end up blank
-  else
-    wait_for_blank_content_pane();
+  if (nextTab && mc.messageDisplay.visible) {
+    if (mc.folderDisplay.selectedCount)
+      wait_for_message_display_completion(mc, true);
+    // otherwise wait for the pane to end up blank
+    else
+      wait_for_blank_content_pane();
+  }
 
   // check that the tab count decreased
   if (mc.tabmail.tabContainer.childNodes.length != preCount - 1)
