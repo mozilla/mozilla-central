@@ -129,10 +129,14 @@ function _mm_removeClass(node, classname) {
  *
  * @param aMessages
  *        Array of message headers.
+ * @param [aListener]
+ *        An optional listener that implements onLoadStarted and
+ *        onLoadCompleted.
  */
 
-function MultiMessageSummary(aMessages) {
+function MultiMessageSummary(aMessages, aListener) {
   this._msgHdrs = aMessages;
+  this._listener = aListener;
 }
 
 MultiMessageSummary.prototype = {
@@ -141,6 +145,8 @@ MultiMessageSummary.prototype = {
                           getService(Components.interfaces.nsIMsgTagService);
     this._glodaQueries = [];
     this._msgNodes = {};
+    if (this._listener)
+      this._listener.onLoadStarted();
     this.summarize();
   },
 
@@ -458,6 +464,8 @@ MultiMessageSummary.prototype = {
   onQueryCompleted: function(aCollection) {
     /* if we need something that's just available from GlodaMessages,
       this is where we'll get it initially */
+    if (this._listener)
+      this._listener.onLoadCompleted();
     return;
   }
 }
@@ -476,13 +484,17 @@ MultiMessageSummary.prototype = {
  * from the msgHdr itself, and then spawn an aysnc Gloda query which will
  * fetch the snippets, tags, etc.
  *
- * @param messages
- *        array of message headers
+ * @param aMessages
+ *        Array of message headers.
+ * @param [aListener]
+ *        An optional listener that implements onLoadStarted and
+ *        onLoadCompleted.
  */
 
-function ThreadSummary(messages)
+function ThreadSummary(aMessages, aListener)
 {
-  this._msgHdrs = messages;
+  this._msgHdrs = aMessages;
+  this._listener = aListener;
 }
 
 ThreadSummary.prototype = {
@@ -617,15 +629,17 @@ var gSummary;
  * same thread, summarize them.
  *
  * @param aSelectedMessages
- *        array of message headers
+ *        Array of message headers.
+ * @param [aListener]
+ *        A listener that implements onLoadStarted and onLoadCompleted.
  */
-function summarizeThread(aSelectedMessages)
+function summarizeThread(aSelectedMessages, aListener)
 {
   if (aSelectedMessages.length == 0)
     return;
 
   try {
-    gSummary = new ThreadSummary(aSelectedMessages);
+    gSummary = new ThreadSummary(aSelectedMessages, aListener);
     gSummary.init();
   } catch (e) {
     dump("Exception in summarizeThread" + e + "\n");
@@ -640,14 +654,16 @@ function summarizeThread(aSelectedMessages)
  * to display a summary of them.
  *
  * @param aSelectedMessages
- *        array of message headers
+ *        Array of message headers.
+ * @param [aListener]
+ *        A listener that implements onLoadStarted and onLoadCompleted.
  */
-function summarizeMultipleSelection(aSelectedMessages)
+function summarizeMultipleSelection(aSelectedMessages, aListener)
 {
   if (aSelectedMessages.length == 0)
     return;
   try {
-    gSummary = new MultiMessageSummary(aSelectedMessages);
+    gSummary = new MultiMessageSummary(aSelectedMessages, aListener);
     gSummary.init();
   } catch (e) {
     dump("Exception in summarizeMultipleSelection" + e + "\n");

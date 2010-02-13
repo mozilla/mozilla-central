@@ -132,6 +132,24 @@ MessageDisplayWidget.prototype = {
    */
   messageLoaded: false,
 
+  /**
+   * This is meant to be called immediately after a message or summary load is
+   * started.
+   */
+  onLoadStarted: function MessageDisplayWidget_onLoadStarted() {
+    this.messageLoading = true;
+    this.messageLoaded = false;
+  },
+
+  /**
+   * This is meant to be called immediately after a message or summary load is
+   * completed.
+   */
+  onLoadCompleted: function MessageDisplayWidget_onLoadCompleted() {
+    this.messageLoading = false;
+    this.messageLoaded = true;
+  },
+
   clearDisplay: function MessageDisplayWidget_clearDisplay() {
     this.displayedMessage = null;
     this.messageLoading = false;
@@ -167,8 +185,7 @@ MessageDisplayWidget.prototype = {
   onDisplayingMessage: function MessageDisplayWidget_onDisplayingMessage(
       aMsgHdr) {
     this.displayedMessage = aMsgHdr;
-    this.messageLoading = true;
-    this.messageLoaded = false;
+    this.onLoadStarted();
   },
   //@}
 
@@ -340,9 +357,9 @@ MessageDisplayWidget.prototype = {
       return false;
     }
     if (oneThread)
-      summarizeThread(selectedMessages);
+      summarizeThread(selectedMessages, this);
     else
-      summarizeMultipleSelection(selectedMessages);
+      summarizeMultipleSelection(selectedMessages, this);
     this.singleMessageDisplay = false;
     return true;
   },

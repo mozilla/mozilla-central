@@ -571,8 +571,7 @@ var messageHeaderSink = {
     {
       displayAttachmentsForExpandedView();
 
-      gMessageDisplay.messageLoading = false;
-      gMessageDisplay.messageLoaded = true;
+      gMessageDisplay.onLoadCompleted();
 
       for (index in gMessageListeners) {
         if ("onEndAttachments" in gMessageListeners[index])
