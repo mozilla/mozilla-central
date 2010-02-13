@@ -500,25 +500,41 @@ function display_message_in_folder_tab(aMsgHdr, aExpectNew3Pane) {
 }
 
 /**
- * Switch to another tab.  If no tab is specified, we switch to the 'other' tab.
- *  That is the last tab we used, most likely the tab that was current when we
- *  created this tab.
+ * Switch to another folder or message tab.  If no tab is specified, we switch
+ *  to the 'other' tab.  That is the last tab we used, most likely the tab that
+ *  was current when we created this tab.
  *
  * @param aNewTab Optional, index of the other tab to switch to.
  */
 function switch_tab(aNewTab) {
+  if (typeof aNewTab == "number")
+    aNewTab = mc.tabmail.tabInfo[aNewTab];
+
+  // If the new tab is the same as the current tab, none of the below applies.
+  // Get out now.
+  if (aNewTab == mc.tabmail.currentTabInfo)
+    return;
+
   // If we're still loading a message at this point, wait for that to finish
   wait_for_message_display_completion();
   let targetTab = (aNewTab != null) ? aNewTab : otherTab;
   // now the current tab will be the 'other' tab after we switch
   otherTab = mc.tabmail.currentTabInfo;
+
+  // If the target tab's folder display has a something selected and its message
+  // pane is visible, plan for a message display.
+  if (targetTab.messageDisplay.visible && targetTab.folderDisplay.selectedCount)
+    plan_for_message_display(targetTab);
+
   mc.tabmail.switchToTab(targetTab);
-  // if there is something selected, wait for display completion
-  if (mc.folderDisplay.selectedCount)
-    wait_for_message_display_completion();
-  // otherwise wait for the pane to end up blank
-  else
-    wait_for_blank_content_pane();
+  if (mc.messageDisplay.visible) {
+    // if there is something selected, wait for display completion
+    if (mc.folderDisplay.selectedCount)
+      wait_for_message_display_completion(mc, true);
+    // otherwise wait for the pane to end up blank
+    else
+      wait_for_blank_content_pane();
+  }
 }
 
 /**
@@ -1147,17 +1163,22 @@ function wait_for_all_messages_to_load(aController) {
  *  displayed for the given controller that state is sufficiently cleaned up
  *  so it doesn't trick us into thinking that there is no need to wait.
  *
- * @param [aController] optional controller, defaulting to |mc|.
+ * @param [aControllerOrTab] optional controller or tab, defaulting to |mc|. If
+ *     the message display is going to be caused by a tab switch, a reference to
+ *     the tab to switch to should be passed in.
  */
-function plan_for_message_display(aController) {
-  if (aController === undefined)
-    aController = mc;
-  aController.messageDisplay.messageLoaded = false;
+function plan_for_message_display(aControllerOrTab) {
+  if (aControllerOrTab === undefined)
+    aControllerOrTab = mc;
+  // We're relying on duck typing here -- both controllers and tabs expose their
+  // message displays as the property |messageDisplay|.
+  aControllerOrTab.messageDisplay.messageLoaded = false;
 }
 
 /**
- * If a message is in the process of loading, let it finish; optionally, be sure
- *  to wait for a load to happen (assuming |plan_for_message_display| is used.)
+ * If a message or summary is in the process of loading, let it finish;
+ *  optionally, be sure to wait for a load to happen (assuming
+ *  |plan_for_message_display| is used, modulo the conditions below.)
  *
  * This method is used defensively by a lot of other code in this file that is
  *  realy not sure whether there might be a load in progress or not.  So by
