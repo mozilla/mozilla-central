@@ -4134,7 +4134,11 @@ MOZ_ARG_WITH_BOOL(system-nss,
     _USE_SYSTEM_NSS=1 )
 
 if test -n "$_USE_SYSTEM_NSS"; then
+    if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
     AM_PATH_NSS(3.12.0, [MOZ_NATIVE_NSS=1], [MOZ_NATIVE_NSS=])
+    else
+    AM_PATH_NSS(3.12.6, [MOZ_NATIVE_NSS=1], [MOZ_NATIVE_NSS=])
+    fi
 fi
 
 if test -n "$MOZ_NATIVE_NSS"; then
