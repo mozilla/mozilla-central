@@ -318,7 +318,7 @@ case "$target" in
 
     _pwdw=`pwd -W`
     _pwd=`pwd`
-    make WINCE_SDK_DIR="$WINCE_SDK_DIR" TOPSRCDIR="$srcdir/mozilla" OBJDIR="$_pwdw/mozilla" -C $srcdir/mozilla/build/wince/tools
+    make WINCE_SDK_DIR="$WINCE_SDK_DIR" TOPSRCDIR="$_topsrcdir/mozilla" OBJDIR="$_pwdw/mozilla" -C $srcdir/mozilla/build/wince/tools
 
     CC="$_pwd/mozilla/dist/sdk/bin/arm-wince-gcc"
     CXX="$_pwd/mozilla/dist/sdk/bin/arm-wince-gcc"
