@@ -5352,7 +5352,7 @@ MOZ_ARG_ENABLE_BOOL(tree-freetype,
     MOZ_TREE_FREETYPE=1,
     MOZ_TREE_FREETYPE= )
 if test -n "$MOZ_TREE_FREETYPE"; then
-   CAIRO_FT_LIBS = "${LIBXUL_DIST}/lib/freetype2.lib"
+   CAIRO_FT_LIBS='$(LIBXUL_DIST)/lib/freetype2.lib'
 fi
 
 dnl ========================================================
