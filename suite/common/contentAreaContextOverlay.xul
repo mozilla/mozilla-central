@@ -220,7 +220,7 @@
                 valueSaveAs="&savePageAsCmd.label;"
                 valueSave="&savePageCmd.label;"
                 accesskey="&savePageCmd.accesskey;"
-                oncommand="saveDocument(window.content.document);"/>
+                oncommand="saveDocument(window.content.document, true);"/>
       <menuseparator id="context-sep-viewbgimage"/>
       <menuitem id="context-viewbgimage"
                 label="&viewBGImageCmd.label;"
@@ -284,7 +284,7 @@
                     valueSaveAs="&saveFrameAsCmd.label;"
                     valueSave="&saveFrameCmd.label;"
                     accesskey="&saveFrameCmd.accesskey;"
-                    oncommand="saveDocument(gContextMenu.target.ownerDocument);"/>
+                    oncommand="saveDocument(gContextMenu.target.ownerDocument, true);"/>
           <menuseparator/>
           <menuitem label="&viewFrameSourceCmd.label;"
                     accesskey="&viewFrameSourceCmd.accesskey;"

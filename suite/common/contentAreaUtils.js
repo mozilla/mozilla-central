@@ -111,7 +111,7 @@ function urlSecurityCheck(aURI, aPrincipal, aFlags)
 // - A linked document using shift-click Save Link As...
 //
 function saveURL(aURL, aFileName, aFilePickerTitleKey, aShouldBypassCache,
-                 aReferrer)
+                 aSkipPrompt, aReferrer)
 {
   internalSave(aURL, null, aFileName, null, null, aShouldBypassCache,
                aFilePickerTitleKey, null, aReferrer, true, null);
@@ -125,7 +125,7 @@ const imgICache = Components.interfaces.imgICache;
 const nsISupportsCString = Components.interfaces.nsISupportsCString;
 
 function saveImageURL(aURL, aFileName, aFilePickerTitleKey, aShouldBypassCache,
-                      aReferrer)
+                      aSkipPrompt, aReferrer)
 {
   var contentType = null;
   var contentDisposition = null;
@@ -149,7 +149,7 @@ function saveImageURL(aURL, aFileName, aFilePickerTitleKey, aShouldBypassCache,
                true, null);
 }
 
-function saveDocument(aDocument)
+function saveDocument(aDocument, aSkipPrompt)
 {
   if (!aDocument)
     throw "Must have a document when calling saveDocument";

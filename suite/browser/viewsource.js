@@ -338,7 +338,8 @@ function ViewSourceEditPage()
 // Strips the |view-source:| for saveURL()
 function ViewSourceSavePage()
 {
-  saveURL(window.content.location.href.substring(12), null, "SaveLinkTitle");
+  saveURL(window.content.location.href.substring(12), null, "SaveLinkTitle",
+          false, true);
 }
 
 function ViewSourceGoToLine()

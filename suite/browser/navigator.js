@@ -238,7 +238,7 @@ function saveFrameDocument()
 {
   var focusedWindow = document.commandDispatcher.focusedWindow;
   if (isContentFrame(focusedWindow))
-    saveDocument(focusedWindow.document);
+    saveDocument(focusedWindow.document, true);
 }
 
 function updateHomeButtonTooltip()
@@ -1541,7 +1541,7 @@ function BrowserLoadURL(aTriggeringEvent)
                                 .getService(nsIURIFixup);
         url = gURIFixup.createFixupURI(url, nsIURIFixup.FIXUP_FLAGS_MAKE_ALTERNATE_URI).spec;
         // Open filepicker to save the url
-        saveURL(url, "");
+        saveURL(url, null, null, false, true);
       }
       catch(ex) {
         // XXX Do nothing for now.

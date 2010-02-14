@@ -143,7 +143,7 @@
     <command id="cmd_newEditorTemplate"/>
     <command id="cmd_newEditorDraft"/> -->
     <command id="Browser:OpenFile"  oncommand="BrowserOpenFileWindow();"/>
-    <command id="Browser:SavePage" oncommand="saveDocument(window.content.document);"/>
+    <command id="Browser:SavePage" oncommand="saveDocument(window.content.document, true);"/>
     <command id="Browser:EditPage" oncommand="editPageOrFrame();" observes="isImage"/>
     <command id="Browser:UploadFile" oncommand="BrowserUploadFile();"/>
     <command id="Browser:Open" oncommand="BrowserOpenWindow();"/>

@@ -793,7 +793,7 @@ nsContextMenu.prototype = {
     },    
     // Save URL of clicked-on frame.
     saveFrame : function () {
-        saveDocument( this.target.ownerDocument );
+        saveDocument( this.target.ownerDocument, true );
     },
     // Save URL of clicked-on link.
     saveLink : function () {
@@ -855,7 +855,8 @@ nsContextMenu.prototype = {
             if (aStatusCode == NS_ERROR_SAVE_LINK_AS_TIMEOUT) {
               // Do it the old fashioned way, which will pick the best filename
               // it can without waiting.
-              saveURL(linkURL, linkText, null, true, doc.documentURIObject);
+              saveURL(linkURL, linkText, null, true, true,
+                      doc.documentURIObject);
             }
             if (this.extListener)
               this.extListener.onStopRequest(aRequest, aContext, aStatusCode);
@@ -915,13 +916,13 @@ nsContextMenu.prototype = {
         if (this.onCanvas)
           // Bypass cache, since it's a data: URL.
           saveImageURL( this.target.toDataURL(), "canvas.png", "SaveImageTitle",
-                        true, null );
+                        true, true, null );
         else if (this.onImage)
-          saveImageURL( this.mediaURL, null, "SaveImageTitle", false,
+          saveImageURL( this.mediaURL, null, "SaveImageTitle", false, true,
                         this.target.ownerDocument.documentURIObject );
         else if (this.onVideo || this.onAudio) {
           var dialogTitle = this.onVideo ? "SaveVideoTitle" : "SaveAudioTitle";
-          saveURL( this.mediaURL, null, dialogTitle, false,
+          saveURL( this.mediaURL, null, dialogTitle, false, true,
                    this.target.ownerDocument.documentURIObject );
         }
     },

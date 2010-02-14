@@ -1237,7 +1237,7 @@ function openUILinkIn(url, where, allowThirdPartyFixup)
     return null;
 
   if (where == "save") {
-    saveURL(url, null, null, true);
+    saveURL(url, null, null, true, true);
     return null;
   }
 
@@ -1284,7 +1284,7 @@ function openUILinkArrayIn(urlArray, where, allowThirdPartyFixup)
 
   if (where == "save") {
     for (var i = 0; i < urlArray.length; i++)
-      saveURL(urlArray[i], null, null, true);
+      saveURL(urlArray[i], null, null, true, true);
     return null;
   }
 
