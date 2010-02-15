@@ -43,7 +43,9 @@ include $(DEPTH)/config/autoconf.mk
 
 default::
 
+ifdef COMPILE_ENVIRONMENT
 include $(topsrcdir)/$(MOZ_BUILD_APP)/build.mk
+endif
 
 include $(topsrcdir)/config/config.mk
 
