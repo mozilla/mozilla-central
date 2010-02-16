@@ -1290,9 +1290,24 @@ function editAttendees() {
         args);
 }
 
+/**
+ * This function rotates the Privacy of an item to the next value
+ * following the sequence  -> PUBLIC -> CONFIDENTIAL -> PRIVATE ->.
+ */
+function rotatePrivacy() {
+    const states = ["PUBLIC","CONFIDENTIAL","PRIVATE"];
+    gPrivacy = states[(states.indexOf(gPrivacy); + 1) % states.length];
+    updatePrivacy();
+}
+
+/**
+ * This function sets the privacy of an item to the value specified by
+ * the attribute "privacy" of the UI-element "target".
+ *
+ * @param target    the calling UI-element
+ */
 function editPrivacy(target) {
     gPrivacy = target.getAttribute("privacy");
-    updateShowTimeAs();
     updatePrivacy();
 }
 
@@ -1523,7 +1538,7 @@ function editShowTimeAs(target) {
 }
 
 /**
- * Update the dialog controls related related to transparency.
+ * Update the dialog controls related to transparency.
  */
 function updateShowTimeAs() {
     var showAsBusy = document.getElementById("cmd_showtimeas_busy");

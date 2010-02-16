@@ -578,7 +578,8 @@
                            class="cal-toolbarbutton-2"
                            type="menu-button"
                            disable-on-readonly="true"
-                           label="&event.toolbar.privacy.label;">
+                           label="&event.toolbar.privacy.label;"
+                           oncommand="rotatePrivacy()">
                 <menupopup id="event-privacy-menupopup">
                     <menuitem id="event-privacy-public-menuitem"
                               name="event-privacy-group"
