@@ -1243,6 +1243,6 @@ nsAbManager::Handle(nsICommandLine* aCmdLine)
 NS_IMETHODIMP
 nsAbManager::GetHelpInfo(nsACString& aResult)
 {
-  aResult.Assign(NS_LITERAL_CSTRING("  -addressbook         Open the address book at startup.\n"));
+  aResult.Assign(NS_LITERAL_CSTRING("  -addressbook       Open the address book at startup.\n"));
   return NS_OK;
 }

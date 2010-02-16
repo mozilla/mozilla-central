@@ -147,8 +147,8 @@ var nsMailNewsCommandLineHandler =
     aCommandLine.handleFlag(MAPI_STARTUP_ARG, false);
   },
 
-  helpInfo: "  -mail                Open the mail folder view.\n" +
-            "  -mail <URL>          Open the message specified by this URL.\n",
+  helpInfo: "  -mail              Open the mail folder view.\n" +
+            "  -mail <URL>        Open the message specified by this URL.\n",
 
   /* nsIClassInfo */
   flags: Ci.nsIClassInfo.SINGLETON,

@@ -536,9 +536,9 @@ var nsBrowserContentHandler = {
     });
   },
 
-  helpInfo: "  -browser <url>       Open a browser window.\n" +
-            "  -url <url>           Open the specified url.\n" +
-            "  -chrome <url>        Open the specified chrome.\n",
+  helpInfo: "  -browser <url>     Open a browser window.\n" +
+            "  -url <url>         Open the specified url.\n" +
+            "  -chrome <url>      Open the specified chrome.\n",
 
   /* nsICommandLine */
   length: 1,

@@ -1725,6 +1725,6 @@ nsMsgComposeService::Handle(nsICommandLine* aCmdLine)
 NS_IMETHODIMP
 nsMsgComposeService::GetHelpInfo(nsACString& aResult)
 {
-  aResult.Assign(NS_LITERAL_CSTRING("  -compose             Compose a mail or news message.\n"));
+  aResult.Assign(NS_LITERAL_CSTRING("  -compose           Compose a mail or news message.\n"));
   return NS_OK;
 }

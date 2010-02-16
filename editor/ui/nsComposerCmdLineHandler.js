@@ -110,7 +110,7 @@ nsComposerCmdLineHandler.prototype = {
     cmdLine.preventDefault = true;
   },
 
-  helpInfo : "  -edit <url>          Open Composer.\n"
+  helpInfo : "  -edit <url>        Open Composer.\n"
 };
 
 function nsComposerCmdLineHandlerFactory() {
