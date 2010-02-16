@@ -6158,17 +6158,6 @@ fi
 AC_SUBST(MOZ_REFLOW_PERF)
 
 dnl ========================================================
-dnl Enable performance metrics.
-dnl ========================================================
-MOZ_ARG_ENABLE_BOOL(perf-metrics,
-[  --enable-perf-metrics   Enable performance metrics],
-    MOZ_PERF_METRICS=1,
-    MOZ_PERF_METRICS= )
-if test -n "$MOZ_PERF_METRICS"; then
-    AC_DEFINE(MOZ_PERF_METRICS)
-fi
-
-dnl ========================================================
 dnl Enable code size metrics.
 dnl ========================================================
 MOZ_ARG_ENABLE_BOOL(codesighs,
@@ -6935,7 +6924,6 @@ AC_SUBST(MOZ_PLUGINS)
 AC_SUBST(ENABLE_EAZEL_PROFILER)
 AC_SUBST(EAZEL_PROFILER_CFLAGS)
 AC_SUBST(EAZEL_PROFILER_LIBS)
-AC_SUBST(MOZ_PERF_METRICS)
 AC_SUBST(GC_LEAK_DETECTOR)
 AC_SUBST(MOZ_LOG_REFCNT)
 AC_SUBST(MOZ_LEAKY)
