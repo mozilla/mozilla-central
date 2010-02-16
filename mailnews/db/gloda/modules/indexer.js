@@ -327,6 +327,10 @@ var GlodaIndexer = {
 
     this._callbackHandle.init();
 
+    if (Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService)
+          .offline)
+      this._suppressIndexing = true;
+
     // create the timer that drives our intermittent indexing
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     // create the timer for larger offsets independent of indexing
