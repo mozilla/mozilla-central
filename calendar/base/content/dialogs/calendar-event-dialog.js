@@ -1296,7 +1296,7 @@ function editAttendees() {
  */
 function rotatePrivacy() {
     const states = ["PUBLIC","CONFIDENTIAL","PRIVATE"];
-    gPrivacy = states[(states.indexOf(gPrivacy); + 1) % states.length];
+    gPrivacy = states[(states.indexOf(gPrivacy) + 1) % states.length];
     updatePrivacy();
 }
 
