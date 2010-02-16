@@ -76,7 +76,8 @@ function calDavCalendar() {
     this.mCtag = null;
 
     // By default, support both events and todos.
-    this.supportedItemTypes = ["VEVENT", "VTODO"];
+    this.mGenerallySupportedItemTypes = ["VEVENT", "VTODO"];
+    this.mSupportedItemTypes = this.mGenerallySupportedItemTypes.slice(0);
 }
 
 // some shorthand
@@ -115,7 +116,12 @@ calDavCalendar.prototype = {
     // An array of components that are supported by the server. The default is
     // to support VEVENT and VTODO, if queries for these components return a 4xx
     // error, then they will be removed from this array.
-    supportedItemTypes: null,
+    mGenerallySupportedItemTypes: null,
+    mSupportedItemTypes: null,
+    suportedItemTypes: null,
+    get supportedItemTypes() {
+        return this.mSupportedItemTypes;
+    },
 
     get isCached caldav_get_isCached() {
         return (this != this.superCalendar);
@@ -464,6 +470,15 @@ calDavCalendar.prototype = {
             return;
         }
 
+        if (!isItemSupported(aItem, this)) {
+            this.notifyOperationComplete(aListener,
+                                         Components.results.NS_ERROR_FAILURE,
+                                         Components.interfaces.calIOperationListener.ADD,
+                                         aItem.id,
+                                         "Server does not support item type");
+            return;
+        }
+
         let parentItem = aItem.parentItem;
         var locationPath = this.getItemLocationPath(parentItem);
         var itemUri = this.makeUri(locationPath);
@@ -502,7 +517,7 @@ calDavCalendar.prototype = {
                 }
                 cal.LOG("CalDAV: Unexpected status adding item to " +
                         thisCalendar.name + ": " + status);
-                       
+
                 thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_PUT_ERROR);
             }
         };
@@ -551,7 +566,7 @@ calDavCalendar.prototype = {
             return;
         }
 
-        let wasInboxItem = this.mItemInfoCache[aNewItem.id].isInboxItem; 
+        let wasInboxItem = this.mItemInfoCache[aNewItem.id].isInboxItem;
 
         let newItem_ = aNewItem;
         aNewItem = aNewItem.parentItem.clone();
@@ -914,7 +929,7 @@ calDavCalendar.prototype = {
                 if (thisCalendar.verboseLogging()) {
                     cal.LOG("CalDAV: ctag mismatch on refresh, fetching data for " +
                             "calendar " + thisCalendar.name);
-                             
+
                 }
             } else {
                 if (thisCalendar.verboseLogging()) {
@@ -975,7 +990,7 @@ calDavCalendar.prototype = {
      * @param aUri                  The uri to request the items from.
      *                                NOTE: This must be the uri without any uri
      *                                     params. They will be appended in this
-     *                                     function. 
+     *                                     function.
      * @param aChangeLogListener    (optional) The listener to notify for cached
      *                                         calendars.
      */
@@ -1022,7 +1037,7 @@ calDavCalendar.prototype = {
      * @param aUri                  The uri to request the items from.
      *                                NOTE: This must be the uri without any uri
      *                                     params. They will be appended in this
-     *                                     function. 
+     *                                     function.
      * @param aQuery                The query data, i.e the xml body.
      * @param aListener             The listener to notify when the operation
      *                                succeeded.
@@ -1271,12 +1286,14 @@ calDavCalendar.prototype = {
         var resourceType = kDavResourceTypeNone;
         var thisCalendar = this;
 
+        var C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
         var D = new Namespace("D", "DAV:");
         var CS = new Namespace("CS", "http://calendarserver.org/ns/");
-        var queryXml = <D:propfind xmlns:D="DAV:" xmlns:CS={CS}>
+        var queryXml = <D:propfind xmlns:D="DAV:" xmlns:CS={CS} xmlns:C={C}>
                         <D:prop>
                             <D:resourcetype/>
                             <D:owner/>
+                            <C:supported-calendar-component-set/>
                             <CS:getctag/>
                         </D:prop>
                         </D:propfind>;
@@ -1364,6 +1381,23 @@ calDavCalendar.prototype = {
                 }
             }
 
+            // use supported-calendar-component-set if the server supports it; some do not
+            let haveSCCSReport = true;
+            try {
+                supportedComponentsXml = multistatus..C::["supported-calendar-component-set"];
+            } catch (ex) {
+                haveSCCSReport = false;
+            }
+            if (haveSCCSReport && supportedComponentsXml.hasChildren) {
+                thisCalendar.mSupportedItemTypes.length = 0;
+                for each (let sc in supportedComponentsXml.*) {
+                    let comp = sc.@name.toString();
+                    if (thisCalendar.mGenerallySupportedItemTypes.indexOf(comp) >= 0) {
+                        thisCalendar.mSupportedItemTypes.push(comp);
+                    }
+                }
+            }
+
             // check if owner is specified; might save some work
             thisCalendar.mPrincipalUrl = multistatus..D::["owner"]..D::href.toString() || null;
 
@@ -1445,7 +1479,7 @@ calDavCalendar.prototype = {
                 cal.LOG("CalDAV: Error getting DAV header for " + thisCalendar.name +
                         ", status " + request.responseStatus +
                         ", data: " + cal.convertByteArray(aResult, aResultLength));
-            
+
             }
             // Google does not yet support OPTIONS but does support scheduling
             // so we'll spoof the DAV header until Google gets fixed
