@@ -2792,35 +2792,40 @@ function updateAttendees() {
 function updateRepeatDetails() {
     // Don't try to show the details text for
     // anything but a custom recurrence rule.
-    var item = window.calendarItem;
-    var recurrenceInfo = window.recurrenceInfo;
-    var itemRepeat = document.getElementById("item-repeat");
+    let item = window.calendarItem;
+    let recurrenceInfo = window.recurrenceInfo;
+    let itemRepeat = document.getElementById("item-repeat");
     if (itemRepeat.value == "custom" && recurrenceInfo) {
 
         // First of all collapse the details text. If we fail to
         // create a details string, we simply don't show anything.
         // this could happen if the repeat rule is something exotic
         // we don't have any strings prepared for.
-        var repeatDetails = document.getElementById("repeat-details");
+        let repeatDetails = document.getElementById("repeat-details");
         repeatDetails.setAttribute("collapsed", "true");
 
         // Try to create a descriptive string from the rule(s).
-        var kDefaultTimezone = calendarDefaultTimezone();
-        var startDate = jsDateToDateTime(getElementValue("event-starttime"), kDefaultTimezone);
-        var endDate = jsDateToDateTime(getElementValue("event-endtime"), kDefaultTimezone);
-        var allDay = getElementValue("event-all-day", "checked");
-        var detailsString = recurrenceRule2String(
+        let kDefaultTimezone = calendarDefaultTimezone();
+        let event = cal.isEvent(item);
+
+        let startDate =  getElementValue( event ? "event-starttime" : "todo-entrydate");
+        let endDate =  getElementValue( event ? "event-endtime" : "todo-duedate");
+        startDate = jsDateToDateTime(startDate, kDefaultTimezone);
+        endDate = jsDateToDateTime(endDate, kDefaultTimezone);
+
+        let allDay = getElementValue("event-all-day", "checked");
+        let detailsString = recurrenceRule2String(
             recurrenceInfo, startDate, endDate, allDay);
 
         // Now display the string...
         if (detailsString) {
-            var lines = detailsString.split("\n");
+            let lines = detailsString.split("\n");
             repeatDetails.removeAttribute("collapsed");
             while (repeatDetails.childNodes.length > lines.length) {
                 repeatDetails.removeChild(repeatDetails.lastChild);
             }
-            var numChilds = repeatDetails.childNodes.length;
-            for (var i = 0; i < lines.length; i++) {
+            let numChilds = repeatDetails.childNodes.length;
+            for (let i = 0; i < lines.length; i++) {
                 if (i >= numChilds) {
                     var newNode = repeatDetails.childNodes[0]
                                                .cloneNode(true);
@@ -2832,7 +2837,7 @@ function updateRepeatDetails() {
             }
         }
     } else {
-        var repeatDetails = document.getElementById("repeat-details");
+        let repeatDetails = document.getElementById("repeat-details");
         repeatDetails.setAttribute("collapsed", "true");
     }
 }
