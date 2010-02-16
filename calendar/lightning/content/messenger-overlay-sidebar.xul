@@ -113,9 +113,6 @@
     <menuseparator id="afterltnNewTask"
                    insertbefore="menu_newFolder"
                    observes="menu_newFolder"/>
-
-    <menuseparator id="beforenewAccountMenuItem"
-                   insertbefore="newAccountMenuItem"/>
     <menuitem id="ltnNewCalendar" label="&lightning.menupopup.new.calendar.label;"
                command="calendar_new_calendar_command"
                observes="calendar_new_calendar_command"
