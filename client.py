@@ -232,7 +232,7 @@ def switch_mozilla_repo():
         return
 
     # Locally clone common repository history.
-    check_call_noisy([options.hg, 'clone', '-r', SWITCH_MOZILLA_BASE_REV] + hgopts + [backup_mozilla_path, mozilla_path],
+    check_call_noisy([options.hg, 'clone', hgcloneopts, '-r', SWITCH_MOZILLA_BASE_REV] + hgopts + [backup_mozilla_path, mozilla_path],
                      retryMax=options.retries)
 
     # Rewrite hgrc for new local mozilla repo based on pre-existing hgrc
