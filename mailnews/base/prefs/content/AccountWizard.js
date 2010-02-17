@@ -403,20 +403,18 @@ function PageDataToAccountData(pageData, accountData)
 // (but don't fill in any fields, that's for finishAccount()
 function createAccount(accountData)
 {
+    // Retrieve the server (data) from the account data.
     var server = accountData.incomingServer;
     
     // for news, username is always null
     var username = (server.type == "nntp") ? null : server.username;
-
-    dump("am.createIncomingServer(" + username + "," +
-                                      server.hostName + "," +
-                                      server.type + ")\n");
-    
-    var server = am.createIncomingServer(username,
-                                         server.hostName,
-                                         server.type);
+    dump("am.createIncomingServer(" +
+         username + ", " + server.hostName + ", " + server.type + ")\n");
+    // Create a (actual) server.
+    server = am.createIncomingServer(username, server.hostName, server.type);
 
     dump("am.createAccount()\n");
+    // Create an account.
     var account = am.createAccount();
     
     // only create an identity for this account if we really have one
@@ -424,13 +422,13 @@ function createAccount(accountData)
     if (accountData.identity && accountData.identity.email)
     {
         dump("am.createIdentity()\n");
+        // Create an identity.
         var identity = am.createIdentity();
     
-        /* new nntp identities should use plain text by default
-         * we want that GNKSA (The Good Net-Keeping Seal of Approval) */
-        if (server.type == "nntp") {
-			    identity.composeHtml = false;
-        }
+        // New nntp identities should use plain text by default;
+        // we want that GNKSA (The Good Net-Keeping Seal of Approval).
+        if (server.type == "nntp")
+          identity.composeHtml = false;
 
         account.addIdentity(identity);
     }
@@ -439,6 +437,7 @@ function createAccount(accountData)
     // tell RDF about the new server - it's not quite finished getting
     // set up yet, in particular, the deferred storage pref hasn't been set.
     server.valid = false;
+    // Set the new account to use the new server.
     account.incomingServer = server;
     server.valid = true;
     return account;
