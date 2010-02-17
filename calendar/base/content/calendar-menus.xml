@@ -130,6 +130,7 @@
     <implementation>
       <constructor><![CDATA[
           this.mType = "percentComplete";
+          this.changeMenuByPropertyName();
       ]]></constructor>
     </implementation>
    </binding>
@@ -165,6 +166,7 @@
     <implementation>
       <constructor><![CDATA[
           this.mType = "priority";
+          this.changeMenuByPropertyName();
       ]]></constructor>
     </implementation>
    </binding>
