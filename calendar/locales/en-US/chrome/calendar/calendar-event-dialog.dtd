@@ -66,6 +66,20 @@
 <!-- The following entity is for New Task dialog only -->
 <!ENTITY newtodo.percentcomplete.label      "&#37; complete">
 
+<!-- Keyboard Shortcuts -->
+<!ENTITY event.dialog.new.event.key               "E">
+<!ENTITY event.dialog.new.message.key             "M">
+<!ENTITY event.dialog.close.key                   "W">
+<!ENTITY event.dialog.save.key                    "S">
+<!ENTITY event.dialog.delete.key                  "D">
+<!ENTITY event.dialog.print.key                   "P">
+<!ENTITY event.dialog.undo.key                    "Z">
+<!ENTITY event.dialog.redo.key                    "Y">
+<!ENTITY event.dialog.cut.key                     "X">
+<!ENTITY event.dialog.copy.key                    "C">
+<!ENTITY event.dialog.paste.key                   "V">
+<!ENTITY event.dialog.select.all.key              "A">
+
 <!-- Menubar -->
 <!ENTITY  event.menu.file.label                           "File">
 <!ENTITY  event.menu.file.accesskey                       "F">
