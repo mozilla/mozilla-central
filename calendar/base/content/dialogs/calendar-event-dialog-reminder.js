@@ -308,9 +308,10 @@ function onReminderSelected() {
  */
 function updateReminder(event) {
     if (event.explicitOriginalTarget.localName == "listitem" ||
+        event.explicitOriginalTarget.id == "reminder-remove-button" ||
         !document.commandDispatcher.focusedElement) {
-        // Do not set things if the select came from selecting an alarm from the
-        // list, or from setting when the dialog initially loaded.
+        // Do not set things if the select came from selecting or removing an
+        // alarm from the list, or from setting when the dialog initially loaded.
         // XXX Quite fragile hack since radio/radiogroup doesn't have the
         // supressOnSelect stuff.
         return;
