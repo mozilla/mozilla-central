@@ -4555,6 +4555,9 @@ esac
 # MOZ_BUILD_APP.
 case "$MOZ_BUILD_APP" in
 suite)
+  if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
+    AC_MSG_ERROR([Building SeaMonkey with mozilla1.9.2 is not supported.])
+  fi
   AC_DEFINE(MOZ_SUITE)
   ;;
 
@@ -4565,7 +4568,6 @@ mail)
 calendar)
   AC_DEFINE(MOZ_SUNBIRD)
   ;;
-
 esac
 
 AC_SUBST(MOZ_BUILD_APP)
