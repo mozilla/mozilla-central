@@ -63,6 +63,7 @@ REQUIRES = 	\
 
 CPP_UNIT_TESTS = \
 		TestImapHdrXferInfo.cpp \
+		TestImapFlagAndUidState.cpp \
 		$(NULL)
 
 include $(topsrcdir)/config/config.mk

@@ -69,8 +69,6 @@ public:
 private:
     
   static PLDHashOperator FreeCustomFlags(const PRUint32 &aKey, char *aData, void *closure);
-    PRInt32                 fNumberOfMessagesAdded;
-    PRInt32                 fNumberOfMessageSlotsAllocated;
     nsTArray<nsMsgKey>      fUids;
     nsTArray<imapMessageFlagsType> fFlags;
     nsDataHashtable<nsUint32HashKey, char *> m_customFlagsHash;	// Hash table, mapping uids to extra flags
