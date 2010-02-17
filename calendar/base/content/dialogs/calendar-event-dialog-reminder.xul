@@ -93,7 +93,7 @@
           <textbox id="reminder-length"
                    type="number"
                    size="1"
-                   min="1"
+                   min="0"
                    oninput="updateReminder(event)"/>
           <menulist id="reminder-unit" oncommand="updateReminder(event)" flex="1">
             <menupopup id="reminder-unit-menupopup">
