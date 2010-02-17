@@ -57,7 +57,7 @@ del pyver
 
 import os
 import datetime
-from optparse import OptionParser
+from optparse import OptionParser, OptionValueError
 
 topsrcdir = os.path.dirname(__file__)
 if topsrcdir == '':
@@ -77,9 +77,43 @@ except ImportError:
                 cmd = popenargs[0]
                 raise Exception("Command '%s' returned non-zero exit status %i" % (cmd, retcode))
 
-def check_call_noisy(cmd, *args, **kwargs):
+def check_call_noisy(cmd, retryMax=0, *args, **kwargs):
+  """Wrapper around execute_check_call() to allow retries before failing.
+
+  |cmd|, is the command to try and execute.
+  |retryMax|, is the maximum number of retries to attempt, 0 by default.
+  """
+
+  def execute_check_call(cmd, *args, **kwargs):
     print "Executing command:", cmd
     check_call(cmd, *args, **kwargs)
+
+  # By default (= no retries), simply pass the call on.
+  if retryMax == 0:
+    execute_check_call(cmd, *args, **kwargs)
+    return
+
+  # Loop (1 + retryMax) times, at most.
+  for r in range(0, 1 + retryMax):
+    # Add a retry header, not for initial call.
+    if r != 0:
+      print >> sys.stderr, "Retrying previous command: %d of %d time(s)" % (r, retryMax)
+    try:
+      # (Re-)Try the call.
+      execute_check_call(cmd, *args, **kwargs)
+      # If the call succeeded then no more retries.
+      break
+    except:
+      # Print the exception without its traceback.
+      # This traceback starts in the try block, which should be low value.
+      print >> sys.stderr, "The exception was:"
+      sys.excepthook(sys.exc_info()[0], sys.exc_info()[1], None)
+      # Add a blank line.
+      print >> sys.stderr
+  else:
+    # Raise our own exception.
+    # This traceback starts at (= reports) the initial caller line.
+    raise Exception("Command '%s' failed %d time(s). Giving up." % (cmd, retryMax + 1))
 
 def repo_config():
     """Create/Update TREE_STATE_FILE as needed.
@@ -198,7 +232,8 @@ def switch_mozilla_repo():
         return
 
     # Locally clone common repository history.
-    check_call_noisy([options.hg, 'clone', '-r', SWITCH_MOZILLA_BASE_REV] + hgopts + [backup_mozilla_path, mozilla_path])
+    check_call_noisy([options.hg, 'clone', '-r', SWITCH_MOZILLA_BASE_REV] + hgopts + [backup_mozilla_path, mozilla_path],
+                     retryMax=options.retries)
 
     # Rewrite hgrc for new local mozilla repo based on pre-existing hgrc
     # but with new values
@@ -238,18 +273,19 @@ def do_hg_pull(dir, repository, hg, rev):
 
     if not os.path.exists(fulldir):
         fulldir = os.path.join(topsrcdir, dir)
-        check_call_noisy([hg, 'clone'] + hgcloneopts + hgopts + [repository, fulldir])
+        check_call_noisy([hg, 'clone'] + hgcloneopts + hgopts + [repository, fulldir],
+                         retryMax=options.retries)
     else:
         cmd = [hg, 'pull', '-R', fulldir] + hgopts
         if repository is not None:
             cmd.append(repository)
-        check_call_noisy(cmd)
+        check_call_noisy(cmd, retryMax=options.retries)
     # update to specific revision
     if options.verbose:
         cmd = [hg, 'update', '-v', '-r', rev, '-R', fulldir ] + hgopts
     else:
         cmd = [hg, 'update', '-r', rev, '-R', fulldir ] + hgopts
-    check_call_noisy(cmd)
+    check_call_noisy(cmd, retryMax=options.retries)
     check_call([hg, 'parent', '-R', fulldir,
                 '--template=Updated to revision {node}.\n'])
 
@@ -264,15 +300,22 @@ def do_cvs_checkout(modules, tag, cvsroot, cvs, checkoutdir):
             check_call_noisy([cvs, '-d', cvsroot, '-q',
                               'checkout', '-P', '-A', '-d', leaf,
                               'mozilla/%s' % module],
-                             cwd=os.path.join(topsrcdir, checkoutdir, parent))
+                             cwd=os.path.join(topsrcdir, checkoutdir, parent),
+                             retryMax=options.retries)
         else:
             check_call_noisy([cvs, '-d', cvsroot, '-q',
                               'checkout', '-P', '-r', tag, '-d', leaf,
                               'mozilla/%s' % module],
-                             cwd=os.path.join(topsrcdir, checkoutdir, parent))
+                             cwd=os.path.join(topsrcdir, checkoutdir, parent),
+                             retryMax=options.retries)
         print "CVS checkout end: " + datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
 
-o = OptionParser(usage="client.py [options] checkout")
+def check_retries_option(option, opt_str, value, parser):
+  if value < 0:
+    raise OptionValueError("%s option value needs to be positive (not '%d')" % (opt_str, value))
+  setattr(parser.values, option.dest, value)
+
+o = OptionParser(usage="%prog [options] checkout")
 o.add_option("-m", "--comm-repo", dest="comm_repo",
              default=None,
              help="URL of comm (Calendar/Mail/Suite) repository to pull from (default: use hg default in .hg/hgrc)")
@@ -317,7 +360,6 @@ o.add_option("--chatzilla-rev", dest = "chatzilla_rev",
              default = DEFAULT_CHATZILLA_REV,
              help = "Revision of ChatZilla repository to update to. Default: \"" + DEFAULT_CHATZILLA_REV + "\"")
 
-
 o.add_option("--venkman-repo", dest = "venkman_repo",
              default = None,
              help = "URL of Venkman repository to pull from (default: use hg default in mozilla/extensions/venkman/.hg/hgrc; or if that file doesn't exist, use \"" + DEFAULT_VENKMAN_REPO + "\".)")
@@ -330,11 +372,6 @@ o.add_option("--venkman-rev", dest = "venkman_rev",
 
 o.add_option("--hg", dest="hg", default=os.environ.get('HG', 'hg'),
              help="The location of the hg binary")
-o.add_option("--cvs", dest="cvs", default=os.environ.get('CVS', 'cvs'),
-             help="The location of the cvs binary")
-o.add_option("--cvsroot", dest="cvsroot",
-             default=os.environ.get('CVSROOT', ':pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot'),
-             help="The CVSROOT (default: :pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot")
 o.add_option("-v", "--verbose", dest="verbose",
              action="store_true", default=False,
              help="Enable verbose output on hg updates")
@@ -342,6 +379,16 @@ o.add_option("--hg-options", dest="hgopts",
              help="Pass arbitrary options to hg commands (i.e. --debug, --time)")
 o.add_option("--hg-clone-options", dest="hgcloneopts",
              help="Pass arbitrary options to hg clone commands (i.e. --debug, --time)")
+
+o.add_option("--cvs", dest="cvs", default=os.environ.get('CVS', 'cvs'),
+             help="The location of the cvs binary")
+o.add_option("--cvsroot", dest="cvsroot",
+             default=os.environ.get('CVSROOT', ':pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot'),
+             help="The CVSROOT (default: :pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot")
+
+o.add_option("--retries", dest="retries", type="int", metavar="NUM",
+             default=1, help="Number of times to retry a failed command before giving up. (default: 1)",
+             action="callback", callback=check_retries_option)
 
 def fixup_comm_repo_options(options):
     """Check options.comm_repo value.
