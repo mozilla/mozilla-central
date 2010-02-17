@@ -95,8 +95,8 @@ ifneq (en-US, $(AB_CD))
 DEFINES += -DLOCALE_BUILD=1
 endif
 
-ifeq (1WINNT,$(MOZILLA_1_9_2_BRANCH)$(OS_ARCH))
-DEFINES += -DWIN_MOZ_1_9_2=1
+ifeq (,$(filter-out WINNT OS2,$(OS_ARCH)))
+DEFINES += -DWIN_OR_OS2=1
 endif
 
 ifdef MOZ_PKG_MANIFEST_P

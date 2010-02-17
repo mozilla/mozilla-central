@@ -48,15 +48,15 @@
 
 [xpcom]
 @BINPATH@/dependentlibs.list
-#ifdef WIN_MOZ_1_9_2
-@BINPATH@/js3250.dll
-#else
 @BINPATH@/@DLL_PREFIX@mozjs@DLL_SUFFIX@
-#endif
 @BINPATH@/@DLL_PREFIX@plc4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plds4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@xpcom@DLL_SUFFIX@
+#ifdef XP_OS2
+@BINPATH@/@DLL_PREFIX@xpcomcor@DLL_SUFFIX@
+#else
 @BINPATH@/@DLL_PREFIX@xpcom_core@DLL_SUFFIX@
+#endif
 @BINPATH@/@DLL_PREFIX@nspr4@DLL_SUFFIX@
 #ifndef MOZ_STATIC_BUILD
 @BINPATH@/@DLL_PREFIX@mozz@DLL_SUFFIX@
@@ -80,7 +80,7 @@
 
 [browser]
 ; [Base Browser Files]
-#ifndef XP_UNIX
+#ifdef WIN_OR_OS2
 @BINPATH@/@MOZ_APP_NAME@.exe
 #else
 @BINPATH@/@MOZ_APP_NAME@-bin
@@ -101,17 +101,15 @@
 #elifdef XP_OS2
 @BINPATH@/plugins/npnulos2.dll
 #endif
-#ifdef MOZILLA_1_9_2_BRANCH
-@BINPATH@/@DLL_PREFIX@sqlite3@DLL_SUFFIX@
+#ifdef XP_OS2
+@BINPATH@/@DLL_PREFIX@mozsqlt3@DLL_SUFFIX@
 #else
 @BINPATH@/@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
 #endif
-#ifdef XP_WIN32
-@BINPATH@/README.txt
-#elifdef XP_MACOSX
-@BINPATH@/README.txt
-#else
+#ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/README
+#else
+@BINPATH@/README.txt
 #endif
 @BINPATH@/license.txt
 @BINPATH@/blocklist.xml
@@ -131,14 +129,22 @@
 ; [Components]
 #ifndef MOZ_STATIC_BUILD
 ; shared component binaries
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@access@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
+#endif
 @BINPATH@/components/@DLL_PREFIX@appcomps@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@auth@DLL_SUFFIX@
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@autocfg@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@autoconfig@DLL_SUFFIX@
+#endif
 @BINPATH@/components/@DLL_PREFIX@caps@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@chardet@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@chrome@DLL_SUFFIX@
-#ifdef WIN_MOZ_1_9_2
+#ifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@cmdlines@DLL_SUFFIX@
 #else
 @BINPATH@/components/@DLL_PREFIX@commandlines@DLL_SUFFIX@
@@ -146,23 +152,31 @@
 @BINPATH@/components/@DLL_PREFIX@composer@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@cookie@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@docshell@DLL_SUFFIX@
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@embedcmp@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@embedcomponents@DLL_SUFFIX@
+#endif
 #ifdef XP_UNIX
 @BINPATH@/components/@DLL_PREFIX@fileview@DLL_SUFFIX@
 #endif
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@gkgfxthb@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@gkgfxthebes@DLL_SUFFIX@
+#endif
 @BINPATH@/components/@DLL_PREFIX@gklayout@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@gkplugin@DLL_SUFFIX@
 #ifdef XP_WIN32
 @BINPATH@/components/@DLL_PREFIX@gkwidget@DLL_SUFFIX@
 #endif
-#ifdef WIN_MOZ_1_9_2
+#ifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@gkparser@DLL_SUFFIX@
 #else
 @BINPATH@/components/@DLL_PREFIX@htmlpars@DLL_SUFFIX@
 #endif
 @BINPATH@/components/@DLL_PREFIX@i18n@DLL_SUFFIX@
-#ifdef XP_WIN32
+#ifdef WIN_OR_OS2
 @BINPATH@/components/@DLL_PREFIX@imgicon@DLL_SUFFIX@
 #endif
 @BINPATH@/components/@DLL_PREFIX@imglib2@DLL_SUFFIX@
@@ -173,7 +187,7 @@
 @BINPATH@/components/@DLL_PREFIX@mork@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@mozfind@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@necko@DLL_SUFFIX@
-#ifdef WIN_MOZ_1_9_2
+#ifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@appshell@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@perms@DLL_SUFFIX@
 #else
@@ -194,7 +208,7 @@
 @BINPATH@/components/@DLL_PREFIX@remoteservice@DLL_SUFFIX@
 #endif
 @BINPATH@/components/@DLL_PREFIX@satchel@DLL_SUFFIX@
-#ifdef WIN_MOZ_1_9_2
+#ifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@spellchk@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@strgcmps@DLL_SUFFIX@
 #else
@@ -204,7 +218,7 @@
 #ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/components/@DLL_PREFIX@system-pref@DLL_SUFFIX@
 #endif
-#ifdef WIN_MOZ_1_9_2
+#ifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@tkautoc@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@tkitcmps@DLL_SUFFIX@
 #else
@@ -212,32 +226,45 @@
 @BINPATH@/components/@DLL_PREFIX@toolkitcomps@DLL_SUFFIX@
 #endif
 @BINPATH@/components/@DLL_PREFIX@txmgr@DLL_SUFFIX@
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@mozuconv@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@uconv@DLL_SUFFIX@
-#ifdef MOZILLA_1_9_2_BRANCH
-@BINPATH@/components/@DLL_PREFIX@ucvmath@DLL_SUFFIX@
 #endif
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@ucdet@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@universalchardet@DLL_SUFFIX@
+#endif
 @BINPATH@/components/@DLL_PREFIX@webbrwsr@DLL_SUFFIX@
 #ifdef MOZ_GTK2
 @BINPATH@/components/@DLL_PREFIX@widget_gtk2@DLL_SUFFIX@
 #elifdef XP_MACOSX
 @BINPATH@/components/@DLL_PREFIX@widget_cocoa@DLL_SUFFIX@
+#elifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@wdgtos2@DLL_SUFFIX@
 #endif
 #ifdef XP_WIN32
 @BINPATH@/components/@DLL_PREFIX@windowsproxy@DLL_SUFFIX@
 #endif
 @BINPATH@/components/@DLL_PREFIX@windowds@DLL_SUFFIX@
-#ifdef WIN_MOZ_1_9_2
+#ifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@xpautoc@DLL_SUFFIX@
 #else
 @BINPATH@/components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
 #endif
 #ifdef XP_WIN32
 @BINPATH@/components/@DLL_PREFIX@xpc3250@DLL_SUFFIX@
+#elifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@xpconect@DLL_SUFFIX@
 #else
 @BINPATH@/components/@DLL_PREFIX@xpconnect@DLL_SUFFIX@
 #endif
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@zipwrite@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
+#endif
 ; ! MOZ_STATIC_BUILD
 #endif
 
@@ -264,9 +291,7 @@
 @BINPATH@/components/commandlines.xpt
 @BINPATH@/components/composer.xpt
 @BINPATH@/components/content_base.xpt
-#ifndef MOZILLA_1_9_2_BRANCH
 @BINPATH@/components/content_canvas.xpt
-#endif
 @BINPATH@/components/content_events.xpt
 @BINPATH@/components/content_htmldoc.xpt
 @BINPATH@/components/content_html.xpt
@@ -279,11 +304,7 @@
 @BINPATH@/components/@DLL_PREFIX@dbusservice@DLL_SUFFIX@
 #endif
 @BINPATH@/components/directory.xpt
-#ifdef WIN_MOZ_1_9_2
-@BINPATH@/components/docshell_base.xpt
-#else
 @BINPATH@/components/docshell.xpt
-#endif
 @BINPATH@/components/dom.xpt
 @BINPATH@/components/dom_base.xpt
 @BINPATH@/components/dom_canvas.xpt
@@ -348,9 +369,6 @@
 @BINPATH@/components/loginmgr.xpt
 @BINPATH@/components/lwbrk.xpt
 @BINPATH@/components/mimetype.xpt
-#ifdef MOZILLA_1_9_2_BRANCH
-@BINPATH@/components/mozbrwsr.xpt
-#endif
 @BINPATH@/components/mozfind.xpt
 #ifdef MOZ_ENABLE_GNOME_COMPONENT
 @BINPATH@/components/@DLL_PREFIX@mozgnome@DLL_SUFFIX@
@@ -377,15 +395,7 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/pref.xpt
 @BINPATH@/components/prefetch.xpt
 @BINPATH@/components/profile.xpt
-#ifdef MOZILLA_1_9_2_BRANCH
-#ifdef XP_WIN32
 @BINPATH@/components/proxyObject.xpt
-#else
-@BINPATH@/components/proxyObjInst.xpt
-#endif
-#else
-@BINPATH@/components/proxyObject.xpt
-#endif
 @BINPATH@/components/rdf.xpt
 @BINPATH@/components/satchel.xpt
 @BINPATH@/components/saxparser.xpt
@@ -428,14 +438,10 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/xpcom_ds.xpt
 @BINPATH@/components/xpcom_io.xpt
 @BINPATH@/components/xpcom_system.xpt
-#ifdef WIN_MOZ_1_9_2
-@BINPATH@/components/xpcom_thread.xpt
-#else
 @BINPATH@/components/xpcom_threads.xpt
-#endif
 @BINPATH@/components/xpcom_xpti.xpt
 @BINPATH@/components/xpconnect.xpt
-#ifdef WIN_MOZ_1_9_2
+#ifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@xpinstal@DLL_SUFFIX@
 #else
 @BINPATH@/components/@DLL_PREFIX@xpinstall@DLL_SUFFIX@
@@ -447,10 +453,8 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/zipwriter.xpt
 
 ; JavaScript components
-#ifndef MOZILLA_1_9_2_BRANCH
 @BINPATH@/components/contentSecurityPolicy.js
 @BINPATH@/components/crypto-SDR.js
-#endif
 @BINPATH@/components/FeedConverter.js
 @BINPATH@/components/FeedProcessor.js
 @BINPATH@/components/FeedWriter.js
@@ -477,18 +481,14 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/nsFormAutoComplete.js
 @BINPATH@/components/nsHandlerService.js
 @BINPATH@/components/nsHelperAppDlg.js
-#ifndef MOZILLA_1_9_2_BRANCH
 @BINPATH@/components/nsINIProcessor.js
-#endif
 @BINPATH@/components/nsLivemarkService.js
 @BINPATH@/components/nsLoginInfo.js
 @BINPATH@/components/nsLoginManager.js
 @BINPATH@/components/nsLoginManagerPrompter.js
 @BINPATH@/components/nsPlacesAutoComplete.js
 @BINPATH@/components/nsPlacesDBFlush.js
-#ifndef MOZILLA_1_9_2_BRANCH
 @BINPATH@/components/nsPlacesExpiration.js
-#endif
 @BINPATH@/components/nsProgressDialog.js
 @BINPATH@/components/nsProxyAutoConfig.js
 @BINPATH@/components/nsSessionStartup.js
@@ -573,7 +573,7 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/chrome/icons/default/main-window48.png
 @BINPATH@/chrome/icons/default/seamonkey.png
 @BINPATH@/icons/updater.png
-#elifdef XP_WIN32
+#elifdef WIN_OR_OS2
 @BINPATH@/chrome/icons/default/bmPropsWindow.ico
 @BINPATH@/chrome/icons/default/bookmark-window.ico
 @BINPATH@/chrome/icons/default/downloadManager.ico
@@ -583,6 +583,7 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/chrome/icons/default/history-window.ico
 @BINPATH@/chrome/icons/default/JSConsoleWindow.ico
 @BINPATH@/chrome/icons/default/main-window.ico
+#ifdef XP_WIN32
 @BINPATH@/chrome/icons/default/gif-file.ico
 @BINPATH@/chrome/icons/default/html-file.ico
 @BINPATH@/chrome/icons/default/misc-file.ico
@@ -592,12 +593,13 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/chrome/icons/default/xml-file.ico
 @BINPATH@/chrome/icons/default/xul-file.ico
 #endif
+#endif
 ; Although venkman-window is an extension, its icon is still suite-specific
 #ifdef MOZ_GTK2
 @BINPATH@/chrome/icons/default/venkman-window.png
 @BINPATH@/chrome/icons/default/venkman-window16.png
 @BINPATH@/chrome/icons/default/venkman-window48.png
-#elifdef XP_WIN32
+#elifdef WIN_OR_OS2
 @BINPATH@/chrome/icons/default/venkman-window.ico
 #endif
 
@@ -607,32 +609,12 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/@PREF_DIR@/channel-prefs.js
 @BINPATH@/@PREF_DIR@/composer.js
 @BINPATH@/@PREF_DIR@/reporter.js
-#ifdef MOZILLA_1_9_2_BRANCH
-@BINPATH@/greprefs/*
-#else
 @BINPATH@/greprefs.js
-#endif
 @BINPATH@/defaults/autoconfig/platform.js
 @BINPATH@/defaults/autoconfig/prefcalls.js
 
 ; [Layout Engine Resources]
 ; Style Sheets, Graphics and other Resources used by the layout engine. 
-#ifdef MOZILLA_1_9_2_BRANCH
-@BINPATH@/res/arrow.gif
-@BINPATH@/res/arrowd.gif
-@BINPATH@/res/broken-image.png
-@BINPATH@/res/charsetalias.properties
-@BINPATH@/res/charsetData.properties
-@BINPATH@/res/forms.css
-@BINPATH@/res/hiddenWindow.html
-@BINPATH@/res/html.css
-@BINPATH@/res/loading-image.png
-@BINPATH@/res/mathml.css
-@BINPATH@/res/quirk.css
-@BINPATH@/res/ua.css
-@BINPATH@/res/unixcharset.properties
-@BINPATH@/res/viewsource.css
-#endif
 @BINPATH@/res/contenteditable.css
 @BINPATH@/res/designmode.css
 @BINPATH@/res/EditorOverride.css
@@ -733,6 +715,7 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/updater@BIN_SUFFIX@
 #endif
 
+#ifndef XP_OS2
 ; [Crash Reporter]
 ;
 #ifdef XP_MACOSX
@@ -742,6 +725,7 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/crashreporter.ini
 #ifdef XP_UNIX
 @BINPATH@/Throbber-small.gif
+#endif
 #endif
 #endif
 
@@ -829,7 +813,7 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/chrome/icons/default/msgcomposeWindow.png
 @BINPATH@/chrome/icons/default/msgcomposeWindow16.png
 @BINPATH@/chrome/icons/default/msgcomposeWindow48.png
-#elifdef XP_WIN32
+#elifdef WIN_OR_OS2
 @BINPATH@/chrome/icons/default/abcardWindow.ico
 @BINPATH@/chrome/icons/default/ablistWindow.ico
 @BINPATH@/chrome/icons/default/addressbookWindow.ico
@@ -866,7 +850,7 @@ bin/libfreebl_32int64_3.so
 #ifdef MOZ_GTK2
 @BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default/chatzilla-window.xpm
 @BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default/chatzilla-window16.xpm
-#elifdef XP_WIN32
+#elifdef WIN_OR_OS2
 @BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default/chatzilla-window.ico
 #endif
 @BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome.manifest
@@ -908,12 +892,6 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/extensions/inspector@mozilla.org/components/components.list
 @BINPATH@/extensions/inspector@mozilla.org/components/inspector-cmdline.js
 @BINPATH@/extensions/inspector@mozilla.org/defaults/preferences/inspector.js
-
-#ifdef MOZILLA_1_9_2_BRANCH
-[reporter]
-@BINPATH@/chrome/reporter.jar
-@BINPATH@/chrome/reporter.manifest
-#endif
 
 [debugqa]
 @BINPATH@/extensions/debugQA@mozilla.org/install.rdf
