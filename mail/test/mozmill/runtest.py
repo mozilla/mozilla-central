@@ -137,6 +137,11 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mail.startup.enabledMailCheckOnce' :  True,
         'extensions.checkCompatibility.3.1b': False,
         'extensions.checkCompatibility.3.2a': False,
+        # Whilst this is unlikely to happen, protect against it anyway. This
+        # also means that if the computer is offline (e.g. developer working
+        # remote), we'll still startup online which is what mozmill currently
+        # requires.
+        'offline.autoDetect': False,
         # Don't load what's new or the remote start page - keep everything local
         # under our control.
         'mailnews.start_page_override.mstone' :  "ignore",
