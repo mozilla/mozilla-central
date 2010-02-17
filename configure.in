@@ -4364,7 +4364,6 @@ MOZ_PREF_EXTENSIONS=1
 MOZ_PROFILELOCKING=1
 MOZ_PSM=1
 MOZ_RDF=1
-MOZ_REFLOW_PERF=
 MOZ_SAFE_BROWSING=
 MOZ_HELP_VIEWER=
 MOZ_SPELLCHECK=1
@@ -6120,18 +6119,6 @@ if test -n "$MOZ_TIMELINE"; then
 fi
 
 dnl ========================================================
-dnl Turn on reflow counting
-dnl ========================================================
-MOZ_ARG_ENABLE_BOOL(reflow-perf,
-[  --enable-reflow-perf    Enable reflow performance tracing],
-    MOZ_REFLOW_PERF=1,
-    MOZ_REFLOW_PERF= )
-if test -n "$MOZ_REFLOW_PREF"; then
-    AC_DEFINE(MOZ_REFLOW_PREF)
-fi
-AC_SUBST(MOZ_REFLOW_PERF)
-
-dnl ========================================================
 dnl Enable code size metrics.
 dnl ========================================================
 MOZ_ARG_ENABLE_BOOL(codesighs,
@@ -7158,11 +7145,6 @@ elif test "$OS_ARCH" != "WINNT" -a "$OS_ARCH" != "OS2" -a "$OS_ARCH" != "WINCE";
   MOZ_MOVEMAIL=1
 fi
 AC_SUBST(MOZ_MOVEMAIL)
-
-if test "$MOZ_DEBUG"; then
-    AC_DEFINE(MOZ_REFLOW_PERF)
-    AC_DEFINE(MOZ_REFLOW_PERF_DSP)
-fi
 
 if test "$ACCESSIBILITY" -a "$MOZ_ENABLE_GTK2" ; then
     AC_DEFINE(MOZ_ACCESSIBILITY_ATK)
