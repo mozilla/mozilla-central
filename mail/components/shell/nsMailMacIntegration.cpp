@@ -90,7 +90,7 @@ nsMailMacIntegration::SetDefaultClient(PRBool aForAllUsers, PRUint16 aApps)
   nsresult rv = NS_OK;
   if (aApps & nsIShellService::MAIL)
     rv |= setAsDefaultHandlerForProtocol(CFSTR("mailto"));
-  if (aApps & nsIShellService::RSS)
+  if (aApps & nsIShellService::NEWS)
     rv |= setAsDefaultHandlerForProtocol(CFSTR("news"));
   if (aApps & nsIShellService::RSS)
     rv |= setAsDefaultHandlerForProtocol(CFSTR("feed"));
