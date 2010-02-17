@@ -919,6 +919,12 @@
                                       label="&event.reminder.none.label;"
                                       selected="true"
                                       value="none"/>
+                            <menuitem id="reminder-0minutes-menuitem"
+                                      label="&event.reminder.0minutes.before.label;"
+                                      length="0"
+                                      origin="before"
+                                      relation="START"
+                                      unit="minutes"/>
                             <menuitem id="reminder-5minutes-menuitem"
                                       label="&event.reminder.5minutes.before.label;"
                                       length="5"

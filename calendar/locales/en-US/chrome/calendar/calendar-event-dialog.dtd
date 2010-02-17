@@ -211,6 +211,7 @@
 <!ENTITY event.priority2.label                            "Priority:">
 
 <!ENTITY event.reminder.none.label                        "No reminder " >
+<!ENTITY event.reminder.0minutes.before.label             "0 minutes before" >
 <!ENTITY event.reminder.5minutes.before.label             "5 minutes before" >
 <!ENTITY event.reminder.10minutes.before.label            "10 minutes before" >
 <!ENTITY event.reminder.15minutes.before.label            "15 minutes before" >
