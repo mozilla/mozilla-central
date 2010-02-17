@@ -251,8 +251,13 @@ menupopup[type="folder"] {
  * area) to become wider than the viewport, which has the bad side-effect of
  * causing the _other_ children (i.e. tabmail, which contains important widgetry
  * like the message scrollbar) to be rendered out of view.
+ *
+ * As it turns out, we only need to override the mail-bar3 (at least of
+ * the toolbars we create), and we only need to override the overflow-x to
+ * fix this problem, so let's do that.  This does open us up to extension
+ * toolbars causing the same problem, but we should be able to get the
+ * authors to change their extensions to prevent this problem.
  */
-#mail-toolbox {
-  overflow: hidden;
+#mail-bar3 {
+  overflow-x: hidden;
 }
-
