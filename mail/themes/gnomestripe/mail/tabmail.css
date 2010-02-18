@@ -91,7 +91,7 @@ tabpanels {
 }
 
 .tabmail-tab[type="glodaSearch"] > .tab-image-middle > .tab-icon-image {
-  list-style-image: url("chrome://global/skin/icons/Search-glass.png");
+  list-style-image: url(moz-icon://stock/gtk-find?size=menu);
 }
 
 .tabs-bottom {

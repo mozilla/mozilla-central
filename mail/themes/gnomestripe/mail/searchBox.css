@@ -52,11 +52,7 @@
 
 .quick-search-button-image {
   margin: 0px;
-  list-style-image: url("chrome://global/skin/icons/Search-glass.png");
-}
-
-.quick-search-button-image:-moz-locale-dir(rtl) {
-  -moz-transform: scaleX(-1);
+  list-style-image: url(moz-icon://stock/gtk-find?size=menu);
 }
 
 .quick-search-clearbutton[clearButtonHidden="true"] {
@@ -64,7 +60,7 @@
 }
 
 .quick-search-button-dropmarker {
-  -moz-margin-start: 13px;
+  -moz-margin-start: 16px;
   list-style-image: url("chrome://messenger/skin/icons/search-arrow.png");
 }
 
