@@ -68,6 +68,9 @@
       <field name="mBatchCount">0</field>
       <field name="mLongWeekdayTotalPixels">-1</field>
       <field name="mResizeHandler">null</field>
+      <field name="mDropShadowsLength">null</field>
+      <field name="mShadowOffset">null</field>
+      <field name="mDropShadows">null</field>
       <field name="mPrefObserver"><![CDATA[
       ({ calView: this,
          observe: function calViewPrefChange(subj, topic, pref) {

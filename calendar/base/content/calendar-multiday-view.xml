@@ -1833,6 +1833,7 @@
           }
 
           this.mItemBoxes.push(itemBox);
+          itemBox.parentBox = this;
         ]]></body>
       </method>
 
@@ -2974,6 +2975,14 @@
                   return col;
           }
           return null;
+        ]]></body>
+      </method>
+
+      <method name="findDayBoxForDate">
+        <parameter name="aDate"/>
+        <body><![CDATA[
+            let col = this.findColumnForDate(aDate);
+            return (col && col.header);
         ]]></body>
       </method>
 

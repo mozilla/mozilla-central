@@ -132,6 +132,10 @@
       <field name="mSelected">false</field>
       <field name="mCalendarView">null</field>
 
+      <property name="parentBox"
+                onget="return this.mParentBox;"
+                onset="this.mParentBox = val;"/>
+
       <property name="selected">
         <getter><![CDATA[
           return this.mSelected;

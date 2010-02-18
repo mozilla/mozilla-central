@@ -159,9 +159,6 @@
           return val;
         ]]></setter>
       </property>
-      <property name="parentBox"
-                onget="return this.mParentBox;"
-                onset="this.mParentBox = val;"/>
     </implementation>
   </binding>
 

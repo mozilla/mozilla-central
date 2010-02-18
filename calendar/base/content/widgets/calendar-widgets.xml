@@ -353,14 +353,26 @@
         <body><![CDATA[
           if (this.mDropShadows) {
               if (this.getElementsByAttribute("class", "dropshadow").length == 0) {
-                  for (let i = 0; i < this.mDropShadows.length; i++) {
-                      let dropshadow =  createXULElement("box");
-                      dropshadow.setAttribute("class", "dropshadow");
-                      if (this.hasChildNodes()) {
-                          this.insertBefore(dropshadow, this.firstChild);
-                      } else {
-                          this.appendChild(dropshadow);
+                  let offset = this.calendarView.mShadowOffset;
+                  let shadowStartDate = this.date.clone();
+                  shadowStartDate.addDuration(offset);
+                  this.calendarView.mDropShadows = [];
+                  for (let i = 0; i < this.calendarView.mDropShadowsLength; i++) {
+                      let box = this.calendarView.findDayBoxForDate(shadowStartDate);
+                      if (!box) {
+                          // Dragging to the end or beginning of a view
+                          shadowStartDate.day += 1;
+                          continue;
                       }
+                      let dropshadow = createXULElement("box");
+                      dropshadow.setAttribute("class", "dropshadow");
+                      if (box.hasChildNodes()) {
+                          box.insertBefore(dropshadow, box.firstChild);
+                      } else {
+                          box.appendChild(dropshadow);
+                      }
+                      shadowStartDate.day += 1;
+                      this.calendarView.mDropShadows.push(box);
                   }
               }
           }
@@ -372,8 +384,10 @@
       <method name="removeDropShadows">
         <body><![CDATA[
             // method that may be overwritten by derived bindings...
-            cal.removeChildElementsByAttribute(this, "class", "dropshadow");
-            this.mDropShadows = null;
+            for each (shadow in this.calendarView.mDropShadows) {
+                cal.removeChildElementsByAttribute(shadow, "class", "dropshadow");
+            }
+            this.calendarView.mDropShadows = null;
         ]]></body>
       </method>
 
@@ -402,6 +416,24 @@
     </implementation>
 
     <handlers>
+      <handler event="dragstart"><![CDATA[
+         let draggedDOMNode = event.target;
+         if (!draggedDOMNode || draggedDOMNode.parentNode != this) {
+             return;
+         }
+         let item = draggedDOMNode.occurrence.clone();
+         let beginMoveDate = draggedDOMNode.mParentBox.date;
+         let itemStartDate = (item.entryDate || item.startDate).getInTimezone(calendarView.mTimezone);
+         let itemEndDate = (item.dueDate || item.endDate).getInTimezone(calendarView.mTimezone);
+         let oneMoreDay = (itemEndDate.hour > 0 || itemEndDate.minute > 0);
+         itemStartDate.isDate = true;
+         itemEndDate.isDate = true;
+         let offset = itemStartDate.subtractDate(beginMoveDate);
+         let len = itemEndDate.subtractDate(itemStartDate).days;
+         this.calendarView.mShadowOffset = offset;
+         this.calendarView.mDropShadowsLength = oneMoreDay ? len + 1 : len;
+      ]]></handler>
+
       <handler event="dragover"><![CDATA[
          let session = cal.getDragService().getCurrentSession();
          if (!session || !session.sourceNode || !session.sourceNode.sourceObject) {
@@ -466,10 +498,13 @@
          // sourceNode property and get the event that way
          //transfer.getAnyTransferData(flavor, data, {});
 
-         let item = session.sourceNode.sourceObject;
+         item = session.sourceNode.sourceObject;
          let newItem = this.onDropItem(item).clone();
          let newStart = newItem.startDate || newItem.entryDate;
          let newEnd = newItem.endDate || newItem.dueDate;
+         let offset = this.calendarView.mShadowOffset;
+         newStart.addDuration(offset);
+         newEnd.addDuration(offset);
          this.calendarView.controller.modifyOccurrence(item, newStart, newEnd);
 
          // We handled the event
