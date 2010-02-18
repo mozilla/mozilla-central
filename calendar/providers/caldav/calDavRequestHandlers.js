@@ -163,6 +163,7 @@ etagsHandler.prototype = {
                     if ((wasInboxItem && this.calendar.isInbox(this.baseUri.spec)) ||
                         (wasInboxItem === false && !this.calendar.isInbox(this.baseUri.spec))) {
                         delete this.calendar.mHrefIndex[path];
+                        this.calendar.mTargetCalendar.deleteItem(foundItem, null);
                         needsRefresh = true;
                     }
                 }
