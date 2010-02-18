@@ -657,8 +657,7 @@ tab[calview] > .tab-middle {
     font-weight: normal;
     font-size: 14px;
     color: #2E4E73;
-    padding-top: 5px;
-    margin-top: 5px;
+    margin-bottom: -1px;
 }
 
 .view-header[type="end"] {
@@ -694,11 +693,11 @@ tab[calview] > .tab-middle {
 .today-navigation-button {
     -moz-user-focus: normal;
     -moz-appearance: toolbarbutton;
-    margin-top: 2px;
+    margin-top: 3px;
     -moz-margin-start: 2px;
     -moz-margin-end: 2px;
     margin-bottom: 0px;
-    padding: 4px;
+    padding: 3px;
     padding-bottom: 5px;
     color: #2E4E73;
 }
