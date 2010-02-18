@@ -89,6 +89,10 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                 return aRuleString + nounClass.substr(0, 1).toUpperCase() +
                        nounClass.substr(1);
             }
+            function pluralWeekday(aDayString) {
+                let plural = getRString("pluralForWeekdays") == "true";
+                return (plural ? aDayString + "Plural" : aDayString);
+            }
 
             let ruleString;
             if (rule.type == 'DAILY') {
@@ -124,7 +128,11 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     // first day of the list
                     let weeklyString = nounClass("repeatDetailsDay" + days[0], "weeklyNthOn");
                     for (let i = 0; i < days.length; i++) {
-                        weekdays += getRString("repeatDetailsDay" + days[i]);
+                        if (rule.interval == 1) {
+                            weekdays += getRString(pluralWeekday("repeatDetailsDay" + days[i]));
+                        } else {
+                            weekdays += getRString("repeatDetailsDay" + days[i]);
+                        }
                         if (days.length > 1 && i == (days.length - 2)) {
                             weekdays += ' ' + getRString("repeatDetailsAnd") + ' ';
                         } else if (i < days.length - 1) {
@@ -148,7 +156,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         // i.e every MONDAY of every N months
                         let monthlyString = "monthlyEveryOfEvery";
                         let dayString = "repeatDetailsDay" + day_of_week(byday[0]);
-                        let day = getRString(dayString);
+                        let day = getRString(pluralWeekday(dayString));
                         monthlyString = nounClass(dayString, monthlyString);
                         monthlyString = getRString(monthlyString, [day]);
                         ruleString = PluralForm.get(rule.interval, monthlyString)
@@ -240,11 +248,11 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
 
                     if (bymonth.length == 1 && byday.length == 1) {
                         let dayString = "repeatDetailsDay" + day_of_week(byday[0]);
-                        let day = getRString(dayString);
                         let month = getRString("repeatDetailsMonth" + bymonth[0]);
                         if (day_position(byday[0]) == 0) {
                             let yearlyString = "yearlyOnEveryNthOfNth";
                             yearlyString = nounClass(dayString, yearlyString);
+                            let day = getRString(pluralWeekday(dayString));
                             yearlyString = getRString(yearlyString, [day, month]);
                             ruleString = PluralForm.get(rule.interval, yearlyString)
                                                    .replace("#3", rule.interval);
@@ -254,6 +262,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                             yearlyString = nounClass(dayString, yearlyString);
                             ordinalString = nounClass(dayString, ordinalString);
                             let ordinal = getRString(ordinalString);
+                            let day = getRString(dayString);
                             yearlyString = getRString(yearlyString, [ordinal, day, month]);
                             ruleString = PluralForm.get(rule.interval, yearlyString)
                                                    .replace("#4", rule.interval);
