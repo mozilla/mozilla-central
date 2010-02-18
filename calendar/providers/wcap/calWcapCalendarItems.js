@@ -405,12 +405,11 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request) {
             return (item && item.organizer && item.organizer.id ? item.organizer.id : null);
         }
         var orgCalId = getCalId(item.organizer);
-        // xxx todo: mbu initially sets this ownerId:
-        if (!orgCalId) {
+        if (!orgCalId) { // new events yet don't have X-S1CS-CALID set on ORGANIZER or this is outbound iTIP
             var orgId = getOrgId(item);
-            if (!orgId || (orgId == this.ownerId)) {
-                orgCalId = calId; // patch to this calid
-            }
+            if (!orgId || (orgId.toLowerCase().replace(/^mailto:/, "") == this.ownerId.toLowerCase())) {
+                orgCalId = calId; // own event
+            } // else outbound
         }
         
         var attendees = item.getAttendees({});
