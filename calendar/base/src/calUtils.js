@@ -262,7 +262,8 @@ function getCalendarDirectory() {
         dir.append("calendar-data");
         if (!dir.exists()) {
             try {
-                dir.create(Components.interfaces.nsIFile.DIRECTORY_TYPE, 0700);
+                dir.create(Components.interfaces.nsIFile.DIRECTORY_TYPE,
+                           parseInt("0700", 8));
             } catch (exc) {
                 ASSERT(false, exc);
                 throw exc;

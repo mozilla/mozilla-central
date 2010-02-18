@@ -484,7 +484,7 @@ var gDataMigrator = {
                 var fileStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
                                  .createInstance(Components.interfaces.nsIFileInputStream);
 
-                fileStream.init(dataStore, 0x01, 0444, {});
+                fileStream.init(dataStore, 0x01, parseInt("0444", 8), {});
                 var convStream = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
                                  .getService(Components.interfaces.nsIConverterInputStream);
                                  convStream.init(fileStream, 'UTF-8', 0, 0x0000);
@@ -509,12 +509,13 @@ var gDataMigrator = {
                 }
                 var tempFile = gDataMigrator.dirService.get("TmpD", Components.interfaces.nsIFile);
                 tempFile.append("icalTemp.ics");
-                tempFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0600);
+                tempFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE,
+                                      parseInt("0600", 8));
                 var tempUri = gDataMigrator.ioService.newFileURI(tempFile);
 
                 var stream = Components.classes["@mozilla.org/network/file-output-stream;1"]
                              .createInstance(Components.interfaces.nsIFileOutputStream);
-                stream.init(tempFile, 0x2A, 0600, 0);
+                stream.init(tempFile, 0x2A, parseInt("0600", 8), 0);
                 var convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
                                 .createInstance(Components.interfaces.nsIConverterOutputStream);
                 convStream.init(stream, 'UTF-8', 0, 0x0000);
@@ -624,7 +625,7 @@ var gDataMigrator = {
         var items = [];
 
         try {
-            inputStream.init(icsFile, MODE_RDONLY, 0444, {});
+            inputStream.init(icsFile, MODE_RDONLY, parseInt("0444", 8), {});
             items = icsImporter.importFromStream(inputStream, {});
         } catch(ex) {
             switch (ex.result) {

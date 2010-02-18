@@ -374,7 +374,8 @@ calItipEmailTransport.prototype = {
                                      .createInstance(Components.interfaces.nsIProperties);
             var tempFile = dirUtils.get("TmpD", Components.interfaces.nsIFile);
             tempFile.append("itipTemp");
-            tempFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0600);
+            tempFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE,
+                                  parseInt("0600", 8));
 
             var outputStream = Components.classes["@mozilla.org/network/file-output-stream;1"]
                                          .createInstance(Components.interfaces.nsIFileOutputStream);
@@ -384,7 +385,8 @@ calItipEmailTransport.prototype = {
             const MODE_TRUNCATE = 0x20;
             outputStream.init(tempFile,
                               MODE_WRONLY | MODE_CREATE | MODE_TRUNCATE,
-                              0600, 0);
+                              parseInt("0600", 8),
+                              0);
             outputStream.write(mailText, mailText.length);
             outputStream.close();
 

@@ -289,7 +289,10 @@ calDNDBaseObserver.prototype = {
 
                 var inputStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
                                   .createInstance(Components.interfaces.nsIFileInputStream);
-                inputStream.init(localFileInstance, MODE_RDONLY, 0444, {});
+                inputStream.init(localFileInstance,
+                                 MODE_RDONLY,
+                                 parseInt("0444", 8),
+                                 {});
 
                 try {
                     //XXX support csv

@@ -107,7 +107,7 @@ function loadEventsFromFile(aCalendar) {
         let items = [];
 
         try {
-            inputStream.init( fp.file, MODE_RDONLY, 0444, {});
+            inputStream.init( fp.file, MODE_RDONLY, parseInt("0444", 8), {});
             items = importer.importFromStream(inputStream, {});
         } catch(ex) {
             switch (ex.result) {
@@ -302,7 +302,11 @@ function saveEventsToFile(calendarEventArray, aDefaultFileName) {
         outputStream = Components.classes["@mozilla.org/network/file-output-stream;1"]
                                  .createInstance(nsIFileOutputStream);
         try {
-            outputStream.init(localFileInstance, MODE_WRONLY | MODE_CREATE | MODE_TRUNCATE, 0664, 0);
+            outputStream.init(localFileInstance,
+                              MODE_WRONLY | MODE_CREATE | MODE_TRUNCATE,
+                              parseInt("0664", 8),
+                              0);
+
             // XXX Do the right thing with unicode and stuff. Or, again, should the
             //     exporter handle that?
             exporter.exportToStream(outputStream,

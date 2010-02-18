@@ -604,7 +604,8 @@ calICSCalendar.prototype = {
         function makeDailyFileName() {
             var dailyBackupFile = backupDir.clone();
             dailyBackupFile.append(makeName('day'));
-            dailyBackupFile.createUnique(CI.nsIFile.NORMAL_FILE_TYPE, 0600);
+            dailyBackupFile.createUnique(CI.nsIFile.NORMAL_FILE_TYPE,
+                                         parseInt("0600", 8));
             dailyBackupFileName = dailyBackupFile.leafName;
 
             // Remove the reference to the nsIFile, because we need to
@@ -687,7 +688,7 @@ calICSCalendar.prototype = {
             var backupDir = cal.getCalendarDirectory();
             backupDir.append("backup");
             if (!backupDir.exists()) {
-                backupDir.create(CI.nsIFile.DIRECTORY_TYPE, 0755);
+                backupDir.create(CI.nsIFile.DIRECTORY_TYPE, parseInt("0755", 8));
             }
         } catch(e) {
             // Backup dir wasn't found. Likely because we are running in
@@ -733,7 +734,7 @@ calICSCalendar.prototype = {
 
         var backupFile = backupDir.clone();
         backupFile.append(makeName('edit'));
-        backupFile.createUnique(CI.nsIFile.NORMAL_FILE_TYPE, 0600);
+        backupFile.createUnique(CI.nsIFile.NORMAL_FILE_TYPE, parseInt("0600", 8));
         
         purgeOldBackups();
 
