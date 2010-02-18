@@ -119,6 +119,12 @@ function getPreviewForTask( toDoItem )
       hasHeader = true;
     }
 
+    // First try to get calendar name appearing in tooltip
+    if (toDoItem.calendar.name) {
+      let calendarNameString = toDoItem.calendar.name;
+      boxAppendLabeledText(vbox, "tooltipCalName", calendarNameString);
+    }
+
     if (toDoItem.entryDate && toDoItem.entryDate.isValid)
     {
       boxAppendLabeledDateTime(vbox, "tooltipStart", toDoItem.entryDate);
@@ -218,6 +224,12 @@ function getPreviewForEvent( aEvent) {
         event = getCurrentNextOrPreviousRecurrence(event);
     }
     boxAppendLabeledDateTimeInterval(vbox, "tooltipDate", event);
+
+    // First try to get calendar name appearing in tooltip
+    if (event.calendar.name) {
+      let calendarNameString = event.calendar.name;
+      boxAppendLabeledText(vbox, "tooltipCalName", calendarNameString);
+    }
 
     if (event.status && event.status != "NONE") {
       var statusString = getEventStatusString(event);
