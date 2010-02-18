@@ -1409,7 +1409,7 @@ FeedWriter.prototype = {
    onTitleChanged: function() { },
    onDeleteURI: function() { },
    onClearHistory: function() { },
-   onPageExpired: function() { },
+   onDeleteVisits: function() { },
 
   // nsIClassInfo
   getInterfaces: function getInterfaces(countRef) {

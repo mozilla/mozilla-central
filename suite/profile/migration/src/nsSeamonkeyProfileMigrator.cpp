@@ -293,7 +293,6 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("browser.fixup.hide_user_pass",            Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.frames.enabled",                  Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.history.grouping",                String),
-  MAKESAMETYPEPREFTRANSFORM("browser.history_expire_days",             Int),
   MAKESAMETYPEPREFTRANSFORM("browser.link.open_external",              Int),
   MAKESAMETYPEPREFTRANSFORM("browser.link.open_newwindow",             Int),
   MAKESAMETYPEPREFTRANSFORM("browser.open.dir",                        String),

@@ -48,15 +48,9 @@
             label="&pref.history.title;"
             script="chrome://communicator/content/pref/pref-history.js">
     <preferences id="history_preferences">
-      <preference id="browser.history_expire_days_min"
-                  name="browser.history_expire_days_min"
-                  type="int"/>
-      <preference id="browser.history_expire_days"
-                  name="browser.history_expire_days"
-                  type="int"/>
-      <preference id="browser.history_expire_sites"
-                  name="browser.history_expire_sites"
-                  type="int"/>
+      <preference id="places.history.enabled"
+                  name="places.history.enabled"
+                  type="bool"/>
       <preference id="pref.browser.history.disable_button.clear_hist"
                   name="pref.browser.history.disable_button.clear_hist"
                   type="bool"/>
@@ -87,36 +81,10 @@
                   preference="pref.browser.history.disable_button.clear_hist"/>
         </hbox>
       </hbox>
-      <hbox align="center">
-        <label value="&expireDaysMin1.label;"
-               accesskey="&expireDaysMin1.accesskey;"
-               control="histDayMin"/>
-        <textbox id="histDayMin"
-                 type="number"
-                 size="4"
-                 preference="browser.history_expire_days_min"/>
-        <label value="&expireDaysMin2.label;"/>
-      </hbox>
-      <hbox align="center">
-        <label value="&expireDays1.label;"
-               accesskey="&expireDays1.accesskey;"
-               control="histDay"/>
-        <textbox id="histDay"
-                 type="number"
-                 size="4"
-                 preference="browser.history_expire_days"/>
-        <label value="&expireDays2.label;"/>
-      </hbox>
-      <hbox align="center">
-        <label value="&expireSites1.label;"
-               accesskey="&expireSites1.accesskey;"
-               control="histSites"/>
-        <textbox id="histSites"
-                 type="number"
-                 size="6"
-                 preference="browser.history_expire_sites"/>
-        <label value="&expireSites2.label;"/>
-      </hbox>
+      <checkbox id="histEnable"
+                label="&enableHistory.label;"
+                accesskey="&enableHistory.accesskey;"
+                preference="places.history.enabled"/>
     </groupbox>
 
     <!-- no honey, I haven't been viewing porn, honest! -->
