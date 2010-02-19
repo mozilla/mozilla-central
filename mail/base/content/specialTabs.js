@@ -145,6 +145,12 @@ var specialTabs = {
 
   // This will open any special tabs if necessary on startup.
   openSpecialTabsOnStartup: function() {
+    window.addEventListener("unload", specialTabs.onunload, false);
+
+    Components.classes["@mozilla.org/observer-service;1"]
+              .getService(Components.interfaces.nsIObserverService)
+              .addObserver(specialTabs, "mail-startup-done", false);
+
     let tabmail = document.getElementById('tabmail');
 
     var prefs = Components.classes["@mozilla.org/preferences-service;1"]
@@ -810,6 +816,93 @@ var specialTabs = {
       // Add the listener.
       aTab.browser.addEventListener("DOMWindowClose",
                                     aTab.closeListener, true);
+    }
+  },
+
+  observe: function (aSubject, aTopic, aData) {
+    if (aTopic != "mail-startup-done")
+      return;
+
+    Components.classes["@mozilla.org/observer-service;1"]
+      .getService(Components.interfaces.nsIObserverService)
+      .addObserver(this.xpInstallObserver, "xpinstall-install-blocked", false);
+  },
+
+  onunload: function () {
+    Components.classes["@mozilla.org/observer-service;1"]
+      .getService(Components.interfaces.nsIObserverService)
+      .removeObserver(this.xpInstallObserver, "xpinstall-install-blocked");
+  },
+
+  xpInstallObserver: {
+    get _prefService() {
+      delete this._prefService;
+      return this._prefService =
+        Components.classes["@mozilla.org/preferences-service;1"]
+                  .getService(Components.interfaces.nsIPrefBranch2);
+    },
+
+    observe: function (aSubject, aTopic, aData) {
+      let brandBundle = document.getElementById("bundle_brand");
+      let messengerBundle = document.getElementById("bundle_messenger");
+      switch (aTopic) {
+      case "xpinstall-install-blocked":
+        let installInfo =
+          aSubject.QueryInterface(Components.interfaces.nsIXPIInstallInfo);
+        let win = installInfo.originatingWindow;
+        let notificationBox = getNotificationBox(win.top);
+        if (notificationBox) {
+          let host = installInfo.originatingURI.host;
+          let brandShortName = brandBundle.getString("brandShortName");
+          let notificationName, messageString, buttons;
+          if (!this._prefService.getBoolPref("xpinstall.enabled")) {
+            notificationName = "xpinstall-disabled";
+            if (this._prefService.prefIsLocked("xpinstall.enabled")) {
+              messageString = messengerBundle.getString("xpinstallDisabledMessageLocked");
+              buttons = [];
+            }
+            else {
+              messageString = messengerBundle.getString("xpinstallDisabledMessage");
+
+              buttons = [{
+                label: messengerBundle.getString("xpinstallDisabledButton"),
+                accessKey: messengerBundle.getString("xpinstallDisabledButton.accesskey"),
+                popup: null,
+                callback: function editPrefs() {
+                  specialTabs.xpInstallObserver
+                             ._prefService.setBoolPref("xpinstall.enabled", true);
+                  return false;
+                }
+              }];
+            }
+          }
+          else {
+            notificationName = "xpinstall";
+            messageString = messengerBundle.getFormattedString("xpinstallPromptWarning",
+                                                               [brandShortName, host]);
+
+            buttons = [{
+              label: messengerBundle.getString("xpinstallPromptAllowButton"),
+              accessKey: messengerBundle.getString("xpinstallPromptAllowButton.accesskey"),
+              popup: null,
+              callback: function() {
+                var mgr = Components.classes["@mozilla.org/xpinstall/install-manager;1"]
+                  .createInstance(Components.interfaces.nsIXPInstallManager);
+                mgr.initManagerWithInstallInfo(installInfo);
+                return false;
+              }
+            }];
+          }
+
+          if (!notificationBox.getNotificationWithValue(notificationName)) {
+            const priority = notificationBox.PRIORITY_WARNING_MEDIUM;
+            const iconURL = "chrome://mozapps/skin/update/update.png";
+            notificationBox.appendNotification(messageString, notificationName,
+                                               iconURL, priority, buttons);
+          }
+        }
+        break;
+      }
     }
   }
 };

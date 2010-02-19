@@ -249,6 +249,11 @@ dump(" cleanup!\n");
       delete this.waitingList[this.waitingForOpen];
       this._timer.cancel();
 dump("canceled!\n");
+
+      // now we are waiting for it to close...
+      this.waitingForClose = this.waitingForOpen;
+      this.waitingForOpen = null;
+
       try {
         dump("::: calling\n");
         try {
@@ -263,9 +268,6 @@ dump("canceled!\n");
       finally {
         this.subTestFunc = null;
       }
-      // now we are waiting for it to close...
-      this.waitingForClose = this.waitingForOpen;
-      this.waitingForOpen = null;
 
       // if the test failed, make sure we force the window closed...
       // except I'm not sure how to easily figure that out...
@@ -292,14 +294,15 @@ dump("canceled!\n");
       return;
     // spin the event loop until we the window has come and gone.
     controller.waitForEval(
-      'subject.waitingForOpen == null && subject.waitingForClose == null',
+      'subject.waitingForOpen == null && subject.monitorizeClose()',
       WINDOW_OPEN_TIMEOUT_MS, WINDOW_OPEN_CHECK_INTERVAL_MS, this);
     this.waitingForClose = null;
   },
 
   planForWindowClose: function WindowWatcher_planForWindowClose(aXULWindow) {
     let windowType =
-      aXULWindow.document.documentElement.getAttribute("windowtype");
+      aXULWindow.document.documentElement.getAttribute("windowtype") ||
+      aXULWindow.document.documentElement.getAttribute("id");
     this.waitingList[windowType] = aXULWindow;
     this.waitingForClose = windowType;
   },
@@ -410,7 +413,8 @@ dump("### has contentViewer\n");
       return false;
 dump("has href: " + outerDoc.location.href + "\n");
     // finally, we can now have a windowtype!
-    let windowType = outerDoc.documentElement.getAttribute("windowtype");
+    let windowType = outerDoc.documentElement.getAttribute("windowtype") ||
+                     outerDoc.documentElement.getAttribute("id");
 dump("has windowtype: " + windowType + "\n");
 dump("this: " + this + "\n");
 dump("waitingList: " + this.waitingList + "\n");
@@ -435,7 +439,8 @@ dump("waitingList: " + this.waitingList + "\n");
     let domWindow = aXULWindow.docShell.QueryInterface(Ci.nsIInterfaceRequestor)
                                        .getInterface(Ci.nsIDOMWindowInternal);
     let windowType =
-      domWindow.document.documentElement.getAttribute("windowtype");
+      domWindow.document.documentElement.getAttribute("windowtype") ||
+      domWindow.document.documentElement.getAttribute("id");
     // XXX because of how we dance with things, equivalence is not gonna
     //  happen for us.  This is most pragmatic.
     if (this.waitingList[windowType] !== null)
@@ -503,7 +508,9 @@ function wait_for_new_window(aWindowType) {
  *  you need to provide a sub-test function to be run inside the modal dialog
  *  (and it should not start with "test" or mozmill will also try and run it.)
  *
- * @param aWindowType The window type that you expect the modal dialog to have.
+ * @param aWindowType The window type that you expect the modal dialog to have
+ *                    or the id of the window if there is no window type
+ *                    available.
  * @param aSubTestFunction The sub-test function that will be run once the modal
  *     dialog appears and is loaded.  This function should take one argument,
  *     a MozmillController against the modal dialog.
@@ -605,11 +612,14 @@ var AugmentEverybodyWith = {
      *  // when you want the first descendent with the given tagName
      *  a("threadTree", {tagName: "treechildren"})
      *
+     * @param aId The element id or the actual element.
+     *
      * @return the anonymous element determined by the query found in the
      *  anonymous sub-tree of the element with the given id.
      */
     a: function _get_anon_element_by_id_and_query(aId, aQuery) {
-      let realElem = this.window.document.getElementById(aId);
+      let realElem = (typeof(aId) == "string") ?
+                       this.window.document.getElementById(aId) : aId;
       if (aQuery["class"]) {
         return this.window.document.getAnonymousElementByAttribute(
           realElem, "class", aQuery["class"]);
