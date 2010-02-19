@@ -4588,20 +4588,17 @@ nsresult nsMsgDBView::ExpansionDelta(nsMsgViewIndex index, PRInt32 *expansionDel
   // The client can pass in the key of any message
   // in a thread and get the expansion delta for the thread.
 
-  if (!(m_viewFlags & nsMsgViewFlagsType::kUnreadOnly))
+  if (flags & nsMsgMessageFlags::Elided)
   {
     rv = GetThreadCount(index, &numChildren);
     NS_ENSURE_SUCCESS(rv, rv);
+    *expansionDelta = numChildren - 1;
   }
   else
   {
     numChildren = CountExpandedThread(index);
-  }
-
-  if (flags & nsMsgMessageFlags::Elided)
-    *expansionDelta = numChildren - 1;
-  else
     *expansionDelta = - (PRInt32) (numChildren - 1);
+  }
 
   return NS_OK;
 }
@@ -4781,29 +4778,30 @@ nsresult nsMsgDBView::CollapseByIndex(nsMsgViewIndex index, PRUint32 *pNumCollap
 {
   nsresult  rv;
   PRInt32  flags = m_flags[index];
-  PRInt32  threadCount = 0;
+  PRInt32  rowDelta = 0;
 
   if (flags & nsMsgMessageFlags::Elided || !(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay) || !(flags & MSG_VIEW_FLAG_HASCHILDREN))
     return NS_OK;
-  flags |= nsMsgMessageFlags::Elided;
 
   if (index > m_keys.Length())
     return NS_MSG_MESSAGE_NOT_FOUND;
 
+  rv = ExpansionDelta(index, &rowDelta);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  flags |= nsMsgMessageFlags::Elided;
+
   m_flags[index] = flags;
   NoteChange(index, 1, nsMsgViewNotificationCode::changed);
 
-  rv = ExpansionDelta(index, &threadCount);
-  if (NS_SUCCEEDED(rv))
-  {
-    PRInt32 numRemoved = threadCount; // don't count first header in thread
-    NoteStartChange(index + 1, -numRemoved, nsMsgViewNotificationCode::insertOrDelete);
-    // start at first id after thread.
-    RemoveRows(index + 1, threadCount);
-    if (pNumCollapsed != nsnull)
-      *pNumCollapsed = numRemoved;
-    NoteEndChange(index + 1, -numRemoved, nsMsgViewNotificationCode::insertOrDelete);
-  }
+  PRInt32 numRemoved = -rowDelta; // don't count first header in thread
+  NoteStartChange(index + 1, rowDelta, nsMsgViewNotificationCode::insertOrDelete);
+  // start at first id after thread.
+  RemoveRows(index + 1, numRemoved);
+  if (pNumCollapsed != nsnull)
+    *pNumCollapsed = numRemoved;
+  NoteEndChange(index + 1, rowDelta, nsMsgViewNotificationCode::insertOrDelete);
+
   return rv;
 }
 

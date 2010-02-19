@@ -506,6 +506,25 @@ function test_threading_levels() {
   }
 }
 
+function test_expand_collapse() {
+  let oldRowCount = gDBView.rowCount;
+  let thirdChild = gDBView.getMsgHdrAt(3);
+  gDBView.toggleOpenState(0);
+  if (gDBView.rowCount != oldRowCount - 9)
+    view_throw("collapsing first item should have removed 9 items");
+
+  // test that expand/collapse works with killed sub-thread.
+  oldRowCount = gDBView.rowCount;
+  gTestFolder.msgDatabase.MarkHeaderKilled(thirdChild, true, null);
+  gDBView.toggleOpenState(0);
+  if (gDBView.rowCount != oldRowCount + 2)
+    view_throw("expanding first item should have aded 2 items");
+  oldRowCount = gDBView.rowCount;
+  gDBView.toggleOpenState(0);
+  if (gDBView.rowCount != oldRowCount - 2)
+    view_throw("collapsing first item should have removed 2 items");
+}
+
 function test_qs_results() {
   // This just tests that bug 505967 hasn't regressed.
   if (gTreeView.getLevel(0) != 0)
@@ -591,6 +610,7 @@ var tests_for_specific_views = {
     test_group_dummies_under_mutation_by_date
   ],
   threaded: [
+    test_expand_collapse
   ],
   search: [
     test_msg_added_to_search_view
