@@ -425,7 +425,7 @@
 @BINPATH@/components/dom_offline.xpt
 @BINPATH@/components/dom_range.xpt
 @BINPATH@/components/dom_sidebar.xpt
-#ifndef MOZILLA_1_9_2_BRANCH
+#ifdef MOZ_SMIL
 @BINPATH@/components/dom_smil.xpt
 #endif
 @BINPATH@/components/dom_storage.xpt

@@ -318,7 +318,9 @@
 @BINPATH@/components/dom_offline.xpt
 @BINPATH@/components/dom_range.xpt
 @BINPATH@/components/dom_sidebar.xpt
+#ifdef MOZ_SMIL
 @BINPATH@/components/dom_smil.xpt
+#endif
 @BINPATH@/components/dom_storage.xpt
 @BINPATH@/components/dom_stylesheets.xpt
 @BINPATH@/components/dom_svg.xpt
