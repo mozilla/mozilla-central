@@ -105,7 +105,7 @@ MOZ_SOURCE_STAMP = $(shell hg -R $(srcdir) parent --template="{node|short}\n" 2>
 export MOZ_SOURCE_STAMP
 
 DIST_GARBAGE = config.cache config.log config.status config-defs.h \
-   dependencies.beos config/myrules.mk config/myconfig.mk \
+   dependencies.beos \
    unallmakefiles mozilla-config.h \
    $(topsrcdir)/.mozconfig.mk $(topsrcdir)/.mozconfig.out
 
