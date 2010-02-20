@@ -1129,6 +1129,9 @@ SessionStoreService.prototype = {
     }
     entry.ID = aEntry.ID;
 
+    if (aEntry.referrerURI)
+      entry.referrer = aEntry.referrerURI.spec;
+
     if (aEntry.contentType)
       entry.contentType = aEntry.contentType;
 
@@ -1968,6 +1971,8 @@ SessionStoreService.prototype = {
     shEntry.loadType = Components.interfaces.nsIDocShellLoadInfo.loadHistory;
     if (aEntry.contentType)
       shEntry.contentType = aEntry.contentType;
+    if (aEntry.referrer) 
+      shEntry.referrerURI = ioService.newURI(aEntry.referrer, null, null);
 
     if (aEntry.cacheKey) {
       var cacheKey = Components.classes["@mozilla.org/supports-PRUint32;1"]
