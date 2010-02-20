@@ -579,13 +579,9 @@ static nsresult
 WriteBitmap(nsIFile* aFile, imgIContainer* aImage)
 {
   nsRefPtr<gfxImageSurface> image;
-#ifdef MOZILLA_1_9_2_BRANCH
-  nsresult rv = aImage->CopyCurrentFrame(getter_AddRefs(image));
-#else
   nsresult rv = aImage->CopyFrame(imgIContainer::FRAME_CURRENT,
                                   imgIContainer::FLAG_SYNC_DECODE,
                                   getter_AddRefs(image));
-#endif
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRInt32 width = image->Width();
