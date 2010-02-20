@@ -40,45 +40,26 @@ chrome/icons/default/msgcomposeWindow.xpm
 chrome/icons/default/msgcomposeWindow16.xpm
 chrome/icons/default/venkman-window.xpm
 chrome/icons/default/venkman-window16.xpm
-#ifndef MOZILLA_1_9_2_BRANCH
 chrome/reporter.jar
 chrome/reporter.manifest
-#endif
 chrome/venkman.jar
 #ifdef XP_MACOSX
 updater.app/Contents/MacOS/updater.ini
-#endif
-#ifdef MOZILLA_1_9_2_BRANCH
-components/components.list
 #endif
 components/airbag.xpt
 components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
 components/chatzilla-service.js
-#ifdef MOZILLA_1_9_2_BRANCH
-components/contentSecurityPolicy.js
-#endif
 components/crashreporter.xpt
-#ifdef MOZILLA_1_9_2_BRANCH
-components/crypto-SDR.js
-#endif
 components/downloadmanager.xpt
-#ifndef MOZILLA_1_9_2_BRANCH
 components/mozbrwsr.xpt
-#endif
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/nsCloseAllWindows.js
 components/nsDictionary.js
 components/nsDownloadProgressListener.js
-#ifdef MOZILLA_1_9_2_BRANCH
-components/nsINIProcessor.js
-#endif
 components/nsInterfaceInfoToIDL.js
 components/nsKillAll.js
 components/nsLDAPPrefsService.js
-#ifdef MOZILLA_1_9_2_BRANCH
-components/nsPlacesExpiration.js
-#endif
 #ifdef XP_WIN
 components/nsPostUpdateWin.js
 #endif
@@ -96,9 +77,7 @@ components/sigonviewer.xpt
 components/@DLL_PREFIX@srchsvc@DLL_SUFFIX@
 components/@DLL_PREFIX@suitetypeaheadfind@DLL_SUFFIX@
 components/suitetypeaheadfind.xpt
-#ifndef MOZILLA_1_9_2_BRANCH
 components/@DLL_PREFIX@ucvmath@DLL_SUFFIX@
-#endif
 components/urlwidgt.xpt
 components/util.xpt
 components/venkman-service.js
@@ -114,11 +93,7 @@ components/wlltvwrs.dll
 components/xml-rpc.xpt
 components/@DLL_PREFIX@xmlextras@DLL_SUFFIX@
 #ifdef XP_WIN
-#ifdef MOZILLA_1_9_2_BRANCH
-components/xpinstall.dll
-#else
 components/xpinstal.dll
-#endif
 #endif
 defaults/wallet/VcardSchema.tbl
 defaults/wallet/FieldSchema.tbl
@@ -130,14 +105,10 @@ defaults/wallet/StateSchema.tbl
 #ifdef XP_WIN
 gksvggdiplus.dll
 #endif
-#ifdef MOZILLA_1_9_2_BRANCH
-greprefs.js
-#else
 greprefs/all.js
 greprefs/security-prefs.js
 greprefs/xpinstall.js
 greprefs/
-#endif
 #ifdef XP_WIN
 jsj3250.dll
 #else
@@ -154,39 +125,25 @@ msvcm80.dll
 msvcp80.dll
 msvcr80.dll
 #else
-#ifdef MOZILLA_1_9_2_BRANCH
-mozcpp19.dll
-#endif
 mozcrt19.dll
 #endif
-#ifdef MOZILLA_1_9_2_BRANCH
-@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
-#else
 @DLL_PREFIX@sqlite3@DLL_SUFFIX@
-#endif
 xpicleanup.exe
 regxpcom.exe
 #else
 xpicleanup
 #endif
-#ifndef MOZILLA_1_9_2_BRANCH
 res/arrow.gif
 res/arrowd.gif
-#endif
 res/broken-image.gif
-#ifndef MOZILLA_1_9_2_BRANCH
 res/broken-image.png
 res/charsetalias.properties
 res/charsetData.properties
-#endif
 res/cmessage.txt
-#ifndef MOZILLA_1_9_2_BRANCH
 res/forms.css
 res/hiddenWindow.html
 res/html.css
-#endif
 res/loading-image.gif
-#ifndef MOZILLA_1_9_2_BRANCH
 res/loading-image.png
 res/maccharset.properties
 res/mathml.css
@@ -196,7 +153,6 @@ res/ua.css
 res/unixcharset.properties
 res/viewsource.css
 res/wincharset.properties
-#endif
 modules/dbViewWrapper.js
 modules/mailViewManager.js
 modules/quickSearchManager.js
@@ -257,9 +213,6 @@ components/@DLL_PREFIX@tkautocomplete@DLL_SUFFIX@
 components/@DLL_PREFIX@toolkitcomps@DLL_SUFFIX@
 components/@DLL_PREFIX@txmgr@DLL_SUFFIX@
 components/@DLL_PREFIX@uconv@DLL_SUFFIX@
-#ifdef MOZILLA_1_9_2_BRANCH
-components/@DLL_PREFIX@ucvmath@DLL_SUFFIX@
-#endif
 components/@DLL_PREFIX@universalchardet@DLL_SUFFIX@
 components/@DLL_PREFIX@unixproxy@DLL_SUFFIX@
 components/@DLL_PREFIX@webbrwsr@DLL_SUFFIX@
@@ -301,18 +254,6 @@ components/xppref32.dll
 ; MOZ_STATIC_BUILD
 #endif
 #ifdef XP_WIN
-#ifdef MOZILLA_1_9_2_BRANCH
-components/commandlines.dll
-components/htmlpars.dll
-components/nsappshell.dll
-components/permissions.dll
-components/spellchecker.dll
-components/storagecomps.dll
-components/tkautocomplete.dll
-components/toolkitcomps.dll
-components/xpautocomplete.dll
-mozjs.dll
-#else
 components/appshell.dll
 components/cmdlines.dll
 components/gkparser.dll
@@ -323,7 +264,6 @@ components/tkautoc.dll
 components/tkitcmps.dll
 components/xpautoc.dll
 js3250.dll
-#endif
 #endif
 #ifndef MOZ_UPDATER
 components/nsUpdateService.js
