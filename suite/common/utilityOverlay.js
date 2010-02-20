@@ -878,6 +878,33 @@ function GenerateValidFilename(filename, extension)
   return null;
 }
 
+/**
+ * example use:
+ *   suggestUniqueFileName("testname", ".txt", ["testname.txt", "testname(2).txt"])
+ *   returns "testname(3).txt"
+ * does not check file system for existing files
+ *
+ * @param aBaseName base name for generating unique filenames.
+ *
+ * @param aExtension extension name to use for the generated filename.
+ *
+ * @param aExistingNames array of names in use.
+ *
+ * @return suggested filename as a string.
+ */
+function suggestUniqueFileName(aBaseName, aExtension, aExistingNames)
+{
+  var suffix = 1;
+  aBaseName = validateFileName(aBaseName);
+  var suggestion = aBaseName + aExtension;
+  while (aExistingNames.indexOf(suggestion) != -1)
+  {
+    suffix++;
+    suggestion = aBaseName + "(" + suffix + ")" + aExtension;
+  }
+  return suggestion;
+}
+
 function focusElement(aElement)
 {
   if (isElementVisible(aElement))

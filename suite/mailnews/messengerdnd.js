@@ -426,68 +426,62 @@ function DropOnFolderTree(row, orientation)
     return true;
 }
 
-function BeginDragFolderTree(event)
+function BeginDragFolderTree(aEvent)
 {
-    debugDump("BeginDragFolderTree\n");
+  if (aEvent.originalTarget.localName != "treechildren")
+    return false;
 
-    if (event.originalTarget.localName != "treechildren")
-      return false;
-
-    var folderTree = GetFolderTree();
-    var row = folderTree.treeBoxObject.getRowAt(event.clientX, event.clientY);
-    if (row == -1)
-      return false;
-
-    var folderResource = GetFolderResource(folderTree, row);
-    var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-
-    if (folder.isServer)
-    {
-      debugDump("***IsServer == true\n");
-      return false;
-    }
-
-    var flavor;
-    if (folder.server.type == "nntp")
-    { // news folder (newsgroup)
-      flavor = "text/x-moz-newsfolder";
-    }
-    else
-    { // normal folder
-      flavor = "text/x-moz-folder";
-    }
-
-    var folderArray = [];
-    var folderTree = GetFolderTree();
-    var rangeCount = folderTree.view.selection.getRangeCount();
-
-    for (var i = 0; i < rangeCount; i++)
-    {
-      var startIndex = {};
-      var endIndex = {};
-      folderTree.view.selection.getRangeAt(i, startIndex, endIndex);
-      for (var j = startIndex.value; j <= endIndex.value; j++)
-        folderArray.push(GetFolderResource(folderTree, j).Value);
-    }
-
-    return BeginDragTree(event, folderTree, folderArray, flavor);
+  var folders = GetSelectedMsgFolders();
+  folders = folders.filter(function(f) { return !f.isServer; });
+  if (!folders.length)
+    return false;
+  var dataTransfer = aEvent.dataTransfer;
+  for (let i in folders) {
+    let flavor = folders[i].server.type == "nntp" ? "text/x-moz-newsfolder" :
+                                                    "text/x-moz-folder";
+    dataTransfer.mozSetDataAt(flavor, folders[i], i);
+  }
+  dataTransfer.effectAllowed = "copyMove";
+  dataTransfer.addElement(aEvent.originalTarget);
+  return false;  // don't propagate the event if a drag has begun
 }
 
-function BeginDragThreadPane(event)
+function BeginDragThreadPane(aEvent)
 {
-    debugDump("BeginDragThreadPane\n");
+  var messages = gFolderDisplay.selectedMessageUris;
+  if (!messages)
+    return false;
 
-    var threadTree = GetThreadTree();
-    var selectedMessages = GetSelectedMessages();
-    if (!selectedMessages)
-      return false;
- 
-    //A message can be dragged from one window and dropped on another window
-    //therefore setNextMessageAfterDelete() here 
-    //no major disadvantage even if it is a copy operation
+  // A message can be dragged from one window and dropped on another window.
+  // Therefore we setNextMessageAfterDelete() here since there is no major
+  // disadvantage, even if it is a copy operation.
+  SetNextMessageAfterDelete();
+  var fileNames = [];
+  var msgUrls = {};
+  var dataTransfer = aEvent.dataTransfer;
 
-    SetNextMessageAfterDelete();
-    return BeginDragTree(event, threadTree, selectedMessages, "text/x-moz-message");
+  // Dragging multiple messages to desktop does not currently work, pending
+  // core fixes for multiple-drop-on-desktop support (bug 513464).
+  for (let i = 0; i < messages.length; i++)
+  {
+    let messageService = messenger.messageServiceFromURI(messages[i]);
+    messageService.GetUrlForUri(messages[i], msgUrls, null);
+    let subject = messageService.messageURIToMsgHdr(messages[i])
+                                .mime2DecodedSubject;
+    let uniqueFileName = suggestUniqueFileName(subject.substr(0, 120), ".eml",
+                                               fileNames);
+    fileNames[i] = uniqueFileName;
+    dataTransfer.mozSetDataAt("text/x-moz-message", messages[i], i);
+    dataTransfer.mozSetDataAt("text/x-moz-url", msgUrls.value.spec, i);
+    dataTransfer.mozSetDataAt("application/x-moz-file-promise-url",
+                               msgUrls.value.spec + "?fileName=" + uniqueFileName,
+                               i);
+    dataTransfer.mozSetDataAt("application/x-moz-file-promise", null, i);
+  }
+  aEvent.dataTransfer.effectAllowed = "copyMove";
+  aEvent.dataTransfer.addElement(aEvent.originalTarget);
+
+  return false;  // don't propagate the event if a drag has begun
 }
 
 function DragOverThreadPane(aEvent)
@@ -503,7 +497,7 @@ function DragOverThreadPane(aEvent)
     {
       let extFile = dt.mozGetDataAt("application/x-moz-file", i)
                       .QueryInterface(Components.interfaces.nsIFile);
-      if (extFile.isFile() && /\.eml$/.test(extFile.leafName))
+      if (extFile.isFile() && /\.eml$/i.test(extFile.leafName))
       {
         aEvent.preventDefault();
         return;
@@ -521,19 +515,8 @@ function DropOnThreadPane(aEvent)
   {
     let extFile = dt.mozGetDataAt("application/x-moz-file", i)
                     .QueryInterface(Components.interfaces.nsIFile);
-    if (extFile.isFile() && /\.eml$/.test(extFile.leafName))
-      cs.CopyFileMessage(extFile, gMsgFolderSelected, null, false, 1, "", null, msgWindow);
+    if (extFile.isFile() && /\.eml$/i.test(extFile.leafName))
+      cs.CopyFileMessage(extFile, gMsgFolderSelected, null, false,
+                         1, "", null, msgWindow);
   }
-}
-
-function BeginDragTree(event, tree, selArray, flavor)
-{
-    var dataTransfer = event.dataTransfer;
-    var count = selArray.length;
-    for (var i = 0; i < count; ++i)
-      dataTransfer.mozSetDataAt(flavor, selArray[i], i);
-    dataTransfer.effectAllowed = "copyMove";
-    dataTransfer.addElement(event.originalTarget);
-
-    return false;  // don't propagate the event if a drag has begun
 }
