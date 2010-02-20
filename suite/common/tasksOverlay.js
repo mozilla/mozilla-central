@@ -112,22 +112,6 @@ function toJavaScriptConsole()
     toOpenWindowByType("global:console", "chrome://global/content/console.xul");
 }
 
-function javaItemEnabling()
-{
-    var element = document.getElementById("java");
-    if (navigator.javaEnabled())
-      element.removeAttribute("disabled");
-    else
-      element.setAttribute("disabled", "true");
-}
-            
-function toJavaConsole()
-{
-    var jvmMgr = Components.classes['@mozilla.org/oji/jvm-mgr;1']
-                            .getService(Components.interfaces.nsIJVMManager)
-    jvmMgr.showJavaConsole();
-}
-
 function toOpenWindow( aWindow )
 {
   try {
