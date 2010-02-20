@@ -88,10 +88,7 @@ components/nsSetDefaultBrowser.js
 components/nsSetDefaultMail.js
 components/nsUnsetDefaultMail.js
 components/nsXmlRpcClient.js
-; '#ifndef OJI' is only to support MacOSX MOZILLA_1_9_2_BRANCH. (Bug 521624)
-#ifndef OJI
 components/@DLL_PREFIX@oji@DLL_SUFFIX@
-#endif
 components/progressDlg.xpt
 components/search.xpt
 components/sidebar.xpt
@@ -144,10 +141,7 @@ greprefs/
 #ifdef XP_WIN
 jsj3250.dll
 #else
-; '#ifndef OJI' is only to support MacOSX MOZILLA_1_9_2_BRANCH. (Bug 521624)
-#ifndef OJI
 @DLL_PREFIX@jsj@DLL_SUFFIX@
-#endif
 #endif
 modules/JSON.jsm
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
@@ -247,10 +241,6 @@ components/@DLL_PREFIX@mozldap@DLL_SUFFIX@
 components/@DLL_PREFIX@msgsmime@DLL_SUFFIX@
 components/@DLL_PREFIX@necko@DLL_SUFFIX@
 components/@DLL_PREFIX@nsappshell@DLL_SUFFIX@
-#ifdef OJI
-; 'oji' is duplicated here, only to support MacOSX MOZILLA_1_9_2_BRANCH. (Bug 521624)
-components/@DLL_PREFIX@oji@DLL_SUFFIX@
-#endif
 components/@DLL_PREFIX@permissions@DLL_SUFFIX@
 components/@DLL_PREFIX@pipboot@DLL_SUFFIX@
 components/@DLL_PREFIX@pipnss@DLL_SUFFIX@
@@ -281,10 +271,6 @@ components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
 @DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
 @DLL_PREFIX@gkgfx@DLL_SUFFIX@
 @DLL_PREFIX@gtkxtbin@DLL_SUFFIX@
-#ifdef OJI
-; 'jsj' is duplicated here, only to support MacOSX MOZILLA_1_9_2_BRANCH. (Bug 521624)
-@DLL_PREFIX@jsj@DLL_SUFFIX@
-#endif
 @DLL_PREFIX@mozz@DLL_SUFFIX@
 @DLL_PREFIX@thebes@DLL_SUFFIX@
 @DLL_PREFIX@xul@DLL_SUFFIX@
