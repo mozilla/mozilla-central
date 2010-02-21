@@ -49,6 +49,7 @@ const nsActEvent = Components.Constructor("@mozilla.org/activity-event;1",
                                           "nsIActivityEvent", "init");
 const nsActWarning = Components.Constructor("@mozilla.org/activity-warning;1",
                                             "nsIActivityWarning", "init");
+const nsMsgFolderFlags = Ci.nsMsgFolderFlags;
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
@@ -61,6 +62,7 @@ Components.utils.import("resource:///modules/gloda/log4moz.js");
 let moveCopyModule =
 {
   lastMessage: {},
+  lastFolder: {},
 
   get log() {
     delete this.log;
@@ -229,8 +231,15 @@ let moveCopyModule =
     }
     catch(ex) {return;}
 
-    let displayText = this.getString("deletedFolder").replace("#1", aFolder.prettiestName);
+    let displayText;
     let statusText = aFolder.server.prettyName;
+
+    // Display a different message depending on whether we emptied the trash
+    // or actually deleted a folder
+    if (aFolder.isSpecialFolder(nsMsgFolderFlags.Trash, false))
+      displayText = this.getString("emptiedTrash");
+    else
+      displayText = this.getString("deletedFolder").replace("#1", aFolder.prettiestName);
     
     // create an activity event
     let event = new nsActEvent(displayText,
@@ -242,7 +251,11 @@ let moveCopyModule =
     event.addSubject(aFolder);
     event.iconClass = "deleteMail";
         
-    this.activityMgr.addActivity(event);
+    // When we rename, we get a delete event as well as a rename, so store
+    // the last folder we deleted
+    this.lastFolder = {};
+    this.lastFolder.URI = aFolder.URI;
+    this.lastFolder.event = this.activityMgr.addActivity(event);
   },
 
   folderMoveCopyCompleted: function(aMove, aSrcFolder, aDestFolder) {
@@ -286,11 +299,26 @@ let moveCopyModule =
     this.log.info("in folderRenamed, aOrigFolder = "+ aOrigFolder.prettiestName+", aNewFolder = "+ 
              aNewFolder.prettiestName);
 
-    let displayText = this.getString("renamedFolder");
-    displayText = displayText.replace("#1", aOrigFolder.prettiestName);
-    displayText = displayText.replace("#2", aNewFolder.prettiestName);
-
+    let displayText;
     let statusText = aNewFolder.server.prettyName;
+
+    // Display a different message depending on whether we moved the folder
+    // to the trash or actually renamed the folder.
+    if (aNewFolder.isSpecialFolder(nsMsgFolderFlags.Trash, true))
+    {
+      displayText = this.getString("movedFolderToTrash");
+      displayText = displayText.replace("#1", aOrigFolder.prettiestName);
+    }
+    else
+    {
+      displayText = this.getString("renamedFolder");
+      displayText = displayText.replace("#1", aOrigFolder.prettiestName);
+      displayText = displayText.replace("#2", aNewFolder.prettiestName);
+    }
+
+    // When renaming a folder, a delete event is always fired first
+    if (this.lastFolder.URI == aOrigFolder.URI)
+      this.activityMgr.removeActivity(this.lastFolder.event);
 
     // create an activity event
     let event = new nsActEvent(displayText,
