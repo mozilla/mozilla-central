@@ -1128,17 +1128,10 @@ function MsgNewMessage(aEvent)
 
 function MsgReplyMessage(aEvent)
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  if (loadedFolder)
-  {
-    var server = loadedFolder.server;
-    if (server && server.type == "nntp")
-    {
-      MsgReplyGroup(aEvent);
-      return;
-    }
-  }
-  MsgReplySender(aEvent);
+  if (gFolderDisplay.selectedMessageIsNews)
+    MsgReplyGroup(aEvent);
+  else if (!gFolderDisplay.selectedMessageIsFeed)
+    MsgReplySender(aEvent);
 }
 
 function MsgReplySender(aEvent)
