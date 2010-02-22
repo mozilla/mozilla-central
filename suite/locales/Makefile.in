@@ -63,6 +63,7 @@ core_abspath = $(if $(findstring :,$(1)),$(1),$(if $(filter /%,$(1)),$(1),$(PWD)
 # work in that case.
 ZIP_IN ?= $(_ABS_DIST)/$(PACKAGE)
 WIN32_INSTALLER_IN ?= $(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe
+RETRIEVE_WINDOWS_INSTALLER = 1
 
 DEFINES += \
 	-DAB_CD=$(AB_CD) \
