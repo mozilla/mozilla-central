@@ -117,6 +117,7 @@ tabProgressListener.prototype =
       this.mBlank = false;
 
       tabmail.setTabBusy(this.mTab, false);
+      tabmail.setTabTitle(this.mTab);
     }
   },
   onStatusChange: function tPL_onStatusChange(aWebProgress, aRequest, aStatus,
@@ -299,9 +300,6 @@ var specialTabs = {
                                        clickHandler: aPersistedState.clickHandler,
                                        background: true } );
     },
-    onTitleChanged: function onTitleChanged(aTab) {
-      aTab.title = aTab.browser.contentDocument.title;
-    },
     supportsCommand: function supportsCommand(aCommand, aTab) {
       switch (aCommand) {
         case "cmd_fullZoomReduce":
@@ -393,6 +391,7 @@ var specialTabs = {
     // Internal function used to set up the title listener on a content tab.
     _setUpTitleListener: function setUpTitleListener(aTab) {
       function onDOMTitleChanged(aEvent) {
+        aTab.title = aTab.browser.contentTitle;
         document.getElementById("tabmail").setTabTitle(aTab);
       }
       // Save the function we'll use as listener so we can remove it later.
