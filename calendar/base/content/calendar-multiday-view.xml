@@ -446,7 +446,6 @@
               this.mSelectedItemIds[aOccurrence.hashId] = true;
               var chunk = this.findChunkForOccurrence(aOccurrence);
               if (!chunk) {
-                  dump("++ Couldn't find chunk to select!!!\n");
                   return;
               }
               chunk.selected = true;
@@ -462,7 +461,6 @@
               delete this.mSelectedItemIds[aOccurrence.hashId];
               var chunk = this.findChunkForOccurrence(aOccurrence);
               if (!chunk) {
-                  dump ("++ Couldn't find chunk to unselect!!!\n");
                   return;
               }
               chunk.selected = false;
@@ -668,27 +666,27 @@
               return;
           this.clear();
 
-          var orient = this.getAttribute("orient");
+          let orient = this.getAttribute("orient");
           this.bgbox.setAttribute("orient", orient);
 
           // bgbox is used mainly for drawing the grid.  at some point it may
           // also be used for all-day events.
-          var otherorient = getOtherOrientation(orient);
-          var configBox = document.getAnonymousElementByAttribute(this, "anonid", "config-box");
+          let otherorient = getOtherOrientation(orient);
+          let configBox = document.getAnonymousElementByAttribute(this, "anonid", "config-box");
           configBox.removeAttribute("hidden");
-          var minSize = configBox.getOptimalMinSize();
+          let minSize = configBox.getOptimalMinSize();
           configBox.setAttribute("hidden", "true");
           this.mMinDuration = Components.classes["@mozilla.org/calendar/duration;1"]
                                             .createInstance(Components.interfaces.calIDuration);
           this.mMinDuration.minutes = parseInt(minSize/this.mPixPerMin);
 
-          var theMin = this.mStartMin;
+          let theMin = this.mStartMin;
           while (theMin < this.mEndMin) {
-              var dur = theMin % 60;
+              let dur = theMin % 60;
               theMin += dur;
               if (dur == 0) dur = 60;
 
-              var box = createXULElement("spacer");
+              let box = createXULElement("spacer");
               // we key off this in a CSS selector
               box.setAttribute("orient", orient);
               box.setAttribute("class", "calendar-event-column-linebox");
@@ -708,9 +706,9 @@
 
               // calculate duration pixel as the difference between
               // start pixel and end pixel to avoid rounding errors.
-              var startPix = Math.round(theMin * this.mPixPerMin);
-              var endPix   = Math.round((theMin + dur) * this.mPixPerMin);
-              var durPix   = endPix - startPix;
+              let startPix = Math.round(theMin * this.mPixPerMin);
+              let endPix   = Math.round((theMin + dur) * this.mPixPerMin);
+              let durPix   = endPix - startPix;
               if (orient == "vertical")
                   box.setAttribute("height", durPix);
               else
@@ -741,87 +739,60 @@
           // First of all we create a xul:stack which
           // will hold all events for this event column.
           // The stack will be grouped below .../calendar-event-column/stack/topbox.
-          var stack = createXULElement("stack");
+          let stack = createXULElement("stack");
           stack.setAttribute("flex", "1");
           this.topbox.appendChild(stack);
 
-          var boxToEdit;
+          let boxToEdit;
+          let columnCount = 1;
+          let spanTotal = 0;
 
-          for each (var layer in this.mEventMap) {
+          for each (let layer in this.mEventMap) {
 
               // The event-map (this.mEventMap) contains an array of layers.
               // For each layer we create a box below the stack just created above.
               // So each different layer lives in a box that's contained in the stack.
-              var xulColumn = createXULElement("box");
+              let xulColumn = createXULElement("box");
               xulColumn.setAttribute("orient", otherorient);
               xulColumn.setAttribute("flex", "1");
               xulColumn.setAttribute("style", "min-width: 1px; min-height: 1px;");
               stack.appendChild(xulColumn);
 
-              var numBlocksInserted = 0;
+              let numBlocksInserted = 0;
+
+              // column count determined by layer with no special span columns
+              if (layer.every(function (e) !e.specialSpan)) {
+                  columnCount = layer.length;
+              }
+              spanTotal = 0;
 
               // Each layer contains a list of the columns that
               // need to be created for a span.
-              for each (var column in layer) {
-
-                  var innerColumn = createXULElement("box");
+              for each (let column in layer) {
+                  let innerColumn = createXULElement("box");
                   innerColumn.setAttribute("orient", orient);
-                  innerColumn.setAttribute("flex", 1);
-                  var style = "min-width: 1px; min-height: 1px;";
 
-                  if (column.specialSpan) {
-                      // Special case when we can't simply rely on flex.  Only
-                      // happens when we have columns in the layer that need to
-                      // be different sizes.  That is, when we have a colSpan
-                      // of 2, a total of 5 columns, and a startCol of 1.
-                      // Then, our columns need to be laid out as 1/5, 2/5, 2/5.
-                      if (orient == "vertical") {
-                          style += "max-width: " +
-                                   column.specialSpan * this.topbox.boxObject.width +
-                                   "px;";
-                      } else {
-                          style += "max-height: " +
-                                   column.specialSpan * this.topbox.boxObject.height +
-                                   "px;";
-                      }
+                  let colFlex = column.specialSpan ? (columnCount * column.specialSpan) : 1;
+                  innerColumn.setAttribute("flex", colFlex);
+                  spanTotal += colFlex;
 
-                      // Now we need to set up a resize listener, since without
-                      // it our box will look funny if the window resizes.  This
-                      // requires us to be *very* careful about closures, because
-                      // we don't want things like column.specialSpan to change
-                      function colResizeHandler(aInnerCol, aCalCol, aSpan) {
-                          this.handleEvent = function(aEvent) {
-                              var resizeStyle = "min-width: 1px; min-height: 1px;";
-                              if (orient == "vertical") {
-                                  resizeStyle += "max-width: " +
-                                                 aSpan * aCalCol.topbox.boxObject.width +
-                                                 "px;";
-                              } else {
-                                  resizeStyle += "max-height: " +
-                                                 aSpan * aCalCol.topbox.boxObject.height +
-                                                 "px;";
-                              }
-                              aInnerCol.setAttribute("style", resizeStyle);
-                          };
-                      }
-                      var myResizeHandler = new colResizeHandler(innerColumn, this, column.specialSpan);
-                      this.mHandlersToRemove.push(myResizeHandler);
-                      this.calendarView.viewBroadcaster.addEventListener(this.calendarView.getAttribute("type") + "viewresized", myResizeHandler, true);
-                  }
-                  innerColumn.setAttribute("style", style);
+                  innerColumn.style.minWidth = "1px";
+                  innerColumn.style.minHeight = "1px";
+                  innerColumn.style.width = colFlex + "px";
+                  innerColumn.style.height = colFlex + "px";
 
                   xulColumn.appendChild(innerColumn);
-                  var curTime = 0;
-                  for each (var chunk in column) {
+                  let curTime = 0;
+                  for each (let chunk in column) {
                       var duration = chunk.duration;
                       if (!duration) {
                           continue;
                       }
 
                       if (chunk.event) {
-                          var chunkBox = createXULElement("calendar-event-box");
-                          var durMinutes = duration.inSeconds / 60;
-                          var size = Math.max(durMinutes * this.mPixPerMin, minSize);
+                          let chunkBox = createXULElement("calendar-event-box");
+                          let durMinutes = duration.inSeconds / 60;
+                          let size = Math.max(durMinutes * this.mPixPerMin, minSize);
                           if (orient == "vertical") {
                               chunkBox.setAttribute("height", size);
                           } else {
@@ -847,14 +818,14 @@
                               boxToEdit = chunkBox;
                           }
                       } else {
-                          var chunkBox = createXULElement("spacer");
+                          let chunkBox = createXULElement("spacer");
                           chunkBox.setAttribute("context", this.getAttribute("context"));
                           chunkBox.setAttribute("style", "min-width: 1px; min-height: 1px;");
                           chunkBox.setAttribute("orient", orient);
                           chunkBox.setAttribute("class", "calendar-empty-space-box");
                           innerColumn.appendChild(chunkBox);
 
-                          var durMinutes = duration.inSeconds / 60;
+                          let durMinutes = duration.inSeconds / 60;
                           if (orient == "vertical") {
                               chunkBox.setAttribute("height", durMinutes * this.mPixPerMin);
                           } else {
@@ -865,6 +836,19 @@
 
                   numBlocksInserted++;
                   curTime += duration;
+              }
+
+              // add last empty column if necessary
+              if (spanTotal < columnCount) {
+                  let lastColumn = createXULElement("box");
+                  lastColumn.setAttribute("orient", orient);
+                  lastColumn.setAttribute("flex", columnCount - spanTotal);
+                  lastColumn.style.minWidth = "1px";
+                  lastColumn.style.minHeight = "1px";
+                  lastColumn.style.width = (columnCount - spanTotal) + "px";
+                  lastColumn.style.height = (columnCount - spanTotal) + "px";
+
+                  xulColumn.appendChild(lastColumn);
               }
 
               if (boxToEdit) {
