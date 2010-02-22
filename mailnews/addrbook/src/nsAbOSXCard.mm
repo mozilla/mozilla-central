@@ -138,13 +138,13 @@ MapDate(nsAbOSXCard *aCard, NSDate *aDate, const char *aYearPropName,
   NSCalendarDate *date = [aDate dateWithCalendarFormat:nil timeZone:nil];
   
   nsAutoString value;
-  value.AppendInt([date yearOfCommonEra]);
+  value.AppendInt(static_cast<PRInt32>([date yearOfCommonEra]));
   SetStringProperty(aCard, value, aYearPropName, aNotify, aAbManager);
   value.Truncate();
-  value.AppendInt([date monthOfYear]);
+  value.AppendInt(static_cast<PRInt32>([date monthOfYear]));
   SetStringProperty(aCard, value, aMonthPropName, aNotify, aAbManager);
   value.Truncate();
-  value.AppendInt([date dayOfMonth]);
+  value.AppendInt(static_cast<PRInt32>([date dayOfMonth]));
   SetStringProperty(aCard, value, aDayPropName, aNotify, aAbManager);
 }
 
