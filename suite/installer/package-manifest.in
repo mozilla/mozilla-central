@@ -240,7 +240,7 @@
 #ifdef MOZ_GTK2
 @BINPATH@/components/@DLL_PREFIX@widget_gtk2@DLL_SUFFIX@
 #elifdef XP_MACOSX
-@BINPATH@/components/@DLL_PREFIX@widget_cocoa@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@widget_mac@DLL_SUFFIX@
 #elifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@wdgtos2@DLL_SUFFIX@
 #endif
@@ -432,6 +432,9 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/webbrowserpersist.xpt
 @BINPATH@/components/webshell_idls.xpt
 @BINPATH@/components/widget.xpt
+#ifdef XP_MACOSX
+@BINPATH@/components/widget_cocoa.xpt
+#endif
 @BINPATH@/components/windowds.xpt
 @BINPATH@/components/windowwatcher.xpt
 @BINPATH@/components/xpautocomplete.xpt
