@@ -2,9 +2,9 @@
 <!ENTITY pref.smartUpdate.title               "Software Installation">
 <!ENTITY smartTitle.label                     "Manage Software Installations and Updates">
 <!ENTITY enableSU.label                       "Allow web sites to install extensions and updates">
-<!ENTITY enableSU.accesskey                   "e">
+<!ENTITY enableSU.accesskey                   "x">
 <!ENTITY allowedSites.label                   "Allowed Sites">
-<!ENTITY allowedSites.accesskey               "A">
+<!ENTITY allowedSites.accesskey               "e">
 
 <!ENTITY verifyUpdates.caption                "Updates">
 <!ENTITY autoUpdates.label                    "Automatically check for updates to:">
@@ -15,8 +15,18 @@
 <!ENTITY weekly.label                         "weekly">
 <!ENTITY appWeekly.accesskey                  "w">
 <!ENTITY extensionsUpdates.label              "Installed Add-ons">
-<!ENTITY extensionsUpdates.accesskey          "n">
-<!ENTITY extensionsDaily.accesskey            "i">
+<!ENTITY extensionsUpdates.accesskey          "o">
+<!ENTITY extensionsDaily.accesskey            "a">
 <!ENTITY extensionsWeekly.accesskey           "k">
 <!ENTITY addonManagerButton.label             "Add-on Manager">
 <!ENTITY addonManagerButton.accesskey         "M">
+
+<!ENTITY whenUpdatesFound.label               "When updates to &brandShortName; are found">
+<!ENTITY askMe.label                          "Ask me what I want to do">
+<!ENTITY askMe.accesskey                      "n">
+<!ENTITY modeAutomatic.label                  "Automatically download and install the update">
+<!ENTITY modeAutomatic.accesskey              "c">
+<!ENTITY modeAutoAddonWarn.label              "Warn me if this will disable any of my add-ons">
+<!ENTITY modeAutoAddonWarn.accesskey          "b">
+<!ENTITY updateHistory.label                  "Show Update History">
+<!ENTITY updateHistory.accesskey              "u">

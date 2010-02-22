@@ -658,11 +658,6 @@ function updateCheckUpdatesItem()
 {
   var updates = Components.classes["@mozilla.org/updates/update-service;1"]
                           .getService(Components.interfaces.nsIApplicationUpdateService);
-
-  // For 1.9.2 branch
-  if (!("canCheckForUpdates" in updates))
-    updates.QueryInterface(Components.interfaces.nsIApplicationUpdateService2);
-
   var um = Components.classes["@mozilla.org/updates/update-manager;1"]
                      .getService(Components.interfaces.nsIUpdateManager);
 

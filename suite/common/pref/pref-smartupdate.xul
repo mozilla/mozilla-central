@@ -52,14 +52,36 @@
             script="chrome://communicator/content/tasksOverlay.js chrome://communicator/content/pref/pref-smartupdate.js">
 
     <preferences id="smartupdate_preferences">
-      <preference id="xpinstall.enabled" name="xpinstall.enabled" type="bool"/>
-      <preference id="app.update.enabled" name="app.update.enabled"
-                  type="bool" onchange="toggleFrequency('app');"/>
-      <preference id="app.update.interval" name="app.update.interval" type="int"/>
-      <preference id="extensions.update.enabled" name="extensions.update.enabled"
-                  type="bool" onchange="toggleFrequency('extensions');"/>
+      <preference id="xpinstall.enabled"
+                  name="xpinstall.enabled"
+                  type="bool"
+                  onchange="UpdateAddonsItems();"/>
+      <preference id="extensions.update.enabled"
+                  name="extensions.update.enabled"
+                  type="bool"
+                  onchange="UpdateAddonsItems();"/>
       <preference id="extensions.update.interval"
-                  name="extensions.update.interval" type="int"/>
+                  name="extensions.update.interval"
+                  type="int"/>
+
+      <preference id="app.update.enabled"
+                  name="app.update.enabled"
+                  type="bool"
+                  onchange="UpdateAppItems();"/>
+      <preference id="app.update.auto"
+                  name="app.update.auto"
+                  type="bool"
+                  onchange="UpdateAutoItems();"/>
+      <preference id="app.update.mode"
+                  name="app.update.mode"
+                  type="int"
+                  onchange="UpdateModeItems();"/>
+      <preference id="app.update.interval"
+                  name="app.update.interval"
+                  type="int"/>
+      <preference id="app.update.disable_button.showUpdateHistory"
+                  name="app.update.disable_button.showUpdateHistory"
+                  type="bool"/>
     </preferences>
 
     <groupbox>
@@ -114,6 +136,37 @@
                 label="&addonManagerButton.label;"
                 accesskey="&addonManagerButton.accesskey;"/>
       </vbox>
+    </groupbox>
+
+    <groupbox>
+      <caption id="updateModeLabel"
+               label="&whenUpdatesFound.label;"
+               control="updateMode"/>
+      <radiogroup id="updateMode"
+                  preference="app.update.auto">
+        <radio id="updateModeAsk"
+               label="&askMe.label;"
+               accesskey="&askMe.accesskey;"
+               value="false"/>
+        <radio id="updateModeAutomatic"
+               label="&modeAutomatic.label;"
+               accesskey="&modeAutomatic.accesskey;"
+               value="true"/>
+        <checkbox id="warnIncompatible"
+                  class="indent"
+                  label="&modeAutoAddonWarn.label;"
+                  accesskey="&modeAutoAddonWarn.accesskey;"
+                  preference="app.update.mode"
+                  onsynctopreference="return this.checked ? 1 : 0;"/>
+      </radiogroup>
+
+      <hbox pack="end">
+        <button id="showUpdateHistory"
+                label="&updateHistory.label;"
+                accesskey="&updateHistory.accesskey;"
+                preference="app.update.disable_button.showUpdateHistory"
+                oncommand="ShowUpdateHistory();"/>
+      </hbox>
     </groupbox>
   </prefpane>
 </overlay>

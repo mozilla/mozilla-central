@@ -37,18 +37,107 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var gCanCheckForUpdates;
+
 function Startup()
 {
-  toggleFrequency("extensions");
-  toggleFrequency("app");
+  var aus = Components.classes["@mozilla.org/updates/update-service;1"]
+                      .getService(Components.interfaces.nsIApplicationUpdateService);
+  gCanCheckForUpdates = aus.canCheckForUpdates;
+
+  UpdateAddonsItems();
+  UpdateAppItems();
 }
 
-function toggleFrequency(aType)
+/*
+ * Preferences:
+ *
+ * app.update.enabled
+ * - boolean:
+ * - true if updates to the application are enabled, false otherwise
+ * extensions.update.enabled
+ * - boolean:
+ * - true if updates to extensions and themes are enabled, false otherwise
+ * app.update.auto
+ * - true if updates should be automatically downloaded and installed,
+ *   possibly with a warning if incompatible extensions are installed (see
+ *   app.update.mode); false if the user should be asked what he wants to do
+ *   when an update is available
+ * app.update.mode
+ * - an integer:
+ *   mode:  Minor Releases:                       Major Releases:
+ *   0      download and install, never prompt    always prompt
+ *
+ *   1,2    download and install,                 always prompt
+ *          no prompt if no incompatible add-ons
+ *
+ * The app.update.mode preference is converted into a true/false value for
+ * use in determining whether the "Warn me if this will disable extensions
+ * or themes" checkbox is checked. Unlike other toolkit applications we
+ * don't care about supporting legacy mode 2.
+ *
+ * app.update.mode    Checkbox State    Meaning
+ * 0                  Unchecked         Warn if the update is major
+ * 1,2                Checked           Warn if there are incompatibilities
+ *                                      or the update is major
+ */
+function UpdateAddonsItems()
 {
-  document.getElementById(aType + "FreqDaily").disabled =
-    !document.getElementById(aType + ".update.enabled").value ||
-    document.getElementById(aType + ".update.interval").locked;
-  document.getElementById(aType + "FreqWeekly").disabled =
-    !document.getElementById(aType + ".update.enabled").value ||
-    document.getElementById(aType + ".update.interval").locked;
+  document.getElementById("extensionsUpdatesEnabled").disabled =
+    !document.getElementById("xpinstall.enabled").value ||
+    document.getElementById("extensions.update.enabled").locked;
+
+  document.getElementById("extensionsUpdateFrequency").disabled =
+    !document.getElementById("xpinstall.enabled").value ||
+    !document.getElementById("extensions.update.enabled").value ||
+    document.getElementById("extensions.update.interval").locked;
+}
+
+function UpdateAppItems()
+{
+  var enabledPref = document.getElementById("app.update.enabled");
+
+  document.getElementById("appUpdatesEnabled").disabled =
+    !gCanCheckForUpdates || enabledPref.locked;
+
+  document.getElementById("appUpdateFrequency").disabled =
+    !enabledPref.value || !gCanCheckForUpdates ||
+    document.getElementById("app.update.interval").locked;
+  UpdateAutoItems();
+}
+
+/**
+ * Enables/disables UI for "when updates are found" based on the values,
+ * and "locked" states of associated preferences.
+ */
+function UpdateAutoItems()
+{
+  var disabled = !gCanCheckForUpdates||
+                 !document.getElementById("app.update.enabled").value ||
+                 document.getElementById("app.update.auto").locked;
+  document.getElementById("updateModeLabel").disabled = disabled;
+  document.getElementById("updateMode").disabled = disabled;
+  UpdateModeItems();
+}
+
+/**
+ * Enables/disables the "warn if incompatible extensions/themes exist" UI
+ * based on the values and "locked" states of various preferences.
+ */
+function UpdateModeItems()
+{
+  document.getElementById("warnIncompatible").disabled =
+    !document.getElementById("app.update.enabled").value ||
+    !document.getElementById("app.update.auto").value ||
+    document.getElementById("app.update.mode").locked;
+}
+
+/**
+ * Displays the history of installed updates.
+ */
+function ShowUpdateHistory()
+{
+  Components.classes["@mozilla.org/updates/update-prompt;1"]
+            .createInstance(Components.interfaces.nsIUpdatePrompt)
+            .showUpdateHistory(window);
 }
