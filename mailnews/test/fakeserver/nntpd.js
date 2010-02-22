@@ -139,11 +139,14 @@ function hasFlag(flags, flag) {
 function NNTP_RFC977_handler(daemon) {
   this._daemon = daemon;
   this.closing = false;
-  this.group = null;
-  this.articleKey = null;
-  this.extraCommands = "";
+  this.resetTest();
 }
 NNTP_RFC977_handler.prototype = {
+  resetTest : function() {
+    this.extraCommands = "";
+    this.articleKey = null;
+    this.group = null;
+  },
   ARTICLE : function (args) {
      var info = this._selectArticle(args, 220);
      if (info[0] == null)
@@ -269,6 +272,9 @@ NNTP_RFC977_handler.prototype = {
   onError : function (command, args) {
     return "500 command not recognized";
   },
+  onServerFault: function (e) {
+    return "500 internal server error: " + e;
+  },
   onStartup : function () {
     this.closing = false;
     this.group = null;
@@ -295,10 +301,10 @@ NNTP_RFC977_handler.prototype = {
 
     return undefined;
   },
-  postCommand : function (obj) {
+  postCommand : function (reader) {
     if (this.closing)
-      obj.closeSocket();
-    obj.setMultiline(this.posting);
+      reader.closeSocket();
+    reader.setMultiline(this.posting);
   },
 
   /**

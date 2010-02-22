@@ -36,7 +36,6 @@ const gMsgId5 = "bugmail6.m47LtAEf007542@mrapp51.mozilla.org";
 
 function addFolder(parent, folderName, storeIn)
 {
-  gServer.resetTest();
   gExpectedEvents = [[gMFNService.folderAdded, parent, folderName, storeIn]];
   // No copy listener notification for this
   gCurrStatus |= kStatus.onStopCopyDone;
@@ -49,7 +48,6 @@ function addFolder(parent, folderName, storeIn)
 
 function copyFileMessage(file, messageId, destFolder)
 {
-  gServer.resetTest();
   copyListener.mFolderStoredIn = destFolder;
 
   // This *needs* to be a draft (fourth parameter), as for non-UIDPLUS servers,
@@ -282,7 +280,6 @@ function doTest(test)
 
 function endTest()
 {
-  gServer.resetTest();
   gIMAPIncomingServer.closeCachedConnections();
   gServer.performTest();
   gServer.stop();

@@ -18,6 +18,8 @@
 // Import the pop3 server scripts
 if (typeof nsMailServer == 'undefined')
   load("../../mailnews/fakeserver/maild.js");
+if (typeof AuthPLAIN == 'undefined')
+  load("../../mailnews/fakeserver/auth.js")
 if (typeof pop3Daemon == 'undefined')
   load("../../mailnews/fakeserver/pop3d.js");
 
@@ -89,10 +91,10 @@ POP3Pump.prototype._createPop3ServerAndLocalFolders =
     let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
                     .getService(Ci.nsIMsgAccountManager);
 
-    let incoming = acctMgr.createIncomingServer("fake", "localhost", "pop3");
+    let incoming = acctMgr.createIncomingServer("fred", "localhost", "pop3");
 
     incoming.port = this.kPOP3_PORT;
-    incoming.password = "server";
+    incoming.password = "wilma";
     this.fakeServer = incoming;
   }
   return this.fakeServer;

@@ -32,10 +32,12 @@ const kPassword2 = "smtptest";
 function run_test() {
   registerAlertTestUtils();
 
-  var handler = new SMTP_RFC2822_handler(new smtpDaemon());
-
-  handler._username = kUsername;
-  handler._password = kPassword1;
+  var handler = new SMTP_RFC2821_handler(new smtpDaemon());
+  // Username needs to match signons.txt
+  handler.kUsername = kUsername;
+  handler.kPassword = kPassword1;
+  handler.kAuthRequired = true;
+  handler.kAuthSchemes = [ "PLAIN", "LOGIN" ]; // make match expected transaction below
 
   server = setupServerDaemon(handler);
   server.setDebugLevel(fsDebugAll);
@@ -84,14 +86,9 @@ function run_test() {
 
     var transaction = server.playTransaction();
     do_check_transaction(transaction, ["EHLO test",
-                                       "AUTH PLAIN " + btoa('\u0000' +
-                                                            kUsername +
-                                                            '\u0000' +
-                                                            kPassword2),
-                                       "AUTH PLAIN " + btoa('\u0000' +
-                                                            kUsername +
-                                                            '\u0000' +
-                                                            kPassword1),
+                                       "AUTH PLAIN " + AuthPLAIN.encodeLine(kUsername, kPassword2),
+                                       "AUTH LOGIN",
+                                       "AUTH PLAIN " + AuthPLAIN.encodeLine(kUsername, kPassword1),
                                        "MAIL FROM:<" + kSender + "> SIZE=155",
                                        "RCPT TO:<" + kTo + ">",
                                        "DATA"]);

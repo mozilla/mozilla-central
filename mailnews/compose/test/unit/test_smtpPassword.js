@@ -12,7 +12,12 @@ const kUsername = "testsmtp";
 const kPassword = "smtptest";
 
 function run_test() {
-  server = setupServerDaemon();
+  var handler = new SMTP_RFC2821_handler(new smtpDaemon());
+  server = new nsMailServer(handler);
+  // Username and password need to match signons.txt
+  handler.kUsername = kUsername;
+  handler.kPassword = kPassword;
+  handler.kAuthRequired = true;
 
   // Passwords File (generated from Mozilla 1.8 branch).
   var signons = do_get_file("../../mailnews/data/signons-mailnews1.8.txt");
@@ -55,10 +60,7 @@ function run_test() {
 
     var transaction = server.playTransaction();
     do_check_transaction(transaction, ["EHLO test",
-                                       "AUTH PLAIN " + btoa("\u0000" +
-                                                            kUsername +
-                                                            "\u0000" +
-                                                            kPassword),
+                                       "AUTH PLAIN " + AuthPLAIN.encodeLine(kUsername, kPassword),
                                        "MAIL FROM:<" + kSender + "> SIZE=155",
                                        "RCPT TO:<" + kTo + ">",
                                        "DATA"]);

@@ -6,7 +6,6 @@
  * between mailnews and SMTP server. It does not check the data of the message
  * either side of the link, it will be extended later to do that.
  */
-var type = null;
 var test = null;
 var server;
 
@@ -15,8 +14,7 @@ const kTo = "to@invalid.com";
 const kUsername = "testsmtp";
 const kPassword = "smtptest";
 
-function test_RFC2822() {
-  type = "RFC 2822";
+function test_RFC2821() {
 
   // Test file
   var testFile = do_get_file("data/message1.eml");
@@ -71,10 +69,7 @@ function test_RFC2822() {
 
     var transaction = server.playTransaction();
     do_check_transaction(transaction, ["EHLO test",
-                                       "AUTH PLAIN " + btoa("\u0000" +
-                                                            kUsername +
-                                                            "\u0000" +
-                                                            kPassword),
+                                       "AUTH PLAIN " + AuthPLAIN.encodeLine(kUsername, kPassword),
                                        "MAIL FROM:<" + kSender + "> SIZE=155",
                                        "RCPT TO:<" + kTo + ">",
                                        "DATA"]);
@@ -94,5 +89,5 @@ function test_RFC2822() {
 function run_test() {
   server = setupServerDaemon();
 
-  test_RFC2822();
+  test_RFC2821();
 }

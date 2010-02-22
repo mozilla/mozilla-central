@@ -4,6 +4,7 @@ load("../../mailnews/resources/mailTestUtils.js");
 
 // Import the smtp server scripts
 load("../../mailnews/fakeserver/maild.js")
+load("../../mailnews/fakeserver/auth.js")
 load("../../mailnews/fakeserver/smtpd.js")
 
 const SMTP_PORT = 1024+120;
@@ -11,7 +12,7 @@ const SMTP_PORT = 1024+120;
 // Setup the daemon and server
 function setupServerDaemon(handler) {
   if (!handler)
-    handler = new SMTP_RFC2822_handler(new smtpDaemon());
+    handler = new SMTP_RFC2821_handler(new smtpDaemon());
   var server = new nsMailServer(handler);
   return server;
 }

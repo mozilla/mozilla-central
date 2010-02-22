@@ -12,54 +12,75 @@ smtpDaemon.prototype = {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+const kStateAuthNeeded = 0;
+const kStateAuthOptional = 2;
+const kStateAuthenticated = 3;
 
-// This handler implements the bare minimum required by RFC 2822.
-  function SMTP_RFC2822_handler(daemon, authMechanisms, username, password) {
+/**
+ * This handler implements the bare minimum required by RFC 2821.
+ * @see RFC 2821
+ */
+function SMTP_RFC2821_handler(daemon) {
   this._daemon = daemon;
   this.closing = false;
-  this._authMechanisms = authMechanisms ? authMechanisms : "PLAIN";
-  this._username = username ? username : "testsmtp";
-  this._password = password ? password : "smtptest";
-  // 0 = not logged in, 1 = waiting username, 2 = waiting password,
-  // 3 = logged in
-  this._authState = 0;
-  this._expectPassword = false;
+
+  this._kAuthSchemeStartFunction = {};
+  this._kAuthSchemeStartFunction["CRAM-MD5"] = this.authCRAMStart;
+  this._kAuthSchemeStartFunction["PLAIN"] = this.authPLAINStart;
+  this._kAuthSchemeStartFunction["LOGIN"] = this.authLOGINStart;
+
+  this.resetTest();
 }
-SMTP_RFC2822_handler.prototype = {
-  EHLO: function (args) {
-    return "250-foo.com greets bar.com\n250-8BITMIME\n250-SIZE\n250-AUTH " +
-           this._authMechanisms + "\n250 HELP";
+SMTP_RFC2821_handler.prototype = {
+  kAuthRequired : false,
+  kUsername : "testsmtp",
+  kPassword : "smtptest",
+  kAuthSchemes : [ "CRAM-MD5", "PLAIN", "LOGIN" ],
+  kCapabilities : [ "8BITMIME", "SIZE" ],
+  _nextAuthFunction : undefined,
+
+  resetTest : function() {
+    this._state = this.kAuthRequired ? kStateAuthNeeded : kStateAuthOptional;
+    this._nextAuthFunction = undefined;
+    this._multiline = false;
+    this.expectingData = false;
   },
-  AUTH: function (args) {
-    var splitArgs = args.split(" ");
-    dump(args + " " + splitArgs[0] + "\n");
-
-    switch (splitArgs[0]) {
-    case "PLAIN": {
-      if (splitArgs[1] != btoa("\u0000" + this._username + "\u0000" + this._password))
-        return "535 authentication failed";
-
-      this._authState = 3;
-
-      return "235 authentication successful";
-    }
-    case "LOGIN": {
-      this._authState = 1;
-      this._expectPassword = true;
-      return "334 " + btoa("Username:");
-    }
-    default:
-      return "504 Invalid authentication mechanism"
-    }
-
+  EHLO: function (args) {
+    var capa = "250-fakeserver greets you";
+    if (this.kCapabilities.length > 0)
+      capa += "\n250-" + this.kCapabilities.join("\n250-");
+    if (this.kAuthSchemes.length > 0)
+      capa += "\n250-AUTH " + this.kAuthSchemes.join(" ");
+    capa += "\n250 HELP"; // the odd one: no "-", per RFC 2821
+    return capa;
+  },
+  AUTH: function (lineRest) {
+    if (this._state == kStateAuthenticated)
+      return "503 You're already authenticated";
+    var args = lineRest.split(" ");
+    var scheme = args[0].toUpperCase();
+    // |scheme| contained in |kAuthSchemes|?
+    if (!this.kAuthSchemes.some(function (s) { return s == scheme; }))
+      return "504 AUTH " + scheme + " not supported";
+    var func = this._kAuthSchemeStartFunction[scheme];
+    if (!func || typeof(func) != "function")
+      return "504 I just pretended to implement AUTH " + scheme + ", but I don't";
+    dump("Starting AUTH " + scheme + "\n");
+    return func.call(this, args[1]);
   },
   MAIL: function (args) {
+    if (this._state == kStateAuthNeeded)
+      return "530 5.7.0 Authentication required";
     return "250 ok";
   },
   RCPT: function(args) {
+    if (this._state == kStateAuthNeeded)
+      return "530 5.7.0 Authentication required";
     return "250 ok";
   },
   DATA: function(args) {
+    if (this._state == kStateAuthNeeded)
+      return "530 5.7.0 Authentication required";
     this.expectingData = true;
     this.post = "";
     return "354 ok\n";
@@ -68,6 +89,8 @@ SMTP_RFC2822_handler.prototype = {
     return "250 ok\n";
   },
   VRFY: function (args) {
+    if (this._state == kStateAuthNeeded)
+      return "530 5.7.0 Authentication required";
     return "250 ok\n";
   },
   EXPN: function (args) {
@@ -87,39 +110,117 @@ SMTP_RFC2822_handler.prototype = {
     this.closing = false;
     return "220 ok";
   },
-  onPassword: function (line) {
-    this._expectPassword = false;
 
-    switch (this._authState) {
-      case 1: {
-        if (line != btoa(this._username)) {
-          this._authState = 0;
-          return "535 authentication failed";
-        }
-        this._authState = 2;
-        this._expectPassword = true;
-        return "334 " + btoa("Password:");
-      }
-      case 2: {
-        if (line != btoa(this._password)) {
-          this._authState = 0;
-          return "535 authentication failed";
-        }
-        this._authState = 3;
-        return "235 authentication successful";
-      }
-    }
-    return "500 not recognized\n";
+  /**
+   * AUTH implementations
+   * @see RFC 4954
+   */
+  authPLAINStart : function (lineRest)
+  {
+    if (lineRest) // all in one command, called initial client response, see RFC 4954
+      return this.authPLAINCred(lineRest);
+
+    this._nextAuthFunction = this.authPLAINCred;
+    this._multiline = true;
+
+    return "334 ";
   },
+  authPLAINCred : function (line)
+  {
+    var req = AuthPLAIN.decodeLine(line);
+    if (req.username == this.kUsername &&
+        req.password == this.kPassword) {
+      this._state = kStateAuthenticated;
+      return "235 2.7.0 Hello friend! Friends give friends good advice: Next time, use CRAM-MD5";
+    }
+    else {
+      return "535 5.7.8 Wrong username or password, crook!";
+    }
+  },
+
+  authCRAMStart : function (lineRest)
+  {
+    this._nextAuthFunction = this.authCRAMDigest;
+    this._multiline = true;
+
+    this._usedCRAMMD5Challenge = AuthCRAM.createChallenge("localhost");
+    return "334 " + this._usedCRAMMD5Challenge;
+  },
+  authCRAMDigest : function (line)
+  {
+    var req = AuthCRAM.decodeLine(line);
+    var expectedDigest = AuthCRAM.encodeCRAMMD5(
+        this._usedCRAMMD5Challenge, this.kPassword);
+    if (req.username == this.kUsername &&
+        req.digest == expectedDigest) {
+      this._state = kStateAuthenticated;
+      return "235 2.7.0 Hello friend!";
+    }
+    else {
+      return "535 5.7.8 Wrong username or password, crook!";
+    }
+  },
+
+  authLOGINStart : function (lineRest)
+  {
+    this._nextAuthFunction = this.authLOGINUsername;
+    this._multiline = true;
+
+    return "334 " + btoa("Username:");
+  },
+  authLOGINUsername : function (line)
+  {
+    var req = AuthLOGIN.decodeLine(line);
+    if (req == this.kUsername)
+      this._nextAuthFunction = this.authLOGINPassword;
+    else // Don't return error yet, to not reveal valid usernames
+      this._nextAuthFunction = this.authLOGINBadUsername;
+    this._multiline = true;
+    return "334 " + btoa("Password:");
+  },
+  authLOGINBadUsername : function (line)
+  {
+    return "535 5.7.8 Wrong username or password, crook!";
+  },
+  authLOGINPassword : function (line)
+  {
+    var req = AuthLOGIN.decodeLine(line);
+    if (req == this.kPassword) {
+      this._state = kStateAuthenticated;
+      return "235 2.7.0 Hello friend! Where did you pull out this old auth scheme?";
+    }
+    else {
+      return "535 5.7.8 Wrong username or password, crook!";
+    }
+  },
+
   onError: function (command, args) {
-    return "500 not recognized\n";
+    return "500 Command " + command + " not recognized\n";
+  },
+  onServerFault: function (e) {
+    return "451 Internal server error: " + e;
   },
   onMultiline: function(line) {
+    if (this._nextAuthFunction) {
+      var func = this._nextAuthFunction;
+      this._multiline = false;
+      this._nextAuthFunction = undefined;
+      if (line == "*") { // abort, per RFC 4954 and others
+        return "501 Okay, as you wish. Chicken";
+      }
+      if (!func || typeof(func) != "function") {
+        return "451 I'm lost. Internal server error during auth";
+      }
+      try {
+        return func.call(this, line);
+      } catch (e) { return "451 " + e; }
+    }
     if (line == ".") {
       if (this.expectingData) {
         this.expectingData = false;
         return "250 Wonderful article, your style is gorgeous!";
-	    }
+      }
+      return "503 Huch? How did you get here?";
     }
 
     if (this.expectingData) {
@@ -130,10 +231,9 @@ SMTP_RFC2822_handler.prototype = {
     }
     return undefined;
   },
-  postCommand: function(obj) {
+  postCommand: function(reader) {
     if (this.closing)
-      obj.closeSocket();
-    obj.setMultiline(this.expectingData);
-    obj.setExpectPassword(this._expectPassword);
+      reader.closeSocket();
+    reader.setMultiline(this._multiline || this.expectingData);
   }
 }

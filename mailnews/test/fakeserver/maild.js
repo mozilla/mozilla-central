@@ -170,8 +170,8 @@ nsMailServer.prototype = {
 
   setDebugLevel : function (debug) {
     this._debug = debug;
-    if (this._reader)
-      this._reader.setDebugLevel(debug);
+    for (var i = 0; i < this._readers.length; i++)
+      this._readers[i].setDebugLevel(debug);
   },
 
   start : function (port) {
@@ -276,6 +276,7 @@ nsMailServer.prototype = {
       return reader._isRunning;
     });
     this._test = true;
+    this._handler.resetTest();
   }
 };
 
@@ -293,12 +294,11 @@ function readTo(input, count, arr) {
  *               command and rest-of-line as arguments
  * onStartup     Called on initialization with no arguments
  * onMultiline   Called when in multiline with the entire line as an argument
- * onPassword    Called when a password line is expected as the entire argument
  * postCommand   Called after every command with this reader as the argument
  * [command]     An untranslated command with the rest of the line as the
  *               argument. Defined as everything to the first space
  *
- * All functions, except onMultiline, onPassword and postCommand, treat the
+ * All functions, except onMultiline and postCommand, treat the
  * returned value as the text to be sent to the client; a newline at the end
  * may be added if it does not exist, and all lone newlines are converted to
  * CRLF sequences.
@@ -396,7 +396,7 @@ nsMailReader.prototype = {
     while (this._lines.length > 0) {
       var line = this._lines.shift();
 
-      if (this._debug == fsDebugAll)
+      if (this._debug != fsDebugNone)
         print("RECV: " + line);
 
       var response;
@@ -405,12 +405,6 @@ nsMailReader.prototype = {
           response = this._handler.onMultiline(line);
 
           if (response === undefined)
-            continue;
-        } else if (this._expectPassword) {
-          dump("expecting password\n");
-          response = this._handler.onPassword(line);
-
-          if (response == undefined)
             continue;
         } else {
           // Record the transaction
@@ -425,8 +419,8 @@ nsMailReader.prototype = {
           // By convention, commands are uppercase
           command = command.toUpperCase();
 
-          if (this._debug == fsDebugRecv || this._debug == fsDebugRecvSend)
-            print("RECV: " + command);
+          if (this._debug == fsDebugAll)
+            print("Received command " + command);
 
           if (command in this._handler)
             response = this._handler[command](args);
@@ -437,7 +431,7 @@ nsMailReader.prototype = {
         this._preventLFMunge = false;
         this._handler.postCommand(this);
       } catch (e) {
-        response = this._handler.onServerFault();
+        response = this._handler.onServerFault(e);
         if (e instanceof Error) {
           dump(e.name + ": " + e.message + '\n');
           dump("File: " + e.fileName + " Line: " + e.lineNumber + '\n');
@@ -489,10 +483,6 @@ nsMailReader.prototype = {
 
   setMultiline : function (multi) {
     this._multiline = multi;
-  },
-
-  setExpectPassword : function (expectPassword) {
-    this._expectPassword = expectPassword;
   },
 
   setDebugLevel : function (debug) {

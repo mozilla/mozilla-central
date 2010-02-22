@@ -639,10 +639,23 @@ function formatArg(argument, spec) {
 function IMAP_RFC3501_handler(daemon) {
   this._daemon = daemon;
   this.closing = false;
-  this._state = IMAP_STATE_NOT_AUTHED;
-  this._authenticating = undefined;
+  // map: property = auth scheme {String}, value = start function on this obj
+  this._kAuthSchemeStartFunction = {};
+
+  this.resetTest();
 }
 IMAP_RFC3501_handler.prototype = {
+
+  kUsername : "user",
+  kPassword : "password",
+  kAuthSchemes : [], // Added by RFC2195 extension. Test may modify as needed.
+  kCapabilities : [/*"LOGINDISABLED", "STARTTLS",*/], // Test may modify as needed.
+
+  resetTest : function() {
+    this._state = IMAP_STATE_NOT_AUTHED;
+    this._multiline = false;
+    this._nextAuthFunction = undefined; // should be in RFC2195_ext, but too lazy
+  },
   onStartup : function () {
     return "* OK IMAP4rev1 Fakeserver started up";
   },
@@ -675,6 +688,9 @@ IMAP_RFC3501_handler.prototype = {
 
     // If we're here, we have a command with arguments. Dispatch!
     return this._dispatchCommand(command, args);
+  },
+  onServerFault: function (e) {
+    return this._tag + " BAD internal server error: " + e;
   },
   onMultiline : function (line) {
     // A multiline arising form a literal being passed
@@ -709,25 +725,20 @@ IMAP_RFC3501_handler.prototype = {
       this._multiline = false;
       return this._dispatchCommand(command, args);
     }
-    if (this._authenticating) {
-      line = atob(line);
+
+    if (this._nextAuthFunction) {
+      var func = this._nextAuthFunction;
+      this._multiline = false;
+      this._nextAuthFunction = undefined;
       if (line == "*") {
-        this._authenticating = undefined;
-        this._multiline = false;
-        return this._tag + " BAD okay, I won't authenticate you.";
+        return this._tag + " BAD Okay, as you wish. Chicken";
       }
-      // base64 encoded <nul>user<nul>password
-      if (line == atob("AHVzZXIAcGFzc3dvcmQ=")) {
-        this._authenticating = undefined;
-        this._state = IMAP_STATE_AUTHED;
-        this._multiline = false;
-        return this._tag + " OK I just authenticated you. Happy now?";
+      if (!func || typeof(func) != "function") {
+        return this._tag + " BAD I'm lost. Internal server error during auth";
       }
-      else {
-        this._authenticating = undefined;
-        this._multiline = false;
-        return this._tag + " BAD invalid password, I won't authenticate you.";
-      }
+      try {
+        return this._tag + " " + func.call(this, line);
+      } catch (e) { return this._tag + " BAD " + e; }
     }
     return undefined;
   },
@@ -749,7 +760,7 @@ IMAP_RFC3501_handler.prototype = {
         var response = e;
       }
     } else {
-      var response = "BAD parse error: command not implemented";
+      var response = "BAD " + command  + " not implemented";
     }
 
     // Add status updates
@@ -844,7 +855,7 @@ IMAP_RFC3501_handler.prototype = {
     NOOP : [],
     LOGOUT : [],
     STARTTLS : [],
-    AUTHENTICATE : ["atom"],
+    AUTHENTICATE : ["atom", "..."],
     LOGIN : ["string", "string"],
     SELECT : ["mailbox"],
     EXAMINE : ["mailbox"],
@@ -872,10 +883,12 @@ IMAP_RFC3501_handler.prototype = {
   // (ordered as in spec) //
   //////////////////////////
   CAPABILITY : function (args) {
-    return "* CAPABILITY IMAP4rev1 " + this._capabilities.join(" ") + "\0" +
-           "OK CAPABILITY completed";
+    var capa = "* CAPABILITY IMAP4rev1 " + this.kCapabilities.join(" ");
+    if (this.kAuthSchemes.length > 0)
+      capa += " AUTH=" + this.kAuthSchemes.join(" AUTH=");
+    capa += "\0" + "OK CAPABILITY completed";
+    return capa;
   },
-  _capabilities : [/*"LOGINDISABLED", "STARTTLS",*/ "AUTH=PLAIN"],
   LOGOUT : function (args) {
     this.closing = true;
     if (this._selectedMailbox)
@@ -888,14 +901,24 @@ IMAP_RFC3501_handler.prototype = {
   STARTTLS : function (args) {
     return "BAD maild doesn't support TLS ATM";
   },
+  _nextAuthFunction : undefined,
   AUTHENTICATE : function (args) {
-    // TODO: check the args
-    this._authenticating = args;
-    this._multiline = true;
-    return "+";
+    var scheme = args[0]; // already uppercased by type "atom"
+    // |scheme| contained in |kAuthSchemes|?
+    if (!this.kAuthSchemes.some(function (s) { return s == scheme; }))
+      return "-ERR AUTH " + scheme + " not supported";
+
+    var func = this._kAuthSchemeStartFunction[scheme];
+    if (!func || typeof(func) != "function")
+      return "BAD I just pretended to implement AUTH " + scheme + ", but I don't";
+    dump("Starting AUTH " + scheme + "\n");
+    return func.call(this, args[1]);
   },
   LOGIN : function (args) {
-    if (args == "\"user\" \"password\"") {
+    if (this.kCapabilities.some(function(c) { return c == "LOGINDISABLED"; } ))
+      return "BAD old-style LOGIN is disabled, use AUTHENTICATE";
+    if (args[0] == this.kUsername &&
+        args[1] == this.kPassword) {
       this._state = IMAP_STATE_AUTHED;
       return "OK authenticated";
     }
@@ -1244,14 +1267,14 @@ IMAP_RFC3501_handler.prototype = {
     return this[name](args, true);
   },
 
-  postCommand : function (obj) {
+  postCommand : function (reader) {
     if (this.closing)
-      obj.closeSocket();
+      reader.closeSocket();
     if (this.sendingLiteral)
-      obj.preventLFMunge();
-    obj.setMultiline(this._multiline);
-    if (this._lastCommand == obj.watchWord)
-      obj.stopTest();
+      reader.preventLFMunge();
+    reader.setMultiline(this._multiline);
+    if (this._lastCommand == reader.watchWord)
+      reader.stopTest();
   },
   onServerFault : function () {
     return ("_tag" in this ? this._tag : '*') + ' BAD Internal server fault.';
@@ -1509,12 +1532,12 @@ IMAP_RFC3501_handler.prototype = {
 ////////////////////////////////////////////////////////////////////////////////
 
 var configurations = {
-  Cyrus: ["RFC2342"],
-  UW: ["RFC2342"],
-  Dovecot: [],
-  Zimbra: ["RFC2342"],
-  Exchange: ["RFC2342"],
-  LEMONADE: ["RFC2342"]
+  Cyrus: ["RFC2342", "RFC2195"],
+  UW: ["RFC2342", "RFC2195"],
+  Dovecot: ["RFC2195"],
+  Zimbra: ["RFC2342", "RFC2195"],
+  Exchange: ["RFC2342", "RFC2195"],
+  LEMONADE: ["RFC2342", "RFC2195"],
 };
 
 function mixinExtension(handler, extension) {
@@ -1568,7 +1591,7 @@ var IMAP_RFC2342_extension = {
     }
     return response;
   },
-  _capabilities : ["NAMESPACE"],
+  kCapabilities : ["NAMESPACE"],
   _argFormat : { NAMESPACE : [] },
   // Enabled in AUTHED and SELECTED states
   _enabledCommands : { 1 : ["NAMESPACE"], 2 : ["NAMESPACE"] }
@@ -1606,5 +1629,96 @@ var IMAP_RFC4315_extension = {
     }
     return response;
   },
-  _capabilities: ["UIDPLUS"]
+  kCapabilities: ["UIDPLUS"]
+};
+
+
+/**
+ * This implements AUTH schemes. Could be moved into RFC3501 actually.
+ * The test can en-/disable auth schemes by modifying kAuthSchemes.
+ */
+var IMAP_RFC2195_extension = {
+  kAuthSchemes : [ "CRAM-MD5" , "PLAIN", "LOGIN" ],
+
+  preload: function (handler) {
+    handler._kAuthSchemeStartFunction["CRAM-MD5"] = this.authCRAMStart;
+    handler._kAuthSchemeStartFunction["PLAIN"] = this.authPLAINStart;
+    handler._kAuthSchemeStartFunction["LOGIN"] = this.authLOGINStart;
+  },
+
+  authPLAINStart : function (lineRest)
+  {
+    this._nextAuthFunction = this.authPLAINCred;
+    this._multiline = true;
+
+    return "+";
+  },
+  authPLAINCred : function (line)
+  {
+    var req = AuthPLAIN.decodeLine(line);
+    if (req.username == this.kUsername &&
+        req.password == this.kPassword) {
+      this._state = IMAP_STATE_AUTHED;
+      return "OK Hello friend! Friends give friends good advice: Next time, use CRAM-MD5";
+    }
+    else {
+      return "BAD Wrong username or password, crook!";
+    }
+  },
+
+  authCRAMStart : function (lineRest)
+  {
+    this._nextAuthFunction = this.authCRAMDigest;
+    this._multiline = true;
+
+    this._usedCRAMMD5Challenge = AuthCRAM.createChallenge("localhost");
+    return "+ " + this._usedCRAMMD5Challenge;
+  },
+  authCRAMDigest : function (line)
+  {
+    var req = AuthCRAM.decodeLine(line);
+    var expectedDigest = AuthCRAM.encodeCRAMMD5(
+        this._usedCRAMMD5Challenge, this.kPassword);
+    if (req.username == this.kUsername &&
+        req.digest == expectedDigest) {
+      this._state = IMAP_STATE_AUTHED;
+      return "OK Hello friend!";
+    }
+    else {
+      return "BAD Wrong username or password, crook!";
+    }
+  },
+
+  authLOGINStart : function (lineRest)
+  {
+    this._nextAuthFunction = this.authLOGINUsername;
+    this._multiline = true;
+
+    return "+ " + btoa("Username:");
+  },
+  authLOGINUsername : function (line)
+  {
+    var req = AuthLOGIN.decodeLine(line);
+    if (req == this.kUsername)
+      this._nextAuthFunction = this.authLOGINPassword;
+    else // Don't return error yet, to not reveal valid usernames
+      this._nextAuthFunction = this.authLOGINBadUsername;
+    this._multiline = true;
+    return "+ " + btoa("Password:");
+  },
+  authLOGINBadUsername : function (line)
+  {
+    return "BAD Wrong username or password, crook!";
+  },
+  authLOGINPassword : function (line)
+  {
+    var req = AuthLOGIN.decodeLine(line);
+    if (req == this.kPassword) {
+      this._state = IMAP_STATE_AUTHED;
+      return "OK Hello friend! Where did you pull out this old auth scheme?";
+    }
+    else {
+      return "BAD Wrong username or password, crook!";
+    }
+  },
 };

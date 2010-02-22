@@ -11,12 +11,10 @@ var pop3Service;
 var firstTest = true;
 var thisTest;
 
-// The fake server doesn't support AUTH and CAPA (not part of RFC 1939),
-// but mailnews correctly tries anyway.
 var tests = [
   { title: "Get New Mail, One Message",
     messages: [ "message2.eml", "message2.eml", "message3.eml" ],
-    transaction: [ "AUTH", "CAPA", "USER fake", "PASS server", "STAT", "LIST",
+    transaction: [ "AUTH", "CAPA", "AUTH PLAIN", "STAT", "LIST",
                    "UIDL", "XTND XLST Message-Id",
                    "RETR 1", "DELE 1", "RETR 2", "DELE 2", "RETR 3", "DELE 3" ] }
 ];

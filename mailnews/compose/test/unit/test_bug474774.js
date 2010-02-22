@@ -43,12 +43,11 @@ msll.prototype = {
     do_throw("onMessageSendError should not have been called, status: " + aStatus);
   },
   onStopSending: function (aStatus, aMsg, aTotalTried, aSuccessful) {
-    do_test_finished();
     print("msll onStopSending\n");
     try {
+      do_check_eq(aSuccessful, 1);
       do_check_eq(aStatus, 0);
       do_check_eq(aTotalTried, 1);
-      do_check_eq(aSuccessful, 1);
       do_check_eq(this._initialTotal, 1);
       do_check_eq(msgSendLater.sendingMessages, false);
 
@@ -72,6 +71,7 @@ msll.prototype = {
       while (thread.hasPendingEvents())
         thread.processNextEvent(true);
     }
+    do_test_finished();
   }
 };
 

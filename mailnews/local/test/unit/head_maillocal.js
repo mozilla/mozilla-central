@@ -4,6 +4,7 @@ load("../../mailnews/resources/mailTestUtils.js");
 
 // Import the pop3 server scripts
 load("../../mailnews/fakeserver/maild.js")
+load("../../mailnews/fakeserver/auth.js")
 load("../../mailnews/fakeserver/pop3d.js")
 
 const POP3_PORT = 1024+110;
@@ -12,7 +13,7 @@ const POP3_PORT = 1024+110;
 // If the debugOption is set, then it will be applied to the server.
 function setupServerDaemon(debugOption) {
   var daemon = new pop3Daemon();
-  var handler = new POP3_RFC1939_handler(daemon);
+  var handler = new POP3_RFC5034_handler(daemon);
   var server = new nsMailServer(handler);
   if (debugOption)
     server.setDebugLevel(debugOption);
@@ -25,10 +26,10 @@ function createPop3ServerAndLocalFolders() {
   var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
                   .getService(Ci.nsIMsgAccountManager);
 
-  var incoming = acctMgr.createIncomingServer("fake", "localhost", "pop3");
+  var incoming = acctMgr.createIncomingServer("fred", "localhost", "pop3");
 
   incoming.port = POP3_PORT;
-  incoming.password = "server";
+  incoming.password = "wilma";
 
   return incoming;
 }

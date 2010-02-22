@@ -95,6 +95,10 @@ function run_test() {
   server = makeServer(daemon, "");
   server.setDebugLevel(fsDebugAll);
 
+  // Make username of server match the singons.txt file (pw there is intentionally invalid)
+  server._handler.kUsername = kUserName;
+  server._handler.kPassword = kValidPassword;
+
   incomingServer = createLocalIMAPServer();
 
   // PerformExpand expects us to already have a password loaded into the

@@ -2,7 +2,6 @@
 /**
  * Authentication tests for POP3.
  */
-var type = null;
 var test = null;
 var server;
 var daemon;
@@ -11,12 +10,10 @@ var pop3Service;
 var firstTest = true;
 var thisTest;
 
-// The fake server doesn't support AUTH and CAPA (not part of RFC 1939),
-// but mailnews correctly tries anyway.
 var tests = [
   { title: "Get New Mail, One Message",
     messages: ["message1.eml"],
-    transaction: [ "AUTH", "CAPA", "USER testpop3", "PASS pop3test", "STAT", "LIST",
+    transaction: [ "AUTH", "CAPA", "AUTH PLAIN", "STAT", "LIST",
                    "UIDL", "XTND XLST Message-Id",
                    "RETR 1", "DELE 1" ] }
 ];
@@ -132,12 +129,11 @@ function run_test() {
   var serverArray = setupServerDaemon();
   daemon = serverArray[0];
   server = serverArray[1];
+  var handler = serverArray[2]
 
   // Set the server expected username & password to what we have in signons.txt
-  serverArray[2].expectedUsername = "testpop3";
-  serverArray[2].expectedPassword = "pop3test";
-
-  type = "RFC 1939";
+  handler.kUsername = "testpop3";
+  handler.kPassword = "pop3test";
 
   // Set up the basic accounts and folders.
   // We would use createPop3ServerAndLocalFolders() however we want to have

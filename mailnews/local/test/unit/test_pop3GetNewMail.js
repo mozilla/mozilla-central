@@ -2,7 +2,6 @@
 /**
  * Protocol tests for POP3.
  */
-var type = null;
 var test = null;
 var server;
 var daemon;
@@ -11,18 +10,16 @@ var pop3Service;
 var firstTest = true;
 var thisTest;
 
-// The fake server doesn't support AUTH and CAPA (not part of RFC 1939),
-// but mailnews correctly tries anyway.
 var tests = [
   { title: "Get New Mail, No Messages",
     messages: [],
-    transaction: [ "AUTH", "CAPA", "USER fake", "PASS server", "STAT" ] },
+    transaction: [ "AUTH", "CAPA", "AUTH PLAIN", "STAT" ] },
   { title: "Get New Mail, No Messages 2",
     messages: [],
-    transaction: [ "CAPA", "USER fake", "PASS server", "STAT" ] },
+    transaction: [ "CAPA", "AUTH PLAIN", "STAT" ] },
   { title: "Get New Mail, One Message",
     messages: ["message1.eml"],
-    transaction: [ "CAPA", "USER fake", "PASS server", "STAT", "LIST",
+    transaction: [ "CAPA", "AUTH PLAIN", "STAT", "LIST",
                    "UIDL", "XTND XLST Message-Id",
                    "RETR 1", "DELE 1" ] }
 ];
@@ -131,8 +128,6 @@ function run_test() {
   server = setupServerDaemon();
   daemon = server[0];
   server = server[1];
-
-  type = "RFC 1939";
 
   // Set up the basic accounts and folders
   incomingServer = createPop3ServerAndLocalFolders();

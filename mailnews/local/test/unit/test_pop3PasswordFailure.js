@@ -13,7 +13,6 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 load("../../mailnews/resources/alertTestUtils.js");
 
-var type = null;
 var test = null;
 var server;
 var daemon;
@@ -199,12 +198,11 @@ function run_test()
   var serverArray = setupServerDaemon();
   daemon = serverArray[0];
   server = serverArray[1];
+  var handler = serverArray[2];
 
   // Set the server expected username & password to what we have in signons.txt
-  serverArray[2].expectedUsername = kUserName;
-  serverArray[2].expectedPassword = kValidPassword;
-
-  type = "RFC 1939";
+  handler.kUsername = kUserName;
+  handler.kPassword = kValidPassword;
 
   // Set up the basic accounts and folders.
   // We would use createPop3ServerAndLocalFolders() however we want to have

@@ -87,9 +87,13 @@ function promptPasswordPS(aParent, aDialogTitle, aText, aPassword, aCheckMsg,
 }
 
 function run_test() {
-  var handler = new SMTP_RFC2822_handler(new smtpDaemon(), "PLAIN", kUsername,
-                                         kValidPassword);
+  var handler = new SMTP_RFC2821_handler(new smtpDaemon());
   server = new nsMailServer(handler);
+  // Username needs to match signons.txt
+  handler.kUsername = kUsername;
+  handler.kPassword = kValidPassword;
+  handler.kAuthRequired = true;
+  handler.kAuthSchemes = [ "PLAIN", "LOGIN" ]; // make match expected transaction below
 
   // Passwords File (generated from Mozilla 1.8 branch).
   var signons = do_get_file("../../mailnews/data/signons-mailnews1.8.txt");
@@ -141,20 +145,13 @@ function run_test() {
     var transaction = server.playTransaction();
     do_check_transaction(transaction, ["EHLO test",
                                        // attempt 3 invalid password
-                                       "AUTH PLAIN " + btoa("\u0000" +
-                                                            kUsername +
-                                                            "\u0000" +
-                                                            kInvalidPassword),
+                                       "AUTH PLAIN " + AuthPLAIN.encodeLine(kUsername, kInvalidPassword),
+                                       "AUTH LOGIN",
                                        // attempt 4 which retries
-                                       "AUTH PLAIN " + btoa("\u0000" +
-                                                            kUsername +
-                                                            "\u0000" +
-                                                            kInvalidPassword),
+                                       "AUTH PLAIN " + AuthPLAIN.encodeLine(kUsername, kInvalidPassword),
+                                       "AUTH LOGIN",
                                        // then we enter the correct password
-                                       "AUTH PLAIN " + btoa("\u0000" +
-                                                            kUsername +
-                                                            "\u0000" +
-                                                            kValidPassword),
+                                       "AUTH PLAIN " + AuthPLAIN.encodeLine(kUsername, kValidPassword),
                                        "MAIL FROM:<" + kSender + "> SIZE=155",
                                        "RCPT TO:<" + kTo + ">",
                                        "DATA"]);
