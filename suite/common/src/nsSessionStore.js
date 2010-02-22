@@ -1463,17 +1463,13 @@ SessionStoreService.prototype = {
   _updateCookieHosts: function sss_updateCookieHosts(aWindow) {
     var hosts = this._windows[aWindow.__SSi]._hosts = {};
 
-    // get all possible subdomain levels for a given URL
+    // get the host for each URL
     var _this = this;
     function extractHosts(aEntry) {
-      if (/^https?:\/\/(?:[^@\/\s]+@)?([\w.-]+)/.test(aEntry.url) &&
-        !hosts[RegExp.$1] && _this._checkPrivacyLevel(_this._getURIFromString(aEntry.url).schemeIs("https"))) {
-        var host = RegExp.$1;
-        var ix;
-        for (ix = host.indexOf(".") + 1; ix; ix = host.indexOf(".", ix) + 1) {
-          hosts[host.substr(ix)] = true;
+      if (/^https?:\/\/(?:[^@\/\s]+@)?([\w.-]+)/.test(aEntry.url)) {
+        if (!hosts[RegExp.$1] && _this._checkPrivacyLevel(_this._getURIFromString(aEntry.url).schemeIs("https"))) {
+          hosts[RegExp.$1] = true;
         }
-        hosts[host] = true;
       }
       else if (/^file:\/\/([^\/]*)/.test(aEntry.url)) {
         hosts[RegExp.$1] = true;
@@ -1492,35 +1488,48 @@ SessionStoreService.prototype = {
    *        array of Window references
    */
   _updateCookies: function sss_updateCookies(aWindows) {
-    var cookiesEnum = Components.classes["@mozilla.org/cookiemanager;1"].
-                      getService(Components.interfaces.nsICookieManager).enumerator;
+    var cm = Components.classes["@mozilla.org/cookiemanager;1"]
+                       .getService(Components.interfaces.nsICookieManager2);
     // collect the cookies per window
     for (var i = 0; i < aWindows.length; i++)
       aWindows[i].cookies = [];
 
+    var jscookies = {};
+    var _this = this;
     // MAX_EXPIRY should be 2^63-1, but JavaScript can't handle that precision
     var MAX_EXPIRY = Math.pow(2, 62);
-    while (cookiesEnum.hasMoreElements()) {
-      var cookie = cookiesEnum.getNext().QueryInterface(Components.interfaces.nsICookie2);
-      if (cookie.isSession && this._checkPrivacyLevel(cookie.isSecure)) {
-        var jscookie = null;
-        aWindows.forEach(function(aWindow) {
-          if (aWindow._hosts && aWindow._hosts[cookie.rawHost]) {
-            // serialize the cookie when it's first needed
-            if (!jscookie) {
-              jscookie = { host: cookie.host, value: cookie.value };
+    aWindows.forEach(function(aWindow) {
+      for (var host in aWindow._hosts) {
+        var list = cm.getCookiesFromHost(host);
+        while (list.hasMoreElements()) {
+          var cookie = list.getNext().QueryInterface(Components.interfaces.nsICookie2);
+          if (cookie.isSession && _this._checkPrivacyLevel(cookie.isSecure)) {
+            // use the cookie's host, path, and name as keys into a hash,
+            // to make sure we serialize each cookie only once
+
+            // lazily build up a 3-dimensional hash, with
+            // host, path, and name as keys
+            if (!jscookies[cookie.host])
+              jscookies[cookie.host] = {};
+            if (!jscookies[cookie.host][cookie.path])
+              jscookies[cookie.host][cookie.path] = {};
+
+            if (!jscookies[cookie.host][cookie.path][cookie.name]) {
+              var jscookie = { "host": cookie.host, "value": cookie.value };
               // only add attributes with non-default values (saving a few bits)
               if (cookie.path) jscookie.path = cookie.path;
               if (cookie.name) jscookie.name = cookie.name;
               if (cookie.isSecure) jscookie.secure = true;
               if (cookie.isHttpOnly) jscookie.httponly = true;
               if (cookie.expiry < MAX_EXPIRY) jscookie.expiry = cookie.expiry;
+  
+              jscookies[cookie.host][cookie.path][cookie.name] = jscookie;
             }
-            aWindow.cookies.push(jscookie);
+            aWindow.cookies.push(jscookies[cookie.host][cookie.path][cookie.name]);
           }
-        });
+        }
       }
-    }
+    });
 
     // don't include empty cookie sections
     for (i = 0; i < aWindows.length; i++)

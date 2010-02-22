@@ -52,6 +52,8 @@ _BROWSER_FILES = \
 	browser_bug524345.js \
 	browser_bug524365.js \
 	browser_bug524369.js \
+	browser_bug524371.js \
+	browser_bug524371_sample.html \
 	$(NULL)
 
 libs::	$(_BROWSER_FILES)
