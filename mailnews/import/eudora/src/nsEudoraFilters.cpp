@@ -50,6 +50,7 @@
 #include "nsIPrefService.h"
 #include "nsIMsgFilterList.h"
 #include "nsIMsgAccountManager.h"
+#include "nsIStringBundle.h"
 
 #include "nsEudoraFilters.h"
 #include "nsEudoraStringBundle.h"
@@ -371,10 +372,27 @@ nsresult nsEudoraFilters::Init()
   rv = localRootFolder->GetSubFolders(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  localRootFolder->GetChildNamed(NS_LITERAL_STRING("Eudora Mail"), getter_AddRefs(m_pMailboxesRoot));
+  // Get the name of the folder where one-off imported mail is placed
+  nsAutoString folderName(NS_LITERAL_STRING("Eudora Import"));
+  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService(
+                                     NS_STRINGBUNDLE_CONTRACTID, &rv));
+  if (NS_SUCCEEDED(rv))
+  {
+    nsCOMPtr<nsIStringBundle> bundle;
+    rv = bundleService->CreateBundle("chrome://messenger/locale/importMsgs.properties",
+                                     getter_AddRefs(bundle));
+    if (NS_SUCCEEDED(rv))
+    {
+      nsAutoString Eudora(NS_LITERAL_STRING("Eudora"));
+      const PRUnichar *moduleName[] = { Eudora.get() };
+      rv = bundle->FormatStringFromName(NS_LITERAL_STRING("ImportModuleFolderName").get(),
+                                        moduleName, 1, getter_Copies(folderName));
+    }
+  }
+  localRootFolder->GetChildNamed(folderName, getter_AddRefs(m_pMailboxesRoot));
   if (!m_pMailboxesRoot)
   {
-    // If no "Eudora Mail" folder then this is a
+    // If no "Eudora Import" folder then this is a
     // migration which just puts it in the root
     m_pMailboxesRoot = localRootFolder;
   }
@@ -553,11 +571,11 @@ nsresult nsEudoraFilters::EnableFilter(PRBool enable)
 
 // Different character sets on Windows and Mac put left and right double angle quotes in different spots
 #if defined(XP_WIN) || defined(XP_OS2)
-#define LDAQ "«"
-#define RDAQ "»"
+#define LDAQ "\xAB"
+#define RDAQ "\xBB"
 #elif XP_MACOSX
-#define LDAQ "Ç"
-#define RDAQ "È"
+#define LDAQ "\xC7"
+#define RDAQ "\xC8"
 #endif
 
 static const char* gStandardHeaders[] =
