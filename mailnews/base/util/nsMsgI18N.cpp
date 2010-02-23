@@ -544,12 +544,13 @@ nsresult nsMsgI18NShrinkUTF8Str(const nsCString &inString,
   const char* last = start + aMaxLength;
   const char* cur = start;
   const char* prev = nsnull;
+  PRBool err = PR_FALSE;
   while (cur < last) {
     prev = cur;
-    if (!UTF8CharEnumerator::NextChar(&cur, end))
+    if (!UTF8CharEnumerator::NextChar(&cur, end, &err) || err)
       break;
   }
-  if (!prev) {
+  if (!prev || err) {
     outString.Truncate();
     return NS_OK;
   }
