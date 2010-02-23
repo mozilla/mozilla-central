@@ -332,10 +332,7 @@ case "$target" in
     AR="$_pwd/mozilla/dist/sdk/bin/arm-wince-lib"
     AS="$_pwd/mozilla/dist/sdk/bin/arm-wince-as"
     RC="$_pwd/mozilla/dist/sdk/bin/arm-wince-res"
-
-
     echo -----------------------------------------------------------------------------
-
     ;;
 esac
 
@@ -6990,7 +6987,6 @@ AC_SUBST(WIN32_REDIST_DIR)
 AC_SUBST(PYTHON)
 
 AC_SUBST(WINCE)
-AC_SUBST(WINCE_SDK_DIR)
 AC_SUBST(WINCE_WINDOWS_MOBILE)
 
 dnl Echo the CFLAGS to remove extra whitespace.
