@@ -103,6 +103,7 @@ const CAPABILITIES = [
 ];
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://gre/modules/NetUtil.jsm");
 
 function debug(aMsg) {
   Components.classes["@mozilla.org/consoleservice;1"]
@@ -180,11 +181,11 @@ SessionStoreService.prototype = {
                                  .getBranch("browser.");
     this._prefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
 
-    var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                    .getService(Components.interfaces.nsIObserverService);
+    this._observerService = Components.classes["@mozilla.org/observer-service;1"]
+                                      .getService(Components.interfaces.nsIObserverService);
 
     OBSERVING.forEach(function(aTopic) {
-      observerService.addObserver(this, aTopic, true);
+      this._observerService.addObserver(this, aTopic, true);
     }, this);
 
     // get interval from prefs - used often, so caching/observing instead of fetching on-demand
@@ -473,9 +474,7 @@ SessionStoreService.prototype = {
       }
       else {
         // Nothing to restore, notify observers things are complete.
-        var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                        .getService(Components.interfaces.nsIObserverService);
-        observerService.notifyObservers(aWindow, NOTIFY_WINDOWS_RESTORED, "");
+        this._observerService.notifyObservers(null, NOTIFY_WINDOWS_RESTORED, "");
 
         // the next delayed save request should execute immediately
         this._lastSaveTime -= this._interval;
@@ -2347,9 +2346,8 @@ SessionStoreService.prototype = {
     // parentheses are for backwards compatibility with older sessionstore files
     stateString.data = this._toJSONString(aStateObj);
 
-    var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                    .getService(Components.interfaces.nsIObserverService);
-    observerService.notifyObservers(stateString, "sessionstore-state-write", "");
+    this._observerService.notifyObservers(stateString,
+                                          "sessionstore-state-write", "");
 
     // don't touch the file if an observer has deleted all state data
     if (stateString.data)
@@ -2609,10 +2607,7 @@ SessionStoreService.prototype = {
       this._restoreCount--;
       if (this._restoreCount == 0) {
         // This was the last window restored at startup, notify observers.
-        var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                        .getService(Components.interfaces.nsIObserverService);
-        observerService.notifyObservers(this.windowToFocus,
-                                        NOTIFY_WINDOWS_RESTORED, "");
+        this._observerService.notifyObservers(null, NOTIFY_WINDOWS_RESTORED, "");
       }
     }
   },
@@ -2675,25 +2670,26 @@ SessionStoreService.prototype = {
    *        String data
    */
   _writeFile: function sss_writeFile(aFile, aData) {
-    // init stream
-    var stream = Components.classes["@mozilla.org/network/safe-file-output-stream;1"]
-                           .createInstance(Components.interfaces.nsIFileOutputStream);
-    stream.init(aFile, 0x02 | 0x08 | 0x20, 0600, 0);
+    // Initialize the file output stream.
+    var ostream = Components.classes["@mozilla.org/network/safe-file-output-stream;1"]
+                            .createInstance(Components.interfaces.nsIFileOutputStream);
+    ostream.init(aFile, 0x02 | 0x08 | 0x20, 0600, 0);
 
-    // convert to UTF-8
+    // Obtain a converter to convert our data to a UTF-8 encoded input stream.
     var converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
                               .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
     converter.charset = "UTF-8";
-    var convertedData = converter.ConvertFromUnicode(aData);
-    convertedData += converter.Finish();
 
-    // write and close stream
-    stream.write(convertedData, convertedData.length);
-    if (stream instanceof Components.interfaces.nsISafeOutputStream) {
-      stream.finish();
-    } else {
-      stream.close();
-    }
+    // Asynchronously copy the data to the file.
+    var istream = converter.convertToInputStream(aData);
+    var ObserverService = this._observerService;
+    NetUtil.asyncCopy(istream, ostream, function(rc) {
+      if (Components.isSuccessCode(rc)) {
+        ObserverService.notifyObservers(null,
+                                        "sessionstore-state-write-complete",
+                                        "");
+      }
+    });
   }
 };
 
