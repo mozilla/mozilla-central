@@ -879,7 +879,13 @@ function ClearMessagePane()
   HideMessageHeaderPane();
   gMessageNotificationBar.clearMsgNotifications();
   ClearPendingReadTimer();
-  GetMessagePaneFrame().location.href = "about:blank";
+  try {
+    // This can fail because cloning imap URI's can fail if the username
+    // has been cleared by docshell/base/nsDefaultURIFixup.cpp.
+    GetMessagePaneFrame().location.href = "about:blank";
+  } catch(ex) {
+      logException(ex, false, "error clearing message pane");
+  }
 }
 
 /**
