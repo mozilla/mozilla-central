@@ -91,7 +91,7 @@ private:
   nsresult RemoveCardAndSelectNextCard(nsISupports *item);
   nsresult EnumerateCards();
   nsresult SetGeneratedNameFormatFromPrefs();
-  nsresult GetSelectedCards(nsIArray **aSelectedCards);
+  nsresult GetSelectedCards(nsCOMPtr<nsIMutableArray> &aSelectedCards);
   nsresult ReselectCards(nsIArray *aCards, nsIAbCard *aIndexCard);
   nsresult GetCardValue(nsIAbCard *card, const PRUnichar *colID, nsAString &_retval);
   nsresult RefreshTree();
