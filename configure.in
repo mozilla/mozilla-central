@@ -4394,6 +4394,7 @@ MOZ_PROFILELOCKING=1
 MOZ_PSM=1
 MOZ_RDF=1
 MOZ_SAFE_BROWSING=
+MOZ_FASTSTART=
 MOZ_HELP_VIEWER=
 MOZ_SPELLCHECK=1
 MOZ_STATIC_MAIL_BUILD=
@@ -5641,6 +5642,18 @@ if test -n "$MOZ_SAFE_BROWSING"; then
     AC_DEFINE(MOZ_SAFE_BROWSING)
 fi
 AC_SUBST(MOZ_SAFE_BROWSING)
+
+dnl ========================================================
+dnl = Enable faststart component
+dnl ========================================================
+MOZ_ARG_ENABLE_BOOL(faststart,
+[  --enable-faststart            Enable the faststart component],
+    MOZ_FASTSTART=1,
+    MOZ_FASTSTART= )
+if test -n "$MOZ_FASTSTART"; then
+    AC_DEFINE(MOZ_FASTSTART)
+fi
+AC_SUBST(MOZ_FASTSTART)
 
 dnl ========================================================
 dnl = Enable url-classifier
