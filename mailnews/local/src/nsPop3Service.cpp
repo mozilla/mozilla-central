@@ -670,7 +670,7 @@ nsPop3Service::GetSpecialFoldersDeletionAllowed(PRBool *specialFoldersDeletionAl
 NS_IMETHODIMP
 nsPop3Service::NotifyDownloadStarted(nsIMsgFolder *aFolder)
 {
-  nsTObserverArray<nsCOMPtr<nsIPop3ServiceListener>>::ForwardIterator
+  nsTObserverArray<nsCOMPtr<nsIPop3ServiceListener> >::ForwardIterator
     iter(mListeners);
   nsCOMPtr<nsIPop3ServiceListener> listener;
   while (iter.HasMore()) {
@@ -685,7 +685,7 @@ nsPop3Service::NotifyDownloadProgress(nsIMsgFolder *aFolder,
                                       PRUint32 aNumMessages,
                                       PRUint32 aNumTotalMessages)
 {
-  nsTObserverArray<nsCOMPtr<nsIPop3ServiceListener>>::ForwardIterator
+  nsTObserverArray<nsCOMPtr<nsIPop3ServiceListener> >::ForwardIterator
     iter(mListeners);
   nsCOMPtr<nsIPop3ServiceListener> listener;
   while (iter.HasMore()) {
@@ -699,7 +699,7 @@ NS_IMETHODIMP
 nsPop3Service::NotifyDownloadCompleted(nsIMsgFolder *aFolder,
                                        PRUint32 aNumMessages)
 {
-  nsTObserverArray<nsCOMPtr<nsIPop3ServiceListener>>::ForwardIterator
+  nsTObserverArray<nsCOMPtr<nsIPop3ServiceListener> >::ForwardIterator
     iter(mListeners);
   nsCOMPtr<nsIPop3ServiceListener> listener;
   while (iter.HasMore()) {
