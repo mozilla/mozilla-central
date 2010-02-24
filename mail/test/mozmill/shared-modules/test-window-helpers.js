@@ -82,6 +82,19 @@ const WINDOW_CLOSE_TIMEOUT_MS = 10000;
  */
 const WINDOW_CLOSE_CHECK_INTERVAL_MS = 100;
 
+/**
+ * Timeout for focusing a window.  Only really an issue on linux.
+ */
+const WINDOW_FOCUS_TIMEOUT_MS = 10000;
+
+const focusManager = Cc["@mozilla.org/focus-manager;1"].
+                       getService(Ci.nsIFocusManager);
+const threadManager = Cc["@mozilla.org/thread-manager;1"]
+                        .getService(Ci.nsIThreadManager);
+const hiddenWindow = Cc["@mozilla.org/appshell/appShellService;1"]
+                       .getService(Ci.nsIAppShellService)
+                       .hiddenDOMWindow;
+
 function setupModule() {
   // do nothing
 }
@@ -655,6 +668,40 @@ var AugmentEverybodyWith = {
                               dis.click(aWhatToClick);
                             }, 1000);
     },
+
+    /**
+     * As of mozmill 1.4 and mozilla 1.9.3 (and a lesser extent 1.9.2) there
+     * are serious issues with focus on linux; although the real keypress will
+     * try and force the focus, it doesn't actually check that the focus
+     * changed.  So we spin a loop until it changes. or explode!
+     */
+    keypress: function _force_focus_keypress() {
+      if (focusManager.activeWindow != this.window) {
+        let activated = false, timedOut = false;
+        function activationNotification() {
+          this.window.removeEventListener("activate", activationNotification,
+                                          false);
+          activated = true;
+        }
+        this.window.addEventListener("activate", activationNotification, false);
+        function timeoutSplosion() {
+          timedOut = true;
+        }
+        let timeoutHandle = hiddenWindow.setTimeout(timeoutSplosion,
+                                                    WINDOW_FOCUS_TIMEOUT_MS);
+
+        this.window.focus();
+
+        let curThread = threadManager.currentThread;
+        while (!activated && !timedOut)
+          curThread.processNextEvent(true);
+        if (timedOut)
+          throw new Error("Failed to focus window!");
+        else
+          hiddenWindow.clearTimeout(timeoutHandle);
+      }
+      this.__proto__.keypress.apply(this, arguments);
+    }
   },
 };
 
