@@ -45,11 +45,41 @@ interface nsIStreamListener;
 interface nsIMsgWindow;
 interface nsIMsgFolder;
 
+[scriptable, uuid(7302fd8e-946f-4ae3-9468-0fb3a7706c51)]
+interface nsIPop3ServiceListener : nsISupports {
+  /**
+   * Notification that a pop3 download has started.
+   *
+   * @param aFolder folder in which the download is started.
+   */
+  void onDownloadStarted(in nsIMsgFolder aFolder);
+
+  /**
+   * Notification about download progress.
+   *
+   * @param aFolder folder in which the download is happening.
+   * @param aNumDownloaded number of the messages that have been downloaded.
+   * @param aTotalToDownload total number of messages to download.
+   */
+  void onDownloadProgress(in nsIMsgFolder aFolder,
+                          in unsigned long aNumDownloaded,
+                          in unsigned long aTotalToDownload);
+
+  /**
+   * Notification that a download has completed.
+   *
+   * @param aFolder folder to which the download has completed.
+   * @param aNumberOfMessages number of the messages that were downloaded.
+   */
+  void onDownloadCompleted(in nsIMsgFolder aFolder,
+                           in unsigned long aNumberOfMessages);
+};
+
 /*
  * The Pop3 Service is an interface designed to make building and running
  * pop3 urls easier.
  */
-[scriptable, uuid(b6594f64-4f9d-4655-9e96-ed927823fb73)]
+[scriptable, uuid(96d3cc14-a842-4cdf-98f8-a4cc695f8b3b)]
 interface nsIPop3Service : nsISupports {
   /*
    * All of these functions build pop3 urls and run them. If you want
@@ -85,4 +115,47 @@ interface nsIPop3Service : nsISupports {
   nsIURI verifyLogon(in nsIMsgIncomingServer aServer,
                      in nsIUrlListener aUrlListener,
                      in nsIMsgWindow aMsgWindow);
+
+  /**
+   * Add a listener for pop3 events like message download. This is
+   * used by the activity manager.
+   *
+   * @param aListener listener that gets notified of pop3 events.
+   */
+  void addListener(in nsIPop3ServiceListener aListener);
+
+  /**
+   * Remove a listener for pop3 events like message download.
+   *
+   * @param aListener listener to remove.
+   */
+  void removeListener(in nsIPop3ServiceListener aListener);
+
+  /**
+   * Send the notification that a pop3 download has started.
+   * This is called from the nsIPop3Sink code.
+   *
+   * @param aFolder folder in which the download is started.
+   */
+  void notifyDownloadStarted(in nsIMsgFolder aFolder);
+
+  /**
+   * Send notification about download progress.
+   *
+   * @param aFolder folder in which the download is happening.
+   * @param aNumDownloaded number of the messages that have been downloaded.
+   * @param aTotalToDownload total number of messages to download.
+   */
+  void notifyDownloadProgress(in nsIMsgFolder aFolder,
+                              in unsigned long aNumDownloaded,
+                              in unsigned long aTotalToDownload);
+  /**
+   * Send the notification that a download has completed.
+   * This is called from the nsIPop3Sink code.
+   *
+   * @param aFolder folder to which the download has completed.
+   * @param aNumberOfMessages number of the messages that were downloaded.
+   */
+  void notifyDownloadCompleted(in nsIMsgFolder aFolder,
+                               in unsigned long aNumberOfMessages);
 };

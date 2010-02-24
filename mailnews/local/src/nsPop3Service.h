@@ -46,6 +46,7 @@
 #include "nsIStreamListener.h"
 #include "nsIProtocolHandler.h"
 #include "nsIMsgProtocolInfo.h"
+#include "nsTObserverArray.h"
 
 class nsIMsgMailNewsUrl;
 
@@ -77,6 +78,7 @@ protected:
 
   nsresult RunPopUrl(nsIMsgIncomingServer * aServer, nsIURI * aUrlToRun);
   void AlertServerBusy(nsIMsgMailNewsUrl *url);
+  nsTObserverArray<nsCOMPtr<nsIPop3ServiceListener> > mListeners;
 };
 
 #endif /* nsPop3Service_h___ */

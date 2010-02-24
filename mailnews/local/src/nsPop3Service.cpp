@@ -667,3 +667,59 @@ nsPop3Service::GetSpecialFoldersDeletionAllowed(PRBool *specialFoldersDeletionAl
     return NS_OK;
 }
 
+NS_IMETHODIMP
+nsPop3Service::NotifyDownloadStarted(nsIMsgFolder *aFolder)
+{
+  nsTObserverArray<nsCOMPtr<nsIPop3ServiceListener>>::ForwardIterator
+    iter(mListeners);
+  nsCOMPtr<nsIPop3ServiceListener> listener;
+  while (iter.HasMore()) {
+    listener = iter.GetNext();
+    listener->OnDownloadStarted(aFolder);
+  }
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsPop3Service::NotifyDownloadProgress(nsIMsgFolder *aFolder,
+                                      PRUint32 aNumMessages,
+                                      PRUint32 aNumTotalMessages)
+{
+  nsTObserverArray<nsCOMPtr<nsIPop3ServiceListener>>::ForwardIterator
+    iter(mListeners);
+  nsCOMPtr<nsIPop3ServiceListener> listener;
+  while (iter.HasMore()) {
+    listener = iter.GetNext();
+    listener->OnDownloadProgress(aFolder, aNumMessages, aNumTotalMessages);
+  }
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsPop3Service::NotifyDownloadCompleted(nsIMsgFolder *aFolder,
+                                       PRUint32 aNumMessages)
+{
+  nsTObserverArray<nsCOMPtr<nsIPop3ServiceListener>>::ForwardIterator
+    iter(mListeners);
+  nsCOMPtr<nsIPop3ServiceListener> listener;
+  while (iter.HasMore()) {
+    listener = iter.GetNext();
+    listener->OnDownloadCompleted(aFolder, aNumMessages);
+  }
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsPop3Service::AddListener(nsIPop3ServiceListener *aListener)
+{
+  NS_ENSURE_ARG_POINTER(aListener);
+  mListeners.AppendElementUnlessExists(aListener);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsPop3Service::RemoveListener(nsIPop3ServiceListener *aListener)
+{
+  NS_ENSURE_ARG_POINTER(aListener);
+  mListeners.RemoveElement(aListener);
+  return NS_OK;
+}
+

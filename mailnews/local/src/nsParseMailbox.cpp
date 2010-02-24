@@ -555,6 +555,8 @@ nsParseMailMessageState::nsParseMailMessageState()
   {
      pPrefBranch->GetCharPref("mailnews.customDBHeaders",  getter_Copies(customDBHeaders));
      ToLowerCase(customDBHeaders);
+     if (customDBHeaders.Find("content-base") == -1)
+      customDBHeaders.Insert(NS_LITERAL_CSTRING("content-base "), 0);
      ParseString(customDBHeaders, ' ', m_customDBHeaders);
      if (m_customDBHeaders.Length())
      {

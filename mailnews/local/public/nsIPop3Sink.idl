@@ -41,7 +41,7 @@
 
 interface nsIURI;
 
-[scriptable, uuid(29F76AC4-51FF-4081-A268-B43CACDF4BFF)]
+[scriptable, uuid(ceabfc6b-f139-4c25-890f-efb7c3069d3f)]
 interface nsIPop3Sink : nsISupports {
 
   attribute boolean userAuthenticated;
@@ -69,11 +69,17 @@ interface nsIPop3Sink : nsISupports {
 
   void BiffGetNewMail();
 
+  /**
+   * Tell the pop3sink how many messages we're going to download.
+   *
+   * @param aNumMessages how many messages we're going to download.
+   */
+  void setMsgsToDownload(in unsigned long aNumMessages);
+
   void SetBiffStateAndUpdateFE(in unsigned long biffState, in long numNewMessages, in boolean notify);
 
   [noscript] void SetSenderAuthedFlag(in voidPtr closure, in boolean authed);
 
   attribute nsIPop3IncomingServer popServer;
   attribute nsIMsgFolder folder;
-
 };

@@ -51,3 +51,5 @@ Components.utils.import("resource://app/modules/activity/autosync.js");
 autosyncModule.init();
 Components.utils.import("resource://app/modules/activity/alertHook.js");
 alertHook.init();
+Components.utils.import("resource://app/modules/activity/pop3Download.js");
+pop3DownloadModule.init();

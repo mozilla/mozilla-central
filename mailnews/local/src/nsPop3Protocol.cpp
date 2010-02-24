@@ -2696,6 +2696,9 @@ PRInt32 nsPop3Protocol::GetMsg()
           return (Error(MK_POP3_OUT_OF_DISK_SPACE));
         }
       }
+      // Here we know how many messages we're going to download, so let
+      // the pop3 sink know.
+      rv = m_nsIPop3Sink->SetMsgsToDownload(m_pop3ConData->really_new_messages);
     }
   }
 

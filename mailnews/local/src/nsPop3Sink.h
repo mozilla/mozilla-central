@@ -76,12 +76,13 @@ protected:
     PRUint32 m_biffState;
     PRInt32 m_numNewMessages;
     PRInt32 m_numNewMessagesInFolder;
+    PRInt32 m_numMsgsDownloaded;
     PRBool m_senderAuthed;
     char* m_outputBuffer;
     PRInt32 m_outputBufferSize;
     nsIPop3IncomingServer *m_popServer;
     //Currently the folder we want to update about biff info
-    nsIMsgFolder *m_folder;
+    nsCOMPtr<nsIMsgFolder> m_folder;
     nsParseNewMailState  *m_newMailParser;
 #ifdef DEBUG
     PRInt32 m_fileCounter;
