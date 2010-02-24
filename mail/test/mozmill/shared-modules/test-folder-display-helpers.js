@@ -13,8 +13,7 @@
  *
  * The Original Code is Thunderbird Mail Client.
  *
- * The Initial Developer of the Original Code is
- * Mozilla Messaging, Inc.
+ * The Initial Developer of the Original Code is the Mozilla Foundation.
  * Portions created by the Initial Developer are Copyright (C) 2009
  * the Initial Developer. All Rights Reserved.
  *
