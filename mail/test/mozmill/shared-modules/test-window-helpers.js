@@ -678,44 +678,6 @@ var AugmentEverybodyWith = {
                               dis.click(aWhatToClick);
                             }, 1000);
     },
-
-    /**
-     * As of mozmill 1.4 and mozilla 1.9.3 (and a lesser extent 1.9.2) there
-     * are serious issues with focus on linux; although the real keypress will
-     * try and force the focus, it doesn't actually check that the focus
-     * changed.  So we spin a loop until it changes. or explode!
-     */
-    keypress: function _force_focus_keypress() {
-      if (focusManager.activeWindow != this.window) {
-        let initiallyActive = focusManager.activeWindow;
-        let activated = false, timedOut = false;
-        function activationNotification() {
-          this.window.removeEventListener("activate", activationNotification,
-                                          false);
-          activated = true;
-        }
-        this.window.addEventListener("activate", activationNotification, false);
-        function timeoutSplosion() {
-          timedOut = true;
-        }
-        let timeoutHandle = hiddenWindow.setTimeout(timeoutSplosion,
-                                                    WINDOW_FOCUS_TIMEOUT_MS);
-
-        focusManager.activeWindow = this.window;
-
-        let curThread = threadManager.currentThread;
-        while (!activated && !timedOut)
-          curThread.processNextEvent(true);
-        if (timedOut)
-          throw new Error("Failed to focus window! " +
-                          "Initially active window: " + initiallyActive +
-                          " currently active window: " +
-                          focusManager.activeWindow);
-        else
-          hiddenWindow.clearTimeout(timeoutHandle);
-      }
-      this.__proto__.keypress.apply(this, arguments);
-    }
   },
 };
 
