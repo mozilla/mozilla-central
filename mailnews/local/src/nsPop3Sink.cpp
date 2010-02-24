@@ -547,10 +547,7 @@ nsPop3Sink::AbortMailDelivery(nsIPop3Protocol *protocol)
   we have truncated the inbox, so berkeley mailbox and msf file are in sync*/
   if (m_newMailParser)
     m_newMailParser->UpdateDBFolderInfo();
-#ifdef DEBUG
-  nsresult rv =
-#endif
-    ReleaseFolderLock();
+  nsresult rv = ReleaseFolderLock();
   NS_ASSERTION(NS_SUCCEEDED(rv),"folder lock not released successfully");
 
 #ifdef DEBUG
