@@ -71,8 +71,6 @@
   <stringbundleset id="stringbundleset">
     <stringbundle id="dmBundle"
                   src="chrome://communicator/locale/downloads/downloadmanager.properties"/>
-    <stringbundle id="progDlgBundle"
-                  src="chrome://global/locale/nsProgressDialog.properties"/>
   </stringbundleset>
 
   <commandset id="dlWinCommands">

@@ -257,7 +257,6 @@
 ; download progress
 @BINPATH@/components/nsHelperAppDlg.js
 @BINPATH@/components/nsDownloadManagerUI.js
-@BINPATH@/components/nsProgressDialog.js
 @BINPATH@/components/downloads.xpt
 
 ; Protocol/Content handling

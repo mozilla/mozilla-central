@@ -63,6 +63,7 @@ components/nsLDAPPrefsService.js
 #ifdef XP_WIN
 components/nsPostUpdateWin.js
 #endif
+components/nsProgressDialog.js
 components/nsResetPref.js
 components/nsScriptableIO.js
 components/nsSetDefaultBrowser.js

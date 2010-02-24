@@ -64,6 +64,7 @@ components/nsLDAPPrefsService.js
 #ifdef XP_WIN
 components/nsPostUpdateWin.js
 #endif
+components/nsProgressDialog.js
 components/nsScriptableIO.js
 #ifdef XP_MACOSX
 components/nsSpotlightIntegration.js
