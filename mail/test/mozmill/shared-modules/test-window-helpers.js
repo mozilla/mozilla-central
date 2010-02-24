@@ -677,6 +677,7 @@ var AugmentEverybodyWith = {
      */
     keypress: function _force_focus_keypress() {
       if (focusManager.activeWindow != this.window) {
+        let initiallyActive = focusManager.activeWindow;
         let activated = false, timedOut = false;
         function activationNotification() {
           this.window.removeEventListener("activate", activationNotification,
@@ -690,13 +691,16 @@ var AugmentEverybodyWith = {
         let timeoutHandle = hiddenWindow.setTimeout(timeoutSplosion,
                                                     WINDOW_FOCUS_TIMEOUT_MS);
 
-        this.window.focus();
+        focusManager.activeWindow = this.window;
 
         let curThread = threadManager.currentThread;
         while (!activated && !timedOut)
           curThread.processNextEvent(true);
         if (timedOut)
-          throw new Error("Failed to focus window!");
+          throw new Error("Failed to focus window! " +
+                          "Initially active window: " + initiallyActive +
+                          " currently active window: " +
+                          focusManager.activeWindow);
         else
           hiddenWindow.clearTimeout(timeoutHandle);
       }
