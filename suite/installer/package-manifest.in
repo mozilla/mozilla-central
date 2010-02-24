@@ -902,3 +902,11 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/extensions/debugQA@mozilla.org/install.rdf
 @BINPATH@/extensions/debugQA@mozilla.org/chrome.manifest
 @BINPATH@/extensions/debugQA@mozilla.org/chrome/debugqa.jar
+
+; [FastStart]
+#ifdef WINCE
+#ifdef MOZ_FASTSTART
+@BINPATH@/@MOZ_APP_NAME@faststart.exe
+@BINPATH@/components/FastStartup.js
+#endif
+#endif
