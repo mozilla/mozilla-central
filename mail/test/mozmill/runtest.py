@@ -59,7 +59,14 @@ try:
     automation = Automation()
 except ImportError:
     import automation
+from automationutils import checkForCrashes
 from time import sleep
+
+SYMBOLS_PATH = None
+# XXX This breaks any semblance of test runner modularity, and only works
+# because we know that we run MozMill only once per process. This needs to be
+# fixed if that ever changes.
+TEST_NAME = None
 
 # We need this because rmtree-ing read-only files fails on Windows
 def rmtree_onerror(func, path, exc_info):
@@ -150,27 +157,31 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mailnews.database.global.indexer.enabled': False
         }
 
+    _profile_dir = os.path.join(SCRIPT_DIRECTORY, 'mozmillprofile')
+
     def create_new_profile(self, binary):
         '''
         We always put our profile in the same location.  We only clear it out
         when we are creating a new profile so that we can go in after the run
         and examine things for debugging or general interest.
         '''
-        profile_dir = os.path.join(SCRIPT_DIRECTORY, 'mozmillprofile')
         # create a clean directory
-        if os.path.exists(profile_dir):
-            shutil.rmtree(profile_dir, onerror=rmtree_onerror)
-        os.makedirs(profile_dir)
+        if os.path.exists(self._profile_dir):
+            shutil.rmtree(self._profile_dir, onerror=rmtree_onerror)
+        os.makedirs(self._profile_dir)
 
-        return profile_dir
+        return self._profile_dir
 
     def cleanup(self):
         '''
-        Do not cleanup at all.  The next iteration will cleanup for us, but
-        until that time it's useful for debugging failures to leave everything
-        around.
+        Only check for crashes -- do not cleanup the profile. The next iteration
+        will cleanup the profile for us, but until that time it's useful for
+        debugging failures to leave everything around.
         '''
-        pass
+        if checkForCrashes(os.path.join(self._profile_dir, 'minidumps'),
+                           SYMBOLS_PATH, TEST_NAME):
+            print >> sys.stderr, 'TinderboxPrint: ' + TEST_NAME + '<br/><em class="testfail">CRASH</em>'
+            sys.exit(1)
 
 class ThunderTestRunner(mozrunner.ThunderbirdRunner):
     def __init__(self, *args, **kwargs):
@@ -195,12 +206,17 @@ class ThunderTestCLI(mozmill.CLI):
     runner_class = ThunderTestRunner
     parser_options = copy.copy(mozmill.CLI.parser_options)
     parser_options[('-m', '--bloat-tests')] = {"default":None, "dest":"created_profile", "help":"Log file name."}
+    parser_options[('--symbols-path',)] = {"default": None, "dest": "symbols",
+                                           "help": "The path to the symbol files from build_symbols"}
 
     def __init__(self, *args, **kwargs):
+        global SYMBOLS_PATH, TEST_NAME
         # invoke jsbridge.CLI's constructor directly since we are explicitly
         #  trying to replace mozmill's CLI constructor here (which hardcodes
         #  the firefox runner and profile in 1.3 for no clear reason).
         jsbridge.CLI.__init__(self, *args, **kwargs)
+        SYMBOLS_PATH = self.options.symbols
+        TEST_NAME = os.path.basename(self.options.test)
         self.mozmill = self.mozmill_class(runner_class=self.runner_class,
                                           profile_class=self.profile_class,
                                           jsbridge_port=int(self.options.port))
