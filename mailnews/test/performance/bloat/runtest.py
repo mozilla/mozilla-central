@@ -221,7 +221,7 @@ for cmd in COMMANDS:
 
   if checkForCrashes(os.path.join(PROFILE, "minidumps"), options.symbols, cmd['name']):
     print >> sys.stderr, 'TinderboxPrint: ' + cmd['name'] + '<br/><em class="testfail">CRASH</em>'
-    status = -1
+    status = 1
 
   if status != 0:
     sys.exit(status)
