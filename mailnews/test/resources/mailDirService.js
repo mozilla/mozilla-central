@@ -4,9 +4,7 @@
  * directory under the process directory and use that as the profile
  * directory for the mailnews tests to locate files during unit tests.
  *
- * For xpcshell tests, the "profile" directory will be:
- * <objdir>/dist/bin/mailtest/  (on Windows and Linux)
- * <objdir>/dist/Thunderbird{Debug}.app/Contents/MacOS/mailtest/  (on Mac OS X)
+ * For xpcshell tests, the "profile" directory will be <profile_dir>/mailtest/
  */
 
 // Make sure we execute this file exactly once
@@ -41,25 +39,12 @@ function initializeDirServer() {
         getFile : function(prop, persistent) {
           persistent.value = true;
           if (prop == NS_APP_USER_PROFILE_50_DIR) {
-            var processDir = dirSvc.get("CurProcD", Ci.nsIFile);
-
-            // Process dir is normally <objdir>/dist/bin, _tests is
-            // <objdir>/_tests, so go up 2 directories
-            processDir = processDir.parent;
-            processDir = processDir.parent;
-
-            // Then into the _tests directory
-            processDir.append("_tests");
-
-            // We need to normalize on a directory we'll always know about it
-            // because otherwise Linux doesn't work properly. Therefore do it
-            // here before we add mailtest.
-            processDir.normalize();
+            var profileDir = do_get_profile();
 
             // Then this is the directory we want
-            processDir.append("mailtest");
+            profileDir.append("mailtest");
 
-            return processDir;
+            return profileDir;
           }
           if (prop == "resource:app") {
             // app should return the same as gre...

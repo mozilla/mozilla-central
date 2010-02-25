@@ -43,10 +43,9 @@ function run_test()
 
   /*
    * Save the message to a local file. IMapMD corresponds to
-   * mozilla/_test/mailtest/ImapMail in the build directory
-   * (where fakeserver puts the IMAP mailbox files). If we pass
-   * the test, we'll remove the file afterwards (cf. UrlListener),
-   * otherwise it's kept in IMapMD.
+   * <profile_dir>/mailtest/ImapMail (where fakeserver puts the IMAP mailbox
+   * files). If we pass the test, we'll remove the file afterwards
+   * (cf. UrlListener), otherwise it's kept in IMapMD.
    */
   gSavedMsgFile = Cc["@mozilla.org/file/directory_service;1"]
                   .getService(Ci.nsIProperties)
