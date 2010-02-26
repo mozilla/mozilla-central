@@ -15,7 +15,7 @@
 # The Original Code is Mail Bloat Test.
 #
 # The Initial Developer of the Original Code is
-# Mozilla Messaging.
+# the Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
 #
@@ -24,6 +24,7 @@
 #   Andrew Sutherland <bugzilla@asutherland.org>
 #   Ludovic Hirlimann <ludovic@hirlimann.net>
 #   Michael Foord <fuzzyman@voidspace.org.uk>
+#   Siddharth Agarwal <sid.bugzilla@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -62,6 +63,7 @@ except ImportError:
 from automationutils import checkForCrashes
 from time import sleep
 
+PROFILE_DIR = os.path.join(SCRIPT_DIRECTORY, 'mozmillprofile')
 SYMBOLS_PATH = None
 # XXX This breaks any semblance of test runner modularity, and only works
 # because we know that we run MozMill only once per process. This needs to be
@@ -157,8 +159,6 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mailnews.database.global.indexer.enabled': False
         }
 
-    _profile_dir = os.path.join(SCRIPT_DIRECTORY, 'mozmillprofile')
-
     def create_new_profile(self, binary):
         '''
         We always put our profile in the same location.  We only clear it out
@@ -166,22 +166,19 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         and examine things for debugging or general interest.
         '''
         # create a clean directory
-        if os.path.exists(self._profile_dir):
-            shutil.rmtree(self._profile_dir, onerror=rmtree_onerror)
-        os.makedirs(self._profile_dir)
+        if os.path.exists(PROFILE_DIR):
+            shutil.rmtree(PROFILE_DIR, onerror=rmtree_onerror)
+        os.makedirs(PROFILE_DIR)
 
-        return self._profile_dir
+        return PROFILE_DIR
 
     def cleanup(self):
         '''
-        Only check for crashes -- do not cleanup the profile. The next iteration
-        will cleanup the profile for us, but until that time it's useful for
-        debugging failures to leave everything around.
+        Do not cleanup at all.  The next iteration will cleanup for us, but
+        until that time it's useful for debugging failures to leave everything
+        around.
         '''
-        if checkForCrashes(os.path.join(self._profile_dir, 'minidumps'),
-                           SYMBOLS_PATH, TEST_NAME):
-            print >> sys.stderr, 'TinderboxPrint: ' + TEST_NAME + '<br/><em class="testfail">CRASH</em>'
-            sys.exit(1)
+        pass
 
 class ThunderTestRunner(mozrunner.ThunderbirdRunner):
     def __init__(self, *args, **kwargs):
@@ -283,5 +280,16 @@ def prettyPrintResults():
 import atexit
 atexit.register(prettyPrintResults)
 
+def checkCrashesAtExit():
+    if checkForCrashes(os.path.join(PROFILE_DIR, 'minidumps'), SYMBOLS_PATH,
+                       TEST_NAME):
+        print >> sys.stderr, 'TinderboxPrint: ' + TEST_NAME + '<br/><em class="testfail">CRASH</em>'
+        sys.exit(1)
+
 if __name__ == '__main__':
-    ThunderTestCLI().run()
+    # Too bad atexit doesn't return a non-zero exit code when it encounters an
+    # exception in a handler.
+    try:
+        ThunderTestCLI().run()
+    finally:
+        checkCrashesAtExit()
