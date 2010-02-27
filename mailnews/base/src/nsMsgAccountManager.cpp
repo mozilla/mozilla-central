@@ -1368,13 +1368,10 @@ nsMsgAccountManager::LoadAccounts()
     entry.account = nsnull;
 
     m_accounts->EnumerateForwards(findAccountByServerKey, (void *)&entry);
-    // If we have an existing account with the same server, ignore it, and
-    // clear out the prefs.
+    // If we have an existing account with the same server, ignore this account
     if (entry.account)
-    {
-      dupAccounts.AppendObject(entry.account);
       continue;
-    }
+
     if (NS_FAILED(createKeyedAccount(accountsArray[i],
                                      getter_AddRefs(account))) || !account)
     {
@@ -1427,6 +1424,33 @@ nsMsgAccountManager::LoadAccounts()
       accountPrefBranch->DeleteBranch("");
   }
 
+  // Make sure we have an account that points at the local folders server
+  nsCString localFoldersServerKey;
+  rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_LOCALFOLDERSSERVER,
+                            getter_Copies(localFoldersServerKey));
+
+  if (!localFoldersServerKey.IsEmpty())
+  {
+    findAccountByKeyEntry entry;
+    entry.key = localFoldersServerKey;
+    entry.account = nsnull;
+
+    nsCOMPtr<nsIMsgIncomingServer> server;
+    rv = GetIncomingServer(localFoldersServerKey, getter_AddRefs(server));
+    if (server)
+    {
+      m_accounts->EnumerateForwards(findAccountByServerKey, (void *)&entry);
+      // If we don't have an existing account pointing at the local folders
+      // server, we're going to add one.
+      if (!entry.account)
+      {
+        nsCOMPtr<nsIMsgAccount> account;
+        (void) CreateAccount(getter_AddRefs(account));
+        if (account)
+          account->SetIncomingServer(server);
+      }
+    }
+  }
   nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
 
   if (NS_SUCCEEDED(rv))
