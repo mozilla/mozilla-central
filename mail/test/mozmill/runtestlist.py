@@ -104,7 +104,7 @@ for directory in f:
     else:
         testDirectory = directory.rstrip()
     args = ["python", "runtest.py", "-t", testDirectory,
-            "--binary", options.binary]
+            "--binary", options.binary, "--symbols-path", options.symbols]
     print args
     outputPipe = subprocess.PIPE
 
