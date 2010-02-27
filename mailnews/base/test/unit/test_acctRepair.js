@@ -72,6 +72,6 @@ function run_test()
   do_check_eq(prefs.getCharPref("mail.accountmanager.accounts"),
               "account6,account1");
   do_check_eq(prefs.getCharPref("mail.account.account1.server"), "server1");
-  do_check_eq(prefs.getCharPref("mail.server.server5.deferred_to_account"),
-              "account1");
+  let server5 = am.getIncomingServer("server5").QueryInterface(Ci.nsIPop3IncomingServer);
+  do_check_eq(server5.deferredToAccount, "account1");
 }
