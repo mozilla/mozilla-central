@@ -65,7 +65,7 @@
   <script type="application/javascript" src="chrome://calendar/content/calendar-alarm-dialog.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
 
-  <richlistbox id="alarm-richlist" flex="1"/>
+  <richlistbox id="alarm-richlist" flex="1" onselect="onSelectAlarm(event)"/>
 
   <hbox pack="end" id="alarm-actionbar" align="center">
     <button id="alarm-snooze-all-button"

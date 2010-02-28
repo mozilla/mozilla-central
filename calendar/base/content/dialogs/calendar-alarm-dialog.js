@@ -245,7 +245,12 @@ function addWidgetFor(aItem, aAlarm) {
     setupTitle();
 
     if (alarmRichlist.selectedIndex < 0) {
+        // Set the selected element if there is none yet. Since the onselect
+        // event causes scrolling, we don't want to process the event when
+        // adding widgets.
+        alarmRichlist.suppressOnSelect = true;
         alarmRichlist.selectedIndex = 0;
+        alarmRichlist.suppressOnSelect = false;
     }
 
     window.focus();
@@ -295,4 +300,14 @@ function removeWidgetFor(aItem, aAlarm) {
 
     // Update the title
     setupTitle();
+}
+
+/**
+ * Handler function called when an alarm entry in the richlistbox is selected
+ *
+ * @param event         The DOM event from the click action
+ */
+function onSelectAlarm(event) {
+    document.getElementById("alarm-richlist")
+            .ensureElementIsVisible(event.target.getSelectedItem(0));
 }
