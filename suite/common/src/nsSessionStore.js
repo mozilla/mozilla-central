@@ -614,6 +614,8 @@ SessionStoreService.prototype = {
     if (!aNoNotification) {
       this.saveStateDelayed(aWindow);
     }
+
+    this._updateCrashReportURL(aWindow);
   },
 
   /**
