@@ -46,6 +46,18 @@
 #include "nsDogbertProfileMigrator.h"
 #endif
 
+#ifndef MOZILLA_1_9_2_BRANCH
+#ifndef MOZ_PLACES
+#include "nsDocShellCID.h"
+#include "history.h"
+
+using namespace mozilla;
+
+NS_GENERIC_FACTORY_SINGLETON_CONSTRUCTOR(History, History::GetSingleton)
+
+#endif
+#endif
+
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSeamonkeyProfileMigrator)
 
@@ -137,6 +149,14 @@ static const nsModuleComponentInfo components[] = {
     NS_MAILWINSEARCHHELPER_CID,
     "@mozilla.org/mail/windows-search-helper;1",
     nsMailWinSearchHelperConstructor },
+#endif
+#ifndef MOZILLA_1_9_2_BRANCH
+#ifndef MOZ_PLACES
+  { "Mail History Empty implementation",
+    NS_HISTORYSERVICE_CID,
+    NS_IHISTORY_CONTRACTID,
+    HistoryConstructor },
+#endif
 #endif
 };
 

@@ -87,6 +87,7 @@ endif
 LOCAL_INCLUDES = \
 	-I$(srcdir)/../migration/src \
 	-I$(srcdir)/../shell \
+	-I$(srcdir)/../history \
 	$(NULL)
 
 ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
@@ -108,6 +109,12 @@ endif
 ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
 ifndef MOZ_DISABLE_VISTA_SDK_REQUIREMENTS
 SHARED_LIBRARY_LIBS += ../search/$(LIB_PREFIX)winsearch_s.$(LIB_SUFFIX)
+endif
+endif
+
+ifndef MOZILLA_1_9_2_BRANCH
+ifndef MOZ_PLACES
+SHARED_LIBRARY_LIBS += ../history/$(LIB_PREFIX)mailhistory_s.$(LIB_SUFFIX)
 endif
 endif
 
