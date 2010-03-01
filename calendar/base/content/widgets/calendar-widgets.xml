@@ -399,9 +399,11 @@
         <body><![CDATA[
           if (aAttr == "dropbox") {
               let session = cal.getDragService().getCurrentSession();
+              let startingDayBox = session.sourceNode.mParentBox;
               if (session) {
                   session.canDrop = true;
-                  if (aVal == "true") {
+                  // no shadows when dragging in the initial position
+                  if (aVal == "true" && this != startingDayBox) {
                       this.mDropShadows = [session.sourceNode.sourceObject];
                       this.addDropShadows();
                   } else {
