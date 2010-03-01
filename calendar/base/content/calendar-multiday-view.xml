@@ -1237,6 +1237,115 @@
         ]]></body>
       </method>
 
+      <method name="getShadowElements">
+        <parameter name="aStart"/>
+        <parameter name="aEnd"/>
+        <body><![CDATA[
+            // aStart and aEnd are start and end minutes of the occurrence
+            // from time 0:00 of the dragging column
+            let shadows = 1;
+            let offset = 0;
+            let startMin;
+            if (aStart < 0) {
+                shadows += Math.ceil(Math.abs(aStart) / this.mEndMin);
+                offset = shadows - 1;
+                let reminder = Math.abs(aStart) % this.mEndMin;
+                startMin = this.mEndMin - (reminder ? reminder : this.mEndMin);
+            } else {
+                startMin = aStart;
+            }
+            shadows += Math.floor(aEnd / this.mEndMin);
+
+            // return values needed to build the shadows while dragging
+            return { shadows:  shadows,      // number of shadows
+                     offset:   offset,       // Offset first<->selected shadows
+                     startMin: startMin,     // First shadow start minute
+                     endMin:   aEnd % this.mEndMin   // Last shadow end minute
+                   };
+        ]]></body>
+      </method>
+
+      <method name="firstLastShadowColumns">
+        <parameter name="aOffset"/>
+        <parameter name="aShadows"/>
+        <body><![CDATA[
+          let firstCol = lastCol = this;
+          let firstIndex = (aOffset != null ? aOffset : this.mDragState.offset);
+          let lastIndex = firstIndex;
+          while (firstCol.previousSibling && firstIndex > 0) {
+              firstCol = firstCol.previousSibling;
+              firstIndex--;
+          }
+          let lastShadow = (aShadows != null ? aShadows : this.mDragState.shadows);
+          while (lastCol.nextSibling && lastIndex < lastShadow - 1) {
+              lastCol = lastCol.nextSibling;
+              lastIndex++;
+          }
+
+          // returns first and last column with shadows that are visible in the
+          // week and the positions of these (visible) columns in the set of
+          // columns shadows of the occurence
+          return { firstCol:    firstCol,
+                   firstIndex:  firstIndex,
+                   lastCol:     lastCol,
+                   lastIndex:   lastIndex };
+        ]]></body>
+      </method>
+
+      <method name="updateShadowsBoxes">
+        <parameter name="aStart"/>
+        <parameter name="aEnd"/>
+        <parameter name="aCurrentOffset"/>
+        <parameter name="aCurrentShadows"/>
+        <parameter name="aSizeattr"/>
+        <body><![CDATA[
+          let lateralColumns = this.firstLastShadowColumns(aCurrentOffset, aCurrentShadows);
+          let firstCol = lateralColumns.firstCol;
+          let firstIndex = lateralColumns.firstIndex;
+          let lastCol = lateralColumns.lastCol;
+          let lastIndex = lateralColumns.lastIndex;
+
+          // remove the first/last shadow when start/end time goes in the
+          // next/previous day. This happens when current offset is different
+          // from offset stored in mDragState
+          if (aCurrentOffset != null) {
+              if (this.mDragState.offset > aCurrentOffset &&
+                  firstCol.previousSibling) {
+                  firstCol.previousSibling.fgboxes.dragbox.removeAttribute("dragging");
+                  firstCol.previousSibling.fgboxes.box.removeAttribute("dragging");
+              }
+              let currentOffsetEndSide = aCurrentShadows - 1 - aCurrentOffset;
+              if ((this.mDragState.shadows - 1 - this.mDragState.offset) > currentOffsetEndSide &&
+                   lastCol.nextSibling) {
+                  lastCol.nextSibling.fgboxes.dragbox.removeAttribute("dragging");
+                  lastCol.nextSibling.fgboxes.box.removeAttribute("dragging");
+              }
+          }
+
+          // set shadow boxes size for every part of the occurrence
+          let firstShadowSize = (aCurrentShadows == 1) ? aEnd - aStart : this.mEndMin - aStart;
+          let column = firstCol;
+          for (let i = firstIndex; column && i <= lastIndex; i++) {
+              column.fgboxes.box.setAttribute("dragging", "true");
+              column.fgboxes.dragbox.setAttribute("dragging", "true");
+              if (i == 0) {
+                  // first shadow
+                  column.fgboxes.dragspacer.setAttribute(aSizeattr, aStart * column.mPixPerMin);
+                  column.fgboxes.dragbox.setAttribute(aSizeattr, firstShadowSize * column.mPixPerMin);
+              } else if (i == (aCurrentShadows - 1)) {
+                  // last shadow
+                  column.fgboxes.dragspacer.setAttribute(aSizeattr, 0);
+                  column.fgboxes.dragbox.setAttribute(aSizeattr, aEnd * column.mPixPerMin);
+              } else {
+                  // an intermediate shadow (full day)
+                  column.fgboxes.dragspacer.setAttribute(aSizeattr, 0);
+                  column.fgboxes.dragbox.setAttribute(aSizeattr, this.mEndMin * column.mPixPerMin);
+              }
+              column = column.nextSibling;
+          }
+        ]]></body>
+      </method>
+
       <!--
          - Event sweep handlers
         -->
@@ -1246,19 +1355,28 @@
           let col = document.calendarEventColumnDragging;
           if (!col) return;
 
+          let dragState = col.mDragState;
+
+          let lateralColumns = col.firstLastShadowColumns();
+          let firstCol = lateralColumns.firstCol;
+          let firstIndex = lateralColumns.firstIndex;
           if (event.clientX < (event.target.boxObject.x) ||
               event.clientX > (event.target.boxObject.x + event.target.boxObject.width) ||
               event.clientY < (event.target.boxObject.y) ||
               event.clientY > (event.target.boxObject.y + event.target.boxObject.height)) {
 
-              let dragState = col.mDragState;
-              col.fgboxes.dragbox.removeAttribute("dragging");
-              col.fgboxes.box.removeAttribute("dragging");
+              // Remove the drag state
+              for (let column = firstCol, i = firstIndex;
+                   column && i < col.mDragState.shadows;
+                   column = column.nextSibling, i++) {
+                  column.fgboxes.dragbox.removeAttribute("dragging");
+                  column.fgboxes.box.removeAttribute("dragging");
+              }
+
               window.removeEventListener("mousemove", col.onEventSweepMouseMove, false);
               window.removeEventListener("mouseup", col.onEventSweepMouseUp, false);
               document.calendarEventColumnDragging = null;
               col.mDragState = null;
-
 
               // the multiday view currently exhibits a less than optimal strategy
               // in terms of item selection. items don't get automatically selected
@@ -1279,8 +1397,6 @@
               return;
           }
 
-          let dragState = col.mDragState;
-
           col.fgboxes.box.setAttribute("dragging", "true");
           col.fgboxes.dragbox.setAttribute("dragging", "true");
 
@@ -1289,8 +1405,12 @@
               let newcol = col.calendarView.findColumnForClientPoint(event.screenX, event.screenY);
               if (newcol && newcol != col) {
                   // kill our drag state
-                  col.fgboxes.dragbox.removeAttribute("dragging");
-                  col.fgboxes.box.removeAttribute("dragging");
+                  for (let column = firstCol, i = firstIndex;
+                       column && i < col.mDragState.shadows;
+                       column = column.nextSibling, i++) {
+                      column.fgboxes.dragbox.removeAttribute("dragging");
+                      column.fgboxes.box.removeAttribute("dragging");
+                  }
 
                   // jump ship
                   newcol.acceptInProgressSweep(dragState);
@@ -1319,49 +1439,79 @@
           let curmin = Math.floor(pos/interval) * 15;
           let deltamin = curmin - dragState.origMin;
 
+          let shadowElements;
           if (dragState.dragType == "new") {
               if (deltamin < 0) {
+                  // create a new event modifying the start. End time is fixed
+                  // and start moves only in this day so we can immediately
+                  // build a single shadow and show the labels
                   dragState.startMin = dragState.origMin + deltamin;
                   dragState.endMin = dragState.origMin;
+                  col.fgboxes.dragspacer.setAttribute(sizeattr, dragState.startMin * col.mPixPerMin);
+                  col.fgboxes.dragbox.setAttribute(sizeattr, Math.abs((dragState.endMin - dragState.startMin) * col.mPixPerMin));
+                  col.updateDragLabels();
+                  return;
               } else {
+                  // create a new event modifying the end. Start time is fixed
+                  // but the end can also go on the next day (at least for 0:00)
+                  // so we need to keep track and build a shadow for one or two days
                   dragState.startMin = dragState.origMin;
                   dragState.endMin = dragState.origMin + deltamin;
+                  dragState.lastEnd = dragState.origMin + deltamin;
+                  shadowElements = col.getShadowElements(dragState.limitStartMin, dragState.lastEnd);
+                  dragState.endMin = shadowElements.endMin;
               }
           } else if (dragState.dragType == "move") {
               // if we're moving, we modify startMin and endMin. When startMin
               // is negative, the event start is in the previous day. We keep
-              // track to calculate the event's final position but then we set
-              // startMin to zero to show the shadow box with the right size
+              // track to calculate the event's final position with "lastStart"
+              // variable, while startMin and endMin allow to build the shadows
               dragState.lastStart = dragState.origMinStart + deltamin;
-              dragState.endMin = Math.min(1440, dragState.origMinEnd + deltamin);
-              dragState.startMin = Math.max(0, dragState.origMinStart + deltamin);
+              shadowElements = col.getShadowElements(dragState.lastStart, dragState.origMinEnd + deltamin);
+              dragState.startMin = shadowElements.startMin;
+              dragState.endMin = shadowElements.endMin;
           } else if (dragState.dragType == "modify-start") {
               // if we're modifying the start, the end time is fixed.
-              dragState.startMin = dragState.origMin + deltamin;
-              dragState.endMin = dragState.limitEndMin;
+              shadowElements = col.getShadowElements(dragState.origMin + deltamin, dragState.limitEndMin);
+              dragState.startMin = shadowElements.startMin;
+              dragState.endMin = shadowElements.endMin;
 
               // but we need to not go past the end; if we hit
               // the end, then we'll clamp to the previous 15-min interval
-              if (dragState.endMin <= dragState.startMin)
-                  dragState.startMin = Math.floor((dragState.endMin - 15) / 15) * 15;
+              if (dragState.limitEndMin <= dragState.startMin) {
+                  dragState.startMin = Math.floor((dragState.limitEndMin - 15) / 15) * 15;
+              }
           } else if (dragState.dragType == "modify-end") {
               // if we're modifying the end, the start time is fixed, and we'll always
               // set the spacer to a constant size.
-              dragState.startMin = dragState.limitStartMin;
-              dragState.endMin = dragState.origMin + deltamin;
+              dragState.lastEnd = dragState.origMin + deltamin;
+              shadowElements = col.getShadowElements(dragState.limitStartMin, dragState.lastEnd);
+              dragState.startMin = shadowElements.startMin;
+              dragState.endMin = shadowElements.endMin;
 
               // but we need to not go past the start; if we hit
               // the start, then we'll clamp to the next 15-min interval
-              if (dragState.endMin <= dragState.startMin)
-                  dragState.endMin = Math.floor((dragState.startMin + 15) / 15) * 15;
+              if (dragState.lastEnd <= dragState.limitStartMin) {
+                  dragState.endMin = Math.floor((dragState.limitStartMin + 15) / 15) * 15;
+                  dragState.lastEnd = dragState.endMin;
+              }
           }
+          let currentOffset = shadowElements.offset;
+          let currentShadows = shadowElements.shadows;
 
-          // update the box sizes
-          col.fgboxes.dragspacer.setAttribute(sizeattr, dragState.startMin * col.mPixPerMin);
-          col.fgboxes.dragbox.setAttribute(sizeattr, Math.abs((dragState.endMin - dragState.startMin) * col.mPixPerMin));
+          // now we can update the shadow boxes position and size
+          col.updateShadowsBoxes(dragState.startMin, dragState.endMin,
+                                 currentOffset, currentShadows,
+                                 sizeattr);
 
-          // update the label
-          col.updateDragLabels();
+          // update the labels
+          let lateralColumns = col.firstLastShadowColumns(currentOffset, currentShadows);
+          lastCol = lateralColumns.lastCol;
+          firstCol = lateralColumns.firstCol;
+          col.updateDragLabels(firstCol, lastCol);
+
+          col.mDragState.offset = currentOffset;
+          col.mDragState.shadows = currentShadows;
         ]]></body>
       </method>
 
@@ -1373,8 +1523,15 @@
 
           var dragState = col.mDragState;
 
-          col.fgboxes.dragbox.removeAttribute("dragging");
-          col.fgboxes.box.removeAttribute("dragging");
+          let lateralColumns = col.firstLastShadowColumns();
+          let column = lateralColumns.firstCol;
+          let index = lateralColumns.firstIndex;
+          while (column && index < col.mDragState.shadows) {
+              column.fgboxes.dragbox.removeAttribute("dragging");
+              column.fgboxes.box.removeAttribute("dragging");
+              column = column.nextSibling;
+              index++;
+          }
 
           window.removeEventListener("mousemove", col.onEventSweepMouseMove, false);
           window.removeEventListener("mouseup", col.onEventSweepMouseUp, false);
@@ -1441,7 +1598,7 @@
           if (dragState.dragType == "modify-end" ||
               dragState.dragType == "new") {
               newEnd.resetTo(dragDay.year, dragDay.month, dragDay.day,
-                             0, dragState.endMin + col.mStartMin, 0,
+                             0, dragState.lastEnd + col.mStartMin, 0,
                              newEnd.timezone);
           }
 
@@ -1560,25 +1717,57 @@
           mins.start -= this.mStartMin;
           mins.end -= this.mStartMin;
 
+          this.mDragState.limitDurationMin = mins.realEnd - mins.realStart;
           if (aGrabbedElement == "start") {
               this.mDragState.dragType = "modify-start";
-              this.mDragState.limitEndMin = mins.end;
+              // drag the start is possible on every day of the occurence, so
+              // we have to use "realEnd" as fixed end value
+              this.mDragState.limitEndMin = mins.realEnd;
 
               // snap start
               this.mDragState.origMin = Math.floor(mins.start/15) * 15;
-              this.fgboxes.dragspacer.setAttribute(sizeattr, this.mDragState.origMin * this.mPixPerMin);
-              this.fgboxes.dragbox.setAttribute(sizeattr, (mins.end - this.mDragState.origMin) * this.mPixPerMin);
+
+              // show the shadows and drag labels when clicking on gripbars
+              let shadowElements = this.getShadowElements(this.mDragState.origMin,
+                                                          this.mDragState.limitEndMin);
+              this.mDragState.startMin = shadowElements.startMin;
+              this.mDragState.endMin = shadowElements.endMin;
+              this.mDragState.shadows = shadowElements.shadows;
+              this.mDragState.offset = shadowElements.offset;
+              this.updateShadowsBoxes(this.mDragState.origMin, this.mDragState.endMin,
+                                      0, this.mDragState.shadows,
+                                      sizeattr);
+
+              // update drag labels
+              let lastCol = this.firstLastShadowColumns().lastCol;
+              this.updateDragLabels(this, lastCol);
+
           } else if (aGrabbedElement == "end") {
               this.mDragState.dragType =  "modify-end";
-              this.mDragState.limitStartMin = mins.start;
+              // drag the end is possible on every day of the occurence, so
+              // we have to use "realStart" as fixed end value
+              this.mDragState.limitStartMin = mins.realStart;
 
               // snap end
               this.mDragState.origMin = Math.floor(mins.end/15) * 15;
-              this.fgboxes.dragspacer.setAttribute(sizeattr, mins.start * this.mPixPerMin);
-              this.fgboxes.dragbox.setAttribute(sizeattr, (this.mDragState.origMin - mins.start) * this.mPixPerMin);
+
+              // show the shadows and drag labels when clicking on gripbars
+              let shadowElements = this.getShadowElements(this.mDragState.limitStartMin,
+                                                          this.mDragState.origMin);
+              this.mDragState.startMin = shadowElements.startMin;
+              this.mDragState.endMin = shadowElements.endMin;
+              this.mDragState.shadows = shadowElements.shadows;
+              this.mDragState.offset = shadowElements.offset;
+              this.updateShadowsBoxes(this.mDragState.startMin, this.mDragState.endMin,
+                                      shadowElements.offset, this.mDragState.shadows,
+                                      sizeattr);
+
+              // update drag labels
+              let firstCol = this.firstLastShadowColumns().firstCol;
+              this.updateDragLabels(firstCol, this);
+
           } else if (aGrabbedElement == "middle") {
               this.mDragState.dragType = "move";
-              this.mDragState.limitDurationMin = mins.realEnd - mins.realStart;
 
               // in a move, origMin will be the min of the start element;
               // but we also use the min of start and end separately because
@@ -1586,14 +1775,14 @@
               // We snap to the start and add the real duration to find the end
               this.mDragState.origMin = Math.floor(mins.start/15) * 15;
               this.mDragState.origMinStart = Math.floor(mins.realStart/15) * 15;
-              this.mDragState.origMinEnd = this.mDragState.origMinStart + this.mDragState.limitDurationMin;
-
+              this.mDragState.origMinEnd = this.mDragState.limitDurationMin + this.mDragState.origMinStart;
+              let shadowElements = this.getShadowElements(this.mDragState.origMinStart,
+                                                          this.mDragState.origMinEnd);
+              this.mDragState.shadows = shadowElements.shadows;
+              this.mDragState.offset = shadowElements.offset;
               // Because we can pass this event to other columns, we also need
               // to track the original column's date too, to get the correct offset
               this.mDragState.origDate = this.mDate;
-              this.fgboxes.dragspacer.setAttribute(sizeattr, this.mDragState.origMin * this.mPixPerMin);
-              this.fgboxes.dragbox.setAttribute(sizeattr, (mins.end - mins.start) * this.mPixPerMin);
-
               // we need to set a mouse offset, since we're not dragging from
               // one end of the element
               if (aEventBox) {
@@ -1605,9 +1794,6 @@
           } else {
               dump ("+++ Invalid grabbed element: '" + aGrabbedElement + "'\n");
           }
-
-          this.fgboxes.box.setAttribute("dragging", "true");
-          this.fgboxes.dragbox.setAttribute("dragging", "true");
 
           document.calendarEventColumnDragging = this;
 
@@ -1637,18 +1823,15 @@
       </method>
 
       <method name="updateDragLabels">
+        <parameter name="aFirstColumn"/>
+        <parameter name="aLastColumn"/>
         <body><![CDATA[
           if (!this.mDragState) return;
 
-          var realstartmin = this.mDragState.startMin + this.mStartMin;
-          var realendmin = this.mDragState.endMin + this.mStartMin;
-
-          if (this.mDragState.dragType == "start") {
-              realendmin = this.mDragState.limitEndMin;
-          } else if (this.mDragState.dragType == "end") {
-              realstartmin = this.mDragSTate.limitStartMin;
-          }
-
+          let firstColumn = (aFirstColumn || this);
+          let lastColumn = (aLastColumn || this);
+          let realstartmin = this.mDragState.startMin + this.mStartMin;
+          let realendmin = this.mDragState.endMin + this.mStartMin;
           var starthr = Math.floor(realstartmin / 60);
           var startmin = realstartmin % 60;
 
@@ -1663,9 +1846,8 @@
           var endstr = formatter.FormatTime("",
                                             Components.interfaces.nsIScriptableDateFormat.timeFormatNoSeconds,
                                             endhr, endmin, 0);
-
-          this.fgboxes.startlabel.setAttribute("value", startstr);
-          this.fgboxes.endlabel.setAttribute("value", endstr);
+          firstColumn.fgboxes.startlabel.setAttribute("value", startstr);
+          lastColumn.fgboxes.endlabel.setAttribute("value", endstr);
 
         ]]></body>
       </method>
@@ -3224,7 +3406,7 @@
           let scrollBoxObject = scrollbox.boxObject.QueryInterface(Components.interfaces.nsIScrollBoxObject);
           // 'aMinute' will be the first minute showed in the view, so it must
           // belong to the range 0 <-> (24*60 - minutes_showed_in_the_view) but
-          // we consider 25 hour instead of 24 to let the view scroll until
+          // we consider 25 hours instead of 24 to let the view scroll until
           // showing events that start just before 0.00
           let maxFirstMin = 25 * 60 - Math.round(scrollBoxObject.height / this.mPixPerMin);
           aMinute = Math.min(maxFirstMin, Math.max(0, aMinute));
