@@ -685,6 +685,11 @@ pref("mail.biff.add_interval_jitter", true);
 pref("mail.biff.on_new_window", true);
 #endif
 
+// If true, the number used in the Mac OS X dock notification will be the
+// the number of "new" messages, as per the classic Thunderbird definition.
+// Defaults to false, which notifies about the number of unread messages.
+pref("mail.biff.use_new_count_in_mac_dock", false);
+
 // Content disposition for attachments (except binary files and vcards).
 //   0= Content-Disposition: inline
 //   1= Content-Disposition: attachment

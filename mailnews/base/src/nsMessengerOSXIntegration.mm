@@ -224,6 +224,7 @@ nsMessengerOSXIntegration::nsMessengerOSXIntegration()
   mNewMailReceivedAtom = do_GetAtom("NewMailReceived");
   mTotalUnreadMessagesAtom = do_GetAtom("TotalUnreadMessages");
   mUnreadTotal = 0;
+  mNewTotal = 0;
   mOnlyCountInboxes = PR_TRUE;
   mOnLeopardOrLater = OnLeopardOrLater();
   mDoneInitialCount = PR_FALSE;
@@ -503,6 +504,15 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
       PRInt32 numNewMessages = 0;
       childFolder->GetNumNewMessages(PR_TRUE, &numNewMessages);
       FillToolTipInfo(childFolder, numNewMessages);
+
+      mNewTotal += numNewMessages;
+      BadgeDockIcon();
+    }
+    else if (aNewValue == nsIMsgFolder::nsMsgBiffState_NoMail)
+    {
+      // reset new message total
+      mNewTotal = 0;
+      BadgeDockIcon();
     }
   }
   else if (mNewMailReceivedAtom == aProperty)
@@ -512,6 +522,9 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
     NS_ENSURE_SUCCESS(rv, rv);
 
     FillToolTipInfo(aFolder, aNewValue);
+
+    mNewTotal += aNewValue;
+    BadgeDockIcon();
   }
   else if (mTotalUnreadMessagesAtom == aProperty)
   {
@@ -609,8 +622,15 @@ nsMessengerOSXIntegration::RestoreDockIcon()
 nsresult
 nsMessengerOSXIntegration::BadgeDockIcon()
 {
-  // If unread count is less than one, we should restore the original dock icon.
-  if (mUnreadTotal < 1)
+  // Use either unread messages as the count, or new messages as the count, depending on the preference
+  nsresult rv;
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  PRBool useNewCount = PR_FALSE;
+  prefBranch->GetBoolPref("mail.biff.use_new_count_in_mac_dock", &useNewCount);
+
+  // If count is less than one, we should restore the original dock icon.
+  if ((!useNewCount && mUnreadTotal < 1) || (useNewCount && mNewTotal < 1))
   {
     RestoreDockIcon();
     return NS_OK;
@@ -620,7 +640,6 @@ nsMessengerOSXIntegration::BadgeDockIcon()
   // Extensions might wish to transform "1000" into "100+" or some
   // other short string. Getting back the empty string will cause
   // nothing to be drawn and us to return early.
-  nsresult rv;
   nsCOMPtr<nsIObserverService> os
     (do_GetService("@mozilla.org/observer-service;1", &rv));
   if (NS_FAILED(rv))
@@ -638,7 +657,12 @@ nsMessengerOSXIntegration::BadgeDockIcon()
   }
 
   nsAutoString total;
-  total.AppendInt(mUnreadTotal);
+
+  if (useNewCount)
+    total.AppendInt(mNewTotal);
+  else
+    total.AppendInt(mUnreadTotal);
+
   str->SetData(total);
   os->NotifyObservers(str, "before-unread-count-display",
                       total.get());

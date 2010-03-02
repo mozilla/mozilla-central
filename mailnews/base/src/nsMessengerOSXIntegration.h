@@ -90,6 +90,7 @@ private:
   void InitUnreadCount();
 
   PRInt32 mUnreadTotal;
+  PRInt32 mNewTotal;
   PRBool mOnlyCountInboxes;
   PRBool mOnLeopardOrLater;
   PRBool mDoneInitialCount;
