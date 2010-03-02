@@ -33,6 +33,7 @@ function run_test() {
     do_check_eq(aTest.replyto, uri.replyToPart);
     do_check_eq(aTest.priority, uri.priorityPart);
     do_check_eq(aTest.newshost, uri.newsHostPart);
+    do_check_true(uri.equals(uri));
   }
 
   for (var i = 0; i < tests.length; i++)
