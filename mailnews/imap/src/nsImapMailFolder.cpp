@@ -4651,12 +4651,17 @@ nsresult nsImapMailFolder::SyncFlags(nsIImapFlagAndUidState *flagState)
 {
   nsresult rv = GetDatabase(); // we need a database for this
   NS_ENSURE_SUCCESS(rv, rv);
+  PRBool partialUIDFetch;
+  flagState->GetPartialUIDFetch(&partialUIDFetch);
+
   // update all of the database flags
   PRInt32 messageIndex;
   PRUint32 messageSize;
-  PRUint32 oldFolderSize = mFolderSize;
-  // take this opportunity to recalculate the folder size:
-  mFolderSize = 0;
+
+  // Take this opportunity to recalculate the folder size, if we're not a 
+  // partial (condstore) fetch.
+  PRUint64 newFolderSize = 0;
+
   flagState->GetNumberOfMessages(&messageIndex);
 
   PRUint16 supportedUserFlags;
@@ -4678,7 +4683,7 @@ nsresult nsImapMailFolder::SyncFlags(nsIImapFlagAndUidState *flagState)
 
     rv = mDatabase->GetMsgHdrForKey(uidOfMessage, getter_AddRefs(dbHdr));
     if (NS_SUCCEEDED(dbHdr->GetMessageSize(&messageSize)))
-      mFolderSize += messageSize;
+      newFolderSize += messageSize;
 
     nsCString keywords;
     if (NS_SUCCEEDED(flagState->GetCustomFlags(uidOfMessage, getter_Copies(keywords))))
@@ -4686,8 +4691,12 @@ nsresult nsImapMailFolder::SyncFlags(nsIImapFlagAndUidState *flagState)
 
     NotifyMessageFlagsFromHdr(dbHdr, uidOfMessage, flags);
   }
-  if (oldFolderSize != mFolderSize)
+  if (!partialUIDFetch && newFolderSize != mFolderSize)
+  {
+    PRUint32 oldFolderSize = mFolderSize;
+    mFolderSize = (PRUint32) newFolderSize;
     NotifyIntPropertyChanged(kFolderSizeAtom, oldFolderSize, mFolderSize);
+  }
 
   return NS_OK;
 }
