@@ -60,7 +60,7 @@
   <script type="application/javascript" src="chrome://navigator/content/browser.js"/>
   <script type="application/javascript" src="chrome://navigator/content/viewsource.js"/>
   <script type="application/javascript" src="chrome://communicator/content/findUtils.js"/>
-  <script type="application/javascript" src="chrome://communicator/content/contentAreaUtils.js"/>
+  <script type="application/javascript" src="chrome://global/content/contentAreaUtils.js"/>
 
   <commandset id="commands">
     <commandset id="globalEditMenuItems"/>
@@ -76,9 +76,6 @@
 
   <stringbundleset id="viewSource-stringbundleset">
     <stringbundle id="bundle_viewZoom"/>
-    <!-- contentAreaUtils.js needs contentAreaCommandsBundle. -->
-    <stringbundle id="contentAreaCommandsBundle"
-                  src="chrome://communicator/locale/contentAreaCommands.properties"/>
     <stringbundle id="findBundle" src="chrome://global/locale/finddialog.properties"/>
     <stringbundle id="viewSourceBundle" src="chrome://navigator/locale/viewSource.properties"/>
   </stringbundleset>

@@ -46,8 +46,6 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= test_suite_common
 
-XPCSHELL_TESTS = unit
-
 ifdef ENABLE_TESTS
 PARALLEL_DIRS = browser chrome
 endif

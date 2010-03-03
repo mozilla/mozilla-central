@@ -60,7 +60,7 @@
   persist="screenX screenY width height sizemode">
 
   <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
-  <script type="application/javascript" src="chrome://communicator/content/contentAreaUtils.js"/>
+  <script type="application/javascript" src="chrome://global/content/contentAreaUtils.js"/>
   <script type="application/javascript" src="chrome://navigator/content/pageinfo/pageInfo.js"/>
   <script type="application/javascript" src="chrome://navigator/content/pageinfo/feeds.js"/>
   <script type="application/javascript" src="chrome://navigator/content/pageinfo/permissions.js"/>
@@ -69,9 +69,6 @@
   <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
 
   <stringbundleset id="pageinfobundleset">
-    <!-- contentAreaUtils.js needs contentAreaCommandsBundle. -->
-    <stringbundle id="contentAreaCommandsBundle"
-                  src="chrome://communicator/locale/contentAreaCommands.properties"/>
     <stringbundle id="pageinfobundle" src="chrome://navigator/locale/pageInfo.properties"/>
     <stringbundle id="pkiBundle" src="chrome://pippki/locale/pippki.properties"/>
   </stringbundleset>
