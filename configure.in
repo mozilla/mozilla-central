@@ -4769,7 +4769,11 @@ dnl = QT support
 dnl ========================================================
 if test "$MOZ_ENABLE_QT"
 then
+    if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
     PKG_CHECK_MODULES(MOZ_QT, QtGui QtNetwork QtUiTools QtCore)
+    else
+    PKG_CHECK_MODULES(MOZ_QT, QtGui QtNetwork QtCore)
+    fi
     AC_SUBST(MOZ_QT_CFLAGS)
     AC_SUBST(MOZ_QT_LIBS)
 
