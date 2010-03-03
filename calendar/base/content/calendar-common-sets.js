@@ -177,7 +177,7 @@ var calendarController = {
             case "calendar_task_category_command":
             case "calendar_general-progress_command":
             case "calendar_general-priority_command":
-                return this.isCalendarInForeground() &&
+                return (this.isCalendarInForeground() || this.todo_tasktree_focused) &&
                        this.writable &&
                        this.todo_items_selected &&
                        this.todo_items_writable;
