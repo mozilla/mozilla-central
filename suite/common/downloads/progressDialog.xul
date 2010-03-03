@@ -97,46 +97,35 @@
     <key key="."                 modifiers="meta"  command="cmd_close"/>
   </keyset>
 
-  <popupset id="progressPopupset">
-    <popup id="fileContext">
-      <menuitem id="dlContext-open"
-                label="&cmd.open.label;"
-                accesskey="&cmd.open.accesskey;"
-                command="cmd_open"/>
-      <menuitem id="dlContext-show"
-                label="&cmd.show.label;"
-                accesskey="&cmd.show.accesskey;"
-                command="cmd_show"/>
-    </popup>
-    <popup id="sourceContext">
-      <menuitem id="dlContext-openReferrer"
-                label="&cmd.goToDownloadPage.label;"
-                accesskey="&cmd.goToDownloadPage.accesskey;"
-                command="cmd_openReferrer"/>
-      <menuitem id="dlContext-copyLocation"
-                label="&cmd.copyDownloadLink.label;"
-                accesskey="&cmd.copyDownloadLink.accesskey;"
-                command="cmd_copyLocation"/>
-    </popup>
-  </popupset>
-
-  <hbox>
-    <label id="fileName" crop="center" value=""
-           context="fileContext" popup="fileContext"
-           aria-haspopup="true"
-           style="-moz-user-focus: normal;"/>
-  </hbox>
-  <hbox>
-    <label id="fileSource" crop="center" value=""
-           context="sourceContext" popup="sourceContext"
-           aria-haspopup="true"
-           style="-moz-user-focus: normal;"/>
-  </hbox>
   <hbox align="end">
-    <vbox flex="1">
+    <vbox flex="1" align="start">
+      <button id="fileName" crop="center" label="" type="menu">
+        <menupopup id="file-popup">
+          <menuitem id="dlContext-open"
+                    label="&cmd.open.label;"
+                    accesskey="&cmd.open.accesskey;"
+                    command="cmd_open"/>
+          <menuitem id="dlContext-show"
+                    label="&cmd.show.label;"
+                    accesskey="&cmd.show.accesskey;"
+                    command="cmd_show"/>
+        </menupopup>
+      </button>
+      <button id="fileSource" crop="center" label="" type="menu">
+        <menupopup id="source-popup">
+          <menuitem id="dlContext-openReferrer"
+                    label="&cmd.goToDownloadPage.label;"
+                    accesskey="&cmd.goToDownloadPage.accesskey;"
+                    command="cmd_openReferrer"/>
+          <menuitem id="dlContext-copyLocation"
+                    label="&cmd.copyDownloadLink.label;"
+                    accesskey="&cmd.copyDownloadLink.accesskey;"
+                    command="cmd_copyLocation"/>
+        </menupopup>
+      </button>
       <label id="dlSize" value=""/>
       <label id="timeElapsed" value=""/>
-      <label id="dlStatus" flex="1" value=""/>
+      <label id="dlStatus" value=""/>
     </vbox>
     <button id="pauseButton" class="mini-button"
             command="cmd_pause" tooltiptext="&cmd.pause.tooltip;"/>

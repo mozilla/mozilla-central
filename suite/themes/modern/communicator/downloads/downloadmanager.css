@@ -42,40 +42,32 @@
    active, inactive, resumable, paused, downloading, finished, failed, canceled, blocked
 */
 
-#ActionPlay {
-  list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
-  -moz-image-region: rect(0px, 16px, 16px, 0px);
-}
-
-treechildren::-moz-tree-image(ActionPlay, downloading, resumable),
-#pauseButton {
+#pauseButton,
+treechildren::-moz-tree-image(ActionPlay, downloading, resumable) {
   /* pause */
   list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 48px, 16px, 32px);
 }
 
-treechildren::-moz-tree-image(ActionPlay, paused, resumable),
-#resumeButton {
+#ActionPlay,
+#resumeButton,
+treechildren::-moz-tree-image(ActionPlay, paused, resumable) {
   /* resume */
   list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 16px, 16px, 0px);
 }
 
+#retryButton,
 treechildren::-moz-tree-image(ActionPlay, failed),
-treechildren::-moz-tree-image(ActionPlay, canceled),
-#retryButton {
+treechildren::-moz-tree-image(ActionPlay, canceled) {
   /* retry */
   list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 64px, 16px, 48px);
 }
 
-#ActionStop {
-  list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
-  -moz-image-region: rect(0px, 32px, 16px, 16px);
-}
-
-treechildren::-moz-tree-image(ActionStop, active),
-#cancelButton {
+#ActionStop,
+#cancelButton,
+treechildren::-moz-tree-image(ActionStop, active) {
   /* cancel */
   list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 32px, 16px, 16px);
@@ -88,64 +80,33 @@ treechildren::-moz-tree-image(ActionStop, inactive) {
 }
 
 /* progress dialogs */
+#dlProgressWindow {
+  /* match dialog.css */
+  padding: 7px 5px 5px;
+}
 
+/* label with dropdown, actually done as a button type=menu */
 #fileName, #fileSource {
-  border: 1px solid transparent;
-  /* 1px is used for border, make margins smaller by that */
-  margin-top: 0px;
-  margin-bottom: 1px;
-  -moz-margin-start: 5px;
-  -moz-margin-end: 4px;
-}
-#fileName:focus,
-#fileSource:focus {
-  border: 1px dotted;
-}
-
-#fileName {
-  font-weight: bold;
-}
-
-.mini-button {
-  -moz-appearance: none;
   background-color: transparent;
   border: none;
-  padding: 0;
-  margin: 0;
-  min-width: 0;
-  min-height: 0;
 }
 
-.mini-button > .button-box {
-  -moz-appearance: none;
-  padding: 0 !important;
+#fileName:focus,
+#fileSource:focus {
+  outline: 3px solid #98A5B2;
+  -moz-outline-radius: 4px 5px;
 }
-.mini-button > .button-box > .button-text {
+
+#fileName > .button-box > hbox > .button-text,
+#fileSource > .button-box > hbox > .button-text {
   margin: 0 !important;
 }
 
-/* progress dialogs */
-
-/* focusable label, focus ring like .link-text but not a link */
-#fileName, #fileSource {
-  border: 1px solid transparent;
-  /* 1px is used for border, make margins smaller by that */
-  margin-top: 0px;
-  margin-bottom: 1px;
-  -moz-margin-start: 5px;
-  -moz-margin-end: 4px;
-}
-#fileName:focus,
-#fileSource:focus {
-  border: 1px dotted;
-}
-
 #fileName {
   font-weight: bold;
 }
 
 .mini-button {
-  -moz-appearance: none;
   background-color: transparent;
   border: none;
   padding: 0;
@@ -154,7 +115,12 @@ treechildren::-moz-tree-image(ActionStop, inactive) {
   min-height: 0;
 }
 
-.mini-button > .button-box {
-  -moz-appearance: none;
-  padding: 0 !important;
+.mini-button:focus {
+  outline: 3px solid #98A5B2;
+  outline-offset: -2px;
+  -moz-outline-radius: 50%;
+}
+
+.mini-button > .button-box > .button-text {
+  margin: 0 !important;
 }

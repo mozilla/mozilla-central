@@ -104,7 +104,7 @@ function progressStartup() {
 
   var fName = document.getElementById("fileName");
   var fSource = document.getElementById("fileSource");
-  fName.value = gDownload.displayName;
+  fName.label = gDownload.displayName;
   fName.tooltipText = gDownload.target.spec;
   var fromString;
   try {
@@ -113,7 +113,7 @@ function progressStartup() {
   catch (e) { }
   if (!fromString)
     fromString = gDownload.source.prePath;
-  fSource.value = gDownloadBundle.getFormattedString("fromSource", [fromString]);
+  fSource.label = gDownloadBundle.getFormattedString("fromSource", [fromString]);
   fSource.tooltipText = gDownload.source.spec;
 
   // The DlProgressListener handles progress notifications.

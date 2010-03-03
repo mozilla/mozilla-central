@@ -42,40 +42,32 @@
    active, inactive, resumable, paused, downloading, finished, failed, canceled, blocked
 */
 
-#ActionPlay {
-  list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
-  -moz-image-region: rect(0px, 16px, 16px, 0px);
-}
-
-treechildren::-moz-tree-image(ActionPlay, downloading, resumable),
-#pauseButton {
+#pauseButton,
+treechildren::-moz-tree-image(ActionPlay, downloading, resumable) {
   /* pause */
   list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 48px, 16px, 32px);
 }
 
-treechildren::-moz-tree-image(ActionPlay, paused, resumable),
-#resumeButton {
+#ActionPlay,
+#resumeButton,
+treechildren::-moz-tree-image(ActionPlay, paused, resumable) {
   /* resume */
   list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 16px, 16px, 0px);
 }
 
+#retryButton,
 treechildren::-moz-tree-image(ActionPlay, failed),
-treechildren::-moz-tree-image(ActionPlay, canceled),
-#retryButton {
+treechildren::-moz-tree-image(ActionPlay, canceled) {
   /* retry */
   list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 64px, 16px, 48px);
 }
 
-#ActionStop {
-  list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
-  -moz-image-region: rect(0px, 32px, 16px, 16px);
-}
-
-treechildren::-moz-tree-image(ActionStop, active),
-#cancelButton {
+#ActionStop,
+#cancelButton,
+treechildren::-moz-tree-image(ActionStop, active) {
   /* cancel */
   list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 32px, 16px, 16px);
@@ -88,19 +80,28 @@ treechildren::-moz-tree-image(ActionStop, inactive) {
 }
 
 /* progress dialogs */
-
-/* focusable label, focus ring like .link-text but not a link */
-#fileName, #fileSource {
-  border: 1px solid transparent;
-  /* 1px is used for border, make margins smaller by that */
-  margin-top: 0px;
-  margin-bottom: 1px;
-  -moz-margin-start: 5px;
-  -moz-margin-end: 4px;
+#dlProgressWindow {
+  /* match dialog.css */
+  padding-top: 8px;
+  padding-bottom: 10px;
+  -moz-padding-start: 8px;
+  -moz-padding-end: 10px;
 }
-#fileName:focus,
-#fileSource:focus {
-  border: 1px dotted -moz-DialogText;
+
+/* label with dropdown, actually done as a button type=menu */
+#fileName, #fileSource {
+  -moz-appearance: none;
+  background-color: transparent;
+  margin: 0px 5px;
+  border: 0px;
+  min-width: 0px;
+  min-height: 0px;
+}
+
+#fileName > .button-box,
+#fileSource > .button-box {
+  -moz-appearance: none;
+  padding: 0px;
 }
 
 #fileName {
