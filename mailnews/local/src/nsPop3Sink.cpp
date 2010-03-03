@@ -213,13 +213,8 @@ nsPop3Sink::FindPartialMessages(nsILocalFile *folderFile)
 
       // If we got the uidl, see if this partial message belongs to this
       // account. Add it to the array if so...
-#ifdef MOZILLA_INTERNAL_API
       if (folderScanState.m_uidl && 
           m_accountKey.Equals(folderScanState.m_accountKey, nsCaseInsensitiveCStringComparator()))
-#else
-      if (folderScanState.m_uidl &&
-          m_accountKey.Equals(folderScanState.m_accountKey, CaseInsensitiveCompare))
-#endif
       {
         partialRecord *partialMsg = new partialRecord();
         if (partialMsg)

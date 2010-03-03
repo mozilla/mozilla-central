@@ -4802,11 +4802,7 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
                   nsCString hexPopularity;
                   if (NS_SUCCEEDED(existingCard->GetPropertyAsAUTF8String(kPopularityIndexProperty, hexPopularity)))
                   {
-#ifdef MOZILLA_INTERNAL_API
-                    PRInt32 errorCode = 0;
-#else
                     nsresult errorCode = NS_OK;
-#endif
                     popularityIndex = hexPopularity.ToInteger(&errorCode, 16);
                     if (errorCode)
                       // We failed, just set it to zero.

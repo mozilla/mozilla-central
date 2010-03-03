@@ -454,13 +454,8 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
       urlString.Append(aResult);
     else
       urlString.Append(tmp->real_name);
-#ifdef MOZILLA_INTERNAL_API
     if (tmp->real_type && !strcmp(tmp->real_type, "message/rfc822") &&
            !StringEndsWith(urlString, NS_LITERAL_CSTRING(".eml"), nsCaseInsensitiveCStringComparator()))
-#else
-    if (tmp->real_type && !strcmp(tmp->real_type, "message/rfc822") &&
-           !StringEndsWith(urlString, NS_LITERAL_CSTRING(".eml"), CaseInsensitiveCompare))
-#endif
       urlString.Append(".eml");
   }
   nsresult rv = nsMimeNewURI(&(tmp->url), urlString.get(), nsnull);

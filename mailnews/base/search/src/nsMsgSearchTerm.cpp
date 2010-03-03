@@ -810,11 +810,7 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
       curMsgHeader = StringHead(buf, colonPos);
     }
 
-#ifdef MOZILLA_INTERNAL_API
     if (curMsgHeader.Equals(m_arbitraryHeader, nsCaseInsensitiveCStringComparator()))
-#else
-    if (curMsgHeader.Equals(m_arbitraryHeader, CaseInsensitiveCompare))
-#endif
     {
       // value occurs after the header name or whitespace continuation char.
       const char * headerValue = buf.get() + (isContinuationHeader ? 1 : headerLength);
@@ -1131,19 +1127,11 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::Is:
-#ifdef MOZILLA_INTERNAL_API
     if(needle.Equals(utf16StrToMatch, nsCaseInsensitiveStringComparator()))
-#else
-    if(needle.Equals(utf16StrToMatch, CaseInsensitiveCompare))
-#endif
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::Isnt:
-#ifdef MOZILLA_INTERNAL_API
     if(!needle.Equals(utf16StrToMatch, nsCaseInsensitiveStringComparator()))
-#else
-    if(!needle.Equals(utf16StrToMatch, CaseInsensitiveCompare))
-#endif
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::IsEmpty:
@@ -1157,21 +1145,13 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::BeginsWith:
-#ifdef MOZILLA_INTERNAL_API
     if (StringBeginsWith(utf16StrToMatch, needle,
                          nsCaseInsensitiveStringComparator()))
-#else
-    if (StringBeginsWith(utf16StrToMatch, needle, CaseInsensitiveCompare))
-#endif
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::EndsWith:
-#ifdef MOZILLA_INTERNAL_API
     if (StringEndsWith(utf16StrToMatch, needle,
                        nsCaseInsensitiveStringComparator()))
-#else
-    if (StringEndsWith(utf16StrToMatch, needle, CaseInsensitiveCompare))
-#endif
       result = PR_TRUE;
     break;
   default:
@@ -1830,21 +1810,12 @@ NS_IMPL_GETSET(nsMsgSearchTerm, EndsGrouping, PRBool, mEndsGrouping)
 //
 void nsMsgSearchTerm::ToLowerCaseExceptSpecials(nsACString &aValue)
 {
-#ifdef MOZILLA_INTERNAL_API
   if (NS_LITERAL_CSTRING("Sender").Equals(aValue, nsCaseInsensitiveCStringComparator()))
     aValue.Assign(NS_LITERAL_CSTRING("Sender"));
   else if (NS_LITERAL_CSTRING("Date").Equals(aValue, nsCaseInsensitiveCStringComparator()))
     aValue.Assign(NS_LITERAL_CSTRING("Date"));
   else if (NS_LITERAL_CSTRING("Status").Equals(aValue, nsCaseInsensitiveCStringComparator()))
     aValue.Assign(NS_LITERAL_CSTRING("Status"));
-#else
-  if (NS_LITERAL_CSTRING("Sender").Equals(aValue, CaseInsensitiveCompare))
-    aValue.Assign(NS_LITERAL_CSTRING("Sender"));
-  else if (NS_LITERAL_CSTRING("Date").Equals(aValue, CaseInsensitiveCompare))
-    aValue.Assign(NS_LITERAL_CSTRING("Date"));
-  else if (NS_LITERAL_CSTRING("Status").Equals(aValue, CaseInsensitiveCompare))
-    aValue.Assign(NS_LITERAL_CSTRING("Status"));
-#endif
   else
     ToLowerCase(aValue);
 }

@@ -849,13 +849,8 @@ NS_IMETHODIMP nsSpamSettings::CheckWhiteList(nsIMsgDBHdr *aMsgHdr, PRBool *aResu
   {
     for (PRUint32 i = 0; i < mEmails.Length(); ++i)
     {
-#ifdef MOZILLA_INTERNAL_API
       if (mEmails[i].Equals(authorEmailAddress, nsCaseInsensitiveCStringComparator()))
         return NS_OK;
-#else
-      if (mEmails[i].Equals(authorEmailAddress, CaseInsensitiveCompare))
-        return NS_OK;
-#endif
     }
   }
 
@@ -883,13 +878,8 @@ NS_IMETHODIMP nsSpamSettings::CheckWhiteList(nsIMsgDBHdr *aMsgHdr, PRBool *aResu
           if (atPos >= 0)
           {
             identityDomain = Substring(mEmails[i], atPos + 1);
-#ifdef MOZILLA_INTERNAL_API
             if (identityDomain.Equals(domain, nsCaseInsensitiveCStringComparator()))
               return NS_OK; // don't whitelist
-#else
-            if (identityDomain.Equals(domain, CaseInsensitiveCompare))
-              return NS_OK;
-#endif
           }
         }
       }

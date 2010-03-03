@@ -1154,11 +1154,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
   nsCAutoString oldLeafName;
   oldPathFile->GetNativeLeafName(oldLeafName);
 
-#ifdef MOZILLA_INTERNAL_API
   if (mName.Equals(aNewName, nsCaseInsensitiveStringComparator()))
-#else
-  if (mName.Equals(aNewName, CaseInsensitiveCompare))
-#endif
   {
     if (msgWindow)
       rv = ThrowAlertMsg("folderExists", msgWindow);

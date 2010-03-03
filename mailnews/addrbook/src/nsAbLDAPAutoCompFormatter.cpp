@@ -49,6 +49,7 @@
 #include "nsNetError.h"
 #include "nsMemory.h"
 #include "nsILDAPErrors.h"
+#include "nsMsgUtils.h"
 
 #define LDAP_ERROR_BUNDLE "chrome://mozldap/locale/ldap.properties"
 #define LDAP_AUTOCOMPLETE_ERROR_BUNDLE "chrome://messenger/locale/addressbook/ldapAutoCompErrs.properties"
@@ -487,11 +488,7 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
                 // see if the string is already present in the array
                 int i = 0, found = -1;
                 while ( i < aAttrs->Count() ) {
-#ifdef MOZILLA_INTERNAL_API
                     if (aAttrs->CStringAt(i)->Equals(attrName, nsCaseInsensitiveCStringComparator())) {
-#else
-                    if (aAttrs->CStringAt(i)->Equals(attrName, CaseInsensitiveCompare)) {
-#endif
                         found = i;
                         break;
                     }

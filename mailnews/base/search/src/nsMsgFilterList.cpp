@@ -544,11 +544,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
   do
   {
     nsCAutoString value;
-#ifdef MOZILLA_INTERNAL_API
-    PRInt32 intToStringResult;
-#else
     nsresult intToStringResult;
-#endif
 
     char curChar;
     curChar = LoadAttrib(attrib, aStream);
@@ -565,11 +561,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
       break;
     case nsIMsgFilterList::attribVersion:
       m_fileVersion = value.ToInteger(&intToStringResult, 10);
-#ifdef MOZILLA_INTERNAL_API
-      if (intToStringResult != 0)
-#else
       if (NS_FAILED(intToStringResult))
-#endif
       {
         attrib = nsIMsgFilterList::attribNone;
         NS_ASSERTION(PR_FALSE, "error parsing filter file version");
@@ -686,17 +678,9 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
         else if (type == nsMsgFilterAction::Label)
         {
           // upgrade label to corresponding tag/keyword
-#ifdef MOZILLA_INTERNAL_API
-          PRInt32 res;
-#else
           nsresult res;
-#endif
           PRInt32 labelInt = value.ToInteger(&res, 10);
-#ifdef MOZILLA_INTERNAL_API
-          if (res == 0)
-#else
           if (NS_SUCCEEDED(res))
-#endif
           {
             nsCAutoString keyword("$label");
             keyword.Append('0' + labelInt);
@@ -706,17 +690,9 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
         }
         else if (type == nsMsgFilterAction::JunkScore)
         {
-#ifdef MOZILLA_INTERNAL_API
-          PRInt32 res;
-#else
           nsresult res;
-#endif
           PRInt32 junkScore = value.ToInteger(&res, 10);
-#ifdef MOZILLA_INTERNAL_API
-          if (!res)
-#else
           if (NS_FAILED(res))
-#endif
             currentFilterAction->SetJunkScore(junkScore);
         }
         else if (type == nsMsgFilterAction::Forward ||
@@ -1156,11 +1132,7 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFo
         if (NS_SUCCEEDED(rv) && !folderUri.IsEmpty())
            if (caseInsensitive)
           {
-#ifdef MOZILLA_INTERNAL_API
              if (folderUri.Equals(oldFolderUri, nsCaseInsensitiveCStringComparator())) //local
-#else
-             if (folderUri.Equals(oldFolderUri, CaseInsensitiveCompare))
-#endif
             {
               if (!newFolderUri.IsEmpty())  //if we just want to match the uri's, newFolderUri will be null
                 rv = filterAction->SetTargetFolderUri(newFolderUri);

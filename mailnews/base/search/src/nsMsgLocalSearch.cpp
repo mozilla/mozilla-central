@@ -603,11 +603,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
         // When the junk status is set by the plugin, use junkpercent (if available)
         // Otherwise, use the limits (0 or 100) depending on the junkscore.
         PRUint32 junkPercent;
-#ifdef MOZILLA_INTERNAL_API
-        PRInt32 rv;
-#else
         nsresult rv;
-#endif
         nsCString junkScoreOriginStr;
         nsCString junkPercentStr;
         msgToMatch->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOriginStr));

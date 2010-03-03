@@ -375,26 +375,16 @@ NS_IMETHODIMP nsAbCardProperty::HasEmailAddress(const nsACString &aEmailAddress,
 
   nsCString emailAddress;
   nsresult rv = GetPropertyAsAUTF8String(kPriEmailProperty, emailAddress);
-#ifdef MOZILLA_INTERNAL_API
   if (rv != NS_ERROR_NOT_AVAILABLE &&
       emailAddress.Equals(aEmailAddress, nsCaseInsensitiveCStringComparator()))
-#else
-  if (rv != NS_ERROR_NOT_AVAILABLE &&
-      emailAddress.Equals(aEmailAddress, CaseInsensitiveCompare))
-#endif
   {
     *aResult = PR_TRUE;
     return NS_OK;
   }
 
   rv = GetPropertyAsAUTF8String(k2ndEmailProperty, emailAddress);
-#ifdef MOZILLA_INTERNAL_API
   if (rv != NS_ERROR_NOT_AVAILABLE &&
       emailAddress.Equals(aEmailAddress, nsCaseInsensitiveCStringComparator()))
-#else
-  if (rv != NS_ERROR_NOT_AVAILABLE &&
-      emailAddress.Equals(aEmailAddress, CaseInsensitiveCompare))
-#endif
     *aResult = PR_TRUE;
 
   return NS_OK;

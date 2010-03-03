@@ -3266,15 +3266,9 @@ nsAddrDatabase::GetRowForCharColumn(const PRUnichar *unicodeStr,
       {
         rv = GetStringColumn(currentRow, findColumn, columnValue);
 
-#ifdef MOZILLA_INTERNAL_API
         PRBool equals = aCaseInsensitive ?
           columnValue.Equals(unicodeStr, nsCaseInsensitiveStringComparator()) :
           columnValue.Equals(unicodeStr);
-#else
-        PRBool equals = aCaseInsensitive ?
-          columnValue.Equals(unicodeStr, CaseInsensitiveCompare) :
-          columnValue.Equals(unicodeStr);
-#endif
 
         if (NS_SUCCEEDED(rv) && equals)
         {
