@@ -245,9 +245,10 @@ case "$target" in
     ;;
 *-darwin*)
     if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
-        if test -z "$CC"; then CC=gcc-4.2; fi
-        if test -z "$CXX"; then CXX=g++-4.2; fi
+    if test -z "$CC"; then CC=gcc-4.2; fi
+    if test -z "$CXX"; then CXX=g++-4.2; fi
     fi
+    ;;
 esac
 fi
 
