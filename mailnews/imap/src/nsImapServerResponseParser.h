@@ -279,7 +279,6 @@ private:
   nsCString    fManageFiltersUrl;
   char          *fFolderAdminUrl;
 
-  PRInt32 fUidOfSingleMessageFetch;
   PRInt32 fFetchResponseIndex;
 
   // used for aborting a fetch stream when we're pseudo-Interrupted

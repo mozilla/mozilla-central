@@ -381,11 +381,9 @@ void nsImapServerResponseParser::PreProcessCommandToken(const char *commandToken
       if (!PL_strcasecmp(fetchToken, "FETCH") )
       {
         char *uidStringToken = NS_strtok(WHITESPACE, &placeInTokenString);
-        if (!PL_strchr(uidStringToken, ',') && !PL_strchr(uidStringToken, ':'))	// , and : are uid delimiters
-        {
+        // , and : are uid delimiters
+        if (!PL_strchr(uidStringToken, ',') && !PL_strchr(uidStringToken, ':'))
           fCurrentCommandIsSingleMessageFetch = PR_TRUE;
-          fUidOfSingleMessageFetch = atoi(uidStringToken);
-        }
       }
     }
   }
