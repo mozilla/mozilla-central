@@ -101,7 +101,12 @@ buildsymbols ::
 
 include $(topsrcdir)/config/rules.mk
 
+# m-1.9.2 doesn't have this at all, but non-branched c-c does.
+ifdef MOZILLA_1_9_2_BRANCH
 MOZ_SOURCE_STAMP = $(shell hg -R $(srcdir) parent --template="{node|short}\n" 2>/dev/null)
+else
+# defined in package-name.mk
+endif
 export MOZ_SOURCE_STAMP
 
 DIST_GARBAGE = config.cache config.log config.status config-defs.h \
