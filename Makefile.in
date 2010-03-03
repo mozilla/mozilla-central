@@ -105,6 +105,8 @@ include $(topsrcdir)/config/rules.mk
 ifdef MOZILLA_1_9_2_BRANCH
 MOZ_SOURCE_STAMP = $(shell hg -R $(srcdir) parent --template="{node|short}\n" 2>/dev/null)
 else
+# Temporary bustage fix, while I investigate.
+MOZ_SOURCE_STAMP = $(shell hg -R $(srcdir) parent --template="{node|short}\n" 2>/dev/null)
 # defined in package-name.mk
 endif
 export MOZ_SOURCE_STAMP
