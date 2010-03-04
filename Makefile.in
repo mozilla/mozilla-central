@@ -82,6 +82,9 @@ reftest crashtest \
 xpcshell-tests \
 package-tests::
 	$(MAKE) -C mozilla $@
+else
+package-tests::
+	$(MAKE) -C mozilla $@
 endif
 
 # http://bugzilla.mozilla.org/show_bug.cgi?id=450485
