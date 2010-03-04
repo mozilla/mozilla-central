@@ -134,5 +134,5 @@ endif
 	      --unify-with-sort "all-test-dirs\.list$$" \
 	      $(DIST_PPC)/test-package-stage \
 	      $(DIST_X86)/test-package-stage \
-	      $(DIST_UNI)/test-package-stage;
+	      $(DIST_UNI)/test-package-stage; \
 	fi
