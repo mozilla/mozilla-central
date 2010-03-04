@@ -55,6 +55,7 @@
 #include "nsIMsgHdr.h"
 #include "nsIMsgFilterPlugin.h"
 #include "nsMsgMessageFlags.h"
+#include "nsMsgUtils.h"
 
 extern "C"
 {
