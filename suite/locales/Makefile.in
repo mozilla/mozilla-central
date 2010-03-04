@@ -54,8 +54,7 @@ _ABS_DIST := $(shell cd $(DIST) && pwd)
 
 AB = $(firstword $(subst -, ,$(AB_CD)))
 
-PWD := $(shell pwd)
-core_abspath = $(if $(findstring :,$(1)),$(1),$(if $(filter /%,$(1)),$(1),$(PWD)/$(1)))
+PWD := $(CURDIR)
 
 # These are defaulted to be compatible with the files the wget-en-US target
 # pulls. You may override them if you provide your own files. You _must_

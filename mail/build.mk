@@ -123,14 +123,14 @@ endif
 mozmill::
 	cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= $(PYTHON) \
 	runtestlist.py --list=mozmilltests.list --binary=$(PROGRAM) \
-	--dir=$(topsrcdir)/mail/test/mozmill \
+	--dir=$(call core_abspath,$(topsrcdir))/mail/test/mozmill \
 	--symbols-path=$(DIST)/crashreporter-symbols \
 	$(MOZMILL_EXTRA)
 
 mozmill-one::
 	cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= $(PYTHON) runtest.py \
-	--test=$(topsrcdir)/mail/test/mozmill/$(SOLO_TEST) --binary=$(PROGRAM) \
-	--symbols-path=$(DIST)/crashreporter-symbols \
+	--test=$(call core_abspath,$(topsrcdir))/mail/test/mozmill/$(SOLO_TEST) \
+	--binary=$(PROGRAM) --symbols-path=$(DIST)/crashreporter-symbols \
 	$(MOZMILL_EXTRA)
 endif # ENABLE_TESTS
 

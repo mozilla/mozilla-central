@@ -96,8 +96,6 @@ DIRS = ../libical \
        locales \
        $(NULL)
 
-PWD := $(shell pwd)
-
 # Select a theme from which to pull our skin goodness
 # OS X: pinstripe
 # Others: winstripe

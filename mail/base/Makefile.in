@@ -45,7 +45,7 @@ include $(DEPTH)/config/autoconf.mk
 DIRS = modules
 
 PRE_RELEASE_SUFFIX := $(shell $(PYTHON) $(topsrcdir)/mozilla/config/printprereleasesuffix.py \
-                      $(shell cat $(MOZ_APP_VERSION_TXT) ))
+                      $(MOZ_APP_VERSION))
 
 DEFINES += -DMOZ_APP_VERSION=$(MOZ_APP_VERSION) \
            -DPRE_RELEASE_SUFFIX="$(PRE_RELEASE_SUFFIX)"
@@ -66,7 +66,7 @@ ifdef ENABLE_TESTS
 DIRS += test
 endif
 
-abs_srcdir = $(shell cd $(srcdir) && pwd)
+abs_srcdir = $(call core_abspath,$(srcdir))
 
 CHROME_DEPS += $(abs_srcdir)/content/overrides/app-license.html
 
