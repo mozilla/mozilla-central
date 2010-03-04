@@ -131,6 +131,7 @@ endif
 	  cp $(DIST_PPC)/test-package-stage/reftest/automation.py \
 	     $(DIST_X86)/test-package-stage/reftest/; \
 	  $(TOPSRCDIR)/mozilla/build/macosx/universal/unify \
+	      --unify-with-sort "all-test-dirs\.list$$" \
 	      $(DIST_PPC)/test-package-stage \
 	      $(DIST_X86)/test-package-stage \
 	      $(DIST_UNI)/test-package-stage;
