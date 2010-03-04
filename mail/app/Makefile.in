@@ -183,7 +183,7 @@ EXTRA_LIBS	+= $(STATIC_EXTRA_LIBS)
 
 ifndef MOZILLA_1_9_2_BRANCH
 
-# OpenGL is required for MOZ_ENABLE_CANVAS3D (only set in m-c build system).
+# OpenGL is required by (mozilla/)content/canvas: see (mozilla/)layout/build/Makefile.in.
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 OS_LIBS += -framework OpenGL
 endif

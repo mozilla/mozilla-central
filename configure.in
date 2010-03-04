@@ -4565,7 +4565,9 @@ default)
 basic)
   ENABLE_TESTS=
   MOZ_COMPOSER=
+  if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
   MOZ_ENABLE_CANVAS=
+  fi
   MOZ_INSTALLER=
   MOZ_JSDEBUGGER=
   MOZ_LDAP_XPCOM=
@@ -4600,7 +4602,9 @@ basic)
 minimal)
   ENABLE_TESTS=
   MOZ_COMPOSER=
+  if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
   MOZ_ENABLE_CANVAS=
+  fi
   MOZ_INSTALLER=
   MOZ_JSDEBUGGER=
   MOZ_LDAP_XPCOM=
