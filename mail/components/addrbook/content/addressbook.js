@@ -56,6 +56,9 @@ var gCardViewBox;
 var gCardViewBoxEmail1;
 var gPreviousDirTreeIndex = -1;
 
+var msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
+                          .createInstance(Components.interfaces.nsIMsgWindow);
+
 // Constants that correspond to choices
 // in Address Book->View -->Show Name as
 const kDisplayName = 0;
@@ -125,6 +128,10 @@ function OnUnloadAddressBook()
   Components.classes["@mozilla.org/abmanager;1"]
             .getService(Components.interfaces.nsIAbManager)
             .removeAddressBookListener(gAddressBookAbListener);
+
+  Components.classes["@mozilla.org/messenger/services/session;1"]
+            .getService(Components.interfaces.nsIMsgMailSession)
+            .RemoveMsgWindow(msgWindow);
 
   CloseAbView();
 }
@@ -215,6 +222,10 @@ function delayedOnLoadAddressBook()
         .getInterface(Components.interfaces.nsIWebNavigation)
         .QueryInterface(Components.interfaces.nsIDocShell)
         .useErrorPages = false;
+
+  Components.classes["@mozilla.org/messenger/services/session;1"]
+            .getService(Components.interfaces.nsIMsgMailSession)
+            .AddMsgWindow(msgWindow);
 }
 
 function OnLoadDirTree() {

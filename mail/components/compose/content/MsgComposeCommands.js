@@ -1637,6 +1637,10 @@ function ComposeStartup(recycled, aParams)
     gAutoSaveTimeout = setTimeout(AutoSave, gAutoSaveInterval);
 
   gAutoSaveKickedIn = false;
+
+  Components.classes["@mozilla.org/messenger/services/session;1"]
+            .getService(Components.interfaces.nsIMsgMailSession)
+            .AddMsgWindow(msgWindow);
 }
 
 // The new, nice, simple way of getting notified when a new editor has been created
@@ -2746,6 +2750,9 @@ function ReleaseAutoCompleteState()
 
 function MsgComposeCloseWindow(recycleIt)
 {
+  Components.classes["@mozilla.org/messenger/services/session;1"]
+            .getService(Components.interfaces.nsIMsgMailSession)
+            .RemoveMsgWindow(msgWindow);
   if (gMsgCompose)
     gMsgCompose.CloseWindow(recycleIt);
   else
