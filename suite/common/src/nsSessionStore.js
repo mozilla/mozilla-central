@@ -1254,11 +1254,9 @@ SessionStoreService.prototype = {
         // sessionStorage object for the page earlier than the page really
         // requires it. It was causing problems while accessing a storage when
         // a page later changed its domain.
-        storage = aDocShell.getSessionStorageForPrincipal(principal, false);
+        storage = aDocShell.getSessionStorageForPrincipal(principal, "", false);
         if (storage)
           storageItemCount = storage.length;
-        storage = aDocShell.getSessionStorageForURI(uri);
-        storageItemCount = storage.length;
       }
       catch (ex) { /* sessionStorage might throw if it's turned off, see bug 458954 */ }
       if (storageItemCount == 0)
@@ -2059,7 +2057,7 @@ SessionStoreService.prototype = {
     let ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
     for (let url in aStorageData) {
       let uri = ioService.newURI(url, null, null);
-      let storage = aDocShell.getSessionStorageForURI(uri);
+      let storage = aDocShell.getSessionStorageForURI(uri, "");
       for (let key in aStorageData[url]) {
         try {
           storage.setItem(key, aStorageData[url][key]);
