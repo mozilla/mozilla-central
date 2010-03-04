@@ -74,9 +74,9 @@ postflight_all:
 # a universal binary too early, before the unified bits have been staged.
 # Set SIGN_NSS= to skip shlibsign.
 	$(MAKE) -C $(OBJDIR_PPC)/$(INSTALLER_DIR) \
-          UNIVERSAL_BINARY= SIGN_NSS= PKG_SKIP_STRIP=1 stage-package
+	        UNIVERSAL_BINARY= SIGN_NSS= PKG_SKIP_STRIP=1 stage-package
 	$(MAKE) -C $(OBJDIR_X86)/$(INSTALLER_DIR) \
-          UNIVERSAL_BINARY= SIGN_NSS= PKG_SKIP_STRIP=1 stage-package
+	        UNIVERSAL_BINARY= SIGN_NSS= PKG_SKIP_STRIP=1 stage-package
 # Remove .chk files that may have been copied from the NSS build.  These will
 # cause unify to warn or fail if present.  New .chk files that are
 # appropriate for the merged libraries will be generated when the universal
@@ -86,8 +86,8 @@ postflight_all:
 # The only difference betewen the two trees now should be the
 # about:buildconfig page.  Fix it up.
 	$(TOPSRCDIR)/mozilla/build/macosx/universal/fix-buildconfig \
-	  $(DIST_PPC)/$(MOZ_PKG_APPNAME)/$(APPNAME)/$(BUILDCONFIG_JAR) \
-	  $(DIST_X86)/$(MOZ_PKG_APPNAME)/$(APPNAME)/$(BUILDCONFIG_JAR)
+	    $(DIST_PPC)/$(MOZ_PKG_APPNAME)/$(APPNAME)/$(BUILDCONFIG_JAR) \
+	    $(DIST_X86)/$(MOZ_PKG_APPNAME)/$(APPNAME)/$(BUILDCONFIG_JAR)
 	mkdir -p $(DIST_UNI)/$(MOZ_PKG_APPNAME)
 	rm -f $(DIST_X86)/universal
 	ln -s $(DIST_UNI) $(DIST_X86)/universal
@@ -103,16 +103,16 @@ endif
 endif
 endif
 	$(TOPSRCDIR)/mozilla/build/macosx/universal/unify \
-	  --unify-with-sort "\.manifest$$" \
-	  --unify-with-sort "components\.list$$" \
-	  $(DIST_PPC)/$(MOZ_PKG_APPNAME)/$(APPNAME) \
-	  $(DIST_X86)/$(MOZ_PKG_APPNAME)/$(APPNAME) \
-	  $(DIST_UNI)/$(MOZ_PKG_APPNAME)/$(APPNAME)
+	    --unify-with-sort "\.manifest$$" \
+	    --unify-with-sort "components\.list$$" \
+	    $(DIST_PPC)/$(MOZ_PKG_APPNAME)/$(APPNAME) \
+	    $(DIST_X86)/$(MOZ_PKG_APPNAME)/$(APPNAME) \
+	    $(DIST_UNI)/$(MOZ_PKG_APPNAME)/$(APPNAME)
 ifdef MOZ_CALENDAR
 ifndef DISABLE_LIGHTNING_INSTALL
 ifndef MOZ_SUNBIRD
 	rm $(DIST_PPC)/$(MOZ_PKG_APPNAME)/$(APPNAME)/Contents/MacOS/extensions/\{e2fda1a4-762b-4020-b5ad-a41df1933103\}/install.rdf \
-      $(DIST_X86)/$(MOZ_PKG_APPNAME)/$(APPNAME)/Contents/MacOS/extensions/\{e2fda1a4-762b-4020-b5ad-a41df1933103\}/install.rdf
+	   $(DIST_X86)/$(MOZ_PKG_APPNAME)/$(APPNAME)/Contents/MacOS/extensions/\{e2fda1a4-762b-4020-b5ad-a41df1933103\}/install.rdf
 endif
 endif
 endif
@@ -124,13 +124,14 @@ endif
 	rm -rf $(DIST_UNI)/test-package-stage
 # automation.py differs because it hardcodes a path to
 # dist/bin. It doesn't matter which one we use.
-	if test -d $(DIST_PPC)/test-package-stage -a                 \
-                -d $(DIST_X86)/test-package-stage; then              \
-           cp $(DIST_PPC)/test-package-stage/mochitest/automation.py \
-             $(DIST_X86)/test-package-stage/mochitest/;              \
-           cp $(DIST_PPC)/test-package-stage/reftest/automation.py   \
-             $(DIST_X86)/test-package-stage/reftest/;                \
-           $(TOPSRCDIR)/mozilla/build/macosx/universal/unify         \
-             $(DIST_PPC)/test-package-stage                          \
-             $(DIST_X86)/test-package-stage                          \
-             $(DIST_UNI)/test-package-stage; fi
+	if test -d $(DIST_PPC)/test-package-stage -a \
+	        -d $(DIST_X86)/test-package-stage; then \
+	  cp $(DIST_PPC)/test-package-stage/mochitest/automation.py \
+	     $(DIST_X86)/test-package-stage/mochitest/; \
+	  cp $(DIST_PPC)/test-package-stage/reftest/automation.py \
+	     $(DIST_X86)/test-package-stage/reftest/; \
+	  $(TOPSRCDIR)/mozilla/build/macosx/universal/unify \
+	      $(DIST_PPC)/test-package-stage \
+	      $(DIST_X86)/test-package-stage \
+	      $(DIST_UNI)/test-package-stage;
+	fi
