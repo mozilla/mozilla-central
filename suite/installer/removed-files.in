@@ -248,6 +248,15 @@ components/xppref32.dll
 #endif
 ; MOZ_STATIC_BUILD
 #endif
+#ifdef MOZ_STATIC_MAIL_BUILD
+#ifdef WIN_OR_OS2
+; To become |#ifdef XP_OS2| in bug 534408.
+; At that time, copy these entries into the following |#ifdef XP_WIN| block. (Or just don't.!.)
+msgbsutl.dll
+#else
+@DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
+#endif
+#endif
 #ifdef XP_WIN
 components/appshell.dll
 components/cmdlines.dll

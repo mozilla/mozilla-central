@@ -755,14 +755,22 @@ bin/libfreebl_32int64_3.so
 #endif
 
 [mail]
+; MailNews component binaries
 #ifndef MOZ_STATIC_BUILD
-; MailNews component binaries (shared build only)
 @BINPATH@/components/@DLL_PREFIX@import@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@mail@DLL_SUFFIX@
 #ifdef XP_WIN32
 @BINPATH@/components/msgMapi.dll
 #endif
 @BINPATH@/components/@DLL_PREFIX@msgsmime@DLL_SUFFIX@
+#endif
+#ifndef MOZ_STATIC_MAIL_BUILD
+#ifdef WIN_OR_OS2
+; To become |#ifdef XP_OS2| in bug 534408.
+@BINPATH@/msgbsutl.dll
+#else
+@BINPATH@/@DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
+#endif
 #endif
 
 ; MailNews component xpts
