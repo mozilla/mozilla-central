@@ -666,77 +666,77 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
   }
   m_editor->EndTransaction();
 
-  if (m_editor)
+  if (aBuf.IsEmpty())
+    m_editor->BeginningOfDocument();
+  else
   {
-    if (aBuf.IsEmpty())
-      m_editor->BeginningOfDocument();
-    else
+    switch (reply_on_top)
     {
-      switch (reply_on_top)
+      // This should set the cursor after the body but before the sig
+      case 0:
+      {
+        if (!textEditor)
         {
-          // This should set the cursor after the body but before the sig
-          case 0  :
-          {
-            if (!textEditor)
-            {
-              m_editor->BeginningOfDocument();
-              break;
-            }
-
-            nsCOMPtr<nsISelection> selection = nsnull;
-            nsCOMPtr<nsIDOMNode>      parent = nsnull;
-            PRInt32                   offset;
-            nsresult                  rv;
-
-            // get parent and offset of mailcite
-            rv = GetNodeLocation(nodeInserted, address_of(parent), &offset);
-            if (NS_FAILED(rv) || (!parent))
-            {
-              m_editor->BeginningOfDocument();
-              break;
-            }
-
-            // get selection
-            m_editor->GetSelection(getter_AddRefs(selection));
-            if (!selection)
-            {
-              m_editor->BeginningOfDocument();
-              break;
-            }
-
-            // place selection after mailcite
-            selection->Collapse(parent, offset+1);
-
-            // insert a break at current selection
-            textEditor->InsertLineBreak();
-
-            // i'm not sure if you need to move the selection back to before the
-            // break. expirement.
-            selection->Collapse(parent, offset+1);
-
-            break;
-          }
-
-        case 2  :
-        {
-          m_editor->SelectAll();
+          m_editor->BeginningOfDocument();
           break;
         }
 
-        // This should set the cursor to the top!
-        default : m_editor->BeginningOfDocument();    break;
+        nsCOMPtr<nsISelection> selection = nsnull;
+        nsCOMPtr<nsIDOMNode>      parent = nsnull;
+        PRInt32                   offset;
+        nsresult                  rv;
+
+        // get parent and offset of mailcite
+        rv = GetNodeLocation(nodeInserted, address_of(parent), &offset);
+        if (NS_FAILED(rv) || (!parent))
+        {
+          m_editor->BeginningOfDocument();
+          break;
+        }
+
+        // get selection
+        m_editor->GetSelection(getter_AddRefs(selection));
+        if (!selection)
+        {
+          m_editor->BeginningOfDocument();
+          break;
+        }
+
+        // place selection after mailcite
+        selection->Collapse(parent, offset+1);
+
+        // insert a break at current selection
+        textEditor->InsertLineBreak();
+
+        // i'm not sure if you need to move the selection back to before the
+        // break. expirement.
+        selection->Collapse(parent, offset+1);
+
+        break;
+      }
+
+      case 2:
+      {
+        m_editor->SelectAll();
+        break;
+      }
+
+      // This should set the cursor to the top!
+      default:
+      {
+        m_editor->BeginningOfDocument();
+        break;
       }
     }
-
-    nsCOMPtr<nsISelectionController> selCon;
-    m_editor->GetSelectionController(getter_AddRefs(selCon));
-
-    if (selCon)
-      selCon->ScrollSelectionIntoView(nsISelectionController::SELECTION_NORMAL, nsISelectionController::SELECTION_ANCHOR_REGION, PR_TRUE);
   }
 
-  if (m_editor)
-    m_editor->EnableUndo(PR_TRUE);
+  nsCOMPtr<nsISelectionController> selCon;
+  m_editor->GetSelectionController(getter_AddRefs(selCon));
+
+  if (selCon)
+    selCon->ScrollSelectionIntoView(nsISelectionController::SELECTION_NORMAL, nsISelectionController::SELECTION_ANCHOR_REGION, PR_TRUE);
+
+  m_editor->EnableUndo(PR_TRUE);
   SetBodyModified(PR_FALSE);
 
 #ifdef MSGCOMP_TRACE_PERFORMANCE
@@ -888,13 +888,17 @@ nsMsgCompose::Initialize(nsIDOMWindowInternal *aWindow, nsIMsgComposeParams *par
   return CreateMessage(originalMsgURI.get(), type, composeFields);
 }
 
-nsresult nsMsgCompose::SetDocumentCharset(const char *charset)
+nsresult nsMsgCompose::SetDocumentCharset(const char *aCharset)
 {
   // Set charset, this will be used for the MIME charset labeling.
-  m_compFields->SetCharacterSet(charset);
+  m_compFields->SetCharacterSet(aCharset);
 
   // notify the change to editor
-  m_editor->SetDocumentCharacterSet(charset ? nsDependentCString(charset): EmptyCString());
+  nsCString charset;
+  if (aCharset)
+    charset = nsDependentCString(aCharset);
+  if (m_editor)
+    m_editor->SetDocumentCharacterSet(charset);
 
   return NS_OK;
 }
