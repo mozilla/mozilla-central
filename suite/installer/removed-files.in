@@ -236,19 +236,10 @@ components/libosxproxy.dylib
 components/libwidget_mac.dylib
 #endif
 #ifdef XP_WIN
-components/appshell.dll
-components/cmdlines.dll
-components/gkparser.dll
 components/gkwidget.dll
 components/imgicon.dll
 components/msgMapi.dll
-components/perms.dll
-components/spellchk.dll
-components/strgcmps.dll
-components/tkautoc.dll
-components/tkitcmps.dll
 components/windowsproxy.dll
-components/xpautoc.dll
 components/xpc3250.dll
 components/xppref32.dll
 #endif
