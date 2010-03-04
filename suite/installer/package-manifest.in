@@ -77,6 +77,9 @@
 @BINPATH@/mozcpp19.dll
 #endif
 #endif
+#ifndef MOZILLA_1_9_2_BRANCH
+@BINPATH@/@DLL_PREFIX@mozalloc@DLL_SUFFIX@
+#endif
 
 [browser]
 ; [Base Browser Files]
