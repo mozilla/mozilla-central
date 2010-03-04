@@ -192,10 +192,6 @@ ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 OS_LIBS += -framework OpenGL
 endif
 
-ifneq (,$(filter windows,$(MOZ_WIDGET_TOOLKIT)))
-OS_LIBS += opengl32.lib
-endif
-
 endif # MOZILLA_1_9_2_BRANCH
 endif # MOZILLA_1_9_1_BRANCH
 

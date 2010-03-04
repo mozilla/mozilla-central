@@ -176,10 +176,6 @@ ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 OS_LIBS += -framework OpenGL
 endif
 
-ifeq (windows,$(MOZ_WIDGET_TOOLKIT))
-OS_LIBS += opengl32.lib
-endif
-
 ifeq ($(OS_ARCH),WINNT)
 OS_LIBS += $(call EXPAND_LIBNAME,comctl32 comdlg32 uuid shell32 ole32 oleaut32 version winspool)
 RCINCLUDE = splash.rc
