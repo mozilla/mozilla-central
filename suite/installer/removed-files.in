@@ -114,6 +114,9 @@ jsj3250.dll
 #else
 @DLL_PREFIX@jsj@DLL_SUFFIX@
 #endif
+#ifdef XP_MACOSX
+libwidget.rsrc
+#endif
 modules/JSON.jsm
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 @DLL_PREFIX@mozlcms@DLL_SUFFIX@
@@ -367,6 +370,7 @@ components/necko_socket.xpt
 components/necko_strconv.xpt
 components/necko_viewsource.xpt
 components/necko_wifi.xpt
+components/oji.xpt
 components/parentalcontrols.xpt
 components/places.xpt
 components/plugin.xpt
