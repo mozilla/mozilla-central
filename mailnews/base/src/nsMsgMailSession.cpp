@@ -48,7 +48,11 @@
 #include "nsIDocShell.h"
 #include "nsIObserverService.h"
 #include "nsIAppStartup.h"
+#ifdef MOZILLA_1_9_2_BRANCH
 #include "nsXPFEComponentsCID.h"
+#else
+#include "nsToolkitCompsCID.h"
+#endif
 #include "nsISupportsPrimitives.h"
 #include "nsIAppShellService.h"
 #include "nsAppShellCID.h"

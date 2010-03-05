@@ -70,7 +70,6 @@
 #include "nsIMsgComposeParams.h"
 #include "nsIMsgCompose.h"
 #include "nsMsgCompCID.h"
-#include "nsXPFEComponentsCID.h"
 #include "nsIMsgSend.h"
 #include "nsIProxyObjectManager.h"
 #include "nsIMsgComposeService.h"

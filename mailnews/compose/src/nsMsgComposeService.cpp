@@ -78,7 +78,11 @@
 #include "nsIMimeMiscStatus.h"
 #include "nsIStreamConverter.h"
 #include "nsMsgMimeCID.h"
+#ifdef MOZILLA_1_9_2_BRANCH
 #include "nsXPFEComponentsCID.h"
+#else
+#include "nsToolkitCompsCID.h"
+#endif
 #include "nsNetUtil.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIInterfaceRequestorUtils.h"
