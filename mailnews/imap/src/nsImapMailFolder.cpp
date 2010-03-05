@@ -5290,18 +5290,21 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
           }
           break;
       case nsIImapUrl::nsImapListFolder:
-          // check if folder is now verified - if not,
-          // we should remove it?
-          if (NS_SUCCEEDED(aExitCode) && !m_verifiedAsOnlineFolder)
+          if (NS_SUCCEEDED(aExitCode))
           {
-            nsCOMPtr<nsIMsgFolder> parent;
-            rv = GetParent(getter_AddRefs(parent));
-
-            if (NS_SUCCEEDED(rv) && parent)
+            // listing folder will open db; don't leave the db open.
+            SetMsgDatabase(nsnull);
+            if (!m_verifiedAsOnlineFolder)
             {
-              nsCOMPtr<nsIMsgImapMailFolder> imapParent = do_QueryInterface(parent);
-              if (imapParent)
-                imapParent->RemoveSubFolder(this);
+              // If folder is not verified, we remove it.
+              nsCOMPtr<nsIMsgFolder> parent;
+              rv = GetParent(getter_AddRefs(parent));
+              if (NS_SUCCEEDED(rv) && parent)
+              {
+                nsCOMPtr<nsIMsgImapMailFolder> imapParent = do_QueryInterface(parent);
+                if (imapParent)
+                  imapParent->RemoveSubFolder(this);
+              }
             }
           }
         break;
