@@ -611,9 +611,17 @@ nsContextMenu.prototype = {
          return elem.ownerDocument.defaultView.getComputedStyle( elem, '' ).getPropertyValue( prop );
     },
     // Returns a "url"-type computed style attribute value, with the url() stripped.
-    getComputedURL: function( elem, prop ) {
-         var url = elem.ownerDocument.defaultView.getComputedStyle( elem, '' ).getPropertyCSSValue( prop );
-         return ( url.primitiveType == CSSPrimitiveValue.CSS_URI ) ? url.getStringValue() : null;
+    getComputedURL: function( aElem, aProp ) {
+      var url = aElem.ownerDocument.defaultView
+                     .getComputedStyle( aElem, "" )
+                     .getPropertyCSSValue( aProp );
+      if ( url instanceof CSSPrimitiveValue )
+        url = [ url ];
+
+      for ( var i = 0; i < url.length; i++ )
+        if ( url[i].primitiveType == CSSPrimitiveValue.CSS_URI )
+          return url[i].getStringValue();
+      return null;
     },
     // Returns true iff clicked on link is saveable.
     isLinkSaveable : function ( link ) {
