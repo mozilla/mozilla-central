@@ -109,7 +109,7 @@ treechildren::-moz-tree-cell-text(broken) {
   overflow: auto;
 }
 
-#permList > richlistitem {
+.permission {
   padding-top: 6px;
   padding-bottom: 6px;
   -moz-padding-start: 7px;
@@ -118,7 +118,7 @@ treechildren::-moz-tree-cell-text(broken) {
   border-bottom: 1px dotted #C7D0D9;
 }
 
-#permList > richlistitem > label {
+.permissionLabel {
   font-weight: bold;
 }
 

@@ -288,9 +288,12 @@ function onLoadPageInfo()
                   "linkScriptInline", "yes"];
   strNames.forEach(function(n) { gStrings[n] = gBundle.getString(n); });
 
-  if ("arguments" in window && window.arguments.length >= 1 &&
-       window.arguments[0] && window.arguments[0].doc) {
-    gDocument = window.arguments[0].doc;
+  var args = "arguments" in window &&
+             window.arguments.length >= 1 &&
+             window.arguments[0];
+
+  if (args && args.doc) {
+    gDocument = args.doc;
     gWindow = gDocument.defaultView;
   }
   else {
@@ -317,10 +320,7 @@ function onLoadPageInfo()
   loadPageInfo();
 
   /* Select the requested tab, if the name is specified */
-  var initialTab = "generalTab";
-  if ("arguments" in window && window.arguments.length >= 1 &&
-       window.arguments[0] && window.arguments[0].initialTab)
-    initialTab = window.arguments[0].initialTab;
+  var initialTab = (args && args.initialTab) || "generalTab";
   showTab(initialTab);
   Components.classes["@mozilla.org/observer-service;1"]
             .getService(Components.interfaces.nsIObserverService)
@@ -604,11 +604,14 @@ function addImage(url, type, alt, elem, isBg)
 
 function grabAll(elem)
 {
-  // check for background images, any node may have one
-  var ComputedStyle = elem.ownerDocument.defaultView.getComputedStyle(elem, "");
-  var url = ComputedStyle && ComputedStyle.getPropertyCSSValue("background-image");
-  if (url && url.primitiveType == CSSPrimitiveValue.CSS_URI)
-    addImage(url.getStringValue(), gStrings.mediaBGImg, gStrings.notSet, elem, true);
+  // check for background images, any node may have multiple
+  var computedStyle = elem.ownerDocument.defaultView.getComputedStyle(elem, "");
+  if (computedStyle) {
+    Array.forEach(computedStyle.getPropertyCSSValue("background-image"), function (url) {
+      if (url.primitiveType == CSSPrimitiveValue.CSS_URI)
+        addImage(url.getStringValue(), gStrings.mediaBGImg, gStrings.notSet, elem, true);
+    });
+  }
 
   // one swi^H^H^Hif-else to rule them all
   if (elem instanceof HTMLAnchorElement)

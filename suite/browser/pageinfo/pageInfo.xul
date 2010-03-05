@@ -341,8 +341,8 @@
           checkbox is already taken care of through the richlistitem grouping.
         -->
         <richlistbox id="permList" flex="1">
-          <richlistitem orient="vertical">
-            <label id="permImageLabel" value="&permImage;" control="imageRadioGroup"/>
+          <richlistitem class="permission" orient="vertical">
+            <label id="permImageLabel" class="permissionLabel" value="&permImage;" control="imageRadioGroup"/>
             <hbox role="group" aria-labelledby="permImageLabel">
               <checkbox class="indent" id="imageDef" command="cmd_imageDef" label="&permUseDefault;"/>
               <spacer flex="1"/>
@@ -352,8 +352,8 @@
               </radiogroup>
             </hbox>
           </richlistitem>
-          <richlistitem orient="vertical">
-            <label id="permPopupLabel" value="&permPopup;" control="popupRadioGroup"/>
+          <richlistitem class="permission" orient="vertical">
+            <label id="permPopupLabel" class="permissionLabel" value="&permPopup;" control="popupRadioGroup"/>
             <hbox role="group" aria-labelledby="permPopupLabel">
               <checkbox class="indent" id="popupDef" command="cmd_popupDef" label="&permUseDefault;"/>
               <spacer flex="1"/>
@@ -363,8 +363,8 @@
               </radiogroup>
             </hbox>
           </richlistitem>
-          <richlistitem orient="vertical">
-            <label id="permCookieLabel" value="&permCookie;" control="cookieRadioGroup"/>
+          <richlistitem class="permission" orient="vertical">
+            <label id="permCookieLabel" class="permissionLabel" value="&permCookie;" control="cookieRadioGroup"/>
             <hbox role="group" aria-labelledby="permCookieLabel">
               <checkbox class="indent" id="cookieDef" command="cmd_cookieDef" label="&permUseDefault;"/>
               <spacer flex="1"/>
@@ -375,8 +375,8 @@
               </radiogroup>
             </hbox>
           </richlistitem>
-          <richlistitem orient="vertical">
-            <label id="permInstallLabel" value="&permInstall;" control="installRadioGroup"/>
+          <richlistitem class="permission" orient="vertical">
+            <label id="permInstallLabel" class="permissionLabel" value="&permInstall;" control="installRadioGroup"/>
             <hbox role="group" aria-labelledby="permInstallLabel">
               <checkbox class="indent" id="installDef" command="cmd_installDef" label="&permUseDefault;"/>
               <spacer flex="1"/>
@@ -386,8 +386,8 @@
               </radiogroup>
             </hbox>
           </richlistitem>
-          <richlistitem orient="vertical">
-            <label id="geoInstallLabel" value="&permGeo;" control="installRadioGroup"/>
+          <richlistitem class="permission" orient="vertical">
+            <label id="geoInstallLabel" class="permissionLabel" value="&permGeo;" control="installRadioGroup"/>
             <hbox role="group" aria-labelledby="geoInstallLabel">
               <checkbox class="indent" id="geoDef" command="cmd_geoDef" label="&permAskAlways;"/>
               <spacer flex="1"/>
