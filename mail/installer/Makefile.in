@@ -98,6 +98,19 @@ endif
 
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
 
+ifdef MOZ_PKG_PRETTYNAMES
+libs::
+	$(MAKE) -C $(DEPTH)/mail/locales langpack-$(AB_CD)
+
+UPLOAD_EXTRA_FILES += $(LANGPACK)
+else
+libs::
+	$(MAKE) -C $(DEPTH)/mail/locales langpack-$(AB_CD) PKG_LANGPACK_PATH=
+
+UPLOAD_EXTRA_FILES += $(PKG_LANGPACK_BASENAME).xpi
+endif
+
+
 ifeq (Darwin, $(OS_ARCH))
 BINPATH = $(_BINPATH)
 DEFINES += -DAPPNAME=$(_APPNAME)
