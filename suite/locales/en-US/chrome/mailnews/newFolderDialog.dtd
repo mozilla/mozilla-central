@@ -45,3 +45,5 @@
 <!ENTITY folderRestriction2.label   "Allow your new folder to contain:">
 <!ENTITY foldersOnly.label          "Folders Only">
 <!ENTITY messagesOnly.label         "Messages Only">
+<!ENTITY accept.label               "Create Folder">
+<!ENTITY accept.accesskey           "r">

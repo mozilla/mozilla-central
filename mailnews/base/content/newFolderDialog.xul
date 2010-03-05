@@ -51,6 +51,8 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         title="&newFolderDialog.title;"
         onload="onLoad();"
+        buttonlabelaccept="&accept.label;"
+        buttonaccesskeyaccept="&accept.accesskey;"
         ondialogaccept="return onOK();">
 
   <stringbundleset id="stringbundleset"/>
