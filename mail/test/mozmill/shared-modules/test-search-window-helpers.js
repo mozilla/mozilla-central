@@ -48,7 +48,7 @@ const MODULE_NAME = 'search-window-helpers';
 
 const RELATIVE_ROOT = '../shared-modules';
 
-const MODULES_REQUIRES = ['folder-display-helpers', 'window-helpers'];
+const MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
 var folderDisplayHelper;
 var mc;

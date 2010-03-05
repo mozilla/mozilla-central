@@ -55,7 +55,7 @@ const MODULE_NAME = 'folder-display-helpers';
 
 const RELATIVE_ROOT = '../shared-modules';
 // we need window-helpers for augment_controller
-const MODULES_REQUIRES = ['window-helpers'];
+const MODULE_REQUIRES = ['window-helpers'];
 
 const nsMsgViewIndex_None = 0xffffffff;
 Cu.import('resource://app/modules/MailUtils.js');

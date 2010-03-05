@@ -49,7 +49,7 @@ const MODULE_NAME = 'compose-helpers';
 const RELATIVE_ROOT = '../shared-modules';
 
 // we need this for the main controller
-const MODULES_REQUIRES = ['folder-display-helpers', 'window-helpers'];
+const MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
 var folderDisplayHelper;
 var mc;
