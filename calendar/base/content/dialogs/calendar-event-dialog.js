@@ -390,6 +390,13 @@ function loadDialog(item) {
         setElementValue("percent-complete-textbox", percentCompleteInteger);
     }
 
+    // Set Item-Menu label to Event or Task
+    let menuItem = document.getElementById("item-menu");
+    menuItem.setAttribute("label", calGetString("calendar-event-dialog",
+                                          cal.isEvent(item) ? "itemMenuLabelEvent" : "itemMenuLabelTask"));
+    menuItem.setAttribute("accesskey", calGetString("calendar-event-dialog",
+                                          cal.isEvent(item) ? "itemMenuAccesskeyEvent" : "itemMenuAccesskeyTask"));
+
     // Priority
     gPriority = parseInt(item.priority);
     updatePriority();

@@ -111,14 +111,14 @@
     <!-- Commands -->
     <commandset id="itemCommands">
 
-        <!-- File menu -->
-        <command id="cmd_file_new_event"
+        <!-- Item menu -->
+        <command id="cmd_item_new_event"
                  oncommand="openNewEvent()"/>
-        <command id="cmd_file_new_message"
+        <command id="cmd_item_new_message"
                  oncommand="openNewMessage()"/>
-        <command id="cmd_file_new_card"
+        <command id="cmd_item_new_card"
                  oncommand="openNewCardDialog()"/>
-        <command id="cmd_file_close"
+        <command id="cmd_item_close"
                  oncommand="cancelDialog()"/>
         <command id="cmd_save"
                  disable-on-readonly="true"
@@ -223,15 +223,15 @@
         <key id="new-event-key"
              modifiers="control"
              key="&event.dialog.new.event.key;"
-             command="cmd_file_new_event"/>
+             command="cmd_item_new_event"/>
         <key id="new-message-key"
              modifiers="accel"
              key="&event.dialog.new.message.key;"
-             command="cmd_file_new_message"/>
+             command="cmd_item_new_message"/>
         <key id="close-key"
              modifiers="accel"
              key="&event.dialog.close.key;"
-             command="cmd_file_close"/>
+             command="cmd_item_close"/>
         <key id="save-key"
              modifiers="accel"
              key="&event.dialog.save.key;"
@@ -282,42 +282,43 @@
         <!-- Menubar -->
         <menubar id="event-menubar">
 
-            <!-- File menu -->
-            <menu label="&event.menu.file.label;"
-                  accesskey="&event.menu.file.accesskey;"
-                  id="file-menu">
-                <menupopup id="file-menupopup">
-                    <menu id="file-new-menu"
-                          label="&event.menu.file.new.label;"
-                          accesskey="&event.menu.file.new.accesskey;">
-                        <menupopup id="file-new-menupopup">
-                            <menuitem id="file-new-event-menuitem"
-                                      label="&event.menu.file.new.event.label;"
-                                      accesskey="&event.menu.file.new.event.accesskey;"
+            <!-- Item menu -->
+                  <!-- These 2 Strings are placeholders, values are set at runtime -->
+            <menu label="Item"
+                  accesskey="I"
+                  id="item-menu">
+                <menupopup id="item-menupopup">
+                    <menu id="item-new-menu"
+                          label="&event.menu.item.new.label;"
+                          accesskey="&event.menu.item.new.accesskey;">
+                        <menupopup id="item-new-menupopup">
+                            <menuitem id="item-new-event-menuitem"
+                                      label="&event.menu.item.new.event.label;"
+                                      accesskey="&event.menu.item.new.event.accesskey;"
                                       key="new-event-key"
-                                      command="cmd_file_new_event"
+                                      command="cmd_item_new_event"
                                       disable-on-readonly="true"/>
-                            <menuitem id="file-new-message-menuitem"
-                                      label="&event.menu.file.new.message.label;"
-                                      accesskey="&event.menu.file.new.message.accesskey;"
+                            <menuitem id="item-new-message-menuitem"
+                                      label="&event.menu.item.new.message.label;"
+                                      accesskey="&event.menu.item.new.message.accesskey;"
                                       key="new-message-key"
-                                      command="cmd_file_new_message"
+                                      command="cmd_item_new_message"
                                       disable-on-readonly="true"
                                       class="lightning-only"/>
-                            <menuseparator id="file-new-menuseparator1"
+                            <menuseparator id="item-new-menuseparator1"
                                            class="lightning-only"/>
-                            <menuitem id="file-new-address-menuitem"
-                                      label="&event.menu.file.new.contact.label;"
-                                      accesskey="&event.menu.file.new.contact.accesskey;"
-                                      command="cmd_file_new_card"
+                            <menuitem id="item-new-address-menuitem"
+                                      label="&event.menu.item.new.contact.label;"
+                                      accesskey="&event.menu.item.new.contact.accesskey;"
+                                      command="cmd_item_new_card"
                                       disable-on-readonly="true"
                                       class="lightning-only"/>
                         </menupopup>
                     </menu>
-                    <menuseparator id="file-menuseparator1"/>
-                    <menuitem id="file-save-menuitem"
-                              label="&event.menu.file.save.label;"
-                              accesskey="&event.menu.file.save.accesskey;"
+                    <menuseparator id="item-menuseparator1"/>
+                    <menuitem id="item-save-menuitem"
+                              label="&event.menu.item.save.label;"
+                              accesskey="&event.menu.item.save.accesskey;"
                               key="save-key"
                               command="cmd_save"/>
                     <menuitem id="item-delete-menuitem"
@@ -326,23 +327,23 @@
                               key="delete-key"
                               command="cmd_item_delete"
                               disable-on-readonly="true"/>
-                    <menuitem id="file-pagesetup-menuitem"
-                              label="&event.menu.file.page.setup.label;"
-                              accesskey="&event.menu.file.page.setup.accesskey;"
+                    <menuitem id="item-pagesetup-menuitem"
+                              label="&event.menu.item.page.setup.label;"
+                              accesskey="&event.menu.item.page.setup.accesskey;"
                               command="cmd_printSetup"
                               disable-on-readonly="true"/>
-                    <menuitem id="file-print-menuitem"
-                              label="&event.menu.file.print.label;"
-                              accesskey="&event.menu.file.print.accesskey;"
+                    <menuitem id="item-print-menuitem"
+                              label="&event.menu.item.print.label;"
+                              accesskey="&event.menu.item.print.accesskey;"
                               key="print-key"
                               command="cmd_print"
                               disable-on-readonly="true"/>
-                    <menuseparator id="file-menuseparator1"/>
-                    <menuitem id="file-close-menuitem"
-                              label="&event.menu.file.close.label;"
-                              accesskey="&event.menu.file.close.accesskey;"
+                    <menuseparator id="item-menuseparator1"/>
+                    <menuitem id="item-close-menuitem"
+                              label="&event.menu.item.close.label;"
+                              accesskey="&event.menu.item.close.accesskey;"
                               key="close-key"
-                              command="cmd_file_close"
+                              command="cmd_item_close"
                               disable-on-readonly="true"/>
                 </menupopup>
             </menu>
