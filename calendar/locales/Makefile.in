@@ -85,10 +85,6 @@ DEFINES += \
     -DPKG_INST_BASENAME="$(PKG_INST_BASENAME)" \
     $(NULL)
 
-ifeq (,$(filter-out pref,$(MOZ_EXTENSIONS)))
-DEFINES += -DEXTENSION_PREF
-endif
-
 include $(topsrcdir)/config/rules.mk
 
 tests:
