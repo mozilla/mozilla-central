@@ -46,11 +46,6 @@
 <!ENTITY calendar.calendar.label     "Calendar">
 <!ENTITY calendar.calendar.accesskey "C">
 
-<!ENTITY calendar.dayView.key                  "1" >
-<!ENTITY calendar.weekView.key                 "2" >
-<!ENTITY calendar.multiweekView.key            "3" >
-<!ENTITY calendar.monthView.key                "4" >
-
 <!ENTITY calendar.newevent.button.tooltip         "Create a new event" >
 <!ENTITY calendar.newtask.button.tooltip          "Create a new task" >
 

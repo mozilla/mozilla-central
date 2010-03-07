@@ -462,11 +462,11 @@
 
     <keyset id="calendar-keys">
       <key id="openLightningKey"
-           key="C"
+           key="&lightning.keys.event.showCalendar.key;"
            modifiers="accel, shift"
            observes="new_calendar_tab"/>
       <key id="openTasksKey"
-           key="D"
+           key="&lightning.keys.event.showTasks.key;"
            modifiers="accel, shift"
            command="new_task_tab"/>
       <key id="todaypanekey" command="calendar_toggle_todaypane_command" keycode="VK_F11"/>
