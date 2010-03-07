@@ -1933,7 +1933,13 @@ function GenericSendMessage( msgType )
           }
         }
 
-        if (gRemindLater && ShouldShowAttachmentNotification(false)) {
+        // Alert the user if
+        //  - the button to remind about attachments was clicked, or
+        //  - the aggressive pref is set and the notification was not dismissed
+        // and the message (still) contains attachment keywords.
+        if ((gRemindLater || (getPref("mail.compose.attachment_reminder_aggressive") &&
+             document.getElementById("attachmentNotificationBox").currentNotification)) &&
+            ShouldShowAttachmentNotification(false)) {
           var bundle = document.getElementById("bundle_composeMsgs");
           var flags = gPromptService.BUTTON_POS_0 * gPromptService.BUTTON_TITLE_IS_STRING +
                       gPromptService.BUTTON_POS_1 * gPromptService.BUTTON_TITLE_IS_STRING;
