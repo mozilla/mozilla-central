@@ -522,7 +522,11 @@ var DefaultController =
           if (loadedFolder && !loadedFolder.canDeleteMessages)
             return false;
         }
-        return pref.getCharPref("mail.last_msg_movecopy_target_uri") &&
+        let targetURI = pref.getCharPref("mail.last_msg_movecopy_target_uri");
+        if (!targetURI)
+          return false;
+        let targetFolder = MailUtils.getFolderForURI(targetURI);
+        return targetFolder && targetFolder.filePath.exists() &&
                GetNumSelectedMessages() > 0;
       case "cmd_fullZoomReduce":
       case "cmd_fullZoomEnlarge":

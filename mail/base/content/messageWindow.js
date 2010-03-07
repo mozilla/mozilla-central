@@ -926,7 +926,11 @@ var MessageWindowController =
         if (!loadedFolder || (pref.getBoolPref("mail.last_msg_movecopy_was_move") &&
             !loadedFolder.canDeleteMessages))
           return false;
-        return pref.getCharPref("mail.last_msg_movecopy_target_uri");
+        let targetURI = pref.getCharPref("mail.last_msg_movecopy_target_uri");
+        if (!targetURI)
+          return false;
+        let targetFolder = MailUtils.getFolderForURI(targetURI);
+        return targetFolder && targetFolder.filePath.exists();
       case "cmd_applyFilters":
       case "cmd_runJunkControls":
       case "cmd_deleteJunk":
