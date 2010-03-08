@@ -51,7 +51,7 @@ endif
 
 include $(topsrcdir)/config/config.mk
 
-run_for_effects := $(shell if ! test -d $(DIST); then $(NSINSTALL) -D $(DIST); fi; if ! test -d $(DIST)/branding; then $(NSINSTALL) -D $(DIST)/branding; fi)
+run_for_effects := $(shell if test ! -d $(DIST); then $(NSINSTALL) -D $(DIST); fi; if test ! -d $(DIST)/branding; then $(NSINSTALL) -D $(DIST)/branding; fi)
 _ABS_DIST := $(shell cd $(DIST) && pwd)
 
 SUBMAKEFILES += $(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/Makefile

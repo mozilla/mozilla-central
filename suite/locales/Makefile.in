@@ -49,7 +49,7 @@ vpath %.png @srcdir@/en-US/searchplugins
 vpath %.src $(LOCALE_SRCDIR)/searchplugins
 vpath %.png $(LOCALE_SRCDIR)/searchplugins
 
-run_for_effects := $(shell if ! test -d $(DIST); then $(NSINSTALL) -D $(DIST); fi; if ! test -d $(DIST)/branding; then $(NSINSTALL) -D $(DIST)/branding; fi)
+run_for_effects := $(shell if test ! -d $(DIST); then $(NSINSTALL) -D $(DIST); fi; if test ! -d $(DIST)/branding; then $(NSINSTALL) -D $(DIST)/branding; fi)
 _ABS_DIST := $(shell cd $(DIST) && pwd)
 
 AB = $(firstword $(subst -, ,$(AB_CD)))
