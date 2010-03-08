@@ -92,11 +92,11 @@
 // MOZILLA_1_9_2_BRANCH.
 #define MAC_OS_X_VERSION_10_4_HEX 0x00001040
 #define MAC_OS_X_VERSION_10_5_HEX 0x00001050
-long OSXVersion()
+int OSXVersion()
 {
   NS_OBJC_BEGIN_TRY_ABORT_BLOCK_RETURN;
 
-  static long gOSXVersion = 0x0;
+  static SInt32 gOSXVersion = 0x0;
   if (gOSXVersion == 0x0)
   {
     if (::Gestalt(gestaltSystemVersion, &gOSXVersion) != noErr)
@@ -577,14 +577,18 @@ nsMessengerOSXIntegration::BounceDockIcon()
 nsresult
 nsMessengerOSXIntegration::RestoreDockIcon()
 {
+#ifdef MOZILLA_1_9_2_BRANCH
   // Use the Leopard API if possible.
   if (mOnLeopardOrLater)
   {
+#endif
     id tile = [[NSApplication sharedApplication] dockTile];
     [tile setBadgeLabel: nil];
+#ifdef MOZILLA_1_9_2_BRANCH
   }
   else // 10.4
     RestoreApplicationDockTileImage();
+#endif
 
   return NS_OK;
 }
@@ -633,12 +637,15 @@ nsMessengerOSXIntegration::BadgeDockIcon()
     return NS_OK;
   }
 
+#ifdef MOZILLA_1_9_2_BRANCH
   // On 10.5 or later, we can use the new API for this.
   if (mOnLeopardOrLater)
   {
+#endif
     id tile = [[NSApplication sharedApplication] dockTile];
     [tile setBadgeLabel:[NSString stringWithFormat:@"%S", total.get()]];
     return NS_OK;
+#ifdef MOZILLA_1_9_2_BRANCH
   }
 
   // On 10.4 we have to draw this manually, clearing any existing badge artifacts first.
@@ -758,6 +765,7 @@ nsMessengerOSXIntegration::BadgeDockIcon()
   ::CGContextFlush(context);
   ::EndCGContextForApplicationDockTile(context);
   return NS_OK;
+#endif
 }
 
 NS_IMETHODIMP
