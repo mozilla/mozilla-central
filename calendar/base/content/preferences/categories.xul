@@ -65,8 +65,9 @@
 
         <listbox id="categorieslist"
                  flex="1"
-                 onselect="gCategoriesPane.enableButtons()"
-                 ondblclick="if (event.target.localName == 'listitem') gCategoriesPane.editCategory()">
+                 seltype="multiple"
+                 onselect="gCategoriesPane.updateButtons()"
+                 ondblclick="gCategoriesPane.listOnDblClick(event)">
             <listhead>
                 <listheader label="&pref.categories.name.label;"/>
                 <listheader label="&pref.categories.color.label;"/>

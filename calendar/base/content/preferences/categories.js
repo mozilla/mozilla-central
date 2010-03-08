@@ -97,16 +97,20 @@ var gCategoriesPane = {
      * Updates the listbox containing the categories from the categories saved
      * in preferences.
      */
-    updateCategoryList: function gCP_updateCategoryList () {
+
+    updatePrefs: function gCP_updatePrefs() {
         cal.sortArrayByLocaleCollator(gCategoryList);
         document.getElementById("calendar.categories.names").value =
             categoriesArrayToString(gCategoryList);
+    },
 
-        var listbox = document.getElementById("categorieslist");
+    updateCategoryList: function gCP_updateCategoryList () {
+        this.updatePrefs();
+        let listbox = document.getElementById("categorieslist");
 
         listbox.clearSelection();
-        document.getElementById("editCButton").disabled = "true";
-        document.getElementById("deleteCButton").disabled = "true";
+        this.updateButtons();
+
 
         while (listbox.lastChild.id != "categoryColumns")
             listbox.removeChild(listbox.lastChild);
@@ -137,10 +141,9 @@ var gCategoriesPane = {
      * set up the category.
      */
     addCategory: function gCP_addCategory() {
-        var list = document.getElementById("categorieslist");
-        list.selectedIndex = -1;
-        document.getElementById("editCButton").disabled = "true";
-        document.getElementById("deleteCButton").disabled = "true";
+        let listbox = document.getElementById("categorieslist");
+        listbox.clearSelection();
+        this.updateButtons();
         window.openDialog("chrome://calendar/content/preferences/editCategory.xul",
                           "addCategory", "modal,centerscreen,chrome,resizable=no",
                           "", null, addTitle);
@@ -169,17 +172,36 @@ var gCategoriesPane = {
      * Removes the selected category.
      */
     deleteCategory: function gCP_deleteCategory() {
-        var list = document.getElementById("categorieslist");
-        if (list.selectedItem) {
-            var categoryNameFix = formatStringForCSSRule(gCategoryList[list.selectedIndex]);
-            this.backupData(categoryNameFix);
-            try {
-                categoryPrefBranch.clearUserPref(categoryNameFix);
-            } catch (ex) {
-            }
-            gCategoryList.splice(list.selectedIndex, 1);
-            this.updateCategoryList();
+        let list = document.getElementById("categorieslist");
+        if (list.selectedCount < 1) {
+            return;
         }
+
+        let categoryNameFix = formatStringForCSSRule(gCategoryList[list.selectedIndex]);
+        this.backupData(categoryNameFix);
+        try {
+            categoryPrefBranch.clearUserPref(categoryNameFix);
+        } catch (ex) {
+        }
+
+        // Remove category entry from listbox and gCategoryList.
+        let newSelection = list.selectedItem.nextSibling ||
+                           list.selectedItem.previousSibling;
+        let selectedItems = Array.slice(list.selectedItems).concat([]);
+        for (let i = list.selectedCount - 1; i >= 0; i--) {
+            let item = selectedItems[i];
+            if (item == newSelection) {
+                newSelection = newSelection.nextSibling ||
+                               newSelection.previousSibling;
+            }
+            gCategoryList.splice(list.getIndexOfItem(item), 1);
+            list.removeChild(item);
+        }
+        list.selectedItem = newSelection;
+        this.updateButtons();
+
+        // Update the prefs from gCategoryList
+        this.updatePrefs();
     },
 
     /**
@@ -251,9 +273,10 @@ var gCategoriesPane = {
     /**
      * Enable the edit and delete category buttons.
      */
-    enableButtons: function  gCP_enableButtons() {
-        document.getElementById("editCButton").disabled = null;
-        document.getElementById("deleteCButton").disabled = null;
+    updateButtons: function  gCP_updateButtons() {
+        let categoriesList = document.getElementById("categorieslist");
+        document.getElementById("deleteCButton").disabled = (categoriesList.selectedCount <= 0);
+        document.getElementById("editCButton").disabled = (categoriesList.selectedCount != 1)
     },
 
     /**
@@ -278,6 +301,18 @@ var gCategoriesPane = {
         }
         parent.backupPrefList[parent.backupPrefList.length] =
             { name : categoryNameFix, color : currentColor };
+    },
+
+    /**
+     * Event Handler function to be called on doubleclick of the categories
+     * list. If the edit function is enabled and the user doubleclicked on a
+     * list item, then edit the selected category.
+     */
+    listOnDblClick: function gCP_listOnDblClick(event) {
+        if (event.target.localName == "listitem" &&
+            !document.getElementById("editCButton").disabled) {
+            this.editCategory();
+        }
     },
 
     /**
