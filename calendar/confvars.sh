@@ -50,10 +50,7 @@ MOZ_NO_ACTIVEX_SUPPORT=1
 MOZ_ACTIVEX_SCRIPTING_SUPPORT=
 MOZ_INSTALLER=
 MOZ_MATHML=
-# MOZ_OJI is only required to be cleared for MOZILLA_1_9_2_BRANCH (OS X).
-MOZ_OJI=
 NECKO_COOKIES=
-MOZ_NO_XPCOM_OBSOLETE=1
 MOZ_EXTENSIONS_DEFAULT=
 MOZ_UNIVERSALCHARDET=
 
@@ -63,6 +60,9 @@ MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\.[0-
 
 if test "$MOZILLA_BRANCH_VERSION" = "1.9.2"; then
   MOZ_APP_VERSION_TXT=$topsrcdir/$MOZ_BUILD_APP/sunbird/config/version-192.txt
+  MOZ_NO_XPCOM_OBSOLETE=1
+  # MOZ_OJI is only required to be cleared for MOZILLA_1_9_2_BRANCH (OS X).
+  MOZ_OJI=
 else
   MOZ_APP_VERSION_TXT=$topsrcdir/$MOZ_BUILD_APP/sunbird/config/version.txt
 fi
