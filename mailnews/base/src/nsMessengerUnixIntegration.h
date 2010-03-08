@@ -67,14 +67,8 @@ public:
   NS_DECL_NSIFOLDERLISTENER
   NS_DECL_NSIOBSERVER
 
-#ifdef MOZ_THUNDERBIRD
-  nsresult ShowNewAlertNotification(PRBool aUserInitiated);
-#endif
-
 private:
-#ifndef MOZ_THUNDERBIRD
   nsresult ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText, const nsACString& aFolderURI);
-#endif
   nsresult GetFirstFolderWithNewMail(nsACString& aFolderURI);
   nsresult GetStringBundle(nsIStringBundle **aBundle);
   nsresult AlertFinished();
