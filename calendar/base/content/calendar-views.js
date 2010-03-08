@@ -842,7 +842,7 @@ cal.navigationBar = {
         }
         if (document.getElementById("modeBroadcaster").getAttribute("mode") == "calendar") {
             document.title = (docTitle ? docTitle + " - " : "") +
-                calGetString("brand", "brandShortName", null, "branding");
+                calGetString("brand", "brandFullName", null, "branding");
         }
         let viewTabs = document.getElementById("view-tabs");
         viewTabs.selectedIndex = getViewDeck().selectedIndex;

@@ -310,7 +310,6 @@ var gDataMigrator = {
                       .getService(Components.interfaces.nsIStringBundleService);
             var props = sbs.createBundle("chrome://calendar/locale/migration.properties");
             var brand = sbs.createBundle("chrome://branding/locale/brand.properties");
-            var appName = brand.GetStringFromName("brandShortName");
             // Tell the user we're going to disable and restart
             var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                 .getService(Components.interfaces.nsIPromptService);
