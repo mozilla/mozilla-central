@@ -2271,13 +2271,11 @@ NS_IMETHODIMP nsImapMailFolder::DeleteMessages(nsIArray *messages,
     if (allowUndo)
     {
       //need to take care of these two delete models
-      nsImapMoveCopyMsgTxn* undoMsgTxn = new nsImapMoveCopyMsgTxn;
+      nsRefPtr<nsImapMoveCopyMsgTxn> undoMsgTxn = new nsImapMoveCopyMsgTxn;
       if (!undoMsgTxn || NS_FAILED(undoMsgTxn->Init(this, &srcKeyArray, messageIds.get(), nsnull,
                                                       PR_TRUE, isMove, m_thread)))
-      {
-        delete undoMsgTxn;
         return NS_ERROR_OUT_OF_MEMORY;
-      }
+
       undoMsgTxn->SetTransactionType(nsIMessenger::eDeleteMsg);
       // we're adding this undo action before the delete is successful. This is evil,
       // but 4.5 did it as well.
@@ -2587,6 +2585,7 @@ NS_IMETHODIMP nsImapMailFolder::Shutdown(PRBool shutdownChildren)
   mPath = nsnull;
   NS_IF_RELEASE(m_moveCoalescer);
   m_msgParser = nsnull;
+  m_pendingOfflineMoves.Clear();
   return nsMsgDBFolder::Shutdown(shutdownChildren);
 }
 
@@ -6621,14 +6620,12 @@ nsImapMailFolder::CopyMessagesWithStream(nsIMsgFolder* srcFolder,
     nsTArray<nsMsgKey> srcKeyArray;
     rv = BuildIdsAndKeyArray(messages, messageIds, srcKeyArray);
 
-    nsImapMoveCopyMsgTxn* undoMsgTxn = new nsImapMoveCopyMsgTxn;
+    nsRefPtr<nsImapMoveCopyMsgTxn> undoMsgTxn = new nsImapMoveCopyMsgTxn;
 
     if (!undoMsgTxn || NS_FAILED(undoMsgTxn->Init(srcFolder, &srcKeyArray, messageIds.get(), this,
                                 PR_TRUE, isMove, m_thread)))
-    {
-      delete undoMsgTxn;
       return NS_ERROR_OUT_OF_MEMORY;
-    }
+
     if (isMove)
     {
       if (mFlags & nsMsgFolderFlags::Trash)
@@ -6922,7 +6919,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
 
             srcKeyArray.AppendElement(originalKey);
             sourceOp->GetOperation(&opType);
-            nsImapOfflineTxn *undoMsgTxn = new
+            nsRefPtr<nsImapOfflineTxn> undoMsgTxn = new
               nsImapOfflineTxn(srcFolder, &srcKeyArray, messageId.get(), this, 
                                isMove, opType, message, m_thread);
             if (undoMsgTxn)
@@ -6994,7 +6991,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
                 {
                   nsTArray<nsMsgKey> keyArray;
                   keyArray.AppendElement(fakeBase + sourceKeyIndex);
-                  nsImapOfflineTxn *undoMsgTxn = new
+                  nsRefPtr<nsImapOfflineTxn> undoMsgTxn = new
                     nsImapOfflineTxn(this, &keyArray, nsnull, this, isMove, nsIMsgOfflineImapOperation::kAddedHeader,
                       newMailHdr, m_thread);
                   if (undoMsgTxn && txnMgr)
@@ -7016,7 +7013,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
             if (!deleteToTrash)
               opType = nsIMsgOfflineImapOperation::kMsgMarkedDeleted;
             srcKeyArray.AppendElement(msgKey);
-            nsImapOfflineTxn *undoMsgTxn = new
+            nsRefPtr<nsImapOfflineTxn> undoMsgTxn = new
               nsImapOfflineTxn(srcFolder, &srcKeyArray, messageId.get(), this, isMove, opType, mailHdr,
                 m_thread);
             if (undoMsgTxn)
@@ -7303,14 +7300,12 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
                                         copySupport, msgWindow);
     if (NS_SUCCEEDED(rv) && m_copyState->m_allowUndo)
     {
-      nsImapMoveCopyMsgTxn* undoMsgTxn = new nsImapMoveCopyMsgTxn;
+      nsRefPtr<nsImapMoveCopyMsgTxn> undoMsgTxn = new nsImapMoveCopyMsgTxn;
       if (!undoMsgTxn || NS_FAILED(undoMsgTxn->Init(srcFolder, &srcKeyArray,
                                    messageIds.get(), this,
                                    PR_TRUE, isMove, m_thread)))
-      {
-        delete undoMsgTxn;
         return NS_ERROR_OUT_OF_MEMORY;
-      }
+
       if (isMove)
       {
         if (mFlags & nsMsgFolderFlags::Trash)
