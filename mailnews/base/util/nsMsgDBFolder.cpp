@@ -114,27 +114,6 @@ static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 static NS_DEFINE_CID(kParserCID, NS_PARSER_CID);
 
-nsIAtom* nsMsgDBFolder::mFolderLoadedAtom=nsnull;
-nsIAtom* nsMsgDBFolder::mDeleteOrMoveMsgCompletedAtom=nsnull;
-nsIAtom* nsMsgDBFolder::mDeleteOrMoveMsgFailedAtom=nsnull;
-nsIAtom* nsMsgDBFolder::mJunkStatusChangedAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kTotalMessagesAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kFolderSizeAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kBiffStateAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kNewMailReceivedAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kNewMessagesAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kInVFEditSearchScopeAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kNumNewBiffMessagesAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kTotalUnreadMessagesAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kFlaggedAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kStatusAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kNameAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kSynchronizeAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kOpenAtom=nsnull;
-nsIAtom* nsMsgDBFolder::kIsDeferred=nsnull;
-nsIAtom* nsMsgDBFolder::kKeywords=nsnull;
-nsIAtom* nsMsgDBFolder::mFiltersAppliedAtom=nsnull;
-
 nsICollation * nsMsgDBFolder::gCollationKeyGenerator = nsnull;
 
 PRUnichar *nsMsgDBFolder::kLocalizedInboxName;
@@ -156,28 +135,31 @@ NS_IMPL_ISUPPORTS_INHERITED6(nsMsgDBFolder, nsRDFResource,
                              nsIJunkMailClassificationListener,
                              nsIMsgTraitClassificationListener)
 
+#define MSGDBFOLDER_ATOM(name_, value_) nsIAtom* nsMsgDBFolder::name_ = nsnull;
+#include "nsMsgDBFolderAtomList.h"
+#undef MSGDBFOLDER_ATOM
+
+#ifdef MOZILLA_1_9_2_BRANCH
+
 const nsStaticAtom nsMsgDBFolder::folder_atoms[] = {
-  { "FolderLoaded", &nsMsgDBFolder::mFolderLoadedAtom },
-  { "DeleteOrMoveMsgCompleted", &nsMsgDBFolder::mDeleteOrMoveMsgCompletedAtom },
-  { "DeleteOrMoveMsgFailed", &nsMsgDBFolder::mDeleteOrMoveMsgFailedAtom },
-  { "JunkStatusChanged", &nsMsgDBFolder::mJunkStatusChangedAtom },
-  { "BiffState", &nsMsgDBFolder::kBiffStateAtom },
-  { "NewMailReceived", &nsMsgDBFolder::kNewMailReceivedAtom },
-  { "NewMessages", &nsMsgDBFolder::kNewMessagesAtom },
-  { "inVFEditSearchScope", &nsMsgDBFolder::kInVFEditSearchScopeAtom },
-  { "NumNewBiffMessages", &nsMsgDBFolder::kNumNewBiffMessagesAtom },
-  { "Name", &nsMsgDBFolder::kNameAtom },
-  { "TotalUnreadMessages", &nsMsgDBFolder::kTotalUnreadMessagesAtom },
-  { "TotalMessages", &nsMsgDBFolder::kTotalMessagesAtom },
-  { "FolderSize", &nsMsgDBFolder::kFolderSizeAtom },
-  { "Status", &nsMsgDBFolder::kStatusAtom },
-  { "Flagged", &nsMsgDBFolder::kFlaggedAtom },
-  { "Synchronize", &nsMsgDBFolder::kSynchronizeAtom },
-  { "open", &nsMsgDBFolder::kOpenAtom },
-  { "isDeferred", &nsMsgDBFolder::kIsDeferred },
-  { "Keywords", &nsMsgDBFolder::kKeywords },
-  { "FiltersApplied", &nsMsgDBFolder::mFiltersAppliedAtom }
+#define MSGDBFOLDER_ATOM(name_, value_) { value_, &nsMsgDBFolder::name_ },
+#include "nsMsgDBFolderAtomList.h"
+#undef MSGDBFOLDER_ATOM
 };
+
+#else // i.e. !MOZILLA_1_9_2_BRANCH
+
+#define MSGDBFOLDER_ATOM(name_, value_) NS_STATIC_ATOM_BUFFER(name_##_buffer, value_)
+#include "nsMsgDBFolderAtomList.h"
+#undef MSGDBFOLDER_ATOM
+
+const nsStaticAtom nsMsgDBFolder::folder_atoms[] = {
+#define MSGDBFOLDER_ATOM(name_, value_) NS_STATIC_ATOM(name_##_buffer, &nsMsgDBFolder::name_),
+#include "nsMsgDBFolderAtomList.h"
+#undef MSGDBFOLDER_ATOM
+};
+
+#endif // end MOZILLA_1_9_2_BRANCH
 
 nsMsgDBFolder::nsMsgDBFolder(void)
 : mAddListener(PR_TRUE),

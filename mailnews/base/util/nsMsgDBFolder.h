@@ -202,11 +202,6 @@ protected:
 
   nsCOMPtr <nsIMsgRetentionSettings> m_retentionSettings;
   nsCOMPtr <nsIMsgDownloadSettings> m_downloadSettings;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) mFolderLoadedAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) mDeleteOrMoveMsgCompletedAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) mDeleteOrMoveMsgFailedAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) mJunkStatusChangedAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) mFiltersAppliedAtom;
   static NS_MSG_BASE_STATIC_MEMBER_(nsrefcnt) mInstanceCount;
 
 protected:
@@ -276,21 +271,10 @@ protected:
 
   static NS_MSG_BASE_STATIC_MEMBER_(PRUnichar*) kLocalizedBrandShortName;
   
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kTotalUnreadMessagesAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kBiffStateAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kNewMailReceivedAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kNewMessagesAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kInVFEditSearchScopeAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kNumNewBiffMessagesAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kTotalMessagesAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kFolderSizeAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kStatusAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kFlaggedAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kNameAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kSynchronizeAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kOpenAtom;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kIsDeferred;
-  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kKeywords;
+#define MSGDBFOLDER_ATOM(name_, value) static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) name_;
+#include "nsMsgDBFolderAtomList.h"
+#undef MSGDBFOLDER_ATOM
+
   static NS_MSG_BASE_STATIC_MEMBER_(nsICollation*) gCollationKeyGenerator;
 
 #ifdef MSG_FASTER_URI_PARSING

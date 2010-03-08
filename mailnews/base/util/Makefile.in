@@ -114,6 +114,7 @@ EXPORTS		= \
 		nsMsgLineBuffer.h \
 		nsMsgKeySet.h \
 		nsMsgDBFolder.h \
+		nsMsgDBFolderAtomList.h \
 		nsMsgIdentity.h \
 		nsMsgIncomingServer.h \
 		nsMsgUtils.h \
