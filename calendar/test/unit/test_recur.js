@@ -135,7 +135,7 @@ function run_test() {
                                      "on days 2 and 3\n" +
                          "RRULE:FREQ=DAILY;COUNT=3\n" +
                          "DTSTART:20020402T114500Z\n");
-    var occ1 = item.recurrenceInfo.getOccurrenceFor(createDate(2002,3,2,true,11,45,00));
+    var occ1 = item.recurrenceInfo.getOccurrenceFor(createDate(2002,3,2,true,11,45,0));
     occ1.startDate = createDate(2002,3,3,true,12,0,0);
     item.recurrenceInfo.modifyException(occ1, true);
     test_recur(item, ["20020403T114500Z", "20020403T120000Z", "20020404T114500Z"]);
@@ -145,7 +145,7 @@ function run_test() {
                      "RRULE:FREQ=DAILY;COUNT=3\n" +
                      "DTSTART:20020402T114500Z\n" +
                      "EXDATE:20020403T114500Z\n");
-    occ1 = item.recurrenceInfo.getOccurrenceFor(createDate(2002,3,2,true,11,45,00));
+    occ1 = item.recurrenceInfo.getOccurrenceFor(createDate(2002,3,2,true,11,45,0));
     occ1.startDate = createDate(2002,3,3,true,12,0,0);
     item.recurrenceInfo.modifyException(occ1, true);
     test_recur(item, ["20020403T120000Z", "20020404T114500Z"]);
@@ -153,10 +153,10 @@ function run_test() {
     item = makeEvent("DESCRIPTION:all occurrences have exceptions\n" +
                      "RRULE:FREQ=DAILY;COUNT=2\n" +
                      "DTSTART:20020402T114500Z\n");
-    occ1 = item.recurrenceInfo.getOccurrenceFor(createDate(2002,3,2,true,11,45,00));
+    occ1 = item.recurrenceInfo.getOccurrenceFor(createDate(2002,3,2,true,11,45,0));
     occ1.startDate = createDate(2002,3,2,true,12,0,0);
     item.recurrenceInfo.modifyException(occ1, true);
-    var occ2 = item.recurrenceInfo.getOccurrenceFor(createDate(2002,3,3,true,11,45,00));
+    var occ2 = item.recurrenceInfo.getOccurrenceFor(createDate(2002,3,3,true,11,45,0));
     occ2.startDate = createDate(2002,3,3,true,12,0,0);
     item.recurrenceInfo.modifyException(occ2, true);
     test_recur(item, ["20020402T120000Z", "20020403T120000Z"]);
@@ -165,7 +165,7 @@ function run_test() {
                      "RRULE:FREQ=DAILY;COUNT=2\n" +
                      "DTSTART:20020402T114500Z\n" +
                      "RDATE:20020401T114500Z\n");
-    occ1 = item.recurrenceInfo.getOccurrenceFor(createDate(2002,3,2,true,11,45,00));
+    occ1 = item.recurrenceInfo.getOccurrenceFor(createDate(2002,3,2,true,11,45,0));
     occ1.startDate = createDate(2002,2,30,true,11,45,0);
     item.recurrenceInfo.modifyException(occ1, true);
     test_recur(item, ["20020330T114500Z", "20020401T114500Z", "20020403T114500Z"]);

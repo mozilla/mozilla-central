@@ -77,12 +77,12 @@ function run_test() {
     }
 
     // More enumerator
-    let enum = event.getParameterEnumerator("X-FOO");
-    do_check_true(enum.hasMoreElements());
-    let xbar = enum.getNext().QueryInterface(Components.interfaces.nsIProperty);
+    let enume = event.getParameterEnumerator("X-FOO");
+    do_check_true(enume.hasMoreElements());
+    let xbar = enume.getNext().QueryInterface(Components.interfaces.nsIProperty);
     do_check_eq(xbar.name, "X-BAR");
     do_check_eq(xbar.value, "FNORD");
-    do_check_false(enum.hasMoreElements());
+    do_check_false(enume.hasMoreElements());
 
     // Deletion of parameters when deleting properties
     event.deleteProperty("X-FOO");

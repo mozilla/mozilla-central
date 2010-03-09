@@ -290,7 +290,7 @@ function run_test() {
     */
     function testGetItems(aItem, aResult) {
         // construct range
-        var rangeStart = createDate(2002, 03, 02); // 03 = April
+        var rangeStart = createDate(2002, 3, 2); // 3 = April
         var rangeEnd = rangeStart.clone();
         rangeEnd.day += 1;
 

@@ -1869,7 +1869,7 @@ calStorageCalendar.prototype = {
             var ritems = rec.getRecurrenceItems ({});
             for (i in ritems) {
                 var ritem = ritems[i];
-                ap = this.mInsertRecurrence.params;
+                var ap = this.mInsertRecurrence.params;
                 ap.item_id = item.id;
                 ap.recur_index = i;
                 ap.is_negative = ritem.isNegative;
@@ -1910,7 +1910,7 @@ calStorageCalendar.prototype = {
                                   "weekno",
                                   "month",
                                   "setpos"];
-                    for (j = 0; j < rtypes.length; j++) {
+                    for (var j = 0; j < rtypes.length; j++) {
                         var comp = "BY" + rtypes[j].toUpperCase();
                         var comps = ritem.getComponent(comp, {});
                         if (comps && comps.length > 0) {

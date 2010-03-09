@@ -63,7 +63,7 @@ function run_test() {
     // setting .isDate to be true on a date should not change its nativeTime
     // bug 315954,
     cd.hour = 0;
-    cd_allday = cd.clone();
+    let cd_allday = cd.clone();
     cd_allday.isDate = true;
     do_check_eq(cd.nativeTime, cd_allday.nativeTime);
 
