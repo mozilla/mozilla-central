@@ -144,9 +144,7 @@ cal.safeNewXML = function calSafeNewXML(aStr) {
  */
 cal.InterfaceRequestor_getInterface = function calInterfaceRequestor_getInterface(aIID) {
     // Support Auth Prompt Interfaces
-    if (aIID.equals(Components.interfaces.nsIAuthPrompt) ||
-        (Components.interfaces.nsIAuthPrompt2 &&
-         aIID.equals(Components.interfaces.nsIAuthPrompt2))) {
+    if (aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
         return new cal.auth.Prompt();
     } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider) ||
                aIID.equals(Components.interfaces.nsIPrompt)) {
