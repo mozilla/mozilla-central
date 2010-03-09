@@ -216,26 +216,5 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 
 #endif // MOZ_STATIC_MAIL_BUILD
 
-/*
- * Copied this from nsCRT.h
- */
-#ifndef FILE_PATH_SEPARATOR
-#if defined(XP_MACOSX)
-  #define FILE_PATH_SEPARATOR       "/"
-  #define FILE_ILLEGAL_CHARACTERS   ":"
-#elif defined(XP_WIN) || defined(XP_OS2)
-  #define FILE_PATH_SEPARATOR       "\\"
-  #define FILE_ILLEGAL_CHARACTERS   "/:*?\"<>|"
-#elif defined(XP_UNIX) || defined(XP_BEOS)
-  #define FILE_PATH_SEPARATOR       "/"
-  #define FILE_ILLEGAL_CHARACTERS   ""
-#else
-  #error need_to_define_your_file_path_separator_and_illegal_characters
-#endif
-#endif
+#endif // msgCore_h__
 
-#ifndef CRLF
-  #define CRLF "\015\012"
-#endif
-
-#endif
