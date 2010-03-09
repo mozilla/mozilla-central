@@ -782,11 +782,7 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/components/mapihook.xpt
 #endif
 @BINPATH@/components/msgbase.xpt
-#ifdef XP_WIN32
-@BINPATH@/components/msgcompo.xpt
-#else
 @BINPATH@/components/msgcompose.xpt
-#endif
 @BINPATH@/components/msgdb.xpt
 @BINPATH@/components/msgimap.xpt
 @BINPATH@/components/msglocal.xpt

@@ -128,11 +128,7 @@
 @BINPATH@/components/steel.xpt
 @BINPATH@/components/msgAsyncPrompter.js
 @BINPATH@/components/msgbase.xpt
-#ifdef XP_WIN32
-@BINPATH@/components/msgcompo.xpt
-#else
 @BINPATH@/components/msgcompose.xpt
-#endif
 @BINPATH@/components/msgdb.xpt
 @BINPATH@/components/msgimap.xpt
 @BINPATH@/components/msglocal.xpt
