@@ -2876,7 +2876,7 @@ function QuickSearchFocus()
 {
   var quickSearchTextBox = document.getElementById('searchInput');
   if (quickSearchTextBox)
-    quickSearchTextBox.focus();
+    quickSearchTextBox.select();
 }
 
 /**
