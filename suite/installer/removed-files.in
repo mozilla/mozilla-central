@@ -110,6 +110,7 @@ greprefs/security-prefs.js
 greprefs/xpinstall.js
 greprefs/
 #ifdef XP_WIN
+js3250.dll
 jsj3250.dll
 #else
 @DLL_PREFIX@jsj@DLL_SUFFIX@
@@ -169,6 +170,40 @@ extensions/p@m/components/palmsync.dll
 extensions/p@m/components/palmsync.xpt
 extensions/p@m/defaults/preferences/palmsync.js
 #endif
+
+#ifndef MOZ_STATIC_MAIL_BUILD
+; '! MOZ_STATIC_BUILD' case.
+components/@DLL_PREFIX@mail@DLL_SUFFIX@
+else
+@DLL_PREFIX@addrbook@DLL_SUFFIX@
+@DLL_PREFIX@bayesflt@DLL_SUFFIX@
+@DLL_PREFIX@fts3tok@DLL_SUFFIX@
+@DLL_PREFIX@mailview@DLL_SUFFIX@
+@DLL_PREFIX@mime@DLL_SUFFIX@
+#ifdef WIN_OR_OS2
+; To become |#ifdef XP_OS2| in bug 534408.
+; At that time, copy these entries into the following |#ifdef XP_WIN| block. (Or just don't.!.)
+; To become |mimeemit| in bug 534408.
+emitter.dll
+msgbase.dll
+msgbsutl.dll
+msgcompo.dll
+msglocal.dll
+#else
+; To become |msgbase| in bug 534408. Then merge it.
+@DLL_PREFIX@mailnews@DLL_SUFFIX@
+@DLL_PREFIX@mimeemitter@DLL_SUFFIX@
+@DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
+@DLL_PREFIX@msgcompose@DLL_SUFFIX@
+; To become |msglocal| in bug 534408. Then merge it.
+@DLL_PREFIX@localmail@DLL_SUFFIX@
+#endif
+@DLL_PREFIX@msgdb@DLL_SUFFIX@
+@DLL_PREFIX@msgimap@DLL_SUFFIX@
+@DLL_PREFIX@msgmdn@DLL_SUFFIX@
+@DLL_PREFIX@msgnews@DLL_SUFFIX@
+@DLL_PREFIX@vcard@DLL_SUFFIX@
+
 #ifdef MOZ_STATIC_BUILD
 components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
 components/@DLL_PREFIX@appcomps@DLL_SUFFIX@
@@ -193,6 +228,7 @@ components/@DLL_PREFIX@import@DLL_SUFFIX@
 components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
 components/@DLL_PREFIX@jar50@DLL_SUFFIX@
 components/@DLL_PREFIX@jsctypes@DLL_SUFFIX@
+; 'MOZ_STATIC_BUILD' case.
 components/@DLL_PREFIX@mail@DLL_SUFFIX@
 components/@DLL_PREFIX@mork@DLL_SUFFIX@
 components/@DLL_PREFIX@mozfind@DLL_SUFFIX@
@@ -248,15 +284,10 @@ components/xppref32.dll
 #endif
 ; MOZ_STATIC_BUILD
 #endif
-#ifdef MOZ_STATIC_MAIL_BUILD
-#ifdef WIN_OR_OS2
-; To become |#ifdef XP_OS2| in bug 534408.
-; At that time, copy these entries into the following |#ifdef XP_WIN| block. (Or just don't.!.)
-msgbsutl.dll
-#else
-@DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
+; MOZ_STATIC_MAIL_BUILD
 #endif
-#endif
+
+; Library files which used to have a short name.
 #ifdef XP_WIN
 components/appshell.dll
 components/cmdlines.dll
@@ -267,8 +298,8 @@ components/strgcmps.dll
 components/tkautoc.dll
 components/tkitcmps.dll
 components/xpautoc.dll
-js3250.dll
 #endif
+
 #ifndef MOZ_UPDATER
 components/nsUpdateService.js
 components/nsUpdateServiceStub.js
