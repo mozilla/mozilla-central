@@ -4040,7 +4040,8 @@ nsBookmarksService::ImportSystemBookmarks(nsIRDFResource* aParentFolder)
         return rv;
 
     nsCOMPtr<nsIFile> favoritesDirectory;
-    fileLocator->Get("Favs", NS_GET_IID(nsIFile), getter_AddRefs(favoritesDirectory));
+    fileLocator->Get(NS_WIN_FAVORITES_DIR, NS_GET_IID(nsIFile),
+                     getter_AddRefs(favoritesDirectory));
 
     // If |favoritesDirectory| is null, it means that we're on a Windows 
     // platform that does not have a Favorites folder, e.g. Windows 95 
