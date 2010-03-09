@@ -38,6 +38,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifdef MOZ_LOGGING
+#define FORCE_PR_LOG /* Allow logging in the release build */
+#endif
+
 #include "nscore.h"
 #include "nsMessengerOSXIntegration.h"
 #include "nsIMsgMailSession.h"
@@ -63,6 +67,7 @@
 #include "nsIPrefBranch.h"
 #include "nsIMessengerWindowService.h"
 #include "prprf.h"
+#include "prlog.h"
 #include "nsIAlertsService.h"
 #include "nsIStringBundle.h"
 #include "nsToolkitCompsCID.h"
@@ -86,6 +91,8 @@
 #define kBiffShowAlertPref "mail.biff.show_alert"
 #define kCountInboxesPref "mail.notification.count.inbox_only"
 #define kMaxDisplayCount 10
+
+static PRLogModuleInfo *MsgDockCountsLogModule = nsnull;
 
 // HACK: this code is copied from nsToolkit.mm in order to deal with
 // version checks below.  This should be tidied once we are not on
@@ -536,6 +543,12 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
 
       // Increment count by difference, treating -1 (i.e., "don't know") as 0
       mUnreadTotal += aNewValue - (aOldValue > -1 ? aOldValue : 0);
+      nsCString folderURI;
+      aFolder->GetURI(folderURI);
+      PR_LOG(MsgDockCountsLogModule, PR_LOG_ALWAYS,
+             ("changing unread to %d aNewValue = %d oldValue = %d for folder %s", 
+               mUnreadTotal, aNewValue, aOldValue, folderURI.get()));
+      
       NS_ASSERTION(mUnreadTotal > -1, "Updated unread message count is less than zero.");
 
       BadgeDockIcon();
@@ -938,7 +951,9 @@ nsMessengerOSXIntegration::InitUnreadCount()
   // If we were forced to do a count early with an update, don't do it again on mail startup.
   if (mDoneInitialCount)
     return;
-
+  mDoneInitialCount = PR_TRUE;
+  if (!MsgDockCountsLogModule)
+    MsgDockCountsLogModule = PR_NewLogModule("DockCounts");
   // We either count just inboxes, or all folders
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
@@ -980,15 +995,29 @@ nsMessengerOSXIntegration::InitUnreadCount()
       nsCOMPtr<nsIMsgFolder> inboxFolder;
       rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox, getter_AddRefs(inboxFolder));
       if (inboxFolder)
+      {
         GetTotalUnread(inboxFolder, PR_FALSE, &numUnread);
+        nsCString folderURI;
+        inboxFolder->GetURI(folderURI);
+        PR_LOG(MsgDockCountsLogModule, PR_LOG_ALWAYS,
+               ("adding %d unread from %s", numUnread, folderURI.get()));
+      }
     }
     else
+    {
       GetTotalUnread(rootFolder, PR_TRUE, &numUnread);
+      nsCString folderURI;
+      rootFolder->GetURI(folderURI);
+      PR_LOG(MsgDockCountsLogModule, PR_LOG_ALWAYS,
+             ("adding %d unread from %s", numUnread, folderURI.get()));
+      
+    }
 
     mUnreadTotal += numUnread;
-    NS_ASSERTION(mUnreadTotal > -1, "Initial unread message count is less than zero.");
+     NS_ASSERTION(mUnreadTotal > -1, "Initial unread message count is less than zero.");
   }
-  mDoneInitialCount = PR_TRUE;
+  PR_LOG(MsgDockCountsLogModule, PR_LOG_ALWAYS,
+         ("initial unread count = %d", mUnreadTotal));
 }
 
 nsresult
