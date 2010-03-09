@@ -130,11 +130,12 @@ else
 FINDPATH=bin
 endif
 
-package-compare::
+package-compare:: $(MOZ_PKG_MANIFEST)
 ifdef MOZ_PKG_MANIFEST_P
 	cd $(DIST); find $(PKGCOMP_FIND_OPTS) $(FINDPATH) -type f | sort > bin-list.txt
 	grep "^$(BINPATH)" $(MOZ_PKG_MANIFEST) | sed -e 's/^\///' | sort > $(DIST)/pack-list.txt
 	-diff -u $(DIST)/pack-list.txt $(DIST)/bin-list.txt
+	rm -f $(DIST)/pack-list.txt $(DIST)/bin-list.txt
 endif
 
 installer: removed-files
