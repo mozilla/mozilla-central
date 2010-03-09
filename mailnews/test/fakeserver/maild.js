@@ -460,8 +460,10 @@ nsMailReader.prototype = {
       this._output.write(response, response.length);
       this._output.flush();
 
-      if (this._signalStop)
+      if (this._signalStop) {
         this._realCloseSocket();
+        this._signalStop = false;
+      }
     }
 
     if (this._isRunning) {

@@ -1345,7 +1345,10 @@ nsImapProtocol::ImapThreadMainLoop()
     }
     // This will happen if the UI thread signals us to die
     if (m_threadShouldDie)
+    {
       TellThreadToDie();
+      break;
+    }
 
     if (NS_FAILED(rv) && PR_PENDING_INTERRUPT_ERROR == PR_GetError())
     {
@@ -1388,6 +1391,10 @@ nsImapProtocol::ImapThreadMainLoop()
     else
       printf("ready to run but no url and not idle\n");
 #endif
+    // This can happen if the UI thread closes cached connections in the
+    // OnStopRunningUrl notification.
+    if (m_threadShouldDie)
+      TellThreadToDie();
   }
   m_imapThreadIsRunning = PR_FALSE;
 

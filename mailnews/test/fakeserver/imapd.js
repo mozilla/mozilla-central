@@ -893,6 +893,7 @@ IMAP_RFC3501_handler.prototype = {
     this.closing = true;
     if (this._selectedMailbox)
       this._daemon.synchronize(this._selectedMailbox, !this._readOnly);
+    this._state = IMAP_STATE_NOT_AUTHED;
     return "* BYE IMAP4rev1 Logging out\0OK LOGOUT completed";
   },
   NOOP : function (args) {
@@ -911,7 +912,6 @@ IMAP_RFC3501_handler.prototype = {
     var func = this._kAuthSchemeStartFunction[scheme];
     if (!func || typeof(func) != "function")
       return "BAD I just pretended to implement AUTH " + scheme + ", but I don't";
-    dump("Starting AUTH " + scheme + "\n");
     return func.call(this, args[1]);
   },
   LOGIN : function (args) {
@@ -1268,8 +1268,10 @@ IMAP_RFC3501_handler.prototype = {
   },
 
   postCommand : function (reader) {
-    if (this.closing)
+    if (this.closing) {
+      this.closing = false;
       reader.closeSocket();
+    }
     if (this.sendingLiteral)
       reader.preventLFMunge();
     reader.setMultiline(this._multiline);
