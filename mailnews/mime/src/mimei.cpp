@@ -298,7 +298,7 @@ mime_new (MimeObjectClass *clazz, MimeHeaders *hdrs,
   object->dontShowAsAttachment = PR_FALSE;
 
   if (override_content_type && *override_content_type)
-  object->content_type = strdup(override_content_type);
+    object->content_type = strdup(override_content_type);
 
   status = clazz->initialize(object);
   if (status < 0)
@@ -859,10 +859,11 @@ mime_create (const char *content_type, MimeHeaders *hdrs,
       override_content_type = opts->file_type_fn (name, opts->stream_closure);
       PR_FREEIF(name);
 
-      // Of, if we got here and it is not the unknown content type from the
-      // file name, lets do some better checking not to inline something bad
-      //
-      if (override_content_type && (PL_strcasecmp(override_content_type, UNKNOWN_CONTENT_TYPE)))
+      // If we get here and it is not the unknown content type from the
+      // file name, let's do some better checking not to inline something bad
+      if (override_content_type &&
+          *override_content_type &&
+          (PL_strcasecmp(override_content_type, UNKNOWN_CONTENT_TYPE)))
         content_type = override_content_type;
     }
   }
