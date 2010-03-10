@@ -78,7 +78,7 @@ function run_test() {
   card = AB.getCardFromProperty("JobTitle", "jobtitle1", false);
   check_correct_card(card);
 
-  cards = AB.getCardsFromProperty("LastName", "DOE", true);
+  var cards = AB.getCardsFromProperty("LastName", "DOE", true);
   do_check_false(cards.hasMoreElements());
 
   cards = AB.getCardsFromProperty("LastName", "Doe", true);
