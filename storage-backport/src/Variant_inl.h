@@ -251,12 +251,15 @@ Variant_base::GetAsWStringWithSize(PRUint32 *,
   return NS_ERROR_CANNOT_CONVERT_DATA;
 }
 
+// Mozilla 1.9.2 does not have this method.
+#ifndef MOZILLA_1_9_2_BRANCH
 inline
 NS_IMETHODIMP
 Variant_base::GetAsJSVal(jsval *)
 {
   return NS_ERROR_CANNOT_CONVERT_DATA;
 }
+#endif
 
 } // namespace storage
 } // namespace mozilla

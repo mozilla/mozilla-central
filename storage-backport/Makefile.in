@@ -37,16 +37,17 @@
 # ***** END LICENSE BLOCK *****
 
 DEPTH		= ..
+RELDEPTH        = ../mozilla
 topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
-include $(DEPTH)/config/autoconf.mk
+include $(RELDEPTH)/config/autoconf.mk
 
 MODULE		= storage
 
 ifndef MOZ_NATIVE_SQLITE
-DIRS		= ../db/sqlite3/src
+DIRS		= ../mozilla/db/sqlite3/src
 endif
 
 DIRS		+= public \

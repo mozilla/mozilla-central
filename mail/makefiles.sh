@@ -64,6 +64,15 @@ mail/themes/gnomestripe/Makefile
 mail/test/mozmill/Makefile
 "
 
+# storage-backport stuff
+add_makefiles "
+storage-backport/Makefile
+storage-backport/public/Makefile
+storage-backport/src/Makefile
+storage-backport/build/Makefile
+storage-backport/test/Makefile
+"
+
 if test -n "$MOZ_BRANDING_DIRECTORY"; then
   add_makefiles "
     $MOZ_BRANDING_DIRECTORY/Makefile

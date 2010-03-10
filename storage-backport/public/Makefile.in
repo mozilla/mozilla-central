@@ -78,4 +78,9 @@ EXPORTS = \
 
 EXPORTS_mozilla = storage.h
 
+
+# do not install into our module dir; comm-central snafu
+include $(topsrcdir)/config/config.mk
+PUBLIC=$(DIST)/include
+
 include $(topsrcdir)/config/rules.mk
