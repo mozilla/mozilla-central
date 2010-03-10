@@ -349,6 +349,12 @@ var GlodaIndexer = {
     } catch (ex) {
       this._log.error("problem creating stopwatch!: " + ex);
     }
+
+    // register for shutdown notifications
+    let observerService = Cc["@mozilla.org/observer-service;1"]
+                            .getService(Ci.nsIObserverService);
+    observerService.addObserver(this, "quit-application", false);
+
     // figure out if event-driven indexing should be enabled...
     let prefService = Cc["@mozilla.org/preferences-service;1"].
                         getService(Ci.nsIPrefService);
@@ -402,10 +408,8 @@ var GlodaIndexer = {
 
     this._indexerIsShutdown = true;
 
-    if (!this.enabled)
-      return;
-
-    this._log.info("Shutting Down");
+    if (this.enabled)
+      this._log.info("Shutting Down");
 
     // don't let anything try and convince us to start indexing again
     this.suppressIndexing = true;
@@ -413,8 +417,13 @@ var GlodaIndexer = {
     // If there is an active job and it has a cleanup handler, run it.
     if (this._curIndexingJob) {
       let workerDef = this._curIndexingJob._workerDef;
-      if (workerDef.cleanup)
-        workerDef.cleanup.call(workerDef.indexer, this._curIndexingJob);
+      try {
+        if (workerDef.cleanup)
+          workerDef.cleanup.call(workerDef.indexer, this._curIndexingJob);
+      }
+      catch (ex) {
+        this._log.error("problem during worker cleanup during shutdown.");
+      }
     }
     // Definitely clean out the async call stack and any associated data
     this._callbackHandle.cleanup();
@@ -500,11 +509,11 @@ var GlodaIndexer = {
   get enabled() { return this._enabled; },
   set enabled(aEnable) {
     if (!this._enabled && aEnable) {
-      // register for shutdown, offline notifications
+      // register for offline notifications
       let observerService = Cc["@mozilla.org/observer-service;1"].
                               getService(Ci.nsIObserverService);
-      observerService.addObserver(this, "network:offline-status-changed", false);
-      observerService.addObserver(this, "quit-application", false);
+      observerService.addObserver(this, "network:offline-status-changed",
+                                  false);
 
       // register for idle notification
       this._idleService.addIdleObserver(this, this._indexIdleThresholdSecs);
@@ -539,11 +548,10 @@ var GlodaIndexer = {
         }
       }
 
-      // remove observer; no more events to observe!
+      // remove offline observer
       let observerService = Cc["@mozilla.org/observer-service;1"].
                               getService(Ci.nsIObserverService);
       observerService.removeObserver(this, "network:offline-status-changed");
-      observerService.removeObserver(this, "quit-application");
 
       // remove idle
       this._idleService.removeIdleObserver(this, this._indexIdleThresholdSecs);
