@@ -581,6 +581,11 @@ daypicker-monthday {
 .status-icon {
     margin: 0 3px;
     list-style-image: url("chrome://calendar/skin/calendar-event-dialog-attendees.png");
+    -moz-image-region: rect(0px 48px 14px 36px);
+}
+
+.status-icon[disabled="true"] {
+    -moz-image-region: rect(14px 48px 28px 36px);
 }
 
 .status-icon[status="ACCEPTED"] {
@@ -614,6 +619,11 @@ daypicker-monthday {
 .role-icon {
     margin: 0 3px;
     list-style-image: url(chrome://calendar/skin/calendar-event-dialog-attendees.png);
+    -moz-image-region: rect(0px 159px 16px 138px);
+}
+
+.role-icon[disabled="true"] {
+    -moz-image-region: rect(0px 159px 16px 138px);
 }
 
 .role-icon[role="REQ-PARTICIPANT"] {

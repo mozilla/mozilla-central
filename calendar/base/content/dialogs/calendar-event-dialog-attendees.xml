@@ -364,13 +364,12 @@
 
           if (aAttendee && aAttendee.isOrganizer) {
               icon.setAttribute("class", "status-icon");
-              icon.setAttribute("status", aAttendee.participationStatus);
+              setElementValue(icon, aAttendee.participationStatus || false, "status");
               return true;
           }
 
           icon.setAttribute("class", "role-icon");
-          icon.setAttribute("role", aAttendee.role);
-
+          setElementValue(icon, aAttendee.role || false, "role");
           return true;
         ]]></body>
       </method>
