@@ -58,8 +58,6 @@ var gIgnoreFocus = false;
 var gIgnoreClick = false;
 var gURIFixup = null;
 
-var pref = null;
-
 //cached elements
 var gBrowser = null;
 
@@ -69,11 +67,11 @@ const gButtonPrefListener =
   domain: "browser.toolbars.showbutton",
   init: function()
   {
-    var array = pref.getChildList(this.domain, {});
+    var array = Services.prefs.getChildList(this.domain, {});
     array.forEach(
       function(item) {
         if (/\.(bookmarks|home|print)$/.test(item))
-          pref.clearUserPref(item);
+          Services.prefs.clearUserPref(item);
         else
           this.updateButton(item);
       }, this
@@ -93,7 +91,7 @@ const gButtonPrefListener =
     var buttonId = buttonName + "-button";
     var button = document.getElementById(buttonId);
     if (button)
-      button.hidden = !pref.getBoolPref(prefName);
+      button.hidden = !Services.prefs.getBoolPref(prefName);
   }
 };
 
@@ -107,9 +105,9 @@ const gTabStripPrefListener =
       return;
 
     if (gBrowser.tabContainer.childNodes.length == 1 && window.toolbar.visible) {
-      var stripVisibility = !pref.getBoolPref(prefName);
+      var stripVisibility = !Services.prefs.getBoolPref(prefName);
       gBrowser.setStripVisibilityTo(stripVisibility);
-      pref.setBoolPref("browser.tabs.forceHide", false);
+      Services.prefs.setBoolPref("browser.tabs.forceHide", false);
     }
   }
 };
@@ -136,7 +134,7 @@ const gStatusBarPopupIconPrefListener =
       return;
 
     var popupIcon = document.getElementById("popupIcon");
-    if (!pref.getBoolPref(prefName))
+    if (!Services.prefs.getBoolPref(prefName))
       popupIcon.hidden = true;
 
     else if (gBrowser.getNotificationBox().popupCount)
@@ -153,9 +151,7 @@ const gPopupPermListener = {
       // the URI in the notification
       var popupOpenerURI = maybeInitPopupContext();
       if (popupOpenerURI) {
-        const IOS = Components.classes["@mozilla.org/network/io-service;1"]
-                    .getService(Components.interfaces.nsIIOService);
-        closeURI = IOS.newURI(data, null, null);
+        closeURI = Services.io.newURI(data, null, null);
         if (closeURI.host == popupOpenerURI.host)
           window.close();
       }
@@ -171,8 +167,7 @@ const gPopupPermListener = {
 function addPrefListener(observer)
 {
   try {
-    var pbi = pref.QueryInterface(Components.interfaces.nsIPrefBranch2);
-    pbi.addObserver(observer.domain, observer, false);
+    Services.prefs.addObserver(observer.domain, observer, false);
   } catch(ex) {
     dump("Failed to observe prefs: " + ex + "\n");
   }
@@ -181,8 +176,7 @@ function addPrefListener(observer)
 function removePrefListener(observer)
 {
   try {
-    var pbi = pref.QueryInterface(Components.interfaces.nsIPrefBranch2);
-    pbi.removeObserver(observer.domain, observer);
+    Services.prefs.removeObserver(observer.domain, observer);
   } catch(ex) {
     dump("Failed to remove pref observer: " + ex + "\n");
   }
@@ -190,16 +184,12 @@ function removePrefListener(observer)
 
 function addPopupPermListener(observer)
 {
-  const OS = Components.classes["@mozilla.org/observer-service;1"]
-             .getService(Components.interfaces.nsIObserverService);
-  OS.addObserver(observer, "popup-perm-close", false);
+  Services.obs.addObserver(observer, "popup-perm-close", false);
 }
 
 function removePopupPermListener(observer)
 {
-  const OS = Components.classes["@mozilla.org/observer-service;1"]
-             .getService(Components.interfaces.nsIObserverService);
-  OS.removeObserver(observer, "popup-perm-close");
+  Services.obs.removeObserver(observer, "popup-perm-close");
 }
 
 /**
@@ -228,7 +218,7 @@ function getContentAreaFrameCount()
   if (!content || !content.frames.length || !isContentFrame(document.commandDispatcher.focusedWindow))
     saveFrameItem.setAttribute("hidden", "true");
   else {
-    var autoDownload = pref.getBoolPref("browser.download.useDownloadDir");
+    var autoDownload = Services.prefs.getBoolPref("browser.download.useDownloadDir");
     goSetMenuValue("saveframe", autoDownload ? "valueSave" : "valueSaveAs");
     saveFrameItem.removeAttribute("hidden");
   }
@@ -291,7 +281,7 @@ function UpdateInternetSearchResults(event)
   {
     if (!gSearchService)
       gSearchService = Components.classes["@mozilla.org/rdf/datasource;1?name=internetsearch"]
-                                     .getService(Components.interfaces.nsIInternetSearchService);
+                                 .getService(Components.interfaces.nsIInternetSearchService);
 
     gSearchService.FindInternetSearchResults(url);
   }
@@ -308,12 +298,12 @@ function getHomePage()
 {
   var URIs = [];
   try {
-    URIs[0] = pref.getComplexValue("browser.startup.homepage",
-                                   Components.interfaces.nsIPrefLocalizedString).data;
-    var count = pref.getIntPref("browser.startup.homepage.count");
+    URIs[0] = Services.prefs.getComplexValue("browser.startup.homepage",
+                                             nsIPrefLocalizedString).data;
+    var count = Services.prefs.getIntPref("browser.startup.homepage.count");
     for (var i = 1; i < count; ++i) {
-      URIs[i] = pref.getComplexValue("browser.startup.homepage."+i,
-                                     Components.interfaces.nsIPrefLocalizedString).data;
+      URIs[i] = Services.prefs.getComplexValue("browser.startup.homepage." + i,
+                                               nsIPrefLocalizedString).data;
     }
   } catch(e) {
   }
@@ -370,9 +360,9 @@ nsBrowserAccess.prototype = {
 
     if (aWhere == nsIBrowserDOMWindow.OPEN_DEFAULTWINDOW)
       if (aContext == nsIBrowserDOMWindow.OPEN_EXTERNAL)
-        aWhere = pref.getIntPref("browser.link.open_external");
+        aWhere = Services.prefs.getIntPref("browser.link.open_external");
       else
-        aWhere = pref.getIntPref("browser.link.open_newwindow");
+        aWhere = Services.prefs.getIntPref("browser.link.open_newwindow");
     var referrer = aOpener ? aOpener.QueryInterface(nsIInterfaceRequestor)
                                     .getInterface(nsIWebNavigation)
                                     .currentURI : null;
@@ -383,7 +373,7 @@ nsBrowserAccess.prototype = {
                                  uri, null, referrer);
       case nsIBrowserDOMWindow.OPEN_NEWTAB:
         var newTab = gBrowser.addTab("about:blank", null, null,
-                                     !pref.getBoolPref("browser.tabs.loadDivertedInBackground"));
+            !Services.prefs.getBoolPref("browser.tabs.loadDivertedInBackground"));
         var browser = gBrowser.getBrowserForTab(newTab);
         if (aURI) {
           try {
@@ -461,11 +451,6 @@ function Startup()
 
   var webNavigation;
   try {
-    // Get the preferences service
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefService);
-    pref = prefService.getBranch(null);
-
     webNavigation = getWebNavigation();
     if (!webNavigation)
       throw "no XBL binding for browser";
@@ -564,7 +549,7 @@ function Startup()
       uriArray = window.arguments[0].toString().split('\n'); // stringify and split
     } else {
       try {
-        switch (pref.getIntPref("browser.windows.loadOnNewWindow"))
+        switch (Services.prefs.getIntPref("browser.windows.loadOnNewWindow"))
         {
           default:
             uriArray = ["about:blank"];
@@ -644,8 +629,8 @@ function Startup()
   addEventListener("AppCommand", HandleAppCommandEvent, true);
 
   // does clicking on the urlbar select its contents?
-  gClickSelectsAll = pref.getBoolPref("browser.urlbar.clickSelectsAll");
-  gClickAtEndSelects = pref.getBoolPref("browser.urlbar.clickAtEndSelects");
+  gClickSelectsAll = Services.prefs.getBoolPref("browser.urlbar.clickSelectsAll");
+  gClickAtEndSelects = Services.prefs.getBoolPref("browser.urlbar.clickAtEndSelects");
 
   // BiDi UI
   gShowBiDi = isBidiEnabled();
@@ -695,9 +680,7 @@ function InitSessionStoreCallback()
 function WindowFocusTimerCallback(element)
 {
   // This fuction is a redo of the fix for jag bug 91884
-  var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                     .getService(Components.interfaces.nsIWindowWatcher);
-  if (window == ww.activeWindow) {
+  if (window == Services.ww.activeWindow) {
     element.focus();
   } else {
     // set the element in command dispatcher so focus will restore properly
@@ -777,10 +760,10 @@ function Shutdown()
 
 function Translate()
 {
-  var service = pref.getComplexValue("browser.translation.service",
-                                     Components.interfaces.nsIPrefLocalizedString).data;
-  var serviceDomain = pref.getComplexValue("browser.translation.serviceDomain",
-                                           Components.interfaces.nsIPrefLocalizedString).data;
+  var service = Services.prefs.getComplexValue("browser.translation.service",
+                                               nsIPrefLocalizedString).data;
+  var serviceDomain = Services.prefs.getComplexValue("browser.translation.serviceDomain",
+                                                     nsIPrefLocalizedString).data;
   var targetURI = getWebNavigation().currentURI.spec;
 
   // if we're already viewing a translated page, then just reload
@@ -824,7 +807,7 @@ function BrowserBack()
 
 function BrowserHandleBackspace()
 {
-  switch (pref.getIntPref("browser.backspace_action")) {
+  switch (Services.prefs.getIntPref("browser.backspace_action")) {
     case 0:
       BrowserBack();
       break;
@@ -850,7 +833,7 @@ function BrowserUp()
 
 function BrowserHandleShiftBackspace()
 {
-  switch (pref.getIntPref("browser.backspace_action")) {
+  switch (Services.prefs.getIntPref("browser.backspace_action")) {
     case 0:
       BrowserForward();
       break;
@@ -979,15 +962,15 @@ function readRDFString(aDS,aRes,aProp)
 
 function ensureDefaultEnginePrefs(aRDF,aDS) 
 {
-  var mPrefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-  var defaultName = mPrefs.getComplexValue("browser.search.defaultenginename", Components.interfaces.nsIPrefLocalizedString).data;
+  var defaultName = Services.prefs.getComplexValue("browser.search.defaultenginename",
+                                                   nsIPrefLocalizedString).data;
   var kNC_Root = aRDF.GetResource("NC:SearchEngineRoot");
   var kNC_child = aRDF.GetResource("http://home.netscape.com/NC-rdf#child");
   var kNC_Name = aRDF.GetResource("http://home.netscape.com/NC-rdf#Name");
-          
+
   var arcs = aDS.GetTargets(kNC_Root, kNC_child, true);
   while (arcs.hasMoreElements()) {
-    var engineRes = arcs.getNext().QueryInterface(Components.interfaces.nsIRDFResource);       
+    var engineRes = arcs.getNext().QueryInterface(Components.interfaces.nsIRDFResource);
     var name = readRDFString(aDS, engineRes, kNC_Name);
     if (name == defaultName)
       mPrefs.setCharPref("browser.search.defaultengine", engineRes.Value);
@@ -996,26 +979,26 @@ function ensureDefaultEnginePrefs(aRDF,aDS)
 
 function ensureSearchPref()
 {
-  var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
+  var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
+                      .getService(Components.interfaces.nsIRDFService);
   var ds = rdf.GetDataSource("rdf:internetsearch");
-  var mPrefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
   var kNC_Name = rdf.GetResource("http://home.netscape.com/NC-rdf#Name");
   var defaultEngine;
   try {
-    defaultEngine = mPrefs.getCharPref("browser.search.defaultengine");
+    defaultEngine = Services.prefs.getCharPref("browser.search.defaultengine");
   } catch(ex) {
     ensureDefaultEnginePrefs(rdf, ds);
-    defaultEngine = mPrefs.getCharPref("browser.search.defaultengine");
+    defaultEngine = Services.prefs.getCharPref("browser.search.defaultengine");
   }
 }
 
 function getSearchUrl(attr)
 {
-  var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService); 
-  var ds = rdf.GetDataSource("rdf:internetsearch"); 
+  var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
+                      .getService(Components.interfaces.nsIRDFService);
+  var ds = rdf.GetDataSource("rdf:internetsearch");
   var kNC_Root = rdf.GetResource("NC:SearchEngineRoot");
-  var mPrefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-  var defaultEngine = mPrefs.getCharPref("browser.search.defaultengine");
+  var defaultEngine = Services.prefs.getCharPref("browser.search.defaultengine");
   var engineRes = rdf.GetResource(defaultEngine);
   var prop = "http://home.netscape.com/NC-rdf#" + attr;
   var kNC_attr = rdf.GetResource(prop);
@@ -1043,14 +1026,14 @@ function OpenSearch(tabName, searchStr, newWindowOrTabFlag, reverseBackgroundPre
   ensureSearchPref()
   //Check to see if search string contains "://" or "ftp." or white space.
   //If it does treat as url and match for pattern
-  
+
   var urlmatch= /(:\/\/|^ftp\.)[^ \S]+$/ 
   var forceAsURL = urlmatch.test(searchStr);
 
   try {
-    autoOpenSearchPanel = pref.getBoolPref("browser.search.opensidebarsearchpanel");
-    defaultSearchURL = pref.getComplexValue("browser.search.defaulturl",
-                                            Components.interfaces.nsIPrefLocalizedString).data;
+    autoOpenSearchPanel = Services.prefs.getBoolPref("browser.search.opensidebarsearchpanel");
+    defaultSearchURL = Services.prefs.getComplexValue("browser.search.defaulturl",
+                                                      nsIPrefLocalizedString).data;
   } catch (ex) {
   }
 
@@ -1076,8 +1059,8 @@ function OpenSearch(tabName, searchStr, newWindowOrTabFlag, reverseBackgroundPre
 
         searchDS.RememberLastSearchText(escapedSearchStr);
         try {
-          var searchEngineURI = pref.getCharPref("browser.search.defaultengine");
-          if (searchEngineURI) {          
+          var searchEngineURI = Services.prefs.getCharPref("browser.search.defaultengine");
+          if (searchEngineURI) {
             var searchURL = getSearchUrl("actionButton");
             if (searchURL) {
               defaultSearchURL = searchURL + escapedSearchStr; 
@@ -1092,11 +1075,11 @@ function OpenSearch(tabName, searchStr, newWindowOrTabFlag, reverseBackgroundPre
 
         if (!newWindowOrTabFlag)
           loadURI(defaultSearchURL);
-        else if (!pref.getBoolPref("browser.search.opentabforcontextsearch"))
+        else if (!Services.prefs.getBoolPref("browser.search.opentabforcontextsearch"))
           window.open(defaultSearchURL, "_blank");
         else {
           var newTab = gBrowser.addTab(defaultSearchURL);
-          var loadInBackground = pref.getBoolPref("browser.tabs.loadInBackground");
+          var loadInBackground = Services.prefs.getBoolPref("browser.tabs.loadInBackground");
           if (reverseBackgroundPref)
             loadInBackground = !loadInBackground;
           if (!loadInBackground)
@@ -1177,8 +1160,8 @@ function isSearchPanelOpen()
 function BrowserSearchInternet()
 {
   try {
-    var searchEngineURI = pref.getCharPref("browser.search.defaultengine");
-    if (searchEngineURI) {          
+    var searchEngineURI = Services.prefs.getCharPref("browser.search.defaultengine");
+    if (searchEngineURI) {
       var searchRoot = getSearchUrl("searchForm");
       if (searchRoot) {
         openTopWin(searchRoot);
@@ -1236,14 +1219,14 @@ function BrowserOpenTab()
   if (!gInPrintPreviewMode) {
     var uriToLoad;
     try {
-      switch ( pref.getIntPref("browser.tabs.loadOnNewTab") )
+      switch ( Services.prefs.getIntPref("browser.tabs.loadOnNewTab") )
       {
         default:
           uriToLoad = "about:blank";
           break;
         case 1:
-          uriToLoad = pref.getComplexValue("browser.startup.homepage",
-                                           Components.interfaces.nsIPrefLocalizedString).data;
+          uriToLoad = Services.prefs.getComplexValue("browser.startup.homepage",
+                                                     nsIPrefLocalizedString).data;
           break;
         case 2:
           uriToLoad = gBrowser ? getWebNavigation().currentURI.spec
@@ -1289,22 +1272,23 @@ function selectFileToOpen(label, prefRoot)
   // use a pref to remember the filterIndex selected by the user.
   var index = 0;
   try {
-    index = pref.getIntPref(filterIndexPref);
+    index = Services.prefs.getIntPref(filterIndexPref);
   } catch (ex) {
   }
   fp.filterIndex = index;
 
   // use a pref to remember the displayDirectory selected by the user.
   try {
-    fp.displayDirectory = pref.getComplexValue(lastDirPref, Components.interfaces.nsILocalFile);
+    fp.displayDirectory = Services.prefs.getComplexValue(lastDirPref,
+                              Components.interfaces.nsILocalFile);
   } catch (ex) {
   }
 
   if (fp.show() == nsIFilePicker.returnOK) {
-    pref.setIntPref(filterIndexPref, fp.filterIndex);
-    pref.setComplexValue(lastDirPref,
-                         Components.interfaces.nsILocalFile,
-                         fp.file.parent);
+    Services.prefs.setIntPref(filterIndexPref, fp.filterIndex);
+    Services.prefs.setComplexValue(lastDirPref,
+                                   Components.interfaces.nsILocalFile,
+                                   fp.file.parent);
     fileURL = fp.fileURL;
   }
 
@@ -1324,7 +1308,7 @@ function updateCloseItems()
   var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
                      .getService(Components.interfaces.nsISessionStore);
 
-  var hideCloseWindow = pref.getBoolPref("browser.tabs.closeWindowWithLastTab") &&
+  var hideCloseWindow = Services.prefs.getBoolPref("browser.tabs.closeWindowWithLastTab") &&
                         (!browser || browser.tabContainer.childNodes.length <= 1);
   document.getElementById("menu_closeWindow").hidden = hideCloseWindow;
   var closeItem = document.getElementById("menu_close");
@@ -1416,7 +1400,7 @@ function BrowserCloseTabOrWindow()
 {
   var browser = getBrowser();
   if (browser.tabContainer.childNodes.length > 1 ||
-      !pref.getBoolPref("browser.tabs.closeWindowWithLastTab")) {
+      !Services.prefs.getBoolPref("browser.tabs.closeWindowWithLastTab")) {
     // Just close up a tab.
     browser.removeCurrentTab();
     return;
@@ -1481,7 +1465,7 @@ function BrowserLoadURL(aTriggeringEvent)
     // If false, the save modifier is Alt, which is Option on Mac.
     var modifierIsShift = true;
     try {
-      modifierIsShift = pref.getBoolPref("ui.key.saveLink.shift");
+      modifierIsShift = Services.prefs.getBoolPref("ui.key.saveLink.shift");
     }
     catch (ex) {}
 
@@ -1503,7 +1487,7 @@ function BrowserLoadURL(aTriggeringEvent)
       // Check if user requests Tabs instead of windows
       var openTab = false;
       try {
-        openTab = pref.getBoolPref("browser.tabs.opentabfor.urlbar");
+        openTab = Services.prefs.getBoolPref("browser.tabs.opentabfor.urlbar");
       }
       catch (ex) {}
 
@@ -1710,9 +1694,7 @@ function BrowserPageInfo(doc, initialTab)
   var relatedUrl = doc.location.toString();
   var args = {doc: doc, initialTab: initialTab};
 
-  var wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-                     .getService(Components.interfaces.nsIWindowMediator);
-  var enumerator = wm.getEnumerator("Browser:page-info");
+  var enumerator = Services.wm.getEnumerator("Browser:page-info");
   // Check for windows matching the url
   while (enumerator.hasMoreElements()) {
     let win = enumerator.getNext();
@@ -1762,11 +1744,6 @@ function hiddenWindowStartup()
   var separator = document.getElementById("sep-window-list");
   if (separator)
     separator.setAttribute("hidden", "true");
-
-  // Get the preferences service
-  var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefService);
-  pref = prefService.getBranch(null);
 
   // init string bundles
   gNavigatorBundle = document.getElementById("bundle_navigator");
@@ -2044,19 +2021,16 @@ function setStyleDisabled(disabled) {
 
 function restartApp() {
   // Notify all windows that an application quit has been requested.
-  var os = Components.classes["@mozilla.org/observer-service;1"]
-                     .getService(Components.interfaces.nsIObserverService);
-
   var cancelQuit = Components.classes["@mozilla.org/supports-PRBool;1"]
                              .createInstance(Components.interfaces.nsISupportsPRBool);
 
-  os.notifyObservers(cancelQuit, "quit-application-requested", "restart");
+  Services.obs.notifyObservers(cancelQuit, "quit-application-requested", "restart");
 
   // Something aborted the quit process.
   if (cancelQuit.data)
     return;
 
-  Application.prefs.setValue("browser.sessionstore.resume_session_once", true);
+  Services.prefs.setBoolPref("browser.sessionstore.resume_session_once", true);
   const nsIAppStartup = Components.interfaces.nsIAppStartup;
   Components.classes["@mozilla.org/toolkit/app-startup;1"]
             .getService(nsIAppStartup)
@@ -2069,28 +2043,35 @@ function applyTheme(themeName)
   if (!name)
     return;
 
-  var str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Components.interfaces.nsISupportsString);
+  var str = Components.classes["@mozilla.org/supports-string;1"]
+                      .createInstance(Components.interfaces.nsISupportsString);
   str.data = name;
 
-  if (pref.getBoolPref("extensions.dss.enabled")) {
-    pref.setComplexValue("general.skins.selectedSkin", Components.interfaces.nsISupportsString, str);
+  if (Services.prefs.getBoolPref("extensions.dss.enabled")) {
+    Services.prefs.setComplexValue("general.skins.selectedSkin",
+                                   Components.interfaces.nsISupportsString, str);
     return;
   }
 
-  pref.setComplexValue("extensions.lastSelectedSkin", Components.interfaces.nsISupportsString, str);
-  var switchPending = str != pref.getComplexValue("general.skins.selectedSkin", Components.interfaces.nsISupportsString);
-  pref.setBoolPref("extensions.dss.switchPending", switchPending);
+  Services.prefs.setComplexValue("extensions.lastSelectedSkin",
+                                 Components.interfaces.nsISupportsString, str);
+  var switchPending =
+      str != Services.prefs.getComplexValue("general.skins.selectedSkin",
+                                            Components.interfaces.nsISupportsString);
+  Services.prefs.setBoolPref("extensions.dss.switchPending", switchPending);
 
   if (switchPending) {
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
     var promptTitle = gNavigatorBundle.getString("switchskinstitle");
     var brandName = gBrandBundle.getString("brandShortName");
     var promptMsg = gNavigatorBundle.getFormattedString("switchskins", [brandName]);
     var promptNow = gNavigatorBundle.getString("switchskinsnow");
     var promptLater = gNavigatorBundle.getString("switchskinslater");
     var check = {value: false};
-    var flags = promptService.BUTTON_POS_0 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_1 * promptService.BUTTON_TITLE_IS_STRING;
-    var pressedVal = promptService.confirmEx(window, promptTitle, promptMsg, flags, promptNow, promptLater, null, null, check);
+    var flags = Services.prompt.BUTTON_POS_0 * Services.prompt.BUTTON_TITLE_IS_STRING +
+                Services.prompt.BUTTON_POS_1 * Services.prompt.BUTTON_TITLE_IS_STRING;
+    var pressedVal = Services.prompt.confirmEx(window, promptTitle, promptMsg,
+                                               flags, promptNow, promptLater,
+                                               null, null, check);
 
     if (pressedVal == 0)
       restartApp();
@@ -2304,14 +2285,14 @@ function updateToolbarStates(toolbarMenuElt)
   // Don't allow the tab bar to be shown/hidden when more than one tab is open
   // or when we have 1 tab and the autoHide pref is set
   const disabled = gBrowser.browsers.length > 1 ||
-                   pref.getBoolPref("browser.tabs.autoHide");
+                   Services.prefs.getBoolPref("browser.tabs.autoHide");
   tabbarMenuItem.setAttribute("disabled", disabled);
 }
 
 function showHideTabbar()
 {
   const visibility = gBrowser.getStripVisibility();
-  pref.setBoolPref("browser.tabs.forceHide", visibility);
+  Services.prefs.setBoolPref("browser.tabs.forceHide", visibility);
   gBrowser.setStripVisibilityTo(!visibility);
 }
 
@@ -2330,7 +2311,7 @@ function UpdateStatusBarPopupIcon(aEvent)
   if (aEvent && aEvent.originalTarget != gBrowser.getNotificationBox())
     return;
 
-  var showIcon = pref.getBoolPref("privacy.popups.statusbar_icon_enabled");
+  var showIcon = Services.prefs.getBoolPref("privacy.popups.statusbar_icon_enabled");
   if (showIcon) {
     var popupIcon = document.getElementById("popupIcon");
     popupIcon.hidden = !gBrowser.getNotificationBox().popupCount;
@@ -2364,8 +2345,10 @@ function toHistory()
 
 function checkTheme(popup)
 {
-  var prefName = pref.getBoolPref("extensions.dss.switchPending") ? "extensions.lastSelectedSkin" : "general.skins.selectedSkin";
-  var currentTheme = pref.getComplexValue(prefName, Components.interfaces.nsISupportsString);
+  var prefName = Services.prefs.getBoolPref("extensions.dss.switchPending") ?
+                 "extensions.lastSelectedSkin" : "general.skins.selectedSkin";
+  var currentTheme = Services.prefs.getComplexValue(prefName,
+                         Components.interfaces.nsISupportsString);
   var menuitem = popup.getElementsByAttribute("internalName", currentTheme)[0];
   if (menuitem)
     menuitem.setAttribute("checked", true);
@@ -2391,9 +2374,7 @@ function maybeInitPopupContext()
     if (xulwin.contextFlags &
         CI.nsIWindowCreator2.PARENT_IS_LOADING_OR_RUNNING_TIMEOUT) {
       // return our opener's URI
-      const IOS = Components.classes["@mozilla.org/network/io-service;1"]
-                  .getService(CI.nsIIOService);
-      return IOS.newURI(window.content.opener.location.href, null, null);
+      return Services.io.newURI(window.content.opener.location.href, null, null);
     }
   } catch(e) {
   }
@@ -2408,34 +2389,28 @@ function WindowIsClosing()
   var reallyClose = true;
 
   if (!/Mac/.test(navigator.platform) && isClosingLastBrowser()) {
-    let os = Components.classes["@mozilla.org/observer-service;1"]
-                       .getService(Components.interfaces.nsIObserverService);
-
     let closingCanceled = Components.classes["@mozilla.org/supports-PRBool;1"]
                                     .createInstance(Components.interfaces.nsISupportsPRBool);
-    os.notifyObservers(closingCanceled, "browser-lastwindow-close-requested", null);
+    Services.obs.notifyObservers(closingCanceled, "browser-lastwindow-close-requested", null);
     if (closingCanceled.data)
       return false;
 
-    os.notifyObservers(null, "browser-lastwindow-close-granted", null);
+    Services.obs.notifyObservers(null, "browser-lastwindow-close-granted", null);
 
     return true;
   }
 
   if (numtabs > 1) {
-    var shouldPrompt = pref.getBoolPref("browser.tabs.warnOnClose");
+    var shouldPrompt = Services.prefs.getBoolPref("browser.tabs.warnOnClose");
     if (shouldPrompt) {
-      var promptService =
-        Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                  .getService(Components.interfaces.nsIPromptService);
       //default to true: if it were false, we wouldn't get this far
       var warnOnClose = {value:true};
 
        var buttonPressed = promptService.confirmEx(window, 
          gNavigatorBundle.getString('tabs.closeWarningTitle'), 
          gNavigatorBundle.getFormattedString("tabs.closeWarning", [numtabs]),
-         (promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_0)
-          + (promptService.BUTTON_TITLE_CANCEL * promptService.BUTTON_POS_1),
+         (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0)
+          + (Services.prompt.BUTTON_TITLE_CANCEL * Services.prompt.BUTTON_POS_1),
             gNavigatorBundle.getString('tabs.closeButton'),
             null, null,
             gNavigatorBundle.getString('tabs.closeWarningPromptMe'),
@@ -2443,7 +2418,7 @@ function WindowIsClosing()
       reallyClose = (buttonPressed == 0);
       //don't set the pref unless they press OK and it's false
       if (reallyClose && !warnOnClose.value) {
-        pref.setBoolPref("browser.tabs.warnOnClose", false);
+        Services.prefs.setBoolPref("browser.tabs.warnOnClose", false);
       }
     } //if the warn-me pref was true
   } //if multiple tabs are open
@@ -2468,9 +2443,7 @@ function isClosingLastBrowser() {
     return false;
 
   // Figure out if there's at least one other browser window around.
-  let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                     .getService(Components.interfaces.nsIWindowMediator);
-  let e = wm.getEnumerator("navigator:browser");
+  var e = Services.wm.getEnumerator("navigator:browser");
   while (e.hasMoreElements()) {
     let win = e.getNext();
     if (win != window && win.toolbar.visible)
@@ -2514,9 +2487,7 @@ function uploadFile(fileURL)
 
   var leafName = fileURL.QueryInterface(CI.nsIFileURL).file.leafName;
 
-  const IOS = Components.classes["@mozilla.org/network/io-service;1"]
-                        .getService(CI.nsIIOService);
-  var targetURI = IOS.newURI(leafName, null, targetBaseURI);
+  var targetURI = Services.io.newURI(leafName, null, targetBaseURI);
 
   // ok, start uploading...
 
@@ -2562,15 +2533,14 @@ function isBidiEnabled()
 
   var systemLocale;
   try {
-    var localeService = Components.classes["@mozilla.org/intl/nslocaleservice;1"]
-                                  .getService(Components.interfaces.nsILocaleService);
-    systemLocale = localeService.getSystemLocale().getCategory("NSILOCALE_CTYPE");
+    systemLocale = Services.locale.getSystemLocale()
+                                  .getCategory("NSILOCALE_CTYPE");
     rv = /^(he|ar|syr|fa|ur)-/.test(systemLocale);
   } catch (e) {}
 
   if (!rv) {
     // check the overriding pref
-    rv = pref.getBoolPref("bidi.browser.ui");
+    rv = Services.prefs.getBoolPref("bidi.browser.ui");
   }
 
   return rv;
@@ -2586,7 +2556,8 @@ function SwitchDocumentDirection(aWindow)
 
 function updateSavePageItems()
 {
-  var autoDownload = pref.getBoolPref("browser.download.useDownloadDir");
+  var autoDownload = Services.prefs
+                             .getBoolPref("browser.download.useDownloadDir");
   goSetMenuValue("savepage", autoDownload ? "valueSave" : "valueSaveAs");
 }
 
