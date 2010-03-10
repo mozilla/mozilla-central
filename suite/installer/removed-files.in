@@ -124,9 +124,9 @@ modules/JSON.jsm
 ../Plug-Ins/PrintPDE.plugin/Contents/Info.plist
 ../Plug-Ins/PrintPDE.plugin/Contents/MacOS/PrintPDE
 ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/Localizable.strings
-../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/class$
-../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/info.$
-../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/objec$
+../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/classes.nib
+../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/info.nib
+../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/objects.xib
 #endif
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 @DLL_PREFIX@mozlcms@DLL_SUFFIX@
