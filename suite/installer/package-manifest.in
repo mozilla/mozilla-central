@@ -764,33 +764,33 @@ bin/libfreebl_32int64_3.so
 #ifdef MOZ_STATIC_MAIL_BUILD
 @BINPATH@/components/@DLL_PREFIX@mail@DLL_SUFFIX@
 else
-@BINPATH@/@DLL_PREFIX@addrbook@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@bayesflt@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@fts3tok@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@mailview@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@mime@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@addrbook@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@bayesflt@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@fts3tok@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@mailview@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@mime@DLL_SUFFIX@
 #ifdef WIN_OR_OS2
 ; To become |#ifdef XP_OS2| in bug 534408.
 ; To become |mimeemit| in bug 534408.
-@BINPATH@/emitter.dll
-@BINPATH@/msgbase.dll
+@BINPATH@/components/emitter.dll
+@BINPATH@/components/msgbase.dll
 @BINPATH@/msgbsutl.dll
-@BINPATH@/msgcompo.dll
-@BINPATH@/msglocal.dll
+@BINPATH@/components/msgcompo.dll
+@BINPATH@/components/msglocal.dll
 #else
 ; To become |msgbase| in bug 534408. Then merge it.
-@BINPATH@/@DLL_PREFIX@mailnews@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@mimeemitter@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@mailnews@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@mimeemitter@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@msgcompose@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@msgcompose@DLL_SUFFIX@
 ; To become |msglocal| in bug 534408. Then merge it.
-@BINPATH@/@DLL_PREFIX@localmail@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@localmail@DLL_SUFFIX@
 #endif
-@BINPATH@/@DLL_PREFIX@msgdb@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@msgimap@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@msgmdn@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@msgnews@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@vcard@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@msgdb@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@msgimap@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@msgmdn@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@msgnews@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@vcard@DLL_SUFFIX@
 ; ! MOZ_STATIC_MAIL_BUILD
 #endif
 ; ! MOZ_STATIC_BUILD

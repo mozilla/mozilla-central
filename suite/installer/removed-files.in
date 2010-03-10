@@ -175,34 +175,34 @@ extensions/p@m/defaults/preferences/palmsync.js
 ; '! MOZ_STATIC_BUILD' case.
 components/@DLL_PREFIX@mail@DLL_SUFFIX@
 else
-@DLL_PREFIX@addrbook@DLL_SUFFIX@
-@DLL_PREFIX@bayesflt@DLL_SUFFIX@
-@DLL_PREFIX@fts3tok@DLL_SUFFIX@
-@DLL_PREFIX@mailview@DLL_SUFFIX@
-@DLL_PREFIX@mime@DLL_SUFFIX@
+components/@DLL_PREFIX@addrbook@DLL_SUFFIX@
+components/@DLL_PREFIX@bayesflt@DLL_SUFFIX@
+components/@DLL_PREFIX@fts3tok@DLL_SUFFIX@
+components/@DLL_PREFIX@mailview@DLL_SUFFIX@
+components/@DLL_PREFIX@mime@DLL_SUFFIX@
 #ifdef WIN_OR_OS2
 ; To become |#ifdef XP_OS2| in bug 534408.
 ; At that time, copy these entries into the following |#ifdef XP_WIN| block. (Or just don't.!.)
 ; To become |mimeemit| in bug 534408.
-emitter.dll
-msgbase.dll
+components/emitter.dll
+components/msgbase.dll
 msgbsutl.dll
-msgcompo.dll
-msglocal.dll
+components/msgcompo.dll
+components/msglocal.dll
 #else
 ; To become |msgbase| in bug 534408. Then merge it.
-@DLL_PREFIX@mailnews@DLL_SUFFIX@
-@DLL_PREFIX@mimeemitter@DLL_SUFFIX@
+components/@DLL_PREFIX@mailnews@DLL_SUFFIX@
+components/@DLL_PREFIX@mimeemitter@DLL_SUFFIX@
 @DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
-@DLL_PREFIX@msgcompose@DLL_SUFFIX@
+components/@DLL_PREFIX@msgcompose@DLL_SUFFIX@
 ; To become |msglocal| in bug 534408. Then merge it.
-@DLL_PREFIX@localmail@DLL_SUFFIX@
+components/@DLL_PREFIX@localmail@DLL_SUFFIX@
 #endif
-@DLL_PREFIX@msgdb@DLL_SUFFIX@
-@DLL_PREFIX@msgimap@DLL_SUFFIX@
-@DLL_PREFIX@msgmdn@DLL_SUFFIX@
-@DLL_PREFIX@msgnews@DLL_SUFFIX@
-@DLL_PREFIX@vcard@DLL_SUFFIX@
+components/@DLL_PREFIX@msgdb@DLL_SUFFIX@
+components/@DLL_PREFIX@msgimap@DLL_SUFFIX@
+components/@DLL_PREFIX@msgmdn@DLL_SUFFIX@
+components/@DLL_PREFIX@msgnews@DLL_SUFFIX@
+components/@DLL_PREFIX@vcard@DLL_SUFFIX@
 
 #ifdef MOZ_STATIC_BUILD
 components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
