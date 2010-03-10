@@ -808,7 +808,7 @@ var GlodaDatastore = {
     // It does exist, but we (someday) might need to upgrade the schema
     else {
       // (Exceptions may be thrown if the database is corrupt)
-      { // try {
+      try {
         dbConnection = dbService.openUnsharedDatabase(dbFile);
         // see _createDB...
         dbConnection.executeSimpleSQL("PRAGMA cache_size = 8192");
@@ -830,7 +830,19 @@ var GlodaDatastore = {
         }
       }
       // Handle corrupt databases, other oddities
-      // ... in the future. for now, let us die
+      catch (ex) {
+        if (ex.result == Cr.NS_ERROR_FILE_CORRUPTED) {
+          this._log.warn("Database was corrupt, removing the old one.");
+          dbFile.remove(false);
+          this._log.warn("Removed old database, creating a new one.");
+          dbConnection = this._createDB(dbService, dbFile);
+        }
+        else {
+          this._log.error("Unexpected error when trying to open the database:" +
+                          " " + ex);
+          throw ex;
+        }
+      }
     }
 
     this.syncConnection = dbConnection;
