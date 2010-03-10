@@ -1375,7 +1375,7 @@ EmailConfigWizard.prototype =
     // User entered hostname, we want to probe port and protocol and socketType
     if (!this._userChangedOutgoingPort)
       config.outgoing.port = undefined;
-    if (!this.userChangedOutgoingSocketType)
+    if (!this._userChangedOutgoingSocketType)
       config.outgoing.socketType = undefined;
 
     if (this._probeAbortable)
