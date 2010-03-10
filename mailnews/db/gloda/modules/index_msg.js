@@ -2196,10 +2196,10 @@ var GlodaMsgIndexer = {
           if (indexer._datastore._folderKnown(aFolder)) {
             indexer._log.info("Processing deletion of folder " +
                               aFolder.prettiestName + ".");
-            let folder = GlodaDatastore._mapFolder(aFolder);
-            folder._deleted = true;
-            indexer._datastore.markMessagesDeletedByFolderID(folder.id);
-            indexer._datastore.deleteFolderByID(folder.id);
+            let glodaFolder = GlodaDatastore._mapFolder(aFolder);
+            indexer._datastore.markMessagesDeletedByFolderID(glodaFolder.id);
+            indexer._datastore.deleteFolderByID(glodaFolder.id);
+            GlodaDatastore._killGlodaFolderIntoTombstone(glodaFolder);
           }
           else {
             indexer._log.info("Ignoring deletion of folder " +

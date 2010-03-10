@@ -1607,9 +1607,13 @@ var GlodaDatastore = {
       indexingPriority = GlodaFolder.prototype.kIndexingFavoritePriority;
     else if (aFolder.flags & Ci.nsMsgFolderFlags.CheckNew)
       indexingPriority = GlodaFolder.prototype.kIndexingCheckNewPriority;
-    let folder = new GlodaFolder(this, folderID, folderURI,
-      GlodaFolder.prototype.kFolderFilthy, aFolder.prettiestName,
-      indexingPriority);
+    // If there are messages in the folder, it is filthy.  If there are no
+    //  messages, it can be clean.
+    let dirtyStatus = aFolder.getTotalMessages(false) ?
+                        GlodaFolder.prototype.kFolderFilthy :
+                        GlodaFolder.prototype.kFolderClean;
+    let folder = new GlodaFolder(this, folderID, folderURI, dirtyStatus,
+                                 aFolder.prettiestName, indexingPriority);
 
     this._insertFolderLocationStatement.bindInt64Parameter(0, folder.id);
     this._insertFolderLocationStatement.bindStringParameter(1, folder.uri);
@@ -1640,6 +1644,20 @@ var GlodaDatastore = {
     if (aFolderID in this._folderByID)
       return this._folderByID[aFolderID];
     throw "Got impossible folder ID: " + aFolderID;
+  },
+
+  /**
+   * Mark the gloda folder as deleted for any outstanding references to it and
+   *  remove it from our tables so we don't hand out any new references.  The
+   *  latter is especially important in the case a folder with the same name
+   *  is created afterwards; we don't want to confuse the new one with the old
+   *  one!
+   */
+  _killGlodaFolderIntoTombstone:
+      function gloda_ds__killGlodaFolderIntoTombstone(aGlodaFolder) {
+    aGlodaFolder._deleted = true;
+    delete this._folderByURI[aGlodaFolder.uri];
+    delete this._folderByID[aGlodaFolder.id];
   },
 
   get _updateFolderDirtyStatusStatement() {
