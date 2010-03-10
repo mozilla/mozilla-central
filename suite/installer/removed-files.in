@@ -174,7 +174,7 @@ extensions/p@m/defaults/preferences/palmsync.js
 #ifndef MOZ_STATIC_MAIL_BUILD
 ; '! MOZ_STATIC_BUILD' case.
 components/@DLL_PREFIX@mail@DLL_SUFFIX@
-else
+#else
 components/@DLL_PREFIX@addrbook@DLL_SUFFIX@
 components/@DLL_PREFIX@bayesflt@DLL_SUFFIX@
 components/@DLL_PREFIX@fts3tok@DLL_SUFFIX@

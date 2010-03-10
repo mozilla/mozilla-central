@@ -763,7 +763,7 @@ bin/libfreebl_32int64_3.so
 
 #ifdef MOZ_STATIC_MAIL_BUILD
 @BINPATH@/components/@DLL_PREFIX@mail@DLL_SUFFIX@
-else
+#else
 @BINPATH@/components/@DLL_PREFIX@addrbook@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@bayesflt@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@fts3tok@DLL_SUFFIX@
