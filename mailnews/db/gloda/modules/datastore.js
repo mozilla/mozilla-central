@@ -57,6 +57,12 @@ Cu.import("resource://app/modules/gloda/collection.js");
 let PCH_LOG = Log4Moz.repository.getLogger("gloda.ds.pch");
 
 /**
+ * Bug 507414 introduces support for true asynchronous statements.  We can tell
+ * we've got it if there is a mozIStorageAsyncStatement interface.
+ */
+const HAVE_TRUE_ASYNC = "mozIStorageAsyncStatement" in Ci;
+
+/**
  * Commit async handler; hands off the notification to
  *  |GlodaDatastore._asyncCompleted|.
  */
@@ -910,7 +916,13 @@ var GlodaDatastore = {
       //  exist, and it may be advisable to attempt to track and cancel those.
       //  For simplicity we don't currently do this, and I expect this should
       //  not pose a major problem, but those are famous last words.
-      this.asyncConnection.close();
+      // Note: In the HAVE_TRUE_ASYNC case asyncClose does not spin a nested
+      //  event loop, but the thread manager shutdown code will spin the
+      //  async thread's event loop, so it nets out to be the same.
+      if (HAVE_TRUE_ASYNC)
+        this.asyncConnection.asyncClose();
+      else
+        this.asyncConnection.close();
     }
     catch (ex) {
       this._log.debug("Potentially expected exception during connection " +
@@ -1111,7 +1123,10 @@ var GlodaDatastore = {
                                                                 aWillFinalize) {
     let statement = null;
     try {
-      statement = this.asyncConnection.createStatement(aSQLString);
+      if (HAVE_TRUE_ASYNC)
+        statement = this.asyncConnection.createAsyncStatement(aSQLString);
+      else
+        statement = this.asyncConnection.createStatement(aSQLString);
     }
     catch(ex) {
        throw("error creating async statement " + aSQLString + " - " +
