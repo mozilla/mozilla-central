@@ -1,0 +1,309 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+ * vim: sw=2 ts=2 sts=2 expandtab
+ * ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Oracle Corporation code.
+ *
+ * The Initial Developer of the Original Code is
+ *  Oracle Corporation
+ * Portions created by the Initial Developer are Copyright (C) 2004
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
+ *   Shawn Wilsher <me@shawnwilsher.com>
+ *   Andrew Sutherland <asutherland@asutherland.org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "mozIStorageBaseStatement.idl"
+
+[ptr] native octetPtr(PRUint8);
+
+/**
+ * A SQL statement that can be used for both synchronous and asynchronous
+ * purposes.
+ */
+[scriptable, uuid(57ec7be1-36cf-4510-b938-7d1c9ee8cec5)]
+interface mozIStorageStatement : mozIStorageBaseStatement {
+  /**
+   * Create a clone of this statement, by initializing a new statement
+   * with the same connection and same SQL statement as this one.  It
+   * does not preserve statement state; that is, if a statement is
+   * being executed when it is cloned, the new statement will not be
+   * executing.
+   */
+  mozIStorageStatement clone();
+
+  /*
+   * Number of parameters
+   */
+  readonly attribute unsigned long parameterCount;
+
+  /**
+   * Name of nth parameter, if given
+   */
+  AUTF8String getParameterName(in unsigned long aParamIndex);
+
+  /**
+   * Returns the index of the named parameter.
+   *
+   * @param aName
+   *        The name of the parameter you want the index for.  This does not
+   *        include the leading ':'.
+   * @return the index of the named parameter.
+   */
+  unsigned long getParameterIndex(in AUTF8String aName);
+
+  /**
+   * Number of columns returned
+   */
+  readonly attribute unsigned long columnCount;
+
+  /**
+   * Name of nth column
+   */
+  AUTF8String getColumnName(in unsigned long aColumnIndex);
+
+  /**
+   * Obtains the index of the column with the specified name.
+   *
+   * @param aName
+   *        The name of the column.
+   * @return The index of the column with the specified name.
+   */
+  unsigned long getColumnIndex(in AUTF8String aName);
+
+  /**
+   * Obtains the declared column type of a prepared statement.
+   *
+   * @param aParamIndex
+   *        The zero-based index of the column who's declared type we are
+   *        interested in.
+   * @return the declared index type.
+   */
+  AUTF8String getColumnDecltype(in unsigned long aParamIndex);
+
+  /**
+   * Reset parameters/statement execution
+   */
+  void reset();
+
+  /**
+   * Execute the query, ignoring any results.  This is accomplished by
+   * calling executeStep() once, and then calling reset().
+   *
+   * Error and last insert info, etc. are available from
+   * the mozStorageConnection.
+   */
+  void execute();
+
+  /**
+   * Execute a query, using any currently-bound parameters.  Reset
+   * must be called on the statement after the last call of
+   * executeStep.
+   *
+   * @return a boolean indicating whether there are more rows or not;
+   *         row data may be accessed using mozIStorageValueArray methods on
+   *         the statement.
+   */
+  boolean executeStep();
+
+  /**
+   * Execute a query, using any currently-bound parameters.  Reset is called
+   * when no more data is returned.  This method is only available to JavaScript
+   * consumers.
+   *
+   * @deprecated As of Mozilla 1.9.2 in favor of executeStep().
+   *
+   * @return a boolean indicating whether there are more rows or not.
+   *
+   * [deprecated] boolean step();
+   */
+
+  /**
+   * Obtains the current list of named parameters, which are settable.  This
+   * property is only available to JavaScript consumers.
+   *
+   * readonly attribute mozIStorageStatementParams params;
+   */
+
+  /**
+   * Obtains the current row, with access to all the data members by name.  This
+   * property is only available to JavaScript consumers.
+   *
+   * readonly attribute mozIStorageStatementRow row;
+   */
+
+  //////////////////////////////////////////////////////////////////////////////
+  //// Copied contents of mozIStorageValueArray
+
+  /**
+   * These type values are returned by getTypeOfIndex
+   * to indicate what type of value is present at
+   * a given column.
+   */
+  const long VALUE_TYPE_NULL = 0;
+  const long VALUE_TYPE_INTEGER = 1;
+  const long VALUE_TYPE_FLOAT = 2;
+  const long VALUE_TYPE_TEXT = 3;
+  const long VALUE_TYPE_BLOB = 4;
+
+  /**
+   * The number of entries in the array (each corresponding to a column in the
+   * database row)
+   */
+  readonly attribute unsigned long numEntries;
+
+  /**
+   * Indicate the data type of the current result row for the the given column.
+   * SQLite will perform type conversion if you ask for a value as a different
+   * type than it is stored as.
+   *
+   * @param aIndex
+   *        0-based column index.
+   * @return The type of the value at the given column index; one of
+   *         VALUE_TYPE_NULL, VALUE_TYPE_INTEGER, VALUE_TYPE_FLOAT,
+   *         VALUE_TYPE_TEXT, VALUE_TYPE_BLOB.
+   */
+  long getTypeOfIndex(in unsigned long aIndex);
+
+  /**
+   * Retrieve the contents of a column from the current result row as an
+   * integer.
+   *
+   * @param aIndex
+   *        0-based colummn index.
+   * @return Column value interpreted as an integer per type conversion rules.
+   * @{
+   */
+  long getInt32(in unsigned long aIndex);
+  long long getInt64(in unsigned long aIndex);
+  /** @} */
+  /**
+   * Retrieve the contents of a column from the current result row as a
+   * floating point double.
+   *
+   * @param aIndex
+   *        0-based colummn index.
+   * @return Column value interpreted as a double per type conversion rules.
+   */
+  double getDouble(in unsigned long aIndex);
+  /**
+   * Retrieve the contents of a column from the current result row as a
+   * string.
+   *
+   * @param aIndex
+   *        0-based colummn index.
+   * @return The value for the result column interpreted as a string.  If the
+   *         stored value was NULL, you will get an empty string with IsVoid set
+   *         to distinguish it from an explicitly set empty string.
+   * @{
+   */
+  AUTF8String getUTF8String(in unsigned long aIndex);
+  AString getString(in unsigned long aIndex);
+  /** @} */
+
+  /**
+   * Retrieve the contents of a column from the current result row as a
+   * blob.
+   *
+   * @param aIndex
+   *        0-based colummn index.
+   * @param[out] aDataSize
+   *             The number of bytes in the blob.
+   * @param[out] aData
+   *             The contents of the BLOB.  This will be NULL if aDataSize == 0.
+   */
+  void getBlob(in unsigned long aIndex, out unsigned long aDataSize, [array,size_is(aDataSize)] out octet aData);
+  /**
+   * Check whether the given column in the current result row is NULL.
+   *
+   * @param aIndex
+   *        0-based colummn index.
+   * @return true if the value for the result column is null.
+   */
+  boolean getIsNull(in unsigned long aIndex);
+
+  /**
+   * Returns a shared string pointer
+   */
+  [noscript] void getSharedUTF8String(in unsigned long aIndex, out unsigned long aLength, [shared,retval] out string aResult);
+  [noscript] void getSharedString(in unsigned long aIndex, out unsigned long aLength, [shared,retval] out wstring aResult);
+  [noscript] void getSharedBlob(in unsigned long aIndex, out unsigned long aLength, [shared,retval] out octetPtr aResult);
+
+%{C++
+  /**
+   * Getters for native code that return their values as
+   * the return type, for convenience and sanity.
+   *
+   * Not virtual; no vtable bloat.
+   */
+
+  inline PRInt32 AsInt32(PRUint32 idx) {
+    PRInt32 v;
+    GetInt32(idx, &v);
+    return v;
+  }
+
+  inline PRInt64 AsInt64(PRUint32 idx) {
+    PRInt64 v;
+    GetInt64(idx, &v);
+    return v;
+  }
+
+  inline double AsDouble(PRUint32 idx) {
+    double v;
+    GetDouble(idx, &v);
+    return v;
+  }
+
+  inline const char* AsSharedUTF8String(PRUint32 idx, PRUint32 *len) {
+    const char *str = nsnull;
+    GetSharedUTF8String(idx, len, &str);
+    return str;
+  }
+
+  inline const PRUnichar* AsSharedWString(PRUint32 idx, PRUint32 *len) {
+    const PRUnichar *str = nsnull;
+    GetSharedString(idx, len, &str);
+    return str;
+  }
+
+  inline const PRUint8* AsSharedBlob(PRUint32 idx, PRUint32 *len) {
+    const PRUint8 *blob = nsnull;
+    GetSharedBlob(idx, len, &blob);
+    return blob;
+  }
+
+  inline PRBool IsNull(PRUint32 idx) {
+    PRBool b = PR_FALSE;
+    GetIsNull(idx, &b);
+    return b;
+  }
+
+%}
+};

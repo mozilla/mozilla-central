@@ -1,0 +1,334 @@
+/* -*- Mode: idl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Oracle Corporation code.
+ *
+ * The Initial Developer of the Original Code is
+ *  Oracle Corporation
+ * Portions created by the Initial Developer are Copyright (C) 2004
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
+ *   Brett Wilson <brettw@gmail.com>
+ *   Shawn Wilsher <me@shawnwilsher.com>
+ *   Lev Serebryakov <lev@serebryakov.spb.ru>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+
+interface mozIStorageAggregateFunction;
+interface mozIStorageCompletionCallback;
+interface mozIStorageFunction;
+interface mozIStorageProgressHandler;
+interface mozIStorageBaseStatement;
+interface mozIStorageStatement;
+interface mozIStorageAsyncStatement;
+interface mozIStorageStatementCallback;
+interface mozIStoragePendingStatement;
+interface nsIFile;
+
+/**
+ * mozIStorageConnection represents a database connection attached to
+ * a specific file or to the in-memory data storage.  It is the
+ * primary interface for interacting with a database, including
+ * creating prepared statements, executing SQL, and examining database
+ * errors.
+ *
+ * @threadsafe
+ */
+[scriptable, uuid(32b43ec6-e905-4070-9cfe-370c45f7c1bf)]
+interface mozIStorageConnection : nsISupports {
+  //////////////////////////////////////////////////////////////////////////////
+  //// Initialization and status
+
+  /**
+   * Closes a database connection.  Callers must finalize all statements created
+   * for this connection prior to calling this method.  It is illegal to use
+   * call this method if any asynchronous statements have been executed on this
+   * connection.
+   *
+   * @throws NS_ERROR_UNEXPECTED
+   *         If any statement has been executed asynchronously on this object.
+   * @throws NS_ERROR_UNEXPECTED
+   *         If is called on a thread other than the one that opened it.
+   */
+  void close();
+
+  /**
+   * Asynchronously closes a database connection, allowing all pending
+   * asynchronous statements to complete first.
+   *
+   * @param aCallback [optional]
+   *        A callback that will be notified when the close is completed.
+   *
+   * @throws NS_ERROR_UNEXPECTED
+   *         If is called on a thread other than the one that opened it.
+   */
+  void asyncClose([optional] in mozIStorageCompletionCallback aCallback);
+
+  /**
+   * Indicates if the connection is open and ready to use.  This will be false
+   * if the connection failed to open, or it has been closed.
+   */
+  readonly attribute boolean connectionReady;
+
+  /**
+   * The current database nsIFile.  Null if the database
+   * connection refers to an in-memory database.
+   */
+  readonly attribute nsIFile databaseFile;
+
+  /**
+   * lastInsertRowID returns the row ID from the last INSERT
+   * operation.
+   */
+  readonly attribute long long lastInsertRowID;
+
+  /**
+   * The last error SQLite error code.
+   */
+  readonly attribute long lastError;
+
+  /**
+   * The last SQLite error as a string (in english, straight from the
+   * sqlite library).
+   */
+  readonly attribute AUTF8String lastErrorString;
+
+  /**
+   * The schema version of the database.  This should not be used until the 
+   * database is ready.  The schema will be reported as zero if it is not set.
+   */
+  attribute long schemaVersion;
+
+  //////////////////////////////////////////////////////////////////////////////
+  //// Statement creation
+
+  /**
+   * Create a mozIStorageStatement for the given SQL expression.  The
+   * expression may use ? to indicate sequential numbered arguments,
+   * ?1, ?2 etc. to indicate specific numbered arguments or :name and 
+   * $var to indicate named arguments.
+   *
+   * @param aSQLStatement
+   *        The SQL statement to execute.
+   * @return a new mozIStorageStatement
+   */
+  mozIStorageStatement createStatement(in AUTF8String aSQLStatement);
+
+  /**
+   * Create an asynchronous statement (mozIStorageAsyncStatement) for the given
+   * SQL expression.  An asynchronous statement can only be used to dispatch
+   * asynchronous requests to the asynchronous execution thread and cannot be
+   * used to take any synchronous actions on the database.
+   *
+   * The expression may use ? to indicate sequential numbered arguments,
+   * ?1, ?2 etc. to indicate specific numbered arguments or :name and
+   * $var to indicate named arguments.
+   *
+   * @param aSQLStatement
+   *        The SQL statement to execute.
+   * @return a new mozIStorageAsyncStatement
+   */
+  mozIStorageAsyncStatement createAsyncStatement(in AUTF8String aSQLStatement);
+
+  /**
+   * Execute a SQL expression, expecting no arguments.
+   *
+   * @param aSQLStatement  The SQL statement to execute
+   */
+  void executeSimpleSQL(in AUTF8String aSQLStatement);
+
+  /**
+   * Execute an array of queries created with this connection asynchronously
+   * using any currently bound parameters.  The statements are ran wrapped in a
+   * transaction.  These statements can be reused immediately, and reset does
+   * not need to be called.
+   *
+   * Note:  If you have any custom defined functions, they must be re-entrant
+   *        since they can be called on multiple threads.
+   *
+   * @param aStatements
+   *        The array of statements to execute asynchronously, in the order they
+   *        are given in the array.
+   * @param aNumStatements
+   *        The number of statements in aStatements.
+   * @param aCallback [optional]
+   *        The callback object that will be notified of progress, errors, and
+   *        completion.
+   * @return an object that can be used to cancel the statements execution.
+   */
+  mozIStoragePendingStatement executeAsync(
+    [array, size_is(aNumStatements)] in mozIStorageBaseStatement aStatements,
+    in unsigned long aNumStatements,
+    [optional] in mozIStorageStatementCallback aCallback
+  );
+
+  /**
+   * Check if the given table exists.
+   *
+   * @param aTableName
+   *        The table to check
+   * @return TRUE if table exists, FALSE otherwise.
+   */
+  boolean tableExists(in AUTF8String aTableName);
+
+  /**
+   * Check if the given index exists.
+   *
+   * @param aIndexName   The index to check
+   * @return TRUE if the index exists, FALSE otherwise.
+   */
+  boolean indexExists(in AUTF8String aIndexName);
+
+  //////////////////////////////////////////////////////////////////////////////
+  //// Transactions
+
+  /**
+   * Returns true if a transaction is active on this connection.
+   */
+  readonly attribute boolean transactionInProgress;
+
+  /**
+   * Begin a new transaction.  sqlite default transactions are deferred.
+   * If a transaction is active, throws an error.
+   */
+  void beginTransaction();
+
+  /**
+   * Begins a new transaction with the given type.
+   */
+  const PRInt32 TRANSACTION_DEFERRED = 0;
+  const PRInt32 TRANSACTION_IMMEDIATE = 1;
+  const PRInt32 TRANSACTION_EXCLUSIVE = 2;
+  void beginTransactionAs(in PRInt32 transactionType);
+
+  /**
+   * Commits the current transaction.  If no transaction is active,
+   * @throws NS_ERROR_STORAGE_NO_TRANSACTION.
+   */
+  void commitTransaction();
+
+  /**
+   * Rolls back the current transaction.  If no transaction is active,
+   * @throws NS_ERROR_STORAGE_NO_TRANSACTION.
+   */
+  void rollbackTransaction();
+
+  //////////////////////////////////////////////////////////////////////////////
+  //// Tables
+
+  /**
+   * Create the table with the given name and schema.
+   *
+   * If the table already exists, NS_ERROR_FAILURE is thrown.
+   * (XXX at some point in the future it will check if the schema is
+   * the same as what is specified, but that doesn't happen currently.)
+   *
+   * @param aTableName
+   *        The table name to be created, consisting of [A-Za-z0-9_], and
+   *        beginning with a letter.
+   * @param aTableSchema
+   *        The schema of the table; what would normally go between the parens
+   *        in a CREATE TABLE statement: e.g., "foo  INTEGER, bar STRING".
+   *
+   * @throws NS_ERROR_FAILURE if the table already exists or could not be
+   *         created for any other reason.
+   */
+  void createTable(in string aTableName,
+                   in string aTableSchema);
+
+  //////////////////////////////////////////////////////////////////////////////
+  //// Functions
+
+  /**
+   * Create a new SQL function.  If you use your connection on multiple threads,
+   * your function needs to be threadsafe, or it should only be called on one
+   * thread.
+   *
+   * @param aFunctionName
+   *        The name of function to create, as seen in SQL.
+   * @param aNumArguments
+   *        The number of arguments the function takes. Pass -1 for
+   *        variable-argument functions.
+   * @param aFunction
+   *        The instance of mozIStorageFunction, which implements the function
+   *        in question.
+   */
+  void createFunction(in AUTF8String aFunctionName,
+                      in long aNumArguments,
+                      in mozIStorageFunction aFunction);
+
+  /**
+   * Create a new SQL aggregate function.  If you use your connection on
+   * multiple threads, your function needs to be threadsafe, or it should only
+   * be called on one thread.
+   *
+   * @param aFunctionName
+   *        The name of aggregate function to create, as seen in SQL.
+   * @param aNumArguments
+   *        The number of arguments the function takes. Pass -1 for
+   *        variable-argument functions.
+   * @param aFunction
+   *        The instance of mozIStorageAggreagteFunction, which implements the
+   *        function in question.
+   */
+  void createAggregateFunction(in AUTF8String aFunctionName,
+                               in long aNumArguments,
+                               in mozIStorageAggregateFunction aFunction);
+  /**
+   * Delete custom SQL function (simple or aggregate one).
+   *
+   * @param aFunctionName
+   *        The name of function to remove.
+   */
+  void removeFunction(in AUTF8String aFunctionName);
+
+  /**
+   * Sets a progress handler. Only one handler can be registered at a time.
+   * If you need more than one, you need to chain them yourself.  This progress
+   * handler should be threadsafe if you use this connection object on more than
+   * one thread.
+   *
+   * @param aGranularity
+   *        The number of SQL virtual machine steps between progress handler
+   *        callbacks.
+   * @param aHandler
+   *        The instance of mozIStorageProgressHandler.
+   * @return previous registered handler.
+   */
+  mozIStorageProgressHandler setProgressHandler(in PRInt32 aGranularity,
+                                                in mozIStorageProgressHandler aHandler);
+
+  /**
+   * Remove a progress handler.
+   *
+   * @return previous registered handler.
+   */
+  mozIStorageProgressHandler removeProgressHandler();
+};
