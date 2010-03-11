@@ -46,7 +46,7 @@ MODULE		= mimeemitter
 LIBRARY_NAME	= mimeemitter
 META_COMPONENT = mail
 EXPORT_LIBRARY = 1
-SHORT_LIBNAME	= emitter
+SHORT_LIBNAME	= mimeemit
 IS_COMPONENT	= 1
 MODULE_NAME	= nsMimeEmitterModule
 ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
