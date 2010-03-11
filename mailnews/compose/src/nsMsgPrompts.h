@@ -44,7 +44,9 @@
 
 class nsIPrompt;
 
-nsresult      nsMsgBuildErrorMessageByID(PRInt32 msgID, nsString& retval, nsString* param0 = nsnull, nsString* param1 = nsnull);
+nsresult      nsMsgGetMessageByID(PRInt32 aMsgID, nsString& aResult);
+nsresult      nsMsgBuildMessageWithFile(nsIFile * aFile, nsString& aResult);
+nsresult      nsMsgBuildMessageWithTmpFile(nsIFile * aFile, nsString& aResult);
 nsresult      nsMsgDisplayMessageByID(nsIPrompt * aPrompt, PRInt32 msgID, const PRUnichar * windowTitle = nsnull);
 nsresult      nsMsgDisplayMessageByString(nsIPrompt * aPrompt, const PRUnichar * msg, const PRUnichar * windowTitle = nsnull);
 nsresult      nsMsgAskBooleanQuestionByID(nsIPrompt * aPrompt, PRInt32 msgID, PRBool *answer, const PRUnichar * windowTitle = nsnull);

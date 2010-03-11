@@ -634,11 +634,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
       if (mSendReport)
       {
         nsAutoString error_msg;
-        nsCAutoString cPath;
-        nsAutoString path;
-        mTempFile->GetNativePath(cPath);
-        NS_CopyNativeToUnicode(cPath, path);
-        nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_TMP_FILE, error_msg, &path, nsnull);
+        nsMsgBuildMessageWithTmpFile(mTempFile, error_msg);
         mSendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
       }
       status = NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
@@ -718,11 +714,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     if (mSendReport)
     {
       nsAutoString error_msg;
-      nsCAutoString cPath;
-      nsAutoString path;
-      mTempFile->GetNativePath(cPath);
-      NS_CopyNativeToUnicode(cPath, path);
-      nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_TMP_FILE, error_msg, &path, nsnull);
+      nsMsgBuildMessageWithTmpFile(mTempFile, error_msg);
       mSendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
     }
     goto FAIL;
@@ -4496,11 +4488,7 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
     if (mSendReport)
     {
       nsAutoString error_msg;
-      nsCAutoString cPath;
-      nsAutoString path;
-      mCopyFile->GetNativePath(cPath);
-      NS_CopyNativeToUnicode(cPath, path);
-      nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_TMP_FILE, error_msg, &path, nsnull);
+      nsMsgBuildMessageWithTmpFile(mCopyFile, error_msg);
       mSendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
     }
     status = NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
@@ -4519,11 +4507,7 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
     if (mSendReport)
     {
       nsAutoString error_msg;
-      nsCAutoString cPath;
-      nsAutoString path;
-      mTempFile->GetNativePath(cPath);
-      NS_CopyNativeToUnicode(cPath, path);
-      nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_FILE, error_msg, &path, nsnull);
+      nsMsgBuildMessageWithFile(mTempFile, error_msg);
       mSendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
     }
     status = NS_MSG_UNABLE_TO_OPEN_FILE;

@@ -44,25 +44,50 @@
 #include "nsIStringBundle.h"
 
 nsresult
-nsMsgBuildErrorMessageByID(PRInt32 msgID, nsString& retval, nsString* param0, nsString* param1)
+nsMsgGetMessageByID(PRInt32 aMsgID, nsString& aResult)
 {
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
   NS_ENSURE_SUCCESS(rv, rv);
+
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsString msg;
-  rv = bundle->GetStringFromID(NS_IS_MSG_ERROR(msgID) ? NS_ERROR_GET_CODE(msgID) : msgID,
-                          getter_Copies(retval));
+  if (NS_IS_MSG_ERROR(aMsgID))
+    aMsgID = NS_ERROR_GET_CODE(aMsgID);
+
+  return bundle->GetStringFromID(aMsgID, getter_Copies(aResult));
+}
+
+static nsresult
+nsMsgBuildMessageByName(const PRUnichar *aName, nsIFile *aFile, nsString& aResult)
+{
+  nsresult rv;
+  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  if (param0)
-    retval.ReplaceSubstring(NS_LITERAL_STRING("%P0%"), *param0);
-  if (param1)
-    retval.ReplaceSubstring(NS_LITERAL_STRING("%P1%"), *param1);
-  return rv;
+  nsCOMPtr<nsIStringBundle> bundle;
+  rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsString path;
+  aFile->GetPath(path);
+
+  const PRUnichar *params[1] = {path.get()};
+  return bundle->FormatStringFromName(aName, params, 1, getter_Copies(aResult));
+}
+
+nsresult
+nsMsgBuildMessageWithFile(nsIFile *aFile, nsString& aResult)
+{
+  return nsMsgBuildMessageByName(NS_LITERAL_STRING("unableToOpenFile").get(), aFile, aResult);
+}
+
+nsresult
+nsMsgBuildMessageWithTmpFile(nsIFile *aFile, nsString& aResult)
+{
+  return nsMsgBuildMessageByName(NS_LITERAL_STRING("unableToOpenTmpFile").get(), aFile, aResult);
 }
 
 nsresult

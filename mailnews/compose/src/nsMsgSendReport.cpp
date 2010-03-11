@@ -296,7 +296,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
         //Ignore, don't need to repeat ourself.
         break;
       default:
-        nsMsgBuildErrorMessageByID(currError, currMessage);
+        nsMsgGetMessageByID(currError, currMessage);
         break;
     }
   }

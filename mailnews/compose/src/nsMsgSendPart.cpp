@@ -658,9 +658,7 @@ nsMsgSendPart::Write()
       if (sendReport)
       {
         nsAutoString error_msg;
-        nsAutoString path;
-        m_file->GetPath(path);
-        nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_TMP_FILE, error_msg, &path, nsnull);
+        nsMsgBuildMessageWithTmpFile(m_file, error_msg);
         sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
       }
       status = NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
@@ -746,9 +744,7 @@ nsMsgSendPart::Write()
         if (sendReport)
         {
           nsAutoString error_msg;
-          nsAutoString path;
-          m_file->GetPath(path);
-          nsMsgBuildErrorMessageByID(NS_MSG_UNABLE_TO_OPEN_FILE, error_msg, &path, nsnull);
+          nsMsgBuildMessageWithFile(m_file, error_msg);
           sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
           status = NS_MSG_UNABLE_TO_OPEN_FILE;
           goto FAIL;
