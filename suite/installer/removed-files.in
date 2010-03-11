@@ -192,23 +192,18 @@ components/@DLL_PREFIX@mime@DLL_SUFFIX@
 #ifdef WIN_OR_OS2
 ; To become |#ifdef XP_OS2| in bug 534408.
 ; At that time, copy these entries into the following |#ifdef XP_WIN| block. (Or just don't.!.)
-; To become |mimeemit| in bug 534408.
-components/emitter.dll
-components/msgbase.dll
+components/mimeemit.dll
 msgbsutl.dll
 components/msgcompo.dll
-components/msglocal.dll
 #else
-; To become |msgbase| in bug 534408. Then merge it.
-components/@DLL_PREFIX@mailnews@DLL_SUFFIX@
 components/@DLL_PREFIX@mimeemitter@DLL_SUFFIX@
 @DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
 components/@DLL_PREFIX@msgcompose@DLL_SUFFIX@
-; To become |msglocal| in bug 534408. Then merge it.
-components/@DLL_PREFIX@localmail@DLL_SUFFIX@
 #endif
+components/@DLL_PREFIX@msgbase@DLL_SUFFIX@
 components/@DLL_PREFIX@msgdb@DLL_SUFFIX@
 components/@DLL_PREFIX@msgimap@DLL_SUFFIX@
+components/@DLL_PREFIX@msglocal@DLL_SUFFIX@
 components/@DLL_PREFIX@msgmdn@DLL_SUFFIX@
 components/@DLL_PREFIX@msgnews@DLL_SUFFIX@
 components/@DLL_PREFIX@vcard@DLL_SUFFIX@
