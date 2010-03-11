@@ -5,6 +5,8 @@ DEHYDRA_SCRIPT = $(MOZILLA_SRCDIR)/config/static-checking.js
 
 DEHYDRA_MODULES = \
   $(MOZILLA_SRCDIR)/xpcom/analysis/final.js \
+  $(MOZILLA_SRCDIR)/xpcom/analysis/override.js \
+  $(MOZILLA_SRCDIR)/xpcom/analysis/must-override.js \
   $(NULL)
 
 TREEHYDRA_MODULES = \
@@ -12,6 +14,7 @@ TREEHYDRA_MODULES = \
   $(MOZILLA_SRCDIR)/xpcom/analysis/stack.js \
   $(MOZILLA_SRCDIR)/xpcom/analysis/flow.js \
   $(MOZILLA_SRCDIR)/js/src/jsstack.js \
+  $(MOZILLA_SRCDIR)/layout/generic/frame-verify.js \
   $(NULL)
 
 DEHYDRA_ARGS = \
