@@ -43,9 +43,8 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= msgbase
-LIBRARY_NAME	= mailnews
-ifeq ($(OS_ARCH),WINNT)
 LIBRARY_NAME	= msgbase
+ifeq ($(OS_ARCH),WINNT)
 RESFILE		= mail.res
 endif
 META_COMPONENT = mail
