@@ -43,10 +43,9 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= msglocal
-LIBRARY_NAME	= localmail
+LIBRARY_NAME	= msglocal
 META_COMPONENT = mail
 EXPORT_LIBRARY = 1
-SHORT_LIBNAME 	= msglocal
 IS_COMPONENT	= 1
 MODULE_NAME	= local_mail_services
 ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
