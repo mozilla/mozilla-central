@@ -107,9 +107,7 @@ ifdef MOZ_SUNBIRD
 	@$(MAKE) -C ../sunbird/locales libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref BOTH_MANIFESTS=1
 endif
 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref BOTH_MANIFESTS=1
-ifdef MOZ_BRANDING_DIRECTORY
 	@$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
-endif
 	@$(MAKE) tests AB_CD=$*
 
 ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
@@ -124,11 +122,7 @@ include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
 repackage-win32-installer: WIN32_INSTALLER_OUT="$(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe"
 repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
 	@echo "Repackaging $(WIN32_INSTALLER_IN) into $(WIN32_INSTALLER_OUT)."
-ifdef MOZ_BRANDING_DIRECTORY
 	$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY) export
-else
-	$(MAKE) -C ../installer/windows export
-endif
 	if test ! -d $(_ABS_DIST)/$(PKG_INST_PATH); then \
 	  $(NSINSTALL) -D $(_ABS_DIST)/$(PKG_INST_PATH); \
 	fi

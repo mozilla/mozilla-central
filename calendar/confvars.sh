@@ -70,6 +70,7 @@ fi
 MOZ_APP_VERSION=`cat $MOZ_APP_VERSION_TXT`
 
 SUNBIRD_VERSION=$MOZ_APP_VERSION
+MOZ_OFFICIAL_BRANDING_DIRECTORY=other-licenses/branding/sunbird
 
 # Until we can build with libxul, we can't have ipc either
 MOZ_ENABLE_LIBXUL=

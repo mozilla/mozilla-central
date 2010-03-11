@@ -64,11 +64,13 @@ if test "$MOZILLA_BRANCH_VERSION" = "1.9.2"; then
   MOZ_OJI=
 else
   MOZ_APP_VERSION_TXT=$topsrcdir/$MOZ_BUILD_APP/config/version.txt
+  MOZ_BRANDING_DIRECTORY=mail/branding/nightly
 fi
 
 MOZ_APP_VERSION=`cat $MOZ_APP_VERSION_TXT`
 
 THUNDERBIRD_VERSION=$MOZ_APP_VERSION
+MOZ_OFFICIAL_BRANDING_DIRECTORY=other-licenses/branding/thunderbird
 
 # Until we can build with libxul, we can't have ipc either
 MOZ_ENABLE_LIBXUL=

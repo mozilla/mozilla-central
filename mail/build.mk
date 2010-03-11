@@ -67,11 +67,7 @@ ifdef MOZ_COMPOSER
 tier_app_dirs += editor/ui
 endif
 
-ifdef MOZ_BRANDING_DIRECTORY
 tier_app_dirs += $(MOZ_BRANDING_DIRECTORY)
-else
-tier_app_dirs += mail/branding/nightly
-endif
 
 tier_app_dirs += \
 	mailnews/base \

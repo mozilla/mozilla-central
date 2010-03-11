@@ -4981,19 +4981,13 @@ MOZ_ARG_ENABLE_BOOL(official-branding,
                           --enable-official-branding unless you have
                           permission to use trademarks per
                           http://www.mozilla.org/foundation/trademarks/ .],
-[case "$MOZ_BUILD_APP" in
-calendar)
-    MOZ_BRANDING_DIRECTORY=other-licenses/branding/sunbird
-    ;;
-
-mail)
-    MOZ_BRANDING_DIRECTORY=other-licenses/branding/thunderbird
-    ;;
-
-*)]
-    AC_MSG_ERROR([Official branding is only available for Sunbird and Thunderbird.])
-esac
-)
+[
+  if test -z "$MOZ_OFFICIAL_BRANDING_DIRECTORY"; then
+    AC_MSG_ERROR([You must specify MOZ_OFFICIAL_BRANDING_DIRECTORY to use --enable-official-branding.])
+  else
+    MOZ_BRANDING_DIRECTORY=${MOZ_OFFICIAL_BRANDING_DIRECTORY}
+  fi
+])
 
 MOZ_ARG_WITH_STRING(branding,
 [  --with-branding=dir    Use branding from the specified directory.],
