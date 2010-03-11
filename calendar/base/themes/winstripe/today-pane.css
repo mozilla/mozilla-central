@@ -47,6 +47,7 @@
 
 #today-pane-panel {
   background-color: -moz-Dialog;
+  color: -moz-DialogText;
   border-left: 1px solid ThreeDShadow;
 }
 
