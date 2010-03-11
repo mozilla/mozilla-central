@@ -235,6 +235,9 @@ else
   endif
 endif
 
+ifndef MOZILLA_1_9_2_BRANCH
+MOZALLOC_LIB = $(call EXPAND_MOZLIBNAME,mozalloc)
+endif
 
 # append debug flags 
 # (these might have been above when processing MOZ_DBGRINFO_MODULES)
