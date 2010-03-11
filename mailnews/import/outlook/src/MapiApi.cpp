@@ -815,7 +815,7 @@ BOOL CMapiApi::IterateStores( CMapiFolderList& stores)
     hr = HrMAPIFindDefaultMsgStore( m_lpSession, &cbEIDStore, &lpEIDStore);
     if (HR_FAILED(hr)) {
         MAPI_TRACE0( "Default message store not found\n");
-    // MessageBox(NULL,"Message Store Not Found",NULL,MB_OK);
+    // MessageBoxW(NULL, L"Message Store Not Found", NULL, MB_OK);
     }
   else {
     LPMDB  lpStore;
