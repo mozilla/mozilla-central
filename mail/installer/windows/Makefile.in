@@ -109,7 +109,7 @@ uninstaller::
 	    $(CONFIG_DIR)/$$i; \
 	done
 	$(INSTALL) $(addprefix $(DIST)/branding/,$(BRANDING_FILES)) $(CONFIG_DIR)
-	$(PERL) $(MOZILLA_SRCDIR)/config/preprocessor.pl -Fsubstitution $(DEFINES) $(ACDEFINES) \
+	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py -Fsubstitution $(DEFINES) $(ACDEFINES) \
 	  $(srcdir)/nsis/defines.nsi.in | iconv -f UTF-8 -t UTF-16LE | \
 	  cat $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/utf16-le-bom.bin - > \
 	  $(CONFIG_DIR)/defines.nsi
@@ -135,7 +135,7 @@ ifeq ($(CONFIG_DIR),instgen)
 	$(PERL) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/make-installremoves.pl \
 	  ../removed-files > $(CONFIG_DIR)/removed-files.log
 endif
-	$(PERL) $(MOZILLA_SRCDIR)/config/preprocessor.pl -Fsubstitution $(DEFINES) $(ACDEFINES) \
+	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py -Fsubstitution $(DEFINES) $(ACDEFINES) \
 	  $(srcdir)/nsis/defines.nsi.in | iconv -f UTF-8 -t UTF-16LE | \
 	  cat $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/utf16-le-bom.bin - > \
 	  $(CONFIG_DIR)/defines.nsi
