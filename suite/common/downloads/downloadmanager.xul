@@ -377,7 +377,7 @@
                clickSelectsAll="true"
                type="search"
                class="compact"
-               emptytext="&search.emptytext;"
+               placeholder="&search.placeholder;"
                oncommand="searchDownloads(this.value);"/>
       <spacer flex="1"/>
       <button id="clearListButton" command="cmd_clearList"

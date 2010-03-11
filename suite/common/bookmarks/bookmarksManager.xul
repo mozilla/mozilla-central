@@ -256,7 +256,7 @@
       <toolbarspring/>
       <toolbaritem id="bookmarks-search-box" align="center">
         <textbox id="search-box" type="search" clickSelectsAll="true"
-                 emptytext="&search.emptytext;"
+                 placeholder="&search.placeholder;"
                  oncommand="document.getElementById('bookmarks-view').searchBookmarks(this.value)"/>
       </toolbaritem>
     </toolbar>

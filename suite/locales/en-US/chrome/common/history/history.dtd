@@ -4,7 +4,7 @@
 <!ENTITY menuBar.tooltip                "Menu Bar">
 <!ENTITY searchBar.tooltip              "Search Bar">
 
-<!ENTITY search.emptytext               "Search History">
+<!ENTITY search.placeholder             "Search History">
 <!ENTITY search.key                     "f">
 <!ENTITY view.label                     "View">
 

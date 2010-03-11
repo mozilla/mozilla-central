@@ -116,5 +116,5 @@
 
 <!ENTITY bookmarksWindowTitle.label     "Bookmark Manager">
 
-<!ENTITY search.emptytext               "Search Bookmarks">
+<!ENTITY search.placeholder             "Search Bookmarks">
 <!ENTITY search.key                     "f">

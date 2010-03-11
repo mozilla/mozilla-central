@@ -98,7 +98,7 @@
 
   <hbox id="search-bar" class="toolbar" align="center">
     <textbox id="search-box" flex="1" type="search" clickSelectsAll="true"
-             emptytext="&search.emptytext;"
+             placeholder="&search.placeholder;"
              oncommand="document.getElementById('bookmarks-view').searchBookmarks(this.value)"/>
   </hbox>
   

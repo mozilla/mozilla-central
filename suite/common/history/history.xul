@@ -141,7 +141,7 @@
     <textbox id="search-box"
              clickSelectsAll="true"
              type="search"
-             emptytext="&search.emptytext;"
+             placeholder="&search.placeholder;"
              oncommand="searchHistory(this.value);"/>
   </toolbar>
   </toolbox>

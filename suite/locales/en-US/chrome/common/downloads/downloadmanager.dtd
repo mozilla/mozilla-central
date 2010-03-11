@@ -3,7 +3,7 @@
 <!ENTITY menuBar.tooltip                 "Menu Bar">
 <!ENTITY searchBar.tooltip               "Search Bar">
 
-<!ENTITY search.emptytext                "Search Downloads">
+<!ENTITY search.placeholder              "Search Downloads">
 <!ENTITY search.label                    "Search Downloads">
 <!ENTITY search.accesskey                "S">
 <!ENTITY search.key                      "f">

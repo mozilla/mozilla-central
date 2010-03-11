@@ -106,7 +106,7 @@
       <textbox id="filter"
                flex="1"
                type="search"
-               emptytext="&search.emptytext;"
+               placeholder="&search.placeholder;"
                clickSelectsAll="true"
                aria-controls="handlersView"
                oncommand="gApplicationsPane._rebuildView();"/>

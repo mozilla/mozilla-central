@@ -412,7 +412,7 @@
       <toolbaritem id="searchBox" align="center">
         <textbox id="searchInput"
                  type="search"
-                 emptytext="&searchNameAndEmail.emptytext;"
+                 placeholder="&searchNameAndEmail.placeholder;"
                  clickSelectsAll="true"
                  oncommand="onEnterInSearchBar();"
                  onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();"/>
