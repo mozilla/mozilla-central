@@ -34,15 +34,31 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+function browserWindowsCount() {
+  let count = 0;
+  let e = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                    .getService(Components.interfaces.nsIWindowMediator)
+                    .getEnumerator("navigator:browser");
+  while (e.hasMoreElements()) {
+    if (!e.getNext().closed)
+      ++count;
+  }
+  return count;
+}
+
 function test() {
-  /** Test for Bug 524365 **/
-  
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"].getService(Components.interfaces.nsISessionStore);
-  
+  /** Test for Bug 493467, ported by Bug 524365 **/
+
+  is(browserWindowsCount(), 1, "Only one browser window should be open initially");
+
+  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                     .getService(Components.interfaces.nsISessionStore);
+
   let tab = getBrowser().addTab();
+  tab.linkedBrowser.stop();
   let tabState = JSON.parse(ss.getTabState(tab));
   is(tabState.disallow || "", "", "Everything is allowed per default");
-  
+
   // collect all permissions that can be set on a docShell (i.e. all
   // attributes starting with "allow" such as "allowJavascript") and
   // disallow them all, as SessionStore only remembers disallowed ones
@@ -65,4 +81,5 @@ function test() {
   // leading "allow") to nsSessionStore.js's CAPABILITIES array. Thanks.
   
   getBrowser().removeTab(tab);
+  is(browserWindowsCount(), 1, "Only one browser window should be open eventually");
 }
