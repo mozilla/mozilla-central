@@ -307,7 +307,7 @@ SessionStoreService.prototype = {
       aSubject.addEventListener("load", function(aEvent) {
         aEvent.currentTarget.removeEventListener("load", arguments.callee, false);
         _this.onLoad(aEvent.currentTarget);
-        }, false);
+      }, false);
       break;
     case "domwindowclosed": // catch closed windows
       this.onClose(aSubject);
@@ -750,6 +750,8 @@ SessionStoreService.prototype = {
   },
 
   setBrowserState: function sss_setBrowserState(aState) {
+    this._handleClosedWindows();
+
     try {
       var state = JSON.parse(aState);
     }
@@ -1580,6 +1582,8 @@ SessionStoreService.prototype = {
    * @returns string
    */
   _getCurrentState: function sss_getCurrentState(aUpdateAll) {
+    this._handleClosedWindows();
+
     var activeWindow = this._getMostRecentBrowserWindow();
 
     if (this._loadState == STATE_RUNNING) {
@@ -1593,7 +1597,7 @@ SessionStoreService.prototype = {
         else { // always update the window features (whose change alone never triggers a save operation)
           this._updateWindowFeatures(aWindow);
         }
-      }, this);
+      });
       this._dirtyWindows = [];
     }
 
@@ -2413,6 +2417,24 @@ SessionStoreService.prototype = {
     var windowMediator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                                    .getService(Components.interfaces.nsIWindowMediator);
     return windowMediator.getMostRecentWindow("navigator:browser");
+  },
+
+  /**
+   * Calls onClose for windows that are determined to be closed but aren't
+   * destroyed yet, which would otherwise cause getBrowserState and
+   * setBrowserState to treat them as open windows.
+   */
+  _handleClosedWindows: function sss_handleClosedWindows() {
+    var windowMediator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                                   .getService(Components.interfaces.nsIWindowMediator);
+    var windowsEnum = windowMediator.getEnumerator("navigator:browser");
+    
+    while (windowsEnum.hasMoreElements()) {
+      var window = windowsEnum.getNext();
+      if (window.closed) {
+        this.onClose(window);
+      }
+    }
   },
 
   /**
