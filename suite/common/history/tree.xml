@@ -58,7 +58,7 @@
         // the viewer's reference to our treeBoxObject.
         var result = this.getResult();
         if (result)
-          result.viewer = null;
+          result.removeObserver(this.view);
         this.view = null;
       ]]></destructor>
 
@@ -69,8 +69,13 @@
       <!-- overriding -->
       <property name="view">
         <getter><![CDATA[
-          return this.treeBoxObject.view
-            .QueryInterface(Components.interfaces.nsINavHistoryResultTreeViewer);
+          try {
+            return this.treeBoxObject.view
+                .QueryInterface(Components.interfaces.nsINavHistoryResultTreeViewer);
+          }
+          catch(e) {
+            return null;
+          }
         ]]></getter>
         <setter><![CDATA[
           return this.treeBoxObject.view = val;
@@ -129,7 +134,7 @@
                                                           options);
 
           var treeView = new PlacesTreeView();
-          result.viewer = treeView;
+          result.addObserver(treeView, false);
           this.view = treeView;
           if (!this._controller) {
             this._controller = new PlacesController(this);
@@ -142,7 +147,7 @@
       <method name="getResult">
         <body><![CDATA[
           try {
-            return this.view.QueryInterface(Components.interfaces.nsINavHistoryResultViewer).result;
+            return this.view.QueryInterface(Components.interfaces.nsINavHistoryResultObserver).result;
           }
           catch (e) {
             return null;
@@ -194,16 +199,19 @@
       <!-- nsIPlacesView -->
       <property name="hasSelection">
         <getter><![CDATA[
-          return this.view.selection.count >= 1;
+          return this.view && this.view.selection.count >= 1;
         ]]></getter>
       </property>
 
       <!-- nsIPlacesView -->
       <method name="getSelectionNodes">
         <body><![CDATA[
+          var nodes = [];
+          if (!this.hasSelection)
+            return nodes;
+
           var selection = this.view.selection;
           var rc = selection.getRangeCount();
-          var nodes = [];
           var resultview = this.getResultView();
           for (var i = 0; i < rc; ++i) {
             var min = { }, max = { };
@@ -227,7 +235,7 @@
       <property name="selectedNode">
         <getter><![CDATA[
           var view = this.view;
-          if (view.selection.count != 1)
+          if (!view || view.selection.count != 1)
             return null;
 
           var selection = view.selection;

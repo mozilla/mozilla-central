@@ -494,16 +494,18 @@ PlacesController.prototype = {
     var doCopy = dt.effectAllowed == "copyLink" || dt.effectAllowed == "copy";
 
     var result = this._view.getResult();
-    var oldViewer = result.viewer;
-    try {
-      result.viewer = null;
-      var nodes = this._view.getDragableSelection();
+    var didSuppressNotifications = result.suppressNotifications;
+    if (!didSuppressNotifications)
+      result.suppressNotifications = true;
 
-      for (var i = 0; i < nodes.length; ++i) {
+    try {
+      let nodes = this._view.getDragableSelection();
+
+      for (let i = 0; i < nodes.length; ++i) {
         var node = nodes[i];
 
         function addData(type, index, overrideURI) {
-          var wrapNode = PlacesUtils.wrapNode(node, type, overrideURI, doCopy);
+          let wrapNode = PlacesUtils.wrapNode(node, type, overrideURI, doCopy);
           dt.mozSetDataAt(type, wrapNode, index);
         }
 
@@ -522,8 +524,8 @@ PlacesController.prototype = {
       }
     }
     finally {
-      if (oldViewer)
-        result.viewer = oldViewer;
+      if (!didSuppressNotifications)
+        result.suppressNotifications = false;
     }
   },
 
@@ -532,28 +534,31 @@ PlacesController.prototype = {
    */
   copy: function PC_copy() {
     var result = this._view.getResult();
-    var oldViewer = result.viewer;
-    try {
-      result.viewer = null;
-      var nodes = this._view.getSelectionNodes();
 
-      var xferable = Components.classes["@mozilla.org/widget/transferable;1"]
+    var didSuppressNotifications = result.suppressNotifications;
+    if (!didSuppressNotifications)
+      result.suppressNotifications = true;
+
+    try {
+      let nodes = this._view.getSelectionNodes();
+
+      let xferable = Components.classes["@mozilla.org/widget/transferable;1"]
                                .createInstance(Components.interfaces.nsITransferable);
-      var foundFolder = false, foundLink = false;
-      var copiedFolders = [];
-      var placeString, mozURLString, htmlString, unicodeString;
+      let foundFolder = false, foundLink = false;
+      let copiedFolders = [];
+      let placeString, mozURLString, htmlString, unicodeString;
       placeString = mozURLString = htmlString = unicodeString = "";
 
-      for (var i = 0; i < nodes.length; ++i) {
-        var node = nodes[i];
+      for (let i = 0; i < nodes.length; ++i) {
+        let node = nodes[i];
         if (this._shouldSkipNode(node, copiedFolders))
           continue;
         if (PlacesUtils.nodeIsFolder(node))
           copiedFolders.push(node);
 
         function generateChunk(type, overrideURI) {
-          var suffix = i < (nodes.length - 1) ? NEWLINE : "";
-          var uri = overrideURI;
+          let suffix = i < (nodes.length - 1) ? NEWLINE : "";
+          let uri = overrideURI;
 
           mozURLString += (PlacesUtils.wrapNode(node, PlacesUtils.TYPE_X_MOZ_URL,
                                                  uri) + suffix);
@@ -562,8 +567,8 @@ PlacesController.prototype = {
           htmlString += (PlacesUtils.wrapNode(node, PlacesUtils.TYPE_HTML,
                                                  uri) + suffix);
 
-          var placeSuffix = i < (nodes.length - 1) ? "," : "";
-          var resolveShortcuts = false; // !PlacesControllerDragHelper.canMoveNode(node);
+          let placeSuffix = i < (nodes.length - 1) ? "," : "";
+          let resolveShortcuts = false; // !PlacesControllerDragHelper.canMoveNode(node);
           return PlacesUtils.wrapNode(node, type, overrideURI, resolveShortcuts) + placeSuffix;
         }
 
@@ -594,8 +599,8 @@ PlacesController.prototype = {
       dump(e);
     }
     finally {
-      if (oldViewer)
-        result.viewer = oldViewer;
+      if (!didSuppressNotifications)
+        result.suppressNotifications = false;
     }
   },
 

@@ -75,8 +75,9 @@ PlacesTreeView.prototype = {
 
   QueryInterface: function PTV_QueryInterface(aIID) {
     if (aIID.equals(Components.interfaces.nsITreeView) ||
-        aIID.equals(Components.interfaces.nsINavHistoryResultViewer) ||
+        aIID.equals(Components.interfaces.nsINavHistoryResultObserver) ||
         aIID.equals(Components.interfaces.nsINavHistoryResultTreeViewer) ||
+        aIID.equals(Components.interfaces.nsISupportsWeakReference) ||
         aIID.equals(Components.interfaces.nsISupports))
       return this;
 
@@ -373,7 +374,7 @@ PlacesTreeView.prototype = {
       timeObj.getMinutes(), timeObj.getSeconds()));
   },
 
-  // nsINavHistoryResultViewer
+  // nsINavHistoryResultObserver
   nodeInserted: function PTV_nodeInserted(aParent, aNode, aNewIndex) {
     if (!this._tree)
       return;
@@ -679,16 +680,12 @@ PlacesTreeView.prototype = {
   },
 
   set result(val) {
-    // some methods (e.g. getURLsFromContainer) temporarily null out the
-    // viewer when they do temporary changes to the view, this does _not_
-    // call setResult(null), but then, we're called again with the result
-    // object which is already set for this viewer. At that point,
-    // we should do nothing.
-    if (this._result != val) {
-      this._result = val;
-      this._result.root.viewIndex = -1;
-      this._finishInit();
-    }
+    if (this._result)
+      this._result.removeObserver(this);
+
+    this._result = val;
+    this._result.root.viewIndex = -1;
+    this._finishInit();
     return val;
   },
 
@@ -900,7 +897,7 @@ PlacesTreeView.prototype = {
     if (!aTree && hasOldTree && this._result) {
       // detach from result when we are detaching from the tree.
       // This breaks the reference cycle between us and the result.
-      this._result.viewer = null;
+      this._result.removeObserver(this);
     }
   },
 
