@@ -63,6 +63,7 @@ CPPSRCS		= \
 
 CSRCS		= \
 		fts3_porter.c \
+		Normalize.c \
 		$(NULL)
 
 LOCAL_INCLUDES = \

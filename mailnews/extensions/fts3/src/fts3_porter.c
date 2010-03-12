@@ -81,6 +81,28 @@ static const unsigned char sqlite3Utf8Trans1[] = {
   0x00, 0x01, 0x02, 0x03, 0x00, 0x01, 0x00, 0x00,
 };
 
+typedef unsigned char u8;
+
+#define WRITE_UTF8(zOut, c) {                          \
+  if( c<0x0080 ){                                      \
+    *zOut++ = (u8)(c&0xff);                            \
+  }                                                    \
+  else if( c<0x0800 ){                                 \
+    *zOut++ = 0xC0 + (u8)((c>>6) & 0x1F);              \
+    *zOut++ = 0x80 + (u8)(c & 0x3F);                   \
+  }                                                    \
+  else if( c<0x10000 ){                                \
+    *zOut++ = 0xE0 + (u8)((c>>12) & 0x0F);             \
+    *zOut++ = 0x80 + (u8)((c>>6) & 0x3F);              \
+    *zOut++ = 0x80 + (u8)(c & 0x3F);                   \
+  }else{                                               \
+    *zOut++ = 0xf0 + (u8)((c>>18) & 0x07);             \
+    *zOut++ = 0x80 + (u8)((c>>12) & 0x3F);             \
+    *zOut++ = 0x80 + (u8)((c>>6) & 0x3F);              \
+    *zOut++ = 0x80 + (u8)(c & 0x3F);                   \
+  }                                                    \
+}
+
 /**
  * Helper from sqlite3.c to read a single UTF8 character.
  *
@@ -157,6 +179,8 @@ typedef struct porter_tokenizer_cursor {
 /* Forward declaration */
 static const sqlite3_tokenizer_module porterTokenizerModule;
 
+/* from normalize.c */
+extern unsigned int normalize_character(const unsigned int c);
 
 /*
 ** Create a new tokenizer instance.
@@ -383,6 +407,13 @@ static int stem(
   return 1;
 }
 
+static int isVoicedSoundMark(const unsigned int c)
+{
+  if (c == 0xff9e || c == 0xff9f || c == 0x3099 || c == 0x309a)
+    return 1;
+  return 0;
+}
+
 /*
 ** This is the fallback stemmer used when the porter stemmer is
 ** inappropriate.  The input word is copied into the output with
@@ -399,27 +430,32 @@ static int stem(
 ** ("*") are involved.  This is sufficiently harmless that we're not going to
 ** worry about it for now.
 */
-static void copy_stemmer(const unsigned char *zIn, int nIn, char *zOut, int *pnOut){
-  int i, mx, j;
+static void copy_stemmer(const unsigned char *zIn, const int nIn, unsigned char *zOut, int *pnOut){
+  int i, mx;
   int hasDigit = 0;
-  for(i=0; i<nIn; i++){
-    int c = zIn[i];
-    if( c>='A' && c<='Z' ){
-      zOut[i] = c - 'A' + 'a';
-    }else{
+  const unsigned char *zInTerm = zIn + nIn;
+  unsigned char *zOutStart = zOut;
+  unsigned int c;
+
+  /* copy normalized character */
+  while (zIn < zInTerm) {
+    READ_UTF8(zIn, zInTerm, c);
+    c = normalize_character(c);
+    /* ignore voiced/semi-voiced sound mark */
+    if (!isVoicedSoundMark(c)) {
       if( c>='0' && c<='9' ) hasDigit = 1;
-      zOut[i] = c;
+      WRITE_UTF8(zOut, c);
     }
   }
   mx = hasDigit ? 3 : 10;
-  if( nIn>mx*2 ){
-    for(j=mx, i=nIn-mx; i<nIn; i++, j++){
-      zOut[j] = zOut[i];
+  if ((zOut - zOutStart) > mx * 2) {
+    zOut = zOutStart + mx;
+    for (i = nIn - mx; i < nIn; i++) {
+      *zOut++ = zOutStart[i];
     }
-    i = j;
   }
-  zOut[i] = 0;
-  *pnOut = i;
+  *zOut = 0;
+  *pnOut = zOut - zOutStart;
 }
 
 
@@ -450,17 +486,19 @@ static void porter_stemmer(const unsigned char *zIn, unsigned int nIn, char *zOu
   unsigned int i, j, c;
   char zReverse[28];
   char *z, *z2;
+  const unsigned char *zTerm = zIn + nIn;
+  unsigned char *zTmp = zIn;
+
   if( nIn<3 || nIn>=sizeof(zReverse)-7 ){
     /* The word is too big or too small for the porter stemmer.
     ** Fallback to the copy stemmer */
     copy_stemmer(zIn, nIn, zOut, pnOut);
     return;
   }
-  for(i=0, j=sizeof(zReverse)-6; i<nIn; i++, j--){
-    c = zIn[i];
-    if( c>='A' && c<='Z' ){
-      zReverse[j] = c + 'a' - 'A';
-    }else if( c>='a' && c<='z' ){
+  for (j = sizeof(zReverse) - 6; zTmp < zTerm; j--) {
+    READ_UTF8(zTmp, zTerm, c);
+    c = normalize_character(c);
+    if( c>='a' && c<='z' ){
       zReverse[j] = c;
     }else{
       /* The use of a character not in [a-zA-Z] means that we fallback
@@ -730,17 +768,21 @@ static int isDelim(
   int *len,                     /* OUT: analyzed bytes in this token */
   int *state                    /* IN/OUT: analyze state */
 ){
-  const unsigned char *zIn;
+  const unsigned char *zIn = zCur;
   unsigned int c;
   int delim;
 
+  /* get the unicode character to analyze */
+  READ_UTF8(zIn, zTerm, c);
+  c = normalize_character(c);
+  *len = zIn - zCur;
+
   /* ASCII character range has rule */
-  if( !(*zCur & 0x80) ){
-    *len = 1;
+  if( c < 0x80 ){
     // This is original porter stemmer isDelim logic.
     // 0x0 - 0x1f are all control characters, 0x20 is space, 0x21-0x2f are
     //  punctuation.
-    delim = (*zCur < 0x30 || !porterIdChar[*zCur - 0x30]);
+    delim = (c < 0x30 || !porterIdChar[c - 0x30]);
     // cases: "&a", "&."
     if (*state == BIGRAM_USE || *state == BIGRAM_UNKNOWN ){
       /* previous maybe CJK and current is ascii */
@@ -759,10 +801,11 @@ static int isDelim(
 
   // (at this point we must be a non-ASCII character)
 
-  /* get the unicode character to analyze */
-  zIn = zCur;
-  READ_UTF8(zIn, zTerm, c);
-  *len = zIn - zCur;
+  /* voiced/semi-voiced sound mark is ignore */
+  if (isVoicedSoundMark(c) && *state != BIGRAM_ALPHA) {
+    /* ignore this because it is combined with previous char */
+   return 0;
+  }
 
   /* this isn't CJK range, so return as no delim */
   // Anything less than 0x2000 is the general scripts area and should not be

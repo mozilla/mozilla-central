@@ -117,6 +117,59 @@ var intlPhrases = [
       {body: "moravsk\u00e9", match: true},
       {body: "rODIN\u011b", match: true},
     ]
+  },
+  // ignore accent search
+  {
+    name: "having accent: Paris",
+    actual: "Par\u00eds",
+    encodings: {
+      "utf-8": ["=?UTF-8?B?UGFyw61z?=",
+                "Par\xc3\xads"]
+    },
+    searchPhrases: [
+      {body: "paris", match: true},
+    ]
+  },
+  // case insentive case for non-ASCII characters
+  {
+    name: "Russian: new",
+    actual: "\u041d\u043e\u0432\u043e\u0435",
+    encodings: {
+      "utf-8": ["=?UTF-8?B?0J3QvtCy0L7QtQ==?=",
+                "\xd0\x9d\xd0\xbe\xd0\xb2\xd0\xbe\xd0\xb5"]
+    },
+    searchPhrases: [
+      {body: "\u043d\u043e\u0432\u043e\u0435", match: true},
+    ]
+  },
+  // full-width alphabet
+  // Even if search phrases are ASCII, it has to hit.
+  {
+    name: "Full-width Thunderbird",
+    actual: "\uff34\uff48\uff55\uff4e\uff44\uff45\uff52\uff42\uff49\uff52\uff44",
+    encodings: {
+      "utf-8": ["=?UTF-8?B?77y0772I772V772O772E772F772S772C772J772S772E?=",
+                "\xef\xbc\xb4\xef\xbd\x88\xef\xbd\x95\xef\xbd\x8e\xef\xbd\x84\xef\xbd\x85\xef\xbd\x92\xef\xbd\x82\xef\xbd\x89\xef\xbd\x92\xef\xbd\x84"]
+    },
+    searchPhrases: [
+      // full-width lower
+      {body: "\uff34\uff28\uff35\uff2e\uff24\uff25\uff32\uff22\uff29\uff32\uff24", match: true},
+      // half-width
+      {body: "Thunderbird", match: true},
+    ]
+  },
+  // half-width Katakana with voiced sound mark
+  // Even if search phrases are full-width, it has to hit.
+  {
+    name: "Half-width Katakana: Thunderbird (SANDAABAADO)",
+    actual: "\uff7b\uff9d\uff80\uff9e\uff70\uff8a\uff9e\uff70\uff84\uff9e",
+    encodings: {
+      "utf-8": ["=?UTF-8?B?7727776d776A776e772w776K776e772w776E776e?=",
+                "\xef\xbd\xbb\xef\xbe\x9d\xef\xbe\x80\xef\xbe\x9e\xef\xbd\xb0\xef\xbe\x8a\xef\xbe\x9e\xef\xbd\xb0\xef\xbe\x84\xef\xbe\x9e"]
+    },
+    searchPhrases: [
+      {body: "\u30b5\u30f3\u30c0\u30fc\u30d0\u30fc\u30c9", match: true},
+    ]
   }
 ];
 
