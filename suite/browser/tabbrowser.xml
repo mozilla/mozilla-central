@@ -1808,6 +1808,9 @@
         <parameter name="aDragSession"/>
         <body>
           <![CDATA[
+            document.getAnonymousElementByAttribute(this, "class",
+                                                    "tab-drop-indicator-bar")
+                    .collapsed = true;
             var newIndex = this.getDropIndex(aEvent);
             var tabIndex;
             if (aDragSession.sourceNode &&
