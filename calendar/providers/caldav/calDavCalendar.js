@@ -1454,6 +1454,14 @@ calDavCalendar.prototype = {
             function checkServerCaps_oSC(aLoader, aContext, aStatus,
                                          aResultLength, aResult) {
             let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
+            if (request.responseStatus != 200) {
+                cal.LOG("CalDAV: Unexpected status " + request.responseStatus +
+                        " while querying options " + thisCalendar.name);
+                thisCalendar.completeCheckServerInfo(aChangeLogListener,
+                                                     Components.results.NS_ERROR_FAILURE);
+                return;
+            }
+
             let dav = null;
             try {
                 dav = request.getResponseHeader("DAV");

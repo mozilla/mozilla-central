@@ -46,17 +46,6 @@ Components.utils.import("resource://calendar/modules/calUtils.jsm");
 EXPORTED_SYMBOLS = ["cal"]; // even though it's defined in calUtils.jsm, import needs this
 cal.auth = {
     /**
-     * Auth prompt implementation - Uses password manager if at all possible.
-     */
-    Prompt: function calPrompt() {
-        // use the window watcher service to get a nsIAuthPrompt impl
-        this.mPrompter = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                                   .getService(Components.interfaces.nsIWindowWatcher)
-                                   .getNewAuthPrompter(null);
-        this.mTriedStoredPassword = false;
-    },
-
-    /**
      * Tries to get the username/password combination of a specific calendar name
      * from the password manager or asks the user.
      *
@@ -203,7 +192,16 @@ cal.auth = {
     }
 };
 
-cal.auth.Prompt.prototype = {
+/**
+ * Calendar Auth prompt implementation. This instance of the auth prompt should
+ * be used by providers and other components that handle authentication using
+ * nsIAuthPrompt2 and friends.
+ *
+ * This implementation guarantees there are no request loops when an invalid
+ * password is stored in the login-manager.
+ */
+cal.auth.Prompt = {
+    mReturnedLogins : {},
     getPasswordInfo: function capGPI(aPasswordRealm) {
         let username;
         let password;
@@ -217,7 +215,20 @@ cal.auth.Prompt.prototype = {
             password = logins[0].password;
             found = true;
         }
-
+        if (found) {
+            let keyStr = aPasswordRealm.prePath +":" + aPasswordRealm.realm;
+            if (this.mReturnedLogins[keyStr]) {
+                cal.LOG("Credentials removed for: user=" + username + ", host="+aPasswordRealm.prePath+", realm="+aPasswordRealm.realm);
+                delete this.mReturnedLogins[keyStr];
+                cal.auth.passwordManagerRemove(username,
+                                               aPasswordRealm.prePath,
+                                               aPasswordRealm.realm);
+                return {found: false, username: username};
+            }
+            else {
+                this.mReturnedLogins[keyStr] = true;
+            }
+        }
         return {found: found, username: username, password: password};
     },
 
@@ -257,13 +268,9 @@ cal.auth.Prompt.prototype = {
         }
         hostRealm.passwordRealm = aChannel.URI.host + ":" + port + " (" + aAuthInfo.realm + ")";
 
-        let pw;
-        if (!this.mTriedStoredPassword) {
-            pw = this.getPasswordInfo(hostRealm);
-        }
+        let pw = this.getPasswordInfo(hostRealm);
+        aAuthInfo.username = pw.username;
         if (pw && pw.found) {
-            this.mTriedStoredPassword = true;
-            aAuthInfo.username = pw.username;
             aAuthInfo.password = pw.password;
             return true;
         } else {
@@ -308,13 +315,9 @@ cal.auth.Prompt.prototype = {
         }
         hostRealm.passwordRealm = aChannel.URI.host + ":" + port + " (" + aAuthInfo.realm + ")";
 
-        let pw;
-        if (!this.mTriedStoredPassword) {
-            pw = this.getPasswordInfo(hostRealm);
-        }
+        let pw = this.getPasswordInfo(hostRealm);
+        aAuthInfo.username = pw.username;
         if (pw && pw.found) {
-            this.mTriedStoredPassword = true;
-            aAuthInfo.username = pw.username;
             aAuthInfo.password = pw.password;
             // We cannot call the callback directly here so call it from a timer
             let timerCallback = {

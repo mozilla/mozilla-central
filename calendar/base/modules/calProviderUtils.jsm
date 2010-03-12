@@ -145,7 +145,7 @@ cal.safeNewXML = function calSafeNewXML(aStr) {
 cal.InterfaceRequestor_getInterface = function calInterfaceRequestor_getInterface(aIID) {
     // Support Auth Prompt Interfaces
     if (aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
-        return new cal.auth.Prompt();
+        return cal.auth.Prompt;
     } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider) ||
                aIID.equals(Components.interfaces.nsIPrompt)) {
         return Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
