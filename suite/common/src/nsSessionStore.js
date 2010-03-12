@@ -65,6 +65,7 @@ const PRIVACY_ENCRYPTED = 1;
 const PRIVACY_FULL = 2;
 
 const NOTIFY_WINDOWS_RESTORED = "sessionstore-windows-restored";
+const NOTIFY_BROWSER_STATE_RESTORED = "sessionstore-browser-state-restored";
 
 // global notifications observed
 const OBSERVING = [
@@ -138,8 +139,11 @@ SessionStoreService.prototype = {
   // when crash recovery is disabled, session data is not written to disk
   _resume_from_crash: true,
 
-  // During the initial restore tracks the number of windows yet to be restored
+  // During the initial restore and setBrowserState calls tracks the number of windows yet to be restored
   _restoreCount: 0,
+
+  // whether a setBrowserState call is in progress
+  _browserSetState: false,
 
   // time in milliseconds (Date.now()) when the session was last written to file
   _lastSaveTime: 0,
@@ -753,8 +757,11 @@ SessionStoreService.prototype = {
     if (!state || !state.windows)
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
+    this._browserSetState = true;
+
     var window = this._getMostRecentBrowserWindow();
     if (!window) {
+      this._restoreCount = 1;
       this._openWindowWithState(state);
       return;
     }
@@ -768,6 +775,9 @@ SessionStoreService.prototype = {
 
     // make sure closed window data isn't kept
     this._closedWindows = [];
+
+    // determine how many windows are meant to be restored
+    this._restoreCount = state.windows ? state.windows.length : 0;
 
     // restore to the given state
     this.restoreWindow(window, state, true);
@@ -1687,13 +1697,13 @@ SessionStoreService.prototype = {
     try {
       var root = typeof aState == "string" ? JSON.parse(aState) : aState;
       if (!root.windows[0]) {
-        this._notifyIfAllWindowsRestored();
+        this._sendRestoreCompletedNotifications();
         return; // nothing to restore
       }
     }
     catch (ex) { // invalid state object - don't restore anything
       debug(ex);
-      this._notifyIfAllWindowsRestored();
+      this._sendRestoreCompletedNotifications();
       return;
     }
 
@@ -1766,7 +1776,7 @@ SessionStoreService.prototype = {
     this.restoreHistoryPrecursor(aWindow, tabs, winData.tabs,
       (aOverwriteTabs ? (parseInt(winData.selected) || 1) : 0), 0, 0);
 
-    this._notifyIfAllWindowsRestored();
+    this._sendRestoreCompletedNotifications();
   },
 
   /**
@@ -2602,12 +2612,15 @@ SessionStoreService.prototype = {
     return JSON.stringify(aJSObject, exclude);
   },
 
-  _notifyIfAllWindowsRestored: function sss_notifyIfAllWindowsRestored() {
+  _sendRestoreCompletedNotifications: function sss_sendRestoreCompletedNotifications() {
     if (this._restoreCount) {
       this._restoreCount--;
       if (this._restoreCount == 0) {
         // This was the last window restored at startup, notify observers.
-        this._observerService.notifyObservers(null, NOTIFY_WINDOWS_RESTORED, "");
+        this._observerService.notifyObservers(null,
+          this._browserSetState ? NOTIFY_BROWSER_STATE_RESTORED : NOTIFY_WINDOWS_RESTORED,
+          "");
+        this._browserSetState = false;
       }
     }
   },
