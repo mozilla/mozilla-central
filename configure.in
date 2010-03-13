@@ -6738,18 +6738,22 @@ dnl Disable static mail in debug builds, but not with libxul sdk.
 if test -n "$MOZ_DEBUG" -a -z "$LIBXUL_SDK"; then
    MOZ_STATIC_MAIL_BUILD=
 fi
+
 MOZ_ARG_ENABLE_BOOL(static-mail,
 [  --enable-static-mail Enable static mail build support],
     MOZ_STATIC_MAIL_BUILD=1,
     MOZ_STATIC_MAIL_BUILD= )
 
-if test "$MOZ_STATIC_MAIL_BUILD"; then
+if test -z "$MOZ_STATIC_MAIL_BUILD" -a -n "$BUILD_STATIC_LIBS"; then
+    AC_MSG_ERROR([--disable-static-mail is not compatible with --enable-static])
+fi
+
+if test -n "$MOZ_STATIC_MAIL_BUILD"; then
     AC_DEFINE(MOZ_STATIC_MAIL_BUILD)
 fi
 
 AC_SUBST(MOZ_STATIC_MAIL_BUILD)
 
-dnl 
 MOZ_ARG_ENABLE_BOOL(incomplete-external-linkage,
 [  --enable-incomplete-external-linkage Changes some comm-central code to be built with external linkage. Developer only option, incomplete broken builds will result - There are already existing bugs for this. ],
     MOZ_INCOMPLETE_EXTERNAL_LINKAGE=1,
