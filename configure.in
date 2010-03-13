@@ -513,11 +513,16 @@ case "$target" in
     WINVER=500
     ;;
 *)
+if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
     if test -n "$GNU_CC"; then  
         WINVER=501
     else    
         WINVER=500
     fi
+else
+    WINVER=502
+fi
+
     ;;
 esac
 
@@ -4496,6 +4501,9 @@ MOZ_BRANDING_DIRECTORY=
 MOZ_CALENDAR=
 MOZ_DBGRINFO_MODULES=
 MOZ_FEEDS=1
+if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
+MOZ_IPC=1
+fi
 MOZ_JSDEBUGGER=1
 MOZ_JSLOADER=1
 MOZ_LDAP_XPCOM=
@@ -5182,6 +5190,30 @@ MOZ_ARG_DISABLE_BOOL(jsd,
     MOZ_JSDEBUGGER=,
     MOZ_JSDEBUGGER=1)
 
+if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
+dnl ========================================================
+dnl = Disable IPC support for tabs and plugins
+dnl ========================================================
+case "${target}" in
+*-apple-darwin*)
+    MOZ_IPC=
+    ;;
+*-wince*)
+    MOZ_IPC=
+    ;;
+esac
+
+MOZ_ARG_DISABLE_BOOL(ipc,
+[  --disable-ipc           Disable IPC supports for tabs and plugins],
+    MOZ_IPC=,
+    MOZ_IPC=1)
+
+if test -n "$MOZ_IPC"; then
+    AC_DEFINE(MOZ_IPC)
+fi
+
+AC_SUBST(MOZ_IPC)
+fi # ! MOZILLA_1_9_2_BRANCH
 
 dnl ========================================================
 dnl = Disable plugin support
@@ -6736,6 +6768,10 @@ fi
 
 if test -n "$MOZ_ENABLE_LIBXUL" -a -n "$BUILD_STATIC_LIBS"; then
 	AC_MSG_ERROR([--enable-libxul is not compatible with --enable-static])
+fi
+
+if test -n "$MOZ_IPC" -a -z "$MOZ_ENABLE_LIBXUL"; then
+    AC_MSG_ERROR([--enable-ipc requires --enable-libxul])
 fi
 
 if test -n "$MOZ_ENABLE_LIBXUL"; then
