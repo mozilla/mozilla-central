@@ -4173,7 +4173,11 @@ dnl =
 dnl ========================================================
 MOZ_ARG_HEADER(External Packages)
 
+if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
 MOZ_ENABLE_LIBXUL=
+else
+MOZ_ENABLE_LIBXUL=1
+fi
 
 MOZ_ARG_WITH_STRING(libxul-sdk,
 [  --with-libxul-sdk=PFX   Use the libXUL SDK at <PFX>],
@@ -6700,9 +6704,11 @@ MOZ_ARG_ENABLE_BOOL(static,
     BUILD_STATIC_LIBS=1,
     BUILD_STATIC_LIBS=)
 
+if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
 dnl Disable libxul in debug builds.
 if test -n "$MOZ_DEBUG"; then
    MOZ_ENABLE_LIBXUL=
+fi
 fi
 
 MOZ_ARG_ENABLE_BOOL(libxul,
