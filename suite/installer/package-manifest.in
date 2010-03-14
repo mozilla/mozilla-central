@@ -300,7 +300,6 @@
 @BINPATH@/components/content_xmldoc.xpt
 @BINPATH@/components/content_xslt.xpt
 @BINPATH@/components/content_xtf.xpt
-@BINPATH@/components/contentprefs.xpt
 @BINPATH@/components/cookie.xpt
 #ifdef MOZ_ENABLE_DBUS
 @BINPATH@/components/@DLL_PREFIX@dbusservice@DLL_SUFFIX@
