@@ -233,22 +233,31 @@
       <method name="setDate">
         <parameter name="aDate"/>
         <body><![CDATA[
-          if (!aDate)
+          if (!aDate) {
             throw Components.results.NS_ERROR_NULL_POINTER;
+          }
 
           // Remove all the old events
           this.mItemData = new Array();
-          while(this.hasChildNodes()) {
+          while (this.hasChildNodes()) {
               this.removeChild(this.lastChild);
           }
 
-          if (this.mDate && this.mDate.compare(aDate) == 0)
+          if (this.mDate && this.mDate.compare(aDate) == 0) {
             return;
+          }
 
           this.mDate = aDate;
 
-         if (this.mShowMonthLabel) {
-             var monthName = calGetString("dateFormat", "month." + (aDate.month+1) + ".Mmm");
+          // Set up DOM attributes for custom CSS coloring.
+          let weekTitle = cal.getWeekInfoService().getWeekTitle(aDate);
+          this.setAttribute("year", aDate.year);
+          this.setAttribute("month", aDate.month + 1);
+          this.setAttribute("week", weekTitle);
+          this.setAttribute("day", aDate.day);
+
+          if (this.mShowMonthLabel) {
+             let monthName = calGetString("dateFormat", "month." + (aDate.month+1) + ".Mmm");
              this.setAttribute("value", aDate.day + " " + monthName);
           } else {
              this.setAttribute("value", aDate.day);

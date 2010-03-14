@@ -249,6 +249,11 @@
               this.setAttribute("status", item.status.toLowerCase());
           }
 
+          // item class
+          if (item.hasProperty("CLASS")) {
+              this.setAttribute("itemclass", item.getProperty("CLASS"));
+          }
+
           // calendar name
           this.setAttribute("calendar", item.calendar.name.toLowerCase());
 
