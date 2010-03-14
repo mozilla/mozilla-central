@@ -126,6 +126,7 @@
                           oncommand="noteSelectionChange('fcc_selectFolder', event)" 
                           observes="broadcaster_doFcc">
                   <menupopup id="msgFccFolderPopup" type="folder" mode="filing"
+                             class="menulist-menupopup"
                              showFileHereLabel="true"
                              fileHereLabel="&filemessageschoosethis.label;"/>
                 </menulist>
@@ -192,6 +193,7 @@
                         aria-labelledby="draft_selectFolder"
                         oncommand="noteSelectionChange('draft_selectFolder', event)">
                 <menupopup id="msgDraftFolderPopup" type="folder" mode="filing"
+                           class="menulist-menupopup"
                            showFileHereLabel="true"
                            fileHereLabel="&filemessageschoosethis.label;"/>
               </menulist>
@@ -231,6 +233,7 @@
                         aria-labelledby="archive_selectFolder"
                         oncommand="noteSelectionChange('archive_selectFolder', event)">
                 <menupopup id="msgArchivesFolderPopup" type="folder" mode="filing"
+                           class="menulist-menupopup"
                            showFileHereLabel="true"
                            fileHereLabel="&filemessageschoosethis.label;"/>
               </menulist>
@@ -270,6 +273,7 @@
                         aria-labelledby="tmpl_selectFolder"
                         oncommand="noteSelectionChange('tmpl_selectFolder', event)">
                 <menupopup id="msgTemplFolderPopup" type="folder" mode="filing"
+                           class="menulist-menupopup"
                            showFileHereLabel="true"
                            fileHereLabel="&filemessageschoosethis.label;"/>
               </menulist>

@@ -67,6 +67,7 @@
 
     <menulist id="msgNewFolderPicker" oncommand="onFolderSelect(event)">
       <menupopup id="MsgNewFolderPopup" type="folder" showFileHereLabel="true"
+                 class="menulist-menupopup"
                  fileHereLabel="&newfolderchoosethis.label;" mode="newFolder"/>
     </menulist>
 

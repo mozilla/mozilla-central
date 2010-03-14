@@ -143,6 +143,7 @@
                         aria-labelledby="moveTargetMode0"
                         oncommand="onActionTargetChange(event, 'server.spamActionTargetAccount');">
                 <menupopup id="actionAccountPopup" type="folder"
+                           class="menulist-menupopup"
                            expandFolders="false" mode="filing"/>
               </menulist>
             </row>
