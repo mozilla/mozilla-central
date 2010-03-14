@@ -138,6 +138,7 @@ msvcm80.dll
 msvcp80.dll
 msvcr80.dll
 #else
+mozcpp19.dll
 mozcrt19.dll
 #endif
 @DLL_PREFIX@sqlite3@DLL_SUFFIX@
