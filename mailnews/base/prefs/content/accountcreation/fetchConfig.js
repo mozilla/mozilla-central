@@ -96,8 +96,16 @@ function fetchConfigFromDB(domain, successCallback, errorCallback)
 {
   let pref = Components.classes["@mozilla.org/preferences-service;1"]
                                .getService(Components.interfaces.nsIPrefBranch);
-  let url = pref.getCharPref("mailnews.auto_config_url") +
-            sanitize.hostname(domain);
+  let url = pref.getCharPref("mailnews.auto_config_url");
+  let domain = sanitize.hostname(domain);
+
+  // If we don't specify a place to put the domain, put it at the end.
+  if (url.indexOf("{{domain}}") == -1)
+    url = url + domain;
+  else
+    url = url.replace("{{domain}}", domain);
+  url = url.replace("{{accounts}}", gAccountMgr.accounts.Count());
+
   if (!url.length)
     return errorCallback("no fetch url set");
   let fetch = new FetchHTTP(url, null, false,
