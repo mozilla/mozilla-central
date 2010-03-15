@@ -511,7 +511,8 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
   if (endSlashPos < 0)
     endSlashPos = oldPath.Length();
 #ifdef XP_MACOSX
-  PRBool isMailboxUri = aScheme.EqualsLiteral("none");
+  PRBool isMailboxUri = aScheme.EqualsLiteral("none") ||
+                        aScheme.EqualsLiteral("pop3");
 #endif
   // trick to make sure we only add the path to the first n-1 folders
   PRBool haveFirst=PR_FALSE;
