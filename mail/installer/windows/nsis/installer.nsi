@@ -70,7 +70,7 @@ Var PageName
 !define NO_INSTDIR_PREDIRCOMMON
 
 ; Disabled until a survey url is provided
-define AbortSurveyURL "http://live.mozillamessaging.com/survey/cancel/?page="
+!define AbortSurveyURL "http://live.mozillamessaging.com/survey/cancel/?page="
 
 ; Other included files may depend upon these includes!
 ; The following includes are provided by NSIS.
