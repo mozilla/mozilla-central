@@ -236,6 +236,10 @@
              modifiers="accel"
              key="&event.dialog.save.key;"
              command="cmd_save"/>
+        <key id="saveandclose-key"
+             modifiers="accel"
+             key="&event.dialog.saveandclose.key;"
+             command="cmd_accept"/>
         <key id="delete-key"
              modifiers="accel"
              key="&event.dialog.delete.key;"
@@ -321,6 +325,11 @@
                               accesskey="&event.menu.item.save.accesskey;"
                               key="save-key"
                               command="cmd_save"/>
+                    <menuitem id="item-saveandclose-menuitem"
+                              label="&event.menu.item.saveandclose.label;"
+                              accesskey="&event.menu.item.saveandclose.accesskey;"
+                              key="saveandclose-key"
+                              command="cmd_accept"/>
                     <menuitem id="item-delete-menuitem"
                               label="&event.menu.item.delete.label;"
                               accesskey="&event.menu.item.delete.accesskey;"

@@ -71,6 +71,7 @@
 <!ENTITY event.dialog.new.message.key             "M">
 <!ENTITY event.dialog.close.key                   "W">
 <!ENTITY event.dialog.save.key                    "S">
+<!ENTITY event.dialog.saveandclose.key            "L">
 <!ENTITY event.dialog.delete.key                  "D">
 <!ENTITY event.dialog.print.key                   "P">
 <!ENTITY event.dialog.undo.key                    "Z">
@@ -93,6 +94,8 @@
 <!ENTITY  event.menu.item.close.accesskey                 "C">
 <!ENTITY  event.menu.item.save.label                      "Save">
 <!ENTITY  event.menu.item.save.accesskey                  "S">
+<!ENTITY  event.menu.item.saveandclose.label              "Save and Close">
+<!ENTITY  event.menu.item.saveandclose.accesskey          "l"
 <!ENTITY  event.menu.item.delete.label                    "Delete…">
 <!ENTITY  event.menu.item.delete.accesskey                "D">
 <!ENTITY  event.menu.item.page.setup.label                "Page Setup">
