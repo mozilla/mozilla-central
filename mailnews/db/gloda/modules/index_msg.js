@@ -1374,13 +1374,19 @@ var GlodaMsgIndexer = {
       glodaFolder._downgradeDirtyStatus(glodaFolder.kFolderDirty);
     }
 
+    // Figure out whether we're supposed to index _everything_ or just what
+    //  has not yet been indexed.
+    let force = ("force" in aJob) && aJob.force;
+    let enumeratorType = force ? this.kEnumAllMsgs : this.kEnumMsgsToIndex;
+
     // Pass 1: count the number of messages to index.
     //  We do this in order to be able to report to the user what we're doing.
     // TODO: give up after reaching a certain number of messages in folders
     //  with ridiculous numbers of messages and make the interface just say
     //  something like "over N messages to go."
 
-    this._indexerGetEnumerator(this.kEnumMsgsToIndex);
+    this._indexerGetEnumerator(enumeratorType);
+
     let numMessagesToIndex = 0;
     let numMessagesOut = {};
     // Keep going until we run out of headers.
@@ -1399,7 +1405,7 @@ var GlodaMsgIndexer = {
 
     if (numMessagesToIndex > 0) {
       // We used up the iterator, get a new one.
-      this._indexerGetEnumerator(this.kEnumMsgsToIndex);
+      this._indexerGetEnumerator(enumeratorType);
 
       // Pass 2: index the messages.
       let count = 0;
@@ -1425,9 +1431,10 @@ var GlodaMsgIndexer = {
         // Because the gloda id could be in-flight, we need to double-check the
         //  enumerator here since it can't know about our in-memory stuff.
         let [glodaId, glodaDirty] = PendingCommitTracker.getGlodaState(msgHdr);
-        // if the message seems valid, skip it.  (that means good gloda id
-        //  and not dirty)
-        if (glodaId >= GLODA_FIRST_VALID_MESSAGE_ID &&
+        // if the message seems valid and we are not forcing indexing, skip it.
+        //  (that means good gloda id and not dirty)
+        if (!force &&
+            glodaId >= GLODA_FIRST_VALID_MESSAGE_ID &&
             glodaDirty == this.kMessageClean)
           continue;
 
@@ -1451,6 +1458,8 @@ var GlodaMsgIndexer = {
 
     // by definition, it's not likely we'll visit this folder again anytime soon
     this._indexerLeaveFolder();
+
+    aJob.safelyInvokeCallback(true);
 
     yield this.kWorkDone;
   },
@@ -1601,6 +1610,7 @@ var GlodaMsgIndexer = {
    */
   _cleanup_indexing: function gloda_index_cleanup_indexing(aJob) {
     this._indexerLeaveFolder();
+    aJob.safelyInvokeCallback(false);
   },
 
   /**
@@ -1714,16 +1724,31 @@ var GlodaMsgIndexer = {
 
   /**
    * Queue a single folder for indexing given an nsIMsgFolder.
+   *
+   * @param [aOptions.callback] A callback to invoke when the folder finishes
+   *     indexing.  First argument is true if the task ran to completion
+   *     successfully, false if we had to abort for some reason.
+   * @param [aOptions.force=false] Should we force the indexing of all messages
+   *     in the folder (true) or just index what hasn't been indexed (false).
+   * @return true if we are going to index the folder, false if not.
    */
-  indexFolder: function glodaIndexFolder(aMsgFolder) {
+  indexFolder: function glodaIndexFolder(aMsgFolder, aOptions) {
     let glodaFolder = GlodaDatastore._mapFolder(aMsgFolder);
     // stay out of compacting/compacted folders
     if (glodaFolder.compacting || glodaFolder.compacted)
-      return;
+      return false;
 
     this._log.info("Queue-ing folder for indexing: " +
                    aMsgFolder.prettiestName);
-    GlodaIndexer.indexJob(new IndexingJob("folder", glodaFolder.id));
+    let job = new IndexingJob("folder", glodaFolder.id);
+    if (aOptions) {
+      if ("callback" in aOptions)
+        job.callback = aOptions.callback;
+      if ("force" in aOptions)
+        job.force = true;
+    }
+    GlodaIndexer.indexJob(job);
+    return true;
   },
 
   /**

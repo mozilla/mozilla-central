@@ -133,9 +133,18 @@ function async_run(aArgs) {
  *  cleaner.
  */
 function async_driver() {
-  do_timeout_function(0, _async_driver);
+  do_execute_soon(_async_driver);
   return false;
 }
+
+/**
+ * Sentinel object that test helpers can throw to cause a generator stack to
+ *  abort without triggering a test failure.  You would use this when you wrap
+ *  a utility function to inject faults into the calling function so that you
+ *  can control how far the logic gets.  This allows testing of multi-step logic
+ *  after each step.
+ */
+var asyncExpectedEarlyAbort = "REAP!";
 
 // the real driver!
 function _async_driver() {
@@ -148,7 +157,7 @@ function _async_driver() {
       return false;
     }
     catch (ex) {
-      if (ex != StopIteration) {
+      if (ex != StopIteration && ex != asyncExpectedEarlyAbort) {
         let asyncStack = [];
         dump("*******************************************\n");
         dump("Generator explosion!\n");

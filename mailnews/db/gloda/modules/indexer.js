@@ -91,8 +91,21 @@ function IndexingJob(aJobType, aID, aItems) {
   this.items = (aItems != null) ? aItems : [];
   this.offset = 0;
   this.goal = null;
+  this.callback = null;
+  this.callbackThis = null;
 }
 IndexingJob.prototype = {
+  safelyInvokeCallback: function() {
+    if (!this.callback)
+      return;
+    try {
+      this.callback.apply(this.callbackThis, arguments);
+    }
+    catch(ex) {
+      GlodaIndexer._log.warning("job callback invocation problem: " +
+                                ex.fileName + ":" + ex.lineNumber + ": " + ex);
+    }
+  },
   toString: function IndexingJob_toString() {
     return "[job:" + this.jobType +
       " id:" + this.id + " items:" + (this.items ? this.items.length : "no") +

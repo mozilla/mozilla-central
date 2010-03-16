@@ -210,7 +210,19 @@ function test_indexing_sweep() {
   mark_action("actual", "marked gloda folder dirty", [glodaFolderC]);
   GlodaMsgIndexer.indexingSweepNeeded = true;
   yield wait_for_gloda_indexer([setC1, setC2]);
+
+  // -- Forced folder indexing.
+  var callbackInvoked = false;
+  mark_sub_test_start("forced folder indexing");
+  GlodaMsgIndexer.indexFolder(get_real_injection_folder(folderA), {
+    force: true,
+    callback: function() {
+      callbackInvoked = true;
+    }});
+  yield wait_for_gloda_indexer([setA1, setA2]);
+  do_check_true(callbackInvoked);
 }
+
 
 /**
  * We used to screw up and downgrade filthy folders to dirty if we saw an event
