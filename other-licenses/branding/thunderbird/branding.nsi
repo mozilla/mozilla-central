@@ -43,4 +43,4 @@
 !define CompanyName           "Mozilla Messaging"
 !define URLInfoAbout          "http://www.mozillamessaging.com/${AB_CD}/"
 !define URLUpdateInfo         "http://www.mozillamessaging.com/${AB_CD}/thunderbird/"
-!define SurveyURL             "https://survey.mozilla.com/1/Mozilla%20Thunderbird/${AppVersion}/${AB_CD}/exit.html"
+!define SurveyURL             "http://live.mozillamessaging.com/survey/uninstall/?locale=${AB_CD}&version=${AppVersion}"
