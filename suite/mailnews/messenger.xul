@@ -88,7 +88,6 @@
 <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 <script type="application/javascript" src="chrome://messenger/content/searchBar.js"/>
 <script type="application/javascript" src="chrome://messenger/content/tabmail.js"/>
-<script type="application/javascript" src="chrome://messenger/content/folderDisplay.js"/>
 
 <commandset id="mailCommands">
   <commandset id="mailFileMenuItems"/>
