@@ -73,25 +73,25 @@ choice of lower case is intentional, but may be overriden if that doesn't make
 sense because of a specific language context.-->
 <!ENTITY featureConfigurator.useNewToolbar.button "use new toolbar">
 
-<!-- LOCALIZATION NOTE (featureConfigurator.smartFolders.heading): The
+<!-- LOCALIZATION NOTE (featureConfigurator.unifiedFolders.heading): The
 words here should echo the name of the mode shown in the folder pane.-->
-<!ENTITY featureConfigurator.smartFolders.heading "Smart folders mode">
+<!ENTITY featureConfigurator.unifiedFolders.heading "Unified Folders mode">
 
-<!-- LOCALIZATION NOTE (featureConfigurator.smartFolders.smart.status): This
-shows that the current mode in the folder pane is the Smart Folders mode.-->
-<!ENTITY featureConfigurator.smartFolders.smart.status "Using the &quot;smart folders&quot; mode.">
+<!-- LOCALIZATION NOTE (featureConfigurator.unifiedFolders.smart.status): This
+shows that the current mode in the folder pane is the Unified Folders mode.-->
+<!ENTITY featureConfigurator.unifiedFolders.smart.status "Using the &quot;unified folders&quot; mode.">
 
-<!-- LOCALIZATION NOTE (featureConfigurator.smartFolders.all.status): This
-shows that the current mode in the folder pane is not the Smart Folders mode.-->
-<!ENTITY featureConfigurator.smartFolders.all.status "Not using the &quot;smart folders&quot; mode.">
+<!-- LOCALIZATION NOTE (featureConfigurator.unifiedFolders.all.status): This
+shows that the current mode in the folder pane is not the Unified Folders mode.-->
+<!ENTITY featureConfigurator.unifiedFolders.all.status "Not using the &quot;unified folders&quot; mode.">
 
-<!ENTITY featureConfigurator.smartFolderBenefits.para "For users with several accounts, this view groups folders like Inbox together, so you get a consolidated view of all your mail.">
-<!ENTITY featureConfigurator.smartFolderAlternative.para "If you like splitting information across accounts then you'll prefer the &quot;All Folders&quot; mode.">
+<!ENTITY featureConfigurator.unifiedFolderBenefits.para "For users with several accounts, this view groups folders like Inbox together, so you get a consolidated view of all your mail.">
+<!ENTITY featureConfigurator.unifiedFolderAlternative.para "If you like splitting information across accounts then you'll prefer the &quot;All Folders&quot; mode.">
 
-<!-- LOCALIZATION NOTE (featureConfigurator.useSmartFolders.button): The
+<!-- LOCALIZATION NOTE (featureConfigurator.useUnifiedFolders.button): The
 choice of lower case is intentional, but may be overriden if that doesn't make
 sense because of a specific language context.-->
-<!ENTITY featureConfigurator.useSmartFolders.button "use &quot;smart folders&quot; mode">
+<!ENTITY featureConfigurator.useUnifiedFolders.button "use &quot;unified folders&quot; mode">
 
 <!-- LOCALIZATION NOTE (featureConfigurator.useAllFolders.button): The
 choice of lower case is intentional, but may be overriden if that doesn't make

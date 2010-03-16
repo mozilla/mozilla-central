@@ -142,7 +142,7 @@ let gFolderTreeView = {
     this._treeElement = aTree;
 
     let smartName = document.getElementById("bundle_messenger")
-                            .getString("folderPaneHeader_smart");
+                            .getString("folderPaneModeHeader_smart");
 
     // the folder pane can be used for other trees which may not have these elements.
     if (document.getElementById("folderpane_splitter"))
@@ -169,7 +169,7 @@ let gFolderTreeView = {
         if (this._mode in this._modeDisplayNames)
           string = this._modeDisplayNames;
         else {
-          let key = "folderPaneHeader_" + this.mode;
+          let key = "folderPaneModeHeader_" + this.mode;
           string = document.getElementById("bundle_messenger").getString(key);
         }
       document.getElementById('folderpane-title').value = string;
@@ -331,7 +331,7 @@ let gFolderTreeView = {
     if (this._mode in this._modeDisplayNames)
       string = this._modeDisplayNames[this._mode];
     else {
-      let key = "folderPaneHeader_" + aMode;
+      let key = "folderPaneModeHeader_" + aMode;
       string = document.getElementById("bundle_messenger").getString(key);
     }
     document.getElementById('folderpane-title').value = string;
@@ -1446,7 +1446,7 @@ let gFolderTreeView = {
         let accounts = gFolderTreeView._sortedAccounts();
         let smartServer = this._smartServer;
         smartServer.prettyName = document.getElementById("bundle_messenger")
-                                         .getString("smartAccountName");
+                                         .getString("unifiedAccountName");
         smartServer.canHaveFilters = false;
 
         let smartRoot = smartServer.rootFolder;
