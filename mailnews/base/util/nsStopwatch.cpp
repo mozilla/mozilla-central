@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <time.h>
-#ifdef XP_UNIX
+#if defined(XP_UNIX) || defined(XP_OS2)
 #include <unistd.h>
 #include <sys/times.h>
 #include <sys/time.h>
@@ -33,7 +33,7 @@ NS_IMPL_ISUPPORTS1_CI(nsStopwatch, nsIStopwatch)
 #error "WINCE apparently does not provide the clock support we require."
 #endif
 
-#ifdef XP_UNIX
+#if defined(XP_UNIX) || defined(XP_OS2)
 /** the number of ticks per second */
 static double gTicks = 0;
 #define MICRO_SECONDS_TO_SECONDS_MULT 1.0e-6;
@@ -49,7 +49,7 @@ nsStopwatch::nsStopwatch()
  , fTotalCpuTimeSecs(0.0)
  , fRunning(false)
 {
-#ifdef XP_UNIX
+#if defined(XP_UNIX) || defined(XP_OS2)
   // idempotent in the event of a race under all coherency models
   if (!gTicks)
   {
@@ -115,7 +115,7 @@ NS_IMETHODIMP nsStopwatch::GetRealTimeSeconds(double *result)
 
 double nsStopwatch::GetRealTime()
 {
-#if defined(XP_UNIX)
+#if defined(XP_UNIX) || defined(XP_OS2)
   struct timeval t;
   gettimeofday(&t, NULL);
   return t.tv_sec + t.tv_usec * MICRO_SECONDS_TO_SECONDS_MULT;
@@ -128,12 +128,14 @@ double nsStopwatch::GetRealTime()
   SystemTimeToFileTime(&st,&ftRealTime.ftFileTime);
   return (double)(ftRealTime.ftInt64 - UNIX_EPOCH_IN_FILE_TIME) /
                  TICKS_PER_SECOND;
+#else
+#error "nsStopwatch not supported on this platform."
 #endif
 }
 
 double nsStopwatch::GetCPUTime()
 {
-#if defined(XP_UNIX)
+#if defined(XP_UNIX) || defined(XP_OS2)
   struct tms cpt;
   times(&cpt);
   return (double)(cpt.tms_utime+cpt.tms_stime) / gTicks;
@@ -172,5 +174,7 @@ double nsStopwatch::GetCPUTime()
    *          Convert sum of high 32-bit quantities to 64-bit int
    */
   return (double) (ftKernel.ftInt64 + ftUser.ftInt64) / TICKS_PER_SECOND;
+#else
+#error "nsStopwatch not supported on this platform."
 #endif
 }
