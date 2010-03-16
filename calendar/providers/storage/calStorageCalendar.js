@@ -1691,7 +1691,7 @@ calStorageCalendar.prototype = {
 
     writeEvent: function cSC_writeEvent(item, olditem, flags) {
         var ip = this.mInsertEvent.params;
-        this.setupItemBaseParams(item, olditem, ip, flags);
+        this.setupItemBaseParams(item, olditem, ip);
 
         this.setDateParamHelper(ip, "event_start", item.startDate);
         this.setDateParamHelper(ip, "event_end", item.endDate);
@@ -1713,7 +1713,7 @@ calStorageCalendar.prototype = {
     writeTodo: function cSC_writeTodo(item, olditem, flags) {
         var ip = this.mInsertTodo.params;
 
-        this.setupItemBaseParams(item, olditem, ip, flags);
+        this.setupItemBaseParams(item, olditem, ip);
 
         this.setDateParamHelper(ip, "todo_entry", item.entryDate);
         this.setDateParamHelper(ip, "todo_due", item.dueDate);
@@ -1736,14 +1736,11 @@ calStorageCalendar.prototype = {
         this.mInsertTodo.reset();
     },
 
-    setupItemBaseParams: function cSC_setupItemBaseParams(item, olditem, ip, flags) {
+    setupItemBaseParams: function cSC_setupItemBaseParams(item, olditem, ip) {
         ip.id = item.id;
 
         if (item.recurrenceId) {
             this.setDateParamHelper(ip, "recurrence_id", item.recurrenceId);
-            if (item.recurrenceId.isDate) {
-                flags |= CAL_ITEM_FLAG.RECURRENCE_ID_ALLDAY;
-            }
         }
 
         var tmp;
@@ -1940,6 +1937,8 @@ calStorageCalendar.prototype = {
                     this.writeItem(ex, null);
                 }
             }
+        } else  if (item.recurrenceId && item.recurrenceId.isDate) {
+            flags |= CAL_ITEM_FLAG.RECURRENCE_ID_ALLDAY;
         }
 
         return flags;
