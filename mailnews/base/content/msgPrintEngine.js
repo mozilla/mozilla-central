@@ -66,24 +66,35 @@ function PrintEngineCreateGlobals()
   }
 }
 
-function getWebNavigation()
-{
-  try {
-    return getPPBrowser().webNavigation;
-  } catch (e) {
-    return null;
+var PrintPreviewListener = {
+  getPrintPreviewBrowser: function () {
+    var browser = document.getElementById("ppBrowser");
+    if (!browser) {
+      browser = document.createElement("browser");
+      browser.setAttribute("id", "ppBrowser");
+      browser.setAttribute("flex", "1");
+      browser.setAttribute("disablehistory", "true");
+      browser.setAttribute("disablesecurity", "true");
+      browser.setAttribute("type", "content");
+      document.documentElement.appendChild(browser);
+    }
+    return browser;
+  },
+  getSourceBrowser: function () {
+    return document.getElementById("content");
+  },
+  getNavToolbox: function () {
+    return document.getElementById("content");
+  },
+  onEnter: function () {
+    setPPTitle(document.getElementById("content").contentDocument.title);
+    document.getElementById("content").collapsed = true;
+    printEngine.showWindow(true);
+  },
+  onExit: function () {
+    window.close();
   }
-}
-
-function getNavToolbox()
-{
-  return document.getElementById("content");
-}
-
-function getPPBrowser()
-{
-  return document.getElementById("content");
-}
+};
 
 function getBundle(aURI)
 {
@@ -123,23 +134,12 @@ function setPPTitle(aTitle)
   document.title = title;
 }
 
-function onEnterPrintPreview()
-{
-  setPPTitle(getWebNavigation().document.title);
-  printEngine.showWindow(true);
-}
-
-function onExitPrintPreview()
-{
-  window.close();
-}
-
 // Pref listener constants
 const gStartupPPObserver =
 {
   observe: function(subject, topic, prefName)
   {
-    PrintUtils.printPreview(onEnterPrintPreview, onExitPrintPreview);
+    PrintUtils.printPreview(PrintPreviewListener);
   }
 };
 
