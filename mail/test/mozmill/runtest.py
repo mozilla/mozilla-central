@@ -45,7 +45,7 @@ Runs the Bloat test harness
 """
 
 import sys
-import os
+import os, os.path, platform, subprocess, signal
 import shutil
 import mozrunner
 import jsbridge
@@ -181,6 +181,9 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         pass
 
 class ThunderTestRunner(mozrunner.ThunderbirdRunner):
+    VNC_SERVER_PATH = '/usr/bin/vncserver'
+    VNC_PASSWD_PATH = '~/.vnc/passwd'
+
     def __init__(self, *args, **kwargs):
         kwargs['env'] = env = dict(os.environ)
         # note, we do NOT want to set NO_EM_RESTART or jsbridge wouldn't work
@@ -191,10 +194,43 @@ class ThunderTestRunner(mozrunner.ThunderbirdRunner):
             env['XPCOM_DEBUG_BREAK'] = 'stack'
         # do not reuse an existing instance
         env['MOZ_NO_REMOTE'] = '1'
+
+        # Only use the VNC server if the capability is available and a password
+        # is already defined so this can run without prompting the user.
+        self.use_vnc_server = (
+            platform.system() == 'Linux' and
+            os.path.isfile(self.VNC_SERVER_PATH) and
+            os.path.isfile(os.path.expanduser(self.VNC_PASSWD_PATH)))
+
         mozrunner.Runner.__init__(self, *args, **kwargs)
 
     def find_binary(self):
         return self.profile.app_path
+
+    def start(self):
+        if self.use_vnc_server:
+            subprocess.check_call([self.VNC_SERVER_PATH, ':99'])
+            self.vnc_alive = True
+            self.env['DISPLAY'] = ':99'
+        return mozrunner.ThunderbirdRunner.start(self)
+
+    def wait(self, timeout=None):
+        '''
+        Wrap the call to wait in logic that kills the VNC server when we are
+        done waiting.  During normal operation, wait is the last thing.  In
+        the keyboard interrupt case wait will die due to the interrupt and
+        stop/kill will be killed.  Since we are wrapping wait, we don't need
+        to specialize for stop/kill though.
+        '''
+        try:
+            return mozrunner.ThunderbirdRunner.wait(self, timeout)
+        finally:
+            try:
+                if self.vnc_alive:
+                    subprocess.check_call([self.VNC_SERVER_PATH,
+                                           '-kill', ':99'])
+            except Exception, ex:
+                print '!!! Exception during killing VNC server:', ex
 
 
 class ThunderTestCLI(mozmill.CLI):
