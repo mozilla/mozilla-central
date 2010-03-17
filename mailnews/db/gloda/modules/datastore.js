@@ -2819,7 +2819,7 @@ var GlodaDatastore = {
         // @testpoint gloda.datastore.sqlgen.kConstraintIn
         else if (constraintType === this.kConstraintIn) {
           let clauses = [];
-          for each ([attrID, values] in
+          for each (let [attrID, values] in
               this._convertToDBValuesAndGroupByAttributeID(attrDef,
                                                            constraintValues)) {
             let clausePart;
@@ -2850,7 +2850,7 @@ var GlodaDatastore = {
         // @testpoint gloda.datastore.sqlgen.kConstraintRanges
         else if (constraintType === this.kConstraintRanges) {
           let clauses = [];
-          for each ([attrID, dbStrings] in
+          for each (let [attrID, dbStrings] in
               this._convertRangesToDBStringsAndGroupByAttributeID(attrDef,
                               constraintValues, valueColumnName)) {
             if (attrID !== undefined)
@@ -2864,7 +2864,7 @@ var GlodaDatastore = {
         // @testpoint gloda.datastore.sqlgen.kConstraintEquals
         else if (constraintType === this.kConstraintEquals) {
           let clauses = [];
-          for each ([attrID, values] in
+          for each (let [attrID, values] in
               this._convertToDBValuesAndGroupByAttributeID(attrDef,
                                                            constraintValues)) {
             if (attrID !== undefined)
