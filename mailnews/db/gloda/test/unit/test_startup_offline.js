@@ -42,9 +42,10 @@
 
 // We must do this before the first load otherwise gloda is started without
 // picking up the necessary initialisation.
-Components.classes["@mozilla.org/network/io-service;1"]
-          .getService(Components.interfaces.nsIIOService)
-          .offline = true;
+var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                          .getService(Components.interfaces.nsIIOService2);
+ioService.manageOfflineStatus = false;
+ioService.offline = true;
 
 load("resources/glodaTestHelper.js");
 
