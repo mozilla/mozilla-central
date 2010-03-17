@@ -198,13 +198,13 @@ def switch_mozilla_repo():
         config.set('paths', 'default-push',
                    SWITCH_MOZILLA_REPO_REPLACE % match.group(1) )
 
-    hgopts = []
-    if options.hgopts:
-        hgopts = options.hgopts.split()
-
     hgcloneopts = []
     if options.hgcloneopts:
         hgcloneopts = options.hgcloneopts.split()
+
+    hgopts = []
+    if options.hgopts:
+        hgopts = options.hgopts.split()
 
     backup_mozilla_path = os.path.join(topsrcdir, SWITCH_MOZILLA_REPO_BACKUP_LOCATION)
     print "Moving mozilla to " + SWITCH_MOZILLA_REPO_BACKUP_LOCATION + "..."
@@ -261,16 +261,19 @@ def backup_cvs_extension(extensionName, extensionDir, extensionPath):
         sys.exit("Error: %s directory renaming failed!" % extensionName)
 
 def do_hg_pull(dir, repository, hg, rev):
+    """Clone if the dir doesn't exist, pull if it does.
+    """
+
     fulldir = os.path.join(topsrcdir, dir)
-    # clone if the dir doesn't exist, pull if it does
-    hgopts = []
-    if options.hgopts:
-        hgopts = options.hgopts.split()
-    
+
     hgcloneopts = []
     if options.hgcloneopts:
         hgcloneopts = options.hgcloneopts.split()
 
+    hgopts = []
+    if options.hgopts:
+        hgopts = options.hgopts.split()
+    
     if not os.path.exists(fulldir):
         fulldir = os.path.join(topsrcdir, dir)
         check_call_noisy([hg, 'clone'] + hgcloneopts + hgopts + [repository, fulldir],
@@ -280,12 +283,14 @@ def do_hg_pull(dir, repository, hg, rev):
         if repository is not None:
             cmd.append(repository)
         check_call_noisy(cmd, retryMax=options.retries)
+
     # update to specific revision
+    cmd = [hg, 'update', '-r', rev, '-R', fulldir ] + hgopts
     if options.verbose:
-        cmd = [hg, 'update', '-v', '-r', rev, '-R', fulldir ] + hgopts
-    else:
-        cmd = [hg, 'update', '-r', rev, '-R', fulldir ] + hgopts
-    check_call_noisy(cmd, retryMax=options.retries)
+        cmd.append('-v')
+    # Explicitly never retry 'hg update': otherwise any merge failures are ignored.
+    check_call_noisy(cmd, retryMax=0)
+
     check_call([hg, 'parent', '-R', fulldir,
                 '--template=Updated to revision {node}.\n'])
 
@@ -378,7 +383,7 @@ o.add_option("-v", "--verbose", dest="verbose",
 o.add_option("--hg-options", dest="hgopts",
              help="Pass arbitrary options to hg commands (i.e. --debug, --time)")
 o.add_option("--hg-clone-options", dest="hgcloneopts",
-             help="Pass arbitrary options to hg clone commands (i.e. --debug, --time)")
+             help="Pass arbitrary options to hg clone commands (i.e. --uncompressed)")
 
 o.add_option("--cvs", dest="cvs", default=os.environ.get('CVS', 'cvs'),
              help="The location of the cvs binary")
