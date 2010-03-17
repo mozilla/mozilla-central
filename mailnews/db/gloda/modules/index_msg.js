@@ -1322,8 +1322,10 @@ var GlodaMsgIndexer = {
     let logDebug = this._log.level <= Log4Moz.Level.Debug;
     yield this._indexerEnterFolder(aJob.id);
 
-    if (!this.shouldIndexFolder(this._indexingFolder))
+    if (!this.shouldIndexFolder(this._indexingFolder)) {
+      aJob.safelyInvokeCallback(true);
       yield this.kWorkDone;
+    }
 
     // Make sure listeners get notified about this job.
     GlodaIndexer._notifyListeners();
@@ -1733,6 +1735,8 @@ var GlodaMsgIndexer = {
    * @return true if we are going to index the folder, false if not.
    */
   indexFolder: function glodaIndexFolder(aMsgFolder, aOptions) {
+    if (!this.shouldIndexFolder(aMsgFolder))
+      return false;
     let glodaFolder = GlodaDatastore._mapFolder(aMsgFolder);
     // stay out of compacting/compacted folders
     if (glodaFolder.compacting || glodaFolder.compacted)
