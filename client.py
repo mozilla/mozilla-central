@@ -273,7 +273,7 @@ def do_hg_pull(dir, repository, hg, rev):
     hgopts = []
     if options.hgopts:
         hgopts = options.hgopts.split()
-    
+
     if not os.path.exists(fulldir):
         fulldir = os.path.join(topsrcdir, dir)
         check_call_noisy([hg, 'clone'] + hgcloneopts + hgopts + [repository, fulldir],
