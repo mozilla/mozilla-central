@@ -289,6 +289,7 @@ def do_hg_pull(dir, repository, hg, rev):
     if options.verbose:
         cmd.append('-v')
     # Explicitly never retry 'hg update': otherwise any merge failures are ignored.
+    # This command is local: a failure can't be caused by a network error.
     check_call_noisy(cmd, retryMax=0)
 
     check_call([hg, 'parent', '-R', fulldir,
@@ -301,18 +302,14 @@ def do_cvs_checkout(modules, tag, cvsroot, cvs, checkoutdir):
     for module in modules:
         (parent, leaf) = os.path.split(module)
         print "CVS checkout begin: " + datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-        if tag == 'HEAD':
-            check_call_noisy([cvs, '-d', cvsroot, '-q',
-                              'checkout', '-P', '-A', '-d', leaf,
-                              'mozilla/%s' % module],
-                             cwd=os.path.join(topsrcdir, checkoutdir, parent),
-                             retryMax=options.retries)
-        else:
-            check_call_noisy([cvs, '-d', cvsroot, '-q',
-                              'checkout', '-P', '-r', tag, '-d', leaf,
-                              'mozilla/%s' % module],
-                             cwd=os.path.join(topsrcdir, checkoutdir, parent),
-                             retryMax=options.retries)
+        revopt = ((tag == 'HEAD') and ['-A']) or ['-r', tag]
+        # Explicitly never retry 'cvs checkout': otherwise any merge failures are ignored.
+        # No way to tell whether a failure is caused by a network error or a local conflict: better be safe.
+        check_call_noisy([cvs, '-d', cvsroot, '-q',
+                          'checkout', '-P'] + revopt + ['-d', leaf,
+                          'mozilla/%s' % module],
+                         retryMax=0,
+                         cwd=os.path.join(topsrcdir, checkoutdir, parent))
         print "CVS checkout end: " + datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
 
 def check_retries_option(option, opt_str, value, parser):
