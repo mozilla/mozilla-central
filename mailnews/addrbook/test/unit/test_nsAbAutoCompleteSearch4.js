@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
  * Fourth Test suite for nsAbAutoCompleteSearch - test for second email address.
  */
@@ -6,39 +5,71 @@
 const ACR = Components.interfaces.nsIAutoCompleteResult;
 
 const cards = [
-  { email: "primary@invalid.com", secondEmail: "second@invalid.com",
+  // Basic tests for primary and secondary emails.
+  { email: "primary@test.invalid", secondEmail: "second@test.invalid",
     firstName: "" },
-  { email: "test1@invalid.com", secondEmail: "test2@invalid.com",
+  { email: "test1@test.invalid", secondEmail: "test2@test.invalid",
     firstName: "firstName" },
-  { email: "bar1@invalid.com", secondEmail: "bar2@invalid.com",
+  { email: "bar1@test.invalid", secondEmail: "bar2@test.invalid",
     firstName: "sweet" },
-  { email: "boo1@invalid.com", secondEmail: "boo2@invalid.com",
+  { email: "boo1@test.invalid", secondEmail: "boo2@test.invalid",
     firstName: "sample" },
-  { email: "name@invalid.com", secondEmail: "thename@invalid.com",
-    firstName: "thename" }
+  { email: "name@test.invalid", secondEmail: "thename@test.invalid",
+    firstName: "thename" },
+  // Test to check correct sorting of primary and secondary emails.
+  { email: "foo_b@test.invalid", secondEmail: "foo_a@test.invalid",
+    displayName: "sortbasic" },
+  { email: "d@test.invalid", secondEmail: "e@test.invalid",
+    displayName: "testsort" },
+  { email: "c@test.invalid", secondEmail: "a@test.invalid",
+    displayName: "testsort" },
+  // "2testsort" does the same as "testsort" but turns the cards around to
+  // ensure the order is always consistent.
+  { email: "c@test.invalid", secondEmail: "a@test.invalid",
+    displayName: "2testsort" },
+  { email: "d@test.invalid", secondEmail: "e@test.invalid",
+    displayName: "2testsort" },
+  { email: "g@test.invalid", secondEmail: "f@test.invalid",
+    displayName: "3testsort", popularityIndex: 3 },
+  { email: "j@test.invalid", secondEmail: "h@test.invalid",
+    displayName: "3testsort", popularityIndex: 5 }
 ];
 
 // These are for the initial search
-const searches = [ "primary", "second", "firstName", "thename" ];
+const searches = [ "primary", "second", "firstName", "thename", "sortbasic",
+                   "testsort", "2testsort", "3testsort" ];
 
-const expectedResults = [ [ "primary@invalid.com" ],
-                          [ "second@invalid.com" ],
-                          [ "test1@invalid.com",
-                            "test2@invalid.com" ],
-                          [ "name@invalid.com",
-                            "thename@invalid.com" ],
-                          ];
+const expectedResults = [ [ "primary@test.invalid" ],
+                          [ "second@test.invalid" ],
+                          [ "test1@test.invalid",
+                            "test2@test.invalid" ],
+                          [ "name@test.invalid",
+                            "thename@test.invalid" ],
+                          [ "sortbasic <foo_b@test.invalid>",
+                            "sortbasic <foo_a@test.invalid>" ],
+                          [ "testsort <c@test.invalid>",
+                            "testsort <a@test.invalid>",
+                            "testsort <d@test.invalid>",
+                            "testsort <e@test.invalid>" ],
+                          [ "2testsort <c@test.invalid>",
+                            "2testsort <a@test.invalid>",
+                            "2testsort <d@test.invalid>",
+                            "2testsort <e@test.invalid>" ],
+                          [ "3testsort <j@test.invalid>",
+                            "3testsort <h@test.invalid>",
+                            "3testsort <g@test.invalid>",
+                            "3testsort <f@test.invalid>" ] ];
 
 // These are for subsequent searches - reducing the number of results.
 const reductionSearches = [ "b", "bo", "boo2" ];
 
-const reductionExpectedResults = [ [ "bar1@invalid.com",
-                                     "bar2@invalid.com",
-                                     "boo1@invalid.com",
-                                     "boo2@invalid.com" ],
-                                   [ "boo1@invalid.com",
-                                     "boo2@invalid.com" ],
-                                   [ "boo2@invalid.com" ] ];
+const reductionExpectedResults = [ [ "bar1@test.invalid",
+                                     "bar2@test.invalid",
+                                     "boo1@test.invalid",
+                                     "boo2@test.invalid" ],
+                                   [ "boo1@test.invalid",
+                                     "boo2@test.invalid" ],
+                                   [ "boo2@test.invalid" ] ];
 
 function acObserver() {}
 

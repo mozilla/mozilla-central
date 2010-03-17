@@ -173,15 +173,15 @@ nsAbAutoCompleteSearch.prototype = {
 
       if (card instanceof Components.interfaces.nsIAbCard) {
         if (card.isMailList)
-          this._addToResult(commentColumn, directory, card, "", result);
+          this._addToResult(commentColumn, directory, card, "", true, result);
         else {
           let email = card.primaryEmail;
           if (email)
-            this._addToResult(commentColumn, directory, card, email, result);
+            this._addToResult(commentColumn, directory, card, email, true, result);
 
           email = card.getProperty("SecondEmail", "");
           if (email)
-            this._addToResult(commentColumn, directory, card, email, result);
+            this._addToResult(commentColumn, directory, card, email, false, result);
         }
       }
     }
@@ -212,17 +212,17 @@ nsAbAutoCompleteSearch.prototype = {
 
       if (card instanceof Components.interfaces.nsIAbCard) {
         if (card.isMailList)
-          this._addToResult(commentColumn, directory, card, "", result);
+          this._addToResult(commentColumn, directory, card, "", false, result);
         else {
           let email = card.primaryEmail;
           if (email && email.toLocaleLowerCase()
                             .lastIndexOf(fullString, 0) == 0)
-            this._addToResult(commentColumn, directory, card, email, result);
+            this._addToResult(commentColumn, directory, card, email, true, result);
 
           email = card.getProperty("SecondEmail", "");
           if (email && email.toLocaleLowerCase()
                             .lastIndexOf(fullString, 0) == 0)
-            this._addToResult(commentColumn, directory, card, email, result);
+            this._addToResult(commentColumn, directory, card, email, false, result);
         }
       }
     }
@@ -316,10 +316,12 @@ nsAbAutoCompleteSearch.prototype = {
    * @param card           The card being added to the results.
    * @param emailToUse     The email address from the card that should be used
    *                       for this result.
+   * @param isPrimaryEmail Is the emailToUse the primary email? Set to true if
+   *                       it is the case. For mailing lists set it to true.
    * @param result         The result to add the new entry to.
    */
   _addToResult: function _addToResult(commentColumn, directory, card,
-                                      emailToUse, result) {
+                                      emailToUse, isPrimaryEmail, result) {
     var emailAddress =
       this._parser.makeFullAddress(card.displayName,
                                    card.isMailList ?
@@ -350,7 +352,9 @@ nsAbAutoCompleteSearch.prototype = {
     while (insertPosition < result._searchResults.length &&
            cardPopularityIndex ==
            result._searchResults[insertPosition].popularity &&
-           emailAddress > result._searchResults[insertPosition].value)
+           ((card == result._searchResults[insertPosition].card &&
+             !isPrimaryEmail) ||
+            emailAddress > result._searchResults[insertPosition].value))
       ++insertPosition;
 
     result._searchResults.splice(insertPosition, 0, {
