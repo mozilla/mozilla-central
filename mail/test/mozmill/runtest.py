@@ -226,7 +226,7 @@ class ThunderTestRunner(mozrunner.ThunderbirdRunner):
             return mozrunner.ThunderbirdRunner.wait(self, timeout)
         finally:
             try:
-                if self.vnc_alive:
+                if self.use_vnc_server and self.vnc_alive:
                     subprocess.check_call([self.VNC_SERVER_PATH,
                                            '-kill', ':99'])
             except Exception, ex:
