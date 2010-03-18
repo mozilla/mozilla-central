@@ -105,9 +105,6 @@ pref("app.update.url.details", "http://www.mozillamessaging.com/%LOCALE%/%APP%/r
 // User-settable override to app.update.url for testing purposes.
 //pref("app.update.url.override", "");
 
-// Interval: Time between checks for a new version (in seconds)
-//           default=1 day
-pref("app.update.interval", 86400);
 // Interval: Time before prompting the user again to restart to install the
 //           latest download (in seconds) default=1 day
 pref("app.update.nagTimer.restart", 86400);
