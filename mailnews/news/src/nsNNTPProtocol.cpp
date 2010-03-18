@@ -4103,13 +4103,15 @@ reported here */
   if (NS_FAILED(rv) || requireConfirmationForCancel) {
     /* Last chance to cancel the cancel.*/
     GetNewsStringByName("cancelConfirm", getter_Copies(confirmText));
-    rv = dialog->Confirm(nsnull, confirmText.get(), &confirmCancelResult);
-    // XXX:  todo, check rv?
+    rv = dialog->ConfirmEx(nsnull, confirmText.get(), nsIPrompt::STD_YES_NO_BUTTONS,
+                           nsnull, nsnull, nsnull, nsnull, nsnull, &confirmCancelResult);
+    if (NS_FAILED(rv))
+    	confirmCancelResult = 1; // Default to No.
   }
   else
-    confirmCancelResult = 1;
-
-  if (confirmCancelResult != 1) {
+    confirmCancelResult = 0; // Default to Yes.
+    
+  if (confirmCancelResult != 0) {
       // they cancelled the cancel
       status = MK_NNTP_NOT_CANCELLED;
       failure = PR_TRUE;
