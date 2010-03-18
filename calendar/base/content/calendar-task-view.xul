@@ -188,13 +188,16 @@
           <hbox id="calendar-task-details-attachment-row"
                align="top"
                hidden="true">
-            <label value="&event.attachments.label;"
-                   class="task-details-name"/>
-            <label id="calendar-task-details-attachment"
-                   class="text-link"
-                   crop="end"
-                   flex="1"
-                   onclick="launchBrowser(this.value)"/>
+            <hbox pack="end">
+              <label value="&calendar.task-details.attachments.label;"
+                     class="task-details-name"/>
+            </hbox>
+            <vbox id="calendar-task-details-attachment-rows"
+                  align="top"
+                  flex="1"
+                  style="overflow: auto;"
+                  hidden="true">
+            </vbox>
           </hbox>
         </vbox>
       </vbox>

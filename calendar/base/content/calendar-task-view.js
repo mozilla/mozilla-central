@@ -153,11 +153,21 @@ var taskDetailsView = {
             var description = item.hasProperty("DESCRIPTION") ? item.getProperty("DESCRIPTION") : null;
             textbox.value = description;
             textbox.inputField.readOnly = true;
-            var gURL = item.getProperty("URL");
-            if (displayElement("calendar-task-details-attachment-row", gURL && gURL.length)) {
-                var urlLabel = document.getElementById("calendar-task-details-attachment");
-                urlLabel.value = gURL;
-                urlLabel.setAttribute("tooltiptext", gURL);
+            let attachmentRows = document.getElementById("calendar-task-details-attachment-rows");
+            removeChildren(attachmentRows);
+            let attachments = item.getAttachments({});
+            if (displayElement("calendar-task-details-attachment-row", attachments.length > 0)) {
+                displayElement("calendar-task-details-attachment-rows", true);
+                for each (let attachment in attachments) {
+                    let url = attachment.calIAttachment.uri.spec
+                    let urlLabel = createXULElement("label");
+                    urlLabel.setAttribute("value", url);
+                    urlLabel.setAttribute("tooltiptext", url);
+                    urlLabel.setAttribute("class", "text-link");
+                    urlLabel.setAttribute("crop", "end");
+                    urlLabel.setAttribute("onclick", "launchBrowser(this.value)");
+                    attachmentRows.appendChild(urlLabel);
+                }
             }
         }
     }

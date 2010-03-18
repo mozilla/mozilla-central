@@ -44,7 +44,8 @@
     overflow: hidden;
 }
 
-#calendar-header-name-column {
+#calendar-header-name-column,
+#calendar-task-details-attachment-row > hbox {
     width: 7em;
 }
 
@@ -83,7 +84,14 @@
     color: #888a85; /* lower contrast */
 }
 
-#calendar-task-details-attachment,
+#calendar-task-details-attachment-row {
+    margin-top: 3px;
+}
+
+#calendar-task-details-attachment-rows {
+    max-height: 60px;
+}
+
 .task-details-value {
     text-align: left;
     background-color: transparent;
