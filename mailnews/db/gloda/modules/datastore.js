@@ -569,7 +569,7 @@ var GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 19,
+  _schemaVersion: 20,
   _schema: {
     tables: {
 
@@ -1110,20 +1110,25 @@ var GlodaDatastore = {
     // version 19
     // - there was a typo that was resulting in deleted getting set to the
     //  numeric value of the javascript undefined value.  (migrate-able)
+    // version 20
+    // - tokenizer changes to provide for case/accent-folding. (blow away)
 
-    // 1) Blow away if it's old enough that we can't patch things up below.
-    // 2) Blow away if it's from the future.
-    if (aCurVersion < 18 || aCurVersion > aNewVersion) {
+    // If it's not the current version, we must blow it away.
+    if (aCurVersion != aNewVersion) {
       aDBConnection.close();
       aDBFile.remove(false);
       this._log.warn("Global database has been purged due to schema change.");
       return this._createDB(aDBService, aDBFile);
     }
 
+    // Let's leave this code around as a template for the next time we can
+    // migrate stuff.
+    /*
     this._log.warn("Global database performing schema update.");
     // version 19
     aDBConnection.executeSimpleSQL("UPDATE messages set deleted = 1 WHERE " +
                                    "deleted < 0 or deleted > 1");
+    */
 
     aDBConnection.schemaVersion = aNewVersion;
     return aDBConnection;

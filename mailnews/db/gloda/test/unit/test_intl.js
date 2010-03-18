@@ -52,7 +52,7 @@ load("resources/glodaTestHelper.js");
  * To make the encoding pairs:
  * - For the subject bit:
  *   import email
- *   h = email.header.Header(charset=CHARSET)
+ *   h = email.Header.Header(charset=CHARSET)
  *   h.append(STRING)
  *   h.encode()
  * - For the body bit
@@ -140,6 +140,37 @@ var intlPhrases = [
     },
     searchPhrases: [
       {body: "\u043d\u043e\u0432\u043e\u0435", match: true},
+    ]
+  },
+  // case-folding happens after decomposition
+  {
+    name: "Awesome where A has a bar over it",
+    actual: "\u0100wesome",
+    encodings: {
+      "utf-8": ["=?utf-8?q?=C4=80wesome?=",
+                "\xc4\x80wesome"]
+    },
+    searchPhrases: [
+      {body: "\u0100wesome", match: true}, // upper A-bar
+      {body: "\u0101wesome", match: true}, // lower a-bar
+      {body: "Awesome", match: true}, // upper A
+      {body: "awesome", match: true}, // lower a
+    ]
+  },
+  // deep decomposition happens and after that, case folding
+  {
+    name: "Upper case upsilon with diaeresis and hook goes to small upsilon",
+    actual: "\u03d4esterday",
+    encodings: {
+      "utf-8": ["=?utf-8?q?=CF=94esterday?=",
+                "\xcf\x94esterday"]
+    },
+    searchPhrases: [
+      {body: "\u03d4esterday", match: true}, // Y_: 03d4 => 03d2 (decomposed)
+      {body: "\u03d3esterday", match: true}, // Y_' 03d3 => 03d2 (decomposed)
+      {body: "\u03d2esterday", match: true}, // Y_  03d2 => 03a5 (decomposed)
+      {body: "\u03a5esterday", match: true}, // Y   03a5 => 03c5 (lowercase)
+      {body: "\u03c5esterday", match: true}, // y   03c5 (final state)
     ]
   },
   // full-width alphabet

@@ -83,6 +83,15 @@ static const unsigned char sqlite3Utf8Trans1[] = {
 
 typedef unsigned char u8;
 
+/**
+ * SQLite helper macro from sqlite3.c (really utf.c) to encode a unicode
+ * character into utf8.
+ *
+ * @param zOut A pointer to the current write position that is updated by
+ *     the routine.  At entry it should point to one-past the last valid
+ *     encoded byte.  The same holds true at exit.
+ * @param c The character to encode; this should be an unsigned int.
+ */
 #define WRITE_UTF8(zOut, c) {                          \
   if( c<0x0080 ){                                      \
     *zOut++ = (u8)(c&0xff);                            \
@@ -104,6 +113,21 @@ typedef unsigned char u8;
 }
 
 /**
+ * Fudge factor to avoid buffer overwrites when WRITE_UTF8 is involved.
+ *
+ * Our normalization table includes entries that may result in a larger
+ *  utf-8 encoding.  Namely, 023a maps to 2c65.  This is a growth from 2 bytes
+ *  as utf-8 encoded to 3 bytes.  This is currently the only transition possible
+ *  because 1-byte encodings are known to stay 1-byte and our normalization
+ *  table is 16-bit and so can't generate a 4-byte encoded output.
+ *
+ * For simplicity, we just multiple by 2 which covers the current case and
+ *  potential growth for 2-byte to 4-byte growth.  We can afford to do this
+ *  because we're not talking about a lot of memory here as a rule.
+ */
+#define MAX_UTF8_GROWTH_FACTOR 2
+
+/**
  * Helper from sqlite3.c to read a single UTF8 character.
  *
  * The clever bit with multi-byte reading is that you keep going until you find
@@ -121,7 +145,7 @@ typedef unsigned char u8;
  * @param c The 'unsigned int' to hold the resulting character value.  Do not
  *      use a short or a char.
  */
-#define READ_UTF8(zIn, zTerm, c)                           \
+#define READ_UTF8(zIn, zTerm, c) {                         \
   c = *(zIn++);                                            \
   if( c>=0xc0 ){                                           \
     c = sqlite3Utf8Trans1[c-0xc0];                         \
@@ -131,7 +155,8 @@ typedef unsigned char u8;
     if( c<0x80                                             \
         || (c&0xFFFFF800)==0xD800                          \
         || (c&0xFFFFFFFE)==0xFFFE ){  c = 0xFFFD; }        \
-  }
+  }                                                        \
+}
 
 /* end of compatible block to complie codes */
 
@@ -151,7 +176,7 @@ typedef struct porter_tokenizer_cursor {
   int nInput;                  /* size of the input */
   int iOffset;                 /* current position in zInput */
   int iToken;                  /* index of next token to be returned */
-  char *zToken;                /* storage for current token */
+  unsigned char *zToken;       /* storage for current token */
   int nAllocated;              /* space allocated to zToken buffer */
   /**
    * Store the offset of the second character in the bi-gram pair that we just
@@ -407,6 +432,12 @@ static int stem(
   return 1;
 }
 
+/**
+ * Voiced sound mark is only on Japanese.  It is like accent.  It combines with
+ * previous character.  Example, "サ" (Katakana) with "゛" (voiced sound mark) is
+ * "ザ".  Although full-width character mapping has combined character like "ザ",
+ * there is no combined character on half-width Katanaka character mapping.
+ */
 static int isVoicedSoundMark(const unsigned int c)
 {
   if (c == 0xff9e || c == 0xff9f || c == 0x3099 || c == 0x309a)
@@ -414,48 +445,89 @@ static int isVoicedSoundMark(const unsigned int c)
   return 0;
 }
 
-/*
-** This is the fallback stemmer used when the porter stemmer is
-** inappropriate.  The input word is copied into the output with
-** US-ASCII case folding.  If the input word is too long (more
-** than 20 bytes if it contains no digits or more than 6 bytes if
-** it contains digits) then word is truncated to 20 or 6 bytes
-** by taking 10 or 3 bytes from the beginning and end.
-**
-** Note:
-** This is UTF-8 safe-ish.  If truncation occurs bytes can get mashed together
-** in ways that produce illegal UTF-8.  The resulting mashed-up byte strings
-** will not be directly exposed to the user and will not do anything dangerous,
-** but could result in confusing behavior if queries using wildcard support
-** ("*") are involved.  This is sufficiently harmless that we're not going to
-** worry about it for now.
-*/
-static void copy_stemmer(const unsigned char *zIn, const int nIn, unsigned char *zOut, int *pnOut){
-  int i, mx;
-  int hasDigit = 0;
-  const unsigned char *zInTerm = zIn + nIn;
+/**
+ * How many unicode characters to take from the front and back of a term in
+ * |copy_stemmer|.
+ */
+#define COPY_STEMMER_COPY_HALF_LEN 10
+
+/**
+ * Normalizing but non-stemming term copying.
+ *
+ * The original function would take 10 bytes from the front and 10 bytes from
+ * the back if there were no digits in the string and it was more than 20
+ * bytes long.  If there were digits involved that would decrease to 3 bytes
+ * from the front and 3 from the back.  This would potentially corrupt utf-8
+ * encoded characters, which is fine from the perspective of the FTS3 logic.
+ *
+ * In our revised form we now operate on a unicode character basis rather than
+ * a byte basis.  Additionally we use the same length limit even if there are
+ * digits involved because it's not clear digit token-space reduction is saving
+ * us from anything and could be hurting.  Specifically, if no one is ever
+ * going to search on things with digits, then we should just remove them.
+ * Right now, the space reduction is going to increase false positives when
+ * people do search on them and increase the number of collisions sufficiently
+ * to make it really expensive.  The caveat is there will be some increase in
+ * index size which could be meaningful if people are receiving lots of emails
+ * full of distinct numbers.
+ *
+ * In order to do the copy-from-the-front and copy-from-the-back trick, once
+ * we reach N characters in, we set zFrontEnd to the current value of zOut
+ * (which represents the termination of the first part of the result string)
+ * and set zBackStart to the value of zOutStart.  We then advanced zBackStart
+ * along a character at a time as we write more characters.  Once we have
+ * traversed the entire string, if zBackStart > zFrontEnd, then we know
+ * the string should be shrunk using the characters in the two ranges.
+ *
+ * (It would be faster to scan from the back with specialized logic but that
+ * particular logic seems easy to screw up and we don't have unit tests in here
+ * to the extent required.)
+ *
+ * @param zIn Input string to normalize and potentially shrink.
+ * @param nBytesIn The number of bytes in zIn, distinct from the number of
+ *     unicode characters encoded in zIn.
+ * @param zOut The string to write our output into.  This must have at least
+ *     nBytesIn * MAX_UTF8_GROWTH_FACTOR in order to compensate for
+ *     normalization that results in a larger utf-8 encoding.
+ * @param pnBytesOut Integer to write the number of bytes in zOut into.
+ */
+static void copy_stemmer(const unsigned char *zIn, const int nBytesIn,
+                         unsigned char *zOut, int *pnBytesOut){
+  const unsigned char *zInTerm = zIn + nBytesIn;
   unsigned char *zOutStart = zOut;
   unsigned int c;
+  unsigned int charCount = 0;
+  unsigned char *zFrontEnd = NULL, *zBackStart = NULL;
+  unsigned int trashC;
 
   /* copy normalized character */
   while (zIn < zInTerm) {
     READ_UTF8(zIn, zInTerm, c);
     c = normalize_character(c);
+
     /* ignore voiced/semi-voiced sound mark */
     if (!isVoicedSoundMark(c)) {
-      if( c>='0' && c<='9' ) hasDigit = 1;
+      /* advance one non-voiced sound mark character. */
+      if (zBackStart)
+        READ_UTF8(zBackStart, zOut, trashC);
+
       WRITE_UTF8(zOut, c);
+      charCount++;
+      if (charCount == COPY_STEMMER_COPY_HALF_LEN) {
+        zFrontEnd = zOut;
+        zBackStart = zOutStart;
+      }
     }
   }
-  mx = hasDigit ? 3 : 10;
-  if ((zOut - zOutStart) > mx * 2) {
-    zOut = zOutStart + mx;
-    for (i = nIn - mx; i < nIn; i++) {
-      *zOut++ = zOutStart[i];
-    }
+
+  /* if we need to shrink the string, transplant the back bytes */
+  if (zBackStart > zFrontEnd) { /* this handles when both are null too */
+    size_t backBytes = zOut - zBackStart;
+    memmove(zFrontEnd, zBackStart, backBytes);
+    zOut = zFrontEnd + backBytes;
   }
   *zOut = 0;
-  *pnOut = zOut - zOutStart;
+  *pnBytesOut = zOut - zOutStart;
 }
 
 
@@ -482,7 +554,7 @@ static void copy_stemmer(const unsigned char *zIn, const int nIn, unsigned char 
 ** Stemming never increases the length of the word.  So there is
 ** no chance of overflowing the zOut buffer.
 */
-static void porter_stemmer(const unsigned char *zIn, unsigned int nIn, char *zOut, int *pnOut){
+static void porter_stemmer(const unsigned char *zIn, unsigned int nIn, unsigned char *zOut, int *pnOut){
   unsigned int i, j, c;
   char zReverse[28];
   char *z, *z2;
@@ -863,10 +935,10 @@ static int isDelim(
  *    result inclusions in the search results.  We accept this result because
  *    there's not a lot we can do about it and false positives are much
  *    better than false negatives.
- * - A copied token; ASCII case-folded but not stemmed.  We call the porter
+ * - A copied token; case/accent-folded but not stemmed.  We call the porter
  *    stemmer for all non-CJK cases and it diverts to the copy stemmer if it
- *    sees any non-ASCII characters or the string is too long.  The copy
- *    stemmer will truncate the string if it is deemed too long.
+ *    sees any non-ASCII characters (after folding) or if the string is too
+ *    long.  The copy stemmer will shrink the string if it is deemed too long.
  * - A bi-gram token; two CJK-ish characters.  For query reasons we generate a
  *    series of overlapping bi-grams.  (We can't require the user to start their
  *    search based on the arbitrary context of the indexed documents.)
@@ -1014,8 +1086,8 @@ static int porterNext(
       /* figure out the number of bytes to copy/stem */
       int n = c->iOffset - iStartOffset;
       /* make sure there is enough buffer space */
-      if (n > c->nAllocated) {
-        c->nAllocated = n + 20;
+      if (n * MAX_UTF8_GROWTH_FACTOR > c->nAllocated) {
+        c->nAllocated = n * MAX_UTF8_GROWTH_FACTOR + 20;
         c->zToken = sqlite3_realloc(c->zToken, c->nAllocated);
         if (c->zToken == NULL)
           return SQLITE_NOMEM;

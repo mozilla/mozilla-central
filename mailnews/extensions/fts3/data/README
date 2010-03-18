@@ -1,0 +1,5 @@
+The data files in this directory come from the ICU project:
+http://bugs.icu-project.org/trac/browser/icu/trunk/source/data/unidata/norm2
+
+They are intended to be consumed by the ICU project's gennorm2 script.  We have
+our own script that processes them.
