@@ -101,7 +101,8 @@
                   <hbox align="center">
                     <label accesskey="&defaultFont.accesskey;"
                            control="defaultFont">&defaultFont.label;</label>
-                    <menulist id="defaultFont" flex="1" sizetopopup="false"/>
+                    <menulist id="defaultFont" flex="1" sizetopopup="false"
+                              onsyncfrompreference="return gDisplayPane.readFontSelection()"/>
                     <label accesskey="&defaultSize.accesskey;"
                            control="defaultFontSize">&defaultSize.label;</label>
                     <menulist id="defaultFontSize">

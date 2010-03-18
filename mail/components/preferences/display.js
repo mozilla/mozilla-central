@@ -1,40 +1,41 @@
-# -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 4 -*-
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is the Thunderbird Preferences System.
-#
-# The Initial Developer of the Original Code is
-# Scott MacGregor.
-# Portions created by the Initial Developer are Copyright (C) 2005
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   Scott MacGregor <mscott@mozilla.org>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+/* -*- Mode: JavaScript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is the Thunderbird Preferences System.
+ *
+ * The Initial Developer of the Original Code is
+ * Scott MacGregor.
+ * Portions created by the Initial Developer are Copyright (C) 2005
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Scott MacGregor <mscott@mozilla.org>
+ *   Siddharth Agarwal <sid.bugzilla@gmail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 var gDisplayPane = {
   mInitialized: false,
@@ -82,13 +83,15 @@ var gDisplayPane = {
     const kFontNameListFmtSansSerif = "font.name-list.sans-serif.%LANG%";
     const kFontSizeFmtVariable      = "font.size.variable.%LANG%";
 
-    var prefs = [{format: aIsSerif ? kFontNameFmtSerif : kFontNameFmtSansSerif,
-                  type: "fontname",
-                  element: "defaultFont",
-                  fonttype: aIsSerif ? "serif" : "sans-serif" },
-                 {format: aIsSerif ? kFontNameListFmtSerif : kFontNameListFmtSansSerif,
+    // Make sure font.name-list is created before font.name so that it's
+    // available at the time readFontSelection below is called.
+    var prefs = [{format: aIsSerif ? kFontNameListFmtSerif : kFontNameListFmtSansSerif,
                   type: "unichar",
                   element: null,
+                  fonttype: aIsSerif ? "serif" : "sans-serif" },
+                 {format: aIsSerif ? kFontNameFmtSerif : kFontNameFmtSansSerif,
+                  type: "fontname",
+                  element: "defaultFont",
                   fonttype: aIsSerif ? "serif" : "sans-serif" },
                  {format: kFontSizeFmtVariable,
                   type: "int",
@@ -113,10 +116,14 @@ var gDisplayPane = {
 
       var element = document.getElementById(prefs[i].element);
       if (element) {
-        element.setAttribute("preference", preference.id);
-
+        // Make sure we have the font list ready for readFontSelection below to
+        // work. readFontSelection gets called at onsyncfrompreference, but the
+        // exact semantics of when it is called (whether during setAttribute or
+        // during setElementValue) aren't obvious.
         if (prefs[i].fonttype)
           FontBuilder.buildFontList(aLanguageGroup, prefs[i].fonttype, element);
+
+        element.setAttribute("preference", preference.id);
 
         preference.setElementValue(element);
       }
@@ -141,6 +148,43 @@ var gDisplayPane = {
       document.getElementById("displayPreferences").appendChild(preference);
     }
     return preference.value;
+  },
+
+  /**
+   * Determine the appropriate value to select for defaultFont, for the
+   * following cases:
+   * - there is no setting
+   * - the font selected by the user is no longer present (e.g. deleted from
+   *   fonts folder)
+   */
+  readFontSelection: function gDisplayPane_readFontSelection()
+  {
+    let element = document.getElementById("defaultFont");
+    let preference = document.getElementById(element.getAttribute("preference"));
+    if (preference.value) {
+      var fontItems = element.getElementsByAttribute("value", preference.value);
+
+      // There is a setting that actually is in the list. Respect it.
+      if (fontItems.length > 0)
+        return undefined;
+    }
+
+    let defaultValue = element.firstChild.firstChild.getAttribute("value");
+    let languagePref = document.getElementById("font.language.group");
+    let defaultType = this._readDefaultFontTypeForLanguage(languagePref.value);
+    let listPref = document.getElementById("font.name-list." + defaultType +
+                                           "." + languagePref.value);
+    if (!listPref)
+      return defaultValue;
+
+    let fontNames = listPref.value.split(",");
+
+    for (let [, fontName] in Iterator(fontNames)) {
+      let fontItems = element.getElementsByAttribute("value", fontName.trim());
+      if (fontItems.length)
+        return fontItems[0].getAttribute("value");
+    }
+    return defaultValue;
   },
 
   tabSelectionChanged: function ()

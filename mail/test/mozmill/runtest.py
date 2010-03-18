@@ -62,6 +62,7 @@ except ImportError:
     import automation
 from automationutils import checkForCrashes
 from time import sleep
+import imp
 
 PROFILE_DIR = os.path.join(SCRIPT_DIRECTORY, 'mozmillprofile')
 SYMBOLS_PATH = None
@@ -69,6 +70,14 @@ SYMBOLS_PATH = None
 # because we know that we run MozMill only once per process. This needs to be
 # fixed if that ever changes.
 TEST_NAME = None
+
+# The name of the (optional) module that tests can define as a wrapper (e.g. to
+# run before Thunderbird is started)
+WRAPPER_MODULE_NAME = "wrapper"
+
+# The wrapper module (if any) for the test. Just like TEST_NAME, this breaks any
+# semblance of modularity.
+wrapper = None
 
 # We need this because rmtree-ing read-only files fails on Windows
 def rmtree_onerror(func, path, exc_info):
@@ -170,6 +179,10 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
             shutil.rmtree(PROFILE_DIR, onerror=rmtree_onerror)
         os.makedirs(PROFILE_DIR)
 
+        # If there's a wrapper, call it
+        if wrapper is not None:
+            wrapper.on_profile_created(PROFILE_DIR)
+
         return PROFILE_DIR
 
     def cleanup(self):
@@ -250,12 +263,36 @@ class ThunderTestCLI(mozmill.CLI):
         jsbridge.CLI.__init__(self, *args, **kwargs)
         SYMBOLS_PATH = self.options.symbols
         TEST_NAME = os.path.basename(self.options.test)
+
+        self._load_wrapper()
+
         self.mozmill = self.mozmill_class(runner_class=self.runner_class,
                                           profile_class=self.profile_class,
                                           jsbridge_port=int(self.options.port))
 
         self.mozmill.add_global_listener(mozmill.LoggerListener())
 
+    def _load_wrapper(self):
+        global wrapper
+        """
+        Load the wrapper module if it is present in the test directory.
+        """
+        if os.path.isdir(self.options.test):
+            testdir = self.options.test
+        else:
+            testdir = os.path.dirname(self.options.test)
+
+        try:
+            (fd, path, desc) = imp.find_module(WRAPPER_MODULE_NAME, [testdir])
+        except ImportError:
+            # No wrapper module, which is fine.
+            pass
+        else:
+            try:
+                wrapper = imp.load_module(WRAPPER_MODULE_NAME, fd, path, desc)
+            finally:
+                if fd is not None:
+                    fd.close()
 
 TEST_RESULTS = []
 # override mozmill's default logging case, which I hate.
