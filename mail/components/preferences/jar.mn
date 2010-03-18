@@ -3,7 +3,7 @@ messenger.jar:
 *   content/messenger/preferences/general.xul
 *   content/messenger/preferences/general.js
 *   content/messenger/preferences/display.xul
-*   content/messenger/preferences/display.js
+    content/messenger/preferences/display.js
 *   content/messenger/preferences/compose.xul
 *   content/messenger/preferences/compose.js
 *   content/messenger/preferences/sendoptions.xul
@@ -27,7 +27,7 @@ messenger.jar:
 *   content/messenger/preferences/handlers.xml
 *   content/messenger/preferences/handlers.css
 *   content/messenger/preferences/actionsshared.js
-*   content/messenger/preferences/fonts.js
+    content/messenger/preferences/fonts.js
 *   content/messenger/preferences/fonts.xul
 *   content/messenger/preferences/notifications.xul
 *   content/messenger/preferences/offline.xul
