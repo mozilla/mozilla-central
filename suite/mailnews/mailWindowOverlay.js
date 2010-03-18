@@ -1920,21 +1920,21 @@ function ChangeMailLayout(newLayout)
 function MsgViewAllHeaders()
 {
     gPrefBranch.setIntPref("mail.show_headers",2);
-    MsgReload();
+    ReloadMessage();
     return true;
 }
 
 function MsgViewNormalHeaders()
 {
     gPrefBranch.setIntPref("mail.show_headers",1);
-    MsgReload();
+    ReloadMessage();
     return true;
 }
 
 function MsgViewBriefHeaders()
 {
     gPrefBranch.setIntPref("mail.show_headers",0);
-    MsgReload();
+    ReloadMessage();
     return true;
 }
 
@@ -1943,7 +1943,7 @@ function MsgBodyAllowHTML()
     gPrefBranch.setBoolPref("mailnews.display.prefer_plaintext", false);
     gPrefBranch.setIntPref("mailnews.display.html_as", 0);
     gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers", 0);
-    MsgReload();
+    ReloadMessage();
     return true;
 }
 
@@ -1953,7 +1953,7 @@ function MsgBodySanitized()
     gPrefBranch.setIntPref("mailnews.display.html_as", 3);
     gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers",
                            disallow_classes_no_html);
-    MsgReload();
+    ReloadMessage();
     return true;
 }
 
@@ -1963,7 +1963,7 @@ function MsgBodyAsPlaintext()
     gPrefBranch.setIntPref("mailnews.display.html_as", 1);
     gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers",
                            disallow_classes_no_html);
-    MsgReload();
+    ReloadMessage();
     return true;
 }
 
@@ -2003,11 +2003,6 @@ function ToggleInlineAttachment(target)
     pref.setBoolPref("mail.inline_attachments", viewAttachmentInline)
     target.setAttribute("checked", viewAttachmentInline ? "true" : "false");
     
-    MsgReload();
-}
-
-function MsgReload()
-{
     ReloadMessage();
 }
 
@@ -2702,7 +2697,7 @@ function allowRemoteContentForSender()
 
   // reload the message if we've updated the remote content policy for the sender  
   if (allowRemoteContent)
-    MsgReload();
+    ReloadMessage();
 }
 
 function MsgIsNotAScam()
@@ -2723,7 +2718,7 @@ function setMsgHdrPropertyAndReload(aProperty, aValue)
   if (msgHdr)
   {
     msgHdr.setUint32Property(aProperty, aValue);
-    MsgReload();
+    ReloadMessage();
   }
 }
 

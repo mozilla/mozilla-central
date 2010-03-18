@@ -637,7 +637,7 @@ var DefaultController =
 				MsgFolderProperties();
 				return;
 			case "cmd_reload":
-				MsgReload();
+				ReloadMessage();
 				return;
 			case "cmd_find":
 				MsgFind();

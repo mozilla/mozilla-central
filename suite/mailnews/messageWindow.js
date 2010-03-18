@@ -911,7 +911,7 @@ var MessageWindowController =
 				MsgViewPageSource();
 				break;
 			case "cmd_reload":
-				MsgReload();
+				ReloadMessage();
 				break;
 			case "cmd_find":
 				MsgFind();

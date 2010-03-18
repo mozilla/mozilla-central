@@ -50,5 +50,5 @@ function MessengerSetForcedCharacterSet(aCharset)
 
   // DO NOT try to reload the message here. we do this automatically now in
   //  messenger.SetDocumentCharset. You'll just break things and reak havoc
-  // if you call MsgReload() here...
+  // if you call ReloadMessage() here...
 }

@@ -294,7 +294,7 @@ const MsgHdrViewObserver =
       if (prefName == "mail.showCondensedAddresses")
       {
         gShowCondensedEmailAddresses = pref.getBoolPref("mail.showCondensedAddresses");
-        MsgReload();
+        ReloadMessage();
       }
     }
   }
