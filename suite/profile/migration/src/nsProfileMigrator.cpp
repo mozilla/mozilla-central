@@ -177,95 +177,95 @@ nsProfileMigrator::GetSuiteMigratorKey(nsACString& aKey,
   NS_NAMED_LITERAL_STRING(kCommandKey,
                           "SOFTWARE\\Classes\\HTTP\\shell\\open\\command");
 
-  if (NS_FAILED(regKey->Open(nsIWindowsRegKey::ROOT_KEY_LOCAL_MACHINE,
-                             kCommandKey, nsIWindowsRegKey::ACCESS_READ)))
-    return NS_ERROR_FAILURE;
+  if (NS_SUCCEEDED(regKey->Open(nsIWindowsRegKey::ROOT_KEY_LOCAL_MACHINE,
+                                kCommandKey, nsIWindowsRegKey::ACCESS_READ))) {
 
-  nsAutoString value;
-  if (NS_FAILED(regKey->ReadStringValue(EmptyString(), value)))
-    return NS_ERROR_FAILURE;
+    nsAutoString value;
+    if (NS_FAILED(regKey->ReadStringValue(EmptyString(), value)))
+      return NS_ERROR_FAILURE;
 
-  PRInt32 len = value.Find(NS_LITERAL_STRING(".exe"), CaseInsensitiveCompare);
-  if (len == -1)
-    return NS_ERROR_FAILURE;
+    PRInt32 len = value.Find(NS_LITERAL_STRING(".exe"), CaseInsensitiveCompare);
+    if (len == -1)
+      return NS_ERROR_FAILURE;
 
-  // Move past ".exe"
-  len += 4;
+    // Move past ".exe"
+    len += 4;
 
-  PRUint32 start = 0;
-  // skip an opening quotation mark if present
-  if (value.get()[1] != ':') {
-    start = 1;
-    --len;
-  }
+    PRUint32 start = 0;
+    // skip an opening quotation mark if present
+    if (value.get()[1] != ':') {
+      start = 1;
+      --len;
+    }
 
-  const nsDependentSubstring filePath(Substring(value, start, len)); 
+    const nsDependentSubstring filePath(Substring(value, start, len)); 
 
-  // We want to find out what the default browser is but the path in and of
-  // itself isn't enough. Why? Because sometimes on Windows paths get truncated
-  // like so:
-  // C:\PROGRA~1\MOZILL~2\MOZILL~1.EXE
-  // How do we know what product that is? Mozilla or Mozilla Firebird? etc.
-  // Mozilla's file objects do nothing to 'normalize' the path so we need to
-  // attain an actual product descriptor from the file somehow, and in this
-  // case it means getting the "InternalName" field of the file's VERSIONINFO
-  // resource.
-  //
-  // In the file's resource segment there is a VERSIONINFO section that is laid
-  // out like this:
-  //
-  // VERSIONINFO
-  //   StringFileInfo
-  //     <TranslationID>
-  //       InternalName           "iexplore"
-  //   VarFileInfo
-  //     Translation              <TranslationID>
-  //
-  // By Querying the VERSIONINFO section for its Tranlations, we can find out
-  // where the InternalName lives. (A file can have more than one translation
-  // of its VERSIONINFO segment, but we just assume the first one).
-  nsCOMPtr<nsILocalFile> lf;
-  NS_NewLocalFile(filePath, PR_TRUE, getter_AddRefs(lf));
-  if (!lf)
-    return NS_ERROR_FAILURE;
+    // We want to find out what the default browser is but the path in and of
+    // itself isn't enough. Why? Because sometimes on Windows paths get
+    // truncated like so:
+    // C:\PROGRA~1\MOZILL~2\MOZILL~1.EXE
+    // How do we know what product that is? Mozilla or Mozilla Firebird? etc.
+    // Mozilla's file objects do nothing to 'normalize' the path so we need to
+    // attain an actual product descriptor from the file somehow, and in this
+    // case it means getting the "InternalName" field of the file's VERSIONINFO
+    // resource.
+    //
+    // In the file's resource segment there is a VERSIONINFO section that is
+    // laid out like this:
+    //
+    // VERSIONINFO
+    //   StringFileInfo
+    //     <TranslationID>
+    //       InternalName           "iexplore"
+    //   VarFileInfo
+    //     Translation              <TranslationID>
+    //
+    // By Querying the VERSIONINFO section for its Tranlations, we can find out
+    // where the InternalName lives. (A file can have more than one translation
+    // of its VERSIONINFO segment, but we just assume the first one).
+    nsCOMPtr<nsILocalFile> lf;
+    NS_NewLocalFile(filePath, PR_TRUE, getter_AddRefs(lf));
+    if (!lf)
+      return NS_ERROR_FAILURE;
 
-  nsCOMPtr<nsILocalFileWin> lfw = do_QueryInterface(lf);
-  if (!lfw)
-    return NS_ERROR_FAILURE;
+    nsCOMPtr<nsILocalFileWin> lfw = do_QueryInterface(lf);
+    if (!lfw)
+      return NS_ERROR_FAILURE;
 
-  nsAutoString internalName;
-  if (NS_FAILED(lfw->GetVersionInfoField("InternalName", internalName)))
-    return NS_ERROR_FAILURE;
+    nsAutoString internalName;
+    if (NS_FAILED(lfw->GetVersionInfoField("InternalName", internalName)))
+      return NS_ERROR_FAILURE;
 
-  if (!internalName.IsEmpty()) {
-    PRUint32 i;
-    for (i = 0; i < NS_ARRAY_LENGTH(nameMap); ++i) {
-      if (internalName.Equals(NS_ConvertUTF8toUTF16(nameMap[i].internalName),
-                              CaseInsensitiveCompare)) {
-        aKey.Assign(nameMap[i].key);
-        break;
+    if (!internalName.IsEmpty()) {
+      PRUint32 i;
+      for (i = 0; i < NS_ARRAY_LENGTH(nameMap); ++i) {
+        if (internalName.Equals(NS_ConvertUTF8toUTF16(nameMap[i].internalName),
+                                CaseInsensitiveCompare)) {
+          aKey.Assign(nameMap[i].key);
+          break;
+        }
       }
     }
-  }
 
-  if (!aKey.IsEmpty()) {
-    migratorID.AssignLiteral(NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX);
-    migratorID.Append(aKey);
-    result = do_CreateInstance(migratorID.get());
+    if (!aKey.IsEmpty()) {
+      migratorID.AssignLiteral(NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX);
+      migratorID.Append(aKey);
+      result = do_CreateInstance(migratorID.get());
 
-    if (result)
-      result->GetSourceExists(&exists);
+      if (result)
+        result->GetSourceExists(&exists);
 
-    if (exists) {
-      result.swap(*spm);
-      return NS_OK;
+      if (exists) {
+        result.swap(*spm);
+        return NS_OK;
+      }
     }
   }
 #endif
 
-  // We can't get the default migrator (either wrong OS or we don't have a
-  // migrator for the default browser), so fall back to finding a valid
-  // profile to migrator manually - first try what we've been given.
+  // We can't get the default migrator (wrong OS, we don't have a migrator for
+  // the default browser, cannot find default browser), so fall back to finding
+  // a valid profile to migrator manually - first try what we've been given.
   for (PRUint32 j = 0; j < NS_ARRAY_LENGTH(migratorNames); ++j) {
     migratorID.AssignLiteral(NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX);
     migratorID.Append(migratorNames[j]);
