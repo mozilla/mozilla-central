@@ -50,7 +50,7 @@ DEFINES += -DSUNBIRD_VERSION=$(SUNBIRD_VERSION)
 # OS X: pinstripe
 # Others: winstripe
 
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 THEME = pinstripe
 else
 THEME = winstripe

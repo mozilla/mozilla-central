@@ -60,7 +60,7 @@ REQUIRES	= xpcom \
 		  impComm4xMail \
 		  $(NULL)
 
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 REQUIRES += impEudra impapplemail
 endif
 
@@ -83,7 +83,7 @@ SHARED_LIBRARY_LIBS = \
 		../comm4x/src/$(LIB_PREFIX)imp4mail_s.$(LIB_SUFFIX) \
 		$(NULL)
 
-ifneq (,$(filter mac cocoa, $(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 SHARED_LIBRARY_LIBS += ../eudora/src/$(LIB_PREFIX)impEudra_s.$(LIB_SUFFIX)
 SHARED_LIBRARY_LIBS += ../applemail/src/$(LIB_PREFIX)applmail_s.$(LIB_SUFFIX)
 endif
@@ -103,7 +103,7 @@ LOCAL_INCLUDES += -I$(srcdir)/../src \
 	-I$(srcdir)/../text/src \
 	$(NULL)
 
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 LOCAL_INCLUDES += -I$(srcdir)/../eudora/src \
 									-I$(srcdir)/../applemail/src \
 									$(NULL)
@@ -147,10 +147,11 @@ EXTRA_DSO_LDOPTS = \
 	$(NULL)
 endif
 
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
-EXTRA_DSO_LDOPTS += -framework Cocoa  \
-										$(TK_LIBS) \
-										$(NULL)
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
+EXTRA_DSO_LDOPTS += \
+	-framework Cocoa  \
+	$(TK_LIBS) \
+	$(NULL)
 endif
 
 ifeq ($(OS_ARCH),AIX)

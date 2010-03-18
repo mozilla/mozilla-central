@@ -137,7 +137,7 @@ CPPSRCS		= \
 		nsMailDirProvider.cpp\
 		$(NULL)
 
-ifneq (,$(filter cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 CMMSRCS = nsMessengerOSXIntegration.mm
 endif
 

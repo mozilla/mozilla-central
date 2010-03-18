@@ -61,7 +61,7 @@ ifeq ($(OS_ARCH),WINNT)
 	cp $(srcdir)/wizHeaderRTL.bmp  $(DIST)/branding/wizHeaderRTL.bmp
 	cp $(srcdir)/wizWatermark.bmp  $(DIST)/branding/wizWatermark.bmp
 endif
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 	cp $(srcdir)/background.png    $(DIST)/branding/background.png
 	cp $(srcdir)/dsstore           $(DIST)/branding/dsstore
 	cp $(srcdir)/disk.icns         $(DIST)/branding/disk.icns

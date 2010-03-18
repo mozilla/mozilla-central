@@ -54,7 +54,7 @@ ifdef MOZILLA_OFFICIAL
 DEFINES += -DOFFICIAL_BUILD=1
 endif
 
-ifneq (,$(filter windows gtk2 mac cocoa, $(MOZ_WIDGET_TOOLKIT)))
+ifneq (,$(filter windows gtk2 cocoa, $(MOZ_WIDGET_TOOLKIT)))
 DEFINES += -DHAVE_SHELL_SERVICE=1
 endif
 

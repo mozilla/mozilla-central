@@ -52,7 +52,7 @@ CPPSRCS += \
 	$(NULL)
 endif
 
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 CPPSRCS += \
 	nsProfileMigratorBase.cpp \
 	nsEudoraProfileMigrator.cpp \

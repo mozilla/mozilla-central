@@ -57,7 +57,7 @@ EXPORT_RESOURCE_FILES += movemail.rdf
 endif
 endif
 
-ifeq (,$(filter-out mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 EXPORT_RESOURCE_FILES += dotmac.rdf
 endif
 

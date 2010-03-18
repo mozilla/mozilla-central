@@ -104,7 +104,7 @@ EXTRA_DSO_LDOPTS = \
 	$(NULL)
 endif
 
-ifneq (,$(filter cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 EXTRA_DSO_LDOPTS += $(TK_LIBS)
 endif
 

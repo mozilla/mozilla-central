@@ -84,7 +84,7 @@ ifeq ($(OS_ARCH),WINNT)
 CPPSRCS += nsEudoraWin32.cpp
 endif
 
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 CPPSRCS += nsEudoraMac.cpp
 endif
 
