@@ -237,6 +237,33 @@ IntervalAbortable.prototype =
 }
 extend(IntervalAbortable, Abortable);
 
+
+// Allows you to make several network calls, but return only one Abortable object.
+function SuccessiveAbortable()
+{
+  this._current = null;
+}
+SuccessiveAbortable.prototype =
+{
+  set current(abortable)
+  {
+    assert(abortable instanceof Abortable || abortable == null,
+        "need an Abortable object (or null)");
+    this._current = abortable;
+  },
+  get current()
+  {
+    return this._current;
+  },
+  cancel : function()
+  {
+    if (this._current)
+      this._current.cancel();
+  },
+}
+extend(SuccessiveAbortable, Abortable);
+
+
 function deepCopy(org)
 {
   if (typeof(org) == "undefined")

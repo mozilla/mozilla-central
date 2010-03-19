@@ -416,33 +416,41 @@ EmailConfigWizard.prototype =
   findConfig : function(domain, email)
   {
     gEmailWizardLogger.info("findConfig()");
-    this.startSpinner("all", "looking_up_settings");
     if (this._probeAbortable)
     {
       gEmailWizardLogger.info("aborting existing config search");
       this._probeAbortable.cancel();
     }
+    this.startSpinner("all", "looking_up_settings_disk");
     var me = this;
-    this._probeAbortable = 
-      fetchConfigFromDisk(
-        domain,
-        function(config) // success
-        {
-          me.foundConfig(config);
-          me.stopSpinner("found_settings");
-          me._probeAbortable = null;
-        },
-        function(e) // fetchConfigFromDisk failed
-        {
-          gEmailWizardLogger.info("fetchConfigFromDisk failed: " + e);
-          me.startSpinner("all", "looking_up_settings");
-          me._probeAbortable = 
-            fetchConfigFromDB(
-              domain,
+    this._probeAbortable = fetchConfigFromDisk(domain,
+      function(config) // success
+      {
+        me.foundConfig(config);
+        me.stopSpinner("found_settings_disk");
+        me._probeAbortable = null;
+      },
+      function(e) // fetchConfigFromDisk failed
+      {
+        gEmailWizardLogger.info("fetchConfigFromDisk failed: " + e);
+        me.startSpinner("all", "looking_up_settings_isp");
+        me._probeAbortable = fetchConfigFromISP(domain, email,
+          function(config) // success
+          {
+            me.foundConfig(config);
+            me.stopSpinner("found_settings_isp");
+            me.showEditButton();
+            me._probeAbortable = null;
+          },
+          function(e) // fetchConfigFromISP failed
+          {
+            gEmailWizardLogger.info("fetchConfigFromISP failed: " + e);
+            me.startSpinner("all", "looking_up_settings_db");
+            me._probeAbortable = fetchConfigFromDB(domain,
               function(config) // success
               {
                 me.foundConfig(config);
-                me.stopSpinner("found_settings");
+                me.stopSpinner("found_settings_db");
                 me.showEditButton();
                 me._probeAbortable = null;
               },
@@ -451,10 +459,11 @@ EmailConfigWizard.prototype =
                 gEmailWizardLogger.info("fetchConfigFromDB failed: " + e);
                 var initialConfig = new AccountConfig();
                 me._prefillConfig(initialConfig);
-                me.startSpinner("all", "looking_up_settings")
-                me._guessConfig(domain, initialConfig, 'both');
+                me.startSpinner("all", "looking_up_settings_guess")
+                me._guessConfig(domain, initialConfig, "both");
               });
           });
+      });
   },
 
   _guessConfig : function(domain, initialConfig, which)
@@ -491,7 +500,7 @@ EmailConfigWizard.prototype =
                                     me._outgoingState);
             if (me._incomingState == 'done' && me._outgoingState == 'done')
             {
-              me.stopSpinner("found_settings");
+              me.stopSpinner("found_settings_guess");
               _hide("stop_button");
               _show("edit_button");
             }
@@ -500,7 +509,7 @@ EmailConfigWizard.prototype =
               if (me._outgoingState == "failed")
                 me.stopSpinner("failed_to_find_settings");
               else
-                me.stopSpinner("found_settings");
+                me.stopSpinner("found_settings_guess");
               me.editConfigDetails();
             }
             else if (me._outgoingState == 'done' && me._incomingState != 'probing')
@@ -508,7 +517,7 @@ EmailConfigWizard.prototype =
               if (me._incomingState == "failed")
                 me.stopSpinner("failed_to_find_settings");
               else
-                me.stopSpinner("found_settings");
+                me.stopSpinner("found_settings_guess");
               me.editConfigDetails();
             }
             if (me._outgoingState != 'probing' &&

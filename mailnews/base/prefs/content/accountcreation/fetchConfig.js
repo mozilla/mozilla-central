@@ -70,20 +70,45 @@ function fetchConfigFromDisk(domain, successCallback, errorCallback)
  *         for this domain at this location), so do not unconditionally show this to the user.
  *         The first paramter will be an exception object or error string.
  */
-
 function fetchConfigFromISP(domain, emailAddress, successCallback,
                             errorCallback)
 {
-  let url = "https://autoconfig." + sanitize.hostname(domain) +
-            "/mail/mozilla.xml";
-  let fetch = new FetchHTTP(url, { emailaddress: emailAddress }, false,
-                            function(result)
-                            {
-                              successCallback(readFromXML(result));
-                            },
-                            errorCallback);
-  fetch.start();
-  return fetch;
+  let url1 = "http://autoconfig." + sanitize.hostname(domain) +
+             "/mail/config-v1.xml";
+  // .well-known/ <http://tools.ietf.org/html/draft-nottingham-site-meta-04>
+  let url2 = "http://" + sanitize.hostname(domain) +
+             "/.well-known/autoconfig/mail/config-v1.xml";
+  let sucAbortable = new SuccessiveAbortable();
+  var time = Date.now();
+  let fetch1 = new FetchHTTP(
+    url1, { emailaddress: emailAddress }, false,
+    function(result)
+    {
+      successCallback(readFromXML(result));
+    },
+    function(e1) // fetch1 failed
+    {
+      ddump("fetchisp 1 <" + url1 + "> took " + (Date.now() - time) +
+          "ms and failed with " + e1);
+      time = Date.now();
+      let fetch2 = new FetchHTTP(
+        url2, { emailaddress: emailAddress }, false,
+        function(result)
+        {
+          successCallback(readFromXML(result));
+        },
+        function(e2)
+        {
+          ddump("fetchisp 2 <" + url2 + "> took " + (Date.now() - time) +
+              "ms and failed with " + e2);
+          errorCallback(e1); // return error for primary call
+        });
+      sucAbortable.current = fetch2;
+      fetch2.start();
+    });
+  sucAbortable.current = fetch1;
+  fetch1.start();
+  return sucAbortable;
 }
 
 /**
