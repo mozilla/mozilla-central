@@ -50,6 +50,7 @@
         xmlns:html="http://www.w3.org/1999/xhtml"
         onload="progressStartup();" onunload="progressShutdown();"
         title="&progress.title;"
+        persist="screenX screenY"
         style="width:40em;">
 
   <script type="application/javascript"
