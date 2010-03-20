@@ -145,6 +145,13 @@ function deleteIMAPServer(incomingServer) {
 
 
 function run_test() {
+  // XXX BUG 553764 XXX
+  // This unit test is relying on the random behavior of threads and so is
+  // being disabled.
+  dump("***\n***\nTHIS TEST IS DISABLED PER BUG 553764!\n***\n***\n");
+  do_check_true(true);
+  return;
+
   do_test_pending();
 
   registerAlertTestUtils();
