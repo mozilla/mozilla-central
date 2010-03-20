@@ -47,7 +47,7 @@ include $(RELDEPTH)/config/autoconf.mk
 MODULE		= storage
 
 ifndef MOZ_NATIVE_SQLITE
-DIRS		= ../sqlite-backport/src
+DIRS		= ../mozilla/db/sqlite3/src
 endif
 
 DIRS		+= public \
@@ -59,20 +59,5 @@ ifdef ENABLE_TESTS
 TOOL_DIRS += test
 endif
 
-
-# do not install into our module dir; comm-central snafu
-include $(topsrcdir)/config/config.mk
-PUBLIC=$(DIST)/include
-
 include $(topsrcdir)/config/rules.mk
 
-ifdef SUBMAKEFILES
-# if topsrcdir includes mozilla, keep it, otherwise add mozilla
-ifeq ($(notdir @top_srcdir@),mozilla)
-../sqlite-backport/src/Makefile: AUTOCONF_TOOLS:=@top_srcdir@/build/autoconf
-../sqlite-backport/src/Makefile: topsrcdir:=@top_srcdir@/..
-else
-../sqlite-backport/src/Makefile: AUTOCONF_TOOLS:=@top_srcdir@/mozilla/build/autoconf
-../sqlite-backport/src/Makefile: topsrcdir:=@top_srcdir@
-endif
-endif

@@ -50,6 +50,7 @@ FORCE_STATIC_LIB = 1
 GRE_MODULE       = 1
 LIBXUL_LIBRARY = 1
 
+
 EXPORTS_NAMESPACES = mozilla/storage
 
 EXPORTS_mozilla/storage = \
