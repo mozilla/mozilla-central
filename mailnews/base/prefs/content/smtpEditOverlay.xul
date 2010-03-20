@@ -55,19 +55,22 @@
               </columns>
               <rows>
                   <row align="center">
-                      <hbox pack="end"><label value="&serverDescription.label;" accesskey="&serverDescription.accesskey;"
-                                              control="smtp.description"/></hbox>
+                       <label value="&serverDescription.label;"
+                              accesskey="&serverDescription.accesskey;"
+                              control="smtp.description"/>
                        <textbox id="smtp.description" flex="1" preftype="string" prefstring="mail.smtpserver.%serverkey%.description"/>
                   </row>
 
                   <row align="center">
-                      <hbox pack="end"><label value="&serverName.label;" accesskey="&serverName.accesskey;" control="smtp.hostname"/></hbox>
+                      <label value="&serverName.label;"
+                             accesskey="&serverName.accesskey;"
+                             control="smtp.hostname"/>
                       <textbox id="smtp.hostname" flex="1" preftype="string" class="uri-element" prefstring="mail.smtpserver.%serverkey%.hostname"/>
                   </row>
                   <row align="center">
-                      <hbox pack="end"><label value="&serverPort.label;" accesskey="&serverPort.accesskey;" control="smtp.port"/>
-                      </hbox>
-
+                      <label value="&serverPort.label;"
+                             accesskey="&serverPort.accesskey;"
+                             control="smtp.port"/>
                       <hbox align="center">
                           <textbox id="smtp.port" size="4"
                                    preftype="int"
@@ -84,51 +87,62 @@
 
       <groupbox>
         <caption label="&security.caption;"/>
-        <vbox>
-            <!-- This hidden one will hold the integer version
-                 of smtp.useUsername -->
-            <label hidden="true" id="smtp.authMethod"/>
-            <hbox align="center">
-            <checkbox id="smtp.useUsername" label="&alwaysUseUsername.label;"
-                      accesskey="&alwaysUseUsername.accesskey;"
-                      oncommand="onUseUsername(event.target,true);"
-                      prefattribute="value"
-                      prefstring="mail.smtpserver.%serverkey%.use_username"/>
-            </hbox>
-            <vbox class="indent">
-              <hbox align="center">
+
+        <grid flex="1">
+          <columns>
+            <column/>
+            <column flex="1"/>
+          </columns>
+          <rows>
+            <row align="center">
+              <label value="&connectionSecurity.label;"
+                     accesskey="&connectionSecurity.accesskey;"
+                     control="smtp.socketType"/>
+              <menulist id="smtp.socketType" oncommand="sslChanged(true);"
+                        prefstring="mail.smtpserver.%serverkey%.try_ssl">
+                <menupopup id="smtp.socketTypePopup">
+                  <menuitem value="0" label="&connectionSecurityType-0.label;"/>
+                  <menuitem id="connectionSecurityType-1"
+                            value="1" label="&connectionSecurityType-1.label;"
+                            disabled="true" hidden="true"/>
+                  <menuitem value="2" label="&connectionSecurityType-2.label;"/>
+                  <menuitem value="3" label="&connectionSecurityType-3.label;"/>
+                </menupopup>
+              </menulist>
+            </row>
+            <row align="center">
+              <label value="&authMethod.label;"
+                     accesskey="&authMethod.accesskey;"
+                     control="server.authMethod"/>
+              <!-- same in am-server.xul/js -->
+              <menulist id="smtp.authMethod"
+                        oncommand="authMethodChanged(true);"
+                        wsm_persist="true"
+                        preftype="int" type="number"
+                        prefstring="mail.smtpserver.%serverkey%.authMethod">
+                <menupopup id="smtp.authMethodPopup">
+                  <menuitem id="authMethod-no" value="1"/>
+                  <menuitem id="authMethod-password-cleartext" value="3"/>
+                  <menuitem id="authMethod-password-encrypted" value="4"/>
+                  <menuitem id="authMethod-kerberos" value="5"/>
+                  <menuitem id="authMethod-ntlm" value="6"/>
+                  <menuitem id="authMethod-anysecure" value="8"/>
+                  <menuitem id="authMethod-any" value="9"/>
+                </menupopup>
+              </menulist>
+            </row>
+            <row id="smtp.username.box" align="center">
+              <hbox class="indent">
                 <label id="smtp.username.label" value="&userName.label;"
-                       accesskey="&userName.accesskey;" control="smtp.username"/>
-                <textbox id="smtp.username" flex="1"
-                         preftype="string"
-                         prefstring="mail.smtpserver.%serverkey%.username"/>
+                       accesskey="&userName.accesskey;"
+                       control="smtp.username"/>
               </hbox>
-              <checkbox id="smtp.useSecAuth"
-                        label="&useSecAuth.label;"
-                        accesskey="&useSecAuth.accesskey;"
-                        prefattribute="value"
-                        prefstring="mail.smtpserver.%serverkey%.useSecAuth"/>
-            </vbox>
-        </vbox>
-
-        <separator class="thin"/>
-
-        <hbox align="center">
-          <label value="&connectionSecurity.label;"
-                accesskey="&connectionSecurity.accesskey;"
-                control="smtp.trySSL"/>
-          <menulist id="smtp.trySSL" oncommand="selectProtocol(true);"
-                    prefstring="mail.smtpserver.%serverkey%.try_ssl">
-            <menupopup id="smtp.trySSLPopup">
-              <menuitem value="0" label="&connectionSecurityType-0.label;"/>
-              <menuitem id="connectionSecurityType-1"
-                        value="1" label="&connectionSecurityType-1.label;"
-                        disabled="true" hidden="true"/>
-              <menuitem value="2" label="&connectionSecurityType-2.label;"/>
-              <menuitem value="3" label="&connectionSecurityType-3.label;"/>
-            </menupopup>
-          </menulist>
-        </hbox>
-      </groupbox>
+              <textbox id="smtp.username" flex="1"
+                       preftype="string"
+                       prefstring="mail.smtpserver.%serverkey%.username"/>
+            </row>
+          </rows>
+        </grid>
+     </groupbox>
   </vbox>
 </overlay>

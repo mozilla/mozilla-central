@@ -74,7 +74,14 @@ function readFromXML(clientConfigXML)
   iO.hostname = sanitize.hostname(iX.hostname);
   iO.port = sanitize.integerRange(iX.port, 1, 65535);
   iO.username = sanitize.string(iX.username); // may be a %VARIABLE%
-  iO.auth = sanitize.translate(iX.authentication, { plain : 1, secure : 2 }); // TODO "secure"
+  iO.auth = sanitize.translate(iX.authentication,
+        { "password-clear" : Ci.nsMsgAuthMethod.passwordCleartext,
+          plain : Ci.nsMsgAuthMethod.passwordCleartext,
+          "password-encrypted" : Ci.nsMsgAuthMethod.passwordEncrypted,
+          secure : Ci.nsMsgAuthMethod.passwordEncrypted,
+          GSSAPI : Ci.nsMsgAuthMethod.GSSAPI,
+          NTLM : Ci.nsMsgAuthMethod.NTLM });
+  ddump("<authentication> = " + iX.authentication + ", incom.authMethod = " + iO.auth);
   iO.socketType = sanitize.translate(iX.socketType, { plain : 1, SSL: 2, STARTTLS: 3 });
   if (iO.type == "pop3" && "pop3" in iX)
   {
@@ -102,9 +109,16 @@ function readFromXML(clientConfigXML)
   oO.socketType = sanitize.translate(oX.socketType,
                                      { plain : 1, SSL: 2, STARTTLS: 3 });
   oO.auth = sanitize.translate(oX.authentication,
-                               { none : 0 /* e.g. IP-address-based */,
-                                 plain : 1, secure : 2,  // TODO "secure"
-                                 "smtp-after-pop" : 0 /* hope for the best */});
+        { none : Ci.nsMsgAuthMethod.none, // open relay
+          "client-IP-address" : Ci.nsMsgAuthMethod.none, // inside ISP or corp network
+          "smtp-after-pop" : Ci.nsMsgAuthMethod.none, // hope for the best
+          "password-clear" : Ci.nsMsgAuthMethod.passwordCleartext,
+          plain : Ci.nsMsgAuthMethod.passwordCleartext,
+          "password-encrypted" : Ci.nsMsgAuthMethod.passwordEncrypted,
+          secure : Ci.nsMsgAuthMethod.passwordEncrypted,
+          GSSAPI : Ci.nsMsgAuthMethod.GSSAPI,
+          NTLM : Ci.nsMsgAuthMethod.NTLM });
+  ddump("<authentication> = " + iX.authentication + ", outgoing.authMethod = " + oO.auth);
   if ("addThisServer" in oX)
     oO.addThisServer = sanitize.boolean(oX.addThisServer);
   if ("useGlobalPreferredServer" in oX)

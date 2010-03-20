@@ -85,15 +85,12 @@ function verifyConfig(config, alter, msgWindow, successCallback, errorCallback)
   inServer.port = config.incoming.port;
   inServer.password = config.incoming.password;
   if (config.incoming.socketType == 1) // plain
-    inServer.socketType = Ci.nsIMsgIncomingServer.defaultSocket;
+    inServer.socketType = Ci.nsMsgSocketType.plain;
   else if (config.incoming.socketType == 2) // SSL
-    inServer.socketType = Ci.nsIMsgIncomingServer.useSSL;
-  else if (config.incoming.socketType == 3) // TLS
-    inServer.socketType = Ci.nsIMsgIncomingServer.alwaysUseTLS;
-
-  // auth
-  if (config.incoming.auth == 2) // "secure" auth
-    inServer.useSecAuth = true;
+    inServer.socketType = Ci.nsMsgSocketType.SSL;
+  else if (config.incoming.socketType == 3) // STARTTLS
+    inServer.socketType = Ci.nsMsgSocketType.alwaysSTARTTLS;
+  inServer.authMethod = config.incoming.auth;
 
   try {
     if (inServer.password)
@@ -160,10 +157,10 @@ urlListener.prototype =
   {
     this._log.info("Starting to test username");
     this._log.info("  username=" + (this.mConfig.incoming.username !=
-                                    this.mConfig.identity.emailAddress));
-    this._log.info("  secAuth=" + this.mServer.useSecAuth);
-    this._log.info("  savedUsername=" +
-                   (this.mConfig.usernameSaved ? "true" : "false"));
+                          this.mConfig.identity.emailAddress) +
+                          ", have savedUsername=" +
+                          (this.mConfig.usernameSaved ? "true" : "false"));
+    this._log.info("  authMethod=" + this.mServer.authMethod);
   },
 
   OnStopRunningUrl: function(aUrl, aExitCode)
@@ -185,7 +182,6 @@ urlListener.prototype =
     // case we'll see what the user chooses.
     else if (!this.mCertError)
     {
-      ddump("trying next logon\n");
       this.tryNextLogon()
     }
   },
@@ -194,10 +190,10 @@ urlListener.prototype =
   {
     this._log.info("tryNextLogon()");
     this._log.info("  username=" + (this.mConfig.incoming.username !=
-                                    this.mConfig.identity.emailAddress));
-    this._log.info("  secAuth=" + this.mServer.useSecAuth);
-    this._log.info("  savedUsername=" +
-                   (this.mConfig.usernameSaved ? "true" : "false"));
+                          this.mConfig.identity.emailAddress) +
+                          ", have savedUsername=" +
+                          (this.mConfig.usernameSaved ? "true" : "false"));
+    this._log.info("  authMethod=" + this.mServer.authMethod);
     // check if we tried full email address as username
     if (this.mConfig.incoming.username != this.mConfig.identity.emailAddress)
     {
@@ -224,15 +220,28 @@ urlListener.prototype =
     // varieties of user name, sadly.
     // So fall back to non-secure auth, and
     // again try the user name and email address as username
-    if (this.mServer.useSecAuth &&
-        (this.mServer.socketType == Ci.nsIMsgIncomingServer.useSSL ||
-         this.mServer.socketType == Ci.nsIMsgIncomingServer.alwaysUseTLS))
+    assert(this.mConfig.incoming.auth == this.mServer.authMethod);
+    assert(!this.mConfig.incoming.authAlternatives ||
+           this.mConfig.incoming.auth == this.mConfig.incoming.authAlternatives[0]);
+    this._log.info("  Using SSL: " +
+        (this.mServer.socketType == Ci.nsMsgSocketType.SSL ||
+         this.mServer.socketType == Ci.nsMsgSocketType.alwaysSTARTTLS));
+    this._log.info("  auth alternatives count = " + (this.mConfig.incoming.authAlternatives ?
+         this.mConfig.incoming.authAlternatives.length : "none"));
+    if (this.mConfig.incoming.authAlternatives &&
+        this.mConfig.incoming.authAlternatives.length > 1)/* &&
+        (this.mConfig.incoming.authAlternatives[1] >
+            Ci.nsMsgAuthMethod.passwordCleartext || // next best auth is secure
+         this.mServer.socketType == Ci.nsMsgSocketType.SSL ||
+         this.mServer.socketType == Ci.nsMsgSocketType.alwaysSTARTTLS))*/
     {
-      this._log.info("  Changing useSecAuth to false.");
-      this._log.info("  password=" +
+      this._log.info("  Decreasing auth.");
+      this._log.info("  Have password: " +
                      (this.mServer.password ? "true" : "false"));
-      this.mConfig.incoming.auth = 1; // "insecure" auth
-      this.mServer.useSecAuth = false;
+      this.mConfig.incoming.authAlternatives.shift(); // it failed, so remove it from list of possibilities
+      this.mConfig.incoming.auth = this.mConfig.incoming.authAlternatives[0]; // take the next best method
+      this.mConfig.outgoing.auth = this.mConfig.incoming.auth; // TODO good idea???
+      this.mServer.authMethod = this.mConfig.incoming.auth;
       this.mServer.username = this.mConfig.incoming.username;
       this.mServer.password = this.mConfig.incoming.password;
       verifyLogon(this.mConfig, this.mServer, this.mAlter, this.mMsgWindow,
@@ -241,7 +250,7 @@ urlListener.prototype =
     }
 
     // Tried all variations we can. Give up.
-    this._log.info("  Giving up.");
+    this._log.info("Giving up.");
     this._cleanup();
     let stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
     let errorMsg = stringBundle.GetStringFromName("cannot_login.error");
@@ -265,7 +274,7 @@ urlListener.prototype =
       return true;
 
     this.mCertError = true;
-    ddump("got cert error\n");
+    this._log.error("cert error");
     setTimeout(this.informUserOfCertError, 0, socketInfo, targetSite, this);
     return true;
   },
@@ -276,8 +285,8 @@ urlListener.prototype =
     params.location = targetSite;
     window.openDialog("chrome://pippki/content/exceptionDialog.xul",
                       "","chrome,centerscreen,modal", params);
-    ddump("after exception dialog\n");
-    ddump("exceptionAdded = " + params.exceptionAdded + "\n");
+    self._log.info("cert exception dialog closed");
+    self._log.info("cert exceptionAdded = " + params.exceptionAdded);
     if (!params.exceptionAdded) {
       self._cleanup();
       let stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");

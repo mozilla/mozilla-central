@@ -59,19 +59,18 @@ function createAccountInBackend(config)
       config.incoming.hostname,
       sanitize.enum(config.incoming.type, ["pop3", "imap", "nntp"]));
   inServer.port = config.incoming.port;
+  inServer.authMethod = config.incoming.auth;
+  inServer.password = config.incoming.password;
   if (config.rememberPassword && config.incoming.password.length)
     rememberPassword(inServer, config.incoming.password);
 
   // SSL
   if (config.incoming.socketType == 1) // plain
-    inServer.socketType = Ci.nsIMsgIncomingServer.defaultSocket;
+    inServer.socketType = Ci.nsMsgSocketType.plain;
   else if (config.incoming.socketType == 2) // SSL / TLS
-    inServer.socketType = Ci.nsIMsgIncomingServer.useSSL;
+    inServer.socketType = Ci.nsMsgSocketType.SSL;
   else if (config.incoming.socketType == 3) // STARTTLS
-    inServer.socketType = Ci.nsIMsgIncomingServer.alwaysUseTLS;
-  // auth
-  if (config.incoming.auth == 2) // "secure" auth
-    inServer.useSecAuth = true;
+    inServer.socketType = Ci.nsMsgSocketType.alwaysSTARTTLS;
   //inServer.prettyName = config.displayName;
   inServer.prettyName = config.identity.emailAddress;
 
@@ -120,7 +119,7 @@ function createAccountInBackend(config)
   }
   inServer.valid = true;
 
-  let username = config.outgoing.auth > 0 ? config.outgoing.username : null;
+  let username = config.outgoing.auth > 1 ? config.outgoing.username : null;
   let outServer = smtpManager.findServer(username, config.outgoing.hostname);
   assert(config.outgoing.addThisServer ||
          config.outgoing.useGlobalPreferredServer ||
@@ -132,24 +131,21 @@ function createAccountInBackend(config)
     outServer = smtpManager.createSmtpServer();
     outServer.hostname = config.outgoing.hostname;
     outServer.port = config.outgoing.port;
-    if (config.outgoing.auth > 0)
+    outServer.authMethod = config.outgoing.auth;
+    if (config.outgoing.auth > 1)
     {
-      outServer.authMethod = 1;
-      outServer.useSecAuth = config.outgoing.auth == 2;
       outServer.username = config.incoming.username;
       outServer.password = config.incoming.password;
       if (config.rememberPassword && config.incoming.password.length)
         rememberPassword(outServer, config.incoming.password);
     }
-    else
-      outServer.authMethod = 0;
 
     if (config.outgoing.socketType == 1) // no SSL
-      outServer.trySSL = 0; // nsSmtpProtocol.h, line 115
+      outServer.socketType = Ci.nsMsgSocketType.plain;
     else if (config.outgoing.socketType == 2) // SSL / TLS
-      outServer.trySSL = 3;
+      outServer.socketType = Ci.nsMsgSocketType.SSL;
     else if (config.outgoing.socketType == 3) // STARTTLS
-      outServer.trySSL = 2;
+      outServer.socketType = Ci.nsMsgSocketType.alwaysSTARTTLS;
 
     // API problem: <http://mxr.mozilla.org/seamonkey/source/mailnews/compose/public/nsISmtpServer.idl#93>
     outServer.description = config.displayName;

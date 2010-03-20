@@ -307,7 +307,7 @@ nsNntpService::DisplayMessage(const char* aMessageURI, nsISupports * aDisplayCon
         rv = server->GetSocketType(&socketType);
         NS_ENSURE_SUCCESS(rv, rv);
 
-        port = (socketType == nsIMsgIncomingServer::useSSL) ?
+        port = (socketType == nsMsgSocketType::SSL) ?
                nsINntpUrl::DEFAULT_NNTPS_PORT : nsINntpUrl::DEFAULT_NNTP_PORT;
       }
 
@@ -1063,7 +1063,7 @@ nsNntpService::CreateNewsAccount(const char *aHostname, PRBool aUseSSL,
 
   if (aUseSSL)
   {
-    rv = (*aServer)->SetSocketType(nsIMsgIncomingServer::useSSL);
+    rv = (*aServer)->SetSocketType(nsMsgSocketType::SSL);
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
@@ -1607,7 +1607,7 @@ nsNntpService::StreamMessage(const char *aMessageURI, nsISupports *aConsumer,
         rv = server->GetSocketType(&socketType);
         NS_ENSURE_SUCCESS(rv, rv);
 
-        url->SetPort((socketType == nsIMsgIncomingServer::useSSL) ?
+        url->SetPort((socketType == nsMsgSocketType::SSL) ?
                      nsINntpUrl::DEFAULT_NNTPS_PORT : nsINntpUrl::DEFAULT_NNTP_PORT);
 
         rv = IsMsgInMemCache(url, folder, nsnull, &hasMsgOffline);

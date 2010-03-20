@@ -430,7 +430,7 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
     if (NS_FAILED(rv)) return rv;
 
     if (port<=0) {
-      port = (socketType == nsIMsgIncomingServer::useSSL) ?
+      port = (socketType == nsMsgSocketType::SSL) ?
              nsINntpUrl::DEFAULT_NNTPS_PORT : nsINntpUrl::DEFAULT_NNTP_PORT;
     }
 
@@ -500,7 +500,7 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
     // pass an interface requestor down to the socket transport so that PSM can
     // retrieve a nsIPrompt instance if needed.
     nsCOMPtr<nsIInterfaceRequestor> ir;
-    if (socketType != nsIMsgIncomingServer::defaultSocket && aMsgWindow)
+    if (socketType != nsMsgSocketType::plain && aMsgWindow)
     {
       nsCOMPtr<nsIDocShell> docShell;
       aMsgWindow->GetRootDocShell(getter_AddRefs(docShell));
@@ -522,7 +522,7 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
     if (NS_FAILED(rv)) proxyInfo = nsnull;
 
     rv = OpenNetworkSocketWithInfo(hostName.get(), port,
-           (socketType == nsIMsgIncomingServer::useSSL) ? "ssl" : nsnull,
+           (socketType == nsMsgSocketType::SSL) ? "ssl" : nsnull,
            proxyInfo, ir);
 
     NS_ENSURE_SUCCESS(rv,rv);

@@ -139,9 +139,43 @@ var gSmtpServerListWindow =
     document.getElementById('portValue').value = aServer.port;
     document.getElementById('userNameValue').value = aServer.username || noneSelected;
     document.getElementById('useSecureConnectionValue').value =
-      this.mBundle.getString("smtpServer-ConnectionSecurityType-" + aServer.trySSL);
-    document.getElementById('useSecureAuthenticationValue').value =
-      this.mBundle.getString("smtpServer-SecureAuthentication-Type-" + aServer.useSecAuth);
+      this.mBundle.getString("smtpServer-ConnectionSecurityType-" +
+      aServer.socketType);
+
+    const AuthMethod = Components.interfaces.nsMsgAuthMethod;
+    const SocketType = Components.interfaces.nsMsgSocketType;
+    var authStr = "";
+    switch (aServer.authMethod)
+    {
+      case AuthMethod.none:
+        authStr = "authNo";
+        break;
+      case AuthMethod.passwordEncrypted:
+        authStr = "authPasswordEncrypted";
+        break;
+      case AuthMethod.GSSAPI:
+        authStr = "authKerberos";
+        break;
+      case AuthMethod.NTLM:
+        authStr = "authNTLM";
+        break;
+      case AuthMethod.secure:
+        authStr = "authAnySecure";
+        break;
+      case AuthMethod.passwordCleartext:
+        authStr = (aServer.socketType == SocketType.SSL ||
+                   aServer.socketType == SocketType.alwaysSTARTTLS)
+                  ? "authPasswordCleartextViaSSL"
+                  : "authPasswordCleartextInsecurely";
+        break;
+      default:
+        // leave empty
+        dump("Warning: unknown value for smtpserver...authMethod: " +
+             aServer.authMethod + "\n");
+    }
+    if (authStr)
+      document.getElementById("authMethodValue").value =
+          this.mBundle.getString(authStr);
   },
 
   refreshServerList: function(aServerKeyToSelect, aFocusList)

@@ -388,29 +388,6 @@ function AddMailAccount()
   NewMailAccount(msgWindow);
 }
 
-function ReloadSmtpPanel()
-{
-  var smtpUsername = top.frames["contentFrame"].document.getElementById("smtp.username");
-  var smtpHostname = top.frames["contentFrame"].document.getElementById("smtp.hostname");
-  var smtpPort = top.frames["contentFrame"].document.getElementById("smtp.port");
-  var smtpUseUsername = top.frames["contentFrame"].document.getElementById("smtp.useUsername");
-  var smtpAuthMethod = top.frames["contentFrame"].document.getElementById("smtp.authMethod");
-  var smtpTrySSL = top.frames["contentFrame"].document.getElementById("smtp.trySSL");
-
-  var defaultServer = smtpService.defaultServer;
-
-  smtpUsername.value = defaultServer.username;
-  smtpHostname.value = defaultServer.hostname;
-  smtpPort.value = defaultServer.port ? defaultServer.port : "";
-  smtpAuthMethod.setAttribute("value", defaultServer.authMethod);
-  if (smtpAuthMethod.getAttribute("value") == "1")
-    smtpUseUsername.checked = true;
-  var elements = smtpTrySSL.getElementsByAttribute("value", defaultServer.trySSL);
-  if (!elements.item(0))
-    elements = smtpTrySSL.getElementsByAttribute("value", "1");
-  smtpTrySSL.selectedItem = elements[0];
-}
-
 function onSetDefault(event) {
   if (event.target.getAttribute("disabled") == "true") return;
 

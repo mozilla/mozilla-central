@@ -20,4 +20,4 @@
 <!ENTITY serverPort.label "Port: ">
 <!ENTITY userName.label   "User Name: ">
 <!ENTITY connectionSecurity.label "Connection Security: ">
-<!ENTITY useSecureAuthentication.label   "Secure Authentication: ">
+<!ENTITY authMethod.label   "Authentication method: ">

@@ -123,8 +123,8 @@ typedef enum {
 typedef enum {
     kCapabilityUndefined = 0x00000000,
     kCapabilityDefined = 0x00000001,
-    kHasAuthLoginCapability = 0x00000002,
-    kHasXNetscapeCapability = 0x00000004,
+    kHasAuthLoginCapability = 0x00000002, /* AUTH LOGIN (not the same as kHasAuthOldLoginCapability) */
+    kHasAuthOldLoginCapability = 0x00000004, /* original IMAP login method */
     kHasXSenderCapability = 0x00000008,
     kIMAP4Capability = 0x00000010,          /* RFC1734 */
     kIMAP4rev1Capability = 0x00000020,      /* RFC2060 */
@@ -145,8 +145,8 @@ typedef enum {
     kHasAuthNTLMCapability = 0x00100000,  /* AUTH NTLM extension */
     kHasAuthMSNCapability = 0x00200000,   /* AUTH MSN extension */
     kHasStartTLSCapability = 0x00400000,   /* STARTTLS support */
-    kLoginDisabled = 0x00800000,        /* login disabled */
-    kHasAuthGssApiCapability = 0x01000000, /* GSSAPI AUTH */ 
+    kHasAuthNoneCapability = 0x00800000, /* needs no login */
+    kHasAuthGssApiCapability = 0x01000000, /* GSSAPI AUTH */
     kHasCondStoreCapability =  0x02000000, /* RFC 3551 CondStore extension */
     kHasEnableCapability    =  0x04000000, /* RFC 5161 ENABLE extension */
     kHasXListCapability    =  0x08000000,  /* XLIST extension */

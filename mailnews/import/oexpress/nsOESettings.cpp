@@ -78,9 +78,9 @@ public:
   static PRBool DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
 
   static void SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, HKEY hKey,
-                             char *pIncomgUserName, PRBool useSecAuth, PRBool isNNTP);
+                             char *pIncomgUserName, PRInt32 authMethodIncoming, PRBool isNNTP);
   static void SetSmtpServer( char *pSmtpServer, HKEY hKey, nsIMsgIdentity *id,
-                             char *pIncomgUserName, PRBool useSecAuth);
+                             char *pIncomgUserName, PRInt32 authMethodIncoming);
   static nsresult GetAccountName(HKEY hKey, char *defaultName, nsString &acctName);
 };
 
@@ -401,7 +401,7 @@ nsresult OESettings::GetAccountName(HKEY hKey, char *defaultName, nsString &acct
 
 PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
 {
-  PRBool useSecAuth;    // Secure Password Authentication
+  PRInt32 authMethod;
   if (ppAccount)
     *ppAccount = nsnull;
 
@@ -437,7 +437,7 @@ PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
       if (pSecureConnection)
       {
         if (*pSecureConnection)
-          in->SetSocketType(nsIMsgIncomingServer::useSSL);
+          in->SetSocketType(nsMsgSocketType::SSL);
         nsOERegUtil::FreeValueBytes(pSecureConnection);
       }
 
@@ -451,14 +451,15 @@ PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
       BYTE * pBytesTemp = nsOERegUtil::GetValueBytes(hKey, "IMAP Use Sicily");
       if (pBytesTemp)
       {
-        in->SetUseSecAuth(*(PRBool *)pBytesTemp);
-        useSecAuth = *(PRBool *)pBytesTemp;
+        PRBool secAuth = *(PRBool *)pBytesTemp;
         nsOERegUtil::FreeValueBytes(pBytesTemp);
+        authMethod = secAuth ? nsMsgAuthMethod::secure
+            : nsMsgAuthMethod::passwordCleartext;
       }
       else {
-        in->SetUseSecAuth(PR_FALSE);
-        useSecAuth = PR_FALSE;
+        authMethod = nsMsgAuthMethod::passwordCleartext;
       }
+      in->SetAuthMethod(authMethod);
 
       in->SetDoBiff(checkNewMail);
       in->SetBiffMinutes(checkNewMailTime);
@@ -479,7 +480,7 @@ PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
         IMPORT_LOG0("Created an account and set the IMAP server as the incoming server\n");
 
         // Fiddle with the identities
-        SetIdentities(pMgr, account, hKey, pUserName, useSecAuth, PR_FALSE);
+        SetIdentities(pMgr, account, hKey, pUserName, authMethod, PR_FALSE);
         result = PR_TRUE;
         if (ppAccount)
           account->QueryInterface(NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
@@ -494,8 +495,8 @@ PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
     if (NS_SUCCEEDED( rv) && account) {
       IMPORT_LOG0("Created an identity and added to existing IMAP incoming server\n");
       // Fiddle with the identities
-      in->GetUseSecAuth(&useSecAuth);
-      SetIdentities(pMgr, account, hKey, pUserName, useSecAuth, PR_FALSE);
+      in->GetAuthMethod(&authMethod);
+      SetIdentities(pMgr, account, hKey, pUserName, authMethod, PR_FALSE);
       result = PR_TRUE;
       if (ppAccount)
         account->QueryInterface(NS_GET_IID(nsIMsgAccount),
@@ -510,7 +511,7 @@ PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
 
 PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
 {
-  PRBool useSecAuth;    // Secure Password Authentication
+  PRInt32 authMethod;    // Secure Password Authentication
   if (ppAccount)
     *ppAccount = nsnull;
 
@@ -538,7 +539,7 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
       if (pSecureConnection)
       {
         if (*pSecureConnection)
-          in->SetSocketType(nsIMsgIncomingServer::useSSL);
+          in->SetSocketType(nsMsgSocketType::SSL);
         nsOERegUtil::FreeValueBytes(pSecureConnection);
       }
 
@@ -552,14 +553,15 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
       BYTE * pBytesTemp = nsOERegUtil::GetValueBytes( hKey, "POP3 Use Sicily");
       if (pBytesTemp)
       {
-        in->SetUseSecAuth(*(PRBool *)pBytesTemp );
-        useSecAuth = *(PRBool *)pBytesTemp;
+        PRBool secAuth = *(PRBool *)pBytesTemp;
         nsOERegUtil::FreeValueBytes(pBytesTemp);
+        authMethod = secAuth ? nsMsgAuthMethod::secure
+            : nsMsgAuthMethod::passwordCleartext;
       }
       else {
-        in->SetUseSecAuth( PR_FALSE);
-        useSecAuth = PR_FALSE;
+        authMethod = nsMsgAuthMethod::passwordCleartext;
       }
+      in->SetAuthMethod(authMethod);
 
       in->SetDoBiff(checkNewMail);
       in->SetBiffMinutes(checkNewMailTime);
@@ -640,7 +642,7 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
         IMPORT_LOG0("Created a new account and set the incoming server to the POP3 server.\n");
 
         // Fiddle with the identities
-        SetIdentities(pMgr, account, hKey, pUserName, useSecAuth, PR_FALSE);
+        SetIdentities(pMgr, account, hKey, pUserName, authMethod, PR_FALSE);
         result = PR_TRUE;
         if (ppAccount)
           account->QueryInterface(NS_GET_IID(nsIMsgAccount),
@@ -658,8 +660,8 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
     if (NS_SUCCEEDED(rv) && account) {
       IMPORT_LOG0("Created identity and added to existing POP3 incoming server.\n");
       // Fiddle with the identities
-      in->GetUseSecAuth(&useSecAuth);
-      SetIdentities(pMgr, account, hKey, pUserName, useSecAuth, PR_FALSE);
+      in->GetAuthMethod(&authMethod);
+      SetIdentities(pMgr, account, hKey, pUserName, authMethod, PR_FALSE);
       result = PR_TRUE;
       if (ppAccount)
         account->QueryInterface(NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
@@ -754,7 +756,7 @@ PRBool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
 
 void OESettings::SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
                                HKEY hKey, char *pIncomgUserName,
-                               PRBool useSecAuth, PRBool isNNTP )
+                               PRInt32 authMethodIncoming, PRBool isNNTP )
 {
   // Get the relevant information for an identity
   char *pSmtpServer = (char *)nsOERegUtil::GetValueBytes(hKey, "SMTP Server");
@@ -794,7 +796,7 @@ void OESettings::SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
     }
 
   if (!isNNTP)  // NNTP does not use SMTP in OE or TB
-    SetSmtpServer( pSmtpServer, hKey, id, pIncomgUserName, useSecAuth);
+    SetSmtpServer(pSmtpServer, hKey, id, pIncomgUserName, authMethodIncoming);
 
   nsOERegUtil::FreeValueBytes((BYTE *)pName);
   nsOERegUtil::FreeValueBytes((BYTE *)pSmtpServer);
@@ -804,7 +806,7 @@ void OESettings::SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
 
 void OESettings::SetSmtpServer(char *pSmtpServer, HKEY hKey,
                                nsIMsgIdentity *id, char *pIncomgUserName,
-                               PRBool useSecAuth)
+                               PRInt32 authMethodIncoming)
 {
   // set the id.smtpserver accordingly
   // first we have to calculate the smtp user name which is based on sicily
@@ -863,28 +865,24 @@ void OESettings::SetSmtpServer(char *pSmtpServer, HKEY hKey,
         if (pBytes)
         {
           if (*(PRInt32 *)pBytes == 1)
-            smtpServer->SetTrySSL(nsIMsgIncomingServer::useSSL);
+            smtpServer->SetSocketType(nsMsgSocketType::SSL);
           else
-            smtpServer->SetTrySSL(nsIMsgIncomingServer::defaultSocket);
+            smtpServer->SetSocketType(nsMsgSocketType::plain);
           nsOERegUtil::FreeValueBytes(pBytes);
         }
         smtpServer->SetUsername(userName);
         switch (useSicily) {
           case 1 :
-            smtpServer->SetAuthMethod(1);
-            smtpServer->SetUseSecAuth(PR_TRUE);  // useSecAuth
+            smtpServer->SetAuthMethod(nsMsgAuthMethod::secure);
             break;
-          case 2 : // requires authentication use incoming settings
-            smtpServer->SetAuthMethod(1);
-            smtpServer->SetUseSecAuth(useSecAuth);
+          case 2 : // requires SMTP authentication to use the incoming server settings
+            smtpServer->SetAuthMethod(authMethodIncoming);
             break;
           case 3 :
-            smtpServer->SetAuthMethod(1);
-            smtpServer->SetUseSecAuth(PR_FALSE);
+            smtpServer->SetAuthMethod(nsMsgAuthMethod::passwordCleartext);
             break;
           default:
-            smtpServer->SetAuthMethod(0);
-            smtpServer->SetUseSecAuth(PR_FALSE);
+            smtpServer->SetAuthMethod(nsMsgAuthMethod::none);
         }
 
         smtpServer->SetHostname(nsDependentCString(pSmtpServer));

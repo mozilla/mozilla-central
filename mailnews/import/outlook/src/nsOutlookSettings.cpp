@@ -308,8 +308,7 @@ PRBool OutlookSettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, cha
     rv = pMgr->CreateIncomingServer( nsDependentCString((const char *)pBytes), nsDependentCString(pServerName), NS_LITERAL_CSTRING("imap"), getter_AddRefs( in));
     if (NS_SUCCEEDED( rv) && in) {
       rv = in->SetType(NS_LITERAL_CSTRING("imap"));
-      // rv = in->SetHostName( pServerName);
-      // rv = in->SetUsername( (char *)pBytes);
+      // TODO SSL, auth method
 
       IMPORT_LOG2( "Created IMAP server named: %s, userName: %s\n", pServerName, (char *)pBytes);
 
@@ -360,6 +359,8 @@ PRBool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, cha
     rv = pMgr->CreateIncomingServer(nsDependentCString((const char *)pBytes), nsDependentCString(pServerName), NS_LITERAL_CSTRING("pop3"), getter_AddRefs( in));
     if (NS_SUCCEEDED( rv) && in) {
       rv = in->SetType(NS_LITERAL_CSTRING("pop3"));
+
+      // TODO SSL, auth method
 
         nsCOMPtr<nsIPop3IncomingServer> pop3Server = do_QueryInterface(in);
         if (pop3Server) {
@@ -542,6 +543,7 @@ void OutlookSettings::SetSmtpServer(nsIMsgAccountManager *pMgr, nsIMsgAccount *p
       smtpServer->SetHostname(nsDependentCString(pServer));
       if (!user.IsEmpty())
         smtpServer->SetUsername(user);
+      // TODO SSL, auth method
       IMPORT_LOG1( "Ceated new SMTP server: %s\n", pServer);
     }
   }

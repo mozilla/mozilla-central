@@ -54,10 +54,8 @@ function test_RFC2821() {
     // This time with auth
     test = "Auth sendMailMessage";
 
-    smtpServer.authMethod = 1;
-    smtpServer.useSecAuth = false;
-    smtpServer.trySecAuth = false;
-    smtpServer.trySSL = false;
+    smtpServer.authMethod = Ci.nsMsgAuthMethod.passwordCleartext;
+    smtpServer.socketType = Ci.nsMsgSocketType.plain;
     smtpServer.username = kUsername;
     smtpServer.password = kPassword;
 

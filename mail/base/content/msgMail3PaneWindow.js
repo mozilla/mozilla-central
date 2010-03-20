@@ -46,7 +46,9 @@ Components.utils.import("resource://gre/modules/folderUtils.jsm");
 Components.utils.import("resource://app/modules/activity/activityModules.js");
 Components.utils.import("resource://app/modules/jsTreeSelection.js");
 Components.utils.import("resource://app/modules/MailConsts.js");
+Components.utils.import("resource://app/modules/errUtils.js");
 Components.utils.import("resource://app/modules/IOUtils.js");
+Components.utils.import("resource://app/modules/migration.jsm");
 
 /* This is where functions related to the 3 pane window are kept */
 
@@ -241,6 +243,8 @@ function AutoConfigWizard(okCallback)
  */
 function OnLoadMessenger()
 {
+  migrateMailnews();
+
   // update the pane config before we exit onload otherwise the user may see a flicker if we poke the document
   // in delayedOnLoadMessenger...
   UpdateMailPaneConfig(false);

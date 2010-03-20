@@ -170,15 +170,15 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
     nsCString smtpHostName;
     nsCString smtpUserName;
     PRInt32 smtpPort;
-    PRInt32 trySSL;
+    PRInt32 socketType;
 
     aSmtpServer->GetHostname(smtpHostName);
     aSmtpServer->GetUsername(smtpUserName);
     aSmtpServer->GetPort(&smtpPort);
-    aSmtpServer->GetTrySSL(&trySSL);
+    aSmtpServer->GetSocketType(&socketType);
 
     if (!smtpPort)
-      smtpPort = (trySSL == PREF_SECURE_ALWAYS_SMTPS) ? 
+      smtpPort = (socketType == nsMsgSocketType::SSL) ?
         nsISmtpUrl::DEFAULT_SMTPS_PORT :  nsISmtpUrl::DEFAULT_SMTP_PORT;
 
   nsresult rv;

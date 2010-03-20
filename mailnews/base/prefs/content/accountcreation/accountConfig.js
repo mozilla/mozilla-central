@@ -63,7 +63,11 @@ function AccountConfig()
     // enum: 1 = plain, 2 = SSL/TLS, 3 = STARTTLS always
     // ('TLS when available' is insecure and not supported here)
     socketType : null,
-    auth : null, // enum: 1 = plain, 2 = "secure"
+    /**
+     * Defined by Ci.nsMsgAuthMethod
+     * Same as server pref "authMethod".
+     */
+    auth : 0,
     checkInterval : 10, // Integer, in seconds
     loginAtStartup : true,
     // POP3 only:
@@ -82,7 +86,7 @@ function AccountConfig()
     username : null, // see incoming. may be null, if auth is 0.
     password : null, // see incoming. may be null, if auth is 0.
     socketType : null, // see incoming
-    auth : null, // see incoming. 0 for no auth.
+    auth : null, // see incoming
     addThisServer: true, // if we already have an SMTP server, add this or not.
     // if we already have an SMTP server, use it.
     useGlobalPreferredServer : false,

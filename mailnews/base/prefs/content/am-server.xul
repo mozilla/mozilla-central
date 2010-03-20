@@ -116,29 +116,53 @@
 
   <groupbox hidefor="movemail">
     <caption label="&securitySettings.label;"/>
-    <hbox align="center">
-      <label value="&connectionSecurity.label;"
-             accesskey="&connectionSecurity.accesskey;"
-             control="server.socketType"/>
-      <menulist wsm_persist="true" id="server.socketType"
-                oncommand="secureSelect();">
-        <menupopup id="server.socketTypePopup">
-          <menuitem value="0" label="&connectionSecurityType-0.label;"/>
-          <menuitem id="connectionSecurityType-1"
-                    value="1" label="&connectionSecurityType-1.label;"
-                    disabled="true"/>
-          <menuitem value="2" label="&connectionSecurityType-2.label;"
-                    hidefor="nntp"/>
-          <menuitem value="3" label="&connectionSecurityType-3.label;"/>
-        </menupopup>
-      </menulist>
-    </hbox>
 
-    <checkbox wsm_persist="true" id="server.useSecAuth"
-              label="&useSecAuth.label;" hidefor="nntp,movemail"
-              accesskey="&useSecAuth.accesskey;"
-              prefattribute="value"
-              prefstring="mail.server.%serverkey%.useSecAuth"/>
+    <grid flex="1">
+      <columns>
+        <column/>
+        <column/>
+      </columns>
+      <rows>
+        <row align="center">
+          <label value="&connectionSecurity.label;"
+                 accesskey="&connectionSecurity.accesskey;"
+                 control="server.socketType"/>
+          <menulist wsm_persist="true" id="server.socketType"
+                    oncommand="secureSelect();">
+            <menupopup id="server.socketTypePopup">
+              <menuitem value="0" label="&connectionSecurityType-0.label;"/>
+              <menuitem id="connectionSecurityType-1"
+                        value="1" label="&connectionSecurityType-1.label;"
+                        disabled="true"/>
+              <menuitem value="2" label="&connectionSecurityType-2.label;"
+                        hidefor="nntp"/>
+              <menuitem value="3" label="&connectionSecurityType-3.label;"/>
+            </menupopup>
+          </menulist>
+        </row>
+        <row align="center" hidefor="nntp,movemail">
+          <label value="&authMethod.label;"
+                 accesskey="&authMethod.accesskey;"
+                 control="server.authMethod"/>
+          <!-- same in smtpEditOverlay.xul/js -->
+          <menulist id="server.authMethod"
+                    wsm_persist="true"
+                    preftype="int" type="number"
+                    prefstring="mail.server.%serverkey%.authMethod">
+            <menupopup id="server.authMethodPopup">
+              <menuitem id="authMethod-no" value="1"/>
+              <menuitem id="authMethod-old" value="2"/>
+              <menuitem id="authMethod-password-cleartext" value="3"/>
+              <menuitem id="authMethod-password-encrypted" value="4"/>
+              <menuitem id="authMethod-kerberos" value="5"/>
+              <menuitem id="authMethod-ntlm" value="6"/>
+              <menuitem id="authMethod-anysecure" value="8"/>
+              <menuitem id="authMethod-any" value="9"/>
+            </menupopup>
+          </menulist>
+        </row>
+      </rows>
+    </grid>
   </groupbox>
 
   <groupbox>

@@ -26,7 +26,8 @@
 #define COPYING_MSGS_STATUS                                   4027
 #define MOVING_MSGS_STATUS                                    4028
 #define POP3_MESSAGE_FOLDER_BUSY                              4029
-#define CANNOT_PROCESS_SECURE_AUTH                            4030
+#define POP3_AUTH_MECH_NOT_SUPPORTED                          4030
+#define POP3_GSSAPI_FAILURE                                   4031
 #define MOVEMAIL_CANT_OPEN_SPOOL_FILE                         4033
 #define MOVEMAIL_CANT_CREATE_LOCK                             4034
 #define MOVEMAIL_CANT_DELETE_LOCK                             4035
@@ -35,10 +36,13 @@
 #define POP3_TMP_DOWNLOAD_FAILED                              4038
 #define POP3_SERVER_DOES_NOT_SUPPORT_UIDL_ETC                 4040
 #define POP3_SERVER_DOES_NOT_SUPPORT_THE_TOP_COMMAND          4041
-#define CANNOT_PROCESS_APOP_AUTH                              4042
 #define NS_ERROR_COULD_NOT_CONNECT_VIA_TLS                    4043
 #define POP3_MOVE_FOLDER_TO_TRASH                             4044
 #define POP3_DELETE_FOLDER_DIALOG_TITLE                       4045
 #define POP3_DELETE_FOLDER_BUTTON_LABEL                       4046
+#define POP3_AUTH_INTERNAL_ERROR                              4047
+#define POP3_AUTH_CHANGE_ENCRYPT_TO_PLAIN_NO_SSL              4048
+#define POP3_AUTH_CHANGE_ENCRYPT_TO_PLAIN_SSL                 4049
+#define POP3_AUTH_CHANGE_PLAIN_TO_ENCRYPT                     4050
 
 #endif /* _nsLocalStrings_H__ */

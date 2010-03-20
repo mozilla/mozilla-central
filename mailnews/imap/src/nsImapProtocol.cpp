@@ -23,6 +23,7 @@
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Henry Jia <Henry.Jia@sun.com>
  *   Lorenzo Colitti <lorenzo@colitti.com>
+ *   Ben Bucksch <ben.bucksch beonex.com> <http://business.beonex.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -376,14 +377,15 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_useCondStore = PR_TRUE;
   m_useCompressDeflate = PR_TRUE;
   m_ignoreExpunges = PR_FALSE;
-  m_useSecAuth = PR_FALSE;
-  m_socketType = nsIMsgIncomingServer::tryTLS;
+  m_prefAuthMethods = kCapabilityUndefined;
+  m_failedAuthMethods = 0;
+  m_currentAuthMethod = kCapabilityUndefined;
+  m_socketType = nsMsgSocketType::trySTARTTLS;
   m_connectionStatus = 0;
   m_safeToCloseConnection = PR_FALSE;
   m_hostSessionList = nsnull;
   m_flagState = nsnull;
   m_fetchBodyIdList = nsnull;
-  m_authLogin = PR_TRUE;
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
   NS_ASSERTION(prefBranch, "FAILED to create the preference service");
@@ -529,9 +531,7 @@ nsresult nsImapProtocol::Initialize(nsIImapHostSessionList * aHostSessionList, n
 
   // one of the initializations that should be done in UI thread
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  if (NS_SUCCEEDED(rv) && prefBranch)
-    prefBranch->GetBoolPref("mail.auth_login", &m_authLogin);
-    
+
   // Now initialize the thread for the connection and create appropriate monitors
   if (m_thread == nsnull)
   {
@@ -796,9 +796,11 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
 
     m_hostSessionList->GetCapabilityForHost(GetImapServerKey(), capability);
 
-    PRBool shuttingDown;
-    (void) server->GetUseSecAuth(&m_useSecAuth);
+    PRInt32 authMethod;
+    (void) server->GetAuthMethod(&authMethod);
+    InitPrefAuthMethods(authMethod);
     (void) server->GetSocketType(&m_socketType);
+    PRBool shuttingDown;
     (void) imapServer->GetShuttingDown(&shuttingDown);
     if (!shuttingDown)
       (void) imapServer->GetUseIdle(&m_useIdle);
@@ -818,7 +820,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
         PRInt32 socketType;
         // Be a bit smarter about setting the default port
         port = (NS_SUCCEEDED(server->GetSocketType(&socketType)) &&
-                socketType == nsIMsgIncomingServer::useSSL) ?
+                socketType == nsMsgSocketType::SSL) ?
                nsIImapUrl::DEFAULT_IMAPS_PORT : nsIImapUrl::DEFAULT_IMAP_PORT;
       }
       nsCAutoString hostName;
@@ -833,10 +835,11 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
         ClearFlag(IMAP_CONNECTION_IS_OPEN);
         const char *connectionType = nsnull;
 
-        if (m_socketType == nsIMsgIncomingServer::useSSL)
+        if (m_socketType == nsMsgSocketType::SSL)
           connectionType = "ssl";
-        else if ((m_socketType == nsIMsgIncomingServer::tryTLS && (capability & kHasStartTLSCapability))
-          || m_socketType == nsIMsgIncomingServer::alwaysUseTLS)
+        else if ((m_socketType == nsMsgSocketType::trySTARTTLS &&
+                 (capability & kHasStartTLSCapability))
+                 || m_socketType == nsMsgSocketType::alwaysSTARTTLS)
           connectionType = "starttls";
 
         nsCOMPtr<nsIProxyInfo> proxyInfo;
@@ -859,10 +862,10 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
         rv = socketService->CreateTransport(&connectionType, connectionType != nsnull,
                                             *socketHost, socketPort, proxyInfo,
                                             getter_AddRefs(m_transport));
-        if (NS_FAILED(rv) && m_socketType == nsIMsgIncomingServer::tryTLS)
+        if (NS_FAILED(rv) && m_socketType == nsMsgSocketType::trySTARTTLS)
         {
           connectionType = nsnull;
-          m_socketType = nsIMsgIncomingServer::defaultSocket;
+          m_socketType = nsMsgSocketType::plain;
           rv = socketService->CreateTransport(&connectionType, connectionType != nsnull,
                                               *socketHost, socketPort, proxyInfo,
                                               getter_AddRefs(m_transport));
@@ -1631,9 +1634,9 @@ PRBool nsImapProtocol::ProcessCurrentURL()
       else
       {
         if (m_connectionType.Equals("starttls")
-            && (m_socketType == nsIMsgIncomingServer::tryTLS
+            && (m_socketType == nsMsgSocketType::trySTARTTLS
             && (GetServerStateParser().GetCapabilityFlag() & kHasStartTLSCapability))
-          || m_socketType == nsIMsgIncomingServer::alwaysUseTLS)
+          || m_socketType == nsMsgSocketType::alwaysSTARTTLS)
         {
           StartTLS();
           if (GetServerStateParser().LastCommandSuccessful())
@@ -1653,6 +1656,9 @@ PRBool nsImapProtocol::ProcessCurrentURL()
                 rv = sslControl->StartTLS();
                 if (NS_SUCCEEDED(rv))
                 {
+                  // force re-issue of "capability", because servers may
+                  // enable other auth features (e.g. remove LOGINDISABLED
+                  // and add AUTH=PLAIN) after we upgraded to SSL.
                   Capability();
                   PRInt32 capabilityFlag = GetServerStateParser().GetCapabilityFlag();
                   // Courier imap doesn't return STARTTLS capability if we've done
@@ -1673,14 +1679,14 @@ PRBool nsImapProtocol::ProcessCurrentURL()
               nsCAutoString logLine("STARTTLS negotiation failed. Error 0x");
               logLine.AppendInt(rv, 16);
               Log("ProcessCurrentURL", nsnull, logLine.get());
-              if (m_socketType == nsIMsgIncomingServer::alwaysUseTLS)
+              if (m_socketType == nsMsgSocketType::alwaysSTARTTLS)
               {
                 SetConnectionStatus(-1);        // stop netlib
                 m_transport->Close(rv);
               }
             }
           }
-          else if (m_socketType == nsIMsgIncomingServer::alwaysUseTLS)
+          else if (m_socketType == nsMsgSocketType::alwaysSTARTTLS)
           {
             SetConnectionStatus(-1);        // stop netlib
             if (m_transport)
@@ -1690,7 +1696,7 @@ PRBool nsImapProtocol::ProcessCurrentURL()
         // in this case, we didn't know the server supported TLS when
         // we created the socket, so we're going to retry with
         // STARTTLS.
-        else if (m_socketType == nsIMsgIncomingServer::tryTLS
+        else if (m_socketType == nsMsgSocketType::trySTARTTLS
             && (GetServerStateParser().GetCapabilityFlag() & kHasStartTLSCapability))
         {
           ClearFlag(IMAP_CONNECTION_IS_OPEN);
@@ -5412,28 +5418,108 @@ void nsImapProtocol::EscapeUserNamePasswordString(const char *strToEscape, nsCSt
   }
 }
 
-void nsImapProtocol::InsecureLogin(const char *userName, const nsCString &password)
+void nsImapProtocol::InitPrefAuthMethods(PRInt32 authMethodPrefValue)
 {
-  ProgressEventFunctionUsingId (IMAP_STATUS_SENDING_LOGIN);
-  IncrementCommandTagNumber();
-  nsCString command (GetServerCommandTag());
-  nsCAutoString escapedUserName;
-  command.Append(" login \"");
-  EscapeUserNamePasswordString(userName, &escapedUserName);
-  command.Append(escapedUserName);
-  command.Append("\" \"");
+    // for m_prefAuthMethods, using the same flags as server capablities.
+    switch (authMethodPrefValue)
+    {
+      case nsMsgAuthMethod::none:
+        m_prefAuthMethods = kHasAuthNoneCapability;
+        break;
+      case nsMsgAuthMethod::old:
+        m_prefAuthMethods = kHasAuthOldLoginCapability;
+        break;
+      case nsMsgAuthMethod::passwordCleartext:
+        m_prefAuthMethods = kHasAuthOldLoginCapability |
+            kHasAuthLoginCapability | kHasAuthPlainCapability;
+        break;
+      case nsMsgAuthMethod::passwordEncrypted:
+        m_prefAuthMethods = kHasCRAMCapability;
+        break;
+      case nsMsgAuthMethod::NTLM:
+        m_prefAuthMethods = kHasAuthNTLMCapability | kHasAuthMSNCapability;
+        break;
+      case nsMsgAuthMethod::GSSAPI:
+        m_prefAuthMethods = kHasAuthGssApiCapability;
+        break;
+      case nsMsgAuthMethod::secure:
+        m_prefAuthMethods = kHasCRAMCapability |
+            kHasAuthGssApiCapability |
+            kHasAuthNTLMCapability | kHasAuthMSNCapability;
+        break;
+      default:
+        NS_ASSERTION(false, "IMAP: authMethod pref invalid");
+        // TODO log to error console
+        PR_LOG(IMAP, PR_LOG_ERROR,
+            ("IMAP: bad pref authMethod = %d\n", authMethodPrefValue));
+        // fall to any
+      case nsMsgAuthMethod::anything:
+        m_prefAuthMethods = kHasAuthOldLoginCapability |
+            kHasAuthLoginCapability | kHasAuthPlainCapability |
+            kHasCRAMCapability | kHasAuthGssApiCapability |
+            kHasAuthNTLMCapability | kHasAuthMSNCapability;
+        break;
+    }
+    NS_ASSERTION(m_prefAuthMethods != kCapabilityUndefined,
+         "IMAP: InitPrefAuthMethods() didn't work");
+}
 
-  // if the password contains a \, login will fail
-  // turn foo\bar into foo\\bar
-  nsCAutoString correctedPassword;
-  EscapeUserNamePasswordString(password.get(), &correctedPassword);
-  command.Append(correctedPassword);
-  command.Append("\""CRLF);
+/**
+ * Changes m_currentAuthMethod to pick the best remaining one
+ * which is allowed by server and prefs and not marked failed.
+ * The order of preference and trying of auth methods is encoded here.
+ */
+nsresult nsImapProtocol::ChooseAuthMethod()
+{
+  PRInt32 serverCaps = GetServerStateParser().GetCapabilityFlag();
+  PRInt32 availCaps = serverCaps & m_prefAuthMethods & ~m_failedAuthMethods;
 
-  nsresult rv = SendData(command.get(), PR_TRUE /* suppress logging */);
+  PR_LOG(IMAP, PR_LOG_DEBUG, ("IMAP auth: server caps 0x%X, pref 0x%X, failed 0x%X, avail caps 0x%X",
+        serverCaps, m_prefAuthMethods, m_failedAuthMethods, availCaps));
+  PR_LOG(IMAP, PR_LOG_DEBUG, ("(GSSAPI = 0x%X, CRAM = 0x%X, NTLM = 0x%X, "
+        "MSN =  0x%X, PLAIN = 0x%X, LOGIN = 0x%X, old-style IMAP login = 0x%X)",
+        kHasAuthGssApiCapability, kHasCRAMCapability, kHasAuthNTLMCapability,
+        kHasAuthMSNCapability, kHasAuthPlainCapability, kHasAuthLoginCapability,
+        kHasAuthOldLoginCapability));
 
-  if (NS_SUCCEEDED(rv))
-     ParseIMAPandCheckForNewMail();
+  if (kHasAuthGssApiCapability & availCaps)
+    m_currentAuthMethod = kHasAuthGssApiCapability;
+  else if (kHasCRAMCapability & availCaps)
+    m_currentAuthMethod = kHasCRAMCapability;
+  else if (kHasAuthNTLMCapability & availCaps)
+    m_currentAuthMethod = kHasAuthNTLMCapability;
+  else if (kHasAuthMSNCapability & availCaps)
+    m_currentAuthMethod = kHasAuthMSNCapability;
+  else if (kHasAuthPlainCapability & availCaps)
+    m_currentAuthMethod = kHasAuthPlainCapability;
+  else if (kHasAuthLoginCapability & availCaps)
+    m_currentAuthMethod = kHasAuthLoginCapability;
+  else if (kHasAuthOldLoginCapability & availCaps)
+    m_currentAuthMethod = kHasAuthOldLoginCapability;
+  else
+  {
+    PR_LOG(IMAP, PR_LOG_DEBUG, ("no remaining auth method"));
+    m_currentAuthMethod = kCapabilityUndefined;
+    return NS_ERROR_FAILURE;
+  }
+  PR_LOG(IMAP, PR_LOG_DEBUG, ("trying auth method 0x%X", m_currentAuthMethod));
+  return NS_OK;
+}
+
+void nsImapProtocol::MarkAuthMethodAsFailed(PRInt32 failedAuthMethod)
+{
+  PR_LOG(IMAP, PR_LOG_DEBUG, ("marking auth method 0x%X failed", failedAuthMethod));
+  m_failedAuthMethods |= failedAuthMethod;
+}
+
+/**
+ * Start over, trying all auth methods again
+ */
+void nsImapProtocol::ResetAuthMethods()
+{
+  PR_LOG(IMAP, PR_LOG_DEBUG, ("resetting (failed) auth methods"));
+  m_currentAuthMethod = kCapabilityUndefined;
+  m_failedAuthMethods = 0;
 }
 
 nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &password, eIMAPCapabilityFlag flag)
@@ -5444,64 +5530,67 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &passwo
   char * currentCommand=nsnull;
   nsresult rv;
 
+  PR_LOG(IMAP, PR_LOG_DEBUG, ("IMAP: trying auth method 0x%X", m_currentAuthMethod));
+
   if (flag & kHasCRAMCapability)
   {
-      // inform the server that we want to begin a CRAM authentication procedure...
-      nsCAutoString command (GetServerCommandTag());
-      command.Append(" authenticate CRAM-MD5" CRLF);
-      rv = SendData(command.get());
-      ParseIMAPandCheckForNewMail();
-      if (GetServerStateParser().LastCommandSuccessful())
+    NS_ENSURE_TRUE(m_imapServerSink, NS_ERROR_NULL_POINTER);
+    PR_LOG(IMAP, PR_LOG_DEBUG, ("MD5 auth"));
+    // inform the server that we want to begin a CRAM authentication procedure...
+    nsCAutoString command (GetServerCommandTag());
+    command.Append(" authenticate CRAM-MD5" CRLF);
+    rv = SendData(command.get());
+    NS_ENSURE_SUCCESS(rv, rv);
+    ParseIMAPandCheckForNewMail();
+    if (GetServerStateParser().LastCommandSuccessful())
+    {
+      char *digest = nsnull;
+      char *cramDigest = GetServerStateParser().fAuthChallenge;
+      char *decodedChallenge = PL_Base64Decode(cramDigest,
+                                                strlen(cramDigest), nsnull);
+      rv = m_imapServerSink->CramMD5Hash(decodedChallenge, password.get(), &digest);
+      PR_Free(decodedChallenge);
+      NS_ENSURE_SUCCESS(rv, rv);
+      NS_ENSURE_TRUE(digest, NS_ERROR_NULL_POINTER);
+      nsCAutoString encodedDigest;
+      char hexVal[8];
+
+      for (PRUint32 j=0; j<16; j++)
       {
-        char *digest = nsnull;
-        char *cramDigest = GetServerStateParser().fAuthChallenge;
-        char * decodedChallenge = PL_Base64Decode(cramDigest,
-                                                  strlen(cramDigest), nsnull);
-        if (m_imapServerSink)
-          rv = m_imapServerSink->CramMD5Hash(decodedChallenge, password.get(), &digest);
+        PR_snprintf (hexVal,8, "%.2x", 0x0ff & (unsigned short)(digest[j]));
+        encodedDigest.Append(hexVal);
+      }
 
-        PR_Free(decodedChallenge);
-        if (NS_SUCCEEDED(rv) && digest)
-        {
-          nsCAutoString encodedDigest;
-          char hexVal[8];
-
-          for (PRUint32 j=0; j<16; j++)
-          {
-            PR_snprintf (hexVal,8, "%.2x", 0x0ff & (unsigned short)(digest[j]));
-            encodedDigest.Append(hexVal);
-          }
-
-          PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s %s", userName, encodedDigest.get());
-          char *base64Str = PL_Base64Encode(m_dataOutputBuf, strlen(m_dataOutputBuf), nsnull);
-          PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s" CRLF, base64Str);
-          PR_Free(base64Str);
-          PR_Free(digest);
-          rv = SendData(m_dataOutputBuf);
-          if (NS_SUCCEEDED(rv))
-            ParseIMAPandCheckForNewMail(command.get());
-          if (GetServerStateParser().LastCommandSuccessful())
-            return NS_OK;
-          GetServerStateParser().SetCapabilityFlag(GetServerStateParser().GetCapabilityFlag() & ~kHasCRAMCapability);
-
-        }
+      PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s %s", userName, encodedDigest.get());
+      char *base64Str = PL_Base64Encode(m_dataOutputBuf, strlen(m_dataOutputBuf), nsnull);
+      PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s" CRLF, base64Str);
+      PR_Free(base64Str);
+      PR_Free(digest);
+      rv = SendData(m_dataOutputBuf);
+      NS_ENSURE_SUCCESS(rv, rv);
+      ParseIMAPandCheckForNewMail(command.get());
     }
   } // if CRAM response was received
   else if (flag & kHasAuthGssApiCapability)
   {
+    PR_LOG(IMAP, PR_LOG_DEBUG, ("MD5 auth"));
+
     // Only try GSSAPI once - if it fails, its going to be because we don't
     // have valid credentials
-    GetServerStateParser().SetCapabilityFlag(GetServerStateParser().GetCapabilityFlag() & ~(kHasAuthGssApiCapability));
+    //MarkAuthMethodAsFailed(kHasAuthGssApiCapability);
 
     // We do step1 first, so we don't try GSSAPI against a server which
     // we can't get credentials for.
     nsCAutoString response;
-    nsresult gssrv;
 
+    // realHostname != GetImapHostName() when hostname was changed
+    nsCAutoString realHostname;
+    nsCOMPtr<nsIMsgIncomingServer> server = do_QueryReferent(m_server);
+    server->GetRealHostName(realHostname);
     nsCAutoString service("imap@");
-    service.Append(GetImapHostName());
-    gssrv = DoGSSAPIStep1(service.get(), userName, response);
-    NS_ENSURE_SUCCESS(gssrv, gssrv);
+    service.Append(realHostname);
+    rv = DoGSSAPIStep1(service.get(), userName, response);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     nsCAutoString command (GetServerCommandTag());
     command.Append(" authenticate GSSAPI" CRLF);
@@ -5515,6 +5604,7 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &passwo
       rv = SendData(response.get());
       NS_ENSURE_SUCCESS(rv, rv);
       ParseIMAPandCheckForNewMail(command.get());
+      nsresult gssrv = NS_OK;
 
       while (GetServerStateParser().LastCommandSuccessful() &&
              NS_SUCCEEDED(gssrv) && gssrv != NS_SUCCESS_AUTH_FINISHED)
@@ -5532,12 +5622,12 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &passwo
         NS_ENSURE_SUCCESS(rv, rv);
         ParseIMAPandCheckForNewMail(command.get());
       }
-      rv = gssrv;
+      // TODO: whether it worked or not is shown by LastCommandSuccessful(), not gssrv, right?
     }
-    return rv;
   }
-  else if (flag & (kHasAuthNTLMCapability|kHasAuthMSNCapability))
+  else if (flag & (kHasAuthNTLMCapability | kHasAuthMSNCapability))
   {
+    PR_LOG(IMAP, PR_LOG_DEBUG, ("NTLM auth"));
     nsCAutoString command (GetServerCommandTag());
     command.Append((flag & kHasAuthNTLMCapability) ? " authenticate NTLM" CRLF
                                                    : " authenticate MSN" CRLF);
@@ -5547,33 +5637,26 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &passwo
     {
       nsCAutoString cmd;
       rv = DoNtlmStep1(userName, password.get(), cmd);
-      if (NS_SUCCEEDED(rv))
+      NS_ENSURE_SUCCESS(rv, rv);
+      cmd += CRLF;
+      rv = SendData(cmd.get());
+      NS_ENSURE_SUCCESS(rv, rv);
+      ParseIMAPandCheckForNewMail(command.get());
+      if (GetServerStateParser().LastCommandSuccessful())
       {
-        cmd += CRLF;
-        rv = SendData(cmd.get());
-        if (NS_SUCCEEDED(rv))
-        {
-          ParseIMAPandCheckForNewMail(command.get());
-          if (GetServerStateParser().LastCommandSuccessful())
-          {
-            nsCString challengeStr(GetServerStateParser().fAuthChallenge);
-            nsCString response;
-            rv = DoNtlmStep2(challengeStr, response);
-            if (NS_SUCCEEDED(rv))
-            {
-              response += CRLF;
-              rv = SendData(response.get());
-              ParseIMAPandCheckForNewMail(command.get());
-              if (!GetServerStateParser().LastCommandSuccessful())
-                GetServerStateParser().SetCapabilityFlag(GetServerStateParser().GetCapabilityFlag() & ~(kHasAuthNTLMCapability|kHasAuthMSNCapability));
-            }
-          }
-        }
+        nsCString challengeStr(GetServerStateParser().fAuthChallenge);
+        nsCString response;
+        rv = DoNtlmStep2(challengeStr, response);
+        NS_ENSURE_SUCCESS(rv, rv);
+        response += CRLF;
+        rv = SendData(response.get());
+        ParseIMAPandCheckForNewMail(command.get());
       }
     }
   }
   else if (flag & kHasAuthPlainCapability)
   {
+    PR_LOG(IMAP, PR_LOG_DEBUG, ("PLAIN auth"));
     PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s authenticate plain" CRLF, GetServerCommandTag());
     rv = SendData(m_dataOutputBuf);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -5581,7 +5664,8 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &passwo
     ParseIMAPandCheckForNewMail();
     if (GetServerStateParser().LastCommandSuccessful())
     {
-      char plainstr[512]; // placeholder for "<NUL>userName<NUL>password"
+      // RFC 4616
+      char plainstr[512]; // placeholder for "<NUL>userName<NUL>password" TODO nsCAutoString
       int len = 1; // count for first <NUL> char
       memset(plainstr, 0, 512);
       PR_snprintf(&plainstr[1], 510, "%s", userName);
@@ -5590,24 +5674,16 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &passwo
       PR_snprintf(&plainstr[len], 511-len, "%s", password.get());
       len += password.Length();
       char *base64Str = PL_Base64Encode(plainstr, len, nsnull);
-      if (base64Str)
-      {
-        PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s" CRLF, base64Str);
-        PR_Free(base64Str);
-        rv = SendData(m_dataOutputBuf, PR_TRUE /* suppress logging */);
-        if (NS_SUCCEEDED(rv))
-            ParseIMAPandCheckForNewMail(currentCommand);
-        if (GetServerStateParser().LastCommandSuccessful())
-        {
-          PR_Free(currentCommand);
-          return NS_OK;
-        } // if the last command succeeded
-      } // if we got a base 64 encoded string
+      PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s" CRLF, base64Str);
+      PR_Free(base64Str);
+      rv = SendData(m_dataOutputBuf, PR_TRUE /* suppress logging */);
+      if (NS_SUCCEEDED(rv))
+        ParseIMAPandCheckForNewMail(currentCommand);
     } // if the last command succeeded
   } // if auth plain capability
-
   else if (flag & kHasAuthLoginCapability)
   {
+    PR_LOG(IMAP, PR_LOG_DEBUG, ("LOGIN auth"));
     PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s authenticate login" CRLF, GetServerCommandTag());
     rv = SendData(m_dataOutputBuf);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -5617,37 +5693,61 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &passwo
     if (GetServerStateParser().LastCommandSuccessful())
     {
       char *base64Str = PL_Base64Encode(userName, PL_strlen(userName), nsnull);
-      if(base64Str)
+      PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s" CRLF, base64Str);
+      PR_Free(base64Str);
+      rv = SendData(m_dataOutputBuf, PR_TRUE /* suppress logging */);
+      if (NS_SUCCEEDED(rv))
       {
-        PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s" CRLF, base64Str);
-        PR_Free(base64Str);
-        rv = SendData(m_dataOutputBuf, PR_TRUE /* suppress logging */);
-        if (NS_SUCCEEDED(rv))
-            ParseIMAPandCheckForNewMail(currentCommand);
-      }
-      if (GetServerStateParser().LastCommandSuccessful())
-      {
-        base64Str = PL_Base64Encode(password.get(), password.Length(), nsnull);
-        PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s" CRLF, base64Str);
-        PR_Free(base64Str);
-        rv = SendData(m_dataOutputBuf, PR_TRUE /* suppress logging */);
-        if (NS_SUCCEEDED(rv))
-           ParseIMAPandCheckForNewMail(currentCommand);
+        ParseIMAPandCheckForNewMail(currentCommand);
         if (GetServerStateParser().LastCommandSuccessful())
         {
-          PR_Free(currentCommand);
-          return NS_OK;
-        }
+          base64Str = PL_Base64Encode(password.get(), password.Length(), nsnull);
+          PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE, "%s" CRLF, base64Str);
+          PR_Free(base64Str);
+          rv = SendData(m_dataOutputBuf, PR_TRUE /* suppress logging */);
+          if (NS_SUCCEEDED(rv))
+            ParseIMAPandCheckForNewMail(currentCommand);
+        } // if last command successful
       } // if last command successful
     } // if last command successful
   } // if has auth login capability
+  else if (flag & kHasAuthOldLoginCapability)
+  {
+    PR_LOG(IMAP, PR_LOG_DEBUG, ("old-style auth"));
+    ProgressEventFunctionUsingId (IMAP_STATUS_SENDING_LOGIN);
+    IncrementCommandTagNumber();
+    nsCString command (GetServerCommandTag());
+    nsCAutoString escapedUserName;
+    command.Append(" login \"");
+    EscapeUserNamePasswordString(userName, &escapedUserName);
+    command.Append(escapedUserName);
+    command.Append("\" \"");
 
-  // Fall back to InsecureLogin() if the user did not request secure authentication
-  if (!m_useSecAuth && ! (GetServerStateParser().GetCapabilityFlag() & kLoginDisabled))
-    InsecureLogin(userName, password);
+    // if the password contains a \, login will fail
+    // turn foo\bar into foo\\bar
+    nsCAutoString correctedPassword;
+    EscapeUserNamePasswordString(password.get(), &correctedPassword);
+    command.Append(correctedPassword);
+    command.Append("\""CRLF);
+    rv = SendData(command.get(), PR_TRUE /* suppress logging */);
+    NS_ENSURE_SUCCESS(rv, rv);
+    ParseIMAPandCheckForNewMail();
+  }
+  else if (flag & kHasAuthNoneCapability)
+  {
+    // TODO What to do? "login <username>" like POP?
+    return NS_ERROR_NOT_IMPLEMENTED;
+  }
+  else
+  {
+    PR_LOG(IMAP, PR_LOG_ERROR, ("flags param has no auth scheme selected"));
+    return NS_ERROR_ILLEGAL_VALUE;
+  }
 
   PR_Free(currentCommand);
-  return NS_OK;
+  NS_ENSURE_SUCCESS(rv, rv);
+  return GetServerStateParser().LastCommandSuccessful() ?
+        NS_OK : NS_ERROR_FAILURE;
 }
 
 void nsImapProtocol::OnLSubFolders()
@@ -7948,233 +8048,256 @@ nsresult nsImapProtocol::GetMsgWindow(nsIMsgWindow **aMsgWindow)
     return mailnewsUrl->GetMsgWindow(aMsgWindow);
 }
 
+/**
+ * Get password from RAM, disk (password manager) or user (dialog)
+ * @return NS_MSG_PASSWORD_PROMPT_CANCELLED
+ *    (which is NS_SUCCEEDED!) when user cancelled
+ *    NS_FAILED(rv) for other errors
+ */
 nsresult nsImapProtocol::GetPassword(nsCString &password)
 {
-  if (password.IsEmpty() && m_imapServerSink &&
-      !(m_useSecAuth && GetServerStateParser().GetCapabilityFlag() & kHasAuthGssApiCapability))
+  // we are in the imap thread so *NEVER* try to extract the password with UI
+  // if logon redirection has changed the password, use the cookie as the password
+  if (m_overRideUrlConnectionInfo)
+  {
+    password.Assign(m_logonCookie);
+    return NS_OK;
+  }
+
+  NS_ENSURE_TRUE(m_imapServerSink, NS_ERROR_NULL_POINTER);
+  NS_ENSURE_TRUE(m_server, NS_ERROR_NULL_POINTER);
+  nsresult rv;
+  nsCOMPtr<nsIMsgIncomingServer> server = do_QueryReferent(m_server, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Get the password already stored in mem
+  rv = server->GetPassword(password);
+  if (NS_FAILED(rv) || password.IsEmpty())
   {
     nsCOMPtr<nsIMsgWindow> msgWindow;
-
     GetMsgWindow(getter_AddRefs(msgWindow));
-    // need to copy password, because in the case of Cancel,
-    // GetPasswordWithUI will truncate the password.
-    nsCString pwd = m_lastPasswordSent;
-    nsresult rv = m_imapServerSink->PromptForPassword(pwd, msgWindow);
+    NS_ENSURE_TRUE(msgWindow, NS_ERROR_NOT_AVAILABLE); // biff case
 
-    if (NS_FAILED(rv) || rv == NS_MSG_PASSWORD_PROMPT_CANCELLED)
+    // Get the password from pw manager (harddisk) or user (dialog)
+    nsCAutoString pwd; // GetPasswordWithUI truncates the password on Cancel
+    rv = m_imapServerSink->PromptForPassword(pwd, msgWindow);
+    NS_ENSURE_SUCCESS(rv, rv);
+    if (rv == NS_MSG_PASSWORD_PROMPT_CANCELLED) // (this is a success code)
       return NS_ERROR_ABORT;
-
+    NS_ENSURE_TRUE(!pwd.IsEmpty(), NS_ERROR_ABORT);
     password.Assign(pwd);
   }
+
   m_lastPasswordSent = password;
   return NS_OK;
 }
 
 PRBool nsImapProtocol::TryToLogon()
 {
-  PRInt32 logonTries = 0;
-  const PRInt32 maxLogonTries = 4;
+  PR_LOG(IMAP, PR_LOG_DEBUG, ("try to log in"));
+  NS_ENSURE_TRUE(m_imapServerSink, false);
   PRBool loginSucceeded = PR_FALSE;
-  PRBool clientSucceeded = PR_TRUE;
+  PRBool skipLoop = PR_FALSE;
   nsCAutoString password;
   nsCAutoString userName;
-  nsresult rv = NS_OK;
 
-  // get the password and user name for the current incoming server...
-  nsCOMPtr<nsIMsgIncomingServer> server = do_QueryReferent(m_server);
-  if (!m_imapServerSink)
-    return NS_ERROR_FAILURE;
-
-  if (server)
+  nsresult rv = ChooseAuthMethod();
+  if (NS_FAILED(rv)) // all methods failed
   {
-    // we are in the imap thread so *NEVER* try to extract the password with UI
-    // if logon redirection has changed the password, use the cookie as the password
-    if (m_overRideUrlConnectionInfo)
-      password.Assign(m_logonCookie);
-    else
-      rv = server->GetPassword(password);
-    rv = m_imapServerSink->GetLoginUsername(userName);
-  }
+    // are there any matching login schemes at all?
+    if (!(GetServerStateParser().GetCapabilityFlag() & m_prefAuthMethods))
+    {
+      // Pref doesn't match server. Now, find an appropriate error msg.
 
-  do
-  {
-      PRBool imapPasswordIsNew = PR_FALSE;
-      if (!userName.IsEmpty())
+      // pref has plaintext pw & server claims to support encrypted pw
+      if (m_prefAuthMethods == (kHasAuthOldLoginCapability |
+              kHasAuthLoginCapability | kHasAuthPlainCapability) &&
+          GetServerStateParser().GetCapabilityFlag() & kHasCRAMCapability)
+        // tell user to change to encrypted pw
+        AlertUserEventUsingId(IMAP_AUTH_CHANGE_PLAIN_TO_ENCRYPT);
+      // pref has encrypted pw & server claims to support plaintext pw
+      else if (m_prefAuthMethods == kHasCRAMCapability &&
+               GetServerStateParser().GetCapabilityFlag() &
+                   (kHasAuthOldLoginCapability | kHasAuthLoginCapability |
+                    kHasAuthPlainCapability))
       {
-      PRBool lastReportingErrors = GetServerStateParser().GetReportingErrors();
-      GetServerStateParser().SetReportingErrors(PR_FALSE);  // turn off errors - we'll put up our own.
-
-      if (GetServerStateParser().GetCapabilityFlag() == kCapabilityUndefined)
-        Capability();
-
-      if (m_authLogin)
-      {
-        // If secure auth is configured, don't proceed unless the server
-        // supports it. This avoids fallback to insecure login in case
-        // authentication fails.
-        if(m_useSecAuth && !(GetServerStateParser().GetCapabilityFlag()
-            & (kHasCRAMCapability|kHasAuthNTLMCapability|kHasAuthMSNCapability|kHasAuthGssApiCapability)))
-        {
-          AlertUserEventUsingId(IMAP_AUTH_SECURE_NOTSUPPORTED);
-          break;
-        }
-
-        // If secure auth is disabled, ensure that server supports plaintext auth
-        if (!m_useSecAuth && !(GetServerStateParser().GetCapabilityFlag()
-             & (kLoginDisabled|kHasAuthLoginCapability|kHasAuthPlainCapability)
-             ^  kLoginDisabled))
-        {
-          AlertUserEventUsingId(IMAP_LOGIN_DISABLED);
-          // force re-issue of Capability() to make sure login still disabled.
-          m_hostSessionList->SetCapabilityForHost(GetImapServerKey(), kCapabilityUndefined);
-          break;
-        }
-
-        clientSucceeded = PR_TRUE;
-        rv = GetPassword(password);
-        if (NS_FAILED(rv)) break;
-        
-        // Use CRAM/NTLM/MSN only if secure auth is enabled. This is for servers that
-        // say they support CRAM but are so badly broken that trying it causes
-        // all subsequent login attempts to fail (bug 231303, bug 227560)
-        if (m_useSecAuth && GetServerStateParser().GetCapabilityFlag() & kHasAuthGssApiCapability)
-        {
-          clientSucceeded = NS_SUCCEEDED(AuthLogin(userName.get(), password, kHasAuthGssApiCapability));
-        }
-        else if (m_useSecAuth && GetServerStateParser().GetCapabilityFlag() & kHasCRAMCapability)
-        {
-          AuthLogin (userName.get(), password, kHasCRAMCapability);
-          logonTries++;
-        }
-        else if (m_useSecAuth && GetServerStateParser().GetCapabilityFlag() & kHasAuthNTLMCapability)
-        {
-          AuthLogin (userName.get(), password, kHasAuthNTLMCapability);
-          logonTries++;
-        }
-        else if (m_useSecAuth && GetServerStateParser().GetCapabilityFlag() & kHasAuthMSNCapability)
-        {
-          AuthLogin (userName.get(), password, kHasAuthMSNCapability);
-          logonTries++;
-        }
-        else if (GetServerStateParser().GetCapabilityFlag() & kHasAuthPlainCapability)
-        {
-          AuthLogin (userName.get(), password, kHasAuthPlainCapability);
-          logonTries++;
-        }
-        else if (GetServerStateParser().GetCapabilityFlag() & kHasAuthLoginCapability)
-        {
-          AuthLogin (userName.get(), password,  kHasAuthLoginCapability);
-          logonTries++; // This counts as a logon try for most servers
-        }
-        else if (! (GetServerStateParser().GetCapabilityFlag() & kLoginDisabled))
-          InsecureLogin(userName.get(), password);
-      } // if prefbool
-      else if (! (GetServerStateParser().GetCapabilityFlag() & kLoginDisabled))
-      {
-        rv = GetPassword(password);
-        if (NS_FAILED(rv)) break;
-        InsecureLogin(userName.get(), password);
+        // have SSL
+        if (m_socketType == nsMsgSocketType::SSL ||
+            m_socketType == nsMsgSocketType::alwaysSTARTTLS)
+          // tell user to change to plaintext pw
+          AlertUserEventUsingId(IMAP_AUTH_CHANGE_ENCRYPT_TO_PLAIN_SSL);
+        else
+          // tell user to change to plaintext pw, with big warning
+          AlertUserEventUsingId(IMAP_AUTH_CHANGE_ENCRYPT_TO_PLAIN_NO_SSL);
       }
+      else
+        // just "change auth method"
+        AlertUserEventUsingId(IMAP_AUTH_MECH_NOT_SUPPORTED);
 
-      if (!clientSucceeded || !GetServerStateParser().LastCommandSuccessful())
-      {
-        if (!DeathSignalReceived() && clientSucceeded)
-        {
-          // login failed!
-          // if we failed because of an interrupt, then do not bother the user
-          // similarly - if we failed due to a local error, don't bug them
-          if (m_imapServerSink)
-          {
-            nsCOMPtr<nsIMsgWindow> msgWindow;
-            GetMsgWindow(getter_AddRefs(msgWindow));
-            // if there's no msg window, don't forget the password
-            if (msgWindow)
-            {
-              PRInt32 buttonPressed = 0;
-              rv = m_imapServerSink->PromptLoginFailed(msgWindow,
-                                                       &buttonPressed);
-              if (NS_SUCCEEDED(rv))
-              {
-                if (buttonPressed == 2)
-                {
-                  // Change password was pressed. For now, forget the
-                  // stored password and we'll prompt for a new one next time
-                  // around.
-                  m_imapServerSink->ForgetPassword();
-                  // Reset logon tries to allow the user to have some failed
-                  // attempts even if they have already pressed retry a few
-                  // times.
-                  logonTries = 0;
-                }
-                else if (buttonPressed == 1)
-                  // Cancel button pressed, abort quickly by exiting the loop
-                  // this time.
-                  logonTries = maxLogonTries;
-              }
-            }
-          }
-
-          m_hostSessionList->SetPasswordForHost(GetImapServerKey(), nsnull);
-          m_currentBiffState = nsIMsgFolder::nsMsgBiffState_Unknown;
-          SendSetBiffIndicatorEvent(m_currentBiffState);
-          password.Truncate();
-        } // if we didn't receive the death signal...
-      } // if login failed
-      else  // login succeeded
-      {
-        PRBool passwordAlreadyVerified;
-        rv = m_hostSessionList->SetPasswordForHost(GetImapServerKey(), password.get());
-        rv = m_hostSessionList->GetPasswordVerifiedOnline(GetImapServerKey(), passwordAlreadyVerified);
-        if (NS_SUCCEEDED(rv) && !passwordAlreadyVerified)
-          m_hostSessionList->SetPasswordVerifiedOnline(GetImapServerKey());
-        imapPasswordIsNew = !passwordAlreadyVerified;
-        if (imapPasswordIsNew)
-        {
-          if (m_currentBiffState == nsIMsgFolder::nsMsgBiffState_Unknown)
-          {
-              m_currentBiffState = nsIMsgFolder::nsMsgBiffState_NoMail;
-              SendSetBiffIndicatorEvent(m_currentBiffState);
-          }
-        }
-
-        loginSucceeded = PR_TRUE;
-      } // else if login succeeded
-
-      GetServerStateParser().SetReportingErrors(lastReportingErrors);  // restore it
-
-      if (loginSucceeded && imapPasswordIsNew)
-      {
-        // let's record the user as authenticated.
-        m_imapServerSink->SetUserAuthenticated(PR_TRUE);
-      }
-
-      if (loginSucceeded)
-      {
-        nsImapAction imapAction;
-        m_runningUrl->GetImapAction(&imapAction);
-        // We don't want to do any more processing if we're just
-        // verifying the ability to logon because it can leave us in
-        // a half-constructed state.
-        if (imapAction != nsIImapUrl::nsImapVerifylogon)
-          ProcessAfterAuthenticated();
-      }
+      skipLoop = PR_TRUE;
     }
     else
     {
-      // The user hit "Cancel" on the dialog box
-      HandleCurrentUrlError();
-      break;
+      // try to reset failed methods and try them again
+      ResetAuthMethods();
+      rv = ChooseAuthMethod();
+      if (NS_FAILED(rv)) // all methods failed
+      {
+        PR_LOG(IMAP, PR_LOG_ERROR, ("huch? there are auth methods, and we resetted failed ones, but ChooseAuthMethod still fails."));
+        return false;
+      }
     }
   }
 
-  while (!loginSucceeded && ++logonTries < maxLogonTries);
-
-  if (!loginSucceeded)
+  // Get username, either the stored one or from user
+  rv = m_imapServerSink->GetLoginUsername(userName);
+  if (NS_FAILED(rv) || userName.IsEmpty())
   {
+    // The user hit "Cancel" on the dialog box
+    skipLoop = PR_TRUE;
+  }
+
+  /*
+   * Login can fail for various reasons:
+   * 1. Server claims to support GSSAPI, but it really doesn't.
+   *    Or the client doesn't support GSSAPI, or is not logged in yet.
+   *    (GSSAPI is a mechanism without password in apps).
+   * 2. Server claims to support CRAM-MD5, but it's broken and will fail despite correct password.
+   * 2.1. Some servers say they support CRAM but are so badly broken that trying it causes
+   *    all subsequent login attempts to fail during this connection (bug 231303).
+   *    So we use CRAM/NTLM/MSN only if enabled in prefs.
+   *    Update: if it affects only some ISPs, we can maybe use the ISP DB
+   *    and disable CRAM specifically for these.
+   * 3. Prefs are set to require auth methods which the server doesn't support
+   *     (per CAPS or we tried and they failed).
+   * 4. User provided wrong password.
+   * 5. We tried too often and the server shut us down, so even a correct attempt
+   *    will now (currently) fail.
+   * The above problems may overlap, e.g. 3. with 1. and 2., and we can't differentiate
+   * between 2. and 4., which is really unfortunate.
+   */
+
+  // This loops over 1) auth methods (only one per loop) and 2) password tries (with UI)
+  while (!loginSucceeded && !skipLoop && !DeathSignalReceived())
+  {
+      // Get password
+      if (m_currentAuthMethod != kHasAuthGssApiCapability && // GSSAPI uses no pw in apps
+          m_currentAuthMethod != kHasAuthNoneCapability)
+      {
+          rv = GetPassword(password);
+          if (rv == NS_MSG_PASSWORD_PROMPT_CANCELLED || NS_FAILED(rv))
+          {
+            PR_LOG(IMAP, PR_LOG_ERROR, ("IMAP: password prompt failed or user canceled it"));
+            break;
+          }
+          PR_LOG(IMAP, PR_LOG_DEBUG, ("got new password"));
+      }
+
+      PRBool lastReportingErrors = GetServerStateParser().GetReportingErrors();
+      GetServerStateParser().SetReportingErrors(PR_FALSE); // turn off errors - we'll put up our own.
+
+      rv = AuthLogin(userName.get(), password, m_currentAuthMethod);
+
+      GetServerStateParser().SetReportingErrors(lastReportingErrors); // restore error reports
+      loginSucceeded = NS_SUCCEEDED(rv);
+
+      if (!loginSucceeded)
+      {
+        PR_LOG(IMAP, PR_LOG_DEBUG, ("authlogin failed"));
+        MarkAuthMethodAsFailed(m_currentAuthMethod);
+        rv = ChooseAuthMethod(); // change m_currentAuthMethod to try other one next round
+
+        if (NS_FAILED(rv)) // all methods failed
+        {
+          if (m_prefAuthMethods == kHasAuthGssApiCapability)
+          {
+            // GSSAPI failed, and it's the only available method,
+            // and it's password-less, so nothing left to do.
+            AlertUserEventUsingId(IMAP_AUTH_GSSAPI_FAILED);
+            break;
+          }
+
+          // The reason that we failed might be a wrong password, so
+          // ask user what to do
+          PR_LOG(IMAP, PR_LOG_WARN, ("IMAP: ask user what to do (after login failed): new passwort, retry, cancel"));
+          if (!m_imapServerSink)
+            break;
+          nsCOMPtr<nsIMsgWindow> msgWindow;
+          GetMsgWindow(getter_AddRefs(msgWindow));
+          // if there's no msg window, don't forget the password
+          if (!msgWindow)
+            break;
+          PRInt32 buttonPressed = 1;
+          rv = m_imapServerSink->PromptLoginFailed(msgWindow,
+                                                    &buttonPressed);
+          if (NS_FAILED(rv))
+            break;
+          if (buttonPressed == 2) // 'New password' button
+          {
+            PR_LOG(IMAP, PR_LOG_WARN, ("new password button pressed."));
+            // Forget the current password
+            password.Truncate();
+            m_hostSessionList->SetPasswordForHost(GetImapServerKey(), nsnull);
+            m_imapServerSink->ForgetPassword();
+            PR_LOG(IMAP, PR_LOG_WARN, ("password resetted (nulled)"));
+            // Will call GetPassword() in beginning of next loop
+
+            // Try all possible auth methods again with the new password.
+            ResetAuthMethods();
+          }
+          else if (buttonPressed == 0) // Retry button
+          {
+            PR_LOG(IMAP, PR_LOG_WARN, ("retry button pressed"));
+            // Try all possible auth methods again
+            ResetAuthMethods();
+          }
+          else if (buttonPressed == 1) // Cancel button
+          {
+            PR_LOG(IMAP, PR_LOG_WARN, ("cancel button pressed"));
+            break; // Abort quickly
+          }
+
+          // TODO what is this for? When does it get set to != unknown again?
+          m_currentBiffState = nsIMsgFolder::nsMsgBiffState_Unknown;
+          SendSetBiffIndicatorEvent(m_currentBiffState);
+        } // all methods failed
+      } // login failed
+  } // while
+
+  if (loginSucceeded)
+  {
+    PR_LOG(IMAP, PR_LOG_DEBUG, ("login succeeded"));
+    PRBool passwordAlreadyVerified;
+    m_hostSessionList->SetPasswordForHost(GetImapServerKey(), password.get());
+    rv = m_hostSessionList->GetPasswordVerifiedOnline(GetImapServerKey(), passwordAlreadyVerified);
+    if (NS_SUCCEEDED(rv) && !passwordAlreadyVerified)
+      m_hostSessionList->SetPasswordVerifiedOnline(GetImapServerKey());
+    PRBool imapPasswordIsNew = !passwordAlreadyVerified;
+    if (imapPasswordIsNew)
+    {
+      if (m_currentBiffState == nsIMsgFolder::nsMsgBiffState_Unknown)
+      {
+          m_currentBiffState = nsIMsgFolder::nsMsgBiffState_NoMail;
+          SendSetBiffIndicatorEvent(m_currentBiffState);
+      }
+      m_imapServerSink->SetUserAuthenticated(PR_TRUE);
+    }
+
+    nsImapAction imapAction;
+    m_runningUrl->GetImapAction(&imapAction);
+    // We don't want to do any more processing if we're just
+    // verifying the ability to logon because it can leave us in
+    // a half-constructed state.
+    if (imapAction != nsIImapUrl::nsImapVerifylogon)
+      ProcessAfterAuthenticated();
+  }
+  else // login failed
+  {
+    PR_LOG(IMAP, PR_LOG_ERROR, ("login failed entirely"));
     m_currentBiffState = nsIMsgFolder::nsMsgBiffState_Unknown;
     SendSetBiffIndicatorEvent(m_currentBiffState);
     HandleCurrentUrlError();
-    SetConnectionStatus(-1);        // stop netlib
+    SetConnectionStatus(-1); // stop netlib
   }
 
   return loginSucceeded;

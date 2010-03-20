@@ -43,6 +43,7 @@ const XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://app/modules/Sanitizer.jsm");
+Components.utils.import("resource://app/modules/migration.jsm");
 
 // Constructor
 
@@ -158,6 +159,7 @@ SuiteGlue.prototype = {
   _onProfileStartup: function()
   {
     this._updatePrefs();
+    migrateMailnews(); // migration.jsm
 
     Sanitizer.checkAndSanitize();
 

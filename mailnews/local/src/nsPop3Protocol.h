@@ -114,6 +114,8 @@ enum Pop3CapabilityEnum {
     POP3_HAS_AUTH_GSSAPI        = 0x00100000
 };
 
+// TODO use value > 0?
+#define POP3_HAS_AUTH_NONE        0
 #define POP3_HAS_AUTH_ANY         0x00001C00
 #define POP3_HAS_AUTH_ANY_SEC     0x0011E000
 
@@ -154,7 +156,7 @@ enum Pop3StatesEnum {
     POP3_SEND_CAPA,                             // 28
     POP3_CAPA_RESPONSE,                         // 29
     POP3_PROCESS_AUTH,                          // 30
-    POP3_AUTH_FALLBACK,                         // 31
+    POP3_NEXT_AUTH_STEP,                        // 31
 
     POP3_AUTH_LOGIN,                            // 32
     POP3_AUTH_LOGIN_RESPONSE,                   // 33
@@ -254,7 +256,6 @@ typedef struct _Pop3ConData {
     PRInt32 pop3_size;
     PRBool dot_fix;
     PRBool assumed_end;
-    PRInt32 logonFailureCount;
     nsresult urlStatus;
 } Pop3ConData;
 
@@ -332,16 +333,21 @@ private:
 
   PRBool m_tlsEnabled;
   PRInt32 m_socketType;
-  PRBool m_useSecAuth;
   PRBool m_password_already_sent;
 
   void SetCapFlag(PRUint32 flag);
   void ClearCapFlag(PRUint32 flag);
   PRBool TestCapFlag(PRUint32 flag);
+  PRUint32 GetCapFlags();
 
-  void BackupAuthFlags();
-  void RestoreAuthFlags();
-  PRInt32 m_origAuthFlags;
+  void    InitPrefAuthMethods(PRInt32 authMethodPrefValue);
+  nsresult ChooseAuthMethod();
+  void    MarkAuthMethodAsFailed(PRInt32 failedAuthMethod);
+  void    ResetAuthMethods();
+  PRInt32 m_prefAuthMethods; // set of capability flags for auth methods
+  PRInt32 m_failedAuthMethods; // ditto
+  PRInt32 m_currentAuthMethod; // exactly one capability flag, or 0
+
   PRInt32 m_listpos;
 
   nsresult HandleLine(char *line, PRUint32 line_length);
@@ -362,7 +368,7 @@ private:
   PRInt32 CapaResponse(nsIInputStream* inputStream, PRUint32 length);
   PRInt32 SendTLSResponse();
   PRInt32 ProcessAuth();
-  PRInt32 AuthFallback();
+  PRInt32 NextAuthStep();
   PRInt32 AuthLogin();
   PRInt32 AuthLoginResponse();
   PRInt32 AuthNtlm();

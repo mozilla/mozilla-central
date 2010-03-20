@@ -45,16 +45,14 @@ var gSmtpDescription;
 var gSmtpUsernameLabel;
 var gSmtpHostname;
 var gSmtpPort;
-var gSmtpUseSecAuth;
-var gSmtpUseUsername;
 var gSmtpAuthMethod;
-var gSmtpTrySSL;
+var gSmtpSocketType;
 var gSmtpPrefBranch;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
 var gSmtpService = Components.classes["@mozilla.org/messengercompose/smtp;1"].getService(Components.interfaces.nsISmtpService);
-var gSavedUsername = "";
 var gPort;
 var gDefaultPort;
+const Ci = Components.interfaces;
 
 function initSmtpSettings(server) {
     gSmtpUsername = document.getElementById("smtp.username");
@@ -62,10 +60,8 @@ function initSmtpSettings(server) {
     gSmtpUsernameLabel = document.getElementById("smtp.username.label");
     gSmtpHostname = document.getElementById("smtp.hostname");
     gSmtpPort = document.getElementById("smtp.port");
-    gSmtpUseUsername = document.getElementById("smtp.useUsername");
     gSmtpAuthMethod = document.getElementById("smtp.authMethod");
-    gSmtpTrySSL = document.getElementById("smtp.trySSL");
-    gSmtpUseSecAuth = document.getElementById("smtp.useSecAuth");
+    gSmtpSocketType = document.getElementById("smtp.socketType");
     gDefaultPort = document.getElementById("smtp.defaultPort");
     gPort = document.getElementById("smtp.port");
 
@@ -74,39 +70,56 @@ function initSmtpSettings(server) {
         gSmtpDescription.value = server.description;
         gSmtpPort.value = server.port ? server.port : "";
         gSmtpUsername.value = server.username;
-        gSmtpAuthMethod.setAttribute("value", server.authMethod);
-        gSmtpTrySSL.value = (server.trySSL < 4) ? server.trySSL : 1;
-        gSmtpUseSecAuth.checked = server.useSecAuth == "1";
+        gSmtpAuthMethod.value = server.authMethod;
+        gSmtpSocketType.value = (server.socketType < 4) ? server.socketType : 1;
     } else {
-        const PREF_AUTH_ANY = 1; // From nsSmtpProtocol.h
-        gSmtpAuthMethod.setAttribute("value", PREF_AUTH_ANY);
-        const PREF_SECURE_NEVER = 0; // From nsSmtpProtocol.h
-        gSmtpTrySSL.value = PREF_SECURE_NEVER;
+        // When does that happen? TODO Get default prefs, if realistic, otherwise remove
+        gSmtpAuthMethod.value = 3; // cleartext
+        gSmtpSocketType.value = 0;
     }
 
-    gSmtpUseUsername.checked = (gSmtpAuthMethod.getAttribute("value") == "1");
+    sslChanged(false);
+    authMethodChanged(false);
 
-    //dump("gSmtpAuthMethod = <" + gSmtpAuthMethod.localName + ">\n");
-    //dump("gSmtpAuthMethod.value = " + gSmtpAuthMethod.getAttribute("value") + "\n");
-
-    onUseUsername(gSmtpUseUsername, false);
-    selectProtocol(false);
     if (gSmtpService.defaultServer)
       onLockPreference();
 
-    //"STARTTLS, if available" is vulnerable to MITM attacks so we shouldn't
+    setLabelFromStringBundle("authMethod-no", "authNo");
+    setLabelFromStringBundle("authMethod-kerberos", "authKerberos");
+    setLabelFromStringBundle("authMethod-ntlm", "authNTLM");
+    setLabelFromStringBundle("authMethod-anysecure", "authAnySecure");
+    setLabelFromStringBundle("authMethod-any", "authAny");
+    setLabelFromStringBundle("authMethod-password-encrypted",
+        "authPasswordEncrypted");
+    //authMethod-password-cleartext already set in sslChanged()
+
+    // Hide deprecated/hidden auth options, unless selected
+    hideUnlessSelected(document.getElementById("authMethod-anysecure"));
+    hideUnlessSelected(document.getElementById("authMethod-any"));
+
+    // "STARTTLS, if available" is vulnerable to MITM attacks so we shouldn't
     // allow users to choose it anymore. Hide the option unless the user already
     // has it set.
-    const PREF_SECURE_TRY_STARTTLS = 1; // From nsSmtpProtocol.h
-    var hidden = (document.getElementById("smtp.trySSL").value != PREF_SECURE_TRY_STARTTLS);
-    document.getElementById("connectionSecurityType-1").hidden = hidden;
+    hideUnlessSelected(document.getElementById("connectionSecurityType-1"));
+}
+
+function hideUnlessSelected(element)
+{
+  element.hidden = !element.selected;
+}
+
+function setLabelFromStringBundle(elementID, stringName)
+{
+  document.getElementById(elementID).label =
+      document.getElementById("bundle_messenger").getString(stringName);
 }
 
 // Disables xul elements that have associated preferences locked.
 function onLockPreference()
 {
-    var defaultSmtpServerKey = gPrefBranch.getCharPref("mail.smtp.defaultserver");
-    var finalPrefString = "mail.smtpserver." + defaultSmtpServerKey + "."; 
+  try {
+    var finalPrefString = "mail.smtpserver." +
+        gSmtpService.defaultServer.key + ".";
 
     var prefService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
 
@@ -114,12 +127,13 @@ function onLockPreference()
       hostname:     gSmtpHostname,
       description:  gSmtpDescription,
       port:         gSmtpPort,
-      use_username: gSmtpUseUsername,
-      try_ssl:      gSmtpTrySSL
+      authMethod:   gSmtpAuthMethod,
+      try_ssl:      gSmtpSocketType
     };
 
     gSmtpPrefBranch = prefService.getBranch(finalPrefString);
     disableIfLocked( allPrefElements );
+  } catch (e) { dump("error while locking prefs: " + e + "\n"); } // non-fatal
 } 
 
 // Does the work of disabling an element given the array which contains xul id/prefstring pairs.
@@ -134,60 +148,41 @@ function disableIfLocked( prefstrArray )
 
 function saveSmtpSettings(server)
 {
-    gSmtpAuthMethod.setAttribute("value", gSmtpUseUsername.checked ? "1" : "0");
-
     //dump("Saving to " + server + "\n");
     if (server) {
         server.hostname = gSmtpHostname.value;
         server.description = gSmtpDescription.value;
         server.port = gSmtpPort.value;
-        server.authMethod = (gSmtpUseUsername.checked ? 1 : 0);
-        //dump("Saved authmethod = " + server.authMethod +
-        //     " but checked = " + gSmtpUseUsername.checked + "\n");
+        server.authMethod = gSmtpAuthMethod.value;
         server.username = gSmtpUsername.value;
-        server.trySSL = gSmtpTrySSL.value;
-        server.useSecAuth = gSmtpUseSecAuth.checked;
+        server.socketType = gSmtpSocketType.value;
     }
 }
 
-function onUseUsername(checkbox, dofocus)
+function authMethodChanged(userAction)
 {
-    if (checkbox.checked) {
-        // not only do we enable the elements when the check box is checked,
-        // but we also make sure that it's not disabled (ie locked) as well.
-        if (!checkbox.disabled) {
-            gSmtpUsername.removeAttribute("disabled");
-            gSmtpUsernameLabel.removeAttribute("disabled");
-            gSmtpUseSecAuth.removeAttribute("disabled");
-        }
-        if (dofocus)
-            gSmtpUsername.focus();
-        if (gSavedUsername && gSavedUsername != "")
-            gSmtpUsername.value = gSavedUsername;
-    } else {
-        gSavedUsername = gSmtpUsername.value;
-        gSmtpUsername.value = "";
-        gSmtpUsername.setAttribute("disabled", "true");
-        gSmtpUsernameLabel.setAttribute("disabled", "true");
-        gSmtpUseSecAuth.setAttribute("disabled", "true");
-    }
+  var noUsername = gSmtpAuthMethod.value == Ci.nsMsgAuthMethod.none;
+  gSmtpUsername.disabled = noUsername;
+  gSmtpUsernameLabel.disabled = noUsername;
 }
 
 /**
- * Resets the default port to SMTP or SMTPS, dependending on |gSmtpTrySSL| value,
- * and sets the port to use to this default, if that's appropriate.
+ * Resets the default port to SMTP or SMTPS, dependending on
+ * the |gSmtpSocketType| value, and sets the port to use to this default,
+ * if that's appropriate.
  *
  * @param userAction false for dialog initialization,
  *                   true for user action.
  */
-function selectProtocol(userAction) {
+function sslChanged(userAction)
+{
   const DEFAULT_SMTP_PORT = "25";
   const DEFAULT_SMTPS_PORT = "465";
-
+  var socketType = gSmtpSocketType.value;
   var otherDefaultPort;
   var prevDefaultPort = gDefaultPort.value;
 
-  if (gSmtpTrySSL.value == 3) {
+  if (socketType == Ci.nsMsgSocketType.SSL) {
     gDefaultPort.value = DEFAULT_SMTPS_PORT;
     otherDefaultPort = DEFAULT_SMTP_PORT;
   } else {
@@ -203,4 +198,10 @@ function selectProtocol(userAction) {
       (userAction && (gDefaultPort.value != prevDefaultPort) &&
        (gPort.value == otherDefaultPort)))
     gPort.value = gDefaultPort.value;
+
+  // switch "insecure password" label
+  setLabelFromStringBundle("authMethod-password-cleartext",
+      socketType == Ci.nsMsgSocketType.SSL ||
+      socketType == Ci.nsMsgSocketType.alwaysSTARTTLS ?
+      "authPasswordCleartextViaSSL" : "authPasswordCleartextInsecurely");
 }

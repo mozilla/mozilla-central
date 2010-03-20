@@ -44,6 +44,7 @@
 #include "nsIMsgStatusFeedback.h"
 #include "nsMsgLineBuffer.h"
 #include "nsIAuthModule.h"
+#include "MailNewsTypes2.h" // for nsMsgSocketType
 
 #include "nsCOMPtr.h"
 
@@ -90,32 +91,18 @@ SMTP_SEND_AUTH_GSSAPI_STEP                          // 24
 #define SMTP_AUTH_LOGIN_ENABLED         0x00000100
 #define SMTP_AUTH_PLAIN_ENABLED         0x00000200
 #define SMTP_AUTH_EXTERNAL_ENABLED      0x00000400
-// sum of above insecure mechanisms
-#define SMTP_AUTH_INSEC_ENABLED         0x00000700
 // secure mechanisms follow
 #define SMTP_AUTH_GSSAPI_ENABLED        0x00000800
 #define SMTP_AUTH_DIGEST_MD5_ENABLED    0x00001000
 #define SMTP_AUTH_CRAM_MD5_ENABLED      0x00002000
 #define SMTP_AUTH_NTLM_ENABLED          0x00004000
 #define SMTP_AUTH_MSN_ENABLED           0x00008000
-// sum of above secure mechanisms
-#define SMTP_AUTH_SEC_ENABLED           0x0000F800
-// sum of all above mechanisms
-#define SMTP_AUTH_ANY_ENABLED           0x0000FF00
+// sum of all above auth mechanisms
+#define SMTP_AUTH_ANY                   0x0000FF00
 // indicates that AUTH has been advertised
 #define SMTP_AUTH                       0x00010000
-
-typedef enum _PrefAuthMethod {
-    PREF_AUTH_NONE = 0,
-    PREF_AUTH_ANY = 1
-} PrefAuthMethod;
-
-typedef enum _PrefTrySSL {
-    PREF_SECURE_NEVER = 0,
-    PREF_SECURE_TRY_STARTTLS = 1,
-    PREF_SECURE_ALWAYS_STARTTLS = 2,
-    PREF_SECURE_ALWAYS_SMTPS = 3
-} PrefTrySSL;
+// No login necessary (pref)
+#define SMTP_AUTH_NONE_ENABLED          0x00020000
 
 class nsSmtpProtocol : public nsMsgAsyncWriteProtocol
 {
@@ -169,11 +156,8 @@ private:
 
     // *** the following should move to the smtp server when we support
     // multiple smtp servers
-    PRInt32 m_prefAuthMethod;
-    PRBool m_prefUseSecAuth;
-    PRBool m_prefTrySecAuth;
     PRBool m_usernamePrompted;
-    PRInt32 m_prefTrySSL;
+    PRInt32 m_prefSocketType;
     PRBool m_tlsEnabled;
 
     PRBool m_tlsInitiated;
@@ -247,9 +231,13 @@ private:
                                const PRUnichar **formatStrings, 
                                nsACString &aPassword);
 
-    void BackupAuthFlags();
-    void RestoreAuthFlags();
-    PRInt32 m_origAuthFlags;
+    void    InitPrefAuthMethods(PRInt32 authMethodPrefValue);
+    nsresult ChooseAuthMethod();
+    void    MarkAuthMethodAsFailed(PRInt32 failedAuthMethod);
+    void    ResetAuthMethods();
+    PRInt32 m_prefAuthMethods; // set of capability flags for auth methods
+    PRInt32 m_failedAuthMethods; // ditto
+    PRInt32 m_currentAuthMethod; // exactly one capability flag, or 0
 };
 
 #endif  // nsSmtpProtocol_h___

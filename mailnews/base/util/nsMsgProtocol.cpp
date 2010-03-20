@@ -835,6 +835,9 @@ nsresult nsMsgProtocol::PostMessage(nsIURI* url, nsIFile *postFile)
 nsresult nsMsgProtocol::DoGSSAPIStep1(const char *service, const char *username, nsCString &response)
 {
     nsresult rv;
+#ifdef DEBUG_BenB
+    printf("GSSAPI step 1 for service %s, username %s\n", service, username);
+#endif
 
     // if this fails, then it means that we cannot do GSSAPI SASL.
     m_authModule = do_CreateInstance(NS_AUTH_MODULE_CONTRACTID_PREFIX "sasl-gssapi", &rv);
@@ -855,11 +858,17 @@ nsresult nsMsgProtocol::DoGSSAPIStep1(const char *service, const char *username,
         nsMemory::Free(outBuf);
     }
 
+#ifdef DEBUG_BenB
+    printf("GSSAPI step 1 succeeded\n");
+#endif
     return rv;
 }
 
 nsresult nsMsgProtocol::DoGSSAPIStep2(nsCString &commandResponse, nsCString &response)
 {
+#ifdef DEBUG_BenB
+    printf("GSSAPI step 2\n");
+#endif
     nsresult rv;
     void *inBuf, *outBuf;
     PRUint32 inBufLen, outBufLen;
@@ -913,6 +922,9 @@ nsresult nsMsgProtocol::DoGSSAPIStep2(nsCString &commandResponse, nsCString &res
             response.Adopt((char *)nsMemory::Clone("",1));
     }
 
+#ifdef DEBUG_BenB
+    printf(NS_SUCCEEDED(rv) ? "GSSAPI step 2 succeeded\n" : "GSSAPI step 2 failed\n");
+#endif
     return rv;
 }
 

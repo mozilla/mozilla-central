@@ -3875,11 +3875,14 @@ nsMsgComposeAndSend::DoDeliveryExitProcessing(nsIURI * aUri, nsresult aExitCode,
         aExitCode == NS_ERROR_SMTP_SEND_FAILED_INTERRUPTED ||
         aExitCode == NS_ERROR_SMTP_SEND_FAILED_TIMEOUT ||
         aExitCode == NS_ERROR_SMTP_PASSWORD_UNDEFINED ||
-        aExitCode == NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER ||
-        aExitCode == NS_ERROR_STARTTLS_FAILED_EHLO_STARTTLS ||
-        aExitCode == NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_INSECAUTH ||
-        aExitCode == NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_SECAUTH ||
-        aExitCode == NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_AUTH_NONE)
+        aExitCode == NS_ERROR_SMTP_AUTH_FAILURE ||
+        aExitCode == NS_ERROR_SMTP_AUTH_GSSAPI ||
+        aExitCode == NS_ERROR_SMTP_AUTH_MECH_NOT_SUPPORTED ||
+        aExitCode == NS_ERROR_SMTP_AUTH_NOT_SUPPORTED ||
+        aExitCode == NS_ERROR_SMTP_AUTH_CHANGE_ENCRYPT_TO_PLAIN_NO_SSL ||
+        aExitCode == NS_ERROR_SMTP_AUTH_CHANGE_ENCRYPT_TO_PLAIN_SSL ||
+        aExitCode == NS_ERROR_SMTP_AUTH_CHANGE_PLAIN_TO_ENCRYPT ||
+        aExitCode == NS_ERROR_STARTTLS_FAILED_EHLO_STARTTLS)
       FormatStringWithSMTPHostNameByID(aExitCode, getter_Copies(eMsg));
     else
       mComposeBundle->GetStringFromID(NS_ERROR_GET_CODE(aExitCode), getter_Copies(eMsg));

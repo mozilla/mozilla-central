@@ -2091,7 +2091,7 @@ nsNntpIncomingServer::GetSocketType(PRInt32 *aSocketType)
       return NS_ERROR_NOT_INITIALIZED;
     rv = mDefPrefBranch->GetIntPref("socketType", aSocketType);
     if (NS_FAILED(rv))
-      *aSocketType = nsIMsgIncomingServer::defaultSocket;
+      *aSocketType = nsMsgSocketType::plain;
   }
 
   // nsMsgIncomingServer::GetSocketType migrates old isSecure to socketType
@@ -2100,13 +2100,13 @@ nsNntpIncomingServer::GetSocketType(PRInt32 *aSocketType)
 
   // Now that we know the socket, make sure isSecure true + socketType 0
   // doesn't mix. Migrate if that's the case here.
-  if (*aSocketType == nsIMsgIncomingServer::defaultSocket)
+  if (*aSocketType == nsMsgSocketType::plain)
   {
     PRBool isSecure = PR_FALSE;
     nsresult rv2 = mPrefBranch->GetBoolPref("isSecure", &isSecure);
     if (NS_SUCCEEDED(rv2) && isSecure)
     {
-      *aSocketType = nsIMsgIncomingServer::useSSL;
+      *aSocketType = nsMsgSocketType::SSL;
       // Don't call virtual method in case overrides call GetSocketType.
       nsMsgIncomingServer::SetSocketType(*aSocketType);
     }
@@ -2127,7 +2127,7 @@ nsNntpIncomingServer::SetSocketType(PRInt32 aSocketType)
     {
       // Must keep isSecure in sync since we migrate based on it... if it's set.
       rv = mPrefBranch->SetBoolPref("isSecure",
-                                    aSocketType == nsIMsgIncomingServer::useSSL);
+                                    aSocketType == nsMsgSocketType::SSL);
       NS_ENSURE_SUCCESS(rv, rv);
     }
   }

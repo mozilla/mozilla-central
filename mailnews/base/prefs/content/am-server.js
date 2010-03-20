@@ -44,6 +44,7 @@
 
 var gServer;
 var gObserver;
+const Ci = Components.interfaces;
 
 function onInit(aPageId, aServerId) 
 {
@@ -59,9 +60,7 @@ function onInit(aPageId, aServerId)
   // "STARTTLS, if available" is vulnerable to MITM attacks so we shouldn't
   // allow users to choose it anymore. Hide the option unless the user already
   // has it set.
-  var hidden = (document.getElementById("server.socketType").value !=
-                Components.interfaces.nsIMsgIncomingServer.tryTLS);
-  document.getElementById("connectionSecurityType-1").hidden = hidden;
+  hideUnlessSelected(document.getElementById("connectionSecurityType-1"));
 }
 
 function onPreInit(account, accountValues)
@@ -91,12 +90,34 @@ function initServerType()
   var verboseName = messengerBundle.getString(propertyName);
   setDivText("servertype.verbose", verboseName);
 
-  var isSecureSelected = (document.getElementById("server.socketType").value ==
-                          Components.interfaces.nsIMsgIncomingServer.useSSL);
+  secureSelect();
 
-  var protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + serverType]
-                               .getService(Components.interfaces.nsIMsgProtocolInfo);
-  document.getElementById("defaultPort").value = protocolInfo.getDefaultServerPort(isSecureSelected);
+  setLabelFromStringBundle("authMethod-no", "authNo");
+  setLabelFromStringBundle("authMethod-old", "authOld");
+  setLabelFromStringBundle("authMethod-kerberos", "authKerberos");
+  setLabelFromStringBundle("authMethod-ntlm", "authNTLM");
+  setLabelFromStringBundle("authMethod-anysecure", "authAnySecure");
+  setLabelFromStringBundle("authMethod-any", "authAny");
+  setLabelFromStringBundle("authMethod-password-encrypted",
+      "authPasswordEncrypted");
+  //authMethod-password-cleartext already set in selectSelect()
+
+  // Hide deprecated/hidden auth options, unless selected
+  hideUnlessSelected(document.getElementById("authMethod-no"));
+  hideUnlessSelected(document.getElementById("authMethod-old"));
+  hideUnlessSelected(document.getElementById("authMethod-anysecure"));
+  hideUnlessSelected(document.getElementById("authMethod-any"));
+}
+
+function hideUnlessSelected(element)
+{
+  element.hidden = !element.selected;
+}
+
+function setLabelFromStringBundle(elementID, stringName)
+{
+  document.getElementById(elementID).label =
+      document.getElementById("bundle_messenger").getString(stringName);
 }
 
 function setDivText(divname, value) 
@@ -164,12 +185,10 @@ function onAdvanced()
 
 function secureSelect()
 {
-    var serverType   = document.getElementById("server.type").getAttribute("value");
+    var socketType = document.getElementById("server.socketType").value;
+    var serverType = document.getElementById("server.type").value;
     var protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + serverType]
                                  .getService(Components.interfaces.nsIMsgProtocolInfo);
-
-    var isSecureSelected = (document.getElementById("server.socketType").value ==
-                            Components.interfaces.nsIMsgIncomingServer.useSSL);
 
     var defaultPort = protocolInfo.getDefaultServerPort(false);
     var defaultPortSecure = protocolInfo.getDefaultServerPort(true);
@@ -177,7 +196,7 @@ function secureSelect()
     var portDefault = document.getElementById("defaultPort");
     var prevDefaultPort = portDefault.value;
 
-    if (isSecureSelected) {
+    if (socketType == Ci.nsMsgSocketType.SSL) {
       portDefault.value = defaultPortSecure;
       if (port.value == "" || (port.value == defaultPort && prevDefaultPort != portDefault.value))
         port.value = defaultPortSecure;
@@ -186,6 +205,12 @@ function secureSelect()
         if (port.value == "" || (port.value == defaultPortSecure && prevDefaultPort != portDefault.value))
           port.value = defaultPort;
     }
+
+    // switch "insecure password" label
+    setLabelFromStringBundle("authMethod-password-cleartext",
+        socketType == Ci.nsMsgSocketType.SSL ||
+        socketType == Ci.nsMsgSocketType.alwaysSTARTTLS ?
+        "authPasswordCleartextViaSSL" : "authPasswordCleartextInsecurely");
 }
 
 function onCheckItem(changeElementId, checkElementId)

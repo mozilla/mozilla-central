@@ -468,7 +468,7 @@ NS_IMETHODIMP nsMsgNewsFolder::GetFolderURL(nsACString& aUrl)
   PRInt32 port;
   rv = server->GetPort(&port);
   NS_ENSURE_SUCCESS(rv, rv);
-  const char *newsScheme = (socketType == nsIMsgIncomingServer::useSSL) ?
+  const char *newsScheme = (socketType == nsMsgSocketType::SSL) ?
                            SNEWS_SCHEME : NEWS_SCHEME;
   nsCString escapedName;
   rv = NS_MsgEscapeEncodeURLPath(groupName, escapedName);
@@ -1133,7 +1133,7 @@ nsresult nsMsgNewsFolder::CreateNewsgroupUrlForSignon(const nsACString& inUriStr
     // Only set this for ssl newsgroups as for non-ssl connections, we don't
     // need to specify the port as it is the default for the protocol and
     // password manager "blanks" those out.
-    if (socketType == nsIMsgIncomingServer::useSSL)
+    if (socketType == nsMsgSocketType::SSL)
     {
       rv = url->SetPort(nsINntpUrl::DEFAULT_NNTPS_PORT);
       NS_ENSURE_SUCCESS(rv, rv);

@@ -146,7 +146,7 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
     }
   };
 
-  var outgoingSuccess = function(type, hostname, port, ssl, secureAuth,
+  var outgoingSuccess = function(type, hostname, port, ssl, authMethods,
                                   badCert, targetSite)
   {
     assert(type == SMTP, "I only know SMTP for outgoing");
@@ -155,9 +155,9 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
     outgoingEx = null;
     resultConfig.outgoing.hostname = hostname;
     resultConfig.outgoing.port = port;
-    // non-auth smtp servers must be rare at this point.
-    resultConfig.outgoing.auth = 1;
     resultConfig.outgoing.socketType = sslConvertToSocketType(ssl);
+    resultConfig.outgoing.auth = chooseBestAuthMethod(authMethods);
+    resultConfig.outgoing.authAlternatives = authMethods;
     resultConfig.outgoing.badCert = badCert;
 
     progressCallback(protocolToString(type), hostname, port,
@@ -172,7 +172,7 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
     checkDone();
   };
 
-  var incomingSuccess = function(type, hostname, port, ssl, secureAuth, badCert,
+  var incomingSuccess = function(type, hostname, port, ssl, authMethods, badCert,
                                  targetSite)
   {
     ddump("incomingSuccess outgoingDone = " + outgoingDone + "\n");
@@ -184,9 +184,10 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
     resultConfig.incoming.port = port;
     resultConfig.incoming.type = protocolToString(type);
     resultConfig.incoming.socketType =  sslConvertToSocketType(ssl);
+    resultConfig.incoming.auth = chooseBestAuthMethod(authMethods);
+    resultConfig.incoming.authAlternatives = authMethods;
     resultConfig.incoming.badCert = badCert;
     resultConfig.incoming.targetSite = targetSite;
-    resultConfig.incoming.auth = secureAuth ? 2 : 1;
 
     progressCallback(protocolToString(type), hostname, port,
                      sslConvertToSocketType(ssl), true, resultConfig);
@@ -355,6 +356,9 @@ function protocolToString(type)
  *    hostname {String}
  *    port {Integer}
  *    ssl @see constants above
+ *    authMethods {Array of possible auth types}, @see _advertisesAuthMethods()
+ *    selfSignedCert {Boolean}
+ *    sslTargetSite {String}
  * @param errorCallback {function(ex)} Called when we could not find a config
  * @param progressCallback { function(hostname, port) } Called when we tried
  *    (will try?) a new hostname and port
@@ -543,7 +547,7 @@ HostDetector.prototype =
         let type = curTry[0];
         let port = curTry[2];
         let ssl = curTry[1];
-        let secureAuth = this._advertisesSecureAuth(type, wiredata);
+        let authMethods = this._advertisesAuthMethods(type, wiredata); // TODO
         if (this._selfSignedCert)
         {
           // the callback will put up the cert exception dialog, so
@@ -552,7 +556,7 @@ HostDetector.prototype =
           gOverrideService.clearValidityOverride(this._host, curTry[2]);
         }
         this._log.info("SUCCESS, _selfSignedCert = " + this._selfSignedCert);
-        this.mSuccessCallback(type, this._host, port, ssl, secureAuth,
+        this.mSuccessCallback(type, this._host, port, ssl, authMethods,
                               this._selfSignedCert, this._targetSite);
         return; // stop trying, you're done!
       }
@@ -570,23 +574,40 @@ HostDetector.prototype =
     // gone by the time this happens, the javascript stack is horked.
   },
 
-  _advertisesSecureAuth : function(protocol, capaResponse)
+  /**
+   * Which auth mechanism the server claims to support.
+   * (That doesn't necessarily reflect reality, it is more an upper bound.)
+   * @returns Array with values for AccountConfig.incoming/outgoing.auth ,
+   * in decreasing order of preference.
+   * E.g. [ 5, 4 ] for a server that supports only Kerberos and encrypted passwords.
+   */
+  _advertisesAuthMethods : function(protocol, capaResponse)
   {
-    // for imap to support secure auth,
-    // capabilities needs to return 1 or more of the following:
+    // for imap, capabilities contain one or more of the following for secure auth:
     // "AUTH=CRAM-MD5", "AUTH=NTLM", "AUTH=GSSAPI", "AUTH=MSN"
     // for pop3, the auth mechanisms are returned in capa as the following:
     // "CRAM-MD5", "NTLM", "MSN", "GSSAPI"
     // For smtp, EHLO will return AUTH and then a list of the
     // mechanism(s) supported, e.g.,
     // AUTH LOGIN NTLM MSN CRAM-MD5 GSSAPI
+    var result = new Array();
     let line = capaResponse.join("\n")
+    var prefix = "";
     if (protocol == POP)
-      return /CRAM-MD5|NTLM|MSN|GSSAPI/.test(line);
-    if (protocol == IMAP)
-      return /AUTH=(CRAM-MD5|NTLM|MSN|GSSAPI)/.test(line);
-    if (protocol == SMTP)
-      return /AUTH (CRAM-MD5|NTLM|MSN|GSSAPI)/.test(line);
+      prefix = "";
+    else if (protocol == IMAP)
+      prefix = "AUTH=";
+    else if (protocol == SMTP)
+      prefix = "AUTH ";
+    if (new RegExp(prefix + "GSSAPI").test(line))
+      result.push(Ci.nsMsgAuthMethod.GSSAPI);
+    if (new RegExp(prefix + "(NTLM|MSN)").test(line))
+      result.push(Ci.nsMsgAuthMethod.NTLM);
+    if (new RegExp(prefix + "CRAM-MD5").test(line))
+      result.push(Ci.nsMsgAuthMethod.passwordEncrypted);
+    if ( ! (protocol == IMAP && /LOGINDISABLED/.test(line)))
+      result.push(Ci.nsMsgAuthMethod.passwordCleartext);
+    return result;
   },
 
   _matchTLS : function(curTry, result)
@@ -594,6 +615,17 @@ HostDetector.prototype =
       return curTry != null && curTry[1] == TLS &&
              hasTLS(result.join("\n"), curTry[0]);
   }
+}
+
+/**
+ * @param authMethods @see return value of _advertisesAuthMethods()
+ * @return one of them, the preferred one
+ * Note: this might be Kerberos, which might not actually work,
+ * so you might need to try the others, too.
+ */
+function chooseBestAuthMethod(authMethods)
+{
+  return authMethods[0]; // take first (= most preferred)
 }
 
 function IncomingHostDetector(progressCallback, successCallback, errorCallback)

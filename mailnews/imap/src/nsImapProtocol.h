@@ -351,7 +351,6 @@ private:
   PRUint32        m_totalDataSize; // total data size
   PRUint32        m_curReadIndex;  // current read index
   nsCString       m_trashFolderName;
-  PRBool          m_authLogin;
 
   // Ouput stream for writing commands to the socket
   nsCOMPtr<nsISocketTransport>  m_transport;
@@ -475,6 +474,10 @@ private:
 
   // login related methods.
   nsresult GetPassword(nsCString &password);
+  void InitPrefAuthMethods(PRInt32 authMethodPrefValue);
+  nsresult ChooseAuthMethod();
+  void MarkAuthMethodAsFailed(PRInt32 failedAuthMethod);
+  void ResetAuthMethods();
 
   // All of these methods actually issue protocol
   void Capability(); // query host for capabilities.
@@ -595,7 +598,9 @@ private:
   PRBool  m_fetchByChunks;
   PRInt32 m_curFetchSize;
   PRBool  m_ignoreExpunges;
-  PRBool  m_useSecAuth;
+  PRInt32 m_prefAuthMethods; // set of capability flags (in nsImapCore.h) for auth methods
+  PRInt32 m_failedAuthMethods; // ditto
+  eIMAPCapabilityFlag m_currentAuthMethod; // exactly one capability flag, or 0
   PRInt32 m_socketType;
   PRInt32 m_chunkSize;
   PRInt32 m_chunkThreshold;

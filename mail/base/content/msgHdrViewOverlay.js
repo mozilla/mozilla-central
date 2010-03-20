@@ -1509,8 +1509,9 @@ function CopyNewsgroupURL(newsgroupNode)
 
   let ng = newsgroupNode.getAttribute("newsgroup");
 
+  // TODO let backend construct URL and return as attribute
   let url;
-  if (server.socketType != Components.interfaces.nsIMsgIncomingServer.useSSL) {
+  if (server.socketType != Components.interfaces.nsMsgSocketType.SSL) {
     url = "news://" + server.hostName;
     if (server.port != Components.interfaces.nsINntpUrl.DEFAULT_NNTP_PORT)
       url += ":" + server.port;

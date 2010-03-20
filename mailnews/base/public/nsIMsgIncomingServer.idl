@@ -59,7 +59,7 @@ interface nsIURI;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(cca9b826-24d8-4b76-b229-b8b12f1ecbd5)]
+[scriptable, uuid(798c89ed-2c25-4eaa-b34d-5b2c2ab62286)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -188,21 +188,21 @@ interface nsIMsgIncomingServer : nsISupports {
    */
   readonly attribute boolean isSecure;
 
-  /* should we use secure authentication? */
-  attribute boolean useSecAuth;
+  /**
+   * Authentication mechanism.
+   *
+   * @see nsMsgAuthMethod (in MailNewsTypes2.idl)
+   * Same as "mail.server...authMethod" pref
+   */
+  attribute nsMsgAuthMethodValue authMethod;
 
-  const long defaultSocket = 0;
-  const long tryTLS = 1;
-  const long alwaysUseTLS = 2;
-  const long useSSL = 3;
-
-  /* use above values */
-  attribute long socketType;
-
-  /* if a logon mechanism fails, should we fallback to a different
-     mechanism?
-  */
-  attribute boolean logonFallback;
+  /**
+   * Whether to SSL or STARTTLS or not
+   *
+   * @see nsMsgSocketType (in MailNewsTypes2.idl)
+   * Same as "mail.server...socketType" pref
+   */
+  attribute nsMsgSocketTypeValue socketType;
 
   /* dead code. */
   readonly attribute boolean isSecureServer;

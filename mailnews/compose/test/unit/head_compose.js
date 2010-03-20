@@ -27,7 +27,7 @@ function getBasicSmtpServer() {
   smtpServer.hostname = "localhost";
   smtpServer.port = SMTP_PORT;
   // Set the authentication method to "none"
-  smtpServer.authMethod = 0;
+  smtpServer.authMethod = 1;
 
   // Override the default greeting so we get something predicitable
   // in the ELHO message

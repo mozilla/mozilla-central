@@ -213,6 +213,7 @@ function MsgAccountWizard(wizardCallback)
   setTimeout(function() { msgOpenAccountWizard(wizardCallback); }, 0);
 }
 
+// @see msgNewMailAccount below
 function msgOpenAccountWizard(wizardCallback)
 {
   gNewAccountToLoad = null;
@@ -222,13 +223,12 @@ function msgOpenAccountWizard(wizardCallback)
 
   loadInboxForNewAccount();
 
-  // For the first account we need to reset the default smtp server in the
-  // panel, by accessing smtpServers we are actually ensuring the smtp server
-  // list is loaded.
-  var smtpService = Components.classes["@mozilla.org/messengercompose/smtp;1"].getService(Components.interfaces.nsISmtpService);
-  var servers = smtpService.smtpServers;
-  try{ReloadSmtpPanel();}
-  catch(ex){}
+  // If we started with no servers at all and "smtp servers" list selected,
+  // refresh display somehow. Bug 58506.
+  // TODO Better fix: select newly created account (in all cases)
+  if (typeof(getCurrentAccount) == "function" && // in AccountManager, not menu
+      !getCurrentAccount())
+    selectServer(null, null);
 }
 
 // selectPage: the xul file name for the viewing page, 
@@ -322,6 +322,7 @@ function NewMailAccount(msgWindow, okCallback)
   setTimeout(msgNewMailAccount, 0, msgWindow, okCallback);
 }
 
+// @see msgOpenAccountWizard above
 function msgNewMailAccount(msgWindow, okCallback)
 {
   if (!msgWindow)
@@ -335,4 +336,11 @@ function msgNewMailAccount(msgWindow, okCallback)
   else
     window.openDialog("chrome://messenger/content/accountcreation/emailWizard.xul",
                       "AccountSetup", "chrome,titlebar,centerscreen",{msgWindow:msgWindow, okCallback:okCallback});
+
+  // If we started with no servers at all and "smtp servers" list selected,
+  // refresh display somehow. Bug 58506.
+  // TODO Better fix: select newly created account (in all cases)
+  if (typeof(getCurrentAccount) == "function" && // in AccountManager, not menu
+      !getCurrentAccount())
+    selectServer(null, null);
 }

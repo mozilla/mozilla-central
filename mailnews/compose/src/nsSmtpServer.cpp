@@ -204,51 +204,17 @@ nsSmtpServer::GetDisplayname(char * *aDisplayname)
 }
 
 NS_IMETHODIMP
-nsSmtpServer::GetTrySSL(PRInt32 *trySSL)
+nsSmtpServer::GetSocketType(PRInt32 *socketType)
 {
-  NS_ENSURE_ARG_POINTER(trySSL);
-  getIntPrefWithDefault("try_ssl", trySSL, 0);
+  NS_ENSURE_ARG_POINTER(socketType);
+  getIntPrefWithDefault("try_ssl", socketType, 0);
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsSmtpServer::SetTrySSL(PRInt32 trySSL)
+nsSmtpServer::SetSocketType(PRInt32 socketType)
 {
-    return mPrefBranch->SetIntPref("try_ssl", trySSL);
-}
-
-NS_IMETHODIMP
-nsSmtpServer::GetUseSecAuth(PRBool *useSecAuth)
-{
-    nsresult rv;
-    NS_ENSURE_ARG_POINTER(useSecAuth);
-    rv = mPrefBranch->GetBoolPref("useSecAuth", useSecAuth);
-    if (NS_FAILED(rv))
-        mDefPrefBranch->GetBoolPref("useSecAuth", useSecAuth);
-    return NS_OK;
-}
-
-NS_IMETHODIMP
-nsSmtpServer::SetUseSecAuth(const PRBool useSecAuth)
-{
-    return mPrefBranch->SetBoolPref("useSecAuth", useSecAuth);
-}
-
-NS_IMETHODIMP
-nsSmtpServer::GetTrySecAuth(PRBool *trySecAuth)
-{
-    nsresult rv;
-    NS_ENSURE_ARG_POINTER(trySecAuth);
-    rv = mPrefBranch->GetBoolPref("trySecAuth", trySecAuth);
-    if (NS_FAILED(rv))
-        mDefPrefBranch->GetBoolPref("trySecAuth", trySecAuth);
-    return NS_OK;
-}
-
-NS_IMETHODIMP
-nsSmtpServer::SetTrySecAuth(const PRBool trySecAuth)
-{
-    return mPrefBranch->SetBoolPref("trySecAuth", trySecAuth);
+    return mPrefBranch->SetIntPref("try_ssl", socketType);
 }
 
 NS_IMETHODIMP
@@ -270,7 +236,7 @@ NS_IMETHODIMP
 nsSmtpServer::GetAuthMethod(PRInt32 *authMethod)
 {
   NS_ENSURE_ARG_POINTER(authMethod);
-  getIntPrefWithDefault("auth_method", authMethod, 1);
+  getIntPrefWithDefault("authMethod", authMethod, 3);
   return NS_OK;
 }
 
@@ -292,7 +258,7 @@ nsSmtpServer::getIntPrefWithDefault(const char *prefName,
 NS_IMETHODIMP
 nsSmtpServer::SetAuthMethod(PRInt32 authMethod)
 {
-    return mPrefBranch->SetIntPref("auth_method", authMethod);
+    return mPrefBranch->SetIntPref("authMethod", authMethod);
 }
 
 NS_IMETHODIMP
@@ -460,7 +426,7 @@ nsSmtpServer::GetPasswordWithUI(const PRUnichar *aPromptMessage,
   if (!okayValue)
   {
     aPassword.Truncate();
-    return rv;
+    return NS_MSG_PASSWORD_PROMPT_CANCELLED;
   }
 
   NS_LossyConvertUTF16toASCII password(uniPassword);

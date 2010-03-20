@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
+#include "MailNewsTypes2.idl"
 
 interface nsIAuthPrompt;
 interface nsIUrlListener;
@@ -50,7 +51,7 @@ interface nsIMsgWindow;
  * Most of the attributes will set/get preferences from the main preferences
  * file.
  */
-[scriptable, uuid(cf300e82-9def-43b0-b663-be08437960eb)]
+[scriptable, uuid(a53dce6c-cd81-495c-83bc-45a65df1f08e)]
 interface nsISmtpServer : nsISupports {
 
   /// A unique identifier for the server.
@@ -81,27 +82,22 @@ interface nsISmtpServer : nsISupports {
   readonly attribute string displayname;
 
   /**
-   * Whether or not to use authentication for this server.
-   * 0 = no authentication, 1 = use authentication.
-   * Reflects the mail.smtpserver.*.auth_method pref (default has value 1).
+   * Authentication mechanism.
+   *
+   * @see nsMsgAuthMethod (in MailNewsTypes2.idl)
+   * Same as "mail.smtpserver...authMethod" pref
+   *
+   * Compatibility note: This attribute had a different meaning in TB < 3.1
    */
-  attribute long authMethod;
-
-  /// Should we always use secure authentication?
-  attribute boolean useSecAuth;
-
-  /// Should we attempt to use secure authentication if the server supports it?
-  attribute boolean trySecAuth;
+  attribute nsMsgAuthMethodValue authMethod;
 
   /**
-   * Should we use SSL for this connection?
-   * 0 = never
-   * 1 = STARTTLS, if available (discouraged, insecure)
-   * 2 = TLS (STARTTLS) always
-   * 3 = SSL (SMTPS) always
-   * @see nsSmtpProtocol.h line 115 and nsSmtpProtocol.cpp line 331
+   * Whether to SSL or STARTTLS or not
+   *
+   * @see nsMsgSocketType (in MailNewsTypes2.idl)
+   * Same as "mail.smtpserver...try_ssl" pref
    */
-  attribute long trySSL;
+  attribute nsMsgSocketTypeValue socketType;
 
   /**
    * May contain an alternative argument to EHLO or HELO to provide to the

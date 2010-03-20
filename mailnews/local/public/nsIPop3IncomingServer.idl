@@ -43,12 +43,11 @@ interface nsIMsgFolder;
 interface nsIUrlListener;
 interface nsIMsgWindow;
 
-[scriptable, uuid(FC67F5C9-C8BB-46c1-90CB-1E752ECCEB19)]
+[scriptable, uuid(98d50234-6c8a-4875-815b-40e0178a13bd)]
 interface nsIPop3IncomingServer : nsISupports {
   attribute boolean leaveMessagesOnServer;
   attribute boolean headersOnly;
   attribute boolean deleteMailLeftOnServer;
-  attribute boolean authLogin;
   attribute boolean dotFix;
   attribute unsigned long pop3CapabilityFlags;
   attribute boolean deleteByAgeFromServer;

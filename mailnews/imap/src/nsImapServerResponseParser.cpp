@@ -2194,7 +2194,7 @@ void nsImapServerResponseParser::msg_obsolete()
 void nsImapServerResponseParser::capability_data()
 {
   PRInt32 endToken = -1;
-  fCapabilityFlag = kCapabilityDefined;
+  fCapabilityFlag = kCapabilityDefined | kHasAuthOldLoginCapability;
   do {
     AdvanceToNextToken();
     if (fNextToken) {
@@ -2218,9 +2218,7 @@ void nsImapServerResponseParser::capability_data()
       else if (token.Equals("STARTTLS", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasStartTLSCapability;
       else if (token.Equals("LOGINDISABLED", nsCaseInsensitiveCStringComparator()))
-        fCapabilityFlag |= kLoginDisabled;
-      else if (token.Equals("X-NETSCAPE", nsCaseInsensitiveCStringComparator()))
-        fCapabilityFlag |= kHasXNetscapeCapability;
+        fCapabilityFlag &= ~kHasAuthOldLoginCapability; // remove flag
       else if (token.Equals("XSENDER", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasXSenderCapability;
       else if (token.Equals("IMAP4", nsCaseInsensitiveCStringComparator()))

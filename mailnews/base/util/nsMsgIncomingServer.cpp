@@ -1375,7 +1375,7 @@ nsMsgIncomingServer::GetPort(PRInt32 *aPort)
   PRInt32 socketType;
   rv = GetSocketType(&socketType);
   NS_ENSURE_SUCCESS(rv, rv);
-  PRBool useSSLPort = (socketType == nsIMsgIncomingServer::useSSL);
+  PRBool useSSLPort = (socketType == nsMsgSocketType::SSL);
   return protocolInfo->GetDefaultServerPort(useSSLPort, aPort);
 }
 
@@ -1391,7 +1391,7 @@ nsMsgIncomingServer::SetPort(PRInt32 aPort)
   PRInt32 socketType;
   rv = GetSocketType(&socketType);
   NS_ENSURE_SUCCESS(rv, rv);
-  PRBool useSSLPort = (socketType == nsIMsgIncomingServer::useSSL);
+  PRBool useSSLPort = (socketType == nsMsgSocketType::SSL);
 
   PRInt32 defaultPort;
   protocolInfo->GetDefaultServerPort(useSSLPort, &defaultPort);
@@ -1642,15 +1642,14 @@ nsMsgIncomingServer::GetIsSecure(PRBool *aIsSecure)
   PRInt32 socketType;
   nsresult rv = GetSocketType(&socketType);
   NS_ENSURE_SUCCESS(rv,rv);
-  *aIsSecure = (socketType == nsIMsgIncomingServer::alwaysUseTLS ||
-                socketType == nsIMsgIncomingServer::useSSL);
+  *aIsSecure = (socketType == nsMsgSocketType::alwaysSTARTTLS ||
+                socketType == nsMsgSocketType::SSL);
   return NS_OK;
 }
 
 // use the convenience macros to implement the accessors
 NS_IMPL_SERVERPREF_STR(nsMsgIncomingServer, Username, "userName")
-NS_IMPL_SERVERPREF_BOOL(nsMsgIncomingServer, UseSecAuth, "useSecAuth")
-NS_IMPL_SERVERPREF_BOOL(nsMsgIncomingServer, LogonFallback, "logon_fallback")
+NS_IMPL_SERVERPREF_INT(nsMsgIncomingServer, AuthMethod, "authMethod")
 NS_IMPL_SERVERPREF_INT(nsMsgIncomingServer, BiffMinutes, "check_time")
 NS_IMPL_SERVERPREF_STR(nsMsgIncomingServer, Type, "type")
 // in 4.x, this was "mail.pop3_gets_new_mail" for pop and
@@ -1700,7 +1699,7 @@ NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
     rv = mPrefBranch->GetBoolPref("isSecure", &isSecure);
     if (NS_SUCCEEDED(rv) && isSecure)
     {
-      *aSocketType = nsIMsgIncomingServer::useSSL;
+      *aSocketType = nsMsgSocketType::SSL;
       // don't call virtual method in case overrides call GetSocketType
       nsMsgIncomingServer::SetSocketType(*aSocketType);
     }
@@ -1710,7 +1709,7 @@ NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
         return NS_ERROR_NOT_INITIALIZED;
       rv = mDefPrefBranch->GetIntPref("socketType", aSocketType);
       if (NS_FAILED(rv))
-        *aSocketType = nsIMsgIncomingServer::defaultSocket;
+        *aSocketType = nsMsgSocketType::plain;
     }
   }
   return rv;
@@ -1721,16 +1720,16 @@ NS_IMETHODIMP nsMsgIncomingServer::SetSocketType(PRInt32 aSocketType)
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
 
-  PRInt32 socketType = nsIMsgIncomingServer::defaultSocket;
+  PRInt32 socketType = nsMsgSocketType::plain;
   mPrefBranch->GetIntPref("socketType", &socketType);
 
   nsresult rv = mPrefBranch->SetIntPref("socketType", aSocketType);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool isSecureOld = (socketType == nsIMsgIncomingServer::alwaysUseTLS ||
-                        socketType == nsIMsgIncomingServer::useSSL);
-  PRBool isSecureNew = (aSocketType == nsIMsgIncomingServer::alwaysUseTLS ||
-                        aSocketType == nsIMsgIncomingServer::useSSL);
+  PRBool isSecureOld = (socketType == nsMsgSocketType::alwaysSTARTTLS ||
+                        socketType == nsMsgSocketType::SSL);
+  PRBool isSecureNew = (aSocketType == nsMsgSocketType::alwaysSTARTTLS ||
+                        aSocketType == nsMsgSocketType::SSL);
   if ((isSecureOld != isSecureNew) && m_rootFolder)
     m_rootFolder->NotifyBoolPropertyChanged(NS_NewAtom("isSecure"),
                                             isSecureOld, isSecureNew);

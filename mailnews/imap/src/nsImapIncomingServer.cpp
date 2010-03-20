@@ -834,14 +834,23 @@ nsImapIncomingServer::CreateProtocolInstance(nsIEventTarget *aEventTarget,
   // we may need to flag the protocol connection as busy so we don't get
   // a race condition where someone else goes through this code
 
-  PRBool useSecAuth;
-  GetUseSecAuth(&useSecAuth);
+  PRInt32 authMethod;
+  GetAuthMethod(&authMethod);
   nsresult rv;
-  // pre-flight that we have nss - on the ui thread
-  if (useSecAuth)
+  // pre-flight that we have nss - on the ui thread - for MD5 etc.
+  switch (authMethod)
   {
-    nsCOMPtr<nsISignatureVerifier> verifier = do_GetService(SIGNATURE_VERIFIER_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    case nsMsgAuthMethod::passwordEncrypted:
+    case nsMsgAuthMethod::secure:
+    case nsMsgAuthMethod::anything:
+      {
+        nsCOMPtr<nsISignatureVerifier> verifier =
+            do_GetService(SIGNATURE_VERIFIER_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
+      break;
+    default:
+      break;
   }
   nsIImapProtocol * protocolInstance;
   rv = CallCreateInstance(kImapProtocolCID, &protocolInstance);
@@ -2756,7 +2765,7 @@ nsImapIncomingServer::GeneratePrettyNameForMigration(nsAString& aPrettyName)
   PRInt32 socketType;
   rv = GetSocketType(&socketType);
   NS_ENSURE_SUCCESS(rv,rv);
-  PRBool isSecure = (socketType == nsIMsgIncomingServer::useSSL);
+  PRBool isSecure = (socketType == nsMsgSocketType::SSL);
 
   // Is server port a default port ?
   PRBool isItDefaultPort = PR_FALSE;

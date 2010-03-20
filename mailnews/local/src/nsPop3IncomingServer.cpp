@@ -113,10 +113,6 @@ NS_IMPL_SERVERPREF_BOOL(nsPop3IncomingServer,
                         "delete_mail_left_on_server")
 
 NS_IMPL_SERVERPREF_BOOL(nsPop3IncomingServer,
-                        AuthLogin,
-                        "auth_login")
-
-NS_IMPL_SERVERPREF_BOOL(nsPop3IncomingServer,
                         DotFix,
                         "dot_fix")
 

@@ -6,12 +6,8 @@
 <!ENTITY serverDescription.accesskey "D">
 <!ENTITY serverPort.label "Port:">
 <!ENTITY serverPort.accesskey "P">
-<!ENTITY alwaysUseUsername.label "Use name and password">
-<!ENTITY alwaysUseUsername.accesskey "U">
 <!ENTITY userName.label "User Name:">
 <!ENTITY userName.accesskey "m">
-<!ENTITY useSecAuth.label "Use secure authentication">
-<!ENTITY useSecAuth.accesskey "i">
 <!ENTITY connectionSecurity.label "Connection security:">
 <!ENTITY connectionSecurity.accesskey "n">
 <!ENTITY connectionSecurityType-0.label "None">
@@ -20,3 +16,5 @@
 <!ENTITY connectionSecurityType-3.label "SSL/TLS">
 <!ENTITY smtpEditTitle.label "SMTP Server">
 <!ENTITY serverPortDefault.label "Default:">
+<!ENTITY authMethod.label "Authentication method:">
+<!ENTITY authMethod.accesskey "i">

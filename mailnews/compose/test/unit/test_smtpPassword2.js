@@ -26,9 +26,9 @@ function run_test()
   var smtpServer1 = getBasicSmtpServer();
   var smtpServer2 = getBasicSmtpServer();
 
-  smtpServer1.authMethod = 1;
+  smtpServer1.authMethod = 3;
   smtpServer1.username = kUser1;
-  smtpServer2.authMethod = 1;
+  smtpServer2.authMethod = 3;
   smtpServer2.username = kUser2;
 
   var i;

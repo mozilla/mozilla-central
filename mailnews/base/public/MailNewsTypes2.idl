@@ -41,6 +41,8 @@ typedef unsigned long nsMsgViewIndex;
 typedef long nsMsgSearchScopeValue;
 
 typedef long nsMsgPriorityValue;
+typedef long nsMsgSocketTypeValue;
+typedef long nsMsgAuthMethodValue;
 
 typedef unsigned long nsMsgJunkStatus;
 
@@ -57,6 +59,57 @@ interface nsMsgPriority {
     const nsMsgPriorityValue highest = 6;
     // the default for a priority picker
     const nsMsgPriorityValue Default = 4;
+};
+
+/**
+ * Defines whether to use SSL or STARTTLS or not.
+ * Used by @see nsIMsgIncomingServer.socketType
+ * and @see nsISmtpServer.socketType
+ */
+[scriptable, uuid(bc78bc74-1b34-48e8-ac2b-968e8dff1aeb)]
+interface nsMsgSocketType {
+    /// No SSL or STARTTLS
+    const nsMsgSocketTypeValue plain = 0;
+    /// Use TLS via STARTTLS, but only if server offers it.
+    /// @deprecated This is vulnerable to MITM attacks
+    const nsMsgSocketTypeValue trySTARTTLS = 1;
+    /// Insist on TLS via STARTTLS.
+    /// Uses normal port.
+    const nsMsgSocketTypeValue alwaysSTARTTLS = 2;
+    /// Connect via SSL.
+    /// Needs special SSL port.
+    const nsMsgSocketTypeValue SSL = 3;
+};
+
+/**
+ * Defines which authentication schemes we should try.
+ * Used by @see nsIMsgIncomingServer.authMethod
+ * and @see nsISmtpServer.authMethod
+ */
+[scriptable, uuid(4a10e647-d179-4a53-b7ef-df575ff5f405)]
+interface nsMsgAuthMethod {
+    // 0 is intentionally undefined and invalid
+    /// No login needed. E.g. IP-address-based.
+    const nsMsgAuthMethodValue none = 1;
+    /// Do not use AUTH commands (e.g. AUTH=PLAIN),
+    /// but the original login commands that the protocol specified
+    /// (POP: "USER"/"PASS", IMAP: "login", not valid for SMTP)
+    const nsMsgAuthMethodValue old = 2;
+    /// password in the clear. AUTH=PLAIN/LOGIN or old-style login.
+    const nsMsgAuthMethodValue passwordCleartext = 3;
+    /// hashed password. CRAM-MD5, DIGEST-MD5
+    const nsMsgAuthMethodValue passwordEncrypted = 4;
+    /// Kerberos / GSSAPI (Unix single-signon)
+    const nsMsgAuthMethodValue GSSAPI = 5;
+    /// NTLM is a Windows single-singon scheme.
+    /// Includes MSN / Passport.net, which is the same with a different name.
+    const nsMsgAuthMethodValue NTLM = 6;
+    /// Encrypted password or Kerberos / GSSAPI or NTLM.
+    /// @deprecated - for migration only.
+    const nsMsgAuthMethodValue secure = 8;
+    /// Let us pick any of the auth types supported by the server.
+    /// Discouraged, because vulnerable to MITM attacks, even if server offers secure auth.
+    const nsMsgAuthMethodValue anything = 9;
 };
 
 typedef unsigned long nsMsgLabelValue;

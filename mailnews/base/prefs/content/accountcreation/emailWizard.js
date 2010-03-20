@@ -781,10 +781,12 @@ EmailConfigWizard.prototype =
     if (!this._verifiedConfig)
       this.verifyConfig(function(successfulConfig) // success
                         {
-                          // the incoming auth might have changed, so we
+                          // the auth might have changed, so we
                           // should back-port it to the current config.
                           me._currentConfigFilledIn.incoming.auth =
                               successfulConfig.incoming.auth;
+                          me._currentConfigFilledIn.outgoing.auth =
+                              successfulConfig.outgoing.auth;
                           me.finish();
                         },
                         function(e) // failure
