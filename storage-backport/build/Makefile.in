@@ -52,7 +52,6 @@ IS_COMPONENT = 1
 MODULE_NAME = mozStorageModule
 LIBXUL_LIBRARY = 1
 
-
 EXPORTS = mozStorageCID.h
 
 CPPSRCS = mozStorageModule.cpp

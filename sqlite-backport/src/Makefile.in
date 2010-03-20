@@ -38,15 +38,18 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../../..
-topsrcdir	= @top_srcdir@
+DEPTH		= ../..
+RELDEPTH 	= ../../mozilla
+realtopsrcdir	= @top_srcdir@
+moztopsrcdir	= @top_srcdir@/mozilla
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
+topsrcdir = $(realtopsrcdir)
 include $(DEPTH)/config/autoconf.mk
 
 MODULE           = sqlite3
-LIBRARY_NAME     = mozsqlite3
+LIBRARY_NAME     = sqlite3
 SHORT_LIBNAME    = mozsqlt3
 FORCE_SHARED_LIB = 1
 VISIBILITY_FLAGS =
@@ -70,7 +73,7 @@ sqlite-version.h: sqlite-version.py sqlite3.h
 # We have to preprocess our def file because we need different symbols in debug
 # builds exposed that are not built in non-debug builds.
 $(DEFFILE): sqlite.def
-	@$(PYTHON) $(topsrcdir)/config/Preprocessor.py $(DEFINES) \
+	@$(PYTHON) $(moztopsrcdir)/config/Preprocessor.py $(DEFINES) \
 	  $(srcdir)/sqlite.def > $(DEFFILE)
 
 export:: sqlite-version.h
@@ -134,7 +137,7 @@ include $(topsrcdir)/config/rules.mk
 LOCAL_INCLUDES += -I$(srcdir)
 
 ifeq ($(OS_ARCH),OS2)
-ADD_TO_DEF_FILE = $(PYTHON) $(topsrcdir)/config/Preprocessor.py $(DEFINES) \
+ADD_TO_DEF_FILE = $(PYTHON) $(moztopsrcdir)/config/Preprocessor.py $(DEFINES) \
        $(srcdir)/sqlite.def | sed -e '1,/^EXPORTS$$/ d' -e 's,sqlite3,_\0,' \
        -e 's,\ DATA.*$$,,' >> $(DEF_FILE)
 endif
