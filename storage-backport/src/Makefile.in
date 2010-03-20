@@ -50,6 +50,7 @@ FORCE_STATIC_LIB = 1
 GRE_MODULE       = 1
 LIBXUL_LIBRARY = 1
 
+REQUIRES = sqlite3
 
 EXPORTS_NAMESPACES = mozilla/storage
 
