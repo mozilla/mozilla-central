@@ -322,6 +322,17 @@ function test_copying_readFromXML()
     '    <domain>inbox.lv</domain>' +
     '    <displayName>Inbox.lv</displayName>' +
     '    <displayShortName>Inbox.lv</displayShortName>' +
+    '    <incomingServer type="imap">' +
+    '      <hostname>imap.inbox.lv</hostname>' +
+    '      <port>993</port>' +
+    '      <socketType>SSL</socketType>' +
+    '      <username>%EMAILLOCALPART%</username>' +
+    '      <authentication>plain</authentication>' +
+    '      <pop3>' +
+    '        <leaveMessagesOnServer>true</leaveMessagesOnServer>' +
+    '        <daysToLeaveMessagesOnServer>999</daysToLeaveMessagesOnServer>' +
+    '      </pop3>' +
+    '    </incomingServer>' +
     '    <incomingServer type="pop3">' +
     '      <hostname>mail.inbox.lv</hostname>' +
     '      <port>995</port>' +

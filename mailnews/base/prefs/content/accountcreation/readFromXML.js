@@ -68,7 +68,7 @@ function readFromXML(clientConfigXML)
     d.domains.push(sanitize.hostname(domain));
 
   // incoming server
-  var iX = xml.incomingServer; // input (XML)
+  var iX = xml.incomingServer[0]; // input (XML)
   var iO = d.incoming; // output (object)
   iO.type = sanitize.enum(iX.@type, ["pop3", "imap", "nntp"]);
   iO.hostname = sanitize.hostname(iX.hostname);
