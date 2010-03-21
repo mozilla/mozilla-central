@@ -1241,62 +1241,38 @@
 
     <handlers>
       <handler event="click" button="0"><![CDATA[
-        var target = event.originalTarget;
-        if (target.hasAttribute("role")) {
-            if (target.hasAttribute("disabled") &&
-                target.getAttribute("disabled")) {
-                return;
-            }
-            var role = target.getAttribute("role");
-            if (role == "NON-PARTICIPANT") {
-                target.setAttribute("role", "REQ-PARTICIPANT");
-            } else if (role == "REQ-PARTICIPANT") {
-                target.setAttribute("role", "OPT-PARTICIPANT");
-            } else if (role == "OPT-PARTICIPANT") {
-                target.setAttribute("role", "CHAIR");
-            } else if (role == "CHAIR") {
-                target.setAttribute("role", "NON-PARTICIPANT");
-            }
-            return;
+        function cycle(values, current) {
+            let nextIndex = (values.indexOf(current) + 1) % values.length;
+            return values[nextIndex];
         }
 
-        if (target.hasAttribute("status")) {
-            if (target.hasAttribute("disabled") &&
-                target.getAttribute("disabled")) {
-                return;
+        let target = event.originalTarget;
+        if (target.className == "role-icon") {
+            if (target.getAttribute("disabled") != "true") {
+                const roleCycle = [ "REQ-PARTICIPANT", "OPT-PARTICIPANT",
+                                    "NON-PARTICIPANT", "CHAIR" ];
+
+                let nextValue = cycle(roleCycle, target.getAttribute("role"));
+                target.setAttribute("role", nextValue);
             }
-            var status = target.getAttribute("status");
-            switch (status) {
-                case "NEEDS-ACTION":
-                    target.setAttribute("status", "ACCEPTED");
-                    break;
-                case "ACCEPTED":
-                    target.setAttribute("status", "DECLINED");
-                    break;
-                case "DECLINED":
-                    target.setAttribute("status", "TENTATIVE");
-                    break;
-                case "TENTATIVE":
-                    target.setAttribute("status", "ACCEPTED");
-                    break;
+        } else if (target.className == "status-icon") {
+            if (target.getAttribute("disabled") != "true") {
+                const statusCycle = [ "ACCEPTED", "DECLINED", "TENTATIVE" ];
+
+                let nextValue = cycle(statusCycle, target.getAttribute("status"));
+                target.setAttribute("status", nextValue);
             }
-            return;
-        }
-
-        if (this.mIsReadOnly || this.mIsInvitation) {
-            return;
-        }
-
-        if (target == null ||
-           (target.localName != "listboxbody" &&
-            target.localName != "listcell" &&
-            target.localName != "listitem")) {
-            return;
-        }
-
-        var lastInput = this.getInputElement(this.mMaxAttendees);
-        if (lastInput && lastInput.value) {
-            this.appendNewRow(true);
+        } else if (this.mIsReadOnly || this.mIsInvitation || target == null ||
+                   (target.localName != "listboxbody" &&
+                    target.localName != "listcell" &&
+                    target.localName != "listitem")) {
+            // These are cases where we don't want to append a new row, keep
+            // them here so we can put the rest in the else case.
+        } else {
+            let lastInput = this.getInputElement(this.mMaxAttendees);
+            if (lastInput && lastInput.value) {
+                this.appendNewRow(true);
+            }
         }
       ]]></handler>
 
