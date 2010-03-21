@@ -1156,9 +1156,6 @@ function onUpdateAllDay() {
     setElementValue("event-starttime", allDay, "timepickerdisabled");
     setElementValue("event-endtime", allDay, "timepickerdisabled");
 
-    var tzStart = document.getElementById("timezone-starttime");
-    var tzEnd = document.getElementById("timezone-endtime");
-
     setShowTimeAs(allDay);
 
     gStartTime.isDate = allDay;
@@ -2436,15 +2433,6 @@ function editEndTimezone() {
         "timezone-endtime",
         gEndTime.getInTimezone(gEndTimezone),
         function(datetime) {
-            var equalTimezones = false;
-            if (gStartTimezone && gEndTimezone) {
-                if (compareObjects(gStartTimezone, gEndTimezone)) {
-                    equalTimezones = true;
-                }
-            }
-            if (equalTimezones) {
-                gStartTimezone = datetime.timezone;
-            }
             gEndTimezone = datetime.timezone;
             updateDateTime();
         });
@@ -2641,67 +2629,60 @@ function updateDateTime() {
  * the links will be collapsed.
  */
 function updateTimezone() {
-    var menuItem = document.getElementById('options-timezone-menuitem');
+    let menuItem = document.getElementById('options-timezone-menuitem');
 
     // convert to default timezone if the timezone option
     // is *not* checked, otherwise keep the specific timezone
     // and display the labels in order to modify the timezone.
     if (menuItem.getAttribute('checked') == 'true') {
-        var startTimezone = gStartTimezone;
-        var endTimezone = gEndTimezone;
+        let startTimezone = gStartTimezone;
+        let endTimezone = gEndTimezone;
 
-        var equalTimezones = false;
-        if (startTimezone && endTimezone) {
-            if (compareObjects(startTimezone, endTimezone) || endTimezone.isUTC) {
-                equalTimezones = true;
+        function updateTimezoneElement(aTimezone, aId, aDateTime) {
+            let element = document.getElementById(aId);
+            if (!element) {
+                return;
             }
-        }
 
-        function updateTimezoneElement(aTimezone, aId, aDateTime, aCollapse) {
-            var element = document.getElementById(aId);
-            if (element) {
-                if (aTimezone != null && !aCollapse) {
-                    element.removeAttribute('collapsed');
-                    element.value = aTimezone.displayName || aTimezone.tzid;
-                    if (!aDateTime || !aDateTime.isValid || gIsReadOnly || aDateTime.isDate) {
-                        if (element.hasAttribute('class')) {
-                            element.setAttribute('class-on-enabled',
-                                element.getAttribute('class'));
-                            element.removeAttribute('class');
-                        }
-                        if (element.hasAttribute('onclick')) {
-                            element.setAttribute('onclick-on-enabled',
-                                element.getAttribute('onclick'));
-                            element.removeAttribute('onclick');
-                        }
-                        element.setAttribute('disabled', 'true');
-                    } else {
-                        if (element.hasAttribute('class-on-enabled')) {
-                            element.setAttribute('class',
-                                element.getAttribute('class-on-enabled'));
-                            element.removeAttribute('class-on-enabled');
-                        }
-                        if (element.hasAttribute('onclick-on-enabled')) {
-                            element.setAttribute('onclick',
-                                element.getAttribute('onclick-on-enabled'));
-                            element.removeAttribute('onclick-on-enabled');
-                        }
-                        element.removeAttribute('disabled');
+            if (aTimezone) {
+                element.removeAttribute('collapsed');
+                element.value = aTimezone.displayName || aTimezone.tzid;
+                if (!aDateTime || !aDateTime.isValid || gIsReadOnly || aDateTime.isDate) {
+                    if (element.hasAttribute('class')) {
+                        element.setAttribute('class-on-enabled',
+                                             element.getAttribute('class'));
+                        element.removeAttribute('class');
                     }
+                    if (element.hasAttribute('onclick')) {
+                        element.setAttribute('onclick-on-enabled',
+                                             element.getAttribute('onclick'));
+                        element.removeAttribute('onclick');
+                    }
+                    element.setAttribute('disabled', 'true');
                 } else {
-                    element.setAttribute('collapsed', 'true');
+                    if (element.hasAttribute('class-on-enabled')) {
+                        element.setAttribute('class',
+                                             element.getAttribute('class-on-enabled'));
+                        element.removeAttribute('class-on-enabled');
+                    }
+                    if (element.hasAttribute('onclick-on-enabled')) {
+                        element.setAttribute('onclick',
+                                             element.getAttribute('onclick-on-enabled'));
+                        element.removeAttribute('onclick-on-enabled');
+                    }
+                    element.removeAttribute('disabled');
                 }
+            } else {
+                element.setAttribute('collapsed', 'true');
             }
         }
 
         updateTimezoneElement(startTimezone,
                               'timezone-starttime',
-                              gStartTime,
-                              false);
+                              gStartTime);
         updateTimezoneElement(endTimezone,
                               'timezone-endtime',
-                              gEndTime,
-                              equalTimezones);
+                              gEndTime);
     } else {
         document.getElementById('timezone-starttime')
                 .setAttribute('collapsed', 'true');
