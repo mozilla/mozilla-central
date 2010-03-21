@@ -95,7 +95,7 @@
 <!ENTITY  event.menu.item.save.label                      "Save">
 <!ENTITY  event.menu.item.save.accesskey                  "S">
 <!ENTITY  event.menu.item.saveandclose.label              "Save and Close">
-<!ENTITY  event.menu.item.saveandclose.accesskey          "l"
+<!ENTITY  event.menu.item.saveandclose.accesskey          "l">
 <!ENTITY  event.menu.item.delete.label                    "Delete…">
 <!ENTITY  event.menu.item.delete.accesskey                "D">
 <!ENTITY  event.menu.item.page.setup.label                "Page Setup">
