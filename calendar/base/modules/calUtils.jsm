@@ -87,8 +87,12 @@ let cal = {
      * Do this to work around re-entrancy problems w.r.t. processPendingEvent(), e.g. on chrome startup.
      */
     postPone: function cal_postPone(func) {
-        cal.getThreadManager().currentThread.dispatch({ run: func },
-                                                      Components.interfaces.nsIEventTarget.DISPATCH_NORMAL);
+        if (this.threadingEnabled) {
+            cal.getThreadManager().currentThread.dispatch({ run: func },
+                                                          Components.interfaces.nsIEventTarget.DISPATCH_NORMAL);
+        } else {
+            func();
+        }
     },
 
     /**
@@ -167,7 +171,7 @@ let cal = {
             } // else shutdown ongoing
         }
 
-        runnable.run(); // exec on current thread
+        worker.run(); // exec on current thread
     },
 
     /**
