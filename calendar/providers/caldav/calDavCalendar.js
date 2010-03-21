@@ -1744,6 +1744,12 @@ calDavCalendar.prototype = {
                     ibUrl.path = thisCalendar.ensurePath(response..*::["schedule-inbox-URL"].toString());
                 }
 
+                // Make sure the inbox uri has a / at the end, as we do with the
+                // calendarUri.
+                if (ibUrl.path.charAt(ibUrl.path.length - 1) != '/') {
+                    ibUrl.path += "/";
+                }
+
                 thisCalendar.mInboxUrl = ibUrl;
                 if (thisCalendar.calendarUri.spec == ibUrl.spec) {
                     // If the inbox matches the calendar uri (i.e SOGo), then we
@@ -1757,6 +1763,12 @@ calDavCalendar.prototype = {
                 } catch (ex) {
                     // most likely this is a Kerio server that omits the "href"
                     obUrl.path = thisCalendar.ensurePath(response..*::["schedule-outbox-URL"].toString());
+                }
+
+                // Make sure the outbox uri has a / at the end, as we do with
+                // the calendarUri.
+                if (obUrl.path.charAt(obUrl.path.length - 1) != '/') {
+                    obUrl.path += "/";
                 }
 
                 thisCalendar.mOutboxUrl = obUrl;
