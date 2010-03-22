@@ -902,9 +902,21 @@ nsNNTPProtocol::OnCacheEntryAvailable(nsICacheEntryDescriptor *entry, nsCacheAcc
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_runningURL, &rv);
     mailnewsUrl->SetMemCacheEntry(entry);
 
+    // If we have an empty cache entry with read access, we probably failed to
+    // clear it out from an error ealier. In this case, we'll simply try to
+    // write in the cache entry this time and hope we get luckier.
+    PRBool canRead = access & nsICache::ACCESS_READ;
+    if (canRead)
+    {
+      PRUint32 size;
+      entry->GetDataSize(&size);
+      if (size == 0)
+        canRead = PR_FALSE;
+    }
+
     // if we have write access then insert a "stream T" into the flow so data
     // gets written to both
-    if (access & nsICache::ACCESS_WRITE && !(access & nsICache::ACCESS_READ))
+    if (access & nsICache::ACCESS_WRITE && !canRead)
     {
       // use a stream listener Tee to force data into the cache and to our current channel listener...
       nsCOMPtr<nsIStreamListener> newListener;
@@ -919,12 +931,13 @@ nsNNTPProtocol::OnCacheEntryAvailable(nsICacheEntryDescriptor *entry, nsCacheAcc
       m_channelListener = do_QueryInterface(tee);
       NS_ENSURE_SUCCESS(rv, rv);
     }
-    else
+    else if (canRead)
     {
       rv = ReadFromMemCache(entry);
       if (access & nsICache::ACCESS_WRITE)
         entry->MarkValid();
-      if (NS_SUCCEEDED(rv)) return NS_OK; // kick out if reading from the cache succeeded...
+      if (NS_SUCCEEDED(rv))
+        return NS_OK; // kick out if reading from the cache succeeded...
     }
   } // if we got a valid entry back from the cache...
 
