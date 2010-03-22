@@ -57,7 +57,7 @@
    function editCategoryLoad()
    {
      document.getElementById("categoryName").value = window.arguments[0];
-     document.getElementById("categoryColor").color = window.arguments[1];
+     document.getElementById("categoryColor").color = window.arguments[1] || "transparent";
      document.title = window.arguments[2];
      if(window.arguments[1])
         document.getElementById("useColor").checked = true;
