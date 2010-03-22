@@ -291,7 +291,6 @@ ifeq ($(OS_ARCH),WINNT)
 else
 	$(INSTALL) $(topsrcdir)/suite/installer/license.txt $(DIST)/bin/
 endif
-	touch $(DIST)/bin/.autoreg
 
 libs:: blocklist.xml
 	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin

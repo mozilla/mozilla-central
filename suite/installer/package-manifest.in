@@ -23,7 +23,6 @@
 @APPNAME@/Contents/Plug-Ins/
 @APPNAME@/Contents/Resources/
 #endif
-@BINPATH@/.autoreg
 
 [@AB_CD@]
 @BINPATH@/chrome/@AB_CD@.jar
