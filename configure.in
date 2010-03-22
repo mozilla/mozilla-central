@@ -5081,6 +5081,7 @@ then
         PKG_CHECK_MODULES(MOZ_PANGO, [pango >= $PANGO_VERSION pangoft2 >= $PANGO_VERSION],
         [
             AC_SUBST(MOZ_PANGO_LIBS)
+            true # Needed not to have an empty block.
         ],
         [
             echo "Pango library not found, will use FT2 font engine"
