@@ -4522,6 +4522,9 @@ MOZ_NO_FAST_LOAD=
 MOZ_OGG=1
 MOZ_SYDNEYAUDIO=
 MOZ_WAVE=1
+if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
+MOZ_PANGO=1
+fi
 MOZ_PERMISSIONS=1
 MOZ_PLACES=
 MOZ_PLAINTEXT_EDITOR_ONLY=
@@ -5051,6 +5054,16 @@ fi
 AC_DEFINE_UNQUOTED(MOZ_DISTRIBUTION_ID,"$MOZ_DISTRIBUTION_ID")
 AC_SUBST(MOZ_DISTRIBUTION_ID)
 
+if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
+dnl ========================================================
+dnl complex text support off by default
+dnl ========================================================
+MOZ_ARG_DISABLE_BOOL(pango,
+[  --disable-pango Disable usage of Pango ],
+    MOZ_PANGO=,
+    MOZ_PANGO=1)
+fi # ! MOZILLA_1_9_2_BRANCH
+
 dnl ========================================================
 dnl = Pango
 dnl ========================================================
@@ -5059,6 +5072,23 @@ then
     PKG_CHECK_MODULES(MOZ_PANGO, pango >= $PANGO_VERSION pangoft2 >= $PANGO_VERSION)
     AC_SUBST(MOZ_PANGO_LIBS)
 fi
+
+if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
+if test "$MOZ_ENABLE_QT"
+then
+    if test "$MOZ_PANGO"
+    then
+        PKG_CHECK_MODULES(MOZ_PANGO, [pango >= $PANGO_VERSION pangoft2 >= $PANGO_VERSION],
+        [
+            AC_SUBST(MOZ_PANGO_LIBS)
+        ],
+        [
+            echo "Pango library not found, will use FT2 font engine"
+            MOZ_PANGO=
+        ])
+    fi
+fi
+fi # ! MOZILLA_1_9_2_BRANCH
 
 dnl ========================================================
 dnl = GnomeVFS support module
