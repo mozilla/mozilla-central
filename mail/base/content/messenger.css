@@ -99,10 +99,6 @@ mail-newsgroups-headerfield {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#mail-newsgroups-headerfield");
 }
 
-mail-multi-more-indicator {
-  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#mail-multi-more-indicator");
-}
-
 mail-headerfield {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#mail-headerfield");
 }

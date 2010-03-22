@@ -213,6 +213,10 @@ pref("accessibility.typeaheadfind.flashBar", 1);
 
 pref("mail.close_message_window.on_delete", false);
 
+// Number of lines of To/CC/BCC address headers to show before "more"
+// truncates the list.
+pref("mailnews.headers.show_n_lines_before_more", 1);
+
 /////////////////////////////////////////////////////////////////
 // Overrides of the core mailnews.js prefs
 /////////////////////////////////////////////////////////////////

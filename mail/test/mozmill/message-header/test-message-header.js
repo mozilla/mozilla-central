@@ -44,6 +44,9 @@ var MODULE_NAME = 'test-message-header';
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
+var elib = {};
+Cu.import('resource://mozmill/modules/elementslib.js', elib);
+
 var folder;
 
 function setupModule(module) {
@@ -266,7 +269,7 @@ function test_that_msg_without_date_clears_previous_headers() {
   // ensure that this message doesn't have a Date header
   delete msg.headers.Date;
 
-  // this will add the message to position 0 of the folder.
+  // this will add the message to the end of the folder
   add_message_to_folder(folder, msg);
 
   // select and open the first message
@@ -285,4 +288,83 @@ function test_that_msg_without_date_clears_previous_headers() {
     throw new Error("Expected <row> elemnent for Newsgroups header to be " +
                     "collapsed, but it wasn't\n!");
   }
+}
+
+/**
+ * Test that we only display at most the max lines preference until we
+ * display (n more), and, after the widget is clicked, we expand the header.
+ */
+function test_more_widget() {
+
+  // get maxline pref
+  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
+    .getService(Ci.nsIPrefService).getBranch(null);
+  let maxLines = prefBranch.getIntPref(
+    "mailnews.headers.show_n_lines_before_more");
+
+  // generate message with 20 recips (effectively guarantees overflow)
+  be_in_folder(folder);
+  let msg = create_message({toCount: 20});
+
+  // add the message to the end of the folder
+  add_message_to_folder(folder, msg);
+
+  // select and open the last message
+  let curMessage = select_click_row(-1);
+
+  // make sure it loads
+  wait_for_message_display_completion(mc);
+  assert_selected_and_displayed(mc, curMessage);
+
+  // get the description element containing the addresses
+  let toDescription = mc.a('expandedtoBox', {class: "headerValue"});
+
+  // test that the to element doesn't have more than max lines
+  let style = mc.window.getComputedStyle(toDescription, null);
+  let numLines = style.height / style.lineHeight
+  if (numLines > maxLines) {
+    throw new Error("expected <= " + maxLines + "lines; found " + numLines);
+  }
+
+  // test that we've got a (more) node and that it's expanded
+  let moreNode = mc.a('expandedtoBox', {class: 'moreIndicator'});
+  if (!moreNode) {
+    throw new Error("more node not found before activation");
+  }
+  if (moreNode.collapsed) {
+    throw new Error("more node was collapsed when it should have been visible");
+  }
+
+  // activate (n more)
+  mc.click(new elib.Elem(moreNode));
+
+  // test that (n more) is gone
+  moreNode = mc.a('expandedtoBox', {class: 'moreIndicator'});
+  if (!moreNode.collapsed) {
+    throw new Error("more node should be collapsed after activation");
+  }
+
+  // test that we actually have more lines than we did before!
+  let style = mc.window.getComputedStyle(toDescription, null);
+  let newNumLines = style.height / style.lineHeight;
+  if (newNumLines <= numLines) {
+    throw new Error("number of address lines present after more clicked = " +
+      newNumLines + "<= number of lines present beforehand = " + numLines);
+  }
+}
+
+/**
+ * Make sure the (more) widget hidden pref actually works with a
+ * non-default value.
+  */
+function test_more_widget_with_maxlines_of_3(){
+
+  // set maxLines to 2
+  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
+    .getService(Ci.nsIPrefService).getBranch(null);
+  let maxLines = prefBranch.setIntPref(
+    "mailnews.headers.show_n_lines_before_more", 3);
+
+  // call test_more_widget again
+  test_more_widget();
 }
