@@ -509,6 +509,15 @@
 @BINPATH@/chrome/pippki.jar
 @BINPATH@/chrome/pippki.manifest
 
+; for Solaris SPARC
+#ifdef SOLARIS
+@BINPATH@/@DLL_PREFIX@freebl_32fpu_3.chk
+@BINPATH@/@DLL_PREFIX@freebl_32fpu_3@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@freebl_32int_3.chk
+@BINPATH@/@DLL_PREFIX@freebl_32int_3@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@freebl_32int64_3.chk
+@BINPATH@/@DLL_PREFIX@freebl_32int64_3@DLL_SUFFIX@
+#endif
 
 ; core platform files
 @BINPATH@/components/FeedProcessor.js
