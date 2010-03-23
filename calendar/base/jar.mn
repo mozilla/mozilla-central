@@ -144,7 +144,6 @@ calendar.jar:
     skin/calendar/calendar-task-view.css                   (themes/@THEME@/calendar-task-view.css)
     skin/calendar/calendar-unifinder.css                   (themes/@THEME@/calendar-unifinder.css)
     skin/calendar/calendar-views.css                       (themes/@THEME@/calendar-views.css)
-    skin/calendar/mode-switch-icons.png                    (themes/@THEME@/images/mode-switch-icons.png)
     skin/calendar/ok-cancel.png                            (themes/@THEME@/images/ok-cancel.png)
     skin/calendar/today-pane.css                           (themes/@THEME@/today-pane.css)
     skin/calendar/toolbar-large.png                        (themes/@THEME@/images/toolbar-large.png)

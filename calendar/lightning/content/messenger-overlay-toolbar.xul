@@ -51,6 +51,7 @@
 ]>
 
 <?xml-stylesheet href="chrome://lightning/skin/lightning.css" type="text/css"?>
+<?xml-stylesheet href="chrome://lightning/skin/lightning-toolbar.css" type="text/css"?>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
@@ -93,4 +94,15 @@
                 observes="calendar_new_todo_command"/>
     </menupopup>
   </toolbarbutton>
+
+  <toolbarpalette id="MailToolbarPalette">
+    <toolbarbutton id="lightning-button-calendar"
+                   class="toolbarbutton-1"
+                   label="&lightning.toolbar.calendar.label;"
+                   command="new_calendar_tab"/>
+    <toolbarbutton id="lightning-button-tasks"
+                   class="toolbarbutton-1"
+                   label="&lightning.toolbar.task.label;"
+                   command="new_task_tab"/>
+  </toolbarpalette>
 </overlay>

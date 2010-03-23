@@ -67,48 +67,48 @@ radio[pane=paneLightning] {
 
 /* ::: new tab buttons ::: */
 #calendar-tab-button {
-  list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
-  -moz-image-region: rect(0px 107px 16px 91px);
+    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
+    -moz-image-region: rect(0px 64px 16px 48px);
 }
 
-#calendar-tab-button:hover:active {
-  -moz-image-region: rect(16px 107px 32px 91px);
+#calendar-tab-button:hover {
+    -moz-image-region: rect(16px 64px 32px 48px);
 }
 
 #calendar-tab-button[disabled] {
-  -moz-image-region: rect(32px 107px 48px 91px);
+    -moz-image-region: rect(32px 64px 48px 48px);
 }
 
 #task-tab-button {
-  list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
-  -moz-image-region: rect(0px 123px 16px 107px);
+    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
+    -moz-image-region: rect(0px 80px 16px 64px);
 }
 
-#task-tab-button:hover:active {
-  -moz-image-region: rect(16px 123px 32px 107px);
+#task-tab-button:hover {
+    -moz-image-region: rect(16px 80px 32px 64px);
 }
 
 #task-tab-button[disabled] {
-  -moz-image-region: rect(32px 123px 48px 107px);
+    -moz-image-region: rect(32px 80px 48px 64px);
 }
 
 /* ::: tab icons ::: */
 .tabmail-tab[type="calendar"] .tab-icon-image {
-  list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
-  -moz-image-region: rect(0px 107px 16px 91px);
+    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
+    -moz-image-region: rect(0px 64px 16px 48px);
 }
 
 .tabmail-tab[type="calendar"][selected="true"] .tab-icon-image {
-  -moz-image-region: rect(16px 107px 32px 91px);
+    -moz-image-region: rect(16px 64px 32px 48px);
 }
 
 .tabmail-tab[type="tasks"] .tab-icon-image {
-  list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
-  -moz-image-region: rect(0px 123px 16px 107px);
+    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
+    -moz-image-region: rect(0px 80px 16px 64px);
 }
 
 .tabmail-tab[type="tasks"][selected="true"] .tab-icon-image {
-  -moz-image-region: rect(16px 123px 32px 107px);
+    -moz-image-region: rect(16px 80px 32px 64px);
 }
 
 
