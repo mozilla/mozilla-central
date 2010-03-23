@@ -46,6 +46,13 @@ Components.utils.import("resource://calendar/modules/calUtils.jsm");
 EXPORTED_SYMBOLS = ["cal"]; // even though it's defined in calUtils.jsm, import needs this
 cal.auth = {
     /**
+     * Auth prompt implementation - Uses password manager if at all possible.
+     */
+    Prompt: function calPrompt() {
+        this.mReturnedLogins = {};
+    },
+
+    /**
      * Tries to get the username/password combination of a specific calendar name
      * from the password manager or asks the user.
      *
@@ -200,8 +207,7 @@ cal.auth = {
  * This implementation guarantees there are no request loops when an invalid
  * password is stored in the login-manager.
  */
-cal.auth.Prompt = {
-    mReturnedLogins : {},
+cal.auth.Prompt.prototype = {
     getPasswordInfo: function capGPI(aPasswordRealm) {
         let username;
         let password;
