@@ -45,7 +45,7 @@ fi
 MOZ_STATIC_MAIL_BUILD=1
 MOZ_COMPOSER=1
 MOZ_SUITE=1
-MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/config/version.txt`
+MOZ_APP_VERSION=`cat ${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt`
 SEAMONKEY_VERSION=$MOZ_APP_VERSION
 MOZ_EXTENSIONS_DEFAULT=" venkman inspector irc gnomevfs reporter"
 MOZ_PLACES=1
