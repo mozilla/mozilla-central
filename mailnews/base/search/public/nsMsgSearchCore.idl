@@ -46,7 +46,7 @@ interface nsIMsgHeaderParser;
 interface nsIMsgDatabase;
 interface nsIMsgDBHdr;
 
-[scriptable, uuid(5fe70a74-304e-11d3-9be1-00a0c900d445)]
+[scriptable, uuid(6e893e59-af98-4f62-a326-0f00f32147cd)]
 
 interface nsMsgSearchScope {
   const nsMsgSearchScopeValue offlineMail = 0;
@@ -145,7 +145,7 @@ interface nsMsgSearchAttrib {
 
 typedef long nsMsgSearchOpValue;
 
-[scriptable, uuid(82cc4518-304e-11d3-831d-00a0c900d445)]
+[scriptable, uuid(9160b196-6fcb-4eba-aaaf-6c806c4ee420)]
 interface nsMsgSearchOp {
     const nsMsgSearchOpValue Contains = 0; /* for text attributes      */
     const nsMsgSearchOpValue DoesntContain = 1;
