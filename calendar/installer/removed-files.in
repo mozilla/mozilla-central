@@ -480,3 +480,7 @@ js3250.dll
 ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/info.nib
 ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/objects.xib
 #endif
+
+#ifndef MOZILLA_1_9_2_BRANCH
+components/contentprefs.xpt
+#endif

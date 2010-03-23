@@ -84,7 +84,9 @@ bin\components\content_htmldoc.xpt
 bin\components\content_xmldoc.xpt
 bin\components\content_xslt.xpt
 bin\components\content_xtf.xpt
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\contentprefs.xpt
+#endif
 bin\components\cookie.xpt
 bin\components\docshell_base.xpt
 bin\components\dom.xpt

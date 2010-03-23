@@ -321,7 +321,9 @@
 @BINPATH@/components/content_xmldoc.xpt
 @BINPATH@/components/content_xslt.xpt
 @BINPATH@/components/content_xtf.xpt
+#ifdef MOZILLA_1_9_2_BRANCH
 @BINPATH@/components/contentprefs.xpt
+#endif
 @BINPATH@/components/htmlparser.xpt
 @BINPATH@/components/layout_base.xpt
 #ifdef NS_PRINTING
