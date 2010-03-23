@@ -44,6 +44,8 @@ include $(DEPTH)/config/autoconf.mk
 
 DIRS = public
 
+DEFINES += -DMOZ_APP_NAME=\"$(MOZ_APP_NAME)\"
+
 MODULE = shellservice
 LIBRARY_NAME = shellservice_s
 MODULE_NAME = nsMailShellModule
