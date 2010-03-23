@@ -79,7 +79,7 @@ ifneq (,$(filter windows os2 gtk gtk2,$(MOZ_WIDGET_TOOLKIT)))
 ifneq (,$(filter windows os2,$(MOZ_WIDGET_TOOLKIT)))
 ICON_SUFFIX = .ico
 else
-ICON_SUFFIX = .xpm
+ICON_SUFFIX = .png
 endif
 
 # Copy the window icons into the correct directory
