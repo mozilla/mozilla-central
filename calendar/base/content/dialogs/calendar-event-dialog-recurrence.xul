@@ -100,14 +100,13 @@
         </row>
         <row id="recurrence-pattern-period-row" align="top">
           <spacer/>
-          <deck id="period-deck">
+          <deck id="period-deck" oncommand="updateRecurrenceControls();">
 
             <!-- Daily -->
             <box id="period-deck-daily-box"
                  orient="vertical"
                  align="top">
-              <radiogroup id="daily-group"
-                          oncommand="updateRecurrenceControls();">
+              <radiogroup id="daily-group">
                 <box id="daily-period-every-box" orient="horizontal" align="center">
                   <radio id="daily-group-every-radio"
                          label="&event.recurrence.pattern.every.label;"
@@ -120,7 +119,7 @@
                            min="1"
                            max="0x7FFF"
                            size="3"
-                           oninput="updateRecurrenceControls();"
+                           onkeyup="updateRecurrenceControls();"
                            disable-on-readonly="true"
                            disable-on-occurrence="true"/>
                   <label id="daily-group-every-units-label"
@@ -149,7 +148,7 @@
                          min="1"
                          max="0x7FFF"
                          size="3"
-                         oninput="updateRecurrenceControls();"
+                         onkeyup="updateRecurrenceControls();"
                          disable-on-readonly="true"
                          disable-on-occurrence="true"/>
                 <label id="weekly-period-units-label"
@@ -185,7 +184,7 @@
                          min="1"
                          max="0x7FFF"
                          size="3"
-                         oninput="updateRecurrenceControls();"
+                         onkeyup="updateRecurrenceControls();"
                          disable-on-readonly="true"
                          disable-on-occurrence="true"/>
                 <label id="monthly-period-units-label"
@@ -193,8 +192,7 @@
                        disable-on-readonly="true"
                        disable-on-occurrence="true"/>
               </hbox>
-              <radiogroup id="monthly-group"
-                          oncommand="updateRecurrenceControls();">
+              <radiogroup id="monthly-group">
                 <box id="monthly-period-relative-date-box"
                          orient="horizontal" align="center">
                   <radio id="montly-period-relative-date-radio"
@@ -288,13 +286,12 @@
                          min="1"
                          max="0x7FFF"
                          size="3"
-                         oninput="updateRecurrenceControls();"
+                         onkeyup="updateRecurrenceControls();"
                          disable-on-readonly="true"
                          disable-on-occurrence="true"/>
                 <label id="yearly-period-units-label" value="&repeat.units.years.both;"/>
               </hbox>
-              <radiogroup id="yearly-group"
-                          oncommand="updateRecurrenceControls();">
+              <radiogroup id="yearly-group">
                 <grid id="yearly-period-grid">
                   <columns id="yearly-period-columns">
                     <column id="yearly-period-radio-column"/>
@@ -315,7 +312,7 @@
                                  value="1"
                                  min="1"
                                  size="3"
-                                 oninput="updateRecurrenceControls();"
+                                 onkeyup="updateRecurrenceControls();"
                                  disable-on-readonly="true"
                                  disable-on-occurrence="true"/>
                         <label id="yearly-period-of-month-label"
@@ -512,7 +509,7 @@
                    min="1"
                    max="0x7FFF"
                    size="3"
-                   oninput="updateRecurrenceControls();"
+                   onkeyup="updateRecurrenceControls();"
                    disable-on-readonly="true"
                    disable-on-occurrence="true"/>
           <label id="repeat-appointments-label"
