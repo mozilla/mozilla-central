@@ -1,0 +1,168 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Calendar code.
+ *
+ * The Initial Developer of the Original Code is
+ *   Anirvana Mishra <anidps@gmail.com>
+ * Portions created by the Initial Developer are Copyright (C) 2010
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+.timezone-highlight {
+   list-style-image: url(chrome://calendar/skin/timezones.png);
+}
+.timezone-highlight[tzid="none"] {
+  display: none;
+}
+.timezone-highlight[tzid="+0000"] {
+  -moz-image-region: rect(0 7360px 287px 6900px);
+}
+.timezone-highlight[tzid="+0100"] {
+  -moz-image-region: rect(0 7820px 287px 7360px);
+}
+.timezone-highlight[tzid="+0200"] {
+  -moz-image-region: rect(0 8280px 287px 7820px);
+}
+.timezone-highlight[tzid="+0300"] {
+  -moz-image-region: rect(0 8740px 287px 8280px);
+}
+.timezone-highlight[tzid="+0330"] {
+  -moz-image-region: rect(0 9200px 287px 8740px);
+}
+.timezone-highlight[tzid="+0400"] {
+  -moz-image-region: rect(0 9660px 287px 9200px);
+}
+.timezone-highlight[tzid="+0430"] {
+  -moz-image-region: rect(0 10120px 287px 9660px);
+}
+.timezone-highlight[tzid="+0500"] {
+  -moz-image-region: rect(0 10580px 287px 10120px);
+}
+.timezone-highlight[tzid="+0530"] {
+  -moz-image-region: rect(0 11040px 287px 10580px);
+}
+.timezone-highlight[tzid="+0545"] {
+  -moz-image-region: rect(0 11500px 287px 11040px);
+}
+.timezone-highlight[tzid="+0600"] {
+  -moz-image-region: rect(0 11960px 287px 11500px);
+}
+.timezone-highlight[tzid="+0630"] {
+  -moz-image-region: rect(0 12420px 287px 11960px);
+}
+.timezone-highlight[tzid="+0700"] {
+  -moz-image-region: rect(0 12880px 287px 12420px);
+}
+.timezone-highlight[tzid="+0800"] {
+  -moz-image-region: rect(0 13340px 287px 12880px);
+}
+.timezone-highlight[tzid="+0845"] {
+  display: none;
+}
+.timezone-highlight[tzid="+0900"] {
+  -moz-image-region: rect(0 13800px 287px 13340px);
+}
+.timezone-highlight[tzid="+0930"] {
+  -moz-image-region: rect(0 14260px 287px 13800px);
+}
+.timezone-highlight[tzid="+1000"] {
+  -moz-image-region: rect(0 14720px 287px 14260px);
+}
+.timezone-highlight[tzid="+1030"] {
+  -moz-image-region: rect(0 15180px 287px 14720px);
+}
+.timezone-highlight[tzid="+1100"] {
+  -moz-image-region: rect(0 15640px 287px 15180px);
+}
+.timezone-highlight[tzid="+1130"] {
+  -moz-image-region: rect(0 15640px 287px 15180px);
+}
+.timezone-highlight[tzid="+1200"] {
+  -moz-image-region: rect(0 16560px 287px 16100px);
+}
+.timezone-highlight[tzid="+1245"] {
+  -moz-image-region: rect(0 17020px 287px 16560px);
+}
+.timezone-highlight[tzid="+1300"] {
+  -moz-image-region: rect(0 17480px 287px 17020px);
+}
+.timezone-highlight[tzid="+1400"] {
+  -moz-image-region: rect(0 17940px 287px 17480px);
+}
+.timezone-highlight[tzid="-0100"] {
+  -moz-image-region: rect(0 6900px 287px 6440px);
+}
+.timezone-highlight[tzid="-0200"] {
+  -moz-image-region: rect(0 6440px 287px 5980px);
+}
+.timezone-highlight[tzid="-0300"] {
+  -moz-image-region: rect(0 5980px 287px 5520px);
+}
+.timezone-highlight[tzid="-0330"] {
+  -moz-image-region: rect(0 5520px 287px 5060px);
+}
+.timezone-highlight[tzid="-0400"] {
+  -moz-image-region: rect(0 5060px 287px 4600px);
+}
+.timezone-highlight[tzid="-0430"] {
+  display: none;
+}
+.timezone-highlight[tzid="-0500"] {
+  -moz-image-region: rect(0 4600px 287px 4140px);
+}
+.timezone-highlight[tzid="-0600"] {
+  -moz-image-region: rect(0 4140px 287px 3680px);
+}
+.timezone-highlight[tzid="-0700"] {
+  -moz-image-region: rect(0 3680px 287px 3220px);
+}
+.timezone-highlight[tzid="-0800"] {
+  -moz-image-region: rect(0 18400px 287px 17940px);
+}
+.timezone-highlight[tzid="-0830"] {
+  -moz-image-region: rect(0 3220px 287px 2760px);
+}
+.timezone-highlight[tzid="-0900"] {
+  -moz-image-region: rect(0 2760px 287px 2300px);
+}
+.timezone-highlight[tzid="-0930"] {
+  -moz-image-region: rect(0 2300px 287px 1840px);
+}
+.timezone-highlight[tzid="-1000"] {
+  -moz-image-region: rect(0 1840px 287px 1380px);
+}
+.timezone-highlight[tzid="-1100"] {
+  -moz-image-region: rect(0 1380px 287px 920px);
+}
+.timezone-highlight[tzid="-1245"] {
+  -moz-image-region: rect(0 920px 287px 460px);
+}
+.timezone-highlight[tzid="-1200"] {
+  -moz-image-region: rect(0 460px 287px 0px);
+}

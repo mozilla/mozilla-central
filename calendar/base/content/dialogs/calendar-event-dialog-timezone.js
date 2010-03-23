@@ -119,45 +119,33 @@ function findTimezone(timezone) {
  * timezone-time field and the timezone-stack.
  */
 function updateTimezone() {
-    var menulist = document.getElementById("timezone-menulist");
-    var menuitem = menulist.selectedItem;
-    var tz = window.tzProvider.getTimezone(menuitem.getAttribute("value"));
+    let menulist = document.getElementById("timezone-menulist");
+    let menuitem = menulist.selectedItem;
+    let tz = window.tzProvider.getTimezone(menuitem.getAttribute("value"));
 
     // convert the date/time to the currently selected timezone
     // and display the result in the appropriate control.
     // before feeding the date/time value into the control we need
     // to set the timezone to 'floating' in order to avoid the
     // automatic conversion back into the OS timezone.
-    var datetime = document.getElementById("timezone-time");
-    var time = window.time.getInTimezone(tz);
+    let datetime = document.getElementById("timezone-time");
+    let time = window.time.getInTimezone(tz);
     time.timezone = floating();
     datetime.value = time.jsDate;
 
     // don't highlight any timezone in the map by default
-    var standardTZOffset = "none";
+    let standardTZOffset = "none";
     if (tz.isUTC) {
         standardTZOffset = "+0000";
     } else if (!tz.isFloating) {
-        var standard = tz.icalComponent.getFirstSubcomponent("STANDARD");
+        let standard = tz.icalComponent.getFirstSubcomponent("STANDARD");
         // any reason why valueAsIcalString is used instead of plain value? xxx todo: ask mickey
         standardTZOffset = standard.getFirstProperty("TZOFFSETTO").valueAsIcalString;
     }
 
-    var stack = document.getElementById("timezone-stack");
-    var numChilds = stack.childNodes.length;
-    for (var i = 0; i < numChilds; i++) {
-        var image = stack.childNodes[i];
-        if (image.hasAttribute("tzid")) {
-            var offset = image.getAttribute("tzid");
-            if (offset == standardTZOffset) {
-                image.removeAttribute("hidden");
-            } else {
-                image.setAttribute("hidden", "true");
-            }
-        }
-    }
+    let image = document.getElementById("highlighter");
+    image.setAttribute("tzid", standardTZOffset);
 }
-
 /**
  * Handler function to be called when the accept button is pressed.
  *
