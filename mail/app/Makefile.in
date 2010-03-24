@@ -80,9 +80,9 @@ PREF_JS_EXPORTS = \
     $(NULL)
 
 ifneq (,$(filter OS2 WINCE WINNT,$(OS_ARCH)))
-PROGRAM = thunderbird$(BIN_SUFFIX)
+PROGRAM = $(MOZ_APP_NAME)$(BIN_SUFFIX)
 else
-PROGRAM = thunderbird-bin$(BIN_SUFFIX)
+PROGRAM = $(MOZ_APP_NAME)-bin$(BIN_SUFFIX)
 endif
 
 REQUIRES = \
@@ -317,18 +317,18 @@ install::
 endif
 
 ifneq (,$(filter-out OS2 WINNT Darwin,$(OS_ARCH)))
-thunderbird:: $(topsrcdir)/mozilla/build/unix/mozilla.in $(GLOBAL_DEPS) $(DEPTH)/config/autoconf.mk
+$(MOZ_APP_NAME):: $(topsrcdir)/mozilla/build/unix/mozilla.in $(GLOBAL_DEPS) $(DEPTH)/config/autoconf.mk
 	cat $< | sed -e "s|%MOZAPPDIR%|$(installdir)|" \
 		-e "s|%MOZ_APP_DISPLAYNAME%|$(MOZ_APP_DISPLAYNAME)|" > $@
 	chmod +x $@
 
-libs:: thunderbird
+libs:: $(MOZ_APP_NAME)
 	$(INSTALL) $< $(DIST)/bin
 
-install:: thunderbird
+install:: $(MOZ_APP_NAME)
 	$(SYSINSTALL) $< $(DESTDIR)$(bindir)
 
-GARBAGE += thunderbird
+GARBAGE += $(MOZ_APP_NAME)
 GARBAGE += $(addprefix $(DIST)/bin/defaults/pref/, all.js all-thunderbird.js channel-prefs.js mailnews.js)
 endif
 
