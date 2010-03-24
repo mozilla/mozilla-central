@@ -39,6 +39,7 @@
 #include "prlog.h"
 #include "prmem.h"
 #include "nsMsgLineBuffer.h"
+#include "nsAlgorithm.h"
 
 #include "nsIInputStream.h" // used by nsMsgLineStreamBuffer
 

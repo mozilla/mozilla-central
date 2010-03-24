@@ -49,6 +49,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
+#include "nsComponentManagerUtils.h"
 
 NS_IMPL_ISUPPORTS1(nsImapMoveCoalescer, nsIUrlListener)
 
@@ -248,8 +249,7 @@ NS_IMETHODIMP nsMoveCoalescerCopyListener::OnStopCopy(nsresult aStatus)
         NS_ENSURE_SUCCESS(rv, rv);
         nsCOMPtr <nsIURI> url;
         nsCOMPtr <nsIUrlListener> listener = do_QueryInterface(m_coalescer);
-        nsCOMPtr <nsIThread> thread;
-        NS_GetCurrentThread(getter_AddRefs(thread));
+        nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
         rv = imapService->SelectFolder(thread, m_destFolder, listener, nsnull, getter_AddRefs(url));
       }
     }

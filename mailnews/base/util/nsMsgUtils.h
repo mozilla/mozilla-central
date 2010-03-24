@@ -45,6 +45,14 @@
 #include "nsCOMPtr.h"
 #include "MailNewsTypes2.h"
 #include "nsTArray.h"
+#include "nsIInterfaceRequestor.h"
+#include "nsILoadGroup.h"
+#include "nsISupportsArray.h"
+#include "nsIAtom.h"
+#include "nsINetUtil.h"
+#include "nsIProxyObjectManager.h"
+#include "nsServiceManagerUtils.h"
+#include "nsUnicharUtils.h"
 
 class nsILocalFile;
 class nsIPrefBranch;
@@ -234,10 +242,10 @@ NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB,
 NS_MSG_BASE nsresult MsgExamineForProxy(const char *scheme, const char *host,
                                         PRInt32 port, nsIProxyInfo **proxyInfo);
 
-NS_MSG_BASE PRInt32 FindCharInSet(const nsCString &aString,
-                                  const char* aChars, PRUint32 aOffset = 0);
-NS_MSG_BASE PRInt32 FindCharInSet(const nsString &aString,
-                                  const char* aChars, PRUint32 aOffset = 0);
+NS_MSG_BASE PRInt32 MsgFindCharInSet(const nsCString &aString,
+                                     const char* aChars, PRUint32 aOffset = 0);
+NS_MSG_BASE PRInt32 MsgFindCharInSet(const nsString &aString,
+                                     const char* aChars, PRUint32 aOffset = 0);
 
 
 // advances bufferOffset to the beginning of the next line, if we don't
@@ -308,15 +316,31 @@ NS_MSG_BASE PRUint64 ParseUint64Str(const char *str);
  * using the internal API we can simply redirect the calls appropriately.
  */
 #define MsgLowerCaseEqualsLiteral(str, l) \
-        str.LowerCaseEqualsLiteral(l)
+        (str).LowerCaseEqualsLiteral(l)
 #define MsgRFindChar(str, ch, len) \
-        str.RFindChar(ch, len)
+        (str).RFindChar(ch, len)
 #define MsgCompressWhitespace(str) \
-        str.CompressWhitespace()
+        (str).CompressWhitespace()
 #define MsgEscapeHTML(str) \
         nsEscapeHTML(str)
 #define MsgEscapeHTML2(buffer, len) \
         nsEscapeHTML2(buffer, len)
+#define MsgReplaceSubstring(str, what, replacement) \
+        (str).ReplaceSubstring(what, replacement)
+#define MsgIsUTF8(str) \
+        IsUTF8(str)
+#define MsgNewInterfaceRequestorAggregation(aFirst, aSecond, aResult) \
+        NS_NewInterfaceRequestorAggregation(aFirst, aSecond, aResult)
+#define MsgNewNotificationCallbacksAggregation(aCallbacks, aLoadGroup, aResult) \
+        NS_NewNotificationCallbacksAggregation(aCallbacks, aLoadGroup, aResult)
+#define MsgGetProxyForObject(aTarget, aIID, aObj, aProxyType, aProxyObject) \
+        NS_GetProxyForObject(aTarget, aIID, aObj, aProxyType, aProxyObject)
+#define MsgGetAtom(aString) \
+        do_GetAtom(aString)
+#define MsgNewAtom(aString) \
+        NS_NewAtom(aString)
+#define MsgReplaceChar(aString, aNeedle, aReplacement) \
+        (aString).ReplaceChar(aNeedle, aReplacement)
 
 #else
 
@@ -370,6 +394,93 @@ NS_MSG_BASE void MsgCompressWhitespace(nsCString& aString);
 NS_MSG_BASE char *MsgEscapeHTML(const char *aString);
 /// Equivalent of nsEscapeHTML2(aBuffer, aLen)
 NS_MSG_BASE PRUnichar *MsgEscapeHTML2(const PRUnichar *aBuffer, PRInt32 aLen);
+// Existing replacement for IsUTF8
+NS_MSG_BASE PRBool MsgIsUTF8(const nsACString& aString);
+/// Equivalent of NS_NewAtom(aUTF8String)
+NS_MSG_BASE nsIAtom* MsgNewAtom(const char* aString);
+/// Equivalent of do_GetAtom(aUTF8String)
+inline already_AddRefed<nsIAtom> MsgGetAtom(const char* aUTF8String)
+{
+  return MsgNewAtom(aUTF8String);
+}
+/// Equivalent of ns(C)String::ReplaceSubstring(what, replacement)
+NS_MSG_BASE void MsgReplaceSubstring(nsAString &str, const nsAString &what, const nsAString &replacement);
+NS_MSG_BASE void MsgReplaceSubstring(nsACString &str, const char *what, const char *replacement);
+/// Equivalent of ns(C)String::ReplaceChar(what, replacement)
+NS_MSG_BASE void MsgReplaceChar(nsString& str, const char *set, const PRUnichar replacement);
+NS_MSG_BASE void MsgReplaceChar(nsCString& str, const char needle, const char replacement);
+// Equivalent of NS_NewInterfaceRequestorAggregation(aFirst, aSecond, aResult)
+NS_MSG_BASE nsresult MsgNewInterfaceRequestorAggregation(nsIInterfaceRequestor *aFirst,
+                                                         nsIInterfaceRequestor *aSecond,
+                                                         nsIInterfaceRequestor **aResult);
+
+/**
+ * This function is based on NS_NewNotificationCallbacksAggregation from
+ * nsNetUtil.h
+ *
+ * This function returns a nsIInterfaceRequestor instance that returns the
+ * same result as NS_QueryNotificationCallbacks when queried.
+ */
+inline nsresult
+MsgNewNotificationCallbacksAggregation(nsIInterfaceRequestor  *callbacks,
+                                       nsILoadGroup           *loadGroup,
+                                       nsIInterfaceRequestor **result)
+{
+    nsCOMPtr<nsIInterfaceRequestor> cbs;
+    if (loadGroup)
+        loadGroup->GetNotificationCallbacks(getter_AddRefs(cbs));
+    return MsgNewInterfaceRequestorAggregation(callbacks, cbs, result);
+}
+
+/**
+ * Helper class for do_QueryElementAt
+ */
+class NS_MSG_BASE MsgQueryElementAt : public nsCOMPtr_helper
+  {
+    public:
+      MsgQueryElementAt( nsISupportsArray* anArray, PRUint32 aIndex, nsresult* aErrorPtr )
+          : mArray(anArray),
+            mIndex(aIndex),
+            mErrorPtr(aErrorPtr)
+        {
+          // nothing else to do here
+        }
+      virtual nsresult NS_FASTCALL operator()( const nsIID& aIID, void** ) const;
+    private:
+      nsISupportsArray*  mArray;
+      PRUint32           mIndex;
+      nsresult*          mErrorPtr;
+  };
+
+/**
+ * Overload function for nsISupportsArray. The do_QueryElementAt which belongs to
+ * internal API only accepts nsICollection* aCollection.
+ */
+inline
+const MsgQueryElementAt
+do_QueryElementAt( nsISupportsArray* array, PRUint32 aIndex, nsresult* aErrorPtr = 0 )
+{
+    return MsgQueryElementAt(array, aIndex, aErrorPtr);
+}
+
+/// Equivalent of NS_GetProxyForObject(aTarget, aIID, aObj, aProxyType, aProxyObject)
+inline
+nsresult
+MsgGetProxyForObject(nsIEventTarget *target,
+                     REFNSIID aIID,
+                     nsISupports* aObj,
+                     PRInt32 proxyType,
+                     void** aProxyObject)
+{
+    // get the proxy object manager
+    nsresult rv;
+    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService("@mozilla.org/xpcomproxy;1", &rv);
+    if (NS_FAILED(rv))
+        return rv;
+    // and try to get the proxy object
+    return proxyObjMgr->GetProxyForObject(target, aIID, aObj,
+                                          proxyType, aProxyObject);
+}
 
 #endif
 

@@ -13,6 +13,7 @@
 #include "nsIClassInfoImpl.h"
 
 #include "nsStopwatch.h"
+#include "nsMemory.h"
 
 /*
  * This basis for the logic in this file comes from (will used to come from):

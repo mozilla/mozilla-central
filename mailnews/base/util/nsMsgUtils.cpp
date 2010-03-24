@@ -90,6 +90,7 @@
 #include "nsIPrompt.h"
 #include "nsISupportsArray.h"
 #include "nsIMsgSearchTerm.h"
+#include "nsIAtomService.h"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
@@ -318,9 +319,12 @@ inline PRUint32 StringHash(const nsAutoString& str)
 
 /* Utility functions used in a few places in mailnews */
 PRInt32
-FindCharInSet(const nsCString &aString,
-              const char* aChars, PRUint32 aOffset) 
+MsgFindCharInSet(const nsCString &aString,
+                 const char* aChars, PRUint32 aOffset)
 {
+#ifdef MOZILLA_INTENAL_API
+  return FindCharInSet(aChars, aOffset)
+#else
   PRInt32 len = strlen(aChars);
   PRInt32 index = -1;
   for (int i = aOffset; i < len; i++) {
@@ -329,12 +333,16 @@ FindCharInSet(const nsCString &aString,
       return index;
   }
   return -1;
+#endif
 }
 
 PRInt32
-FindCharInSet(const nsString &aString,
-              const char* aChars, PRUint32 aOffset)
+MsgFindCharInSet(const nsString &aString,
+                 const char* aChars, PRUint32 aOffset)
 {
+#ifdef MOZILLA_INTENAL_API
+  return FindCharInSet(aChars, aOffset)
+#else
   PRInt32 len = strlen(aChars);
   PRInt32 index = -1;
   for (int i = aOffset; i < len; i++) {
@@ -343,32 +351,7 @@ FindCharInSet(const nsString &aString,
       return index;
   }
   return -1;
-}
-
-PRInt32
-RFindCharInSet(const nsCString &aString, const char* aChars) 
-{
-  PRInt32 len = strlen(aChars);
-  PRInt32 index = -1;
-  for (int i = 0; i < len; i++) {
-    index = aString.RFindChar(aChars[i]);
-    if (index != -1)
-      return index;
-  }
-  return -1;
-}
-
-PRInt32
-RFindCharInSet(const nsString &aString, const char* aChars) 
-{
-  PRInt32 len = strlen(aChars);
-  PRInt32 index = -1;
-  for (int i = 0; i < len; i++) {
-    index = aString.RFindChar(aChars[i]);
-    if (index != -1)
-      return index;
-  }
-  return -1;
+#endif
 }
 
 // XXX : this may have other clients, in which case we'd better move it to
@@ -399,10 +382,10 @@ nsresult NS_MsgHashIfNecessary(nsCAutoString &name)
   // Given a filename, make it safe for filesystem
   // certain filenames require hashing because they
   // are too long or contain illegal characters
-  PRInt32 illegalCharacterIndex = FindCharInSet(str, 
-                                                FILE_PATH_SEPARATOR 
-                                                FILE_ILLEGAL_CHARACTERS 
-                                                ILLEGAL_FOLDER_CHARS);
+  PRInt32 illegalCharacterIndex = MsgFindCharInSet(str,
+                                                   FILE_PATH_SEPARATOR
+                                                   FILE_ILLEGAL_CHARACTERS
+                                                   ILLEGAL_FOLDER_CHARS, 0);
 
   // Need to check the first ('.') and last ('.', '~' and ' ') char
   if (illegalCharacterIndex == -1)
@@ -452,10 +435,10 @@ nsresult NS_MsgHashIfNecessary(nsCAutoString &name)
 // because MAX_LEN is defined rather conservatively in the first place.
 nsresult NS_MsgHashIfNecessary(nsAutoString &name)
 {
-  PRInt32 illegalCharacterIndex = FindCharInSet(name,
-                                                FILE_PATH_SEPARATOR 
-                                                FILE_ILLEGAL_CHARACTERS 
-                                                ILLEGAL_FOLDER_CHARS);
+  PRInt32 illegalCharacterIndex = MsgFindCharInSet(name,
+                                                   FILE_PATH_SEPARATOR
+                                                   FILE_ILLEGAL_CHARACTERS
+                                                   ILLEGAL_FOLDER_CHARS, 0);
 
   // Need to check the first ('.') and last ('.', '~' and ' ') char
   if (illegalCharacterIndex == -1)
@@ -555,7 +538,13 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
     if (startSlashPos >= endSlashPos)
       break;
   }
+#ifdef MOZILLA_INTERNAL_API
   return NS_CopyUnicodeToNative(path, aPathCString);
+#else
+  NS_ERROR("NS_CopyUnicodeToNative not implemented in frozen linkage.");
+  LossyCopyUTF16toASCII(path, aPathCString);
+  return NS_OK;
+#endif
 }
 
 PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubject)
@@ -1474,6 +1463,7 @@ nsresult MsgGetLocalFileFromURI(const nsACString &aUTF8Path, nsILocalFile **aFil
   return CallQueryInterface(argFile, aFile);
 }
 
+#ifndef MOZILLA_INTERNAL_API
 /*
  * Function copied from nsReadableUtils.
  * Migrating to frozen linkage is the only change done
@@ -1549,6 +1539,8 @@ NS_MSG_BASE PRBool MsgIsUTF8(const nsACString& aString)
   }
   return !state; // state != 0 at the end indicates an invalid UTF-8 seq. 
 }
+
+#endif
 
 NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src)
 {
@@ -1816,6 +1808,119 @@ NS_MSG_BASE void MsgCompressWhitespace(nsCString& aString)
   // Set the new length.
   aString.SetLength(end - start);
 }
+
+NS_MSG_BASE void MsgReplaceChar(nsString& str, const char *set, const PRUnichar replacement)
+{
+  PRUnichar *c_str = str.BeginWriting();
+  while (*set) {
+    PRInt32 pos = 0;
+    while ((pos = str.FindChar(*set, pos)) != -1) {
+      c_str[pos++] = replacement;
+    }
+    set++;
+  }
+}
+
+NS_MSG_BASE void MsgReplaceChar(nsCString& str, const char needle, const char replacement)
+{
+  char *c_str = str.BeginWriting();
+  while ((c_str = strchr(c_str, needle))) {
+    *c_str = replacement;
+    c_str++;
+  }
+}
+
+NS_MSG_BASE nsIAtom* MsgNewAtom(const char* aString)
+{
+  nsCOMPtr<nsIAtomService> atomService(do_GetService("@mozilla.org/atom-service;1"));
+  nsIAtom* atom = nsnull;
+
+  if (atomService)
+    atomService->GetAtomUTF8(aString, &atom);
+  return atom;
+}
+
+NS_MSG_BASE void MsgReplaceSubstring(nsAString &str, const nsAString &what, const nsAString &replacement)
+{
+  const PRUnichar* replacement_str;
+  PRUint32 replacementLength = replacement.BeginReading(&replacement_str);
+  PRUint32 whatLength = what.Length();
+  PRInt32 i = 0;
+
+  while ((i = str.Find(what, i)) != kNotFound)
+  {
+    str.Replace(i, whatLength, replacement_str, replacementLength);
+    i += replacementLength;
+  }
+}
+
+NS_MSG_BASE void MsgReplaceSubstring(nsACString &str, const char *what, const char *replacement)
+{
+  PRUint32 replacementLength = strlen(replacement);
+  PRUint32 whatLength = strlen(what);
+  PRInt32 i = 0;
+
+  while ((i = str.Find(what, i)) != kNotFound)
+  {
+    str.Replace(i, whatLength, replacement, replacementLength);
+    i += replacementLength;
+  }
+}
+
+/* This class is based on nsInterfaceRequestorAgg from nsInterfaceRequestorAgg.h */
+class MsgInterfaceRequestorAgg : public nsIInterfaceRequestor
+{
+public:
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIINTERFACEREQUESTOR
+
+  MsgInterfaceRequestorAgg(nsIInterfaceRequestor *aFirst,
+                           nsIInterfaceRequestor *aSecond)
+    : mFirst(aFirst)
+    , mSecond(aSecond) {}
+
+  nsCOMPtr<nsIInterfaceRequestor> mFirst, mSecond;
+};
+
+// XXX This needs to support threadsafe refcounting until we fix bug 243591.
+NS_IMPL_THREADSAFE_ISUPPORTS1(MsgInterfaceRequestorAgg, nsIInterfaceRequestor)
+
+NS_IMETHODIMP
+MsgInterfaceRequestorAgg::GetInterface(const nsIID &aIID, void **aResult)
+{
+  nsresult rv = NS_ERROR_NO_INTERFACE;
+  if (mFirst)
+    rv = mFirst->GetInterface(aIID, aResult);
+  if (mSecond && NS_FAILED(rv))
+    rv = mSecond->GetInterface(aIID, aResult);
+  return rv;
+}
+
+/* This function is based on NS_NewInterfaceRequestorAggregation from
+ * nsInterfaceRequestorAgg.h */
+NS_MSG_BASE nsresult
+MsgNewInterfaceRequestorAggregation(nsIInterfaceRequestor *aFirst,
+                                    nsIInterfaceRequestor *aSecond,
+                                    nsIInterfaceRequestor **aResult)
+{
+  *aResult = new MsgInterfaceRequestorAgg(aFirst, aSecond);
+  if (!*aResult)
+    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ADDREF(*aResult);
+  return NS_OK;
+}
+
+nsresult NS_FASTCALL MsgQueryElementAt::operator()( const nsIID& aIID, void** aResult ) const
+  {
+    nsresult status = mArray
+                        ? mArray->QueryElementAt(mIndex, aIID, aResult)
+                        : NS_ERROR_NULL_POINTER;
+
+    if ( mErrorPtr )
+      *mErrorPtr = status;
+
+    return status;
+  }
 
 #endif
 

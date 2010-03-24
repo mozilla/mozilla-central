@@ -993,11 +993,7 @@ nsMsgIncomingServer::Equals(nsIMsgIncomingServer *server, PRBool *_retval)
   NS_ENSURE_SUCCESS(rv, rv);
 
   // compare the server keys
-#ifdef MOZILLA_INTERNAL_API
   *_retval = key1.Equals(key2, nsCaseInsensitiveCStringComparator());
-#else
-  *_retval = key1.Equals(key2, CaseInsensitiveCompare);
-#endif
 
   return rv;
 }
@@ -1173,19 +1169,12 @@ nsMsgIncomingServer::InternalSetHostName(const nsACString& aHostname, const char
   PRInt32 colonPos = hostname.FindChar(':');
   if (colonPos != -1)
   {
-    nsCAutoString portString(StringTail(hostname, hostname.Length() - colonPos));
+    nsCAutoString portString(Substring(hostname, colonPos));
     hostname.SetLength(colonPos);
-#ifdef MOZILLA_INTERNAL_API
-    PRInt32 err;
-    PRInt32 port = portString.ToInteger(&err, 10);
-    if (!err)
-      SetPort(port);
-#else
     nsresult err;
     PRInt32 port = portString.ToInteger(&err, 10);
     if (NS_SUCCEEDED(err))
       SetPort(port);
-#endif
   }
   return SetCharValue(prefName, hostname);
 }
@@ -1249,11 +1238,7 @@ nsMsgIncomingServer::SetRealHostName(const nsACString& aHostname)
   rv = InternalSetHostName(aHostname, "realhostname");
 
   // A few things to take care of if we're changing the hostname.
-#ifdef MOZILLA_INTERNAL_API
   if (!aHostname.Equals(oldName, nsCaseInsensitiveCStringComparator()))
-#else
-  if (!aHostname.Equals(oldName, CaseInsensitiveCompare))
-#endif
     rv = OnUserOrHostNameChanged(oldName, aHostname);
   return rv;
 }
@@ -1730,9 +1715,11 @@ NS_IMETHODIMP nsMsgIncomingServer::SetSocketType(PRInt32 aSocketType)
                         socketType == nsMsgSocketType::SSL);
   PRBool isSecureNew = (aSocketType == nsMsgSocketType::alwaysSTARTTLS ||
                         aSocketType == nsMsgSocketType::SSL);
-  if ((isSecureOld != isSecureNew) && m_rootFolder)
-    m_rootFolder->NotifyBoolPropertyChanged(NS_NewAtom("isSecure"),
+  if ((isSecureOld != isSecureNew) && m_rootFolder) {
+    nsCOMPtr <nsIAtom> isSecureAtom = MsgGetAtom("isSecure");
+    m_rootFolder->NotifyBoolPropertyChanged(isSecureAtom,
                                             isSecureOld, isSecureNew);
+  }
   return NS_OK;
 }
 
@@ -2189,5 +2176,5 @@ nsMsgIncomingServer::SetForcePropertyEmpty(const char *aPropertyName, PRBool aVa
  nsCAutoString nameEmpty(aPropertyName);
  nameEmpty.Append(NS_LITERAL_CSTRING(".empty"));
  return SetCharValue(nameEmpty.get(),
-   aValue ? NS_LITERAL_CSTRING("true") : EmptyCString());
+   aValue ? NS_LITERAL_CSTRING("true") : NS_LITERAL_CSTRING(""));
 }

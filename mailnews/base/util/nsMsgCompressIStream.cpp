@@ -1,7 +1,7 @@
 #include "nsMsgCompressIStream.h"
-#include "nsStreamUtils.h"
 #include "prio.h"
 #include "prmem.h"
+#include "nsAlgorithm.h"
 
 #define BUFFER_SIZE 16384
 

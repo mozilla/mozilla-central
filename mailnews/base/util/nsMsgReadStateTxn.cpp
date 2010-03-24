@@ -40,6 +40,7 @@
 
 #include "nsIMutableArray.h"
 #include "nsIMsgHdr.h"
+#include "nsComponentManagerUtils.h"
 
 
 nsMsgReadStateTxn::nsMsgReadStateTxn()

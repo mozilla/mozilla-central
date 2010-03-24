@@ -65,6 +65,7 @@
 #include "nsMsgUtils.h"
 #include "nsILineInputStream.h"
 #include "nsIMsgIncomingServer.h"
+#include "nsAlgorithm.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgProtocol)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgProtocol)
@@ -144,8 +145,7 @@ nsMsgProtocol::OpenNetworkSocketWithInfo(const char * aHostName,
   strans->SetSecurityCallbacks(callbacks);
 
   // creates cyclic reference!
-  nsCOMPtr<nsIThread> currentThread;
-  NS_GetCurrentThread(getter_AddRefs(currentThread));
+  nsCOMPtr<nsIThread> currentThread(do_GetCurrentThread());
   strans->SetEventSink(this, currentThread);
 
   m_socketIsOpen = PR_FALSE;
@@ -1405,8 +1405,7 @@ nsresult nsMsgAsyncWriteProtocol::SetupTransportState()
     pipe->GetOutputStream(&outputStream);
     m_outputStream = dont_AddRef(static_cast<nsIOutputStream *>(outputStream));
 
-    rv = NS_GetCurrentThread(getter_AddRefs(mProviderThread));
-    if (NS_FAILED(rv)) return rv;
+    mProviderThread = do_GetCurrentThread();
 
     nsMsgProtocolStreamProvider *provider;
     NS_NEWXPCOM(provider, nsMsgProtocolStreamProvider);
