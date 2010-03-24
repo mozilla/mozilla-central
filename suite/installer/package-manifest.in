@@ -47,6 +47,9 @@
 
 [xpcom]
 @BINPATH@/dependentlibs.list
+#ifdef MOZ_IPC
+@BINPATH@/mozilla-runtime@BIN_SUFFIX@
+#endif
 @BINPATH@/@DLL_PREFIX@mozjs@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plc4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plds4@DLL_SUFFIX@

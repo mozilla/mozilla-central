@@ -142,7 +142,12 @@ msvcr80.dll
 mozcpp19.dll
 mozcrt19.dll
 #endif
+#endif
+#ifndef MOZ_IPC
+mozilla-runtime@BIN_SUFFIX@
+#endif
 @DLL_PREFIX@sqlite3@DLL_SUFFIX@
+#ifdef XP_WIN
 xpicleanup.exe
 regxpcom.exe
 #else
