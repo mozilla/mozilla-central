@@ -154,6 +154,11 @@ cal.InterfaceRequestor_getInterface = function calInterfaceRequestor_getInterfac
         return Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                          .getService(Components.interfaces.nsIWindowWatcher)
                          .getNewPrompter(null);
+    } else if (aIID.equals(Components.interfaces.nsIBadCertListener2)) {
+        if (!this.badCertHandler) {
+            this.badCertHandler = new cal.BadCertHandler(this);
+        }
+        return this.badCertHandler;
     }
 
     try {
@@ -164,6 +169,58 @@ cal.InterfaceRequestor_getInterface = function calInterfaceRequestor_getInterfac
         Components.returnCode = e;
     }
     return null;
+};
+
+/**
+ * Bad Certificate Handler for Network Requests. Shows the Network Exception
+ * Dialog if a certificate Problem occurs.
+ */
+cal.BadCertHandler = function calBadCertHandler(thisProvider) {
+    this.thisProvider = thisProvider;
+};
+cal.BadCertHandler.prototype = {
+    QueryInterface: function cBCL_QueryInterface(aIID) {
+        return cal.doQueryInterface(this, cal.BadCertListener.prototype, aIID,
+                                    [Components.interfaces.nsISupports,
+                                     Components.interfaces.nsIBadCertListener2]);
+    },
+
+    notifyCertProblem: function cBCL_notifyCertProblem(socketInfo, status, targetSite) {
+        if (!status) {
+            return true;
+        }
+
+        // Unfortunately we can't pass js objects using the window watcher, so
+        // we'll just take the first available calendar window. We also need to
+        // do this on a timer so that the modal window doesn't block the
+        // network request.
+        let calWindow = cal.getCalendarWindow();
+
+        let timerCallback = {
+            thisProvider: this.thisProvider,
+            notify: function(timer) {
+                let params = { exceptionAdded: false,
+                               prefetchCert: true,
+                               location: targetSite };
+                calWindow.openDialog("chrome://pippki/content/exceptionDialog.xul",
+                                     "",
+                                     "chrome,centerscreen,modal",
+                                     params);
+                if (this.thisProvider.canRefresh &&
+                    params.exceptionAdded) {
+                    // Refresh the provider if the
+                    // exception certificate was added
+                    this.thisProvider.refresh();
+                }
+            }
+        };
+        let timer = Components.classes["@mozilla.org/timer;1"]
+                    .createInstance(Components.interfaces.nsITimer);
+        timer.initWithCallback(timerCallback,
+                               0,
+                               Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+        return true;
+    }
 };
 
 /**
