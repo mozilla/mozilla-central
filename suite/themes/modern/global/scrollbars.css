@@ -47,19 +47,17 @@
 scrollbar {
   -moz-binding: url("chrome://global/content/bindings/scrollbar.xml#scrollbar");
   cursor: default;
+  min-width: 15px;
+  min-height: 15px;
 }
 
 /* ::::: slider ::::: */
 
 slider {
-  width: 0px;
-  height: 15px;
   background: url("chrome://global/skin/scrollbar/slider-hrz.gif") repeat-x;
 }
 
 slider[orient="vertical"] {
-  width: 15px;
-  height: 0px;
   background: url("chrome://global/skin/scrollbar/slider-vrt.gif") repeat-y;
 }
 

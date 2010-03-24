@@ -161,12 +161,9 @@ statusbarpanel {
   margin: 0px !important;
 }
 
-resizer[dir="bottomright"][chromedir="ltr"], resizer[dir="bottomend"] {
-  -moz-appearance: none; /* XXX override bug 240536 */
-  background-image: url("chrome://global/skin/icons/resizer.png");
-  cursor: se-resize;
-  width: 15px;
-  height: 15px;
+/* Override resizer.css for "normal" resizers */
+resizer {
+  background-color: transparent;
 }
 
 /* ::::: miscellaneous ::::: */

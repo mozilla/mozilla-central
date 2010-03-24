@@ -47,6 +47,8 @@
 scrollbar {
   -moz-binding: url("chrome://global/content/bindings/scrollbar.xml#scrollbar");
   cursor: default;
+  min-width: 11px;
+  min-height: 11px;
 }
 
 /* ::::: square at the corner of two scrollbars ::::: */
@@ -60,14 +62,10 @@ scrollcorner {
 /* ::::: slider ::::: */
 
 slider {
-  width: 0px;
-  height: 11px;
   background: url("chrome://global/skin/scrollbar/mini-slider-hrz.gif") repeat-x;
 }
 
 slider[orient="vertical"] {
-  width: 11px;
-  height: 0px;
   background: url("chrome://global/skin/scrollbar/mini-slider-vrt.gif") repeat-y;
 }
 

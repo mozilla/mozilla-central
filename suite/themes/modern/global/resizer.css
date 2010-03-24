@@ -1,4 +1,10 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+@namespace html url("http://www.w3.org/1999/xhtml"); /* namespace for HTML elements */
+
+/* This affects all resizers, even native anonymous ones. */
+resizer {
+  background-color: #B1BBC5;
+}
 
 resizer[dir="top"],
 resizer[dir="bottom"] {
@@ -15,8 +21,9 @@ resizer[dir="topleft"] {
 }
 
 resizer[dir="bottomright"],
-resizer[dir="bottomend"][chromedir="ltr"] {
+resizer[dir="bottomend"]:-moz-locale-dir(ltr) {
   background-image: url("chrome://global/skin/icons/resizer.png");
+  background-position: bottom right;
   cursor: se-resize;
   width: 15px;
   height: 15px;
@@ -27,6 +34,6 @@ resizer[dir="topright"] {
 }
 
 resizer[dir="bottomleft"],
-resizer[dir="bottomend"][chromedir="rtl"] {
+resizer[dir="bottomend"]:-moz-locale-dir(rtl) {
   cursor: sw-resize;
 }
