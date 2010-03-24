@@ -239,11 +239,10 @@ private:
   Mutex &mMutex;
 
   /**
-   * The wrapped SQLite recursive connection mutex used by sqlite3_step.  We use
-   * it whenever we call sqlite3_step and care about having reliable error
-   * messages.  By taking it prior to the call and holding it until the point
-   * where we no longer care about the error message, the user gets reliable
-   * error messages.
+   * The wrapped SQLite recursive connection mutex.  We use it whenever we call
+   * sqlite3_step and care about having reliable error messages.  By taking it
+   * prior to the call and holding it until the point where we no longer care
+   * about the error message, the user gets reliable error messages.
    */
   SQLiteMutex &mDBMutex;
 };

@@ -84,8 +84,7 @@ public:
   {
     if (!mStatement) {
       int rc = mStatementOwner->getAsyncStatement(&mStatement);
-      if (rc != SQLITE_OK)
-        return rc;
+      NS_ENSURE_TRUE(rc == SQLITE_OK, rc);
     }
     *_stmt = mStatement;
     return SQLITE_OK;

@@ -203,13 +203,12 @@ AsyncBindingParams::iterateOverNamedParameters(const nsACString &aName,
   nsCAutoString name(":");
   name.Append(aName);
   int oneIdx = ::sqlite3_bind_parameter_index(closureThunk->statement,
-                                              PromiseFlatCString(name).get());
+                                              name.get());
 
   if (oneIdx == 0) {
     nsCAutoString errMsg(aName);
     errMsg.Append(NS_LITERAL_CSTRING(" is not a valid named parameter."));
-    closureThunk->err = new Error(SQLITE_RANGE,
-                                  PromiseFlatCString(errMsg).get());
+    closureThunk->err = new Error(SQLITE_RANGE, errMsg.get());
     return PL_DHASH_STOP;
   }
 

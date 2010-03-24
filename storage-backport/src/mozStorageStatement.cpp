@@ -386,7 +386,7 @@ Statement::Finalize()
 }
 
 nsresult
-Statement::internalFinalize(bool destructing)
+Statement::internalFinalize(bool aDestructing)
 {
   if (!mDBStatement)
     return NS_OK;
@@ -402,7 +402,7 @@ Statement::internalFinalize(bool destructing)
   if (mAsyncStatement) {
     // If the destructor called us, there are no pending async statements (they
     // hold a reference to us) and we can/must just kill the statement directly.
-    if (destructing)
+    if (aDestructing)
       internalAsyncFinalize();
     else
       asyncFinalize();
@@ -560,6 +560,9 @@ Statement::BindParameters(mozIStorageBindingParamsArray *aParameters)
 
   BindingParamsArray *array = static_cast<BindingParamsArray *>(aParameters);
   if (array->getOwner() != this)
+    return NS_ERROR_UNEXPECTED;
+
+  if (array->length() == 0)
     return NS_ERROR_UNEXPECTED;
 
   mParamsArray = array;
@@ -891,7 +894,8 @@ Statement::GetIsNull(PRUint32 aIndex,
 
 BOILERPLATE_BIND_PROXIES(
   Statement, 
-  if (!mDBStatement) return NS_ERROR_NOT_INITIALIZED;)
+  if (!mDBStatement) return NS_ERROR_NOT_INITIALIZED;
+)
 
 } // namespace storage
 } // namespace mozilla

@@ -237,11 +237,16 @@ NS_DEFINE_STATIC_IID_ACCESSOR(StorageBaseStatementInternal,
  * we require that the argument declarations and corresponding invocation
  * usages are passed in.
  *
- * @param _class The class name.
- * @param _guard The guard clause to inject.
- * @param _declName The argument list (with parens) for the ByName variants.
- * @param _declIndex The argument list (with parens) for the index variants.
- * @param _invArgs The invocation argumment list.
+ * @param _class
+ *        The class name.
+ * @param _guard
+ *        The guard clause to inject.
+ * @param _declName
+ *        The argument list (with parens) for the ByName variants.
+ * @param _declIndex
+ *        The argument list (with parens) for the index variants.
+ * @param _invArgs
+ *        The invocation argumment list.
  */
 #define BIND_GEN_IMPL(_class, _guard, _name, _declName, _declIndex, _invArgs) \
   NS_IMETHODIMP _class::BIND_NAME_CONCAT(_name, ByName) _declName             \

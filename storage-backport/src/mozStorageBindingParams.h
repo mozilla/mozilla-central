@@ -72,9 +72,10 @@ public:
   /**
    * Unlocks the parameters and allows modification to it again.
    *
-   * @param aOwningStatement The statement that owns us.  We cleared this when
-   *        we were locked, and our invariant requires us to have this, so you
-   *        need to tell us again.
+   * @param aOwningStatement
+   *        The statement that owns us.  We cleared this when we were locked,
+   *        and our invariant requires us to have this, so you need to tell us
+   *        again.
    */
   void unlock(Statement *aOwningStatement);
 

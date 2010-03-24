@@ -260,12 +260,10 @@ class AsyncCloseConnection : public nsRunnable
 public:
   AsyncCloseConnection(Connection *aConnection,
                        nsIEventTarget *aCallingThread,
-                       nsIRunnable *aCallbackEvent,
-                       nsIThread *aAsyncThread)
+                       nsIRunnable *aCallbackEvent)
   : mConnection(aConnection)
   , mCallingThread(aCallingThread)
   , mCallbackEvent(aCallbackEvent)
-  , mAsyncThread(aAsyncThread)
   {
   }
 
@@ -281,11 +279,9 @@ public:
       return NS_OK;
     }
 
-    if (mConnection)
-      (void)mConnection->internalClose();
+    (void)mConnection->internalClose();
     if (mCallbackEvent)
       (void)mCallingThread->Dispatch(mCallbackEvent, NS_DISPATCH_NORMAL);
-    mAsyncThread->Shutdown();
 
     return NS_OK;
   }
@@ -293,7 +289,6 @@ private:
   nsCOMPtr<Connection> mConnection;
   nsCOMPtr<nsIEventTarget> mCallingThread;
   nsCOMPtr<nsIRunnable> mCallbackEvent;
-  nsCOMPtr<nsIThread> mAsyncThread;
 };
 
 } // anonymous namespace
@@ -317,22 +312,6 @@ Connection::Connection(Service *aService)
 Connection::~Connection()
 {
   (void)Close();
-
-  // If we know about an async execution thread then we need to take steps to
-  // trigger its shutdown.  (AsyncClose is the only other code to trigger
-  // something like this and it nulls out our reference so there is no risk of
-  // double triggering.)
-  if (mAsyncExecutionThread) {
-    // Note: Obviously, we can't tell it about us since we are dying.  We also
-    // skimp on using a mutex since there's no point.
-    nsCOMPtr<nsIRunnable> closeEvent =
-      new AsyncCloseConnection(nsnull, NS_GetCurrentThread(), nsnull,
-                               mAsyncExecutionThread);
-    if (!closeEvent)
-      return;
-
-    (void)mAsyncExecutionThread->Dispatch(closeEvent, NS_DISPATCH_NORMAL);
-  }
 }
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(
@@ -645,15 +624,8 @@ Connection::AsyncClose(mozIStorageCompletionCallback *aCallback)
   }
 
   // Create and dispatch our close event to the background thread.
-  nsCOMPtr<nsIRunnable> closeEvent;
-  {
-    MutexAutoLock lockedScope(sharedAsyncExecutionMutex);
-    closeEvent = new AsyncCloseConnection(this, NS_GetCurrentThread(),
-                                          completeEvent,
-                                          mAsyncExecutionThread);
-    // forget about the async thread (this is why we're holding the mutex)
-    mAsyncExecutionThread = nsnull;
-  }
+  nsCOMPtr<nsIRunnable> closeEvent =
+    new AsyncCloseConnection(this, NS_GetCurrentThread(), completeEvent);
   NS_ENSURE_TRUE(closeEvent, NS_ERROR_OUT_OF_MEMORY);
 
   rv = asyncThread->Dispatch(closeEvent, NS_DISPATCH_NORMAL);

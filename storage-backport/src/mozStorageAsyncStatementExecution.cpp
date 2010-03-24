@@ -244,9 +244,10 @@ AsyncExecuteStatements::bindExecuteAndProcessStatement(StatementData &aData,
 {
   mMutex.AssertNotCurrentThreadOwns();
 
-  sqlite3_stmt *aStatement;
+  sqlite3_stmt *aStatement = nsnull;
   // This cannot fail; we are only called if it's available.
   (void)aData.getSqliteStatement(&aStatement);
+  NS_ASSERTION(aStatement, "You broke the code; do not call here like that!");
   BindingParamsArray *paramsArray(aData);
 
   // Iterate through all of our parameters, bind them, and execute.

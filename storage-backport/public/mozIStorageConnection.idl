@@ -257,8 +257,9 @@ interface mozIStorageConnection : nsISupports {
    *        The schema of the table; what would normally go between the parens
    *        in a CREATE TABLE statement: e.g., "foo  INTEGER, bar STRING".
    *
-   * @throws NS_ERROR_FAILURE if the table already exists or could not be
-   *         created for any other reason.
+   * @throws NS_ERROR_FAILURE
+   *         If the table already exists or could not be created for any other
+   *         reason.
    */
   void createTable(in string aTableName,
                    in string aTableSchema);

@@ -608,6 +608,7 @@ function test_bind_multiple_rows_by_index()
     bp.bindByIndex(3, null);
     bp.bindBlobByIndex(4, BLOB, BLOB.length);
     array.addParams(bp);
+    do_check_eq(array.length, i + 1);
   }
   stmt.bindParameters(array);
 
@@ -634,6 +635,7 @@ function test_bind_multiple_rows_by_name()
     bp.bindByName("null", null);
     bp.bindBlobByName("blob", BLOB, BLOB.length);
     array.addParams(bp);
+    do_check_eq(array.length, i + 1);
   }
   stmt.bindParameters(array);
 
@@ -890,6 +892,24 @@ function test_not_right_owning_statement()
   run_next_test();
 }
 
+function test_bind_empty_array()
+{
+  let stmt = makeTestStatement(
+    "INSERT INTO test (id) " +
+    "VALUES (:int)"
+  );
+
+  let paramsArray = stmt.newBindingParamsArray();
+
+  // We should not be able to bind this array to the statement because it is
+  // empty.
+  expectError(Cr.NS_ERROR_UNEXPECTED,
+              function() stmt.bindParameters(paramsArray));
+
+  stmt.finalize();
+  run_next_test();
+}
+
 function test_multiple_results()
 {
   let expectedResults = getTableRowCount("test");
@@ -965,6 +985,7 @@ var tests =
   test_bind_bogus_type_by_name,
   test_bind_params_already_locked,
   test_bind_params_array_already_locked,
+  test_bind_empty_array,
   test_no_binding_params_from_locked_array,
   test_not_right_owning_array,
   test_not_right_owning_statement,

@@ -133,9 +133,10 @@ private:
    * called from the destructor so it can know not to dispatch events that
    * require a reference to us.
    *
-   * @param destructing Is the destructor calling?
+   * @param aDestructing
+   *        Is the destructor calling?
    */
-  nsresult internalFinalize(bool destructing);
+  nsresult internalFinalize(bool aDestructing);
 
     friend class StatementJSHelper;
 };

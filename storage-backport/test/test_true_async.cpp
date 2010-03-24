@@ -253,7 +253,8 @@ private:
  * Execute an async statement, blocking the main thread until we get the
  * callback completion notification.
  */
-void blocking_async_execute(mozIStorageBaseStatement *stmt)
+void
+blocking_async_execute(mozIStorageBaseStatement *stmt)
 {
   nsRefPtr<AsyncStatementSpinner> spinner(new AsyncStatementSpinner());
 
@@ -266,7 +267,8 @@ void blocking_async_execute(mozIStorageBaseStatement *stmt)
  * Invoke AsyncClose on the given connection, blocking the main thread until we
  * get the completion notification.
  */
-void blocking_async_close(mozIStorageConnection *db)
+void
+blocking_async_close(mozIStorageConnection *db)
 {
   nsRefPtr<AsyncStatementSpinner> spinner(new AsyncStatementSpinner());
 
@@ -279,7 +281,8 @@ void blocking_async_close(mozIStorageConnection *db)
  * creating a statement and async dispatching we can tell from the mutex who
  * is the async thread, PRThread style.  Then we map that to an nsIThread.
  */
-already_AddRefed<nsIThread> get_conn_async_thread(mozIStorageConnection *db)
+already_AddRefed<nsIThread>
+get_conn_async_thread(mozIStorageConnection *db)
 {
   // Make sure we are tracking the current thread as the watched thread
   watch_for_mutex_use_on_this_thread();
@@ -318,7 +321,8 @@ test_TrueAsyncStatement()
   nsCOMPtr<mozIStorageAsyncStatement> stmt;
   db->CreateAsyncStatement(
     NS_LITERAL_CSTRING("CREATE TABLE test (id INTEGER PRIMARY KEY)"),
-    getter_AddRefs(stmt));
+    getter_AddRefs(stmt)
+  );
   blocking_async_execute(stmt);
   stmt->Finalize();
   do_check_false(mutex_used_on_watched_thread);
@@ -326,7 +330,8 @@ test_TrueAsyncStatement()
   // - statement with something to bind ordinally
   db->CreateAsyncStatement(
     NS_LITERAL_CSTRING("INSERT INTO test (id) VALUES (?)"),
-    getter_AddRefs(stmt));
+    getter_AddRefs(stmt)
+  );
   stmt->BindInt32Parameter(0, 1);
   blocking_async_execute(stmt);
   stmt->Finalize();
@@ -335,7 +340,8 @@ test_TrueAsyncStatement()
   // - statement with something to bind by name
   db->CreateAsyncStatement(
     NS_LITERAL_CSTRING("INSERT INTO test (id) VALUES (:id)"),
-    getter_AddRefs(stmt));
+    getter_AddRefs(stmt)
+  );
   nsCOMPtr<mozIStorageBindingParamsArray> paramsArray;
   stmt->NewBindingParamsArray(getter_AddRefs(paramsArray));
   nsCOMPtr<mozIStorageBindingParams> params;
@@ -379,7 +385,8 @@ test_AsyncCancellation()
   nsCOMPtr<mozIStorageAsyncStatement> asyncStmt;
   db->CreateAsyncStatement(
     NS_LITERAL_CSTRING("CREATE TABLE asyncTable (id INTEGER PRIMARY KEY)"),
-    getter_AddRefs(asyncStmt));
+    getter_AddRefs(asyncStmt)
+  );
 
   nsRefPtr<AsyncStatementSpinner> asyncSpin(new AsyncStatementSpinner());
   nsCOMPtr<mozIStoragePendingStatement> asyncPend;
@@ -391,7 +398,8 @@ test_AsyncCancellation()
   nsCOMPtr<mozIStorageStatement> syncStmt;
   db->CreateStatement(
     NS_LITERAL_CSTRING("CREATE TABLE syncTable (id INTEGER PRIMARY KEY)"),
-    getter_AddRefs(syncStmt));
+    getter_AddRefs(syncStmt)
+  );
 
   nsRefPtr<AsyncStatementSpinner> syncSpin(new AsyncStatementSpinner());
   nsCOMPtr<mozIStoragePendingStatement> syncPend;

@@ -31,6 +31,10 @@ will be enforcing them, so please obey them!
 * Javadoc @return (note: non-plural) continuation lines should be lined up with
   the initial comment.  See the example below.
 
+* Javadoc @throws, like @param, should have the exception type on the same line
+  as the @throws and the description on a new line indented to line up with
+  the type of the exception.
+
 * For function implementations, each argument should be on its own line.
 
 * All variables should use camelCase.
@@ -68,8 +72,8 @@ BIG EXAMPLE:
 namespace mozilla {
 namespace storage {
 
-class Foo : Bar
-          , Baz
+class Foo : public Bar
+          , public Baz
 {
 public:
   /**
@@ -82,6 +86,10 @@ public:
    *        Description description description.
    * @return Description description description description description etc etc
    *         next line of description.
+   *
+   * @throws NS_ERROR_FAILURE
+   *         Okay, so this is for JavaScript code, but you probably get the
+   *         idea.
    */
   int chew(int aArg1, int aArg2);
 };
@@ -112,6 +120,11 @@ Foo::Foo(
 : mField1(0)
 , mField2(0)
 {
+  someMethodWithLotsOfParamsOrJustLongParameters(
+    mLongFieldNameThatIsJustified,
+    mMaybeThisOneIsLessJustifiedButBoyIsItLong,
+    15
+  );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
