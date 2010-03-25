@@ -215,6 +215,9 @@ isp/zh-TW/gmail.rdf
 license.html
 LICENSE.txt
 modules/JSON.jsm
+#ifndef MOZ_IPC
+mozilla-runtime@BIN_SUFFIX@
+#endif
 #ifdef XP_MACOSX
 ../Plug-Ins/PrintPDE.plugin/Contents/Info.plist
 ../Plug-Ins/PrintPDE.plugin/Contents/MacOS/PrintPDE
