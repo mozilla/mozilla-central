@@ -61,10 +61,6 @@ var calendarTabType = {
             // foreground.
             ltnSwitch2Calendar();
         }
-
-        if (("selectedDay" in aArgs) && aArgs.selectedDay != null) {
-            currentView().goToDay(aArgs.selectedDay);
-        }
       },
 
       showTab: function(aTab) {
@@ -82,8 +78,6 @@ var calendarTabType = {
       persistTab: function(aTab) {
         let tabmail = document.getElementById("tabmail");
         return {
-            // Save the currently selected day
-            selectedDay: getSelectedDay().icalString,
             // Since we do strange tab switching logic in ltnSwitch2Calendar,
             // we should store the current tab state ourselves.
             background: (aTab != tabmail.currentTabInfo)
@@ -92,10 +86,6 @@ var calendarTabType = {
 
       restoreTab: function(aTabmail, aState) {
         aState.title = ltnGetString("lightning", "tabTitleCalendar");
-        if ("selectedDay" in aState) {
-            // Convert the serialized date to a datetime object
-            aState.selectedDay = cal.createDateTime(aState.selectedDay);
-        }
         aTabmail.openTab('calendar', aState);
       },
 
