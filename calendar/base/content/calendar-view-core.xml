@@ -219,13 +219,15 @@
           // in the <content> section of this binding, and all that inherit it.
 
           // Event type specific properties
-          if (isEvent(item)) {
+          if (cal.isEvent(item)) {
               if (item.startDate.isDate) {
-                this.setAttribute("allday", "true");
+                  this.setAttribute("allday", "true");
               }
-          } else if (isToDo(item)) {
+              this.setAttribute("itemType", "event");
+          } else if (cal.isToDo(item)) {
               // progress attribute
               this.setAttribute("progress", getProgressAtom(item));
+              this.setAttribute("itemType", "todo");
           }
 
           if (this.calendarView &&

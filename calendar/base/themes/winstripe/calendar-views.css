@@ -47,6 +47,23 @@ calendar-category-box:not([categories]) {
   display: none;
 }
 
+.calendar-item-image {
+    list-style-image: url(chrome://calendar/skin/day-box-item-image.png);
+    padding-top: 2px;
+    padding-bottom: 2px;
+    -moz-margin-end: 4px;
+    display: none;
+}
+
+.calendar-item-image[itemType="todo"] {
+    -moz-image-region: rect(0px 11px 11px 0px);
+    display: -moz-box;
+}
+
+.calendar-item-image[itemType="todo"][progress="completed"] {
+    -moz-image-region: rect(0px 22px 11px 11px);
+}
+
 /* Multiday view */
 calendar-event-column {
   background-color: #FFFFFF;
@@ -427,21 +444,6 @@ calendar-month-day-box-item[selected="true"] .calendar-event-selection {
 
 .calendar-month-day-box-item-label[time="true"] {
     -moz-margin-end: 4px;
-}
-
-.calendar-month-day-box-item-image {
-    list-style-image: url("chrome://calendar/skin/day-box-item-image.png");
-    -moz-margin-end: 4px;
-    display: none;
-}
-
-.calendar-month-day-box-item-image[type="todo"] {
-    -moz-image-region: rect(0px 11px 11px 0px);
-    display: inline;
-}
-
-.calendar-month-day-box-item-image[type="todo"][progress="completed"] {
-    -moz-image-region: rect(0px 22px 11px 11px);
 }
 
 .labeldaybox-container {

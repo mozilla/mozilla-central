@@ -2094,15 +2094,19 @@
                          flex="1"
                          xbl:inherits="context,parentorient=orient,readonly,flashing,alarm,allday,priority,progress,status,calendar,categories">
                 <xul:image flex="1" class="calendar-event-box-gradient"/>
-                <xul:vbox class="calendar-event-details"
+                <xul:hbox class="calendar-event-details"
                           anonid="calendar-event-details"
-                          pack="start">
+                          align="start">
+                  <xul:image anonid="item-icon"
+                             class="calendar-item-image"
+                             xbl:inherits="progress,allday,itemType"/>
                   <xul:description anonid="event-name" class="calendar-event-details-core" flex="1"/>
                   <xul:textbox anonid="event-name-textbox"
                                class="plain calendar-event-details-core calendar-event-name-textbox"
+                               flex="1"
                                hidden="true"
                                wrap="true"/>
-                </xul:vbox>
+                </xul:hbox>
                 <xul:stack mousethrough="always">
                   <xul:calendar-category-box anonid="category-box" xbl:inherits="categories" pack="end" />
                   <xul:hbox anonid="alarm-icons-box"
