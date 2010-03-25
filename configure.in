@@ -4548,7 +4548,6 @@ MOZ_UNIVERSALCHARDET=1
 MOZ_URL_CLASSIFIER=
 MOZ_USE_NATIVE_UCONV=
 MOZ_VIEW_SOURCE=1
-MOZ_XPFE_COMPONENTS=1
 MOZ_XPINSTALL=1
 MOZ_XSLT_STANDALONE=
 MOZ_XTF=1
@@ -4618,7 +4617,6 @@ basic)
   MOZ_UPDATER=
   MOZ_USE_NATIVE_UCONV=
   MOZ_VIEW_SOURCE=
-  MOZ_XPFE_COMPONENTS=
   MOZ_XPINSTALL=
   MOZ_XTF=
   MOZ_ZIPWRITER=
@@ -4656,7 +4654,6 @@ minimal)
   MOZ_UPDATER=
   MOZ_USE_NATIVE_UCONV=1
   MOZ_VIEW_SOURCE=
-  MOZ_XPFE_COMPONENTS=
   MOZ_XPINSTALL=
   MOZ_XTF=
   MOZ_XUL=
@@ -5290,15 +5287,6 @@ MOZ_ARG_DISABLE_BOOL(accessibility,
 if test "$ACCESSIBILITY"; then
     AC_DEFINE(ACCESSIBILITY)
 fi
-
-dnl ========================================================
-dnl xpfe/components on by default
-dnl ========================================================
-MOZ_ARG_DISABLE_BOOL(xpfe-components,
-[  --disable-xpfe-components
-                          Disable xpfe components],
-    MOZ_XPFE_COMPONENTS=,
-    MOZ_XPFE_COMPONENTS=1 )
 
 dnl ========================================================
 dnl xpinstall support on by default
@@ -7086,7 +7074,6 @@ AC_SUBST(ACCESSIBILITY)
 AC_SUBST(MOZ_XPINSTALL)
 AC_SUBST(MOZ_VIEW_SOURCE)
 AC_SUBST(MOZ_SPELLCHECK)
-AC_SUBST(MOZ_XPFE_COMPONENTS)
 AC_SUBST(MOZ_USER_DIR)
 AC_SUBST(MOZ_CRASHREPORTER)
 
