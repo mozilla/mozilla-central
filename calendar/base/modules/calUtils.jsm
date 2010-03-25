@@ -71,6 +71,10 @@ let cal = {
         }
 
         for each (let script in scriptNames) {
+            if (!script) {
+                // If the array element is null, then just skip this script.
+                continue;
+            }
             let scriptFile = baseDir.clone();
             scriptFile.append(script);
             let scriptUrlSpec = ioService.newFileURI(scriptFile).spec;
