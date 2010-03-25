@@ -1705,6 +1705,8 @@ PRBool nsImapProtocol::ProcessCurrentURL()
           return RetryUrl();
         }
         logonFailed = !TryToLogon();
+        if (m_retryUrlOnError)
+          return RetryUrl();
       }
   } // if death signal not received
 
@@ -4656,9 +4658,10 @@ char* nsImapProtocol::CreateNewLineFromSocket()
             {
               m_runningUrl->SetRerunningUrl(PR_TRUE);
               m_retryUrlOnError = PR_TRUE;
+              break;
             }
           }
-          else if (rv == NS_ERROR_NET_TIMEOUT)
+          if (rv == NS_ERROR_NET_TIMEOUT)
             AlertUserEventUsingId(IMAP_NET_TIMEOUT_ERROR);
           else
             AlertUserEventUsingId(TestFlag(IMAP_RECEIVED_GREETING)

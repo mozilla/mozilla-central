@@ -50,7 +50,6 @@ function imapDaemon(flags, syncFunc) {
   this.inbox = new imapMailbox("INBOX", null, this.uidvalidity++);
   this.root.addMailbox(this.inbox);
   this.namespaces.push(this.root);
-
   this.syncFunc = syncFunc;
 }
 imapDaemon.prototype = {
@@ -639,6 +638,7 @@ function formatArg(argument, spec) {
 function IMAP_RFC3501_handler(daemon) {
   this._daemon = daemon;
   this.closing = false;
+  this.dropOnStartTLS = false;
   // map: property = auth scheme {String}, value = start function on this obj
   this._kAuthSchemeStartFunction = {};
 
@@ -900,7 +900,13 @@ IMAP_RFC3501_handler.prototype = {
     return "OK NOOP completed";
   },
   STARTTLS : function (args) {
-    return "BAD maild doesn't support TLS ATM";
+    // simulate annoying server that drops connection on STARTTLS
+    if (this.dropOnStartTLS) {
+      this.closing = true;
+      return "";
+    }
+    else
+      return "BAD maild doesn't support TLS ATM";
   },
   _nextAuthFunction : undefined,
   AUTHENTICATE : function (args) {
