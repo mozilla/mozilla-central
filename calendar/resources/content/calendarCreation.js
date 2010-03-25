@@ -37,41 +37,98 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 var gCalendar;
 
-function initLocationPage()
-{
+var errorConstants = {
+    SUCCESS: 0,
+    INVALID_URI: 1,
+    ALREADY_EXISTS: 2
+}
+
+var l10nStrings = {};
+l10nStrings[errorConstants.SUCCESS] = "";
+l10nStrings[errorConstants.INVALID_URI] = cal.calGetString("calendarCreation", "error.invalidUri");
+l10nStrings[errorConstants.ALREADY_EXISTS] = cal.calGetString("calendarCreation", "error.alreadyExists");
+
+/**
+ * Initialize the location page
+ */
+function initLocationPage() {
     checkRequired();
 }
 
+/**
+ * Initialize the customize page
+ */
 function initCustomizePage() {
     initNameFromURI();
     checkRequired();
 
-    var suppressAlarmsRow = document.getElementById("customize-suppressAlarms-row");
+    let suppressAlarmsRow = document.getElementById("customize-suppressAlarms-row");
     suppressAlarmsRow.hidden =
         (gCalendar && gCalendar.getProperty("capabilities.alarms.popup.supported") === false);
 }
 
+/**
+ * Sets up notifications for the location page. On aReason == SUCCESS, all
+ * notifications are removed. Otherwise, the respective notification is added to
+ * the notification box. Only one notification per reason will be shown.
+ *
+ * @param aReason           The reason of notification, one of |errorConstants|.
+ */
+function setNotification(aReason) {
+    let notificationBox = document.getElementById("location-notifications");
+
+    if (aReason == errorConstants.SUCCESS) {
+        notificationBox.removeAllNotifications();
+    } else {
+        let existingBox = notificationBox.getNotificationWithValue(aReason);
+        if (!existingBox) {
+            notificationBox.appendNotification(l10nStrings[aReason],
+                                               aReason,
+                                               null,
+                                               notificationBox.PRIORITY_WARNING_MEDIUM,
+                                               null);
+            notificationBox.getNotificationWithValue(aReason).setAttribute("hideclose", "true");
+        }
+    }
+}
+
+/**
+ * Checks if the required information is set so that the wizard can advance. On
+ * an error, notifications are shown and the wizard can not be advanced.
+ */
 function checkRequired() {
-    var canAdvance = true;
-    var curPage = document.getElementById('calendar-wizard').currentPage;
+    let canAdvance = true;
+    let curPage = document.getElementById('calendar-wizard').currentPage;
     if (curPage) {
-        var eList = curPage.getElementsByAttribute('required', 'true');
-        for (var i = 0; i < eList.length && canAdvance; ++i) {
+        let eList = curPage.getElementsByAttribute('required', 'true');
+        for (let i = 0; i < eList.length && canAdvance; ++i) {
             canAdvance = (eList[i].value != "");
         }
+
+        let notificationbox = document.getElementById("location-notifications");
         if (canAdvance && document.getElementById("calendar-uri").value &&
-            curPage.pageid == "locationPage") {
-            canAdvance = checkURL();
+                curPage.pageid == "locationPage") {
+            let [reason,] = parseUri(document.getElementById("calendar-uri").value);
+            canAdvance = (reason == errorConstants.SUCCESS);
+            setNotification(reason);
+        } else {
+            notificationbox.removeAllNotifications();
         }
         document.getElementById('calendar-wizard').canAdvance = canAdvance;
     }
 }
 
+/**
+ * Handler function called when the advance button is pressed on the initial
+ * wizard page
+ */
 function onInitialAdvance() {
-    var type = document.getElementById('calendar-type').selectedItem.value;
-    var page = document.getElementsByAttribute('pageid', 'initialPage')[0];
+    let type = document.getElementById('calendar-type').selectedItem.value;
+    let page = document.getElementsByAttribute('pageid', 'initialPage')[0];
     if (type == 'local') {
         prepareCreateCalendar();
         page.next = 'customizePage';
@@ -86,34 +143,25 @@ function onInitialAdvance() {
  */
 function prepareCreateCalendar() {
     gCalendar = null;
-    var provider;
-    var uri;
-    var type = document.getElementById('calendar-type').selectedItem.value;
+
+    let provider;
+    let url;
+    let reason;
+    let type = document.getElementById('calendar-type').selectedItem.value;
     if (type == 'local') {
         provider = 'storage';
-        uri = 'moz-profile-calendar://?id=2';
+        [reason, url] = parseUri('moz-profile-calendar://?id=2');
     } else {
-        uri = document.getElementById("calendar-uri").value;
         provider = document.getElementById('calendar-format').selectedItem.value;
+        [reason, url] = parseUri(document.getElementById("calendar-uri").value);
     }
 
-    var calManager = getCalendarManager();
-    var cals = calManager.getCalendars({});
-    do {
-        var already = cals.filter(function (c) { return c.uri.spec == uri; })
-        if (already.length) {
-            if (type != 'local') {
-                // signalError("Already have calendar at this URI.");
-                Components.utils.reportError("Already have calendar with URI " + uri);
-                return false;
-            }
-            uri = uri.replace(/id=(\d+)/,
-                              function (s, id) { return "id=" + (Number(id) + 1); });
-        }
-    } while (already.length);
+    if (reason != errorConstants.SUCCESS || !url) {
+        return false;
+    }
 
     try {
-        gCalendar = calManager.createCalendar(provider, makeURL(uri));
+        gCalendar = cal.getCalendarManager().createCalendar(provider, url);
     } catch (ex) {
         dump(ex);
         return false;
@@ -126,9 +174,8 @@ function prepareCreateCalendar() {
  * The actual process of registering the created calendar.
  */
 function doCreateCalendar() {
-    var cal_name = document.getElementById("calendar-name").value;
-    var cal_color = document.getElementById('calendar-color').color;
-    var calManager = getCalendarManager();
+    let cal_name = document.getElementById("calendar-name").value;
+    let cal_color = document.getElementById('calendar-color').color;
 
     gCalendar.name = cal_name;
     gCalendar.setProperty('color', cal_color);
@@ -137,35 +184,67 @@ function doCreateCalendar() {
         gCalendar.setProperty('suppressAlarms', true);
     }
 
-    calManager.registerCalendar(gCalendar);
+    cal.getCalendarManager().registerCalendar(gCalendar);
     return true;
 }
 
+/**
+ * Initializes the calendar name from its uri
+ */
 function initNameFromURI() {
-    var path = document.getElementById("calendar-uri").value;
-    var nameField = document.getElementById("calendar-name");
+    let path = document.getElementById("calendar-uri").value;
+    let nameField = document.getElementById("calendar-name");
     if (!path || nameField.value)
         return;
 
-    var fullPathRegex = new RegExp("([^/:]+)[.]ics$");
-    var captures = path.match(fullPathRegex);
+    let fullPathRegex = new RegExp("([^/:]+)[.]ics$");
+    let captures = path.match(fullPathRegex);
     if (captures && captures.length >= 1) {
         nameField.value = decodeURIComponent(captures[1]);
     }
 }
 
-//Don't let the wizard advance if the URL isn't valid, since the calendar
-//creation will fail.
-function checkURL() {
+/**
+ * Parses the given uri value to check if it is valid and there is not already
+ * a calendar with this uri.
+ *
+ * @param aUri          The string to parse as an uri.
+ * @return [error,uri]  |error| is the error code from errorConstants, |uri| the
+ *                        parsed nsIURI, or null on error.
+ */
+function parseUri(aUri) {
+    let uri;
     try {
-        makeURL(document.getElementById("calendar-uri").value);
+        // Test if the entered uri can be parsed.
+        uri = makeURL(aUri);
+    } catch (ex) {
+        return [errorConstants.INVALID_URI, null];
     }
-    catch (ex) {
-        return false;
-    }
-    return true;
+
+    let calManager = cal.getCalendarManager();
+    let cals = calManager.getCalendars({});
+    let type = document.getElementById('calendar-type').selectedItem.value;
+    let alreadyExists = false;
+    do {
+        alreadyExists = cals.some(function (c) c.uri.spec == uri.spec);
+        if (alreadyExists) {
+            if (type != 'local') {
+                return [errorConstants.ALREADY_EXISTS, null];
+            }
+            function uriIncrementer(s, id) {
+                return "id=" + (Number(id) + 1);
+            }
+            uri.spec = uri.spec.replace(/id=(\d+)/, uriIncrementer);
+        }
+    } while (alreadyExists);
+
+    return [errorConstants.SUCCESS, uri];
 }
 
+/**
+ * Disables the back button, in case we are far enough that its not possible to
+ * undo.
+ */
 function setCanRewindFalse() {
    document.getElementById('calendar-wizard').canRewind = false;
 }

@@ -101,9 +101,11 @@
                           choice of dragdrop doesn't work here either.-->
                     <textbox id="calendar-uri"
                              required="true"
-                             oninput="checkRequired();"
+                             type="search"
+                             oncommand="checkRequired();"
                              ondragexit="checkRequired();"/>
                 </row>
+                <notificationbox id="location-notifications" flex="1"/>
                 <!--
                 <description>&locationpage.login.description;</description>
                 <row align="center">

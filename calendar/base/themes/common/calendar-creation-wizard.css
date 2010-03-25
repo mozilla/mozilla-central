@@ -41,3 +41,7 @@
 .checkbox-no-label > .checkbox-label-box {
     display: none;
 }
+
+#calendar-uri > .textbox-input-box > .textbox-search-icons {
+    display: none;
+}

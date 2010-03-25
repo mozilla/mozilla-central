@@ -4,6 +4,7 @@ calendar-@AB_CD@.jar:
 % locale calendar @AB_CD@ %locale/@AB_CD@/calendar/
     locale/@AB_CD@/calendar/calendar.dtd                   (%chrome/calendar/calendar.dtd)
     locale/@AB_CD@/calendar/calendarCreation.dtd           (%chrome/calendar/calendarCreation.dtd)
+    locale/@AB_CD@/calendar/calendarCreation.properties    (%chrome/calendar/calendarCreation.properties)
     locale/@AB_CD@/calendar/calendar.properties            (%chrome/calendar/calendar.properties)
     locale/@AB_CD@/calendar/calendar-alarms.properties     (%chrome/calendar/calendar-alarms.properties)
     locale/@AB_CD@/calendar/calendar-event-dialog.dtd      (%chrome/calendar/calendar-event-dialog.dtd)
