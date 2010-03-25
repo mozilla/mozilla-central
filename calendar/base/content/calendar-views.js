@@ -344,14 +344,14 @@ function switchToView(aViewType) {
         }
     }
 
-    // Set up the labels for the context menu
+    // Set up the labels and accesskeys for the context menu
     ["calendar-view-context-menu-next",
      "calendar-view-context-menu-previous",
      "calendar-go-menu-next",
-     "calendar-go-menu-previous"].forEach(function(x) setupViewNode(x, "label"));
-
-    ["calendar-go-menu-next",
-     "calendar-go-menu-previous"].forEach(function(x) setupViewNode(x, "accesskey"));
+     "calendar-go-menu-previous"].forEach(function(x) {
+            setupViewNode(x, "label");
+            setupViewNode(x, "accesskey")
+     });
 
     // Set up the labels for the view navigation
     ["previous-view-button",

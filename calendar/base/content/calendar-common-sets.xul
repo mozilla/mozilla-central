@@ -254,20 +254,27 @@
       <!-- These labels are set dynamically, based on the current view -->
       <menuitem id="calendar-view-context-menu-previous"
                 label=""
+                accesskey=""
                 observes="calendar_view_prev_command"
-                label-day="&calendar.prevday.button.tooltip;"
-                label-week="&calendar.prevweek.button.tooltip;"
-                label-multiweek="&calendar.prevweek.button.tooltip;"
-                label-month="&calendar.prevmonth.button.tooltip;"
-                accesskey="&goPreviousCmd.accesskey;"/>
+                label-day="&calendar.prevday.label;"
+                label-week="&calendar.prevweek.label;"
+                label-multiweek="&calendar.prevweek.label;"
+                label-month="&calendar.prevmonth.label;"
+                accesskey-day="&calendar.prevday.accesskey;"
+                accesskey-week="&calendar.prevweek.accesskey;"
+                accesskey-multiweek="&calendar.prevweek.accesskey;"
+                accesskey-month="&calendar.prevmonth.accesskey;"/>
       <menuitem id="calendar-view-context-menu-next"
                 label=""
                 observes="calendar_view_next_command"
-                label-day="&calendar.nextday.button.tooltip;"
-                label-week="&calendar.nextweek.button.tooltip;"
-                label-multiweek="&calendar.nextweek.button.tooltip;"
-                label-month="&calendar.nextmonth.button.tooltip;"
-                accesskey="&goNextCmd.all.accesskey;"/>
+                label-day="&calendar.nextday.label;"
+                label-week="&calendar.nextweek.label;"
+                label-multiweek="&calendar.nextweek.label;"
+                label-month="&calendar.nextmonth.label;"
+                accesskey-day="&calendar.nextday.accesskey;"
+                accesskey-week="&calendar.nextweek.accesskey;"
+                accesskey-multiweek="&calendar.nextweek.accesskey;"
+                accesskey-month="&calendar.nextmonth.accesskey;"/>
       <menuseparator id="calendar-item-context-separator-cutcopypaste"/>
       <!-- Cut and copy doesn't make sense in the views, but only showing paste
            makes it look like something is missing. Disable by default. -->
