@@ -60,7 +60,7 @@
 
 <ul>
   <li>&rights.intro-point1a;<a href="http://www.mozilla.org/MPL/">&rights.intro-point1b;</a>&rights.intro-point1c;</li>
-#ifdef OFFICIAL_BUILD
+#ifdef MOZ_OFFICIAL_BRANDING
 # Point 2 discusses Mozilla trademarks, and isn't needed when the build is unbranded.
 # Point 3 discusses privacy policy, unbranded builds get a placeholder (for the vendor to replace)
   <li>&rights.intro-point2a;<a href="http://www.mozilla.org/foundation/trademarks/policy.html">&rights.intro-point2b;</a>&rights.intro-point2c;</li>
@@ -76,14 +76,14 @@
   <a name="webservices"/>
   <h3>&rights.webservices-header;</h3>
 
-#ifdef OFFICIAL_BUILD
+#ifdef MOZ_OFFICIAL_BRANDING
   <p>&rights.webservices-a;<code>&rights.webservices-b;</code>&rights.webservices-c;<code>&rights.webservices-d;</code>&rights.webservices-e;</p>
 #else
   <p>&rights.webservices-unbranded;</p>
 #endif
 
   <ol>
-#ifdef OFFICIAL_BUILD
+#ifdef MOZ_OFFICIAL_BRANDING
 # Terms only apply to official builds, unbranded builds get a placeholder.
     <li>&rights.webservices-term1;</li>
     <li>&rights.webservices-term2;</li>
