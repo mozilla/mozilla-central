@@ -114,6 +114,8 @@
         <!-- Item menu -->
         <command id="cmd_item_new_event"
                  oncommand="openNewEvent()"/>
+        <command id="cmd_item_new_task"
+                 oncommand="openNewTask()"/>
         <command id="cmd_item_new_message"
                  oncommand="openNewMessage()"/>
         <command id="cmd_item_new_card"
@@ -219,14 +221,18 @@
                  oncommand="updateDateTime()"/>
     </commandset>
 
-    <keyset>
+    <keyset id="itemKeys">
         <key id="new-event-key"
-             modifiers="control"
-             key="&event.dialog.new.event.key;"
+             modifiers="accel"
+             key="&event.dialog.new.event.key2;"
              command="cmd_item_new_event"/>
+        <key id="new-task-key"
+             modifiers="accel"
+             key="&event.dialog.new.task.key2;"
+             command="cmd_item_new_task"/>
         <key id="new-message-key"
              modifiers="accel"
-             key="&event.dialog.new.message.key;"
+             key="&event.dialog.new.message.key2;"
              command="cmd_item_new_message"/>
         <key id="close-key"
              modifiers="accel"
@@ -240,10 +246,6 @@
              modifiers="accel"
              key="&event.dialog.saveandclose.key;"
              command="cmd_accept"/>
-        <key id="delete-key"
-             modifiers="accel"
-             key="&event.dialog.delete.key;"
-             command="cmd_item_delete"/>
         <key id="print-key"
              modifiers="accel"
              key="&event.dialog.print.key;"
@@ -296,12 +298,6 @@
                           label="&event.menu.item.new.label;"
                           accesskey="&event.menu.item.new.accesskey;">
                         <menupopup id="item-new-menupopup">
-                            <menuitem id="item-new-event-menuitem"
-                                      label="&event.menu.item.new.event.label;"
-                                      accesskey="&event.menu.item.new.event.accesskey;"
-                                      key="new-event-key"
-                                      command="cmd_item_new_event"
-                                      disable-on-readonly="true"/>
                             <menuitem id="item-new-message-menuitem"
                                       label="&event.menu.item.new.message.label;"
                                       accesskey="&event.menu.item.new.message.accesskey;"
@@ -309,6 +305,18 @@
                                       command="cmd_item_new_message"
                                       disable-on-readonly="true"
                                       class="lightning-only"/>
+                            <menuitem id="item-new-event-menuitem"
+                                      label="&event.menu.item.new.event.label;"
+                                      accesskey="&event.menu.item.new.event.accesskey;"
+                                      key="new-event-key"
+                                      command="cmd_item_new_event"
+                                      disable-on-readonly="true"/>
+                            <menuitem id="item-new-task-menuitem"
+                                      label="&event.menu.item.new.task.label;"
+                                      accesskey="&event.menu.item.new.task.accesskey;"
+                                      key="new-task-key"
+                                      command="cmd_item_new_task"
+                                      disable-on-readonly="true"/>
                             <menuseparator id="item-new-menuseparator1"
                                            class="lightning-only"/>
                             <menuitem id="item-new-address-menuitem"
@@ -333,7 +341,6 @@
                     <menuitem id="item-delete-menuitem"
                               label="&event.menu.item.delete.label;"
                               accesskey="&event.menu.item.delete.accesskey;"
-                              key="delete-key"
                               command="cmd_item_delete"
                               disable-on-readonly="true"/>
                     <menuitem id="item-pagesetup-menuitem"

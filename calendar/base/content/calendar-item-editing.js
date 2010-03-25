@@ -289,7 +289,10 @@ function openEventDialog(calendarItem, calendar, mode, callback, job, initialDat
     // this will be called if file->new has been selected from within the dialog
     args.onNewEvent = function(calendar) {
         createEventWithDialog(calendar, null, null);
-    }
+    };
+    args.onNewTodo = function(calendar) {
+        createTodoWithDialog(calendar);
+    };
 
     // the dialog will reset this to auto when it is done loading.
     window.setCursor("wait");

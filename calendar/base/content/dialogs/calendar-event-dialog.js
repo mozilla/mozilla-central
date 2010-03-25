@@ -1177,6 +1177,16 @@ function openNewEvent() {
 }
 
 /**
+ * Use the window arguments to cause the opener to create a new event on the
+ * item's calendar
+ */
+function openNewTask() {
+    var item = window.calendarItem;
+    var args = window.arguments[0];
+    args.onNewTodo(item.calendar);
+}
+
+/**
  * Open a new Thunderbird compose window.
  */
 function openNewMessage() {
