@@ -3,7 +3,6 @@ chrome/app-chrome.manifest
 chrome/chatzilla.jar
 chrome/debugqa.jar
 chrome/debugqa.manifest
-chrome/installed-chrome.txt
 chrome/icons/default/abcardWindow.xpm
 chrome/icons/default/abcardWindow16.xpm
 chrome/icons/default/ablistWindow.xpm
@@ -15,9 +14,9 @@ chrome/icons/default/bookmark-window.xpm
 chrome/icons/default/bookmark-window16.xpm
 chrome/icons/default/calendar-window.xpm
 chrome/icons/default/calendar-window16.xpm
+chrome/icons/default/chatzilla-window.ico
 chrome/icons/default/chatzilla-window.xpm
 chrome/icons/default/chatzilla-window16.xpm
-chrome/icons/default/chatzilla-window.ico
 chrome/icons/default/default.xpm
 chrome/icons/default/default16.xpm
 chrome/icons/default/downloadManager.xpm
@@ -30,9 +29,9 @@ chrome/icons/default/findHistoryWindow.xpm
 chrome/icons/default/findHistoryWindow16.xpm
 chrome/icons/default/history-window.xpm
 chrome/icons/default/history-window16.xpm
+chrome/icons/default/JSConsoleWindow.xpm
 chrome/icons/default/jsconsoleWindow.xpm
 chrome/icons/default/jsconsoleWindow16.xpm
-chrome/icons/default/JSConsoleWindow.xpm
 chrome/icons/default/main-window.xpm
 chrome/icons/default/main-window16.xpm
 chrome/icons/default/messengerWindow.xpm
@@ -41,12 +40,10 @@ chrome/icons/default/msgcomposeWindow.xpm
 chrome/icons/default/msgcomposeWindow16.xpm
 chrome/icons/default/venkman-window.xpm
 chrome/icons/default/venkman-window16.xpm
+chrome/installed-chrome.txt
 chrome/reporter.jar
 chrome/reporter.manifest
 chrome/venkman.jar
-#ifdef XP_MACOSX
-updater.app/Contents/MacOS/updater.ini
-#endif
 components/airbag.xpt
 components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
@@ -70,6 +67,10 @@ components/nsScriptableIO.js
 components/nsSetDefaultBrowser.js
 components/nsSetDefaultMail.js
 components/nsUnsetDefaultMail.js
+#ifndef MOZ_UPDATER
+components/nsUpdateService.js
+components/nsUpdateServiceStub.js
+#endif
 components/nsXmlRpcClient.js
 components/@DLL_PREFIX@oji@DLL_SUFFIX@
 components/progressDlg.xpt
@@ -97,13 +98,22 @@ components/@DLL_PREFIX@xmlextras@DLL_SUFFIX@
 #ifdef XP_WIN
 components/xpinstal.dll
 #endif
-defaults/wallet/VcardSchema.tbl
-defaults/wallet/FieldSchema.tbl
-defaults/wallet/SchemaConcat.tbl
 defaults/wallet/DistinguishedSchema.tbl
-defaults/wallet/SchemaStrings.tbl
+defaults/wallet/FieldSchema.tbl
 defaults/wallet/PositionalSchema.tbl
+defaults/wallet/SchemaConcat.tbl
+defaults/wallet/SchemaStrings.tbl
 defaults/wallet/StateSchema.tbl
+defaults/wallet/VcardSchema.tbl
+#ifdef XP_WIN
+extensions/p@m/PalmSyncInstall.exe
+extensions/p@m/PalmSyncProxy.dll
+extensions/p@m/components/palmsync.dll
+extensions/p@m/components/palmsync.xpt
+extensions/p@m/defaults/preferences/palmsync.js
+extensions/p@m/install.rdf
+extensions/p@m/mozABConduit.dll
+#endif
 #ifdef XP_WIN
 gksvggdiplus.dll
 #endif
@@ -117,21 +127,15 @@ jsj3250.dll
 #else
 @DLL_PREFIX@jsj@DLL_SUFFIX@
 #endif
+LICENSE
 #ifdef XP_MACOSX
 libwidget.rsrc
 #endif
 modules/JSON.jsm
-#ifdef XP_MACOSX
-../Plug-Ins/PrintPDE.plugin/Contents/Info.plist
-../Plug-Ins/PrintPDE.plugin/Contents/MacOS/PrintPDE
-../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/Localizable.strings
-../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/classes.nib
-../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/info.nib
-../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/objects.xib
-#endif
-@DLL_PREFIX@xpistub@DLL_SUFFIX@
-@DLL_PREFIX@mozlcms@DLL_SUFFIX@
-LICENSE
+modules/dbViewWrapper.js
+modules/mailViewManager.js
+modules/quickSearchManager.js
+modules/searchSpec.js
 #ifdef XP_WIN
 #ifdef MOZ_MEMORY
 Microsoft.VC80.CRT.manifest
@@ -146,19 +150,24 @@ mozcrt19.dll
 #ifndef MOZ_IPC
 mozilla-runtime@BIN_SUFFIX@
 #endif
-@DLL_PREFIX@sqlite3@DLL_SUFFIX@
+@DLL_PREFIX@mozlcms@DLL_SUFFIX@
+#ifdef XP_MACOSX
+../Plug-Ins/PrintPDE.plugin/Contents/Info.plist
+../Plug-Ins/PrintPDE.plugin/Contents/MacOS/PrintPDE
+../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/Localizable.strings
+../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/classes.nib
+../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/info.nib
+../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/objects.xib
+#endif
 #ifdef XP_WIN
-xpicleanup.exe
 regxpcom.exe
-#else
-xpicleanup
 #endif
 res/arrow.gif
 res/arrowd.gif
 res/broken-image.gif
 res/broken-image.png
-res/charsetalias.properties
 res/charsetData.properties
+res/charsetalias.properties
 res/cmessage.txt
 res/forms.css
 res/hiddenWindow.html
@@ -173,19 +182,16 @@ res/ua.css
 res/unixcharset.properties
 res/viewsource.css
 res/wincharset.properties
-modules/dbViewWrapper.js
-modules/mailViewManager.js
-modules/quickSearchManager.js
-modules/searchSpec.js
-#ifdef XP_WIN
-extensions/p@m/install.rdf
-extensions/p@m/mozABConduit.dll
-extensions/p@m/PalmSyncInstall.exe
-extensions/p@m/PalmSyncProxy.dll
-extensions/p@m/components/palmsync.dll
-extensions/p@m/components/palmsync.xpt
-extensions/p@m/defaults/preferences/palmsync.js
+@DLL_PREFIX@sqlite3@DLL_SUFFIX@
+#ifdef XP_MACOSX
+updater.app/Contents/MacOS/updater.ini
 #endif
+#ifdef XP_WIN
+xpicleanup.exe
+#else
+xpicleanup
+#endif
+@DLL_PREFIX@xpistub@DLL_SUFFIX@
 
 #ifndef MOZ_STATIC_MAIL_BUILD
 ; '! MOZ_STATIC_BUILD' case.
@@ -271,15 +277,7 @@ components/@DLL_PREFIX@windowds@DLL_SUFFIX@
 components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
 components/@DLL_PREFIX@xpconnect@DLL_SUFFIX@
 components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
-@DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
-@DLL_PREFIX@gkgfx@DLL_SUFFIX@
-@DLL_PREFIX@gtkxtbin@DLL_SUFFIX@
-@DLL_PREFIX@layers@DLL_SUFFIX@
-@DLL_PREFIX@mozz@DLL_SUFFIX@
-@DLL_PREFIX@thebes@DLL_SUFFIX@
-@DLL_PREFIX@xul@DLL_SUFFIX@
 #ifdef XP_MACOSX
-XUL
 components/libimgicon.dylib
 components/libjar50.dylib
 components/libosxproxy.dylib
@@ -292,6 +290,16 @@ components/msgMapi.dll
 components/windowsproxy.dll
 components/xpc3250.dll
 components/xppref32.dll
+#endif
+@DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
+@DLL_PREFIX@gkgfx@DLL_SUFFIX@
+@DLL_PREFIX@gtkxtbin@DLL_SUFFIX@
+@DLL_PREFIX@layers@DLL_SUFFIX@
+@DLL_PREFIX@mozz@DLL_SUFFIX@
+@DLL_PREFIX@thebes@DLL_SUFFIX@
+@DLL_PREFIX@xul@DLL_SUFFIX@
+#ifdef XP_MACOSX
+XUL
 #endif
 ; MOZ_STATIC_BUILD
 #endif
@@ -309,11 +317,6 @@ components/strgcmps.dll
 components/tkautoc.dll
 components/tkitcmps.dll
 components/xpautoc.dll
-#endif
-
-#ifndef MOZ_UPDATER
-components/nsUpdateService.js
-components/nsUpdateServiceStub.js
 #endif
 
 # ****************************************************************************
@@ -337,8 +340,8 @@ components/composer.xpt
 components/content_base.xpt
 components/content_canvas.xpt
 components/content_events.xpt
-components/content_htmldoc.xpt
 components/content_html.xpt
+components/content_htmldoc.xpt
 components/content_xmldoc.xpt
 components/content_xslt.xpt
 components/content_xtf.xpt
@@ -391,8 +394,8 @@ components/jar.xpt
 components/jsdservice.xpt
 components/layout_base.xpt
 components/layout_printing.xpt
-components/layout_xul_tree.xpt
 components/layout_xul.xpt
+components/layout_xul_tree.xpt
 components/locale.xpt
 components/loginmgr.xpt
 components/lwbrk.xpt
