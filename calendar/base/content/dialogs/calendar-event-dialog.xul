@@ -221,7 +221,7 @@
                  oncommand="updateDateTime()"/>
     </commandset>
 
-    <keyset id="itemKeys">
+    <keyset id="calendar-event-dialog-keyset">
         <key id="new-event-key"
              modifiers="accel"
              key="&event.dialog.new.event.key2;"
@@ -245,6 +245,10 @@
         <key id="saveandclose-key"
              modifiers="accel"
              key="&event.dialog.saveandclose.key;"
+             command="cmd_accept"/>
+        <key id="saveandclose-key2"
+             modifiers="accel"
+             keycode="VK_RETURN"
              command="cmd_accept"/>
         <key id="print-key"
              modifiers="accel"
