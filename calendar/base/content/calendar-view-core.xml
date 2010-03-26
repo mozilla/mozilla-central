@@ -49,7 +49,9 @@
     xmlns:xbl="http://www.mozilla.org/xbl">
 
   <binding id="calendar-editable-item">
-    <content mousethrough="never" tooltip="itemTooltip">
+    <content mousethrough="never"
+             tooltip="itemTooltip"
+             tabindex="-1">
       <xul:vbox flex="1">
         <xul:hbox>
           <xul:box anonid="event-container"

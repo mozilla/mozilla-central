@@ -581,6 +581,8 @@ calendar-event-box,
 calendar-editable-item,
 calendar-month-day-box-item {
     opacity: 0.99;
+    /* Do not change next line, since it would break item selection */
+    -moz-user-focus: normal;
 }
 
 calendar-event-box[invitation-status="NEEDS-ACTION"],
