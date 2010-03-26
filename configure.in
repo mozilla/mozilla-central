@@ -266,6 +266,7 @@ if test ! -z "$L10NBASEDIR"; then
     if test "$L10NBASEDIR" = "yes" -o "$L10NBASEDIR" = "no"; then
         AC_MSG_ERROR([--with-l10n-base must specify a path])
     elif test -d "$L10NBASEDIR"; then
+        dnl Ensure to use an absolute path.
         L10NBASEDIR=`cd "$L10NBASEDIR" && pwd`
     else
         AC_MSG_ERROR([Invalid value --with-l10n-base, $L10NBASEDIR doesn't exist])
@@ -7458,16 +7459,8 @@ fi
 # --enable-application needs to find confvars.sh, build.mk, etc in the gived dir, so add ../
 # --disable-official-branding disables all checks for official branding, as we're doing this ourselves in our own repo
 ac_configure_args="$_SUBDIR_CONFIG_ARGS --enable-application=../$MOZ_BUILD_APP --disable-official-branding --with-branding=../$REAL_BRANDING_DIRECTORY"
-if test -z "$MOZ_DEBUG"; then
-    ac_configure_args="$ac_configure_args --disable-debug"
-fi
-if test "$MOZ_OPTIMIZE" = "1"; then
-    ac_configure_args="$ac_configure_args --enable-optimize"
-fi
-if test -n "$HAVE_64BIT_OS"; then
-    ac_configure_args="$ac_configure_args --enable-64bit"
-fi
 if test -n "$L10NBASEDIR"; then
+    dnl Override the initial value with the new one which is guaranteed to be an absolute path.
     ac_configure_args="$ac_configure_args --with-l10n-base=$L10NBASEDIR"
 fi
 # for Mac universal builds, we need to call the Mozilla configure with MOZ_BUILD_APP=[ppc|i386]
@@ -7479,36 +7472,26 @@ AC_OUTPUT_SUBDIRS(mozilla)
 ac_configure_args="$_SUBDIR_CONFIG_ARGS"
 MOZ_BUILD_APP="$MOZ_BUILD_APP_CACHED"
 
-if test "$COMPILE_ENVIRONMENT"; then
 # if we're building the LDAP XPCOM component, we need to build 
 # the c-sdk first.  
-#
-if test "$MOZ_LDAP_XPCOM"; then
-
+if test -n "$COMPILE_ENVIRONMENT" -a -n "$MOZ_LDAP_XPCOM"; then
     # these subdirs may not yet have been created in the build tree.
     # don't use the "-p" switch to mkdir, since not all platforms have it
-    #
-    if test ! -d "directory"; then
-        mkdir "directory"
-    fi
-    if test ! -d "directory/c-sdk"; then
-        mkdir "directory/c-sdk"
-    fi
     if test ! -d "directory/c-sdk/ldap"; then
+        if test ! -d "directory/c-sdk"; then
+            if test ! -d "directory"; then
+                mkdir "directory"
+            fi
+            mkdir "directory/c-sdk"
+        fi
         mkdir "directory/c-sdk/ldap"
     fi
 
     ac_configure_args="$_SUBDIR_CONFIG_ARGS --prefix=$MOZ_BUILD_ROOT/mozilla/dist --with-dist-prefix=$MOZ_BUILD_ROOT/mozilla/dist --without-nss --with-mozilla"
-    if test -z "$MOZ_DEBUG"; then
-        ac_configure_args="$ac_configure_args --disable-debug"
-    fi
-    if test "$MOZ_OPTIMIZE" = "1"; then
-        ac_configure_args="$ac_configure_args --enable-optimize"
-    fi
     if test -n "$HAVE_64BIT_OS"; then
+        dnl A 64-bit OS was (auto-)detected: (explicitly) enable 64-bit support.
         ac_configure_args="$ac_configure_args --enable-64bit"
     fi
     AC_OUTPUT_SUBDIRS(directory/c-sdk)
     ac_configure_args="$_SUBDIR_CONFIG_ARGS"
-fi
-fi # COMPILE_ENVIRONMENT
+fi # COMPILE_ENVIRONMENT && MOZ_LDAP_XPCOM
