@@ -157,10 +157,10 @@ endif
 testxpcsrcdir = $(MOZILLA_SRCDIR)/testing/xpcshell
 
 # Execute all tests in the $(XPCSHELL_TESTS) directories.
-# See also mozilla/testsuite-targets.mk 'xpcshell-tests' target for global execution.
+# See also $(MOZILLA_DIR)/testing/testsuite-targets.mk 'xpcshell-tests' target for global execution.
 xpcshell-tests:
-	$(PYTHON) -u $(topsrcdir)/mozilla/config/pythonpath.py \
-	  -I$(topsrcdir)/mozilla/build \
+	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
+	  -I$(MOZILLA_DIR)/build \
 	  $(testxpcsrcdir)/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  $(DIST)/bin/xpcshell \
@@ -170,8 +170,8 @@ xpcshell-tests:
 # start the test. Instead, present the xpcshell prompt so the user can
 # attach a debugger and then start the test.
 check-interactive:
-	$(PYTHON) -u $(topsrcdir)/mozilla/config/pythonpath.py \
-	  -I$(topsrcdir)/mozilla/build \
+	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
+	  -I$(MOZILLA_DIR)/build \
 	  $(testxpcsrcdir)/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  --test-path=$(SOLO_FILE) \
@@ -181,8 +181,8 @@ check-interactive:
 
 # Execute a single test, specified in $(SOLO_FILE)
 check-one:
-	$(PYTHON) -u $(topsrcdir)/mozilla/config/pythonpath.py \
-	  -I$(topsrcdir)/mozilla/build \
+	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
+	  -I$(MOZILLA_DIR)/build \
 	  $(testxpcsrcdir)/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  --test-path=$(SOLO_FILE) \

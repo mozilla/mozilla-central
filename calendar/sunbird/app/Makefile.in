@@ -276,7 +276,7 @@ $(PROGRAM): $(MOZDEPTH)/toolkit/xre/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX)
 
 ifneq (,$(filter-out OS2 WINNT,$(OS_ARCH)))
 
-sunbird:: $(topsrcdir)/mozilla/build/unix/mozilla.in $(GLOBAL_DEPS) $(DEPTH)/config/autoconf.mk
+sunbird:: $(MOZILLA_DIR)/build/unix/mozilla.in $(GLOBAL_DEPS) $(DEPTH)/config/autoconf.mk
 	cat $< | sed -e "s|%MOZAPPDIR%|$(installdir)|" \
 		-e "s|%MOZ_APP_DISPLAYNAME%|$(MOZ_APP_DISPLAYNAME)|" > $@
 	chmod +x $@
