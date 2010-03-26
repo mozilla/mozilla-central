@@ -110,27 +110,6 @@ function onServerClick(aFolder)
   ShowCurrentList();
 }
 
-function SetUpServerMenu()
-{
-  //dump("SetUpServerMenu()\n");
-
-    var serverMenu = document.getElementById("serverMenu");
-    var menuitems = serverMenu.getElementsByAttribute("id", gServerURI);
-
-  try {
-    //dump("gServerURI="+gServerURI+"\n");
-    //dump("menuitems="+menuitems+"\n");
-    //dump("menuitems[0]="+menuitems[0]+"\n");
-    //dump("serverMenu="+serverMenu+"\n");
-      serverMenu.selectedItem = menuitems[0];
-  }
-  catch (ex) {
-    //dump("failed to set the selected server: " + ex + "\n");
-  }
-
-  SetServerTypeSpecificTextValues();
-}
-
 var MySubscribeListener = {
     OnDonePopulating: function() {
         gStatusFeedback._stopMeteors();
@@ -285,7 +264,7 @@ function SubscribeOnLoad()
     }
   }
 
-  SetUpServerMenu();
+  SetServerTypeSpecificTextValues();
 
   ShowCurrentList();
 
