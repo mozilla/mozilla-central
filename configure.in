@@ -4920,35 +4920,6 @@ then
     fi
     AC_SUBST(MOZ_QT_CFLAGS)
     AC_SUBST(MOZ_QT_LIBS)
-
-    MOZ_ARG_WITH_STRING(qtdir,
-    [  --with-qtdir=\$dir       Specify Qt directory ],
-    [ QTDIR=$withval])
-
-    if test -z "$QTDIR"; then
-      QTDIR="/usr"
-    fi
-    QTINCDIR="/include/qt"
-    if test ! -d "$QTDIR$QTINCDIR"; then
-       QTINCDIR="/include/X11/qt"
-    fi
-    if test ! -d "$QTDIR$QTINCDIR"; then
-       QTINCDIR="/include"
-    fi
-
-    if test -x "$QTDIR/bin/moc-qt4"; then
-      HOST_MOC="$QTDIR/bin/moc-qt4"
-    else
-      if test -x "$QTDIR/bin/moc"; then
-        HOST_MOC="$QTDIR/bin/moc"
-      else
-        AC_CHECK_PROGS(HOST_MOC, moc, "")
-      fi
-    fi
-    if test -z "$HOST_MOC"; then
-      AC_MSG_ERROR([no acceptable moc preprocessor found])
-    fi
-    MOC=$HOST_MOC
 fi
 
 AC_SUBST(GTK_CONFIG)
@@ -4956,13 +4927,8 @@ AC_SUBST(TK_CFLAGS)
 AC_SUBST(TK_LIBS)
 
 AC_SUBST(MOZ_ENABLE_GTK2)
-AC_SUBST(MOZ_ENABLE_QT)
 AC_SUBST(MOZ_GTK2_CFLAGS)
 AC_SUBST(MOZ_GTK2_LIBS)
-AC_SUBST(MOZ_QT_CFLAGS)
-AC_SUBST(MOZ_QT_LIBS)
-
-AC_SUBST(MOC)
 
 AC_SUBST(MOZ_DFB)
 AC_SUBST(MOZ_X11)

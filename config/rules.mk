@@ -414,10 +414,6 @@ ALL_TRASH = \
 ALL_TRASH_DIRS = \
 	$(GARBAGE_DIRS) /no-such-file
 
-ifdef QTDIR
-GARBAGE                 += $(MOCSRCS)
-endif
-
 ifdef SIMPLE_PROGRAMS
 GARBAGE			+= $(SIMPLE_PROGRAMS:%=%.$(OBJ_SUFFIX))
 endif
@@ -1436,9 +1432,6 @@ host_%.$(OBJ_SUFFIX): %.mm $(GLOBAL_DEPS)
 	$(REPORT_BUILD)
 	@$(MAKE_DEPS_AUTO_CC)
 	$(ELOG) $(CC) $(OUTOPTION)$@ -c $(COMPILE_CFLAGS) $(_VPATH_SRCS)
-
-moc_%.cpp: %.h $(GLOBAL_DEPS)
-	$(MOC) $< $(OUTOPTION)$@ 
 
 ifdef ASFILES
 # The AS_DASH_C_FLAG is needed cause not all assemblers (Solaris) accept
