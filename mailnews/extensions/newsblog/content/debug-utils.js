@@ -32,7 +32,7 @@ function enumerateProperties(obj, excludeComplexTypes)
 }
 
 // minimal implementation of nsIOutputStream for use by dumpRDF, adapted from
-// http://groups.google.com/groups?selm=20011203111618.C1302%40erde.jan.netgaroo.de
+// http://groups.google.com/search?as_umsgid=20011203111618.C1302%40erde.jan.netgaroo.de
 var DumpOutputStream = {
   write: function(buf, count) { dump(buf); return count; }
 };
