@@ -61,7 +61,7 @@
    border: 0;
 }
 
-button[dlgtype="extra2"] {
+button[dlgtype="extra2"], #aboutMenu {
   -moz-margin-start: 13px;
 }
  

@@ -97,6 +97,7 @@
         </menupopup>
       </button>
 #ifndef XP_MACOSX
+      <spacer flex="1"/>
       <button dlgtype="accept" class="dialog-button"/>
 #endif
     </hbox>
