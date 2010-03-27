@@ -300,8 +300,10 @@ install::
 	$(SYSINSTALL) $(IFLAGS1) $(DIST)/branding/default* $(DESTDIR)$(mozappdir)/chrome/icons/default
 endif
 
+ifdef MOZILLA_1_9_2_BRANCH
 libs::
 	touch $(DIST)/bin/.autoreg
+endif
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 

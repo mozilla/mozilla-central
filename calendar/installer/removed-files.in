@@ -484,3 +484,8 @@ js3250.dll
 #ifndef MOZILLA_1_9_2_BRANCH
 components/contentprefs.xpt
 #endif
+
+# Bug 522712 - Port |Bug 511761 - Only use compatibility.ini (not .autoreg, or stat()s) to invalidate fastloads and other caches| to comm-central (apps)
+#ifndef MOZILLA_1_9_2_BRANCH
+.autoreg
+#endif

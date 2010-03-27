@@ -10,7 +10,9 @@
 
 #filter substitution
 
+#ifdef MOZILLA_1_9_2_BRANCH
 bin/.autoreg
+#endif
 
 [@AB_CD@]
 bin\chrome\@AB_CD@.jar
