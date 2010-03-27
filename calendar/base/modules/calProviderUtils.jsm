@@ -154,8 +154,6 @@ cal.InterfaceRequestor_getInterface = function calInterfaceRequestor_getInterfac
         return Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                          .getService(Components.interfaces.nsIWindowWatcher)
                          .getNewPrompter(null);
-    } else if (aIID.equals(Components.interfaces.nsIBadCertListener2)) {
-        return cal.BadCertHandler;
     }
 
     try {
@@ -166,42 +164,6 @@ cal.InterfaceRequestor_getInterface = function calInterfaceRequestor_getInterfac
         Components.returnCode = e;
     }
     return null;
-};
-
-/**
- * Bad Certificate Handler for Network Requests. Shows the Network Exception
- * Dialog if a certificate Problem occurs.
- */
-cal.BadCertHandler = {
-    QueryInterface: function cBCL_QueryInterface(aIID) {
-        return cal.doQueryInterface(this, cal.BadCertListener.prototype, aIID,
-                                    [Components.interfaces.nsISupports,
-                                     Components.interfaces.nsIBadCertListener2]);
-    },
-
-    notifyCertProblem: function cBCL_notifyCertProblem(socketInfo, status, targetSite) {
-        if (!status) {
-            return true;
-        }
-
-        // Unfortunately we can't pass js objects using the window watcher, so
-        // we'll just take the first available calendar window. We also need to
-        // do this on a timeout so that the modal window doesn't block the
-        // network request.
-        let calWindow = cal.getCalendarWindow();
-
-        calWindow.setTimeout(function() {
-            let params = { exceptionAdded: false,
-                           prefetchCert: true,
-                           location: targetSite };
-            calWindow.openDialog("chrome://pippki/content/exceptionDialog.xul",
-                                 "",
-                                 "chrome,centerscreen,modal",
-                                 params);
-        }, 0);
-
-        return true;
-    }
 };
 
 /**
