@@ -110,3 +110,7 @@ treechildren::-moz-tree-cell-text(locked)
 {
   font-style: italic;
 }
+
+#textbox {
+  -moz-box-flex: 1;
+}
