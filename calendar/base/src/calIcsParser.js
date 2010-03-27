@@ -79,10 +79,16 @@ function ip_processIcalComponent(rootComp) {
     // libical returns the vcalendar component if there is just one vcalendar.
     // If there are multiple vcalendars, it returns an xroot component, with
     // those vcalendar children. We need to handle both.
-    if (rootComp.componentType == 'VCALENDAR') {
-        calComp = rootComp;
-    } else {
-        calComp = rootComp.getFirstSubcomponent('VCALENDAR');
+    if (rootComp) {
+        if (rootComp.componentType == 'VCALENDAR') {
+            calComp = rootComp;
+        } else {
+            calComp = rootComp.getFirstSubcomponent('VCALENDAR');
+        }
+    }
+
+    if (!calComp) {
+        cal.ERROR("Parser Error. Could not find 'VCALENDAR' component in: \n" + rootComp + "\nStack: \n" + cal.STACK(10));
     }
 
     let uid2parent = {};
