@@ -848,13 +848,19 @@ MAKE_JARS_FLAGS += -c $(topsrcdir)/$(relativesrcdir)/en-US
 endif
 endif
 
-ifeq (,$(filter WINCE WINNT OS2,$(OS_ARCH)))
-RUN_TEST_PROGRAM = $(DIST)/bin/run-mozilla.sh
-endif
-
-ifeq ($(OS_ARCH),OS2)
+ifdef WINCE
+ifndef MOZILLA_1_9_2_BRANCH
+RUN_TEST_PROGRAM = $(PYTHON) $(MOZILLA_SRCDIR)/build/mobile/devicemanager-run-test.py
+endif # ! MOZILLA_1_9_2_BRANCH
+else
+ifeq (OS2,$(OS_ARCH))
 RUN_TEST_PROGRAM = $(MOZILLA_SRCDIR)/build/os2/test_os2.cmd "$(DIST)"
-endif
+else
+ifneq (WINNT,$(OS_ARCH))
+RUN_TEST_PROGRAM = $(DIST)/bin/run-mozilla.sh
+endif # ! WINNT
+endif # ! OS2
+endif # ! WINCE
 
 ifdef TIERS
 DIRS += $(foreach tier,$(TIERS),$(tier_$(tier)_dirs))
