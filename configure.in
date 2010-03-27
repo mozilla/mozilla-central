@@ -4556,6 +4556,9 @@ MOZ_XTF=1
 MOZ_XUL=1
 MOZ_ZIPWRITER=1
 NS_PRINTING=1
+if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
+BUILD_CTYPES=1
+fi
 
 
 case "$target_os" in
@@ -6929,6 +6932,8 @@ fi
 
 AC_SUBST(MOZ_RDF)
 
+if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
+
 dnl
 dnl Build jsctypes on the platforms we can.
 dnl
@@ -6937,6 +6942,27 @@ if test "$OS_ARCH" != "WINCE" -o `echo $OS_TEST | grep -ic arm` != 1; then
   BUILD_CTYPES=1
   AC_DEFINE(BUILD_CTYPES)
 fi
+
+else
+
+dnl
+dnl Build jsctypes on the platforms we can, unless it's explicitly disabled.
+dnl
+MOZ_ARG_DISABLE_BOOL(ctypes,
+[  --disable-ctypes        Disable js-ctypes],
+    BUILD_CTYPES=,
+    BUILD_CTYPES=1)
+AC_SUBST(BUILD_CTYPES)
+if test "$BUILD_CTYPES"; then
+  if test "$OS_ARCH" = "WINCE" -a `echo $OS_TEST | grep -ic arm` = 1; then
+    # Disable ctypes for arm/wince.
+    BUILD_CTYPES=
+  else
+    AC_DEFINE(BUILD_CTYPES)
+  fi
+fi
+
+fi # ! MOZILLA_1_9_2_BRANCH
 
 dnl Only build Mork if it's required
 AC_SUBST(MOZ_MORK)
