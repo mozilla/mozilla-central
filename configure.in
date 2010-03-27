@@ -6521,6 +6521,7 @@ dnl Sun Studio on Solaris
 if test "$SOLARIS_SUNPRO_CC"; then
   PROFILE_GEN_CFLAGS="-xprofile=collect:$_objdir/$enable_application"
   PROFILE_GEN_LDFLAGS="-xprofile=collect:$_objdir/$enable_application"
+ if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
   if test "$CPU_ARCH" != "sparc"; then
     PROFILE_USE_CFLAGS="-xprofile=use:$_objdir/$enable_application"
     PROFILE_USE_LDFLAGS="-xprofile=use:$_objdir/$enable_application"
@@ -6528,6 +6529,10 @@ if test "$SOLARIS_SUNPRO_CC"; then
     PROFILE_USE_CFLAGS="-xlinkopt=2 -xprofile=use:$_objdir/$enable_application"
     PROFILE_USE_LDFLAGS="-xlinkopt=2 -xprofile=use:$_objdir/$enable_application"
   fi
+ else
+  PROFILE_USE_CFLAGS="-xprofile=use:$_objdir/$enable_application"
+  PROFILE_USE_LDFLAGS="-xprofile=use:$_objdir/$enable_application"
+ fi
 fi
 
 AC_SUBST(PROFILE_GEN_CFLAGS)
