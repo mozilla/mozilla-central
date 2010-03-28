@@ -166,7 +166,7 @@ let gFolderTreeView = {
 
     if (document.getElementById('folderpane-title')) {
       let string;
-        if (this._mode in this._modeDisplayNames)
+        if (this.mode in this._modeDisplayNames)
           string = this._modeDisplayNames;
         else {
           let key = "folderPaneModeHeader_" + this.mode;

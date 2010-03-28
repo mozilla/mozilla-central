@@ -180,7 +180,9 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         os.makedirs(PROFILE_DIR)
 
         # If there's a wrapper, call it
-        if wrapper is not None:
+        if wrapper is not None and hasattr(wrapper, "on_profile_created"):
+            # It's a little dangerous to allow on_profile_created access to the
+            # profile object, because it isn't fully initalized yet
             wrapper.on_profile_created(PROFILE_DIR)
 
         return PROFILE_DIR
@@ -225,6 +227,10 @@ class ThunderTestRunner(mozrunner.ThunderbirdRunner):
             subprocess.check_call([self.VNC_SERVER_PATH, ':99'])
             self.vnc_alive = True
             self.env['DISPLAY'] = ':99'
+
+        if wrapper is not None and hasattr(wrapper, "on_before_start"):
+            wrapper.on_before_start(self.profile)
+
         return mozrunner.ThunderbirdRunner.start(self)
 
     def wait(self, timeout=None):

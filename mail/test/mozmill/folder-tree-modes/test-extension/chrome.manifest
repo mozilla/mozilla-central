@@ -1,0 +1,2 @@
+content testfoldertreemode chrome/content/
+overlay chrome://messenger/content/messenger.xul chrome://testfoldertreemode/content/overlay.xul

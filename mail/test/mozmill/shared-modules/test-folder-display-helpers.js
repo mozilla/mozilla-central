@@ -870,9 +870,16 @@ function assert_row_visible(aViewIndex) {
 
 /**
  * Assert that the given folder mode is the current one.
+ *
+ * @param aMode The expected folder mode.
+ * @param [aController] The controller in whose context to do this, defaults to
+ *     |mc| if omitted.
+ 
  */
-function assert_folder_mode(aMode) {
-  let actualMode = mc.folderTreeView.mode;
+function assert_folder_mode(aMode, aController) {
+  if (aController === undefined)
+    aController = mc;
+  let actualMode = aController.folderTreeView.mode;
   if (actualMode != aMode)
     throw new Error("The folder mode should be " + aMode +
                     ", but is actually " + actualMode);
@@ -896,10 +903,15 @@ function assert_folder_child_in_view(aChild, aParent) {
 /**
  * Assert that the given folder is in the current folder mode and is visible.
  *
+ * @param aFolder The folder to assert as visible
+ * @param [aController] The controller in whose context to do this, defaults to
+ *     |mc| if omitted.
  * @returns The index of the folder, if it is visible.
  */
-function assert_folder_visible(aFolder) {
-  let folderIndex = mc.folderTreeView.getIndexOfFolder(aFolder);
+function assert_folder_visible(aFolder, aController) {
+  if (aController === undefined)
+    aController = mc;
+  let folderIndex = aController.folderTreeView.getIndexOfFolder(aFolder);
   if (folderIndex == null)
     throw new Error("Folder: " + aFolder.URI + " should be visible, but isn't");
 

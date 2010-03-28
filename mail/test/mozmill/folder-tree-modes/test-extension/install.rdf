@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+  <Description about="urn:mozilla:install-manifest">
+    <em:id>testfoldertreemode@mozilla.org</em:id>
+    <em:type>2</em:type>
+    <em:name>Test Folder Modes</em:name>
+    <em:version>1.0</em:version>
+    <em:creator>Mozilla Foundation</em:creator>
+    <em:description>Provides a custom folder tree mode to be used by tests</em:description>
+    <em:targetApplication>
+      <Description>
+        <em:id>{3550f703-e582-4d05-9a08-453d09bdfdc6}</em:id> <!-- Thunderbird -->
+        <em:minVersion>3.1a1pre</em:minVersion>
+        <em:maxVersion>*</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+  </Description>
+</RDF>
