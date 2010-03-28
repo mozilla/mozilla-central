@@ -351,6 +351,15 @@ endif # GNU_CC
 endif # ENABLE_CXX_EXCEPTIONS
 endif # WINNT
 
+ifndef MOZILLA_1_9_2_BRANCH
+ifeq ($(SOLARIS_SUNPRO_CXX),1)
+CXXFLAGS += -features=extensions -D__FUNCTION__=__func__
+ifeq (86,$(findstring 86,$(OS_TEST)))
+OS_LDFLAGS += -M $(MOZILLA_DIR)/config/solaris_ia32.map
+endif # x86
+endif # Solaris Sun Studio C++
+endif # ! MOZILLA_1_9_2_BRANCH
+
 ifeq (,$(filter-out WINNT WINCE,$(HOST_OS_ARCH)))
 HOST_PDBFILE=$(basename $(@F)).pdb
 endif
