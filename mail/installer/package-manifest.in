@@ -36,7 +36,11 @@
 
 [xpcom]
 @BINPATH@/@DLL_PREFIX@xpcom@DLL_SUFFIX@
+#ifdef XP_OS2
+@BINPATH@/@DLL_PREFIX@xpcomcor@DLL_SUFFIX@
+#else
 @BINPATH@/@DLL_PREFIX@xpcom_core@DLL_SUFFIX@
+#endif
 @BINPATH@/@DLL_PREFIX@nspr4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plc4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plds4@DLL_SUFFIX@
@@ -50,14 +54,18 @@
 #else
 @BINPATH@/@DLL_PREFIX@mozjs@DLL_SUFFIX@
 #endif
-#ifdef XP_UNIX
+#ifndef XP_WIN32
 @BINPATH@/components/@DLL_PREFIX@jsd@DLL_SUFFIX@
 #else
 @BINPATH@/components/@DLL_PREFIX@jsd3250@DLL_SUFFIX@
 #endif
 #ifndef MOZILLA_1_9_2_BRANCH
+#ifndef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@xpinstall@DLL_SUFFIX@
-#elifdef XP_WIN32
+#else
+@BINPATH@/components/@DLL_PREFIX@xpinstal@DLL_SUFFIX@
+#endif
+#elifndef XP_UNIX
 @BINPATH@/components/@DLL_PREFIX@xpinstal@DLL_SUFFIX@
 #else
 @BINPATH@/components/@DLL_PREFIX@xpinstall@DLL_SUFFIX@
@@ -105,11 +113,20 @@
 #ifdef MOZILLA_1_9_2_BRANCH
 @BINPATH@/@DLL_PREFIX@sqlite3@DLL_SUFFIX@
 #else
+#ifdef XP_OS2
+@BINPATH@/@DLL_PREFIX@mozsqlt3@DLL_SUFFIX@
+#else
 @BINPATH@/@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
+#endif
 #endif
 #ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/run-mozilla.sh
 @BINPATH@/icons/*.png
+#endif
+
+; [OS/2]
+#ifdef XP_OS2
+@BINPATH@/MozSounds.cmd
 #endif
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -145,7 +162,9 @@
 @BINPATH@/components/nsActivityManager.js
 @BINPATH@/components/nsActivityManagerUI.js
 @BINPATH@/components/nsMailNewsCommandLineHandler.js
+#ifndef XP_OS2
 @BINPATH@/components/shellservice.xpt
+#endif
 @BINPATH@/components/xpcom_base.xpt
 @BINPATH@/components/xpcom_system.xpt
 @BINPATH@/components/xpcom_components.xpt
@@ -165,7 +184,7 @@
 @BINPATH@/chrome/comm.manifest
 @BINPATH@/chrome/messenger.jar
 @BINPATH@/chrome/messenger.manifest
-#ifdef XP_WIN32
+#ifndef XP_UNIX
 @BINPATH@/chrome/icons/default/abcardWindow.ico
 @BINPATH@/chrome/icons/default/addressbookWindow.ico
 @BINPATH@/chrome/icons/default/messengerWindow.ico
@@ -193,7 +212,9 @@
 #endif
 @BINPATH@/components/mailContentHandler.js
 @BINPATH@/components/nsMailDefaultHandler.js
+#ifndef XP_OS2
 @BINPATH@/components/nsSetDefaultMail.js
+#endif
 @BINPATH@/components/offlineStartup.js
 @BINPATH@/components/steelApplication.js
 
@@ -645,10 +666,12 @@
 #ifdef XP_MACOSX
 @BINPATH@/crashreporter.app/
 #else
+#ifndef XP_OS2
 @BINPATH@/crashreporter@BIN_SUFFIX@
 @BINPATH@/crashreporter.ini
 #ifdef XP_UNIX
 @BINPATH@/Throbber-small.gif
+#endif
 #endif
 #endif
 
@@ -663,22 +686,43 @@
 
 #ifndef MOZ_STATIC_BUILD
 #ifdef ACCESSIBILITY
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@access@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
+#endif
 #endif
 @BINPATH@/components/@DLL_PREFIX@appcomps@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@auth@DLL_SUFFIX@
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@autocfg@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@autoconfig@DLL_SUFFIX@
+#endif
 @BINPATH@/components/@DLL_PREFIX@caps@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@chardet@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@chrome@DLL_SUFFIX@
 #ifndef MOZILLA_1_9_2_BRANCH
+#ifndef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@commandlines@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@htmlpars@DLL_SUFFIX@
-#ifdef XP_WIN32
+#endif
+#ifndef XP_UNIX
 @BINPATH@/components/@DLL_PREFIX@mailcmp@DLL_SUFFIX@
 #else
 @BINPATH@/components/@DLL_PREFIX@mailcomps@DLL_SUFFIX@
 #endif
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@cmdlines@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@gkparser@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@appshell@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@perms@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@spellchk@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@strgcmps@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@tkautoc@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@tkitcmps@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@xpautoc@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@nsappshell@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@permissions@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@spellchecker@DLL_SUFFIX@
@@ -686,7 +730,8 @@
 @BINPATH@/components/@DLL_PREFIX@tkautocomplete@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@toolkitcomps@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
-#elifdef XP_WIN32
+#endif
+#elifndef XP_UNIX
 @BINPATH@/components/@DLL_PREFIX@cmdlines@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@gkparser@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@mailcmp@DLL_SUFFIX@
@@ -712,11 +757,19 @@
 @BINPATH@/components/@DLL_PREFIX@composer@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@cookie@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@docshell@DLL_SUFFIX@
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@embedcmp@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@embedcomponents@DLL_SUFFIX@
+#endif
 #ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/components/@DLL_PREFIX@fileview@DLL_SUFFIX@
 #endif
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@gkgfxthb@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@gkgfxthebes@DLL_SUFFIX@
+#endif
 @BINPATH@/components/@DLL_PREFIX@gklayout@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@gkplugin@DLL_SUFFIX@
 #ifdef XP_UNIX
@@ -726,7 +779,11 @@
 @BINPATH@/components/@DLL_PREFIX@widget_gtk2@DLL_SUFFIX@
 #endif
 #else
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@wdgtos2@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@gkwidget@DLL_SUFFIX@
+#endif
 #endif
 @BINPATH@/components/@DLL_PREFIX@i18n@DLL_SUFFIX@
 #ifndef UNIX_BUT_NOT_MAC
@@ -760,9 +817,18 @@
 @BINPATH@/components/@DLL_PREFIX@system-pref@DLL_SUFFIX@
 #endif
 @BINPATH@/components/@DLL_PREFIX@txmgr@DLL_SUFFIX@
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@mozuconv@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@uconv@DLL_SUFFIX@
+#endif
 @BINPATH@/components/@DLL_PREFIX@ucvmath@DLL_SUFFIX@
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@ucdet@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@universalchardet@DLL_SUFFIX@
+#endif
+#ifndef XP_OS2
 #ifdef XP_UNIX
 #ifndef XP_MACOSX
 @BINPATH@/components/@DLL_PREFIX@unixproxy@DLL_SUFFIX@
@@ -772,16 +838,24 @@
 #else
 @BINPATH@/components/@DLL_PREFIX@windowsproxy@DLL_SUFFIX@
 #endif
+#endif
 @BINPATH@/components/@DLL_PREFIX@webbrwsr@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@windowds@DLL_SUFFIX@
 #ifdef XP_WIN32
 @BINPATH@/components/@DLL_PREFIX@xpc3250@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@xppref32@DLL_SUFFIX@
+#elifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@xpconect@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@pref@DLL_SUFFIX@
 #else
 @BINPATH@/components/@DLL_PREFIX@xpconnect@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@pref@DLL_SUFFIX@
 #endif
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@zipwrite@DLL_SUFFIX@
+#else
 @BINPATH@/components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
+#endif
 @BINPATH@/@DLL_PREFIX@gkgfx@DLL_SUFFIX@
 #ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/@DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
