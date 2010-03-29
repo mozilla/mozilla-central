@@ -57,7 +57,7 @@
 
 #ifdef XP_MACOSX
 
-#include <Errors.h>
+#include <Carbon/Carbon.h>
 
 /*
 **	Local Functions prototypes.

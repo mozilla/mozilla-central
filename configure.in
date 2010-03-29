@@ -4865,7 +4865,6 @@ cairo-cocoa)
     else
     TK_LIBS='-framework QuartzCore -framework Carbon -framework AddressBook'
     fi
-    TK_CFLAGS="-I${MACOS_SDK_DIR}/Developer/Headers/FlatCarbon"
     CFLAGS="$CFLAGS $TK_CFLAGS"
     CXXFLAGS="$CXXFLAGS $TK_CFLAGS"
     ;;
