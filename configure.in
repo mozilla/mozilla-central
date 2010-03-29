@@ -5462,6 +5462,27 @@ MOZ_ARG_DISABLE_BOOL(universalchardet,
   MOZ_UNIVERSALCHARDET=1 )
 
 dnl ========================================================
+dnl = Breakpad crash reporting (on by default on supported platforms)
+dnl ========================================================
+
+if (test "$OS_ARCH" = "WINNT" -a -z "$GNU_CC" \
+    || test "$OS_ARCH" = "Darwin" \
+    || test "$OS_ARCH" = "Linux" -a "$CPU_ARCH" = "x86" \
+    || test "$OS_ARCH" = "SunOS") \
+   && test -z "$HAVE_64BIT_OS"; then
+   MOZ_CRASHREPORTER=1
+fi
+
+MOZ_ARG_DISABLE_BOOL(crashreporter,
+[  --disable-crashreporter          Disable breakpad crash reporting],
+    MOZ_CRASHREPORTER=,
+    MOZ_CRASHREPORTER=1)
+
+if test -n "$MOZ_CRASHREPORTER"; then
+   AC_DEFINE(MOZ_CRASHREPORTER)
+fi
+
+dnl ========================================================
 dnl SVG
 dnl ========================================================
 if test "$MOZILLA_1_9_2_BRANCH" = "1"; then

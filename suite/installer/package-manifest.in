@@ -68,7 +68,9 @@
 @BINPATH@/@DLL_PREFIX@xul@DLL_SUFFIX@
 #endif
 #endif
-#ifdef XP_WIN32
+#ifdef WINCE
+@BINPATH@/mozce_shunt.dll
+#elifdef XP_WIN32
 #ifndef MOZ_MEMORY
 @BINPATH@/Microsoft.VC80.CRT.manifest
 @BINPATH@/msvcm80.dll
@@ -413,7 +415,9 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/suitebrowser.xpt
 @BINPATH@/components/suitecommon.xpt
 @BINPATH@/components/suitefeeds.xpt
+#ifndef WINCE
 @BINPATH@/components/suitemigration.xpt
+#endif
 @BINPATH@/components/toolkitprofile.xpt
 #ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/components/toolkitremote.xpt
@@ -723,9 +727,9 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/updater@BIN_SUFFIX@
 #endif
 
-#ifndef XP_OS2
 ; [Crash Reporter]
 ;
+#ifdef MOZ_CRASHREPORTER
 #ifdef XP_MACOSX
 @BINPATH@/crashreporter.app/
 #else
@@ -735,6 +739,7 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/Throbber-small.gif
 #endif
 #endif
+; MOZ_CRASHREPORTER
 #endif
 
 ; [ActiveX]

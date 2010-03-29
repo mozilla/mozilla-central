@@ -98,6 +98,14 @@ components/@DLL_PREFIX@xmlextras@DLL_SUFFIX@
 #ifdef XP_WIN
 components/xpinstal.dll
 #endif
+#ifndef MOZ_CRASHREPORTER
+#ifdef XP_MACOSX
+crashreporter.app/
+#else
+crashreporter@BIN_SUFFIX@
+crashreporter.ini
+#endif
+#endif
 defaults/wallet/DistinguishedSchema.tbl
 defaults/wallet/FieldSchema.tbl
 defaults/wallet/PositionalSchema.tbl
@@ -183,6 +191,13 @@ res/unixcharset.properties
 res/viewsource.css
 res/wincharset.properties
 @DLL_PREFIX@sqlite3@DLL_SUFFIX@
+#ifndef MOZ_CRASHREPORTER
+#ifdef XP_UNIX
+#ifndef XP_MACOSX
+Throbber-small.gif
+#endif
+#endif
+#endif
 #ifdef XP_MACOSX
 updater.app/Contents/MacOS/updater.ini
 #endif
