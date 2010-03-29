@@ -21,6 +21,9 @@
  *
  * Contributor(s):
  *   Matthew Willis <lilmatt@mozilla.com>
+ *   Diego Mira David <diegomd86@gmail.com>
+ *   Eduardo Teruo Katayama <eduardo@ime.usp.br>
+ *   Glaucus Augustus Grecco Cardoso <glaucus@ime.usp.br>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,6 +42,8 @@
 /**
  * Prints a two column view of a week of events, much like a paper day-planner
  */
+
+Components.utils.import("resource://calendar/modules/calPrintUtils.jsm");
 
 function calWeekPrinter() {
     this.wrappedJSObject = this;
@@ -68,10 +73,8 @@ function weekPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
             <head>
                 <title>{aTitle}</title>
                 <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
-                <style type='text/css'/>
+                <link rel='stylesheet' type='text/css' href='chrome://calendar/skin/calendar-printing.css'/>
             </head>);
-    html.head.style = ".main-table { font-size: 26px; font-weight:bold; }\n";
-    html.head.style += ".day-name { border: 1px solid #000; background-color: #e0e0e0; font-size: 12px; font-weight: bold; }\n";
 
     var body = <body/>;
 
@@ -182,6 +185,8 @@ function weekPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
         // Make sure each month gets put on its own page
         body.appendChild(<br style="page-break-after: always;"/>);
     }
+    let tasks = cal.print.getTasksWithoutDueDate(aItems, date);
+    body.appendChild(tasks);
     html.appendChild(body);
 
     // Stream out the resulting HTML
@@ -207,7 +212,7 @@ function weekPrint_getDayTable(aDate, aItems) {
 
     // Add the formatted date string (in its own child HTML table)
     mainTd.appendChild(
-                     <table class='day-name' width='100%' style='border: 1px solid black;'>
+                     <table class='day-name' width='100%' style='background-color:white; border: 1px solid black;'>
                          <tr> 
                              <td align='center' valign='bottom'>{dateString}</td>
                          </tr>

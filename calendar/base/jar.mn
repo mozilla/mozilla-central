@@ -116,6 +116,7 @@ calendar.jar:
     skin/calendar/calendar-providerUninstall-dialog.css    (themes/common/calendar-providerUninstall-dialog.css)
     skin/calendar/calendar-overlay.png                     (themes/common/images/calendar-overlay.png)
     skin/calendar/category-overlay.png                     (themes/common/images/category-overlay.png)
+    skin/calendar/calendar-printing.css                    (themes/common/calendar-printing.css)
     skin/calendar/calendar-status.png                      (themes/common/images/calendar-status.png)
     skin/calendar/calendar-task-tree.css                   (themes/common/calendar-task-tree.css)
     skin/calendar/daypicker-background.png                 (themes/common/images/daypicker-background.png)

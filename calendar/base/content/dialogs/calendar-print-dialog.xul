@@ -28,6 +28,10 @@
    -   Chris Allen <chris@netinflux.com>
    -   Matthew Willis <mattwillis@gmail.com>
    -   Martin Schroeder <mschroeder@mozilla.x-home.org>
+   -   Joey Minta <jminta@gmail.com>
+   -   Diego Mira David <diegomd86@gmail.com>
+   -   Eduardo Teruo Katayama <eduardo@ime.usp.br>
+   -   Glaucus Augustus Grecco Cardoso <glaucus@ime.usp.br>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -106,15 +110,25 @@
         </grid>
       </groupbox>
 
-      <groupbox id="whatToPrintGroup">
+      <groupbox id="what-to-print-group">
         <caption label="&calendar.print.range.label;"/>
+        <grid id="grid-events-and-tasks">
+          <columns id="columns-for-events-and-tasks">
+            <column id="column-event">
+              <checkbox id="events" label="&calendar.print.events.label;" checked="true" oncommand="refreshHtml();"/>
+            </column>
+            <column id="column-tasks">
+              <checkbox id="tasks" label="&calendar.print.tasks.label;" checked="true" oncommand="refreshHtml();"/>
+            </column>
+          </columns>
+        </grid>
         <radiogroup id="view-field"
                     oncommand="refreshHtml();">
           <radio id="printCurrentViewRadio"
-                 label="&calendar.print.currentview.label;"
-                 value="currentview"/>
+                 label="&calendar.print.currentView2.label;"
+                 value="currentView"/>
           <radio id="selected"
-                 label="&calendar.print.selected.label;"
+                 label="&calendar.print.selectedEventsAndTasks.label;"
                  value="selected"/>
           <radio id="custom-range"
                  label="&calendar.print.custom.label;"
@@ -142,6 +156,11 @@
           </grid>
         </radiogroup>
       </groupbox>
+      <groupbox id="optionsGroup" label="&calendar.print.optionsGroup.label;">
+        <caption label="&calendar.print.optionsGroup.label;"/>
+        <checkbox id="tasks-with-no-due-date" label="&calendar.print.taskswithnoduedate.label;" checked="true" oncommand="refreshHtml();"/>
+        <checkbox id="completed-tasks" label="&calendar.print.completedtasks.label;" checked="true" oncommand="refreshHtml();"/>
+      </groupbox>
     </vbox>
 
     <splitter/>
@@ -149,6 +168,6 @@
     <iframe src="about:blank"
             id="content"
             flex="1"
-            style="border: 2px solid #3c3c3c; width:30em; height:30em;"/>
+            style="border: 2px solid #3c3c3c; width:30em; height:30em; background-color: white;"/>
   </hbox>
 </dialog>

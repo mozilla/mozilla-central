@@ -29,6 +29,10 @@
  *   Michiel van Leeuwen <mvl@exedo.nl>
  *   Matthew Willis <mattwillis@gmail.com>
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
+ *   Joey Minta <jminta@gmail.com>
+ *   Diego Mira David <diegomd86@gmail.com>
+ *   Eduardo Teruo Katayama <eduardo@ime.usp.br>
+ *   Glaucus Augustus Grecco Cardoso <glaucus@ime.usp.br>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -98,45 +102,10 @@ function loadCalendarPrintDialog() {
  *          properties containing the appropriate values.
  */
 function getEventsAndDialogSettings(receiverFunc) {
-    let settings = {};
-    let tempTitle = document.getElementById("title-field").value;
-    settings.title = (tempTitle || calGetString("calendar", "Untitled"));
-    settings.layoutCId = document.getElementById("layout-field").value;
-    settings.start = null;
-    settings.end = null;
-    settings.eventList = null;
-
-    let theView = getCalendarView();
-    switch (document.getElementById("view-field").selectedItem.value) {
-        case "currentview":
-        case "": //just in case
-            settings.start = theView.startDay;
-            settings.end   = theView.endDay;
-            break;
-        case "selected":
-            settings.eventList = theView.getSelectedItems({});
-            break;
-        case "custom":
-            // We return the time from the timepickers using the selected
-            // timezone, as not doing so in timezones with a positive offset
-            // from UTC may cause the printout to include the wrong days.
-            let currentTimezone = calendarDefaultTimezone();
-            settings.start = jsDateToDateTime(document.getElementById("start-date-picker").value);
-            settings.start = settings.start.getInTimezone(currentTimezone);
-            settings.end   = jsDateToDateTime(document.getElementById("end-date-picker").value);
-            settings.end   = settings.end.getInTimezone(currentTimezone);
-            break ;
-        default:
-            Components.utils.reportError("Calendar print dialog: No calendar view found!");
-    }
-
-    if (settings.eventList) {
-        receiverFunc(settings);
+    let settings = getWhatToPrintSettings();
+    if (settings.eventList.length != 0) {
+        receiverFunc(setting);
     } else {
-        // end isn't exclusive, so we need to add one day
-        settings.end = settings.end.clone();
-        settings.end.day = settings.end.day + 1;
-        settings.eventList = [];
         let listener = {
             onOperationComplete:
             function onOperationComplete(aCalendar, aStatus, aOperationType, aId, aDateTime) {
@@ -145,13 +114,87 @@ function getEventsAndDialogSettings(receiverFunc) {
             onGetResult:
             function onGetResult(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
                 settings.eventList = settings.eventList.concat(aItems);
+                if (!settings.printTasksWithNoDueDate) {
+                    eventWithDueDate = [];
+                    for each (var item in settings.eventList) {
+                        if (item.dueDate || item.endDate) {
+                            eventWithDueDate.push(item)
+                        }
+                    }
+                    settings.eventList = eventWithDueDate;
+                }
             }
         };
-        window.opener.getCompositeCalendar().getItems(
-            Components.interfaces.calICalendar.ITEM_FILTER_TYPE_EVENT |
-            Components.interfaces.calICalendar.ITEM_FILTER_CLASS_OCCURRENCES,
-            0, settings.start, settings.end, listener);
+        window.opener.getCompositeCalendar().getItems(getFilter(settings), 0, settings.start, settings.end, listener);
     }
+}
+
+function getWhatToPrintSettings() {
+    let tempTitle = document.getElementById("title-field").value;
+    let settings = new Object();
+    settings.title = (tempTitle || calGetString("calendar", "Untitled"));
+    settings.layoutCId = document.getElementById("layout-field").value;
+    settings.start = null;
+    settings.end = null;
+    settings.eventList = [];
+    settings.printEvents = document.getElementById("events").checked;
+    settings.printTasks = document.getElementById("tasks").checked;
+    settings.printCompletedTasks = document.getElementById("completed-tasks").checked;
+    settings.printTasksWithNoDueDate = document.getElementById("tasks-with-no-due-date").checked;
+    var theView = getCalendarView();
+    switch (document.getElementById("view-field").selectedItem.value) {
+    case 'currentView':
+    case '': //just in case
+        settings.start = theView.startDay;
+        settings.end = theView.endDay;
+        settings.end = settings.end.clone();
+        settings.end.day += 1;
+        break;
+    case 'selected':
+        if (settings.printEvents) {
+            settings.eventList = theView.getSelectedItems({});
+        }
+        if (settings.printTasks) {
+            selectedTasks = window.opener.document.getElementById("unifinder-todo-tree").selectedTasks;
+            for each (var task in selectedTasks) {
+                settings.eventList.push(task);
+            }
+        }
+        break;
+    case 'custom':
+        // We return the time from the timepickers using the selected
+        // timezone, as not doing so in timezones with a positive offset
+        // from UTC may cause the printout to include the wrong days.
+        var currentTimezone = calendarDefaultTimezone();
+        settings.start = jsDateToDateTime(document.getElementById("start-date-picker").value);
+        settings.start = settings.start.getInTimezone(currentTimezone);
+        settings.end = jsDateToDateTime(document.getElementById("end-date-picker").value);
+        settings.end = settings.end.getInTimezone(currentTimezone);
+        settings.end = settings.end.clone();
+        settings.end.day += 1;
+        break ;
+    default:
+        dump("Error : no case in printDialog.js::printCalendar()");
+    }
+    return settings;
+}
+
+function getFilter(settings) {
+    let filter = 0;
+    if (settings.printTasks) {
+        filter |= Components.interfaces.calICalendar.ITEM_FILTER_TYPE_TODO;
+        if (settings.printCompletedTasks) {
+            filter |= Components.interfaces.calICalendar.ITEM_FILTER_COMPLETED_ALL;
+        } else {
+            filter |= Components.interfaces.calICalendar.ITEM_FILTER_COMPLETED_NO;
+        }
+    }
+
+    if (settings.printEvents) {
+        filter |= Components.interfaces.calICalendar.ITEM_FILTER_TYPE_EVENT |
+                  Components.interfaces.calICalendar.ITEM_FILTER_CLASS_OCCURRENCES;
+    }
+    return filter;
 }
 
 /**

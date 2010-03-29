@@ -18,15 +18,19 @@
    - Portions created by the Initial Developer are Copyright (C) 2001
    - the Initial Developer. All Rights Reserved.
    -
-   - Contributor(s): Garth Smedley <garths@oeone.com>
-   -                 Mike Potter <mikep@oeone.com>
-   -                 Chris Charabaruk <coldacid@meldstar.com>
-   -                 ArentJan Banck <ajbanck@planet.nl>
-   -                 Eric Belhaire <belhaire@ief.u-psud.fr>
-   -                 Matthew Willis <mattwillis@gmail.com>
-   -                 Simon Paquet <bugzilla@babylonsounds.com>
-   -                 Stefan Sitter <ssitter@gmail.com>
-   -                 Philipp Kewisch <mozilla@kewis.ch>
+   - Contributor(s):
+   -   Garth Smedley <garths@oeone.com>
+   -   Mike Potter <mikep@oeone.com>
+   -   Chris Charabaruk <coldacid@meldstar.com>
+   -   ArentJan Banck <ajbanck@planet.nl>
+   -   Eric Belhaire <belhaire@ief.u-psud.fr>
+   -   Matthew Willis <mattwillis@gmail.com>
+   -   Simon Paquet <bugzilla@babylonsounds.com>
+   -   Stefan Sitter <ssitter@gmail.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Diego Mira David <diegomd86@gmail.com>
+   -   Eduardo Teruo Katayama <eduardo@ime.usp.br>
+   -   Glaucus Augustus Grecco Cardoso <glaucus@ime.usp.br>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -326,12 +330,18 @@
 <!ENTITY calendar.print.title.label "Title:">
 <!ENTITY calendar.print.layout.label "Layout:">
 <!ENTITY calendar.print.range.label "What to Print">
-<!ENTITY calendar.print.currentview.label "Events in current view">
+<!ENTITY calendar.print.currentView2.label "Current view">
+<!ENTITY calendar.print.selectedEventsAndTasks.label "Selected events/tasks">
+<!ENTITY calendar.print.tasks.label "Tasks">
+<!ENTITY calendar.print.events.label "Events">
 <!ENTITY calendar.print.selected.label "Selected events">
 <!ENTITY calendar.print.custom.label "Custom date range:">
 <!ENTITY calendar.print.from.label "From:">
 <!ENTITY calendar.print.to.label "To:">
 <!ENTITY calendar.print.settingsGroup.label "Print Settings">
+<!ENTITY calendar.print.optionsGroup.label "Options">
+<!ENTITY calendar.print.taskswithnoduedate.label "Tasks with no due date">
+<!ENTITY calendar.print.completedtasks.label "Completed tasks">
 
 <!-- Error reporting -->
 <!ENTITY calendar.error.detail "Details…">

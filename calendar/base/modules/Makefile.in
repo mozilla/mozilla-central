@@ -50,6 +50,7 @@ EXTRA_JS_MODULES = \
     calUtils.jsm \
     calIteratorUtils.jsm \
     calItipUtils.jsm \
+    calPrintUtils.jsm \
     calProviderUtils.jsm \
     calAuthUtils.jsm \
     $(NULL)

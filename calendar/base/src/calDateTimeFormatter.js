@@ -248,10 +248,16 @@ function formatInterval(aStartDate, aEndDate) {
         var endTime = this.formatTime(endDate);
         // non-allday, so need to return date and time
         if (sameDay) {
-            // End is on the same day as start, so we can leave out the
-            // end date (but still include end time)
-            // "5 Jan 2006 13:00 - 17:00"
-            return calGetString("calendar", "datetimeIntervalOnSameDay", [startDateString, startTime, endTime]);
+            // End is on the same day as start, so we can leave out the end date
+            if (startTime == endTime) {
+                // End time is on the same time as start, so we can leave out the end time
+                // "5 Jan 2006 13:00"
+                return calGetString("calendar", "datetimeIntervalOnSameDateTime", [startDateString, startTime]);
+            } else {
+                // still include end time
+                // "5 Jan 2006 13:00 - 17:00"
+                return calGetString("calendar", "datetimeIntervalOnSameDay", [startDateString, startTime, endTime]);
+            }
         } else {
             // Spanning multiple days, so need to include date and time
             // for start and end

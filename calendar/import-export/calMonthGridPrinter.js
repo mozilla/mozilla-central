@@ -16,6 +16,10 @@
  *
  * The Initial Developer of the Original Code is
  *   Joey Minta <jminta@gmail.com>
+ *   Diego Mira David <diegomd86@gmail.com>
+ *   Eduardo Teruo Katayama <eduardo@ime.usp.br>
+ *   Glaucus Augustus Grecco Cardoso <glaucus@ime.usp.br>
+ *
  * Portions created by the Initial Developer are Copyright (C) 2006
  * the Initial Developer. All Rights Reserved.
  *
@@ -35,6 +39,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+
+Components.utils.import("resource://calendar/modules/calPrintUtils.jsm");
 
 /**
  * Prints a rough month-grid of events/tasks
@@ -67,13 +73,13 @@ function monthPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
             <head>
                 <title>{aTitle}</title>
                 <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
-                <style type='text/css'/>
+                <link rel='stylesheet' type='text/css' href='chrome://calendar/skin/calendar-printing.css'/>
             </head>);
     html.head.style = ".main-table { font-size: 26px; font-weight: bold; }\n";
-    html.head.style += ".day-name { border: 1px solid black; background-color: #e0e0e0; font-size: 12px; font-weight: bold; }\n";
+    html.head.style += ".day-name { border: 1px solid black; background-color: white; font-size: 12px; font-weight: bold; }\n";
     html.head.style += ".day-box { border: 1px solid black; vertical-align: top; }\n";
-    html.head.style += ".out-of-month { background-color: gray !important; }\n";
-    html.head.style += ".day-off { background-color: #D3D3D3 !important; }\n";
+    html.head.style += ".out-of-month { background-color: white !important; }\n";
+    html.head.style += ".day-off { background-color: white !important; }\n";
 
     // If aStart or aEnd weren't passed in, we need to calculate them based on
     // aItems data.
@@ -191,10 +197,10 @@ function monthPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
         body.appendChild(<br style="page-break-after:always;"/>);
         date.month++;
     }
+    let tasks = cal.print.getTasksWithoutDueDate(aItems, date);
+    body.appendChild(tasks);
     html.appendChild(body);
-
-    var convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
-                               .createInstance(Components.interfaces.nsIConverterOutputStream);
+    let convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"].createInstance(Components.interfaces.nsIConverterOutputStream);
     convStream.init(aStream, 'UTF-8', 0, 0x0000);
     convStream.writeString(html.toXMLString());
 };

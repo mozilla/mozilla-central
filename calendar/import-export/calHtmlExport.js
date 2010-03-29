@@ -100,7 +100,7 @@ function html_exportToStream(aStream, aCount, aItems, aTitle) {
     html.head.style += "div.value {margin-left: 20px;}\n";
     html.head.style += "abbr {border: none;}\n";
     html.head.style += ".summarykey {display: none;}\n";
-    html.head.style += "div.summary {background: lightgray; font-weight: bold; margin: 0px; padding: 3px;}\n";
+    html.head.style += "div.summary {background: white; font-weight: bold; margin: 0px; padding: 3px;}\n";
 
     // Sort aItems
     function sortFunc(a, b) {
@@ -128,25 +128,32 @@ function html_exportToStream(aStream, aCount, aItems, aTitle) {
         // Put properties of the event in a definition list
         // Use hCalendar classes as bonus
         var ev = <div class='vevent'/>;
+        var fmtTaskCompleted = calGetString("calendar",
+                                            "htmlTaskCompleted",
+                                            [item.title]);
 
         // Title
         ev.appendChild(
             <div>
                 <div class='key summarykey'>{prefixTitle}</div>
-                <div class='value summary'>{item.title}</div>
+                <div class='value summary'>{item.isCompleted ? fmtTaskCompleted : item.title}</div>
             </div>
         );
         var startDate = item[calGetStartDateProp(item)];
+        var endDate = item[calGetEndDateProp(item)];
         var dateString = dateFormatter.formatItemInterval(item);
-        ev.appendChild(
-            <div>
-                <div class='key'>{prefixWhen}</div>
-                <div class='value'>
-                    <abbr class='dtstart' title={startDate ? startDate.icalString : "none"}>{dateString}</abbr>
-                </div>
-            </div>
-        );
 
+        if (startDate != null || endDate != null) {
+            // This is a task with a start or due date, format accordingly
+            ev.appendChild(
+                <div>
+                    <div class='key'>{prefixWhen}</div>
+                    <div class='value'>
+                        <abbr class='dtstart' title={startDate ? startDate.icalString : "none"}>{dateString}</abbr>
+                    </div>
+                </div>
+            );
+        }
         // Location
         if (item.getProperty('LOCATION')) {
             ev.appendChild(
