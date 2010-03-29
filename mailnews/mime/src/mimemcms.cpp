@@ -188,6 +188,18 @@ MimeMultCMS_init (MimeObject *obj)
        !PL_strcasecmp(micalg, PARAM_MICALG_SHA1_4) ||
        !PL_strcasecmp(micalg, PARAM_MICALG_SHA1_5))
     hash_type = nsICryptoHash::SHA1;
+  else if (!PL_strcasecmp(micalg, PARAM_MICALG_SHA256) ||
+       !PL_strcasecmp(micalg, PARAM_MICALG_SHA256_2) ||
+       !PL_strcasecmp(micalg, PARAM_MICALG_SHA256_3))
+    hash_type = nsICryptoHash::SHA256;
+  else if (!PL_strcasecmp(micalg, PARAM_MICALG_SHA384) ||
+       !PL_strcasecmp(micalg, PARAM_MICALG_SHA384_2) ||
+       !PL_strcasecmp(micalg, PARAM_MICALG_SHA384_3))
+    hash_type = nsICryptoHash::SHA384;
+  else if (!PL_strcasecmp(micalg, PARAM_MICALG_SHA512) ||
+       !PL_strcasecmp(micalg, PARAM_MICALG_SHA512_2) ||
+       !PL_strcasecmp(micalg, PARAM_MICALG_SHA512_3))
+    hash_type = nsICryptoHash::SHA512;
   else if (!PL_strcasecmp(micalg, PARAM_MICALG_MD2))
     hash_type = nsICryptoHash::MD2;
   else

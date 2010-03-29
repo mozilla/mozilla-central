@@ -681,6 +681,15 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
                       !PL_strcasecmp(micalg, PARAM_MICALG_SHA1_3) ||
                       !PL_strcasecmp(micalg, PARAM_MICALG_SHA1_4) ||
                       !PL_strcasecmp(micalg, PARAM_MICALG_SHA1_5) ||
+                      !PL_strcasecmp(micalg, PARAM_MICALG_SHA256) ||
+                      !PL_strcasecmp(micalg, PARAM_MICALG_SHA256_2) ||
+                      !PL_strcasecmp(micalg, PARAM_MICALG_SHA256_3) ||
+                      !PL_strcasecmp(micalg, PARAM_MICALG_SHA384) ||
+                      !PL_strcasecmp(micalg, PARAM_MICALG_SHA384_2) ||
+                      !PL_strcasecmp(micalg, PARAM_MICALG_SHA384_3) ||
+                      !PL_strcasecmp(micalg, PARAM_MICALG_SHA512) ||
+                      !PL_strcasecmp(micalg, PARAM_MICALG_SHA512_2) ||
+                      !PL_strcasecmp(micalg, PARAM_MICALG_SHA512_3) ||
                       !PL_strcasecmp(micalg, PARAM_MICALG_MD2))))
             clazz = (MimeObjectClass *)&mimeMultipartSignedCMSClass;
           else

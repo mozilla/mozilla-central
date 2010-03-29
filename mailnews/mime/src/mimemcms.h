@@ -40,6 +40,19 @@
 
 #include "mimemsig.h"
 
+#ifdef MOZILLA_1_9_2_BRANCH
+// On trunk these are defined in nsMimeTypes.h
+#define PARAM_MICALG_SHA256                 "sha-256"
+#define PARAM_MICALG_SHA256_2               "sha256"
+#define PARAM_MICALG_SHA256_3               "2.16.840.1.101.3.4.2.1"
+#define PARAM_MICALG_SHA384                 "sha-384"
+#define PARAM_MICALG_SHA384_2               "sha384"
+#define PARAM_MICALG_SHA384_3               "2.16.840.1.101.3.4.2.2"
+#define PARAM_MICALG_SHA512                 "sha-512"
+#define PARAM_MICALG_SHA512_2               "sha512"
+#define PARAM_MICALG_SHA512_3               "2.16.840.1.101.3.4.2.3"
+#endif
+
 class nsICMSMessage;
 
 /* The MimeMultipartSignedCMS class implements a multipart/signed MIME 
