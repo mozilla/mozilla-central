@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>thunderbird-bin</string>
 	<key>CFBundleGetInfoString</key>
-	<string>%APP_NAME% %APP_VERSION%, © 1998-2010 Contributors</string>
+	<string>%APP_NAME% %APP_VERSION%</string>
 	<key>CFBundleIconFile</key>
 	<string>thunderbird</string>
 	<key>CFBundleIdentifier</key>

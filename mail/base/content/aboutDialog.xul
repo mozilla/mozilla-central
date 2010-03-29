@@ -63,7 +63,7 @@
     <deck id="modes" flex="1">
       <vbox flex="1" id="clientBox">
 #expand <label id="versionField" value="&aboutVersion; __MOZ_APP_VERSION__"/>
-        <description id="copyright">&copyrightText;</description>
+        <description id="copyright">&logoTrademark;</description>
         <textbox id="userAgent" multiline="true" readonly="true" flex="1"/>
       </vbox>
 

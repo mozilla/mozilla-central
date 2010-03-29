@@ -11,6 +11,11 @@
 }
 
 #clientBox {
+  /* XXX Add a min-width almost equal to chrome://branding/content/about.png's
+   * width, to maintain the dialog layout, and not have white lines down the
+   * side.
+   */
+  min-width: 298px;
   background-color: #FFFFFF;
   background-image: url("about:logo");
   background-repeat: no-repeat;
