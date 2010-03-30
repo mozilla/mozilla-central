@@ -43,6 +43,7 @@ var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers',
                        'search-window-helpers'];
 
 Cu.import("resource://app/modules/quickSearchManager.js");
+Cu.import("resource://app/modules/sessionStoreManager.js");
 
 var folder;
 var setFoo, setBar;
@@ -256,6 +257,11 @@ function test_search_mode_persistence_subject_to_cc_filter()
   plan_for_window_close(mc);
   mc.window.close();
   wait_for_window_close();
+
+  // XXX we force the session store manager to think it's not initialized
+  // so that it'll load the session file and restore the state of the last
+  // open window 3pane window.
+  sessionStoreManager._initialized = false;
 
   plan_for_new_window("mail:3pane");
   _open_3pane_window();

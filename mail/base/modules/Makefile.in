@@ -52,6 +52,7 @@ EXTRA_JS_MODULES = \
   quickSearchManager.js \
   searchSpec.js \
   MsgHdrSyntheticView.js \
+  sessionStoreManager.js \
   $(NULL)
 
 include $(topsrcdir)/config/rules.mk

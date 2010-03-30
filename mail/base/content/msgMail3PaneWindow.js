@@ -49,6 +49,7 @@ Components.utils.import("resource://app/modules/MailConsts.js");
 Components.utils.import("resource://app/modules/errUtils.js");
 Components.utils.import("resource://app/modules/IOUtils.js");
 Components.utils.import("resource://app/modules/migration.jsm");
+Components.utils.import("resource://app/modules/sessionStoreManager.js");
 
 /* This is where functions related to the 3 pane window are kept */
 
@@ -474,11 +475,7 @@ function OnUnloadMessenger()
   gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
   gPrefBranch.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
 
-  // - Persist the tab state and then close the tabs. If another 3-pane window
-  //   is open, do not persist tab state.
-  // XXX do not assume there is only ever one 3-pane.
-  if (!FindOther3PaneWindow())
-    persistTabState();
+  sessionStoreManager.unloadingWindow(window);
 
   let tabmail = document.getElementById("tabmail");
   tabmail.closeTabs();
@@ -498,31 +495,14 @@ function OnUnloadMessenger()
 }
 
 /**
- * This currently only happens at window unload.
+ * Called by the session store manager periodically and at shutdown to get
+ * the state of this window for persistence.
  */
-function persistTabState()
+function getWindowStateForSessionPersistence()
 {
   let tabmail = document.getElementById('tabmail');
   let tabsState = tabmail.persistTabs();
-  // build the state like we aren't assuming a single 3-pane
-  let state = {
-    rev: 0,
-    windows: [{
-        type: "3pane",
-        tabs: tabsState
-      }
-    ]
-  };
-  let data = JSON.stringify(state);
-  let file = Components.classes["@mozilla.org/file/directory_service;1"]
-                       .getService(Components.interfaces.nsIProperties)
-                       .get("ProfD", Components.interfaces.nsIFile);
-  file.append("session.json");
-  let foStream = Components.classes["@mozilla.org/network/file-output-stream;1"]
-                   .createInstance(Components.interfaces.nsIFileOutputStream);
-  foStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
-  foStream.write(data, data.length);
-  foStream.close();
+  return { type: "3pane", tabs: tabsState };
 }
 
 /**
@@ -533,28 +513,19 @@ function persistTabState()
  *                             restored, and will continue to retain focus at
  *                             the end. This is needed if the window was opened
  *                             with a folder or a message as an argument.
+ *
+ * @return true if the restoration was successful, false otherwise.
  */
 function atStartupRestoreTabs(aDontRestoreFirstTab) {
-  let file = Components.classes["@mozilla.org/file/directory_service;1"]
-                       .getService(Components.interfaces.nsIProperties)
-                       .get("ProfD", Components.interfaces.nsIFile);
-  file.append("session.json");
-  if (!file.exists())
-    return false;
+  let state = sessionStoreManager.loadingWindow(window);
+  if (state) {
+    let tabsState = state.tabs;
+    let tabmail = document.getElementById("tabmail");
+    tabmail.restoreTabs(tabsState, aDontRestoreFirstTab);
+    return true;
+  }
 
-  let data = IOUtils.loadFileToString(file);
-
-  // delete the file before restoring state in case there is something
-  //  crash-inducing about the restoration process.  Also, this avoids weird
-  //  3pane behavior if you open any additional 3panes.
-  file.remove(false);
-
-  let state = JSON.parse(data);
-  let tabsState = state.windows[0].tabs;
-  let tabmail = document.getElementById('tabmail');
-  tabmail.restoreTabs(tabsState, aDontRestoreFirstTab);
-
-  return true;
+  return false;
 }
 
 function loadExtraTabs()
