@@ -241,6 +241,12 @@ var sessionStoreManager =
     let firstWindow = !this._initialized;
     if (firstWindow)
       this._init();
+    
+    // If we are seeing a new 3-pane, we are obviously not in a shutdown
+    // state anymore.  (This would happen if all the 3panes got closed but
+    // we did not quit because another window was open and then a 3pane showed
+    // up again.  This can happen in both unit tests and real life.)
+    this._shutdownStateSaved = false;
 
     let windowState = null;
     if (this._initialState && this._initialState.windows) {
