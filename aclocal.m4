@@ -11,10 +11,8 @@ builtin(include, mozilla/build/autoconf/pkg.m4)dnl
 builtin(include, mozilla/build/autoconf/freetype2.m4)dnl
 builtin(include, mozilla/build/autoconf/codeset.m4)dnl
 builtin(include, mozilla/build/autoconf/altoptions.m4)dnl
-builtin(include, mozilla/build/autoconf/mozprog.m4)dnl
 
 
-MOZ_PROG_CHECKMSYS()
 # Read the user's .mozconfig script.  We can't do this in
 # configure.in: autoconf puts the argument parsing code above anything
 # expanded from configure.in, and we need to get the configure options
