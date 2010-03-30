@@ -50,6 +50,7 @@ MOZ_STATIC_MAIL_BUILD=1
 MOZ_COMPOSER=1
 MOZ_SAFE_BROWSING=1
 MOZ_TOOLKIT_SEARCH=
+MOZ_PLACES=
 
 # Needed for the mozilla-central build side of the system.
 # Can be dropped when we branch MOZILLA_1_9_2_BRANCH
