@@ -51,9 +51,12 @@
  */
 function readFromXML(clientConfigXML)
 {
-  if (!"emailProvider" in clientConfigXML)
+  var exception;
+  if (typeof(clientConfigXML) != "xml" ||
+      !("emailProvider" in clientConfigXML))
   {
-    var stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
+    var stringBundle = getStringBundle(
+        "chrome://messenger/locale/accountCreationModel.properties");
     throw stringBundle.GetStringFromName("no_emailProvider.error");
   }
   var xml = clientConfigXML.emailProvider;
@@ -61,80 +64,178 @@ function readFromXML(clientConfigXML)
   var d = new AccountConfig();
   d.source = AccountConfig.kSourceXML;
 
-  d.id = sanitize.alphanumdash(xml.id);
-  if ("displayName" in xml)
-    d.displayName = sanitize.label(xml.displayName);
+  d.id = sanitize.hostname(xml.@id);
+  d.displayName = d.id;
+  try {
+    d.displayName = sanitize.label(xml.displayName[0]);
+  } catch (e) { logException(e); }
   for each (var domain in xml.domain)
-    d.domains.push(sanitize.hostname(domain));
+  {
+    try {
+      d.domains.push(sanitize.hostname(domain));
+    } catch (e) { logException(e); exception = e; }
+  }
+  if (domain.length == 0)
+    throw exception ? exception : "need proper <domain> in XML";
+  exception = null;
 
   // incoming server
-  var iX = xml.incomingServer[0]; // input (XML)
-  var iO = d.incoming; // output (object)
-  iO.type = sanitize.enum(iX.@type, ["pop3", "imap", "nntp"]);
-  iO.hostname = sanitize.hostname(iX.hostname);
-  iO.port = sanitize.integerRange(iX.port, 1, 65535);
-  iO.username = sanitize.string(iX.username); // may be a %VARIABLE%
-  iO.auth = sanitize.translate(iX.authentication,
-        { "password-clear" : Ci.nsMsgAuthMethod.passwordCleartext,
-          plain : Ci.nsMsgAuthMethod.passwordCleartext,
-          "password-encrypted" : Ci.nsMsgAuthMethod.passwordEncrypted,
-          secure : Ci.nsMsgAuthMethod.passwordEncrypted,
-          GSSAPI : Ci.nsMsgAuthMethod.GSSAPI,
-          NTLM : Ci.nsMsgAuthMethod.NTLM });
-  ddump("<authentication> = " + iX.authentication + ", incom.authMethod = " + iO.auth);
-  iO.socketType = sanitize.translate(iX.socketType, { plain : 1, SSL: 2, STARTTLS: 3 });
-  if (iO.type == "pop3" && "pop3" in iX)
+  for each (let iX in xml.incomingServer) // input (XML)
   {
-    if ("leaveMessagesOnServer" in iX.pop3)
-      iO.leaveMessagesOnServer = sanitize.boolean(iX.pop3.leaveMessagesOnServer);
-    if ("daysToLeaveMessagesOnServer" in iX.pop3)
-      iO.daysToLeaveMessagesOnServer = sanitize.integer(iX.pop3.daysToLeaveMessagesOnServer);
-    if ("downloadOnBiff" in iX.pop3)
-      iO.downloadOnBiff = sanitize.boolean(iX.pop3.downloadOnBiff);
+    let iO = d.createNewIncoming(); // output (object)
+    try {
+      // throws if not supported
+      iO.type = sanitize.enum(iX.@type, ["pop3", "imap", "nntp"]);
+      iO.hostname = sanitize.hostname(iX.hostname[0]);
+      iO.port = sanitize.integerRange(iX.port[0], 1, 65535);
+      // We need a username even for Kerberos, need it even internally.
+      iO.username = sanitize.string(iX.username[0]); // may be a %VARIABLE%
+
+      for each (let iXsocketType in iX.socketType)
+      {
+        try {
+          iO.socketType = sanitize.translate(iXsocketType,
+              { plain : 1, SSL: 2, STARTTLS: 3 });
+          break; // take first that we support
+        } catch (e) { exception = e; }
+      }
+      if (!iO.socketType)
+        throw exception ? exception : "need proper <socketType> in XML";
+      exception = null;
+
+      for each (let iXauth in iX.authentication)
+      {
+        try {
+          iO.auth = sanitize.translate(iXauth,
+              { "password-cleartext" : Ci.nsMsgAuthMethod.passwordCleartext,
+                "plain" : Ci.nsMsgAuthMethod.passwordCleartext, // @deprecated, remove
+                "password-encrypted" : Ci.nsMsgAuthMethod.passwordEncrypted,
+                "secure" : Ci.nsMsgAuthMethod.passwordEncrypted, // @deprecated, remove
+                "GSSAPI" : Ci.nsMsgAuthMethod.GSSAPI,
+                "NTLM" : Ci.nsMsgAuthMethod.NTLM });
+          break; // take first that we support
+        } catch (e) { exception = e; }
+      }
+      if (!iO.auth)
+        throw exception ? exception : "need proper <authentication> in XML";
+      exception = null;
+
+      // defaults are in accountConfig.js
+      if (iO.type == "pop3" && "pop3" in iX)
+      {
+        try {
+          if ("leaveMessagesOnServer" in iX.pop3[0])
+            iO.leaveMessagesOnServer =
+                sanitize.boolean(iX.pop3.leaveMessagesOnServer);
+          if ("daysToLeaveMessagesOnServer" in iX.pop3[0])
+            iO.daysToLeaveMessagesOnServer =
+                sanitize.integer(iX.pop3.daysToLeaveMessagesOnServer);
+        } catch (e) { logException(e); }
+        try {
+          if ("downloadOnBiff" in iX.pop3[0])
+            iO.downloadOnBiff = sanitize.boolean(iX.pop3.downloadOnBiff);
+        } catch (e) { logException(e); }
+      }
+
+      // processed successfully, now add to result object
+      if (!d.incoming.hostname) // first valid
+        d.incoming = iO;
+      else
+        d.incomingAlternatives.push(iO);
+    } catch (e) { exception = e; }
   }
+  if (!d.incoming.hostname)
+    // throw exception for last server
+    throw exception ? exception : "Need proper <incomingServer> in XML file";
+  exception = null;
 
   // outgoing server
-  var oX = xml.outgoingServer; // input (XML)
-  var oO = d.outgoing; // output (object)
-  if (!(oX.@type == "smtp"))
+  for each (let oX in xml.outgoingServer) // input (XML)
   {
-    var stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
-    throw stringBundle.GetStringFromName("outgoing_not_smtp.error");
+    let oO = d.createNewOutgoing(); // output (object)
+    try {
+      if (oX.@type != "smtp")
+      {
+        var stringBundle = getStringBundle(
+            "chrome://messenger/locale/accountCreationModel.properties");
+        throw stringBundle.GetStringFromName("outgoing_not_smtp.error");
+      }
+      oO.hostname = sanitize.hostname(oX.hostname[0]);
+      oO.port = sanitize.integerRange(oX.port[0], 1, 65535);
+
+      for each (let oXsocketType in oX.socketType)
+      {
+        try {
+          oO.socketType = sanitize.translate(oXsocketType,
+              { plain : 1, SSL: 2, STARTTLS: 3 });
+          break; // take first that we support
+        } catch (e) { exception = e; }
+      }
+      if (!oO.socketType)
+        throw exception ? exception : "need proper <socketType> in XML";
+      exception = null;
+
+      for each (let oXauth in oX.authentication)
+      {
+        try {
+          oO.auth = sanitize.translate(oXauth,
+              { "none" : Ci.nsMsgAuthMethod.none, // open relay
+                "client-IP-address" : Ci.nsMsgAuthMethod.none, // inside ISP or corp network
+                "smtp-after-pop" : Ci.nsMsgAuthMethod.none, // hope for the best
+                "password-cleartext" : Ci.nsMsgAuthMethod.passwordCleartext,
+                "plain" : Ci.nsMsgAuthMethod.passwordCleartext, // @deprecated, remove
+                "password-encrypted" : Ci.nsMsgAuthMethod.passwordEncrypted,
+                "secure" : Ci.nsMsgAuthMethod.passwordEncrypted, // @deprecated, remove
+                "GSSAPI" : Ci.nsMsgAuthMethod.GSSAPI,
+                "NTLM" : Ci.nsMsgAuthMethod.NTLM });
+          break; // take first that we support
+        } catch (e) { exception = e; }
+      }
+      if (!oO.auth)
+        throw exception ? exception : "need proper <authentication> in XML";
+      exception = null;
+
+      if ("username" in oX ||
+          // if password-based auth, we need a username,
+          // so go there anyways and throw.
+          oO.auth == Ci.nsMsgAuthMethod.passwordCleartext ||
+          oO.auth == Ci.nsMsgAuthMethod.passwordEncrypted)
+        oO.username = sanitize.string(oX.username[0]);
+
+      try {
+        // defaults are in accountConfig.js
+        if ("addThisServer" in oX)
+          oO.addThisServer = sanitize.boolean(oX.addThisServer);
+        if ("useGlobalPreferredServer" in oX)
+          oO.useGlobalPreferredServer =
+              sanitize.boolean(oX.useGlobalPreferredServer);
+      } catch (e) { logException(e); }
+
+      // processed successfully, now add to result object
+      if (!d.outgoing.hostname) // first valid
+        d.outgoing = oO;
+      else
+        d.outgoingAlternatives.push(oO);
+    } catch (e) { logException(e); exception = e; }
   }
-  oO.hostname = sanitize.hostname(oX.hostname);
-  oO.port = sanitize.integerRange(oX.port, 1, 65535);
-  if ("username" in oX)
-    oO.username = sanitize.string(oX.username);
+  if (!d.outgoing.hostname)
+    // throw exception for last server
+    throw exception ? exception : "Need proper <outgoingServer> in XML file";
+  exception = null;
 
-  oO.socketType = sanitize.translate(oX.socketType,
-                                     { plain : 1, SSL: 2, STARTTLS: 3 });
-  oO.auth = sanitize.translate(oX.authentication,
-        { none : Ci.nsMsgAuthMethod.none, // open relay
-          "client-IP-address" : Ci.nsMsgAuthMethod.none, // inside ISP or corp network
-          "smtp-after-pop" : Ci.nsMsgAuthMethod.none, // hope for the best
-          "password-clear" : Ci.nsMsgAuthMethod.passwordCleartext,
-          plain : Ci.nsMsgAuthMethod.passwordCleartext,
-          "password-encrypted" : Ci.nsMsgAuthMethod.passwordEncrypted,
-          secure : Ci.nsMsgAuthMethod.passwordEncrypted,
-          GSSAPI : Ci.nsMsgAuthMethod.GSSAPI,
-          NTLM : Ci.nsMsgAuthMethod.NTLM });
-  ddump("<authentication> = " + iX.authentication + ", outgoing.authMethod = " + oO.auth);
-  if ("addThisServer" in oX)
-    oO.addThisServer = sanitize.boolean(oX.addThisServer);
-  if ("useGlobalPreferredServer" in oX)
-    oO.useGlobalPreferredServer = sanitize.boolean(oX.useGlobalPreferredServer);
-
-  for each (var inputField in xml.inputField)
+  d.inputFields = new Array();
+  for each (let inputField in xml.inputField)
   {
-    if (!d.inputFields)
-      d.inputFields = new Array();
-    var fieldset =
-    {
-      varname : sanitize.alphanumdash(inputField.@key).toUpperCase(),
-      displayName : sanitize.label(inputField.@label),
-      exampleValue : sanitize.label(inputField.text())
-    };
-    d.inputFields.push(fieldset);
+    try {
+      var fieldset =
+      {
+        varname : sanitize.alphanumdash(inputField.@key).toUpperCase(),
+        displayName : sanitize.label(inputField.@label),
+        exampleValue : sanitize.label(inputField.text())
+      };
+      d.inputFields.push(fieldset);
+    } catch (e) { logException(e); } // for now, don't throw,
+        // because we don't support custom fields yet anyways.
   }
 
   return d;

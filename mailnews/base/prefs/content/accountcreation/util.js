@@ -43,6 +43,8 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
+Cu.import("resource://app/modules/errUtils.js");
+
 /**
  * Create a subtype
  */
@@ -167,6 +169,13 @@ function getStringBundle(bundleURI)
 function Exception(msg)
 {
   this._message = msg;
+
+  // get stack
+  try {
+    not.found.here += 1; // force a native exception ...
+  } catch (e) {
+    this.stack = e.stack; // ... to get the current stack
+  }
 }
 Exception.prototype =
 {
@@ -182,6 +191,7 @@ Exception.prototype =
 
 function NotReached(msg)
 {
+  Exception.call(this, msg);
 }
 extend(NotReached, Exception);
 

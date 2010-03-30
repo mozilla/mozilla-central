@@ -162,14 +162,30 @@ var sanitize =
     return this.string(unchecked);
   },
 
-  enum : function(unchecked, allowedValues)
+  /**
+   * Allows only certain values as input, otherwise throw.
+   *
+   * @param unchecked {Any} The value to check
+   * @param allowedValues {Array} List of values that |unchecked| may have.
+   * @param defaultValue {Any} (Optional) If |unchecked| does not match
+   *       anything in |mapping|, a |defaultValue| can be returned instead of
+   *       throwing an exception. The latter is the default and happens when
+   *       no |defaultValue| is passed.
+   * @throws MalformedException
+   */
+  enum : function(unchecked, allowedValues, defaultValue)
   {
     for each (var allowedValue in allowedValues)
     {
       if (allowedValue == unchecked)
         return allowedValue;
     }
-    throw new MalformedException("allowed_value.error", unchecked);
+    // value is bad
+    var e = new MalformedException("allowed_value.error", unchecked);
+    if (typeof(defaultValue) == "undefined")
+      throw e;
+    logException(e);
+    return defaultValue;
   },
 
   /**
@@ -178,27 +194,40 @@ var sanitize =
    * if unchecked == "foo", return 1, if unchecked == "bar", return 2,
    * otherwise throw. This allows to translate string enums into integer enums.
    *
-   * @param unchecked {Object} Associative array. property name is the input
+   * @param unchecked {Any} The value to check
+   * @param mapping {Object} Associative array. property name is the input
    *       value, property value is the output value. E.g. the example above
    *       would be: { foo: 1, bar : 2 }.
-   * Use quotes when you need freaky characters: "baz-" : 3.
+   *       Use quotes when you need freaky characters: "baz-" : 3.
+   * @param defaultValue {Any} (Optional) If |unchecked| does not match
+   *       anything in |mapping|, a |defaultValue| can be returned instead of
+   *       throwing an exception. The latter is the default and happens when
+   *       no |defaultValue| is passed.
+   * @throws MalformedException
    */
-  translate : function(unchecked, mapping)
+  translate : function(unchecked, mapping, defaultValue)
   {
     for (var inputValue in mapping)
     {
       if (inputValue == unchecked)
         return mapping[inputValue];
     }
-    throw new MalformedException("allowed_value.error", unchecked);
+    // value is bad
+    var e = new MalformedException("allowed_value.error", unchecked);
+    if (typeof(defaultValue) == "undefined")
+      throw e;
+    logException(e);
+    return defaultValue;
   }
 };
 
 function MalformedException(msgID, uncheckedBadValue)
 {
-  var stringBundle = getStringBundle("chrome://messenger/locale/accountCreationUtil.properties");
-  this._message = stringBundle.GetStringFromName(msgID);
+  var stringBundle = getStringBundle(
+      "chrome://messenger/locale/accountCreationUtil.properties");
+  var msg = stringBundle.GetStringFromName(msgID);
   if (kDebug)
-    this._message += " (bad value: " + new String(uncheckedBadValue) + ")";
+    msg += " (bad value: " + new String(uncheckedBadValue) + ")";
+  Exception.call(this, msg);
 }
 extend(MalformedException, Exception);
