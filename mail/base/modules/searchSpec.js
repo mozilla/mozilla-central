@@ -414,10 +414,24 @@ SearchSpec.prototype = {
         for each (let term in fixIterator(session.searchTerms,
                                           nsIMsgSearchTerm)) {
           if (!term.matchAll) {
-            if (!offlineValidityTable.getAvailable(term.attrib, term.op))
-              offlineAvailable = false;
-            if (!onlineValidityTable.getAvailable(term.attrib, term.op))
-              onlineAvailable = false;
+            // for custom terms, we need to getAvailable from the custom term
+            if (term.attrib == Ci.nsMsgSearchAttrib.Custom) {
+              let filterService = Cc["@mozilla.org/messenger/services/filters;1"]
+                                    .getService(Ci.nsIMsgFilterService);
+              let customTerm = filterService.getCustomTerm(term.customId);
+              if (customTerm) {
+                offlineAvailable = customTerm.getAvailable(offlineScope, term.op);
+                onlineAvailable = customTerm.getAvailable(serverScope, term.op);
+              }
+              else // maybe an extension with a custom term was unloaded?
+                Cu.reportError("Custom search term " + term.customId + " missing");
+            }
+            else {
+              if (!offlineValidityTable.getAvailable(term.attrib, term.op))
+                offlineAvailable = false;
+              if (!onlineValidityTable.getAvailable(term.attrib, term.op))
+                onlineAvailable = false;
+            }
           }
         }
         // If both scopes work, honor the onlineSearch request, unless we're

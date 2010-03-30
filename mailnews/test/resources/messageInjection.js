@@ -308,6 +308,9 @@ const SEARCH_TERM_MAP_HELPER = {
   involves: Components.interfaces.nsMsgSearchAttrib.AllAddresses,
   age: Components.interfaces.nsMsgSearchAttrib.AgeInDays,
   tags: Components.interfaces.nsMsgSearchAttrib.Keywords,
+  // If a test uses a custom search term, they must register that term
+  //  with the id "mailnews@mozilla.org#test"
+  custom: Components.interfaces.nsMsgSearchAttrib.Custom,
 };
 
 /**
@@ -423,6 +426,8 @@ function make_virtual_folder(aFolders, aSearchDef, aBooleanAnd, aName) {
     value.str = val;
     term.value = value;
     term.attrib = SEARCH_TERM_MAP_HELPER[key];
+    if (term.attrib == Components.interfaces.nsMsgSearchAttrib.Custom)
+      term.customId = "mailnews@mozilla.org#test";
     term.op = Components.interfaces.nsMsgSearchOp.Contains;
     term.booleanAnd = Boolean(aBooleanAnd);
     terms.push(term);
