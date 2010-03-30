@@ -224,7 +224,17 @@ class ThunderTestRunner(mozrunner.ThunderbirdRunner):
 
     def start(self):
         if self.use_vnc_server:
-            subprocess.check_call([self.VNC_SERVER_PATH, ':99'])
+            try:
+                subprocess.check_call([self.VNC_SERVER_PATH, ':99'])
+            except subprocess.CalledProcessError, ex:
+                # Okay, so that display probably already exists.  We can either
+                # use it as-is or kill it.  I'm deciding we want to kill it
+                # since there might be other processes alive in there that
+                # want to make trouble for us.
+                subprocess.check_call([self.VNC_SERVER_PATH, '-kill', ':99'])
+                # Now let's try again.  if this didn't work, let's just let
+                # the exception kill us.
+                subprocess.check_call([self.VNC_SERVER_PATH, ':99'])
             self.vnc_alive = True
             self.env['DISPLAY'] = ':99'
 
