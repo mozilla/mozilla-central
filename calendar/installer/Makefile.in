@@ -88,7 +88,7 @@ ifdef MOZ_PKG_MANIFEST_P
 MOZ_PKG_MANIFEST = packages-static
 
 $(MOZ_PKG_MANIFEST): $(MOZ_PKG_MANIFEST_P)
-	$(PERL) $(MOZILLA_SRCDIR)/config/preprocessor.pl $(DEFINES) $(ACDEFINES) $< > $@
+	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $< > $@
 endif
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
