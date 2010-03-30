@@ -83,7 +83,7 @@ MOZCONFIG=`$_AUTOCONF_TOOLS_DIR/mozconfig-find $topsrcdir`
 export MOZCONFIG
 
 dnl Check for Perl first -- needed for win32 SDK checks
-MOZ_PATH_PROGS(PERL, $PERL perl5 perl)
+AC_PATH_PROGS(PERL, $PERL perl5 perl)
 if test -z "$PERL" || test "$PERL" = ":"; then
     AC_MSG_ERROR([perl not found in \$PATH])
 fi
@@ -430,7 +430,7 @@ if test -n "$CROSS_COMPILE" && test "$target" != "$host"; then
 
     AC_CHECK_PROGS(RANLIB, $RANLIB "${target_alias}-ranlib" "${target}-ranlib", :)
     AC_CHECK_PROGS(AR, $AR "${target_alias}-ar" "${target}-ar", :)
-    MOZ_PATH_PROGS(AS, $AS "${target_alias}-as" "${target}-as", :)
+    AC_PATH_PROGS(AS, $AS "${target_alias}-as" "${target}-as", :)
     AC_CHECK_PROGS(LD, $LD "${target_alias}-ld" "${target}-ld", :)
     AC_CHECK_PROGS(STRIP, $STRIP "${target_alias}-strip" "${target}-strip", :)
     AC_CHECK_PROGS(WINDRES, $WINDRES "${target_alias}-windres" "${target}-windres", :)
@@ -439,7 +439,7 @@ else
     AC_PROG_CC
     AC_PROG_CXX
     AC_PROG_RANLIB
-    MOZ_PATH_PROGS(AS, $AS as, $CC)
+    AC_PATH_PROGS(AS, $AS as, $CC)
     AC_CHECK_PROGS(AR, ar, :)
     AC_CHECK_PROGS(LD, ld, :)
     AC_CHECK_PROGS(STRIP, strip, :)
@@ -862,7 +862,7 @@ else
     AC_MSG_RESULT([yes])    
 fi
 
-MOZ_PATH_PROGS(PYTHON, $PYTHON python2.6 python2.5 python2.4 python)
+AC_PATH_PROGS(PYTHON, $PYTHON python2.6 python2.5 python2.4 python)
 if test -z "$PYTHON"; then
     AC_MSG_ERROR([python was not found in \$PATH])
 fi
@@ -872,16 +872,16 @@ if test -z "$COMPILE_ENVIRONMENT"; then
 fi
 AC_SUBST(NSINSTALL_BIN)
 
-MOZ_PATH_PROG(DOXYGEN, doxygen, :)
-MOZ_PATH_PROG(WHOAMI, whoami, :)
-MOZ_PATH_PROG(AUTOCONF, autoconf, :)
-MOZ_PATH_PROG(UNZIP, unzip, :)
-MOZ_PATH_PROGS(ZIP, zip)
+AC_PATH_PROG(DOXYGEN, doxygen, :)
+AC_PATH_PROG(WHOAMI, whoami, :)
+AC_PATH_PROG(AUTOCONF, autoconf, :)
+AC_PATH_PROG(UNZIP, unzip, :)
+AC_PATH_PROGS(ZIP, zip)
 if test -z "$ZIP" || test "$ZIP" = ":"; then
     AC_MSG_ERROR([zip not found in \$PATH])
 fi
-MOZ_PATH_PROG(SYSTEM_MAKEDEPEND, makedepend)
-MOZ_PATH_PROG(XARGS, xargs)
+AC_PATH_PROG(SYSTEM_MAKEDEPEND, makedepend)
+AC_PATH_PROG(XARGS, xargs)
 if test -z "$XARGS" || test "$XARGS" = ":"; then
     AC_MSG_ERROR([xargs not found in \$PATH .])
 fi
@@ -918,7 +918,7 @@ from building Mozilla. Upgrade to Xcode 2.1 or later.])
     dnl xcodebuild needs GCC_VERSION defined in the environment, since it
     dnl doesn't respect the CC/CXX setting.  With GCC_VERSION set, it will use
     dnl /usr/bin/g(cc|++)-$GCC_VERSION.
-    MOZ_PATH_PROGS(PBBUILD, pbbuild xcodebuild pbxbuild)
+    AC_PATH_PROGS(PBBUILD, pbbuild xcodebuild pbxbuild)
 
     case "$PBBUILD" in
       *xcodebuild*)
@@ -933,7 +933,7 @@ from building Mozilla. Upgrade to Xcode 2.1 or later.])
 
     dnl sdp was formerly in /Developer/Tools.  As of Mac OS X 10.4 (Darwin 8),
     dnl it has moved into /usr/bin.
-    MOZ_PATH_PROG(SDP, sdp, :, [$PATH:/usr/bin:/Developer/Tools])
+    AC_PATH_PROG(SDP, sdp, :, [$PATH:/usr/bin:/Developer/Tools])
     ;;
 esac
 
@@ -1055,10 +1055,10 @@ fi # COMPILE_ENVIRONMENT
 # Keep this 'case' until bug 492026 is fixed.
 case "$host_os" in
 cygwin*|mingw*|mks*|msvc*)
-    MOZ_PATH_PROGS(MAKE, $MAKE make gmake, :)
+    AC_PATH_PROGS(MAKE, $MAKE make gmake, :)
     ;;
 *)
-    MOZ_PATH_PROGS(MAKE, $MAKE gmake make, :)
+    AC_PATH_PROGS(MAKE, $MAKE gmake make, :)
     ;;
 esac
 
@@ -2338,18 +2338,17 @@ fi
         AC_MSG_ERROR([MOZ_TOOLS is not set])
     fi
 
-    MOZ_TOOLS_DIR=`cd $MOZ_TOOLS && pwd -W`
+    MOZ_TOOLS_DIR=`cd $MOZ_TOOLS && pwd`
     if test "$?" != "0" || test -z "$MOZ_TOOLS_DIR"; then
         AC_MSG_ERROR([cd \$MOZ_TOOLS failed. MOZ_TOOLS ==? $MOZ_TOOLS])
     fi
-    MOZ_TOOLS_BIN_DIR="$(cd "$MOZ_TOOLS_DIR/bin" && pwd)"
-    if test `echo ${PATH}: | grep -ic "$MOZ_TOOLS_BINDIR:"` = 0; then
+    if test `echo ${PATH}: | grep -ic "$MOZ_TOOLS_DIR/bin:"` = 0; then
         AC_MSG_ERROR([\$MOZ_TOOLS\\bin must be in your path.])
     fi
     MOZ_TOOLS_DIR=`$CYGPATH_W $MOZ_TOOLS_DIR | $CYGPATH_S`
 
     if test -n "$GLIB_PREFIX"; then
-        _GLIB_PREFIX_DIR=`cd $GLIB_PREFIX && pwd -W`
+        _GLIB_PREFIX_DIR=`cd $GLIB_PREFIX && pwd`
         if test "$?" = "0"; then
             if test `echo ${PATH}: | grep -ic "$_GLIB_PREFIX_DIR/bin:"` = 0; then
                 AC_MSG_ERROR([GLIB_PREFIX must be in your \$PATH.])
@@ -5576,13 +5575,13 @@ MOZ_ARG_DISABLE_BOOL(installer,
 if test -n "$MOZ_INSTALLER" -a "$OS_ARCH" = "WINNT"; then
     # Disable installer for Windows builds that use the new toolkit if NSIS
     # isn't in the path.
-    MOZ_PATH_PROGS(MAKENSIS, makensis)
+    AC_PATH_PROGS(MAKENSIS, makensis)
     if test -z "$MAKENSIS" || test "$MAKENSIS" = ":"; then
         AC_MSG_ERROR([To build the installer makensis is required in your path. To build without the installer reconfigure using --disable-installer.])
     fi
     # The Windows build for NSIS requires the iconv command line utility to
     # convert the charset of the locale files.
-    MOZ_PATH_PROGS(HOST_ICONV, $HOST_ICONV "iconv", "")
+    AC_PATH_PROGS(HOST_ICONV, $HOST_ICONV "iconv", "")
     if test -z "$HOST_ICONV"; then
         AC_MSG_ERROR([To build the installer iconv is required in your path. To build without the installer reconfigure using --disable-installer.])
     fi
