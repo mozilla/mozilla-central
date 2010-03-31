@@ -38,7 +38,7 @@
 Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/folderUtils.jsm");
 Components.utils.import("resource://app/modules/MailUtils.js");
-const kDefaultMode = "smart";
+const kDefaultMode = "all";
 
 var nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
 
@@ -141,9 +141,6 @@ let gFolderTreeView = {
     const Ci = Components.interfaces;
     this._treeElement = aTree;
 
-    let smartName = document.getElementById("bundle_messenger")
-                            .getString("folderPaneModeHeader_smart");
-
     // the folder pane can be used for other trees which may not have these elements.
     if (document.getElementById("folderpane_splitter"))
       document.getElementById("folderpane_splitter").collapsed = false;
@@ -157,8 +154,7 @@ let gFolderTreeView = {
       let prefB = Cc["@mozilla.org/preferences-service;1"]
                      .getService(Ci.nsIPrefBranch);
       let modeIndex = prefB.getIntPref("mail.ui.folderpane.view");
-      // upgrade default All to Smart
-      this._mode = (modeIndex == 0) ? kDefaultMode : this._modeNames[modeIndex];
+      this._mode = this._modeNames[modeIndex];
       prefB.deleteBranch("mail.ui.folderpane");
     } catch(ex) {
       // This is ok.  If we've already migrated we'll end up here

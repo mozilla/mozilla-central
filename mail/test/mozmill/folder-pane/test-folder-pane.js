@@ -53,10 +53,30 @@ function setupModule(module) {
   fdh.installInto(module);
 }
 
-function test_toggle_folder_open_state() {
-  let preCount = mc.folderTreeView.rowCount;
+/**
+ * Assert the Folder Pane is in All Folder mode by default.  Check that the
+ * correct number of rows for accounts and folders are always shown as new
+ * folders are created, expanded, and collapsed.
+ */
+function test_all_folders_toggle_folder_open_state() {
+  // Test that we are in All Folders mode by default
+  assert_folder_mode("all");
+
+  // All folders mode should give us only 2 rows to start
+  // (tinderbox account and local folders)
+  let accounts = 2;
+  assert_folder_tree_view_row_count(accounts);
+
   folderA = create_folder("FolderPaneA");
   be_in_folder(folderA);
+
+  // After creating our first folder we should have 6 rows visible
+  let inbox = trash = outbox = folderPaneA = 1;
+  assert_folder_tree_view_row_count(accounts + inbox + trash + outbox +
+                                    folderPaneA);
+
+  let oneFolderCount = mc.folderTreeView.rowCount;
+
   // This makes sure the folder can be toggled
   folderA.createSubfolder("FolderPaneB", null);
   folderB = folderA.getChildNamed("FolderPaneB");
@@ -65,20 +85,20 @@ function test_toggle_folder_open_state() {
   enter_folder(folderB);
   enter_folder(folderA);
 
-  // At this point folderA should be open, so the view should have two more
-  // items than before (FolderPaneA and FolderPaneB).
-  assert_folder_tree_view_row_count(preCount + 2);
+  // At this point folderA should be open, so the view should have one more
+  // item than before (FolderPaneB).
+  assert_folder_tree_view_row_count(oneFolderCount + 1);
 
   // Toggle the open state of folderA
   let index = mc.folderTreeView.getIndexOfFolder(folderA);
   mc.folderTreeView.toggleOpenState(index);
 
-  // folderA should be collapsed
-  assert_folder_tree_view_row_count(preCount + 1);
+  // folderA should be collapsed so we are back to the original count
+  assert_folder_tree_view_row_count(oneFolderCount);
 
   // Toggle it back to open
   mc.folderTreeView.toggleOpenState(index);
 
   // folderB should be visible again
-  assert_folder_tree_view_row_count(preCount + 2);
+  assert_folder_tree_view_row_count(oneFolderCount + 1);
 }
