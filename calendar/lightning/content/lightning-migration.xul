@@ -54,7 +54,7 @@
 
 <overlay id="ltnMigrationOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-    <script type="application/javascript" src="chrome://calendar/content/migration.js"/>
+    <script type="application/javascript" src="chrome://calendar/content/calendar-migration-dialog.js"/>
     <script type="application/javascript"><![CDATA[
         function checkOld() {
             document.removeEventListener("load", checkOld, true);

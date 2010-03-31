@@ -271,7 +271,7 @@ var gDataMigrator = {
         }
         LOG("DMs: " + DMs.length);
 
-        var url = "chrome://calendar/content/migration.xul";
+        var url = "chrome://calendar/content/calendar-migration-dialog.xul";
 #ifdef XP_MACOSX
         var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                            .getService(Components.interfaces.nsIWindowMediator);

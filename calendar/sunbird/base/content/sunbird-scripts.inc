@@ -48,7 +48,7 @@
 
   <script type="application/javascript" src="chrome://calendar/content/calendar.js"/>
   <script type="application/javascript" src="chrome://sunbird/content/calendar-offline.js"/>
-  <script type="application/javascript" src="chrome://calendar/content/migration.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-migration-dialog.js"/>
 
   <!-- NEEDED FOR APPLICATION SUPPORT -->
   <script type="application/javascript" src="chrome://sunbird/content/applicationUtil.js"/>

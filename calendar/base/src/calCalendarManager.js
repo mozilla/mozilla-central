@@ -655,7 +655,7 @@ calCalendarManager.prototype = {
             let wWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                                      .getService(Components.interfaces.nsIWindowWatcher);
             wWatcher.openWindow(null,
-                                "chrome://calendar/content/calErrorPrompt.xul",
+                                "chrome://calendar/content/calendar-error-prompt.xul",
                                 "_blank",
                                 "chrome,dialog=yes,alwaysRaised=yes",
                                 paramBlock);
@@ -1031,7 +1031,7 @@ calMgrCalendarObserver.prototype = {
                                   .getService(Components.interfaces.nsIWindowWatcher);
             var promptWindow =
                 wWatcher.openWindow
-                    (null, "chrome://calendar/content/calErrorPrompt.xul",
+                    (null, "chrome://calendar/content/calendar-error-prompt.xul",
                      "_blank", "chrome,dialog=yes,alwaysRaised=yes",
                      paramBlock);
             // Will remove paramBlock from announced messages when
