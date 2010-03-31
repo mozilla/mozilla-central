@@ -1052,16 +1052,6 @@ fi
 
 fi # COMPILE_ENVIRONMENT
 
-# Keep this 'case' until bug 492026 is fixed.
-case "$host_os" in
-cygwin*|mingw*|mks*|msvc*)
-    AC_PATH_PROGS(MAKE, $MAKE make gmake, :)
-    ;;
-*)
-    AC_PATH_PROGS(MAKE, $MAKE gmake make, :)
-    ;;
-esac
-
 if test "$COMPILE_ENVIRONMENT"; then
 
 AC_PATH_XTRA
