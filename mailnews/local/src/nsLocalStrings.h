@@ -26,8 +26,6 @@
 #define COPYING_MSGS_STATUS                                   4027
 #define MOVING_MSGS_STATUS                                    4028
 #define POP3_MESSAGE_FOLDER_BUSY                              4029
-#define POP3_AUTH_MECH_NOT_SUPPORTED                          4030
-#define POP3_GSSAPI_FAILURE                                   4031
 #define MOVEMAIL_CANT_OPEN_SPOOL_FILE                         4033
 #define MOVEMAIL_CANT_CREATE_LOCK                             4034
 #define MOVEMAIL_CANT_DELETE_LOCK                             4035
@@ -44,5 +42,7 @@
 #define POP3_AUTH_CHANGE_ENCRYPT_TO_PLAIN_NO_SSL              4048
 #define POP3_AUTH_CHANGE_ENCRYPT_TO_PLAIN_SSL                 4049
 #define POP3_AUTH_CHANGE_PLAIN_TO_ENCRYPT                     4050
+#define POP3_AUTH_MECH_NOT_SUPPORTED                          4051
+#define POP3_GSSAPI_FAILURE                                   4052
 
 #endif /* _nsLocalStrings_H__ */

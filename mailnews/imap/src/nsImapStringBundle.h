@@ -115,15 +115,15 @@ PR_END_EXTERN_C
 #define IMAP_QUOTA_STATUS_NOTSUPPORTED              5096
 #define IMAP_QUOTA_STATUS_NOQUOTA                   5097
 #define IMAP_OUT_OF_MEMORY                          5100
-#define IMAP_AUTH_MECH_NOT_SUPPORTED                5101
-#define IMAP_AUTH_MECH_FAILED                       5102
 #define IMAP_COPYING_MESSAGE_OF                     5103
-#define IMAP_AUTH_GSSAPI_FAILED                     5104
 #define IMAP_MOVE_FOLDER_TO_TRASH                   5105
 #define IMAP_DELETE_NO_TRASH                        5106
 #define IMAP_DELETE_FOLDER_DIALOG_TITLE             5107
 #define IMAP_DELETE_FOLDER_BUTTON_LABEL             5108
-#define IMAP_AUTH_CHANGE_ENCRYPT_TO_PLAIN_NO_SSL    5109
 #define IMAP_AUTH_CHANGE_ENCRYPT_TO_PLAIN_SSL       5110
 #define IMAP_AUTH_CHANGE_PLAIN_TO_ENCRYPT           5111
+#define IMAP_AUTH_CHANGE_ENCRYPT_TO_PLAIN_NO_SSL    5112
+#define IMAP_AUTH_MECH_NOT_SUPPORTED                5113
+#define IMAP_AUTH_MECH_FAILED                       5114
+#define IMAP_AUTH_GSSAPI_FAILED                     5115
 #endif /* _nsImapStringBundle_H__ */
