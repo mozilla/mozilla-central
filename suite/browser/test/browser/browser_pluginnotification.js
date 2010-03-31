@@ -3,6 +3,14 @@ const gTestRoot = "chrome://mochikit/content/browser/suite/browser/test/";
 var gTestBrowser = null;
 var gNextTest = null;
 
+function count(o)
+{
+  var n = 0;
+  for (var p in o)
+    n += Object.prototype.hasOwnProperty.call(o, p);
+  return n;
+}
+
 function get_test_plugin() {
   var ph = Components.classes["@mozilla.org/plugin/host;1"]
                      .getService(Components.interfaces.nsIPluginHost);
@@ -107,7 +115,7 @@ function test1() {
   var notificationBox = gBrowser.getNotificationBox(gTestBrowser);
   ok(notificationBox.getNotificationWithValue("missing-plugins"), "Test 1, Should have displayed the missing plugin notification");
   ok(!notificationBox.getNotificationWithValue("blocked-plugins"), "Test 1, Should not have displayed the blocked plugin notification");
-  ok(notificationBox.missingPlugins.__count__, "Test 1, Should be a missing plugin list");
+  ok(count(notificationBox.missingPlugins) > 0, "Test 1, Should be a missing plugin list");
   ok("application/x-unknown" in notificationBox.missingPlugins, "Test 1, Should know about application/x-unknown");
   ok(!("application/x-test" in notificationBox.missingPlugins), "Test 1, Should not know about application/x-test");
 
@@ -123,7 +131,7 @@ function test2() {
   var notificationBox = gBrowser.getNotificationBox(gTestBrowser);
   ok(!notificationBox.getNotificationWithValue("missing-plugins"), "Test 2, Should not have displayed the missing plugin notification");
   ok(!notificationBox.getNotificationWithValue("blocked-plugins"), "Test 2, Should not have displayed the blocked plugin notification");
-  ok(!notificationBox.missingPlugins.__count__, "Test 2, Should not be a missing plugin list");
+  ok(count(notificationBox.missingPlugins) == 0, "Test 2, Should not be a missing plugin list");
 
   var plugin = get_test_plugin();
   ok(plugin, "Should have a test plugin");
@@ -136,7 +144,7 @@ function test3() {
   var notificationBox = gBrowser.getNotificationBox(gTestBrowser);
   ok(!notificationBox.getNotificationWithValue("missing-plugins"), "Test 3, Should not have displayed the missing plugin notification");
   ok(!notificationBox.getNotificationWithValue("blocked-plugins"), "Test 3, Should not have displayed the blocked plugin notification");
-  ok(!notificationBox.missingPlugins.__count__, "Test 3, Should not be a missing plugin list");
+  ok(count(notificationBox.missingPlugins) == 0, "Test 3, Should not be a missing plugin list");
 
   new WindowOpenListener("chrome://mozapps/content/extensions/extensions.xul", test4, prepareTest5);
 
@@ -161,7 +169,7 @@ function test5() {
   var notificationBox = gBrowser.getNotificationBox(gTestBrowser);
   ok(!notificationBox.getNotificationWithValue("missing-plugins"), "Test 5, Should not have displayed the missing plugin notification");
   ok(notificationBox.getNotificationWithValue("blocked-plugins"), "Test 5, Should have displayed the blocked plugin notification");
-  ok(notificationBox.missingPlugins.__count__, "Test 5, Should be a missing plugin list");
+  ok(count(notificationBox.missingPlugins) > 0, "Test 5, Should be a missing plugin list");
   ok("application/x-test" in notificationBox.missingPlugins, "Test 5, Should know about application/x-test");
   ok(!("application/x-unknown" in notificationBox.missingPlugins), "Test 5, Should not know about application/x-unknown");
 
@@ -173,7 +181,7 @@ function test6() {
   var notificationBox = gBrowser.getNotificationBox(gTestBrowser);
   ok(notificationBox.getNotificationWithValue("missing-plugins"), "Test 6, Should have displayed the missing plugin notification");
   ok(!notificationBox.getNotificationWithValue("blocked-plugins"), "Test 6, Should not have displayed the blocked plugin notification");
-  ok(notificationBox.missingPlugins.__count__, "Test 6, Should be a missing plugin list");
+  ok(count(notificationBox.missingPlugins) > 0, "Test 6, Should be a missing plugin list");
   ok("application/x-unknown" in notificationBox.missingPlugins, "Test 6, Should know about application/x-unknown");
   ok("application/x-test" in notificationBox.missingPlugins, "Test 6, Should know about application/x-test");
 
@@ -185,7 +193,7 @@ function test7() {
   var notificationBox = gBrowser.getNotificationBox(gTestBrowser);
   ok(notificationBox.getNotificationWithValue("missing-plugins"), "Test 7, Should have displayed the missing plugin notification");
   ok(!notificationBox.getNotificationWithValue("blocked-plugins"), "Test 7, Should not have displayed the blocked plugin notification");
-  ok(notificationBox.missingPlugins.__count__, "Test 7, Should be a missing plugin list");
+  ok(count(notificationBox.missingPlugins) > 0, "Test 7, Should be a missing plugin list");
   ok("application/x-unknown" in notificationBox.missingPlugins, "Test 7, Should know about application/x-unknown");
   ok("application/x-test" in notificationBox.missingPlugins, "Test 7, Should know about application/x-test");
 
