@@ -60,13 +60,6 @@
   height: 0;
 }
 
-#attachmentTree {
-  margin: 0 0 3px;
-  border: none;
-  height: 0;
-  width: 20em;
-}
-
 #attachmentText {
   font-weight: bold;
 }
