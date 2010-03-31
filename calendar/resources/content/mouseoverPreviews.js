@@ -161,7 +161,7 @@ function getPreviewForTask( toDoItem )
       hasHeader = true;
     }
 
-    if (toDoItem.percentComplete != 0 && toDoItem.percentComplete != 100)
+    if (toDoItem.status != null && toDoItem.percentComplete != 0 && toDoItem.percentComplete != 100)
     {
       boxAppendLabeledText(vbox, "tooltipPercent", String(toDoItem.percentComplete)+"%");
       hasHeader = true;
