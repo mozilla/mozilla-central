@@ -134,7 +134,6 @@ EXTRA_JS_MODULES = \
 		iteratorUtils.jsm \
 		jsTreeSelection.js \
 		traceHelper.js \
-		autoconfigUtils.jsm \
 		StringBundle.js \
 		templateUtils.js \
 		IOUtils.js \

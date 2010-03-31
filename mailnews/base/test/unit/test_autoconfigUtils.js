@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 /*
- * Test suite for the autoconfigUtils class
+ * Tests for accountcreation/guessConfig.js
  *
  * Currently tested:
  * - getHostEntry function.
@@ -51,23 +51,18 @@
 
 // Globals
 
-Components.utils.import("resource://gre/modules/autoconfigUtils.jsm");
-var xmlReader = {};
-
+var loaded = false;
 try {
   let loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
                          .getService(Components.interfaces.mozIJSSubScriptLoader);
-  loader.loadSubScript("chrome://messenger/content/accountcreation/util.js",
-                       xmlReader);
-  loader.loadSubScript("chrome://messenger/content/accountcreation/accountConfig.js",
-                       xmlReader);
-  loader.loadSubScript("chrome://messenger/content/accountcreation/sanitizeDatatypes.js",
-                       xmlReader);
-  loader.loadSubScript("chrome://messenger/content/accountcreation/readFromXML.js",
-                       xmlReader);
+  loader.loadSubScript("chrome://messenger/content/accountcreation/util.js");
+  loader.loadSubScript("chrome://messenger/content/accountcreation/accountConfig.js");
+  loader.loadSubScript("chrome://messenger/content/accountcreation/sanitizeDatatypes.js");
+  loader.loadSubScript("chrome://messenger/content/accountcreation/guessConfig.js");
+  loaded = true;
 } catch (ex) {
   // The "accountcreation" files are not available in SeaMonkey (yet).
-  xmlReader = null;
+  dump("loading accountcreation JS files failed: " + ex + "\n" + ex.stack + "\n");
 }
 
 /*
@@ -78,21 +73,24 @@ function assert(aBeTrue, aWhy)
 {
   if (!aBeTrue)
     do_throw(aWhy);
+  do_check_true(aBeTrue);
 };
 
 function assert_equal(aA, aB, aWhy)
 {
-  assert(aA == aB, aWhy + " (" + aA + " != " + aB + ").");
+  if (aA != aB)
+    do_throw(aWhy);
+  do_check_eq(aA, aB);
 };
 
 /**
  * Test that two host entries are the same, ignoring the commands.
  */
-function assert_equal_host_entries(aA, aB)
+function assert_equal_host_entries(hostEntry, expected)
 {
-  assert_equal(aA[0], aB[0], "Protocols are different");
-  assert_equal(aA[1], aB[1], "Ssl values are different");
-  assert_equal(aA[2], aB[2], "Port values are different");
+  assert_equal(hostEntry.protocol, expected[0], "Protocols are different");
+  assert_equal(hostEntry.ssl, expected[1], "SSL values are different");
+  assert_equal(hostEntry.port, expected[2], "Port values are different");
 };
 
 /**
@@ -244,7 +242,7 @@ function test_getHostEntry()
   assert_equal_host_entries(getHostEntry(SMTP, SSL, UNKNOWN),
                             [SMTP, SSL, 465]);
   assert_equal_host_entries(getHostEntry(SMTP, NONE, UNKNOWN),
-                            [SMTP, NONE, 25]);
+                            [SMTP, NONE, 587]);
 };
 
 /**
@@ -253,21 +251,21 @@ function test_getHostEntry()
 function test_getIncomingTryOrder()
 {
   // protocol == POP || host starts with pop. || host starts with pop3.
-  checkPop( "latte.ca", POP );
-  checkPop( "pop.latte.ca", UNKNOWN );
-  checkPop( "pop3.latte.ca", UNKNOWN );
-  checkPop( "imap.latte.ca", POP );
+  checkPop( "example.com", POP );
+  checkPop( "pop.example.com", UNKNOWN );
+  checkPop( "pop3.example.com", UNKNOWN );
+  checkPop( "imap.example.com", POP );
 
   // protocol == IMAP || host starts with imap.
-  checkImap( "latte.ca", IMAP );
-  checkImap( "imap.latte.ca", UNKNOWN );
-  checkImap( "pop.latte.ca", IMAP );
+  checkImap( "example.com", IMAP );
+  checkImap( "imap.example.com", UNKNOWN );
+  checkImap( "pop.example.com", IMAP );
 
-  let host = "latte.ca";
+  let domain = "example.com";
   let protocol = UNKNOWN;
   let ssl = UNKNOWN;
   let port = UNKNOWN;
-  let tryOrder = getIncomingTryOrder(host, protocol, ssl, port);
+  let tryOrder = getIncomingTryOrder(domain, protocol, ssl, port);
   assert_equal_try_orders(tryOrder,
                           [[IMAP, TLS, 143],
                            [IMAP, SSL, 993],
@@ -276,11 +274,8 @@ function test_getIncomingTryOrder()
                            [IMAP, NONE, 143],
                            [POP, NONE, 110]]);
 
-  host = "latte.ca";
-  protocol = UNKNOWN;
-  ssl = UNKNOWN;
   port = 31337;
-  let tryOrder = getIncomingTryOrder(host, protocol, ssl, port);
+  let tryOrder = getIncomingTryOrder(domain, protocol, ssl, port);
   assert_equal_try_orders(tryOrder,
                           [[IMAP, TLS, port],
                            [IMAP, SSL, port],
@@ -295,83 +290,36 @@ function test_getIncomingTryOrder()
  */
 function test_getOutgoingTryOrder()
 {
+  let domain = "example.com";
+  let protocol = SMTP;
+  let ssl = UNKNOWN;
   let port = UNKNOWN;
-  let tryOrder = getOutgoingTryOrder(port);
+  let tryOrder = getOutgoingTryOrder(domain, protocol, ssl, port);
   assert_equal_try_orders(tryOrder,
                           [[SMTP, TLS, 587],
-                           [SMTP, SSL, 465],
                            [SMTP, TLS, 25],
+                           [SMTP, SSL, 465],
                            [SMTP, NONE, 587],
                            [SMTP, NONE, 25]]);
   port = 31337
-  tryOrder = getOutgoingTryOrder(port);
+  tryOrder = getOutgoingTryOrder(domain, protocol, ssl, port);
   assert_equal_try_orders(tryOrder,
                           [[SMTP, TLS, port],
                            [SMTP, SSL, port],
                            [SMTP, NONE, port]]);
 };
 
-/**
- * Test that the xml reader returns something we can copy.
- */
-function test_copying_readFromXML()
-{
-  let clientConfigXML = new XML(
-    '<clientConfig>' +
-    '  <emailProvider id="inbox.lv">' +
-    '    <domain>inbox.lv</domain>' +
-    '    <displayName>Inbox.lv</displayName>' +
-    '    <displayShortName>Inbox.lv</displayShortName>' +
-    '    <incomingServer type="imap">' +
-    '      <hostname>imap.inbox.lv</hostname>' +
-    '      <port>993</port>' +
-    '      <socketType>SSL</socketType>' +
-    '      <username>%EMAILLOCALPART%</username>' +
-    '      <authentication>plain</authentication>' +
-    '      <pop3>' +
-    '        <leaveMessagesOnServer>true</leaveMessagesOnServer>' +
-    '        <daysToLeaveMessagesOnServer>999</daysToLeaveMessagesOnServer>' +
-    '      </pop3>' +
-    '    </incomingServer>' +
-    '    <incomingServer type="pop3">' +
-    '      <hostname>mail.inbox.lv</hostname>' +
-    '      <port>995</port>' +
-    '      <socketType>SSL</socketType>' +
-    '      <username>%EMAILLOCALPART%</username>' +
-    '      <authentication>plain</authentication>' +
-    '      <pop3>' +
-    '        <leaveMessagesOnServer>true</leaveMessagesOnServer>' +
-    '        <daysToLeaveMessagesOnServer>999</daysToLeaveMessagesOnServer>' +
-    '      </pop3>' +
-    '    </incomingServer>' +
-    '    <outgoingServer type="smtp">' +
-    '      <hostname>mail.inbox.lv</hostname>' +
-    '      <port>587</port>' +
-    '      <socketType>STARTTLS</socketType>' +
-    '      <username>%EMAILLOCALPART%</username>' +
-    '      <authentication>plain</authentication>' +
-    '      <addThisServer>true</addThisServer>' +
-    '      <useGlobalPreferredServer>false</useGlobalPreferredServer>' +
-    '    </outgoingServer>' +
-    '  </emailProvider>' +
-    '</clientConfig>');
-  let config = xmlReader.readFromXML(clientConfigXML);
-
-  // This will throw "can't copy objects of type xml yet" if we forget to
-  // sanitize some of the xml data.
-  let config2 = config.copy();
-}
 
 function run_test()
 {
-  do_test_pending();
+  if (!loaded)
+  {
+    // if you see this with Thunderbird, then it's an error
+    dump("INFO | test_autoconfigUtils.js not running, because this is SeaMonkey.\n");
+    return true;
+  }
 
   test_getHostEntry();
   test_getIncomingTryOrder();
   test_getOutgoingTryOrder();
-
-  if (xmlReader)
-    test_copying_readFromXML();
-
-  do_test_finished();
 };

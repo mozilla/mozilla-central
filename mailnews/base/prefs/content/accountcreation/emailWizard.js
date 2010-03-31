@@ -1366,7 +1366,7 @@ EmailConfigWizard.prototype =
     {
       gEmailWizardLogger.info("restarting probe: " + domain);
       this._probeAbortable.restart(domain, config, "incoming",
-                                   config.incoming.protocol,
+                                   config.incoming.type,
                                    config.incoming.port,
                                    config.incoming.socketType);
     }
@@ -1393,7 +1393,8 @@ EmailConfigWizard.prototype =
     {
       gEmailWizardLogger.info("restarting probe: " + config.outgoing.hostname);
       this._probeAbortable.restart(config.outgoing.hostname, config, "outgoing",
-                                   "smtp", config.outgoing.port);
+                                   "smtp", config.outgoing.port,
+                                   config.outgoing.socketType);
     }
     else
     {

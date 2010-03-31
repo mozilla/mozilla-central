@@ -39,9 +39,13 @@
  * Some common, generic functions
  */
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cu = Components.utils;
+try {
+  var Cc = Components.classes;
+  var Ci = Components.interfaces;
+} catch (e) { ddump(e); } // if already declared, as in xpcshell-tests
+try {
+  var Cu = Components.utils;
+} catch (e) { ddump(e); }
 
 Cu.import("resource://app/modules/errUtils.js");
 
@@ -56,7 +60,7 @@ function extend(child, supertype)
 function assert(test, errorMsg)
 {
   if (!test)
-    throw new Exception(errorMsg);
+    throw new NotReached(errorMsg);
 }
 
 
