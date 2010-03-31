@@ -132,11 +132,9 @@
               </menulist>
             </row>
             <row id="smtp.username.box" align="center">
-              <hbox class="indent">
-                <label id="smtp.username.label" value="&userName.label;"
-                       accesskey="&userName.accesskey;"
-                       control="smtp.username"/>
-              </hbox>
+              <label id="smtp.username.label" value="&userName.label;"
+                     accesskey="&userName.accesskey;"
+                     control="smtp.username"/>
               <textbox id="smtp.username" flex="1"
                        preftype="string"
                        prefstring="mail.smtpserver.%serverkey%.username"/>
