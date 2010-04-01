@@ -2260,9 +2260,9 @@ nsImapIncomingServer::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
       break;
     case nsIImapUrl::nsImapFolderStatus:
     {
-      PRInt32 folderCount = m_foldersToStat.Count();
-      nsCOMPtr<nsIMsgFolder> msgFolder(
-          do_QueryInterface(m_foldersToStat[folderCount - 1]));
+      nsCOMPtr<nsIMsgFolder> msgFolder;
+      nsCOMPtr<nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(imapUrl);
+      mailUrl->GetFolder(getter_AddRefs(msgFolder));
       if (msgFolder)
       {
         nsresult rv;
@@ -2273,12 +2273,16 @@ nsImapIncomingServer::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
         rv = session->IsFolderOpenInWindow(msgFolder, &folderOpen);
         if (NS_SUCCEEDED(rv) && !folderOpen && msgFolder)
           msgFolder->SetMsgDatabase(nsnull);
+        nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(msgFolder);
+        m_foldersToStat.RemoveObject(imapFolder);
       }
-      m_foldersToStat.RemoveObjectAt(folderCount - 1);
-      // This should be done on a timeout, since we shouldn't start a new url
-      // from here.
-      if (folderCount > 1)
-        m_foldersToStat[folderCount - 2]->UpdateStatus(this, nsnull);
+      // if we get an error running the url, it's better
+      // not to chain the next url.
+      if (NS_FAILED(exitCode))
+        m_foldersToStat.Clear();
+      if (m_foldersToStat.Count() > 0)
+        m_foldersToStat[0]->UpdateStatus(this, nsnull);
+      break;
     }
     default:
         break;
@@ -2932,9 +2936,9 @@ nsImapIncomingServer::GetNewMessagesForNonInboxFolders(nsIMsgFolder *aFolder,
     if (gUseStatus && !isOpen)
     {
       nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(aFolder);
-      if (imapFolder && !isServer)
+      if (imapFolder && !isServer &&
+          m_foldersToStat.IndexOf(imapFolder) == -1)
         m_foldersToStat.AppendObject(imapFolder);
-        //imapFolder->UpdateStatus(this, nsnull /* aWindow - null window will prevent alerts */);
     }
     else
       aFolder->UpdateFolder(aWindow);
@@ -2961,13 +2965,8 @@ nsImapIncomingServer::GetNewMessagesForNonInboxFolders(nsIMsgFolder *aFolder,
     GetNewMessagesForNonInboxFolders(msgFolder, aWindow, forceAllFolders,
                                      performingBiff);
   }
-
-  if (isServer)
-  {
-    PRInt32 folderCount = m_foldersToStat.Count();
-    if (folderCount > 0)
-      m_foldersToStat[folderCount - 1]->UpdateStatus(this, nsnull);
-  }
+  if (isServer && m_foldersToStat.Count() > 0)
+    m_foldersToStat[0]->UpdateStatus(this, nsnull);
   return NS_OK;
 }
 
