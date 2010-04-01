@@ -631,7 +631,7 @@ HostDetector.prototype =
     else if (protocol == IMAP)
       prefix = "AUTH=";
     else if (protocol == SMTP)
-      prefix = "AUTH ";
+      prefix = "AUTH.*";
     else
       throw NotReached("must pass protocol");
     if (new RegExp(prefix + "GSSAPI").test(line))
