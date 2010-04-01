@@ -1159,10 +1159,10 @@ let gFolderTreeView = {
     }
     this._restoreOpenStates();
     // restore selection.
-    for each (let folder in Iterator(selectedFolders)){
+    for (let [, folder] in Iterator(selectedFolders)) {
       if (folder) {
         let index = this.getIndexOfFolder(folder);
-        if (index != -1)
+        if (index != null)
           this.selection.toggleSelect(index);
       }
     }
