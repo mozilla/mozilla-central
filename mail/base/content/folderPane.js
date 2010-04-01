@@ -466,8 +466,11 @@ let gFolderTreeView = {
    * in the tree
    */
   getSelectedFolders: function ftv_getSelectedFolders() {
+    let selection = this.selection;
+    if (!selection)
+      return [];
+
     let folderArray = [];
-    let selection = this._treeElement.view.selection;
     let rangeCount = selection.getRangeCount();
     for (let i = 0; i < rangeCount; i++) {
       let startIndex = {};
@@ -1115,7 +1118,7 @@ let gFolderTreeView = {
   },
 
   _tree: null,
-
+  selection: null,
   /**
    * An array of ftvItems, where each item corresponds to a row in the tree
    */
@@ -1136,6 +1139,9 @@ let gFolderTreeView = {
       this.mode = "all";
       newRowMap = this._modes[this.mode].generateMap(this);
     }
+    let selectedFolders = this.getSelectedFolders();
+    if (this.selection)
+      this.selection.clearSelection();
     // There's a chance the call to the map generator altered this._rowMap, so
     // evaluate oldCount after calling it rather than before
     let oldCount = this._rowMap ? this._rowMap.length : null;
@@ -1152,6 +1158,14 @@ let gFolderTreeView = {
       this._tree.invalidate();
     }
     this._restoreOpenStates();
+    // restore selection.
+    for each (let folder in Iterator(selectedFolders)){
+      if (folder) {
+        let index = this.getIndexOfFolder(folder);
+        if (index != -1)
+          this.selection.toggleSelect(index);
+      }
+    }
   },
 
   _sortedAccounts: function ftv_getSortedAccounts()
