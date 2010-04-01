@@ -107,8 +107,7 @@
 
   <toolbox id="history-toolbox">
   <menubar id="history-menu"
-           grippytooltiptext="&menuBar.tooltip;"
-           chromedir="&locale.dir;">
+           grippytooltiptext="&menuBar.tooltip;">
     <menu id="menu_File">
       <menupopup id="menu_FilePopup">
         <menuitem id="menu_close"/>
@@ -136,8 +135,7 @@
   <toolbar class="chromeclass-toolbar"
            id="placesToolbar"
            align="center"
-           grippytooltiptext="&searchBar.tooltip;"
-           chromedir="&locale.dir;">
+           grippytooltiptext="&searchBar.tooltip;">
     <textbox id="search-box"
              clickSelectsAll="true"
              type="search"

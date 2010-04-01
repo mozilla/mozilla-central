@@ -198,13 +198,13 @@
 }
 
 .folderview-cycler[dir="prev"],
-.folderview-cycler[dir="next"][chromedir="rtl"] {
+.folderview-cycler[dir="next"]:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://messenger/skin/icons/spin-buttons.png");
   -moz-image-region: rect(0 15px 16px 0);
 }
 
 .folderview-cycler[dir="next"],
-.folderview-cycler[dir="prev"][chromedir="rtl"] {
+.folderview-cycler[dir="prev"]:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://messenger/skin/icons/spin-buttons.png");
   -moz-image-region: rect(0 31px 16px 15px);
 }

@@ -46,13 +46,13 @@ tabpanels {
   -moz-appearance: none;
 }
 
-.tabbrowser-tab:not([chromedir="rtl"]),
-.tabbrowser-tab[chromedir="rtl"]:first-child {
+.tabbrowser-tab:-moz-locale-dir(ltr),
+.tabbrowser-tab:-moz-locale-dir(rtl):first-child {
   -moz-border-right-colors: transparent rgba(0, 0, 0, 0.19);
 }
 
-.tabbrowser-tab:not([chromedir="rtl"]):first-child,
-.tabbrowser-tab[chromedir="rtl"] {
+.tabbrowser-tab:-moz-locale-dir(ltr):first-child,
+.tabbrowser-tab:-moz-locale-dir(rtl) {
   -moz-border-left-colors: transparent rgba(0, 0, 0, 0.19);
 }
 
@@ -93,11 +93,11 @@ tabpanels {
   -moz-outline-radius: 5px;
 }
 
-.tabbrowser-tab[beforeselected="true"]:not([chromedir="rtl"]) {
+.tabbrowser-tab[beforeselected="true"]:-moz-locale-dir(ltr) {
   -moz-border-right-colors: transparent transparent;
 }
 
-.tabbrowser-tab[beforeselected="true"][chromedir="rtl"] {
+.tabbrowser-tab[beforeselected="true"]:-moz-locale-dir(rtl) {
   -moz-border-left-colors: transparent transparent;
 }
 

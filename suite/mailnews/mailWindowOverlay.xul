@@ -2142,8 +2142,7 @@
                    label="&goBackButton.label;"
                    tooltiptext="&goBackButton.tooltip;"
                    observes="button_goBack"
-                   oncommand="goDoCommand('cmd_goBack')"
-                   chromedir="&locale.dir;">
+                   oncommand="goDoCommand('cmd_goBack')">
       <menupopup id="button-goBackPopup"
                  onpopupshowing="InitBackToolbarMenu(this)"
                  oncommand="NavigateToUri(event.target);"/>
@@ -2155,8 +2154,7 @@
                    label="&goForwardButton.label;"
                    tooltiptext="&goForwardButton.tooltip;"
                    observes="button_goForward"
-                   oncommand="goDoCommand('cmd_goForward')"
-                   chromedir="&locale.dir;">
+                   oncommand="goDoCommand('cmd_goForward')">
       <menupopup id="button-goForwardPopup"
                  onpopupshowing="InitForwardToolbarMenu(this)"
                  oncommand="NavigateToUri(event.target);"/>

@@ -911,8 +911,7 @@
   <binding id="tabmail-tab"
            display="xul:box"
            extends="chrome://global/content/bindings/tabbox.xml#tab">
-    <content chromedir="&locale.dir;"
-             closetabtext="&tabmailClose.label;">
+    <content closetabtext="&tabmailClose.label;">
       <xul:hbox class="tab-middle box-inherit"
                 xbl:inherits="align,dir,pack,orient,selected"
                 flex="1">
@@ -941,8 +940,7 @@
                          anonid="scrollbutton-up"
                          onmousedown="_startScroll(-1);"
                          onmouseup="_stopScroll();"
-                         onmouseout="_stopScroll();"
-                         chromedir="&locale.dir;"/>
+                         onmouseout="_stopScroll();"/>
       <xul:scrollbox xbl:inherits="orient,align,pack,dir"
                      flex="1"
                      anonid="scrollbox">
@@ -963,8 +961,7 @@
                            anonid="scrollbutton-down"
                            onmousedown="_startScroll(1);"
                            onmouseup="_stopScroll();"
-                           onmouseout="_stopScroll();"
-                           chromedir="&locale.dir;"/>
+                           onmouseout="_stopScroll();"/>
       </xul:stack>
     </content>
 

@@ -195,8 +195,7 @@
 
   <toolbox id="download-toolbox">
     <menubar id="download-menubar"
-             grippytooltiptext="&menuBar.tooltip;"
-             chromedir="&locale.dir;">
+             grippytooltiptext="&menuBar.tooltip;">
       <menu id="menu_File">
         <menupopup id="menu_FilePopup">
           <menuitem id="dlMenu_open"
@@ -371,8 +370,7 @@
     <toolbar class="chromeclass-toolbar"
              id="downloadToolbar"
              align="center"
-             grippytooltiptext="&searchBar.tooltip;"
-             chromedir="&locale.dir;">
+             grippytooltiptext="&searchBar.tooltip;">
       <textbox id="search-box"
                clickSelectsAll="true"
                type="search"
