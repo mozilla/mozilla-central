@@ -115,7 +115,8 @@ function configure_message_injection(aInjectionConfig) {
     // Note: Inbox is not created automatically when there is no deferred server,
     // so we need to create it.
     mis.rootFolder = mis.incomingServer.rootMsgFolder;
-    mis.inboxFolder = mis.rootFolder.addSubfolder("Inbox");
+    mis.rootFolder.createSubfolder("Inbox", null);
+    mis.inboxFolder = mis.rootFolder.getChildNamed("Inbox");
     // a local inbox should have a Mail flag!
     mis.inboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
     mis.inboxFolder.setFlag(Ci.nsMsgFolderFlags.Inbox);
