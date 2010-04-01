@@ -52,6 +52,10 @@ vpath %.png $(LOCALE_SRCDIR)/searchplugins
 run_for_effects := $(shell if test ! -d $(DIST); then $(NSINSTALL) -D $(DIST); fi; if test ! -d $(DIST)/branding; then $(NSINSTALL) -D $(DIST)/branding; fi)
 _ABS_DIST := $(call core_abspath,$(DIST))
 
+SUBMAKEFILES += \
+	$(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/Makefile \
+	$(NULL)
+
 AB = $(firstword $(subst -, ,$(AB_CD)))
 
 PWD := $(CURDIR)
@@ -227,7 +231,7 @@ include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
 repackage-win32-installer: WIN32_INSTALLER_OUT="$(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe"
 repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
 	@echo "Repackaging $(WIN32_INSTALLER_IN) into $(WIN32_INSTALLER_OUT)."
-	$(MAKE) -C ../installer/windows export
+	$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY) export
 	if test ! -d $(_ABS_DIST)/$(PKG_INST_PATH); then \
 	  $(NSINSTALL) -D $(_ABS_DIST)/$(PKG_INST_PATH); \
 	fi

@@ -148,10 +148,3 @@ endif
 
 include $(topsrcdir)/config/rules.mk
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/makensis.mk
-
-export::
-	$(NSINSTALL) -D $(DIST)/branding
-	cp $(srcdir)/nsis/branding.nsi $(DIST)/branding/branding.nsi
-	cp $(srcdir)/wizHeader.bmp     $(DIST)/branding/wizHeader.bmp
-	cp $(srcdir)/wizHeaderRTL.bmp  $(DIST)/branding/wizHeaderRTL.bmp
-	cp $(srcdir)/wizWatermark.bmp  $(DIST)/branding/wizWatermark.bmp

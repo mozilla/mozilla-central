@@ -39,7 +39,6 @@ if [ "$COMM_BUILD" ]; then
 add_makefiles "
   suite/Makefile
   suite/app/Makefile
-  suite/branding/Makefile
   suite/browser/Makefile
   suite/browser/public/Makefile
   suite/browser/src/Makefile
@@ -66,5 +65,6 @@ add_makefiles "
   suite/smile/Makefile
   suite/themes/modern/Makefile
   suite/themes/classic/Makefile
+  $MOZ_BRANDING_DIRECTORY/Makefile
 "
 fi

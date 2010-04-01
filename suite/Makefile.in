@@ -50,7 +50,6 @@ PARALLEL_DIRS = debugQA
 endif
 
 PARALLEL_DIRS	+= \
-		branding \
 		browser \
 		common \
 		feeds/public \

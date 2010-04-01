@@ -48,7 +48,7 @@ GRE_MILESTONE = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py
 GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
 
 DEFINES += \
-	-DSEAMONKEY_ICO=\"../branding/icons/windows/seamonkey.ico\" \
+	-DSEAMONKEY_ICO=\"$(DIST)/branding/seamonkey.ico\" \
 	-DAB_CD=$(AB_CD) \
 	-DAPP_VERSION="$(MOZ_APP_VERSION)" \
 	-DGRE_MILESTONE=$(GRE_MILESTONE) \
@@ -205,6 +205,7 @@ RCFLAGS += -i $(MOZILLA_SRCDIR)/toolkit/xre
 ifdef BUILD_STATIC_LIBS
 RCFLAGS += -DMOZ_STATIC_BUILD -i $(DIST)/include
 endif
+RCFLAGS += -DSEAMONKEY_ICO=\"$(DIST)/branding/seamonkey.ico\"
 endif
 
 LIBS += $(JEMALLOC_LIBS)
@@ -297,15 +298,6 @@ libs:: blocklist.xml
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 
-# copy .dmg contents into obj dir branding
-export::
-ifndef MOZ_BRANDING_DIRECTORY
-	$(NSINSTALL) -D $(DIST)/branding
-	cp $(topsrcdir)/suite/branding/package/mac/dsstore $(DIST)/branding/dsstore
-	cp $(topsrcdir)/suite/branding/package/mac/background.png $(DIST)/branding/background.png
-	cp $(topsrcdir)/suite/branding/package/mac/disk.icns $(DIST)/branding/disk.icns
-endif
-
 AB := $(firstword $(subst -, ,$(AB_CD)))
 
 ifdef MOZ_DEBUG
@@ -324,7 +316,7 @@ libs:: $(PROGRAM)
 	rsync -a $(DIST)/bin/ $(DIST)/$(APP_NAME).app/Contents/MacOS
 	rm -f $(DIST)/$(APP_NAME).app/Contents/MacOS/$(PROGRAM)
 	rsync -aL $(PROGRAM) $(DIST)/$(APP_NAME).app/Contents/MacOS
-	cp -RL $(srcdir)/../branding/icons/mac/*.icns $(DIST)/$(APP_NAME).app/Contents/Resources/
+	cp -RL $(DIST)/branding/icons/*.icns $(DIST)/$(APP_NAME).app/Contents/Resources/
 	printf APPLMOZZ > $(DIST)/$(APP_NAME).app/Contents/PkgInfo
 #       remove CVS dirs from packaged app
 	find $(DIST)/$(APP_NAME).app -type d -name "CVS" -prune -exec rm -rf {} \;

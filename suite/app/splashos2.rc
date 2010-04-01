@@ -39,7 +39,7 @@
 #include <os2.h>
 #include "nsNativeAppSupportOS2.h"
 
-ICON 1 "..\\branding\\icons\\os2\\seamonkey.ico"
+ICON 1 SEAMONKEY_ICO
 
 STRINGTABLE DISCARDABLE
 BEGIN

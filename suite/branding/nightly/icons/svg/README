@@ -1,4 +1,4 @@
-mozilla/suite/branding/icons/svg:
+mozilla/suite/branding/nightly/icons/svg:
 This directory contains the base SVG images used for creation of the SeaMonkey
 window icons. The SVG images are not directly used in the software, but stored
 here for reference and as a base for possible later revisions or new icons

@@ -36,7 +36,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../..
+DEPTH		= ../../..
 topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
@@ -116,3 +116,31 @@ GARBAGE	+= $(addprefix $(DIST)/bin/chrome/icons/default/,$(DESKTOP_ICON_FILES))
 endif
 
 include $(topsrcdir)/config/rules.mk
+
+export::
+	$(NSINSTALL) -D $(DIST)/branding
+ifeq ($(OS_ARCH),WINNT)
+	cp $(srcdir)/icons/windows/seamonkey.ico      $(DIST)/branding/seamonkey.ico
+	cp $(srcdir)/package/windows/branding.nsi     $(DIST)/branding/branding.nsi
+	cp $(srcdir)/package/windows/wizHeader.bmp    $(DIST)/branding/wizHeader.bmp
+	cp $(srcdir)/package/windows/wizHeaderRTL.bmp $(DIST)/branding/wizHeaderRTL.bmp
+	cp $(srcdir)/package/windows/wizWatermark.bmp $(DIST)/branding/wizWatermark.bmp
+endif
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
+	$(NSINSTALL) -D $(DIST)/branding
+	$(NSINSTALL) -D $(DIST)/branding/icons
+	cp $(srcdir)/icons/mac/command.icns           $(DIST)/branding/icons/command.icns
+	cp $(srcdir)/icons/mac/component.icns         $(DIST)/branding/icons/component.icns
+	cp $(srcdir)/icons/mac/html.icns              $(DIST)/branding/icons/html.icns
+	cp $(srcdir)/icons/mac/mozilla.icns           $(DIST)/branding/icons/mozilla.icns
+	cp $(srcdir)/icons/mac/plugin.icns            $(DIST)/branding/icons/plugin.icns
+	cp $(srcdir)/icons/mac/pref.icns              $(DIST)/branding/icons/pref.icns
+	cp $(srcdir)/icons/mac/seamonkey.icns         $(DIST)/branding/icons/seamonkey.icns
+	cp $(srcdir)/icons/mac/text.icns              $(DIST)/branding/icons/text.icns
+	cp $(srcdir)/package/mac/dsstore              $(DIST)/branding/dsstore
+	cp $(srcdir)/package/mac/background.png       $(DIST)/branding/background.png
+	cp $(srcdir)/package/mac/disk.icns            $(DIST)/branding/disk.icns
+endif
+ifeq ($(OS_ARCH),OS2)
+	cp $(srcdir)/icons/os2/seamonkey.ico           $(DIST)/branding/seamonkey.ico
+endif
