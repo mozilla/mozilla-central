@@ -58,6 +58,13 @@ NS_DEFINE_NAMED_CID(NS_IMPORTMIMEENCODE_CID);
 NS_DEFINE_NAMED_CID(NS_TEXTIMPORT_CID);
 
 ////////////////////////////////////////////////////////////////////////////////
+// vCard import Include Files
+////////////////////////////////////////////////////////////////////////////////
+#include "nsVCardImport.h"
+
+NS_DEFINE_NAMED_CID(NS_VCARDIMPORT_CID);
+
+////////////////////////////////////////////////////////////////////////////////
 // nsComm4x import Include Files
 ////////////////////////////////////////////////////////////////////////////////
 #include "nsComm4xProfile.h"
@@ -115,6 +122,11 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsIImportMimeEncodeImpl)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsTextImport)
 
 ////////////////////////////////////////////////////////////////////////////////
+// vcard import factories
+////////////////////////////////////////////////////////////////////////////////
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsVCardImport)
+
+////////////////////////////////////////////////////////////////////////////////
 // nsComm4x import factories
 ////////////////////////////////////////////////////////////////////////////////
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsComm4xMailImport)
@@ -148,15 +160,16 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsWMImport)
 static const mozilla::Module::CategoryEntry kMailNewsImportCategories[] = {
   // XXX These CIDs should match the explicit CIDs defined in the header files,
   // or be changed so that they are contract IDs (with appropraite code updates)
-  { "mailnewsimport", "{A5991D01-ADA7-11d3-A9C2-00A0CC26DA63}", "addressbook"},
+  { "mailnewsimport", "{A5991D01-ADA7-11d3-A9C2-00A0CC26DA63}", NS_IMPORT_ADDRESS_STR },
+  { "mailnewsimport", "{0eb034a3-964a-4e2f-92eb-cc55d9ae9dd2}", NS_IMPORT_ADDRESS_STR },
   { "mailnewsimport", "{647cc990-2bdb-11d6-92a0-0010a4b26cda}", kComm4xMailSupportsString},
 #if defined(XP_WIN) || defined(XP_MACOSX)
-  { "mailnewsimport", "{c8448da0-8f83-11d3-a206-00a0cc26da63}", kEudoraSupportsString},
+  { "mailnewsimport", "{c8448da0-8f83-11d3-a206-00a0cc26da63}", kEudoraSupportsString },
 #endif
 #ifdef XP_WIN
   { "mailnewsimport", "{42bc82bc-8e9f-4597-8b6e-e529daaf3af1}", kWMSupportsString },
   { "mailnewsimport", "{1DB469A0-8B00-11d3-A206-00A0CC26DA63}", kOutlookSupportsString },
-  { "mailnewsimport", "{be0bc880-1742-11d3-a206-00a0cc26da63}", kOESupportsString},
+  { "mailnewsimport", "{be0bc880-1742-11d3-a206-00a0cc26da63}", kOESupportsString },
 #endif
 #if defined(XP_MACOSX)
   { "mailnewsimport", "{6d3f101c-70ec-4e04-b68d-9908d1aeddf3}", kAppleMailSupportsString },
@@ -164,12 +177,13 @@ static const mozilla::Module::CategoryEntry kMailNewsImportCategories[] = {
   { NULL }
 };
 
-  const mozilla::Module::CIDEntry kMailNewsImportCIDs[] = {
+const mozilla::Module::CIDEntry kMailNewsImportCIDs[] = {
   { &kNS_IMPORTSERVICE_CID, false, NULL, nsImportServiceConstructor },
   { &kNS_IMPORTMIMEENCODE_CID, false, NULL, nsIImportMimeEncodeImplConstructor },
   { &kNS_TEXTIMPORT_CID, false, NULL, nsTextImportConstructor },
+  { &kNS_VCARDIMPORT_CID, false, NULL, nsVCardImportConstructor },
   { &kNS_COMM4XMAILIMPORT_CID, false, NULL, nsComm4xMailImportConstructor },
-  { &kNS_COMM4XMAILIMPL_CID, false, NULL, ImportComm4xMailImplConstructor},
+  { &kNS_COMM4XMAILIMPL_CID, false, NULL, ImportComm4xMailImplConstructor },
   { &kNS_ICOMM4XPROFILE_CID, false, NULL, nsComm4xProfileConstructor },
 #if defined(XP_WIN) || defined(XP_MACOSX)
   { &kNS_EUDORAIMPORT_CID, false, NULL, nsEudoraImportConstructor },
@@ -187,10 +201,11 @@ static const mozilla::Module::CategoryEntry kMailNewsImportCategories[] = {
   { NULL }
 };
 
-  const mozilla::Module::ContractIDEntry kMailNewsImportContracts[] = {
+const mozilla::Module::ContractIDEntry kMailNewsImportContracts[] = {
   { NS_IMPORTSERVICE_CONTRACTID, &kNS_IMPORTSERVICE_CID },
   { "@mozilla.org/import/import-mimeencode;1", &kNS_IMPORTMIMEENCODE_CID },
   { "@mozilla.org/import/import-text;1", &kNS_TEXTIMPORT_CID },
+  { "@mozilla.org/import/import-vcard;1", &kNS_VCARDIMPORT_CID },
   { "@mozilla.org/import/import-comm4xMail;1", &kNS_COMM4XMAILIMPORT_CID },
   { NS_COMM4XMAILIMPL_CONTRACTID, &kNS_COMM4XMAILIMPL_CID },
   { NS_ICOMM4XPROFILE_CONTRACTID, &kNS_ICOMM4XPROFILE_CID },

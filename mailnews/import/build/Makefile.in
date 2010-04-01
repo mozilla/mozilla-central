@@ -59,6 +59,7 @@ CPPSRCS		=  nsImportModule.cpp
 SHARED_LIBRARY_LIBS = \
 		../src/$(LIB_PREFIX)import_s.$(LIB_SUFFIX) \
 		../text/src/$(LIB_PREFIX)imptext_s.$(LIB_SUFFIX) \
+		../vcard/src/$(LIB_PREFIX)impvcard_s.$(LIB_SUFFIX) \
 		../comm4x/src/$(LIB_PREFIX)imp4mail_s.$(LIB_SUFFIX) \
 		$(NULL)
 
@@ -81,6 +82,7 @@ endif
 LOCAL_INCLUDES += -I$(srcdir)/../src \
 	-I$(srcdir)/../comm4x/src \
 	-I$(srcdir)/../text/src \
+  -I$(srcdir)/../vcard/src \
 	$(NULL)
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))

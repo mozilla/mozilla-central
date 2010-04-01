@@ -834,9 +834,12 @@ function ImportAddress( module, success, error) {
       // ask for file
       try {
         filePicker.init( top.window, gImportMsgsBundle.getString('ImportSelectAddrFile'), Components.interfaces.nsIFilePicker.modeOpen);
-	if (selectedModuleName == gImportMsgsBundle.getString('Comm4xImportName'))
-		filePicker.appendFilter(gImportMsgsBundle.getString('Comm4xFiles'),"*.na2");
-        else {
+        if (selectedModuleName == gImportMsgsBundle.getString('Comm4xImportName'))
+          filePicker.appendFilter(gImportMsgsBundle.getString('Comm4xFiles'),"*.na2");
+        else if (selectedModuleName == gImportMsgsBundle.getString('VCardImportName')) {
+          var addressbookBundle = document.getElementById("bundle_addressbook");
+          filePicker.appendFilter(addressbookBundle.getString('VCFFiles'), "*.vcf");
+        } else {
           var addressbookBundle = document.getElementById("bundle_addressbook");
           filePicker.appendFilter(addressbookBundle.getString('LDIFFiles'), "*.ldi; *.ldif");
           filePicker.appendFilter(addressbookBundle.getString('CSVFiles'), "*.csv");

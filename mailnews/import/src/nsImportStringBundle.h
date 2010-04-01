@@ -49,6 +49,11 @@ public:
   static void GetStringByID(PRInt32 aStringID,
                             nsIStringBundle *aBundle,
                             nsString &aResult);
+  static PRUnichar* GetStringByName(const char *aName,
+                                    nsIStringBundle *aBundle = nsnull);
+  static void GetStringByName(const char *aName,
+                                nsIStringBundle *aBundle,
+                                nsString &aResult);
   static nsresult GetStringBundle(const char *aPropertyURL,
                                   nsIStringBundle **aBundle);
   static nsresult GetStringBundleProxy(nsIStringBundle *aOriginalBundle,

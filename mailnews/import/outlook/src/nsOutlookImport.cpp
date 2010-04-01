@@ -280,7 +280,7 @@ NS_IMETHODIMP nsOutlookImport::GetImportInterface( const char *pImportType, nsIS
   }
 
   if (!strcmp( pImportType, "addressbook")) {
-    // create the nsIImportMail interface and return it!
+    // create the nsIImportAddressBook interface and return it!
     nsIImportAddressBooks *  pAddress = nsnull;
     nsIImportGeneric *    pGeneric = nsnull;
     rv = ImportOutlookAddressImpl::Create( &pAddress);

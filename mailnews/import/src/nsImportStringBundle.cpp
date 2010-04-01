@@ -101,3 +101,30 @@ PRUnichar *nsImportStringBundle::GetStringByID(PRInt32 aStringID,
 
   return ToNewUnicode(resultString);
 }
+
+void nsImportStringBundle::GetStringByName(const char *aName,
+                                           nsIStringBundle *aBundle,
+                                           nsString &aResult)
+{
+  aResult.Adopt(GetStringByName(aName, aBundle));
+}
+
+PRUnichar *nsImportStringBundle::GetStringByName(const char *aName,
+                                                 nsIStringBundle *aBundle)
+{
+  if (aBundle)
+  {
+    PRUnichar *ptrv = nsnull;
+    nsresult rv = aBundle->GetStringFromName(
+        NS_ConvertUTF8toUTF16(aName).get(), &ptrv);
+
+    if (NS_SUCCEEDED(rv) && ptrv)
+      return(ptrv);
+  }
+
+  nsString resultString(NS_LITERAL_STRING("[StringName "));
+  resultString.Append(NS_ConvertUTF8toUTF16(aName).get());
+  resultString.AppendLiteral("?]");
+
+  return ToNewUnicode(resultString);
+}
