@@ -48,7 +48,7 @@ Components.utils.import("resource:///modules/jsTreeSelection.js");
 Components.utils.import("resource:///modules/MailConsts.js");
 Components.utils.import("resource:///modules/errUtils.js");
 Components.utils.import("resource:///modules/IOUtils.js");
-Components.utils.import("resource:///modules/migration.jsm");
+Components.utils.import("resource:///modules/mailnewsMigrator.js");
 Components.utils.import("resource:///modules/sessionStoreManager.js");
 
 /* This is where functions related to the 3 pane window are kept */
@@ -316,6 +316,8 @@ function LoadPostAccountWizard()
   MigrateJunkMailSettings();
   MigrateFolderViews();
   MigrateOpenMessageBehavior();
+  Components.utils.import("resource:///modules/mailMigrator.js");
+  MailMigrator.migrateMail();
 
   accountManager.setSpecialFolders();
   accountManager.loadVirtualFolders();

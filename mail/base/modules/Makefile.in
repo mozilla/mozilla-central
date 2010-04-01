@@ -53,6 +53,7 @@ EXTRA_JS_MODULES = \
   searchSpec.js \
   MsgHdrSyntheticView.js \
   sessionStoreManager.js \
+  mailMigrator.js \
   $(NULL)
 
 include $(topsrcdir)/config/rules.mk

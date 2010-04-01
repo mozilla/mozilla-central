@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: JavaScript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -502,6 +502,49 @@ pref("mailnews.migration.header_addons_url","http://live.mozillamessaging.com/%A
 pref("font.default", "sans-serif");
 pref("font.default.x-unicode", "sans-serif");
 pref("font.default.x-western", "sans-serif");
+
+#ifdef XP_MACOSX
+pref("font.name.sans-serif.x-unicode", "Lucida Grande");
+pref("font.name.monospace.x-unicode", "Menlo");
+pref("font.name-list.sans-serif.x-unicode", "Lucida Grande");
+pref("font.name-list.monospace.x-unicode", "Menlo, Monaco");
+pref("font.size.variable.x-unicode", 15);
+pref("font.size.fixed.x-unicode", 12);
+
+pref("font.name.sans-serif.x-western", "Lucida Grande");
+pref("font.name.monospace.x-western", "Menlo");
+pref("font.name-list.sans-serif.x-western", "Lucida Grande");
+pref("font.name-list.monospace.x-western", "Menlo, Monaco");
+pref("font.size.variable.x-western", 15);
+pref("font.size.fixed.x-western", 12);
+#endif
+
+// Since different versions of Windows need different settings, we'll handle
+// this in mailMigrator.js.
+
+// Linux, in other words.  Other OSes may wish to override.
+#ifdef UNIX_BUT_NOT_MAC
+pref("font.name.serif.x-unicode", "DejaVu Serif");
+pref("font.name.sans-serif.x-unicode", "DejaVu Sans");
+pref("font.name.monospace.x-unicode", "DejaVu Sans Mono");
+
+pref("font.name.serif.x-western", "DejaVu Serif");
+pref("font.name.sans-serif.x-western", "DejaVu Sans");
+pref("font.name.monospace.x-western", "DejaVu Sans Mono");
+
+// The font.name-list fallback is defined in case font.name isn't
+// present -- e.g. in case a profile that's been used on Windows Vista or above
+// is used on Linux.
+pref("font.name-list.serif.x-unicode", "DejaVu Serif");
+pref("font.name-list.sans-serif.x-unicode", "DejaVu Sans");
+pref("font.name-list.monospace.x-unicode", "DejaVu Sans Mono");
+
+pref("font.name-list.serif.x-western", "DejaVu Serif");
+pref("font.name-list.sans-serif.x-western", "DejaVu Sans");
+pref("font.name-list.monospace.x-western", "DejaVu Sans Mono");
+#endif
+
+pref("mail.font.windows.version", 0);
 
 // What level of warning should we send to the error console?
 pref("mail.wizard.logging.console", "None");
