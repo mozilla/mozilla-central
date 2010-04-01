@@ -141,7 +141,6 @@ endif
 
 define _INSTALL_TESTS
 $(TEST_INSTALLER) $(wildcard $(srcdir)/$(dir)/*) $(testxpcobjdir)/$(MODULE)/$(dir)
-@echo "$(MODULE)/$(dir)" >> $(testxpcobjdir)/all-test-dirs.list
 
 endef # do not remove the blank line!
 
