@@ -1353,6 +1353,10 @@ NS_IMETHODIMP nsImapIncomingServer::OnlineFolderRename(nsIMsgWindow *msgWindow, 
           parentImapFolder->RenameClient(msgWindow, me, oldName, tmpNewName);
 
         nsCOMPtr <nsIMsgFolder> newFolder;
+        nsString unicodeNewName;
+        // tmpNewName is imap mod utf7. It needs to be convert to utf8.
+        CopyMUTF7toUTF16(tmpNewName, unicodeNewName);
+        CopyUTF16toUTF8(unicodeNewName, tmpNewName);
         rv = GetFolder(tmpNewName, getter_AddRefs(newFolder));
         if (NS_SUCCEEDED(rv))
         {

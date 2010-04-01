@@ -8261,9 +8261,12 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
     if (imapFolder)
     {
       nsCAutoString onlineName(m_onlineFolderName);
+      nsCAutoString utf7LeafName;
+
       if (!onlineName.IsEmpty())
-      onlineName.Append(hierarchyDelimiter);
-      LossyAppendUTF16toASCII(folderNameStr, onlineName);
+        onlineName.Append(hierarchyDelimiter);
+      CopyUTF16toMUTF7(folderNameStr, utf7LeafName);
+      onlineName.Append(utf7LeafName);
       imapFolder->SetVerifiedAsOnlineFolder(PR_TRUE);
       imapFolder->SetOnlineName(onlineName);
       imapFolder->SetHierarchyDelimiter(hierarchyDelimiter);

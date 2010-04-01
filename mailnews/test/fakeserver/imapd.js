@@ -138,7 +138,7 @@ imapDaemon.prototype = {
       // Only delete now so we don't screw ourselves up if creation fails
       this.deleteMailbox(oldBox);
       oldBox._parent = box == this.root ? null : box;
-      let newBox = new imapMailbox(oldBox.name, box, this.uidvalidity++);
+      let newBox = new imapMailbox(subName, box, this.uidvalidity++);
       newBox._messages = oldBox._messages;
       box.addMailbox(newBox);
 
