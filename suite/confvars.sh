@@ -50,10 +50,10 @@ SEAMONKEY_VERSION=$MOZ_APP_VERSION
 MOZ_BRANDING_DIRECTORY=suite/branding/nightly
 MOZ_OFFICIAL_BRANDING_DIRECTORY=suite/branding/nightly
 MOZ_EXTENSIONS_DEFAULT=" venkman inspector irc gnomevfs reporter"
-MOZ_PLACES=1
 MOZ_UPDATER=1
 MOZ_HELP_VIEWER=1
 MOZ_TOOLKIT_SEARCH=
+MOZ_MORK=1
 
 # Disable libxul which is (now) the default on mozilla-central. (Bug 394502)
 MOZ_ENABLE_LIBXUL=

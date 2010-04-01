@@ -51,6 +51,8 @@ MOZ_COMPOSER=1
 MOZ_SAFE_BROWSING=1
 MOZ_TOOLKIT_SEARCH=
 MOZ_PLACES=
+MOZ_MORKREADER=
+MOZ_MORK=1
 
 # Needed for the mozilla-central build side of the system.
 # Can be dropped when we branch MOZILLA_1_9_2_BRANCH
