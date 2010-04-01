@@ -201,11 +201,7 @@ Throbber-small.gif
 #ifdef XP_MACOSX
 updater.app/Contents/MacOS/updater.ini
 #endif
-#ifdef XP_WIN
-xpicleanup.exe
-#else
-xpicleanup
-#endif
+xpicleanup@BIN_SUFFIX@
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 
 #ifndef MOZ_STATIC_MAIL_BUILD
