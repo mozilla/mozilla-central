@@ -201,6 +201,18 @@ var intlPhrases = [
     searchPhrases: [
       {body: "\u30b5\u30f3\u30c0\u30fc\u30d0\u30fc\u30c9", match: true},
     ]
+  },
+  // Thai: Would you like to see the movie?
+  {
+    name: "Thai: query movie word into Thai language content",
+    actual: "\u0e04\u0e38\u0e13\u0e2d\u0e22\u0e32\u0e01\u0e44\u0e1b\u0e14\u0e39\u0e2b\u0e19\u0e31\u0e07",
+    encodings: {
+      "utf-8": ["=?UTF-8?B?4LiE4Li44LiT4Lit4Lii4Liy4LiB4LmE4Lib4LiU4Li54Lir4LiZ4Lix4LiH?=",
+                "\xe0\xb8\x84\xe0\xb8\xb8\xe0\xb8\x93\xe0\xb8\xad\xe0\xb8\xa2\xe0\xb8\xb2\xe0\xb8\x81\xe0\xb9\x84\xe0\xb8\x9b\xe0\xb8\x94\xe0\xb8\xb9\xe0\xb8\xab\xe0\xb8\x99\xe0\xb8\xb1\xe0\xb8\x87"]
+    },
+    searchPhrases: [
+      {body: "\u0e2b\u0e19\u0e31\u0e07", match: true},
+    ]
   }
 ];
 

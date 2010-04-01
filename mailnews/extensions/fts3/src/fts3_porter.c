@@ -880,14 +880,19 @@ static int isDelim(
   }
 
   /* this isn't CJK range, so return as no delim */
-  // Anything less than 0x2000 is the general scripts area and should not be
-  //  bi-gram indexed.
+  // Anything less than 0x2000 (except to U+0E00-U+0EFF and  U+1780-U+17FF) 
+  // is the general scripts area and should not be bi-gram indexed.
   // 0xa000 - 0a4cf is the Yi area.  It is apparently a phonetic language whose
   //  usage does not appear to have simple delimeter rules, so we're leaving it
   //  as bigram processed.  This is a guess, if you know better, let us know.
   //  (We previously bailed on this range too.)
+  // Addition, U+0E00-U+0E7F is Thai, U+0E80-U+0EFF is Laos,
+  // and U+1780-U+17FF is Khmer.  It is no easy way to break each word.
+  // So these should use bi-gram too. 
   // cases: "aa", ".a", "&a"
-  if (c < 0x2000) {
+  if (c < 0xe00 ||
+     (c >= 0xf00 && c < 0x1780) ||
+     (c >= 0x1800 && c < 0x2000)) {
     *state = BIGRAM_ALPHA; /* not really ASCII but same idea; tokenize it */
     return 0;
   }
