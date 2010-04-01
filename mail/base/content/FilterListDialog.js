@@ -98,17 +98,18 @@ function onLoad()
 
     updateButtons();
 
-    // get the selected server if it can have filters.
-    var firstItem = getSelectedServerForFilters();
+    // Get the folder where filters should be defined, if that server
+    // can accept filters.
+    var firstItem = getFilterFolderForSelection();
 
     // if the selected server cannot have filters, get the default server
     // if the default server cannot have filters, check all accounts
     // and get a server that can have filters.
     if (!firstItem)
-        firstItem = getServerThatCanHaveFilters();
+        firstItem = getServerThatCanHaveFilters().rootFolder;
 
     if (firstItem) {
-        selectFolder(firstItem.rootFolder);
+        selectFolder(firstItem);
     }
 
     window.tryToClose = onFilterClose;
@@ -467,17 +468,19 @@ function updateButtons()
 }
 
 /**
-  * get the selected server if it can have filters
+  * Given a selected folder, returns the folder where filters should
+  *  be defined (the root folder except for news) if the server can
+  *  accept filters.
   *
-  * @returns an nsIMsgIncomingServer for the server
+  * @returns an nsIMsgFolder where the filter is defined
   */
-function getSelectedServerForFilters()
+function getFilterFolderForSelection()
 {
     var args = window.arguments;
-    var selectedFolder = args[0].folder;
 
-    if (args && args[0] && selectedFolder)
+    if (args && args[0] && args[0].folder)
     {
+        var selectedFolder = args[0].folder;
         var msgFolder = selectedFolder.QueryInterface(Components.interfaces.nsIMsgFolder);
         try
         {
@@ -485,11 +488,8 @@ function getSelectedServerForFilters()
             if (rootFolder.isServer)
             {
                 var server = rootFolder.server;
-
                 if (server.canHaveFilters)
-                {
-                    return server;
-                }
+                    return (server.type == "nntp") ? msgFolder : rootFolder;
             }
         }
         catch (ex)
