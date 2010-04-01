@@ -47,8 +47,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://app/modules/MsgHdrSyntheticView.js");
-Components.utils.import("resource://app/modules/errUtils.js");
+Components.utils.import("resource:///modules/MsgHdrSyntheticView.js");
+Components.utils.import("resource:///modules/errUtils.js");
 
 /**
  * Displays message "folder"s, mail "message"s, and "glodaList" results.  The

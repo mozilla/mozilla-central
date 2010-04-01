@@ -62,7 +62,7 @@ var gAdvancedPane = {
     // Search integration -- check whether we should hide or disable integration
     let hideSearchUI = false;
     let disableSearchUI = false;
-    Components.utils.import("resource://app/modules/SearchIntegration.js");
+    Components.utils.import("resource:///modules/SearchIntegration.js");
     if (SearchIntegration)
     {
       if (SearchIntegration.osVersionTooLow)

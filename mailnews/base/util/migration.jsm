@@ -44,8 +44,8 @@
 
 var EXPORTED_SYMBOLS = [ "migrateMailnews" ];
 
-Components.utils.import("resource://app/modules/errUtils.js");
-//Components.utils.import("resource://app/modules/Services.js");
+Components.utils.import("resource:///modules/errUtils.js");
+//Components.utils.import("resource:///modules/Services.js");
 const Ci = Components.interfaces;
 var gPrefs;
 

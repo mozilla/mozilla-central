@@ -38,7 +38,7 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
-Cu.import("resource://app/modules/errUtils.js");
+Cu.import("resource:///modules/errUtils.js");
 Cu.import("resource://gre/modules/iteratorUtils.jsm");
 
 var FeatureConfigurator = {

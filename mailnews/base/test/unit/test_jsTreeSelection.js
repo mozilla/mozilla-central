@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://app/modules/jsTreeSelection.js");
+Components.utils.import("resource:///modules/jsTreeSelection.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 var fakeView = {

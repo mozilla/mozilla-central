@@ -19,7 +19,7 @@
  * }
  */
 
-Components.utils.import("resource://app/modules/errUtils.js");
+Components.utils.import("resource:///modules/errUtils.js");
 
 /**
  * Url listener that can wrap another listener and trigger a callback, but

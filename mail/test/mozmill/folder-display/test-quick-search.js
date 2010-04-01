@@ -42,8 +42,8 @@ var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers',
                        'search-window-helpers'];
 
-Cu.import("resource://app/modules/quickSearchManager.js");
-Cu.import("resource://app/modules/sessionStoreManager.js");
+Cu.import("resource:///modules/quickSearchManager.js");
+Cu.import("resource:///modules/sessionStoreManager.js");
 
 var folder;
 var setFoo, setBar;

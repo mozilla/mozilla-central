@@ -49,12 +49,12 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/gloda/log4moz.js");
-Cu.import("resource://app/modules/StringBundle.js");
+Cu.import("resource:///modules/gloda/log4moz.js");
+Cu.import("resource:///modules/StringBundle.js");
 
-Cu.import("resource://app/modules/gloda/utils.js");
-Cu.import("resource://app/modules/gloda/gloda.js");
-Cu.import("resource://app/modules/gloda/noun_tag.js");
+Cu.import("resource:///modules/gloda/utils.js");
+Cu.import("resource:///modules/gloda/gloda.js");
+Cu.import("resource:///modules/gloda/noun_tag.js");
 
 
 const nsMsgMessageFlags_Replied = Ci.nsMsgMessageFlags.Replied;

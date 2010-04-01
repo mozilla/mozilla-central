@@ -35,10 +35,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://app/modules/dbViewWrapper.js");
-Components.utils.import("resource://app/modules/mailViewManager.js");
-Components.utils.import("resource://app/modules/quickSearchManager.js");
-Components.utils.import("resource://app/modules/virtualFolderWrapper.js");
+Components.utils.import("resource:///modules/dbViewWrapper.js");
+Components.utils.import("resource:///modules/mailViewManager.js");
+Components.utils.import("resource:///modules/quickSearchManager.js");
+Components.utils.import("resource:///modules/virtualFolderWrapper.js");
 
 /**
  * Do initialization for xpcshell-tests; not used by

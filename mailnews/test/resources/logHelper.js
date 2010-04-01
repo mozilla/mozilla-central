@@ -8,8 +8,8 @@
  *  or not.
  */
 
-Components.utils.import("resource://app/modules/gloda/log4moz.js");
-Components.utils.import("resource://app/modules/IOUtils.js");
+Components.utils.import("resource:///modules/gloda/log4moz.js");
+Components.utils.import("resource:///modules/IOUtils.js");
 
 var _testLogger;
 var _xpcshellLogger;

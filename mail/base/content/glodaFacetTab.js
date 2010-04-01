@@ -1,8 +1,8 @@
-Components.utils.import("resource://app/modules/StringBundle.js");
+Components.utils.import("resource:///modules/StringBundle.js");
 
-Components.utils.import("resource://app/modules/gloda/facet.js");
+Components.utils.import("resource:///modules/gloda/facet.js");
 // needed by search.xml to use us
-Components.utils.import("resource://app/modules/gloda/msg_search.js");
+Components.utils.import("resource:///modules/gloda/msg_search.js");
 
 var glodaFacetTabType = {
   name: "glodaFacet",

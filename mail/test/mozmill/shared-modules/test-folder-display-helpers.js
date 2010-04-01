@@ -58,9 +58,9 @@ const RELATIVE_ROOT = '../shared-modules';
 const MODULE_REQUIRES = ['window-helpers'];
 
 const nsMsgViewIndex_None = 0xffffffff;
-Cu.import('resource://app/modules/MailUtils.js');
-Cu.import('resource://app/modules/MailConsts.js');
-Cu.import('resource://app/modules/mailViewManager.js');
+Cu.import('resource:///modules/MailUtils.js');
+Cu.import('resource:///modules/MailConsts.js');
+Cu.import('resource:///modules/mailViewManager.js');
 
 /**
  * List of keys not to export via installInto; values do not matter, we just

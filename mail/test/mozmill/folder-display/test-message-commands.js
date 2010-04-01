@@ -45,7 +45,7 @@ var MODULE_NAME = 'test-message-commands';
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers'];
 
-Components.utils.import("resource://app/modules/MailUtils.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 
 var archiveSrcFolder = null;
 var archiveURI;

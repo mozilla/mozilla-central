@@ -47,7 +47,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/IOUtils.js");
+Cu.import("resource:///modules/IOUtils.js");
 
 /**
  * asuth arbitrarily chose this value to trade-off powersaving,

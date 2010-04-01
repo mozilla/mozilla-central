@@ -36,4 +36,4 @@
  * ***** END LICENSE BLOCK ***** */
 
 // get the core
-Components.utils.import("resource://app/modules/gloda/public.js");
+Components.utils.import("resource:///modules/gloda/public.js");

@@ -43,13 +43,13 @@ var EXPORTED_SYMBOLS = ["SearchIntegration"];
 // Set SearchIntegration to null, as we don't have it
 var SearchIntegration = null;
 #else
-Components.utils.import("resource://app/modules/WinSearchIntegration.js");
+Components.utils.import("resource:///modules/WinSearchIntegration.js");
 #endif
 
 #else
 
 #ifdef XP_MACOSX
-Components.utils.import("resource://app/modules/SpotlightIntegration.js");
+Components.utils.import("resource:///modules/SpotlightIntegration.js");
 
 #else
 // Set SearchIntegration to null, as we don't have it

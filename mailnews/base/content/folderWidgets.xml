@@ -356,7 +356,7 @@
         <parameter name="aFolders"/>
         <body><![CDATA[
           var folders;
-          Components.utils.import("resource://app/modules/MailUtils.js");
+          Components.utils.import("resource:///modules/MailUtils.js");
           // Extensions and other consumers can add to these modes too, see the
           // above note on the _filters field.
           var mode = this.getAttribute("mode");

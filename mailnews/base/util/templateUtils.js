@@ -41,7 +41,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/StringBundle.js");
+Cu.import("resource:///modules/StringBundle.js");
 
 const gTemplateUtilsStrings =
   new StringBundle("chrome://messenger/locale/templateUtils.properties");

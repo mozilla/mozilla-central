@@ -40,8 +40,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://app/modules/quickSearchManager.js");
-Components.utils.import("resource://app/modules/StringBundle.js");
+Components.utils.import("resource:///modules/quickSearchManager.js");
+Components.utils.import("resource:///modules/StringBundle.js");
 
 
 var gSearchBundle;

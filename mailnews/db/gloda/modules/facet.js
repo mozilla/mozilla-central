@@ -46,7 +46,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/gloda/public.js");
+Cu.import("resource:///modules/gloda/public.js");
 
 /**
  * Decides the appropriate faceters for the noun type and drives the faceting

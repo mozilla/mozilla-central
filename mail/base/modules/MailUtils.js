@@ -41,7 +41,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
-Components.utils.import("resource://app/modules/MailConsts.js");
+Components.utils.import("resource:///modules/MailConsts.js");
 const MC = MailConsts;
 
 /**

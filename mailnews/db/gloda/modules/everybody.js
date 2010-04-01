@@ -42,7 +42,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/gloda/log4moz.js");
+Cu.import("resource:///modules/gloda/log4moz.js");
 const LOG = Log4Moz.repository.getLogger("gloda.everybody");
 
 var importNS = {};
@@ -73,11 +73,11 @@ function loadModule(aModuleURI, aNSContrib) {
   return true;
 }
 
-loadModule("resource://app/modules/gloda/fundattr.js", "GlodaFundAttr");
-loadModule("resource://app/modules/gloda/explattr.js", "GlodaExplicitAttr");
+loadModule("resource:///modules/gloda/fundattr.js", "GlodaFundAttr");
+loadModule("resource:///modules/gloda/explattr.js", "GlodaExplicitAttr");
 
-loadModule("resource://app/modules/gloda/noun_tag.js");
-loadModule("resource://app/modules/gloda/noun_freetag.js");
-loadModule("resource://app/modules/gloda/noun_mimetype.js");
-loadModule("resource://app/modules/gloda/index_msg.js");
-loadModule("resource://app/modules/gloda/index_ab.js", "GlodaABAttrs");
+loadModule("resource:///modules/gloda/noun_tag.js");
+loadModule("resource:///modules/gloda/noun_freetag.js");
+loadModule("resource:///modules/gloda/noun_mimetype.js");
+loadModule("resource:///modules/gloda/index_msg.js");
+loadModule("resource:///modules/gloda/index_ab.js", "GlodaABAttrs");

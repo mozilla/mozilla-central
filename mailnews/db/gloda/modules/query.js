@@ -42,11 +42,11 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/gloda/log4moz.js");
+Cu.import("resource:///modules/gloda/log4moz.js");
 
 // GlodaDatastore has some constants we need, and oddly enough, there was no
 //  load dependency preventing us from doing this.
-Cu.import("resource://app/modules/gloda/datastore.js");
+Cu.import("resource:///modules/gloda/datastore.js");
 
 /**
  * @class Query class core; each noun gets its own sub-class where attributes

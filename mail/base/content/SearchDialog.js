@@ -37,7 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://app/modules/MailUtils.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 
 var gCurrentFolder;
 

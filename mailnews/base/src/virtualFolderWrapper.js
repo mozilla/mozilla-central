@@ -51,7 +51,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/iteratorUtils.jsm");
+Cu.import("resource:///modules/iteratorUtils.jsm");
 
 var VirtualFolderHelper = {
   /**

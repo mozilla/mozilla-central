@@ -54,10 +54,10 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/errUtils.js");
+Cu.import("resource:///modules/errUtils.js");
 
 try {
-  Cu.import("resource://app/modules/StringBundle.js");
+  Cu.import("resource:///modules/StringBundle.js");
 } catch (e) {
   logException(e);
 }

@@ -92,13 +92,13 @@ function resolveURIInternal(aCmdLine, aArgument) {
 
 function handleIndexerResult(aFile) {
   // Do this here because xpcshell isn't too happy with this at startup
-  Components.utils.import("resource://app/modules/MailUtils.js");
+  Components.utils.import("resource:///modules/MailUtils.js");
   // Make sure the folder tree is initialized
   MailUtils.discoverFolders();
 
   // Use the search integration module to convert the indexer result into a
   // message header
-  Components.utils.import("resource://app/modules/SearchIntegration.js");
+  Components.utils.import("resource:///modules/SearchIntegration.js");
   let msgHdr = SearchIntegration.handleResult(aFile);
 
   // If we found a message header, open it, otherwise throw an exception

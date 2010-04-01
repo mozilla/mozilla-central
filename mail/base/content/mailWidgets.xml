@@ -2182,7 +2182,7 @@
     <implementation>
       <constructor>
         <![CDATA[
-          Components.utils.import("resource://app/modules/MailUtils.js");
+          Components.utils.import("resource:///modules/MailUtils.js");
           var pref = Components.classes["@mozilla.org/preferences-service;1"]
                                .getService(Components.interfaces.nsIPrefBranch);
           if (!pref.getBoolPref("mail.biff.alert.show_preview"))

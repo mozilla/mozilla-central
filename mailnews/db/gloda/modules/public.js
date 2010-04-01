@@ -42,10 +42,10 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/gloda/gloda.js");
-Cu.import("resource://app/modules/gloda/everybody.js");
-Cu.import("resource://app/modules/gloda/indexer.js");
-Cu.import("resource://app/modules/gloda/index_msg.js");
+Cu.import("resource:///modules/gloda/gloda.js");
+Cu.import("resource:///modules/gloda/everybody.js");
+Cu.import("resource:///modules/gloda/indexer.js");
+Cu.import("resource:///modules/gloda/index_msg.js");
 
 /**
  * Expose some junk

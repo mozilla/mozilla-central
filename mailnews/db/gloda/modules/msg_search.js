@@ -42,7 +42,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/gloda/public.js");
+Cu.import("resource:///modules/gloda/public.js");
 
 /**
  * How much time boost should a 'score point' amount to?  The authoritative,

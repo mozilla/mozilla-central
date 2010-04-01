@@ -55,9 +55,9 @@ const nsActWarning = Components.Constructor("@mozilla.org/activity-warning;1",
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/PluralForm.jsm");
-Cu.import("resource://app/modules/gloda/log4moz.js");
-Cu.import("resource://app/modules/gloda/gloda.js");
-Cu.import("resource://app/modules/gloda/indexer.js");
+Cu.import("resource:///modules/gloda/log4moz.js");
+Cu.import("resource:///modules/gloda/gloda.js");
+Cu.import("resource:///modules/gloda/indexer.js");
 
 /**
  * Gloda message indexer feedback.

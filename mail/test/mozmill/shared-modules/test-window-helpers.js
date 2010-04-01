@@ -48,7 +48,7 @@ Cu.import('resource://mozmill/modules/elementslib.js', elib);
 var frame = {};
 Cu.import('resource://mozmill/modules/frame.js', frame);
 
-Cu.import('resource://app/modules/iteratorUtils.jsm');
+Cu.import('resource:///modules/iteratorUtils.jsm');
 
 const MODULE_NAME = 'window-helpers';
 

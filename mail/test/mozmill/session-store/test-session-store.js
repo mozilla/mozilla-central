@@ -54,8 +54,8 @@ Cu.import("resource://mozmill/modules/controller.js", controller);
 var jumlib = {};
 Cu.import("resource://mozmill/modules/jum.js", jumlib);
 
-Cu.import("resource://app/modules/IOUtils.js");
-Cu.import("resource://app/modules/sessionStoreManager.js");
+Cu.import("resource:///modules/IOUtils.js");
+Cu.import("resource:///modules/sessionStoreManager.js");
 
 // the windowHelper module
 var windowHelper;

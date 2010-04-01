@@ -47,7 +47,7 @@ try {
   var Cu = Components.utils;
 } catch (e) { ddump(e); }
 
-Cu.import("resource://app/modules/errUtils.js");
+Cu.import("resource:///modules/errUtils.js");
 
 /**
  * Create a subtype

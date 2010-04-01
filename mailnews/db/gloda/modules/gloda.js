@@ -42,18 +42,18 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/gloda/log4moz.js");
+Cu.import("resource:///modules/gloda/log4moz.js");
 
-Cu.import("resource://app/modules/gloda/datastore.js");
-Cu.import("resource://app/modules/gloda/datamodel.js");
-Cu.import("resource://app/modules/gloda/databind.js");
-Cu.import("resource://app/modules/gloda/collection.js");
-Cu.import("resource://app/modules/gloda/connotent.js");
-Cu.import("resource://app/modules/gloda/query.js");
-Cu.import("resource://app/modules/gloda/utils.js");
+Cu.import("resource:///modules/gloda/datastore.js");
+Cu.import("resource:///modules/gloda/datamodel.js");
+Cu.import("resource:///modules/gloda/databind.js");
+Cu.import("resource:///modules/gloda/collection.js");
+Cu.import("resource:///modules/gloda/connotent.js");
+Cu.import("resource:///modules/gloda/query.js");
+Cu.import("resource:///modules/gloda/utils.js");
 
-Cu.import("resource://app/modules/iteratorUtils.jsm");
-Cu.import("resource://app/modules/IOUtils.js");
+Cu.import("resource:///modules/iteratorUtils.jsm");
+Cu.import("resource:///modules/IOUtils.js");
 
 /**
  * @see |Gloda.BadItemContentsError|

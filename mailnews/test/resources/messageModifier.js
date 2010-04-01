@@ -41,7 +41,7 @@
  *  for testing purposes.
  */
 
-Components.utils.import("resource://app/modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 /**
  * Represents a set of synthetic messages, also supporting insertion into and

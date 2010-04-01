@@ -42,16 +42,16 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/gloda/log4moz.js");
+Cu.import("resource:///modules/gloda/log4moz.js");
 
-Cu.import("resource://app/modules/gloda/utils.js");
-Cu.import("resource://app/modules/gloda/datastore.js");
-Cu.import("resource://app/modules/gloda/gloda.js");
-Cu.import("resource://app/modules/gloda/collection.js");
+Cu.import("resource:///modules/gloda/utils.js");
+Cu.import("resource:///modules/gloda/datastore.js");
+Cu.import("resource:///modules/gloda/gloda.js");
+Cu.import("resource:///modules/gloda/collection.js");
 
-Cu.import("resource://app/modules/gloda/indexer.js");
+Cu.import("resource:///modules/gloda/indexer.js");
 
-Cu.import("resource://app/modules/gloda/noun_freetag.js");
+Cu.import("resource:///modules/gloda/noun_freetag.js");
 
 
 var GlodaABIndexer = {

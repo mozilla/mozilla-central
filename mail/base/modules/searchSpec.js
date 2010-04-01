@@ -42,8 +42,8 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/iteratorUtils.jsm");
-Cu.import("resource://app/modules/quickSearchManager.js");
+Cu.import("resource:///modules/iteratorUtils.jsm");
+Cu.import("resource:///modules/quickSearchManager.js");
 
 const nsMsgSearchScope = Ci.nsMsgSearchScope;
 const nsIMsgSearchTerm = Ci.nsIMsgSearchTerm;

@@ -64,7 +64,7 @@ const msgGen = gMessageGenerator = new MessageGenerator();
 // Create a message scenario generator using that message generator
 const scenarios = gMessageScenarioFactory = new MessageScenarioFactory(msgGen);
 
-Components.utils.import("resource://app/modules/gloda/mimemsg.js");
+Components.utils.import("resource:///modules/gloda/mimemsg.js");
 
 var partText = new SyntheticPartLeaf("I am text! Woo!");
 var partHtml = new SyntheticPartLeaf(

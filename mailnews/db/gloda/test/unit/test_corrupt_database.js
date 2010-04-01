@@ -62,7 +62,7 @@ gPrefs.setBoolPref("mailnews.database.global.logging.dump", true);
 
 
 // -- Add a logger listener that throws when we give it a warning/error.
-Components.utils.import("resource://app/modules/gloda/log4moz.js");
+Components.utils.import("resource:///modules/gloda/log4moz.js");
 
 /**
  * Count the type of each severity level observed.
@@ -128,7 +128,7 @@ function test_corrupt_databases_get_reported_and_blown_away() {
 
   // - init gloda, get warnings
   mark_sub_test_start("init gloda");
-  Components.utils.import("resource://app/modules/gloda/public.js");
+  Components.utils.import("resource:///modules/gloda/public.js");
   mark_sub_test_start("gloda inited, checking");
 
   mark_action("actual", "Counting appender counts", [countingAppender.counts]);
@@ -138,7 +138,7 @@ function test_corrupt_databases_get_reported_and_blown_away() {
   do_check_eq(countingAppender.getCountForLevel(Log4Moz.Level.Error), 0);
 
   // - make sure the datastore has an actual database
-  Components.utils.import("resource://app/modules/gloda/datastore.js");
+  Components.utils.import("resource:///modules/gloda/datastore.js");
 
   if (!GlodaDatastore.asyncConnection)
     do_throw("No database connection suggests no database!");

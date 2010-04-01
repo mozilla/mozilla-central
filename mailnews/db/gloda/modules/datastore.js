@@ -48,11 +48,11 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/gloda/log4moz.js");
+Cu.import("resource:///modules/gloda/log4moz.js");
 
-Cu.import("resource://app/modules/gloda/datamodel.js");
-Cu.import("resource://app/modules/gloda/databind.js");
-Cu.import("resource://app/modules/gloda/collection.js");
+Cu.import("resource:///modules/gloda/datamodel.js");
+Cu.import("resource:///modules/gloda/databind.js");
+Cu.import("resource:///modules/gloda/collection.js");
 
 let PCH_LOG = Log4Moz.repository.getLogger("gloda.ds.pch");
 

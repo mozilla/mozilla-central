@@ -46,7 +46,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://app/modules/gloda/dbview.js");
+Components.utils.import("resource:///modules/gloda/dbview.js");
 
 const ADDR_DB_LARGE_COMMIT       = 1;
 
@@ -72,8 +72,8 @@ const kMsgNotificationPhishingBar = 1;
 const kMsgNotificationJunkBar = 2;
 const kMsgNotificationRemoteImages = 3;
 
-Components.utils.import("resource://app/modules/MailUtils.js");
-Components.utils.import("resource://app/modules/MailConsts.js");
+Components.utils.import("resource:///modules/MailUtils.js");
+Components.utils.import("resource:///modules/MailConsts.js");
 
 var gMessengerBundle;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"]

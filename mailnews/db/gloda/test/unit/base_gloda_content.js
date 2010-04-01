@@ -50,11 +50,11 @@
 
 load("resources/glodaTestHelper.js");
 
-Components.utils.import("resource://app/modules/gloda/mimemsg.js");
+Components.utils.import("resource:///modules/gloda/mimemsg.js");
 
 // we need to be able to get at GlodaFundAttr to check the number of whittler
 //   invocations
-Components.utils.import("resource://app/modules/gloda/fundattr.js");
+Components.utils.import("resource:///modules/gloda/fundattr.js");
 
 /* ===== Data ===== */
 var messageInfos = [

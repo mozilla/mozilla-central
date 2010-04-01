@@ -44,7 +44,7 @@
  * and then calls a function/command in commandglue
  */
 
-Components.utils.import("resource://app/modules/MailUtils.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 
 //The eventual goal is for this file to go away and its contents to be brought into
 //mailWindowOverlay.js.  This is currently being done.

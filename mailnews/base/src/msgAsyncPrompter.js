@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-Components.utils.import("resource://app/modules/gloda/log4moz.js");
+Components.utils.import("resource:///modules/gloda/log4moz.js");
 
 const Ci = Components.interfaces;
 const Cc = Components.classes;

@@ -41,15 +41,15 @@
 
 const EXPORTED_SYMBOLS = [];
 
-Components.utils.import("resource://app/modules/activity/sendLater.js");
+Components.utils.import("resource:///modules/activity/sendLater.js");
 sendLaterModule.init();
-Components.utils.import("resource://app/modules/activity/moveCopy.js");
+Components.utils.import("resource:///modules/activity/moveCopy.js");
 moveCopyModule.init();
-Components.utils.import("resource://app/modules/activity/glodaIndexer.js");
+Components.utils.import("resource:///modules/activity/glodaIndexer.js");
 glodaIndexerActivity.init();
-Components.utils.import("resource://app/modules/activity/autosync.js");
+Components.utils.import("resource:///modules/activity/autosync.js");
 autosyncModule.init();
-Components.utils.import("resource://app/modules/activity/alertHook.js");
+Components.utils.import("resource:///modules/activity/alertHook.js");
 alertHook.init();
-Components.utils.import("resource://app/modules/activity/pop3Download.js");
+Components.utils.import("resource:///modules/activity/pop3Download.js");
 pop3DownloadModule.init();

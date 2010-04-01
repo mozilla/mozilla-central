@@ -47,7 +47,7 @@
 //The eventual goal is for this file to go away and its contents to be brought into
 //mailWindowOverlay.js.  This is currently being done.
 
-Components.utils.import("resource://app/modules/MailUtils.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 
 //NOTE: gMessengerBundle must be defined and set or this Overlay won't work
 

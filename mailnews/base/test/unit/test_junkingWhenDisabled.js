@@ -11,7 +11,7 @@ load("../../mailnews/resources/messageGenerator.js");
 load("../../mailnews/resources/messageModifier.js");
 load("../../mailnews/resources/messageInjection.js");
 
-Components.utils.import("resource://app/modules/jsTreeSelection.js");
+Components.utils.import("resource:///modules/jsTreeSelection.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const nsIMFNService = Ci.nsIMsgFolderNotificationService;

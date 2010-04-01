@@ -40,7 +40,7 @@
  * each as a message and makes sure the streaming doesn't assert or crash.
  */
 load("../../mailnews/resources/mailTestUtils.js");
-Components.utils.import("resource://app/modules/IOUtils.js");
+Components.utils.import("resource:///modules/IOUtils.js");
 
 var gTestFiles =[ 
   "../../mailnews/data/bug505221",

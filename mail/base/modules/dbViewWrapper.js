@@ -42,9 +42,9 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/mailViewManager.js");
-Cu.import("resource://app/modules/searchSpec.js");
-Cu.import("resource://app/modules/virtualFolderWrapper.js");
+Cu.import("resource:///modules/mailViewManager.js");
+Cu.import("resource:///modules/searchSpec.js");
+Cu.import("resource:///modules/virtualFolderWrapper.js");
 
 const nsMsgFolderFlags = Ci.nsMsgFolderFlags;
 const nsMsgViewType = Ci.nsMsgViewType;

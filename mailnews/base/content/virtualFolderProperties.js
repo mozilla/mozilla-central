@@ -45,8 +45,8 @@ var gSearchFolderURIs = "";
 
 var nsMsgSearchScope = Components.interfaces.nsMsgSearchScope;
 
-Components.utils.import("resource://app/modules/virtualFolderWrapper.js");
-Components.utils.import("resource://app/modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/virtualFolderWrapper.js");
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 function onLoad()
 {

@@ -37,7 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://app/modules/mailViewManager.js");
+Components.utils.import("resource:///modules/mailViewManager.js");
 
 // these constants are now authoritatively defined in mailViewManager.js (above)
 // tag views have kViewTagMarker + their key as value

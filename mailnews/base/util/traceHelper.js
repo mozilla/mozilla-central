@@ -69,7 +69,7 @@ var STOP_COLORS = "\x1b[0m";
 /**
  * Example usages:
  *
- * Components.utils.import("resource://app/modules/traceHelper.js");
+ * Components.utils.import("resource:///modules/traceHelper.js");
  * var debugContext = {color: "cyan"};
  * DebugTraceHelper.tracify(FolderDisplayWidget.prototype,
  *                          "FolderDisplayWidget", /.+/, debugContext);

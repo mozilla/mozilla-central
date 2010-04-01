@@ -34,4 +34,4 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://app/modules/SearchIntegration.js");
+Components.utils.import("resource:///modules/SearchIntegration.js");

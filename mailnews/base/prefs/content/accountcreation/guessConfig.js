@@ -39,7 +39,7 @@
 
 var gOverrideService = Cc["@mozilla.org/security/certoverride;1"]
                        .getService(Ci.nsICertOverrideService);
-Cu.import("resource://app/modules/gloda/log4moz.js");
+Cu.import("resource:///modules/gloda/log4moz.js");
 
 const TIMEOUT = 10; // in seconds
 

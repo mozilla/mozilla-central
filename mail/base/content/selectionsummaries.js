@@ -39,8 +39,8 @@
 Components.utils.import("resource://gre/modules/DownloadUtils.jsm");
 Components.utils.import("resource://gre/modules/templateUtils.js");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
-Components.utils.import("resource://app/modules/gloda/mimemsg.js");
-Components.utils.import("resource://app/modules/gloda/connotent.js");
+Components.utils.import("resource:///modules/gloda/mimemsg.js");
+Components.utils.import("resource:///modules/gloda/connotent.js");
 
 let gSelectionSummaryStrings = {
   NConversations: "NConversations",

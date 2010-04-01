@@ -45,7 +45,7 @@ var MODULE_NAME = 'test-opening-messages-without-a-backing-view';
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
-Components.utils.import("resource://app/modules/MailUtils.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 
 // One folder's enough
 var folder = null;

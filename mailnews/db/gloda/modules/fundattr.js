@@ -42,15 +42,15 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/gloda/log4moz.js");
-Cu.import("resource://app/modules/StringBundle.js");
+Cu.import("resource:///modules/gloda/log4moz.js");
+Cu.import("resource:///modules/StringBundle.js");
 
-Cu.import("resource://app/modules/gloda/utils.js");
-Cu.import("resource://app/modules/gloda/gloda.js");
-Cu.import("resource://app/modules/gloda/datastore.js");
+Cu.import("resource:///modules/gloda/utils.js");
+Cu.import("resource:///modules/gloda/gloda.js");
+Cu.import("resource:///modules/gloda/datastore.js");
 
-Cu.import("resource://app/modules/gloda/noun_mimetype.js");
-Cu.import("resource://app/modules/gloda/connotent.js");
+Cu.import("resource:///modules/gloda/noun_mimetype.js");
+Cu.import("resource:///modules/gloda/connotent.js");
 
 /**
  * @namespace The Gloda Fundamental Attribute provider is a special attribute

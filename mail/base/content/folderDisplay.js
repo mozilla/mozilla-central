@@ -37,8 +37,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://app/modules/dbViewWrapper.js");
-Components.utils.import("resource://app/modules/jsTreeSelection.js");
+Components.utils.import("resource:///modules/dbViewWrapper.js");
+Components.utils.import("resource:///modules/jsTreeSelection.js");
 
 var gFolderDisplay = null;
 var gMessageDisplay = null;

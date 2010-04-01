@@ -38,9 +38,9 @@
 
 /* This is where functions related to the standalone message window are kept */
 
-Components.utils.import("resource://app/modules/jsTreeSelection.js");
+Components.utils.import("resource:///modules/jsTreeSelection.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-Components.utils.import("resource://app/modules/MsgHdrSyntheticView.js");
+Components.utils.import("resource:///modules/MsgHdrSyntheticView.js");
 
 // from MailNewsTypes.h
 const nsMsgKey_None = 0xFFFFFFFF;

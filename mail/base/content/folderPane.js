@@ -37,7 +37,7 @@
 
 Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/folderUtils.jsm");
-Components.utils.import("resource://app/modules/MailUtils.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 const kDefaultMode = "all";
 
 var nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;

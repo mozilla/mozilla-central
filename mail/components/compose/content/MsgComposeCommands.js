@@ -39,12 +39,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 // Ensure the activity modules are loaded for this window.
-Components.utils.import("resource://app/modules/activity/activityModules.js");
+Components.utils.import("resource:///modules/activity/activityModules.js");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
-Components.utils.import("resource://app/modules/attachmentChecker.js");
+Components.utils.import("resource:///modules/attachmentChecker.js");
 
-Components.utils.import("resource://app/modules/MailUtils.js");
-Components.utils.import("resource://app/modules/errUtils.js");
+Components.utils.import("resource:///modules/MailUtils.js");
+Components.utils.import("resource:///modules/errUtils.js");
 
 /**
  * interfaces
@@ -1180,7 +1180,7 @@ function handleMailtoArgs(mailtoUrl)
   return null;
 }
 
-var attachmentWorker = new Worker("resource://app/modules/attachmentChecker.js");
+var attachmentWorker = new Worker("resource:///modules/attachmentChecker.js");
 
 attachmentWorker.lastMessage = null;
 

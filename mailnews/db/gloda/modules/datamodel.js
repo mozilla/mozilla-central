@@ -44,10 +44,10 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/gloda/log4moz.js");
+Cu.import("resource:///modules/gloda/log4moz.js");
 const LOG = Log4Moz.repository.getLogger("gloda.datamodel");
 
-Cu.import("resource://app/modules/gloda/utils.js");
+Cu.import("resource:///modules/gloda/utils.js");
 
 /**
  * @class Represents a gloda attribute definition's DB form.  This class

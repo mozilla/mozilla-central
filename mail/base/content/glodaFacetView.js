@@ -50,14 +50,14 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://app/modules/gloda/log4moz.js");
-Cu.import("resource://app/modules/StringBundle.js");
-Cu.import("resource://app/modules/PluralForm.jsm");
-Cu.import("resource://app/modules/errUtils.js");
-Cu.import("resource://app/modules/templateUtils.js");
+Cu.import("resource:///modules/gloda/log4moz.js");
+Cu.import("resource:///modules/StringBundle.js");
+Cu.import("resource:///modules/PluralForm.jsm");
+Cu.import("resource:///modules/errUtils.js");
+Cu.import("resource:///modules/templateUtils.js");
 
-Cu.import("resource://app/modules/gloda/public.js");
-Cu.import("resource://app/modules/gloda/facet.js");
+Cu.import("resource:///modules/gloda/public.js");
+Cu.import("resource:///modules/gloda/facet.js");
 
 const glodaFacetStrings =
   new StringBundle("chrome://messenger/locale/glodaFacetView.properties");
