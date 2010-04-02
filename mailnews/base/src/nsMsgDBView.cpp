@@ -2327,7 +2327,8 @@ NS_IMETHODIMP nsMsgDBView::GetURIForViewIndex(nsMsgViewIndex index, nsACString &
     rv = GetFolderForViewIndex(index, getter_AddRefs(folder));
     NS_ENSURE_SUCCESS(rv,rv);
   }
-  if (index == nsMsgViewIndex_None || m_flags[index] & MSG_VIEW_FLAG_DUMMY)
+  if (index == nsMsgViewIndex_None || index >= m_flags.Length() ||
+      m_flags[index] & MSG_VIEW_FLAG_DUMMY)
     return NS_MSG_INVALID_DBVIEW_INDEX;
   return GenerateURIForMsgKey(m_keys[index], folder, result);
 }
