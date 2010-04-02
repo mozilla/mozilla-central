@@ -775,6 +775,32 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolderWithListener(nsIMsgWindow *aMsgWindo
               m_filterListRequiresBody = PR_TRUE;
           }
         }
+
+        // Also check if filter actions need the body, as this
+        //  is supported in custom actions.
+        nsCOMPtr<nsISupportsArray> actionList;
+        filter->GetActionList(getter_AddRefs(actionList));
+        PRUint32 numActions = 0;
+        if (actionList)
+          actionList->Count(&numActions);
+        for (PRUint32 actionIndex = 0;
+             actionIndex < numActions && !m_filterListRequiresBody;
+             actionIndex++)
+        {
+          nsCOMPtr<nsIMsgRuleAction> action(do_QueryElementAt(actionList,
+                                                              actionIndex,
+                                                              &rv));
+          if (NS_FAILED(rv) || !action)
+            continue;
+          nsCOMPtr<nsIMsgFilterCustomAction> customAction;
+          rv = action->GetCustomAction(getter_AddRefs(customAction));
+          if (NS_FAILED(rv) || !customAction)
+            continue;
+          PRBool needsBody = PR_FALSE;
+          customAction->GetNeedsBody(&needsBody);
+          if (needsBody)
+            m_filterListRequiresBody = PR_TRUE;
+        }
       }
     }
   }

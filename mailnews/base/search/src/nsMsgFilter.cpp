@@ -185,10 +185,7 @@ NS_IMETHODIMP nsMsgRuleAction::GetCustomAction(nsIMsgFilterCustomAction **aCusto
   if (!m_customAction)
   {
     if (m_customId.IsEmpty())
-    {
-      NS_ERROR("Need to set CustomId");
       return NS_ERROR_NOT_INITIALIZED;
-    }
     nsresult rv;
     nsCOMPtr<nsIMsgFilterService> filterService =
         do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv);
