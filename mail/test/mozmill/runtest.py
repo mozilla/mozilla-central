@@ -165,7 +165,9 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mailnews.start_page_override.mstone' :  "ignore",
         'mailnews.start_page.url': "about:blank",
         # Do not enable gloda
-        'mailnews.database.global.indexer.enabled': False
+        'mailnews.database.global.indexer.enabled': False,
+        # Do not allow fonts to be upgraded
+        'mail.font.windows.version': 1
         }
 
     def create_new_profile(self, binary):
