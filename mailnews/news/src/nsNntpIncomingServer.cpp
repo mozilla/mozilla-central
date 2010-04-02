@@ -62,7 +62,6 @@
 #include "nsMsgFolderFlags.h"
 #include "nsMsgI18N.h"
 #include "nsUnicharUtils.h"
-#include "nsEscape.h"
 #include "nsISupportsObsolete.h"
 #include "nsILineInputStream.h"
 #include "nsNetUtil.h"
@@ -776,9 +775,7 @@ nsNntpIncomingServer::ContainsNewsgroup(const nsACString &name,
 {
     if (name.IsEmpty()) return NS_ERROR_FAILURE;
     nsCAutoString unescapedName;
-    NS_UnescapeURL(nsCString(name),
-                   esc_FileBaseName|esc_Forced|esc_AlwaysCopy, unescapedName);
-
+    MsgUnescapeString(name, 0, unescapedName);
     *containsGroup = !(mSubscribedNewsgroups.EnumerateForwards(
                        nsCStringArrayEnumFunc(checkIfSubscribedFunction),
                        (void *) &unescapedName));
@@ -1027,7 +1024,7 @@ nsNntpIncomingServer::AddNewsgroupToList(const char *aName)
     NS_ASSERTION(NS_SUCCEEDED(rv), "newsgroup name conversion failed");
 #endif
     if (NS_FAILED(rv)) {
-        CopyASCIItoUTF16(aName, newsgroupName);
+        CopyASCIItoUTF16(nsDependentCString(aName), newsgroupName);
     }
 
     rv = AddTo(NS_ConvertUTF16toUTF8(newsgroupName),
@@ -1144,7 +1141,7 @@ NS_IMETHODIMP
 nsNntpIncomingServer::AddTo(const nsACString &aName, PRBool addAsSubscribed,
                             PRBool aSubscribable, PRBool changeIfExists)
 {
-    NS_ASSERTION(IsUTF8(aName), "Non-UTF-8 newsgroup name");
+    NS_ASSERTION(MsgIsUTF8(aName), "Non-UTF-8 newsgroup name");
     nsresult rv = EnsureInner();
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1269,7 +1266,7 @@ nsNntpIncomingServer::HandleLine(const char* line, PRUint32 line_size)
 
         // newsrc entries are all in UTF-8
 #ifdef DEBUG_jungshik
-    NS_ASSERTION(IsUTF8(nsDependentCString(line)), "newsrc line is not utf-8");
+    NS_ASSERTION(MsgIsUTF8(nsDependentCString(line)), "newsrc line is not utf-8");
 #endif
     nsresult rv = AddTo(nsDependentCString(line), PR_FALSE, PR_TRUE, PR_TRUE);
     NS_ASSERTION(NS_SUCCEEDED(rv),"failed to add line");
@@ -1711,13 +1708,7 @@ nsresult
 nsNntpIncomingServer::AppendIfSearchMatch(nsCString& newsgroupName)
 {
   NS_ConvertUTF8toUTF16 groupName(newsgroupName);
-  // When we move to frozen linkage this should be:
-  //   if (groupName.Find(mSearchValue, CaseInsensitiveCompare) >= 0)
-  nsAString::const_iterator start, end;
-  groupName.BeginReading(start);
-  groupName.EndReading(end);
-  if (FindInReadable(mSearchValue, start, end,
-                     nsCaseInsensitiveStringComparator()))
+  if (groupName.Find(mSearchValue, CaseInsensitiveCompare) != kNotFound)
       mSubscribeSearchResult.AppendCString(newsgroupName);
   return NS_OK;
 }

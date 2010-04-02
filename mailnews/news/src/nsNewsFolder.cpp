@@ -84,10 +84,8 @@
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsArrayEnumerator.h"
-#include "nsReadableUtils.h"
 #include "nsNewsDownloader.h"
 #include "nsIStringBundle.h"
-#include "nsEscape.h"
 #include "nsMsgI18N.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsIMsgAccountManager.h"
@@ -858,16 +856,13 @@ nsMsgNewsFolder::DeleteMessages(nsIArray *messages, nsIMsgWindow *aMsgWindow,
   // we need to escape the message ID,
   // it might contain characters which will mess us up later, like #
   // see bug #120502
-  char *escapedMessageID = nsEscape(messageID.get(), url_Path);
-  if (!escapedMessageID)
-    return NS_ERROR_OUT_OF_MEMORY;
+  nsCString escapedMessageID;
+  MsgEscapeString(messageID, nsINetUtil::ESCAPE_URL_PATH, escapedMessageID);
 
   nsCAutoString cancelURL(serverURI.get());
   cancelURL += '/';
   cancelURL += escapedMessageID;
   cancelURL += "?cancel";
-
-  NS_Free(escapedMessageID);
 
   nsCString messageURI;
   rv = GetUriForMsg(msgHdr, messageURI);
@@ -1012,7 +1007,7 @@ nsMsgNewsFolder::HandleNewsrcLine(const char * line, PRUint32 line_size)
     // we're subscribed, so add it
     nsCOMPtr <nsIMsgFolder> child;
 
-    rv = AddNewsgroup(nsDependentCSubstring(line, s), nsDependentCString(setStr), getter_AddRefs(child));
+    rv = AddNewsgroup(Substring(line, s), nsDependentCString(setStr), getter_AddRefs(child));
     if (NS_FAILED(rv)) return -1;
   }
   else {
@@ -1862,7 +1857,10 @@ NS_IMETHODIMP nsMsgNewsFolder::GetMessageIdForKey(nsMsgKey key, nsACString& resu
   nsCOMPtr <nsIMsgDBHdr> hdr;
   rv = mDatabase->GetMsgHdrForKey(key, getter_AddRefs(hdr));
   NS_ENSURE_SUCCESS(rv,rv);
-  return hdr->GetMessageId(getter_Copies(result));
+  nsCString id;
+  rv = hdr->GetMessageId(getter_Copies(id));
+  result.Assign(id);
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::SetSortOrder(PRInt32 order)

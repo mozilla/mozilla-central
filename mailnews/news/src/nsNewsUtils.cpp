@@ -39,7 +39,7 @@
 #include "msgCore.h"
 #include "nntpCore.h"
 #include "nsNewsUtils.h"
-#include "nsReadableUtils.h"
+#include "nsMsgUtils.h"
 
 
 /* parses NewsMessageURI */
@@ -53,19 +53,17 @@ nsParseNewsMessageURI(const char* uri, nsCString& folderURI, PRUint32 *key)
   PRInt32 keySeparator = uriStr.FindChar('#');
   if(keySeparator != -1)
   {
-    PRInt32 keyEndSeparator = uriStr.FindCharInSet("?&",
-                                                   keySeparator);
+    PRInt32 keyEndSeparator = MsgFindCharInSet(uriStr, "?&", keySeparator);
 
-    uriStr.Left(folderURI, keySeparator);
-        folderURI.Cut(4, 8);    // cut out the -message part of news-message:
+    folderURI = StringHead(uriStr, keySeparator);
+    folderURI.Cut(4, 8);    // cut out the -message part of news-message:
 
     nsCAutoString keyStr;
     if (keyEndSeparator != -1)
-        uriStr.Mid(keyStr, keySeparator+1,
-                   keyEndSeparator-(keySeparator+1));
+      keyStr = Substring(uriStr, keySeparator + 1, keyEndSeparator - (keySeparator + 1));
     else
-        uriStr.Right(keyStr, uriStr.Length() - (keySeparator + 1));
-    PRInt32 errorCode;
+      keyStr = Substring(uriStr, keySeparator + 1);
+    nsresult errorCode;
     *key = keyStr.ToInteger(&errorCode, 10);
 
     return errorCode;

@@ -38,7 +38,7 @@
 #ifndef NS_NEWSUTILS_H
 #define NS_NEWSUTILS_H
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsIMsgNewsFolder;
 

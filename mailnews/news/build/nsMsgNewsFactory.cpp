@@ -59,6 +59,7 @@
 #include "nsNNTPArticleList.h"
 #include "nsNewsDownloadDialogArgs.h"
 #include "nsCURILoader.h"
+#include "nsServiceManagerUtils.h"
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsNntpUrl)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsNntpService)

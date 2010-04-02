@@ -53,6 +53,9 @@
 #include "nsIMsgMailSession.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIMsgStatusFeedback.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMsgUtils.h"
 
 // This file contains the news article download state machine.
 

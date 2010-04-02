@@ -40,7 +40,7 @@
 #define nsNewsDownloadDialogArgs_h__
 
 #include "nsINewsDownloadDialogArgs.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsNewsDownloadDialogArgs : public nsINewsDownloadDialogArgs
 {

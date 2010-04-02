@@ -93,6 +93,8 @@
 #include "nsIMutableArray.h"
 #include "nsIMsgFolderNotificationService.h"
 #include "nsIMsgFilterCustomAction.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 
 // update status on header download once per second
 #define MIN_STATUS_UPDATE_INTERVAL PR_USEC_PER_SEC
@@ -949,14 +951,14 @@ nsNNTPNewsgroupList::ProcessXHDRLine(const nsACString &line)
   if (middle == -1)
     return NS_OK;
   value = Substring(line, middle+1);
-  key.Truncate((PRUint32)middle);
+  key.SetLength((PRUint32)middle);
 
   // According to RFC 2980, some will send (none) instead.
   // So we don't treat this is an error.
   if (key.CharAt(0) < '0' || key.CharAt(0) > '9')
     return NS_OK;
 
-  PRInt32 code;
+  nsresult code;
   PRInt32 number = key.ToInteger(&code, 10);
   if (code != NS_OK)
     return NS_ERROR_FAILURE;
@@ -1036,7 +1038,7 @@ nsNNTPNewsgroupList::ProcessHEADLine(const nsACString &line)
   if (colon != -1)
   {
     value = Substring(line, colon+1);
-    header.Truncate((PRUint32)colon);
+    header.SetLength((PRUint32)colon);
   }
   else if (line.CharAt(0) == ' ' || line.CharAt(0) == '\t') // We are continuing the header
   {

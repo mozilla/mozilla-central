@@ -43,8 +43,7 @@
 #include "nsIURL.h"
 #include "nsNntpUrl.h"
 
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "prmem.h"
 #include "plstr.h"
 #include "prprf.h"
@@ -60,6 +59,7 @@
 #include "nsIMsgFolder.h"
 #include "nsINntpService.h"
 #include "nsIMsgMessageService.h"
+#include "nsServiceManagerUtils.h"
 
 
 nsNntpUrl::nsNntpUrl()

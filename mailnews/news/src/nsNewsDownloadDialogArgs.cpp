@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsNewsDownloadDialogArgs.h"
-#include "nsReadableUtils.h"
 
 nsNewsDownloadDialogArgs::nsNewsDownloadDialogArgs()
 {
