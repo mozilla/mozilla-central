@@ -287,10 +287,6 @@ public:
   char** m_displayNameArray;
   char** m_messageUriArray;
   PRBool m_detachingAttachments;
-
-  // if detaching, do without warning? Will create unique files instead of
-  //  prompting if duplicate files exist.
-  PRBool m_withoutWarning;
   nsCStringArray m_savedFiles; // if detaching first, remember where we saved to.
 };
 
@@ -710,53 +706,6 @@ NS_IMETHODIMP nsMessenger::SaveAttachmentToFile(nsIFile *aFile,
                                                 nsIUrlListener *aListener)
 {
   return SaveAttachment(aFile, aURL, aMessageUri, aContentType, nsnull, aListener);
-}
-
-NS_IMETHODIMP
-nsMessenger::DetachAttachmentsWOPrompts(nsIFile* aDestFolder,
-                                        PRUint32 aCount,
-                                        const char **aContentTypeArray,
-                                        const char **aUrlArray,
-                                        const char **aDisplayNameArray,
-                                        const char **aMessageUriArray,
-                                        nsIUrlListener *aListener)
-{
-  nsSaveAllAttachmentsState *saveState;
-  nsCOMPtr<nsIFile> clone;
-  nsresult rv = aDestFolder->Clone(getter_AddRefs(clone));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsILocalFile> attachmentDestination(do_QueryInterface(clone, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCAutoString path;
-  rv = attachmentDestination->GetNativePath(path);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsAutoString unescapedFileName;
-  ConvertAndSanitizeFileName(aDisplayNameArray[0], unescapedFileName);
-  rv = attachmentDestination->Append(unescapedFileName);
-  NS_ENSURE_SUCCESS(rv, rv);
-  rv = attachmentDestination->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  saveState = new nsSaveAllAttachmentsState(aCount,
-                                            aContentTypeArray,
-                                            aUrlArray,
-                                            aDisplayNameArray,
-                                            aMessageUriArray,
-                                            path.get(),
-                                            PR_TRUE);
-
-  // This method is used in filters, where we don't want to warn
-  saveState->m_withoutWarning = PR_TRUE;
-  rv = SaveAttachment(attachmentDestination,
-                      nsDependentCString(aUrlArray[0]),
-                      nsDependentCString(aMessageUriArray[0]),
-                      nsDependentCString(aContentTypeArray[0]),
-                      (void *)saveState,
-                      aListener);
-  return rv;
 }
 
 nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
@@ -1789,15 +1738,7 @@ nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRUint32 a
     // but what is a small download? Well that's kind of arbitrary
     // so make an arbitrary decision based on the content length of the
     // attachment -- show it if less than half of the download has completed
-
-    // When we don't allow warnings, also don't show progress, as this
-    //  is an environment (typically filters) where we don't want
-    //  interruption.
-    PRBool allowProgress = PR_TRUE;
-    if (m_saveAllAttachmentsState)
-      allowProgress = !m_saveAllAttachmentsState->m_withoutWarning;
-    if (allowProgress && mMaxProgress != -1 &&
-        mMaxProgress > aBytesDownloaded * 2)
+    if (mMaxProgress != -1 && mMaxProgress > aBytesDownloaded * 2)
     {
       nsCOMPtr<nsITransfer> tr = do_CreateInstance(NS_TRANSFER_CONTRACTID, &rv);
       if (tr && outputFile)
@@ -1912,20 +1853,9 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
       rv = localFile->Append(unescapedName);
       if (NS_FAILED(rv))
         goto done;
-
-      // When we are running with no warnings (typically filters and other automatic
-      //  uses), then don't prompt for duplicates, but create a unique file
-      //  instead.
-      if (!m_saveAllAttachmentsState->m_withoutWarning)
-      {
-        rv = m_messenger->PromptIfFileExists(localFile);
-        if (NS_FAILED(rv)) goto done;
-      }
-      else
-      {
-        rv = localFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
-        if (NS_FAILED(rv)) goto done;
-      }
+      
+      rv = m_messenger->PromptIfFileExists(localFile);
+      if (NS_FAILED(rv)) goto done;
       rv = m_messenger->SaveAttachment(localFile,
                                        nsDependentCString(state->m_urlArray[i]),
                                        nsDependentCString(state->m_messageUriArray[i]),
@@ -1949,10 +1879,9 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
                                        (const char **) state->m_urlArray,
                                        (const char **) state->m_displayNameArray,
                                        (const char **) state->m_messageUriArray,
-                                       &state->m_savedFiles,
-                                       state->m_withoutWarning);
+                                       &state->m_savedFiles);
       }
-
+      
       delete m_saveAllAttachmentsState;
       m_saveAllAttachmentsState = nsnull;
     }
@@ -2065,7 +1994,6 @@ nsSaveAllAttachmentsState::nsSaveAllAttachmentsState(PRUint32 count,
                                                      const char **uriArray,
                                                      const char *dirName,
                                                      PRBool detachingAttachments)
-    : m_withoutWarning(PR_FALSE)
 {
     PRUint32 i;
     NS_ASSERTION(count && urlArray && nameArray && uriArray && dirName,
