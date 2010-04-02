@@ -1,4 +1,4 @@
-Components.utils.import("resource://gre/modules/Sanitizer.jsm");
+Components.utils.import("resource:///modules/Sanitizer.jsm");
 ok(typeof Sanitizer != "undefined", "Sanitizer module imported")
 
 function getWindows(aType, aSingle) {

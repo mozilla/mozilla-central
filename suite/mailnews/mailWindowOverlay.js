@@ -46,7 +46,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://gre/modules/folderUtils.jsm");
+Components.utils.import("resource:///modules/folderUtils.jsm");
 
 const kClassicMailLayout  = 0;
 const kWideMailLayout     = 1;
