@@ -6467,7 +6467,8 @@ nsresult nsMsgDBView::FindPrevFlagged(nsMsgViewIndex startIndex, nsMsgViewIndex 
 
 PRBool nsMsgDBView::IsValidIndex(nsMsgViewIndex index)
 {
-    return ((index >=0) && (index < (nsMsgViewIndex) m_keys.Length()));
+    return index != nsMsgViewIndex_None &&
+           (index < (nsMsgViewIndex) m_keys.Length());
 }
 
 nsresult nsMsgDBView::OrExtraFlag(nsMsgViewIndex index, PRUint32 orflag)
