@@ -799,6 +799,10 @@ EOF
     AC_DEFINE_UNQUOTED(MOZ_NTDDI_WS03, 0x05020000)
     AC_DEFINE_UNQUOTED(MOZ_NTDDI_LONGHORN, 0x06000000)
     AC_DEFINE_UNQUOTED(MOZ_NTDDI_WIN7, 0x06010000)
+
+  if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
+    STL_FLAGS='-D_HAS_EXCEPTIONS=0 -I$(DIST)/stl_wrappers'
+  fi
     ;;
 esac
 
@@ -835,6 +839,9 @@ AC_SUBST(GNU_CXX)
 AC_SUBST(INTEL_CC)
 AC_SUBST(INTEL_CXX)
 
+if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
+AC_SUBST(STL_FLAGS)
+fi
 dnl ========================================================
 dnl Checks for programs.
 dnl ========================================================
@@ -3105,6 +3112,9 @@ EOF
         if test "$ac_cv_have_visibility_builtin_bug" = "no" -a \
                 "$ac_cv_have_visibility_class_bug" = "no"; then
           VISIBILITY_FLAGS='-I$(DIST)/system_wrappers -include $(MOZILLA_SRCDIR)/config/gcc_hidden.h'
+         if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
+          STL_FLAGS='-I$(DIST)/stl_wrappers'
+         fi
         else
           VISIBILITY_FLAGS='-fvisibility=hidden'
         fi # have visibility pragma bug
