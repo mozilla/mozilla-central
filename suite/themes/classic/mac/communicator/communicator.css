@@ -106,9 +106,3 @@ grippy {
   border: none;
   margin: 0px !important;
 }
-
-/* ::::: download manager ::::: */
-
-#downloadView > treechildren::-moz-tree-image(Name) {
-  -moz-margin-end: 2px;
-}

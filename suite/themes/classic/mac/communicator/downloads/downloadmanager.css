@@ -75,6 +75,10 @@ treechildren::-moz-tree-image {
   -moz-margin-start: -1px;
 }
 
+treechildren::-moz-tree-image(Name) {
+  -moz-margin-end: 2px;
+}
+
 #ActionPlay {
   list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 16px, 16px, 0px);

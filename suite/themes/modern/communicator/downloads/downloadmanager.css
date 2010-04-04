@@ -42,6 +42,10 @@
    active, inactive, resumable, paused, downloading, finished, failed, canceled, blocked
 */
 
+treechildren::-moz-tree-image(Name) {
+  -moz-margin-end: 2px;
+}
+
 #pauseButton,
 treechildren::-moz-tree-image(ActionPlay, downloading, resumable) {
   /* pause */
