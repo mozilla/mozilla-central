@@ -1402,27 +1402,42 @@ var FolderListener = {
 
   sawEvents: false,
   watchingFor: null,
+  eventSeen: null,
   planToWaitFor: function FolderListener_planToWaitFor() {
     this.sawEvents = false;
     this.watchingFor = [];
     for (let i = 0; i < arguments.length; i++)
       this.watchingFor[i] = arguments[i];
   },
-  waitForEvents: function FolderListener_waitForEvents() {
-    if (this.sawEvents)
+  waitForEvents: function FolderListener_waitForEvents(aDontReallyExpectEvents) {
+    if (this.sawEvents) {
+      if (aDontReallyExpectEvents)
+        mark_failure(["Seen event", this.eventSeen,
+                      "when we weren't expecting it"]);
       return;
-    if (!controller.waitForEval('subject.sawEvents', NORMAL_TIMEOUT,
-                                FAST_INTERVAL, this))
+    }
+
+    // A timeout here is expected if aReallyExpectEvents is false
+    controller.waitForEval('subject.sawEvents', NORMAL_TIMEOUT,
+                           FAST_INTERVAL, this);
+    // this.sawEvents being false is equivalent to the above waitForEval timing
+    // out
+    if (!aDontReallyExpectEvents && !this.sawEvents)
       mark_failure(["Timeout waiting for events:", this.watchingFor]);
+    if (aDontReallyExpectEvents && this.sawEvents)
+      mark_failure(["Seen event", this.eventSeen,
+                    "when we weren't expecting any"]);
   },
 
   OnItemEvent: function FolderNotificationHelper_OnItemEvent(
       aFolder, aEvent) {
     if (!this.watchingFor)
       return;
-    if (this.watchingFor.indexOf(aEvent.toString()) != -1) {
+    let eventStr = aEvent.toString();
+    if (this.watchingFor.indexOf(eventStr) != -1) {
       this.watchingFor = null;
       this.sawEvents = true;
+      this.eventSeen = eventStr;
     }
   },
 };
@@ -1444,8 +1459,20 @@ function plan_to_wait_for_folder_events() {
   FolderListener.ensureInited();
   FolderListener.planToWaitFor.apply(FolderListener, arguments);
 }
-function wait_for_folder_events() {
-  FolderListener.waitForEvents();
+
+/**
+ * Wait for folder events. This needs a plan_to_wait_for_folder_events call
+ * before it works, and it must be called if plan_to_wait_for_folder_events is
+ * called.
+ *
+ * @param [aDontReallyExpectEvents] Usually you'll expect a particular event to
+ *     happen (and want to fail if the event doesn't happen), but sometimes
+ *     you'll expect that a particular event does not happen (and want to fail
+ *     if the event does happen). This should be set to true for those
+ *     times. Defaults to false.
+ */
+function wait_for_folder_events(aDontReallyExpectEvents) {
+  FolderListener.waitForEvents(aDontReallyExpectEvents);
 }
 
 /**

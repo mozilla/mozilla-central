@@ -84,10 +84,11 @@ function mark_selected_messages_as_junk(aController) {
  * Delete all mail marked as junk in the selected folder. This is done by
  * activating the menu option from the Tools menu.
  *
+ * @param aExpectDeletes Whether this call is expected to delete junk messages.
  * @param aController The controller in whose context to do this, defaults to
  *     |mc| if omitted.
  */
-function delete_mail_marked_as_junk(aController) {
+function delete_mail_marked_as_junk(aExpectDeletes, aController) {
   if (aController === undefined)
     aController = mc;
   // if something is loading, make sure it finishes loading...
@@ -95,5 +96,7 @@ function delete_mail_marked_as_junk(aController) {
   folderDisplayHelper.plan_to_wait_for_folder_events(
       "DeleteOrMoveMsgCompleted", "DeleteOrMoveMsgFailed");
   aController.click(new elib.Elem(aController.menus.tasksMenu.deleteJunk));
-  folderDisplayHelper.wait_for_folder_events();
+  // Expecting messages to be deleted implies that we should receive folder
+  // events
+  folderDisplayHelper.wait_for_folder_events(!aExpectDeletes);
 }
