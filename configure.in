@@ -841,7 +841,9 @@ AC_SUBST(INTEL_CXX)
 
 if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
 AC_SUBST(STL_FLAGS)
+true # Needed not to have an empty block.
 fi
+
 dnl ========================================================
 dnl Checks for programs.
 dnl ========================================================
