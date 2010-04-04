@@ -63,7 +63,7 @@ grippy {
 /* ::::: autocomplete ::::: */
 
 .autocomplete-history-popup {
-  max-height: 25em;
+  max-height: 285px; /* 15 rows */
 }
 
 /* ::::: online/offline icons ::::: */
