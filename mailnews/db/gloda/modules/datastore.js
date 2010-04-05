@@ -569,7 +569,7 @@ var GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 20,
+  _schemaVersion: 21,
   _schema: {
     tables: {
 
@@ -698,6 +698,16 @@ var GlodaDatastore = {
           attribQuery: [
             "attributeID", "value",
             /* covering: */ "conversationID", "messageID"],
+          // This is required for deletion of a message's attributes to be
+          // performant.  We could optimize this index away if we changed our
+          // deletion logic to issue specific attribute deletions based on the
+          // information it already has available in the message's JSON blob.
+          // The rub there is that if we screwed up we could end up leaking
+          // attributes and there is a non-trivial performance overhead to
+          // the many requests it would cause (which can also be reduced in
+          // the future by changing our SQL dispatch code.)
+          messageAttribFastDeletion: [
+            "messageID"],
         },
       },
 
@@ -1112,23 +1122,25 @@ var GlodaDatastore = {
     //  numeric value of the javascript undefined value.  (migrate-able)
     // version 20
     // - tokenizer changes to provide for case/accent-folding. (blow away)
+    // version 21
+    // - add the messagesAttribFastDeletion index we thought was already covered
+    //  by an index we removed a while ago (migrate-able)
+    // (version 22-25 GAP being left for incremental, non-explodey change. jump
+    //  the schema to 26 if 22 is the next number but you have an explodey
+    //  change!)
 
-    // If it's not the current version, we must blow it away.
-    if (aCurVersion != aNewVersion) {
+    // If it's not version 20 or inside our safe bound-range of 25, nuke.
+    if (aCurVersion < 20 || aCurVersion > 25) {
       aDBConnection.close();
       aDBFile.remove(false);
       this._log.warn("Global database has been purged due to schema change.");
       return this._createDB(aDBService, aDBFile);
     }
 
-    // Let's leave this code around as a template for the next time we can
-    // migrate stuff.
-    /*
     this._log.warn("Global database performing schema update.");
-    // version 19
-    aDBConnection.executeSimpleSQL("UPDATE messages set deleted = 1 WHERE " +
-                                   "deleted < 0 or deleted > 1");
-    */
+    // version 21
+    aDBConnection.executeSimpleSQL(
+      "CREATE INDEX messageAttribFastDeletion ON messageAttributes(messageID)");
 
     aDBConnection.schemaVersion = aNewVersion;
     return aDBConnection;
