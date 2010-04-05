@@ -36,7 +36,7 @@ var dummyMsgWindow =
 
 
 function alert(aDialogTitle, aText) {
-  do_check_eq(aText.indexOf("Server localhost has disconnected"), 0);
+  do_check_eq(aText.indexOf("Server Mail for  has disconnected"), 0);
   gGotAlert = true;
 }
 
