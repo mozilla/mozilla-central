@@ -6905,7 +6905,11 @@ if test "$MOZ_TREE_CAIRO"; then
         fi
     fi
 else
+  if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
    PKG_CHECK_MODULES(CAIRO, cairo >= $CAIRO_VERSION freetype2 fontconfig)
+  else
+   PKG_CHECK_MODULES(CAIRO, cairo >= $CAIRO_VERSION pixman-1 freetype2 fontconfig)
+  fi
    MOZ_CAIRO_LIBS=$CAIRO_LIBS
    if test "$MOZ_X11"; then
         PKG_CHECK_MODULES(CAIRO_XRENDER, cairo-xlib-xrender >= $CAIRO_VERSION)
