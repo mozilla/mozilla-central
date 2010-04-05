@@ -2656,15 +2656,15 @@ InternetSearchDataSource::FindInternetSearchResults(const char *url, PRBool *sea
           LossyCopyUTF16toASCII(searchText, escapedSearchText);
 
           // encoding +'s so as to preserve distinction between + and %2B
-          PRInt32 offset = escapedSearchText.Find(NS_LITERAL_CSTRING("%25"));
+          PRInt32 offset = escapedSearchText.FindChar('%');
           while (offset != -1) {
-            escapedSearchText.Replace(offset, 3, "%2B25");
-            offset = escapedSearchText.Find(NS_LITERAL_CSTRING("%25"), offset);
+            escapedSearchText.Replace(offset, 1, "%25");
+            offset = escapedSearchText.FindChar('%', offset + 3);
           }
           offset = escapedSearchText.FindChar('+');
           while (offset != -1) {
-            escapedSearchText.Replace(offset, 1, "%25");
-            offset = escapedSearchText.FindChar('+', offset);
+            escapedSearchText.Replace(offset, 1, "%2B");
+            offset = escapedSearchText.FindChar('+', offset + 3);
           }
 
           PRUnichar *uni = nsnull;
@@ -2678,15 +2678,15 @@ InternetSearchDataSource::FindInternetSearchResults(const char *url, PRBool *sea
 
               // decoding +'s thereby preserving distinction between + and %2B
               nsCAutoString unescapedSearchText(convertedSearchText);
-              offset = escapedSearchText.Find(NS_LITERAL_CSTRING("%25"));
+              offset = unescapedSearchText.Find(NS_LITERAL_CSTRING("%2B"));
               while (offset != -1) {
-                escapedSearchText.Replace(offset, 3, "+");
-                offset = escapedSearchText.Find(NS_LITERAL_CSTRING("%25"), offset);
+                unescapedSearchText.Replace(offset, 3, '+');
+                offset = unescapedSearchText.Find(NS_LITERAL_CSTRING("%2B"), offset + 1);
               }
-              offset = escapedSearchText.Find(NS_LITERAL_CSTRING("%2B25"));
+              offset = unescapedSearchText.Find(NS_LITERAL_CSTRING("%25"));
               while (offset != -1) {
-                escapedSearchText.Replace(offset, 5, "%25");
-                offset = escapedSearchText.Find(NS_LITERAL_CSTRING("%2B25"), offset);
+                unescapedSearchText.Replace(offset, 3, '%');
+                offset = unescapedSearchText.Find(NS_LITERAL_CSTRING("%25"), offset + 1);
               }
 
               CopyUTF8toUTF16(unescapedSearchText, searchText);
