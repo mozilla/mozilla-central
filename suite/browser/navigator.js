@@ -2490,18 +2490,8 @@ function uploadFile(fileURL)
   var targetURI = Services.io.newURI(leafName, null, targetBaseURI);
 
   // ok, start uploading...
-
-  var dialog = Components.classes["@mozilla.org/progressdialog;1"]
-                         .createInstance(CI.nsIProgressDialog);
-
-  var persist = Components.classes["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"]
-                          .createInstance(CI.nsIWebBrowserPersist);
-
-  dialog.init(fileURL, targetURI, leafName, null, Date.now()*1000, null, persist);
-  dialog.open(window);
-
-  persist.progressListener = dialog;
-  persist.saveURI(fileURL, null, null, null, null, targetURI);
+  openDialog("chrome://communicator/content/downloads/uploadProgress.xul", "",
+             "titlebar,centerscreen,minimizable,dialog=no", fileURL, targetURI);
 }
 
 function BrowserUploadFile()
