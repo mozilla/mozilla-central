@@ -115,6 +115,7 @@ protected:
 
   nsresult GetStringBundle();
   nsString GetImapStringByName(const nsString &aName);
+  static nsresult AlertUser(const nsAString& aString, nsIMsgMailNewsUrl *aUrl);
 
 private:
   nsresult SubscribeToFolder(const PRUnichar *aName, PRBool subscribe);

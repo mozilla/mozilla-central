@@ -214,8 +214,7 @@ nsImapIncomingServer::GetConstructedPrettyName(nsAString& retval)
     }
   }
 
-  rv = GetFormattedStringFromID(emailAddress, IMAP_DEFAULT_ACCOUNT_NAME, retval);
-  return rv;
+  return GetFormattedStringFromID(emailAddress, IMAP_DEFAULT_ACCOUNT_NAME, retval);
 }
 
 
@@ -1774,26 +1773,6 @@ PRBool nsImapIncomingServer::AllDescendentsAreNoSelect(nsIMsgFolder *parentFolde
   return allDescendentsAreNoSelect;
 }
 
-
-#if 0
-void nsImapIncomingServer::UnsubscribeFromAllDescendents(nsIMsgFolder *parentFolder)
-{
-  int numberOfSubfolders = parentFolder->GetNumSubFolders();
-
-  for (int childIndex=0; childIndex < numberOfSubfolders; childIndex++)
-  {
-    MSG_IMAPFolderInfoMail *currentChild = (MSG_IMAPFolderInfoMail *) parentFolder->GetSubFolder(childIndex);
-    char *unsubscribeUrl = CreateIMAPUnsubscribeMailboxURL(currentChild->GetHostName(), currentChild->GetOnlineName(), currentChild->GetOnlineHierarchySeparator());	// unsubscribe from child
-    if (unsubscribeUrl)
-    {
-      MSG_UrlQueue::AddUrlToPane(unsubscribeUrl, NULL, pane);
-      XP_FREE(unsubscribeUrl);
-    }
-    UnsubscribeFromAllDescendants(currentChild);	// unsubscribe from its children
-  }
-}
-#endif // 0
-
 NS_IMETHODIMP
 nsImapIncomingServer::PromptLoginFailed(nsIMsgWindow *aMsgWindow,
                                         PRInt32 *aResult)
@@ -1806,6 +1785,30 @@ nsImapIncomingServer::PromptLoginFailed(nsIMsgWindow *aMsgWindow,
 
 NS_IMETHODIMP
 nsImapIncomingServer::FEAlert(const nsAString& aString, nsIMsgMailNewsUrl *aUrl)
+{
+  GetStringBundle();
+
+  if (m_stringBundle)
+  {
+    nsAutoString hostName;
+    nsresult rv = GetPrettyName(hostName);
+    if (NS_SUCCEEDED(rv))
+    {
+      nsString message;
+      nsString tempString(aString);
+      const PRUnichar *params[] = { hostName.get(), tempString.get() };
+
+      rv = m_stringBundle->FormatStringFromID(IMAP_SERVER_ALERT, params, 2,
+                                              getter_Copies(message));
+      if (NS_SUCCEEDED(rv))
+        return AlertUser(message, aUrl);
+    }
+  }
+  return AlertUser(aString, aUrl);
+}
+
+nsresult nsImapIncomingServer::AlertUser(const nsAString& aString,
+                                         nsIMsgMailNewsUrl *aUrl)
 {
   nsresult rv;
   nsCOMPtr <nsIMsgMailSession> mailSession =
@@ -1828,16 +1831,15 @@ nsImapIncomingServer::FEAlertWithID(PRInt32 aMsgId, nsIMsgMailNewsUrl *aUrl)
 
   if (m_stringBundle)
   {
-    nsCAutoString hostName;
-    nsresult rv = GetRealHostName(hostName);
+    nsAutoString hostName;
+    nsresult rv = GetPrettyName(hostName);
     if (NS_SUCCEEDED(rv))
     {
-      NS_ConvertASCIItoUTF16 hostStr(hostName);
-      const PRUnichar *params[] = { hostStr.get() };
+      const PRUnichar *params[] = { hostName.get() };
       rv = m_stringBundle->FormatStringFromID(aMsgId, params, 1,
                                               getter_Copies(message));
       if (NS_SUCCEEDED(rv))
-        return FEAlert(message, aUrl);
+        return AlertUser(message, aUrl);
     }
   }
 
@@ -1852,15 +1854,13 @@ NS_IMETHODIMP  nsImapIncomingServer::FEAlertFromServer(const nsACString& aString
                                                        nsIMsgMailNewsUrl *aUrl)
 {
   NS_ENSURE_TRUE(!aString.IsEmpty(), NS_OK);
-  
-  nsresult rv;
-  nsCOMPtr <nsIMsgMailSession> mailSession =
-    do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
 
-  // Skip over the first two words, I guess.
   nsCString message(aString);
+  message.Trim(" \t\b\r\n");
+  if (message.Last() != '.')
+    message.Append('.');
 
+  // Skip over the first two words (the command tag and "NO").
   // Find the first word break.
   PRInt32 pos = message.FindChar(' ');
 
@@ -1870,19 +1870,59 @@ NS_IMETHODIMP  nsImapIncomingServer::FEAlertFromServer(const nsACString& aString
 
   // Adjust the message.
   if (pos != -1)
-  {
     message = Substring(message, pos + 1);
-    message.Append('.');
+
+  nsString hostName;
+  GetPrettyName(hostName);
+
+  const PRUnichar *formatStrings[] =
+  {
+    hostName.get(),
+    nsnull,
+    nsnull
+  };
+
+  PRUint32 msgID;
+  PRInt32 numStrings;
+  nsString fullMessage;
+  nsCOMPtr<nsIImapUrl> imapUrl = do_QueryInterface(aUrl);
+  NS_ENSURE_TRUE(imapUrl, NS_ERROR_INVALID_ARG);
+
+  nsImapState imapState;
+  imapUrl->GetRequiredImapState(&imapState);
+  nsString folderName;
+
+  NS_ConvertUTF8toUTF16 unicodeMsg(message);
+
+  nsCOMPtr<nsIMsgFolder> folder;
+  if (imapState == nsIImapUrl::nsImapSelectedState)
+  {
+    aUrl->GetFolder(getter_AddRefs(folder));
+    if (folder)
+      folder->GetPrettyName(folderName);
+    numStrings = 3;
+    msgID = IMAP_FOLDER_COMMAND_FAILED;
+    formatStrings[1] = folderName.get();
+  }
+  else
+  {
+    msgID = IMAP_SERVER_COMMAND_FAILED;
+    numStrings = 2;
   }
 
-  nsString fullMessage;
-  GetImapStringByID(IMAP_SERVER_SAID, fullMessage);
-  NS_ENSURE_TRUE(!fullMessage.IsEmpty(), NS_OK);
+  formatStrings[numStrings -1] = unicodeMsg.get();
 
-  // The alert string from the server IS UTF-8!!! We must convert it to unicode
-  // correctly before appending it to our error message string...
-  AppendUTF8toUTF16(message, fullMessage);
-  return mailSession->AlertUser(fullMessage, aUrl);
+  nsresult rv = GetStringBundle();
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (m_stringBundle)
+  {
+    rv = m_stringBundle->FormatStringFromID(msgID,
+                                formatStrings, numStrings,
+                                getter_Copies(fullMessage));
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  return AlertUser(fullMessage, aUrl);
 }
 
 #define IMAP_MSGS_URL       "chrome://messenger/locale/imapMsgs.properties"
@@ -2733,8 +2773,6 @@ nsImapIncomingServer::GetOfflineSupportLevel(PRInt32 *aSupportLevel)
 NS_IMETHODIMP
 nsImapIncomingServer::GeneratePrettyNameForMigration(nsAString& aPrettyName)
 {
-  nsresult rv = NS_OK;
-
   nsCString userName;
   nsCString hostName;
 
@@ -2743,7 +2781,7 @@ nsImapIncomingServer::GeneratePrettyNameForMigration(nsAString& aPrettyName)
   * provided the port is valid and not the default
 */
   // Get user name to construct pretty name
-  rv = GetUsername(userName);
+  nsresult rv = GetUsername(userName);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Get host name to construct pretty name
@@ -2793,15 +2831,14 @@ nsImapIncomingServer::GeneratePrettyNameForMigration(nsAString& aPrettyName)
     constructedPrettyName.AppendInt(serverPort);
   }
 
-    // Format the pretty name
-    return GetFormattedStringFromID(constructedPrettyName, IMAP_DEFAULT_ACCOUNT_NAME, aPrettyName);
+  // Format the pretty name
+  return GetFormattedStringFromID(constructedPrettyName, IMAP_DEFAULT_ACCOUNT_NAME, aPrettyName);
 }
 
 nsresult
 nsImapIncomingServer::GetFormattedStringFromID(const nsAString& aValue, PRInt32 aID, nsAString& aResult)
 {
-  nsresult rv;
-  rv = GetStringBundle();
+  nsresult rv = GetStringBundle();
   if (m_stringBundle)
   {
     nsString tmpVal (aValue);
@@ -2831,7 +2868,7 @@ nsImapIncomingServer::GetPrefForServerAttribute(const char *prefSuffix, PRBool *
 
   if (NS_FAILED(mPrefBranch->GetBoolPref(prefSuffix, prefValue)))
     mDefPrefBranch->GetBoolPref(prefSuffix, prefValue);
-  
+
   return NS_OK;
 }
 

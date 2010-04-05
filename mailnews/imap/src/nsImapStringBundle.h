@@ -75,14 +75,14 @@ PR_END_EXTERN_C
 #define	IMAP_MOVING_MESSAGE_TO                  5041
 #define	IMAP_COPYING_MESSAGES_TO                5042
 #define	IMAP_COPYING_MESSAGE_TO                 5043
-#define IMAP_FOLDER_RECEIVING_MESSAGE_OF	5045
-#define IMAP_DISCOVERING_MAILBOX		5046
-#define IMAP_ENTER_PASSWORD_PROMPT		5047
-#define IMAP_SERVER_NOT_IMAP4			5048
-#define IMAP_SERVER_SAID			5049
-#define IMAP_DONE				5050
-#define IMAP_ENTER_PASSWORD_PROMPT_TITLE	5051
-#define IMAP_UNKNOWN_HOST_ERROR			5052
+#define IMAP_FOLDER_RECEIVING_MESSAGE_OF        5045
+#define IMAP_DISCOVERING_MAILBOX                5046
+#define IMAP_ENTER_PASSWORD_PROMPT              5047
+#define IMAP_SERVER_NOT_IMAP4                   5048
+#define IMAP_SERVER_SAID                        5049
+#define IMAP_DONE                               5050
+#define IMAP_ENTER_PASSWORD_PROMPT_TITLE        5051
+#define IMAP_UNKNOWN_HOST_ERROR                 5052
 #define IMAP_CONNECTION_REFUSED_ERROR               5053
 #define IMAP_NET_TIMEOUT_ERROR                      5054
 #define IMAP_NO_NEW_MESSAGES                        5056
@@ -126,4 +126,8 @@ PR_END_EXTERN_C
 #define IMAP_AUTH_MECH_NOT_SUPPORTED                5113
 #define IMAP_AUTH_MECH_FAILED                       5114
 #define IMAP_AUTH_GSSAPI_FAILED                     5115
+#define IMAP_LOGIN_DISABLED                         5116
+#define IMAP_SERVER_COMMAND_FAILED                  5117
+#define IMAP_FOLDER_COMMAND_FAILED                  5118
+#define IMAP_SERVER_ALERT                           5119
 #endif /* _nsImapStringBundle_H__ */
