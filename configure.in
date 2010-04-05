@@ -1120,6 +1120,8 @@ else
     XPCOM_STANDALONE_GLUE_LDOPTS='$(LIBXUL_DIST)/lib/$(LIB_PREFIX)xpcomglue.$(LIB_SUFFIX)'
 fi
 
+MOZ_FS_LAYOUT=unix
+
 MOZ_COMPONENT_NSPR_LIBS='-L$(LIBXUL_DIST)/bin $(NSPR_LIBS)'
 
 USE_DEPENDENT_LIBS=1
@@ -1761,8 +1763,6 @@ case "$host" in
     HOST_CFLAGS="$HOST_CFLAGS -DXP_UNIX -DXP_MACOSX -DNO_X11"
     HOST_NSPR_MDCPUCFG='\"md/_darwin.cfg\"'
     HOST_OPTIMIZE_FLAGS="${HOST_OPTIMIZE_FLAGS=-O3}"
-    LDFLAGS="$LDFLAGS -lobjc"
-    LIBXUL_LIBS='$(XPCOM_FROZEN_LDOPTS) $(LIBXUL_DIST)/bin/XUL'
     ;;
 
 *-linux*|*-kfreebsd*-gnu)
@@ -1904,7 +1904,6 @@ case "$target" in
     STRIP="$STRIP -x -S"
     _PLATFORM_DEFAULT_TOOLKIT='cairo-cocoa'
     TARGET_NSPR_MDCPUCFG='\"md/_darwin.cfg\"'
-    LDFLAGS="$LDFLAGS -framework Cocoa"
     # The ExceptionHandling framework is needed for Objective-C exception
     # logging code in nsObjCExceptions.h. Currently we only use that in debug
     # builds.
@@ -4879,8 +4878,20 @@ cairo-cocoa)
     else
     TK_LIBS='-framework QuartzCore -framework Carbon -framework AddressBook'
     fi
+    TK_CFLAGS="-DNO_X11"
+  if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
+    LDFLAGS="$LDFLAGS -framework Cocoa"
+  else
+    LDFLAGS="$LDFLAGS -framework Cocoa -lobjc"
+  fi
     CFLAGS="$CFLAGS $TK_CFLAGS"
     CXXFLAGS="$CXXFLAGS $TK_CFLAGS"
+  if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
+    LIBXUL_LIBS='$(XPCOM_FROZEN_LDOPTS) $(LIBXUL_DIST)/bin/XUL -lobjc'
+  else
+    LIBXUL_LIBS='$(XPCOM_FROZEN_LDOPTS) $(LIBXUL_DIST)/bin/XUL'
+  fi
+    MOZ_FS_LAYOUT=bundle
     ;;
 esac
 
@@ -4897,6 +4908,8 @@ if test "$COMPILE_ENVIRONMENT"; then
   fi
 
 fi # COMPILE_ENVIRONMENT
+
+AC_SUBST(MOZ_FS_LAYOUT)
 
 dnl ========================================================
 dnl = startup-notification support module
