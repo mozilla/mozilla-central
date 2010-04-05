@@ -570,6 +570,12 @@ pref("dom.disable_window_flip",        true);
 // prevent JS from disabling or replacing context menus
 pref("dom.event.contextmenu.enabled",  true);
 
+#ifndef MOZ_IPC
+pref("dom.ipc.plugins.enabled", false);
+#else
+pref("dom.ipc.plugins.enabled", true);
+#endif
+
 // Disables default plugin for Plugin Finder Service
 pref("plugin.default_plugin_disabled", true);
 // plugin finder service url
