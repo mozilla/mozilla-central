@@ -57,8 +57,10 @@ EXPORT_RESOURCE_FILES += movemail.rdf
 endif
 endif
 
+ifndef MOZ_THUNDERBIRD
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 EXPORT_RESOURCE_FILES += dotmac.rdf
+endif
 endif
 
 include $(topsrcdir)/config/rules.mk

@@ -166,6 +166,9 @@ icons/mozicon16.xpm
 icons/mozicon50.xpm
 #endif
 init.d/README
+#ifdef XP_MACOSX
+isp/dotmac.rdf
+#endif
 isp/gmail.rdf
 isp/af/gmail.rdf
 isp/be/gmail.rdf
