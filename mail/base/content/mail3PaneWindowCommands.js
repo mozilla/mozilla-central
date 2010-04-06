@@ -805,6 +805,8 @@ var DefaultController =
         filterFolderForJunk();
         return;
       case "cmd_deleteJunk":
+        // Even though deleteJunkInFolder returns a value, we don't want to let
+        // it get past us
         deleteJunkInFolder();
         return;
       case "cmd_emptyTrash":

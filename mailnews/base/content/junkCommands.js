@@ -398,6 +398,12 @@ function JunkSelectedMessages(setAsJunk)
                               : nsMsgViewCommandType.unjunk);
 }
 
+/**
+ * Delete junk messages in the current folder. This provides the guarantee that
+ * the method will be synchronous if no messages are deleted.
+ *
+ * @returns The number of messages deleted.
+ */
 function deleteJunkInFolder()
 {
   MsgJunkMailInfo(true);
@@ -419,7 +425,7 @@ function deleteJunkInFolder()
 
     if (junkMsgHdrs.length)
       gDBView.msgFolder.deleteMessages(junkMsgHdrs, msgWindow, false, false, null, true);
-    return;
+    return junkMsgHdrs.length;
   }
 
   // Folder is virtual, let the view do the work (but we lose selection)
@@ -430,7 +436,7 @@ function deleteJunkInFolder()
   var treeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
   var count = treeView.rowCount;
   if (!count)
-    return;
+    return 0;
 
   var treeSelection = treeView.selection;
 
@@ -438,6 +444,7 @@ function deleteJunkInFolder()
 
   // select the junk messages
   var messageUri;
+  let numMessagesDeleted = 0;
   for (var i = 0; i < count; ++i)
   {
     try {
@@ -460,13 +467,14 @@ function deleteJunkInFolder()
         treeSelection.selectEventsSuppressed = true;
       }
       treeSelection.rangedSelect(i, i, true /* augment */);
+      numMessagesDeleted++;
     }
   }
 
   // if we didn't clear the selection
   // there was no junk, so bail.
   if (!clearedSelection)
-    return;
+    return 0;
 
   treeSelection.selectEventsSuppressed = false;
   // delete the selected messages
@@ -476,5 +484,6 @@ function deleteJunkInFolder()
   gDBView.doCommand(nsMsgViewCommandType.deleteMsg);
   treeSelection.clearSelection();
   ClearMessagePane();
+  return numMessagesDeleted;
 }
 
