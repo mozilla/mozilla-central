@@ -53,7 +53,7 @@ function test() {
 
   gPrefService.setIntPref("browser.tabs.max_tabs_undo", 0);
 
-  /** Test for Bug 524369 **/
+  /** Test for Bug 491168, ported by Bug 524369 **/
   is(browserWindowsCount(), 1, "Only one browser window should be open initially");
 
   // test setup

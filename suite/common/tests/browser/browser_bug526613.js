@@ -47,18 +47,22 @@ function test() {
                      .getService(Components.interfaces.nsIWindowMediator);
   waitForExplicitFinish();
 
-  function browserWindowsCount() {
+  function browserWindowsCount(expected) {
     let count = 0;
-    let e = wm.getXULWindowEnumerator("navigator:browser");
+    let e = wm.getEnumerator("navigator:browser");
     while (e.hasMoreElements()) {
-      ++count;
-      e.getNext();
+      if (!e.getNext().closed)
+        ++count;
     }
-
-    return count;
+    is(count, expected,
+       "number of open browser windows according to nsIWindowMediator");
+    let state = ss.getBrowserState();
+    info(state);
+    is(JSON.parse(state).windows.length, expected,
+       "number of open browser windows according to getBrowserState");
   }
 
-  is(browserWindowsCount(), 1, "Only one browser window should be open initially");
+  browserWindowsCount(1);
 
   // backup old state
   let oldState = ss.getBrowserState();
@@ -68,33 +72,38 @@ function test() {
       { tabs: [{ entries: [{ url: "http://example.com/" }] }], selected: 1 },
       { tabs: [{ entries: [{ url: "about:robots"        }] }], selected: 1 },
     ],
-    // make sure the first window is focues, otherwise when restoring the
+    // make sure the first window is focused, otherwise when restoring the
     // old state, the first window is closed and the test harness gets unloaded
     selectedWindow: 1
   };
 
-  let observer = {
-    pass: 1,
-    observe: function(aSubject, aTopic, aData) {
+  let pass = 1;
+  function observer(aSubject, aTopic, aData) {
       is(aTopic, "sessionstore-browser-state-restored",
          "The sessionstore-browser-state-restored notification was observed");
 
-      if (this.pass++ == 1) {  
-        is(browserWindowsCount(), 2, "Two windows should exist at this point");
+    if (pass++ == 1) {
+      browserWindowsCount(2);
 
-        // executeSoon is needed here in order to let the first window be focues
-        // (see above)
-        executeSoon(function() {
+      // let the first window be focused (see above)
+      function pollMostRecentWindow() {
+        if (wm.getMostRecentWindow("navigator:browser") == window) {
           ss.setBrowserState(oldState);
-        });
+        } else {
+          info("waiting for the current window to become active");
+          setTimeout(pollMostRecentWindow, 0);
+          window.focus(); //XXX Why is this needed?
+        }
       }
-      else {
-        is(browserWindowsCount(), 1, "Only one window should exist after cleanup");
-        os.removeObserver(this, "sessionstore-browser-state-restored");
+      pollMostRecentWindow();
+    }
+    else {
+      browserWindowsCount(1);
+      ok(!window.closed, "Restoring the old state should have left this window open");
+      os.removeObserver(observer, "sessionstore-browser-state-restored");
         finish();
       }
     }
-  };
   os.addObserver(observer, "sessionstore-browser-state-restored", false);
 
   // set browser to test state
