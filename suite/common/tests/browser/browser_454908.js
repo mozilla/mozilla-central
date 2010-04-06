@@ -35,42 +35,52 @@
  * ***** END LICENSE BLOCK ***** */
 
 function test() {
-  /** Test for Bug 466937 **/
+  /** Test for Bug 454908 **/
   
-  try {
-    var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                       .getService(Components.interfaces.nsISessionStore);
-  }
-  catch (ex) { }
   waitForExplicitFinish();
   
-  let testURL = "http://mochi.test:8888/browser/" +
-    "suite/common/tests/browser/browser_bug466937_sample.html";
-  let testPath = "/home/user/regular.file";
+  let fieldValues = {
+    username: "User " + Math.random(),
+    passwd:   "pwd" + Date.now()
+  };
+
+  // make sure we do save form data
+  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
+                        .getService(Components.interfaces.nsIPrefBranch);
+
+  gPrefService.setIntPref("browser.sessionstore.privacy_level", 0);
   
+  let testURL = "chrome://mochikit/content/browser/" +
+    "suite/common/tests/browser/browser_454908_sample.html";
   let tab = getBrowser().addTab(testURL);
-  let window = tab.ownerDocument.defaultView;
   tab.linkedBrowser.addEventListener("load", function(aEvent) {
     tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
     let doc = tab.linkedBrowser.contentDocument;
-    doc.getElementById("reverse_thief").value = "/home/user/secret2";
-    doc.getElementById("bystander").value = testPath;
+    for (let id in fieldValues)
+      doc.getElementById(id).value = fieldValues[id];
     
-    let tab2 = ss.duplicateTab(window,tab);
-    tab2.linkedBrowser.addEventListener("load", function(aEvent) {
-      tab2.linkedBrowser.removeEventListener("load", arguments.callee, true);
-      doc = tab2.linkedBrowser.contentDocument;
-      is(doc.getElementById("thief").value, "",
-         "file path wasn't set to text field value");
-      is(doc.getElementById("reverse_thief").value, "",
-         "text field value wasn't set to full file path");
-      is(doc.getElementById("bystander").value, testPath,
-         "normal case: file path was correctly preserved");
+    getBrowser().removeTab(tab);
+    
+    tab = getBrowser().undoCloseTab();
+    tab.linkedBrowser.addEventListener("load", function(aEvent) {
+      tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+      let doc = tab.linkedBrowser.contentDocument;
+      for (let id in fieldValues) {
+        let node = doc.getElementById(id);
+        if (node.type == "password")
+          is(node.value, "", "password wasn't saved/restored");
+        else
+          is(node.value, fieldValues[id], "username was saved/restored");
+      }
       
       // clean up
-      gBrowser.removeTab(tab2);
+      if (gPrefService.prefHasUserValue("browser.sessionstore.privacy_level"))
+        gPrefService.clearUserPref("browser.sessionstore.privacy_level");
+      // undoCloseTab can reuse a single blank tab, so we have to
+      // make sure not to close the window when closing our last tab
+      if (gBrowser.tabContainer.childNodes.length == 1)
+        gBrowser.addTab();
       gBrowser.removeTab(tab);
-      
       finish();
     }, true);
   }, true);

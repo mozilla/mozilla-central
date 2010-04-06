@@ -35,49 +35,43 @@
  * ***** END LICENSE BLOCK ***** */
 
 function test() {
-  /** Test for Bug 456342 **/
+  /** Test for Bug 466937 **/
   
+  try {
+    var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                       .getService(Components.interfaces.nsISessionStore);
+  }
+  catch (ex) { }
   waitForExplicitFinish();
   
-  // make sure we do save form data
-  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
-
-  var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
-
-  gPrefService.setIntPref("browser.sessionstore.privacy_level", 0);
+  let testURL = "http://mochi.test:8888/browser/" +
+    "suite/common/tests/browser/browser_466937_sample.html";
+  let testPath = "/home/user/regular.file";
   
-  let testURL = "chrome://mochikit/content/browser/" +
-    "suite/common/tests/browser/browser_bug456342_sample.xhtml";
-  let tabbrowser = getBrowser();
-  let tab2 = tabbrowser.addTab("about:");
-  let tab = tabbrowser.addTab(testURL);
-  let browser = tab2.linkedBrowser;
-  browser.addEventListener("load", function(aEvent) {
-    this.removeEventListener("load", arguments.callee, true);
-    browser.addEventListener("pageshow", function(aEvent) {
-      browser.removeEventListener("pageshow", arguments.callee, true);
-      let undoItems = JSON.parse(ss.getClosedTabData(window));
-      let savedFormData = undoItems[0].state.entries[0].formdata;
-      
-      let countGood = 0, countBad = 0;
-      for each (let value in savedFormData) {
-        if (value == "save me")
-          countGood++;
-        else
-          countBad++;
-      }
-      
-      is(countGood, 4, "Saved text for non-standard input fields");
-      is(countBad,  0, "Didn't save text for ignored field types");
+  let tab = getBrowser().addTab(testURL);
+  let window = tab.ownerDocument.defaultView;
+  tab.linkedBrowser.addEventListener("load", function(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+    let doc = tab.linkedBrowser.contentDocument;
+    doc.getElementById("reverse_thief").value = "/home/user/secret2";
+    doc.getElementById("bystander").value = testPath;
+    
+    let tab2 = ss.duplicateTab(window,tab);
+    tab2.linkedBrowser.addEventListener("load", function(aEvent) {
+      tab2.linkedBrowser.removeEventListener("load", arguments.callee, true);
+      doc = tab2.linkedBrowser.contentDocument;
+      is(doc.getElementById("thief").value, "",
+         "file path wasn't set to text field value");
+      is(doc.getElementById("reverse_thief").value, "",
+         "text field value wasn't set to full file path");
+      is(doc.getElementById("bystander").value, testPath,
+         "normal case: file path was correctly preserved");
       
       // clean up
-      if (gPrefService.prefHasUserValue("browser.sessionstore.privacy_level"))
-        gPrefService.clearUserPref("browser.sessionstore.privacy_level");
-      tabbrowser.removeTab(tab2);
+      gBrowser.removeTab(tab2);
+      gBrowser.removeTab(tab);
+      
       finish();
     }, true);
-    tabbrowser.removeTab(tab);
   }, true);
 }

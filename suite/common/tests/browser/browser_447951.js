@@ -42,7 +42,7 @@ function test() {
                      .getService(Components.interfaces.nsISessionStore);
   waitForExplicitFinish();
   const baseURL = "http://mochi.test:8888/browser/" +
-    "suite/common/tests/browser/browser_bug447951_sample.html#";
+    "suite/common/tests/browser/browser_447951_sample.html#";
     
   var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
                                .getService(Components.interfaces.nsIPrefBranch);

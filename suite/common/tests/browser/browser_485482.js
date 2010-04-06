@@ -15,7 +15,7 @@
  *
  * The Initial Developer of the Original Code is
  * Simon Bünzli <zeniko@gmail.com>.
- * Portions created by the Initial Developer are Copyright (C) 2008
+ * Portions created by the Initial Developer are Copyright (C) 2009
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -35,36 +35,36 @@
  * ***** END LICENSE BLOCK ***** */
 
 function test() {
-  /** Test for Bug 339445 **/
+  /** Test for Bug 485482, ported by Bug 487922 **/
+  
+  var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                     .getService(Components.interfaces.nsISessionStore);
 
-  try {
-    var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                       .getService(Components.interfaces.nsISessionStore);
-  }
-  catch (ex) { }
   waitForExplicitFinish();
-
-  let testURL = "http://mochi.test:8888/browser/" +
-    "suite/common/tests/browser/browser_bug339445_sample.html";
-
+  
+  let uniqueValue = Math.random();
+  
+  let testURL = "chrome://mochikit/content/browser/" +
+    "suite/common/tests/browser/browser_485482_sample.html";
   let tab = getBrowser().addTab(testURL);
   tab.linkedBrowser.addEventListener("load", function(aEvent) {
     tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
     let doc = tab.linkedBrowser.contentDocument;
-    is(doc.getElementById("storageTestItem").textContent, "PENDING",
-       "sessionStorage value has been set");
-
-    let tab2 = ss.duplicateTab(window,tab);
+    doc.querySelector("input[type=text]").value = uniqueValue;
+    doc.querySelector("input[type=checkbox]").checked = true;
+    
+    let tab2 = ss.duplicateTab(window, tab);
     tab2.linkedBrowser.addEventListener("load", function(aEvent) {
-      this.removeEventListener("load", arguments.callee, true);
-      let doc2 = tab2.linkedBrowser.contentDocument;
-      is(doc2.getElementById("storageTestItem").textContent, "SUCCESS",
-         "sessionStorage value has been duplicated");
-
+      tab2.linkedBrowser.removeEventListener("load", arguments.callee, true);
+      doc = tab2.linkedBrowser.contentDocument;
+      is(doc.querySelector("input[type=text]").value, uniqueValue,
+         "generated XPath expression was valid");
+      ok(doc.querySelector("input[type=checkbox]").checked,
+         "generated XPath expression was valid");
+      
       // clean up
-      gBrowser.removeTab(tab2);
-      gBrowser.removeTab(tab);
-
+      getBrowser().removeTab(tab2);
+      getBrowser().removeTab(tab);
       finish();
     }, true);
   }, true);

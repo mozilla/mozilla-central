@@ -35,52 +35,36 @@
  * ***** END LICENSE BLOCK ***** */
 
 function test() {
-  /** Test for Bug 454908 **/
-  
+  /** Test for Bug 339445 **/
+
+  try {
+    var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                       .getService(Components.interfaces.nsISessionStore);
+  }
+  catch (ex) { }
   waitForExplicitFinish();
-  
-  let fieldValues = {
-    username: "User " + Math.random(),
-    passwd:   "pwd" + Date.now()
-  };
 
-  // make sure we do save form data
-  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
+  let testURL = "http://mochi.test:8888/browser/" +
+    "suite/common/tests/browser/browser_339445_sample.html";
 
-  gPrefService.setIntPref("browser.sessionstore.privacy_level", 0);
-  
-  let testURL = "chrome://mochikit/content/browser/" +
-    "suite/common/tests/browser/browser_bug454908_sample.html";
   let tab = getBrowser().addTab(testURL);
   tab.linkedBrowser.addEventListener("load", function(aEvent) {
     tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
     let doc = tab.linkedBrowser.contentDocument;
-    for (let id in fieldValues)
-      doc.getElementById(id).value = fieldValues[id];
-    
-    getBrowser().removeTab(tab);
-    
-    tab = getBrowser().undoCloseTab();
-    tab.linkedBrowser.addEventListener("load", function(aEvent) {
-      tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
-      let doc = tab.linkedBrowser.contentDocument;
-      for (let id in fieldValues) {
-        let node = doc.getElementById(id);
-        if (node.type == "password")
-          is(node.value, "", "password wasn't saved/restored");
-        else
-          is(node.value, fieldValues[id], "username was saved/restored");
-      }
-      
+    is(doc.getElementById("storageTestItem").textContent, "PENDING",
+       "sessionStorage value has been set");
+
+    let tab2 = ss.duplicateTab(window,tab);
+    tab2.linkedBrowser.addEventListener("load", function(aEvent) {
+      this.removeEventListener("load", arguments.callee, true);
+      let doc2 = tab2.linkedBrowser.contentDocument;
+      is(doc2.getElementById("storageTestItem").textContent, "SUCCESS",
+         "sessionStorage value has been duplicated");
+
       // clean up
-      if (gPrefService.prefHasUserValue("browser.sessionstore.privacy_level"))
-        gPrefService.clearUserPref("browser.sessionstore.privacy_level");
-      // undoCloseTab can reuse a single blank tab, so we have to
-      // make sure not to close the window when closing our last tab
-      if (gBrowser.tabContainer.childNodes.length == 1)
-        gBrowser.addTab();
+      gBrowser.removeTab(tab2);
       gBrowser.removeTab(tab);
+
       finish();
     }, true);
   }, true);

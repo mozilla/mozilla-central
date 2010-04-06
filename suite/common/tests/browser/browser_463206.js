@@ -15,7 +15,7 @@
  *
  * The Initial Developer of the Original Code is
  * Simon Bünzli <zeniko@gmail.com>.
- * Portions created by the Initial Developer are Copyright (C) 2009
+ * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -35,36 +35,65 @@
  * ***** END LICENSE BLOCK ***** */
 
 function test() {
-  /** Test for Bug 485482, ported by Bug 487922 **/
+  /** Test for Bug 463206 **/
   
-  var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
-
+  try {
+    var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                       .getService(Components.interfaces.nsISessionStore);
+  }
+  catch (ex) { }
   waitForExplicitFinish();
   
-  let uniqueValue = Math.random();
+  let testURL = "http://mochi.test:8888/browser/" +
+    "suite/common/tests/browser/browser_463206_sample.html";
   
-  let testURL = "chrome://mochikit/content/browser/" +
-    "suite/common/tests/browser/browser_bug485482_sample.html";
+  var frameCount = 0;
   let tab = getBrowser().addTab(testURL);
+  let window = tab.ownerDocument.defaultView;
   tab.linkedBrowser.addEventListener("load", function(aEvent) {
+    // wait for all frames to load completely
+    if (frameCount++ < 5)
+      return;
     tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
-    let doc = tab.linkedBrowser.contentDocument;
-    doc.querySelector("input[type=text]").value = uniqueValue;
-    doc.querySelector("input[type=checkbox]").checked = true;
+    function typeText(aTextField, aValue) {
+      aTextField.value = aValue;
+      
+      let event = aTextField.ownerDocument.createEvent("UIEvents");
+      event.initUIEvent("input", true, true, aTextField.ownerDocument.defaultView, 0);
+      aTextField.dispatchEvent(event);
+    }
     
-    let tab2 = ss.duplicateTab(window, tab);
+    let doc = tab.linkedBrowser.contentDocument;
+    typeText(doc.getElementById("out1"), Date.now());
+    typeText(doc.getElementsByName("1|#out2")[0], Math.random());
+    typeText(doc.defaultView.frames[0].frames[1].document.getElementById("in1"), new Date());
+    
+    frameCount = 0;
+    let tab2 = ss.duplicateTab(window,tab);
     tab2.linkedBrowser.addEventListener("load", function(aEvent) {
+      // wait for all frames to load completely
+      if (frameCount++ < 5)
+        return;
       tab2.linkedBrowser.removeEventListener("load", arguments.callee, true);
-      doc = tab2.linkedBrowser.contentDocument;
-      is(doc.querySelector("input[type=text]").value, uniqueValue,
-         "generated XPath expression was valid");
-      ok(doc.querySelector("input[type=checkbox]").checked,
-         "generated XPath expression was valid");
+
+      let doc = tab2.linkedBrowser.contentDocument;
+      let win = tab2.linkedBrowser.contentWindow;
+      isnot(doc.getElementById("out1").value,
+            win.frames[1].document.getElementById("out1").value,
+            "text isn't reused for frames");
+      isnot(doc.getElementsByName("1|#out2")[0].value, "",
+            "text containing | and # is correctly restored");
+      is(win.frames[1].document.getElementById("out2").value, "",
+            "id prefixes can't be faked");
+      isnot(win.frames[0].frames[1].document.getElementById("in1").value, "",
+            "id prefixes aren't mixed up");
+      is(win.frames[1].frames[0].document.getElementById("in1").value, "",
+            "id prefixes aren't mixed up");
       
       // clean up
       getBrowser().removeTab(tab2);
       getBrowser().removeTab(tab);
+      
       finish();
     }, true);
   }, true);

@@ -15,7 +15,7 @@
  *
  * The Initial Developer of the Original Code is
  * Simon Bünzli <zeniko@gmail.com>.
- * Portions created by the Initial Developer are Copyright (C) 2009
+ * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -35,37 +35,49 @@
  * ***** END LICENSE BLOCK ***** */
 
 function test() {
-  /** Test for Bug 476161 **/
+  /** Test for Bug 456342 **/
   
   waitForExplicitFinish();
   
+  // make sure we do save form data
+  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
+                               .getService(Components.interfaces.nsIPrefBranch);
+
   var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
                      .getService(Components.interfaces.nsISessionStore);
-  let testURL = "http://mochi.test:8888/browser/" +
-    "suite/common/tests/browser/browser_bug476161_sample.html";
-  let tab = getBrowser().addTab(testURL);
-  let window = tab.ownerDocument.defaultView;
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
-    let doc = tab.linkedBrowser.contentDocument;
-    
-    doc.getElementById("modify1").value += Math.random();
-    doc.getElementById("modify2").value += " " + Date.now();
-    
-    let tab2 = ss.duplicateTab(window,tab);
-    tab2.linkedBrowser.addEventListener("load", function(aEvent) {
-      tab2.linkedBrowser.removeEventListener("load", arguments.callee, true);
-      let doc = tab2.linkedBrowser.contentDocument;
-      let changed = doc.getElementById("changed").textContent.trim().split();
+
+  gPrefService.setIntPref("browser.sessionstore.privacy_level", 0);
+  
+  let testURL = "chrome://mochikit/content/browser/" +
+    "suite/common/tests/browser/browser_456342_sample.xhtml";
+  let tabbrowser = getBrowser();
+  let tab2 = tabbrowser.addTab("about:");
+  let tab = tabbrowser.addTab(testURL);
+  let browser = tab2.linkedBrowser;
+  browser.addEventListener("load", function(aEvent) {
+    this.removeEventListener("load", arguments.callee, true);
+    browser.addEventListener("pageshow", function(aEvent) {
+      browser.removeEventListener("pageshow", arguments.callee, true);
+      let undoItems = JSON.parse(ss.getClosedTabData(window));
+      let savedFormData = undoItems[0].state.entries[0].formdata;
       
-      is(changed.sort().join(" "), "modify1 modify2",
-         "input events were only dispatched for modified text fields");
+      let countGood = 0, countBad = 0;
+      for each (let value in savedFormData) {
+        if (value == "save me")
+          countGood++;
+        else
+          countBad++;
+      }
+      
+      is(countGood, 4, "Saved text for non-standard input fields");
+      is(countBad,  0, "Didn't save text for ignored field types");
       
       // clean up
-      gBrowser.removeTab(tab2);
-      gBrowser.removeTab(tab);
-
+      if (gPrefService.prefHasUserValue("browser.sessionstore.privacy_level"))
+        gPrefService.clearUserPref("browser.sessionstore.privacy_level");
+      tabbrowser.removeTab(tab2);
       finish();
     }, true);
+    tabbrowser.removeTab(tab);
   }, true);
 }

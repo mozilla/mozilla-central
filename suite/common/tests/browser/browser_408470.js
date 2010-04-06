@@ -45,7 +45,7 @@ function test() {
   
   let pendingCount = 1;
   let testUrl = "chrome://mochikit/content/browser/" +
-    "suite/common/tests/browser/browser_bug408470_sample.html";
+    "suite/common/tests/browser/browser_408470_sample.html";
   let tab = gBrowser.addTab(testUrl);
   let window = tab.ownerDocument.defaultView;
   
