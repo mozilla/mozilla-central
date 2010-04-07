@@ -94,7 +94,7 @@ function startDetach()
 function testDetach()
 {
   // This test seems to fail on Linux without the following delay.
-  do_timeout(200, async_driver());
+  do_timeout(200, async_driver);
   yield false;
   // The message contained a file "check.pdf" which should
   //  now exist in the profile directory.
