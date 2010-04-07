@@ -283,6 +283,7 @@ var specialTabs = {
                                        aTab.closeListener, true);
       aTab.browser.webProgress.removeProgressListener(aTab.filter);
       aTab.filter.removeProgressListener(aTab.progressListener);
+      aTab.browser.destroy();
     },
     saveTabState: function onSaveTabState(aTab) {
       aTab.browser.setAttribute("type", "content-targetable");
@@ -689,14 +690,11 @@ var specialTabs = {
       this.lastBrowserId++;
     },
     closeTab: function onTabClosed(aTab) {
-      try {
       aTab.browser.removeEventListener("DOMTitleChanged",
                                        aTab.titleListener, true);
       aTab.browser.removeEventListener("DOMWindowClose",
                                        aTab.closeListener, true);
-      } catch (e) {
-        logException(e);
-      }
+      aTab.browser.destroy();
     },
     saveTabState: function onSaveTabState(aTab) {
     },
@@ -823,15 +821,20 @@ var specialTabs = {
     if (aTopic != "mail-startup-done")
       return;
 
-    Components.classes["@mozilla.org/observer-service;1"]
-      .getService(Components.interfaces.nsIObserverService)
-      .addObserver(this.xpInstallObserver, "xpinstall-install-blocked", false);
+    let obsService =
+      Components.classes["@mozilla.org/observer-service;1"]
+                .getService(Components.interfaces.nsIObserverService);
+
+    obsService.removeObserver(specialTabs, "mail-startup-done");
+    obsService.addObserver(this.xpInstallObserver, "xpinstall-install-blocked", false);
   },
 
   onunload: function () {
+    window.removeEventListener("unload", specialTabs.onunload, false);
+
     Components.classes["@mozilla.org/observer-service;1"]
       .getService(Components.interfaces.nsIObserverService)
-      .removeObserver(this.xpInstallObserver, "xpinstall-install-blocked");
+      .removeObserver(specialTabs.xpInstallObserver, "xpinstall-install-blocked");
   },
 
   xpInstallObserver: {
