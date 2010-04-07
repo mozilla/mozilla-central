@@ -49,7 +49,7 @@ interface nsIMsgMessageService;
 interface nsIFile;
 interface nsIUrlListener;
 
-[scriptable, uuid(2f6438bb-30a9-4e31-b27d-0c7554469280)]
+[scriptable, uuid(6D7062AD-BFC5-4d70-A036-FAEB58240363)]
 interface nsIMessenger : nsISupports {
 
     const long eUnknown = 0;
@@ -100,7 +100,29 @@ interface nsIMessenger : nsISupports {
     
     void saveAttachmentToFile(in nsIFile aFile, in ACString aUrl, in ACString aMessageUri, 
                               in ACString aContentType, in nsIUrlListener aListener);
-    
+
+    /**
+     * For a single message and attachments, save these attachments to a file, and
+     *  remove from the message. No warning windows will appear, so this is
+     *  suitable for use in test and filtering.
+     *
+     * @param aDestFolder       Folder to save files in
+     * @param aCount            Number of attachments to save
+     * @param aContentTypeArray Content types of the attachments
+     * @param aUrlArray         Urls for the attachments
+     * @param aDisplayNameArray Files names to save attachments to. Unique
+     *                           names will be created if needed.
+     * @param aMessageUriArray  Uri for the source message
+     * @param aListener         Listener to inform of start and stop of detach
+     */
+    void detachAttachmentsWOPrompts(in nsIFile aDestFolder,
+                                    in unsigned long aCount,
+                                    [array, size_is(aCount)] in string aContentTypeArray,
+                                    [array, size_is(aCount)] in string aUrlArray,
+                                    [array, size_is(aCount)] in string aDisplayNameArray,
+                                    [array, size_is(aCount)] in string aMessageUriArray,
+                                    in nsIUrlListener aListener);
+
     void detachAttachment(in string contentTpe, in string url, in string displayName, in string messageUri, in boolean saveFirst, [optional] in boolean withoutWarning);
     void detachAllAttachments(in unsigned long count, [array, size_is(count)] in string contentTypeArray,
                              [array, size_is(count)] in string urlArray, [array, size_is(count)] in string displayNameArray,
