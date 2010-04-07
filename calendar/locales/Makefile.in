@@ -289,11 +289,14 @@ endif
 
 ident:
 	@printf "comm_revision "
-	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(STAGEDIST)/application.ini App SourceStamp
+	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py \
+	    $(STAGEDIST)/application.ini App SourceStamp
 	@printf "moz_revision "
-	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(STAGEDIST)/platform.ini Build SourceStamp
-	@printf "build_id "
-	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(STAGEDIST)/application.ini App BuildID
+	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py \
+	    $(STAGEDIST)/platform.ini Build SourceStamp
+	@printf "buildid "
+	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py \
+	    $(STAGEDIST)/application.ini App BuildID
 
 #These make targets call prepare-repackages by setting different UPLOAD_DIR
 prepare-upload-latest-%:
