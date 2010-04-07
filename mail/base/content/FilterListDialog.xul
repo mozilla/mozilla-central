@@ -109,7 +109,7 @@
                    onkeypress="onFilterListKeyPress(event);">
             <listhead>
               <listheader id="nameColumn" label="&nameColumn.label;" flex="1"/>
-              <listheader id="activeColumn" label="&activeColumn.label;"/>
+              <listheader id="activeColumn" label="&activeColumn.label;" minwidth="40px"/>
             </listhead>
           </listbox>
         </vbox>
