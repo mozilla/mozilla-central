@@ -52,45 +52,72 @@ Cu.import("resource:///modules/gloda/public.js");
  */
 const FUZZSCORE_TIMESTAMP_FACTOR = 1000 * 1000 * 60 * 60 * 24 * 7;
 
-/**
- * How many score points for each fulltext match?
- */
-const FUZZSCORE_FOR_FULLTEXT_MATCH = 1;
+const RANK_USAGE =
+  "glodaRank(matchinfo(messagesText), 2.0, 1.0, 2.0, 1.5, 1.5)";
+
+const DASCORE =
+  "(((" + RANK_USAGE + " + messages.notability) * " +
+    FUZZSCORE_TIMESTAMP_FACTOR +
+   ") + messages.date)";
 
 /**
- * Roughly how many characters are in each offset match.  SQLite division is
- *  truncating, so we can have this be slightly higher than the minimum case
- *  ("x x x x") in recognition that message bodies may be more than 10
- *  characters long and have OFFSET_CHARS_FUZZ help us out so we are still
- *  approximately correct at lower offsets.
+ * A new optimization decision we are making is that we do not want to carry
+ *  around any data in our ephemeral tables that is not used for whittling the
+ *  result set.  The idea is that the btree page cache or OS cache is going to
+ *  save us from the disk seeks and carrying around the extra data is just going
+ *  to be CPU/memory churn that slows us down.
+ *
+ * Additionally, we try and avoid row lookups that would have their results
+ *  discarded by the LIMIT.  Because of limitations in FTS3 (which might
+ *  be addressed in FTS4 by a feature request), we can't avoid the 'messages'
+ *  lookup since that has the message's date and static notability but we can
+ *  defer the 'messagesText' lookup.
+ *
+ * This is the access pattern we are after here:
+ * 1) Order the matches with minimized lookup and result storage costs.
+ * - The innermost MATCH does the doclist magic and provides us with
+ *    matchinfo() support which does not require content row retrieval
+ *    from messagesText.  Unfortunately, this is not enough to whittle anything
+ *    because we still need static interestingness, so...
+ * - Based on the match we retrieve the date and notability for that row from
+ *    'messages' using this in conjunction with matchinfo() to provide a score
+ *    that we can then use to LIMIT our results.
+ * 2) We reissue the MATCH query so that we will be able to use offsets(), but
+ *    we intersect the results of this MATCH against our LIMITed results from
+ *    step 1.
+ * - We use 'docid IN (phase 1 query)' to accomplish this because it results in
+ *    efficient lookup.  If we just use a join, we get O(mn) performance because
+ *    a cartesian join ends up being performed where either we end up performing
+ *    the fulltext query M times and table scan intersect with the results from
+ *    phase 1 or we do the fulltext once but traverse the entire result set from
+ *    phase 1 N times.
+ * - We believe that the re-execution of the MATCH query should have no disk
+ *    costs because it should still be cached by SQLite or the OS.  In the case
+ *    where memory is so constrained this is not true our behavior is still
+ *    probably preferable than the old way because that would have caused lots
+ *    of swapping.
+ * - This part of the query otherwise resembles the basic gloda query but with
+ *    the inclusion of the offsets() invocation.  The messages table lookup
+ *    should not involve any disk traffic because the pages should still be
+ *    cached (SQLite or OS) from phase 1.  The messagesText lookup is new, and
+ *    this is the major disk-seek reduction optimization we are making.  (Since
+ *    we avoid this lookup for all of the documents that were excluded by the
+ *    LIMIT.)  Since offsets() also needs to retrieve the row from messagesText
+ *    there is a nice synergy there.
  */
-const OFFSET_CHARS_PER_FULLTEXT_MATCH = 10;
-/**
- * How many characters we should add to the length(osets) to adjust for lack of
- *  trailing whitespace for just one match, but also to compensate for having
- *  OFFSETS_CHARS_PER_FULLTEXT_MATCH be biased towards the existence of
- *  multi-digit character offsets.
- * This value is currently arbitrarily chosen, feel free to do an analysis and
- *  pick a better one.
- */
-const OFFSET_CHARS_FUZZ = 6;
-
-const OFFSET_FUZZSCORE_SQL_SNIPPET =
-  "(((length(osets) + " + OFFSET_CHARS_FUZZ + ") / " +
-    OFFSET_CHARS_PER_FULLTEXT_MATCH + ") * " +
-    FUZZSCORE_FOR_FULLTEXT_MATCH + ")";
-
-const FUZZSCORE_SQL_SNIPPET =
-  "(" + OFFSET_FUZZSCORE_SQL_SNIPPET + " + notability)";
-
-const DASCORE_SQL_SNIPPET =
-  "((" + FUZZSCORE_SQL_SNIPPET + " * " + FUZZSCORE_TIMESTAMP_FACTOR +
-    ") + date)";
-
-const FULLTEXT_QUERY_EXPLICIT_SQL =
+const NUEVO_FULLTEXT_SQL =
   "SELECT messages.*, messagesText.*, offsets(messagesText) AS osets " +
-    "FROM messages, messagesText WHERE messagesText MATCH ?" +
-    " AND messages.id == messagesText.docid" +
+  "FROM messagesText, messages " +
+  "WHERE" +
+    " messagesText MATCH ?1 " +
+    " AND messagesText.docid IN (" +
+       "SELECT docid " +
+       "FROM messagesText JOIN messages ON messagesText.docid = messages.id " +
+       "WHERE messagesText MATCH ?1 " +
+       "ORDER BY " + DASCORE + " DESC " +
+       "LIMIT ?2" +
+    " )" +
+    " AND messages.id = messagesText.docid " +
     " AND +messages.deleted = 0" +
     " AND +messages.folderID IS NOT NULL" +
     " AND +messages.messageKey IS NOT NULL";
@@ -260,10 +287,9 @@ GlodaMsgSearcher.prototype = {
   buildFulltextQuery: function GlodaMsgSearcher_buildFulltextQuery() {
     let query = Gloda.newQuery(Gloda.NOUN_MESSAGE, {
       noMagic: true,
-      explicitSQL: FULLTEXT_QUERY_EXPLICIT_SQL,
+      explicitSQL: NUEVO_FULLTEXT_SQL,
+      limitClauseAlreadyIncluded: true,
       // osets is 0-based column number 14 (volatile to column changes)
-      // dascore becomes 0-based column number 15
-      outerWrapColumns: [DASCORE_SQL_SNIPPET + " AS dascore"],
       // save the offset column for extra analysis
       stashColumns: [14]
     });
@@ -290,7 +316,6 @@ GlodaMsgSearcher.prototype = {
     }
 
     query.fulltextMatches(fulltextQueryString);
-    query.orderBy(this.sortBy);
     query.limit(this.retrievalLimit);
 
     return query;

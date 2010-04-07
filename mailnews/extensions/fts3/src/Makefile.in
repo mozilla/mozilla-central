@@ -59,6 +59,7 @@ REQUIRES	= \
 
 CPPSRCS		= \
 		nsFts3Tokenizer.cpp \
+		nsGlodaRankerFunction.cpp \
 		$(NULL)
 
 CSRCS		= \

@@ -649,6 +649,8 @@ var GlodaDatastore = {
           deleted: ['deleted'],
         },
 
+        // note: if reordering the columns, you need to change this file's
+        //  row-loading logic as well as msg_search.js's ranking usages.
         fulltextColumns: [
           ["subject", "TEXT"],
           ["body", "TEXT"],
@@ -2969,7 +2971,8 @@ var GlodaDatastore = {
     }
 
     if (aQuery._limit) {
-      sqlString += " LIMIT ?";
+      if (!("limitClauseAlreadyIncluded" in aQuery.options))
+        sqlString += " LIMIT ?";
       boundArgs.push(aQuery._limit);
     }
 
