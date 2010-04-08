@@ -242,7 +242,6 @@ NS_INTERFACE_MAP_END_INHERITING(nsMsgAsyncWriteProtocol)
 nsSmtpProtocol::nsSmtpProtocol(nsIURI * aURL)
     : nsMsgAsyncWriteProtocol(aURL)
 {
-    Initialize(aURL);
 }
 
 nsSmtpProtocol::~nsSmtpProtocol()
@@ -408,8 +407,11 @@ void nsSmtpProtocol::AppendHelloArgument(nsACString& aResult)
 // stop binding is a "notification" informing us that the stream
 // associated with aURL is going away.
 NS_IMETHODIMP nsSmtpProtocol::OnStopRequest(nsIRequest *request, nsISupports *ctxt,
-nsresult aStatus)
+                                            nsresult aStatus)
 {
+  PRBool connDroppedDuringAuth = aStatus == NS_OK && !m_sendDone &&
+      (m_nextStateAfterResponse == SMTP_AUTH_LOGIN_STEP0_RESPONSE ||
+       m_nextStateAfterResponse == SMTP_AUTH_LOGIN_RESPONSE);
   if (aStatus == NS_OK && !m_sendDone) {
     // if we are getting OnStopRequest() with NS_OK,
     // but we haven't finished clean, that's spells trouble.
@@ -417,14 +419,28 @@ nsresult aStatus)
     // for example, see bug #200647
     PR_LOG(SMTPLogModule, PR_LOG_ALWAYS,
  ("SMTP connection dropped after %ld total bytes read", m_totalAmountRead));
-    nsMsgAsyncWriteProtocol::OnStopRequest(nsnull, ctxt, NS_ERROR_NET_INTERRUPT);
+    if (!connDroppedDuringAuth)
+      nsMsgAsyncWriteProtocol::OnStopRequest(nsnull, ctxt, NS_ERROR_NET_INTERRUPT);
   }
   else
     nsMsgAsyncWriteProtocol::OnStopRequest(nsnull, ctxt, aStatus);
 
   // okay, we've been told that the send is done and the connection is going away. So
   // we need to release all of our state
-  return nsMsgAsyncWriteProtocol::CloseSocket();
+  nsresult rv = nsMsgAsyncWriteProtocol::CloseSocket();
+  // If the server dropped the connection when we were expecting
+  // a login response, reprompt for password, and if the user asks,
+  // retry the url.
+  if (connDroppedDuringAuth)
+  {
+    nsCOMPtr<nsIURI> runningURI = do_QueryInterface(m_runningURL);
+    PRInt32 rv = AuthLoginResponse(nsnull, 0);
+    if (rv < 0)
+      return rv;
+    return LoadUrl(runningURI, ctxt);
+  }
+
+  return rv;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1722,6 +1738,8 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
 {
   if (!aURL)
     return NS_OK;
+
+  Initialize(aURL);
 
   m_continuationResponse = -1;  /* init */
   m_runningURL = do_QueryInterface(aURL);

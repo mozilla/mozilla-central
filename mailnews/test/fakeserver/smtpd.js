@@ -19,10 +19,13 @@ const kStateAuthenticated = 3;
 /**
  * This handler implements the bare minimum required by RFC 2821.
  * @see RFC 2821
+ * If dropOnAuthFailure is set, the server will drop the connection
+ * on authentication errors, to simulate servers that do the same.
  */
 function SMTP_RFC2821_handler(daemon) {
   this._daemon = daemon;
   this.closing = false;
+  this.dropOnAuthFailure = false;
 
   this._kAuthSchemeStartFunction = {};
   this._kAuthSchemeStartFunction["CRAM-MD5"] = this.authCRAMStart;
@@ -134,6 +137,8 @@ SMTP_RFC2821_handler.prototype = {
       return "235 2.7.0 Hello friend! Friends give friends good advice: Next time, use CRAM-MD5";
     }
     else {
+      if (this.dropOnAuthFailure)
+        this.closing = true;
       return "535 5.7.8 Wrong username or password, crook!";
     }
   },
@@ -157,6 +162,8 @@ SMTP_RFC2821_handler.prototype = {
       return "235 2.7.0 Hello friend!";
     }
     else {
+      if (this.dropOnAuthFailure)
+        this.closing = true;
       return "535 5.7.8 Wrong username or password, crook!";
     }
   },
@@ -180,6 +187,8 @@ SMTP_RFC2821_handler.prototype = {
   },
   authLOGINBadUsername : function (line)
   {
+    if (this.dropOnAuthFailure)
+      this.closing = true;
     return "535 5.7.8 Wrong username or password, crook!";
   },
   authLOGINPassword : function (line)
@@ -190,6 +199,8 @@ SMTP_RFC2821_handler.prototype = {
       return "235 2.7.0 Hello friend! Where did you pull out this old auth scheme?";
     }
     else {
+      if (this.dropOnAuthFailure)
+        this.closing = true;
       return "535 5.7.8 Wrong username or password, crook!";
     }
   },
@@ -224,10 +235,10 @@ SMTP_RFC2821_handler.prototype = {
     }
 
     if (this.expectingData) {
-	    if (line.charAt(0) == '.')
+      if (line.charAt(0) == '.')
         line = line.substring(1);
       // This uses CR LF to match with the specification
-	    this.post += line + '\r\n';
+      this.post += line + '\r\n';
     }
     return undefined;
   },
