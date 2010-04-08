@@ -56,6 +56,12 @@ let alertHook =
                                 .getService(Ci.nsIActivityManager);
   },
 
+  get alertService() {
+    delete this.alertService;
+    return this.alertService = Cc["@mozilla.org/alerts-service;1"]
+                                 .getService(Ci.nsIAlertsService);
+  },
+
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgUserFeedbackListener]),
 
   onAlert: function (aMessage, aUrl) {
@@ -73,10 +79,11 @@ let alertHook =
 
     this.activityMgr.addActivity(warning);
 
-    // XXX Once activity manager is prompting the user (bug 476696), this needs
-    // to be flipped to true to stop the modal alerts appearing from within
-    // mailnews.
-    return false;
+    this.alertService
+        .showAlertNotification("chrome://branding/content/icon48.png", "",
+                               aMessage);
+
+    return true;
   },
 
   init: function() {
