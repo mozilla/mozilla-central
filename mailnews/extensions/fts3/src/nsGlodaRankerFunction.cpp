@@ -37,9 +37,15 @@
 #include "nsGlodaRankerFunction.h"
 #include "mozIStorageValueArray.h"
 
+#include "sqlite3.h"
+
 #include "nsCOMPtr.h"
 #include "nsIVariant.h"
 #include "nsComponentManagerUtils.h"
+
+#ifndef SQLITE_VERSION_NUMBER
+#error "We need SQLITE_VERSION_NUMBER defined!"
+#endif
 
 NS_IMPL_ISUPPORTS1(nsGlodaRankerFunction, mozIStorageFunction)
 
