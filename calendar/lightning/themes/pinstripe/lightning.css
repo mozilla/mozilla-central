@@ -135,9 +135,10 @@ radio[pane=paneLightning] {
 #calendar-status-todaypane-button[checked="true"] {
   min-width: 0;
   min-height: 0;
+  margin: 1px 0 0;
   -moz-appearance: none;
   -moz-border-radius: 3px;
-  padding: 0.2pt 2px !important;
+  padding: 0 2px !important;
   border: 1px solid transparent;
 }
 
@@ -151,6 +152,11 @@ radio[pane=paneLightning] {
 #calendar-status-todaypane-button > .toolbarbutton-icon-begin {
   list-style-image: url(chrome://calendar/skin/toolbar-small.png);
   -moz-image-region: rect(0px 336px 16px 320px);
+}
+
+/* shift the today pane button label up by one pixel to center it */
+#calendar-status-todaypane-button > .toolbarbutton-text {
+  margin: 0 6px 1px !important;
 }
 
 #calendar-status-todaypane-button > .toolbarbutton-icon-end {
