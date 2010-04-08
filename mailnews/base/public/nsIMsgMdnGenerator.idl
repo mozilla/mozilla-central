@@ -57,7 +57,7 @@ typedef long MDNIncorporateType;
  { 0x91, 0x46, 0xd7, 0xf7, 0xaa, 0xfe, 0x90, 0x76 }}
 %}
 
-[scriptable, uuid(b1658370-f4af-4b02-8052-3cfeb7dab10e)]
+[scriptable, uuid(440EA3DE-DACA-4886-9875-84E6CD7D7927)]
 interface nsIMsgMdnGenerator : nsISupports
 {
     const EDisposeType eDisplayed = 0;
@@ -74,7 +74,41 @@ interface nsIMsgMdnGenerator : nsISupports
     const MDNIncorporateType eIncorporateInbox = 0;
     const MDNIncorporateType eIncorporateSent = 1;
     
-    void process(in EDisposeType eType, in nsIMsgWindow aWindow,
-                 in nsIMsgFolder folder, in nsMsgKey key, 
-                 in nsIMimeHeaders headers, in boolean autoAction);
+    
+    /**
+     * Prepare the sending of a mdn reply, and checks the prefs whether a
+     * reply should be send. Might send the message automatically if the
+     * prefs say it should.
+     * @param eType   One of EDisposeType above, indicating the action that led
+     *                to sending the mdn reply
+     * @param aWindow The window the message was displayed in, acting as parent
+     *                for any (error) dialogs
+     * @param folder  The folder the message is in
+     * @param key     the message key
+     * @param headers the message headers
+     * @param autoAction  true if the request action led to sending the mdn
+     *                reply was an automatic action, false if it was user initiated
+     * @returns true if the user needs to be asked for permission
+     *          false in other cases (whether the message was sent or denied)
+     */
+    boolean process(in EDisposeType eType, in nsIMsgWindow aWindow,
+                    in nsIMsgFolder folder, in nsMsgKey key, 
+                    in nsIMimeHeaders headers, in boolean autoAction);
+
+    /**
+     * Must be called when the user was asked for permission and agreed to
+     * sending the mdn reply. 
+     * May only be called when |process| returned |true|. Behaviour is
+     * unspecified in other cases
+     */
+    void userAgreed();
+
+    /**
+     * Must be called when the user was asked for permission and declined to
+     * send the mdn reply. 
+     * Will mark the message so that the user won't be asked next time.
+     * May only be called when |process| returned |true|. Behaviour is
+     * unspecified in other cases.
+     */
+    void userDeclined();
 };

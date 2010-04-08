@@ -657,3 +657,7 @@ toolbar[iconsize="small"] #button-archive[disabled] {
 #phishingBarImage {
   list-style-image: url("chrome://messenger/skin/icons/phishing.png");
 }
+
+#mdnBarImage {
+  list-style-image: url("chrome://messenger/skin/icons/warning.png");
+}

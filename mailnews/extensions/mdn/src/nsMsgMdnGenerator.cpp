@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Jeff Tsai <jt95070@netscape.net>
+ *   Michiel van Leeuwen <mvl@exedo.nl>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -178,6 +179,8 @@ nsresult nsMsgMdnGenerator::StoreMDNSentFlag(nsIMsgFolder *folder,
     nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(folder);
     if (!imapFolder)
       return NS_OK;
+
+    // XXX todo: also clear MDNReportNeeded?
 
     return imapFolder->StoreImapFlags(kImapMsgMDNSentFlag, PR_TRUE, &key, 1, nsnull);
 }
@@ -383,39 +386,6 @@ nsresult nsMsgMdnGenerator::CreateMdnMsg()
 {
     DEBUG_MDN("nsMsgMdnGenerator::CreateMdnMsg");
     nsresult rv;
-    if (!m_autoSend)
-    {
-        nsCOMPtr<nsIPrompt> dialog;
-        rv = m_window->GetPromptDialog(getter_AddRefs(dialog));
-        if (NS_SUCCEEDED(rv))
-        {
-            nsString wishToSend;
-            nsString ignoreRequest;
-            nsString sendReceipt;
-            PRInt32 buttonPressed = 0;
-            rv = GetStringFromName(NS_LITERAL_STRING("MsgMdnWishToSend").get(),
-                                   getter_Copies(wishToSend));
-            NS_ENSURE_SUCCESS(rv, rv);
-            rv = GetStringFromName(NS_LITERAL_STRING("MsgMdnIgnoreRequest").get(), getter_Copies(ignoreRequest));
-            NS_ENSURE_SUCCESS(rv, rv);
-            rv = GetStringFromName(NS_LITERAL_STRING("MsgMdnSendReceipt").get(), getter_Copies(sendReceipt));
-            NS_ENSURE_SUCCESS(rv, rv);
-
-            // Default the dialog to "Ignore Request".
-            rv = dialog->ConfirmEx(nsnull, wishToSend.get(),
-                                   (nsIPrompt::BUTTON_POS_1_DEFAULT) +
-                                   (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
-                                   (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_1),
-                                   sendReceipt.get(), 
-                                   ignoreRequest.get(), 
-                                   nsnull, nsnull, nsnull, &buttonPressed);
-
-            NS_ENSURE_SUCCESS(rv, rv);
-            m_reallySendMdn = !buttonPressed; // "Send Receipt" is in position 0
-        }
-    }
-    if (!m_reallySendMdn)
-        return NS_OK;
 
     nsCOMPtr<nsIFile> tmpFile;
     rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
@@ -926,7 +896,7 @@ nsresult nsMsgMdnGenerator::WriteString( const char *str )
   return m_outputStream->Write(str, len, &wLen);
 }
 
-nsresult nsMsgMdnGenerator::InitAndProcess()
+nsresult nsMsgMdnGenerator::InitAndProcess(PRBool *needToAskUser)
 {
     DEBUG_MDN("nsMsgMdnGenerator::InitAndProcess");
     nsresult rv = m_folder->GetServer(getter_AddRefs(m_server));
@@ -1039,7 +1009,6 @@ nsresult nsMsgMdnGenerator::InitAndProcess()
     }
 
     rv = m_folder->GetCharset(m_charset);
-
     if (m_mdnEnabled)
     {
         m_headers->ExtractHeader(HEADER_DISPOSITION_NOTIFICATION_TO, PR_FALSE,
@@ -1048,9 +1017,21 @@ nsresult nsMsgMdnGenerator::InitAndProcess()
             m_headers->ExtractHeader(HEADER_RETURN_RECEIPT_TO, PR_FALSE,
                                      getter_Copies(m_dntRrt));
         if (!m_dntRrt.IsEmpty() && ProcessSendMode() && ValidateReturnPath())
-            rv = CreateMdnMsg();
+        {
+            if (!m_autoSend)
+            {
+                *needToAskUser = PR_TRUE;
+                rv = NS_OK;
+            }
+            else
+            {
+                *needToAskUser = PR_FALSE;
+                rv = CreateMdnMsg();
+                UserAgreed();
+            }
+        }
     }
-    return NS_OK;
+    return rv;
 }
 
 NS_IMETHODIMP nsMsgMdnGenerator::Process(EDisposeType type,
@@ -1058,7 +1039,8 @@ NS_IMETHODIMP nsMsgMdnGenerator::Process(EDisposeType type,
                                          nsIMsgFolder *folder,
                                          nsMsgKey key,
                                          nsIMimeHeaders *headers,
-                                         PRBool autoAction)
+                                         PRBool autoAction,
+                                         PRBool *_retval)
 {
     DEBUG_MDN("nsMsgMdnGenerator::Process");
     NS_ENSURE_ARG_POINTER(folder);
@@ -1070,14 +1052,29 @@ NS_IMETHODIMP nsMsgMdnGenerator::Process(EDisposeType type,
     m_window = aWindow;
     m_folder = folder;
     m_headers = headers;
+    m_key = key;
 
-    nsresult rv = StoreMDNSentFlag(folder, key);
-    NS_ASSERTION(NS_SUCCEEDED(rv), "StoreMDNSentFlag failed");
-
-    rv = InitAndProcess();
+    nsresult rv = InitAndProcess(_retval);
     NS_ASSERTION(NS_SUCCEEDED(rv), "InitAndProcess failed");
     return NS_OK;
 }
+
+NS_IMETHODIMP nsMsgMdnGenerator::UserAgreed()
+{
+    DEBUG_MDN("nsMsgMdnGenerator::UserAgreed");
+    nsresult rv = StoreMDNSentFlag(m_folder, m_key);
+    NS_ASSERTION(NS_SUCCEEDED(rv), "StoreMDNSentFlag failed");
+    return CreateMdnMsg();
+}
+
+NS_IMETHODIMP nsMsgMdnGenerator::UserDeclined()
+{
+    DEBUG_MDN("nsMsgMdnGenerator::UserDeclined");
+    nsresult rv = StoreMDNSentFlag(m_folder, m_key);
+    NS_ASSERTION(NS_SUCCEEDED(rv), "StoreMDNSentFlag failed");
+    return NS_OK;
+}
+
 
 NS_IMETHODIMP nsMsgMdnGenerator::OnStartRunningUrl(nsIURI *url)
 {

@@ -715,6 +715,23 @@ toolbar[iconsize="small"] #button-archive[disabled] {
   color: black;
 }
 
+
+#mdnBarImage {
+  list-style-image: url("chrome://messenger/skin/icons/warning.png");
+}
+
+#mdnBar {
+  background-color: #FBFBC8;
+  border: 1px solid #DDDDE1;
+  color: black;
+  padding: 0.3em 0.2em;
+  -moz-border-radius-bottomleft: 0.2em;
+  -moz-border-radius-bottomright: 0.2em;
+  -moz-border-radius-topleft: 0.2em;
+  -moz-border-radius-topright: 0.2em;
+}
+
+
 #CustomizeToolbarSheet > #main-box {
   border-top: none !important;
   border-left: 2px solid;

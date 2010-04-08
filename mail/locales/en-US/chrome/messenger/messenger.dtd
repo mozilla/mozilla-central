@@ -686,6 +686,12 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY removePhishingBarButton1.label "Ignore Warning">
 <!ENTITY reportPhishingError1.label "This message doesn't appear to be a scam.">
 
+<!-- MDN Bar -->
+<!ENTITY mdnBarMessage.label "The sender of this message has asked to be notified when you read this message. Do you wish to notify the sender?">
+<!ENTITY mdnBarIgnoreButton.label "Ignore Request">
+<!ENTITY mdnBarSendButton.label "Send Receipt">
+
+
 <!-- Message Header Button Box (to show hidden email addresses) -->
 <!ENTITY more.label "more">
 

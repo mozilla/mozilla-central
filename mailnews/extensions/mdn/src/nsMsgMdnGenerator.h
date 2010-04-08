@@ -49,6 +49,7 @@
 #include "nsIMsgWindow.h"
 #include "nsIMimeHeaders.h"
 #include "nsStringGlue.h"
+#include "MailNewsTypes2.h"
 
 #define eNeverSendOp ((PRInt32) 0)
 #define eAutoSendOp ((PRInt32) 1)
@@ -87,7 +88,7 @@ private:
                                 PRUnichar **aResultString);
 
   // other helper methods
-  nsresult InitAndProcess();
+  nsresult InitAndProcess(PRBool *needToAskUser);
   nsresult OutputAllHeaders();
   nsresult WriteString(const char *str);
 
@@ -97,6 +98,7 @@ private:
   nsCOMPtr<nsIOutputStream> m_outputStream;
   nsCOMPtr<nsIFile> m_file;
   nsCOMPtr<nsIMsgIdentity> m_identity;
+  nsMsgKey m_key;
   nsCString m_charset;
   nsCString m_email;
   nsCString m_mimeSeparator;

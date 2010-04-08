@@ -1871,6 +1871,14 @@
     <button id="remoteContentBarButton" label="&loadRemoteContentButton3.label;"
             oncommand="LoadMsgWithRemoteContent();"/>
   </hbox>
+
+  <hbox id="mdnBar" class="msgNotificationBar" align="center">
+    <image id="mdnBarImage"/>
+    <description flex="1" class="msgNotificationBarText">&mdnBarMessage.label;</description>
+    <button label="&mdnBarIgnoreButton.label;" oncommand="IgnoreMDNResponse();"/>
+    <button label="&mdnBarSendButton.label;" oncommand="SendMDNResponse();"/>
+  </hbox>
+
 </deck>
 
 <statusbar class="chromeclass-status" id="status-bar">

@@ -31,6 +31,7 @@
  *   Jeremy Morton <bugzilla@game-point.net>
  *   Andrew Sutherland <asutherland@asutherland.org>
  *   Dan Mosedale <dmose@mozilla.org>
+ *   Michiel van Leeuwen <mvl@exedo.nl>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -71,6 +72,7 @@ const kAllowRemoteContent = 2;
 const kMsgNotificationPhishingBar = 1;
 const kMsgNotificationJunkBar = 2;
 const kMsgNotificationRemoteImages = 3;
+const kMsgNotificationMDN = 4;
 
 Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource:///modules/MailConsts.js");
@@ -2511,7 +2513,8 @@ var gMessageNotificationBar =
                     0, // for no msgNotificationBar
                     1, // 1 << (kMsgNotificationPhishingBar - 1)
                     2, // 1 << (kMsgNotificationJunkBar - 1)
-                    4  // 1 << (kMsgNotificationRemoteImages - 1)
+                    4, // 1 << (kMsgNotificationRemoteImages - 1)
+                    8  // 1 << (kMsgNotificationMSN - 1) 
                   ],
 
   mMsgNotificationBar: document.getElementById('msgNotificationBar'),
@@ -2547,7 +2550,14 @@ var gMessageNotificationBar =
   {
     this.updateMsgNotificationBar(kMsgNotificationPhishingBar, true);
   },
-
+  
+  setMDNMsg: function(aMdnGenerator, aMsgHeader)
+  {
+    this.mdnGenerator = aMdnGenerator;
+    this.msgHeader = aMsgHeader;
+    this.updateMsgNotificationBar(kMsgNotificationMDN, true);
+  },
+  
   clearMsgNotifications: function()
   {
     this.mBarStatus = 0;
@@ -2845,6 +2855,8 @@ function HandleMDNResponse(aUrl)
   // After a msg is downloaded it's already marked READ at this point so we must check if
   // the msg has a "Disposition-Notification-To" header and no MDN report has been sent yet.
   var msgFlags = msgHdr.flags;
+  if (!msgFlags)
+    return;
   if ((msgFlags & Components.interfaces.nsMsgMessageFlags.IMAPDeleted) ||
       (msgFlags & Components.interfaces.nsMsgMessageFlags.MDNReportSent))
     return;
@@ -2858,18 +2870,22 @@ function HandleMDNResponse(aUrl)
   var mdnGenerator = Components.classes["@mozilla.org/messenger-mdn/generator;1"]
                                .createInstance(Components.interfaces.nsIMsgMdnGenerator);
   const MDN_DISPOSE_TYPE_DISPLAYED = 0;
-  mdnGenerator.process(MDN_DISPOSE_TYPE_DISPLAYED, msgWindow, msgFolder,
-                       msgHdr.messageKey, mimeHdr, false);
+  let askUser = mdnGenerator.process(MDN_DISPOSE_TYPE_DISPLAYED, msgWindow, msgFolder,
+                                     msgHdr.messageKey, mimeHdr, false);
+  if (askUser)
+    gMessageNotificationBar.setMDNMsg(mdnGenerator, msgHdr);
+}
 
-  // Reset mark msg MDN "Sent" and "Not Needed".
-  msgHdr.flags = (msgFlags &
-                  ~Components.interfaces.nsMsgMessageFlags.MDNReportNeeded);
-  msgHdr.OrFlags(Components.interfaces.nsMsgMessageFlags.MDNReportSent);
+function SendMDNResponse()
+{
+  gMessageNotificationBar.mdnGenerator.userAgreed();
+  gMessageNotificationBar.updateMsgNotificationBar(kMsgNotificationMDN, false);
+}
 
-  // Commit db changes.
-  var msgdb = msgFolder.msgDatabase;
-  if (msgdb)
-    msgdb.Commit(ADDR_DB_LARGE_COMMIT);
+function IgnoreMDNResponse()
+{
+  gMessageNotificationBar.mdnGenerator.userDeclined();
+  gMessageNotificationBar.updateMsgNotificationBar(kMsgNotificationMDN, false);
 }
 
 function QuickSearchFocus()
