@@ -317,6 +317,8 @@ public:
   NS_IMETHOD AddKeywordsToMessages(nsIArray *aMessages, const nsACString& aKeywords);
   NS_IMETHOD RemoveKeywordsFromMessages(nsIArray *aMessages, const nsACString& aKeywords);
 
+  NS_IMETHOD NotifyCompactCompleted();
+
   NS_DECL_NSIMSGIMAPMAILFOLDER
   NS_DECL_NSIIMAPMAILFOLDERSINK
   NS_DECL_NSIIMAPMESSAGESINK
@@ -503,6 +505,10 @@ protected:
   PRPackedBool m_folderQuotaCommandIssued;
   PRPackedBool m_folderQuotaDataIsValid;
   PRPackedBool m_updatingFolder;
+  // These two vars are used to keep track of compaction state so we can know
+  // when to send a done notification.
+  PRPackedBool m_compactingOfflineStore;
+  PRPackedBool m_expunging;
   PRPackedBool m_applyIncomingFilters; // apply filters to this folder, even if not the inbox
   nsMsgIMAPFolderACL *m_folderACL;
   PRUint32     m_aclFlags;

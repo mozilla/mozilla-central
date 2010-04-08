@@ -129,7 +129,7 @@ public:
                                 PRUint32 sourceOffset, PRUint32 count);
 
 protected:
-    nsresult         CopyNextMessage();
+    nsresult         CopyNextMessage(PRBool &done);
     virtual nsresult InitDB(nsIMsgDatabase *db);
     virtual nsresult StartCompacting();
     virtual nsresult FinishCompact();

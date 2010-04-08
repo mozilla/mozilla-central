@@ -9,6 +9,12 @@ var gIMAPDaemon, gServer, gIMAPIncomingServer;
 const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
                        .getService(Ci.nsIMsgMessageService);
 
+load("../../mailnews/resources/messageGenerator.js");
+
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
+load("../../mailnews/resources/alertTestUtils.js");
+
 // Globals
 var gRootFolder;
 var gIMAPInbox, gIMAPTrashFolder, gMsgImapInboxFolder;
@@ -29,12 +35,38 @@ const gMsgId3 = "4849BF7B.2030800@example.com";
 const gMsgId4 = "bugmail7.m47LtAEf007542@mrapp51.mozilla.org";
 const gMsgId5 = "bugmail6.m47LtAEf007542@mrapp51.mozilla.org";
 
+
+var dummyDocShell =
+{
+  getInterface: function (iid) {
+    if (iid.equals(Ci.nsIAuthPrompt)) {
+      return Cc["@mozilla.org/login-manager/prompter;1"]
+               .getService(Ci.nsIAuthPrompt);
+    }
+
+    throw Components.results.NS_ERROR_FAILURE;
+  },
+
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIDocShell,
+                                         Ci.nsIInterfaceRequestor])
+}
+
+// Dummy message window that ensures we get prompted for logins.
+var dummyMsgWindow =
+{
+  rootDocShell: dummyDocShell,
+  promptDialog: alertUtilsPrompts,
+
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgWindow,
+                                         Ci.nsISupportsWeakReference])
+};
+
+
 // Adds some messages directly to a mailbox (eg new mail)
-function addMessagesToServer(messages, mailbox, localFolder)
+function addMessagesToServer(messages, mailbox)
 {
   let ioService = Cc["@mozilla.org/network/io-service;1"]
                     .getService(Ci.nsIIOService);
-
   // For every message we have, we need to convert it to a file:/// URI
   messages.forEach(function (message)
   {
@@ -48,6 +80,21 @@ function addMessagesToServer(messages, mailbox, localFolder)
     mailbox.addMessage(new imapMessage(message.spec, mailbox.uidnext++, []));
   });
 }
+
+function addGeneratedMessagesToServer(messages, mailbox)
+{
+  let ioService = Cc["@mozilla.org/network/io-service;1"]
+                    .getService(Ci.nsIIOService);
+  // Create the imapMessages and store them on the mailbox
+  messages.forEach(function (message)
+  {
+    let dataUri = ioService.newURI("data:text/plain;base64," +
+                                    btoa(message.toMessageString()),
+                                   null, null);
+    mailbox.addMessage(new imapMessage(dataUri.spec, mailbox.uidnext++, []));
+  });
+}
+
 
 function checkOfflineStore(prevOfflineStoreSize) {
   dump("checking offline store\n");
@@ -78,8 +125,29 @@ const gTestArray =
     dump("Downloading for offline use\n");
     gIMAPInbox.downloadAllForOffline(UrlListener, null);
   },
+  function markOneMsgDeleted() {
+    // mark a message deleted, and then do a compact of just
+    // that folder.
+    let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId5);
+    let array = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
+    array.appendElement(msgHdr, false);
+    // store the deleted flag
+    gIMAPInbox.storeImapFlags(0x0008, true, [msgHdr.messageKey], 1, UrlListener);
+  },
+  function compactOneFolder() {
+    gIMAPIncomingServer.deleteModel = Ci.nsMsgImapDeleteModels.IMAPDelete;
+    // UrlListener will get called when both expunge and offline store
+    // compaction are finished. dummyMsgWindow is required to make the backend
+    // compact the offline store.
+    gIMAPInbox.compact(UrlListener, dummyMsgWindow);
+  },
   function deleteOneMessage() {
+    // check that nstmp file has been cleaned up.
+    let tmpFile = gRootFolder.filePath;
+    tmpFile.append("nstmp");
+    do_check_false(tmpFile.exists());
     dump("deleting one message\n");
+    gIMAPIncomingServer.deleteModel = Ci.nsMsgImapDeleteModels.MoveToTrash;
     let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
     let array = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
     array.appendElement(msgHdr, false);
@@ -104,6 +172,9 @@ const gTestArray =
     gRootFolder.compactAll(UrlListener, null, true);
   },
   function checkCompactionResult() {
+    let tmpFile = gRootFolder.filePath;
+    tmpFile.append("nstmp");
+    do_check_false(tmpFile.exists());
     checkOfflineStore(gImapInboxOfflineStoreSize);
     UrlListener.OnStopRunningUrl(null, 0);
     let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId2);
@@ -162,13 +233,19 @@ function run_test()
   gMsgImapInboxFolder.hierarchyDelimiter = '/';
   gMsgImapInboxFolder.verifiedAsOnlineFolder = true;
 
+  let messageGenerator = new MessageGenerator();
+  let messages = [];
+  for (let i = 0; i < 50; i++)
+    messages = messages.concat(messageGenerator.makeMessage());
+
+  addGeneratedMessagesToServer(messages, gIMAPDaemon.getMailbox("INBOX"));
 
   // Add a couple of messages to the INBOX
   // this is synchronous, afaik
   addMessagesToServer([{file: gMsgFile1, messageId: gMsgId1},
                         {file: gMsgFile4, messageId: gMsgId4},
-                         {file: gMsgFile5, messageId: gMsgId5},
-                        {file: gMsgFile2, messageId: gMsgId2}],
+                        {file: gMsgFile2, messageId: gMsgId2},
+                        {file: gMsgFile5, messageId: gMsgId5}],
                         gIMAPDaemon.getMailbox("INBOX"), gIMAPInbox);
   // "Master" do_test_pending(), paired with a do_test_finished() at the end of
   // all the operations.

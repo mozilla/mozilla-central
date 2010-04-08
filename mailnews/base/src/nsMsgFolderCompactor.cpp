@@ -616,7 +616,7 @@ nsFolderCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt,
     msgHdr = nsnull;
     newMsgHdr = nsnull;
     // no more to copy finish it up
-   FinishCompact();
+    FinishCompact();
     Release(); // kill self
   }
   else
@@ -911,28 +911,41 @@ nsOfflineStoreCompactState::InitDB(nsIMsgDatabase *db)
   return NS_OK;
 }
 
-nsresult nsOfflineStoreCompactState::CopyNextMessage()
+/**
+ * This will copy one message to the offline store, but if it fails to
+ * copy the next message, it will keep trying messages until it finds one
+ * it can copy, or it runs out of messages.
+ */
+nsresult nsOfflineStoreCompactState::CopyNextMessage(PRBool &done)
 {
-  m_messageUri.SetLength(0); // clear the previous message uri
-  nsresult rv = BuildMessageURI(m_baseMessageUri.get(), m_keyArray[m_curIndex],
-                                m_messageUri);
-  NS_ENSURE_SUCCESS(rv, rv);
-  m_startOfMsg = PR_TRUE;
-  nsCOMPtr<nsISupports> thisSupports;
-  QueryInterface(NS_GET_IID(nsISupports), getter_AddRefs(thisSupports));
-  rv = m_messageService->StreamMessage(m_messageUri.get(), thisSupports, m_window, nsnull,
-                                  PR_FALSE, EmptyCString(), PR_TRUE, nsnull);
-  // if copy fails, we clear the offline flag on the source message.
-  if (NS_FAILED(rv))
+  while (m_curIndex < m_size)
   {
-    nsCOMPtr<nsIMsgDBHdr> hdr;
-    GetMessage(getter_AddRefs(hdr));
-    if (hdr)
+    m_messageUri.SetLength(0); // clear the previous message uri
+    nsresult rv = BuildMessageURI(m_baseMessageUri.get(), m_keyArray[m_curIndex],
+                                  m_messageUri);
+    NS_ENSURE_SUCCESS(rv, rv);
+    m_startOfMsg = PR_TRUE;
+    nsCOMPtr<nsISupports> thisSupports;
+    QueryInterface(NS_GET_IID(nsISupports), getter_AddRefs(thisSupports));
+    rv = m_messageService->StreamMessage(m_messageUri.get(), thisSupports, m_window, nsnull,
+                                    PR_FALSE, EmptyCString(), PR_TRUE, nsnull);
+    // if copy fails, we clear the offline flag on the source message.
+    if (NS_FAILED(rv))
     {
-      PRUint32 resultFlags;
-      hdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
+      nsCOMPtr<nsIMsgDBHdr> hdr;
+      GetMessage(getter_AddRefs(hdr));
+      if (hdr)
+      {
+        PRUint32 resultFlags;
+        hdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
+      }
+      m_curIndex++;
+      continue;
     }
+    else
+      break;
   }
+  done = m_curIndex >= m_size;
   // In theory, we might be able to stream the next message, so
   // return NS_OK, not rv.
   return NS_OK;
@@ -947,7 +960,7 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
   nsCOMPtr<nsIMsgDBHdr> msgHdr;
   nsCOMPtr<nsIMsgDBHdr> newMsgHdr;
   nsCOMPtr <nsIMsgStatusFeedback> statusFeedback;
-  ReleaseFolderLock();
+  PRBool done = PR_FALSE;
 
   // The NS_MSG_ERROR_MSG_NOT_OFFLINE error should allow us to continue, so we
   // check for it specifically and don't terminate the compaction.
@@ -979,25 +992,24 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
       statusFeedback->ShowProgress (100 * m_curIndex / m_size);
   }
     // advance to next message 
-  m_curIndex ++;
-  if (m_curIndex >= m_size)
+  m_curIndex++;
+  rv = CopyNextMessage(done);
+  if (done)
   {
     m_db->Commit(nsMsgDBCommitType::kLargeCommit);
     msgHdr = nsnull;
     newMsgHdr = nsnull;
     // no more to copy finish it up
+    ReleaseFolderLock();
     FinishCompact();
     Release(); // kill self
-  }
-  else
-  {
-    rv = CopyNextMessage();
   }
 
 done:
   if (NS_FAILED(rv)) {
     m_status = rv; // set the status to rv so the destructor can remove the
                    // temp folder and database
+    ReleaseFolderLock();
     Release(); // kill self
     return rv;
   }
@@ -1043,6 +1055,7 @@ nsOfflineStoreCompactState::FinishCompact()
   m_file->MoveToNative((nsIFile *) nsnull, leafName);
 
   ShowStatusMsg(EmptyString());
+  m_folder->NotifyCompactCompleted();
   if (m_compactAll)
     rv = CompactNextFolder();
   return rv;
@@ -1141,14 +1154,13 @@ nsresult nsOfflineStoreCompactState::StartCompacting()
   {
     AddRef(); // we own ourselves, until we're done, anyway.
     ShowCompactingStatusMsg();
-    rv = CopyNextMessage();
+    PRBool done = PR_FALSE;
+    rv = CopyNextMessage(done);
+    if (!done)
+      return rv;
   }
-  else
-  { // no messages to copy with
-    ReleaseFolderLock();
-    FinishCompact();
-//    Release(); // we don't "own" ourselves yet.
-  }
+  ReleaseFolderLock();
+  FinishCompact();
   return rv;
 }
 

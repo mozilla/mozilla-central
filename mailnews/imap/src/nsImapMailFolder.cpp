@@ -227,6 +227,8 @@ nsImapMailFolder::nsImapMailFolder() :
     m_downloadingFolderForOfflineUse(PR_FALSE),
     m_folderQuotaUsedKB(0),
     m_folderQuotaMaxKB(0),
+    m_compactingOfflineStore(PR_FALSE),
+    m_expunging(PR_FALSE),
     m_applyIncomingFilters(PR_FALSE),
     m_filterListRequiresBody(PR_FALSE)
 {
@@ -1332,7 +1334,10 @@ NS_IMETHODIMP nsImapMailFolder::ApplyRetentionSettings()
   return nsMsgDBFolder::ApplyRetentionSettings();
 }
 
-
+/**
+ * The listener will get called when both the online expunge and the offline
+ * store compaction are finished (if the latter is needed).
+ */
 NS_IMETHODIMP nsImapMailFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv = GetDatabase();
@@ -1343,12 +1348,28 @@ NS_IMETHODIMP nsImapMailFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow 
   if (mDatabase)
     ApplyRetentionSettings();
 
+  m_urlListener = aListener;
   // We should be able to compact the offline store now that this should
   // just be called by the UI.
   if (aMsgWindow && (mFlags & nsMsgFolderFlags::Offline))
-    CompactOfflineStore(aMsgWindow, nsnull);
+  {
+    m_compactingOfflineStore = PR_TRUE;
+    CompactOfflineStore(aMsgWindow, this);
+  }
+  m_expunging = PR_TRUE;
+  return Expunge(this, aMsgWindow);
+}
 
-  return Expunge(aListener, aMsgWindow);
+NS_IMETHODIMP
+nsImapMailFolder::NotifyCompactCompleted()
+{
+  if (!m_expunging && m_urlListener)
+  {
+    m_urlListener->OnStopRunningUrl(nsnull, NS_OK);
+    m_urlListener = nsnull;
+  }
+  m_compactingOfflineStore = PR_FALSE;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsImapMailFolder::MarkPendingRemoval(nsIMsgDBHdr *aHdr, PRBool aMark)
@@ -5027,6 +5048,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
 {
   nsresult rv;
   PRBool endedOfflineDownload = PR_FALSE;
+  nsImapAction imapAction = nsIImapUrl::nsImapTest;
   m_urlRunning = PR_FALSE;
   m_updatingFolder = PR_FALSE;
   nsCOMPtr <nsIImapUrl> imapUrl = do_QueryInterface(aUrl, &rv);
@@ -5060,7 +5082,6 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
    if (imapUrl)
    {
       DisplayStatusMsg(imapUrl, EmptyString());
-      nsImapAction imapAction = nsIImapUrl::nsImapTest;
       imapUrl->GetImapAction(&imapAction);
       if (imapAction == nsIImapUrl::nsImapMsgFetch || imapAction == nsIImapUrl::nsImapMsgDownloadForOffline)
       {
@@ -5377,6 +5398,9 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
           }
         }
         break;
+      case nsIImapUrl::nsImapExpungeFolder:
+        m_expunging = PR_FALSE;
+        break;
       default:
           break;
       }
@@ -5388,8 +5412,11 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
       rv = mailUrl->UnRegisterListener(this);
 
   }
-  SetGettingNewMessages(PR_FALSE); // if we're not running a url, we must not be getting new mail :-)
-  if (m_urlListener)
+  // if we're not running a url, we must not be getting new mail.
+  SetGettingNewMessages(PR_FALSE);
+  // don't send OnStopRunning notification if still compacting offline store.
+  if (m_urlListener && (imapAction != nsIImapUrl::nsImapExpungeFolder ||
+                        !m_compactingOfflineStore))
   {
     m_urlListener->OnStopRunningUrl(aUrl, aExitCode);
     m_urlListener = nsnull;
