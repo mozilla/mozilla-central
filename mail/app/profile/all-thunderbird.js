@@ -524,24 +524,16 @@ pref("font.size.fixed.x-western", 12);
 
 // Linux, in other words.  Other OSes may wish to override.
 #ifdef UNIX_BUT_NOT_MAC
-pref("font.name.serif.x-unicode", "DejaVu Serif");
-pref("font.name.sans-serif.x-unicode", "DejaVu Sans");
-pref("font.name.monospace.x-unicode", "DejaVu Sans Mono");
-
-pref("font.name.serif.x-western", "DejaVu Serif");
-pref("font.name.sans-serif.x-western", "DejaVu Sans");
-pref("font.name.monospace.x-western", "DejaVu Sans Mono");
-
 // The font.name-list fallback is defined in case font.name isn't
 // present -- e.g. in case a profile that's been used on Windows Vista or above
 // is used on Linux.
-pref("font.name-list.serif.x-unicode", "DejaVu Serif");
-pref("font.name-list.sans-serif.x-unicode", "DejaVu Sans");
-pref("font.name-list.monospace.x-unicode", "DejaVu Sans Mono");
+pref("font.name-list.serif.x-unicode", "serif");
+pref("font.name-list.sans-serif.x-unicode", "sans-serif");
+pref("font.name-list.monospace.x-unicode", "monospace");
 
-pref("font.name-list.serif.x-western", "DejaVu Serif");
-pref("font.name-list.sans-serif.x-western", "DejaVu Sans");
-pref("font.name-list.monospace.x-western", "DejaVu Sans Mono");
+pref("font.name-list.serif.x-western", "serif");
+pref("font.name-list.sans-serif.x-western", "sans-serif");
+pref("font.name-list.monospace.x-western", "monospace");
 #endif
 
 pref("mail.font.windows.version", 0);
