@@ -66,14 +66,13 @@ NS_IMETHODIMP nsMsgAttachment::SetName(const nsAString & aName)
 }
 
 /* attribute string url; */
-NS_IMETHODIMP nsMsgAttachment::GetUrl(char * *aUrl)
+NS_IMETHODIMP nsMsgAttachment::GetUrl(nsACString & aUrl)
 {
-  NS_ENSURE_ARG_POINTER(aUrl);
-
-  *aUrl = ToNewCString(mUrl);
-  return (*aUrl ? NS_OK : NS_ERROR_OUT_OF_MEMORY);
+  aUrl = mUrl;
+  return NS_OK;
 }
-NS_IMETHODIMP nsMsgAttachment::SetUrl(const char * aUrl)
+
+NS_IMETHODIMP nsMsgAttachment::SetUrl(const nsACString & aUrl)
 {
   mUrl = aUrl;
   return NS_OK;
@@ -206,8 +205,8 @@ NS_IMETHODIMP nsMsgAttachment::EqualsUrl(nsIMsgAttachment *attachment, PRBool *_
   NS_ENSURE_ARG_POINTER(attachment);
   NS_ENSURE_ARG_POINTER(_retval);
 
-  nsCString url;
-  attachment->GetUrl(getter_Copies(url));
+  nsCAutoString url;
+  attachment->GetUrl(url);
 
   *_retval = mUrl.Equals(url);
   return NS_OK;

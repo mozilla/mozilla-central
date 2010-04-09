@@ -2148,7 +2148,7 @@ nsMsgComposeAndSend::CountCompFieldAttachments()
     nsCOMPtr<nsIMsgAttachment> attachment = do_QueryInterface(element, &rv);
     if (NS_SUCCEEDED(rv) && attachment)
     {
-      attachment->GetUrl(getter_Copies(url));
+      attachment->GetUrl(url);
       if (!url.IsEmpty())
     {
       // Check to see if this is a file URL, if so, don't retrieve
@@ -2204,7 +2204,7 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
     nsCOMPtr<nsIMsgAttachment> attachment = do_QueryInterface(element, &rv);
     if (NS_SUCCEEDED(rv) && attachment)
     {
-      attachment->GetUrl(getter_Copies(url));
+      attachment->GetUrl(url);
       if (!url.IsEmpty())
       {
         // Just look for local file:// attachments and do the right thing.
@@ -2381,7 +2381,7 @@ nsMsgComposeAndSend::AddCompFieldRemoteAttachments(PRUint32   aStartLocation,
     nsCOMPtr<nsIMsgAttachment> attachment = do_QueryInterface(element, &rv);
     if (NS_SUCCEEDED(rv) && attachment)
     {
-      attachment->GetUrl(getter_Copies(url));
+      attachment->GetUrl(url);
       if (!url.IsEmpty())
       {
         // Just look for files that are NOT local file attachments and do

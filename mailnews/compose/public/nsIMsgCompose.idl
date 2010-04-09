@@ -132,7 +132,7 @@ interface nsIMsgComposeRecyclingListener : nsISupports {
   void onReopen(in nsIMsgComposeParams params);
 };
 
-[scriptable, uuid(d06508a0-23b1-4f14-a29c-f61a478d5500)]
+[scriptable, uuid(85d1f6be-6be3-4d55-8ef0-2c8c176dc5d5)]
 interface nsIMsgCompose : nsIMsgSendListener {
 
   /* ... */
@@ -165,7 +165,7 @@ interface nsIMsgCompose : nsIMsgSendListener {
     charset. In case of URL, |charset| parameter will be used in the conversion.
     This UI utility function should probably go into it's own class
   */
-  AUTF8String AttachmentPrettyName(in string url, in string charset);
+  AUTF8String AttachmentPrettyName(in AUTF8String url, in string charset);
 
   /**
    * checkAndPopulateRecipients can perform several tasks (see params), the

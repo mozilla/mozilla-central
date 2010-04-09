@@ -103,7 +103,6 @@
 #include "nsIMarkupDocumentViewer.h"
 #include "nsIMsgMdnGenerator.h"
 #include "plbase64.h"
-#include "nsIUTF8ConverterService.h"
 #include "nsUConvCID.h"
 #include "nsIUnicodeNormalizer.h"
 #include "nsIMsgAccountManager.h"
@@ -114,6 +113,7 @@
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
 #include "nsIMsgWindow.h"
+#include "nsITextToSubURI.h"
 
 static void GetReplyHeaderInfo(PRInt32* reply_header_type,
                                nsString& reply_header_locale,
@@ -1239,7 +1239,7 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
                   attachment->SetName(NS_ConvertASCIItoUTF16(userid));
               }
 
-              attachment->SetUrl(vCardUrl.get());
+              attachment->SetUrl(vCardUrl);
               m_compFields->AddAttachment(attachment);
           }
       }
@@ -2055,7 +2055,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
               // change all '.' to '_'  see bug #271211
               sanitizedSubj.ReplaceChar('.', '_');
               attachment->SetName(addExtension ? sanitizedSubj + NS_LITERAL_STRING(".eml") : sanitizedSubj);
-              attachment->SetUrl(uri);
+              attachment->SetUrl(nsDependentCString(uri));
               m_compFields->AddAttachment(attachment);
             }
 
@@ -4402,20 +4402,16 @@ nsresult nsMsgCompose::NotifyStateListeners(PRInt32 aNotificationType, nsresult 
   return NS_OK;
 }
 
-nsresult nsMsgCompose::AttachmentPrettyName(const char* scheme, const char* charset, nsACString& _retval)
+nsresult nsMsgCompose::AttachmentPrettyName(const nsACString & scheme, const char* charset, nsACString& _retval)
 {
   nsresult rv;
 
-  nsCOMPtr<nsIUTF8ConverterService> utf8Cvt =
-    do_GetService(NS_UTF8CONVERTERSERVICE_CONTRACTID);
-  NS_ENSURE_TRUE(utf8Cvt, NS_ERROR_UNEXPECTED);
-
   nsCAutoString utf8Scheme;
 
-  if (PL_strncasestr(scheme, "file:", 5))
+  if (StringHead(scheme, 5).LowerCaseEqualsLiteral("file:"))
   {
     nsCOMPtr<nsIFile> file;
-    rv = NS_GetFileFromURLSpec(nsDependentCString(scheme),
+    rv = NS_GetFileFromURLSpec(scheme,
                                getter_AddRefs(file));
     NS_ENSURE_SUCCESS(rv, rv);
     nsAutoString leafName;
@@ -4427,17 +4423,19 @@ nsresult nsMsgCompose::AttachmentPrettyName(const char* scheme, const char* char
 
   // To work around a mysterious bug in VC++ 6.
   const char* cset = (!charset || !*charset) ? "UTF-8" : charset;
-  rv = utf8Cvt->ConvertURISpecToUTF8(nsDependentCString(scheme),
-                                     cset, utf8Scheme);
+
+  nsCOMPtr<nsITextToSubURI> textToSubURI = do_GetService(NS_ITEXTTOSUBURI_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsAutoString retUrl;
+  rv = textToSubURI->UnEscapeURIForUI(nsDependentCString(cset), scheme, retUrl);
 
   if (NS_SUCCEEDED(rv)) {
-    // Some ASCII characters still need to be escaped.
-    NS_UnescapeURL(utf8Scheme.get(), utf8Scheme.Length(),
-                   esc_SkipControl | esc_AlwaysCopy, _retval);
+    CopyUTF16toUTF8(retUrl, _retval);
   } else {
     _retval.Assign(scheme);
   }
-  if (PL_strncasestr(scheme, "http:", 5))
+  if (StringHead(scheme, 5).LowerCaseEqualsLiteral("http:"))
     _retval.Cut(0, 7);
 
   return NS_OK;

@@ -575,7 +575,7 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
             // now set the attachment object
             nsCAutoString pURL ;
             NS_GetURLSpecFromFile(pFile, pURL);
-            attachment->SetUrl(pURL.get()) ;
+            attachment->SetUrl(pURL);
 
             // add the attachment
             rv = aCompFields->AddAttachment (attachment);
@@ -810,7 +810,7 @@ nsresult nsMapiHook::PopulateCompFieldsForSendDocs(nsIMsgCompFields * aCompField
       // now set the attachment object
       nsCAutoString pURL ;
       NS_GetURLSpecFromFile(pTempDir, pURL);
-      attachment->SetUrl(pURL.get()) ;
+      attachment->SetUrl(pURL);
 
       // add the attachment
       rv = aCompFields->AddAttachment (attachment);

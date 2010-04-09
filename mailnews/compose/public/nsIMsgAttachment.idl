@@ -37,7 +37,7 @@
 
 #include "nsISupports.idl"
 
-[scriptable, uuid(3f92b7c0-8679-4dc6-9af9-9da5546db5b0)]
+[scriptable, uuid(98f03f72-8b29-4c49-8975-b45fc08a6a82)]
 interface nsIMsgAttachment : nsISupports {
 
   /**
@@ -53,7 +53,7 @@ interface nsIMsgAttachment : nsISupports {
    *
    * @specify where the attachment live (localy or remotely)
    */
-	attribute string    url;
+	attribute AUTF8String  url;
 
   /**
    * urlCharset attribute

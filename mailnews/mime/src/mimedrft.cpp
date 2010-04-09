@@ -213,7 +213,7 @@ nsresult CreateComposeParams(nsCOMPtr<nsIMsgComposeParams> &pMsgComposeParams,
           if (NS_FAILED(rv))
             CopyASCIItoUTF16(nsDependentCString(curAttachment->real_name), nameStr);
           attachment->SetName(nameStr);
-          attachment->SetUrl(spec.get());
+          attachment->SetUrl(spec);
           attachment->SetTemporary(PR_TRUE);
           attachment->SetContentType(curAttachment->real_type);
           attachment->SetMacType(curAttachment->x_mac_type);
