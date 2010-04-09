@@ -182,6 +182,7 @@ nsContextMenu.prototype = {
     if (!this.inMessageArea) {
       const messageTabSpecificItems = [
         "mailContext-openNewWindow", "threadPaneContext-openNewTab",
+        "mailContext-openConversation",
         "mailContext-archive", "mailContext-replySender",
         "mailContext-editAsNew", "mailContext-replyNewsgroup",
         "mailContext-replyAll", "mailContext-replyList",
@@ -205,6 +206,10 @@ nsContextMenu.prototype = {
                   this.numSelectedMessages == 1 && this.inThreadPane);
     this.showItem("threadPaneContext-openNewTab",
                   this.numSelectedMessages == 1 && this.inThreadPane);
+
+    this.showItem("mailContext-openConversation",
+                  this.numSelectedMessages == 1 && this.inThreadPane &&
+                  gConversationOpener.isSelectedMessageIndexed());
 
     this.setSingleSelection("mailContext-replySender");
     this.setSingleSelection("mailContext-editAsNew");

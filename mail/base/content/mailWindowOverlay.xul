@@ -257,6 +257,7 @@
   <command id="cmd_forwardAttachment" oncommand="goDoCommand('cmd_forwardAttachment')"/>
   <command id="cmd_editAsNew" oncommand="goDoCommand('cmd_editAsNew')"/>
   <command id="cmd_openMessage" oncommand="goDoCommand('cmd_openMessage')"/>
+  <command id="cmd_openConversation" oncommand="goDoCommand('cmd_openConversation')"/>
   <command id="cmd_moveToFolderAgain" oncommand="goDoCommand('cmd_moveToFolderAgain')"/>
   <command id="cmd_createFilterFromMenu" oncommand="goDoCommand('cmd_createFilterFromMenu')"/>
   <command id="cmd_killThread" oncommand="goDoCommand('cmd_killThread')"/>
@@ -413,6 +414,7 @@
   <key id="key_killThread" key="&killThreadMenu.key;"                oncommand="goDoCommand('cmd_killThread')" />
   <key id="key_killSubthread" key="&killSubthreadMenu.key;"          oncommand="goDoCommand('cmd_killSubthread')" modifiers="shift" />
   <key id="key_openMessage" key="&openMessageWindowCmd.key;"         oncommand="goDoCommand('cmd_openMessage')" modifiers="accel"/>
+  <key id="key_openConversation" key="&openConversationCmd.key;"     oncommand="goDoCommand('cmd_openConversation')" modifiers="accel, shift"/>
 #ifdef XP_MACOSX
   <key id="key_moveToFolderAgain" key="&moveToFolderAgainCmd.key;"   oncommand="goDoCommand('cmd_moveToFolderAgain')" modifiers="alt, accel"/>
 #else
@@ -603,6 +605,10 @@
               label="&contextOpenNewTab.label;"
               accesskey="&contextOpenNewTab.accesskey;"
               oncommand="OpenMessageInNewTab(event);"/>
+    <menuitem id="mailContext-openConversation"
+              label="&contextOpenConversation.label;"
+              accesskey="&contextOpenConversation.accesskey;"
+              oncommand="gConversationOpener.openConversationForMessages(gFolderDisplay.selectedMessages);"/>
     <menuseparator id="mailContext-sep-open2"/>
     <menuitem id="mailContext-archive"
               label="&contextArchive.label;"
@@ -1391,6 +1397,10 @@
                       command="cmd_openMessage"
                       accesskey="&openMessageWindowCmd.accesskey;"
                       key="key_openMessage"/>
+            <menuitem id="openConversationMenuitem" label="&openConversationCmd.label;"
+                      command="cmd_openConversation"
+                      accesskey="&openConversationCmd.accesskey;"
+                      key="key_openConversation"/>
             <menu id="openFeedMessage" 
                   label="&openFeedMessage.label;" 
                   accesskey="&openFeedMessage.accesskey;">

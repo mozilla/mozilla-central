@@ -190,6 +190,7 @@ var DefaultController =
       case "cmd_renameFolder":
       case "cmd_sendUnsentMsgs":
       case "cmd_openMessage":
+      case "cmd_openConversation":
       case "button_print":
       case "cmd_print":
       case "cmd_printpreview":
@@ -296,6 +297,11 @@ var DefaultController =
         let selectedMessages = gFolderDisplay.selectedMessages;
         return selectedMessages.length == 1 && selectedMessages[0].folder &&
                selectedMessages[0].folder.server.canHaveFilters;
+      }
+      case "cmd_openConversation":
+      {
+        return (gFolderDisplay.selectedMessages.length == 1) &&
+               gConversationOpener.isSelectedMessageIndexed();
       }
       case "cmd_saveAsFile":
         return GetNumSelectedMessages() > 0;
@@ -705,6 +711,9 @@ var DefaultController =
         return;
       case "cmd_openMessage":
         MsgOpenSelectedMessages();
+        return;
+      case "cmd_openConversation":
+        gConversationOpener.openConversationForMessages(gFolderDisplay.selectedMessages);
         return;
       case "cmd_printSetup":
         PrintUtils.showPageSetup();

@@ -828,7 +828,7 @@ function updateExpandedView()
  * reason that we're using two grids at all is to workaround the XUL box
  * model's inability to float elements.
  */
-function syncGridColumnWidths() 
+function syncGridColumnWidths()
 {
   let nameColumn = document.getElementById('expandedHeadersNameColumn');
   let nameColumn2 = document.getElementById('expandedHeaders2NameColumn');
@@ -863,12 +863,12 @@ function updateHeaderValue(headerEntry, headerValue)
 function createNewHeaderView(headerName, label)
 {
   var idName = 'expanded' + headerName + 'Box';
-    
+
   // create new collapsed row
   let newRowNode = document.createElement("row");
   newRowNode.setAttribute("id", 'expanded' + headerName + 'Row');
   newRowNode.collapsed = true;
-    
+
   // create and append the label which contains the header name
   let newLabelNode = document.createElement("label");
   newLabelNode.setAttribute("id", 'expanded' + headerName + 'Label');
@@ -881,7 +881,7 @@ function createNewHeaderView(headerName, label)
   var newHeaderNode = document.createElement("mail-headerfield");
   newHeaderNode.setAttribute('id', idName);
   newHeaderNode.setAttribute('flex', '1');
-  
+
   newRowNode.appendChild(newHeaderNode);
 
   // this new element needs to be inserted into the view...
@@ -1021,14 +1021,14 @@ function HideMessageHeaderPane()
   ClearEditMessageBox();
 }
 
-/** 
+/**
  * Take string of newsgroups separated by commas, split it
  * into newsgroups and send them to the corresponding
  * mail-newsgroups-headerfield element.
- * 
+ *
  * @param headerEntry  the entry data structure for this header
  * @param headerValue  the string value for the header from the message
- */ 
+ */
 function OutputNewsgroups(headerEntry, headerValue)
 {
   headerValue.split(",").forEach(
@@ -1396,7 +1396,7 @@ function SendMailToNode(addressNode)
 /**
  * Takes the email address or newsgroup title button, extracts the address/name
  * we stored in there and copies it to the clipboard.
- * 
+ *
  * @param addressNode  a node which has an "emailAddress" or "newsgroup"
  *                     attribute
  */
@@ -1438,7 +1438,7 @@ function GetNewsgroupServer()
 
 /**
  * Initialize the newsgroup popup, showing/hiding menu items as appropriate.
- * 
+ *
  * @param newsgroupNode a node which has a "newsgroup" attribute
  */
 function setupNewsgroupPopup(newsgroupNode)
@@ -1468,7 +1468,7 @@ function setupNewsgroupPopup(newsgroupNode)
 
 /**
  * Subscribe to a newsgroup based on the newsgroup title button
- * 
+ *
  * @param newsgroupNode a node which has a "newsgroup" attribute
  */
 function SubscribeToNewsgroup(newsgroupNode)
@@ -2221,17 +2221,17 @@ nsDummyMsgHeader.prototype =
 
 function onShowOtherActionsPopup()
 {
-  // Enable/disable the Show Conversation button.
+  // Enable/disable the Open Conversation button.
   let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
                              .getService(Components.interfaces.nsIPrefBranch2);
   let glodaEnabled = prefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
 
-  let showConversation = document.getElementById("otherActionsShowConversation");
-  showConversation.disabled = !glodaEnabled;
+  let openConversation = document.getElementById("otherActionsOpenConversation");
+  openConversation.disabled = !glodaEnabled;
   if (glodaEnabled && gFolderDisplay.selectedMessages.length > 0) {
     let message = gFolderDisplay.selectedMessages[0];
     let isMessageIndexed = Gloda.isMessageIndexed(message);
-    showConversation.disabled = !isMessageIndexed;
+    openConversation.disabled = !isMessageIndexed;
   }
 
   if (SelectedMessagesAreRead()) {
@@ -2239,17 +2239,17 @@ function onShowOtherActionsPopup()
     document.getElementById('markAsUnreadMenuItem').removeAttribute('hidden');
   } else {
     document.getElementById('markAsReadMenuItem').removeAttribute('hidden');
-    document.getElementById('markAsUnreadMenuItem').setAttribute('hidden', 
+    document.getElementById('markAsUnreadMenuItem').setAttribute('hidden',
                                                                  true);
   }
 }
 
-function ConversationShower()
+function ConversationOpener()
 {
 }
 
-ConversationShower.prototype = {
-  showConversationForMessages: function(messages) {
+ConversationOpener.prototype = {
+  openConversationForMessages: function(messages) {
     try {
       this._items = [];
       this._msgHdr = messages[0];
@@ -2257,6 +2257,17 @@ ConversationShower.prototype = {
     } catch (e) {
       logException(e);
     }
+  },
+  isSelectedMessageIndexed: function() {
+    let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+                               .getService(Components.interfaces.nsIPrefBranch2);
+    let glodaEnabled = prefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
+
+    if (glodaEnabled && gFolderDisplay.selectedMessages.length > 0) {
+      let message = gFolderDisplay.selectedMessages[0];
+      return Gloda.isMessageIndexed(message);
+    }
+    return false;
   },
   onItemsAdded: function(aItems) {
   },
@@ -2285,5 +2296,5 @@ ConversationShower.prototype = {
   }
 }
 
-var gConversationShower = new ConversationShower();
+var gConversationOpener = new ConversationOpener();
 
