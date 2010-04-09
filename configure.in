@@ -2171,6 +2171,8 @@ fi
     USE_SHORT_LIBNAME=1
     MOZ_USER_DIR="Mozilla"
 
+    MOZ_GFX_OPTIMIZE_MOBILE=1
+
     # Sanity check for WINCE_WINDOWS_MOBILE
     # XXX disabled until we can fix the mobile tinderbox
     ##if test "$WINCE_WINDOWS_MOBILE"; then
@@ -5802,6 +5804,40 @@ MOZ_ARG_DISABLE_BOOL(zipwriter,
 AC_SUBST(MOZ_ZIPWRITER)
 
 dnl ========================================================
+dnl = Maemo checks
+dnl ========================================================
+
+MAEMO_SDK_TARGET_VER=-1
+
+MOZ_ARG_WITH_STRING(maemo-version,
+[  --with-maemo-version=MAEMO_SDK_TARGET_VER
+                        Maemo SDK Version],
+  MAEMO_SDK_TARGET_VER=$withval)
+
+case "$MAEMO_SDK_TARGET_VER" in
+5)
+    MOZ_PLATFORM_MAEMO=5
+    ;;
+
+6)
+    MOZ_PLATFORM_MAEMO=6
+    ;;
+
+-1)
+    dnl We aren't compiling for Maemo, move on.
+    ;;
+*)
+    AC_MSG_ERROR([Unknown Maemo Version.  Try setting --with-maemo-version to 5 or 6.])
+    ;;
+esac
+
+if test $MOZ_PLATFORM_MAEMO; then
+   AC_DEFINE_UNQUOTED([MOZ_PLATFORM_MAEMO], $MOZ_PLATFORM_MAEMO)
+
+   MOZ_GFX_OPTIMIZE_MOBILE=1
+fi
+
+dnl ========================================================
 dnl =
 dnl = Feature options that require extra sources to be pulled
 dnl =
@@ -5885,6 +5921,17 @@ if test -n "$MOZ_DEBUG"; then
         AC_MSG_ERROR([These compiler flags are invalid: $MOZ_DEBUG_FLAGS])
     fi
     CFLAGS=$_SAVE_CFLAGS
+fi
+
+dnl ========================================================
+dnl enable mobile optimizations
+dnl ========================================================
+MOZ_ARG_ENABLE_BOOL(mobile-optimize,
+[  --enable-mobile-optimize   Enable mobile optimizations],
+    MOZ_GFX_OPTIMIZE_MOBILE=1)
+
+if test "$MOZ_GFX_OPTIMIZE_MOBILE"; then
+    AC_DEFINE(MOZ_GFX_OPTIMIZE_MOBILE)
 fi
 
 dnl ========================================================
