@@ -202,8 +202,17 @@ function ContactIdentityCompleter() {
 ContactIdentityCompleter.prototype = {
   _popularitySorter: function(a, b){ return b.popularity - a.popularity; },
   complete: function ContactIdentityCompleter_complete(aResult, aString) {
-    if (aString.length < 3)
-      return false;
+    if (aString.length < 3) {
+      // In CJK, first name or last name is sometime used as 1 character only.
+      // So we allow autocompleted search even if 1 character.
+      //
+      // [U+3041 - U+9FFF ... Full-width Katakana, Hiragana
+      //                      and CJK Ideograph
+      // [U+AC00 - U+D7FF ... Hangul
+      // [U+F900 - U+FFDC ... CJK compatibility ideograph
+      if (!aString.match(/[\u3041-\u9fff\uac00-\ud7ff\uf900-\uffdc]/))
+        return false;
+    }
 
     let matches;
     if (this.suffixTree) {
