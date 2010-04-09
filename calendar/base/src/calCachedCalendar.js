@@ -201,13 +201,7 @@ calCachedCalendar.prototype = {
                     case "storage":
                         let file = getCalendarDirectory();
                         file.append("cache.sqlite");
-                        let uri = getIOService().newFileURI(file);
-                        // use same id as uncached calendar:
-                        let idParam = this.uri.spec.indexOf("?id=");
-                        if (idParam != -1) {
-                            uri.spec += this.uri.spec.substring(idParam);
-                        }
-                        cachedCalendar.uri = uri;
+                        cachedCalendar.uri = getIOService().newFileURI(file);
                         cachedCalendar.id = this.id;
                         break;
                     default:

@@ -604,24 +604,14 @@ var gDataMigrator = {
      * @param icsFile     The nsI(Local)File to import.
      */
     importICSToStorage: function migrateIcsStorage(icsFile) {
-        var calManager = getCalendarManager();
-        var uris = [];
-        for each (var oldCal in calManager.getCalendars({})) {
-            uris.push(oldCal.uri.spec);
-        }
-        var uri = 'moz-profile-calendar://?id=';
-        var i = 1;
-        while (uris.indexOf(uri+i) != -1) {
-            i++;
-        }
+        const uri = 'moz-profile-calendar://';
+        let cal = cal.getCalendarManager().createCalendar("storage", makeURL(uri));
+        let icsImporter = Components.classes["@mozilla.org/calendar/import;1?type=ics"]
+                                    .getService(Components.interfaces.calIImporter);
 
-        var cal = calManager.createCalendar("storage", makeURL(uri+i));
-        var icsImporter = Components.classes["@mozilla.org/calendar/import;1?type=ics"]
-                          .getService(Components.interfaces.calIImporter);
-
-        var inputStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
-                          .createInstance(Components.interfaces.nsIFileInputStream);
-        var items = [];
+        let inputStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
+                                    .createInstance(Components.interfaces.nsIFileInputStream);
+        let items = [];
 
         try {
             inputStream.init(icsFile, MODE_RDONLY, parseInt("0444", 8), {});

@@ -150,7 +150,7 @@ function prepareCreateCalendar() {
     let type = document.getElementById('calendar-type').selectedItem.value;
     if (type == 'local') {
         provider = 'storage';
-        [reason, url] = parseUri('moz-profile-calendar://?id=2');
+        [reason, url] = parseUri('moz-profile-calendar://');
     } else {
         provider = document.getElementById('calendar-format').selectedItem.value;
         [reason, url] = parseUri(document.getElementById("calendar-uri").value);

@@ -103,7 +103,7 @@ Components.utils.import("resource://calendar/modules/calStorageHelpers.jsm");
 
 // The current database version. Be sure to increment this when you create a new
 // updater.
-var DB_SCHEMA_VERSION = 18;
+var DB_SCHEMA_VERSION = 19;
 
 var EXPORTED_SYMBOLS = ["DB_SCHEMA_VERSION", "getSql", "getAllSql", "getSqlTable", "upgradeDB"];
 
@@ -1261,6 +1261,32 @@ upgrade.v18 = function upgrade_v18(db, version) {
         createIndex(tbl, "cal_recurrence", simpleIds, db);
 
         setDbVersionAndCommit(db, 18);
+    } catch (e) {
+        throw reportErrorAndRollback(db, e);
+    }
+
+    return tbl;
+};
+
+/**
+ * Bug 479867 - Cached calendars don't set id correctly, causing duplicate
+ * events to be shown for multiple cached calendars
+ * r=simon.at.orcl, p=philipp,dbo
+ */
+upgrade.v19 = function upgrade_v19(db, version) {
+    let tbl = upgrade.v18(version < 18 && db, version);
+    LOGdb(db, "Storage: Upgrading to v19");
+    beginTransaction(db);
+    try {
+        // Change types of column to TEXT.
+        for each (let tblName in ["cal_alarms", "cal_attachments",
+                                  "cal_attendees", "cal_events",
+                                  "cal_metadata", "cal_properties",
+                                  "cal_recurrence", "cal_relations",
+                                  "cal_todos"]) {
+            alterTypes(tbl, tblName, ["cal_id"], "TEXT", db);
+        }
+        setDbVersionAndCommit(db, 19);
     } catch (e) {
         throw reportErrorAndRollback(db, e);
     }
