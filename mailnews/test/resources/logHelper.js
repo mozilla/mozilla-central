@@ -71,6 +71,11 @@ let _errorConsoleTunnel = {
   }
 };
 
+// This defaults to undefined and is for use by test-folder-display-helpers
+//  so that it can pre-initialize the value so that when we are evaluated in
+//  its subscript loader we see a value of 'true'.
+var _do_not_wrap_xpcshell;
+
 /**
  * Initialize logging.  The idea is to:
  *
@@ -120,7 +125,8 @@ function _init_log_helper() {
   _errorConsoleTunnel.initialize();
 
   if (_logHelperInterestedListeners) {
-    _wrap_xpcshell_functions();
+    if (!_do_not_wrap_xpcshell)
+      _wrap_xpcshell_functions();
 
     // Send a message telling the listeners about the test file being run.
     _xpcshellLogger.info({
@@ -254,13 +260,12 @@ function _explode_flags(aFlagWord, aFlagDefs) {
 let _registered_json_normalizers = [];
 
 /**
- * Like __simple_obj_copy but it does not assume things are objects.  This is
- *  used by obj copying for aray copyiong.
+ * Copy natives or objects, deferring to _normalize_for_json for objects.
  */
-function __simple_value_copy(aObj, aDepthAllowed) {
+function __value_copy(aObj, aDepthAllowed) {
   if (aObj == null || typeof(aObj) != "object")
     return aObj;
-  return __simple_obj_copy(aObj, aDepthAllowed);
+  return _normalize_for_json(aObj, aDepthAllowed, true);
 }
 
 /**
@@ -274,7 +279,14 @@ function __simple_value_copy(aObj, aDepthAllowed) {
 function __simple_obj_copy(aObj, aDepthAllowed) {
   let oot = {};
   let nextDepth = aDepthAllowed - 1;
-  for each (let [key, value] in Iterator(aObj)) {
+  for each (let key in Iterator(aObj, true)) {
+    // avoid triggering getters
+    if (aObj.__lookupGetter__(key)) {
+      oot[key] = "*getter*";
+      continue;
+    }
+    let value = aObj[key];
+
     if (value == null) {
       oot[key] = null;
     }
@@ -286,8 +298,10 @@ function __simple_obj_copy(aObj, aDepthAllowed) {
       oot[key] = "truncated, string rep: " + value.toString();
     }
     // array?  we don't count that as depth for now.
-    else if ("length" in value) {
-      oot[key] = [__simple_value_copy(v, nextDepth) for each
+    else if (("length" in value) &&
+             ("constructor" in value) &&
+             (value.constructor.name == "Array")) {
+      oot[key] = [__value_copy(v, nextDepth) for each
                    ([, v] in Iterator(value))];
     }
     // it's another object! woo!
@@ -400,6 +414,12 @@ function _normalize_for_json(aObj, aDepthAllowed, aJsonMeNotNeeded) {
               Iterator(_registered_json_normalizers)) {
       if (aObj instanceof checkType)
         return handler(aObj);
+    }
+
+    // Do not fall into simple object walking if this is an XPCOM interface.
+    //  We might run across getters and that leads to nothing good.
+    if (aObj instanceof Ci.nsISupports) {
+      return aObj.toString();
     }
   }
 

@@ -180,19 +180,18 @@ var WindowWatcher = {
    */
   waitForWindowOpen: function WindowWatcher_waitForWindowOpen(aWindowType) {
     this.waitingForOpen = aWindowType;
-    controller.waitForEval(
-      'subject.monitorizeOpen()',
-      this._firstWindowOpened ? WINDOW_OPEN_TIMEOUT_MS
-                              : FIRST_WINDOW_EVER_TIMEOUT_MS,
-      this._firstWindowOpened ? WINDOW_OPEN_CHECK_INTERVAL_MS
-                              : FIRST_WINDOW_CHECK_INTERVAL_MS,
-      this);
+    if (!controller.waitForEval(
+          'subject.monitorizeOpen()',
+          this._firstWindowOpened ? WINDOW_OPEN_TIMEOUT_MS
+            : FIRST_WINDOW_EVER_TIMEOUT_MS,
+          this._firstWindowOpened ? WINDOW_OPEN_CHECK_INTERVAL_MS
+            : FIRST_WINDOW_CHECK_INTERVAL_MS,
+          this))
+      throw new Error("Timed out waiting for window open!");
     this.waitingForOpen = null;
     let xulWindow = this.waitingList[aWindowType];
-dump("### XUL window: " + xulWindow + "\n");
     let domWindow = xulWindow.docShell.QueryInterface(Ci.nsIInterfaceRequestor)
                                       .getInterface(Ci.nsIDOMWindowInternal);
-dump("domWindow: " + domWindow + "\n");
     delete this.waitingList[aWindowType];
     // spin the event loop to make sure any setTimeout 0 calls have gotten their
     //  time in the sun.
@@ -293,9 +292,10 @@ dump("canceled!\n");
     if (this.subTestFunc == null)
       return;
     // spin the event loop until we the window has come and gone.
-    controller.waitForEval(
-      'subject.waitingForOpen == null && subject.monitorizeClose()',
-      WINDOW_OPEN_TIMEOUT_MS, WINDOW_OPEN_CHECK_INTERVAL_MS, this);
+    if (!controller.waitForEval(
+           'subject.waitingForOpen == null && subject.monitorizeClose()',
+            WINDOW_OPEN_TIMEOUT_MS, WINDOW_OPEN_CHECK_INTERVAL_MS, this))
+      throw new Error("Timeout waiting for modal dialog to open.");
     this.waitingForClose = null;
   },
 
@@ -313,9 +313,10 @@ dump("canceled!\n");
    */
   waitingForClose: null,
   waitForWindowClose: function WindowWatcher_waitForWindowClose() {
-    controller.waitForEval('subject.monitorizeClose()',
-                           WINDOW_CLOSE_TIMEOUT_MS,
-                           WINDOW_CLOSE_CHECK_INTERVAL_MS, this);
+    if (!controller.waitForEval('subject.monitorizeClose()',
+                                WINDOW_CLOSE_TIMEOUT_MS,
+                                WINDOW_CLOSE_CHECK_INTERVAL_MS, this))
+      throw new Error("Timeout waiting for window to close!");
     let didDisappear = this.waitingList[this.waitingForClose] == null;
     delete this.waitingList[windowType];
     let windowType = this.waitingForClose;

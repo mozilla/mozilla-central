@@ -63,7 +63,7 @@ load("../../mailnews/resources/messageGenerator.js");
 load("../../mailnews/resources/messageModifier.js");
 load("../../mailnews/resources/messageInjection.js");
 
-load("resources/folderEventLogHelper.js");
+load("../../mailnews/resources/folderEventLogHelper.js");
 // register this before gloda gets a chance to do anything so that
 registerFolderEventLogHelper();
 
