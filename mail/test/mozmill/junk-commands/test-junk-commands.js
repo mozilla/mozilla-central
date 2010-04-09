@@ -79,8 +79,7 @@ function test_delete_no_junk_messages() {
   let initialNumMessages = folder.getTotalMessages(false);
   be_in_folder(folder);
   select_none();
-  // Don't expect deletes
-  delete_mail_marked_as_junk(false);
+  delete_mail_marked_as_junk();
   // Check if we still have the same number of messages
   _assert_folder_total_messages(folder, initialNumMessages);
 }
@@ -96,7 +95,7 @@ function test_delete_junk_messages() {
   // Mark these messages as junk
   mark_selected_messages_as_junk();
   // Now delete junk mail
-  delete_mail_marked_as_junk(true);
+  delete_mail_marked_as_junk();
   // Check that we have the right number of messages left
   _assert_folder_total_messages(folder,
                                 initialNumMessages - NUM_MESSAGES_TO_JUNK);
