@@ -692,7 +692,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
         {
           nsresult res;
           PRInt32 junkScore = value.ToInteger(&res, 10);
-          if (NS_FAILED(res))
+          if (NS_SUCCEEDED(res))
             currentFilterAction->SetJunkScore(junkScore);
         }
         else if (type == nsMsgFilterAction::Forward ||
