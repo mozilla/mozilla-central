@@ -42,12 +42,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://gre/modules/folderUtils.jsm");
 Components.utils.import("resource:///modules/activity/activityModules.js");
+Components.utils.import("resource:///modules/errUtils.js");
+Components.utils.import("resource:///modules/folderUtils.jsm");
+Components.utils.import("resource:///modules/IOUtils.js");
 Components.utils.import("resource:///modules/jsTreeSelection.js");
 Components.utils.import("resource:///modules/MailConsts.js");
-Components.utils.import("resource:///modules/errUtils.js");
-Components.utils.import("resource:///modules/IOUtils.js");
 Components.utils.import("resource:///modules/mailnewsMigrator.js");
 Components.utils.import("resource:///modules/sessionStoreManager.js");
 
