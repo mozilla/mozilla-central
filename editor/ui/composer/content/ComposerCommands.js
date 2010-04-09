@@ -803,7 +803,7 @@ function GetSuggestedFileName(aDocumentURLString, aMIMEType)
       docURI = docURI.QueryInterface(Components.interfaces.nsIURL);
 
       // grab the file name
-      var url = docURI.fileBaseName;
+      var url = validateFileName(decodeURIComponent(docURI.fileBaseName));
       if (url)
         return url+extension;
     } catch(e) {}
