@@ -85,9 +85,9 @@ ifndef LIBXUL_SDK
 MOZILLA_INTERNAL_API = 1
 
 ifeq ($(USE_SHORT_LIBNAME), 1)
-PROGRAM = sunbird$(BIN_SUFFIX)
+PROGRAM = $(MOZ_APP_NAME)$(BIN_SUFFIX)
 else
-PROGRAM = sunbird-bin$(BIN_SUFFIX)
+PROGRAM = $(MOZ_APP_NAME)-bin$(BIN_SUFFIX)
 endif
 
 REQUIRES = \
@@ -276,18 +276,18 @@ $(PROGRAM): $(MOZDEPTH)/toolkit/xre/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX)
 
 ifneq (,$(filter-out OS2 WINNT,$(OS_ARCH)))
 
-sunbird:: $(MOZILLA_DIR)/build/unix/mozilla.in $(GLOBAL_DEPS) $(DEPTH)/config/autoconf.mk
+$(MOZ_APP_NAME):: $(MOZILLA_DIR)/build/unix/mozilla.in $(GLOBAL_DEPS) $(DEPTH)/config/autoconf.mk
 	cat $< | sed -e "s|%MOZAPPDIR%|$(installdir)|" \
 		-e "s|%MOZ_APP_DISPLAYNAME%|$(MOZ_APP_DISPLAYNAME)|" > $@
 	chmod +x $@
 
-libs:: sunbird
+libs:: $(MOZ_APP_NAME)
 	$(INSTALL) $< $(DIST)/bin
 
-install:: sunbird
+install:: $(MOZ_APP_NAME)
 	$(SYSINSTALL) $< $(DESTDIR)$(bindir)
 
-GARBAGE += sunbird
+GARBAGE += $(MOZ_APP_NAME)
 GARBAGE += $(addprefix $(DIST)/bin/defaults/pref/, sunbird.js)
 
 endif
