@@ -52,7 +52,6 @@
 #include "prtime.h"
 #include "prprf.h"
 #include "nsIStringEnumerator.h"
-#include "nsStringEnumerator.h"
 #include "nsServiceManagerUtils.h"
 // hack: include this to fix opening news attachments.
 #include "nsINntpUrl.h"

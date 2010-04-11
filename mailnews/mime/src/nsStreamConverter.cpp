@@ -71,6 +71,7 @@
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIAsyncInputStream.h"
 #include "nsIAsyncOutputStream.h"
+#include "nsMsgUtils.h"
 
 #define PREF_MAIL_DISPLAY_GLYPH "mail.display_glyph"
 #define PREF_MAIL_DISPLAY_STRUCT "mail.display_struct"
@@ -394,17 +395,8 @@ nsStreamConverter::DetermineOutputFormat(const char *aUrl, nsMimeOutputType *aNe
       // %2F strings with the slash character
       const char *nextField = PL_strpbrk(format, "&; ");
       mOutputFormat.Assign(format, nextField ? nextField - format : -1);
-#ifdef MOZILLA_INTERNAL_API
-      mOutputFormat.ReplaceSubstring("%2F", "/");
-      mOutputFormat.ReplaceSubstring("%2f", "/");
-#else
-      PRInt32 pos = mOutputFormat.Find("%2f", CaseInsensitiveCompare);
-      while (pos != -1)
-      {
-        mOutputFormat.Replace(pos, 3, '/');
-        mOutputFormat.Find("%2f", pos + 1, CaseInsensitiveCompare);
-      }
-#endif
+      MsgReplaceSubstring(mOutputFormat, "%2F", "/");
+      MsgReplaceSubstring(mOutputFormat, "%2f", "/");
 
       // Don't muck with this data!
       *aNewType = nsMimeOutput::nsMimeMessageRaw;

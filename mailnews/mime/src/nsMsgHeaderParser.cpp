@@ -42,6 +42,7 @@
 #include "comi18n.h"
 #include "prmem.h"
 #include <ctype.h>
+#include "nsAlgorithm.h"
 
 nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar ** aOutgoingEmailAddress, PRUnichar ** aOutgoingName,
                           PRUnichar ** aOutgoingFullName, nsIMsgHeaderParser *aParser);
@@ -211,7 +212,9 @@ nsMsgHeaderParser::RemoveDuplicateAddresses(const nsACString &aAddrs,
                                             const nsACString &aOtherAddrs,
                                             nsACString &aResult)
 {
-  aResult.Adopt(msg_remove_duplicate_addresses(aAddrs, aOtherAddrs));
+  nsCString res;
+  res.Adopt(msg_remove_duplicate_addresses(aAddrs, aOtherAddrs));
+  aResult.Assign(res);
   return NS_OK;
 }
 

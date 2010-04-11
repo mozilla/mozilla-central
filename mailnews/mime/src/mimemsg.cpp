@@ -828,7 +828,7 @@ MimeMessage_partial_message_html(const char *data, void *closure,
   if (pos != -1)
     orig_url.Cut(pos + 7, 8);
 
-  pos = orig_url.Find("#");
+  pos = orig_url.FindChar('#');
   if (pos != -1)
     orig_url.Replace(pos, 1, "?number=", 8);
 

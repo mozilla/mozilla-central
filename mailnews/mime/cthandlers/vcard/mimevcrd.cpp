@@ -44,6 +44,7 @@
 #include "nsMsgUtils.h"
 #include "prmem.h"
 #include "prprf.h"
+#include "nsServiceManagerUtils.h"
 
 static int MimeInlineTextVCard_parse_line (const char *, PRInt32, MimeObject *);
 static int MimeInlineTextVCard_parse_eof (MimeObject *, PRBool);
