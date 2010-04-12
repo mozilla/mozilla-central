@@ -67,6 +67,29 @@ try {
   xmlReader = null;
 }
 
+/*
+ * UTILITIES
+ */
+
+function assert_equal(aA, aB, aWhy)
+{
+  if (aA != aB)
+    do_throw(aWhy);
+  do_check_eq(aA, aB);
+};
+
+/**
+ * Test that two config entries are the same.
+ */
+function assert_equal_config(aA, aB, field)
+{
+  assert_equal(aA, aB, "Configured " + field + " is incorrect.");
+};
+
+/*
+ * TESTS
+ */
+
 /**
  * Test that the xml reader returns a proper config and
  * is also forwards-compatible to new additions to the data format.
@@ -205,6 +228,67 @@ function test_readFromXML_config1()
   do_check_eq(0, config.outgoingAlternatives.length);
 }
 
+/**
+ * Test the replaceVariables method.
+ */
+function test_replaceVariables()
+{
+  var clientConfigXML =
+    <clientConfig>
+      <emailProvider id="example.com">
+        <domain>example.com</domain>
+        <displayName>example.com</displayName>
+        <displayShortName>example.com</displayShortName>
+        <incomingServer type="pop3">
+          <hostname>pop.%EMAILDOMAIN%</hostname>
+          <port>995</port>
+          <socketType>SSL</socketType>
+          <username>%EMAILLOCALPART%</username>
+          <authentication>plain</authentication>
+          <pop3>
+            <leaveMessagesOnServer>true</leaveMessagesOnServer>
+            <daysToLeaveMessagesOnServer>999</daysToLeaveMessagesOnServer>
+          </pop3>
+        </incomingServer>
+        <outgoingServer type="smtp">
+          <hostname>smtp.example.com</hostname>
+          <port>587</port>
+          <socketType>STARTTLS</socketType>
+          <username>%EMAILADDRESS%</username>
+          <authentication>plain</authentication>
+          <addThisServer>true</addThisServer>
+          <useGlobalPreferredServer>false</useGlobalPreferredServer>
+        </outgoingServer>
+      </emailProvider>
+    </clientConfig>;
+
+  var config = xmlReader.readFromXML(clientConfigXML);
+
+  xmlReader.replaceVariables(config, 
+                             "Yamato Nadeshiko",
+                             "yamato.nadeshiko@example.com",
+                             "abc12345");
+
+  assert_equal_config(config.incoming.username,
+                      "yamato.nadeshiko",
+                      "incoming server username");
+  assert_equal_config(config.outgoing.username,
+                      "yamato.nadeshiko@example.com",
+                      "outgoing server username");
+  assert_equal_config(config.incoming.hostname,
+                      "pop.example.com",
+                      "incoming server hostname");
+  assert_equal_config(config.outgoing.hostname,
+                      "smtp.example.com",
+                      "outgoing server hostname");
+  assert_equal_config(config.identity.realname,
+                      "Yamato Nadeshiko",
+                      "user real name");
+  assert_equal_config(config.identity.emailAddress, 
+                      "yamato.nadeshiko@example.com",
+                      "user email address");
+}
+
 function run_test()
 {
   if (!xmlReader)
@@ -215,4 +299,5 @@ function run_test()
   }
 
   test_readFromXML_config1();
+  test_replaceVariables();
 };
