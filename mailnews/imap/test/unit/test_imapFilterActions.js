@@ -9,8 +9,8 @@
  * adapted from test_localToImapFilter.js
  */
 
-Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
-Components.utils.import("resource://gre/modules/folderUtils.jsm");
+Components.utils.import("resource:///modules/folderUtils.jsm");
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 const nsMsgSearchScope = Ci.nsMsgSearchScope;
 const nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;

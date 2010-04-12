@@ -41,7 +41,7 @@ if (!gMailTestUtils_js__) {
 gMailTestUtils_js__ = true;
 
 // we would like for everyone to have fixIterator and toXPComArray
-Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 // Local Mail Folders. Requires prior setup of profile directory
 

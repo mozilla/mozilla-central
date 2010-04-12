@@ -47,7 +47,7 @@ function fetchConfigFromDisk(domain, successCallback, errorCallback)
   {
     try {
       // <TB installdir>/isp/example.com.xml
-      var uri = "resource://gre/isp/" + sanitize.hostname(domain) + ".xml";
+      var uri = "resource:///isp/" + sanitize.hostname(domain) + ".xml";
       var contents = readURLasUTF8(makeNSIURI(uri));
        // Bug 336551 trips over <?xml ... >
       contents = contents.replace(/<\?xml[^>]*\?>/, "");

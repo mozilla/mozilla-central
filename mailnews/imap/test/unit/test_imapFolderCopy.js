@@ -16,8 +16,8 @@ var gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                 .getService(Ci.nsIMsgCopyService);
 var gCurTestNum;
 
-Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
-Components.utils.import("resource://gre/modules/folderUtils.jsm");
+Components.utils.import("resource:///modules/folderUtils.jsm");
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 const gTestArray =
 [

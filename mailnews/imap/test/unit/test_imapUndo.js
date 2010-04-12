@@ -24,7 +24,7 @@ var gMessenger;
 var gMsgWindow;
 var gCurTestNum;
 
-Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 const gMsgFile1 = do_get_file("../../mailnews/data/bugmail10");
 const gMsgFile2 = do_get_file("../../mailnews/data/bugmail11");

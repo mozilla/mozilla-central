@@ -42,7 +42,7 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-Cu.import("resource://gre/modules/errUtils.js");
+Cu.import("resource:///modules/errUtils.js");
 
 var Gloda = null;
 var GlodaUtils = null;

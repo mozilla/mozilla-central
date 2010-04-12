@@ -8,8 +8,8 @@
  */
 
 load("../../mailnews/resources/POP3pump.js");
-Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
-Components.utils.import("resource://gre/modules/folderUtils.jsm");
+Components.utils.import("resource:///modules/folderUtils.jsm");
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
 

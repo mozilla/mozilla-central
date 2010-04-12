@@ -60,7 +60,7 @@
  *   on values set in the previous step.
  */
 
-Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 var gSmtpHostNameIsIllegal = false;
 
