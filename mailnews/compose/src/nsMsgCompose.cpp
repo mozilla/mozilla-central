@@ -1643,6 +1643,25 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
       m_compFields->SetReplyTo(replyTo.get());
     }
 
+    /* Setup cc field */
+    PRBool doCc;
+    m_identity->GetDoCc(&doCc);
+    if (doCc)
+    {
+      nsCString ccList;
+      m_identity->GetDoCcList(ccList);
+
+      nsCString resultStr;
+      rv = parser->RemoveDuplicateAddresses(nsDependentCString(m_compFields->GetCc()),
+                                            ccList, resultStr);
+      if (NS_SUCCEEDED(rv) && !resultStr.IsEmpty())
+      {
+        ccList.Append(',');
+        ccList.Append(resultStr);
+      }
+      m_compFields->SetCc(ccList.get());
+    }
+
     /* Setup bcc field */
     PRBool doBcc;
     m_identity->GetDoBcc(&doBcc);
@@ -2474,6 +2493,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         // Populate the AllReply compField.
         mHeaders->ExtractHeader(HEADER_TO, PR_TRUE, getter_Copies(outCString));
         ConvertRawBytesToUTF16(outCString, charset.get(), recipient);
+
         mHeaders->ExtractHeader(HEADER_CC, PR_TRUE, getter_Copies(outCString));
         ConvertRawBytesToUTF16(outCString, charset.get(), cc);
 
@@ -2517,6 +2537,13 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           else
           {
             // default behaviour for messages without Mail-Followup-To
+            nsAutoString outCCListString;
+            compFields->GetCc(outCCListString);
+
+            if (!replyCompValue.IsEmpty() && !outCCListString.IsEmpty())
+              replyCompValue.AppendLiteral(", ");
+
+            replyCompValue.Append(outCCListString);
             compFields->SetCc(replyCompValue);
           }
 

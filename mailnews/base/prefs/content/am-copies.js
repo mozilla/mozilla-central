@@ -87,7 +87,8 @@ function onInitCopiesAndFolders()
                      "msgStationeryAccountPicker",
                      "identity.stationeryFolder",
                      "msgStationeryFolderPicker");
-    
+
+    setupCcTextbox();
     setupBccTextbox();
     setupFccItems();
 
@@ -340,6 +341,15 @@ function setupFccItems()
     }
     else
         broadcaster.setAttribute("disabled", "true");
+}
+
+// Disable CC textbox if CC checkbox is not checked
+function setupCcTextbox()
+{
+    var ccChecked = document.getElementById("identity.doCc").checked;
+    var ccTextbox = document.getElementById("identity.doCcList");
+
+    ccTextbox.disabled = !ccChecked;
 }
 
 // Disable BCC textbox if BCC checkbox is not checked

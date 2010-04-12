@@ -45,7 +45,7 @@
  * Each identity is identified by a key, which is the <id> string in
  * the identity preferences, such as in mail.identity.<id>.replyTo.
  */
-[scriptable, uuid(2bf98491-1503-4a69-a862-ab6b8e5beb68)]
+[scriptable, uuid(033bddfe-9727-11de-848a-00c09fcbe317)]
 interface nsIMsgIdentity : nsISupports {
   /**
    * Internal preferences ID.
@@ -169,9 +169,11 @@ interface nsIMsgIdentity : nsISupports {
   attribute boolean bccOthers;
   attribute ACString bccList;
 
+  attribute boolean doCc;
+  attribute ACString doCcList;
+
   attribute boolean doBcc;
   attribute ACString doBccList;
-
   /**
    * @{
    * URIs for the special folders (drafts, templates, archive)

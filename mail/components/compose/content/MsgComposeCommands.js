@@ -3250,19 +3250,27 @@ function LoadIdentity(startup)
           var prefstring = "mail.identity." + prevIdentity.key;
           RemoveDirectoryServerObserver(prefstring);
           var prevReplyTo = prevIdentity.replyTo;
+          var prevCc = "";
           var prevBcc = "";
           var prevReceipt = prevIdentity.requestReturnReceipt;
           var prevDSN = prevIdentity.DSN;
           var prevAttachVCard = prevIdentity.attachVCard;
 
+          if (prevIdentity.doCc)
+            prevCc += prevIdentity.doCcList;
+
           if (prevIdentity.doBcc)
             prevBcc += prevIdentity.doBccList;
 
           var newReplyTo = gCurrentIdentity.replyTo;
+          var newCc = "";
           var newBcc = "";
           var newReceipt = gCurrentIdentity.requestReturnReceipt;
           var newDSN = gCurrentIdentity.DSN;
           var newAttachVCard = gCurrentIdentity.attachVCard;
+
+          if (gCurrentIdentity.doCc)
+            newCc += gCurrentIdentity.doCcList;
 
           if (gCurrentIdentity.doBcc)
             newBcc += gCurrentIdentity.doBccList;
@@ -3301,6 +3309,15 @@ function LoadIdentity(startup)
               awRemoveRecipients(msgCompFields, "addr_reply", prevReplyTo);
             if (newReplyTo != "")
               awAddRecipients(msgCompFields, "addr_reply", newReplyTo);
+          }
+
+          if (newCc != prevCc)
+          {
+            needToCleanUp = true;
+            if (prevCc != "")
+              awRemoveRecipients(msgCompFields, "addr_cc", prevCc);
+            if (newCc != "")
+              awAddRecipients(msgCompFields, "addr_cc", newCc);
           }
 
           if (newBcc != prevBcc)

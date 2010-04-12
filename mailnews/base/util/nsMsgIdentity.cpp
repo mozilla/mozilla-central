@@ -198,6 +198,9 @@ NS_IMPL_IDPREF_BOOL(BccSelf, "bcc_self")
 NS_IMPL_IDPREF_BOOL(BccOthers, "bcc_other")
 NS_IMPL_IDPREF_STR (BccList, "bcc_other_list")
 
+NS_IMPL_IDPREF_BOOL(DoCc, "doCc")
+NS_IMPL_IDPREF_STR (DoCcList, "doCcList")
+
 NS_IMETHODIMP
 nsMsgIdentity::GetDoBcc(PRBool *aValue)
 {

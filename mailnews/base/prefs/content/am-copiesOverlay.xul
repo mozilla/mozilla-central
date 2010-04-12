@@ -144,18 +144,39 @@
               observes="broadcaster_doFcc"/>
       </hbox>
 
-      <hbox align="center">
-        <checkbox wsm_persist="true" id="identity.doBcc" label="&bccAddress.label;"
+      <grid>
+        <columns>
+          <column/>
+          <column flex="1"/>
+        </columns>
+
+        <rows>
+          <row align="center">
+            <checkbox wsm_persist="true" id="identity.doCc" label="&ccAddress.label;"
+                  accesskey="&ccAddress.accesskey;"
+                  control="identity.doCcList"
+                  oncommand="setupCcTextbox();"
+                  prefattribute="value"
+                  prefstring="mail.identity.%identitykey%.doCc"/>
+            <textbox wsm_persist="true" id="identity.doCcList" flex="1"
+                  aria-labelledby="identity.doCc"
+                  prefstring="mail.identity.%identitykey%.doCcList" class="uri-element"
+                  emptytext="&ccAddressList.emptytext;"/>
+          </row>
+          <row align="center">
+            <checkbox wsm_persist="true" id="identity.doBcc" label="&bccAddress.label;"
                   accesskey="&bccAddress.accesskey;"
                   control="identity.doBccList"
                   oncommand="setupBccTextbox();"
                   prefattribute="value" 
                   prefstring="mail.identity.%identitykey%.doBcc"/>
-
-        <textbox wsm_persist="true" id="identity.doBccList" flex="1"
-                 aria-labelledby="identity.doBcc"
-                 prefstring="mail.identity.%identitykey%.doBccList" class="uri-element"/>
-      </hbox>
+            <textbox wsm_persist="true" id="identity.doBccList" flex="1"
+                  aria-labelledby="identity.doBcc"
+                  prefstring="mail.identity.%identitykey%.doBccList" class="uri-element"
+                  emptytext="&bccAddressList.emptytext;"/>
+          </row>
+        </rows>
+      </grid>
 
     </groupbox>
 

@@ -101,6 +101,8 @@ function initCopiesAndFolder(identity)
   document.getElementById('identity.archivesFolderPickerMode').value = copiesAndFoldersIdentity.archivesFolderPickerMode ? copiesAndFoldersIdentity.archivesFolderPickerMode : 0;
   document.getElementById('identity.tmplFolderPickerMode').value = copiesAndFoldersIdentity.tmplFolderPickerMode ? copiesAndFoldersIdentity.tmplFolderPickerMode : 0;
 
+  document.getElementById('identity.doCc').checked = copiesAndFoldersIdentity.doCc;
+  document.getElementById('identity.doCcList').value = copiesAndFoldersIdentity.doCcList;
   document.getElementById('identity.doBcc').checked = copiesAndFoldersIdentity.doBcc;
   document.getElementById('identity.doBccList').value = copiesAndFoldersIdentity.doBccList;
   document.getElementById('identity.doFcc').checked = copiesAndFoldersIdentity.doFcc;
@@ -232,6 +234,8 @@ function saveCopiesAndFolderSettings(identity)
   identity.draftsFolderPickerMode = document.getElementById('identity.draftsFolderPickerMode').value;
   identity.archivesFolderPickerMode = document.getElementById('identity.archivesFolderPickerMode').value;
   identity.tmplFolderPickerMode = document.getElementById('identity.tmplFolderPickerMode').value;
+  identity.doCc = document.getElementById('identity.doCc').checked;
+  identity.doCcList = document.getElementById('identity.doCcList').value;
   identity.doBcc = document.getElementById('identity.doBcc').checked;
   identity.doBccList = document.getElementById('identity.doBccList').value;
   identity.doFcc = document.getElementById('identity.doFcc').checked;
