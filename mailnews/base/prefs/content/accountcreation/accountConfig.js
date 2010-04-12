@@ -69,8 +69,14 @@ function AccountConfig()
 };
 AccountConfig.prototype =
 {
-  incoming : null, // see ctor
-  outgoing : null, // see ctor
+  incoming : null, // see |createNewIncoming()|
+  outgoing : null, // see |createNewOutgoing()|
+  /**
+   * {Array of |incoming|/|createNewIncoming|}
+   * Other servers which can be used instead of |incoming|,
+   * in order of decreasing preference.
+   * (|incoming| itself should not be included here.)
+   */
   incomingAlternatives : null,
   outgoingAlternatives : null,
   id : null, // just an internal string to refer to this. Do not show to user.
@@ -82,7 +88,7 @@ AccountConfig.prototype =
   domains : null,
 
   /**
-   * Factory function for incoming and incoming.alternatives
+   * Factory function for incoming and incomingAlternatives
    */
   createNewIncoming : function()
   {
@@ -92,9 +98,9 @@ AccountConfig.prototype =
       port : null, // Integer
       username : null, // String. May be a placeholder (starts and ends with %).
       password : null,
-      // enum: 1 = plain, 2 = SSL/TLS, 3 = STARTTLS always
+      // enum: 1 = plain, 2 = SSL/TLS, 3 = STARTTLS always, 0 = not inited
       // ('TLS when available' is insecure and not supported here)
-      socketType : null,
+      socketType : 0,
       /**
        * true when the cert is invalid (and thus SSL useless), because it's
        * 1) not from an accepted CA (including self-signed certs)
@@ -104,10 +110,18 @@ AccountConfig.prototype =
        */
       badCert : false,
       /**
+       * How to log in to the server: plaintext or encrypted pw, GSSAPI etc.
        * Defined by Ci.nsMsgAuthMethod
        * Same as server pref "authMethod".
        */
       auth : 0,
+      /**
+       * {Array of Ci.nsMsgAuthMethod} (same as .auth)
+       * Other auth methods that we think the server supports.
+       * They are ordered by descreasing preference.
+       * (|auth| itself is not included in |authAlternatives|)
+       */
+      authAlternatives : null,
       checkInterval : 10, // Integer, in minutes
       loginAtStartup : true,
       // POP3 only:
@@ -121,7 +135,7 @@ AccountConfig.prototype =
     };
   },
   /**
-   * Factory function for outgoing and outgoing.alternatives
+   * Factory function for outgoing and outgoingAlternatives
    */
   createNewOutgoing : function()
   {
@@ -131,9 +145,10 @@ AccountConfig.prototype =
       port : null, // see incoming
       username : null, // see incoming. may be null, if auth is 0.
       password : null, // see incoming. may be null, if auth is 0.
-      socketType : null, // see incoming
+      socketType : 0, // see incoming
       badCert : false, // see incoming
-      auth : null, // see incoming
+      auth : 0, // see incoming
+      authAlternatives : null, // see incoming
       addThisServer : true, // if we already have an SMTP server, add this or not.
       // if we already have an SMTP server, use it.
       useGlobalPreferredServer : false,

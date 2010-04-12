@@ -214,6 +214,8 @@ urlListener.prototype =
       // back to trying just the username before trying the other cases.
       this.mConfig.incoming.username = this.mConfig.usernameSaved;
       this.mConfig.usernameSaved = null;
+      this.mServer.username = this.mConfig.incoming.username;
+      this.mServer.password = this.mConfig.incoming.password;
     }
 
     // sec auth seems to have failed, and we've tried both
@@ -221,29 +223,33 @@ urlListener.prototype =
     // So fall back to non-secure auth, and
     // again try the user name and email address as username
     assert(this.mConfig.incoming.auth == this.mServer.authMethod);
-    assert(!this.mConfig.incoming.authAlternatives ||
-           this.mConfig.incoming.auth == this.mConfig.incoming.authAlternatives[0]);
     this._log.info("  Using SSL: " +
         (this.mServer.socketType == Ci.nsMsgSocketType.SSL ||
          this.mServer.socketType == Ci.nsMsgSocketType.alwaysSTARTTLS));
-    this._log.info("  auth alternatives count = " + (this.mConfig.incoming.authAlternatives ?
-         this.mConfig.incoming.authAlternatives.length : "none"));
+    this._log.info("  auth alternatives = " +
+        this.mConfig.incoming.authAlternatives.join(","));
     if (this.mConfig.incoming.authAlternatives &&
-        this.mConfig.incoming.authAlternatives.length > 1)/* &&
-        (this.mConfig.incoming.authAlternatives[1] >
-            Ci.nsMsgAuthMethod.passwordCleartext || // next best auth is secure
-         this.mServer.socketType == Ci.nsMsgSocketType.SSL ||
-         this.mServer.socketType == Ci.nsMsgSocketType.alwaysSTARTTLS))*/
+        this.mConfig.incoming.authAlternatives.length)
+        // We may be dropping back to insecure auth methods here,
+        // which is not good. But then again, we already warned the user,
+        // if it is a config without SSL.
     {
       this._log.info("  Decreasing auth.");
       this._log.info("  Have password: " +
                      (this.mServer.password ? "true" : "false"));
-      this.mConfig.incoming.authAlternatives.shift(); // it failed, so remove it from list of possibilities
-      this.mConfig.incoming.auth = this.mConfig.incoming.authAlternatives[0]; // take the next best method
-      this.mConfig.outgoing.auth = this.mConfig.incoming.auth; // TODO good idea???
+      let brokenAuth = this.mConfig.incoming.auth;
+      // take the next best method (compare chooseBestAuthMethod() in guess)
+      this.mConfig.incoming.auth =
+          this.mConfig.incoming.authAlternatives.shift();
       this.mServer.authMethod = this.mConfig.incoming.auth;
-      this.mServer.username = this.mConfig.incoming.username;
-      this.mServer.password = this.mConfig.incoming.password;
+      // Assume that SMTP server has same methods working as incoming.
+      // Broken assumption, but we currently have no SMTP verification.
+      // TODO implement real SMTP verification
+      if (this.mConfig.outgoing.auth == brokenAuth &&
+          this.mConfig.outgoing.authAlternatives.indexOf(
+            this.mConfig.incoming.auth) != -1)
+        this.mConfig.outgoing.auth = this.mConfig.incoming.auth;
+      this._log.info("  outgoing auth: " + this.mConfig.outgoing.auth);
       verifyLogon(this.mConfig, this.mServer, this.mAlter, this.mMsgWindow,
                   this.mSuccessCallback, this.mErrorCallback);
       return;

@@ -293,7 +293,7 @@ GuessAbortable.prototype =
         assert(this._outgoingHostDetector, "need this._outgoingHostDetector");
         this._outgoingHostDetector.cancel();
         this._outgoingHostDetector.start(domain, outgoingHostIsPrecise,
-                                         SMTP, port, socketType);
+                                         "smtp", port, socketType);
         break;
       default: // both
         assert(this._incomingHostDetector, "need this._incomingHostDetector");
@@ -303,7 +303,7 @@ GuessAbortable.prototype =
                                          type, port, socketType);
         this._outgoingHostDetector.cancel();
         this._outgoingHostDetector.start(domain, outgoingHostIsPrecise,
-                                         SMTP, port, socketType);
+                                         "smtp", port, socketType);
     }
   }
 }
@@ -634,12 +634,13 @@ HostDetector.prototype =
       prefix = "AUTH.*";
     else
       throw NotReached("must pass protocol");
+    // add in decreasing order of preference
     if (new RegExp(prefix + "GSSAPI").test(line))
       result.push(Ci.nsMsgAuthMethod.GSSAPI);
-    if (new RegExp(prefix + "(NTLM|MSN)").test(line))
-      result.push(Ci.nsMsgAuthMethod.NTLM);
     if (new RegExp(prefix + "CRAM-MD5").test(line))
       result.push(Ci.nsMsgAuthMethod.passwordEncrypted);
+    if (new RegExp(prefix + "(NTLM|MSN)").test(line))
+      result.push(Ci.nsMsgAuthMethod.NTLM);
     if ( ! (protocol == IMAP && /LOGINDISABLED/.test(line)))
       result.push(Ci.nsMsgAuthMethod.passwordCleartext);
     return result;
@@ -655,13 +656,16 @@ HostDetector.prototype =
 
 /**
  * @param authMethods @see return value of _advertisesAuthMethods()
+ *    Note: the returned auth method will be removed from the array.
  * @return one of them, the preferred one
  * Note: this might be Kerberos, which might not actually work,
  * so you might need to try the others, too.
  */
 function chooseBestAuthMethod(authMethods)
 {
-  return authMethods[0]; // take first (= most preferred)
+  if (!authMethods || !authMethods.length)
+    return Ci.nsMsgAuthMethod.passwordCleartext;
+  return authMethods.shift(); // take first (= most preferred)
 }
 
 
