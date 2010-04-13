@@ -426,7 +426,7 @@ nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRI
   PRBool    lostAttach = PR_FALSE;
 
   nsCOMPtr<nsIOutputStream> destOutputStream;
-  rv = NS_NewLocalFileOutputStream(getter_AddRefs(destOutputStream), pDest, -1, 0600);
+  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(destOutputStream), pDest, -1, 0600);
   NS_ENSURE_SUCCESS(rv, rv);
 
   while (!done) {

@@ -628,7 +628,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIOutputStream> tempfile;
-    rv = NS_NewLocalFileOutputStream(getter_AddRefs(tempfile), mHTMLFile, -1, 00600);
+    rv = MsgNewBufferedFileOutputStream(getter_AddRefs(tempfile), mHTMLFile, -1, 00600);
     if (NS_FAILED(rv))
     {
       if (mSendReport)
@@ -707,7 +707,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
   rv = nsMsgCreateTempFile("nsemail.eml", getter_AddRefs(mTempFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = NS_NewLocalFileOutputStream(getter_AddRefs(mOutputFile), mTempFile, -1, 00600);
+  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(mOutputFile), mTempFile, -1, 00600);
   if (NS_FAILED(rv))
   {
     status = NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
@@ -4485,7 +4485,7 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIOutputStream> tempOutfile;
-  rv = NS_NewLocalFileOutputStream(getter_AddRefs(tempOutfile), mCopyFile, -1, 00600);
+  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(tempOutfile), mCopyFile, -1, 00600);
   if (NS_FAILED(rv))
   {
     if (mSendReport)

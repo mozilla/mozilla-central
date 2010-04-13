@@ -40,6 +40,7 @@
 #include "prio.h"
 #include "nsNetUtil.h"
 #include "nsISeekableStream.h"
+#include "nsMsgUtils.h"
 #include "ImportOutFile.h"
 #include "ImportCharSet.h"
 
@@ -143,7 +144,7 @@ PRBool ImportOutFile::InitOutFile( nsIFile *pFile, PRUint32 bufSz)
   // m_fH = UFile::CreateFile( oFile, kMacNoCreator, kMacTextFile);
         if (!m_outputStream)
         {
-          nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream),
+          nsresult rv = MsgNewBufferedFileOutputStream(getter_AddRefs(m_outputStream),
                                    pFile,
                                    PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
                                    0644);

@@ -100,6 +100,8 @@ static NS_DEFINE_CID(kCNntpUrlCID, NS_NNTPURL_CID);
 #define ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER "."
 #define ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER  ".~ "
 
+#define FOUR_K 4096
+
 nsresult GetMessageServiceContractIDForURI(const char *uri, nsCString &contractID)
 {
   nsresult rv = NS_OK;
@@ -1326,6 +1328,18 @@ nsresult MsgReopenFileStream(nsILocalFile *file, nsIInputStream *fileStream)
     return msgFileStream->InitWithFile(file);
   else
     return NS_ERROR_FAILURE;
+}
+
+nsresult MsgNewBufferedFileOutputStream(nsIOutputStream **aResult,
+                                        nsIFile* aFile,
+                                        PRInt32 aIOFlags,
+                                        PRInt32 aPerm)
+{
+  nsCOMPtr<nsIOutputStream> stream;
+  nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(stream), aFile, aIOFlags, aPerm);
+  if (NS_SUCCEEDED(rv))
+    rv = NS_NewBufferedOutputStream(aResult, stream, FOUR_K);
+  return rv;
 }
 
 PRBool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aStartOfKeyword, PRInt32 *aLength)

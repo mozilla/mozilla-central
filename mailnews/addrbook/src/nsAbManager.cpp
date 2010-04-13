@@ -603,10 +603,10 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
   nsresult rv;
 
   nsCOMPtr <nsIOutputStream> outputStream;
-  rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream),
-                                   aLocalFile,
-                                   PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
-                                   0664);
+  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(outputStream),
+                                      aLocalFile,
+                                      PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
+                                      0664);
 
   // the desired file may be read only
   if (NS_FAILED(rv))
@@ -784,10 +784,10 @@ nsAbManager::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *aLo
   nsresult rv;
 
   nsCOMPtr <nsIOutputStream> outputStream;
-  rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream),
-                                   aLocalFile,
-                                   PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
-                                   0664);
+  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(outputStream),
+                                      aLocalFile,
+                                      PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
+                                      0664);
 
   // the desired file may be read only
   if (NS_FAILED(rv))

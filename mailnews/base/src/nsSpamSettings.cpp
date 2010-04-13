@@ -245,10 +245,10 @@ nsSpamSettings::GetLogStream(nsIOutputStream **aLogStream)
     NS_ENSURE_SUCCESS(rv,rv);
 
     // append to the end of the log file
-    rv = NS_NewLocalFileOutputStream(getter_AddRefs(mLogStream),
-                                   logFile,
-                                   PR_CREATE_FILE | PR_WRONLY | PR_APPEND,
-                                   0600);
+    rv = MsgNewBufferedFileOutputStream(getter_AddRefs(mLogStream),
+                                        logFile,
+                                        PR_CREATE_FILE | PR_WRONLY | PR_APPEND,
+                                        0600);
     NS_ENSURE_SUCCESS(rv, rv);
 
     PRInt64 fileSize;

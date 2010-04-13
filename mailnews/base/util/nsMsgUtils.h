@@ -203,6 +203,9 @@ NS_MSG_BASE nsresult MsgGetFileStream(nsILocalFile *file, nsIOutputStream **file
 
 NS_MSG_BASE nsresult MsgReopenFileStream(nsILocalFile *file, nsIInputStream *fileStream);
 
+// Automatically creates an output stream with a 4K buffer
+NS_MSG_BASE nsresult MsgNewBufferedFileOutputStream(nsIOutputStream **aResult, nsIFile *aFile, PRInt32 aIOFlags = -1, PRInt32 aPerm = -1);
+
 // fills in the position of the passed in keyword in the passed in keyword list
 // and returns false if the keyword isn't present
 NS_MSG_BASE PRBool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aStartOfKeyword, PRInt32 *aLength);

@@ -282,7 +282,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
   rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), inFile);
   if (NS_FAILED( rv)) return( rv);
   nsCOMPtr <nsIOutputStream> outputStream;
-  rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), pDestination, -1, 0600);
+  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(outputStream), pDestination, -1, 0600);
   if (NS_FAILED( rv))
     return( rv);
 

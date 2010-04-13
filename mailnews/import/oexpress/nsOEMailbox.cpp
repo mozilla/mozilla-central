@@ -43,6 +43,7 @@
 #include "nsMsgLocalFolderHdrs.h"
 #include "nsNetUtil.h"
 #include "nsISeekableStream.h"
+#include "nsMsgUtils.h"
 
 class CMbxScanner {
 public:
@@ -247,7 +248,7 @@ PRBool CMbxScanner::Initialize( void)
     return( PR_FALSE);
   }
 
-  if (NS_FAILED(NS_NewLocalFileOutputStream(getter_AddRefs(m_dstFileOutputStream), m_dstFile, -1, 0600))) {
+  if (NS_FAILED(MsgNewBufferedFileOutputStream(getter_AddRefs(m_dstFileOutputStream), m_dstFile, -1, 0600))) {
     CleanUp();
     return( PR_FALSE);
   }

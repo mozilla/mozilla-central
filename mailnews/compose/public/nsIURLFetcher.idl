@@ -62,7 +62,7 @@ interface nsIURLFetcher : nsISupports
 {
   boolean stillRunning();
 
-  void fireURLRequest(in nsIURI aURL, in nsILocalFile localFile, in nsIFileOutputStream fileStream, in nsAttachSaveCompletionCallback cb, in voidPtr tagData);
+  void fireURLRequest(in nsIURI aURL, in nsILocalFile localFile, in nsIOutputStream fileStream, in nsAttachSaveCompletionCallback cb, in voidPtr tagData);
 
-  void initialize(in nsILocalFile localFile, in nsIFileOutputStream fileStream, in nsAttachSaveCompletionCallback cb, in voidPtr tagData);
+  void initialize(in nsILocalFile localFile, in nsIOutputStream fileStream, in nsAttachSaveCompletionCallback cb, in voidPtr tagData);
 };

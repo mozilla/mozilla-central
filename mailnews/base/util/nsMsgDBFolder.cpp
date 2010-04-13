@@ -876,7 +876,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineStoreOutputStream(nsIOutputStream **outpu
   nsCOMPtr <nsILocalFile> localPath;
   rv = GetFilePath(getter_AddRefs(localPath));
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = NS_NewLocalFileOutputStream(outputStream, localPath, PR_WRONLY | PR_CREATE_FILE, 00600);
+  rv = MsgNewBufferedFileOutputStream(outputStream, localPath, PR_WRONLY | PR_CREATE_FILE, 00600);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr <nsISeekableStream> seekable = do_QueryInterface(*outputStream);
@@ -1592,7 +1592,7 @@ nsresult nsMsgDBFolder::WriteStartOfNewLocalMessage()
                              &writeCount);
   if (seekable)
   {
-    seekable->Seek(PR_SEEK_CUR, 0); // seeking causes a flush, w/o syncing
+    m_tempMessageStream->Flush();
     seekable->Tell(&curStorePos);
     m_offlineHeader->SetStatusOffset((PRUint32) curStorePos);
   }
@@ -1644,7 +1644,7 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
   mDatabase->MarkOffline(messageKey, PR_TRUE, nsnull);
   if (seekable)
   {
-    seekable->Seek(PR_SEEK_CUR, 0); // seeking causes a flush, w/o syncing
+    m_tempMessageStream->Flush();
     PRInt64 tellPos;
     seekable->Tell(&tellPos);
     curStorePos = tellPos;

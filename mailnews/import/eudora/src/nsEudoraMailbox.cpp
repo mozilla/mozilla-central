@@ -265,7 +265,7 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
     IMPORT_LOG0( "Reading euroda toc file: ");
     DUMP_FILENAME( tocFile, PR_TRUE);
 
-                rv = NS_NewLocalFileOutputStream(getter_AddRefs(mailOutputStream), pDst);
+                rv = MsgNewBufferedFileOutputStream(getter_AddRefs(mailOutputStream), pDst);
                 NS_ENSURE_SUCCESS(rv, rv);
     // Read the toc and import the messages
     rv = ImportMailboxUsingTOC( pBytes, pAbort, srcInputStream, tocFile, mailOutputStream, pMsgCount);

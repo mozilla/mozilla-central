@@ -3203,10 +3203,10 @@ nsMsgAccountManager::saveVirtualFolders(nsCStringHashKey::KeyType key,
       {
         nsCOMPtr<nsILocalFile> file;
         GetVirtualFoldersFile(file);
-        rv = NS_NewLocalFileOutputStream(&outputStream,
-                                         file,
-                                         PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
-                                         0664);
+        rv = MsgNewBufferedFileOutputStream(&outputStream,
+                                            file,
+                                            PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
+                                            0664);
         NS_ENSURE_SUCCESS(rv, PL_DHASH_STOP);
         * (nsIOutputStream **) data = outputStream;
         WriteLineToOutputStream("version=", "1", outputStream);

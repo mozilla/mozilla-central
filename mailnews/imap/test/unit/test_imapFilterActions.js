@@ -758,6 +758,7 @@ function testCounts(aHasNew, aUnreadDelta, aFolderNewDelta, aDbNewDelta)
        " folderNew: " + folderNew +
        " folderNewFlag: " + folderNewFlag +
        " dbNew: " + dbNew +
+       " prevUnread " + gPreviousUnread +
        "\n");
   do_check_eq(aHasNew, hasNew);
   do_check_eq(aUnreadDelta, unread - gPreviousUnread);

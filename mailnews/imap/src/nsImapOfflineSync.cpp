@@ -396,7 +396,7 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
       return;
 
     nsCOMPtr <nsIOutputStream> outputStream;
-    rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), tmpFile, PR_WRONLY | PR_CREATE_FILE, 00600);
+    rv = MsgNewBufferedFileOutputStream(getter_AddRefs(outputStream), tmpFile, PR_WRONLY | PR_CREATE_FILE, 00600);
     if (NS_SUCCEEDED(rv) && outputStream)
     {
       nsCString moveDestination;

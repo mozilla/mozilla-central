@@ -42,6 +42,7 @@
 #include "plstr.h"
 #include "nsMimeStringResources.h"
 #include "nsNetUtil.h"
+#include "nsMsgUtils.h"
 //
 // External Defines...
 //
@@ -201,7 +202,7 @@ MimePartBufferWrite (MimePartBufferData *data,
     NS_ENSURE_SUCCESS(rv, MIME_UNABLE_TO_OPEN_TMP_FILE);
     data->file_buffer = do_QueryInterface(tmpFile);
 
-    rv = NS_NewLocalFileOutputStream(getter_AddRefs( data->output_file_stream), data->file_buffer, PR_WRONLY | PR_CREATE_FILE, 00600);
+    rv = MsgNewBufferedFileOutputStream(getter_AddRefs(data->output_file_stream), data->file_buffer, PR_WRONLY | PR_CREATE_FILE, 00600);
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
@@ -234,7 +235,7 @@ MimePartBufferWrite (MimePartBufferData *data,
 
       }
 
-      rv = NS_NewLocalFileOutputStream(getter_AddRefs( data->output_file_stream), data->file_buffer, PR_WRONLY | PR_CREATE_FILE, 00600);
+      rv = MsgNewBufferedFileOutputStream(getter_AddRefs(data->output_file_stream), data->file_buffer, PR_WRONLY | PR_CREATE_FILE, 00600);
       NS_ENSURE_SUCCESS(rv, MIME_UNABLE_TO_OPEN_TMP_FILE);
 
       if (data->part_buffer && data->part_buffer_fp)

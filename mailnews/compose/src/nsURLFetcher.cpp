@@ -332,7 +332,7 @@ nsURLFetcher::OnStopRequest(nsIRequest *request, nsISupports * ctxt, nsresult aS
 
 nsresult 
 nsURLFetcher::Initialize(nsILocalFile *localFile, 
-                         nsIFileOutputStream *outputStream,
+                         nsIOutputStream *outputStream,
                          nsAttachSaveCompletionCallback cb, 
                          void *tagData)
 {
@@ -347,7 +347,7 @@ nsURLFetcher::Initialize(nsILocalFile *localFile,
 }
 
 nsresult
-nsURLFetcher::FireURLRequest(nsIURI *aURL, nsILocalFile *localFile, nsIFileOutputStream *outputStream, 
+nsURLFetcher::FireURLRequest(nsIURI *aURL, nsILocalFile *localFile, nsIOutputStream *outputStream, 
                              nsAttachSaveCompletionCallback cb, void *tagData)
 {
   nsresult rv;

@@ -2364,7 +2364,7 @@ nsresult nsParseNewMailState::AppendMsgFromFile(nsIInputStream *fileStream,
   seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, offset);
 
   nsCOMPtr <nsIOutputStream> destFileStream;
-  NS_NewLocalFileOutputStream(getter_AddRefs(destFileStream), destFile, PR_RDWR | PR_CREATE_FILE, 00600);
+  MsgNewBufferedFileOutputStream(getter_AddRefs(destFileStream), destFile, PR_RDWR | PR_CREATE_FILE, 00600);
 
   if (!destFileStream)
   {

@@ -51,6 +51,7 @@
 #include "nsIProxyObjectManager.h"
 #include "nsXPCOMCIDInternal.h"
 #include "nsNetUtil.h"
+#include "nsMsgUtils.h"
 
 #include "nsEmlxHelperUtils.h"
 #include "nsAppleMailImport.h"
@@ -567,7 +568,7 @@ NS_IMETHODIMP nsAppleMailImportMail::ImportMailbox(nsIImportMailboxDescriptor *a
 
     // prepare an outstream to the destination file
     nsCOMPtr<nsIOutputStream> outStream;
-    rv = NS_NewLocalFileOutputStream(getter_AddRefs(outStream), aDestination);
+    rv = MsgNewBufferedFileOutputStream(getter_AddRefs(outStream), aDestination);
     if (!outStream || NS_FAILED(rv)) {
       ReportStatus(APPLEMAILIMPORT_MAILBOX_CONVERTERROR, mailboxName, errorLog);
       SetLogs(successLog, errorLog, aSuccessLog, aErrorLog);

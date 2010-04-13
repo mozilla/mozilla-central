@@ -87,7 +87,7 @@ protected:
   nsresult InsertConverter(const char * aContentType);
 
 private:
-  nsCOMPtr<nsIFileOutputStream>   mOutStream;               // the output file stream
+  nsCOMPtr<nsIOutputStream>       mOutStream;               // the output file stream
   nsCOMPtr<nsILocalFile>          mLocalFile;               // the output file itself
   nsCOMPtr<nsIStreamListener>     mConverter;               // the stream converter, if needed
   nsCString                  mConverterContentType;    // The content type of the converter

@@ -1949,7 +1949,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
 
   newAttachment->tmp_file = mdd->tmpFile;
 
-  rv = NS_NewLocalFileOutputStream(getter_AddRefs(mdd->tmpFileStream), tmpFile,PR_WRONLY | PR_CREATE_FILE, 00600);
+  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(mdd->tmpFileStream), tmpFile,PR_WRONLY | PR_CREATE_FILE, 00600);
   if (NS_FAILED(rv))
     return MIME_UNABLE_TO_OPEN_TMP_FILE;
 

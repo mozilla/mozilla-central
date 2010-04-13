@@ -1193,7 +1193,7 @@ nsMsgSendLater::DeliverQueuedLine(char *line, PRInt32 length)
       // and write the appropriate subset of the headers out. 
       m_inhead = PR_FALSE;
 
-      nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(mOutFile), mTempFile, -1, 00600);
+      nsresult rv = MsgNewBufferedFileOutputStream(getter_AddRefs(mOutFile), mTempFile, -1, 00600);
       if (NS_FAILED(rv))
         return NS_MSG_ERROR_WRITING_FILE;
 

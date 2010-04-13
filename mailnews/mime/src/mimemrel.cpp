@@ -677,7 +677,7 @@ MimeMultipartRelated_parse_child_line (MimeObject *obj,
     NS_ENSURE_SUCCESS(rv, rv);
     relobj->file_buffer = do_QueryInterface(file);
 
-    rv = NS_NewLocalFileOutputStream(getter_AddRefs(relobj->output_file_stream), relobj->file_buffer, PR_WRONLY | PR_CREATE_FILE, 00600);
+    rv = MsgNewBufferedFileOutputStream(getter_AddRefs(relobj->output_file_stream), relobj->file_buffer, PR_WRONLY | PR_CREATE_FILE, 00600);
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
@@ -705,7 +705,7 @@ MimeMultipartRelated_parse_child_line (MimeObject *obj,
         relobj->file_buffer = do_QueryInterface(file);
       }
 
-      nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(relobj->output_file_stream), relobj->file_buffer, PR_WRONLY | PR_CREATE_FILE, 00600);
+      nsresult rv = MsgNewBufferedFileOutputStream(getter_AddRefs(relobj->output_file_stream), relobj->file_buffer, PR_WRONLY | PR_CREATE_FILE, 00600);
       NS_ENSURE_SUCCESS(rv, rv);
 
       if (relobj->head_buffer && relobj->head_buffer_fp)

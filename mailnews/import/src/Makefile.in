@@ -55,6 +55,7 @@ REQUIRES	= xpcom \
 		  addrbook \
 		  uconv \
 		  msgbase \
+		  msgbaseutil \
 		  intl \
 		  necko \
 		  rdf \

@@ -65,6 +65,7 @@ PRLogModuleInfo *MAILBOX;
 #include "nsIStreamConverterService.h"
 #include "nsIIOService.h"
 #include "nsNetUtil.h"
+#include "nsMsgUtils.h"
 #include "nsIMsgWindow.h"
 #include "nsIMimeHeaders.h"
 
@@ -504,7 +505,7 @@ nsresult nsMailboxProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
             if (NS_SUCCEEDED(rv))
             {
               messageUrl->GetMessageFile(getter_AddRefs(m_tempMessageFile));
-              NS_NewLocalFileOutputStream(getter_AddRefs(m_msgFileOutputStream), m_tempMessageFile, -1, 00600);
+              MsgNewBufferedFileOutputStream(getter_AddRefs(m_msgFileOutputStream), m_tempMessageFile, -1, 00600);
 
               PRBool addDummyEnvelope = PR_FALSE;
               messageUrl->GetAddDummyEnvelope(&addDummyEnvelope);

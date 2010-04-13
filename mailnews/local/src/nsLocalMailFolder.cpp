@@ -1576,7 +1576,7 @@ nsMsgLocalMailFolder::InitCopyState(nsISupports* aSupport,
 
   //Before we continue we should verify that there is enough diskspace.
   //XXX How do we do this?
-  rv = NS_NewLocalFileOutputStream(getter_AddRefs( mCopyState->m_fileStream), path, PR_WRONLY | PR_CREATE_FILE, 00600);
+  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(mCopyState->m_fileStream), path, PR_WRONLY | PR_CREATE_FILE, 00600);
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(mCopyState->m_fileStream);
   //The new key is the end of the file
@@ -2604,16 +2604,25 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
     // need to reset this in case we're move/copying multiple msgs.
     mCopyState->m_fromLineSeen = PR_FALSE;
 
-    // flush the copied message. Seeking causes a flush, w/o syncing. We need
-    // a flush+sync at the end to get the file size and time updated correctly.
+    // flush the copied message. We need a close at the end to get the
+    // file size and time updated correctly.
     if (mCopyState->m_fileStream)
     {
-      // we need this for the m_dummyEnvelopeNeeded code below.
       seekableStream = do_QueryInterface(mCopyState->m_fileStream);
+      if (mCopyState->m_dummyEnvelopeNeeded)
+      {
+        PRUint32 bytesWritten;
+        seekableStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
+        mCopyState->m_fileStream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &bytesWritten);
+        if (mCopyState->m_parseMsgState)
+          mCopyState->m_parseMsgState->ParseAFolderLine(CRLF, MSG_LINEBREAK_LEN);
+      }
+      // flush the copied message. We need a close at the end to get the
+      // file size and time updated correctly.
       if (multipleCopiesFinished)
-        mCopyState->m_fileStream->Flush();
+        mCopyState->m_fileStream->Close();
       else
-        seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, 0);
+        mCopyState->m_fileStream->Flush();
     }
   }
   //Copy the header to the new database
@@ -2659,15 +2668,6 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
       }
     }
   }
-  if (mCopyState->m_dummyEnvelopeNeeded)
-  {
-    PRUint32 bytesWritten;
-    seekableStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
-    mCopyState->m_fileStream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &bytesWritten);
-    if (mCopyState->m_parseMsgState)
-      mCopyState->m_parseMsgState->ParseAFolderLine(CRLF, MSG_LINEBREAK_LEN);
-  }
-
   nsCOMPtr<nsIMsgDBHdr> newHdr;
   // CopyFileMessage() and CopyMessages() from servers other than mailbox
   if (mCopyState->m_parseMsgState)

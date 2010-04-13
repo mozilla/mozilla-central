@@ -936,8 +936,8 @@ nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFile *aFile, PRBool addDumm
   aFile->Remove(PR_FALSE);
 
   nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(aFile);
-  nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream),
-                                            localFile, -1, 00600);
+  nsresult rv = MsgNewBufferedFileOutputStream(getter_AddRefs(m_outputStream),
+                                               localFile, -1, 00600);
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (m_outputStream && addDummyEnvelope)

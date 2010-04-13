@@ -373,7 +373,7 @@ net_pop3_write_state(Pop3UidlHost* host, nsILocalFile *mailDirectory)
   popState->AppendNative(NS_LITERAL_CSTRING("popstate.dat"));
 
   nsCOMPtr<nsIOutputStream> fileOutputStream;
-  nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(fileOutputStream), popState, -1, 00600);
+  nsresult rv = MsgNewBufferedFileOutputStream(getter_AddRefs(fileOutputStream), popState, -1, 00600);
   if (NS_FAILED(rv))
     return;
 

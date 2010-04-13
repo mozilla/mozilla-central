@@ -313,7 +313,7 @@ nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgD
   m_size = m_keyArray.Length();
   m_curIndex = 0;
   
-  rv = NS_NewLocalFileOutputStream(getter_AddRefs(m_fileStream), m_file, -1, 00600);
+  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(m_fileStream), m_file, -1, 00600);
   if (NS_FAILED(rv)) 
     m_folder->ThrowAlertMsg("compactFolderWriteFailed", m_window);
   else

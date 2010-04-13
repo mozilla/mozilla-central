@@ -1740,6 +1740,19 @@ PRBool nsImapProtocol::ProcessCurrentURL()
   else if (!logonFailed)
       HandleCurrentUrlError();
 
+// if we are set up as a channel, we should notify our channel listener that we are stopping...
+// so pass in ourself as the channel and not the underlying socket or file channel the protocol
+// happens to be using
+  if (m_channelListener)
+  {
+      nsCOMPtr<nsIRequest> request = do_QueryInterface(m_mockChannel);
+      NS_ASSERTION(request, "no request");
+      if (request) {
+        nsresult status;
+        request->GetStatus(&status);
+        rv = m_channelListener->OnStopRequest(request, m_channelContext, status);
+      }
+  }
   if (mailnewsurl && m_imapMailFolderSink)
   {
     rv = GetServerStateParser().LastCommandSuccessful() && !logonFailed ?
@@ -1757,19 +1770,6 @@ PRBool nsImapProtocol::ProcessCurrentURL()
   if (m_transport)
     m_transport->SetTimeout(nsISocketTransport::TIMEOUT_READ_WRITE, PR_UINT32_MAX);
 
-// if we are set up as a channel, we should notify our channel listener that we are stopping...
-// so pass in ourself as the channel and not the underlying socket or file channel the protocol
-// happens to be using
-  if (m_channelListener)
-  {
-      nsCOMPtr<nsIRequest> request = do_QueryInterface(m_mockChannel);
-      NS_ASSERTION(request, "no request");
-      if (request) {
-        nsresult status;
-        request->GetStatus(&status);
-        rv = m_channelListener->OnStopRequest(request, m_channelContext, status);
-      }
-  }
   SetFlag(IMAP_CLEAN_UP_URL_STATE);
 
   nsCOMPtr <nsISupports> copyState;

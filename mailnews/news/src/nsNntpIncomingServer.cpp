@@ -342,7 +342,7 @@ nsNntpIncomingServer::WriteNewsrcFile()
         if (NS_FAILED(rv)) return rv;
 
         nsCOMPtr<nsIOutputStream> newsrcStream;
-        nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(newsrcStream), newsrcFile, -1, 00600);
+        nsresult rv = MsgNewBufferedFileOutputStream(getter_AddRefs(newsrcStream), newsrcFile, -1, 00600);
         if (NS_FAILED(rv))
           return rv;
 
@@ -840,7 +840,7 @@ nsNntpIncomingServer::WriteHostInfoFile()
   if (!mHostInfoFile)
     return NS_ERROR_UNEXPECTED;
   nsCOMPtr<nsIOutputStream> hostInfoStream;
-  rv = NS_NewLocalFileOutputStream(getter_AddRefs(hostInfoStream), mHostInfoFile, -1, 00600);
+  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(hostInfoStream), mHostInfoFile, -1, 00600);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // todo, missing some formatting, see the 4.x code

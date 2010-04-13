@@ -1839,7 +1839,7 @@ NS_IMETHODIMP
 nsSaveMsgListener::OnStartRequest(nsIRequest* request, nsISupports* aSupport)
 {
   if (m_file)
-    NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream), m_file, -1, 00600);
+    MsgNewBufferedFileOutputStream(getter_AddRefs(m_outputStream), m_file, -1, 00600);
   if (!m_outputStream)
   {
     mCanceled = PR_TRUE;
@@ -2869,11 +2869,7 @@ nsDelAttachListener::StartProcessing(nsMessenger * aMessenger, nsIMsgWindow * aM
   rv = mMsgFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr<nsIOutputStream> fileOutputStream;
-  rv = NS_NewLocalFileOutputStream(getter_AddRefs(fileOutputStream), mMsgFile, -1, 00600);
-  NS_ENSURE_SUCCESS(rv,rv);
-  rv = NS_NewBufferedOutputStream(getter_AddRefs(mMsgFileStream), fileOutputStream, FOUR_K);
-  NS_ENSURE_SUCCESS(rv,rv);
+  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(mMsgFileStream), mMsgFile, -1, 00600);
 
   // create the additional header for data conversion. This will tell the stream converter
   // which MIME emitter we want to use, and it will tell the MIME emitter which attachments
