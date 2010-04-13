@@ -310,7 +310,7 @@ function addItemBefore(aNewItem, aAgendaItem, aPeriod, visible) {
     } else {
         this.agendaListboxControl.insertBefore(newelement, aAgendaItem);
     }
-    newelement.setOccurrence(aNewItem, (aPeriod.duration > 1));
+    newelement.setOccurrence(aNewItem, aPeriod);
     newelement.removeAttribute("selected");
     return newelement;
 }

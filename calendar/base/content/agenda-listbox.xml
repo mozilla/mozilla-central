@@ -125,7 +125,8 @@
                 xbl:inherits="selected,disabled"
                 flex="1">
         <xul:vbox pack="center" flex="1">
-          <xul:hbox flex="1">
+          <xul:hbox flex="1" align="center">
+            <xul:image anonid="agenda-multiDayEvent-image" class="agenda-multiDayEvent-image"/>
             <xul:calendar-month-day-box-item anonid="allday-item" 
                                              flex="1"
                                              flat="true"/>
@@ -144,6 +145,32 @@
         <body><![CDATA[
             this.mOccurrence = aOccurrence;
             this.mAllDayItem.occurrence = aOccurrence;
+
+            let periodStartDate = aPeriod.start.clone();
+            periodStartDate.isDate = true;
+            let periodEndDate = aPeriod.end;
+            let startDate = this.mOccurrence[calGetStartDateProp(this.mOccurrence)]
+                                .getInTimezone(calendarDefaultTimezone());
+            let endDate = this.mOccurrence[calGetEndDateProp(this.mOccurrence)]
+                              .getInTimezone(calendarDefaultTimezone());
+            let endPreviousDay = endDate.clone();
+            endPreviousDay.day--;
+
+            let iconType = "";
+            if (startDate.compare(endPreviousDay) != 0) {
+                // all day event spanning multiple days
+                if (startDate.compare(periodStartDate) >= 0 &&
+                     startDate.compare(periodEndDate) <= 0) {
+                    iconType = "start";
+                } else if (endDate.compare(periodStartDate) >= 0 &&
+                           endDate.compare(periodEndDate) <= 0) {
+                    iconType = "end";
+                } else {
+                    iconType = "continue";
+                }
+            }
+            let multiDayImage = document.getAnonymousElementByAttribute(this, "anonid", "agenda-multiDayEvent-image");
+            multiDayImage.setAttribute("type", iconType);
         ]]></body>
       </method>
     </implementation>
@@ -160,14 +187,17 @@
            extends="chrome://calendar/content/agenda-listbox.xml#agenda-base-richlist-item">
     <content tooltip="itemTooltip">
       <xul:hbox anonid="agenda-container-box" class="agenda-container-box" xbl:inherits="selected,disabled,current" flex="1">
-      <xul:hbox>
-        <xul:vbox>
-          <xul:image anonid="agenda-calendar-image" class="agenda-calendar-image"/>
-          <xul:spacer flex="1"/>
-        </xul:vbox>
-      </xul:hbox>
+        <xul:hbox>
+          <xul:vbox>
+            <xul:image anonid="agenda-calendar-image" class="agenda-calendar-image"/>
+            <xul:spacer flex="1"/>
+          </xul:vbox>
+        </xul:hbox>
         <xul:vbox anonid="agenda-description">
-          <xul:label anonid="agenda-event-start" class="agenda-event-start" crop="end" xbl:inherits="selected"/>
+          <xul:hbox align="center">
+            <xul:image anonid="agenda-multiDayEvent-image" class="agenda-multiDayEvent-image"/>
+            <xul:label anonid="agenda-event-start" class="agenda-event-start" crop="end" xbl:inherits="selected"/>
+          </xul:hbox>
           <xul:label anonid="agenda-event-title" class="agenda-event-title" crop="end" xbl:inherits="selected"/>
         </xul:vbox>
       </xul:hbox>
@@ -175,23 +205,62 @@
     <implementation>
       <method name="setOccurrence">
         <parameter name="aItem"/>
-        <parameter name="aLongFormat"/>
+        <parameter name="aPeriod"/>
         <body><![CDATA[
             this.mOccurrence = aItem;
-            var titlebox = document.getAnonymousElementByAttribute(this, "anonid", "agenda-event-title");
+            let titlebox = document.getAnonymousElementByAttribute(this, "anonid", "agenda-event-title");
             titlebox.value = aItem.title;
-
-            var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
+            let dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
                                   .getService(Components.interfaces.calIDateTimeFormatter);
-            var duration = "";
-            var start =  this.mOccurrence[calGetStartDateProp(this.mOccurrence)]
+
+            let periodStartDate = aPeriod.start.clone();
+            periodStartDate.isDate = true;
+            let periodEndDate = aPeriod.end.clone();
+            let start = this.mOccurrence[calGetStartDateProp(this.mOccurrence)]
                             .getInTimezone(calendarDefaultTimezone());
-            if (aLongFormat) {
-                duration = dateFormatter.formatDateTime(start);
+            let end = this.mOccurrence[calGetEndDateProp(this.mOccurrence)]
+                          .getInTimezone(calendarDefaultTimezone());
+            let startDate = start.clone();
+            startDate.isDate = true;
+            let endDate = end.clone();
+            endDate.isDate = true;
+            let endAtMidnight = (end.hour == 0 && end.minute == 0);
+            let endPreviousDay = endDate.clone();
+            endPreviousDay.day--;
+            let longFormat = aPeriod.duration > 1;
+
+            let duration = "";
+            let iconType = "";
+            if (startDate.compare(endDate) == 0 ||
+                 (startDate.compare(endPreviousDay) == 0 && endAtMidnight)) {
+                // event that starts and ends in the same day, midnight included
+                duration = longFormat ? dateFormatter.formatDateTime(start) :
+                                        dateFormatter.formatTime(start);
             } else {
-                duration = dateFormatter.formatTime(start);
+                // event spanning multiple days
+                if (startDate.compare(periodStartDate) >= 0 &&
+                     startDate.compare(periodEndDate) <= 0) {
+                    iconType = "start";
+                    duration = longFormat ? dateFormatter.formatDateTime(start) :
+                                            dateFormatter.formatTime(start);
+                } else if (endDate.compare(periodStartDate) >= 0 &&
+                           endDate.compare(periodEndDate) <= 0) {
+                    iconType = "end";
+                    if (endAtMidnight) {
+                        duration = dateFormatter.formatDate(endPreviousDay) + " ";
+                        duration = longFormat ? duration + calGetString("dateFormat", "midnight") :
+                                                calGetString("dateFormat", "midnight");
+                    } else {
+                        duration = longFormat ? dateFormatter.formatDateTime(end) :
+                                                dateFormatter.formatTime(end);
+                    }
+                } else {
+                    iconType = "continue";
+                }
             }
-            var durationbox = document.getAnonymousElementByAttribute(this, "anonid", "agenda-event-start");
+            let multiDayImage = document.getAnonymousElementByAttribute(this, "anonid", "agenda-multiDayEvent-image");
+            multiDayImage.setAttribute("type", iconType);
+            let durationbox = document.getAnonymousElementByAttribute(this, "anonid", "agenda-event-start");
             durationbox.value = duration;
             this.refreshColor();
         ]]></body>

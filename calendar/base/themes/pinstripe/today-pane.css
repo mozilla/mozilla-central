@@ -282,8 +282,33 @@ agenda-allday-richlist-item {
 
 .agenda-calendar-image {
   list-style-image: url("chrome://calendar/skin/calendar-overlay.png");
+  -moz-image-region: rect(0px 10px 10px 0px);
   margin-top: 3px;
   -moz-margin-start: 4px;
   width: 10px;
   height: 10px;
 }
+
+.agenda-multiDayEvent-image {
+  list-style-image: url("chrome://calendar/skin/calendar-overlay.png");
+  -moz-margin-start: 3px;
+  width: 10px;
+  height: 10px;
+  display: none;
+}
+
+.agenda-multiDayEvent-image[type="start"] {
+  -moz-image-region: rect(0px 20px 10px 10px);
+  display: -moz-box;
+}
+
+.agenda-multiDayEvent-image[type="continue"] {
+  -moz-image-region: rect(0px 30px 10px 20px);
+  display: -moz-box;
+}
+
+.agenda-multiDayEvent-image[type="end"] {
+  -moz-image-region: rect(0px 40px 10px 30px);
+  display: -moz-box;
+}
+
