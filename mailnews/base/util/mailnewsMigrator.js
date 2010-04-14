@@ -72,6 +72,8 @@ function MigrateServerAuthPref()
     for (let i = 0; i < accounts.length; i++)
     {
       let accountKey = accounts[i]; // e.g. "account1"
+      if (!accountKey)
+        continue;
       let serverKey = gPrefs.getCharPref("mail.account." + accountKey +
          ".server");
       let server = "mail.server." + serverKey + ".";
@@ -103,6 +105,8 @@ function MigrateServerAuthPref()
     var smtpservers = gPrefs.getCharPref("mail.smtpservers").split(",");
     for (let i = 0; i < smtpservers.length; i++)
     {
+      if (!smtpservers[i])
+        continue;
       let server = "mail.smtpserver." + smtpservers[i] + ".";
       if (gPrefs.prefHasUserValue(server + "authMethod"))
         continue;
