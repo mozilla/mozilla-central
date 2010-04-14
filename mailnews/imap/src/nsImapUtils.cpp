@@ -107,6 +107,23 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, PRUint32 *
     nsAutoString folderPath;
     uriStr.Left(folderURI, keySeparator);
     folderURI.Cut(4, 8); // cut out the _message part of imap-message:
+    // folder uri's don't have fully escaped usernames.
+    PRInt32 atPos = folderURI.FindChar('@');
+    if (atPos != -1)
+    {
+      nsCString unescapedName, escapedName;
+      PRInt32 userNamePos = folderURI.Find("//") + 2;
+      PRUint32 origUserNameLen = atPos - userNamePos;
+      if (NS_SUCCEEDED(MsgUnescapeString(Substring(folderURI, userNamePos,
+                                                   origUserNameLen),
+                                         0, unescapedName)))
+      {
+        // Re-escape the username, matching the way we do it in uris, not the
+        // way necko escapes urls. See nsMsgIncomingServer::GetServerURI.
+        MsgEscapeString(unescapedName, nsINetUtil::ESCAPE_XALPHAS, escapedName);
+        folderURI.Replace(userNamePos, origUserNameLen, escapedName);
+      }
+    }
     nsCAutoString keyStr;
     if (keyEndSeparator != -1)
       uriStr.Mid(keyStr, keySeparator+1,
