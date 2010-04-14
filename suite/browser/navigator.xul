@@ -239,6 +239,7 @@
                      class="toolbarbutton-1 chromeclass-toolbar-additional"
                      label="&stopButton.label;"
                      oncommand="BrowserStop();" observes="canStop"
+                     disabled="true"
                      tooltiptext="&stopButton.tooltip;">
       </toolbarbutton>
 
