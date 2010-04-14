@@ -806,7 +806,7 @@ static char *DIR_GetStringPref(const char *prefRoot, const char *prefLeaf, const
 
     prefLocation.Append('.');
     prefLocation.Append(prefLeaf);
- 
+
     if (NS_SUCCEEDED(pPref->GetCharPref(prefLocation.get(), getter_Copies(value))))
     {
         /* unfortunately, there may be some prefs out there which look like this */
@@ -837,8 +837,7 @@ static char *DIR_GetStringPref(const char *prefRoot, const char *prefLeaf, const
   "ldap_2.servers.history.description"
 */
 
-static char *DIR_GetLocalizedStringPref
-(const char *prefRoot, const char *prefLeaf, const char *defaultValue)
+static char *DIR_GetDescription(const char *prefRoot)
 {
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> pPref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
@@ -847,8 +846,7 @@ static char *DIR_GetLocalizedStringPref
     return nsnull;
 
   nsCAutoString prefLocation(prefRoot);
-  prefLocation.Append('.');
-  prefLocation.Append(prefLeaf);
+  prefLocation.AppendLiteral(".description");
 
   nsString wvalue;
   nsCOMPtr<nsIPrefLocalizedString> locStr;
@@ -864,7 +862,23 @@ static char *DIR_GetLocalizedStringPref
     value = ToNewCString(utf8str);
   }
   else
-    value = defaultValue ? strdup(defaultValue) : nsnull;
+  {
+    // In TB 2 only some prefs had chrome:// URIs. We had code in place that would
+    // only get the localized string pref for the particular address books that
+    // were built-in.
+    // Additionally, nsIPrefBranch::getComplexValue will only get a non-user-set,
+    // non-locked pref value if it is a chrome:// URI and will get the string
+    // value at that chrome URI. This breaks extensions/autoconfig that want to
+    // set default pref values and allow users to change directory names.
+    //
+    // Now we have to support this, and so if for whatever reason we fail to get
+    // the localized version, then we try and get the non-localized version
+    // instead. If the string value is empty, then we'll just get the empty value
+    // back here.
+    rv = pPref->GetCharPref(prefLocation.get(), &value);
+    if (NS_FAILED(rv))
+      value = nsnull;
+  }
 
   return value;
 }
@@ -1109,7 +1123,7 @@ static void DIR_GetPrefsForOneServer(DIR_Server *server)
   // For default address books, this will get the name from the chrome
   // file referenced, for other address books it'll just retrieve it from prefs
   // as normal.
-  server->description = DIR_GetLocalizedStringPref(prefstring, "description", "");
+  server->description = DIR_GetDescription(prefstring);
   
   server->dirType = (DirectoryType)DIR_GetIntPref (prefstring, "dirType", LDAPDirectory);
 

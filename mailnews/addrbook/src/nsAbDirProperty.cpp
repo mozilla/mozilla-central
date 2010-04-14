@@ -99,9 +99,26 @@ NS_IMETHODIMP nsAbDirProperty::GetDirName(nsAString &aDirName)
   }
 
   nsCString dirName;
-  nsresult rv = GetLocalizedStringValue("description", EmptyCString(),
-                                        dirName);
+  nsresult rv = GetLocalizedStringValue("description", EmptyCString(), dirName);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  // In TB 2 only some prefs had chrome:// URIs. We had code in place that would
+  // only get the localized string pref for the particular address books that
+  // were built-in.
+  // Additionally, nsIPrefBranch::getComplexValue will only get a non-user-set,
+  // non-locked pref value if it is a chrome:// URI and will get the string
+  // value at that chrome URI. This breaks extensions/autoconfig that want to
+  // set default pref values and allow users to change directory names.
+  //
+  // Now we have to support this, and so if for whatever reason we fail to get
+  // the localized version, then we try and get the non-localized version
+  // instead. If the string value is empty, then we'll just get the empty value
+  // back here.
+  if (dirName.IsEmpty())
+  {
+    rv = GetStringValue("description", EmptyCString(), dirName);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   CopyUTF8toUTF16(dirName, aDirName);
   return NS_OK;
