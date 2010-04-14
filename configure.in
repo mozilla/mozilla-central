@@ -4875,8 +4875,6 @@ cairo-cocoa)
     AC_DEFINE(MOZ_WIDGET_COCOA)
     MOZ_USER_DIR="Mozilla"
     AC_DEFINE(XP_MACOSX)
-    AC_DEFINE(TARGET_CARBON)
-    AC_DEFINE(TARGET_API_MAC_CARBON)
     if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
     TK_LIBS='-framework Carbon -framework AddressBook'
     else

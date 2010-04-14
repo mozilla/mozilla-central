@@ -55,8 +55,6 @@
 #include "nsMsgAppleDouble.h"
 #include "nsMsgAppleCodes.h"
 
-#ifdef XP_MACOSX
-
 #include <Carbon/Carbon.h>
 
 /*
@@ -140,7 +138,7 @@ int fill_apple_mime_header(
 	PR_snprintf(tmpstr, sizeof(tmpstr),
 			"\"\r\nContent-Disposition: inline; filename=\"%s\"\r\n\r\n\r\n--=\r\n",
 			p_ap_encode_obj->fname);
-#endif
+#endif /* 0 */
 	PR_snprintf(tmpstr, sizeof(tmpstr), "--%s"CRLF, p_ap_encode_obj->boundary);
 	status = write_stream(p_ap_encode_obj, 
 						tmpstr, 
@@ -177,7 +175,9 @@ int ap_encode_file_infor(
 	}
 
 	/* get a file comment, if possible */
-#if TARGET_CARBON
+#if 1
+    // Carbon doesn't support GetWDInfo(). (Bug 555684)
+
     // not sure why working directories are needed here...
     comlen = 0;
 #else
@@ -208,7 +208,7 @@ int ap_encode_file_infor(
 				comlen = dtp.ioDTActCount;
 		}
 	}
-#endif
+#endif /* ! 1 */
 	
 	/* write header */
 //	head.magic = dfork ? APPLESINGLE_MAGIC : APPLEDOUBLE_MAGIC;
@@ -728,5 +728,3 @@ static int output64chunk(
 						tmpstr,
 						p-tmpstr);
 }
-
-#endif /* XP_MACOSX */

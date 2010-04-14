@@ -58,7 +58,6 @@
 #include "prmem.h"
 #include "nsNetUtil.h"
 
-#if defined(XP_MACOSX)
 #include <Carbon/Carbon.h>
 
 OSStatus
@@ -315,5 +314,3 @@ int ap_encode_end(
 	
 	return noErr;
 }
-
-#endif	/* XP_MACOSX */

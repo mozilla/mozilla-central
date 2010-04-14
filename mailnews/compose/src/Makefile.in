@@ -126,9 +126,10 @@ EXPORTS		= \
 		$(NULL)
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-CPPSRCS += nsMsgAppleDoubleEncode.cpp \
-		nsMsgAppleEncode.cpp \
-		$(NULL)
+CPPSRCS += \
+	nsMsgAppleDoubleEncode.cpp \
+	nsMsgAppleEncode.cpp \
+	$(NULL)
 endif
 
 # we don't want the shared lib, but we want to force the creation of a static lib.
@@ -141,5 +142,3 @@ ifdef MOZ_UNICODE
 DEFINES		+= -DMOZ_UNICODE
 endif
 endif
-
-
