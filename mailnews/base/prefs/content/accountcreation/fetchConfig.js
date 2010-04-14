@@ -74,10 +74,10 @@ function fetchConfigFromISP(domain, emailAddress, successCallback,
                             errorCallback)
 {
   let url1 = "http://autoconfig." + sanitize.hostname(domain) +
-             "/mail/config-v1.xml";
+             "/mail/config-v1.1.xml";
   // .well-known/ <http://tools.ietf.org/html/draft-nottingham-site-meta-04>
   let url2 = "http://" + sanitize.hostname(domain) +
-             "/.well-known/autoconfig/mail/config-v1.xml";
+             "/.well-known/autoconfig/mail/config-v1.1.xml";
   let sucAbortable = new SuccessiveAbortable();
   var time = Date.now();
   let fetch1 = new FetchHTTP(

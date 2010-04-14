@@ -841,7 +841,7 @@ pref("mailnews.emptyJunk.dontAskAgain", false);
 pref("mailnews.emptyTrash.dontAskAgain", false);
 
 // where to fetch auto config information from.
-pref("mailnews.auto_config_url", "https://live.mozillamessaging.com/autoconfig/");
+pref("mailnews.auto_config_url", "https://live.mozillamessaging.com/autoconfig/v1.1/");
 
 // -- Summary Database options
 // dontPreserveOnCopy: a space separated list of properties that are not
