@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Siddharth Agarwal <sid.bugzilla@gmail.com>
+ *   David Bienvenu <bienvenu@mozillamessaging.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -147,7 +148,7 @@ function test_select_folder_expands_collapsed_smart_inbox() {
   collapse_folder(rootFolder);
   assert_folder_collapsed(rootFolder);
 
-  // Now attempt to select the folder
+  // Now attempt to select the folder.
   mc.folderTreeView.selectFolder(inboxFolder);
 
   assert_folder_collapsed(rootFolder);
@@ -167,12 +168,92 @@ function test_select_folder_expands_collapsed_account_root() {
   collapse_folder(smartInboxFolder);
   assert_folder_collapsed(smartInboxFolder);
 
-  // Now attempt to select the folder
+  // Now attempt to select the folder.
   mc.folderTreeView.selectFolder(inboxSubfolder);
 
   assert_folder_collapsed(smartInboxFolder);
   assert_folder_expanded(rootFolder);
   assert_folder_selected_and_displayed(inboxSubfolder);
+}
+
+/**
+ * Test that smart folders are updated when the folders they should be
+ * searching over are added/removed or have the relevant flag set/cleared.
+ */
+function test_folder_flag_changes() {
+  expand_folder(smartInboxFolder);
+  // Now attempt to select the folder.
+  mc.folderTreeView.selectFolder(inboxSubfolder);
+  // Need to archive two messages in two different accounts in order to
+  // create a smart Archives folder.
+  select_click_row(0);
+  archive_selected_messages();
+  let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
+                  .getService(Ci.nsIMsgAccountManager);
+  let pop3Server = acctMgr.FindServer("tinderbox", "tinderbox", "pop3");
+  let pop3Inbox = pop3Server.rootFolder.getChildNamed("Inbox");
+  make_new_sets_in_folder(pop3Inbox, [{count: 1}]);
+  mc.folderTreeView.selectFolder(pop3Inbox);
+  select_click_row(0);
+  archive_selected_messages();
+
+  smartArchiveFolder = get_smart_folder_named("Archives");
+  let archiveScope = "|" + smartArchiveFolder.msgDatabase.dBFolderInfo
+                     .getCharProperty("searchFolderUri") + "|";
+  // We should have both this account, and a folder corresponding
+  // to this year in the scope.
+  rootFolder = inboxFolder.server.rootFolder;
+  let archiveFolder = rootFolder.getChildNamed("Archives");
+  assert_folder_and_children_in_scope(archiveFolder, archiveScope);
+  archiveFolder = pop3Server.rootFolder.getChildNamed("Archives");
+  assert_folder_and_children_in_scope(archiveFolder, archiveScope);
+
+  // Remove the archive flag, and make sure the archive folder and
+  // its children are no longer in the search scope.
+  archiveFolder.clearFlag(nsMsgFolderFlags.Archive);
+
+  // Refresh the archive scope because clearing the flag should have
+  // changed it.
+  archiveScope = "|" + smartArchiveFolder.msgDatabase.dBFolderInfo
+                 .getCharProperty("searchFolderUri") + "|";
+  assert_folder_and_children_not_in_scope(archiveFolder, archiveScope);
+}
+
+function assert_folder_and_children_in_scope(folder, searchScope)
+{
+  let folderURI = "|" + folder.URI + "|";
+  assert_uri_found(folderURI, searchScope);
+  let allDescendents = Cc["@mozilla.org/supports-array;1"]
+                         .createInstance(Ci.nsISupportsArray);
+  folder.ListDescendents(allDescendents);
+  let numFolders = allDescendents.Count();
+  for each (let f in fixIterator(allDescendents, Ci.nsIMsgFolder))
+    assert_uri_found(f.URI, searchScope)
+}
+
+function assert_folder_and_children_not_in_scope(folder, searchScope)
+{
+  let folderURI = "|" + folder.URI + "|";
+  assert_uri_not_found(folderURI, searchScope);
+  let allDescendents = Cc["@mozilla.org/supports-array;1"]
+                     .createInstance(Ci.nsISupportsArray);
+  folder.ListDescendents(allDescendents);
+  let numFolders = allDescendents.Count();
+  for each (let f in fixIterator(allDescendents, Ci.nsIMsgFolder))
+    assert_uri_not_found(f.URI, searchScope)
+}
+
+function assert_uri_found(folderURI, scopeList)
+{
+  if (scopeList.indexOf(folderURI) == -1)
+    throw new Error("scope " + scopeList + "doesn't contain " + folderURI);
+}
+
+function assert_uri_not_found(folderURI, scopeList)
+{
+  if (scopeList.indexOf(folderURI) != -1)
+    throw new Error("scope " + scopeList + "contains " + folderURI +
+                    " but shouldn't");
 }
 
 /**

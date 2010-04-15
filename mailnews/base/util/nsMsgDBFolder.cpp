@@ -4183,6 +4183,11 @@ NS_IMETHODIMP nsMsgDBFolder::OnFlagChange(PRUint32 flag)
     if (db)
       db->Commit(nsMsgDBCommitType::kLargeCommit);
 
+    if (mFlags & flag)
+      NotifyIntPropertyChanged(mFolderFlagAtom, mFlags & ~flag, mFlags);
+    else
+      NotifyIntPropertyChanged(mFolderFlagAtom, mFlags | flag, mFlags);
+
     if (flag & nsMsgFolderFlags::Offline)
     {
       PRBool newValue = mFlags & nsMsgFolderFlags::Offline;
@@ -4201,8 +4206,9 @@ NS_IMETHODIMP nsMsgDBFolder::SetFlags(PRUint32 aFlags)
 {
   if (mFlags != aFlags)
   {
+    PRUint32 changedFlags = aFlags ^ mFlags;
     mFlags = aFlags;
-    OnFlagChange(mFlags);
+    OnFlagChange(changedFlags);
   }
   return NS_OK;
 }

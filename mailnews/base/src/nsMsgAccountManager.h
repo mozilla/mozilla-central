@@ -88,6 +88,7 @@ private:
   PRBool m_accountsLoaded;
   nsCOMPtr <nsIMsgFolderCache> m_msgFolderCache;
   nsCOMPtr<nsIAtom> kDefaultServerAtom;
+  nsCOMPtr<nsIAtom> mFolderFlagAtom;
   nsCOMPtr<nsISupportsArray> m_accounts;
   nsInterfaceHashtable<nsCStringHashKey, nsIMsgIdentity> m_identities;
   nsInterfaceHashtable<nsCStringHashKey, nsIMsgIncomingServer> m_incomingServers;
@@ -203,9 +204,12 @@ private:
                                   nsISupportsArray *accounts,
                                   nsCString& aResult);
 
-  
+
+  nsresult RemoveFolderFromSmartFolder(nsIMsgFolder *aFolder,
+                                       PRUint32 flagsChanged);
+
   nsresult SetSendLaterUriPref(nsIMsgIncomingServer *server);
- 
+
   nsresult getPrefService();
   nsCOMPtr<nsIPrefBranch> m_prefs;
 
