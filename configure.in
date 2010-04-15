@@ -4964,7 +4964,7 @@ then
     if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
     PKG_CHECK_MODULES(MOZ_QT, QtGui QtNetwork QtUiTools QtCore)
     else
-    PKG_CHECK_MODULES(MOZ_QT, QtGui QtNetwork QtCore)
+    PKG_CHECK_MODULES(MOZ_QT, QtGui QtNetwork QtCore QtOpenGL)
     fi
 fi
 
