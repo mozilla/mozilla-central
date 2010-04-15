@@ -271,7 +271,12 @@ ifdef MOZ_DEBUG_SYMBOLS
 OS_CXXFLAGS += -Zi -UDEBUG -DNDEBUG
 OS_CFLAGS += -Zi -UDEBUG -DNDEBUG
 OS_LDFLAGS += -DEBUG -OPT:REF
-endif
+ifdef MOZILLA_1_9_2_BRANCH
+# This breaks builds on VC10, but mozilla-1.9.2 doesn't build with VC10 anyway,
+# so this isn't a big loss.
+OS_LDFLAGS += -OPT:NOWIN98
+endif # MOZILLA_1_9_2_BRANCH
+endif # MOZ_DEBUG_SYMBOLS
 
 ifdef MOZ_QUANTIFY
 # -FIXED:NO is needed for Quantify to work, but it increases the size
