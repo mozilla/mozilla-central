@@ -321,18 +321,18 @@ case "$target" in
 
     ac_exeext=.exe
 
-    _pwdw=`pwd -W`
-    _pwd=`pwd`
-    make OGLES_SDK_DIR="$OGLES_SDK_DIR" WINCE_SDK_DIR="$WINCE_SDK_DIR" TOPSRCDIR="$_topsrcdir/mozilla" OBJDIR="$_pwdw/mozilla" -C $srcdir/mozilla/build/wince/tools
+    _pwd=`pwd -W`/mozilla
+    _topsrcdirwin=`cd \`dirname $0\`; pwd -W`/mozilla
+    make OGLES_SDK_DIR="$OGLES_SDK_DIR" WINCE_SDK_DIR="$WINCE_SDK_DIR" TOPSRCDIR="$_topsrcdirwin" OBJDIR="$_pwd" -C $srcdir/mozilla/build/wince/tools
 
-    CC="$_pwd/mozilla/dist/sdk/bin/arm-wince-gcc"
-    CXX="$_pwd/mozilla/dist/sdk/bin/arm-wince-gcc"
-    CPP="$_pwd/mozilla/dist/sdk/bin/arm-wince-gcc -E -nologo"
-    CXXCPP="$_pwd/mozilla/dist/sdk/bin/arm-wince-gcc -TP -E -nologo"
-    LD="$_pwd/mozilla/dist/sdk/bin/arm-wince-link"
-    AR="$_pwd/mozilla/dist/sdk/bin/arm-wince-lib"
-    AS="$_pwd/mozilla/dist/sdk/bin/arm-wince-as"
-    RC="$_pwd/mozilla/dist/sdk/bin/arm-wince-res"
+    CC="$_pwd/dist/sdk/bin/arm-wince-gcc.exe"
+    CXX="$_pwd/dist/sdk/bin/arm-wince-gcc.exe"
+    CPP="$_pwd/dist/sdk/bin/arm-wince-gcc.exe -E -nologo"
+    CXXCPP="$_pwd/dist/sdk/bin/arm-wince-gcc.exe -TP -E -nologo"
+    LD="$_pwd/dist/sdk/bin/arm-wince-link.exe"
+    AR="$_pwd/dist/sdk/bin/arm-wince-lib.exe"
+    AS="$_pwd/dist/sdk/bin/arm-wince-as.exe"
+    RC="$_pwd/dist/sdk/bin/arm-wince-res.exe"
     echo -----------------------------------------------------------------------------
     ;;
 esac
@@ -2080,7 +2080,8 @@ case "$target" in
 
 *-wince*)
     TARGET_COMPILER_ABI=msvc
-    MOZ_TOOLS_DIR=`echo $MOZ_TOOLS`
+    MOZ_TOOLS_DIR=`cd $MOZ_TOOLS && pwd -W`
+    MOZ_BUILD_ROOT=`cd $MOZ_BUILD_ROOT && pwd -W`
     AR_LIST="$AR -list"
     AR_EXTRACT="$AR -extract"
     AR_DELETE="$AR d"
