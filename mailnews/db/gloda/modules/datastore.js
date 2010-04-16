@@ -459,6 +459,130 @@ CompactionBlockFetcherHandler.prototype = {
 };
 
 /**
+ * Wrapper that duplicates actions taken on a real statement to an explain
+ *  statement.  Currently only fires an explain statement once.
+ */
+function ExplainedStatementWrapper(aRealStatement, aExplainStatement,
+                                   aSQLString, aExplainHandler) {
+  this.real = aRealStatement;
+  this.explain = aExplainStatement;
+  this.sqlString = aSQLString;
+  this.explainHandler = aExplainHandler;
+  this.done = false;
+}
+ExplainedStatementWrapper.prototype = {
+  bindNullParameter: function(aColIndex) {
+    this.real.bindNullParameter(aColIndex);
+    if (!this.done)
+      this.explain.bindNullParameter(aColIndex);
+  },
+  bindStringParameter: function(aColIndex, aValue) {
+    this.real.bindStringParameter(aColIndex, aValue);
+    if (!this.done)
+      this.explain.bindStringParameter(aColIndex, aValue);
+  },
+  bindInt64Parameter: function(aColIndex, aValue) {
+    this.real.bindInt64Parameter(aColIndex, aValue);
+    if (!this.done)
+      this.explain.bindInt64Parameter(aColIndex, aValue);
+  },
+  bindDoubleParameter: function(aColIndex, aValue) {
+    this.real.bindDoubleParameter(aColIndex, aValue);
+    if (!this.done)
+      this.explain.bindDoubleParameter(aColIndex, aValue);
+  },
+  executeAsync: function wrapped_executeAsync(aCallback) {
+    if (!this.done) {
+      this.explainHandler.sqlEnRoute(this.sqlString);
+      this.explain.executeAsync(this.explainHandler);
+      this.explain.finalize();
+      this.done = true;
+    }
+    return this.real.executeAsync(aCallback);
+  },
+  finalize: function wrapped_finalize() {
+    if (!this.done)
+      this.explain.finalize();
+    this.real.finalize();
+  },
+};
+
+/**
+ * Writes a single JSON document to the provide file path in a streaming
+ *  fashion.  At startup we open an array to place the queries in and at
+ *  shutdown we close it.
+ */
+function ExplainedStatementProcessor(aDumpPath) {
+  let observerService = Cc["@mozilla.org/observer-service;1"]
+                          .getService(Ci.nsIObserverService);
+  observerService.addObserver(this, "quit-application", false);
+
+  this._sqlStack = [];
+  this._curOps = [];
+  this._objsWritten = 0;
+
+  let filePath = Cc["@mozilla.org/file/local;1"]
+                   .createInstance(Ci.nsILocalFile);
+  filePath.initWithPath(aDumpPath);
+
+  this._ostream = Cc["@mozilla.org/network/file-output-stream;1"]
+                 .createInstance(Ci.nsIFileOutputStream);
+  this._ostream.init(filePath, -1, -1, 0);
+
+  let s = '{"queries": [';
+  this._ostream.write(s, s.length);
+}
+ExplainedStatementProcessor.prototype = {
+  sqlEnRoute: function esp_sqlEnRoute(aSQLString) {
+    this._sqlStack.push(aSQLString);
+  },
+  handleResult: function esp_handleResult(aResultSet) {
+    let row;
+    // addr  opcode (s)      p1    p2    p3    p4 (s)   p5   comment (s)
+    while ((row = aResultSet.getNextRow())) {
+      this._curOps.push([
+        row.getInt64(0),  // addr
+        row.getString(1), // opcode
+        row.getInt64(2),  // p1
+        row.getInt64(3),  // p2
+        row.getInt64(4),  // p3
+        row.getString(5), // p4
+        row.getString(6), // p5
+        row.getString(7)  // comment
+      ]);
+    }
+  },
+  handleError: function esp_handleError(aError) {
+    Cu.reportError("Unexpected error in EXPLAIN handler: " + aError);
+  },
+  handleCompletion: function esp_handleCompletion(aReason) {
+    let obj = {
+      sql: this._sqlStack.shift(),
+      operations: this._curOps,
+    };
+    let s = (this._objsWritten++ ? ", " : "") + JSON.stringify(obj, null, 2);
+    this._ostream.write(s, s.length);
+
+    this._curOps = [];
+  },
+
+  observe: function esp_observe(aSubject, aTopic, aData) {
+    if (aTopic == "quit-application")
+      this.shutdown();
+  },
+
+  shutdown: function esp_shutdown() {
+    let s = "]}";
+    this._ostream.write(s, s.length);
+    this._ostream.close();
+
+    let observerService = Cc["@mozilla.org/observer-service;1"]
+                            .getService(Ci.nsIObserverService);
+    observerService.removeObserver(this, "quit-application");
+  }
+};
+
+/**
  * Database abstraction layer.  Contains explicit SQL schemas for our
  *  fundamental representations (core 'nouns', if you will) as well as
  *  specialized functions for then dealing with each type of object.  At the
@@ -789,6 +913,12 @@ var GlodaDatastore = {
   asyncConnection: null,
 
   /**
+   * Our "mailnews.database.global.datastore." preferences branch for debug
+   * notification handling.  We register as an observer against this.
+   */
+  _prefBranch: null,
+
+  /**
    * Initialize logging, create the database if it doesn't exist, "upgrade" it
    *  if it does and it's not up-to-date, fill our authoritative folder uri/id
    *  mapping.
@@ -799,6 +929,17 @@ var GlodaDatastore = {
 
     this._json = aNsJSON;
     this._nounIDToDef = aNounIDToDef;
+
+    let prefService = Cc["@mozilla.org/preferences-service;1"].
+                        getService(Ci.nsIPrefService);
+    let branch = prefService.getBranch("mailnews.database.global.datastore.");
+    this._prefBranch = branch.QueryInterface(Ci.nsIPrefBranch2);
+
+    // Not sure the weak reference really makes a difference given that we are a
+    // GC root.
+    branch.addObserver("", this, false);
+    // claim the pref changed so we can centralize our logic there.
+    this.observe(null, "nsPref:changed", "explainToPath");
 
     // Get the path to our global database
     var dirService = Cc["@mozilla.org/file/directory_service;1"].
@@ -878,6 +1019,39 @@ var GlodaDatastore = {
       Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 
     this._log.debug("Completed datastore initialization.");
+  },
+
+  observe: function gloda_ds_observe(aSubject, aTopic, aData) {
+    if(aTopic != "nsPref:changed")
+      return;
+
+    if (aData == "explainToPath") {
+      let explainToPath = null;
+      try {
+        explainToPath = this._prefBranch.getCharPref("explainToPath");
+        if (explainToPath.trim() == "")
+          explainToPath = null;
+      }
+      catch (ex) {
+        // don't care if the pref is not there.
+      }
+
+      // It is conceivable that the name is changing and this isn't a boolean
+      // toggle, so always clean out the explain processor.
+      if (this._explainProcessor) {
+        this._explainProcessor.shutdown();
+        this._explainProcessor = null;
+      }
+
+      if (explainToPath) {
+        this._createAsyncStatement = this._createExplainedAsyncStatement;
+        this._explainProcessor = new ExplainedStatementProcessor(
+                                       explainToPath);
+      }
+      else {
+        this._createAsyncStatement = this._realCreateAsyncStatement;
+      }
+    }
   },
 
   datastoreIsShutdown: false,
@@ -1150,7 +1324,14 @@ var GlodaDatastore = {
 
   _outstandingAsyncStatements: [],
 
-  _createAsyncStatement: function gloda_ds_createAsyncStatement(aSQLString,
+  /**
+   * Unless debugging, this is just _realCreateAsyncStatement, but in some
+   *  debugging modes this is instead the helpful wrapper
+   *  _createExplainedAsyncStatement.
+   */
+  _createAsyncStatement: null,
+
+  _realCreateAsyncStatement: function gloda_ds_createAsyncStatement(aSQLString,
                                                                 aWillFinalize) {
     let statement = null;
     try {
@@ -1169,6 +1350,37 @@ var GlodaDatastore = {
       this._outstandingAsyncStatements.push(statement);
 
     return statement;
+  },
+
+  /**
+   * The ExplainedStatementProcessor instance used by
+   *  _createExplainedAsyncStatement.  This will be null if
+   *  _createExplainedAsyncStatement is not being used as _createAsyncStatement.
+   */
+  _explainProcessor: null,
+
+  /**
+   * Wrapped version of _createAsyncStatement that EXPLAINs the statement.  When
+   *  used this decorates _createAsyncStatement, in which case we are found at
+   *  that name and the original is at _orig_createAsyncStatement.  This is
+   *  controlled by the explainToPath preference (see |_init|).
+   */
+  _createExplainedAsyncStatement:
+      function gloda_ds__createExplainedAsyncStatement(aSQLString,
+                                                       aWillFinalize) {
+    let realStatement = this._realCreateAsyncStatement(aSQLString,
+                                                       aWillFinalize);
+    // don't wrap transaction control statements.
+    if (aSQLString == "COMMIT" ||
+        aSQLString == "BEGIN TRANSACTION" ||
+        aSQLString == "ROLLBACK")
+      return realStatement;
+
+    let explainSQL = "EXPLAIN " + aSQLString;
+    let explainStatement = this._realCreateAsyncStatement(explainSQL);
+
+    return new ExplainedStatementWrapper(realStatement, explainStatement,
+                                         aSQLString, this._explainProcessor);
   },
 
   _cleanupAsyncStatements: function gloda_ds_cleanupAsyncStatements() {

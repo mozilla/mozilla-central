@@ -102,6 +102,23 @@ gPrefs.setBoolPref("mailnews.database.global.indexer.perform_initial_sweep",
 // yes to debug output
 gPrefs.setBoolPref("mailnews.database.global.logging.dump", true);
 
+const ENVIRON_MAPPINGS = [
+  {
+    envVar: "GLODA_DATASTORE_EXPLAIN_TO_PATH",
+    prefName: "mailnews.database.global.datastore.explainToPath"
+  }
+];
+
+// -- Propagate environment variables to prefs as appropriate:
+let environ = Cc["@mozilla.org/process/environment;1"]
+                .getService(Ci.nsIEnvironment);
+for each (let [, {envVar, prefName}] in Iterator(ENVIRON_MAPPINGS)) {
+ if (environ.exists(envVar)) {
+   gPrefs.setCharPref(prefName, environ.get(envVar));
+ }
+}
+
+
 // -- Import our modules
 Components.utils.import("resource:///modules/gloda/public.js");
 Components.utils.import("resource:///modules/gloda/indexer.js");
