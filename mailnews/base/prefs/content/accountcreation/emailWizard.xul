@@ -218,6 +218,20 @@
       <hbox id="fullspacer"/>
     </groupbox>
     <vbox>
+      <groupbox id="popimap_radio_area" hidden="true">
+        <radiogroup id="popimap_radiogroup">
+          <hbox align="center">
+            <radio id="incoming_protocol_imap"
+                   label="&imap.description;" value="imap"
+                   oncommand="gEmailConfigWizard.setIncomingProtocolRadio();"/>
+            <label id="imap_recommended"
+                   value="&recommended-appendix.label;"/>
+          </hbox>
+          <radio id="incoming_protocol_pop3"
+                 label="&pop.description;" value="pop3"
+                 oncommand="gEmailConfigWizard.setIncomingProtocolRadio();"/>
+        </radiogroup>
+      </groupbox>
       <groupbox id="settingsbox">
         <vbox>
           <vbox id="configarea">

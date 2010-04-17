@@ -22,6 +22,9 @@
 <!ENTITY imap.label                      "IMAP">
 <!ENTITY pop.label                       "POP">
 <!ENTITY smtp.label                      "SMTP">
+<!ENTITY imap.description                "IMAP - Access folders and messages from multiple computers">
+<!ENTITY pop.description                 "POP - Download all messages onto this computer, folders are local only">
+<!ENTITY recommended-appendix.label      "(recommended)">
 
 <!ENTITY manualSetup.label               "Manual Setup…">
 <!ENTITY manualSetup.accesskey           "S">

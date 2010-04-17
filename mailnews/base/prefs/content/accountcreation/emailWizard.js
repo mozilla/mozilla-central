@@ -195,6 +195,7 @@ EmailConfigWizard.prototype =
   onBack : function()
   {
     this._disableConfigDetails(true);
+    _hide("popimap_radio_area");
     this.hideConfigDetails();
     this.clearConfigDetails();
 
@@ -206,6 +207,7 @@ EmailConfigWizard.prototype =
     _hide("back_button");
     document.getElementById("advanced_settings").disabled = true;
     _hide("advanced_settings");
+    window.sizeToContent();
   },
 
   /* Helper method that enables or disabled all the account information inputs
@@ -363,10 +365,41 @@ EmailConfigWizard.prototype =
     this._incomingState = "";
   },
 
+  // The IMAP vs. POP dropdown (not radio), settable during manual edit.
+  // In the normal result screen, it's not editable and people use the
+  // radios instead.
   setIncomingProtocol : function()
   {
     this._userChangedIncomingProtocol = true;
     this._incomingState = "";
+  },
+
+  // IMAP vs. POP3 radio (not *dropdown*) changed
+  setIncomingProtocolRadio : function()
+  {
+    let newTypeSelected = document.getElementById("popimap_radiogroup")
+                                  .selectedItem.value;
+    var config = this._currentConfig;
+    // this is also called when we set the fields programmatically
+    if (newTypeSelected == config.incoming.type ||
+        !config.incomingAlternatives || !config.incomingAlternatives.length)
+      return;
+    let alternates = config.incomingAlternatives.filter(function(c) {
+      return c.type != config.incoming.type;
+    });
+    if (alternates.length == 0)
+      return;
+
+    // re-add current incoming server to alternatives
+    config.incomingAlternatives.unshift(config.incoming);
+    // find alternative config which matches newly selected protocol
+    for each (let alt in config.incomingAlternatives) {
+      if (alt.type == newTypeSelected) {
+        config.incoming = alt;
+        break;
+      }
+    }
+    this.foundConfig(config);
   },
 
   setPort : function(eltId)
@@ -1022,7 +1055,6 @@ EmailConfigWizard.prototype =
     _hide("settingsbox");
     document.getElementById("create_button").disabled = true;
     _hide("create_button");
-    window.sizeToContent();
   },
 
   /* Clears out the config details information, this is really only meant to be
@@ -1055,8 +1087,11 @@ EmailConfigWizard.prototype =
       let menuitem = menulist.insertItemAt(0, hostname, hostname);
       menuitem.hostname = hostname;
     }
+    this._currentConfig.incomingAlternatives = [];
+    this._currentConfig.outgoingAlternatives = [];
 
     this._disableConfigDetails(false);
+    _hide("popimap_radio_area");
     this._setIncomingStatus("failed");
     this._setOutgoingStatus("failed");
     document.getElementById("advanced_settings").disabled = false;
@@ -1135,6 +1170,29 @@ EmailConfigWizard.prototype =
         config.incoming.socketType;
       document.getElementById("incoming_protocol").value =
         sanitize.translate(config.incoming.type, { "imap" : 1, "pop3" : 2});
+      document.getElementById("popimap_radiogroup").value =
+        config.incoming.type;
+
+      // en/disable IMAP vs. POP radiogroup
+      let haveOther = false;
+      if (config.incomingAlternatives && config.incomingAlternatives.length)
+      {
+        let alternates = config.incomingAlternatives.filter(function(c) {
+          return c.type != config.incoming.type;
+        });
+        haveOther = alternates.length > 0;
+      }
+      let popImapRadiogroup = document.getElementById("popimap_radio_area");
+      let wasHidden = popImapRadiogroup.hidden;
+      popImapRadiogroup.hidden = !haveOther;
+      // Hide "(recommended)" behind IMAP, if POP3 was first choice from XML,
+      // and not just selected by user later.
+      if (!config._imapRecommendedToggled)
+        document.getElementById("imap_recommended").hidden =
+            config.incoming.type == "pop3";
+      config._imapRecommendedToggled = true;
+      if (wasHidden == haveOther) // hidden changed, so resize
+        window.sizeToContent();
 
       if (config.incoming._inprogress)
       {
@@ -1319,6 +1377,7 @@ EmailConfigWizard.prototype =
             : "";
     } catch(ex) {
       gEmailWizardLogger.error("missing string for " + msgName);
+      logException(new Exception("missing string for name: " + msgName));
     }
 
     let title = document.getElementById("config_status_title");
@@ -1345,7 +1404,7 @@ EmailConfigWizard.prototype =
   {
     gEmailWizardLogger.info("_startProbingIncoming: " + config.incoming.hostname +
                             " probe = " + this._probeAbortable);
-    this.startSpinner("incoming", "looking_up_settings");
+    this.startSpinner("incoming", "looking_up_settings_guess");
 
     config.incoming._inprogress = true;
     // User entered hostname, we may want to probe port and protocol and socketType
@@ -1380,7 +1439,7 @@ EmailConfigWizard.prototype =
   {
     gEmailWizardLogger.info("_startProbingOutgoing: " + config.outgoing.hostname +
                             " probe = " + this._probeAbortable);
-    this.startSpinner("outgoing", "looking_up_settings");
+    this.startSpinner("outgoing", "looking_up_settings_guess");
 
     config.outgoing._inprogress = true;
     // User entered hostname, we want to probe port and protocol and socketType
