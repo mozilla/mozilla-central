@@ -27,6 +27,7 @@
  *   David Bienvenu <bienvenu@nventure.com>
  *   Jeremy Morton <bugzilla@game-point.net>
  *   Steffen Wilberg <steffen.wilberg@web.de>
+ *   Joachim Herb <herb@leo.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -203,15 +204,43 @@ function UpdateMailPaneConfig(aMsgWindowInitialized) {
   var messagePane = GetMessagePane();
   if (messagePane.parentNode.id != desiredId) {
     ClearAttachmentList();
+    var hdrToolbox = document.getElementById("header-view-toolbox");
+    var hdrToolbar = document.getElementById("header-view-toolbar");
+    var firstPermanentChild = hdrToolbar.firstPermanentChild;
+    var lastPermanentChild = hdrToolbar.lastPermanentChild;
     var messagePaneSplitter = GetThreadAndMessagePaneSplitter();
     var desiredParent = document.getElementById(desiredId);
+
+    // Here the message pane including the header pane is moved to the
+    // new layout by the appendChild() method below.  As described in bug
+    // 519956 only elements in the DOM tree are copied to the new place
+    // whereas javascript class variables of DOM tree elements get lost.
+    // In this case the ToolboxPalette, Toolbarset first/lastPermanentChild
+    // are removed which results in the message header pane not being
+    // customizable any more.  A workaround for this problem is to clone
+    // them first and add them to the DOM tree after the message pane has
+    // been moved.
+    var cloneToolboxPalette;
+    var cloneToolbarset;
+    if (hdrToolbox.palette) {
+      cloneToolboxPalette = hdrToolbox.palette.cloneNode(true);
+    }
+    if (hdrToolbox.toolbarset) {
+      cloneToolbarset = hdrToolbox.toolbarset.cloneNode(true);
+    }
+
     // See Bug 381992. The ctor for the browser element will fire again when we
-    // re-insert the messagePaneBox back into the document.
-    // But the dtor doesn't fire when the element is removed from the document.
-    // Manually call destroy here to avoid a nasty leak.
+    // re-insert the messagePaneBox back into the document.  But the dtor
+    // doesn't fire when the element is removed from the document.  Manually
+    // call destroy here to avoid a nasty leak.
     document.getElementById("messagepane").destroy();
     desiredParent.appendChild(messagePaneSplitter);
     desiredParent.appendChild(messagePane);
+    hdrToolbox.palette  = cloneToolboxPalette;
+    hdrToolbox.toolbarset = cloneToolbarset;
+    hdrToolbar = document.getElementById("header-view-toolbar");
+    hdrToolbar.firstPermanentChild = firstPermanentChild;
+    hdrToolbar.lastPermanentChild = lastPermanentChild;
     messagePaneSplitter.orient = desiredParent.orient;
     if (aMsgWindowInitialized)
     {

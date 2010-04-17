@@ -21,6 +21,7 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Joachim Herb <herb@leo.org>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,6 +45,35 @@
 
 var gCustomizeSheet = false;
 
+function overlayRestoreDefaultSet() {
+  let toolbox = null;
+  if ("arguments" in window && window.arguments[0])
+    toolbox = window.arguments[0];
+  else if (window.frameElement && "toolbox" in window.frameElement)
+    toolbox = window.frameElement.toolbox;
+
+  let mode = toolbox.getAttribute("defaultmode");
+  let align = toolbox.getAttribute("defaultlabelalign");
+  let menulist = document.getElementById("modelist");
+
+  if (mode == "full" && align == "end") {
+    toolbox.setAttribute("mode", "textbesideicon");
+    toolbox.setAttribute("labelalign", align);
+    overlayUpdateToolbarMode("textbesideicon");
+  }
+  else if (mode == "full" && align == ""){
+    toolbox.setAttribute("mode", "full");
+    toolbox.removeAttribute("labelalign");
+    overlayUpdateToolbarMode(mode);
+  }
+
+  restoreDefaultSet();
+
+  if (mode == "full" && align == "end") {
+    menulist.value = "textbesideicon";
+  }
+}
+
 function overlayUpdateToolbarMode(aModeValue)
 {
   let toolbox = null;
@@ -65,6 +95,9 @@ function overlayUpdateToolbarMode(aModeValue)
 
 function overlayOnLoad()
 {
+  let restoreButton = document.getElementById("main-box").querySelector("[oncommand*='restore']");
+  restoreButton.setAttribute("oncommand", "overlayRestoreDefaultSet();");
+
   // Add the textBesideIcon menu item if it's not already there.
   let menuitem = document.getElementById("textbesideiconItem");
   if (!menuitem) {
@@ -82,18 +115,44 @@ function overlayOnLoad()
     toolbox = window.arguments[0];
   else if (window.frameElement && "toolbox" in window.frameElement)
     toolbox = window.frameElement.toolbox;
+
+  document.getElementById("CustomizeToolbarWindow").setAttribute("toolboxId", toolbox.id);
+  toolbox.setAttribute("doCustomization", "true");
+
   let mode = toolbox.getAttribute("mode");
   let align = toolbox.getAttribute("labelalign");
   if (mode == "full" && align == "end")
     toolbox.setAttribute("mode", "textbesideicon");
 
   onLoad();
+  overlayRepositionDialog();
 
   // Re-set and re-persist the mode, if we changed it above.
   if (mode == "full" && align == "end") {
     toolbox.setAttribute("mode", mode);
     toolbox.ownerDocument.persist(toolbox.id, "mode");
   }
+}
+
+function overlayRepositionDialog()
+{
+  // Position the dialog so it is fully visible on the screen  
+  // (if possible)
+
+  // Seems to be necessary to get the correct dialog height/width
+  window.sizeToContent();
+  var wH  = window.outerHeight;
+  var wW  = window.outerWidth;
+  var sH  = window.screen.height;
+  var sW  = window.screen.width;
+  var sX  = window.screenX;
+  var sY  = window.screenY;
+  var sAL = window.screen.availLeft;
+  var sAT = window.screen.availTop;
+
+  var nX = Math.max(Math.min(sX, sW - wW), sAL);
+  var nY = Math.max(Math.min(sY, sH - wH), sAT);
+  window.moveTo(nX, nY);
 }
 
 function CustomizeMailToolbar(toolboxId, customizePopupId)
@@ -169,6 +228,8 @@ function MailToolboxCustomizeDone(aEvent, customizePopupId)
   if (this.UpdateMailToolbar != undefined)
     UpdateMailToolbar(focus);
 
+  document.getElementById("header-view-toolbox").removeAttribute("doCustomization");
+
   // The GetMail button is stuck in a strange state right now, since the
   // customization wrapping preserves its children, but not its initialized
   // state. Fix that here.
@@ -179,6 +240,8 @@ function MailToolboxCustomizeDone(aEvent, customizePopupId)
     while (popup.lastChild != sep)
       popup.removeChild(popup.lastChild);
   }
+  UpdateJunkButton();
+  UpdateReplyButtons();
 }
 
 function onViewToolbarCommand(aEvent, toolboxId)

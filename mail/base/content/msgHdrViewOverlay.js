@@ -24,6 +24,7 @@
  *   Mark Banner <bugzilla@standard8.plus.com>
  *   David Ascher <dascher@mozillamessaging.com>
  *   Dan Mosedale <dmose@mozillamessagin.com>
+ *   Joachim Herb <herb@leo.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -273,6 +274,38 @@ function OnLoadMsgHeaderPane()
   event.initEvent('messagepane-loaded', false, true);
   var headerViewElement = document.getElementById("msgHeaderView");
   headerViewElement.dispatchEvent(event);
+
+  var toolbox = document.getElementById("header-view-toolbox");
+  toolbox.customizeDone = function(aEvent) {
+    MailToolboxCustomizeDone(aEvent, "CustomizeHeaderToolbar");
+  };
+
+  var toolbarset = document.getElementById('customToolbars');
+  toolbox.toolbarset = toolbarset;
+
+  // Check whether we did an upgrade to a customizable header pane.
+  // If yes, set the header pane toolbar mode to icons besides text
+  var toolbar = document.getElementById("header-view-toolbar");
+  if (toolbox && toolbar) {
+    if (!toolbox.getAttribute("mode")) {
+
+      /* set toolbox attributes to default values */
+      var mode = toolbox.getAttribute("defaultmode");
+      var align = toolbox.getAttribute("defaultlabelalign");
+      var iconsize = toolbox.getAttribute("defaulticonsize");
+      toolbox.setAttribute("mode", mode);
+      toolbox.setAttribute("labelalign", align);
+      toolbox.setAttribute("iconsize", iconsize);
+      toolbox.ownerDocument.persist(toolbox.id, "mode");
+      toolbox.ownerDocument.persist(toolbox.id, "iconsize");
+      toolbox.ownerDocument.persist(toolbox.id, "labelalign");
+
+      /* set toolbar attributes to default values */
+      iconsize = toolbar.getAttribute("defaulticonsize");
+      toolbar.setAttribute("iconsize", iconsize);
+      toolbar.ownerDocument.persist(toolbar.id, "iconsize");
+    }
+  }
 }
 
 function initToolbarMenu() {
@@ -281,28 +314,7 @@ function initToolbarMenu() {
   let mode = document.getElementById('header-view-toolbar')
                      .getAttribute("mode");
 
-  // Construct the appropriate menuitem nodename, get the node, and check it.
-  document.getElementById("header-toolbar-show-" + mode)
-          .setAttribute("checked", "true");
   return;
-}
-
-function setAndPersistToolbarMode(mode) {
-  let toolbarElement = document.getElementById('header-view-toolbar');
-  toolbarElement.setAttribute('mode', mode);
-  document.persist('header-view-toolbar', 'mode');
-}
-
-function onShowHeaderToolbarContextMenu() {
-  let menuitem = document.getElementById("header-toolbar-always-show-reply");
-  menuitem.setAttribute("checked", Application.prefs.get("mailnews.headers.always_show_reply_sender").value);
-  return true; /*  always want to show the popup */
-}
-
-function setAndPersistReplyToSenderButton(checked) {
-  Application.prefs.setValue("mailnews.headers.always_show_reply_sender",
-                             (checked)? true : false);
-  UpdateReplyButtons();
 }
 
 function OnUnloadMsgHeaderPane()

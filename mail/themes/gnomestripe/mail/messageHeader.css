@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Joachim Herb <herb@leo.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -196,7 +197,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 .msgHeaderView-button {
   -moz-appearance: button;
   min-height: 1ex;
-  margin: 0px 0px 0px 0.2em;
+  margin: 0px 0.1em 0px 0.1em;
   vertical-align: middle;
   /* important required to override messenger.css rule */
   min-width: 1em !important;
@@ -204,33 +205,20 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   list-style-image: none; /* overrides the rule from primaryToolbar.css */
 }
 
-.msgHeaderView-button > .toolbarbutton-icon,
-.msgHeaderView-button[type="menu-button"] > .toolbarbutton-menubutton-button
-> .toolbarbutton-icon {
-  /* Needed to make the buttons w/o icons the same height as those with icons */
-  min-height: 16px;
-}
-
 .msgHeaderView-button[disabled="true"] {
   display: none;
 }
 
 /* toolbar[mode="text"] is necessary so that we end up with more specificity
- * than the !import rule in toolkit's toolbar.css.
+ * than the !important rule in toolkit's toolbar.css.
  */
-toolbar[mode="text"] > .msgHeaderView-button .toolbarbutton-text
-{
+toolbar[mode="text"] .msgHeaderView-button .toolbarbutton-text,
+toolbar[mode="text"] toolbarpaletteitem .msgHeaderView-button .toolbarbutton-text {
   margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Unlike the primary toolbar, we want icons to be horizontally in line with
- * the text, rather than vertically.
- */
-toolbar[mode="full"] > .msgHeaderView-button,
-toolbar[mode="full"] > .msgHeaderView-button > .toolbarbutton-menubutton-button
-{
-  -moz-box-orient: horizontal;
+  padding-top: 1px !important;
+  padding-bottom: 2px !important;
+  -moz-padding-start: 0px !important;
+  -moz-padding-end: 0px !important;
 }
 
 /* For unclear reasons, toolkit's toolbarbutton.css forces a margin of 0,
@@ -240,11 +228,32 @@ toolbar[mode="full"] > .msgHeaderView-button > .toolbarbutton-menubutton-button
  * The second selector is a descendent selector rather than a child selector
  * so that we effect both buttons and menubuttons.
  */
-toolbar[mode="full"] > .msgHeaderView-button .toolbarbutton-text {
+toolbox[labelalign="end"] toolbar[mode="full"] .msgHeaderView-button .toolbarbutton-text {
   -moz-margin-start: 2px !important;
 }
 
+toolbarpaletteitem > #hdrReplyToSenderButton {
+  display: -moz-box;
+}
+
+.hdrReplyToSenderButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 96px 24px 72px);
+}
+
+toolbar[iconsize="small"] .hdrReplyToSenderButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 64px 16px 48px);
+}
+
 .hdrReplyButton {
+  /* important required to override -moz-appearance from msgHdrView-button */
+  -moz-appearance: dualbutton !important;
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 96px 24px 72px);
+}
+
+toolbar[iconsize="small"] .hdrReplyButton {
   /* important required to override -moz-appearance from msgHdrView-button */
   -moz-appearance: dualbutton !important;
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
@@ -252,11 +261,21 @@ toolbar[mode="full"] > .msgHeaderView-button .toolbarbutton-text {
 }
 
 .hdrReplyAllButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 120px 24px 96px);
+}
+
+toolbar[iconsize="small"] .hdrReplyAllButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 80px 16px 64px);
 }
 
 .hdrReplyListButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 144px 24px 120px);
+}
+
+toolbar[iconsize="small"] .hdrReplyListButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 96px 16px 80px);
 }
@@ -281,18 +300,31 @@ toolbar[mode="full"] > .msgHeaderView-button .toolbarbutton-text {
 }
 
 .hdrForwardButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 168px 24px 144px);
+}
+
+toolbar[iconsize="small"] .hdrForwardButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 112px 16px 96px);
 }
 
-/* This icon isn't that meaningful, and we'd rather save horizontal space */
-toolbar:not([mode="full"]) > .hdrArchiveButton {
+.hdrArchiveButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 336px 24px 312px);
+}
+
+toolbar[iconsize="small"] .hdrArchiveButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 224px 16px 208px);
 }
 
-/* This icon isn't that meaningful, and we'd rather save horizontal space */
-toolbar:not([mode="full"]) > .hdrJunkButton {
+.hdrJunkButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 192px 24px 168px);
+}
+
+toolbar[iconsize="small"] .hdrJunkButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 128px 16px 112px);
 }
@@ -303,13 +335,44 @@ toolbar:not([mode="full"]) > .hdrJunkButton {
 }
 
 .hdrTrashButton {
-  -moz-box-orient: vertical;
+  list-style-image: url("moz-icon://stock/gtk-delete?size=toolbar");
+}
+
+toolbar[iconsize="small"] .hdrTrashButton {
   list-style-image: url("moz-icon://stock/gtk-delete?size=menu");
 }
 
+#header-view-toolbar toolbarpaletteitem toolbarseparator,
+#header-view-toolbar toolbarseparator {
+  height: 26px;
+}
+
+#header-view-toolbar toolbarspacer {
+  height: 20px;
+}
+
+window[toolboxId="header-view-toolbox"] #wrapper-spring {
+  display: none;
+}
+
+#header-view-toolbox[doCustomization] {
+  background: grey;
+}
+
+#header-view-toolbox[doCustomization] #header-view-toolbar {
+  min-width: 100px;
+  min-height: 10px;
+}
+
+#header-view-toolbar {
+  -moz-box-pack: end;
+}
+
+/*
 .hdrTrashButton > .toolbarbutton-icon {
   -moz-margin-end: 0px;
 }
+*/
 
 .msgHeaderView-flat-button {
   min-width: 1px !important;
@@ -584,6 +647,15 @@ mail-newsgroups-headerfield {
   margin: 0;
   padding: 0;
   -moz-box-align: baseline;
+}
+
+window[toolboxId="header-view-toolbox"] #smallicons,
+window[toolboxId="header-view-toolbox"] button[icon="add"] {
+  display: none;
+}
+
+window[toolboxId="header-view-toolbox"] #modelist menuitem:first-child {
+  display: none;
 }
 
 mail-headerfield > .headerValue {

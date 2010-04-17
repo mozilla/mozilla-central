@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ * Joachim Herb <herb@leo.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -321,25 +322,43 @@ toolbar[mode="text"] .msgHeaderView-button .toolbarbutton-text {
   padding: 0;
 }
 
-/* We want our icons to be on one side of the text rather than below them so we 
- * need this rule to override the one from primaryToolbar.css
- */
-toolbar[mode="full"] .msgHeaderView-button,
-toolbar[mode="full"] .msgHeaderView-button > .toolbarbutton-menubutton-button
-{
-  /* !important required for toolbarbutton-menubutton-button case */
-  -moz-box-orient: horizontal !important;
+toolbarpaletteitem > #hdrReplyToSenderButton {
+  display: -moz-box;
 }
 
-.hdrReplyButton {
+.hdrReplyToSenderButton {
+  /* large icons are only needed for customization dialog, so use here also small icons */
   list-style-image: url("chrome://messenger/skin/icons/symbolic-reply.png");
 }
 
+toolbar[iconsize="small"] .hdrReplyToSenderButton {
+  list-style-image: url("chrome://messenger/skin/icons/symbolic-reply.png");
+}
+ 
+.hdrReplyButton {
+  /* large icons are only needed for customization dialog, so use here also small icons */
+  list-style-image: url("chrome://messenger/skin/icons/symbolic-reply.png");
+}
+
+toolbar[iconsize="small"] .hdrReplyButton {
+  list-style-image: url("chrome://messenger/skin/icons/symbolic-reply.png");
+}
+ 
 .hdrReplyListButton {
+  /* large icons are only needed for customization dialog, so use here also small icons */
+  list-style-image: url("chrome://messenger/skin/icons/symbolic-replylist.png");
+}
+
+toolbar[iconsize="small"] .hdrReplyListButton {
   list-style-image: url("chrome://messenger/skin/icons/symbolic-replylist.png");
 }
 
 .hdrReplyAllButton {
+  /* large icons are only needed for customization dialog, so use here also small icons */
+  list-style-image: url("chrome://messenger/skin/icons/symbolic-replyall.png");
+}
+
+toolbar[iconsize="small"] .hdrReplyAllButton {
   list-style-image: url("chrome://messenger/skin/icons/symbolic-replyall.png");
 }
 
@@ -351,6 +370,7 @@ toolbar[mode="full"] .msgHeaderView-button > .toolbarbutton-menubutton-button
   -moz-padding-end: 0px;
   -moz-margin-start: 0px;
   -moz-margin-end: 0px;
+  padding-bottom: 2px !important;
   min-width: 1em;
   min-height: 1ex;
 }
@@ -364,11 +384,20 @@ toolbar[mode="full"] .msgHeaderView-button > .toolbarbutton-menubutton-button
 }
 
 .hdrForwardButton {
+  /* large icons are only needed for customization dialog, so use here also small icons */
   list-style-image: url("chrome://messenger/skin/icons/symbolic-forward.png");
 }
 
-/* This icon isn't that meaningful, and we'd rather save horizontal space */
-toolbar:not([mode="full"]) > .hdrArchiveButton {
+toolbar[iconsize="small"] .hdrForwardButton {
+  list-style-image: url("chrome://messenger/skin/icons/symbolic-forward.png");
+}
+
+.hdrArchiveButton {
+  /* large icons are only needed for customization dialog, so use here also small icons */
+  list-style-image: url("chrome://messenger/skin/icons/folder-archive.png");
+}
+
+toolbar[iconsize="small"] .hdrArchiveButton {
   list-style-image: url("chrome://messenger/skin/icons/folder-archive.png");
 }
 
@@ -377,14 +406,53 @@ toolbar:not([mode="full"]) > .hdrArchiveButton {
   opacity: 0;
 }
 
-/* This icon isn't that meaningful, and we'd rather save horizontal space */
-toolbar:not([mode="full"]) > .hdrJunkButton {
+.hdrJunkButton {
+  /* large icons are only needed for customization dialog, so use here also small icons */
+  list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
+}
+
+toolbar[iconsize="small"] .hdrJunkButton {
   list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
 }
 
 .hdrTrashButton {
+  /* large icons are only needed for customization dialog, so use here also small icons */
   list-style-image: url("chrome://messenger/skin/icons/folder-trash.png");
 }
+
+toolbar[iconsize="small"] .hdrTrashButton {
+  list-style-image: url("chrome://messenger/skin/icons/folder-trash.png");
+}
+
+/* XXX taken from gnomestripe, has to be checked */
+#header-view-toolbar toolbarpaletteitem toolbarseparator,
+#header-view-toolbar toolbarseparator {
+  height: 26px;
+}
+
+#header-view-toolbar toolbarspacer {
+  height: 20px;
+}
+
+window[toolboxId="header-view-toolbox"] #wrapper-spring {
+  display: none;
+}
+
+#header-view-toolbox[doCustomization] {
+  background: grey;
+}
+
+#header-view-toolbox[doCustomization] #header-view-toolbar {
+  min-width: 100px;
+  min-height: 10px;
+}
+
+#header-view-toolbar {
+  -moz-box-pack: end;
+  min-width: 50px !important;
+  min-height: 14px !important;
+}
+
 
 .msgHeaderView-flat-button:hover {
   background-color: rgb(230,231,227);
@@ -629,6 +697,15 @@ mail-newsgroups-headerfield {
   margin: 0;
   padding: 0;
   -moz-box-align: baseline;
+}
+
+window[toolboxId="header-view-toolbox"] #smallicons,
+window[toolboxId="header-view-toolbox"] button[icon="add"] {
+  display: none;
+}
+
+window[toolboxId="header-view-toolbox"] #modelist menuitem:first-child {
+  display: none;
 }
 
 mail-headerfield > .headerValue {

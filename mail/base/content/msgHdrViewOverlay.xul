@@ -20,6 +20,7 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
+   -   Joachim Herb <herb@leo.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,7 +35,12 @@
    - the terms of any one of the MPL, the GPL or the LGPL.
    -
    - ***** END LICENSE BLOCK ***** -->
-<!DOCTYPE overlay SYSTEM "chrome://messenger/locale/msgHdrViewOverlay.dtd">
+<!DOCTYPE overlay [
+<!ENTITY % msgHdrViewOverlayDTD SYSTEM "chrome://messenger/locale/msgHdrViewOverlay.dtd">
+%msgHdrViewOverlayDTD;
+<!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
+%messengerDTD;
+]>
 
 <?xml-stylesheet href="chrome://messenger/skin/messageHeader.css" type="text/css"?>
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -95,27 +101,11 @@
     accesskey="&deleteAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('delete');" />
 </popup>
 
-<popup id="header-toolbar-context-menu" onpopupshowing="return onShowHeaderToolbarContextMenu();">
-  <menuitem id="header-toolbar-show-full" type="radio"
-            name="header-toolbar-menu-mode-group"
-            label="&hdrViewToolbarShowFull.label;"
-            accesskey="&hdrViewToolbarShowFull.accesskey;"
-            oncommand="setAndPersistToolbarMode('full');"/>
-  <menuitem id="header-toolbar-show-icons" type="radio"
-            name="header-toolbar-menu-mode-group"
-            label="&hdrViewToolbarShowIcons.label;"
-            accesskey="&hdrViewToolbarShowIcons.accesskey;"
-            oncommand="setAndPersistToolbarMode('icons');"/>
-  <menuitem id="header-toolbar-show-text" type="radio"
-            name="header-toolbar-menu-mode-group"
-            label="&hdrViewToolbarShowText.label;"
-            accesskey="&hdrViewToolbarShowText.accesskey;"
-            oncommand="setAndPersistToolbarMode('text');"/>
-  <menuseparator id="header-toolbar-separator"/>
-  <menuitem id="header-toolbar-always-show-reply" type="checkbox"
-            label="&hdrViewToolbarAlwaysReplySender.label;"
-            accesskey="&hdrViewToolbarAlwaysReplySender.accesskey;"
-            oncommand="setAndPersistReplyToSenderButton(this.getAttribute('checked'));"/>
+<popup id="header-toolbar-context-menu">
+  <menuitem id="CustomizeHeaderToolbar"
+            oncommand="CustomizeMailToolbar('header-view-toolbox', 'CustomizeHeaderToolbar')"
+            label="&customizeToolbar.label;"
+            accesskey="&customizeToolbar.accesskey;"/>
 </popup>
 
 <popup id="copyUrlPopup" popupanchor="bottomleft">
@@ -124,7 +114,8 @@
 
 <hbox id="msgHeaderView" collapsed="true" class="main-header-area">
   <deck id="msgHeaderViewDeck" selectedIndex="0" 
-        persist="selectedIndex" flex="1">
+        persist="selectedIndex" flex="1"
+        context="header-toolbar-context-menu">
   
     <!-- the message pane consists of 3 'boxes'. Box #2 is the expanded headers view (the default view) -->
     <vbox id="expandedHeaderView" flex="1">
@@ -156,8 +147,19 @@
             </rows>
           </grid>
 
-          <toolbox id="header-view-toolbox">
+          <toolbox id="header-view-toolbox"
+                   defaulticonsize="small"
+                   minwidth="50px"
+                   defaultlabelalign="end"
+                   defaultmode="full">
             <toolbarpalette id="header-view-toolbar-palette">
+              <!-- XXXdmose need to move these commands to a controller, either
+                   on the header view, the message pane, or the default
+                   controller -->
+
+              <!-- XXXdmose need to audit our shortcut/a11y setup and make sure
+                   these buttons are doing the right thing -->
+
               <toolbarbutton id="hdrForwardButton"
                              label="&hdrForwardButton.label;"
                              tooltiptext="&hdrForwardButton.tooltip;"
@@ -182,93 +184,89 @@
                              class="toolbarbutton-1 msgHeaderView-button hdrTrashButton"
                              oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' :
                                                     'cmd_delete');RestoreFocusAfterHdrButton();"/>
-
+              <toolbarbutton id="hdrReplyToSenderButton" label="&hdrReplyButton.label;"
+                             tooltiptext="&hdrReplyButton.tooltip;"
+                             oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
+                             observes="button_reply"
+                             class="toolbarbutton-1 msgHeaderView-button hdrReplyToSenderButton"/>
+              <toolbaritem id="hdrSmartReplyButton">
+                <toolbarbutton id="hdrReplyButton" label="&hdrReplyButton.label;"
+                               tooltiptext="&hdrReplyButton.tooltip;"
+                               oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
+                               observes="button_reply"
+                               class="toolbarbutton-1 msgHeaderView-button hdrReplyButton"
+                               type="menu-button">
+                  <menupopup id="hdrReplyDropdown">
+                    <menuitem id="hdrReplySubButton"
+                              label="&hdrReplyButton.label;"
+                              tooltiptext="&hdrReplyButton.tooltip;"
+                              observes="button_reply"/>
+                    <menuseparator id="hdrReplyAllSubButtonSep"/>
+                    <menuitem id="hdrReplyAllSubButton"
+                              label="&hdrReplyAllButton.label;"
+                              tooltiptext="&hdrReplyAllButton.tooltip;"
+                              observes="button_replyall"
+                              oncommand="MsgReplyToAllMessage(event); event.stopPropagation();
+                                         RestoreFocusAfterHdrButton();"/>
+                  </menupopup>
+                </toolbarbutton>
+                <toolbarbutton id="hdrReplyAllButton"
+                               label="&hdrReplyAllButton.label;"
+                               tooltiptext="&hdrReplyAllButton.tooltip;"
+                               oncommand="MsgReplyToAllMessage(event);RestoreFocusAfterHdrButton();"
+                               observes="button_replyall"
+                               class="toolbarbutton-1 msgHeaderView-button hdrReplyButton hdrReplyAllButton"
+                               type="menu-button"
+                               hidden="true">
+                  <menupopup id="hdrReplyAllDropdown">
+                    <menuitem id="hdrReplyAllSubButton"
+                              label="&hdrReplyAllButton.label;"
+                              tooltiptext="&hdrReplyAllButton.tooltip;"
+                              observes="button_replyall"/>
+                    <menuseparator id="hdrReplyAllSubSeparator"/>
+                    <menuitem id="hdrReplySubButton"
+                              label="&hdrReplyButton.label;"
+                              tooltiptext="&hdrReplyButton.tooltip;"
+                              observes="button_reply"
+                              oncommand="MsgReplyMessage(event); event.stopPropagation();
+                                         RestoreFocusAfterHdrButton();"/>
+                  </menupopup>
+                </toolbarbutton>
+                <toolbarbutton id="hdrReplyListButton"
+                               label="&hdrReplyListButton.label;"
+                               tooltiptext="&hdrReplyListButton.tooltip;"
+                               oncommand="MsgReplyToListMessage(event);RestoreFocusAfterHdrButton();"
+                               observes="button_replylist"
+                               class="toolbarbutton-1 msgHeaderView-button hdrReplyButton hdrReplyListButton"
+                               type="menu-button"
+                               hidden="true">
+                  <menupopup id="hdrReplyListDropdown">
+                    <menuitem id="hdrReplyListSubButton"
+                              label="&hdrReplyListButton.label;"
+                              tooltiptext="&hdrReplyListButton.tooltip;"
+                              observes="button_replylist"/>
+                    <menuseparator id="hdrReplyListSubSeparator"/>
+                    <menuitem id="hdrReplyAllSubButton"
+                              label="&hdrReplyAllButton.label;"
+                              tooltiptext="&hdrReplyAllButton.tooltip;"
+                              observes="button_replyall"
+                              oncommand="MsgReplyToAllMessage(event); event.stopPropagation();
+                                         RestoreFocusAfterHdrButton();"/>
+                    <menuitem id="hdrReplySubButton"
+                              label="&hdrReplyButton.label;"
+                              tooltiptext="&hdrReplyButton.tooltip;"
+                              observes="button_reply"
+                              oncommand="MsgReplyMessage(event); event.stopPropagation();
+                                         RestoreFocusAfterHdrButton();"/>
+                  </menupopup>
+                </toolbarbutton>
+              </toolbaritem>
             </toolbarpalette>
 
             <toolbar id="header-view-toolbar" align="start" customizable="true"
                      mode="full" context="header-toolbar-context-menu"
-                     defaultset="hdrReplyButton,hdrReplyAllButton,hdrReplyListButton,hdrForwardButton,hdrArchiveButton,hdrJunkButton,hdrTrashButton">
-
-              <!-- XXXdmose need to move these commands to a controller, either
-                   on the header view, the message pane, or the default
-                   controller -->
-
-              <!-- XXXdmose need to audit our shortcut/a11y setup and make sure
-                   these buttons are doing the right thing -->
-
-              <!-- XXXdmose the reply buttons really want to be hoisted into
-                   the palette -->
-              <toolbarbutton id="hdrReplyButton" label="&hdrReplyButton.label;"
-                             tooltiptext="&hdrReplyButton.tooltip;"
-                             oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
-                             observes="button_reply"
-                             class="toolbarbutton-1 msgHeaderView-button hdrReplyButton"
-                             type="menu-button">
-                <menupopup id="hdrReplyDropdown">
-                  <menuitem id="hdrReplySubButton"
-                            label="&hdrReplyButton.label;"
-                            tooltiptext="&hdrReplyButton.tooltip;"
-                            observes="button_reply"/>
-                  <menuseparator id="hdrReplyAllSubButtonSep"/>
-                  <menuitem id="hdrReplyAllSubButton"
-                            label="&hdrReplyAllButton.label;"
-                            tooltiptext="&hdrReplyAllButton.tooltip;"
-                            observes="button_replyall"
-                            oncommand="MsgReplyToAllMessage(event); event.stopPropagation();
-                                       RestoreFocusAfterHdrButton();"/>
-                </menupopup>
-              </toolbarbutton>
-              <toolbarbutton id="hdrReplyAllButton"
-                             label="&hdrReplyAllButton.label;"
-                             tooltiptext="&hdrReplyAllButton.tooltip;"
-                             oncommand="MsgReplyToAllMessage(event);RestoreFocusAfterHdrButton();"
-                             observes="button_replyall"
-                             class="toolbarbutton-1 msgHeaderView-button hdrReplyButton hdrReplyAllButton"
-                             type="menu-button"
-                             hidden="true">
-                <menupopup id="hdrReplyAllDropdown">
-                  <menuitem id="hdrReplyAllSubButton"
-                            label="&hdrReplyAllButton.label;"
-                            tooltiptext="&hdrReplyAllButton.tooltip;"
-                            observes="button_replyall"/>
-                  <menuseparator id="hdrReplyAllSubSeparator"/>
-                  <menuitem id="hdrReplySubButton"
-                            label="&hdrReplyButton.label;"
-                            tooltiptext="&hdrReplyButton.tooltip;"
-                            observes="button_reply"
-                            oncommand="MsgReplyMessage(event); event.stopPropagation();
-                                       RestoreFocusAfterHdrButton();"/>
-                </menupopup>
-              </toolbarbutton>
-              <toolbarbutton id="hdrReplyListButton"
-                             label="&hdrReplyListButton.label;"
-                             tooltiptext="&hdrReplyListButton.tooltip;"
-                             oncommand="MsgReplyToListMessage(event);RestoreFocusAfterHdrButton();"
-                             observes="button_replylist"
-                             class="toolbarbutton-1 msgHeaderView-button hdrReplyButton hdrReplyListButton"
-                             type="menu-button"
-                             hidden="true">
-                <menupopup id="hdrReplyListDropdown">
-                  <menuitem id="hdrReplyListSubButton"
-                            label="&hdrReplyListButton.label;"
-                            tooltiptext="&hdrReplyListButton.tooltip;"
-                            observes="button_replylist"/>
-                  <menuseparator id="hdrReplyListSubSeparator"/>
-                  <menuitem id="hdrReplyAllSubButton"
-                            label="&hdrReplyAllButton.label;"
-                            tooltiptext="&hdrReplyAllButton.tooltip;"
-                            observes="button_replyall"
-                            oncommand="MsgReplyToAllMessage(event); event.stopPropagation();
-                                       RestoreFocusAfterHdrButton();"/>
-                  <menuitem id="hdrReplySubButton"
-                            label="&hdrReplyButton.label;"
-                            tooltiptext="&hdrReplyButton.tooltip;"
-                            observes="button_reply"
-                            oncommand="MsgReplyMessage(event); event.stopPropagation();
-                                       RestoreFocusAfterHdrButton();"/>
-                </menupopup>
-              </toolbarbutton>
-            </toolbar>
+                     defaulticonsize="small" defaultmode="full"
+                     defaultset="hdrReplyToSenderButton,hdrSmartReplyButton,hdrForwardButton,hdrArchiveButton,hdrJunkButton,hdrTrashButton"/>
           </toolbox>
         </hbox>
 

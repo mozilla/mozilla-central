@@ -32,6 +32,7 @@
  *   Andrew Sutherland <asutherland@asutherland.org>
  *   Dan Mosedale <dmose@mozilla.org>
  *   Michiel van Leeuwen <mvl@exedo.nl>
+ *   Joachim Herb <herb@leo.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -945,39 +946,48 @@ function UpdateReplyButtons()
   else if (showReplyAll)
     buttonToShow = "replyAll";
 
+  let smartReplyButton = document.getElementById("hdrSmartReplyButton");
   let replyButton = document.getElementById("hdrReplyButton");
   let replyAllButton = document.getElementById("hdrReplyAllButton");
   let replyAllSubButton = document.getElementById("hdrReplyAllSubButton");
   let replyAllSubButtonSep = document.getElementById("hdrReplyAllSubButtonSep");
   let replyListButton = document.getElementById("hdrReplyListButton");
+  let replyToSenderButton = document.getElementById("hdrReplyToSenderButton");
 
-  let alwaysOfferReply =
-    Application.prefs.get("mailnews.headers.always_show_reply_sender").value;
-
-  replyButton.hidden = (buttonToShow != "reply" && !alwaysOfferReply);
-  replyAllButton.hidden = (buttonToShow != "replyAll");
-  replyListButton.hidden = (buttonToShow != "replyList");
-
-  if (gFolderDisplay.selectedMessageIsNews)
+  if (smartReplyButton)
   {
-    // If it's a news item, show the ReplyAll sub-button and separator.
-    replyAllSubButton.hidden = false;
-    replyAllSubButtonSep.hidden = false;
+    replyButton.hidden = (buttonToShow != "reply");
+    replyAllButton.hidden = (buttonToShow != "replyAll");
+    replyListButton.hidden = (buttonToShow != "replyList");
+    if (gFolderDisplay.selectedMessageIsNews)
+    {
+      // If it's a news item, show the ReplyAll sub-button and separator.
+      replyAllSubButton.hidden = false;
+      replyAllSubButtonSep.hidden = false;
+     }
+    else if (gFolderDisplay.selectedMessageIsFeed)
+    {
+      // otherwise, if it's an rss item, hide all the Reply buttons.
+      replyButton.hidden = true;
+      replyAllButton.hidden = true;
+      replyListButton.hidden = true;
+      replyAllSubButton.hidden = true;
+      replyAllSubButtonSep.hidden = true;
+    }
+    else
+    {
+      // otherwise, hide the ReplyAll sub-buttons.
+      replyAllSubButton.hidden = true;
+      replyAllSubButtonSep.hidden = true;
+    }
   }
-  else if (gFolderDisplay.selectedMessageIsFeed)
+
+  if (replyToSenderButton)
   {
-    // otherwise, if it's an rss item, hide all the Reply buttons.
-    replyButton.hidden = true;
-    replyAllButton.hidden = true;
-    replyListButton.hidden = true;
-    replyAllSubButton.hidden = true;
-    replyAllSubButtonSep.hidden = true;
-  }
-  else
-  {
-    // otherwise, hide the ReplyAll sub-buttons.
-    replyAllSubButton.hidden = true;
-    replyAllSubButtonSep.hidden = true;
+    if (gFolderDisplay.selectedMessageIsFeed)
+      replyToSenderButton.hidden = true;
+    else
+      replyToSenderButton.hidden = (replyButton && !replyButton.hidden);
   }
 
   goUpdateCommand("button_reply");
