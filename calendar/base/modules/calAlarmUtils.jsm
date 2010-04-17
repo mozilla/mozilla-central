@@ -50,7 +50,7 @@ cal.alarms = {
         if (cal.getPrefSafe("calendar.alarms.onfor" + type + "s", 0) == 1) {
             let alarmOffset = cal.createDuration();
             let alarm = cal.createAlarm();
-            let units = cal.getPrefSafe("calendar.alarms." + type + "alarmunit", "minute");
+            let units = cal.getPrefSafe("calendar.alarms." + type + "alarmunit", "minutes");
             alarmOffset[units] = cal.getPrefSafe("calendar.alarms." + type + "alarmlen", 0);
             alarmOffset.normalize();
             alarmOffset.isNegative = true;
