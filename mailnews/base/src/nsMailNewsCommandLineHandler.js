@@ -46,7 +46,7 @@ const MESSAGE_ID_PARAM = "?messageid=";
 
 var nsMailNewsCommandLineHandler =
 {
-  get _messenger nsMailNewsCommandLineHandler_getMessenger() {
+  get _messenger() {
     delete this._messenger;
     return this._messenger = Cc["@mozilla.org/messenger;1"]
                                .createInstance(Ci.nsIMessenger);

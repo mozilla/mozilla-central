@@ -304,21 +304,21 @@ GlodaFolder.prototype = {
    * Indicate whether this folder is currently being compacted.  The
    *  |GlodaMsgIndexer| keeps this in-memory-only value up-to-date.
    */
-  get compacting gloda_folder_get_compacting() {
+  get compacting() {
     return this._compacting;
   },
   /**
    * Set whether this folder is currently being compacted.  This is really only
    *  for the |GlodaMsgIndexer| to set.
    */
-  set compacting gloda_folder_set_compacting(aCompacting) {
+  set compacting(aCompacting) {
     this._compacting = aCompacting;
   },
   /**
    * Indicate whether this folder was compacted and has not yet been
    *  compaction processed.
    */
-  get compacted gloda_folder_get_compacted() {
+  get compacted() {
     return Boolean(this._dirtyStatus & this._kFolderCompactedFlag);
   },
   /**

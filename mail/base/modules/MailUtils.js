@@ -54,7 +54,7 @@ var MailUtils =
   /**
    * A reference to the root pref branch
    */
-  get _prefBranch MailUtils_get_prefBranch() {
+  get _prefBranch() {
     delete this._prefBranch;
     return this._prefBranch = Cc["@mozilla.org/preferences-service;1"]
                                 .getService(Ci.nsIPrefService)

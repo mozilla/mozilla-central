@@ -1291,7 +1291,7 @@ DBViewWrapper.prototype = {
    * - The 'limbo' set of flags because we currently lack a view but will have
    *    one soon (and then we will apply the flags).
    */
-  get _viewFlags DBViewWrapper_get__viewFlags() {
+  get _viewFlags() {
     if (this.__viewFlags != null)
       return this.__viewFlags;
     if (this.dbView)
@@ -1310,7 +1310,7 @@ DBViewWrapper.prototype = {
    *    so re-generate the view.  Nor can it handle a change involving
    *    kUnreadOnly.
    */
-  set _viewFlags DBViewWrapper_set__viewFlags(aViewFlags) {
+  set _viewFlags(aViewFlags) {
     if (this._viewUpdateDepth || !this.dbView)
       this.__viewFlags = aViewFlags;
     else {

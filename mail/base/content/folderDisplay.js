@@ -928,7 +928,7 @@ FolderDisplayWidget.prototype = {
    *  to other code as well.  But don't poll this property; ask for an event
    *  that you can hook.
    */
-  get allMessagesLoaded FolderDisplayWidget_get_allMessagesLoaded() {
+  get allMessagesLoaded() {
     return this._allMessagesLoaded;
   },
 
@@ -1400,7 +1400,7 @@ FolderDisplayWidget.prototype = {
    * Whether the folder pane is visible. When we're inactive, we stash the value
    * in |this._folderPaneVisible|.
    */
-  get folderPaneVisible FolderDisplayWidget_get_folderPaneVisible() {
+  get folderPaneVisible() {
     if (this._active) {
       let folderPaneBox = document.getElementById("folderPaneBox");
       if (folderPaneBox)
@@ -1417,7 +1417,7 @@ FolderDisplayWidget.prototype = {
    * Sets the visibility of the folder pane. This should reflect reality and
    * not define it (for active tabs at least).
    */
-  set folderPaneVisible FolderDisplayWidget_set_folderPaneVisible(aVisible) {
+  set folderPaneVisible(aVisible) {
     this._folderPaneVisible = aVisible;
   },
 
@@ -1669,8 +1669,7 @@ FolderDisplayWidget.prototype = {
    * @return true when account central is being displayed.
    * @groupName Displayed
    */
-  get isAccountCentralDisplayed
-      FolderDisplayWidget_isAccountCentralDisplayed() {
+  get isAccountCentralDisplayed() {
     return (this.view.dbView == null);
   },
 
@@ -1781,7 +1780,7 @@ FolderDisplayWidget.prototype = {
    *  MessageDisplayWidget.  You can get to that via the messageDisplay
    *  attribute on this object or (potentially) via the gMessageDisplay object.
    */
-  get selectedMessage FolderDisplayWidget_get_selectedMessage() {
+  get selectedMessage() {
     // there are inconsistencies in hdrForFirstSelectedMessage between
     //  nsMsgDBView and nsMsgSearchDBView in whether they use currentIndex,
     //  do it ourselves.  (nsMsgDBView does not use currentIndex, search does.)
@@ -1796,7 +1795,7 @@ FolderDisplayWidget.prototype = {
   /**
    * @return true if there is a selected message and it's an RSS feed message.
    */
-  get selectedMessageIsFeed FolderDisplayWidget_get_selectedMessageIsFeed() {
+  get selectedMessageIsFeed() {
     let message = this.selectedMessage;
     return Boolean(message && message.folder &&
                    message.folder.server.type == 'rss');
@@ -1805,7 +1804,7 @@ FolderDisplayWidget.prototype = {
   /**
    * @return true if there is a selected message and it's an IMAP message.
    */
-  get selectedMessageIsImap FolderDisplayWidget_get_selectedMessageIsImap() {
+  get selectedMessageIsImap() {
     let message = this.selectedMessage;
     return Boolean(message && message.folder &&
                    message.folder.flags & nsMsgFolderFlags.ImapBox);
@@ -1815,7 +1814,7 @@ FolderDisplayWidget.prototype = {
    * @return true if there is a selected message and it's a news message.  It
    *  would be great if messages knew this about themselves, but they don't.
    */
-  get selectedMessageIsNews FolderDisplayWidget_get_selectedMessageIsNews() {
+  get selectedMessageIsNews() {
     let message = this.selectedMessage;
     return Boolean(message && message.folder &&
                    (message.folder.flags & nsMsgFolderFlags.Newsgroup));
@@ -1826,8 +1825,7 @@ FolderDisplayWidget.prototype = {
    *  meaning it is loaded from an .eml file on disk or is an rfc822 attachment
    *  on a message.
    */
-  get selectedMessageIsExternal
-      FolderDisplayWidget_get_selectedMessageIsExternal() {
+  get selectedMessageIsExternal() {
     let message = this.selectedMessage;
     // Dummy messages currently lack a folder.  This is not a great heuristic.
     // I have annotated msgHdrViewOverlay.js which provides the dummy header to
@@ -1844,7 +1842,7 @@ FolderDisplayWidget.prototype = {
    *  true, then any collapsed thread roots that are selected will also
    *  conceptually have all of the messages in that thread selected.
    */
-  get selectedCount FolderDisplayWidget_get_selectedCount() {
+  get selectedCount() {
     if (!this.view.dbView)
       return 0;
     return this.view.dbView.numSelected;
@@ -1863,7 +1861,7 @@ FolderDisplayWidget.prototype = {
    *
    * @return a list of the view indices that are currently selected
    */
-  get selectedIndices FolderDisplayWidget_get_selectedIndices() {
+  get selectedIndices() {
     if (!this.view.dbView)
       return [];
 
@@ -1883,7 +1881,7 @@ FolderDisplayWidget.prototype = {
    * @return a list of the message headers for the currently selected messages.
    *     If there are no selected messages, the result is an empty list.
    */
-  get selectedMessages FolderDisplayWidget_get_selectedMessages() {
+  get selectedMessages() {
     if (!this.view.dbView)
       return [];
     // getMsgHdrsForSelection returns an nsIMutableArray.  We want our callers
@@ -1904,7 +1902,7 @@ FolderDisplayWidget.prototype = {
    * If the user has right-clicked on a message, this will return that message's
    *  URI and not the selection prior to the right-click.
    */
-  get selectedMessageUris FolderDisplayWidget_get_selectedMessageUris() {
+  get selectedMessageUris() {
     if (!this.view.dbView)
       return null;
 
@@ -1916,7 +1914,7 @@ FolderDisplayWidget.prototype = {
    * @return true if all the selected messages can be deleted from their
    * folders, false otherwise.
    */
-  get canDeleteSelectedMessages FolderDisplayWidget_get_canDeleteSelectedMessages() {
+  get canDeleteSelectedMessages() {
     if (!this.view.dbView)
       return false;
 

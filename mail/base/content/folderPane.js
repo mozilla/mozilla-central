@@ -1374,7 +1374,7 @@ let gFolderTreeView = {
       /**
        * The smart server. This will create the server if it doesn't exist.
        */
-      get _smartServer ftv_smart_get_smartServer() {
+      get _smartServer() {
         let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
                                 .getService(Components.interfaces.nsIMsgAccountManager);
         let smartServer;
@@ -1414,7 +1414,7 @@ let gFolderTreeView = {
       /**
        * All the flags above, bitwise ORed.
        */
-      get _allFlags ftv_smart_get_allFlags() {
+      get _allFlags() {
         delete this._allFlags;
         return this._allFlags = this._flagNameList.reduce(
           function (res, [flag,, isDeep]) res | flag, 0);
@@ -1423,7 +1423,7 @@ let gFolderTreeView = {
       /**
        * All the "shallow" flags above (isDeep set to false), bitwise ORed.
        */
-      get _allShallowFlags ftv_smart_get_allShallowFlags() {
+      get _allShallowFlags() {
         delete this._allShallowFlags;
         return this._allShallowFlags = this._flagNameList.reduce(
           function (res, [flag,, isDeep]) isDeep ? res : (res | flag), 0);

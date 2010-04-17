@@ -120,14 +120,14 @@ JSTreeSelection.prototype = {
   // there's a view.
   _view: null,
 
-  get tree JSTreeSelection_get_treeBoxObject() {
+  get tree() {
     return this._treeBoxObject;
   },
-  set tree JSTreeSelection_set_treeBoxObject(aTreeBoxObject) {
+  set tree(aTreeBoxObject) {
     this._treeBoxObject = aTreeBoxObject;
   },
 
-  set view JSTreeSelection_set_view(aView) {
+  set view(aView) {
     this._view = aView;
   },
   /**
@@ -139,7 +139,7 @@ JSTreeSelection.prototype = {
    *
    * @return false because we don't support single-selection.
    */
-  get single JSTreeSelection_get_single() {
+  get single() {
     return false;
   },
 
@@ -150,7 +150,7 @@ JSTreeSelection.prototype = {
     }
   },
 
-  get count JSTreeSelection_get_count() {
+  get count() {
     return this._count;
   },
 
@@ -595,7 +595,7 @@ JSTreeSelection.prototype = {
     this.selectEventsSuppressed = saveSuppress;
   },
 
-  get selectEventsSuppressed JSTreeSelection_get_selectEventsSuppressed() {
+  get selectEventsSuppressed() {
     return this._selectEventsSuppressed;
   },
   /**
@@ -603,8 +603,7 @@ JSTreeSelection.prototype = {
    *  nsTreeSelection, we always generate a selection event when a value of
    *  false is assigned, even if the value was already false.
    */
-  set selectEventsSuppressed
-      JSTreeSelection_set_selectEventsSuppressed(aSuppress) {
+  set selectEventsSuppressed(aSuppress) {
     this._selectEventsSuppressed = aSuppress;
     if (!aSuppress)
       this._fireSelectionChanged();
@@ -632,7 +631,7 @@ JSTreeSelection.prototype = {
     }
   },
 
-  get currentIndex JSTreeSelection_get_currentIndex() {
+  get currentIndex() {
     if (this._currentIndex == null)
       return -1;
     return this._currentIndex;
@@ -642,7 +641,7 @@ JSTreeSelection.prototype = {
    *  invalidates the tree row if we have a tree.
    * The real selection object would send a DOM event we don't care about.
    */
-  set currentIndex JSTreeSelection_set_currentIndex(aIndex) {
+  set currentIndex(aIndex) {
     if (aIndex == this.currentIndex)
       return;
 
@@ -653,7 +652,7 @@ JSTreeSelection.prototype = {
 
   currentColumn: null,
 
-  get shiftSelectPivot JSTreeSelection_get_shiftSelectPivot() {
+  get shiftSelectPivot() {
     return this._shiftSelectPivot != null ? this._shiftSelectPivot : -1;
   },
 
