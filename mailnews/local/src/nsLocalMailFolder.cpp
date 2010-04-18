@@ -3960,7 +3960,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::FetchMsgPreviewText(nsMsgKey *aKeysToFetch, 
     msgHdr->GetMessageOffset(&messageOffset);
     nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(inputStream);
     if (seekableStream)
-      rv = seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, messageOffset);
+      rv = seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, messageOffset);
     NS_ENSURE_SUCCESS(rv,rv);
     rv = GetMsgPreviewTextFromStream(msgHdr, inputStream);
 
