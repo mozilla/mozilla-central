@@ -2,6 +2,9 @@
 load("../../mailnews/resources/mailDirService.js");
 load("../../mailnews/resources/mailTestUtils.js");
 
+// Import the required setup scripts.
+load("../../mailnews/resources/abSetup.js");
+
 // Import the smtp server scripts
 load("../../mailnews/fakeserver/maild.js")
 load("../../mailnews/fakeserver/auth.js")

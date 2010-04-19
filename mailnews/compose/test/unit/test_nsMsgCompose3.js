@@ -4,9 +4,6 @@
  * checkAndPopulateRecipients.
  */
 
-// We need the address book details for this test
-load("../../mailnews/resources/abSetup.js");
-
 const MsgComposeContractID = "@mozilla.org/messengercompose/compose;1";
 const MsgComposeParamsContractID = "@mozilla.org/messengercompose/composeparams;1";
 const MsgComposeFieldsContractID = "@mozilla.org/messengercompose/composefields;1";
