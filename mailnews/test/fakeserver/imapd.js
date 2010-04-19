@@ -94,7 +94,7 @@ imapDaemon.prototype = {
       }
       if (!mailbox)
         return null;
-      
+
       // Now we continue like normal
       var names = name.split(mailbox.delimiter);
       names.splice(0, 1);
@@ -384,7 +384,7 @@ imapMessage.prototype = {
     } else {
       throw "Can't get subparts!";
     }
-    
+
     if (!gIOService)
       gIOService = Cc["@mozilla.org/network/io-service;1"]
                      .getService(Ci.nsIIOService);
@@ -420,7 +420,7 @@ imapMessage.prototype = {
 
       return headers;
     }
-    
+
     return requestListener.answer;
   }
 }
@@ -433,7 +433,7 @@ const IMAP_FLAG_CASE_INSENSITIVE = 1;
 /**
  * This flag represents whether or not CREATE hierarchies need a delimiter.
  *
- * If this flag is off, <tt>CREATE a<br />CREATE a/b</tt> fails where 
+ * If this flag is off, <tt>CREATE a<br />CREATE a/b</tt> fails where
  * <tt>CREATE a/<br />CREATE a/b</tt> would succeed (assuming the delimiter is
  * '/').
  */
@@ -571,7 +571,7 @@ function formatArg(argument, spec) {
     throw "Expected argument of type " + spec + "!";
 
   if (spec == "atom") {
-    argument = argument.toUpperCase(); 
+    argument = argument.toUpperCase();
   } else if (spec == "mailbox") {
     var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
                       .createInstance(Ci.nsIScriptableUnicodeConverter);
@@ -749,7 +749,7 @@ IMAP_RFC3501_handler.prototype = {
       // Are we allowed to execute this command?
       if (this._enabledCommands[this._state].indexOf(command) == -1)
         return this._tag + " BAD illegal command for current state";
-      
+
       try {
         // Format the arguments nicely
         args = this._treatArgs(args, command);
@@ -936,13 +936,13 @@ IMAP_RFC3501_handler.prototype = {
     var box = this._daemon.getMailbox(args[0]);
     if (!box)
       return "NO no such mailbox";
-    
+
     if (this._selectedMailbox)
       this._daemon.synchronize(this._selectedMailbox, !this._readOnly);
     this._state = IMAP_STATE_SELECTED;
     this._selectedMailbox = box;
     this._readOnly = false;
-    
+
     var response = "* FLAGS (" + box.msgflags.join(" ") + ")\0";
     response += "* " + box._messages.length + " EXISTS\0* ";
     response += box._messages.reduce(function (count, message) {
@@ -1158,7 +1158,7 @@ IMAP_RFC3501_handler.prototype = {
     }
     if (uid && args[1].indexOf("UID") == -1)
       args[1].push("UID");
-    
+
     // Step 2.1: Preprocess the item fetch stack
     var items = [], prefix = undefined;
     for each (var item in args[1]) {
@@ -1200,7 +1200,7 @@ IMAP_RFC3501_handler.prototype = {
         try {
           parts.push(this[functionName](messages[i], item));
         } catch (ex) {
-          
+
           return "BAD error in fetching: "+ex;
         }
       }
@@ -1255,7 +1255,7 @@ IMAP_RFC3501_handler.prototype = {
     var dest = this._daemon.getMailbox(args[1]);
     if (!dest)
       return "NO [TRYCREATE] what mailbox?";
-    
+
     for each (var message in messages) {
       let newMessage = new imapMessage(message._URI, dest.uidnext++,
                                        message.flags);
@@ -1351,7 +1351,7 @@ IMAP_RFC3501_handler.prototype = {
       if (set[i] == set[i - 1])
         set.splice(i, 0);
     }
-  
+
     if (!ids)
       ids = [];
     if (uid) {
@@ -1380,7 +1380,7 @@ IMAP_RFC3501_handler.prototype = {
 
     if (parts[0] != "BODY.PEEK" && !this._readOnly)
       message.setFlag("\\Seen");
-   
+
     if (parts[3])
       parts[3] = parts[3].split(/\./).map(function (e) { return parseInt(e); });
 
@@ -1422,8 +1422,13 @@ IMAP_RFC3501_handler.prototype = {
     // error here, it will pop until it gets to FETCH, which will just pop at a
     // BAD response, which is what should happen if the query is malformed.
     // Now we dump it all off onto imapMessage to mess with.
-    var information = message.getPart(partNum, false);
-    
+    let information = "";
+    let bodyPart = new createBodyPart(message.getText());
+    if (partNum == "")
+      information = message.getPart(partNum, false);
+    else
+      bodyPart.partNum = partNum.split(/\./);
+
     // Start off the response
     var response = "BODY[" + parts[1] + "]";
     if (parts[3])
@@ -1437,9 +1442,14 @@ IMAP_RFC3501_handler.prototype = {
     switch (query) {
     case "":
     case "TEXT":
-    case "HEADER":
+      data +=  bodyPart.bodyText;
+      break;
+    case "HEADER": // I believe this specifies mime for an RFC822 message only
+      data += bodyPart.mime + "\r\n\r\n";
+      break;
     case "MIME":
-      throw "Not yet supported!";
+      data += bodyPart.mime + "\r\n\r\n";
+      break;
     case "HEADER.FIELDS":
       var joinList = [];
       /*for each (let header in queryArgs) {
@@ -1469,18 +1479,22 @@ IMAP_RFC3501_handler.prototype = {
           wantFold = true;
         }
       }
-      data = joinList.join('\r\n');
+      data = joinList.join('\r\n') + "\r\n";
       break;
     case "HEADER.FIELDS.NOT":
+      data += partNum + query + " not yet supported\r\n";
+      break;
     default:
-      throw "Can't do BODY[" + query + "]";
+      data += bodyPart.bodyText;
     }
 
     response += '{' + data.length + '}\r\n';
     response += data;
     return response;
   },
-  //_FETCH_BODYSTRUCTURE,
+  _FETCH_BODYSTRUCTURE : function (message, query) {
+    return "BODYSTRUCTURE " + bodystructure(message.getText());
+  },
   //_FETCH_ENVELOPE,
   _FETCH_FLAGS : function (message) {
     var response = "FLAGS (";
@@ -1505,7 +1519,7 @@ IMAP_RFC3501_handler.prototype = {
     if (query == "RFC822.TEXT")
       return this._FETCH_BODY(message, "BODY[TEXT]")
                  .replace("BODY[TEXT]", "RFC822.TEXT");
-    
+
     if (query == "RFC822.SIZE") {
       var channel = message.channel;
       var length = message.size ? message.size : channel.contentLength;
@@ -1730,3 +1744,173 @@ var IMAP_RFC2195_extension = {
     }
   },
 };
+
+// FETCH BODY PARTS
+// part number is assumed valid
+function createBodyPart(msg, apn) {
+  if (!msg || msg == "") {
+    this.index = null;
+    this.mime = "";
+    this.bodyText = "";
+    return;
+  }
+  this.BndryAttrRE = /boundary="([^"]+)"/img; // g is to continue where left off
+                                              // and enable use of lastIndex
+  this._msg = msg;
+  if (apn) {
+    this._pn  = apn;
+    this.init();
+  }
+}
+
+createBodyPart.prototype = {
+  set msg(x){
+    if (!x || x == "") {
+      this.index = null;
+      this.mime = "";
+      this.bodyText = "";
+      this._msg = "";
+      return;
+    }
+    this._msg = x;
+  },
+
+  // setting the partnum here will re-init if we have a msg
+  set partNum(x){
+    if (!x || x.length == 0)
+      return;
+    this._pn = x;
+    if (this._msg.length > 0)
+      this.init();
+  },
+
+  init : function() {
+    this.BndryAttrRE.lastIndex = 0;
+    for each (let x in this._pn) {
+      var bndryAttrArray = this.BndryAttrRE(this._msg);
+
+      if (!bndryAttrArray)  // FIXME--must have done a BODY[0] of a non-multipart
+        return;             // message. This may not be possible but let it be
+                            // known it needs a fix if this is done in real world
+                            // The RFC specs indicate bodyparts start at 1. Our
+                            // backend code uses bodypart 0 internally only.
+                            // We may want to throw here if we are asking server
+                            // for BODY[0]
+
+      var bndryTag = Array.map("--" + bndryAttrArray[1],
+                               function(a) {
+                                 return '\\x' + parseInt(a.charCodeAt(0),10)
+                                                          .toString(16)})
+                          .join('');// now have a pattern like '\xnn\xnn\xnn\xnn'
+                                    // to allow boundaries with '+' and other
+                                    // regex metacharacters
+      var bndryRE = new RegExp(bndryTag + "([\\s\\S]*?)\\r\\n", "gm");
+      while (x > 0) {
+        bndryRE(this._msg); //need a check for null maybe. nah.
+        --x;
+      }
+    }
+    this.index = bndryRE.lastIndex; // start of mime
+    var mimeArrayRE = /[\s\S]*?\r\n\r\n/g
+    mimeArrayRE.lastIndex = this.index;
+    var mimeArray = mimeArrayRE(this._msg);
+    this.mime = mimeArray[0];
+    this.mime = this.mime.replace(/\r\n\s+/g," ");
+    var textRE;
+
+    // if we have a mime part and it is a multipart find its terminator
+    if (mimeArray && /boundary=/.test(mimeArray[0]))
+      textRE= new RegExp("([\\s\\S]*?)\\r\\n" + bndryTag + "--", "mg");
+    // else just find next boundary
+    else
+      textRE = new RegExp("([\\s\\S]*?)\\r\\n" + bndryTag , "mg");
+
+    textRE.lastIndex = mimeArrayRE.lastIndex;
+    this.bodyText= textRE(this._msg)[1];
+  }
+}
+
+// FETCH BODYSTRUCTURE
+function bodystructure(msg) {
+  if (!msg || msg == "")
+    return "";
+  var res = "";
+  const MimeRE = /([\s\S]*?)\r\n\r\n/gm;
+  MimeRE.lastIndex = 0;
+  const BndryAttrRE = /boundary="([^"]+)"/img; // g is to continue where left off
+                                               // and enable use of lastIndex
+  BndryAttrRE.lastIndex = 0;
+
+  var filterBodyStructure = function(aStr, aBndryTag)
+  {
+    var isTerm;
+    if (!aStr || aStr == "")
+      return;
+
+    var mime = MimeRE(aStr); // mime[1] is mime string
+    var contentType = [];
+    var contentTransferEncoding;
+    if (mime[1]){
+      mime[1] = mime[1].replace(/\r\n\s*/g," ") // folding
+
+      // save mime info
+      // contentType[1] is type and contentType[2] is subtype
+      contentType = /content-type:[^\S]*([^\/]*)\/([^\/;\s]*)/im(mime[1]);
+      contentType[1] = contentType[1].toUpperCase();
+      contentType[2] = contentType[2].toUpperCase();
+      contentTransferEncoding = /Content-Transfer-Encoding:[^\S]*([^;\s]*)/im(mime[1]);
+      contentTransferEncoding = contentTransferEncoding ?
+                                contentTransferEncoding[1].toUpperCase() :
+                                "7BIT";
+    } else {  //default to plain/text
+      contentType[1] = "TEXT";
+      contentType[2] = "PLAIN";
+      contentTransferEncoding = "7BIT";
+    }
+    if (contentType[1] == "MULTIPART") {
+      res += "(";
+
+      // get boundary. Local scope lastIndex
+      BndryAttrRE.lastIndex = 0;
+      var bndryAttrArray = BndryAttrRE(mime[1]);
+      var bndryTag = Array.map("--" + bndryAttrArray[1],
+                           function(a) {
+                             return '\\x' + parseInt(a.charCodeAt(0),10).toString(16)})
+                          .join('');
+      var bndryRE = new RegExp(bndryTag + "(..)?", "gm");
+
+      // goto boundary
+      bndryRE.lastIndex = MimeRE.lastIndex;
+      // find boundary tag and check if terminated)
+      isTerm = bndryRE(aStr)[1] == "--";
+
+      // loop to get all parts
+      while(MimeRE.lastIndex > 0 && !isTerm) {
+        MimeRE.lastIndex = bndryRE.lastIndex;
+        filterBodyStructure(aStr, bndryTag)
+        isTerm = bndryRE(aStr)[1] == "--";
+      }
+
+      // write mime info
+      res += ' "'+contentType[2]+'" ("BOUNDARY" "'+bndryAttrArray[1]+'") NIL NIL)';
+    } else {
+      var tmpRE = new RegExp("([\\s\\S]*?)\\r\\n" + aBndryTag, "gm");
+      tmpRE.lastIndex = MimeRE.lastIndex;
+      var tmpArr = tmpRE(aStr);
+      var lines = 0;
+      var len;
+      if (tmpArr) {
+        len = tmpArr[1].length;
+        for each (let i in tmpArr[1]) {
+          lines += (i == '\r') ? 1 : 0 ;
+        }
+      }
+      res += '("' + contentType[1] + '" "' + contentType[2] +
+             '" NIL NIL NIL "' +  contentTransferEncoding + '" ' + len +
+             ((contentType[1] == "TEXT") ? (" " + lines) : "") +
+             ' NIL NIL NIL)';
+    }
+  };
+  filterBodyStructure(msg);
+  return res;
+}
