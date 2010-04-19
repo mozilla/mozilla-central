@@ -509,19 +509,14 @@ function csv_exportToStream(aStream, aCount, aItems) {
         line.push(dateString(item.endDate));
         line.push(timeString(item.endDate));
         line.push(item.startDate.isDate ? localeEn.valueTrue : localeEn.valueFalse);
+        let alarmDate;
         let alarms = item.getAlarms({});
         if (alarms.length) {
-            let alarmDate = cal.alarms.calculateAlarmDate(item, alarms[0]);
-            if (alarmDate) {
-                line.push(localeEn.valueTrue);
-                line.push(dateString(alarmDate));
-                line.push(timeString(alarmDate));
-            } else {
-                line.push(localeEn.valueFalse);
-                line.push("");
-                line.push("");
-            }
+            alarmDate = cal.alarms.calculateAlarmDate(item, alarms[0]);
         }
+        line.push(alarmDate ? localeEn.valueTrue : localeEn.valueFalse);
+        line.push(alarmDate ? dateString(alarmDate) : "");
+        line.push(alarmDate ? timeString(alarmDate) : "");
         line.push(txtString(categoriesArrayToString(item.getCategories({})))); // xxx todo: what's the correct way to encode ',' in csv?, how are multi-values expressed?
         line.push(txtString(item.getProperty("DESCRIPTION")));
         line.push(txtString(item.getProperty("LOCATION")));
