@@ -97,7 +97,7 @@ function fillMailContextMenu(event)
     return true;
 
   gContextMenu = new nsContextMenu(event.target);
-  return true;
+  return gContextMenu.shouldDisplay;
 }
 
 /**

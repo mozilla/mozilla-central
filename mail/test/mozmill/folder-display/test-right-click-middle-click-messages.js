@@ -91,6 +91,32 @@ function test_right_click_with_nothing_selected() {
 }
 
 /**
+ * Test that clicking on the column header shows the column picker.
+ */
+function test_right_click_column_header_shows_col_picker() {
+  be_in_folder(folder);
+
+  // Right click the subject columen header (must use 10 10 offset to make it work!)
+  // This should show the column picker popup.
+  mc.rightClick(mc.eid("subjectCol"), 10, 10);
+
+  // The treecolpicker element itself doesn't have an id, so we have to walk
+  // down from the parent to find it.
+  //  treadCols
+  //   |- hbox                item 0
+  //   |- treecolpicker   <-- item 1 this is the one we want
+  let threadCols = mc.window.document.getElementById("threadCols");
+  let treeColPicker = mc.window.document.getAnonymousNodes(threadCols).item(1);
+  let popup = mc.window.document.getAnonymousElementByAttribute(
+                treeColPicker, "anonid", "popup");
+
+  // Check that the popup opens.
+  mc.waitForEval("subject.state == 'open'", 1000, 100, popup);
+  // Hide it again, we just wanted to know it was gonna be shown.
+  popup.hidePopup();
+}
+
+/**
  * One-thing selected, right-click on something else.
  */
 function test_right_click_with_one_thing_selected() {
