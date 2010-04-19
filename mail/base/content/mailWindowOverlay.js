@@ -1916,36 +1916,27 @@ function MsgFilters(emailAddress, folder)
     // Try to determine the folder from the selected message.
     if (gDBView)
     {
+      /*
+       * Here we face a decision. If the message has been moved to a
+       *  different account, then a single filter cannot work for both
+       *  manual and incoming scope. So we will create the filter based
+       *  on its existing location, which will make it work properly in
+       *  manual scope. This is the best solution for POP3 with global
+       *  inbox (as then both manual and incoming filters work correctly),
+       *  but may not be what IMAP users who filter to a local folder
+       *  really want.
+       */
       try
       {
-        var msgHdr = gFolderDisplay.selectedMessage;
-        var accountKey = msgHdr.accountKey;
-        if (accountKey.length > 0)
-        {
-          var account = accountManager.getAccount(accountKey);
-          if (account)
-          {
-            var server = account.incomingServer;
-            if (server)
-              folder = server.rootFolder;
-          }
-        }
+        folder = gFolderDisplay.selectedMessage.folder;
+        // except for news, we define the filter on the account's root
+        if (!gFolderDisplay.selectedMessageIsNews)
+          folder = folder.rootFolder;
       }
       catch (ex) {}
     }
     if (!folder)
-    {
       folder = GetFirstSelectedMsgFolder();
-      // If this is the local folders account, check if the default account
-      // defers to it; if so, we'll use the default account so the simple case
-      // of one pop3 account with the global inbox creates filters for the right server.
-      if (folder && folder.server.type == "none" && folder.server.isDeferredTo)
-      {
-        var defaultServer = accountManager.defaultAccount.incomingServer;
-        if (defaultServer.rootMsgFolder == folder.server.rootFolder)
-          folder = defaultServer.rootFolder;
-      }
-    }
   }
   var args;
   if (emailAddress)
