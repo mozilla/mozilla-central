@@ -162,6 +162,8 @@ SEARCH_PLUGINS = $(shell cat \
 	done
 	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py profile/search.rdf.in > $@
 
+GARBAGE_DIRS += profile
+
 libs:: $(FINAL_TARGET)/defaults/profile/bookmarks.html ;
 libs:: $(FINAL_TARGET)/defaults/profile/search.rdf ;
 libs:: $(FINAL_TARGET)/defaults/profile/panels.rdf ;

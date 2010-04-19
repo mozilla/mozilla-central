@@ -113,8 +113,8 @@ export MOZ_SOURCE_STAMP
 endif
 
 DIST_GARBAGE = config.cache config.log config.status config-defs.h \
-   dependencies.beos \
-   unallmakefiles mozilla-config.h \
+   dependencies.beos config/autoconf.mk \
+   unallmakefiles comm-config.h \
    $(topsrcdir)/.mozconfig.mk $(topsrcdir)/.mozconfig.out
 
 distclean::
