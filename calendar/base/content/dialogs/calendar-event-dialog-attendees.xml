@@ -199,7 +199,7 @@
                              ? organizer.id
                              : calendar.getProperty("organizerId"));
 
-          this.mIsInvitation = (calInstanceOf(calendar, Components.interfaces.calISchedulingSupport) && 
+          this.mIsInvitation = (calInstanceOf(calendar, Components.interfaces.calISchedulingSupport) &&
                                 calendar.isInvitation(args.item));
 
           var listbox =
@@ -374,6 +374,10 @@
 
           icon.setAttribute("class", "role-icon");
           setElementValue(icon, aAttendee.role || false, "role");
+
+          // Set tooltip for rolenames
+          this.updateTooltip(icon);
+
           return true;
         ]]></body>
       </method>
@@ -430,6 +434,9 @@
               //role.setAttribute("role", newAttendee.role);
               icon.setAttribute("class", "role-icon");
               icon.setAttribute("role", "REQ-PARTICIPANT");
+
+              // Set tooltip for rolenames
+              this.updateTooltip(icon);
 
               // We always clone the first row.  The problem is that the first row
               // could be focused.  When we clone that row, we end up with a cloned
@@ -623,6 +630,32 @@
           event.details = list;
           this.dispatchEvent(event);
         ]]></body>
+      </method>
+
+     <method name="updateTooltip">
+      <parameter name="targetIcon"/>
+      <body><![CDATA[
+        // Function setting the tooltip of attendeeicons based on their role
+        if (targetIcon.className == "role-icon") {
+            let role = targetIcon.getAttribute("role");
+            // Set tooltip for rolenames
+
+            const strMap = {
+              "REQ-PARTICIPANT": "required",
+              "OPT-PARTICIPANT": "optional",
+              "NON-PARTICIPANT": "nonparticipant",
+              "CHAIR": "chair"
+            }
+
+            let roleNameString = "event.attendee.role." + (role in strMap ? strMap[role] : "unknown");
+            let tooltip = cal.calGetString("calendar-event-dialog-attendees",
+                                           roleNameString,
+                                           (role in strMap ? null : [role]));
+            targetIcon.setAttribute("tooltiptext", tooltip);
+
+            return;
+        }
+      ]]></body>
       </method>
 
       <property name="documentSize">
@@ -1259,6 +1292,7 @@
 
                 let nextValue = cycle(roleCycle, target.getAttribute("role"));
                 target.setAttribute("role", nextValue);
+                this.updateTooltip(target);
             }
         } else if (target.className == "status-icon") {
             if (target.getAttribute("disabled") != "true") {
