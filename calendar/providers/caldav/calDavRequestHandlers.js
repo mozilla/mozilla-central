@@ -710,7 +710,7 @@ multigetSyncHandler.prototype = {
     newSyncToken: null,
     listener: null,
     changelogListener: null,
-    logXML: "",
+    logXML: null,
     unhandledErrors : 0,
     itemsNeedFetching: null,
 
@@ -739,8 +739,10 @@ multigetSyncHandler.prototype = {
               <calendar-data/>
             </D:prop>
           </calendar-multiget>;
-
-        while (this.itemsNeedFetching.length) {
+          
+        let batchSize = cal.getPrefSafe("calendar.caldav.multigetBatchSize", 100);
+        while (this.itemsNeedFetching.length && batchSize > 0) {
+            batchSize --;
             let locpath = this.itemsNeedFetching.pop();
             queryXml.D::prop += <D:href xmlns:D={D}>{locpath}</D:href>;
         }
@@ -791,6 +793,21 @@ multigetSyncHandler.prototype = {
         if (this.calendar.verboseLogging()) {
             cal.LOG("CalDAV: recv: " + this.logXML);
         }
+        if (this.unhandledErrors) {
+            this.calendar.superCalendar.endBatch();
+            this.calendar.notifyGetFailed("multiget error", listener, changelogListener);
+            return;
+        }
+        if (this.itemsNeedFetching.length == 0) {
+            if (this.newSyncToken) {
+                this.calendar.mWebdavSyncToken = this.newSyncToken;
+                this.calendar.mTargetCalendar.setMetaData("sync-token", this.newSyncToken);
+              cal.LOG("CalDAV: New webdav-sync Token: " + this.calendar.mWebdavSyncToken);
+            }
+    
+            this.calendar.finalizeUpdatedItems(this.changelogListener,
+                                               this.baseUri);
+        }
         if (!this._reader) {
             // No reader means there was a request error
             cal.LOG("CalDAV: onStopRequest: no reader");
@@ -800,6 +817,26 @@ multigetSyncHandler.prototype = {
             this._reader.onStopRequest(request, context, statusCode);
         } finally {
             this._reader = null;
+        }
+        if (this.itemsNeedFetching.length > 0) {
+            cal.LOG("CalDAV: Still need to fetch " + this.itemsNeedFetching.length + " elements.");
+            this._reader = Components.classes["@mozilla.org/saxparser/xmlreader;1"]
+                                     .createInstance(Components.interfaces.nsISAXXMLReader);
+            this._reader.contentHandler = this;
+            this._reader.errorHandler = this;
+            this._reader.parseAsync(null);            
+            let timerCallback = {
+                requestHandler : this,
+                notify: function(timer) {
+                    // Call multiget again to get another batch
+                    this.requestHandler.doMultiGet();
+                }
+            };
+            let timer = Components.classes["@mozilla.org/timer;1"]
+                        .createInstance(Components.interfaces.nsITimer);
+            timer.initWithCallback(timerCallback,
+                                   0,
+                                   Components.interfaces.nsITimer.TYPE_ONE_SHOT);
         }
     },
 
@@ -831,28 +868,16 @@ multigetSyncHandler.prototype = {
         this.hrefMap = {};
         this.currentResponse = {};
         this.tag = null
+        this.logXML = "";
         if (this.calendar.isCached) {
             this.calendar.superCalendar.startBatch();
         }
     },
 
     endDocument: function mg_endDocument() {
-        if (this.unhandledErrors) {
-            this.calendar.superCalendar.endBatch();
-            this.calendar.notifyGetFailed("multiget error", listener, changelogListener);
-            return;
-        }
-        if (this.newSyncToken) {
-            this.calendar.mWebdavSyncToken = this.newSyncToken;
-            this.calendar.mTargetCalendar.setMetaData("sync-token", this.newSyncToken);
-          cal.LOG("CalDAV: New webdav-sync Token: " + this.calendar.mWebdavSyncToken);
-        }
-
         if (this.calendar.isCached) {
             this.calendar.superCalendar.endBatch();
-        }
-        this.calendar.finalizeUpdatedItems(this.changelogListener,
-                                           this.baseUri);
+        }        
     },
 
     startElement: function mg_startElement(aUri, aLocalName, aQName, aAttributes) {
