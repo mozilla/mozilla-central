@@ -265,6 +265,15 @@ let gFolderTreeView = {
     if (this._mode == aCommonName)
       this.mode = kDefaultMode;
   },
+  
+  /**
+   * Retrieves a specific mode object
+   * @param aCommonName  the common-name with which the mode was previously
+   *                     registered
+   */
+  getFolderTreeMode: function ftv_getFolderTreeMode(aCommonName) {
+    return this._modes[aCommonName];
+  },
 
   /**
    * Called to move to the next/prev folder-mode in the list
@@ -913,6 +922,32 @@ let gFolderTreeView = {
     }
   },
 
+  _subFoldersWithStringProperty: function ftv_subFoldersWithStringProperty(folder, folders, aFolderName, deep)
+  {
+    for each (child in fixIterator(folder.subFolders, Components.interfaces.nsIMsgFolder)) {
+      // if the folder selection is based on a string propery, use that
+      if (aFolderName == child.getStringProperty("smartFolderName")) {
+        folders.push(child);
+        // Add sub-folders if requested.
+        if (deep)
+          this.addSubFolders(child, folders);
+      }
+      else
+        // if this folder doesn't have a property set, check Its children
+        this._subFoldersWithStringProperty(child, folders, aFolderName, deep);
+    }
+  },
+
+  _allFoldersWithStringProperty: function ftv_getAllFoldersWithProperty(accounts, aFolderName, deep)
+  {
+    let folders = [];
+    for each (acct in accounts) {
+      let folder = acct.incomingServer.rootFolder;
+      this._subFoldersWithStringProperty(folder, folders, aFolderName, deep);
+    }
+    return folders;
+  },
+
   _allFoldersWithFlag: function ftv_getAllFolders(accounts, aFolderFlag, deep)
   {
     let folders = [];
@@ -932,6 +967,15 @@ let gFolderTreeView = {
   },
 
   /**
+   * get folders by flag or property based on the value of flag
+   */
+  _allSmartFolders: function ftv_allSmartFolders(accounts, flag, folderName, deep) {
+    return flag ?
+      gFolderTreeView._allFoldersWithFlag(accounts, flag, deep) :
+      gFolderTreeView._allFoldersWithStringProperty(accounts, folderName, deep);
+  },
+
+  /**
    * Add a smart folder for folders with the passed flag set. But if there's
    * only one folder with the flag set, just put it at the top level.
    *
@@ -948,8 +992,8 @@ let gFolderTreeView = {
                                                      flag, folderName, position)
   {
     // If there's only one subFolder, just put it at the root.
-    let subFolders = gFolderTreeView._allFoldersWithFlag(accounts, flag, false);
-    if (subFolders.length == 1) {
+    let subFolders = gFolderTreeView._allSmartFolders(accounts, flag, folderName, false);
+    if (flag && subFolders.length == 1) {
       let folderItem = new ftvItem(subFolders[0]);
       folderItem._level = 0;
       if (flag & nsMsgFolderFlags.Inbox)
@@ -964,13 +1008,13 @@ let gFolderTreeView = {
 
     let smartFolder;
     try {
-      let folderUri = smartRootFolder.URI + "/" + folderName;
+      let folderUri = smartRootFolder.URI + "/" + encodeURI(folderName);
       smartFolder = smartRootFolder.getChildWithURI(folderUri, false, true);
     } catch (ex) {
         smartFolder = null;
     };
     if (!smartFolder) {
-      let searchFolders = gFolderTreeView._allFoldersWithFlag(accounts, flag, true);
+      let searchFolders = gFolderTreeView._allSmartFolders(accounts, flag, folderName, true);
       let searchFolderURIs = "";
       for each (searchFolder in searchFolders) {
         if (searchFolderURIs.length)
@@ -1010,19 +1054,15 @@ let gFolderTreeView = {
         prevChild.addServerName = true;
         prevChild.useServerNameOnly = false;
       }
-      else {
+      else if (flag)
         child.useServerNameOnly = true;
-      }
+      else
+        child.addServerName = true;
       prevChild = child;
-      child.getProperties = function (aProps) {
-        // From folderUtils.jsm
-        setPropertyAtoms(this._folder, aProps);
-        aProps.AppendElement(Components.classes["@mozilla.org/atom-service;1"]
-                             .getService(Components.interfaces.nsIAtomService)
-                             .getAtom("specialFolder-Smart"));
-      };
     }
-
+    // new custom folders from addons may contain lots of children, sort them
+    if (flag == 0)
+      sortFolderItems(smartFolderItem._children);
     return smartFolderItem;
   },
   _createVFFolder: function ftv_createVFFolder(newName, parentFolder,
@@ -1032,16 +1072,21 @@ let gFolderTreeView = {
     try {
       newFolder = parentFolder.addSubfolder(newName);
       newFolder.setFlag(nsMsgFolderFlags.Virtual);
-      let vfdb = newFolder.msgDatabase;
-      let dbFolderInfo = vfdb.dBFolderInfo;
-      // set the view string as a property of the db folder info
-      // set the original folder name as well.
-      dbFolderInfo.setCharProperty("searchStr", "ALL");
-      dbFolderInfo.setCharProperty("searchFolderUri", searchFolderURIs);
-      dbFolderInfo.setUint32Property("searchFolderFlag", folderFlag);
-      dbFolderInfo.setBooleanProperty("searchOnline", true);
-      vfdb.summaryValid = true;
-      vfdb.Close(true);
+      // provide a way to make the top level folder just a container, not
+      // a search folder
+      let type = this._modes["smart"].getSmartFolderTypeByName(newName);
+      if (type[3]) { // isSearch
+        let vfdb = newFolder.msgDatabase;
+        let dbFolderInfo = vfdb.dBFolderInfo;
+        // set the view string as a property of the db folder info
+        // set the original folder name as well.
+        dbFolderInfo.setCharProperty("searchStr", "ALL");
+        dbFolderInfo.setCharProperty("searchFolderUri", searchFolderURIs);
+        dbFolderInfo.setUint32Property("searchFolderFlag", folderFlag);
+        dbFolderInfo.setBooleanProperty("searchOnline", true);
+        vfdb.summaryValid = true;
+        vfdb.Close(true);
+      }
       parentFolder.NotifyItemAdded(newFolder);
       Components.classes["@mozilla.org/messenger/account-manager;1"]
         .getService(Components.interfaces.nsIMsgAccountManager)
@@ -1395,21 +1440,65 @@ let gFolderTreeView = {
       },
 
       /**
-       * A list of [flag, name, isDeep] triples for smart folders. isDeep ==
+       * A list of [flag, name, isDeep, isSearch] for smart folders. isDeep ==
        * false means that subfolders are displayed as subfolders of the account,
        * not of the smart folder. This list is expected to be constant through a
        * session.
        */
       _flagNameList: [
-        [nsMsgFolderFlags.Inbox, "Inbox", false],
-        [nsMsgFolderFlags.Drafts, "Drafts", false],
-        [nsMsgFolderFlags.SentMail, "Sent", true],
-        [nsMsgFolderFlags.Trash, "Trash", true],
-        [nsMsgFolderFlags.Templates, "Templates", false],
-        [nsMsgFolderFlags.Archive, "Archives", true],
-        [nsMsgFolderFlags.Junk, "Junk", false],
-        [nsMsgFolderFlags.Queue, "Outbox", true]
+        [nsMsgFolderFlags.Inbox, "Inbox", false, true],
+        [nsMsgFolderFlags.Drafts, "Drafts", false, true],
+        [nsMsgFolderFlags.SentMail, "Sent", true, true],
+        [nsMsgFolderFlags.Trash, "Trash", true, true],
+        [nsMsgFolderFlags.Templates, "Templates", false, true],
+        [nsMsgFolderFlags.Archive, "Archives", true, true],
+        [nsMsgFolderFlags.Junk, "Junk", false, true],
+        [nsMsgFolderFlags.Queue, "Outbox", true, true]
       ],
+      // hard code, this could be build from _flagNameList dynamically
+      _smartFlags: nsMsgFolderFlags.Inbox | nsMsgFolderFlags.Drafts |
+                    nsMsgFolderFlags.Trash | nsMsgFolderFlags.SentMail |
+                    nsMsgFolderFlags.Templates |
+                    nsMsgFolderFlags.Junk |
+                    nsMsgFolderFlags.Archive,
+      
+      /**
+       * support for addons to add special folder types, this must be called
+       * prior to onload.
+       * 
+       * @param aFolderName  name of the folder
+       * @param isDeep  include subfolders
+       * @param folderOptions  object with searchStr and searchOnline options, or null
+       */
+      addSmartFolderType: function ftv_addSmartFolderType(aFolderName, isDeep, isSearchFolder) {
+        this._flagNameList.push([0, aFolderName, isDeep, isSearchFolder]);
+      },
+
+      /**
+       * Returns a triple describing the smart folder if the given folder is a
+       * special folder, else returns null.
+       */
+      getSmartFolderTypeByName: function ftv_smart__getSmartFolderType(aName) {
+        for each (let [, type,,] in Iterator(this._flagNameList)) {
+          if (type[1] == aName)
+            return type;
+        }
+        return null;
+      },
+      
+      /**
+       * check to see if a folder is a smart folder
+       */
+      isSmartFolder: function ftv_smart__isSmartFolder(aFolder) {
+        if (aFolder.flags & this._smartFlags)
+            return true;
+        // Also check the folder name itself, as containers do not
+        // have the smartFolderName property.  We check all folders here, since
+        // a "real" folder might be marked as a child of a smart folder.
+        let smartFolderName = aFolder.getStringProperty("smartFolderName");
+        return smartFolderName && this.getSmartFolderTypeByName(smartFolderName) ||
+            this.getSmartFolderTypeByName(aFolder.name);
+      },
 
       /**
        * All the flags above, bitwise ORed.
@@ -1417,7 +1506,7 @@ let gFolderTreeView = {
       get _allFlags() {
         delete this._allFlags;
         return this._allFlags = this._flagNameList.reduce(
-          function (res, [flag,, isDeep]) res | flag, 0);
+          function (res, [flag,, isDeep,]) res | flag, 0);
       },
 
       /**
@@ -1426,7 +1515,7 @@ let gFolderTreeView = {
       get _allShallowFlags() {
         delete this._allShallowFlags;
         return this._allShallowFlags = this._flagNameList.reduce(
-          function (res, [flag,, isDeep]) isDeep ? res : (res | flag), 0);
+          function (res, [flag,, isDeep,]) isDeep ? res : (res | flag), 0);
       },
 
       /**
@@ -1434,7 +1523,13 @@ let gFolderTreeView = {
        * special folder, else returns null.
        */
       _getSmartFolderType: function ftv_smart__getSmartFolderType(aFolder) {
+        let smartFolderName = aFolder.getStringProperty("smartFolderName");
         for each (let [, type] in Iterator(this._flagNameList)) {
+          if (smartFolderName) {
+            if (type[1] == smartFolderName)
+              return type;
+            continue;
+          }
           if (aFolder.flags & type[0])
             return type;
         }
@@ -1446,7 +1541,7 @@ let gFolderTreeView = {
        */
       _getSmartFolderNamed: function ftv_smart__getSmartFolderNamed(aName) {
         let smartRoot = this._smartServer.rootFolder;
-        return smartRoot.getChildWithURI(smartRoot.URI + "/" + aName, false,
+        return smartRoot.getChildWithURI(smartRoot.URI + "/" + encodeURI(aName), false,
                                          true);
       },
 
@@ -1462,7 +1557,7 @@ let gFolderTreeView = {
 
         let smartRoot = smartServer.rootFolder;
         let smartChildren = [];
-        for each (let [, [flag, name,]] in Iterator(this._flagNameList)) {
+        for each (let [, [flag, name,,]] in Iterator(this._flagNameList)) {
           gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts,
                                                   smartRoot, flag, name);
         }
@@ -1553,7 +1648,7 @@ let gFolderTreeView = {
           let smartRoot = smartServer.rootFolder;
           // In theory, a folder can have multiple flags set, so we need to
           // check each flag separately.
-          for each (let [, [flag, name,]] in Iterator(this._flagNameList)) {
+          for each (let [, [flag, name,,]] in Iterator(this._flagNameList)) {
             if (aFolder.flags & flag)
               gFolderTreeView._addSmartSubFolder(aFolder, smartRoot, name,
                                                  flag);
@@ -1651,7 +1746,7 @@ let gFolderTreeView = {
     }
   },
   _addSmartSubFolder: function ftl_addSmartSubFolder(aItem, aSmartRoot, aName, aFlag) {
-    let smartFolder = aSmartRoot.getChildWithURI(aSmartRoot.URI + "/" + aName,
+    let smartFolder = aSmartRoot.getChildWithURI(aSmartRoot.URI + "/" + encodeURI(aName),
                                                  false, true);
     let parent = null;
     let parentIndex = -1;
@@ -1684,13 +1779,6 @@ let gFolderTreeView = {
       newChild._parent = parent;
       sortFolderItems(parent._children);
       newChild.useServerNameOnly = true;
-      newChild.getProperties = function (aProps) {
-        // From folderUtils.jsm
-        setPropertyAtoms(this._folder, aProps);
-        aProps.AppendElement(Components.classes["@mozilla.org/atom-service;1"]
-                             .getService(Components.interfaces.nsIAtomService)
-                             .getAtom("specialFolder-Smart"));
-      }
     }
     if (aItem.flags & nsMsgFolderFlags.Inbox)
       newChild.__defineGetter__("children", function() []);
@@ -1854,6 +1942,22 @@ ftvItem.prototype = {
   getProperties: function ftvItem_getProperties(aProps) {
     // From folderUtils.jsm
     setPropertyAtoms(this._folder, aProps);
+    if (this._folder.flags & nsMsgFolderFlags.Virtual) {
+        aProps.AppendElement(Components.classes["@mozilla.org/atom-service;1"]
+                             .getService(Components.interfaces.nsIAtomService)
+                             .getAtom("specialFolder-Smart"));
+        // a second possibility for customized smart folders
+        aProps.AppendElement(Components.classes["@mozilla.org/atom-service;1"]
+                             .getService(Components.interfaces.nsIAtomService)
+                             .getAtom("specialFolder-"+this._folder.name.replace(' ','')));
+    }
+    // if there is a smartFolder name property, add it
+    let smartFolderName = this._folder.getStringProperty("smartFolderName");
+    if (smartFolderName) {
+      aProps.AppendElement(Components.classes["@mozilla.org/atom-service;1"]
+                         .getService(Components.interfaces.nsIAtomService)
+                         .getAtom("specialFolder-"+smartFolderName.replace(' ','')));
+    }
   },
 
   command: function fti_command() {
@@ -2271,24 +2375,20 @@ ftv_SmartItem.prototype =
 {
   get children() {
     const Ci = Components.interfaces;
-    let specialFlags = nsMsgFolderFlags.Inbox | nsMsgFolderFlags.Drafts |
-                       nsMsgFolderFlags.Trash | nsMsgFolderFlags.SentMail |
-                       nsMsgFolderFlags.Templates |
-                       nsMsgFolderFlags.Junk |
-                       nsMsgFolderFlags.Archive;
+    let smartMode = gFolderTreeView.getFolderTreeMode('smart');
 
     // We're caching our child list to save perf.
     if (!this._children) {
       this._children = [];
       let iter = fixIterator(this._folder.subFolders, Ci.nsIMsgFolder);
       for (let folder in iter) {
-        if (! (folder.flags & specialFlags)) {
+        if (!smartMode.isSmartFolder(folder)) {
           this._children.push(new ftv_SmartItem(folder));
         }
         else if (folder.flags & nsMsgFolderFlags.Inbox) {
           let subIter = fixIterator(folder.subFolders, Ci.nsIMsgFolder);
           for (let subfolder in subIter) {
-            if (! (subfolder.flags & specialFlags))
+            if (!smartMode.isSmartFolder(subfolder))
               this._children.push(new ftv_SmartItem(subfolder));
           }
         }
