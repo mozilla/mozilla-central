@@ -12,7 +12,7 @@
 
   <binding id="browser-notificationbox"
            extends="chrome://global/content/bindings/notification.xml#notificationbox">
-    <implementation implements="nsIObserver, nsIWebProgressListener, nsIDOMEventListener">
+    <implementation implements="nsIObserver, nsIWebProgressListener, nsIWebProgressListener2, nsIDOMEventListener">
       <field name="_stringBundle" readonly="true">
         <![CDATA[
           Components.classes["@mozilla.org/intl/stringbundle;1"]
@@ -68,7 +68,9 @@
         <body>
           <![CDATA[
             if (this.activeBrowser && !this._addedProgressListener) {
-              this.activeBrowser.webProgress.addProgressListener(this, Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);
+              this.activeBrowser.webProgress
+                  .addProgressListener(this, Components.interfaces.nsIWebProgress.NOTIFY_LOCATION |
+                                             Components.interfaces.nsIWebProgress.NOTIFY_REFRESH);
               this._addedProgressListener = true;
             }
           ]]>
@@ -94,6 +96,53 @@
             }
           ]]>
         </body>  
+      </method>
+
+      <method name="onRefreshAttempted">
+        <parameter name="aWebProgress" />
+        <parameter name="aURI" />
+        <parameter name="aDelay" />
+        <parameter name="aSameURI" />
+        <body>
+          <![CDATA[
+            if (this._prefs.getBoolPref("accessibility.blockautorefresh")) {
+              let brandShortName = this._brandStringBundle.GetStringFromName("brandShortName");
+              let refreshButtonText =
+                this._stringBundle.GetStringFromName("refreshBlocked.goButton");
+              let refreshButtonAccesskey =
+                this._stringBundle.GetStringFromName("refreshBlocked.goButton.accesskey");
+              let message =
+                this._stringBundle.formatStringFromName(aSameURI ? "refreshBlocked.refreshLabel"
+                                                                 : "refreshBlocked.redirectLabel",
+                                                        [brandShortName], 1);
+              let notification = this.getNotificationWithValue("refresh-blocked");
+              if (notification) {
+                notification.label = message;
+              } else {
+                let buttons = [{
+                  label: refreshButtonText,
+                  accessKey: refreshButtonAccesskey,
+                  callback: function (aNotification, aButton) {
+                    var refreshURI = aNotification.webProgress
+                                                  .QueryInterface(Components.interfaces.nsIRefreshURI);
+                    refreshURI.forceRefreshURI(aNotification.uri,
+                                               aNotification.delay, true);
+                  }
+                }];
+                notification =
+                  this.appendNotification(message, "refresh-blocked",
+                                          "chrome://communicator/skin/icons/application.png",
+                                          this.PRIORITY_INFO_MEDIUM,
+                                          buttons);
+              }
+              notification.webProgress = aWebProgress;
+              notification.uri = aURI;
+              notification.delay = aDelay;
+              return false;
+            }
+            return true;
+          ]]>
+        </body>
       </method>
 
       <method name="observe">

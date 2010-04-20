@@ -61,6 +61,8 @@ _BROWSER_FILES = browser_bug413915.js \
                  plugin_both.html \
                  plugin_both2.html \
                  browser_scope.js \
+                 browser_alltabslistener.js \
+                 alltabslistener.html \
     $(NULL)
 
 ifneq (cocoa,$(MOZ_WIDGET_TOOLKIT))

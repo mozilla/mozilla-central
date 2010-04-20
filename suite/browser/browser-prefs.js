@@ -317,6 +317,9 @@ pref("spellchecker.dictionaries.download.url", "chrome://branding/locale/brand.p
 // 2 = check multi/single line controls
 pref("layout.spellcheckDefault", 1);
 
+// Blocks auto refresh if true
+pref("accessibility.blockautorefresh", false);
+
 // special TypeAheadFind settings
 pref("accessibility.typeaheadfind.flashBar", 0);
 #ifndef XP_UNIX
