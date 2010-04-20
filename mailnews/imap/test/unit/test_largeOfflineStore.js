@@ -42,25 +42,29 @@ function run_test()
   {
     // Figure out the name of the IMAP inbox
     let file = gIMAPIncomingServer.rootMsgFolder.filePath.clone();
-
     file.append("INBOX");
     if (!file.exists())
       file.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0644);
 
     // Now call upon our helper
-    let args = [file.path];
-    let helper = Cc["@mozilla.org/file/directory_service;1"]
-                   .getService(Ci.nsIProperties)
-                   .get("CurProcD", Ci.nsIFile);
-
+    let helper = do_get_cwd().clone();
+    // '../../mailnews/LargeOfflineStoreHelper.exe'.
+    helper = helper.parent.parent;
+    helper.normalize();
+    helper.append("mailnews");
     helper.append("LargeOfflineStoreHelper.exe");
+    if (!helper.exists()) {
+      do_throw(helper.leafName + " not found");
+    }
+
     let helperProc = Cc["@mozilla.org/process/util;1"]
                        .createInstance(Ci.nsIProcess);
     helperProc.init(helper);
+    let args = [file.path];
     // XXX This needs to be fixed to use runw once it lands (bug 411511)
     helperProc.run(true, args, args.length);
-
     let exitValue = helperProc.exitValue;
+
     // 0 is success, 1 is "unable to run," and any other value is failure
     if (exitValue == 1)
     {
@@ -71,15 +75,15 @@ function run_test()
 
     if (exitValue != 0)
     {
-      throw new Error("Helper failed with exit value " + exitValue +
-                      ", see above for details");
+      do_throw(helper.leafName + " failed with exit value " + exitValue +
+                 ", see above for details");
     }
   }
 
   let inbox = gIMAPDaemon.getMailbox("INBOX");
 
   let ioService = Cc["@mozilla.org/network/io-service;1"]
-      .getService(Ci.nsIIOService);
+                    .getService(Ci.nsIIOService);
 
   // "Master" do_test_pending(), paired with a do_test_finished() at the end of
   // all the operations.
@@ -93,13 +97,13 @@ function run_test()
   messages = messages.concat(scenarioFactory.directReply(2));
   let dataUri = ioService.newURI("data:text/plain;base64," +
                    btoa(messages[0].toMessageString()),
-                   null, null);
+                        null, null);
   let imapMsg = new imapMessage(dataUri.spec, inbox.uidnext++, []);
   inbox.addMessage(imapMsg);
 
   dataUri = ioService.newURI("data:text/plain;base64," +
                    btoa(messages[1].toMessageString()),
-                   null, null);
+                        null, null);
   imapMsg = new imapMessage(dataUri.spec, inbox.uidnext++, []);
   inbox.addMessage(imapMsg);
 
@@ -112,7 +116,7 @@ function run_test()
   // support sparse files, so check for at least 8 GB of free disk space before
   // consuming 4 GB.
   if ("nsILocalFileMac" in Ci && freeDiskSpace < 0x200000000) {
-    dump("not enough free disk space\n");
+    dump("On MacOSX, this test needs 8 GB of free disk space.\n");
     endTest();
     return;
   }
@@ -156,6 +160,7 @@ var UrlListener =
           gIMAPInbox.getOfflineFileStream(header.messageKey, offset, size).close();
         else
           do_throw("Message not downloaded for offline use");
+
         dump("msg hdr offset = " + offset.value + "\n");
       }
       let offlineStoreSize = gIMAPInbox.filePath.fileSize;
@@ -166,9 +171,12 @@ var UrlListener =
       // this test, comment out this line.
       gIMAPInbox.filePath.remove(false);
     }
+
     try {
-    do_timeout(1000, endTest);
-    } catch(ex) {dump(ex);}
+      do_timeout(1000, endTest);
+    } catch(ex) {
+      do_throw(ex);
+    }
   }
 };
 

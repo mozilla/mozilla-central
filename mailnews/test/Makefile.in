@@ -21,6 +21,7 @@
 #
 # Contributor(s):
 #   Siddharth Agarwal <sid.bugzilla@gmail.com>
+#   Serge Gautherie <sgautherie.bz@free.fr>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -44,15 +45,17 @@ VPATH     = @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 ifeq ($(OS_ARCH),WINNT)
-
 CPPSRCS = \
   LargeOfflineStoreHelper.cpp \
   $(NULL)
 
-SIMPLE_PROGRAMS = \
-  LargeOfflineStoreHelper$(BIN_SUFFIX) \
-  $(NULL)
-
+SIMPLE_PROGRAMS = $(CPPSRCS:.cpp=$(BIN_SUFFIX))
 endif # ifeq ($(OS_ARCH),WINNT)
 
 include $(topsrcdir)/config/rules.mk
+
+ifeq ($(OS_ARCH),WINNT)
+# need the executable for running the xpcshell unit tests
+libs::
+	$(INSTALL) $(SIMPLE_PROGRAMS) $(DEPTH)/mozilla/_tests/xpcshell/mailnews
+endif # ifeq ($(OS_ARCH),WINNT)
