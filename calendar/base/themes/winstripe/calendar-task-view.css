@@ -67,6 +67,7 @@
 #task-addition-box {
     border-left: 1px solid ThreeDShadow;
     border-right: 0px;
+    border-bottom: 1px solid ThreeDShadow;
 }
 
 #calendar-task-details-description {
@@ -106,11 +107,9 @@
 
 #calendar-task-tree {
     min-height: 98px;
-    -moz-border-left-colors: ThreeDShadow ThreeDDarkShadow;
-    -moz-border-bottom-colors: ThreeDHighlight ThreeDLightShadow;
-    -moz-border-right-colors: ThreeDHighlight ThreeDLightShadow;
-    -moz-border-top-colors: ThreeDShadow ThreeDDarkShadow;
-    border: 1px solid;
+    border-left: 1px solid ThreeDShadow;
+    border-bottom: 1px solid ThreeDHighlight;
+    border-right: 1px solid ThreeDHighlight;
 }
 
 #calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-row {
