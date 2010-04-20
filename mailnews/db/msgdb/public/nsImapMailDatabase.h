@@ -67,6 +67,7 @@ public:
                                                PRUint64 aPropertyVal);
   NS_IMETHOD    DeleteMessages(PRUint32 aNumKeys, nsMsgKey* nsMsgKeys,
                                nsIDBChangeListener *instigator);
+  NS_IMETHOD    UpdatePendingAttributes(nsIMsgDBHdr* aNewHdr);
 
 protected:
   // IMAP does not set local file flags, override does nothing

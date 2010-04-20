@@ -1818,6 +1818,54 @@ nsMsgIncomingServer::ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filte
     newFilter->SetTemporary(PR_TRUE);
     // check if we're supposed to move junk mail to junk folder; if so,
     // add filter action to do so.
+
+    /*
+     * We don't want this filter to activate on messages that have
+     *  been marked by the user as not spam. This occurs when messages that
+     *  were marked as good are moved back into the inbox. But to
+     *  do this with a filter, we have to add a boolean term. That requires
+     *  that we rewrite the existing filter search terms to group them.
+     */
+
+    // get the list of search terms from the filter
+    nsCOMPtr<nsISupportsArray> searchTerms;
+    rv = newFilter->GetSearchTerms(getter_AddRefs(searchTerms));
+    NS_ENSURE_SUCCESS(rv, rv);
+    PRUint32 count = 0;
+    searchTerms->Count(&count);
+    if (count > 1) // don't need to group a single term
+    {
+      // beginGrouping the first term, and endGrouping the last term
+      nsCOMPtr<nsIMsgSearchTerm> firstTerm(do_QueryElementAt(searchTerms,
+                                                             0, &rv));
+      NS_ENSURE_SUCCESS(rv,rv);
+      firstTerm->SetBeginsGrouping(PR_TRUE);
+
+      nsCOMPtr<nsIMsgSearchTerm> lastTerm(do_QueryElementAt(searchTerms,
+                                                            count - 1, &rv));
+      NS_ENSURE_SUCCESS(rv,rv);
+      lastTerm->SetEndsGrouping(PR_TRUE);
+    }
+
+    // Create a new term, checking if the user set junk status. The term will
+    // search for junkscoreorigin != "user"
+    nsCOMPtr<nsIMsgSearchTerm> searchTerm;
+    rv = newFilter->CreateTerm(getter_AddRefs(searchTerm));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    searchTerm->SetAttrib(nsMsgSearchAttrib::JunkScoreOrigin);
+    searchTerm->SetOp(nsMsgSearchOp::Isnt);
+    searchTerm->SetBooleanAnd(PR_TRUE);
+
+    nsCOMPtr<nsIMsgSearchValue> searchValue;
+    searchTerm->GetValue(getter_AddRefs(searchValue));
+    NS_ENSURE_SUCCESS(rv, rv);
+    searchValue->SetAttrib(nsMsgSearchAttrib::JunkScoreOrigin);
+    searchValue->SetStr(NS_LITERAL_STRING("user"));
+    searchTerm->SetValue(searchValue);
+
+    searchTerms->InsertElementAt(searchTerm, count);
+
     PRBool moveOnSpam, markAsReadOnSpam;
     spamSettings->GetMoveOnSpam(&moveOnSpam);
     if (moveOnSpam)

@@ -242,7 +242,7 @@ interface nsIMsgDBService : nsISupports
   nsIMsgDatabase cachedDBForFolder(in nsIMsgFolder aFolder);
 };
 
-[scriptable, uuid(cc07931e-73f6-4e4c-be96-59c70e0ca0a4)]
+[scriptable, uuid(2DDC3EFE-743D-4b8c-B761-6ED75ED06737)]
 interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   /**
    * Opens a database folder.
@@ -496,6 +496,14 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   void setUint64AttributeOnPendingHdr(in nsIMsgDBHdr aPendingHdr,
                                       in string aProperty,
                                       in unsigned long long aPropertyVal);
+
+  /**
+   * Given a message header with its message-id set, update any pending
+   *  attributes on the header.
+   *
+   * @param aNewHdr a new header that may have pending attributes.
+   */
+  void updatePendingAttributes(in nsIMsgDBHdr aNewHdr);
 
   readonly attribute nsMsgKey lowWaterArticleNum;
   readonly attribute nsMsgKey highWaterArticleNum;

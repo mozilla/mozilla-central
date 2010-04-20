@@ -1518,6 +1518,7 @@ int nsParseMailMessageState::FinalizeHeaders()
           m_newMsgHdr->SetMessageId(rawMsgId.get());
         else
           m_newMsgHdr->SetMessageId(id->value);
+        m_mailDB->UpdatePendingAttributes(m_newMsgHdr);
 
         if (!mozstatus && statush)
         {

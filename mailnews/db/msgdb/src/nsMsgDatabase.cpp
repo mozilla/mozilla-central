@@ -4642,6 +4642,12 @@ nsMsgDatabase::SetUint64AttributeOnPendingHdr(nsIMsgDBHdr *aPendingHdr,
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP
+nsMsgDatabase::UpdatePendingAttributes(nsIMsgDBHdr *aNewHdr)
+{
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgDatabase::GetOfflineOpForKey(nsMsgKey msgKey, PRBool create, nsIMsgOfflineImapOperation **offlineOp)
 {
   NS_ASSERTION(PR_FALSE, "overridden by nsMailDatabase");

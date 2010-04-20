@@ -153,59 +153,63 @@ NS_IMETHODIMP nsImapMailDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool noti
 {
   nsresult rv = nsMsgDatabase::AddNewHdrToDB(newHdr, notify);
   if (NS_SUCCEEDED(rv))
+    rv = UpdatePendingAttributes(newHdr);
+  return rv;
+}
+
+NS_IMETHODIMP nsImapMailDatabase::UpdatePendingAttributes(nsIMsgDBHdr* aNewHdr)
+{
+  nsresult rv = GetAllPendingHdrsTable();
+  NS_ENSURE_SUCCESS(rv, rv);
+  mdb_count numPendingHdrs = 0;
+  m_mdbAllPendingHdrsTable->GetCount(GetEnv(), &numPendingHdrs);
+  if (numPendingHdrs > 0)
   {
-    rv = GetAllPendingHdrsTable();
-    NS_ENSURE_SUCCESS(rv, rv);
-    mdb_count numPendingHdrs = 0;
-    m_mdbAllPendingHdrsTable->GetCount(GetEnv(), &numPendingHdrs);
-    if (numPendingHdrs > 0)
+    mdbYarn messageIdYarn;
+    nsCOMPtr <nsIMdbRow> pendingRow;
+    mdbOid  outRowId;
+
+    nsCString messageId;
+    aNewHdr->GetMessageId(getter_Copies(messageId));
+    messageIdYarn.mYarn_Buf = (void*)messageId.get();
+    messageIdYarn.mYarn_Fill = messageId.Length();
+    messageIdYarn.mYarn_Form = 0;
+    messageIdYarn.mYarn_Size = messageIdYarn.mYarn_Fill;
+
+    m_mdbStore->FindRow(GetEnv(), m_pendingHdrsRowScopeToken,
+              m_messageIdColumnToken, &messageIdYarn, &outRowId, getter_AddRefs(pendingRow));
+    if (pendingRow)
     {
-      mdbYarn messageIdYarn;
-      nsCOMPtr <nsIMdbRow> pendingRow;
-      mdbOid  outRowId;
+      mdb_count numCells;
+      mdbYarn cellYarn;
+      mdb_column cellColumn;
+      PRUint32 existingFlags;
 
-      nsCString messageId;
-      newHdr->GetMessageId(getter_Copies(messageId));
-      messageIdYarn.mYarn_Buf = (void*)messageId.get();
-      messageIdYarn.mYarn_Fill = messageId.Length();
-      messageIdYarn.mYarn_Form = 0;
-      messageIdYarn.mYarn_Size = messageIdYarn.mYarn_Fill;
-
-      m_mdbStore->FindRow(GetEnv(), m_pendingHdrsRowScopeToken,
-                m_messageIdColumnToken, &messageIdYarn, &outRowId, getter_AddRefs(pendingRow));
-      if (pendingRow)
+      pendingRow->GetCount(GetEnv(), &numCells);
+      aNewHdr->GetFlags(&existingFlags);
+      // iterate over the cells in the pending hdr setting properties on the aNewHdr.
+      // we skip cell 0, which is the messageId;
+      nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(aNewHdr);      // closed system, cast ok
+      nsIMdbRow *row = msgHdr->GetMDBRow();
+      for (mdb_count cellIndex = 1; cellIndex < numCells; cellIndex++)
       {
-        mdb_count numCells;
-        mdbYarn cellYarn;
-        mdb_column cellColumn;
-        PRUint32 existingFlags;
-
-        pendingRow->GetCount(GetEnv(), &numCells);
-        newHdr->GetFlags(&existingFlags);
-        // iterate over the cells in the pending hdr setting properties on the newHdr.
-        // we skip cell 0, which is the messageId;
-        nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(newHdr);      // closed system, cast ok
-        nsIMdbRow *row = msgHdr->GetMDBRow();
-        for (mdb_count cellIndex = 1; cellIndex < numCells; cellIndex++)
+        mdb_err err = pendingRow->SeekCellYarn(GetEnv(), cellIndex, &cellColumn, nsnull);
+        if (err == 0)
         {
-          mdb_err err = pendingRow->SeekCellYarn(GetEnv(), cellIndex, &cellColumn, nsnull);
+          err = pendingRow->AliasCellYarn(GetEnv(), cellColumn, &cellYarn);
           if (err == 0)
           {
-            err = pendingRow->AliasCellYarn(GetEnv(), cellColumn, &cellYarn);
-            if (err == 0)
-            {
-              if (row)
-                row->AddColumn(GetEnv(), cellColumn, &cellYarn);
-            }
+            if (row)
+              row->AddColumn(GetEnv(), cellColumn, &cellYarn);
           }
         }
-        // We might have changed some cached values, so force a refresh.
-        msgHdr->ClearCachedValues();
-        PRUint32 resultFlags;
-        msgHdr->OrFlags(existingFlags, &resultFlags);
-        m_mdbAllPendingHdrsTable->CutRow(GetEnv(), pendingRow);
-        pendingRow->CutAllColumns(GetEnv());
       }
+      // We might have changed some cached values, so force a refresh.
+      msgHdr->ClearCachedValues();
+      PRUint32 resultFlags;
+      msgHdr->OrFlags(existingFlags, &resultFlags);
+      m_mdbAllPendingHdrsTable->CutRow(GetEnv(), pendingRow);
+      pendingRow->CutAllColumns(GetEnv());
     }
   }
   return rv;
