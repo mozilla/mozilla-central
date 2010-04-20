@@ -2774,8 +2774,12 @@ let XPathHelper = {
     if (!aNode.parentNode)
       return "";
 
-    let prefix = this.namespacePrefixes[aNode.namespaceURI] || null;
-    let tag = (prefix ? prefix + ":" : "") + this.escapeName(aNode.localName);
+    // Access localName, namespaceURI just once per node since it's expensive.
+    let nNamespaceURI = aNode.namespaceURI;
+    let nLocalName = aNode.localName;
+
+    let prefix = this.namespacePrefixes[nNamespaceURI] || null;
+    let tag = (prefix ? prefix + ":" : "") + this.escapeName(nLocalName);
 
     // stop once we've found a tag with an ID
     if (aNode.id)
@@ -2786,7 +2790,7 @@ let XPathHelper = {
     let count = 0;
     let nName = aNode.name || null;
     for (let n = aNode; (n = n.previousSibling); )
-      if (n.localName == aNode.localName && n.namespaceURI == aNode.namespaceURI &&
+      if (n.localName == nLocalName && n.namespaceURI == nNamespaceURI &&
           (!nName || n.name == nName))
         count++;
 
