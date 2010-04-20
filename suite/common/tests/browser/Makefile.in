@@ -82,6 +82,7 @@ _BROWSER_FILES = \
 	browser_490040.js \
 	browser_491168.js \
 	browser_493467.js \
+	browser_500328.js \
 	browser_bug510890.js \
 	browser_514751.js \
 	browser_bug515006.js \
