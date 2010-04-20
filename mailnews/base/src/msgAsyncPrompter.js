@@ -86,10 +86,15 @@ function msgAsyncPrompter() {
   this._pendingPrompts = {};
   this._threadManager = Cc["@mozilla.org/thread-manager;1"]
                           .getService(Ci.nsIThreadManager);
+  // By default, only log warnings to the error console and errors to dump().
+  // You can use the preferences:
+  //   msgAsyncPrompter.logging.console
+  //   msgAsyncPrompter.logging.dump
+  // To change this up.  Values should be one of:
+  //   Fatal/Error/Warn/Info/Config/Debug/Trace/All
   this._log = Log4Moz.getConfiguredLogger("msgAsyncPrompter",
-                                          Log4Moz.Level.Debug,
-                                          Log4Moz.Level.Debug,
-                                          Log4Moz.Level.Debug);
+                                          Log4Moz.Level.Warn,
+                                          Log4Moz.Level.Warn);
 }
 
 msgAsyncPrompter.prototype = {
