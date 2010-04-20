@@ -110,6 +110,10 @@ sidebarheader .toolbarbutton-text:not([value]) {
   padding: 2px;
 }
 
+#searchInput:-moz-lwtheme:not([focused="true"]) {
+  opacity: .85;
+}
+
 /* Stock icons for the menu bar items */
 menuitem:not([type]) {
   -moz-binding: url("chrome://global/content/bindings/menu.xml#menuitem-iconic");

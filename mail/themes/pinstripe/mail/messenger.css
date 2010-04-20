@@ -108,3 +108,7 @@ toolbar[printpreview="true"] {
 tabmail > tabbox {
   margin: 0;
 }
+
+#status-bar:-moz-lwtheme  {
+  padding-top: 1px;
+}

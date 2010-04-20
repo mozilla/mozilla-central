@@ -91,3 +91,7 @@
   height: 21px !important;
   margin: 0 !important;
 }
+
+#searchInput:-moz-lwtheme:not([focused="true"]) {
+  opacity: .9;
+}

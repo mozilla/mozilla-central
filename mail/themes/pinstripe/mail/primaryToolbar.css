@@ -742,3 +742,18 @@ toolbar[iconsize="small"] #button-archive[disabled] {
   -moz-border-left-colors: ThreeDLightShadow ThreeDHighlight !important;
 }
 
+/* Lightweight themes support */
+
+/* This prevent jumping of the toolbar when going between Default and Persona*/
+#mail-bar3  {
+  padding-bottom: 1px;
+}
+
+#mail-bar3:-moz-lwtheme  {
+  padding-bottom: 0px;
+}
+
+toolbar:-moz-lwtheme {
+  -moz-appearance: none !important;
+  background: none !important;
+}

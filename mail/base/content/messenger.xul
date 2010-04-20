@@ -74,7 +74,8 @@
         screenX="10" screenY="10"
         persist="width height screenX screenY sizemode"
         toggletoolbar="true"
-        windowtype="mail:3pane">
+        windowtype="mail:3pane"
+        lightweightthemes="true">
 
 
 <!--This (strange!) element is here to support recovering customized toolbars in

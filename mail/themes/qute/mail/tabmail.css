@@ -155,6 +155,32 @@
   margin-bottom: 1px;
 }
 
+.tabmail-tab:-moz-lwtheme-brighttext,
+.tabmail-arrowscrollbox > .scrollbutton-up:-moz-lwtheme-brighttext,
+.tabmail-arrowscrollbox > .scrollbutton-down:-moz-lwtheme-brighttext,
+.tabs-alltabs-button:-moz-lwtheme-brighttext {
+  background-color: rgba(0,0,0,.5);
+}
+
+.tabmail-tab:-moz-lwtheme-darktext,
+.tabmail-arrowscrollbox > .scrollbutton-up:-moz-lwtheme-darktext,
+.tabmail-arrowscrollbox > .scrollbutton-down:-moz-lwtheme-darktext,
+.tabs-alltabs-button:-moz-lwtheme-darktext {
+  background-color: rgba(255,255,255,.5);
+}
+
+.tabmail-tab:-moz-lwtheme:not([selected="true"]) {
+  opacity: .85;
+}
+
+.tabmail-tab:-moz-lwtheme[selected="true"] {
+  text-shadow: none;
+}
+
+.tabmail-tabs:-moz-lwtheme {
+  padding-top: 1px;
+}
+
 .tab-icon-image {
   margin-top: 1px;
   -moz-margin-end: 3px;

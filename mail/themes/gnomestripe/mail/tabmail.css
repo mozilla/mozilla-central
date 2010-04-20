@@ -69,6 +69,14 @@ tabpanels {
   margin-bottom: 1px;
 }
 
+.tabmail-tab:-moz-lwtheme {
+  text-shadow: none;
+}
+
+.tabmail-tab:-moz-lwtheme:not([selected="true"]) {
+  opacity: .85;
+}
+
 .tabmail-tab[selected="true"] {
   margin-bottom: 0px;
 }

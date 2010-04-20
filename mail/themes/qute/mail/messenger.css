@@ -119,3 +119,11 @@ sidebarheader .toolbarbutton-text:not([value]) {
   -moz-padding-end: 2px;
   -moz-padding-start: 2px;
 }
+
+#searchInput:-moz-lwtheme:not([focused="true"]) {
+  opacity: .85;
+}
+
+#status-bar:-moz-lwtheme {
+  padding-bottom: 1px;
+}

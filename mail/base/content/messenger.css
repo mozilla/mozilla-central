@@ -261,3 +261,15 @@ menupopup[type="folder"] {
 #mail-bar3 {
   overflow-x: hidden;
 }
+
+/* Lightweight themes support */
+
+#messengerWindow:-moz-lwtheme {
+  background-repeat: no-repeat;
+  background-position: top right;
+}
+
+#status-bar[lwthemefooter="true"] {
+  background-repeat: no-repeat;
+  background-position: bottom left;
+}

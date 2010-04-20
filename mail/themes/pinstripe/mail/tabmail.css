@@ -105,6 +105,64 @@
   height: 24px;
 }
 
+
+.tabmail-strip:-moz-lwtheme,
+.tabmail-tabs:-moz-lwtheme {
+  background: none !important;
+}
+
+.tabmail-tabs:-moz-lwtheme {
+  -moz-box-shadow: inset 0 1px 0 rgba(50,50,50,.5);
+}
+
+.tabmail-tab:-moz-lwtheme[selected="true"] {
+  background-color: transparent !important;
+  border-top-width: 1px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, .08);
+  height: 25px;
+}
+
+.tabmail-tab:-moz-lwtheme:not([selected="true"]):not(:hover) > .tab-text {
+  opacity: .8;
+}
+
+.tabmail-arrowscrollbox:-moz-lwtheme > .tabs-newtab-button {
+  width: auto;
+  -moz-box-flex: 1;
+  -moz-box-pack: start;
+  border-style: none;
+  background: none;
+}
+
+.tabmail-tab:-moz-lwtheme-brighttext {
+  -moz-border-left-colors: rgba(255,255,255,.1) rgba(255,255,255,.6) rgba(255,255,255,.2);
+  -moz-border-bottom-colors: rgba(255,255,255,.1) rgba(255,255,255,.6) rgba(255,255,255,.2);
+  -moz-border-right-colors: rgba(255,255,255,.1) rgba(255,255,255,.6) rgba(255,255,255,.2);
+}
+
+.tabmail-tab:-moz-lwtheme-brighttext[selected="true"] {
+  -moz-border-left-colors: rgba(255,255,255,.6) rgba(255,255,255,.2);
+  -moz-border-bottom-colors: rgba(255,255,255,.6) rgba(255,255,255,.2);
+  -moz-border-right-colors: rgba(255,255,255,.6) rgba(255,255,255,.2);
+}
+
+.tabs-newtab-button:-moz-lwtheme-darktext,
+.tabs-alltabs-button:-moz-lwtheme-darktext,
+.tabs-container:-moz-lwtheme-darktext > .tabs-closebutton,
+.tabbrowser-arrowscrollbox:-moz-lwtheme-darktext > .scrollbutton-up,
+.tabmail-arrowscrollbox:-moz-lwtheme-darktext > .scrollbutton-down {
+  -moz-box-shadow: inset 0 1px 0 rgba(50,50,50,.5);
+}
+
+.tabs-newtab-button:-moz-lwtheme-brighttext,
+.tabs-alltabs-button:-moz-lwtheme-brighttext,
+.tabs-container:-moz-lwtheme-brighttext > .tabs-closebutton,
+.tabmail-arrowscrollbox:-moz-lwtheme-brighttext > .scrollbutton-up,
+.tabmail-arrowscrollbox:-moz-lwtheme-brighttext > .scrollbutton-down {
+  -moz-box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+}
+
 .tabmail-tab:not([selected="true"]) {
   background-image: url(chrome://messenger/skin/tabs/tab-bkgnd.png);
 }
