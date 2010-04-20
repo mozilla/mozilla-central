@@ -174,6 +174,7 @@ pref("extensions.getAddons.search.browseURL", "https://%LOCALE%.add-ons.mozilla.
 pref("extensions.getAddons.search.url", "https://services.addons.mozilla.org/%LOCALE%/%APP%/api/%API_VERSION%/search/%TERMS%/all/10/%OS%/%VERSION%");
 
 pref("xpinstall.whitelist.add", "update.mozilla.org");
+pref("xpinstall.whitelist.add.36", "getpersonas.com");
 pref("xpinstall.whitelist.add.103", "addons.mozilla.org");
 
 pref("mail.shell.checkDefaultClient", true);

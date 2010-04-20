@@ -300,6 +300,17 @@ function OnLoadMessenger()
   if (verifyAccounts(LoadPostAccountWizard, false, AutoConfigWizard))
     LoadPostAccountWizard();
 
+  // Install the light-weight theme handlers
+  let panelcontainer = document.getElementById("tabpanelcontainer");
+  if (panelcontainer) {
+    panelcontainer.addEventListener("InstallBrowserTheme",
+                                    LightWeightThemeWebInstaller, false, true);
+    panelcontainer.addEventListener("PreviewBrowserTheme",
+                                    LightWeightThemeWebInstaller, false, true);
+    panelcontainer.addEventListener("ResetBrowserThemePreview",
+                                    LightWeightThemeWebInstaller, false, true);
+  }
+
   // This also registers the contentTabType ("contentTab")
   specialTabs.openSpecialTabsOnStartup();
 
@@ -1231,3 +1242,199 @@ function ThreadPaneOnDrop(aEvent) {
   }
 }
 
+var LightWeightThemeWebInstaller = {
+  handleEvent: function (event) {
+    switch (event.type) {
+      case "InstallBrowserTheme":
+      case "PreviewBrowserTheme":
+      case "ResetBrowserThemePreview":
+        // ignore requests from background tabs
+        if (event.target.ownerDocument.defaultView.top != content)
+          return;
+    }
+    switch (event.type) {
+      case "InstallBrowserTheme":
+        this._installRequest(event);
+        break;
+      case "PreviewBrowserTheme":
+        this._preview(event);
+        break;
+      case "ResetBrowserThemePreview":
+        this._resetPreview(event);
+        break;
+      case "pagehide":
+        this._resetPreview();
+        break;
+    }
+  },
+
+  onTabTitleChanged: function (aTab) {
+  },
+
+  onTabSwitched: function (aTab, aOldTab) {
+    this._resetPreview();
+  },
+
+  get _manager () {
+    let temp = {};
+    Components.utils.import("resource://gre/modules/LightweightThemeManager.jsm", temp);
+    delete this._manager;
+    return this._manager = temp.LightweightThemeManager;
+  },
+
+  _installRequest: function (event) {
+    let node = event.target;
+    let data = this._getThemeFromNode(node);
+    if (!data)
+      return;
+
+    if (this._isAllowed(node)) {
+      this._install(data);
+      return;
+    }
+
+    let messengerBundle = document.getElementById("bundle_messenger");
+
+    let buttons = [{
+      label: messengerBundle.getString("lwthemeInstallRequest.allowButton"),
+      accessKey: messengerBundle.getString("lwthemeInstallRequest.allowButton.accesskey"),
+      callback: function () {
+        LightWeightThemeWebInstaller._install(data);
+      }
+    }];
+
+    this._removePreviousNotifications();
+
+    let message =
+      messengerBundle.getFormattedString("lwthemeInstallRequest.message",
+                                         [node.ownerDocument.location.host]);
+
+    let notificationBox = this._getNotificationBox();
+    let notificationBar =
+      notificationBox.appendNotification(message, "lwtheme-install-request", "",
+                                         notificationBox.PRIORITY_INFO_MEDIUM,
+                                         buttons);
+    notificationBar.persistence = 1;
+  },
+
+  _install: function (newTheme) {
+    let previousTheme = this._manager.currentTheme;
+    this._manager.currentTheme = newTheme;
+    if (this._manager.currentTheme &&
+        this._manager.currentTheme.id == newTheme.id)
+      this._postInstallNotification(newTheme, previousTheme);
+  },
+
+  _postInstallNotification: function (newTheme, previousTheme) {
+    function text(id) {
+      return document.getElementById("bundle_messenger")
+                     .getString("lwthemePostInstallNotification." + id);
+    }
+
+    let buttons = [{
+      label: text("undoButton"),
+      accessKey: text("undoButton.accesskey"),
+      callback: function () {
+        LightWeightThemeWebInstaller._manager.forgetUsedTheme(newTheme.id);
+        LightWeightThemeWebInstaller._manager.currentTheme = previousTheme;
+      }
+    }, {
+      label: text("manageButton"),
+      accessKey: text("manageButton.accesskey"),
+      callback: function () {
+        openAddonsMgr("themes");
+      }
+    }];
+
+    this._removePreviousNotifications();
+
+    let notificationBox = this._getNotificationBox();
+    let notificationBar =
+      notificationBox.appendNotification(text("message"),
+                                         "lwtheme-install-notification", "",
+                                         notificationBox.PRIORITY_INFO_MEDIUM,
+                                         buttons);
+    notificationBar.persistence = 1;
+    notificationBar.timeout = Date.now() + 20000; // 20 seconds
+  },
+
+  _removePreviousNotifications: function () {
+    let box = this._getNotificationBox();
+
+    ["lwtheme-install-request",
+     "lwtheme-install-notification"].forEach(function (value) {
+        var notification = box.getNotificationWithValue(value);
+        if (notification)
+          box.removeNotification(notification);
+      });
+  },
+
+  _previewWindow: null,
+  _preview: function (event) {
+    if (!this._isAllowed(event.target))
+      return;
+
+    let data = this._getThemeFromNode(event.target);
+    if (!data)
+      return;
+
+    this._resetPreview();
+
+    this._previewWindow = event.target.ownerDocument.defaultView;
+    this._previewWindow.addEventListener("pagehide", this, true);
+    document.getElementById('tabmail').registerTabMonitor(this);
+
+    this._manager.previewTheme(data);
+  },
+
+  _resetPreview: function (event) {
+    if (!this._previewWindow ||
+        event && !this._isAllowed(event.target))
+      return;
+
+    this._previewWindow.removeEventListener("pagehide", this, true);
+    this._previewWindow = null;
+    document.getElementById('tabmail').unregisterTabMonitor(this);
+
+    this._manager.resetPreview();
+  },
+
+  _isAllowed: function (node) {
+    let pm = Components.classes["@mozilla.org/permissionmanager;1"]
+      .getService(Components.interfaces.nsIPermissionManager);
+
+    let prefs = [["xpinstall.whitelist.add", pm.ALLOW_ACTION],
+                 ["xpinstall.whitelist.add.36", pm.ALLOW_ACTION],
+                 ["xpinstall.blacklist.add", pm.DENY_ACTION]];
+
+    prefs.forEach(function ([pref, permission]) {
+      let hosts = Application.prefs.getValue(pref, "");
+      if (hosts) {
+        hosts.split(",").forEach(function (host) {
+          pm.add(makeURI("http://" + host.trim()), "install", permission);
+        });
+
+        Application.prefs.setValue(pref, "");
+      }
+    });
+
+    let uri = node.ownerDocument.documentURIObject;
+    return pm.testPermission(uri, "install") == pm.ALLOW_ACTION;
+  },
+
+  _getNotificationBox: function () {
+    // Try and get the notification box for the selected tab.
+    let browser = document.getElementById('tabmail').getBrowserForSelectedTab();
+    // The messagepane doesn't have a notification bar yet.
+    if (browser && browser.parentNode.tagName == "notificationbox")
+      return browser.parentNode;
+
+    // Otherwise, default to the global notificationbox
+    return document.getElementById("mail-notification-box");
+  },
+
+  _getThemeFromNode: function (node) {
+    return this._manager.parseTheme(node.getAttribute("data-browsertheme"),
+                                    node.baseURI);
+  }
+}

@@ -1,4 +1,3 @@
-# -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -365,39 +364,24 @@ var gPermissionManager = {
 
   _updatePermissions: function ()
   {
-    try {
-      var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                .getService(Components.interfaces.nsIIOService);
-      var pbi = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch2);
-      var prefList = [["xpinstall.whitelist.add", nsIPermissionManager.ALLOW_ACTION],
-                      ["xpinstall.whitelist.add.103", nsIPermissionManager.ALLOW_ACTION],
-                      ["xpinstall.blacklist.add", nsIPermissionManager.DENY_ACTION]];
+    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                              .getService(Components.interfaces.nsIIOService);
+    var prefList = [["xpinstall.whitelist.add", this._pm.ALLOW_ACTION],
+                    ["xpinstall.whitelist.add.36", this._pm.ALLOW_ACTION],
+                    ["xpinstall.whitelist.add.103", this._pm.ALLOW_ACTION],
+                    ["xpinstall.blacklist.add", this._pm.DENY_ACTION]];
 
-      for (var i = 0; i < prefList.length; ++i) {
-        try {
-          // this pref is a comma-delimited list of hosts
-          var hosts = pbi.getCharPref(prefList[i][0]);
-        } catch(ex) {
-          continue;
-        }
+    prefList.forEach(function ([pref, permission]) {
+      var hosts = Application.prefs.getValue();
+      if (hosts) {
+        hosts.split(",").forEach(function (host) {
+          this._pm.add(ioService.newURI("http://" + host.trim(), null, null),
+                       "install", permission);
+        });
 
-        if (!hosts)
-          continue;
-
-        hostList = hosts.split(",");
-        var capability = prefList[i][1];
-        for (var j = 0; j < hostList.length; ++j) {
-          // trim leading and trailing spaces
-          var host = hostList[j].replace(/^\s*/,"").replace(/\s*$/,"");
-          try {
-            var uri = ioService.newURI("http://" + host, null, null);
-            this._pm.add(uri, this._type, capability);
-          } catch(ex) { }
-        }
-        pbi.setCharPref(prefList[i][0], "");
+        Application.prefs.setValue(pref, "");
       }
-    } catch(ex) { }
+    });
   },
 
   setHost: function (aHost)

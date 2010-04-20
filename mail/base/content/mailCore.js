@@ -309,7 +309,7 @@ function openOptionsDialog(aPaneID, aTabID)
     openDialog("chrome://messenger/content/preferences/preferences.xul","Preferences", features, aPaneID, aTabID);
 }
 
-function openAddonsMgr()
+function openAddonsMgr(aPane)
 {
   const EMTYPE = "Extension:Manager";
   var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
@@ -317,12 +317,17 @@ function openAddonsMgr()
   var theEM = wm.getMostRecentWindow(EMTYPE);
   if (theEM) {
     theEM.focus();
+    if (aPane)
+      theEM.showView(aPane);
     return;
   }
 
   const EMURL = "chrome://mozapps/content/extensions/extensions.xul";
   const EMFEATURES = "chrome,menubar,extra-chrome,toolbar,dialog=no,resizable";
-  window.openDialog(EMURL, "", EMFEATURES);
+  if (aPane)
+    window.openDialog(EMURL, "", EMFEATURES, aPane);
+  else
+    window.openDialog(EMURL, "", EMFEATURES);
 }
 
 function openActivityMgr()

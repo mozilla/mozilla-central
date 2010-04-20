@@ -1,0 +1,46 @@
+<html><head>
+<title>test lightweight themes</title>
+</head><body>
+<script type="text/javascript">
+var themes = [
+  {
+    id: "test-01",
+    name: "Test 01",
+    headerURL: "test.png",
+    footerURL: "test.png",
+    textcolor: "#fff",
+    accentcolor: "#6b6b6b"
+  },
+  {
+    id: "test-02",
+    name: "Test 02",
+    headerURL: "test.png",
+    footerURL: "test.png",
+    textcolor: "#bcf",
+    accentcolor: "#8888FF"
+  }
+];
+
+const INSTALL = "InstallBrowserTheme";
+const PREVIEW = "PreviewBrowserTheme";
+const RESET_PREVIEW = "ResetBrowserThemePreview";
+
+function setTheme(node, theme, action) {
+  node.setAttribute("data-browsertheme", JSON.stringify(themes[theme]));
+  var event = document.createEvent("Events");
+  dump("dispatching " + action + "\n");
+  event.initEvent(action, true, false);
+  node.dispatchEvent(event);
+}
+</script>
+
+<button id="install1"
+         onclick="setTheme(this, 0, INSTALL);"
+         onmouseover="setTheme(this, 0, PREVIEW);"
+         onmouseout="setTheme(this, 0, RESET_PREVIEW);">Test 01</button>
+<button id="install2"
+         onclick="setTheme(this, 1, INSTALL);"
+         onmouseover="setTheme(this, 1, PREVIEW);"
+         onmouseout="setTheme(this, 1, RESET_PREVIEW);">Test 02</button>
+</body>
+</html>
