@@ -466,6 +466,7 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/zipwriter.xpt
 
 ; JavaScript components
+@BINPATH@/components/contentAreaDropListener.js
 @BINPATH@/components/contentSecurityPolicy.js
 @BINPATH@/components/crypto-SDR.js
 @BINPATH@/components/FeedConverter.js
