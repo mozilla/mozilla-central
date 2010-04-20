@@ -26,12 +26,13 @@
    - The Original Code is the Thunderbird Feature Configurator.
    -
    - The Initial Developer of the Original Code is
-   - Mozilla Messaging, Inc.
-   - Portions created by the Initial Developer are Copyright (C) 2009
+   - The Mozilla Foundation.
+   - Portions created by the Initial Developer are Copyright (C) 2010
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
    -   David Ascher <dascher@mozillamessaging.com>
+   -   Blake Winton <bwinton@mozillamessaging.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -50,16 +51,16 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
     xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en"
-    windowtype="mailnews:featureconfigurator">
+    version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en">
 <head>
   <!-- Themes -->
   <link rel="stylesheet"
-      href="chrome://messenger/skin/featureConfigurator.css"
+      href="chrome://messenger/skin/featureConfigurators/subpage.css"
       type="text/css"></link>
   <!-- Global Context -->
   <script type="application/javascript;version=1.8"
-      src="chrome://messenger/content/featureConfigurator.js"></script>
+      src="chrome://messenger/content/featureConfigurators/autosync.js"
+      ></script>
   <!-- Libs -->
   <script type="application/javascript;version=1.8"
       src="chrome://messenger/content/jquery.js"></script>
@@ -67,17 +68,52 @@
       src="chrome://messenger/content/jquery-ui.js"></script>
   <title>&featureConfigurator.title;</title>
 </head>
-<body id="body" onload="onLoad()">
-<div class="content">
-  <iframe class="content" type="content" id="contentFrame"/>
-</div>
-<div id="buttons">
-  <button id="prevButton" onclick="FeatureConfigurator.previousButton(event)"
-          >&featureConfigurator.previousButton;</button>
-  <button id="nextButton" onclick="FeatureConfigurator.nextButton(event)"
-          >&featureConfigurator.nextButton;</button>
-  <button id="closeButton" onclick="FeatureConfigurator.closeButton(event)"
-          >&featureConfigurator.closeButton;</button>
-</div>
+<body onload="AutoSyncConfigurator.onLoad()" style="padding-bottom: 2ex;">
+
+<table>
+  <tbody>
+    <tr>
+      <td class="column left">
+        <h1>Disk space</h1>
+        <p>&featureConfigurator.autoSync.para;</p>
+        <label class="sync" for="all-sync">
+          <input type="radio" id="all-sync" name="syncsettings" value="all"/>
+          <div>&featureConfigurator.autoSync.on;</div>
+          <div class="explanation">&featureConfigurator.autoSync.on.explanation;</div>
+        </label>
+        <label class="sync" for="none-sync">
+          <input type="radio" id="none-sync" name="syncsettings" value="none"/>
+          <div>&featureConfigurator.autoSync.off;</div>
+          <div class="explanation">&featureConfigurator.autoSync.off.explanation;</div>
+        </label>
+        <label class="sync" for="some-sync">
+          <input type="radio" id="some-sync" name="syncsettings" value="some"/>
+          <div>&featureConfigurator.autoSync.some;</div>
+          <div class="explanation">&featureConfigurator.autoSync.some.explanation;</div>
+        </label>
+        <ul id="account_list"/>
+        <div class="disk-space" id="disk-space-used">&featureConfigurator.diskSpace.currentSize; <span id="current-size"/></div>
+      </td>
+
+      <td class="column right">
+        <div id="disk-space-warning">
+          <img style="vertical-align: bottom;" src="chrome://global/skin/icons/warning-16.png"/>&featureConfigurator.diskSpace.warning;
+        </div>
+        <table>
+          <tbody>
+            <tr class="disk-space" id="disk-space-free">
+              <td>&featureConfigurator.diskSpace.freeSpace;</td>
+              <td><span id="free-space"/></td>
+            </tr>
+            <tr class="disk-space" id="disk-space-required">
+              <td>&featureConfigurator.diskSpace.requireSpace;</td>
+              <td><span id="size-difference"/></td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+  </tbody>
+</table>
 </body>
 </html>

@@ -59,14 +59,6 @@ function setupModule(module)
   make_new_sets_in_folder(folderB, [{count: 1}]);
 }
 
-function assert_equals(a, b, comment)
-{
-  if (!comment)
-    comment = "a != b";
-  if (a != b)
-    throw new Error(comment + ": '"+ a + "' != '" + b + "'.");
-}
-
 function test_add_folder_toolbar()
 {
   // It should not be present by default

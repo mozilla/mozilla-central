@@ -79,7 +79,7 @@
       <menuitem id="featureConfigurator"
                 label="&featureConfiguratorCmd.label;"
                 accesskey="&featureConfiguratorCmd.accesskey;"
-                oncommand="openFeatureConfigurator();"/>
+                oncommand="openFeatureConfigurator(false);"/>
       <menuseparator id="menu_HelpAboutSeparator"/>
       <menuitem id="checkForUpdates" class="menuitem-iconic"
 #ifdef MOZ_UPDATER

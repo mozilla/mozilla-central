@@ -135,9 +135,3 @@ function test_monthly_archive() {
               "Message should have been archived to Local Folders/Archives/" + 
               lastMsgYear + "/" + lastMonthFolderName + ", but it isn't present there");
 }
-
-// something less sucky than do_check_true
-function assert_true(aBeTrue, aWhy) {
-  if (!aBeTrue)
-    throw new Error(aWhy);
-}

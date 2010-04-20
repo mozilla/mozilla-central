@@ -773,8 +773,9 @@ function UpgradeProfileAndBeUglyAboutIt()
           folder.setFlag(Components.interfaces.nsMsgFolderFlags.Offline);
       }
 
-      // Open a tab explaining the major changes between 2 and 3.
-      window.setTimeout(openFeatureConfigurator, 300, [true,]);
+      // Open a dialog explaining the major changes from version 2.
+      if (gPrefBranch.getBoolPref("mail.ui.show.migration.on.upgrade"))
+        openFeatureConfigurator(true);
 
       gPrefBranch.setIntPref("mailnews.ui.threadpane.version", 7);
 

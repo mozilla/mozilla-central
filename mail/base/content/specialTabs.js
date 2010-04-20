@@ -162,10 +162,6 @@ var specialTabs = {
     // If we've upgraded:
     let [fromVer, toVer] = this.getApplicationUpgradeVersions(prefs);
 
-    // Show the "configure helper" tab to the user, if we have upgraded to 3
-    if (fromVer && (Number(fromVer[0]) < 3) && toVer[0] == "3")
-      openFeatureConfigurator();
-
     // Only show what's new tab if this is actually an upgraded version,
     // not just a new installation/profile.
     if (fromVer && fromVer != toVer)

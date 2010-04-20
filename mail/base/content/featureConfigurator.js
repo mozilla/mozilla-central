@@ -42,267 +42,110 @@ const Cu = Components.utils;
 Cu.import("resource:///modules/errUtils.js");
 Cu.import("resource:///modules/iteratorUtils.jsm");
 
+var gSubpageData = {};
+
 var FeatureConfigurator = {
-  updateStatus: function() {
+  subpages: ["introduction", "autosync", "toolbar", "compactheader",
+             "folderpanecolumns"],
+
+  previousButton: function fc_previousButton(e) {
+    e.preventDefault();
+    this.index -= 1;
+  },
+
+  nextButton: function fc_nextButton(e) {
+    e.preventDefault();
+    this.index += 1;
+  },
+
+  closeButton: function fc_closeButton(e) {
+    e.preventDefault();
+    window.close();
+  },
+
+  get index() {
+    return this._index;
+  },
+
+  /**
+   * Set the index of the subpage we want to show.
+   *
+   * @param aIndex the index of the subpage we want to show.
+   */
+  set index(aIndex) {
+    this._index = aIndex;
+    let url = "chrome://messenger/content/featureConfigurators/" +
+              this.subpages[this._index] +
+              ".xhtml";
+    document.getElementById("contentFrame").setAttribute("src", url);
+    let prevButton = document.getElementById("prevButton");
+    prevButton.disabled = (this._index == 0);
+    // The CSS also wants the disabled attribute set to true.
+    if (this._index == 0)
+      prevButton.setAttribute("disabled", "true");
+    else
+      prevButton.removeAttribute("disabled");
+    let nextButton = document.getElementById("nextButton");
+    nextButton.disabled = (this._index == this.subpages.length - 1);
+    if (this._index == this.subpages.length - 1)
+      nextButton.setAttribute("disabled", "true");
+    else
+      nextButton.removeAttribute("disabled");
+  },
+
+  /**
+   * Initialize some data for our subpages and ourselves.
+   *
+   * @param aParentWin our parent's window.
+   * @param aUpgrade true if we're upgrading from a previous version.
+   */
+  init: function fc_init(aParentWin, aUpgrade) {
+    // XXX: This won't work if the 3pane is closed when we try to use
+    // these.  It's too complicated to fix for beta 2, but we need to
+    // revisit it for RC 1.
+    gSubpageData.dom = aParentWin.document;
+    let toolbar = aParentWin.document.getElementById("mail-bar3");
+    gSubpageData.useSmartFolders =
+      aParentWin.gFolderTreeView.mode == "smart";
+    gSubpageData.isNewToolbar =
+      toolbar.currentSet == toolbar.getAttribute("defaultset");
+    gSubpageData.fakebar = aParentWin.document.getElementById("mail-bar2");
+    gSubpageData.newbar = aParentWin.document.getElementById("mail-bar3");
+
+    gSubpageData.syncSettings = {};
+    this.index = 0;
     try {
-      let dom = this.parentWin.document;
-      let toolbar = dom.getElementById("mail-bar3");
-      let useSmartFolders = this.parentWin.gFolderTreeView.mode == "smart";
-      if (useSmartFolders) {
-        $("#useSmartFolders").attr("invisible", true);
-        $("#useAllFolders").removeAttr("invisible");
-        $("#using-smart-folders").removeAttr("invisible");
-        $("#using-all-folders").attr("invisible", true);
-      } else {
-        $("#useAllFolders").attr("invisible", true);
-        $("#useSmartFolders").removeAttr("invisible");
-        $("#using-smart-folders").attr("invisible", true);
-        $("#using-all-folders").removeAttr("invisible");
-      }
+      let servers = Cc["@mozilla.org/messenger/account-manager;1"]
+                      .getService(Ci.nsIMsgAccountManager).allServers;
 
-      let isNewToolbar = toolbar.currentSet == toolbar.getAttribute("defaultset");
-      if (isNewToolbar) {
-        $("#useNewToolbar").attr("invisible", true);
-        $("#useOriginalToolbar").removeAttr("invisible");
-        $("#using-new-toolbar").removeAttr("invisible");
-        $("#using-original-toolbar").attr("invisible", true);
-      } else {
-        $("#useOriginalToolbar").attr("invisible", true);
-        $("#useNewToolbar").removeAttr("invisible");
-        $("#using-new-toolbar").attr("invisible", true);
-        $("#using-original-toolbar").removeAttr("invisible");
-      }
-
-      let allSync = true;
-      let noneSync = true;
-
-      let servers = Cc["@mozilla.org/messenger/account-manager;1"].
-                      getService(Ci.nsIMsgAccountManager).allServers;
-
+      // Look for imap servers.
+      let anyImap = false;
       for each (let server in fixIterator(servers, Ci.nsIMsgIncomingServer)) {
         if (server.type != "imap")
           continue;
-        server = server.QueryInterface(Ci.nsIImapIncomingServer);
-        let allFolders = Cc["@mozilla.org/supports-array;1"].
-                           createInstance(Ci.nsISupportsArray);
-
-        server.rootFolder.ListDescendents(allFolders);
-        for each (let folder in fixIterator(allFolders, Ci.nsIMsgFolder)) {
-          if (folder.getFlag(Ci.nsMsgFolderFlags.Offline))
-            noneSync = false;
-          else
-            allSync = false;
-        }
+        anyImap = true;
+        break;
       }
-      // Display the current status
-      let allSynced = $("#all-synced");
-      let noneSynced = $("#none-synced");
-      let someSynced = $("#some-synced");
-
-      let syncAll = $("#sync-all");
-      let syncNone = $("#sync-none");
-
-      if (allSync) {
-        allSynced.removeAttr("invisible");
-        noneSynced.attr("invisible", true);
-        someSynced.attr("invisible", true);
-        syncAll.attr("invisible", true);
-        syncNone.removeAttr("invisible");
-      } else if (noneSync) {
-        noneSynced.removeAttr("invisible");
-        allSynced.attr("invisible", true);
-        someSynced.attr("invisible", true);
-        syncAll.removeAttr("invisible");
-        syncNone.attr("invisible", true);
-      } else {
-        someSynced.removeAttr("invisible");
-        allSynced.attr("invisible", true);
-        noneSynced.attr("invisible", true);
-        syncAll.removeAttr("invisible");
-        syncNone.removeAttr("invisible");
-      }
-
-      $("#sync-none").attr("invisible", noneSync);
+      // If there aren't any imap servers, don't show the autosync page.
+      if (!anyImap)
+        this.subpages = this.subpages.filter(function(item) item != "autosync");
     } catch (e) {
       logException(e);
     }
-  },
 
-  setSyncStatus: function(sync) {
-    try {
-      let servers = Cc["@mozilla.org/messenger/account-manager;1"].
-                      getService(Ci.nsIMsgAccountManager).allServers;
-
-      for each (let server in fixIterator(servers, Ci.nsIMsgIncomingServer)) {
-        if (server.type != "imap")
-          continue;
-        server = server.QueryInterface(Ci.nsIImapIncomingServer);
-        let allFolders = Cc["@mozilla.org/supports-array;1"].
-                           createInstance(Ci.nsISupportsArray);
-
-        server.offlineDownload = sync;
-        server.rootFolder.ListDescendents(allFolders);
-        for each (let folder in fixIterator(allFolders, Ci.nsIMsgFolder)) {
-          if (sync)
-            folder.setFlag(Ci.nsMsgFolderFlags.Offline);
-          else
-            folder.clearFlag(Ci.nsMsgFolderFlags.Offline);
-        }
-      }
-      this.updateStatus();
-      $("#imap_status").effect("highlight");;
-    } catch (e) {
-      logException(e);
-    }
-  },
-
-  useNewToolbar: function(useNew) {
-    try {
-      let dom = this.parentWin.document;
-      let fakebar = dom.getElementById("mail-bar2");
-      let newbar = dom.getElementById("mail-bar3");
-      if (! useNew) {
-        // We want the old one
-        let currentset = fakebar.getAttribute("currentset");
-        if (currentset.trim() == "")
-          currentset = fakebar.getAttribute("defaultset")
-        let bits = currentset.split(",");
-        // mail-bar2 could have "search-container", "gloda-search", or both.
-        // We don't want both, we can only support one (and it has to be
-        // "gloda-search").
-        let foundSearch = false;
-        let newbits = [];
-        for (let i = 0; i < bits.length; i++) {
-          let bit = bits[i];
-          switch (bit) {
-            case "search-container":
-            case "gloda-search":
-              newbits.push("gloda-search");
-              foundSearch = true;
-              break;
-            default:
-              newbits.push(bit);
-          }
-        }
-        let newcurrentset = newbits.join(",");
-        // this makes it show up
-        newbar.currentSet = newcurrentset;
-        // this makes it persist ...
-        newbar.setAttribute("currentset", newcurrentset);
-        let labelalign = fakebar.hasAttribute("labelalign") ? fakebar.getAttribute("labelalign") : "bottom";
-        if (labelalign)
-          newbar.parentNode.setAttribute("labelalign", labelalign);
-        else
-          newbar.parentNode.removeAttribute("labelalign");
-        let iconsize = fakebar.hasAttribute("iconsize") ? fakebar.getAttribute("iconsize") : "large";
-        if (iconsize) {
-          newbar.setAttribute("iconsize", iconsize);
-          newbar.parentNode.setAttribute("iconsize", "large");
-        }
-        dom.persist("mail-bar3", "currentset");
-      } else {
-        // reset to factory defaults (TB3)
-        let defaultset = newbar.getAttribute("defaultset")
-        // this makes it show up
-        newbar.currentSet = defaultset;
-        // this makes it persist ...
-        newbar.setAttribute("currentset", defaultset);
-        newbar.parentNode.setAttribute("labelalign", "end");
-#ifdef XP_MACOSX
-        newbar.setAttribute("iconsize", "small");
-        newbar.parentNode.setAttribute("iconsize", "small");
-#else
-        newbar.setAttribute("iconsize", "large");
-        newbar.parentNode.setAttribute("iconsize", "large");
-#endif
-        dom.persist("mail-bar3", "currentset");
-      }
-      $("#toolbar_status").effect("highlight", {}, 1000);
-      this.updateStatus();
-    } catch (e) {
-      logException(e);
-    }
-  },
-
-  setup: function(parentWin) {
-    this.parentWin = parentWin;
-    try {
-      let dis = this;
-      $("#useSmartFolders").click(function() {
-        dis.parentWin.gFolderTreeView.mode = "smart";
-        dis.updateStatus();
-        $("#foldermode_status").effect("highlight", {}, 1000);
-      });
-      $("#useAllFolders").click(function() {
-        dis.parentWin.gFolderTreeView.mode = "all";
-        dis.updateStatus();
-        $("#foldermode_status").effect("highlight", {}, 1000);
-      });
-      $("#useNewToolbar").click(function() {
-        dis.useNewToolbar(true);
-      });
-      $("#useOriginalToolbar").click(function() {
-        dis.useNewToolbar(false);
-      });
-
-      $("#sync-none").click(function() dis.setSyncStatus(false));
-      $("#sync-all").click(function() dis.setSyncStatus(true));
-
-      let dom = this.parentWin.document;
-
-      let addon_url = Cc["@mozilla.org/toolkit/URLFormatterService;1"]
-        .getService(Ci.nsIURLFormatter)
-        .formatURLPref("mailnews.migration.header_addons_url");
-      document.getElementById("header_addons").setAttribute("href", addon_url);
-
-      let servers = Cc["@mozilla.org/messenger/account-manager;1"].
-                      getService(Ci.nsIMsgAccountManager).allServers;
-
-      let ul = document.getElementById("account_list");
-      for each (let server in fixIterator(servers, Ci.nsIMsgIncomingServer)) {
-        if (server.type != "imap")
-          continue;
-        let li = document.createElement("li");
-        li.setAttribute("class", "button");
-        li.textContent = server.prettyName;
-        let aServer = server;
-        $(li).click(function() {
-          try {
-            dis.parentWin
-               .openDialog("chrome://messenger/content/AccountManager.xul",
-                           "AccountManager",
-                           "chrome,centerscreen,modal,titlebar",
-                           { server: aServer, selectPage: "am-offline.xul"});
-          } catch (e) {
-            logException(e);
-          }
-        });
-        ul.appendChild(li);
-      }
-      this.updateStatus();
-    } catch (e) {
-      logException(e);
-    }
+    // We used the compactHeader if we're upgrading, and the index was 0.
+    gSubpageData.usedCompactHeader = aUpgrade &&
+      aParentWin.document.getElementById("msgHeaderViewDeck").usedCompactHeader;
   }
 }
 
 
 /**
- * addEventListener betrayals compel us to establish our link with the
- * outside world from inside.  NeilAway suggests the problem might have
- * been the registration of the listener prior to initiating the load.  Which
- * is odd considering it works for the XUL case, but I could see how that might
- * differ.  Anywho, this works for now and is a delightful reference to boot.
+ * Set up some data for us, and for our subpages.
  */
-function reachOutAndTouchFrame() {
+function onLoad() {
   try {
-    let us = window.QueryInterface(Ci.nsIInterfaceRequestor)
-                   .getInterface(Ci.nsIWebNavigation)
-                   .QueryInterface(Ci.nsIDocShellTreeItem);
-    let parentWin = us.parent
-                      .QueryInterface(Ci.nsIInterfaceRequestor)
-                      .getInterface(Ci.nsIDOMWindow);
-    FeatureConfigurator.setup(parentWin);
+    FeatureConfigurator.init(window.arguments[0], window.arguments[1]);
   } catch (e) {
     logException(e);
   }

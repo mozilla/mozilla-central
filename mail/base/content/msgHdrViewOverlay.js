@@ -248,6 +248,11 @@ function OnLoadMsgHeaderPane()
   // two panels), and then the user upgraded to Tb3, which only has one.
   // Presumably this can also catch cases of extension uninstalls as well.
   let deckElement = document.getElementById('msgHeaderViewDeck')
+
+  // If the selectedIndex was 0, then we were using the compact header, (if we
+  // were coming from TB2, but we'll check that in the feature configurator).
+  deckElement.usedCompactHeader = (deckElement.selectedIndex == 0);
+
   if (deckElement.selectedIndex < 0 ||
       deckElement.selectedIndex >= deckElement.childElementCount) {
     deckElement.selectedIndex = 0;

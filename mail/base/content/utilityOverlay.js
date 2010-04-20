@@ -345,19 +345,16 @@ function openContentTab(url)
                         tabParams: {contentPage: url} });
 }
 
-function openFeatureConfigurator() {
-  let mail3PaneWindow = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                                  .getService(Components.interfaces.nsIWindowMediator)
-                                  .getMostRecentWindow("mail:3pane");
-  const url = "chrome://messenger/content/featureConfigurator.xhtml";
-  if (mail3PaneWindow) {
-    mail3PaneWindow.focus();
-    mail3PaneWindow.document.getElementById("tabmail")
-                            .openTab("chromeTab", {chromePage: url});
-  } else {
-    window.openDialog("chrome://messenger/content/", "_blank",
-                      "chrome,dialog=no,all", null,
-                      { tabType: "chromeTab",
-                        tabParams: {chromePage: url} });
-  }
+/**
+ * Open the Migration Assistant.
+ *
+ * @param aIsUpgrade whether this is being opened as a result of upgrading
+ *     from an earlier version of Thunderbird.
+ */
+function openFeatureConfigurator(aIsUpgrade) {
+  window.openDialog("chrome://messenger/content/featureConfigurator.xhtml",
+                    "_blank",
+                    "chrome,dialog=yes,all,centerscreen,width=704,height=416",
+                    // Below are window.arguments for featureConfigurator.js
+                    window, aIsUpgrade);
 }

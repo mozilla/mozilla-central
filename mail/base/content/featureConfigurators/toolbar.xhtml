@@ -26,12 +26,12 @@
    - The Original Code is the Thunderbird Feature Configurator.
    -
    - The Initial Developer of the Original Code is
-   - Mozilla Messaging, Inc.
-   - Portions created by the Initial Developer are Copyright (C) 2009
+   - The Mozilla Foundation.
+   - Portions created by the Initial Developer are Copyright (C) 2010
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
-   -   David Ascher <dascher@mozillamessaging.com>
+   -   Blake Winton <bwinton@mozillamessaging.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -50,16 +50,16 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
     xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en"
-    windowtype="mailnews:featureconfigurator">
+    version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en">
 <head>
   <!-- Themes -->
   <link rel="stylesheet"
-      href="chrome://messenger/skin/featureConfigurator.css"
+      href="chrome://messenger/skin/featureConfigurators/subpage.css"
       type="text/css"></link>
   <!-- Global Context -->
   <script type="application/javascript;version=1.8"
-      src="chrome://messenger/content/featureConfigurator.js"></script>
+      src="chrome://messenger/content/featureConfigurators/toolbar.js"
+       ></script>
   <!-- Libs -->
   <script type="application/javascript;version=1.8"
       src="chrome://messenger/content/jquery.js"></script>
@@ -67,17 +67,37 @@
       src="chrome://messenger/content/jquery-ui.js"></script>
   <title>&featureConfigurator.title;</title>
 </head>
-<body id="body" onload="onLoad()">
-<div class="content">
-  <iframe class="content" type="content" id="contentFrame"/>
-</div>
-<div id="buttons">
-  <button id="prevButton" onclick="FeatureConfigurator.previousButton(event)"
-          >&featureConfigurator.previousButton;</button>
-  <button id="nextButton" onclick="FeatureConfigurator.nextButton(event)"
-          >&featureConfigurator.nextButton;</button>
-  <button id="closeButton" onclick="FeatureConfigurator.closeButton(event)"
-          >&featureConfigurator.closeButton;</button>
+<body onload="ToolbarConfigurator.onLoad()">
+  <table>
+    <tbody>
+      <tr>
+        <td class="column left">
+          <form>
+            <h1>&featureConfigurator.toolbar.heading;</h1>
+            <img class="screenshot" src="chrome://messenger/skin/featureConfigurators/toolbars.png"/>
+            <label for="toolbar-new">
+              <input type="radio" id="toolbar-new" name="toolbar"
+                     value="new"/>
+              <div>&featureConfigurator.toolbar.new.status;</div>
+              <div class="explanation">&featureConfigurator.toolbar.new.status.explanation;</div>
+            </label>
+            <label for="toolbar-original">
+              <input type="radio" id="toolbar-original" name="toolbar"
+                     value="original"/>
+              <div>&featureConfigurator.toolbar.original.status;</div>
+              <div class="explanation">&featureConfigurator.toolbar.original.status.explanation;</div>
+            </label>
+          </form>
+          <p>&featureConfigurator.toolbarBenefits.para;</p>
+        </td>
+        <td class="column right"></td>
+      </tr>
+    </tbody>
+  </table>
+
+<div id="content" class="toolbar">
+
+
 </div>
 </body>
 </html>

@@ -2473,3 +2473,16 @@ function load_via_src_path(aPath, aModule) {
   let uri = ioService.newFileURI(file).spec;
   loader.loadSubScript(uri, aModule);
 }
+
+function assert_equals(a, b, comment)
+{
+  if (!comment)
+    comment = "a != b";
+  assert_true(a == b, comment + ": '"+ a + "' != '" + b + "'.");
+}
+
+// something less sucky than do_check_true
+function assert_true(aBeTrue, aWhy) {
+  if (!aBeTrue)
+    throw new Error(aWhy);
+}
