@@ -1033,11 +1033,24 @@ calDavCalendar.prototype = {
         if (this.mAuthScheme == "Digest") {
             // the auth could have timed out and be in need of renegotiation
             // we can't risk several calendars doing this simultaneously so
-            // we'll force the renegotiation in a sync query, using HEAD to keep
+            // we'll force the renegotiation in a sync query, using OPTIONS to keep
             // it quick
             let headchannel = cal.prepHttpChannel(this.makeUri(), null, null, this);
-            headchannel.requestMethod = "HEAD";
+            headchannel.requestMethod = "OPTIONS";
             headchannel.open();
+            headchannel.QueryInterface(Components.interfaces.nsIHttpChannel);
+            try {
+              if (headchannel.responseStatus != 200) {
+                throw "OPTIONS returned unexpected status code: " + headchannel.responseStatus;
+              }
+            }
+            catch (e) {
+                cal.WARN("Exception: "+e);
+                if (aChangeLogListener) {
+                    aChangeLogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
+                                                Components.results.NS_ERROR_FAILURE);
+                }
+            }
         }
 
         // Call getUpdatedItems right away if its the first refresh

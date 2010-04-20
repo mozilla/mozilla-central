@@ -206,6 +206,8 @@ cal.auth = {
  *
  * This implementation guarantees there are no request loops when an invalid
  * password is stored in the login-manager.
+ *
+ * There is one instance of that object per calendar provider.
  */
 cal.auth.Prompt.prototype = {
     getPasswordInfo: function capGPI(aPasswordRealm) {
@@ -223,7 +225,14 @@ cal.auth.Prompt.prototype = {
         }
         if (found) {
             let keyStr = aPasswordRealm.prePath +":" + aPasswordRealm.realm;
-            if (this.mReturnedLogins[keyStr]) {
+            let now = new Date();
+            // Remove the saved password if it was already returned less
+            // than 60 seconds ago. The reason for the timestamp check is that
+            // nsIHttpChannel can call the nsIAuthPrompt2 interface
+            // again in some situation. ie: When using Digest auth token
+            // expires.
+            if (this.mReturnedLogins[keyStr] &&
+                now.getTime() - this.mReturnedLogins[keyStr].getTime() < 60000) {
                 cal.LOG("Credentials removed for: user=" + username + ", host="+aPasswordRealm.prePath+", realm="+aPasswordRealm.realm);
                 delete this.mReturnedLogins[keyStr];
                 cal.auth.passwordManagerRemove(username,
@@ -232,7 +241,7 @@ cal.auth.Prompt.prototype = {
                 return {found: false, username: username};
             }
             else {
-                this.mReturnedLogins[keyStr] = true;
+                this.mReturnedLogins[keyStr] = now;
             }
         }
         return {found: found, username: username, password: password};
