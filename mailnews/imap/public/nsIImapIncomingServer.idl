@@ -55,7 +55,7 @@ interface nsMsgImapDeleteModels
   const long DeleteNoTrash = 2; /* delete is shift delete - don't create or use trash */
 };
 
-[scriptable, uuid(fd8b94f8-c8dc-4595-a651-ecaa0f8a8e90)]
+[scriptable, uuid(8974f1f2-7efc-44c4-a785-d5a3d1832f6e)]
 interface nsIImapIncomingServer : nsISupports {
 
   attribute long maximumConnectionsNumber;
@@ -115,6 +115,18 @@ interface nsIImapIncomingServer : nsISupports {
                                         in nsIMsgWindow aWindow,
                                         in boolean forceAllFolders,
                                         in boolean performingBiff);
+  /**
+   * Get the password from the nsIMsgIncomingServer. May prompt the user
+   * if there's no password in the password manager or cached in the 
+   * server object.
+   * @param aWindow  msgWindow to associate the password prompt with
+   * @return Password string.
+   * @exception NS_ERROR_FAILURE  The password could not be obtained.
+   * @note NS_MSG_PASSWORD_PROMPT_CANCELLED is a success code that is returned
+   *       if the prompt was presented to the user but the user cancelled the
+   *       prompt.
+   */
+  ACString PromptPassword(in nsIMsgWindow aWindow);
   attribute boolean doingLsub;
 
   ACString getUriWithNamespacePrefixIfNecessary(in long namespaceType, in ACString originalUri);

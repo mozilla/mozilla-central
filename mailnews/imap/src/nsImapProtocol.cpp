@@ -307,6 +307,7 @@ NS_INTERFACE_MAP_BEGIN(nsImapProtocol)
    NS_INTERFACE_MAP_ENTRY(nsIInputStreamCallback)
    NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
    NS_INTERFACE_MAP_ENTRY(nsIImapProtocolSink)
+   NS_INTERFACE_MAP_ENTRY(nsIMsgAsyncPromptListener)
 NS_INTERFACE_MAP_END_THREADSAFE
 
 static PRInt32 gTooFastTime = 2;
@@ -420,6 +421,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_waitForBodyIdsMonitor = nsnull;
   m_fetchMsgListMonitor = nsnull;
   m_fetchBodyListMonitor = nsnull;
+  m_passwordReadyMonitor = nsnull;
   m_imapThreadIsRunning = PR_FALSE;
   m_currentServerCommandTagNumber = 0;
   m_active = PR_FALSE;
@@ -543,6 +545,7 @@ nsresult nsImapProtocol::Initialize(nsIImapHostSessionList * aHostSessionList, n
     m_waitForBodyIdsMonitor = PR_NewMonitor();
     m_fetchMsgListMonitor = PR_NewMonitor();
     m_fetchBodyListMonitor = PR_NewMonitor();
+    m_passwordReadyMonitor = PR_NewMonitor();
 
     nsresult rv = NS_NewThread(getter_AddRefs(m_iThread), this);
     if (NS_FAILED(rv))
@@ -584,6 +587,8 @@ nsImapProtocol::~nsImapProtocol()
     PR_DestroyMonitor(m_fetchMsgListMonitor);
   if (m_fetchBodyListMonitor)
     PR_DestroyMonitor(m_fetchBodyListMonitor);
+  if (m_passwordReadyMonitor)
+    PR_DestroyMonitor(m_passwordReadyMonitor);
 }
 
 const nsCString&
@@ -8057,7 +8062,8 @@ nsresult nsImapProtocol::GetMsgWindow(nsIMsgWindow **aMsgWindow)
  *    (which is NS_SUCCEEDED!) when user cancelled
  *    NS_FAILED(rv) for other errors
  */
-nsresult nsImapProtocol::GetPassword(nsCString &password)
+nsresult nsImapProtocol::GetPassword(nsCString &password,
+                                     PRBool newPasswordRequested)
 {
   // we are in the imap thread so *NEVER* try to extract the password with UI
   // if logon redirection has changed the password, use the cookie as the password
@@ -8083,15 +8089,75 @@ nsresult nsImapProtocol::GetPassword(nsCString &password)
 
     // Get the password from pw manager (harddisk) or user (dialog)
     nsCAutoString pwd; // GetPasswordWithUI truncates the password on Cancel
-    rv = m_imapServerSink->PromptForPassword(pwd, msgWindow);
-    NS_ENSURE_SUCCESS(rv, rv);
-    if (rv == NS_MSG_PASSWORD_PROMPT_CANCELLED) // (this is a success code)
-      return NS_ERROR_ABORT;
-    NS_ENSURE_TRUE(!pwd.IsEmpty(), NS_ERROR_ABORT);
-    password.Assign(pwd);
+    rv = m_imapServerSink->AsyncGetPassword(this,
+                                                     newPasswordRequested,
+                                                     password);
+    if (password.IsEmpty())
+    {
+      PRIntervalTime sleepTime = kImapSleepTime;
+      m_passwordStatus = NS_OK;
+      PR_EnterMonitor(m_passwordReadyMonitor);
+      while (m_password.IsEmpty() && !NS_FAILED(m_passwordStatus) &&
+             m_passwordStatus != NS_MSG_PASSWORD_PROMPT_CANCELLED &&
+             !DeathSignalReceived())
+        PR_Wait(m_passwordReadyMonitor, sleepTime);
+      rv = m_passwordStatus;
+      PR_ExitMonitor(m_passwordReadyMonitor);
+      password = m_password;
+    }
   }
+  if (!password.IsEmpty())
+    m_lastPasswordSent = password;
+  return rv;
+}
 
-  m_lastPasswordSent = password;
+// This is called from the UI thread.
+NS_IMETHODIMP
+nsImapProtocol::OnPromptStart(PRInt32 *aResult)
+{
+  nsresult rv;
+  nsCOMPtr<nsIImapIncomingServer> imapServer = do_QueryReferent(m_server, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgWindow> msgWindow;
+
+  *aResult = PR_FALSE;
+  GetMsgWindow(getter_AddRefs(msgWindow));
+  nsCString password = m_lastPasswordSent;
+  rv = imapServer->PromptPassword(msgWindow, password);
+  m_password = password;
+  m_passwordStatus = rv;
+  if (!m_password.IsEmpty())
+    *aResult = PR_TRUE;
+
+  // Notify the imap thread that we have a password.
+  PR_EnterMonitor(m_passwordReadyMonitor);
+  PR_Notify(m_passwordReadyMonitor);
+  PR_ExitMonitor(m_passwordReadyMonitor);
+  return rv;
+}
+
+NS_IMETHODIMP
+nsImapProtocol::OnPromptAuthAvailable()
+{
+  nsresult rv;
+  nsCOMPtr<nsIMsgIncomingServer> imapServer = do_QueryReferent(m_server, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  m_passwordStatus = imapServer->GetPassword(m_password);
+  // Notify the imap thread that we have a password.
+  PR_EnterMonitor(m_passwordReadyMonitor);
+  PR_Notify(m_passwordReadyMonitor);
+  PR_ExitMonitor(m_passwordReadyMonitor);
+  return m_passwordStatus;
+}
+
+NS_IMETHODIMP
+nsImapProtocol::OnPromptCanceled()
+{
+  // A prompt was cancelled, so notify the imap thread.
+  m_passwordStatus = NS_MSG_PASSWORD_PROMPT_CANCELLED;
+  PR_EnterMonitor(m_passwordReadyMonitor);
+  PR_Notify(m_passwordReadyMonitor);
+  PR_ExitMonitor(m_passwordReadyMonitor);
   return NS_OK;
 }
 
@@ -8180,6 +8246,7 @@ PRBool nsImapProtocol::TryToLogon()
    * between 2. and 4., which is really unfortunate.
    */
 
+  PRBool newPasswordRequested = PR_FALSE;
   // This loops over 1) auth methods (only one per loop) and 2) password tries (with UI)
   while (!loginSucceeded && !skipLoop && !DeathSignalReceived())
   {
@@ -8187,7 +8254,8 @@ PRBool nsImapProtocol::TryToLogon()
       if (m_currentAuthMethod != kHasAuthGssApiCapability && // GSSAPI uses no pw in apps
           m_currentAuthMethod != kHasAuthNoneCapability)
       {
-          rv = GetPassword(password);
+          rv = GetPassword(password, newPasswordRequested);
+          newPasswordRequested = PR_FALSE;
           if (rv == NS_MSG_PASSWORD_PROMPT_CANCELLED || NS_FAILED(rv))
           {
             PR_LOG(IMAP, PR_LOG_ERROR, ("IMAP: password prompt failed or user canceled it"));
@@ -8242,7 +8310,9 @@ PRBool nsImapProtocol::TryToLogon()
             password.Truncate();
             m_hostSessionList->SetPasswordForHost(GetImapServerKey(), nsnull);
             m_imapServerSink->ForgetPassword();
+            m_password.Truncate();
             PR_LOG(IMAP, PR_LOG_WARN, ("password resetted (nulled)"));
+            newPasswordRequested = PR_TRUE;
             // Will call GetPassword() in beginning of next loop
 
             // Try all possible auth methods again with the new password.

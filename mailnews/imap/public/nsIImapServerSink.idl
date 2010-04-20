@@ -48,7 +48,7 @@ interface nsIImapMockChannel;
  * nsIImapServerSink is designed to be used as a proxy to the application's UI
  * thread from the running IMAP threads.
  */
-[scriptable, uuid(9417d665-6850-4903-ad01-17c915e34441)]
+[scriptable, uuid(1c90d58b-a41b-480d-983f-9d8e83efed0a)]
 interface nsIImapServerSink : nsISupports {
   /**
    * Check if the given folder path is a possible IMAP mailbox.
@@ -134,7 +134,28 @@ interface nsIImapServerSink : nsISupports {
   void fEAlertFromServer(in ACString aServerString, in nsIMsgMailNewsUrl aUrl);
 
   void commitNamespaces();
-  void promptForPassword(out ACString promptString, in nsIMsgWindow msgWindow);
+
+  /**
+   * Returns a password via the out param, if we were able to prompt for one,
+   * or had one stored.
+   * If there is already a password prompt up, we return false, but we
+   * ask the async prompt service to notify us when we can put up a prompt.
+   * When that notification is received, we prompt the user and set the
+   * password on the protocol object, and signal a monitor that the imap
+   * thread should be waiting on.
+   *
+   * rv is NS_MSG_PASSWORD_PROMPT_CANCELLED if the user cancels the
+   * password prompt. That's not an exception, however.
+   *
+   * @param aProtocol imap protocol object requesting the password.
+   * @param aNewPasswordRequested Forces password prompt immediately
+   * @param aPassword returns the password, unless we had to prompt or use the,
+   *                  login manager and there was already a prompt up.
+   */
+  void asyncGetPassword(in nsIImapProtocol aProtocol,
+                        in boolean aNewPasswordRequested,
+                        out ACString aPassword);
+
   attribute boolean userAuthenticated;
   void setMailServerUrls(in ACString manageMailAccount, in ACString manageLists, in ACString manageFilters);
 

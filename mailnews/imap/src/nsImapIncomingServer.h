@@ -58,7 +58,6 @@ class nsImapIncomingServer : public nsMsgIncomingServer,
                              public nsIImapServerSink,
                              public nsISubscribableServer,
                              public nsIUrlListener
-
 {
 public:
     NS_DECL_ISUPPORTS_INHERITED

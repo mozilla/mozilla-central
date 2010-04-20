@@ -2104,8 +2104,36 @@ NS_IMETHODIMP nsImapIncomingServer::ForgetPassword()
 }
 
 
-NS_IMETHODIMP nsImapIncomingServer::PromptForPassword(nsACString& aPassword,
-                                                      nsIMsgWindow * aMsgWindow)
+NS_IMETHODIMP
+nsImapIncomingServer::AsyncGetPassword(nsIImapProtocol *aProtocol,
+                                       PRBool aNewPasswordRequested,
+                                       nsACString &aPassword)
+{
+  if (m_password.IsEmpty())
+  {
+    // We're now going to need to do something that will end up with us either
+    // poking login manager or prompting the user. We need to ensure we only
+    // do one prompt at a time (and login manager could cause a master password
+    // prompt), so we need to use the async prompter.
+    nsresult rv;
+    nsCOMPtr<nsIMsgAsyncPrompter> asyncPrompter =
+      do_GetService(NS_MSGASYNCPROMPTER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIMsgAsyncPromptListener> promptListener(do_QueryInterface(aProtocol));
+    rv = asyncPrompter->QueueAsyncAuthPrompt(m_serverKey, aNewPasswordRequested,
+                                             promptListener);
+    // Explict NS_ENSURE_SUCCESS for debug purposes as errors tend to get
+    // hidden.
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+  if (!m_password.IsEmpty())
+    aPassword = m_password;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsImapIncomingServer::PromptPassword(nsIMsgWindow *aMsgWindow,
+                                  nsACString &aPassword)
 {
   nsString passwordTitle;
   IMAPGetStringByID(IMAP_ENTER_PASSWORD_PROMPT_TITLE, getter_Copies(passwordTitle));
@@ -2122,7 +2150,11 @@ NS_IMETHODIMP nsImapIncomingServer::PromptForPassword(nsACString& aPassword,
                                          IMAP_ENTER_PASSWORD_PROMPT,
                                          passwordText);
   NS_ENSURE_SUCCESS(rv,rv);
-  return GetPasswordWithUI(passwordText, passwordTitle, aMsgWindow, aPassword);
+
+  rv = GetPasswordWithUI(passwordText, passwordTitle, aMsgWindow, aPassword);
+  if (NS_SUCCEEDED(rv))
+    m_password = aPassword;
+  return rv;
 }
 
 // for the nsIImapServerSink interface

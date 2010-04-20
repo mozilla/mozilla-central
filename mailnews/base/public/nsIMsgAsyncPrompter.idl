@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Mark Banner <bugzilla@standard8.plus.com>
+ *   David Bienvenu <bienvenu@mozillamessaging.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -45,7 +46,7 @@ interface nsIMsgAsyncPromptListener;
  * message prompts into synchronous ones - so that the user is only prompted
  * with one at a time.
  */
-[scriptable, uuid(f32be63a-c7cb-4c66-8536-b0202cb4604d)]
+[scriptable, uuid(15f67d0f-947a-4a1e-8f72-6ab7162b4b9c)]
 interface nsIMsgAsyncPrompter : nsISupports {
   /**
    * Queues an async prompt request. If there are none queued then this will be
@@ -57,10 +58,14 @@ interface nsIMsgAsyncPrompter : nsISupports {
    *
    * @param aKey    A key to determine whether or not the queued prompts can
    *                be combined.
+   * @param aPromptImmediately If the user is retrying a failed password, we
+   *                           need to prompt right away, even if there is a
+   *                           prompt up, or prompts queued up. Note that
+   *                           immediately may not be synchronously, on OS/X.
    * @param aCaller An nsIMsgAsyncPromptListener to call back to when the prompt
    *                is ready to be made.
    */
-  void queueAsyncAuthPrompt(in ACString aKey,
+  void queueAsyncAuthPrompt(in ACString aKey, in boolean aPromptImmediately,
                             in nsIMsgAsyncPromptListener aCaller);
 };
 

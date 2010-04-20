@@ -108,13 +108,13 @@ protected:
   PRInt32  m_numMsgsDownloaded;
 static PLDHashOperator evictOldEntries(nsCStringHashKey::KeyType aKey, PRInt32 &aData, void *aClosure);
 private:
-  nsCString m_password;
   PRUint32 m_biffState;
   PRPackedBool m_serverBusy;
   nsCOMPtr <nsISpamSettings> mSpamSettings;
   nsCOMPtr<nsIMsgFilterPlugin> mFilterPlugin;  // XXX should be a list
 
 protected:
+  nsCString m_password;
   PRPackedBool m_canHaveFilters;
   PRPackedBool m_displayStartupPage;
   PRPackedBool mPerformingBiff;

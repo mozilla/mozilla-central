@@ -87,6 +87,7 @@
 #include "nsITimer.h"
 #include "nsAutoPtr.h"
 #include "nsIMsgFolder.h"
+#include "nsIMsgAsyncPrompter.h"
 
 class nsIMAPMessagePartIDArray;
 class nsIMsgIncomingServer;
@@ -154,8 +155,13 @@ private:
 #define IMAP_ISSUED_LANGUAGE_REQUEST  0x00000020 // make sure we only issue the language request once per connection...
 #define IMAP_ISSUED_COMPRESS_REQUEST  0x00000040 // make sure we only request compression once
 
-class nsImapProtocol : public nsIImapProtocol, public nsIRunnable, public nsIInputStreamCallback,
- public nsSupportsWeakReference, public nsMsgProtocol, public nsIImapProtocolSink
+class nsImapProtocol : public nsIImapProtocol,
+                       public nsIRunnable,
+                       public nsIInputStreamCallback,
+                       public nsSupportsWeakReference,
+                       public nsMsgProtocol,
+                       public nsIImapProtocolSink,
+                       public nsIMsgAsyncPromptListener
 {
 public:
 
@@ -179,7 +185,9 @@ public:
   // we support the nsIImapProtocolSink interface
   //////////////////////////////////////////////////////////////////////////////////
   NS_DECL_NSIIMAPPROTOCOLSINK
-  
+
+  NS_DECL_NSIMSGASYNCPROMPTLISTENER
+
   // message id string utilities.
   PRUint32    CountMessagesInIdString(const char *idString);
   static  PRBool  HandlingMultipleMessages(const nsCString &messageIdString);
@@ -373,6 +381,14 @@ private:
   PRMonitor    *m_waitForBodyIdsMonitor;
   PRMonitor    *m_fetchMsgListMonitor;
   PRMonitor   *m_fetchBodyListMonitor;
+  PRMonitor   *m_passwordReadyMonitor;
+
+  // If we get an async password prompt, this is where the UI thread
+  // stores the password, before notifying the imap thread of the password
+  // via the m_passwordReadyMonitor.
+  nsCString m_password;
+  // Set to the result of nsImapServer::PromptPassword
+  nsresult    m_passwordStatus;
 
   PRBool       m_imapThreadIsRunning;
   void ImapThreadMainLoop(void);
@@ -473,7 +489,7 @@ private:
   void StartTLS();
 
   // login related methods.
-  nsresult GetPassword(nsCString &password);
+  nsresult GetPassword(nsCString &password, PRBool aNewPasswordRequested);
   void InitPrefAuthMethods(PRInt32 authMethodPrefValue);
   nsresult ChooseAuthMethod();
   void MarkAuthMethodAsFailed(PRInt32 failedAuthMethod);

@@ -75,7 +75,7 @@ runnablePrompter.prototype = {
         Components.utils.reportError("runnablePrompter:run: consumer.onPrompt* reported an exception: " + ex + "\n");
       }
     }
-    this._asyncPrompter._asyncPromptInProgress = false;
+    this._asyncPrompter._asyncPromptInProgress--;
 
     this._asyncPrompter._log.debug("Finished running prompter for " + this._hashKey);
     this._asyncPrompter._doAsyncAuthPrompt();
@@ -99,11 +99,11 @@ msgAsyncPrompter.prototype = {
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgAsyncPrompter]),
 
   _pendingPrompts: null,
-  _asyncPromptInProgress: false,
+  _asyncPromptInProgress: 0,
   _threadManager: null,
   _log: null,
 
-  queueAsyncAuthPrompt: function(aKey, aCaller) {
+  queueAsyncAuthPrompt: function(aKey, aJumpQueue, aCaller) {
     if (aKey in this._pendingPrompts) {
       this._log.debug("Prompt bound to an existing one in the queue, key: " + aKey);
       this._pendingPrompts[aKey].consumers.push(aCaller);
@@ -117,11 +117,20 @@ msgAsyncPrompter.prototype = {
     };
 
     this._pendingPrompts[aKey] = asyncPrompt;
-    this._doAsyncAuthPrompt();
+    if (aJumpQueue) {
+      this._asyncPromptInProgress++;
+
+      this._log.debug("Forcing runnablePrompter for " + aKey);
+
+      let runnable = new runnablePrompter(this, aKey);
+      this._threadManager.mainThread.dispatch(runnable, Ci.nsIThread.DISPATCH_NORMAL);
+    }
+    else
+      this._doAsyncAuthPrompt();
   },
 
   _doAsyncAuthPrompt: function() {
-    if (this._asyncPromptInProgress) {
+    if (this._asyncPromptInProgress > 0) {
       this._log.debug("_doAsyncAuthPrompt bypassed - prompt already in progress");
       return;
     }
@@ -134,7 +143,7 @@ msgAsyncPrompter.prototype = {
     if (!hashKey)
       return;
 
-    this._asyncPromptInProgress = true;
+    this._asyncPromptInProgress++;
 
     this._log.debug("Dispatching runnablePrompter for " + hashKey);
 
