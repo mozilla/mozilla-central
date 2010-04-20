@@ -570,6 +570,7 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, nsIMsgDB
     if (type == nsIMsgCompType::Redirect)
       uriToOpen.Append("&redirect=true");
 
+    aMsgWindow->SetCharsetOverride(true);
     return LoadDraftOrTemplate(uriToOpen, type == nsIMsgCompType::ForwardInline || type == nsIMsgCompType::Draft ?
                                nsMimeOutput::nsMimeMessageDraftOrTemplate : nsMimeOutput::nsMimeMessageEditorTemplate,
                                identity, originalMsgURI, origMsgHdr, type == nsIMsgCompType::ForwardInline,
