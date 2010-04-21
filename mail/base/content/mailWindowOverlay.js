@@ -1348,13 +1348,20 @@ BatchMessageMover.prototype = {
       if (granularity >= Components.interfaces.nsIMsgIncomingServer
                                    .perYearArchiveFolders)
         copyBatchKey += msgYear;
-      if (granularity >= Components.interfaces.nsIMsgIncomingServer
-                                   .perMonthArchiveFolders)
+
+      if (granularity >=  Components.interfaces.nsIMsgIncomingServer
+                                    .perMonthArchiveFolders)
         copyBatchKey += monthFolderName;
 
+      let keepFolderStructure = archiveFolder.server.archiveKeepFolderStructure;
+      if (keepFolderStructure)
+        copyBatchKey += msgHdr.folder.URI;
+
+       // Add a key to copyBatchKey
        if (! (copyBatchKey in this._batches)) {
         this._batches[copyBatchKey] = [msgHdr.folder, archiveFolderUri,
-                                       granularity, msgYear, monthFolderName];
+                                       granularity, keepFolderStructure,
+                                       msgYear, monthFolderName];
       }
       this._batches[copyBatchKey].push(msgHdr);
     }
@@ -1372,10 +1379,12 @@ BatchMessageMover.prototype = {
       let srcFolder = batch[0];
       let archiveFolderUri = batch[1];
       let granularity = batch[2];
-      let msgYear = batch[3];
-      let msgMonth = batch[4];
-      let msgs = batch.slice(5, batch.length);
+      let keepFolderStructure = batch[3];
+      let msgYear = batch[4];
+      let msgMonth = batch[5];
+      let msgs = batch.slice(6, batch.length);
       let subFolder, dstFolder;
+      let initFolderLevel = 1;
       let Ci = Components.interfaces;
 
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
@@ -1443,6 +1452,27 @@ BatchMessageMover.prototype = {
       else {
         dstFolder = archiveFolder;
       }
+     // Create the folder structure in Archives
+     if (keepFolderStructure) {
+         let dstFolder2;
+         // Detect the root folder of message
+         let server = batch[0].server;
+         let InitialFolderLevel = server.rootFolder;
+         // Find the folder structure to create
+         let folderURI = batch[0].URI.split(InitialFolderLevel.URI).toString().substr(1).split("/");
+         if (folderURI[1] == "INBOX")
+             initFolderLevel = 2;
+         for (let i = initFolderLevel; i < folderURI.length; i++) {
+             archiveFolderUri += "/" + folderURI[i];
+             dstFolder2 = GetMsgFolderFromUri(archiveFolderUri, false);
+             if (!dstFolder2.parent) {
+                 dstFolder2.createStorageIfMissing(this);
+                 if (isImap)
+                    return;
+             }
+         }
+         dstFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+     }
       if (dstFolder != srcFolder) {
         var mutablearray = Components.classes["@mozilla.org/array;1"]
                             .createInstance(Components.interfaces.nsIMutableArray);

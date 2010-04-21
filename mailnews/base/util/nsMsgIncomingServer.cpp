@@ -1682,6 +1682,8 @@ NS_IMPL_SERVERPREF_BOOL(nsMsgIncomingServer, Hidden, "hidden")
 
 NS_IMPL_SERVERPREF_INT(nsMsgIncomingServer, ArchiveGranularity, "archive_granularity")
 
+NS_IMPL_SERVERPREF_BOOL(nsMsgIncomingServer, ArchiveKeepFolderStructure, "archive_keep_folder_structure")
+
 NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
 {
   if (!mPrefBranch)

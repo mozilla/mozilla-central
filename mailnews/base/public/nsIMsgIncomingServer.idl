@@ -59,7 +59,7 @@ interface nsIURI;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(798c89ed-2c25-4eaa-b34d-5b2c2ab62286)]
+[scriptable, uuid(eb921e6e-b93d-4492-89cf-79a19da684ce)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -544,6 +544,8 @@ interface nsIMsgIncomingServer : nsISupports {
   const long perYearArchiveFolders = 1;
   const long perMonthArchiveFolders = 2;
   attribute long archiveGranularity;
+  /// Maintain the source folder name when creating Archive subfolders
+  attribute boolean archiveKeepFolderStructure;
   /** @} */
 
 };

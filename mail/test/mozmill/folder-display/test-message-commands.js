@@ -55,16 +55,22 @@ var setupModule = function(module) {
   fdh.installInto(module);
 
   archiveSrcFolder = create_folder("ArchiveSrc");
-  // Create messages from 13 different months, which will mean 2 different
+  // Create messages from 20 different months, which will mean 2 different
   // years as well.
-  make_new_sets_in_folder(archiveSrcFolder, [{count: 13, age_incr: {weeks: 5}}]);
+  make_new_sets_in_folder(archiveSrcFolder, [{count: 20, age_incr: {weeks: 5}}]);
 };
 
 function test_yearly_archive() {
+  yearly_archive(false);
+}
+
+function yearly_archive(keep_structure) {
   be_in_folder(archiveSrcFolder);
   make_display_unthreaded();
   mc.folderDisplay.view.sort(Ci.nsMsgViewSortType.byDate, Ci.nsMsgViewSortOrder.ascending);
 
+  let server = mc.folderDisplay.view.dbView.getMsgHdrAt(0).folder.server;
+  server.archiveGranularity = Ci.nsIMsgIncomingServer.perYearArchiveFolders;
   // We need to get all the info about the messages before we do the archive,
   // because deleting the headers could make extracting values from them fail.
   let firstMsgHdr = mc.folderDisplay.view.dbView.getMsgHdrAt(0);
@@ -86,18 +92,26 @@ function test_yearly_archive() {
   let archiveRoot = "mailbox://nobody@Local%20Folders/Archives";
   let firstArchiveUri = archiveRoot + "/" + firstMsgYear;
   let lastArchiveUri = archiveRoot + "/" + lastMsgYear;
+  if (keep_structure) {
+    firstArchiveUri += "/ArchiveSrc";
+    lastArchiveUri += "/ArchiveSrc";
+  }
   let firstArchiveFolder =  MailUtils.getFolderForURI(firstArchiveUri);
   let lastArchiveFolder = MailUtils.getFolderForURI(lastArchiveUri);
   be_in_folder(firstArchiveFolder);
   assert_true(mc.dbView.getMsgHdrAt(0).messageId == firstMsgHdrMsgId,
-              "Message should have been archived to Local Folders/Archives/" + firstMsgYear + ", but it isn't present there");
+              "Message should have been archived to " + firstArchiveUri + ", but it isn't present there");
   be_in_folder(lastArchiveFolder);
 
   assert_true(mc.dbView.getMsgHdrAt(0).messageId == lastMsgHdrMsgId,
-              "Message should have been archived to Local Folders/Archives/" + lastMsgYear + ", but it isn't present there");
+              "Message should have been archived to " + lastArchiveUri + ", but it isn't present there");
 }
 
 function test_monthly_archive() {
+  monthly_archive(false);
+}
+
+function monthly_archive(keep_structure) {
   be_in_folder(archiveSrcFolder);
   let server = mc.folderDisplay.view.dbView.getMsgHdrAt(0).folder.server;
   server.archiveGranularity = Ci.nsIMsgIncomingServer.perMonthArchiveFolders;
@@ -123,15 +137,27 @@ function test_monthly_archive() {
   let firstArchiveUri = archiveRoot + "/" + firstMsgYear +
                         "/" + firstMonthFolderName;
   let lastArchiveUri = archiveRoot + "/" + lastMsgYear +
-                        "/" + lastMonthFolderName;;
+                        "/" + lastMonthFolderName;
+  if (keep_structure) {
+    firstArchiveUri += "/ArchiveSrc";
+    lastArchiveUri += "/ArchiveSrc";
+  }
   let firstArchiveFolder =  MailUtils.getFolderForURI(firstArchiveUri);
   let lastArchiveFolder = MailUtils.getFolderForURI(lastArchiveUri);
   be_in_folder(firstArchiveFolder);
   assert_true(mc.dbView.getMsgHdrAt(0).messageId == firstMsgHdrMsgId,
-              "Message should have been archived to Local Folders/Archives/" + 
-              firstMsgYear + "/" + firstMonthFolderName + ", but it isn't present there");
+              "Message should have been archived to Local Folders/" + 
+              firstMsgYear + "/" + firstMonthFolderName + "/Archives, but it isn't present there");
   be_in_folder(lastArchiveFolder);
   assert_true(mc.dbView.getMsgHdrAt(0).messageId == lastMsgHdrMsgId,
-              "Message should have been archived to Local Folders/Archives/" + 
-              lastMsgYear + "/" + lastMonthFolderName + ", but it isn't present there");
+              "Message should have been archived to Local Folders/" + 
+              lastMsgYear + "/" + lastMonthFolderName + "/Archives, but it isn't present there");
+}
+
+function test_folder_structure_archiving() {
+  Cc["@mozilla.org/preferences-service;1"]
+   .getService(Ci.nsIPrefService).getBranch(null)
+   .setBoolPref("mail.server.default.archive_keep_folder_structure", true);
+  monthly_archive(true);
+  yearly_archive(true);
 }

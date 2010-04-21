@@ -370,7 +370,12 @@ var DefaultController =
       case "button_file":
       case "cmd_file":
       case "cmd_archive":
-        return (gFolderDisplay.selectedCount > 0 );
+        let selectedMessages = gFolderDisplay.selectedMessages;
+        let archiveKfs =  selectedMessages.length > 0 && selectedMessages[0].folder &&
+           selectedMessages[0].folder.server.archiveKeepFolderStructure;
+        if (!archiveKfs)
+          return gFolderDisplay.selectedCount > 0;
+        // Otherwise, we fall through to checking if we're an archive folder.
       case "button_archive":
         return gFolderDisplay.selectedCount > 0 && gFolderDisplay.displayedFolder &&
           !gFolderDisplay.displayedFolder.isSpecialFolder(
