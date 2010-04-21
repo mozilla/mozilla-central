@@ -749,7 +749,7 @@ NS_IMETHODIMP nsPop3Protocol::OnPromptStart(PRBool *aResult)
   *aResult = PR_FALSE;
 
   nsresult rv;
-  nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_pop3Server);
+  nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_pop3Server, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCAutoString passwordResult;
