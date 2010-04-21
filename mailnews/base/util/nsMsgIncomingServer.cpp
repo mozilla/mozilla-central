@@ -761,6 +761,7 @@ nsresult nsMsgIncomingServer::GetPasswordWithoutUI()
     }
     NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(numLogins, logins);
   }
+  return NS_OK;
 }
 
 NS_IMETHODIMP
