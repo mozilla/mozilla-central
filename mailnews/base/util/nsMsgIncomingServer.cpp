@@ -700,23 +700,23 @@ NS_IMETHODIMP nsMsgIncomingServer::GetServerRequiresPasswordForBiff(PRBool *aSer
 }
 
 // This sets m_password if we find a password in the pw mgr.
-void nsMsgIncomingServer::GetPasswordWithoutUI()
+nsresult nsMsgIncomingServer::GetPasswordWithoutUI()
 {
   nsresult rv;
   nsCOMPtr<nsILoginManager> loginMgr(do_GetService(NS_LOGINMANAGER_CONTRACTID,
                                                    &rv));
-  NS_ENSURE_SUCCESS(rv, );
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // Get the current server URI
   nsCString currServerUri;
   rv = GetLocalStoreType(currServerUri);
-  NS_ENSURE_SUCCESS(rv, );
+  NS_ENSURE_SUCCESS(rv, rv);
 
   currServerUri.AppendLiteral("://");
 
   nsCString temp;
   rv = GetHostName(temp);
-  NS_ENSURE_SUCCESS(rv, );
+  NS_ENSURE_SUCCESS(rv, rv);
 
   currServerUri.Append(temp);
 
@@ -727,13 +727,19 @@ void nsMsgIncomingServer::GetPasswordWithoutUI()
   rv = loginMgr->FindLogins(&numLogins, currServer, EmptyString(),
                             currServer, &logins);
 
+  // Login manager can produce valid fails, e.g. NS_ERROR_ABORT when a user
+  // cancels the master password dialog. Therefore handle that here, but don't
+  // warn about it.
+  if (NS_FAILED(rv))
+    return rv;
+
   // Don't abort here, if we didn't find any or failed, then we'll just have
   // to prompt.
-  if (NS_SUCCEEDED(rv) && numLogins > 0)
+  if (numLogins > 0)
   {
     nsCString serverCUsername;
     rv = GetUsername(serverCUsername);
-    NS_ENSURE_SUCCESS(rv, );
+    NS_ENSURE_SUCCESS(rv, rv);
 
     NS_ConvertUTF8toUTF16 serverUsername(serverCUsername);
 
@@ -741,13 +747,13 @@ void nsMsgIncomingServer::GetPasswordWithoutUI()
     for (PRUint32 i = 0; i < numLogins; ++i)
     {
       rv = logins[i]->GetUsername(username);
-      NS_ENSURE_SUCCESS(rv, );
+      NS_ENSURE_SUCCESS(rv, rv);
 
       if (username.Equals(serverUsername))
       {
         nsString password;
         rv = logins[i]->GetPassword(password);
-        NS_ENSURE_SUCCESS(rv, );
+        NS_ENSURE_SUCCESS(rv, rv);
 
         m_password = NS_LossyConvertUTF16toASCII(password);
         break;
@@ -770,7 +776,12 @@ nsMsgIncomingServer::GetPasswordWithUI(const nsAString& aPromptMessage, const
     // let's see if we have the password in the password manager and
     // can avoid this prompting thing. This makes it easier to get embedders
     // to get up and running w/o a password prompting UI.
-    GetPasswordWithoutUI();
+    rv = GetPasswordWithoutUI();
+    // If GetPasswordWithoutUI returns NS_ERROR_ABORT, the most likely case
+    // is the user canceled getting the master password, so just return
+    // straight away, as they won't want to get prompted again.
+    if (rv == NS_ERROR_ABORT)
+      return NS_MSG_PASSWORD_PROMPT_CANCELLED;
   }
   if (m_password.IsEmpty())
   {
@@ -1739,7 +1750,7 @@ nsMsgIncomingServer::GetPasswordPromptRequired(PRBool *aPasswordIsRequired)
 
   // If the password is empty, check to see if it is stored and to be retrieved
   if (m_password.IsEmpty())
-    GetPasswordWithoutUI();
+    (void)GetPasswordWithoutUI();
 
   *aPasswordIsRequired = m_password.IsEmpty();
   return rv;

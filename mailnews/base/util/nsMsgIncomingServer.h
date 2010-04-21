@@ -78,8 +78,9 @@ class NS_MSG_BASE nsMsgIncomingServer : public nsIMsgIncomingServer,
 protected:
   nsCString m_serverKey;
 
-  // sets m_password, if password found.
-  void GetPasswordWithoutUI();
+  // Sets m_password, if password found. Can return NS_ERROR_ABORT if the 
+  // user cancels the master password dialog.
+  nsresult GetPasswordWithoutUI();
 
   nsresult ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *filterList);
   nsresult ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filterList);
