@@ -79,6 +79,7 @@
 #include "nsLocalStrings.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsMsgMessageFlags.h"
+#include "nsMsgBaseCID.h"
 
 #define EXTRA_SAFETY_SPACE 3096
 
@@ -471,8 +472,11 @@ nsPop3Protocol::MarkMsgForHost(const char *hostName, const char *userName,
 NS_IMPL_ADDREF_INHERITED(nsPop3Protocol, nsMsgProtocol)
 NS_IMPL_RELEASE_INHERITED(nsPop3Protocol, nsMsgProtocol)
 
+
+
 NS_INTERFACE_MAP_BEGIN(nsPop3Protocol)
   NS_INTERFACE_MAP_ENTRY(nsIPop3Protocol)
+  NS_INTERFACE_MAP_ENTRY(nsIMsgAsyncPromptListener)
 NS_INTERFACE_MAP_END_INHERITING(nsMsgProtocol)
 
 // nsPop3Protocol class implementation
@@ -670,21 +674,91 @@ void nsPop3Protocol::SetUsername(const char* name)
       m_username = name;
 }
 
-nsresult nsPop3Protocol::GetPassword(nsCString& aPassword)
+Pop3StatesEnum nsPop3Protocol::GetNextPasswordObtainState()
 {
-  PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("GetPassword()"));
-  nsresult rv = NS_OK;
-  nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_pop3Server);
-  NS_ENSURE_TRUE(server, NS_MSG_INVALID_OR_MISSING_SERVER);
+  switch (m_pop3ConData->next_state)
+  {
+  case POP3_OBTAIN_PASSWORD_EARLY:
+    return POP3_FINISH_OBTAIN_PASSWORD_EARLY;
+    break;
+  case POP3_SEND_USERNAME:
+  case POP3_OBTAIN_PASSWORD_BEFORE_USERNAME:
+    return POP3_FINISH_OBTAIN_PASSWORD_BEFORE_USERNAME;
+    break;
+  case POP3_SEND_PASSWORD:
+  case POP3_OBTAIN_PASSWORD_BEFORE_PASSWORD:
+    return POP3_FINISH_OBTAIN_PASSWORD_BEFORE_PASSWORD;
+    break;
+  default:
+    // Should never get here.
+    NS_NOTREACHED("Invalid next_state in SetNextPasswordObtainState");
+  }
+  return POP3_ERROR_DONE;
+}
 
-  PRBool isAuthenticated;
-  m_nsIPop3Sink->GetUserAuthenticated(&isAuthenticated);
+nsresult nsPop3Protocol::StartGetAsyncPassword(Pop3StatesEnum aNextState)
+{
+  nsresult rv;
+
+  // Try and avoid going async if possible - if we haven't got into a password
+  // failure state and the server has a password stored for this session, then
+  // use it.
+  if (!TestFlag(POP3_PASSWORD_FAILED))
+  {
+    nsCOMPtr<nsIMsgIncomingServer> server =
+      do_QueryInterface(m_pop3Server, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = server->GetPassword(m_passwordResult);
+    if (NS_SUCCEEDED(rv) && !m_passwordResult.IsEmpty())
+    {
+      m_pop3ConData->next_state = GetNextPasswordObtainState();
+      return NS_OK;
+    }
+  }
+
+  // We're now going to need to do something that will end up with us either
+  // poking the login manger or prompting the user. We need to ensure we only
+  // do one prompt at a time (and loging manager could cause a master password
+  // prompt), so we need to use the async prompter.
+  nsCOMPtr<nsIMsgAsyncPrompter> asyncPrompter =
+    do_GetService(NS_MSGASYNCPROMPTER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  m_pop3ConData->next_state = aNextState;
+
+  // Although we're not actually pausing for a read, we'll do so anyway to let
+  // the async prompt run. Once it is our turn again we'll call back into
+  // ProcessProtocolState.
+  m_pop3ConData->pause_for_read = PR_TRUE;
+
+  nsCString server("unknown");
+  m_url->GetPrePath(server);
+
+  rv = asyncPrompter->QueueAsyncAuthPrompt(server, PR_FALSE, this);
+  // Explict NS_ENSURE_SUCCESS for debug purposes as errors tend to get
+  // hidden.
+  NS_ENSURE_SUCCESS(rv, rv);
+  return rv;
+}
+
+NS_IMETHODIMP nsPop3Protocol::OnPromptStart(PRBool *aResult)
+{
+  PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("OnPromptStart()"));
+
+  *aResult = PR_FALSE;
+
+  nsresult rv;
+  nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_pop3Server);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCAutoString passwordResult;
 
   // pass the failed password into the password prompt so that
   // it will be pre-filled, in case it failed because of a
   // server problem and not because it was wrong.
   if (!m_lastPasswordSent.IsEmpty())
-    aPassword = m_lastPasswordSent;
+    passwordResult = m_lastPasswordSent;
 
   // Set up some items that we're going to need for the prompting.
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_url, &rv);
@@ -722,16 +796,29 @@ nsresult nsPop3Protocol::GetPassword(nsCString& aPassword)
         {
           PR_LOG(POP3LOGMODULE, PR_LOG_WARN, ("cancel button pressed"));
           // About quickly and stop trying for now.
-          m_pop3ConData->next_state = POP3_ERROR_DONE;
+
+          // If we haven't actually connected yet (i.e. we're doing an early
+          // attempt to get the username/password but we've previously failed
+          // for some reason), then skip straight to POP3_FREE as it isn't an
+          // error in this connection, and just ends up with us closing the
+          // socket and saying we've aborted the bind. Otherwise, pretend this
+          // is an error and move on.
+          m_pop3ConData->next_state =
+            m_pop3ConData->next_state == POP3_OBTAIN_PASSWORD_EARLY ?
+                                         POP3_FREE : POP3_ERROR_DONE;
 
           // Clear the password we're going to return to force failure in
           // the get mail instance.
-          aPassword.Truncate();
+          passwordResult.Truncate();
 
           // We also have to clear the password failed flag, otherwise we'll
           // automatically try again.
           ClearFlag(POP3_PASSWORD_FAILED);
-          return NS_ERROR_ABORT;
+
+          // As we're async, calling ProcessProtocolState gets things going
+          // again.
+          ProcessProtocolState(nsnull, nsnull, 0, 0);
+          return NS_OK;
         }
         else if (buttonPressed == 2) // "New password" button
         {
@@ -752,6 +839,16 @@ nsresult nsPop3Protocol::GetPassword(nsCString& aPassword)
           // try all methods again, including GSSAPI
           ResetAuthMethods();
           ClearFlag(POP3_PASSWORD_FAILED|POP3_AUTH_FAILURE);
+
+          // It is a bit strange that we're going onto the next state that 
+          // would essentially send the password. However in resetting the
+          // auth methods above, we're setting up SendUsername, SendPassword
+          // and friends to abort and return to the POP3_SEND_CAPA state.
+          // Hence we can do this safely.
+          m_pop3ConData->next_state = GetNextPasswordObtainState();
+          // As we're async, calling ProcessProtocolState gets things going
+          // again.
+          ProcessProtocolState(nsnull, nsnull, 0, 0);
           return NS_OK;
         }
       }
@@ -775,10 +872,44 @@ nsresult nsPop3Protocol::GetPassword(nsCString& aPassword)
   // Now go and get the password.
   if (!passwordPrompt.IsEmpty() && !passwordTitle.IsEmpty())
     rv = server->GetPasswordWithUI(passwordPrompt, passwordTitle,
-                                    msgWindow, aPassword);
+                                    msgWindow, passwordResult);
   ClearFlag(POP3_PASSWORD_FAILED|POP3_AUTH_FAILURE);
 
-  return rv;
+  // If it failed or the user cancelled the prompt, just abort the
+  // connection.
+  if (NS_FAILED(rv) ||
+      rv == NS_MSG_PASSWORD_PROMPT_CANCELLED)
+  {
+    m_pop3ConData->next_state = POP3_ERROR_DONE;
+    m_passwordResult.Truncate();
+    *aResult = PR_FALSE;
+  }
+  else
+  {
+    m_passwordResult = passwordResult;
+    m_pop3ConData->next_state = GetNextPasswordObtainState();
+    *aResult = PR_TRUE;
+  }
+  // Because this was done asynchronously, now call back into
+  // ProcessProtocolState to get the protocol going again.
+  ProcessProtocolState(nsnull, nsnull, 0, 0);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsPop3Protocol::OnPromptAuthAvailable()
+{
+  NS_NOTREACHED("Did not expect to get POP3 protocol queuing up auth "
+                "connections for same server");
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsPop3Protocol::OnPromptCanceled()
+{
+  // A prompt was cancelled, so just abort out the connection
+  m_pop3ConData->next_state = POP3_ERROR_DONE;
+  // As we're async, calling ProcessProtocolState gets things going again.
+  ProcessProtocolState(nsnull, nsnull, 0, 0);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsPop3Protocol::OnTransportStatus(nsITransport *aTransport, nsresult aStatus, PRUint64 aProgress, PRUint64 aProgressMax)
@@ -1891,15 +2022,11 @@ PRInt32 nsPop3Protocol::SendUsername()
 
     // <copied from="SendPassword()">
     // Needed for NTLM
-    nsCString password;
-    nsresult rv = GetPassword(password);
-    if (rv == NS_MSG_PASSWORD_PROMPT_CANCELLED) // this is a "success" code
-    {
-      // user has canceled the password prompt
-      m_pop3ConData->next_state = POP3_ERROR_DONE;
-      return NS_ERROR_ABORT;
-    }
-    else if (NS_FAILED(rv) || password.IsEmpty())
+
+    // The POP3_SEND_PASSWORD/POP3_WAIT_SEND_PASSWORD states have already
+    // got the password - they will have cancelled if necessary.
+    // If the password is still empty here, don't try to go on.
+    if (m_passwordResult.IsEmpty())
     {
       m_pop3ConData->next_state = POP3_ERROR_DONE;
       return Error(POP3_PASSWORD_UNDEFINED);
@@ -1909,7 +2036,7 @@ PRInt32 nsPop3Protocol::SendUsername()
     nsCAutoString cmd;
 
     if (m_currentAuthMethod == POP3_HAS_AUTH_NTLM)
-        (void) DoNtlmStep1(m_username.get(), password.get(), cmd);
+        (void) DoNtlmStep1(m_username.get(), m_passwordResult.get(), cmd);
     else if (m_currentAuthMethod == POP3_HAS_AUTH_CRAM_MD5)
         cmd = "AUTH CRAM-MD5";
     else if (m_currentAuthMethod == POP3_HAS_AUTH_PLAIN)
@@ -1951,15 +2078,10 @@ PRInt32 nsPop3Protocol::SendPassword()
 
   // <copied to="SendUsername()">
   // Needed here, too, because APOP skips SendUsername()
-  nsCString password;
-  nsresult rv = GetPassword(password);
-  if (rv == NS_MSG_PASSWORD_PROMPT_CANCELLED) // this is a "success" code
-  {
-    // user has canceled the password prompt
-    m_pop3ConData->next_state = POP3_ERROR_DONE;
-    return NS_ERROR_ABORT;
-  }
-  else if (NS_FAILED(rv) || password.IsEmpty())
+  // The POP3_SEND_PASSWORD/POP3_WAIT_SEND_PASSWORD states have already
+  // got the password - they will have cancelled if necessary.
+  // If the password is still empty here, don't try to go on.
+  if (m_passwordResult.IsEmpty())
   {
     m_pop3ConData->next_state = POP3_ERROR_DONE;
     return Error(POP3_PASSWORD_UNDEFINED);
@@ -1967,6 +2089,7 @@ PRInt32 nsPop3Protocol::SendPassword()
   // </copied>
 
   nsCAutoString cmd;
+  nsresult rv;
 
   if (m_currentAuthMethod == POP3_HAS_AUTH_NTLM)
     rv = DoNtlmStep2(m_commandResponse, cmd);
@@ -1981,7 +2104,7 @@ PRInt32 nsPop3Protocol::SendPassword()
 
     if (decodedChallenge)
       rv = MSGCramMD5(decodedChallenge, strlen(decodedChallenge),
-                      password.get(), password.Length(), digest);
+                      m_passwordResult.get(), m_passwordResult.Length(), digest);
     else
       rv = NS_ERROR_NULL_POINTER;
 
@@ -2013,7 +2136,7 @@ PRInt32 nsPop3Protocol::SendPassword()
     unsigned char digest[DIGEST_LENGTH];
 
     rv = MSGApopMD5(m_ApopTimestamp.get(), m_ApopTimestamp.Length(),
-                    password.get(), password.Length(), digest);
+                    m_passwordResult.get(), m_passwordResult.Length(), digest);
 
     if (NS_SUCCEEDED(rv) && digest)
     {
@@ -2059,8 +2182,8 @@ PRInt32 nsPop3Protocol::SendPassword()
     PR_snprintf(&plain_string[1], 510, "%s", m_username.get());
     len += m_username.Length();
     len++; /* second <NUL> char */
-    PR_snprintf(&plain_string[len], 511-len, "%s", password.get());
-    len += password.Length();
+    PR_snprintf(&plain_string[len], 511-len, "%s", m_passwordResult.get());
+    len += m_passwordResult.Length();
 
     char *base64Str = PL_Base64Encode(plain_string, len, nsnull);
     cmd = base64Str;
@@ -2070,7 +2193,8 @@ PRInt32 nsPop3Protocol::SendPassword()
   {
     PR_LOG(POP3LOGMODULE, PR_LOG_DEBUG, ("LOGIN password"));
     char * base64Str =
-        PL_Base64Encode(password.get(), password.Length(), nsnull);
+        PL_Base64Encode(m_passwordResult.get(), m_passwordResult.Length(),
+                        nsnull);
     cmd = base64Str;
     PR_Free(base64Str);
   }
@@ -2078,7 +2202,7 @@ PRInt32 nsPop3Protocol::SendPassword()
   {
     PR_LOG(POP3LOGMODULE, PR_LOG_DEBUG, ("PASS password"));
     cmd = "PASS ";
-    cmd += password;
+    cmd += m_passwordResult;
   }
   else
   {
@@ -2098,7 +2222,7 @@ PRInt32 nsPop3Protocol::SendPassword()
   m_pop3ConData->pause_for_read = PR_TRUE;
 
   m_password_already_sent = PR_TRUE;
-  m_lastPasswordSent = password;
+  m_lastPasswordSent = m_passwordResult;
   return SendData(m_url, cmd.get(), PR_TRUE);
 }
 
@@ -3585,19 +3709,16 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
     switch(m_pop3ConData->next_state)
     {
     case POP3_READ_PASSWORD:
-    /* This is a separate state so that we're waiting for the
-    user to type in a password while we don't actually have
-    a connection to the pop server open; this saves us from
-    having to worry about the server timing out on us while
-      we wait for user input. */
+      // This is a separate state so that we're waiting for the user to type
+      // in a password while we don't actually have a connection to the pop
+      // server open; this saves us from having to worry about the server
+      // timing out on us while we wait for user input.
+      if (NS_FAILED(StartGetAsyncPassword(POP3_OBTAIN_PASSWORD_EARLY)))
+        status = -1;
+      break;
+    case POP3_FINISH_OBTAIN_PASSWORD_EARLY:
       {
-      /* If we're just checking for new mail (biff) then don't
-      prompt the user for a password; just tell him we don't
-        know whether he has new mail. */
-        nsCString password;
-        GetPassword(password);
-        const char * pwd = password.get();
-        if (password.IsEmpty() || m_username.IsEmpty())
+        if (m_passwordResult.IsEmpty() || m_username.IsEmpty())
         {
           status = MK_POP3_PASSWORD_UNDEFINED;
           m_pop3ConData->biffstate = nsIMsgFolder::nsMsgBiffState_Unknown;
@@ -3726,11 +3847,21 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
       break;
 
     case POP3_SEND_USERNAME:
+      if (NS_FAILED(StartGetAsyncPassword(POP3_OBTAIN_PASSWORD_BEFORE_USERNAME)))
+        status = -1;
+      break;
+
+    case POP3_FINISH_OBTAIN_PASSWORD_BEFORE_USERNAME:
       UpdateStatus(POP3_CONNECT_HOST_CONTACTED_SENDING_LOGIN_INFORMATION);
       status = SendUsername();
       break;
 
     case POP3_SEND_PASSWORD:
+      if (NS_FAILED(StartGetAsyncPassword(POP3_OBTAIN_PASSWORD_BEFORE_PASSWORD)))
+        status = -1;
+      break;
+
+    case POP3_FINISH_OBTAIN_PASSWORD_BEFORE_PASSWORD:
       status = SendPassword();
       break;
 
@@ -3946,7 +4077,7 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
       break;
 
     default:
-      PR_ASSERT(0);
+      NS_ERROR("Got to unexpected state in nsPop3Protocol::ProcessProtocolState");
 
     }  /* end switch */
 

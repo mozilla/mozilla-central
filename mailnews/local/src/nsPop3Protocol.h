@@ -52,6 +52,7 @@
 #include "nsIMsgFolder.h" // TO include biffState enum. Change to bool later...
 #include "nsIAuthModule.h"
 #include "nsITimer.h"
+#include "nsIMsgAsyncPrompter.h"
 
 #include "prerror.h"
 #include "plhash.h"
@@ -172,7 +173,19 @@ enum Pop3StatesEnum {
 
     POP3_AUTH_GSSAPI,                           // 42
     POP3_AUTH_GSSAPI_FIRST,                     // 43
-    POP3_AUTH_GSSAPI_STEP                       // 44
+    POP3_AUTH_GSSAPI_STEP,                      // 44
+
+    /**
+     * Async wait to obtain the password and deal with the result.
+     * The *PREOBTAIN* states are used for where we try and get the password
+     * before we've initiated a connection to the server.
+     */
+    POP3_OBTAIN_PASSWORD_EARLY,                 // 45
+    POP3_FINISH_OBTAIN_PASSWORD_EARLY,          // 46
+    POP3_OBTAIN_PASSWORD_BEFORE_USERNAME,       // 47
+    POP3_FINISH_OBTAIN_PASSWORD_BEFORE_USERNAME,// 48
+    POP3_OBTAIN_PASSWORD_BEFORE_PASSWORD,       // 49
+    POP3_FINISH_OBTAIN_PASSWORD_BEFORE_PASSWORD // 50
 };
 
 
@@ -268,7 +281,9 @@ typedef struct _Pop3ConData {
 #define POP3_AUTH_FAILURE           0x00000008  /* extended code said authentication failed */
 
 
-class nsPop3Protocol : public nsMsgProtocol, public nsIPop3Protocol
+class nsPop3Protocol : public nsMsgProtocol,
+                       public nsIPop3Protocol,
+                       public nsIMsgAsyncPromptListener
 {
 public:
   nsPop3Protocol(nsIURI* aURL);
@@ -276,6 +291,7 @@ public:
 
   NS_DECL_ISUPPORTS_INHERITED
   NS_DECL_NSIPOP3PROTOCOL
+  NS_DECL_NSIMSGASYNCPROMPTLISTENER
 
   nsresult Initialize(nsIURI * aURL);
   virtual nsresult LoadUrl(nsIURI *aURL, nsISupports * aConsumer = nsnull);
@@ -283,7 +299,7 @@ public:
   const char* GetUsername() { return m_username.get(); }
   void SetUsername(const char* name);
 
-  nsresult GetPassword(nsCString& aPassword);
+  nsresult StartGetAsyncPassword(Pop3StatesEnum aNextState);
 
   NS_IMETHOD OnTransportStatus(nsITransport *transport, nsresult status, PRUint64 progress, PRUint64 progressMax);
   NS_IMETHOD OnStopRequest(nsIRequest *request, nsISupports * aContext, nsresult aStatus);
@@ -304,6 +320,9 @@ private:
   nsCString m_commandResponse;
   nsCOMPtr<nsIMsgStatusFeedback> m_statusFeedback;
   nsCString m_GSSAPICache;
+
+  // Used for asynchronous password prompts to store the password temporarily.
+  nsCString m_passwordResult;
 
   // progress state information
   void UpdateProgressPercent (PRUint32 totalDone, PRUint32 total);
@@ -400,6 +419,8 @@ private:
   PRInt32 SendDele();
   PRInt32 DeleResponse();
   PRInt32 CommitState(PRBool remove_last_entry);
+
+  Pop3StatesEnum GetNextPasswordObtainState();
 };
 
 #endif /* nsPop3Protocol_h__ */
