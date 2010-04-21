@@ -325,6 +325,7 @@
       <menuseparator id="calendar-menuseparator-beforemarkcompleted"/>
       <menuitem id="calendar-context-markcompleted"
                 type="checkbox"
+                autocheck="false"
                 label="&calendar.context.markcompleted.label;"
                 accesskey="&calendar.context.markcompleted.accesskey;"
                 observes="calendar_toggle_completed_command"
