@@ -6,7 +6,7 @@ function test() {
   gBrowser.selectedTab = gTestPage;
   gTestPage.linkedBrowser.addEventListener("load", handleLoad, true);
   content.location =
-    "http://localhost:8888/browser/suite/browser/test/feed_tab.html";
+    "http://mochi.test:8888/browser/suite/browser/test/feed_tab.html";
   gTestPage.focus();
   var obs = Components.classes["@mozilla.org/observer-service;1"]
                       .getService(Components.interfaces.nsIObserverService);
