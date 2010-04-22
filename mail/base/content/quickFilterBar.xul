@@ -151,7 +151,7 @@
                  emptytext=""
                  emptytextbase="&quickFilterBar.textbox.emptyText.base;"
                  keyLabelNonMac="&quickFilterBar.textbox.emptyText.keyLabel.nonmac;"
-                 keyLabelMac="&quickFilterBar.textbox.emptyText.keyLabel.mac;"
+                 keyLabelMac="&quickFilterBar.textbox.emptyText.keyLabel1.mac;"
                  timeout="500"
                  width="320"
                  minwidth="280">

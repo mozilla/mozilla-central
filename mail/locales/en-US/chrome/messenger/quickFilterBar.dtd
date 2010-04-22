@@ -165,8 +165,8 @@
      so that's the letter to indicate  if you don't use 'f' for your
      localization.
      -->
-<!ENTITY quickFilterBar.textbox.emptyText.keyLabel.mac
-         "&lt;&#2318;+F&gt;">
+<!ENTITY quickFilterBar.textbox.emptyText.keyLabel1.mac
+         "&lt;&#x2318;F&gt;">
 
 <!-- LOCALIZATION NOTE (quickFilterBar.textbox.idealWidth):
      The number of pixels for the ideal width of the quick filter box textbox.

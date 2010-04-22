@@ -725,7 +725,7 @@ you can use these alternative items. Otherwise, their values should be empty.  -
      so that's the letter to indicate  if you don't use 'f' for your
      localization.
      -->
-<!ENTITY searchAllMessages.keyLabel.mac "&lt;&#2318;+F&gt;">
+<!ENTITY searchAllMessages.keyLabel1.mac "&lt;&#x2318;F&gt;">
 
 <!-- Message Header Context Menu -->
 <!ENTITY AddToAddressBook.label "Add to Address Book…">

@@ -76,7 +76,7 @@
                  emptytext=""
                  emptytextbase="&searchAllMessages.label.base;"
                  keyLabelNonMac="&searchAllMessages.keyLabel.nonmac;"
-                 keyLabelMac="&searchAllMessages.keyLabel.mac;"
+                 keyLabelMac="&searchAllMessages.keyLabel1.mac;"
                  >
           <!-- Mimic the search/clear buttons of the standard search textbox,
                but adjust for the reality that clear doesn't make much sense
