@@ -39,8 +39,6 @@
  - ***** END LICENSE BLOCK *****
  -->
 
-<?xml-stylesheet href="chrome://global/skin/textbox.css" type="text/css"?>
-
 <!DOCTYPE overlay [
   <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
   %messengerDTD;
