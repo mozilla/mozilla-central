@@ -95,11 +95,15 @@ function test_buttons_collapse_and_expand() {
 
     // -- GIANT!
     mc.window.resizeTo(1200, 600);
+    // Right, so resizeTo caps us at the display size limit, so we may end up
+    // smaller than we want.  So let's turn off the folder pane too.
+    mc.e("folderpane_splitter").collapsed = true;
     // spin the event loop once
     mc.sleep(0);
     assertExpanded();
 
     // -- tiny.
+    mc.e("folderpane_splitter").collapsed = false;
     mc.window.resizeTo(600, 600);
     // spin the event loop once
     mc.sleep(0);

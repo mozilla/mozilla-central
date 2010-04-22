@@ -203,7 +203,12 @@ function installInto(module) {
   setupModule();
 
   // force the window to be a nice size we all can love.
-  mc.window.resizeTo(1024, 768);
+  // note that we can't resize a window larger than the display it lives on!
+  // (I think the inner window is actually limited to the display size, so since
+  // resizeTo operates on outerWidth/outerHeight, their limit is actually
+  // screen size + window border size)
+  if (mc.window.outerWidth != 1024 || mc.window.outerHeight != 768)
+    mc.window.resizeTo(1024, 768);
 
   // now copy everything into the module they provided to us...
   let us = collector.getModule('folder-display-helpers');
