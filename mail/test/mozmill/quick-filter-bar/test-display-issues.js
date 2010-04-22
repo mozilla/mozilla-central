@@ -111,6 +111,7 @@ function test_buttons_collapse_and_expand() {
 
     // -- GIANT again!
     mc.window.resizeTo(1200, 600);
+    mc.e("folderpane_splitter").collapsed = true;
     // spin the event loop once
     mc.sleep(0);
     assertExpanded();
@@ -118,5 +119,6 @@ function test_buttons_collapse_and_expand() {
   finally {
     // restore window to nominal dimensions; saving was not working out
     mc.window.resizeTo(1024, 768);
+    mc.e("folderpane_splitter").collapsed = false;
   }
 }
