@@ -134,7 +134,7 @@ function createAccountInBackend(config)
     outServer.authMethod = config.outgoing.auth;
     if (config.outgoing.auth > 1)
     {
-      outServer.username = config.incoming.username;
+      outServer.username = username;
       outServer.password = config.incoming.password;
       if (config.rememberPassword && config.incoming.password.length)
         rememberPassword(outServer, config.incoming.password);

@@ -928,7 +928,8 @@ EmailConfigWizard.prototype =
     }
     else
     {
-      config.outgoing.username = document.getElementById("username").value;
+      if (!config.outgoing.username)
+        config.outgoing.username = document.getElementById("username").value;
       config.outgoing.hostname =
         sanitize.hostname(document.getElementById("outgoing_server").value);
       document.getElementById("outgoing_server").value =
