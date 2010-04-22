@@ -42,6 +42,7 @@
 const XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/Sanitizer.jsm");
 Components.utils.import("resource:///modules/mailnewsMigrator.js");
 
@@ -57,9 +58,7 @@ SuiteGlue.prototype = {
 
   _setPrefToSaveSession: function()
   {
-    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
-                     getService(Components.interfaces.nsIPrefBranch);
-    prefBranch.setBoolPref("browser.sessionstore.resume_session_once", true);
+    Services.prefs.setBoolPref("browser.sessionstore.resume_session_once", true);
   },
 
   // nsIObserver implementation
@@ -79,10 +78,8 @@ SuiteGlue.prototype = {
         break;
       case "browser:purge-session-history":
         // reset the console service's error buffer
-        const cs = Components.classes["@mozilla.org/consoleservice;1"]
-                             .getService(Components.interfaces.nsIConsoleService);
-        cs.logStringMessage(null); // clear the console (in case it's open)
-        cs.reset();
+        Services.console.logStringMessage(null); // clear the console (in case it's open)
+        Services.console.reset();
         break;
       case "quit-application-requested":
         this._onQuitRequest(subject, data);
@@ -117,23 +114,21 @@ SuiteGlue.prototype = {
   _init: function()
   {
     // observer registration
-    const osvr = Components.classes["@mozilla.org/observer-service;1"]
-                           .getService(Components.interfaces.nsIObserverService);
-    osvr.addObserver(this, "xpcom-shutdown", false);
-    osvr.addObserver(this, "final-ui-startup", false);
-    osvr.addObserver(this, "sessionstore-windows-restored", false);
-    osvr.addObserver(this, "browser:purge-session-history", false);
-    osvr.addObserver(this, "quit-application-requested", false);
-    osvr.addObserver(this, "quit-application-granted", false);
-    osvr.addObserver(this, "browser-lastwindow-close-requested", false);
-    osvr.addObserver(this, "browser-lastwindow-close-granted", false);
-    osvr.addObserver(this, "session-save", false);
-    osvr.addObserver(this, "dl-done", false);
+    Services.obs.addObserver(this, "xpcom-shutdown", false);
+    Services.obs.addObserver(this, "final-ui-startup", false);
+    Services.obs.addObserver(this, "sessionstore-windows-restored", false);
+    Services.obs.addObserver(this, "browser:purge-session-history", false);
+    Services.obs.addObserver(this, "quit-application-requested", false);
+    Services.obs.addObserver(this, "quit-application-granted", false);
+    Services.obs.addObserver(this, "browser-lastwindow-close-requested", false);
+    Services.obs.addObserver(this, "browser-lastwindow-close-granted", false);
+    Services.obs.addObserver(this, "session-save", false);
+    Services.obs.addObserver(this, "dl-done", false);
     try {
       tryToClose = Components.classes["@mozilla.org/appshell/trytoclose;1"]
                              .getService(Components.interfaces.nsIObserver);
-      osvr.removeObserver(tryToClose, "quit-application-requested");
-      osvr.addObserver(tryToClose, "quit-application-requested", true);
+      Services.obs.removeObserver(tryToClose, "quit-application-requested");
+      Services.obs.addObserver(tryToClose, "quit-application-requested", true);
     } catch (e) {}
   },
 
@@ -141,18 +136,16 @@ SuiteGlue.prototype = {
   _dispose: function()
   {
     // observer removal
-    const osvr = Components.classes["@mozilla.org/observer-service;1"]
-                           .getService(Components.interfaces.nsIObserverService);
-    osvr.removeObserver(this, "xpcom-shutdown");
-    osvr.removeObserver(this, "final-ui-startup");
-    osvr.removeObserver(this, "sessionstore-windows-restored");
-    osvr.removeObserver(this, "browser:purge-session-history");
-    osvr.removeObserver(this, "quit-application-requested");
-    osvr.removeObserver(this, "quit-application-granted");
-    osvr.removeObserver(this, "browser-lastwindow-close-requested");
-    osvr.removeObserver(this, "browser-lastwindow-close-granted");
-    osvr.removeObserver(this, "session-save");
-    osvr.removeObserver(this, "dl-done");
+    Services.obs.removeObserver(this, "xpcom-shutdown");
+    Services.obs.removeObserver(this, "final-ui-startup");
+    Services.obs.removeObserver(this, "sessionstore-windows-restored");
+    Services.obs.removeObserver(this, "browser:purge-session-history");
+    Services.obs.removeObserver(this, "quit-application-requested");
+    Services.obs.removeObserver(this, "quit-application-granted");
+    Services.obs.removeObserver(this, "browser-lastwindow-close-requested");
+    Services.obs.removeObserver(this, "browser-lastwindow-close-granted");
+    Services.obs.removeObserver(this, "session-save");
+    Services.obs.removeObserver(this, "dl-done");
   },
 
   // profile startup handler (contains profile initialization routines)
@@ -163,13 +156,11 @@ SuiteGlue.prototype = {
 
     Sanitizer.checkAndSanitize();
 
-    const prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefBranch2);
-    if (prefSvc.prefHasUserValue("privacy.sanitize.didShutdownSanitize")) {
-      prefSvc.clearUserPref("privacy.sanitize.didShutdownSanitize");
+    if (Services.prefs.prefHasUserValue("privacy.sanitize.didShutdownSanitize")) {
+      Services.prefs.clearUserPref("privacy.sanitize.didShutdownSanitize");
       // We need to persist this preference change, since we want to
       // check it at next app start even if the browser exits abruptly
-      prefSvc.savePrefFile(null);
+      Services.prefs.savePrefFile(null);
     }
 
     // once we support a safe mode popup, it should be called here
@@ -191,9 +182,7 @@ SuiteGlue.prototype = {
 
   _promptForMasterPassword: function()
   {
-    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
-    if (!prefBranch.getBoolPref("signon.startup.prompt"))
+    if (!Services.prefs.getBoolPref("signon.startup.prompt"))
       return;
 
     // Try to avoid the multiple master password prompts on startup scenario
@@ -217,9 +206,7 @@ SuiteGlue.prototype = {
   {
     const PREF_EM_NEW_ADDONS_LIST = "extensions.newAddons";
 
-    const prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                                 .getService(Components.interfaces.nsIPrefBranch);
-    if (!prefBranch.prefHasUserValue(PREF_EM_NEW_ADDONS_LIST))
+    if (!Services.prefs.prefHasUserValue(PREF_EM_NEW_ADDONS_LIST))
       return;
 
     const args = Components.classes["@mozilla.org/array;1"]
@@ -229,18 +216,16 @@ SuiteGlue.prototype = {
     args.appendElement(str, false);
     str = Components.classes["@mozilla.org/supports-string;1"]
                     .createInstance(Components.interfaces.nsISupportsString);
-    str.data = prefBranch.getCharPref(PREF_EM_NEW_ADDONS_LIST);
+    str.data = Services.prefs.getCharPref(PREF_EM_NEW_ADDONS_LIST);
     args.appendElement(str, false);
     const EMURL = "chrome://mozapps/content/extensions/extensions.xul";
     // This window is the "first" to open.
     // 'alwaysRaised' makes sure it stays in the foreground (though unfocused)
     //   so it is noticed.
     const EMFEATURES = "all,dialog=no,alwaysRaised";
-    const ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                         .getService(Components.interfaces.nsIWindowWatcher);
-    ww.openWindow(null, EMURL, "_blank", EMFEATURES, args);
+    Services.ww.openWindow(null, EMURL, "_blank", EMFEATURES, args);
 
-    prefBranch.clearUserPref(PREF_EM_NEW_ADDONS_LIST);
+    Services.prefs.clearUserPref(PREF_EM_NEW_ADDONS_LIST);
   },
 
   _onQuitRequest: function(aCancelQuit, aQuitType)
@@ -249,11 +234,9 @@ SuiteGlue.prototype = {
     if ((aCancelQuit instanceof Components.interfaces.nsISupportsPRBool) && aCancelQuit.data)
       return;
 
-    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"].
-             getService(Components.interfaces.nsIWindowMediator);
     var windowcount = 0;
     var pagecount = 0;
-    var browserEnum = wm.getEnumerator("navigator:browser");
+    var browserEnum = Services.wm.getEnumerator("navigator:browser");
     while (browserEnum.hasMoreElements()) {
       windowcount++;
 
@@ -270,28 +253,24 @@ SuiteGlue.prototype = {
     if (aQuitType != "restart")
       aQuitType = "quit";
 
-    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
-                     getService(Components.interfaces.nsIPrefBranch);
     var showPrompt = true;
     try {
       // browser.warnOnQuit is a hidden global boolean to override all quit prompts
       // browser.warnOnRestart specifically covers app-initiated restarts where we restart the app
       // browser.tabs.warnOnClose is the global "warn when closing multiple tabs" pref
-      if (prefBranch.getIntPref("browser.startup.page") == 3 ||
-          prefBranch.getBoolPref("browser.sessionstore.resume_session_once") ||
-          !prefBranch.getBoolPref("browser.warnOnQuit"))
+      if (Services.prefs.getIntPref("browser.startup.page") == 3 ||
+          Services.prefs.getBoolPref("browser.sessionstore.resume_session_once") ||
+          !Services.prefs.getBoolPref("browser.warnOnQuit"))
         showPrompt = false;
       else if (aQuitType == "restart")
-        showPrompt = prefBranch.getBoolPref("browser.warnOnRestart");
+        showPrompt = Services.prefs.getBoolPref("browser.warnOnRestart");
       else
-        showPrompt = prefBranch.getBoolPref("browser.tabs.warnOnClose");
+        showPrompt = Services.prefs.getBoolPref("browser.tabs.warnOnClose");
     } catch (ex) {}
 
     if (showPrompt) {
-      var bundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].
-                          getService(Components.interfaces.nsIStringBundleService);
-      var quitBundle = bundleService.createBundle("chrome://communicator/locale/quitDialog.properties");
-      var brandBundle = bundleService.createBundle("chrome://branding/locale/brand.properties");
+      var quitBundle = Services.strings.createBundle("chrome://communicator/locale/quitDialog.properties");
+      var brandBundle = Services.strings.createBundle("chrome://branding/locale/brand.properties");
 
       var appName = brandBundle.GetStringFromName("brandShortName");
       var quitDialogTitle = quitBundle.formatStringFromName(aQuitType + "DialogTitle",
@@ -308,12 +287,9 @@ SuiteGlue.prototype = {
         message = quitBundle.formatStringFromName("message",
                                                   [appName], 1);
 
-      var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].
-                          getService(Components.interfaces.nsIPromptService);
-
-      var flags = promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_0 +
-                  promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_1 +
-                  promptService.BUTTON_POS_0_DEFAULT;
+      var flags = Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0 +
+                  Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_1 +
+                  Services.prompt.BUTTON_POS_0_DEFAULT;
 
       var neverAsk = {value:false};
       var button0Title, button2Title;
@@ -323,20 +299,20 @@ SuiteGlue.prototype = {
       if (aQuitType == "restart")
         button0Title = quitBundle.GetStringFromName("restartTitle");
       else {
-        flags += promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_2;
+        flags += Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_2;
         button0Title = quitBundle.GetStringFromName("saveTitle");
         button2Title = quitBundle.GetStringFromName("quitTitle");
       }
 
-      var mostRecentBrowserWindow = wm.getMostRecentWindow("navigator:browser");
-      var buttonChoice = promptService.confirmEx(mostRecentBrowserWindow, quitDialogTitle, message,
-                                       flags, button0Title, button1Title, button2Title,
-                                       neverAskText, neverAsk);
+      var mostRecentBrowserWindow = Services.wm.getMostRecentWindow("navigator:browser");
+      var buttonChoice = Services.prompt.confirmEx(mostRecentBrowserWindow, quitDialogTitle, message,
+                                                   flags, button0Title, button1Title, button2Title,
+                                                   neverAskText, neverAsk);
 
       switch (buttonChoice) {
       case 2:
         if (neverAsk.value)
-          prefBranch.setBoolPref("browser.tabs.warnOnClose", false);
+          Services.prefs.setBoolPref("browser.tabs.warnOnClose", false);
         break;
       case 1:
         aCancelQuit.QueryInterface(Components.interfaces.nsISupportsPRBool);
@@ -346,10 +322,10 @@ SuiteGlue.prototype = {
         this._saveSession = true;
         if (neverAsk.value) {
           if (aQuitType == "restart")
-            prefBranch.setBoolPref("browser.warnOnRestart", false);
+            Services.prefs.setBoolPref("browser.warnOnRestart", false);
           else {
             // always save state when shutting down
-            prefBranch.setIntPref("browser.startup.page", 3);
+            Services.prefs.setIntPref("browser.startup.page", 3);
           }
         }
         break;
@@ -359,19 +335,14 @@ SuiteGlue.prototype = {
 
   _playDownloadSound: function()
   {
-    // Get the preferences service
-    var pref = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch);
-    if (pref.getBoolPref("browser.download.finished_download_sound")) {
+    if (Services.prefs.getBoolPref("browser.download.finished_download_sound")) {
       if (!this._sound)
         this._sound = Components.classes["@mozilla.org/sound;1"]
                                 .createInstance(Components.interfaces.nsISound);
       try {
-        var url = pref.getComplexValue("browser.download.finished_sound_url",
-                                       Components.interfaces.nsISupportsString);
-        var ioSvc = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
-        this._sound.play(ioSvc.newURI(url.data, null, null));
+        var url = Services.prefs.getComplexValue("browser.download.finished_sound_url",
+                                                 Components.interfaces.nsISupportsString);
+        this._sound.play(Services.io.newURI(url.data, null, null));
       } catch (e) {
         this._sound.beep();
       }
@@ -389,20 +360,18 @@ SuiteGlue.prototype = {
   _shouldShowRights: function () {
     // Look for an unconditional override pref. If set, do what it says.
     // (true --> never show, false --> always show)
-    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
     try {
-      return !prefBranch.getBoolPref("browser.rights.override");
+      return !Services.prefs.getBoolPref("browser.rights.override");
     } catch (e) { }
     // Ditto, for the legacy EULA pref (tinderbox testing profile sets this).
     try {
-      return !prefBranch.getBoolPref("browser.EULA.override");
+      return !Services.prefs.getBoolPref("browser.EULA.override");
     } catch (e) { }
 
     // Look to see if the user has seen the current version or not.
-    var currentVersion = prefBranch.getIntPref("browser.rights.version");
+    var currentVersion = Services.prefs.getIntPref("browser.rights.version");
     try {
-      return !prefBranch.getBoolPref("browser.rights." + currentVersion + ".shown");
+      return !Services.prefs.getBoolPref("browser.rights." + currentVersion + ".shown");
     } catch (e) { }
 
     // We haven't shown the notification before, so do so now.
@@ -414,11 +383,8 @@ SuiteGlue.prototype = {
     var browser = aSubject.getBrowser(); // for closure in notification bar callback
     var notifyBox = browser.getNotificationBox();
 
-    const nsIStringBundleService = Components.interfaces.nsIStringBundleService;
-    var bundleService = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                  .getService(nsIStringBundleService);
-    var brandBundle  = bundleService.createBundle("chrome://branding/locale/brand.properties");
-    var rightsBundle = bundleService.createBundle("chrome://branding/locale/aboutRights.properties");
+    var brandBundle  = Services.strings.createBundle("chrome://branding/locale/brand.properties");
+    var rightsBundle = Services.strings.createBundle("chrome://branding/locale/aboutRights.properties");
 
     var buttonLabel      = rightsBundle.GetStringFromName("buttonLabel");
     var buttonAccessKey  = rightsBundle.GetStringFromName("buttonAccessKey");
@@ -438,10 +404,8 @@ SuiteGlue.prototype = {
                   ];
 
     // Set pref to indicate we've shown the notficiation.
-    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
-    var currentVersion = prefBranch.getIntPref("browser.rights.version");
-    prefBranch.setBoolPref("browser.rights." + currentVersion + ".shown", true);
+    var currentVersion = Services.prefs.getIntPref("browser.rights.version");
+    Services.prefs.setBoolPref("browser.rights." + currentVersion + ".shown", true);
 
     var box = notifyBox.appendNotification(notifyRightsText, "about-rights",
                                            null, notifyBox.PRIORITY_INFO_LOW,
@@ -452,39 +416,35 @@ SuiteGlue.prototype = {
   _updatePrefs: function()
   {
     // Get the preferences service
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefService)
-                          .getBranch(null);
-    const PREF_INVALID = Components.interfaces.nsIPrefBranch.PREF_INVALID;
-    if (prefs.getPrefType("browser.download.dir") == PREF_INVALID ||
-        prefs.getPrefType("browser.download.lastDir") != PREF_INVALID)
+    if (Services.prefs.getPrefType("browser.download.dir") == Services.prefs.PREF_INVALID ||
+        Services.prefs.getPrefType("browser.download.lastDir") != Services.prefs.PREF_INVALID)
       return; //Do nothing if .dir does not exist, or if it exists and lastDir does not
 
     try {
-      prefs.setComplexValue("browser.download.lastDir",
-                            Components.interfaces.nsILocalFile,
-                            prefs.getComplexValue("browser.download.dir",
-                                                  Components.interfaces.nsILocalFile));
+      Services.prefs.setComplexValue("browser.download.lastDir",
+                                     Components.interfaces.nsILocalFile,
+                                     Services.prefs.getComplexValue("browser.download.dir",
+                                                                    Components.interfaces.nsILocalFile));
     } catch (ex) {
       // Ensure that even if we don't end up migrating to a lastDir that we
       // don't attempt another update. This will throw when QI'ed to
       // nsILocalFile, but it does fallback gracefully.
-      prefs.setCharPref("browser.download.lastDir", "");
+      Services.prefs.setCharPref("browser.download.lastDir", "");
     }
 
     try {
-      prefs.setBoolPref("browser.download.useDownloadDir",
-                        prefs.getBoolPref("browser.download.autoDownload"));
+      Services.prefs.setBoolPref("browser.download.useDownloadDir",
+                                 Services.prefs.getBoolPref("browser.download.autoDownload"));
     } catch (ex) {}
 
     try {
-      prefs.setIntPref("browser.download.manager.behavior",
-                       prefs.getIntPref("browser.downloadmanager.behavior"));
+      Services.prefs.setIntPref("browser.download.manager.behavior",
+                                Services.prefs.getIntPref("browser.downloadmanager.behavior"));
     } catch (ex) {}
 
     try {
-      prefs.setBoolPref("browser.download.progress.closeWhenDone",
-                        !prefs.getBoolPref("browser.download.progressDnldDialog.keepAlive"));
+      Services.prefs.setBoolPref("browser.download.progress.closeWhenDone",
+                                 !Services.prefs.getBoolPref("browser.download.progressDnldDialog.keepAlive"));
     } catch (e) {}
   },
 
@@ -527,15 +487,11 @@ GeolocationPrompt.prototype = {
 
   prompt: function(aRequest)
   {
-    const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
-    var pm = Components.classes["@mozilla.org/permissionmanager;1"]
-                       .getService(nsIPermissionManager);
-
-    switch (pm.testExactPermission(aRequest.requestingURI, "geo")) {
-      case nsIPermissionManager.ALLOW_ACTION:
+    switch (Services.perms.testExactPermission(aRequest.requestingURI, "geo")) {
+      case Services.perms.ALLOW_ACTION:
         aRequest.allow();
         return;
-      case nsIPermissionManager.DENY_ACTION:
+      case Services.perms.DENY_ACTION:
         aRequest.cancel();
         return;
     }
@@ -550,9 +506,7 @@ GeolocationPrompt.prototype = {
     var notification = notificationBox.getNotificationWithValue("geolocation");
     if (!notification) {
       var notificationBundle =
-          Components.classes["@mozilla.org/intl/stringbundle;1"]
-                    .getService(Components.interfaces.nsIStringBundleService)
-                    .createBundle("chrome://communicator/locale/notification.properties");
+          Services.strings.createBundle("chrome://communicator/locale/notification.properties");
 
       var buttons =
           [{
@@ -562,8 +516,8 @@ GeolocationPrompt.prototype = {
               // in tests, click can be fast enough that our hack hasn't set up the checkbox yet
               if (notification.getElementsByClassName("rememberChoice")[0] &&
                   notification.getElementsByClassName("rememberChoice")[0].checked)
-                pm.add(aRequest.requestingURI, "geo",
-                       nsIPermissionManager.ALLOW_ACTION);
+                Services.perms.add(aRequest.requestingURI, "geo",
+                                   Services.perms.ALLOW_ACTION);
               aRequest.allow();
             },
           }, {
@@ -573,8 +527,8 @@ GeolocationPrompt.prototype = {
               // in tests, click can be fast enough that our hack hasn't set up the checkbox yet
               if (notification.getElementsByClassName("rememberChoice")[0] &&
                   notification.getElementsByClassName("rememberChoice")[0].checked)
-                pm.add(aRequest.requestingURI, "geo",
-                       nsIPermissionManager.DENY_ACTION);
+                Services.perms.add(aRequest.requestingURI, "geo",
+                                   Services.perms.DENY_ACTION);
               aRequest.cancel();
             },
           }];
