@@ -124,7 +124,7 @@ public:
 
 private:
   PRUint32 mId; // used by creator of the structure
-  PRUint32 mRef; // depth in the heirarchy
+  PRUint32 mRef; // depth in the hierarchy
   nsString mDisplayName; // name of this mailbox
   nsCOMPtr<nsIFile> mFile; // source file (if applicable)
   PRUint32 mSize; // size

@@ -98,7 +98,7 @@ public:
   BOOL  OpenEntry( ULONG cbEntry, LPENTRYID pEntryId, LPUNKNOWN *ppOpen);
   static BOOL OpenMdbEntry( LPMDB lpMdb, ULONG cbEntry, LPENTRYID pEntryId, LPUNKNOWN *ppOpen);
 
-  // Fill in the folders list with the heirarchy from the given
+  // Fill in the folders list with the hierarchy from the given
   // message store.
   BOOL  GetStoreFolders( ULONG cbEid, LPENTRYID lpEid, CMapiFolderList& folders, int startDepth);
   BOOL  GetStoreAddressFolders( ULONG cbEid, LPENTRYID lpEid, CMapiFolderList& folders);

@@ -83,7 +83,7 @@ public:
 
 private:
   PRUint32    m_id;      // used by creator of the structure
-  PRUint32    m_depth;    // depth in the heirarchy
+  PRUint32    m_depth;    // depth in the hierarchy
   nsString    m_displayName;// name of this mailbox
   nsCOMPtr <nsILocalFile> m_pFile;  // source file (if applicable)
   PRUint32    m_size;

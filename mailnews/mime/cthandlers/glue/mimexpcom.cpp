@@ -43,7 +43,7 @@
 static NS_DEFINE_CID(kMimeObjectClassAccessCID, NS_MIME_OBJECT_CLASS_ACCESS_CID); 
 
 /*
- * These calls are necessary to expose the object class heirarchy 
+ * These calls are necessary to expose the object class hierarchy 
  * to externally developed content type handlers.
  */
 extern "C" void *

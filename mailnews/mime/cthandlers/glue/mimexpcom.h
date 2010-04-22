@@ -44,7 +44,7 @@
 
 /*
   This header exposes functions that are necessary to access the
-  object heirarchy for the mime chart. The class hierarchy is:
+  object hierarchy for the mime chart. The class hierarchy is:
 
      MimeObject (abstract)
       |

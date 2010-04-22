@@ -1003,7 +1003,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
 
   //
   // Now we need to process attachments and slot them in the
-  // correct heirarchy.
+  // correct hierarchy.
   //
   if (m_attachment_count > 0)
   {

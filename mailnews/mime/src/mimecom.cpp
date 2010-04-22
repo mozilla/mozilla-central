@@ -43,7 +43,7 @@
 #include "mimecth.h"
 
 /*
- * These calls are necessary to expose the object class heirarchy
+ * These calls are necessary to expose the object class hierarchy
  * to externally developed content type handlers.
  */
 extern "C" void *
