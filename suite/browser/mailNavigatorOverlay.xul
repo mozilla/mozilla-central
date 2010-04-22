@@ -238,7 +238,8 @@
               insertafter="context-savelink"/>
     <menu id="frame">
     <menupopup id="frame_popup">
-      <menuitem insertafter="saveframeas"
+      <menuitem id="context-sendframe"
+                insertafter="context-saveframe"
                 label="&contextSendFrame.label;"
                 accesskey="&contextSendFrame.accesskey;"
                 oncommand="sendPage(gContextMenu.target.ownerDocument);"/>

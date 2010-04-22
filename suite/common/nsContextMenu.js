@@ -227,7 +227,7 @@ nsContextMenu.prototype = {
         this.showItem( "frame", this.inFrame );
         this.showItem( "frame-sep", this.inFrame );
         if (this.inFrame)
-          goSetMenuValue( "saveframeas", this.autoDownload ? "valueSave" : "valueSaveAs" );
+          goSetMenuValue( "context-saveframe", this.autoDownload ? "valueSave" : "valueSaveAs" );
         var blocking = true;
         if (this.popupURL)
           try {
