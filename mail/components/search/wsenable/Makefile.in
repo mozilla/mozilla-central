@@ -49,4 +49,7 @@ PROGRAM = WSEnable$(BIN_SUFFIX)
 RCINCLUDE = WSEnable.rc
 OS_LIBS += ole32.lib shell32.lib
 
+# This isn't XPCOM code, but it wants to use STL so disable STL wrappers
+STL_FLAGS =
+
 include $(topsrcdir)/config/rules.mk
