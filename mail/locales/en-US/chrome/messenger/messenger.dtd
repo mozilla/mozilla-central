@@ -705,7 +705,7 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!-- LOCALIZATION NOTE (searchAllMessages.label.base):
      This is the base of the empty text for the global search box.  We replace
      #1 with the contents of the appropriate
-     searchAllMessages.keyLabel.* value for the platform.
+     searchAllMessages.keyLabel2.* value for the platform.
      The goal is to convey to the user that typing in the box will allow them
      to search for messages globally and that there is a hotkey they can press
      to get to the box faster.  If the global indexer is disabled, the search
@@ -713,19 +713,17 @@ you can use these alternative items. Otherwise, their values should be empty.  -
      -->
 <!ENTITY searchAllMessages.label.base "Search all messages… #1">
 <!-- LOCALIZATION NOTE (searchAllMessages.keyLabel.nonmac):
-     The description of the key-binding to get into the box on windows and
-     linux (which use the control key).  We use the keybinding for cmd_find
-     used by the find-in-message mechanism, so that's the letter to indicate
-     if you don't use 'f' for your localization.
+     The description of the key-binding to get into the global search box on
+     windows and linux (which use the control key).  We use the key defined in
+     the quickSearchCmd.key entity defined above, the letter should match it.
      -->
-<!ENTITY searchAllMessages.keyLabel.nonmac "&lt;Ctrl+K&gt;">
+<!ENTITY searchAllMessages.keyLabel2.nonmac "&lt;Ctrl+K&gt;">
 <!-- LOCALIZATION NOTE (searchAllMessages.keyLabel.mac):
-     The description of the key-binding to get into the box on mac systems.
-     We use the keybinding for cmd_find used by the find-in-message mechanism,
-     so that's the letter to indicate  if you don't use 'f' for your
-     localization.
+     The description of the key-binding to get into the global search box on mac
+     systems.  We use the key defined in the quickSearchCmd.key entity defined
+     above, the letter should match it.
      -->
-<!ENTITY searchAllMessages.keyLabel1.mac "&lt;&#x2318;F&gt;">
+<!ENTITY searchAllMessages.keyLabel2.mac "&lt;&#x2318;K&gt;">
 
 <!-- Message Header Context Menu -->
 <!ENTITY AddToAddressBook.label "Add to Address Book…">
