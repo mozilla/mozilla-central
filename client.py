@@ -19,7 +19,7 @@ DEFAULT_VENKMAN_REV = "default"
 DEFAULT_COMM_REV = "default"
 
 # URL of the default hg repository to clone for Mozilla.
-DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/releases/mozilla-1.9.2/'
+DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/mozilla-central/'
 DEFAULT_MOZILLA_REV = "default"
 
 # The set of defaults below relate to the current switching mechanism between
