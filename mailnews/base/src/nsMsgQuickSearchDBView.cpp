@@ -56,8 +56,7 @@ nsMsgQuickSearchDBView::nsMsgQuickSearchDBView()
 }
 
 nsMsgQuickSearchDBView::~nsMsgQuickSearchDBView()
-{	
- /* destructor code */
+{
 }
 
 NS_IMPL_ISUPPORTS_INHERITED2(nsMsgQuickSearchDBView, nsMsgDBView, nsIMsgDBView, nsIMsgSearchNotify)
@@ -91,6 +90,20 @@ nsMsgQuickSearchDBView::CloneDBView(nsIMessenger *aMessengerInstance,
   NS_ENSURE_SUCCESS(rv, rv);
 
   NS_IF_ADDREF(*_retval = newMsgDBView);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgQuickSearchDBView::CopyDBView(nsMsgDBView *aNewMsgDBView,
+                                   nsIMessenger *aMessengerInstance,
+                                   nsIMsgWindow *aMsgWindow,
+                                   nsIMsgDBViewCommandUpdater *aCmdUpdater)
+{
+  nsMsgThreadedDBView::CopyDBView(aNewMsgDBView, aMessengerInstance, aMsgWindow, aCmdUpdater);
+  nsMsgQuickSearchDBView* newMsgDBView = (nsMsgQuickSearchDBView *) aNewMsgDBView;
+
+  // now copy all of our private member data
+  newMsgDBView->m_origKeys = m_origKeys;
   return NS_OK;
 }
 
@@ -192,7 +205,9 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged
 {
   nsresult rv = nsMsgGroupView::OnHdrFlagsChanged(aHdrChanged, aOldFlags, aNewFlags, aInstigator);
 
-  if (m_viewFolder && (aOldFlags & nsMsgMessageFlags::Read) != (aNewFlags & nsMsgMessageFlags::Read))
+  if (m_viewFolder &&
+      (m_viewFolder != m_folder) &&
+      (aOldFlags & nsMsgMessageFlags::Read) != (aNewFlags & nsMsgMessageFlags::Read))
   {
     // if we're displaying a single folder virtual folder for an imap folder,
     // the search criteria might be on message body, and we might not have the
@@ -318,7 +333,10 @@ nsMsgQuickSearchDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *folder)
 NS_IMETHODIMP
 nsMsgQuickSearchDBView::OnSearchDone(nsresult status)
 {
-  if (m_viewFolder)
+  // We're a single-folder virtual folder if viewFolder != folder, and that is
+  // the only case in which we want to be messing about with a results cache
+  // or unread counts.
+  if (m_viewFolder && m_viewFolder != m_folder)
   {
     nsTArray<nsMsgKey> keyArray;
     nsCString searchUri;
@@ -349,13 +367,31 @@ nsMsgQuickSearchDBView::OnSearchDone(nsresult status)
       }
       delete [] staleHits;
     }
+    nsCOMPtr<nsIMsgDatabase> virtDatabase;
+    nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
+    nsresult rv = m_viewFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(virtDatabase));
+    NS_ENSURE_SUCCESS(rv, rv);
+    PRUint32 numUnread = 0;
+    PRUint32 numTotal = m_origKeys.Length();
+
+    for (i = 0; i < m_origKeys.Length(); i++)
+    {
+      PRBool isRead;
+      m_db->IsRead(m_origKeys[i], &isRead);
+      if (!isRead)
+        numUnread++;
+    }
+    dbFolderInfo->SetNumUnreadMessages(numUnread);
+    dbFolderInfo->SetNumMessages(numTotal);
+    m_viewFolder->UpdateSummaryTotals(true); // force update from db.
+    virtDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
   }
   if (m_sortType != nsMsgViewSortType::byThread)//we do not find levels for the results.
   {
     m_sortValid = PR_FALSE;       //sort the results 
     Sort(m_sortType, m_sortOrder);
   }
-  if (m_viewFolder)
+  if (m_viewFolder && (m_viewFolder != m_folder))
     SetMRUTimeForFolder(m_viewFolder);
 
   return NS_OK;
@@ -836,4 +872,27 @@ nsresult
 nsMsgQuickSearchDBView::GetMessageEnumerator(nsISimpleEnumerator **enumerator)
 {
   return GetViewEnumerator(enumerator);
+}
+
+NS_IMETHODIMP
+nsMsgQuickSearchDBView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted,
+                                     nsMsgKey aParentKey,
+                                     PRInt32 aFlags,
+                                     nsIDBChangeListener *aInstigator)
+{
+  NS_ENSURE_ARG_POINTER(aHdrDeleted);
+  nsMsgKey msgKey;
+  aHdrDeleted->GetMessageKey(&msgKey);
+  PRInt32 keyIndex = m_origKeys.BinaryIndexOf(msgKey);
+  if (keyIndex != -1)
+    m_origKeys.RemoveElementAt(keyIndex);
+  return nsMsgThreadedDBView::OnHdrDeleted(aHdrDeleted, aParentKey, aFlags,
+                                           aInstigator);
+}
+
+NS_IMETHODIMP nsMsgQuickSearchDBView::GetNumMsgsInView(PRInt32 *aNumMsgs)
+{
+  NS_ENSURE_ARG_POINTER(aNumMsgs);
+  *aNumMsgs = m_origKeys.Length();
+  return NS_OK;
 }

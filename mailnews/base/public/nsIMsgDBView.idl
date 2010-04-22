@@ -246,7 +246,7 @@ interface nsMsgNavigationType
 };
 
 
-[scriptable, uuid(7b6f1f8f-f27a-409b-955b-ab40d46194e1)]
+[scriptable, uuid(73b3c502-ac7b-4c3f-9265-8804f7ac11fe)]
 interface nsIMsgDBView : nsISupports
 {
   void open(in nsIMsgFolder folder, in nsMsgViewSortTypeValue sortType, in nsMsgViewSortOrderValue sortOrder, in nsMsgViewFlagsTypeValue viewFlags, out long count);
@@ -369,6 +369,12 @@ interface nsIMsgDBView : nsISupports
   readonly attribute nsMsgViewIndex msgToSelectAfterDelete; 
   readonly attribute nsMsgViewIndex currentlyDisplayedMessage; 
 
+  /**
+   * Number of messages in view, including messages in collapsed threads.
+   * Not currently implemented for threads with unread or watched threads
+   * with unread.
+   */
+  readonly attribute long numMsgsInView;
   // used by "go to folder" feature
   // and "remember last selected message" feature
   // if key is not found, we don't select.

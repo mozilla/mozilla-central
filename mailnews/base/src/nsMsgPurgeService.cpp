@@ -396,7 +396,8 @@ nsresult nsMsgPurgeService::SearchFolderToPurge(nsIMsgFolder *folder, PRInt32 pu
   nsresult rv;
   mSearchSession = do_CreateInstance(NS_MSGSEARCHSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  mSearchSession->RegisterListener(this);
+  mSearchSession->RegisterListener(this,
+                                   nsIMsgSearchSession::allNotifications);
 
   // update the time we attempted to purge this folder
   char dateBuf[100];

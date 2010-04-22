@@ -50,6 +50,7 @@
 <?xul-overlay href="chrome://messenger/content/mailOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/editContactOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/specialTabs.xul"?>
+<?xul-overlay href="chrome://messenger/content/quickFilterBar.xul"?>
 
 <!DOCTYPE window [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
@@ -241,7 +242,12 @@
        A mechanism for adding sidebar panes will be added in bug 476154. -->
   <hbox id="tabmail-container" flex="1">
     <tabmail id="tabmail" flex="1" panelcontainer="tabpanelcontainer">
-      <hbox id="tabmail-buttons"/>
+      <hbox>
+        <!-- extensions can put stuff in here -->
+        <hbox id="tabmail-buttons"/>
+        <!-- extensions must not put stuff in here -->
+        <hbox id="thunderbird-private-tabmail-buttons"/>
+      </hbox>
       <tabpanels id="tabpanelcontainer" flex="1" class="plain" selectedIndex="0">
         <!-- mailContent is the container used for the "wide" layout. Normally,
              all it contains is the "messengerBox" box.  However, in "wide" mode

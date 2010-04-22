@@ -1,0 +1,20 @@
+#qfb-results-label {
+  text-align: end;
+  visibility: hidden;
+}
+
+#qfb-filter-bar-spacer {
+  min-width: 4px !important;
+}
+
+.qfb-tag-button[inverted] {
+  text-decoration: line-through;
+}
+
+#quick-filter-bar-main-bar {
+  overflow: hidden;
+}
+
+#quick-filter-bar-collapsible-buttons[shrink="true"] toolbarbutton label.toolbarbutton-text {
+  display: none;
+}

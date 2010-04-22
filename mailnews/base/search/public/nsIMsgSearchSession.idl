@@ -52,7 +52,7 @@ interface nsIMsgDatabase;
 // the search
 //////////////////////////////////////////////////////////////////////////////
 
-[scriptable, uuid(a819050a-0302-11d3-a50a-0060b0fc04b7)]
+[scriptable, uuid(86c508e5-bf38-44d5-9af9-87a84754321f)]
 interface nsIMsgSearchSession :  nsISupports {
 
 /**
@@ -67,81 +67,105 @@ interface nsIMsgSearchSession :  nsISupports {
  *                        if attrib == nsMsgSearchAttrib::Custom, the custom id
  *                        otherwise ignored
  */
-    void addSearchTerm(in nsMsgSearchAttribValue attrib,
-                       in nsMsgSearchOpValue op,
-                       in nsIMsgSearchValue value,
-                       in boolean BooleanAND,
-                       in string customString);
+  void addSearchTerm(in nsMsgSearchAttribValue attrib,
+                     in nsMsgSearchOpValue op,
+                     in nsIMsgSearchValue value,
+                     in boolean BooleanAND,
+                     in string customString);
 
-    readonly attribute nsISupportsArray searchTerms;
+  readonly attribute nsISupportsArray searchTerms;
 
   nsIMsgSearchTerm createTerm ();
-    void appendTerm(in nsIMsgSearchTerm term);
+  void appendTerm(in nsIMsgSearchTerm term);
 
-  void registerListener (in nsIMsgSearchNotify listener);
+  /**
+   * @name Search notification flags
+   * These flags determine which notifications will be sent.
+   * @{
+   */
+  /// search started notification
+  const long onNewSearch = 0x1;
+
+  /// search finished notification
+  const long onSearchDone = 0x2;
+
+  /// search hit notification
+  const long onSearchHit = 0x4;
+
+  const long allNotifications = 0x7;
+  /** @} */
+
+  /**
+   * Add a listener to get notified of search starts, stops, and hits.
+   *
+   * @param aListener listener
+   * @param aNotifyFlags which notifications to send. Defaults to all
+   */
+  void registerListener (in nsIMsgSearchNotify aListener,
+                         [optional] in long aNotifyFlags);
   void unregisterListener (in nsIMsgSearchNotify listener);
 
-    readonly attribute unsigned long numSearchTerms;
+  readonly attribute unsigned long numSearchTerms;
 
   readonly attribute nsIMsgSearchAdapter runningAdapter;
 
-    void getNthSearchTerm(in long whichTerm,
-                          in nsMsgSearchAttribValue attrib,
-                          in nsMsgSearchOpValue op,
-                          in nsIMsgSearchValue value); // wrong, should be out
+  void getNthSearchTerm(in long whichTerm,
+                        in nsMsgSearchAttribValue attrib,
+                        in nsMsgSearchOpValue op,
+                        in nsIMsgSearchValue value); // wrong, should be out
 
-    long countSearchScopes();
+  long countSearchScopes();
 
-    void getNthSearchScope(in long which,out nsMsgSearchScopeValue scopeId, out nsIMsgFolder folder);
+  void getNthSearchScope(in long which,out nsMsgSearchScopeValue scopeId, out nsIMsgFolder folder);
 
   /* add a scope (e.g. a mail folder) to the search */
-    void addScopeTerm(in nsMsgSearchScopeValue scope,
-                      in nsIMsgFolder folder);
+  void addScopeTerm(in nsMsgSearchScopeValue scope,
+                    in nsIMsgFolder folder);
 
-    void addDirectoryScopeTerm(in nsMsgSearchScopeValue scope);
+  void addDirectoryScopeTerm(in nsMsgSearchScopeValue scope);
 
-    void clearScopes();
+  void clearScopes();
 
-    /* Call this function everytime the scope changes! It informs the FE if
-       the current scope support custom header use. FEs should not display the
-       custom header dialog if custom headers are not supported */
-    [noscript] boolean ScopeUsesCustomHeaders(in nsMsgSearchScopeValue scope,
-                                   /* could be a folder or server based on scope */
-                                   in voidPtr selection,
-                                   in boolean forFilters);
+  /* Call this function everytime the scope changes! It informs the FE if
+     the current scope support custom header use. FEs should not display the
+     custom header dialog if custom headers are not supported */
+  [noscript] boolean ScopeUsesCustomHeaders(in nsMsgSearchScopeValue scope,
+                                 /* could be a folder or server based on scope */
+                                 in voidPtr selection,
+                                 in boolean forFilters);
 
-    /* use this to determine if your attribute is a string attrib */
-    boolean IsStringAttribute(in nsMsgSearchAttribValue attrib);
+  /* use this to determine if your attribute is a string attrib */
+  boolean IsStringAttribute(in nsMsgSearchAttribValue attrib);
 
-    /* add all scopes of a given type to the search */
-    void AddAllScopes(in nsMsgSearchScopeValue attrib);
+  /* add all scopes of a given type to the search */
+  void AddAllScopes(in nsMsgSearchScopeValue attrib);
 
-    void search(in nsIMsgWindow aWindow);
-    void interruptSearch();
+  void search(in nsIMsgWindow aWindow);
+  void interruptSearch();
 
   // these two methods are used when the search session is using
   // a timer to do local search, and the search adapter needs
   // to run a url (e.g., to reparse a local folder) and wants to
   // pause the timer while running the url. This will fail if the
   // current adapter is not using a timer.
-    void pauseSearch();
+  void pauseSearch();
   void resumeSearch();
 
-    [noscript] readonly attribute voidPtr searchParam;
-    readonly attribute nsMsgSearchType searchType;
+  [noscript] readonly attribute voidPtr searchParam;
+  readonly attribute nsMsgSearchType searchType;
 
-    [noscript] nsMsgSearchType SetSearchParam(in nsMsgSearchType type,
-                                              in voidPtr param);
+  [noscript] nsMsgSearchType SetSearchParam(in nsMsgSearchType type,
+                                            in voidPtr param);
 
   [noscript] void AddResultElement(in nsMsgResultElement element);
   boolean MatchHdr(in nsIMsgDBHdr aMsgHdr, in nsIMsgDatabase aDatabase);
 
   void addSearchHit(in nsIMsgDBHdr header, in nsIMsgFolder folder);
 
-    readonly attribute long numResults;
+  readonly attribute long numResults;
   attribute nsIMsgWindow window;
 
-    /* these longs are all actually of type nsMsgSearchBooleanOp */
-    const long BooleanOR=0;
-    const long BooleanAND=1;
+  /* these longs are all actually of type nsMsgSearchBooleanOp */
+  const long BooleanOR=0;
+  const long BooleanAND=1;
 };

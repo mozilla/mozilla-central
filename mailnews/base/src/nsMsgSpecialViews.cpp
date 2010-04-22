@@ -57,7 +57,7 @@ NS_IMETHODIMP nsMsgThreadsWithUnreadDBView::GetViewType(nsMsgViewTypeValue *aVie
 
 PRBool nsMsgThreadsWithUnreadDBView::WantsThisThread(nsIMsgThread *threadHdr)
 {
-	if (threadHdr)
+  if (threadHdr)
   {
     PRUint32 numNewChildren;
 
@@ -107,6 +107,11 @@ nsMsgThreadsWithUnreadDBView::CloneDBView(nsIMessenger *aMessengerInstance, nsIM
 
   NS_IF_ADDREF(*_retval = newMsgDBView);
   return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgThreadsWithUnreadDBView::GetNumMsgsInView(PRInt32 *aNumMsgs)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsMsgWatchedThreadsWithUnreadDBView::GetViewType(nsMsgViewTypeValue *aViewType)
@@ -174,4 +179,10 @@ nsMsgWatchedThreadsWithUnreadDBView::CloneDBView(nsIMessenger *aMessengerInstanc
 
   NS_IF_ADDREF(*_retval = newMsgDBView);
   return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgWatchedThreadsWithUnreadDBView::GetNumMsgsInView(PRInt32 *aNumMsgs)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
 }

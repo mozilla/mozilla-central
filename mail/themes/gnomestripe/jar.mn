@@ -40,6 +40,7 @@ classic.jar:
   skin/classic/messenger/newmailalert.css                     (mail/newmailalert.css)
   skin/classic/messenger/tabmail.css                          (mail/tabmail.css)
   skin/classic/messenger/editContactOverlay.css               (mail/editContactOverlay.css)
+  skin/classic/messenger/quickFilterBar.css                   (mail/quickFilterBar.css)
   skin/classic/messenger/starred48.png                        (mail/starred48.png)
   skin/classic/messenger/contactStarred.png                   (mail/contactStarred.png)
   skin/classic/messenger/starContact.png                      (mail/starContact.png)
@@ -149,6 +150,10 @@ classic.jar:
   skin/classic/messenger/icons/online.png                     (mail/icons/online.png)
   skin/classic/messenger/icons/offline.png                    (mail/icons/offline.png)
   skin/classic/messenger/icons/row.png                        (mail/icons/row.png)
+  skin/classic/messenger/icons/black_pin.png                  (mail/icons/black_pin.png)
+  skin/classic/messenger/icons/filter.png                     (mail/icons/filter.png)
+  skin/classic/messenger/icons/filterbar.png                  (mail/icons/filterbar.png)
+  skin/classic/messenger/icons/red_pin.png                    (mail/icons/red_pin.png)
 % skin communicator classic/1.0 %skin/classic/communicator/
   skin/classic/communicator/communicator.css                      (mail/communicator.css)
   skin/classic/communicator/icons/smileys/smiley-smile.png        (mail/icons/smiley-smile.png)

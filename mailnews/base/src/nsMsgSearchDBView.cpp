@@ -1438,7 +1438,7 @@ nsresult nsMsgSearchDBView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr,
   return msgDB->GetThreadContainingMsgHdr(msgHdr, pThread);
 }
 
-nsresult 
+nsresult
 nsMsgSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, 
                                    nsMsgViewIndex startOfThreadViewIndex, 
                                    PRUint32 *pNumListed)
@@ -1483,6 +1483,13 @@ nsMsgSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr,
       viewIndex++;
     }
   }
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgSearchDBView::GetNumMsgsInView(PRInt32 *aNumMsgs)
+{
+  NS_ENSURE_ARG_POINTER(aNumMsgs);
+  *aNumMsgs = m_hdrsTable.Count();
   return NS_OK;
 }
 

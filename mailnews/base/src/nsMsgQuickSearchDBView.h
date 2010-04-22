@@ -68,6 +68,10 @@ public:
                          nsIMsgWindow *aMsgWindow,
                          nsIMsgDBViewCommandUpdater *aCommandUpdater,
                          nsIMsgDBView **_retval);
+  NS_IMETHOD CopyDBView(nsMsgDBView *aNewMsgDBView,
+                        nsIMessenger *aMessengerInstance,
+                        nsIMsgWindow *aMsgWindow,
+                        nsIMsgDBViewCommandUpdater *aCmdUpdater);
   NS_IMETHOD DoCommand(nsMsgViewCommandTypeValue aCommand);
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
   NS_IMETHOD SetViewFlags(nsMsgViewFlagsTypeValue aViewFlags);
@@ -77,6 +81,9 @@ public:
                          PRUint32 aNewFlags, nsIDBChangeListener *aInstigator);
   NS_IMETHOD OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, PRBool aPreChange, PRUint32 *aStatus, 
                                  nsIDBChangeListener * aInstigator);
+  NS_IMETHOD OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey,
+                          PRInt32 aFlags, nsIDBChangeListener *aInstigator);
+  NS_IMETHOD GetNumMsgsInView(PRInt32 *aNumMsgs);
 
 protected:
   nsWeakPtr m_searchSession;

@@ -221,16 +221,47 @@
     -
     - Tab monitoring code is expected to be used for widgets on the screen
     -  outside of the tab box that need to update themselves as the active tab
-    -  changes.  This is primarily intended to be used for the ThunderBar; if
-    -  you are not the ThunderBar and this sounds appealing to you, please
-    -  solicit discussion on your needs on the mozilla.dev.apps.thunderbird
-    -  newsgroup.
+    -  changes.
     - Tab monitoring code (un)registers itself via (un)registerTabMonitor.
+    -  The following attributes should be provided on the monitor object:
+    - * monitorName: A string value naming the tab monitor/extension.  This is
+    -     the canonical name for the tab monitor for all persistence purposes.
+    -     If the tab monitor wants to store data in the tab info object and its
+    -     name is FOO it should store it in 'tabInfo._ext.FOO'.  This is the
+    -     only place the tab monitor should store information on the tab info
+    -     object.  The FOO attribute will not be automatically created; it is
+    -     up to the code.  The _ext attribute will be there, reliably, however.
+    -     The name is also used when persisting state, but the tab monitor
+    -     does not need to do anything in that case; the name is automatically
+    -     used in the course of wrapping the object.
     -  The following functions should be provided on the monitor object:
     - * onTabTitleChanged(aTab): Called when the tab's title changes.
     - * onTabSwitched(aTab, aOldTab): Called when a new tab is made active.  If
     -     this is the first tab ever, aOldTab will be null, otherwise aOldTab
     -     will be the previously active tab.
+    - * onTabOpened(aTab, aIsFirstTab, aWasCurrentTab): Called when a new tab is
+    -     opened.  This method is invoked after the tab mode's openTab method
+    -     is invoked.  This method is invoked before the tab monitor
+    -     onTabSwitched method in the case where it will be invoked.  (It is
+    -     not invoked if the tab is opened in the background.)
+    - * onTabClosing(aTab): Called when a tab is being closed.  This method is
+    -     is invoked before the call to the tab mode's closeTab function.
+    - * onTabPersist(aTab): Return a JSON-representable object to persist for
+    -     the tab.  Return null if you do not have anything to persist.
+    - * onTabRestored(aTab, aState, aIsFirstTab): Called when a tab is being
+    -     restored and there is data previously persisted by the tab monitor.
+    -     This method is called instead of invoking onTabOpened.  This is done
+    -     because the restoreTab method (potentially) uses the tabmail openTab
+    -     API to effect restoration.  (Note: the first opened tab is special;
+    -     it will produce an onTabOpened notification potentially followed by
+    -     an onTabRestored notification.)
+    - Tab monitor code is also allowed to hook into the command processing
+    -  logic.  We support the standard supportsCommand/isCommandEnabled/
+    -  doCommand functions but with a twist to indicate when other tab monitors
+    -  and the actual tab itself should get a chance to process: supportsCommand
+    -  and isCommandEnabled should return null when they are not handling the
+    -  case.  doCommand should return true if it handled the case, null
+    -  otherwise.
     -->
   <binding id="tabmail">
     <resources>
@@ -282,6 +313,7 @@
     <implementation implements="nsIController">
       <constructor>
         window.controllers.insertControllerAt(0, this);
+        this._restoringTabState = null;
       </constructor>
       <destructor>
         window.controllers.removeController(this);
@@ -400,7 +432,7 @@
           if (this.tabInfo.length == 0) {
             let firstTab = {mode: this.defaultTabMode, busy: false,
                             canClose: false,
-                            searchMode: 'global'};
+                            _ext: {}};
             firstTab.mode.tabs.push(firstTab);
 
             this.tabInfo[0] = this.currentTabInfo = firstTab;
@@ -410,9 +442,10 @@
             tabOpenFirstFunc.call(firstTab.mode.tabType, firstTab);
             this.setTabTitle(null);
 
-            if (this.tabMonitors.length) {
-              for each (let [i, tabMonitor] in Iterator(this.tabMonitors))
-                tabMonitor.onTabSwitched(firstTab, null);
+            for each (let [i, tabMonitor] in Iterator(this.tabMonitors)) {
+              if ("onTabOpened" in tabMonitor)
+                tabMonitor.onTabOpened(firstTab, true);
+              tabMonitor.onTabSwitched(firstTab, null);
             }
           }
         ]]></body>
@@ -455,7 +488,7 @@
             // we need to save the state before it gets corrupted
             this.saveCurrentTabState();
 
-          let tab = {mode: tabMode, busy: false, canClose: true};
+          let tab = {mode: tabMode, busy: false, canClose: true, _ext: {}};
           tabMode.tabs.push(tab);
 
           var t = document.createElementNS(
@@ -508,8 +541,16 @@
           let tabOpenFunc = tab.mode.openTab || tab.mode.tabType.openTab;
           tabOpenFunc.apply(tab.mode.tabType, [tab, aArgs]);
 
-          if (!background && this.tabMonitors.length) {
-            for each (let [i, tabMonitor] in Iterator(this.tabMonitors))
+          let restoreState = this._restoringTabState;
+          for each (let [i, tabMonitor] in Iterator(this.tabMonitors)) {
+            if (("onTabRestored" in tabMonitor) && restoreState &&
+                (tabMonitor.monitorName in restoreState.ext))
+              tabMonitor.onTabRestored(tab,
+                                       restoreState.ext[tabMonitor.monitorName],
+                                       false);
+            else if ("onTabOpened" in tabMonitor)
+              tabMonitor.onTabOpened(tab, false, oldTab);
+            if (!background)
               tabMonitor.onTabSwitched(tab, oldTab);
           }
           
@@ -604,6 +645,11 @@
 
             if (!tab.canClose)
               return;
+
+            for each (let [i, tabMonitor] in Iterator(this.tabMonitors)) {
+              if ("onTabClosing" in tabMonitor)
+                tabMonitor.onTabClosing(tab);
+            }
             
             let closeFunc = tab.mode.closeTab || tab.mode.tabType.closeTab;
             closeFunc.call(tab.mode.tabType, tab);
@@ -705,9 +751,20 @@
             //  to avoid bugs and because we may eventually let extensions store
             //  per-tab information in the persisted state.
             if (tabState != null) {
+              let ext = {};
+
+              for each (let [i, tabMonitor] in Iterator(this.tabMonitors)) {
+                if ("onTabPersist" in tabMonitor) {
+                  let monState = tabMonitor.onTabPersist(tab);
+                  if (monState !== null)
+                    ext[tabMonitor.monitorName] = monState;
+                }
+              }
+
               tabs.push({
                 mode: tab.mode.name,
                 state: tabState,
+                ext: ext,
               });
               // Mark this persisted tab as selected
               if (iTab == this.tabContainer.selectedIndex)
@@ -746,7 +803,12 @@
             if (tabState.state.firstTab && aDontRestoreFirstTab)
               tabState.state.dontRestoreFirstTab = aDontRestoreFirstTab;
 
+            // normalize the state to have an ext attribute if it does not.
+            if (!("ext" in tabState))
+              tabState.ext = {};
+            this._restoringTabState = tabState;
             restoreFunc.call(mode.tabType, this, tabState.state);
+            this._restoringTabState = null;
 
             // If this persisted tab was the selected one, then mark the newest
             //  tab as the guy to select.
@@ -821,10 +883,8 @@
               let showTabFunc = tab.mode.showTab || tab.mode.tabType.showTab;
               showTabFunc.call(tab.mode.tabType, tab);
 
-              if (this.tabMonitors.length) {
-                for each (let [i, tabMonitor] in Iterator(this.tabMonitors))
-                  tabMonitor.onTabSwitched(tab, oldTab);
-              }
+              for each (let [i, tabMonitor] in Iterator(this.tabMonitors))
+                tabMonitor.onTabSwitched(tab, oldTab);
 
               // always update the cursor status when we switch tabs
               SetBusyCursor(window, tab.busy);
@@ -888,10 +948,8 @@
               if (titleChangeFunc)
                 titleChangeFunc.call(tab.mode.tabType, tab, tabNode);
 
-              if (this.tabMonitors.length) {
-                for each (let [, tabMonitor] in Iterator(this.tabMonitors))
-                  tabMonitor.onTabTitleChanged(tab);
-              }
+              for each (let [, tabMonitor] in Iterator(this.tabMonitors))
+                tabMonitor.onTabTitleChanged(tab);
 
               tabNode.setAttribute("label", tab.title);
 
@@ -1012,59 +1070,83 @@
       <method name="supportsCommand">
         <parameter name="aCommand"/>
         <body>
-           <![CDATA[
-             let tab = this.currentTabInfo;
+          <![CDATA[
+            let tab = this.currentTabInfo;
 
-             // This can happen if we're starting up and haven't got a tab
-             // loaded yet.
-             if (!tab)
-               return false;
+            // This can happen if we're starting up and haven't got a tab
+            // loaded yet.
+            if (!tab)
+              return false;
 
-             let supportsCommandFunc = tab.mode.supportsCommand ||
-                                       tab.mode.tabType.supportsCommand;
-             if (supportsCommandFunc)
-               return supportsCommandFunc.call(tab.mode.tabType, aCommand, tab);
+            for each (let [, tabMonitor] in Iterator(this.tabMonitors)) {
+              if ("supportsCommand" in tabMonitor) {
+                let result = tabMonitor.supportsCommand(aCommand, tab);
+                if (result !== null)
+                  return result;
+              }
+            }
 
-             return false;
-           ]]>
+            let supportsCommandFunc = tab.mode.supportsCommand ||
+                                      tab.mode.tabType.supportsCommand;
+            if (supportsCommandFunc)
+              return supportsCommandFunc.call(tab.mode.tabType, aCommand, tab);
+
+            return false;
+          ]]>
         </body>
       </method>
       <method name="isCommandEnabled">
         <parameter name="aCommand"/>
         <body>
-           <![CDATA[
-             let tab = this.currentTabInfo;
+          <![CDATA[
+            let tab = this.currentTabInfo;
 
-             // This can happen if we're starting up and haven't got a tab
-             // loaded yet.
-             if (!tab)
-               return false;
+            // This can happen if we're starting up and haven't got a tab
+            // loaded yet.
+            if (!tab)
+              return false;
 
-             let isCommandEnabledFunc = tab.mode.isCommandEnabled ||
-                                        tab.mode.tabType.isCommandEnabled;
-             if (isCommandEnabledFunc)
-               return isCommandEnabledFunc.call(tab.mode.tabType, aCommand, tab);
+            for each (let [, tabMonitor] in Iterator(this.tabMonitors)) {
+              if ("isCommandEnabled" in tabMonitor) {
+                let result = tabMonitor.isCommandEnabled(aCommand, tab);
+                if (result !== null)
+                  return result;
+              }
+            }
 
-             return false;
-           ]]>
+            let isCommandEnabledFunc = tab.mode.isCommandEnabled ||
+                                       tab.mode.tabType.isCommandEnabled;
+            if (isCommandEnabledFunc)
+              return isCommandEnabledFunc.call(tab.mode.tabType, aCommand, tab);
+
+            return false;
+          ]]>
         </body>
       </method>
       <method name="doCommand">
         <parameter name="aCommand"/>
         <body>
-           <![CDATA[
-             let tab = this.currentTabInfo;
+          <![CDATA[
+            let tab = this.currentTabInfo;
 
-             // This can happen if we're starting up and haven't got a tab
-             // loaded yet.
-             if (!tab)
-               return;
+            // This can happen if we're starting up and haven't got a tab
+            // loaded yet.
+            if (!tab)
+              return;
 
-             let doCommandFunc = tab.mode.doCommand ||
-                                 tab.mode.tabType.doCommand;
-             if (doCommandFunc)
-               doCommandFunc.call(tab.mode.tabType, aCommand, tab);
-           ]]>
+            for each (let [, tabMonitor] in Iterator(this.tabMonitors)) {
+              if ("doCommand" in tabMonitor) {
+                let result = tabMonitor.doCommand(aCommand, tab);
+                if (result === true)
+                  return;
+              }
+            }
+
+            let doCommandFunc = tab.mode.doCommand ||
+                                tab.mode.tabType.doCommand;
+            if (doCommandFunc)
+              doCommandFunc.call(tab.mode.tabType, aCommand, tab);
+          ]]>
         </body>
       </method>
       <method name="onEvent">
@@ -1119,8 +1201,7 @@
       <xul:hbox class="tab-image-left" xbl:inherits="selected"/>
       <xul:hbox class="tab-image-middle box-inherit" align="center"
                 xbl:inherits="dir,pack,orient,selected" flex="1">
-        <xul:image class="tab-icon-image"
-                   xbl:inherits="validate,src=image,src"/>
+        <xul:image class="tab-icon-image" xbl:inherits="validate,src=image"/>
         <xul:label class="tab-text"
                   xbl:inherits="value=label,accesskey,crop,disabled"
                   crop="right" flex="1"/>
@@ -1630,17 +1711,12 @@
               case "label":
               case "crop":
               case "busy":
+              case "image":
               case "selected":
                 if (aEvent.attrChange == aEvent.REMOVAL)
                   menuItem.removeAttribute(attrName);
                 else
                   menuItem.setAttribute(attrName, aEvent.newValue);
-            }
-            if (attrName == "busy") {
-              // With busy status changes the tab icon
-              let style = window.getComputedStyle(aEvent.target, null);
-              menuItem.style.listStyleImage = style.listStyleImage;
-              menuItem.style.MozImageRegion = style.MozImageRegion;
             }
           }
         ]]></body>
@@ -1711,11 +1787,7 @@
 
           menuItem.setAttribute("label", aTab.label);
           menuItem.setAttribute("crop", aTab.getAttribute("crop"));
-
-          // Get the tabicon and set it here
-          let style = window.getComputedStyle(aTab, null);
-          menuItem.style.listStyleImage = style.listStyleImage;
-          menuItem.style.MozImageRegion = style.MozImageRegion;
+          menuItem.setAttribute("image", aTab.getAttribute("image"));
 
           if (aTab.hasAttribute("busy"))
             menuItem.setAttribute("busy", aTab.getAttribute("busy"));

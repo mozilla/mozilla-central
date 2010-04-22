@@ -99,7 +99,7 @@ ResultRowMulti.prototype = {
   },
   onQueryCompleted: function() {
   }
-}
+};
 
 function nsAutoCompleteGlodaResult(aListener, aCompleter, aString) {
   this.listener = aListener;
@@ -108,6 +108,10 @@ function nsAutoCompleteGlodaResult(aListener, aCompleter, aString) {
   this._results = [];
   this._pendingCount = 0;
   this._problem = false;
+  // Track whether we have reported anything to the complete controller so
+  //  that we know not to send notifications to it during calls to addRows
+  //  prior to that point.
+  this._initiallyReported = false;
 
   this.wrappedJSObject = this;
 }
@@ -123,11 +127,16 @@ nsAutoCompleteGlodaResult.prototype = {
       this.listener.onSearchResult(this.completer, this);
     }
   },
+  announceYourself: function ACGR_announceYourself() {
+    this._initiallyReported = true;
+    this.listener.onSearchResult(this.completer, this);
+  },
   addRows: function ACGR_addRows(aRows) {
     if (!aRows.length)
       return;
     this._results.push.apply(this._results, aRows);
-    this.listener.onSearchResult(this.completer, this);
+    if (this._initiallyReported)
+      this.listener.onSearchResult(this.completer, this);
   },
   // ==== nsIAutoCompleteResult
   searchString: null,
@@ -379,7 +388,7 @@ ContactTagCompleter.prototype = {
     if (aString.length < 2)
       return false; // no async mechanism that will add new rows
 
-    tags = this._suffixTree.findMatches(aString.toLowerCase());
+    let tags = this._suffixTree.findMatches(aString.toLowerCase());
     let rows = [];
     for each (let [iTag, tag] in Iterator(tags)) {
       let query = Gloda.newQuery(Gloda.NOUN_CONTACT);
@@ -416,7 +425,7 @@ MessageTagCompleter.prototype = {
     if (aString.length < 2)
       return false;
 
-    tags = this._suffixTree.findMatches(aString.toLowerCase());
+    let tags = this._suffixTree.findMatches(aString.toLowerCase());
     let rows = [];
     for each (let [, tag] in Iterator(tags)) {
       let resRow = new ResultRowSingle(tag, "tag", tag.tag, TagNoun.id);
@@ -542,7 +551,7 @@ nsAutoCompleteGloda.prototype = {
       //   But we don't do that yet.
       }
 
-      aListener.onSearchResult(this, result);
+      result.announceYourself();
     } catch (e) {
       logException(e);
     }

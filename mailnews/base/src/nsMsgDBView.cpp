@@ -6759,6 +6759,12 @@ nsMsgDBView::GetNumSelected(PRUint32 *aNumSelected)
   return rv;
 }
 
+NS_IMETHODIMP nsMsgDBView::GetNumMsgsInView(PRInt32 *aNumMsgs)
+{
+  NS_ENSURE_ARG_POINTER(aNumMsgs);
+  return (m_folder) ? m_folder->GetTotalMessages(PR_FALSE, aNumMsgs) :
+                    NS_ERROR_FAILURE;
+}
 /**
  * @note For the IMAP delete model, this applies to both deleting and 
  *       undeleting a message.

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+  -   Version: MPL 1.1/GPL 2.0/LGPL 2.1
+  -
+  - The contents of this file are subject to the Mozilla Public License Version
+  - 1.1 (the "License"); you may not use this file except in compliance with
+  - the License. You may obtain a copy of the License at
+  - http://www.mozilla.org/MPL/
+  - 
+  - Software distributed under the License is distributed on an "AS IS" basis,
+  - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+  - for the specific language governing rights and limitations under the
+  - License.
+  -
+  - The Original Code is Thunderbird Mail Client.
+  -
+  - The Initial Developer of the Original Code is the Mozilla Foundation.
+  - Portions created by the Initial Developer are Copyright (C) 2010
+  - the Initial Developer. All Rights Reserved.
+  -
+  - Contributor(s):
+  -   Andrew Sutherland <asutherland@asutherland.org>
+  -
+  - Alternatively, the contents of this file may be used under the terms of
+  - either the GNU General Public License Version 2 or later (the "GPL"), or
+  - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+  - in which case the provisions of the GPL or the LGPL are applicable instead
+  - of those above. If you wish to allow use of your version of this file only
+  - under the terms of either the GPL or the LGPL, and not to allow others to
+  - use your version of this file under the terms of the MPL, indicate your
+  - decision by deleting the provisions above and replace them with the notice
+  - and other provisions required by the GPL or the LGPL. If you do not delete
+  - the provisions above, a recipient may use your version of this file under
+  - the terms of any one of the MPL, the GPL or the LGPL.
+  - 
+  - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://messenger/skin/quickFilterBar.css" type="text/css"?>
+<!DOCTYPE quickFilterBar SYSTEM "chrome://messenger/locale/quickFilterBar.dtd">
+<overlay id="quickFilterBar-overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script src="quickFilterBar.js" type="application/javascript" />
+
+  <commandset id="mailViewMenuItems">
+    <command id="cmd_toggleQuickFilterBar"
+             oncommand="goDoCommand('cmd_toggleQuickFilterBar');"
+             />
+  </commandset>
+
+  <menupopup id="view_toolbars_popup">
+    <!-- gets disabled but stays visible when not legal -->
+    <menuitem id="view_toolbars_popup_quickFilterBar"
+              insertbefore="viewMenuBeforeCustomizeMailToolbarsSeparator"
+              label="&quickFilterBar.toggleBarVisibility.menu.label;"
+              accesskey="&quickFilterBar.toggleBarVisibility.menu.accesskey;"
+              command="cmd_toggleQuickFilterBar"
+              observes="qfb-show-filter-bar"
+              key="key_find"
+              />
+  </menupopup>
+
+  <hbox id="thunderbird-private-tabmail-buttons">
+    <!-- gets hidden but keeps space allocation when not legal-->
+    <toolbarbutton id="qfb-show-filter-bar" type="checkbox"
+                   command="cmd_toggleQuickFilterBar"
+                   tooltiptext="&quickFilterBar.toggleBarVisibility.button.tooltip;"
+                   />
+  </hbox>
+
+  <popupset id="mainPopupSet">
+    <!-- Using an actual panel resulted in serious focus problems on linux,
+         even with noautofocus=true.  It would appear the window manager does
+         not buy into what we are selling in that case, whereas I presume the
+         specialization that precludes tooltips from ever having focus prevents
+         that problem from happening. -->
+    <tooltip id="qfb-text-search-upsell"
+             level="parent"
+             style="background-color: #ffeeee;"
+           >
+      <vbox>
+        <label id="qfb-upsell-line-one"
+               class="header"
+               fmt="&quickFilterBar.glodaUpsell.continueSearch;"
+               value=""
+               />
+        <label id="qfb-upsell-line-two"
+               fmt="&quickFilterBar.glodaUpsell.pressEnterAndCurrent;"
+               value=""
+               />
+      </vbox>
+    </tooltip>
+  </popupset>
+
+
+  <vbox id="threadContentArea">
+    <!--
+      - The message filter bar is not a XBL binding at this time in order to
+      - make it easier for people to overlay given that we are likely leaving
+      - a lot of visible space on the table.
+      -
+      - This may need to change for drag-and-drop or other reasons.
+      -->
+    <vbox id="quick-filter-bar" insertbefore="threadTree">
+      <hbox id="quick-filter-bar-main-bar" align="center"
+            onoverflow="QuickFilterBarMuxer.onOverflow();"
+            >
+        <toolbarbutton id="qfb-sticky" type="checkbox"
+                       crop="none" minwidth="16"
+                       tooltiptext="&quickFilterBar.sticky.tooltip;"
+                       />
+        <label id="qfb-filter-label"
+               value="&quickFilterBar.barLabel.label;"/>
+        <!-- Extensions, put your labeled buttons in the following box. -->
+        <hbox id="quick-filter-bar-collapsible-buttons">
+          <toolbarbutton id="qfb-unread" type="checkbox"
+                         crop="none" minwidth="16"
+                         label="&quickFilterBar.unread.label;"
+                         tooltiptext="&quickFilterBar.unread.tooltip;"
+                         />
+          <toolbarbutton id="qfb-starred" type="checkbox"
+                         crop="none" minwidth="16"
+                         label="&quickFilterBar.starred.label;"
+                         tooltiptext="&quickFilterBar.starred.tooltip;"
+                         />
+          <toolbarbutton id="qfb-inaddrbook" type="checkbox"
+                         crop="none" minwidth="16"
+                         label="&quickFilterBar.inaddrbook.label;"
+                         tooltiptext="&quickFilterBar.inaddrbook.tooltip;"
+                         />
+          <toolbarbutton id="qfb-tags" type="checkbox"
+                         crop="none" minwidth="16"
+                         label="&quickFilterBar.tags.label;"
+                         tooltiptext="&quickFilterBar.tags.tooltip;"
+                         />
+          <toolbarbutton id="qfb-attachment" type="checkbox"
+                         crop="none" minwidth="16"
+                         label="&quickFilterBar.attachment.label;"
+                         tooltiptext="&quickFilterBar.attachment.tooltip;"/>
+        </hbox>
+        <toolbarspacer id="qfb-filter-bar-spacer" flex="200" align="end"/>
+        <!-- I added a minwidth and end text-align because otherwise the change
+             in dimensions causes ugly flex rearrangement of the textbox. -->
+        <label id="qfb-results-label"
+               minwidth="&quickFilterBar.resultsLabel.minWidth;"
+               value=""
+               somefmtstring="&quickFilterBar.resultsLabel.some.formatString;"
+               noresultsstring="&quickFilterBar.resultsLabel.none;"
+               />
+        <textbox id="qfb-qs-textbox" flex="1"
+                 type="search"
+                 emptytext=""
+                 emptytextbase="&quickFilterBar.textbox.emptyText.base;"
+                 keyLabelNonMac="&quickFilterBar.textbox.emptyText.keyLabel.nonmac;"
+                 keyLabelMac="&quickFilterBar.textbox.emptyText.keyLabel.mac;"
+                 timeout="500"
+                 width="320"
+                 minwidth="280">
+        </textbox>
+      </hbox>
+      <hbox id="quick-filter-bar-expando">
+        <arrowscrollbox id="quick-filter-bar-tab-bar"
+                        orient="horizontal"
+                        collapsed="true"
+                        flex="2">
+        </arrowscrollbox>
+        <hbox id="quick-filter-bar-filter-text-bar"
+              collapsed="true"
+              pack="end"
+              align="center"
+              flex="1">
+          <label id="qfb-qs-label" value="Filter message by:"/>
+          <toolbarbutton id="qfb-qs-sender" type="checkbox"
+                         label="&quickFilterBar.textFilter.sender.label;" />
+          <toolbarbutton id="qfb-qs-recipients" type="checkbox"
+                         label="&quickFilterBar.textFilter.recipients.label;" />
+          <toolbarbutton id="qfb-qs-subject" type="checkbox"
+                         label="&quickFilterBar.textFilter.subject.label;" />
+          <toolbarbutton id="qfb-qs-body" type="checkbox"
+                         label="&quickFilterBar.textFilter.body.label;" />
+        </hbox>
+      </hbox>
+    </vbox>
+  </vbox>
+</overlay>

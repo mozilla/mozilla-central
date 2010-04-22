@@ -46,6 +46,69 @@ var gMessageDisplay = null;
 var nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
 
 /**
+ * Maintains a list of listeners for all FolderDisplayWidget instances in this
+ *  window.  The assumption is that because of our multiplexed tab
+ *  implementation all consumers are effectively going to care about all such
+ *  tabs.
+ *
+ * We are not just a global list so that we can add brains about efficiently
+ *  building lists, provide try-wrapper convenience, etc.
+ */
+let FolderDisplayListenerManager = {
+  _listeners: [],
+
+  /**
+   * Register a listener that implements one or more of the methods defined on
+   *  |IDBViewWrapperListener|.  Note that a change from those interface
+   *  signatures is that the first argument is always a reference to the
+   *  FolderDisplayWidget generating the notification.
+   *
+   * We additionally support the following notifications:
+   * - onMakeActive.  Invoked when makeActive is called on the
+   *   FolderDisplayWidget.  The second argument (after the folder display) is
+   *   aWasInactive.
+   *
+   * - onActiveCreatedView.  onCreatedView deferred to when the tab is actually
+   *   made active.
+   *
+   * - onActiveAllMessagesLoaded.  onAllMessagesLoaded deferred to when the
+   *   tab is actually made active.  Use this if the actions you need to take
+   *   are based on the folder display actually being visible, such as updating
+   *   some UI widget, etc.
+   *
+   */
+  registerListener: function FDLM_registerListener(aListener) {
+    this._listeners.push(aListener);
+  },
+
+  /**
+   * Unregister a previously registered event listener.
+   */
+  unregisterListener: function FDLM_unregisterListener(aListener) {
+    let idx = this._listeners.indexOf(idx);
+    if (idx >= 0) {
+      this._listeners.splice(idx, 1);
+    }
+  },
+
+  /**
+   * For use by FolderDisplayWidget to trigger listener invocation.
+   */
+  _fireListeners: function FDBLM__fireListeners(aEventName, aArgs) {
+    for each (let [, listener] in Iterator(this._listeners)) {
+      if (aEventName in listener) {
+        try {
+          listener[aEventName].apply(listener, aArgs);
+        }
+        catch(ex) {
+          Components.utils.reportError(ex);
+        }
+      }
+    }
+  },
+};
+
+/**
  * Abstraction for a widget that (roughly speaking) displays the contents of
  *  folders.  The widget belongs to a tab and has a lifetime as long as the tab
  *  that contains it.  This class is strictly concerned with the UI aspects of
@@ -779,6 +842,9 @@ FolderDisplayWidget.prototype = {
     if (this._tabInfo)
       document.getElementById("tabmail").setTabBusy(this._tabInfo,
                                                     aFolderLoading);
+
+    FolderDisplayListenerManager._fireListeners("onFolderLoading",
+                                                [this, aFolderLoading]);
   },
 
   /**
@@ -795,6 +861,9 @@ FolderDisplayWidget.prototype = {
         this._tabInfo,
         aIsSearching && searchBundle.getString("searchingMessage"));
     }
+
+    FolderDisplayListenerManager._fireListeners("onSearching",
+                                                [this, aIsSearching]);
   },
 
   /**
@@ -808,6 +877,10 @@ FolderDisplayWidget.prototype = {
     //  folder where view creation is synonymous with having all messages.
     this._allMessagesLoaded = false;
     this.messageDisplay.onCreatedView();
+
+    FolderDisplayListenerManager._fireListeners("onCreatedView",
+                                                [this]);
+
     this._notifyWhenActive(this._activeCreatedView);
   },
   _activeCreatedView: function() {
@@ -820,6 +893,9 @@ FolderDisplayWidget.prototype = {
     // this creates a new selection object for the view.
     if (this.treeBox)
       this.treeBox.view = this.view.dbView;
+
+    FolderDisplayListenerManager._fireListeners("onActiveCreatedView",
+                                                [this]);
 
     let ObserverService =
       Components.classes["@mozilla.org/observer-service;1"]
@@ -850,6 +926,9 @@ FolderDisplayWidget.prototype = {
       gDBView = null;
     }
 
+    FolderDisplayListenerManager._fireListeners("onDestroyingView",
+                                                [this, aFolderIsComingBack]);
+
     // if we have no view, no messages could be loaded.
     this._allMessagesLoaded = false;
 
@@ -879,6 +958,9 @@ FolderDisplayWidget.prototype = {
   onLoadingFolder: function FolderDisplayWidget_onLoadingFolder(aDbFolderInfo) {
     this._savedColumnStates =
       this._depersistColumnStatesFromDbFolderInfo(aDbFolderInfo);
+
+    FolderDisplayListenerManager._fireListeners("onLoadingFolder",
+                                                [this, aDbFolderInfo]);
   },
 
   /**
@@ -900,10 +982,8 @@ FolderDisplayWidget.prototype = {
       this._persistColumnStates(this._savedColumnStates);
     }
 
-    // update the quick-search relative to whether it's incoming/outgoing
-    let searchInput = document.getElementById("searchInput");
-    if (searchInput)
-      searchInput.folderChanged(this.view.isOutgoingFolder)
+    FolderDisplayListenerManager._fireListeners("onDisplayingFolder",
+                                                [this]);
 
     if (this.active)
       this.makeActive();
@@ -915,6 +995,9 @@ FolderDisplayWidget.prototype = {
    *  For example, user deletion of the folder or underlying folder closes it.
    */
   onLeavingFolder: function FolderDisplayWidget_onLeavingFolder() {
+    FolderDisplayListenerManager._fireListeners("onLeavingFolder",
+                                                [this]);
+
     // Keep the msgWindow's openFolder up-to-date; it powers nsMessenger's
     //  concept of history so that it can bring you back to the actual folder
     //  you were looking at, rather than just the underlying folder.
@@ -942,10 +1025,17 @@ FolderDisplayWidget.prototype = {
    */
   onAllMessagesLoaded: function FolderDisplayWidget_onAllMessagesLoaded() {
     this._allMessagesLoaded = true;
+
+    FolderDisplayListenerManager._fireListeners("onAllMessagesLoaded",
+                                                [this]);
+
     this._notifyWhenActive(this._activeAllMessagesLoaded);
   },
   _activeAllMessagesLoaded:
       function FolderDisplayWidget__activeAllMessagesLoaded() {
+    FolderDisplayListenerManager._fireListeners("onActiveAllMessagesLoaded",
+                                                [this]);
+
     // - if a selectMessage's coming up, get out of here
     if (this._aboutToSelectMessage)
       return;
@@ -1038,6 +1128,9 @@ FolderDisplayWidget.prototype = {
     if (this.active)
       UpdateSortIndicators(this.view.primarySortType,
                            this.view.primarySortOrder);
+
+    FolderDisplayListenerManager._fireListeners("onSortChanged",
+                                                [this]);
   },
 
   /**
@@ -1047,6 +1140,9 @@ FolderDisplayWidget.prototype = {
    * For the imap mark-as-deleted we won't know beforehand.
    */
   onMessagesRemoved: function FolderDisplayWidget_onMessagesRemoved() {
+    FolderDisplayListenerManager._fireListeners("onMessagesRemoved",
+                                                [this]);
+
     // - we saw this coming
     let rowCount = this.view.dbView.rowCount;
     if (!this._massMoveActive && (this._nextViewIndexAfterDelete != null)) {
@@ -1108,6 +1204,8 @@ FolderDisplayWidget.prototype = {
   onMessageRemovalFailed:
       function FolderDisplayWidget_onMessageRemovalFailed() {
     this._nextViewIndexAfterDelete = null;
+    FolderDisplayListenerManager._fireListeners("onMessagesRemovalFailed",
+                                                [this]);
   },
 
   /**
@@ -1116,6 +1214,8 @@ FolderDisplayWidget.prototype = {
   onMessageCountsChanged: function FolderDisplayWidget_onMessageCountsChaned() {
     if (this.active)
       UpdateStatusMessageCounts(this.displayedFolder);
+    FolderDisplayListenerManager._fireListeners("onMessageCountsChanged",
+                                                [this]);
   },
   //@}
   /* ===== End IDBViewWrapperListener ===== */
@@ -1454,6 +1554,9 @@ FolderDisplayWidget.prototype = {
     // or not.
     let fakeTreeSelection = this._fakeTreeSelection;
     this._fakeTreeSelection = null;
+
+    FolderDisplayListenerManager._fireListeners("onMakeActive",
+                                                [this, aWasInactive]);
 
     // -- UI
 

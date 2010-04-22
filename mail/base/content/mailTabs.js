@@ -120,16 +120,6 @@ let mailTabType = {
         else
           windowToInheritFrom = FindOther3PaneWindow();
 
-        if (windowToInheritFrom) {
-          let searchInputToInheritFrom =
-            windowToInheritFrom.document.getElementById("searchInput");
-          if (searchInputToInheritFrom) {
-            let searchInput = document.getElementById("searchInput");
-            if (searchInput)
-              // This should set the aTab.searchMode as well
-              searchInput.searchMode = searchInputToInheritFrom.searchMode;
-          }
-        }
         aTab.folderDisplay.makeActive();
       },
       /**
@@ -141,8 +131,6 @@ let mailTabType = {
        * @param [aArgs.messagePaneVisible] Whether the message pane should be
        *            visible. If this isn't specified, the current or first tab's
        *            current state is used.
-       * @param [aArgs.searchMode] The search mode for this tab. If this isn't
-       *            specified, the current or first tab's current mode is used.
        * @param [aArgs.forceSelectMessage] Whether we should consider dropping
        *            filters to select the message. This has no effect if
        *            aArgs.msgHdr isn't specified. Defaults to false.
@@ -156,13 +144,6 @@ let mailTabType = {
         //  "folder" tab.)
         let modelTab = document.getElementById("tabmail")
                          .getTabInfoForCurrentOrFirstModeInstance(aTab.mode);
-        let searchInput = document.getElementById("searchInput");
-
-        if ("searchMode" in aArgs)
-          aTab.searchMode = aArgs.searchMode;
-        else if (searchInput)
-          aTab.searchMode = searchInput.searchMode;
-        aTab.searchInputValue = "";
 
         // - figure out whether to show the folder pane
         let folderPaneShouldBeVisible;
@@ -238,8 +219,6 @@ let mailTabType = {
             messagePaneVisible: aTab.messageDisplay.visible,
             firstTab: aTab.firstTab
           };
-          if ("searchMode" in aTab)
-            retval.searchMode = aTab.searchMode;
           return retval;
         } catch (e) {
           logException(e);
@@ -282,12 +261,21 @@ let mailTabType = {
                   aPersistedState.dontRestoreFirstTab))
               gFolderTreeView.selectFolder(folder);
 
-            // This should be after selectFolder, so that onDisplayingFolder
-            // there doesn't clobber this.
-            if ("searchMode" in aPersistedState) {
-              let searchInput = document.getElementById("searchInput");
-              if (searchInput)
-                searchInput.searchMode = aPersistedState.searchMode;
+            // We need to manually trigger the tab monitor restore trigger
+            // for this tab.  In theory this should be in tabmail, but the
+            // special nature of the first tab will last exactly long as this
+            // implementation right here so it does not particularly matter
+            // and is a bit more honest, if ugly, to do it here.
+            let tabmail = document.getElementById("tabmail");
+            let restoreState = tabmail._restoringTabState;
+            let tab = tabmail.tabInfo[0];
+            for each (let [, tabMonitor] in Iterator(tabmail.tabMonitors)) {
+              if (("onTabRestored" in tabMonitor) &&
+                  (tabMonitor.monitorName in restoreState.ext)) {
+                tabMonitor.onTabRestored(tab,
+                                         restoreState.ext[tabMonitor.monitorName],
+                                         true);
+              }
             }
           }
           else {
@@ -297,8 +285,6 @@ let mailTabType = {
               messagePaneVisible: aPersistedState.messagePaneVisible,
               background: true
             };
-            if ("searchMode" in aPersistedState)
-              tabArgs.searchMode = aPersistedState.searchMode;
             aTabmail.openTab("folder", tabArgs);
           }
         }

@@ -68,7 +68,7 @@ Cu.import('resource:///modules/mailViewManager.js');
  */
 const DO_NOT_EXPORT = {
   // magic globals
-  MODULE_NAME: true, DO_NOT_EXPORT: true,
+  MODULE_NAME: true, DO_NOT_EXPORT: true, installInto: true,
   // imported modules
   elib: true, mozmill: true, controller: true, frame: true, os: true,
   // convenience constants
@@ -85,7 +85,7 @@ const DO_NOT_EXPORT = {
   initialized: false,
   // other libraries we use
   testHelperModule: true,
-  windowHelper: true
+  windowHelper: true,
 };
 
 const EXPORT_VIA_GETTER_SETTER = {
@@ -185,6 +185,8 @@ function setupModule() {
     testHelperModule.make_new_sets_in_folders;
   add_sets_to_folders = testHelperModule.add_sets_to_folders;
 
+  delete_message_set = testHelperModule.async_delete_messages;
+
   // use window-helper's augment_controller method to get our extra good stuff
   //  we need.
   windowHelper = collector.getModule('window-helpers');
@@ -199,6 +201,9 @@ function setupModule() {
  */
 function installInto(module) {
   setupModule();
+
+  // force the window to be a nice size we all can love.
+  mc.window.resizeTo(1024, 768);
 
   // now copy everything into the module they provided to us...
   let us = collector.getModule('folder-display-helpers');
@@ -2450,6 +2455,7 @@ function throw_and_dump_view_state(aMessage, aController) {
 var make_new_sets_in_folders;
 var make_new_sets_in_folder;
 var add_sets_to_folders;
+var delete_message_set;
 
 /**
  * Load a file in its own 'module'.

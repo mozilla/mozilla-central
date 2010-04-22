@@ -133,10 +133,12 @@ nsMsgSearchSession::CreateTerm(nsIMsgSearchTerm **aResult)
 }
 
 /* void RegisterListener (in nsIMsgSearchNotify listener); */
-NS_IMETHODIMP nsMsgSearchSession::RegisterListener(nsIMsgSearchNotify *aListener)
+NS_IMETHODIMP nsMsgSearchSession::RegisterListener(nsIMsgSearchNotify *aListener,
+                                                   PRInt32 aNotifyFlags)
 {
   NS_ENSURE_ARG_POINTER(aListener);
   m_listenerList.AppendElement(aListener);
+  m_listenerFlagList.AppendElement(aNotifyFlags);
   return NS_OK;
 }
 
@@ -144,7 +146,20 @@ NS_IMETHODIMP nsMsgSearchSession::RegisterListener(nsIMsgSearchNotify *aListener
 NS_IMETHODIMP nsMsgSearchSession::UnregisterListener(nsIMsgSearchNotify *aListener)
 {
   NS_ENSURE_ARG_POINTER(aListener);
-  m_listenerList.RemoveElement(aListener);
+  PRInt32 listenerIndex = m_listenerList.IndexOf(aListener);
+  if (listenerIndex != -1)
+  {
+    m_listenerList.RemoveElementAt(listenerIndex);
+    m_listenerFlagList.RemoveElementAt(listenerIndex);
+
+    // Adjust our iterator if it is active.
+    // Removal of something at a higher index than the iterator does not affect
+    // it; we only care if the the index we were pointing at gets shifted down,
+    // in which case we also want to shift down.
+    if (m_iListener != -1 && listenerIndex <= m_iListener)
+      m_iListener--;
+  }
+
   return NS_OK;
 }
 
@@ -258,13 +273,16 @@ NS_IMETHODIMP nsMsgSearchSession::Search(nsIMsgWindow *aWindow)
   nsresult rv = Initialize();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsTObserverArray<nsCOMPtr<nsIMsgSearchNotify> >::ForwardIterator iter(m_listenerList);
   nsCOMPtr<nsIMsgSearchNotify> listener;
-  while (iter.HasMore())
+  m_iListener = 0;
+  while (m_iListener != -1 && m_iListener < m_listenerList.Length())
   {
-    listener = iter.GetNext();
-    listener->OnNewSearch();
+    listener = m_listenerList[m_iListener];
+    PRInt32 listenerFlags = m_listenerFlagList[m_iListener++];
+    if (!listenerFlags || (listenerFlags & nsIMsgSearchSession::onNewSearch))
+      listener->OnNewSearch();
   }
+  m_iListener = -1;
 
   m_msgWindowWeak = do_GetWeakReference(aWindow);
 
@@ -573,13 +591,16 @@ NS_IMETHODIMP nsMsgSearchSession::GetRunningAdapter (nsIMsgSearchAdapter **aSear
 NS_IMETHODIMP nsMsgSearchSession::AddSearchHit(nsIMsgDBHdr *aHeader,
                                                nsIMsgFolder *aFolder)
 {
-  nsTObserverArray<nsCOMPtr<nsIMsgSearchNotify> >::ForwardIterator iter(m_listenerList);
   nsCOMPtr<nsIMsgSearchNotify> listener;
-  while (iter.HasMore())
+  m_iListener = 0;
+  while (m_iListener != -1 && m_iListener < m_listenerList.Length())
   {
-    listener = iter.GetNext();
-    listener->OnSearchHit(aHeader, aFolder);
+    listener = m_listenerList[m_iListener];
+    PRInt32 listenerFlags = m_listenerFlagList[m_iListener++];
+    if (!listenerFlags || (listenerFlags & nsIMsgSearchSession::onSearchHit))
+      listener->OnSearchHit(aHeader, aFolder);
   }
+  m_iListener = -1;
   return NS_OK;
 }
 
@@ -589,14 +610,16 @@ nsresult nsMsgSearchSession::NotifyListenersDone(nsresult aStatus)
   // reference to us.
   nsRefPtr <nsIMsgSearchSession> kungFuDeathGrip(this);
 
-  nsTObserverArray<nsCOMPtr<nsIMsgSearchNotify> >::ForwardIterator iter(m_listenerList);
   nsCOMPtr<nsIMsgSearchNotify> listener;
-
-  while (iter.HasMore())
+  m_iListener = 0;
+  while (m_iListener != -1 && m_iListener < m_listenerList.Length())
   {
-    listener = iter.GetNext();
-    listener->OnSearchDone(aStatus);
+    listener = m_listenerList[m_iListener];
+    PRInt32 listenerFlags = m_listenerFlagList[m_iListener++];
+    if (!listenerFlags || (listenerFlags & nsIMsgSearchSession::onSearchDone))
+      listener->OnSearchDone(aStatus);
   }
+  m_iListener = -1;
   return NS_OK;
 }
 

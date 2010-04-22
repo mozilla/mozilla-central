@@ -601,6 +601,15 @@ var AugmentEverybodyWith = {
     },
 
     /**
+     * Wait for an element with the given id to show up.
+     *
+     * @param aId The DOM id of the element you want to wait to show up.
+     */
+    ewait: function _wait_for_element_by_id_helper(aId) {
+      this.waitForElement(new elib.ID(this.window.document, aId));
+    },
+
+    /**
      * Find an element in the anonymous subtree of an element in the document
      *  identified by its id.  You would use this to dig into XBL bindings that
      *  are not doing what you want.  For example, jerks that don't focus right.

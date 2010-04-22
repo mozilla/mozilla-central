@@ -218,6 +218,7 @@ isp/zh-TW/gmail.rdf
 license.html
 LICENSE.txt
 modules/JSON.jsm
+modules/quickSearchManager.js
 #ifndef MOZ_IPC
 mozilla-runtime@BIN_SUFFIX@
 #endif

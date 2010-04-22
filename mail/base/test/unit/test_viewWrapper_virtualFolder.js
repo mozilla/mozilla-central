@@ -357,117 +357,6 @@ function test_virtual_folder_mail_views_unread(aNumFolders) {
   verify_messages_in_view([fooOne, fooTwo, fooThree], viewWrapper);
 }
 
-
-/* ===== Virtual Folder, Quick Search  ===== */
-
-/*
- * We do not need to test all of the quick search permutations, realFolder
- *  already did that.  We just need to make sure that quick search works
- *  with single-folder and multi-folder virtual folders.  Additionally, we
- *  need to make sure that it works for simple and complex virtual folders.
- * We handle the single and multi folder cases with the same test code, just
- *  parameterized over the number of folders.  We use 4 folders for the multi
- *  folder case to encourage the time slicing logic to split itself up.
- */
-
-function test_virtual_folder_param_quick_search_simple(aNumFolders) {
-  let viewWrapper = make_view_wrapper();
-
-  // venn it up.  virtual folder search on "foo", actual search will be on "bar"
-  let [folders, subjFooBar, subjFoo, subjBar, nopers] =
-    make_folders_with_sets(aNumFolders,
-      [{subject: "foo bar"}, {subject: "foo"}, {subject: "bar"}, {}]);
-  let virt = make_virtual_folder(folders, {subject: "foo"});
-  yield async_view_open(viewWrapper, virt);
-  verify_messages_in_view([subjFooBar, subjFoo], viewWrapper);
-
-  yield async_view_quick_search(viewWrapper,
-                                QuickSearchConstants.kQuickSearchSubject,
-                                "bar");
-  verify_messages_in_view([subjFooBar], viewWrapper);
-}
-
-function test_virtual_folder_param_quick_search_complex(aNumFolders) {
-  let viewWrapper = make_view_wrapper();
-
-  let whoBaz = make_person_with_word_in_address("baz");
-
-  // virtual folder is on "foo" and "baz"
-  // quick search is on "bar"
-  let [folders, fooBarBaz, fooBar, fooBaz, foo, barBaz, bar, baz, nopers] =
-    make_folders_with_sets(aNumFolders,
-      [{subject: "foo bar", from: whoBaz}, {subject: "foo bar"},
-       {subject: "foo", from: whoBaz}, {subject: "foo"},
-       {subject: "bar", from: whoBaz}, {subject: "bar"},
-       {from: whoBaz}, {}]);
-  let virt = make_virtual_folder(folders, {subject: "foo", from: "baz"}, true);
-  yield async_view_open(viewWrapper, virt);
-  verify_messages_in_view([fooBarBaz, fooBaz], viewWrapper);
-
-  yield async_view_quick_search(viewWrapper,
-                                QuickSearchConstants.kQuickSearchSubject,
-                                "bar");
-  verify_messages_in_view([fooBarBaz], viewWrapper);
-}
-
-/* ===== Virtual Folder, Mail View and Quick Search ===== */
-
-/**
- * Test the complex intersection of all three search clauses for result
- *  retrieval and that deletion correctly removes rows.  Check that clones
- *  end up operating the same too.
- */
-function test_virtual_folder_param_mail_view_and_quick_search(aNumFolders) {
-  let viewWrapper = make_view_wrapper();
-
-  // virtual folder search on "foo"
-  // quick search on "bar"
-  let [folders, fooBarOne, fooBarTwo, foo, bar, nopers] =
-    make_folders_with_sets(aNumFolders,
-      [{subject: "foo bar 1"}, {subject: "foo bar 2"}, {subject: "foo"},
-       {subject: "bar"}, {}]);
-  let virt = make_virtual_folder(folders, {subject: "foo"});
-  yield async_view_open(viewWrapper, virt);
-  // mailview on unread
-  yield async_view_set_mail_view(viewWrapper, MailViewConstants.kViewItemUnread);
-  yield async_view_quick_search(viewWrapper,
-                                QuickSearchConstants.kQuickSearchSubject,
-                                "bar");
-  verify_messages_in_view([fooBarOne, fooBarTwo], viewWrapper);
-
-  // clone and make sure the clone has the same results before/after refresh
-  let clonedWrapper = clone_view_wrapper(viewWrapper);
-  verify_messages_in_view([fooBarOne, fooBarTwo], clonedWrapper);
-  yield async_view_refresh(clonedWrapper);
-  verify_messages_in_view([fooBarOne, fooBarTwo], clonedWrapper);
-
-  // - Mark a set read so only one set remains.
-  fooBarTwo.setRead(true);
-  // We need to refresh to actually see the change (views do not make things
-  //  disappear out from under the user for attribute changes.)
-  yield async_view_refresh(viewWrapper);
-  verify_messages_in_view(fooBarOne, viewWrapper);
-  // (and make sure the clone sees this change too)
-  yield async_view_refresh(clonedWrapper);
-  verify_messages_in_view(fooBarOne, clonedWrapper);
-
-  // Make another clone to make sure the deleted notification shows up even
-  //  without a refresh triggering the creation of a new search session.
-  let doubleClone = clone_view_wrapper(clonedWrapper);
-
-  // - Delete some messages
-  // This should result in both views getting a messages removed notification.
-  gMockViewWrapperListener.messagesRemovedEventCount = 0;
-  yield async_delete_messages(fooBarOne);
-  // (thrice for each folder because we have three views listening)
-  do_check_eq(gMockViewWrapperListener.messagesRemovedEventCount,
-              aNumFolders * 3);
-
-  verify_messages_in_view([], viewWrapper);
-  verify_messages_in_view([], clonedWrapper);
-  verify_messages_in_view([], doubleClone);
-}
-
 var tests = [
   // -- single-folder backed virtual folder
   test_virtual_folder_single_load_no_pred,
@@ -490,11 +379,6 @@ var tests = [
   test_virtual_folder_underlying_folder_deleted,
   // -- mail views (parameterized)
   parameterizeTest(test_virtual_folder_mail_views_unread, [1, 4]),
-  // -- quick search (parameterized for single and multi folder cases)
-  parameterizeTest(test_virtual_folder_param_quick_search_simple, [1, 4]),
-  parameterizeTest(test_virtual_folder_param_quick_search_complex, [1, 4]),
-  // -- mail view with quick search
-  parameterizeTest(test_virtual_folder_param_mail_view_and_quick_search,[1, 4]),
 ];
 
 function run_test() {

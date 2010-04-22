@@ -372,7 +372,8 @@ nsresult nsMsgFilterAfterTheFact::RunNextFilter()
     rv = m_searchSession->AppendTerm(term);
     NS_ENSURE_SUCCESS(rv, rv);
   }
-  m_searchSession->RegisterListener(this);
+  m_searchSession->RegisterListener(this,
+                                    nsIMsgSearchSession::allNotifications);
 
   rv = m_searchSession->AddScopeTerm(searchScope, m_curFolder);
   NS_ENSURE_SUCCESS(rv, rv);

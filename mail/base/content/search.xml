@@ -58,138 +58,34 @@
     -  and alter the current search query if a "glodaFacet" tab is displayed,
     -  or enter a search query and spawn a new "glodaFacet" tab if one is
     -  currently not displayed.
+    -
+    - This widget used to have many weird implementation nuances.  Now we are
+    -  just a little bit of extra stuff on top of the toolkit autocomplete
+    -  implementation.  Our deviations are:
+    -  - We collapse ourselves when gloda is disabled; we track the state.
+    -  -
     -->
-  <binding id="glodaSearch" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete">
+  <binding id="glodaSearch"
+           extends="chrome://global/content/bindings/autocomplete.xml#autocomplete">
     <resources>
       <stylesheet src="chrome://messenger/skin/searchBox.css"/>
     </resources>
 
-    <content>
-      <xul:button anonid="quick-search-button" class="quick-search-button" type="menu">
-        <xul:menupopup anonid="quick-search-menupopup"
-                   class="quick-search-menupopup"
-                   persist="value"
-                   onpopupshowing="this.parentNode.parentNode.updatePopup();"
-                   popupalign="topleft"
-                   popupanchor="bottomleft">
-          <xul:menuitem anonid="searchGlobalMenu"
-                    class="quick-search-menu"
-                    value="global"
-                    glodaOnly="true"
-                    label="&searchAllMessages.label;"
-                    type="radio"
-                    oncommand="this.parentNode.parentNode.parentNode.changeMode(this)"/>
-          <xul:menuseparator quicksearchOnly="true"
-                             glodaOnly="true"/>
-        </xul:menupopup>
-      </xul:button>
-      <xul:hbox class="quick-search-textbox textbox-input-box" flex="1">
-        <html:input class="textbox-input" flex="1" anonid="input" allowevents="true"
-                    xbl:inherits="onfocus,onblur,oninput,value,type,maxlength,disabled,size,readonly,tabindex,accesskey"/>
-      </xul:hbox>
-      <xul:toolbarbutton anonid="quick-search-clearbutton" xbl:inherits=""
-                         disabled="true" class="quick-search-clearbutton"
-                         onclick="this.parentNode.value = ''; this.parentNode.doSearch(); this.parentNode.select(); return false;"/>
-                         <!--XXX update search if not global-->
-
-    </content>
     <handlers>
-      <handler event="input">
-        <![CDATA[
-        try {
-          if (this.searchMode != "global") { // it's a quick search
-            let dis = this;
-            clearTimeout(this.timeoutHandler);
-            this.timeoutHandler = setTimeout(this.onTimeout, this.timeout, dis);
-          }
-        } catch (e) {
-          logException(e);
-        }
-        ]]>
-      </handler>
-      <!-- For the next two, we need to get in on the bubbling phase, as
-           otherwise we'll be doing searches when autocomplete results are
-           being selected. -->
-      <handler event="keypress" keycode="VK_ENTER"
-        phase="bubbling" action="return this.doSearch();"/>
-      <handler event="keypress" keycode="VK_RETURN"
-        phase="bubbling">
-        <![CDATA[
-          try {
-            this.doSearch();
-          } catch (e) {
-            logException(e);
-          }
-          return true;
-        ]]>
-      </handler>
-      <handler event="input">
-        <![CDATA[
-          if (!this.value)
-            this.clearButtonHidden = true;
-          else
-            this.clearButtonHidden = false;
-        ]]></handler>
-      <handler event="keypress" keycode="VK_DOWN" modifiers="alt"
-               phase="capturing" action="return this.openmenupopup();"/>
-      <handler event="keypress" keycode="VK_UP"   modifiers="alt"
-               phase="capturing" action="return this.openmenupopup();"/>
-      <handler event="keypress" keycode="VK_F4" phase="capturing"><![CDATA[
-        if (window.navigator.oscpu.substring(0, 3).toLowerCase() != "mac")
-          return this.openmenupopup();
+      <handler event="drop" phase="capturing"><![CDATA[
+        nsDragAndDrop.drop(event, this.searchInputDNDObserver);
       ]]></handler>
 
-      <handler event="keypress" keycode="VK_UP" modifiers="control"
-               phase="capturing">
-        <![CDATA[
-        try {
-          var menuPopupValue = this.menupopup.getAttribute('value');
-          var menuItem =
-            this.menupopup.getElementsByAttribute('value', this.searchMode)[0];
-          if (menuItem != this.menupopup.firstChild) {
-            let previousMenuItem = menuItem.previousSibling;
-            while (! previousMenuItem.hasAttribute("value") &&
-                   previousMenuItem != this.menupopup.firstChild)
-              previousMenuItem = previousMenuItem.previousSibling;
-
-            previousMenuItem.setAttribute("checked", "true");
-            menuItem.removeAttribute("checked");
-            this.searchMode = previousMenuItem.getAttribute('value');
-            this.menupopup.setAttribute('value', this.searchMode);
-          }
-          return false;
-        } catch (e) {
-          logException(e);
-        }
-        ]]></handler>
-
-      <handler event="keypress" keycode="VK_DOWN" modifiers="control"
-               phase="capturing">
-        <![CDATA[
-        try {
-          var menuPopupValue = this.menupopup.getAttribute('value');
-          var menuItem =
-            this.menupopup.getElementsByAttribute('value', this.searchMode)[0];
-          if (menuItem != this.menupopup.lastChild) {
-            let nextMenuItem = menuItem.nextSibling;
-            while (! nextMenuItem.hasAttribute("value") &&
-                   nextMenuItem != this.menupopup.lastChild)
-              nextMenuItem = nextMenuItem.nextSibling;
-            nextMenuItem.setAttribute("checked", "true");
-            menuItem.removeAttribute("checked");
-            this.searchMode = nextMenuItem.getAttribute('value');
-            this.menupopup.setAttribute('value', this.searchMode);
-          }
-          return false;
-        } catch (e) {
-          logException(e);
-        }
-        ]]></handler>
-
-
-      <handler event="drop" phase="capturing">
-        nsDragAndDrop.drop(event, this.searchInputDNDObserver);
-      </handler>
+      <handler event="keypress" keycode="VK_RETURN"><![CDATA[
+        this.doSearch();
+        event.preventDefault();
+        event.stopPropagation();
+      ]]></handler>
+      <handler event="keypress" keycode="VK_ESCAPE"><![CDATA[
+        this.clearSearch();
+        event.preventDefault();
+        event.stopPropagation();
+      ]]></handler>
     </handlers>
 
     <implementation implements="nsIObserver">
@@ -199,8 +95,12 @@
         const Cu = Components.utils;
         Cu.import("resource:///modules/errUtils.js");
         try {
-          Cu.import("resource:///modules/StringBundle.js");
-          Cu.import("resource:///modules/quickSearchManager.js");
+          this.setAttribute(
+            "emptytext",
+            this.getAttribute("emptytextbase")
+                 .replace("#1", this.getAttribute(
+                                  Application.platformIsMac ?
+                                  "keyLabelMac" : "keyLabelNonMac")));
 
           var prefBranch =
               Components.classes['@mozilla.org/preferences-service;1'].
@@ -232,48 +132,9 @@
             gSearchInputObserversRegistered = true;
           }
 
-          this.quickSearchStrings =
-            new StringBundle(
-              "chrome://messenger/locale/quickSearch.properties");
-
-          let quickSearchModes = QuickSearchManager.getSearchModes();
-          for (let i = 0; i < quickSearchModes.length; i++) {
-            let searchMode = quickSearchModes[i];
-            let value = searchMode["value"];
-            let label = searchMode["label"];
-            let menuitem = document.createElement("menuitem");
-            menuitem.setAttribute("value", value.toString());
-            menuitem.setAttribute("label", label);
-            menuitem.setAttribute("type", "radio");
-            menuitem.setAttribute("quicksearchOnly", "true");
-            menuitem.setAttribute("oncommand",
-              "this.parentNode.parentNode.parentNode.changeMode(this)");
-            this.menupopup.appendChild(menuitem);
-          }
-
-          let separator = document.createElement("menuseparator");
-          separator.setAttribute("quicksearchOnly", "true");
-          this.menupopup.appendChild(separator);
-
-          let saveAsVF = document.createElement("menuitem");
-          saveAsVF.setAttribute("anonid",
-                                "quick-search-save-as-virtual-folder");
-          saveAsVF.setAttribute("label",
-            this.quickSearchStrings.get("saveAsVirtualFolder.label"));
-          saveAsVF.setAttribute("quicksearchOnly", "true");
-          saveAsVF.setAttribute("oncommand",
-            "gFolderTreeController.newVirtualFolder(\
-              this.parentNode.parentNode.parentNode.value,\
-              gFolderDisplay.view.search.session.searchTerms);");
-          this.menupopup.appendChild(saveAsVF);
-
-          this.updateSaveItem();
-          this.input = "";
           this.glodaEnabled =
             prefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
-          this.searchMode = this.glodaEnabled ? "global" :
-            quickSearchModes[QuickSearchConstants.kQuickSearchFromOrSubject]
-              .value.toString();
+          this.collapsed = !this.glodaEnabled;
         } catch (e) {
           logException(e, true);
         }
@@ -303,11 +164,7 @@
               this.inputSearch.glodaEnabled =
                 gPrefBranch.getBoolPref(
                   "mailnews.database.global.indexer.enabled");
-              let quickSearchModes = QuickSearchManager.getSearchModes();
-              this.inputSearch.searchMode = this.inputSearch.glodaEnabled ?
-                "global" :
-                quickSearchModes[QuickSearchConstants.kQuickSearchFromOrSubject]
-                  .value.toString();
+              this.inputSearch.collapsed = !this.inputSearch.glodaEnabled;
               break;
             }
           }
@@ -322,93 +179,21 @@
         }
         });
       </field>
-      <field name="timeout">200</field>
       <field name="glodaCompleter">null</field>
-      <field name="ignoreClick">false</field>
-      <field name="quickSearchStrings">null</field>
-      <field name="mQuickSearchMode">null</field>
-      <field name="timeoutHandler">null</field>
-      <property name="searchMode">
-        <getter><![CDATA[
-          return this.mQuickSearchMode;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mQuickSearchMode = val;
-          this.menupopup.setAttribute('value', val);
-          let tabmail = document.getElementById('tabmail');
-          if (tabmail) { /* if not in the customize toolbar */
-            let currentTabInfo = tabmail.currentTabInfo;
-            this.menupopup.getElementsByAttribute('value', this.searchMode)[0]
-                          .setAttribute('checked', 'true');
-            if (currentTabInfo)
-             currentTabInfo.searchMode = this.searchMode;
-            this.updateEmptyText();
-          }
-          this.setAttribute("autocompletesearchparam", val)
-        ]]></setter>
-      </property>
-      <field name="_glodaEnabled"/>
-      <property name="glodaEnabled">
-        <getter><![CDATA[
-          return this._glodaEnabled
-        ]]></getter>
-        <setter><![CDATA[
-          try {
-            this.showGlodaItems(val); this._glodaEnabled = val;
-          } catch(e) {
-            logException(e);
-          }
-        ]]></setter>
-      </property>
-      <property name="autocompletePopup" readonly="true">
-        <getter><![CDATA[
-          return document.getElementById(
-                   this.getAttribute('autocompletepopup'));
-        ]]></getter>
-      </property>
-      <property name="showingSearchCriteria">
-        <getter><![CDATA[
-          return this.getAttribute('searchCriteria') == 'true';
-        ]]></getter>
-        <setter><![CDATA[
-          this.setAttribute('searchCriteria', val); return val;
-        ]]></setter>
-      </property>
       <property name="menupopup" readonly="true">
         <getter><![CDATA[
           return document.getAnonymousElementByAttribute(
                    this, 'anonid', 'quick-search-menupopup');
         ]]></getter>
       </property>
-      <property name="saveAsVirtualFolder" readonly="true">
-        <getter><![CDATA[
-          return document.getAnonymousElementByAttribute(
-                   this, 'anonid', 'quick-search-save-as-virtual-folder');
-        ]]></getter>
-      </property>
-      <property name="clearButtonHidden">
-        <getter><![CDATA[
-          return document.getAnonymousElementByAttribute(
-                            this, 'anonid', 'quick-search-clearbutton')
-                         .getAttribute('clearButtonHidden') == 'true';
-        ]]></getter>
-        <setter><![CDATA[
-          document.getAnonymousElementByAttribute(
-                     this, 'anonid', 'quick-search-clearbutton')
-                  .setAttribute('clearButtonHidden', val);
-          return val;
-        ]]></setter>
-      </property>
 
       <property name="state">
         <getter><![CDATA[
           return {
-            'mode': this.searchMode,
             'string': this.value
           };
         ]]></getter>
         <setter><![CDATA[
-          this.searchMode = val['mode'];
           this.value = val['string'];
         ]]></setter>
       </property>
@@ -440,54 +225,14 @@
       })
       ]]></field>
 
-      <method name="onTimeout">
-        <parameter name="dis"/>
-        <body><![CDATA[
-        try {
-          dis.doSearch();
-        } catch (e) {
-          logException(e);
-        }
-        ]]>
-        </body>
-      </method>
-      <method name="updatePopup">
-        <body><![CDATA[
-        try {
-          // disable the create virtual folder menu item if the current radio
-          // value is set to Find in message since you can't really  create a VF from find
-          // in message
-          if (this.searchMode == "global" || this.value == "")
-            this.saveAsVirtualFolder.setAttribute('disabled', 'true');
-          else
-            this.saveAsVirtualFolder.removeAttribute('disabled');
-
-          //let hideQuickSearchModes = this.searchMode == "global" ? "true" : "false";
-          //for each (let child in this.menupopup.childNodes) {
-          //  if (child.hasAttribute("quicksearch")) {
-          //    child.setAttribute("collapsed", hideQuickSearchModes)
-          //  }
-          //}
-        } catch (e) {
-          logException(e);
-        }
-        ]]>
-        </body>
-      </method>
-      <method name="build">
-        <body><![CDATA[
-
-        ]]></body>
-      </method>
-
       <method name="observe">
-      <parameter name="aSubject"/>
-      <parameter name="aTopic"/>
-      <parameter name="aData"/>
+        <parameter name="aSubject"/>
+        <parameter name="aTopic"/>
+        <parameter name="aData"/>
         <body><![CDATA[
         try {
           if (aTopic == "autocomplete-did-enter-text") {
-            let selectedIndex = this.autocompletePopup.selectedIndex;
+            let selectedIndex = this.popup.selectedIndex;
             let curResult = this.glodaCompleter.curResult;
             if (! curResult)
               return; // autocomplete didn't even finish.
@@ -518,64 +263,28 @@
         ]]></body>
       </method>
 
-      <method name="updateEmptyText">
-        <body><![CDATA[
-        try {
-          // extract the label value from the menu item
-          let menuItem = this.menupopup.getElementsByAttribute('value',
-                          this.searchMode)[0];
-          this.emptyText = menuItem.getAttribute('label');
-        } catch (e) {
-          logException(e);
-        }
-        ]]></body>
-      </method>
-
-      <method name="updateSaveItem">
-        <body><![CDATA[
-          let disabled = true;
-          this.saveAsVirtualFolder.setAttribute("disabled", disabled)
-        ]]></body>
-      </method>
-
-
       <method name="doSearch">
         <body><![CDATA[
           try {
-            if (this.searchMode == 'global') // faceted search
-            {
-              if (this.value) {
-                let tabmail = document.getElementById("tabmail");
-                // If the current tab is a gloda search tab, reset the value
-                //  to the initial search value.  Otherwise, clear it.  This
-                //  is the value that 3is going to be saved with the current
-                //  tab when we switch back to it next.
-                let searchString = this.value;
+            if (this.value) {
+              let tabmail = document.getElementById("tabmail");
+              // If the current tab is a gloda search tab, reset the value
+              //  to the initial search value.  Otherwise, clear it.  This
+              //  is the value that 3is going to be saved with the current
+              //  tab when we switch back to it next.
+              let searchString = this.value;
 
-                if (tabmail.currentTabInfo.mode.name == "glodaFacet") {
-                  // we'd rather reuse the existing tab (and somehow do something
-                  // smart with any preexisting facet choices, but that's a
-                  // bit hard right now, so doing the cheap thing and closing
-                  // this tab and starting over
-                  tabmail.closeTab();
-                }
-                this.value = ''; // clear our value, to avoid persistence
-                if (gFolderDisplay.view) {
-                  // if we started out from a gFolderDisplay.view,
-                  // remove existing (non-global) filter from view, to avoid persistence
-                  gFolderDisplay.view.search.userTerms = null;
-                }
-                tabmail.openTab("glodaFacet", {
-                  searcher: new GlodaMsgSearcher(null, searchString)
-                });
+              if (tabmail.currentTabInfo.mode.name == "glodaFacet") {
+                // we'd rather reuse the existing tab (and somehow do something
+                // smart with any preexisting facet choices, but that's a
+                // bit hard right now, so doing the cheap thing and closing
+                // this tab and starting over
+                tabmail.closeTab();
               }
-            } else { // quick search
-              if (!gFolderDisplay.view)
-                return;
-              if (! this.value)
-                gFolderDisplay.view.search.userTerms = null
-              else
-                gFolderDisplay.view.search.quickSearch(Number(this.searchMode), this.value);
+              this.value = ''; // clear our value, to avoid persistence
+              tabmail.openTab("glodaFacet", {
+                searcher: new GlodaMsgSearcher(null, searchString)
+              });
             }
           } catch (e) {
             logException(e);
@@ -583,97 +292,11 @@
         ]]>
         </body>
       </method>
-
-      <method name="changeMode">
-      <parameter name="aMenuItem" />
+      <method name="clearSearch">
         <body><![CDATA[
-          var oldSearchMode = this.searchMode;
-          this.searchMode = aMenuItem.value;
-          if (oldSearchMode != this.searchMode) // the search mode just changed so we need to redo the quick search
-            this.doSearch();
+          this.value = "";
         ]]></body>
       </method>
-
-      <method name="openmenupopup">
-        <body>
-          <![CDATA[
-          try {
-            this.menupopup.click();
-          } catch (e) {
-            logException(e);
-          }
-          return false;
-          ]]>
-        </body>
-      </method>
-
-
-      <!--If switching from an "incoming" (Inbox, etc.) type of mail folder,-->
-      <!--to an "outbound" (Sent, Drafts etc.)  type, and the current search-->
-      <!--type contains 'Sender', then switch it to the equivalent-->
-      <!--'Recipient' search type by default. Vice versa when switching from-->
-      <!--outbound to incoming folder type.-->
-      <!--@param isOutboundFolder  Bool-->
-      <!--       true:  switch from an incoming to an outgoing folder-->
-      <!--       false: switch from an outgoing to an incoming folder-->
-      <method name="folderChanged">
-        <parameter name="isOutboundFolder" />
-        <body>
-          <![CDATA[
-            let newSearchMode = null;
-            if (isOutboundFolder) {
-              if (this.searchMode == QuickSearchConstants.kQuickSearchFromOrSubject)
-                this.searchMode = QuickSearchConstants.kQuickSearchRecipientOrSubject;
-              else if (this.searchMode == QuickSearchConstants.kQuickSearchFrom)
-                this.searchMode = QuickSearchConstants.kQuickSearchRecipient;
-            } else {
-              if (this.searchMode == QuickSearchConstants.kQuickSearchRecipientOrSubject)
-                this.searchMode = QuickSearchConstants.kQuickSearchFromOrSubject;
-              else if (this.searchMode == QuickSearchConstants.kQuickSearchRecipient)
-                this.searchMode = QuickSearchConstants.kQuickSearchFrom;
-            }
-          ]]>
-        </body>
-      </method>
-      <!--
-        Called by the TabMonitor to make the quick search menu only show options that are relevant for a particular tab.
-        In particular, in faceted search results, no real mode choices are available.
-
-         @param showQSItems  Bool
-            true:  show quick search-relevant menu items
-            false: don't show quick search-relevant menu items
-      -->
-      <method name="showQuickSearchItems">
-        <parameter name="showQSItems" />
-        <body>
-          <![CDATA[
-            for (let i = 0; i < this.menupopup.childNodes.length; i++) {
-              let menuitem = this.menupopup.childNodes[i];
-              if (menuitem.getAttribute('quicksearchOnly') == 'true')
-                menuitem.collapsed = ! showQSItems;
-            }
-          ]]>
-        </body>
-      </method>
-
-      <method name="showGlodaItems">
-        <parameter name="aEnable"/>
-        <body><![CDATA[
-        try {
-          for (let i = 0; i < this.menupopup.childNodes.length; i++) {
-            let menuitem = this.menupopup.childNodes[i];
-            if (menuitem.getAttribute('glodaOnly') == 'true') {
-              menuitem.collapsed = ! aEnable;
-              menuitem.hidden = ! aEnable;
-            }
-          }
-        } catch (e) {
-          logException(e);
-        }
-        ]]>
-        </body>
-      </method>
-
     </implementation>
   </binding>
 

@@ -1052,7 +1052,7 @@
         <menuseparator id="editMenuAfterSelectSeparator"/>
         <menu id="menu_find" label="&findMenu.label;" accesskey="&findMenu.accesskey;">
           <menupopup id="menu_FindPopup">
-            <menuitem id="menu_findCmd" label="&findCmd.label;" key="key_find" accesskey="&findCmd.accesskey;" command="cmd_find"/>
+            <menuitem id="menu_findCmd" label="&findCmd.label;" key="key_findAgain" accesskey="&findCmd.accesskey;" command="cmd_find"/>
             <menuitem id="menu_findAgainCmd" label="&findAgainCmd.label;" key="key_findAgain" accesskey="&findAgainCmd.accesskey;" command="cmd_findAgain"/>
             <menuseparator id="editMenuAfterFindSeparator"/>
             <menuitem id="searchMailCmd" label="&searchMailCmd.label;"

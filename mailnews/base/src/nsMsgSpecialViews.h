@@ -43,13 +43,14 @@
 class nsMsgThreadsWithUnreadDBView : public nsMsgThreadedDBView
 {
 public:
-	nsMsgThreadsWithUnreadDBView();
-	virtual ~nsMsgThreadsWithUnreadDBView();
-	virtual const char * GetViewName(void) {return "ThreadsWithUnreadView"; }
-    NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCommandUpdater, nsIMsgDBView **_retval);
-    NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
+  nsMsgThreadsWithUnreadDBView();
+  virtual ~nsMsgThreadsWithUnreadDBView();
+  virtual const char * GetViewName(void) {return "ThreadsWithUnreadView"; }
+  NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCommandUpdater, nsIMsgDBView **_retval);
+  NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
+  NS_IMETHOD GetNumMsgsInView(PRInt32 *aNumMsgs);
 
-	virtual PRBool		WantsThisThread(nsIMsgThread *threadHdr);
+virtual PRBool WantsThisThread(nsIMsgThread *threadHdr);
 protected:
   virtual nsresult AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, PRBool ensureListed);
 
@@ -58,10 +59,11 @@ protected:
 class nsMsgWatchedThreadsWithUnreadDBView : public nsMsgThreadedDBView
 {
 public:
-    NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
-    NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCommandUpdater, nsIMsgDBView **_retval);
-	virtual const char * GetViewName(void) {return "WatchedThreadsWithUnreadView"; }
-	virtual PRBool		WantsThisThread(nsIMsgThread *threadHdr);
+  NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
+  NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCommandUpdater, nsIMsgDBView **_retval);
+  NS_IMETHOD GetNumMsgsInView(PRInt32 *aNumMsgs);
+  virtual const char * GetViewName(void) {return "WatchedThreadsWithUnreadView"; }
+  virtual PRBool WantsThisThread(nsIMsgThread *threadHdr);
 protected:
   virtual nsresult AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, PRBool ensureListed);
 

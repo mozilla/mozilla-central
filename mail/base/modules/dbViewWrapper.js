@@ -1088,11 +1088,16 @@ DBViewWrapper.prototype = {
     if (this.isSingleFolder) {
       dbView.open(this._underlyingFolders[0], sortType, sortOrder, viewFlags,
                   outCount);
-      // but if it's a virtual folder, we need to tell the db view about the
-      //  the display (virtual) folder so it can store all the view-specific
+      // If there are any search terms, we need to tell the db view about the
+      //  the display (/virtual) folder so it can store all the view-specific
       //  data there (things like the active mail view and such that go in
-      //  dbFolderInfo.)
-      if (this.isVirtual)
+      //  dbFolderInfo.)  This also goes for cases where the quick search is
+      //  active; the C++ code explicitly nulls out the view folder for no
+      //  good/documented reason, so we need to set it again if we want changes
+      //  made with the quick filter applied.  (We don't just change the C++
+      //  code because there could be SeaMonkey fallout.)  See bug 502767 for
+      //  info about the quick-search part of the problem.
+      if (this.search.hasSearchTerms)
         dbView.viewFolder = this.displayedFolder;
     }
     // when we're dealing with a multi-folder virtual folder, we just tell the

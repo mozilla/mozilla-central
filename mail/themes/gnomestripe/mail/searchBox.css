@@ -74,3 +74,16 @@
 .quick-search-clearbutton > .toolbarbutton-icon {
   -moz-margin-end: 0px; /* override toolkit's default value */
 }
+
+/* things from xul.css that only exist if Thunderbird did not define 
+ * AUTOCOMPLETE_OLD_STYLE 
+ */
+
+.autocomplete-history-dropmarker {
+  display: none;
+}
+
+.autocomplete-history-dropmarker[enablehistory="true"] {
+  display: -moz-box;
+  -moz-binding: url("chrome://global/content/bindings/autocomplete.xml#history-dropmarker");
+}

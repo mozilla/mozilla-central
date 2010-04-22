@@ -82,7 +82,26 @@ protected:
 
   nsMsgSearchScopeTermArray m_scopeList;
   nsCOMPtr <nsISupportsArray> m_termList;
-  nsTObserverArray<nsCOMPtr<nsIMsgSearchNotify> > m_listenerList;
+
+  nsTArray<nsCOMPtr<nsIMsgSearchNotify> > m_listenerList;
+  nsTArray<PRInt32> m_listenerFlagList;
+  /**
+   * Iterator index for m_listenerList/m_listenerFlagList.  We used to use an
+   * nsTObserverArray for m_listenerList but its auto-adjusting iterator was
+   * not helping us keep our m_listenerFlagList iterator correct.
+   *
+   * We are making the simplifying assumption that our notifications are
+   * non-reentrant.  In the exceptional case that it turns out they are
+   * reentrant, we assume that this is the result of canceling a search while
+   * the session is active and initiating a new one.  In that case, we assume
+   * the outer iteration can safely be abandoned.
+   *
+   * This value is defined to be the index of the next listener we will process.
+   * This allows us to use the sentinel value of -1 to convey that no iteration
+   * is in progress (and the iteration process to abort if the value transitions
+   * to -1, which we always set on conclusion of our loop).
+   */
+  PRInt32 m_iListener;
 
   nsMsgResultArray m_resultList;
 

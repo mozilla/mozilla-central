@@ -43,12 +43,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/folderUtils.jsm");
 Components.utils.import("resource:///modules/activity/activityModules.js");
-Components.utils.import("resource:///modules/errUtils.js");
-Components.utils.import("resource:///modules/folderUtils.jsm");
-Components.utils.import("resource:///modules/IOUtils.js");
 Components.utils.import("resource:///modules/jsTreeSelection.js");
 Components.utils.import("resource:///modules/MailConsts.js");
+Components.utils.import("resource:///modules/errUtils.js");
+Components.utils.import("resource:///modules/IOUtils.js");
 Components.utils.import("resource:///modules/mailnewsMigrator.js");
 Components.utils.import("resource:///modules/sessionStoreManager.js");
 
@@ -319,7 +319,7 @@ function OnLoadMessenger()
     tabmail.registerTabType(mailTabType);
     // glodaFacetTab* in glodaFacetTab.js
     tabmail.registerTabType(glodaFacetTabType);
-    tabmail.registerTabMonitor(QuickSearchTabMonitor);
+    tabmail.registerTabMonitor(GlodaSearchBoxTabMonitor);
     tabmail.registerTabMonitor(statusMessageCountsMonitor);
     tabmail.openFirstTab();
   }
@@ -881,7 +881,11 @@ function ClearMessagePane()
   try {
     // This can fail because cloning imap URI's can fail if the username
     // has been cleared by docshell/base/nsDefaultURIFixup.cpp.
-    GetMessagePaneFrame().location.href = "about:blank";
+    let messagePane = GetMessagePaneFrame();
+    // If we don't do this check, no one else does and we do a non-trivial
+    // amount of work.  So do the check.
+    if (messagePane.location.href != "about:blank")
+      messagePane.location.href = "about:blank";
   } catch(ex) {
       logException(ex, false, "error clearing message pane");
   }

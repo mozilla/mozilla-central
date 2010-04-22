@@ -40,7 +40,8 @@
  * exception objects, dumping DOM nodes, Events, and generic object dumps.
  */
 
-const EXPORTED_SYMBOLS = ["logObject", "logException", "logElement", "logEvent"];
+const EXPORTED_SYMBOLS = ["logObject", "logException", "logElement", "logEvent",
+                          "errorWithDebug"];
 
 /**
  * Report on an object to stdout.
@@ -79,6 +80,24 @@ function logElement(aElement) {
  */
 function logEvent(aEvent) {
   stringifier.dumpEvent(aEvent);
+}
+
+/**
+ * Dump the current stack and return an Error suitable for throwing.  We return
+ *  the new Error so that your code can use a "throw" statement which makes it
+ *  obvious to syntactic analysis that there is an exit occuring at that point.
+ *
+ * Example:
+ *   throw errorWithDebug("I did not expect this!");
+ *
+ * @param aString The message payload for the exception.
+ */
+function errorWithDebug(aString) {
+  dump("PROBLEM: " + aString + "\n");
+  dump("CURRENT STACK (and throwing):\n");
+  // skip this frame.
+  dump(stringifier.getStack(1));
+  return new Error(aString);
 }
 
 function Stringifier() {};
@@ -312,6 +331,6 @@ Stringifier.prototype = {
     this._append("-------------------------------------\n");
     return this._asString();
   }
-}
+};
 
 var stringifier = new Stringifier();

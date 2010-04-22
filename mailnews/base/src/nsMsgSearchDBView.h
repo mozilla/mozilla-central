@@ -85,6 +85,7 @@ public:
                           PRInt32 aFlags, nsIDBChangeListener *aInstigator);
   NS_IMETHOD OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags,
                                PRUint32 aNewFlags, nsIDBChangeListener *aInstigator);
+  NS_IMETHODIMP GetNumMsgsInView(PRInt32 *aNumMsgs);
   // override to get location
   NS_IMETHOD GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue);
   virtual nsresult GetMsgHdrForViewIndex(nsMsgViewIndex index, nsIMsgDBHdr **msgHdr);

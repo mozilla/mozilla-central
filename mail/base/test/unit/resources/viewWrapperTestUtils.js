@@ -37,7 +37,6 @@
 
 Components.utils.import("resource:///modules/dbViewWrapper.js");
 Components.utils.import("resource:///modules/mailViewManager.js");
-Components.utils.import("resource:///modules/quickSearchManager.js");
 Components.utils.import("resource:///modules/virtualFolderWrapper.js");
 
 /**
@@ -240,12 +239,6 @@ function async_view_open(aViewWrapper, aFolder) {
 function async_view_set_mail_view(aViewWrapper, aMailViewIndex, aData) {
   aViewWrapper.listener.pendingLoad = true;
   aViewWrapper.setMailView(aMailViewIndex, aData);
-  return false;
-}
-
-function async_view_quick_search(aViewWrapper, aSearchMode, aSearchString) {
-  aViewWrapper.listener.pendingLoad = true;
-  aViewWrapper.search.quickSearch(aSearchMode, aSearchString);
   return false;
 }
 

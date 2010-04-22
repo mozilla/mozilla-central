@@ -43,7 +43,6 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource:///modules/iteratorUtils.jsm");
-Cu.import("resource:///modules/quickSearchManager.js");
 
 const nsMsgSearchScope = Ci.nsMsgSearchScope;
 const nsIMsgSearchTerm = Ci.nsIMsgSearchTerm;
@@ -136,9 +135,12 @@ SearchSpec.prototype = {
         if (!this._sessionListener)
           this._sessionListener = new SearchSpecListener(this);
 
-        this.session.registerListener(aDBView);
+        this.session.registerListener(aDBView,
+                                      Ci.nsIMsgSearchSession.allNotifications);
         aDBView.searchSession = this._session;
-        this._session.registerListener(this._sessionListener);
+        this._session.registerListener(this._sessionListener,
+                                       Ci.nsIMsgSearchSession.onNewSearch |
+                                       Ci.nsIMsgSearchSession.onSearchDone);
         this._listenersRegistered = true;
 
         this.owner.searching = true;
@@ -185,7 +187,8 @@ SearchSpec.prototype = {
    * @param aTerms The search terms
    * @param aCloneTerms Do we need to clone the terms?
    */
-  _groupifyTerms: function SearchSpec__groupifyTerms(aTerms, aCloneTerms) {
+  _flattenGroupifyTerms: function SearchSpec__flattenGroupifyTerms(aTerms,
+                                                                   aCloneTerms){
     let iTerm = 0, term;
     let outTerms = aCloneTerms ? [] : aTerms;
     for (term in fixIterator(aTerms, Ci.nsIMsgSearchTerm)) {
@@ -204,12 +207,73 @@ SearchSpec.prototype = {
       }
       if (iTerm == 0) {
         term.beginsGrouping = true;
+        term.endsGrouping = false;
         term.booleanAnd = true;
+      }
+      else {
+        term.beginsGrouping = false;
+        term.endsGrouping = false;
       }
       iTerm++;
     }
     if (term)
       term.endsGrouping = true;
+
+    return outTerms;
+  },
+
+  /**
+   * Normalize the provided list of terms so that all of the 'groups' in it are
+   *  ANDed together.  If any OR clauses are detected outside of a group, we
+   *  defer to |_flattenGroupifyTerms| to force the terms to be bundled up into
+   *  a single group, maintaining the booleanAnd state of terms.
+   *
+   * This particular logic is desired because it allows the quick filter bar to
+   *  produce interesting and useful filters.
+   *
+   * @param aTerms The search terms
+   * @param aCloneTerms Do we need to clone the terms?
+   */
+  _groupifyTerms: function SearchSpec__groupifyTerms(aTerms, aCloneTerms) {
+    let term;
+    let outTerms = aCloneTerms ? [] : aTerms;
+    let inGroup = false;
+    for (term in fixIterator(aTerms, Components.interfaces.nsIMsgSearchTerm)) {
+      // If we're in a group, all that is forbidden is the creation of new
+      // groups.
+      if (inGroup) {
+        if (term.beginsGrouping) // forbidden!
+          return this._flattenGroupifyTerms(aTerms, aCloneTerms);
+        else if (term.endsGrouping)
+          inGroup = false;
+      }
+      // If we're not in a group, the boolean must be AND.  It's okay for a group
+      // to start.
+      else {
+        // If it's not an AND then it needs to be in a group and we use the other
+        //  function to take care of it.  (This function can't back up...)
+        if (!term.booleanAnd)
+          return this._flattenGroupifyTerms(aTerms, aCloneTerms);
+
+        inGroup = term.beginsGrouping;
+      }
+
+      if (aCloneTerms) {
+        let cloneTerm = this.session.createTerm();
+        cloneTerm.attrib = term.attrib;
+        cloneTerm.value = term.value;
+        cloneTerm.arbitraryHeader = term.arbitraryHeader;
+        cloneTerm.hdrProperty = term.hdrProperty;
+        cloneTerm.customId = term.customId;
+        cloneTerm.op = term.op;
+        cloneTerm.booleanAnd = term.booleanAnd;
+        cloneTerm.matchAll = term.matchAll;
+        cloneTerm.beginsGrouping = term.beginsGrouping;
+        cloneTerm.endsGrouping = term.endsGrouping;
+        term = cloneTerm;
+        outTerms.push(term);
+      }
+    }
 
     return outTerms;
   },
@@ -224,6 +288,9 @@ SearchSpec.prototype = {
   set viewTerms(aViewTerms) {
     if (aViewTerms)
       this._viewTerms = this._groupifyTerms(aViewTerms);
+    // if they are nulling out already null values, do not apply view changes!
+    else if (this._viewTerms === null)
+      return;
     else
       this._viewTerms = null;
     this.owner._applyViewChanges();
@@ -247,6 +314,9 @@ SearchSpec.prototype = {
       //  persistent location rather than created on demand
       this._virtualFolderTerms = this._groupifyTerms(aVirtualFolderTerms,
                                                      true);
+    // if they are nulling out already null values, do not apply view changes!
+    else if (this._virtualFolderTerms === null)
+      return;
     else
       this._virtualFolderTerms = null;
     this.owner._applyViewChanges();
@@ -268,6 +338,9 @@ SearchSpec.prototype = {
   set userTerms(aUserTerms) {
     if (aUserTerms)
       this._userTerms = this._groupifyTerms(aUserTerms);
+    // if they are nulling out already null values, do not apply view changes!
+    else if (this._userTerms === null)
+      return;
     else
       this._userTerms = null;
     this.owner._applyViewChanges();
@@ -278,23 +351,6 @@ SearchSpec.prototype = {
    */
   get userTerms() {
     return this._userTerms;
-  },
-  /**
-   * Apply a quick-search for the given search mode using the given search
-   *  string.  All of the hard work is done by
-   *  QuickSearchManager.createSearchTerms; we mainly just assign the result to
-   *  our userTerms property.
-   *
-   * @param aSearchMode One of the QuickSearchConstants.kQuickSearch* search
-   *     mode constants specifying what parts of the message to search on.
-   * @param aSearchString The search string, consisting of sub-strings delimited
-   *     by '|' to be OR-ed together.  Given the string "foo" we search for
-   *     messages containing "foo".  Given the string "foo|bar", we search for
-   *     messages containing "foo" or "bar".
-   */
-  quickSearch: function SearchSpec_quickSearch(aSearchMode, aSearchString) {
-    this.userTerms = QuickSearchManager.createSearchTerms(
-      this.session, aSearchMode, aSearchString);
   },
 
   clear: function SearchSpec_clear() {
@@ -478,16 +534,8 @@ SearchSpec.prototype = {
 };
 
 /**
- * An nsIMsgSearchNotify listener for searches, primarily to keep the UI
- *  up-to-date.  The db view itself always gets added as a listener and does
- *  the heavy lifting.
- *
- * The one notable thing we do is help single-folder virtual folders out by
- *  tracking and updating their total and unread message counts.  Our logic
- *  is simple and is not clever enough to deal with the user reading messages
- *  as they are displayed.  However, this is not a major issue for single-folder
- *  searches because they should complete very quickly.  (Note: I am documenting
- *  reality here, not implementing and rationalizing.)
+ * A simple nsIMsgSearchNotify listener that only listens for search start/stop
+ *  so that it can tell the DBViewWrapper when the search has completed.
  */
 function SearchSpecListener(aSearchSpec) {
   this.searchSpec = aSearchSpec;
@@ -497,46 +545,17 @@ SearchSpecListener.prototype = {
     // searching should already be true by the time this happens.  if it's not,
     //  it means some code is poking at the search session.  bad!
     if (!this.searchSpec.owner.searching) {
-      dump("Search originated from unknown initiator! Confusion!\n");
+      Cu.reportErrror("Search originated from unknown initiator! Confusion!");
       this.searchSpec.owner.searching = true;
     }
-
-    // we track total/unread messages to help out single-folder virtual folders
-    this.totalMessages = 0;
-    this.unreadMessages = 0;
   },
 
   onSearchHit: function SearchSpecListener_onSearchHit(aMsgHdr, aFolder) {
-    this.totalMessages++;
-    if (!aMsgHdr.isRead)
-      this.unreadMessages++;
+    // this method is never invoked!
   },
 
   onSearchDone: function SearchSpecListener_onSearchDone(aStatus) {
-    let viewWrapper = this.searchSpec.owner;
-    let folder = viewWrapper.displayedFolder;
-
-    // Save message counts if it's a virtual folder and there are no additional
-    //  constraints contaminating the virtual folder results.
-    // The old code did this every time, for both cross-folder (multi-folder)
-    //  virtual folders and single-folder backed virtual folders.  However,
-    //  nsMsgXFVirtualFolderDBView already does this (and does a better job of
-    //  it), so we only do this for single virtual folders.
-    if (viewWrapper.isVirtual && viewWrapper.isSingleFolder) {
-      let msgDatabase = folder.msgDatabase;
-      if (msgDatabase) {
-        let dbFolderInfo = msgDatabase.dBFolderInfo;
-        dbFolderInfo.numUnreadMessages = this.unreadMessages;
-        dbFolderInfo.numMessages = this.totalMessages;
-        // passing true compels it to use the new message counts we just set.
-        // this call also flushes to the folder cache.
-        folder.updateSummaryTotals(true);
-        const MSG_DB_LARGE_COMMIT = 1;
-        msgDatabase.Commit(MSG_DB_LARGE_COMMIT);
-      }
-    }
-
-    viewWrapper.searching = false;
+    this.searchSpec.owner.searching = false;
   },
 };
 

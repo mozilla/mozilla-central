@@ -106,6 +106,9 @@ messenger.jar:
     content/messenger/glodaFacetBindings.css        (content/glodaFacetBindings.css)
     content/messenger/glodaFacetBindings.xml        (content/glodaFacetBindings.xml)
     content/messenger/glodaFacetVis.js              (content/glodaFacetVis.js)
+    content/messenger/quickFilterBar.xul            (content/quickFilterBar.xul)
+    content/messenger/quickFilterBar.js             (content/quickFilterBar.js)
+    content/messenger/quickFilterBar.css            (content/quickFilterBar.css)
     content/messenger/downloadsOverlay.xul          (content/downloadsOverlay.xul)
 # the following files are mail-specific overrides
 *+  content/messenger/license.html                  (/mozilla/toolkit/content/license.html)
