@@ -49,7 +49,6 @@ var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers',
                        'quick-filter-bar-helper'];
 
 var folder;
-var setUnstarred, setStarred;
 
 function setupModule(module) {
   let fdh = collector.getModule('folder-display-helpers');
@@ -112,6 +111,24 @@ function test_escape_rules() {
   // 2) focus in the text box
   mc.e("qfb-qs-textbox").focus();
   legwork();
+
+  // 3) focus in the text box and pretend to type stuff...
+  mc.e("qfb-qs-textbox").focus();
+  set_filter_text("qxqxqxqx");
+
+  // Escape should clear the text constraint but the bar should still be
+  //  visible.  The trick here is that escape is clearing the text widget
+  //  and is not falling through to the cmd_stop case so we end up with a
+  //  situation where the _lastFilterAttr is the textbox but the textbox
+  //  does not actually have any active filter.
+  mc.keypress(null, "VK_ESCAPE", {});
+  assert_quick_filter_bar_visible(true);
+  assert_constraints_expressed({});
+  assert_filter_text("");
+
+  // Next escape should close the box
+  mc.keypress(null, "VK_ESCAPE", {});
+  assert_quick_filter_bar_visible(false);
 }
 
 /**

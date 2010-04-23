@@ -168,10 +168,13 @@ QuickFilterState.prototype = {
    */
   userHitEscape: function MFS_userHitEscape() {
     if (this._lastFilterAttr) {
-      QuickFilterManager.clearFilterValue(this._lastFilterAttr,
-                                            this.filterValues);
-      this._lastFilterAttr = null;
-      return true;
+      // it's possible the UI state the last attribute has already been cleared,
+      //  in which case we want to fall through...
+      if (QuickFilterManager.clearFilterValue(this._lastFilterAttr,
+                                              this.filterValues)) {
+        this._lastFilterAttr = null;
+        return true;
+      }
     }
 
     return QuickFilterManager.clearAllFilterValues(this.filterValues);
@@ -366,7 +369,7 @@ let QuickFilterManager = {
    *     so is not cheap, so don't do that lightly.  (Tag faceting uses this.)
    * @param {function()} [aFilterDef.getDefaults] Function that returns the
    *     default state for the filter.  If the function is not defined or the
-   *     returned value is === undefined, no state is set.
+   *     returned value is == undefined/null, no state is set.
    * @param {function(aTemplState, aSticky)} [aFilterDef.propagateState] A
    *     function that takes the state from another QuickFilterState instance
    *     for this definition and propagates it to a new state which it returns.
@@ -408,7 +411,7 @@ let QuickFilterManager = {
    *     checked attribute.  Otherwise we call your function and it's up to you
    *     to reflect your state.  aDomNode is the node referred to by domId.
    *     This function will be called when the tab changes, folder changes, or
-   *     if we called postFilterProcess and you returned a value !== undefined.
+   *     if we called postFilterProcess and you returned a value != undefined.
    * @param {function(aState, aViewWrapper, aFiltering)}
    *     [aFilterDef.postFilterProcess]
    *     Invoked after all of the message headers for the view have been
@@ -458,7 +461,7 @@ let QuickFilterManager = {
         let curValue = (filterDef.name in aTemplValues) ?
                          aTemplValues[filterDef.name] : undefined;
         let newValue = filterDef.propagateState(curValue, sticky);
-        if (newValue !== undefined)
+        if (newValue != null)
           values[filterDef.name] = newValue;
       }
       // always propagate the value if sticky and there was no handler
@@ -480,7 +483,7 @@ let QuickFilterManager = {
     for each (let [, filterDef] in Iterator(this.filterDefs)) {
       if ("getDefaults" in filterDef) {
         let newValue = filterDef.getDefaults();
-        if (newValue !== undefined)
+        if (newValue != null)
           values[filterDef.name] = newValue;
       }
     }
@@ -507,7 +510,7 @@ let QuickFilterManager = {
                      aValues[aFilterName] : undefined;
     // Yes, we want to call it to clear its state even if it has no state.
     let [newValue, didClear] = filterDef.clearState(curValue);
-    if (newValue !== undefined)
+    if (newValue != null)
       aValues[aFilterName] = newValue;
     else
       delete aValues[aFilterName];
@@ -1065,7 +1068,7 @@ let MessageTextFilter = {
     };
   },
   clearState: function(aState) {
-    let hadState = (aState.text && aState.text != "");
+    let hadState = Boolean(aState.text);
     aState.text = null;
     return [aState, hadState];
   },
@@ -1308,6 +1311,22 @@ QuickFilterManager.defineFilter({
   domId: "qfb-results-label",
   appendTerms: function(aTermCreator, aTerms, aFilterValue) {
   },
+
+  /**
+   * Our state is meaningless; we implement this to avoid clearState ever
+   *  thinking we were a facet.
+   */
+  clearState: function(aState) {
+    return [null, false];
+  },
+
+  /**
+   * We never have any state to propagate!
+   */
+  propagateState: function(aOld, aSticky) {
+    return null;
+  },
+
   /**
    * Hook us up as a folder display listener so we can get information on when
    * the counts change.

@@ -76,6 +76,16 @@ function test_buttons_collapse_and_expand() {
     let qfbExemplarLabel = mc.window
                              .document.getAnonymousNodes(qfbExemplarButton)[1];
 
+    function logState(aWhen) {
+      dump("\n\n*********** " + aWhen + "\n");
+      dump("Current window location: " + mc.window.screenX + ", " +
+           mc.window.screenY + "\n");
+      dump("Current window dimensions: " + mc.window.outerWidth + ", " +
+           mc.window.outerHeight + "\n");
+      dump("Collapsy bar width: " + qfbCollapsy.clientWidth + "\n");
+      dump("***********\n\n");
+    }
+
     function assertCollapsed() {
       // The bar should be shrunken and the button should be the same size as its
       // image!
@@ -93,32 +103,37 @@ function test_buttons_collapse_and_expand() {
         throw new Error("The exemplar label should not be collapsed!");
     }
 
+    logState("entry");
+
     // -- GIANT!
     mc.window.resizeTo(1200, 600);
     // Right, so resizeTo caps us at the display size limit, so we may end up
     // smaller than we want.  So let's turn off the folder pane too.
-    mc.e("folderpane_splitter").collapsed = true;
+    mc.e("folderpane_splitter").setAttribute("state", "collapsed");
     // spin the event loop once
     mc.sleep(0);
+    logState("giant");
     assertExpanded();
 
     // -- tiny.
-    mc.e("folderpane_splitter").collapsed = false;
+    mc.e("folderpane_splitter").setAttribute("state", "open");
     mc.window.resizeTo(600, 600);
     // spin the event loop once
     mc.sleep(0);
+    logState("tiny");
     assertCollapsed();
 
     // -- GIANT again!
     mc.window.resizeTo(1200, 600);
-    mc.e("folderpane_splitter").collapsed = true;
+    mc.e("folderpane_splitter").setAttribute("state", "collapsed");
     // spin the event loop once
     mc.sleep(0);
+    logState("giant again!");
     assertExpanded();
   }
   finally {
     // restore window to nominal dimensions; saving was not working out
     mc.window.resizeTo(1024, 768);
-    mc.e("folderpane_splitter").collapsed = false;
+    mc.e("folderpane_splitter").setAttribute("state", "open");
   }
 }
