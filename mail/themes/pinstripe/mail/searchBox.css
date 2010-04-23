@@ -37,47 +37,11 @@
 # ***** END LICENSE BLOCK *****
 */
 
-.quick-search-button {
-  -moz-margin-start: -10px;
-  -moz-margin-end: 4px;
-  margin-bottom: 0;
-  margin-top: 0;
-}
-
 .quick-search-button-image {
   padding: 0px;
 }
 
-.quick-search-button-dropmarker {
-  -moz-padding-start: 8px;
-  -moz-padding-end: 0;
-  padding-top: 6px;
-  padding-bottom: 5px;
-  list-style-image: url("chrome://global/skin/arrow/arrow-dn.png");
-}
-
-.quick-search-clearbutton {
-  list-style-image: none;
-  -moz-appearance: none;
-  padding: 0px !important;
-  border: none !important;
-  margin: 0 0 1px !important;
-  width: 14px;
-}
-
-.quick-search-clearbutton[clearButtonHidden="false"] {
-  list-style-image: url(chrome://global/skin/icons/searchfield-regular-cancel.png);
-  -moz-image-region: rect(0, 14px, 14px, 0);
-}
-
-.quick-search-clearbutton > .toolbarbutton-text {
-  display: none;
-}
-
-.quick-search-clearbutton[clearButtonHidden="false"]:hover:active {
-  -moz-image-region: rect(0, 28px, 14px, 14px);
-}
-
+/* it looks like appearance: searchfield gets us our search icon... */
 #searchInput {
   margin: 3px 4px 4px !important;
   -moz-appearance: searchfield;
@@ -94,4 +58,17 @@
 
 #searchInput:-moz-lwtheme:not([focused="true"]) {
   opacity: .9;
+}
+
+/* things from xul.css that only exist if Thunderbird did not define
+ * AUTOCOMPLETE_OLD_STYLE
+ */
+
+.autocomplete-history-dropmarker {
+  display: none;
+}
+
+.autocomplete-history-dropmarker[enablehistory="true"] {
+  display: -moz-box;
+  -moz-binding: url("chrome://global/content/bindings/autocomplete.xml#history-dropmarker");
 }

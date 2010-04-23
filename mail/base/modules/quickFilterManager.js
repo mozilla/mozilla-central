@@ -1082,6 +1082,8 @@ let MessageTextFilter = {
       aNode.getAttribute("emptytextbase")
            .replace("#1", aNode.getAttribute(Application.platformIsMac ?
                                              "keyLabelMac" : "keyLabelNonMac")));
+    // force an update of the emptytext now that we've updated it.
+    aNode.value = "";
 
     // -- Keypresses for focus transferral and upsell
     aNode.addEventListener("keypress", function(aEvent) {
@@ -1175,8 +1177,11 @@ let MessageTextFilter = {
     if (panel.state != "closed")
       panel.hidePopup();
 
-    // Update the text
-    aNode.value = aFilterValue.text;
+    // Update the text if it has changed (linux does weird things with empty
+    //  text if we're transitioning emptytext to emptytext)
+    let desiredValue = aFilterValue.text || "";
+    if (aNode.value != desiredValue)
+      aNode.value = desiredValue;
 
     // Update our expando buttons
     let states = aFilterValue.states;

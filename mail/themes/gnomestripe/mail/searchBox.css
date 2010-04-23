@@ -37,46 +37,25 @@
 # ***** END LICENSE BLOCK *****
 */
 
-/* ..... tree adjustments ..... */
-
 .quick-search-textbox {
   padding-top: 1px;
 }
 
-#quick-search-button  {
-  margin-top: 0px;
-  margin-bottom: 0px;
-  -moz-margin-start: 0px;
-  -moz-margin-end: 2px;
+.gloda-search-icon {
+  list-style-image: url(chrome://global/skin/icons/Search-glass.png);
 }
 
-.quick-search-button-image {
-  margin: 0px;
-  list-style-image: url(moz-icon://stock/gtk-find?size=menu);
+.gloda-search-icon:-moz-locale-dir(rtl) {
+  -moz-transform: scaleX(-1);
 }
 
-.quick-search-clearbutton[clearButtonHidden="true"] {
-  visibility: hidden;
+.gloda-search-icon[searchbutton]:not([disabled]) {
+  cursor: pointer;
 }
 
-.quick-search-button-dropmarker {
-  -moz-margin-start: 16px;
-  list-style-image: url("chrome://messenger/skin/icons/search-arrow.png");
-}
 
-.quick-search-clearbutton {
-  list-style-image: url("moz-icon://stock/gtk-clear?size=menu");
-  -moz-appearance: none;
-  padding: 0px !important;
-  border: none !important;
-}
-
-.quick-search-clearbutton > .toolbarbutton-icon {
-  -moz-margin-end: 0px; /* override toolkit's default value */
-}
-
-/* things from xul.css that only exist if Thunderbird did not define 
- * AUTOCOMPLETE_OLD_STYLE 
+/* things from xul.css that only exist if Thunderbird did not define
+ * AUTOCOMPLETE_OLD_STYLE
  */
 
 .autocomplete-history-dropmarker {

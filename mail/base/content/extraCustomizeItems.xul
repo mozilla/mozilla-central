@@ -50,6 +50,8 @@
   %brandDTD;
 ]>
 
+<?xml-stylesheet href="chrome://messenger/skin/searchBox.css" type="text/css"?>
+
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <popupset>
@@ -85,7 +87,7 @@
                clear the box, if people want to clear it that way...
                -->
           <hbox>
-            <image class="textbox-search-icon"
+            <image class="gloda-search-icon"
                    onclick="document.getElementById('searchInput').doSearch();"
                    />
           </hbox>

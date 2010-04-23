@@ -135,6 +135,9 @@
           this.glodaEnabled =
             prefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
           this.collapsed = !this.glodaEnabled;
+
+          // make sure we set our emptytext here from the get-go
+          this._updateVisibleText();
         } catch (e) {
           logException(e, true);
         }

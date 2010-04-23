@@ -37,7 +37,18 @@
 # ***** END LICENSE BLOCK *****
 */
 
-/* ..... tree adjustments ..... */
+/*
+ * On Vista, the emptytext style would appear to use italics.  This is causing
+ * problems for the search box because it has no minwidth and is flexy, so
+ * removing the emptytext causes the size of the box to change and this is silly
+ * and undesirable.  This change is being made to maintain the generally
+ * accepted status quo while reducing breakage.  This will cause visual
+ * inconsistency with the quick filter bar unless it gets a change like this
+ * too.
+ */
+#searchInput {
+  font-style: normal !important;
+}
 
 .quick-search-textbox {
   padding-top: 1px;
@@ -50,46 +61,37 @@
   -moz-margin-end: 2px;
 }
 
-.quick-search-button-image {
-  margin: 0px;
-  list-style-image: url("chrome://global/skin/icons/Search-glass.png");
-  -moz-image-region: rect(0px 32px 16px 16px);
-  width: 16px;
-  height: 16px;
+.gloda-search-icon {
+  list-style-image: url(chrome://global/skin/icons/Search-glass.png);
+  -moz-image-region: rect(0, 16px, 16px, 0);
 }
 
-.quick-search-button-image:-moz-locale-dir(rtl) {
+.gloda-search-icon:-moz-locale-dir(rtl) {
   -moz-transform: scaleX(-1);
 }
 
-.quick-search-clearbutton[clearButtonHidden="true"] {
-  visibility: hidden;
+.gloda-search-icon[searchbutton]:not([disabled]) {
+  cursor: pointer;
 }
 
-.quick-search-button-dropmarker {
-  -moz-margin-start: 12px;
-  margin-top: 8px;
-  list-style-image: url("chrome://messenger/skin/icons/search-arrow.gif");
+.gloda-search-icon[searchbutton]:not([disabled]):hover {
+  -moz-image-region: rect(0, 32px, 16px, 16px);
 }
 
-.quick-search-clearbutton {
-  list-style-image: url("chrome://messenger/skin/icons/quick-search-clear.png");
-  -moz-image-region: rect(0px, 16px, 16px, 0px);
-  -moz-appearance: none;
-  padding: 0px !important;
-  border: none !important;
+.gloda-search-icon[searchbutton]:not([disabled]):hover:active {
+  -moz-image-region: rect(0, 48px, 16px, 32px);
 }
 
-.quick-search-clearbutton > .toolbarbutton-icon {
-  -moz-margin-end: 0px; /* override toolkit's default value */
+
+/* things from xul.css that only exist if Thunderbird did not define
+ * AUTOCOMPLETE_OLD_STYLE
+ */
+
+.autocomplete-history-dropmarker {
+  display: none;
 }
 
-.quick-search-clearbutton:hover {
-  -moz-image-region: rect(0px, 32px, 16px, 16px);
-  padding: 0px !important;
-}
-
-.quick-search-clearbutton:hover:active {
-  -moz-image-region: rect(0px, 48px, 16px, 32px);
-  padding: 0px !important;
+.autocomplete-history-dropmarker[enablehistory="true"] {
+  display: -moz-box;
+  -moz-binding: url("chrome://global/content/bindings/autocomplete.xml#history-dropmarker");
 }

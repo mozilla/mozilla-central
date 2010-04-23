@@ -52,7 +52,7 @@ var gGlodaCompleteStrings = new StringBundle("chrome://messenger/locale/glodaCom
 var gSearchInputObserversRegistered = false;
 
 /**
- * The quicksearch widget is a UI widget (the #searchInput textbox) which is
+ * The glodasearch widget is a UI widget (the #searchInput textbox) which is
  * outside of the mailTabType's display panel, but acts as though it were within
  * it..  This means we need to use a tab monitor so that we can appropriately
  * update the contents of the textbox.
@@ -91,8 +91,12 @@ var GlodaSearchBoxTabMonitor = {
     if (aOldTab) {
       aOldTab._ext.glodaSearchBox.value = searchInput.value;
     }
-    // load (or clear if there is none) the persisted search field value
-    searchInput.value = aTab._ext.glodaSearchBox.value || "";
+    // Load (or clear if there is none) the persisted search field value
+    // (We check first to avoid weird blank field / empty text transitions on
+    // tab change.)
+    let desiredValue = aTab._ext.glodaSearchBox.value || "";
+    if (searchInput.value != desiredValue)
+      searchInput.value = desiredValue;
   }
 };
 
