@@ -162,25 +162,21 @@ var testdata = "mail.account.account1.serverserver2mail.account.account2.ide" +
 "tory-rel[ProfD]News/testnews.mozilla.orgmail.server.server3.hostnametestnew" +
 "s.mozilla.orgmail.server.server3.nameaccountnamemozillanewsmail.server.serv" +
 "er3.newsrc.file-rel[ProfD]News/te" +
-"stnews.mozilla.org.rcmail.server.server3.typenntpmail.server.server4.direct" +
-"ory-rel[ProfD]News/testmsnews.micr" +
-"osoft.commail.server.server4.hostnametestmsnews.microsoft.commail.server.se" +
-"rver4.nameMicrosoft Communities Testmail.server.server4.newsrc.file-rel[Pro" +
-"fD]News/testmsnews.microsoft." +
-"com.rcmail.server.server4.typenntpmail.server.server5.always_authenticatetr" +
-"uemail.server.server5.directory-rel[Pr" +
-"ofD]News/news.wingtiptoys.commail.server.server5.hostnamenews.wingtiptoys.c" +
-"ommail.server.server5.namedonhallnntpmail.server.server5.newsrc.file-rel[Pr" +
-"ofD]News/news.wingtiptoys.com.rcm" +
-"ail.server.server5.typenntpmail.server.server5.userNamedonmail.server.serve" +
-"r6.check_new_mailtruemail.server.s" +
-"erver6.directory-rel[ProfD]ImapMail/mail.wingtiptoys.commail.server.server6" +
-".hostnamemail.wingtiptoys.commail.server.server6.namedonhallimapmail.server" +
-".server6.newsrc.file-rel[ProfD]News/testmsnews.microsoft.com.rcmail.server"  +
-".server6.server_sub_directoryInboxmail.server.server6.typeimapmail.server.s" +
-"erver6.userNamedonmail.smtpserver.smtp1.hostnamesmtp.pop.testmail.smtpserve" +
-"r.smtp2.hostnamesmtp.wingtiptoys.commail.smtpserver.smtp2.usernamedonmail.s" +
-"mtpserverssmtp1mail.smtpserverssmtp1,smtp2";
+"stnews.mozilla.org.rcmail.server.server3.typenntpmail.server.server4.always" +
+"_authenticatetruemail.server.server4.directory-rel[ProfD]News/news.wingtipt" +
+"oys.commail.server.server4.hostnamenews.wingtiptoys.commail.server.server4." +
+"namedonhallnntpmail.server.server4.newsrc.file-rel[ProfD]News/news.wingtipt" +
+"oys.com.rcmail.server.server4.typenntpmail.server.server4.userNamedonmail.s" +
+"erver.server5.check_new_mailtruemail.server.server5.directory-rel[ProfD]Ima" +
+"pMail/mail.wingtiptoys.commail.server.server5.hostnamemail.wingtiptoys.comm" +
+"ail.server.server5.namedonhallimapmail.server.server5.server_sub_directoryI" +
+"nboxmail.server.server5.typeimapmail.server.server5.userNamedonmail.server." +
+"server6.directory-rel[ProfD]News/testmsnews.microsoft.commail.server.server" +
+"6.hostnametestmsnews.microsoft.commail.server.server6.nameMicrosoft Communi" +
+"ties Testmail.server.server6.newsrc.file-rel[ProfD]News/testmsnews.microsof" +
+"t.com.rcmail.server.server6.typenntpmail.smtpserver.smtp1.hostnamesmtp.pop." +
+"testmail.smtpserver.smtp2.hostnamesmtp.wingtiptoys.commail.smtpserver.smtp2" +
+".usernamedonmail.smtpserverssmtp1mail.smtpserverssmtp1,smtp2";
 
   // XXX These prefs are excluded from being checked because they contain
   // relative directories, and hence make the results dependent on where
