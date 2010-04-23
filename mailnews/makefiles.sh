@@ -108,6 +108,7 @@ mailnews/import/public/Makefile
 mailnews/import/src/Makefile
 mailnews/import/test/Makefile
 mailnews/import/text/src/Makefile
+mailnews/import/winlivemail/Makefile
 mailnews/local/Makefile
 mailnews/local/build/Makefile
 mailnews/local/public/Makefile

@@ -93,6 +93,7 @@
   locale/@AB_CD@/messenger/comm4xMailImportMsgs.properties              (%chrome/messenger/comm4xMailImportMsgs.properties)
   locale/@AB_CD@/messenger/eudoraImportMsgs.properties                  (%chrome/messenger/eudoraImportMsgs.properties)
   locale/@AB_CD@/messenger/oeImportMsgs.properties                      (%chrome/messenger/oeImportMsgs.properties)
+  locale/@AB_CD@/messenger/wmImportMsgs.properties                      (%chrome/messenger/wmImportMsgs.properties)
   locale/@AB_CD@/messenger/outlookImportMsgs.properties                 (%chrome/messenger/outlookImportMsgs.properties)
   locale/@AB_CD@/messenger/shutdownWindow.properties                    (%chrome/messenger/shutdownWindow.properties)
   locale/@AB_CD@/messenger/featureConfigurator.dtd                      (%chrome/messenger/featureConfigurator.dtd)

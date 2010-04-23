@@ -16,7 +16,7 @@
 #
 # The Initial Developer of the Original Code is
 # Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
+# Portions created by the Initial Developer are Copyright (C) 2001
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
@@ -35,32 +35,47 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../..
-topsrcdir	= @top_srcdir@
-srcdir		= @srcdir@
-VPATH		= @srcdir@
+DEPTH       =   ../../..
+topsrcdir   =   @top_srcdir@
+srcdir      =   @srcdir@
+VPATH       =   @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= import
+MODULE      =           importWM
+LIBRARY_NAME   =        importWM_s
+MOZILLA_INTERNAL_API =  1
+META_COMPONENT  =       mail
 
-PARALLEL_DIRS	= public src text/src comm4x/public comm4x/src
+REQUIRES    = \
+                        xpcom \
+                        string \
+                        content   \
+                        widget    \
+                        dom       \
+                        import \
+                        addrbook \
+                        mork \
+                        intl \
+                        msgbase \
+                        pref \
+                        necko \
+                        msgdb \
+                        msgbaseutil \
+                        msgcompose \
+                        msglocal \
+                        msgimap \
+                        msgnews \
+                        unicharutil \
+                        $(NULL)
 
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-PARALLEL_DIRS	+= eudora/src applemail/src
-endif
+CPPSRCS     = \
+                        nsWMSettings.cpp        \
+                        nsWMImport.cpp  \
+                        nsWMStringBundle.cpp    \
+                        $(NULL)
 
-ifeq ($(OS_ARCH),WINNT)
-PARALLEL_DIRS	+= eudora/src
-ifndef GNU_CC
-PARALLEL_DIRS	+= oexpress outlook/src winlivemail
-endif
-endif
-
-ifdef ENABLE_TESTS
-PARALLEL_DIRS	+= test
-endif
-
-DIRS = build
+# we don't want the shared lib, but we want to force the creation of a static lib.
+FORCE_STATIC_LIB =      1
 
 include $(topsrcdir)/config/rules.mk

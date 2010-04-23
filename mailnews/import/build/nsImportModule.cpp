@@ -95,9 +95,12 @@ static NS_DEFINE_CID(kAppleMailImportCID,      NS_APPLEMAILIMPORT_CID);
 #include "nsOEStringBundle.h"
 #include "nsOutlookImport.h"
 #include "nsOutlookStringBundle.h"
+#include "nsWMImport.h"
+#include "nsWMStringBundle.h"
 
 static NS_DEFINE_CID(kOEImportCID,         NS_OEIMPORT_CID);
 static NS_DEFINE_CID(kOutlookImportCID,      NS_OUTLOOKIMPORT_CID);
+static NS_DEFINE_CID(kWMImportCID,         NS_WMIMPORT_CID);
 #endif
 
 #endif // XP_WIN
@@ -216,6 +219,7 @@ NS_METHOD AppleMailRegister(nsIComponentManager *aCompMgr,
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsOEImport)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsOutlookImport)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsWMImport)
 
 NS_METHOD OERegister(nsIComponentManager *aCompMgr,
                      nsIFile *aPath,
@@ -231,6 +235,27 @@ NS_METHOD OERegister(nsIComponentManager *aCompMgr,
     char *theCID = kOEImportCID.ToString();
     rv = catMan->AddCategoryEntry( "mailnewsimport", theCID, kOESupportsString, PR_TRUE, PR_TRUE, getter_Copies( replace));
     NS_Free( theCID);
+  }
+
+    return( rv);
+}
+
+NS_METHOD WMRegister(nsIComponentManager *aCompMgr,
+                     nsIFile *aPath,
+                     const char *registryLocation,
+                     const char *componentType,
+                     const nsModuleComponentInfo *info)
+{
+  nsresult rv;
+
+  nsCOMPtr<nsICategoryManager> catMan = do_GetService(NS_CATEGORYMANAGER_CONTRACTID,
+                                                      &rv);
+  if (NS_SUCCEEDED(rv)) {
+    nsCString replace;
+    char *theCID = kWMImportCID.ToString();
+    rv = catMan->AddCategoryEntry("mailnewsimport", theCID, kWMSupportsString,
+                                  PR_TRUE, PR_TRUE, getter_Copies(replace));
+    NS_Free(theCID);
   }
 
     return( rv);
@@ -307,6 +332,8 @@ static const nsModuleComponentInfo components[] = {
     ////////////////////////////////////////////////////////////////////////////////
     ,{ "Outlook Express Import Component", NS_OEIMPORT_CID,
     "@mozilla.org/import/import-oe;1", nsOEImportConstructor,  OERegister,  nsnull },
+    { "Windows Live Mail Import Component", NS_WMIMPORT_CID,
+    "@mozilla.org/import/import-wm;1", nsWMImportConstructor,  WMRegister,  nsnull },
     { "Outlook Import Component", NS_OUTLOOKIMPORT_CID,
     "@mozilla.org/import/import-outlook;1", nsOutlookImportConstructor, OutlookRegister, nsnull }
 #endif
@@ -325,6 +352,7 @@ static void importModuleDtor(nsIModule* self)
 
 #if defined(_MSC_VER) && _MSC_VER >= 1100
     nsOEStringBundle::Cleanup();
+    nsWMStringBundle::Cleanup();
     nsOutlookStringBundle::Cleanup();
 #endif
 

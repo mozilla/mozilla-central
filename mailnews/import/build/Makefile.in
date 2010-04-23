@@ -69,13 +69,13 @@ REQUIRES += impEudra
 
 ifndef GNU_CC
 
-REQUIRES += importOE impOutlk
+REQUIRES += importOE impOutlk importWM
 
 endif
 
 endif
 
-CPPSRCS		=  nsImportModule.cpp  
+CPPSRCS		=  nsImportModule.cpp
 
 SHARED_LIBRARY_LIBS = \
 		../src/$(LIB_PREFIX)import_s.$(LIB_SUFFIX) \
@@ -89,11 +89,12 @@ SHARED_LIBRARY_LIBS += ../applemail/src/$(LIB_PREFIX)applmail_s.$(LIB_SUFFIX)
 endif
 
 ifeq ($(OS_ARCH),WINNT)
-SHARED_LIBRARY_LIBS += ../eudora/src/$(LIB_PREFIX)impEudra_s.$(LIB_SUFFIX) 
+SHARED_LIBRARY_LIBS += ../eudora/src/$(LIB_PREFIX)impEudra_s.$(LIB_SUFFIX)
 
 ifndef GNU_CC
-SHARED_LIBRARY_LIBS += ../oexpress/$(LIB_PREFIX)importOE_s.$(LIB_SUFFIX) 
-SHARED_LIBRARY_LIBS += ../outlook/src/$(LIB_PREFIX)impOutlk_s.$(LIB_SUFFIX) 
+SHARED_LIBRARY_LIBS += ../oexpress/$(LIB_PREFIX)importOE_s.$(LIB_SUFFIX)
+SHARED_LIBRARY_LIBS += ../outlook/src/$(LIB_PREFIX)impOutlk_s.$(LIB_SUFFIX)
+SHARED_LIBRARY_LIBS += ../winlivemail/$(LIB_PREFIX)importWM_s.$(LIB_SUFFIX)
 endif
 
 endif
@@ -114,6 +115,7 @@ LOCAL_INCLUDES += -I$(srcdir)/../eudora/src
 ifndef GNU_CC
 LOCAL_INCLUDES += -I$(srcdir)/../oexpress \
 	-I$(srcdir)/../outlook/src \
+	-I$(srcdir)/../winlivemail  \
 	$(NULL)
 endif
 endif

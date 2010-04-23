@@ -302,6 +302,7 @@
   locale/@AB_CD@/messenger/viewLog.dtd                                      (%chrome/mailnews/viewLog.dtd)
   locale/@AB_CD@/messenger/virtualFolderProperties.dtd                      (%chrome/mailnews/virtualFolderProperties.dtd)
   locale/@AB_CD@/messenger/virtualFolderListDialog.dtd                      (%chrome/mailnews/virtualFolderListDialog.dtd)
+  locale/@AB_CD@/messenger/wmImportMsgs.properties                          (%chrome/mailnews/wmImportMsgs.properties)
   locale/@AB_CD@/messenger-mapi/mapi.properties                             (%chrome/mailnews/mapi/mapi.properties)
   locale/@AB_CD@/messenger-region/region.properties                         (%chrome/mailnews/region.properties)
 #ifdef MOZ_PSM
