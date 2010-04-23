@@ -184,6 +184,17 @@
 <!ENTITY quickFilterBar.textbox.minWidth
          "280">
 
+<!-- LOCALIZATION NOTE (quickFilterBar.textFilter.explanation.label):
+     This label explains what the sender/recipients/subject/body buttons do.
+     This string should ideally be kept short because the label and the text
+     filter buttons share their bar (that appears when there is text in the text
+     filter box) with the list of tags when the tag filter is active, and the
+     tag sub-bar wants as much space as possible.  (Overflow is handled by an
+     arrow scroll box.)
+     -->
+<!ENTITY quickFilterBar.textFilter.explanation.label
+         "Filter messages by:">
+
 <!-- LOCALIZATION NOTE (quickFilterBar.textFilter.sender.label):
      The button label that toggles whether the text filter searches the message
      sender for the string.

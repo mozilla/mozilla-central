@@ -168,7 +168,8 @@
               pack="end"
               align="center"
               flex="1">
-          <label id="qfb-qs-label" value="Filter message by:"/>
+          <label id="qfb-qs-label"
+                 value="&quickFilterBar.textFilter.explanation.label;"/>
           <toolbarbutton id="qfb-qs-sender" type="checkbox"
                          label="&quickFilterBar.textFilter.sender.label;" />
           <toolbarbutton id="qfb-qs-recipients" type="checkbox"
