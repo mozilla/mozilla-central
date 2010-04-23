@@ -202,7 +202,7 @@ var testdata = "mail.account.account1.serverserver2mail.account.account2.ide" +
     test += importedPrefs[i].name + importedPrefs[i].data;
   }
 // uncomment following to get valid test data when changing test data files.
-// dump("\nStart test dump\n" + test + "\nend test dump\n")
+  dump("\nStart test dump\n" + test + "\nend test dump\n");
 
   do_check_true(test == testdata);
 
