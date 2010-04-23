@@ -176,6 +176,7 @@ var testdata = "mail.account.account1.serverserver2mail.account.account2.ide" +
 "r6.check_new_mailtruemail.server.s" +
 "erver6.directory-rel[ProfD]ImapMail/mail.wingtiptoys.commail.server.server6" +
 ".hostnamemail.wingtiptoys.commail.server.server6.namedonhallimapmail.server" +
+".server6.newsrc.file-rel[ProfD]News/testmsnews.microsoft.com.rcmail.server"  +
 ".server6.server_sub_directoryInboxmail.server.server6.typeimapmail.server.s" +
 "erver6.userNamedonmail.smtpserver.smtp1.hostnamesmtp.pop.testmail.smtpserve" +
 "r.smtp2.hostnamesmtp.wingtiptoys.commail.smtpserver.smtp2.usernamedonmail.s" +
@@ -191,7 +192,7 @@ var testdata = "mail.account.account1.serverserver2mail.account.account2.ide" +
     "mail.server.server3.directory", "mail.server.server3.newsrc.file",
     "mail.server.server4.directory", "mail.server.server4.newsrc.file",
     "mail.server.server5.directory", "mail.server.server5.newsrc.file",
-    "mail.server.server6.directory"
+    "mail.server.server6.directory", "mail.server.server6.newsrc.file"
   ];
   dump(excludedPrefs + "\n");
   for ( let i = 0; i < importedPrefs.length ; i++){
