@@ -329,8 +329,26 @@ var MailUtils =
 
   /**
    * The number of milliseconds to wait between loading of folders in
-   * |setStringPropertyOnFolderAndDescendents|.  This is exposed primarily
-   * to allow unit tests to set this to 0 to minimize throttling.
+   * |setStringPropertyOnFolderAndDescendents|.  We wait at all because
+   * opening msf databases is a potentially expensive synchronous operation that
+   * can approach the order of a second in pathological cases like gmail's
+   * all mail folder.
+   *
+   * If we did not use a timer or otherwise spin the event loop we would
+   * completely lock up the UI.  In theory we would still maintain some degree
+   * of UI responsiveness if we just used postMessage to break up our work so
+   * that the event loop still got a chance to run between our folder openings.
+   * The use of any delay between processing folders is to try and avoid causing
+   * system-wide interactivity problems from dominating the system's available
+   * disk seeks to such an extent that other applications start experiencing
+   * non-trivial I/O waits.
+   *
+   * The specific choice of delay remains an arbitrary one to maintain app
+   * and system responsiveness per the above while also processing as many
+   * folders as quickly as possible.
+   *
+   * This is exposed primarily to allow unit tests to set this to 0 to minimize
+   * throttling.
    */
   INTER_FOLDER_PROCESSING_DELAY_MS: 10,
 
