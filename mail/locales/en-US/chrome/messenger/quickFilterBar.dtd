@@ -27,7 +27,7 @@
      filters are propagated between folder changes and when opening new tabs.)
      -->
 <!ENTITY quickFilterBar.sticky.tooltip
-         "Keep filters applied when switching folders?">
+         "Keep filters applied when switching folders">
 
 <!-- LOCALIZATION NOTE (quickFilterBar.barLabel.label):
      The text to display on the quick filter bar, labeling it.  This should
