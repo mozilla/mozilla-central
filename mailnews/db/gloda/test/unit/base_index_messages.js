@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Andrew Sutherland <asutherland@asutherland.org>
  *   Siddharth Agarwal <sid.bugzilla@gmail.com>
+ *   Dan Mosedale <dmose@mozillamessaging.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -255,6 +256,74 @@ function test_event_driven_indexing_does_not_mess_with_filthy_folders() {
   GlodaMsgIndexer.indexingSweepNeeded = true;
   // (the message won't get indexed though)
   yield wait_for_gloda_indexer([]);
+}
+
+function test_indexing_never_priority() {
+
+  // add a folder with a bunch of messages
+  let [folder, msgSet] = make_folder_with_sets([{count: 1}]);
+  yield wait_for_message_injection();
+
+  // index it, and augment the msgSet with the glodaMessages array
+  // for later use by sqlExpectCount
+  yield wait_for_gloda_indexer([msgSet], {augment: true});
+
+  // explicitly tell gloda to never index this folder
+  let XPCOMFolder = get_real_injection_folder(folder);
+  let glodaFolder = Gloda.getFolderForFolder(XPCOMFolder);
+  GlodaMsgIndexer.setFolderIndexingPriority(XPCOMFolder,
+                                            glodaFolder.kIndexingNeverPriority);
+
+  // verify that the setter and getter do the right thing
+  do_check_eq(glodaFolder.indexingPriority, glodaFolder.kIndexingNeverPriority);
+
+  // check that existing message is marked as deleted
+  yield wait_for_gloda_indexer([], {deleted: [msgSet]});
+
+  // make sure the deletion hit the database
+  yield sqlExpectCount(1, 
+    "SELECT COUNT(*) from folderLocations WHERE id = ? AND indexingPriority = ?",
+     glodaFolder.id, glodaFolder.kIndexingNeverPriority);
+
+  // add another message
+  make_new_sets_in_folder(folder, [{count: 1}]);
+  yield wait_for_message_injection();
+
+  // make sure that indexing returns nothing
+  GlodaMsgIndexer.indexingSweepNeeded = true;
+  yield wait_for_gloda_indexer([]);
+}
+
+function test_setting_indexing_priority_never_while_indexing() {
+
+  if (!message_injection_is_local())
+    return;
+
+  // Configure the gloda indexer to hang while streaming the message.
+  configure_gloda_indexing({hangWhile: "streaming"});
+
+  // create a folder with a message inside.
+  let [folder, msgSet] = make_folder_with_sets([{count: 1}]);
+  yield wait_for_message_injection();
+
+  yield wait_for_indexing_hang();
+
+  // explicitly tell gloda to never index this folder
+  let XPCOMFolder = get_real_injection_folder(folder);
+  let glodaFolder = Gloda.getFolderForFolder(XPCOMFolder);
+  GlodaMsgIndexer.setFolderIndexingPriority(XPCOMFolder,
+                                            glodaFolder.kIndexingNeverPriority);
+
+  // reset indexing to not hang
+  configure_gloda_indexing({});
+
+  // sorta get the event chain going again...
+  resume_from_simulated_hang(true);
+
+  // Because the folder was dirty it should actually end up getting indexed,
+  //  so in the end the message will get indexed.  Also, make sure a cleanup
+  //  was observed.
+  yield wait_for_gloda_indexer([], {cleanedUp: 1});
 }
 
 /* ===== Threading / Conversation Grouping ===== */
@@ -896,4 +965,7 @@ var tests = [
   test_sweep_indexing_does_not_reindex_event_indexed,
 
   test_filthy_moves_slash_move_from_unindexed_to_indexed,
+
+  test_indexing_never_priority,
+  test_setting_indexing_priority_never_while_indexing,
 ];

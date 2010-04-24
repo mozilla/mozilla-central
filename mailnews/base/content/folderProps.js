@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   David Bienvenu <bienvenu@mozilla.org>
+ *   Dan Mosedale <dmose@mozillamessaging.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,6 +38,8 @@
 
 var gMsgFolder;
 var gLockedPref = null;
+
+Components.utils.import("resource:///modules/gloda/gloda.js");
 
 // The folderPropsSink is the class that gets notified of an imap folder's properties
 
@@ -111,7 +114,7 @@ var gFolderPropsSink = {
       if(bundle)
       {
         var usedFreeCaption = bundle.getFormattedString("quotaUsedFree", [usedKB, maxKB], 2);
-        quotaCaption = document.getElementById("quotaUsedFree");
+        var quotaCaption = document.getElementById("quotaUsedFree");
         if(quotaCaption)
           quotaCaption.setAttribute("value", usedFreeCaption);
 
@@ -150,6 +153,16 @@ function folderPropsOKButton()
       gMsgFolder.setFlag(nsMsgFolderFlags.CheckNew);
     else
       gMsgFolder.clearFlag(nsMsgFolderFlags.CheckNew);
+
+    let glodaCheckbox = document.getElementById("folderIncludeInGlobalSearch");
+    if (!glodaCheckbox.hidden) {
+      if(glodaCheckbox.checked) {
+        Gloda.resetFolderIndexingPriority(gMsgFolder);
+      } else {
+        Gloda.setFolderIndexingPriority(gMsgFolder,
+          Gloda.getFolderForFolder(gMsgFolder).kIndexingNeverPriority);
+      }
+    }
 
     var retentionSettings = saveCommonRetentionSettings(gMsgFolder.retentionSettings);
     retentionSettings.useServerDefaults = document.getElementById("retention.useDefault").checked;
@@ -251,6 +264,21 @@ function folderPropsOnLoad()
 
     // set check for new mail checkbox
     document.getElementById("folderCheckForNewMessages").checked = gMsgFolder.flags & nsMsgFolderFlags.CheckNew;
+
+    // if gloda indexing is off, hide the related checkbox
+    var glodaCheckbox = document.getElementById("folderIncludeInGlobalSearch");
+    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+      .getService(Components.interfaces.nsIPrefBranch);
+    var glodaEnabled = prefs
+      .getBoolPref("mailnews.database.global.indexer.enabled");
+    if (!glodaEnabled) {
+      glodaCheckbox.hidden = true;
+    } else {
+      // otherwise, the user can choose whether this file gets indexed
+      let glodaFolder = Gloda.getFolderForFolder(gMsgFolder);
+      glodaCheckbox.checked =
+        glodaFolder.indexingPriority != glodaFolder.kIndexingNeverPriority;
+    }
   }
 
   if (serverType == "imap")

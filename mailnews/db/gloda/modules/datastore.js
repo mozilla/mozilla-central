@@ -1808,20 +1808,13 @@ var GlodaDatastore = {
   },
 
   /**
-   * Map a folder URI to a GlodaFolder instance, creating the mapping if it does
-   *  not yet exist.
+   * Return the default messaging priority for a folder of this type, based
+   * on the folder's flags.
    *
-   * @param aFolder The nsIMsgFolder instance you would like the GlodaFolder
-   *     instance for.
-   * @returns The existing or newly created GlodaFolder instance.
+   * @param {nsIMsgFolder} aFolder
+   * @returns {Number}
    */
-  _mapFolder: function gloda_ds_mapFolderURI(aFolder) {
-    let folderURI = aFolder.URI;
-    if (folderURI in this._folderByURI) {
-      return this._folderByURI[folderURI];
-    }
-
-    let folderID = this._nextFolderId++;
+  getDefaultIndexingPriority: function gloda_ds_getDefaultIndexingPriority(aFolder) {
 
     let indexingPriority = GlodaFolder.prototype.kIndexingDefaultPriority;
     // Do not walk into trash/junk folders.
@@ -1850,6 +1843,35 @@ var GlodaDatastore = {
       indexingPriority = GlodaFolder.prototype.kIndexingFavoritePriority;
     else if (aFolder.flags & Ci.nsMsgFolderFlags.CheckNew)
       indexingPriority = GlodaFolder.prototype.kIndexingCheckNewPriority;
+
+    return indexingPriority;
+  },
+
+  /**
+   * Map a folder URI to a GlodaFolder instance, creating the mapping if it does
+   *  not yet exist.
+   *
+   * @param aFolder The nsIMsgFolder instance you would like the GlodaFolder
+   *     instance for.
+   * @returns The existing or newly created GlodaFolder instance.
+   */
+  _mapFolder: function gloda_ds_mapFolderURI(aFolder) {
+    let folderURI = aFolder.URI;
+    if (folderURI in this._folderByURI) {
+      return this._folderByURI[folderURI];
+    }
+
+    let folderID = this._nextFolderId++;
+
+    // if there's an indexingPriority stored on the folder, just use that    
+    let indexingPriority;
+    let stringPrio = aFolder.getStringProperty("indexingPriority");
+    if (stringPrio.length)
+      indexingPriority = parseInt(stringPrio);
+    else
+      // otherwise, fall back to the default for folders of this type
+      indexingPriority = this.getDefaultIndexingPriority(aFolder);
+
     // If there are messages in the folder, it is filthy.  If there are no
     //  messages, it can be clean.
     let dirtyStatus = aFolder.getTotalMessages(false) ?
@@ -1917,6 +1939,22 @@ var GlodaDatastore = {
     ufds.bindInt64Parameter(1, aFolder.id);
     ufds.bindInt64Parameter(0, aFolder.dirtyStatus);
     ufds.executeAsync(this.trackAsync());
+  },
+
+  get _updateFolderIndexingPriorityStatement() {
+    let statement = this._createAsyncStatement(
+      "UPDATE folderLocations SET indexingPriority = ?1 \
+              WHERE id = ?2");
+    this.__defineGetter__("_updateFolderIndexingPriorityStatement",
+      function() statement);
+    return this._updateFolderIndexingPriorityStatement;
+  },
+
+  updateFolderIndexingPriority: function gloda_ds_updateFolderIndexingPriority(aFolder) {
+    let ufip = this._updateFolderIndexingPriorityStatement;
+    ufip.bindInt64Parameter(1, aFolder.id);
+    ufip.bindInt64Parameter(0, aFolder.indexingPriority);
+    ufip.executeAsync(this.trackAsync());
   },
 
   get _updateFolderLocationStatement() {

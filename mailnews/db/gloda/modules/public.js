@@ -59,3 +59,7 @@ function proxy(aSourceObj, aSourceAttr, aDestObj, aDestAttr) {
 proxy(GlodaIndexer, "addListener", Gloda, "addIndexerListener");
 proxy(GlodaIndexer, "removeListener", Gloda, "removeIndexerListener");
 proxy(GlodaMsgIndexer, "isMessageIndexed", Gloda, "isMessageIndexed");
+proxy(GlodaMsgIndexer, "setFolderIndexingPriority", Gloda,
+      "setFolderIndexingPriority");
+proxy(GlodaMsgIndexer, "resetFolderIndexingPriority", Gloda,
+      "resetFolderIndexingPriority");

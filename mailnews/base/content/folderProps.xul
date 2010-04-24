@@ -85,6 +85,13 @@
                accesskey="&folderProps.location.accesskey;"/>
         <textbox id="location" readonly="true" flex="1"  class="uri-element"/>
       </hbox>
+      <checkbox id="folderIncludeInGlobalSearch" hidefor="nntp"
+                label="&folderIncludeInGlobalSearch.label;"
+                accesskey="&folderIncludeInGlobalSearch.accesskey;"/>
+      <checkbox hidefor="movemail,pop3,none,nntp"
+                id="folderCheckForNewMessages"
+                label="&folderCheckForNewMessages2.label;"
+                accesskey="&folderCheckForNewMessages2.accesskey;"/>
       <vbox>
         <hbox align="center" valign="middle">
           <label value="&folderCharsetTab.label;" control="folderCharsetList"
@@ -100,17 +107,28 @@
         <checkbox class="indent" id="folderCharsetOverride"
                   label="&folderCharsetOverride.label;"
                   accesskey="&folderCharsetOverride.accesskey;"/>
-        <checkbox hidefor="movemail,pop3,none,nntp"
-                  class="indent" id="folderCheckForNewMessages"
-                  label="&folderCheckForNewMessages.label;"
-                  accesskey="&folderCheckForNewMessages.accesskey;"/>
       </vbox>
-      <hbox>
-        <button label="&folderRebuildSummaryFile.label;"
-               oncommand="RebuildSummaryInformation();" accesskey="&folderRebuildSummaryFile.accesskey;" 
-                tooltiptext="&folderRebuildSummaryFileTip.label;"
-               align="center"/>
-      </hbox>
+      <groupbox id="folderRebuildSummaryGroupBox" align="baseline">
+        <grid>
+          <columns>
+            <column flex="1"/>
+            <column/>
+          </columns>
+          <rows>
+            <row>
+              <description id="folderRebuildSummaryExplanation">&folderRebuildSummaryFile.explanation;</description>
+              <vbox>
+                <button id="folderRebuildSummaryButton"
+                        label="&folderRebuildSummaryFile2.label;"
+                        oncommand="RebuildSummaryInformation();"
+                        accesskey="&folderRebuildSummaryFile2.accesskey;"
+                        tooltiptext="&folderRebuildSummaryFileTip2.label;"
+                        align="center"/>
+              </vbox>
+            </row>
+          </rows>
+        </grid>
+      </groupbox>
     </vbox>
 
     <vbox id="RetentionPanel" align="start">

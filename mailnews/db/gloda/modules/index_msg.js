@@ -22,6 +22,7 @@
  *   Andrew Sutherland <asutherland@asutherland.org>
  *   Kent James <kent@caspia.com>
  *   Siddharth Agarwal <sid.bugzilla@gmail.com>
+ *   Dan Mosedale <dmose@mozillamessaging.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1677,6 +1678,69 @@ var GlodaMsgIndexer = {
     // Now see what our gloda folder information has to say about the folder.
     let glodaFolder = GlodaDatastore._mapFolder(aMsgFolder);
     return glodaFolder.indexingPriority != glodaFolder.kIndexingNeverPriority;
+  },
+
+  /**
+   * Sets the indexing priority for this folder and persists it both to Gloda,
+   * and, for backup purposes, to the nsIMsgFolder via string property as well.
+   *
+   * Setting this priority may cause the indexer to either reindex this folder,
+   * or remove this folder from the existing index.
+   *
+   * @param {nsIMsgFolder} aFolder
+   * @param {Number} aPriority (one of the priority constants from GlodaFolder)
+   */
+  setFolderIndexingPriority: function glodaSetFolderIndexingPriority(aFolder, aPriority) {
+
+    let glodaFolder = GlodaDatastore._mapFolder(aFolder);
+
+    // if there's been no change, we're done
+    if (aPriority == glodaFolder.indexingPriority) {
+      return;
+    }
+
+    // save off the old priority, and set the new one
+    let previousPrio = glodaFolder.indexingPriority;
+    glodaFolder._indexingPriority = aPriority;
+
+    // persist the new priority
+    GlodaDatastore.updateFolderIndexingPriority(glodaFolder);
+    aFolder.setStringProperty("indexingPriority", Number.toString(aPriority));
+
+    // if we've been told never to index this folder...
+    if (aPriority == glodaFolder.kIndexingNeverPriority) {
+
+      // stop doing so
+      if (this._indexingFolder == aFolder)
+          GlodaIndexer.killActiveJob();
+
+      // mark all existing messages as deleted
+      GlodaDatastore.markMessagesDeletedByFolderID(glodaFolder.id);
+
+      // re-index
+      GlodaMsgIndexer.indexingSweepNeeded = true;
+
+    } else if (previousPrio == glodaFolder.kIndexingNeverPriority) {
+
+      // there's no existing index, but the user now wants one
+      glodaFolder._dirtyStatus = glodaFolder.kFolderFilthy;
+      GlodaDatastore.updateFolderDirtyStatus(glodaFolder)
+      GlodaMsgIndexer.indexingSweepNeeded = true;
+    }
+  },
+
+  /**
+   * Resets the indexing priority on the given folder to whatever the default
+   * is for folders of that type.
+   *
+   * @note Calls setFolderIndexingPriority under the hood, so has identical
+   *       potential reindexing side-effects
+   *
+   * @param {nsIMsgFolder} aFolder
+   */
+  resetFolderIndexingPriority: function glodaResetFolderIndexingPriority(aFolder) {
+    this.setFolderIndexingPriority(aFolder,
+      GlodaDatastore.getDefaultIndexingPriority(aFolder));
   },
 
   /**
