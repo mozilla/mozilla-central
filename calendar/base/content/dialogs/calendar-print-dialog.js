@@ -104,7 +104,7 @@ function loadCalendarPrintDialog() {
 function getEventsAndDialogSettings(receiverFunc) {
     let settings = getWhatToPrintSettings();
     if (settings.eventList.length != 0) {
-        receiverFunc(setting);
+        receiverFunc(settings);
     } else {
         let listener = {
             onOperationComplete:
