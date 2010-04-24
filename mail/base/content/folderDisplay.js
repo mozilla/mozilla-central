@@ -917,12 +917,21 @@ FolderDisplayWidget.prototype = {
       aFolderIsComingBack) {
     // try and persist the selection's content if we can
     if (this._active) {
-      // if a new selection is coming up, there's no point in trying to persist
-      // any selections
-      if (aFolderIsComingBack && !this._aboutToSelectMessage)
-        this._saveSelection();
-      else
-        this._clearSavedSelection();
+      // If saving the selection throws an exception, we still want continue
+      // destroying the view. Saving the selection can fail if an underlying
+      // local folder has been compacted, invalidating the message keys.
+      // See bug 536676 for more info.
+      try {
+        // If a new selection is coming up, there's no point in trying to
+        // persist any selections.
+        if (aFolderIsComingBack && !this._aboutToSelectMessage)
+          this._saveSelection();
+        else
+          this._clearSavedSelection();
+      }
+      catch (ex) {
+        logException(ex);
+      }
       gDBView = null;
     }
 
