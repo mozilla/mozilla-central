@@ -385,7 +385,8 @@
           if (this._parentFolder && (!mode ||
               (this.getAttribute("showFileHereLabel") == "true" &&
                (this._parentFolder.noSelect ||
-                this._parentFolder.canFileMessages || mode == "newFolder")))) {
+                this._parentFolder.canFileMessages || mode == "newFolder" ||
+                this.getAttribute("showAccountsFileHere") == "true")))) {
             var menuitem = document.createElement("menuitem");
             menuitem._folder = this._parentFolder;
             menuitem.setAttribute("generated", "true");
@@ -498,14 +499,18 @@
               popup._parentFolder = folder;
               popup.setAttribute("class", this.getAttribute("class"));
               popup.setAttribute("type", this.getAttribute("type"));
-              popup.setAttribute("fileHereLabel",
-                                 this.getAttribute("fileHereLabel"));
+              if (this.hasAttribute("fileHereLabel"))
+                popup.setAttribute("fileHereLabel",
+                                   this.getAttribute("fileHereLabel"));
               popup.setAttribute("showFileHereLabel",
                                  this.getAttribute("showFileHereLabel"));
               popup.setAttribute("oncommand",
                                  this.getAttribute("oncommand"));
               popup.setAttribute("mode",
                                  this.getAttribute("mode"));
+              if (this.hasAttribute("position"))
+                popup.setAttribute("position",
+                                   this.getAttribute("position"));
 
               // If there are labels, add the labels now
               if (labels) {

@@ -241,6 +241,10 @@ menupopup[type="folder"] {
   -moz-binding: url("chrome://messenger/content/addressbook/addrbookWidgets.xml#addrbooks-menupopup");
 }
 
+#threadCols > treecolpicker {
+  -moz-binding: url("chrome://messenger/content/threadPaneColumnPicker.xml#threadPaneColumnPicker");
+}
+
 /**
  * Toolboxes default to overflow: visible, and we need to override that to
  * prevent the toolbox from causing its containing box (the entire content

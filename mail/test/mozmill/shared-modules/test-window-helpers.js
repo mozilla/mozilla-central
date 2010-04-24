@@ -109,6 +109,9 @@ function installInto(module) {
   module.close_window = close_window;
   module.wait_for_existing_window = wait_for_existing_window;
 
+  module.plan_for_observable_event = plan_for_observable_event;
+  module.wait_for_observable_event = wait_for_observable_event;
+
   module.augment_controller = augment_controller;
 }
 
@@ -556,6 +559,51 @@ function close_window(aController) {
   wait_for_window_close();
 }
 
+
+let obsService = Cc["@mozilla.org/observer-service;1"]
+                   .getService(Ci.nsIObserverService);
+let observationWaitFuncs = {};
+let observationSaw = {};
+/**
+ * Plan for a notification to be sent via the observer service.
+ *
+ * @param aTopic The topic that will be sent via the observer service.
+ */
+function plan_for_observable_event(aTopic) {
+  observationSaw[aTopic] = false;
+  let waiter = observationWaitFuncs[aTopic] = {
+    observe: function() {
+      observationSaw[aTopic] = true;
+    }
+  };
+  obsService.addObserver(waiter, aTopic, false);
+}
+
+/**
+ * Wait for a notification (previously planned for via
+ *  |plan_for_observable_event|) to fire.
+ *
+ * @param aTopic The topic sent via the observer service.
+ */
+function wait_for_observable_event(aTopic) {
+  try {
+    function areWeThereYet() {
+      return observationSaw[aTopic];
+    }
+    if (!controller.waitForEval(
+          'subject()',
+          3000, 50,
+          areWeThereYet))
+      throw new Error("Timed out waiting for notification: " + aTopic);
+  }
+  finally {
+    obsService.removeObserver(observationWaitFuncs[aTopic], aTopic);
+    delete observationWaitFuncs[aTopic];
+    delete observationSaw[aTopic];
+  }
+}
+
+
 /**
  * Methods to augment every controller that passes through augment_controller.
  */
@@ -688,6 +736,65 @@ var AugmentEverybodyWith = {
                               dis.click(aWhatToClick);
                             }, 1000);
     },
+
+    /**
+     * Dynamically-built/XBL-defined menus can be hard to work with, this makes it
+     *  easier.
+     *
+     * @param aRootPopup The base popup.  We will open it if it is not open or
+     *     wait for it to open if it is in the process.
+     * @param aActions A list of objects where each object has a single
+     *     attribute with a single value.  We pick the menu option whose DOM
+     *     node has an attribute with that name and value.  We click whatever we
+     *     find.  We throw if we don't find what you were asking for.
+     */
+    click_menus_in_sequence: function _click_menus(aRootPopup, aActions) {
+      if (aRootPopup.state == "closed")
+        aRootPopup.openPopup(null, "", 0, 0, true, true);
+      if (aRootPopup.state != "open") { // handle "showing"
+        if (!controller.waitForEval("subject.state == 'open'", 1000, 100,
+                                    aRootPopup)) {
+          throw new Error("Popup never opened!");
+        }
+      }
+
+      let curPopup = aRootPopup;
+      for each (let [iAction, actionObj] in Iterator(aActions)) {
+        let matchingNode = null;
+
+        let kids = curPopup.children;
+        for (let iKid=0; iKid < kids.length; iKid++) {
+          let node = kids[iKid];
+          let matchedAll = true;
+          for each (let [name, value] in Iterator(actionObj)) {
+            if (!node.hasAttribute(name) ||
+                node.getAttribute(name) != value) {
+              matchedAll = false;
+              break;
+            }
+          }
+
+          if (matchedAll) {
+            matchingNode = node;
+            break;
+          }
+        }
+
+        if (!matchingNode)
+          throw new Error("Did not find matching menu item for action index " +
+                          iAction);
+
+        this.click(new elib.Elem(matchingNode));
+        if ("menupopup" in matchingNode) {
+          curPopup = matchingNode.menupopup;
+          if (!controller.waitForEval("subject.state == 'open'", 1000, 100,
+                                      curPopup)) {
+            throw new Error("Popup never opened at action depth: " + iAction);
+          }
+        }
+      }
+    }
+
   },
 };
 

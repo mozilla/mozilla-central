@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+  - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+  -
+  - The contents of this file are subject to the Mozilla Public License Version
+  - 1.1 (the "License"); you may not use this file except in compliance with
+  - the License. You may obtain a copy of the License at
+  - http://www.mozilla.org/MPL/
+  -
+  - Software distributed under the License is distributed on an "AS IS" basis,
+  - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+  - for the specific language governing rights and limitations under the
+  - License.
+  -
+  - The Original Code is Thunderbird Global Database.
+  -
+  - The Initial Developer of the Original Code is
+  - Mozilla Messaging, Inc.
+  - Portions created by the Initial Developer are Copyright (C) 2010
+  - the Initial Developer. All Rights Reserved.
+  -
+  - Contributor(s):
+  -   Andrew Sutherland <asutherland@asutherland.org>
+  -
+  - Alternatively, the contents of this file may be used under the terms of
+  - either of the GNU General Public License Version 2 or later (the "GPL"),
+  - or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+  - in which case the provisions of the GPL or the LGPL are applicable instead
+  - of those above. If you wish to allow use of your version of this file only
+  - under the terms of either the GPL or the LGPL, and not to allow others to
+  - use your version of this file under the terms of the MPL, indicate your
+  - decision by deleting the provisions above and replace them with the notice
+  - and other provisions required by the GPL or the LGPL. If you do not delete
+  - the provisions above, a recipient may use your version of this file under
+  - the terms of any one of the MPL, the GPL or the LGPL.
+  - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE window [
+<!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd" >
+%messengerDTD;
+]>
+
+<bindings id="threadPaneColumnPickerBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <!--
+    - Because the columnpicker is implicitly created by the treecols binding
+    - and it does not pass anything in, we are compelled to override the binding
+    - (via CSS rules in messenger.css) in order to add custom menu options to
+    - the list.
+    -
+    - This is now a cut-paste-modify of the original tree.xml#columnpicker
+    - since we had to override everything save for the accessibleType anyways.
+    -->
+  <binding id="threadPaneColumnPicker" display="xul:button"
+           extends="chrome://global/content/bindings/tree.xml#tree-base">
+    <content>
+      <xul:image class="tree-columnpicker-icon"/>
+      <xul:menupopup anonid="popup">
+        <xul:menuseparator anonid="menuseparator"/>
+        <xul:menuitem anonid="reset" label="&columnPicker.resetToInbox.label;"/>
+        <xul:menu anonid="applyTo-menu"
+                  label="&columnPicker.applyTo.label;">
+          <xul:menupopup>
+            <xul:menu anonid="applyToFolder-menu"
+                      label="&columnPicker.applyToFolder.label;">
+              <xul:menupopup anonid="applyToFolder"
+                             type="folder"
+                             mode="filing"
+                             showFileHereLabel="true"
+                             position="start_before"
+                             />
+            </xul:menu>
+            <xul:menu anonid="applyToFolderAndChildren-menu"
+                      label="&columnPicker.applyToFolderAndChildren.label;">
+              <xul:menupopup anonid="applyToFolderAndChildren"
+                             type="folder"
+                             mode="filing"
+                             showFileHereLabel="true"
+                             showAccountsFileHere="true"
+                             position="start_before"/>
+            </xul:menu>
+          </xul:menupopup>
+        </xul:menu>
+      </xul:menupopup>
+    </content>
+
+    <implementation implements="nsIAccessibleProvider">
+      <property name="accessibleType" readonly="true">
+        <getter>
+          return Components.interfaces.nsIAccessibleProvider.XULButton;
+        </getter>
+      </property>
+
+      <method name="buildPopup">
+        <parameter name="aPopup"/>
+        <body>
+          <![CDATA[
+            while (aPopup.childNodes.length > 3)
+              aPopup.removeChild(aPopup.firstChild);
+
+            var refChild = aPopup.firstChild;
+
+            var tree = this.parentNode.parentNode;
+            for (var currCol = tree.columns.getFirstColumn(); currCol;
+                 currCol = currCol.getNext()) {
+              // Construct an entry for each column in the row, unless
+              // it is not being shown.
+              var currElement = currCol.element;
+              if (!currElement.hasAttribute("ignoreincolumnpicker")) {
+                var popupChild = document.createElement("menuitem");
+                popupChild.setAttribute("type", "checkbox");
+                var columnName = currElement.getAttribute("display") ||
+                                 currElement.getAttribute("label");
+                popupChild.setAttribute("label", columnName);
+                popupChild.setAttribute("colindex", currCol.index);
+                if (currElement.getAttribute("hidden") != "true")
+                  popupChild.setAttribute("checked", "true");
+                if (currCol.primary)
+                  popupChild.setAttribute("disabled", "true");
+                aPopup.insertBefore(popupChild, refChild);
+              }
+            }
+          ]]>
+        </body>
+      </method>
+    </implementation>
+    <handlers>
+      <handler event="command"><![CDATA[
+        // Are they clicking on our header to get us to show the column list?
+        if (event.originalTarget == this) {
+          var popup = document.getAnonymousElementByAttribute(this, "anonid",
+                                                              "popup");
+          this.buildPopup(popup);
+          popup.showPopup(this, -1, -1, "popup", "bottomright", "topright");
+          return;
+        }
+
+        // Are they clicking on one of the columns in the list?
+        if (event.originalTarget.hasAttribute("colindex")) {
+          var tree = this.parentNode.parentNode;
+          var colindex = event.originalTarget.getAttribute("colindex");
+          var column = tree.columns[colindex];
+          if (column) {
+            var element = column.element;
+            if (element.getAttribute("hidden") == "true")
+              element.setAttribute("hidden", "false");
+            else
+              element.setAttribute("hidden", "true");
+          }
+          return;
+        }
+
+        // Did they click the reset button?
+        let resetMenu = document.getAnonymousElementByAttribute(
+                          this, "anonid", "reset");
+        if (event.originalTarget == resetMenu) {
+          let columnStates =
+            gFolderDisplay._getDefaultColumnsForCurrentFolder();
+          gFolderDisplay.setColumnStates(columnStates, true);
+          return;
+        }
+
+        // Otherwise an exciting action has occurred!
+        let destFolder = event.originalTarget._folder;
+
+        // Let's figure out which of the actions they chose by walking the
+        // parent chain until we find one of them.
+        let noChildrenPopup = document.getAnonymousElementByAttribute(
+                                this, "anonid", "applyToFolder");
+        let yesChildrenPopup = document.getAnonymousElementByAttribute(
+                                 this, "anonid", "applyToFolderAndChildren");
+        let parent = event.originalTarget.parentNode;
+        while (parent != noChildrenPopup && parent != yesChildrenPopup) {
+          parent = parent.parentNode;
+        }
+        let useChildren = (parent == yesChildrenPopup);
+
+        let bundle = document.getElementById("bundle_messenger");
+        let stringBase = "threadPane.columnPicker.confirmFolder." +
+          (useChildren ? "withChildren." : "noChildren.");
+
+        let promptService =
+          Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                    .getService(Components.interfaces.nsIPromptService);
+        let confirmed = promptService.confirm(null,
+          bundle.getString(stringBase + "title"),
+          bundle.getFormattedString(stringBase + "message",
+                                    [destFolder.prettiestName]));
+        if (!confirmed)
+          return;
+
+        // Get the current folder's column state.
+        let propName = gFolderDisplay.PERSISTED_COLUMN_PROPERTY_NAME;
+        let dbFolderInfo =
+          gFolderDisplay.displayedFolder.msgDatabase.dBFolderInfo;
+        let columnStateString = dbFolderInfo.getCharProperty(propName);
+        // Now propagate appropriately...
+        if (useChildren) {
+          // Generate an observer notification when we have finished configuring
+          // all folders.  This is currently done for the benefit of our mozmill
+          // tests.
+          function observerCallback() {
+            let obsService =
+               Components.classes["@mozilla.org/observer-service;1"]
+                         .getService(Components.interfaces.nsIObserverService);
+            obsService.notifyObservers(gFolderDisplay.displayedFolder,
+                                       "msg-folder-columns-propagated", "");
+          }
+          MailUtils.setStringPropertyOnFolderAndDescendents(propName,
+                                                            columnStateString,
+                                                            destFolder,
+                                                            observerCallback);
+        }
+        else {
+          destFolder.setStringProperty(propName, columnStateString);
+          // null out to avoid memory bloat
+          destFolder.msgDatabase = null;
+        }
+      ]]></handler>
+    </handlers>
+  </binding>
+
+</bindings>

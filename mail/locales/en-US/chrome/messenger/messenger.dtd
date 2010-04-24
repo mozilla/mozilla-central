@@ -667,6 +667,53 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY contextPrintPreview.label "Print Preview">
 <!ENTITY contextPrintPreview.accesskey "v">
 
+<!-- Thread Pane Column Picker -->
+<!-- LOCALIZATION NOTE (columnPicker.resetToInbox.label):
+   This option in the thread pane column picker causes us to reset the
+   customizations for the thread pane columns in this folder to their default.
+  -->
+<!ENTITY columnPicker.resetToInbox.label "Reset columns to default">
+<!-- LOCALIZATION NOTE (columnPicker.applyTo.label):
+   This option in the thread pane column picker pops up a sub-menu containing
+   the "columnPicker.applyToFolder.label" and
+   "columnPicker.applyToFolderAndChildren.label" options.  This item indicates
+   a desire to apply the currently displayed set of columns to some other
+   folder(s).  The sub-menu items indicate whether we want to apply it to just
+   a folder or also its children.
+  -->
+<!ENTITY columnPicker.applyTo.label "Apply columns to…">
+<!-- LOCALIZATION NOTE (columnPicker.applyToFolder.label):
+   This option in the thread pane column picker is found on a sub-menu beneath
+   the "columnPicker.applyTo.label" alongside
+   "columnPicker.applyToFolderAndChildren.label".  It indicates a desire to
+   apply the currently display thread pane column settings to a single folder
+   that the user selects using the same widget as the move to/copy to
+   mechanism (via a series of popups).
+  -->
+<!ENTITY columnPicker.applyToFolder.label "Folder…">
+<!-- LOCALIZATION NOTE (columnPicker.applyToFolderAndChildren.label):
+   This option in the thread pane column picker is found on a sub-menu beneath
+   the "columnPicker.applyTo.label" alongside
+   "columnPicker.applyToFolder.label".  It indicates a desire to
+   apply the currently display thread pane column settings to a folder and all
+   of its descendents.  The user selects the folder using the same widget as the
+   move to/copy to mechanism (via a series of popups).
+  -->
+<!ENTITY columnPicker.applyToFolderAndChildren.label "Folder and its children…">
+<!-- LOCALIZATION NOTE (columnPicker.thisFolder.label):
+   This is used in the folder selection widget for the
+   "columnPicker.applyToFolder.label" and
+   "columnPicker.applyToFolderAndChildren.label" menu options.  Whenever
+   a folder has children, it results in a menu popup; the first menu item
+   in that popup is given this label to indicate that that folder should be
+   selected.  For example, if folder "A" has two children, "B" and "C", then
+   when the user hovers over "A", a new popup menu will be displayed whose
+   items are "This folder", "B", and "C".  This is the equivalent of the
+   "File here" option for the move to/copy to widge.t
+  -->
+<!ENTITY columnPicker.thisFolder.label "This folder">
+
+
 <!-- Media (video/audio) controls -->
 <!ENTITY contextPlay.label "Play">
 <!ENTITY contextPlay.accesskey "P">
