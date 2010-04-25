@@ -64,13 +64,12 @@
 /* :::::::: Constants and Helpers ::::::::::::::: */
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 const STATE_RUNNING_STR = "running";
 
 function debug(aMsg) {
-  Components.classes["@mozilla.org/consoleservice;1"]
-            .getService(Components.interfaces.nsIConsoleService)
-            .logStringMessage("SessionStartup: " + aMsg);
+  Services.console.logStringMessage("SessionStartup: " + aMsg);
 }
 
 /* :::::::: The Service ::::::::::::::: */
@@ -138,9 +137,7 @@ SessionStartup.prototype = {
 
     if (this._sessionType != Components.interfaces.nsISessionStartup.NO_SESSION) {
       // wait for the first browser window to open
-      var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                      .getService(Components.interfaces.nsIObserverService);
-      observerService.addObserver(this, "browser:purge-session-history", true);
+      Services.obs.addObserver(this, "browser:purge-session-history", true);
     }
   },
 
@@ -148,30 +145,27 @@ SessionStartup.prototype = {
    * Handle notifications
    */
   observe: function sss_observe(aSubject, aTopic, aData) {
-    var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                    .getService(Components.interfaces.nsIObserverService);
-
     switch (aTopic) {
     case "app-startup":
-      observerService.addObserver(this, "final-ui-startup", true);
-      observerService.addObserver(this, "quit-application", true);
+      Services.obs.addObserver(this, "final-ui-startup", true);
+      Services.obs.addObserver(this, "quit-application", true);
       break;
     case "final-ui-startup":
-      observerService.removeObserver(this, "final-ui-startup");
-      observerService.removeObserver(this, "quit-application");
+      Services.obs.removeObserver(this, "final-ui-startup");
+      Services.obs.removeObserver(this, "quit-application");
       this.init();
       break;
     case "quit-application":
       // no reason for initializing at this point (cf. bug 409115)
-      observerService.removeObserver(this, "final-ui-startup");
-      observerService.removeObserver(this, "quit-application");
+      Services.obs.removeObserver(this, "final-ui-startup");
+      Services.obs.removeObserver(this, "quit-application");
       break;
     case "browser:purge-session-history":
       // reset all state on sanitization
       this._iniString = null;
       this._sessionType = Components.interfaces.nsISessionStartup.NO_SESSION;
       // no need in repeating this, since startup state won't change
-      observerService.removeObserver(this, "browser:purge-session-history");
+      Services.obs.removeObserver(this, "browser:purge-session-history");
      break;
     }
   },
@@ -214,9 +208,7 @@ SessionStartup.prototype = {
                                 .createInstance(Components.interfaces.nsISupportsString);
     stateString.data = this._readFile(aFile) || "";
 
-    var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                    .getService(Components.interfaces.nsIObserverService);
-    observerService.notifyObservers(stateString, "sessionstore-state-read", "");
+    Services.obs.notifyObservers(stateString, "sessionstore-state-read", "");
 
     return stateString.data;
   },
