@@ -1947,14 +1947,6 @@ SessionStoreService.prototype = {
     Array.filter(tab.attributes, function(aAttr) {
       return (_this.xulAttributes.indexOf(aAttr.name) > -1);
     }).forEach(tab.removeAttribute, tab);
-    if (tabData.xultab) {
-      // restore attributes from the legacy format
-      tabData.xultab.split(" ").forEach(function(aAttr) {
-        if (/^([^\s=]+)=(.*)/.test(aAttr)) {
-          tab.setAttribute(RegExp.$1, decodeURI(RegExp.$2));
-        }
-      });
-    }
     for (let name in tabData.attributes)
       tab.setAttribute(name, tabData.attributes[name]);
 
@@ -1983,7 +1975,6 @@ SessionStoreService.prototype = {
       // which are not preserved in the plain history entries
       // (mainly scroll state and text data)
       browser.__SS_restore_data = tabData.entries[activeIndex] || {};
-      browser.__SS_restore_text = tabData.text || "";
       browser.__SS_restore_pageStyle = tabData.pageStyle || "";
       browser.__SS_restore_tab = tab;
       browser.__SS_restore = this.restoreDocument_proxy;
@@ -2048,14 +2039,8 @@ SessionStoreService.prototype = {
       shEntry.setScrollPosition(scrollPos[0], scrollPos[1]);
     }
 
-    var postdata;
-    if (aEntry.postdata_b64) {  // Firefox 3
-      postdata = atob(aEntry.postdata_b64);
-    } else if (aEntry.postdata) { // Firefox 2
-      postdata = aEntry.postdata;
-    }
-
-    if (postdata) {
+    if (aEntry.postdata_b64) {
+      var postdata = atob(aEntry.postdata_b64);
       var stream = Components.classes["@mozilla.org/io/string-input-stream;1"]
                              .createInstance(Components.interfaces.nsIStringInputStream);
       stream.setData(postdata, postdata.length);
@@ -2227,7 +2212,6 @@ SessionStoreService.prototype = {
 
     this.removeEventListener("load", this.__SS_restore, true);
     delete this.__SS_restore_data;
-    delete this.__SS_restore_text;
     delete this.__SS_restore_pageStyle;
     delete this.__SS_restore_tab;
     delete this.__SS_restore;
@@ -2314,26 +2298,11 @@ SessionStoreService.prototype = {
   },
 
   /**
-   * Restores cookies (accepting both Firefox 2.0 and current format)
+   * Restores cookies
    * @param aCookies
    *        Array of cookie objects
    */
   restoreCookies: function sss_restoreCookies(aCookies) {
-    if (aCookies.count && aCookies.domain1) {
-      // convert to the new cookie serialization format
-      var converted = [];
-      for (var i = 1; i <= aCookies.count; i++) {
-        // for simplicity we only accept the format we produced ourselves
-        var parsed = aCookies["value" + i].match(/^([^=;]+)=([^;]*);(?:domain=[^;]+;)?(?:path=([^;]*);)?(secure;)?(httponly;)?/);
-        if (parsed && /^https?:\/\/([^\/]+)/.test(aCookies["domain" + i]))
-          converted.push({
-            host: RegExp.$1, path: parsed[3], name: parsed[1], value: parsed[2],
-            secure: parsed[4], httponly: parsed[5]
-          });
-      }
-      aCookies = converted;
-    }
-
     // MAX_EXPIRY should be 2^63-1, but JavaScript can't handle that precision
     var MAX_EXPIRY = Math.pow(2, 62);
     for (i = 0; i < aCookies.length; i++) {
