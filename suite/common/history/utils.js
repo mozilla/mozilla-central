@@ -47,7 +47,7 @@ function LOG(str) {
 __defineGetter__("PlacesUtils", function() {
   delete this.PlacesUtils
   var tmpScope = {};
-  Components.utils.import("resource://gre/modules/utils.js", tmpScope);
+  Components.utils.import("resource://gre/modules/PlacesUtils.jsm", tmpScope);
   return this.PlacesUtils = tmpScope.PlacesUtils;
 });
 
