@@ -58,6 +58,7 @@ components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/nsCloseAllWindows.js
 components/nsDictionary.js
 components/nsDownloadProgressListener.js
+components/nsExtensionManager.js
 components/nsInterfaceInfoToIDL.js
 components/nsKillAll.js
 components/nsLDAPPrefsService.js

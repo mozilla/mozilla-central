@@ -456,11 +456,6 @@ pref("app.update.incompatible.mode", 0);
 
 // Extension preferences
 
-// Developers can set this to |true| if they are constantly changing files in their 
-// extensions directory so that the extension system does not constantly think that
-// their extensions are being updated and thus reregistered every time the app is
-// started.
-pref("extensions.ignoreMTimeChanges", false);
 // Enables some extra Extension System Logging (can reduce performance)
 pref("extensions.logging.enabled", false);
 
@@ -482,14 +477,8 @@ pref("extensions.update.url", "https://versioncheck.addons.mozilla.org/update/Ve
 pref("extensions.update.interval", 86400);  // Check for updates to Extensions and 
                                             // Themes every day
 
-// Preferences for the Get Add-ons pane
-pref("extensions.getAddons.showPane", true);
-pref("extensions.getAddons.browseAddons", "https://addons.mozilla.org/%LOCALE%/%APP%");
-pref("extensions.getAddons.maxResults", 5);
-pref("extensions.getAddons.recommended.browseURL", "https://addons.mozilla.org/%LOCALE%/%APP%/recommended");
-pref("extensions.getAddons.recommended.url", "https://services.addons.mozilla.org/%LOCALE%/%APP%/api/%API_VERSION%/list/featured/all/10/%OS%/%VERSION%");
-pref("extensions.getAddons.search.browseURL", "https://addons.mozilla.org/%LOCALE%/%APP%/search?q=%TERMS%");
-pref("extensions.getAddons.search.url", "https://services.addons.mozilla.org/%LOCALE%/%APP%/api/%API_VERSION%/search/%TERMS%/all/10/%OS%/%VERSION%");
+// Preferences for AMO integration
+pref("extensions.webservice.discoverURL", "https://services.addons.mozilla.org/%LOCALE%/%APP%/discovery/%VERSION%/%OS%");
 
 // Non-symmetric (not shared by extensions) extension-specific [update] preferences
 pref("extensions.getMoreExtensionsURL", "chrome://branding/locale/brand.properties");
@@ -499,13 +488,6 @@ pref("extensions.getMoreLocalesURL", "chrome://branding/locale/brand.properties"
 pref("extensions.dss.enabled", false);          // Dynamic Skin Switching
 pref("extensions.dss.switchPending", false);    // Non-dynamic switch pending after next
                                                 // restart.
-
-pref("xpinstall.dialog.confirm", "chrome://mozapps/content/xpinstall/xpinstallConfirm.xul");
-
-pref("xpinstall.dialog.progress.skin", "chrome://mozapps/content/extensions/extensions.xul");
-pref("xpinstall.dialog.progress.chrome", "chrome://mozapps/content/extensions/extensions.xul");
-pref("xpinstall.dialog.progress.type.skin", "Extension:Manager");
-pref("xpinstall.dialog.progress.type.chrome", "Extension:Manager");
 
 pref("xpinstall.whitelist.add.103", "addons.mozilla.org");
 

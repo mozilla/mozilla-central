@@ -444,13 +444,15 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 #else
 @BINPATH@/components/@DLL_PREFIX@xpinstall@DLL_SUFFIX@
 #endif
-@BINPATH@/components/xpinstall.xpt
 @BINPATH@/components/xulapp.xpt
 @BINPATH@/components/xuldoc.xpt
 @BINPATH@/components/xultmpl.xpt
 @BINPATH@/components/zipwriter.xpt
 
 ; JavaScript components
+@BINPATH@/components/addonManager.js
+@BINPATH@/components/amContentHandler.js
+@BINPATH@/components/amWebInstallListener.js
 @BINPATH@/components/contentAreaDropListener.js
 @BINPATH@/components/contentSecurityPolicy.js
 @BINPATH@/components/crypto-SDR.js
@@ -473,7 +475,6 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/nsContentDispatchChooser.js
 @BINPATH@/components/nsContentPrefService.js
 @BINPATH@/components/nsDefaultCLH.js
-@BINPATH@/components/nsExtensionManager.js
 #ifdef MOZ_GTK2
 @BINPATH@/components/nsFilePicker.js
 #endif
