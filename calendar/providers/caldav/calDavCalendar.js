@@ -266,7 +266,7 @@ calDavCalendar.prototype = {
     // tickets
     mUriParams: null,
 
-    get uri caldav_get_uri() { return this.mUri },
+    get uri caldav_get_uri() { return this.mUri; },
 
     set uri caldav_set_uri(aUri) {
         this.mUri = aUri;
@@ -382,8 +382,8 @@ calDavCalendar.prototype = {
                 break;
             case "organizerCN":
                 return null; // xxx todo
-	    case "cache.updateTimer":
-	        return getPrefSafe("calendar.autorefresh.timeout");
+            case "cache.updateTimer":
+                return getPrefSafe("calendar.autorefresh.timeout");
             case "itip.transport":
                 if (this.hasAutoScheduling) {
                     return null;
@@ -913,9 +913,10 @@ calDavCalendar.prototype = {
      */
     finalizeUpdatedItems: function calDav_finalizeUpdatedItems(aChangeLogListener, calendarURI) {
         if (this.isCached) {
-            if (aChangeLogListener)
+            if (aChangeLogListener) {
                 aChangeLogListener.onResult({ status: Components.results.NS_OK },
                                             Components.results.NS_OK);
+            }
         } else {
             this.mObservers.notify("onLoad", [this]);
         }
@@ -994,7 +995,7 @@ calDavCalendar.prototype = {
                                                this.makeUri(),
                                                null,
                                                aListener,
-                                               aChangeLogListener)
+                                               aChangeLogListener);
         multiget.doMultiGet();
     },
 
@@ -1107,9 +1108,9 @@ calDavCalendar.prototype = {
                 }
                 return;
             } else if (request.responseStatus == 207 && thisCalendar.mDisabled) {
-                // Looks like the calendar is there again, check its resouce
+                // Looks like the calendar is there again, check its resource
                 // type first.
-                this.checkDavResourceType(aChangelogListener);
+                this.checkDavResourceType(aChangeLogListener);
                 return;
              }
 
@@ -1234,7 +1235,7 @@ calDavCalendar.prototype = {
                        </D:propfind>;
 
         let queryString = xmlHeader + queryXml.toXMLString();
-        let requestUri = this.makeUri(null, aUri)
+        let requestUri = this.makeUri(null, aUri);
         if (this.verboseLogging()) {
             cal.LOG("CalDAV: send(" + requestUri.spec + "): " + queryString);
         }
@@ -1390,7 +1391,7 @@ calDavCalendar.prototype = {
                 for each (let sc in supportedComponentsXml.C::comp) {
                     let comp = sc.@name.toString();
                     if (thisCalendar.mGenerallySupportedItemTypes.indexOf(comp) >= 0) {
-                        cal.LOG("Adding supported item: " + comp + " for calendar: " + thisCalendar.name)
+                        cal.LOG("Adding supported item: " + comp + " for calendar: " + thisCalendar.name);
                         thisCalendar.mSupportedItemTypes.push(comp);
                     }
                 }
@@ -2032,7 +2033,7 @@ calDavCalendar.prototype = {
                             let end;
                             if (parts[1].charAt(0) == "P") { // this is a duration
                                 end = begin.clone();
-                                end.addDuration(cal.createDuration(parts[1]))
+                                end.addDuration(cal.createDuration(parts[1]));
                             } else {
                                 // This is a date string
                                 end = cal.createDateTime(parts[1]);
