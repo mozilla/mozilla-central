@@ -519,7 +519,7 @@
 
             onLocationChange : function(aWebProgress, aRequest, aLocation)
             {
-              if (aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
+              if (aRequest && aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
                 this.mBrowser.mIconURL = "";
                 this.mFeeds = [];
 
@@ -540,17 +540,9 @@
               if (this.mBlank)
                 return;
 
-              if (this.mTabBrowser.mCurrentTab == this.mTab) {
-                this.mTabBrowser.mProgressListeners.forEach(
-                  function notifyLocationChange(element) {
-                    try {
-                      element.onLocationChange(aWebProgress, aRequest, aLocation);
-                    } catch (e) {
-                      Components.utils.reportError(e);
-                    }
-                  }
-                );
-              }
+              if (this.mTabBrowser.mCurrentTab == this.mTab)
+                this.mTabBrowser.updateUrlBar(aWebProgress, aRequest, aLocation,
+                                              null, this.mBrowser, this.mFeeds);
 
               this.mTabBrowser.mTabsProgressListeners.forEach(
                 function notifyLocationChange(element) {
@@ -845,6 +837,43 @@
         </body>
       </method>
 
+      <method name="updateUrlBar">
+        <parameter name="aWebProgress"/>
+        <parameter name="aRequest"/>
+        <parameter name="aLocation"/>
+        <parameter name="aSecurityUI"/>
+        <parameter name="aBrowser"/>
+        <parameter name="aFeeds"/>
+        <body>
+          <![CDATA[
+            this.mProgressListeners.forEach(
+              function notifyUrlBar(element) {
+                try {
+                  element.onLocationChange(aWebProgress, aRequest, aLocation);
+                  // If switching tabs, the security may have changed.
+                  if (aSecurityUI)
+                    element.onSecurityChange(aWebProgress, null, aSecurityUI.state);
+                  // If the document already exists, just resend cached data.
+                  if (!aRequest && aWebProgress.DOMWindow == aBrowser.contentWindow) {
+                    if (aBrowser.mIconURL && "onLinkIconAvailable" in element)
+                      element.onLinkIconAvailable(aBrowser.mIconURL);
+                    if ("onFeedAvailable" in element) {
+                      aFeeds.forEach(
+                        function notifyFeedAvailable(feed) {
+                          element.onFeedAvailable(feed);
+                        }
+                      );
+                    }
+                  }
+                } catch (e) {
+                  Components.utils.reportError(e);
+                }
+              }
+            );
+          ]]>
+        </body>
+      </method>
+
       <method name="updateTitlebar">
         <body>
           <![CDATA[
@@ -973,32 +1002,12 @@
             this.mCurrentTab = this.selectedTab;
 
             // Update the URL bar.
-            var loc = this.mCurrentBrowser.currentURI;
-            var webProgress = this.mCurrentBrowser.webProgress;
-            var securityUI = this.mCurrentBrowser.securityUI;
-            this.mProgressListeners.forEach(
-              function notifyUrlBar(element) {
-                try {
-                  element.onLocationChange(webProgress, null, loc);
-                  if (securityUI)
-                    element.onSecurityChange(webProgress, null, securityUI.state);
-                  var listener = this.mTabListeners[this.mTabContainer
-                                                        .selectedIndex];
-                  if (listener.mBrowser.mIconURL && "onLinkIconAvailable" in element)
-                    element.onLinkIconAvailable(listener.mBrowser.mIconURL);
-                  if ("onFeedAvailable" in element) {
-                    listener.mFeeds.forEach(
-                      function notifyFeedAvailable(feed) {
-                        element.onFeedAvailable(feed);
-                      }
-                    );
-                  }
-                } catch (e) {
-                  Components.utils.reportError(e);
-                }
-              },
-              this
-            );
+            this.updateUrlBar(newBrowser.webProgress,
+                              null,
+                              newBrowser.currentURI,
+                              newBrowser.securityUI,
+                              newBrowser,
+                              this.mTabListeners[this.mTabContainer.selectedIndex].mFeeds);
 
             // Update the window title.
             this.updateTitlebar();
