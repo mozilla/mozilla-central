@@ -89,7 +89,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=377611
         var feeds = [];
 
         for each (var aFeed in discovered) {
-          feeds[aFeed.href] = true;
+          feeds[XPCNativeWrapper.unwrap(aFeed).href] = true;
         }
 
         for each (var aLink in document.getElementsByTagName("link")) {
