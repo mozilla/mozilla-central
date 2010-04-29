@@ -746,6 +746,71 @@ EOF
 
         unset _MSVC_VER_FILTER
 
+        AC_CACHE_CHECK(for std::_Throw, ac_cv_have_std__Throw,
+            [
+                AC_LANG_SAVE
+                AC_LANG_CPLUSPLUS
+                _SAVE_CXXFLAGS="$CXXFLAGS"
+                CXXFLAGS="${CXXFLAGS} -D_HAS_EXCEPTIONS=0"
+                AC_TRY_COMPILE([#include <exception>],
+                               [std::_Throw(std::exception()); return 0;],
+                                ac_cv_have_std__Throw="yes",
+                                ac_cv_have_std__Throw="no")
+                CXXFLAGS="$_SAVE_CXXFLAGS"
+                AC_LANG_RESTORE
+            ])
+
+        if test "$ac_cv_have_std__Throw" == "yes"; then
+            AC_CACHE_CHECK(for |class __declspec(dllimport) exception| bug,
+                           ac_cv_have_dllimport_exception_bug,
+                [
+                    AC_LANG_SAVE
+                    AC_LANG_CPLUSPLUS
+                    _SAVE_CXXFLAGS="$CXXFLAGS"
+                    CXXFLAGS="${CXXFLAGS} -D_HAS_EXCEPTIONS=0"
+                    AC_TRY_LINK([#include <vector>],
+                                [std::vector<int> v; return v.at(1);],
+                                ac_cv_have_dllimport_exception_bug="no",
+                                ac_cv_have_dllimport_exception_bug="yes")
+                    CXXFLAGS="$_SAVE_CXXFLAGS"
+                    AC_LANG_RESTORE
+                ])
+            if test "$ac_cv_have_dllimport_exception_bug" = "no"; then
+                WRAP_STL_INCLUDES=1
+                MOZ_MSVC_STL_WRAP__Throw=1
+                AC_DEFINE(MOZ_MSVC_STL_WRAP__Throw)
+            fi
+        else
+            AC_CACHE_CHECK(for overridable _RAISE,
+                           ac_cv_have__RAISE,
+                [
+                    AC_LANG_SAVE
+                    AC_LANG_CPLUSPLUS
+                    _SAVE_CXXFLAGS="$CXXFLAGS"
+                    CXXFLAGS="${CXXFLAGS} -D_HAS_EXCEPTIONS=0"
+                    AC_TRY_COMPILE([#include <xstddef>
+                                    #undef _RAISE
+                                    #define _RAISE(x) externallyDefinedFunction((x).what())
+                                    #include <vector>
+                                   ],
+                                   [std::vector<int> v; return v.at(1);],
+                                   ac_cv_have__RAISE="no",
+                                   ac_cv_have__RAISE="yes")
+                    CXXFLAGS="$_SAVE_CXXFLAGS"
+                    AC_LANG_RESTORE
+                ])
+            if test "$ac_cv_have__RAISE" = "yes"; then
+                WRAP_STL_INCLUDES=1
+                MOZ_MSVC_STL_WRAP__RAISE=1
+                AC_DEFINE(MOZ_MSVC_STL_WRAP__RAISE)
+            else
+                AC_MSG_ERROR([Gecko exception wrapping doesn't understand your your MSVC/SDK.  Please file a bug describing this error and your build configuration.])
+            fi
+        fi
+
+        if test "$WRAP_STL_INCLUDES" = "1"; then
+            STL_FLAGS='-D_HAS_EXCEPTIONS=0 -I$(DIST)/stl_wrappers'
+        fi
     else
         # Check w32api version
         _W32API_MAJOR_VERSION=`echo $W32API_VERSION | $AWK -F\. '{ print $1 }'`
@@ -846,10 +911,9 @@ AC_SUBST(GNU_CXX)
 AC_SUBST(INTEL_CC)
 AC_SUBST(INTEL_CXX)
 
-if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
 AC_SUBST(STL_FLAGS)
-true # Needed not to have an empty block.
-fi
+AC_SUBST(MOZ_MSVC_STL_WRAP__Throw)
+AC_SUBST(MOZ_MSVC_STL_WRAP__RAISE)
 
 dnl ========================================================
 dnl Checks for programs.
