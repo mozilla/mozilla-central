@@ -44,13 +44,13 @@
 <!ENTITY reloadImageCmd.label         "Reload Image">
 <!ENTITY reloadImageCmd.accesskey     "R">
 <!ENTITY viewImageCmd.label           "View Image">
-<!ENTITY viewImageCmd.accesskey       "w">
+<!ENTITY viewImageCmd.accesskey       "I">
 <!ENTITY viewVideoCmd.label           "View Video">
 <!ENTITY viewVideoCmd.accesskey       "i">
 <!ENTITY viewBGImageCmd.label         "View Background Image">
 <!ENTITY viewBGImageCmd.accesskey     "w">
 <!ENTITY setWallpaperCmd.label        "Set As Wallpaper">
-<!ENTITY setWallpaperCmd.accesskey    "e">
+<!ENTITY setWallpaperCmd.accesskey    "A">
 <!ENTITY bookmarkPageCmd.label        "Bookmark This Page">
 <!ENTITY bookmarkPageCmd.accesskey    "m">
 <!ENTITY bookmarkLinkCmd.label        "Bookmark This Link">
@@ -81,7 +81,7 @@
 <!ENTITY copyLinkCmd.label            "Copy Link Location">
 <!ENTITY copyLinkCmd.accesskey        "L">
 <!ENTITY copyImageCmd.label           "Copy Image">
-<!ENTITY copyImageCmd.accesskey       "I">
+<!ENTITY copyImageCmd.accesskey       "y">
 <!ENTITY copyVideoURLCmd.label        "Copy Video Location">
 <!ENTITY copyVideoURLCmd.accesskey    "L">
 <!ENTITY copyAudioURLCmd.label        "Copy Audio Location">
@@ -89,7 +89,7 @@
 <!ENTITY metadataCmd.label            "Properties">
 <!ENTITY metadataCmd.accesskey        "P">
 <!ENTITY copyEmailCmd.label           "Copy Email Address">
-<!ENTITY copyEmailCmd.accesskey       "A">
+<!ENTITY copyEmailCmd.accesskey       "s">
 <!ENTITY pasteCmd.label               "Paste">
 <!ENTITY pasteCmd.accesskey           "P">
 <!ENTITY cutCmd.label                 "Cut">

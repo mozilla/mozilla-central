@@ -234,18 +234,73 @@ function runTest(testNum) {
                           "context-copyimage",    true,
                           "---",                  null,
                           "context-saveimage",    true,
-                          "context-sendimage",    true,
-                          "---",                  null,
+                          "context-sendimage",    true].concat(
+                         ("@mozilla.org/suite/shell-service;1" in Components.classes) ?
+                         ["context-setWallpaper", true] : []).concat(
+                         ["---",                  null,
                           "context-bookmarkpage", true,
                           "context-savepage",     true,
                           "context-sendpage",     true,
                           "---",                  null,
-                          "context-metadata",     true]);
+                          "context-metadata",     true]));
+        closeContextMenu();
+        openContextMenuFor(img_link); // Invoke context menu for next test.
+        break;
+
+    case 7:
+        // Context menu for an image with a link
+        checkContextMenu(["popupwindow-reject",   true,
+                          "---",                  null,
+                          "context-openlink",      true,
+                          "context-openlinkintab", true,
+                          "---",                   null,
+                          "context-bookmarklink",  true,
+                          "context-savelink",      true,
+                          "context-sendlink",      true,
+                          "context-copylink",      true,
+                          "---",                   null,
+                          "context-reloadimage",  true,
+                          "context-viewimage",    true,
+                          "context-blockimage",   true,
+                          "context-copyimage",    true,
+                          "---",                  null,
+                          "context-saveimage",    true,
+                          "context-sendimage",    true].concat(
+                         ("@mozilla.org/suite/shell-service;1" in Components.classes) ?
+                         ["context-setWallpaper", true] : []).concat(
+                         ["---",                  null,
+                          "context-bookmarkpage", true,
+                          "---",                  null,
+                          "context-metadata",     true]));
+        closeContextMenu();
+        openContextMenuFor(img_mailto); // Invoke context menu for next test.
+        break;
+
+    case 8:
+        // Context menu for an image with a mailto: link
+        checkContextMenu(["popupwindow-reject",   true,
+                          "---",                  null,
+                          "context-copyemail",     true,
+                          "context-copylink",      true,
+                          "---",                   null,
+                          "context-reloadimage",  true,
+                          "context-viewimage",    true,
+                          "context-blockimage",   true,
+                          "context-copyimage",    true,
+                          "---",                  null,
+                          "context-saveimage",    true,
+                          "context-sendimage",    true].concat(
+                         ("@mozilla.org/suite/shell-service;1" in Components.classes) ?
+                         ["context-setWallpaper", true] : []).concat(
+                         ["---",                  null,
+                          "context-bookmarkpage", true,
+                          "---",                  null,
+                          "context-metadata",     true]));
         closeContextMenu();
         openContextMenuFor(canvas); // Invoke context menu for next test.
         break;
 
-    case 7:
+    case 9:
         // Context menu for a canvas
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -259,7 +314,7 @@ function runTest(testNum) {
         openContextMenuFor(video_ok); // Invoke context menu for next test.
         break;
 
-    case 8:
+    case 10:
         // Context menu for a video (with a VALID media source)
         checkContextMenu(["popupwindow-reject",         true,
                           "---",                        null,
@@ -277,7 +332,7 @@ function runTest(testNum) {
         openContextMenuFor(video_bad); // Invoke context menu for next test.
         break;
 
-    case 9:
+    case 11:
         // Context menu for a video (with an INVALID media source)
         checkContextMenu(["popupwindow-reject",         true,
                           "---",                        null,
@@ -295,7 +350,7 @@ function runTest(testNum) {
         openContextMenuFor(video_bad2); // Invoke context menu for next test.
         break;
 
-    case 10:
+    case 12:
         // Context menu for a video (with an INVALID media source)
         checkContextMenu(["popupwindow-reject",         true,
                           "---",                        null,
@@ -313,7 +368,7 @@ function runTest(testNum) {
         openContextMenuFor(iframe); // Invoke context menu for next test.
         break;
 
-    case 11:
+    case 13:
         // Context menu for an iframe
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -371,7 +426,8 @@ function runTest(testNum) {
 
 var testNum = 1;
 var subwindow, chromeWin, contextMenu;
-var text, link, mailto, input, img, canvas, video, iframe;
+var text, link, mailto, input, img, img_link, img_mailto, canvas, video_ok,
+    video_bad, video_bad2, iframe;
 
 function startTest() {
     netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
@@ -386,16 +442,18 @@ function startTest() {
     contextMenu = chromeWin.document.getElementById("contentAreaContextMenu");
     ok(contextMenu, "Got context menu XUL");
 
-    text   = subwindow.document.getElementById("test-text");
-    link   = subwindow.document.getElementById("test-link");
-    mailto = subwindow.document.getElementById("test-mailto");
-    input  = subwindow.document.getElementById("test-input");
-    img    = subwindow.document.getElementById("test-image");
-    canvas = subwindow.document.getElementById("test-canvas");
+    text       = subwindow.document.getElementById("test-text");
+    link       = subwindow.document.getElementById("test-link");
+    mailto     = subwindow.document.getElementById("test-mailto");
+    input      = subwindow.document.getElementById("test-input");
+    img        = subwindow.document.getElementById("test-image");
+    img_link   = subwindow.document.getElementById("test-image-link");
+    img_mailto = subwindow.document.getElementById("test-image-mailto");
+    canvas     = subwindow.document.getElementById("test-canvas");
     video_ok   = subwindow.document.getElementById("test-video-ok");
     video_bad  = subwindow.document.getElementById("test-video-bad");
     video_bad2 = subwindow.document.getElementById("test-video-bad2");
-    iframe = subwindow.document.getElementById("test-iframe");
+    iframe     = subwindow.document.getElementById("test-iframe");
 
     contextMenu.addEventListener("popupshown", function() { runTest(++testNum); }, false);
     runTest(1);
