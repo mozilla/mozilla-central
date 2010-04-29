@@ -84,8 +84,8 @@
 <!ENTITY calendar.unifinder.tree.duration.label      "Due in">
 <!ENTITY calendar.unifinder.close.tooltip            "Close event search and event list">
 
-<!ENTITY calendar.today.button.tooltip            "Go to today" >
-<!ENTITY calendar.todaypane.button.tooltip        "Show Today pane" >
+<!ENTITY calendar.today.button.tooltip          "Go to Today" >
+<!ENTITY calendar.todaypane.button.tooltip      "Show Today Pane" >
 
 <!ENTITY calendar.day.button.tooltip            "Switch to day view" >
 <!ENTITY calendar.week.button.tooltip           "Switch to week view" >
