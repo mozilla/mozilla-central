@@ -105,27 +105,27 @@ calFilter.prototype = {
         }
     },
 
-    get startDate cF_get_startDate() {
+    get startDate() {
         return this.mStartDate;
     },
 
-    set startDate cF_set_startDate(aStartDate) {
+    set startDate(aStartDate) {
         return (this.mStartDate = aStartDate);
     },
 
-    get endDate cF_get_endDate() {
+    get endDate() {
         return this.mEndDate;
     },
 
-    set endDate cF_set_endDate(aEndDate) {
+    set endDate(aEndDate) {
         return (this.mEndDate = aEndDate);
     },    
 
-    set textFilterField cF_setTextFilterField(aId) {
+    set textFilterField(aId) {
         return (this.mTextFilterField = aId);
     },
 
-    get textFilterField cF_getTextFilterField() {
+    get textFilterField() {
         return this.mTextFilterField;
     },
 
@@ -136,7 +136,7 @@ calFilter.prototype = {
         return inIt;
     },
 
-    get propertyFilter cF_get_propertyFilter() {
+    get propertyFilter() {
         if(!this.mPropertyFilter) {
             this.mPropertyFilter = filterAll;
         }
@@ -152,7 +152,7 @@ calFilter.prototype = {
      *                   -  aFilter is a function, the propertyFilter is set to be this
      *                      function
      */
-    set propertyFilter cF_set_propertyFilter(aFilter) {
+    set propertyFilter(aFilter) {
         if (typeof(aFilter) == "string") {
             // check if it is one of the build in filters
             if (this.mPropertyFilterBag[aFilter]) {

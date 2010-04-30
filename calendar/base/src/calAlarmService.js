@@ -193,13 +193,13 @@ calAlarmService.prototype = {
     /**
      * calIAlarmService APIs
      */
-    get timezone cAS_get_timezone() {
+    get timezone() {
         // TODO Do we really need this? Do we ever set the timezone to something
         // different than the default timezone?
         return this.mTimezone || calendarDefaultTimezone();
     },
 
-    set timezone cAS_set_timezone(aTimezone) {
+    set timezone(aTimezone) {
         return (this.mTimezone = aTimezone);
     },
 

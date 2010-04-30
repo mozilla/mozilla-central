@@ -56,7 +56,7 @@ calIntrinsicTimezone.prototype = {
         return (this.component ? this.component.toString() : this.tzid);
     },
 
-    get icalComponent calIntrinsicTimezone_get_icalcomponent() {
+    get icalComponent() {
         var comp = this.mComponent;
         if (comp && (typeof(comp) == "string")) {
             this.mComponent = getIcsService().parseICS("BEGIN:VCALENDAR\r\n" + comp + "END:VCALENDAR\r\n", null)
@@ -65,7 +65,7 @@ calIntrinsicTimezone.prototype = {
         return this.mComponent;
     },
 
-    get displayName calIntrinsicTimezone_get_displayName() {
+    get displayName() {
         if (this.mDisplayName === undefined) {
             try {
                 this.mDisplayName = g_stringBundle.GetStringFromName("pref.timezone." + this.tzid.replace(/\//g, "."));
@@ -78,7 +78,7 @@ calIntrinsicTimezone.prototype = {
         return this.mDisplayName;
     },
 
-    get provider calIntrinsicTimezone_get_provider() {
+    get provider() {
         return cal.getTimezoneService();
     }
 };
@@ -258,7 +258,7 @@ calTimezoneService.prototype = {
         return tz;
     },
 
-    get timezoneIds calTimezoneService_get_timezoneIds() {
+    get timezoneIds() {
         if (!this.mTzids) {
             var tzids = [];
             this.ensureInitialized();
@@ -275,12 +275,12 @@ calTimezoneService.prototype = {
         return new calStringEnumerator(this.mTzids);
     },
 
-    get version calTimezoneService_get_version() {
+    get version() {
         this.ensureInitialized();
         return this.mVersion;
     },
 
-    get defaultTimezone calTimezoneService_get_defaulTimezone() {
+    get defaultTimezone() {
         if (!this.mDefaultTimezone) {
             var prefTzid = getPrefSafe("calendar.timezone.local", null);
             var tzid = prefTzid;

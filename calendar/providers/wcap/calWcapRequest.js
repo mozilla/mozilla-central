@@ -79,10 +79,10 @@ calWcapRequest.prototype = {
     m_attachedRequests: null,
     m_locked: false,
 
-    get parentRequest calWcapRequest_parentRequestGetter() {
+    get parentRequest() {
         return this.m_parentRequest;
     },
-    set parentRequest calWcapRequest_parentRequestSetter(req) {
+    set parentRequest(req) {
         if (this.parentRequest) {
             logError("already has parent!", this);
         }
@@ -198,13 +198,13 @@ calWcapRequest.prototype = {
     },
 
     // calIOperation:
-    get id calWcapRequest_idGetter() {
+    get id() {
         return this.m_id;
     },
-    get isPending calWcapRequest_isPendingGetter() {
+    get isPending() {
         return this.m_isPending;
     },
-    get status calWcapRequest_statusGetter() {
+    get status() {
         return (this.m_status === null ? NS_OK : this.m_status);
     },
 
@@ -347,10 +347,10 @@ calWcapNetworkRequest.prototype = {
     },
 
     m_parentRequest: null,
-    get parentRequest calWcapNetworkRequest_parentRequestGetter() {
+    get parentRequest() {
         return this.m_parentRequest;
     },
-    set parentRequest calWcapNetworkRequest_parentRequestSetter(req) {
+    set parentRequest(req) {
         if (this.parentRequest) {
             logError("already has parent!", this);
         }
@@ -359,16 +359,16 @@ calWcapNetworkRequest.prototype = {
     },
 
     // calIOperation:
-    get id calWcapNetworkRequest_idGetter() {
+    get id() {
         return this.m_id;
     },
 
     m_isPending: true,
-    get isPending calWcapNetworkRequest_isPendingGetter() {
+    get isPending() {
         return this.m_isPending;
     },
 
-    get status calWcapNetworkRequest_statusGetter() {
+    get status() {
         return (this.request ? this.request.status : NS_OK);
     },
 
@@ -380,7 +380,7 @@ calWcapNetworkRequest.prototype = {
         }
     },
 
-    get request calWcapNetworkRequest_requestGetter() {
+    get request() {
         return (this.m_loader ? this.m_loader.channel : null);
     },
 

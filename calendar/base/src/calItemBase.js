@@ -88,7 +88,7 @@ calItemBase.prototype = {
      */
 
     // readonly attribute AUTF8String hashId;
-    get hashId cIB_get_hashId() {
+    get hashId() {
         if (this.mHashId === null) {
             var rid = this.recurrenceId;
             var cal = this.calendar;
@@ -101,10 +101,10 @@ calItemBase.prototype = {
     },
 
     // attribute AUTF8String id;
-    get id cIB_get_id() {
+    get id() {
         return this.getProperty("UID");
     },
-    set id cIB_set_id(uid) {
+    set id(uid) {
         this.mHashId = null; // recompute hashId
         this.setProperty("UID", uid);
         if (this.mRecurrenceInfo) {
@@ -114,29 +114,29 @@ calItemBase.prototype = {
     },
 
     // attribute calIDateTime recurrenceId;
-    get recurrenceId cIB_get_recurrenceId() {
+    get recurrenceId() {
         return this.getProperty("RECURRENCE-ID");
     },
-    set recurrenceId cIB_set_recurrenceId(rid) {
+    set recurrenceId(rid) {
         this.mHashId = null; // recompute hashId
         return this.setProperty("RECURRENCE-ID", rid);
     },
 
     // attribute calIRecurrenceInfo recurrenceInfo;
-    get recurrenceInfo cIB_get_recurrenceInfo() {
+    get recurrenceInfo() {
         return this.mRecurrenceInfo;
     },
-    set recurrenceInfo cIB_set_recurrenceInfo(value) {
+    set recurrenceInfo(value) {
         this.modify();
         return (this.mRecurrenceInfo = calTryWrappedJSObject(value));
     },
 
     // attribute calIItemBase parentItem;
     mParentItem: null,
-    get parentItem cIB_get_parentItem() {
+    get parentItem() {
         return (this.mParentItem || this);
     },
-    set parentItem cIB_set_parentItem(value) {
+    set parentItem(value) {
         if (this.mImmutable)
             throw Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE;
         return (this.mParentItem = calTryWrappedJSObject(value));
@@ -165,7 +165,7 @@ calItemBase.prototype = {
     },
 
     // readonly attribute boolean isMutable;
-    get isMutable cIB_get_isMutable() { return !this.mImmutable; },
+    get isMutable() { return !this.mImmutable; },
 
     /**
      * This function should be called by all members that modify the item. It
@@ -324,10 +324,10 @@ calItemBase.prototype = {
     },
 
     // attribute calIDateTime alarmLastAck;
-    get alarmLastAck cIB_get_alarmLastAck() {
+    get alarmLastAck() {
         return this.mAlarmLastAck;
     },
-    set alarmLastAck cIB_set_alarmLastAck(aValue) {
+    set alarmLastAck(aValue) {
         this.modify();
         if (aValue && !aValue.timezone.isUTC) {
             aValue = aValue.getInTimezone(UTC());
@@ -336,19 +336,19 @@ calItemBase.prototype = {
     },
 
     // readonly attribute calIDateTime lastModifiedTime;
-    get lastModifiedTime cIB_get_lastModifiedTime() {
+    get lastModifiedTime() {
         this.ensureNotDirty();
         return this.getProperty("LAST-MODIFIED");
     },
 
     // readonly attribute calIDateTime stampTime;
-    get stampTime cIB_get_stampTime() {
+    get stampTime() {
         this.ensureNotDirty();
         return this.getProperty("DTSTAMP");
     },
 
     // readonly attribute nsISimpleEnumerator propertyEnumerator;
-    get propertyEnumerator cIB_get_propertyEnumerator() {
+    get propertyEnumerator() {
         if (this.mIsProxy) {
             cal.ASSERT(this.parentItem != this);
             return { // nsISimpleEnumerator:
@@ -655,14 +655,14 @@ calItemBase.prototype = {
     },
 
     // attribute calICalendar calendar;
-    get calendar cIB_get_calendar() {
+    get calendar() {
         if (!this.mCalendar && (this.parentItem != this)) {
             return this.parentItem.calendar;
         } else {
             return this.mCalendar;
         }
     },
-    set calendar cIB_set_calendar(v) {
+    set calendar(v) {
         if (this.mImmutable)
             throw Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE;
         this.mHashId = null; // recompute hashId
@@ -670,14 +670,14 @@ calItemBase.prototype = {
     },
 
     // attribute calIAttendee organizer;
-    get organizer cIB_get_organizer() {
+    get organizer() {
         if (this.mIsProxy && (this.mOrganizer === undefined)) {
             return this.mParentItem.organizer;
         } else {
             return this.mOrganizer;
         }
     },
-    set organizer cIB_set_organizer(v) {
+    set organizer(v) {
         this.modify();
         this.mOrganizer = v;
     },
@@ -704,10 +704,10 @@ calItemBase.prototype = {
     },
 
     // attribute AUTF8String icalString;
-    get icalString cIB_get_icalString() {
+    get icalString() {
         throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
     },
-    set icalString cIB_set_icalString() {
+    set icalString() {
         throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
     },
 
@@ -913,19 +913,19 @@ calItemBase.prototype = {
     },
 
     // attribute calIIcalComponent icalComponent;
-    get icalComponent cIB_get_icalComponent() {
+    get icalComponent() {
         throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
     },
-    set icalComponent cIB_set_icalComponent() {
+    set icalComponent() {
         throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
     },
 
     // attribute PRUint32 generation;
-    get generation cIB_get_generation() {
+    get generation() {
         let gen = this.getProperty("X-MOZ-GENERATION");
         return (gen ? parseInt(gen, 10) : 0);
     },
-    set generation cIB_set_generation(aValue) {
+    set generation(aValue) {
         return this.setProperty("X-MOZ-GENERATION", String(aValue));
     },
 

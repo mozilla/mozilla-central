@@ -125,7 +125,7 @@ calDavCalendar.prototype = {
         return this.mSupportedItemTypes;
     },
 
-    get isCached caldav_get_isCached() {
+    get isCached() {
         return (this != this.superCalendar);
     },
 
@@ -148,11 +148,11 @@ calDavCalendar.prototype = {
     //
     // calICalendarProvider interface
     //
-    get prefChromeOverlay caldav_get_prefChromeOverlay() {
+    get prefChromeOverlay() {
         return null;
     },
 
-    get displayName caldav_get_displayName() {
+    get displayName() {
         return calGetString("calendar", "caldavName");
     },
 
@@ -242,21 +242,21 @@ calDavCalendar.prototype = {
     //
 
     // readonly attribute AUTF8String type;
-    get type caldav_get_type() { return "caldav"; },
+    get type() { return "caldav"; },
 
     mDisabled: true,
 
     mCalendarUserAddress: null,
-    get calendarUserAddress caldav_get_calendarUserAddress() {
+    get calendarUserAddress() {
         return this.mCalendarUserAddress;
     },
 
     mPrincipalUrl: null,
-    get principalUrl caldav_get_principalUrl() {
+    get principalUrl() {
         return this.mPrincipalUrl;
     },
 
-    get canRefresh caldav_get_canRefresh() {
+    get canRefresh() {
         // A cached calendar doesn't need to be refreshed.
         return !this.isCached;
     },
@@ -266,15 +266,15 @@ calDavCalendar.prototype = {
     // tickets
     mUriParams: null,
 
-    get uri caldav_get_uri() { return this.mUri; },
+    get uri() { return this.mUri; },
 
-    set uri caldav_set_uri(aUri) {
+    set uri(aUri) {
         this.mUri = aUri;
 
         return aUri;
     },
 
-    get calendarUri caldav_get_calendarUri() {
+    get calendarUri() {
         let calUri = this.mUri.clone();
         let parts = calUri.spec.split('?');
         if (parts.length > 1) {
@@ -301,21 +301,21 @@ calDavCalendar.prototype = {
     },
 
     mOutboxUrl:  null,
-    get outboxUrl caldav_get_outboxUrl() {
+    get outboxUrl() {
         return this.mOutboxUrl;
     },
 
     mInboxUrl: null,
-    get inboxUrl caldav_get_inboxUrl() {
+    get inboxUrl() {
         return this.mInboxUrl;
     },
 
     mHaveScheduling: false,
     mShouldPollInbox: true,
-    get hasScheduling caldav_get_hasScheduling() { // Whether to use inbox/outbox scheduling
+    get hasScheduling() { // Whether to use inbox/outbox scheduling
         return this.mHaveScheduling;
     },
-    set hasScheduling caldav_set_hasScheduling(value) {
+    set hasScheduling(value) {
         return (this.mHaveScheduling = (getPrefSafe("calendar.caldav.sched.enabled", false) && value));
     },
     hasAutoScheduling: false, // Whether server automatically takes care of scheduling
@@ -344,7 +344,7 @@ calDavCalendar.prototype = {
     // the calendar-data property.
     mHasWebdavSyncCalendarDataSupport: true,
 
-    get authRealm caldav_get_authRealm() {
+    get authRealm() {
         return this.mAuthRealm;
     },
 
@@ -357,7 +357,7 @@ calDavCalendar.prototype = {
         return makeURL(spec);
     },
 
-    get mLocationPath caldav_get_mLocationPath() {
+    get mLocationPath() {
         return decodeURIComponent(this.calendarUri.path);
     },
 
@@ -2160,15 +2160,15 @@ calDavCalendar.prototype = {
     // calIItipTransport interface
     //
 
-    get scheme caldav_get_scheme() {
+    get scheme() {
         return "mailto";
     },
 
     mSenderAddress: null,
-    get senderAddress caldav_get_senderAddress() {
+    get senderAddress() {
         return this.mSenderAddress || this.calendarUserAddress;
     },
-    set senderAddress caldav_set_senderAddress(aString) {
+    set senderAddress(aString) {
         return (this.mSenderAddress = aString);
     },
 

@@ -38,6 +38,8 @@
 
 // New code must not load/import calUtils.js, but should use calUtils.jsm.
 
+var gCalThreadingEnabled;
+
 EXPORTED_SYMBOLS = ["cal"];
 let cal = {
     // new code should land here,
@@ -107,11 +109,11 @@ let cal = {
         thread.processNextEvent(false /* don't wait */);
     },
 
-    get threadingEnabled cal_threadingEnabled() {
-        if (cal_threadingEnabled.val === undefined) {
-            cal_threadingEnabled.val = !cal.getPrefSafe("calendar.threading.disabled", false);
+    get threadingEnabled() {
+        if (gCalThreadingEnabled === undefined) {
+            gCalThreadingEnabled = !cal.getPrefSafe("calendar.threading.disabled", false);
         }
-        return cal_threadingEnabled.val;
+        return gCalThreadingEnabled;
     },
 
     getWorkerThread: function cal_getWorkerThread() {

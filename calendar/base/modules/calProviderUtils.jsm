@@ -546,15 +546,15 @@ cal.ProviderBase.prototype = {
         this.mProperties.currentStatus = Components.results.NS_OK;
     },
 
-    get observers cPB_observers_get() {
+    get observers() {
         return this.mObservers;
     },
 
     // attribute AUTF8String id;
-    get id cPB_id_get() {
+    get id() {
         return this.mID;
     },
-    set id cPB_id_set(aValue) {
+    set id(aValue) {
         if (this.mID) {
             throw Components.results.NS_ERROR_ALREADY_INITIALIZED;
         }
@@ -592,41 +592,41 @@ cal.ProviderBase.prototype = {
     },
 
     // attribute AUTF8String name;
-    get name cPB_name_get() {
+    get name() {
         return this.getProperty("name");
     },
-    set name cPB_name_set(aValue) {
+    set name(aValue) {
         return this.setProperty("name", aValue);
     },
 
     // attribute calICalendar superCalendar;
-    get superCalendar cPB_superCalendar_get() {
+    get superCalendar() {
         // If we have a superCalendar, check this calendar for a superCalendar.
         // This will make sure the topmost calendar is returned
         return (this.mSuperCalendar ? this.mSuperCalendar.superCalendar : this);
     },
-    set superCalendar cPB_superCalendar_set(val) {
+    set superCalendar(val) {
         return (this.mSuperCalendar = val);
     },
 
     // attribute nsIURI uri;
-    get uri cPB_uri_get() {
+    get uri() {
         return this.mUri;
     },
-    set uri cPB_uri_set(aValue) {
+    set uri(aValue) {
         return (this.mUri = aValue);
     },
 
     // attribute boolean readOnly;
-    get readOnly cPB_readOnly_get() {
+    get readOnly() {
         return this.getProperty("readOnly");
     },
-    set readOnly cPB_readOnly_set(aValue) {
+    set readOnly(aValue) {
         return this.setProperty("readOnly", aValue);
     },
 
     // readonly attribute boolean canRefresh;
-    get canRefresh cPB_canRefresh_get() {
+    get canRefresh() {
         return false;
     },
 
@@ -694,10 +694,10 @@ cal.ProviderBase.prototype = {
     },
 
     mTransientPropertiesMode: false,
-    get transientProperties cPB_transientProperties() {
+    get transientProperties() {
         return this.mTransientPropertiesMode;
     },
-    set transientProperties cPB_transientProperties(value) {
+    set transientProperties(value) {
         return (this.mTransientPropertiesMode = value);
     },
 

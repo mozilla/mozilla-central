@@ -120,7 +120,7 @@ calRecurrenceInfo.prototype = {
     /**
      * Mutability bits
      */
-    get isMutable cRI_get_isMutable() {
+    get isMutable() {
         return !this.mImmutable;
     },
     makeImmutable: function cRI_makeImmutable() {
@@ -165,10 +165,10 @@ calRecurrenceInfo.prototype = {
     /*
      * calIRecurrenceInfo
      */
-    get item cRI_get_item() {
+    get item() {
         return this.mBaseItem;
     },
-    set item cRI_set_item(value) {
+    set item(value) {
         this.ensureMutable();
 
         value = calTryWrappedJSObject(value);
@@ -179,7 +179,7 @@ calRecurrenceInfo.prototype = {
         }
     },
 
-    get isFinite cRI_get_isFinite() {
+    get isFinite() {
         this.ensureBaseItem();
 
         for each (ritem in this.mRecurrenceItems) {

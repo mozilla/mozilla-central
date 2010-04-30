@@ -242,7 +242,7 @@ calCompositeCalendar.prototype = {
         return this.mCalendars;
     },
 
-    get defaultCalendar cCC_get_defaultCalendar() {
+    get defaultCalendar() {
         return this.mDefaultCalendar;
     },
 

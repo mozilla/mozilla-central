@@ -99,7 +99,7 @@ calAlarm.prototype = {
         }
     },
 
-    get isMutable cA_get_isMutable() {
+    get isMutable() {
         return !this.mImmutable;
     },
 
@@ -190,10 +190,10 @@ calAlarm.prototype = {
     },
 
 
-    get related cA_get_related() {
+    get related() {
         return this.mRelated;
     },
-    set related cA_set_related(aValue) {
+    set related(aValue) {
         this.ensureMutable();
         switch (aValue) {
             case ALARM_RELATED_ABSOLUTE:
@@ -208,42 +208,42 @@ calAlarm.prototype = {
         return (this.mRelated = aValue);
     },
 
-    get action cA_get_action() {
+    get action() {
         return this.mAction || "DISPLAY";
     },
-    set action cA_set_action(aValue) {
+    set action(aValue) {
         this.ensureMutable();
         return (this.mAction = aValue);
     },
 
     // TODO Do we really need to expose this?
-    get description cA_get_description() {
+    get description() {
         if (this.action == "AUDIO") {
             return null;
         }
         return this.mDescription;
     },
-    set description cA_set_description(aValue) {
+    set description(aValue) {
         this.ensureMutable();
         return (this.mDescription = aValue);
     },
 
-    get summary cA_get_summary() {
+    get summary() {
         if (this.mAction == "DISPLAY" ||
             this.mAction == "AUDIO") {
             return null;
         }
         return this.mSummary;
     },
-    set summary cA_set_summary(aValue) {
+    set summary(aValue) {
         this.ensureMutable();
         return (this.mSummary = aValue);
     },
 
-    get offset cA_get_offset() {
+    get offset() {
         return this.mOffset;
     },
-    set offset cA_set_offset(aValue) {
+    set offset(aValue) {
         if (aValue && !(aValue instanceof Components.interfaces.calIDuration)) {
             throw Components.results.NS_ERROR_INVALID_ARG;
         }
@@ -255,10 +255,10 @@ calAlarm.prototype = {
         return (this.mOffset = aValue);
     },
 
-    get alarmDate cA_get_alarmDate() {
+    get alarmDate() {
         return this.mAbsoluteDate;
     },
-    set alarmDate cA_set_alarmDate(aValue) {
+    set alarmDate(aValue) {
         if (aValue && !(aValue instanceof Components.interfaces.calIDateTime)) {
             throw Components.results.NS_ERROR_INVALID_ARG;
         }
@@ -269,13 +269,13 @@ calAlarm.prototype = {
         return (this.mAbsoluteDate = aValue);
     },
 
-    get repeat cA_get_repeat() {
+    get repeat() {
         if ((this.mRepeat != 0) ^ (this.mDuration != null)) {
             return 0;
         }
         return this.mRepeat || 0;
     },
-    set repeat cA_set_repeat(aValue) {
+    set repeat(aValue) {
         this.ensureMutable();
         if (aValue === null) {
             this.mRepeat = null;
@@ -288,13 +288,13 @@ calAlarm.prototype = {
         return aValue;
     },
 
-    get repeatOffset cA_get_repeatOffset() {
+    get repeatOffset() {
         if ((this.mRepeat != 0) ^ (this.mDuration != null)) {
             return null;
         }
         return this.mDuration;
     },
-    set repeatOffset cA_set_repeatOffset(aValue) {
+    set repeatOffset(aValue) {
         this.ensureMutable();
         if (aValue !== null &&
             !(aValue instanceof Components.interfaces.calIDuration)) {
@@ -303,7 +303,7 @@ calAlarm.prototype = {
         return (this.mDuration = aValue);
     },
 
-    get repeatDate cA_get_repeatDate() {
+    get repeatDate() {
         if (this.related != ALARM_RELATED_ABSOLUTE ||
             !this.mAbsoluteDate ||
             !this.mRepeat ||
@@ -318,16 +318,16 @@ calAlarm.prototype = {
         return alarmDate.addDuration(this.mDuration);
     },
 
-    get attendees cA_get_attendees() {
+    get attendees() {
         return this.mAttendees;
     },
-    set attendees cA_set_attendees(aValue) {
+    set attendees(aValue) {
         this.ensureMutable();
         // TODO Make add/update/deleteAttendee
         return (this.mAttendees = aValue);
     },
 
-    get attachments cA_get_attachments() {
+    get attachments() {
         if (this.action == "AUDIO") {
             return this.mAttachments.splice(1);
         } else if (this.action == "DISPLAY") {
@@ -335,17 +335,17 @@ calAlarm.prototype = {
         }
         return this.mAttachments;
     },
-    set attachments cA_set_attachments(aValue) {
+    set attachments(aValue) {
         this.ensureMutable();
         // TODO Make add/update/deleteAttendee
         return (this.mAttachments = aValue);
     },
 
-    get icalString cA_get_icalString() {
+    get icalString() {
         let comp = this.icalComponent;
         return (comp ? comp.serializeToICS() : "");
     },
-    set icalString cA_set_icalString(val) {
+    set icalString(val) {
         this.ensureMutable();
         return (this.icalComponent = getIcsService().parseICS(val, null));
     },
@@ -360,7 +360,7 @@ calAlarm.prototype = {
         "X-MOZ-LASTACK": "lastAck"
     },
 
-    get icalComponent cA_get_icalComponent() {
+    get icalComponent() {
         let icssvc = getIcsService();
         let comp = icssvc.createIcalComponent("VALARM");
 
@@ -469,7 +469,7 @@ calAlarm.prototype = {
         }
         return comp;
     },
-    set icalComponent cA_set_icalComponent(aComp) {
+    set icalComponent(aComp) {
         this.ensureMutable();
         if (!aComp || aComp.componentType != "VALARM") {
             // Invalid Component
@@ -591,7 +591,7 @@ calAlarm.prototype = {
         }
     },
 
-    get propertyEnumerator cA_get_propertyEnumerator() {
+    get propertyEnumerator() {
         return this.mProperties.enumerator;
     },
 

@@ -50,7 +50,7 @@ var taskEdit = {
      * Get the currently observed calendar.
      */
     mObservedCalendar: null,
-    get observedCalendar tE_get_observedCalendar() {
+    get observedCalendar() {
         return this.mObservedCalendar;
     },
 
@@ -58,7 +58,7 @@ var taskEdit = {
      * Set the currently observed calendar, removing listeners to any old
      * calendar set and adding listeners to the new one.
      */
-    set observedCalendar tE_set_observedCalendar(v) {
+    set observedCalendar(v) {
         if (this.mObservedCalendar) {
             this.mObservedCalendar.removeObserver(this.calendarObserver);
         }

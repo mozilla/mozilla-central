@@ -89,21 +89,21 @@ calRelation.prototype = {
      * @see calIRelation
      */
 
-    get relType cR_get_relType() {
+    get relType() {
         return this.mType;
     },
-    set relType cR_set_relType(aType) {
+    set relType(aType) {
         return (this.mType = aType);
     },
 
-    get relId cR_get_relId() {
+    get relId() {
         return this.mId;
     },
-    set relId cR_set_relId(aRelId) {
+    set relId(aRelId) {
         return (this.mId = aRelId);
     },
 
-    get icalProperty cR_get_icalProperty(attProp) {
+    get icalProperty(attProp) {
         var icssvc = getIcsService();
         var icalatt = icssvc.createIcalProperty("RELATED-TO");
         if (this.mId) {
@@ -120,7 +120,7 @@ calRelation.prototype = {
         return icalatt;
     },
 
-    set icalProperty cR_set_icalProperty(attProp) {
+    set icalProperty(attProp) {
         // Reset the property bag for the parameters, it will be re-initialized
         // from the ical property.
         this.mProperties = new calPropertyBag();

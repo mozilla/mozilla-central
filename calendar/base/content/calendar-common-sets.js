@@ -657,7 +657,7 @@ var calendarController = {
     /**
      * Returns a boolean indicating that tasks are selected.
      */
-    get todo_items_selected cC_todo_items_selected() {
+    get todo_items_selected() {
         var selectedTasks = getSelectedTasks();
         return (selectedTasks.length > 0);
     },
@@ -666,7 +666,7 @@ var calendarController = {
      * Returns a boolean indicating that at least one task in the selection is
      * on a calendar that is writable.
      */
-    get todo_items_writable cC_todo_items_writable() {
+    get todo_items_writable() {
         var selectedTasks = getSelectedTasks();
         for each (var task in selectedTasks) {
             if (isCalendarWritable(task.calendar)) {

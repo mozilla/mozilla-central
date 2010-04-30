@@ -95,7 +95,7 @@ calMemoryCalendar.prototype = {
     },
 
     mRelaxedMode: undefined,
-    get relaxedMode calMemoryCalendar_relaxedModeGetter() {
+    get relaxedMode() {
         if (this.mRelaxedMode === undefined) {
             this.mRelaxedMode = this.getProperty("relaxedMode");
         }

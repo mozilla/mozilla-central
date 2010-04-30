@@ -161,10 +161,10 @@ calStorageCalendar.prototype = {
     get type() { return "storage"; },
 
     // attribute AUTF8String id;
-    get id cSC_get_id() {
+    get id() {
         return this.__proto__.__proto__.__lookupGetter__("id").call(this);
     },
-    set id cSC_set_id(val) {
+    set id(val) {
         let id = this.__proto__.__proto__.__lookupSetter__("id").call(this, val);
 
         if (!this.mDB && this.uri && this.id) {
@@ -175,10 +175,10 @@ calStorageCalendar.prototype = {
     },
 
     // attribute nsIURI uri;
-    get uri cSC_get_uri() {
+    get uri() {
         return this.__proto__.__proto__.__lookupGetter__("uri").call(this);
     },
-    set uri cSC_set_uri(aUri) {
+    set uri(aUri) {
         // We can only load once
         if (this.uri) {
             throw Components.results.NS_ERROR_FAILURE;

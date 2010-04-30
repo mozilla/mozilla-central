@@ -72,7 +72,7 @@
          this.mStatusText.setAttribute("label", status);
      },
 
-     get spinning cStObs_spinning() {
+     get spinning() {
          return this.mProgressMode;
      },
 

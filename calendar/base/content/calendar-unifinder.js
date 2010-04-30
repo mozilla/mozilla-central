@@ -453,14 +453,14 @@ var unifinderTreeView = {
     /**
      * Returns the currently selected column in the unifinder (used for sorting).
      */
-    get selectedColumn uTV_getSelectedColumn() {
+    get selectedColumn() {
         return this.mSelectedColumn;
     },
 
     /**
      * Sets the currently selected column in the unifinder (used for sorting).
      */
-    set selectedColumn uTV_setSelectedColumn(aCol) {
+    set selectedColumn(aCol) {
         var tree = document.getElementById("unifinder-search-results-tree");
         var treecols = tree.getElementsByTagName("treecol");
         for (var i = 0; i < treecols.length; i++) {
@@ -692,7 +692,7 @@ var unifinderTreeView = {
      * Tree View Implementation
      * @see nsITreeView
      */
-    get rowCount uTV_getRowCount() {
+    get rowCount() {
         return this.eventArray.length;
     },
 

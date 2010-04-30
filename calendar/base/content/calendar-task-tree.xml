@@ -351,11 +351,11 @@
           mSelectedColumn: null,
           sortDirection: null,
 
-          get selectedColumn tTV_getSelectedColumn() {
+          get selectedColumn() {
               return this.mSelectedColumn;
           },
 
-          set selectedColumn tTV_setSelectedColumn(aCol) {
+          set selectedColumn(aCol) {
               var tree = document.getAnonymousNodes(this.binding)[0];
               var treecols = tree.getElementsByTagNameNS(tree.namespaceURI, "treecol");
               for (var i = 0; i < treecols.length; i++) {

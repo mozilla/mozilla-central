@@ -50,7 +50,7 @@ function calWcapTimezone(tzProvider, tzid_, component_) {
     this.longitude = null;
 }
 calWcapTimezone.prototype = {
-    get displayName calWcapTimezone_get_displayName() {
+    get displayName() {
         if (this.mDisplayName === undefined) {
             // used l10n'ed display name if available:
             let tz = cal.getTimezoneService().getTimezone(this.tzid);
@@ -162,7 +162,7 @@ calWcapSession.prototype = {
 
     // calITimezoneProvider:
     m_serverTimezones: null,
-    get timezoneIds calWcapSession_timezoneIdsGetter() {
+    get timezoneIds() {
         var tzids = [];
         for (var tzid in this.m_serverTimezones) {
             tzids.push(tzid);
@@ -786,7 +786,7 @@ calWcapSession.prototype = {
     },
 
     m_credentials: null,
-    get credentials calWcapSession_credentialsGetter() {
+    get credentials() {
         if (!this.m_credentials) {
             this.m_credentials = {};
         }
@@ -798,23 +798,23 @@ calWcapSession.prototype = {
     m_contextId: null,
     m_uri: null,
     m_sessionUri: null,
-    get uri calWcapSession_uriGetter() {
+    get uri() {
         return this.m_uri;
     },
-    get sessionUri calWcapSession_sessionUriGetter() {
+    get sessionUri() {
         return this.m_sessionUri;
     },
-    set uri calWcapSession_uriSetter(thatUri) {
+    set uri(thatUri) {
         this.m_uri = thatUri.clone();
         this.m_sessionUri = thatUri.clone();
         this.m_sessionUri.userPass = "";
     },
 
-    get userId calWcapSession_userIdGetter() {
+    get userId() {
         return this.credentials.userId;
     },
 
-    get defaultCalId calWcapSession_defaultCalIdGetter() {
+    get defaultCalId() {
         var list = this.getUserPreferences("X-NSCP-WCAP-PREF-icsCalendar");
         var id = null;
         for each (var item in list) {
@@ -826,7 +826,7 @@ calWcapSession.prototype = {
         return (id ? id : this.credentials.userId);
     },
 
-    get isLoggedIn calWcapSession_isLoggedInGetter() {
+    get isLoggedIn() {
         return (this.m_sessionId != null);
     },
 
@@ -866,7 +866,7 @@ calWcapSession.prototype = {
         return prefs;
     },
 
-    get defaultAlarmStart calWcapSession_defaultAlarmStartGetter() {
+    get defaultAlarmStart() {
         var alarmStart = null;
         var ar = this.getUserPreferences("X-NSCP-WCAP-PREF-ceDefaultAlarmStart");
         if (ar.length > 0 && ar[0].length > 0) {

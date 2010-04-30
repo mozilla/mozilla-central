@@ -87,28 +87,28 @@ calAttachment.prototype = {
      * calIAttachment
      */
 
-    get uri cA_get_uri() {
+    get uri() {
         return this.mUri;
     },
-    set uri cA_set_uri(aUri) {
+    set uri(aUri) {
         return (this.mUri = aUri);
     },
 
-    get formatType cA_get_formatType() {
+    get formatType() {
         return this.mType;
     },
-    set formatType cA_set_formatType(aType) {
+    set formatType(aType) {
         return (this.mType = aType);
     },
 
-    get encoding cA_get_encoding() {
+    get encoding() {
         return this.mEncoding
     },
-    set encoding cA_set_encoding(aValue) {
+    set encoding(aValue) {
         return (this.mEncoding = aValue);
     },
 
-    get icalProperty cA_get_icalProperty(attProp) {
+    get icalProperty(attProp) {
         var icssvc = getIcsService();
         var icalatt = icssvc.createIcalProperty("ATTACH");
         if (this.mUri) {
@@ -129,7 +129,7 @@ calAttachment.prototype = {
         return icalatt;
     },
 
-    set icalProperty cA_set_icalProperty(attProp) {
+    set icalProperty(attProp) {
         // Reset the property bag for the parameters, it will be re-initialized
         // from the ical property.
         this.mProperties = new calPropertyBag();

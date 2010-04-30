@@ -81,7 +81,7 @@ calWcapCalendar.prototype = {
     },
 
     // calICalendarProvider:
-    get prefChromeOverlay calWcapCalendar_prefChromeOverlayGetter() {
+    get prefChromeOverlay() {
         return null;
     },
     // displayName attribute already part of calIWcapCalendar
@@ -96,26 +96,26 @@ calWcapCalendar.prototype = {
     },
 
     // calICalendar:
-    get name calWcapCalendar_nameGetter() {
+    get name() {
         var name = this.getProperty("name");
         if (!name) {
             name = this.displayName;
         }
         return name;
     },
-    set name calWcapCalendar_nameSetter(aValue) {
+    set name(aValue) {
         return this.setProperty("name", aValue);
     },
 
-    get type calWcapCalendar_typeGetter() {
+    get type() {
         return "wcap";
     },
 
     m_uri: null,
-    get uri calWcapCalendar_uriGetter() {
+    get uri() {
         return this.m_uri;
     },
-    set uri calWcapCalendar_uriSetter(thatUri) {
+    set uri(thatUri) {
         this.m_uri = thatUri.clone();
         var path = thatUri.path;
         var qmPos = path.indexOf("?");
@@ -209,7 +209,7 @@ calWcapCalendar.prototype = {
         this.notifyObservers("onEndBatch");
     },
 
-    get canRefresh calWcapCalendar_canRefreshGetter() {
+    get canRefresh() {
         return true;
     },
     refresh: function calWcapCalendar_refresh() {
@@ -246,7 +246,7 @@ calWcapCalendar.prototype = {
     // calIWcapCalendar:
 
     m_session: null,
-    get session calWcapCalendar_sessionGetter() {
+    get session() {
         if (!this.m_session) {
             this.m_session = getWcapSessionFor(this);
         }
@@ -254,11 +254,11 @@ calWcapCalendar.prototype = {
     },
 
     m_calId: null,
-    get calId calWcapCalendar_calIdGetter() {
+    get calId() {
         return (this.m_calId || this.session.defaultCalId);
     },
 
-    get ownerId calWcapCalendar_ownerIdGetter() {
+    get ownerId() {
         var ar = this.getCalendarProperties("X-NSCP-CALPROPS-PRIMARY-OWNER");
         if (ar.length == 0) {
             var calId = this.calId;
@@ -272,7 +272,7 @@ calWcapCalendar.prototype = {
         return ar[0];
     },
 
-    get description calWcapCalendar_descriptionGetter() {
+    get description() {
         var ar = this.getCalendarProperties("X-NSCP-CALPROPS-DESCRIPTION");
         if (ar.length == 0) {
             // fallback to display name:
@@ -281,7 +281,7 @@ calWcapCalendar.prototype = {
         return ar[0];
     },
 
-    get displayName calWcapCalendar_displayNameGetter() {
+    get displayName() {
         var ar = this.getCalendarProperties("X-NSCP-CALPROPS-NAME");
         if (ar.length == 0) {
             // fallback to common name:
@@ -293,14 +293,14 @@ calWcapCalendar.prototype = {
         return ar[0];
     },
 
-    get isOwnedCalendar calWcapCalendar_isOwnedCalendarGetter() {
+    get isOwnedCalendar() {
         if (this.isDefaultCalendar) {
             return true; // default calendar is owned
         }
         return (this.ownerId == this.session.userId);
     },
 
-    get isDefaultCalendar calWcapCalendar_isDefaultCalendarGetter() {
+    get isDefaultCalendar() {
         return !this.m_calId;
     },
 
@@ -316,7 +316,7 @@ calWcapCalendar.prototype = {
         return ret;
     },
 
-    get defaultTimezone calWcapCalendar_defaultTimezoneGetter() {
+    get defaultTimezone() {
         var tzid = this.getCalendarProperties("X-NSCP-CALPROPS-TZID");
         if (tzid.length > 0) { // first try server-configured tz:
             return tzid[0];
