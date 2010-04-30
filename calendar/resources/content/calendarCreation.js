@@ -224,19 +224,12 @@ function parseUri(aUri) {
     let calManager = cal.getCalendarManager();
     let cals = calManager.getCalendars({});
     let type = document.getElementById('calendar-type').selectedItem.value;
-    let alreadyExists = false;
-    do {
-        alreadyExists = cals.some(function (c) c.uri.spec == uri.spec);
-        if (alreadyExists) {
-            if (type != 'local') {
-                return [errorConstants.ALREADY_EXISTS, null];
-            }
-            function uriIncrementer(s, id) {
-                return "id=" + (Number(id) + 1);
-            }
-            uri.spec = uri.spec.replace(/id=(\d+)/, uriIncrementer);
-        }
-    } while (alreadyExists);
+    if (type != 'local' && cals.some(function (c) c.uri.spec == uri.spec)) {
+        // If the calendar is not local, we check if there is already a calendar
+        // with the same uri spec. Storage calendars all have the same uri, so
+        // we have to specialcase them.
+        return [errorConstants.ALREADY_EXISTS, null];
+    }
 
     return [errorConstants.SUCCESS, uri];
 }
