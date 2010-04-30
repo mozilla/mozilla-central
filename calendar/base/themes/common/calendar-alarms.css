@@ -38,7 +38,9 @@
  * Reminder icons (used from the event dialog, reminder dialog, views, ...)
  */
 .reminder-icon {
+    /* Initially hide the image, overwrite by setting a correct image region */
     list-style-image: url(chrome://calendar/skin/alarm-icons.png);
+    -moz-image-region: rect(0px 1px 1px 0px);
 }
 
 .reminder-icon[value="DISPLAY"] {
