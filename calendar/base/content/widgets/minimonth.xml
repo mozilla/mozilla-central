@@ -595,27 +595,25 @@
           // Skip transparent events
           return;
         }
-        var start = aOccurrence.startDate ||
-                    aOccurrence.entryDate ||
-                    aOccurrence.dueDate;
-        var end = aOccurrence.endDate || aOccurrence.dueDate || start;
+        let start = aOccurrence[calGetStartDateProp(aOccurrence)] || aOccurrence.dueDate;
+        let end = aOccurrence[calGetEndDateProp(aOccurrence)] || start;
         if (!start) {
             return;
         }
 
         // We need to compare with midnight of the current day, so reset the
         // time here.
-        var current = start.clone();
+        let current = start.clone().getInTimezone(cal.calendarDefaultTimezone());
         current.hour = 0;
         current.minute = 0;
         current.second = 0;
 
         // Cache the result so the compare isn't called in each iteration.
-        var compareResult = (start.compare(end) == 0 ? 1 : 0);
+        let compareResult = (start.compare(end) == 0 ? 1 : 0);
 
         // Setup the busy days.
         while (current.compare(end) < compareResult) {
-            var box = this.getBoxForDate(current.jsDate);
+            let box = this.getBoxForDate(current);
             if (box) {
                 let busyCalendars = this.parseBoxBusy(box);
                 if (!busyCalendars[aOccurrence.calendar.id])
@@ -928,12 +926,19 @@
       </method>
 
       <method name="getBoxForDate">
-        <parameter name="aJsDate"/>
+        <parameter name="aDate"/>
         <body><![CDATA[
-            var ymd = aJsDate.getFullYear() + "-" +
-                      aJsDate.getMonth() + "-" +
-                      aJsDate.getDate();
-            return this.mDayMap[ymd] || null;
+            let ymd;
+            if (aDate instanceof Date) {
+                ymd = [aDate.getFullYear(),
+                       aDate.getMonth(),
+                       aDate.getDate()].join("-");
+            } else {
+                // Probably a calIDateTime
+                ymd = [aDate.year, aDate.month, aDate.day].join("-");
+            }
+
+            return (ymd in this.mDayMap ? this.mDayMap[ymd] : null);
         ]]></body>
       </method>
 
