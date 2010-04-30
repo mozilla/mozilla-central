@@ -938,24 +938,16 @@ function saveDateTime(item) {
  * modified.
  */
 function updateTitle() {
-    var title = "";
-    var isNew = window.calendarItem.isMutable;
-    if (isEvent(window.calendarItem)) {
-        if (isNew) {
-            title = calGetString("calendar", "newEventDialog");
-        } else {
-            title = calGetString("calendar", "editEventDialog");
-        }
-    } else if (isToDo(window.calendarItem)) {
-        if (isNew) {
-            title = calGetString("calendar", "newTaskDialog");
-        } else {
-            title = calGetString("calendar", "editTaskDialog");
-        }
+    let strName;
+    if (cal.isEvent(window.calendarItem)) {
+        strName = (window.mode == "new" ? "newEventDialog" : "editEventDialog");
+    } else if (cal.isToDo(window.calendarItem)) {
+        strName = (window.mode == "new" ? "newTaskDialog" : "editTaskDialog");
+    } else {
+        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
     }
-    title += ': ';
-    title += getElementValue("item-title");
-    document.title = title;
+    document.title = cal.calGetString("calendar", strName) + ": " +
+                        getElementValue("item-title");
 }
 
 /**
@@ -2244,7 +2236,8 @@ function onCommandSave(aIsClosing) {
             // Check if the current window has a calendarItem first, because in case of undo
             // window refers to the main window and we would get a 'calendarItem is undefined' warning.
             if ("calendarItem" in window) {
-                if (aId == window.calendarItem.id && Components.isSuccessCode(aStatus)) {
+                if ((!window.calendarItem.id ||aId == window.calendarItem.id) &&
+                    Components.isSuccessCode(aStatus)) {
                     if (window.calendarItem.recurrenceId) {
                         // TODO This workaround needs to be removed in bug 396182
                         // We are editing an occurrence. Make sure that the returned
@@ -2256,6 +2249,10 @@ function onCommandSave(aIsClosing) {
                         // We are editing the parent item, no workarounds needed
                         window.calendarItem = aItem;
                     }
+
+                    // We now have an item, so we must change to an edit.
+                    window.mode = "modify";
+                    updateTitle();
                 }
             }
         }
