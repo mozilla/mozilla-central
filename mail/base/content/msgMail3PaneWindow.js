@@ -319,6 +319,7 @@ function OnLoadMessenger()
     tabmail.registerTabType(mailTabType);
     // glodaFacetTab* in glodaFacetTab.js
     tabmail.registerTabType(glodaFacetTabType);
+    QuickFilterBarMuxer._init();
     tabmail.registerTabMonitor(GlodaSearchBoxTabMonitor);
     tabmail.registerTabMonitor(statusMessageCountsMonitor);
     tabmail.openFirstTab();

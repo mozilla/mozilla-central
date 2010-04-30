@@ -51,6 +51,11 @@ Components.utils.import("resource:///modules/quickFilterManager.js");
  *  actual filterer objects.
  */
 let QuickFilterBarMuxer = {
+  /**
+   * This gets called by OnLoadMessenger in order to ensure that the monitor
+   *  gets registered prior to the first tab being opened.  This avoids
+   *  complications about generating synthetic tab notifications.
+   */
   _init: function QFBM__init() {
     // -- folder display hookup
     FolderDisplayListenerManager.registerListener(this);
@@ -58,10 +63,6 @@ let QuickFilterBarMuxer = {
     // -- tab monitor hookup
     this.tabmail = document.getElementById("tabmail");
     this.tabmail.registerTabMonitor(this);
-    // We may be registering after the first tab was opened, in which case
-    //  we should generate a synthetic notification to ourselves.
-    if (this.tabmail.currentTabInfo)
-      this.onTabOpened(this.tabmail.currentTabInfo, true, null);
 
     // -- window hookups
     let dis = this;
@@ -544,7 +545,7 @@ let QuickFilterBarMuxer = {
   updateSearch: function QFBM_updateSearch(aTab) {
     let tab = aTab || this.tabmail.currentTabInfo;
     // bail if things don't really exist yet
-    if (!tab.folderDisplay.view.search)
+    if (!tab.folderDisplay || !tab.folderDisplay.view.search)
       return;
 
     let filterer = tab._ext.quickFilter;
@@ -623,4 +624,3 @@ let QuickFilterBarMuxer = {
     this.reflectFiltererState(filterer, tab.folderDisplay);
   },
 };
-addEventListener("load", function() QuickFilterBarMuxer._init(), false);
