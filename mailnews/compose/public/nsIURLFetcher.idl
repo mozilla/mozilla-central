@@ -57,7 +57,7 @@ typedef nsresult (*nsAttachSaveCompletionCallback) (nsresult aStatus,
 native nsAttachSaveCompletionCallback(nsAttachSaveCompletionCallback);
 
 
-[noscript, uuid(3ef12571-d41f-48ce-9d55-086e6d3c9bc0)]
+[noscript, uuid(4f3ad52d-888d-487d-961c-9c727c35434c)]
 interface nsIURLFetcher : nsISupports
 {
   boolean stillRunning();
