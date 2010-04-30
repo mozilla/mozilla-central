@@ -47,12 +47,13 @@ MODULE = calbase
 
 EXTRA_JS_MODULES = \
     calAlarmUtils.jsm \
-    calUtils.jsm \
+    calAuthUtils.jsm \
+    calHashedArray.jsm \
     calIteratorUtils.jsm \
     calItipUtils.jsm \
     calPrintUtils.jsm \
     calProviderUtils.jsm \
-    calAuthUtils.jsm \
+    calUtils.jsm \
     $(NULL)
 
 include $(topsrcdir)/config/rules.mk
