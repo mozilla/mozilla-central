@@ -56,6 +56,7 @@ components/nsBackgroundUpdateService.js
 components/nsCloseAllWindows.js
 components/nsComposerCmdLineHandler.js
 components/nsDownloadProgressListener.js
+components/nsExtensionManager.js
 #ifdef MOZILLA_1_9_2_BRANCH
 @BINPATH@/components/nsINIProcessor.js
 #endif
@@ -97,13 +98,8 @@ components/widget_mac.xpt
 #endif
 components/@DLL_PREFIX@xpcom_compat_c@DLL_SUFFIX@
 components/xpcom_obsolete.xpt
-#ifdef XP_WIN
-#ifndef MOZILLA_1_9_2_BRANCH
-components/xpinstal.dll
-#else
-components/xpinstall.dll
-#endif
-#endif
+@BINPATH@/components/@DLL_PREFIX@xpinstal@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@xpinstall@DLL_SUFFIX@
 components/xpti.dat
 components/xptitemp.dat
 components/myspell/en-US.dic
