@@ -1426,42 +1426,6 @@ PRBool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
   return domainIsTrusted;
 }
 
-nsresult FolderUriFromDirInProfile(nsILocalFile *aLocalPath, nsACString &mailboxUri)
-{
-  nsresult rv;
-
-  nsCOMPtr<nsIMsgAccountManager> accountManager =
-    do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIArray> folderArray;
-  rv = accountManager->GetAllFolders(getter_AddRefs(folderArray));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  PRUint32 count;
-  rv = folderArray->GetLength(&count);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  for (PRUint32 i = 0; i < count; i++)
-  {
-    nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(folderArray, i, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsILocalFile> folderPath;
-    rv = folder->GetFilePath(getter_AddRefs(folderPath));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // Check if we're equal
-    PRBool isEqual;
-    rv = folderPath->Equals(aLocalPath, &isEqual);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    if (isEqual)
-      return folder->GetURI(mailboxUri);
-  }
-  return NS_ERROR_FAILURE;
-}
-
 nsresult MsgGetLocalFileFromURI(const nsACString &aUTF8Path, nsILocalFile **aFile)
 {
   nsresult rv;

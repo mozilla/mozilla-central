@@ -188,9 +188,14 @@ NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
     if (m_filePath)
     {
       nsCAutoString baseUri;
+      nsresult rv;
+      nsCOMPtr<nsIMsgAccountManager> accountManager =
+        do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+
       // we blow off errors here so that we can open attachments
       // in .eml files.
-      (void) FolderUriFromDirInProfile(m_filePath, baseUri);
+      (void) accountManager->FolderUriForPath(m_filePath, baseUri);
       if (baseUri.IsEmpty())
         m_baseURL->GetSpec(baseUri);
       nsCString baseMessageURI;

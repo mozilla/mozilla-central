@@ -3668,3 +3668,47 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemEvent(nsIMsgFolder *aFolder, nsIAtom *a
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
+
+NS_IMETHODIMP 
+nsMsgAccountManager::FolderUriForPath(nsILocalFile *aLocalPath,
+                                               nsACString &aMailboxUri)
+{
+  NS_ENSURE_ARG_POINTER(aLocalPath);
+  PRBool equals;
+  if (NS_SUCCEEDED(aLocalPath->Equals(m_lastPathLookedUp, &equals)) && equals)
+  {
+    aMailboxUri = m_lastFolderURIForPath;
+    return NS_OK;
+  }
+  nsCOMPtr<nsIArray> folderArray;
+  nsresult rv = GetAllFolders(getter_AddRefs(folderArray));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRUint32 count;
+  rv = folderArray->GetLength(&count);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  for (PRUint32 i = 0; i < count; i++)
+  {
+    nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(folderArray, i, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsILocalFile> folderPath;
+    rv = folder->GetFilePath(getter_AddRefs(folderPath));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // Check if we're equal
+    rv = folderPath->Equals(aLocalPath, &equals);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (equals)
+    {
+      rv = folder->GetURI(aMailboxUri);
+      m_lastFolderURIForPath = aMailboxUri;
+      aLocalPath->Clone(getter_AddRefs(m_lastPathLookedUp));
+      return rv;
+    }
+  }
+  return NS_ERROR_FAILURE;
+}
+

@@ -212,8 +212,6 @@ NS_MSG_BASE PRBool MsgFindKeyword(const nsCString &keyword, nsCString &keywords,
 
 NS_MSG_BASE PRBool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains);
 
-NS_MSG_BASE nsresult FolderUriFromDirInProfile(nsILocalFile *aLocalPath, nsACString &mailboxUri);
-
 // gets an nsILocalFile from a UTF-8 file:// path
 NS_MSG_BASE nsresult MsgGetLocalFileFromURI(const nsACString &aUTF8Path, nsILocalFile **aFile);
 

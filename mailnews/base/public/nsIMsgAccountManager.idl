@@ -47,7 +47,7 @@ interface nsISupportsArray;
 interface nsIMsgFolderCache;
 interface nsIFolderListener;
 
-[scriptable, uuid(A3300C19-7228-4c64-A599-1848800CF0FC)]
+[scriptable, uuid(5cd9a7cc-3bd1-4553-95d8-b1b48f19ed1e)]
 interface nsIMsgAccountManager : nsISupports {
 
   nsIMsgAccount createAccount();
@@ -233,9 +233,19 @@ interface nsIMsgAccountManager : nsISupports {
   void saveAccountInfo();
 
   ACString getChromePackageName(in ACString aExtensionName);
-  
+
   /// Enumerate all incoming servers and their folders and return in an array.
   readonly attribute nsIArray allFolders;
+
+  /**
+   * Iterates over all folders looking for one with the passed in path,
+   * and returns the uri for the matching folder. In the future,
+   * the folder lookup service will provide this functionality.
+   *
+   * @param aLocalPath path of the folder whose uri we want.
+   * @return the URI of the folder that corresponds to aLocalPath
+   */
+  ACString folderUriForPath(in nsILocalFile aLocalPath);
 };
 
 %{C++

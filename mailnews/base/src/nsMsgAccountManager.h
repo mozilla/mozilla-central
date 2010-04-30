@@ -118,6 +118,10 @@ private:
   void SetLastServerFound(nsIMsgIncomingServer *server, const nsACString& hostname,
                           const nsACString& username, const PRInt32 port, const nsACString& type);
 
+  // Cache the results of the last call to FolderUriFromDirInProfile
+  nsCOMPtr<nsIFile> m_lastPathLookedUp;
+  nsCString m_lastFolderURIForPath;
+
   /* internal creation routines - updates m_identities and m_incomingServers */
   nsresult createKeyedAccount(const nsCString& key,
                               nsIMsgAccount **_retval);
