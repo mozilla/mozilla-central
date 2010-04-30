@@ -2406,11 +2406,11 @@ function WindowIsClosing()
       //default to true: if it were false, we wouldn't get this far
       var warnOnClose = {value:true};
 
-       var buttonPressed = promptService.confirmEx(window, 
-         gNavigatorBundle.getString('tabs.closeWarningTitle'), 
+       var buttonPressed = Services.prompt.confirmEx(window,
+         gNavigatorBundle.getString('tabs.closeWarningTitle'),
          gNavigatorBundle.getFormattedString("tabs.closeWarning", [numtabs]),
          (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0)
-          + (Services.prompt.BUTTON_TITLE_CANCEL * Services.prompt.BUTTON_POS_1),
+            + (Services.prompt.BUTTON_TITLE_CANCEL * Services.prompt.BUTTON_POS_1),
             gNavigatorBundle.getString('tabs.closeButton'),
             null, null,
             gNavigatorBundle.getString('tabs.closeWarningPromptMe'),
