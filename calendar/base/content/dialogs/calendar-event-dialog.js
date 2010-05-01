@@ -1318,8 +1318,9 @@ function rotatePrivacy() {
  *
  * @param target    the calling UI-element
  */
-function editPrivacy(target) {
+function editPrivacy(target, event) {
     gPrivacy = target.getAttribute("privacy");
+    event.stopPropagation();
     updatePrivacy();
 }
 

@@ -607,19 +607,19 @@
                               label="&event.menu.options.privacy.public.label;"
                               type="radio"
                               privacy="PUBLIC"
-                              oncommand="editPrivacy(this)"/>
+                              oncommand="editPrivacy(this, event)"/>
                     <menuitem id="event-privacy-confidential-menuitem"
                               name="event-privacy-group"
                               label="&event.menu.options.privacy.confidential.label;"
                               type="radio"
                               privacy="CONFIDENTIAL"
-                              oncommand="editPrivacy(this)"/>
+                              oncommand="editPrivacy(this, event)"/>
                     <menuitem id="event-privacy-private-menuitem"
                               name="event-privacy-group"
                               label="&event.menu.options.privacy.private.label;"
                               type="radio"
                               privacy="PRIVATE"
-                              oncommand="editPrivacy(this)"/>
+                              oncommand="editPrivacy(this, event)"/>
                 </menupopup>
             </toolbarbutton>
             <toolbarbutton id="button-url"
