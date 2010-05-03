@@ -928,8 +928,8 @@ calDavCalendar.prototype = {
                 .apply(this.mTargetCalendar, query);
         }
         if (this.hasScheduling &&
-            !this.isInBox(calendarURI.spec)) {
-            this.pollInBox();
+            !this.isInbox(calendarURI.spec)) {
+            this.pollInbox();
         }
     },
 
