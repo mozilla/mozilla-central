@@ -46,9 +46,6 @@ components/amWebInstallListener.js
 components/bookmarks.xpt
 components/downloadmanager.xpt
 components/compreg.dat
-#ifdef MOZILLA_1_9_2_BRANCH
-components/contentSecurityPolicy.js
-#endif
 components/history.xpt
 components/jsconsole.xpt
 components/mailnews.xpt
@@ -148,14 +145,10 @@ defaults/wallet/DistinguishedSchema.tbl
 defaults/wallet/SchemaStrings.tbl
 defaults/wallet/PositionalSchema.tbl
 defaults/wallet/StateSchema.tbl
-#ifdef MOZILLA_1_9_2_BRANCH
-greprefs.js
-#else
 greprefs/all.js
 greprefs/security-prefs.js
 greprefs/xpinstall.js
 greprefs/
-#endif
 #ifdef MOZ_WIDGET_GTK2
 icons/mozicon128.png
 icons/mozicon16.xpm
@@ -230,7 +223,6 @@ plugins/
 res/bloatcycle.html
 res/broken-image.gif
 res/cmessage.txt
-#ifndef MOZILLA_1_9_2_BRANCH
 res/arrow.gif
 res/arrowd.gif
 res/charsetData.properties
@@ -246,7 +238,6 @@ res/ua.css
 res/viewsource.css
 res/unixcharset.properties
 res/wincharset.properties
-#endif
 res/loading-image.gif
 res/platform-forms.css
 res/sample.unixpsfonts.properties
@@ -271,11 +262,7 @@ res/html/gopher-sound.gif
 res/html/gopher-telnet.gif
 res/html/gopher-text.gif
 res/html/gopher-unknown.gif
-#ifdef MOZILLA_1_9_2_BRANCH
-@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
-#else
 @DLL_PREFIX@sqlite3@DLL_SUFFIX@
-#endif
 #ifdef XP_MACOSX
 Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/Info.plist
 Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/MacOS/Thunderbird
@@ -319,11 +306,7 @@ xpicleanup
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 @DLL_PREFIX@zlib@DLL_SUFFIX@
 #ifdef XP_WIN
-#ifdef MOZILLA_1_9_2_BRANCH
-mozjs.dll
-#else
 js3250.dll
-#endif
 #endif
 # ****************************************************************************
 # * End generic removals section.                                            *
