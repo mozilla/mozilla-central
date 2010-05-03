@@ -39,6 +39,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/AddonManager.jsm");
+
 const REMOTESERVICE_CONTRACTID = "@mozilla.org/toolkit/remote-service;1";
 const XUL_NAMESPACE = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 var gURLBar = null;
@@ -57,9 +59,31 @@ var gClickAtEndSelects = false;
 var gIgnoreFocus = false;
 var gIgnoreClick = false;
 var gURIFixup = null;
+var gThemes = [];
 
 //cached elements
 var gBrowser = null;
+
+function ReloadThemes()
+{
+  AddonManager.getAddonsByTypes(["theme"], function(themes) {
+    gThemes = themes.sort(function(a, b) {
+      return a.name.localeCompare(b.name);
+    });
+  });
+}
+
+const gAddonListener = {
+  onEnabling: function(val) {},
+  onEnabled: function(val) {},
+  onDisabling: function(val) {},
+  onDisabled: function(val) {},
+  onInstalling: function(val) {},
+  onInstalled: ReloadThemes,
+  onUninstalling: function(val) {},
+  onUninstalled: ReloadThemes,
+  onOperationCancelled: ReloadThemes
+};
 
 // Pref listener constants
 const gButtonPrefListener =
@@ -439,6 +463,9 @@ function HandleAppCommandEvent(aEvent)
 
 function Startup()
 {
+  AddonManager.addAddonListener(gAddonListener);
+  ReloadThemes();
+
   // init globals
   gNavigatorBundle = document.getElementById("bundle_navigator");
   gBrandBundle = document.getElementById("bundle_brand");
@@ -710,6 +737,8 @@ function BrowserFlushBookmarks()
 
 function Shutdown()
 {
+  AddonManager.removeAddonListener(gAddonListener);
+
   // shut down browser access support
   window.browserDOMWindow = null;
 
@@ -729,13 +758,6 @@ function Shutdown()
   if (bt) {
     bt.database.RemoveObserver(BookmarksToolbarRDFObserver);
   }
-
-  // remove the extension manager RDF datasource to prevent 'leaking' it
-  // see bug 391318, the real cause of reporting leaks is probably bug 406914
-  var extDB = document.getElementById('menu_ViewApplyTheme_Popup').database;
-  var extDS = extDB.GetDataSources();
-  while (extDS.hasMoreElements())
-    extDB.RemoveDataSource(extDS.getNext());
 
   window.XULBrowserWindow.destroy();
   window.XULBrowserWindow = null;
@@ -1714,6 +1736,9 @@ function BrowserPageInfo(doc, initialTab)
 
 function hiddenWindowStartup()
 {
+  AddonManager.addAddonListener(gAddonListener);
+  ReloadThemes();
+
   // focus the hidden window
   window.focus();
 
@@ -2037,30 +2062,13 @@ function restartApp() {
             .quit(nsIAppStartup.eRestart | nsIAppStartup.eAttemptQuit);
  }
 
-function applyTheme(themeName)
+function applyTheme(menuitem)
 {
-  var name = themeName.getAttribute("internalName");
-  if (!name)
+  if (!menuitem.theme)
     return;
 
-  var str = Components.classes["@mozilla.org/supports-string;1"]
-                      .createInstance(Components.interfaces.nsISupportsString);
-  str.data = name;
-
-  if (Services.prefs.getBoolPref("extensions.dss.enabled")) {
-    Services.prefs.setComplexValue("general.skins.selectedSkin",
-                                   Components.interfaces.nsISupportsString, str);
-    return;
-  }
-
-  Services.prefs.setComplexValue("extensions.lastSelectedSkin",
-                                 Components.interfaces.nsISupportsString, str);
-  var switchPending =
-      str != Services.prefs.getComplexValue("general.skins.selectedSkin",
-                                            Components.interfaces.nsISupportsString);
-  Services.prefs.setBoolPref("extensions.dss.switchPending", switchPending);
-
-  if (switchPending) {
+  menuitem.theme.userDisabled = false;
+  if (!menuitem.theme.isActive) {
     var promptTitle = gNavigatorBundle.getString("switchskinstitle");
     var brandName = gBrandBundle.getString("brandShortName");
     var promptMsg = gNavigatorBundle.getFormattedString("switchskins", [brandName]);
@@ -2345,13 +2353,20 @@ function toHistory()
 
 function checkTheme(popup)
 {
-  var prefName = Services.prefs.getBoolPref("extensions.dss.switchPending") ?
-                 "extensions.lastSelectedSkin" : "general.skins.selectedSkin";
-  var currentTheme = Services.prefs.getComplexValue(prefName,
-                         Components.interfaces.nsISupportsString);
-  var menuitem = popup.getElementsByAttribute("internalName", currentTheme)[0];
-  if (menuitem)
-    menuitem.setAttribute("checked", true);
+  while (popup.lastChild.localName != 'menuseparator')
+    popup.removeChild(aPopup.lastChild);
+  gThemes.forEach(function(theme) {
+    var menuitem = document.createElement('menuitem');
+    menuitem.setAttribute("label", theme.name);
+    menuitem.setAttribute("type", "radio");
+    menuitem.setAttribute("name", "themeGroup");
+    if (!theme.userDisabled)
+      menuitem.setAttribute("checked", "true");
+    else if (!(theme.permissions & AddonManager.PERM_CAN_ENABLE))
+      menuitem.setAttribute("disabled", "true");
+    menuitem.theme = theme;
+    popup.appendChild(menuitem);
+  });
 }
 
 // opener may not have been initialized by load time (chrome windows only)

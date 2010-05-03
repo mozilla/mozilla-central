@@ -434,23 +434,10 @@
         <menuseparator />
         <menu label="&applyTheme.label;" accesskey="&applyTheme.accesskey;">
           <menupopup id="menu_ViewApplyTheme_Popup"
-                     datasources="rdf:extensions" ref="urn:mozilla:item:root"
-                     oncommand="applyTheme(event.target);" onpopupshowing="checkTheme(this);"
-                     sortResource="http://www.mozilla.org/2004/em-rdf#name"
-                     sortDirection="ascending">
+                     onpopupshowing="checkTheme(this);"
+                     oncommand="applyTheme(event.target);">
             <menuitem label="&getNewThemesCmd.label;" accesskey="&getNewThemesCmd.accesskey;" oncommand="getNewThemes();"/>
             <menuseparator/>
-            <template>
-              <rule em-rdf:type="4" parsetype="Integer" xmlns:em-rdf="http://www.mozilla.org/2004/em-rdf">
-                <menuitem uri="..."
-                          label="rdf:http://www.mozilla.org/2004/em-rdf#name"
-                          hidden="rdf:http://www.mozilla.org/2004/em-rdf#hidden"
-                          disabled="rdf:http://www.mozilla.org/2004/em-rdf#isDisabled"
-                          internalName="rdf:http://www.mozilla.org/2004/em-rdf#internalName"
-                          type="radio"
-                          name="themeGroup"/>
-              </rule>
-            </template>
           </menupopup>
         </menu>
       </menupopup>
