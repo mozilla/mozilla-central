@@ -1,0 +1,49 @@
+@import url("chrome://global/skin/plugins.css");
+
+body {
+  text-align: justify;
+  width: 90%;
+  margin-left: 5%;
+  margin-right: 5%;
+}
+
+.page-subtitle {
+  margin-bottom: 1.5em;
+}
+
+.major-section {
+  margin-top: 2em;
+  margin-bottom: 1em;
+  text-align: start;
+}
+
+th.column {
+  text-align: start;
+  border-top: 1px dotted #2D3B49;
+  white-space: nowrap;
+  width: 0px;
+}
+
+tr:first-child > th,
+tr:first-child > td {
+  border-top: 0;
+}
+
+.prefs-table {
+  table-layout: fixed;
+}
+
+.name {
+  width: 70%;
+}
+
+.value {
+  width: 30%;
+}
+
+.pref-name,
+.pref-value {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
