@@ -355,9 +355,6 @@
 ; Imaging:
 @BINPATH@/components/imgicon.xpt
 @BINPATH@/components/imglib2.xpt
-#ifdef UNIX_BUT_NOT_MAC
-@BINPATH@/components/@DLL_PREFIX@imgicon@DLL_SUFFIX@
-#endif
 
 ; accessibility (out of process API support)
 #ifdef ACCESSIBILITY

@@ -460,9 +460,7 @@ components/@DLL_PREFIX@gkparser@DLL_SUFFIX@
 components/@DLL_PREFIX@htmlpars@DLL_SUFFIX@
 #endif
 components/@DLL_PREFIX@i18n@DLL_SUFFIX@
-#ifndef UNIX_BUT_NOT_MAC
 components/@DLL_PREFIX@imgicon@DLL_SUFFIX@
-#endif
 components/@DLL_PREFIX@imglib2@DLL_SUFFIX@
 components/@DLL_PREFIX@import@DLL_SUFFIX@
 components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
