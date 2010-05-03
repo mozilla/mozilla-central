@@ -1,0 +1,35 @@
+html {
+  background: #FFF;
+}
+
+body {
+  margin: 0;
+  padding: 0 1em;
+  font: message-box;
+}
+
+label {
+  -moz-user-select: text;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+.memBox {
+  max-width: 30em;
+  background: #C7D0D9;
+  color: #22262F;
+  margin-top: 25px;
+  padding: 5px;
+  border: 1px solid #494F5D;
+  -moz-border-radius: 10px;
+}
+
+.memValue {
+  text-align: right;
+}
+
+.memOverview > table {
+  font-size: 110%;
+}

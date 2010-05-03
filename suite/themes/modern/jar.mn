@@ -153,6 +153,7 @@ modern.jar:
   skin/modern/editor/icons/progress-failed.gif                     (editor/icons/progress-failed.gif)
   skin/modern/global/globalBindings.xml                            (global/globalBindings.xml)
   skin/modern/global/about.css                                     (global/about.css)
+  skin/modern/global/aboutMemory.css                               (global/aboutMemory.css)
   skin/modern/global/appPicker.css                                 (global/appPicker.css)
   skin/modern/global/autocomplete.css                              (global/autocomplete.css)
   skin/modern/global/button.css                                    (global/button.css)
