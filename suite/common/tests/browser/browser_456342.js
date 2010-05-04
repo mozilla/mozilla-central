@@ -50,34 +50,36 @@ function test() {
   
   let testURL = "chrome://mochikit/content/browser/" +
     "suite/common/tests/browser/browser_456342_sample.xhtml";
-  let tabbrowser = getBrowser();
-  let tab2 = tabbrowser.addTab("about:");
-  let tab = tabbrowser.addTab(testURL);
-  let browser = tab2.linkedBrowser;
-  browser.addEventListener("load", function(aEvent) {
+  let tab = getBrowser().addTab(testURL);
+  tab.linkedBrowser.addEventListener("load", function(aEvent) {
     this.removeEventListener("load", arguments.callee, true);
-    browser.addEventListener("pageshow", function(aEvent) {
-      browser.removeEventListener("pageshow", arguments.callee, true);
-      let undoItems = JSON.parse(ss.getClosedTabData(window));
-      let savedFormData = undoItems[0].state.entries[0].formdata;
-      
-      let countGood = 0, countBad = 0;
-      for each (let value in savedFormData) {
-        if (value == "save me")
-          countGood++;
-        else
-          countBad++;
-      }
-      
-      is(countGood, 4, "Saved text for non-standard input fields");
-      is(countBad,  0, "Didn't save text for ignored field types");
-      
-      // clean up
-      if (gPrefService.prefHasUserValue("browser.sessionstore.privacy_level"))
-        gPrefService.clearUserPref("browser.sessionstore.privacy_level");
-      tabbrowser.removeTab(tab2);
-      finish();
-    }, true);
-    tabbrowser.removeTab(tab);
+
+    let expectedValue = "try to save me";
+    // Since bug 537289 we only save non-default values, so we need to set each
+    // form field's value after load.
+    let formEls = aEvent.originalTarget.forms[0].elements;
+    for (let i = 0; i < formEls.length; i++)
+      formEls[i].value = expectedValue;
+
+    getBrowser().removeTab(tab);
+    
+    let undoItems = JSON.parse(ss.getClosedTabData(window));
+    let savedFormData = undoItems[0].state.entries[0].formdata;
+    
+    let countGood = 0, countBad = 0;
+    for each (let value in savedFormData) {
+      if (value == expectedValue)
+        countGood++;
+      else
+        countBad++;
+    }
+    
+    is(countGood, 4, "Saved text for non-standard input fields");
+    is(countBad,  0, "Didn't save text for ignored field types");
+    
+    // clean up
+    if (gPrefService.prefHasUserValue("browser.sessionstore.privacy_level"))
+      gPrefService.clearUserPref("browser.sessionstore.privacy_level");
+    finish();
   }, true);
 }
