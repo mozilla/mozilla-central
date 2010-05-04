@@ -568,3 +568,8 @@ pref("browser.link.open_newwindow", 3);
 pref("browser.link.open_newwindow.restriction", 0);
 
 pref("browser.tabs.loadDivertedInBackground", false);
+
+// XXX The javascript engine is broken in trunk builds (bug 563764). This
+// is temporary to keep the tree green whilst that bug is fixed. Bug 563766
+// should remove this preference again.
+pref("javascript.options.jit.chrome", false);
