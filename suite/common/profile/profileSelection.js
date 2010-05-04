@@ -257,7 +257,7 @@ function ConfirmDelete()
     if (buttonPressed != 1)
       DeleteProfile(buttonPressed == 2);
   } catch (e) {
-    var dialogTitle = gProfileBundle.getString("deleteTitle");
+    var dialogTitle = gMozAppsBundle.getString("deleteTitle");
     var brandName = gBrandBundle.getString("brandShortName");
     var dialogText = gProfileBundle.getFormattedString("deleteLocked",
                                                        [brandName, selected.profile.name]);
