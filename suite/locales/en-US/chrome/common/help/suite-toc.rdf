@@ -121,14 +121,6 @@
     </nc:subheadings>
   </rdf:Description>
 
-  <rdf:Description about="#nav-proxies">
-    <nc:subheadings>
-      <rdf:Seq>
-        <rdf:li> <rdf:Description ID="nav-prox" nc:name="Setting Proxy Values" nc:link="nav_help.xhtml#setting_proxy_values"/> </rdf:li>
-      </rdf:Seq>
-    </nc:subheadings>
-  </rdf:Description>
-
   <rdf:Description about="#nav-page-info">
     <nc:subheadings>
       <rdf:Seq>
