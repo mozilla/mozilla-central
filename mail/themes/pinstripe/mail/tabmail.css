@@ -39,15 +39,15 @@
   visibility: collapse;
 }
 
-#messengerWindow:not([active="true"]) .tabmail-strip {
+.tabmail-strip:-moz-window-inactive {
   background-color: #e2e2e2;
 }
 
-#messengerWindow:not([active="true"]) .tabmail-tab {
+.tabmail-tab:-moz-window-inactive {
   color: #575757;
 }
 
-#messengerWindow:not([active="true"]) .tabmail-tab[selected="true"] {
+.tabmail-tab[selected="true"]:-moz-window-inactive {
   background-color: -moz-mac-chrome-inactive;
 }
 

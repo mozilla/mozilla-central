@@ -47,10 +47,10 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 /* Inactive window state */
-#messengerWindow:not([active="true"]) > #mail-toolbox > toolbar {
+#mail-toolbox > toolbar:-moz-window-inactive > toolbar {
   border-top-color: rgba(255,255,255,0.45);
   border-bottom-color: rgba(0,0,0,0.35);
-  background-color: #cfcfcf;
+  background-color: -moz-mac-chrome-inactive;
 }
 
 #mail-bar3 {

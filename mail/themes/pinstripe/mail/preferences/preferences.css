@@ -51,10 +51,6 @@
   margin-bottom: 4px !important;
 }
 
-#MailPreferences:not([active="true"]) > .paneSelector > radio {
-  opacity: 0.7;
-}
-
 menulist > menupopup > menuitem {
   font: -moz-pull-down-menu;
 }

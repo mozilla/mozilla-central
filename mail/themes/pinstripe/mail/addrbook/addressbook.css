@@ -278,7 +278,7 @@ toolbar[iconsize="small"] #button-abdelete[disabled] {
   background-position: 0 -54px;
 }
 
-:root:not([active]) #dirTree treechildren::-moz-tree-row(selected) {
+#dirTree treechildren:-moz-window-inactive::-moz-tree-row(selected) {
   background-position: 0 -72px;
 }
 

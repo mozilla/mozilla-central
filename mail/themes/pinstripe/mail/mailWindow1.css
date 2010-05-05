@@ -86,8 +86,8 @@ treechildren::-moz-tree-twisty {
   border-bottom: 2px groove ThreeDShadow;
 }
 
-:root:not([active]) #folderPaneHeader,
-:root:not([active]) #folderTree {
+#folderPaneHeader:-moz-window-inactive,
+#folderTree:-moz-window-inactive {
   background-color: #E8E8E8 !important;
 }
 
@@ -121,7 +121,7 @@ treechildren::-moz-tree-twisty {
   background-position: 0 -54px;
 }
 
-:root:not([active]) #folderTree treechildren::-moz-tree-row(selected) {
+#folderTree treechildren:-moz-window-inactive::-moz-tree-row(selected) {
   background-position: 0 -72px;
 }
 
