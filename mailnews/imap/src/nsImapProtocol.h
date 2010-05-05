@@ -257,7 +257,7 @@ public:
 
   const nsCString& GetImapHostName(); // return the host name from the url for the
   // current connection
-  const nsCString& GetImapUserName(); // return the user name from the identity;
+  const nsCString& GetImapUserName(); // return the user name from the identity
   const char* GetImapServerKey(); // return the user name from the incoming server;
 
   // state set by the imap parser...
@@ -353,6 +353,7 @@ private:
   nsCString             m_hostName;
   nsCString             m_userName;
   nsCString             m_serverKey;
+  nsCString             m_realHostName;
   char                  *m_dataOutputBuf;
   nsMsgLineStreamBuffer * m_inputStreamBuffer;
   PRUint32              m_allocatedSize; // allocated size

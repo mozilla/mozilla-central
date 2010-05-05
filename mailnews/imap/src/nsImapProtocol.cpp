@@ -801,6 +801,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
 
     m_hostSessionList->GetCapabilityForHost(GetImapServerKey(), capability);
 
+    server->GetRealHostName(m_realHostName);
     PRInt32 authMethod;
     (void) server->GetAuthMethod(&authMethod);
     InitPrefAuthMethods(authMethod);
@@ -828,13 +829,11 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
                 socketType == nsMsgSocketType::SSL) ?
                nsIImapUrl::DEFAULT_IMAPS_PORT : nsIImapUrl::DEFAULT_IMAP_PORT;
       }
-      nsCAutoString hostName;
       nsCOMPtr<nsISocketTransportService> socketService = 
                do_GetService(NS_SOCKETTRANSPORTSERVICE_CONTRACTID, &rv);
       if (NS_SUCCEEDED(rv) && aURL)
       {
         aURL->GetPort(&port);
-        server->GetRealHostName(hostName);
 
         Log("SetupWithUrl", nsnull, "clearing IMAP_CONNECTION_IS_OPEN");
         ClearFlag(IMAP_CONNECTION_IS_OPEN);
@@ -848,8 +847,9 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
           connectionType = "starttls";
 
         nsCOMPtr<nsIProxyInfo> proxyInfo;
-        rv = NS_ExamineForProxy("imap", hostName.get(), port, getter_AddRefs(proxyInfo));
-        if (NS_FAILED(rv)) proxyInfo = nsnull;
+        rv = MsgExamineForProxy("imap", m_realHostName.get(), port, getter_AddRefs(proxyInfo));
+        if (NS_FAILED(rv))
+          proxyInfo = nsnull;
 
         const nsACString *socketHost;
         PRUint16 socketPort;
@@ -861,7 +861,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
         }
         else
         {
-          socketHost = &hostName;
+          socketHost = &m_realHostName;
           socketPort = port;
         }
         rv = socketService->CreateTransport(&connectionType, connectionType != nsnull,
@@ -5591,12 +5591,8 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &passwo
     // we can't get credentials for.
     nsCAutoString response;
 
-    // realHostname != GetImapHostName() when hostname was changed
-    nsCAutoString realHostname;
-    nsCOMPtr<nsIMsgIncomingServer> server = do_QueryReferent(m_server);
-    server->GetRealHostName(realHostname);
     nsCAutoString service("imap@");
-    service.Append(realHostname);
+    service.Append(m_realHostName);
     rv = DoGSSAPIStep1(service.get(), userName, response);
     NS_ENSURE_SUCCESS(rv, rv);
 
