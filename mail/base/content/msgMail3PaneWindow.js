@@ -774,7 +774,10 @@ function UpgradeProfileAndBeUglyAboutIt()
 
       for each (let server in fixIterator(servers, Components.interfaces.nsIMsgIncomingServer))
       {
-        if (server.type != "imap")
+        // If it's not an imap server, or if we haven't set the
+        // offlineDownload flag on the server, then don't set the offline
+        // flags on all the sub-folders.
+        if (server.type != "imap" || !server.offlineDownload)
           continue;
 
         let allFolders = Components.classes["@mozilla.org/supports-array;1"]
