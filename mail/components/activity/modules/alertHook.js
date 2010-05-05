@@ -62,6 +62,14 @@ let alertHook =
                                  .getService(Ci.nsIAlertsService);
   },
 
+  get brandShortName() {
+    delete this.brandShortName;
+    return this.brandShortName = Cc["@mozilla.org/intl/stringbundle;1"]
+                                   .getService(Ci.nsIStringBundleService)
+                                   .createBundle("chrome://branding/locale/brand.properties")
+                                   .GetStringFromName("brandShortName");
+  },
+
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgUserFeedbackListener]),
 
   onAlert: function (aMessage, aUrl) {
@@ -79,9 +87,16 @@ let alertHook =
 
     this.activityMgr.addActivity(warning);
 
-    this.alertService
-        .showAlertNotification("chrome://branding/content/icon48.png", "",
-                               aMessage);
+    try {
+      this.alertService
+          .showAlertNotification("chrome://branding/content/icon48.png",
+                                 this.brandShortName, aMessage);
+    }
+    catch (ex) {
+      // XXX On Linux, if libnotify isn't supported, showAlertNotification
+      // can throw an error, so fall-back to the old method of modal dialogs.
+      return false;
+    }
 
     return true;
   },
