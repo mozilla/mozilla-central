@@ -2077,6 +2077,7 @@ function ClearAttachmentList()
 
   // clear selection
   var list = document.getElementById('attachmentList');
+  list.selectedItems.length = 0;
 
   while (list.hasChildNodes())
     list.removeChild(list.lastChild);

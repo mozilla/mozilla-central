@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Jie Zhang <jzhang918@gmail.com>
+ *   Blake Winton <bwinton@latte.ca>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -47,6 +48,8 @@ var jumlib = {};
 Components.utils.import("resource://mozmill/modules/jum.js", jumlib);
 var elib = {};
 Components.utils.import('resource://mozmill/modules/elementslib.js', elib);
+var EventUtils = {};
+Cu.import('resource://mozmill/modules/EventUtils.js', EventUtils);
 
 var folder = null;
 var composeHelper = null;
@@ -88,12 +91,14 @@ var setupModule = function (module) {
   folder = create_folder("generalContentPolicy");
 };
 
-function addToFolder(aSubject, aAttachment, aFolder) {
+function addToFolder(aSubject, aAttachments, aFolder) {
 
   let msgId = Components.classes["@mozilla.org/uuid-generator;1"]
                           .getService(Components.interfaces.nsIUUIDGenerator)
                           .generateUUID() +"@mozillamessaging.invalid";
 
+  aAttachments = ["Content-Type: text/plain; charset=ISO-8859-1\n\n\n\n"]
+                   .concat(aAttachments);
   let source = "From - Sat Nov  1 12:39:54 2008\n" +
                "X-Mozilla-Status: 0001\n" +
                "X-Mozilla-Status2: 00000000\n" +
@@ -106,12 +111,7 @@ function addToFolder(aSubject, aAttachment, aFolder) {
                "Subject: " + aSubject + "\n" +
                "Content-Type: multipart/mixed; boundary=0015174be8a60dc5b10481218b29\n" +
                "\n--0015174be8a60dc5b10481218b29\n" +
-               "Content-Type: text/plain; charset=ISO-8859-1\n" +
-               "\n" +
-               "\n" +
-               "\n" +
-               "--0015174be8a60dc5b10481218b29\n" +
-               aAttachment +
+               aAttachments.join("--0015174be8a60dc5b10481218b29\n") +
                "--0015174be8a60dc5b10481218b29--"
 
   aFolder.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder);
@@ -123,9 +123,9 @@ function addToFolder(aSubject, aAttachment, aFolder) {
   return aFolder.msgDatabase.getMsgHdrForMessageID(msgId);
 }
 
-function addMsgToFolderAndCheckAttachment(folder, test) {
-  let msgDbHdr = addToFolder(test.type + "attachment test message " + gMsgNo,
-                             test.attachment, folder);
+function addMsgToFolderAndCheckAttachment(folder, type, attachment) {
+  let msgDbHdr = addToFolder(type + "attachment test message " + gMsgNo,
+                             attachment, folder);
 
   // select the newly created message
   let msgHdr = select_click_row(gMsgNo);
@@ -135,9 +135,11 @@ function addMsgToFolderAndCheckAttachment(folder, test) {
 
   assert_selected_and_displayed(gMsgNo);
   if (mc.eid("attachmentView").node.collapsed)
-    throw new Error("attachment with `" + test.type + "' extension file name has no attachment");
+    throw new Error("attachment with `" + type +
+                    "' extension file name has no attachment");
 
   ++gMsgNo;
+  return gMsgNo-1;
 }
 
 function test_attachment() {
@@ -148,6 +150,38 @@ function test_attachment() {
 
   for (let i = 0; i < TESTS.length; ++i) {
     // Check for attachment in mail
-    addMsgToFolderAndCheckAttachment(folder, TESTS[i]);
+    addMsgToFolderAndCheckAttachment(folder, TESTS[i].type, TESTS[i].attachment);
   }
+}
+
+function test_selected_attachments_are_cleared() {
+  be_in_folder(folder);
+  // Add a message with one attachment.
+  let single = addMsgToFolderAndCheckAttachment(folder, "single",
+                                                TESTS[0].attachment);
+
+  // Add and select a message with two attachments.
+  let multiple = addMsgToFolderAndCheckAttachment(folder, "multiple",
+                                                  [TESTS[0].attachment,
+                                                   TESTS[1].attachment]);
+
+  // Select both the attachments.
+  let attachmentList = mc.e("attachmentList");
+  assert_equals(attachmentList.selectedItems.length, 0,
+                "We had selected items on first load, when we shouldn't have!");
+
+  // We can just click on the first element, but the second one needs a
+  // ctrl-click (or cmd-click for those Mac-heads among us).
+  mc.click(new elib.Elem(attachmentList.children[0]));
+  EventUtils.synthesizeMouse(attachmentList.children[1], 5, 5,
+                             {accelKey: true}, mc.window);
+
+  assert_equals(mc.e("attachmentList").selectedItems.length, 2,
+                "We had the wrong number of selected items after selecting some!");
+
+  // Switch to the message with one attachments, and make sure there are no
+  // selected attachments.
+  select_click_row(single);
+  assert_equals(mc.e("attachmentList").selectedItems.length, 0,
+                "We had selected items after loading a new message!");
 }
