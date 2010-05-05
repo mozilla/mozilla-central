@@ -965,6 +965,7 @@ var GlodaDatastore = {
         dbConnection = dbService.openUnsharedDatabase(dbFile);
         // see _createDB...
         dbConnection.executeSimpleSQL("PRAGMA cache_size = 8192");
+        dbConnection.executeSimpleSQL("PRAGMA synchronous = FULL");
 
         // Register custom tokenizer to index all language text
         var tokenizer = Cc["@mozilla.org/messenger/fts3tokenizer;1"].
@@ -1147,6 +1148,15 @@ var GlodaDatastore = {
     //  get this large, then the memory does not get used.
     // Do not forget to update the code in _init if you change this value.
     dbConnection.executeSimpleSQL("PRAGMA cache_size = 8192");
+    // The mozStorage default is NORMAL which shaves off some fsyncs in the
+    //  interest of performance.  Since everything we do after bootstrap is
+    //  async, we do not care about the performance, but we really want the
+    //  correctness.  Bug reports and support avenues indicate a non-zero number
+    //  of corrupt databases.  Note that this may not fix everything; OS X
+    //  also supports an F_FULLSYNC flag enabled by PRAGMA fullfsync that we are
+    //  not enabling that is much more comprehensive.  We can think about
+    //  turning that on after we've seen how this reduces our corruption count.
+    dbConnection.executeSimpleSQL("PRAGMA synchronous = FULL");
     // Register custom tokenizer to index all language text
     var tokenizer = Cc["@mozilla.org/messenger/fts3tokenizer;1"].
                       getService(Ci.nsIFts3Tokenizer);
@@ -1863,7 +1873,7 @@ var GlodaDatastore = {
 
     let folderID = this._nextFolderId++;
 
-    // if there's an indexingPriority stored on the folder, just use that    
+    // if there's an indexingPriority stored on the folder, just use that
     let indexingPriority;
     let stringPrio = aFolder.getStringProperty("indexingPriority");
     if (stringPrio.length)
