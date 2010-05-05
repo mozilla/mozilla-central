@@ -417,6 +417,9 @@ function _apply_to_folder_common(aChildrenToo) {
  *  children.  Make sure the folder changes but the children do not.
  */
 function test_apply_to_folder_no_children() {
+  if (Application.platformIsMac)
+    return;
+
   folderParent = create_folder("ColumnsApplyParent");
   folderParent.createSubfolder("Child1", null);
   folderChild1 = folderParent.getChildNamed("Child1");
@@ -452,6 +455,9 @@ function test_apply_to_folder_no_children() {
  *  Make sure the folder and its children change.
  */
 function test_apply_to_folder_and_children() {
+  if (Application.platformIsMac)
+    return;
+
   // no need to throttle ourselves during testing.
   MailUtils.INTER_FOLDER_PROCESSING_DELAY_MS = 0;
 
