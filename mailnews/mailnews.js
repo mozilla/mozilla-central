@@ -848,6 +848,8 @@ pref("mailnews.emptyTrash.dontAskAgain", false);
 
 // where to fetch auto config information from.
 pref("mailnews.auto_config_url", "https://live.mozillamessaging.com/autoconfig/v1.1/");
+// Added in bug 551519. Remove when bug 545866 is fixed.
+pref("mailnews.mx_service_url", "https://live.mozillamessaging.com/dns/mx/");
 
 // -- Summary Database options
 // dontPreserveOnCopy: a space separated list of properties that are not

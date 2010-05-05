@@ -490,10 +490,23 @@ EmailConfigWizard.prototype =
               function(e) // fetchConfigFromDB failed
               {
                 gEmailWizardLogger.info("fetchConfigFromDB failed: " + e);
-                var initialConfig = new AccountConfig();
-                me._prefillConfig(initialConfig);
-                me.startSpinner("all", "looking_up_settings_guess")
-                me._guessConfig(domain, initialConfig, "both");
+                me.startSpinner("all", "looking_up_settings_db");
+                me._probeAbortable = fetchConfigForMX(domain,
+                  function(config) // success
+                  {
+                    me.foundConfig(config);
+                    me.stopSpinner("found_settings_db");
+                    me.showEditButton();
+                    me._probeAbortable = null;
+                  },
+                  function(e) // fetchConfigForMX failed
+                  {
+                    gEmailWizardLogger.info("fetchConfigForMX failed: " + e);
+                    var initialConfig = new AccountConfig();
+                    me._prefillConfig(initialConfig);
+                    me.startSpinner("all", "looking_up_settings_guess")
+                    me._guessConfig(domain, initialConfig, "both");
+                  });
               });
           });
       });
