@@ -401,8 +401,27 @@ MimeHeaders_get (MimeHeaders *hdrs, const char *header_name,
     char *s;
 
     /* Skip over whitespace after colon. */
-    while (contents <= end && IS_SPACE(*contents) && contents[0] != '\n')
-      contents++;
+    while (contents <= end && IS_SPACE(contents[0])) {
+      /* Mac or Unix style line break, followed by space or tab. */
+      if (contents <= (end - 1) &&
+         (contents[0] == '\r' || contents[0] == '\n') &&
+         (contents[1] == ' ' || contents[1] == '\t'))
+        contents += 2;
+      /* Windows style line break, followed by space or tab. */
+      else if (contents <= (end - 2) &&
+               contents[0] == '\r' && contents[1] == '\n' &&
+              (contents[2] == ' ' || contents[2] == '\t'))
+        contents += 3;
+      /* Any space or tab. */
+      else if (contents[0] == ' ' || contents[0] == '\t')
+        contents++;
+      /* If we get here, it's because this character is a line break
+         followed by non-whitespace, or a line break followed by
+         another line break
+       */
+      else
+        break;
+    }
 
     /* If we're supposed to strip at the first token, pull `end' back to
        the first whitespace or ';' after the first token.
