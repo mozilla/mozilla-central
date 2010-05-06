@@ -325,7 +325,7 @@ function createCalendar(name){
                     .getNode().ownerDocument.defaultView;
   let manager = defaultView.getCalendarManager();
 
-  let url = defaultView.makeURL("moz-profile-calendar://");
+  let url = defaultView.makeURL("moz-storage-calendar://");
   let calendar = manager.createCalendar("storage", url);
   calendar.name = name;
   manager.registerCalendar(calendar);

@@ -210,12 +210,17 @@ calStorageCalendar.prototype = {
             this.mDB = dbService.openDatabase(fileURL.file);
             upgradeDB(this.mDB);
         } else if (this.uri.schemeIs("moz-profile-calendar")) {
+            // This is an old-style moz-profile-calendar. It requires some
+            // migration steps.
+
             let localDB = cal.getCalendarDirectory();
             localDB.append("local.sqlite");
             localDB = dbService.openDatabase(localDB);
 
+            // First, we need to check if this is from 0.9, i.e we need to
+            // migrate from storage.sdb to local.sqlite.
             this.mDB = dbService.openSpecialDatabase("profile");
-            if (this.mDB.tableExists("cal_events")) { // migrate data to local.sqlite:
+            if (this.mDB.tableExists("cal_events")) {
                 cal.LOG("Storage: Migrating storage.sdb -> local.sqlite");
                 upgradeDB(this.mDB); // upgrade schema before migating data
                 let attachStatement = createStatement(this.mDB, "ATTACH DATABASE :file_path AS local_sqlite");
@@ -254,56 +259,104 @@ calStorageCalendar.prototype = {
                     this.mDB.executeSimpleSQL("DETACH DATABASE local_sqlite");
                 }
             }
+
+            // Now that we are through, set the database to the new local.sqlite
+            // and start the upgraders.
             this.mDB = localDB;
             upgradeDB(this.mDB);
 
-            // Check if there is an "id" parameter in the uri. If so, this
-            // calendar has not been migrated to using the uuid as its cal_id.
+
+            // Afterwards, we have to migrate the moz-profile-calendars to the
+            // new moz-storage-calendar schema. This is needed due to bug 479867
+            // and its regression bug 561735. The first calendar created before
+            // v19 already has a moz-profile-calendar:// uri without an ?id=
+            // parameter (the id in the databse is 0). We need to migrate this
+            // special calendar differently.
+
             // WARNING: This is a somewhat fragile process. Great care should be
             // taken during future schema upgrades to make sure this still
             // works.
-            let id = 0;
-            let path = this.uri.path;
-            let pos = path.indexOf("?id=");
+            this.mDB.beginTransactionAs(Components.interfaces.mozIStorageConnection.TRANSACTION_EXCLUSIVE);
+            try {
+                /**
+                 * Helper function to migrate all tables from one id to the next
+                 *
+                 * @param db        The database to use
+                 * @param newCalId  The new calendar id to set
+                 * @param oldCalId  The old calendar id to look for
+                 */
+                function migrateTables(db, newCalId, oldCalId) {
+                    for each (let tbl in ["cal_alarms", "cal_attachments",
+                                          "cal_attendees", "cal_events",
+                                          "cal_metadata", "cal_properties",
+                                          "cal_recurrence", "cal_relations",
+                                          "cal_todos"]) {
+                        let stmt;
+                        try {
+                            stmt = createStatement(db, "UPDATE " + tbl +
+                                                       "   SET cal_id = :cal_id" +
+                                                       " WHERE cal_id = :old_cal_id");
+                            stmt.params.cal_id = newCalId;
+                            stmt.params.old_cal_id = oldCalId;
+                            stmt.execute();
+                        } catch (e) {
+                            // Pass error through to enclosing try/catch block
+                            throw e;
+                        } finally {
+                            if (stmt) {
+                                stmt.reset();
+                            }
+                        }
+                    }
+                }
 
-            if (pos != -1) {
-                this.mDB.beginTransactionAs(Components.interfaces.mozIStorageConnection.TRANSACTION_EXCLUSIVE);
-                try {
+                let id = 0;
+                let path = this.uri.path;
+                let pos = path.indexOf("?id=");
+
+                if (pos != -1) {
+                    // There is an "id" parameter in the uri. This calendar
+                    // has not been migrated to using the uuid as its cal_id.
                     pos = this.uri.path.indexOf("?id=");
                     if (pos != -1) {
                         cal.LOG("Storage: Migrating numeric cal_id to uuid");
                         id = parseInt(path.substr(pos + 4), 10);
-
-                        for each (let tbl in ["cal_alarms", "cal_attachments",
-                                              "cal_attendees", "cal_events",
-                                              "cal_metadata", "cal_properties",
-                                              "cal_recurrence", "cal_relations",
-                                              "cal_todos"]) {
-                            let stmt = createStatement(this.mDB,
-                                                       "UPDATE " + tbl + " SET cal_id = :cal_id" +
-                                                       " WHERE cal_id = :old_cal_id");
-                            stmt.params.cal_id = this.id;
-                            stmt.params.old_cal_id = id;
-                            stmt.execute();
-                            stmt.reset();
-                        }
+                        migrateTables(this.mDB, this.id, id);
 
                         // Now remove the id from the uri to make sure we don't do this
                         // again. Remeber the id, so we can recover in case something
                         // goes wrong.
-                        this.setProperty("uri", "moz-profile-calendar://");
+                        this.setProperty("uri", "moz-storage-calendar://");
                         this.setProperty("old_calendar_id", id);
 
                         this.mDB.commitTransaction();
                     } else {
                         this.mDB.rollbackTransaction();
                     }
-                } catch (exc) {
-                    cal.ERROR(exc + ", error: " + this.mDB.lastErrorString);
-                    this.mDB.rollbackTransaction();
-                    throw exc;
+                } else {
+                    // For some reason, the first storage calendar before the
+                    // v19 upgrade has cal_id=0. If we still have a
+                    // moz-profile-calendar here, then this is the one and we
+                    // need to move all events with cal_id=0 to this id.
+                    cal.LOG("Storage: Migrating stray cal_id=0 calendar to uuid");
+                    migrateTables(this.mDB, this.id, 0);
+                    this.setProperty("uri", "moz-storage-calendar://");
+                    this.setProperty("old_calendar_id", 0);
+                    this.mDB.commitTransaction();
                 }
+            } catch (exc) {
+                cal.ERROR(exc + ", error: " + this.mDB.lastErrorString);
+                this.mDB.rollbackTransaction();
+                throw exc;
             }
+        } else if (this.uri.schemeIs("moz-storage-calendar")) {
+            // New style uri, no need for migration here
+            let localDB = cal.getCalendarDirectory();
+            localDB.append("local.sqlite");
+            localDB = dbService.openDatabase(localDB);
+
+            this.mDB = localDB;
+            upgradeDB(this.mDB);
         }
 
         this.initDB();

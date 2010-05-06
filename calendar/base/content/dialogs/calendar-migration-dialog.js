@@ -604,7 +604,7 @@ var gDataMigrator = {
      * @param icsFile     The nsI(Local)File to import.
      */
     importICSToStorage: function migrateIcsStorage(icsFile) {
-        const uri = 'moz-profile-calendar://';
+        const uri = 'moz-storage-calendar://';
         let cal = cal.getCalendarManager().createCalendar("storage", makeURL(uri));
         let icsImporter = Components.classes["@mozilla.org/calendar/import;1?type=ics"]
                                     .getService(Components.interfaces.calIImporter);

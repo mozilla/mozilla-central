@@ -93,7 +93,7 @@ function createStatement(aDb, aSql) {
         return wrapper;
     } catch (e) {
         cal.ERROR("mozStorage exception: createStatement failed, statement: '" +
-                  aSql + "', error: '" + aDb.lastErrorString + "' - " + e);
+                  aSql + "', error: '" + (aDb ? aDb.lastErrorString : "(no db)") + "' - " + e);
     }
 
     return null;
