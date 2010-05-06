@@ -629,7 +629,7 @@ var AugmentEverybodyWith = {
       let elem = this.window.document.getElementById(aId);
       if (aQuery) {
         if (aQuery.tagName) {
-          let elems = Array.slice.call(
+          let elems = Array.prototype.slice.call(
                         elem.getElementsByTagName(aQuery.tagName));
           if (aQuery.label)
             elems = [elem for each (elem in elems)
