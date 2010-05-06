@@ -141,6 +141,9 @@ endif
 
 EXPORTS		= \
 		nsMimeStringResources.h \
+		nsStreamConverter.h \
+		mimecryp.h \
+		mimemoz2.h \
 		mimetext.h \
 		mimeleaf.h \
 		mimecth.h \
