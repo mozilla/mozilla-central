@@ -532,8 +532,8 @@
                         disable-on-readonly="true">
                     <menupopup id="options-status-menupopup">
                       <menuitem id="options-status-none-menuitem"
-                                label="&newevent.status.none.label;"
-                                accesskey="&newevent.status.none.accesskey;"
+                                label="&newevent.eventStatus.none.label;"
+                                accesskey="&newevent.eventStatus.none.accesskey;"
                                 type="checkbox"
                                 command="cmd_status_none"
                                 disable-on-readonly="true"/>
@@ -550,8 +550,8 @@
                                 command="cmd_status_confirmed"
                                 disable-on-readonly="true"/>
                       <menuitem id="options-status-canceled-menuitem"
-                                label="&newevent.status.cancelled.label;"
-                                accesskey="&newevent.status.cancelled.accesskey;"
+                                label="&newevent.eventStatus.cancelled.label;"
+                                accesskey="&newevent.eventStatus.cancelled.accesskey;"
                                 type="checkbox"
                                 command="cmd_status_cancelled"
                                 disable-on-readonly="true"/>
@@ -831,7 +831,7 @@
                               oncommand="updateToDoStatus(this.value);">
                         <menupopup id="todo-status-menupopup">
                             <menuitem id="todo-status-none-menuitem"
-                                      label="&newevent.status.none.label;"
+                                      label="&newevent.todoStatus.none.label;"
                                       value="NONE"/>
                             <menuitem id="todo-status-needsaction-menuitem"
                                       label="&newevent.status.needsaction.label;"
@@ -843,7 +843,7 @@
                                       label="&newevent.status.completed.label;"
                                       value="COMPLETED"/>
                             <menuitem id="todo-status-canceled-menuitem"
-                                      label="&newevent.status.cancelled.label;"
+                                      label="&newevent.todoStatus.cancelled.label;"
                                       value="CANCELLED"/>
                         </menupopup>
                     </menulist>

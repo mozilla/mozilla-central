@@ -260,7 +260,7 @@ function getEventStatusString(calendarEvent)
     case "CONFIRMED":
       return calGetString('calendar', "statusConfirmed");
     case "CANCELLED":
-      return calGetString('calendar', "statusCancelled");
+      return calGetString('calendar', "eventStatusCancelled");
      default:
         return "";
   }
@@ -277,7 +277,7 @@ function getToDoStatusString(iCalToDo)
     case "IN-PROCESS":
       return calGetString('calendar', "statusInProcess");
     case "CANCELLED":
-      return calGetString('calendar', "statusCancelled");
+      return calGetString('calendar', "todoStatusCancelled");
     case "COMPLETED":
       return calGetString('calendar', "statusCompleted");
      default:
