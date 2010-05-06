@@ -42,7 +42,7 @@
 }
 
 .gloda-search-icon {
-  list-style-image: url(chrome://global/skin/icons/Search-glass.png);
+  list-style-image: url(moz-icon://stock/gtk-find?size=menu);
 }
 
 .gloda-search-icon:-moz-locale-dir(rtl) {
