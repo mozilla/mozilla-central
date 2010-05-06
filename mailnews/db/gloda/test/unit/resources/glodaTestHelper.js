@@ -968,7 +968,7 @@ function sqlExpectCount(aExpectedCount, aSQLString /* ... params */) {
     GlodaDatastore._bindVariant(stmt, iArg-2, arguments[iArg]);
   }
 
-  let desc = Array.protocol.slice.call(arguments, 1);
+  let desc = Array.prototype.slice.call(arguments, 1);
   mark_action("glodaTestHelper", "running SQL count", desc);
   stmt.executeAsync(new _SqlExpectationListener(aExpectedCount, desc,
                                                 Components.stack.caller));
