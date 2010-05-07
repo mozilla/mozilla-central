@@ -46,7 +46,6 @@ MODULE		= msgsmime
 LIBRARY_NAME	= msgsmime
 META_COMPONENT = mail
 EXPORT_LIBRARY = 1
-SHORT_LIBNAME	= msgsmime
 IS_COMPONENT	= 1
 MODULE_NAME	= nsMsgSMIMEModule
 ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
@@ -64,7 +63,7 @@ REQUIRES	= xpcom \
 
 ifndef MOZ_STATIC_MAIL_BUILD
 
-ifeq ($(USE_SHORT_LIBNAME),1)
+ifeq (OS2,$(OS_ARCH))
 EXTRA_DSO_LIBS = msgbsutl
 else
 EXTRA_DSO_LIBS = msgbaseutil
@@ -100,4 +99,3 @@ EXTRA_DSO_LDOPTS = \
 endif
 
 include $(topsrcdir)/config/rules.mk
-

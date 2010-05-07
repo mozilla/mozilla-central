@@ -68,7 +68,7 @@ REQUIRES	= xpcom \
 		  nkcache \
 		  $(NULL)
 
-ifeq ($(USE_SHORT_LIBNAME),1)
+ifeq (OS2,$(OS_ARCH))
 EXTRA_DSO_LIBS = msgbsutl
 else
 EXTRA_DSO_LIBS = msgbaseutil
@@ -104,4 +104,3 @@ include $(topsrcdir)/config/rules.mk
 ifdef MOZ_MOVEMAIL
 DEFINES	+= -DHAVE_MOVEMAIL
 endif
-

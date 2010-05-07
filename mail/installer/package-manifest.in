@@ -692,15 +692,6 @@
 @BINPATH@/components/@DLL_PREFIX@chardet@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@chrome@DLL_SUFFIX@
 #ifndef MOZILLA_1_9_2_BRANCH
-#ifndef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@commandlines@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@htmlpars@DLL_SUFFIX@
-#endif
-#ifndef XP_UNIX
-@BINPATH@/components/@DLL_PREFIX@mailcmp@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@mailcomps@DLL_SUFFIX@
-#endif
 #ifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@cmdlines@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@gkparser@DLL_SUFFIX@
@@ -712,6 +703,8 @@
 @BINPATH@/components/@DLL_PREFIX@tkitcmps@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@xpautoc@DLL_SUFFIX@
 #else
+@BINPATH@/components/@DLL_PREFIX@commandlines@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@htmlpars@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@nsappshell@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@permissions@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@spellchecker@DLL_SUFFIX@
@@ -723,7 +716,6 @@
 #elifndef XP_UNIX
 @BINPATH@/components/@DLL_PREFIX@cmdlines@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@gkparser@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@mailcmp@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@appshell@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@perms@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@spellchk@DLL_SUFFIX@
@@ -734,7 +726,6 @@
 #else
 @BINPATH@/components/@DLL_PREFIX@commandlines@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@htmlpars@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@mailcomps@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@nsappshell@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@permissions@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@spellchecker@DLL_SUFFIX@
@@ -786,6 +777,11 @@
 @BINPATH@/components/@DLL_PREFIX@jsctypes@DLL_SUFFIX@
 #endif
 @BINPATH@/components/@DLL_PREFIX@mail@DLL_SUFFIX@
+#ifdef XP_OS2
+@BINPATH@/components/@DLL_PREFIX@mailcmp@DLL_SUFFIX@
+#else
+@BINPATH@/components/@DLL_PREFIX@mailcomps@DLL_SUFFIX@
+#endif
 @BINPATH@/components/@DLL_PREFIX@mork@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@mozfind@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@mozldap@DLL_SUFFIX@

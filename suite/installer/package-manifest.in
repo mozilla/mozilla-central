@@ -778,23 +778,28 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/components/@DLL_PREFIX@fts3tok@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@mailview@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@mime@DLL_SUFFIX@
-#ifdef WIN_OR_OS2
-; To become |#ifdef XP_OS2| in bug 534408.
+#ifdef XP_OS2
 @BINPATH@/components/mimeemit.dll
-@BINPATH@/msgbsutl.dll
-@BINPATH@/components/msgcompo.dll
 #else
 @BINPATH@/components/@DLL_PREFIX@mimeemitter@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@msgcompose@DLL_SUFFIX@
 #endif
 @BINPATH@/components/@DLL_PREFIX@msgbase@DLL_SUFFIX@
+#ifdef XP_OS2
+@BINPATH@/components/msgcompo.dll
+#else
+@BINPATH@/components/@DLL_PREFIX@msgcompose@DLL_SUFFIX@
+#endif
 @BINPATH@/components/@DLL_PREFIX@msgdb@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@msgimap@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@msglocal@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@msgmdn@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@msgnews@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@vcard@DLL_SUFFIX@
+#ifdef XP_OS2
+@BINPATH@/msgbsutl.dll
+#else
+@BINPATH@/@DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
+#endif
 ; ! MOZ_STATIC_MAIL_BUILD
 #endif
 ; ! MOZ_STATIC_BUILD

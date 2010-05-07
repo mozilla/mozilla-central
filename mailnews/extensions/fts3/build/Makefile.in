@@ -47,7 +47,6 @@ MODULE		= fts3tok
 LIBRARY_NAME	= fts3tok
 META_COMPONENT = mail
 EXPORT_LIBRARY = 1
-SHORT_LIBNAME	= fts3tok
 IS_COMPONENT	= 1
 MODULE_NAME	= nsFts3TokenizerModule
 ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
@@ -60,7 +59,7 @@ REQUIRES	= xpcom \
 		  storage \
 		  $(NULL)
 
-ifeq ($(USE_SHORT_LIBNAME),1)
+ifeq (OS2,$(OS_ARCH))
 EXTRA_DSO_LIBS = msgbsutl
 else
 EXTRA_DSO_LIBS = msgbaseutil

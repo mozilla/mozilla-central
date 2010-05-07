@@ -213,24 +213,28 @@ components/@DLL_PREFIX@bayesflt@DLL_SUFFIX@
 components/@DLL_PREFIX@fts3tok@DLL_SUFFIX@
 components/@DLL_PREFIX@mailview@DLL_SUFFIX@
 components/@DLL_PREFIX@mime@DLL_SUFFIX@
-#ifdef WIN_OR_OS2
-; To become |#ifdef XP_OS2| in bug 534408.
-; At that time, copy these entries into the following |#ifdef XP_WIN| block. (Or just don't.!.)
+#ifdef XP_OS2
 components/mimeemit.dll
-msgbsutl.dll
-components/msgcompo.dll
 #else
 components/@DLL_PREFIX@mimeemitter@DLL_SUFFIX@
-@DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
-components/@DLL_PREFIX@msgcompose@DLL_SUFFIX@
 #endif
 components/@DLL_PREFIX@msgbase@DLL_SUFFIX@
+#ifdef XP_OS2
+components/msgcompo.dll
+#else
+components/@DLL_PREFIX@msgcompose@DLL_SUFFIX@
+#endif
 components/@DLL_PREFIX@msgdb@DLL_SUFFIX@
 components/@DLL_PREFIX@msgimap@DLL_SUFFIX@
 components/@DLL_PREFIX@msglocal@DLL_SUFFIX@
 components/@DLL_PREFIX@msgmdn@DLL_SUFFIX@
 components/@DLL_PREFIX@msgnews@DLL_SUFFIX@
 components/@DLL_PREFIX@vcard@DLL_SUFFIX@
+#ifdef XP_OS2
+msgbsutl.dll
+#else
+@DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
+#endif
 
 #ifdef MOZ_STATIC_BUILD
 components/@DLL_PREFIX@accessibility@DLL_SUFFIX@

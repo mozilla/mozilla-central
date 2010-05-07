@@ -123,7 +123,7 @@ endif
 ifdef MOZ_STATIC_MAIL_BUILD
 EXTRA_DSO_LDOPTS += ../../base/util/$(LIB_PREFIX)msgbsutl_s.$(LIB_SUFFIX)
 else
-ifeq ($(USE_SHORT_LIBNAME),1)
+ifeq (OS2,$(OS_ARCH))
 EXTRA_DSO_LIBS = msgbsutl
 else
 EXTRA_DSO_LIBS = msgbaseutil

@@ -468,9 +468,12 @@ components/@DLL_PREFIX@import@DLL_SUFFIX@
 components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
 components/@DLL_PREFIX@jar50@DLL_SUFFIX@
 components/@DLL_PREFIX@mail@DLL_SUFFIX@
-#ifdef XP_WIN
+#ifdef XP_OS2
 components/@DLL_PREFIX@mailcmp@DLL_SUFFIX@
 #else
+#ifdef XP_WIN
+components/@DLL_PREFIX@mailcmp@DLL_SUFFIX@
+#endif
 components/@DLL_PREFIX@mailcomps@DLL_SUFFIX@
 #endif
 components/@DLL_PREFIX@mork@DLL_SUFFIX@

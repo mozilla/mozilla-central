@@ -91,7 +91,7 @@ LIBS +=		\
 		../../base/util/$(LIB_PREFIX)msgbsutl_s.$(LIB_SUFFIX) \
 		$(NULL)
 else
-ifeq ($(USE_SHORT_LIBNAME), 1)
+ifeq (OS2,$(OS_ARCH))
 LIBS +=		$(call EXPAND_LIBNAME_PATH,msgbsutl,../../base/util)
 else
 LIBS +=		$(call EXPAND_LIBNAME_PATH,msgbaseutil,../../base/util)

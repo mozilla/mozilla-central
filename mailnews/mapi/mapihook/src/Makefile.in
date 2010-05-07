@@ -90,7 +90,7 @@ LOBJS		= ../build/msgMapi_i.$(OBJ_SUFFIX)
 
 ifndef MOZ_STATIC_MAIL_BUILD
 
-ifdef USE_SHORT_LIBNAME
+ifeq (OS2,$(OS_ARCH))
 EXTRA_DSO_LIBS	= msgbsutl
 else
 EXTRA_DSO_LIBS	= msgbaseutil
@@ -123,4 +123,3 @@ SRCS_IN_OBJDIR	= 1
 include $(topsrcdir)/config/rules.mk
 
 DEFINES	+= -DUNICODE -D_UNICODE
-

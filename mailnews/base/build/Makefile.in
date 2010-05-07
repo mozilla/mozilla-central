@@ -94,7 +94,7 @@ SHARED_LIBRARY_LIBS = \
 		../search/src/$(LIB_PREFIX)msgsearch_s.$(LIB_SUFFIX) \
 		$(NULL)
 
-ifeq ($(USE_SHORT_LIBNAME),1)
+ifeq (OS2,$(OS_ARCH))
 EXTRA_DSO_LIBS = msgbsutl
 else
 EXTRA_DSO_LIBS = msgbaseutil
