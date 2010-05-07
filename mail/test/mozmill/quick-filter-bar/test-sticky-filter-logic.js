@@ -127,6 +127,12 @@ function test_sticky_tags() {
   be_in_folder(folderOne);
   assert_tag_constraints_visible(tagA, tagC);
   assert_messages_in_view([setTagA1]);
+
+  // -- if we turn off sticky, make sure that things clear when we change
+  //     folders.  (we had a bug with this before.)
+  toggle_boolean_constraints("sticky");
+  be_in_folder(folderTwo);
+  assert_constraints_expressed({});
 }
 
 /**

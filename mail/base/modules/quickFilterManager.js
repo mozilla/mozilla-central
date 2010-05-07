@@ -815,8 +815,8 @@ let TagFacetingFilter = {
    * We need to clone our state if it's an object to avoid bad sharing.
    */
   propagateState: function(aOld, aSticky) {
-    // stay disabled when disabled
-    if (aOld == null)
+    // stay disabled when disabled, get disabled when not sticky
+    if (aOld == null || !aSticky)
       return null;
     if (this.isSimple(aOld))
       return aOld ? true : false; // could be an object, need to convert.
