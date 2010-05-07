@@ -1628,6 +1628,15 @@ var GlodaMsgIndexer = {
   _worker_processDeletes: function gloda_worker_processDeletes(aJob,
       aCallbackHandle) {
 
+    // Count the number of messages we will eventually process.  People freak
+    //  out when the number is constantly increasing because they think gloda
+    //  has gone rogue.  (Note: new deletions can still accumulate during
+    //  our execution, so we may 'expand' our count a little still.)
+    this._datastore.countDeletedMessages(aCallbackHandle.wrappedCallback);
+    aJob.goal = yield this.kWorkAsync;
+    this._log.debug("There are currently " + aJob.goal + " messages awaiting" +
+                    " deletion processing.");
+
     // get a block of messages to delete.
     let query = Gloda.newQuery(Gloda.NOUN_MESSAGE, {
                                  noDbQueryValidityConstraints: true,
@@ -1638,8 +1647,15 @@ var GlodaMsgIndexer = {
     yield this.kWorkAsync;
 
     while (deletedCollection.items.length) {
-      aJob.goal += deletedCollection.items.length;
       for each (let [, message] in Iterator(deletedCollection.items)) {
+        // If it turns out our count is wrong (because some new deletions
+        //  happened since we entered this worker), let's issue a new count
+        //  and use that to accurately update our goal.
+        if (aJob.offset >= aJob.goal) {
+          this._datastore.countDeletedMessages(aCallbackHandle.wrappedCallback);
+          aJob.goal += yield this.kWorkAsync;
+        }
+
         yield aCallbackHandle.pushAndGo(this._deleteMessage(message,
                                                             aCallbackHandle));
         aJob.offset++;

@@ -450,11 +450,38 @@ CompactionBlockFetcherHandler.prototype = {
     }
   },
   handleError: function gloda_ds_cbfh_handleError(aError) {
-
+    GlodaDatastore._log.error("CompactionBlockFetcherHandler error: " +
+      aError.result + ": " + aError.message);
   },
   handleCompletion: function gloda_ds_cbfh_handleCompletion(aReason) {
     GlodaDatastore._asyncCompleted();
     this.callback(this.idsAndMessageKeys);
+  }
+};
+
+/**
+ * Use this as the callback handler when you have a SQL query that returns a
+ *  single row with a single integer column value, like a COUNT() query.
+ */
+function SingletonResultValueHandler(aCallback) {
+  this.callback = aCallback;
+  this.result = null;
+  GlodaDatastore._pendingAsyncStatements++;
+}
+SingletonResultValueHandler.prototype = {
+  handleResult: function gloda_ds_cbfh_handleResult(aResultSet) {
+    let row;
+    while ((row = aResultSet.getNextRow())) {
+      this.result = row.getInt64(0);
+    }
+  },
+  handleError: function gloda_ds_cbfh_handleError(aError) {
+    GlodaDatastore._log.error("SingletonResultValueHandler error: " +
+      aError.result + ": " + aError.message);
+  },
+  handleCompletion: function gloda_ds_cbfh_handleCompletion(aReason) {
+    GlodaDatastore._asyncCompleted();
+    this.callback(this.result);
   }
 };
 
@@ -2625,6 +2652,22 @@ var GlodaDatastore = {
 
     GlodaCollectionManager.itemsDeleted(GlodaMessage.prototype.NOUN_ID,
                                         aMessageIDs);
+  },
+
+  get _countDeletedMessagesStatement() {
+    let statement = this._createAsyncStatement(
+      "SELECT COUNT(*) FROM messages WHERE deleted = 1");
+    this.__defineGetter__("_countDeletedMessagesStatement",
+                          function() statement);
+    return this._countDeletedMessagesStatement;
+  },
+
+  /**
+   * Count how many messages are currently marked as deleted in the database.
+   */
+  countDeletedMessages: function gloda_ds_countDeletedMessages(aCallback) {
+    let cms = this._countDeletedMessagesStatement;
+    cms.executeAsync(new SingletonResultValueHandler(aCallback));
   },
 
   get _deleteMessageByIDStatement() {
