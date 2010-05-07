@@ -495,7 +495,7 @@ var GlodaFundAttr = {
     }
     */
     if (author == null || author == "")
-      author = aMsgHdr.mime2DecodedAuthor;
+      author = aMsgHdr.author;
 
     let normalizedListPost = "";
     if (aMimeMsg && aMimeMsg.has("list-post")) {
@@ -504,11 +504,14 @@ var GlodaFundAttr = {
         normalizedListPost = "<" + match[1] + ">";
     }
 
+    // Do not use the MIME decoded variants of any of the email addresses
+    //  because if name is encoded and has a comma in it, it will break the
+    //  address parser (which already knows how to do the decoding anyways).
     let [authorIdentities, toIdentities, ccIdentities, bccIdentities,
          listIdentities] =
       yield aCallbackHandle.pushAndGo(
         Gloda.getOrCreateMailIdentities(aCallbackHandle,
-                                        author, aMsgHdr.mime2DecodedRecipients,
+                                        author, aMsgHdr.recipients,
                                         aMsgHdr.ccList, aMsgHdr.bccList,
                                         normalizedListPost));
 

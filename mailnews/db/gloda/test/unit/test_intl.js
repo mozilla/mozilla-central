@@ -288,6 +288,38 @@ function test_fulltextsearch(aPhrase)
 }
 
 
+/**
+ * Names with encoded commas in them can screw up our mail address parsing if
+ *  we perform the mime decoding prior to handing the mail address off for
+ *  parsing.
+ */
+function test_encoding_complications_with_mail_addresses() {
+  let basePair = gMessageGenerator.makeNameAndAddress();
+  // The =2C encodes a comma!
+  let encodedCommaPair = ["=?iso-8859-1?Q?=DFnake=2C_=DFammy?=",
+                          basePair[1]];
+  // "Snake, Sammy", but with a much cooler looking S-like character!
+  let decodedName = "\u00dfnake, \u00dfammy";
+  // Use the thing with the comma in it for all cases; previously there was an
+  //  asymmetry between to and cc...
+  let smsg = gMessageGenerator.makeMessage({
+    from: encodedCommaPair,
+    to: [encodedCommaPair],
+    cc: [encodedCommaPair],
+  });
+  function verify_sammy_snake(smsg, gmsg) {
+    do_check_eq(gmsg.from.contact.name, decodedName);
+    do_check_eq(gmsg.to.length, 1);
+    do_check_eq(gmsg.to[0].id, gmsg.from.id);
+    do_check_eq(gmsg.cc.length, 1);
+    do_check_eq(gmsg.cc[0].id, gmsg.from.id);
+  }
+
+  let synSet = new SyntheticMessageSet([smsg]);
+  yield add_sets_to_folder(gInbox, [synSet]);
+  yield wait_for_gloda_indexer(synSet, {verifier: verify_sammy_snake});
+}
+
 /* ===== Driver ===== */
 
 var tests = [
@@ -297,6 +329,7 @@ var tests = [
     return wait_for_gloda_db_flush();
   },
   parameterizeTest(test_fulltextsearch, intlPhrases),
+  test_encoding_complications_with_mail_addresses,
 ];
 
 var gInbox;

@@ -447,7 +447,10 @@ SyntheticMessage.prototype = {
    *     e-mail address (sans wrapping greater-than/less-than).
    */
   _formatMailFromNameAndAddress: function(aNameAndAddress) {
-    return '"' + aNameAndAddress[0] + '" ' +
+    // if the name is encoded, do not put it in quotes!
+    return (aNameAndAddress[0][0] == "=" ?
+              (aNameAndAddress[0] + " ") :
+              ('"' + aNameAndAddress[0] + '" ')) +
            '<' + aNameAndAddress[1] + '>';
   },
 
