@@ -400,7 +400,7 @@ function loadDialog(item) {
     menuItem.setAttribute("label", calGetString("calendar-event-dialog",
                                           cal.isEvent(item) ? "itemMenuLabelEvent" : "itemMenuLabelTask"));
     menuItem.setAttribute("accesskey", calGetString("calendar-event-dialog",
-                                          cal.isEvent(item) ? "itemMenuAccesskeyEvent" : "itemMenuAccesskeyTask"));
+                                          cal.isEvent(item) ? "itemMenuAccesskeyEvent2" : "itemMenuAccesskeyTask2"));
 
     // Priority
     gPriority = parseInt(item.priority);
