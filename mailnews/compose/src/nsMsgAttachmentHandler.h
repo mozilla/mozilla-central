@@ -50,6 +50,7 @@
 #ifdef XP_MACOSX
 
 #include "nsMsgAppleDouble.h"
+#include "nsILocalFileMac.h"
 
 class AppleDoubleEncodeObject
 {
@@ -121,7 +122,7 @@ private:
                                                nsILocalFileMac *aSourceFile);
   // zips this attachment and does the work to make this attachment handler handle it properly.
   nsresult ConvertToZipFile(nsILocalFileMac *aSourceFile);
-  PRBool HasResourceFork(FSSpec *fsSpec);
+  PRBool HasResourceFork(FSRef *fsRef);
 #endif
 
   //

@@ -658,16 +658,11 @@ done:
 }
 
 #ifdef XP_MACOSX
-PRBool nsMsgAttachmentHandler::HasResourceFork(FSSpec *fsSpec)
+PRBool nsMsgAttachmentHandler::HasResourceFork(FSRef *fsRef)
 {
-  FSRef fsRef;
-  if (::FSpMakeFSRef(fsSpec, &fsRef) == noErr)
-  {
-    FSCatalogInfo catalogInfo;
-    OSErr err = ::FSGetCatalogInfo(&fsRef, kFSCatInfoDataSizes + kFSCatInfoRsrcSizes, &catalogInfo, nsnull, nsnull, nsnull);
-    return (err == noErr && catalogInfo.rsrcLogicalSize != 0);
-  }
-  return PR_FALSE;
+  FSCatalogInfo catalogInfo;
+  OSErr err = FSGetCatalogInfo(fsRef, kFSCatInfoDataSizes + kFSCatInfoRsrcSizes, &catalogInfo, nsnull, nsnull, nsnull);
+  return (err == noErr && catalogInfo.rsrcLogicalSize != 0);
 }
 #endif
 
@@ -795,24 +790,28 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
   // convert the apple file to AppleDouble first, and then patch the
   // address in the url.
   
-
   //We need to retrieve the file type and creator...
-  FSSpec fsSpec;
-  aSourceFile->GetFSSpec(&fsSpec);
-  FInfo info;
-  if (FSpGetFInfo (&fsSpec, &info) == noErr)
-  {
-    char filetype[32];
-    PR_snprintf(filetype, sizeof(filetype), "%X", info.fdType);
-    PR_Free(m_x_mac_type);
-    m_x_mac_type = PL_strdup(filetype);
 
-    PR_snprintf(filetype, sizeof(filetype), "%X", info.fdCreator);
-    PR_Free(m_x_mac_creator);
-    m_x_mac_creator = PL_strdup(filetype);
-  }
+  char fileInfo[32];
+  OSType type, creator;
 
-  PRBool sendResourceFork = HasResourceFork(&fsSpec);
+  nsresult rv = aSourceFile->GetFileType(&type);
+  if (NS_FAILED(rv))
+    return PR_FALSE;
+  PR_snprintf(fileInfo, sizeof(fileInfo), "%X", type);
+  PR_Free(m_x_mac_type);
+  m_x_mac_type = PL_strdup(fileInfo);
+
+  rv = aSourceFile->GetFileCreator(&creator);
+  if (NS_FAILED(rv))
+    return PR_FALSE;
+  PR_snprintf(fileInfo, sizeof(fileInfo), "%X", creator);
+  PR_Free(m_x_mac_creator);
+  m_x_mac_creator = PL_strdup(fileInfo);
+
+  FSRef fsRef;
+  aSourceFile->GetFSRef(&fsRef);
+  PRBool sendResourceFork = HasResourceFork(&fsRef);
 
   // if we have a resource fork, check the filename extension, maybe we don't need the resource fork!
   if (sendResourceFork)
@@ -820,7 +819,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
     nsCOMPtr<nsIURL> fileUrl(do_CreateInstance(NS_STANDARDURL_CONTRACTID));
     if (fileUrl)
     {
-      nsresult rv = fileUrl->SetSpec(aFileURI);
+      rv = fileUrl->SetSpec(aFileURI);
       if (NS_SUCCEEDED(rv))
       {
         nsCAutoString ext;
@@ -982,7 +981,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
 # define TEXT_TYPE  0x54455854  /* the characters 'T' 'E' 'X' 'T' */
 # define text_TYPE  0x74657874  /* the characters 't' 'e' 'x' 't' */
 
-      if (info.fdType != TEXT_TYPE && info.fdType != text_TYPE)
+      if (type != TEXT_TYPE && type != text_TYPE)
       {
         MacGetFileType(aSourceFile, &useDefault, &macType, &macEncoding);
         PR_Free(m_type);
