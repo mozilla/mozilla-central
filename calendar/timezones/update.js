@@ -42,6 +42,9 @@
  * what TZIDs have been dropped from the zones.tab. Those need to be inserted
  * below.
  *
+ * The update process is partially automated in the Makefile, please read its
+ * header.
+ *
  * args: <path-to-zones.tab-file> <moz-root> <version>
  */
 
