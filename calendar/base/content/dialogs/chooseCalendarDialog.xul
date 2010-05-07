@@ -50,7 +50,7 @@
         windowtype="Calendar:CalendarPicker"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         buttons="accept,cancel"
-        onload="loadCalendars();"
+        onload="setTimeout('loadCalendars()',0);"
         ondialogaccept="return doOK();"
         persist="screenX screenY height width">
 

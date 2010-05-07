@@ -34,3 +34,6 @@
 "LOCAL","icalparameter_local","TRUE;FALSE"
 "LOCALIZE","const char*",
 "OPTIONS","const char*",
+"SCHEDULE-AGENT","const char*",
+"SCHEDULE-STATUS","const char*",
+"SCHEDULE-FORCE-SEND","const char*",

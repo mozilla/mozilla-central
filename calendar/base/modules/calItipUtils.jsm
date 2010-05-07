@@ -23,6 +23,7 @@
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Clint Talbert <ctalbert.moz@gmail.com>
  *   Matthew Willis <lilmatt@mozilla.com>
+ *   Simon Vaillancourt <simon.at.orcl@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -567,7 +568,7 @@ function sendMessage(aItem, aMethod, aRecipientsList, autoResponse) {
  * messages based on the calendar action.
  *
  * @param opListener operation listener to forward
- * @param oldItem the previous item before modification (if any) 
+ * @param oldItem the previous item before modification (if any)
  */
 function ItipOpListener(opListener, oldItem) {
     this.mOpListener = opListener;
@@ -599,6 +600,22 @@ ItipOpListener.prototype = {
                                                      aItems) {
     }
 };
+
+/** local to this module file
+ * Add a the parameter SCHEDULE-AGENT=CLIENT to the item before it is
+ * created or updated so that the providers knows scheduling will
+ * be handled by the client.
+ *
+ * @param item item about to be added or updated
+ * @param calendar calendar into which the item is about to be added or updated
+ */
+function addScheduleAgentClient(item, calendar) {
+     if (calendar.getProperty("capabilities.autoschedule.supported") === true) {
+          if (item.organizer) {
+             item.organizer.setProperty("SCHEDULE-AGENT","CLIENT");
+          }
+     }
+}
 
 /** local to this module file
  * An operation listener triggered by cal.itip.processItipItem() for lookup of the sent iTIP item's UID.
@@ -697,6 +714,7 @@ ItipFindItemListener.prototype = {
                                             }
                                         }
                                         if (att) {
+                                            addScheduleAgentClient(newItem, item.calendar);
                                             newItem.removeAttendee(att);
                                             att = att.clone();
                                             let action = function(opListener, partStat) {
@@ -798,6 +816,7 @@ ItipFindItemListener.prototype = {
                             let newItem = itipItemItem.clone();
                             setReceivedInfo(newItem, itipItemItem);
                             newItem.parentItem.calendar = this_.mItipItem.targetCalendar;
+                            addScheduleAgentClient(newItem, this_.mItipItem.targetCalendar);
                             if (partStat) {
                                 if (partStat != "DECLINED") {
                                     cal.alarms.setDefaultValues(newItem);

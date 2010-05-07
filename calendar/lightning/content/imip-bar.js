@@ -23,6 +23,7 @@
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
+ *   Simon Vaillancourt <simon.at.orcl@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -379,7 +380,6 @@ function ltnItipOptions(itipItem, rc, actionFunc) {
 function ltnGetTargetCalendar(itipItem) {
     let calendarToReturn = null;
     let calendars = getCalendarManager().getCalendars({}).filter(ltnIsSchedulingCalendar);
-    // XXXNeed an error message if there is no calendar
 
     if (itipItem.receivedMethod == "REQUEST") {
         // try to further limit down the list to those calendars that are configured to a matching attendee;
@@ -394,7 +394,11 @@ function ltnGetTargetCalendar(itipItem) {
         }
     }
 
-    if (calendars.length == 1) {
+    if (calendars.length == 0) {
+        var stringBundle = getLightningStringBundle();
+        window.alert(stringBundle.GetStringFromName("imipNoCalendarAvailable"));
+    }
+    else if (calendars.length == 1) {
         // There's only one calendar, so it's silly to ask what calendar
         // the user wants to import into.
         calendarToReturn = calendars[0];

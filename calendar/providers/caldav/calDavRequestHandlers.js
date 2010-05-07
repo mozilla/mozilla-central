@@ -739,7 +739,7 @@ multigetSyncHandler.prototype = {
               <calendar-data/>
             </D:prop>
           </calendar-multiget>;
-          
+
         let batchSize = cal.getPrefSafe("calendar.caldav.multigetBatchSize", 100);
         while (this.itemsNeedFetching.length && batchSize > 0) {
             batchSize --;
@@ -804,7 +804,7 @@ multigetSyncHandler.prototype = {
                 this.calendar.mTargetCalendar.setMetaData("sync-token", this.newSyncToken);
               cal.LOG("CalDAV: New webdav-sync Token: " + this.calendar.mWebdavSyncToken);
             }
-    
+
             this.calendar.finalizeUpdatedItems(this.changelogListener,
                                                this.baseUri);
         }
@@ -824,7 +824,7 @@ multigetSyncHandler.prototype = {
                                      .createInstance(Components.interfaces.nsISAXXMLReader);
             this._reader.contentHandler = this;
             this._reader.errorHandler = this;
-            this._reader.parseAsync(null);            
+            this._reader.parseAsync(null);
             let timerCallback = {
                 requestHandler : this,
                 notify: function(timer) {
@@ -877,7 +877,7 @@ multigetSyncHandler.prototype = {
     endDocument: function mg_endDocument() {
         if (this.calendar.isCached) {
             this.calendar.superCalendar.endBatch();
-        }        
+        }
     },
 
     startElement: function mg_startElement(aUri, aLocalName, aQName, aAttributes) {
@@ -948,7 +948,7 @@ multigetSyncHandler.prototype = {
                                                             r.calendardata,
                                                             this.baseUri,
                                                             r.getetag,
-                                                            null);
+                                                            this.listener);
                     }
                 } else {
                     cal.WARN("CalDAV: Unexpected response, status: " +

@@ -385,9 +385,7 @@ calDavCalendar.prototype = {
             case "cache.updateTimer":
                 return getPrefSafe("calendar.autorefresh.timeout");
             case "itip.transport":
-                if (this.hasAutoScheduling) {
-                    return null;
-                } else if (this.hasScheduling) {
+                if (this.hasAutoScheduling || this.hasScheduling) {
                     return this.QueryInterface(Components.interfaces.calIItipTransport);
                 } // else use outbound email-based iTIP (from cal.ProviderBase)
                 break;
@@ -395,6 +393,8 @@ calDavCalendar.prototype = {
                 return (this.supportedItemTypes.indexOf("VTODO") > -1);
             case "capabilities.events.supported":
                 return (this.supportedItemTypes.indexOf("VEVENT") > -1);
+            case "capabilities.autoschedule.supported":
+                return this.hasAutoScheduling;
         }
         return this.__proto__.__proto__.getProperty.apply(this, arguments);
     },
@@ -719,7 +719,8 @@ calDavCalendar.prototype = {
                     } else {
                         thisCalendar.mTargetCalendar.deleteItem(aItem, aListener);
                     }
-                    delete thisCalendar.mHrefIndex[eventUri.path];
+                    let decodedHRef = decodeURIComponent(eventUri.path);
+                    delete thisCalendar.mHrefIndex[decodedHRef];
                     delete thisCalendar.mItemInfoCache[aItem.id];
                     cal.LOG("CalDAV: Item deleted successfully from calendar" +
                             thisCalendar.name);
@@ -2150,7 +2151,13 @@ calDavCalendar.prototype = {
     },
 
     canNotify: function caldav_canNotify(aMethod, aItem) {
-        if (this.hasAutoScheduling) { // auto-sched takes precedence
+        if (this.hasAutoScheduling) {
+            // canNotify should return false if the schedule agent is client
+            // so the itip transport(imip) takes care of notifying participants
+            if (aItem.organizer &&
+                aItem.organizer.getProperty("SCHEDULE-AGENT") == "CLIENT") {
+                return false;
+            }
             return true;
         }
         return false; // use outbound iTIP for all
@@ -2173,6 +2180,26 @@ calDavCalendar.prototype = {
     },
 
     sendItems: function caldav_sendItems(aCount, aRecipients, aItipItem) {
+
+        if (this.hasAutoScheduling) {
+            // If auto scheduling is supported by the server we still need
+            // to send out REPLIES for meetings where the ORGANIZER has the
+            // parameter SCHEDULE-AGENT set to CLIENT, this property is
+            // checked in in canNotify()
+            if (aItipItem.responseMethod == "REPLY") {
+                let imipTransport = cal.getImipTransport(this);
+                if (imipTransport) {
+                    imipTransport.sendItems(aCount, aRecipients, aItipItem);
+                }
+            }
+            // Servers supporting auto schedule should handle all other
+            // scheduling operations for now. Note that eventually the client
+            // could support setting a SCHEDULE-AGENT=CLIENT parameter on
+            // ATTENDEES and/or interpreting the SCHEDULE-STATUS parameter which
+            // could translate in the client sending out IMIP REQUESTS
+            // for specific attendees.
+            return;
+        }
 
         if (aItipItem.responseMethod == "REPLY") {
             // Get my participation status

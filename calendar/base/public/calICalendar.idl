@@ -188,6 +188,7 @@ interface calICalendar : nsISupports
    *   capabilities.alarms.oninviations.supported Supports alarms on inviations.
    *   capabilities.timezones.floating.supported Supports local time
    *   capabilities.timezones.UTC.supported      Supports UTC/GMT timezone
+   *   capabilities.autoschedule.supported       Supports caldav schedule properties in icalendar (SCHEDULE-AGENT, SCHEDULE-STATUS...)
    *
    * The following capabilities are used to restrict the values for specific
    * fields. An array should be specified with the values, the default
