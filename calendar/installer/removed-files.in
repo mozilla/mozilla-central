@@ -21,9 +21,7 @@ defaults/profile/US/
 # {641d8d09-7dda-4850-8228-ac0ab65e2ac9} = DOM Inspector
 extensions/{641d8d09-7dda-4850-8228-ac0ab65e2ac9}/install.rdf
 extensions/{641d8d09-7dda-4850-8228-ac0ab65e2ac9}/
-#ifdef MOZILLA_1_9_1_BRANCH
-greprefs.js
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 greprefs.js
 #else
 greprefs/all.js
@@ -163,9 +161,7 @@ components/layout_xul_tree.xpt
 components/locale.xpt
 components/lwbrk.xpt
 components/mimetype.xpt
-#ifndef MOZILLA_1_9_1_BRANCH
 components/mozbrwsr.xpt
-#endif
 components/mozfind.xpt
 components/necko.xpt
 components/necko_about.xpt
@@ -287,9 +283,7 @@ js/calWcapCachedCalendar.js
 #
 # Clean out obsolete files from Mozilla 1.9.1
 #
-#ifndef MOZILLA_1_9_1_BRANCH
 components/nsPostUpdateWin.js
-#endif
 #
 #endif
 #
@@ -454,16 +448,12 @@ calendar-js/calProviderBase.js
 calendar-js/calProviderUtils.js
 calendar-js/calAuthUtils.js
 
-#ifndef MOZILLA_1_9_1_BRANCH
 # Bug 420811 replace loading and broken image GIFs with PNGs
 res/broken-image.gif
 res/loading-image.gif
-#endif
 
 #ifdef XP_WIN
-#ifdef MOZILLA_1_9_1_BRANCH
-mozjs.dll
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 mozjs.dll
 #else
 # Bug 504029
@@ -479,6 +469,11 @@ js3250.dll
 ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/classes.nib
 ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/info.nib
 ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/objects.xib
+#endif
+
+# Bug 534408 - Core bug 514665 dropped/replaced USE_SHORT_LIBNAME uses: port that to c-c (apps)
+#ifdef XP_WIN
+components/calbscmp.dll
 #endif
 
 #ifndef MOZILLA_1_9_2_BRANCH

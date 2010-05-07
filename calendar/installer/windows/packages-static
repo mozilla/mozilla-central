@@ -67,8 +67,8 @@ bin\components\appstartup.xpt
 bin\components\autocomplete.xpt
 bin\components\autoconfig.xpt
 bin\components\calbase.xpt
+bin\components\calbasecomps.dll
 bin\components\calbaseinternal.xpt
-bin\components\calbscmp.dll
 bin\components\caldav.xpt
 bin\components\caps.xpt
 bin\components\chardet.xpt
@@ -141,9 +141,6 @@ bin\components\locale.xpt
 bin\components\loginmgr.xpt
 bin\components\lwbrk.xpt
 bin\components\mimetype.xpt
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\components\mozbrwsr.xpt
-#endif
 bin\components\mozfind.xpt
 bin\components\necko.xpt
 bin\components\necko_about.xpt
@@ -226,9 +223,6 @@ bin\components\nsHelperAppDlg.js
 bin\components\nsLoginInfo.js
 bin\components\nsLoginManager.js
 bin\components\nsLoginManagerPrompter.js
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\components\nsPostUpdateWin.js
-#endif
 bin\components\nsProgressDialog.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsTryToClose.js
@@ -324,11 +318,7 @@ bin\extensions\calendar-timezones@mozilla.org\defaults\preferences\preferences.j
 ; All the pref files must be part of base to prevent migration bugs
 bin\defaults\pref\sunbird.js
 bin\defaults\pref\channel-prefs.js
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\greprefs\all.js
-bin\greprefs\security-prefs.js
-bin\greprefs\xpinstall.js
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\greprefs\all.js
 bin\greprefs\security-prefs.js
 bin\greprefs\xpinstall.js
@@ -350,13 +340,8 @@ bin\res\svg.css
 bin\res\arrowd.gif
 bin\res\viewsource.css
 bin\res\arrow.gif
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\res\loading-image.gif
-bin\res\broken-image.gif
-#else
 bin\res\loading-image.png
 bin\res\broken-image.png
-#endif
 bin\res\fonts\*
 bin\res\dtd\*
 bin\res\html\folder.png
