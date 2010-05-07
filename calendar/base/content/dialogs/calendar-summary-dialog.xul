@@ -126,6 +126,7 @@
             <label value="&newevent.status.tentative.label;" hidden="true" status="TENTATIVE"/>
             <label value="&newevent.status.confirmed.label;" hidden="true" status="CONFIRMED"/>
             <label value="&newevent.eventStatus.cancelled.label;" hidden="true" status="CANCELLED"/>
+            <label value="&newevent.todoStatus.cancelled.label;" hidden="true" status="CANCELLED"/>
             <label value="&newevent.status.needsaction.label;" hidden="true" status="NEEDS-ACTION"/>
             <label value="&newevent.status.inprogress.label;" hidden="true" status="IN-PROCESS"/>
             <label value="&newevent.status.completed.label;" hidden="true" status="COMPLETED"/>

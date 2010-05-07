@@ -155,6 +155,11 @@ function onLoad() {
         for (var i = 0; i < statusRow.childNodes.length; i++) {
             if (statusRow.childNodes[i].getAttribute("status") == status) {
                 statusRow.removeAttribute("hidden");
+                if (status == "CANCELLED" && cal.isToDo(item)) {
+                    // There are two labels for CANCELLED, the second one is for
+                    // todo items. Increment the counter here.
+                    i++;
+                }
                 statusRow.childNodes[i].removeAttribute("hidden");
                 break;
             }
