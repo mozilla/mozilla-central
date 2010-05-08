@@ -68,10 +68,12 @@
                          class="calendar-event-box-container"
                          xbl:inherits="readonly,flashing,alarm,allday,priority,progress,status,calendar,categories"
                          flex="1">
-                <xul:hbox class="calendar-event-details" align="center">
-                  <xul:image anonid="item-icon"
-                             class="calendar-item-image"
-                             xbl:inherits="progress,allday,itemType"/>
+                <xul:hbox class="calendar-event-details">
+                  <xul:vbox pack="center">
+                    <xul:image anonid="item-icon"
+                               class="calendar-item-image"
+                               xbl:inherits="progress,allday,itemType"/>
+                  </xul:vbox>
                   <xul:label anonid="item-label"
                              class="calendar-month-day-box-item-label"
                              xbl:inherits="context"/>
