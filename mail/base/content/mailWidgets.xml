@@ -368,13 +368,19 @@
               }
               this.updateEmailAddressNode(newAddressNode, this.mAddresses[i]);
 
-              // Calculate width and lines
-              // <http://www.w3.org/TR/cssom-view/#client-attributes>
-              // <https://developer.mozilla.org/en/Determining_the_dimensions_of_elements>
-              curLineWidth += newAddressNode.clientWidth;
-              if (curLineWidth > availableWidth && i > 0) {
-                curLine++;
-                curLineWidth = 0;
+              // Reading .clientWidth triggers an expensive reflow, so only
+              // do it when necessary for possible early loop exit to display
+              // (X more).
+              if (!all) {
+
+                // Calculate width and lines
+                // <http://www.w3.org/TR/cssom-view/#client-attributes>
+                // <https://developer.mozilla.org/en/Determining_the_dimensions_of_elements>
+                curLineWidth += newAddressNode.clientWidth;
+                if (curLineWidth > availableWidth && i > 0) {
+                  curLine++;
+                  curLineWidth = 0;
+                }
               }
             }
 
