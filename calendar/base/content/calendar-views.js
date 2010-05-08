@@ -535,7 +535,7 @@ var categoryPrefBranch;
 var categoryManagement = {
     QueryInterface: function cM_QueryInterface(aIID) {
         return cal.doQueryInterface(this,
-                                    categoryPrefObserver.prototype,
+                                    categoryManagement.prototype,
                                     aIID,
                                     [Components.interfaces.nsIObserver]);
     },
