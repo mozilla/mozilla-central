@@ -1768,6 +1768,9 @@ nsresult nsMsgDatabase::AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr)
 
 NS_IMETHODIMP nsMsgDatabase::DeleteHeader(nsIMsgDBHdr *msg, nsIDBChangeListener *instigator, PRBool commit, PRBool notify)
 {
+  if (!msg)
+    return NS_ERROR_NULL_POINTER;
+
   nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(msg);  // closed system, so this is ok
   nsMsgKey key;
   (void)msg->GetMessageKey(&key);

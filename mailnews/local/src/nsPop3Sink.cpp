@@ -248,7 +248,7 @@ nsPop3Sink::CheckPartialMessages(nsIPop3Protocol *protocol)
     PRBool found = PR_TRUE;
     partialMsg = static_cast<partialRecord *>(m_partialMsgsArray.ElementAt(i));
     protocol->CheckMessage(partialMsg->m_uidl.get(), &found);
-    if (!found)
+    if (!found && partialMsg->m_msgDBHdr)
     {
       m_newMailParser->m_mailDB->DeleteHeader(partialMsg->m_msgDBHdr, nsnull, PR_FALSE, PR_TRUE);
       deleted = PR_TRUE;
