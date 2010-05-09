@@ -51,7 +51,7 @@ Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 // we might want to use calUtils.jsm only in the future throughout all tests,
 // but for now source in good old calUtils.js:
-cal.loadScripts(["calUtils.js"], protHandler.__parent__);
+cal.loadScripts(["calUtils.js"], Components.utils.getGlobalForObject(protHandler));
 
 function createDate(aYear, aMonth, aDay, aHasTime, aHour, aMinute, aSecond, aTimezone) {
     var cd = Cc["@mozilla.org/calendar/datetime;1"]

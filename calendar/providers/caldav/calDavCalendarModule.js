@@ -74,7 +74,8 @@ var calDavCalendarModule = {
         }
 
         Components.utils.import("resource://calendar/modules/calUtils.jsm");
-        cal.loadScripts(["calUtils.js", "calDavCalendar.js", "calDavRequestHandlers.js" ], this.__parent__);
+        cal.loadScripts(["calUtils.js", "calDavCalendar.js", "calDavRequestHandlers.js" ],
+                        Components.utils.getGlobalForObject(this));
 
         this.mUtilsLoaded = true;
     },

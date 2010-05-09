@@ -115,7 +115,7 @@ var calImportExportModule = {
 
         Components.utils.import("resource://calendar/modules/calUtils.jsm");
         cal.loadScripts(componentData.map(function(entry) { return entry.script; }),
-                        this.__parent__);
+                        Components.utils.getGlobalForObject(this));
 
         this.mScriptsLoaded = true;
     },

@@ -423,7 +423,7 @@ var calItipEmailTransportModule = {
             return;
 
         Components.utils.import("resource://calendar/modules/calUtils.jsm");
-        cal.loadScripts(["calUtils.js"], this.__parent__);
+        cal.loadScripts(["calUtils.js"], Components.utils.getGlobalForObject(this));
 
         this.mUtilsLoaded = true;
     },

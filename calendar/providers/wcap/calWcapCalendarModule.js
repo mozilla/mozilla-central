@@ -201,7 +201,7 @@ var calWcapCalendarModule = { // nsIModule:
                              "calWcapUtils.js", "calWcapErrors.js",
                              "calWcapRequest.js", "calWcapSession.js",
                              "calWcapCalendar.js", "calWcapCalendarItems.js"],
-                            this.__parent__);
+                            Components.utils.getGlobalForObject(this));
             initWcapProvider();
             this.m_scriptsLoaded = true;
         }

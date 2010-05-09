@@ -605,7 +605,7 @@ var calCompositeCalendarModule = {
 
         Components.utils.import("resource://calendar/modules/calUtils.jsm");
         Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
-        cal.loadScripts(["calUtils.js"], this.__parent__);
+        cal.loadScripts(["calUtils.js"], Components.utils.getGlobalForObject(this));
 
         this.mUtilsLoaded = true;
     },
