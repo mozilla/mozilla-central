@@ -184,9 +184,7 @@
 @BINPATH@/components/@DLL_PREFIX@htmlpars@DLL_SUFFIX@
 #endif
 @BINPATH@/components/@DLL_PREFIX@i18n@DLL_SUFFIX@
-#ifdef WIN_OR_OS2
 @BINPATH@/components/@DLL_PREFIX@imgicon@DLL_SUFFIX@
-#endif
 @BINPATH@/components/@DLL_PREFIX@imglib2@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
 #ifdef BUILD_CTYPES
@@ -371,9 +369,6 @@
 #endif
 @BINPATH@/components/layout_xul_tree.xpt
 @BINPATH@/components/layout_xul.xpt
-#ifdef UNIX_BUT_NOT_MAC
-@BINPATH@/components/libimgicon.so
-#endif
 @BINPATH@/components/locale.xpt
 @BINPATH@/components/loginmgr.xpt
 @BINPATH@/components/lwbrk.xpt

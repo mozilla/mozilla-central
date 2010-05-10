@@ -255,6 +255,7 @@ components/@DLL_PREFIX@gklayout@DLL_SUFFIX@
 components/@DLL_PREFIX@gkplugin@DLL_SUFFIX@
 components/@DLL_PREFIX@htmlpars@DLL_SUFFIX@
 components/@DLL_PREFIX@i18n@DLL_SUFFIX@
+components/@DLL_PREFIX@imgicon@DLL_SUFFIX@
 components/@DLL_PREFIX@imglib2@DLL_SUFFIX@
 components/@DLL_PREFIX@import@DLL_SUFFIX@
 components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
@@ -293,14 +294,12 @@ components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
 components/@DLL_PREFIX@xpconnect@DLL_SUFFIX@
 components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
 #ifdef XP_MACOSX
-components/libimgicon.dylib
 components/libjar50.dylib
 components/libosxproxy.dylib
 components/libwidget_mac.dylib
 #endif
 #ifdef XP_WIN
 components/gkwidget.dll
-components/imgicon.dll
 components/msgMapi.dll
 components/windowsproxy.dll
 components/xpc3250.dll
