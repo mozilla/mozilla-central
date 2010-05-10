@@ -454,7 +454,6 @@ toolbar[iconsize="small"] > #button-stop[disabled="true"] {
 
 .msgNotificationBar {
   border-bottom: 1px solid #A5A5A5;
-  -moz-appearance: toolbox;
   background-color: #C7BC8F;
   color: black;
 }
@@ -474,6 +473,11 @@ toolbar[iconsize="small"] > #button-stop[disabled="true"] {
 
 #remoteContentImage {
   list-style-image: url("chrome://messenger/skin/icons/remote-blocked.png"); 
+  padding: 3px;
+}
+
+#mdnBarImage {
+  list-style-image: url("chrome://global/skin/icons/Question.png");
   padding: 3px;
 }
 

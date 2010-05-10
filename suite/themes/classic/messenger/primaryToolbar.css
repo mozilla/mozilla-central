@@ -572,6 +572,11 @@ toolbar[iconsize="small"] > #button-stop[disabled="true"] {
   padding: 3px;
 }
 
+#mdnBarImage {
+  list-style-image: url("chrome://global/skin/icons/Question.png");
+  padding: 3px;
+}
+
 #allowRemoteContentForAuthorDesc {
   -moz-padding-start: 10px;
 }

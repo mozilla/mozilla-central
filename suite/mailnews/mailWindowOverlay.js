@@ -70,6 +70,7 @@ const kNotAPhishMessage = 1;
 const kMsgNotificationPhishingBar = 1;
 const kMsgNotificationJunkBar = 2;
 const kMsgNotificationRemoteImages = 3;
+const kMsgNotificationMDN = 4;
 
 const kMsgForwardAsAttachment = 0;
 const kMsgForwardInline = 2;
@@ -2539,7 +2540,8 @@ var gMessageNotificationBar =
                     0, // for no msgNotificationBar
                     1, // 1 << (kMsgNotificationPhishingBar - 1)
                     2, // 1 << (kMsgNotificationJunkBar - 1)
-                    4  // 1 << (kMsgNotificationRemoteImages - 1)
+                    4, // 1 << (kMsgNotificationRemoteImages - 1)
+                    8  // 1 << (kMsgNotificationMDN - 1)
                   ],
 
   mMsgNotificationBar: document.getElementById('msgNotificationBar'),
@@ -2579,6 +2581,12 @@ var gMessageNotificationBar =
     if (!checkMsgHdrPropertyIsNot("notAPhishMessage", kIsAPhishMessage))
       phishingMsg = isMsgEmailScam(aUrl);
     this.updateMsgNotificationBar(kMsgNotificationPhishingBar, phishingMsg);
+  },
+
+  setMDNMsg: function(aMdnGenerator, aMsgHeader)
+  {
+    this.mdnGenerator = aMdnGenerator;
+    this.updateMsgNotificationBar(kMsgNotificationMDN, true);
   },
 
   clearMsgNotifications: function()
@@ -2893,24 +2901,28 @@ function HandleMDNResponse(aUrl)
     return;
 
   // Everything looks good so far, let's generate the MDN response.
-  var mdnGenerator = Components.classes["@mozilla.org/messenger-mdn/generator;1"].
-                                  createInstance(Components.interfaces.nsIMsgMdnGenerator);
-  mdnGenerator.process(Components.interfaces.nsIMsgMdnGenerator.eDisplayed,
-                       msgWindow,
-                       msgFolder,
-                       msgHdr.messageKey,
-                       mimeHdr,
-                       false);
+  var mdnGenerator = Components.classes["@mozilla.org/messenger-mdn/generator;1"]
+                               .createInstance(Components.interfaces.nsIMsgMdnGenerator);
+  var askUser = mdnGenerator.process(Components.interfaces.nsIMsgMdnGenerator.eDisplayed,
+                                     msgWindow,
+                                     msgFolder,
+                                     msgHdr.messageKey,
+                                     mimeHdr,
+                                     false);
+  if (askUser)
+    gMessageNotificationBar.setMDNMsg(mdnGenerator, msgHdr);
+}
 
-  // Reset mark msg MDN "Sent" and "Not Needed".
-  msgHdr.flags = (msgFlags &
-                  ~Components.interfaces.nsMsgMessageFlags.MDNReportNeeded);
-  msgHdr.OrFlags(Components.interfaces.nsMsgMessageFlags.MDNReportSent);
+function SendMDNResponse()
+{
+  gMessageNotificationBar.mdnGenerator.userAgreed();
+  gMessageNotificationBar.updateMsgNotificationBar(kMsgNotificationMDN, false);
+}
 
-  // Commit db changes.
-  var msgdb = msgFolder.msgDatabase;
-  if (msgdb)
-    msgdb.Commit(Components.interfaces.nsMsgDBCommitType.kLargeCommit);
+function IgnoreMDNResponse()
+{
+  gMessageNotificationBar.mdnGenerator.userDeclined();
+  gMessageNotificationBar.updateMsgNotificationBar(kMsgNotificationMDN, false);
 }
 
 function MsgSearchMessages()

@@ -608,3 +608,8 @@
 <!-- Phishing Bar -->
 <!ENTITY phishingBarMessage.label "&brandShortName; thinks this message might be an email scam.">
 <!ENTITY removePhishingBarButton.label "Not a Scam">
+
+<!-- MDN Bar -->
+<!ENTITY mdnBarMessage.label "The sender of this message has asked to be notified when you read this message. Do you wish to notify the sender?">
+<!ENTITY mdnBarIgnoreButton.label "Ignore Request">
+<!ENTITY mdnBarSendButton.label "Send Receipt">
