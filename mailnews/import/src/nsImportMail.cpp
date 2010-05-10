@@ -1055,15 +1055,10 @@ PRBool nsImportGenericMail::CreateFolder( nsIMsgFolder **ppFolder)
         }
         IMPORT_LOG1( "Creating folder for importing mail: '%s'\n", NS_ConvertUTF16toUTF8(folderName).get());
 
-        // if we are doing migration, don't bother putting the local folders we are importing as a
-        // sub folder of local folders.
-        if (m_performingMigration)
-        {
-          NS_IF_ADDREF(*ppFolder = localRootFolder);
-          return PR_TRUE;
-        }
-        else
-        {
+        // Bug 564162 identifies a dataloss design flaw.
+        // A working Thunderbird client can have mail in Local Folders and a
+        // subsequent import 'Everything' will trigger a migration which
+        // overwrites existing mailboxes with the imported mailboxes.
         rv = localRootFolder->CreateSubfolder(folderName, nsnull);
         if (NS_SUCCEEDED(rv)) {
           rv = localRootFolder->GetChildNamed(folderName, ppFolder);
@@ -1072,7 +1067,6 @@ PRBool nsImportGenericMail::CreateFolder( nsIMsgFolder **ppFolder)
             return PR_TRUE;
           }
         }
-        } // if not performing migration
       }
     } // if localRootFolder
   } // if server
