@@ -1201,6 +1201,13 @@ DBViewWrapper.prototype = {
    *  a display abstraction.  That (hopefully) happens elsewhere.
    */
   _folderDeleted: function DBViewWrapper__folderDeleted(aFolder) {
+    // XXX When we empty the trash, we're actually sending a folder deleted
+    // notification around. This check ensures we don't think we've really
+    // deleted the trash folder in the DBViewWrapper, and that stops nasty
+    // things happening, like forgetting we've got the trash folder selected.
+    if (aFolder.isSpecialFolder(nsMsgFolderFlags.Trash, false))
+      return;
+
     if (aFolder == this.displayedFolder) {
       this.close();
       return;
