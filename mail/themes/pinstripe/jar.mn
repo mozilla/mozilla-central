@@ -222,6 +222,7 @@ classic.jar:
   skin/classic/messenger/icons/filter.png                        (mail/icons/filter.png)
   skin/classic/messenger/icons/red_pin.png                       (mail/icons/red_pin.png)
   skin/classic/messenger/icons/tag1616.png                       (mail/icons/tag1616.png)
+  skin/classic/messenger/icons/search-tab.png                    (mail/icons/search-tab.png)
   skin/classic/messenger/tabs/alltabs-box-bkgnd-icon.png              (mail/tabs/alltabs-box-bkgnd-icon.png)
   skin/classic/messenger/tabs/alltabs-box-overflow-bkgnd-animate.png  (mail/tabs/alltabs-box-overflow-bkgnd-animate.png)
   skin/classic/messenger/tabs/newtab.png                              (mail/tabs/newtab.png)

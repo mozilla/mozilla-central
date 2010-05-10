@@ -74,7 +74,7 @@
 }
 
 .tabmail-tab[type="glodaSearch"] {
-  list-style-image: url("chrome://global/skin/icons/Search-glass.png");
+  list-style-image: url("chrome://messenger/skin/icons/search-tab.png");
 }
 
 .tab-text {
