@@ -352,9 +352,11 @@ function openContentTab(url)
  *     from an earlier version of Thunderbird.
  */
 function openFeatureConfigurator(aIsUpgrade) {
+  let options = "chrome,dialog=yes,all,centerscreen,width=704,height=416";
+  if (aIsUpgrade)
+    options += ",modal";
   window.openDialog("chrome://messenger/content/featureConfigurator.xhtml",
-                    "_blank",
-                    "chrome,dialog=yes,all,centerscreen,width=704,height=416",
+                    "_blank", options,
                     // Below are window.arguments for featureConfigurator.js
                     window, aIsUpgrade);
 }

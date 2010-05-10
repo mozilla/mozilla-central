@@ -38,7 +38,9 @@ iframe.content {
   padding: 12px 15px;
   background-color: Window;
   border-top: 1px solid threedshadow;
+}
 
+#buttons[firstRun="false"] {
   -moz-binding: url("chrome://global/content/bindings/general.xml#windowdragbox");
 }
 

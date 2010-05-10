@@ -789,7 +789,8 @@ function UpgradeProfileAndBeUglyAboutIt()
 
       // Open a dialog explaining the major changes from version 2.
       if (gPrefBranch.getBoolPref("mail.ui.show.migration.on.upgrade"))
-        openFeatureConfigurator(true);
+        // But let the main window finish opening first.
+        setTimeout(openFeatureConfigurator, 0, [true,]);
 
       gPrefBranch.setIntPref("mailnews.ui.threadpane.version", 7);
 

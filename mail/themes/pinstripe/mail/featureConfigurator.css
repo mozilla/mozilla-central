@@ -26,7 +26,7 @@
 
 }
 
-#buttons button:-moz-window-inactive {
+#buttons[firstRun="false"] button:-moz-window-inactive {
   color: #7C7C7C !important;
   border-color: rgba(0, 0, 0, 0.25);
   background-color: #CCC;

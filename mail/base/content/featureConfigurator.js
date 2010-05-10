@@ -136,6 +136,9 @@ var FeatureConfigurator = {
     // We used the compactHeader if we're upgrading, and the index was 0.
     gSubpageData.usedCompactHeader = aUpgrade &&
       aParentWin.document.getElementById("msgHeaderViewDeck").usedCompactHeader;
+
+    // Let the document know whether we're upgrading or not.
+    document.getElementById("buttons").setAttribute("firstRun", aUpgrade);
   }
 }
 
