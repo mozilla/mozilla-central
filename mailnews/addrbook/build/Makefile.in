@@ -85,11 +85,7 @@ SHARED_LIBRARY_LIBS = \
 	../src/$(LIB_PREFIX)addrbook_s.$(LIB_SUFFIX) \
 	$(NULL)
 
-ifeq (OS2,$(OS_ARCH))
-EXTRA_DSO_LIBS += msgbsutl
-else
 EXTRA_DSO_LIBS += msgbaseutil
-endif
 
 ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS = \

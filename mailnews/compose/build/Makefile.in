@@ -75,11 +75,7 @@ REQUIRES	= xpcom \
 		  nkcache \
 		  $(NULL)
 
-ifeq (OS2,$(OS_ARCH))
-EXTRA_DSO_LIBS = msgbsutl
-else
 EXTRA_DSO_LIBS = msgbaseutil
-endif
 
 CPPSRCS		= nsMsgCompFactory.cpp
 

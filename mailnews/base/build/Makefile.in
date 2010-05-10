@@ -94,11 +94,7 @@ SHARED_LIBRARY_LIBS = \
 		../search/src/$(LIB_PREFIX)msgsearch_s.$(LIB_SUFFIX) \
 		$(NULL)
 
-ifeq (OS2,$(OS_ARCH))
-EXTRA_DSO_LIBS = msgbsutl
-else
 EXTRA_DSO_LIBS = msgbaseutil
-endif
 
 ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS = \

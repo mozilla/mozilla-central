@@ -77,11 +77,7 @@ LOCAL_INCLUDES += -I$(srcdir)/../src
 
 SHARED_LIBRARY_LIBS = ../src/$(LIB_PREFIX)msgnews_s.$(LIB_SUFFIX)
 
-ifeq (OS2,$(OS_ARCH))
-EXTRA_DSO_LIBS += msgbsutl
-else
 EXTRA_DSO_LIBS += msgbaseutil
-endif
 
 ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS = \

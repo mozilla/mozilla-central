@@ -86,11 +86,7 @@ ifndef MOZ_STATIC_MAIL_BUILD
 
 CPPSRCS += nsVCardFactory.cpp
 
-ifeq (OS2,$(OS_ARCH))
-EXTRA_DSO_LIBS = msgbsutl
-else
 EXTRA_DSO_LIBS = msgbaseutil
-endif
 
 ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS = \

@@ -59,11 +59,7 @@ REQUIRES	= xpcom \
 		  storage \
 		  $(NULL)
 
-ifeq (OS2,$(OS_ARCH))
-EXTRA_DSO_LIBS = msgbsutl
-else
 EXTRA_DSO_LIBS = msgbaseutil
-endif
 
 CPPSRCS		= nsFts3TokenizerFactory.cpp
 

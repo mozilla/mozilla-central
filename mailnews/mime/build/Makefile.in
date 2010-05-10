@@ -61,11 +61,7 @@ REQUIRES	= xpcom \
 		  uconv \
 		  $(NULL)
 
-ifeq (OS2,$(OS_ARCH))
-EXTRA_DSO_LIBS = msgbsutl
-else
 EXTRA_DSO_LIBS = msgbaseutil
-endif
 
 CPPSRCS			= nsMimeModule.cpp
 

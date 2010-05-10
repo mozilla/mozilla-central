@@ -123,11 +123,7 @@ endif
 ifdef MOZ_STATIC_MAIL_BUILD
 EXTRA_DSO_LDOPTS += ../../base/util/$(LIB_PREFIX)msgbsutl_s.$(LIB_SUFFIX)
 else
-ifeq (OS2,$(OS_ARCH))
-EXTRA_DSO_LIBS = msgbsutl
-else
 EXTRA_DSO_LIBS = msgbaseutil
-endif # ifeq
 endif # MOZ_STATIC_MAIL_BUILD
 
 ifdef MOZILLA_INTERNAL_API
