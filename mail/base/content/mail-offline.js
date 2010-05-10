@@ -85,18 +85,15 @@ var MailOfflineMgr = {
     // changing the offline state with the networking service.
     if (!this.isOnline()) 
     {
-      var prefSendUnsentMessages = gPrefBranch.getIntPref("offline.send.unsent_messages");
-      // 0 == Ask, 1 == Always Send, 2 == Never Send
-      var sendUnsentMessages = (prefSendUnsentMessages == 0 && this.haveUnsentMessages() 
-                                && this.confirmSendUnsentMessages()) || prefSendUnsentMessages == 1;
-      this.offlineManager.goOnline(sendUnsentMessages, true /* playbackOfflineImapOperations */, msgWindow);
-
+      // We do the go online stuff in our listener for the online state change.
+      ioService.offline = false;
       // resume managing offline status now that we are going back online.
-      ioService.manageOfflineStatus = gPrefBranch.getBoolPref("offline.autoDetect");      
+      ioService.manageOfflineStatus = gPrefBranch.getBoolPref("offline.autoDetect");
     }
     else // going offline
     {
-      // Stop automatic management of the offline status since the user as decided to go offline.
+      // Stop automatic management of the offline status since the user has
+      // decided to go offline.
       ioService.manageOfflineStatus = false;
       var prefDownloadMessages = gPrefBranch.getIntPref("offline.download.download_messages");
       // 0 == Ask, 1 == Always Download, 2 == Never Download
@@ -256,8 +253,8 @@ var MailOfflineMgr = {
     {
       statusBarPanel.removeAttribute("offline");
       statusBarPanel.setAttribute("tooltiptext", this.offlineBundle.getString("onlineTooltip"));
-    }    
-  },   
+    }
+  },
 
   /**
    * private helper method called whenever we detect a change to the offline state
@@ -265,5 +262,15 @@ var MailOfflineMgr = {
   mailOfflineStateChanged: function (aGoingOffline)
   {
     this.updateOfflineUI(aGoingOffline);
+    if (!aGoingOffline)
+    {
+      let prefSendUnsentMessages = gPrefBranch.getIntPref("offline.send.unsent_messages");
+      // 0 == Ask, 1 == Always Send, 2 == Never Send
+      let sendUnsentMessages = (prefSendUnsentMessages == 0 &&
+                                this.haveUnsentMessages() &&
+                                this.confirmSendUnsentMessages()) ||
+                               prefSendUnsentMessages == 1;
+      this.offlineManager.goOnline(sendUnsentMessages, true, msgWindow);
+    }
   }
 };
