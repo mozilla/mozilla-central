@@ -477,7 +477,7 @@ toolbar[iconsize="small"] > #button-stop[disabled="true"] {
 }
 
 #mdnBarImage {
-  list-style-image: url("chrome://global/skin/icons/Question.png");
+  list-style-image: url("chrome://global/skin/icons/question-32.png");
   padding: 3px;
 }
 
