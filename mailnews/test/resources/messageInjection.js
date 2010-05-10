@@ -205,11 +205,11 @@ function configure_message_injection(aInjectionConfig) {
     do_throw("Illegal injection config option: " + mis.injectionConfig.mode);
   }
 
-  mis.trashFolder = mis.rootFolder.getFolderWithFlags(
-                      Ci.nsMsgFolderFlags.Trash);
-  mark_action("messageInjection", "trash folder is", [mis.trashFolder]);
   mis.junkHandle = null;
   mis.junkFolder = null;
+
+  mis.trashHandle = null;
+  mis.trashFolder = null;
 
   return mis.inboxFolder;
 }
@@ -392,7 +392,8 @@ function make_empty_folder(aFolderName, aSpecialFlags) {
 }
 
 /**
- * Get/create the junk folder.
+ * Get/create the junk folder handle.  Use get_real_injection_folder if you
+ *  need the underlying nsIMsgDBFolder.
  */
 function get_junk_folder() {
   let mis = _messageInjectionSetup;
@@ -401,6 +402,32 @@ function get_junk_folder() {
     mis.junkHandle = make_empty_folder("Junk", [Ci.nsMsgFolderFlags.Junk]);
 
   return mis.junkHandle;
+}
+
+/**
+ * Get/create the trash folder handle.  Use get_real_injection_folder if you
+ *  need the underlying nsIMsgDBFolder.
+ */
+function get_trash_folder() {
+  let mis = _messageInjectionSetup;
+
+  if (!mis.trashHandle) {
+    // the folder may have been created and already known...
+    mis.trashFolder = mis.rootFolder.getFolderWithFlags(
+                        Ci.nsMsgFolderFlags.Trash);
+    if (mis.trashFolder) {
+      mis.trashHandle = mis.rootFolder.URI + "/Trash";
+      let fakeFolder = mis.daemon.getMailbox("Trash");
+      mis.handleUriToRealFolder[mis.trashHandle] = mis.trashFolder;
+      mis.handleUriToFakeFolder[mis.trashHandle] = fakeFolder;
+      mis.realUriToFakeFolder[mis.trashFolder.URI] = fakeFolder;
+    }
+    else {
+      mis.trashHandle = make_empty_folder("Trash", [Ci.nsMsgFolderFlags.Trash]);
+    }
+  }
+
+  return mis.trashHandle;
 }
 
 /**
@@ -774,6 +801,12 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
 /** singular function name for understandability of single-folder users */
 let add_sets_to_folder = add_sets_to_folders;
 
+/**
+ * Return the nsIMsgFolder associated with a folder handle.  If the folder has
+ *  been created since the last injection and you are using IMAP, you may need
+ *  to first "yield wait_for_async_promises();" for us to be able to provide
+ *  you with a result.
+ */
 function get_real_injection_folder(aFolderHandle) {
   let mis = _messageInjectionSetup;
   if (mis.injectionConfig.mode == "imap") {
@@ -900,11 +933,7 @@ function async_trash_messages(aSynMessageSet) {
 
           // trash folder may not have existed at startup but the deletion
           //  will have created it.
-          if (!_messageInjectionSetup.trashFolder)
-            _messageInjectionSetup.trashFolder =
-              _messageInjectionSetup.rootFolder.getFolderWithFlags(
-                Ci.nsMsgFolderFlags.Trash);
-          let trashFolder = _messageInjectionSetup.trashFolder;
+          let trashFolder = get_real_injection_folder(get_trash_folder());
 
           mark_action("messageInjection",
                       "forcing update of folder so IMAP moved header seen",
@@ -956,8 +985,13 @@ function async_delete_messages(aSynMessageSet) {
  * Empty the trash.
  */
 function async_empty_trash() {
-  _messageInjectionSetup.trashFolder.emptyTrash(null, asyncUrlListener);
-  return false;
+  return async_run({func: function() {
+    let trashHandle = get_trash_folder();
+    yield wait_for_async_promises();
+    let trashFolder = get_real_injection_folder(trashHandle);
+    trashFolder.emptyTrash(null, asyncUrlListener);
+    yield false;
+  }});
 }
 
 /**

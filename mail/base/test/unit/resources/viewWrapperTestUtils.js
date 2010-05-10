@@ -281,8 +281,10 @@ function async_view_end_update(aViewWrapper) {
  *  so code can look clean.
  *
  * @param aViewWrapper Required when you want us to operate asynchronously.
+ * @param aDontEmptyTrash This function will empty the trash after deleting the
+ *                        folder, unless you set this parameter to true.
  */
-function async_delete_folder(aFolder, aViewWrapper) {
+function async_delete_folder(aFolder, aViewWrapper, aDontEmptyTrash) {
   VWTU_testHelper.active_real_folders.splice(
     VWTU_testHelper.active_real_folders.indexOf(aFolder), 1);
   // deleting tries to be helpful and move the folder to the trash...
@@ -307,7 +309,8 @@ function async_delete_folder(aFolder, aViewWrapper) {
   // ...so now the stupid folder is in the stupid trash
   // let's empty the trash, then, shall we?
   // (for local folders it doesn't matter who we call this on.)
-  aFolder.emptyTrash(null, null);
+  if (!aDontEmptyTrash)
+    aFolder.emptyTrash(null, null);
   return false;
 }
 var delete_folder = async_delete_folder;
