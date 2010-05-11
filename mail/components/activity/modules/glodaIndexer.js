@@ -116,11 +116,13 @@ let glodaIndexerActivity =
    *                the time at which we were first notified about the job
    *   totalItemNum {Number}
    *                the total number of messages being indexed in the job
+   *   jobType      {String}
+   *                The IndexinbJob jobType (ex: "folder", "folderCompact")
    */
   currentJob: null,
 
   listener: function(aStatus, aFolder, aJobNumber, aItemNumber,
-                     aTotalItemNum)
+                     aTotalItemNum, aJobType)
   {
     this.log.debug("Gloda Indexer Folder/Status: " + aFolder + "/" + aStatus);
     this.log.debug("Gloda Indexer Job: " + aJobNumber);
@@ -143,7 +145,7 @@ let glodaIndexerActivity =
       // called or the last job we were tracking was completed.  Either way,
       // start tracking the new job.
       if (!this.currentJob)
-        this.onJobBegun(aFolder, aJobNumber, aTotalItemNum);
+        this.onJobBegun(aFolder, aJobNumber, aTotalItemNum, aJobType);
 
       // If there is only one item, don't bother creating a progress item.
       if (aTotalItemNum != 1)
@@ -151,7 +153,7 @@ let glodaIndexerActivity =
     }
   },
 
-  onJobBegun: function(aFolder, aJobNumber, aTotalItemNum) {
+  onJobBegun: function(aFolder, aJobNumber, aTotalItemNum, aJobType) {
     let displayText =
       aFolder ? this.getString("indexingFolder").replace("#1", aFolder)
               : this.getString("indexing");
@@ -167,7 +169,8 @@ let glodaIndexerActivity =
       jobNumber:    aJobNumber,
       process:      process,
       startTime:    new Date(),
-      totalItemNum: aTotalItemNum
+      totalItemNum: aTotalItemNum,
+      jobType:      aJobType,
     };
 
     this.activityMgr.addActivity(process);
@@ -222,7 +225,8 @@ let glodaIndexerActivity =
     // that aren't useful enough to justify their presence in the manager.
     // TODO: Aggregate event-driven indexing jobs into batches significant
     // enough for us to create activity events for them.
-    if (this.currentJob.folder && totalItemNum > 0) {
+    if (this.currentJob.jobType == "folder" &&
+        this.currentJob.folder && totalItemNum > 0) {
       // Note: we must replace the folder name placeholder last; otherwise,
       // if the name happens to contain another one of the placeholders, we'll
       // hork the name when replacing it.

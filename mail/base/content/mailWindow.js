@@ -359,6 +359,9 @@ nsMsgStatusFeedback.prototype =
 
   // nsIActivityMgrListener
   onAddedActivity: function(aID, aActivity) {
+    // ignore Gloda activity for status bar purposes
+    if (aActivity.initiator == Gloda)
+      return;
     if (aActivity instanceof Components.interfaces.nsIActivityEvent) {
       this.showStatusString(aActivity.displayText);
     }

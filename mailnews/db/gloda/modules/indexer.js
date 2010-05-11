@@ -736,7 +736,7 @@ var GlodaIndexer = {
    *  require string hooks.
    */
   _notifyListeners: function gloda_index_notifyListeners() {
-    let status, prettyName, jobIndex, jobItemIndex, jobItemGoal;
+    let status, prettyName, jobIndex, jobItemIndex, jobItemGoal, jobType;
 
     if (this.indexing && this._curIndexingJob) {
       let job = this._curIndexingJob;
@@ -752,6 +752,7 @@ var GlodaIndexer = {
       jobIndex = this._indexingJobCount-1;
       jobItemIndex = job.offset;
       jobItemGoal  = job.goal;
+      jobType = job.jobType;
     }
     else {
       status = Gloda.kIndexerIdle;
@@ -759,6 +760,7 @@ var GlodaIndexer = {
       jobIndex = 0;
       jobItemIndex = 0;
       jobItemGoal = 1;
+      jobType = null;
     }
 
     // Some people ascribe to the belief that the most you can give is 100%.
@@ -770,7 +772,8 @@ var GlodaIndexer = {
          iListener--) {
       let listener = this._indexListeners[iListener];
       try {
-        listener(status, prettyName, jobIndex, jobItemIndex, jobItemGoal);
+        listener(status, prettyName, jobIndex, jobItemIndex, jobItemGoal,
+                 jobType);
       }
       catch(ex) {
         this._log.error(ex);
