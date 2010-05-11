@@ -135,6 +135,7 @@ jsj3250.dll
 #else
 @DLL_PREFIX@jsj@DLL_SUFFIX@
 #endif
+@DLL_PREFIX@layers@DLL_SUFFIX@
 LICENSE
 #ifdef XP_MACOSX
 libwidget.rsrc
@@ -308,7 +309,6 @@ components/xppref32.dll
 @DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
 @DLL_PREFIX@gkgfx@DLL_SUFFIX@
 @DLL_PREFIX@gtkxtbin@DLL_SUFFIX@
-@DLL_PREFIX@layers@DLL_SUFFIX@
 @DLL_PREFIX@mozz@DLL_SUFFIX@
 @DLL_PREFIX@thebes@DLL_SUFFIX@
 @DLL_PREFIX@xul@DLL_SUFFIX@
