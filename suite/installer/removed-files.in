@@ -47,6 +47,7 @@ chrome/venkman.jar
 components/airbag.xpt
 components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
+components/@DLL_PREFIX@caps@DLL_SUFFIX@
 components/chatzilla-service.js
 components/crashreporter.xpt
 components/downloadmanager.xpt
@@ -97,8 +98,13 @@ components/wlltvwrs.dll
 #endif
 components/xml-rpc.xpt
 components/@DLL_PREFIX@xmlextras@DLL_SUFFIX@
-#ifdef XP_WIN
+#ifdef XP_OS2
+components/@DLL_PREFIX@xpconect@DLL_SUFFIX@
+#elifdef XP_WIN
+components/xpc3250.dll
 components/xpinstal.dll
+#else
+components/@DLL_PREFIX@xpconnect@DLL_SUFFIX@
 #endif
 #ifndef MOZ_CRASHREPORTER
 #ifdef XP_MACOSX
@@ -244,7 +250,6 @@ components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
 components/@DLL_PREFIX@appcomps@DLL_SUFFIX@
 components/@DLL_PREFIX@auth@DLL_SUFFIX@
 components/@DLL_PREFIX@autoconfig@DLL_SUFFIX@
-components/@DLL_PREFIX@caps@DLL_SUFFIX@
 components/@DLL_PREFIX@chardet@DLL_SUFFIX@
 components/@DLL_PREFIX@chrome@DLL_SUFFIX@
 components/@DLL_PREFIX@commandlines@DLL_SUFFIX@
@@ -292,7 +297,6 @@ components/@DLL_PREFIX@webbrwsr@DLL_SUFFIX@
 components/@DLL_PREFIX@widget_gtk2@DLL_SUFFIX@
 components/@DLL_PREFIX@windowds@DLL_SUFFIX@
 components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
-components/@DLL_PREFIX@xpconnect@DLL_SUFFIX@
 components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
 #ifdef XP_MACOSX
 components/libjar50.dylib
@@ -303,7 +307,6 @@ components/libwidget_mac.dylib
 components/gkwidget.dll
 components/msgMapi.dll
 components/windowsproxy.dll
-components/xpc3250.dll
 components/xppref32.dll
 #endif
 @DLL_PREFIX@gfxpsshar@DLL_SUFFIX@

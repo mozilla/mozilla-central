@@ -148,7 +148,6 @@
 #else
 @BINPATH@/components/@DLL_PREFIX@autoconfig@DLL_SUFFIX@
 #endif
-@BINPATH@/components/@DLL_PREFIX@caps@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@chardet@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@chrome@DLL_SUFFIX@
 #ifdef XP_OS2
@@ -255,13 +254,6 @@
 @BINPATH@/components/@DLL_PREFIX@xpautoc@DLL_SUFFIX@
 #else
 @BINPATH@/components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
-#endif
-#ifdef XP_WIN32
-@BINPATH@/components/@DLL_PREFIX@xpc3250@DLL_SUFFIX@
-#elifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@xpconect@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@xpconnect@DLL_SUFFIX@
 #endif
 #ifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@zipwrite@DLL_SUFFIX@
