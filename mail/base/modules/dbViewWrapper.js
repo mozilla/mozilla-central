@@ -915,13 +915,7 @@ DBViewWrapper.prototype = {
    *  updateFolder to complete?  The historical heuristic is:
    * - Virtual folders get shown immediately (and updateFolder has no
    *   meaning for them anyways.)
-   * - A folder for which "manyHeadersToDownload" is true waits on
-   *   updateFolder.  It will return true if the database does not yet exist
-   *   (presumably because the user has never looked in the folder), or if the
-   *   database exists and the number of total messages (current and pending)
-   *   is <= 0 (which I presume means no messages or a bunch pending
-   *   deletion?)
-   *   If _underlyingFolders == null, we failed to open the database,
+   * - If _underlyingFolders == null, we failed to open the database,
    *   so we need to wait for UpdateFolder to reparse the folder (in the
    *   local folder case).
    * - Wait on updateFolder if our poor man's security via
@@ -939,8 +933,7 @@ DBViewWrapper.prototype = {
   shouldShowMessagesForFolderImmediately:
       function DBViewWrapper_showShowMessagesForFolderImmediately() {
     return (this.isVirtual ||
-            !(this.displayedFolder.manyHeadersToDownload ||
-              this._underlyingFolders == null ||
+            !(this._underlyingFolders == null ||
               this.listener.shouldDeferMessageDisplayUntilAfterServerConnect));
   },
   /**

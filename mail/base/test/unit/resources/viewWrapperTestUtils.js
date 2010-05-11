@@ -39,6 +39,8 @@ Components.utils.import("resource:///modules/dbViewWrapper.js");
 Components.utils.import("resource:///modules/mailViewManager.js");
 Components.utils.import("resource:///modules/virtualFolderWrapper.js");
 
+var gInbox;
+
 /**
  * Do initialization for xpcshell-tests; not used by
  *  test-folder-display-helpers.js, our friendly mozmill test helper.
@@ -50,9 +52,9 @@ function initViewWrapperTestUtils(aInjectionConfig) {
   async_test_runner_register_helper(VWTU_testHelper);
   register_message_injection_listener(VWTU_testHelper);
   if (aInjectionConfig)
-    configure_message_injection(aInjectionConfig);
+    gInbox = configure_message_injection(aInjectionConfig);
   else
-    configure_message_injection({mode: "local"});
+    gInbox = configure_message_injection({mode: "local"});
 }
 
 // something less sucky than do_check_true

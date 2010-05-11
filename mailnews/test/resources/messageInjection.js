@@ -518,10 +518,14 @@ function make_folders_with_sets(aFolderCount, aSynSetDefs) {
  * @param aSynSetDefs Either an integer describing the number of sets of
  *     messages to create (using default parameters), or a list of set
  *     definition objects as defined by MessageGenerator.makeMessages.
+ * @param [aDoNotForceUpdate=false] By default we force an updateFolder on IMAP
+ *     folders to ensure Thunderbird knows about the newly injected messages.
+ *     If you are testing Thunderbird's use of updateFolder itself, you will
+ *     not want this and so will want to pass true for this argument.
  * @return A list of SyntheticMessageSet objects, each corresponding to the
  *     entry in aSynSetDefs (or implied if an integer was passed).
  */
-function make_new_sets_in_folders(aMsgFolders, aSynSetDefs) {
+function make_new_sets_in_folders(aMsgFolders, aSynSetDefs, aDoNotForceUpdate) {
   // is it just a count of the number of plain vanilla sets to create?
   if (typeof(aSynSetDefs) == "number") {
     let setCount = aSynSetDefs;
@@ -539,7 +543,7 @@ function make_new_sets_in_folders(aMsgFolders, aSynSetDefs) {
   }
 
   // - add the messages to the folders (interleaving them)
-  add_sets_to_folders(aMsgFolders, messageSets);
+  add_sets_to_folders(aMsgFolders, messageSets, aDoNotForceUpdate);
 
   return messageSets;
 }
@@ -586,13 +590,17 @@ function _looperator(aList) {
  * @param aMsgFolders An nsIMsgLocalMailFolder to add the message sets to or a
  *     list of them.
  * @param aMessageSets A list of SyntheticMessageSets.
+ * @param [aDoNotForceUpdate=false] By default we force an updateFolder on IMAP
+ *     folders to ensure Thunderbird knows about the newly injected messages.
+ *     If you are testing Thunderbird's use of updateFolder itself, you will
+ *     not want this and so will want to pass true for this argument.
  *
  * @return true if we were able to do the injection synchronously (e.g. for
  *     a localstore account), false if we kicked off an asynchronous process
  *     (e.g. for an imap account) and we will call |async_driver| when
  *     we are done.  This is consistent with asyncTestUtils support.
  */
-function add_sets_to_folders(aMsgFolders, aMessageSets) {
+function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
   if ((typeof(aMsgFolders) == "string") || !('length' in aMsgFolders))
     aMsgFolders = [aMsgFolders];
 
@@ -715,6 +723,11 @@ function add_sets_to_folders(aMsgFolders, aMessageSets) {
         folder = iterFolders.next();
       } while (didSomething);
 
+
+      // We have nothing more to do if we aren't support to force the update.
+      if (aDoNotForceUpdate)
+        return;
+
       for (let iFolder = 0; iFolder < aMsgFolders.length; iFolder++) {
         let realFolder = mis.handleUriToRealFolder[aMsgFolders[iFolder]];
         mark_action("messageInjection", "forcing update of folder",
@@ -749,6 +762,8 @@ function add_sets_to_folders(aMsgFolders, aMessageSets) {
     } while (didSomething);
 
     ims.daemon.setMessages(_synthMessagesToFakeRep(popMessages));
+    if (aDoNotForceUpdate)
+      return true;
     ims.pop3Service.GetNewMail(null, asyncUrlListener, mis.inboxFolder,
                                mis.incomingServer);
     return false; // wait for the url listener to be notified
