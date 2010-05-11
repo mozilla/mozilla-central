@@ -50,7 +50,9 @@ components/bookmarks.xpt
 components/chatzilla-service.js
 components/crashreporter.xpt
 components/downloadmanager.xpt
+components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
 components/mozbrwsr.xpt
+components/@DLL_PREFIX@mozfind@DLL_SUFFIX@
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/nsCloseAllWindows.js
 components/nsDictionary.js
@@ -259,13 +261,11 @@ components/@DLL_PREFIX@i18n@DLL_SUFFIX@
 components/@DLL_PREFIX@imgicon@DLL_SUFFIX@
 components/@DLL_PREFIX@imglib2@DLL_SUFFIX@
 components/@DLL_PREFIX@import@DLL_SUFFIX@
-components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
 components/@DLL_PREFIX@jar50@DLL_SUFFIX@
 components/@DLL_PREFIX@jsctypes@DLL_SUFFIX@
 ; 'MOZ_STATIC_BUILD' case.
 components/@DLL_PREFIX@mail@DLL_SUFFIX@
 components/@DLL_PREFIX@mork@DLL_SUFFIX@
-components/@DLL_PREFIX@mozfind@DLL_SUFFIX@
 components/@DLL_PREFIX@mozldap@DLL_SUFFIX@
 components/@DLL_PREFIX@msgsmime@DLL_SUFFIX@
 components/@DLL_PREFIX@necko@DLL_SUFFIX@

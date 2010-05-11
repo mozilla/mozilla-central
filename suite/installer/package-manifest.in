@@ -185,12 +185,10 @@
 @BINPATH@/components/@DLL_PREFIX@i18n@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@imgicon@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@imglib2@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
 #ifdef BUILD_CTYPES
 @BINPATH@/components/@DLL_PREFIX@jsctypes@DLL_SUFFIX@
 #endif
 @BINPATH@/components/@DLL_PREFIX@mork@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@mozfind@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@necko@DLL_SUFFIX@
 #ifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@appshell@DLL_SUFFIX@
