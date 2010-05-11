@@ -24,6 +24,7 @@
  *   jarrod.k.gray@rose-hulman.edu
  *   Jan Varga <varga@ku.sk>
  *   Markus Hossner <markushossner@gmx.de>
+ *   Jens Hatlak <jh@junetz.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -40,390 +41,250 @@
  * ***** END LICENSE BLOCK ***** */
 
 // cache these services
-var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].getService().QueryInterface(Components.interfaces.nsIDragService);
 var nsIDragService = Components.interfaces.nsIDragService;
+var dragService = Components.classes["@mozilla.org/widget/dragservice;1"]
+                            .getService(nsIDragService);
 
-function debugDump(msg)
+function CanDropOnFolderTree(aIndex, aOrientation)
 {
-  // uncomment for noise
-  // dump(msg+"\n");
-}
+  var dragSession = dragService.getCurrentSession();
+  if (!dragSession)
+    return;
 
-function CanDropOnFolderTree(index, orientation)
-{
-    var dragSession = null;
-    var dragFolder = false;
+  var folderTree = GetFolderTree();
+  var targetFolder = GetFolderResource(folderTree, aIndex)
+                       .QueryInterface(Components.interfaces.nsIMsgFolder);
+  var dt = dragSession.dataTransfer;
+  var count = dt.mozItemCount;
 
-    dragSession = dragService.getCurrentSession();
-    if (! dragSession)
-        return false;
-
-    var flavorSupported = dragSession.isDataFlavorSupported("text/x-moz-message") || dragSession.isDataFlavorSupported("text/x-moz-folder");
-
-    var trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
-    if (! trans)
-        return false;
-
-    trans.addDataFlavor("text/x-moz-message");
-    trans.addDataFlavor("text/x-moz-folder");
-    trans.addDataFlavor("text/x-moz-newsfolder");
-    trans.addDataFlavor("application/x-moz-file");
-    trans.addDataFlavor("text/x-moz-url");
- 
-    var folderTree = GetFolderTree();
-    var targetFolder = GetFolderResource(folderTree, index).QueryInterface(Components.interfaces.nsIMsgFolder);
-    var targetUri = targetFolder.URI;
-    var targetServer = targetFolder.server;
-    var sourceServer, sourceFolder;
-   
-    for (var i = 0; i < dragSession.numDropItems; i++)
+  // We only support drag of a single flavor at a time.
+  var types = dt.mozTypesAt(0);
+  if (Array.indexOf(types, "text/x-moz-message") != -1)
+  {
+    // Only allow dragging onto container.
+    if (aOrientation != Components.interfaces.nsITreeView.DROP_ON)
+      return false;
+    // Don't allow drop onto server itself.
+    if (targetFolder.isServer)
+      return false;
+    // Don't allow drop into a folder that cannot take messages.
+    if (!targetFolder.canFileMessages)
+      return false;
+    for (let i = 0; i < count; i++)
     {
-        dragSession.getData (trans, i);
-        var dataObj = new Object();
-        var dataFlavor = new Object();
-        var len = new Object();
-        try
-        {
-            trans.getAnyTransferData (dataFlavor, dataObj, len );
-        }
-        catch (ex)
-        {
-            continue;   //no data so continue;
-        }
+      let msgHdr = messenger.msgHdrFromURI(dt.mozGetDataAt("text/x-moz-message", i));
+      // Don't allow drop onto original folder.
+      if (msgHdr.folder == targetFolder)
+        return false;
+    }
+    return true;
+  }
+  else if (Array.indexOf(types, "text/x-moz-folder") != -1)
+  {
+    // Only allow dragging onto container.
+    if (aOrientation != Components.interfaces.nsITreeView.DROP_ON)
+      return false;
+    // If cannot create subfolders then don't allow drop here.
+    if (!targetFolder.canCreateSubfolders)
+      return false;
 
-        if (dataFlavor.value == "application/x-moz-file" && dataObj)
-        {
-          if (orientation != Components.interfaces.nsITreeView.DROP_ON ||
-              targetFolder.isServer ||
-              !targetFolder.canFileMessages)
-            return false;
-          if (dataObj.value instanceof Components.interfaces.nsIFile)
-            return dataObj.value.isFile();
+    for (let i = 0; i < count; i++)
+    {
+      let folder = dt.mozGetDataAt("text/x-moz-folder", i)
+                     .QueryInterface(Components.interfaces.nsIMsgFolder);
+      // Don't allow to drop on itself.
+      if (targetFolder == folder)
+        return false;
+      // Don't copy within same server.
+      if (folder.server == targetFolder.server && dt.dropEffect == "copy")
+        return false;
+      // Don't allow immediate child to be dropped onto its parent.
+      if (targetFolder == folder.parent)
+        return false;
+      // Don't allow dragging of virtual folders across accounts.
+      if ((folder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) &&
+          folder.server != targetFolder.server)
+        return false;
+      // Don't allow parent to be dropped on its ancestors.
+      if (folder.isAncestorOf(targetFolder))
+        return false;
+      // If there is a folder that can't be renamed, don't allow it to be
+      // dropped if it is not to "Local Folders" or is to the same account.
+      if (!folder.canRename && (targetFolder.server.type != "none" ||
+                                folder.server == targetFolder.server))
+        return false;
+    }
+    return true;
+  }
+  else if (Array.indexOf(types, "text/x-moz-newsfolder") != -1)
+  {
+    // Don't allow dragging onto newsgroup.
+    if (aOrientation == Components.interfaces.nsITreeView.DROP_ON)
+      return false;
+    // Don't allow drop onto server itself.
+    if (targetFolder.isServer)
+      return false;
+    for (let i = 0; i < count; i++)
+    {
+      let folder = dt.mozGetDataAt("text/x-moz-newsfolder", i)
+                     .QueryInterface(Components.interfaces.nsIMsgFolder);
+      // Don't allow dragging newsgroup to other account.
+      if (targetFolder.rootFolder != folder.rootFolder)
+        return false;
+      // Don't allow dragging newsgroup to before/after itself.
+      if (targetFolder == folder)
+        return false;
+      // Don't allow dragging newsgroup to before item after or
+      // after item before.
+      aIndex += aOrientation;
+      if (aIndex < folderTree.view.rowCount) {
+        targetFolder = GetFolderResource(folderTree, aIndex)
+                         .QueryInterface(Components.interfaces.nsIMsgFolder);
+        if (targetFolder == folder)
           return false;
-        }
-        if (dataObj)
-            dataObj = dataObj.value.QueryInterface(Components.interfaces.nsISupportsString);
-        if (! dataObj)
-            continue;
-
-        // pull the URL out of the data object
-        var sourceUri = dataObj.data.substring(0, len.value);
-        if (! sourceUri)
-            continue;
-        if (dataFlavor.value == "text/x-moz-message")
-        {
-            if (orientation != Components.interfaces.nsITreeView.DROP_ON)
-              return false;
-
-            if (targetFolder.isServer)
-            {
-                debugDump("***isServer == true\n");
-                return false;
-            }
-            // canFileMessages checks no select, and acl, for imap.
-            if (!targetFolder.canFileMessages)
-            {
-                debugDump("***canFileMessages == false\n");
-                return false;
-            }
-            var hdr = messenger.msgHdrFromURI(sourceUri);
-            if (hdr.folder == targetFolder)
-                return false;
-            break;
-        } else if (dataFlavor.value == "text/x-moz-folder") {
-          // we should only get here if we are dragging and dropping folders
-          dragFolder = true;
-          sourceFolder = GetMsgFolderFromUri(sourceUri);
-          sourceServer = sourceFolder.server;
-
-          if (orientation != Components.interfaces.nsITreeView.DROP_ON)
-            return false;
-
-          if (targetUri == sourceUri)	
-              return false;
-
-          //don't allow immediate child to be dropped to it's parent
-          if (targetFolder.URI == sourceFolder.parent.URI)
-          {
-              debugDump(targetFolder.URI + "\n");
-              debugDump(sourceFolder.parent.URI + "\n");     
-              return false;
-          }
-          
-          // don't allow dragging of virtual folders across accounts
-          if ((sourceFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) && sourceServer != targetServer)
-            return false;
-
-          var isAncestor = sourceFolder.isAncestorOf(targetFolder);
-          // don't allow parent to be dropped on its ancestors
-          if (isAncestor)
-              return false;
-        }
-        else if (dataFlavor.value == "text/x-moz-newsfolder")
-        {
-          sourceFolder = GetMsgFolderFromUri(sourceUri);
-
-          // don't allow dragging on to element
-          if (orientation == Components.interfaces.nsITreeView.DROP_ON)
-            return false;
-
-          // don't allow dragging news folder (newsgroup) to other account
-          if (targetFolder.rootFolder != sourceFolder.rootFolder)
-            return false;
-
-          // don't allow dragging news folder (newsgroup) to server folder
-          if (targetFolder.isServer)
-            return false;
-
-          // don't allow dragging news folder (newsgroup) to before/after itself
-          index += orientation;
-          if (index < folderTree.view.rowCount) {	
-            targetFolder = GetFolderResource(folderTree, index).QueryInterface(Components.interfaces.nsIMsgFolder);
-
-            if (targetFolder == sourceFolder)	
-              return false;
-          }
-
-          return true;
-        }
-        else if (dataFlavor.value == "text/x-moz-url")
-        {
-          // eventually check to make sure this is an http url before doing anything else...
-          var uri = Components.classes["@mozilla.org/network/standard-url;1"].
-                      createInstance(Components.interfaces.nsIURI);
-          var url = sourceUri.split("\n")[0];
-          uri.spec = url;
-
-          if (orientation != Components.interfaces.nsITreeView.DROP_ON)
-            return false;
-
-          if ( (uri.schemeIs("http") || uri.schemeIs("https")) && targetServer && targetServer.type == 'rss')
-            return true;
-        }
-    }
-
-    if (dragFolder)
-    {
-        //first check these conditions then proceed further
-        debugDump("***isFolderFlavor == true \n");
-
-        // no copy for folder drag within a server
-        if (dragSession.dragAction == nsIDragService.DRAGDROP_ACTION_COPY && sourceServer == targetServer)
-            return false;
-
-        // if cannot create subfolders then a folder cannot be dropped here     
-        if (!targetFolder.canCreateSubfolders)
-        {
-            debugDump("***canCreateSubfolders == false \n");
-            return false;
-        }
-
-        var serverType = targetFolder.server.type;
-
-        // if we've got a folder that can't be renamed
-        // allow us to drop it if we plan on dropping it on "Local Folders"
-        // (but not within the same server, to prevent renaming folders on "Local Folders" that
-        // should not be renamed)
-
-        if (!sourceFolder.canRename) {
-            if (sourceServer == targetServer)
-                return false;
-            if (serverType != "none")
-                return false;
-        }
-    }
-
-    //message or folder
-    if (flavorSupported)
-    {
-        dragSession.canDrop = true;
-        return true;
-    }
-	
-    return false;
-}
-
-function DropOnFolderTree(row, orientation)
-{
-    var folderTree = GetFolderTree();
-    var targetFolder = GetFolderResource(folderTree, row).QueryInterface(Components.interfaces.nsIMsgFolder);
-    var targetServer = targetFolder.server;
-
-    var targetUri = targetFolder.URI;
-    debugDump("***targetUri = " + targetUri + "\n");
-
-    var dragSession = dragService.getCurrentSession();
-    if (! dragSession )
-        return false;
-
-    var trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
-    trans.addDataFlavor("text/x-moz-message");
-    trans.addDataFlavor("text/x-moz-folder");
-    trans.addDataFlavor("text/x-moz-newsfolder");
-    trans.addDataFlavor("application/x-moz-file");
-    trans.addDataFlavor("text/x-moz-url");
-
-    var list = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
-    var cs = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
-                       .getService(Components.interfaces.nsIMsgCopyService);
-
-    var dropMessage;
-    var sourceUri;
-    var sourceFolder;
-    var sourceServer;
-	
-    for (var i = 0; i < dragSession.numDropItems; i++)
-    {
-        dragSession.getData (trans, i);
-        var dataObj = new Object();
-        var flavor = new Object();
-        var len = new Object();
-        trans.getAnyTransferData(flavor, dataObj, len);
-        
-        // shortcircuit external files and get out
-        if (flavor.value == "application/x-moz-file" && dataObj)
-        {
-          dataObj = dataObj.value.QueryInterface(Components.interfaces.nsIFile);
-          if (!dataObj)
-            return false; // don't know how this would ever happen
-          if (dataObj.isFile())
-          {
-            let len = dataObj.leafName.length;
-            if (len > 4 && dataObj.leafName.substr(len - 4).toLowerCase() == ".eml")
-              cs.CopyFileMessage(dataObj, targetFolder, null, false, 1, "", null, msgWindow);
-          }
-          continue;
-        }
-        
-        if (dataObj)
-            dataObj = dataObj.value.QueryInterface(Components.interfaces.nsISupportsString);
-        if (! dataObj)
-            continue;
-
-        // pull the URL out of the data object
-        sourceUri = dataObj.data.substring(0, len.value);
-        if (! sourceUri)
-            continue;
-
-        debugDump("    Node #" + i + ": drop " + sourceUri + " to " + targetUri + "\n");
-        
-        // only do this for the first object, either they are all messages or they are all folders
-        if (i == 0) 
-        {
-          if (flavor.value == "text/x-moz-folder") 
-          {
-            if (orientation != Components.interfaces.nsITreeView.DROP_ON)
-              return false;
-
-            sourceFolder = GetMsgFolderFromUri(sourceUri);
-            dropMessage = false;  // we are dropping a folder
-          }
-          else if (flavor.value == "text/x-moz-newsfolder")
-          {
-            if (orientation == Components.interfaces.nsITreeView.DROP_ON)
-              return false;
-
-            sourceFolder = GetMsgFolderFromUri(sourceUri);
-            dropMessage = false;  // we are dropping a news folder (newsgroup)
-          }
-          else if (flavor.value == "text/x-moz-message")
-          {
-            if (orientation != Components.interfaces.nsITreeView.DROP_ON)
-              return false;
-
-            dropMessage = true;
-          }
-          else if (flavor.value == "text/x-moz-url")
-          {
-            if (orientation != Components.interfaces.nsITreeView.DROP_ON)
-              return false;
-
-            var uri = Components.classes["@mozilla.org/network/standard-url;1"].
-                        createInstance(Components.interfaces.nsIURI);
-            var url = sourceUri.split("\n")[0];
-            uri.spec = url;
-            
-            if ( (uri.schemeIs("http") || uri.schemeIs("https")) && targetServer && targetServer.type == 'rss')
-            {
-              var rssService = Components.classes["@mozilla.org/newsblog-feed-downloader;1"].getService().
-                               QueryInterface(Components.interfaces.nsINewsBlogFeedDownloader);
-              if (rssService)
-                rssService.subscribeToFeed(url, targetFolder, msgWindow);
-              return true;
-            }
-            else 
-              return false;            
-          }
-        }
-        else {
-           if (!dropMessage)
-             dump("drag and drop of multiple folders isn't supported\n");
-        }
-
-        if (dropMessage) {
-            // from the message uri, get the appropriate messenger service
-            // and then from that service, get the msgDbHdr
-            list.appendElement(messenger.msgHdrFromURI(sourceUri), false);
-        }
-        else {
-            // Prevent dropping of a node before, after, or on itself
-            if (sourceFolder == targetFolder)	
-                continue;
-
-            list.appendElement(sourceFolder, false);
-        }
-    }
-
-    if (list.length < 1)
-       return false;
-
-    var isSourceNews = false;
-    isSourceNews = isNewsURI(sourceUri);
-
-    if (dropMessage) {
-        var sourceMsgHdr = list.queryElementAt(0, Components.interfaces.nsIMsgDBHdr);
-        sourceFolder = sourceMsgHdr.folder;
-        sourceServer = sourceFolder.server;
-
-
-        try {
-            if (isSourceNews) {
-                // news to pop or imap is always a copy
-                cs.CopyMessages(sourceFolder, list, targetFolder, false, null,
-                                msgWindow, true);
-            }
-            else if (dragSession.dragAction == nsIDragService.DRAGDROP_ACTION_COPY ||
-                     dragSession.dragAction == nsIDragService.DRAGDROP_ACTION_MOVE) {
-                var isMove = (dragSession.dragAction == nsIDragService.DRAGDROP_ACTION_MOVE);
-                pref.setCharPref("mail.last_msg_movecopy_target_uri", targetFolder.URI);
-                pref.setBoolPref("mail.last_msg_movecopy_was_move", isMove);
-                cs.CopyMessages(sourceFolder, list, targetFolder, isMove, null,
-                                msgWindow, true); 
-            }
-        }
-        catch (ex) {
-            dump("failed to copy messages: " + ex + "\n");
-        }
-    }
-    else
-    {
-      var folderTree = GetFolderTree();
-
-      if (sourceFolder.server.type == "nntp")
-      { // dragging a news folder (newsgroup)
-        var newsFolder = targetFolder.rootFolder
-                                     .QueryInterface(Components.interfaces.nsIMsgNewsFolder);
-        newsFolder.moveFolder(sourceFolder, targetFolder, orientation);
-        SelectFolder(sourceFolder.URI);
-      }
-      else
-      { // dragging a normal folder
-        sourceServer = sourceFolder.server;
-        cs.CopyFolders(list, targetFolder, (sourceServer == targetServer), null,
-                       msgWindow);
       }
     }
     return true;
+  }
+  else if (Array.indexOf(types, "text/x-moz-url") != -1)
+  {
+    // Only allow dragging onto container.
+    if (aOrientation != Components.interfaces.nsITreeView.DROP_ON)
+      return false;
+    // This is a potential RSS feed to subscribe to
+    // and there's only one, so just get the 0th element.
+    let url = dt.mozGetDataAt("text/x-moz-url", 0);
+    let scheme = Services.io.extractScheme(url);
+    if (/^https?$/.test(scheme) && targetFolder.server.type == "rss")
+      return true;
+  }
+  else if (Array.indexOf(types, "application/x-moz-file") != -1)
+  {
+    // Only allow dragging onto container.
+    if (aOrientation != Components.interfaces.nsITreeView.DROP_ON)
+      return false;
+    // Don't allow drop onto server itself.
+    if (targetFolder.isServer)
+      return false;
+    // Don't allow drop into a folder that cannot take messages.
+    if (!targetFolder.canFileMessages)
+      return false;
+
+    let extFile = dt.mozGetDataAt("application/x-moz-file", 0);
+    if (extFile instanceof Components.interfaces.nsIFile)
+      return extFile.isFile();
+  }
+  return false;
+}
+
+function DropOnFolderTree(aRow, aOrientation)
+{
+  var dragSession = dragService.getCurrentSession();
+  if (!dragSession)
+    return;
+
+  var folderTree = GetFolderTree();
+  var targetFolder = GetFolderResource(folderTree, aRow)
+                       .QueryInterface(Components.interfaces.nsIMsgFolder);
+  var dt = dragSession.dataTransfer;
+  var count = dt.mozItemCount;
+
+  // We only support drag of a single flavor at a time.
+  var types = dt.mozTypesAt(0);
+  if (Array.indexOf(types, "text/x-moz-folder") != -1)
+  {
+    const NS_MSG_FOLDER_EXISTS = 0x80550013;
+    const NS_MSG_ERROR_COPY_FOLDER_ABORTED = 0x8055001a;
+
+    for (let i = 0; i < count; i++)
+    {
+      let folder = dt.mozGetDataAt("text/x-moz-folder", i);
+      let array = Components.classes["@mozilla.org/array;1"]
+                            .createInstance(Components.interfaces.nsIMutableArray);
+      array.appendElement(folder, false);
+      try
+      {
+        gCopyService.CopyFolders(array,
+                                 targetFolder,
+                                 (folder.server == targetFolder.server),
+                                 null,
+                                 msgWindow);
+      }
+      // Ignore known errors from canceled warning dialogs.
+      catch (ex if (ex.result == NS_MSG_FOLDER_EXISTS)) {}
+      catch (ex if (ex.result == NS_MSG_ERROR_COPY_FOLDER_ABORTED)) {}
+    }
+  }
+  else if (Array.indexOf(types, "text/x-moz-newsfolder") != -1)
+  {
+    // Start by getting folders into order.
+    let folders = new Array;
+    for (let i = 0; i < count; i++) {
+      let folder = dt.mozGetDataAt("text/x-moz-newsfolder", i)
+                     .QueryInterface(Components.interfaces.nsIMsgFolder);
+      let folderIndex = EnsureFolderIndex(folderTree.builderView, folder);
+      folders[folderIndex] = folder;
+    }
+    let newsFolder = targetFolder.rootFolder
+                                 .QueryInterface(Components.interfaces.nsIMsgNewsFolder);
+    // When moving down, want to insert last one first.
+    // When moving up, want to insert first one first.
+    let i = (aOrientation == 1) ? folders.length - 1 : 0;
+    while (i >= 0 && i < folders.length) {
+      let folder = folders[i];
+      if (folder) {
+        newsFolder.moveFolder(folder, targetFolder, aOrientation);
+
+        let folderIndex = EnsureFolderIndex(folderTree.builderView, folder);
+        folderTree.view.selection.toggleSelect(folderIndex);
+        folderTree.treeBoxObject.ensureRowIsVisible(folderIndex);
+      }
+      i -= aOrientation;
+    }
+  }
+  else if (Array.indexOf(types, "text/x-moz-message") != -1)
+  {
+    let array = Components.classes["@mozilla.org/array;1"]
+                          .createInstance(Components.interfaces.nsIMutableArray);
+    let sourceFolder;
+    for (let i = 0; i < count; i++)
+    {
+      let msgHdr = messenger.msgHdrFromURI(dt.mozGetDataAt("text/x-moz-message", i));
+      if (!sourceFolder)
+        sourceFolder = msgHdr.folder;
+      array.appendElement(msgHdr, false);
+    }
+    let isMove = dragSession.dragAction == nsIDragService.DRAGDROP_ACTION_MOVE;
+    if (!sourceFolder.canDeleteMessages)
+      isMove = false;
+
+    Services.prefs.setCharPref("mail.last_msg_movecopy_target_uri", targetFolder.URI);
+    Services.prefs.setBoolPref("mail.last_msg_movecopy_was_move", isMove);
+    // ### ugh, so this won't work with cross-folder views. We would
+    // really need to partition the messages by folder.
+    gCopyService.CopyMessages(sourceFolder, array, targetFolder, isMove, null,
+                              msgWindow, true);
+  }
+  else if (Array.indexOf(types, "application/x-moz-file") != -1)
+  {
+    for (let i = 0; i < count; i++)
+    {
+      let extFile = dt.mozGetDataAt("application/x-moz-file", i)
+                      .QueryInterface(Components.interfaces.nsILocalFile);
+      if (extFile.isFile() && /\.eml$/i.test(extFile.leafName))
+        gCopyService.CopyFileMessage(extFile, targetFolder, null, false, 1,
+                                     "", null, msgWindow);
+    }
+  }
+  else if (Array.indexOf(types, "text/x-moz-url") != -1)
+  {
+    // This is a potential RSS feed to subscribe to
+    // and there's only one, so just get the 0th element.
+    let url = dt.mozGetDataAt("text/x-moz-url", 0);
+    Components.classes["@mozilla.org/newsblog-feed-downloader;1"]
+              .getService(Components.interfaces.nsINewsBlogFeedDownloader)
+              .subscribeToFeed(url, targetFolder, msgWindow);
+  }
 }
 
 function BeginDragFolderTree(aEvent)
@@ -509,14 +370,12 @@ function DragOverThreadPane(aEvent)
 function DropOnThreadPane(aEvent)
 {
   let dt = aEvent.dataTransfer;
-  let cs = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
-                     .getService(Components.interfaces.nsIMsgCopyService);
   for (let i = 0; i < dt.mozItemCount; i++)
   {
     let extFile = dt.mozGetDataAt("application/x-moz-file", i)
                     .QueryInterface(Components.interfaces.nsIFile);
     if (extFile.isFile() && /\.eml$/i.test(extFile.leafName))
-      cs.CopyFileMessage(extFile, gMsgFolderSelected, null, false,
-                         1, "", null, msgWindow);
+      gCopyService.CopyFileMessage(extFile, gMsgFolderSelected, null, false, 1,
+                                   "", null, msgWindow);
   }
 }
