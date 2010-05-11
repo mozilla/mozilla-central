@@ -59,11 +59,6 @@
 #else
 @BINPATH@/components/@DLL_PREFIX@jsd3250@DLL_SUFFIX@
 #endif
-#ifndef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@xpinstall@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@xpinstal@DLL_SUFFIX@
-#endif
 #ifdef XP_WIN32
 #ifndef MOZ_MEMORY
 @BINPATH@/Microsoft.VC80.CRT.manifest
@@ -284,9 +279,6 @@
 ; spellchecker (may not be present)
 @BINPATH@/components/spellchecker.xpt
 
-; xpinstall (needed to dynamically install themes
-@BINPATH@/components/xpinstall.xpt
-
 ; misson control, autoconfig
 @BINPATH@/defaults/autoconfig/platform.js
 @BINPATH@/defaults/autoconfig/prefcalls.js
@@ -480,8 +472,10 @@
 @BINPATH@/components/nsProxyAutoConfig.js
 
 ; extensions
+@BINPATH@/components/addonManager.js
+@BINPATH@/components/amContentHandler.js
+@BINPATH@/components/amWebInstallListener.js
 @BINPATH@/components/nsAddonRepository.js
-@BINPATH@/components/nsExtensionManager.js
 @BINPATH@/components/nsBlocklistService.js
 #ifdef MOZ_UPDATER
 @BINPATH@/components/nsUpdateService.js
