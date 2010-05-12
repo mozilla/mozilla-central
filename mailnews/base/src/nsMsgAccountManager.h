@@ -56,8 +56,39 @@
 #include "nsCOMArray.h"
 #include "nsInterfaceHashtable.h"
 #include "nsIMsgDatabase.h"
+#include "nsIDBChangeListener.h"
+#include "nsAutoPtr.h"
+#include "nsTObserverArray.h"
 
 class nsIRDFService;
+
+class VirtualFolderChangeListener : public nsIDBChangeListener
+{
+public:
+  VirtualFolderChangeListener();
+  ~VirtualFolderChangeListener() {}
+
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIDBCHANGELISTENER
+
+  nsresult Init();
+  /**
+   * Posts an event to update the summary totals and commit the db.
+   * We post the event to avoid committing each time we're called
+   * in a synchronous loop.
+   */
+  nsresult PostUpdateEvent(nsIMsgFolder *folder, nsIMsgDatabase *db);
+  /// Handles event posted to event queue to batch notifications.
+  void ProcessUpdateEvent(nsIMsgFolder *folder, nsIMsgDatabase *db);
+
+  nsCOMPtr <nsIMsgFolder> m_virtualFolder; // folder we're listening to db changes on behalf of.
+  nsCOMPtr <nsIMsgFolder> m_folderWatching; // folder whose db we're listening to.
+  nsCOMPtr <nsISupportsArray> m_searchTerms;
+  nsCOMPtr <nsIMsgSearchSession> m_searchSession;
+  PRBool m_searchOnMsgStatus;
+  PRBool m_batchingEvents;
+};
+
 
 class nsMsgAccountManager: public nsIMsgAccountManager,
     public nsIObserver,
@@ -94,7 +125,7 @@ private:
   nsInterfaceHashtable<nsCStringHashKey, nsIMsgIncomingServer> m_incomingServers;
   nsCOMPtr<nsIMsgAccount> m_defaultAccount;
   nsCOMArray<nsIIncomingServerListener> m_incomingServerListeners;
-  nsCOMArray<nsIDBChangeListener> m_virtualFolderListeners;
+  nsTObserverArray<nsRefPtr<VirtualFolderChangeListener> > m_virtualFolderListeners;
   nsCOMPtr<nsIMsgFolder> m_folderDoingEmptyTrash;
   nsCOMPtr<nsIMsgFolder> m_folderDoingCleanupInbox;
   PRBool m_emptyTrashInProgress;

@@ -88,7 +88,6 @@
 #include "nsIMsgFilterService.h"
 #include "nsIMsgFilter.h"
 #include "nsIMsgSearchSession.h"
-#include "nsIDBChangeListener.h"
 #include "nsIMutableArray.h"
 #include "nsIDBFolderInfo.h"
 #include "nsIMsgHdr.h"
@@ -98,7 +97,6 @@
 #include "nsIStringBundle.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIMsgFilterList.h"
-#include "nsAutoPtr.h"
 
 #define PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS "mail.accountmanager.accounts"
 #define PREF_MAIL_ACCOUNTMANAGER_DEFAULTACCOUNT "mail.accountmanager.defaultaccount"
@@ -243,9 +241,14 @@ nsresult nsMsgAccountManager::Shutdown()
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
   if (msgDBService)
   {
-    PRInt32 numVFListeners = m_virtualFolderListeners.Count();
-    for(PRInt32 i = 0; i < numVFListeners; i++)
-      msgDBService->UnregisterPendingListener(m_virtualFolderListeners[i]);
+    nsTObserverArray<nsRefPtr<VirtualFolderChangeListener> >::ForwardIterator iter(m_virtualFolderListeners);
+    nsRefPtr<VirtualFolderChangeListener> listener;
+
+    while (iter.HasMore())
+    {
+      listener = iter.GetNext();
+      msgDBService->UnregisterPendingListener(listener);
+    }
   }
   if(m_msgFolderCache)
     WriteToFolderCache(m_msgFolderCache);
@@ -2572,33 +2575,6 @@ nsMsgAccountManager::GetChromePackageName(const nsACString& aExtensionName, nsAC
   return NS_ERROR_UNEXPECTED;
 }
 
-class VirtualFolderChangeListener : public nsIDBChangeListener
-{
-public:
-  VirtualFolderChangeListener();
-  ~VirtualFolderChangeListener() {}
-
-  NS_DECL_ISUPPORTS
-  NS_DECL_NSIDBCHANGELISTENER
-
-  nsresult Init();
-  /**
-   * Posts an event to update the summary totals and commit the db.
-   * We post the event to avoid committing each time we're called
-   * in a synchronous loop.
-   */
-  nsresult PostUpdateEvent(nsIMsgFolder *folder, nsIMsgDatabase *db);
-  /// Handles event posted to event queue to batch notifications.
-  void ProcessUpdateEvent(nsIMsgFolder *folder, nsIMsgDatabase *db);
-
-  nsCOMPtr <nsIMsgFolder> m_virtualFolder; // folder we're listening to db changes on behalf of.
-  nsCOMPtr <nsIMsgFolder> m_folderWatching; // folder whose db we're listening to.
-  nsCOMPtr <nsISupportsArray> m_searchTerms;
-  nsCOMPtr <nsIMsgSearchSession> m_searchSession;
-  PRBool m_searchOnMsgStatus;
-  PRBool m_batchingEvents;
-};
-
 class VFChangeListenerEvent : public nsRunnable
 {
 public:
@@ -3246,16 +3222,16 @@ nsresult nsMsgAccountManager::AddVFListenersForVF(nsIMsgFolder *virtualFolder,
     nsCOMPtr <nsIMsgFolder> realFolder = do_QueryInterface(resource);
     if (!realFolder)
       continue;
-    VirtualFolderChangeListener *dbListener = new VirtualFolderChangeListener();
+    nsRefPtr<VirtualFolderChangeListener> dbListener = new VirtualFolderChangeListener();
     NS_ENSURE_TRUE(dbListener, NS_ERROR_OUT_OF_MEMORY);
     dbListener->m_virtualFolder = virtualFolder;
     dbListener->m_folderWatching = realFolder;
     if (NS_FAILED(dbListener->Init()))
     {
-      delete dbListener;
+      dbListener = nsnull;
       continue;
     }
-    m_virtualFolderListeners.AppendObject(dbListener);
+    m_virtualFolderListeners.AppendElement(dbListener);
     msgDBService->RegisterPendingListener(realFolder, dbListener);
   }
   return NS_OK;
@@ -3266,20 +3242,21 @@ nsresult nsMsgAccountManager::AddVFListenersForVF(nsIMsgFolder *virtualFolder,
 nsresult nsMsgAccountManager::RemoveVFListenerForVF(nsIMsgFolder *virtualFolder,
                                                     nsIMsgFolder *folder)
 {
-  PRInt32 numVFListeners = m_virtualFolderListeners.Count();
   nsresult rv;
   nsCOMPtr<nsIMsgDBService> msgDBService(do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  for (PRInt32 i = 0; i < numVFListeners; i++)
+  nsTObserverArray<nsRefPtr<VirtualFolderChangeListener> >::ForwardIterator iter(m_virtualFolderListeners);
+  nsRefPtr<VirtualFolderChangeListener> listener;
+
+  while (iter.HasMore())
   {
-    VirtualFolderChangeListener *listener =
-      static_cast<VirtualFolderChangeListener *>(m_virtualFolderListeners[i]);
+    listener = iter.GetNext();
     if (listener->m_folderWatching == folder &&
         listener->m_virtualFolder == virtualFolder)
     {
-      msgDBService->UnregisterPendingListener(m_virtualFolderListeners[i]);
-      m_virtualFolderListeners.RemoveObjectAt(i);
+      msgDBService->UnregisterPendingListener(listener);
+      m_virtualFolderListeners.RemoveElement(listener);
       break;
     }
   }
@@ -3375,11 +3352,12 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemAdded(nsIMsgFolder *parentItem, nsISupp
   if (addToSmartFolders)
   {
     // quick way to enumerate the saved searches.
-    PRInt32 numVFListeners = m_virtualFolderListeners.Count();
-    for (PRInt32 i = 0; i < numVFListeners; i++)
+    nsTObserverArray<nsRefPtr<VirtualFolderChangeListener> >::ForwardIterator iter(m_virtualFolderListeners);
+    nsRefPtr<VirtualFolderChangeListener> listener;
+
+    while (iter.HasMore())
     {
-      VirtualFolderChangeListener *listener =
-        static_cast<VirtualFolderChangeListener *>(m_virtualFolderListeners[i]);
+      listener = iter.GetNext();
       nsCOMPtr <nsIMsgDatabase> db;
       nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
       listener->m_virtualFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo),
@@ -3487,10 +3465,12 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemRemoved(nsIMsgFolder *parentItem, nsISu
   removedFolderURI.Append('|');
 
   // Enumerate the saved searches.
-  for (PRInt32 i = m_virtualFolderListeners.Count() - 1; i >= 0; i--)
+  nsTObserverArray<nsRefPtr<VirtualFolderChangeListener> >::ForwardIterator iter(m_virtualFolderListeners);
+  nsRefPtr<VirtualFolderChangeListener> listener;
+
+  while (iter.HasMore())
   {
-    VirtualFolderChangeListener *listener =
-      static_cast<VirtualFolderChangeListener *>(m_virtualFolderListeners[i]);
+    listener = iter.GetNext();
     nsCOMPtr<nsIMsgDatabase> db;
     nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
     nsCOMPtr<nsIMsgFolder> savedSearch = listener->m_virtualFolder;
@@ -3607,11 +3587,12 @@ nsMsgAccountManager::RemoveFolderFromSmartFolder(nsIMsgFolder *aFolder,
   NS_ASSERTION(!(flags & flagsChanged), "smart folder flag should not be set");
   // Flag was removed. Look for smart folder based on that flag,
   // and remove this folder from its scope.
-  PRInt32 numVFListeners = m_virtualFolderListeners.Count();
-  for (PRInt32 i = 0; i < numVFListeners; i++)
+  nsTObserverArray<nsRefPtr<VirtualFolderChangeListener> >::ForwardIterator iter(m_virtualFolderListeners);
+  nsRefPtr<VirtualFolderChangeListener> listener;
+
+  while (iter.HasMore())
   {
-    VirtualFolderChangeListener *listener =
-      static_cast<VirtualFolderChangeListener *>(m_virtualFolderListeners[i]);
+    listener = iter.GetNext();
     nsCOMPtr <nsIMsgDatabase> db;
     nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
     listener->m_virtualFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo),
