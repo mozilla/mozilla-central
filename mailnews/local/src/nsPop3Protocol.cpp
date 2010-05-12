@@ -83,7 +83,7 @@
 
 #define EXTRA_SAFETY_SPACE 3096
 
-static PRLogModuleInfo *POP3LOGMODULE = nsnull;
+PRLogModuleInfo *POP3LOGMODULE = nsnull;
 
 
 static PRIntn
@@ -918,15 +918,25 @@ NS_IMETHODIMP nsPop3Protocol::OnTransportStatus(nsITransport *aTransport, nsresu
 }
 
 // stop binding is a "notification" informing us that the stream associated with aURL is going away.
-NS_IMETHODIMP nsPop3Protocol::OnStopRequest(nsIRequest *request, nsISupports * aContext, nsresult aStatus)
+NS_IMETHODIMP nsPop3Protocol::OnStopRequest(nsIRequest *aRequest, nsISupports * aContext, nsresult aStatus)
 {
-  nsresult rv = nsMsgProtocol::OnStopRequest(request, aContext, aStatus);
-  // turn off the server busy flag on stop request - we know we're done, right?
-  if (m_pop3Server)
+  PRBool socketWasOpen = m_socketIsOpen;
+  nsresult rv = nsMsgProtocol::OnStopRequest(aRequest, aContext, aStatus);
+  // If the server dropped the connection, m_socketIsOpen will be true, before
+  // we call nsMsgProtocol::OnStopRequest. The call will force a close socket,
+  // but we still want to go through the state machine one more time to cleanup
+  // the protocol object.
+  if (socketWasOpen)
   {
-    nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_pop3Server);
-    if (server)
-      server->SetServerBusy(PR_FALSE); // the server is not busy
+    m_pop3ConData->next_state = POP3_ERROR_DONE;
+    ProcessProtocolState(nsnull, nsnull, 0, 0);
+  }
+  // turn off the server busy flag on stop request - we know we're done, right?
+  nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_pop3Server);
+  if (server)
+  {
+    PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("Clearing server busy in OnStopRequest"));
+    server->SetServerBusy(PR_FALSE); // the server is not busy
   }
   if(m_pop3ConData->list_done)
     CommitState(PR_TRUE);
@@ -944,8 +954,8 @@ void nsPop3Protocol::Abort()
   }
   // need this to close the stream on the inbox.
   m_nsIPop3Sink->AbortMailDelivery(this);
+  PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("Clearing running protocol in nsPop3Protocol::Abort"));
   m_pop3Server->SetRunningProtocol(nsnull);
-
 }
 
 NS_IMETHODIMP nsPop3Protocol::Cancel(nsresult status)  // handle stop button
@@ -1026,6 +1036,8 @@ nsresult nsPop3Protocol::LoadUrl(nsIURI* aURL, nsISupports * /* aConsumer */)
   if (server)
   {
     rv = server->GetLocalPath(getter_AddRefs(mailDirectory));
+    NS_ENSURE_SUCCESS(rv, rv);
+    PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("Setting server busy in nsPop3Protocol::LoadUrl"));
     server->SetServerBusy(PR_TRUE); // the server is now busy
     server->GetHostName(hostName);
     server->GetUsername(userName);
@@ -2325,10 +2337,13 @@ nsPop3Protocol::GetStat()
       rv = m_nsIPop3Sink->BeginMailDelivery(m_pop3ConData->only_uidl != nsnull, msgWindow,
                                                     &m_pop3ConData->msg_del_started);
       if (NS_FAILED(rv))
+      {
+        m_nsIPop3Sink->AbortMailDelivery(this);
         if (rv == NS_MSG_FOLDER_BUSY)
           return(Error(POP3_MESSAGE_FOLDER_BUSY));
         else
           return(Error(POP3_MESSAGE_WRITE_ERROR));
+      }
 
       if(!m_pop3ConData->msg_del_started)
         return(Error(POP3_MESSAGE_WRITE_ERROR));
@@ -4060,22 +4075,22 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
       break;
 
     case POP3_FREE:
-      UpdateProgressPercent(0,0); // clear out the progress meter
-      NS_ASSERTION(m_nsIPop3Sink, "with no sink, can't clear busy flag");
-      if (m_nsIPop3Sink)
       {
+        UpdateProgressPercent(0,0); // clear out the progress meter
         nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_pop3Server);
         if (server)
+        {
+          PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("Clearing server busy in POP3_FREE"));
           server->SetServerBusy(PR_FALSE); // the server is now not busy
+        }
+        PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("Clearing running protocol in POP3_FREE"));
+        m_pop3Server->SetRunningProtocol(nsnull);
+        if (mailnewsurl && urlStatusSet)
+          mailnewsurl->SetUrlState(PR_FALSE, m_pop3ConData->urlStatus);
+
+        CloseSocket();
+        return NS_OK;
       }
-      m_pop3Server->SetRunningProtocol(nsnull);
-      if (mailnewsurl && urlStatusSet)
-        mailnewsurl->SetUrlState(PR_FALSE, m_pop3ConData->urlStatus);
-
-      CloseSocket();
-      return NS_OK;
-      break;
-
     default:
       NS_ERROR("Got to unexpected state in nsPop3Protocol::ProcessProtocolState");
 

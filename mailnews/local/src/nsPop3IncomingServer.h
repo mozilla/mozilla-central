@@ -65,6 +65,7 @@ public:
   NS_IMETHOD GetCanBeDefaultServer(PRBool *canBeDefaultServer);
   NS_IMETHOD GetCanSearchMessages(PRBool *canSearchMessages);
   NS_IMETHOD GetOfflineSupportLevel(PRInt32 *aSupportLevel);
+  NS_IMETHOD CloseCachedConnections();
   NS_IMETHOD GetRootMsgFolder(nsIMsgFolder **aRootMsgFolder);
   NS_IMETHOD GetCanFileMessagesOnServer(PRBool *aCanFileMessagesOnServer);
   NS_IMETHOD GetCanCreateFoldersOnServer(PRBool *aCanCreateFoldersOnServer);

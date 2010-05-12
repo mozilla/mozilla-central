@@ -60,21 +60,7 @@ var urlListener =
   }
 };
 
-function checkBusy() {
-  // If the server hasn't quite finished, just delay a little longer.
-  if (incomingServer.serverBusy ||
-      (incomingServer instanceof Ci.nsIPop3IncomingServer &&
-       incomingServer.runningProtocol)) {
-    do_timeout(20, checkBusy);
-    return;
-  }
-
-  endTest();
-}
-
 function endTest() {
-  incomingServer.closeCachedConnections();
-
   // No more tests, let everything finish
   server.stop();
 
@@ -96,10 +82,7 @@ CRAMFail_handler.prototype = {
 
   killConn : function()
   {
-     server._readers.forEach(function (reader) {
-        //reader.closeSocket(); doesn't close right away
-        reader._realCloseSocket();
-    });
+    this.closing = true;
     return "-ERR I don't feel like it";
   }
 }

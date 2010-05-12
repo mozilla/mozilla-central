@@ -611,6 +611,15 @@ nsPop3IncomingServer::GetCanSearchMessages(PRBool *canSearchMessages)
 }
 
 NS_IMETHODIMP
+nsPop3IncomingServer::CloseCachedConnections()
+{
+  nsCOMPtr<nsIRequest> channel = do_QueryInterface(m_runningProtocol);
+  if (channel)
+    channel->Cancel(NS_ERROR_ABORT);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsPop3IncomingServer::GetOfflineSupportLevel(PRInt32 *aSupportLevel)
 {
   NS_ENSURE_ARG_POINTER(aSupportLevel);

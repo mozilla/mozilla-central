@@ -36,6 +36,10 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+#ifdef MOZ_LOGGING
+#define FORCE_PR_LOG
+#endif
+
 
 #include "msgCore.h"    // precompiled header...
 #include "nsPop3Sink.h"
@@ -72,6 +76,7 @@
 #include "nsIPop3Service.h"
 #include "nsMsgLocalCID.h"
 
+extern PRLogModuleInfo *POP3LOGMODULE;
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsPop3Sink, nsIPop3Sink)
 
@@ -94,6 +99,9 @@ nsPop3Sink::nsPop3Sink()
     m_popServer = nsnull;
     m_outFileStream = nsnull;
     m_buildMessageUri = PR_FALSE;
+    if (!POP3LOGMODULE)
+      POP3LOGMODULE = PR_NewLogModule("POP3");
+
 }
 
 nsPop3Sink::~nsPop3Sink()
@@ -101,6 +109,7 @@ nsPop3Sink::~nsPop3Sink()
     PR_Free(m_accountUrl);
     PR_Free(m_outputBuffer);
     NS_IF_RELEASE(m_popServer);
+    PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("Calling ReleaseFolderLock from ~nsPop3Sink"));
     ReleaseFolderLock();
     NS_IF_RELEASE(m_newMailParser);
 }
@@ -288,9 +297,15 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
   nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIPop3Sink*>(this));
   m_folder->GetLocked(&isLocked);
   if(!isLocked)
+  {
+    PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("BeginMailDelivery acquiring semaphore"));
     m_folder->AcquireSemaphore(supports);
+  }
   else
+  {
+    PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("BeginMailDelivery folder locked"));
     return NS_MSG_FOLDER_BUSY;
+  }
 
   nsCOMPtr<nsILocalFile> path;
 
@@ -418,6 +433,7 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
   if (m_newMailParser)
     m_newMailParser->UpdateDBFolderInfo();
 
+  PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("Calling ReleaseFolderLock from EndMailDelivery"));
   nsresult rv = ReleaseFolderLock();
   NS_ASSERTION(NS_SUCCEEDED(rv),"folder lock not released successfully");
 
@@ -516,6 +532,8 @@ nsPop3Sink::ReleaseFolderLock()
   PRBool haveSemaphore;
   nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIPop3Sink*>(this));
   result = m_folder->TestSemaphore(supports, &haveSemaphore);
+  PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("ReleaseFolderLock haveSemaphore = %s", haveSemaphore ? "TRUE" : "FALSE"));
+
   if(NS_SUCCEEDED(result) && haveSemaphore)
     result = m_folder->ReleaseSemaphore(supports);
   return result;
@@ -542,6 +560,8 @@ nsPop3Sink::AbortMailDelivery(nsIPop3Protocol *protocol)
   we have truncated the inbox, so berkeley mailbox and msf file are in sync*/
   if (m_newMailParser)
     m_newMailParser->UpdateDBFolderInfo();
+  PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("Calling ReleaseFolderLock from AbortMailDelivery"));
+
   nsresult rv = ReleaseFolderLock();
   NS_ASSERTION(NS_SUCCEEDED(rv),"folder lock not released successfully");
 
