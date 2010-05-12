@@ -249,6 +249,37 @@ function UpdateMailPaneConfig(aMsgWindowInitialized) {
       if (gDBView && GetNumSelectedMessages() == 1)
         gDBView.reloadMessage();
     }
+
+    // The quick filter bar gets badly lied to due to standard XUL/XBL problems,
+    //  so we need to generate synthetic notifications after a delay on those
+    //  nodes that care about overflow.  The 'lie' comes in the form of being
+    //  given (at startup) an overflow event with a tiny clientWidth (100), then
+    //  a more tiny resize event (clientWidth = 32), then a resize event that
+    //  claims the entire horizontal space is allocated to us
+    //  (clientWidth = 1036).  It would appear that when the messagepane's XBL
+    //  binding (or maybe the splitter's?) finally activates, the quick filter
+    //  pane gets resized down without any notification.
+    // Our solution tries to be generic and help out any code with an onoverflow
+    //  handler.  We will also generate an onresize notification if it turns out
+    //  that onoverflow is not appropriate (and such a handler is registered).
+    //  This does require that XUL attributes were used to register the handlers
+    //  rather than addEventListener.
+    // The choice of the delay is basically a kludge because something like 10ms
+    //  may be insufficient to ensure we get enqueued after whatever triggers
+    //  the layout discontinuity.  (We need to wait for a paint to happen to
+    //  trigger the XBL binding, and then there may be more complexities...)
+    setTimeout(function UpdateMailPaneConfig_deferredFixup() {
+      let threadPaneBox = document.getElementById("threadPaneBox");
+      let overflowNodes =
+        threadPaneBox.querySelectorAll("[onoverflow]");
+      for (let iNode = 0; iNode < overflowNodes.length; iNode++) {
+        let node = overflowNodes[iNode];
+        if (node.scrollWidth > node.clientWidth)
+          node.onoverflow();
+        else if (node.onresize)
+          node.onresize();
+      }
+    }, 1500);
   }
 }
 

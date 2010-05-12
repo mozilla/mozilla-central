@@ -66,7 +66,9 @@ let QuickFilterBarMuxer = {
 
     // -- window hookups
     let dis = this;
-    window.addEventListener("resize", function() {
+    // know when a resize happens so we can expand things collapsed by our
+    //  overflow handler (registered by attribute in the XUL file).
+    window.addEventListener("resize", function QFBM_resizeWrap() {
                               dis.onWindowResize();
                             }, false);
 
@@ -327,6 +329,12 @@ let QuickFilterBarMuxer = {
   _minExpandedBarWidth: null,
 
   /**
+   * Where we stash the minwidth for the text search box, if present, when
+   *  _buttonLabelsCollapsed.
+   */
+  _savedOffTextWidgetMinWidth: null,
+
+  /**
    * Our general strategy is this:
    * - All collapsible buttons are set to not flex and live in the
    *   "quick-filter-bar-collapsible-buttons" hbox.  This provides us with a
@@ -334,13 +342,15 @@ let QuickFilterBarMuxer = {
    * - All flexy widgets have some minimum size configured.
    * - When the bar starts to overflow we save off the (minimum) size of the bar
    *   so that once it gets large enough again we can restore the buttons.
+   * - On overflow we also lose the minwidth constraint on the search box so it
+   *   resizes down in a reasonable fashion.
    *
    * This method handles the overflow case where we transition to collapsed
    * buttons.  Our onWindowResize logic handles detecting when it is time to
    * un-collapse.
    */
   onOverflow: function QFBM_onOverflow() {
-    // if we are already collapsed, there is nothing more to do.
+    // If we are already collapsed, there is nothing more to do.
     if (this._buttonLabelsCollapsed)
       return;
 
@@ -352,7 +362,14 @@ let QuickFilterBarMuxer = {
     this._minExpandedBarWidth = quickFilterBarBox.scrollWidth;
     this._buttonLabelsCollapsed = true;
 
+    let textWidget = document.getElementById(QuickFilterManager.textBoxDomId);
+    if (textWidget) {
+      this._savedOffTextWidgetMinWidth = textWidget.getAttribute("minwidth");
+      textWidget.removeAttribute("minwidth");
+    }
+
     collapsibleButtonBox.setAttribute("shrink", "true");
+
   },
 
   /**
@@ -373,6 +390,13 @@ let QuickFilterBarMuxer = {
 
     this._buttonLabelsCollapsed = false;
     this._minExpandedBarWidth = null;
+
+    // restore the text widget's min width...
+    let textWidget = document.getElementById(QuickFilterManager.textBoxDomId);
+    if (textWidget && this._savedOffTextWidgetMinWidth) {
+      textWidget.setAttribute("minwidth", this._savedOffTextWidgetMinWidth);
+      this._savedOffTextWidgetMinWidth = null;
+    }
 
     let collapsibleButtonBox =
       document.getElementById("quick-filter-bar-collapsible-buttons");
