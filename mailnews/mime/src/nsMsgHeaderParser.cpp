@@ -503,6 +503,8 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
             line_temp++;
 
           line_end = line_temp;
+          if (!*line_end)
+            break;
         }
         else
         {
@@ -1047,11 +1049,12 @@ msg_quote_phrase_or_addr(char *address, PRInt32 length, PRBool addr_p)
     *out++ = '\"';
   *out++ = 0;
 
-  NS_ASSERTION(new_length >= (out - orig_out), "");
+  NS_ASSERTION(new_length >= (out - orig_out), "miscalculated quoted length");
   memcpy(address, orig_out, new_length);
-  PR_FREEIF(orig_out); /* make sure we release the string we allocated */
+  PR_Free(orig_out); /* make sure we release the string we allocated */
 
-  return full_length + unquotable_count + 2;
+  // Return how many bytes we wrote, not counting the null byte.
+  return out - orig_out - 1;
 }
 
 /* msg_unquote_phrase_or_addr

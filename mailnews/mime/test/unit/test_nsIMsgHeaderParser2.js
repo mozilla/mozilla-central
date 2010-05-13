@@ -52,6 +52,22 @@ function run_test() {
      "Joe Q. Public" ],
   ];
 
+  // this used to cause memory read overruns
+  let addresses = {}, names = {}, fullAddresses = {};
+  parser.parseHeadersWithArray("\" \"@a a;b", addresses, names, fullAddresses);
+
+  // test address with ":;"
+  try {
+    // This checks that the mime header parser doesn't march past the end
+    // of strings with ":;" in them. The second ":;" is required to force the
+    // parser to keep going.
+    parser.extractHeaderAddressMailboxes(
+      "undisclosed-recipients:;\0:; foo <ghj@veryveryveryverylongveryveryveryveryinvalidaddress.com>");
+    do_throw("parser should have thrown an exception");
+  }
+  catch(ex) {
+    // we expect/want this exception.
+ }
   // Test - empty strings
 
   do_check_eq(parser.extractHeaderAddressMailboxes(""), "");
