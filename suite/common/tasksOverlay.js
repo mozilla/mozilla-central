@@ -83,6 +83,7 @@ function toDownloadManager()
   
 function toEM( aPane )
 {
+  //XXXCallek Open this in a tab
   var theEM = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                         .getService(Components.interfaces.nsIWindowMediator)
                         .getMostRecentWindow("Extension:Manager");

@@ -158,8 +158,8 @@
               return;
 
             switch (aTopic) {
-              case "xpinstall-install-blocked":
-                var installInfo = aSubject.QueryInterface(Components.interfaces.nsIXPIInstallInfo);
+              case "addon-install-blocked":
+                var installInfo = aSubject.QueryInterface(Components.interfaces.amIWebInstallInfo);
                 if (installInfo.originatingWindow.top != browser.contentWindow)
                   return;
 
@@ -199,10 +199,7 @@
                     accessKey: this._stringBundle.GetStringFromName("xpinstallPromptInstallButton.accesskey"),
                     popup: null,
                     callback: function allowInstall() { 
-                      var mgr = Components.classes["@mozilla.org/xpinstall/install-manager;1"]
-                                          .createInstance(Components.interfaces.nsIXPInstallManager);
-                      mgr.initManagerWithInstallInfo(installInfo);
-
+                      installInfo.install();
                       return false;
                     }
                   }];
@@ -335,6 +332,7 @@
             aEvent.preventDefault();
             aEvent.stopPropagation();
 
+            //XXXCallek Need to "open-in-tab" the new manager, rather than do this
             var theEM = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                                   .getService(Components.interfaces.nsIWindowMediator)
                                   .getMostRecentWindow("Extension:Manager");
@@ -414,7 +412,7 @@
         <![CDATA[
           var os = Components.classes["@mozilla.org/observer-service;1"]
                              .getService(Components.interfaces.nsIObserverService);
-          os.addObserver(this, "xpinstall-install-blocked", false);
+          os.addObserver(this, "addon-install-blocked", false);
           os.addObserver(this, "perm-changed", false);
 
           this._prefs.addObserver("plugins.hide_infobar_for_missing_plugin", this, false);
@@ -451,7 +449,7 @@
             var os = Components.classes["@mozilla.org/observer-service;1"]
                                 .getService(Components.interfaces.nsIObserverService);
             try {
-              os.removeObserver(this, "xpinstall-install-blocked");
+              os.removeObserver(this, "addon-install-blocked");
             } catch (ex) {}
             try {
               os.removeObserver(this, "perm-changed");

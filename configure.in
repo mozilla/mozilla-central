@@ -4653,7 +4653,6 @@ MOZ_UNIVERSALCHARDET=1
 MOZ_URL_CLASSIFIER=
 MOZ_USE_NATIVE_UCONV=
 MOZ_VIEW_SOURCE=1
-MOZ_XPINSTALL=1
 MOZ_XSLT_STANDALONE=
 MOZ_XTF=1
 MOZ_XUL=1
@@ -4725,7 +4724,6 @@ basic)
   MOZ_UPDATER=
   MOZ_USE_NATIVE_UCONV=
   MOZ_VIEW_SOURCE=
-  MOZ_XPINSTALL=
   MOZ_XTF=
   MOZ_ZIPWRITER=
   NS_DISABLE_LOGGING=1
@@ -4761,7 +4759,6 @@ minimal)
   MOZ_UPDATER=
   MOZ_USE_NATIVE_UCONV=1
   MOZ_VIEW_SOURCE=
-  MOZ_XPINSTALL=
   MOZ_XTF=
   MOZ_XUL=
   MOZ_ZIPWRITER=
@@ -5379,17 +5376,6 @@ if test "$ACCESSIBILITY"; then
 fi
 
 dnl ========================================================
-dnl xpinstall support on by default
-dnl ========================================================
-MOZ_ARG_DISABLE_BOOL(xpinstall,
-[  --disable-xpinstall     Disable xpinstall support],
-    MOZ_XPINSTALL=,
-    MOZ_XPINSTALL=1 )
-if test "$MOZ_XPINSTALL"; then
-    AC_DEFINE(MOZ_XPINSTALL)
-fi
-
-dnl ========================================================
 dnl xpcom js loader support on by default
 dnl ========================================================
 MOZ_ARG_DISABLE_BOOL(jsloader,
@@ -5682,10 +5668,6 @@ if test -n "$MOZ_INSTALLER" -a "$OS_ARCH" = "WINNT"; then
     fi
 fi
 
-# Automatically disable installer if xpinstall isn't built
-if test -z "$MOZ_XPINSTALL"; then
-    MOZ_INSTALLER=
-fi
 AC_SUBST(MOZ_INSTALLER)
 
 AC_MSG_CHECKING([for tar archiver])
@@ -7244,7 +7226,6 @@ AC_SUBST(ENABLE_TESTS)
 AC_SUBST(IBMBIDI)
 AC_SUBST(MOZ_UNIVERSALCHARDET)
 AC_SUBST(ACCESSIBILITY)
-AC_SUBST(MOZ_XPINSTALL)
 AC_SUBST(MOZ_VIEW_SOURCE)
 AC_SUBST(MOZ_SPELLCHECK)
 AC_SUBST(MOZ_USER_DIR)
