@@ -487,6 +487,7 @@ components/webBrowser_core.xpt
 components/webbrowserpersist.xpt
 components/webshell_idls.xpt
 components/widget.xpt
+components/widget_cocoa.xpt
 components/windowds.xpt
 components/windowwatcher.xpt
 components/xpautocomplete.xpt
