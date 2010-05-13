@@ -90,6 +90,7 @@
 #include "nsIPrompt.h"
 #include "nsISupportsArray.h"
 #include "nsIMsgSearchTerm.h"
+#include "nsTextFormatter.h"
 #include "nsIAtomService.h"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
@@ -473,6 +474,62 @@ nsresult NS_MsgHashIfNecessary(nsAutoString &name)
     name.Append(NS_ConvertASCIItoUTF16(hashedname));
   }
 
+  return NS_OK;
+}
+
+nsresult FormatFileSize(PRUint64 size, PRBool useKB, nsAString &formattedSize)
+{
+  NS_NAMED_LITERAL_STRING(byteAbbr, "byteAbbreviation2");
+  NS_NAMED_LITERAL_STRING(kbAbbr,   "kiloByteAbbreviation2");
+  NS_NAMED_LITERAL_STRING(mbAbbr,   "megaByteAbbreviation2");
+  NS_NAMED_LITERAL_STRING(gbAbbr,   "gigaByteAbbreviation2");
+
+  const PRUnichar *sizeAbbrNames[] = {
+    byteAbbr.get(), kbAbbr.get(), mbAbbr.get(), gbAbbr.get()
+  };
+
+  nsresult rv;
+
+  nsCOMPtr<nsIStringBundleService> bundleSvc =
+    do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIStringBundle> bundle;
+  rv = bundleSvc->CreateBundle("chrome://messenger/locale/messenger.properties",
+                               getter_AddRefs(bundle));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  float unitSize = size;
+  PRUint32 unitIndex = 0;
+
+  if (useKB) {
+    // Start by formatting in kilobytes
+    unitSize /= 1024;
+    if (unitSize < 0.1)
+      unitSize = 0.1;
+    unitIndex++;
+  }
+
+  // Convert to next unit if it needs 4 digits (after rounding), but only if
+  // we know the name of the next unit
+  while ((unitSize >= 999.5) && (unitIndex < NS_ARRAY_LENGTH(sizeAbbrNames)))
+  {
+      unitSize /= 1024;
+      unitIndex++;
+  }
+
+  // Grab the string for the appropriate unit
+  nsString sizeAbbr;
+  rv = bundle->GetStringFromName(sizeAbbrNames[unitIndex],
+                                 getter_Copies(sizeAbbr));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Get rid of insignificant bits by truncating to 1 or 0 decimal points
+  // 0.1 -> 0.1; 1.2 -> 1.2; 12.3 -> 12.3; 123.4 -> 123; 234.5 -> 235
+  nsTextFormatter::ssprintf(formattedSize,
+                            sizeAbbr.get(),
+                            (unitIndex != 0) && (unitSize < 99.95) ? 1 : 0,
+                            unitSize);
   return NS_OK;
 }
 

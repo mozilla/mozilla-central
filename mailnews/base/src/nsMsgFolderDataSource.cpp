@@ -44,6 +44,7 @@
 #include "nsMsgFolderDataSource.h"
 #include "nsMsgFolderFlags.h"
 
+#include "nsMsgUtils.h"
 #include "nsMsgRDFUtils.h"
 
 #include "rdf.h"
@@ -146,9 +147,6 @@ nsIAtom * nsMsgFolderDataSource::kIsSecureAtom = nsnull;
 nsIAtom * nsMsgFolderDataSource::kCanFileMessagesAtom = nsnull;
 nsIAtom * nsMsgFolderDataSource::kInVFEditSearchScopeAtom = nsnull;
 
-PRUnichar * nsMsgFolderDataSource::kKiloByteString = nsnull;
-PRUnichar * nsMsgFolderDataSource::kMegaByteString = nsnull;
-
 static const PRUint32 kDisplayBlankCount = 0xFFFFFFFE;
 static const PRUint32 kDisplayQuestionCount = 0xFFFFFFFF;
 
@@ -230,20 +228,6 @@ nsMsgFolderDataSource::nsMsgFolderDataSource()
     kIsSecureAtom                = NS_NewAtom("isSecure");
     kCanFileMessagesAtom         = NS_NewAtom("canFileMessages");
     kInVFEditSearchScopeAtom     = NS_NewAtom("inVFEditSearchScope");
-
-    nsCOMPtr<nsIStringBundleService> sBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res);
-
-    if (NS_SUCCEEDED(res) && sBundleService)
-      res = sBundleService->CreateBundle(MESSENGER_STRING_URL, getter_AddRefs(sMessengerStringBundle));
-
-    if (NS_SUCCEEDED(res) && sMessengerStringBundle)
-    {
-      if (!NS_SUCCEEDED(sMessengerStringBundle->GetStringFromName(NS_LITERAL_STRING("kiloByteAbbreviation").get(), &kKiloByteString)))
-        kKiloByteString = ToNewUnicode(NS_LITERAL_STRING("kiloByteAbbreviation"));
-
-      if (!NS_SUCCEEDED(sMessengerStringBundle->GetStringFromName(NS_LITERAL_STRING("megaByteAbbreviation").get(), &kMegaByteString)))
-        kMegaByteString = ToNewUnicode(NS_LITERAL_STRING("megaByteAbbreviation"));
-    }
   }
 
   CreateLiterals(rdf);
@@ -322,8 +306,6 @@ nsMsgFolderDataSource::~nsMsgFolderDataSource (void)
     NS_RELEASE(kIsSecureAtom);
     NS_RELEASE(kCanFileMessagesAtom);
     NS_RELEASE(kInVFEditSearchScopeAtom);
-    nsMemory::Free(kKiloByteString);
-    nsMemory::Free(kMegaByteString);
   }
 }
 
@@ -1838,11 +1820,10 @@ nsMsgFolderDataSource::GetNumMessagesNode(PRInt32 aNumMessages, nsIRDFNode **nod
   return NS_OK;
 }
 
-#define DIVISIONWITHCEIL(num, div) (num/div+((num%div>0)?1:0))
-
 nsresult
 nsMsgFolderDataSource::GetFolderSizeNode(PRInt32 aFolderSize, nsIRDFNode **aNode)
 {
+  nsresult rv;
   PRUint32 folderSize = aFolderSize;
   if (folderSize == kDisplayBlankCount || folderSize == 0)
     createNode(EmptyString().get(), aNode, getRDFService());
@@ -1851,15 +1832,9 @@ nsMsgFolderDataSource::GetFolderSizeNode(PRInt32 aFolderSize, nsIRDFNode **aNode
   else
   {
     nsAutoString sizeString;
-    // use Round or Ceil - bug #251202
-    folderSize = DIVISIONWITHCEIL(folderSize, 1024);  // normalize into k;
-    PRBool sizeInMB = (folderSize > 999); // 999, not 1024 - bug #251204
+    rv = FormatFileSize(folderSize, true, sizeString);
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    // kKiloByteString/kMegaByteString are localized strings that we use
-    // to get the right format to add on the "KB"/"MB" or equivalent
-    nsTextFormatter::ssprintf(sizeString,
-                              (sizeInMB) ? kMegaByteString : kKiloByteString,
-                              (sizeInMB) ? DIVISIONWITHCEIL(folderSize, 1024) : folderSize);
     createNode(sizeString.get(), aNode, getRDFService());
   }
   return NS_OK;

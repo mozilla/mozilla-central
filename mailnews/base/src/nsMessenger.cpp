@@ -2225,6 +2225,13 @@ NS_IMETHODIMP nsMessenger::GetNavigateHistory(PRUint32 *aCurPos, PRUint32 *aCoun
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsMessenger::FormatFileSize(PRUint64 aSize, PRBool aUseKB, nsAString& aFormattedSize)
+{
+  return ::FormatFileSize(aSize, aUseKB, aFormattedSize);
+}
+
+
 /* void OnItemAdded (in nsIMsgFolder parentItem, in nsISupports item); */
 NS_IMETHODIMP nsMessenger::OnItemAdded(nsIMsgFolder *parentItem, nsISupports *item)
 {

@@ -193,8 +193,6 @@ protected:
   static PRUnichar* kForwardedString;
   static PRUnichar* kNewString;
 
-  static PRUnichar* kKiloByteString;
-
   nsCOMPtr<nsITreeBoxObject> mTree;
   nsCOMPtr<nsITreeSelection> mTreeSelection;
   PRUint32 mNumSelectedRows; // we cache this to determine when to push command status notifications.

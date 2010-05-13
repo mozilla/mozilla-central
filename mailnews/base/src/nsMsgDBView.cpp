@@ -119,8 +119,6 @@ PRUnichar * nsMsgDBView::kRepliedString = nsnull;
 PRUnichar * nsMsgDBView::kForwardedString = nsnull;
 PRUnichar * nsMsgDBView::kNewString = nsnull;
 
-PRUnichar * nsMsgDBView::kKiloByteString = nsnull;
-
 nsDateFormatSelector  nsMsgDBView::m_dateFormatDefault = kDateFormatShort;
 nsDateFormatSelector  nsMsgDBView::m_dateFormatThisWeek = kDateFormatShort;
 nsDateFormatSelector  nsMsgDBView::m_dateFormatToday = kDateFormatNone;
@@ -236,8 +234,6 @@ void nsMsgDBView::InitializeAtomsAndLiterals()
   kRepliedString = GetString(NS_LITERAL_STRING("replied").get());
   kForwardedString = GetString(NS_LITERAL_STRING("forwarded").get());
   kNewString = GetString(NS_LITERAL_STRING("new").get());
-
-  kKiloByteString = GetString(NS_LITERAL_STRING("kiloByteAbbreviation").get());
 }
 
 nsMsgDBView::~nsMsgDBView()
@@ -286,7 +282,6 @@ nsMsgDBView::~nsMsgDBView()
     NS_Free(kRepliedString);
     NS_Free(kForwardedString);
     NS_Free(kNewString);
-    NS_Free(kKiloByteString);
   }
 }
 
@@ -610,6 +605,7 @@ nsresult nsMsgDBView::FetchStatus(PRUint32 aFlags, nsAString &aStatusString)
 
 nsresult nsMsgDBView::FetchSize(nsIMsgDBHdr * aHdr, nsAString &aSizeString)
 {
+  nsresult rv;
   nsAutoString formattedSizeString;
   PRUint32 msgSize = 0;
 
@@ -630,16 +626,8 @@ nsresult nsMsgDBView::FetchSize(nsIMsgDBHdr * aHdr, nsAString &aSizeString)
     if (msgSize == 0)
       aHdr->GetMessageSize(&msgSize);
 
-    if(msgSize < 1024)
-      msgSize = 1024;
-
-    PRUint32 sizeInKB = msgSize/1024;
-
-    // kKiloByteString is a localized string that we use to get the right
-    // format to add on the "KB" or equivalent
-    nsTextFormatter::ssprintf(formattedSizeString,
-                              kKiloByteString,
-                              sizeInKB);
+    rv = FormatFileSize(msgSize, true, formattedSizeString);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
   aSizeString = formattedSizeString;

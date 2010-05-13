@@ -92,6 +92,9 @@ NS_MSG_BASE nsresult NS_MsgGetUntranslatedPriorityName(
 NS_MSG_BASE nsresult NS_MsgHashIfNecessary(nsAutoString &name);
 NS_MSG_BASE nsresult NS_MsgHashIfNecessary(nsCAutoString &name);
 
+NS_MSG_BASE nsresult FormatFileSize(PRUint64 size, PRBool useKB, nsAString &formattedSize);
+
+
 /**
  * given a folder uri, return the path to folder in the user profile directory.
  *

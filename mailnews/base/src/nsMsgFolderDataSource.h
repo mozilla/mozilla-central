@@ -295,9 +295,6 @@ protected:
   
   nsCOMArray<nsIRDFResource> kFolderArcsOutArray;
 
-  static PRUnichar* kKiloByteString;
-  static PRUnichar* kMegaByteString;
-
 };
 
 

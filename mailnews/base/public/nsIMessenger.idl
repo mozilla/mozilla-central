@@ -49,7 +49,7 @@ interface nsIMsgMessageService;
 interface nsIFile;
 interface nsIUrlListener;
 
-[scriptable, uuid(6D7062AD-BFC5-4d70-A036-FAEB58240363)]
+[scriptable, uuid(be6f7aa0-36bd-11df-9879-0800200c9a66)]
 interface nsIMessenger : nsISupports {
 
     const long eUnknown = 0;
@@ -150,5 +150,7 @@ interface nsIMessenger : nsISupports {
     // and they'll get returned an array with strings containing something like subject and sender of the message - 
     // other possible info is the folder containing the message, and the preview text, if available.
     void getNavigateHistory(out unsigned long aCurPos, out unsigned long aCount, [array, size_is(aCount)] out string aHistory);
+
+    AString formatFileSize(in unsigned long long aPos, [optional] in boolean aUseKB);
 };
 
