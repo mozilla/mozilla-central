@@ -123,7 +123,7 @@
 @BINPATH@/run-mozilla.sh
 #endif
 #ifndef MOZ_STATIC_BUILD
-#ifdef XP_UNIX
+#ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/@DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@gtkxtbin@DLL_SUFFIX@
 #endif
@@ -163,7 +163,7 @@
 #else
 @BINPATH@/components/@DLL_PREFIX@embedcomponents@DLL_SUFFIX@
 #endif
-#ifdef XP_UNIX
+#ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/components/@DLL_PREFIX@fileview@DLL_SUFFIX@
 #endif
 #ifdef XP_OS2
