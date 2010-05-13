@@ -47,22 +47,38 @@
 /* :::: Filter Bar :::: */
 
 #quick-filter-bar-main-bar {
+  border-left: 1px solid ThreeDShadow;
+  border-top: 1px solid ThreeDHighlight;
+  border-bottom: 1px solid ThreeDShadow;
+}
+
+#quick-filter-bar-main-bar:-moz-system-metric(windows-default-theme) {
   background: -moz-linear-gradient(top, #f2f7fd 0, #e9f2fc 12px, #e3eefb 12px, #e3eefb 100%);
   border-left: 2px solid;
-  -moz-border-left-colors: #9196a2 #fff;
   border-top: 1px solid #fff;
   border-bottom: 2px solid;
+  -moz-border-left-colors: #9196a2 #fff;
   -moz-border-bottom-colors: #9196a2 #fff;
 }
 
 #quick-filter-bar-expando {
+  border-left: 1px solid ThreeDShadow;
+}
+
+#quick-filter-bar-expando:-moz-system-metric(windows-default-theme) {
   border-left: 2px solid;
   -moz-border-left-colors: #9196a2 #fff;
-  background: #f2f6fb;  
+  background: #f2f6fb;
 }
 
 #quick-filter-bar-tab-bar,
 #quick-filter-bar-filter-text-bar {
+  border-top: 1px solid ThreeDHighlight;
+  border-bottom: 1px solid ThreeDShadow;
+}
+
+#quick-filter-bar-tab-bar:-moz-system-metric(windows-default-theme),
+#quick-filter-bar-filter-text-bar:-moz-system-metric(windows-default-theme) {
   border-top: 1px solid #fff;
   border-bottom: 2px solid;
   -moz-border-bottom-colors: #9196a2 #fff;
@@ -101,7 +117,7 @@
   outline: none;
 }
 
-#qfb-filter-label {
+#qfb-filter-label:-moz-system-metric(windows-default-theme) {
   color: GrayText;
 }
 
