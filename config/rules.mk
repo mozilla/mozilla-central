@@ -155,15 +155,9 @@ SOLO_FILE ?= $(error Specify a test filename in SOLO_FILE when using check-inter
 
 libs::
 	$(foreach dir,$(XPCSHELL_TESTS),$(_INSTALL_TESTS))
-ifdef MOZILLA_1_9_2_BRANCH
-	$(PERL) -I$(MOZILLA_DIR)/config $(MOZILLA_DIR)/config/build-list.pl \
-	  $(testxpcobjdir)/all-test-dirs.list \
-	  $(addprefix $(MODULE)/,$(XPCSHELL_TESTS))
-else
 	$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py \
 	  $(testxpcobjdir)/all-test-dirs.list \
 	  $(addprefix $(MODULE)/,$(XPCSHELL_TESTS))
-endif
 
 testxpcsrcdir = $(MOZILLA_SRCDIR)/testing/xpcshell
 
@@ -354,14 +348,12 @@ CXXFLAGS += $(MOZ_EXCEPTIONS_FLAGS_ON) -DMOZ_CPP_EXCEPTIONS=1
 endif # ENABLE_CXX_EXCEPTIONS
 endif # WINNT
 
-ifndef MOZILLA_1_9_2_BRANCH
 ifeq ($(SOLARIS_SUNPRO_CXX),1)
 CXXFLAGS += -features=extensions -D__FUNCTION__=__func__
 ifeq (86,$(findstring 86,$(OS_TEST)))
 OS_LDFLAGS += -M $(MOZILLA_DIR)/config/solaris_ia32.map
 endif # x86
 endif # Solaris Sun Studio C++
-endif # ! MOZILLA_1_9_2_BRANCH
 
 ifeq (,$(filter-out WINNT WINCE,$(HOST_OS_ARCH)))
 HOST_PDBFILE=$(basename $(@F)).pdb
@@ -816,25 +808,13 @@ ifdef LIBRARY_NAME
 ifdef EXPORT_LIBRARY
 ifdef IS_COMPONENT
 ifdef BUILD_STATIC_LIBS
-ifdef MOZILLA_1_9_2_BRANCH
-	@$(PERL) -I$(MOZILLA_DIR)/config $(MOZILLA_DIR)/config/build-list.pl $(FINAL_LINK_COMPS) $(STATIC_LIBRARY_NAME)
-else
 	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_LINK_COMPS) $(STATIC_LIBRARY_NAME)
-endif
 ifdef MODULE_NAME
-ifdef MOZILLA_1_9_2_BRANCH
-	@$(PERL) -I$(MOZILLA_DIR)/config $(MOZILLA_DIR)/config/build-list.pl $(FINAL_LINK_COMP_NAMES) $(MODULE_NAME)
-else
 	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_LINK_COMP_NAMES) $(MODULE_NAME)
-endif
 endif
 endif # BUILD_STATIC_LIBS
 else # !IS_COMPONENT
-ifdef MOZILLA_1_9_2_BRANCH
-	$(PERL) -I$(MOZILLA_DIR)/config $(MOZILLA_DIR)/config/build-list.pl $(FINAL_LINK_LIBS) $(STATIC_LIBRARY_NAME)
-else
 	$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_LINK_LIBS) $(STATIC_LIBRARY_NAME)
-endif
 endif # IS_COMPONENT
 endif # EXPORT_LIBRARY
 endif # LIBRARY_NAME
@@ -844,7 +824,6 @@ LIBS_DEPS = $(filter %.$(LIB_SUFFIX), $(LIBS))
 HOST_LIBS_DEPS = $(filter %.$(LIB_SUFFIX), $(HOST_LIBS))
 DSO_LDOPTS_DEPS = $(EXTRA_DSO_LIBS) $(filter %.$(LIB_SUFFIX), $(EXTRA_DSO_LDOPTS))
 
-ifndef MOZILLA_1_9_2_BRANCH
 ifndef _LIBNAME_RELATIVE_PATHS
 
 LIBS_DEPS += $(filter -l%, $(LIBS))
@@ -861,7 +840,6 @@ vpath $(DLL_PREFIX)%$(DLL_SUFFIX) $(_LIBDIRS)
 endif # _LIBDIRS
 
 endif # _LIBNAME_RELATIVE_PATHS
-endif # ! MOZILLA_1_9_2_BRANCH
 
 # Dependencies which, if modified, should cause everything to rebuild
 GLOBAL_DEPS += Makefile Makefile.in $(DEPTH)/config/autoconf.mk $(topsrcdir)/config/config.mk
@@ -896,11 +874,7 @@ ifdef SHARED_LIBRARY
 ifdef IS_COMPONENT
 	$(INSTALL) $(IFLAGS2) $(SHARED_LIBRARY) $(FINAL_TARGET)/components
 	$(ELF_DYNSTR_GC) $(FINAL_TARGET)/components/$(SHARED_LIBRARY)
-ifdef MOZILLA_1_9_2_BRANCH
-	@$(PERL) -I$(MOZILLA_DIR)/config $(MOZILLA_DIR)/config/build-list.pl $(FINAL_TARGET)/components/components.list $(SHARED_LIBRARY)
-else
 	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/components/components.list $(SHARED_LIBRARY)
-endif
 ifdef BEOS_ADDON_WORKAROUND
 	( cd $(FINAL_TARGET)/components && $(CC) -nostart -o $(SHARED_LIBRARY).stub $(SHARED_LIBRARY) )
 endif
@@ -1086,11 +1060,7 @@ endif
 #
 $(SIMPLE_PROGRAMS): %$(BIN_SUFFIX): %.$(OBJ_SUFFIX) $(LIBS_DEPS) $(EXTRA_DEPS) $(GLOBAL_DEPS)
 ifeq (WINCE,$(OS_ARCH))
-  ifdef MOZILLA_1_9_2_BRANCH
-	$(LD) -nologo  -entry:main -out:$@ $< $(WIN32_EXE_LDFLAGS) $(LDFLAGS) $(LIBS) $(EXTRA_LIBS) $(OS_LIBS)
-  else
 	$(LD) -nologo  -entry:mainACRTStartup -out:$@ $< $(WIN32_EXE_LDFLAGS) $(LDFLAGS) $(LIBS) $(EXTRA_LIBS) $(OS_LIBS)
-  endif
 else
 ifeq (_WINNT,$(GNU_CC)_$(OS_ARCH))
 	$(LD) -nologo -out:$@ -pdb:$(LINK_PDBFILE) $< $(WIN32_EXE_LDFLAGS) $(LDFLAGS) $(LIBS) $(EXTRA_LIBS) $(OS_LIBS)
@@ -1256,11 +1226,7 @@ endif
 # symlinks back to the originals. The symlinks are a no-op for stabs debugging,
 # so no need to conditionalize on OS version or debugging format.
 
-ifdef MOZILLA_1_9_2_BRANCH
-$(SHARED_LIBRARY): $(OBJS) $(LOBJS) $(DEF_FILE) $(RESFILE) $(SHARED_LIBRARY_LIBS) $(EXTRA_DEPS) $(DSO_LDOPTS_DEPS) $(GLOBAL_DEPS)
-else
 $(SHARED_LIBRARY): $(OBJS) $(LOBJS) $(DEF_FILE) $(RESFILE) $(SHARED_LIBRARY_LIBS) $(LIBRARY) $(EXTRA_DEPS) $(DSO_LDOPTS_DEPS) $(GLOBAL_DEPS)
-endif
 ifndef INCREMENTAL_LINKER
 	rm -f $@
 endif
@@ -1736,11 +1702,7 @@ ifdef EXTRA_COMPONENTS
 libs:: $(EXTRA_COMPONENTS)
 ifndef NO_DIST_INSTALL
 	$(INSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/components
-ifdef MOZILLA_1_9_2_BRANCH
-	@$(PERL) -I$(MOZILLA_DIR)/config $(MOZILLA_DIR)/config/build-list.pl $(FINAL_TARGET)/components/components.list $(notdir $^)
-else
 	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/components/components.list $(notdir $^)
-endif
 
 endif
 
@@ -1749,17 +1711,6 @@ endif
 ifdef EXTRA_PP_COMPONENTS
 libs:: $(EXTRA_PP_COMPONENTS)
 ifndef NO_DIST_INSTALL
-ifdef MOZILLA_1_9_2_BRANCH
-	$(EXIT_ON_ERROR) \
-	$(NSINSTALL) -D $(FINAL_TARGET)/components; \
-	for i in $^; do \
-          fname=`basename $$i`; \
-	  dest=$(FINAL_TARGET)/components/$${fname}; \
-	  $(RM) -f $$dest; \
-	  $(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $$i > $$dest; \
-	  $(PERL) -I$(MOZILLA_DIR)/config $(MOZILLA_DIR)/config/build-list.pl $(FINAL_TARGET)/components/components.list $$fname; \
-	done
-else
 	$(EXIT_ON_ERROR) \
 	$(NSINSTALL) -D $(FINAL_TARGET)/components; \
 	for i in $^; do \
@@ -1769,7 +1720,6 @@ else
 	  $(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $$i > $$dest; \
 	  $(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/components/components.list $$fname; \
 	done
-endif
 endif
 
 endif
@@ -2017,26 +1967,8 @@ ifneq (,$(OBJS)$(XPIDLSRCS)$(SIMPLE_PROGRAMS))
 MDDEPEND_FILES		:= $(strip $(wildcard $(MDDEPDIR)/*.pp))
 
 ifneq (,$(MDDEPEND_FILES))
-ifdef MOZILLA_1_9_2_BRANCH
-ifdef PERL
-# The script mddepend.pl checks the dependencies and writes to stdout
-# one rule to force out-of-date objects. For example,
-#   foo.o boo.o: FORCE
-# The script has an advantage over including the *.pp files directly
-# because it handles the case when header files are removed from the build.
-# 'make' would complain that there is no way to build missing headers.
-ifeq (,$(MAKE_RESTARTS))
-$(MDDEPDIR)/.all.pp: FORCE
-	@$(PERL) $(BUILD_TOOLS)/mddepend.pl $@ $(MDDEPEND_FILES)
-endif
--include $(MDDEPDIR)/.all.pp
-else
-include $(MDDEPEND_FILES)
-endif
-else
 ALL_PP_RESULTS = $(shell $(PERL) $(BUILD_TOOLS)/mddepend.pl - $(MDDEPEND_FILES))
 $(eval $(ALL_PP_RESULTS))
-endif # ! MOZILLA_1_9_2_BRANCH
 endif
 
 endif
