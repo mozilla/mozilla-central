@@ -1018,7 +1018,7 @@
             if (this.mCurrentTab.hasAttribute("busy") && !this.mIsBusy) {
               this.mIsBusy = true;
 
-              webProgress = this.mCurrentBrowser.webProgress;
+              var webProgress = this.mCurrentBrowser.webProgress;
               this.mProgressListeners.forEach(
                 function notifyStateChangeBusy(element) {
                   try {

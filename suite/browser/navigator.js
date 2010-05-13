@@ -2354,7 +2354,7 @@ function toHistory()
 function checkTheme(popup)
 {
   while (popup.lastChild.localName != 'menuseparator')
-    popup.removeChild(aPopup.lastChild);
+    popup.removeChild(popup.lastChild);
   gThemes.forEach(function(theme) {
     var menuitem = document.createElement('menuitem');
     menuitem.setAttribute("label", theme.name);
