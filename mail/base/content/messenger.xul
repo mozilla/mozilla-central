@@ -427,6 +427,7 @@
                            flex="1" name="multimessage"
                            hidden="true"
                            disablesecurity="true" disablehistory="true"
+                           tooltip="aHTMLTooltip"
                            src="chrome://messenger/content/multimessageview.xhtml"
                            autofind="false"/>
                   <vbox id="singlemessage" flex="1">
