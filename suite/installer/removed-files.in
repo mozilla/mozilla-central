@@ -282,6 +282,15 @@ components/@DLL_PREFIX@pipnss@DLL_SUFFIX@
 components/@DLL_PREFIX@pippki@DLL_SUFFIX@
 components/@DLL_PREFIX@places@DLL_SUFFIX@
 components/@DLL_PREFIX@pref@DLL_SUFFIX@
+#ifdef XP_WIN
+components/@DLL_PREFIX@windowsproxy@DLL_SUFFIX@
+#elifdef XP_UNIX
+#ifdef XP_MACOSX
+components/@DLL_PREFIX@osxproxy@DLL_SUFFIX@
+#else
+components/@DLL_PREFIX@unixproxy@DLL_SUFFIX@
+#endif
+#endif
 components/@DLL_PREFIX@rdf@DLL_SUFFIX@
 components/@DLL_PREFIX@remoteservice@DLL_SUFFIX@
 components/@DLL_PREFIX@satchel@DLL_SUFFIX@
@@ -293,7 +302,6 @@ components/@DLL_PREFIX@toolkitcomps@DLL_SUFFIX@
 components/@DLL_PREFIX@txmgr@DLL_SUFFIX@
 components/@DLL_PREFIX@uconv@DLL_SUFFIX@
 components/@DLL_PREFIX@universalchardet@DLL_SUFFIX@
-components/@DLL_PREFIX@unixproxy@DLL_SUFFIX@
 components/@DLL_PREFIX@webbrwsr@DLL_SUFFIX@
 components/@DLL_PREFIX@widget_gtk2@DLL_SUFFIX@
 components/@DLL_PREFIX@windowds@DLL_SUFFIX@
@@ -301,13 +309,11 @@ components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
 components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
 #ifdef XP_MACOSX
 components/libjar50.dylib
-components/libosxproxy.dylib
 components/libwidget_mac.dylib
 #endif
 #ifdef XP_WIN
 components/gkwidget.dll
 components/msgMapi.dll
-components/windowsproxy.dll
 components/xppref32.dll
 #endif
 @DLL_PREFIX@gfxpsshar@DLL_SUFFIX@

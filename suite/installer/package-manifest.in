@@ -196,14 +196,20 @@
 @BINPATH@/components/@DLL_PREFIX@nsappshell@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@permissions@DLL_SUFFIX@
 #endif
-#ifdef XP_MACOSX
-@BINPATH@/components/@DLL_PREFIX@osxproxy@DLL_SUFFIX@
-#endif
 @BINPATH@/components/@DLL_PREFIX@places@DLL_SUFFIX@
 #ifdef XP_WIN32
 @BINPATH@/components/@DLL_PREFIX@xppref32@DLL_SUFFIX@
 #else
 @BINPATH@/components/@DLL_PREFIX@pref@DLL_SUFFIX@
+#endif
+#ifdef XP_WIN32
+@BINPATH@/components/@DLL_PREFIX@windowsproxy@DLL_SUFFIX@
+#elifdef XP_UNIX
+#ifdef XP_MACOSX
+@BINPATH@/components/@DLL_PREFIX@osxproxy@DLL_SUFFIX@
+#else
+@BINPATH@/components/@DLL_PREFIX@unixproxy@DLL_SUFFIX@
+#endif
 #endif
 @BINPATH@/components/@DLL_PREFIX@rdf@DLL_SUFFIX@
 #ifdef UNIX_BUT_NOT_MAC
@@ -245,9 +251,6 @@
 @BINPATH@/components/@DLL_PREFIX@widget_mac@DLL_SUFFIX@
 #elifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@wdgtos2@DLL_SUFFIX@
-#endif
-#ifdef XP_WIN32
-@BINPATH@/components/@DLL_PREFIX@windowsproxy@DLL_SUFFIX@
 #endif
 @BINPATH@/components/@DLL_PREFIX@windowds@DLL_SUFFIX@
 #ifdef XP_OS2
@@ -415,9 +418,6 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 #endif
 @BINPATH@/components/uconv.xpt
 @BINPATH@/components/unicharutil.xpt
-#ifdef UNIX_BUT_NOT_MAC
-@BINPATH@/components/@DLL_PREFIX@unixproxy@DLL_SUFFIX@
-#endif
 @BINPATH@/components/update.xpt
 @BINPATH@/components/uriloader.xpt
 @BINPATH@/components/urlformatter.xpt
