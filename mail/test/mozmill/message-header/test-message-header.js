@@ -291,17 +291,9 @@ function test_that_msg_without_date_clears_previous_headers() {
 }
 
 /**
- * Test that we only display at most the max lines preference until we
- * display (n more), and, after the widget is clicked, we expand the header.
+ * Test various aspects of the (n more) widgetry.
  */
 function test_more_widget() {
-
-  // get maxline pref
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-    .getService(Ci.nsIPrefService).getBranch(null);
-  let maxLines = prefBranch.getIntPref(
-    "mailnews.headers.show_n_lines_before_more");
-
   // generate message with 20 recips (effectively guarantees overflow)
   be_in_folder(folder);
   let msg = create_message({toCount: 20});
@@ -319,9 +311,61 @@ function test_more_widget() {
   // get the description element containing the addresses
   let toDescription = mc.a('expandedtoBox', {class: "headerValue"});
 
+  subtest_more_widget_display(toDescription);
+  subtest_more_widget_click(toDescription);
+  subtest_more_widget_star_click(toDescription);
+}
+
+/**
+ * Get the number of lines in one of the multi-address fields
+ * @param node the description element containing the addresses
+ * @return the number of lines
+ */
+function help_get_num_lines(node) {
+  let style = mc.window.getComputedStyle(node, null);
+  return style.height / style.lineHeight;
+}
+
+/**
+ * Make sure that there is no card for this email address
+ * @param emailAddress the address that should have no cards
+ */
+function ensure_no_card_exists(emailAddress)
+{
+  var books = Components.classes["@mozilla.org/abmanager;1"]
+                        .getService(Components.interfaces.nsIAbManager)
+                        .directories;
+
+  while (books.hasMoreElements()) {
+    var ab = books.getNext()
+                  .QueryInterface(Components.interfaces.nsIAbDirectory);
+    try {
+      var card = ab.cardForEmailAddress(emailAddress);
+      if (card) {
+        let cardArray = Cc["@mozilla.org/array;1"]
+                          .createInstance(Ci.nsIMutableArray);
+        cardArray.appendElement(card, false);
+        ab.deleteCards(cardArray);
+      }
+    }
+    catch (ex) { }
+  }
+}
+
+/**
+ * Test that the "more" widget displays when it should.
+ * @param toDescription the description node for the "to" field
+ */
+function subtest_more_widget_display(toDescription) {
   // test that the to element doesn't have more than max lines
-  let style = mc.window.getComputedStyle(toDescription, null);
-  let numLines = style.height / style.lineHeight
+  let numLines = help_get_num_lines(toDescription);
+
+  // get maxline pref
+  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
+    .getService(Ci.nsIPrefService).getBranch(null);
+  let maxLines = prefBranch.getIntPref(
+    "mailnews.headers.show_n_lines_before_more");
+
   if (numLines > maxLines) {
     throw new Error("expected <= " + maxLines + "lines; found " + numLines);
   }
@@ -334,9 +378,18 @@ function test_more_widget() {
   if (moreNode.collapsed) {
     throw new Error("more node was collapsed when it should have been visible");
   }
+}
+
+/**
+ * Test that clicking the "more" widget displays all the addresses.
+ * @param toDescription the description node for the "to" field
+ */
+function subtest_more_widget_click(toDescription) {
+  let oldNumLines = help_get_num_lines(toDescription);
 
   // activate (n more)
-  mc.click(new elib.Elem(moreNode));
+  let moreNode = mc.aid('expandedtoBox', {class: 'moreIndicator'});
+  mc.click(moreNode);
 
   // test that (n more) is gone
   moreNode = mc.a('expandedtoBox', {class: 'moreIndicator'});
@@ -345,11 +398,29 @@ function test_more_widget() {
   }
 
   // test that we actually have more lines than we did before!
-  let style = mc.window.getComputedStyle(toDescription, null);
-  let newNumLines = style.height / style.lineHeight;
-  if (newNumLines <= numLines) {
+  let newNumLines = help_get_num_lines(toDescription);
+  if (newNumLines <= oldNumLines) {
     throw new Error("number of address lines present after more clicked = " +
-      newNumLines + "<= number of lines present beforehand = " + numLines);
+      newNumLines + "<= number of lines present beforehand = " + oldNumLines);
+  }
+}
+
+/**
+ * Test that clicking the star updates the UI properly (see bug 563612).
+ * @param toDescription the description node for the "to" field
+ */
+function subtest_more_widget_star_click(toDescription) {
+  let addrs = toDescription.getElementsByTagName('mail-emailaddress');
+  let lastAddr = addrs[addrs.length-1];
+  ensure_no_card_exists(lastAddr.getAttribute("emailAddress"));
+
+  // scroll to the bottom first so the address is in view
+  let view = mc.e('expandedHeaderView');
+  view.scrollTop = view.scrollHeight - view.clientHeight;
+
+  mc.click(mc.aid(lastAddr, {class: 'emailStar'}));
+  if (lastAddr.getAttribute('hascard') == 'false') {
+    throw new Error("address not updated after clicking star");
   }
 }
 

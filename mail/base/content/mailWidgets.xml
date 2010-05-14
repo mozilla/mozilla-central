@@ -310,54 +310,6 @@
         </body>
       </method>
 
-      <!-- fillCachedAddresses: private method used to fill up any cached pre-existing
-           emailAddress fields without creating new email address fields. Returns a remainder
-           for the # of addresses which require new addresses being created.
-           Invariants: 1) aNumAddressesToShow >= 0 && it is <= mAddresses.length -->
-      <method name="fillCachedAddresses">
-        <parameter name="aAddressesNode"/>
-        <parameter name="aNumAddressesToShow"/>
-        <body>
-          <![CDATA[
-            var numExistingCachedAddresses = aAddressesNode.childNodes.length;
-            if (!numExistingCachedAddresses)
-              return this.mAddresses.length; // we couldn't pre fill anything
-            else if (numExistingCachedAddresses > 1)
-              numExistingCachedAddresses = (numExistingCachedAddresses + 1)/ 2;
-
-            var index = 0;
-            var numAddressesAdded = 0;
-            var emailAddressNode;
-            var commaNode;
-            while (numAddressesAdded < numExistingCachedAddresses && numAddressesAdded < aNumAddressesToShow)
-            {
-              if (index && numExistingCachedAddresses > 1)
-              {
-                commaNode = aAddressesNode.childNodes[index++];
-                if (commaNode)
-                  commaNode.hidden = false;
-              }
-
-              // get the node pointed to by index
-              emailAddressNode = aAddressesNode.childNodes[index++];
-              this.updateEmailAddressNode(emailAddressNode, this.mAddresses[numAddressesAdded]);
-              emailAddressNode.hidden = false;
-              numAddressesAdded++;
-            }
-
-            // if we have added all of our elements but we still have more cached items in this address node
-            // then make sure the extra cached copies are hidden...
-            numExistingCachedAddresses = aAddressesNode.childNodes.length;  // reset
-            while (index < numExistingCachedAddresses)
-            {
-              aAddressesNode.childNodes[index++].hidden = true;
-            }
-
-            return this.mAddresses.length - numAddressesAdded;
-          ]]>
-        </body>
-      </method>
-
       <!-- fillAddressesNode: private method used to create email address
            nodes for either our short or long view.
            @param aAddressesNode {DOMElement}: the div to add addresses too
@@ -372,8 +324,7 @@
             // try to leverage any cached nodes before creating new ones
             // XXX look for possible perf win using heuristic for the 2nd
             // param instead of hardcoding 1
-            var cached = this.mAddresses.length -
-              this.fillCachedAddresses(aAddressesNode, 1);
+            var cached = aAddressesNode.childNodes.length;
 
             // XXXdmose one or more of the ancestor nodes could be collapsed,
             // so this hack just undoes that for all ancestors.  We should do
@@ -394,8 +345,18 @@
             {
               let newAddressNode;
 
+              // First, add a comma as long as this isn't the first address.
+              if (i > 0) {
+                if (cached-- > 0)
+                  aAddressesNode.childNodes[i*2 - 1].hidden = false;
+                else
+                  this.appendComma();
+              }
+
+              // Now add an email address.
               if (cached-- > 0) {
-                newAddressNode = aAddressesNode.childNodes[i];
+                newAddressNode = aAddressesNode.childNodes[i*2];
+                newAddressNode.hidden = false;
               } else {
                 newAddressNode = document.createElement("mail-emailaddress");
 
@@ -403,12 +364,9 @@
                 // will be able to find it.
                 newAddressNode.setAttribute("headerName", this.headerName);
 
-                if (i > 0)
-                  this.appendComma();
-
-                let itemInDocument = aAddressesNode.appendChild(newAddressNode);
-                this.updateEmailAddressNode(itemInDocument, this.mAddresses[i]);
+                newAddressNode = aAddressesNode.appendChild(newAddressNode);
               }
+              this.updateEmailAddressNode(newAddressNode, this.mAddresses[i]);
 
               // Calculate width and lines
               // <http://www.w3.org/TR/cssom-view/#client-attributes>
@@ -420,12 +378,22 @@
               }
             }
 
+            // Hide any extra nodes but keep them around for later.
+            for (let j = i*2 - 1; j < aAddressesNode.childNodes.length; j++) {
+              aAddressesNode.childNodes[j].hidden = true;
+            }
+
             // If we're not required to show all addresses, and there are still
             // addresses remaining, add an (N more) widget.
             if (!all) {
               let remainingAddresses = this.mAddresses.length - i;
               if (remainingAddresses > 0) {
-                this.addCommaAndNMore(remainingAddresses);
+                if (aAddressesNode.childNodes.length % 2 == 0)
+                  aAddressesNode.lastChild.hidden = false;
+                else
+                  this.appendComma();
+
+                this.addNMore(remainingAddresses);
               }
             }
 
@@ -475,12 +443,10 @@
       </method>
 
       <!-- Add a (N more) widget which can be clicked to reveal the rest. -->
-      <method name="addCommaAndNMore">
+      <method name="addNMore">
         <parameter name="aNumber"/>
         <body>
           <![CDATA[
-            this.appendComma();
-
             // figure out the right plural for the language we're using
             let words = gMessengerBundle.getString("headerMoreAddrs");
             let moreForm = PluralForm.get(aNumber, words).replace("#1",
