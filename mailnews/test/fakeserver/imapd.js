@@ -639,6 +639,8 @@ function IMAP_RFC3501_handler(daemon) {
   this._daemon = daemon;
   this.closing = false;
   this.dropOnStartTLS = false;
+  // This can be used to simulate timeouts on large copies
+  this.copySleep = 0;
   // map: property = auth scheme {String}, value = start function on this obj
   this._kAuthSchemeStartFunction = {};
 
@@ -1262,7 +1264,17 @@ IMAP_RFC3501_handler.prototype = {
       newMessage.recent = false;
       dest.addMessage(newMessage);
     }
-
+    if (this.copySleep > 0) {
+      // spin rudely for copyTimeout milliseconds.
+      let now = new Date();
+      let alarm;
+      let startingMSeconds = now.getTime();
+      while (true) {
+        alarm = new Date();
+        if (alarm.getTime() - startingMSeconds > this.copySleep)
+          break;
+      }
+    }
     return "OK COPY completed";
   },
   UID : function (args) {
