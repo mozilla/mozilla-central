@@ -368,14 +368,15 @@ nsLDAPConnection::GetErrorString(PRUnichar **_retval)
 nsresult
 nsLDAPConnection::AddPendingOperation(nsILDAPOperation *aOperation)
 {
-    PRInt32 msgID;
+    NS_ENSURE_TRUE(mPendingOperations, NS_ERROR_FAILURE);
+    NS_ENSURE_ARG_POINTER(aOperation);
 
     if (!aOperation) {
         return NS_ERROR_ILLEGAL_VALUE;
     }
 
     // find the message id
-    //
+    PRInt32 msgID;
     aOperation->GetMessageID(&msgID);
 
     // turn it into an nsVoidKey.  note that this is another spot that
