@@ -430,9 +430,10 @@
          let oneMoreDay = (itemEndDate.hour > 0 || itemEndDate.minute > 0);
          itemStartDate.isDate = true;
          itemEndDate.isDate = true;
-         let offset = itemStartDate.subtractDate(beginMoveDate);
-         let len = itemEndDate.subtractDate(itemStartDate).days;
-         this.calendarView.mShadowOffset = offset;
+         let offsetDuration = itemStartDate.subtractDate(beginMoveDate);
+         let lenDuration = itemEndDate.subtractDate(itemStartDate);
+         let len = lenDuration.weeks * 7 + lenDuration.days;
+         this.calendarView.mShadowOffset = offsetDuration;
          this.calendarView.mDropShadowsLength = oneMoreDay ? len + 1 : len;
       ]]></handler>
 
