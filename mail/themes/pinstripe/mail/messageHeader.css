@@ -238,14 +238,15 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   padding: 0;
 }
 
-
+/* Setting min & max-values here to make sure the buttons are the same size */
 
 .msgHeaderView-button {
   -moz-appearance: none;
   -moz-border-radius: 4px;
-  min-height: 0;
-  min-width: 0;
-  padding: 2px;
+  min-height: 22px;
+  min-width: 22px;
+  max-height: 22px;
+  padding: 1px 2px;
   margin: 0px;
   -moz-margin-start: 0.4em;
   vertical-align: middle;
