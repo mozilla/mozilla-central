@@ -202,7 +202,8 @@ static void openMailWindow(const nsCString& aUri)
     FocusAppNative();
     nsCOMPtr<nsIDOMWindowInternal> domWindow;
     topMostMsgWindow->GetDomWindow(getter_AddRefs(domWindow));
-    domWindow->Focus();
+    if (domWindow)
+      domWindow->Focus();
   }
   else
   {
