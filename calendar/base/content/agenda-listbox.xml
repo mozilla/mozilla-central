@@ -216,6 +216,7 @@
             let periodStartDate = aPeriod.start.clone();
             periodStartDate.isDate = true;
             let periodEndDate = aPeriod.end.clone();
+            periodEndDate.day--;
             let start = this.mOccurrence[calGetStartDateProp(this.mOccurrence)]
                             .getInTimezone(calendarDefaultTimezone());
             let end = this.mOccurrence[calGetEndDateProp(this.mOccurrence)]
@@ -225,14 +226,14 @@
             let endDate = end.clone();
             endDate.isDate = true;
             let endAtMidnight = (end.hour == 0 && end.minute == 0);
-            let endPreviousDay = endDate.clone();
-            endPreviousDay.day--;
+            if (endAtMidnight) {
+                endDate.day--;
+            }
             let longFormat = aPeriod.duration > 1;
 
             let duration = "";
             let iconType = "";
-            if (startDate.compare(endDate) == 0 ||
-                 (startDate.compare(endPreviousDay) == 0 && endAtMidnight)) {
+            if (startDate.compare(endDate) == 0) {
                 // event that starts and ends in the same day, midnight included
                 duration = longFormat ? dateFormatter.formatDateTime(start) :
                                         dateFormatter.formatTime(start);
@@ -247,7 +248,7 @@
                            endDate.compare(periodEndDate) <= 0) {
                     iconType = "end";
                     if (endAtMidnight) {
-                        duration = dateFormatter.formatDate(endPreviousDay) + " ";
+                        duration = dateFormatter.formatDate(endDate) + " ";
                         duration = longFormat ? duration + calGetString("dateFormat", "midnight") :
                                                 calGetString("dateFormat", "midnight");
                     } else {
