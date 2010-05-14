@@ -148,7 +148,7 @@ let headersToTest = [
 },
 {
   headerName: "From",
-  headerValueElement: "mc.window.document.getAnonymousElementByAttribute(" + 
+  headerValueElement: "mc.window.document.getAnonymousElementByAttribute(" +
                       "mc.a('expandedfromBox', {tagName: 'mail-emailaddress'})," +
                       "'class', 'emailDisplayButton')",
   expectedName: "mc.e('expandedfromLabel').value.slice(0,-1) + ': ' + " +
@@ -160,7 +160,7 @@ let headersToTest = [
   headerValueElement: "mc.window.document.getAnonymousElementByAttribute(" +
                       "mc.a('expandedtoBox', {tagName: 'mail-emailaddress'})," +
                       "'class', 'emailDisplayButton')",
-  expectedName: "mc.e('expandedtoLabel').value.slice(0,-1) + ': ' + " + 
+  expectedName: "mc.e('expandedtoLabel').value.slice(0,-1) + ': ' + " +
                 "headerValueElement.parentNode.getAttribute('fullAddress')",
   expectedRole: Ci.nsIAccessibleRole.ROLE_ENTRY
 },
@@ -367,4 +367,52 @@ function test_more_widget_with_maxlines_of_3(){
 
   // call test_more_widget again
   test_more_widget();
+}
+
+/**
+ * When the window gets too narrow the toolbar should float above the From
+ *  line.  Then they need to return back to the right when we get large
+ *  enough again.
+ */
+function test_toolbar_collapse_and_expand() {
+  be_in_folder(folder);
+  // Select and open a message, in this case the last, for no particular reason.
+  let curMessage = select_click_row(-1);
+
+  try {
+    let expandedHeadersTopBox = mc.e("expandedHeadersTopBox");
+
+    // We start off too small to contain the buttons and from line, so we
+    //  will be tall.
+    let tallHeight = expandedHeadersTopBox.clientHeight;
+
+    // Change from icons and text to just icons to make our toolbar
+    //  narrower, and by extension our header shorter.
+    let toolbar = mc.e("header-view-toolbar");
+    let mode = toolbar.getAttribute("mode");
+    toolbar.setAttribute("mode", "icons");
+
+    let shortHeight = expandedHeadersTopBox.clientHeight;
+    if (shortHeight >= tallHeight)
+      throw new Error("The header box should have been made smaller!");
+
+    // Change back to icons and text to make our toolbar wider and our
+    //   header taller again.
+    toolbar.setAttribute("mode", mode);
+    if (expandedHeadersTopBox.clientHeight != tallHeight)
+      throw new Error("The header box should have returned to its original size!");
+
+    // And make our window big to achieve the same effect as the just icons mode.
+    mc.window.resizeTo(1200, 600);
+    // spin the event loop once
+    mc.sleep(0);
+    if (expandedHeadersTopBox.clientHeight != shortHeight)
+      throw new Error("The header box should have returned to its wide size!");
+  }
+  finally {
+    // restore window to nominal dimensions; saving was not working out
+    //  See also: quick-filter-bar/test-display-issues.js if we change the
+    //            default window size.
+    mc.window.resizeTo(1024, 768);
+  }
 }

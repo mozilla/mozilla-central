@@ -43,7 +43,8 @@
 ]>
 
 <?xml-stylesheet href="chrome://messenger/skin/messageHeader.css" type="text/css"?>
-<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         xmlns:html="http://www.w3.org/1999/xhtml">
 
 <script type="application/javascript"
         src="chrome://messenger/content/msgHdrViewOverlay.js"/>
@@ -123,35 +124,14 @@
       <!-- a convenience box for ease of extension overlaying -->
       <vbox id="expandedHeadersBox" flex="1"> 
 
-        <hbox id="expandedHeadersTopBox" flex="1">
-
-          <!-- Theoretically, we should be able to replace this grid with just
-               an hbox.  Unfortunately, doing that makes it very hard to sync
-               the column sizes between the name columns, because for currently
-               unclear reasons, the .clientWidth of a column is wider than the
-               .clientWidth of its largest contained child by an unspecified
-               amount. -->
-          <grid id="expandedHeaders" flex="1">
-
-            <columns id="expandedHeadersColumns">
-              <column id="expandedHeadersNameColumn"/>
-              <column id="expandedHeadersValueColumn" flex="1"/>
-            </columns>
-
-            <rows id="expandedHeaderRows">
-              <row id="expandedfromRow">
-                <label id="expandedfromLabel" class="headerName"
-                       value="&fromField2.label;" control="expandedfromBox"/>
-                <mail-multi-emailHeaderField id="expandedfromBox" flex="1"/>
-              </row>
-            </rows>
-          </grid>
+        <html:div id="expandedHeadersTopBox" flex="1">
 
           <toolbox id="header-view-toolbox"
                    defaulticonsize="small"
                    minwidth="50px"
                    defaultlabelalign="end"
-                   defaultmode="full">
+                   defaultmode="full"
+                   style="float: right;">
             <toolbarpalette id="header-view-toolbar-palette">
               <!-- XXXdmose need to move these commands to a controller, either
                    on the header view, the message pane, or the default
@@ -268,7 +248,30 @@
                      defaulticonsize="small" defaultmode="full"
                      defaultset="hdrReplyToSenderButton,hdrSmartReplyButton,hdrForwardButton,hdrArchiveButton,hdrJunkButton,hdrTrashButton"/>
           </toolbox>
-        </hbox>
+
+          <!-- Theoretically, we should be able to replace this grid with just
+               an hbox.  Unfortunately, doing that makes it very hard to sync
+               the column sizes between the name columns, because for currently
+               unclear reasons, the .clientWidth of a column is wider than the
+               .clientWidth of its largest contained child by an unspecified
+               amount. -->
+          <grid id="expandedHeaders">
+
+            <columns id="expandedHeadersColumns">
+              <column id="expandedHeadersNameColumn"/>
+              <column id="expandedHeadersValueColumn" flex="1"/>
+            </columns>
+
+            <rows id="expandedHeaderRows">
+              <row id="expandedfromRow">
+                <label id="expandedfromLabel" class="headerName"
+                       value="&fromField2.label;" control="expandedfromBox"/>
+                <mail-multi-emailHeaderField id="expandedfromBox" flex="1"/>
+              </row>
+            </rows>
+          </grid>
+
+        </html:div>
 
         <hbox id="expandedHeadersBottomBox">
 

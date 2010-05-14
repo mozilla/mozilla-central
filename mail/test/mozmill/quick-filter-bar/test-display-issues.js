@@ -137,6 +137,8 @@ function test_buttons_collapse_and_expand() {
   }
   finally {
     // restore window to nominal dimensions; saving was not working out
+    //  See also: message-header/test-message-header.js if we change the
+    //            default window size.
     mc.window.resizeTo(1024, 768);
     mc.e("folderpane_splitter").setAttribute("state", "open");
   }
