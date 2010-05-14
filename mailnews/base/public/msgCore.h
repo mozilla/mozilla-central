@@ -188,10 +188,13 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 // the message was not cached locally.
 #define NS_MSG_ERROR_MSG_NOT_OFFLINE NS_MSG_GENERATE_FAILURE(32)
 
-#define NS_MSGCOMP_ERROR_BEGIN	12500
+// The imap server returned NO or BAD for an IMAP command
+#define NS_MSG_ERROR_IMAP_COMMAND_FAILED NS_MSG_GENERATE_FAILURE(33)
+
+#define NS_MSGCOMP_ERROR_BEGIN 12500
 /* NS_ERROR_NNTP_NO_CROSS_POSTING lives here, and not in nsMsgComposeStringBundle.h, because it is used in news and compose. */
 #define NS_ERROR_NNTP_NO_CROSS_POSTING NS_MSG_GENERATE_FAILURE(12554)
-#define NS_MSGCOMP_ERROR_END	12999
+#define NS_MSGCOMP_ERROR_END 12999
 
 #if defined(XP_WIN) || defined(XP_OS2)
 #define MSG_LINEBREAK "\015\012"

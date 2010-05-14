@@ -212,7 +212,7 @@ struct nsPlaybackRequest
   {
   }
   nsImapMailFolder *SrcFolder;
-  nsIMsgWindow *MsgWindow;
+  nsCOMPtr<nsIMsgWindow> MsgWindow;
 };
 
 class nsImapMailFolder :  public nsMsgDBFolder,

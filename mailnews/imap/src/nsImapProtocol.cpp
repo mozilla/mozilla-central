@@ -382,7 +382,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_failedAuthMethods = 0;
   m_currentAuthMethod = kCapabilityUndefined;
   m_socketType = nsMsgSocketType::trySTARTTLS;
-  m_connectionStatus = 0;
+  m_connectionStatus = NS_OK;
   m_safeToCloseConnection = PR_FALSE;
   m_hostSessionList = nsnull;
   m_flagState = nsnull;
@@ -1255,7 +1255,7 @@ nsImapProtocol::TellThreadToDie()
         Close(PR_TRUE, connectionIdle);
 
       if (NS_SUCCEEDED(rv) && isAlive && TestFlag(IMAP_CONNECTION_IS_OPEN) && 
-         GetConnectionStatus() >= 0 && m_outputStream)
+          NS_SUCCEEDED(GetConnectionStatus()) && m_outputStream)
         Logout(PR_TRUE, connectionIdle);
     }
   }
@@ -1452,7 +1452,7 @@ void nsImapProtocol::EstablishServerConnection()
 
   if (!PL_strncasecmp(serverResponse, ESC_OK, ESC_OK_LEN))
   {
-    SetConnectionStatus(0);
+    SetConnectionStatus(NS_OK);
 
     if (!PL_strncasecmp(serverResponse, ESC_CAPABILITY_GREETING, ESC_CAPABILITY_GREETING_LEN))
     {
@@ -1490,7 +1490,7 @@ void nsImapProtocol::EstablishServerConnection()
           (kIMAP4Capability | kIMAP4rev1Capability | kIMAP4other) ) )
     {
       // AlertUserEvent_UsingId(MK_MSG_IMAP_SERVER_NOT_IMAP4);
-      SetConnectionStatus(-1);        // stop netlib
+      SetConnectionStatus(NS_ERROR_FAILURE);        // stop netlib
     }
     else
     {
@@ -1499,7 +1499,7 @@ void nsImapProtocol::EstablishServerConnection()
 
       ProcessAfterAuthenticated();
       // the connection was a success
-      SetConnectionStatus(0);
+      SetConnectionStatus(NS_OK);
      }
   }
 
@@ -1620,8 +1620,8 @@ PRBool nsImapProtocol::ProcessCurrentURL()
 
   // Step 1: If we have not moved into the authenticated state yet then do so
   // by attempting to logon.
-  if (!DeathSignalReceived() && (GetConnectionStatus() >= 0) &&
-            (GetServerStateParser().GetIMAPstate() ==
+  if (!DeathSignalReceived() && NS_SUCCEEDED(GetConnectionStatus()) &&
+      (GetServerStateParser().GetIMAPstate() ==
        nsImapServerResponseParser::kNonAuthenticated))
   {
       /* if we got here, the server's greeting should not have been PREAUTH */
@@ -1631,10 +1631,10 @@ PRBool nsImapProtocol::ProcessCurrentURL()
       if ( !(GetServerStateParser().GetCapabilityFlag() & (kIMAP4Capability | kIMAP4rev1Capability |
              kIMAP4other) ) )
       {
-        if (!DeathSignalReceived() && GetConnectionStatus() >= 0)
+        if (!DeathSignalReceived() && NS_SUCCEEDED(GetConnectionStatus()))
           AlertUserEventUsingId(IMAP_SERVER_NOT_IMAP4);
 
-        SetConnectionStatus(-1);        // stop netlib
+        SetConnectionStatus(NS_ERROR_FAILURE);        // stop netlib
       }
       else
       {
@@ -1686,14 +1686,14 @@ PRBool nsImapProtocol::ProcessCurrentURL()
               Log("ProcessCurrentURL", nsnull, logLine.get());
               if (m_socketType == nsMsgSocketType::alwaysSTARTTLS)
               {
-                SetConnectionStatus(-1);        // stop netlib
+                SetConnectionStatus(rv);        // stop netlib
                 m_transport->Close(rv);
               }
             }
           }
           else if (m_socketType == nsMsgSocketType::alwaysSTARTTLS)
           {
-            SetConnectionStatus(-1);        // stop netlib
+            SetConnectionStatus(NS_ERROR_FAILURE);        // stop netlib
             if (m_transport)
               m_transport->Close(rv);
           }
@@ -1706,7 +1706,7 @@ PRBool nsImapProtocol::ProcessCurrentURL()
         {
           ClearFlag(IMAP_CONNECTION_IS_OPEN);
           TellThreadToDie();
-          SetConnectionStatus(-1);
+          SetConnectionStatus(NS_ERROR_FAILURE);
           return RetryUrl();
         }
         logonFailed = !TryToLogon();
@@ -1715,7 +1715,7 @@ PRBool nsImapProtocol::ProcessCurrentURL()
       }
   } // if death signal not received
 
-  if (!DeathSignalReceived() && (GetConnectionStatus() >= 0))
+  if (!DeathSignalReceived() && (NS_SUCCEEDED(GetConnectionStatus())))
   {
     // if the server supports a language extension then we should
     // attempt to issue the language extension.
@@ -1738,7 +1738,8 @@ PRBool nsImapProtocol::ProcessCurrentURL()
       return RetryUrl();
 
   // The URL has now been processed
-    if ((!logonFailed && GetConnectionStatus() < 0) || DeathSignalReceived())
+    if ((!logonFailed && NS_FAILED(GetConnectionStatus())) ||
+         DeathSignalReceived())
          HandleCurrentUrlError();
 
   }
@@ -1760,8 +1761,12 @@ PRBool nsImapProtocol::ProcessCurrentURL()
   }
   if (mailnewsurl && m_imapMailFolderSink)
   {
-    rv = GetServerStateParser().LastCommandSuccessful() && !logonFailed ?
-          NS_OK : NS_ERROR_FAILURE;
+    if (logonFailed)
+      rv = NS_ERROR_FAILURE;
+    else if (!GetServerStateParser().LastCommandSuccessful())
+      rv = NS_MSG_ERROR_IMAP_COMMAND_FAILED;
+    else
+      rv = GetConnectionStatus();
     // we are done with this url.
     m_imapMailFolderSink->SetUrlState(this, mailnewsurl, PR_FALSE, rv);
      // doom the cache entry
@@ -1769,7 +1774,7 @@ PRBool nsImapProtocol::ProcessCurrentURL()
       DoomCacheEntry(mailnewsurl);
   }
   else
-    NS_ASSERTION(PR_FALSE, "missing url or sink");
+    NS_ERROR("missing url or sink");
 
   // disable timeouts before caching connection.
   if (m_transport)
@@ -1794,8 +1799,9 @@ PRBool nsImapProtocol::ProcessCurrentURL()
 
   if (imapMailFolderSink)
   {
-    imapMailFolderSink->CopyNextStreamMessage(GetServerStateParser().LastCommandSuccessful()
-                                                && GetConnectionStatus() >= 0, copyState);
+    imapMailFolderSink->CopyNextStreamMessage(GetServerStateParser().LastCommandSuccessful() &&
+                                              NS_SUCCEEDED(GetConnectionStatus()),
+                                              copyState);
     if (copyState)
     {
       nsCOMPtr<nsIThread> thread = do_GetMainThread();
@@ -1811,7 +1817,7 @@ PRBool nsImapProtocol::ProcessCurrentURL()
   // now try queued urls, now that we've released this connection.
   if (m_imapServerSink)
   {
-    if (GetConnectionStatus() >= 0)
+    if (NS_SUCCEEDED(GetConnectionStatus()))
       rv = m_imapServerSink->LoadNextQueuedUrl(this, &anotherUrlRun);
     else // if we don't do this, they'll just sit and spin until
           // we run some other url on this server.
@@ -1827,7 +1833,7 @@ PRBool nsImapProtocol::ProcessCurrentURL()
       m_imapServerSink = nsnull;
 
   nsCOMPtr<nsIImapIncomingServer> imapServer  = do_QueryReferent(m_server, &rv);
-  if (GetConnectionStatus() < 0 || !GetServerStateParser().Connected()
+  if (NS_FAILED(GetConnectionStatus()) || !GetServerStateParser().Connected()
     || GetServerStateParser().SyntaxError())
   {
     if (imapServer)
@@ -1923,7 +1929,7 @@ nsresult nsImapProtocol::SendData(const char * dataBuffer, PRBool aSuppressLoggi
       // the connection died unexpectedly! so clear the open connection flag
       ClearFlag(IMAP_CONNECTION_IS_OPEN);
       TellThreadToDie();
-      SetConnectionStatus(-1);
+      SetConnectionStatus(NS_ERROR_FAILURE);
       return NS_ERROR_FAILURE;
   }
 
@@ -1949,7 +1955,7 @@ nsresult nsImapProtocol::SendData(const char * dataBuffer, PRBool aSuppressLoggi
       // the connection died unexpectedly! so clear the open connection flag
       ClearFlag(IMAP_CONNECTION_IS_OPEN);
       TellThreadToDie();
-      SetConnectionStatus(-1);
+      SetConnectionStatus(rv);
       if (m_runningUrl && !m_retryUrlOnError)
       {
         PRBool alreadyRerunningUrl;
@@ -4657,9 +4663,14 @@ char* nsImapProtocol::CreateNewLineFromSocket()
               m_runningUrl && !m_retryUrlOnError)
           {
             PRBool rerunningUrl;
+            nsImapAction imapAction;
             m_runningUrl->GetRerunningUrl(&rerunningUrl);
-            // don't rerun if we already were rerunning.
-            if (!rerunningUrl)
+            m_runningUrl->GetImapAction(&imapAction);
+            // don't rerun if we already were rerunning. And don't rerun
+            // online move/copies that timeout.
+            if (!rerunningUrl && (rv != NS_ERROR_NET_TIMEOUT ||
+                                 (imapAction != nsIImapUrl::nsImapOnlineCopy &&
+                                  imapAction != nsIImapUrl::nsImapOnlineMove)))
             {
               m_runningUrl->SetRerunningUrl(PR_TRUE);
               m_retryUrlOnError = PR_TRUE;
@@ -4683,30 +4694,20 @@ char* nsImapProtocol::CreateNewLineFromSocket()
     TellThreadToDie();
   }
   Log("CreateNewLineFromSocket", nsnull, newLine);
-  SetConnectionStatus(newLine && numBytesInLine ? 1 : -1); // set > 0 if string is not null or empty
+  SetConnectionStatus(newLine && numBytesInLine ? NS_OK : rv); // set > 0 if string is not null or empty
   return newLine;
 }
 
-PRInt32
+nsresult
 nsImapProtocol::GetConnectionStatus()
 {
-    // ***?? I am not sure we really to guard with monitor for 5.0 ***
-    PRInt32 status;
-  // mscott -- do we need these monitors? as i was debuggin this I continually
-  // locked when entering this monitor...control would never return from this
-  // function...
-//    PR_CEnterMonitor(this);
-    status = m_connectionStatus;
-//    PR_CExitMonitor(this);
-    return status;
+  return m_connectionStatus;
 }
 
 void
-nsImapProtocol::SetConnectionStatus(PRInt32 status)
+nsImapProtocol::SetConnectionStatus(nsresult status)
 {
-//    PR_CEnterMonitor(this);
-    m_connectionStatus = status;
-//    PR_CExitMonitor(this);
+  m_connectionStatus = status;
 }
 
 void
@@ -4875,7 +4876,7 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
             (GetMailboxDiscoveryStatus() != eContinueNew) &&
             (GetMailboxDiscoveryStatus() != eListMyChildren))
           {
-            SetConnectionStatus(-1);
+            SetConnectionStatus(NS_ERROR_FAILURE);
           }
           else if (!adoptedBoxSpec->mAllocatedPathName.IsEmpty() &&
             (GetMailboxDiscoveryStatus() ==
@@ -5340,7 +5341,7 @@ void nsImapProtocol::StartCompressDeflate()
           // we can't use this connection without compression any more, so die
           ClearFlag(IMAP_CONNECTION_IS_OPEN);
           TellThreadToDie();
-          SetConnectionStatus(-1);
+          SetConnectionStatus(rv);
           return;
         }
       }
@@ -8366,7 +8367,7 @@ PRBool nsImapProtocol::TryToLogon()
     m_currentBiffState = nsIMsgFolder::nsMsgBiffState_Unknown;
     SendSetBiffIndicatorEvent(m_currentBiffState);
     HandleCurrentUrlError();
-    SetConnectionStatus(-1); // stop netlib
+    SetConnectionStatus(NS_ERROR_FAILURE); // stop netlib
   }
 
   return loginSucceeded;

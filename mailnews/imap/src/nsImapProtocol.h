@@ -249,8 +249,8 @@ public:
   PRBool  GetIgnoreExpunges() {return m_ignoreExpunges;}
   // Generic accessors required by the imap parser
   char * CreateNewLineFromSocket();
-  PRInt32 GetConnectionStatus();
-  void SetConnectionStatus(PRInt32 status);
+  nsresult GetConnectionStatus();
+  void SetConnectionStatus(nsresult status);
 
   // Cleanup the connection and shutdown the thread.
   void TellThreadToDie();
@@ -393,7 +393,7 @@ private:
 
   PRBool       m_imapThreadIsRunning;
   void ImapThreadMainLoop(void);
-  PRInt32     m_connectionStatus;
+  nsresult    m_connectionStatus;
   nsCString   m_connectionType;
 
   PRBool      m_nextUrlReadyToRun;

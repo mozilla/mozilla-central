@@ -126,16 +126,18 @@ PRBool nsImapServerResponseParser::GetNextLineForParser(char **nextLine)
 {
   PRBool rv = PR_TRUE;
   *nextLine = fServerConnection.CreateNewLineFromSocket();
-  if (fServerConnection.DeathSignalReceived() || (fServerConnection.GetConnectionStatus() <= 0))
+  if (fServerConnection.DeathSignalReceived() ||
+      NS_FAILED(fServerConnection.GetConnectionStatus()))
     rv = PR_FALSE;
   // we'd really like to try to silently reconnect, but we shouldn't put this
   // message up just in the interrupt case
-  if (fServerConnection.GetConnectionStatus() <= 0 && !fServerConnection.DeathSignalReceived())
+  if (NS_FAILED(fServerConnection.GetConnectionStatus()) &&
+      !fServerConnection.DeathSignalReceived())
     fServerConnection.AlertUserEventUsingId(IMAP_SERVER_DISCONNECTED);
   return rv;
 }
 
-PRBool	nsImapServerResponseParser::CommandFailed()
+PRBool nsImapServerResponseParser::CommandFailed()
 {
   return fCurrentCommandFailed;
 }
@@ -991,7 +993,7 @@ void nsImapServerResponseParser::mailbox(nsImapMailboxSpec *boxSpec)
 
     // if this was cancelled by the user,then we sure don't want to
     // send more mailboxes their way
-    if (fServerConnection.GetConnectionStatus() < 0)
+    if (NS_FAILED(fServerConnection.GetConnectionStatus()))
       SetConnected(PR_FALSE);
   }
 }

@@ -107,6 +107,9 @@ nsImapOfflineSync::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
     m_curTempFile->Remove(PR_FALSE);
     m_curTempFile = nsnull;
   }
+  // NS_BINDING_ABORTED is used for the user pressing stop, which
+  // should cause us to abort the offline process. Other errors
+  // should allow us to continue.
   if (stopped)
   {
     if (m_listener)
@@ -116,11 +119,16 @@ nsImapOfflineSync::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
   nsCOMPtr<nsIImapUrl> imapUrl = do_QueryInterface(url);
 
   if (imapUrl)
-    nsImapProtocol::LogImapUrl(NS_SUCCEEDED(rv) ? "offline imap url succeeded " : "offline imap url failed ", imapUrl);
-  // NS_BINDING_ABORTED is used for the user pressing stop, which
-  // should cause us to abort the offline process. Other errors
-  // should allow us to continue.
-  if (NS_SUCCEEDED(exitCode))
+    nsImapProtocol::LogImapUrl(NS_SUCCEEDED(rv) ?
+                               "offline imap url succeeded " :
+                               "offline imap url failed ", imapUrl);
+
+  // If we succeeded, or it was an imap move/copy that timed out, clear the
+  // operation.
+  PRBool moveCopy = mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kMsgCopy ||
+    mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kMsgMoved;
+  if (NS_SUCCEEDED(exitCode) || exitCode == NS_MSG_ERROR_IMAP_COMMAND_FAILED ||
+      (moveCopy && exitCode == NS_ERROR_NET_TIMEOUT))
   {
     ClearCurrentOps();
     rv = ProcessNextOperation();
