@@ -320,11 +320,9 @@ var TodayPane = {
      */
     storeWidthAndState: function storeWidthAndState() {
         let todaypane = document.getElementById("today-pane-panel");
-        let splitter = document.getElementById("today-splitter");
+        let splitterState = document.getElementById('today-splitter').getAttribute("state");
+        todaypane.setModeAttribute("modesplitterstates", splitterState ? splitterState : "open");
         todaypane.setModeAttribute("modewidths", todaypane.width);
-        if (splitter.getAttribute("state")) {
-            todaypane.setModeAttribute("modesplitterstates", splitter.getAttribute("state"));
-        }
     }
 };
 
