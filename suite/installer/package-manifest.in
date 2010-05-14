@@ -439,11 +439,6 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/xpcom_threads.xpt
 @BINPATH@/components/xpcom_xpti.xpt
 @BINPATH@/components/xpconnect.xpt
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@xpinstal@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@xpinstall@DLL_SUFFIX@
-#endif
 @BINPATH@/components/xulapp.xpt
 @BINPATH@/components/xuldoc.xpt
 @BINPATH@/components/xultmpl.xpt

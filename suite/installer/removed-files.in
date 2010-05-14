@@ -101,11 +101,15 @@ components/xml-rpc.xpt
 components/@DLL_PREFIX@xmlextras@DLL_SUFFIX@
 #ifdef XP_OS2
 components/@DLL_PREFIX@xpconect@DLL_SUFFIX@
-#elifdef XP_WIN
+components/@DLL_PREFIX@xpinstal@DLL_SUFFIX@
+#else
+#ifdef XP_WIN
 components/xpc3250.dll
 components/xpinstal.dll
 #else
 components/@DLL_PREFIX@xpconnect@DLL_SUFFIX@
+#endif
+components/@DLL_PREFIX@xpinstall@DLL_SUFFIX@
 #endif
 #ifndef MOZ_CRASHREPORTER
 #ifdef XP_MACOSX
@@ -130,8 +134,6 @@ extensions/p@m/components/palmsync.xpt
 extensions/p@m/defaults/preferences/palmsync.js
 extensions/p@m/install.rdf
 extensions/p@m/mozABConduit.dll
-#endif
-#ifdef XP_WIN
 gksvggdiplus.dll
 #endif
 greprefs/all.js
