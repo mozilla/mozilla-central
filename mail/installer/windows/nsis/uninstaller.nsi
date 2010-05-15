@@ -104,6 +104,7 @@ VIAddVersionKey "OriginalFilename" "helper.exe"
 !insertmacro RegCleanUninstall
 !insertmacro SetBrandNameVars
 !insertmacro UnloadUAC
+!insertmacro UpdateShortcutAppModelIDs
 !insertmacro WriteRegDWORD2
 !insertmacro WriteRegStr2
 
