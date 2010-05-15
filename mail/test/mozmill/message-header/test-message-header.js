@@ -461,17 +461,14 @@ function test_toolbar_collapse_and_expand() {
     mc.sleep(0);
 
     let folderPaneWidth = mc.e("folderPaneBox").clientWidth;
-    let todayPaneWidth = mc.e("today-pane-panel").clientWidth;
     let fromWidth = mc.e("expandedfromRow").clientWidth;
 
     // This is the biggest we need to be.
-    let bigWidth = folderPaneWidth + fromWidth + toolbar.clientWidth +
-                   todayPaneWidth;
+    let bigWidth = folderPaneWidth + fromWidth + toolbar.clientWidth;
 
     // Now change to icons-only mode for a much smaller toolbar.
     toolbar.setAttribute("mode", "icons");
-    let smallWidth = folderPaneWidth + fromWidth + toolbar.clientWidth +
-                     todayPaneWidth;
+    let smallWidth = folderPaneWidth + fromWidth + toolbar.clientWidth;
 
     // Re-set the mode to its original value.
     toolbar.setAttribute("mode", mode);
