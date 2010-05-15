@@ -48,6 +48,17 @@ const kStateInBody = 2;
 const kStateInAttachment = 3;
 
 /**
+ * When the saneBodySize flag is active, limit body parts to at most this many
+ *  bytes.  See |MsgHdrToMimeMessage| for more information on the flag.
+ *
+ * The choice of 20k was made on the very scientific basis of running a query
+ *  against my indexed e-mail and finding the point where these things taper
+ *  off.  I chose 20 because things had tapered off pretty firmly by 16, so
+ *  20 gave it some space and it was also the end of a mini-plateau.
+ */
+const MAX_SANE_BODY_PART_SIZE = 20 * 1024;
+
+/**
  * Custom nsIMimeEmitter to build a sub-optimal javascript representation of a
  *  MIME message.  The intent is that a better mechanism than is evolved to
  *  provide a javascript-accessible representation of the message.
@@ -83,6 +94,8 @@ function MimeMessageEmitter() {
   this._partMap = {};
 
   this._state = kStateUnknown;
+
+  this._writeBody = false;
 }
 
 const deathToNewlines = /\n/g;
@@ -108,6 +121,11 @@ MimeMessageEmitter.prototype = {
     // the partName is intentionally ""!  not a place-holder!
     this._curPart.partName = "";
     this._partMap[""] = this._curPart;
+
+    // pull options across...
+    let options = this._mimeMsg.MsgHdrToMimeMessage.OPTION_TUNNEL;
+    this._saneBodySize = (options && ("saneBodySize" in options)) ?
+                           options.saneBodySize : false;
 
     this._mimeMsg.MsgHdrToMimeMessage.RESULT_RENDEVOUZ[aUrl.spec] =
       this._curPart;
@@ -144,6 +162,7 @@ MimeMessageEmitter.prototype = {
     if (contentTypeNoParams == "text/plain" ||
         contentTypeNoParams == "text/html") {
       this._curPart = new this._mimeMsg.MimeBody(contentTypeNoParams);
+      this._writeBody = true;
     }
     else if (contentTypeNoParams == "message/rfc822") {
       // startHeader will take care of this
@@ -151,15 +170,18 @@ MimeMessageEmitter.prototype = {
       // do not fall through into the content-type setting case; this
       //  content-type needs to get clobbered by the actual content-type of
       //  the enclosed message.
+      this._writeBody = false;
       return;
     }
     // this is going to fall-down with TNEF encapsulation and such, we really
     //  need to just be consuming the object model.
     else if (contentTypeNoParams.indexOf("multipart/") == 0) {
       this._curPart = new this._mimeMsg.MimeContainer(contentTypeNoParams);
+      this._writeBody = false;
     }
     else {
       this._curPart = new this._mimeMsg.MimeUnknown(contentTypeNoParams);
+      this._writeBody = false;
     }
     // put the full content-type in the headers and normalize out any newlines
     this._curPart.headers["content-type"] =
@@ -218,8 +240,10 @@ MimeMessageEmitter.prototype = {
         // As such, check if the name already exists in our part map.
         let partName = this._stripParams(aValue);
         // if it does, then make the already-existing part at that path current
-        if (partName in this._partMap)
+        if (partName in this._partMap) {
           this._curPart = this._partMap[partName];
+          this._writeBody = "body" in this._curPart;
+        }
         // otherwise, name the part we are holding onto and place it.
         else {
           this._curPart.partName = partName;
@@ -378,8 +402,15 @@ MimeMessageEmitter.prototype = {
     this._placePart(this._curPart);
   },
 
+  /**
+   * Write to the body.  When saneBodySize is active, we stop adding if we are
+   *  already at the limit for this body part.
+   */
   writeBody: function mime_emitter_writeBody(aBuf, aSize, aOutAmountWritten) {
-    this._curPart.body += aBuf;
+    if (this._writeBody &&
+        (!this._saneBodySize ||
+         this._curPart.body.length < MAX_SANE_BODY_PART_SIZE))
+      this._curPart.body += aBuf;
   },
 
   endBody: function mime_emitter_endBody() {

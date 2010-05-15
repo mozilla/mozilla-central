@@ -42,6 +42,8 @@ gMailTestUtils_js__ = true;
 
 // we would like for everyone to have fixIterator and toXPComArray
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+// exposes component loader's btoa impl
+Components.utils.import("resource:///modules/IOUtils.js");
 
 // Local Mail Folders. Requires prior setup of profile directory
 
@@ -123,61 +125,12 @@ function atob(str, c62, c63) {
   return result.reduce(function (str, c) { return str + String.fromCharCode(c); }, "");
 }
 
-/**
- * btoa() = base64 encode
- * Converts a string or array of octets to a base64-encoded string.
- * @see RFC 4648
- *
- * The extra parameters are optional arguments that are used to override the
- * official base64 characters for values 62 and 63. If not specified, they
- * default to '+' and '/'.
- *
- * Data is treated as if it were modulo 256.
- *
- * @param str    A string or array with the data to be encoded
- * @param c62    The (optional) character for the value 62
- * @param c63    The (optional) character for the value 63
- * @return       An string with the encoded data
+/*
+ * We used to implement btoa here, but we don't need to as it's provided by
+ * the JS loader and theirs is ridiculously faster!.  We have IOUtils expose it
+ * for us so we can get at it.
  */
-function btoa(arr, c62, c63) {
-  if (typeof arr == "string")
-    arr = arr.split("").map(function (e) { return e.charCodeAt(0); });
-  if (!c62) c62 = "+";
-  if (!c63) c63 = "/";
-
-  var bits = [];
-  for each (var octet in arr) {
-    bits.push((octet >> 7) & 1);
-    bits.push((octet >> 6) & 1);
-    bits.push((octet >> 5) & 1);
-    bits.push((octet >> 4) & 1);
-    bits.push((octet >> 3) & 1);
-    bits.push((octet >> 2) & 1);
-    bits.push((octet >> 1) & 1);
-    bits.push((octet >> 0) & 1);
-  }
-  while (bits.length % 6 != 0)
-    bits.push(0);
-  var result = "";
-  while (bits.length > 0) {
-    let code = bits.splice(0, 6).reduce(function (form, bit) {
-        return (form << 1) | bit;
-    });
-    if (code <= 25)
-      result += String.fromCharCode(code+65);
-    else if (code <= 51)
-      result += String.fromCharCode(code-26+97);
-    else if (code <= 61)
-      result += String.fromCharCode(code-52+48);
-    else if (code == 62)
-      result += c62;
-    else if (code == 63)
-      result += c63;
-  }
-  while (result.length % 4 != 0)
-    result += "=";
-  return result;
-}
+var btoa = IOUtils.btoa;
 
 // Loads a file to a string
 // If aCharset is specified, treats the file as being of that charset

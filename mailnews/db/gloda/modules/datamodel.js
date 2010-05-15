@@ -563,6 +563,22 @@ GlodaMessage.prototype = {
   },
 
   /**
+   * Provide a means of propagating changed values on our clone back to
+   *  ourselves.  This is required because of an object identity trick gloda
+   *  does; when indexing an already existing object, all mutations happen on
+   *  a clone of the existing object so that
+   */
+  _declone: function gloda_message_declone(aOther) {
+    if ("_content" in aOther)
+      this._content = aOther._content;
+
+    // The _indexedAuthor/_indexedRecipients fields don't get updated on
+    //  fulltext update so we don't need to propagate.
+    this._indexedBodyText = aOther._indexedBodyText;
+    this._attachmentNames = aOther._attachmentNames;
+  },
+
+  /**
    * Mark this message as a ghost.  Ghosts are characterized by having no folder
    *  id and no message key.  They also are not deleted or they would be of
    *  absolutely no use to us.

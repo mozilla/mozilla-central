@@ -358,10 +358,41 @@ function verify_stream_message(aInfo, aSynMsg, aMsgHdr, aMimeMsg) {
   async_driver();
 }
 
+/**
+ * Stream
+ */
+function test_sane_bodies() {
+  // 60 bytes long... (becomes 59 on the other side when \r is dropped)
+  let hugeString =
+    "don't know what you want but I can't  stream it anymore...\r\n";
+  const powahsOfTwo = 10;
+  for (let i = 0; i < powahsOfTwo; i++) {
+    hugeString = hugeString + hugeString;
+  }
+  // this will come out to be 60k, of course.
+  do_check_eq(hugeString.length, 60 * Math.pow(2, powahsOfTwo));
+
+  let synMsg = gMessageGenerator.makeMessage(
+    {body: {body: hugeString, contentType: "text/plain"}});
+  let synSet = new SyntheticMessageSet([synMsg]);
+  yield add_sets_to_folder(gInbox, [synSet]);
+
+  let msgHdr = synSet.getMsgHdr(0);
+
+  MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
+    let bodyPart = aMimeMsg.parts[0];
+    // (the \r gets gone, so it's only 59 per line)
+    if (bodyPart.body.length > (20 * 1024 + 59))
+      do_throw("Mime body length is " + bodyPart.body.length + " bytes long but should not be!");
+    async_driver();
+  }, false, {saneBodySize: true});
+}
+
 /* ===== Driver ===== */
 
 var tests = [
   parameterizeTest(test_stream_message, messageInfos),
+  test_sane_bodies,
 ];
 
 var gInbox;

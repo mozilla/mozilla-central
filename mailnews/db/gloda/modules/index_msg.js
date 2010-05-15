@@ -2687,7 +2687,7 @@ var GlodaMsgIndexer = {
         (aMsgHdr.folder instanceof nsIMsgLocalMailFolder)) {
       isMsgOffline = true;
       this._MsgHdrToMimeMessageFunc(aMsgHdr, aCallbackHandle.callbackThis,
-          aCallbackHandle.callback);
+          aCallbackHandle.callback, false, {saneBodySize: true});
       [,aMimeMsg] = yield this.kWorkAsync;
     }
     else {
@@ -2866,7 +2866,7 @@ var GlodaMsgIndexer = {
       isRecordNew = false;
       // the message is conceptually new if it was a ghost or dead.
       isConceptuallyNew = curMsg._isGhost || curMsg._isDeleted;
-      // we only insert fulltext if it was a ghost
+      // insert fulltext if it was a ghost
       insertFulltext = curMsg._isGhost;
       curMsg._folderID = this._datastore._mapFolder(aMsgHdr.folder).id;
       curMsg._messageKey = aMsgHdr.messageKey;

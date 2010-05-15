@@ -281,7 +281,7 @@ function test_indexing_never_priority() {
   yield wait_for_gloda_indexer([], {deleted: [msgSet]});
 
   // make sure the deletion hit the database
-  yield sqlExpectCount(1, 
+  yield sqlExpectCount(1,
     "SELECT COUNT(*) from folderLocations WHERE id = ? AND indexingPriority = ?",
      glodaFolder.id, glodaFolder.kIndexingNeverPriority);
 
@@ -536,6 +536,47 @@ function test_attributes_explicit() {
   // -- Replied To
 
   // -- Forwarded
+}
+
+/* ===== Fulltext Indexing ===== */
+
+/**
+ * Make sure that we are using the saneBodySize flag.  This is basically the
+ *  test_sane_bodies test from test_mime_emitter but we pull the indexedBodyText
+ *  off the message to check and also make sure that the text contents slice
+ *  off the end rather than the beginning.
+ */
+function test_streamed_bodies_are_size_capped() {
+  if (!expectFulltextResults)
+    return;
+
+  let hugeString =
+    "qqqqxxxx qqqqxxx qqqqxxx qqqqxxx qqqqxxx qqqqxxx qqqqxxx \r\n";
+  const powahsOfTwo = 10;
+  for (let i = 0; i < powahsOfTwo; i++) {
+    hugeString = hugeString + hugeString;
+  }
+  let bodyString = "aabb" + hugeString + "xxyy";
+
+  let synMsg = gMessageGenerator.makeMessage(
+    {body: {body: bodyString, contentType: "text/plain"}});
+  let msgSet = new SyntheticMessageSet([synMsg]);
+  let folder = make_empty_folder();
+  yield add_sets_to_folder(folder, [msgSet]);
+
+  if (goOffline) {
+    yield wait_for_gloda_indexer(msgSet);
+    yield make_folder_and_contents_offline(folder);
+  }
+
+  yield wait_for_gloda_indexer(msgSet, {augment: true});
+  let gmsg = msgSet.glodaMessages[0];
+  do_check_eq(gmsg.indexedBodyText.indexOf("aabb"), 0);
+  do_check_eq(gmsg.indexedBodyText.indexOf("xxyy"), -1);
+
+  if (gmsg.indexedBodyText.length > (20 * 1024 + 58 + 10))
+    do_throw("indexed body text is too big! (" + gmsg.indexedBodyText.length +
+             ")");
 }
 
 
@@ -954,6 +995,8 @@ var tests = [
   test_attributes_fundamental,
   test_attributes_fundamental_from_disk,
   test_attributes_explicit,
+
+  test_streamed_bodies_are_size_capped,
 
   test_imap_add_unread_to_folder,
   test_message_moving,

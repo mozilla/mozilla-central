@@ -1941,7 +1941,6 @@ var Gloda = {
         attrOptimizers[iProvider].optimize(aItem, aRawReps, aIsConceptuallyNew,
                                            aCallbackHandle));
     }
-
     this._log.info(" ** done with providers.");
 
     // Iterate over the attributes on the item
@@ -2112,6 +2111,9 @@ var Gloda = {
         removeDBAttribs);
     itemNounDef.dbAttribAdjuster.call(itemNounDef.datastore, aItem,
       addDBAttribs, removeDBAttribs);
+
+    if (!aIsConceptuallyNew && ("_declone" in aOldItem))
+      aOldItem._declone(aItem);
 
     // Cache ramifications...
     if (aDoCache === undefined || aDoCache) {

@@ -70,4 +70,9 @@ var IOUtils =
 
     return data;
   },
+
+  /**
+   * This is provided by the JS component loader.
+   */
+  btoa: btoa,
 };
