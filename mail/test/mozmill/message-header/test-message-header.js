@@ -452,15 +452,42 @@ function test_toolbar_collapse_and_expand() {
 
   try {
     let expandedHeadersTopBox = mc.e("expandedHeadersTopBox");
+    let toolbar = mc.e("header-view-toolbar");
+    let mode = toolbar.getAttribute("mode");
 
-    // We start off too small to contain the buttons and from line, so we
-    //  will be tall.
+    // Get really big, so that we can figure out how big we actually want to be.
+    mc.window.resizeTo(1200, 600);
+    // spin the event loop once
+    mc.sleep(0);
+
+    let folderPaneWidth = mc.e("folderPaneBox").clientWidth;
+    let todayPaneWidth = mc.e("today-pane-panel").clientWidth;
+    let fromWidth = mc.e("expandedfromRow").clientWidth;
+
+    // This is the biggest we need to be.
+    let bigWidth = folderPaneWidth + fromWidth + toolbar.clientWidth +
+                   todayPaneWidth;
+
+    // Now change to icons-only mode for a much smaller toolbar.
+    toolbar.setAttribute("mode", "icons");
+    let smallWidth = folderPaneWidth + fromWidth + toolbar.clientWidth +
+                     todayPaneWidth;
+
+    // Re-set the mode to its original value.
+    toolbar.setAttribute("mode", mode);
+
+    // And resize to half way between the big and small widths, so that we
+    //  can toggle the mode to force the overflow.
+    mc.window.resizeTo((bigWidth + smallWidth) / 2, 600);
+    // spin the event loop once
+    mc.sleep(0);
+
+    // Make sure we are too small to contain the buttons and from line, so
+    //  we will be tall.
     let tallHeight = expandedHeadersTopBox.clientHeight;
 
     // Change from icons and text to just icons to make our toolbar
     //  narrower, and by extension our header shorter.
-    let toolbar = mc.e("header-view-toolbar");
-    let mode = toolbar.getAttribute("mode");
     toolbar.setAttribute("mode", "icons");
 
     let shortHeight = expandedHeadersTopBox.clientHeight;
