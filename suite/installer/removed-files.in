@@ -111,6 +111,7 @@ components/@DLL_PREFIX@xpconnect@DLL_SUFFIX@
 #endif
 components/@DLL_PREFIX@xpinstall@DLL_SUFFIX@
 #endif
+compreg.dat
 #ifndef MOZ_CRASHREPORTER
 #ifdef XP_MACOSX
 crashreporter.app/
@@ -215,6 +216,7 @@ updater.app/Contents/MacOS/updater.ini
 #endif
 xpicleanup@BIN_SUFFIX@
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
+xpti.dat
 
 #ifndef MOZ_STATIC_MAIL_BUILD
 ; '! MOZ_STATIC_BUILD' case.
@@ -249,6 +251,7 @@ msgbsutl.dll
 #endif
 
 #ifdef MOZ_STATIC_BUILD
+; 'MOZ_STATIC_BUILD' case.
 components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
 components/@DLL_PREFIX@appcomps@DLL_SUFFIX@
 components/@DLL_PREFIX@auth@DLL_SUFFIX@
@@ -273,7 +276,6 @@ components/@DLL_PREFIX@imglib2@DLL_SUFFIX@
 components/@DLL_PREFIX@import@DLL_SUFFIX@
 components/@DLL_PREFIX@jar50@DLL_SUFFIX@
 components/@DLL_PREFIX@jsctypes@DLL_SUFFIX@
-; 'MOZ_STATIC_BUILD' case.
 components/@DLL_PREFIX@mail@DLL_SUFFIX@
 components/@DLL_PREFIX@mork@DLL_SUFFIX@
 components/@DLL_PREFIX@mozldap@DLL_SUFFIX@
