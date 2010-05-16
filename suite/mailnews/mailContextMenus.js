@@ -116,7 +116,9 @@ function InThreadPane()
 function FillMailContextMenu(aTarget)
 {
   var inThreadPane = InThreadPane();
-  gContextMenu = new nsContextMenu(aTarget);
+  var browser = GetTabMail() ? GetTabMail().getBrowserForSelectedTab() :
+                               document.getElementById("messagepane");
+  gContextMenu = new nsContextMenu(aTarget, browser);
   var numSelected = GetNumSelectedMessages();
   var oneOrMore = (numSelected > 0);
   var single = (numSelected == 1);
