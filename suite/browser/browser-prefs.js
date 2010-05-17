@@ -489,6 +489,7 @@ pref("extensions.dss.enabled", false);          // Dynamic Skin Switching
 pref("extensions.dss.switchPending", false);    // Non-dynamic switch pending after next
                                                 // restart.
 
+pref("xpinstall.enabled", true);
 pref("xpinstall.whitelist.add.103", "addons.mozilla.org");
 
 pref("xpinstall.whitelist.add", "update.mozilla.org");
