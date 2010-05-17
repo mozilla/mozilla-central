@@ -215,6 +215,12 @@ treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-rss) {
 
 /* ::::: All Servers ::::: */
 
+treechildren::-moz-tree-cell-text(folderNameCol, biffState-NewMail, isServer-true),
+treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true),
+treechildren::-moz-tree-cell-text(folderNameCol, specialFolder-Inbox, newMessages-true) {
+  color: #0066cc;
+}
+
 treechildren::-moz-tree-cell-text(closed, subfoldersHaveUnreadMessages-true) {
   font-weight: bold;
 }
