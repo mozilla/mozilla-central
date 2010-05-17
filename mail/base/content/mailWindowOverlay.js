@@ -1306,20 +1306,19 @@ function BatchMessageMover()
 
 BatchMessageMover.prototype = {
 
-  archiveSelectedMessages: function()
+  archiveMessages: function BatchMessageMover_archiveMessages (aMsgHdrs)
   {
     gFolderDisplay.hintMassMoveStarting();
 
-    let selectedMessages = gFolderDisplay.selectedMessages;
-    if (!selectedMessages.length)
+    if (!aMsgHdrs.length)
       return;
 
     let messages = Components.classes["@mozilla.org/array;1"]
                              .createInstance(Components.interfaces.nsIMutableArray);
 
-    for (let i = 0; i < selectedMessages.length; ++i)
+    for (let i = 0; i < aMsgHdrs.length; ++i)
     {
-      let msgHdr = selectedMessages[i];
+      let msgHdr = aMsgHdrs[i];
 
       let server = msgHdr.folder.server;
       let rootFolder = server.rootFolder;
@@ -1370,7 +1369,7 @@ BatchMessageMover.prototype = {
     this.processNextBatch();
   },
 
-  processNextBatch: function()
+  processNextBatch: function BatchMessageMover_processNextBatch ()
   {
     for (let key in this._batches)
     {
@@ -1545,7 +1544,7 @@ BatchMessageMover.prototype = {
 function MsgArchiveSelectedMessages(event)
 {
   let batchMover = new BatchMessageMover();
-  batchMover.archiveSelectedMessages();
+  batchMover.archiveMessages(gFolderDisplay.selectedMessages);
 }
 
 function MsgForwardMessage(event)

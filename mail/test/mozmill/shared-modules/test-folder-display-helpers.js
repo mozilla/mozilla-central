@@ -1804,6 +1804,19 @@ function assert_selected_and_displayed() {
 }
 
 /**
+ * Use the internal archiving code for archiving any given set of messages
+ *
+ * @param aMsgHdrs a list of message headers
+ * */
+function archive_messages(aMsgHdrs) {
+  plan_to_wait_for_folder_events("DeleteOrMoveMsgCompleted",
+                                 "DeleteOrMoveMsgFailed");
+  let batchMover = new mc.window.BatchMessageMover();
+  batchMover.archiveMessages(aMsgHdrs);
+  wait_for_folder_events();
+}
+
+/**
  * @return true if |aSetOne| is equivalent to |aSetTwo| where the sets are
  *     really just lists of nsIMsgDBHdrs with cool names.
  */
