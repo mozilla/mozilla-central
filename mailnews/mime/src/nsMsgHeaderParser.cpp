@@ -453,88 +453,15 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
     const char *oparen = 0;
     const char *mailbox_start = 0;
     const char *mailbox_end = 0;
+    PRBool in_group = PR_FALSE;
 
-    // Find the first non-empty group address or a non-group address
-    const char *line_temp = line_end;
-    while (*line_temp &&
-           !(*line_temp == ',' && paren_depth <= 0 &&
+    while (*line_end &&
+           // comma is ok inside () and <>
+           !(*line_end == ',' && paren_depth <= 0 &&
              (!mailbox_start || mailbox_end)) &&
-           !(*line_temp == ';' && paren_depth <= 0 &&
-             (!mailbox_start || mailbox_end))
-           )
-    {
-      if (*line_temp == '(')
-      {
-        paren_depth++;
-      }
-      else if (*line_temp == '<' && paren_depth == 0)
-      {
-        mailbox_start = line_temp;
-      }
-      else if (*line_temp == '>' && mailbox_start && paren_depth == 0)
-      {
-        mailbox_end = line_temp;
-      }
-      else if (*line_temp == ')' && paren_depth > 0)
-      {
-        paren_depth--;
-      }
-      // rfc5322#appendix-A.1.3 Group Addresses
-      else if (*line_temp == ':' && paren_depth == 0)
-      {
-        line_temp++;
-
-        // Is this an empty group?
-        while (*line_temp && IS_SPACE(*line_temp))
-          line_temp++;
-
-        if (!*line_temp)
-        {
-          line_end = line_temp;
-          break;
-        }
-        else if (*line_temp == ';')
-        {
-          line_temp++;
-
-          // Found an empty group, go to the next address
-          while (*line_temp && (IS_SPACE(*line_temp) || *line_temp == ',' ||
-                                *line_temp == ';'))
-            line_temp++;
-
-          line_end = line_temp;
-          if (!*line_end)
-            break;
-        }
-        else
-        {
-          // Found a non-empty group
-          line_end = line_temp;
-          break;
-        }
-      }
-
-      NEXT_CHAR(line_temp);
-    }
-
-    /* Skip over extra whitespace, commas or semicolons before addresses. */
-    while (*line_end && (IS_SPACE(*line_end) || *line_end == ',' ||
-                         *line_end == ';'))
-      NEXT_CHAR(line_end);
-
-    if (!*line_end)
-      break;
-
-    paren_depth = 0;
-    mailbox_start = 0;
-    mailbox_end = 0;
-    this_start = line_end;
-
-    while (   *line_end
-           && !(   *line_end == ',' && paren_depth <= 0 /* comma is ok inside () */
-                    && (!mailbox_start || mailbox_end))    /* comma is ok inside <> */
-           && !(   *line_end == ';' && paren_depth <= 0 /* Add ';' as an address */
-                    && (!mailbox_start || mailbox_end)))   /* delimiter */
+           // semi-colon is also ok inside the same and also as long as we're not in the middle of a group.
+           !(*line_end == ';' && !in_group && paren_depth <= 0 &&
+             (!mailbox_start || mailbox_end)))
     {
       if (*line_end == '\\')
       {
@@ -649,6 +576,21 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
           oparen = 0;
         }
       }
+      else if (*line_end == ':' && paren_depth == 0)
+      {
+        // We're now in group format.
+        in_group = PR_TRUE;
+        COPY_CHAR(addr_out, line_end);
+      }
+      else if (*line_end == ';' && paren_depth == 0)
+      {
+        in_group = PR_FALSE;
+        COPY_CHAR(addr_out, line_end);
+        // We've got to the end of a group, therefore just continue with the loop
+        // so that we avoid moving onto the next char at the end of this cycle of
+        // the loop.
+        continue;
+      }
       else
       {
         /* If we're not inside parens or a <mailbox>, tack this
@@ -667,7 +609,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
         }
       }
 
-        NEXT_CHAR(line_end);
+      NEXT_CHAR(line_end);
     }
 
   /* Now we have extracted a single address from the comma-separated

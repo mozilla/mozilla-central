@@ -38,17 +38,17 @@ const splitRecipientsTests =
     { recipients: "A Group:Ed Jones <c@a.invalid>,joe@where.invalid,John <jdoe@one.invalid>;",
       emailAddressOnly: false,
       count: 3,
-      result: [ "Ed Jones <c@a.invalid>", "joe@where.invalid", "John <jdoe@one.invalid>" ]
+      result: [ "A Group:Ed Jones <c@a.invalid>", "joe@where.invalid", "John <jdoe@one.invalid>" ]
     },
     { recipients: 'mygroup:;, empty:;, foo@foo.invalid, othergroup:bar@foo.invalid, bar2@foo.invalid;,       y@y.invalid, empty:;',
       emailAddressOnly: true,
-      count: 4,
-      result: [ "foo@foo.invalid", "bar@foo.invalid", "bar2@foo.invalid", "y@y.invalid" ]
+      count: 7,
+      result: [ "mygroup:;", "empty:;", "foo@foo.invalid", "othergroup:bar@foo.invalid", "bar2@foo.invalid", "y@y.invalid", "empty:;" ]
     },
     { recipients: 'Undisclosed recipients:;;;;;;;;;;;;;;;;,,,,,,,,,,,,,,,,',
       emailAddressOnly: true,
-      count: 0,
-      result: []
+      count: 1,
+      result: ["\"Undisclosed recipients:;\""]
     },
     { recipients: 'a@xxx.invalid; b@xxx.invalid',
       emailAddressOnly: true,
@@ -73,22 +73,22 @@ const splitRecipientsTests =
     { recipients: "A (this: is, a comment;) <a.invalid>; g:   (this: is, <a> comment;) C <c.invalid>, d.invalid;",
       emailAddressOnly: false,
       count: 3,
-      result: [ '"A (this: is, a comment;)" <a.invalid>', '"(this: is, <a> comment;) C" <c.invalid>', "d.invalid" ]
+      result: [ '"A (this: is, a comment;)" <a.invalid>', '"g: (this: is, <a> comment;) C" <c.invalid>', "d.invalid" ]
     },
     { recipients: 'Mary Smith <mary@x.invalid>, extra:;, group:jdoe@example.invalid; Who? <one@y.invalid>; <boss@nil.invalid>, "Giant; \"Big\" Box" <sysservices@example.invalid>,         ',
       emailAddressOnly: false,
-      count: 5,
-      result: [ "Mary Smith <mary@x.invalid>", "jdoe@example.invalid", "Who? <one@y.invalid>", "boss@nil.invalid", '"Giant; \"Big\" Box" <sysservices@example.invalid>' ]
-    },
+      count: 6,
+      result: [ "Mary Smith <mary@x.invalid>", "extra:;", "group:jdoe@example.invalid;", "Who? <one@y.invalid>", "boss@nil.invalid", '"Giant; \"Big\" Box" <sysservices@example.invalid>' ]
+      },
     { recipients: 'Undisclosed recipients: a@foo.invalid ;;extra:;',
       emailAddressOnly: true,
-      count: 1,
-      result: [ 'a@foo.invalid' ]
+      count: 2,
+      result: [ '\"Undisclosed recipients: a\"@foo.invalid ;', 'extra:;' ]
     },
     { recipients: 'Undisclosed recipients:;;extra:a@foo.invalid;',
       emailAddressOnly: true,
-      count: 1,
-      result: [ 'a@foo.invalid' ]
+      count: 2,
+      result: [ '\"Undisclosed recipients:;\"', 'extra:a@foo.invalid;' ]
     },
     { recipients: "",
       emailAddressOnly: false,

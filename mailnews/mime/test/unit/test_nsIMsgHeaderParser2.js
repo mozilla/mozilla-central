@@ -50,24 +50,24 @@ function run_test() {
      "\"Joe Q. Public\", Test, Test, \"Giant; \\\"Big\\\" Box\"",
      // extractHeaderAddressName returns unquoted names, hence the difference.
      "Joe Q. Public" ],
+    // Bug 549931
+    ["Undisclosed recipients:;",
+     "\"Undisclosed recipients:;\"", // Mailboxes
+     "\"Undisclosed recipients:;\"", // Address Names
+     "Undisclosed recipients:;"] // Address Name
   ];
 
   // this used to cause memory read overruns
   let addresses = {}, names = {}, fullAddresses = {};
   parser.parseHeadersWithArray("\" \"@a a;b", addresses, names, fullAddresses);
 
-  // test address with ":;"
-  try {
-    // This checks that the mime header parser doesn't march past the end
-    // of strings with ":;" in them. The second ":;" is required to force the
-    // parser to keep going.
-    parser.extractHeaderAddressMailboxes(
-      "undisclosed-recipients:;\0:; foo <ghj@veryveryveryverylongveryveryveryveryinvalidaddress.com>");
-    do_throw("parser should have thrown an exception");
-  }
-  catch(ex) {
-    // we expect/want this exception.
- }
+  // This checks that the mime header parser doesn't march past the end
+  // of strings with ":;" in them. The second ":;" is required to force the
+  // parser to keep going.
+  do_check_eq(parser.extractHeaderAddressMailboxes(
+    "undisclosed-recipients:;\0:; foo <ghj@veryveryveryverylongveryveryveryveryinvalidaddress.com>"),
+              "undisclosed-recipients:;");
+
   // Test - empty strings
 
   do_check_eq(parser.extractHeaderAddressMailboxes(""), "");
