@@ -130,12 +130,12 @@
     </groupbox>
 
     <groupbox>
-      <caption label="&downloadRetention.label;"/>
+      <caption label="&downloadHistory.label;"/>
       <hbox align="center">
-        <label value="&removeDownloads.label;"
-               accesskey="&removeDownloads.accesskey;"
-               control="downloadRetention"/>
-        <menulist id="downloadRetention"
+        <label value="&removeEntries.label;"
+               accesskey="&removeEntries.accesskey;"
+               control="downloadHistory"/>
+        <menulist id="downloadHistory"
                   preference="browser.download.manager.retention">
           <menupopup>
             <menuitem value="0" label="&whenCompleted.label;"/>
