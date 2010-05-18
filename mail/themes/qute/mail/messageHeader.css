@@ -686,3 +686,14 @@ mail-headerfield > .headerValue {
   -moz-user-select: text;
   word-wrap: break-word;
 }
+
+/* This is a workaround for #562608 to make the buttons smaller */
+.hdrArchiveButton > .button-box > .button-icon {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 320px 16px 304px);
+}
+
+.hdrTrashButton > .button-box > .button-icon {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 128px 16px 112px);
+}

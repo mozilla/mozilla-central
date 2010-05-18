@@ -669,3 +669,13 @@ mail-headerfield > .headerValue {
   -moz-user-select: text;
   word-wrap: break-word;
 }
+
+/* This is a workaround for #562608 in the rare case where the buttons_have_icons gconf key is set to true */
+.hdrArchiveButton > .button-box > .button-icon {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 224px 16px 208px);
+}
+
+.hdrTrashButton > .button-box > .button-icon {
+  list-style-image: url("moz-icon://stock/gtk-delete?size=menu");
+}
