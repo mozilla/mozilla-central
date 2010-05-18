@@ -597,6 +597,11 @@ function goAbout(aProtocol)
   openUILinkIn(url, target);
 }
 
+function goTroubleshootingPage()
+{
+  goAbout("support");
+}
+
 function goReleaseNotes()
 {
   // get release notes URL from prefs

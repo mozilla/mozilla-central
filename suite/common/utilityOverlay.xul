@@ -356,7 +356,11 @@
                 id="help"
                 key="key_openHelp"
                 command="cmd_openHelp"/>
-
+      <!-- For Internet Explorer Users is inserted here on Windows -->
+      <menuitem id="troubleShooting"
+                accesskey="&helpTroubleshootingInfo.accesskey;"
+                label="&helpTroubleshootingInfo.label;"
+                oncommand="goTroubleshootingPage();"/>
       <menuitem accesskey="&releaseCmd.accesskey;"
                 label="&releaseCmd.label;"
                 id="releaseUrl"
