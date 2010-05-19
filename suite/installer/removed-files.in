@@ -331,9 +331,10 @@ components/xppref32.dll
 #endif
 @DLL_PREFIX@mozz@DLL_SUFFIX@
 @DLL_PREFIX@thebes@DLL_SUFFIX@
-@DLL_PREFIX@xul@DLL_SUFFIX@
 #ifdef XP_MACOSX
 XUL
+#else
+@DLL_PREFIX@xul@DLL_SUFFIX@
 #endif
 ; MOZ_STATIC_BUILD
 #endif
