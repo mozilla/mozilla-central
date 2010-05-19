@@ -7654,7 +7654,7 @@ nsImapMailFolder::CopyFolder(nsIMsgFolder* srcFolder,
       if(NS_FAILED(rv))
         return rv;
 
-      rv = summaryFile->CopyTo(newPathFile, NS_LITERAL_STRING(""));
+      rv = summaryFile->CopyTo(newPathFile, EmptyString());
       NS_ENSURE_SUCCESS(rv, rv);
 
       rv = AddSubfolder(safeFolderName, getter_AddRefs(newMsgFolder));

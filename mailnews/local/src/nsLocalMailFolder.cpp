@@ -2028,14 +2028,14 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
   nsCOMPtr <nsIFile> origPath;
   oldPath->Clone(getter_AddRefs(origPath));
 
-  rv = oldPath->CopyTo(newPath, NS_LITERAL_STRING(""));   //copying necessary for aborting.... if failure return
+  rv = oldPath->CopyTo(newPath, EmptyString());   //copying necessary for aborting.... if failure return
   NS_ENSURE_SUCCESS(rv, rv);      //would fail if a file by that name exists
 
   // Copy to dir can fail if filespec does not exist. If copy fails, we test
   // if the filespec exist or not, if it does not that's ok, we continue
   // without copying it. If it fails and filespec exist and is not zero sized
   // there is real problem
-  rv = summaryFile->CopyTo(newPath, NS_LITERAL_STRING(""));      // Copy the file to the new dir
+  rv = summaryFile->CopyTo(newPath, EmptyString());      // Copy the file to the new dir
   if (! NS_SUCCEEDED(rv))                   // Test if the copy is successfull
   {
     // Test if the filespec has data

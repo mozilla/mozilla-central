@@ -337,7 +337,7 @@ NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
     pDestination->Exists(&exists);
     if (exists)
         rv = pDestination->Remove(PR_FALSE);
-    rv = inFile->CopyTo(parent, NS_LITERAL_STRING(""));
+    rv = inFile->CopyTo(parent, EmptyString());
 
     if (NS_SUCCEEDED(rv)) {
         m_bytesDone = mailSize;
