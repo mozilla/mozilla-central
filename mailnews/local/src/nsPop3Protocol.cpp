@@ -928,6 +928,12 @@ NS_IMETHODIMP nsPop3Protocol::OnStopRequest(nsIRequest *aRequest, nsISupports * 
   // the protocol object.
   if (socketWasOpen)
   {
+    // We give up, so don't ask for password again.
+    // The following line must be removed, if, in the future, we want to
+    // continue trying to log in (with other auth methods or other password)
+    // after auth failure in form of connection drop by server (instead of -ERR).
+    ClearFlag(POP3_PASSWORD_FAILED|POP3_AUTH_FAILURE);
+
     m_pop3ConData->next_state = POP3_ERROR_DONE;
     ProcessProtocolState(nsnull, nsnull, 0, 0);
   }
@@ -4089,6 +4095,7 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
           mailnewsurl->SetUrlState(PR_FALSE, m_pop3ConData->urlStatus);
 
         CloseSocket();
+        m_url = nsnull;
         return NS_OK;
       }
     default:
@@ -4106,13 +4113,6 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
 
   return NS_OK;
 
-}
-
-nsresult nsPop3Protocol::CloseSocket()
-{
-    nsresult rv = nsMsgProtocol::CloseSocket();
-    m_url = nsnull;
-    return rv;
 }
 
 NS_IMETHODIMP nsPop3Protocol::MarkMessages(nsVoidArray *aUIDLArray)

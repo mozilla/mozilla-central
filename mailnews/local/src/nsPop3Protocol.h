@@ -338,7 +338,6 @@ private:
 
   virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
                                         PRUint32 sourceOffset, PRUint32 length);
-  virtual nsresult CloseSocket();
   virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging = PR_FALSE);
 
   nsCOMPtr<nsIURI> m_url;
