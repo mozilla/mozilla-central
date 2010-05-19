@@ -83,23 +83,9 @@ function toDownloadManager()
   
 function toEM( aPane )
 {
-  //XXXCallek Open this in a tab
-  var theEM = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                        .getService(Components.interfaces.nsIWindowMediator)
-                        .getMostRecentWindow("Extension:Manager");
-  if (theEM) {
-    theEM.focus();
-    if (aPane)
-      theEM.showView(aPane);
-    return;
-  }
-
-  const EMURL = "chrome://mozapps/content/extensions/extensions.xul";
-  const EMFEATURES = "all,dialog=no";
-  if (aPane)
-    window.openDialog(EMURL, "", EMFEATURES, aPane);
-  else
-    window.openDialog(EMURL, "", EMFEATURES);
+  //XXXCallek Don't let more than one tab have this
+  //XXXCallek Use aPane once Bug 560449 is fixed
+  goAbout("addons");
 }
 
 function toBookmarksManager()
