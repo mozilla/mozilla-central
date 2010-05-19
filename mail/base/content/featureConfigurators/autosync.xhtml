@@ -51,7 +51,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
     xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en">
+    version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en"
+    dir="&locale.dir;">
 <head>
   <!-- Themes -->
   <link rel="stylesheet"
@@ -68,7 +69,7 @@
       src="chrome://messenger/content/jquery-ui.js"></script>
   <title>&featureConfigurator.title;</title>
 </head>
-<body onload="AutoSyncConfigurator.onLoad()" style="padding-bottom: 2ex;">
+<body onload="AutoSyncConfigurator.onLoad()" style="padding-bottom: 2ex;" dir="&locale.dir;">
 
 <table>
   <tbody>
@@ -78,7 +79,7 @@
         <p>&featureConfigurator.autoSync.para;</p>
         <label class="sync" for="all-sync">
           <input type="radio" id="all-sync" name="syncsettings" value="all"/>
-          <div>&featureConfigurator.autoSync.on;</div>
+          <div>&featureConfigurator.autoSync.on; <span class="disk-space-required" id="disk-space-free">&featureConfigurator.diskSpace.requireSpace; <span id="size-difference"/></span></div>
           <div class="explanation">&featureConfigurator.autoSync.on.explanation;</div>
         </label>
         <label class="sync" for="none-sync">
@@ -92,25 +93,12 @@
           <div class="explanation">&featureConfigurator.autoSync.some.explanation;</div>
         </label>
         <ul id="account_list"/>
-        <div class="disk-space" id="disk-space-used">&featureConfigurator.diskSpace.currentSize; <span id="current-size"/></div>
+        <div class="disk-space" id="disk-space-used">&featureConfigurator.diskSpace.currentSize; <span id="current-size"/> <span class="free-space">&featureConfigurator.diskSpace.freeSpace; <span id="free-space"/></span></div>
       </td>
-
       <td class="column right">
         <div id="disk-space-warning">
           <img style="vertical-align: bottom;" src="chrome://global/skin/icons/warning-16.png"/>&featureConfigurator.diskSpace.warning;
         </div>
-        <table>
-          <tbody>
-            <tr class="disk-space" id="disk-space-free">
-              <td>&featureConfigurator.diskSpace.freeSpace;</td>
-              <td><span id="free-space"/></td>
-            </tr>
-            <tr class="disk-space" id="disk-space-required">
-              <td>&featureConfigurator.diskSpace.requireSpace;</td>
-              <td><span id="size-difference"/></td>
-            </tr>
-          </tbody>
-        </table>
       </td>
     </tr>
   </tbody>

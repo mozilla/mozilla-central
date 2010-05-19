@@ -4,6 +4,10 @@ html {
   background: url("chrome://branding/content/featureConfigurator.jpg") no-repeat top right white;
 }
 
+html[dir="rtl"] {
+  background-position: -850px 0px;
+}
+
 body {
   color: #222222;
   padding: 0;
@@ -57,6 +61,11 @@ h1 {
   text-shadow: rgba(255, 255, 255, 0.4) 0 1px;
 }
 
+html[dir="rtl"] .button {
+  margin-left: 1em;
+  margin-right: 1px;
+}
+
 .syncing {
   background-color: #729fcf;
 }
@@ -87,8 +96,11 @@ label:hover {
 }
 
 label input[type="radio"] {
-  position: absolute;
-  left: 0;
+  float: left;
+}
+
+html[dir="rtl"] label input[type="radio"] {
+  float: right;
 }
 
 label .explanation {
@@ -98,31 +110,25 @@ label .explanation {
 
 /* :::: AutoSync Page :::: */
 
-#disk-space-arrow {
-  height: 250px;
-  background: url("chrome://messenger/skin/featureConfigurators/animation.png") no-repeat center center;
-}
-
-.disk-space {
-  font-size: large;
-  text-align: end;
-  color: #898378;
-  white-space: nowrap;
-  padding: 7px;
-}
-
-.disk-space td span {
-  font-weight: bold;
+.disk-space-required {
+  font-size: small;
+  color: #729fcf;
+  -moz-padding-end: 1em;
 }
 
 #disk-space-used {
   position: fixed;
   right: 0;
-  bottom: 0;
+  bottom: 1em;
   line-height: 1.5ex;
   -moz-padding-end: 8px;
   font-size: small;
   background-color: #fff;
+}
+
+html[dir="rtl"] #disk-space-used {
+  right: auto;
+  left: 0;
 }
 
 #disk-space-warning {
@@ -131,6 +137,14 @@ label .explanation {
   -moz-border-radius: 4px;
   padding: 7px;
   margin: 3px 0;
+}
+
+.free-space {
+  -moz-padding-end: 1em;
+}
+
+.disk-space {
+  color: GrayText;
 }
 
 /* :::: Add-ons Pages :::: */

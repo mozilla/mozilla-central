@@ -50,7 +50,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
     xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en">
+    version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en"
+    dir="&locale.dir;">
 <head>
   <!-- Themes -->
   <link rel="stylesheet"
@@ -70,7 +71,7 @@
       src="chrome://messenger/content/jquery-ui.js"></script>
   <title>&featureConfigurator.title;</title>
 </head>
-<body onload="compactHeaderConfigurator.onLoad()">
+<body onload="compactHeaderConfigurator.onLoad()" dir="&locale.dir;">
   <table>
     <tbody>
       <tr>
