@@ -2105,7 +2105,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             m_compFields->SetReplyTo(author.get());
 
             // ... and empty out the various recipient headers
-            const nsAutoString& empty = EmptyString();
+            nsAutoString empty;
             m_compFields->SetTo(empty);
             m_compFields->SetCc(empty);
             m_compFields->SetBcc(empty);
