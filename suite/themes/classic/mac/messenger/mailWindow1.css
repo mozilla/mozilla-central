@@ -69,9 +69,7 @@
   background-color: #D6DDE5;
 }
 
-/* Inactive window */
-
-#messengerWindow:not([active="true"]) > #mailContent > #messengerBox > #folderPaneBox {
+#folderPaneBox:-moz-window-inactive {
   background-color: #E8E8E8;
 }
 

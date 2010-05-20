@@ -159,9 +159,7 @@
   background-color: #D6DDE5;
 }
 
-/* Inactive window */
-
-#addressbookWindow:not([active="true"]) > hbox > #dirTreeBox {
+#dirTreeBox:-moz-window-inactive {
   background-color: #E8E8E8;
 }
 

@@ -51,6 +51,10 @@
   border-bottom: 1px solid rgb(159, 159, 159);
 }
 
+#linktoolbar:-moz-window-inactive {
+  opacity: 0.75;
+}
+
 #linktoolbar > .bookmark-item {
   text-shadow: none;
 }

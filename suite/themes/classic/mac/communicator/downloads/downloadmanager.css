@@ -65,7 +65,7 @@
 }
 
 #clearListButton[disabled="true"],
-:root:not([active]) #clearListButton {
+#clearListButton:-moz-window-inactive {
   color: #7C7C7C !important; /* remove this when we support click-through */
   border-color: rgba(146, 146, 146, 0.84);
   background-image: -moz-linear-gradient(top, #FFFFFF, #CCCCCC);
@@ -138,7 +138,7 @@ treechildren:-moz-system-metric(mac-graphite-theme)::-moz-tree-progressmeter {
   color: rgba(43, 71, 106, 0.5);
 }
 
-:root:not([active]) treechildren::-moz-tree-progressmeter {
+treechildren:-moz-window-inactive::-moz-tree-progressmeter {
   color: rgba(0, 0, 0, 0.1);
 }
 

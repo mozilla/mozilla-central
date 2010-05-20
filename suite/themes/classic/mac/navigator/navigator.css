@@ -52,13 +52,6 @@
   border-top: 1px solid rgba(0,0,0,0.65);
 }
 
-#main-window:not([active="true"]) > #navigator-toolbox > #nav-bar > #nav-bar-inner,
-#main-window:not([active="true"]) > #navigator-toolbox > #nav-bar > toolbaritem,
-#main-window:not([active="true"]) > #navigator-toolbox > #PersonalToolbar,
-#main-window:not([active="true"]) > #navigator-toolbox > #linktoolbar {
-  opacity: 0.75;
-}
-
 /* ::::: primary toolbar buttons ::::: */
 
 #back-button {
@@ -266,6 +259,10 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   min-width: 0px;
 }
 
+#nav-bar-inner:-moz-window-inactive {
+  opacity: 0.75;
+}
+
 /* nsNativeThemeCocoa adds top/bottom padding to textfields... */
 #urlbar > .autocomplete-textbox-container,
 #urlbar > .autocomplete-history-dropmarker {
@@ -290,6 +287,10 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
 #wrapper-nav-bar-inner[place="palette"] > #nav-bar-inner > .button-toolbar,
 #wrapper-nav-bar-inner[place="palette"] > #nav-bar-inner > #urlbar > .urlbar-icons {
   display: none;
+}
+
+#nav-bar > toolbaritem:-moz-window-inactive {
+  opacity: 0.75;
 }
 
 /* ::::: page proxy icon ::::: */
@@ -433,6 +434,10 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
   background-image: url("chrome://communicator/skin/toolbar-gradient22.png");
   background-repeat: repeat-x;
   border-bottom: 1px solid rgb(159, 159, 159);
+}
+
+#PersonalToolbar:-moz-window-inactive {
+  opacity: 0.75;
 }
 
 #PersonalToolbar > #home-button,
