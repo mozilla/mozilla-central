@@ -153,7 +153,6 @@
 #dirTree-splitter[state="collapsed"] {
   min-width: 5px;
   background-color: #D6DDE5;
-  cursor: e-resize;
 }
 
 #dirTreeBox {
