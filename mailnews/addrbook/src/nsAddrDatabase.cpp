@@ -2513,18 +2513,19 @@ nsresult nsAddrDatabase::GetListFromDB(nsIAbDirectory *newList, nsIMdbRow* listR
   return err;
 }
 
-class nsAddrDBEnumerator : public nsISimpleEnumerator
+class nsAddrDBEnumerator : public nsISimpleEnumerator, public nsIAddrDBListener
 {
 public:
     NS_DECL_ISUPPORTS
 
     // nsISimpleEnumerator methods:
     NS_DECL_NSISIMPLEENUMERATOR
-
+    NS_DECL_NSIADDRDBLISTENER
     // nsAddrDBEnumerator methods:
 
     nsAddrDBEnumerator(nsAddrDatabase* aDb);
-
+    virtual ~nsAddrDBEnumerator();
+    void Clear();
 protected:
     nsRefPtr<nsAddrDatabase> mDb;
     nsIMdbTable *mDbTable;
@@ -2538,9 +2539,25 @@ nsAddrDBEnumerator::nsAddrDBEnumerator(nsAddrDatabase* aDb)
       mDbTable(aDb->GetPabTable()),
       mRowPos(-1)
 {
+  if (aDb)
+    aDb->AddListener(this);
 }
 
-NS_IMPL_ISUPPORTS1(nsAddrDBEnumerator, nsISimpleEnumerator)
+nsAddrDBEnumerator::~nsAddrDBEnumerator()
+{
+  Clear();
+}
+
+void nsAddrDBEnumerator::Clear()
+{
+  mRowCursor = nsnull;
+  mCurrentRow = nsnull;
+  mDbTable = nsnull;
+  if (mDb)
+    mDb->RemoveListener(this);
+}
+
+NS_IMPL_ISUPPORTS2(nsAddrDBEnumerator, nsISimpleEnumerator, nsIAddrDBListener)
 
 NS_IMETHODIMP
 nsAddrDBEnumerator::HasMoreElements(PRBool *aResult)
@@ -2636,6 +2653,30 @@ nsAddrDBEnumerator::GetNext(nsISupports **aResult)
     }
 
     return NS_ERROR_FAILURE;
+}
+
+NS_IMETHODIMP nsAddrDBEnumerator::OnCardAttribChange(PRUint32 abCode)
+{
+  return NS_OK;
+}
+
+/* void onCardEntryChange (in unsigned long aAbCode, in nsIAbCard aCard, in nsIAbDirectory aParent); */
+NS_IMETHODIMP nsAddrDBEnumerator::OnCardEntryChange(PRUint32 aAbCode, nsIAbCard *aCard, nsIAbDirectory *aParent)
+{
+  return NS_OK;
+}
+
+/* void onListEntryChange (in unsigned long abCode, in nsIAbDirectory list); */
+NS_IMETHODIMP nsAddrDBEnumerator::OnListEntryChange(PRUint32 abCode, nsIAbDirectory *list)
+{
+  return NS_OK;
+}
+
+/* void onAnnouncerGoingAway (); */
+NS_IMETHODIMP nsAddrDBEnumerator::OnAnnouncerGoingAway()
+{
+  Clear();
+  return NS_OK;
 }
 
 class nsListAddressEnumerator : public nsISimpleEnumerator
