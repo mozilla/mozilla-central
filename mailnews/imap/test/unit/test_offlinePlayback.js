@@ -21,6 +21,8 @@ var gIMAPInbox;
 var gTest;
 var gSecondFolder, gThirdFolder;
 var gSynthMessage1, gSynthMessage2;
+// the message id of bugmail10
+const gMsgId1 = "200806061706.m56H6RWT004933@mrapp54.mozilla.org";
 var gOfflineManager;
 
 const gTestArray =
@@ -59,6 +61,11 @@ const gTestArray =
                              null, true);
     copyService.CopyMessages(gIMAPInbox, headers2, gThirdFolder, true, null,
                              null, true);
+    var file = do_get_file("../../mailnews/data/bugmail10");
+    copyService.CopyFileMessage(file, gIMAPInbox, null, false, 0,
+                                "", CopyListener, null);
+  },
+  function goOffline() {
     gOfflineManager = Cc["@mozilla.org/messenger/offline-manager;1"]
                            .getService(Ci.nsIMsgOfflineManager);
     gIMAPDaemon.closing = false;
@@ -76,11 +83,16 @@ const gTestArray =
   function updateThirdFolder() {
     gThirdFolder.updateFolderWithListener(null, UrlListener);
   },
+  function updateInbox() {
+    gIMAPInbox.updateFolderWithListener(null, UrlListener);
+  },
   function checkDone() {
     let msgHdr1 = gSecondFolder.msgDatabase.getMsgHdrForMessageID(gSynthMessage1.messageId);
     let msgHdr2 = gThirdFolder.msgDatabase.getMsgHdrForMessageID(gSynthMessage2.messageId);
+    let msgHdr3 = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
     do_check_neq(msgHdr1, null);
     do_check_neq(msgHdr2, null);
+    do_check_neq(msgHdr3, null);
     doTest(++gTest);
   }
 ];
@@ -109,7 +121,7 @@ function run_test()
   localAccount.defaultIdentity = identity;
   localAccount.incomingServer = gLocalIncomingServer;
   acctMgr.defaultAccount = localAccount;
-  
+
   // Let's also have another account, using the same identity
   let imapAccount = acctMgr.createAccount();
   imapAccount.addIdentity(identity);
@@ -167,6 +179,19 @@ var UrlListener =
     // Check for ok status.
     do_check_eq(rc, 0);
     doTest(++gTest);
+  }
+};
+
+// nsIMsgCopyServiceListener implementation
+var CopyListener = 
+{
+  OnStartCopy: function() {},
+  OnProgress: function(aProgress, aProgressMax) {},
+  SetMessageKey: function(aKey){},
+  SetMessageId: function(aMessageId) {},
+  OnStopCopy: function(aStatus){
+    do_check_eq(aStatus, 0);
+    do_timeout (0, function(){doTest(++gTest)});;
   }
 };
 
