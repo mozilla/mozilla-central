@@ -68,6 +68,8 @@ function run_test() {
     "undisclosed-recipients:;\0:; foo <ghj@veryveryveryverylongveryveryveryveryinvalidaddress.com>"),
               "undisclosed-recipients:;");
 
+  do_check_eq(parser.extractHeaderAddressMailboxes("<a;a@invalid"), "");
+
   // Test - empty strings
 
   do_check_eq(parser.extractHeaderAddressMailboxes(""), "");

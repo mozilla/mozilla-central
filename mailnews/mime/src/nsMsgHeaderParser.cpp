@@ -576,13 +576,13 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
           oparen = 0;
         }
       }
-      else if (*line_end == ':' && paren_depth == 0)
+      else if (*line_end == ':' && !mailbox_start && paren_depth == 0)
       {
         // We're now in group format.
         in_group = PR_TRUE;
         COPY_CHAR(addr_out, line_end);
       }
-      else if (*line_end == ';' && paren_depth == 0)
+      else if (*line_end == ';' && in_group && paren_depth == 0)
       {
         in_group = PR_FALSE;
         COPY_CHAR(addr_out, line_end);

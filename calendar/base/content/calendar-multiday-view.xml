@@ -1269,7 +1269,8 @@
         <parameter name="aOffset"/>
         <parameter name="aShadows"/>
         <body><![CDATA[
-          let firstCol = lastCol = this;
+          let firstCol = this;
+          let lastCol = this;
           let firstIndex = (aOffset != null ? aOffset : this.mDragState.offset);
           let lastIndex = firstIndex;
           while (firstCol.previousSibling && firstIndex > 0) {
@@ -1506,9 +1507,7 @@
 
           // update the labels
           let lateralColumns = col.firstLastShadowColumns(currentOffset, currentShadows);
-          lastCol = lateralColumns.lastCol;
-          firstCol = lateralColumns.firstCol;
-          col.updateDragLabels(firstCol, lastCol);
+          col.updateDragLabels(lateralColumns.firstCol, lateralColumns.lastCol);
 
           col.mDragState.offset = currentOffset;
           col.mDragState.shadows = currentShadows;
@@ -1691,7 +1690,9 @@
           this.mDragState = {
               origColumn: this,
               dragOccurrence: aOccurrence,
-              mouseOffset: 0
+              mouseOffset: 0,
+              offset: null,
+              shadows: null
           };
 
           var interval = this.mPixPerMin * 15;
@@ -1934,7 +1935,9 @@
         this.mDragState = {
             origColumn: this,
             dragType: "new",
-            mouseOffset: 0
+            mouseOffset: 0,
+            offset: null,
+            shadows: null
         };
 
         if (this.getAttribute("orient") == "vertical") {
