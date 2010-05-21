@@ -336,7 +336,7 @@ function addItem(aItem) {
         let period = periods[i];
         let complistItem = period.listItem;
         let visible = complistItem.getCheckbox().checked;
-        if ((aItem.startDate.isDate) && (period.duration == 1)) {
+        if (aItem.startDate.isDate && period.duration == 1 && aItem.duration.days == 1) {
             if (this.getListItems(aItem, period).length == 0) {
                 this.addItemBefore(aItem, period.listItem.nextSibling, period, visible);
             }
@@ -353,7 +353,7 @@ function addItem(aItem) {
                         // display the first one.
                         // TODO: find a way to display this special circumstance
                         break;
-                    } else if (this.isBefore(aItem, compitem)) {
+                    } else if (this.isBefore(aItem, compitem, period)) {
                         if (this.isSameEvent(aItem, compitem)) {
                             newlistItem = this.addItemBefore(aItem, complistItem, period, visible);
                             break
@@ -374,24 +374,93 @@ function addItem(aItem) {
  *
  * @param aItem         The item to compare.
  * @param aCompItem     The item to compare with.
+ * @param aPeriod       The period where the items are inserted.
  * @return              True, if the aItem happens before aCompItem.
  */
 agendaListbox.isBefore =
-function isBefore(aItem, aCompItem) {
-    if (aCompItem.startDate.day == aItem.startDate.day) {
-        if (aItem.startDate.isDate) {
+function isBefore(aItem, aCompItem, aPeriod) {
+    let itemDate = this.comparisonDate(aItem, aPeriod);
+    let compItemDate = this.comparisonDate(aCompItem, aPeriod);
+    let itemDateEndDate = itemDate.clone();
+    itemDateEndDate.day++;
+
+    if (compItemDate.day == itemDate.day) {
+        // In the same day the order is:
+        // - all-day events (single day);
+        // - all-day events spanning multiple days: start, end, intermediate;
+        // - events and events spanning multiple days: start, end, (sorted by
+        //   time) and intermediate.
+        if (itemDate.isDate && aItem.duration.days == 1) {
+            // all-day events with duration one day
             return true;
+        } else if (itemDate.isDate) {
+            if (aItem.startDate.compare(itemDate) == 0) {
+                // starting day of an all-day events spannig multiple days
+                return (!compItemDate.isDate || aCompItem.duration.days != 1);
+            } else if (aItem.endDate.compare(itemDateEndDate) == 0) {
+                // ending day of an all-day events spannig multiple days
+                return (!compItemDate.isDate ||
+                        (aCompItem.duration.days != 1 &&
+                          aCompItem.startDate.compare(compItemDate) != 0 ));
+            } else {
+                // intermediate day of an all-day events spannig multiple days
+                return (!compItemDate.isDate);
+            }
         } else if (aCompItem.startDate.isDate) {
             return false;
         }
     }
-    var comp = aItem.startDate.compare(aCompItem.startDate);
+    // Non all-day event sorted by date-time. When equal, sorted by start
+    // date-time then by end date-time.
+    let comp = itemDate.compare(compItemDate);
     if (comp == 0) {
-        comp = aItem.endDate.compare(aCompItem.endDate);
+        comp = aItem.startDate.compare(aCompItem.startDate);
+        if (comp == 0) {
+            comp = aItem.endDate.compare(aCompItem.endDate);
+        }
     }
     return (comp <= 0);
 }
 
+/**
+ * Returns the a start or end date of an item according to which of them
+ * must be displayed in a given period of the agenda
+ *
+ * @param aItem         The item to compare.
+ * @param aPeriod       The period where the item is inserted.
+ * @return              The start or end date of the item showed in the agenda.
+ */
+agendaListbox.comparisonDate =
+function comparisonDate(aItem, aPeriod) {
+    let periodStartDate = aPeriod.start.clone();
+    periodStartDate.isDate = true;
+    let periodEndDate = aPeriod.end.clone();
+    periodEndDate.day--;
+    let startDate = aItem.startDate.clone();
+    startDate.isDate = true;
+    let endDate = aItem.endDate.clone();
+
+    let endDateToReturn = aItem.endDate.clone();
+    if (aItem.startDate.isDate && aPeriod.duration == 1) {
+        endDateToReturn = periodEndDate.clone();
+    } else if (endDate.isDate) {
+        endDateToReturn.day--;
+    } else if (endDate.hour == 0 && endDate.minute == 0) {
+        // End at midnight -> end date in the day where midnight occurs
+        endDateToReturn.day--;
+        endDateToReturn.hour = 23;
+        endDateToReturn.minute = 59;
+        endDateToReturn.second = 59;
+    }
+    endDate.isDate = true;
+    if (startDate.compare(endDate) != 0 &&
+         startDate.compare(periodStartDate) < 0 ) {
+        // returns a end date when the item is a multiday event AND
+        // it starts before the given period
+        return endDateToReturn;
+    }
+    return aItem.startDate.clone();
+}
 
 /**
  * Gets the listitems for a given item, possibly in a given period.
