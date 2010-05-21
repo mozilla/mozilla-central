@@ -47,6 +47,29 @@
 
 var gLastShownCalendarView = null;
 
+var calendarTabMonitor = {
+    monitorName: "lightning",
+
+    // Unused, but needed functions
+    onTabTitleChanged: function() {},
+    onTabOpened: function() {},
+    onTabClosing: function() {},
+    onTabPersist: function() {},
+    onTabRestored: function() {},
+
+    onTabSwitched: function onTabSwitched(aNewTab, aOldTab) {
+        // Unfortunately, tabmail doesn't provide a hideTab function on the tab
+        // type definitions. To make sure the commands are correctly disabled,
+        // we want to update calendar/task commands when switching away from
+        // those tabs.
+        if (aOldTab.mode.name == "calendar" ||
+            aOldTab.mode.name == "task") {
+            calendarController.updateCommands();
+            calendarController2.updateCommands();
+        }
+    }
+};
+
 var calendarTabType = {
   name: "calendar",
   panelId: "calendarTabPanel",
@@ -93,10 +116,10 @@ var calendarTabType = {
         aTab.title = ltnGetString("lightning", "tabTitleCalendar");
       },
 
-      supportsCommand: function (aCommand, aTab) calendarController.supportsCommand(aCommand),
-      isCommandEnabled: function (aCommand, aTab) calendarController.isCommandEnabled(aCommand),
-      doCommand: function(aCommand, aTab) calendarController.doCommand(aCommand),
-      onEvent: function(aEvent, aTab) calendarController.onEvent(aEvent)
+      supportsCommand: function (aCommand, aTab) calendarController2.supportsCommand(aCommand),
+      isCommandEnabled: function (aCommand, aTab) calendarController2.isCommandEnabled(aCommand),
+      doCommand: function(aCommand, aTab) calendarController2.doCommand(aCommand),
+      onEvent: function(aEvent, aTab) calendarController2.onEvent(aEvent)
     },
 
     tasks: {
@@ -138,11 +161,11 @@ var calendarTabType = {
         aTab.title = ltnGetString("lightning", "tabTitleTasks");
       },
 
-      supportsCommand: function (aCommand, aTab) calendarController.supportsCommand(aCommand),
-      isCommandEnabled: function (aCommand, aTab) calendarController.isCommandEnabled(aCommand),
-      doCommand: function(aCommand, aTab) calendarController.doCommand(aCommand),
-      onEvent: function(aEvent, aTab) calendarController.onEvent(aEvent)
-    },
+      supportsCommand: function (aCommand, aTab) calendarController2.supportsCommand(aCommand),
+      isCommandEnabled: function (aCommand, aTab) calendarController2.isCommandEnabled(aCommand),
+      doCommand: function(aCommand, aTab) calendarController2.doCommand(aCommand),
+      onEvent: function(aEvent, aTab) calendarController2.onEvent(aEvent)
+    }
   },
 
   /* because calendar does some direct menu manipulation, we need to change
@@ -150,10 +173,14 @@ var calendarTabType = {
    */
   saveTabState: function(aTab) {
     ltnSwitch2Mail();
-  },
+  }
 };
+
 window.addEventListener("load", function(e) {
-  document.getElementById('tabmail').registerTabType(calendarTabType); }, false);
+    let tabmail = document.getElementById('tabmail');
+    tabmail.registerTabType(calendarTabType);
+    tabmail.registerTabMonitor(calendarTabMonitor);
+}, false);
 
 
 function ltnOnLoad(event) {

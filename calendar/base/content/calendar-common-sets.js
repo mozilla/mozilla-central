@@ -92,30 +92,6 @@ var calendarController = {
         "calendar_general-priority_command": true,
         "calendar_general-progress_command": true,
         "calendar_task_category_command": true,
-        "cmd_cut": true,
-        "cmd_copy": true,
-        "cmd_paste": true,
-        "cmd_undo": true,
-        "cmd_redo": true,
-        "cmd_print": true,
-        "cmd_selectAll": true,
-        "cmd_pageSetup": true,
-
-        // Thunderbird commands
-        "cmd_printpreview": true,
-        "button_print": true,
-        "button_delete": true,
-        "cmd_delete": true,
-        "cmd_properties": true,
-        "cmd_runJunkControls": true,
-        "cmd_deleteJunk": true,
-        "cmd_applyFilters": true,
-        "cmd_applyFiltersToSelection": true,
-        "cmd_goForward": true,
-        "cmd_goBack": true,
-        "cmd_fullZoomReduce": true,
-        "cmd_fullZoomEnlarge": true,
-        "cmd_fullZoomReset": true,
 
         // Pseudo commands
         "calendar_in_foreground": true,
@@ -245,37 +221,6 @@ var calendarController = {
                         return this.defaultController.isCommandEnabled(aCommand);
                     }
                 }
-                switch (aCommand) {
-                    // Thunderbird Commands
-                    case "cmd_cut":
-                        return this.selected_items_writable;
-                    case "cmd_copy":
-                        return this.item_selected;
-                    case "cmd_paste":
-                        return canPaste();
-                    case "cmd_undo":
-                        goSetMenuValue(aCommand, 'valueDefault');
-                        return canUndo();
-                    case "cmd_redo":
-                        goSetMenuValue(aCommand, 'valueDefault');
-                        return canRedo();
-                    case "cmd_printpreview":
-                        return false;
-                    case "button_delete":
-                    case "cmd_delete":
-                        return this.item_selected;
-                    case "cmd_fullZoomReduce":
-                    case "cmd_fullZoomEnlarge":
-                    case "cmd_fullZoomReset":
-                      return this.isInMode("calendar") &&
-                             currentView().supportsZoom;
-                    case "cmd_properties":
-                    case "cmd_runJunkControls":
-                    case "cmd_deleteJunk":
-                    case "cmd_applyFilters":
-                    case "cmd_applyFiltersToSelection":
-                        return false;
-                }
                 if (aCommand in this.commands) {
                     // All other commands we support should be enabled by default
                     return true;
@@ -323,9 +268,7 @@ var calendarController = {
             case "calendar_delete_event_command":
                 deleteSelectedEvents();
                 break;
-            case "calendar_delete_focused_item_command":
-            case "cmd_delete":
-            case "button_delete": {
+            case "calendar_delete_focused_item_command": {
                 let focusedElement = document.commandDispatcher.focusedElement;
                 if (!focusedElement && this.defaultController && !this.isCalendarInForeground()) {
                     this.defaultController.doCommand(aCommand);
@@ -429,58 +372,7 @@ var calendarController = {
                     this.defaultController.doCommand(aCommand);
                     return;
                 }
-                switch (aCommand) {
-                    // These commands are overridden in lightning and native in sunbird.
-                    case "cmd_cut":
-                        cutToClipboard();
-                        break;
-                    case "cmd_copy":
-                        copyToClipboard();
-                        break;
-                    case "cmd_paste":
-                        pasteFromClipboard();
-                        break;
-                    case "cmd_undo":
-                        undo();
-                        break;
-                    case "cmd_redo":
-                        redo();
-                        break;
-                    case "cmd_selectAll":
-                        selectAllEvents();
-                        break;
-                    case "cmd_pageSetup":
-                        PrintUtils.showPageSetup();
-                        break;
-                    case "button_print":
-                    case "cmd_print":
-                        calPrint();
-                        break;
 
-                    // Thunderbird commands
-                    case "cmd_goForward":
-                        currentView().moveView(1);
-                        break;
-                    case "cmd_goBack":
-                        currentView().moveView(-1);
-                        break;
-                    case "cmd_fullZoomReduce":
-                        currentView().zoomIn();
-                        break;
-                    case "cmd_fullZoomEnlarge":
-                        currentView().zoomOut();
-                        break;
-                    case "cmd_fullZoomReset":
-                        currentView().zoomReset();
-                        break;
-
-                    // For these commands, nothing should happen in calendar mode.
-                    case "cmd_printpreview":
-                    case "button_delete":
-                    case "cmd_delete":
-                    default:
-                    return;
-                }
         }
         return;
     },
@@ -528,7 +420,8 @@ var calendarController = {
 
         calendarController.selected_events_requires_network =
               (selected_events_requires_network == selLength);
-        document.commandDispatcher.updateCommands("calendar_commands");
+        calendarController.updateCommands();
+        calendarController2.updateCommands();
         if(!isSunbird()) {
             document.commandDispatcher.updateCommands('mail-toolbar');
         }
@@ -678,6 +571,125 @@ var calendarController = {
 };
 
 /**
+ * XXX This is a temporary hack so we can release 1.0b2. This will soon be
+ * superceeded by a new command controller architecture.
+ */
+var calendarController2 = {
+    defaultController: null,
+
+    commands: {
+        "cmd_cut": true,
+        "cmd_copy": true,
+        "cmd_paste": true,
+        "cmd_undo": true,
+        "cmd_redo": true,
+        "cmd_print": true,
+        "cmd_selectAll": true,
+        "cmd_pageSetup": true,
+
+        "cmd_printpreview": true,
+        "button_print": true,
+        "button_delete": true,
+        "cmd_delete": true,
+        "cmd_properties": true,
+        "cmd_goForward": true,
+        "cmd_goBack": true,
+        "cmd_fullZoomReduce": true,
+        "cmd_fullZoomEnlarge": true,
+        "cmd_fullZoomReset": true
+    },
+
+    // These functions can use the same from the calendar controller for now.
+    updateCommands: calendarController.updateCommands,
+    supportsCommand: calendarController.supportsCommand,
+    onEvent: calendarController.onEvent,
+
+    isCommandEnabled: function isCommandEnabled(aCommand) {
+        switch (aCommand) {
+            // Thunderbird Commands
+            case "cmd_cut":
+                return calendarController.selected_items_writable;
+            case "cmd_copy":
+                return calendarController.item_selected;
+            case "cmd_paste":
+                return canPaste();
+            case "cmd_undo":
+                goSetMenuValue(aCommand, 'valueDefault');
+                return canUndo();
+            case "cmd_redo":
+                goSetMenuValue(aCommand, 'valueDefault');
+                return canRedo();
+            case "button_delete":
+            case "cmd_delete":
+                return calendarController.isCommandEnabled("calendar_delete_focused_item_command");
+            case "cmd_fullZoomReduce":
+            case "cmd_fullZoomEnlarge":
+            case "cmd_fullZoomReset":
+              return calendarController.isInMode("calendar") &&
+                     currentView().supportsZoom;
+            case "cmd_properties":
+            case "cmd_printpreview":
+                return false;
+            default:
+                return true;
+        }
+    },
+
+    doCommand: function doCommand(aCommand) {
+        switch (aCommand) {
+            // These commands are overridden in lightning and native in sunbird.
+            case "cmd_cut":
+                cutToClipboard();
+                break;
+            case "cmd_copy":
+                copyToClipboard();
+                break;
+            case "cmd_paste":
+                pasteFromClipboard();
+                break;
+            case "cmd_undo":
+                undo();
+                break;
+            case "cmd_redo":
+                redo();
+                break;
+            case "cmd_selectAll":
+                selectAllEvents();
+                break;
+            case "cmd_pageSetup":
+                PrintUtils.showPageSetup();
+                break;
+            case "button_print":
+            case "cmd_print":
+                calPrint();
+                break;
+
+            // Thunderbird commands
+            case "cmd_goForward":
+                currentView().moveView(1);
+                break;
+            case "cmd_goBack":
+                currentView().moveView(-1);
+                break;
+            case "cmd_fullZoomReduce":
+                currentView().zoomIn();
+                break;
+            case "cmd_fullZoomEnlarge":
+                currentView().zoomOut();
+                break;
+            case "cmd_fullZoomReset":
+                currentView().zoomReset();
+                break;
+
+            case "button_delete":
+            case "cmd_delete":
+                calendarController.doCommand("calendar_delete_focused_item_command");
+                break;
+        }
+    }
+};
+
+/**
  * Inserts the command controller into the document. On Lightning, also make
  * sure that it is inserted before the conflicting thunderbird command
  * controller.
@@ -691,14 +703,19 @@ function injectCalendarCommandController() {
         // gets alive. Please note that setTimeout with a value of 0 means that
         // we leave the current thread in order to re-enter the message loop.
 
-        var tbController = top.controllers.getControllerForCommand("cmd_undo");
+        let tbController = top.controllers.getControllerForCommand("cmd_runJunkControls");
         if (!tbController) {
             setTimeout(injectCalendarCommandController, 0);
             return;
         } else {
             calendarController.defaultController = tbController;
         }
+    } else {
+        // On Sunbird, we also need to set up our hacky command controller.
+        top.controllers.insertControllerAt(0, calendarController2);
     }
+
+    // This needs to be done for all applications
     top.controllers.insertControllerAt(0, calendarController);
     document.commandDispatcher.updateCommands("calendar_commands");
 }
