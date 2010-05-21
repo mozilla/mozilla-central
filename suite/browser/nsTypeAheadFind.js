@@ -201,9 +201,9 @@ typeAheadFind.prototype = {
         element instanceof Components.interfaces.nsIDOMHTMLTextAreaElement)
       return true;
 
-    // Don't start a find if the focus is on an editable field
-    if (element instanceof Components.interfaces.nsIDOMNSEditableElement &&
-        element.editor)
+    // Don't start a find if the focus is on a text, password or file field.
+    if (element instanceof Components.interfaces.nsIDOMHTMLInputElement &&
+        element.type in {text: true, password: true, file: true})
       return true;
 
     // Don't start a find if the focus isn't or can't be set to content
