@@ -392,6 +392,9 @@ pref("shell.checkDefaultApps", 3);
 pref("app.releaseNotesURL", "chrome://branding/locale/brand.properties");
 pref("app.vendorURL", "chrome://branding/locale/brand.properties");
 
+// Base URL for web-based support pages.
+pref("app.support.baseURL", "http://www.seamonkey-project.org/doc/");
+
 // App-specific update preferences
 
 // Whether or not app updates are enabled
