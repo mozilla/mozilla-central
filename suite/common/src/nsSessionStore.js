@@ -80,7 +80,13 @@ const OBSERVING = [
 XUL Window properties to (re)store
 Restored in restoreDimensions()
 */
-const WINDOW_ATTRIBUTES = ["width", "height", "screenX", "screenY", "sizemode"];
+const WINDOW_ATTRIBUTES = {
+  width: "outerWidth",
+  height: "outerHeight",
+  screenX: "screenX",
+  screenY: "screenY",
+  sizemode: "windowState"
+};
 
 /*
 Hideable window features to (re)store
@@ -1594,9 +1600,8 @@ SessionStoreService.prototype = {
   _updateWindowFeatures: function sss_updateWindowFeatures(aWindow) {
     var winData = this._windows[aWindow.__SSi];
 
-    WINDOW_ATTRIBUTES.forEach(function(aAttr) {
+    for (var aAttr in WINDOW_ATTRIBUTES)
       winData[aAttr] = this._getWindowDimension(aWindow, aAttr);
-    }, this);
 
     var hidden = WINDOW_HIDEABLE_FEATURES.filter(function(aItem) {
       return aWindow[aItem] && !aWindow[aItem].visible;
@@ -2502,10 +2507,17 @@ SessionStoreService.prototype = {
                               .createInstance(Components.interfaces.nsISupportsString);
     argString.data = "about:blank";
 
-    //XXXzeniko shouldn't it be possible to set the window's dimensions here (as feature)?
+    var features = "chrome,dialog=no,all";
+    var winState = aState.windows[0];
+    for (var aAttr in WINDOW_ATTRIBUTES) {
+      // Use !isNaN as an easy way to ignore sizemode and check for numbers
+      if (aAttr in winState && !isNaN(winState[aAttr]))
+        features += "," + WINDOW_ATTRIBUTES[aAttr] + "=" + winState[aAttr];
+    }
+
     var window =
       Services.ww.openWindow(null, this._prefBranch.getCharPref("chromeURL"),
-                             "_blank", "chrome,dialog=no,all", argString);
+                             "_blank", features, argString);
 
     do {
       var ID = "window" + Math.random();
@@ -2568,8 +2580,9 @@ SessionStoreService.prototype = {
    * @returns string
    */
   _getWindowDimension: function sss_getWindowDimension(aWindow, aAttribute) {
+    var dimension = aWindow[WINDOW_ATTRIBUTES[aAttribute]];
     if (aAttribute == "sizemode") {
-      switch (aWindow.windowState) {
+      switch (dimension) {
       case aWindow.STATE_MAXIMIZED:
         return "maximized";
       case aWindow.STATE_MINIMIZED:
@@ -2577,19 +2590,6 @@ SessionStoreService.prototype = {
       default:
         return "normal";
       }
-    }
-
-    var dimension;
-    switch (aAttribute) {
-    case "width":
-      dimension = aWindow.outerWidth;
-      break;
-    case "height":
-      dimension = aWindow.outerHeight;
-      break;
-    default:
-      dimension = aAttribute in aWindow ? aWindow[aAttribute] : "";
-      break;
     }
 
     if (aWindow.windowState == aWindow.STATE_NORMAL) {
