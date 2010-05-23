@@ -264,8 +264,11 @@ SessionStoreService.prototype = {
         }
        }
       // make sure that at least the first window doesn't have anything hidden
-      if (this._initialState.windows[0])
+      if (this._initialState.windows[0]) {
         delete this._initialState.windows[0].hidden;
+        // Since nothing is hidden in the first window, it cannot be a popup
+        delete this._initialState.windows[0].isPopup;
+      }
     }
 
     // remove the session data files if crash recovery is disabled
