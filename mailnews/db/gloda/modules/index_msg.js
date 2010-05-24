@@ -1721,7 +1721,7 @@ var GlodaMsgIndexer = {
 
     // persist the new priority
     GlodaDatastore.updateFolderIndexingPriority(glodaFolder);
-    aFolder.setStringProperty("indexingPriority", Number.toString(aPriority));
+    aFolder.setStringProperty("indexingPriority", Number(aPriority).toString());
 
     // if we've been told never to index this folder...
     if (aPriority == glodaFolder.kIndexingNeverPriority) {
