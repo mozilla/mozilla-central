@@ -37,9 +37,7 @@
 
 function browserWindowsCount() {
   let count = 0;
-  let e = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                    .getService(Components.interfaces.nsIWindowMediator)
-                    .getEnumerator("navigator:browser");
+  let e = Services.wm.getEnumerator("navigator:browser");
   while (e.hasMoreElements()) {
     if (!e.getNext().closed)
       ++count;
@@ -80,57 +78,45 @@ function test() {
   }
 
   // open a window and add the above closed tab list
-  let newWin = openDialog(location, "_blank", "chrome,all,dialog=no");
+  let newWin = openDialog(location, "", "chrome,all,dialog=no");
   newWin.addEventListener("load", function(aEvent) {
-    newWin.getBrowser().removeEventListener("load", arguments.callee, false);
     gPrefService.setIntPref("browser.sessionstore.max_tabs_undo",
                             test_state.windows[0]._closedTabs.length);
-    //ss.setWindowState(newWin, JSON.stringify(test_state), true);
-    let browser = newWin.getBrowser();
-    let tab1 = browser.addTab("data:text/html,<title>REMEMBER</title>");
-    let tab2 = browser.addTab("data:text/html,<title>FORGET</title>");
-    let tab3 = browser.addTab("data:text/html,<title>REMEMBER</title>");
-    let tab4 = browser.addTab("data:text/html,<title>FORGET</title>");
-    executeSoon(function() {
-     browser.removeTab(tab1);
-     browser.removeTab(tab2);
-     browser.removeTab(tab3);
-     browser.removeTab(tab4);
-     let closedTabs = JSON.parse(ss.getClosedTabData(newWin));
+    ss.setWindowState(newWin, JSON.stringify(test_state), true);
 
-     is(closedTabs.length, test_state.windows[0]._closedTabs.length,
+    let closedTabs = JSON.parse(ss.getClosedTabData(newWin));
+    is(closedTabs.length, test_state.windows[0]._closedTabs.length,
        "Closed tab list has the expected length");
-     is(countByTitle(closedTabs, "FORGET"),
+    is(countByTitle(closedTabs, FORGET),
        test_state.windows[0]._closedTabs.length - remember_count,
        "The correct amout of tabs are to be forgotten");
-     is(countByTitle(closedTabs, "REMEMBER"), remember_count,
+    is(countByTitle(closedTabs, REMEMBER), remember_count,
        "Everything is set up.");
 
-     // all of the following calls with illegal arguments should throw NS_ERROR_ILLEGAL_VALUE
-     ok(testForError(function() ss.forgetClosedTab({}, 0)),
+    // all of the following calls with illegal arguments should throw NS_ERROR_ILLEGAL_VALUE
+    ok(testForError(function() ss.forgetClosedTab({}, 0)),
        "Invalid window for forgetClosedTab throws");
-     ok(testForError(function() ss.forgetClosedTab(newWin, -1)),
+    ok(testForError(function() ss.forgetClosedTab(newWin, -1)),
        "Invalid tab for forgetClosedTab throws");
-     ok(testForError(function() ss.forgetClosedTab(newWin, test_state.windows[0]._closedTabs.length + 1)),
+    ok(testForError(function() ss.forgetClosedTab(newWin, test_state.windows[0]._closedTabs.length + 1)),
        "Invalid tab for forgetClosedTab throws");
 
-     // Remove third tab, then first tab
-     ss.forgetClosedTab(newWin, 2);
-     ss.forgetClosedTab(newWin, null);
+    // Remove third tab, then first tab
+    ss.forgetClosedTab(newWin, 2);
+    ss.forgetClosedTab(newWin, null);
 
-     closedTabs = JSON.parse(ss.getClosedTabData(newWin));
-     is(closedTabs.length, remember_count,
-	"The correct amout of tabs was removed");
-     is(countByTitle(closedTabs, "FORGET"), 0,
-	"All tabs specifically forgotten were indeed removed");
-     is(countByTitle(closedTabs, "REMEMBER"), remember_count,
-	"... and tabs not specifically forgotten weren't.");
+    closedTabs = JSON.parse(ss.getClosedTabData(newWin));
+    is(closedTabs.length, remember_count,
+       "The correct amout of tabs was removed");
+    is(countByTitle(closedTabs, FORGET), 0,
+       "All tabs specifically forgotten were indeed removed");
+    is(countByTitle(closedTabs, REMEMBER), remember_count,
+       "... and tabs not specifically forgetten weren't.");
  
-     // clean up
-     newWin.close();
-     is(browserWindowsCount(), 1, "Only one browser window should be open eventually");
-     gPrefService.clearUserPref("browser.sessionstore.max_tabs_undo");
-     finish();
-    });
+    // clean up
+    newWin.close();
+    is(browserWindowsCount(), 1, "Only one browser window should be open eventually");
+    gPrefService.clearUserPref("browser.sessionstore.max_tabs_undo");
+    finish();
   }, false);
 }
