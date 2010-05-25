@@ -1026,7 +1026,7 @@ FeedWriter.prototype = {
     // List of web handlers
     var wccr = Components.classes["@mozilla.org/embeddor.implemented/web-content-handler-registrar;1"]
                          .getService(Components.interfaces.nsIWebContentConverterService);
-    var handlers = wccr.getContentHandlers(this._getMimeTypeForFeedType(feedType), {});
+    var handlers = wccr.getContentHandlers(this._getMimeTypeForFeedType(feedType));
     if (handlers.length != 0) {
       for (let i = 0; i < handlers.length; ++i) {
         menuItem = this._document.createElementNS(XUL_NS, "menuitem");
@@ -1407,6 +1407,7 @@ FeedWriter.prototype = {
    onEndUpdateBatch: function() { },
    onVisit: function() { },
    onTitleChanged: function() { },
+   onBeforeDeleteURI: function() { },
    onDeleteURI: function() { },
    onClearHistory: function() { },
    onDeleteVisits: function() { },
