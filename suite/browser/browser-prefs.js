@@ -562,8 +562,6 @@ pref("dom.ipc.plugins.enabled", false);
 pref("dom.ipc.plugins.enabled", true);
 #endif
 
-// Disables default plugin for Plugin Finder Service
-pref("plugin.default_plugin_disabled", true);
 // plugin finder service url
 pref("pfs.datasource.url", "https://pfs.mozilla.org/plugins/PluginFinderService.php?mimetype=%PLUGIN_MIMETYPE%&appID=%APP_ID%&appVersion=%APP_VERSION%&clientOS=%CLIENT_OS%&chromeLocale=%CHROME_LOCALE%");
 pref("plugins.hide_infobar_for_missing_plugin", false);

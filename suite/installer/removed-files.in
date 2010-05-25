@@ -180,6 +180,23 @@ mozilla-runtime@BIN_SUFFIX@
 ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/info.nib
 ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/objects.xib
 #endif
+#ifdef XP_OS2
+plugins/npnulos2.dll
+#elifdef XP_WIN
+plugins/npnul32.dll
+#elifdef XP_MACOSX
+plugins/DefaultPlugin.plugin/
+plugins/DefaultPlugin.plugin/Contents/
+plugins/DefaultPlugin.plugin/Contents/Info.plist
+plugins/DefaultPlugin.plugin/Contents/MacOS/
+plugins/DefaultPlugin.plugin/Contents/MacOS/DefaultPlugin
+plugins/DefaultPlugin.plugin/Contents/Resources/
+plugins/DefaultPlugin.plugin/Contents/Resources/English.lproj/
+plugins/DefaultPlugin.plugin/Contents/Resources/English.lproj/InfoPlist.strings
+plugins/DefaultPlugin.plugin/Contents/Resources/plugin.png
+#elifdef XP_UNIX
+plugins/libnullplugin.so
+#endif
 #ifdef XP_WIN
 regxpcom.exe
 #endif
