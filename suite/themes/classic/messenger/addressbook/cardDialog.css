@@ -50,6 +50,10 @@
   width: 42ch;
 }
 
+.CardEditLabel {
+  text-align: end;
+}
+
 .PhoneEditWidth {
   width: 24ch;
 }

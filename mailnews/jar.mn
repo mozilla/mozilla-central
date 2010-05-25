@@ -17,7 +17,6 @@ messenger.jar:
     content/messenger/addressbook/addrbookWidgets.xml                          (addrbook/content/addrbookWidgets.xml)
     content/messenger/addressbook/abDragDrop.js                                (addrbook/content/abDragDrop.js)
     content/messenger/addressbook/abMailListDialog.js                          (addrbook/content/abMailListDialog.js)
-    content/messenger/addressbook/abListOverlay.xul                            (addrbook/content/abListOverlay.xul)
     content/messenger/addressbook/addressbook-panel.xul                        (addrbook/content/addressbook-panel.xul)
     content/messenger/addressbook/addressbook-panel.js                         (addrbook/content/addressbook-panel.js)
     content/messagebody/addressbook/print.css                                  (addrbook/content/print.css)

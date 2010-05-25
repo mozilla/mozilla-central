@@ -102,6 +102,7 @@ messenger.jar:
     content/messenger/addressbook/abCardViewOverlay.js                         (addrbook/abCardViewOverlay.js)
     content/messenger/addressbook/abMailListDialog.xul                         (addrbook/abMailListDialog.xul)
     content/messenger/addressbook/abEditListDialog.xul                         (addrbook/abEditListDialog.xul)
+    content/messenger/addressbook/abListOverlay.xul                            (addrbook/abListOverlay.xul)
     content/messenger/addressbook/pref-addressing.js                           (addrbook/prefs/pref-addressing.js)
     content/messenger/addressbook/pref-addressing.xul                          (addrbook/prefs/pref-addressing.xul)
 #ifdef XP_MACOSX
