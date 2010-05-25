@@ -1769,7 +1769,7 @@ PRBool nsImapProtocol::ProcessCurrentURL()
   {
     if (logonFailed)
       rv = NS_ERROR_FAILURE;
-    else if (!GetServerStateParser().LastCommandSuccessful())
+    else if (GetServerStateParser().CommandFailed())
       rv = NS_MSG_ERROR_IMAP_COMMAND_FAILED;
     else
       rv = GetConnectionStatus();
