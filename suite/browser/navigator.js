@@ -2615,8 +2615,6 @@ function BrowserToolboxCustomizeDone(aToolboxChanged)
   gButtonPrefListener.updateButton("browser.toolbars.showbutton.go");
   gButtonPrefListener.updateButton("browser.toolbars.showbutton.search");
 
-  // XXXRatty: Remember to update Feedhandler once we get one.
-
   // fix up the personal toolbar folder
   var bt = document.getElementById("bookmarks-ptf");
   if (isElementVisible(bt)) {
