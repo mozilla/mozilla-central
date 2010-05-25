@@ -68,10 +68,6 @@ function setupModule(module) {
  *  in both cases but do save/restore around our test.
  */
 function test_buttons_collapse_and_expand() {
-  // XXX Disabled due to consistent failures thought not to be a result of
-  // bustage. Bug 561052 tracks fixing it.
-  return;
-
   assert_quick_filter_bar_visible(true); // precondition
 
   try {
