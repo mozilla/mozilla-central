@@ -394,6 +394,7 @@
 @BINPATH@/components/chrome.xpt
 @BINPATH@/components/nsDefaultCLH.js
 @BINPATH@/components/nsFormAutoComplete.js
+@BINPATH@/components/nsFormHistory.js
 #ifdef XP_MACOSX
 @BINPATH@/components/libalerts_s.dylib
 #elifdef XP_UNIX

@@ -463,6 +463,7 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/nsFilePicker.js
 #endif
 @BINPATH@/components/nsFormAutoComplete.js
+@BINPATH@/components/nsFormHistory.js
 @BINPATH@/components/nsHandlerService.js
 @BINPATH@/components/nsHelperAppDlg.js
 @BINPATH@/components/nsINIProcessor.js
