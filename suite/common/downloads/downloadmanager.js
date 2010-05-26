@@ -699,3 +699,49 @@ var dlTreeController = {
       goUpdateCommand(cmds[command]);
   }
 };
+
+var gDownloadDNDObserver = {
+  onDragStart: function (aEvent)
+  {
+    if (!gDownloadTreeView ||
+        !gDownloadTreeView.selection ||
+        !gDownloadTreeView.selection.count)
+      return;
+
+    var selItemData = gDownloadTreeView.getRowData(gDownloadTree.currentIndex);
+    var file = getLocalFileFromNativePathOrUrl(selItemData.file);
+
+    if (!file.exists())
+      return;
+
+    var url = Services.io.newFileURI(file).spec;
+    var dt = aEvent.dataTransfer;
+    dt.mozSetDataAt("application/x-moz-file", file, 0);
+    dt.setData("text/uri-list", url + "\r\n");
+    dt.setData("text/plain", url + "\n");
+    dt.effectAllowed = "copyMove";
+  },
+
+  onDragOver: function (aEvent)
+  {
+    var types = aEvent.dataTransfer.types;
+    if (types.contains("text/uri-list") ||
+        types.contains("text/x-moz-url") ||
+        types.contains("text/plain"))
+      aEvent.preventDefault();
+    aEvent.stopPropagation();
+  },
+
+  onDrop: function(aEvent)
+  {
+    var dt = aEvent.dataTransfer;
+    var url = dt.getData("URL");
+    var name;
+    if (!url) {
+      url = dt.getData("text/x-moz-url") || dt.getData("text/plain");
+      [url, name] = url.split("\n");
+    }
+    if (url)
+      saveURL(url, name, null, true, true);
+  }
+}

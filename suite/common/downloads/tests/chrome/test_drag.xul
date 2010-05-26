@@ -1,0 +1,215 @@
+<?xml version="1.0"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Mozilla Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2009
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Phil Lacy <philbaseless-firefox@yahoo.com> (Original Author)
+ *   Jens Hatlak <jh@junetz.de>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+/**
+ * Assure download manager can load valid list item as
+ * "application/moz-x-file", "text/uri-list" and "text/plain"
+ */
+
+based on toolkit/mozapps/downloads/tests/chrome/test_bug_462172.xul
+https://bugzilla.mozilla.org/show_bug.cgi?id=462172
+
+create a file with unique name
+create another file with unique name and delete it
+load into downloads database
+open download manager
+synthesize drag on both files
+missing file should not init drag
+real file should return transferdata with application/x-moz-file,
+  text/uri-list (CRLF-terminated) and text/plain (LF-terminated)
+close window
+-->
+<window title="Download Manager Test"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload="test();">
+  <script type="application/javascript"
+          src="chrome://mochikit/content/MochiKit/packed.js"/>
+  <script type="application/javascript"
+          src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"/>
+  <script type="application/javascript"
+          src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"></script>
+  <script type="application/javascript">
+  <![CDATA[
+var missingFileElid;
+var realFileElid;
+const kFiller = "notApplicable";
+const kFillerURL = "https://bugzilla.mozilla.org/show_bug.cgi?id=462172"
+var realFile = Components.classes["@mozilla.org/file/directory_service;1"]
+                         .getService(Components.interfaces.nsIProperties)
+                         .get("CurWorkD", Components.interfaces.nsIFile);
+var missingFile = Components.classes["@mozilla.org/file/directory_service;1"]
+                            .getService(Components.interfaces.nsIProperties)
+                            .get("CurWorkD", Components.interfaces.nsIFile);
+
+var ios = Components.classes["@mozilla.org/network/io-service;1"]
+                    .getService(Components.interfaces.nsIIOService);
+
+realFile.append(kFiller);
+realFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0666);
+var realFilePath = ios.newFileURI(realFile).spec;
+
+missingFile.append(kFiller);
+missingFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0666);
+var missingFilePath = ios.newFileURI(missingFile).spec;
+missingFile.remove(false);
+
+// Dummy data for our files.
+// 'source' field must be in form of a URL.
+const DownloadData = [
+  { name: kFiller,
+    source: kFillerURL,
+    target: realFilePath,
+    state: Components.interfaces.nsIDownloadManager.DOWNLOAD_FINISHED },
+  { name: kFiller,
+    source: kFillerURL,
+    target: missingFilePath,
+    state: Components.interfaces.nsIDownloadManager.DOWNLOAD_FINISHED }
+];
+
+function mouseDragStartOnCell(aTree, aRow, aColumn, aWin, aFile)
+{
+  // get cell coordinates
+  var x = {}, y = {}, width = {}, height = {};
+  if (typeof aTree.columns != "undefined")
+    aColumn = aTree.columns[aColumn];
+  aTree.treeBoxObject.getCoordsForCellItem(aRow, aColumn, "text", x, y, width,
+                                           height);
+  return synthesizeDragStart(aTree.body, aFile, aWin, x.value, y.value);
+}
+
+function compareFunc(actualData, expectedData)
+{
+  return expectedData.equals(actualData);
+}
+
+var dragRealFile = [[
+  { type: "application/x-moz-file",
+    data: realFile,
+    eqTest: compareFunc },
+  { type: "text/uri-list",
+    data: realFilePath + "\r\n" },
+  { type: "text/plain",
+    data: realFilePath + "\n" }
+]];
+var dragMissingFile = [[
+  { type: "application/x-moz-file",
+    data: missingFile,
+    eqTest: compareFunc },
+  { type: "text/uri-list",
+    data: missingFilePath + "\r\n" },
+  { type: "text/plain",
+    data: missingFilePath + "\n" }
+]];
+
+function test()
+{
+  var dm = Components.classes["@mozilla.org/download-manager;1"]
+                     .getService(Components.interfaces.nsIDownloadManager);
+
+  // See if the DM is already open, and if it is, close it!
+  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                     .getService(Components.interfaces.nsIWindowMediator);
+  var win = wm.getMostRecentWindow("Download:Manager");
+  if (win)
+    win.close();
+
+  var os = Components.classes["@mozilla.org/observer-service;1"]
+                     .getService(Components.interfaces.nsIObserverService);
+  const DLMGR_UI_DONE = "download-manager-ui-done";
+
+  // load files into db
+  var db = dm.DBConnection;
+
+  var stmt = db.createStatement(
+    "INSERT INTO moz_downloads ( name,  source,  target,  state)" +
+    "VALUES                    (:name, :source, :target, :state)");
+  for each (var dl in DownloadData) {
+    for (var prop in dl)
+      stmt.params[prop] = dl[prop];
+    stmt.execute();
+  }
+  stmt.finalize();
+
+  var testObs = {
+    observe: function(aSubject, aTopic, aData) {
+      if (aTopic != DLMGR_UI_DONE)
+        return;
+
+      var win = aSubject;
+      win.focus();
+
+      var downloadTree = win.document.getElementById("downloadTree");
+
+      // Now we can run our tests
+      // Unordered sorting -> DownloadData/insert order: realFile, missingFile
+      // Column 4 is "Progress" (column 1, "Status", is hidden by default)
+      var result = mouseDragStartOnCell(downloadTree, 0, 4, win, dragRealFile);
+      is(result, null, "Checking for Real file match");
+      result = mouseDragStartOnCell(downloadTree, 1, 4, win, dragMissingFile);
+      isnot(result, null, "Drag start did not return item for missing file");
+
+      // Done.
+      win.close();
+      realFile.remove(false);
+      os.removeObserver(testObs, DLMGR_UI_DONE);
+      SimpleTest.finish();
+    }
+  };
+
+  // Register with the observer service
+  os.addObserver(testObs, DLMGR_UI_DONE, false);
+
+  // Show the Download Manager UI
+  Components.classes["@mozilla.org/download-manager-ui;1"]
+            .getService(Components.interfaces.nsISuiteDownloadManagerUI)
+            .showManager();
+
+  SimpleTest.waitForExplicitFinish();
+}
+
+  ]]>
+  </script>
+
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <p id="display"></p>
+    <div id="content" style="display:none;"></div>
+    <pre id="test"></pre>
+  </body>
+</window>

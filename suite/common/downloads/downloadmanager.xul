@@ -67,6 +67,8 @@
           src="chrome://communicator/content/downloads/DownloadProgressListener.js"/>
   <script type="application/javascript"
           src="chrome://communicator/content/downloads/treeView.js"/>
+  <script type="application/javascript"
+          src="chrome://global/content/contentAreaUtils.js"/>
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="dmBundle"
@@ -391,6 +393,9 @@
         context="downloadContext"
         enableColumnDrag="true"
         ondblclick="goDoCommand('cmd_open');"
+        ondragstart="gDownloadDNDObserver.onDragStart(event);"
+        ondragover="gDownloadDNDObserver.onDragOver(event);"
+        ondrop="gDownloadDNDObserver.onDrop(event);"
         onselect="onTreeSelect(event);">
     <treecols context="" onclick="sortDownloads(event.target)">
       <treecol id="Name"
