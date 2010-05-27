@@ -177,7 +177,7 @@ function FillMailContextMenu(aTarget)
   ShowMenuItem("mailContext-copyMenu", showMailItems && oneOrMore);
   ShowMenuItem("mailContext-tags", showMailItems && oneOrMore);
   ShowMenuItem("mailContext-mark", showMailItems && oneOrMore);
-  ShowMenuItem("mailContext-saveAs", showMailItems && single);
+  ShowMenuItem("mailContext-saveAs", showMailItems && oneOrMore);
   ShowMenuItem("mailContext-printpreview", showMailItems && single);
 
   ShowMenuItem("mailContext-print", showMailItems);

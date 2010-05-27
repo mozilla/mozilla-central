@@ -406,17 +406,28 @@ function SubscribeOKCallback(changeTable)
   }
 }
 
-function SaveAsFile(uri)
+function SaveAsFile(aUris)
 {
-  if (uri) {
-    var filename = null;
-    try {
-      var subject = messenger.msgHdrFromURI(uri).mime2DecodedSubject;
-      filename = GenerateValidFilename(subject, ".eml");
-    }
-    catch (ex) {}
-    messenger.saveAs(uri, true, null, filename);
+  if (/type=application\/x-message-display/.test(aUris[0]))
+  {
+    saveURL(aUris[0], null, "", true, false, null);
+    return;
   }
+
+  var num = aUris.length;
+  var fileNames = [];
+  for (let i = 0; i < num; i++)
+  {
+    let subject = messenger.messageServiceFromURI(aUris[i])
+                           .messageURIToMsgHdr(aUris[i])
+                           .mime2DecodedSubject;
+    fileNames[i] = suggestUniqueFileName(subject.substr(0, 120), ".eml",
+                                         fileNames);
+  }
+  if (num == 1)
+    messenger.saveAs(aUris[0], true, null, fileNames[0]);
+  else
+    messenger.saveMessages(num, fileNames, aUris);
 }
 
 function SaveAsTemplate(uri, folder)

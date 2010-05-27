@@ -292,6 +292,7 @@ var DefaultController =
         if (!(loadedFolder && loadedFolder.server.canHaveFilters))
           return false;   // else fall thru
       case "cmd_saveAsFile":
+        return GetNumSelectedMessages() > 0;
       case "cmd_saveAsTemplate":
 	      if ( GetNumSelectedMessages() > 1)
           return false;   // else fall thru

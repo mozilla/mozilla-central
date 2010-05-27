@@ -1528,9 +1528,7 @@ function MsgUnsubscribe()
 
 function MsgSaveAsFile()
 {
-    if (GetNumSelectedMessages() == 1) {
-        SaveAsFile(GetFirstSelectedMessage());
-    }
+  SaveAsFile(GetSelectedMessages());
 }
 
 function MsgSaveAsTemplate()

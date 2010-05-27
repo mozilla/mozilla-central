@@ -618,7 +618,6 @@ var MessageWindowController =
       case "button_shiftDelete":
       case "button_junk":
       case "cmd_shiftDelete":
-      case "cmd_saveAsFile":
       case "cmd_saveAsTemplate":
       case "cmd_viewPageSource":
       case "cmd_getMsgsForAuthAccounts":
@@ -671,6 +670,7 @@ var MessageWindowController =
       case "cmd_findPrev":
       case "cmd_search":
       case "cmd_reload":
+      case "cmd_saveAsFile":
       case "cmd_getNewMessages":
       case "button_getNewMessages":
       case "button_print":
