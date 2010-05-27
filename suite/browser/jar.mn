@@ -24,11 +24,6 @@ comm.jar:
    content/navigator/sessionHistoryUI.js
    content/navigator/tabbrowser.xml
    content/navigator/urlbarBindings.xml
-   content/navigator/viewsource.js
-   content/navigator/viewSource.xul
-   content/navigator/viewSourceOverlay.xul
-   content/navigator/viewPartialSource.js
-   content/navigator/viewPartialSource.xul
 #ifdef XP_MACOSX
    content/navigator/platformNavigationBindings.xul                 (mac/platformNavigationBindings.xul)
    content/navigator/platformMailOverlay.xul                        (mac/platformMailOverlay.xul)

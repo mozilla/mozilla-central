@@ -1701,7 +1701,7 @@ function BrowserViewSourceOfDocument(aDocument)
 function BrowserViewSourceOfURL(url, charset, pageCookie)
 {
   // try to open a view-source window while inheriting the charset (if any)
-  openDialog("chrome://navigator/content/viewSource.xul",
+  openDialog("chrome://global/content/viewSource.xul",
              "_blank",
              "all,dialog=no",
              url, charset, pageCookie);

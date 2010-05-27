@@ -472,7 +472,7 @@ function ViewPageSource(messages)
             // Now, we need to get a URL from a URI
             var url = mailSession.ConvertMsgURIToMsgURL(messages[i], msgWindow);
 
-            window.openDialog( "chrome://navigator/content/viewSource.xul",
+            window.openDialog( "chrome://global/content/viewSource.xul",
                                "_blank", "all,dialog=no", url,
                                mailCharacterSet);
         }

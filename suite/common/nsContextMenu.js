@@ -769,8 +769,8 @@ nsContextMenu.prototype = {
       throw "not reached";
 
     var docUrl = null; // unused (and play nice for fragments generated via XSLT too)
-    window.openDialog("chrome://navigator/content/viewPartialSource.xul",
-                      "_blank", "scrollbars,resizable,chrome,dialog=no",
+    window.openDialog("chrome://global/content/viewPartialSource.xul",
+                      "_blank", "all,dialog=no",
                       docUrl, docCharset, reference, aContext);
   },
 

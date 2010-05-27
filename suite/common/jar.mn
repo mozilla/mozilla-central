@@ -5,6 +5,8 @@ comm.jar:
 % overlay chrome://communicator/content/contentAreaContextOverlay.xul chrome://communicator/content/permissions/imageContextOverlay.xul
 % overlay chrome://navigator/content/navigatorOverlay.xul chrome://communicator/content/permissions/permissionsNavigatorOverlay.xul
 % overlay chrome://global/content/console.xul chrome://communicator/content/consoleOverlay.xul
+% overlay chrome://global/content/viewSource.xul chrome://communicator/content/viewSourceOverlay.xul
+% overlay chrome://global/content/viewPartialSource.xul chrome://communicator/content/viewSourceOverlay.xul
 % overlay chrome://help/content/help.xul chrome://communicator/content/helpOverlay.xul
 % overlay chrome://editor/content/EdAdvancedEdit.xul chrome://communicator/content/helpEditorOverlay.xul
 % overlay chrome://editor/content/EdImageProps.xul chrome://communicator/content/helpEditorOverlay.xul
@@ -78,6 +80,8 @@ comm.jar:
    content/communicator/tasksOverlay.xul
    content/communicator/utilityOverlay.js
    content/communicator/utilityOverlay.xul
+   content/communicator/viewSourceOverlay.js
+   content/communicator/viewSourceOverlay.xul
    content/communicator/viewZoomOverlay.xul
    content/communicator/viewZoomOverlay.js
 #ifdef XP_MACOSX
