@@ -228,9 +228,22 @@ calTransaction.prototype = {
                 break;
             case 'modify':
                 if (this.mItem.calendar.id != this.mOldItem.calendar.id) {
+                    let self = this;
+                    let addListener = {
+                        onOperationComplete: function cT_onOperationComplete(aCalendar,
+                                                                             aStatus,
+                                                                             aOperationType,
+                                                                             aId,
+                                                                             aDetail) {
+                            self.onOperationComplete.apply(self, arguments);
+                            if (Components.isSuccessCode(aStatus)) {
+                                self.mOldItem.calendar.deleteItem(self.mOldItem, self);
+                            }
+                        }
+                    };
+
                     this.mOldCalendar = this.mOldItem.calendar;
-                    this.mOldCalendar.deleteItem(this.mOldItem, this);
-                    this.mCalendar.addItem(this.mItem, this);
+                    this.mCalendar.addItem(this.mItem, addListener);
                 } else {
                     this.mCalendar.modifyItem(cal.itip.prepareSequence(this.mItem, this.mOldItem),
                                               this.mOldItem,
