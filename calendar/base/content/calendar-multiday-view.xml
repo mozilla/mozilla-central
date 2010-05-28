@@ -1285,7 +1285,7 @@
 
           // returns first and last column with shadows that are visible in the
           // week and the positions of these (visible) columns in the set of
-          // columns shadows of the occurence
+          // columns shadows of the occurrence
           return { firstCol:    firstCol,
                    firstIndex:  firstIndex,
                    lastCol:     lastCol,
@@ -1602,9 +1602,10 @@
           }
 
           if (dragState.dragType == "move") {
-              // Figure out how much the event moved.
+              // Figure out how much the event moved to take the same position
+              // of the shadow (snap to full 15 minutes and multiples).
               let duration = dragDay.subtractDate(dragState.origDate);
-              let minutes = dragState.lastStart - dragState.origMinStart;
+              let minutes = dragState.lastStart - dragState.realStart;
 
               // Since both boxDate and beginMove are dates (note datetimes),
               // subtractDate will only give us a non-zero number of hours on
@@ -1777,6 +1778,7 @@
               this.mDragState.origMin = Math.floor(mins.start/15) * 15;
               this.mDragState.origMinStart = Math.floor(mins.realStart/15) * 15;
               this.mDragState.origMinEnd = this.mDragState.limitDurationMin + this.mDragState.origMinStart;
+              this.mDragState.realStart = mins.realStart;
               let shadowElements = this.getShadowElements(this.mDragState.origMinStart,
                                                           this.mDragState.origMinEnd);
               this.mDragState.shadows = shadowElements.shadows;
