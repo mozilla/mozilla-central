@@ -162,17 +162,6 @@
         ]]></body>
       </method>
 
-      <method name="getResultView">
-        <body><![CDATA[
-          try {
-            return this.view.QueryInterface(Components.interfaces.nsINavHistoryResultTreeViewer);
-          }
-          catch (e) {
-          }
-          return null;
-        ]]></body>
-      </method>
-
       <!-- nsIPlacesView -->
       <property name="place">
         <getter><![CDATA[
@@ -212,7 +201,7 @@
 
           var selection = this.view.selection;
           var rc = selection.getRangeCount();
-          var resultview = this.getResultView();
+          var resultview = this.view;
           for (var i = 0; i < rc; ++i) {
             var min = { }, max = { };
             selection.getRangeAt(i, min, max);
@@ -242,7 +231,7 @@
           var min = { }, max = { };
           selection.getRangeAt(0, min, max);
 
-          return this.getResultView().nodeForTreeIndex(min.value);
+          return this.view.nodeForTreeIndex(min.value);
         ]]></getter>
       </property>
 
