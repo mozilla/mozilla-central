@@ -45,7 +45,7 @@
 <!ENTITY allAutosync.label               "Synchronize all messages locally regardless of age">
 <!ENTITY allAutosync.accesskey           "c">
 <!ENTITY ageAutosyncBefore.label         "Synchronize the most recent">
-<!ENTITY ageAutosync.accesskey           "z">
+<!ENTITY ageAutosync.accesskey           "S">
 <!ENTITY ageAutosyncMiddle.label         "">
 <!ENTITY dayAgeInterval.label            "Days">
 <!ENTITY weekAgeInterval.label           "Weeks">
