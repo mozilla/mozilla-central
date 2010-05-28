@@ -75,6 +75,14 @@ list-style-image: url("chrome://messenger/skin/icons/folder-open.png");
   list-style-image: url("chrome://messenger/skin/icons/folder-sent-open.png");
 }
 
+.folderMenuItem[SpecialFolder="Unsent Messages"] {
+  list-style-image: url("chrome://messenger/skin/icons/folder-outbox.png");
+}
+
+.folderMenuItem[SpecialFolder="Unsent Messages"][open="true"] {
+  list-style-image: url("chrome://messenger/skin/icons/folder-outbox-open.png");
+}
+
 .folderMenuItem[SpecialFolder="Drafts"] {
   list-style-image: url("chrome://messenger/skin/icons/folder-draft.png");
 }

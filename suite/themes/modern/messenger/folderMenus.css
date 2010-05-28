@@ -90,6 +90,14 @@
   list-style-image: url("chrome://messenger/skin/icons/folder-template-open.gif");
 }
 
+.folderMenuItem[SpecialFolder="Unsent Messages"] {
+  list-style-image: url("chrome://messenger/skin/icons/folder-outbox.gif");
+}
+
+.folderMenuItem[SpecialFolder="Unsent Messages"][open="true"] {
+  list-style-image: url("chrome://messenger/skin/icons/folder-outbox-open.gif");
+}
+
 .folderMenuItem[SpecialFolder="Junk"] {
   list-style-image: url("chrome://messenger/skin/icons/folder-junk.gif");
 }
