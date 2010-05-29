@@ -809,10 +809,10 @@ function GetSuggestedFileName(aDocumentURLString, aMIMEType)
     } catch(e) {}
   } 
 
-  // check if there is a title we can use
-  var title = GetDocumentTitle();
-  // generate a valid filename, if we can't just go with "untitled"
-  return GenerateValidFilename(title, extension) || GetString("untitled") + extension;
+  // check if there is a title we can use to generate a valid filename,
+  // if we can't, just go with "untitled"
+  var title = validateFileName(GetDocumentTitle()) || GetString("untitled");
+  return title + extension;
 }
 
 // returns file picker result

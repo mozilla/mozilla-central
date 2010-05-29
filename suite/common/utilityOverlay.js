@@ -815,22 +815,6 @@ function utilityOnUnload(aEvent)
 addEventListener("load", utilityOnLoad, false);
 
 /**
- * @deprecated   Please use validateFileName from contentAreaUtils.js directly.
- */
-function GenerateValidFilename(filename, extension)
-{
-  if (filename) // we have a title; let's see if it's usable
-  {
-    // clean up the filename to make it usable and
-    // then trim whitespace from beginning and end
-    filename = validateFileName(filename).trim();
-    if (filename.length > 0)
-      return filename + extension;
-  }
-  return null;
-}
-
-/**
  * example use:
  *   suggestUniqueFileName("testname", ".txt", ["testname.txt", "testname(2).txt"])
  *   returns "testname(3).txt"
