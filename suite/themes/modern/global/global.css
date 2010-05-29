@@ -177,7 +177,7 @@ description.error {
 }
 /* :::::: autoscroll popup ::::: */
 
-#autoscroller {
+.autoscroller {
   height: 28px;
   width: 28px;
   border: none;
@@ -189,35 +189,35 @@ description.error {
   -moz-window-shadow: none;
 }
 
-#autoscroller[scrolldir="NS"] {
+.autoscroller[scrolldir="NS"] {
   background-position: left center;
 }
 
-#autoscroller[scrolldir="EW"] {
+.autoscroller[scrolldir="EW"] {
   background-position: left bottom;
 }
 
-#autoscroller[transparent="true"] {
+.autoscroller[transparent="true"] {
   background-position: center top;
 }
 
-#autoscroller[transparent="true"][scrolldir="NS"] {
+.autoscroller[transparent="true"][scrolldir="NS"] {
   background-position: center center;
 }
 
-#autoscroller[transparent="true"][scrolldir="EW"] {
+.autoscroller[transparent="true"][scrolldir="EW"] {
   background-position: center bottom;
 }
 
-#autoscroller[translucent="true"] {
+.autoscroller[translucent="true"] {
   background-position: right top;
 }
 
-#autoscroller[translucent="true"][scrolldir="NS"] {
+.autoscroller[translucent="true"][scrolldir="NS"] {
   background-position: right center;
 }
 
-#autoscroller[translucent="true"][scrolldir="EW"] {
+.autoscroller[translucent="true"][scrolldir="EW"] {
   background-position: right bottom;
 }
 
