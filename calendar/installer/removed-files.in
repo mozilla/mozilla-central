@@ -21,14 +21,10 @@ defaults/profile/US/
 # {641d8d09-7dda-4850-8228-ac0ab65e2ac9} = DOM Inspector
 extensions/{641d8d09-7dda-4850-8228-ac0ab65e2ac9}/install.rdf
 extensions/{641d8d09-7dda-4850-8228-ac0ab65e2ac9}/
-#ifdef MOZILLA_1_9_2_BRANCH
-greprefs.js
-#else
 greprefs/all.js
 greprefs/security-prefs.js
 greprefs/xpinstall.js
 greprefs/
-#endif
 components/component.reg
 components/compreg.dat
 components/xpti.dat
@@ -453,12 +449,8 @@ res/broken-image.gif
 res/loading-image.gif
 
 #ifdef XP_WIN
-#ifdef MOZILLA_1_9_2_BRANCH
-mozjs.dll
-#else
 # Bug 504029
 js3250.dll
-#endif
 #endif
 
 # bug 520394 - We now use Cocoa Printing instead of PrintPDE
@@ -476,11 +468,7 @@ js3250.dll
 components/calbscmp.dll
 #endif
 
-#ifndef MOZILLA_1_9_2_BRANCH
 components/contentprefs.xpt
-#endif
 
 # Bug 522712 - Port |Bug 511761 - Only use compatibility.ini (not .autoreg, or stat()s) to invalidate fastloads and other caches| to comm-central (apps)
-#ifndef MOZILLA_1_9_2_BRANCH
 .autoreg
-#endif

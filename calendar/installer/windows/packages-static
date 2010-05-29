@@ -10,10 +10,6 @@
 
 #filter substitution
 
-#ifdef MOZILLA_1_9_2_BRANCH
-bin/.autoreg
-#endif
-
 [@AB_CD@]
 bin\chrome\@AB_CD@.jar
 bin\chrome\@AB_CD@.manifest
@@ -31,11 +27,7 @@ bin\updater.ini
 
 [xpcom]
 bin\components\components.list
-#ifdef MOZILLA_1_9_2_BRANCH
-bin\js3250.dll
-#else
 bin\mozjs.dll
-#endif
 bin\plc4.dll
 bin\plds4.dll
 bin\xpcom.dll
@@ -77,18 +69,13 @@ bin\components\commandhandler.xpt
 bin\components\commandlines.xpt
 bin\components\composer.xpt
 bin\components\content_base.xpt
-#ifndef MOZILLA_1_9_2_BRANCH
 bin\components\content_canvas.xpt
-#endif
 bin\components\content_events.xpt
 bin\components\content_html.xpt
 bin\components\content_htmldoc.xpt
 bin\components\content_xmldoc.xpt
 bin\components\content_xslt.xpt
 bin\components\content_xtf.xpt
-#ifdef MOZILLA_1_9_2_BRANCH
-bin\components\contentprefs.xpt
-#endif
 bin\components\cookie.xpt
 bin\components\docshell_base.xpt
 bin\components\dom.xpt
@@ -318,13 +305,7 @@ bin\extensions\calendar-timezones@mozilla.org\defaults\preferences\preferences.j
 ; All the pref files must be part of base to prevent migration bugs
 bin\defaults\pref\sunbird.js
 bin\defaults\pref\channel-prefs.js
-#ifdef MOZILLA_1_9_2_BRANCH
-bin\greprefs\all.js
-bin\greprefs\security-prefs.js
-bin\greprefs\xpinstall.js
-#else
 bin\greprefs.js
-#endif
 bin\defaults\autoconfig\platform.js
 bin\defaults\autoconfig\prefcalls.js
 

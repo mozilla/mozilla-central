@@ -43,7 +43,6 @@ MOZ_BRANDING_DIRECTORY=$MOZ_BUILD_APP/sunbird/branding/nightly
 MOZ_UPDATER=1
 MOZ_SUNBIRD=1
 MOZ_CALENDAR=1
-MOZ_APP_VERSION=$SUNBIRD_VERSION
 MOZ_PLAINTEXT_EDITOR_ONLY=1
 NECKO_PROTOCOLS_DEFAULT="about data file ftp http res viewsource"
 MOZ_NO_ACTIVEX_SUPPORT=1
@@ -54,21 +53,8 @@ NECKO_COOKIES=
 MOZ_EXTENSIONS_DEFAULT=
 MOZ_UNIVERSALCHARDET=
 
-# Needed for the mozilla-central build side of the system.
-# Can be dropped when we branch MOZILLA_1_9_2_BRANCH
-MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\.[0-9]\).*/\1/;'`
-
-if test "$MOZILLA_BRANCH_VERSION" = "1.9.2"; then
-  MOZ_APP_VERSION_TXT=$topsrcdir/$MOZ_BUILD_APP/sunbird/config/version-192.txt
-  MOZ_NO_XPCOM_OBSOLETE=1
-  # MOZ_OJI is only required to be cleared for MOZILLA_1_9_2_BRANCH (OS X).
-  MOZ_OJI=
-else
-  MOZ_APP_VERSION_TXT=$topsrcdir/$MOZ_BUILD_APP/sunbird/config/version.txt
-fi
-
+MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/sunbird/config/version.txt
 MOZ_APP_VERSION=`cat $MOZ_APP_VERSION_TXT`
-
 SUNBIRD_VERSION=$MOZ_APP_VERSION
 MOZ_OFFICIAL_BRANDING_DIRECTORY=other-licenses/branding/sunbird
 
