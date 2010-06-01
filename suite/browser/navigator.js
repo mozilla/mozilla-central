@@ -2599,18 +2599,10 @@ function BrowserToolboxCustomizeDone(aToolboxChanged)
 
   // Update the urlbar
   var value = gBrowser.userTypedValue;
-  if (value == null) {
-    let URL = getWebNavigation().currentURI.spec;
-    if (URL != "about:blank" || content.opener) {
-      // XXXRatty: we might need URL = losslessDecodeURI(uri) from Firefox
-      // if we we are affected by bug 410726, bug 452979, etc.
-      // (Unfortunately I don't have access to 452979)
-      value = URL;
-    }
-    else
-      value = "";
-  }
-  gURLBar.value = value;
+  if (value == null)
+    URLBarSetURI();
+  else
+    gURLBar.value = value;
 
   gButtonPrefListener.updateButton("browser.toolbars.showbutton.go");
   gButtonPrefListener.updateButton("browser.toolbars.showbutton.search");
