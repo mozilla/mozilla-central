@@ -260,7 +260,7 @@
     identification, used as part of its URL. For example, the host name for the
     Netscape website is <tt>home.netscape.com</tt>.</li>
   <li><strong>Organization</strong>: The name of the organization that runs the
-    web site.</li>
+    website.</li>
   <li><strong>Issued under</strong>: The name of the
     <a href="glossary.xhtml#certificate_authority">certificate authority (CA)</a>
     that issued the certificate.</li>
@@ -303,7 +303,7 @@
 
 <ul>
   <li><strong>Trust this CA to identify websites</strong>: Website certificates
-    for some sites, such as those that handle financial transactions, can be
+    for some websites, such as those that handle financial transactions, can be
     extremely important, and inappropriate or false identification can have
     negative consequences.</li>
   <li><strong>Trust this CA to identify email users</strong>: If you intend to
@@ -361,12 +361,12 @@
 <h3 id="secure_connection_failed_page">Secure Connection Failed Page</h3>
 
 <p>In the case where you have disabled the SSL protocol (e.g. through
-  <a href="ssl_help.xhtml#ssl_settings">SSL Settings</a>) or the site that you
-  are accessing is using an older, insecure version of the SSL protocol then you
-  will be presented with a page titled &quot;Secure Connection Failed&quot;.
+  <a href="ssl_help.xhtml#ssl_settings">SSL Settings</a>) or the website that
+  you are accessing is using an older, insecure version of the SSL protocol then
+  you will be presented with a page titled &quot;Secure Connection Failed&quot;.
   That page contains some basic background information (including the
   <strong>Error code</strong> that uniquely identifies the type of problem
-  &brandShortName; detected with the site) and a <strong>Try Again</strong>
+  &brandShortName; detected with the website) and a <strong>Try Again</strong>
   button that triggers a page reload.</p>
 
 <h3 id="untrusted_connection_page">Untrusted Connection Page</h3>
@@ -381,7 +381,7 @@
     valid (expired)</a></li>
   <li>the certificate of the website is
     <a href="#certificate_not_yet_valid">not yet valid</a></li>
-  <li>the certificate of the website is only valid for another site
+  <li>the certificate of the website is only valid for another website
     (<a href="#domain_name_mismatch">domain name mismatch</a>)</li>
   <li>the certificate of the website is self-signed (thus the identity of the
     website cannot be verified).</li>
@@ -393,22 +393,22 @@
 
 <p>The page displayed in the above cases is meant to help you understand why
   &brandShortName; was unable to establish a secure connection to the website.
-  It starts by telling you that the site&apos;s identity could not be verified,
-  then offers you to leave the page by clicking the <strong>This sounds bad,
-  take me to my home page instead</strong> button. If you are unsure what to do
-  it is recommended that you follow this advice.</p>
+  It starts by telling you that the website&apos;s identity could not be
+  verified, then offers you to leave the page by clicking the <strong>This
+  sounds bad, take me to my home page instead</strong> button. If you are unsure
+  what to do it is recommended that you follow this advice.</p>
 
 <p>If you want to know a little bit more about the actual problem at hand you
   may expand the corresponding section by clicking the chevron in front of
   <strong>Technical Details</strong>. That section also contains the
   <strong>Error code</strong> that uniquely identifies the type of problem
-  &brandShortName; detected with the site.</p>
+  &brandShortName; detected with the website.</p>
 
 <h4 id="add_security_exception">Adding a Security Exception</h4>
 
 <p>The <strong>I Understand the Risks</strong> section of the Untrusted
   Connection page allows you to tell &brandShortName; to explicitly override the
-  security checks for this site by adding an exception. If you expand the
+  security checks for this website by adding an exception. If you expand the
   section by clicking the chevron in front of it you will see an <strong>Add
   Exception</strong> button that will take you to a dialog allowing you to get
   and view the website&apos;s certificate and optionally add a Security
@@ -439,9 +439,9 @@
   expired.</p>
 
 <p>If your computer&apos;s clock is set correctly, you need to make a decision
-  about whether to trust the site. This decision depends on what you intend to
-  do at the site and what else you know about it. Most commercial sites will
-  make sure that they replace their certificates before they expire. If you
+  about whether to trust the website. This decision depends on what you intend
+  to do at the website and what else you know about it. Most commercial sites
+  will make sure that they replace their certificates before they expire. If you
   choose to continue you need to <a href="#add_security_exception">add a
   security exception</a>.</p>
 
@@ -459,16 +459,16 @@
   not yet valid even if this is not the case.</p>
 
 <p>If your computer&apos;s clock is set correctly, you need to make a decision
-  about whether to trust the site. This decision depends on what you intend to
-  do at the site and what else you know about it. Most commercial sites will
-  make sure that the validity period for their certificates has begun before
-  beginning to use them. If you choose to continue you need to
+  about whether to trust the website. This decision depends on what you intend
+  to do at the website and what else you know about it. Most commercial sites
+  will make sure that the validity period for their certificates has begun
+  before beginning to use them. If you choose to continue you need to
   <a href="#add_security_exception">add a security exception</a>.</p>
 
 <h3 id="domain_name_mismatch">Domain Name Mismatch</h3>
 
 <p>A server <a href="glossary.xhtml#certificate">certificate</a> specifies the
-  name of the server in the form of the site&apos;s domain name. For example,
+  name of the server in the form of the website&apos;s domain name. For example,
   the domain name for the Mozilla website is <tt>www.mozilla.org</tt>. If the
   domain name in a server&apos;s certificate doesn&apos;t match the actual
   domain name of the website, it may be a sign that someone is attempting to
@@ -477,11 +477,11 @@
 <p>&brandShortName; <a href="#untrusted_connection_page">warns</a> you when you
   attempt to visit a website whose server certificate&apos;s domain does not
   match the domain of the website you are trying to visit. The decision whether
-  to trust the site anyway depends on what you intend to do at the site and what
-  else you know about it. Most commercial sites will make sure that the host
-  name for a website certificate matches the website&apos;s actual host name.
-  If you choose to continue you need to <a href="#add_security_exception">add
-  a security exception</a>.</p>
+  to trust the website anyway depends on what you intend to do at the site and
+  what else you know about it. Most commercial sites will make sure that the
+  host name for a website certificate matches the website&apos;s actual host
+  name. If you choose to continue you need to
+  <a href="#add_security_exception">add a security exception</a>.</p>
 
 <p>If you decide to accept the certificate anyway (either for this session or
   permanently), you should be cautious about what you do on the website, and you

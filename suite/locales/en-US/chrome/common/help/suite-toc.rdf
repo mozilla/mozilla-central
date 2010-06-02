@@ -845,7 +845,7 @@
     <nc:subheadings>
       <rdf:Seq>
         <rdf:li><rdf:Description ID="using-priv-help-cookies-manage" nc:name="Enabling &amp; Disabling Cookies" nc:link="using_priv_help.xhtml#enabling_and_disabling_cookies"/> </rdf:li>
-        <rdf:li><rdf:Description ID="using-priv-help-cookies-site" nc:name="Managing Cookies Site-By-Site" nc:link="using_priv_help.xhtml#managing_cookies_site-by-site"/> </rdf:li>
+        <rdf:li><rdf:Description ID="using-priv-help-cookies-site" nc:name="Managing Cookies Website-By-Website" nc:link="using_priv_help.xhtml#managing_cookies_site-by-site"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-cookies-view" nc:name="Viewing Cookies" nc:link="using_priv_help.xhtml#viewing_cookies"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-cookies-remove" nc:name="Removing Cookies" nc:link="using_priv_help.xhtml#removing_cookies"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-cookies-settings" nc:name="Cookie Manager Settings" nc:link="using_priv_help.xhtml#cookie_manager_settings"/> </rdf:li>
@@ -858,7 +858,7 @@
       <rdf:Seq>
         <rdf:li><rdf:Description ID="cookies_prefs" nc:name="Cookie Preferences" nc:link="using_priv_help.xhtml#cookies"/> </rdf:li>
         <rdf:li><rdf:Description ID="cookies_stored" nc:name="Stored Cookies" nc:link="using_priv_help.xhtml#stored_cookies"/> </rdf:li>
-        <rdf:li><rdf:Description ID="cookie_sites" nc:name="Cookie Sites" nc:link="using_priv_help.xhtml#cookie_sites"/> </rdf:li>
+        <rdf:li><rdf:Description ID="cookie_sites" nc:name="Cookie Websites" nc:link="using_priv_help.xhtml#cookie_sites"/> </rdf:li>
         <rdf:li><rdf:Description ID="cookie_notify" nc:name="Cookie Notification" nc:link="using_priv_help.xhtml#cookie_notification"/> </rdf:li>
 
       </rdf:Seq>

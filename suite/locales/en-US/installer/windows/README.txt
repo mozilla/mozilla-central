@@ -31,7 +31,7 @@ at
 
 For the very latest builds, see
 
-  http://ftp.mozilla.org/pub/mozilla.org/seamonkey/nightly/latest-trunk/
+  http://www.seamonkey-project.org/dev/nightly
 
 Keep in mind that nightly builds, which are used by mozilla.org developers
 for testing, may be buggy. If you are looking for a more polished version
@@ -90,7 +90,7 @@ make sure you're running the installation with Administrator privileges.
    follow these steps:
 
    1. Click the link to seamonkey-x.xx.en-US.win32.installer.exe (or
-      similar file name) on the site you're downloading SeaMonkey from to
+      similar file name) on the website you're downloading SeaMonkey from to
       download the installer file to your machine.
 
    2. Navigate to where you downloaded the file and double-click the
@@ -104,7 +104,7 @@ make sure you're running the installation with Administrator privileges.
    manually, follow these steps:
 
    1. Click the link to seamonkey-x.xx.en-US.win32.zip (or similar file
-      name) on the site you're downloading SeaMonkey from to download the
+      name) on the website you're downloading SeaMonkey from to download the
       .zip file to your machine.
 
    2. Navigate to where you downloaded the file and double-click the

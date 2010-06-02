@@ -37,7 +37,7 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!-- Link Toolbar Title -->
-<!ENTITY linkToolbar.label "Site Navigation Bar">
+<!ENTITY linkToolbar.label "Website Navigation Bar">
 <!ENTITY linkToolbar.accesskey "a">
 
 <!-- Link Toolbar visibility options -->

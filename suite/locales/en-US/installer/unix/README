@@ -31,7 +31,7 @@ at
 
 For the very latest builds, see
 
-  http://ftp.mozilla.org/pub/mozilla.org/seamonkey/nightly/latest-trunk/
+  http://www.seamonkey-project.org/dev/nightly
 
 Keep in mind that nightly builds, which are used by mozilla.org developers
 for testing, may be buggy. If you are looking for a more polished version
@@ -93,7 +93,7 @@ Installation Instructions
   1. Create a directory named "seamonkey" (mkdir seamonkey) and change
      to that directory (cd seamonkey).
 
-  2. Click the link on the site you're downloading SeaMonkey from to
+  2. Click the link on the website you're downloading SeaMonkey from to
      download the package (seamonkey*.tar.bz2) file into the seamonkey
      directory.
 

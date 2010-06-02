@@ -93,11 +93,11 @@
 
   For the very latest builds, see
 
-  http://ftp.mozilla.org/pub/mozilla.org/seamonkey/nightly/latest-trunk/.
+  http://www.seamonkey-project.org/dev/nightly.
 
   If you are looking for a more polished version of SeaMonkey, you can download
   official releases from
-  
+
   http://www.seamonkey-project.org/releases/.
 
   More Information & Feedback

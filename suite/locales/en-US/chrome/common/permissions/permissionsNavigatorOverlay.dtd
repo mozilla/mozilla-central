@@ -3,36 +3,36 @@
 <!ENTITY cookieMessageTitle.label "Cookie Permissions Changed">
 <!ENTITY cookieDisplayCookiesCmd.label "Manage Stored Cookies">
 <!ENTITY cookieDisplayCookiesCmd.accesskey "M">
-<!ENTITY cookieAllowCookiesCmd.label "Allow Cookies from This Site">
+<!ENTITY cookieAllowCookiesCmd.label "Allow Cookies from This Website">
 <!ENTITY cookieAllowCookiesCmd.accesskey "A">
-<!ENTITY cookieAllowCookiesMsg.label "Cookies from this site will always be allowed.">
-<!ENTITY cookieAllowSessionCookiesCmd.label "Allow Session Cookies from This Site">
+<!ENTITY cookieAllowCookiesMsg.label "Cookies from this website will always be allowed.">
+<!ENTITY cookieAllowSessionCookiesCmd.label "Allow Session Cookies from This Website">
 <!ENTITY cookieAllowSessionCookiesCmd.accesskey "S">
-<!ENTITY cookieAllowSessionCookiesMsg.label "This site will be able to set cookies for the current session only.">
+<!ENTITY cookieAllowSessionCookiesMsg.label "This website will be able to set cookies for the current session only.">
 <!ENTITY cookieCookiesDefaultCmd.label "Use Default Cookie Permissions">
 <!ENTITY cookieCookiesDefaultCmd.accesskey "U">
-<!ENTITY cookieCookiesDefaultMsg.label "Cookies from this site will be accepted or rejected based on default settings.">
-<!ENTITY cookieBlockCookiesCmd.label "Block Cookies from This Site">
+<!ENTITY cookieCookiesDefaultMsg.label "Cookies from this website will be accepted or rejected based on default settings.">
+<!ENTITY cookieBlockCookiesCmd.label "Block Cookies from This Website">
 <!ENTITY cookieBlockCookiesCmd.accesskey "B">
-<!ENTITY cookieBlockCookiesMsg.label "Cookies from this site will always be rejected.">
+<!ENTITY cookieBlockCookiesMsg.label "Cookies from this website will always be rejected.">
 
 <!ENTITY cookieImageMessageTitle.label "Image Permissions Changed">
 <!ENTITY cookieDisplayImagesCmd.label "Manage Image Permissions">
 <!ENTITY cookieDisplayImagesCmd.accesskey "M">
-<!ENTITY cookieAllowImagesCmd.label "Allow Images from This Site">
+<!ENTITY cookieAllowImagesCmd.label "Allow Images from This Website">
 <!ENTITY cookieAllowImagesCmd.accesskey "A">
-<!ENTITY cookieAllowImagesMsg.label "Images from this site will always be downloaded.">
+<!ENTITY cookieAllowImagesMsg.label "Images from this website will always be downloaded.">
 <!ENTITY cookieImagesDefaultCmd.label "Use Default Image Permissions">
 <!ENTITY cookieImagesDefaultCmd.accesskey "U">
-<!ENTITY cookieImagesDefaultMsg.label "Images from this site will be downloaded based on default settings.">
-<!ENTITY cookieBlockImagesCmd.label "Block Images from This Site">
+<!ENTITY cookieImagesDefaultMsg.label "Images from this website will be downloaded based on default settings.">
+<!ENTITY cookieBlockImagesCmd.label "Block Images from This Website">
 <!ENTITY cookieBlockImagesCmd.accesskey "B">
-<!ENTITY cookieBlockImagesMsg.label "Images from this site will never be downloaded.">
+<!ENTITY cookieBlockImagesMsg.label "Images from this website will never be downloaded.">
 
-<!ENTITY cookieAllowPopupsCmd.label                  "Allow Popups from This Site">
-<!ENTITY cookieAllowPopupsCmd.accesskey              "A">
-<!ENTITY cookieManagePopups.label                    "Manage Popups">
-<!ENTITY cookieManagePopups.accesskey                "M">
+<!ENTITY cookieAllowPopupsCmd.label "Allow Popups from This Website">
+<!ENTITY cookieAllowPopupsCmd.accesskey "A">
+<!ENTITY cookieManagePopups.label "Manage Popups">
+<!ENTITY cookieManagePopups.accesskey "M">
 
 <!ENTITY cookieCookieManager.label "Cookie Manager">
 <!ENTITY cookieCookieManager.accesskey "c">

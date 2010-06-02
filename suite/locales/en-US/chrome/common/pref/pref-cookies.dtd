@@ -31,7 +31,7 @@
 <!ENTITY forCurrentSession.accesskey    "e">
 
 <!ENTITY manageCookies.label            "Manage Cookies and Sites">
-<!ENTITY manageCookiesDescription.label "Allows you to view and manage stored cookies and per-site settings for accepting and rejecting cookies. Per-site settings will override the settings above.">
+<!ENTITY manageCookiesDescription.label "Allows you to view and manage stored cookies and per-website settings for accepting and rejecting cookies. Per-website settings will override the settings above.">
 
 <!ENTITY viewCookies.label              "Cookie Manager">
 <!ENTITY viewCookies.accesskey          "M">

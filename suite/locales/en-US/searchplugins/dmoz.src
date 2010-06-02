@@ -21,7 +21,7 @@
 
 <INTERPRET
       browserResultType = "result"
-      resultListStart = "<b>Open Directory Sites</b>"
+      resultListStart = "<b>Open Directory Websites</b>"
       resultListEnd = "</ol>"
       resultItemStart = "<li>"
       charset="utf-8"

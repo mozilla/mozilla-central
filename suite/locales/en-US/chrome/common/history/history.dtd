@@ -26,9 +26,9 @@
 <!ENTITY view.groupNone.accesskey       "N">
 <!ENTITY view.groupDay.label            "Day">
 <!ENTITY view.groupDay.accesskey        "D">
-<!ENTITY view.groupSite.label           "Site">
-<!ENTITY view.groupSite.accesskey       "S">
-<!ENTITY view.groupDayAndSite.label     "Day and Site">
+<!ENTITY view.groupSite.label           "Website">
+<!ENTITY view.groupSite.accesskey       "W">
+<!ENTITY view.groupDayAndSite.label     "Day and Website">
 <!ENTITY view.groupDayAndSite.accesskey "a">
 
 <!ENTITY cmd.open.label                 "Open">

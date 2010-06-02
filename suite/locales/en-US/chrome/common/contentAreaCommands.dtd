@@ -1,7 +1,7 @@
 <!-- Context Menu -->
-<!ENTITY popupWindowRejectCmd.label     "Reject popup windows from this site">
+<!ENTITY popupWindowRejectCmd.label     "Reject popup windows from this website">
 <!ENTITY popupWindowRejectCmd.accesskey "o">
-<!ENTITY popupWindowAllowCmd.label      "Allow popup windows from this site">
+<!ENTITY popupWindowAllowCmd.label      "Allow popup windows from this website">
 <!ENTITY popupWindowAllowCmd.accesskey  "o">
 <!ENTITY openLinkCmd.label            "Open Link in New Window">
 <!ENTITY openLinkCmd.accesskey        "W">

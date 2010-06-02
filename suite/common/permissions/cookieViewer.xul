@@ -50,7 +50,7 @@
         buttonaccesskeyaccept="&buttonaccept.accesskey;"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         windowtype="mozilla:cookieviewer"
-        style="width: 30em; height: 42em;"
+        style="width: 65ch; height: 42em;"
         onload="Startup()"
         onunload="Shutdown()"
         ondialoghelp="doHelpButton();"
@@ -180,7 +180,7 @@
       </vbox>
       
       <vbox id="servers" flex="1">
-          <description id="permissionsText" value="&div.bannedservers.label;"/>
+          <description id="permissionsText">&div.bannedservers.label;</description>
           <separator class="thin"/>
           <hbox>
             <textbox id="cookie-site" flex="1" oninput="buttonEnabling(this);"/>

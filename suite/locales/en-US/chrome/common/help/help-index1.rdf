@@ -559,7 +559,7 @@
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="cookies:managing_per_site"
-         nc:name="managing cookies per site"
+         nc:name="managing cookies per website"
          nc:link="using_priv_help.xhtml#managing_cookies_site-by-site"/>
      </rdf:li>
      <rdf:li>
@@ -1713,7 +1713,7 @@
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="privacy:viewing_site_policy"
-         nc:name="viewing site policy"
+         nc:name="viewing website policy"
          nc:link="page_info_help.xhtml"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>

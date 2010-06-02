@@ -1,9 +1,9 @@
 <!--LOCALIZATION NOTE : FILE UI for Software Updates prefs -->
 <!ENTITY pref.smartUpdate.title               "Software Installation">
 <!ENTITY smartTitle.label                     "Manage Software Installations and Updates">
-<!ENTITY enableSU.label                       "Allow web sites to install extensions and updates">
+<!ENTITY enableSU.label                       "Allow websites to install extensions and updates">
 <!ENTITY enableSU.accesskey                   "x">
-<!ENTITY allowedSites.label                   "Allowed Sites">
+<!ENTITY allowedSites.label                   "Allowed Websites">
 <!ENTITY allowedSites.accesskey               "e">
 
 <!ENTITY verifyUpdates.caption                "Updates">

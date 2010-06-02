@@ -42,7 +42,7 @@
 <!ENTITY price.column.label          "Price">
 <!ENTITY availability.column.label   "Availability">
 <!ENTITY date.column.label           "Date">
-<!ENTITY site.column.label           "Internet Site">
+<!ENTITY site.column.label           "Website">
 <!ENTITY results.header.label        "Search Results">
 <!ENTITY engine.column.label         "Search Engine">
 <!ENTITY viewbyprovider.label        "View by search engine:">

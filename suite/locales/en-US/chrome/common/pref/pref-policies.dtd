@@ -6,11 +6,11 @@
 <!ENTITY  policies.label      "Policies:">
 <!ENTITY  default.label       "Default Policy">
 <!ENTITY  allWebsites.label   "All Websites">
-<!ENTITY  trusted.label       "Trusted Sites">
+<!ENTITY  trusted.label       "Trusted Websites">
 <!ENTITY  annoyances.label    "Common Annoyances">
-<!ENTITY  restricted.label    "Restricted Sites">
+<!ENTITY  restricted.label    "Restricted Websites">
 
-<!ENTITY  addSite.label       "Add Site…">
+<!ENTITY  addSite.label       "Add Website…">
 <!ENTITY  addSite.accesskey   "a">
 <!ENTITY  settings.label      "Settings for ">
 <!ENTITY  settings.accesskey  "s">

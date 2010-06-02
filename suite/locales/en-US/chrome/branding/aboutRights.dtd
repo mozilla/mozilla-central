@@ -27,11 +27,11 @@
 <!ENTITY rights.intro-point3c ".">
 
 <!-- point 4 text for official branded builds -->
-<!ENTITY rights.intro-point4a "&brandShortName; offers optional web site information services, such as the add-on update service; however we cannot guarantee they are 100&#37; accurate or error-free. More details, including information on how to disable the services, can be found in the ">
+<!ENTITY rights.intro-point4a "&brandShortName; offers optional website information services, such as the add-on update service; however we cannot guarantee they are 100&#37; accurate or error-free. More details, including information on how to disable the services, can be found in the ">
 <!ENTITY rights.intro-point4b "service terms">
 <!ENTITY rights.intro-point4c ".">
 
-<!ENTITY rights.webservices-header "&brandFullName; Web Site Services">
+<!ENTITY rights.webservices-header "&brandFullName; Website Services">
 
 <!-- Note that this paragraph references a couple of entities from
      preferences/security.dtd, so that we can refer to text the user sees in
