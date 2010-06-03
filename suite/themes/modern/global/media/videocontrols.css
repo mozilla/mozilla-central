@@ -114,7 +114,8 @@ button {
   padding-left: 8px; /* don't bump into the scrubber bar */
   padding-top: 0px; /* center vertically with scrubber bar */
   color: #000000;
-  font: 11px sans-serif;
+  font-size: 11px;
+  font-family: Helvetica, Arial, sans-serif;
 }
 
 .scrubber .scale-slider {
@@ -143,11 +144,14 @@ button {
 
 .timeLabel {
   color: #000000;
-  font: 10px sans-serif;
+  font-size: 10px;
+  font-family: Helvetica, Arial, sans-serif;
   padding-top: 4px;
 }
 
 .statusOverlay {
+  -moz-box-align: center;
+  -moz-box-pack: center;
   background-color: #000000;
 }
 
@@ -163,4 +167,34 @@ button {
 
 .statusIcon[type="error"] {
   background: url(chrome://global/skin/media/error.png) no-repeat center;
+}
+
+/* CSS Transitions */
+.controlBar:not([immediate]) {
+  -moz-transition-property: opacity;
+  -moz-transition-duration: 200ms;
+}
+
+.controlBar[fadeout] {
+  opacity: 0.0;
+}
+
+.volumeStack:not([immediate]) {
+  -moz-transition-property: opacity, margin-top;
+  -moz-transition-duration: 200ms, 200ms;
+}
+
+.volumeStack[fadeout] {
+  opacity: 0.0;
+  margin-top: 0px;
+}
+
+.statusOverlay:not([immediate]) {
+  -moz-transition-property: opacity;
+  -moz-transition-duration: 300ms;
+  -moz-transition-delay: 750ms;
+}
+
+.statusOverlay[fadeout] {
+  opacity: 0.0;
 }
