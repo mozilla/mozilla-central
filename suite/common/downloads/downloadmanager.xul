@@ -392,10 +392,6 @@
         class="plain"
         context="downloadContext"
         enableColumnDrag="true"
-        ondblclick="goDoCommand('cmd_open');"
-        ondragstart="gDownloadDNDObserver.onDragStart(event);"
-        ondragover="gDownloadDNDObserver.onDragOver(event);"
-        ondrop="gDownloadDNDObserver.onDrop(event);"
         onselect="onTreeSelect(event);">
     <treecols context="" onclick="sortDownloads(event.target)">
       <treecol id="Name"
@@ -476,7 +472,10 @@
                class="sortDirectionIndicator" flex="1"
                persist="width hidden ordinal sortActive sortDirection"/>
     </treecols>
-    <treechildren/>
+    <treechildren ondblclick="goDoCommand('cmd_open');"
+                  ondragstart="gDownloadDNDObserver.onDragStart(event);"
+                  ondragover="gDownloadDNDObserver.onDragOver(event);"
+                  ondrop="gDownloadDNDObserver.onDrop(event);"/>
   </tree>
   <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="statusbar-display" flex="1"/>
