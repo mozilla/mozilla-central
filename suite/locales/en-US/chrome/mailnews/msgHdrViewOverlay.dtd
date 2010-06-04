@@ -60,7 +60,7 @@
 <!ENTITY editMessage.accesskey             "D">
 
 <!ENTITY attachmentsTree.label             "Attachments:">
-<!ENTITY attachmentsTree.accesskey         "A">
+<!ENTITY attachmentsTree.accesskey         "c">
 <!ENTITY openAttachmentCmd.label           "Open">
 <!ENTITY openAttachmentCmd.accesskey       "O">
 <!ENTITY viewAttachmentCmd.label           "View Source">
