@@ -1475,7 +1475,8 @@ function BrowserLoadURL(aTriggeringEvent)
   var url = gURLBar.value.trim();
 
   if (url.match(/^view-source:/)) {
-    BrowserViewSourceOfURL(url.replace(/^view-source:/, ""), null, null);
+    window.top.gViewSourceUtils.viewSource(url.replace(/^view-source:/, ""), 
+                                           null, null);
   } else {
     // Check the pressed modifiers: (also see bug 97123)
     // Modifier Mac | Modifier PC | Action
@@ -1654,12 +1655,8 @@ function readFromClipboard()
 
 function BrowserViewSourceOfDocument(aDocument)
 {
-  var docCharset;
   var pageCookie;
   var webNav;
-
-  // Get the document charset
-  docCharset = "charset=" + aDocument.characterSet;
 
   // Get the nsIWebNavigation associated with the document
   try {
@@ -1695,16 +1692,8 @@ function BrowserViewSourceOfDocument(aDocument)
     // If no page descriptor is available, just use the view-source URL...
   }
 
-  BrowserViewSourceOfURL(webNav.currentURI.spec, docCharset, pageCookie);
-}
-
-function BrowserViewSourceOfURL(url, charset, pageCookie)
-{
-  // try to open a view-source window while inheriting the charset (if any)
-  openDialog("chrome://global/content/viewSource.xul",
-             "_blank",
-             "all,dialog=no",
-             url, charset, pageCookie);
+  window.top.gViewSourceUtils.viewSource(webNav.currentURI.spec,
+                                         pageCookie, aDocument);
 }
 
 // doc - document to use for source, or null for the current tab
