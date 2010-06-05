@@ -79,21 +79,11 @@ nsMsgRDFDataSource::Init()
   return rv;
 }
 
-// clean yourself up - undo anything you did in Init()
 void nsMsgRDFDataSource::Cleanup()
 {
-    nsresult rv;
-    mRDFService = nsnull;
+  mRDFService = nsnull;
 
-    // release ourselves from the observer service
-    nsCOMPtr<nsIObserverService> obs = do_GetService("@mozilla.org/observer-service;1",
-                                                     &rv);
-    if (NS_SUCCEEDED(rv)) {
-        rv = obs->RemoveObserver(static_cast<nsIObserver*>(this),
-                                 NS_XPCOM_SHUTDOWN_OBSERVER_ID);
-    }
-
-    // release the window
+  // release the window
   mWindow = nsnull;
 
   mInitialized = PR_FALSE;
