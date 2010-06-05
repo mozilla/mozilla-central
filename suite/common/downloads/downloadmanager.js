@@ -233,6 +233,15 @@ function openDownload(aDownload)
       gPrefService.setBoolPref("browser.download.manager.alertOnEXEOpen", !checkbox.value);
     }
   }
+
+  try {
+    var mimeInfo = aDownload.MIMEInfo;
+    if (mimeInfo && mimeInfo.preferredAction == mimeInfo.useHelperApp) {
+      mimeInfo.launchWithFile(file);
+      return;
+    }
+  } catch (ex) { }
+
   try {
     file.launch();
   } catch (ex) {
@@ -634,9 +643,7 @@ var dlTreeController = {
         }
         break;
       case "cmd_open":
-        // fake an nsIDownload with the properties needed by that function
-        openDownload({displayName: selItemData[0].target,
-                      targetFile: getLocalFileFromNativePathOrUrl(selItemData[0].file)});
+        openDownload(gDownloadManager.getDownload(selItemData[0].dlid));
         break;
       case "cmd_show":
         // fake an nsIDownload with the properties needed by that function
