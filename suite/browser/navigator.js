@@ -1475,8 +1475,7 @@ function BrowserLoadURL(aTriggeringEvent)
   var url = gURLBar.value.trim();
 
   if (url.match(/^view-source:/)) {
-    window.top.gViewSourceUtils.viewSource(url.replace(/^view-source:/, ""), 
-                                           null, null);
+    gViewSourceUtils.viewSource(url.replace(/^view-source:/, ""), null, null);
   } else {
     // Check the pressed modifiers: (also see bug 97123)
     // Modifier Mac | Modifier PC | Action
@@ -1692,8 +1691,7 @@ function BrowserViewSourceOfDocument(aDocument)
     // If no page descriptor is available, just use the view-source URL...
   }
 
-  window.top.gViewSourceUtils.viewSource(webNav.currentURI.spec,
-                                         pageCookie, aDocument);
+  gViewSourceUtils.viewSource(webNav.currentURI.spec, pageCookie, aDocument);
 }
 
 // doc - document to use for source, or null for the current tab
