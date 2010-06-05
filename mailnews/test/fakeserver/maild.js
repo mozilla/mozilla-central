@@ -166,6 +166,9 @@ nsMailServer.prototype = {
       print("Connection Lost " + status);
 
     this._socketClosed = true;
+    // We've been killed or we've stopped, reset the handler to the original
+    // state (e.g. to require authentication again).
+    this._handler.resetTest();
   },
 
   setDebugLevel : function (debug) {
