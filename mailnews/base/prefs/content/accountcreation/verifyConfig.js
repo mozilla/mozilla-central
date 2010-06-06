@@ -200,6 +200,7 @@ urlListener.prototype =
       this._log.info("  Changing username to email address.");
       this.mConfig.usernameSaved = this.mConfig.incoming.username;
       this.mConfig.incoming.username = this.mConfig.identity.emailAddress;
+      this.mConfig.outgoing.username = this.mConfig.identity.emailAddress;
       this.mServer.username = this.mConfig.incoming.username;
       this.mServer.password = this.mConfig.incoming.password;
       verifyLogon(this.mConfig, this.mServer, this.mAlter, this.mMsgWindow,
@@ -213,6 +214,7 @@ urlListener.prototype =
       // If we tried the full email address as the username, then let's go
       // back to trying just the username before trying the other cases.
       this.mConfig.incoming.username = this.mConfig.usernameSaved;
+      this.mConfig.outgoing.username = this.mConfig.usernameSaved;
       this.mConfig.usernameSaved = null;
       this.mServer.username = this.mConfig.incoming.username;
       this.mServer.password = this.mConfig.incoming.password;
