@@ -1,6 +1,6 @@
 messenger.jar:
 % content messagebody %content/messagebody/ contentaccessible=yes
-% content messenger %content/messenger/ xpcnativewrappers=yes
+% content messenger %content/messenger/
 % override chrome://messagebody/skin/messageBody.css chrome://messenger/skin/messageBody.css
 % overlay chrome://global/content/viewSource.xul chrome://messenger/content/viewSourceOverlay.xul
 % overlay chrome://global/content/config.xul chrome://messenger/content/configEditorOverlay.xul
@@ -116,7 +116,7 @@ messenger.jar:
 % override chrome://global/content/license.html chrome://messenger/content/license.html
 
 comm.jar:
-% content communicator %content/communicator/ xpcnativewrappers=yes
+% content communicator %content/communicator/
 *  content/communicator/contentAreaClick.js         (content/contentAreaClick.js)
 *  content/communicator/utilityOverlay.xul          (content/utilityOverlay.xul)
 *  content/communicator/utilityOverlay.js           (content/utilityOverlay.js)

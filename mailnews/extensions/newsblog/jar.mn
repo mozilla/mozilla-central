@@ -1,5 +1,5 @@
 newsblog.jar:
-% content messenger-newsblog %content/messenger-newsblog/ xpcnativewrappers=yes
+% content messenger-newsblog %content/messenger-newsblog/
 *  content/messenger-newsblog/newsblogOverlay.js                (content/newsblogOverlay.js)
 *  content/messenger-newsblog/edittree.xml                      (content/edittree.xml)
 *  content/messenger-newsblog/debug-utils.js                    (content/debug-utils.js)

@@ -1,5 +1,5 @@
 comm.jar:
-% content communicator %content/communicator/ xpcnativewrappers=yes contentaccessible=yes
+% content communicator %content/communicator/ contentaccessible=yes
 % override chrome://global/content/license.html chrome://communicator/content/license.html
 % override chrome://mozapps/content/profile/profileSelection.xul chrome://communicator/content/profile/profileSelection.xul
 % overlay chrome://communicator/content/contentAreaContextOverlay.xul chrome://communicator/content/permissions/imageContextOverlay.xul
@@ -45,8 +45,8 @@ comm.jar:
 % overlay chrome://messenger/content/mailViewSetup.xul chrome://communicator/content/helpMessengerOverlay.xul
 % overlay chrome://messenger-smime/content/msgCompSecurityInfo.xul chrome://communicator/content/helpMessengerOverlay.xul
 % overlay chrome://messenger-smime/content/msgReadSecurityInfo.xul chrome://communicator/content/helpMessengerOverlay.xul
-% content communicator-platform %content/communicator-platform/ platform xpcnativewrappers=yes
-% content communicator-region %content/communicator-region/ xpcnativewrappers=yes
+% content communicator-platform %content/communicator-platform/ platform
+% content communicator-region %content/communicator-region/
    content/communicator/aboutSessionRestore.js
    content/communicator/aboutSessionRestore.xhtml
    content/communicator/askViewZoom.xul
