@@ -2225,6 +2225,7 @@ function SetPageProxyState(aState, aURI)
   } else if (aState == "invalid") {
     gURLBar.removeEventListener("input", UpdatePageProxyState, false);
     gProxyDeck.selectedIndex = 0;
+    gProxyFavIcon.removeAttribute("src");
   }
 }
 
@@ -2577,6 +2578,7 @@ function getNotificationBox(aWindow)
 
 function BrowserToolboxCustomizeInit()
 {
+  SetPageProxyState("invalid", null);
   toolboxCustomizeInit("main-menubar");
 }
 
