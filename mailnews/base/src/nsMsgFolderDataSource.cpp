@@ -2133,6 +2133,7 @@ nsresult nsMsgFolderDataSource::DoFolderHasAssertion(nsIMsgFolder *folder,
 
 nsMsgFlatFolderDataSource::nsMsgFlatFolderDataSource()
 {
+  m_builtFolders = PR_FALSE;
 }
 
 nsMsgFlatFolderDataSource::~nsMsgFlatFolderDataSource()
@@ -2154,6 +2155,7 @@ nsresult nsMsgFlatFolderDataSource::Init()
 void nsMsgFlatFolderDataSource::Cleanup()
 {
   m_folders.Clear();
+  m_builtFolders = PR_FALSE;
   nsMsgFolderDataSource::Cleanup();
 }
 
@@ -2176,15 +2178,28 @@ NS_IMETHODIMP nsMsgFlatFolderDataSource::GetTargets(nsIRDFResource* source,
   if (kNC_Child != property)
     return nsMsgFolderDataSource::GetTargets(source, property, tv, targets);
 
-  nsresult rv = NS_RDF_NO_VALUE;
   if(!targets)
     return NS_ERROR_NULL_POINTER;
 
   if (ResourceIsOurRoot(source))
   {
+    EnsureFolders();
+    return NS_NewArrayEnumerator(targets, m_folders);
+  }
+  return NS_NewSingletonEnumerator(targets, property);
+}
+
+void nsMsgFlatFolderDataSource::EnsureFolders()
+{
+  if (!m_builtFolders)
+  {
+    m_builtFolders = PR_TRUE; // in case something goes wrong
+
     // need an enumerator that gives all folders with unread
+    nsresult rv;
     nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
+    if (NS_FAILED(rv))
+      return;
 
     nsCOMPtr<nsISupportsArray> allServers;
     rv = accountManager->GetAllServers(getter_AddRefs(allServers));
@@ -2211,31 +2226,19 @@ NS_IMETHODIMP nsMsgFlatFolderDataSource::GetTargets(nsIRDFResource* source,
             rv = rootFolder->ListDescendents(allFolders);
             PRUint32 newLastEntry;
             allFolders->Count(&newLastEntry);
-            for (PRUint32 newEntryIndex = lastEntry; newEntryIndex < newLastEntry;)
+            for (PRUint32 newEntryIndex = lastEntry; newEntryIndex < newLastEntry; newEntryIndex++)
             {
               nsCOMPtr <nsIMsgFolder> curFolder = do_QueryElementAt(allFolders, newEntryIndex);
-              if (!WantsThisFolder(curFolder))
+              if (WantsThisFolder(curFolder))
               {
-                allFolders->RemoveElementAt(newEntryIndex);
-                newLastEntry--;
-              }
-              else
-              {
-                // unfortunately, we need a separate array for this since
-                // ListDescendents takes an nsISupportsArray. But we want
-                // to use an nsCOMArrray for the DS since that's the
-                // preferred mechanism.
                 m_folders.AppendObject(curFolder);
-                newEntryIndex++;
               }
             }
           }
         }
       }
-      return NS_NewArrayEnumerator(targets, allFolders);
     }
   }
-  return NS_NewSingletonEnumerator(targets, property);
 }
 
 
@@ -2305,8 +2308,8 @@ PRBool nsMsgFlatFolderDataSource::ResourceIsOurRoot(nsIRDFResource *resource)
 
 PRBool nsMsgFlatFolderDataSource::WantsThisFolder(nsIMsgFolder *folder)
 {
-  NS_ASSERTION(PR_FALSE, "must be overridden");
-  return PR_FALSE;
+  EnsureFolders();
+  return m_folders.IndexOf(folder) != kNotFound;
 }
 
 nsresult nsMsgFlatFolderDataSource::GetFolderDisplayName(nsIMsgFolder *folder, nsString& folderName)
@@ -2381,19 +2384,21 @@ PRBool nsMsgFavoriteFoldersDataSource::WantsThisFolder(nsIMsgFolder *folder)
 
 void nsMsgRecentFoldersDataSource::Cleanup()
 {
-  m_builtRecentFolders = PR_FALSE;
   m_cutOffDate = 0;
   nsMsgFlatFolderDataSource::Cleanup();
 }
 
 
-PRBool nsMsgRecentFoldersDataSource::WantsThisFolder(nsIMsgFolder *folder)
+void nsMsgRecentFoldersDataSource::EnsureFolders()
 {
-  if (!m_builtRecentFolders)
+  if (!m_builtFolders)
   {
+    m_builtFolders = PR_TRUE;
+
     nsresult rv;
     nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
+    if (NS_FAILED(rv))
+      return;
 
     nsCOMPtr<nsISupportsArray> allServers;
     rv = accountManager->GetAllServers(getter_AddRefs(allServers));
@@ -2483,8 +2488,6 @@ PRBool nsMsgRecentFoldersDataSource::WantsThisFolder(nsIMsgFolder *folder)
       }
     }
   }
-  m_builtRecentFolders = PR_TRUE;
-  return m_folders.IndexOf(folder) != kNotFound;
 }
 
 NS_IMETHODIMP nsMsgRecentFoldersDataSource::OnItemAdded(nsIMsgFolder *parentItem, nsISupports *item)
@@ -2493,7 +2496,7 @@ NS_IMETHODIMP nsMsgRecentFoldersDataSource::OnItemAdded(nsIMsgFolder *parentItem
   // since just added items are by definition new.
   // I think this means newly discovered imap folders (ones w/o msf files) will
   // get added, but maybe that's OK.
-  if (m_builtRecentFolders)
+  if (m_builtFolders)
   {
     nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(item));
     if (folder && m_folders.IndexOf(folder) == kNotFound)

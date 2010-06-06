@@ -324,6 +324,7 @@ public:
                             PRBool* hasAssertion);
 protected:
   virtual nsresult GetFolderDisplayName(nsIMsgFolder *folder, nsString& folderName);
+  virtual void EnsureFolders();
   virtual PRBool WantsThisFolder(nsIMsgFolder *folder);
           PRBool ResourceIsOurRoot(nsIRDFResource *resource);
   virtual nsresult OnItemAddedOrRemoved(nsIMsgFolder *parentItem, nsISupports *item, PRBool added);
@@ -331,6 +332,7 @@ protected:
   nsCOMArray <nsIMsgFolder> m_folders;
   nsCOMPtr<nsIRDFResource>  m_rootResource; // the resource for our root
   nsCString m_dsName;
+  PRBool m_builtFolders;
 };
 
 
@@ -358,7 +360,7 @@ protected:
 class nsMsgRecentFoldersDataSource : public nsMsgFlatFolderDataSource
 {
 public:
-  nsMsgRecentFoldersDataSource() {m_dsName = "mailnewsrecentfolders"; m_builtRecentFolders = PR_FALSE;
+  nsMsgRecentFoldersDataSource() {m_dsName = "mailnewsrecentfolders";
                                   m_cutOffDate = 0; m_maxNumFolders = 15;}
   virtual ~nsMsgRecentFoldersDataSource() {}
   virtual nsresult NotifyPropertyChanged(nsIRDFResource *resource, 
@@ -367,8 +369,7 @@ public:
   NS_IMETHOD OnItemAdded(nsIMsgFolder *parentItem, nsISupports *item);
   virtual void Cleanup();
 protected:
-  PRBool m_builtRecentFolders;
-  virtual PRBool WantsThisFolder(nsIMsgFolder *folder);
+  virtual void EnsureFolders();
   PRUint32 m_cutOffDate;
   PRUint32 m_maxNumFolders;
 };
