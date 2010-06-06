@@ -387,7 +387,7 @@ void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
 
   if (StringBeginsWith(lowerCaseLine, NS_LITERAL_CSTRING("content-type:")))
   {
-    if (lowerCaseLine.Find("text/html", CaseInsensitiveCompare) != -1)
+    if (lowerCaseLine.Find("text/html", PR_TRUE) != -1)
       m_partIsHtml = PR_TRUE;
     // Strenuous edge case: a message/rfc822 is equivalent to the content type
     // of whatever the message is. Headers should be ignored here. Even more
@@ -398,8 +398,8 @@ void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
     // MIME type. message/rfc822 is best treated as a multipart with no proper
     // boundary; since we only use boundaries for retriggering the headers,
     // the lack of one can safely be ignored.
-    else if (lowerCaseLine.Find("multipart/", CaseInsensitiveCompare) != -1 ||
-        lowerCaseLine.Find("message/", CaseInsensitiveCompare) != -1)
+    else if (lowerCaseLine.Find("multipart/", PR_TRUE) != -1 ||
+        lowerCaseLine.Find("message/", PR_TRUE) != -1)
     {
       if (m_isMultipart)
       {
@@ -411,15 +411,15 @@ void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
       }
       m_isMultipart = PR_TRUE;
     }
-    else if (lowerCaseLine.Find("text/", CaseInsensitiveCompare) == -1)
+    else if (lowerCaseLine.Find("text/", PR_TRUE) == -1)
       m_partIsText = PR_FALSE; // We have disproved our assumption
   }
 
   // TODO: make this work for nested multiparts (requires some redesign)
   if (m_isMultipart && boundary.IsEmpty() &&
-      lowerCaseLine.Find("boundary=", CaseInsensitiveCompare) != -1)
+      lowerCaseLine.Find("boundary=", PR_TRUE) != -1)
   {
-    PRInt32 start = lowerCaseLine.Find("boundary=", CaseInsensitiveCompare);
+    PRInt32 start = lowerCaseLine.Find("boundary=", PR_TRUE);
     start += 9;
     if (line[start] == '\"')
       start++;
@@ -431,9 +431,15 @@ void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
     boundary.Append(Substring(line,start,end-start));
   }
 
+#ifdef MOZILLA_INTERNAL_API
   if (StringBeginsWith(lowerCaseLine,
                        NS_LITERAL_CSTRING("content-transfer-encoding:")) &&
-      lowerCaseLine.Find("base64", CaseInsensitiveCompare) != kNotFound)
+      lowerCaseLine.Find("base64", PR_TRUE) != kNotFound)
+#else
+  if (StringBeginsWith(lowerCaseLine,
+                       NS_LITERAL_CSTRING("content-transfer-encoding:")) &&
+      lowerCaseLine.Find("base64", PR_TRUE) != -1)
+#endif
     m_base64part = PR_TRUE;
 }
 

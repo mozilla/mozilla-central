@@ -1111,11 +1111,19 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
   switch (m_operator)
   {
   case nsMsgSearchOp::Contains:
-    if (utf16StrToMatch.Find(needle, CaseInsensitiveCompare) != kNotFound)
+#ifdef MOZILLA_INTERNAL_API
+    if (CaseInsensitiveFindInReadable(needle, utf16StrToMatch))
+#else
+    if (utf16StrToMatch.Find(needle, CaseInsensitiveCompare) != -1);
+#endif
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::DoesntContain:
-    if (utf16StrToMatch.Find(needle, CaseInsensitiveCompare) == kNotFound)
+#ifdef MOZILLA_INTERNAL_API
+    if (!CaseInsensitiveFindInReadable(needle, utf16StrToMatch))
+#else
+    if (utf16StrToMatch.Find(needle, CaseInsensitiveCompare) == -1);
+#endif
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::Is:

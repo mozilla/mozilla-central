@@ -79,6 +79,7 @@ nsMsgFilterList::nsMsgFilterList() :
   m_startWritingToBuffer = PR_FALSE;
   m_temporaryList = PR_FALSE;
   m_curFilter = nsnull;
+  m_arbitraryHeaders.SetLength(0);
 }
 
 NS_IMPL_ADDREF(nsMsgFilterList)
@@ -929,7 +930,7 @@ nsresult nsMsgFilterList::SaveTextFilters(nsIOutputStream *aStream)
       break;
   }
   if (NS_SUCCEEDED(err))
-    m_arbitraryHeaders.Truncate();
+    m_arbitraryHeaders.SetLength(0);
   return err;
 }
 
@@ -1193,7 +1194,7 @@ nsresult nsMsgFilterList::ComputeArbitraryHeaders()
           {
             if (m_arbitraryHeaders.IsEmpty())
               m_arbitraryHeaders.Assign(arbitraryHeader);
-            else if (m_arbitraryHeaders.Find(arbitraryHeader, CaseInsensitiveCompare) == -1)
+            else if (m_arbitraryHeaders.Find(arbitraryHeader, PR_TRUE) == -1)
             {
               m_arbitraryHeaders.Append(" ");
               m_arbitraryHeaders.Append(arbitraryHeader);
