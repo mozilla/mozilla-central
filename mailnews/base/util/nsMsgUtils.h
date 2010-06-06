@@ -345,6 +345,8 @@ NS_MSG_BASE PRUint64 ParseUint64Str(const char *str);
         NS_NewAtom(aString)
 #define MsgReplaceChar(aString, aNeedle, aReplacement) \
         (aString).ReplaceChar(aNeedle, aReplacement)
+#define MsgFind(str, what, ignore_case, offset) \
+        (str).Find(what, ignore_case, offset)
 
 #else
 
@@ -381,6 +383,28 @@ NS_MSG_BASE PRUint64 ParseUint64Str(const char *str);
         Replace(index, 1, ch)
 #define NS_NewISupportsArray(result) \
         CallCreateInstance(NS_SUPPORTSARRAY_CONTRACTID, static_cast<nsISupportsArray**>(result))
+/**
+ * The internal and external methods expect the parameters in a different order.
+ * The internal API also always expects a flag rather than a comparator.
+ */
+inline PRInt32 MsgFind(nsAString &str, const char *what, PRBool ignore_case, PRUint32 offset)
+{
+  return str.Find(what, offset, ignore_case);
+}
+
+inline PRInt32 MsgFind(nsACString &str, const char *what, PRBool ignore_case, PRUint32 offset)
+{
+  if (ignore_case)
+    return str.Find(what, offset, CaseInsensitiveCompare);
+  return str.Find(what, offset);
+}
+
+inline PRInt32 MsgFind(nsACString &str, const nsACString &what, PRBool ignore_case, PRUint32 offset)
+{
+  if (ignore_case)
+    return str.Find(what, offset, CaseInsensitiveCompare);
+  return str.Find(what, offset);
+}
 
 /**
  * The following methods are not exposed to the external API so we define
