@@ -48,7 +48,7 @@
 #include "nsICryptoHash.h"
 #include "nsICMSMessage.h"
 #include "nsIMutableArray.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIOutputStream.h"
 
 class nsIMsgCompFields;

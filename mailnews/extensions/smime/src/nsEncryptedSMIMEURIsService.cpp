@@ -35,8 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsEncryptedSMIMEURIsService.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 
 
 NS_IMPL_ISUPPORTS1(nsEncryptedSMIMEURIsService, nsIEncryptedSMIMEURIsService)

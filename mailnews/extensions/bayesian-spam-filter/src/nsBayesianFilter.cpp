@@ -673,7 +673,8 @@ void Tokenizer::tokenize_ascii_word(char * aWord)
     nsDependentCString word (aWord, wordLength); // CHEAP, no allocation occurs here...
 
     // XXX: i think the 40 byte check is just for perf reasons...if the email address is longer than that then forget about it.
-    if (wordLength < 40 && strchr(aWord, '.') && word.CountChar('@') == 1)
+    const char *atSign = strchr(aWord, '@');
+    if (wordLength < 40 && strchr(aWord, '.') && atSign && !strchr(atSign + 1, '@'))
     {
       PRInt32 numBytesToSep = word.FindChar('@');
       if (numBytesToSep < wordLength - 1) // if the @ sign is the last character, it must not be an email address
@@ -847,10 +848,10 @@ void Tokenizer::tokenize(const char* aText)
 
   if (mIframeToDiv)
   {
-    text.ReplaceSubstring(NS_LITERAL_STRING("<iframe"),
-                          NS_LITERAL_STRING("<div"));
-    text.ReplaceSubstring(NS_LITERAL_STRING("/iframe>"),
-                          NS_LITERAL_STRING("/div>"));
+    MsgReplaceSubstring(text, NS_LITERAL_STRING("<iframe"),
+                        NS_LITERAL_STRING("<div"));
+    MsgReplaceSubstring(text, NS_LITERAL_STRING("/iframe>"),
+                        NS_LITERAL_STRING("/div>"));
   }
 
   stripHTML(text, strippedUCS2);
@@ -1744,7 +1745,7 @@ void nsBayesianFilter::classifyMessage(
               100. + .5));
           tokenPercents.AppendElement(static_cast<PRUint32>(ta.mProbability *
               100. + .5));
-          tokenStrings.AppendElement(UTF8ToNewUnicode(nsDependentCString(
+          tokenStrings.AppendElement(ToNewUnicode(NS_ConvertUTF8toUTF16(
               tokens[ta.mTokenIndex].mWord)));
         }
 

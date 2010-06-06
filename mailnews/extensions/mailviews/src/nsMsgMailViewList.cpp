@@ -55,7 +55,7 @@
  
 nsMsgMailView::nsMsgMailView()
 {
-    NS_NewISupportsArray(getter_AddRefs(mViewSearchTerms));
+    mViewSearchTerms = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
 }
 
 NS_IMPL_ADDREF(nsMsgMailView)
@@ -299,8 +299,8 @@ nsresult nsMsgMailViewList::ConvertFilterListToMailView(nsIMsgFilterList * aFilt
     NS_ENSURE_ARG_POINTER(aFilterList);
     NS_ENSURE_ARG_POINTER(aMailViewList);
 
-    nsCOMPtr<nsISupportsArray> mailViewList;
-    NS_NewISupportsArray(getter_AddRefs(mailViewList));
+    nsCOMPtr<nsISupportsArray> mailViewList = do_CreateInstance(
+        NS_SUPPORTSARRAY_CONTRACTID);
 
     // iterate over each filter in the list
     nsCOMPtr<nsIMsgFilter> msgFilter;

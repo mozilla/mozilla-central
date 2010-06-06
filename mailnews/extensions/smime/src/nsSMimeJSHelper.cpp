@@ -39,13 +39,13 @@
 #include "nsSMimeJSHelper.h"
 #include "nsCOMPtr.h"
 #include "nsMemory.h"
-#include "nsReadableUtils.h"
-#include "nsLiteralString.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsIX509CertDB.h"
 #include "nsIX509CertValidity.h"
 #include "nsIServiceManager.h"
+#include "nsServiceManagerUtils.h"
+#include "nsCRTGlue.h"
 
 NS_IMPL_ISUPPORTS1(nsSMimeJSHelper, nsISMimeJSHelper)
 
@@ -142,7 +142,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
         }
 
         nsDependentCString email(walk);
-        *iEA = ToNewUnicode(email);
+        *iEA = ToNewUnicode(NS_ConvertUTF8toUTF16(walk));
         if (!*iEA) {
           memory_failure = PR_TRUE;
           continue;
@@ -346,7 +346,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
             *iEA = nsnull;
           }
           else {
-            *iEA = ToNewUnicode(nsDependentCString(walk));
+            *iEA = ToNewUnicode(NS_ConvertUTF8toUTF16(walk));
             if (!*iEA) {
               memory_failure = PR_TRUE;
             }

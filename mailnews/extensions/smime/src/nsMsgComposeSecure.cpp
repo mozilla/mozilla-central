@@ -49,6 +49,10 @@
 #include "nsMimeTypes.h"
 #include "nsMsgMimeCID.h"
 #include "nspr.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsMemory.h"
+#include "nsAlgorithm.h"
 
 // XXX These strings should go in properties file XXX //
 #define MIME_MULTIPART_SIGNED_BLURB "This is a cryptographically signed message in MIME format."

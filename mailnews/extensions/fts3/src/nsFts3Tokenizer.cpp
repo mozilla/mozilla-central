@@ -43,7 +43,7 @@
 #include "nsIFts3Tokenizer.h"
 #include "mozIStorageConnection.h"
 #include "mozIStorageStatement.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 extern "C" void sqlite3Fts3PorterTokenizerModule(
   sqlite3_tokenizer_module const**ppModule);
