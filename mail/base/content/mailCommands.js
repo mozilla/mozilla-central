@@ -119,42 +119,79 @@ function getIdentityForServer(server, optionalHint)
 
 function getIdentityForHeader(hdr, type)
 {
-  // If we treat reply from sent specially, do we check for that folder flag here ?
-  var isTemplate = (type == Components.interfaces.nsIMsgCompType.Template);
-  var hintForIdentity = isTemplate ? hdr.author : hdr.recipients + hdr.ccList;
-  var identity = null;
-  var server;
+  // If we treat reply from sent specially, do we check for that folder flag here?
 
+  var hintForIdentity = "";
+
+  // if the current mode is "reply-to-list"
+  if (type == Components.interfaces.nsIMsgCompType.ReplyToList) {
+    var key = "delivered-to";
+    var allIdentities = accountManager.allIdentities;
+
+    var tempIdentity = "";
+
+    // Get the delivered-to headers.
+    var deliveredTos = new Array();
+    var index = 0;
+    while (tempIdentity = currentHeaderData[key]) {
+      deliveredTos.push(tempIdentity.headerValue.toLowerCase());
+      key = "delivered-to" + index++;
+    }
+
+    // Reverse the array so that the last delivered-to header will show at front.
+    deliveredTos.reverse();
+
+    // Get the last "delivered-to" that is in the defined identities.
+    for (var i = 0; i < deliveredTos.length; i++) {
+      for each (var tempID in fixIterator(allIdentities,
+                Components.interfaces.nsIMsgIdentity)) {
+        // If the deliver-to header contains the defined identity
+        if (deliveredTos[i].indexOf(tempID.email.toLowerCase()) != -1) {
+          hintForIdentity = tempID.email;
+          break;
+        }
+      }
+      // Identity has been found
+      if (hintForIdentity)
+        break;
+    }
+  }
+  else if (type == Components.interfaces.nsIMsgCompType.Template)
+    hintForIdentity = hdr.author;
+  else
+    hintForIdentity = hdr.recipients + hdr.ccList;
+
+  var server = null;
+  var identity = null;
   var folder = hdr.folder;
-  if (folder)
-  {
+  if (folder) {
     server = folder.server;
     identity = folder.customIdentity;
   }
 
   var accountKey = hdr.accountKey;
-  if (accountKey.length > 0)
-  {
+  if (accountKey.length > 0) {
     var account = accountManager.getAccount(accountKey);
     if (account)
       server = account.incomingServer;
   }
 
-  if (server && !identity) 
+  if (server && !identity)
     identity = getIdentityForServer(server, hintForIdentity);
 
-  if (!identity)
-  {
+  if (!identity) {
     var allIdentities = accountManager.allIdentities;
     identity = getBestIdentity(allIdentities, hintForIdentity);
   }
+
   return identity;
 }
 
 function GetNextNMessages(folder)
 {
   if (folder) {
-    var newsFolder = folder.QueryInterface(Components.interfaces.nsIMsgNewsFolder);
+    var newsFolder = folder.QueryInterface(
+                     Components.interfaces.nsIMsgNewsFolder);
     if (newsFolder) {
       newsFolder.getNextNMessages(msgWindow);
     }

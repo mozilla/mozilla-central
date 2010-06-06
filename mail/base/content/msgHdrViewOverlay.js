@@ -493,7 +493,8 @@ var messageHeaderSink = {
             this.mDummyMsgHeader.messageId = header.headerValue;
           else if (lowerCaseHeaderName == "list-post")
             this.mDummyMsgHeader.listPost = header.headerValue;
-
+          else if (lowerCaseHeaderName == "delivered-to")
+            this.mDummyMsgHeader.deliveredTo = header.headerValue;
         }
         // according to RFC 2822, certain headers
         // can occur "unlimited" times
