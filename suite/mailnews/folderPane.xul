@@ -24,6 +24,7 @@
  Contributor(s):
    Jan Varga <varga@ku.sk>
    Håkan Waara <hwaara@chello.se>
+   Ian Neal <iann_bugzilla@blueyonder.co.uk>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -42,7 +43,12 @@
 <?xml-stylesheet href="chrome://messenger/skin/folderPane.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/folderPaneExtras.css" type="text/css"?>
 
-<!DOCTYPE overlay SYSTEM "chrome://messenger/locale/folderpane.dtd">
+<!DOCTYPE overlay [
+  <!ENTITY % folderpaneDTD SYSTEM "chrome://messenger/locale/folderpane.dtd">
+  %folderpaneDTD;
+  <!ENTITY % msgViewPickerDTD SYSTEM "chrome://messenger/locale/msgViewPickerOverlay.dtd">
+  %msgViewPickerDTD;
+]>
 
 <overlay xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -168,4 +174,90 @@
                    selectable="false"/>
     </treecols>
   </tree>
+
+  <toolbarpalette id="MailToolbarPalette">
+    <toolbaritem id="folder-location-container"
+                 title="&folderLocationToolbarItem.title;"
+                 align="center"
+                 context="folderPaneContext"
+                 class="chromeclass-toolbar-additional">
+      <image id="locationIcon" class="folderMenuItem"/>
+      <menulist id="locationFolders"
+                class="folderMenuItem"
+                label=" "
+                crop="center">
+        <menupopup id="folderLocationPopup"
+                   height="400"
+                   oncommand="OnLocationTreeSelect(this);"/>
+      </menulist>
+    </toolbaritem>
+    <toolbaritem id="mailviews-container"
+                 title="&mailViewsToolbarItem.title;"
+                 observes="mailDisableViewsSearch"
+                 align="center"
+                 class="chromeclass-toolbar-additional">
+      <label id="viewPickerLabel"
+             value="&viewPicker.label;"
+             accesskey="&viewPicker.accesskey;"
+             control="viewPicker">
+        <observes element="mailviews-container" attribute="disabled"/>
+      </label>
+      <menulist id="viewPicker"
+                oncommand="ViewChangeByMenuitem(event.target);">
+        <menupopup id="viewPickerPopup"
+                   onpopupshowing="RefreshViewPopup(this);">
+          <menuitem id="viewPickerAll"
+                    label="&viewAll.label;"
+                    type="radio"
+                    name="viewmessages"
+                    value="0"/>
+          <menuitem id="viewPickerUnread"
+                    label="&viewUnread.label;"
+                    type="radio"
+                    name="viewmessages"
+                    value="1"/>
+          <menuitem id="viewPickerNotDeleted"
+                    label="&viewNotDeleted.label;"
+                    type="radio"
+                    name="viewmessages"
+                    value="3"/>
+          <menuseparator id="afterViewPickerUnreadSeparator"/>
+          <menu id="viewPickerTags" label="&viewTags.label;">
+            <menupopup id="viewPickerTagsPopup"
+                       class="menulist-menupopup"
+                       onpopupshowing="RefreshTagsPopup(this);"/>
+          </menu>
+          <menu id="viewPickerCustomViews" label="&viewCustomViews.label;">
+            <menupopup id="viewPickerCustomViewsPopup"
+                       class="menulist-menupopup"
+                       onpopupshowing="RefreshCustomViewsPopup(this);"/>
+          </menu>
+          <menuseparator id="afterViewPickerCustomViewsSeparator"/>
+          <menuitem id="viewPickerVirtualFolder"
+                    label="&viewVirtualFolder.label;"
+                    value="7"/>
+          <menuitem id="viewPickerCustomize"
+                    label="&viewCustomizeView.label;"
+                    value="8"/>
+        </menupopup>
+        <observes element="mailviews-container" attribute="disabled"/>
+      </menulist>
+    </toolbaritem>
+    <toolbaritem id="search-container"
+                 title="&searchToolbarItem.title;"
+                 observes="mailDisableViewsSearch"
+                 align="center"
+                 flex="1"
+                 class="chromeclass-toolbar-additional">
+      <textbox id="searchInput"
+               flex="1"
+               type="search"
+               placeholder="&searchSubjectOrAddress.placeholder;"
+               clickSelectsAll="true"
+               onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();"
+               oncommand="onEnterInSearchBar();">
+        <observes element="search-container" attribute="disabled"/>
+      </textbox>
+    </toolbaritem>
+  </toolbarpalette>
 </overlay>

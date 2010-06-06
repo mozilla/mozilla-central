@@ -23,6 +23,7 @@
  *   Scott MacGregor <mscott@netscape.com>
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Karsten Düsterloh <mnyromyr@tprac.de>
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -152,7 +153,7 @@ function GetLabelForValue(aValue)
     if (!selectedItems || !selectedItems.length)
     {
       // we may have a new item
-      RefreshAllViewPopups(viewPickerPopup, true);
+      RefreshAllViewPopups(viewPickerPopup);
       selectedItems = viewPickerPopup.getElementsByAttribute("value", aValue);
     }
     label = selectedItems && selectedItems.length && selectedItems.item(0).getAttribute("label");
@@ -346,52 +347,53 @@ function PrepareForViewChange()
 
 
 // refresh view popup and its subpopups
-function RefreshAllViewPopups(aViewPopup, aIsMenulist)
+function RefreshAllViewPopups(aViewPopup)
 {
-  RefreshViewPopup(aViewPopup, aIsMenulist);
   var menupopups = aViewPopup.getElementsByTagName("menupopup");
   if (menupopups.length > 1)
   {
     // when we have menupopups, we assume both tags and custom views are there
-    RefreshTagsPopup(menupopups[0], aIsMenulist);
-    RefreshCustomViewsPopup(menupopups[1], aIsMenulist);
+    RefreshTagsPopup(menupopups[0]);
+    RefreshCustomViewsPopup(menupopups[1]);
   }
 }
 
 
-function RefreshViewPopup(aViewPopup, aIsMenulist)
+function RefreshViewPopup(aViewPopup)
 {
   // mark default views if selected
-  if (!aIsMenulist)
+  let viewAll = aViewPopup.getElementsByAttribute("value", kViewItemAll)[0];
+  viewAll.setAttribute("checked", gCurrentViewValue == kViewItemAll);
+  let viewUnread =
+    aViewPopup.getElementsByAttribute("value", kViewItemUnread)[0];
+  viewUnread.setAttribute("checked", gCurrentViewValue == kViewItemUnread);
+
+  let viewNotDeleted =
+    aViewPopup.getElementsByAttribute("value", kViewItemNotDeleted)[0];
+  var folderArray = GetSelectedMsgFolders();
+  if (folderArray.length == 0)
+    return;
+
+  // Only show the "Not Deleted" item for IMAP servers
+  // that are using the IMAP delete model.
+  viewNotDeleted.setAttribute("hidden", true);
+  var msgFolder = folderArray[0];
+  var server = msgFolder.server;
+  if (server.type == "imap")
   {
-    var viewAll = aViewPopup.getElementsByAttribute("value", kViewItemAll)[0];
-    viewAll.setAttribute("checked", gCurrentViewValue == kViewItemAll);
-    var viewUnread = aViewPopup.getElementsByAttribute("value", kViewItemUnread)[0];
-    viewUnread.setAttribute("checked", gCurrentViewValue == kViewItemUnread);
-
-    var viewNotDeleted = aViewPopup.getElementsByAttribute("value", kViewItemNotDeleted)[0];
-    var folderArray = GetSelectedMsgFolders();
-    if (folderArray.length == 0)
-      return;
-
-    // only show the "Not Deleted" item for IMAP servers that are using the IMAP delete model
-    viewNotDeleted.setAttribute("hidden", true);
-    var msgFolder = folderArray[0];
-    var server = msgFolder.server;
-    if (server.type == "imap")
+    let imapServer =
+      server.QueryInterface(Components.interfaces.nsIImapIncomingServer);
+    if (imapServer.deleteModel == 0)  // nsMsgImapDeleteModels.IMAPDelete == 0
     {
-      var imapServer = server.QueryInterface(Components.interfaces.nsIImapIncomingServer);
-      if (imapServer.deleteModel == 0)   // nsMsgImapDeleteModels.IMAPDelete == 0
-      {
-        viewNotDeleted.setAttribute("hidden", false);
-        viewNotDeleted.setAttribute("checked", gCurrentViewValue == kViewItemNotDeleted);
-      }
+      viewNotDeleted.setAttribute("hidden", false);
+      viewNotDeleted.setAttribute("checked",
+                                  gCurrentViewValue == kViewItemNotDeleted);
     }
   }
 }
 
 
-function RefreshCustomViewsPopup(aMenupopup, aIsMenulist)
+function RefreshCustomViewsPopup(aMenupopup)
 {
   // for each mail view in the msg view list, add an entry in our combo box
   if (!gMailViewList)
@@ -410,18 +412,16 @@ function RefreshCustomViewsPopup(aMenupopup, aIsMenulist)
     var menuitem = document.createElement("menuitem");
     menuitem.setAttribute("label", viewInfo.prettyName);
     menuitem.setAttribute("value", kViewItemFirstCustom + i);
-    if (!aIsMenulist)
-    {
-      menuitem.setAttribute("type", "radio");
-      if (kViewItemFirstCustom + i == currentView)
-        menuitem.setAttribute("checked", true);
-    }
+    menuitem.setAttribute("name", "viewmessages");
+    menuitem.setAttribute("type", "radio");
+    if (kViewItemFirstCustom + i == currentView)
+      menuitem.setAttribute("checked", true);
     aMenupopup.appendChild(menuitem);
   }
 }
 
 
-function RefreshTagsPopup(aMenupopup, aIsMenulist)
+function RefreshTagsPopup(aMenupopup)
 {
   // remove all menuitems
   while (aMenupopup.hasChildNodes())
@@ -438,12 +438,10 @@ function RefreshTagsPopup(aMenupopup, aIsMenulist)
     var menuitem = document.createElement("menuitem");
     menuitem.setAttribute("label", tagInfo.tag);
     menuitem.setAttribute("value", kViewTagMarker + tagInfo.key);
-    if (!aIsMenulist)
-    {
-      menuitem.setAttribute("type", "radio");
-      if (tagInfo.key == currentTagKey)
-        menuitem.setAttribute("checked", true);
-    }
+    menuitem.setAttribute("name", "viewmessages");
+    menuitem.setAttribute("type", "radio");
+    if (tagInfo.key == currentTagKey)
+      menuitem.setAttribute("checked", true);
     var color = tagInfo.color;
     if (color)
       menuitem.setAttribute("class", "lc-" + color.substr(1));
@@ -456,7 +454,7 @@ function ViewPickerOnLoad()
 {
   var viewPickerPopup = document.getElementById("viewPickerPopup");
   if (viewPickerPopup)
-    RefreshAllViewPopups(viewPickerPopup, true);
+    RefreshAllViewPopups(viewPickerPopup);
 }
 
 

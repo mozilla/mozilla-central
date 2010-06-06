@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Samir Gehani <sgehani@netscape.com>
  *   Karsten Düsterloh <mnyromyr@tprac.de>
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -50,6 +51,10 @@ toolbar[printpreview="true"] {
   -moz-binding: url("chrome://communicator/content/bindings/notification.xml#browser-notificationbox");
 }
 
+/* ::::: toolbaritem ::::: */
+toolbaritem {
+  -moz-binding: url("chrome://global/content/bindings/general.xml#basecontrol");
+}
 
 /* With the move to the new toolkit, SeaMonkey needs to overwrite certain bindings
  * if it wants to keep its distinctive likeness. The now hidden new toolkit bindings

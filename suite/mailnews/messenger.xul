@@ -21,6 +21,7 @@
  the Initial Developer. All Rights Reserved.
 
  Contributor(s):
+    Ian Neal <iann_bugzilla@blueyonder.co.uk>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -115,6 +116,7 @@
 <broadcasterset id="mailBroadcasters">
   <broadcaster id="mailHideMenus"/>
   <broadcaster id="mailDisableKeys"/>
+  <broadcaster id="mailDisableViewsSearch" disabled="true"/>
   <!-- File Menu -->
   <broadcaster id="Communicator:WorkMode"/>
 </broadcasterset>
@@ -142,9 +144,26 @@
       </toolbaritem>
     </toolbar>
     <toolbar id="msgToolbar"/>
-    <toolbarset id="customToolbars" context="toolbar-context-menu"/>
-    <toolbar id="msgLocationToolbar"/>
+    <toolbarset id="customToolbars"/>
+    <toolbar id="searchToolbar"
+             class="chromeclass-toolbar"
+             persist="collapsed"
+             grippytooltiptext="&searchToolbar.tooltip;"
+             toolbarname="&showSearchToolbarCmd.label;"
+             accesskey="&showSearchToolbarCmd.accesskey;"
+             customizable="true"
+             nowindowdrag="true"
+             mode="full"
+             iconsize="small"
+             labelalign="end"
+             defaultmode="full"
+             defaulticonsize="small"
+             defaultlabelalign="end"
+             defaultset="mailviews-container,spring,search-container,button-search-container"
+             togglemenuitem="menu_showSearchToolbar"
+             context="toolbar-context-menu"/>
   </toolbox>
+
   <panel id="customizeToolbarSheetPopup"/>
 
   <!-- XXX This extension point (tabmail-container) is only temporary!
@@ -203,7 +222,6 @@
                 </vbox>
                 <!-- second panel is the threadPane -->
                 <vbox id="threadPaneBox">
-                  <hbox id="searchBoxHolder"/>
                   <tree id="threadTree"
                         treelines="true"
                         keepcurrentinview="true"

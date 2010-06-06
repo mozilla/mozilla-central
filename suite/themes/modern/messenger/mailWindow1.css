@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Joe Hewitt <hewitt@netscape.com>
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -109,48 +110,33 @@
 
 #threadTree,
 #accountCentralBox,
-#searchBoxHolder > #searchBox,
 #messagepanebox {
   border-left: 2px solid;
   -moz-border-left-colors: #AAB4BF #3B414F;
 }
 
-#searchBoxHolder > #searchBox {
-  border-top: 1px solid #EEF0F3;
-  border-right: 1px solid #A5ABB0;
-  border-bottom: 2px solid;
-  -moz-border-bottom-colors: #5D616E #BEC3D3;
-}
+/* ::::: search toolbar ::::: */
 
-/* ::::: location toolbar ::::: */
-
-#msgLocationToolbar {
+#searchToolbar {
   background: url("chrome://global/skin/toolbar/tb-mid.gif") #C7D0D9 repeat-x top;
 }
 
-#msgLocationToolbar > .toolbar-box > toolbargrippy,
-#msgLocationToolbar > .toolbar-box > .toolbar-holder {
+#searchToolbar > .toolbar-box > toolbargrippy,
+#searchToolbar > .toolbar-box > .toolbar-holder {
   border-top: 1px solid #CED6DD;
   border-right: 1px solid #95A0AD;
   border-bottom: 1px solid #95A0AD;
   border-left: 1px solid #DAE3ED;
 }
 
-#msgLocationToolbar > .toolbar-box > toolbargrippy:hover:active {
+#searchToolbar > .toolbar-box > toolbargrippy:hover:active {
   border-color: #67737E;
 }
 
-/* XXX bug 313731 buttons are taller than menulists */
-#msgLocationToolbar > #searchBox[collapsed="true"] {
-  visibility: hidden;
-}
+/* ::::: location widget ::::: */
 
 #locationIcon {
   list-style-image: none;
-}
-
-#locationFolders {
-  width: 20em;
 }
 
 /* ..... message pane adjustments ..... */

@@ -22,6 +22,7 @@
  Contributor(s):
     Karsten Düsterloh <mnyromyr@tprac.de>
     Jeremy Morton <bugzilla@game-point.net>
+    Ian Neal <iann_bugzilla@blueyonder.co.uk>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -156,15 +157,10 @@
 <!ENTITY redoDefaultCmd.label "Redo">
 
 <!-- View Menu -->
-<!ENTITY showMessengerToolbarCmd.label		"Mail Toolbar">
-<!ENTITY showMessengerToolbarCmd.accesskey	"o">
- 
-<!-- showSearchToolbarCmd is also used by addressbook -->
-<!ENTITY showSearchToolbarCmd.label		"Search Bar">
-<!ENTITY showSearchToolbarCmd.accesskey	"e">
-
-<!ENTITY showLocationToolbarCmd.label "Location Toolbar">
-<!ENTITY showLocationToolbarCmd.accesskey "L">
+<!ENTITY showMessengerToolbarCmd.label "Mail Toolbar">
+<!ENTITY showMessengerToolbarCmd.accesskey "M">
+<!ENTITY showSearchToolbarCmd.label "Search Bar">
+<!ENTITY showSearchToolbarCmd.accesskey "e">
 
 <!ENTITY messagePaneLayoutStyle.label "Layout">
 <!ENTITY messagePaneLayoutStyle.accesskey "L">
@@ -489,11 +485,12 @@
 <!ENTITY stopButton.label "Stop">
 <!ENTITY junkButton.label "Junk">
 <!ENTITY notJunkButton.label "Not Junk">
+<!ENTITY searchButton.title "Advanced Search">
 
 <!-- Tooltips -->
 <!ENTITY menuBar.tooltip "Menu Bar">
 <!ENTITY mailToolbar.tooltip "Mail Toolbar">
-<!ENTITY locationToolbar.tooltip "Location Toolbar">
+<!ENTITY searchToolbar.tooltip "Search Bar">
 <!ENTITY advancedButton.tooltip "Advanced message search">
 <!ENTITY getMsgButton.tooltip "Get new messages">
 <!ENTITY newMsgButton.tooltip "Create a new message">
@@ -589,9 +586,10 @@
 
 <!-- focusSearchInput.key also used by addressbook -->
 <!ENTITY focusSearchInput.key "k">
-<!ENTITY searchSubjectOrAddress.placeholder "Search Subject or Address">
 <!ENTITY advancedButton.label "Advanced…">
 <!ENTITY advancedButton.accesskey "A">
+<!ENTITY searchButton.label "Search Messages…">
+<!ENTITY searchButton.accesskey "S">
 
 <!ENTITY all.label "All">
 <!ENTITY all.accesskey "A">

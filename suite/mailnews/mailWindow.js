@@ -68,7 +68,7 @@ var accountManagerDataSource;
 var folderDataSource;
 
 var accountCentralBox = null;
-var gSearchBox = null;
+var gDisableViewsSearch = null;
 var gAccountCentralLoaded = true;
 //End progress and Status variables
 

@@ -23,6 +23,7 @@
  * Contributor(s):
  *   Jan Varga <varga@ku.sk>
  *   Håkan Waara (hwaara@chello.se)
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -210,6 +211,7 @@ var DefaultController =
 			case "cmd_find":
 			case "cmd_findAgain":
 			case "cmd_findPrev":
+      case "button_search":
       case "cmd_search":
       case "button_mark":
 			case "cmd_markAsRead":
@@ -411,6 +413,7 @@ var DefaultController =
       case "cmd_findPrev":
         return IsMessageDisplayedInMessagePane();
         break;
+      case "button_search":
       case "cmd_search":
         return IsCanSearchMessagesEnabled();
       case "cmd_selectAll":
@@ -652,6 +655,7 @@ var DefaultController =
       case "cmd_properties":
         MsgFolderProperties();
         return;
+      case "button_search":
       case "cmd_search":
         MsgSearchMessages();
         return;
@@ -1026,36 +1030,6 @@ function MsgGoBack()
 function MsgGoForward()
 {
   GoNextMessage(nsMsgNavigationType.forward, true);
-}
-
-/* XXX hiding the search bar while it is focus kills the keyboard so we focus the thread pane */
-function SearchBarToggled()
-{
-  var searchBox = document.getElementById('searchBox');
-  if (searchBox)
-  {
-    var attribValue = searchBox.getAttribute("hidden") ;
-    if (attribValue == "true")
-    {
-      /*come out of quick search view */
-      if (gDBView && gDBView.viewType == nsMsgViewType.eShowQuickSearchResults)
-        onClearSearch();
-    }
-    else
-    {
-      /*we have to initialize searchInput because we cannot do it when searchBox is hidden */
-      var searchInput = GetSearchInput();
-      searchInput.value="";
-    }
-  }
-
-  for (var currentNode = top.document.commandDispatcher.focusedElement; currentNode; currentNode = currentNode.parentNode) {
-    // But skip the last node, which is a XULDocument.
-    if ((currentNode instanceof XULElement) && currentNode.hidden) {
-      SetFocusThreadPane();
-      return;
-    }
-  }
 }
 
 function SwitchPaneFocus(event)

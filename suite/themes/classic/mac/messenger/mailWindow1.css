@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Stefan Hermes <stefanh@inbox.com>
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -73,7 +74,7 @@
   background-color: #E8E8E8;
 }
 
-#msgLocationToolbar {
+#searchToolbar {
   -moz-appearance: none;
   background-color: #CDCDCD;
   background-image: url("chrome://communicator/skin/toolbar/toolbar-gradient34.png");
@@ -135,25 +136,8 @@
   min-width: 1px;
 }
 
-#searchBoxHolder > #searchBox {
-  border-bottom: 1px solid #9F9F9F;
-  height: 34px;
-  background-color: #CDCDCD;
-  background-image: url("chrome://communicator/skin/toolbar/toolbar-gradient34.png");
-  background-repeat: repeat-x;
-}
-
-/* XXX bug 313731 buttons are taller than menulists */
-#msgLocationToolbar > #searchBox[collapsed="true"] {
-  visibility: hidden;
-}
-
 #locationIcon {
   list-style-image: none;
-}
-
-#locationFolders {
-  width: 20em;
 }
 
 /* ..... message pane adjustments ..... */

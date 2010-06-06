@@ -428,11 +428,6 @@ function createSearchTerms()
   searchTermsArray.Clear();
 }
 
-function onAdvancedSearch()
-{
-  MsgSearchMessages();
-}
-
 function onSearchStop() 
 {
   gSearchSession.interruptSearch();

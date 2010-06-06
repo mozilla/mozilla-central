@@ -877,8 +877,6 @@ function FolderPaneSelectionChange()
 
     if (gAccountCentralLoaded)
       UpdateMailToolbar("gAccountCentralLoaded");
-    else
-      document.getElementById('advancedButton').setAttribute("disabled" , !(IsCanSearchMessagesEnabled()));
 
     if (gDisplayStartupPage)
     {

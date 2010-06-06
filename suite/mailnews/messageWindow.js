@@ -21,6 +21,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -668,6 +669,7 @@ var MessageWindowController =
       case "cmd_find":
       case "cmd_findAgain":
       case "cmd_findPrev":
+      case "button_search":
       case "cmd_search":
       case "cmd_reload":
       case "cmd_saveAsFile":
@@ -796,6 +798,7 @@ var MessageWindowController =
       case "cmd_goForward":
       case "button_goForward":
         return gDBView && gDBView.navigateStatus(nsMsgNavigationType.forward);
+      case "button_search":
       case "cmd_search":
         loadedFolder = GetLoadedMsgFolder();
         return (loadedFolder && loadedFolder.server.canSearchMessages);
@@ -922,6 +925,7 @@ var MessageWindowController =
 			case "cmd_findPrev":
 				MsgFindAgain(true);
 				break;
+      case "button_search":
       case "cmd_search":
         MsgSearchMessages();
         break;

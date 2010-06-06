@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -110,28 +111,13 @@
 }
 
 #threadTree,
-#accountCentralBox,
-#searchBoxHolder > #searchBox {
+#accountCentralBox {
   border-left: 2px solid;
   -moz-border-left-colors: ThreeDShadow ThreeDDarkShadow;
 }
 
-#searchBoxHolder > #searchBox {
-  border-top: 1px solid ThreeDHighlight;
-  border-bottom: 1px solid ThreeDShadow;
-}
-
-/* XXX bug 313731 buttons are taller than menulists */
-#msgLocationToolbar > #searchBox[collapsed="true"] {
-  visibility: hidden;
-}
-
 #locationIcon {
   list-style-image: none;
-}
-
-#locationFolders {
-  width: 20em;
 }
 
 /* ..... message pane adjustments ..... */

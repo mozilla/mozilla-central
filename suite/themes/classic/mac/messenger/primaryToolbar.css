@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Manuel Reimer (Manuel.Reimer@gmx.de)
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -239,6 +240,22 @@ toolbarpaletteitem > #button-delete {
 
 #button-stop[disabled="true"] {
   -moz-image-region: rect(30px 89px 59px 60px) !important;
+}
+
+#locationFolders {
+  width: 22em;
+}
+
+toolbarpaletteitem[place="palette"] > #folder-location-container > #locationFolders {
+  max-width: 11em;
+}
+
+toolbarpaletteitem[place="palette"] > #search-container > #searchInput {
+  max-width: 11em;
+}
+
+toolbarpaletteitem[place="palette"] > #mailviews-container > #viewPicker {
+  max-width: 11em;
 }
 
 /* ::::: small primary toolbar buttons ::::: */

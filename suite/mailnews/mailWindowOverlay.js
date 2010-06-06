@@ -27,7 +27,7 @@
  *   Jan Varga <varga@ku.sk>
  *   Seth Spitzer <sspitzer@netscape.com>
  *   David Bienvenu <bienvenu@netscape.com>
- *   Ian Neal <bugzilla@arlen.demon.co.uk>
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *   Karsten Düsterloh <mnyromyr@tprac.de>
  *   Christopher Thomas <cst@yecc.com>
  *   Jeremy Morton <bugzilla@game-point.net>
@@ -3135,6 +3135,10 @@ function MailToolboxCustomizeDone(aToolboxChanged)
 {
   toolboxCustomizeDone("mail-menubar", getMailToolbox(), aToolboxChanged);
   SetupMoveCopyMenus('button-file', accountManagerDataSource, folderDataSource);
+
+  // make sure the folder location picker is initialized, if it exists
+  if ("OnLoadLocationTree" in window)
+    OnLoadLocationTree();
 }
 
 function MailToolboxCustomizeChange(event)

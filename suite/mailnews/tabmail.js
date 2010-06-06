@@ -25,6 +25,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -842,11 +843,11 @@ function UpdateLayoutVisibility()
 
   // disable location bar if only message pane is visible
   document.getElementById("locationFolders").disabled = onlyMessagePane;
-  // disable mailviews and search if threadpane is invisble
-  var viewPicker = document.getElementById("viewPicker");
-  viewPicker.disabled = !threadPaneVisible;
-  viewPicker.previousSibling.disabled = !threadPaneVisible;
-  GetSearchInput().disabled = !threadPaneVisible;
+  // disable mailviews and search if threadpane is invisible
+  if (!threadPaneVisible)
+    gDisableViewsSearch.setAttribute("disabled", true);
+  else
+    gDisableViewsSearch.removeAttribute("disabled");
 }
 
 function ChangeMessagePaneVisibility()
@@ -959,7 +960,7 @@ function ShowThreadPane()
 
 function ShowingThreadPane()
 {
-  gSearchBox.collapsed = false;
+  gDisableViewsSearch.removeAttribute("disabled");
   var threadPaneSplitter = GetThreadAndMessagePaneSplitter();
   threadPaneSplitter.collapsed = false;
   if (!threadPaneSplitter.hidden && threadPaneSplitter.getAttribute("state") != "collapsed")
@@ -980,7 +981,7 @@ function HidingThreadPane()
   GetTotalCountElement().hidden = true;
   GetMessagePane().collapsed = true;
   GetThreadAndMessagePaneSplitter().collapsed = true;
-  gSearchBox.collapsed = true;
+  gDisableViewsSearch.setAttribute("disabled", true);
   document.getElementById("key_toggleThreadPane").setAttribute("disabled", "true");
   document.getElementById("key_toggleMessagePane").setAttribute("disabled", "true");
 }

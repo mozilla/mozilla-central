@@ -132,7 +132,8 @@
         <menubar id="mail-menubar"/>
       </toolbaritem>
     </toolbar>
-    <toolbarset id="customToolbars" context="toolbar-context-menu"/>
+    <toolbar id="msgToolbar"/>
+    <toolbarset id="customToolbars"/>
   </toolbox>
 
   <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>

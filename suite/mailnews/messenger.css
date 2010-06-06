@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -162,7 +163,7 @@ searchterm {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#searchpopup");
 }
 
-#locationPopup {
+#folderLocationPopup {
   display: -moz-popup;
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#locationpopup");
   visibility: visible;
@@ -253,6 +254,26 @@ dummy.usesMailWidgets {
 .tabs-alltabs-popup {
   /* override toolkit's .menulist-menupopup binding */
   -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-alltabs-popup") ! important;
+}
+
+/* Used for selecting appropriate button for when next to search box */
+
+#button-search {
+  display: -moz-box;
+}
+
+#search-container + #button-search-container > #button-search,
+#wrapper-search-container + toolbarpaletteitem[place="toolbar"] > #button-search-container > #button-search {
+  display: none;
+}
+
+#button-advanced {
+  display: none;
+}
+
+#search-container + #button-search-container > #button-advanced,
+#wrapper-search-container + toolbarpaletteitem[place="toolbar"] > #button-search-container > #button-advanced {
+  display: -moz-box;
 }
 
 /* Wallpaper patch for  Bug 517924 */

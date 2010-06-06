@@ -26,6 +26,7 @@
  *   Neil Rashbrook (neil@parkwaycc.co.uk)
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Karsten Düsterloh <mnyromyr@tprac.de>
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -864,8 +865,7 @@ function Create3PaneGlobals()
 {
   // Update <mailWindow.js> global variables.
   accountCentralBox = document.getElementById("accountCentralBox");
-  gSearchBox = document.getElementById("searchBox");
-  gSearchBox.collapsed = true;
+  gDisableViewsSearch = document.getElementById("mailDisableViewsSearch");
 
   GetMessagePane().collapsed = true;
 }
@@ -1072,27 +1072,15 @@ function UpdateAttachmentCol(aFirstTimeFlag)
     threadTree.treeBoxObject.clearStyleAndImageCaches();
 }
 
-function OnLocationToolbarAttrModified(event)
-{
-    if (!/collapsed|hidden/.test(event.attrName))
-        return;
-    var searchBox = document.getElementById("searchBox");
-    var desiredParent = document.getElementById("msgLocationToolbar");
-    if (desiredParent.hidden || desiredParent.collapsed)
-        desiredParent = document.getElementById("searchBoxHolder");
-    if (searchBox.parentNode != desiredParent)
-        desiredParent.appendChild(searchBox);
-}
-
 function OnLoadLocationTree()
 {
-    var locationTree = document.getElementById('locationPopup').tree;
+  var locationTree = document.getElementById("folderLocationPopup").tree;
+  if (locationTree)
+  {
     locationTree.database.AddDataSource(accountManagerDataSource);
     locationTree.database.AddDataSource(folderDataSource);
     locationTree.setAttribute("ref", "msgaccounts:/");
-    var toolbar = document.getElementById("msgLocationToolbar");
-    toolbar.addEventListener("DOMAttrModified", OnLocationToolbarAttrModified, false);
-    OnLocationToolbarAttrModified({attrName:"collapsed"});
+  }
 }
 
 function OnLocationTreeSelect(menulist)
