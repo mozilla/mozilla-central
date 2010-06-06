@@ -57,12 +57,6 @@ EXPORT_RESOURCE_FILES += movemail.rdf
 endif
 endif
 
-ifndef MOZ_THUNDERBIRD
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-EXPORT_RESOURCE_FILES += dotmac.rdf
-endif
-endif
-
 include $(topsrcdir)/config/rules.mk
 
 GARBAGE		+= $(addprefix $(EXPORT_DIR)/, $(EXPORT_RESOURCE_FILES)) 
@@ -73,5 +67,4 @@ libs:: $(EXPORT_RESOURCE_FILES)
 
 install:: $(EXPORT_RESOURCE_FILES)
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/defaults/isp
-
 endif
