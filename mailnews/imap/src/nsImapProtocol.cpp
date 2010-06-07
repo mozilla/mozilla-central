@@ -87,6 +87,7 @@
 #include "nsICacheEntryDescriptor.h"
 #include "nsICacheSession.h"
 #include "nsIPrompt.h"
+#include "nsIDocShell.h"
 #include "nsIDocShellLoadInfo.h"
 #include "nsIDOMWindowInternal.h"
 #include "nsIMessengerWindowService.h"
@@ -777,9 +778,14 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
         GetTopmostMsgWindow(getter_AddRefs(msgWindow));
       if (msgWindow)
       {
+        nsCOMPtr<nsIDocShell> docShell;
+        msgWindow->GetRootDocShell(getter_AddRefs(docShell));
+        nsCOMPtr<nsIInterfaceRequestor> ir(do_QueryInterface(docShell));
         nsCOMPtr<nsIInterfaceRequestor> interfaceRequestor;
         msgWindow->GetNotificationCallbacks(getter_AddRefs(interfaceRequestor));
-        m_mockChannel->SetNotificationCallbacks(interfaceRequestor);
+        nsCOMPtr<nsIInterfaceRequestor> aggregateIR;
+        NS_NewInterfaceRequestorAggregation(interfaceRequestor, ir, getter_AddRefs(aggregateIR));
+        m_mockChannel->SetNotificationCallbacks(aggregateIR);
       }
     }
 
@@ -1389,7 +1395,7 @@ nsImapProtocol::ImapThreadMainLoop()
           m_imapMailFolderSink = nsnull;
       }
     }
-    else if (m_idle)
+    else if (m_idle && !m_threadShouldDie)
     {
       HandleIdleResponses();
     }
