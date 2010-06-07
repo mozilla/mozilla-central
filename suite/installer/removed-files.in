@@ -141,6 +141,9 @@ greprefs/all.js
 greprefs/security-prefs.js
 greprefs/xpinstall.js
 greprefs/
+#ifdef XP_MACOSX
+isp/dotmac.rdf
+#endif
 #ifdef XP_WIN
 js3250.dll
 jsj3250.dll
