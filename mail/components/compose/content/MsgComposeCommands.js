@@ -3106,17 +3106,17 @@ nsAttachmentOpener.prototype =
 
   onStartURIOpen: function(uri)
   {
-    return;
+    return false;
   },
 
   doContent: function(contentType, isContentPreferred, request, contentHandler)
   {
-    return;
+    return false;
   },
 
   isPreferred: function(contentType, desiredContentType)
   {
-    return;
+    return false;
   },
 
   canHandleContent: function(contentType, isContentPreferred, desiredContentType)
