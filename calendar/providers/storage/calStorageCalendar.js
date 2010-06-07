@@ -2176,6 +2176,7 @@ calStorageCalendar.prototype = {
             this.mDeleteEvent(aID, this.id);
             this.mDeleteTodo(aID, this.id);
             this.mDeleteAttachments(aID, this.id);
+            this.mDeleteRelations(aID, this.id);
             this.mDeleteMetaData(aID, this.id);
             this.mDeleteAlarms(aID, this.id);
         } catch (e) {
@@ -2267,7 +2268,7 @@ calStorageCalendar.prototype = {
     },
 
     deleteMetaData: function cSC_deleteMetaData(id) {
-        this.mDeleteMetaData(id);
+        this.mDeleteMetaData(id, this.id);
     },
 
     getMetaData: function cSC_getMetaData(id) {
@@ -2291,10 +2292,10 @@ calStorageCalendar.prototype = {
     getAllMetaData: function cSC_getAllMetaData(out_count,
                                                  out_ids,
                                                  out_values) {
-        var query = this.mSelectAllMetaData;
+        let query = this.mSelectAllMetaData;
         this.prepareStatement(query);
-        var ids = [];
-        var values = [];
+        let ids = [];
+        let values = [];
         try {
             while (query.step()) {
                 ids.push(query.row.item_id);

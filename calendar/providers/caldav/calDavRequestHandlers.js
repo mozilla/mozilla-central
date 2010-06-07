@@ -372,7 +372,7 @@ webDavSyncHandler.prototype = {
     doWebDAVSync: function doWebDAVSync() {
         if (this.calendar.mDisabled) {
             // check if maybe our calendar has become available
-            this.calendar.checkDavResourceType(this.aChangeLogListener);
+            this.calendar.checkDavResourceType(this.changelogListener);
             return;
         }
 
@@ -448,7 +448,7 @@ webDavSyncHandler.prototype = {
             this._reader = null;
             this.calendar.mWebdavSyncToken=null;
             this.calendar.mTargetCalendar.deleteMetaData("sync-token");
-            this.calendar.safeRefresh(this.aChangeLogListener);
+            this.calendar.safeRefresh(this.changelogListener);
         } else {
             cal.WARN("CalDAV: Error doing webdav sync: " + responseStatus);
             this.calendar.reportDavError(Components.interfaces.calIErrors.DAV_REPORT_ERROR);
@@ -727,7 +727,7 @@ multigetSyncHandler.prototype = {
     doMultiGet: function doMultiGet() {
         if (this.calendar.mDisabled) {
             // check if maybe our calendar has become available
-            this.calendar.checkDavResourceType(this.aChangeLogListener);
+            this.calendar.checkDavResourceType(this.changelogListener);
             return;
         }
         let C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
@@ -784,7 +784,7 @@ multigetSyncHandler.prototype = {
         } else {
             let errorMsg = "CalDAV: Error: got status " + responseStatus +
                                " fetching calendar data for " + thisCalendar.name + ", " + aListener;
-            this.calendar.notifyGetFailed(errorMsg,listener,changelogListener);
+            this.calendar.notifyGetFailed(errorMsg, this.listener, this.changelogListener);
             this._reader = null;
         }
     },
@@ -795,7 +795,7 @@ multigetSyncHandler.prototype = {
         }
         if (this.unhandledErrors) {
             this.calendar.superCalendar.endBatch();
-            this.calendar.notifyGetFailed("multiget error", listener, changelogListener);
+            this.calendar.notifyGetFailed("multiget error", this.listener, this.changelogListener);
             return;
         }
         if (this.itemsNeedFetching.length == 0) {
@@ -809,7 +809,8 @@ multigetSyncHandler.prototype = {
                                                this.baseUri);
         }
         if (!this._reader) {
-            // No reader means there was a request error
+            // No reader means there was a request error. The error is already
+            // notified in onStartRequest, so no need to do it here.
             cal.LOG("CalDAV: onStopRequest: no reader");
             return;
         }

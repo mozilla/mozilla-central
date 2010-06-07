@@ -942,7 +942,7 @@ calDavCalendar.prototype = {
      * @param aChangeLogListener (optional)Listener for cached calendars
      */
     notifyGetFailed: function notifyGetFailed(errorMsg, aListener, aChangeLogListener) {
-         cal.WARN(errorMsg);
+         cal.WARN("CalDAV: Get failed: " + errorMsg);
          if (this.isCached && aChangeLogListener) {
              aChangeLogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
                                          Components.results.NS_ERROR_FAILURE);
@@ -1047,7 +1047,7 @@ calDavCalendar.prototype = {
               }
             }
             catch (e) {
-                cal.WARN("Exception: "+e);
+                cal.WARN("CalDAV: Exception: " + e);
                 if (aChangeLogListener) {
                     aChangeLogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
                                                 Components.results.NS_ERROR_FAILURE);
