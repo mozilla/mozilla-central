@@ -798,28 +798,6 @@ function UpgradeProfileAndBeUglyAboutIt()
 
     if (threadPaneUIVersion < 7)
     {
-      // Mark all imap folders as offline at the very first run of TB v3
-      // We use the threadpane ui version to determine TB profile version
-      let servers = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                      .getService(Components.interfaces.nsIMsgAccountManager).allServers;
-
-      for each (let server in fixIterator(servers, Components.interfaces.nsIMsgIncomingServer))
-      {
-        // If it's not an imap server, or if we haven't set the
-        // offlineDownload flag on the server, then don't set the offline
-        // flags on all the sub-folders.
-        // Note: We need to use instanceof to get the offlineDownload flag.
-        if (!(server instanceof Components.interfaces.nsIImapIncomingServer) ||
-            !server.offlineDownload)
-          continue;
-
-        let allFolders = Components.classes["@mozilla.org/supports-array;1"]
-                          .createInstance(Components.interfaces.nsISupportsArray);
-        server.rootFolder.ListDescendents(allFolders);
-        for each (let folder in fixIterator(allFolders, Components.interfaces.nsIMsgFolder))
-          folder.setFlag(Components.interfaces.nsMsgFolderFlags.Offline);
-      }
-
       // Open a dialog explaining the major changes from version 2.
       if (gPrefBranch.getBoolPref("mail.ui.show.migration.on.upgrade"))
         // But let the main window finish opening first.

@@ -65,8 +65,6 @@ var AutoSyncConfigurator = {
                         .file.diskSpaceAvailable;
       let sizeDifference = 0;
 
-      this.updateSyncSettings();
-
       let servers = Cc["@mozilla.org/messenger/account-manager;1"].
                       getService(Ci.nsIMsgAccountManager).allServers;
 
@@ -110,12 +108,22 @@ var AutoSyncConfigurator = {
       if (sizeDifference <= 0)
         $("#disk-space-required").hide();
 
+      // If we're ending up on someSync, then save the settings.
+      // (We only want to save the settings for the someSync so that we can
+      // switch back to them when the user re-chooses that option.)
+      if (!allSync && !noneSync)
+        this.saveSyncSettings();
+
       let sync = $("#some-sync");
       if (allSync)
         sync = $("#all-sync");
       else if (noneSync)
         sync = $("#none-sync");
       sync.click();
+
+      // Make sure we can tell later that this is an automatic change, so
+      // that we don't save the folder settings.
+      $("#autosync-choice").data("automatic", true);
       sync.change();
     } catch (e) {
       logException(e);
@@ -126,11 +134,22 @@ var AutoSyncConfigurator = {
    * Set the sync preferences based on the radio buttons.
    *
    * @param aSyncStatus the requested sync status.
+   * @param aAutomatic true if this is the result of an automatic process
+   *        (i.e. not as a result of the user choosing one of the options.)
    */
-  setSyncStatus: function as_setSyncStatus(aSyncStatus) {
+  setSyncStatus: function as_setSyncStatus(aSyncStatus, aAutomatic) {
     try {
       let servers = Cc["@mozilla.org/messenger/account-manager;1"].
                       getService(Ci.nsIMsgAccountManager).allServers;
+
+      let dataElem = $("#autosync-choice");
+      let prevSyncStatus = dataElem.data("prevChecked");
+      dataElem.data("prevChecked", aSyncStatus);
+
+      // If the user clicked away from the "some" state, save off the
+      // current state of the folders, so that we can restore it later.
+      if (prevSyncStatus == "some" && !aAutomatic)
+        this.saveFolderSyncSettings();
 
       let newSync = (aSyncStatus == "some") ?
                     this.syncPref :
@@ -140,21 +159,31 @@ var AutoSyncConfigurator = {
       for each (let server in fixIterator(servers, Ci.nsIMsgIncomingServer)) {
         if (!(server instanceof Ci.nsIImapIncomingServer))
           continue;
+        let subSettings = this.syncSettings[server.key];
+        newSync = (aSyncStatus == "some") ?
+                  subSettings["server"] :
+                  (aSyncStatus == "all");
+        server.offlineDownload = newSync;
+        $("#" + server.key).toggleClass("syncing", newSync);
         let allFolders = Cc["@mozilla.org/supports-array;1"].
                            createInstance(Ci.nsISupportsArray);
 
-        newSync = (aSyncStatus == "some") ?
-                  this.syncSettings[server.key] :
-                  (aSyncStatus == "all");
-        server.offlineDownload = newSync;
         server.rootFolder.ListDescendents(allFolders);
         for each (let folder in fixIterator(allFolders, Ci.nsIMsgFolder)) {
-          if (newSync)
-            folder.setFlag(Ci.nsMsgFolderFlags.Offline);
-          else
-            folder.clearFlag(Ci.nsMsgFolderFlags.Offline);
+          if (aSyncStatus == "some") {
+            // Restore the state of the folders that we saved from before.
+            if (subSettings["#" + folder.folderURL])
+              folder.setFlag(Ci.nsMsgFolderFlags.Offline);
+            else
+              folder.clearFlag(Ci.nsMsgFolderFlags.Offline);
+          }
+          else {
+            if (newSync)
+              folder.setFlag(Ci.nsMsgFolderFlags.Offline);
+            else
+              folder.clearFlag(Ci.nsMsgFolderFlags.Offline);
+          }
         }
-        $("#" + server.key).toggleClass("syncing", newSync);
       }
     } catch (e) {
       logException(e);
@@ -165,21 +194,34 @@ var AutoSyncConfigurator = {
    * Update our copy of the syncSettings and syncPref with the current
    * values from the servers.
    */
-  updateSyncSettings: function as_updateSyncSettings() {
+  saveSyncSettings: function as_saveSyncSettings() {
     try {
       this.syncPref = Cc["@mozilla.org/preferences-service;1"]
         .getService(Ci.nsIPrefBranch)
         .getBoolPref("mail.server.default.autosync_offline_stores");
-      let servers = Cc["@mozilla.org/messenger/account-manager;1"].
-                      getService(Ci.nsIMsgAccountManager).allServers;
-
-      for each (let server in fixIterator(servers, Ci.nsIMsgIncomingServer)) {
-        if (!(server instanceof Ci.nsIImapIncomingServer))
-          continue;
-        this.syncSettings[server.key] = server.offlineDownload;
-      }
+      this.saveFolderSyncSettings();
     } catch (e) {
       logException(e);
+    }
+  },
+
+  saveFolderSyncSettings: function as_saveFolderSyncSettings() {
+    let servers = Cc["@mozilla.org/messenger/account-manager;1"].
+                    getService(Ci.nsIMsgAccountManager).allServers;
+
+    for each (let server in fixIterator(servers, Ci.nsIMsgIncomingServer)) {
+      if (!(server instanceof Ci.nsIImapIncomingServer))
+        continue;
+      let allFolders = Cc["@mozilla.org/supports-array;1"].
+                         createInstance(Ci.nsISupportsArray);
+
+      server.rootFolder.ListDescendents(allFolders);
+      let subSettings = {"server": server.offlineDownload};
+      for each (let folder in fixIterator(allFolders, Ci.nsIMsgFolder)) {
+        subSettings["#" + folder.folderURL] =
+            folder.getFlag(Ci.nsMsgFolderFlags.Offline);
+      }
+      this.syncSettings[server.key] = subSettings;
     }
   },
 
@@ -189,7 +231,9 @@ var AutoSyncConfigurator = {
     this.syncSettings = parent.gSubpageData.syncSettings;
     try {
       $("input[name='syncsettings']").change(function() {
-        self.setSyncStatus($(this).val());
+        let dataElem = $("#autosync-choice");
+        self.setSyncStatus($(this).val(), dataElem.data("automatic"));
+        dataElem.removeData("automatic");
       });
 
       let servers = Cc["@mozilla.org/messenger/account-manager;1"].
@@ -221,6 +265,8 @@ var AutoSyncConfigurator = {
         });
         ul.append(li);
       }
+      // Save the current settings when we load this page.
+      this.saveSyncSettings();
       self.updateStatus();
     } catch (e) {
       logException(e);

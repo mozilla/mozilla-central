@@ -62,7 +62,6 @@ function onInit(aPageId, aServerId)
 
 function initOfflineSettings()
 {
-    checkOffline();
     gOfflineMap = collectOfflineFolders();
 }
 
@@ -337,16 +336,8 @@ function onCheckItem(changeElementId, checkElementId)
     }
 }
 
-function checkOffline()
-{
-    var offline = document.getElementById("offline.folders").checked;
-    var folderPickerButton = document.getElementById('selectImapFoldersButton');
-    folderPickerButton.disabled = !offline;
-}
-
 function toggleOffline()
 {
-    checkOffline();
     var offline = document.getElementById("offline.folders").checked;
     var rootFolder = gIncomingServer.rootFolder;
     var allFolders = Components.classes["@mozilla.org/supports-array;1"]
