@@ -1871,9 +1871,17 @@ let gFolderTreeView = {
       return;
     }
 
-    if (aItem instanceof Components.interfaces.nsIMsgFolder)
-    {
+    if (aItem instanceof Components.interfaces.nsIMsgFolder) {
       let index = this.getIndexOfFolder(aItem);
+      let folder = aItem;
+      let folderTreeMode = this._modes[this._mode];
+      // look for first visible ancestor
+      while (index == null) {
+        folder = folderTreeMode.getParentOfFolder(folder);
+        if (!folder)
+          break;
+        index = this.getIndexOfFolder(folder);
+      }
       if (index != null)
         this._tree.invalidateRow(index);
     }
