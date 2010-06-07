@@ -734,6 +734,7 @@
 #else
 @BINPATH@/components/@DLL_PREFIX@embedcomponents@DLL_SUFFIX@
 #endif
+@BINPATH@/components/@DLL_PREFIX@extensions@DLL_SUFFIX@
 #ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/components/@DLL_PREFIX@fileview@DLL_SUFFIX@
 #endif
