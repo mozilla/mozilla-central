@@ -1697,8 +1697,7 @@ NS_IMPL_ISUPPORTS_INHERITED1(nsParseNewMailState, nsMsgMailboxParser, nsIMsgFilt
 
 nsresult
 nsParseNewMailState::Init(nsIMsgFolder *serverFolder, nsIMsgFolder *downloadFolder, nsILocalFile *folder,
-                          nsIInputStream *inboxFileStream, nsIMsgWindow *aMsgWindow,
-                          PRBool downloadingToTempFile)
+                          nsIInputStream *inboxFileStream, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
   PRInt64 folderSize;
@@ -1709,7 +1708,6 @@ nsParseNewMailState::Init(nsIMsgFolder *serverFolder, nsIMsgFolder *downloadFold
   m_inboxFileStream = inboxFileStream;
   m_msgWindow = aMsgWindow;
   m_downloadFolder = downloadFolder;
-  m_downloadingToTempFile = downloadingToTempFile;
 
   // the new mail parser isn't going to get the stream input, it seems, so we can't use
   // the OnStartRequest mechanism the mailbox parser uses. So, let's open the db right now.
@@ -1860,8 +1858,7 @@ PRInt32 nsParseNewMailState::PublishMsgHeader(nsIMsgWindow *msgWindow)
                   nsCOMPtr<nsIMsgDBHdr> msgHdr = m_newMsgHdr;
                   MoveIncorporatedMessage(m_newMsgHdr, m_mailDB, trash,
                                                           nsnull, msgWindow);
-                  if (!m_downloadingToTempFile)
-                    m_mailDB->RemoveHeaderMdbRow(msgHdr);
+                  m_mailDB->RemoveHeaderMdbRow(msgHdr);
                 }
               }
               break;
@@ -2063,12 +2060,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
             {
               if (loggingEnabled)
                 (void)filter->LogRuleHit(filterAction, msgHdr);
-              // if we're downloading to a temp file, our message key is wrong,
-              // i.e., relative to the temp file and not the original mailbox,
-              // and we need to let nsPop3Sink remove the message hdr after
-              // it fixes the key.
-              if (!m_downloadingToTempFile)
-                m_mailDB->RemoveHeaderMdbRow(msgHdr);
+              m_mailDB->RemoveHeaderMdbRow(msgHdr);
             }
           }
         }

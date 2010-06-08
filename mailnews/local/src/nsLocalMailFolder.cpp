@@ -3882,7 +3882,7 @@ nsMsgLocalMailFolder::AddMessage(const char *aMessage)
 
   nsCOMPtr <nsIInputStream> inputStream = do_QueryInterface(outFileStream);
   rv = newMailParser->Init(rootFolder, this,
-                           path, inputStream, nsnull, PR_FALSE);
+                           path, inputStream, nsnull);
 
   if (!mGettingNewMessages)
     newMailParser->DisableFilters();

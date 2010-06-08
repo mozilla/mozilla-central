@@ -448,7 +448,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
                                          getter_AddRefs(inbox));
   NS_ENSURE_TRUE(inbox, NS_ERROR_FAILURE);
   rv = newMailParser->Init(serverFolder, inbox,
-                           mailDirectory, inputStream, nsnull, PR_FALSE);
+                           mailDirectory, inputStream, nsnull);
   NS_ENSURE_SUCCESS(rv, rv);
 
   in_server->SetServerBusy(PR_TRUE);

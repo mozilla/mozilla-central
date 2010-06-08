@@ -6,7 +6,7 @@
  *  gPOP3Pump:        the main access to the routine
  *  gPOP3Pump.run()   function to run to load the messages
  *  gPOP3Pump.files:  (in) an array of message files to load
- *  gPOP3Pump.onDone: (in) string with statement(s) to execute after completion
+ *  gPOP3Pump.onDone: function to execute after completion
  *  gPOP3Pump.fakeServer:  (out) the POP3 incoming server
  *
  * adapted from test_pop3GetNewMail.js

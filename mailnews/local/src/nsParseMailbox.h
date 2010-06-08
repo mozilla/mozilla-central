@@ -238,8 +238,7 @@ public:
   virtual ~nsParseNewMailState();
   NS_DECL_ISUPPORTS_INHERITED
   nsresult Init(nsIMsgFolder *rootFolder, nsIMsgFolder *downloadFolder, nsILocalFile *folder,
-                nsIInputStream *inboxFileStream, nsIMsgWindow *aMsgWindow,
-                PRBool downloadingToTempFile);
+                nsIInputStream *inboxFileStream, nsIMsgWindow *aMsgWindow);
 
   virtual void  DoneParsingFolder(nsresult status);
 
