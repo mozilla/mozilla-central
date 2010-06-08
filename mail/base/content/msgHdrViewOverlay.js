@@ -2033,7 +2033,10 @@ function HandleMultipleAttachments(attachments, action)
      messenger.saveAllAttachments(attachmentContentTypeArray.length,
                                   attachmentContentTypeArray, attachmentUrlArray,
                                   attachmentDisplayNameArray, attachmentMessageUriArray);
-   else if ( action == 'detach' )
+   else if ( action == 'detach' && attachments.length > 1 )
+     // 'detach' on a multiple selection of attachments is so far not really supported.
+     // As a workaround, resort to normal detach-'all'.
+     // See also the comment on 'detaching a multiple selection of attachments' below.
      messenger.detachAllAttachments(attachmentContentTypeArray.length,
                                     attachmentContentTypeArray, attachmentUrlArray,
                                     attachmentDisplayNameArray, attachmentMessageUriArray,
@@ -2043,8 +2046,8 @@ function HandleMultipleAttachments(attachments, action)
                                     attachmentContentTypeArray, attachmentUrlArray,
                                     attachmentDisplayNameArray, attachmentMessageUriArray,
                                     false); // don't save
-   else if ( action == 'open'|| action == 'saveAs' ) {
-     // XXX hack alert. If we sit in tight loop and open/save multiple attachments,
+   else if ( action == 'open' || action == 'saveAs' || action == 'detach' ) {
+     // XXX hack alert. If we sit in tight loop and open/save/detach multiple attachments,
      // we get chrome errors in layout as we start loading the first helper app dialog
      // then before it loads, we kick off the next one and the next one. Subsequent helper
      // app dialogs were failing because we were still loading the chrome files for the
@@ -2052,6 +2055,13 @@ function HandleMultipleAttachments(attachments, action)
      // by doing the first helper app dialog right away, then waiting a bit before we
      // launch the rest.
      var actionFunction = (action == 'open') ? openAttachment : saveAttachment;
+     if ( action == 'detach' )
+       actionFunction = function (aAttachment) { detachAttachment(aAttachment, true); }
+       // Detaching a multiple selection of attachments is so far not supported.
+       // Therefore this code should only be reached if attachments.length == 1.
+       // Note hat detaching multiple attachments one-by-one in the below loop does not work
+       // (even if the loop iterates through the attachments in backward fashion
+       //  in order to avoid invalidating the positions of the attachments before).
      for (var i = 0; i < attachments.length; i++)
      {
        if (i == 0)

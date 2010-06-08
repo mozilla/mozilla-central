@@ -82,6 +82,11 @@ public:
                               const char **displayNameArray,
                               const char **messageUriArray,
                               PRBool detaching);
+  nsresult SaveOneAttachment(const char* aContentType,
+                             const char* aURL,
+                             const char* aDisplayName,
+                             const char* aMessageUri,
+                             PRBool detaching);
 
 protected:
   void GetString(const nsString& aStringName, nsString& stringValue);

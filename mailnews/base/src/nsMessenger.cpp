@@ -916,7 +916,18 @@ nsMessenger::SaveAttachment(const nsACString& aContentType, const nsACString& aU
   // helper app dialog...
   if (aIsExternalAttachment)
     return OpenURL(aURL);
+  return SaveOneAttachment(PromiseFlatCString(aContentType).get(),
+                           PromiseFlatCString(aURL).get(),
+                           PromiseFlatCString(aDisplayName).get(),
+                           PromiseFlatCString(aMessageUri).get(),
+                           PR_FALSE);
+}
 
+nsresult
+nsMessenger::SaveOneAttachment(const char * aContentType, const char * aURL,
+                               const char * aDisplayName, const char * aMessageUri,
+                               PRBool detaching)
+{
   nsresult rv = NS_ERROR_OUT_OF_MEMORY;
   nsCOMPtr<nsIFilePicker> filePicker =
       do_CreateInstance("@mozilla.org/filepicker;1", &rv);
@@ -928,7 +939,7 @@ nsMessenger::SaveAttachment(const nsACString& aContentType, const nsACString& aU
   nsCString filePath;
   nsString saveAttachmentStr;
   nsString defaultDisplayString;
-  ConvertAndSanitizeFileName(PromiseFlatCString(aDisplayName).get(), defaultDisplayString);
+  ConvertAndSanitizeFileName(aDisplayName, defaultDisplayString);
 
   GetString(NS_LITERAL_STRING("SaveAttachment"), saveAttachmentStr);
   filePicker->Init(mWindow, saveAttachmentStr,
@@ -949,8 +960,21 @@ nsMessenger::SaveAttachment(const nsACString& aContentType, const nsACString& aU
 
   SetLastSaveDirectory(localFile);
 
-  rv = SaveAttachment(localFile, aURL, aMessageUri, aContentType, nsnull, nsnull);
-  return rv;
+  nsCString dirName;
+  rv = localFile->GetNativePath(dirName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsSaveAllAttachmentsState *saveState = 
+    new nsSaveAllAttachmentsState(1,
+                                  &aContentType,
+                                  &aURL,
+                                  &aDisplayName,
+                                  &aMessageUri,
+                                  dirName.get(),
+                                  detaching);
+
+  return SaveAttachment(localFile, nsDependentCString(aURL), nsDependentCString(aMessageUri),
+                        nsDependentCString(aContentType), (void *)saveState, nsnull);
 }
 
 
@@ -979,8 +1003,6 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
     do_CreateInstance("@mozilla.org/filepicker;1", &rv);
   nsCOMPtr<nsILocalFile> localFile;
   nsCOMPtr<nsILocalFile> lastSaveDir;
-  nsCString dirName;
-  nsSaveAllAttachmentsState *saveState = nsnull;
   PRInt16 dialogResult;
   nsString saveAttachmentStr;
 
@@ -1004,6 +1026,8 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
   rv = SetLastSaveDirectory(localFile);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  nsCString dirName;
+  nsSaveAllAttachmentsState *saveState = nsnull;
   rv = localFile->GetNativePath(dirName);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1012,7 +1036,8 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
                                             urlArray,
                                             displayNameArray,
                                             messageUriArray,
-                                            dirName.get(), detaching);
+                                            dirName.get(),
+                                            detaching);
   nsString unescapedName;
   ConvertAndSanitizeFileName(displayNameArray[0], unescapedName);
   rv = localFile->Append(unescapedName);
@@ -2930,8 +2955,9 @@ nsMessenger::DetachAttachment(const char * aContentType, const char * aUrl,
   NS_ENSURE_ARG_POINTER(aDisplayName);
   NS_ENSURE_ARG_POINTER(aMessageUri);
 
-  // convenience function for JS, processing handled by DetachAllAttachments()
-  return DetachAllAttachments(1, &aContentType, &aUrl, &aDisplayName, &aMessageUri, aSaveFirst, withoutWarning);
+  if (aSaveFirst)
+    return SaveOneAttachment(aContentType, aUrl, aDisplayName, aMessageUri, PR_TRUE);
+  return DetachAttachments(1, &aContentType, &aUrl, &aDisplayName, &aMessageUri, nsnull, withoutWarning);
 }
 
 NS_IMETHODIMP
