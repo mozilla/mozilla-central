@@ -294,9 +294,9 @@ function test_that_msg_without_date_clears_previous_headers() {
  * Test various aspects of the (n more) widgetry.
  */
 function test_more_widget() {
-  // generate message with 20 recips (effectively guarantees overflow)
+  // generate message with 35 recips (effectively guarantees overflow for n=3)
   be_in_folder(folder);
-  let msg = create_message({toCount: 20});
+  let msg = create_message({toCount: 35});
 
   // add the message to the end of the folder
   add_message_to_folder(folder, msg);
@@ -366,8 +366,9 @@ function subtest_more_widget_display(toDescription) {
   let maxLines = prefBranch.getIntPref(
     "mailnews.headers.show_n_lines_before_more");
 
-  if (numLines > maxLines) {
-    throw new Error("expected <= " + maxLines + "lines; found " + numLines);
+  // allow for a 15% tolerance for any padding that may be applied
+  if (numLines < 0.85*maxLines || numLines > 1.15*maxLines) {
+    throw new Error("expected == " + maxLines + "lines; found " + numLines);
   }
 
   // test that we've got a (more) node and that it's expanded
@@ -430,7 +431,7 @@ function subtest_more_widget_star_click(toDescription) {
   */
 function test_more_widget_with_maxlines_of_3(){
 
-  // set maxLines to 2
+  // set maxLines to 3
   let prefBranch = Cc["@mozilla.org/preferences-service;1"]
     .getService(Ci.nsIPrefService).getBranch(null);
   let maxLines = prefBranch.setIntPref(

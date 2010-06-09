@@ -251,10 +251,6 @@
       <constructor>
         <![CDATA[
           this.mAddresses = new Array;
-
-          this.maxLinesBeforeMore = Application.prefs.getValue(
-            "mailnews.headers.show_n_lines_before_more",
-            this.maxLinesBeforeMore);
         ]]>
       </constructor>
 
@@ -310,6 +306,11 @@
         </body>
       </method>
 
+      <!-- This field is used to buffer the width of the comma node so that
+           it only has to be determined once during the lifetime of this
+           widget. Otherwise it would cause an expensive reflow every time. -->
+      <field name="commaNodeWidth">0</field>
+
       <!-- fillAddressesNode: private method used to create email address
            nodes for either our short or long view.
            @param aAddressesNode {DOMElement}: the div to add addresses too
@@ -335,9 +336,12 @@
             for (let node = aAddressesNode; node; node = node.parentNode)
               node.collapsed = false;
 
+            // this ensures that the worst-case "n more" width is considered
+            this.addNMore(this.mAddresses.length);
             var availableWidth = aAddressesNode.clientWidth;
+            this.more.collapsed = true;
 
-            // add addresses until we're done, or we overflow this line
+            // add addresses until we're done, or we overflow the allowed lines
             var i = 0;
             for (let curLine = 0, curLineWidth = 0;
                  i < this.mAddresses.length && (all || curLine < this.maxLinesBeforeMore);
@@ -349,8 +353,11 @@
               if (i > 0) {
                 if (cached-- > 0)
                   aAddressesNode.childNodes[i*2 - 1].hidden = false;
-                else
+                else {
                   this.appendComma();
+                  if (this.commaNodeWidth == 0)
+                    this.commaNodeWidth = this.emailAddresses.lastChild.clientWidth;
+                }
               }
 
               // Now add an email address.
@@ -373,13 +380,22 @@
               // (X more).
               if (!all) {
 
-                // Calculate width and lines
+                // Calculate width and lines, consider the i+1 comma node if we have to
                 // <http://www.w3.org/TR/cssom-view/#client-attributes>
                 // <https://developer.mozilla.org/en/Determining_the_dimensions_of_elements>
-                curLineWidth += newAddressNode.clientWidth;
+                let newLineWidth = i+1 < this.mAddresses.length ?
+                                   newAddressNode.clientWidth + this.commaNodeWidth:
+                                   newAddressNode.clientWidth;
+                curLineWidth += newLineWidth;
                 if (curLineWidth > availableWidth && i > 0) {
                   curLine++;
-                  curLineWidth = 0;
+                  curLineWidth = newLineWidth;
+                }
+
+                // hide the last node spanning into the additional line (n>1)
+                if (curLine >= this.maxLinesBeforeMore && this.maxLinesBeforeMore > 1) {
+                  aAddressesNode.lastChild.hidden = true;
+                  i--;
                 }
               }
             }
@@ -423,13 +439,22 @@
       <field name="maxLinesBeforeMore">1</field>
 
       <!-- Public method to build the DOM nodes for display, to be called
-           after all the addresses have been added to the widget. Displays at
-           most maxAddressesBeforeMore addresses plus a (more) widget which
-           can be clicked to reveal the rest. -->
+           after all the addresses have been added to the widget. It uses
+           fillAddressesNode to display at most maxLinesBeforeMore lines of
+           addresses plus the (more) widget which can be clicked to reveal
+           the rest. The "singleline" attribute is set for one line only. -->
       <method name="buildViews">
         <body>
           <![CDATA[
+            this.maxLinesBeforeMore = Application.prefs.getValue(
+              "mailnews.headers.show_n_lines_before_more",
+              this.maxLinesBeforeMore);
+
             this.fillAddressesNode(this.emailAddresses, false);
+
+            // force a single line only in the default n=1 case
+            if (this.maxLinesBeforeMore > 1)
+              this.longEmailAddresses.removeAttribute("singleline");
           ]]>
         </body>
       </method>
