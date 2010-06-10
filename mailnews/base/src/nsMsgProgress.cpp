@@ -47,6 +47,8 @@
 #include "nsInt64.h"
 #include "nsIWindowWatcher.h"
 #include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMsgUtils.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgProgress)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgProgress)

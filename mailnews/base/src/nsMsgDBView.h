@@ -68,6 +68,7 @@
 #include "nsTArray.h"
 #include "nsIMsgCustomColumnHandler.h"
 #include "nsAutoPtr.h"
+#include "nsIWeakReferenceUtils.h"
 #define MESSENGER_STRING_URL       "chrome://messenger/locale/messenger.properties"
 
 typedef nsAutoTArray<nsMsgViewIndex, 1> nsMsgViewIndexArray;

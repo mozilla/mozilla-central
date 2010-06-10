@@ -53,9 +53,8 @@
 #include "nsIRDFNode.h"
 #include "nsEnumeratorUtils.h"
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
 
 #include "nsIMsgMailSession.h"
 #include "nsIMsgCopyService.h"
@@ -73,6 +72,10 @@
 #include "nsIMsgAccountManager.h"
 #include "nsArrayEnumerator.h"
 #include "nsArrayUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsMemory.h"
+#include "nsMsgUtils.h"
 
 #define MESSENGER_STRING_URL       "chrome://messenger/locale/messenger.properties"
 
@@ -215,19 +218,19 @@ nsMsgFolderDataSource::nsMsgFolderDataSource()
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_RENAME), &kNC_Rename);
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_EMPTYTRASH), &kNC_EmptyTrash);
 
-    kTotalMessagesAtom           = NS_NewAtom("TotalMessages");
-    kTotalUnreadMessagesAtom     = NS_NewAtom("TotalUnreadMessages");
-    kFolderSizeAtom              = NS_NewAtom("FolderSize");
-    kBiffStateAtom               = NS_NewAtom("BiffState");
-    kSortOrderAtom               = NS_NewAtom("SortOrder");
-    kNewMessagesAtom             = NS_NewAtom("NewMessages");
-    kNameAtom                    = NS_NewAtom("Name");
-    kSynchronizeAtom             = NS_NewAtom("Synchronize");
-    kOpenAtom                    = NS_NewAtom("open");
-    kIsDeferredAtom              = NS_NewAtom("isDeferred");
-    kIsSecureAtom                = NS_NewAtom("isSecure");
-    kCanFileMessagesAtom         = NS_NewAtom("canFileMessages");
-    kInVFEditSearchScopeAtom     = NS_NewAtom("inVFEditSearchScope");
+    kTotalMessagesAtom           = MsgNewAtom("TotalMessages");
+    kTotalUnreadMessagesAtom     = MsgNewAtom("TotalUnreadMessages");
+    kFolderSizeAtom              = MsgNewAtom("FolderSize");
+    kBiffStateAtom               = MsgNewAtom("BiffState");
+    kSortOrderAtom               = MsgNewAtom("SortOrder");
+    kNewMessagesAtom             = MsgNewAtom("NewMessages");
+    kNameAtom                    = MsgNewAtom("Name");
+    kSynchronizeAtom             = MsgNewAtom("Synchronize");
+    kOpenAtom                    = MsgNewAtom("open");
+    kIsDeferredAtom              = MsgNewAtom("isDeferred");
+    kIsSecureAtom                = MsgNewAtom("isSecure");
+    kCanFileMessagesAtom         = MsgNewAtom("canFileMessages");
+    kInVFEditSearchScopeAtom     = MsgNewAtom("inVFEditSearchScope");
   }
 
   CreateLiterals(rdf);
@@ -1304,7 +1307,7 @@ nsMsgFolderDataSource::createFolderSyncDisabledNode(nsIMsgFolder* folder,
   rv = server->GetType(serverType);
   if (NS_FAILED(rv)) return rv;
 
-  *target = isServer || serverType.LowerCaseEqualsLiteral("none") || serverType.LowerCaseEqualsLiteral("pop3") ?
+  *target = isServer ||  MsgLowerCaseEqualsLiteral(serverType, "none") || MsgLowerCaseEqualsLiteral(serverType, "pop3") ?
             kTrueLiteral : kFalseLiteral;
   NS_IF_ADDREF(*target);
   return NS_OK;
@@ -2203,7 +2206,7 @@ void nsMsgFlatFolderDataSource::EnsureFolders()
 
     nsCOMPtr<nsISupportsArray> allServers;
     rv = accountManager->GetAllServers(getter_AddRefs(allServers));
-    nsCOMPtr <nsISupportsArray> allFolders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);;
+    nsCOMPtr <nsISupportsArray> allFolders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv) && allServers)
     {
       PRUint32 count = 0;
@@ -2402,7 +2405,7 @@ void nsMsgRecentFoldersDataSource::EnsureFolders()
 
     nsCOMPtr<nsISupportsArray> allServers;
     rv = accountManager->GetAllServers(getter_AddRefs(allServers));
-    nsCOMPtr <nsISupportsArray> allFolders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);;
+    nsCOMPtr <nsISupportsArray> allFolders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv) && allServers)
     {
       PRUint32 count = 0;
@@ -2429,7 +2432,7 @@ void nsMsgRecentFoldersDataSource::EnsureFolders()
             {
               nsCOMPtr <nsIMsgFolder> curFolder = do_QueryElementAt(allFolders, newEntryIndex);
               nsCString dateStr;
-              PRInt32 err;
+              nsresult err;
               curFolder->GetStringProperty(MRU_TIME_PROPERTY, dateStr);
               PRUint32 curFolderDate = (PRUint32) dateStr.ToInteger(&err, 10);
               if (err)

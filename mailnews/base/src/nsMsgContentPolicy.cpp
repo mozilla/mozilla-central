@@ -52,7 +52,6 @@
 #include "nsIMimeMiscStatus.h"
 #include "nsIMsgMessageService.h"
 #include "nsIMsgHdr.h"
-#include "nsMsgUtils.h"
 #include "nsNetUtil.h"
 
 #include "nsIMsgComposeService.h"
@@ -71,6 +70,7 @@
 #include "nsILoadContext.h"
 #include "nsIFrameLoader.h"
 #include "nsIWebProgress.h"
+#include "nsMsgUtils.h"
 
 static const char kBlockRemoteImages[] = "mailnews.message_display.disable_remote_image";
 static const char kAllowPlugins[] = "mailnews.message_display.allow.plugins";
@@ -429,15 +429,15 @@ nsMsgContentPolicy::IsExposedProtocol(nsIURI *aContentLocation)
 
   // If you are changing this list, you may need to also consider changing the
   // list of network.protocol-handler.expose.* prefs in all-thunderbird.js.
-  if (contentScheme.LowerCaseEqualsLiteral("mailto") ||
-      contentScheme.LowerCaseEqualsLiteral("news") ||
-      contentScheme.LowerCaseEqualsLiteral("snews") ||
-      contentScheme.LowerCaseEqualsLiteral("nntp") ||
-      contentScheme.LowerCaseEqualsLiteral("imap") ||
-      contentScheme.LowerCaseEqualsLiteral("addbook") ||
-      contentScheme.LowerCaseEqualsLiteral("pop") ||
-      contentScheme.LowerCaseEqualsLiteral("mailbox") ||
-      contentScheme.LowerCaseEqualsLiteral("about"))
+  if (MsgLowerCaseEqualsLiteral(contentScheme, "mailto") ||
+      MsgLowerCaseEqualsLiteral(contentScheme, "news") ||
+      MsgLowerCaseEqualsLiteral(contentScheme, "snews") ||
+      MsgLowerCaseEqualsLiteral(contentScheme, "nntp") ||
+      MsgLowerCaseEqualsLiteral(contentScheme, "imap") ||
+      MsgLowerCaseEqualsLiteral(contentScheme, "addbook") ||
+      MsgLowerCaseEqualsLiteral(contentScheme, "pop") ||
+      MsgLowerCaseEqualsLiteral(contentScheme, "mailbox") ||
+      MsgLowerCaseEqualsLiteral(contentScheme, "about"))
     return PR_TRUE;
 
   PRBool isData;

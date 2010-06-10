@@ -39,7 +39,6 @@
 #include "prprf.h"
 #include "nsCOMPtr.h"
 #include "nsMemory.h"
-#include "nsReadableUtils.h"
 
 nsresult createNode(const PRUnichar *str, nsIRDFNode **node, nsIRDFService *rdfService)
 {

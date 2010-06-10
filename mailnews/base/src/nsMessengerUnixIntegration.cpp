@@ -68,9 +68,13 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsISupportsPrimitives.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsIWeakReferenceUtils.h"
 
 #include "nsNativeCharsetUtils.h"
 #include "nsToolkitCompsCID.h" 
+#include "nsMsgUtils.h"
 
 #define ALERT_CHROME_URL "chrome://messenger/content/newmailalert.xul"
 #define NEW_MAIL_ALERT_ICON "chrome://messenger/skin/icons/new-mail-alert.png"
@@ -115,7 +119,7 @@ static void openMailWindow(const nsACString& aFolderUri)
 
 nsMessengerUnixIntegration::nsMessengerUnixIntegration()
 {
-  mBiffStateAtom = do_GetAtom("BiffState");
+  mBiffStateAtom = MsgGetAtom("BiffState");
   mAlertInProgress = PR_FALSE;
   NS_NewISupportsArray(getter_AddRefs(mFoldersWithNewMail));
 }

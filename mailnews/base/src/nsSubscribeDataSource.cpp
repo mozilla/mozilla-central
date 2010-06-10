@@ -44,12 +44,15 @@
 #include "rdf.h"
 #include "nsIServiceManager.h"
 #include "nsEnumeratorUtils.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsCOMPtr.h"
 #include "nsIMsgFolder.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsCOMArray.h"
 #include "nsArrayEnumerator.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMsgUtils.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 

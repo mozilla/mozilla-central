@@ -42,6 +42,7 @@
 
 #include "nsIMsgTagService.h"
 #include "nsIPrefBranch.h"
+#include "nsCOMPtr.h"
 
 
 class nsMsgTag : public nsIMsgTag

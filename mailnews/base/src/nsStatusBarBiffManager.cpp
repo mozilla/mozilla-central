@@ -53,6 +53,7 @@
 #include "nsNetUtil.h"
 #include "nsIFileURL.h"
 #include "nsIFile.h"
+#include "nsMsgUtils.h"
 
 // QueryInterface, AddRef, and Release
 //
@@ -84,7 +85,7 @@ nsresult nsStatusBarBiffManager::Init()
 
   nsresult rv;
 
-  kBiffStateAtom = NS_NewAtom("BiffState");
+  kBiffStateAtom = MsgNewAtom("BiffState");
 
   nsCOMPtr<nsIMsgMailSession> mailSession = 
     do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv); 

@@ -36,7 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMsgWindow.h"
-#include "nsReadableUtils.h"
 #include "nsIURILoader.h"
 #include "nsCURILoader.h"
 #include "nsIDocShell.h"
@@ -64,6 +63,8 @@
 #include "nsIWebNavigation.h"
 #include "nsISupportsObsolete.h"
 #include "nsMsgContentPolicy.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 
 // used to dispatch urls to default protocol handlers
 #include "nsCExternalHandlerService.h"

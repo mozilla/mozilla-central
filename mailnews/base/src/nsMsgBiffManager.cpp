@@ -48,6 +48,9 @@
 #include "nspr.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsMsgUtils.h"
 
 #define PREF_BIFF_JITTER "mail.biff.add_interval_jitter"
 

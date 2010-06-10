@@ -704,7 +704,9 @@ NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, PRBool aMoveMessa
   nsCString buffer;
   // this is big enough to hold a log entry.
   // do this so we avoid growing and copying as we append to the log.
+#ifdef MOZILLA_INTERNAL_API
   buffer.SetCapacity(512);
+#endif
 
   nsCOMPtr<nsIStringBundleService> bundleService =
     do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);

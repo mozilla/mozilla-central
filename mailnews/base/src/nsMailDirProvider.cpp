@@ -46,6 +46,8 @@
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsIChromeRegistry.h"
 #include "nsICategoryManager.h"
+#include "nsServiceManagerUtils.h"
+#include "nsDirectoryServiceUtils.h"
 
 #define MAIL_DIR_50_NAME             "Mail"
 #define IMAP_MAIL_DIR_50_NAME        "ImapMail"

@@ -793,7 +793,8 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
       PRUint32 flags;
       PRBool rcvDate = PR_FALSE;
       msgHdr->GetFlags(&flags);
-      aValue.SetCapacity(0);
+      aValue.Truncate();
+      nsString tmp_str;
       switch (m_sortType)
       {
         case nsMsgViewSortType::byReceived:
@@ -840,18 +841,24 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
           break;
         case nsMsgViewSortType::byStatus:
           rv = FetchStatus(m_flags[aRow], aValue);
-          if (aValue.IsEmpty())
-            aValue.Adopt(GetString(NS_LITERAL_STRING("messagesWithNoStatus").get()));
+          if (aValue.IsEmpty()) {
+            tmp_str.Adopt(GetString(NS_LITERAL_STRING("messagesWithNoStatus").get()));
+            aValue.Assign(tmp_str);
+          }
           break;
         case nsMsgViewSortType::byTags:
           rv = FetchTags(msgHdr, aValue);
-          if (aValue.IsEmpty())
-            aValue.Adopt(GetString(NS_LITERAL_STRING("untaggedMessages").get()));
+          if (aValue.IsEmpty()) {
+            tmp_str.Adopt(GetString(NS_LITERAL_STRING("untaggedMessages").get()));
+            aValue.Assign(tmp_str);
+          }
           break;
         case nsMsgViewSortType::byPriority:
           FetchPriority(msgHdr, aValue);
-          if (aValue.IsEmpty())
-            aValue.Adopt(GetString(NS_LITERAL_STRING("noPriority").get()));
+          if (aValue.IsEmpty()) {
+            tmp_str.Adopt(GetString(NS_LITERAL_STRING("noPriority").get()));
+            aValue.Assign(tmp_str);
+          }
           break;
         case nsMsgViewSortType::byAccount:
           FetchAccount(msgHdr, aValue);
@@ -860,14 +867,16 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
           FetchRecipients(msgHdr, aValue);
           break;
         case nsMsgViewSortType::byAttachments:
-          aValue.Adopt(GetString(flags & nsMsgMessageFlags::Attachment
+          tmp_str.Adopt(GetString(flags & nsMsgMessageFlags::Attachment
             ? NS_LITERAL_STRING("attachments").get()
             : NS_LITERAL_STRING("noAttachments").get()));
+          aValue.Assign(tmp_str);
           break;
         case nsMsgViewSortType::byFlagged:
-          aValue.Adopt(GetString(flags & nsMsgMessageFlags::Marked 
+          tmp_str.Adopt(GetString(flags & nsMsgMessageFlags::Marked
             ? NS_LITERAL_STRING("groupFlagged").get()
             : NS_LITERAL_STRING("notFlagged").get()));
+          aValue.Assign(tmp_str);
           break;
         // byLocation is a special case; we don't want to have duplicate
         //  all this logic in nsMsgSearchDBView, and its hash key is what we

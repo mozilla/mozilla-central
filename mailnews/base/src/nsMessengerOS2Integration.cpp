@@ -74,8 +74,8 @@ nsMessengerOS2Integration::nsMessengerOS2Integration()
   }
   *pUnreadState = 0;
 
-  mBiffStateAtom = do_GetAtom("BiffState");
-  mTotalUnreadMessagesAtom = do_GetAtom("TotalUnreadMessages");
+  mBiffStateAtom = MsgGetAtom("BiffState");
+  mTotalUnreadMessagesAtom = MsgGetAtom("TotalUnreadMessages");
 }
 
 nsMessengerOS2Integration::~nsMessengerOS2Integration()

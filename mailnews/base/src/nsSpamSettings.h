@@ -43,7 +43,7 @@
 
 #include "nsCOMPtr.h"
 #include "nsISpamSettings.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIOutputStream.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsIUrlListener.h"

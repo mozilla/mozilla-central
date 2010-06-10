@@ -56,6 +56,8 @@
 #include "nsIPrefBranch.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIMsgSearchSession.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 
 static PRBool gReferenceOnlyThreading;
 

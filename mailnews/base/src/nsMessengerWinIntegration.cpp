@@ -76,6 +76,7 @@
 #include "nsISupportsPrimitives.h"
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsNativeCharsetUtils.h"
+#include "nsMsgUtils.h"
 
 #include "nsToolkitCompsCID.h"
 #include <stdlib.h>
@@ -248,13 +249,13 @@ static nsresult Create()
 
 nsMessengerWinIntegration::nsMessengerWinIntegration()
 {
-  mDefaultServerAtom = do_GetAtom("DefaultServer");
-  mTotalUnreadMessagesAtom = do_GetAtom("TotalUnreadMessages");
+  mDefaultServerAtom = MsgGetAtom("DefaultServer");
+  mTotalUnreadMessagesAtom = MsgGetAtom("TotalUnreadMessages");
 
   mUnreadTimerActive = PR_FALSE;
   mStoreUnreadCounts = PR_FALSE;
 
-  mBiffStateAtom = do_GetAtom("BiffState");
+  mBiffStateAtom = MsgGetAtom("BiffState");
   mBiffIconVisible = PR_FALSE;
   mSuppressBiffIcon = PR_FALSE;
   mAlertInProgress = PR_FALSE;

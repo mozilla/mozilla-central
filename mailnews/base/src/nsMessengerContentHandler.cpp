@@ -48,6 +48,7 @@
 #include "nsMsgBaseCID.h"
 #include "plstr.h"
 #include "nsIURL.h"
+#include "nsServiceManagerUtils.h"
 
 nsMessengerContentHandler::nsMessengerContentHandler()
 {
@@ -84,7 +85,9 @@ NS_IMETHODIMP nsMessengerContentHandler::HandleContent(const char * aContentType
         {
           nsCAutoString queryPart;
           aUrl->GetQuery(queryPart);
-          queryPart.ReplaceSubstring("type=message/rfc822", "type=application/x-message-display");
+          queryPart.Replace(queryPart.Find("type=message/rfc822"),
+                            sizeof("type=message/rfc822") - 1,
+                            "type=application/x-message-display");
           aUrl->SetQuery(queryPart);
           rv = OpenWindow(aUri);
         }

@@ -42,6 +42,8 @@
 #include "nsMsgRDFUtils.h"
 #include "nsEnumeratorUtils.h"
 #include "nsIObserverService.h"
+#include "nsServiceManagerUtils.h"
+#include "nsMsgUtils.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 

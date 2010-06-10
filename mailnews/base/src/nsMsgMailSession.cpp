@@ -61,6 +61,9 @@
 #include "nsIMsgMailNewsUrl.h"
 #include "prcmon.h"
 #include "nsThreadUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsIProperties.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgMailSession)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgMailSession)
@@ -740,7 +743,7 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
 
     if (mQuitForced)
     {
-      nsIThread *thread = NS_GetCurrentThread();
+      nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
 
       mReadyToQuit = PR_FALSE;
       while (!mReadyToQuit)

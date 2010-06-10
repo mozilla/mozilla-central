@@ -44,7 +44,6 @@
 #include "nsIServiceManager.h"
 #include "nsCRTGlue.h"
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
 #include "nsIMsgFolderNotificationService.h"
 
 #include "nsIPrefService.h"
@@ -53,6 +52,10 @@
 #include "nsMsgAccount.h"
 #include "nsIMsgAccount.h"
 #include "nsIMsgAccountManager.h"
+#include "nsServiceManagerUtils.h"
+#include "nsMemory.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMsgUtils.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgAccount, nsIMsgAccount)
 

@@ -50,6 +50,7 @@
 #include "nsIMsgSearchSession.h"
 #include "nsMsgDBCID.h"
 #include "nsMsgMessageFlags.h"
+#include "nsServiceManagerUtils.h"
 
 nsMsgXFVirtualFolderDBView::nsMsgXFVirtualFolderDBView()
 {

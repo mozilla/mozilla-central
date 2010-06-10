@@ -45,6 +45,7 @@
 #include "nsMsgUtils.h"
 #include "nsCOMArray.h"
 #include "nsArrayEnumerator.h"
+#include "nsServiceManagerUtils.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -176,7 +177,7 @@ nsSubscribableServer::SetState(const nsACString &aPath, PRBool aState,
     NS_ASSERTION(!aPath.IsEmpty() && aStateChanged, "no path or stateChanged");
     if (aPath.IsEmpty() || !aStateChanged) return NS_ERROR_NULL_POINTER;
 
-    NS_ASSERTION(IsUTF8(aPath), "aPath is not in UTF-8");
+    NS_ASSERTION(MsgIsUTF8(aPath), "aPath is not in UTF-8");
 
     *aStateChanged = PR_FALSE;
 

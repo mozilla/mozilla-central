@@ -48,6 +48,7 @@
 #include "nsArrayEnumerator.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIMutableArray.h"
+#include "nsMsgUtils.h"
 
 nsMsgQuickSearchDBView::nsMsgQuickSearchDBView()
 {

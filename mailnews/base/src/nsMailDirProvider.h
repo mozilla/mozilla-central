@@ -43,7 +43,8 @@
 #include "nsIDirectoryService.h"
 #include "nsIGenericFactory.h"
 #include "nsISimpleEnumerator.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
+#include "nsCOMPtr.h"
 
 class nsMailDirProvider : public nsIDirectoryServiceProvider2
 {

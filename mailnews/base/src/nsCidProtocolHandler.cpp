@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsCidProtocolHandler.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIURI.h"
 #include "nsNetCID.h"
 #include "nsComponentManagerUtils.h"

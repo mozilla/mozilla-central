@@ -38,7 +38,7 @@
 #include "nscore.h"
 #include "nsIMsgAccount.h"
 #include "nsIPrefBranch.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsMsgAccount : public nsIMsgAccount
 {

@@ -47,6 +47,9 @@
 #include "nsMsgDBView.h" // for labels migration
 #include "nsQuickSort.h"
 #include "nsMsgUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsMemory.h"
 
 #define STRLEN(s) (sizeof(s) - 1)
 
@@ -282,7 +285,7 @@ NS_IMETHODIMP nsMsgTagService::AddTag(const nsAString  &tag,
   // make it unique by appending A, AA, etc.
   // Should we use an iterator?
   nsAutoString transformedTag(tag);
-  transformedTag.ReplaceChar(" ()/{%*<>\\\"", '_');
+  MsgReplaceChar(transformedTag, " ()/{%*<>\\\"", '_');
   nsCAutoString key;
   CopyUTF16toMUTF7(transformedTag, key);
   // We have an imap server that converts keys to upper case so we're going

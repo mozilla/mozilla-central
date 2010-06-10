@@ -46,7 +46,6 @@
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsIStringStream.h"
-#include "nsReadableUtils.h"
 #include "nsILocalFile.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsISupportsObsolete.h"
@@ -91,7 +90,6 @@
 
 // mail
 #include "nsIMsgMailNewsUrl.h"
-#include "nsMsgUtils.h"
 #include "nsMsgBaseCID.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgMailSession.h"
@@ -157,6 +155,7 @@ static NS_DEFINE_CID(kMsgSendLaterCID, NS_MSGSENDLATER_CID);
 #include "nsICharsetConverterManager.h"
 #include "nsIContentSink.h"
 #include "nsIHTMLToTextSink.h"
+#include "nsMsgUtils.h"
 
 static NS_DEFINE_CID(kCParserCID, NS_PARSER_CID);
 
@@ -209,7 +208,7 @@ static void ConvertAndSanitizeFileName(const char * displayName, nsString& aResu
   CopyUTF8toUTF16(unescapedName, aResult);
 
   // replace platform specific path separator and illegale characters to avoid any confusion
-  aResult.ReplaceChar(FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS, '-');
+  MsgReplaceChar(aResult, FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS, '-');
 }
 
 // ***************************************************
@@ -634,17 +633,17 @@ nsMessenger::LoadURL(nsIDOMWindowInternal *aWin, const nsACString& aURL)
     rv = fileUrl->GetFile(getter_AddRefs(file));
     NS_ENSURE_SUCCESS(rv, rv);
     file->GetFileSize(&fileSize);
-    uriString.ReplaceSubstring(NS_LITERAL_STRING("file:"), NS_LITERAL_STRING("mailbox:"));
+    uriString.Replace(0, 5, NS_LITERAL_STRING("mailbox:"));
     uriString.Append(NS_LITERAL_STRING("&number=0"));
     loadingFromFile = PR_TRUE;
     getDummyMsgHdr = PR_TRUE;
   }
   else if (StringBeginsWith(uriString, NS_LITERAL_STRING("mailbox:")) &&
-           (uriString.Find(NS_LITERAL_STRING(".eml?"), PR_TRUE) != -1))
+           (uriString.Find(NS_LITERAL_STRING(".eml?"), CaseInsensitiveCompare) != -1))
   {
     // if we have a mailbox:// url that points to an .eml file, we have to read
     // the file size as well
-    uriString.ReplaceSubstring(NS_LITERAL_STRING("mailbox:"), NS_LITERAL_STRING("file:"));
+    uriString.Replace(0, 8, NS_LITERAL_STRING("file:"));
     nsCOMPtr<nsIURI> fileUri;
     rv = NS_NewURI(getter_AddRefs(fileUri), uriString);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -654,7 +653,7 @@ nsMessenger::LoadURL(nsIDOMWindowInternal *aWin, const nsACString& aURL)
     rv = fileUrl->GetFile(getter_AddRefs(file));
     NS_ENSURE_SUCCESS(rv, rv);
     file->GetFileSize(&fileSize);
-    uriString.ReplaceSubstring(NS_LITERAL_STRING("file:"), NS_LITERAL_STRING("mailbox:"));
+    uriString.Replace(0, 5, NS_LITERAL_STRING("mailbox:"));
     loadingFromFile = PR_TRUE;
     getDummyMsgHdr = PR_TRUE;
   }
@@ -807,7 +806,7 @@ nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
       urlString.SetCharAt('?', firstPartIndex);
   }
 
-  urlString.ReplaceSubstring("/;section", "?section");
+  MsgReplaceSubstring(urlString, "/;section", "?section");
   nsresult rv = CreateStartupUrl(urlString.get(), getter_AddRefs(URL));
 
   if (NS_SUCCEEDED(rv))
@@ -819,10 +818,8 @@ nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
       // if the message service has a fetch part service then we know we can fetch mime parts...
       if (fetchService)
       {
-        nsCString mimePart;
         PRInt32 sectionPos = urlString.Find("?section");
-        urlString.Right(mimePart, urlString.Length() - sectionPos);
-        fullMessageUri.Append(mimePart);
+        fullMessageUri.Append(Substring(urlString, sectionPos));
       }
 
       nsCOMPtr<nsIStreamListener> convertedListener;
@@ -832,7 +829,7 @@ nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
 #ifndef XP_MACOSX
       // if the content type is bin hex we are going to do a hokey hack and make sure we decode the bin hex
       // when saving an attachment to disk..
-      if (aContentType.LowerCaseEqualsLiteral(APPLICATION_BINHEX))
+      if (MsgLowerCaseEqualsLiteral(aContentType, APPLICATION_BINHEX))
       {
         nsCOMPtr<nsIStreamListener> listener (do_QueryInterface(convertedListener));
         nsCOMPtr<nsIStreamConverterService> streamConverterService = do_GetService("@mozilla.org/streamConverters;1", &rv);
@@ -1291,13 +1288,13 @@ nsMessenger::GetSaveAsFile(const nsAString& aMsgFilename, PRInt32 *aSaveAsFileTy
     rv = localFile->GetLeafName(fileName);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    if ((fileName.RFind(HTML_FILE_EXTENSION, PR_TRUE, -1,
-                        sizeof(HTML_FILE_EXTENSION) - 1) != kNotFound) ||
-        (fileName.RFind(HTML_FILE_EXTENSION2, PR_TRUE, -1,
-                        sizeof(HTML_FILE_EXTENSION2) - 1) != kNotFound))
+    if (StringEndsWith(fileName, NS_LITERAL_STRING(HTML_FILE_EXTENSION),
+                       nsCaseInsensitiveStringComparator()) ||
+        StringEndsWith(fileName, NS_LITERAL_STRING(HTML_FILE_EXTENSION2),
+                       nsCaseInsensitiveStringComparator()))
       *aSaveAsFileType = HTML_FILE_TYPE;
-    else if (fileName.RFind(TEXT_FILE_EXTENSION, PR_TRUE, -1,
-                            sizeof(TEXT_FILE_EXTENSION)-1) != kNotFound)
+    else if (StringEndsWith(fileName, NS_LITERAL_STRING(TEXT_FILE_EXTENSION),
+                            nsCaseInsensitiveStringComparator()) != kNotFound)
       *aSaveAsFileType = TEXT_FILE_TYPE;
     else
       // The default is .eml
@@ -1474,8 +1471,10 @@ nsMessenger::MsgHdrFromURI(const nsACString& aUri, nsIMsgDBHdr **aMsgHdr)
   nsCOMPtr <nsIMsgMessageService> msgService;
   nsresult rv;
 
-  if (mMsgWindow && (StringBeginsWith(aUri, NS_LITERAL_CSTRING("file:")) ||
-                     nsDependentCString(aUri).Find("type=application/x-message-display") >= 0))
+
+  if (mMsgWindow &&
+      (StringBeginsWith(aUri, NS_LITERAL_CSTRING("file:")) ||
+       PromiseFlatCString(aUri).Find("type=application/x-message-display") >= 0))
   {
     nsCOMPtr <nsIMsgHeaderSink> headerSink;
     mMsgWindow->GetMsgHeaderSink(getter_AddRefs(headerSink));
@@ -1844,8 +1843,8 @@ nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRUint32 a
     
 #if defined(XP_MACOSX) && !defined(__LP64__)
     /* if we are saving an appledouble or applesingle attachment, we need to use an Apple File Decoder */
-    if (m_contentType.LowerCaseEqualsLiteral(APPLICATION_APPLEFILE) ||
-        m_contentType.LowerCaseEqualsLiteral(MULTIPART_APPLEDOUBLE))
+    if (MsgLowerCaseEqualsLiteral(m_contentType, APPLICATION_APPLEFILE) ||
+        MsgLowerCaseEqualsLiteral(m_contentType, MULTIPART_APPLEDOUBLE))
     {
       nsCOMPtr<nsIAppleFileDecoder> appleFileDecoder = do_CreateInstance(NS_IAPPLEFILEDECODER_CONTRACTID, &rv);
       if (NS_SUCCEEDED(rv) && appleFileDecoder)

@@ -54,6 +54,10 @@
 #include "nsICategoryManager.h"
 #include "nsXPCOM.h"
 #include "nsISupportsPrimitives.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsArrayEnumerator.h"
+#include "nsMsgUtils.h"
 
 // turn this on to see useful output
 #undef DEBUG_amds
@@ -73,7 +77,7 @@
 #define NC_RDF_ACCOUNTROOT "msgaccounts:/"
 
 typedef struct _serverCreationParams {
-  nsISupportsArray *serverArray;
+  nsCOMArray<nsIRDFResource> *serverArray;
   nsIRDFService *rdfService;
 } serverCreationParams;
 
@@ -126,8 +130,8 @@ nsIAtom* nsMsgAccountManagerDataSource::kDefaultServerAtom = nsnull;
 nsrefcnt nsMsgAccountManagerDataSource::gAccountManagerResourceRefCnt = 0;
 
 // shared arc lists
-nsCOMPtr<nsISupportsArray> nsMsgAccountManagerDataSource::mAccountArcsOut;
-nsCOMPtr<nsISupportsArray> nsMsgAccountManagerDataSource::mAccountRootArcsOut;
+nsCOMPtr<nsIMutableArray> nsMsgAccountManagerDataSource::mAccountArcsOut;
+nsCOMPtr<nsIMutableArray> nsMsgAccountManagerDataSource::mAccountRootArcsOut;
 
 
 // RDF to match
@@ -199,7 +203,7 @@ nsMsgAccountManagerDataSource::nsMsgAccountManagerDataSource()
     // that's easily extensible
     getRDFService()->GetResource(NS_LITERAL_CSTRING(NC_RDF_SETTINGS), &kNC_Settings);
 
-    kDefaultServerAtom = NS_NewAtom("DefaultServer");
+    kDefaultServerAtom = MsgNewAtom("DefaultServer");
   }
 }
 
@@ -466,9 +470,9 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
         nsCString serverType;
         server->GetType(serverType);
 
-        if (serverType.LowerCaseEqualsLiteral("none"))
+        if (MsgLowerCaseEqualsLiteral(serverType, "none"))
           accountNum += 2000;
-        else if (serverType.LowerCaseEqualsLiteral("nntp"))
+        else if (MsgLowerCaseEqualsLiteral(serverType, "nntp"))
           accountNum += 3000;
         else
           accountNum += 1000;     // default is to appear at the top
@@ -507,7 +511,7 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
           // allow for the accountmanager to be dynamically extended
           // all the other pages come after the standard ones
           // server, copies, addressing, disk space (or offline & disk space)
-          CopyASCIItoUTF16(sourceValue, str);
+          CopyASCIItoUTF16(nsDependentCString(sourceValue), str);
         }
       }
       else {
@@ -588,28 +592,22 @@ nsMsgAccountManagerDataSource::GetTargets(nsIRDFResource *source,
 
   // create array and enumerator
   // even if we're not handling this we need to return something empty?
-  nsCOMPtr<nsISupportsArray> nodes;
-  rv = NS_NewISupportsArray(getter_AddRefs(nodes));
+  nsCOMArray<nsIRDFResource> nodes;
   if (NS_FAILED(rv)) return rv;
-
-  rv = NS_NewArrayEnumerator(_retval, nodes);
-  if (NS_FAILED(rv)) return rv;
-
   if (source == kNC_AccountRoot)
-    rv = createRootResources(property, nodes);
+    rv = createRootResources(property, &nodes);
   else if (property == kNC_Settings)
-    rv = createSettingsResources(source, nodes);
+    rv = createSettingsResources(source, &nodes);
 
   if (NS_FAILED(rv))
     return NS_RDF_NO_VALUE;
-
-  return NS_OK;
+  return NS_NewArrayEnumerator(_retval, nodes);
 }
 
 // end of all arcs coming out of msgaccounts:/
 nsresult
 nsMsgAccountManagerDataSource::createRootResources(nsIRDFResource *property,
-                                                   nsISupportsArray* aNodeArray)
+                                                   nsCOMArray<nsIRDFResource> *aNodeArray)
 {
   nsresult rv = NS_OK;
   if (isContainment(property)) {
@@ -626,13 +624,13 @@ nsMsgAccountManagerDataSource::createRootResources(nsIRDFResource *property,
     servers->EnumerateForwards(createServerResources, (void*)&params);
 #ifdef DEBUG_amds
     PRUint32 nodecount;
-    aNodeArray->Count(&nodecount);
+    aNodeArray->GetLength(&nodecount);
     printf("GetTargets(): added %d servers on %s\n", nodecount,
            (const char*)property_arc);
 #endif
     // For the "settings" arc, we also want to add SMTP setting.
     if (property == kNC_Settings) {
-      aNodeArray->AppendElement(kNC_PageTitleSMTP);
+      aNodeArray->AppendObject(kNC_PageTitleSMTP);
     }
   }
 
@@ -646,7 +644,7 @@ nsMsgAccountManagerDataSource::createRootResources(nsIRDFResource *property,
 }
 
 nsresult
-nsMsgAccountManagerDataSource::appendGenericSettingsResources(nsIMsgIncomingServer *server, nsISupportsArray *aNodeArray)
+nsMsgAccountManagerDataSource::appendGenericSettingsResources(nsIMsgIncomingServer *server, nsCOMArray<nsIRDFResource> *aNodeArray)
 {
   nsresult rv;
 
@@ -699,7 +697,7 @@ nsMsgAccountManagerDataSource::appendGenericSettingsResources(nsIMsgIncomingServ
 
 nsresult
 nsMsgAccountManagerDataSource::appendGenericSetting(const char *name,
-                                                    nsISupportsArray *aNodeArray)
+                                                    nsCOMArray<nsIRDFResource> *aNodeArray)
 {
   NS_ENSURE_ARG_POINTER(name);
   NS_ENSURE_ARG_POINTER(aNodeArray);
@@ -714,14 +712,14 @@ nsMsgAccountManagerDataSource::appendGenericSetting(const char *name,
   NS_ENSURE_SUCCESS(rv,rv);
 
   // AppendElement will addref.
-  aNodeArray->AppendElement(resource);
+  aNodeArray->AppendObject(resource);
   return NS_OK;
 }
 
 // end of all #Settings arcs
 nsresult
 nsMsgAccountManagerDataSource::createSettingsResources(nsIRDFResource *aSource,
-                                                       nsISupportsArray *aNodeArray)
+                                                       nsCOMArray<nsIRDFResource> *aNodeArray)
 {
   // If this isn't a server, just return.
   if (aSource == kNC_PageTitleSMTP)
@@ -734,17 +732,17 @@ nsMsgAccountManagerDataSource::createSettingsResources(nsIRDFResource *aSource,
     nsresult rv = serverHasIdentities(server, &hasIdentities);
 
     if (hasIdentities) {
-      aNodeArray->AppendElement(kNC_PageTitleServer);
-      aNodeArray->AppendElement(kNC_PageTitleCopies);
-      aNodeArray->AppendElement(kNC_PageTitleAddressing);
+      aNodeArray->AppendObject(kNC_PageTitleServer);
+      aNodeArray->AppendObject(kNC_PageTitleCopies);
+      aNodeArray->AppendObject(kNC_PageTitleAddressing);
     }
 
     // Junk settings apply for all server types except for news and rss.
     nsCString serverType;
     server->GetType(serverType);
-    if (!serverType.LowerCaseEqualsLiteral("nntp") &&
-        !serverType.LowerCaseEqualsLiteral("rss"))
-      aNodeArray->AppendElement(kNC_PageTitleJunk);
+    if (!MsgLowerCaseEqualsLiteral(serverType, "nntp") &&
+        !MsgLowerCaseEqualsLiteral(serverType, "rss"))
+      aNodeArray->AppendObject(kNC_PageTitleJunk);
 
     // Check the offline capability before adding
     // offline item
@@ -758,9 +756,9 @@ nsMsgAccountManagerDataSource::createSettingsResources(nsIRDFResource *aSource,
 
     // currently there is no offline without diskspace
     if (offlineSupportLevel >= OFFLINE_SUPPORT_LEVEL_REGULAR) 
-      aNodeArray->AppendElement(kNC_PageTitleSynchronization);
+      aNodeArray->AppendObject(kNC_PageTitleSynchronization);
     else if (supportsDiskSpace)
-      aNodeArray->AppendElement(kNC_PageTitleDiskSpace);
+      aNodeArray->AppendObject(kNC_PageTitleDiskSpace);
 
     if (hasIdentities) {
       // extensions come after the default panels
@@ -808,7 +806,7 @@ nsMsgAccountManagerDataSource::createServerResources(nsISupports *element,
   nsresult rv;
   // get parameters out of the data argument
   serverCreationParams *params = (serverCreationParams*)data;
-  nsCOMPtr<nsISupportsArray> servers = params->serverArray;
+  nsCOMArray<nsIRDFResource> *servers = params->serverArray;
   nsCOMPtr<nsIRDFService> rdf = params->rdfService;
 
   // the server itself is in the element argument
@@ -822,26 +820,25 @@ nsMsgAccountManagerDataSource::createServerResources(nsISupports *element,
   // add the resource to the array
   nsCOMPtr<nsIRDFResource> serverResource = do_QueryInterface(serverFolder);
   if(serverResource)
-    (void) servers->AppendElement(serverResource);
+    (void) servers->AppendObject(serverResource);
   return PR_TRUE;
 }
 
 nsresult
-nsMsgAccountManagerDataSource::getAccountArcs(nsISupportsArray **aResult)
+nsMsgAccountManagerDataSource::getAccountArcs(nsIMutableArray **aResult)
 {
   nsresult rv;
   if (!mAccountArcsOut) {
-
-    rv = NS_NewISupportsArray(getter_AddRefs(mAccountArcsOut));
+    mAccountArcsOut = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    mAccountArcsOut->AppendElement(kNC_Settings);
-    mAccountArcsOut->AppendElement(kNC_Name);
-    mAccountArcsOut->AppendElement(kNC_FolderTreeName);
-    mAccountArcsOut->AppendElement(kNC_FolderTreeSimpleName);
-    mAccountArcsOut->AppendElement(kNC_NameSort);
-    mAccountArcsOut->AppendElement(kNC_FolderTreeNameSort);
-    mAccountArcsOut->AppendElement(kNC_PageTag);
+    mAccountArcsOut->AppendElement(kNC_Settings, PR_FALSE);
+    mAccountArcsOut->AppendElement(kNC_Name, PR_FALSE);
+    mAccountArcsOut->AppendElement(kNC_FolderTreeName, PR_FALSE);
+    mAccountArcsOut->AppendElement(kNC_FolderTreeSimpleName, PR_FALSE);
+    mAccountArcsOut->AppendElement(kNC_NameSort, PR_FALSE);
+    mAccountArcsOut->AppendElement(kNC_FolderTreeNameSort, PR_FALSE);
+    mAccountArcsOut->AppendElement(kNC_PageTag, PR_FALSE);
   }
 
   *aResult = mAccountArcsOut;
@@ -850,24 +847,23 @@ nsMsgAccountManagerDataSource::getAccountArcs(nsISupportsArray **aResult)
 }
 
 nsresult
-nsMsgAccountManagerDataSource::getAccountRootArcs(nsISupportsArray **aResult)
+nsMsgAccountManagerDataSource::getAccountRootArcs(nsIMutableArray **aResult)
 {
   nsresult rv;
   if (!mAccountRootArcsOut) {
-
-    rv = NS_NewISupportsArray(getter_AddRefs(mAccountRootArcsOut));
+    mAccountRootArcsOut = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    mAccountRootArcsOut->AppendElement(kNC_Server);
-    mAccountRootArcsOut->AppendElement(kNC_Child);
+    mAccountRootArcsOut->AppendElement(kNC_Server, PR_FALSE);
+    mAccountRootArcsOut->AppendElement(kNC_Child, PR_FALSE);
 
-    mAccountRootArcsOut->AppendElement(kNC_Settings);
-    mAccountRootArcsOut->AppendElement(kNC_Name);
-    mAccountRootArcsOut->AppendElement(kNC_FolderTreeName);
-    mAccountRootArcsOut->AppendElement(kNC_FolderTreeSimpleName);
-    mAccountRootArcsOut->AppendElement(kNC_NameSort);
-    mAccountRootArcsOut->AppendElement(kNC_FolderTreeNameSort);
-    mAccountRootArcsOut->AppendElement(kNC_PageTag);
+    mAccountRootArcsOut->AppendElement(kNC_Settings, PR_FALSE);
+    mAccountRootArcsOut->AppendElement(kNC_Name, PR_FALSE);
+    mAccountRootArcsOut->AppendElement(kNC_FolderTreeName, PR_FALSE);
+    mAccountRootArcsOut->AppendElement(kNC_FolderTreeSimpleName, PR_FALSE);
+    mAccountRootArcsOut->AppendElement(kNC_NameSort, PR_FALSE);
+    mAccountRootArcsOut->AppendElement(kNC_FolderTreeNameSort, PR_FALSE);
+    mAccountRootArcsOut->AppendElement(kNC_PageTag, PR_FALSE);
   }
 
   *aResult = mAccountRootArcsOut;
@@ -915,7 +911,7 @@ nsMsgAccountManagerDataSource::ArcLabelsOut(nsIRDFResource *source,
   nsresult rv;
 
   // we have to return something, so always create the array/enumerators
-  nsCOMPtr<nsISupportsArray> arcs;
+  nsCOMPtr<nsIMutableArray> arcs;
   if (source == kNC_AccountRoot)
     rv = getAccountRootArcs(getter_AddRefs(arcs));
   else

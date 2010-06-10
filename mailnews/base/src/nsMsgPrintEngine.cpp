@@ -45,11 +45,9 @@
 #include "nsISupports.h"
 
 #include "nsIURI.h"
-#include "nsReadableUtils.h"
 #include "nsIDocShell.h"
 #include "nsPIDOMWindow.h"
 #include "nsIDocumentViewer.h"
-#include "nsPresContext.h"
 #include "nsIPresShell.h"
 #include "nsIDocument.h"
 #include "nsIMsgMessageService.h"
@@ -76,6 +74,7 @@
 #include "nsIChannel.h"
 #include "nsIContentViewerFile.h"
 #include "nsIPrintingPromptService.h"
+#include "nsServiceManagerUtils.h"
 
 static const char* kPrintingPromptService = "@mozilla.org/embedcomp/printingprompt-service;1";
 

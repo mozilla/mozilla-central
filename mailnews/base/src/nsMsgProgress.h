@@ -44,7 +44,7 @@
 #include "nsCOMArray.h"
 #include "nsIDOMWindowInternal.h"
 #include "nsIMsgStatusFeedback.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIMsgWindow.h"
 #include "nsIProgressEventSink.h"
 #include "nsIStringBundle.h"

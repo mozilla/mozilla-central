@@ -56,7 +56,7 @@
 #include "prcmon.h"
 #include "prthread.h"
 #include "plstr.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsUnicharUtils.h"
 #include "nscore.h"
 #include "prprf.h"
@@ -97,6 +97,7 @@
 #include "nsIStringBundle.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIMsgFilterList.h"
+#include "nsDirectoryServiceUtils.h"
 
 #define PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS "mail.accountmanager.accounts"
 #define PREF_MAIL_ACCOUNTMANAGER_DEFAULTACCOUNT "mail.accountmanager.defaultaccount"
@@ -1005,7 +1006,7 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
 
            if (isImap && urlListener)
            {
-             nsIThread *thread = NS_GetCurrentThread();
+             nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
 
              PRBool inProgress = PR_FALSE;
              if (cleanupInboxOnExit)
@@ -1215,8 +1216,8 @@ nsMsgAccountManager::LoadAccounts()
   if (m_shutdownInProgress || m_haveShutdown)
     return NS_ERROR_FAILURE;
 
-  kDefaultServerAtom = do_GetAtom("DefaultServer");
-  mFolderFlagAtom = do_GetAtom("FolderFlag");
+  kDefaultServerAtom = MsgGetAtom("DefaultServer");
+  mFolderFlagAtom = MsgGetAtom("FolderFlag");
 
   //Ensure biff service has started
   nsCOMPtr<nsIMsgBiffManager> biffService =
@@ -3012,7 +3013,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
         if (version == -1)
         {
           buffer.Cut(0, 8);
-          PRInt32 irv;
+          nsresult irv;
           version = buffer.ToInteger(&irv, 10);
           continue;
         }

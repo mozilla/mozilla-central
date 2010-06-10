@@ -40,7 +40,6 @@
 
 #include "msgCore.h"
 #include "prmem.h"
-#include "nsReadableUtils.h"
 #include "nsArrayUtils.h"
 #include "nsIMsgCustomColumnHandler.h"
 #include "nsMsgDBView.h"
@@ -77,6 +76,10 @@
 #include "nsIWindowWatcher.h"
 #include "nsMsgDBCID.h"
 #include "nsIMsgFolderNotificationService.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMemory.h"
+#include "nsAlgorithm.h"
 
 nsrefcnt nsMsgDBView::gInstanceCount  = 0;
 
@@ -196,28 +199,28 @@ nsMsgDBView::nsMsgDBView()
 
 void nsMsgDBView::InitializeAtomsAndLiterals()
 {
-  kUnreadMsgAtom = NS_NewAtom("unread");
-  kNewMsgAtom = NS_NewAtom("new");
-  kReadMsgAtom = NS_NewAtom("read");
-  kRepliedMsgAtom = NS_NewAtom("replied");
-  kForwardedMsgAtom = NS_NewAtom("forwarded");
-  kOfflineMsgAtom = NS_NewAtom("offline");
-  kFlaggedMsgAtom = NS_NewAtom("flagged");
-  kImapDeletedMsgAtom = NS_NewAtom("imapdeleted");
-  kAttachMsgAtom = NS_NewAtom("attach");
-  kHasUnreadAtom = NS_NewAtom("hasUnread");
-  kWatchThreadAtom = NS_NewAtom("watch");
-  kIgnoreThreadAtom = NS_NewAtom("ignore");
-  kIgnoreSubthreadAtom = NS_NewAtom("ignoreSubthread");
-  kHasImageAtom = NS_NewAtom("hasimage");
-  kJunkMsgAtom = NS_NewAtom("junk");
-  kNotJunkMsgAtom = NS_NewAtom("notjunk");
-  kDummyMsgAtom = NS_NewAtom("dummy");
+  kUnreadMsgAtom = MsgNewAtom("unread");
+  kNewMsgAtom = MsgNewAtom("new");
+  kReadMsgAtom = MsgNewAtom("read");
+  kRepliedMsgAtom = MsgNewAtom("replied");
+  kForwardedMsgAtom = MsgNewAtom("forwarded");
+  kOfflineMsgAtom = MsgNewAtom("offline");
+  kFlaggedMsgAtom = MsgNewAtom("flagged");
+  kImapDeletedMsgAtom = MsgNewAtom("imapdeleted");
+  kAttachMsgAtom = MsgNewAtom("attach");
+  kHasUnreadAtom = MsgNewAtom("hasUnread");
+  kWatchThreadAtom = MsgNewAtom("watch");
+  kIgnoreThreadAtom = MsgNewAtom("ignore");
+  kIgnoreSubthreadAtom = MsgNewAtom("ignoreSubthread");
+  kHasImageAtom = MsgNewAtom("hasimage");
+  kJunkMsgAtom = MsgNewAtom("junk");
+  kNotJunkMsgAtom = MsgNewAtom("notjunk");
+  kDummyMsgAtom = MsgNewAtom("dummy");
 #ifdef SUPPORT_PRIORITY_COLORS
-  kHighestPriorityAtom = NS_NewAtom("priority-highest");
-  kHighPriorityAtom = NS_NewAtom("priority-high");
-  kLowestPriorityAtom = NS_NewAtom("priority-lowest");
-  kLowPriorityAtom = NS_NewAtom("priority-low");
+  kHighestPriorityAtom = MsgNewAtom("priority-highest");
+  kHighPriorityAtom = MsgNewAtom("priority-high");
+  kLowestPriorityAtom = MsgNewAtom("priority-lowest");
+  kLowPriorityAtom = MsgNewAtom("priority-low");
 #endif
 
   // priority strings
@@ -227,8 +230,8 @@ void nsMsgDBView::InitializeAtomsAndLiterals()
   kLowPriorityString = GetString(NS_LITERAL_STRING("priorityLow").get());
   kNormalPriorityString = GetString(NS_LITERAL_STRING("priorityNormal").get());
 
-  kLabelColorWhiteAtom = NS_NewAtom("lc-white");
-  kLabelColorBlackAtom = NS_NewAtom("lc-black");
+  kLabelColorWhiteAtom = MsgNewAtom("lc-white");
+  kLabelColorBlackAtom = MsgNewAtom("lc-black");
 
   kReadString = GetString(NS_LITERAL_STRING("read").get());
   kRepliedString = GetString(NS_LITERAL_STRING("replied").get());
@@ -365,7 +368,7 @@ nsresult nsMsgDBView::AppendKeywordProperties(const nsACString& keywords, nsISup
         ? kLabelColorBlackAtom
         : kLabelColorWhiteAtom);
     color.Replace(0, 1, NS_LITERAL_CSTRING(LABEL_COLOR_STRING));
-    nsCOMPtr <nsIAtom> keywordAtom = do_GetAtom(color.get());
+    nsCOMPtr <nsIAtom> keywordAtom = MsgGetAtom(color.get());
     properties->AppendElement(keywordAtom);
   }
   return rv;
@@ -683,7 +686,7 @@ nsresult nsMsgDBView::FetchKeywords(nsIMsgDBHdr *aHdr, nsACString &keywordString
   {
     nsCAutoString labelStr("$label");
     labelStr.Append((char) (label + '0'));
-    if (keywords.Find(labelStr, PR_TRUE) == -1)
+    if (keywords.Find(labelStr, CaseInsensitiveCompare) == -1)
     {
       if (!keywords.IsEmpty())
         keywords.Append(' ');
@@ -713,7 +716,7 @@ nsresult nsMsgDBView::FetchTags(nsIMsgDBHdr *aHdr, nsAString &aTagString)
   {
     nsCAutoString labelStr("$label");
     labelStr.Append((char) (label + '0'));
-    if (keywords.Find(labelStr, PR_TRUE) == -1)
+    if (keywords.Find(labelStr, CaseInsensitiveCompare) == -1)
       FetchLabel(aHdr, tags);
   }
 
@@ -749,7 +752,7 @@ nsresult nsMsgDBView::FetchLabel(nsIMsgDBHdr *aHdr, nsAString &aLabelString)
   // we don't care if label is not between 1 and PREF_LABELS_MAX inclusive.
   if ((label < 1) || (label > PREF_LABELS_MAX))
   {
-    aLabelString.SetLength(0);
+    aLabelString.Truncate();
     return NS_OK;
   }
 
@@ -945,7 +948,7 @@ NS_IMETHODIMP nsMsgDBView::ReloadMessageWithAllParts()
     return NS_OK;
 
   nsCAutoString forceAllParts(m_currentlyDisplayedMsgUri);
-  forceAllParts += (forceAllParts.FindChar('?') == kNotFound) ? "?" : "&";
+  forceAllParts += (forceAllParts.FindChar('?') == kNotFound) ? '?' : '&';
   forceAllParts.AppendLiteral("fetchCompleteMessage=true");
   nsCOMPtr<nsIMessenger> messenger (do_QueryReferent(mMessengerWeak));
   NS_ENSURE_TRUE(messenger, NS_ERROR_FAILURE);
@@ -1288,7 +1291,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(PRInt32 aRow, nsITreeColumn *col, n
   nsCString junkScoreStr;
   msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
   if (!junkScoreStr.IsEmpty()) {
-    properties->AppendElement(junkScoreStr.ToInteger((PRInt32*)&rv, 10) == nsIJunkMailPlugin::IS_SPAM_SCORE ?
+    properties->AppendElement(junkScoreStr.ToInteger(&rv, 10) == nsIJunkMailPlugin::IS_SPAM_SCORE ?
                               kJunkMsgAtom : kNotJunkMsgAtom);
     NS_ASSERTION(NS_SUCCEEDED(rv), "Converting junkScore to integer failed.");
   }
@@ -1313,9 +1316,9 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(PRInt32 aRow, nsITreeColumn *col, n
     {
       spaceIndex = keywords.FindChar(' ');
       PRInt32 endOfKeyword = (spaceIndex == -1) ? keywords.Length() : spaceIndex;
-      keywords.Left(nextKeyword, endOfKeyword);
-      nextKeyword.Insert("kw-", 0);
-      nsCOMPtr <nsIAtom> keywordAtom = do_GetAtom(nextKeyword.get());
+      nextKeyword.AssignLiteral("kw-");
+      nextKeyword.Append(StringHead(keywords, endOfKeyword));
+      nsCOMPtr <nsIAtom> keywordAtom = MsgGetAtom(nextKeyword.get());
       properties->AppendElement(keywordAtom);
       if (spaceIndex > 0)
         keywords.Cut(0, endOfKeyword + 1);
@@ -1616,12 +1619,18 @@ NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsASt
   switch (colID[0])
   {
     case 'a': // attachment column
-      if (flags & nsMsgMessageFlags::Attachment)
-        aValue.Adopt(GetString(NS_LITERAL_STRING("messageHasAttachment").get()));
+      if (flags & nsMsgMessageFlags::Attachment) {
+        nsString tmp_str;
+        tmp_str.Adopt(GetString(NS_LITERAL_STRING("messageHasAttachment").get()));
+        aValue.Assign(tmp_str);
+      }
       break;
     case 'f': // flagged (starred) column
-      if (flags & nsMsgMessageFlags::Marked)
-        aValue.Adopt(GetString(NS_LITERAL_STRING("messageHasFlag").get()));
+      if (flags & nsMsgMessageFlags::Marked) {
+        nsString tmp_str;
+        tmp_str.Adopt(GetString(NS_LITERAL_STRING("messageHasFlag").get()));
+        aValue.Assign(tmp_str);
+      }
       break;
     case 'j': // junk column
       if (JunkControlsEnabled(aRow))
@@ -1631,7 +1640,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsASt
         // Only need to assing a real value for junk, it's empty already
         // as it should be for non-junk.
         if (!junkScoreStr.IsEmpty() &&
-            (junkScoreStr.ToInteger((PRInt32*)&rv, 10) == nsIJunkMailPlugin::IS_SPAM_SCORE))
+            (junkScoreStr.ToInteger(&rv, 10) == nsIJunkMailPlugin::IS_SPAM_SCORE))
           aValue.AssignLiteral("messageJunk");
 
         NS_ASSERTION(NS_SUCCEEDED(rv), "Converting junkScore to integer failed.");
@@ -1647,17 +1656,23 @@ NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsASt
           IsContainerEmpty(aRow, &isContainerEmpty);
           if (!isContainerEmpty)
           {
+            nsString tmp_str;
+
             IsContainerOpen(aRow, &isContainerOpen);
-            aValue.Adopt(GetString(isContainerOpen ?
+            tmp_str.Adopt(GetString(isContainerOpen ?
                                    NS_LITERAL_STRING("messageExpanded").get() :
                                    NS_LITERAL_STRING("messageCollapsed").get()));
+            aValue.Assign(tmp_str);
           }
         }
       }
       break;
     case 'u': // read/unread column
-      if (!(flags & nsMsgMessageFlags::Read))
-        aValue.Adopt(GetString(NS_LITERAL_STRING("messageUnread").get()));
+      if (!(flags & nsMsgMessageFlags::Read)) {
+        nsString tmp_str;
+        tmp_str.Adopt(GetString(NS_LITERAL_STRING("messageUnread").get()));
+        aValue.Assign(tmp_str);
+      }
       break;
     default:
       aValue.Assign(colID);
@@ -1818,7 +1833,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
     return NS_MSG_INVALID_DBVIEW_INDEX;
   }
 
-  aValue.SetCapacity(0);
+  aValue.Truncate();
   // XXX fix me by making Fetch* take an nsAString& parameter
   nsString valueText;
   nsCOMPtr <nsIMsgThread> thread;
@@ -2008,7 +2023,7 @@ NS_IMETHODIMP nsMsgDBView::CycleCell(PRInt32 row, nsITreeColumn* col)
       {
         nsCString junkScoreStr;
         rv = msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
-        if (junkScoreStr.IsEmpty() || (junkScoreStr.ToInteger((PRInt32*)&rv, 10) == nsIJunkMailPlugin::IS_HAM_SCORE))
+        if (junkScoreStr.IsEmpty() || (junkScoreStr.ToInteger(&rv, 10) == nsIJunkMailPlugin::IS_HAM_SCORE))
           ApplyCommandToIndices(nsMsgViewCommandType::junk, (nsMsgViewIndex *) &row, 1);
         else
           ApplyCommandToIndices(nsMsgViewCommandType::unjunk, (nsMsgViewIndex *) &row, 1);
@@ -2087,7 +2102,7 @@ NS_IMETHODIMP nsMsgDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sor
 
     // I'm not sure this is correct, because XF virtual folders with mixed news
     // and mail can have this set.
-    mIsNews = type.LowerCaseEqualsLiteral("nntp");
+    mIsNews = MsgLowerCaseEqualsLiteral(type, "nntp");
 
     // Default to a virtual folder if folder not set, since synthetic search
     // views may not have a folder.
@@ -2096,13 +2111,13 @@ NS_IMETHODIMP nsMsgDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sor
       folder->GetFlags(&folderFlags);
     mIsXFVirtual = folderFlags & nsMsgFolderFlags::Virtual;
 
-    if (!mIsXFVirtual && type.LowerCaseEqualsLiteral("rss"))
+    if (!mIsXFVirtual && MsgLowerCaseEqualsLiteral(type, "rss"))
       mIsRss = PR_TRUE;
 
     if (type.IsEmpty())
       mMessageTypeAtom = nsnull;
     else  // special case nntp --> news since we'll break themes if we try to be consistent
-      mMessageTypeAtom = do_GetAtom(mIsNews ? "news" : type.get());
+      mMessageTypeAtom = MsgGetAtom(mIsNews ? "news" : type.get());
 
     GetImapDeleteModel(nsnull);
 
@@ -3145,7 +3160,7 @@ nsresult nsMsgDBView::SetMsgHdrJunkStatus(nsIJunkMailPlugin *aJunkPlugin,
         // otherwise, pass the actual user classification
         if (junkScoreStr.IsEmpty())
           oldUserClassification = nsIJunkMailPlugin::UNCLASSIFIED;
-        else if (junkScoreStr.ToInteger((PRInt32*)&rv, 10) == nsIJunkMailPlugin::IS_SPAM_SCORE)
+        else if (junkScoreStr.ToInteger(&rv, 10) == nsIJunkMailPlugin::IS_SPAM_SCORE)
           oldUserClassification = nsIJunkMailPlugin::JUNK;
         else
           oldUserClassification = nsIJunkMailPlugin::GOOD;
@@ -7409,7 +7424,7 @@ PRBool nsMsgDBView::JunkControlsEnabled(nsMsgViewIndex aViewIndex)
       nsCAutoString type;
       if (server)
         server->GetType(type);
-      if (!(type.LowerCaseEqualsLiteral("nntp") || type.LowerCaseEqualsLiteral("rss")))
+      if (!(MsgLowerCaseEqualsLiteral(type, "nntp") || MsgLowerCaseEqualsLiteral(type, "rss")))
         return PR_TRUE;
     }
 

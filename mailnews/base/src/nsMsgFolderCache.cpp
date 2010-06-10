@@ -43,6 +43,7 @@
 #include "nsMorkCID.h"
 #include "nsIMdbFactoryFactory.h"
 #include "nsMsgBaseCID.h"
+#include "nsServiceManagerUtils.h"
 
 const char *kFoldersScope = "ns:msg:db:row:scope:folders:all";	// scope for all folders table
 const char *kFoldersTableKind = "ns:msg:db:table:kind:folders";

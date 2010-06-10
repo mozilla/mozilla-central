@@ -55,6 +55,7 @@
 #include "nsMsgUtils.h"
 #include "nsIMsgHdr.h"
 #include "nsIMsgFolder.h"
+#include "nsServiceManagerUtils.h"
 
 #define MSGFEEDBACK_TIMER_INTERVAL 500
 
@@ -71,7 +72,7 @@ nsMsgStatusFeedback::nsMsgStatusFeedback() :
     bundleService->CreateBundle("chrome://messenger/locale/messenger.properties",
                                 getter_AddRefs(mBundle));
 
-  m_msgLoadedAtom = do_GetAtom("msgLoaded");
+  m_msgLoadedAtom = MsgGetAtom("msgLoaded");
 }
 
 nsMsgStatusFeedback::~nsMsgStatusFeedback()

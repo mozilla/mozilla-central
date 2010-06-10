@@ -50,6 +50,8 @@
 #include "nsIIncomingServerListener.h"
 #include "nsIMsgProtocolInfo.h"
 #include "nsWeakPtr.h"
+#include "nsIMutableArray.h"
+#include "nsCOMArray.h"
 
 /* {3f989ca4-f77a-11d2-969d-006008948010} */
 #define NS_MSGACCOUNTMANAGERDATASOURCE_CID \
@@ -116,11 +118,11 @@ protected:
                                   nsIMsgIncomingServer **aResult);
   
   nsresult createRootResources(nsIRDFResource *aProperty,
-                               nsISupportsArray* aNodeArray);
+                               nsCOMArray<nsIRDFResource> *aNodeArray);
   nsresult createSettingsResources(nsIRDFResource *aSource,
-                                   nsISupportsArray *aNodeArray);
-  nsresult appendGenericSettingsResources(nsIMsgIncomingServer *server, nsISupportsArray *aNodeArray);
-  nsresult appendGenericSetting(const char *name, nsISupportsArray *aNodeArray);
+                                   nsCOMArray<nsIRDFResource> *aNodeArray);
+  nsresult appendGenericSettingsResources(nsIMsgIncomingServer *server, nsCOMArray<nsIRDFResource> *aNodeArray);
+  nsresult appendGenericSetting(const char *name, nsCOMArray<nsIRDFResource> *aNodeArray);
 
   static nsIRDFResource* kNC_Name;
   static nsIRDFResource* kNC_FolderTreeName;
@@ -157,8 +159,8 @@ protected:
 
   static nsrefcnt gAccountManagerResourceRefCnt;
 
-  static nsresult getAccountArcs(nsISupportsArray **aResult);
-  static nsresult getAccountRootArcs(nsISupportsArray **aResult);
+  static nsresult getAccountArcs(nsIMutableArray **aResult);
+  static nsresult getAccountRootArcs(nsIMutableArray **aResult);
   
 private:
   // enumeration function to convert each server (element)
@@ -171,8 +173,8 @@ private:
   nsresult serverHasIdentities(nsIMsgIncomingServer *aServer, PRBool *aResult);
   nsresult getStringBundle();
 
-  static nsCOMPtr<nsISupportsArray> mAccountArcsOut;
-  static nsCOMPtr<nsISupportsArray> mAccountRootArcsOut;
+  static nsCOMPtr<nsIMutableArray> mAccountArcsOut;
+  static nsCOMPtr<nsIMutableArray> mAccountRootArcsOut;
   nsWeakPtr mAccountManager;
   nsCOMPtr<nsIStringBundle> mStringBundle;
 };

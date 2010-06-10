@@ -42,6 +42,7 @@
 #include "nsIMsgFolderNotificationService.h"
 #include "nsIMsgFolderListener.h"
 #include "nsTObserverArray.h"
+#include "nsCOMPtr.h"
 
 class nsMsgFolderNotificationService : public nsIMsgFolderNotificationService
 {

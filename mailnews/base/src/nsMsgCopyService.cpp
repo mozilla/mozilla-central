@@ -44,6 +44,9 @@
 #include "nsMsgBaseCID.h"
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsMsgUtils.h"
 
 // ******************** nsCopySource ******************
 //

@@ -51,7 +51,7 @@
 #include "nsIAtom.h"
 #include "nsITimer.h"
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsInt64.h"
 #include "nsISupportsArray.h"
 #include "nsIObserver.h"

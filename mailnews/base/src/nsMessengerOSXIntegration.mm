@@ -43,6 +43,7 @@
 #endif
 
 #include "nscore.h"
+#include "nsMsgUtils.h"
 #include "nsMessengerOSXIntegration.h"
 #include "nsIMsgMailSession.h"
 #include "nsIMsgIncomingServer.h"
@@ -83,6 +84,8 @@
 #include "nsIMsgAccountManager.h"
 #include "nsIMessenger.h"
 #include "nsObjCExceptions.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 
 #include <Carbon/Carbon.h>
 #import <Cocoa/Cocoa.h>
@@ -221,9 +224,9 @@ static void openMailWindow(const nsCString& aUri)
 
 nsMessengerOSXIntegration::nsMessengerOSXIntegration()
 {
-  mBiffStateAtom = do_GetAtom("BiffState");
-  mNewMailReceivedAtom = do_GetAtom("NewMailReceived");
-  mTotalUnreadMessagesAtom = do_GetAtom("TotalUnreadMessages");
+  mBiffStateAtom = MsgGetAtom("BiffState");
+  mNewMailReceivedAtom = MsgGetAtom("NewMailReceived");
+  mTotalUnreadMessagesAtom = MsgGetAtom("TotalUnreadMessages");
   mUnreadTotal = 0;
   mNewTotal = 0;
   mOnlyCountInboxes = PR_TRUE;
@@ -909,7 +912,7 @@ nsMessengerOSXIntegration::GetNewMailAuthors(nsIMsgFolder* aFolder,
 
           // Don't add unwanted or duplicate names
           if (includeSender &&
-              aAuthors.Find(name, PR_TRUE, 0, -1) == -1)
+              aAuthors.Find(name.get(), PR_TRUE) == -1)
           {
             if (displayed > 0)
               aAuthors.Append(listSeparator);

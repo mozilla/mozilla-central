@@ -51,6 +51,8 @@
 #include "nsMsgUtils.h"
 #include "nsISupportsPrimitives.h"
 #include "nsIDOMWindow.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMessengerBootstrap)
 NS_IMPL_THREADSAFE_RELEASE(nsMessengerBootstrap)
