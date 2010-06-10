@@ -49,7 +49,7 @@
 #include "nspr.h"
 #include "nsDataHashtable.h"
 #include "nsClassHashtable.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsMAPISession;
 

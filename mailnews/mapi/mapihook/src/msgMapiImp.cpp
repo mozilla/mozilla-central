@@ -50,7 +50,7 @@
 
 #include "nsIMsgCompFields.h"
 #include "msgMapiHook.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsCOMPtr.h"
 #include "nsISupports.h"
 #include "nsMsgCompCID.h"

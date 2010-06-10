@@ -58,12 +58,11 @@
 #include "nsINativeAppSupport.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIDOMWindowInternal.h"
-#include "nsReadableUtils.h"
 #include "nsMsgBaseCID.h"
 #include "nsIStringBundle.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsUnicharUtils.h"
 #include "nsIMsgAttachment.h"
 #include "nsIMsgCompFields.h"
@@ -388,7 +387,7 @@ nsresult nsMapiHook::BlindSendMail (unsigned long aSession, nsIMsgCompFields * a
 
   // we need to wait here to make sure that we return only after send is completed
   // so we will have a event loop here which will process the events till the Send IsDone.
-  nsIThread *thread = NS_GetCurrentThread();
+  nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
   while ( !((nsMAPISendListener *) pSendListener)->IsDone() )
   {
     PR_CEnterMonitor(pSendListener);
@@ -538,7 +537,7 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
                 // need to find the last '\' and find the leafname from that.
                 PRInt32 lastSlash = wholeFileName.RFindChar(PRUnichar('\\'));
                 if (lastSlash != kNotFound)
-                  wholeFileName.Right(leafName, wholeFileName.Length() - lastSlash - 1);
+                  leafName.Assign(Substring(wholeFileName, lastSlash + 1));
                 else
                   leafName.Assign(wholeFileName);
             }
@@ -714,9 +713,9 @@ nsresult nsMapiHook::PopulateCompFieldsForSendDocs(nsIMsgCompFields * aCompField
   }
 
   // check for comma in filename
-  if (strDelimChars.Find (",") == kNotFound)  // if comma is not in the delimiter specified by user
+  if (strDelimChars.FindChar(',') == kNotFound)  // if comma is not in the delimiter specified by user
   {
-    if (strFilePaths.Find(",") != kNotFound) // if comma found in filenames return error
+    if (strFilePaths.FindChar(',') != kNotFound) // if comma found in filenames return error
       return NS_ERROR_FILE_INVALID_PATH;
   }
 
