@@ -153,6 +153,8 @@ MOZ_HELP_VIEWER = @MOZ_HELP_VIEWER@
 
 TAR=@TAR@
 
+MAKENSISU=@MAKENSISU@
+
 RM = rm -f
 
 # The MOZ_UI_LOCALE var is used to build a particular locale. Do *not*
