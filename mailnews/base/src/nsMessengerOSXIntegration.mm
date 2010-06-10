@@ -97,35 +97,6 @@
 
 static PRLogModuleInfo *MsgDockCountsLogModule = nsnull;
 
-// HACK: this code is copied from nsToolkit.mm in order to deal with
-// version checks below.  This should be tidied once we are not on
-// MOZILLA_1_9_2_BRANCH.
-#define MAC_OS_X_VERSION_10_4_HEX 0x00001040
-#define MAC_OS_X_VERSION_10_5_HEX 0x00001050
-int OSXVersion()
-{
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_RETURN;
-
-  static SInt32 gOSXVersion = 0x0;
-  if (gOSXVersion == 0x0)
-  {
-    if (::Gestalt(gestaltSystemVersion, &gOSXVersion) != noErr)
-    {
-      // This should probably be changed when our minimum version changes
-      NS_ERROR("Couldn't determine OS X version, assuming 10.4");
-      gOSXVersion = MAC_OS_X_VERSION_10_4_HEX;
-    }
-  }
-  return gOSXVersion;
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_RETURN(0);
-}
-
-PRBool OnLeopardOrLater()
-{
-  return (OSXVersion() >= MAC_OS_X_VERSION_10_5_HEX);
-}
-
 // HACK: Limitations in Focus/SetFocus on Mac (see bug 465446)
 nsresult FocusAppNative()
 {
@@ -230,7 +201,6 @@ nsMessengerOSXIntegration::nsMessengerOSXIntegration()
   mUnreadTotal = 0;
   mNewTotal = 0;
   mOnlyCountInboxes = PR_TRUE;
-  mOnLeopardOrLater = OnLeopardOrLater();
   mDoneInitialCount = PR_FALSE;
 }
 
@@ -607,18 +577,8 @@ nsMessengerOSXIntegration::BounceDockIcon()
 nsresult
 nsMessengerOSXIntegration::RestoreDockIcon()
 {
-#ifdef MOZILLA_1_9_2_BRANCH
-  // Use the Leopard API if possible.
-  if (mOnLeopardOrLater)
-  {
-#endif
-    id tile = [[NSApplication sharedApplication] dockTile];
-    [tile setBadgeLabel: nil];
-#ifdef MOZILLA_1_9_2_BRANCH
-  }
-  else // 10.4
-    RestoreApplicationDockTileImage();
-#endif
+  id tile = [[NSApplication sharedApplication] dockTile];
+  [tile setBadgeLabel: nil];
 
   return NS_OK;
 }
@@ -678,135 +638,9 @@ nsMessengerOSXIntegration::BadgeDockIcon()
     return NS_OK;
   }
 
-#ifdef MOZILLA_1_9_2_BRANCH
-  // On 10.5 or later, we can use the new API for this.
-  if (mOnLeopardOrLater)
-  {
-#endif
-    id tile = [[NSApplication sharedApplication] dockTile];
-    [tile setBadgeLabel:[NSString stringWithFormat:@"%S", total.get()]];
-    return NS_OK;
-#ifdef MOZILLA_1_9_2_BRANCH
-  }
-
-  // On 10.4 we have to draw this manually, clearing any existing badge artifacts first.
-  RestoreDockIcon();
-  CGContextRef context = ::BeginCGContextForApplicationDockTile();
-
-  // Draw a circle.
-  ::CGContextBeginPath(context);
-  ::CGContextAddArc(context, 95.0, 95.0, 25.0, 0.0, 2 * M_PI, true);
-  ::CGContextClosePath(context);
-
-  // use #2fc600 for the color.
-  ::CGContextSetRGBFillColor(context, 0.184, 0.776, 0.0, 1);
-  ::CGContextFillPath(context);
-
-  // Use a system font (kThemeUtilityWindowTitleFont)
-  ScriptCode sysScript = ::GetScriptManagerVariable(smSysScript);
-
-  Str255 fontName;
-  SInt16 fontSize;
-  Style fontStyle;
-  ::GetThemeFont(kThemeSmallEmphasizedSystemFont, sysScript, fontName,
-                 &fontSize, &fontStyle);
-
-  FMFontFamily family = ::FMGetFontFamilyFromName(fontName);
-  FMFont fmFont;
-
-  if (::FMGetFontFromFontFamilyInstance(family,
-                                        fontStyle,
-                                        &fmFont,
-                                        nsnull) != noErr)
-  {
-    NS_WARNING("FMGetFontFromFontFamilyInstance failed");
-    ::EndCGContextForApplicationDockTile(context);
-    return NS_ERROR_FAILURE;
-  }
-
-  ATSUStyle style;
-  if (::ATSUCreateStyle(&style) != noErr)
-  {
-    NS_WARNING("ATSUCreateStyle failed");
-    ::EndCGContextForApplicationDockTile(context);
-    return NS_ERROR_FAILURE;
-  }
-
-  Fixed size = Long2Fix(24);
-  RGBColor white = { 0xFFFF, 0xFFFF, 0xFFFF };
-
-  ATSUAttributeTag tags[3] = { kATSUFontTag, kATSUSizeTag, kATSUColorTag };
-  ByteCount valueSizes[3] = { sizeof(ATSUFontID), sizeof(Fixed),
-                              sizeof(RGBColor) };
-  ATSUAttributeValuePtr values[3] = { &fmFont, &size, &white };
-
-  if (::ATSUSetAttributes(style, 3, tags, valueSizes, values) != noErr)
-  {
-    NS_WARNING("ATSUSetAttributes failed");
-    ::ATSUDisposeStyle(style);
-    ::EndCGContextForApplicationDockTile(context);
-    return NS_ERROR_FAILURE;
-  }
-
-  UniCharCount runLengths = kATSUToTextEnd;
-  ATSUTextLayout textLayout;
-  if (::ATSUCreateTextLayoutWithTextPtr(badgeString.get(),
-                                        kATSUFromTextBeginning,
-                                        kATSUToTextEnd,
-                                        badgeString.Length(),
-                                        1,
-                                        &runLengths,
-                                        &style,
-                                        &textLayout) != noErr)
-  {
-    NS_WARNING("ATSUCreateTextLayoutWithTextPtr failed");
-    ::ATSUDisposeStyle(style);
-    ::EndCGContextForApplicationDockTile(context);
-    return NS_ERROR_FAILURE;
-  }
-
-  ATSUAttributeTag layoutTags[1] = { kATSUCGContextTag };
-  ByteCount layoutValueSizes[1] = { sizeof(CGContextRef) };
-  ATSUAttributeValuePtr layoutValues[1] = { &context };
-
-  if (::ATSUSetLayoutControls(textLayout,
-                              1,
-                              layoutTags,
-                              layoutValueSizes,
-                              layoutValues) != noErr)
-  {
-    NS_WARNING("ATSUSetLayoutControls failed");
-    ::ATSUDisposeStyle(style);
-    ::EndCGContextForApplicationDockTile(context);
-    return NS_ERROR_FAILURE;
-  }
-
-  Rect boundingBox;
-  if (::ATSUMeasureTextImage(textLayout,
-                             kATSUFromTextBeginning,
-                             kATSUToTextEnd,
-                             Long2Fix(0),
-                             Long2Fix(0),
-                             &boundingBox) != noErr)
-  {
-    NS_WARNING("ATSUMeasureTextImage failed");
-    ::ATSUDisposeStyle(style);
-    ::EndCGContextForApplicationDockTile(context);
-    return NS_ERROR_FAILURE;
-  }
-
-  // Center text inside circle
-  ::ATSUDrawText(textLayout, kATSUFromTextBeginning, kATSUToTextEnd,
-                 Long2Fix(95 - (boundingBox.right - boundingBox.left) / 2),
-                 Long2Fix(95 - (boundingBox.bottom - boundingBox.top) / 2));
-
-  ::ATSUDisposeStyle(style);
-  ::ATSUDisposeTextLayout(textLayout);
-
-  ::CGContextFlush(context);
-  ::EndCGContextForApplicationDockTile(context);
+  id tile = [[NSApplication sharedApplication] dockTile];
+  [tile setBadgeLabel:[NSString stringWithFormat:@"%S", total.get()]];
   return NS_OK;
-#endif
 }
 
 NS_IMETHODIMP
