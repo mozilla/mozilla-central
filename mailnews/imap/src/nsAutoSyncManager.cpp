@@ -52,6 +52,8 @@
 #include "nsImapIncomingServer.h"
 #include "nsMsgUtils.h"
 #include "nsIIOService.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 
 NS_IMPL_ISUPPORTS1(nsDefaultAutoSyncMsgStrategy, nsIAutoSyncMsgStrategy)
 

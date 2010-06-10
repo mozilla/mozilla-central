@@ -41,8 +41,7 @@
 #include "nsImapCore.h"
 #include "nsImapProtocol.h"
 #include "nsIMAPGenericParser.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 
 ////////////////// nsIMAPGenericParser /////////////////////////
 
@@ -371,7 +370,7 @@ char *nsIMAPGenericParser::CreateQuoted(PRBool /*skipToEnd*/)
   AdvanceTokenizerStartingPoint((fNextToken - fLineOfTokens) +
                                 charIndex + escapeCharsCut + 2);
 
-  returnString.Truncate(charIndex);
+  returnString.SetLength(charIndex);
   return ToNewCString(returnString);
 }
 

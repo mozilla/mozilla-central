@@ -38,11 +38,12 @@
 #ifndef NS_IMAPUTILS_H
 #define NS_IMAPUTILS_H
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIMsgIncomingServer.h"
 #include "MailNewsTypes.h"
 #include "nsTArray.h"
 #include "nsIMailboxSpec.h"
+#include "nsCOMPtr.h"
 
 class nsImapFlagAndUidState;
 class nsImapProtocol;

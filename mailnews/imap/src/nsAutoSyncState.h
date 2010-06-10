@@ -44,6 +44,7 @@
 #include "nsWeakPtr.h"
 #include "nsTArray.h"
 #include "prlog.h"
+#include "nsIWeakReferenceUtils.h"
 
 class nsImapMailFolder;
 class nsIAutoSyncMsgStrategy;

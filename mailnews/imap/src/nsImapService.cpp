@@ -59,9 +59,7 @@
 #include "nsIDocShell.h"
 #include "nsIDocShellLoadInfo.h"
 #include "nsIRDFService.h"
-#include "nsReadableUtils.h"
 #include "nsRDFCID.h"
-#include "nsEscape.h"
 #include "nsIMsgStatusFeedback.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
@@ -205,7 +203,7 @@ nsresult nsImapService::GetFolderName(nsIMsgFolder *aImapFolder, nsACString &aFo
       onlineName.Adopt(escapedOnlineName);
   }
   // need to escape everything else
-  aFolderName.Adopt(nsEscape(onlineName.get(), url_Path));
+  MsgEscapeString(onlineName, nsINetUtil::ESCAPE_URL_PATH, aFolderName);
   return rv;
 }
 
@@ -336,17 +334,14 @@ NS_IMETHODIMP nsImapService::OpenAttachment(const char *aContentType,
   
   nsCAutoString uri(aMessageUri);
   nsCAutoString urlString(aUrl);
-  urlString.ReplaceSubstring("/;section", "?section");
+  MsgReplaceSubstring(urlString, "/;section", "?section");
   
   // more stuff i don't understand
   PRInt32 sectionPos = urlString.Find("?section");
   // if we have a section field then we must be dealing with a mime part we need to fetchf
   if (sectionPos > 0)
   {
-    nsCAutoString mimePart;
-    
-    urlString.Right(mimePart, urlString.Length() - sectionPos); 
-    uri.Append(mimePart);
+    uri.Append(Substring(urlString, sectionPos));
     uri += "&type=";
     uri += aContentType;
     uri += "&filename=";
@@ -546,9 +541,8 @@ NS_IMETHODIMP nsImapService::DisplayMessage(const char *aMessageURI,
       PRInt32 keySeparator = uriStr.RFindChar('#');
       if(keySeparator != -1)
       {
-        PRInt32 keyEndSeparator = uriStr.FindCharInSet("/?&", 
-                                                       keySeparator); 
-        PRInt32 mpodFetchPos = uriStr.Find("fetchCompleteMessage=true", PR_FALSE, keyEndSeparator);
+        PRInt32 keyEndSeparator = MsgFindCharInSet(uriStr, "/?&", keySeparator);
+        PRInt32 mpodFetchPos = MsgFind(uriStr, "fetchCompleteMessage=true", PR_FALSE, keyEndSeparator);
         if (mpodFetchPos != -1)
           useMimePartsOnDemand = PR_FALSE;
       }
@@ -583,7 +577,7 @@ NS_IMETHODIMP nsImapService::DisplayMessage(const char *aMessageURI,
 
       rv = FetchMessage(imapUrl, forcePeek ? nsIImapUrl::nsImapMsgFetchPeek : nsIImapUrl::nsImapMsgFetch, 
                         folder, imapMessageSink, aMsgWindow, aDisplayConsumer, msgKey, PR_FALSE, 
-                        (mPrintingOperation) ? NS_LITERAL_CSTRING("print") : EmptyCString(), aURL);
+                        (mPrintingOperation) ? NS_LITERAL_CSTRING("print") : NS_LITERAL_CSTRING(""), aURL);
     }
   }
   return rv;
@@ -700,7 +694,9 @@ nsresult nsImapService::FetchMimePart(nsIImapUrl *aImapUrl,
 #if defined(DEBUG_mscott) || defined(DEBUG_bienvenu)
         NS_ERROR("oops...someone still is reaching this part of the code");
 #endif
-        rv = GetImapConnectionAndLoadUrl(NS_GetCurrentThread(), aImapUrl,
+        nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
+
+        rv = GetImapConnectionAndLoadUrl(thread, aImapUrl,
                                          aDisplayConsumer, aURL);
       }
     }
@@ -862,12 +858,15 @@ NS_IMETHODIMP nsImapService::Search(nsIMsgSearchSession *aSearchSession,
     // escape aSearchUri so that IMAP special characters (i.e. '\')
     // won't be replaced with '/' in NECKO.
     // it will be unescaped in nsImapUrl::ParseUrl().
-    char *search_cmd = nsEscape((char *)aSearchUri, url_XAlphas);
-    urlSpec.Append(search_cmd);
-    NS_Free(search_cmd);
+    nsCString escapedSearchUri;
+
+    MsgEscapeString(nsDependentCString(aSearchUri), nsINetUtil::ESCAPE_XALPHAS, escapedSearchUri);
+    urlSpec.Append(escapedSearchUri);
     rv = mailNewsUrl->SetSpec(urlSpec);
-    if (NS_SUCCEEDED(rv))
-      rv = GetImapConnectionAndLoadUrl(NS_GetCurrentThread(), imapUrl, nsnull, nsnull);
+    if (NS_SUCCEEDED(rv)) {
+      nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
+      rv = GetImapConnectionAndLoadUrl(thread, imapUrl, nsnull, nsnull);
+    }
   }
   return rv;
 }
@@ -901,7 +900,7 @@ nsresult nsImapService::DecomposeImapURI(const nsACString &aMessageURI,
   
   nsresult rv = NS_OK;
   nsCAutoString folderURI;
-  rv = nsParseImapMessageURI(nsDependentCString(aMessageURI).get(), folderURI, aMsgKey, nsnull);
+  rv = nsParseImapMessageURI(PromiseFlatCString(aMessageURI).get(), folderURI, aMsgKey, nsnull);
   NS_ENSURE_SUCCESS(rv,rv);
   
   nsCOMPtr <nsIRDFService> rdf = do_GetService("@mozilla.org/rdf/rdf-service;1",&rv);
@@ -1139,7 +1138,8 @@ nsresult nsImapService::GetMessageFromUrl(nsIImapUrl *aImapUrl,
 #if defined(DEBUG_mscott) || defined(DEBUG_bienvenu)
       NS_ERROR("oops...someone still is reaching this part of the code");
 #endif
-      rv = GetImapConnectionAndLoadUrl(NS_GetCurrentThread(), aImapUrl,
+      nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
+      rv = GetImapConnectionAndLoadUrl(thread, aImapUrl,
                                        aDisplayConsumer, aURL);
     }
   }
@@ -1286,7 +1286,7 @@ nsresult nsImapService::CreateStartOfImapUrl(const nsACString &aImapURI,
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (!username.IsEmpty())
-    *((char **)getter_Copies(escapedUsername)) = nsEscape(username.get(), url_XAlphas);
+    MsgEscapeString(username, nsINetUtil::ESCAPE_XALPHAS, escapedUsername);
 
   PRInt32 port = nsIImapUrl::DEFAULT_IMAP_PORT;
   nsCOMPtr<nsIMsgIncomingServer> server;
@@ -1307,7 +1307,7 @@ nsresult nsImapService::CreateStartOfImapUrl(const nsACString &aImapURI,
       mailnewsUrl->RegisterListener(aUrlListener);
     nsCOMPtr<nsIMsgMessageUrl> msgurl(do_QueryInterface(*imapUrl));
     (*imapUrl)->SetExternalLinkUrl(PR_FALSE);
-    msgurl->SetUri(nsDependentCString(aImapURI).get());
+    msgurl->SetUri(PromiseFlatCString(aImapURI).get());
 
     urlSpec = "imap://";
     urlSpec.Append(escapedUsername);
@@ -1497,8 +1497,10 @@ nsImapService::VerifyLogon(nsIMsgFolder *aFolder, nsIUrlListener *aUrlListener,
     rv = SetImapUrlSink(aFolder, imapUrl);
     urlSpec.Append("/verifyLogon");
     rv = uri->SetSpec(urlSpec);
-    if (NS_SUCCEEDED(rv))
-      rv = GetImapConnectionAndLoadUrl(NS_GetCurrentThread(), imapUrl, nsnull, nsnull);
+    if (NS_SUCCEEDED(rv)) {
+      nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
+      rv = GetImapConnectionAndLoadUrl(thread, imapUrl, nsnull, nsnull);
+    }
     if (aURL)
       uri.forget(aURL);
   }
@@ -2276,9 +2278,9 @@ NS_IMETHODIMP nsImapService::RenameLeaf(nsIEventTarget *eventTarget,
       urlSpec.Append(folderName);
       urlSpec.Append('>');
       urlSpec.Append(hierarchyDelimiter);
-      nsCAutoString cStrFolderName(folderName);
+      nsCAutoString cStrFolderName;
       // Unescape the name before looking for parent path
-      nsUnescape(cStrFolderName.BeginWriting());
+      MsgUnescapeString(folderName, 0, cStrFolderName);
       PRInt32 leafNameStart = cStrFolderName.RFindChar(hierarchyDelimiter);
       if (leafNameStart != -1)
       {
@@ -2287,13 +2289,12 @@ NS_IMETHODIMP nsImapService::RenameLeaf(nsIEventTarget *eventTarget,
       }
 
       nsCAutoString utfNewName;
-      CopyUTF16toMUTF7(nsDependentString(newLeafName), utfNewName);
-      char* escapedNewName = nsEscape(utfNewName.get(), url_Path);
-      NS_ENSURE_TRUE(escapedNewName, NS_ERROR_OUT_OF_MEMORY);
+      CopyUTF16toMUTF7(PromiseFlatString(newLeafName), utfNewName);
+      nsCString escapedNewName;
+      MsgEscapeString(utfNewName, nsINetUtil::ESCAPE_URL_PATH, escapedNewName);
       nsCString escapedSlashName;
-      rv = nsImapUrl::EscapeSlashes(escapedNewName, getter_Copies(escapedSlashName));
+      rv = nsImapUrl::EscapeSlashes(escapedNewName.get(), getter_Copies(escapedSlashName));
       NS_ENSURE_SUCCESS(rv, rv);
-      NS_Free(escapedNewName);
       urlSpec.Append(escapedSlashName);
 
       rv = uri->SetSpec(urlSpec);
@@ -2342,11 +2343,11 @@ NS_IMETHODIMP nsImapService::CreateFolder(nsIEventTarget  *eventTarget,
       }
 
       nsCAutoString utfNewName;
-      rv = CopyUTF16toMUTF7(nsDependentString(newFolderName), utfNewName);
+      rv = CopyUTF16toMUTF7(PromiseFlatString(newFolderName), utfNewName);
       NS_ENSURE_SUCCESS(rv, rv);
-      char* escapedFolderName = nsEscape(utfNewName.get(), url_Path);
+      nsCString escapedFolderName;
+      MsgEscapeString(utfNewName, nsINetUtil::ESCAPE_URL_PATH, escapedFolderName);
       urlSpec.Append(escapedFolderName);
-      NS_Free(escapedFolderName);
 
       rv = uri->SetSpec(urlSpec);
       if (NS_SUCCEEDED(rv))
@@ -2388,10 +2389,10 @@ NS_IMETHODIMP nsImapService::EnsureFolderExists(nsIEventTarget *eventTarget,
         urlSpec.Append(hierarchyDelimiter);
       }
       nsCAutoString utfNewName; 
-      CopyUTF16toMUTF7(nsDependentString(newFolderName), utfNewName);
-      char* escapedFolderName = nsEscape(utfNewName.get(), url_Path);
+      CopyUTF16toMUTF7(PromiseFlatString(newFolderName), utfNewName);
+      nsCString escapedFolderName;
+      MsgEscapeString(utfNewName, nsINetUtil::ESCAPE_URL_PATH, escapedFolderName);
       urlSpec.Append(escapedFolderName);
-      NS_Free(escapedFolderName);
 
       rv = uri->SetSpec(urlSpec);
       if (NS_SUCCEEDED(rv))
@@ -2643,9 +2644,11 @@ NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **aRetVal)
     imapUrl->CreateCanonicalSourceFolderPathString(getter_Copies(folderName));
     if (folderName.IsEmpty())
     {
-      rv = mailnewsUrl->GetFileName(folderName);
-      if (!folderName.IsEmpty())
-        NS_UnescapeURL(folderName);
+      nsCString escapedFolderName;
+      rv = mailnewsUrl->GetFileName(escapedFolderName);
+      if (!escapedFolderName.IsEmpty()) {
+        MsgUnescapeString(escapedFolderName, 0, folderName);
+      }
     }
     // if the parent is null, then the folder doesn't really exist, so see if the user
     // wants to subscribe to it./
@@ -2937,8 +2940,8 @@ NS_IMETHODIMP nsImapService::GetListOfFoldersWithPath(nsIImapIncomingServer *aSe
     PRInt32 slashPos = tempFolderName.FindChar('/');
     if (slashPos > 0)
     {
-      tempFolderName.Left(tokenStr,slashPos);
-      tempFolderName.Right(remStr, tempFolderName.Length()-slashPos);
+      tokenStr = StringHead(tempFolderName, slashPos);
+      remStr = Substring(tempFolderName, slashPos);
     }
     else
       tokenStr.Assign(tempFolderName);
@@ -2954,7 +2957,8 @@ NS_IMETHODIMP nsImapService::GetListOfFoldersWithPath(nsIImapIncomingServer *aSe
 
     rv = rootMsgFolder->FindSubFolder(changedStr, getter_AddRefs(msgFolder));
   }
-  return DiscoverChildren(NS_GetCurrentThread(), msgFolder, listener, folderPath, nsnull);
+  nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
+  return DiscoverChildren(thread, msgFolder, listener, folderPath, nsnull);
 }
 
 NS_IMETHODIMP nsImapService::GetListOfFoldersOnServer(nsIImapIncomingServer *aServer, 
@@ -2976,7 +2980,8 @@ NS_IMETHODIMP nsImapService::GetListOfFoldersOnServer(nsIImapIncomingServer *aSe
   nsCOMPtr<nsIUrlListener> listener = do_QueryInterface(aServer, &rv);
   NS_ENSURE_TRUE(NS_SUCCEEDED(rv) && listener, NS_ERROR_FAILURE);
 
-  return DiscoverAllAndSubscribedFolders(NS_GetCurrentThread(), rootMsgFolder, listener, nsnull);
+  nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
+  return DiscoverAllAndSubscribedFolders(thread, rootMsgFolder, listener, nsnull);
 } 
 
 NS_IMETHODIMP nsImapService::SubscribeFolder(nsIEventTarget *eventTarget, 
@@ -3014,11 +3019,11 @@ nsresult nsImapService::ChangeFolderSubscription(nsIEventTarget *eventTarget,
       urlSpec.Append(command);
       urlSpec.Append(hierarchyDelimiter);
       nsCAutoString utfFolderName;
-      rv = CopyUTF16toMUTF7(nsDependentString(folderName), utfFolderName);
+      rv = CopyUTF16toMUTF7(PromiseFlatString(folderName), utfFolderName);
       NS_ENSURE_SUCCESS(rv, rv);
-      char* escapedFolderName = nsEscape(utfFolderName.get(), url_Path);
+      nsCString escapedFolderName;
+      MsgEscapeString(utfFolderName, nsINetUtil::ESCAPE_URL_PATH, escapedFolderName);
       urlSpec.Append(escapedFolderName);
-      NS_Free(escapedFolderName);
       rv = uri->SetSpec(urlSpec);
       if (NS_SUCCEEDED(rv))
         rv = GetImapConnectionAndLoadUrl(eventTarget, imapUrl, nsnull, url);
@@ -3318,11 +3323,12 @@ NS_IMETHODIMP nsImapService::HandleContent(const char *aContentType,
       uri->GetSpec(uriStr);
 
       // imap uri's are unescaped, so unescape the url.
-      NS_UnescapeURL(uriStr);
+      nsCString unescapedUriStr;
+      MsgUnescapeString(uriStr, 0, unescapedUriStr);
       nsCOMPtr <nsIMessengerWindowService> messengerWindowService = do_GetService(NS_MESSENGERWINDOWSERVICE_CONTRACTID,&rv);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      rv = messengerWindowService->OpenMessengerWindowWithUri("mail:3pane", uriStr.get(), nsMsgKey_None);
+      rv = messengerWindowService->OpenMessengerWindowWithUri("mail:3pane", unescapedUriStr.get(), nsMsgKey_None);
       NS_ENSURE_SUCCESS(rv, rv);
     }
   } 

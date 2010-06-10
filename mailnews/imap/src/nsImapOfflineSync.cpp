@@ -55,6 +55,7 @@
 #include "nsMsgUtils.h"
 #include "nsIMutableArray.h"
 #include "nsIAutoSyncManager.h"
+#include "nsAlgorithm.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 

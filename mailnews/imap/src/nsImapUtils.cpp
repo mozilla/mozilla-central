@@ -39,11 +39,9 @@
 #include "msgCore.h"
 #include "nsImapUtils.h"
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
 #include "nsIServiceManager.h"
 #include "prsystem.h"
 #include "prprf.h"
-#include "nsEscape.h"
 #include "nsNetCID.h"
 
 // stuff for temporary root folder hack
@@ -62,22 +60,21 @@ nsresult
 nsImapURI2FullName(const char* rootURI, const char* hostName, const char* uriStr,
                    char **name)
 {
-    nsAutoString uri;
-    CopyASCIItoUTF16(uriStr, uri);
-    nsAutoString fullName;
+    nsCAutoString uri(uriStr);
+    nsCAutoString fullName;
     if (uri.Find(rootURI) != 0)
       return NS_ERROR_FAILURE;
-    uri.Right(fullName, uri.Length() - strlen(rootURI));
+    fullName = Substring(uri, strlen(rootURI));
     uri = fullName;
     PRInt32 hostStart = uri.Find(hostName);
     if (hostStart <= 0) 
       return NS_ERROR_FAILURE;
-    uri.Right(fullName, uri.Length() - hostStart);
+    fullName = Substring(uri, hostStart);
     uri = fullName;
     PRInt32 hostEnd = uri.FindChar('/');
     if (hostEnd <= 0) 
       return NS_ERROR_FAILURE;
-    uri.Right(fullName, uri.Length() - hostEnd - 1);
+    fullName = Substring(uri, hostEnd + 1);
     if (fullName.IsEmpty())
       return NS_ERROR_FAILURE;
     *name = ToNewCString(fullName);
@@ -99,13 +96,12 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, PRUint32 *
   if (StringBeginsWith(uriStr, NS_LITERAL_CSTRING("imap-message")))
     folderEnd = uriStr.Find("imap://");
 
-  PRInt32 keySeparator = uriStr.RFindChar('#', folderEnd);
+  PRInt32 keySeparator = MsgRFindChar(uriStr, '#', folderEnd);
   if(keySeparator != -1)
   {
-    PRInt32 keyEndSeparator = uriStr.FindCharInSet("/?&",
-                                                   keySeparator);
+    PRInt32 keyEndSeparator = MsgFindCharInSet(uriStr, "/?&", keySeparator);
     nsAutoString folderPath;
-    uriStr.Left(folderURI, keySeparator);
+    folderURI = StringHead(uriStr, keySeparator);
     folderURI.Cut(4, 8); // cut out the _message part of imap-message:
     // folder uri's don't have fully escaped usernames.
     PRInt32 atPos = folderURI.FindChar('@');
@@ -126,21 +122,19 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, PRUint32 *
     }
     nsCAutoString keyStr;
     if (keyEndSeparator != -1)
-      uriStr.Mid(keyStr, keySeparator+1,
-                 keyEndSeparator-(keySeparator+1));
+      keyStr = Substring(uriStr, keySeparator + 1, keyEndSeparator - (keySeparator + 1));
     else
-      uriStr.Right(keyStr, uriStr.Length() - (keySeparator + 1));
-    PRInt32 errorCode;
+      keyStr = Substring(uriStr, keySeparator + 1);
+
+    nsresult errorCode;
     *key = keyStr.ToInteger(&errorCode, 10);
 
     if (part && keyEndSeparator != -1)
     {
-      PRInt32 partPos = uriStr.Find("part=", PR_FALSE, keyEndSeparator);
+      PRInt32 partPos = MsgFind(uriStr, "part=", PR_FALSE, keyEndSeparator);
       if (partPos != -1)
       {
-        nsCString partSubStr;
-        uriStr.Right(partSubStr, uriStr.Length() - keyEndSeparator);
-        *part = ToNewCString(partSubStr);
+        *part = ToNewCString(Substring(uriStr, keyEndSeparator));
       }
     }
   }

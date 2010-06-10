@@ -43,7 +43,7 @@ nsIMAPBodyShell and associated classes
 #define IMAPBODY_H
 
 #include "nsImapCore.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsClassHashtable.h"
 
 class nsImapProtocol;

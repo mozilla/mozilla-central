@@ -40,6 +40,7 @@
 #include "nsImapCore.h"
 #include "nsImapSearchResults.h"
 #include "prmem.h"
+#include "nsCRT.h"
 
 nsImapSearchResultSequence::nsImapSearchResultSequence()
 {

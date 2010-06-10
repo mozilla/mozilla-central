@@ -42,7 +42,8 @@
 #include "nsImapProtocol.h"
 #include "nsMsgImapCID.h"
 #include "nsImapUrl.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
+#include "nsServiceManagerUtils.h"
 
 //////////////////// nsIMAPNamespace  /////////////////////////////////////////////////////////////
 

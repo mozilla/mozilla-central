@@ -49,6 +49,8 @@
 #include "nsMsgUtils.h"
 #include "nsISupportsArray.h"
 #include "nsThreadUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 
 nsImapMoveCopyMsgTxn::nsImapMoveCopyMsgTxn() :
     m_idsAreUids(PR_FALSE), m_isMove(PR_FALSE), m_srcIsPop3(PR_FALSE)
@@ -91,7 +93,7 @@ nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyAr
     if (NS_SUCCEEDED(rv))
     {
       // ** jt -- only do this for mailbox protocol
-      if (protocolType.LowerCaseEqualsLiteral("mailbox"))
+      if (MsgLowerCaseEqualsLiteral(protocolType, "mailbox"))
       {
         m_srcIsPop3 = PR_TRUE;
         PRUint32 msgSize;

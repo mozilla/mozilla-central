@@ -53,6 +53,7 @@
 #include "nsIMAPNamespace.h"
 #include "nsImapStringBundle.h"
 #include "nsImapUtils.h"
+#include "nsCRT.h"
 #include "nsMsgUtils.h"
 
 ////////////////// nsImapServerResponseParser /////////////////////////
@@ -548,15 +549,15 @@ void nsImapServerResponseParser::response_data()
   {
     // Instead of comparing lots of strings and make function calls, try to
     // pre-flight the possibilities based on the first letter of the token.
-    switch (toupper(fNextToken[0]))
+    switch (NS_ToUpper(fNextToken[0]))
     {
     case 'O':   // OK
-      if (toupper(fNextToken[1]) == 'K')
+      if (NS_ToUpper(fNextToken[1]) == 'K')
         resp_cond_state(PR_FALSE);
       else SetSyntaxError(PR_TRUE);
       break;
     case 'N':   // NO
-      if (toupper(fNextToken[1]) == 'O')
+      if (NS_ToUpper(fNextToken[1]) == 'O')
         resp_cond_state(PR_FALSE);
       else if (!PL_strcasecmp(fNextToken, "NAMESPACE"))
         namespace_data();
@@ -1518,7 +1519,9 @@ void nsImapServerResponseParser::xaolenvelope_data()
           // xaol envelope switches the From with the To, so we switch them back and
           // create a fake from line From: user@aol.com
           fromLine.Append("To: ");
-          nsCAutoString fakeFromLine(NS_LITERAL_CSTRING("From: ") + nsDependentCString(fServerConnection.GetImapUserName()) + NS_LITERAL_CSTRING("@aol.com"));
+          nsCAutoString fakeFromLine(NS_LITERAL_CSTRING("From: "));
+          fakeFromLine.Append(fServerConnection.GetImapUserName());
+          fakeFromLine.Append(NS_LITERAL_CSTRING("@aol.com"));
           fServerConnection.HandleMessageDownLoadLine(fakeFromLine.get(), PR_FALSE);
         }
         else
@@ -1653,7 +1656,7 @@ void nsImapServerResponseParser::flags()
     PRBool knownFlag = PR_FALSE;					     
     if (*fNextToken == '\\')
     {
-      switch (toupper(fNextToken[1])) {
+      switch (NS_ToUpper(fNextToken[1])) {
       case 'S':
         if (!PL_strncasecmp(fNextToken, "\\Seen",5))
         {
@@ -1700,7 +1703,7 @@ void nsImapServerResponseParser::flags()
     }
     else if (*fNextToken == '$')
     {
-      switch (toupper(fNextToken[1])) {
+      switch (NS_ToUpper(fNextToken[1])) {
       case 'M':
         if ((fSupportsUserDefinedFlags & (kImapMsgSupportUserFlag |
           kImapMsgSupportMDNSentFlag))
@@ -1728,7 +1731,7 @@ void nsImapServerResponseParser::flags()
       nsCAutoString flag(fNextToken);
       PRInt32 parenIndex = flag.FindChar(')');
       if (parenIndex > 0)
-        flag.Truncate(parenIndex);
+        flag.SetLength(parenIndex);
       messageFlags |= kImapMsgCustomKeywordFlag;
       if (CurrentResponseUID() != nsMsgKey_None)
         fFlagState->AddUidCustomFlagPair(CurrentResponseUID(), flag.get());
@@ -2203,7 +2206,7 @@ void nsImapServerResponseParser::capability_data()
       nsCString token(fNextToken);
       endToken = token.FindChar(']');
       if (endToken >= 0)
-        token.Truncate(endToken);
+        token.SetLength(endToken);
 
       if(token.Equals("AUTH=LOGIN", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasAuthLoginCapability;

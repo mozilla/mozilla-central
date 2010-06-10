@@ -73,7 +73,6 @@
 #include "nsIPrefService.h"
 #include "nsMsgI18N.h"
 #include "nsICacheSession.h"
-#include "nsEscape.h"
 #include "nsIDOMWindowInternal.h"
 #include "nsIMsgFilter.h"
 #include "nsIMsgFilterService.h"
@@ -84,7 +83,6 @@
 #include "nsIDocShell.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"
-#include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsIImapFlagAndUidState.h"
 #include "nsIImapHeaderXferInfo.h"
@@ -128,8 +126,8 @@
 #include "nsIMsgFilterCustomAction.h"
 #include "nsMsgReadStateTxn.h"
 #include "nsIStringEnumerator.h"
-#include "nsStringEnumerator.h"
 #include "nsIMsgStatusFeedback.h"
+#include "nsAlgorithm.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kParseMailMsgStateCID, NS_PARSEMAILMSGSTATE_CID);
@@ -235,7 +233,7 @@ nsImapMailFolder::nsImapMailFolder() :
   MOZ_COUNT_CTOR(nsImapMailFolder); // double count these for now.
 
   if (mImapHdrDownloadedAtom == nsnull)
-    mImapHdrDownloadedAtom = NS_NewAtom("ImapHdrDownloaded");
+    mImapHdrDownloadedAtom = MsgNewAtom("ImapHdrDownloaded");
   m_appendMsgMonitor = nsnull;  // since we're not using this (yet?) make it null.
   // if we do start using it, it should be created lazily
 
@@ -488,7 +486,6 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
   rv = GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString folderName;
   nsCOMPtr <nsISimpleEnumerator> children;
   rv = path->GetDirectoryEntries(getter_AddRefs(children));
   PRBool more = PR_FALSE;
@@ -505,8 +502,7 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
     if (NS_FAILED(rv)) return rv;
 
     nsCOMPtr <nsILocalFile> currentFolderPath = do_QueryInterface(dirEntry);
-    currentFolderPath->GetNativeLeafName(folderName);
-    NS_CopyNativeToUnicode(folderName, currentFolderNameStr);
+    currentFolderPath->GetLeafName(currentFolderNameStr);
     if (nsShouldIgnoreFile(currentFolderNameStr))
       continue;
 
@@ -520,7 +516,7 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
     dbFile->InitWithFile(currentFolderPath);
     curFolder->InitWithFile(currentFolderPath);
     // don't strip off the .msf in currentFolderPath.
-    currentFolderPath->SetNativeLeafName(folderName);
+    currentFolderPath->SetLeafName(currentFolderNameStr);
     currentFolderDBNameStr = currentFolderNameStr;
     nsAutoString utf7LeafName = currentFolderNameStr;
 
@@ -561,8 +557,6 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
       }
     }
       // make the imap folder remember the file spec it was created with.
-    nsCAutoString leafName;
-    NS_CopyUnicodeToNative(currentFolderDBNameStr, leafName);
     nsCOMPtr <nsILocalFile> msfFilePath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     msfFilePath->InitWithFile(currentFolderPath);
@@ -570,7 +564,7 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
     {
       // leaf name is the db name w/o .msf (nsShouldIgnoreFile strips it off)
       // so this trims the .msf off the file spec.
-      msfFilePath->SetNativeLeafName(leafName);
+      msfFilePath->SetLeafName(currentFolderDBNameStr);
     }
     // use the utf7 name as the uri for the folder.
     AddSubfolderWithPath(utf7LeafName, msfFilePath, getter_AddRefs(child));
@@ -961,14 +955,14 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
     nsCOMPtr<nsIRDFResource> res;
     nsCOMPtr<nsIMsgImapMailFolder> parentFolder;
     nsCAutoString uri (mURI);
-    parentName.Right(leafName, leafName.Length() - folderStart - 1);
-    parentName.Truncate(folderStart);
+    leafName.Assign(Substring(parentName, folderStart + 1));
+    parentName.SetLength(folderStart);
 
     rv = CreateDirectoryForFolder(getter_AddRefs(path));
     if (NS_FAILED(rv))
       return rv;
     uri.Append('/');
-    LossyAppendUTF16toASCII(parentName, uri);
+    uri.Append(NS_LossyConvertUTF16toASCII(parentName));
     rv = rdf->GetResource(uri, getter_AddRefs(res));
     if (NS_FAILED(rv))
       return rv;
@@ -1013,7 +1007,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
       nsCAutoString onlineName(m_onlineFolderName);
       if (!onlineName.IsEmpty())
         onlineName.Append(hierarchyDelimiter);
-      LossyAppendUTF16toASCII(folderNameStr, onlineName);
+      onlineName.Append(NS_LossyConvertUTF16toASCII(folderNameStr));
       imapFolder->SetVerifiedAsOnlineFolder(PR_TRUE);
       imapFolder->SetOnlineName(onlineName);
       imapFolder->SetHierarchyDelimiter(hierarchyDelimiter);
@@ -1045,7 +1039,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
     if(NS_SUCCEEDED(rv) && child)
     {
       NotifyItemAdded(child);
-      folderCreateAtom = do_GetAtom("FolderCreateCompleted");
+      folderCreateAtom = MsgGetAtom("FolderCreateCompleted");
       child->NotifyFolderEvent(folderCreateAtom);
       nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
       if (notifier)
@@ -1053,7 +1047,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
     }
     else
     {
-      folderCreateAtom = do_GetAtom("FolderCreateFailed");
+      folderCreateAtom = MsgGetAtom("FolderCreateFailed");
       NotifyFolderEvent(folderCreateAtom);
     }
   }
@@ -1100,7 +1094,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateStorageIfMissing(nsIUrlListener* urlListen
     {
       // If there is a hierarchy, there is a parent.
       // Don't strip off slash if it's the first character
-      parentName.Truncate(leafPos);
+      parentName.SetLength(leafPos);
       // get the corresponding RDF resource
       // RDF will create the folder resource if it doesn't already exist
       nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
@@ -1163,10 +1157,9 @@ NS_IMETHODIMP nsImapMailFolder::SetVerifiedAsOnlineFolder(PRBool aVerifiedAsOnli
 NS_IMETHODIMP nsImapMailFolder::GetOnlineDelimiter(char** onlineDelimiter)
 {
   NS_ENSURE_ARG_POINTER(onlineDelimiter);
-  char delimiter = 0;
-  GetHierarchyDelimiter(&delimiter);
-  nsAutoString str(delimiter);
-  *onlineDelimiter = ToNewCString(str);
+  char delimiter[2] = {0, 0};
+  GetHierarchyDelimiter(delimiter);
+  *onlineDelimiter = NS_strdup(delimiter);
   return NS_OK;
 }
 
@@ -2163,7 +2156,7 @@ nsImapMailFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatab
       nsCString onlineCName;
       rv = nsImapURI2FullName(kImapRootURI, hostname.get(), uri.get(), getter_Copies(onlineCName));
       if (m_hierarchyDelimiter != '/')
-        onlineCName.ReplaceChar('/',  m_hierarchyDelimiter);
+        MsgReplaceChar(onlineCName, '/', m_hierarchyDelimiter);
       m_onlineFolderName.Assign(onlineCName);
       CopyASCIItoUTF16(onlineCName, autoOnlineName);
     }
@@ -4660,14 +4653,15 @@ nsresult nsImapMailFolder::HandleCustomFlags(nsMsgKey uidOfMessage,
   ToLowerCase(keywords);
   PRBool messageClassified = PR_TRUE;
   // Mac Mail uses "NotJunk"
-  if (keywords.Find("NonJunk", PR_TRUE /* ignore case */) != -1 || keywords.Find("NotJunk", PR_TRUE /* ignore case */) != -1)
+  if (keywords.Find("NonJunk", CaseInsensitiveCompare) != -1 ||
+      keywords.Find("NotJunk", CaseInsensitiveCompare) != -1)
   {
     nsCAutoString msgJunkScore;
     msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_HAM_SCORE);
     mDatabase->SetStringProperty(uidOfMessage, "junkscore", msgJunkScore.get());
   }
   // ### TODO: we really should parse the keywords into space delimited keywords before checking
-  else if (keywords.Find("Junk", PR_TRUE /* ignore case */) != -1)
+  else if (keywords.Find("Junk", CaseInsensitiveCompare) != -1)
   {
     PRUint32 newFlags;
     dbHdr->AndFlags(~nsMsgMessageFlags::New, &newFlags);
@@ -5314,7 +5308,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
         if (NS_FAILED(aExitCode))
         {
           nsCOMPtr <nsIAtom> folderRenameAtom;
-          folderRenameAtom = do_GetAtom("RenameCompleted");
+          folderRenameAtom = MsgGetAtom("RenameCompleted");
           NotifyFolderEvent(folderRenameAtom);
         }
         break;
@@ -5360,7 +5354,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
         if (NS_FAILED(aExitCode))  //if success notification already done
         {
           nsCOMPtr <nsIAtom> folderCreateAtom;
-          folderCreateAtom = do_GetAtom("FolderCreateFailed");
+          folderCreateAtom = MsgGetAtom("FolderCreateFailed");
           NotifyFolderEvent(folderCreateAtom);
         }
         break;
@@ -6181,6 +6175,44 @@ NS_IMETHODIMP nsImapMailFolder::GetOtherUsersWithAccess(
   return GetFolderACL()->GetOtherUsers(aResult);
 }
 
+class AdoptUTF8StringEnumerator : public nsIUTF8StringEnumerator
+{
+public:
+  AdoptUTF8StringEnumerator(nsTArray<nsCString>* array) :
+    mIndex(0), mStrings(array)
+  {}
+  ~AdoptUTF8StringEnumerator()
+  {
+    delete mStrings;
+  }
+
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIUTF8STRINGENUMERATOR
+private:
+  nsTArray<nsCString>* mStrings;
+  PRUint32             mIndex;
+};
+
+NS_IMPL_ISUPPORTS1(AdoptUTF8StringEnumerator, nsIUTF8StringEnumerator)
+
+NS_IMETHODIMP
+AdoptUTF8StringEnumerator::HasMore(PRBool *aResult)
+{
+  *aResult = mIndex < mStrings->Length();
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+AdoptUTF8StringEnumerator::GetNext(nsACString& aResult)
+{
+  if (mIndex >= mStrings->Length())
+    return NS_ERROR_UNEXPECTED;
+
+  aResult.Assign((*mStrings)[mIndex]);
+  ++mIndex;
+  return NS_OK;
+}
+
 nsresult nsMsgIMAPFolderACL::GetOtherUsers(nsIUTF8StringEnumerator** aResult)
 {
   nsTArray<nsCString>* resultArray = new nsTArray<nsCString>;
@@ -6188,7 +6220,7 @@ nsresult nsMsgIMAPFolderACL::GetOtherUsers(nsIUTF8StringEnumerator** aResult)
   m_rightsHash.EnumerateRead(fillArrayWithKeys, resultArray);
 
   // enumerator will free resultArray
-  NS_NewAdoptingUTF8StringEnumerator(aResult, resultArray);
+  *aResult = new AdoptUTF8StringEnumerator(resultArray);
   return NS_OK;
 }
 
@@ -6378,8 +6410,12 @@ nsresult nsMsgIMAPFolderACL::CreateACLRightsString(nsAString& aRightsString)
   nsresult rv = IMAPGetStringBundle(getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  if (GetDoIHaveFullRightsForFolder())
-    return bundle->GetStringFromID(IMAP_ACL_FULL_RIGHTS, getter_Copies(aRightsString));
+  if (GetDoIHaveFullRightsForFolder()) {
+    nsAutoString result;
+    rv = bundle->GetStringFromID(IMAP_ACL_FULL_RIGHTS, getter_Copies(result));
+    aRightsString.Assign(result);
+    return rv;
+  }
   else
   {
     if (GetCanIReadFolder())
@@ -7440,10 +7476,11 @@ nsImapFolderCopyState::StartNextCopy()
   nsString folderName;
   m_curSrcFolder->GetName(folderName);
 
-  return imapService->EnsureFolderExists(NS_GetCurrentThread(),
-                                       m_curDestParent,
-                                       folderName,
-                                       this, nsnull);
+  nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
+  return imapService->EnsureFolderExists(thread,
+                                         m_curDestParent,
+                                         folderName,
+                                         this, nsnull);
 }
 
 nsresult nsImapFolderCopyState::AdvanceToNextFolder(nsresult aStatus)
@@ -8005,7 +8042,9 @@ NS_IMETHODIMP nsImapMailFolder::GetFolderURL(nsACString& aFolderURL)
 
   NS_ASSERTION(mURI.Length() > aFolderURL.Length(), "Should match with a folder name!");
   nsCString escapedName;
-  escapedName.Adopt(nsEscape(mURI.get() + aFolderURL.Length(), url_Path));
+  MsgEscapeString(Substring(mURI, aFolderURL.Length()),
+                  nsINetUtil::ESCAPE_URL_PATH,
+                  escapedName);
   if (escapedName.IsEmpty())
     return NS_ERROR_OUT_OF_MEMORY;
   aFolderURL.Append(escapedName);
@@ -8272,7 +8311,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
   PRInt32 folderStart = newLeafName.RFindChar('/');  //internal use of hierarchyDelimiter is always '/'
   if (folderStart > 0)
   {
-    newNameString.Right(newLeafName, newLeafName.Length() - folderStart - 1);
+    newLeafName = Substring(newNameString, folderStart + 1);
     CreateDirectoryForFolder(getter_AddRefs(pathFile));    //needed when we move a folder to a folder with no subfolders.
   }
 

@@ -41,7 +41,7 @@
 
 #include "nsIMAPHostSessionList.h"
 #include "nsImapSearchResults.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "MailNewsTypes.h"
 #include "nsTArray.h"
 #include "nsImapUtils.h"

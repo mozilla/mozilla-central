@@ -43,6 +43,8 @@
 #include "nsMsgFolderFlags.h"
 #include "nsIAutoSyncManager.h"
 #include "nsIAutoSyncMsgStrategy.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 
 extern PRLogModuleInfo *gAutoSyncLog;
 

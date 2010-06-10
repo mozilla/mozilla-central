@@ -44,6 +44,7 @@
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
 #include "nsITransport.h"
+#include "nsServiceManagerUtils.h"
 
 // need to talk to Rich about this...
 #define	IMAP_EXTERNAL_CONTENT_HEADER "X-Mozilla-IMAP-Part"

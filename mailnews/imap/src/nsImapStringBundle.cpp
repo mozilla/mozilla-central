@@ -37,11 +37,12 @@
 #include "prprf.h"
 #include "prmem.h"
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIStringBundle.h"
 #include "nsImapStringBundle.h"
 #include "nsIServiceManager.h"
 #include "nsIURI.h"
+#include "nsServiceManagerUtils.h"
 
 #define IMAP_MSGS_URL       "chrome://messenger/locale/imapMsgs.properties"
 

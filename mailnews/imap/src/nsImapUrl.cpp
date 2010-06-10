@@ -43,7 +43,7 @@
 #include "nsImapUrl.h"
 #include "nsIIMAPHostSessionList.h"
 #include "nsThreadUtils.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "prmem.h"
 #include "plstr.h"
 #include "prprf.h"
@@ -52,7 +52,6 @@
 #include "nsIImapIncomingServer.h"
 #include "nsMsgBaseCID.h"
 #include "nsImapUtils.h"
-#include "nsReadableUtils.h"
 #include "nsAutoLock.h"
 #include "nsIMAPNamespace.h"
 #include "nsICacheEntryDescriptor.h"
@@ -64,7 +63,8 @@
 #include "nsMsgUtils.h"
 #include "nsIMsgHdr.h"
 #include "nsIProgressEventSink.h"
-#include "nsEscape.h"
+#include "nsAlgorithm.h"
+#include "nsServiceManagerUtils.h"
 
 static NS_DEFINE_CID(kCImapHostSessionListCID, NS_IIMAPHOSTSESSIONLIST_CID);
 
@@ -263,10 +263,11 @@ nsresult nsImapUrl::ParseUrl()
 
   nsCAutoString imapPartOfUrl;
   rv = GetPath(imapPartOfUrl);
-  NS_UnescapeURL(imapPartOfUrl);
-  if (NS_SUCCEEDED(rv) && !imapPartOfUrl.IsEmpty())
+  nsCAutoString unescapedImapPartOfUrl;
+  MsgUnescapeString(imapPartOfUrl, 0, unescapedImapPartOfUrl);
+  if (NS_SUCCEEDED(rv) && !unescapedImapPartOfUrl.IsEmpty())
   {
-    ParseImapPart(imapPartOfUrl.BeginWriting()+1);  // GetPath leaves leading '/' in the path!!!
+    ParseImapPart(unescapedImapPartOfUrl.BeginWriting()+1);  // GetPath leaves leading '/' in the path!!!
   }
 
   return NS_OK;
@@ -798,7 +799,7 @@ NS_IMETHODIMP nsImapUrl::AddOnlineDirectoryIfNecessary(const char *onlineMailbox
         if ( delimiter && delimiter != kOnlineHierarchySeparatorUnknown )
         {
           // try to change the canonical online dir name to real dir name first
-          onlineDirWithDelimiter.ReplaceChar('/', delimiter);
+          MsgReplaceChar(onlineDirWithDelimiter, '/', delimiter);
           // make sure the last character is the delimiter
           if ( onlineDirWithDelimiter.Last() != delimiter )
             onlineDirWithDelimiter += delimiter;
@@ -995,7 +996,7 @@ NS_IMETHODIMP nsImapUrl::AllocateCanonicalPath(const char *serverPath, char onli
   // First we have to check to see if we should strip off an online server
   // subdirectory
   // If this host has an online server directory configured
-  onlineDir = (char *)(!aString.IsEmpty() ? ToNewCString(aString) : nsnull);
+  LossyCopyUTF16toASCII(aString, onlineDir);
 
   if (currentPath && !onlineDir.IsEmpty())
   {
@@ -1003,7 +1004,7 @@ NS_IMETHODIMP nsImapUrl::AllocateCanonicalPath(const char *serverPath, char onli
     if (delimiterToUse && delimiterToUse != kOnlineHierarchySeparatorUnknown)
     {
       // try to change the canonical online dir name to real dir name first
-      onlineDir.ReplaceChar('/', delimiterToUse);
+      MsgReplaceChar(onlineDir, '/', delimiterToUse);
       // Add the delimiter
       if (onlineDir.Last() != delimiterToUse)
         onlineDir += delimiterToUse;
@@ -1352,8 +1353,9 @@ void nsImapUrl::ParseFolderPath(char **resultingCanonicalPath)
 
   char dirSeparator = *resultPath;
 
-  *resultingCanonicalPath = PL_strdup(resultPath + 1);
-  nsUnescape(*resultingCanonicalPath);
+  nsCString unescapedResultingCanonicalPath;
+  MsgUnescapeString(nsDependentCString(resultPath + 1), 0, unescapedResultingCanonicalPath);
+  *resultingCanonicalPath = ToNewCString(unescapedResultingCanonicalPath);
   // The delimiter will be set for a given URL, but will not be statically available
   // from an arbitrary URL.  It is the creator's responsibility to fill in the correct
   // delimiter from the folder's namespace when creating the URL.

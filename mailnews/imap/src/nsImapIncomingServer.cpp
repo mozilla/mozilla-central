@@ -82,6 +82,9 @@
 #include "nsArrayUtils.h"
 #include "nsITimer.h"
 #include "nsMsgUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsCRTGlue.h"
 
 #define PREF_TRASH_FOLDER_NAME "trash_folder_name"
 #define DEFAULT_TRASH_FOLDER_NAME "Trash"
@@ -476,7 +479,8 @@ nsImapIncomingServer::RetryUrl(nsIImapUrl *aImapUrl, nsIImapMockChannel *aChanne
   aImapUrl->SetMockChannel(aChannel);
   nsCOMPtr <nsIImapProtocol> protocolInstance;
   nsImapProtocol::LogImapUrl("creating protocol instance to retry queued url", aImapUrl);
-  rv = GetImapConnection(NS_GetCurrentThread(), aImapUrl, getter_AddRefs(protocolInstance));
+  nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
+  rv = GetImapConnection(thread, aImapUrl, getter_AddRefs(protocolInstance));
   if (NS_SUCCEEDED(rv) && protocolInstance)
   {
     nsCOMPtr<nsIURI> url = do_QueryInterface(aImapUrl, &rv);
@@ -958,7 +962,8 @@ nsImapIncomingServer::PerformExpand(nsIMsgWindow *aMsgWindow)
 
   nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = imapService->DiscoverAllFolders(NS_GetCurrentThread(), rootMsgFolder,
+  nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
+  rv = imapService->DiscoverAllFolders(thread, rootMsgFolder,
                                        this, aMsgWindow, nsnull);
   return rv;
 }
@@ -1091,8 +1096,8 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
   PRInt32 slashPos = tempFolderName.FindChar('/');
   if (slashPos > 0)
   {
-    tempFolderName.Left(tokenStr,slashPos);
-    tempFolderName.Right(remStr, tempFolderName.Length()-slashPos);
+    tokenStr = StringHead(tempFolderName, slashPos);
+    remStr = Substring(tempFolderName, slashPos);
   }
   else
     tokenStr.Assign(tempFolderName);
@@ -1120,13 +1125,13 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
   {
     // If there is a hierarchy, there is a parent.
     // Don't strip off slash if it's the first character
-    parentName.Truncate(leafPos);
+    parentName.SetLength(leafPos);
     folderName.Cut(0, leafPos + 1);	// get rid of the parent name
     haveParent = PR_TRUE;
     parentUri.Append('/');
     parentUri.Append(parentName);
   }
-  if (folderPath.LowerCaseEqualsLiteral("inbox") &&
+  if (MsgLowerCaseEqualsLiteral(folderPath, "inbox") &&
     hierarchyDelimiter == kOnlineHierarchySeparatorNil)
   {
     hierarchyDelimiter = '/'; // set to default in this case (as in 4.x)
@@ -1138,7 +1143,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
   // nsCString possibleName(aSpec->allocatedPathName);
   uri.Append('/');
   uri.Append(dupFolderPath);
-  PRBool caseInsensitive = dupFolderPath.LowerCaseEqualsLiteral("inbox");
+  PRBool caseInsensitive = MsgLowerCaseEqualsLiteral(dupFolderPath, "inbox");
   a_nsIFolder->GetChildWithURI(uri, PR_TRUE, caseInsensitive, getter_AddRefs(child));
   // if we couldn't find this folder by URI, tell the imap code it's a new folder to us
   *aNewFolder = !child;
@@ -1151,7 +1156,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
     {
       nsCOMPtr <nsIMsgFolder> parent;
       PRBool parentIsNew;
-      caseInsensitive = parentName.LowerCaseEqualsLiteral("inbox");
+      caseInsensitive = MsgLowerCaseEqualsLiteral(parentName, "inbox");
       a_nsIFolder->GetChildWithURI(parentUri, PR_TRUE, caseInsensitive, getter_AddRefs(parent));
       if (!parent /* || parentFolder->GetFolderNeedsAdded()*/)
       {
@@ -1161,7 +1166,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
       }
     }
     hostFolder->CreateClientSubfolderInfo(dupFolderPath, hierarchyDelimiter,boxFlags, PR_FALSE);
-    caseInsensitive = dupFolderPath.LowerCaseEqualsLiteral("inbox");
+    caseInsensitive = MsgLowerCaseEqualsLiteral(dupFolderPath, "inbox");
     a_nsIFolder->GetChildWithURI(uri, PR_TRUE, caseInsensitive, getter_AddRefs(child));
   }
   if (child)
@@ -1190,7 +1195,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
       
       // online name needs to use the correct hierarchy delimiter (I think...)
       // or the canonical path - one or the other, but be consistent.
-      dupFolderPath.ReplaceChar('/', hierarchyDelimiter);
+      MsgReplaceChar(dupFolderPath, '/', hierarchyDelimiter);
       if (hierarchyDelimiter != '/')
         nsImapUrl::UnescapeSlashes(dupFolderPath.BeginWriting());
 
@@ -1329,13 +1334,11 @@ NS_IMETHODIMP nsImapIncomingServer::OnlineFolderRename(nsIMsgWindow *msgWindow, 
       return rv;
 
     nsCOMPtr<nsIMsgFolder> parent;
-    nsCAutoString parentName;
     nsCString tmpNewName (newName);
     PRInt32 folderStart = tmpNewName.RFindChar('/');
     if (folderStart > 0)
     {
-      tmpNewName.Left(parentName, folderStart);
-      rv = GetFolder(parentName, getter_AddRefs(parent));
+      rv = GetFolder(StringHead(tmpNewName, folderStart), getter_AddRefs(parent));
     }
     else  // root is the parent
       rv = GetRootFolder(getter_AddRefs(parent));
@@ -1360,7 +1363,7 @@ NS_IMETHODIMP nsImapIncomingServer::OnlineFolderRename(nsIMsgWindow *msgWindow, 
         if (NS_SUCCEEDED(rv))
         {
           nsCOMPtr <nsIAtom> folderRenameAtom;
-          folderRenameAtom = do_GetAtom("RenameCompleted");
+          folderRenameAtom = MsgGetAtom("RenameCompleted");
           newFolder->NotifyFolderEvent(folderRenameAtom);
         }
       }
@@ -1947,7 +1950,9 @@ nsImapIncomingServer::GetImapStringByID(PRInt32 aMsgId, nsAString& aString)
   GetStringBundle();
   if (m_stringBundle)
   {
-    res = m_stringBundle->GetStringFromID(aMsgId, getter_Copies(aString));
+    nsString res_str;
+    res = m_stringBundle->GetStringFromID(aMsgId, getter_Copies(res_str));
+    aString.Assign(res_str);
     if (NS_SUCCEEDED(res))
       return res;
   }
@@ -2423,10 +2428,10 @@ nsImapIncomingServer::AddTo(const nsACString &aName, PRBool addAsSubscribed,
   // RFC 3501 allows UTF-8 in addition to modified UTF-7
   // If it's not UTF-8, it cannot be MUTF7, either. We just ignore it.
   // (otherwise we'll crash. see #63186)
-  if (!IsUTF8(aName))
+  if (!MsgIsUTF8(aName))
     return NS_OK;
 
-  if (!IsASCII(aName)) {
+  if (!NS_IsAscii(aName.BeginReading(), aName.Length())) {
     nsCAutoString name;
     CopyUTF16toMUTF7(NS_ConvertUTF8toUTF16(aName), name);
     return mInner->AddTo(name, addAsSubscribed, aSubscribable, changeIfExists);
@@ -2504,7 +2509,7 @@ nsImapIncomingServer::SubscribeToFolder(const nsAString& aName, PRBool subscribe
   if (rootMsgFolder && !aName.IsEmpty())
     rv = rootMsgFolder->FindSubFolder(folderCName, getter_AddRefs(msgFolder));
 
-  nsIThread *thread = NS_GetCurrentThread();
+  nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
 
   nsAutoString unicodeName;
   rv = CopyMUTF7toUTF16(folderCName, unicodeName);
@@ -2855,7 +2860,7 @@ nsImapIncomingServer::GeneratePrettyNameForMigration(nsAString& aPrettyName)
   nsAutoString constructedPrettyName;
   CopyASCIItoUTF16(userName,constructedPrettyName);
   constructedPrettyName.Append('@');
-  AppendASCIItoUTF16(hostName, constructedPrettyName);
+  constructedPrettyName.Append(NS_ConvertASCIItoUTF16(hostName));
   
   // If the port is valid and not default, add port value to the pretty name
   if ((serverPort > 0) && (!isItDefaultPort)) {
@@ -2879,9 +2884,11 @@ nsImapIncomingServer::GetFormattedStringFromID(const nsAString& aValue, PRInt32 
       tmpVal.get(),
     };
 
+    nsString result;
     rv = m_stringBundle->FormatStringFromID(aID,
-                                formatStrings, 1,
-                                getter_Copies(aResult));
+                                            formatStrings, 1,
+                                            getter_Copies(result));
+    aResult.Assign(result);
   }
   return rv;
 }
@@ -3127,16 +3134,16 @@ nsImapIncomingServer::GetUriWithNamespacePrefixIfNecessary(PRInt32 namespaceType
             return NS_OK;
       }
 
-      namespacePrefix.ReplaceChar(ns->GetDelimiter(), '/'); // use canonical format
+      MsgReplaceChar(namespacePrefix, ns->GetDelimiter(), '/'); // use canonical format
       nsCString uri(originalUri);
       PRInt32 index = uri.Find("//");           // find scheme
-      index = uri.Find("/", PR_FALSE, index+2); // find '/' after scheme
+      index = uri.FindChar('/', index + 2);       // find '/' after scheme
       // it may be the case that this is the INBOX uri, in which case
       // we don't want to prepend the namespace. In that case, the uri ends with "INBOX",
       // but the namespace is "INBOX/", so they don't match.
-      if (uri.Find(namespacePrefix, PR_FALSE, index+1) != index+1
-        && !Substring(uri, index + 1, uri.Length() - index - 1).LowerCaseEqualsLiteral("inbox"))
-        uri.Insert(namespacePrefix, index+1);   // insert namespace prefix
+      if (MsgFind(uri, namespacePrefix, PR_FALSE, index + 1) != index + 1 &&
+          !MsgLowerCaseEqualsLiteral(Substring(uri, index + 1), "inbox"))
+        uri.Insert(namespacePrefix, index + 1);   // insert namespace prefix
       convertedUri = uri;
     }
   }
