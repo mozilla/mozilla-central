@@ -47,13 +47,7 @@
 #ifdef MOZ_IPC
 @BINPATH@/mozilla-runtime@BIN_SUFFIX@
 #endif
-#ifndef MOZILLA_1_9_2_BRANCH
 @BINPATH@/@DLL_PREFIX@mozjs@DLL_SUFFIX@
-#elifdef XP_WIN32
-@BINPATH@/@DLL_PREFIX@js3250@DLL_SUFFIX@
-#else
-@BINPATH@/@DLL_PREFIX@mozjs@DLL_SUFFIX@
-#endif
 #ifndef XP_WIN32
 @BINPATH@/components/@DLL_PREFIX@jsd@DLL_SUFFIX@
 #else
@@ -70,9 +64,7 @@
 @BINPATH@/mozcpp19.dll
 #endif
 #endif
-#ifndef MOZILLA_1_9_2_BRANCH
 @BINPATH@/@DLL_PREFIX@mozalloc@DLL_SUFFIX@
-#endif
 
 ; Modules
 @BINPATH@/modules/*
@@ -97,14 +89,10 @@
 @BINPATH@/application.ini
 @BINPATH@/platform.ini
 @BINPATH@/README.txt
-#ifdef MOZILLA_1_9_2_BRANCH
-@BINPATH@/@DLL_PREFIX@sqlite3@DLL_SUFFIX@
-#else
 #ifdef XP_OS2
 @BINPATH@/@DLL_PREFIX@mozsqlt3@DLL_SUFFIX@
 #else
 @BINPATH@/@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
-#endif
 #endif
 #ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/run-mozilla.sh
@@ -157,13 +145,7 @@
 @BINPATH@/components/xpcom_components.xpt
 @BINPATH@/components/xpcom_ds.xpt
 @BINPATH@/components/xpcom_io.xpt
-#ifndef MOZILLA_1_9_2_BRANCH
 @BINPATH@/components/xpcom_threads.xpt
-#elifdef XP_WIN32
-@BINPATH@/components/xpcom_thread.xpt
-#else
-@BINPATH@/components/xpcom_threads.xpt
-#endif
 @BINPATH@/components/xpcom_xpti.xpt
 @BINPATH@/chrome/toolkit.jar
 @BINPATH@/chrome/toolkit.manifest
@@ -230,11 +212,7 @@
 @BINPATH@/defaults/pref/mdn.js
 @BINPATH@/defaults/pref/smime.js
 @BINPATH@/defaults/pref/thunderbird-branding.js
-#ifdef MOZILLA_1_9_2_BRANCH
-@BINPATH@/greprefs/*
-#else
 @BINPATH@/greprefs.js
-#endif
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; App extensions to Mail
@@ -261,9 +239,7 @@
 @BINPATH@/components/nsLoginManagerPrompter.js
 @BINPATH@/components/storage-Legacy.js
 @BINPATH@/components/storage-mozStorage.js
-#ifndef MOZILLA_1_9_2_BRANCH
 @BINPATH@/components/crypto-SDR.js
-#endif
 
 ; download progress
 @BINPATH@/components/nsHelperAppDlg.js
@@ -320,18 +296,13 @@
 
 ; layout
 @BINPATH@/components/content_base.xpt
-#ifndef MOZILLA_1_9_2_BRANCH
 @BINPATH@/components/content_canvas.xpt
-#endif
 @BINPATH@/components/content_events.xpt
 @BINPATH@/components/content_html.xpt
 @BINPATH@/components/content_htmldoc.xpt
 @BINPATH@/components/content_xmldoc.xpt
 @BINPATH@/components/content_xslt.xpt
 @BINPATH@/components/content_xtf.xpt
-#ifdef MOZILLA_1_9_2_BRANCH
-@BINPATH@/components/contentprefs.xpt
-#endif
 @BINPATH@/components/htmlparser.xpt
 @BINPATH@/components/layout_base.xpt
 #ifdef NS_PRINTING
@@ -363,21 +334,12 @@
 ; glue: appshell, docshell, uriloader, chrome, components
 @BINPATH@/components/appshell.xpt
 @BINPATH@/components/appstartup.xpt
-#ifndef MOZILLA_1_9_2_BRANCH
 @BINPATH@/components/docshell.xpt
-#elifdef XP_WIN32
-@BINPATH@/components/docshell_base.xpt
-#else
-@BINPATH@/components/docshell.xpt
-#endif
 @BINPATH@/components/uriloader.xpt
 @BINPATH@/components/webBrowser_core.xpt
 @BINPATH@/components/windowwatcher.xpt
 @BINPATH@/components/webbrowserpersist.xpt
 @BINPATH@/components/commandhandler.xpt
-#ifdef MOZILLA_1_9_2_BRANCH
-@BINPATH@/components/mozbrwsr.xpt
-#endif
 
 ; jar
 @BINPATH@/components/jar.xpt
@@ -545,13 +507,7 @@
 @BINPATH@/components/mozfind.xpt
 @BINPATH@/components/mimetype.xpt
 @BINPATH@/components/parentalcontrols.xpt
-#ifndef MOZILLA_1_9_2_BRANCH
 @BINPATH@/components/proxyObject.xpt
-#elifndef XP_WIN32
-@BINPATH@/components/proxyObjInst.xpt
-#else
-@BINPATH@/components/proxyObject.xpt
-#endif
 @BINPATH@/components/exthandler.xpt
 @BINPATH@/components/exthelper.xpt
 @BINPATH@/components/embed_base.xpt
@@ -572,31 +528,6 @@
 @BINPATH@/components/cookie.xpt
 @BINPATH@/components/places.xpt
 @BINPATH@/components/prefetch.xpt
-
-#ifdef MOZILLA_1_9_2_BRANCH
-@BINPATH@/res/arrow.gif
-@BINPATH@/res/arrowd.gif
-@BINPATH@/res/broken-image.png
-@BINPATH@/res/charsetData.properties
-@BINPATH@/res/charsetalias.properties
-@BINPATH@/res/forms.css
-@BINPATH@/res/hiddenWindow.html
-@BINPATH@/res/html.css
-@BINPATH@/res/loading-image.png
-@BINPATH@/res/mathml.css
-@BINPATH@/res/quirk.css
-@BINPATH@/res/ua.css
-@BINPATH@/res/viewsource.css
-#ifdef XP_WIN32
-@BINPATH@/res/wincharset.properties
-#elifdef XP_MACOSX
-@BINPATH@/res/maccharset.properties
-#elifdef XP_OS2
-@BINPATH@/res/os2charset.properties
-#else
-@BINPATH@/res/unixcharset.properties
-#endif
-#endif
 @BINPATH@/res/langGroups.properties
 @BINPATH@/res/language.properties
 @BINPATH@/res/entityTables/*
@@ -683,29 +614,7 @@
 @BINPATH@/components/@DLL_PREFIX@caps@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@chardet@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@chrome@DLL_SUFFIX@
-#ifndef MOZILLA_1_9_2_BRANCH
 #ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@cmdlines@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@gkparser@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@appshell@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@perms@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@spellchk@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@strgcmps@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@tkautoc@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@tkitcmps@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@xpautoc@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@commandlines@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@htmlpars@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@nsappshell@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@permissions@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@spellchecker@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@storagecomps@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@tkautocomplete@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@toolkitcomps@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
-#endif
-#elifndef XP_UNIX
 @BINPATH@/components/@DLL_PREFIX@cmdlines@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@gkparser@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@appshell@DLL_SUFFIX@

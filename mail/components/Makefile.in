@@ -54,10 +54,8 @@ ifdef MOZ_SAFE_BROWSING
 DIRS += phishing 
 endif
 
-ifndef MOZILLA_1_9_2_BRANCH
 ifndef MOZ_PLACES
 DIRS += history
-endif
 endif
 
 DIRS += build

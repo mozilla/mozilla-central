@@ -405,8 +405,6 @@ NS_IMETHODIMP nsEudoraEditor::CanPaste(PRInt32 aSelectionType, PRBool *_retval)
 }
 
 
-#ifndef MOZILLA_1_9_2_BRANCH
-
 class nsITransferable;
 
 // void pasteTransferable(in nsITransferable aTransferable)
@@ -421,8 +419,6 @@ NS_IMETHODIMP nsEudoraEditor::CanPasteTransferable(nsITransferable *aTransferabl
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
-
-#endif
 
 
 // void selectAll ()

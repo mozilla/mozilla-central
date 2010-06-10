@@ -41,14 +41,6 @@ ifndef LIBXUL_SDK
 include $(topsrcdir)/toolkit/toolkit-tiers.mk
 endif
 
-## storage backfork.
-# this is temporary until we branch for MOZILLA_1_9_2_BRANCH
-# replace toolkit's storage with our own
-tier_gecko_dirs := $(patsubst storage,../storage-backport,$(tier_gecko_dirs))
-# necko also has a dependency...
-tier_necko_dirs := $(patsubst storage/public,../storage-backport/public,$(tier_necko_dirs))
-
-
 TIERS += app
 
 ifdef MOZ_EXTENSIONS

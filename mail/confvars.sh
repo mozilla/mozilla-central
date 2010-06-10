@@ -54,21 +54,8 @@ MOZ_PLACES=
 MOZ_MORKREADER=
 MOZ_MORK=1
 
-# Needed for the mozilla-central build side of the system.
-# Can be dropped when we branch MOZILLA_1_9_2_BRANCH
-MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\.[0-9]\).*/\1/;'`
-
-if test "$MOZILLA_BRANCH_VERSION" = "1.9.2"; then
-  MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version-192.txt
-  # Use unofficial branding for the 1.9.2 branch
-  MOZ_BRANDING_DIRECTORY=mail/branding/unofficial
-  MOZ_NO_XPCOM_OBSOLETE=1
-  # MOZ_OJI is only required to be cleared for MOZILLA_1_9_2_BRANCH (OS X).
-  MOZ_OJI=
-else
-  MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt
-  MOZ_BRANDING_DIRECTORY=mail/branding/nightly
-fi
+MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt
+MOZ_BRANDING_DIRECTORY=mail/branding/nightly
 
 MOZ_APP_VERSION=`cat $MOZ_APP_VERSION_TXT`
 

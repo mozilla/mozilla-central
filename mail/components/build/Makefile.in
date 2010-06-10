@@ -112,10 +112,8 @@ SHARED_LIBRARY_LIBS += ../search/$(LIB_PREFIX)winsearch_s.$(LIB_SUFFIX)
 endif
 endif
 
-ifndef MOZILLA_1_9_2_BRANCH
 ifndef MOZ_PLACES
 SHARED_LIBRARY_LIBS += ../history/$(LIB_PREFIX)mailhistory_s.$(LIB_SUFFIX)
-endif
 endif
 
 ifdef MOZILLA_INTERNAL_API

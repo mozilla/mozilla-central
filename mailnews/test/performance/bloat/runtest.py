@@ -45,12 +45,8 @@ import sys
 import os
 import shutil
 
-# The try case handles trunk. The exception case handles MOZILLA_1_9_2_BRANCH.
-try:
-    from automation import Automation
-    automation = Automation()
-except ImportError:
-    import automation
+from automation import Automation
+automation = Automation()
 
 from automationutils import checkForCrashes
 

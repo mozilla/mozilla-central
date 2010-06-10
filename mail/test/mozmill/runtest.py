@@ -54,12 +54,10 @@ import socket
 import copy
 SCRIPT_DIRECTORY = os.path.abspath(os.path.realpath(os.path.dirname(sys.argv[0])))
 sys.path.append(SCRIPT_DIRECTORY)
-# The try case handles trunk. The exception case handles MOZILLA_1_9_2_BRANCH.
-try:
-    from automation import Automation
-    automation = Automation()
-except ImportError:
-    import automation
+
+from automation import Automation
+automation = Automation()
+
 from automationutils import checkForCrashes
 from time import sleep
 import imp

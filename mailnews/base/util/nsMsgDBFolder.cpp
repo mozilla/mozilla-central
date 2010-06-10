@@ -140,16 +140,6 @@ NS_IMPL_ISUPPORTS_INHERITED6(nsMsgDBFolder, nsRDFResource,
 #include "nsMsgDBFolderAtomList.h"
 #undef MSGDBFOLDER_ATOM
 
-#ifdef MOZILLA_1_9_2_BRANCH
-
-const nsStaticAtom nsMsgDBFolder::folder_atoms[] = {
-#define MSGDBFOLDER_ATOM(name_, value_) { value_, &nsMsgDBFolder::name_ },
-#include "nsMsgDBFolderAtomList.h"
-#undef MSGDBFOLDER_ATOM
-};
-
-#else // i.e. !MOZILLA_1_9_2_BRANCH
-
 #define MSGDBFOLDER_ATOM(name_, value_) NS_STATIC_ATOM_BUFFER(name_##_buffer, value_)
 #include "nsMsgDBFolderAtomList.h"
 #undef MSGDBFOLDER_ATOM
@@ -159,8 +149,6 @@ const nsStaticAtom nsMsgDBFolder::folder_atoms[] = {
 #include "nsMsgDBFolderAtomList.h"
 #undef MSGDBFOLDER_ATOM
 };
-
-#endif // end MOZILLA_1_9_2_BRANCH
 
 nsMsgDBFolder::nsMsgDBFolder(void)
 : mAddListener(PR_TRUE),

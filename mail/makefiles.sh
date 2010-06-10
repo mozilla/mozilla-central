@@ -63,14 +63,4 @@ mail/themes/qute/Makefile
 $MOZ_BRANDING_DIRECTORY/Makefile
 $MOZ_BRANDING_DIRECTORY/locales/Makefile
 "
-
-# storage-backport stuff.
-# this is temporary until we branch for MOZILLA_1_9_2_BRANCH
-add_makefiles "
-storage-backport/Makefile
-storage-backport/public/Makefile
-storage-backport/src/Makefile
-storage-backport/build/Makefile
-storage-backport/test/Makefile
-"
 fi
