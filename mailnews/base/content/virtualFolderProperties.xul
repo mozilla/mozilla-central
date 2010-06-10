@@ -56,6 +56,10 @@
         title="&virtualFolderProperties.title;"
         onload="onLoad();"
         buttons="accept,cancel"
+        newFolderAcceptButtonLabel="&newFolderButton.label;"
+        newFolderAcceptButtonAccessKey="&newFolderButton.accesskey;"
+        editFolderAcceptButtonLabel="&editFolderButton.label;"
+        editFolderAcceptButtonAccessKey="&editFolderButton.accesskey;"
         style="width: 50em; height: 28em;"
         windowtype="mailnews:virtualFolderProperties"
         ondialogaccept="return onOK();">

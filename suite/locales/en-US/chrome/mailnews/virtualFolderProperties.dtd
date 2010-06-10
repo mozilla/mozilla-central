@@ -12,3 +12,7 @@
 
 <!ENTITY searchOnline.label            "Search Online (Gives up-to-date results for IMAP and News folders but increases time to open the folder)">
 <!ENTITY searchOnline.accesskey        "S">
+<!ENTITY newFolderButton.label         "Create">
+<!ENTITY newFolderButton.accesskey     "r">
+<!ENTITY editFolderButton.label        "Update">
+<!ENTITY editFolderButton.accesskey    "U">

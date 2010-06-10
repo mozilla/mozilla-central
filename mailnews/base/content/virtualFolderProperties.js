@@ -51,19 +51,30 @@ Components.utils.import("resource:///modules/iteratorUtils.jsm");
 function onLoad()
 {
   var arguments = window.arguments[0];
-
+  var acceptButton = document.documentElement.getButton("accept");
+  
   document.getElementById("name").focus();
 
   // call this when OK is pressed
   msgWindow = arguments.msgWindow;
 
   initializeSearchWidgets();
+  
   setSearchScope(nsMsgSearchScope.offlineMail);
-
   if (arguments.editExistingFolder)
+  {
+    acceptButton.label = 
+        document.documentElement.getAttribute("editFolderAcceptButtonLabel");
+    acceptButton.accesskey = 
+        document.documentElement.getAttribute("editFolderAcceptButtonAccessKey");
     InitDialogWithVirtualFolder(arguments.folder);
+  }
   else // we are creating a new virtual folder
   {
+    acceptButton.label = 
+        document.documentElement.getAttribute("newFolderAcceptButtonLabel");
+    acceptButton.accesskey = 
+        document.documentElement.getAttribute("newFolderAcceptButtonAccessKey");
     // it is possible that we were given arguments to pre-fill the dialog with...
     gSearchTermSession = Components.classes["@mozilla.org/messenger/searchSession;1"]
                                    .createInstance(Components.interfaces.nsIMsgSearchSession);
