@@ -40,9 +40,6 @@ chrome/US.jar
 #endif
 components/accessibility-atk.xpt
 components/airbag.xpt
-components/addonManager.js
-components/amContentHandler.js
-components/amWebInstallListener.js
 components/bookmarks.xpt
 components/downloadmanager.xpt
 components/compreg.dat
