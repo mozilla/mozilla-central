@@ -191,6 +191,8 @@ ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 OS_LIBS += -framework OpenGL
 endif
 
+LIBS += $(MOZ_HARFBUZZ_LIBS)
+
 endif # BUILD_STATIC_LIBS
 
 ifeq ($(OS_ARCH),WINNT)

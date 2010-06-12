@@ -6849,6 +6849,13 @@ dnl ========================================================
 QCMS_LIBS='$(DEPTH)/mozilla/gfx/qcms/$(LIB_PREFIX)mozqcms.$(LIB_SUFFIX)'    
 AC_SUBST(QCMS_LIBS)
 
+
+dnl ========================================================
+dnl HarfBuzz
+dnl ========================================================
+MOZ_HARFBUZZ_LIBS='$(DEPTH)/gfx/harfbuzz/src/$(LIB_PREFIX)mozharfbuzz.$(LIB_SUFFIX)'
+AC_SUBST(MOZ_HARFBUZZ_LIBS)
+
 dnl ========================================================
 dnl disable xul
 dnl ========================================================
