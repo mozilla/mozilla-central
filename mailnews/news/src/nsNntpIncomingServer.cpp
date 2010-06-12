@@ -66,6 +66,7 @@
 #include "nsILineInputStream.h"
 #include "nsNetUtil.h"
 #include "nsISimpleEnumerator.h"
+#include "nsMsgUtils.h"
 
 #define INVALID_VERSION         0
 #define VALID_VERSION           1
@@ -131,8 +132,8 @@ nsNntpIncomingServer::nsNntpIncomingServer()
   mLastUpdatedTime = 0;
 
   // these atoms are used for subscribe search
-  mSubscribedAtom = do_GetAtom("subscribed");
-  mNntpAtom = do_GetAtom("nntp");
+  mSubscribedAtom = MsgGetAtom("subscribed");
+  mNntpAtom = MsgGetAtom("nntp");
 
   // we have server wide and per group filters
   m_canHaveFilters = PR_TRUE;
@@ -1708,7 +1709,7 @@ nsresult
 nsNntpIncomingServer::AppendIfSearchMatch(nsCString& newsgroupName)
 {
   NS_ConvertUTF8toUTF16 groupName(newsgroupName);
-  if (groupName.Find(mSearchValue, CaseInsensitiveCompare) != kNotFound)
+  if (CaseInsensitiveFindInReadable(mSearchValue, groupName))
       mSubscribeSearchResult.AppendCString(newsgroupName);
   return NS_OK;
 }

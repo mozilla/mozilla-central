@@ -639,7 +639,7 @@ nsMessenger::LoadURL(nsIDOMWindowInternal *aWin, const nsACString& aURL)
     getDummyMsgHdr = PR_TRUE;
   }
   else if (StringBeginsWith(uriString, NS_LITERAL_STRING("mailbox:")) &&
-           (uriString.Find(NS_LITERAL_STRING(".eml?"), CaseInsensitiveCompare) != -1))
+           (CaseInsensitiveFindInReadable(NS_LITERAL_STRING(".eml?"), uriString)))
   {
     // if we have a mailbox:// url that points to an .eml file, we have to read
     // the file size as well

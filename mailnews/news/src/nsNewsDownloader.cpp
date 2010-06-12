@@ -504,7 +504,7 @@ nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextGroup(PRBool *done)
   if (!m_currentServer)
      rv = AdvanceToNextServer(done);
   else
-    rv = m_serverEnumerator->Next();
+     rv = m_serverEnumerator->Next();
   if (NS_FAILED(rv))
     rv = AdvanceToNextServer(done);
 

@@ -375,6 +375,8 @@ NS_MSG_BASE PRUint64 ParseUint64Str(const char *str);
         (dest).Append(NS_ConvertASCIItoUTF16(source))
 #define Compare(str1, str2, comp) \
         (str1).Compare(str2, comp)
+#define CaseInsensitiveFindInReadable(what, str) \
+        ((str).Find(what, CaseInsensitiveCompare) != kNotFound)
 #define LossyAppendUTF16toASCII(source, dest) \
         (dest).Append(NS_LossyConvertUTF16toASCII(source))
 #define Last() \
