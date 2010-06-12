@@ -49,23 +49,6 @@ MOZILLA_INTERNAL_API = 1
 endif
 META_COMPONENT	= mail
 
-REQUIRES	= xpcom \
-		  string \
-		  import \
-		  addrbook \
-		  mork \
-		  intl \
-		  msgbase \
-		  pref \
-		  necko \
-		  msgdb \
-		  msgbaseutil \
-		  msgcompose \
-		  msglocal \
-		  msgimap \
-		  msgnews \
-		  unicharutil \
-		  $(NULL)
 
 CPPSRCS		= \
 		nsOEImport.cpp			\

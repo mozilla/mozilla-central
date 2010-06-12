@@ -51,15 +51,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES = 	\
-		xpcom \
-		xpcom_ds \
-		necko \
-		nkcache \
-		string \
-		msgbase \
-		msgimap \
-		$(NULL)
 
 CPP_UNIT_TESTS = \
 		TestImapHdrXferInfo.cpp \

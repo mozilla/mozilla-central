@@ -59,7 +59,6 @@ EXTRA_PP_COMPONENTS = \
 	nsAboutFeeds.js \
 	$(NULL)
 
-REQUIRES = xpcom string necko caps js xpconnect mimetype
 
 CPPSRCS = \
 	nsFeedSniffer.cpp \

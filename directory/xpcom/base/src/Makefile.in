@@ -50,10 +50,6 @@ IS_COMPONENT	= 1
 MODULE_NAME	= nsLDAPProtocolModule
 MOZILLA_INTERNAL_API = 1
 
-REQUIRES	= xpcom \
-		  string \
-		  necko \
-		  $(NULL)
 
 EXTRA_PP_COMPONENTS = \
 		nsLDAPProtocolHandler.js \
@@ -86,7 +82,6 @@ CPPSRCS		+= \
 		nsLDAPChannel.cpp \
 		$(NULL)
 
-REQUIRES	+= mimetype
 endif
 
 ifdef MOZ_PSM

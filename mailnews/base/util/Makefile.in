@@ -57,39 +57,6 @@ endif
 
 META_COMPONENT = mail
 
-REQUIRES	= xpcom \
-		  string \
-		  msgbase \
-		  rdf \
-		  necko \
-		  msgdb \
-		  intl \
-		  mork \
-		  locale \
-		  pref \
-		  rdfutil \
-		  mime \
-		  caps \
-		  msgcompose \
-		  addrbook \
-		  docshell \
-		  uriloader \
-		  msgimap \
-		  msglocal \
-		  msgnews \
-		  txmgr \
-		  uconv \
-		  unicharutil \
-		  nkcache \
-		  mimetype \
-		  windowwatcher \
-		  htmlparser \
-		  content \
-		  layout \
-		  loginmgr \
-		  pipnss \
-		  $(ZLIB_REQUIRES) \
-		  $(NULL)
 
 CPPSRCS		= \
 		nsMsgLineBuffer.cpp \

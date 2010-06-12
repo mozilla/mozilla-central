@@ -53,28 +53,6 @@ endif
 
 MODULE_NAME	= nsImportServiceModule
 
-REQUIRES	= xpcom \
-		  string \
-		  uconv \
-		  intl \
-		  impComm4xMail \
-		  $(NULL)
-
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-REQUIRES += impEudra impapplemail
-endif
-
-ifeq ($(OS_ARCH),WINNT)
-REQUIRES += impEudra
-
-ifndef GNU_CC
-
-REQUIRES += importOE impOutlk importWM
-
-endif
-
-endif
-
 CPPSRCS		=  nsImportModule.cpp
 
 SHARED_LIBRARY_LIBS = \

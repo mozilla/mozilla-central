@@ -49,25 +49,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES	= xpcom \
-		  string \
-		  import \
-		  intl \
-		  necko \
-		  addrbook \
-		  mork \
-		  msgcompose \
-		  msgbase \
-		  editor \
-		  dom \
-		  uriloader \
-		  msgbaseutil \
-		  msgdb \
-		  msglocal \
-		  mimetype \
-		  unicharutil \
-		  pref \
-		  $(NULL)
 
 CPPSRCS		= \
 		nsOutlookRegUtil.cpp		\

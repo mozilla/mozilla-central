@@ -48,20 +48,6 @@ FORCE_SHARED_LIB = 1
 IS_COMPONENT	 = 1
 MODULE_NAME	 = nsSuiteModule
 
-REQUIRES	= \
-		chardet \
-		intl \
-		necko \
-		nkcache \
-		rdf \
-		shellservice \
-		string \
-		suitebrowser \
-		suitemigration \
-		txmgr \
-		xpcom \
-		xulapp \
-		$(NULL)
 
 CPPSRCS 	= \
 		nsSuiteModule.cpp \

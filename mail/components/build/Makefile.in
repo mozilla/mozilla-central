@@ -56,27 +56,6 @@ MOZILLA_INTERNAL_API = 1
 endif
 endif
 
-REQUIRES = \
-	xpcom \
-	xulapp \
-	mailprofilemigration \
-	string \
-	libreg \
-	intl \
-	pref \
-	msgbase \
-	import \
-	shellservice \
-	$(NULL)
-
-ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
-ifndef MOZ_DISABLE_VISTA_SDK_REQUIREMENTS
-REQUIRES += \
-	mailwinsearch \
-	$(NULL)
-endif
-endif
-
 CPPSRCS = nsModule.cpp \
           $(NULL)
 

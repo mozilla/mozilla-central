@@ -49,20 +49,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES	= xpcom \
-		  string \
-		  unicharutil \
-		  msgbase \
-		  necko \
-		  msgbaseutil \
-		  lwbrk \
-      mimetype \
-      mime \
-      pref \
-		  content \
-		  htmlparser \
-		  layout \
-		  $(NULL)
 
 CPPSRCS		= \
 		nsBayesianFilter.cpp \

@@ -53,13 +53,6 @@ MOZILLA_INTERNAL_API = 1
 endif
 LOCAL_INCLUDES += -I$(srcdir)/../src
 
-REQUIRES	= xpcom \
-		  string \
-		  necko \
-		  msgbase \
-		  pref \
-		  uconv \
-		  $(NULL)
 
 EXTRA_DSO_LIBS = msgbaseutil
 

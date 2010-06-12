@@ -57,38 +57,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES	= xpcom \
-		  string \
-		  msgbase \
-		  msgbaseutil \
-		  pref \
-		  js \
-		  necko \
-		  uconv \
-		  unicharutil \
-		  msgcompose \
-		  dom \
-		  intl \
-		  msgimap \
-		  exthandler \
-		  chardet \
-		  caps \
-		  mimetype \
-		  xpconnect \
-		  nkcache \
-		  pipnss \
-		  imglib2 \
-		  content \
-		  htmlparser \
-		  layout \
-		  $(NULL)
-#content, htmlparser and layout are for HTML*() in mimemoz2.cpp.
-
-ifdef BUILD_SMIME
-REQUIRES += \
-            msgsmime
-endif
-
 CPPSRCS		= \
 		nsMimeObjectClassAccess.cpp \
 		nsMimeConverter.cpp \

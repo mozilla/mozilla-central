@@ -49,16 +49,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES	= xpcom \
-		  string \
-		  msgbase \
-		  mime \
-		  mimetype \
-		  pipnss \
-		  msgcompose \
-		  necko \
-		  intl \
-		  $(NULL)
 
 CPPSRCS		= \
                 nsMsgComposeSecure.cpp \

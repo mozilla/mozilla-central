@@ -46,22 +46,6 @@ MODULE		= suitebrowser
 LIBRARY_NAME	= suitebrowser_s
 META_COMPONENT  = suite
 
-REQUIRES = \
-	chardet \
-	docshell \
-	dom \
-	widget \
-	intl \
-	locale \
-	necko \
-	nkcache \
-	pref \
-	rdf \
-	string \
-	uconv \
-	txmgr \
-	xpcom \
-	$(NULL)
 
 CPPSRCS = \
 	nsBookmarksService.cpp \
@@ -71,7 +55,6 @@ CPPSRCS = \
 
 ifeq ($(OS_ARCH),WINNT)
 CPPSRCS += nsUrlWidget.cpp
-REQUIRES += content gfx
 endif
 
 FORCE_STATIC_LIB = 1

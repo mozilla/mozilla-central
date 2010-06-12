@@ -47,11 +47,6 @@ PARALLEL_DIRS	= migration/public migration/src
 MODULE		= suiteprofile
 LIBRARY_NAME	= suiteprofile_s
 
-REQUIRES	= \
-		xpcom \
-		string \
-		xulapp \
-		$(NULL)
 
 CPPSRCS 	= \
 		nsSuiteDirectoryProvider.cpp \

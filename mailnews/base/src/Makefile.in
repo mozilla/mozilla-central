@@ -49,50 +49,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES	= xpcom \
-	  	  alerts \
-		  string \
-		  necko \
-		  dom \
-		  appshell \
-		  toolkitcomps \
-		  appcomps \
-		  uconv \
-		  intl \
-		  htmlparser \
-		  widget \
-		  docshell \
-		  rdf \
-		  gfx \
-		  thebes \
-		  layout \
-		  content \
-		  mailnews \
-		  locale \
-		  unicharutil \
-		  msgbaseutil \
-		  webshell \
-		  txmgr \
-		  msgcompose \
-		  msgdb \
-		  uriloader \
-		  pref \
-		  msglocal \
-		  msgimap \
-		  mork \
-		  msgnews \
-		  addrbook \
-		  mime \
-		  mimetype \
-		  windowwatcher \
-		  webbrwsr \
-		  exthandler \
-		  xulapp \
-		  caps \
-		  xpconnect \
-		  js \
-		  $(NULL)
-
 CPPSRCS		= \
 		nsMessenger.cpp \
 		nsMessengerBootstrap.cpp \
@@ -142,10 +98,6 @@ CMMSRCS = nsMessengerOSXIntegration.mm
 endif
 
 ifeq ($(OS_ARCH),WINNT)
-REQUIRES	+= appcomps \
-		   profile \
-		   $(NULL)
-
 ifdef BUILD_STATIC_LIBS
 DEFINES	+= -DMOZ_STATIC_BUILD
 endif
@@ -162,11 +114,7 @@ CPPSRCS		+= nsMessengerUnixIntegration.cpp
 endif
 
 ifdef MOZ_LDAP_XPCOM
-REQUIRES    += mozldap \
-               $(NULL)
-
 DEFINES         += -DMOZ_LDAP_XPCOM
-
 endif
 
 EXPORTS = \

@@ -49,36 +49,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES	= xpcom \
-		  string \
-		  rdf \
-		  msgbase \
-		  msgbaseutil \
-		  rdfutil \
-		  necko \
-		  widget \
-		  appshell \
-		  msgdb \
-		  dom \
-		  uconv \
-		  unicharutil \
-		  mime \
-		  caps \
-		  pref \
-		  intl \
-		  nkcache \
-		  txmgr \
-		  docshell \
-                  msgcompose \
-		  msglocal \
-		  msgnews \
-		  mimetype \
-      uriloader \
-		  windowwatcher \
-		  embed_base \
-                  exthandler \
-                  $(ZLIB_REQUIRES) \
-		  $(NULL)
 
 EXPORTS = \
 		nsImapCore.h \

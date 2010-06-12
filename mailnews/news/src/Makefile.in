@@ -49,31 +49,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES	= xpcom \
-		  string \
-		  msgbase \
-		  msgbaseutil \
-		  necko \
-		  msgdb \
-		  locale \
-		  mork \
-		  dom \
-		  rdf \
-		  docshell \
-		  layout \
-		  pref \
-		  uriloader \
-		  appshell \
-		  toolkitcomps \
-		  mime \
-		  intl \
-		  rdfutil \
-		  nkcache \
-		  windowwatcher \
-		  unicharutil \
-		  embed_base \
-		  loginmgr \
-		  $(NULL)
 
 CPPSRCS		= \
 		nsNNTPArticleList.cpp \

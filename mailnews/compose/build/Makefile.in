@@ -54,26 +54,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES	= xpcom \
-		  string \
-		  msgbase \
-		  msgbaseutil \
-		  editor \
-		  necko \
-		  dom \
-		  uriloader \
-		  mime \
-		  addrbook \
-		  rdf \
-		  intl \
-		  uconv \
-		  pref \
-		  widget \
-		  msgdb \
-		  appcomps \
-		  toolkitcomps \
-		  nkcache \
-		  $(NULL)
 
 EXTRA_DSO_LIBS = msgbaseutil
 

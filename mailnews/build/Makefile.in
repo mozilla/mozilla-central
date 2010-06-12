@@ -45,7 +45,6 @@ include $(DEPTH)/config/autoconf.mk
 MODULE		= mail
 LIBRARY_NAME = mail
 
-
 ifndef BUILD_STATIC_LIBS
 ifeq ($(OS_ARCH),WINNT)
 RESFILE		= mail.res
@@ -61,52 +60,7 @@ MOZILLA_INTERNAL_API = 1
 
 MODULE_NAME	= nsMailModule
 
-REQUIRES	= xpcom \
-		  addrbook \
-		  appcomps \
-		  toolkitcomps \
-		  content \
-		  dom \
-		  docshell \
-		  editor \
-		  fts3tok \
-		  gfx \
-		  intl \
-	     	  locale \
-		  layout \
-		  lwbrk \
-	          mailview \
-	          msglocal \
-		  msgcompose \
-	          msgbase  \
-		  msgnews \
-		  msgimap \
-		  msgdb \
-		  mime \
-		  mork \
-		  necko \
-		  nkcache \
-		  pref \
-		  rdf \
-		  rdfutil \
-		  string \
-		  sqlite3 \
-		  txmgr \
-		  widget \
-		  webbrwsr \
-		  uconv \
-		  uriloader \
-		  $(ZLIB_REQUIRES) \
-		  $(NULL)
-
-ifeq ($(OS_TARGET),Darwin)
-REQUIRES += alerts
-endif
-
 ifdef MOZ_LDAP_XPCOM
-REQUIRES	+= mozldap \
-               $(NULL)
-
 DEFINES		+= -DMOZ_LDAP_XPCOM
 endif
 

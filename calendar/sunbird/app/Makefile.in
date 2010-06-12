@@ -90,12 +90,6 @@ else
 PROGRAM = $(MOZ_APP_NAME)-bin$(BIN_SUFFIX)
 endif
 
-REQUIRES = \
-	appshell \
-	string \
-	xpcom \
-	xulapp \
-	$(NULL)
 
 CPPSRCS = nsCalendarApp.cpp
 
@@ -181,7 +175,6 @@ EXTRA_DEPS	+= \
 DEFINES		+= $(STATIC_DEFINES)
 CPPSRCS		+= $(STATIC_CPPSRCS)
 EXTRA_DSO_LIBS	+= $(STATIC_EXTRA_DSO_LIBS)
-REQUIRES	+= $(STATIC_REQUIRES)
 EXTRA_LIBS	+= $(STATIC_EXTRA_LIBS)
 
 # OpenGL is required by (mozilla/)content/canvas: see (mozilla/)layout/build/Makefile.in.

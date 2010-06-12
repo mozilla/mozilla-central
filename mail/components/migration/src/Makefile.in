@@ -16,21 +16,6 @@ MOZILLA_INTERNAL_API = 1
 endif
 endif
 
-REQUIRES = \
-	string \
-	xpcom \
-	xulapp \
-	libreg \
-	windowwatcher \
-	dom \
-	pref \
-	rdf \
-	necko \
-	intl \
-	uconv \
-	import \
-	msgbase \
-	$(NULL)
 
 CPPSRCS = \
 	nsProfileMigrator.cpp \

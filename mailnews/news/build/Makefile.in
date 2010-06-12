@@ -52,24 +52,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES	= xpcom \
-		  string \
-		  msgbase \
-		  msgbaseutil \
-		  msgdb \
-		  appcomps \
-		  toolkitcomps \
-		  mime \
-		  necko \
-		  rdf \
-		  rdfutil \
-		  pref \
-		  uriloader \
-		  nkcache \
-		  layout \
-		  dom \
-		  intl \
-		  $(NULL)
 
 CPPSRCS		= nsMsgNewsFactory.cpp
 

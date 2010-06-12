@@ -53,31 +53,10 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES	= xpcom \
-		  string \
-		  necko \
-		  pref \
-		  mime \
-		  rdf \
-		  msgbase \
-		  msgbaseutil \
-		  rdfutil \
-		  appcomps \
-		  toolkitcomps \
-		  dom \
-		  widget \
-		  locale \
-		  mork \
-		  layout \
-		  intl \
-		  uriloader \
-		  $(NULL)
 
 CPPSRCS		= nsAbFactory.cpp
 
 ifdef MOZ_LDAP_XPCOM
-REQUIRES	+= mozldap \
-                   $(NULL)
 DEFINES		+= -DMOZ_LDAP_XPCOM
 endif
 

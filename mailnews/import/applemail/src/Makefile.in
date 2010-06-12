@@ -49,17 +49,6 @@ MOZILLA_INTERNAL_API = 1
 endif
 
 META_COMPONENT = mail
-REQUIRES	= \
-		xpcom \
-		string \
-		intl \
-		import \
-		necko \
-		msgbase \
-		msgbaseutil \
-		unicharutil \
-		libreg \
-		$(NULL)
 
 CPPSRCS = \
 		nsAppleMailImport.cpp \

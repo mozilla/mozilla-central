@@ -49,28 +49,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES	= xpcom \
-		  string \
-		  msgbase \
-		  msgbaseutil \
-		  pref \
-		  necko \
-		  msgdb \
-		  rdf \
-		  intl \
-		  unicharutil \
-		  mime \
-		  dom \
-		  rdfutil \
-		  txmgr \
-		  caps \
-		  docshell \
-		  msgimap \
-                  msgcompose \
-		  nkcache \
-		  windowwatcher \
-		  embed_base \
-		  $(NULL)
 
 CPPSRCS		= \
 		nsPop3Protocol.cpp \

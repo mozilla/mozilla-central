@@ -49,49 +49,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES	= xpcom \
-		  string \
-		  dom \
-		  layout \
-		  editor \
-		  uriloader \
-		  msgbase \
-		  necko \
-		  mime \
-		  pref \
-		  intl \
-		  lwbrk \
-		  uconv \
-		  locale \
-		  unicharutil \
-		  content \
-		  msgbaseutil \
-		  msgdb \
-		  rdf \
-		  appshell \
-		  toolkitcomps \
-		  appcomps \
-		  msgimap \
-		  msgnews \
-		  docshell \
-		  addrbook \
-		  widget \
-		  htmlparser \
-		  txmgr \
-		  caps \
-		  exthandler \
-		  nkcache \
-		  mimetype \
-		  windowwatcher \
-		  gfx \
-		  zipwriter \
-		  loginmgr \
-		  $(NULL)
-
-ifdef MOZ_THUNDERBIRD
-REQUIRES	+= xulapp
-endif
-
 EXTRA_COMPONENTS = \
 		nsSMTPProtocolHandler.js \
 		$(NULL)

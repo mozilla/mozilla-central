@@ -78,10 +78,6 @@ MOZILLA_INTERNAL_API = 1
 endif
 endif
 
-REQUIRES = \
-  xpcom \
-  string \
-  $(NULL)
 
 CPPSRCS = \
   nsMailWinSearchHelper.cpp \

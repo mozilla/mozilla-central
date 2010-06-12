@@ -51,25 +51,6 @@ MOZILLA_INTERNAL_API = 1
 endif
 EXPORT_DIR	= $(DIST)/bin/isp
 
-REQUIRES	= xpcom \
-		  string \
-		  msgdb \
-		  msgbaseutil \
-		  necko \
-		  mime \
-		  msgimap \
-		  rdf \
-		  msglocal \
-		  intl \
-		  unicharutil \
-		  locale \
-                  msgcompose \
-		  pref \
-		  msgnews \
-		  txmgr \
-		  addrbook \
-		  docshell \
-		  $(NULL)
 
 CPPSRCS		= \
 		nsMsgFilterService.cpp \

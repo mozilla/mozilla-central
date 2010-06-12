@@ -55,38 +55,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES	= xpcom \
-		  string \
-		  necko \
-		  intl \
-		  locale \
-		  rdf \
-		  content \
-		  dom \
-		  docshell \
-		  widget \
-		  layout \
-		  mime \
-		  uriloader \
-		  addrbook \
-		  mork \
-		  txmgr \
-		  pref \
-		  msgcompose \
-		  msgbaseutil \
-		  msgdb \
-		  appcomps \
-		  toolkitcomps \
-		  msgnews \
-		  msgimap \
-		  gfx \
-		  webbrwsr \
-		  $(NULL)
-
-ifeq ($(OS_TARGET),Darwin)
-REQUIRES += alerts
-endif
-
 CPPSRCS		= nsMsgFactory.cpp
 
 SHARED_LIBRARY_LIBS = \

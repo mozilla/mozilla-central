@@ -51,13 +51,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-REQUIRES = \
-	pref \
-	necko \
-	string \
-	msgbase \
-	msgbaseutil \
-	$(NULL)
 
 CPP_UNIT_TESTS = \
     TestMsgStripRE.cpp \

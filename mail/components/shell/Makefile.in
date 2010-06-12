@@ -58,20 +58,6 @@ endif
 endif
 
 
-REQUIRES = \
-	xpcom \
-	string \
-	mozgnome \
-	msgbase \
-	appcomps \
-	appshell \
-	intl \
-	unicharutil \
-	windowwatcher \
-	pref \
-	embed_base \
-	msgMapi \
-	$(NULL)
 
 ifeq ($(OS_ARCH),WINNT)
 CPPSRCS = nsMailWinIntegration.cpp
