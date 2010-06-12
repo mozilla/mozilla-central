@@ -1307,7 +1307,7 @@ nsMsgFolderDataSource::createFolderSyncDisabledNode(nsIMsgFolder* folder,
   rv = server->GetType(serverType);
   if (NS_FAILED(rv)) return rv;
 
-  *target = isServer ||  MsgLowerCaseEqualsLiteral(serverType, "none") || MsgLowerCaseEqualsLiteral(serverType, "pop3") ?
+  *target = isServer || MsgLowerCaseEqualsLiteral(serverType, "none") || MsgLowerCaseEqualsLiteral(serverType, "pop3") ?
             kTrueLiteral : kFalseLiteral;
   NS_IF_ADDREF(*target);
   return NS_OK;

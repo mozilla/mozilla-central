@@ -45,6 +45,7 @@
 #include "nsMessengerOS2Integration.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
+#include "nsMsgUtils.h"
 
 #define WARPCENTER_SHAREDMEM "\\sharemem\\inbox.mem"
 

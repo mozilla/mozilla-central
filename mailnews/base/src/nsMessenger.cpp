@@ -1294,7 +1294,7 @@ nsMessenger::GetSaveAsFile(const nsAString& aMsgFilename, PRInt32 *aSaveAsFileTy
                        nsCaseInsensitiveStringComparator()))
       *aSaveAsFileType = HTML_FILE_TYPE;
     else if (StringEndsWith(fileName, NS_LITERAL_STRING(TEXT_FILE_EXTENSION),
-                            nsCaseInsensitiveStringComparator()) != kNotFound)
+                            nsCaseInsensitiveStringComparator()))
       *aSaveAsFileType = TEXT_FILE_TYPE;
     else
       // The default is .eml
