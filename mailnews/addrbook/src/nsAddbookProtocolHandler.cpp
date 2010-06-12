@@ -229,7 +229,7 @@ nsAddbookProtocolHandler::GeneratePrintOutput(nsIAddbookUrl *addbookUrl,
    turn "moz-abmdbdirectory/abook.mab"
    into "moz-abmdbdirectory://abook.mab"
    */
-  pos = uri.Find("/");
+  pos = uri.FindChar('/');
   if (pos == -1)
     return NS_ERROR_UNEXPECTED;
 

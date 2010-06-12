@@ -60,6 +60,7 @@
 #include "nsCRTGlue.h"
 #include "nsArrayUtils.h"
 #include "nsArrayEnumerator.h"
+#include "nsMsgUtils.h"
 
 #ifdef PR_LOGGING
 static PRLogModuleInfo* gAbOutlookDirectoryLog
@@ -971,11 +972,11 @@ NS_IMETHODIMP nsAbOutlookDirectory::StartSearch(void)
     NS_ENSURE_SUCCESS(retCode, retCode) ;
     nsCOMPtr<nsIAbDirSearchListener> proxyListener;
 
-    retCode = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                     NS_GET_IID(nsIAbDirSearchListener),
-                     static_cast<nsIAbDirSearchListener *>(this),
-                     NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                     getter_AddRefs(proxyListener));
+    retCode = MsgGetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+                                   NS_GET_IID(nsIAbDirSearchListener),
+                                   static_cast<nsIAbDirSearchListener *>(this),
+                                   NS_PROXY_SYNC | NS_PROXY_ALWAYS,
+                                   getter_AddRefs(proxyListener));
     NS_ENSURE_SUCCESS(retCode, retCode);
 
     return DoQuery(this, arguments, proxyListener, -1, 0, &mSearchContext);

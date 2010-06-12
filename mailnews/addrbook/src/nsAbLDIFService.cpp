@@ -537,9 +537,9 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIAddrDatabase *aDatabase,
     // This will remove the label and place the URI as the work URL
     else if (colType.EqualsLiteral("labeleduri"))
     {
-      PRInt32 index = column.Find(" ", false, 0, -1);
+      PRInt32 index = column.FindChar(' ');
       if (index != -1)
-        column.Truncate(index);
+        column.SetLength(index);
 
       aDatabase->AddWebPage1(newRow, column.get());
     }

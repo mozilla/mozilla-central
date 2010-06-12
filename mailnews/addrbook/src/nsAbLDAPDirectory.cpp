@@ -110,7 +110,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::Init(const char* aURI)
   PRInt32 searchCharLocation = uri.FindChar('?', kLDAPDirectoryRootLen);
 
   if (searchCharLocation == -1)
-    m_DirPrefId = StringTail(uri, uri.Length() - kLDAPDirectoryRootLen);
+    m_DirPrefId = Substring(uri, kLDAPDirectoryRootLen);
   else
     m_DirPrefId = Substring(uri, kLDAPDirectoryRootLen, searchCharLocation - kLDAPDirectoryRootLen);
 

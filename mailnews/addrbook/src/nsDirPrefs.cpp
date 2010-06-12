@@ -61,6 +61,7 @@
 #include "prprf.h"
 #include "plstr.h"
 #include "nsQuickSort.h"
+#include "nsComponentManagerUtils.h"
 #include "msgCore.h"
 
 #include <ctype.h>
@@ -303,8 +304,7 @@ nsresult DIR_AddNewAddressBook(const nsAString &dirName,
     DIR_GetDirServers();
   if (dir_ServerList)
   {
-    NS_ConvertUTF16toUTF8 utf8str(dirName);
-    server->description = ToNewCString(utf8str);
+    server->description = ToNewCString(NS_ConvertUTF16toUTF8(dirName));
     server->position = kDefaultPosition; // don't set position so alphabetic sort will happen.
     
     if (!fileName.IsEmpty())
@@ -858,8 +858,7 @@ static char *DIR_GetDescription(const char *prefRoot)
   char *value = nsnull;
   if (!wvalue.IsEmpty())
   {
-    NS_ConvertUTF16toUTF8 utf8str(wvalue.get());
-    value = ToNewCString(utf8str);
+    value = ToNewCString(NS_ConvertUTF16toUTF8(wvalue));
   }
   else
   {

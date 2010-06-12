@@ -66,7 +66,7 @@ NS_IMETHODIMP nsAbDirectoryRDFResource::Init(const char* aURI)
     PRInt32 searchCharLocation = mURINoQuery.FindChar('?');
     if (searchCharLocation >= 0) {
         mQueryString = Substring(mURINoQuery, searchCharLocation + 1);
-        mURINoQuery.Truncate(searchCharLocation);
+        mURINoQuery.SetLength(searchCharLocation);
         mIsQueryURI = PR_TRUE;
     }
 

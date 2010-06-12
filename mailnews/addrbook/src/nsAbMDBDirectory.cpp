@@ -105,7 +105,7 @@ NS_IMETHODIMP nsAbMDBDirectory::Init(const char *aUri)
 
     // extract the filename from the uri.
     if (searchCharLocation == -1)
-      filename = StringTail(uri, uri.Length() - kMDBDirectoryRootLen);
+      filename = Substring(uri, kMDBDirectoryRootLen);
     else
       filename = Substring(uri, kMDBDirectoryRootLen, searchCharLocation - kMDBDirectoryRootLen);
 

@@ -556,9 +556,8 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
     default:
     case LDIF_EXPORT_TYPE: // ldif
       // If filename does not have the correct ext, add one.
-      if ((fileName.Find(LDIF_FILE_EXTENSION, fileName.Length() - strlen(LDIF_FILE_EXTENSION), PR_TRUE) == -1) && 
-          (fileName.Find(LDIF_FILE_EXTENSION2, fileName.Length() - strlen(LDIF_FILE_EXTENSION2), PR_TRUE) == -1)) {
-
+      if ((MsgFind(fileName, LDIF_FILE_EXTENSION, PR_TRUE, fileName.Length() - strlen(LDIF_FILE_EXTENSION)) == -1) &&
+          (MsgFind(fileName, LDIF_FILE_EXTENSION2, PR_TRUE, fileName.Length() - strlen(LDIF_FILE_EXTENSION2)) == -1)) {
 
        // Add the extension and build a new localFile.
        fileName.AppendLiteral(LDIF_FILE_EXTENSION2);
@@ -569,7 +568,7 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
 
     case CSV_EXPORT_TYPE: // csv
       // If filename does not have the correct ext, add one.
-      if (fileName.Find(CSV_FILE_EXTENSION, fileName.Length() - strlen(CSV_FILE_EXTENSION), PR_TRUE) == -1) {
+      if (MsgFind(fileName, CSV_FILE_EXTENSION, PR_TRUE, fileName.Length() - strlen(CSV_FILE_EXTENSION)) == -1) {
 
        // Add the extension and build a new localFile.
        fileName.AppendLiteral(CSV_FILE_EXTENSION);
@@ -580,8 +579,8 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
 
     case TAB_EXPORT_TYPE: // tab & text
       // If filename does not have the correct ext, add one.
-      if ((fileName.Find(TXT_FILE_EXTENSION, fileName.Length() - strlen(TXT_FILE_EXTENSION), PR_TRUE) == -1) && 
-          (fileName.Find(TAB_FILE_EXTENSION, fileName.Length() - strlen(TAB_FILE_EXTENSION), PR_TRUE) == -1)) {
+      if ((MsgFind(fileName, TXT_FILE_EXTENSION, PR_TRUE, fileName.Length() - strlen(TXT_FILE_EXTENSION)) == -1) &&
+          (MsgFind(fileName, TAB_FILE_EXTENSION, PR_TRUE, fileName.Length() - strlen(TAB_FILE_EXTENSION)) == -1)) {
 
        // Add the extension and build a new localFile.
        fileName.AppendLiteral(TXT_FILE_EXTENSION);

@@ -46,7 +46,6 @@
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "rdf.h"
-#include "nsCRT.h"
 #include "nsCOMPtr.h"
 
 #include "nsDirectoryDataSource.h"

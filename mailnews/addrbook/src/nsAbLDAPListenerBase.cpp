@@ -51,6 +51,8 @@
 #include "nsILoginInfo.h"
 #include "nsServiceManagerUtils.h"
 #include "nsXPCOMCIDInternal.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMemory.h"
 
 nsAbLDAPListenerBase::nsAbLDAPListenerBase(nsILDAPURL* url,
                                            nsILDAPConnection* connection,

@@ -251,7 +251,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateDirectoryByURI(const nsAString &aDisplayNam
 
   nsCString fileName;
   if (StringBeginsWith(aURI, NS_LITERAL_CSTRING(kMDBDirectoryRoot)))
-    fileName = StringTail(aURI, aURI.Length() - kMDBDirectoryRootLen);
+    fileName = Substring(aURI, kMDBDirectoryRootLen);
 
   DIR_Server * server = nsnull;
   rv = DIR_AddNewAddressBook(aDisplayName, fileName, aURI,

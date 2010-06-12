@@ -59,6 +59,7 @@
 #include "nsIPrefLocalizedString.h"
 #include "nsArrayUtils.h"
 #include "nsIAddrDatabase.h" // for kPriEmailColumn
+#include "nsMsgUtils.h"
 
 #define CARD_NOT_FOUND -1
 #define ALL_ROWS -1
@@ -77,7 +78,7 @@ nsAbView::nsAbView() : mInitialized(PR_FALSE),
                        mSuppressCountChange(PR_FALSE),
                        mGeneratedNameFormat(0)
 {
-  mMailListAtom = do_GetAtom("MailList");
+  mMailListAtom = MsgGetAtom("MailList");
 }
 
 nsAbView::~nsAbView()

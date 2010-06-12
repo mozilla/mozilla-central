@@ -62,6 +62,7 @@
 #include "nsIProperty.h"
 #include "nsCOMArray.h"
 #include "nsArrayEnumerator.h"
+#include "prmem.h"
 
 #define PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST "mail.addr_book.lastnamefirst"
 
@@ -706,7 +707,9 @@ nsresult nsAbCardProperty::ConvertToBase64EncodedXML(nsACString &result)
   xmlStr.Append(xmlSubstr);
   xmlStr.AppendLiteral("</directory>\n");
 
-  result.Adopt(PL_Base64Encode(NS_ConvertUTF16toUTF8(xmlStr).get(), 0, nsnull));
+  char *tmpRes = PL_Base64Encode(NS_ConvertUTF16toUTF8(xmlStr).get(), 0, nsnull);
+  result.Assign(tmpRes);
+  PR_Free(tmpRes);
   return NS_OK;
 }
 

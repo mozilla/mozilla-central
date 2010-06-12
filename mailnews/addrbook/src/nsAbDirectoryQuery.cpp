@@ -501,19 +501,10 @@ nsresult nsAbDirectoryQuery::matchCardCondition(nsIAbCard* card,
             *matchFound = PR_TRUE;
             break;
         case nsIAbBooleanConditionTypes::Contains:
-#ifdef MOZILLA_INTERNAL_API
-            *matchFound = FindInReadable(matchValue, value, nsCaseInsensitiveStringComparator());
-#else
-            *matchFound = value.Find(matchValue, CaseInsensitiveCompare) >= 0;
-#endif
-
+            *matchFound = CaseInsensitiveFindInReadable(matchValue, value);
             break;
         case nsIAbBooleanConditionTypes::DoesNotContain:
-#ifdef MOZILLA_INTERNAL_API
-            *matchFound = !FindInReadable(matchValue, value, nsCaseInsensitiveStringComparator());
-#else
-            *matchFound = value.Find(matchValue, CaseInsensitiveCompare) == -1;
-#endif
+            *matchFound = CaseInsensitiveFindInReadable(matchValue, value);
             break;
         case nsIAbBooleanConditionTypes::Is:
             *matchFound = value.Equals(matchValue, nsCaseInsensitiveStringComparator());
