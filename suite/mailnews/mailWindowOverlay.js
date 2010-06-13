@@ -1192,9 +1192,6 @@ BatchMessageMover.prototype =
     this.messageToSelectAfterWereDone = gNextMessageViewIndexAfterDelete;
     gNextMessageViewIndexAfterDelete = -2;
 
-    let messages = Components.classes["@mozilla.org/array;1"]
-                             .createInstance(Components.interfaces.nsIMutableArray);
-
     for (let i = 0; i < selectedMsgUris.length; ++i)
     {
       let msgHdr = messenger.msgHdrFromURI(selectedMsgUris[i]);

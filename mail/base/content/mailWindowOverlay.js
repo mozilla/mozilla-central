@@ -1313,9 +1313,6 @@ BatchMessageMover.prototype = {
     if (!aMsgHdrs.length)
       return;
 
-    let messages = Components.classes["@mozilla.org/array;1"]
-                             .createInstance(Components.interfaces.nsIMutableArray);
-
     for (let i = 0; i < aMsgHdrs.length; ++i)
     {
       let msgHdr = aMsgHdrs[i];
