@@ -930,6 +930,12 @@ function IsReplyListEnabled()
  */
 function UpdateReplyButtons()
 {
+  // If we have no message, because we're being called from
+  // MailToolboxCustomizeDone before someone selected a message, then just
+  // return.
+  if (!gFolderDisplay.selectedMessage)
+    return;
+
   let showReplyAll = IsReplyAllEnabled();
   let showReplyList = IsReplyListEnabled();
 
