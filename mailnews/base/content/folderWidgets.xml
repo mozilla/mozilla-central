@@ -264,8 +264,6 @@
           if (this._initialized)
             return;
 
-          this._teardown();
-
           // I really wish they'd just make this global...
           const Cc = Components.classes;
           const Ci = Components.interfaces;
