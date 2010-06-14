@@ -879,6 +879,12 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
                                               *socketHost, socketPort, proxyInfo,
                                               getter_AddRefs(m_transport));
         }
+
+        PRUint8 qos;
+        rv = GetQoSBits(&qos);
+        if (NS_SUCCEEDED(rv))
+          m_transport->SetQoSBits(qos);
+
         // remember so we can know whether we can issue a start tls or not...
         m_connectionType = connectionType;
         if (m_transport && m_mockChannel)

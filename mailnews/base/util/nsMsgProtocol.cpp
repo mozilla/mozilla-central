@@ -120,6 +120,30 @@ static PRBool gGotTimeoutPref;
 static PRInt32 gSocketTimeout = 60;
 
 nsresult
+nsMsgProtocol::GetQoSBits(PRUint8 *aQoSBits)
+{
+  NS_ENSURE_ARG_POINTER(aQoSBits);
+  const char* protocol = GetType();
+
+  if (!protocol)
+    return NS_ERROR_NOT_IMPLEMENTED;
+
+  nsCAutoString prefName("mail.");
+  prefName.Append(protocol);
+  prefName.Append(".qos");
+
+  nsresult rv;
+  nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  PRInt32 val;
+  rv = prefBranch->GetIntPref(prefName.get(), &val);
+  NS_ENSURE_SUCCESS(rv, rv);
+  *aQoSBits = (PRUint8) NS_CLAMP(val, 0, 0xff);
+  return NS_OK;
+}
+
+nsresult
 nsMsgProtocol::OpenNetworkSocketWithInfo(const char * aHostName,
                                          PRInt32 aGetPort,
                                          const char *connectionType,
@@ -163,6 +187,10 @@ nsMsgProtocol::OpenNetworkSocketWithInfo(const char * aHostName,
   strans->SetTimeout(nsISocketTransport::TIMEOUT_CONNECT, gSocketTimeout + 60);
   strans->SetTimeout(nsISocketTransport::TIMEOUT_READ_WRITE, gSocketTimeout);
 
+  PRUint8 qos;
+  rv = GetQoSBits(&qos);
+  if (NS_SUCCEEDED(rv))
+    strans->SetQoSBits(qos);
 
   return SetupTransportState();
 }

@@ -235,6 +235,9 @@ private:
     nsresult ChooseAuthMethod();
     void    MarkAuthMethodAsFailed(PRInt32 failedAuthMethod);
     void    ResetAuthMethods();
+
+    virtual const char* GetType() {return "smtp";}
+
     PRInt32 m_prefAuthMethods; // set of capability flags for auth methods
     PRInt32 m_failedAuthMethods; // ditto
     PRInt32 m_currentAuthMethod; // exactly one capability flag, or 0

@@ -340,6 +340,8 @@ private:
                                         PRUint32 sourceOffset, PRUint32 length);
   virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging = PR_FALSE);
 
+  virtual const char* GetType() {return "pop3";}
+
   nsCOMPtr<nsIURI> m_url;
   nsCOMPtr<nsIPop3Sink> m_nsIPop3Sink;
   nsCOMPtr<nsIPop3IncomingServer> m_pop3Server;

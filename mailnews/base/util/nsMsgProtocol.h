@@ -127,6 +127,9 @@ protected:
 
   nsresult GetTopmostMsgWindow(nsIMsgWindow **aWindow);
 
+  virtual const char* GetType() {return nsnull;}
+  nsresult GetQoSBits(PRUint8 *aQoSBits);
+
   // a Protocol typically overrides this method. They free any of their own connection state and then
   // they call up into the base class to free the generic connection objects
   virtual nsresult CloseSocket(); 

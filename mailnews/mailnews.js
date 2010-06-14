@@ -876,3 +876,19 @@ pref("mailnews.database.global.logging.net", false);
 
 // default field order in the fieldmap
 pref("mailnews.import.text.fieldmap", "+0,+1,+2,+3,+4,+5,+36,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,+16,+17,+18,+19,+20,+21,+22,+23,+24,+25,+26,+27,+28,+29,+30,+31,+32,+33,+34,+35");
+
+// On networks deploying QoS, it is recommended that these be lockpref()'d,
+// since inappropriate marking can easily overwhelm bandwidth reservations
+// for certain services (i.e. EF for VoIP, AF4x for interactive video,
+// AF3x for broadcast/streaming video, etc)
+
+// default value for SMTP and POP3.
+// in a DSCP environment this should be 48 (0x30, or AF12) per RFC-4594,
+// Section 4.8 "High-Throughput Data Service Class"
+pref("mail.pop3.qos", 0);
+pref("mail.smtp.qos", 0);
+pref("mail.nntp.qos", 0);
+
+// default value for IMAP4
+// in a DSCP environment this should be 56 (0x38, or AF13), ibid.
+pref("mail.imap.qos", 0);

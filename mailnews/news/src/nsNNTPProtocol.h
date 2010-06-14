@@ -198,6 +198,8 @@ private:
 
   void ParseHeaderForCancel(char *buf);
 
+  virtual const char* GetType() {return "nntp";}
+
   static PRBool CheckIfAuthor(nsISupports *aElement, void *data);
 
   nsCOMPtr <nsINNTPNewsgroupList> m_newsgroupList;
