@@ -125,6 +125,8 @@
                 xbl:inherits="selected,disabled"
                 flex="1">
         <xul:vbox pack="center" flex="1">
+          <xul:label anonid="agenda-allDayEvent-date" class="agenda-event-start"
+                     crop="end" xbl:inherits="selected" hidden="true"/>
           <xul:hbox flex="1" align="center">
             <xul:image anonid="agenda-multiDayEvent-image" class="agenda-multiDayEvent-image"/>
             <xul:calendar-month-day-box-item anonid="allday-item" 
@@ -145,7 +147,7 @@
         <body><![CDATA[
             this.mOccurrence = aOccurrence;
             this.mAllDayItem.occurrence = aOccurrence;
-
+            let dateFormatter = cal.getDateFormatter();
             let periodStartDate = aPeriod.start.clone();
             periodStartDate.isDate = true;
             let periodEndDate = aPeriod.end;
@@ -155,22 +157,34 @@
                               .getInTimezone(calendarDefaultTimezone());
             let endPreviousDay = endDate.clone();
             endPreviousDay.day--;
+            let longPeriod = aPeriod.duration > 1;
 
+            let date = "";
             let iconType = "";
+            let allDayDateLabel = document.getAnonymousElementByAttribute(this, "anonid", "agenda-allDayEvent-date");
+            setBooleanAttribute(allDayDateLabel, "hidden", !longPeriod);
             if (startDate.compare(endPreviousDay) != 0) {
-                // all day event spanning multiple days
+                // All day event spanning multiple days.
                 if (startDate.compare(periodStartDate) >= 0 &&
                      startDate.compare(periodEndDate) <= 0) {
                     iconType = "start";
+                    date = dateFormatter.formatDate(startDate);
                 } else if (endDate.compare(periodStartDate) >= 0 &&
                            endDate.compare(periodEndDate) <= 0) {
                     iconType = "end";
+                    date = dateFormatter.formatDate(endPreviousDay);
                 } else {
                     iconType = "continue";
+                    hideElement(allDayDateLabel);
                 }
+            } else {
+                // All day event one day duration.
+                date = dateFormatter.formatDate(startDate);
             }
+
             let multiDayImage = document.getAnonymousElementByAttribute(this, "anonid", "agenda-multiDayEvent-image");
             multiDayImage.setAttribute("type", iconType);
+            allDayDateLabel.value = date;
         ]]></body>
       </method>
     </implementation>
