@@ -285,3 +285,97 @@ function test_summary_updates_when_new_message_added_to_collapsed_thread() {
   assert_selected(thread1Root);
   assert_messages_summarized(mc, thread1All);
 }
+
+let source1 =  "From - Sat Nov  1 12:39:54 2008\n" +
+    "X-Mozilla-Status: 0001\n" +
+    "X-Mozilla-Status2: 00000000\n" +
+'Message-ID: <%s>\n'+
+'Date: Wed, 05 May 2010 10:28:45 +0200\n'+
+'From: Tinderbox <tinderbox@invalid.com>\n'+
+'User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.5pre) Gecko/20100429 Lanikai/3.1b2\n'+
+'MIME-Version: 1.0\n'+
+'To: Tinderbox2 <tinderbox2@invalid.com>\n'+
+'Subject: Test\n'+
+'Content-Type: text/plain; charset=ISO-8859-1; format=flowed\n'+
+'Content-Transfer-Encoding: 7bit\n'+
+'\n'+
+'  Test\n'+
+'';
+
+let source2 = "From - Sat Nov  1 12:39:54 2008\n" +
+    "X-Mozilla-Status: 0001\n" +
+    "X-Mozilla-Status2: 00000000\n" +
+  'Message-ID: <%s>\n'+
+  'Date: Wed, 05 May 2010 10:28:59 +0200\n'+
+  'From: Tinderbox2 <tinderbox2@invalid.com>\n'+
+  'User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.5pre) Gecko/20100429 Lanikai/3.1b2\n'+
+  'MIME-Version: 1.0\n'+
+  'To: Tinderbox <tinderbox@invalid.com>\n'+
+  'Subject: Re: Test\n'+
+  'References: <4BE12C3D.2020001@free.fr>\n'+
+  'In-Reply-To: <4BE12C3D.2020001@free.fr>\n'+
+  'Content-Type: text/plain; charset=ISO-8859-1; format=flowed\n'+
+  'Content-Transfer-Encoding: 7bit\n'+
+  '\n'+
+  '  On 05/05/2010 10:28 AM, Jonathan Protzenko wrote:\n'+
+  '>  Test\n'+
+  'Re-test\n'+
+  '';
+
+function addToFolder(aMsgId, aSource, aFolder) {
+  aFolder.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder);
+  aFolder.gettingNewMessages = true;
+
+  let source = aSource.replace("%s", aMsgId);
+  aFolder.addMessage(source);
+  aFolder.gettingNewMessages = false;
+
+  return aFolder.msgDatabase.getMsgHdrForMessageID(aMsgId);
+}
+
+function test_summary_when_multiple_identities() {
+  /* Switch to "smart folders" mode */
+  mc.folderTreeView.mode = "smart";
+  let smartInboxFolder = get_smart_folder_named("Inbox");
+  be_in_folder(smartInboxFolder);
+
+  /* Open the smart inbox */
+  mc.folderTreeView.toggleOpenState(0);
+
+  /* Get pointers to the first and the second inbox */
+  let inbox1 = mc.folderTreeView.getFolderForIndex(1);
+  let inbox2 = mc.folderTreeView.getFolderForIndex(2);
+
+  /* Add the pre-built message in the inboxes */
+  let msgHdr1 = addToFolder("4BE12C3D.2020001@free.fr", source1, inbox1);
+  let msgHdr2 = addToFolder("4BE12C4B.3030107@ens-lyon.fr", source2, inbox2);
+  be_in_folder(smartInboxFolder);
+  make_display_threaded();
+  collapse_all_threads();
+
+  /* Do the needed tricks */
+  be_in_folder(inbox1);
+  select_click_row(0);
+  plan_to_wait_for_folder_events("DeleteOrMoveMsgCompleted",
+                                 "DeleteOrMoveMsgFailed");
+  mc.window.MsgMoveMessage(inbox2);
+  wait_for_folder_events();
+
+  be_in_folder(inbox2);
+  select_click_row(1);
+  plan_to_wait_for_folder_events("DeleteOrMoveMsgCompleted",
+                                 "DeleteOrMoveMsgFailed");
+  mc.window.MsgMoveMessage(inbox1);
+  wait_for_folder_events();
+
+  be_in_folder(smartInboxFolder);
+  collapse_all_threads();
+
+  /* Assertions */
+  select_click_row(0);
+  mc.sleep(0);
+  assert_messages_summarized(mc, mc.folderDisplay.selectedMessages);
+  let mmDoc = mc.window.document.getElementById("multimessage").contentDocument;
+  assert_true(mmDoc.getElementsByClassName("count").length === 0,
+    "This thread was wrongly summarized as multiple conversations.");
+}
