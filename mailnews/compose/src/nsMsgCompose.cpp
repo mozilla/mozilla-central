@@ -4129,7 +4129,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   if ((!useSigFile  && prefSigText.IsEmpty()) || NS_FAILED(rv))
     return NS_OK;
 
-  static const char      htmlBreak[] = "<BR>";
+  static const char      htmlBreak[] = "<br>";
   static const char      dashes[] = "-- ";
   static const char      htmlsigopen[] = "<div class=\"moz-signature\">";
   static const char      htmlsigclose[] = "</div>";    /* XXX: Due to a bug in
@@ -5331,7 +5331,7 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
             if (tempNode)
             {
               tempNode->GetLocalName(tagLocalName);
-              if (tagLocalName.EqualsLiteral("BR"))
+              if (tagLocalName.EqualsLiteral("br"))
                 m_editor->DeleteNode(tempNode);
             }
             m_editor->EndTransaction();
@@ -5352,7 +5352,7 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
         switch (searchState)
         {
           case 0:
-            if (nodeType == nsIDOMNode::ELEMENT_NODE && tagLocalName.EqualsLiteral("BR"))
+            if (nodeType == nsIDOMNode::ELEMENT_NODE && tagLocalName.EqualsLiteral("br"))
               searchState = 1;
             break;
 
@@ -5366,7 +5366,7 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
                 searchState = 2;
             }
             else
-              if (nodeType == nsIDOMNode::ELEMENT_NODE && tagLocalName.EqualsLiteral("BR"))
+              if (nodeType == nsIDOMNode::ELEMENT_NODE && tagLocalName.EqualsLiteral("br"))
               {
                 searchState = 1;
                 break;
@@ -5374,7 +5374,7 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
             break;
 
           case 2:
-            if (nodeType == nsIDOMNode::ELEMENT_NODE && tagLocalName.EqualsLiteral("BR"))
+            if (nodeType == nsIDOMNode::ELEMENT_NODE && tagLocalName.EqualsLiteral("br"))
               searchState = 3;
             else
               searchState = 0;
