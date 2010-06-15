@@ -76,7 +76,8 @@
         persist="width height screenX screenY sizemode"
         toggletoolbar="true"
         windowtype="mail:3pane"
-        lightweightthemes="true">
+        lightweightthemes="true"
+        lightweightthemesfooter="status-bar">
 
 
 <!--This (strange!) element is here to support recovering customized toolbars in
