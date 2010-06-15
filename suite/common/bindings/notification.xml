@@ -325,31 +325,6 @@
         </body>
       </method>
 
-      <method name="managePlugins">
-        <parameter name="aEvent"/>
-        <body>
-          <![CDATA[
-            aEvent.preventDefault();
-            aEvent.stopPropagation();
-
-            //XXXCallek Need to "open-in-tab" the new manager, rather than do this
-            var theEM = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                                  .getService(Components.interfaces.nsIWindowMediator)
-                                  .getMostRecentWindow("Extension:Manager");
-
-            if (theEM) {
-              theEM.focus();
-              theEM.showView("plugins");
-              return;
-            }
-
-            const EMURL = "chrome://mozapps/content/extensions/extensions.xul";
-            const EMFEATURES = "all,dialog=no";
-            window.openDialog(EMURL, "", EMFEATURES, "plugins");
-          ]]>
-        </body>
-      </method>
-
       <method name="playSoundForBlockedPopup">
         <body>
           <![CDATA[
@@ -665,7 +640,46 @@
           if (!(event.target instanceof Components.interfaces.nsIObjectLoadingContent))
             return;
 
-          event.target.addEventListener("click", this.managePlugins, true);
+          var self = this;
+          function managePlugins(aEvent){
+            aEvent.preventDefault();
+            aEvent.stopPropagation();
+
+            const EMURL = "about:addons";
+
+            const kExistingWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_CURRENTWINDOW;
+            const kNewWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWWINDOW;
+
+            var browserWin;
+            var whereToOpen = self._prefs.getIntPref("browser.link.open_external");
+
+            if (whereToOpen != kNewWindow) {
+              var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1']
+                                            .getService(Components.interfaces.nsIWindowMediator);
+              browserWin = windowManager.getMostRecentWindow("navigator:browser");
+            }
+
+            if (!browserWin) {
+              var browserURL = "chrome://navigator/content/navigator.xul";
+              try {
+                browserURL = self._prefs.getCharPref("browser.chromeURL");
+              } catch (ex) {}
+
+              window.openDialog(browserURL, "_blank", "chrome,all,dialog=no", EMURL);
+            } else {
+              if (whereToOpen == kExistingWindow)
+                browserWin.loadURI(EMURL);
+              else {
+                // new tab
+                var browser = browserWin.getBrowser();
+                var newTab = browser.addTab(EMURL);
+                browser.selectedTab = newTab;
+              }
+              browserWin.content.focus();
+            }
+          }
+
+          event.target.addEventListener("click", managePlugins, true);
         ]]>
       </handler>
 
