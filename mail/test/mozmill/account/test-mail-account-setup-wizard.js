@@ -79,6 +79,12 @@ function close_mail_account_setup_wizard() {
   wh.close_window(awc);
 }
 
+// Emulate manual input
+function input_value(str) {
+  for (let i = 0; i < str.length; i++)
+    awc.keypress(null, str.charAt(i), {});
+}
+
 // Remove an account on the Account Manager
 function remove_account(amc) {
   let win = amc.window;
@@ -113,17 +119,13 @@ function test_mail_account_setup() {
   awc = open_mail_account_setup_wizard();
 
   // Input user's account information
-  // Note: We're calling the onInput handlers directly because when we
-  //       tried to enter the text with keypresses, it failed if the window
-  //       didn't have focus (and perhaps other times).
-  awc.e("realname").value = user.name;
-  awc.window.gEmailConfigWizard.onRealnameInput();
-  awc.e("email").value = user.email;
-  awc.window.gEmailConfigWizard.onEmailInput();
-  awc.e("password").value = user.password;
-  awc.window.gEmailConfigWizard.oninputPassword();
+  awc.e("realname").focus();
+  input_value(user.name);
+  awc.keypress(null, "VK_TAB", {});
+  input_value(user.email);
+  awc.keypress(null, "VK_TAB", {});
+  input_value(user.password);
 
-  //awc.sleep(5000);
   // Load the autoconfig file from http://localhost:433**/autoconfig/example.com
   awc.e("next_button").click();
 
