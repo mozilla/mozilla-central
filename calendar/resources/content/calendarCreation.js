@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Gary van der Merwe <garyvdm@gmail.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Simon Vaillancourt <simon.at.orcl@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -179,6 +180,7 @@ function doCreateCalendar() {
 
     gCalendar.name = cal_name;
     gCalendar.setProperty('color', cal_color);
+    gCalendar.setProperty("cache.enabled", document.getElementById("cache").checked);
 
     if (!document.getElementById("fire-alarms").checked) {
         gCalendar.setProperty('suppressAlarms', true);

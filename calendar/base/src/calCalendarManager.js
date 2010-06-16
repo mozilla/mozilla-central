@@ -24,6 +24,7 @@
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Simon Vaillancourt <simon.at.orcl@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -117,7 +118,7 @@ calCalendarManager.prototype = {
     get calendarCount() {
         return this.mCalendarCount;
     },
-    
+
     setUpStartupObservers: function ccm_setUpStartupObservers() {
         var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
                           .getService(Components.interfaces.nsIObserverService);
@@ -126,7 +127,7 @@ calCalendarManager.prototype = {
         observerSvc.addObserver(this, "profile-before-change", false);
         observerSvc.addObserver(this, "em-action-requested", false);
     },
-    
+
     startup: function ccm_startup() {
         this.checkAndMigrateDB();
         this.mCache = null;
@@ -142,7 +143,7 @@ calCalendarManager.prototype = {
         this.mReadonlyCalendarCount = 0;
         this.mCalendarCount = 0;
     },
-    
+
     shutdown: function ccm_shutdown() {
         for each (var cal in this.mCache) {
             cal.removeObserver(this.mCalObservers[cal.id]);
@@ -165,7 +166,7 @@ calCalendarManager.prototype = {
         prefBranch.addObserver("calendar.autorefresh.enabled", this, false);
         prefBranch.addObserver("calendar.autorefresh.timeout", this, false);
     },
-    
+
     cleanupPrefObservers: function ccm_cleanupPrefObservers() {
         var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
                                 .getService(Components.interfaces.nsIPrefBranch2);
@@ -271,7 +272,7 @@ calCalendarManager.prototype = {
                         case "item-disabled":
                             if (!this.queryUninstallProvider(extension)) {
                                 // If the extension should not be disabled,
-                                // then re-enable it. 
+                                // then re-enable it.
                                 extMgr.enableItem(extension.id);
                             }
                             break;
@@ -347,7 +348,7 @@ calCalendarManager.prototype = {
 
             // Create the new tables.
 
-            try { 
+            try {
                 db.executeSimpleSQL("DROP TABLE cal_calendars_v6; DROP TABLE cal_calendars_prefs_v6;");
             } catch (e) {
                 // We should get exceptions for trying to drop tables
@@ -383,7 +384,7 @@ calCalendarManager.prototype = {
 
             for (var i in tableNames) {
                 db.executeSimpleSQL("DROP TABLE " + tableNames[i] + ";" +
-                                    "ALTER TABLE " + tableNames[i] + "_v6 " + 
+                                    "ALTER TABLE " + tableNames[i] + "_v6 " +
                                     "  RENAME TO " + tableNames[i] + ";");
             }
 
@@ -515,7 +516,7 @@ calCalendarManager.prototype = {
         }
     },
 
-    /** 
+    /**
      * @return      db schema version
      * @exception   various, depending on error
      */
@@ -672,6 +673,11 @@ calCalendarManager.prototype = {
         cal.setPref(getPrefBranchFor(calendar.id) + "type", calendar.type);
         cal.setPref(getPrefBranchFor(calendar.id) + "uri", calendar.uri.spec);
 
+        if ((calendar.getProperty("cache.supported") !== false) &&
+            calendar.getProperty("cache.enabled")) {
+            calendar = new calCachedCalendar(calendar);
+        }
+
         this.setupCalendar(calendar);
         flushPrefs();
 
@@ -795,7 +801,7 @@ calCalendarManager.prototype = {
                             calendar.deleteProperty("disabled");
                             calendar.deleteProperty("auto-enabled");
                         }
- 
+
                         if ((calendar.getProperty("cache.supported") !== false) &&
                             calendar.getProperty("cache.enabled")) {
                             calendar = new calCachedCalendar(calendar);
@@ -868,7 +874,7 @@ calCalendarManager.prototype = {
                                     .getService(Components.interfaces.nsIPrefBranch);
         prefService.deleteBranch(getPrefBranchFor(calendar.id) + name);
     },
-    
+
     mObservers: null,
     addObserver: function(aObserver) {
         this.mObservers.add(aObserver);
@@ -927,10 +933,55 @@ calMgrCalendarObserver.prototype = {
                 this.calMgr.mReadonlyCalendarCount += (aValue ? 1 : -1);
                 break;
             case "cache.enabled":
-                if (aCalendar.wrappedJSObject instanceof calCachedCalendar) {
-                    // any attempt to switch this flag will reset the cached calendar;
-                    // could be useful for users in case the cache may be corrupted.
-                    aCalendar.wrappedJSObject.setupCachedCalendar();
+                aOldValue = aOldValue || false;
+                aValue = aValue || false;
+
+                if (aOldValue != aValue) {
+
+                    // Try to find the current sort order
+                    let sortOrderPref = cal.getPrefSafe("calendar.list.sortOrder", "").split(" ");
+                    let initialSortOrderPos = null;
+                    for (let i = 0; i < sortOrderPref.length; ++i) {
+                        if (sortOrderPref[i] == aCalendar.id) {
+                            initialSortOrderPos = i;
+                        }
+                    }
+                    // Enabling or disabling cache on a calendar re-creates
+                    // it so the registerCalendar call can wrap/unwrap the
+                    // calCachedCalendar facade saving the user the need to
+                    // restart Thunderbird and making sure a new Id is used.
+                    this.calMgr.unregisterCalendar(aCalendar);
+                    this.calMgr.deleteCalendar(aCalendar);
+                    var newCal = this.calMgr.createCalendar(aCalendar.type,aCalendar.uri);
+                    newCal.name = aCalendar.name;
+
+                    // TODO: if properties get added this list will need to be adjusted,
+                    // ideally we should add a "getProperties" method to calICalendar.idl
+                    // to retrieve all non-transient properties for a calendar.
+                    let propsToCopy = [ "color",
+                                        "disabled",
+                                        "auto-enabled",
+                                        "cache.enabled",
+                                        "suppressAlarms",
+                                        "calendar-main-in-composite",
+                                        "calendar-main-default"];
+                    for each ( prop in propsToCopy ) {
+                      newCal.setProperty(prop,
+                                         aCalendar.getProperty(prop));
+                    }
+
+                    if (initialSortOrderPos != null) {
+                        newCal.setProperty("initialSortOrderPos",
+                                           initialSortOrderPos);
+                    }
+                    this.calMgr.registerCalendar(newCal);
+                }
+                else {
+                    if (aCalendar.wrappedJSObject instanceof calCachedCalendar) {
+                        // any attempt to switch this flag will reset the cached calendar;
+                        // could be useful for users in case the cache may be corrupted.
+                        aCalendar.wrappedJSObject.setupCachedCalendar();
+                    }
                 }
                 break;
             case "disabled":
@@ -993,8 +1044,8 @@ calMgrCalendarObserver.prototype = {
              default:
                 message = aMessage;
          }
- 
-                
+
+
         paramBlock.SetString(0, errMsg);
         paramBlock.SetString(1, errCode);
         paramBlock.SetString(2, message);
@@ -1036,7 +1087,7 @@ calMgrCalendarObserver.prototype = {
                      paramBlock);
             // Will remove paramBlock from announced messages when
             // promptWindow is closed.  (Closing fires unloaded event, but
-            // promptWindow is also unloaded [to clean it?] before loading, 
+            // promptWindow is also unloaded [to clean it?] before loading,
             // so wait for detected load event before detecting unload event
             // that signifies user closed this prompt window.)
             var observer = this;

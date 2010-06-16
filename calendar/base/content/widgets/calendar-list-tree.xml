@@ -20,6 +20,7 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
+   - Simon Vaillancourt <simon.at.orcl@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -153,7 +154,7 @@
                 this.listTree.ensureCalendarVisible(aItem.calendar);
             }
         },
-        onModifyItem: function cO_onModifyItem(aNewItem, aOldItem) { 
+        onModifyItem: function cO_onModifyItem(aNewItem, aOldItem) {
             if (aNewItem.calendar.type != "caldav") {
                 this.listTree.ensureCalendarVisible(aNewItem.calendar);
             }
@@ -382,7 +383,7 @@
       <property name="compositeCalendar">
         <getter><![CDATA[
           if (!this.mCompositeCalendar) {
-              this.mCompositeCalendar = 
+              this.mCompositeCalendar =
                   Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]
                             .createInstance(Components.interfaces.calICompositeCalendar);
           }
@@ -484,7 +485,16 @@
         <parameter name="aCalendar"/>
         <body><![CDATA[
           let composite = this.compositeCalendar;
-          this.mCalendarList.push(aCalendar);
+
+          let initialSortOrderPos = aCalendar.getProperty("initialSortOrderPos");
+          if (initialSortOrderPos != null && initialSortOrderPos < this.mCalendarList.length) {
+              // Insert the calendar at the requested sort order position
+              // and then discard the property
+              this.mCalendarList.splice(initialSortOrderPos, 0, aCalendar);
+              aCalendar.deleteProperty("initialSortOrderPos");
+          } else {
+              this.mCalendarList.push(aCalendar);
+          }
           this.treebox.rowCountChanged(this.mCalendarList.length - 1, 1);
 
           if (!composite.defaultCalendar ||
@@ -514,7 +524,7 @@
       <method name="removeCalendar">
         <!--
           - Remove a calendar from the calendar list
-          - 
+          -
           - @param aCalendar     The calendar to remove.
           -->
         <parameter name="aCalendar"/>
@@ -545,7 +555,7 @@
                   delete this.ruleCache[aCalendar.id];
                   break;
               }
-          } 
+          }
 
           this.sortOrderChanged();
         ]]></body>
@@ -554,7 +564,7 @@
       <method name="updateCalendar">
         <!--
           - Update a calendar's tree row (to refresh the color and such)
-          - 
+          -
           - @param aCalendar     The calendar to update.
           -->
         <parameter name="aCalendar"/>
@@ -566,7 +576,7 @@
       <method name="updateCalendarColor">
         <!--
           - Update a calendar's color rules.
-          - 
+          -
           - @param aCalendar     The calendar to update.
           -->
         <parameter name="aCalendar"/>
@@ -577,7 +587,7 @@
               let ruleString = "calendar-list-tree > tree > treechildren" +
                                "::-moz-tree-cell(color-treecol, id-"  +
                                aCalendar.id + ") {}";
-                             
+
               let ruleIndex = sheet.insertRule(ruleString, sheet.cssRules.length);
               this.ruleCache[aCalendar.id] = sheet.cssRules[ruleIndex];
           }
@@ -621,7 +631,7 @@
       <method name="getCalendar">
         <!--
           - Get the calendar from a certain index.
-          - 
+          -
           - @param aIndex     The index to get the calendar for.
           -->
         <parameter name="aIndex"/>
@@ -641,7 +651,7 @@
         <parameter name="aCol"/>
         <parameter name="aProps"/>
         <body><![CDATA[
-          try { 
+          try {
               this.getRowProperties(aRow, aProps);
               this.getColumnProperties(aCol, aProps);
           } catch (e) {
@@ -682,7 +692,7 @@
 
           let currentStatus = calendar.getProperty("currentStatus");
           if (!Components.isSuccessCode(currentStatus)) {
-              // 'readfailed' is supposed to "win" over 'readonly', meaning that 
+              // 'readfailed' is supposed to "win" over 'readonly', meaning that
               // if reading from a calendar fails there is no further need to also display
               // information about 'readonly' status
               aProps.AppendElement(cal.getAtomFromService("readfailed"));
@@ -770,7 +780,7 @@
           let dragSession = cal.getDragService().getCurrentSession();
           let dataTransfer = dragSession && dragSession.dataTransfer;
           if (!this.allowDrag || !dataTransfer) {
-              // If dragging is not allowed or there is no data transfer then 
+              // If dragging is not allowed or there is no data transfer then
               // we can't drop (i.e dropping a file on the calendar list).
               return false;
           }
@@ -927,7 +937,7 @@
           return null;
         ]]></body>
       </method>
-        
+
       <method name="getCellText">
         <parameter name="aRow"/>
         <parameter name="aCol"/>
@@ -941,7 +951,7 @@
           return "";
         ]]></body>
       </method>
-      
+
       <method name="setTree">
         <parameter name="aTreeBox"/>
         <body><![CDATA[

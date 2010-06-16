@@ -26,6 +26,7 @@
    -   Gary van der Merwe <garyvdm@gmail.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Martin Schroeder <mschroeder@mozilla.x-home.org>
+   -   Simon Vaillancourt <simon.at.orcl@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -104,6 +105,11 @@
                              type="search"
                              oncommand="checkRequired();"
                              ondragexit="checkRequired();"/>
+                </row>
+                <row>
+                     <label/>
+                     <checkbox id="cache"
+                               label="&calendarproperties.cache.label;"/>
                 </row>
                 <notificationbox id="location-notifications" flex="1"/>
                 <!--

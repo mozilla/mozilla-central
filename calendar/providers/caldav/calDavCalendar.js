@@ -170,6 +170,19 @@ calDavCalendar.prototype = {
         if (this.isCached && this.mTargetCalendar) {
             this.mTargetCalendar.startBatch();
             try {
+                try {
+                    this.mCtag = null;
+                    this.mTargetCalendar.deleteMetaData("ctag");
+                } catch(e) {
+                    cal.ERROR(e);
+                }
+                try {
+                    this.mWebdavSyncToken = null;
+                    this.mTargetCalendar.deleteMetaData("sync-token");
+                } catch(e) {
+                    cal.ERROR(e);
+                }
+
                 for (var itemId in this.mItemInfoCache) {
                     this.mTargetCalendar.deleteMetaData(itemId);
                     delete this.mItemInfoCache[itemId];
