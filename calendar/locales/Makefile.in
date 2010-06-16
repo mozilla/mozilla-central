@@ -87,16 +87,6 @@ DEFINES += \
 
 include $(topsrcdir)/config/rules.mk
 
-tests:
-ifdef MOZ_SUNBIRD
-ifeq ($(OS_ARCH), WINNT)
-ifneq (en-US, $(AB_CD))
-	@echo "Verifying $(AB_CD) installer variable usage $(MOZILLA_SRCDIR)"
-	@$(PERL) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/check-locales.pl $(LOCALE_SRCDIR)/installer
-endif
-endif
-endif
-
 clobber-%:
 	$(RM) -rf $(DIST)/xpi-stage/locale-$*
 
@@ -108,7 +98,6 @@ ifdef MOZ_SUNBIRD
 endif
 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref BOTH_MANIFESTS=1
 	@$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
-	@$(MAKE) tests AB_CD=$*
 
 ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 MOZ_PKG_MAC_DSSTORE=$(_ABS_DIST)/branding/dsstore
