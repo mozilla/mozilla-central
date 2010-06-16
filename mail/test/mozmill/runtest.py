@@ -223,7 +223,8 @@ class ThunderTestRunner(mozrunner.ThunderbirdRunner):
         self.use_vnc_server = (
             platform.system() == 'Linux' and
             os.path.isfile(self.VNC_SERVER_PATH) and
-            os.path.isfile(os.path.expanduser(self.VNC_PASSWD_PATH)))
+            os.path.isfile(os.path.expanduser(self.VNC_PASSWD_PATH)) and
+            env.get('MOZMILL_NO_VNC') != '1')
 
         mozrunner.Runner.__init__(self, *args, **kwargs)
 
