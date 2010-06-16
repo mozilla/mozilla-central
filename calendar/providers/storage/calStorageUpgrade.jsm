@@ -970,10 +970,14 @@ upgrade.v13 = function upgrade_v13(db, version) {
             for each (let itemTable in ["events", "todos"]) {
                 let stmt = createStatement(db,
                                            "SELECT id, cal_id FROM cal_" + itemTable);
-                while (stmt.step()) {
-                    calIds[stmt.row.id] = stmt.row.cal_id;
+                try {
+                    while (stmt.step()) {
+                        calIds[stmt.row.id] = stmt.row.cal_id;
+                    }
                 }
-                stmt.reset();
+                finally {
+                    stmt.reset();
+                }
             }
         }
 
@@ -1174,21 +1178,26 @@ upgrade.v17 = function upgrade_v17(db, version) {
     try {
         for each (let tblName in ["alarms", "relations", "attachments"]) {
             let hasColumns = true;
+            let stmt;
             try {
                 // Stepping this statement will fail if the columns don't exist.
                 // We don't use the delegate here since it would show an error to
                 // the user, even through we expect the error. If the db is null,
                 // then swallowing the error is ok too since the cols will
                 // already be added in v16.
-                let stmt = db.createStatement("SELECT recurrence_id_tz," +
+                stmt = db.createStatement("SELECT recurrence_id_tz," +
                                               "       recurrence_id" +
                                               "  FROM cal_" + tblName +
                                               " LIMIT 1");
                 stmt.step();
-                stmt.finalize();
             } catch (e) {
                 // An error happened, which means the cols don't exist
                 hasColumns = false;
+            }
+            finally {
+                if (stmt) {
+                    stmt.finalize();
+                }
             }
 
             // Only add the columns if they are not there yet (i.e added in v16)

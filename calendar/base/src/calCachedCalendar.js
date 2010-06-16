@@ -255,10 +255,11 @@ calCachedCalendar.prototype = {
         if (this.supportsChangeLog) {
             LOG("[calCachedCalendar] Doing changelog based sync for calendar " + this.uri.spec);
             var opListener = {
+                thisCalendar : this,
                 onResult: function(op, result) {
                     if (!op || !op.isPending) {
                         var status = (op ? op.status : Components.results.NS_OK);
-                        ASSERT(Components.isSuccessCode(status), "replay action failed: " + (op ? op.id : "<unknown>"));
+                        ASSERT(Components.isSuccessCode(status), "replay action failed: " + (op ? op.id : "<unknown>")+", uri=" + this.thisCalendar.uri.spec + ", result="  +result + ", op=" + op);
                         LOG("[calCachedCalendar] replayChangesOn finished.");
                         emptyQueue(status);
                     }
@@ -488,4 +489,3 @@ calCachedCalendar.prototype = {
     defineForwards(calCachedCalendar.prototype, "mCachedCalendar",
                    ["getItem", "getItems", "startBatch", "endBatch"], [], []);
 })();
-
