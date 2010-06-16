@@ -25,11 +25,11 @@ DEFAULTS = {
   'MOZILLA_REPO': 'http://hg.mozilla.org/mozilla-central/',
 }
 
-# Populate initial defaults
-for index in ['CHATZILLA_REV', 'INSPECTOR_REV', 'VENKMAN_REV', 'COMM_REV', 'MOZILLA_REV']:
-  if index not in DEFAULTS:
-    DEFAULTS[index] = DEFAULTS['REV']
-
+def get_DEFAULT_tag(index):
+  if index in DEFAULTS:
+    return DEFAULTS[index]
+  else:
+    return DEFAULTS['REV']
 
 # The set of defaults below relate to the current switching mechanism between
 # trunk or branches and back again if it is required.
@@ -334,8 +334,8 @@ o.add_option("--skip-comm", dest="skip_comm",
              action="store_true", default=False,
              help="Skip pulling the comm (Calendar/Mail/Suite) repository.")
 o.add_option("--comm-rev", dest="comm_rev",
-             default=DEFAULTS['COMM_REV'],
-             help="Revision of comm (Calendar/Mail/Suite) repository to update to. Default: \"" + DEFAULTS['COMM_REV'] + "\"")
+             default=None,
+             help="Revision of comm (Calendar/Mail/Suite) repository to update to. Default: \"" + get_DEFAULT_tag('COMM_REV') + "\"")
 
 o.add_option("-z", "--mozilla-repo", dest="mozilla_repo",
              default=None,
@@ -344,8 +344,8 @@ o.add_option("--skip-mozilla", dest="skip_mozilla",
              action="store_true", default=False,
              help="Skip pulling the Mozilla repository.")
 o.add_option("--mozilla-rev", dest="mozilla_rev",
-             default=DEFAULTS['MOZILLA_REV'],
-             help="Revision of Mozilla repository to update to. Default: \"" + DEFAULTS['MOZILLA_REV'] + "\"")
+             default=None,
+             help="Revision of Mozilla repository to update to. Default: \"" + get_DEFAULT_tag('MOZILLA_REV') + "\"")
 
 o.add_option("--inspector-repo", dest="inspector_repo",
              default=None,
@@ -354,8 +354,8 @@ o.add_option("--skip-inspector", dest="skip_inspector",
              action="store_true", default=False,
              help="Skip pulling the DOM Inspector repository.")
 o.add_option("--inspector-rev", dest="inspector_rev",
-             default=DEFAULTS['INSPECTOR_REV'],
-             help="Revision of DOM Inspector repository to update to. Default: \"" + DEFAULTS['INSPECTOR_REV'] + "\"")
+             default=None,
+             help="Revision of DOM Inspector repository to update to. Default: \"" + get_DEFAULT_tag('INSPECTOR_REV') + "\"")
 
 o.add_option("--skip-ldap", dest="skip_ldap",
              action="store_true", default=False,
@@ -368,8 +368,8 @@ o.add_option("--skip-chatzilla", dest="skip_chatzilla",
              action="store_true", default=False,
              help="Skip pulling the ChatZilla repository.")
 o.add_option("--chatzilla-rev", dest = "chatzilla_rev",
-             default = DEFAULTS['CHATZILLA_REV'],
-             help = "Revision of ChatZilla repository to update to. Default: \"" + DEFAULTS['CHATZILLA_REV'] + "\"")
+             default = None,
+             help = "Revision of ChatZilla repository to update to. Default: \"" + get_DEFAULT_tag('CHATZILLA_REV') + "\"")
 
 o.add_option("--venkman-repo", dest = "venkman_repo",
              default = None,
@@ -378,8 +378,8 @@ o.add_option("--skip-venkman", dest="skip_venkman",
              action="store_true", default=False,
              help="Skip pulling the Venkman repository.")
 o.add_option("--venkman-rev", dest = "venkman_rev",
-             default = DEFAULTS['VENKMAN_REV'],
-             help = "Revision of Venkman repository to update to. Default: \"" + DEFAULTS['VENKMAN_REV'] + "\"")
+             default = None,
+             help = "Revision of Venkman repository to update to. Default: \"" + get_DEFAULT_tag('VENKMAN_REV') + "\"")
 
 o.add_option("--hg", dest="hg", default=os.environ.get('HG', 'hg'),
              help="The location of the hg binary")
@@ -401,6 +401,10 @@ o.add_option("--retries", dest="retries", type="int", metavar="NUM",
              default=1, help="Number of times to retry a failed command before giving up. (default: 1)",
              action="callback", callback=check_retries_option)
 
+o.add_option("-r", "--rev", dest = "default_rev",
+             default = None,
+             help = "Revision of all repositories to update to, unless otherwise specified.")
+
 def fixup_comm_repo_options(options):
     """Check options.comm_repo value.
 
@@ -417,6 +421,9 @@ def fixup_comm_repo_options(options):
         print "Error: the -m option is required for the initial checkout!"
         sys.exit(2)
 
+    if options.comm_rev is None:
+        options.comm_rev = get_DEFAULT_tag("COMM_REV")
+
 def fixup_mozilla_repo_options(options):
     """Handle special case: initial checkout of Mozilla.
 
@@ -425,6 +432,9 @@ def fixup_mozilla_repo_options(options):
     if options.mozilla_repo is None and \
             not os.path.exists(os.path.join(topsrcdir, 'mozilla')):
         options.mozilla_repo = DEFAULTS['MOZILLA_REPO']
+    
+    if options.mozilla_rev is None:
+        options.mozilla_rev = get_DEFAULT_tag("MOZILLA_REV")
 
 def fixup_chatzilla_repo_options(options):
     """Handle special case: initial hg checkout of Chatzilla.
@@ -440,6 +450,9 @@ def fixup_chatzilla_repo_options(options):
     if options.chatzilla_repo is None and not os.path.exists(extensionPath):
         options.chatzilla_repo = DEFAULTS['CHATZILLA_REPO']
 
+    if options.chatzilla_rev is None:
+        options.chatzilla_rev = get_DEFAULT_tag("CHATZILLA_REV")
+
 def fixup_inspector_repo_options(options):
     """Handle special case: initial checkout of DOM Inspector.
 
@@ -451,6 +464,9 @@ def fixup_inspector_repo_options(options):
     if options.inspector_repo is None and \
             not os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions', 'inspector')):
         options.inspector_repo = DEFAULTS['INSPECTOR_REPO']
+
+    if options.inspector_rev is None:
+        options.inspector_rev = get_DEFAULT_tag("INSPECTOR_REV")
 
 def fixup_venkman_repo_options(options):
     """Handle special case: initial hg checkout of Venkman.
@@ -466,11 +482,23 @@ def fixup_venkman_repo_options(options):
     if options.venkman_repo is None and not os.path.exists(extensionPath):
         options.venkman_repo = DEFAULTS['VENKMAN_REPO']
 
+    if options.venkman_rev is None:
+        options.venkman_rev = get_DEFAULT_tag("VENKMAN_REV")
+
 try:
     (options, (action,)) = o.parse_args()
 except ValueError:
     o.print_help()
     sys.exit(2)
+
+if options.default_rev:
+  # We now wish to override all the DEFAULTS.
+  DEFAULTS['REV'] = options.default_rev
+  for index in ['CHATZILLA', 'INSPECTOR', 'VENKMAN', 'COMM', 'MOZILLA']:
+    index += "_REV"
+    # Clear the rest from file-defaults
+    if index in DEFAULTS:
+      del DEFAULTS[index]
 
 if action in ('checkout', 'co'):
     # Update Comm repository configuration.
