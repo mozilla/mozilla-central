@@ -515,6 +515,7 @@ calDavCalendar.prototype = {
 
         var addListener = {};
         var thisCalendar = this;
+        let serializedItem = this.getSerializedItem(aItem);
         addListener.onStreamComplete =
             function onPutComplete(aLoader, aContext, aStatus, aResultLength,
                                    aResult) {
@@ -544,17 +545,26 @@ calDavCalendar.prototype = {
                 if (status > 999) {
                     status = "0x" + status.toString(16);
                 }
-                cal.LOG("CalDAV: Unexpected status adding item to " +
-                        thisCalendar.name + ": " + status);
+                let responseBody="";
+                try {
+                    responseBody = cal.convertByteArray(aResult, aResultLength);
+                } catch(e) {}
 
-                thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_PUT_ERROR);
+                cal.ERROR("CalDAV: Unexpected status adding item to " +
+                          thisCalendar.name + ": " + status + "\n" +
+                          responseBody + "\n" +
+                          serializedItem);
+
+                thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_PUT_ERROR,
+                                            status,
+                                            responseBody);
             }
         };
 
         parentItem.calendar = this.superCalendar;
 
         let httpchannel = cal.prepHttpChannel(itemUri,
-                                              this.getSerializedItem(aItem),
+                                              serializedItem,
                                               "text/calendar; charset=utf-8",
                                               this);
 
@@ -647,9 +657,21 @@ calDavCalendar.prototype = {
                 if (status > 999) {
                     status = "0x " + status.toString(16);
                 }
-                cal.LOG("CalDAV: Unexpected status on modifying item on " +
-                        thisCalendar.name + ": " + status);
-                thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_PUT_ERROR);
+
+                let responseBody="";
+                try {
+                    responseBody = cal.convertByteArray(aResult, aResultLength);
+                } catch(e) {}
+
+
+                cal.ERROR("CalDAV: Unexpected status modifying item to " +
+                        thisCalendar.name + ": " + status + "\n" +
+                        responseBody + "\n" +
+                        modifiedItemICS);
+
+                thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_PUT_ERROR,
+                                            status,
+                                            responseBody);
             }
         };
 
@@ -749,14 +771,19 @@ calDavCalendar.prototype = {
                 httpchannel2.requestMethod = "HEAD";
                 cal.sendHttpRequest(cal.createStreamLoader(), httpchannel2, delListener2);
             } else {
-                let str;
+                let responseBody="";
                 try {
-                    str = cal.convertByteArray(aResult, aResultLength);
+                    responseBody = cal.convertByteArray(aResult, aResultLength);
                 } catch(e) {}
-                cal.LOG("CalDAV: Unexpected status " + status +
-                        " deleting item from " + thisCalendar.name +
-                        ". Content:\n" + str);
-                thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_REMOVE_ERROR);
+
+                cal.ERROR("CalDAV: Unexpected status deleting item from " +
+                          thisCalendar.name + ": " + status + "\n" +
+                          responseBody + "\n" +
+                          "uri: " + eventUri.spec);
+
+                thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_REMOVE_ERROR,
+                                            status,
+                                            responseBody);
             }
         };
         var delListener2 = {};
@@ -1859,7 +1886,7 @@ calDavCalendar.prototype = {
      * Called to report a certain DAV error. Strings and modification type are
      * handled here.
      */
-    reportDavError: function caldav_reportDavError(aErrNo) {
+    reportDavError: function caldav_reportDavError(aErrNo, status, extraInfo) {
         var mapError = {};
         mapError[Components.interfaces.calIErrors.DAV_NOT_DAV] = "dav_notDav";
         mapError[Components.interfaces.calIErrors.DAV_DAV_NOT_CALDAV] = "dav_davNotCaldav";
@@ -1890,7 +1917,26 @@ calDavCalendar.prototype = {
         this.notifyError(modificationError
                          ? Components.interfaces.calIErrors.MODIFICATION_FAILED
                          : Components.interfaces.calIErrors.READ_FAILED,
-                         "");
+                         this.buildDetailedMessage(status, extraInfo));
+    },
+
+    buildDetailedMessage : function caldav_buildDetailedMessage(status, extraInfo) {
+        if (!status || !extraInfo) {
+            return "";
+        }
+
+        var props = calGetStringBundle("chrome://calendar/locale/calendar.properties");
+        let statusString;
+        try {
+            statusString = props.GetStringFromName("caldavRequestStatusCodeString" + status);
+        } catch (e) {
+            // Fallback on generic string if no string is defined for the status code
+            statusString = props.GetStringFromName("caldavRequestStatusCodeStringGeneric");
+        }
+        return props.formatStringFromName("caldavRequestStatusCode", [ status ], 1) + ", " +
+               statusString + "\n\n" +
+               extraInfo;
+
     },
 
     //
