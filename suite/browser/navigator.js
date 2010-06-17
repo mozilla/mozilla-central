@@ -396,8 +396,10 @@ nsBrowserAccess.prototype = {
         return window.openDialog(getBrowserURL(), "_blank", "all,dialog=no",
                                  uri, null, referrer);
       case nsIBrowserDOMWindow.OPEN_NEWTAB:
-        var newTab = gBrowser.addTab("about:blank", null, null,
-            !Services.prefs.getBoolPref("browser.tabs.loadDivertedInBackground"));
+        var bgLoad = Services.prefs.getBoolPref("browser.tabs.loadDivertedInBackground");
+        var isRelated = referrer ? true : false;
+        var newTab = gBrowser.loadOneTab("about:blank", {inBackground: bgLoad,
+                                                         relatedToCurrent: isRelated});
         var browser = gBrowser.getBrowserForTab(newTab);
         if (aURI) {
           try {
@@ -1230,8 +1232,7 @@ function BrowserOpenWindow()
       editPage(url);
       break;
     case "3": // new tab
-      gBrowser.selectedTab = gBrowser.addTab(url, null, null, false,
-               nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP);
+      gBrowser.selectedTab = gBrowser.addTab(url, {allowThirdPartyFixup: true});
       break;
   }
 }
@@ -1515,8 +1516,7 @@ function BrowserLoadURL(aTriggeringEvent)
 
       if (openTab) {
         // Open link in new tab
-        var t = browser.addTab(url, null, null, false,
-                        nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP);
+        var t = browser.addTab(url, {allowThirdPartyFixup: true});
 
         // Focus new tab unless shift is pressed
         if (!shiftPressed) {

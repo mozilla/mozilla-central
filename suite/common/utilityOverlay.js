@@ -930,7 +930,11 @@ function openNewTabWindowOrExistingWith(aType, aURL, aDoc, aLoadInBackground)
   }
 
   // open link in new tab
-  browser.addTab(aURL, referrer, originCharset, !aLoadInBackground);
+  browser.loadOneTab(aURL, {
+    referrerURI: referrer,
+    charset: originCharset,
+    inBackground: aLoadInBackground
+  });
   if (!aLoadInBackground)
     browserWin.content.focus();
 }
@@ -1193,21 +1197,38 @@ function whereToOpenLink(e, ignoreButton, ignoreSave)
  * allowThirdPartyFixup controls whether third party services such as Google's
  * I'm Feeling Lucky are allowed to interpret this URL. This parameter may be
  * undefined, which is treated as false.
+ *
+ * Instead of aAllowThirdPartyFixup, you may also pass an object with any of
+ * these properties:
+ *   allowThirdPartyFixup (boolean)
+ *   postData             (nsIInputStream)
+ *   referrerURI          (nsIURI)
+ *   relatedToCurrent     (boolean)
  */
-function openUILinkIn(url, where, allowThirdPartyFixup)
+function openUILinkIn(url, where, aAllowThirdPartyFixup, aPostData, aReferrerURI)
 {
   if (!where || !url)
     return null;
 
+  var aRelatedToCurrent;
+  if (arguments.length == 3 &&
+      typeof arguments[2] == "object") {
+    let params = arguments[2];
+    aAllowThirdPartyFixup = params.allowThirdPartyFixup;
+    aPostData             = params.postData;
+    aReferrerURI          = params.referrerURI;
+    aRelatedToCurrent     = params.relatedToCurrent;
+  }
+
   if (where == "save") {
-    saveURL(url, null, null, true, true);
+    saveURL(url, null, null, true, true, aReferrerURI);
     return null;
   }
 
   var w = getTopWin();
 
   const nsIWebNavigation = Components.interfaces.nsIWebNavigation;
-  var flags = allowThirdPartyFixup ? nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP :
+  var flags = aAllowThirdPartyFixup ? nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP :
                                      nsIWebNavigation.LOAD_FLAGS_NONE;
 
   if (!w || where == "window") {
@@ -1219,7 +1240,7 @@ function openUILinkIn(url, where, allowThirdPartyFixup)
 
   switch (where) {
   case "current":
-    w.loadURI(url, null, flags);
+    w.loadURI(url, aPostData, flags);
     w.content.focus();
     break;
   case "tabshifted":
@@ -1227,7 +1248,12 @@ function openUILinkIn(url, where, allowThirdPartyFixup)
     // fall through
   case "tab":
     var browser = w.getBrowser();
-    var tab = browser.addTab(url, null, null, false, flags);
+    var tab = browser.addTab(url, {
+                referrerURI: aReferrerURI,
+                postData: aPostData,
+                allowThirdPartyFixup: aAllowThirdPartyFixup,
+                relatedToCurrent: aRelatedToCurrent
+              });
     if (!loadInBackground) {
       browser.selectedTab = tab;
       w.content.focus();
@@ -1275,14 +1301,14 @@ function openUILinkArrayIn(urlArray, where, allowThirdPartyFixup)
     loadInBackground = !loadInBackground;
     // fall through
   case "tab":
-    var tab = browser.addTab(urlArray[0], null, null, false, flags);
+    var tab = browser.addTab(urlArray[0], {allowThirdPartyFixup: allowThirdPartyFixup});
     if (!loadInBackground) {
       browser.selectedTab = tab;
       w.content.focus();
     }
   }
   for (var i = 1; i < urlArray.length; i++)
-    browser.addTab(urlArray[i], null, null, false, flags);
+    browser.addTab(urlArray[i], {allowThirdPartyFixup: allowThirdPartyFixup});
 
   return w;
 }

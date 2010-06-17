@@ -180,6 +180,9 @@
       <field name="mTabFilters">
         new Array()
       </field>
+      <field name="mLastRelatedIndex">
+        0
+      </field>
       <field name="mIsBusy">
         false
       </field>
@@ -948,6 +951,7 @@
             // we only want to return to the parent tab if no other
             // tabs have been opened and the user hasn't switched tabs
             this.mPreviousTab = null;
+            this.mLastRelatedIndex = 0;
 
             var newBrowser = this.mPanelContainer.selectedPanel.firstChild;
             if (this.mCurrentBrowser) {
@@ -1284,14 +1288,106 @@
         </body>
       </method>
 
+      <method name="loadOneTab">
+        <parameter name="aURI"/>
+        <parameter name="aReferrerURI"/>
+        <parameter name="aCharset"/>
+        <parameter name="aPostData"/>
+        <parameter name="aLoadInBackground"/>
+        <parameter name="aAllowThirdPartyFixup"/>
+        <body>
+          <![CDATA[
+            var params = aReferrerURI;
+            if (!params || params instanceof Components.interfaces.nsIURI) {
+              params = {
+                referrerURI: aReferrerURI,
+                charset: aCharset,
+                postData: aPostData,
+                inBackground: aLoadInBackground,
+                allowThirdPartyFixup: aAllowThirdPartyFixup,
+                relatedToCurrent: aRelatedToCurrent
+              };
+            }
+
+            params.focusNewTab = params.inBackground != null ?
+                !params.inBackground :
+                !this.mPrefs.getBoolPref("browser.tabs.loadInBackground");
+
+            return this.addTab(aURI, params);
+         ]]>
+        </body>
+      </method>
+
+      <method name="loadTabs">
+        <parameter name="aURIs"/>
+        <parameter name="aLoadInBackground"/>
+        <parameter name="aReplace"/>
+        <body><![CDATA[
+          if (!aURIs.length)
+            return;
+
+          // The tab selected after this new tab is closed (i.e. the new tab's
+          // "owner") is the next adjacent tab (i.e. not the previously viewed tab)
+          // when several urls are opened here (i.e. closing the first should select
+          // the next of many URLs opened) or if the pref to have UI links opened in
+          // the background is set (i.e. the link is not being opened modally)
+          //
+          // i.e.
+          //    Number of URLs    Load UI Links in BG       Focus Last Viewed?
+          //    == 1              false                     YES
+          //    == 1              true                      NO
+          //    > 1               false/true                NO
+          var firstTabAdded = null;
+
+          if (aReplace) {
+            try {
+              this.loadURI(aURIs[0]);
+            } catch (e) {
+              // Ignore failure in case a URI is wrong, so we can continue
+              // opening the next ones.
+            }
+          }
+          else {
+            firstTabAdded = this.addTab(aURIs[0], {
+              focusNewTab: !aLoadInBackground && aURIs.length == 1
+            });
+          }
+
+          var tabNum = this.tabContainer.selectedIndex;
+          for (let i = 1; i < aURIs.length; ++i) {
+            let tab = this.addTab(aURIs[i]);
+            if (aReplace)
+              this.moveTabTo(tab, ++tabNum);
+          }
+
+          if (!aLoadInBackground && aReplace)
+            window.content.focus();
+        ]]></body>
+      </method>
+
       <method name="addTab">
         <parameter name="aURI"/>
         <parameter name="aReferrerURI"/>
         <parameter name="aCharset"/>
+        <parameter name="aPostData"/>
         <parameter name="aFocusNewTab"/>
-        <parameter name="aFlags"/>
+        <parameter name="aAllowThirdPartyFixup"/>
         <body>
           <![CDATA[
+            var aRelatedToCurrent;
+            if (arguments.length == 2 &&
+                typeof arguments[1] == "object" &&
+                !(arguments[1] instanceof Components.interfaces.nsIURI)) {
+              ({
+                referrerURI: aReferrerURI,
+                charset: aCharset,
+                postData: aPostData,
+                focusNewTab: aFocusNewTab,
+                allowThirdPartyFixup: aAllowThirdPartyFixup,
+                relatedToCurrent: aRelatedToCurrent
+              } = arguments[1]);
+            }
+
             this._browsers = null; // invalidate cache
 
             var t = this.referenceTab.cloneNode(true);
@@ -1351,7 +1447,11 @@
               // the document successfully loads
               b.userTypedValue = aURI;
 
-              b.loadURIWithFlags(aURI, aFlags, aReferrerURI, aCharset);
+              let flags = aAllowThirdPartyFixup ?
+                          Components.interfaces.nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP :
+                          Components.interfaces.nsIWebNavigation.LOAD_FLAGS_NONE;
+
+              b.loadURIWithFlags(aURI, flags, aReferrerURI, aCharset);
             }
 
             if (aFocusNewTab) {
@@ -1367,6 +1467,19 @@
             var evt = document.createEvent("Events");
             evt.initEvent("TabOpen", true, false);
             t.dispatchEvent(evt);
+
+            // Check if we're opening a tab related to the current tab and
+            // move it to after the current tab.
+            // aReferrerURI is null or undefined if the tab is opened from
+            // an external application or bookmark, i.e. somewhere other
+            // than the current tab.
+            if ((aRelatedToCurrent || aReferrerURI) &&
+                this.mPrefs.getBoolPref("browser.tabs.insertRelatedAfterCurrent")) {
+              var lastRelatedIndex = this.mLastRelatedIndex ||
+                                     this.mTabContainer.selectedIndex;
+              this.moveTabTo(t, ++lastRelatedIndex);
+              this.mLastRelatedIndex = lastRelatedIndex;
+            }
 
             return t;
           ]]>
@@ -1517,6 +1630,7 @@
         <body>
           <![CDATA[
             this._browsers = null; // invalidate cache
+            this.mLastRelatedIndex = 0;
 
             if (aTab.localName != "tab")
               aTab = this.mCurrentTab;
@@ -1986,7 +2100,7 @@
               else if (aDragSession.sourceDocument &&
                        aDragSession.sourceDocument.defaultView.top == content) {
                 // We're adding a new tab, and we may want parent-tab tracking
-                tab = this.addTab(getShortcutOrURI(url), null, null, !bgLoad);
+                tab = this.loadOneTab(getShortcutOrURI(url), {inBackground: bgLoad});
                 if (newIndex != this.mTabs.length - 1)
                   this.moveTabTo(this.mTabs.length - 1, newIndex);
               }
@@ -2040,6 +2154,7 @@
         <body>
           <![CDATA[
             this._browsers = null; // invalidate cache
+            this.mLastRelatedIndex = 0;
 
             // for compatibility with extensions
             if (typeof(aSrcIndex) != "number")
@@ -2350,9 +2465,10 @@
         <parameter name="aFlags"/>
         <parameter name="aReferrerURI"/>
         <parameter name="aCharset"/>
+        <parameter name="aPostData"/>
         <body>
           <![CDATA[
-            return this.mCurrentBrowser.loadURIWithFlags(aURI, aFlags, aReferrerURI, aCharset);
+            return this.mCurrentBrowser.loadURIWithFlags(aURI, aFlags, aReferrerURI, aCharset, aPostData);
           ]]>
         </body>
       </method>

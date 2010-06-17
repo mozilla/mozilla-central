@@ -2192,8 +2192,7 @@ var nsOpenRemoteCommand =
       case "3": // new tab
         win.focus();
         var browser = win.getBrowser();
-        browser.selectedTab = browser.addTab(params.url, null, null, false,
-                nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP);
+        browser.selectedTab = browser.addTab(params.url, {allowThirdPartyFixup: true});
         break;
       default:
         window.content.focus();
