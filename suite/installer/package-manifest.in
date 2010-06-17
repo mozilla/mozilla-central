@@ -476,6 +476,7 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/nsPlacesAutoComplete.js
 @BINPATH@/components/nsPlacesDBFlush.js
 @BINPATH@/components/nsPlacesExpiration.js
+@BINPATH@/components/nsPrompter.js
 @BINPATH@/components/nsProxyAutoConfig.js
 @BINPATH@/components/nsSessionStartup.js
 @BINPATH@/components/nsSessionStore.js
