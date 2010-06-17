@@ -1602,7 +1602,7 @@ function InitCharsetMenuCheckMark()
   // use setTimeout workaround to delay checkmark the menu
   // when onmenucomplete is ready then use it instead of oncreate
   // see bug #78290 for the details
-  setTimeout("UpdateMailEditCharset()", 0);
+  setTimeout(UpdateMailEditCharset, 50);
 
 }
 

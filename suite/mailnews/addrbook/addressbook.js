@@ -157,7 +157,7 @@ function OnLoadAddressBook()
   OnLoadCardView();
 
   //workaround - add setTimeout to make sure dynamic overlays get loaded first
-  setTimeout('OnLoadDirTree()', 0);
+  setTimeout(OnLoadDirTree, 0);
 
   // if the pref is locked disable the menuitem New->LDAP directory
   if (gPrefs.prefIsLocked("ldap_2.disable_button_add"))

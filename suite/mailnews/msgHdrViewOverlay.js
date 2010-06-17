@@ -63,7 +63,6 @@ var gCollectOutgoing = false;
 var gCollectNewsgroup = false;
 var gCollapsedHeaderViewMode = false;
 var gCollectAddressTimer = null;
-var gCollectAddress = null;
 var gBuildAttachmentsForCurrentMsg = false;
 var gBuildAttachmentPopupForCurrentMsg = true;
 var gBuiltExpandedView = false;
@@ -310,7 +309,6 @@ var messageHeaderSink = {
       // clear out any pending collected address timers...
       if (gCollectAddressTimer)
       {
-        gCollectAddress = "";        
         clearTimeout(gCollectAddressTimer);
         gCollectAddressTimer = null;
       }
@@ -426,14 +424,12 @@ var messageHeaderSink = {
               var createCard = (gCollectIncoming && !dontCollectAddress) || (gCollectNewsgroup && dontCollectAddress);
               if (createCard || gCollectOutgoing)
               {
-                if (!abAddressCollector)
-                  abAddressCollector = Components.classes["@mozilla.org/addressbook/services/addressCollector;1"]
-                                                 .getService(Components.interfaces.nsIAbAddressCollector);
-
-                gCollectAddress = header.headerValue;
                 // collect, add card if doesn't exist and gCollectOutgoing is set, 
                 // otherwise only update existing cards, unknown preferred send format
-                gCollectAddressTimer = setTimeout('abAddressCollector.collectAddress(gCollectAddress, ' + createCard + ', Components.interfaces.nsIAbPreferMailFormat.unknown);', 2000);
+                gCollectAddressTimer = setTimeout(collectAddresses,
+                                                  2000,
+                                                  header.headerValue,
+                                                  createCard);
               }
             }
             catch(ex) {}
@@ -630,6 +626,16 @@ function EnsureSubjectValue()
     foo.headerName = 'subject';
     currentHeaderData[foo.headerName] = foo;
   }
+}
+
+// Private method used by messageHeaderSink::processHeaders.
+function collectAddresses(aAddresses, aCreateCard)
+{
+  if (!abAddressCollector)
+    abAddressCollector = Components.classes["@mozilla.org/addressbook/services/addressCollector;1"]
+                                   .getService(Components.interfaces.nsIAbAddressCollector);
+  var sendFormat = Components.interfaces.nsIAbPreferMailFormat.unknown;
+  abAddressCollector.collectAddress(aAddresses, aCreateCard, sendFormat);
 }
 
 // Public method called by the tag front end code when the tags for the selected
