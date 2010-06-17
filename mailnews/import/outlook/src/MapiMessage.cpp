@@ -186,13 +186,17 @@ void CMapiMessage::AddDate( nsCString& str)
     pVal = CMapiApi::GetMapiProperty( m_lpMsg, PR_CREATION_TIME);
   if (pVal) {
     SYSTEMTIME st;
+    // the following call returns UTC
     ::FileTimeToSystemTime( &(pVal->Value.ft), &st);
     CMapiApi::MAPIFreeBuffer( pVal);
     str.Trim( kWhitespace, PR_FALSE, PR_TRUE);
     if (!str.IsEmpty())
       str += "\x0D\x0A";
     str += "Date: ";
-    FormatDateTime( st, str);
+    // FormatDateTime would append the local time zone, so don't use it.
+    // Instead, we just append +0000 for GMT/UTC here.
+    FormatDateTime( st, str, FALSE);
+    str += " +0000";
   }
 }
 
