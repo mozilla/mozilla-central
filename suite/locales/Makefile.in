@@ -190,14 +190,6 @@ libs:: $(addsuffix .src,$(SEARCH_PLUGINS)) $(addsuffix .png,$(SEARCH_PLUGINS))
 install:: $(addsuffix .src,$(SEARCH_PLUGINS)) $(addsuffix .png,$(SEARCH_PLUGINS))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/searchplugins
 
-tests:
-ifeq (WINNT, $(OS_ARCH))
-ifneq (en-US, $(AB_CD))
-	@echo "Verifying $(AB_CD) installer variable usage"
-	@$(PERL) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/check-locales.pl $(LOCALE_SRCDIR)/installer/windows
-endif
-endif
-
 clobber-%:
 	$(RM) -rf $(DIST)/xpi-stage/locale-$*
 	$(RM) -rf $(DIST)/xpi-stage/chatzilla-$* $(DIST)/xpi-stage/chatzilla-*.$*.xpi
@@ -216,7 +208,6 @@ libs-%:
 	@$(MAKE) -C ../../mozilla/extensions/reporter/locales libs AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) -C ../../mozilla/extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref BOTH_MANIFESTS=1
-	@$(MAKE) tests AB_CD=$*
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
 MOZ_PKG_MAC_DSSTORE=$(_ABS_DIST)/branding/dsstore
