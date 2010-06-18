@@ -67,6 +67,7 @@ nsMsgSearchDBView::nsMsgSearchDBView()
   mSuppressMsgDisplay = PR_TRUE;
   m_threadsTable.Init();
   m_hdrsTable.Init();
+  m_nextThreadId = 1;
 }
 
 nsMsgSearchDBView::~nsMsgSearchDBView()
@@ -440,7 +441,7 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *
     nsMsgXFViewThread *viewThread;
     if (!thread)
     {
-      viewThread = new nsMsgXFViewThread(this);
+      viewThread = new nsMsgXFViewThread(this, m_nextThreadId++);
       if (!viewThread)
         return NS_ERROR_OUT_OF_MEMORY;
       thread = do_QueryInterface(viewThread);
@@ -1425,7 +1426,7 @@ nsMsgGroupThread *nsMsgSearchDBView::CreateGroupThread(nsIMsgDatabase * /* db */
   return new nsMsgXFGroupThread();
 }
 
-nsresult nsMsgSearchDBView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, 
+NS_IMETHODIMP nsMsgSearchDBView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, 
                                                       nsIMsgThread **pThread)
 {
   if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)

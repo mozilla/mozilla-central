@@ -954,7 +954,7 @@ NS_IMETHODIMP nsMsgGroupView::LoadMessageByViewIndex(nsMsgViewIndex aViewIndex)
     return nsMsgDBView::LoadMessageByViewIndex(aViewIndex);
 }
 
-nsresult nsMsgGroupView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread)
+NS_IMETHODIMP nsMsgGroupView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread)
 {
   if (!(m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
     return nsMsgDBView::GetThreadContainingMsgHdr(msgHdr, pThread);

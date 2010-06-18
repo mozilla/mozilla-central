@@ -246,7 +246,7 @@ interface nsMsgNavigationType
 };
 
 
-[scriptable, uuid(73b3c502-ac7b-4c3f-9265-8804f7ac11fe)]
+[scriptable, uuid(6d8e26ec-d642-4fd4-99ab-36b597167b3b)]
 interface nsIMsgDBView : nsISupports
 {
   void open(in nsIMsgFolder folder, in nsMsgViewSortTypeValue sortType, in nsMsgViewSortOrderValue sortOrder, in nsMsgViewFlagsTypeValue viewFlags, out long count);
@@ -428,6 +428,17 @@ interface nsIMsgDBView : nsISupports
    * @return         the thread object at the requested view index
    */
   nsIMsgThread getThreadContainingIndex(in nsMsgViewIndex aIndex);
+
+  /**
+   * Return the view thread corresponding to aMsgHdr. If we're a cross-folder
+   * view, then it would be the cross folder view thread, otherwise, the 
+   * db thread object.
+   *
+   * @param aMsgHdr message header we want the view thread object of.
+   *
+   * @return        view thread object for msg hdr.
+   */
+  nsIMsgThread getThreadContainingMsgHdr(in nsIMsgDBHdr aMsgHdr);
 
   // use lines or kB for size?
   readonly attribute boolean usingLines;

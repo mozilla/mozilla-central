@@ -295,7 +295,6 @@ protected:
                                  nsMsgViewIndex msgIndex = nsMsgViewIndex_None,
                                  PRInt32 *pThreadCount = nsnull,
                                  PRUint32 *pFlags = nsnull);
-  virtual nsresult GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread);
   nsMsgKey GetKeyOfFirstMsgInThread(nsMsgKey key);
   PRInt32 CountExpandedThread(nsMsgViewIndex index);
   virtual  nsresult ExpansionDelta(nsMsgViewIndex index, PRInt32 *expansionDelta);

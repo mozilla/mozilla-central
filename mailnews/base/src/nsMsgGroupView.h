@@ -71,6 +71,7 @@ public:
   NS_IMETHOD GetCellProperties(PRInt32 aRow, nsITreeColumn *aCol, nsISupportsArray *aProperties);
   NS_IMETHOD GetRowProperties(PRInt32 aRow, nsISupportsArray *aProperties);
   NS_IMETHOD GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue);
+  NS_IMETHOD GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread);
 
 protected:
   virtual void InternalClose();
@@ -78,7 +79,6 @@ protected:
   virtual nsresult HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey);
   nsresult GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAgeBucket, PRBool rcvDate = PR_FALSE); // helper function to get the age bucket for a hdr, useful when grouped by date
   nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool /*ensureListed*/);
-  virtual nsresult GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread);
   virtual PRInt32 FindLevelInThread(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startOfThread, nsMsgViewIndex viewIndex);
   nsMsgViewIndex ThreadIndexOfMsg(nsMsgKey msgKey, 
                                             nsMsgViewIndex msgIndex = nsMsgViewIndex_None,

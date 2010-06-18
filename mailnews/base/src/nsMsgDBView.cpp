@@ -4724,7 +4724,7 @@ nsresult nsMsgDBView::ExpandAll()
   return NS_OK;
 }
 
-nsresult nsMsgDBView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread)
+NS_IMETHODIMP nsMsgDBView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread)
 {
   return m_db->GetThreadContainingMsgHdr(msgHdr, pThread);
 }

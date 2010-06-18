@@ -53,7 +53,7 @@ class nsMsgXFViewThread : public nsIMsgThread
 {
 public:
 
-  nsMsgXFViewThread(nsMsgSearchDBView *view);
+  nsMsgXFViewThread(nsMsgSearchDBView *view, nsMsgKey threadId);
   virtual ~nsMsgXFViewThread();
 
   NS_DECL_NSIMSGTHREAD
@@ -73,10 +73,11 @@ public:
 
 protected:
   nsMsgSearchDBView *m_view;
-  PRUint32        m_numUnreadChildren;	
+  PRUint32        m_numUnreadChildren;
   PRUint32        m_numChildren;
   PRUint32        m_flags;
   PRUint32        m_newestMsgDate;
+  nsMsgKey        m_threadId;
   nsTArray<nsMsgKey> m_keys;
   nsCOMArray<nsIMsgFolder> m_folders;
   nsTArray<PRUint8> m_levels;
