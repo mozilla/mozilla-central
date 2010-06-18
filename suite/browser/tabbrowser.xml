@@ -631,7 +631,7 @@
                 );
               }
 
-              this.mTabBrowser.mProgressListeners.forEach(
+              this.mTabBrowser.mTabsProgressListeners.forEach(
                 function notifyRefreshAttempted(element) {
                   if (element && "onRefreshAttempted" in element) {
                     try {
