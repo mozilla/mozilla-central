@@ -67,6 +67,7 @@ NS_IMETHODIMP nsMsgXFViewThread::GetThreadKey(nsMsgKey *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = m_threadId;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgXFViewThread::GetFlags(PRUint32 *aFlags)
