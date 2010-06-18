@@ -37,19 +37,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* notice that these valuse are octal. */
-const PERM_IRWXU = 00700;  /* read, write, execute/search by owner */
-const PERM_IRUSR = 00400;  /* read permission, owner */
-const PERM_IWUSR = 00200;  /* write permission, owner */
-const PERM_IXUSR = 00100;  /* execute/search permission, owner */
-const PERM_IRWXG = 00070;  /* read, write, execute/search by group */
-const PERM_IRGRP = 00040;  /* read permission, group */
-const PERM_IWGRP = 00020;  /* write permission, group */
-const PERM_IXGRP = 00010;  /* execute/search permission, group */
-const PERM_IRWXO = 00007;  /* read, write, execute/search by others */
-const PERM_IROTH = 00004;  /* read permission, others */
-const PERM_IWOTH = 00002;  /* write permission, others */
-const PERM_IXOTH = 00001;  /* execute/search permission, others */
+/* Notice that these valuse are octal, but octal literals are deprecated. */
+const PERM_IRWXU = parseInt("00700", 8);  /* read, write, execute/search by owner */
+const PERM_IRUSR = parseInt("00400", 8);  /* read permission, owner */
+const PERM_IWUSR = parseInt("00200", 8);  /* write permission, owner */
+const PERM_IXUSR = parseInt("00100", 8);  /* execute/search permission, owner */
+const PERM_IRWXG = parseInt("00070", 8);  /* read, write, execute/search by group */
+const PERM_IRGRP = parseInt("00040", 8);  /* read permission, group */
+const PERM_IWGRP = parseInt("00020", 8);  /* write permission, group */
+const PERM_IXGRP = parseInt("00010", 8);  /* execute/search permission, group */
+const PERM_IRWXO = parseInt("00007", 8);  /* read, write, execute/search by others */
+const PERM_IROTH = parseInt("00004", 8);  /* read permission, others */
+const PERM_IWOTH = parseInt("00002", 8);  /* write permission, others */
+const PERM_IXOTH = parseInt("00001", 8);  /* execute/search permission, others */
+const PERM_RW_ALL = PERM_IRUSR | PERM_IWUSR | PERM_IRGRP | PERM_IWGRP | PERM_IROTH | PERM_IWOTH;
 
 const MODE_RDONLY   = 0x01;
 const MODE_WRONLY   = 0x02;
@@ -228,7 +229,7 @@ function LocalFile(file, mode, perms, tmp)
     const nsIScriptableInputStream = interfaces.nsIScriptableInputStream;
 
     if (typeof perms == "undefined")
-        perms = 0666 & ~futils.umask;
+        perms = PERM_RW_ALL & ~futils.umask;
     
     if (typeof file == "string")
     {

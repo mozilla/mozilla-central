@@ -53,8 +53,8 @@ const MODE_CREATE   = 0x08;
 const MODE_APPEND   = 0x10;
 const MODE_TRUNCATE = 0x20;
 
-const PERMS_FILE      = 0644;
-const PERMS_DIRECTORY = 0755;
+const PERMS_FILE      = parseInt("0644", 8);
+const PERMS_DIRECTORY = parseInt("0755", 8);
 
 const ONE_BYTE = 1;
 const ONE_KILOBYTE = 1024 * ONE_BYTE;

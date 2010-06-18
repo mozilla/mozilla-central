@@ -44,7 +44,7 @@ function run_test()
     let file = gIMAPIncomingServer.rootMsgFolder.filePath.clone();
     file.append("INBOX");
     if (!file.exists())
-      file.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0644);
+      file.create(Ci.nsIFile.NORMAL_FILE_TYPE, parseInt("0644", 8));
 
     // Now call upon our helper
     let helper = do_get_cwd().clone();

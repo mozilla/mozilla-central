@@ -137,6 +137,6 @@ catch (e) {
   throw Cr.NS_ERROR_FAILURE;
 }
 // Always ensure the profile directory exists before we start the tests
-gProfileDir.create(Ci.nsIFile.DIRECTORY_TYPE, 0700);
+gProfileDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt("0700", 8));
 
 } // gMailDirService_js__
