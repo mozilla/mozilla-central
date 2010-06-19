@@ -879,7 +879,7 @@
       <rdf:Seq>
         <rdf:li><rdf:Description ID="using-priv-help-password-manage" nc:name="Remembering User Names and Passwords" nc:link="using_priv_help.xhtml#using_password_manager_to_remember_user_names_and_passwords"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-password-auto" nc:name="Entering Names and Passwords Automatically" nc:link="using_priv_help.xhtml#entering_user_names_and_passwords_automatically"/> </rdf:li>
-        <rdf:li><rdf:Description ID="using-priv-help-password-onoff" nc:name="Turning On and Off" nc:link="using_priv_help.xhtml#turning_password_manager_on_and_off"/> </rdf:li>
+        <rdf:li><rdf:Description ID="using-priv-help-password-onoff" nc:name="Turning Password Manager On and Off" nc:link="using_priv_help.xhtml#turning_password_manager_on_and_off"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-password-view" nc:name="Managing Stored Passwords" nc:link="using_priv_help.xhtml#viewing_and_managing_stored_passwords"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-password-settings" nc:name="Password Settings" nc:link="passwords_help.xhtml#password_settings"/> </rdf:li>
       </rdf:Seq>
