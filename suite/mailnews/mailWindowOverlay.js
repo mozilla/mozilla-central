@@ -1178,23 +1178,22 @@ function BatchMessageMover()
 
 BatchMessageMover.prototype =
 {
-  ArchiveSelectedMessages: function()
+  archiveMessages: function(aMsgHdrs)
   {
-    let selectedMsgUris = GetSelectedMessages();
-    if (!selectedMsgUris.length)
+    if (!aMsgHdrs.length)
       return;
 
     // We need to get the index of the message to select after archiving
     // completes but reset the global variable to prevent the DBview from
     // updating the selection; we'll do it manually at the end of
-    // ProcessNextBatch.
+    // processNextBatch.
     SetNextMessageAfterDelete();
     this.messageToSelectAfterWereDone = gNextMessageViewIndexAfterDelete;
     gNextMessageViewIndexAfterDelete = -2;
 
-    for (let i = 0; i < selectedMsgUris.length; ++i)
+    for (let i = 0; i < aMsgHdrs.length; ++i)
     {
-      let msgHdr = messenger.msgHdrFromURI(selectedMsgUris[i]);
+      let msgHdr = aMsgHdrs[i];
       let msgDate = new Date(msgHdr.date / 1000);  // convert date to JS date object
       let msgYear = msgDate.getFullYear().toString();
       let dstFolderName = msgDate.toLocaleFormat("%Y-%m");
@@ -1204,10 +1203,10 @@ BatchMessageMover.prototype =
       this._batches[copyBatchKey].push(msgHdr);
     }
     // Now we launch the code iterating over all message copies, one in turn.
-    this.ProcessNextBatch();
+    this.processNextBatch();
   },
 
-  ProcessNextBatch: function()
+  processNextBatch: function()
   {
     for (let key in this._batches)
     {
@@ -1290,7 +1289,7 @@ BatchMessageMover.prototype =
   {
     // This will always be a create folder url, afaik.
     if (Components.isSuccessCode(aExitCode))
-      this.ProcessNextBatch();
+      this.processNextBatch();
     else
       this._batches = null;
   },
@@ -1316,7 +1315,7 @@ BatchMessageMover.prototype =
       // remove batch we just finished and continue
       delete this._batches[this._currentKey];
       this._currentKey = null;
-      this.ProcessNextBatch();
+      this.processNextBatch();
     }
     else
     {
@@ -1333,10 +1332,10 @@ BatchMessageMover.prototype =
   }
 }
 
-function MsgArchiveSelectedMessages(event)
+function MsgArchiveSelectedMessages(aEvent)
 {
   let batchMover = new BatchMessageMover();
-  batchMover.ArchiveSelectedMessages();
+  batchMover.archiveMessages(gFolderDisplay.selectedMessages);
 }
 
 
