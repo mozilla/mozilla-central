@@ -69,16 +69,6 @@
                   name="mailnews.start_page.url" type="wstring"/>
       <preference id="mail.biff.on_new_window"
                   name="mail.biff.on_new_window" inverted="true" type="bool"/>
-      <preference id="mail.toolbars.showbutton.file"
-                  name="mail.toolbars.showbutton.file" type="bool"/>
-      <preference id="mail.toolbars.showbutton.next"
-                  name="mail.toolbars.showbutton.next" type="bool"/>
-      <preference id="mail.toolbars.showbutton.print"
-                  name="mail.toolbars.showbutton.print" type="bool"/>
-      <preference id="mail.toolbars.showbutton.stop"
-                  name="mail.toolbars.showbutton.stop" type="bool"/>
-      <preference id="mail.toolbars.showbutton.junk"
-                  name="mail.toolbars.showbutton.junk" type="bool"/>
       <preference id="system.windows.lock_ui.defaultMailClient" readonly="true"
                   name="system.windows.lock_ui.defaultMailClient" type="bool"/>
       <preference id="system.windows.lock_ui.defaultNewsClient" readonly="true"

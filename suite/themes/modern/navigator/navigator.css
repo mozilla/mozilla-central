@@ -417,48 +417,67 @@ toolbar[iconsize=small][mode="icons"] #print-button > .toolbarbutton-menubutton-
   background-image: url("chrome://communicator/skin/toolbar/prtb-bg-noline.gif");
 }
 
-/* ::::: navbar-inner - the grooved area around the urlbar ::::: */
+/* ::::: the grooved area around the urlbar and associated buttons ::::: */
 
-#nav-bar-inner {
+.nav-bar-class {
   -moz-box-align: center;
   margin-top: 7px;
   margin-bottom: 3px;
-  -moz-margin-start: 5px;
-  -moz-margin-end: 0px;
-  border: 2px solid;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
   -moz-border-top-colors: #A2AFBD #EBF4FF;
   -moz-border-right-colors: #D1D9E0 #A2AFBD;
   -moz-border-bottom-colors: #CFD7DE #939EAA;
   -moz-border-left-colors: #9FABB9 #D2DAE1;
-  -moz-border-radius: 3px;
-  padding: 0px 3px;
+  padding: 0px;
   min-width: 0px;
 }
 
-toolbar[mode="text"] #nav-bar-inner {
-  margin-top: 2px;
-  margin-bottom: 2px;
+.nav-bar-first,
+toolbarpaletteitem > .nav-bar-class {
   -moz-margin-start: 5px;
-  -moz-margin-end: 0px;
-  border: 0px;
+  -moz-border-start: 2px solid;
+  -moz-padding-start: 3px;
 }
 
-toolbar[mode="text"] > #nav-bar-inner,
-toolbar[iconsize="small"] > #nav-bar-inner,
-toolbar[mode="text"] > toolbarpaletteitem > #nav-bar-inner,
-toolbar[iconsize="small"] > toolbarpaletteitem > #nav-bar-inner {
+.nav-bar-last,
+toolbarpaletteitem > .nav-bar-class {
+  -moz-margin-end: 0px;
+  -moz-border-end: 2px solid;
+  -moz-padding-end: 3px;
+}
+
+.nav-bar-last:-moz-locale-dir(rtl),
+.nav-bar-first:-moz-locale-dir(ltr),
+toolbarpaletteitem > .nav-bar-class:-moz-locale-dir(rtl),
+toolbarpaletteitem > .nav-bar-class:-moz-locale-dir(ltr) {
+  -moz-border-radius-bottomleft: 3px;
+  -moz-border-radius-topleft: 3px;
+}
+
+.nav-bar-last:-moz-locale-dir(ltr),
+.nav-bar-first:-moz-locale-dir(rtl),
+toolbarpaletteitem > .nav-bar-class:-moz-locale-dir(ltr),
+toolbarpaletteitem > .nav-bar-class:-moz-locale-dir(rtl) {
+  -moz-border-radius-bottomright: 3px;
+  -moz-border-radius-topright: 3px;
+}
+
+toolbar[mode="text"] > .nav-bar-class,
+toolbar[iconsize="small"] > .nav-bar-class,
+toolbar[mode="text"] > toolbarpaletteitem > .nav-bar-class,
+toolbar[iconsize="small"] > toolbarpaletteitem > .nav-bar-class {
   margin: 0 !important;
+  padding: 0 !important;
   border: none !important;
 }
 
-toolbar[mode="text"] #nav-bar-inner > #search-button {
+toolbar[mode="text"] #search-button {
   -moz-margin-end: 0px;
 }
 
-toolbar[mode="text"] #nav-bar-inner > #search-button > .button-box
-  > .button-icon,
-toolbar[mode="icons"] #nav-bar-inner > #search-button > .button-box
-  > .button-text {
+toolbar[mode="text"] #search-button > .button-box > .button-icon,
+toolbar[mode="icons"] #search-button > .button-box > .button-text {
   display: none;
 }
 

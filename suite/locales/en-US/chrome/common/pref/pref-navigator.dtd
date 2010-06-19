@@ -26,14 +26,6 @@
 <!ENTITY useDefault.label               "Restore Default">
 <!ENTITY useDefault.accesskey           "R">
 
-<!ENTITY toolbarIntro.label             "Select the buttons you want to see in the toolbars:">
-
-<!ENTITY navToolbarIntro.label          "Navigation Toolbar">
-<!ENTITY goButton.label                 "Go">
-<!ENTITY goButton.accesskey             "o">
-<!ENTITY searchButton.label             "Search">
-<!ENTITY searchButton.accesskey         "S">
-
 <!ENTITY defaultBrowserGroup.label      "Default Browser">
 <!ENTITY defaultBrowserButton.label     "Set Default Browser">
 <!ENTITY defaultBrowserButton.accesskey "D">

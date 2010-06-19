@@ -286,7 +286,7 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   
 /* ::::: nav-bar-inner ::::: */
   
-#nav-bar-inner {
+.nav-bar-class {
   -moz-box-align: center;
   min-width: 0px;
 }
@@ -398,7 +398,6 @@ panel[nomatch="true"] > .autocomplete-search-box {
 }
 
 #search-button {
-  font-weight: bold;
   list-style-image: url("chrome://communicator/skin/icons/search.png");
   -moz-image-region: rect(0 17px 17px 0);
 }

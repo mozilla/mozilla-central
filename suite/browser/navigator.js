@@ -85,40 +85,6 @@ const gAddonListener = {
   onOperationCancelled: ReloadThemes
 };
 
-// Pref listener constants
-const gButtonPrefListener =
-{
-  domain: "browser.toolbars.showbutton",
-  init: function()
-  {
-    var array = Services.prefs.getChildList(this.domain, {});
-    array.forEach(
-      function(item) {
-        if (/\.(bookmarks|home|print)$/.test(item))
-          Services.prefs.clearUserPref(item);
-        else
-          this.updateButton(item);
-      }, this
-    )
-  },
-  observe: function(subject, topic, prefName)
-  {
-    // verify that we're changing a button pref
-    if (topic != "nsPref:changed")
-      return;
-
-    this.updateButton(prefName);
-  },
-  updateButton: function(prefName)
-  {
-    var buttonName = prefName.substr(this.domain.length+1);
-    var buttonId = buttonName + "-button";
-    var button = document.getElementById(buttonId);
-    if (button)
-      button.hidden = !Services.prefs.getBoolPref(prefName);
-  }
-};
-
 const gTabStripPrefListener =
 {
   domain: "browser.tabs.autoHide",
@@ -490,9 +456,7 @@ function Startup()
   }
 
   // Do all UI building here:
-
-  // Ensure button visibility matches prefs
-  gButtonPrefListener.init();
+  UpdateNavBar();
 
   // set home button tooltip text
   updateHomeButtonTooltip();
@@ -506,7 +470,6 @@ function Startup()
         .getInterface(Components.interfaces.nsIXULWindow)
         .XULBrowserWindow = window.XULBrowserWindow;
 
-  addPrefListener(gButtonPrefListener); 
   addPrefListener(gTabStripPrefListener);
   addPrefListener(gHomepagePrefListener);
   addPrefListener(gStatusBarPopupIconPrefListener);
@@ -681,6 +644,22 @@ function Startup()
   setTimeout(InitSessionStoreCallback, 0);
 }
 
+function UpdateNavBar()
+{
+  var elements = getNavToolbox().getElementsByClassName("nav-bar-class");
+  for (var i = 0; i < elements.length; i++) {
+    var element = elements[i];
+    element.classList.remove("nav-bar-last");
+    element.classList.remove("nav-bar-first");
+    var next = element.nextSibling;
+    if (!next || !next.classList.contains("nav-bar-class"))
+      element.classList.add("nav-bar-last");
+    var previous = element.previousSibling;
+    if (!previous || !previous.classList.contains("nav-bar-class"))
+      element.classList.add("nav-bar-first");
+  }
+}
+
 function LoadBookmarksCallback()
 {
   // loads the services
@@ -773,7 +752,6 @@ function Shutdown()
   BrowserFlushBookmarks();
 
   // unregister us as a pref listener
-  removePrefListener(gButtonPrefListener);
   removePrefListener(gTabStripPrefListener);
   removePrefListener(gHomepagePrefListener);
   removePrefListener(gStatusBarPopupIconPrefListener);
@@ -2586,15 +2564,14 @@ function BrowserToolboxCustomizeDone(aToolboxChanged)
 {
   toolboxCustomizeDone("main-menubar", getNavToolbox(), aToolboxChanged);
 
+  UpdateNavBar();
+
   // Update the urlbar
   var value = gBrowser.userTypedValue;
   if (value == null)
     URLBarSetURI();
   else
     gURLBar.value = value;
-
-  gButtonPrefListener.updateButton("browser.toolbars.showbutton.go");
-  gButtonPrefListener.updateButton("browser.toolbars.showbutton.search");
 
   // fix up the personal toolbar folder
   var bt = document.getElementById("bookmarks-ptf");

@@ -80,12 +80,6 @@
       <preference id="pref.browser.homepage.disable_button.default_page"
                   name="pref.browser.homepage.disable_button.default_page"
                   type="bool"/>
-      <preference id="browser.toolbars.showbutton.go"
-                  name="browser.toolbars.showbutton.go"
-                  type="bool"/>
-      <preference id="browser.toolbars.showbutton.search"
-                  name="browser.toolbars.showbutton.search"
-                  type="bool"/>
     </preferences>
 
     <hbox id="pref-nav-platform-extensions">
@@ -190,27 +184,5 @@
                 preference="pref.browser.homepage.disable_button.default_page"/>
       </vbox>
     </groupbox>
-
-    <!-- toolbar buttons customization -->
-    <description value="&toolbarIntro.label;"/>
-    <hbox id="prefShowButtons" equalsize="true">
-      <groupbox id="prefShowButtonsBox" flex="1" orient="horizontal">
-        <caption label="&navToolbarIntro.label;"/>
-        <vbox flex="1">
-          <checkbox id="browserSearchButton"
-                    label="&searchButton.label;"
-                    accesskey="&searchButton.accesskey;"
-                    preference="browser.toolbars.showbutton.search"/>
-        </vbox>
-        <vbox flex="1">
-          <checkbox id="browserGoButton"
-            label="&goButton.label;"
-            accesskey="&goButton.accesskey;"
-            preference="browser.toolbars.showbutton.go"/>
-        </vbox>
-      </groupbox>
-      <vbox id="prefShowButtonBox"/>
-    </hbox>
-
   </prefpane>
 </overlay>

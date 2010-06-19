@@ -303,8 +303,6 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("browser.sessionhistory.max_total_viewers",Int),
   MAKESAMETYPEPREFTRANSFORM("browser.startup.page",                    Int),
   MAKESAMETYPEPREFTRANSFORM("browser.throbber.url",                    String),
-  MAKESAMETYPEPREFTRANSFORM("browser.toolbars.showbutton.go",          Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.toolbars.showbutton.search",      Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.triple_click_selects_paragraph",  Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.underline_anchors",               Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.visited_color",                   String),

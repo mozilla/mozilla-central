@@ -168,7 +168,7 @@
              fullscreentoolbar="true" customizable="true"
              toolbarname="&navbarCmd.label;" accesskey="&navbarCmd.accesskey;"
              togglemenuitem="cmd_viewnavbar"
-             defaultset="back-button,forward-button,reload-button,stop-button,nav-bar-inner,print-button,throbber-box,window-controls"
+             defaultset="back-button,forward-button,reload-button,stop-button,nav-bar-inner,search-button-container,print-button,throbber-box,window-controls"
              context="toolbar-context-menu">
 
       <hbox id="window-controls" hidden="true" fullscreencontrol="true">
@@ -257,9 +257,11 @@
                      ondragexit="nsDragAndDrop.dragExit(event, homeButtonObserver); event.stopPropagation()"
                      ondragover="nsDragAndDrop.dragOver(event, homeButtonObserver); event.stopPropagation()"/>
 
-      <toolbaritem id="nav-bar-inner" align="center" flex="1" persist="width"
-                 class="chromeclass-location"
-                 title="&locationBar.title;">
+      <toolbaritem id="nav-bar-inner"
+                   flex="1"
+                   persist="width"
+                   class="chromeclass-location nav-bar-class"
+                   title="&locationBar.title;">
         <textbox id="urlbar" class="chromeclass-location uri-element" flex="1"
                  type="autocomplete" autocompletesearch="history file"
                  timeout="50" maxrows="6"
@@ -300,22 +302,33 @@
                      onpopupshowing="createUBHistoryMenu(event.target);"
                      oncommand="executeUrlBarHistoryCommand(event.target);"/>
         </textbox>
+      </toolbaritem>
 
-        <button id="go-button" class="button-toolbar chromeclass-location"
-                label="&goButton.label;" hidden="true"
+      <toolbaritem id="go-button-container"
+                   class="nav-bar-class"
+                   title="&goButton.label;">
+        <button id="go-button"
+                class="button-toolbar chromeclass-location"
+                label="&goButton.label;"
+                tooltiptext="&goButton.tooltip;"
+                default="true"
                 oncommand="addToUrlbarHistory(gURLBar.value); BrowserLoadURL(event);"
                 ondragover="nsDragAndDrop.dragOver(event, goButtonObserver);"
                 ondragdrop="nsDragAndDrop.drop(event, goButtonObserver);"
-                ondragexit="nsDragAndDrop.dragExit(event, goButtonObserver);"
-                tooltiptext="&goButton.tooltip;" default="true"/>
+                ondragexit="nsDragAndDrop.dragExit(event, goButtonObserver);"/>
+      </toolbaritem>
 
-        <button id="search-button" class="button-toolbar chromeclass-location"
+      <toolbaritem id="search-button-container"
+                   class="nav-bar-class"
+                   title="&searchButton.label;">
+        <button id="search-button"
+                class="button-toolbar chromeclass-location"
                 label="&searchButton.label;"
+                tooltiptext="&searchButton.tooltip;"
                 oncommand="OpenSearch('internet', QualifySearchTerm());"
                 ondragover="nsDragAndDrop.dragOver(event, searchButtonObserver);"
                 ondragdrop="nsDragAndDrop.drop(event, searchButtonObserver);"
-                ondragexit="nsDragAndDrop.dragExit(event, searchButtonObserver);"
-                tooltiptext="&searchButton.tooltip;"/>
+                ondragexit="nsDragAndDrop.dragExit(event, searchButtonObserver);"/>
       </toolbaritem>
 
       <toolbarbutton id="print-button" type="menu-button"
