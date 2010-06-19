@@ -38,7 +38,6 @@
 
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
-#include "nsEscape.h"
 #include "nsSmtpServer.h"
 #include "nsNetUtil.h"
 #include "nsIAuthPrompt.h"
@@ -512,8 +511,7 @@ nsSmtpServer::ForgetPassword()
 
   if (NS_SUCCEEDED(rv) && !hostname.IsEmpty()) {
     nsCString escapedHostname;
-    *((char **)getter_Copies(escapedHostname)) =
-      nsEscape(hostname.get(), url_Path);
+    MsgEscapeString(hostname, nsINetUtil::ESCAPE_URL_PATH, escapedHostname);
     // not all servers have a hostname
     serverUri.Append(escapedHostname);
   }
@@ -574,8 +572,7 @@ nsSmtpServer::GetServerURI(nsACString &aResult)
 
     if (NS_SUCCEEDED(rv) && !hostname.IsEmpty()) {
         nsCString escapedHostname;
-        *((char **)getter_Copies(escapedHostname)) =
-            nsEscape(hostname.get(), url_Path);
+        MsgEscapeString(hostname, nsINetUtil::ESCAPE_URL_PATH, escapedHostname);
         // not all servers have a hostname
         uri.Append(escapedHostname);
     }

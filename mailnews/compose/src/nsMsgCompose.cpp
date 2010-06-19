@@ -71,7 +71,6 @@
 #include "nsIPlaintextEditor.h"
 #include "nsIHTMLEditor.h"
 #include "nsIEditorMailSupport.h"
-#include "nsEscape.h"
 #include "plstr.h"
 #include "prmem.h"
 #include "nsIDocShell.h"
@@ -1136,7 +1135,7 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
             }
             if (!disableFallback)
             {
-              CopyUTF16toUTF8(msgBody.get(), outCString);
+              CopyUTF16toUTF8(msgBody, outCString);
               m_compFields->SetCharacterSet("UTF-8");
             }
           }
@@ -1206,14 +1205,11 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
       {
           nsCString vCardUrl;
           vCardUrl = "data:text/x-vcard;charset=utf-8;base64,";
-          char *unescapedData = ToNewCString(escapedVCard);
-          if (!unescapedData)
-              return NS_ERROR_OUT_OF_MEMORY;
-          nsUnescape(unescapedData);
-          char *result = PL_Base64Encode(unescapedData, 0, nsnull);
+          nsCString unescapedData;
+          MsgUnescapeString(escapedVCard, 0, unescapedData);
+          char *result = PL_Base64Encode(unescapedData.get(), 0, nsnull);
           vCardUrl += result;
           PR_Free(result);
-          PR_Free(unescapedData);
 
           nsCOMPtr<nsIMsgAttachment> attachment = do_CreateInstance(NS_MSGATTACHMENT_CONTRACTID, &rv);
           if (NS_SUCCEEDED(rv) && attachment)
@@ -1226,7 +1222,7 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
               (void)identity->GetEmail(userid);
               PRInt32 index = userid.FindChar('@');
               if (index != kNotFound)
-                  userid.Truncate(index);
+                  userid.SetLength(index);
 
               if (userid.IsEmpty())
                   attachment->SetName(NS_LITERAL_STRING("vcard.vcf"));
@@ -1234,7 +1230,7 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
               {
                   // Replace any dot with underscore to stop vCards
                   // generating false positives with some heuristic scanners
-                  userid.ReplaceChar('.', '_');
+                  MsgReplaceChar(userid, '.', '_');
                   userid.AppendLiteral(".vcf");
                   attachment->SetName(NS_ConvertASCIItoUTF16(userid));
               }
@@ -2011,8 +2007,8 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
                     nsCString curIdentityEmail2;
                     lookupIdentity2->GetEmail(curIdentityEmail2);
-                    if (FindInReadable(curIdentityEmail2, recipientsEmailAddresses) ||
-                        FindInReadable(curIdentityEmail2, ccListEmailAddresses))
+                    if (recipientsEmailAddresses.Find(curIdentityEmail2) != kNotFound ||
+                        ccListEmailAddresses.Find(curIdentityEmail2) != kNotFound)
                     {
                       // An identity among the recipients -> not reply-to-self.
                       isReplyToOwnMsg = PR_FALSE;
@@ -2072,8 +2068,10 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
                 sanitizedSubj.Assign(subject);
 
               // change all '.' to '_'  see bug #271211
-              sanitizedSubj.ReplaceChar('.', '_');
-              attachment->SetName(addExtension ? sanitizedSubj + NS_LITERAL_STRING(".eml") : sanitizedSubj);
+              MsgReplaceChar(sanitizedSubj, ".", '_');
+              if (addExtension)
+                sanitizedSubj.AppendLiteral(".eml");
+              attachment->SetName(sanitizedSubj);
               attachment->SetUrl(nsDependentCString(uri));
               m_compFields->AddAttachment(attachment);
             }
@@ -2207,8 +2205,10 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
         {
           nsCAutoString buf;
           mCiteReference.AssignLiteral("mid:");
-          AppendASCIItoUTF16(NS_EscapeURL(myGetter, esc_FileBaseName | esc_Forced, buf),
-                             mCiteReference);
+          MsgEscapeURL(myGetter,
+                       nsINetUtil::ESCAPE_URL_FILE_BASENAME | nsINetUtil::ESCAPE_URL_FORCED,
+                       buf);
+          mCiteReference.Append(NS_ConvertASCIItoUTF16(buf));
         }
       }
 
@@ -2437,12 +2437,8 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
   {
     // If we had a selection in the original message to quote, we can add
     // it now that we are done ignoring the original body of the message
-    nsCOMPtr<nsIInputStream> stream;
-    rv = NS_NewCStringInputStream(getter_AddRefs(stream), mHtmlToQuote);
-    NS_ENSURE_SUCCESS(rv, rv);
-
     mHeadersOnly = PR_FALSE;
-    rv = OnDataAvailable(request, ctxt, stream, 0, mHtmlToQuote.Length());
+    rv = AppendToMsgBody(mHtmlToQuote);
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
@@ -2558,7 +2554,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         if (!listPost.IsEmpty())
         {
           PRInt32 startPos = listPost.Find("<mailto:");
-          PRInt32 endPos = listPost.Find(">", PR_FALSE, startPos);
+          PRInt32 endPos = listPost.FindChar('>', startPos);
           // Extract the e-mail address.
           if (endPos > startPos)
           {
@@ -2768,10 +2764,10 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
     if (!composeHTML)
     {
       // Downsampling. The charset should only consist of ascii.
-      char *target_charset = ToNewCString(aCharset);
-      PRBool formatflowed = UseFormatFlowed(target_charset);
+
+      PRBool formatflowed =
+        UseFormatFlowed(NS_LossyConvertUTF16toASCII(aCharset).get());
       ConvertToPlainText(formatflowed);
-      Recycle(target_charset);
     }
 
     compose->ProcessSignature(mIdentity, PR_TRUE, &mSignature);
@@ -2814,6 +2810,19 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnDataAvailable(nsIRequest *request,
   newBuf[numWritten] = '\0';
   if (NS_SUCCEEDED(rv) && numWritten > 0)
   {
+    rv = AppendToMsgBody(nsDependentCString(newBuf, numWritten));
+  }
+
+  PR_FREEIF(newBuf);
+  return rv;
+}
+
+NS_IMETHODIMP QuotingOutputStreamListener::AppendToMsgBody(const nsCString &inStr)
+{
+  nsresult rv = NS_OK;
+
+  if (!inStr.IsEmpty())
+  {
     // Create unicode decoder.
     if (!mUnicodeDecoder)
     {
@@ -2829,8 +2838,8 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnDataAvailable(nsIRequest *request,
     if (NS_SUCCEEDED(rv))
     {
       PRInt32 unicharLength;
-      PRInt32 inputLength = (PRInt32) numWritten;
-      rv = mUnicodeDecoder->GetMaxLength(newBuf, numWritten, &unicharLength);
+      PRInt32 inputLength = inStr.Length();
+      rv = mUnicodeDecoder->GetMaxLength(inStr.get(), inStr.Length(), &unicharLength);
       if (NS_SUCCEEDED(rv))
       {
         // Use this local buffer if possible.
@@ -2850,7 +2859,6 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnDataAvailable(nsIRequest *request,
             if (!mUnicodeConversionBuffer)
             {
               mUnicodeBufferCharacterLength = 0;
-              PR_Free(newBuf);
               return NS_ERROR_OUT_OF_MEMORY;
             }
             mUnicodeBufferCharacterLength = unicharLength;
@@ -2860,7 +2868,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnDataAvailable(nsIRequest *request,
 
         PRInt32 consumedInputLength = 0;
         PRInt32 originalInputLength = inputLength;
-        char *inputBuffer = newBuf;
+        const char *inputBuffer = inStr.get();
         PRInt32 convertedOutputLength = 0;
         PRInt32 outputBufferLength = unicharLength;
         PRUnichar *originalOutputBuffer = unichars;
@@ -2898,7 +2906,6 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnDataAvailable(nsIRequest *request,
     }
   }
 
-  PR_FREEIF(newBuf);
   return rv;
 }
 
@@ -3761,7 +3768,7 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBo
           if (str)
           {
             nsCAutoString srcStr(str+1);
-            PRInt32 err;
+            nsresult err;
             nsMsgKey messageID = srcStr.ToInteger(&err, 10);
             if (messageID != nsMsgKey_None)
             {
@@ -3917,7 +3924,7 @@ nsMsgCompose::ConvertTextToHTML(nsILocalFile *aSigFile, nsString &aSigData)
   // Ok, once we are here, we need to escape the data to make sure that
   // we don't do HTML stuff with plain text sigs.
   //
-  PRUnichar *escaped = nsEscapeHTML2(origBuf.get());
+  PRUnichar *escaped = MsgEscapeHTML2(origBuf.get(), origBuf.Length());
   if (escaped)
   {
     aSigData.Append(escaped);
@@ -3977,7 +3984,7 @@ nsMsgCompose::LoadDataFromFile(nsILocalFile *file, nsString &sigData,
   PRBool removeSigCharset = !sigEncoding.IsEmpty() && m_composeHTML;
 
   if (sigEncoding.IsEmpty()) {
-    if (aAllowUTF8 && IsUTF8(nsDependentCString(readBuf))) {
+    if (aAllowUTF8 && MsgIsUTF8(nsDependentCString(readBuf))) {
       sigEncoding.Assign("UTF-8");
     }
     else if (sigEncoding.IsEmpty() && aAllowUTF16 &&
@@ -4003,19 +4010,11 @@ nsMsgCompose::LoadDataFromFile(nsILocalFile *file, nsString &sigData,
   //remove sig meta charset to allow user charset override during composition
   if (removeSigCharset)
   {
-    nsAutoString metaCharset(NS_LITERAL_STRING("charset="));
-    AppendASCIItoUTF16(sigEncoding, metaCharset);
-    // When we move to frozen linkage, this should become:
-    // PRInt32 offset = sigData.Find(metaCharset, CaseInsensitiveCompare) ;
-    //  if (offset >= 0)
-    //    sigData.Cut(offset, metaCharset.Length());
-    nsAString::const_iterator realstart, start, end;
-    sigData.BeginReading(start);
-    sigData.EndReading(end);
-    realstart = start;
-    if (FindInReadable(metaCharset, start, end,
-                       nsCaseInsensitiveStringComparator()))
-      sigData.Cut(Distance(realstart, start), Distance(start, end));
+    nsCAutoString metaCharset("charset=");
+    metaCharset.Append(sigEncoding);
+    PRInt32 pos = sigData.Find(metaCharset.BeginReading(), PR_TRUE);
+    if (pos != kNotFound)
+      sigData.Cut(pos, metaCharset.Length());
   }
 
   return NS_OK;
@@ -4196,7 +4195,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
     {
       if (!htmlSig)
       {
-        PRUnichar* escaped = nsEscapeHTML2(prefSigText.get());
+        PRUnichar* escaped = MsgEscapeHTML2(prefSigText.get(), prefSigText.Length());
         if (escaped)
         {
           sigData.Append(escaped);
@@ -4229,7 +4228,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
       if (htmlSig)
         sigOutput.AppendLiteral(htmlsigopen);
       else
-        sigOutput.AppendASCII(preopen);
+        sigOutput.Append(NS_ConvertASCIItoUTF16(preopen));
     }
     else
       sigOutput.AppendLiteral(CRLF);
@@ -4332,7 +4331,7 @@ nsMsgCompose::BuildBodyMessageAndSignature()
   // replace '\n' with <br> so that the line breaks won't be lost by html.
   // if mailtourl, do the same.
   if (m_composeHTML && (mType == nsIMsgCompType::New || mType == nsIMsgCompType::MailToUrl))
-    body.ReplaceSubstring(NS_LITERAL_STRING("\n").get(), NS_LITERAL_STRING("<br>").get());
+    MsgReplaceSubstring(body, NS_LITERAL_STRING("\n"), NS_LITERAL_STRING("<br>"));
 
   // Restore flowed text wrapping for Drafts/Templates.
   // Look for unquoted lines - if we have an unquoted line
@@ -4433,9 +4432,7 @@ nsresult nsMsgCompose::AttachmentPrettyName(const nsACString & scheme, const cha
 {
   nsresult rv;
 
-  nsCAutoString utf8Scheme;
-
-  if (StringHead(scheme, 5).LowerCaseEqualsLiteral("file:"))
+  if (MsgLowerCaseEqualsLiteral(StringHead(scheme, 5), "file:"))
   {
     nsCOMPtr<nsIFile> file;
     rv = NS_GetFileFromURLSpec(scheme,
@@ -4462,7 +4459,7 @@ nsresult nsMsgCompose::AttachmentPrettyName(const nsACString & scheme, const cha
   } else {
     _retval.Assign(scheme);
   }
-  if (StringHead(scheme, 5).LowerCaseEqualsLiteral("http:"))
+  if (MsgLowerCaseEqualsLiteral(StringHead(scheme, 5), "http:"))
     _retval.Cut(0, 7);
 
   return NS_OK;
@@ -4883,7 +4880,7 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
     PRUint32 nbrRecipients = recipientsList[i].Length();
     if (nbrRecipients == 0)
       continue;
-    recipientsStr.SetLength(0);
+    recipientsStr.Truncate();
 
     for (j = 0; j < nbrRecipients; ++j)
     {
@@ -4897,15 +4894,11 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
         PRInt32 atPos = recipient.mEmail.FindChar('@');
         if (atPos >= 0)
         {
-          recipient.mEmail.Right(domain, recipient.mEmail.Length() - atPos - 1);
-          // when we move to frozen linkage this should be:
-          // if (plaintextDomains.Find(domain, CaseInsensitiveCompare) >= 0)
-          if (FindInReadable(domain, plaintextDomains, nsCaseInsensitiveStringComparator()))
+          domain = Substring(recipient.mEmail, atPos + 1);
+          if (CaseInsensitiveFindInReadable(domain, plaintextDomains))
             recipient.mPreferFormat = nsIAbPreferMailFormat::plaintext;
           else
-            // when we move to frozen linkage this should be:
-            // if (htmlDomains.Find(domain, CaseInsensitiveCompare) >= 0)
-            if (FindInReadable(domain, htmlDomains, nsCaseInsensitiveStringComparator()))
+            if (CaseInsensitiveFindInReadable(domain, htmlDomains))
               recipient.mPreferFormat = nsIAbPreferMailFormat::html;
         }
       }
@@ -5129,8 +5122,8 @@ nsresult nsMsgCompose::TagConvertible(nsIDOMNode *node,  PRInt32 *_retval)
         {
           nsAutoString classValue;
           if (NS_SUCCEEDED(pItem->GetNodeValue(classValue))
-              && (classValue.EqualsIgnoreCase("moz-txt", 7) ||
-                  classValue.EqualsIgnoreCase("\"moz-txt", 8)))
+              && (StringBeginsWith(classValue, NS_LITERAL_STRING("moz-txt"), nsCaseInsensitiveStringComparator()) ||
+                  StringBeginsWith(classValue, NS_LITERAL_STRING("\"moz-txt"), nsCaseInsensitiveStringComparator())))
           {
             *_retval = nsIMsgCompConvertible::Plain;
             return rv;  // Inconsistent :-(

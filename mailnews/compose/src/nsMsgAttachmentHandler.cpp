@@ -47,14 +47,12 @@
 #include "nsURLFetcher.h"
 #include "nsMimeTypes.h"
 #include "nsMsgCompCID.h"
-#include "nsReadableUtils.h"
 #include "nsIMsgMessageService.h"
 #include "nsMsgUtils.h"
 #include "nsMsgPrompts.h"
 #include "nsTextFormatter.h"
 #include "nsIPrompt.h"
 #include "nsITextToSubURI.h"
-#include "nsEscape.h"
 #include "nsIURL.h"
 #include "nsIFileURL.h"
 #include "nsNetCID.h"
@@ -104,7 +102,8 @@ nsresult nsSimpleZipper::AddToZip(nsIZipWriter *aZipWriter,
   // find out the path this file/dir should have in the zip
   nsCString leafName;
   aFile->GetNativeLeafName(leafName);
-  nsCString currentPath(aPath + leafName);
+  nsCString currentPath(aPath);
+  currentPath += leafName;
     
   PRBool isDirectory;
   aFile->IsDirectory(&isDirectory);
@@ -592,7 +591,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
     if (NS_SUCCEEDED(rv) && messageService)
     {
       nsCAutoString uri(m_uri);
-      uri += (uri.FindChar('?') == kNotFound) ? "?" : "&";
+      uri += (uri.FindChar('?') == kNotFound) ? '?' : '&';
       uri.Append("fetchCompleteMessage=true");
       nsCOMPtr<nsIStreamListener> strListener;
       fetcher->QueryInterface(NS_GET_IID(nsIStreamListener), getter_AddRefs(strListener));
@@ -711,10 +710,11 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
     // Unescape the path (i.e. un-URLify it) before making a FSSpec
     nsCAutoString filePath;
     filePath.Adopt(nsMsgGetLocalFileFromURL(sourceURISpec.get()));
-    nsUnescape(filePath.BeginWriting());
+    nsCAutoString unescapedFilePath;
+    MsgUnescapeString(filePath, 0, unescapedFilePath);
 
     nsCOMPtr<nsILocalFile> sourceFile;
-    NS_NewNativeLocalFile(filePath, PR_TRUE, getter_AddRefs(sourceFile));
+    NS_NewNativeLocalFile(unescapedFilePath, PR_TRUE, getter_AddRefs(sourceFile));
     if (!sourceFile)
       return NS_ERROR_FAILURE;
       
@@ -726,7 +726,7 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
     if (isPackage)
       rv = ConvertToZipFile(macFile);
     else
-      rv = ConvertToAppleEncoding(sourceURISpec, filePath, macFile);
+      rv = ConvertToAppleEncoding(sourceURISpec, unescapedFilePath, macFile);
     
     NS_ENSURE_SUCCESS(rv, rv);
   }
@@ -1019,13 +1019,14 @@ nsMsgAttachmentHandler::LoadDataFromFile(nsILocalFile *file, nsString &sigData, 
   inputFile->Read(readBuf, readSize, &bytesRead);
   inputFile->Close();
 
+  nsDependentCString cstringReadBuf(readBuf, bytesRead);
   if (charsetConversion)
   {
-    if (NS_FAILED(ConvertToUnicode(m_charset, nsDependentCString(readBuf), sigData)))
-      CopyASCIItoUTF16(readBuf, sigData);
+    if (NS_FAILED(ConvertToUnicode(m_charset, cstringReadBuf, sigData)))
+      CopyASCIItoUTF16(cstringReadBuf, sigData);
   }
   else
-    CopyASCIItoUTF16(readBuf, sigData);
+    CopyASCIItoUTF16(cstringReadBuf, sigData);
 
   PR_FREEIF(readBuf);
   return NS_OK;
@@ -1126,12 +1127,12 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     else
     if (NS_SUCCEEDED(mURL->GetSpec(turl)) && !turl.IsEmpty())
       {
-        nsCAutoString unescapeUrl(turl);
-        nsUnescape(unescapeUrl.BeginWriting());
-        if (unescapeUrl.IsEmpty())
+        nsCAutoString unescapedUrl;
+        MsgUnescapeString(turl, 0, unescapedUrl);
+        if (unescapedUrl.IsEmpty())
           printfString = nsTextFormatter::smprintf(msg.get(), turl.get());
         else
-          printfString = nsTextFormatter::smprintf(msg.get(), unescapeUrl.get());
+          printfString = nsTextFormatter::smprintf(msg.get(), unescapedUrl.get());
       }
     else
       printfString = nsTextFormatter::smprintf(msg.get(), "?");

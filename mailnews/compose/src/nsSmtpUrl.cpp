@@ -41,13 +41,14 @@
 #include "nsIURI.h"
 #include "nsNetCID.h"
 #include "nsSmtpUrl.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
-#include "nsEscape.h"
+#include "nsStringGlue.h"
 #include "nsMsgUtils.h"
 #include "nsIMimeConverter.h"
 #include "nsMsgMimeCID.h"
 #include "nsISupportsObsolete.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsCRT.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 // mailto url definition
@@ -108,7 +109,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
         *eq = 0;
       }
 
-      switch (toupper(*token))
+      switch (NS_ToUpper(*token))
       {
         /* DO NOT support attachment= in mailto urls. This poses a security fire hole!!! 
                           case 'A':
@@ -438,15 +439,13 @@ nsresult nsMailtoUrl::ParseUrl()
   if (startOfSearchPart >= 0)
   {
     // now parse out the search field...
-    nsCString searchPart;
-    PRUint32 numExtraChars = escapedPath.Right(searchPart,
-                                               escapedPath.Length() -
-                                               startOfSearchPart);
+    nsCAutoString searchPart(Substring(escapedPath, startOfSearchPart));
+
     if (!searchPart.IsEmpty())
     {
       // now we need to strip off the search part from the
       // to part....
-      escapedPath.Cut(startOfSearchPart, numExtraChars);
+      escapedPath.SetLength(startOfSearchPart);
       MsgUnescapeString(escapedPath, 0, m_toPart);
       ParseMailtoUrl(searchPart.BeginWriting());
     }
@@ -697,9 +696,7 @@ NS_IMETHODIMP
 nsSmtpUrl::SetRecipients(const char * aRecipientsList)
 {
   NS_ENSURE_ARG(aRecipientsList);
-  m_toPart = aRecipientsList;
-  if (!m_toPart.IsEmpty())
-    nsUnescape(m_toPart.BeginWriting());
+  MsgUnescapeString(nsDependentCString(aRecipientsList), 0, m_toPart);
   return NS_OK;
 }
 

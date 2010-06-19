@@ -38,7 +38,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h"    // precompiled header...
-#include "nsReadableUtils.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIIOService.h"

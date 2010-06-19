@@ -40,7 +40,6 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "prmem.h"
-#include "nsEscape.h"
 #include "nsMsgSend.h"
 #include "nsIIOService.h"
 #include "nsIHttpProtocolHandler.h"
@@ -49,7 +48,6 @@
 #include "nsIMsgHeaderParser.h"
 #include "nsINntpService.h"
 #include "nsMimeTypes.h"
-#include "nsReadableUtils.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsIDocumentEncoder.h"    // for editor output flags
 #include "nsIURI.h"
@@ -59,6 +57,11 @@
 #include "nsComposeStrings.h"
 #include "nsIMsgCompUtils.h"
 #include "nsIMsgMdnGenerator.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMemory.h"
+#include "nsCRTGlue.h"
+#include <ctype.h>
 
 NS_IMPL_ISUPPORTS1(nsMsgCompUtils, nsIMsgCompUtils)
 
@@ -636,15 +639,11 @@ mime_generate_headers (nsMsgCompFields *fields,
             rv = composeStringBundle->GetStringFromID(NS_MSG_UNDISCLOSED_RECIPIENTS, getter_Copies(undisclosedRecipients));
             if (NS_SUCCEEDED(rv) && !undisclosedRecipients.IsEmpty())
             {
-              char * cstr = ToNewCString(undisclosedRecipients);
-              if (cstr) {
                 PUSH_STRING("To: ");
-                PUSH_STRING(cstr);
+              PUSH_STRING(NS_LossyConvertUTF16toASCII(undisclosedRecipients).get());
                 PUSH_STRING(":;");
                 PUSH_NEWLINE ();
               }
-              PR_Free(cstr);
-            }
           }
         }
       }
@@ -806,7 +805,7 @@ mime_generate_attachment_headers (const char *type,
   {
     // first try main body's charset to encode the file name,
     // then try local file system charset if fails
-    CopyUTF8toUTF16(real_name, realName);
+    CopyUTF8toUTF16(nsDependentCString(real_name), realName);
     if (bodyCharset && *bodyCharset &&
         nsMsgI18Ncheck_data_in_charset_range(bodyCharset, realName.get()))
       charset.Assign(bodyCharset);
@@ -1175,26 +1174,26 @@ RFC2231ParmFolding(const char *parmName, const nsCString& charset,
   NS_ENSURE_TRUE(parmName && *parmName && !parmValue.IsEmpty(), nsnull);
 
   PRBool needEscape;
-  char *dupParm = nsnull;
+  nsCString dupParm;
 
-  if (!IsASCII(parmValue) || is7bitCharset(charset)) {
+  if (!NS_IsAscii(parmValue.get()) || is7bitCharset(charset)) {
     needEscape = PR_TRUE;
     nsCAutoString nativeParmValue;
     ConvertFromUnicode(charset.get(), parmValue, nativeParmValue);
-    dupParm = nsEscape(nativeParmValue.get(), url_All);
+    MsgEscapeString(nativeParmValue, nsINetUtil::ESCAPE_ALL, dupParm);
   }
   else {
     needEscape = PR_FALSE;
-    dupParm =
+    dupParm.Adopt(
       msg_make_filename_qtext(NS_LossyConvertUTF16toASCII(parmValue).get(),
-                              PR_TRUE);
+                              PR_TRUE));
   }
 
-  if (!dupParm)
+  if (dupParm.IsEmpty())
     return nsnull;
 
   PRInt32 parmNameLen = PL_strlen(parmName);
-  PRInt32 parmValueLen = PL_strlen(dupParm);
+  PRInt32 parmValueLen = dupParm.Length();
 
   if (needEscape)
     parmNameLen += 5;   // *=__'__'___ or *[0]*=__'__'__ or *[1]*=___
@@ -1221,17 +1220,16 @@ RFC2231ParmFolding(const char *parmName, const nsCString& charset,
     }
     else
       NS_MsgSACat(&foldedParm, "=\"");
-    NS_MsgSACat(&foldedParm, dupParm);
+    NS_MsgSACat(&foldedParm, dupParm.get());
     if (!needEscape)
       NS_MsgSACat(&foldedParm, "\"");
-    goto done;
   }
   else
   {
     int curLineLen = 0;
     int counter = 0;
     char digits[32];
-    char *start = dupParm;
+    char *start = dupParm.BeginWriting();
     char *end = NULL;
     char tmp = 0;
 
@@ -1312,11 +1310,6 @@ RFC2231ParmFolding(const char *parmName, const nsCString& charset,
     }
   }
 
-done:
-  if (needEscape)
-    nsMemory::Free(dupParm);
-  else
-    PR_Free(dupParm);
   return foldedParm;
 }
 
@@ -1650,7 +1643,10 @@ msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnichar *propose
   if (s3) *s3 = 0;
 
   /* Now lose the %XX crap. */
-  nsUnescape (attachment->m_real_name);
+  nsCString unescaped_real_name;
+  MsgUnescapeString(nsDependentCString(attachment->m_real_name), 0, unescaped_real_name);
+  NS_Free(attachment->m_real_name);
+  attachment->m_real_name = ToNewCString(unescaped_real_name);
   }
 
   /* Now a special case for attaching uuencoded files...
@@ -1723,7 +1719,8 @@ nsMsgNewURL(nsIURI** aInstancePtrResult, const char * aSpec)
     if (PL_strstr(aSpec, "://") == nsnull && strncmp(aSpec, "data:", 5))
     {
       //XXXjag Temporary fix for bug 139362 until the real problem(bug 70083) get fixed
-      nsCAutoString uri(NS_LITERAL_CSTRING("http://") + nsDependentCString(aSpec));
+      nsCAutoString uri(NS_LITERAL_CSTRING("http://"));
+      uri.Append(aSpec);
       rv = pNetService->NewURI(uri, nsnull, nsnull, aInstancePtrResult);
     }
     else
@@ -1928,7 +1925,7 @@ GetFolderURIFromUserPrefs(nsMsgDeliverMode aMode, nsIMsgIdentity* identity, nsCS
       // check if uri is unescaped, and if so, escape it and reset the pef.
       if (uri.FindChar(' ') != kNotFound)
       {
-        uri.ReplaceSubstring(" ", "%20");
+        MsgReplaceSubstring(uri, " ", "%20");
         prefs->SetCharPref("mail.default_sendlater_uri", uri.get());
       }
     }

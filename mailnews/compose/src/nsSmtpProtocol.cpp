@@ -57,7 +57,7 @@
 #include "nsMsgCompCID.h"
 #include "nsIPrompt.h"
 #include "nsIAuthPrompt.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsTextFormatter.h"
 #include "nsIMsgIdentity.h"
 #include "nsISmtpServer.h"
@@ -69,7 +69,6 @@
 #include "plbase64.h"
 #include "prnetdb.h"
 #include "prsystem.h"
-#include "nsEscape.h"
 #include "nsMsgUtils.h"
 #include "nsIPipe.h"
 #include "nsNetUtil.h"
@@ -393,7 +392,8 @@ void nsSmtpProtocol::AppendHelloArgument(nsACString& aResult)
                   else
                       aResult.AppendLiteral("[");
 
-                  aResult.Append(nsDependentCString(ipAddressString) + NS_LITERAL_CSTRING("]"));
+                  aResult.Append(ipAddressString);
+                  aResult.Append(']');
               }
           }
       }
@@ -746,21 +746,21 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
         nsCAutoString responseLine;
         responseLine.Assign(Substring(m_responseText, startPos,
             (endPos >= 0 ? endPos : responseLength) - startPos));
-        responseLine.CompressWhitespace();
 
-        if (responseLine.Compare("STARTTLS", PR_TRUE) == 0)
+        MsgCompressWhitespace(responseLine);
+        if (responseLine.Equals(NS_LITERAL_CSTRING("STARTTLS"), nsCaseInsensitiveCStringComparator()))
         {
             SetFlag(SMTP_EHLO_STARTTLS_ENABLED);
         }
-        else if (responseLine.Compare("DSN", PR_TRUE) == 0)
+        else if (responseLine.Equals(NS_LITERAL_CSTRING("DSN"), nsCaseInsensitiveCStringComparator()))
         {
             SetFlag(SMTP_EHLO_DSN_ENABLED);
         }
-        else if (responseLine.Compare("AUTH", PR_TRUE, 4) == 0)
+        else if (StringBeginsWith(responseLine, NS_LITERAL_CSTRING("AUTH"), nsCaseInsensitiveCStringComparator()))
         {
             SetFlag(SMTP_AUTH);
 
-            if (responseLine.Find("GSSAPI", PR_TRUE, 5) >= 0)
+            if (responseLine.Find(NS_LITERAL_CSTRING("GSSAPI"), CaseInsensitiveCompare) >= 0)
                 SetFlag(SMTP_AUTH_GSSAPI_ENABLED);
 
             nsresult rv;
@@ -768,26 +768,26 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
             // this checks if psm is installed...
             if (NS_SUCCEEDED(rv))
             {
-                if (responseLine.Find("CRAM-MD5", PR_TRUE, 5) >= 0)
+                if (responseLine.Find(NS_LITERAL_CSTRING("CRAM-MD5"), CaseInsensitiveCompare) >= 0)
                     SetFlag(SMTP_AUTH_CRAM_MD5_ENABLED);
 
-                if (responseLine.Find("NTLM", PR_TRUE, 5) >= 0)
+                if (responseLine.Find(NS_LITERAL_CSTRING("NTLM"), CaseInsensitiveCompare) >= 0)
                     SetFlag(SMTP_AUTH_NTLM_ENABLED);
 
-                if (responseLine.Find("MSN", PR_TRUE, 5) >= 0)
+                if (responseLine.Find(NS_LITERAL_CSTRING("MSN"), CaseInsensitiveCompare) >= 0)
                     SetFlag(SMTP_AUTH_MSN_ENABLED);
             }
 
-            if (responseLine.Find("PLAIN", PR_TRUE, 5) >= 0)
+            if (responseLine.Find(NS_LITERAL_CSTRING("PLAIN"), CaseInsensitiveCompare) >= 0)
                 SetFlag(SMTP_AUTH_PLAIN_ENABLED);
 
-            if (responseLine.Find("LOGIN", PR_TRUE, 5) >= 0)
+            if (responseLine.Find(NS_LITERAL_CSTRING("LOGIN"), CaseInsensitiveCompare) >= 0)
                 SetFlag(SMTP_AUTH_LOGIN_ENABLED);
 
-            if (responseLine.Find("EXTERNAL", PR_TRUE, 5) >= 0)
+            if (responseLine.Find(NS_LITERAL_CSTRING("EXTERNAL"), CaseInsensitiveCompare) >= 0)
                 SetFlag(SMTP_AUTH_EXTERNAL_ENABLED);
         }
-        else if (responseLine.Compare("SIZE", PR_TRUE, 4) == 0)
+        else if (StringBeginsWith(responseLine, NS_LITERAL_CSTRING("SIZE"), nsCaseInsensitiveCStringComparator()))
         {
             SetFlag(SMTP_EHLO_SIZE_ENABLED);
 

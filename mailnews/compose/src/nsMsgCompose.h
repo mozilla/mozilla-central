@@ -184,6 +184,7 @@ public:
     NS_IMETHOD  SetComposeObj(nsIMsgCompose *obj);
 	  NS_IMETHOD  ConvertToPlainText(PRBool formatflowed = PR_FALSE);
     NS_IMETHOD InsertToCompose(nsIEditor *aEditor, PRBool aHTMLEditor);
+    NS_IMETHOD AppendToMsgBody(const nsCString &inStr);
 
 private:
     nsWeakPtr                 mWeakComposeObj;

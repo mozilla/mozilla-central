@@ -48,7 +48,6 @@
 #include "nsINntpService.h"  // for actually posting the message...
 #include "nsIMsgMailSession.h"
 #include "nsIMsgIdentity.h"
-#include "nsEscape.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIMsgMailNewsUrl.h"
@@ -63,7 +62,6 @@
 #include "nsNetUtil.h"
 #include "nsIFileURL.h"
 #include "nsMsgCopy.h"
-#include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsMsgPrompts.h"
 #include "nsIDOMHTMLBodyElement.h"
@@ -108,7 +106,8 @@
 #include "nsIMsgHdr.h"
 #include "nsIMsgFolder.h"
 #include "nsComposeStrings.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
+#include "nsMsgUtils.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -411,7 +410,7 @@ nsresult nsMsgComposeAndSend::GetNotificationCallbacks(nsIInterfaceRequestor** a
     msgWindow->GetNotificationCallbacks(getter_AddRefs(notificationCallbacks));
     if (notificationCallbacks) {
       nsCOMPtr<nsIInterfaceRequestor> aggregrateIR;
-      NS_NewInterfaceRequestorAggregation(notificationCallbacks, ir, getter_AddRefs(aggregrateIR));
+      MsgNewInterfaceRequestorAggregation(notificationCallbacks, ir, getter_AddRefs(aggregrateIR));
       ir = aggregrateIR;
     }
     if (ir) {
@@ -1428,7 +1427,7 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
         // got from the GetSrc() call....
         NS_ConvertUTF8toUTF16 workURL(spec);
 
-        PRInt32 loc = workURL.RFind("/");
+        PRInt32 loc = workURL.RFindChar('/');
         if (loc >= 0)
           workURL.SetLength(loc+1);
         workURL.Append(tUrl);
@@ -1445,11 +1444,11 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
 
     rv = image->GetName(tName);
     NS_ENSURE_SUCCESS(rv, rv);
-    attachment->real_name = ToNewCString(tName); // XXX i18n
 
-    image->GetLongDesc(tDesc);
+    attachment->real_name = ToNewCString(NS_LossyConvertUTF16toASCII(tName)); // XXX i18n
+    rv = image->GetLongDesc(tDesc);
     NS_ENSURE_SUCCESS(rv, rv);
-    attachment->description = ToNewCString(tDesc); // XXX i18n
+    attachment->description = ToNewCString(NS_LossyConvertUTF16toASCII(tDesc)); // XXX i18n
 
   }
   else if (link)        // Is this a link?
@@ -1483,7 +1482,7 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
 
     rv = anchor->GetName(tName);
     NS_ENSURE_SUCCESS(rv, rv);
-    attachment->real_name = ToNewCString(tName);
+    attachment->real_name = ToNewCString(NS_LossyConvertUTF16toASCII(tName));
   }
   else
   {
@@ -1734,7 +1733,7 @@ nsMsgComposeAndSend::GetBodyFromEditor()
           }
           if (!disableFallback)
           {
-            CopyUTF16toUTF8(bodyText, outCString);
+            CopyUTF16toUTF8(nsDependentString(bodyText), outCString);
             mCompFields->SetCharacterSet("UTF-8");
           }
         }
@@ -1764,7 +1763,7 @@ nsMsgComposeAndSend::GetBodyFromEditor()
       }
     }
 
-    Recycle(bodyText);    //Don't need it anymore
+    NS_Free(bodyText);    //Don't need it anymore
   }
   else
     return NS_ERROR_FAILURE;
@@ -2053,7 +2052,7 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
       }
 
       if (!domURL.IsEmpty())
-        domSaveArray[j].url = ToNewCString(domURL);
+        domSaveArray[j].url = ToNewCString(NS_LossyConvertUTF16toASCII(domURL));
     }
   }
 
@@ -2300,7 +2299,8 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
                     // rtf and vcs files may look like text to sniffers,
                     // but they're not human readable.
                     if (type.IsEmpty() && !fileExt.IsEmpty() &&
-                         (fileExt.LowerCaseEqualsLiteral("rtf") || fileExt.LowerCaseEqualsLiteral("vcs")))
+                         (MsgLowerCaseEqualsLiteral(fileExt, "rtf") ||
+                          MsgLowerCaseEqualsLiteral(fileExt, "vcs")))
                       m_attachments[newLoc].m_type = PL_strdup(APPLICATION_OCTET_STREAM);
                     }
                   }
@@ -2939,7 +2939,7 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
       {
         nsCString uri;
         GetFolderURIFromUserPrefs(nsMsgDeliverNow, mUserIdentity, uri);
-        mCompFields->SetFcc(uri.LowerCaseEqualsLiteral("nocopy://") ? "" : uri.get());
+        mCompFields->SetFcc(MsgLowerCaseEqualsLiteral(uri, "nocopy://") ? "" : uri.get());
       }
     }
   }
@@ -3070,8 +3070,8 @@ nsMsgComposeAndSend::AddDefaultCustomHeaders() {
         len = end - start;
       }
       // grab the name of the current header pref
-      nsCAutoString headerName(NS_LITERAL_CSTRING("header.") +
-                               Substring(headersList, start, len));
+      nsCAutoString headerName("header.");
+      headerName.Append(Substring(headersList, start, len));
       start = end + 1;
 
       nsCString headerVal;
@@ -3111,8 +3111,8 @@ nsMsgComposeAndSend::AddMailFollowupToHeader() {
   nsDependentCString customHeaders(mCompFields->GetOtherRandomHeaders());
   // ...and look for MFT-Header.  Stop here if MFT is already set.
   NS_NAMED_LITERAL_CSTRING(mftHeaderLabel, "Mail-Followup-To: ");
-  if ((StringHead(customHeaders, mftHeaderLabel.Length()) == mftHeaderLabel) ||
-      (customHeaders.Find(NS_LITERAL_CSTRING("\r\n") + mftHeaderLabel) != -1))
+  if (StringBeginsWith(customHeaders, mftHeaderLabel) ||
+      customHeaders.Find("\r\nMail-Followup-To: ") != -1)
     return NS_OK;
 
   // Get list of subscribed mailing lists
@@ -3188,8 +3188,10 @@ nsMsgComposeAndSend::AddMailReplyToHeader() {
   nsDependentCString customHeaders(mCompFields->GetOtherRandomHeaders());
   // ...and look for MRT-Header.  Stop here if MRT is already set.
   NS_NAMED_LITERAL_CSTRING(mrtHeaderLabel, "Mail-Reply-To: ");
+  nsCAutoString headers_match = nsCAutoString("\r\n");
+  headers_match.Append(mrtHeaderLabel);
   if ((StringHead(customHeaders, mrtHeaderLabel.Length()) == mrtHeaderLabel) ||
-      (customHeaders.Find(NS_LITERAL_CSTRING("\r\n") + mrtHeaderLabel) != -1))
+      (customHeaders.Find(headers_match) != -1))
     return NS_OK;
 
   // Get list of reply-to mangling mailing lists
@@ -3697,11 +3699,13 @@ nsMsgComposeAndSend::DeliverFileAsMail()
 
   strip_nonprintable(buf);
 
-  convbuf = nsEscape(buf, url_Path);
-  if (convbuf)
+  nsCString escaped_buf;
+  MsgEscapeString(nsDependentCString(buf), nsINetUtil::ESCAPE_URL_PATH, escaped_buf);
+
+  if (!escaped_buf.IsEmpty())
   {
     NS_Free(buf);
-    buf = convbuf;
+    buf = ToNewCString(escaped_buf);
   }
 
   nsCOMPtr<nsISmtpService> smtpService(do_GetService(NS_SMTPSERVICE_CONTRACTID, &rv));

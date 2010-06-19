@@ -57,7 +57,6 @@
 #include "nsISupportsPrimitives.h"
 #include "nsIWindowWatcher.h"
 #include "nsIDOMWindow.h"
-#include "nsEscape.h"
 #include "nsIContentViewer.h"
 #include "nsIMsgWindow.h"
 #include "nsIDocShell.h"
@@ -105,6 +104,7 @@
 
 #include "nsICommandLine.h"
 #include "nsIAppStartup.h"
+#include "nsMsgUtils.h"
 
 #ifdef XP_WIN32
 #include <windows.h>
@@ -494,9 +494,8 @@ nsMsgComposeService::GetOrigWindowSelection(MSG_ComposeType type, nsIMsgWindow *
 
       if (NS_SUCCEEDED(rv))
       {
-        const nsPromiseFlatString& tString = PromiseFlatString(selPlain);
-        const PRUint32 length = tString.Length();
-        const PRUnichar* unicodeStr = tString.get();
+        const PRUint32 length = selPlain.Length();
+        const PRUnichar* unicodeStr = selPlain.get();
         PRInt32 endWordPos = lineBreaker->Next(unicodeStr, length, 0);
         
         // If there's not even one word, then there's not multiple words
@@ -514,7 +513,7 @@ nsMsgComposeService::GetOrigWindowSelection(MSG_ComposeType type, nsIMsgWindow *
 
     if (!charsOnlyIf.IsEmpty())
     {
-      if (selPlain.FindCharInSet(NS_ConvertUTF8toUTF16(charsOnlyIf)) < 0)
+      if (MsgFindCharInSet(selPlain, charsOnlyIf.get()) < 0)
         return NS_ERROR_ABORT;
     }
   }
@@ -561,7 +560,7 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, nsIMsgDB
     || type == nsIMsgCompType::ReplyWithTemplate || type == nsIMsgCompType::Redirect)
   {
     nsCAutoString uriToOpen(originalMsgURI);
-    uriToOpen += (uriToOpen.FindChar('?') == kNotFound) ? "?" : "&";
+    uriToOpen += (uriToOpen.FindChar('?') == kNotFound) ? '?' : '&';
     uriToOpen.Append("fetchCompleteMessage=true");
     if (type == nsIMsgCompType::Redirect)
       uriToOpen.Append("&redirect=true");
@@ -608,16 +607,17 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, nsIMsgDB
           if (slashpos > 0 )
           {
             // uri is "[s]news://host[:port]/group"
-            newsURI.Left(host, slashpos);
-            newsURI.Right(group, newsURI.Length() - slashpos - 1);
+            host = StringHead(newsURI, slashpos);
+            group = Substring(newsURI, slashpos + 1);
+
           }
           else
             group = originalMsgURI;
 
           nsCAutoString unescapedName;
-          NS_UnescapeURL(group,
-                         esc_FileBaseName|esc_Forced|esc_AlwaysCopy,
-                         unescapedName);
+          MsgUnescapeString(group,
+                            nsINetUtil::ESCAPE_URL_FILE_BASENAME | nsINetUtil::ESCAPE_URL_FORCED,
+                            unescapedName);
           pMsgCompFields->SetNewsgroups(NS_ConvertUTF8toUTF16(unescapedName));
           pMsgCompFields->SetNewshost(host.get());
         }
@@ -690,7 +690,7 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
           if (!escaped)
             return NS_ERROR_OUT_OF_MEMORY;
 
-          CopyUTF8toUTF16(escaped, sanitizedBody);
+          CopyUTF8toUTF16(nsDependentCString(escaped), sanitizedBody);
           nsMemory::Free(escaped);
         }
         else
@@ -1192,7 +1192,7 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
   // we need to convert the template uri, which is of the form
   // <folder uri>?messageId=<messageId>&subject=<subject>
   nsCOMPtr <nsIMsgMessageService> msgService;
-  rv = GetMessageServiceFromURI(nsDependentCString(templateMsgHdrUri), getter_AddRefs(msgService));
+  rv = GetMessageServiceFromURI(templateMsgHdrUri, getter_AddRefs(msgService));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISupports> listenerSupports;
@@ -1602,7 +1602,7 @@ nsMsgComposeService::RunMessageThroughMimeDraft(
 
   nsCOMPtr<nsIURI> url;
   PRBool fileUrl = StringBeginsWith(aMsgURI, NS_LITERAL_CSTRING("file:"));
-  if (fileUrl || nsDependentCString(aMsgURI).Find("&type=application/x-message-display") >= 0)
+  if (fileUrl || PromiseFlatCString(aMsgURI).Find("&type=application/x-message-display") >= 0)
     rv = NS_NewURI(getter_AddRefs(url), aMsgURI);
   else
     rv = messageService->GetUrlForUri(PromiseFlatCString(aMsgURI).get(), getter_AddRefs(url), aMsgWindow);

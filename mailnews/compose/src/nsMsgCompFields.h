@@ -44,6 +44,7 @@
 #include "nsIAbCard.h"
 #include "nsTArray.h"
 #include "nsCOMArray.h"
+#include "nsCOMPtr.h"
 
 struct nsMsgRecipient
 {

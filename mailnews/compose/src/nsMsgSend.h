@@ -138,6 +138,7 @@
 //
 // Necessary includes
 //
+#include "nsCOMPtr.h"
 #include "nsIMsgSend.h"
 #include "nsIStringBundle.h"
 #include "msgCore.h"

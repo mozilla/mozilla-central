@@ -42,6 +42,8 @@
 #include "nsMsgCompCID.h"
 #include "nsComposeStrings.h"
 #include "nsIStringBundle.h"
+#include "nsServiceManagerUtils.h"
+#include "nsMsgUtils.h"
 
 nsresult
 nsMsgGetMessageByID(PRInt32 aMsgID, nsString& aResult)

@@ -49,6 +49,7 @@
 #include "nsMsgMimeCID.h"
 #include "nsIMimeConverter.h"
 #include "nsArrayEnumerator.h"
+#include "nsMemory.h"
 
 /* the following macro actually implement addref, release and query interface for our component. */
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgCompFields, nsIMsgCompFields)

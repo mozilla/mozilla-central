@@ -39,6 +39,7 @@
 #include "nsIMsgComposeParams.h"
 #include "nsStringGlue.h"
 #include "nsIMsgHdr.h"
+#include "nsCOMPtr.h"
 class nsMsgComposeParams : public nsIMsgComposeParams
 {
 public: 
