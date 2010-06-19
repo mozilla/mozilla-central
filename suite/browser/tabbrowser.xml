@@ -728,6 +728,16 @@
         </body>
       </method>
 
+      <method name="getIcon">
+        <parameter name="aTab"/>
+        <body>
+          <![CDATA[
+            let browser = aTab ? this.getBrowserForTab(aTab) : this.selectedBrowser;
+            return browser.mIconURL;
+          ]]>
+        </body>
+      </method>
+
       <method name="buildFavIconString">
         <parameter name="aURI"/>
         <body>
