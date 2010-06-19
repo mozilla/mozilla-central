@@ -504,7 +504,7 @@ nsresult nsAbDirectoryQuery::matchCardCondition(nsIAbCard* card,
             *matchFound = CaseInsensitiveFindInReadable(matchValue, value);
             break;
         case nsIAbBooleanConditionTypes::DoesNotContain:
-            *matchFound = CaseInsensitiveFindInReadable(matchValue, value);
+            *matchFound = !CaseInsensitiveFindInReadable(matchValue, value);
             break;
         case nsIAbBooleanConditionTypes::Is:
             *matchFound = value.Equals(matchValue, nsCaseInsensitiveStringComparator());
