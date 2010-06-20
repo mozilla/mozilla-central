@@ -19,7 +19,6 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *  Ben Goodger    <ben@mozilla.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,25 +34,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef nsmacshellservice_h____
-#define nsmacshellservice_h____
+#include "nsIShellService.h"
 
-#include "nsShellService.h"
+#define PREF_CHECKDEFAULTCLIENT "shell.checkDefaultClient"
 
-#define NS_SUITEMACINTEGRATION_CID \
-{0xac17e6f0, 0x50c9, 0x4901, {0xab, 0x08, 0xf8, 0x70, 0xbf, 0xcd, 0x12, 0xce}}
+#define SHELLSERVICE_PROPERTIES "chrome://communicator/locale/shellservice.properties"
+#define BRAND_PROPERTIES "chrome://branding/locale/brand.properties"
 
-class nsMacShellService : public nsIShellService
-{
-public:
-  nsMacShellService() : mCheckedThisSessionClient(PR_FALSE) {};
-  virtual ~nsMacShellService() {};
-
-  NS_DECL_ISUPPORTS
-  NS_DECL_NSISHELLSERVICE
-
-private:
-  PRPackedBool mCheckedThisSessionClient;
-};
-
-#endif
+#define NS_SUITESHELLSERVICE_CONTRACTID "@mozilla.org/suite/shell-service;1"
+#define NS_SUITEFEEDSERVICE_CONTRACTID "@mozilla.org/suite/shell-feed-service;1"

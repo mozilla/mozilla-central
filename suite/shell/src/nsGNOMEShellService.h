@@ -37,17 +37,10 @@
 #ifndef nsgnomeshellservice_h____
 #define nsgnomeshellservice_h____
 
-#include "nsIShellService.h"
-
-
+#include "nsShellService.h"
 #include "nsStringGlue.h"
 
-/* This is temporary until nsGNOMEShellService implements all functions of
-   nsIShellService. Then this can be replaced with
-   "@mozilla.org/suite/shell-service;1" */
-#define NS_SUITEGNOMEFEED_CONTRACTID "@mozilla.org/suite/shell-feed-service;1"
-
-#define NS_SUITEGNOMEFEED_CID \
+#define NS_SUITEGNOMEINTEGRATION_CID \
 {0xc16cfa25, 0xa74a, 0x420b, {0xa5, 0x45, 0x4b, 0xc0, 0x6b, 0x08, 0xa8, 0x65}}
 
 struct ProtocolAssociation;

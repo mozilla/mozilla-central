@@ -53,9 +53,9 @@
 #if !defined(BUILD_STATIC_SHELL)
 #include "nsWindowsShellService.h"
 #endif
-#elif defined(XP_MACOSX)
+#elif defined(XP_MACOSX) && !defined(BUILD_STATIC_SHELL)
 #include "nsMacShellService.h"
-#elif defined(MOZ_WIDGET_GTK2)
+#elif defined(MOZ_WIDGET_GTK2) && !defined(BUILD_STATIC_SHELL)
 #include "nsGNOMEShellService.h"
 #endif
 
@@ -66,14 +66,10 @@ NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsUrlWidget, Init)
 #if !defined(BUILD_STATIC_SHELL)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsWindowsShellService, Init)
 #endif
-#elif defined(XP_MACOSX)
-#if !defined(BUILD_STATIC_SHELL)
+#elif defined(XP_MACOSX) && !defined(BUILD_STATIC_SHELL)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMacShellService)
-#endif
-#elif defined(MOZ_WIDGET_GTK2)
-#if !defined(BUILD_STATIC_SHELL)
+#elif defined(MOZ_WIDGET_GTK2) && !defined(BUILD_STATIC_SHELL)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsGNOMEShellService, Init)
-#endif
 #endif
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSuiteDirectoryProvider)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsProfileMigrator)
@@ -87,28 +83,28 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsFeedSniffer)
 /////////////////////////////////////////////////////////////////////////////
 
 static const nsModuleComponentInfo components[] = {
-#ifdef XP_WIN
+#if defined(XP_WIN)
   { NS_IURLWIDGET_CLASSNAME, NS_IURLWIDGET_CID,
     NS_IURLWIDGET_CONTRACTID, nsUrlWidgetConstructor },
 #if !defined(BUILD_STATIC_SHELL)
   { "SeaMonkey Windows Integration",
     NS_SUITEWININTEGRATION_CID,
-    NS_SUITEWININTEGRATION_CONTRACTID,
+    NS_SUITESHELLSERVICE_CONTRACTID,
     nsWindowsShellServiceConstructor },
   { "SeaMonkey Windows Feed Integration",
-    NS_SUITEWINFEED_CID,
-    NS_SUITEWINFEED_CONTRACTID,
+    NS_SUITEWININTEGRATION_CID,
+    NS_SUITEFEEDSERVICE_CONTRACTID,
     nsWindowsShellServiceConstructor },
 #endif
 #elif defined(XP_MACOSX) && !defined(BUILD_STATIC_SHELL)
   { "SeaMonkey Mac Feed Integration",
-    NS_SUITEMACFEED_CID,
-    NS_SUITEMACFEED_CONTRACTID,
+    NS_SUITEMACINTEGRATION_CID,
+    NS_SUITEFEEDSERVICE_CONTRACTID,
     nsMacShellServiceConstructor },
 #elif defined(MOZ_WIDGET_GTK2) && !defined(BUILD_STATIC_SHELL)
   { "SeaMonkey Linux Feed Integration",
-    NS_SUITEGNOMEFEED_CID,
-    NS_SUITEGNOMEFEED_CONTRACTID,
+    NS_SUITEGNOMEINTEGRATION_CID,
+    NS_SUITEFEEDSERVICE_CONTRACTID,
     nsGNOMEShellServiceConstructor },
 #endif
 

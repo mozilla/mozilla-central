@@ -165,8 +165,8 @@ NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsGNOMEShellService, Init)
 
 static const nsModuleComponentInfo components[] = {
   { "SeaMonkey Linux Feed Integration",
-    NS_SUITEGNOMEFEED_CID,
-    NS_SUITEGNOMEFEED_CONTRACTID,
+    NS_SUITEGNOMEINTEGRATION_CID,
+    NS_SUITEFEEDSERVICE_CONTRACTID,
     nsGNOMEShellServiceConstructor },
 };
 

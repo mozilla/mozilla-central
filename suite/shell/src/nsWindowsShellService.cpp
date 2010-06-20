@@ -79,9 +79,6 @@
 #define MAX_BUF 4096
 #endif
 
-#define SHELLSERVICE_PROPERTIES "chrome://communicator/locale/shellservice.properties"
-#define BRAND_PROPERTIES "chrome://branding/locale/brand.properties"
-
 #define REG_SUCCEEDED(val) \
   (val == ERROR_SUCCESS)
 
@@ -540,7 +537,7 @@ nsWindowsShellService::GetShouldCheckDefaultClient(PRBool* aResult)
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  return prefs->GetBoolPref("shell.checkDefaultClient", aResult);
+  return prefs->GetBoolPref(PREF_CHECKDEFAULTCLIENT, aResult);
 }
 
 
@@ -550,7 +547,7 @@ nsWindowsShellService::SetShouldCheckDefaultClient(PRBool aShouldCheck)
 {
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
   NS_ENSURE_TRUE(prefs, NS_ERROR_FAILURE);
-  return prefs->SetBoolPref("shell.checkDefaultClient", aShouldCheck);
+  return prefs->SetBoolPref(PREF_CHECKDEFAULTCLIENT, aShouldCheck);
 }
 
 NS_IMETHODIMP
@@ -877,11 +874,11 @@ NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsWindowsShellService, Init)
 static const nsModuleComponentInfo components[] = {
   { "SeaMonkey Windows Integration",
     NS_SUITEWININTEGRATION_CID,
-    NS_SUITEWININTEGRATION_CONTRACTID,
+    NS_SUITESHELLSERVICE_CONTRACTID,
     nsWindowsShellServiceConstructor },
   { "SeaMonkey Windows Feed Integration",
-    NS_SUITEWINFEED_CID,
-    NS_SUITEWINFEED_CONTRACTID,
+    NS_SUITEWININTEGRATION_CID,
+    NS_SUITEFEEDSERVICE_CONTRACTID,
     nsWindowsShellServiceConstructor },
 };
 

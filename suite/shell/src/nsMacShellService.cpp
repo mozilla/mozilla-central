@@ -195,8 +195,8 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMacShellService)
 
 static const nsModuleComponentInfo components[] = {
   { "SeaMonkey Mac Feed Integration",
-    NS_SUITEMACFEED_CID,
-    NS_SUITEMACFEED_CONTRACTID,
+    NS_SUITEMACINTEGRATION_CID,
+    NS_SUITEFEEDSERVICE_CONTRACTID,
     nsMacShellServiceConstructor },
 };
 

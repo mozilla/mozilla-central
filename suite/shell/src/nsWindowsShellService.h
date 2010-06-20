@@ -38,20 +38,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nscore.h"
-#include "nsIShellService.h"
+#include "nsShellService.h"
 #include "nsStringGlue.h"
 
 #include <windows.h>
 
-#define NS_SUITEWININTEGRATION_CONTRACTID "@mozilla.org/suite/shell-service;1"
-
 #define NS_SUITEWININTEGRATION_CID \
 {0x39b688ec, 0xe308, 0x49e5, {0xbe, 0x6b, 0x28, 0xdc, 0x7f, 0xcd, 0x61, 0x54}}
-
-#define NS_SUITEWINFEED_CONTRACTID "@mozilla.org/suite/shell-feed-service;1"
-
-#define NS_SUITEWINFEED_CID \
-{0xd5cbb2a1, 0xaa33, 0x478e, {0xa1, 0x2a, 0xd4, 0xb2, 0x2b, 0x4f, 0x19, 0xd8}}
 
 typedef struct {
   char* keyName;
