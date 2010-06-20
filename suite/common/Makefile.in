@@ -63,8 +63,3 @@ CHROME_DEPS += $(abs_srcdir)/app-license.html
 # chrome://content/communicator/license.html to override 
 # chrome://global/content/license.html (about:license)
 DEFINES += -DAPP_EULA_BLOCK=$(abs_srcdir)/app-license.html
-
-# once we support the shell service, define this for supported platforms
-#ifneq (,$(filter windows gtk2 cocoa,$(MOZ_WIDGET_TOOLKIT)))
-#DEFINES += -DHAVE_SHELL_SERVICE=1
-#endif

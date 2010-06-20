@@ -74,12 +74,10 @@ var ioSvc = Components.classes["@mozilla.org/network/io-service;1"]
                       .getService(Components.interfaces.nsIIOService);
 var converterSvc = Components.classes["@mozilla.org/embeddor.implemented/web-content-handler-registrar;1"]
                              .getService(Components.interfaces.nsIWebContentConverterService);
-#ifdef HAVE_SHELL_SERVICE
-var shellSvc = Components.classes["@mozilla.org/suite/shell-service;1"]
-                         .getService(Components.interfaces.nsIShellService);
-#else
 var shellSvc = null;
-#endif
+if ("@mozilla.org/suite/shell-feed-service;1" in Components.classes)
+  shellSvc = Components.classes["@mozilla.org/suite/shell-feed-service;1"]
+                       .getService(Components.interfaces.nsIShellService);
 
 const TYPE_MAYBE_FEED = "application/vnd.mozilla.maybe.feed";
 const TYPE_MAYBE_VIDEO_FEED = "application/vnd.mozilla.maybe.video.feed";
@@ -646,14 +644,12 @@ FeedHandlerInfo.prototype = {
       return this.__defaultApplicationHandler;
 
     var defaultFeedReader = null;
-#ifdef HAVE_SHELL_SERVICE
     try {
       defaultFeedReader = shellSvc.defaultFeedReader;
     }
     catch(ex) {
       // no default reader
     }
-#endif
 
     if (defaultFeedReader) {
       let handlerApp = Components.classes["@mozilla.org/uriloader/local-handler-app;1"]
@@ -672,7 +668,6 @@ FeedHandlerInfo.prototype = {
   },
 
   get hasDefaultHandler() {
-#ifdef HAVE_SHELL_SERVICE
     try {
       if (shellSvc.defaultFeedReader)
         return true;
@@ -680,7 +675,6 @@ FeedHandlerInfo.prototype = {
     catch(ex) {
       // no default reader
     }
-#endif
 
     return false;
   },

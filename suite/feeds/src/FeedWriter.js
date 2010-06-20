@@ -976,10 +976,9 @@ FeedWriter.prototype = {
 
     menuItem = null;
 
-#ifdef HAVE_SHELL_SERVICE
     // List the default feed reader
     try {
-      this._defaultSystemReader = Components.classes["@mozilla.org/suite/shell-service;1"]
+      this._defaultSystemReader = Components.classes["@mozilla.org/suite/shell-feed-service;1"]
                                             .getService(Components.interfaces.nsIShellService)
                                             .defaultFeedReader;
       menuItem = this._document.createElementNS(XUL_NS, "menuitem");
@@ -997,7 +996,6 @@ FeedWriter.prototype = {
     }
     catch(ex) {
     }
-#endif
 
     if (menuItem) {
       this._contentSandbox.defaultHandlerMenuItem = menuItem;
