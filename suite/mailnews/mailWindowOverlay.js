@@ -1268,8 +1268,10 @@ BatchMessageMover.prototype =
         let array = Components.classes["@mozilla.org/array;1"]
                               .createInstance(Components.interfaces.nsIMutableArray);
         msgs.forEach(function(item){array.appendElement(item, false);});
-        gCopyService.CopyMessages(srcFolder, array, dstFolder, true, this,
-                                  msgWindow, true);
+        // If the source folder doesn't support deleting messages, we
+        // make archive a copy, not a move.
+        gCopyService.CopyMessages(srcFolder, array, dstFolder,
+                                  srcFolder.canDeleteMessages, this, msgWindow, true);
         return; // only do one.
       }
       delete this._batches[key];
@@ -1281,10 +1283,11 @@ BatchMessageMover.prototype =
     treeView.selectionChanged();
   },
 
+  // This also implements nsIUrlListener, but we only care about the
+  // OnStopRunningUrl (createStorageIfMissing callback).
   OnStartRunningUrl: function(aUrl)
   {
   },
-
   OnStopRunningUrl: function(aUrl, aExitCode)
   {
     // This will always be a create folder url, afaik.
@@ -1295,7 +1298,7 @@ BatchMessageMover.prototype =
   },
 
   // This also implements nsIMsgCopyServiceListener, but we only care
-  // about the OnStopCopy.
+  // about the OnStopCopy (CopyMessages callback).
   OnStartCopy: function()
   {
   },
@@ -1322,6 +1325,7 @@ BatchMessageMover.prototype =
       this._batches = null;
     }
   },
+
   QueryInterface: function(aIID)
   {
     if (aIID.equals(Components.interfaces.nsIUrlListener) ||
