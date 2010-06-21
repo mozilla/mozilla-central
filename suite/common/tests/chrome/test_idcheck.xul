@@ -311,7 +311,7 @@
             []
           ],
 /* Disable DOMI from this test, since it doesn't load right on trunk
-   for some reason, but we want this test green. */
+   for some reason, but we want this test green.
         // DOM Inspector
         "chrome://inspector/content/inspector.xul":
           [
