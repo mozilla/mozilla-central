@@ -1543,28 +1543,3 @@ function MigrateJunkMailSettings()
     pref.setIntPref("mail.spam.version", 1);
   }
 }
-
-/**
- * Returns a string representation of a folder's specialFolder attribute.
- *
- * @param aFolder The folder whose specialFolder attribute to return.
- */
-function getSpecialFolderString(aFolder) {
-  if (aFolder.flags & 0x1000) // MSG_FOLDER_FLAG_INBOX
-    return "Inbox";
-  if (aFolder.flags & 0x0100) // MSG_FOLDER_FLAG_TRASH
-    return "Trash";
-  if (aFolder.flags & 0x0800) // MSG_FOLDER_FLAG_QUEUE
-    return "Unsent Messages";
-  if (aFolder.flags & 0x0200) // MSG_FOLDER_FLAG_SENTMAIL
-    return "Sent";
-  if (aFolder.flags & 0x0400) // MSG_FOLDER_FLAG_DRAFTS
-    return "Drafts";
-  if (aFolder.flags & 0x400000) // MSG_FOLDER_FLAG_TEMPLATES
-    return "Templates";
-  if (aFolder.flags & 0x40000000) // MSG_FOLDER_FLAG_JUNK
-    return "Junk";
-  if (aFolder.flags & 0x0020) // MSG_FOLDER_FLAG_VIRTUAL
-    return "Virtual";
-  return "none";
-}

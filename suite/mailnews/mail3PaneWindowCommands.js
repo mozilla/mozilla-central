@@ -102,7 +102,7 @@ var FolderPaneController =
 					//dump("specialFolder failure: " + ex + "\n");
 				} 
         if (specialFolder == "Inbox" || specialFolder == "Trash" || specialFolder == "Drafts" ||
-            specialFolder == "Sent" || specialFolder == "Templates" || specialFolder == "Unsent Messages" ||
+            specialFolder == "Sent" || specialFolder == "Templates" || specialFolder == "Outbox" ||
             (specialFolder == "Junk" && !CanRenameDeleteJunkMail(GetSelectedFolderURI())) || isServer)
           canDeleteThisFolder = false;
         else
@@ -849,8 +849,8 @@ function IsSendUnsentMsgsEnabled(folderResource)
 
   if (folderResource &&
       folderResource instanceof Components.interfaces.nsIMsgFolder) {
-    // If unsentMsgsFolder is non-null, it is the "Unsent Messages" folder.
-    // We're here because we've done a right click on the "Unsent Messages"
+    // If unsentMsgsFolder is non-null, it is the "Outbox" folder.
+    // We're here because we've done a right click on the "Outbox"
     // folder (context menu), so we can use the folder and return true/false
     // straight away.
     return folderResource.getTotalMessages(false) > 0;

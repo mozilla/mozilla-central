@@ -90,11 +90,11 @@
   list-style-image: url("chrome://messenger/skin/icons/folder-template-open.gif");
 }
 
-.folderMenuItem[SpecialFolder="Unsent Messages"] {
+.folderMenuItem[SpecialFolder="Outbox"] {
   list-style-image: url("chrome://messenger/skin/icons/folder-outbox.gif");
 }
 
-.folderMenuItem[SpecialFolder="Unsent Messages"][open="true"] {
+.folderMenuItem[SpecialFolder="Outbox"][open="true"] {
   list-style-image: url("chrome://messenger/skin/icons/folder-outbox-open.gif");
 }
 

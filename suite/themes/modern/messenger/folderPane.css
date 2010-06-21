@@ -107,12 +107,7 @@ treechildren::-moz-tree-image(folderNameCol, specialFolder-Templates) {
   list-style-image: url("chrome://messenger/skin/icons/folder-template.gif");
 }
 
-/* ..... Unsent Messages ..... */
-
-.tabmail-tab[type="folder"][SpecialFolder="Unsent Messages"],
-treechildren::-moz-tree-image(folderNameCol, specialFolder-Unsent Messages) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-outbox.gif");
-}
+/* ..... Outbox ..... */
 
 .tabmail-tab[type="folder"][SpecialFolder="Outbox"],
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Outbox) {

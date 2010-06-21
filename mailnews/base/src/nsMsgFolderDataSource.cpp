@@ -1094,7 +1094,7 @@ nsMsgFolderDataSource::createFolderSpecialNode(nsIMsgFolder *folder,
   else if (flags & nsMsgFolderFlags::Trash)
     specialFolderString.AssignLiteral("Trash");
   else if (flags & nsMsgFolderFlags::Queue)
-    specialFolderString.AssignLiteral("Unsent Messages");
+    specialFolderString.AssignLiteral("Outbox");
   else if (flags & nsMsgFolderFlags::SentMail)
     specialFolderString.AssignLiteral("Sent");
   else if (flags & nsMsgFolderFlags::Drafts)
