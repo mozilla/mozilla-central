@@ -370,7 +370,7 @@ def prettyPrintResults():
         if len(result['fails']) == 0:
             print 'TEST-PASS | ', result['name']
         else:
-            print 'TEST-UNEXPECTED-FAIL | ', result['name']
+            print 'TEST-UNEXPECTED-FAIL | %s | %s' % (prettifyFilename(result['filename']), result['name'])
         for failure in result['fails']:
             if 'exception' in failure:
                 prettyPrintException(failure['exception'])
