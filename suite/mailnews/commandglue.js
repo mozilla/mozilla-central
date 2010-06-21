@@ -164,8 +164,7 @@ function UpdateMailToolbar(caller)
   document.commandDispatcher.updateCommands('mail-toolbar');
 
   // hook for extra toolbar items
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(window, "mail:updateToolbarItems", null);
+  Services.obs.notifyObservers(window, "mail:updateToolbarItems", null);
 }
 
 /**
@@ -189,8 +188,7 @@ function ChangeFolder(folder, viewFolder, viewType, viewFlags, sortType, sortOrd
   SetUpToolbarButtons(folder.URI);
 
   // hook for extra toolbar items
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(window, "mail:setupToolbarItems", folder.URI);
+  Services.obs.notifyObservers(window, "mail:setupToolbarItems", folder.URI);
 
   try {
       setTitleFromFolder(viewFolder, null);
@@ -233,7 +231,7 @@ function ChangeFolder(folder, viewFolder, viewType, viewFlags, sortType, sortOrd
   var showMessagesAfterLoading;
   try {
     let server = folder.server;
-    if (gPrefBranch.getBoolPref("mail.password_protect_local_cache"))
+    if (Services.prefs.getBoolPref("mail.password_protect_local_cache"))
     {
       showMessagesAfterLoading = server.passwordPromptRequired;
       // servers w/o passwords (like local mail) will always be non-authenticated.
@@ -720,8 +718,7 @@ function CreateDBView(msgFolder, viewType, viewFlags, sortType, sortOrder)
   gDBView.suppressMsgDisplay = IsMessagePaneCollapsed();
 
   UpdateSortIndicators(gCurSortType, sortOrder);
-  var ObserverService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  ObserverService.notifyObservers(msgFolder, "MsgCreateDBView", viewType + ":" + viewFlags);
+  Services.obs.notifyObservers(msgFolder, "MsgCreateDBView", viewType + ":" + viewFlags);
 }
 
 function FolderPaneSelectionChange()
@@ -904,14 +901,12 @@ var mailOfflineObserver = {
 
 function AddMailOfflineObserver() 
 {
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService); 
-  observerService.addObserver(mailOfflineObserver, "network:offline-status-changed", false);
+  Services.obs.addObserver(mailOfflineObserver, "network:offline-status-changed", false);
 }
 
 function RemoveMailOfflineObserver()
 {
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService); 
-  observerService.removeObserver(mailOfflineObserver,"network:offline-status-changed");
+  Services.obs.removeObserver(mailOfflineObserver, "network:offline-status-changed");
 }
 
 function getSearchTermString(searchTerms)
