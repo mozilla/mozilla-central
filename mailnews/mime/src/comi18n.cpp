@@ -60,7 +60,6 @@
 #include "nsMimeTypes.h"
 #include "nsICharsetConverterManager.h"
 #include "nsISaveAsCharset.h"
-#include "nsHankakuToZenkakuCID.h"
 #include "mimehdrs.h"
 #include "nsIMIMEHeaderParam.h"
 #include "nsNetCID.h"
@@ -242,35 +241,6 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
       return -1;
     }
     encodedword_headlen = strlen(encodedword_head);
-
-    // Load HANKAKU-KANA prefrence and cache it.
-    if (!PL_strcasecmp("ISO-2022-JP", charset)) {
-      static PRInt32  conv_kana = -1;
-      if (conv_kana < 0) {
-        nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-        if (NS_SUCCEEDED(rv)) {
-          PRBool val = PR_FALSE; // no pref means need the mapping
-          prefBranch->GetBoolPref("mailnews.send_hankaku_kana", &val);
-          conv_kana = val ? 0 : 1;
-        }
-      }
-      // Do nsITextTransform if needed
-      if (conv_kana > 0) {
-        nsCOMPtr <nsITextTransform> textTransform =
-            do_CreateInstance(NS_HANKAKUTOZENKAKU_CONTRACTID, &rv);
-        if (NS_SUCCEEDED(rv)) {
-          nsString text(pUCS2), result;
-          rv = textTransform->Change(pUCS2, NS_strlen(pUCS2), result);
-          if (NS_SUCCEEDED(rv)) {
-            if (_pUCS2)
-              nsMemory::Free(_pUCS2);
-            pUCS2 = _pUCS2 = ToNewUnicode(result);
-            if (!pUCS2)
-              return -1;
-          }
-        }
-      }
-    }
 
     // Create an instance of charset converter and initialize it
     conv = do_CreateInstance(NS_SAVEASCHARSET_CONTRACTID, &rv);

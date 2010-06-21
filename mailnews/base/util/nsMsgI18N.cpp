@@ -52,7 +52,6 @@
 #include "nsILineInputStream.h"
 #include "nsMimeTypes.h"
 #include "nsISaveAsCharset.h"
-#include "nsHankakuToZenkakuCID.h"
 #include "nsStringGlue.h"
 #include "prmem.h"
 #include "plstr.h"
@@ -458,32 +457,6 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
   NS_ENSURE_SUCCESS(res, res);
 
   const PRUnichar *input = inString;
-
-  // Mapping characters in a certain range (required for Japanese only)
-  nsAutoString mapped;
-  if (charsetName.EqualsLiteral("ISO-2022-JP")) {
-    static PRInt32 sSendHankakuKana = -1;
-    if (sSendHankakuKana < 0) {
-      nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &res));
-      NS_ENSURE_SUCCESS(res, res);
-      PRBool sendHankaku;
-      // Get a hidden 4.x pref with no UI, get it only once.
-      if (NS_FAILED(prefBranch->GetBoolPref("mailnews.send_hankaku_kana", &sendHankaku)))
-        sSendHankakuKana = 0;  // no pref means need the mapping
-      else
-        sSendHankakuKana = sendHankaku ? 1 : 0;
-    }
-
-    if (!sSendHankakuKana) {
-      nsCOMPtr <nsITextTransform> textTransform = do_CreateInstance(NS_HANKAKUTOZENKAKU_CONTRACTID, &res);
-        
-      if (NS_SUCCEEDED(res)) {
-        res = textTransform->Change(inString, NS_strlen(inString), mapped);
-        if (NS_SUCCEEDED(res))
-          input = mapped.get();
-      }
-    }
-  }
 
   // Convert to charset
   res = conv->Convert(input, outString);
