@@ -317,6 +317,44 @@ function test_more_widget() {
 }
 
 /**
+ * Test that all addresses are shown in show all header mode
+ */
+function test_show_all_header_mode() {
+  // generate message with 35 recips (effectively guarantees overflow for n=3)
+  be_in_folder(folder);
+  let msg = create_message({toCount: 35});
+
+  // add the message to the end of the folder
+  add_message_to_folder(folder, msg);
+
+  // select and open the last message
+  let curMessage = select_click_row(-1);
+
+  // make sure it loads
+  wait_for_message_display_completion(mc);
+  assert_selected_and_displayed(mc, curMessage);
+
+  // get the description element containing the addresses
+  let toDescription = mc.a('expandedtoBox', {class: "headerValue"});
+
+  change_to_header_normal_mode();
+  subtest_more_widget_display(toDescription);
+  subtest_change_to_all_header_mode(toDescription);
+  change_to_header_normal_mode();
+  subtest_more_widget_click(toDescription);
+}
+
+function change_to_header_normal_mode() {
+  mc.click(new elib.Elem(mc.menus.View.viewheadersmenu.viewnormalheaders));
+  mc.sleep(0);
+}
+
+function change_to_all_header_mode() {
+  mc.click(new elib.Elem(mc.menus.View.viewheadersmenu.viewallheaders));
+  mc.sleep(0);
+}
+
+/**
  * Get the number of lines in one of the multi-address fields
  * @param node the description element containing the addresses
  * @return the number of lines
@@ -402,6 +440,28 @@ function subtest_more_widget_click(toDescription) {
   let newNumLines = help_get_num_lines(toDescription);
   if (newNumLines <= oldNumLines) {
     throw new Error("number of address lines present after more clicked = " +
+      newNumLines + "<= number of lines present beforehand = " + oldNumLines);
+  }
+}
+
+/**
+ * Test that changing to all header lines mode displays all the addresses.
+ * @param toDescription the description node for the "to" field
+ */
+function subtest_change_to_all_header_mode(toDescription) {
+  let oldNumLines = help_get_num_lines(toDescription);
+
+  change_to_all_header_mode();
+  // test that (n more) is gone
+  moreNode = mc.a('expandedtoBox', {class: 'moreIndicator'});
+  if (!moreNode.collapsed) {
+    throw new Error("more node should be collapsed in all header lines mode");
+  }
+
+  // test that we actually have more lines than we did before!
+  let newNumLines = help_get_num_lines(toDescription);
+  if (newNumLines <= oldNumLines) {
+    throw new Error("number of address lines present in all header lines mode = " +
       newNumLines + "<= number of lines present beforehand = " + oldNumLines);
   }
 }

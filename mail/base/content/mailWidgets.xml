@@ -449,12 +449,19 @@
             this.maxLinesBeforeMore = Application.prefs.getValue(
               "mailnews.headers.show_n_lines_before_more",
               this.maxLinesBeforeMore);
-
-            this.fillAddressesNode(this.emailAddresses, false);
-
-            // force a single line only in the default n=1 case
-            if (this.maxLinesBeforeMore > 1)
+            const dt = Components.interfaces.nsMimeHeaderDisplayTypes;
+            var headerchoice = Application.prefs.getValue("mail.show_headers",
+                                                          dt.AllHeaders);
+            if (headerchoice == dt.AllHeaders) {
+              this.fillAddressesNode(this.emailAddresses, true);
               this.longEmailAddresses.removeAttribute("singleline");
+            }
+            else {
+              this.fillAddressesNode(this.emailAddresses, false);
+              // force a single line only in the default n=1 case
+              if (this.maxLinesBeforeMore > 1)
+                this.longEmailAddresses.removeAttribute("singleline");
+            }
           ]]>
         </body>
       </method>
