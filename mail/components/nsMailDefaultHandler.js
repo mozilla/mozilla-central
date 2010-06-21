@@ -452,8 +452,8 @@ var nsMailDefaultHandler = {
     }
   },
 
-  helpInfo : "  -options             Open the options dialog.\n" +
-             "  -file                Open the specified email file.\n",
+  helpInfo : "  -options           Open the options dialog.\n" +
+             "  -file              Open the specified email file.\n",
 
   /* nsIFactory */
 

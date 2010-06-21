@@ -64,7 +64,7 @@ nsSetDefaultMail.prototype = {
     }
   },
 
-  helpInfo : "  -setDefaultMail   Set this app as the default mail client.\n",
+  helpInfo : "  -setDefaultMail    Set this app as the default mail client.\n",
 
   // XPCOMUtils info
   _xpcom_categories: [{category: "command-line-handler",
