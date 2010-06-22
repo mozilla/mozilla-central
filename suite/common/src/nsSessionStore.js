@@ -1025,7 +1025,7 @@ SessionStoreService.prototype = {
    */
   _saveWindowHistory: function sss_saveWindowHistory(aWindow) {
     var tabbrowser = aWindow.getBrowser();
-    var tabs = tabbrowser.mTabs;
+    var tabs = tabbrowser.tabs;
     var tabsData = this._windows[aWindow.__SSi].tabs = [];
 
     for (var i = 0; i < tabs.length; i++)
@@ -1799,7 +1799,7 @@ SessionStoreService.prototype = {
     let tabs = [];
 
     for (var t = 0; t < newTabCount; t++) {
-      tabs.push(t < openTabCount ? tabbrowser.mTabs[t] : tabbrowser.addTab());
+      tabs.push(t < openTabCount ? tabbrowser.tabs[t] : tabbrowser.addTab());
       // when resuming at startup: add additionally requested pages to the end
       if (!aOverwriteTabs && root._firstTabs) {
         tabbrowser.moveTabTo(tabs[t], t);
@@ -1808,7 +1808,7 @@ SessionStoreService.prototype = {
 
     // when overwriting tabs, remove all superflous ones
     for (t = openTabCount - 1; t >= newTabCount; t--) {
-      tabbrowser.removeTab(tabbrowser.mTabs[t]);
+      tabbrowser.removeTab(tabbrowser.tabs[t]);
     }
 
     if (aOverwriteTabs) {

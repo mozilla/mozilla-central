@@ -153,7 +153,7 @@
       <field name="mPanelContainer" readonly="true">
         document.getAnonymousElementByAttribute(this, "anonid", "panelcontainer");
       </field>
-      <field name="mTabs" readonly="true">
+      <field name="tabs" readonly="true">
         this.mTabContainer.childNodes
       </field>
       <field name="mStringBundle">
@@ -943,7 +943,7 @@
         <body>
           <![CDATA[
             this.mContextTab = document.popupNode;
-            var disabled = this.mTabs.length == 1;
+            var disabled = this.tabs.length == 1;
             var menuItems = aPopupMenu.getElementsByAttribute("tbattr", "tabbrowser-multiple");
             for (var i = 0; i < menuItems.length; i++)
               menuItems[i].setAttribute("disabled", disabled);
@@ -1431,7 +1431,7 @@
             this.mPrefs.setBoolPref("browser.tabs.forceHide", false);
 
             // wire up a progress listener for the new browser object.
-            var position = this.mTabs.length - 1;
+            var position = this.tabs.length - 1;
             var tabListener = this.mTabProgressListener(t, b, blank);
             const filter = Components.classes["@mozilla.org/appshell/component/browser-status-filter;1"]
                                      .createInstance(Components.interfaces.nsIWebProgress);
@@ -1500,7 +1500,7 @@
         <parameter name="aTab"/>
         <body>
           <![CDATA[
-            var numTabs = this.mTabs.length;
+            var numTabs = this.tabs.length;
 
             if (numTabs > 1) {
               const closeOtherTabsPref = "browser.tabs.warnOnCloseOther";
@@ -1537,9 +1537,9 @@
                 else
                   this.mTabContainer.selectedItem = aTab;
 
-                for (var i = this.mTabs.length - 1; i >= 0; --i) {
-                  if (this.mTabs[i] != aTab)
-                    this.removeTab(this.mTabs[i]);
+                for (var i = this.tabs.length - 1; i >= 0; --i) {
+                  if (this.tabs[i] != aTab)
+                    this.removeTab(this.tabs[i]);
                 }
               }
             }
@@ -1610,7 +1610,7 @@
             var secFlags = nsIWebProgress.NOTIFY_STATE_ALL | nsIWebProgress.NOTIFY_LOCATION | nsIWebProgress.NOTIFY_SECURITY;
             b.webProgress.addProgressListener(b.securityUI, secFlags);
 
-            var position = this.mTabs.length - 1;
+            var position = this.tabs.length - 1;
             var tabListener = this.mTabProgressListener(t, b, false);
             const filter = Components.classes["@mozilla.org/appshell/component/browser-status-filter;1"]
                                      .createInstance(nsIWebProgress);
@@ -1622,9 +1622,9 @@
             if (savedData.pos < position)
               this.moveTabTo(position, savedData.pos);
 
-            if (this.mTabs.length == 2 &&
-                !this.mTabs[0].linkedBrowser.webNavigation.sessionHistory.count)
-              this.removeTab(this.mTabs[0]); // only one tab => selected anyway
+            if (this.tabs.length == 2 &&
+                !this.tabs[0].linkedBrowser.webNavigation.sessionHistory.count)
+              this.removeTab(this.tabs[0]); // only one tab => selected anyway
             else {
               this.selectedTab = t;
               this.mStrip.collapsed = false;
@@ -1667,7 +1667,7 @@
             event.initEvent("TabClose", true, false);
             aTab.dispatchEvent(event);
 
-            var l = this.mTabs.length;
+            var l = this.tabs.length;
             switch (l) {
               case 1:
                 // add a new blank tab to replace the one we're about to close
@@ -1824,10 +1824,10 @@
       <method name="reloadAllTabs">
         <body>
           <![CDATA[
-            var l = this.mTabs.length;
+            var l = this.tabs.length;
             for (var i = 0; i < l; i++) {
               try {
-                this.mTabs[i].linkedBrowser.reload();
+                this.tabs[i].linkedBrowser.reload();
               } catch (e) {
                 // ignore failure to reload so others will be reloaded
               }
@@ -1932,8 +1932,8 @@
         <parameter name="aTab"/>
         <body>
           <![CDATA[
-            for (var i = 0; i < this.mTabs.length; ++i)
-              if (this.mTabs[i] == aTab) 
+            for (var i = 0; i < this.tabs.length; ++i)
+              if (this.tabs[i] == aTab) 
                 return i;
 
             throw Components.results.NS_ERROR_ILLEGAL_VALUE;
@@ -1970,8 +1970,8 @@
             if (!this._browsers) {
               var browsers = [];
               browsers.item = function(i) {return this[i];}
-              for (var i = 0; i < this.mTabs.length; i++)
-                browsers.push(this.mTabs[i].linkedBrowser);
+              for (var i = 0; i < this.tabs.length; i++)
+                browsers.push(this.tabs[i].linkedBrowser);
               this._browsers = browsers;
             }
             return this._browsers;
@@ -2038,19 +2038,19 @@
             var ltr = window.getComputedStyle(this, null).direction == "ltr";
             var arrowX, tabBoxObject;
             if (newIndexOn != -1) {
-              tabBoxObject = this.mTabs[newIndexOn].boxObject;
+              tabBoxObject = this.tabs[newIndexOn].boxObject;
               arrowX = tabBoxObject.x + tabBoxObject.width / 2;
             }
             else {
               var newIndexBetween = this.getDropIndex(aEvent);
-              if (newIndexBetween == this.mTabs.length) {
-                tabBoxObject = this.mTabs[this.mTabs.length - 1].boxObject;
+              if (newIndexBetween == this.tabs.length) {
+                tabBoxObject = this.tabs[this.tabs.length - 1].boxObject;
                 arrowX = tabBoxObject.x;
                 if (ltr) // for LTR "after" is on the right-hand side of the tab
                   arrowX += tabBoxObject.width;
               }
               else {
-                tabBoxObject = this.mTabs[newIndexBetween].boxObject;
+                tabBoxObject = this.tabs[newIndexBetween].boxObject;
                 arrowX = tabBoxObject.x;
                 if (!ltr) // for RTL "before" is on the right-hand side of the tab
                   arrowX += tabBoxObject.width;
@@ -2102,7 +2102,7 @@
               tabIndex = this.getDropOnIndex(aEvent);
               if (tabIndex != -1) {
                 // Load in an existing tab
-                tab = this.mTabs[tabIndex];
+                tab = this.tabs[tabIndex];
                 tab.linkedBrowser.loadURI(getShortcutOrURI(url));
                 if (this.mCurrentTab != tab && !bgLoad)
                   this.selectedTab = tab;
@@ -2111,14 +2111,14 @@
                        aDragSession.sourceDocument.defaultView.top == content) {
                 // We're adding a new tab, and we may want parent-tab tracking
                 tab = this.loadOneTab(getShortcutOrURI(url), {inBackground: bgLoad});
-                if (newIndex != this.mTabs.length - 1)
-                  this.moveTabTo(this.mTabs.length - 1, newIndex);
+                if (newIndex != this.tabs.length - 1)
+                  this.moveTabTo(this.tabs.length - 1, newIndex);
               }
               else {
                 // We're adding a new tab, but do not want parent-tab tracking
                 tab = this.addTab(getShortcutOrURI(url));
-                if (newIndex != this.mTabs.length - 1)
-                  this.moveTabTo(this.mTabs.length - 1, newIndex);
+                if (newIndex != this.tabs.length - 1)
+                  this.moveTabTo(this.tabs.length - 1, newIndex);
                 if (this.mCurrentTab != tab && !bgLoad)
                   this.selectedTab = tab;
               }
@@ -2177,7 +2177,7 @@
 
             if (aDestIndex >= aSrcIndex)
               ++aDestIndex;
-            var tab = this.mTabContainer.insertBefore(this.mTabs[aSrcIndex], this.mTabs.item(aDestIndex));
+            var tab = this.mTabContainer.insertBefore(this.tabs[aSrcIndex], this.tabs.item(aDestIndex));
 
             this.mCurrentTab._selected = true;
 
@@ -2194,9 +2194,9 @@
         <parameter name="aEvent"/>
         <body>
           <![CDATA[     
-            for (var i = 0; i < this.mTabs.length; ++i) {
-              var coord = this.mTabs[i].boxObject.x +
-                          this.mTabs[i].boxObject.width / 2;
+            for (var i = 0; i < this.tabs.length; ++i) {
+              var coord = this.tabs[i].boxObject.x +
+                          this.tabs[i].boxObject.width / 2;
               if (window.getComputedStyle(this, null).direction == "ltr") {
                 if (aEvent.clientX < coord) 
                   return i;
@@ -2206,7 +2206,7 @@
               }
             }
 
-            return this.mTabs.length;
+            return this.tabs.length;
           ]]>
         </body>
       </method>
@@ -2215,8 +2215,8 @@
         <parameter name="aEvent"/>
         <body>
           <![CDATA[     
-            for (var i = 0; i < this.mTabs.length; ++i) {
-              var tabBoxObject = this.mTabs[i].boxObject;
+            for (var i = 0; i < this.tabs.length; ++i) {
+              var tabBoxObject = this.tabs[i].boxObject;
               if (aEvent.clientX > tabBoxObject.x + tabBoxObject.width * .25 &&
                   aEvent.clientX < tabBoxObject.x + tabBoxObject.width * .75)
                 return i;
@@ -2314,7 +2314,7 @@
         <body>
         <![CDATA[
           var oldBrowserGroup = [];
-          var oldCount = this.mTabs.length;
+          var oldCount = this.tabs.length;
           var newCount = aGroup.length;
           var n = Math.max(oldCount, newCount);
           for (var i = 0; i < n; ++i) {
@@ -2369,9 +2369,9 @@
 
           var tab;
           if (this.mPrefs.getIntPref("browser.tabs.loadGroup") == 0) {
-            var oldCount = this.mTabs.length;
+            var oldCount = this.tabs.length;
             this.appendGroup(aGroup);
-            tab = this.mTabs[oldCount];
+            tab = this.tabs[oldCount];
           } else {
             this.backBrowserGroup = this.replaceGroup(aGroup);
             this.forwardBrowserGroup = [];
@@ -2615,8 +2615,8 @@
 
           var uniqueId = "panel" + this.nextTabNumber++;
           this.mPanelContainer.childNodes[0].id = uniqueId;
-          this.mTabs[0].linkedPanel = uniqueId;
-          this.mTabs[0].linkedBrowser = this.mCurrentBrowser;
+          this.tabs[0].linkedPanel = uniqueId;
+          this.tabs[0].linkedBrowser = this.mCurrentBrowser;
 
           // Wire up the first title change listener.
           this.mCurrentBrowser.addEventListener("DOMTitleChanged", this.onTitleChanged, true);
@@ -2684,6 +2684,10 @@
           });
         ]]>
       </destructor>
+
+      <!-- Deprecated stuff, implemented for backwards compatibility. -->
+      <property name="mTabs" readonly="true"
+                onget="return this.tabs;"/>
     </implementation>
 
     <handlers>
@@ -2704,7 +2708,7 @@
             if (browsers[i].contentWindow == event.target)
               break;
           }
-          this.removeTab(this.mTabs[i]);
+          this.removeTab(this.tabs[i]);
           event.preventDefault();
         ]]>
       </handler>
@@ -2719,7 +2723,7 @@
           const browsers = this.browsers;
           for (var i = 0; i < browsers.length; ++i) {
             if (browsers[i].contentWindow == event.target.top) {
-              this.selectedTab = this.mTabs[i];
+              this.selectedTab = this.tabs[i];
 
               break;
             }

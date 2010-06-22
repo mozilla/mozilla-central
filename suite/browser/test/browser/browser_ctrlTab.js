@@ -21,10 +21,10 @@ function test() {
   }
 
   { // test for bug 445369
-    let tabs = gBrowser.mTabs.length;
+    let tabs = gBrowser.tabs.length;
     pressCtrlTab();
     EventUtils.synthesizeKey("w", { ctrlKey: true });
-    is(gBrowser.mTabs.length, tabs - 1, "Ctrl+Tab -> Ctrl+W removes one tab");
+    is(gBrowser.tabs.length, tabs - 1, "Ctrl+Tab -> Ctrl+W removes one tab");
     releaseCtrl();
   }
   assertTabs(3);
@@ -35,7 +35,7 @@ function test() {
     selectTabs([1, 2, 0]);
 
     let selectedTab = gBrowser.selectedTab;
-    let tabToRemove = gBrowser.mTabs[1];
+    let tabToRemove = gBrowser.tabs[1];
 
     pressCtrlTab();
     pressCtrlTab();
@@ -143,9 +143,9 @@ function test() {
     ctrlTab.panel.state == "showing" || ctrlTab.panel.state == "open";
 
   function assertTabs(aTabs) {
-    var tabs = gBrowser.mTabs.length;
+    var tabs = gBrowser.tabs.length;
     if (tabs != aTabs) {
-      while (gBrowser.mTabs.length > 1)
+      while (gBrowser.tabs.length > 1)
         gBrowser.removeCurrentTab();
       throw "expected " + aTabs + " open tabs, got " + tabs;
     }
@@ -153,7 +153,7 @@ function test() {
 
   function selectTabs(tabs) {
     tabs.forEach(function (index) {
-      gBrowser.selectedTab = gBrowser.mTabs[index];
+      gBrowser.selectedTab = gBrowser.tabs[index];
     });
   }
 
@@ -161,7 +161,7 @@ function test() {
     selectTabs(tabsToSelect);
 
     var indexStart = gBrowser.tabContainer.selectedIndex;
-    var tabCount = gBrowser.mTabs.length;
+    var tabCount = gBrowser.tabs.length;
     var normalized = tabTimes % tabCount;
     var where = normalized == 1 ? "back to the previously selected tab" :
                 normalized + " tabs back in most-recently-selected order";

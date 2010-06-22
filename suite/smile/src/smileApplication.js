@@ -155,9 +155,9 @@ Window.prototype = {
 
   get tabs() {
     var tabs = [];
-    var mTabs = this._tabbrowser.mTabs;
-    for (var i = 0; i < mTabs.length; i++)
-      tabs.push(new BrowserTab(this, mTabs[i]));
+    var tabNodes = this._tabbrowser.tabs;
+    for (var i = 0; i < tabNodes.length; i++)
+      tabs.push(new BrowserTab(this, tabNodes[i]));
     return tabs;
   },
 
