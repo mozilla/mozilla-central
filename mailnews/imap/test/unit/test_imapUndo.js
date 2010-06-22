@@ -61,6 +61,18 @@ function addMessagesToServer(messages, mailbox, localFolder)
   });
 }
 
+function alertListener() {}
+
+alertListener.prototype = {
+  reset: function () {
+  },
+
+  onAlert: function (aMessage, aMsgWindow) {
+    dump("got alert " + aMessage + "\n");
+    do_throw ('TEST FAILED ' + aMessage);
+  }
+};
+
 const gTestArray =
 [
   function updateFolder() {
@@ -87,7 +99,7 @@ const gTestArray =
          .updateFolderWithListener(null, URLListener);
   },
   function goBackToInbox() {
-    gIMAPInbox.updateFolderWithListener(null, URLListener);
+    gIMAPInbox.updateFolderWithListener(gMsgWindow, URLListener);
   },
   function verifyFolders() {
     let msgRestored = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
@@ -120,6 +132,13 @@ function run_test()
   imapAccount.addIdentity(identity);
   imapAccount.defaultIdentity = identity;
   imapAccount.incomingServer = gIMAPIncomingServer;
+
+  var mailSession = Cc["@mozilla.org/messenger/services/session;1"]
+    .getService(Ci.nsIMsgMailSession);
+
+  var listener1 = new alertListener();
+
+  mailSession.addUserFeedbackListener(listener1);
 
   // The server doesn't support more than one connection
   let prefBranch = Cc["@mozilla.org/preferences-service;1"]

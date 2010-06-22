@@ -1337,6 +1337,10 @@ IMAP_RFC3501_handler.prototype = {
         else
           return daemon._selectedMailbox._messages.length;
       }
+      let re = /[0-9]/g;
+      let num = part.match(re);
+      if(!num || (num.length != part.length))
+        throw "BAD invalid UID " + part;
       return parseInt(part);
     }
 
