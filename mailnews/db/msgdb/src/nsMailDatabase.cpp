@@ -718,7 +718,7 @@ nsresult nsMailDatabase::SetFolderInfoValid(nsILocalFile *folderName, int num, i
     // ### this does later stuff (marks latered messages unread), which may be a problem
     nsCString summaryNativePath;
     summaryPath->GetNativePath(summaryNativePath);
-    err = pMessageDB->OpenMDB(summaryNativePath.get(), PR_FALSE);
+    err = pMessageDB->OpenMDB(summaryNativePath.get(), PR_FALSE, PR_TRUE);
     if (err != NS_OK)
     {
       delete pMessageDB;
@@ -726,15 +726,15 @@ nsresult nsMailDatabase::SetFolderInfoValid(nsILocalFile *folderName, int num, i
     }
     bOpenedDB = PR_TRUE;
   }
-  
-  if (pMessageDB == nsnull)
+
+  if (!pMessageDB)
   {
 #ifdef DEBUG
     printf("Exception opening summary file\n");
 #endif
     return NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
   }
-  
+
   {
     pMessageDB->m_folderFile = folderName;
     PRUint32 actualFolderTimeStamp;

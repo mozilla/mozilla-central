@@ -119,6 +119,9 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder,
                                            nsIMsgDatabase **_retval)
 {
   NS_ENSURE_ARG(aFolder);
+  nsCOMPtr <nsILocalFile> folderPath;
+  nsresult rv = aFolder->GetFilePath(getter_AddRefs(folderPath));
+  NS_ENSURE_SUCCESS(rv, rv);
   nsMsgDatabase *cacheDB = (nsMsgDatabase *) nsMsgDatabase::FindInCache(aFolder);
   if (cacheDB)
   {
@@ -127,11 +130,15 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder,
     if (!cacheDB->m_folder)
       cacheDB->m_folder = aFolder;
     *_retval = cacheDB; // FindInCache already addRefed.
+    // if m_thumb is set, someone is asynchronously opening the db. But our
+    // caller wants to synchronously open it, so just do it.
+    if (cacheDB->m_thumb)
+      return cacheDB->Open(folderPath, PR_FALSE, aLeaveInvalidDB);
     return NS_OK;
   }
 
   nsCOMPtr <nsIMsgIncomingServer> incomingServer;
-  nsresult rv = aFolder->GetServer(getter_AddRefs(incomingServer));
+  rv = aFolder->GetServer(getter_AddRefs(incomingServer));
   NS_ENSURE_SUCCESS(rv, rv);
   nsCString localStoreType;
   incomingServer->GetLocalStoreType(localStoreType);
@@ -139,16 +146,13 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder,
   dbContractID.Append(localStoreType.get());
   nsCOMPtr <nsIMsgDatabase> msgDB = do_CreateInstance(dbContractID.get(), &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr <nsILocalFile> folderPath;
-  rv = aFolder->GetFilePath(getter_AddRefs(folderPath));
-  NS_ENSURE_SUCCESS(rv, rv);
 
   // Don't try to create the database yet--let the createNewDB call do that.
   rv = msgDB->Open(folderPath, PR_FALSE, aLeaveInvalidDB);
   if (NS_FAILED(rv) && rv != NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
     return rv;
 
-  NS_IF_ADDREF(*_retval = msgDB);
+  NS_ADDREF(*_retval = msgDB);
   nsMsgDatabase *msgDatabase = static_cast<nsMsgDatabase *>(*_retval);
   msgDatabase->m_folder = aFolder;
 
@@ -163,30 +167,126 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder,
         rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
       return rv;
 
-    // If its not one of the expected errors, throw a warning.
+    // If it isn't one of the expected errors, throw a warning.
     NS_ENSURE_SUCCESS(rv, rv);
 #endif
     return rv;
   }
 
-  PRUint32 folderFlags;
-  aFolder->GetFlags(&folderFlags);
+  FinishDBOpen(aFolder, msgDatabase);
+  return rv;
+}
 
-  if (NS_SUCCEEDED(rv) && ! (folderFlags & nsMsgFolderFlags::Virtual))
+NS_IMETHODIMP nsMsgDBService::AsyncOpenFolderDB(nsIMsgFolder *aFolder,
+                                                PRBool aLeaveInvalidDB,
+                                                nsIMsgDatabase **_retval)
+{
+  NS_ENSURE_ARG(aFolder);
+  nsMsgDatabase *cacheDB = (nsMsgDatabase *) nsMsgDatabase::FindInCache(aFolder);
+  nsCOMPtr <nsILocalFile> folderPath;
+  nsresult rv = aFolder->GetFilePath(getter_AddRefs(folderPath));
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (cacheDB)
   {
-    mdb_count numHdrsInTable = 0;
+    // this db could have ended up in the folder cache w/o an m_folder pointer via
+    // OpenMailDBFromFile. If so, take this chance to fix the folder.
+    if (!cacheDB->m_folder)
+      cacheDB->m_folder = aFolder;
+    *_retval = cacheDB; // FindInCache already addRefed.
+    // We don't care if an other consumer is thumbing the store. In that
+    // case, they'll both thumb the store.
+    return NS_OK;
+  }
 
-    if (msgDatabase->m_mdbAllMsgHeadersTable)
+  nsCOMPtr <nsIMsgIncomingServer> incomingServer;
+  rv = aFolder->GetServer(getter_AddRefs(incomingServer));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCString localStoreType;
+  incomingServer->GetLocalStoreType(localStoreType);
+  nsCAutoString dbContractID(NS_MSGDB_CONTRACTID);
+  dbContractID.Append(localStoreType.get());
+  nsCOMPtr <nsIMsgDatabase> msgDB = do_CreateInstance(dbContractID.get(), &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsMsgDatabase *msgDatabase = static_cast<nsMsgDatabase *>(msgDB.get());
+  rv = msgDatabase->OpenInternal(folderPath, PR_FALSE, aLeaveInvalidDB,
+                                 PR_FALSE /* open asynchronously */);
+
+  NS_ADDREF(*_retval = msgDB);
+  msgDatabase->m_folder = aFolder;
+
+  if (NS_FAILED(rv))
+  {
+#ifdef DEBUG
+    // Doing these checks for debug only as we don't want to report certain
+    // errors in debug mode, but in release mode we wouldn't report them either
+
+    // These errors are expected.
+    if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING ||
+        rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
+      return rv;
+
+    // If it isn't one of the expected errors, throw a warning.
+    NS_ENSURE_SUCCESS(rv, rv);
+#endif
+    return rv;
+  }
+
+  FinishDBOpen(aFolder, msgDatabase);
+  return rv;
+}
+
+NS_IMETHODIMP nsMsgDBService::OpenMore(nsIMsgDatabase *aDB,
+                                       PRInt32 aTimeHint,
+                                       PRBool *_retval)
+{
+  NS_ENSURE_ARG_POINTER(_retval);
+  nsMsgDatabase *msgDatabase = static_cast<nsMsgDatabase *>(aDB);
+  NS_ENSURE_TRUE(msgDatabase, NS_ERROR_INVALID_ARG);
+  // Check if this db has been opened.
+  if (!msgDatabase->m_thumb)
+  {
+    *_retval = PR_TRUE;
+    return NS_OK;
+  }
+  nsresult ret;
+  *_retval = PR_FALSE;
+  PRIntervalTime startTime = PR_IntervalNow();
+  do
+  {
+    mdb_count outTotal;    // total somethings to do in operation
+    mdb_count outCurrent;  // subportion of total completed so far
+    mdb_bool outDone = PR_FALSE;      // is operation finished?
+    mdb_bool outBroken;     // is operation irreparably dead and broken?
+    ret = msgDatabase->m_thumb->DoMore(msgDatabase->m_mdbEnv,
+                                       &outTotal, &outCurrent, &outDone,
+                                       &outBroken);
+    if (NS_FAILED(ret))
+      break;
+    if (outDone)
     {
-      PRInt32 numMessages;
-      msgDatabase->m_mdbAllMsgHeadersTable->GetCount(msgDatabase->GetEnv(), &numHdrsInTable);
-      msgDatabase->m_dbFolderInfo->GetNumMessages(&numMessages);
-      if (numMessages != (PRInt32) numHdrsInTable)
-        msgDatabase->SyncCounts();
+      nsCOMPtr<nsIMdbFactory> mdbFactory;
+      msgDatabase->GetMDBFactory(getter_AddRefs(mdbFactory));
+      NS_ENSURE_TRUE(mdbFactory, NS_ERROR_FAILURE);
+      ret = mdbFactory->ThumbToOpenStore(msgDatabase->m_mdbEnv, msgDatabase->m_thumb, &msgDatabase->m_mdbStore);
+      msgDatabase->m_thumb = nsnull;
+      nsCOMPtr<nsILocalFile> folderPath;
+      nsresult rv = msgDatabase->m_folder->GetFilePath(getter_AddRefs(folderPath));
+      nsCOMPtr <nsILocalFile> summaryFile;
+      rv = GetSummaryFileLocation(folderPath, getter_AddRefs(summaryFile));
+
+      if (NS_SUCCEEDED(ret))
+        ret = (msgDatabase->m_mdbStore) ? msgDatabase->InitExistingDB() : NS_ERROR_FAILURE;
+      if (NS_SUCCEEDED(ret))
+        ret = msgDatabase->CheckForErrors(ret, summaryFile);
+
+      FinishDBOpen(msgDatabase->m_folder, msgDatabase);
+      break;
     }
   }
-  HookupPendingListeners(msgDB, aFolder);
-  return rv;
+  while (PR_IntervalToMilliseconds(PR_IntervalNow() - startTime) <= aTimeHint);
+  *_retval = !msgDatabase->m_thumb;
+  return ret;
 }
 
 /**
@@ -206,6 +306,25 @@ void nsMsgDBService::HookupPendingListeners(nsIMsgDatabase *db,
       m_pendingListeners.ObjectAt(listenerIndex)->OnEvent(db, "DBOpened");
     }
   }
+}
+
+void nsMsgDBService::FinishDBOpen(nsIMsgFolder *aFolder, nsMsgDatabase *aMsgDB)
+{
+  PRUint32 folderFlags;
+  aFolder->GetFlags(&folderFlags);
+
+  if (! (folderFlags & nsMsgFolderFlags::Virtual) &&
+      aMsgDB->m_mdbAllMsgHeadersTable)
+  {
+    mdb_count numHdrsInTable = 0;
+    PRInt32 numMessages;
+    aMsgDB->m_mdbAllMsgHeadersTable->GetCount(aMsgDB->GetEnv(),
+                                              &numHdrsInTable);
+    aMsgDB->m_dbFolderInfo->GetNumMessages(&numMessages);
+    if (numMessages != (PRInt32) numHdrsInTable)
+      aMsgDB->SyncCounts();
+  }
+  HookupPendingListeners(aMsgDB, aFolder);
 }
 
 // This method is called when the caller is trying to create a db without
@@ -260,7 +379,7 @@ NS_IMETHODIMP nsMsgDBService::CreateNewDB(nsIMsgFolder *aFolder,
   rv = msgDB->Open(folderPath, PR_TRUE, PR_TRUE);
   NS_ENSURE_TRUE(rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING, rv);
 
-  NS_IF_ADDREF(*_retval = msgDB);
+  NS_ADDREF(*_retval = msgDB);
   nsMsgDatabase *msgDatabase = static_cast<nsMsgDatabase *>(*_retval);
   msgDatabase->m_folder = aFolder;
 
@@ -462,6 +581,7 @@ void nsMsgDatabase::ClearCachedObjects(PRBool dbGoingAway)
     ClearUseHdrCache();
   m_cachedThread = nsnull;
   m_cachedThreadId = nsMsgKey_None;
+  m_thumb = nsnull;
 }
 
 nsresult nsMsgDatabase::ClearHdrCache(PRBool reInit)
@@ -866,6 +986,8 @@ nsMsgDatabase::nsMsgDatabase()
         m_nextPseudoMsgKey(kFirstPseudoKey),
         m_mdbEnv(nsnull), m_mdbStore(nsnull),
         m_mdbAllMsgHeadersTable(nsnull), m_mdbAllThreadsTable(nsnull),
+        m_create(PR_FALSE),
+        m_leaveInvalidDB(PR_FALSE),
         m_dbName(""),
         m_mdbTokensInitialized(PR_FALSE),
         m_hdrRowScopeToken(0),
@@ -990,30 +1112,19 @@ void nsMsgDatabase::GetMDBFactory(nsIMdbFactory ** aMdbFactory)
 // then try to open the db again, prior to reparsing.
 NS_IMETHODIMP nsMsgDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRBool aLeaveInvalidDB)
 {
-  PRBool summaryFileExists;
-  PRBool newFile = PR_FALSE;
-  PRBool deleteInvalidDB = PR_FALSE;
+  return nsMsgDatabase::OpenInternal(aFolderName, aCreate, aLeaveInvalidDB,
+                                     PR_TRUE /* open synchronously */);
+}
+
+nsresult nsMsgDatabase::OpenInternal(nsILocalFile *aFolderName, PRBool aCreate,
+                                     PRBool aLeaveInvalidDB, PRBool sync)
+{
   if (!aFolderName)
     return NS_ERROR_NULL_POINTER;
 
   nsCOMPtr<nsILocalFile> summaryFile;
   nsresult err = GetSummaryFileLocation(aFolderName, getter_AddRefs(summaryFile));
   NS_ENSURE_SUCCESS(err, err);
-
-  nsIDBFolderInfo  *folderInfo = nsnull;
-
-  PRBool exists;
-  PRInt64 fileSize;
-  summaryFile->Exists(&exists);
-  summaryFile->GetFileSize(&fileSize);
-  // if the old summary doesn't exist, we're creating a new one.
-  if ((!exists || !fileSize) && aCreate)
-    newFile = PR_TRUE;
-
-  // stat file before we open the db, because if we've latered
-  // any messages, handling latered will change time stamp on
-  // folder file.
-  summaryFileExists = exists && fileSize > 0;
 
   nsCAutoString summaryFilePath;
   summaryFile->GetNativePath(summaryFilePath);
@@ -1023,7 +1134,7 @@ NS_IMETHODIMP nsMsgDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRB
     this, aLeaveInvalidDB ? "TRUE":"FALSE"));
 
 
-  err = OpenMDB(summaryFilePath.get(), aCreate);
+  err = OpenMDB(summaryFilePath.get(), aCreate, sync);
   if (NS_FAILED(err))
     PR_LOG(DBLog, PR_LOG_ALWAYS, ("error opening db %lx", err));
 
@@ -1033,10 +1144,38 @@ NS_IMETHODIMP nsMsgDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRB
   if (err == NS_ERROR_FILE_TARGET_DOES_NOT_EXIST)
     return err;
 
+  m_create = aCreate;
+  m_leaveInvalidDB = aLeaveInvalidDB;
+  if (!sync && NS_SUCCEEDED(err))
+  {
+    AddToCache(this);
+    // remember open options for when the parsing is complete.
+    return err;
+  }
+  return CheckForErrors(err, summaryFile);
+}
+
+nsresult nsMsgDatabase::CheckForErrors(nsresult err,
+                                       nsILocalFile *summaryFile)
+{
+  nsCOMPtr<nsIDBFolderInfo> folderInfo;
+  PRBool summaryFileExists;
+  PRBool newFile = PR_FALSE;
+  PRBool deleteInvalidDB = PR_FALSE;
+
+  PRBool exists;
+  PRInt64 fileSize;
+  summaryFile->Exists(&exists);
+  summaryFile->GetFileSize(&fileSize);
+  // if the old summary doesn't exist, we're creating a new one.
+  if ((!exists || !fileSize) && m_create)
+    newFile = PR_TRUE;
+
+  summaryFileExists = exists && fileSize > 0;
+
   if (NS_SUCCEEDED(err))
   {
-    GetDBFolderInfo(&folderInfo);
-    if (folderInfo == NULL)
+    if (!m_dbFolderInfo)
     {
       err = NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
     }
@@ -1051,12 +1190,11 @@ NS_IMETHODIMP nsMsgDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRB
       }
       // compare current version of db versus filed out version info.
       PRUint32 version;
-      folderInfo->GetVersion(&version);
+      m_dbFolderInfo->GetVersion(&version);
       if (GetCurVersion() != version)
         err = NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
-      NS_RELEASE(folderInfo);
     }
-    if (NS_FAILED(err) && !aLeaveInvalidDB)
+    if (NS_FAILED(err) && !m_leaveInvalidDB)
       deleteInvalidDB = PR_TRUE;
   }
   else
@@ -1068,7 +1206,7 @@ NS_IMETHODIMP nsMsgDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRB
   if (deleteInvalidDB)
   {
     // this will make the db folder info release its ref to the mail db...
-    NS_IF_RELEASE(m_dbFolderInfo);
+    m_dbFolderInfo = nsnull;
     ForceClosed();
     if (err == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
       summaryFile->Remove(PR_FALSE);
@@ -1077,7 +1215,7 @@ NS_IMETHODIMP nsMsgDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRB
   {
     // if we couldn't open file, or we have a blank one, and we're supposed
     // to upgrade, updgrade it.
-    if (newFile && !aLeaveInvalidDB)  // caller is upgrading, and we have empty summary file,
+    if (newFile && !m_leaveInvalidDB)  // caller is upgrading, and we have empty summary file,
     {          // leave db around and open so caller can upgrade it.
       err = NS_MSG_ERROR_FOLDER_SUMMARY_MISSING;
     }
@@ -1092,10 +1230,12 @@ NS_IMETHODIMP nsMsgDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRB
   return (summaryFileExists) ? err : NS_MSG_ERROR_FOLDER_SUMMARY_MISSING;
 }
 
-// Open the MDB database synchronously. If successful, this routine
-// will set up the m_mdbStore and m_mdbEnv of the database object
-// so other database calls can work.
-nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
+/**
+ * Open the MDB database synchronously or async based on sync argument.
+ * If successful, this routine will set up the m_mdbStore and m_mdbEnv of
+ * the database object so other database calls can work.
+ */
+nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create, PRBool sync)
 {
   nsresult ret = NS_OK;
   nsCOMPtr<nsIMdbFactory> mdbFactory;
@@ -1105,7 +1245,6 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
     ret = mdbFactory->MakeEnv(NULL, &m_mdbEnv);
     if (NS_SUCCEEDED(ret))
     {
-      nsIMdbThumb *thumb = nsnull;
       struct stat st;
       nsIMdbHeap* dbHeap = 0;
       mdb_bool dbFrozen = mdbBool_kFalse; // not readonly, we want modifiable
@@ -1114,8 +1253,11 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
         m_mdbEnv->SetAutoClear(PR_TRUE);
       m_dbName = dbName;
       if (stat(dbName, &st))
+      {
         ret = NS_MSG_ERROR_FOLDER_SUMMARY_MISSING;
-      else
+      }
+      // If m_thumb is set, we're asynchronously opening the db already.
+      else if (!m_thumb) 
       {
         mdbOpenPolicy inOpenPolicy;
         mdb_bool  canOpen;
@@ -1137,7 +1279,7 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
               inOpenPolicy.mOpenPolicy_MaxLazy = 0;
 
               ret = mdbFactory->OpenFileStore(m_mdbEnv, dbHeap,
-                oldFile, &inOpenPolicy, &thumb);
+                oldFile, &inOpenPolicy, getter_AddRefs(m_thumb));
             }
             else
               ret = NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
@@ -1145,7 +1287,7 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
           NS_RELEASE(oldFile); // always release our file ref, store has own
         }
       }
-      if (NS_SUCCEEDED(ret) && thumb)
+      if (NS_SUCCEEDED(ret) && m_thumb && sync)
       {
         mdb_count outTotal;    // total somethings to do in operation
         mdb_count outCurrent;  // subportion of total completed so far
@@ -1153,7 +1295,7 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
         mdb_bool outBroken;     // is operation irreparably dead and broken?
         do
         {
-          ret = thumb->DoMore(m_mdbEnv, &outTotal, &outCurrent, &outDone, &outBroken);
+          ret = m_thumb->DoMore(m_mdbEnv, &outTotal, &outCurrent, &outDone, &outBroken);
           if (ret != 0)
           {// mork isn't really doing NS errors yet.
             outDone = PR_TRUE;
@@ -1165,13 +1307,14 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
         // only 0 is a non-error return.
         if (ret == 0 && outDone)
         {
-          ret = mdbFactory->ThumbToOpenStore(m_mdbEnv, thumb, &m_mdbStore);
+          ret = mdbFactory->ThumbToOpenStore(m_mdbEnv, m_thumb, &m_mdbStore);
           if (ret == NS_OK)
             ret = (m_mdbStore) ? InitExistingDB() : NS_ERROR_FAILURE;
         }
 #ifdef DEBUG_bienvenu1
         DumpContents();
 #endif
+        m_thumb = nsnull;
       }
       else if (create)  // ### need error code saying why open file store failed
       {
@@ -1197,7 +1340,6 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
           NS_RELEASE(newFile); // always release our file ref, store has own
         }
       }
-      NS_IF_RELEASE(thumb);
     }
   }
 #ifdef DEBUG_David_Bienvenu
@@ -1280,17 +1422,11 @@ if (m_mdbAllMsgHeadersTable)
 // caller must Release result.
 NS_IMETHODIMP nsMsgDatabase::GetDBFolderInfo(nsIDBFolderInfo  **result)
 {
-  *result = m_dbFolderInfo;
+  NS_ADDREF(*result = m_dbFolderInfo);
   if (m_dbFolderInfo)
-  {
-    m_dbFolderInfo->AddRef();
     return NS_OK;
-  }
-  else
-  {
-    NS_ASSERTION(PR_FALSE, "db must be corrupt");
-    return NS_ERROR_NULL_POINTER; // it's an error if we can't get this
-  }
+  NS_ERROR("db must be corrupt");
+  return NS_ERROR_NULL_POINTER; // it's an error if we can't get this
 }
 
 NS_IMETHODIMP nsMsgDatabase::Commit(nsMsgDBCommit commitType)

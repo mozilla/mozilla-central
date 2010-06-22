@@ -137,7 +137,7 @@ interface nsMsgDBCommitType
  * The contract ID for this component is
  * <tt>\@mozilla.org/msgDatabase/msgDBService;1</tt>.
  */
-[scriptable, uuid(e25d07fc-2a85-437f-9227-065c88a0b29f)]
+[scriptable, uuid(6ddaeb28-0499-4be1-85f7-7a5d20f80256)]
 interface nsIMsgDBService : nsISupports
 {
   /**
@@ -169,6 +169,31 @@ interface nsIMsgDBService : nsISupports
    */
   nsIMsgDatabase openFolderDB(in nsIMsgFolder aFolder,
                               in boolean aLeaveInvalidDB);
+
+  /**
+   * This is the same as a synchronous open in terms of params and errors.
+   * But to finish opening the db, the caller must call
+   * nsIMsgDBService::OpenMore repeatedly until the open is finished.
+   * @see nsIMsgDBService::openFolderDB
+   * @see nsIMsgDBService::openMore
+   */
+  nsIMsgDatabase asyncOpenFolderDB(in nsIMsgFolder aFolder,
+                                   in boolean aLeaveInvalidDB);
+
+  /**
+   * Continues the open process for a db opened with
+   * nsIMsgDBService::asyncOpenFolderDB. Returns true if the db is ready
+   * to use, false if openMore needs to be called again.
+   * This will throw the same kinds of exceptions as openFolderDB.
+   * @param aTimeHint approximate number of milliseconds to spend
+   *                  before returning. This is more of a floor than
+                      a ceiling, since we can't guarantee that there
+                      won't be one big chunk that we can't interrupt.
+   * @return true if db is ready to use, false if openMore needs to
+   *         be called again.
+   * @see nsIMsgDBService::openFolderDB
+   */
+  boolean openMore(in nsIMsgDatabase aDB, in long aTimeHint);
 
   /**
    * Creates a new database for the given folder.
