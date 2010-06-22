@@ -6945,8 +6945,9 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
           NS_ASSERTION(PR_FALSE, "bad msg in src array");
           continue;
         }
-
-        message->GetMessageId(getter_Copies(messageId));
+        nsMsgKey msgKey;
+        message->GetMessageKey(&msgKey);
+        messageId.AppendInt(msgKey);
         nsCOMPtr <nsIMsgOfflineImapOperation> sourceOp;
         rv = sourceMailDB->GetOfflineOpForKey(originalKey, PR_TRUE, getter_AddRefs(sourceOp));
         if (NS_SUCCEEDED(rv) && sourceOp)
