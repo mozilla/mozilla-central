@@ -140,8 +140,6 @@ $(CONFIG_DIR)/setup.exe::
 	for i in $(PP_LOCALIZED_FILES); do \
 	  $(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(srcdir)/$$i > $(CONFIG_DIR)/$$i; \
 	done
-	$(PERL) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/make-installremoves.pl \
-	  ../removed-files > $(CONFIG_DIR)/removed-files.log
 	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py -Fsubstitution $(DEFINES) $(ACDEFINES) \
 	  $(srcdir)/nsis/defines.nsi.in | iconv -f UTF-8 -t UTF-16LE | \
 	  cat $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/utf16-le-bom.bin - > \
