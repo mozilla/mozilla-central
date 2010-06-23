@@ -134,10 +134,6 @@ $(CONFIG_DIR)/setup.exe::
 	iconv -f UTF-8 -t UTF-16LE $(topsrcdir)/suite/installer/license.txt | \
 	  cat $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/utf16-le-bom.bin - > \
 	  $(CONFIG_DIR)/license.txt
-ifeq ($(CONFIG_DIR),instgen)
-	$(PERL) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/make-installremoves.pl \
-	  ../removed-files > $(CONFIG_DIR)/removed-files.log
-endif
 	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py -Fsubstitution $(DEFINES) $(ACDEFINES) \
 	  $(srcdir)/nsis/defines.nsi.in | iconv -f UTF-8 -t UTF-16LE | \
 	  cat $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/utf16-le-bom.bin - > \

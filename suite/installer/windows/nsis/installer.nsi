@@ -102,7 +102,6 @@ VIAddVersionKey "OriginalFilename" "setup.exe"
 !insertmacro FindSMProgramsDir
 !insertmacro GetPathFromString
 !insertmacro GetParent
-!insertmacro GetSingleInstallPath
 !insertmacro IsHandlerForInstallDir
 !insertmacro ManualCloseAppPrompt
 !insertmacro RegCleanMain
@@ -120,6 +119,7 @@ VIAddVersionKey "OriginalFilename" "setup.exe"
 !insertmacro InstallOnInitCommon
 !insertmacro InstallStartCleanupCommon
 !insertmacro LeaveDirectoryCommon
+!insertmacro LeaveOptionsCommon
 !insertmacro OnEndCommon
 !insertmacro PreDirectoryCommon
 
@@ -592,11 +592,10 @@ Section "-InstallEndCleanup"
   DetailPrint "$(STATUS_CLEANUP)"
   SetDetailsPrint none
 
-  ${LogHeader} "Updating Uninstall Log With Previous Uninstall Log"
-  ${InstallEndCleanupCommon}
-
   ; Refresh desktop icons
   System::Call "shell32::SHChangeNotify(i, i, i, i) v (0x08000000, 0, 0, 0)"
+
+  ${InstallEndCleanupCommon}
 
   ; If we have to reboot give SHChangeNotify time to finish the refreshing
   ; the icons so the OS doesn't display the icons from helper.exe
@@ -731,19 +730,9 @@ Function leaveOptions
   StrCmp $R0 "1" +1 +2
   StrCpy $InstallType ${INSTALLTYPE_CUSTOM}
 
-  ${If} $InstallType != ${INSTALLTYPE_CUSTOM}
-!ifndef NO_INSTDIR_FROM_REG
-    SetShellVarContext all      ; Set SHCTX to HKLM
-    ${GetSingleInstallPath} "Software\Mozilla\${BrandFullNameInternal}" $R9
-    StrCmp "$R9" "false" +1 fix_install_dir
-    SetShellVarContext current  ; Set SHCTX to HKCU
-    ${GetSingleInstallPath} "Software\Mozilla\${BrandFullNameInternal}" $R9
+  ${LeaveOptionsCommon}
 
-    fix_install_dir:
-    StrCmp "$R9" "false" +2 +1
-    StrCpy $INSTDIR "$R9"
-!endif
-
+  ${If} $InstallType == ${INSTALLTYPE_BASIC}
     Call CheckExistingInstall
   ${EndIf}
 FunctionEnd
@@ -807,6 +796,9 @@ Function preDirectory
 FunctionEnd
 
 Function leaveDirectory
+  ${If} $InstallType == ${INSTALLTYPE_BASIC}
+    Call CheckExistingInstall
+  ${EndIf}
   ${LeaveDirectoryCommon} "$(WARN_DISK_SPACE)" "$(WARN_WRITE_ACCESS)"
 FunctionEnd
 
@@ -824,6 +816,13 @@ Function leaveShortcuts
   ${MUI_INSTALLOPTIONS_READ} $AddDesktopSC "shortcuts.ini" "Field 2" "State"
   ${MUI_INSTALLOPTIONS_READ} $AddStartMenuSC "shortcuts.ini" "Field 3" "State"
   ${MUI_INSTALLOPTIONS_READ} $AddQuickLaunchSC "shortcuts.ini" "Field 4" "State"
+
+  ; If Start Menu shortcuts won't be created call CheckExistingInstall here
+  ; since leaveStartMenu will not be called.
+  ${If} $AddStartMenuSC != 1
+  ${AndIf} $InstallType == ${INSTALLTYPE_CUSTOM}
+    Call CheckExistingInstall
+  ${EndIf}
 FunctionEnd
 
 Function preStartMenu
