@@ -141,6 +141,10 @@
         Components.classes["@mozilla.org/docshell/urifixup;1"]
                   .getService(Components.interfaces.nsIURIFixup);
       </field>
+      <field name="mFaviconService" readonly="true">
+        Components.classes["@mozilla.org/browser/favicon-service;1"]
+                  .getService(Components.interfaces.nsIFaviconService);
+      </field>
       <field name="mTabBox" readonly="true">
         document.getAnonymousElementByAttribute(this, "anonid", "tabbox");
       </field>
@@ -646,13 +650,6 @@
               return allowRefresh;
             },
 
-            setIcon : function(aURI)
-            {
-              this.mBrowser.mIconURL = aURI;
-              if (!this.mTab.hasAttribute("busy"))
-                this.mTab.setAttribute("image", aURI);
-            },
-
             addFeed : function(aLink)
             {
               this.mFeeds.push(aLink);
@@ -728,12 +725,73 @@
         </body>
       </method>
 
+      <method name="setIcon">
+        <parameter name="aTab"/>
+        <parameter name="aURI"/>
+        <body>
+          <![CDATA[
+            var browser = aTab.linkedBrowser;
+            browser.mIconURL = aURI instanceof Components.interfaces.nsIURI ?
+                               aURI.spec : aURI;
+
+            if (aURI && this.mFaviconService) {
+              if (!(aURI instanceof Components.interfaces.nsIURI))
+                aURI = makeURI(aURI);
+              this.mFaviconService.setAndLoadFaviconForPage(browser.currentURI,
+                                                            aURI, false);
+            }
+
+            this.updateIcon(aTab);
+
+            if (browser == this.mCurrentBrowser) {
+              this.mProgressListeners.forEach(
+                function notifyLinkIconAvailable(p) {
+                  if ("onLinkIconAvailable" in p)
+                    try {
+                      p.onLinkIconAvailable(browser.mIconURL);
+                    } catch (e) {
+                      // don't inhibit other listeners
+                      Components.utils.reportError(e);
+                    }
+                }
+              );
+            }
+            this.mTabsProgressListeners.forEach(
+              function notifyLinkIconAvailable(p) {
+                if ("onLinkIconAvailable" in p)
+                  try {
+                    // tab listener needs browser as first argument
+                    p.onLinkIconAvailable(browser, browser.mIconURL);
+                  } catch (e) {
+                    // don't inhibit other listeners
+                    Components.utils.reportError(e);
+                  }
+              }
+            );
+          ]]>
+        </body>
+      </method>
+
       <method name="getIcon">
         <parameter name="aTab"/>
         <body>
           <![CDATA[
-            let browser = aTab ? this.getBrowserForTab(aTab) : this.selectedBrowser;
+            let browser = aTab ? aTab.linkedBrowser : this.selectedBrowser;
             return browser.mIconURL;
+          ]]>
+        </body>
+      </method>
+
+      <method name="updateIcon">
+        <parameter name="aTab"/>
+        <body>
+          <![CDATA[
+            var browser = this.getBrowserForTab(aTab);
+            if (!aTab.hasAttribute("busy") && browser.mIconURL)
+              aTab.setAttribute("image", browser.mIconURL);
+            else
+              aTab.removeAttribute("image");
+            this._tabAttrModified(aTab);
           ]]>
         </body>
       </method>
@@ -1222,25 +1280,23 @@
                                            uri, origURI, event.target,
                                            event.target.type,
                                            null) == nsIContentPolicy.ACCEPT) {
-                this.mTabListeners[i].setIcon(href);
-                if (this.browsers[i] == this.mCurrentBrowser) {
-                  this.mProgressListeners.forEach(
-                    function notifyLinkIconAvailable(element) {
-                      if ("onLinkIconAvailable" in element) {
-                        try {
-                          element.onLinkIconAvailable(href);
-                        } catch (e) {
-                          Components.utils.reportError(e);
-                        }
-                      }
-                    }
-                  );
-                }
+                this.setIcon(this.tabs[i], href);
               }
               return;
             }
           ]]>
         </body>
+      </method>
+
+      <method name="_tabAttrModified">
+        <parameter name="aTab"/>
+        <body><![CDATA[
+          // This event should be dispatched when any of these attributes change:
+          // label, crop, busy, image, selected
+          var event = document.createEvent("Events");
+          event.initEvent("TabAttrModified", true, false);
+          aTab.dispatchEvent(event);
+        ]]></body>
       </method>
 
       <method name="onTitleChanged">
