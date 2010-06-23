@@ -175,8 +175,10 @@ function CustomizeMailToolbar(toolboxId, customizePopupId)
 
   if (gCustomizeSheet) {
     var sheetFrame = document.getElementById("customizeToolbarSheetIFrame");
+    var panel = document.getElementById("customizeToolbarSheetPopup");
     sheetFrame.hidden = false;
     sheetFrame.toolbox = toolbox;
+    sheetFrame.panel = panel;
 
     // The document might not have been loaded yet, if this is the first time.
     // If it is already loaded, reload it so that the onload intialization code
@@ -186,8 +188,14 @@ function CustomizeMailToolbar(toolboxId, customizePopupId)
     else
       sheetFrame.setAttribute("src", customizeURL);
 
-    document.getElementById("customizeToolbarSheetPopup")
-            .openPopup(toolbox, "after_start", 0, 0);
+    // Open the panel, but make it invisible until the iframe has loaded so
+    // that the user doesn't see a white flash.
+    panel.style.visibility = "hidden";
+    toolbox.addEventListener("beforecustomization", function () {
+      toolbox.removeEventListener("beforecustomization", arguments.callee, false);
+      panel.style.removeProperty("visibility");
+    }, false);
+    panel.openPopup(toolbox, "after_start", 0, 0);
   }
   else {
     var wintype = document.documentElement.getAttribute("windowtype");

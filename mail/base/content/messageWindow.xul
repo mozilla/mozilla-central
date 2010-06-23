@@ -183,9 +183,7 @@
     <hbox id="attachmentView"/>
     <findbar id="FindToolbar" browserid="messagepane"/>
   </vbox>
-  <panel id="customizeToolbarSheetPopup"
-         noautohide="true"
-         onpopupshown="this.moveTo(this.boxObject.screenX + (window.innerWidth - this.boxObject.width) / 2, this.boxObject.screenY);">
+  <panel id="customizeToolbarSheetPopup" noautohide="true">
     <iframe id="customizeToolbarSheetIFrame"
             style="&dialog.style;"
             hidden="true"/>
