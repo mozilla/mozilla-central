@@ -387,13 +387,18 @@
                                    newAddressNode.clientWidth + this.commaNodeWidth:
                                    newAddressNode.clientWidth;
                 curLineWidth += newLineWidth;
-                if (curLineWidth > availableWidth && i > 0) {
+
+                let overLineWidth = curLineWidth - availableWidth;
+                if (overLineWidth > 0 && i > 0) {
                   curLine++;
                   curLineWidth = newLineWidth;
                 }
 
                 // hide the last node spanning into the additional line (n>1)
-                if (curLine >= this.maxLinesBeforeMore && this.maxLinesBeforeMore > 1) {
+                // also hide it if <30px left after sliding the address (n=1)
+                if (curLine >= this.maxLinesBeforeMore &&
+                    (this.maxLinesBeforeMore > 1 ||
+                     newLineWidth - overLineWidth < 30)) {
                   aAddressesNode.lastChild.hidden = true;
                   i--;
                 }
