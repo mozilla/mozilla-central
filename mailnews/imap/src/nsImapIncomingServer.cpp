@@ -1057,6 +1057,8 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
   if (dupFolderPath.Last() == '/')
   {
     dupFolderPath.SetLength(dupFolderPath.Length()-1);
+    if (dupFolderPath.IsEmpty())
+      return NS_ERROR_FAILURE;
     // *** this is what we did in 4.x in order to list uw folder only
     // mailbox in order to get the \NoSelect flag
     explicitlyVerify = !(boxFlags & kNameSpace);
@@ -1165,7 +1167,8 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
           (kPublicMailbox | kOtherUsersMailbox | kPersonalMailbox))), &parentIsNew);
       }
     }
-    hostFolder->CreateClientSubfolderInfo(dupFolderPath, hierarchyDelimiter,boxFlags, PR_FALSE);
+    rv = hostFolder->CreateClientSubfolderInfo(dupFolderPath, hierarchyDelimiter,boxFlags, PR_FALSE);
+    NS_ENSURE_SUCCESS(rv, rv);
     caseInsensitive = MsgLowerCaseEqualsLiteral(dupFolderPath, "inbox");
     a_nsIFolder->GetChildWithURI(uri, PR_TRUE, caseInsensitive, getter_AddRefs(child));
   }
