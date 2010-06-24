@@ -1100,9 +1100,10 @@ nsresult nsMsgLocalMailFolder::ConfirmFolderDeletion(nsIMsgWindow *aMsgWindow,
         const PRUint32 buttonFlags =
           (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
           (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1);
+        PRBool dummyValue = PR_FALSE;
         rv = dialog->ConfirmEx(deleteFolderDialogTitle.get(), confirmationStr.get(),
                                buttonFlags,  deleteFolderButtonLabel.get(),
-                               nsnull, nsnull, nsnull, nsnull,
+                               nsnull, nsnull, nsnull, &dummyValue,
                                &buttonPressed);
         NS_ENSURE_SUCCESS(rv, rv);
         *aResult = !buttonPressed; // "ok" is in position 0

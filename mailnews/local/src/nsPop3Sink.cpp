@@ -781,13 +781,14 @@ nsresult nsPop3Sink::HandleTempDownloadFailed(nsIMsgWindow *msgWindow)
   if (promptService && !confirmString.IsEmpty())
   {
     PRInt32 dlgResult  = -1;
+    PRBool dummyValue = PR_FALSE;
     rv = promptService->ConfirmEx(parentWindow, nsnull, confirmString.get(),
                       nsIPromptService::STD_YES_NO_BUTTONS,
                       nsnull,
                       nsnull,
                       nsnull,
                       nsnull,
-                      nsnull,
+                      &dummyValue,
                       &dlgResult);
     m_newMailParser->m_newMsgHdr = nsnull;
 
