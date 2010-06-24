@@ -4099,8 +4099,9 @@ reported here */
   if (NS_FAILED(rv) || requireConfirmationForCancel) {
     /* Last chance to cancel the cancel.*/
     GetNewsStringByName("cancelConfirm", getter_Copies(confirmText));
+    PRBool dummyValue = PR_FALSE;
     rv = dialog->ConfirmEx(nsnull, confirmText.get(), nsIPrompt::STD_YES_NO_BUTTONS,
-                           nsnull, nsnull, nsnull, nsnull, nsnull, &confirmCancelResult);
+                           nsnull, nsnull, nsnull, nsnull, &dummyValue, &confirmCancelResult);
     if (NS_FAILED(rv))
     	confirmCancelResult = 1; // Default to No.
   }

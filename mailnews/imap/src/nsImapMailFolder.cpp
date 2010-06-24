@@ -1564,10 +1564,11 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
                                               formatStrings, 1,
                                               getter_Copies(confirmText));
             // Got the text, now show dialog.
+            PRBool dummyValue = PR_FALSE;
             rv = promptService->ConfirmEx(parentWindow, nsnull, confirmText.get(),
                                         (nsIPromptService::BUTTON_TITLE_OK * nsIPromptService::BUTTON_POS_0) +
                                         (nsIPromptService::BUTTON_TITLE_CANCEL * nsIPromptService::BUTTON_POS_1),
-                                          nsnull, nsnull, nsnull, nsnull, nsnull, &dlgResult);
+                                          nsnull, nsnull, nsnull, nsnull, &dummyValue, &dlgResult);
           }
           if (NS_SUCCEEDED(rv) && dlgResult == 1)
             return NS_BINDING_ABORTED;
@@ -2525,9 +2526,10 @@ nsImapMailFolder::DeleteSubFolders(nsIArray* folders, nsIMsgWindow *msgWindow)
         (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
         (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1);
 
+      PRBool dummyValue = PR_FALSE;
       rv = dialog->ConfirmEx(deleteFolderDialogTitle.get(), confirmationStr.get(),
                              buttonFlags,  deleteFolderButtonLabel.get(),
-                             nsnull, nsnull, nsnull, nsnull,
+                             nsnull, nsnull, nsnull, &dummyValue,
                              &buttonPressed);
       NS_ENSURE_SUCCESS(rv, rv);
       confirmed = !buttonPressed; // "ok" is in position 0

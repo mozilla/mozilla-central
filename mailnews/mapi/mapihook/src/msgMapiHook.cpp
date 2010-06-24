@@ -202,9 +202,10 @@ PRBool nsMapiHook::DisplayLoginDialog(PRBool aLogin, PRUnichar **aUsername,
                                      getter_Copies(loginText));
       if (NS_FAILED(rv) || loginText.IsEmpty()) return PR_FALSE;
 
+      PRBool dummyValue = PR_FALSE;
       rv = dlgService->PromptUsernameAndPassword(nsnull, loginTitle.get(),
                                                  loginText.get(), aUsername, aPassword,
-                                                 nsnull, PR_FALSE, &btnResult);
+                                                 nsnull, &dummyValue, &btnResult);
     }
     else
     {
@@ -218,8 +219,9 @@ PRBool nsMapiHook::DisplayLoginDialog(PRBool aLogin, PRUnichar **aUsername,
                                         getter_Copies(loginText));
       if (NS_FAILED(rv)) return PR_FALSE;
 
+      PRBool dummyValue = PR_FALSE;
       rv = dlgService->PromptPassword(nsnull, loginTitle.get(), loginText.get(),
-                                      aPassword, nsnull, PR_FALSE, &btnResult);
+                                      aPassword, nsnull, &dummyValue, &btnResult);
     }
   }
 

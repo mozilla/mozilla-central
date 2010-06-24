@@ -2089,7 +2089,7 @@ NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
     getter_Copies(button2));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool dummyValue;
+  PRBool dummyValue = PR_FALSE;
   return dialog->ConfirmEx(
     title.get(), message.get(),
     (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
