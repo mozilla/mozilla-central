@@ -1001,19 +1001,13 @@ PRInt32 nsSmtpProtocol::ProcessAuth()
 
   (void) ChooseAuthMethod(); // advance m_currentAuthMethod
 
-  if (m_prefAuthMethods == SMTP_AUTH_NONE_ENABLED) // No auth needed
+   // We don't need to auth, per pref, or the server doesn't advertise AUTH,
+  // so skip auth and try to send message.
+  if (m_prefAuthMethods == SMTP_AUTH_NONE_ENABLED || !TestFlag(SMTP_AUTH))
   {
     m_nextState = SMTP_SEND_HELO_RESPONSE;
     // fake to 250 because SendHeloResponse() tests for this
     m_responseCode = 250;
-  }
-  // did the server advertise authentication capability at all,
-  // but we wanted to auth?
-  else if (!TestFlag(SMTP_AUTH))
-  {
-    m_urlErrorState = NS_ERROR_SMTP_AUTH_NOT_SUPPORTED;
-    m_nextState = SMTP_ERROR_DONE;
-    return NS_ERROR_SMTP_AUTH_FAILURE;
   }
   else if (m_currentAuthMethod == SMTP_AUTH_EXTERNAL_ENABLED)
   {
