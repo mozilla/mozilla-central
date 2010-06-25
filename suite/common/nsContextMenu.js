@@ -1227,14 +1227,7 @@ nsContextMenu.prototype = {
 
     for (var node = this.target; node; node = node.parentNode)
       if (node instanceof Components.interfaces.nsIDOMNSHTMLElement)
-        switch (node.contentEditable) {
-          case "true":
-            return true;
-          case "false":
-            return false;
-          // case "inherit": continue;
-        }
-
+        return node.isContentEditable;
     return false;
   },
 
