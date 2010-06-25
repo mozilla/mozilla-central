@@ -453,7 +453,6 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/nsAboutFeeds.js
 @BINPATH@/components/nsAboutRights.js
 @BINPATH@/components/nsAboutSessionRestore.js
-@BINPATH@/components/nsAddonRepository.js
 @BINPATH@/components/nsBadCertHandler.js
 @BINPATH@/components/nsBlocklistService.js
 @BINPATH@/components/nsBrowserContentHandler.js
