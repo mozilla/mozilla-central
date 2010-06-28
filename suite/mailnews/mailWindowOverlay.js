@@ -31,6 +31,7 @@
  *   Karsten Düsterloh <mnyromyr@tprac.de>
  *   Christopher Thomas <cst@yecc.com>
  *   Jeremy Morton <bugzilla@game-point.net>
+ *   Jens Hatlak <jh@junetz.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -1174,6 +1175,8 @@ function BatchMessageMover()
 {
   this._batches = {};
   this._currentKey = null;
+  this._dstFolderParent = null;
+  this._dstFolderName = null;
 }
 
 BatchMessageMover.prototype =
@@ -1194,14 +1197,36 @@ BatchMessageMover.prototype =
     for (let i = 0; i < aMsgHdrs.length; ++i)
     {
       let msgHdr = aMsgHdrs[i];
+      let server = msgHdr.folder.server;
       let msgDate = new Date(msgHdr.date / 1000);  // convert date to JS date object
       let msgYear = msgDate.getFullYear().toString();
-      let dstFolderName = msgDate.toLocaleFormat("%Y-%m");
-      let copyBatchKey = msgHdr.folder.URI + '\000' + dstFolderName;
+      let monthFolderName = msgDate.toLocaleFormat("%Y-%m");
+
+      // RSS servers don't have an identity so we special case the archives URI.
+      let archiveFolderUri;
+      if (server.type == 'rss')
+        archiveFolderUri = server.serverURI + "/Archives";
+      else
+        archiveFolderUri = GetIdentityForHeader(msgHdr,
+          Components.interfaces.nsIMsgCompType.ReplyAll).archiveFolder;
+      let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+      let afServer = archiveFolder.server;
+
+      let copyBatchKey = msgHdr.folder.URI + '\000' + monthFolderName;
       if (!(copyBatchKey in this._batches))
-        this._batches[copyBatchKey] = [msgHdr.folder, msgYear, dstFolderName];
+        this._batches[copyBatchKey] = [msgHdr.folder,
+                                       archiveFolderUri,
+                                       afServer.archiveGranularity,
+                                       afServer.archiveKeepFolderStructure,
+                                       msgYear,
+                                       monthFolderName];
       this._batches[copyBatchKey].push(msgHdr);
     }
+
+    let notificationService = Components.classes["@mozilla.org/messenger/msgnotificationservice;1"]
+                                        .getService(Components.interfaces.nsIMsgFolderNotificationService);
+    notificationService.addListener(this, notificationService.folderAdded);
+
     // Now we launch the code iterating over all message copies, one in turn.
     this.processNextBatch();
   },
@@ -1212,21 +1237,11 @@ BatchMessageMover.prototype =
     {
       this._currentKey = key;
       let batch = this._batches[key];
-      let srcFolder = batch[0];
-      let msgYear = batch[1];
-      let msgMonth = batch[2];
-      let msgs = batch.slice(3);
-      // RSS servers don't have an identity so we special case the archives URI.
-      let archiveFolderUri;
-      if (srcFolder.server.type == 'rss')
-        archiveFolderUri = srcFolder.server.serverURI + "/Archives";
-      else
-        archiveFolderUri = GetIdentityForHeader(msgs[0],
-          Components.interfaces.nsIMsgCompType.ReplyAll).archiveFolder;
+      let [srcFolder, archiveFolderUri, granularity, keepFolderStructure, msgYear, msgMonth] = batch;
+      let msgs = batch.slice(6);
 
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
       let dstFolder = archiveFolder;
-      let granularity = archiveFolder.server.archiveGranularity;
       // For imap folders, we need to create the sub-folders asynchronously,
       // so we chain the urls using the listener called back from 
       // createStorageIfMissing. For local, createStorageIfMissing is
@@ -1263,8 +1278,49 @@ BatchMessageMover.prototype =
             return;
         }
       }
+
+      // Create the folder structure in Archives
+      // For imap folders, we need to create the sub-folders asynchronously,
+      // so we chain the actions using the listener called back from 
+      // createSubfolder. For local, createSubfolder is synchronous.
+      if (archiveFolder.canCreateSubfolders && keepFolderStructure)
+      {
+        // Collect in-order list of folders of source folder structure,
+        // excluding top-level INBOX folder
+        let folderNames = [];
+        let rootFolder = srcFolder.server.rootFolder;
+        let inboxFolder = GetInboxFolder(srcFolder.server);
+        let folder = srcFolder;
+        while (folder != rootFolder && folder != inboxFolder)
+        {
+          folderNames.unshift(folder.name);
+          folder = folder.parent;
+        }
+        // Determine Archive folder structure
+        for (let i = 0; i < folderNames.length; ++i)
+        {
+          let folderName = folderNames[i];
+          if (!dstFolder.containsChildNamed(folderName))
+          {
+            // Create Archive sub-folder (IMAP: async) 
+            if (isImap)
+            {
+              this._dstFolderParent = dstFolder;
+              this._dstFolderName = folderName;
+            }
+            dstFolder.createSubfolder(folderName, msgWindow);
+            if (isImap)
+              return;
+          }
+          dstFolder = dstFolder.getChildNamed(folderName);
+        }
+      }
+
       if (dstFolder != srcFolder)
       {
+        // Make sure the target folder is visible in the folder tree.
+        EnsureFolderIndex(GetFolderTree().builderView, dstFolder);
+
         let array = Components.classes["@mozilla.org/array;1"]
                               .createInstance(Components.interfaces.nsIMutableArray);
         msgs.forEach(function(item){array.appendElement(item, false);});
@@ -1276,6 +1332,10 @@ BatchMessageMover.prototype =
       }
       delete this._batches[key];
     }
+
+    Components.classes["@mozilla.org/messenger/msgnotificationservice;1"]
+              .getService(Components.interfaces.nsIMsgFolderNotificationService)
+              .removeListener(this);
 
     // We're just going to select the message now.
     let treeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
@@ -1326,10 +1386,25 @@ BatchMessageMover.prototype =
     }
   },
 
+  // This also implements nsIMsgFolderListener, but we only care about the
+  // folderAdded (createSubfolder callback).
+  folderAdded: function(aFolder)
+  {
+    // Check that this is the folder we're interested in.
+    if (aFolder.parent == this._dstFolderParent &&
+        aFolder.name == this._dstFolderName)
+    {
+      this._dstFolderParent = null;
+      this._dstFolderName = null;
+      this.processNextBatch();
+    }
+  },
+
   QueryInterface: function(aIID)
   {
     if (aIID.equals(Components.interfaces.nsIUrlListener) ||
         aIID.equals(Components.interfaces.nsIMsgCopyServiceListener) ||
+        aIID.equals(Components.interfaces.nsIMsgFolderListener) ||
         aIID.equals(Components.interfaces.nsISupports))
       return this;
     throw Components.results.NS_ERROR_NO_INTERFACE;
