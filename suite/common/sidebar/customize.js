@@ -141,8 +141,7 @@ var panels_observer = {
     //debug ("observer: assert");
     // "refresh" is asserted by select menu and by customize.js.
     if (prop == RDF.GetResource(NC + "link")) {
-      setTimeout("fixup_remote_container('"+src.Value+"')",100);
-      //fixup_remote_container(src.Value);
+      setTimeout(fixup_remote_container, 100, src.Value);
     }
   },
   onUnassert : function(ds,src,prop,target) {
@@ -234,7 +233,7 @@ function ClickOnOtherPanels(event)
         add_datasource_to_other_panels(link);
         treeitem.setAttribute('loaded_link', 'true');
       } else {
-        setTimeout('fixup_children("'+ treeitem.getAttribute('id') +'")', 100);
+        setTimeout(fixup_children, 100, treeitem.getAttribute('id'));
       }
     }
   }

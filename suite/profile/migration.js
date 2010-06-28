@@ -418,7 +418,7 @@ var MigrationWizard = {
       this._wiz.advance();
 
       if (this._autoMigrate)
-        setTimeout(function() {window.close();}, 5000);
+        setTimeout(close, 5000);
 
       break;
     }

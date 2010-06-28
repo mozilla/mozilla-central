@@ -446,7 +446,7 @@ function (force_reload)
               clearTimeout(gTimeoutID);
 
             gCurFrame = iframe;
-            gTimeoutID = setTimeout (setBlank, 20000);
+            gTimeoutID = setTimeout(setBlank, 20000);
           }
         }
 
@@ -835,7 +835,7 @@ function sidebar_open_default_panel(wait, tries) {
   } else {
     if (tries < 3) {
       // No children yet, try again later
-      setTimeout('sidebar_open_default_panel(' + (wait*2) + ',' + (tries+1) + ')',wait);
+      setTimeout(sidebar_open_default_panel, wait, wait*2, ++tries);
       gBusyOpeningDefault = false;
       return;
     } else {
@@ -1233,7 +1233,7 @@ function SidebarShowHide() {
   }
   // Immediately save persistent values
   document.persist('sidebar-title-box', 'hidden');
-  persist_width();
+  PersistWidth();
   window.content.focus();
 }
 
@@ -1495,8 +1495,8 @@ function SidebarCleanUpExpandCollapse() {
     sidebar_overlay_init();
   }
 
-  setTimeout("document.persist('sidebar-box', 'collapsed');",100);
-  setTimeout("sidebarObj.panels.refresh();",100);
+  setTimeout(Persist, 100, "sidebar-box", "collapsed");
+  setTimeout(function() sidebarObj.panels.refresh(), 100);
 }
 
 function PersistHeight() {
@@ -1504,26 +1504,25 @@ function PersistHeight() {
   // but wait until the last drag has been committed.
   // May want to do something smarter here like only force it if the
   // height has really changed.
-  setTimeout("document.persist('sidebar-panels-splitter-box','height');",100);
+  setTimeout(Persist, 100, "sidebar-panels-splitter-box", "height");
 }
 
-function persist_width() {
+function PersistWidth() {
   // XXX Mini hack. Persist isn't working too well. Force the persist,
-  // but wait until the width change has commited.
-  setTimeout("document.persist('sidebar-box', 'width');",100);
+  // but wait until the width change has commited. Also see bug 16516.
+  setTimeout(Persist, 100, "sidebar-box", "width");
 
-  var is_collapsed = document.getElementById('sidebar-box').
-                       getAttribute('collapsed') == 'true';
+  var is_collapsed = document.getElementById("sidebar-box")
+                             .getAttribute("collapsed") == "true";
   SidebarSetButtonOpen(!is_collapsed);
 }
 
-function SidebarFinishClick() {
+function Persist(aAttribute, aValue) {
+  document.persist(aAttribute, aValue);
+}
 
-  // XXX Semi-hack for bug #16516.
-  // If we had the proper drag event listener, we would not need this
-  // timeout. The timeout makes sure the width is written to disk after
-  // the sidebar-box gets the newly dragged width.
-  setTimeout("persist_width()",100);
+function SidebarFinishClick() {
+  PersistWidth();
 
   var is_collapsed = document.getElementById('sidebar-box').getAttribute('collapsed') == 'true';
   debug("collapsed: " + is_collapsed);

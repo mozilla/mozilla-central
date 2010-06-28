@@ -785,7 +785,7 @@ function checkSearchProgress()
   }
 
   if (activeSearchFlag)
-    setTimeout("checkSearchProgress()", 1000);
+    setTimeout(checkSearchProgress, 1000);
   else
     doStop();
 
@@ -889,7 +889,7 @@ function OpenSearch(aSearchStr, engineURIs)
     debug("Exception: " + ex);
   }
 
-  setTimeout("checkSearchProgress()", 1000);
+  setTimeout(checkSearchProgress, 1000);
 }
 
 function saveSearch()

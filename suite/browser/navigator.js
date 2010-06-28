@@ -596,7 +596,7 @@ function Startup()
     setTimeout(WindowFocusTimerCallback, 0, content);
 
   // Perform default browser checking (after window opens).
-  setTimeout( checkForDefaultBrowser, 0 );
+  setTimeout(checkForDefaultBrowser, 0);
 
   // hook up browser access support
   window.browserDOMWindow = new nsBrowserAccess();
@@ -687,7 +687,8 @@ function InitSessionStoreCallback()
 
 function WindowFocusTimerCallback(element)
 {
-  // This fuction is a redo of the fix for jag bug 91884
+  // This function is a redo of the fix for jag bug 91884.
+  // See Bug 97067 and Bug 89214 for details.
   if (window == Services.ww.activeWindow) {
     element.focus();
   } else {
@@ -1248,9 +1249,9 @@ function BrowserOpenTab()
 
     gBrowser.selectedTab = gBrowser.addTab(uriToLoad);
     if (uriToLoad == "about:blank" && isElementVisible(gURLBar))
-      setTimeout("gURLBar.focus();", 0);
+      setTimeout(WindowFocusTimerCallback, 0, gURLBar);
     else
-      setTimeout("content.focus();", 0);
+      setTimeout(WindowFocusTimerCallback, 0, content);
   }
 }
 

@@ -129,10 +129,10 @@ function Boot()
   if (document.getElementById('tree'))
     Init();
   else
-    setTimeout("Boot()", 500);
+    setTimeout(Boot, 500);
 }
 
-setTimeout("Boot()", 0);
+setTimeout(Boot, 0);
 
 function Init()
 {
