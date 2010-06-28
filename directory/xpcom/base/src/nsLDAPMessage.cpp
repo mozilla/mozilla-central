@@ -611,12 +611,11 @@ nsLDAPMessage::GetBinaryValues(const char *aAttr, PRUint32 *aCount,
     //
     PRUint32 i;
     nsresult rv;
-    nsCOMPtr<nsILDAPBERValue> berValue;
     for ( i = 0 ; i < numVals ; i++ ) {
 
         // create an nsBERValue object
         //
-        NS_NEWXPCOM(berValue, nsLDAPBERValue);
+        nsCOMPtr<nsILDAPBERValue> berValue = new nsLDAPBERValue();
         if (!berValue) {
             NS_ERROR("nsLDAPMessage::GetBinaryValues(): out of memory"
                      " creating nsLDAPBERValue object");

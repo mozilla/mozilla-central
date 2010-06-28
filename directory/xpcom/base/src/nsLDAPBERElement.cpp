@@ -119,8 +119,7 @@ NS_IMETHODIMP nsLDAPBERElement::PutSet(PRUint32 *aBytesWritten)
 NS_IMETHODIMP nsLDAPBERElement::GetAsValue(nsILDAPBERValue **_retval)
 {
   // create the value object
-  nsCOMPtr<nsILDAPBERValue> berValue;
-  NS_NEWXPCOM(berValue, nsLDAPBERValue);
+  nsCOMPtr<nsILDAPBERValue> berValue = new nsLDAPBERValue();
 
   if (!berValue) {
     NS_ERROR("nsLDAPBERElement::GetAsValue(): out of memory"

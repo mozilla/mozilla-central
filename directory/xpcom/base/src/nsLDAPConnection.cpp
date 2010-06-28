@@ -132,11 +132,11 @@ nsLDAPConnection::Release(void)
 
             NS_ADDREF(runnable);
             PR_Lock(runnable->mLock);
-            NS_DELETEXPCOM(this);
+            delete this;
             PR_Unlock(runnable->mLock);
             NS_RELEASE(runnable);
         } else {
-            NS_DELETEXPCOM(this);
+            delete this;
         }
 
         return 0;
@@ -706,8 +706,8 @@ CheckLDAPOperationResult(nsHashKey *aKey, void *aData, void* aClosure)
             // we want nsLDAPMessage specifically, not a compatible, since
             // we're sharing native objects used by the LDAP C SDK
             //
-            nsLDAPMessage *rawMsg;
-            NS_NEWXPCOM(rawMsg, nsLDAPMessage);
+            nsLDAPMessage *rawMsg = new nsLDAPMessage();
+
             if (!rawMsg) {
             NS_ERROR("CheckLDAPOperationResult(): couldn't allocate memory"
                      " for new LDAP message; search entry dropped");

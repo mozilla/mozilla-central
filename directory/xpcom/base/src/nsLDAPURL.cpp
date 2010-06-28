@@ -442,8 +442,8 @@ NS_IMETHODIMP nsLDAPURL::Clone(nsIURI **aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
-  nsLDAPURL *clone;
-  NS_NEWXPCOM(clone, nsLDAPURL);
+  nsLDAPURL *clone = new nsLDAPURL();
+
   if (!clone)
     return NS_ERROR_OUT_OF_MEMORY;
 
