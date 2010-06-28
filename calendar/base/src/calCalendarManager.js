@@ -40,6 +40,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/AddonManager.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
 
@@ -69,10 +71,55 @@ function flushPrefs() {
               .savePrefFile(null);
 }
 
+var gCalendarManagerAddonListener = {
+    onDisabling: function(aAddon, aNeedsRestart) {
+        if (!this.queryUninstallProvider(aAddon)) {
+            // If the addon should not be disabled, then re-enable it.
+            aAddon.userDisabled = false;
+        }
+    },
+
+    onUninstalling: function(aAddon, aNeedsRestart) {
+        if (!this.queryUninstallProvider(aAddon)) {
+            // If the addon should not be uninstalled, then cancel the uninstall.
+            aAddon.cancelUninstall();
+        }
+    },
+
+    queryUninstallProvider: function(aAddon) {
+        const uri = "chrome://calendar/content/calendar-providerUninstall-dialog.xul";
+        const features = "chrome,titlebar,resizable,modal";
+        let calMgr = cal.getCalendarManager();
+        let affectedCalendars =
+            [ cal for each (cal in calMgr.getCalendars({}))
+              if (cal.providerID == aAddon.id) ];
+        if (!affectedCalendars.length) {
+            // If no calendars are affected, then everything is fine.
+            return true;
+        }
+
+        let args = { shouldUninstall: false, extension: aAddon };
+
+        // Now find a window. The best choice would be the most recent
+        // addons window, otherwise the most recent calendar window, or we
+        // create a new toplevel window.
+        let win = Services.wm.getMostRecentWindow("Extension:Manager") ||
+                  cal.getCalendarWindow();
+        if (win) {
+            win.openDialog(uri, "CalendarProviderUninstallDialog", features, args);
+        } else {
+            // Use the window watcher to open a parentless window.
+            Services.ww.openWindow(null, uri, "CalendarProviderUninstallWindow", features, args);
+        }
+
+        // Now that we are done, check if the dialog was accepted or canceled.
+        return args.shouldUninstall;
+    }
+};
+
 function calCalendarManager() {
     this.wrappedJSObject = this;
     this.mObservers = new calListenerBag(Components.interfaces.calICalendarManagerObserver);
-    this.setUpStartupObservers();
 }
 
 var calCalendarManagerClassInfo = {
@@ -80,6 +127,7 @@ var calCalendarManagerClassInfo = {
         var ifaces = [
             Components.interfaces.nsISupports,
             Components.interfaces.calICalendarManager,
+            Components.interfaces.calIStartupService,
             Components.interfaces.nsIObserver,
             Components.interfaces.nsIClassInfo
         ];
@@ -119,16 +167,8 @@ calCalendarManager.prototype = {
         return this.mCalendarCount;
     },
 
-    setUpStartupObservers: function ccm_setUpStartupObservers() {
-        var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
-                          .getService(Components.interfaces.nsIObserverService);
-
-        observerSvc.addObserver(this, "profile-after-change", false);
-        observerSvc.addObserver(this, "profile-before-change", false);
-        observerSvc.addObserver(this, "em-action-requested", false);
-    },
-
-    startup: function ccm_startup() {
+    startup: function ccm_startup(aCompleteListener) {
+        AddonManager.addAddonListener(gCalendarManagerAddonListener);
         this.checkAndMigrateDB();
         this.mCache = null;
         this.mCalObservers = null;
@@ -142,9 +182,11 @@ calCalendarManager.prototype = {
         this.mNetworkCalendarCount = 0;
         this.mReadonlyCalendarCount = 0;
         this.mCalendarCount = 0;
+
+        aCompleteListener.onResult(null, Components.results.NS_OK);
     },
 
-    shutdown: function ccm_shutdown() {
+    shutdown: function ccm_shutdown(aCompleteListener) {
         for each (var cal in this.mCache) {
             cal.removeObserver(this.mCalObservers[cal.id]);
         }
@@ -152,26 +194,21 @@ calCalendarManager.prototype = {
         this.cleanupPrefObservers();
         this.cleanupOfflineObservers();
 
-        var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
-                          .getService(Components.interfaces.nsIObserverService);
+        Services.obs.removeObserver(this, "profile-after-change");
+        Services.obs.removeObserver(this, "profile-before-change");
+        AddonManager.removeAddonListener(gCalendarManagerAddonListener);
 
-        observerSvc.removeObserver(this, "profile-after-change");
-        observerSvc.removeObserver(this, "profile-before-change");
-        observerSvc.removeObserver(this, "em-action-requested");
+        aCompleteListener.onResult(null, Components.results.NS_OK);
     },
 
     setUpPrefObservers: function ccm_setUpPrefObservers() {
-        var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefBranch2);
-        prefBranch.addObserver("calendar.autorefresh.enabled", this, false);
-        prefBranch.addObserver("calendar.autorefresh.timeout", this, false);
+        Services.prefs.addObserver("calendar.autorefresh.enabled", this, false);
+        Services.prefs.addObserver("calendar.autorefresh.timeout", this, false);
     },
 
     cleanupPrefObservers: function ccm_cleanupPrefObservers() {
-        var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefBranch2);
-        prefBranch.removeObserver("calendar.autorefresh.enabled", this);
-        prefBranch.removeObserver("calendar.autorefresh.timeout", this);
+        Services.prefs.removeObserver("calendar.autorefresh.enabled", this);
+        Services.prefs.removeObserver("calendar.autorefresh.timeout", this);
     },
 
     setUpRefreshTimer: function ccm_setUpRefreshTimer() {
@@ -179,21 +216,9 @@ calCalendarManager.prototype = {
             this.mRefreshTimer.cancel();
         }
 
-        var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefBranch);
-
-        var refreshEnabled = false;
-        try {
-            var refreshEnabled = prefBranch.getBoolPref("calendar.autorefresh.enabled");
-        } catch (e) {
-        }
-
         // Read and convert the minute-based pref to msecs
-        var refreshTimeout = 0;
-        try {
-            var refreshTimeout = prefBranch.getIntPref("calendar.autorefresh.timeout") * 60000;
-        } catch (e) {
-        }
+        let refreshEnabled = cal.getPrefSafe("calendar.autorefresh.enabled", false);
+        let refreshTimeout = cal.getPrefSafe("calendar.autorefresh.timeout", 0) * 60000;
 
         if (refreshEnabled && refreshTimeout > 0) {
             this.mRefreshTimer = Components.classes["@mozilla.org/timer;1"]
@@ -204,15 +229,11 @@ calCalendarManager.prototype = {
     },
 
     setupOfflineObservers: function ccm_setupOfflineObservers() {
-        var os = Components.classes["@mozilla.org/observer-service;1"]
-                           .getService(Components.interfaces.nsIObserverService);
-        os.addObserver(this, "network:offline-status-changed", false);
+        Services.obs.addObserver(this, "network:offline-status-changed", false);
     },
 
     cleanupOfflineObservers: function ccm_cleanupOfflineObservers() {
-        var os = Components.classes["@mozilla.org/observer-service;1"]
-                           .getService(Components.interfaces.nsIObserverService);
-        os.removeObserver(this, "network:offline-status-changed");
+        Services.obs.removeObserver(this, "network:offline-status-changed");
     },
 
     loginMasterPassword: function ccm_loginMasterPassword() {
@@ -263,68 +284,7 @@ calCalendarManager.prototype = {
                     }
                 }
                 break;
-            case "em-action-requested":
-                let extension = aSubject.QueryInterface(Components.interfaces.nsIUpdateItem);
-                let extMgr = Components.classes["@mozilla.org/extensions/manager;1"]
-                                       .getService(Components.interfaces.nsIExtensionManager);
-                try {
-                    switch (aData) {
-                        case "item-disabled":
-                            if (!this.queryUninstallProvider(extension)) {
-                                // If the extension should not be disabled,
-                                // then re-enable it.
-                                extMgr.enableItem(extension.id);
-                            }
-                            break;
-                        case "item-uninstalled":
-                            if (!this.queryUninstallProvider(extension)) {
-                                // If the extension should not be uninstalled,
-                                // then cancel the uninstall
-                                extMgr.cancelUninstallItem(extension.id);
-                            }
-                            break;
-                    }
-                } catch (e) {
-                    // It seems this observer swallows exceptions
-                    cal.ERROR(e);
-                }
-                break;
         }
-
-    },
-
-    queryUninstallProvider: function cCM_queryUninstallProvider(aExtension) {
-        const uri = "chrome://calendar/content/calendar-providerUninstall-dialog.xul";
-        const features = "chrome,titlebar,resizable,modal";
-        let affectedCalendars =
-            [ cal for each (cal in this.getCalendars({}))
-              if (cal.providerID == aExtension.id) ];
-        if (!affectedCalendars.length) {
-            // If no calendars are affected, then everything is fine.
-            return true;
-        }
-
-        let args = { shouldUninstall: false, extension: aExtension };
-
-        // Now find a window. The best choice would be the most recent
-        // addons window, otherwise the most recent calendar window, or we
-        // create a new toplevel window.
-        let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                           .getService(Components.interfaces.nsIWindowMediator);
-        let win = wm.getMostRecentWindow("Extension:Manager") ||
-                  cal.getCalendarWindow();
-        if (win) {
-            win.openDialog(uri, "CalendarProviderUninstallDialog", features, args);
-        } else {
-            // Use the window watcher to open a parentless window.
-            let ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                               .getService(Components.interfaces.nsIWindowWatcher);
-            ww.openWindow(null, uri, "CalendarProviderUninstallWindow", features, args);
-        }
-
-
-        // Now that we are done, check if the dialog was accepted or canceled.
-        return args.shouldUninstall;
     },
 
     //
@@ -599,11 +559,12 @@ calCalendarManager.prototype = {
         if (isSunbird()) {
             startup.quit(Components.interfaces.nsIAppStartup.eForceQuit);
         } else {
-            var em = Components.classes["@mozilla.org/extensions/manager;1"]
-                               .getService(Components.interfaces.nsIExtensionManager);
-            em.disableItem("{e2fda1a4-762b-4020-b5ad-a41df1933103}"); // i.e. Lightning
-            startup.quit(Components.interfaces.nsIAppStartup.eRestart |
-                         Components.interfaces.nsIAppStartup.eForceQuit);
+            // Disable Lightning
+            AddonManager.getAddonByID("{e2fda1a4-762b-4020-b5ad-a41df1933103}", function getLightningExt(aAddon) {
+                aAddon.userDisabled = true;
+                startup.quit(Components.interfaces.nsIAppStartup.eRestart |
+                    Components.interfaces.nsIAppStartup.eForceQuit);
+            });
         }
     },
 
@@ -715,10 +676,7 @@ calCalendarManager.prototype = {
         }
 
         calendar.removeObserver(this.mCalObservers[calendar.id]);
-
-        let prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                    .getService(Components.interfaces.nsIPrefBranch);
-        prefService.deleteBranch(getPrefBranchFor(calendar.id));
+        Services.prefs.deleteBranch(getPrefBranchFor(calendar.id));
         flushPrefs();
 
         if (this.mCache) {

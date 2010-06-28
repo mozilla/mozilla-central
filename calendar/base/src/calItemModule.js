@@ -62,7 +62,6 @@ const componentData =
      contractid: "@mozilla.org/calendar/manager;1",
      script: "calCalendarManager.js",
      constructor: "calCalendarManager",
-     categories: {"app-startup": "calendar-mananger-startup"},
      service: true},
 
     {cid: Components.ID("{b8db7c7f-c168-4e11-becb-f26c1c4f5f8f}"),
@@ -171,6 +170,14 @@ const componentData =
      contractid: "@mozilla.org/calendar/timezone-service;1",
      script: "calTimezoneService.js",
      constructor: "calTimezoneService",
+     service: true},
+
+    // This should be last, or at least after all services it calls
+    {cid: Components.ID("{2547331f-34c0-4a4b-b93c-b503538ba6d6}"),
+     contractid: "@mozilla.org/calendar/startup-service;1",
+     script: "calStartupService.js",
+     constructor: "calStartupService",
+     categories: {"app-startup": "calendar-startup-startup"},
      service: true}
     ];
 

@@ -91,6 +91,7 @@ EXTRA_SCRIPTS = \
     calProtocolHandler.js \
     calRecurrenceInfo.js \
     calRelation.js \
+    calStartupService.js \
     calTodo.js \
     calUtils.js \
     calWeekInfoService.js \

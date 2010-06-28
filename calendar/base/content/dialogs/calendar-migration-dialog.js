@@ -22,6 +22,7 @@
  *   Matthew Willis <mattwillis@gmail.com>
  *   Clint Talbert <cmtalbert@myfastmail.com>
  *   Stefan Sitter <ssitter@gmail.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,6 +40,8 @@
 
 const SUNBIRD_UID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
 const FIREFOX_UID = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
+
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 //
 // The front-end wizard bits.
@@ -58,7 +61,7 @@ var gMigrateWizard = {
 
         var props = sbs.createBundle("chrome://calendar/locale/migration.properties");
 
-        if (gDataMigrator.isLightning()) {
+        if (!cal.isSunbird()) {
             var wizard = document.getElementById("migration-wizard");
             var desc = document.getElementById("wizard-desc");
             // Since we don't translate "Lightning"...
@@ -182,7 +185,6 @@ function dataMigrator(aTitle, aMigrateFunction, aArguments) {
 }
 
 var gDataMigrator = {
-    mIsLightning: null,
     mIsInFirefox: false,
     mPlatform: null,
     mDirService: null,
@@ -212,24 +214,6 @@ var gDataMigrator = {
     },
 
     /**
-     * Gets the value for mIsLightning, and sets it if this.mIsLightning is
-     * not initialized. This is used by objects outside gDataMigrator to
-     * access the mIsLightning member.
-     *
-     * XXX replace with !cal.isSunbird()
-     */
-    isLightning: function is_ltn() {
-        if (this.mIsLightning == null) {
-            var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                          .getService(Components.interfaces.nsIXULAppInfo);
-            this.mIsLightning = !(appInfo.ID == SUNBIRD_UID);
-            return this.mIsLightning;
-        }
-        // else mIsLightning is initialized, return the value
-        return this.mIsLightning;
-    },
-
-    /**
      * Call to do a general data migration (for a clean profile)  Will run
      * through all of the known migrator-checkers.  These checkers will return
      * an array of valid dataMigrator objects, for each kind of data they find.
@@ -239,8 +223,6 @@ var gDataMigrator = {
     checkAndMigrate: function gdm_migrate() {
         var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
                       .getService(Components.interfaces.nsIXULAppInfo);
-        this.mIsLightning = !(appInfo.ID == SUNBIRD_UID)
-        LOG("mIsLightning is: " + this.mIsLightning);
         if (appInfo.ID == FIREFOX_UID) {
             this.mIsInFirefox = true;
             // We can't handle Firefox Lightning yet
@@ -289,46 +271,10 @@ var gDataMigrator = {
     /**
      * Checks to see if we can find any traces of an older moz-cal program.
      * This could be either the old calendar-extension, or Sunbird 0.2.  If so,
-     * it offers to move that data into our new storage format.  Also, if we're
-     * if we're Lightning, it will disable the old calendar extension, since it
-     * conflicts with us.
+     * it offers to move that data into our new storage format.
      */
     checkOldCal: function gdm_calold() {
         LOG("Checking for the old calendar extension/app");
-
-        // First things first.  If we are Lightning and the calendar extension
-        // is installed, we have to nuke it.  The old extension defines some of
-        // the same paths as we do, and the resulting file conflicts result in
-        // first-class badness. getCompositeCalendar is a conflicting function
-        // that exists in Lighnting's version of calUtils.js.  If it isn't
-        // defined, we have a conflict.
-        if (this.isLightning() && !("getCompositeCalendar" in window)) {
-
-            // We can't use our normal helper-functions, because those might
-            // conflict too.
-            var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                      .getService(Components.interfaces.nsIStringBundleService);
-            var props = sbs.createBundle("chrome://calendar/locale/migration.properties");
-            var brand = sbs.createBundle("chrome://branding/locale/brand.properties");
-            // Tell the user we're going to disable and restart
-            var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                .getService(Components.interfaces.nsIPromptService);
-            promptService.alert(window,
-                                props.GetStringFromName("disableExtTitle"),
-                                props.formatStringFromName("disableExtText",
-                                                           [brand],1));
-
-            // Kiiillllll...
-            var em = Components.classes["@mozilla.org/extensions/manager;1"]
-                     .getService(Components.interfaces.nsIExtensionManager);
-            em.disableItem("{8e117890-a33f-424b-a2ea-deb272731365}");
-            promptService.alert(window, getString("disableDoneTitle"),
-                                getString("disableExtDone"));
-            var startup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
-                          .getService(Components.interfaces.nsIAppStartup);
-            startup.quit(Components.interfaces.nsIAppStartup.eRestart |
-                         Components.interfaces.nsIAppStartup.eAttemptQuit);
-        }
 
         // This is the function that the migration wizard will call to actually
         // migrate the data.  It's defined here because we may use it multiple
@@ -408,7 +354,7 @@ var gDataMigrator = {
         if (profileDir.exists()) {
             LOG("Found old extension directory in current app");
             var title;
-            if (this.mIsLightning) {
+            if (!cal.isSunbird()) {
                 title = "Mozilla Calendar Extension";
             } else {
                 title = "Sunbird 0.2";
@@ -425,7 +371,7 @@ var gDataMigrator = {
             profiles.push(ffProf);
         }
 
-        if (this.mIsLightning) {
+        if (!cal.isSunbird()) {
             // If we're lightning, check Sunbird
             if ((sbProf = this.getSunbirdProfile())) {
                 profiles.push(sbProf);
@@ -532,7 +478,7 @@ var gDataMigrator = {
         var profileDir = this.dirService.get("ProfD", Components.interfaces.nsILocalFile);
         var icalSpec = profileDir.path;
         var icalFile;
-        if (!this.isLightning()) {
+        if (cal.isSunbird()) {
             var diverge = icalSpec.indexOf("Sunbird");
             if (diverge == -1) {
                 return [];
@@ -667,7 +613,7 @@ var gDataMigrator = {
         var localFile;
         var profileRoot = this.dirService.get("DefProfRt", Components.interfaces.nsILocalFile);
         LOG("profileRoot = " + profileRoot.path);
-        if (this.mIsLightning) {
+        if (!cal.isSunbird()) {
             localFile = profileRoot;
         } else {
             // Now it gets ugly
@@ -703,7 +649,7 @@ var gDataMigrator = {
         var profileRoot = this.dirService.get("DefProfRt", Components.interfaces.nsILocalFile);
         LOG("profileRoot = " + profileRoot.path);
 
-        if (this.isLightning()) {  // We're in Thunderbird
+        if (!cal.isSunbird()) {  // We're in Thunderbird
             switch (this.mPlatform) {
                 case "darwin": // Mac OS X
                     localFile = profileRoot.parent.parent;
