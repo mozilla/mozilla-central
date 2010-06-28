@@ -820,8 +820,10 @@ nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
       // if the message service has a fetch part service then we know we can fetch mime parts...
       if (fetchService)
       {
-        PRInt32 sectionPos = urlString.Find("?section");
-        fullMessageUri.Append(Substring(urlString, sectionPos));
+        PRInt32 partPos = urlString.FindChar('?');
+        if (partPos == kNotFound)
+          return NS_ERROR_FAILURE;
+        fullMessageUri.Append(Substring(urlString, partPos));
       }
 
       nsCOMPtr<nsIStreamListener> convertedListener;
