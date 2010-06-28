@@ -320,19 +320,29 @@ inline PRUint32 StringHash(const nsAutoString& str)
                       str.Length() * 2);
 }
 
+#ifndef MOZILLA_INTERNAL_API
+static int GetFindInSetFilter(const char* aChars)
+{
+  PRUint8 filter = 0;
+  while (*aChars)
+    filter |= *aChars++;
+  return ~filter;
+}
+#endif
+
 /* Utility functions used in a few places in mailnews */
 PRInt32
 MsgFindCharInSet(const nsCString &aString,
                  const char* aChars, PRUint32 aOffset)
 {
-#ifdef MOZILLA_INTENAL_API
-  return FindCharInSet(aChars, aOffset)
+#ifdef MOZILLA_INTERNAL_API
+  return aString.FindCharInSet(aChars, aOffset);
 #else
-  PRInt32 len = strlen(aChars);
-  PRInt32 index = -1;
-  for (int i = aOffset; i < len; i++) {
-    index = aString.FindChar(aChars[i]);
-    if (index != -1)
+  const char *str;
+  PRUint32 len = aString.BeginReading(&str);
+  int filter = GetFindInSetFilter(aChars);
+  for (PRUint32 index = aOffset; index < len; index++) {
+    if (!(str[index] & filter) && strchr(aChars, str[index]))
       return index;
   }
   return -1;
@@ -343,14 +353,14 @@ PRInt32
 MsgFindCharInSet(const nsString &aString,
                  const char* aChars, PRUint32 aOffset)
 {
-#ifdef MOZILLA_INTENAL_API
-  return FindCharInSet(aChars, aOffset)
+#ifdef MOZILLA_INTERNAL_API
+  return aString.FindCharInSet(aChars, aOffset);
 #else
-  PRInt32 len = strlen(aChars);
-  PRInt32 index = -1;
-  for (int i = aOffset; i < len; i++) {
-    index = aString.FindChar(aChars[i]);
-    if (index != -1)
+  const PRUnichar *str;
+  PRUint32 len = aString.BeginReading(&str);
+  int filter = GetFindInSetFilter(aChars);
+  for (PRUint32 index = aOffset; index < len; index++) {
+    if (!(str[index] & filter) && strchr(aChars, str[index]))
       return index;
   }
   return -1;
