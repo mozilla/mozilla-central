@@ -931,7 +931,7 @@
               label="&bookmarkLinkCmd.label;"
               accesskey="&bookmarkLinkCmd.accesskey;"
               oncommand="initBMService();
-                         BookmarksUtils.addBookmark(gContextMenu.linkURL(),
+                         BookmarksUtils.addBookmark(gContextMenu.linkURL,
                                                     gContextMenu.linkText());"/>
   </popup>
 

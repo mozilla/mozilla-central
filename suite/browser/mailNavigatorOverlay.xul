@@ -234,7 +234,7 @@
     <menuitem id="context-sendlink"
               label="&contextSendThisLink.label;"
               accesskey="&contextSendThisLink.accesskey;"
-              oncommand="sendLink(gContextMenu.linkURL());"
+              oncommand="sendLink(gContextMenu.linkURL);"
               insertafter="context-savelink"/>
     <menu id="frame">
     <menupopup id="frame_popup">
