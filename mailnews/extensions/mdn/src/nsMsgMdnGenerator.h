@@ -74,6 +74,8 @@ private:
   PRBool MailAddrMatch(const char *addr1, const char *addr2);
 
   nsresult StoreMDNSentFlag(nsIMsgFolder *folder, nsMsgKey key);
+  nsresult ClearMDNNeededFlag(nsIMsgFolder *folder, nsMsgKey key);
+  nsresult NoteMDNRequestHandled();
 
   nsresult CreateMdnMsg();
   nsresult CreateFirstPart();

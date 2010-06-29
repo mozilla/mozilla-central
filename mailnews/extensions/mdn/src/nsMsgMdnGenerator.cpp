@@ -63,6 +63,7 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsMsgUtils.h"
 #include "nsNetUtil.h"
+#include "nsIMsgDatabase.h"
 
 #define MDN_NOT_IN_TO_CC          ((int) 0x0001)
 #define MDN_OUTSIDE_DOMAIN        ((int) 0x0002)
@@ -174,15 +175,27 @@ nsresult nsMsgMdnGenerator::StoreMDNSentFlag(nsIMsgFolder *folder,
 {
     DEBUG_MDN("nsMsgMdnGenerator::StoreMDNSentFlag");
 
-    // Store the $MDNSent flag if the folder is an Imap Mail Folder
-    // otherwise, do nothing.
+    nsCOMPtr<nsIMsgDatabase> msgDB;
+    nsresult rv = folder->GetMsgDatabase(getter_AddRefs(msgDB));
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = msgDB->MarkMDNSent(key, PR_TRUE, nsnull);
+
     nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(folder);
-    if (!imapFolder)
-      return NS_OK;
+    // Store the $MDNSent flag if the folder is an Imap Mail Folder
+    if (imapFolder)
+      return imapFolder->StoreImapFlags(kImapMsgMDNSentFlag, PR_TRUE, &key, 1, nsnull);
+    return rv;
+}
 
-    // XXX todo: also clear MDNReportNeeded?
+nsresult nsMsgMdnGenerator::ClearMDNNeededFlag(nsIMsgFolder *folder,
+                                               nsMsgKey key)
+{
+  DEBUG_MDN("nsMsgMdnGenerator::ClearMDNNeededFlag");
 
-    return imapFolder->StoreImapFlags(kImapMsgMDNSentFlag, PR_TRUE, &key, 1, nsnull);
+  nsCOMPtr<nsIMsgDatabase> msgDB;
+  nsresult rv = folder->GetMsgDatabase(getter_AddRefs(msgDB));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return msgDB->MarkMDNNeeded(key, PR_FALSE, nsnull);
 }
 
 PRBool nsMsgMdnGenerator::ProcessSendMode()
@@ -1063,20 +1076,29 @@ NS_IMETHODIMP nsMsgMdnGenerator::Process(EDisposeType type,
 
 NS_IMETHODIMP nsMsgMdnGenerator::UserAgreed()
 {
-    DEBUG_MDN("nsMsgMdnGenerator::UserAgreed");
-    nsresult rv = StoreMDNSentFlag(m_folder, m_key);
-    NS_ASSERTION(NS_SUCCEEDED(rv), "StoreMDNSentFlag failed");
-    return CreateMdnMsg();
+  DEBUG_MDN("nsMsgMdnGenerator::UserAgreed");
+  (void) NoteMDNRequestHandled();
+  return CreateMdnMsg();
 }
 
 NS_IMETHODIMP nsMsgMdnGenerator::UserDeclined()
 {
-    DEBUG_MDN("nsMsgMdnGenerator::UserDeclined");
-    nsresult rv = StoreMDNSentFlag(m_folder, m_key);
-    NS_ASSERTION(NS_SUCCEEDED(rv), "StoreMDNSentFlag failed");
-    return NS_OK;
+  DEBUG_MDN("nsMsgMdnGenerator::UserDeclined");
+  return NoteMDNRequestHandled();
 }
 
+/**
+ * Set/clear flags appropriately so we won't ask user again about MDN
+ * request for this message.
+ */
+nsresult nsMsgMdnGenerator::NoteMDNRequestHandled()
+{
+  nsresult rv = StoreMDNSentFlag(m_folder, m_key);
+  NS_ASSERTION(NS_SUCCEEDED(rv), "StoreMDNSentFlag failed");
+  rv = ClearMDNNeededFlag(m_folder, m_key);
+  NS_ASSERTION(NS_SUCCEEDED(rv), "ClearMDNNeededFlag failed");
+  return rv;
+}
 
 NS_IMETHODIMP nsMsgMdnGenerator::OnStartRunningUrl(nsIURI *url)
 {
