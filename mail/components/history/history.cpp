@@ -82,15 +82,4 @@ History::UnregisterVisitedCallback(nsIURI *aURI, Link *aLink)
   return NS_OK;
 }
 
-NS_IMETHODIMP
-History::VisitURI(nsIURI *aURI, nsIURI *aLastVisitedURI, PRUint32 aFlags)
-{
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-History::SetURITitle(nsIURI* aURI, const nsAString& aTitle)
-{
-  return NS_OK;
-}
 }
