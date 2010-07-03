@@ -35,9 +35,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "mozilla/ModuleUtils.h"
 #include "nsIFactory.h"
 #include "nsISupports.h"
-#include "nsIGenericFactory.h"
 #include "nsIModule.h"
 
 #include "nsAbBaseCID.h"
@@ -149,256 +149,163 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbView)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgVCardService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbLDIFService)
 
-static NS_METHOD
-RegisterCommandLineHandler(nsIComponentManager* compMgr, nsIFile* path,
-                           const char *location, const char *type,
-                           const nsModuleComponentInfo *info)
-{
-  nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
-  NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
-
-  return catMan->AddCategoryEntry("command-line-handler", "m-addressbook",
-                                  NS_ABMANAGERSTARTUPHANDLER_CONTRACTID,
-                                  PR_TRUE, PR_TRUE, nsnull);
-}
-
-static NS_METHOD
-UnregisterCommandLineHandler(nsIComponentManager* compMgr, nsIFile* path,
-                             const char *location,
-                             const nsModuleComponentInfo *info)
-{
-  nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
-  NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
-
-  catMan->DeleteCategoryEntry("command-line-handler", "m-addressbook",
-                              PR_TRUE);
-
-  return NS_OK;
-}
-
-static const nsModuleComponentInfo components[] =
-{
-  { "Address Book Manager",
-    NS_ABMANAGER_CID,
-    NS_ABMANAGER_CONTRACTID,
-    nsAbManagerConstructor },
-
-  { "Address Book Manager Startup Handler",
-    NS_ABMANAGER_CID,
-    NS_ABMANAGERSTARTUPHANDLER_CONTRACTID,
-    nsAbManagerConstructor,
-    RegisterCommandLineHandler,
-    UnregisterCommandLineHandler },
-
-  { "Address Book Directory Datasource",
-    NS_ABDIRECTORYDATASOURCE_CID,
-    NS_ABDIRECTORYDATASOURCE_CONTRACTID,
-    nsAbDirectoryDataSourceConstructor },
-
-  { "Address Boot Strap Directory",
-    NS_ABDIRECTORY_CID,
-    NS_ABDIRECTORY_CONTRACTID,
-    nsAbBSDirectoryConstructor },
-
-  { "Address MDB Book Directory",
-    NS_ABMDBDIRECTORY_CID,
-    NS_ABMDBDIRECTORY_CONTRACTID,
-    nsAbMDBDirectoryConstructor },
-
-  { "Address MDB Book Card",
-    NS_ABMDBCARD_CID,
-    NS_ABMDBCARD_CONTRACTID,
-    nsAbMDBCardConstructor },
-
-  { "Address Database",
-    NS_ADDRDATABASE_CID,
-    NS_ADDRDATABASE_CONTRACTID,
-    nsAddrDatabaseConstructor },
-
-  { "Address Book Card Property",
-    NS_ABCARDPROPERTY_CID,
-    NS_ABCARDPROPERTY_CONTRACTID,
-    nsAbCardPropertyConstructor },
-
-  { "Address Book Directory Property",
-    NS_ABDIRPROPERTY_CID,
-    NS_ABDIRPROPERTY_CONTRACTID,
-    nsAbDirPropertyConstructor },
-  { "Address Book Address Collector",
-    NS_ABADDRESSCOLLECTOR_CID,
-    NS_ABADDRESSCOLLECTOR_CONTRACTID,
-    nsAbAddressCollectorConstructor },
-  { "The addbook URL Interface", 
-    NS_ADDBOOKURL_CID,
-    NS_ADDBOOKURL_CONTRACTID,
-    nsAddbookUrlConstructor },
-    
-  { "The addbook Protocol Handler", 
-    NS_ADDBOOK_HANDLER_CID,
-    NS_NETWORK_PROTOCOL_CONTRACTID_PREFIX "addbook",
-    nsAddbookProtocolHandlerConstructor },
-
-  { "add vCard content handler",
-    NS_ABCONTENTHANDLER_CID,
-    NS_CONTENT_HANDLER_CONTRACTID_PREFIX"application/x-addvcard",
-    nsAbContentHandlerConstructor },
-
-  { "add vCard content handler",
-    NS_ABCONTENTHANDLER_CID,
-    NS_CONTENT_HANDLER_CONTRACTID_PREFIX"text/x-vcard",
-    nsAbContentHandlerConstructor },
-
-  { "The directory factory service interface",
-    NS_ABDIRFACTORYSERVICE_CID,
-    NS_ABDIRFACTORYSERVICE_CONTRACTID,
-    nsAbDirFactoryServiceConstructor },
-
-  { "The MDB directory factory interface",
-    NS_ABMDBDIRFACTORY_CID,
-    NS_ABMDBDIRFACTORY_CONTRACTID,
-    nsAbMDBDirFactoryConstructor },
-
+NS_DEFINE_NAMED_CID(NS_ABMANAGER_CID);
+NS_DEFINE_NAMED_CID(NS_ABDIRECTORYDATASOURCE_CID);
+NS_DEFINE_NAMED_CID(NS_ABDIRECTORY_CID);
+NS_DEFINE_NAMED_CID(NS_ABMDBDIRECTORY_CID);
+NS_DEFINE_NAMED_CID(NS_ABMDBCARD_CID);
+NS_DEFINE_NAMED_CID(NS_ADDRDATABASE_CID);
+NS_DEFINE_NAMED_CID(NS_ABCARDPROPERTY_CID);
+NS_DEFINE_NAMED_CID(NS_ABDIRPROPERTY_CID);
+NS_DEFINE_NAMED_CID(NS_ABADDRESSCOLLECTOR_CID);
+NS_DEFINE_NAMED_CID(NS_ADDBOOKURL_CID);
+NS_DEFINE_NAMED_CID(NS_ADDBOOK_HANDLER_CID);
+NS_DEFINE_NAMED_CID(NS_ABCONTENTHANDLER_CID);
+NS_DEFINE_NAMED_CID(NS_ABDIRFACTORYSERVICE_CID);
+NS_DEFINE_NAMED_CID(NS_ABMDBDIRFACTORY_CID);
+NS_DEFINE_NAMED_CID(NS_ABDIRECTORYQUERYARGUMENTS_CID);
+NS_DEFINE_NAMED_CID(NS_BOOLEANCONDITIONSTRING_CID);
+NS_DEFINE_NAMED_CID(NS_BOOLEANEXPRESSION_CID);
 #if defined(XP_WIN) && !defined(__MINGW32__)
-  { "Address OUTLOOK Book Directory",
-    NS_ABOUTLOOKDIRECTORY_CID,
-    NS_ABOUTLOOKDIRECTORY_CONTRACTID,
-    nsAbOutlookDirectoryConstructor },
-
-  { "The outlook factory Interface", 
-    NS_ABOUTLOOKDIRFACTORY_CID,
-    NS_ABOUTLOOKDIRFACTORY_CONTRACTID,
-    nsAbOutlookDirFactoryConstructor },
+NS_DEFINE_NAMED_CID(NS_ABOUTLOOKDIRECTORY_CID);
+NS_DEFINE_NAMED_CID(NS_ABOUTLOOKDIRFACTORY_CID);
 #endif
-
-  { "The addbook query arguments", 
-    NS_ABDIRECTORYQUERYARGUMENTS_CID,
-    NS_ABDIRECTORYQUERYARGUMENTS_CONTRACTID,
-    nsAbDirectoryQueryArgumentsConstructor },
-    
-  { "The query boolean condition string", 
-    NS_BOOLEANCONDITIONSTRING_CID,
-    NS_BOOLEANCONDITIONSTRING_CONTRACTID,
-    nsAbBooleanConditionStringConstructor },
-    
-  { "The query n-peer expression", 
-    NS_BOOLEANEXPRESSION_CID,
-    NS_BOOLEANEXPRESSION_CONTRACTID,
-    nsAbBooleanExpressionConstructor },
-
 #if defined(MOZ_LDAP_XPCOM)
-  { "Address LDAP Book Directory",
-    NS_ABLDAPDIRECTORY_CID,
-    NS_ABLDAPDIRECTORY_CONTRACTID,
-    nsAbLDAPDirectoryConstructor },
-
-  { "Address LDAP Book Directory Query",
-    NS_ABLDAPDIRECTORYQUERY_CID,
-    NS_ABLDAPDIRECTORYQUERY_CONTRACTID,
-    nsAbLDAPDirectoryQueryConstructor },
-
-  { "Address LDAP Book Card",
-    NS_ABLDAPCARD_CID,
-    NS_ABLDAPCARD_CONTRACTID,
-    nsAbLDAPCardConstructor },
-
-  { "Address LDAP factory Interface", 
-    NS_ABLDAPDIRFACTORY_CID,
-    NS_ABLDAPDIRFACTORY_CONTRACTID,
-    nsAbLDAPDirFactoryConstructor },
-
- {"Address LDAP Replication Service Interface",
-   NS_ABLDAP_REPLICATIONSERVICE_CID,
-   NS_ABLDAP_REPLICATIONSERVICE_CONTRACTID,
-   nsAbLDAPReplicationServiceConstructor },
-
- {"Address LDAP Replication Query Interface",
-   NS_ABLDAP_REPLICATIONQUERY_CID,
-   NS_ABLDAP_REPLICATIONQUERY_CONTRACTID,
-   nsAbLDAPReplicationQueryConstructor },
-
- {"Address LDAP Replication Processor Interface",
-   NS_ABLDAP_PROCESSREPLICATIONDATA_CID,
-   NS_ABLDAP_PROCESSREPLICATIONDATA_CONTRACTID,
-   nsAbLDAPProcessReplicationDataConstructor },
-
-// XXX These files are not being built as they don't work. Bug 311632 should
-// fix them.
-// {"Address LDAP ChangeLog Query Interface",
-//   NS_ABLDAP_CHANGELOGQUERY_CID,
-//   NS_ABLDAP_CHANGELOGQUERY_CONTRACTID,
-//   nsAbLDAPChangeLogQueryConstructor },
-
-// {"Address LDAP ChangeLog Processor Interface",
-//   NS_ABLDAP_PROCESSCHANGELOGDATA_CID,
-//   NS_ABLDAP_PROCESSCHANGELOGDATA_CONTRACTID,
-//   nsAbLDAPProcessChangeLogDataConstructor },
-
-  { "Address LDAP autocomplete factory Interface", 
-    NS_ABLDAPDIRFACTORY_CID,
-    NS_ABLDAPACDIRFACTORY_CONTRACTID,
-    nsAbLDAPDirFactoryConstructor },
-
-  { "Address LDAP over SSL autocomplete factory Interface", 
-    NS_ABLDAPDIRFACTORY_CID,
-    NS_ABLDAPSACDIRFACTORY_CONTRACTID,
-    nsAbLDAPDirFactoryConstructor },
-
-  { "Address book LDAP autocomplete formatter",
-    NS_ABLDAPAUTOCOMPFORMATTER_CID,
-    NS_ABLDAPAUTOCOMPFORMATTER_CONTRACTID,
-    nsAbLDAPAutoCompFormatterConstructor },
-
-  { "LDAP Autocomplete Session",
-     NS_LDAPAUTOCOMPLETESESSION_CID,
-     "@mozilla.org/autocompleteSession;1?type=ldap",
-     nsLDAPAutoCompleteSessionConstructor },
-
+NS_DEFINE_NAMED_CID(NS_ABLDAPDIRECTORY_CID);
+NS_DEFINE_NAMED_CID(NS_ABLDAPDIRECTORYQUERY_CID);
+NS_DEFINE_NAMED_CID(NS_ABLDAPCARD_CID);
+NS_DEFINE_NAMED_CID(NS_ABLDAPDIRFACTORY_CID);
+NS_DEFINE_NAMED_CID(NS_ABLDAP_REPLICATIONSERVICE_CID);
+NS_DEFINE_NAMED_CID(NS_ABLDAP_REPLICATIONQUERY_CID);
+NS_DEFINE_NAMED_CID(NS_ABLDAP_PROCESSREPLICATIONDATA_CID);
+NS_DEFINE_NAMED_CID(NS_ABLDAPAUTOCOMPFORMATTER_CID);
+NS_DEFINE_NAMED_CID(NS_LDAPAUTOCOMPLETESESSION_CID);
 #endif
-
-  { "The directory query proxy interface",
-    NS_ABDIRECTORYQUERYPROXY_CID,
-    NS_ABDIRECTORYQUERYPROXY_CONTRACTID,
-    nsAbDirectoryQueryProxyConstructor },
-
+NS_DEFINE_NAMED_CID(NS_ABDIRECTORYQUERYPROXY_CID);
 #ifdef XP_MACOSX
-  { "OS X Address Book Directory",
-    NS_ABOSXDIRECTORY_CID,
-    NS_ABOSXDIRECTORY_CONTRACTID,
-    nsAbOSXDirectoryConstructor },
-
-  { "OS X Address Book Card",
-    NS_ABOSXCARD_CID,
-    NS_ABOSXCARD_CONTRACTID,
-    nsAbOSXCardConstructor },
-
-  { "The OS X factory Interface", 
-    NS_ABOSXDIRFACTORY_CID,
-    NS_ABOSXDIRFACTORY_CONTRACTID,
-    nsAbOSXDirFactoryConstructor },
+NS_DEFINE_NAMED_CID(NS_ABOSXDIRECTORY_CID);
+NS_DEFINE_NAMED_CID(NS_ABOSXCARD_CID);
+NS_DEFINE_NAMED_CID(NS_ABOSXDIRFACTORY_CID);
 #endif
+NS_DEFINE_NAMED_CID(NS_ABVIEW_CID);
+NS_DEFINE_NAMED_CID(NS_MSGVCARDSERVICE_CID);
+NS_DEFINE_NAMED_CID(NS_ABLDIFSERVICE_CID);
 
-  { "addressbook view",
-    NS_ABVIEW_CID,
-    NS_ABVIEW_CONTRACTID,
-    nsAbViewConstructor },
-
-  { "vcard helper service",
-    NS_MSGVCARDSERVICE_CID,
-    NS_MSGVCARDSERVICE_CONTRACTID,
-    nsMsgVCardServiceConstructor },
-
-  { "ldif handler service",
-    NS_ABLDIFSERVICE_CID,
-    NS_ABLDIFSERVICE_CONTRACTID,
-    nsAbLDIFServiceConstructor }
+const mozilla::Module::CIDEntry kAddressBookCIDs[] = {
+  { &kNS_ABMANAGER_CID, false, NULL, nsAbManagerConstructor },
+  { &kNS_ABDIRECTORYDATASOURCE_CID, false, NULL, nsAbDirectoryDataSourceConstructor },
+  { &kNS_ABDIRECTORY_CID, false, NULL, nsAbBSDirectoryConstructor },
+  { &kNS_ABMDBDIRECTORY_CID, false, NULL, nsAbMDBDirectoryConstructor },
+  { &kNS_ABMDBCARD_CID, false, NULL, nsAbMDBCardConstructor },
+  { &kNS_ADDRDATABASE_CID, false, NULL, nsAddrDatabaseConstructor },
+  { &kNS_ABCARDPROPERTY_CID, false, NULL, nsAbCardPropertyConstructor },
+  { &kNS_ABDIRPROPERTY_CID, false, NULL, nsAbDirPropertyConstructor },
+  { &kNS_ABADDRESSCOLLECTOR_CID, false, NULL, nsAbAddressCollectorConstructor },
+  { &kNS_ADDBOOKURL_CID, false, NULL, nsAddbookUrlConstructor },
+  { &kNS_ADDBOOK_HANDLER_CID, false, NULL, nsAddbookProtocolHandlerConstructor },
+  { &kNS_ABCONTENTHANDLER_CID, false, NULL, nsAbContentHandlerConstructor },
+  { &kNS_ABDIRFACTORYSERVICE_CID, false, NULL, nsAbDirFactoryServiceConstructor },
+  { &kNS_ABMDBDIRFACTORY_CID, false, NULL, nsAbMDBDirFactoryConstructor },
+#if defined(XP_WIN) && !defined(__MINGW32__)
+  { &kNS_ABOUTLOOKDIRECTORY_CID, false, NULL, nsAbOutlookDirectoryConstructor },
+  { &kNS_ABOUTLOOKDIRFACTORY_CID, false, NULL, nsAbOutlookDirFactoryConstructor },
+#endif
+  { &kNS_ABDIRECTORYQUERYARGUMENTS_CID, false, NULL, nsAbDirectoryQueryArgumentsConstructor },
+  { &kNS_BOOLEANCONDITIONSTRING_CID, false, NULL, nsAbBooleanConditionStringConstructor },
+  { &kNS_BOOLEANEXPRESSION_CID, false, NULL, nsAbBooleanExpressionConstructor },
+#if defined(MOZ_LDAP_XPCOM)
+  { &kNS_ABLDAPDIRECTORY_CID, false, NULL, nsAbLDAPDirectoryConstructor },
+  { &kNS_ABLDAPDIRECTORYQUERY_CID, false, NULL, nsAbLDAPDirectoryQueryConstructor },
+  { &kNS_ABLDAPCARD_CID, false, NULL, nsAbLDAPCardConstructor },
+  { &kNS_ABLDAP_REPLICATIONSERVICE_CID, false, NULL, nsAbLDAPReplicationServiceConstructor },
+  { &kNS_ABLDAP_REPLICATIONQUERY_CID, false, NULL, nsAbLDAPReplicationQueryConstructor },
+  { &kNS_ABLDAP_PROCESSREPLICATIONDATA_CID, false, NULL, nsAbLDAPProcessReplicationDataConstructor },
+  { &kNS_ABLDAPDIRFACTORY_CID, false, NULL, nsAbLDAPDirFactoryConstructor },
+  { &kNS_ABLDAPAUTOCOMPFORMATTER_CID, false, NULL, nsAbLDAPAutoCompFormatterConstructor },
+  { &kNS_LDAPAUTOCOMPLETESESSION_CID, false, NULL, nsLDAPAutoCompleteSessionConstructor },
+#endif
+  { &kNS_ABDIRECTORYQUERYPROXY_CID, false, NULL, nsAbDirectoryQueryProxyConstructor },
+#ifdef XP_MACOSX
+  { &kNS_ABOSXDIRECTORY_CID, false, NULL, nsAbOSXDirectoryConstructor },
+  { &kNS_ABOSXCARD_CID, false, NULL, nsAbOSXCardConstructor },
+  { &kNS_ABOSXDIRFACTORY_CID, false, NULL, nsAbOSXDirFactoryConstructor },
+#endif
+  { &kNS_ABVIEW_CID, false, NULL, nsAbViewConstructor },
+  { &kNS_MSGVCARDSERVICE_CID, false, NULL, nsMsgVCardServiceConstructor },
+  { &kNS_ABLDIFSERVICE_CID, false, NULL, nsAbLDIFServiceConstructor },
+  { NULL }
 };
 
+const mozilla::Module::ContractIDEntry kAddressBookContracts[] = {
+  { NS_ABMANAGER_CONTRACTID, &kNS_ABMANAGER_CID },
+  { NS_ABMANAGERSTARTUPHANDLER_CONTRACTID, &kNS_ABMANAGER_CID},
+  { NS_ABDIRECTORYDATASOURCE_CONTRACTID, &kNS_ABDIRECTORYDATASOURCE_CID},
+  { NS_ABDIRECTORY_CONTRACTID, &kNS_ABDIRECTORY_CID},
+  { NS_ABMDBDIRECTORY_CONTRACTID, &kNS_ABMDBDIRECTORY_CID},
+  { NS_ABMDBCARD_CONTRACTID, &kNS_ABMDBCARD_CID},
+  { NS_ADDRDATABASE_CONTRACTID, &kNS_ADDRDATABASE_CID},
+  { NS_ABCARDPROPERTY_CONTRACTID, &kNS_ABCARDPROPERTY_CID},
+  { NS_ABDIRPROPERTY_CONTRACTID, &kNS_ABDIRPROPERTY_CID},
+  { NS_ABADDRESSCOLLECTOR_CONTRACTID, &kNS_ABADDRESSCOLLECTOR_CID},
+  { NS_ADDBOOKURL_CONTRACTID, &kNS_ADDBOOKURL_CID},
+  { NS_NETWORK_PROTOCOL_CONTRACTID_PREFIX "addbook", &kNS_ADDBOOK_HANDLER_CID},
+  { NS_CONTENT_HANDLER_CONTRACTID_PREFIX"application/x-addvcard", &kNS_ABCONTENTHANDLER_CID},
+  { NS_CONTENT_HANDLER_CONTRACTID_PREFIX"text/x-vcard", &kNS_ABCONTENTHANDLER_CID},
+  { NS_ABDIRFACTORYSERVICE_CONTRACTID, &kNS_ABDIRFACTORYSERVICE_CID},
+  { NS_ABMDBDIRFACTORY_CONTRACTID, &kNS_ABMDBDIRFACTORY_CID},
+#if defined(XP_WIN) && !defined(__MINGW32__)
+  { NS_ABOUTLOOKDIRECTORY_CONTRACTID, &kNS_ABOUTLOOKDIRECTORY_CID},
+  { NS_ABOUTLOOKDIRFACTORY_CONTRACTID, &kNS_ABOUTLOOKDIRFACTORY_CID},
+#endif
+  { NS_ABDIRECTORYQUERYARGUMENTS_CONTRACTID, &kNS_ABDIRECTORYQUERYARGUMENTS_CID},
+  { NS_BOOLEANCONDITIONSTRING_CONTRACTID, &kNS_BOOLEANCONDITIONSTRING_CID},
+  { NS_BOOLEANEXPRESSION_CONTRACTID, &kNS_BOOLEANEXPRESSION_CID},
+#if defined(MOZ_LDAP_XPCOM)
+  { NS_ABLDAPDIRECTORY_CONTRACTID, &kNS_ABLDAPDIRECTORY_CID},
+  { NS_ABLDAPDIRECTORYQUERY_CONTRACTID, &kNS_ABLDAPDIRECTORYQUERY_CID},
+  { NS_ABLDAPCARD_CONTRACTID, &kNS_ABLDAPCARD_CID},
+  { NS_ABLDAPDIRFACTORY_CONTRACTID, &kNS_ABLDAPDIRFACTORY_CID},
+  { NS_ABLDAP_REPLICATIONSERVICE_CONTRACTID, &kNS_ABLDAP_REPLICATIONSERVICE_CID},
+  { NS_ABLDAP_REPLICATIONQUERY_CONTRACTID, &kNS_ABLDAP_REPLICATIONQUERY_CID},
+  { NS_ABLDAP_PROCESSREPLICATIONDATA_CONTRACTID, &kNS_ABLDAP_PROCESSREPLICATIONDATA_CID},
+  { NS_ABLDAPACDIRFACTORY_CONTRACTID, &kNS_ABLDAPDIRFACTORY_CID},
+  { NS_ABLDAPSACDIRFACTORY_CONTRACTID, &kNS_ABLDAPDIRFACTORY_CID},
+  { NS_ABLDAPAUTOCOMPFORMATTER_CONTRACTID, &kNS_ABLDAPAUTOCOMPFORMATTER_CID},
+  { "@mozilla.org/autocompleteSession;1?type=ldap", &kNS_LDAPAUTOCOMPLETESESSION_CID},
+#endif
+  { NS_ABDIRECTORYQUERYPROXY_CONTRACTID, &kNS_ABDIRECTORYQUERYPROXY_CID},
+#ifdef XP_MACOSX
+  { NS_ABOSXDIRECTORY_CONTRACTID, &kNS_ABOSXDIRECTORY_CID},
+  { NS_ABOSXCARD_CONTRACTID, &kNS_ABOSXCARD_CID},
+  { NS_ABOSXDIRFACTORY_CONTRACTID, &kNS_ABOSXDIRFACTORY_CID},
+#endif
+  { NS_ABVIEW_CONTRACTID, &kNS_ABVIEW_CID},
+  { NS_MSGVCARDSERVICE_CONTRACTID, &kNS_MSGVCARDSERVICE_CID},
+  { NS_ABLDIFSERVICE_CONTRACTID, &kNS_ABLDIFSERVICE_CID},
+  { NULL }
+};
+
+static const mozilla::Module::CategoryEntry kAddressBookCategories[] = {
+  { "command-line-handler", "m-addressbook", NS_ABMANAGERSTARTUPHANDLER_CONTRACTID},
+  { NULL }
+};
 
 static void
-msgAbModuleDtor(nsIModule* self)
+msgAbModuleDtor()
 {
-    nsAddrDatabase::CleanupCache();
+  nsAddrDatabase::CleanupCache();
 }
 
-NS_IMPL_NSGETMODULE_WITH_DTOR(nsAbModule, components, msgAbModuleDtor)
+static const mozilla::Module kAddressBookModule = {
+  mozilla::Module::kVersion,
+  kAddressBookCIDs,
+  kAddressBookContracts,
+  NULL,
+  NULL,
+  NULL,
+  msgAbModuleDtor
+};
+
+NSMODULE_DEFN(addressbook) = &kAddressBookModule;
+
 
