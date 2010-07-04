@@ -300,7 +300,7 @@ static const mozilla::Module kAddressBookModule = {
   mozilla::Module::kVersion,
   kAddressBookCIDs,
   kAddressBookContracts,
-  NULL,
+  kAddressBookCategories,
   NULL,
   NULL,
   msgAbModuleDtor

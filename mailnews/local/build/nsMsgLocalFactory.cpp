@@ -39,8 +39,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h" // for pre-compiled headers...
-#include "nsIModule.h"
-#include "nsIGenericFactory.h"
+#include "mozilla/ModuleUtils.h"
 #include "nsMsgLocalCID.h"
 
 // include files for components this factory creates...
@@ -82,80 +81,83 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsNoIncomingServer)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsRssService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsRssIncomingServer)
 
-// The list of components we register
-static const nsModuleComponentInfo gComponents[] = {
-    { "Mailbox URL", NS_MAILBOXURL_CID,
-      NS_MAILBOXURL_CONTRACTID, nsMailboxUrlConstructor },
-
-    { "Mailbox Service", NS_MAILBOXSERVICE_CID,
-      NS_MAILBOXSERVICE_CONTRACTID1, nsMailboxServiceConstructor },
-
-    { "Mailbox Service", NS_MAILBOXSERVICE_CID,
-      NS_MAILBOXSERVICE_CONTRACTID2, nsMailboxServiceConstructor },
-
-    { "Mailbox Service", NS_MAILBOXSERVICE_CID,
-      NS_MAILBOXSERVICE_CONTRACTID3, nsMailboxServiceConstructor },
-
-    { "Mailbox Protocol Handler", NS_MAILBOXSERVICE_CID,
-      NS_MAILBOXSERVICE_CONTRACTID4, nsMailboxServiceConstructor },
-
-    { "Mailbox Parser", NS_MAILBOXPARSER_CID,
-      NS_MAILBOXPARSER_CONTRACTID, nsMsgMailboxParserConstructor },
-
-    { "Pop3 URL", NS_POP3URL_CID,
-      NS_POP3URL_CONTRACTID, nsPop3URLConstructor },
-
-    { "Pop3 Service", NS_POP3SERVICE_CID,
-      NS_POP3SERVICE_CONTRACTID1, nsPop3ServiceConstructor },
-
-    { "POP Protocol Handler", NS_POP3SERVICE_CID,
-      NS_POP3SERVICE_CONTRACTID2, nsPop3ServiceConstructor },
-
-    { "None Service", NS_NONESERVICE_CID,
-      NS_NONESERVICE_CONTRACTID, nsNoneServiceConstructor },
-
+NS_DEFINE_NAMED_CID(NS_MAILBOXURL_CID);
+NS_DEFINE_NAMED_CID(NS_MAILBOXSERVICE_CID);
+NS_DEFINE_NAMED_CID(NS_MAILBOXPARSER_CID);
+NS_DEFINE_NAMED_CID(NS_POP3URL_CID);
+NS_DEFINE_NAMED_CID(NS_POP3SERVICE_CID);
+NS_DEFINE_NAMED_CID(NS_NONESERVICE_CID);
 #ifdef HAVE_MOVEMAIL
-    { "Movemail Service", NS_MOVEMAILSERVICE_CID,
-      NS_MOVEMAILSERVICE_CONTRACTID, nsMovemailServiceConstructor },
+NS_DEFINE_NAMED_CID(NS_MOVEMAILSERVICE_CID);
 #endif /* HAVE_MOVEMAIL */
-
-    { "pop3 Protocol Information", NS_POP3SERVICE_CID,
-      NS_POP3PROTOCOLINFO_CONTRACTID, nsPop3ServiceConstructor },
-
-    { "none Protocol Information", NS_NONESERVICE_CID,
-      NS_NONEPROTOCOLINFO_CONTRACTID, nsNoneServiceConstructor },
-
+NS_DEFINE_NAMED_CID(NS_LOCALMAILFOLDERRESOURCE_CID);
+NS_DEFINE_NAMED_CID(NS_POP3INCOMINGSERVER_CID);
 #ifdef HAVE_MOVEMAIL
-    { "movemail Protocol Information", NS_MOVEMAILSERVICE_CID,
-      NS_MOVEMAILPROTOCOLINFO_CONTRACTID, nsMovemailServiceConstructor },
+NS_DEFINE_NAMED_CID(NS_MOVEMAILINCOMINGSERVER_CID);
 #endif /* HAVE_MOVEMAIL */
+NS_DEFINE_NAMED_CID(NS_NOINCOMINGSERVER_CID);
+NS_DEFINE_NAMED_CID(NS_PARSEMAILMSGSTATE_CID);
+NS_DEFINE_NAMED_CID(NS_RSSSERVICE_CID);
+NS_DEFINE_NAMED_CID(NS_RSSINCOMINGSERVER_CID);
 
-    { "Local Mail Folder Resource Factory", NS_LOCALMAILFOLDERRESOURCE_CID,
-      NS_LOCALMAILFOLDERRESOURCE_CONTRACTID, nsMsgLocalMailFolderConstructor },
-
-    { "Pop3 Incoming Server", NS_POP3INCOMINGSERVER_CID,
-      NS_POP3INCOMINGSERVER_CONTRACTID, nsPop3IncomingServerConstructor },
-
+const mozilla::Module::CIDEntry kMsgLocalCIDs[] = {
+  { &kNS_MAILBOXURL_CID, false, NULL, nsMailboxUrlConstructor },
+  { &kNS_MAILBOXSERVICE_CID, false, NULL, nsMailboxServiceConstructor },
+  { &kNS_MAILBOXPARSER_CID, false, NULL, nsMsgMailboxParserConstructor },
+  { &kNS_POP3URL_CID, false, NULL, nsPop3URLConstructor },
+  { &kNS_POP3SERVICE_CID, false, NULL, nsPop3ServiceConstructor },
+  { &kNS_NONESERVICE_CID, false, NULL, nsNoneServiceConstructor },
 #ifdef HAVE_MOVEMAIL
-    { "Movemail Incoming Server", NS_MOVEMAILINCOMINGSERVER_CID,
-      NS_MOVEMAILINCOMINGSERVER_CONTRACTID, nsMovemailIncomingServerConstructor },
+  { &kNS_MOVEMAILSERVICE_CID, false, NULL, nsMovemailServiceConstructor },
 #endif /* HAVE_MOVEMAIL */
-
-    { "No Incoming Server", NS_NOINCOMINGSERVER_CID,
-      NS_NOINCOMINGSERVER_CONTRACTID, nsNoIncomingServerConstructor },
-
-    { "Parse MailMessage State", NS_PARSEMAILMSGSTATE_CID,
-      NS_PARSEMAILMSGSTATE_CONTRACTID, nsParseMailMessageStateConstructor },
-
-    { "RSS Service", NS_RSSSERVICE_CID,
-      NS_RSSSERVICE_CONTRACTID, nsRssServiceConstructor },
-
-    { "RSS Protocol Information", NS_RSSSERVICE_CID,
-      NS_RSSPROTOCOLINFO_CONTRACTID, nsRssServiceConstructor },
-
-    { "RSS Incoming Server", NS_RSSINCOMINGSERVER_CID,
-      NS_RSSINCOMINGSERVER_CONTRACTID, nsRssIncomingServerConstructor },
+  { &kNS_LOCALMAILFOLDERRESOURCE_CID, false, NULL, nsMsgLocalMailFolderConstructor },
+  { &kNS_POP3INCOMINGSERVER_CID, false, NULL, nsPop3IncomingServerConstructor },
+#ifdef HAVE_MOVEMAIL
+  { &kNS_MOVEMAILINCOMINGSERVER_CID, false, NULL, nsMovemailIncomingServerConstructor },
+#endif /* HAVE_MOVEMAIL */
+  { &kNS_NOINCOMINGSERVER_CID, false, NULL, nsNoIncomingServerConstructor },
+  { &kNS_PARSEMAILMSGSTATE_CID, false, NULL, nsParseMailMessageStateConstructor },
+  { &kNS_RSSSERVICE_CID, false, NULL, nsRssServiceConstructor },
+  { &kNS_RSSINCOMINGSERVER_CID, false, NULL, nsRssIncomingServerConstructor },
+  { NULL }
 };
 
-NS_IMPL_NSGETMODULE(local_mail_services, gComponents)
+const mozilla::Module::ContractIDEntry kMsgLocalContracts[] = {
+  { NS_MAILBOXURL_CONTRACTID, &kNS_MAILBOXURL_CID},
+  { NS_MAILBOXSERVICE_CONTRACTID1, &kNS_MAILBOXSERVICE_CID},
+  { NS_MAILBOXSERVICE_CONTRACTID2, &kNS_MAILBOXSERVICE_CID},
+  { NS_MAILBOXSERVICE_CONTRACTID3, &kNS_MAILBOXSERVICE_CID},
+  { NS_MAILBOXSERVICE_CONTRACTID4, &kNS_MAILBOXSERVICE_CID},
+  { NS_MAILBOXPARSER_CONTRACTID, &kNS_MAILBOXPARSER_CID },
+  { NS_POP3URL_CONTRACTID, &kNS_POP3URL_CID},
+  { NS_POP3SERVICE_CONTRACTID1, &kNS_POP3SERVICE_CID},
+  { NS_POP3SERVICE_CONTRACTID2, &kNS_POP3SERVICE_CID},
+  { NS_NONESERVICE_CONTRACTID, &kNS_NONESERVICE_CID},
+#ifdef HAVE_MOVEMAIL
+  { NS_MOVEMAILSERVICE_CONTRACTID, &kNS_MOVEMAILSERVICE_CID},
+#endif /* HAVE_MOVEMAIL */
+  { NS_POP3PROTOCOLINFO_CONTRACTID, &kNS_POP3SERVICE_CID},
+  { NS_NONEPROTOCOLINFO_CONTRACTID, &kNS_NONESERVICE_CID},
+#ifdef HAVE_MOVEMAIL
+  { NS_MOVEMAILPROTOCOLINFO_CONTRACTID, &kNS_MOVEMAILSERVICE_CID},
+#endif /* HAVE_MOVEMAIL */
+  { NS_LOCALMAILFOLDERRESOURCE_CONTRACTID, &kNS_LOCALMAILFOLDERRESOURCE_CID},
+  { NS_POP3INCOMINGSERVER_CONTRACTID, &kNS_POP3INCOMINGSERVER_CID},
+#ifdef HAVE_MOVEMAIL
+  { NS_MOVEMAILINCOMINGSERVER_CONTRACTID, &kNS_MOVEMAILINCOMINGSERVER_CID},
+#endif /* HAVE_MOVEMAIL */
+  { NS_NOINCOMINGSERVER_CONTRACTID, &kNS_NOINCOMINGSERVER_CID},
+  { NS_PARSEMAILMSGSTATE_CONTRACTID, &kNS_PARSEMAILMSGSTATE_CID},
+  { NS_RSSSERVICE_CONTRACTID, &kNS_RSSSERVICE_CID},
+  { NS_RSSPROTOCOLINFO_CONTRACTID, &kNS_RSSSERVICE_CID},
+  { NS_RSSINCOMINGSERVER_CONTRACTID, &kNS_RSSINCOMINGSERVER_CID},
+  {NULL }
+};
 
+static const mozilla::Module kMsgLocalModule = {
+    mozilla::Module::kVersion,
+    kMsgLocalCIDs,
+    kMsgLocalContracts,
+};
+
+NSMODULE_DEFN(msglocal) = &kMsgLocalModule;

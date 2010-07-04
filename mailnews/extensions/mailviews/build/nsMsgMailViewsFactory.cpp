@@ -36,11 +36,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "mozilla/ModuleUtils.h"
 #include "nsISupports.h"
 #include "nsCOMPtr.h"
 
 #include "nsIFactory.h"
-#include "nsIGenericFactory.h"
 #include "nsIServiceManager.h"
 #include "nsIModule.h"
 
@@ -51,16 +51,26 @@
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgMailViewList)
 
+NS_DEFINE_NAMED_CID(NS_MSGMAILVIEWLIST_CID);
+
+const mozilla::Module::CIDEntry kMsgMailViewListCIDs[] = {
+  { &kNS_MSGMAILVIEWLIST_CID, false, NULL, nsMsgMailViewListConstructor },
+  { NULL }
+};
+
+const mozilla::Module::ContractIDEntry kMsgMailViewListContracts[] = {
+  { NS_MSGMAILVIEWLIST_CONTRACTID, &kNS_MSGMAILVIEWLIST_CID },
+  { NULL }
+};
+
 /////////////////////////////////////////////////////////////////////////////
 //
 /////////////////////////////////////////////////////////////////////////////
 
-static const nsModuleComponentInfo components[] =
-{
-    {"Default Mail List View",
-     NS_MSGMAILVIEWLIST_CID,
-     NS_MSGMAILVIEWLIST_CONTRACTID,
-     nsMsgMailViewListConstructor}
+static const mozilla::Module kMsgMailViewListModule = {
+    mozilla::Module::kVersion,
+    kMsgMailViewListCIDs,
+    kMsgMailViewListContracts
 };
 
-NS_IMPL_NSGETMODULE(nsMsgMailViewModule, components)
+NSMODULE_DEFN(msgmailviewlist) = &kMsgMailViewListModule;

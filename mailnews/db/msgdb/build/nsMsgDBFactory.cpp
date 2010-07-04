@@ -36,10 +36,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "mozilla/ModuleUtils.h"
 #include "msgCore.h" // for pre-compiled headers...
 #include "nsCOMPtr.h"
 #include "nsIModule.h"
-#include "nsIGenericFactory.h"
 #include "nsMsgDBCID.h"
 
 // include files for components this factory creates...
@@ -54,25 +54,48 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgRetentionSettings)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgDownloadSettings)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgDBService)
 
-// The list of components we register
-static const nsModuleComponentInfo msgDB_components[] = {
-    { "Mail DB", NS_MAILDB_CID, NS_MAILBOXDB_CONTRACTID, nsMailDatabaseConstructor },
-    { "News DB", NS_NEWSDB_CID, NS_NEWSDB_CONTRACTID, nsNewsDatabaseConstructor },
-    { "Imap DB", NS_IMAPDB_CID, NS_IMAPDB_CONTRACTID, nsImapMailDatabaseConstructor },
-    { "Msg Retention Settings", NS_MSG_RETENTIONSETTINGS_CID,
-      NS_MSG_RETENTIONSETTINGS_CONTRACTID, nsMsgRetentionSettingsConstructor },
-    { "Msg Download Settings", NS_MSG_DOWNLOADSETTINGS_CID,
-      NS_MSG_DOWNLOADSETTINGS_CONTRACTID, nsMsgDownloadSettingsConstructor },
-   { "Msg DB Service", NS_MSGDB_SERVICE_CID, NS_MSGDB_SERVICE_CONTRACTID, nsMsgDBServiceConstructor }
+NS_DEFINE_NAMED_CID(NS_MAILDB_CID);
+NS_DEFINE_NAMED_CID(NS_NEWSDB_CID);
+NS_DEFINE_NAMED_CID(NS_IMAPDB_CID);
+NS_DEFINE_NAMED_CID(NS_MSG_RETENTIONSETTINGS_CID);
+NS_DEFINE_NAMED_CID(NS_MSG_DOWNLOADSETTINGS_CID);
+NS_DEFINE_NAMED_CID(NS_MSGDB_SERVICE_CID);
+
+const mozilla::Module::CIDEntry kMsgDBCIDs[] = {
+  { &kNS_MAILDB_CID, false, NULL, nsMailDatabaseConstructor },
+  { &kNS_NEWSDB_CID, false, NULL, nsNewsDatabaseConstructor },
+  { &kNS_IMAPDB_CID, false, NULL, nsImapMailDatabaseConstructor },
+  { &kNS_MSG_RETENTIONSETTINGS_CID, false, NULL, nsMsgRetentionSettingsConstructor },
+  { &kNS_MSG_DOWNLOADSETTINGS_CID, false, NULL, nsMsgDownloadSettingsConstructor },
+  { &kNS_MSGDB_SERVICE_CID, false, NULL, nsMsgDBServiceConstructor },
+  { NULL }
+};
+
+const mozilla::Module::ContractIDEntry kMsgDBContracts[] = {
+  { NS_MAILBOXDB_CONTRACTID, &kNS_MAILDB_CID },
+  { NS_NEWSDB_CONTRACTID, &kNS_NEWSDB_CID },
+  { NS_IMAPDB_CONTRACTID, &kNS_IMAPDB_CID },
+  { NS_MSG_RETENTIONSETTINGS_CONTRACTID, &kNS_MSG_RETENTIONSETTINGS_CID },
+  { NS_MSG_DOWNLOADSETTINGS_CONTRACTID, &kNS_MSG_DOWNLOADSETTINGS_CID },
+  { NS_MSGDB_SERVICE_CONTRACTID, &kNS_MSGDB_SERVICE_CID },
+  { NULL }
 };
 
 static void
-msgDBModuleDtor(nsIModule* self)
+msgDBModuleDtor()
 {
   nsMsgDatabase::CleanupCache();
 }
 
-NS_IMPL_NSGETMODULE_WITH_DTOR(nsMsgDBModule, msgDB_components, msgDBModuleDtor)
+static const mozilla::Module kMsgDBModule = {
+    mozilla::Module::kVersion,
+    kMsgDBCIDs,
+    kMsgDBContracts,
+    NULL,
+    NULL,
+    NULL,
+    msgDBModuleDtor
+};
 
-
+NSMODULE_DEFN(msgdb) = &kMsgDBModule;
 

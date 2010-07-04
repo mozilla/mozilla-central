@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIGenericFactory.h"
+#include "mozilla/ModuleUtils.h"
 
 /* Include all of the interfaces our factory can generate components for */
 #include "nsMimeContentTypeHandler.h"
@@ -45,6 +45,8 @@
  * handler and will be called in by the mime component.
  */
 #define      VCARD_CONTENT_TYPE  "text/x-vcard"
+
+NS_DEFINE_NAMED_CID(NS_VCARD_CONTENT_TYPE_HANDLER_CID);
 
 ////////////////////////////////////////////////////////////////////////
 // Define the contructor function for the CID
@@ -60,7 +62,7 @@ extern "C" MimeObjectClass *
 MIME_VCardCreateContentTypeHandlerClass(const char *content_type, 
                                         contentTypeHandlerInitStruct *initStruct);
 
-static NS_IMETHODIMP
+static nsresult
 nsVCardMimeContentTypeHandlerConstructor(nsISupports *aOuter,
                                          REFNSIID aIID,
                                          void **aResult)
@@ -89,20 +91,25 @@ nsVCardMimeContentTypeHandlerConstructor(nsISupports *aOuter,
   return rv;
 }
 
-////////////////////////////////////////////////////////////////////////
-// Define a table of CIDs implemented by this module along with other
-// information like the function to create an instance, contractid, and
-// class name.
-//
-static const nsModuleComponentInfo components[] =
-{
-  { "MIME VCard Handler", NS_VCARD_CONTENT_TYPE_HANDLER_CID, "@mozilla.org/mimecth;1?type=text/x-vcard",
-    nsVCardMimeContentTypeHandlerConstructor, }
+const mozilla::Module::CIDEntry kVCardCIDs[] = {
+  { &kNS_VCARD_CONTENT_TYPE_HANDLER_CID, false, NULL, nsVCardMimeContentTypeHandlerConstructor},
+  { NULL }
 };
 
-////////////////////////////////////////////////////////////////////////
-// Implement the NSGetModule() exported function for your module
-// and the entire implementation of the module object.
-//
-NS_IMPL_NSGETMODULE(nsVCardModule, components)
+const mozilla::Module::ContractIDEntry kVCardContracts[] = {
+  { "@mozilla.org/mimecth;1?type=text/x-vcard", &kNS_VCARD_CONTENT_TYPE_HANDLER_CID},
+  { NULL }
+};
+
+static const mozilla::Module kVCardModule = {
+    mozilla::Module::kVersion,
+    kVCardCIDs,
+    kVCardContracts,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+NSMODULE_DEFN(vcard) = &kVCardModule;
 

@@ -10,8 +10,6 @@
 #include "windows.h"
 #endif
 
-#include "nsIClassInfoImpl.h"
-
 #include "nsStopwatch.h"
 #include "nsMemory.h"
 
@@ -27,8 +25,7 @@
  * bug 96669 has been integrated.
  */
 
-NS_DECL_CLASSINFO(nsStopwatch)
-NS_IMPL_ISUPPORTS1_CI(nsStopwatch, nsIStopwatch)
+NS_IMPL_ISUPPORTS1(nsStopwatch, nsIStopwatch)
 
 #ifdef WINCE
 #error "WINCE apparently does not provide the clock support we require."

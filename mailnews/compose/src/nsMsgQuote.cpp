@@ -39,7 +39,6 @@
 #include "nsIURL.h"
 #include "nsIInputStream.h"
 #include "nsIOutputStream.h"
-#include "nsIGenericFactory.h"
 #include "nsIServiceManager.h"
 #include "nsIStreamListener.h"
 #include "nsIStreamConverter.h"

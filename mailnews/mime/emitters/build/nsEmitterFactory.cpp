@@ -41,9 +41,7 @@
 #include "nsCOMPtr.h"
 #include "pratom.h"
 #include "nsServiceManagerUtils.h"
-#include "nsIGenericFactory.h"
-#include "nsIModule.h"
-#include "nsICategoryManager.h"
+#include "mozilla/ModuleUtils.h"
 
 /* Include all of the interfaces our factory can generate components for */
 #include "nsMimeEmitterCID.h"
@@ -58,58 +56,40 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMimeXmlEmitter)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMimePlainEmitter)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMimeHtmlDisplayEmitter, Init)
 
+NS_DEFINE_NAMED_CID(NS_HTML_MIME_EMITTER_CID);
+NS_DEFINE_NAMED_CID(NS_XML_MIME_EMITTER_CID);
+NS_DEFINE_NAMED_CID(NS_PLAIN_MIME_EMITTER_CID);
+NS_DEFINE_NAMED_CID(NS_RAW_MIME_EMITTER_CID);
 
-static NS_METHOD RegisterMimeEmitter(nsIComponentManager *aCompMgr, nsIFile *aPath, const char *registryLocation, 
-                                       const char *componentType, const nsModuleComponentInfo *info)
-{
-  nsresult rv;
-  nsCOMPtr<nsICategoryManager> catman = do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
-  if (NS_FAILED(rv)) return rv;
-  nsCString previous;
-  
-  return catman->AddCategoryEntry("mime-emitter", info->mContractID, info->mContractID,
-                                  PR_TRUE, PR_TRUE, getter_Copies(previous));
-}
-
-static NS_METHOD UnRegisterMimeEmitter(nsIComponentManager *aCompMgr,
-                                            nsIFile *aPath,
-                                            const char *registryLocation,
-                                            const nsModuleComponentInfo *info)
-{
-  // do we need to unregister our category entries??
-  return NS_OK;
-}
-
-static const nsModuleComponentInfo components[] =
-{
-  { "HTML MIME Emitter",
-    NS_HTML_MIME_EMITTER_CID,
-    NS_HTML_MIME_EMITTER_CONTRACTID,
-    nsMimeHtmlDisplayEmitterConstructor,
-    RegisterMimeEmitter,
-    UnRegisterMimeEmitter
-  },
-  { "XML MIME Emitter",
-    NS_XML_MIME_EMITTER_CID,
-    NS_XML_MIME_EMITTER_CONTRACTID,
-    nsMimeXmlEmitterConstructor,
-    RegisterMimeEmitter,
-    UnRegisterMimeEmitter
-  },
-  { "PLAIN MIME Emitter",
-    NS_PLAIN_MIME_EMITTER_CID,
-    NS_PLAIN_MIME_EMITTER_CONTRACTID,
-    nsMimePlainEmitterConstructor,
-    RegisterMimeEmitter,
-    UnRegisterMimeEmitter
-  },
-  { "RAW MIME Emitter",
-    NS_RAW_MIME_EMITTER_CID,
-    NS_RAW_MIME_EMITTER_CONTRACTID,
-    nsMimeRawEmitterConstructor,
-    RegisterMimeEmitter,
-    UnRegisterMimeEmitter
-  }
+static const mozilla::Module::CategoryEntry kMimeEmitterCategories[] = {
+  { "mime-emitter", NS_HTML_MIME_EMITTER_CONTRACTID, NS_HTML_MIME_EMITTER_CONTRACTID},
+  { "mime-emitter", NS_XML_MIME_EMITTER_CONTRACTID, NS_XML_MIME_EMITTER_CONTRACTID},
+  { "mime-emitter", NS_PLAIN_MIME_EMITTER_CONTRACTID, NS_PLAIN_MIME_EMITTER_CONTRACTID},
+  { "mime-emitter", NS_RAW_MIME_EMITTER_CONTRACTID, NS_RAW_MIME_EMITTER_CONTRACTID},
+  { NULL }
 };
 
-NS_IMPL_NSGETMODULE(nsMimeEmitterModule, components)
+const mozilla::Module::CIDEntry kMimeEmitterCIDs[] = {
+  { &kNS_HTML_MIME_EMITTER_CID, false, NULL, nsMimeHtmlDisplayEmitterConstructor},
+  { &kNS_XML_MIME_EMITTER_CID, false, NULL, nsMimeXmlEmitterConstructor},
+  { &kNS_PLAIN_MIME_EMITTER_CID, false, NULL, nsMimePlainEmitterConstructor},
+  { &kNS_RAW_MIME_EMITTER_CID, false, NULL, nsMimeRawEmitterConstructor},
+  { NULL }
+};
+
+const mozilla::Module::ContractIDEntry kMimeEmitterContracts[] = {
+  { NS_HTML_MIME_EMITTER_CONTRACTID, &kNS_HTML_MIME_EMITTER_CID},
+  { NS_XML_MIME_EMITTER_CONTRACTID, &kNS_XML_MIME_EMITTER_CID},
+  { NS_PLAIN_MIME_EMITTER_CONTRACTID, &kNS_PLAIN_MIME_EMITTER_CID},
+  { NS_RAW_MIME_EMITTER_CONTRACTID, &kNS_RAW_MIME_EMITTER_CID},
+  { NULL }
+};
+
+static const mozilla::Module kMimeEmitterModule = {
+    mozilla::Module::kVersion,
+    kMimeEmitterCIDs,
+    kMimeEmitterContracts,
+    kMimeEmitterCategories
+};
+
+NSMODULE_DEFN(mimeemitter) = &kMimeEmitterModule;

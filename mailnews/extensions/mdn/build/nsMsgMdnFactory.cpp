@@ -36,11 +36,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "mozilla/ModuleUtils.h"
 #include "nsISupports.h"
 #include "nsCOMPtr.h"
 
 #include "nsIFactory.h"
-#include "nsIGenericFactory.h"
 #include "nsIServiceManager.h"
 #include "nsIModule.h"
 
@@ -51,16 +51,27 @@
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgMdnGenerator)
 
+NS_DEFINE_NAMED_CID(NS_MSGMDNGENERATOR_CID);
+
+const mozilla::Module::CIDEntry kMdnGeneratorCIDs[] = {
+  { &kNS_MSGMDNGENERATOR_CID, false, NULL, nsMsgMdnGeneratorConstructor },
+  { NULL }
+};
+
+const mozilla::Module::ContractIDEntry kMdnGeneratorContracts[] = {
+  { NS_MSGMDNGENERATOR_CONTRACTID, &kNS_MSGMDNGENERATOR_CID },
+  { NULL }
+};
+
 /////////////////////////////////////////////////////////////////////////////
 //
 /////////////////////////////////////////////////////////////////////////////
 
-static const nsModuleComponentInfo components[] =
-{
-    {"Msg Mdn Generator",
-     NS_MSGMDNGENERATOR_CID,
-     NS_MSGMDNGENERATOR_CONTRACTID,
-     nsMsgMdnGeneratorConstructor}
+static const mozilla::Module kMdnGeneratorModule = {
+    mozilla::Module::kVersion,
+    kMdnGeneratorCIDs,
+    kMdnGeneratorContracts
 };
 
-NS_IMPL_NSGETMODULE(nsMsgMdnModule, components)
+NSMODULE_DEFN(mdngenerator) = &kMdnGeneratorModule;
+

@@ -36,9 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.h"
-#include "nsIFactory.h"
-#include "nsIModule.h"
-#include "nsIGenericFactory.h"
+#include "mozilla/ModuleUtils.h"
 
 #include "msgCore.h"
 #include "pratom.h"
@@ -70,107 +68,59 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsNNTPNewsgroupList)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgNewsFolder)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsNewsDownloadDialogArgs)
 
-static NS_METHOD
-RegisterCommandLineHandler(nsIComponentManager* compMgr, nsIFile* path,
-                           const char *location, const char *type,
-                           const nsModuleComponentInfo *info)
-{
-  nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
-  NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
+NS_DEFINE_NAMED_CID(NS_NNTPSERVICE_CID);
+NS_DEFINE_NAMED_CID(NS_NNTPURL_CID);
+NS_DEFINE_NAMED_CID(NS_NEWSFOLDERRESOURCE_CID);
+NS_DEFINE_NAMED_CID(NS_NNTPINCOMINGSERVER_CID);
+NS_DEFINE_NAMED_CID(NS_NNTPNEWSGROUPPOST_CID);
+NS_DEFINE_NAMED_CID(NS_NNTPNEWSGROUPLIST_CID);
+NS_DEFINE_NAMED_CID(NS_NNTPARTICLELIST_CID);
+NS_DEFINE_NAMED_CID(NS_NEWSDOWNLOADDIALOGARGS_CID);
 
-  return catMan->AddCategoryEntry("command-line-handler", "m-news",
-                                  NS_NEWSSTARTUPHANDLER_CONTRACTID,
-                                  PR_TRUE, PR_TRUE, nsnull);
-}
-
-static NS_METHOD
-UnregisterCommandLineHandler(nsIComponentManager* compMgr, nsIFile* path,
-                             const char *location,
-                             const nsModuleComponentInfo *info)
-{
-  nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
-  NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
-
-  catMan->DeleteCategoryEntry("command-line-handler", "m-news",
-                              PR_TRUE);
-
-  return NS_OK;
-}
-
-static const nsModuleComponentInfo components[] =
-{
-  { "NNTP URL",
-    NS_NNTPURL_CID,
-    NS_NNTPURL_CONTRACTID,
-    nsNntpUrlConstructor },
-  { "NNTP Service",
-    NS_NNTPSERVICE_CID,
-    NS_NNTPSERVICE_CONTRACTID,
-    nsNntpServiceConstructor },
-  { "News Startup Handler",
-    NS_NNTPSERVICE_CID,
-    NS_NEWSSTARTUPHANDLER_CONTRACTID,
-    nsNntpServiceConstructor,
-    RegisterCommandLineHandler, 
-    UnregisterCommandLineHandler },
-  { "NNTP Protocol Info",
-    NS_NNTPSERVICE_CID,
-    NS_NNTPPROTOCOLINFO_CONTRACTID,
-    nsNntpServiceConstructor },
-  { "NNTP Message Service",
-    NS_NNTPSERVICE_CID,
-    NS_NNTPMESSAGESERVICE_CONTRACTID,
-    nsNntpServiceConstructor },
-  { "News Message Service",
-    NS_NNTPSERVICE_CID,
-    NS_NEWSMESSAGESERVICE_CONTRACTID,
-    nsNntpServiceConstructor },
-  { "News Protocol Handler",
-    NS_NNTPSERVICE_CID,
-    NS_NEWSPROTOCOLHANDLER_CONTRACTID,
-    nsNntpServiceConstructor },
-  { "Secure News Protocol Handler",
-    NS_NNTPSERVICE_CID,
-    NS_SNEWSPROTOCOLHANDLER_CONTRACTID,
-    nsNntpServiceConstructor },
-  { "NNTP Protocol Handler",
-    NS_NNTPSERVICE_CID,
-    NS_NNTPPROTOCOLHANDLER_CONTRACTID,
-    nsNntpServiceConstructor },
-  { "newsgroup content handler",
-    NS_NNTPSERVICE_CID,
-    NS_CONTENT_HANDLER_CONTRACTID_PREFIX"x-application-newsgroup",
-    nsNntpServiceConstructor },
-  { "newsgroup listids content handler",
-    NS_NNTPSERVICE_CID,
-    NS_CONTENT_HANDLER_CONTRACTID_PREFIX"x-application-newsgroup-listids",
-    nsNntpServiceConstructor },
-  { "News Folder Resource",
-    NS_NEWSFOLDERRESOURCE_CID,
-    NS_NEWSFOLDERRESOURCE_CONTRACTID,
-    nsMsgNewsFolderConstructor },
-  { "NNTP Incoming Servier",
-    NS_NNTPINCOMINGSERVER_CID,
-    NS_NNTPINCOMINGSERVER_CONTRACTID,
-    nsNntpIncomingServerConstructor },
-  { "NNTP Newsgroup Post",
-    NS_NNTPNEWSGROUPPOST_CID,
-    NS_NNTPNEWSGROUPPOST_CONTRACTID,
-    nsNNTPNewsgroupPostConstructor },
-  { "NNTP Newsgroup List",
-    NS_NNTPNEWSGROUPLIST_CID,
-    NS_NNTPNEWSGROUPLIST_CONTRACTID,
-    nsNNTPNewsgroupListConstructor },
-  { "NNTP Article List",
-    NS_NNTPARTICLELIST_CID,
-    NS_NNTPARTICLELIST_CONTRACTID,
-    nsNNTPArticleListConstructor },
-  { "News download dialog args",
-    NS_NEWSDOWNLOADDIALOGARGS_CID,
-    NS_NEWSDOWNLOADDIALOGARGS_CONTRACTID,
-    nsNewsDownloadDialogArgsConstructor }
+static const mozilla::Module::CategoryEntry kMsgNewsCategories[] = {
+  { "command-line-handler", "m-news", NS_NEWSSTARTUPHANDLER_CONTRACTID },
+  { NULL }
 };
 
-NS_IMPL_NSGETMODULE(nsMsgNewsModule, components)
+const mozilla::Module::CIDEntry kMsgNewsCIDs[] = {
+  { &kNS_NNTPURL_CID, false, NULL, nsNntpUrlConstructor },
+  { &kNS_NNTPSERVICE_CID, false, NULL, nsNntpServiceConstructor },
+  { &kNS_NEWSFOLDERRESOURCE_CID, false, NULL, nsMsgNewsFolderConstructor },
+  { &kNS_NNTPINCOMINGSERVER_CID, false, NULL, nsNntpIncomingServerConstructor },
+  { &kNS_NNTPNEWSGROUPPOST_CID, false, NULL, nsNNTPNewsgroupPostConstructor },
+  { &kNS_NNTPNEWSGROUPLIST_CID, false, NULL, nsNNTPNewsgroupListConstructor },
+  { &kNS_NNTPARTICLELIST_CID, false, NULL, nsNNTPArticleListConstructor },
+  { &kNS_NEWSDOWNLOADDIALOGARGS_CID, false, NULL, nsNewsDownloadDialogArgsConstructor },
+  { NULL }
+};
 
+const mozilla::Module::ContractIDEntry kMsgNewsContracts[] = {
+  { NS_NNTPURL_CONTRACTID, &kNS_NNTPURL_CID },
+  { NS_NNTPSERVICE_CONTRACTID, &kNS_NNTPSERVICE_CID },
+  { NS_NEWSSTARTUPHANDLER_CONTRACTID, &kNS_NNTPSERVICE_CID },
+  { NS_NNTPPROTOCOLINFO_CONTRACTID, &kNS_NNTPSERVICE_CID },
+  { NS_NNTPMESSAGESERVICE_CONTRACTID, &kNS_NNTPSERVICE_CID },
+  { NS_NEWSMESSAGESERVICE_CONTRACTID, &kNS_NNTPSERVICE_CID },
+  { NS_NEWSPROTOCOLHANDLER_CONTRACTID, &kNS_NNTPSERVICE_CID },
+  { NS_SNEWSPROTOCOLHANDLER_CONTRACTID, &kNS_NNTPSERVICE_CID },
+  { NS_NNTPPROTOCOLHANDLER_CONTRACTID, &kNS_NNTPSERVICE_CID },
+  { NS_CONTENT_HANDLER_CONTRACTID_PREFIX"x-application-newsgroup", &kNS_NNTPSERVICE_CID },
+  { NS_CONTENT_HANDLER_CONTRACTID_PREFIX"x-application-newsgroup-listids", &kNS_NNTPSERVICE_CID },
+  { NS_NEWSFOLDERRESOURCE_CONTRACTID, &kNS_NEWSFOLDERRESOURCE_CID },
+  { NS_NNTPINCOMINGSERVER_CONTRACTID, &kNS_NNTPINCOMINGSERVER_CID },
+  { NS_NNTPNEWSGROUPPOST_CONTRACTID, &kNS_NNTPNEWSGROUPPOST_CID },
+  { NS_NNTPNEWSGROUPLIST_CONTRACTID, &kNS_NNTPNEWSGROUPLIST_CID },
+  { NS_NNTPARTICLELIST_CONTRACTID, &kNS_NNTPARTICLELIST_CID },
+  { NS_NEWSDOWNLOADDIALOGARGS_CONTRACTID, &kNS_NEWSDOWNLOADDIALOGARGS_CID },
+  { NULL }
+};
+
+static const mozilla::Module kMsgNewsModule = {
+    mozilla::Module::kVersion,
+    kMsgNewsCIDs,
+    kMsgNewsContracts,
+    kMsgNewsCategories
+};
+
+NSMODULE_DEFN(msgnews) = &kMsgNewsModule;
 

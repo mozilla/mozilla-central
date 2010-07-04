@@ -36,11 +36,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "mozilla/ModuleUtils.h"
 #include "nsISupports.h"
 #include "nsCOMPtr.h"
 
 #include "nsIFactory.h"
-#include "nsIGenericFactory.h"
 #include "nsIServiceManager.h"
 #include "nsIModule.h"
 
@@ -51,16 +51,26 @@
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsBayesianFilter)
 
+NS_DEFINE_NAMED_CID(NS_BAYESIANFILTER_CID);
+
+const mozilla::Module::CIDEntry kBayesianFilterCIDs[] = {
+  { &kNS_BAYESIANFILTER_CID, false, NULL, nsBayesianFilterConstructor },
+  { NULL }
+};
+
+const mozilla::Module::ContractIDEntry kBayesianFilterContracts[] = {
+  { NS_BAYESIANFILTER_CONTRACTID, &kNS_BAYESIANFILTER_CID },
+  { NULL }
+};
+
 /////////////////////////////////////////////////////////////////////////////
 //
 /////////////////////////////////////////////////////////////////////////////
 
-static const nsModuleComponentInfo components[] =
-{
-    {"Bayesian Filter",
-     NS_BAYESIANFILTER_CID,
-     NS_BAYESIANFILTER_CONTRACTID,
-     nsBayesianFilterConstructor}
+static const mozilla::Module kBayesianFilterModule = {
+    mozilla::Module::kVersion,
+    kBayesianFilterCIDs,
+    kBayesianFilterContracts
 };
 
-NS_IMPL_NSGETMODULE(nsBayesianFilterModule, components)
+NSMODULE_DEFN(bayesianfilter) = &kBayesianFilterModule;

@@ -38,7 +38,7 @@
 #include "objbase.h"
 #include "nsISupports.h"
 
-#include "nsIGenericFactory.h"
+#include "mozilla/ModuleUtils.h"
 #include "nsIObserverService.h"
 #include "nsIAppStartupNotifier.h"
 #include "nsIServiceManager.h"
@@ -54,22 +54,6 @@
  */
 
 NS_IMPL_THREADSAFE_ISUPPORTS2(nsMapiSupport, nsIMapiSupport, nsIObserver)
-
-static NS_METHOD nsMapiRegistrationProc(nsIComponentManager *aCompMgr,
-                   nsIFile *aPath, const char *registryLocation, const char *componentType,
-                   const nsModuleComponentInfo *info)
-{
-    
-  nsresult rv;
-
-  nsCOMPtr<nsICategoryManager> categoryManager(do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv));
-  if (NS_SUCCEEDED(rv)) 
-      rv = categoryManager->AddCategoryEntry(APPSTARTUP_CATEGORY, "Mapi Support", 
-                  "service," NS_IMAPISUPPORT_CONTRACTID, PR_TRUE, PR_TRUE, nsnull);
- 
-  return rv ;
-
-}
 
 NS_IMETHODIMP
 nsMapiSupport::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *aData)
@@ -167,20 +151,32 @@ nsMapiSupport::UnRegisterServer()
   return NS_OK;
 }
 
+NS_DEFINE_NAMED_CID(NS_IMAPISUPPORT_CID);
+
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMapiSupport)
 
-// The list of components we register
-static const nsModuleComponentInfo components[] = 
-{
-  {
-    NS_IMAPISUPPORT_CLASSNAME,
-    NS_IMAPISUPPORT_CID,
-    NS_IMAPISUPPORT_CONTRACTID,
-    nsMapiSupportConstructor,
-    nsMapiRegistrationProc,
-    nsnull
-  }
+static const mozilla::Module::CategoryEntry kMAPICategories[] = {
+  { APPSTARTUP_CATEGORY, "Mapi Support", "service," NS_IMAPISUPPORT_CONTRACTID, },
+  { NULL }
 };
 
-NS_IMPL_NSGETMODULE(msgMapiModule, components)
+const mozilla::Module::CIDEntry kMAPICIDs[] = {
+  { &kNS_IMAPISUPPORT_CID, false, NULL, nsMapiSupportConstructor },
+  { NULL }
+};
+
+const mozilla::Module::ContractIDEntry kMAPIContracts[] = {
+  { NS_IMAPISUPPORT_CONTRACTID, &kNS_IMAPISUPPORT_CID },
+  { NULL }
+};
+
+static const mozilla::Module kMAPIModule = {
+    mozilla::Module::kVersion,
+    kMAPICIDs,
+    kMAPIContracts,
+    kMAPICategories
+};
+
+NSMODULE_DEFN(mapi) = &kMAPIModule;
+
 

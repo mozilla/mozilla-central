@@ -35,6 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "mozilla/ModuleUtils.h"
 #include "msgCore.h"
 
 #include "nsISupports.h"
@@ -42,7 +43,6 @@
 
 #include "nsIFactory.h"
 #include "nsICategoryManager.h"
-#include "nsIGenericFactory.h"
 #include "nsIServiceManager.h"
 #include "nsServiceManagerUtils.h"
 #include "nsIModule.h"
@@ -86,122 +86,86 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMailtoUrl)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsURLFetcher)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgCompUtils)
 
-static NS_METHOD
-RegisterCommandLineHandler(nsIComponentManager* compMgr, nsIFile* path,
-                           const char *location, const char *type,
-                           const nsModuleComponentInfo *info)
-{
-  nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
-  NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
+NS_DEFINE_NAMED_CID(NS_MSGCOMPOSE_CID);
+NS_DEFINE_NAMED_CID(NS_MSGCOMPOSESERVICE_CID);
+NS_DEFINE_NAMED_CID(NS_MSGCOMPOSECONTENTHANDLER_CID);
+NS_DEFINE_NAMED_CID(NS_MSGCOMPOSEPARAMS_CID);
+NS_DEFINE_NAMED_CID(NS_MSGCOMPOSESENDLISTENER_CID);
+NS_DEFINE_NAMED_CID(NS_MSGCOMPOSEPROGRESSPARAMS_CID);
+NS_DEFINE_NAMED_CID(NS_MSGCOMPFIELDS_CID);
+NS_DEFINE_NAMED_CID(NS_MSGATTACHMENT_CID);
+NS_DEFINE_NAMED_CID(NS_MSGSEND_CID);
+NS_DEFINE_NAMED_CID(NS_MSGSENDLATER_CID);
+NS_DEFINE_NAMED_CID(NS_SMTPSERVICE_CID);
+NS_DEFINE_NAMED_CID(NS_SMTPSERVER_CID);
+NS_DEFINE_NAMED_CID(NS_SMTPURL_CID);
+NS_DEFINE_NAMED_CID(NS_MAILTOURL_CID);
+NS_DEFINE_NAMED_CID(NS_MSGQUOTE_CID);
+NS_DEFINE_NAMED_CID(NS_MSGQUOTELISTENER_CID);
+NS_DEFINE_NAMED_CID(NS_URLFETCHER_CID);
+NS_DEFINE_NAMED_CID(NS_MSGCOMPUTILS_CID);
 
-  return catMan->AddCategoryEntry("command-line-handler", "m-compose",
-                                  NS_MSGCOMPOSESTARTUPHANDLER_CONTRACTID,
-                                  PR_TRUE, PR_TRUE, nsnull);
-}
-
-static NS_METHOD
-UnregisterCommandLineHandler(nsIComponentManager* compMgr, nsIFile* path,
-                             const char *location,
-                             const nsModuleComponentInfo *info)
-{
-  nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
-  NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
-
-  catMan->DeleteCategoryEntry("command-line-handler", "m-compose",
-                              PR_TRUE);
-
-  return NS_OK;
-}
-
-////////////////////////////////////////////////////////////
-//
-////////////////////////////////////////////////////////////
-
-static const nsModuleComponentInfo components[] =
-{
-  { "Msg Compose",
-    NS_MSGCOMPOSE_CID,
-    NS_MSGCOMPOSE_CONTRACTID,
-    nsMsgComposeConstructor },
-  { "Msg Compose Service",
-    NS_MSGCOMPOSESERVICE_CID,
-    NS_MSGCOMPOSESERVICE_CONTRACTID,
-    nsMsgComposeServiceConstructor },
-  { "Msg Compose Startup Handler",
-    NS_MSGCOMPOSESERVICE_CID,
-    NS_MSGCOMPOSESTARTUPHANDLER_CONTRACTID,
-    nsMsgComposeServiceConstructor,
-    RegisterCommandLineHandler,
-    UnregisterCommandLineHandler },
-  { "mailto content handler",
-     NS_MSGCOMPOSECONTENTHANDLER_CID,
-     NS_MSGCOMPOSECONTENTHANDLER_CONTRACTID,
-     nsMsgComposeContentHandlerConstructor },
-  { "Msg Compose Parameters",
-    NS_MSGCOMPOSEPARAMS_CID,
-    NS_MSGCOMPOSEPARAMS_CONTRACTID,
-    nsMsgComposeParamsConstructor },
-  { "Msg Compose Send Listener",
-    NS_MSGCOMPOSESENDLISTENER_CID,
-    NS_MSGCOMPOSESENDLISTENER_CONTRACTID,
-    nsMsgComposeSendListenerConstructor },
-  { "Msg Compose Progress Parameters",
-    NS_MSGCOMPOSEPROGRESSPARAMS_CID,
-    NS_MSGCOMPOSEPROGRESSPARAMS_CONTRACTID,
-    nsMsgComposeProgressParamsConstructor },
-  { "Msg Compose Fields",
-    NS_MSGCOMPFIELDS_CID,
-    NS_MSGCOMPFIELDS_CONTRACTID,
-    nsMsgCompFieldsConstructor },
-  { "Msg Compose Attachment",
-    NS_MSGATTACHMENT_CID,
-    NS_MSGATTACHMENT_CONTRACTID,
-    nsMsgAttachmentConstructor },
-  { "Msg Send",
-    NS_MSGSEND_CID,
-    NS_MSGSEND_CONTRACTID,
-    nsMsgComposeAndSendConstructor },
-  { "Msg Send Later",
-    NS_MSGSENDLATER_CID,
-    NS_MSGSENDLATER_CONTRACTID,
-    nsMsgSendLaterConstructor },
-  { "SMTP Service",
-    NS_SMTPSERVICE_CID,
-    NS_SMTPSERVICE_CONTRACTID,
-    nsSmtpServiceConstructor },
-  { "SMTP Service",
-    NS_SMTPSERVICE_CID,
-    NS_MAILTOHANDLER_CONTRACTID,
-    nsSmtpServiceConstructor },
-  { "SMTP Server",
-    NS_SMTPSERVER_CID,
-    NS_SMTPSERVER_CONTRACTID,
-    nsSmtpServerConstructor },
-  { "SMTP URL",
-    NS_SMTPURL_CID,
-    NS_SMTPURL_CONTRACTID,
-    nsSmtpUrlConstructor },
-  { "MAILTO URL",
-    NS_MAILTOURL_CID,
-    NS_MAILTOURL_CONTRACTID,
-    nsMailtoUrlConstructor },
-  { "Msg Quote",
-    NS_MSGQUOTE_CID,
-    NS_MSGQUOTE_CONTRACTID,
-    nsMsgQuoteConstructor },
-  { "Msg Quote Listener",
-    NS_MSGQUOTELISTENER_CID,
-    NS_MSGQUOTELISTENER_CONTRACTID,
-    nsMsgQuoteListenerConstructor },
-  { "URL Fetcher",
-    NS_URLFETCHER_CID,
-    NS_URLFETCHER_CONTRACTID,
-    nsURLFetcherConstructor },
-  { "Msg Compose Utils",
-    NS_MSGCOMPUTILS_CID,
-    NS_MSGCOMPUTILS_CONTRACTID,
-    nsMsgCompUtilsConstructor },
+const mozilla::Module::CIDEntry kMsgComposeCIDs[] = {
+  { &kNS_MSGCOMPOSE_CID, false, NULL, nsMsgComposeConstructor},
+  { &kNS_MSGCOMPOSESERVICE_CID, false, NULL, nsMsgComposeServiceConstructor},
+  { &kNS_MSGCOMPOSECONTENTHANDLER_CID, false, NULL, nsMsgComposeContentHandlerConstructor},
+  { &kNS_MSGCOMPOSEPARAMS_CID, false, NULL, nsMsgComposeParamsConstructor},
+  { &kNS_MSGCOMPOSESENDLISTENER_CID, false, NULL, nsMsgComposeSendListenerConstructor},
+  { &kNS_MSGCOMPOSEPROGRESSPARAMS_CID, false, NULL, nsMsgComposeProgressParamsConstructor},
+  { &kNS_MSGCOMPFIELDS_CID, false, NULL, nsMsgCompFieldsConstructor},
+  { &kNS_MSGATTACHMENT_CID, false, NULL, nsMsgAttachmentConstructor},
+  { &kNS_MSGSEND_CID, false, NULL, nsMsgComposeAndSendConstructor},
+  { &kNS_MSGSENDLATER_CID, false, NULL, nsMsgSendLaterConstructor},
+  { &kNS_SMTPSERVICE_CID, false, NULL, nsSmtpServiceConstructor},
+  { &kNS_SMTPSERVER_CID, false, NULL, nsSmtpServerConstructor},
+  { &kNS_SMTPURL_CID, false, NULL, nsSmtpUrlConstructor},
+  { &kNS_MAILTOURL_CID, false, NULL, nsMailtoUrlConstructor},
+  { &kNS_MSGQUOTE_CID, false, NULL, nsMsgQuoteConstructor},
+  { &kNS_MSGQUOTELISTENER_CID, false, NULL, nsMsgQuoteListenerConstructor},
+  { &kNS_URLFETCHER_CID, false, NULL, nsURLFetcherConstructor},
+  { &kNS_MSGCOMPUTILS_CID, false, NULL, nsMsgCompUtilsConstructor},
+  { NULL}
 };
 
-  
-NS_IMPL_NSGETMODULE(nsMsgComposeModule, components)
+const mozilla::Module::ContractIDEntry kMsgComposeContracts[] = {
+  { NS_MSGCOMPOSE_CONTRACTID, &kNS_MSGCOMPOSE_CID},
+  { NS_MSGCOMPOSESERVICE_CONTRACTID, &kNS_MSGCOMPOSESERVICE_CID},
+  { NS_MSGCOMPOSESTARTUPHANDLER_CONTRACTID, &kNS_MSGCOMPOSESERVICE_CID},
+  { NS_MSGCOMPOSECONTENTHANDLER_CONTRACTID, &kNS_MSGCOMPOSECONTENTHANDLER_CID},
+  { NS_MSGCOMPOSEPARAMS_CONTRACTID, &kNS_MSGCOMPOSEPARAMS_CID},
+  { NS_MSGCOMPOSESENDLISTENER_CONTRACTID, &kNS_MSGCOMPOSESENDLISTENER_CID},
+  { NS_MSGCOMPOSEPROGRESSPARAMS_CONTRACTID, &kNS_MSGCOMPOSEPROGRESSPARAMS_CID},
+  { NS_MSGCOMPFIELDS_CONTRACTID, &kNS_MSGCOMPFIELDS_CID},
+  { NS_MSGATTACHMENT_CONTRACTID, &kNS_MSGATTACHMENT_CID},
+  { NS_MSGSEND_CONTRACTID, &kNS_MSGSEND_CID},
+  { NS_MSGSENDLATER_CONTRACTID, &kNS_MSGSENDLATER_CID},
+  { NS_SMTPSERVICE_CONTRACTID, &kNS_SMTPSERVICE_CID},
+  { NS_MAILTOHANDLER_CONTRACTID, &kNS_SMTPSERVICE_CID},
+  { NS_SMTPSERVER_CONTRACTID, &kNS_SMTPSERVER_CID},
+  { NS_SMTPURL_CONTRACTID, &kNS_SMTPURL_CID},
+  { NS_MAILTOURL_CONTRACTID, &kNS_MAILTOURL_CID},
+  { NS_MSGQUOTE_CONTRACTID, &kNS_MSGQUOTE_CID},
+  { NS_MSGQUOTELISTENER_CONTRACTID, &kNS_MSGQUOTELISTENER_CID},
+  { NS_URLFETCHER_CONTRACTID, &kNS_URLFETCHER_CID},
+  { NS_MSGCOMPUTILS_CONTRACTID, &kNS_MSGCOMPUTILS_CID},
+  { NULL }
+};
+
+static const mozilla::Module::CategoryEntry kMsgComposeCategories[] = {
+  { "command-line-handler", "m-compose",
+                                  NS_MSGCOMPOSESTARTUPHANDLER_CONTRACTID},
+  { NULL }
+};
+
+static const mozilla::Module kMsgComposeModule = {
+    mozilla::Module::kVersion,
+    kMsgComposeCIDs,
+    kMsgComposeContracts,
+    kMsgComposeCategories,
+    NULL,
+    NULL,
+    NULL
+};
+
+NSMODULE_DEFN(msg_compose) = &kMsgComposeModule;
+

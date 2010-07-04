@@ -64,6 +64,9 @@
         { 0x403b0540, 0xb7c3, 0x11d2,         \
         { 0xb3, 0x5e, 0x52, 0x54, 0x0, 0xe2, 0xd6, 0x3a } }
 
+#define NS_MIME_OBJECT_CONTRACTID \
+  "@mozilla.org/messenger/mimeobject;1"
+
 // {932C53A5-F398-11d2-82B7-444553540002}
 #define NS_MSGHEADERPARSER_CID \
         { 0x932c53a5, 0xf398, 0x11d2, \

@@ -36,8 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIModule.h"
-#include "nsIGenericFactory.h"
+#include "mozilla/ModuleUtils.h"
 #include "nsMsgMimeCID.h"
 #include "nsCOMPtr.h"
 
@@ -56,37 +55,36 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsStreamConverter)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgHeaderParser)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMimeHeaders)
 
-// Destructor for stream converter
-static NS_IMETHODIMP streamConverterDestructor()
-{
-  return NS_OK;
-}
+NS_DEFINE_NAMED_CID(NS_MIME_OBJECT_CLASS_ACCESS_CID);
+NS_DEFINE_NAMED_CID(NS_MIME_CONVERTER_CID);
+NS_DEFINE_NAMED_CID(NS_MSGHEADERPARSER_CID);
+NS_DEFINE_NAMED_CID(NS_MAILNEWS_MIME_STREAM_CONVERTER_CID);
+NS_DEFINE_NAMED_CID(NS_IMIMEHEADERS_CID);
 
-// The list of components we register
-static const nsModuleComponentInfo gComponents[] = {
-    { "MimeObjectClassAccess", NS_MIME_OBJECT_CLASS_ACCESS_CID,
-      nsnull, nsMimeObjectClassAccessConstructor },
-
-    { "Mime Converter", NS_MIME_CONVERTER_CID,
-      NS_MIME_CONVERTER_CONTRACTID, nsMimeConverterConstructor },
-
-    { "Msg Header Parser", NS_MSGHEADERPARSER_CID,
-      NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, nsMsgHeaderParserConstructor },
-
-    { "Mailnews Mime Stream Converter", NS_MAILNEWS_MIME_STREAM_CONVERTER_CID,
-      NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID,
-      nsStreamConverterConstructor, 0, 0, streamConverterDestructor },
-
-    { "Mailnews Mime Stream Converter", NS_MAILNEWS_MIME_STREAM_CONVERTER_CID,
-      NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID1,
-      nsStreamConverterConstructor, 0, 0, streamConverterDestructor },
-
-    { "Mailnews Mime Stream Converter", NS_MAILNEWS_MIME_STREAM_CONVERTER_CID,
-      NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID2,
-      nsStreamConverterConstructor, 0, 0, streamConverterDestructor },
-
-    { "Mime Headers", NS_IMIMEHEADERS_CID,
-      NS_IMIMEHEADERS_CONTRACTID, nsMimeHeadersConstructor }
+const mozilla::Module::CIDEntry kMimeCIDs[] = {
+  { &kNS_MIME_OBJECT_CLASS_ACCESS_CID, false, NULL, nsMimeObjectClassAccessConstructor },
+  { &kNS_MIME_CONVERTER_CID, false, NULL, nsMimeConverterConstructor },
+  { &kNS_MSGHEADERPARSER_CID, false, NULL, nsMsgHeaderParserConstructor },
+  { &kNS_MAILNEWS_MIME_STREAM_CONVERTER_CID, false, NULL, nsStreamConverterConstructor },
+  { &kNS_IMIMEHEADERS_CID, false, NULL, nsMimeHeadersConstructor },
+  { NULL }
 };
 
-NS_IMPL_NSGETMODULE(mime_services, gComponents)
+const mozilla::Module::ContractIDEntry kMimeContracts[] = {
+  { NS_MIME_OBJECT_CONTRACTID, &kNS_MIME_OBJECT_CLASS_ACCESS_CID},
+  { NS_MIME_CONVERTER_CONTRACTID, &kNS_MIME_CONVERTER_CID},
+  { NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &kNS_MSGHEADERPARSER_CID},
+  { NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID, &kNS_MAILNEWS_MIME_STREAM_CONVERTER_CID},
+  { NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID1, &kNS_MAILNEWS_MIME_STREAM_CONVERTER_CID},
+  { NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID2, &kNS_MAILNEWS_MIME_STREAM_CONVERTER_CID},
+  { NS_IMIMEHEADERS_CONTRACTID, &kNS_IMIMEHEADERS_CID},
+  { NULL }
+};
+
+static const mozilla::Module kMimeModule = {
+    mozilla::Module::kVersion,
+    kMimeCIDs,
+    kMimeContracts
+};
+
+NSMODULE_DEFN(mime) = &kMimeModule;

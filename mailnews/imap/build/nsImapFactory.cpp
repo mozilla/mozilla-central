@@ -38,8 +38,7 @@
 
 #include "msgCore.h" // for pre-compiled headers...
 #include "nsCOMPtr.h"
-#include "nsIModule.h"
-#include "nsIGenericFactory.h"
+#include "mozilla/ModuleUtils.h"
 
 #include "nsIMAPHostSessionList.h"
 #include "nsImapIncomingServer.h"
@@ -61,53 +60,48 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsImapMailFolder)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsImapMockChannel)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAutoSyncManager)
 
-// The list of components we register
-static const nsModuleComponentInfo gComponents[] = {
-    { "IMAP URL", NS_IMAPURL_CID,
-      nsnull, nsImapUrlConstructor },
+NS_DEFINE_NAMED_CID(NS_IMAPURL_CID);
+NS_DEFINE_NAMED_CID(NS_IMAPPROTOCOL_CID);
+NS_DEFINE_NAMED_CID(NS_IMAPMOCKCHANNEL_CID);
+NS_DEFINE_NAMED_CID(NS_IIMAPHOSTSESSIONLIST_CID);
+NS_DEFINE_NAMED_CID(NS_IMAPINCOMINGSERVER_CID);
+NS_DEFINE_NAMED_CID(NS_IMAPRESOURCE_CID);
+NS_DEFINE_NAMED_CID(NS_IMAPSERVICE_CID);
+NS_DEFINE_NAMED_CID(NS_AUTOSYNCMANAGER_CID);
 
-    { "IMAP Protocol Channel", NS_IMAPPROTOCOL_CID,
-      nsnull, nsImapProtocolConstructor },    
-
-    { "IMAP Mock Channel", NS_IMAPMOCKCHANNEL_CID,
-      nsnull, nsImapMockChannelConstructor },
-
-    { "IMAP Host Session List", NS_IIMAPHOSTSESSIONLIST_CID,
-      nsnull, nsIMAPHostSessionListConstructor },
-
-    { "IMAP Incoming Server", NS_IMAPINCOMINGSERVER_CID,
-      NS_IMAPINCOMINGSERVER_CONTRACTID, nsImapIncomingServerConstructor },
-
-    { "Mail/News IMAP Resource Factory", NS_IMAPRESOURCE_CID,
-      NS_RDF_RESOURCE_FACTORY_CONTRACTID_PREFIX "imap", 
-      nsImapMailFolderConstructor },
-
-    { "IMAP Service", NS_IMAPSERVICE_CID,
-      "@mozilla.org/messenger/messageservice;1?type=imap-message",
-      nsImapServiceConstructor },
-
-    { "IMAP Service", NS_IMAPSERVICE_CID,
-      "@mozilla.org/messenger/messageservice;1?type=imap",
-      nsImapServiceConstructor },
-
-    { "IMAP Service", NS_IMAPSERVICE_CID,
-      NS_IMAPSERVICE_CONTRACTID,
-      nsImapServiceConstructor },
-
-    { "IMAP Protocol Handler", NS_IMAPSERVICE_CID,
-      NS_NETWORK_PROTOCOL_CONTRACTID_PREFIX "imap", nsImapServiceConstructor},
-
-    { "IMAP Protocol Handler", NS_IMAPSERVICE_CID,
-      NS_IMAPPROTOCOLINFO_CONTRACTID, nsImapServiceConstructor },
-      
-    { "imap folder content handler",
-      NS_IMAPSERVICE_CID,
-      NS_CONTENT_HANDLER_CONTRACTID_PREFIX"x-application-imapfolder",
-      nsImapServiceConstructor },
-    
-    { "Auto-Sync Manager", NS_AUTOSYNCMANAGER_CID,
-      NS_AUTOSYNCMANAGER_CONTRACTID, 
-      nsAutoSyncManagerConstructor }
+const mozilla::Module::CIDEntry kIMAPCIDs[] = {
+  { &kNS_IMAPURL_CID, false, NULL, nsImapUrlConstructor },
+  { &kNS_IMAPPROTOCOL_CID, false, nsnull, nsImapProtocolConstructor },
+  { &kNS_IMAPMOCKCHANNEL_CID, false, nsnull, nsImapMockChannelConstructor },
+  { &kNS_IIMAPHOSTSESSIONLIST_CID, false, nsnull, nsIMAPHostSessionListConstructor },
+  { &kNS_IMAPINCOMINGSERVER_CID, false, nsnull, nsImapIncomingServerConstructor },
+  { &kNS_IMAPRESOURCE_CID, false, nsnull, nsImapMailFolderConstructor },
+  { &kNS_IMAPSERVICE_CID, false, nsnull, nsImapServiceConstructor },
+  { &kNS_AUTOSYNCMANAGER_CID, false, nsnull, nsAutoSyncManagerConstructor },
+  { NULL }
 };
 
-NS_IMPL_NSGETMODULE(IMAP_factory, gComponents)
+const mozilla::Module::ContractIDEntry kIMAPContracts[] = {
+  { NS_IMAPINCOMINGSERVER_CONTRACTID, &kNS_IMAPINCOMINGSERVER_CID},
+  { NS_RDF_RESOURCE_FACTORY_CONTRACTID_PREFIX "imap", &kNS_IMAPRESOURCE_CID},
+  { "@mozilla.org/messenger/messageservice;1?type=imap-message", &kNS_IMAPSERVICE_CID},
+  { "@mozilla.org/messenger/messageservice;1?type=imap", &kNS_IMAPSERVICE_CID},
+  { NS_IMAPSERVICE_CONTRACTID, &kNS_IMAPSERVICE_CID},
+  { NS_NETWORK_PROTOCOL_CONTRACTID_PREFIX "imap", &kNS_IMAPSERVICE_CID},
+  { NS_IMAPPROTOCOLINFO_CONTRACTID, &kNS_IMAPSERVICE_CID},
+  { NS_CONTENT_HANDLER_CONTRACTID_PREFIX"x-application-imapfolder", &kNS_IMAPSERVICE_CID},
+  { NS_AUTOSYNCMANAGER_CONTRACTID, &kNS_AUTOSYNCMANAGER_CID},
+  { NULL }
+};
+
+/////////////////////////////////////////////////////////////////////////////
+//
+/////////////////////////////////////////////////////////////////////////////
+
+static const mozilla::Module kIMAPModule = {
+    mozilla::Module::kVersion,
+    kIMAPCIDs,
+    kIMAPContracts
+};
+
+NSMODULE_DEFN(imap) = &kIMAPModule;

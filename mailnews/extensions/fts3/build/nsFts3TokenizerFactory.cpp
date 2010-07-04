@@ -36,11 +36,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "mozilla/ModuleUtils.h"
 #include "nsISupports.h"
 #include "nsCOMPtr.h"
 
 #include "nsIFactory.h"
-#include "nsIGenericFactory.h"
 #include "nsIServiceManager.h"
 #include "nsIModule.h"
 
@@ -50,12 +50,26 @@
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsFts3Tokenizer)
 
-static const nsModuleComponentInfo components[] =
-{
-    {"FTS3 Tokenizer",
-     NS_FTS3TOKENIZER_CID,
-     NS_FTS3TOKENIZER_CONTRACTID,
-     nsFts3TokenizerConstructor}
+NS_DEFINE_NAMED_CID(NS_FTS3TOKENIZER_CID);
+
+const mozilla::Module::CIDEntry kFts3TokenizerCIDs[] = {
+  { &kNS_FTS3TOKENIZER_CID, false, NULL, nsFts3TokenizerConstructor },
+  { NULL }
 };
 
-NS_IMPL_NSGETMODULE(nsFts3TokenizerModule, components)
+const mozilla::Module::ContractIDEntry kFts3TokenizerContracts[] = {
+  { NS_FTS3TOKENIZER_CONTRACTID, &kNS_FTS3TOKENIZER_CID },
+  { NULL }
+};
+
+/////////////////////////////////////////////////////////////////////////////
+//
+/////////////////////////////////////////////////////////////////////////////
+
+static const mozilla::Module kFts3TokenizerModule = {
+    mozilla::Module::kVersion,
+    kFts3TokenizerCIDs,
+    kFts3TokenizerContracts
+};
+
+NSMODULE_DEFN(fts3tokenizer) = &kFts3TokenizerModule;
