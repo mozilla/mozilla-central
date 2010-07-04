@@ -234,36 +234,3 @@ nsMailDirProvider::AppendingEnumerator::AppendingEnumerator
   // Initialize mNext to begin
   GetNext(nsnull);
 }
-
-NS_METHOD
-nsMailDirProvider::Register(nsIComponentManager* aCompMgr,
-                            nsIFile* aPath, const char *aLoaderStr,
-                            const char *aType,
-                            const nsModuleComponentInfo *aInfo)
-{
-  nsCOMPtr<nsICategoryManager> catMan =
-    do_GetService(NS_CATEGORYMANAGER_CONTRACTID);
-  if (!catMan)
-    return NS_ERROR_FAILURE;
-
-  return catMan->AddCategoryEntry(XPCOM_DIRECTORY_PROVIDER_CATEGORY,
-                                  "mail-directory-provider",
-                                  NS_MAILDIRPROVIDER_CONTRACTID, PR_TRUE,
-                                  PR_TRUE, nsnull);
-}
-
-NS_METHOD
-nsMailDirProvider::Unregister(nsIComponentManager* aCompMgr,
-                              nsIFile* aPath,
-                              const char *aLoaderStr,
-                              const nsModuleComponentInfo *aInfo)
-{
-  nsCOMPtr<nsICategoryManager> catMan =
-    do_GetService(NS_CATEGORYMANAGER_CONTRACTID);
-  if (!catMan)
-    return NS_ERROR_FAILURE;
-
-  return catMan->DeleteCategoryEntry(XPCOM_DIRECTORY_PROVIDER_CATEGORY,
-                                     "mail-directory-provider",
-                                     PR_TRUE);
-}
