@@ -39,10 +39,7 @@
 // Core Module Include Files
 ////////////////////////////////////////////////////////////////////////////////
 #include "nsCOMPtr.h"
-#include "nsIModule.h"
-#include "nsIGenericFactory.h"
-#include "nsICategoryManager.h"
-#include "nsServiceManagerUtils.h"
+#include "mozilla/ModuleUtils.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // core import Include Files
@@ -51,12 +48,14 @@
 #include "nsImportMimeEncode.h"
 #include "nsImportStringBundle.h"
 
+NS_DEFINE_NAMED_CID(NS_IMPORTSERVICE_CID);
+NS_DEFINE_NAMED_CID(NS_IMPORTMIMEENCODE_CID);
 ////////////////////////////////////////////////////////////////////////////////
 // text import Include Files
 ////////////////////////////////////////////////////////////////////////////////
 #include "nsTextImport.h"
 
-static NS_DEFINE_CID(kTextImportCID,      NS_TEXTIMPORT_CID);
+NS_DEFINE_NAMED_CID(NS_TEXTIMPORT_CID);
 
 ////////////////////////////////////////////////////////////////////////////////
 // nsComm4x import Include Files
@@ -65,8 +64,9 @@ static NS_DEFINE_CID(kTextImportCID,      NS_TEXTIMPORT_CID);
 #include "nsComm4xMailStringBundle.h"
 #include "nsComm4xMailImport.h"
 
-static NS_DEFINE_CID(kComm4xMailImportCID,      NS_COMM4XMAILIMPORT_CID);
-
+NS_DEFINE_NAMED_CID(NS_COMM4XMAILIMPORT_CID);
+NS_DEFINE_NAMED_CID(NS_ICOMM4XPROFILE_CID);
+NS_DEFINE_NAMED_CID(NS_COMM4XMAILIMPL_CID);
 ////////////////////////////////////////////////////////////////////////////////
 // eudora import Include Files
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,7 +74,7 @@ static NS_DEFINE_CID(kComm4xMailImportCID,      NS_COMM4XMAILIMPORT_CID);
 #include "nsEudoraImport.h"
 #include "nsEudoraStringBundle.h"
 
-static NS_DEFINE_CID(kEudoraImportCID,      NS_EUDORAIMPORT_CID);
+NS_DEFINE_NAMED_CID(NS_EUDORAIMPORT_CID);
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -83,14 +83,14 @@ static NS_DEFINE_CID(kEudoraImportCID,      NS_EUDORAIMPORT_CID);
 #if defined(XP_MACOSX)
 #include "nsAppleMailImport.h"
 
-static NS_DEFINE_CID(kAppleMailImportCID,      NS_APPLEMAILIMPORT_CID);
+NS_DEFINE_NAMED_CID(NS_APPLEMAILIMPORT_CID);
+NS_DEFINE_NAMED_CID(NS_APPLEMAILIMPL_CID);
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // outlook import Include Files
 ////////////////////////////////////////////////////////////////////////////////
 #ifdef XP_WIN
-#if defined(_MSC_VER) && _MSC_VER >= 1100
 #include "nsOEImport.h"
 #include "nsOEStringBundle.h"
 #include "nsOutlookImport.h"
@@ -98,11 +98,9 @@ static NS_DEFINE_CID(kAppleMailImportCID,      NS_APPLEMAILIMPORT_CID);
 #include "nsWMImport.h"
 #include "nsWMStringBundle.h"
 
-static NS_DEFINE_CID(kOEImportCID,         NS_OEIMPORT_CID);
-static NS_DEFINE_CID(kOutlookImportCID,      NS_OUTLOOKIMPORT_CID);
-static NS_DEFINE_CID(kWMImportCID,         NS_WMIMPORT_CID);
-#endif
-
+NS_DEFINE_NAMED_CID(NS_OEIMPORT_CID);
+NS_DEFINE_NAMED_CID(NS_OUTLOOKIMPORT_CID);
+NS_DEFINE_NAMED_CID(NS_WMIMPORT_CID);
 #endif // XP_WIN
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -116,24 +114,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsIImportMimeEncodeImpl)
 ////////////////////////////////////////////////////////////////////////////////
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsTextImport)
 
-NS_METHOD TextRegister(nsIComponentManager *aCompMgr,
-                       nsIFile *aPath, const char *registryLocation,
-                       const char *componentType,
-                       const nsModuleComponentInfo *info)
-{
-  nsresult rv;
-
-  nsCOMPtr<nsICategoryManager> catMan = do_GetService( NS_CATEGORYMANAGER_CONTRACTID, &rv);
-  if (NS_SUCCEEDED( rv)) {
-    nsCString replace;
-    char *theCID = kTextImportCID.ToString();
-    rv = catMan->AddCategoryEntry( "mailnewsimport", theCID, kTextSupportsString, PR_TRUE, PR_TRUE, getter_Copies( replace));
-    NS_Free( theCID);
-  }
-
-  return( rv);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // nsComm4x import factories
 ////////////////////////////////////////////////////////////////////////////////
@@ -141,47 +121,11 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsComm4xMailImport)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(ImportComm4xMailImpl, Initialize)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsComm4xProfile)
 
-NS_METHOD Comm4xMailRegister(nsIComponentManager *aCompMgr,
-                       nsIFile *aPath, const char *registryLocation,
-                       const char *componentType,
-                       const nsModuleComponentInfo *info)
-{
-    nsresult rv;
-
-    nsCOMPtr<nsICategoryManager> catMan = do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
-    if (NS_SUCCEEDED(rv)) {
-        nsCString  replace;
-        char *theCID = kComm4xMailImportCID.ToString();
-        rv = catMan->AddCategoryEntry("mailnewsimport", theCID, kComm4xMailSupportsString, PR_TRUE, PR_TRUE, getter_Copies(replace));
-        NS_Free(theCID);
-    }
-
-    return rv;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // eudora import factories
 ////////////////////////////////////////////////////////////////////////////////
 #if defined(XP_WIN) || defined(XP_MACOSX)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsEudoraImport)
-
-NS_METHOD EudoraRegister(nsIComponentManager *aCompMgr,
-                         nsIFile *aPath, const char *registryLocation,
-                         const char *componentType,
-                         const nsModuleComponentInfo *info)
-{
-  nsresult rv;
-
-  nsCOMPtr<nsICategoryManager> catMan = do_GetService( NS_CATEGORYMANAGER_CONTRACTID, &rv);
-  if (NS_SUCCEEDED( rv)) {
-    nsCString replace;
-    char *theCID = kEudoraImportCID.ToString();
-    rv = catMan->AddCategoryEntry( "mailnewsimport", theCID, kEudoraSupportsString, PR_TRUE, PR_TRUE, getter_Copies( replace));
-    NS_Free( theCID);
-  }
-
-  return( rv);
-}
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -190,159 +134,84 @@ NS_METHOD EudoraRegister(nsIComponentManager *aCompMgr,
 #if defined(XP_MACOSX)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAppleMailImportModule)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAppleMailImportMail, Initialize)
-
-NS_METHOD AppleMailRegister(nsIComponentManager *aCompMgr,
-                         nsIFile *aPath, const char *registryLocation,
-                         const char *componentType,
-                         const nsModuleComponentInfo *info)
-{
-  nsresult rv;
-
-  nsCOMPtr<nsICategoryManager> catMan = do_GetService( NS_CATEGORYMANAGER_CONTRACTID, &rv);
-  if (NS_SUCCEEDED( rv)) {
-    nsCString replace;
-    char *theCID = kAppleMailImportCID.ToString();
-    rv = catMan->AddCategoryEntry( "mailnewsimport", theCID, kAppleMailSupportsString, PR_TRUE, PR_TRUE, getter_Copies( replace));
-    NS_Free( theCID);
-  }
-
-  return( rv);
-}
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // outlook import factories
 ////////////////////////////////////////////////////////////////////////////////
 #ifdef XP_WIN
-
-#if defined(_MSC_VER) && _MSC_VER >= 1100
-
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsOEImport)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsOutlookImport)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsWMImport)
-
-NS_METHOD OERegister(nsIComponentManager *aCompMgr,
-                     nsIFile *aPath,
-                     const char *registryLocation,
-                     const char *componentType,
-                     const nsModuleComponentInfo *info)
-{
-  nsresult rv;
-
-  nsCOMPtr<nsICategoryManager> catMan = do_GetService( NS_CATEGORYMANAGER_CONTRACTID, &rv);
-  if (NS_SUCCEEDED( rv)) {
-    nsCString replace;
-    char *theCID = kOEImportCID.ToString();
-    rv = catMan->AddCategoryEntry( "mailnewsimport", theCID, kOESupportsString, PR_TRUE, PR_TRUE, getter_Copies( replace));
-    NS_Free( theCID);
-  }
-
-    return( rv);
-}
-
-NS_METHOD WMRegister(nsIComponentManager *aCompMgr,
-                     nsIFile *aPath,
-                     const char *registryLocation,
-                     const char *componentType,
-                     const nsModuleComponentInfo *info)
-{
-  nsresult rv;
-
-  nsCOMPtr<nsICategoryManager> catMan = do_GetService(NS_CATEGORYMANAGER_CONTRACTID,
-                                                      &rv);
-  if (NS_SUCCEEDED(rv)) {
-    nsCString replace;
-    char *theCID = kWMImportCID.ToString();
-    rv = catMan->AddCategoryEntry("mailnewsimport", theCID, kWMSupportsString,
-                                  PR_TRUE, PR_TRUE, getter_Copies(replace));
-    NS_Free(theCID);
-  }
-
-    return( rv);
-}
-
-NS_METHOD OutlookRegister(nsIComponentManager *aCompMgr,
-                          nsIFile *aPath, const char *registryLocation,
-                          const char *componentType,
-                          const nsModuleComponentInfo *info)
-{
-  nsresult rv;
-
-  nsCOMPtr<nsICategoryManager> catMan = do_GetService( NS_CATEGORYMANAGER_CONTRACTID, &rv);
-  if (NS_SUCCEEDED( rv)) {
-    nsCString replace;
-    char *theCID = kOutlookImportCID.ToString();
-    rv = catMan->AddCategoryEntry( "mailnewsimport", theCID, kOutlookSupportsString, PR_TRUE, PR_TRUE, getter_Copies( replace));
-    NS_Free( theCID);
-  }
-
-  return( rv);
-}
-#endif
-
 #endif // XP_WIN
 
-static const nsModuleComponentInfo components[] = {
-    ////////////////////////////////////////////////////////////////////////////////
-    // core import components
-    ////////////////////////////////////////////////////////////////////////////////
-    { "Import Service Component", NS_IMPORTSERVICE_CID,
-        NS_IMPORTSERVICE_CONTRACTID, nsImportServiceConstructor },
-    { "Import Mime Encoder", NS_IMPORTMIMEENCODE_CID,
-      "@mozilla.org/import/import-mimeencode;1", nsIImportMimeEncodeImplConstructor},
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // text import components
-    ////////////////////////////////////////////////////////////////////////////////
-    { "Text Import Component", NS_TEXTIMPORT_CID,
-      "@mozilla.org/import/import-text;1", nsTextImportConstructor, TextRegister, nsnull },
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // nsComm4x import components
-    ////////////////////////////////////////////////////////////////////////////////
-    { "Comm4xMail Import Component", NS_COMM4XMAILIMPORT_CID,
-      "@mozilla.org/import/import-comm4xMail;1", nsComm4xMailImportConstructor, Comm4xMailRegister, nsnull },
-    { "Comm4xMail Import Mail Implementation", NS_COMM4XMAILIMPL_CID,
-      NS_COMM4XMAILIMPL_CONTRACTID, ImportComm4xMailImplConstructor},
-    { NS_ICOMM4XPROFILE_CLASSNAME, NS_ICOMM4XPROFILE_CID,
-      NS_ICOMM4XPROFILE_CONTRACTID, nsComm4xProfileConstructor }
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // eduora import components
-    ////////////////////////////////////////////////////////////////////////////////
+static const mozilla::Module::CategoryEntry kMailNewsImportCategories[] = {
+  // this used to use kTextImportCID.ToString() as the second param but
+  // I've switched it to use contract ids.
+  { "mailnewsimport", "@mozilla.org/import/import-text;1", "addressbook"},
+  { "mailnewsimport", NS_COMM4XMAILIMPL_CONTRACTID, kComm4xMailSupportsString},
 #if defined(XP_WIN) || defined(XP_MACOSX)
-    ,{ "Text Import Component", NS_EUDORAIMPORT_CID,
-    "@mozilla.org/import/import-eudora;1", nsEudoraImportConstructor, EudoraRegister, nsnull }
+  { "mailnewsimport", "@mozilla.org/import/import-eudora;1", kEudoraSupportsString},
 #endif
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // apple mail import components
-    ////////////////////////////////////////////////////////////////////////////////
+#ifdef XP_WIN
+  { "mailnewsimport", "@mozilla.org/import/import-wm;1", kWMSupportsString },
+  { "mailnewsimport", "@mozilla.org/import/import-outlook;1", kOutlookSupportsString },
+  { "mailnewsimport", "@mozilla.org/import/import-oe;1", kOESupportsString},
+#endif
 #if defined(XP_MACOSX)
-        ,{ "Apple Mail Import Component", NS_APPLEMAILIMPORT_CID,
-        "@mozilla.org/import/import-applemail;1", nsAppleMailImportModuleConstructor, AppleMailRegister, nsnull },
-        { "Apple Mail Import Implementation", NS_APPLEMAILIMPL_CID,
-          NS_APPLEMAILIMPL_CONTRACTID, nsAppleMailImportMailConstructor },
+  { "mailnewsimport", "@mozilla.org/import/import-applemail;1", kAppleMailSupportsString },
+#endif
+  { NULL }
+};
+
+  const mozilla::Module::CIDEntry kMailNewsImportCIDs[] = {
+  { &kNS_IMPORTSERVICE_CID, false, NULL, nsImportServiceConstructor },
+  { &kNS_IMPORTMIMEENCODE_CID, false, NULL, nsIImportMimeEncodeImplConstructor },
+  { &kNS_TEXTIMPORT_CID, false, NULL, nsTextImportConstructor },
+  { &kNS_COMM4XMAILIMPORT_CID, false, NULL, nsComm4xMailImportConstructor },
+  { &kNS_COMM4XMAILIMPL_CID, false, NULL, ImportComm4xMailImplConstructor},
+  { &kNS_ICOMM4XPROFILE_CID, false, NULL, nsComm4xProfileConstructor },
+#if defined(XP_WIN) || defined(XP_MACOSX)
+  { &kNS_EUDORAIMPORT_CID, false, NULL, nsEudoraImportConstructor },
+#endif
+#if defined(XP_MACOSX)
+  { &kNS_APPLEMAILIMPORT_CID, false, NULL, nsAppleMailImportModuleConstructor },
+  { &kNS_APPLEMAILIMPL_CID, false, NULL, nsAppleMailImportMailConstructor },
 #endif
 
 #ifdef XP_WIN
-#if defined(_MSC_VER) && _MSC_VER >= 1100
-    ////////////////////////////////////////////////////////////////////////////////
-    // oexpress import components
-    ////////////////////////////////////////////////////////////////////////////////
-    ,{ "Outlook Express Import Component", NS_OEIMPORT_CID,
-    "@mozilla.org/import/import-oe;1", nsOEImportConstructor,  OERegister,  nsnull },
-    { "Windows Live Mail Import Component", NS_WMIMPORT_CID,
-    "@mozilla.org/import/import-wm;1", nsWMImportConstructor,  WMRegister,  nsnull },
-    { "Outlook Import Component", NS_OUTLOOKIMPORT_CID,
-    "@mozilla.org/import/import-outlook;1", nsOutlookImportConstructor, OutlookRegister, nsnull }
+  { &kNS_OEIMPORT_CID, false, NULL, nsOEImportConstructor },
+  { &kNS_WMIMPORT_CID, false, NULL, nsWMImportConstructor },
+  { &kNS_OUTLOOKIMPORT_CID, false, NULL, nsOutlookImportConstructor },
 #endif
+  { NULL }
+};
+
+  const mozilla::Module::ContractIDEntry kMailNewsImportContracts[] = {
+  { NS_IMPORTSERVICE_CONTRACTID, &kNS_IMPORTSERVICE_CID},
+  { "@mozilla.org/import/import-mimeencode;1", &kNS_IMPORTMIMEENCODE_CID},
+  { "@mozilla.org/import/import-text;1", &kNS_TEXTIMPORT_CID},
+  { "@mozilla.org/import/import-comm4xMail;1", &kNS_COMM4XMAILIMPORT_CID},
+  { NS_COMM4XMAILIMPL_CONTRACTID, &kNS_COMM4XMAILIMPL_CID},
+  { NS_ICOMM4XPROFILE_CONTRACTID, &kNS_ICOMM4XPROFILE_CID},
+#if defined(XP_WIN) || defined(XP_MACOSX)
+  { "@mozilla.org/import/import-eudora;1", &kNS_EUDORAIMPORT_CID},
+#endif
+#if defined(XP_MACOSX)
+  { "@mozilla.org/import/import-applemail;1", &kNS_APPLEMAILIMPORT_CID},
+  { NS_APPLEMAILIMPL_CONTRACTID, &kNS_APPLEMAILIMPL_CID},
 #endif
 
+#ifdef XP_WIN
+  { "@mozilla.org/import/import-oe;1", &kNS_OEIMPORT_CID},
+  { "@mozilla.org/import/import-wm;1", &kNS_WMIMPORT_CID},
+  { "@mozilla.org/import/import-outlook;1", &kNS_OUTLOOKIMPORT_CID},
+#endif
+  { NULL }
 };
 
 
-static void importModuleDtor(nsIModule* self)
+static void importModuleDtor()
 {
 #if defined(XP_WIN) || defined(XP_MACOSX)
     nsEudoraStringBundle::Cleanup();
@@ -350,15 +219,23 @@ static void importModuleDtor(nsIModule* self)
 
 #ifdef XP_WIN
 
-#if defined(_MSC_VER) && _MSC_VER >= 1100
     nsOEStringBundle::Cleanup();
     nsWMStringBundle::Cleanup();
     nsOutlookStringBundle::Cleanup();
-#endif
 
 #endif
 }
 
-NS_IMPL_NSGETMODULE_WITH_DTOR( nsImportServiceModule, components, importModuleDtor)
+static const mozilla::Module kMailNewsImportModule = {
+  mozilla::Module::kVersion,
+  kMailNewsImportCIDs,
+  kMailNewsImportContracts,
+  kMailNewsImportCategories,
+  NULL,
+  NULL,
+  importModuleDtor
+};
+
+NSMODULE_DEFN(mailnewsimport) = &kMailNewsImportModule;
 
 
