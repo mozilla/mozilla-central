@@ -1442,6 +1442,7 @@
           <![CDATA[
             var aRelatedToCurrent;
             if (arguments.length == 2 &&
+                arguments[1] != null &&
                 typeof arguments[1] == "object" &&
                 !(arguments[1] instanceof Components.interfaces.nsIURI)) {
               ({

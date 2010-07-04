@@ -1212,6 +1212,7 @@ function openUILinkIn(url, where, aAllowThirdPartyFixup, aPostData, aReferrerURI
 
   var aRelatedToCurrent;
   if (arguments.length == 3 &&
+      arguments[2] != null &&
       typeof arguments[2] == "object") {
     let params = arguments[2];
     aAllowThirdPartyFixup = params.allowThirdPartyFixup;
