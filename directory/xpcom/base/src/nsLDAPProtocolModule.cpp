@@ -39,10 +39,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsIClassInfoImpl.h"
+#include "mozilla/ModuleUtils.h"
 
 #include "nsLDAPInternal.h"
 #include "nsLDAPURL.h"
-#include "nsIGenericFactory.h"
 #include "nsLDAPConnection.h"
 #include "nsLDAPOperation.h"
 #include "nsLDAPMessage.h"
@@ -80,67 +80,69 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPSyncQuery)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPChannel)
 #endif
 
-NS_DECL_CLASSINFO(nsLDAPMessage)
-NS_DECL_CLASSINFO(nsLDAPOperation)
-NS_DECL_CLASSINFO(nsLDAPConnection)
+NS_DEFINE_NAMED_CID(NS_LDAPCONNECTION_CID);
+NS_DEFINE_NAMED_CID(NS_LDAPOPERATION_CID);
+NS_DEFINE_NAMED_CID(NS_LDAPMESSAGE_CID);
+NS_DEFINE_NAMED_CID(NS_LDAPMODIFICATION_CID);
+NS_DEFINE_NAMED_CID(NS_LDAPSERVER_CID);
+NS_DEFINE_NAMED_CID(NS_LDAPSERVICE_CID);
+NS_DEFINE_NAMED_CID(NS_LDAPURL_CID);
+NS_DEFINE_NAMED_CID(NS_LDAPBERVALUE_CID);
+NS_DEFINE_NAMED_CID(NS_LDAPBERELEMENT_CID);
+#ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
+NS_DEFINE_NAMED_CID(NS_LDAPCHANNEL_CID);
+#endif
+#ifdef MOZ_PREF_EXTENSIONS
+NS_DEFINE_NAMED_CID(NS_LDAPSYNCQUERY_CID);
+#endif
+NS_DEFINE_NAMED_CID(NS_LDAPCONTROL_CID);
 
 // a table of the CIDs implemented by this module
 //
-static const nsModuleComponentInfo components[] =
-{
-    { "LDAP Connection", NS_LDAPCONNECTION_CID,
-      "@mozilla.org/network/ldap-connection;1", nsLDAPConnectionConstructor,
-      nsnull, // no registration callback
-      nsnull, // no unregistration callback
-      nsnull, // no destruction callback
-      NS_CI_INTERFACE_GETTER_NAME(nsLDAPConnection),
-      nsnull, // no language helper
-      &NS_CLASSINFO_NAME(nsLDAPConnection),
-      nsIClassInfo::THREADSAFE},
-    { "LDAP Operation", NS_LDAPOPERATION_CID,
-      "@mozilla.org/network/ldap-operation;1", nsLDAPOperationConstructor,
-      nsnull, // no registration callback
-      nsnull, // no unregistration callback
-      nsnull, // no destruction callback
-      NS_CI_INTERFACE_GETTER_NAME(nsLDAPOperation),
-      nsnull, // no language helper
-      &NS_CLASSINFO_NAME(nsLDAPOperation),
-      nsIClassInfo::THREADSAFE},
-    { "LDAP Message", NS_LDAPMESSAGE_CID,
-      "@mozilla.org/network/ldap-message;1", nsLDAPMessageConstructor,
-      nsnull, // no registration callback
-      nsnull, // no unregistration callback
-      nsnull, // no destruction callback
-      NS_CI_INTERFACE_GETTER_NAME(nsLDAPMessage),
-      nsnull, // no language helper
-      &NS_CLASSINFO_NAME(nsLDAPMessage),
-      nsIClassInfo::THREADSAFE },
-    { "LDAP Modification", NS_LDAPMODIFICATION_CID,
-          "@mozilla.org/network/ldap-modification;1", nsLDAPModificationConstructor },
-    { "LDAP Server", NS_LDAPSERVER_CID,
-          "@mozilla.org/network/ldap-server;1", nsLDAPServerConstructor },
-    { "LDAP Service", NS_LDAPSERVICE_CID,
-          "@mozilla.org/network/ldap-service;1", nsLDAPServiceConstructor },
-    { "LDAP URL", NS_LDAPURL_CID,
-          "@mozilla.org/network/ldap-url;1", nsLDAPURLConstructor },
-    { "LDAP BER Value", NS_LDAPBERVALUE_CID,
-      "@mozilla.org/network/ldap-ber-value;1", nsLDAPBERValueConstructor },
-    { "LDAP BER Element", NS_LDAPBERELEMENT_CID,
-      "@mozilla.org/network/ldap-ber-element;1", nsLDAPBERElementConstructor },
+
+const mozilla::Module::CIDEntry kLDAPProtocolCIDs[] = {
+  { &kNS_LDAPCONNECTION_CID, false, NULL, nsLDAPConnectionConstructor},
+  { &kNS_LDAPOPERATION_CID, false, NULL, nsLDAPOperationConstructor},
+  { &kNS_LDAPMESSAGE_CID, false, NULL, nsLDAPMessageConstructor},
+  { &kNS_LDAPMODIFICATION_CID, false, NULL, nsLDAPModificationConstructor},
+  { &kNS_LDAPSERVER_CID, false, NULL, nsLDAPServerConstructor},
+  { &kNS_LDAPSERVICE_CID, false, NULL, nsLDAPServiceConstructor},
+  { &kNS_LDAPURL_CID, false, NULL, nsLDAPURLConstructor},
+  { &kNS_LDAPBERVALUE_CID, false, NULL, nsLDAPBERValueConstructor},
+  { &kNS_LDAPBERELEMENT_CID, false, NULL, nsLDAPBERElementConstructor},
 #ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
-    { "LDAP Channel", NS_LDAPCHANNEL_CID,
-      "@mozilla.org/network/ldap-channel;1", nsLDAPChannelConstructor },
+  { &kNS_LDAPCHANNEL_CID, false, NULL, nsLDAPChannelConstructor},
 #endif
 #ifdef MOZ_PREF_EXTENSIONS
-    { "LDAPSyncQuery module", NS_LDAPSYNCQUERY_CID,
-      "@mozilla.org/ldapsyncquery;1", nsLDAPSyncQueryConstructor },
+  { &kNS_LDAPSYNCQUERY_CID, false, NULL, nsLDAPSyncQueryConstructor},
 #endif
-    { "LDAP Control", NS_LDAPCONTROL_CID,
-      "@mozilla.org/network/ldap-control;1", nsLDAPControlConstructor}
+  { &kNS_LDAPCONTROL_CID, false, NULL, nsLDAPControlConstructor},
+  { NULL }
+};
+
+
+const mozilla::Module::ContractIDEntry kLDAPProtocolContracts[] = {
+  { "@mozilla.org/network/ldap-connection;1", &kNS_LDAPCONNECTION_CID},
+  { "@mozilla.org/network/ldap-operation;1", &kNS_LDAPOPERATION_CID},
+  { "@mozilla.org/network/ldap-message;1", &kNS_LDAPMESSAGE_CID},
+  { "@mozilla.org/network/ldap-modification;1", &kNS_LDAPMODIFICATION_CID},
+  { "@mozilla.org/network/ldap-server;1", &kNS_LDAPSERVER_CID},
+  { "@mozilla.org/network/ldap-service;1", &kNS_LDAPSERVICE_CID},
+  { "@mozilla.org/network/ldap-url;1", &kNS_LDAPURL_CID},
+  { "@mozilla.org/network/ldap-ber-value;1", &kNS_LDAPBERVALUE_CID},
+  { "@mozilla.org/network/ldap-ber-element;1", &kNS_LDAPBERELEMENT_CID},
+#ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
+  { "@mozilla.org/network/ldap-channel;1", &kNS_LDAPCHANNEL_CID},
+#endif
+#ifdef MOZ_PREF_EXTENSIONS
+  { "@mozilla.org/ldapsyncquery;1", &kNS_LDAPSYNCQUERY_CID},
+#endif
+  { "@mozilla.org/network/ldap-control;1", &kNS_LDAPCONTROL_CID},
+  { NULL }
 };
 
 static nsresult
-nsLDAPInitialize(nsIModule *aSelf)
+nsLDAPInitialize()
 {
 #ifdef PR_LOGGING
     gLDAPLogModule = PR_NewLogModule("ldap");
@@ -177,10 +179,17 @@ nsLDAPInitialize(nsIModule *aSelf)
     return NS_OK;
 }
 
-// implement the NSGetModule() exported function
-//
-NS_IMPL_NSGETMODULE_WITH_CTOR(nsLDAPProtocolModule, components, 
-                              nsLDAPInitialize)
+static const mozilla::Module kLDAPProtocolModule = {
+    mozilla::Module::kVersion,
+    kLDAPProtocolCIDs,
+    kLDAPProtocolContracts,
+    NULL,
+    NULL,
+    nsLDAPInitialize,
+    NULL
+};
+
+NSMODULE_DEFN(ldap) = &kLDAPProtocolModule;
 
 #ifdef PR_LOGGING
 PRLogModuleInfo *gLDAPLogModule = 0;

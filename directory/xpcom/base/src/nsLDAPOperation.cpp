@@ -101,6 +101,8 @@ nsLDAPOperation::~nsLDAPOperation()
 {
 }
 
+NS_IMPL_CLASSINFO(nsLDAPOperation, NULL, nsIClassInfo::THREADSAFE,
+                  NS_LDAPOPERATION_CID)
 
 NS_IMPL_THREADSAFE_ADDREF(nsLDAPOperation)
 NS_IMPL_THREADSAFE_RELEASE(nsLDAPOperation)

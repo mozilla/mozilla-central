@@ -49,6 +49,9 @@
 #include "nsILDAPErrors.h"
 #include "nsIClassInfoImpl.h"
 
+NS_IMPL_CLASSINFO(nsLDAPMessage, NULL, nsIClassInfo::THREADSAFE,
+                  NS_LDAPMESSAGE_CID)
+
 NS_IMPL_THREADSAFE_ADDREF(nsLDAPMessage)
 NS_IMPL_THREADSAFE_RELEASE(nsLDAPMessage)
 NS_INTERFACE_MAP_BEGIN(nsLDAPMessage)

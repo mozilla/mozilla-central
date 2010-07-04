@@ -94,6 +94,10 @@ nsLDAPConnection::~nsLDAPConnection()
 // since converting to the strong reference isn't MT safe.
 //
 NS_IMPL_THREADSAFE_ADDREF(nsLDAPConnection)
+
+NS_IMPL_CLASSINFO(nsLDAPConnection, NULL, nsIClassInfo::THREADSAFE,
+                  NS_LDAPCONNECTION_CID)
+
 NS_INTERFACE_MAP_BEGIN(nsLDAPConnection)
   NS_INTERFACE_MAP_ENTRY(nsILDAPConnection)
   NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
