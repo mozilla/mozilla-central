@@ -49,6 +49,7 @@ components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
 components/@DLL_PREFIX@caps@DLL_SUFFIX@
 components/chatzilla-service.js
+components/components.list
 components/crashreporter.xpt
 components/downloadmanager.xpt
 components/@DLL_PREFIX@intlapp@DLL_SUFFIX@

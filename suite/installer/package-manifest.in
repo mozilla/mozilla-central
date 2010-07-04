@@ -256,7 +256,7 @@
 ; ! MOZ_STATIC_BUILD
 #endif
 
-@BINPATH@/components/components.list
+@BINPATH@/components/components.manifest
 #ifdef ACCESSIBILITY
 #ifdef XP_WIN32
 @BINPATH@/AccessibleMarshal.dll

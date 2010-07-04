@@ -43,6 +43,7 @@ components/airbag.xpt
 components/bookmarks.xpt
 components/downloadmanager.xpt
 components/compreg.dat
+components/components.list
 components/history.xpt
 components/jsconsole.xpt
 components/mailnews.xpt

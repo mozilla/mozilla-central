@@ -114,7 +114,7 @@
 
 @BINPATH@/isp/*
 
-@BINPATH@/components/components.list
+@BINPATH@/components/components.manifest
 @BINPATH@/components/aboutRights.js
 @BINPATH@/components/activity.xpt
 @BINPATH@/components/addrbook.xpt
