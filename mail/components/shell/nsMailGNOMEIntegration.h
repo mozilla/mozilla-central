@@ -40,7 +40,6 @@
 #define nsMailGNOMEIntegration_h_
 
 #include "nsIShellService.h"
-#include "nsIGenericFactory.h"
 #include "nsStringGlue.h"
 
 #define NS_MAILGNOMEINTEGRATION_CID \

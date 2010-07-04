@@ -40,7 +40,6 @@
 #define nsMailMacIntegration_h_
 
 #include "nsIShellService.h"
-#include "nsIGenericFactory.h"
 #include "nsString.h"
 
 #include <CoreFoundation/CoreFoundation.h>

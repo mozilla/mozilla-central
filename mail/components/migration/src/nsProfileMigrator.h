@@ -36,7 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIGenericFactory.h"
 #include "nsILocalFile.h"
 #include "nsIProfileMigrator.h"
 #include "nsIMailProfileMigrator.h"

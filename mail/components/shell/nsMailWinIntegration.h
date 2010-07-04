@@ -40,7 +40,6 @@
 
 #include "nsIShellService.h"
 #include "nsIObserver.h"
-#include "nsIGenericFactory.h"
 #include "nsString.h"
 
 #include <ole2.h>
