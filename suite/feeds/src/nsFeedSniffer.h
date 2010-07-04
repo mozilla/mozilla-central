@@ -35,7 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIGenericFactory.h"
 #include "nsIContentSniffer.h"
 #include "nsIStreamListener.h"
 #include "nsStringAPI.h"
@@ -62,11 +61,6 @@ public:
                                          PRUint32 toOffset,
                                          PRUint32 count,
                                          PRUint32* writeCount);
-
-  static NS_METHOD Register(nsIComponentManager* compMgr, nsIFile* path,
-                            const char* registryLocation,
-                            const char* componentType,
-                            const nsModuleComponentInfo *info);
 
 protected:
   nsresult ConvertEncodedData(nsIRequest* request, const PRUint8* data,

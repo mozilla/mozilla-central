@@ -73,7 +73,6 @@
 #include "nsIURL.h"
 #include "nsIFileURL.h"
 #include "nsIFile.h"
-#include "nsIGenericFactory.h"
 #include "nsIInputStream.h"
 #include "nsILineInputStream.h"
 #include "nsIOutputStream.h"

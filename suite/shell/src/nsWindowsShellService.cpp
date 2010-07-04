@@ -62,7 +62,7 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
 #include <mbstring.h>
-#include "nsIGenericFactory.h"
+#include "mozilla/ModuleUtils.h"
 
 #ifdef MOZILLA_INTERNAL_API
 #define CaseInsensitiveCompare nsCaseInsensitiveStringComparator()
@@ -870,17 +870,24 @@ nsWindowsShellService::GetDefaultFeedReader(nsILocalFile** _retval)
 
 #ifdef BUILD_STATIC_SHELL
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsWindowsShellService, Init)
+NS_DEFINE_NAMED_CID(NS_SUITEWININTEGRATION_CID);
 
-static const nsModuleComponentInfo components[] = {
-  { "SeaMonkey Windows Integration",
-    NS_SUITEWININTEGRATION_CID,
-    NS_SUITESHELLSERVICE_CONTRACTID,
-    nsWindowsShellServiceConstructor },
-  { "SeaMonkey Windows Feed Integration",
-    NS_SUITEWININTEGRATION_CID,
-    NS_SUITEFEEDSERVICE_CONTRACTID,
-    nsWindowsShellServiceConstructor },
+static const mozilla::Module::CIDEntry kSuiteShellCIDs[] = {
+  { &kNS_SUITEWININTEGRATION_CID, false, NULL, nsWindowsShellServiceConstructor },
+  { NULL }
 };
 
-NS_IMPL_NSGETMODULE(nsSuiteShellModule, components)
+static const mozilla::Module::ContractIDEntry kSuiteShellContracts[] = {
+  { NS_SUITESHELLSERVICE_CONTRACTID, &kNS_SUITEWININTEGRATION_CID },
+  { NS_SUITEFEEDSERVICE_CONTRACTID, &kNS_SUITEWININTEGRATION_CID },
+  { NULL }
+};
+
+static const mozilla::Module kSuiteShellModule = {
+  mozilla::Module::kVersion,
+  kSuiteShellCIDs,
+  kSuiteShellContracts
+};
+
+NSMODULE_DEFN(nsSuiteShellModule) = &kSuiteShellModule;
 #endif

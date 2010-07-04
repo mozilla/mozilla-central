@@ -190,38 +190,3 @@ nsSuiteDirectoryProvider::AppendingEnumerator::AppendingEnumerator
   // Initialize mNext to begin.
   GetNext();
 }
-
-NS_METHOD
-nsSuiteDirectoryProvider::Register(nsIComponentManager* aCompMgr,
-                                   nsIFile* aPath,
-                                   const char *aLoaderStr,
-                                   const char *aType,
-                                   const nsModuleComponentInfo *aInfo)
-{
-  nsresult rv;
-  nsCOMPtr<nsICategoryManager> catMan
-    (do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv));
-  if (NS_FAILED(rv))
-    return rv;
-
-  return catMan->AddCategoryEntry(XPCOM_DIRECTORY_PROVIDER_CATEGORY,
-                                  "suite-directory-provider",
-                                  NS_SUITEDIRECTORYPROVIDER_CONTRACTID,
-                                  PR_TRUE, PR_TRUE, nsnull);
-}
-
-
-NS_METHOD
-nsSuiteDirectoryProvider::Unregister(nsIComponentManager* aCompMgr,
-                                     nsIFile* aPath, const char *aLoaderStr,
-                                     const nsModuleComponentInfo *aInfo)
-{
-  nsresult rv;
-  nsCOMPtr<nsICategoryManager> catMan
-    (do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv));
-  if (NS_FAILED(rv))
-    return rv;
-
-  return catMan->DeleteCategoryEntry(XPCOM_DIRECTORY_PROVIDER_CATEGORY,
-                                     "suite-directory-provider", PR_TRUE);
-}

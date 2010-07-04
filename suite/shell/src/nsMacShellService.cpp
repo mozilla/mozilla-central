@@ -44,7 +44,7 @@
 #include "nsStringGlue.h"
 #include "nsIDOMElement.h"
 #include "nsILocalFileMac.h"
-#include "nsIGenericFactory.h"
+#include "mozilla/ModuleUtils.h"
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <Carbon/Carbon.h>
@@ -192,14 +192,24 @@ nsMacShellService::GetDefaultFeedReader(nsILocalFile** _retval)
 
 #ifdef BUILD_STATIC_SHELL
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMacShellService)
+NS_DEFINE_NAMED_CID(NS_SUITEMACINTEGRATION_CID);
 
-static const nsModuleComponentInfo components[] = {
-  { "SeaMonkey Mac Feed Integration",
-    NS_SUITEMACINTEGRATION_CID,
-    NS_SUITEFEEDSERVICE_CONTRACTID,
-    nsMacShellServiceConstructor },
+static const mozilla::Module::CIDEntry kSuiteShellCIDs[] = {
+  { &kNS_SUITEMACINTEGRATION_CID, false, NULL, nsMacShellServiceConstructor },
+  { NULL }
 };
 
-NS_IMPL_NSGETMODULE(nsSuiteShellModule, components)
+static const mozilla::Module::ContractIDEntry kSuiteShellContracts[] = {
+  { NS_SUITEFEEDSERVICE_CONTRACTID, &kNS_SUITEMACINTEGRATION_CID },
+  { NULL }
+};
+
+static const mozilla::Module kSuiteShellModule = {
+  mozilla::Module::kVersion,
+  kSuiteShellCIDs,
+  kSuiteShellContracts
+};
+
+NSMODULE_DEFN(nsSuiteShellModule) = &kSuiteShellModule;
 #endif
 

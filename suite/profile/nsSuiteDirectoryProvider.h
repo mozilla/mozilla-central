@@ -43,8 +43,6 @@
 #include "nsStringAPI.h"
 #include "nsCOMPtr.h"
 
-struct nsModuleComponentInfo;
-
 #define NS_SUITEDIRECTORYPROVIDER_CONTRACTID "@mozilla.org/suite/directory-provider;1"
 // {9aa21826-9d1d-433d-8c10-f313b26fa9dd}
 #define NS_SUITEDIRECTORYPROVIDER_CID \
@@ -56,15 +54,6 @@ public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIDIRECTORYSERVICEPROVIDER
   NS_DECL_NSIDIRECTORYSERVICEPROVIDER2
-
-  static NS_METHOD Register(nsIComponentManager* aCompMgr,
-                            nsIFile* aPath, const char *aLoaderStr,
-                            const char *aType,
-                            const nsModuleComponentInfo *aInfo);
-
-  static NS_METHOD Unregister(nsIComponentManager* aCompMgr,
-                              nsIFile* aPath, const char *aLoaderStr,
-                              const nsModuleComponentInfo *aInfo);
 
 private:
   void EnsureProfileFile(const nsACString& aLeafName,
