@@ -1,0 +1,5 @@
+component {b3de9249-b0e5-4c12-8d91-c9a434fd80f5} nsLDAPProtocolHandler.js
+contract @mozilla.org/network/protocol;1?name=ldap {b3de9249-b0e5-4c12-8d91-c9a434fd80f5}
+
+component {c85a5ef2-9c56-445f-b029-76889f2dd29b} nsLDAPProtocolHandler.js
+contract @mozilla.org/network/protocol;1?name=ldaps {c85a5ef2-9c56-445f-b029-76889f2dd29b}
