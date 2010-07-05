@@ -191,7 +191,6 @@ calPeriod::SetIcalString(const nsACString& aIcalString)
     struct icalperiodtype ip;
     ip = icalperiodtype_from_string(PromiseFlatCString(aIcalString).get());
     //XXX Shortcut. Assumes nobody tried to overrule our impl. of calIDateTime
-    //    Should use NS_NEWXPCOM()
     mStart = new calDateTime(&ip.start, nsnull);
     mEnd = new calDateTime(&ip.end, nsnull);
     return NS_OK;
