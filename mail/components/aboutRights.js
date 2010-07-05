@@ -43,7 +43,6 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 function AboutRights() {}
 AboutRights.prototype = {
   classDescription: "about:rights",
-  contractID: "@mozilla.org/network/protocol/about;1?what=rights",
   classID: Components.ID("{8cc51368-6aa0-43e8-b762-bde9b9fd828c}"),
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIAboutModule]),
 
@@ -70,5 +69,4 @@ AboutRights.prototype = {
   }
 };
 
-function NSGetModule(compMgr, fileSpec)
-  XPCOMUtils.generateModule([AboutRights]);
+const NSGetFactory = XPCOMUtils.generateNSGetFactory([AboutRights]);

@@ -55,9 +55,7 @@ function nsActivityManagerUI()
 {}
 
 nsActivityManagerUI.prototype = {
-  classDescription: "Used to show the Activity Manager's UI to the user",
   classID: Components.ID("5fa5974e-09cb-40cc-9696-643f8a8d9a06"),
-  contractID: "@mozilla.org/activity-manager-ui;1",
 
   //////////////////////////////////////////////////////////////////////////////
   //// nsIActivityManagerUI
@@ -108,9 +106,4 @@ nsActivityManagerUI.prototype = {
 //// Module
 
 let components = [nsActivityManagerUI];
-
-function NSGetModule(compMgr, fileSpec)
-{
-  return XPCOMUtils.generateModule(components);
-}
-
+const NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

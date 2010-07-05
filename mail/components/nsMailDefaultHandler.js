@@ -478,16 +478,7 @@ mailDefaultCommandLineHandler.prototype = {
 
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIModule]),
 
-  _xpcom_categories:
-    [ { category: "command-line-handler",
-        entry: "x-default" },
-      { category: "command-line-validator",
-        entry: "b-default" } ],
-
   _xpcom_factory: nsMailDefaultHandler
 }
 
-// NSGetModule: Return the nsIModule object.
-function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([mailDefaultCommandLineHandler]);
-}
+const NSGetFactory = XPCOMUtils.generateNSGetFactory([mailDefaultCommandLineHandler]);

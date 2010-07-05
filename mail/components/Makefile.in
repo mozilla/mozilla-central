@@ -64,6 +64,7 @@ EXTRA_COMPONENTS = \
 	nsMailDefaultHandler.js \
 	mailContentHandler.js \
 	aboutRights.js \
+	mailComponents.manifest \
 	$(NULL)
 
 EXTRA_JS_MODULES = \

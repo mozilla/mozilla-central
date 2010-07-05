@@ -55,10 +55,8 @@ function nsActivityManager()
 {}
 
 nsActivityManager.prototype = {
-  classDescription: "Used to manage the activities",
   classID: Components.ID("8aa5972e-19cb-41cc-9696-645f8a8d1a06"),
-  contractID: "@mozilla.org/activity-manager;1",
-  
+
   //////////////////////////////////////////////////////////////////////////////
   //// nsIActivityManager
   log: Log4Moz.getConfiguredLogger("nsActivityManager"),
@@ -214,9 +212,4 @@ nsActivityManager.prototype = {
 //// Module
 
 let components = [nsActivityManager];
-
-function NSGetModule(compMgr, fileSpec)
-{
-  return XPCOMUtils.generateModule(components);
-}
-
+const NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

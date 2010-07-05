@@ -63,9 +63,7 @@ function Application() {
 }
 
 Application.prototype = {
-  classDescription: "Application",
   classID:          Components.ID("f265021a-7f1d-4b4b-bdc6-9aedca4d8f13"),
-  contractID:       "@mozilla.org/steel/application;1",
 
   // redefine the default factory for XPCOMUtils
   _xpcom_factory: ApplicationFactory,
@@ -83,13 +81,9 @@ Application.prototype = {
   platformIsMac: "nsILocalFileMac" in Components.interfaces
 };
 
-//module initialization
-function NSGetModule(aCompMgr, aFileSpec) {
-  // set the proto
-  Application.prototype.__proto__ = extApplication.prototype;
-
-  // now we can finally return our module
-  return XPCOMUtils.generateModule([Application]);
-}
-
 #include ../../mozilla/toolkit/components/exthelper/extApplication.js
+
+Application.prototype.__proto__ = extApplication.prototype;
+
+const NSGetFactory = XPCOMUtils.generateNSGetFactory([Application]);
+

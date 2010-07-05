@@ -112,9 +112,7 @@ function nsActivityProcess()
 
 nsActivityProcess.prototype = {
   __proto__: nsActivity.prototype,
-  classDescription: "Activity:Process",
   classID: Components.ID("B2C036A3-F7CE-401C-95EE-9C21505167FD"),
-  contractID: "@mozilla.org/activity-process;1",
 
   //////////////////////////////////////////////////////////////////////////////
   //// nsIActivityProcess
@@ -285,9 +283,7 @@ function nsActivityEvent()
 
 nsActivityEvent.prototype = {
   __proto__: nsActivity.prototype,
-  classDescription: "Activity:Event",
   classID: Components.ID("87AAEB20-89D9-4B95-9542-3BF72405CAB2"),
-  contractID: "@mozilla.org/activity-event;1",
 
   //////////////////////////////////////////////////////////////////////////////
   //// nsIActivityEvent
@@ -342,9 +338,7 @@ function nsActivityWarning()
 
 nsActivityWarning.prototype = {
   __proto__: nsActivity.prototype,
-  classDescription: "Activity:Warning",
   classID: Components.ID("968BAC9E-798B-4952-B384-86B21B8CC71E"),
-  contractID: "@mozilla.org/activity-warning;1",
 
   //////////////////////////////////////////////////////////////////////////////
   //// nsIActivityWarning
@@ -388,8 +382,4 @@ nsActivityWarning.prototype = {
 //// Module
 
 let components = [nsActivityProcess, nsActivityEvent, nsActivityWarning];
-
-function NSGetModule(compMgr, fileSpec)
-{
-  return XPCOMUtils.generateModule(components);
-}
+const NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

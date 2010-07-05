@@ -1,0 +1,7 @@
+component {8cc51368-6aa0-43e8-b762-bde9b9fd828c} aboutRights.js
+contract @mozilla.org/network/protocol/about;1?what=rights {8cc51368-6aa0-43e8-b762-bde9b9fd828c}
+
+component {44346520-c5d2-44e5-a1ec-034e04d7fac4} nsMailDefaultHandler.js
+contract @mozilla.org/mail/clh;1 {44346520-c5d2-44e5-a1ec-034e04d7fac4}
+category command-line-handler x-default @mozilla.org/mail/clh;1
+category command-line-validator b-default @mozilla.org/mail/clh;1

@@ -48,7 +48,8 @@ XPIDL_MODULE  = steel
 
 XPIDLSRCS = steelIApplication.idl
 
-EXTRA_PP_COMPONENTS = steelApplication.js
+EXTRA_PP_COMPONENTS = steelApplication.js \
+                      steelApplication.manifest
 
 ifdef ENABLE_TESTS
 # These tests directories are explicitly done this way to ensure that we get

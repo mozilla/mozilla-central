@@ -49,6 +49,7 @@ EXTRA_COMPONENTS = \
   nsActivity.js \
   nsActivityManager.js \
   nsActivityManagerUI.js \
+  activityComponents.manifest \
   $(NULL)
 
 XPIDLSRCS = nsIActivity.idl \

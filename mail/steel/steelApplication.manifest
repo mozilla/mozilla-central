@@ -1,0 +1,3 @@
+component {f265021a-7f1d-4b4b-bdc6-9aedca4d8f13} steelApplication.js
+contract @mozilla.org/steel/application;1 {f265021a-7f1d-4b4b-bdc6-9aedca4d8f13}
+category JavaScript-global-privileged-property Application @mozilla.org/steel/application;1

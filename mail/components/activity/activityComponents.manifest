@@ -1,0 +1,11 @@
+component {B2C036A3-F7CE-401C-95EE-9C21505167FD} nsActivity.js
+contract @mozilla.org/activity-process;1 {B2C036A3-F7CE-401C-95EE-9C21505167FD}
+component {87AAEB20-89D9-4B95-9542-3BF72405CAB2} nsActivity.js
+contract @mozilla.org/activity-event;1 {87AAEB20-89D9-4B95-9542-3BF72405CAB2}
+component {968BAC9E-798B-4952-B384-86B21B8CC71E} nsActivity.js
+contract @mozilla.org/activity-warning;1 {968BAC9E-798B-4952-B384-86B21B8CC71E}
+
+component {8aa5972e-19cb-41cc-9696-645f8a8d1a06} nsActivityManager.js
+contract @mozilla.org/activity-manager;1 {8aa5972e-19cb-41cc-9696-645f8a8d1a06}
+component {5fa5974e-09cb-40cc-9696-643f8a8d9a06} nsActivityManagerUI.js
+contract @mozilla.org/activity-manager-ui;1 {5fa5974e-09cb-40cc-9696-643f8a8d9a06}
