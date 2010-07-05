@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMailGNOMEIntegration.h"
-#include "nsIGenericFactory.h"
 #include "nsIGConfService.h"
 #include "nsCOMPtr.h"
 #include "nsIServiceManager.h"
