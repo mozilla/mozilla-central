@@ -200,7 +200,7 @@ NS_IMETHODIMP_(nsrefcnt) nsAddrDatabase::Release(void)
       m_mdbDeletedCardsTable->Release();
     NS_IF_RELEASE(m_mdbStore);
     NS_IF_RELEASE(m_mdbEnv);
-    NS_DELETEXPCOM(this);
+    delete this;
     return 0;
   }
   return count;

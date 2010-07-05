@@ -114,7 +114,7 @@ nsMsgSendReport::nsMsgSendReport()
 {
   PRUint32 i;
   for (i = 0; i <= SEND_LAST_PROCESS; i ++)
-    NS_NEWXPCOM(mProcessReport[i], nsMsgProcessReport);
+    mProcessReport[i] = new nsMsgProcessReport();
 
   Reset(); 
 }

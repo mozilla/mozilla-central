@@ -93,8 +93,7 @@ NS_IMETHODIMP
 nsMsgXFVirtualFolderDBView::CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow,
                                         nsIMsgDBViewCommandUpdater *aCmdUpdater, nsIMsgDBView **_retval)
 {
-  nsMsgXFVirtualFolderDBView* newMsgDBView;
-  NS_NEWXPCOM(newMsgDBView, nsMsgXFVirtualFolderDBView);
+  nsMsgXFVirtualFolderDBView* newMsgDBView = new nsMsgXFVirtualFolderDBView();
 
   if (!newMsgDBView)
     return NS_ERROR_OUT_OF_MEMORY;

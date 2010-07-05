@@ -7189,9 +7189,8 @@ NS_IMETHODIMP nsMsgDBView::SelectMsgByKey(nsMsgKey aKey)
 NS_IMETHODIMP
 nsMsgDBView::CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater, nsIMsgDBView **_retval)
 {
-  nsMsgDBView* newMsgDBView;
+  nsMsgDBView* newMsgDBView = new nsMsgDBView();
 
-  NS_NEWXPCOM(newMsgDBView, nsMsgDBView);
   if (!newMsgDBView)
     return NS_ERROR_OUT_OF_MEMORY;
 

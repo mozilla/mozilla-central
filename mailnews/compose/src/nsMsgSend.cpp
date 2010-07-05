@@ -320,7 +320,7 @@ nsMsgComposeAndSend::nsMsgComposeAndSend() :
   mCompFieldRemoteAttachments = 0;
   mMessageWarningSize = 0;
 
-  NS_NEWXPCOM(mSendReport, nsMsgSendReport);
+  mSendReport = new nsMsgSendReport();
 }
 
 nsMsgComposeAndSend::~nsMsgComposeAndSend()

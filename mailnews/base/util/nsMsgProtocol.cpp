@@ -1215,8 +1215,8 @@ NS_IMETHODIMP nsMsgAsyncWriteProtocol::Cancel(nsresult status)
 
 nsresult nsMsgAsyncWriteProtocol::PostMessage(nsIURI* url, nsIFile *file)
 {
-  nsCOMPtr<nsIStreamListener> listener;
-  NS_NEWXPCOM(listener, nsMsgFilePostHelper);
+  nsCOMPtr<nsIStreamListener> listener = new nsMsgFilePostHelper();
+
   if (!listener) return NS_ERROR_OUT_OF_MEMORY;
 
   // be sure to initialize some state before posting
@@ -1435,8 +1435,8 @@ nsresult nsMsgAsyncWriteProtocol::SetupTransportState()
 
     mProviderThread = do_GetCurrentThread();
 
-    nsMsgProtocolStreamProvider *provider;
-    NS_NEWXPCOM(provider, nsMsgProtocolStreamProvider);
+    nsMsgProtocolStreamProvider *provider = new nsMsgProtocolStreamProvider();
+
     if (!provider) return NS_ERROR_OUT_OF_MEMORY;
 
     provider->Init(this, mInStream);

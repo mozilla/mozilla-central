@@ -81,8 +81,7 @@ nsMsgQuickSearchDBView::CloneDBView(nsIMessenger *aMessengerInstance,
                                     nsIMsgDBViewCommandUpdater *aCmdUpdater,
                                     nsIMsgDBView **_retval)
 {
-  nsMsgQuickSearchDBView* newMsgDBView;
-  NS_NEWXPCOM(newMsgDBView, nsMsgQuickSearchDBView);
+  nsMsgQuickSearchDBView* newMsgDBView = new nsMsgQuickSearchDBView();
 
   if (!newMsgDBView)
     return NS_ERROR_OUT_OF_MEMORY;

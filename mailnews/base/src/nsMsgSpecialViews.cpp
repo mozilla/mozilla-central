@@ -96,8 +96,7 @@ nsresult nsMsgThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThread *thr
 NS_IMETHODIMP
 nsMsgThreadsWithUnreadDBView::CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater, nsIMsgDBView **_retval)
 {
-  nsMsgThreadsWithUnreadDBView* newMsgDBView;
-  NS_NEWXPCOM(newMsgDBView, nsMsgThreadsWithUnreadDBView);
+  nsMsgThreadsWithUnreadDBView* newMsgDBView = new nsMsgThreadsWithUnreadDBView();
 
   if (!newMsgDBView)
     return NS_ERROR_OUT_OF_MEMORY;
@@ -168,8 +167,7 @@ nsresult nsMsgWatchedThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThre
 NS_IMETHODIMP
 nsMsgWatchedThreadsWithUnreadDBView::CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater, nsIMsgDBView **_retval)
 {
-  nsMsgWatchedThreadsWithUnreadDBView* newMsgDBView;
-  NS_NEWXPCOM(newMsgDBView, nsMsgWatchedThreadsWithUnreadDBView);
+  nsMsgWatchedThreadsWithUnreadDBView* newMsgDBView = new nsMsgWatchedThreadsWithUnreadDBView();
 
   if (!newMsgDBView)
     return NS_ERROR_OUT_OF_MEMORY;

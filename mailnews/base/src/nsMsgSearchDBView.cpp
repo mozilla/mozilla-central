@@ -129,9 +129,8 @@ nsMsgSearchDBView::MsgHdrTableCloner(const nsAString &aKey, nsIMsgDBHdr* aMsgHdr
 NS_IMETHODIMP
 nsMsgSearchDBView::CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater, nsIMsgDBView **_retval)
 {
-  nsMsgSearchDBView* newMsgDBView;
+  nsMsgSearchDBView* newMsgDBView = new nsMsgSearchDBView();
 
-  NS_NEWXPCOM(newMsgDBView, nsMsgSearchDBView);
   if (!newMsgDBView)
     return NS_ERROR_OUT_OF_MEMORY;
 

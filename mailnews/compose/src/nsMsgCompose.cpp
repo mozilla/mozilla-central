@@ -1610,7 +1610,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
   }
   else
   {
-    NS_NEWXPCOM(m_compFields, nsMsgCompFields);
+    m_compFields = new nsMsgCompFields();
     if (m_compFields)
       NS_ADDREF(m_compFields);
     else

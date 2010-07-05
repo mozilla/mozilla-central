@@ -987,8 +987,7 @@ NS_IMETHODIMP nsMsgThreadedDBView::GetViewType(nsMsgViewTypeValue *aViewType)
 NS_IMETHODIMP
 nsMsgThreadedDBView::CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater, nsIMsgDBView **_retval)
 {
-  nsMsgThreadedDBView* newMsgDBView;
-  NS_NEWXPCOM(newMsgDBView, nsMsgThreadedDBView);
+  nsMsgThreadedDBView* newMsgDBView = new nsMsgThreadedDBView();
 
   if (!newMsgDBView)
     return NS_ERROR_OUT_OF_MEMORY;
