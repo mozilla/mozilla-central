@@ -146,20 +146,20 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsWMImport)
 #endif // XP_WIN
 
 static const mozilla::Module::CategoryEntry kMailNewsImportCategories[] = {
-  // this used to use kTextImportCID.ToString() as the second param but
-  // I've switched it to use contract ids.
-  { "mailnewsimport", "@mozilla.org/import/import-text;1", "addressbook"},
-  { "mailnewsimport", NS_COMM4XMAILIMPL_CONTRACTID, kComm4xMailSupportsString},
+  // XXX These CIDs should match the explicit CIDs defined in the header files,
+  // or be changed so that they are contract IDs (with appropraite code updates)
+  { "mailnewsimport", "{A5991D01-ADA7-11d3-A9C2-00A0CC26DA63}", "addressbook"},
+  { "mailnewsimport", "{647cc990-2bdb-11d6-92a0-0010a4b26cda}", kComm4xMailSupportsString},
 #if defined(XP_WIN) || defined(XP_MACOSX)
-  { "mailnewsimport", "@mozilla.org/import/import-eudora;1", kEudoraSupportsString},
+  { "mailnewsimport", "{c8448da0-8f83-11d3-a206-00a0cc26da63}", kEudoraSupportsString},
 #endif
 #ifdef XP_WIN
-  { "mailnewsimport", "@mozilla.org/import/import-wm;1", kWMSupportsString },
-  { "mailnewsimport", "@mozilla.org/import/import-outlook;1", kOutlookSupportsString },
-  { "mailnewsimport", "@mozilla.org/import/import-oe;1", kOESupportsString},
+  { "mailnewsimport", "{42bc82bc-8e9f-4597-8b6e-e529daaf3af1}", kWMSupportsString },
+  { "mailnewsimport", "{1DB469A0-8B00-11d3-A206-00A0CC26DA63}", kOutlookSupportsString },
+  { "mailnewsimport", "{be0bc880-1742-11d3-a206-00a0cc26da63}", kOESupportsString},
 #endif
 #if defined(XP_MACOSX)
-  { "mailnewsimport", "@mozilla.org/import/import-applemail;1", kAppleMailSupportsString },
+  { "mailnewsimport", "{6d3f101c-70ec-4e04-b68d-9908d1aeddf3}", kAppleMailSupportsString },
 #endif
   { NULL }
 };
