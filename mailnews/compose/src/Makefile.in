@@ -51,6 +51,7 @@ endif
 
 EXTRA_COMPONENTS = \
 		nsSMTPProtocolHandler.js \
+		nsSMTPProtocolHandler.manifest \
 		$(NULL)
 
 CPPSRCS		= \

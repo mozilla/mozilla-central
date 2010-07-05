@@ -126,6 +126,7 @@ EXPORTS = \
 EXTRA_COMPONENTS = \
 		nsMailNewsCommandLineHandler.js \
 		msgAsyncPrompter.js \
+		msgBase.manifest \
 		$(NULL)
 
 EXTRA_JS_MODULES = \

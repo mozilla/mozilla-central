@@ -1,0 +1,3 @@
+component {f2809796-1dd1-11b2-8c1b-8f15f007c699} smime-service.js
+contract @mozilla.org/accountmanager/extension;1?name=smime {f2809796-1dd1-11b2-8c1b-8f15f007c699}
+category mailnews-accountmanager-extensions smime-account-manager-extension @mozilla.org/accountmanager/extension;1?name=smime

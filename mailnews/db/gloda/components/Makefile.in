@@ -45,6 +45,6 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE = mailnewsglobaldb
 
-EXTRA_COMPONENTS = $(wildcard $(srcdir)/*.js)
-
+EXTRA_COMPONENTS = $(wildcard $(srcdir)/*.js) \
+                   gloda.manifest
 include $(topsrcdir)/config/rules.mk

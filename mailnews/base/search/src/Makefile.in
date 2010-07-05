@@ -68,6 +68,7 @@ CPPSRCS		= \
 
 EXTRA_COMPONENTS += \
 		nsMsgTraitService.js \
+		nsMsgTraitService.manifest \
 		$(NULL)
  
 EXPORT_RESOURCE_FILES	= \

@@ -39,8 +39,6 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 function nsAbAutoCompleteMyDomain() {}
 
 nsAbAutoCompleteMyDomain.prototype = {
-  classDescription: "AbAutoCompleteMyDomain",
-  contractID: "@mozilla.org/autocomplete/search;1?name=mydomain",
   classID: Components.ID("{5b259db2-e451-4de9-8a6f-cfba91402973}"),
   QueryInterface: XPCOMUtils.generateQI([
       Components.interfaces.nsIAutoCompleteSearch]),
@@ -82,6 +80,5 @@ nsAbAutoCompleteMyDomain.prototype = {
   stopSearch: function() {}
 };
 
-function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([nsAbAutoCompleteMyDomain]);
-}
+var components = [nsAbAutoCompleteMyDomain];
+const NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

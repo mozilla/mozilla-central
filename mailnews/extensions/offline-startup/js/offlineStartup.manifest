@@ -1,0 +1,3 @@
+component {3028a3c8-2165-42a4-b878-398da5d32736} offlineStartup.js
+contract @mozilla.org/offline-startup;1 {3028a3c8-2165-42a4-b878-398da5d32736}
+category app-startup Offline-startup @mozilla.org/offline-startup;1

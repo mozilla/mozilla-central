@@ -1,0 +1,5 @@
+component {3bbe4d77-3f70-4252-9500-bc00c26f476d} glautocomp.js
+contract @mozilla.org/autocomplete/search;1?name=gloda {3bbe4d77-3f70-4252-9500-bc00c26f476d}
+component {8cddbbbc-7ced-46b0-a936-8cddd1928c24} jsmimeemitter.js
+contract @mozilla.org/gloda/jsmimeemitter;1 {8cddbbbc-7ced-46b0-a936-8cddd1928c24}
+category mime-emitter gloda @mozilla.org/messenger/mimeemitter;1?type=application/x-js-mime-message

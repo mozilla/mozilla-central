@@ -84,6 +84,7 @@ EXTRA_COMPONENTS += \
 		nsAbLDAPAttributeMap.js \
 		nsAbAutoCompleteMyDomain.js \
 		nsAbAutoCompleteSearch.js \
+		nsAddrbook.manifest \
 		$(NULL)
 
 EXPORTS		= \

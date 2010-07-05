@@ -175,7 +175,6 @@ var nsOfflineStartup =
 var nsOfflineStartupModule =
 {
   mClassName:     "Offline Startup",
-  mContractID:    "@mozilla.org/offline-startup;1",
   mClassID:       Components.ID("3028a3c8-2165-42a4-b878-398da5d32736"),
 
   getClassObject: function(aCompMgr, aCID, aIID)
@@ -188,40 +187,9 @@ var nsOfflineStartupModule =
     return this.mFactory;
   },
 
-  registerSelf: function(aCompMgr, aFileSpec, aLocation, aType)
-  {
-    debug("*** Registering nsOfflineStartupModule (a JavaScript Module)\n");
-
-    aCompMgr = aCompMgr.QueryInterface(
-                 Components.interfaces.nsIComponentRegistrar);
-    aCompMgr.registerFactoryLocation(this.mClassID, this.mClassName,
-      this.mContractID, aFileSpec, aLocation, aType);
-
-    // Receive startup notification.
-    // We are |getService()|d at app-startup (before profile selection)
-    this.getCategoryManager().addCategoryEntry("app-startup",
-      "Offline-startup", "service," + this.mContractID, true, true);
-  },
-
-  unregisterSelf: function(aCompMgr, aFileSpec, aLocation)
-  {
-    aCompMgr = aCompMgr.QueryInterface(
-                 Components.interfaces.nsIComponentRegistrar);
-    aCompMgr.unregisterFactoryLocation(this.mClassID, aFileSpec);
-
-    this.getCategoryManager().deleteCategoryEntry("app-startup",
-      "Offline-startup", true);
-  },
-
   canUnload: function(aCompMgr)
   {
     return true;
-  },
-
-  getCategoryManager: function()
-  {
-    return Components.classes["@mozilla.org/categorymanager;1"].
-      getService(Components.interfaces.nsICategoryManager);
   },
 
   //////////////////////////////////////////////////////////////////////
@@ -246,11 +214,6 @@ var nsOfflineStartupModule =
     }
   }
 };
-
-function NSGetModule(aCompMgr, aFileSpec)
-{
-  return nsOfflineStartupModule;
-}
 
 function getBundle(aURI)
 {
@@ -285,3 +248,7 @@ if (!kDebug)
   debug = function(m) {};
 else
   debug = function(m) {dump("\t *** nsOfflineStartup: " + m + "\n");};
+  
+var components = [nsOfflineStartupModule];
+const NSGetFactory = XPCOMUtils.generateNSGetFactory(components);
+

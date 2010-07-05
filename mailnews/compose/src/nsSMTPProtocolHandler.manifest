@@ -1,0 +1,4 @@
+component {b14c2b67-8680-4c11-8d63-9403c7d4f757} nsSMTPProtocolHandler.js
+contract @mozilla.org/network/protocol;1?name=smtp {b14c2b67-8680-4c11-8d63-9403c7d4f757}
+component {057d0997-9e3a-411e-b4ee-2602f53fe05f} nsSMTPProtocolHandler.js
+contract @mozilla.org/network/protocol;1?name=smtps {057d0997-9e3a-411e-b4ee-2602f53fe05f}

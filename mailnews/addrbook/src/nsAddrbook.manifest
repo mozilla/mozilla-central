@@ -1,0 +1,8 @@
+component {5b259db2-e451-4de9-8a6f-cfba91402973} nsAbAutoCompleteMyDomain.js
+contract @mozilla.org/autocomplete/search;1?name=mydomain {5b259db2-e451-4de9-8a6f-cfba91402973}
+component {2f946df9-114c-41fe-8899-81f10daf4f0c} nsAbAutoCompleteSearch.js
+contract @mozilla.org/autocomplete/search;1?name=addrbook {2f946df9-114c-41fe-8899-81f10daf4f0c}
+component {127b341a-bdda-4270-85e1-edff569a9b85} nsAbLDAPAttributeMap.js
+contract @mozilla.org/addressbook/ldap-attribute-map;1 {127b341a-bdda-4270-85e1-edff569a9b85}
+component {4ed7d5e1-8800-40da-9e78-c4f509d7ac5e} nsAbLDAPAttributeMap.js
+contract @mozilla.org/addressbook/ldap-attribute-map-service;1 {4ed7d5e1-8800-40da-9e78-c4f509d7ac5e}

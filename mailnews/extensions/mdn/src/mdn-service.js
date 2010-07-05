@@ -50,14 +50,8 @@ MDNService.prototype = {
   },
 
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIMsgAccountManagerExtension]),
-  classDescription: "MDN Account Manager Extension Service",
   classID: Components.ID("{e007d92e-1dd1-11b2-a61e-dc962c9b8571}"),
-  contractID: "@mozilla.org/accountmanager/extension;1?name=mdn",
-
-  _xpcom_categories: [{category: "mailnews-accountmanager-extensions",
-                       entry: "mdn account manager extension"}]
 };
 
-function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([MDNService]);
-}
+var components = [MDNService];
+const NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

@@ -45,7 +45,8 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= msgdsn
 
-EXTRA_COMPONENTS =  src/dsn-service.js
+EXTRA_COMPONENTS =  src/dsn-service.js \
+                    src/dsn-service.manifest
 
 include $(topsrcdir)/config/rules.mk
 

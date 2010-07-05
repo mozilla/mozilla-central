@@ -1,0 +1,3 @@
+component {849dab91-9bc9-4508-a0ee-c2453e7c092d} dsn-service.js
+contract @mozilla.org/accountmanager/extension;1?name=dsn {849dab91-9bc9-4508-a0ee-c2453e7c092d}
+category mailnews-accountmanager-extensions dsn-account-manager-extension @mozilla.org/accountmanager/extension;1?name=dsn

@@ -49,14 +49,8 @@ DSNService.prototype = {
   },
 
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIMsgAccountManagerExtension]),
-  classDescription: "DSN Account Manager Extension Service",
   classID: Components.ID("{849dab91-9bc9-4508-a0ee-c2453e7c092d}"),
-  contractID: "@mozilla.org/accountmanager/extension;1?name=dsn",
-
-  _xpcom_categories: [{category: "mailnews-accountmanager-extensions",
-                       entry: "dsn account manager extension"}]
 };
 
-function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([DSNService]);
-}
+var components = [DSNService];
+const NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

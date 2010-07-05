@@ -177,22 +177,12 @@ function mailNewsCommandLineHandlerModule() {}
 mailNewsCommandLineHandlerModule.prototype =
 {
   // XPCOM registration
-  classDescription: "MailNews Commandline Handler",
   classID: Components.ID("{2f86d554-f9d9-4e76-8eb7-243f047333ee}"),
-  contractID: "@mozilla.org/commandlinehandler/general-startup;1?type=mail",
 
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIModule]),
-  
-  _xpcom_categories: [{
-    category: "command-line-handler",
-    entry: "m-mail"
-  }],
 
   _xpcom_factory: nsMailNewsCommandLineHandler
 };
 
-// NSGetModule: Return the nsIModule object.
-function NSGetModule(compMgr, fileSpec)
-{
-  return XPCOMUtils.generateModule([mailNewsCommandLineHandlerModule]);
-}
+var components = [mailNewsCommandLineHandlerModule];
+const NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

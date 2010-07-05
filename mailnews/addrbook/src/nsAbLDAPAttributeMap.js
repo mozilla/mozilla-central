@@ -285,23 +285,6 @@ nsAbLDAPAttributeMapService.prototype = {
 }
 
 var nsAbLDAPAttributeMapModule = {
-  registerSelf: function (compMgr, fileSpec, location, type) {
-    debug("*** Registering Addressbook LDAP Attribute Map components\n");
-    compMgr = compMgr.QueryInterface(
-      Components.interfaces.nsIComponentRegistrar);
-
-    compMgr.registerFactoryLocation(
-      NS_ABLDAPATTRIBUTEMAP_CID,
-      "Addressbook LDAP Attribute Map Component",
-      "@mozilla.org/addressbook/ldap-attribute-map;1",
-      fileSpec, location, type);
-
-    compMgr.registerFactoryLocation(
-      NS_ABLDAPATTRIBUTEMAPSERVICE_CID,
-      "Addressbook LDAP Attribute Map Service",
-      "@mozilla.org/addressbook/ldap-attribute-map-service;1",
-      fileSpec, location, type);
-  },
 
   /*
    * The GetClassObject method is responsible for producing Factory objects
@@ -368,6 +351,5 @@ var nsAbLDAPAttributeMapModule = {
   }
 };
 
-function NSGetModule(compMgr, fileSpec) {
-  return nsAbLDAPAttributeMapModule;
-}
+var components = [nsAbLDAPAttributeMapModule];
+const NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

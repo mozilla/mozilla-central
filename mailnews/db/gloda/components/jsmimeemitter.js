@@ -101,17 +101,9 @@ function MimeMessageEmitter() {
 const deathToNewlines = /\n/g;
 
 MimeMessageEmitter.prototype = {
-  classDescription: "JS Mime Message Emitter",
   classID: Components.ID("{8cddbbbc-7ced-46b0-a936-8cddd1928c24}"),
-  contractID: "@mozilla.org/gloda/jsmimeemitter;1",
 
   _partRE: new RegExp("^[^?]+\\?(?:[^&]+&)*part=([^&]+)(?:&[^&]+)*$"),
-
-  _xpcom_categories: [{
-    category: "mime-emitter",
-    entry:
-      "@mozilla.org/messenger/mimeemitter;1?type=application/x-js-mime-message",
-  }],
 
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMimeEmitter]),
 
@@ -432,6 +424,4 @@ MimeMessageEmitter.prototype = {
 };
 
 var components = [MimeMessageEmitter];
-function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule(components);
-}
+const NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

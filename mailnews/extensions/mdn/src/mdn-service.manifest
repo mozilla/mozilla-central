@@ -1,0 +1,3 @@
+component {e007d92e-1dd1-11b2-a61e-dc962c9b8571} mdn-service.js
+contract @mozilla.org/accountmanager/extension;1?name=mdn {e007d92e-1dd1-11b2-a61e-dc962c9b8571}
+category mailnews-accountmanager-extensions mdn-account-manager-extension @mozilla.org/accountmanager/extension;1?name=mdn

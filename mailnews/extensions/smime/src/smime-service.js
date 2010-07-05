@@ -50,14 +50,8 @@ SMIMEService.prototype = {
   },
 
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIMsgAccountManagerExtension]),
-  classDescription: "SMIME Account Manager Extension Service",
   classID: Components.ID("{f2809796-1dd1-11b2-8c1b-8f15f007c699}"),
-  contractID: "@mozilla.org/accountmanager/extension;1?name=smime",
-
-  _xpcom_categories: [{category: "mailnews-accountmanager-extensions",
-                       entry: "smime account manager extension"}]
 };
 
-function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([SMIMEService]);
-}
+var components = [SMIMEService];
+const NSGetFactory = XPCOMUtils.generateNSGetFactory(components);
