@@ -50,9 +50,9 @@ IS_COMPONENT	= 1
 MODULE_NAME	= nsLDAPProtocolModule
 MOZILLA_INTERNAL_API = 1
 
-
-EXTRA_PP_COMPONENTS = \
+EXTRA_COMPONENTS = \
 		nsLDAPProtocolHandler.js \
+		ldapComponents.manifest \
 		$(NULL)
 
 CPPSRCS		= \

@@ -40,11 +40,9 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 const kNetworkProtocolCIDPrefix = "@mozilla.org/network/protocol;1?name=";
 const nsIProtocolHandler = Components.interfaces.nsIProtocolHandler;
 
-function makeProtocolHandler(aProtocol, aDefaultPort) {
+function makeProtocolHandler(aCID, aProtocol, aDefaultPort) {
   return {
-    classDescription: "LDAP Protocol Handler",
-    contractID: kNetworkProtocolCIDPrefix + aProtocol,
-    classID: Components.ID("{b3de9249-b0e5-4c12-8d91-c9a434fd80f5}"),
+    classID: Components.ID(aCID),
     QueryInterface: XPCOMUtils.generateQI([nsIProtocolHandler]),
 
     scheme: aProtocol,
@@ -83,13 +81,11 @@ function makeProtocolHandler(aProtocol, aDefaultPort) {
 
 function nsLDAPProtocolHandler() {}
 
-nsLDAPProtocolHandler.prototype = makeProtocolHandler("ldap", 389);
+nsLDAPProtocolHandler.prototype = makeProtocolHandler("{b3de9249-b0e5-4c12-8d91-c9a434fd80f5}", "ldap", 389);
 
 function nsLDAPSProtocolHandler() {}
 
-nsLDAPSProtocolHandler.prototype = makeProtocolHandler("ldaps", 636);
+nsLDAPSProtocolHandler.prototype = makeProtocolHandler("{c85a5ef2-9c56-445f-b029-76889f2dd29b}", "ldaps", 636);
 
-function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([nsLDAPProtocolHandler,
-                                    nsLDAPSProtocolHandler]);
-}
+const NSGetFactory = XPCOMUtils.generateNSGetFactory([nsLDAPProtocolHandler,
+                                                      nsLDAPSProtocolHandler]);
