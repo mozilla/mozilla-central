@@ -29,6 +29,7 @@
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Wolfgang Sourdeau <wsourdeau@inverse.ca>
  *   Simon Vaillancourt <simon.at.orcl@gmail.com>
+ *   Dimas Perez Gago <dimassevfc@gmail.com>
  *
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -1151,7 +1152,7 @@ calDavCalendar.prototype = {
             } else if (request.responseStatus == 207 && thisCalendar.mDisabled) {
                 // Looks like the calendar is there again, check its resource
                 // type first.
-                this.checkDavResourceType(aChangeLogListener);
+                thisCalendar.checkDavResourceType(aChangeLogListener);
                 return;
              }
 
