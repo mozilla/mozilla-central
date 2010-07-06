@@ -249,7 +249,6 @@ etagsHandler.prototype = {
                 this.currentResponse.isCollection = true;
             case "href":
             case "getetag":
-            case "status":
             case "getcontenttype":
                 this.tag = aLocalName;
                 this.currentResponse[aLocalName] = "";
@@ -266,8 +265,7 @@ etagsHandler.prototype = {
             case "response":
                 this.tag = null;
                 let r = this.currentResponse;
-                if (r.status.indexOf(" 200") > 0 &&
-                    r.getetag && r.getetag.length &&
+                if (r.getetag && r.getetag.length &&
                     r.href && r.href.length &&
                     r.getcontenttype && r.getcontenttype.length &&
                     !r.isCollection) {
@@ -283,7 +281,6 @@ etagsHandler.prototype = {
                     }
                     if (r.getcontenttype.substr(0,13) == "text/calendar") {
                         // Only handle calendar items
-
                         if (this.skipIndex < 0) {
                             href = this.calendar.ensurePath(r.href);
                             this.skipIndex = r.href.indexOf(href);
@@ -305,7 +302,6 @@ etagsHandler.prototype = {
                 break;
             case "href":
             case "getetag":
-            case "status":
             case "getcontenttype":
                 this.tag = null;
                 break;
