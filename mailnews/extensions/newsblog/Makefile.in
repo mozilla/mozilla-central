@@ -55,6 +55,9 @@ libs:: rss.rdf
 install:: rss.rdf
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/isp
 
-EXTRA_COMPONENTS = js/newsblog.js
+EXTRA_COMPONENTS = \
+		js/newsblog.js \
+		js/newsblog.manifest \
+		$(NULL)
 
 include $(topsrcdir)/config/rules.mk
