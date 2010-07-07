@@ -110,7 +110,7 @@ static const mozilla::Module::CIDEntry kSuiteCIDs[] = {
 #elif defined(NS_SUITEMACINTEGRATION_CID)
   { &kNS_SUITEMACINTEGRATION_CID, false, NULL, nsMacShellServiceConstructor },
 #elif defined(NS_SUITEGNOMEINTEGRATION_CID)
-  { &kNS_SUITEGNOMEINTEGRATION_CID, false, NULL, nsGnomeShellServiceConstructor },
+  { &kNS_SUITEGNOMEINTEGRATION_CID, false, NULL, nsGNOMEShellServiceConstructor },
 #endif
   { &kNS_SUITEDIRECTORYPROVIDER_CID, false, NULL, nsSuiteDirectoryProviderConstructor },
   { &kNS_SUITEPROFILEMIGRATOR_CID, false, NULL, nsProfileMigratorConstructor },
