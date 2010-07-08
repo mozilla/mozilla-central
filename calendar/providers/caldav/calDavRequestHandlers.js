@@ -52,7 +52,7 @@ Components.utils.import("resource://calendar/modules/calUtils.jsm");
 function etagsHandler(aCalendar, aBaseUri, aChangeLogListener) {
     this.calendar = aCalendar;
     this.baseUri = aBaseUri;
-    this.changelogListener = aChangeLogListener;
+    this.changeLogListener = aChangeLogListener;
     this._reader = Components.classes["@mozilla.org/saxparser/xmlreader;1"]
                              .createInstance(Components.interfaces.nsISAXXMLReader);
     this._reader.contentHandler = this;
@@ -69,7 +69,7 @@ etagsHandler.prototype = {
     tag: null,
     calendar: null,
     baseUri: null,
-    changelogListener: null,
+    changeLogListener: null,
     logXML: "",
 
     itemsReported: null,
@@ -106,8 +106,8 @@ etagsHandler.prototype = {
         } else {
             cal.LOG("CalDAV: Error fetching item etags");
             this.calendar.reportDavError(Components.interfaces.calIErrors.DAV_REPORT_ERROR);
-            if (this.calendar.isCached && this.changelogListener) {
-                this.changelogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
+            if (this.calendar.isCached && this.changeLogListener) {
+                this.changeLogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
                                                 Components.results.NS_ERROR_FAILURE);
             }
             this._reader = null;
@@ -179,8 +179,8 @@ etagsHandler.prototype = {
         // Avoid sending empty multiget requests update views if something has
         // been deleted server-side.
         if (!this.itemsNeedFetching.length) {
-            if (this.calendar.isCached && this.changelogListener) {
-                this.changelogListener.onResult({ status: Components.results.NS_OK },
+            if (this.calendar.isCached && this.changeLogListener) {
+                this.changeLogListener.onResult({ status: Components.results.NS_OK },
                                                 Components.results.NS_OK);
             }
 
@@ -334,7 +334,7 @@ etagsHandler.prototype = {
 function webDavSyncHandler(aCalendar, aBaseUri, aChangeLogListener) {
     this.calendar = aCalendar;
     this.baseUri = aBaseUri;
-    this.changelogListener = aChangeLogListener;
+    this.changeLogListener = aChangeLogListener;
     this._reader = Components.classes["@mozilla.org/saxparser/xmlreader;1"]
                              .createInstance(Components.interfaces.nsISAXXMLReader);
     this._reader.contentHandler = this;
@@ -351,7 +351,7 @@ webDavSyncHandler.prototype = {
     calendar: null,
     baseUri: null,
     newSyncToken: null,
-    changelogListener: null,
+    changeLogListener: null,
     logXML: "",
     isInPropStat : false,
     changeCount : 0,
@@ -372,7 +372,7 @@ webDavSyncHandler.prototype = {
     doWebDAVSync: function doWebDAVSync() {
         if (this.calendar.mDisabled) {
             // check if maybe our calendar has become available
-            this.calendar.checkDavResourceType(this.changelogListener);
+            this.calendar.checkDavResourceType(this.changeLogListener);
             return;
         }
 
@@ -448,12 +448,12 @@ webDavSyncHandler.prototype = {
             this._reader = null;
             this.calendar.mWebdavSyncToken=null;
             this.calendar.mTargetCalendar.deleteMetaData("sync-token");
-            this.calendar.safeRefresh(this.changelogListener);
+            this.calendar.safeRefresh(this.changeLogListener);
         } else {
             cal.WARN("CalDAV: Error doing webdav sync: " + responseStatus);
             this.calendar.reportDavError(Components.interfaces.calIErrors.DAV_REPORT_ERROR);
-            if (this.calendar.isCached && this.changelogListener) {
-                this.changelogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
+            if (this.calendar.isCached && this.changeLogListener) {
+                this.changeLogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
                                                 Components.results.NS_ERROR_FAILURE);
             }
             this._reader = null;
@@ -513,8 +513,8 @@ webDavSyncHandler.prototype = {
         if (this.unhandledErrors) {
             this.calendar.superCalendar.endBatch();
             this.calendar.reportDavError(Components.interfaces.calIErrors.DAV_REPORT_ERROR);
-            if (this.calendar.isCached && this.changelogListener) {
-                this.changelogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
+            if (this.calendar.isCached && this.changeLogListener) {
+                this.changeLogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
                                                 Components.results.NS_ERROR_FAILURE);
             }
             return;
@@ -542,7 +542,7 @@ webDavSyncHandler.prototype = {
                                                           this.newSyncToken);
                 cal.LOG("CalDAV: New webdav-sync Token: " + this.calendar.mWebdavSyncToken);
             }
-            this.calendar.finalizeUpdatedItems(this.changelogListener,
+            this.calendar.finalizeUpdatedItems(this.changeLogListener,
                                                this.baseUri);
         } else {
             let multiget = new multigetSyncHandler(this.itemsNeedFetching,
@@ -694,7 +694,7 @@ function multigetSyncHandler(aItemsNeedFetching, aCalendar, aBaseUri, aNewSyncTo
     this.baseUri = aBaseUri;
     this.listener = aListener;
     this.newSyncToken = aNewSyncToken;
-    this.changelogListener = aChangeLogListener;
+    this.changeLogListener = aChangeLogListener;
     this._reader = Components.classes["@mozilla.org/saxparser/xmlreader;1"]
                              .createInstance(Components.interfaces.nsISAXXMLReader);
     this._reader.contentHandler = this;
@@ -709,7 +709,7 @@ multigetSyncHandler.prototype = {
     baseUri: null,
     newSyncToken: null,
     listener: null,
-    changelogListener: null,
+    changeLogListener: null,
     logXML: null,
     unhandledErrors : 0,
     itemsNeedFetching: null,
@@ -727,7 +727,7 @@ multigetSyncHandler.prototype = {
     doMultiGet: function doMultiGet() {
         if (this.calendar.mDisabled) {
             // check if maybe our calendar has become available
-            this.calendar.checkDavResourceType(this.changelogListener);
+            this.calendar.checkDavResourceType(this.changeLogListener);
             return;
         }
         let C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
@@ -784,7 +784,7 @@ multigetSyncHandler.prototype = {
         } else {
             let errorMsg = "CalDAV: Error: got status " + responseStatus +
                                " fetching calendar data for " + thisCalendar.name + ", " + aListener;
-            this.calendar.notifyGetFailed(errorMsg, this.listener, this.changelogListener);
+            this.calendar.notifyGetFailed(errorMsg, this.listener, this.changeLogListener);
             this._reader = null;
         }
     },
@@ -795,7 +795,7 @@ multigetSyncHandler.prototype = {
         }
         if (this.unhandledErrors) {
             this.calendar.superCalendar.endBatch();
-            this.calendar.notifyGetFailed("multiget error", this.listener, this.changelogListener);
+            this.calendar.notifyGetFailed("multiget error", this.listener, this.changeLogListener);
             return;
         }
         if (this.itemsNeedFetching.length == 0) {
@@ -805,7 +805,7 @@ multigetSyncHandler.prototype = {
               cal.LOG("CalDAV: New webdav-sync Token: " + this.calendar.mWebdavSyncToken);
             }
 
-            this.calendar.finalizeUpdatedItems(this.changelogListener,
+            this.calendar.finalizeUpdatedItems(this.changeLogListener,
                                                this.baseUri);
         }
         if (!this._reader) {

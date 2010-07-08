@@ -954,6 +954,10 @@ calDavCalendar.prototype = {
      *                              changed
      */
     finalizeUpdatedItems: function calDav_finalizeUpdatedItems(aChangeLogListener, calendarURI) {
+        cal.LOG("aChangeLogListener=" + aChangeLogListener + "\n" +
+                "calendarURI=" + (calendarURI?calendarURI.spec:"undefined") + " \n" +
+                "iscached=" + this.isCached + "\n"+
+                "this.mQueuedQueries.length=" + this.mQueuedQueries.length);
         if (this.isCached) {
             if (aChangeLogListener) {
                 aChangeLogListener.onResult({ status: Components.results.NS_OK },
