@@ -35,6 +35,9 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
 const kDebug               = false;
 const kBundleURI         = "chrome://messenger/locale/offlineStartup.properties";
 const kOfflineStartupPref = "offline.startup_state";
@@ -171,46 +174,27 @@ var nsOfflineStartup =
   }
 }
 
-
-var nsOfflineStartupModule =
+function nsOfflineStartupModule()
 {
-  mClassName:     "Offline Startup",
-  mClassID:       Components.ID("3028a3c8-2165-42a4-b878-398da5d32736"),
+}
 
-  getClassObject: function(aCompMgr, aCID, aIID)
-  {
-    if (!aCID.equals(this.mClassID))
-      throw Components.results.NS_ERROR_NO_INTERFACE;
-    if (!aIID.equals(Components.interfaces.nsIFactory))
-      throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
-
-    return this.mFactory;
-  },
-
-  canUnload: function(aCompMgr)
-  {
-    return true;
-  },
-
-  //////////////////////////////////////////////////////////////////////
-  //
-  //   mFactory : nsIFactory
-  //
-  //////////////////////////////////////////////////////////////////////
-  mFactory:
+nsOfflineStartupModule.prototype =
+{
+  classID: Components.ID("3028a3c8-2165-42a4-b878-398da5d32736"),
+  _xpcom_factory:
   {
     createInstance: function(aOuter, aIID)
     {
       if (aOuter != null)
         throw Components.results.NS_ERROR_NO_AGGREGATION;
 
-      // return the singleton 
+      // return the singleton
       return nsOfflineStartup.QueryInterface(aIID);
     },
 
     lockFactory: function(aLock)
     {
-      // quiten warnings
+      // quieten warnings
     }
   }
 };
