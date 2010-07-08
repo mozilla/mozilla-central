@@ -177,6 +177,6 @@ static const mozilla::Module kMAPIModule = {
     kMAPICategories
 };
 
-NSMODULE_DEFN(mapi) = &kMAPIModule;
+NSMODULE_DEFN(msgMapiModule) = &kMAPIModule;
 
 
