@@ -255,6 +255,7 @@
 
 ; download progress
 @BINPATH@/components/nsHelperAppDlg.js
+@BINPATH@/components/nsHelperAppDlg.manifest
 @BINPATH@/components/nsDownloadManagerUI.js
 @BINPATH@/components/nsDownloadManagerUI.manifest
 @BINPATH@/components/downloads.xpt
@@ -554,7 +555,6 @@
 @BINPATH@/components/nsINIProcessor.manifest
 @BINPATH@/components/nsTryToClose.js
 @BINPATH@/components/nsTryToClose.manifest
-@BINPATH@/components/pluginGlue.js
 @BINPATH@/components/pluginGlue.manifest
 @BINPATH@/components/txEXSLTRegExFunctions.js
 @BINPATH@/components/txEXSLTRegExFunctions.manifest

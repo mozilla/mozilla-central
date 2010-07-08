@@ -75,6 +75,7 @@ components/nsUrlClassifierTable.js
 #ifdef XP_WIN
   components/nsWinSearchIntegration.js
 #endif
+components/pluginGlue.js
 components/progressDlg.xpt
 components/sidebar.xpt
 components/signonviewer.xpt
