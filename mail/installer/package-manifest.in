@@ -76,6 +76,7 @@
 @BINPATH@/chrome/newsblog.jar
 @BINPATH@/chrome/newsblog.manifest
 @BINPATH@/components/newsblog.js
+@BINPATH@/components/newsblog.manifest
 
 [mail]
 #ifndef XP_UNIX
@@ -117,12 +118,15 @@
 @BINPATH@/components/components.manifest
 @BINPATH@/components/aboutRights.js
 @BINPATH@/components/activity.xpt
+@BINPATH@/components/activityComponents.manifest
 @BINPATH@/components/addrbook.xpt
 @BINPATH@/components/fts3tok.xpt
+@BINPATH@/components/interfaces.manifest
 @BINPATH@/components/mime.xpt
 @BINPATH@/components/steel.xpt
 @BINPATH@/components/msgAsyncPrompter.js
 @BINPATH@/components/msgbase.xpt
+@BINPATH@/components/msgBase.manifest
 @BINPATH@/components/msgcompose.xpt
 @BINPATH@/components/msgdb.xpt
 @BINPATH@/components/msgimap.xpt
@@ -136,6 +140,7 @@
 @BINPATH@/components/nsActivity.js
 @BINPATH@/components/nsActivityManager.js
 @BINPATH@/components/nsActivityManagerUI.js
+@BINPATH@/components/nsAddrbook.manifest
 @BINPATH@/components/nsMailNewsCommandLineHandler.js
 #ifndef XP_OS2
 @BINPATH@/components/shellservice.xpt
@@ -169,6 +174,7 @@
 @BINPATH@/chrome/gloda.jar
 @BINPATH@/chrome/gloda.manifest
 @BINPATH@/components/glautocomp.js
+@BINPATH@/components/gloda.manifest
 @BINPATH@/components/jsmimeemitter.js
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -179,18 +185,22 @@
 @BINPATH@/mozMapi32.dll
 @BINPATH@/components/mapihook.xpt
 #endif
+@BINPATH@/components/mailComponents.manifest
 @BINPATH@/components/mailContentHandler.js
 @BINPATH@/components/nsMailDefaultHandler.js
 #ifndef XP_OS2
 @BINPATH@/components/nsSetDefaultMail.js
 #endif
 @BINPATH@/components/offlineStartup.js
+@BINPATH@/components/offlineStartup.manifest
 @BINPATH@/components/steelApplication.js
+@BINPATH@/components/steelApplication.manifest
 
 
 @BINPATH@/components/mdn-service.js
-
+@BINPATH@/components/mdn-service.manifest
 @BINPATH@/components/smime-service.js
+@BINPATH@/components/smime-service.manifest
 @BINPATH@/components/msgsmime.xpt
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -222,6 +232,7 @@
 @BINPATH@/components/mozldap.xpt
 @BINPATH@/components/nsAbLDAPAttributeMap.js
 @BINPATH@/components/nsLDAPProtocolHandler.js
+@BINPATH@/components/ldapComponents.manifest
 #ifdef XP_WIN32
 @BINPATH@/nsldap32v60@DLL_SUFFIX@
 @BINPATH@/nsldappr32v60@DLL_SUFFIX@
@@ -237,6 +248,7 @@
 @BINPATH@/components/nsLoginInfo.js
 @BINPATH@/components/nsLoginManager.js
 @BINPATH@/components/nsLoginManagerPrompter.js
+@BINPATH@/components/passwordmgr.manifest
 @BINPATH@/components/storage-Legacy.js
 @BINPATH@/components/storage-mozStorage.js
 @BINPATH@/components/crypto-SDR.js
@@ -244,13 +256,18 @@
 ; download progress
 @BINPATH@/components/nsHelperAppDlg.js
 @BINPATH@/components/nsDownloadManagerUI.js
+@BINPATH@/components/nsDownloadManagerUI.manifest
 @BINPATH@/components/downloads.xpt
 
 ; Protocol/Content handling
 @BINPATH@/components/nsContentDispatchChooser.js
+@BINPATH@/components/nsContentDispatchChooser.manifest
 @BINPATH@/components/nsHandlerService.js
+@BINPATH@/components/nsHandlerService.manifest
 @BINPATH@/components/nsWebHandlerApp.js
+@BINPATH@/components/nsWebHandlerApp.manifest
 @BINPATH@/components/nsSMTPProtocolHandler.js
+@BINPATH@/components/nsSMTPProtocolHandler.manifest
 
 ; spellchecker (may not be present)
 @BINPATH@/components/spellchecker.xpt
@@ -264,6 +281,7 @@
 @BINPATH@/components/nsPhishingProtectionApplication.js
 @BINPATH@/components/nsUrlClassifierListManager.js
 @BINPATH@/components/nsUrlClassifierLib.js
+@BINPATH@/components/nsURLClassifier.manifest
 @BINPATH@/components/url-classifier.xpt
 
 ; Address Book autocomplete
@@ -279,6 +297,7 @@
 
 ; Bayesian trait analysis
 @BINPATH@/components/nsMsgTraitService.js
+@BINPATH@/components/nsMsgTraitService.manifest
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Base Package Files
@@ -355,9 +374,11 @@
 @BINPATH@/components/commandlines.xpt
 @BINPATH@/components/chrome.xpt
 @BINPATH@/components/nsDefaultCLH.js
+@BINPATH@/components/nsDefaultCLH.manifest
 @BINPATH@/components/nsFormAutoComplete.js
 @BINPATH@/components/nsFormHistory.js
 @BINPATH@/components/nsPrompter.js
+@BINPATH@/components/nsPrompter.manifest
 #ifdef XP_MACOSX
 @BINPATH@/components/libalerts_s.dylib
 #elifdef XP_UNIX
@@ -367,6 +388,7 @@
 #ifdef MOZ_GTK2
 @BINPATH@/components/filepicker.xpt
 @BINPATH@/components/nsFilePicker.js
+@BINPATH@/components/nsFilePicker.manifest
 #endif
 #ifdef MOZ_ENABLE_DBUS
 @BINPATH@/components/@DLL_PREFIX@dbusservice@DLL_SUFFIX@
@@ -407,7 +429,9 @@
 @BINPATH@/components/dom_xul.xpt
 @BINPATH@/components/dom_loadsave.xpt
 @BINPATH@/components/NetworkGeolocationProvider.js
+@BINPATH@/components/NetworkGeolocationProvider.manifest
 @BINPATH@/components/GPSDGeolocationProvider.js
+@BINPATH@/components/GPSDGeolocationProvider.manifest
 
 ; editor / composer for HTML compose
 @BINPATH@/components/editor.xpt
@@ -435,26 +459,31 @@
 @BINPATH@/components/necko_viewsource.xpt
 @BINPATH@/components/necko_wifi.xpt
 @BINPATH@/components/nsProxyAutoConfig.js
+@BINPATH@/components/nsProxyAutoConfig.manifest
 
 ; extensions
 @BINPATH@/components/addonManager.js
 @BINPATH@/components/amContentHandler.js
 @BINPATH@/components/amWebInstallListener.js
-@BINPATH@/components/nsAddonRepository.js
 @BINPATH@/components/nsBlocklistService.js
 #ifdef MOZ_UPDATER
 @BINPATH@/components/nsUpdateService.js
+@BINPATH@/components/nsUpdateService.manifest
 @BINPATH@/components/nsUpdateServiceStub.js
 #endif
 @BINPATH@/components/nsUpdateTimerManager.js
+@BINPATH@/components/nsUpdateTimerManager.manifest
 @BINPATH@/components/extensions.xpt
+@BINPATH@/components/extensions.manifest
 @BINPATH@/components/update.xpt
 #ifdef MOZ_WEBSERVICES
 @BINPATH@/components/websrvcs.xpt
 #endif
 @BINPATH@/components/nsURLFormatter.js
+@BINPATH@/components/nsURLFormatter.manifest
 @BINPATH@/components/urlformatter.xpt
 @BINPATH@/components/nsContentPrefService.js
+@BINPATH@/components/nsContentPrefService.manifest
 
 ; plugins
 @BINPATH@/components/plugin.xpt
@@ -495,6 +524,7 @@
 
 ; core platform files
 @BINPATH@/components/FeedProcessor.js
+@BINPATH@/components/FeedProcessor.manifest
 @BINPATH@/components/xpautocomplete.xpt
 @BINPATH@/components/autocomplete.xpt
 @BINPATH@/components/alerts.xpt
@@ -503,8 +533,11 @@
 @BINPATH@/components/find.xpt
 @BINPATH@/components/chardet.xpt
 @BINPATH@/components/contentAreaDropListener.js
+@BINPATH@/components/contentAreaDropListener.manifest
 @BINPATH@/components/contentSecurityPolicy.js
+@BINPATH@/components/contentSecurityPolicy.manifest
 @BINPATH@/components/jsconsole-clhandler.js
+@BINPATH@/components/jsconsole-clhandler.manifest
 @BINPATH@/components/layout_xul_tree.xpt
 @BINPATH@/components/mozfind.xpt
 @BINPATH@/components/mimetype.xpt
@@ -518,15 +551,21 @@
 @BINPATH@/components/dom_xpath.xpt
 @BINPATH@/components/lwbrk.xpt
 @BINPATH@/components/nsINIProcessor.js
+@BINPATH@/components/nsINIProcessor.manifest
 @BINPATH@/components/nsTryToClose.js
+@BINPATH@/components/nsTryToClose.manifest
 @BINPATH@/components/pluginGlue.js
+@BINPATH@/components/pluginGlue.manifest
 @BINPATH@/components/txEXSLTRegExFunctions.js
+@BINPATH@/components/txEXSLTRegExFunctions.manifest
 @BINPATH@/components/feeds.xpt
 @BINPATH@/components/saxparser.xpt
+@BINPATH@/components/satchel.manifest
 @BINPATH@/components/satchel.xpt
 @BINPATH@/components/shistory.xpt
 @BINPATH@/components/zipwriter.xpt
 @BINPATH@/components/nsBadCertHandler.js
+@BINPATH@/components/nsBadCertHandler.manifest
 @BINPATH@/components/cookie.xpt
 @BINPATH@/components/places.xpt
 @BINPATH@/components/prefetch.xpt

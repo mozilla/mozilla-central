@@ -50,6 +50,7 @@ components/mailnews.xpt
 components/mozgnome.xpt
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/necko_data.xpt
+components/nsAddonRepository.js
 components/nsBackgroundUpdateService.js
 components/nsCloseAllWindows.js
 components/nsComposerCmdLineHandler.js
