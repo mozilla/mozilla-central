@@ -2,4 +2,4 @@ component {5c124537-adca-4456-b2b5-641ab687d1f6} newsblog.js
 contract @mozilla.org/newsblog-feed-downloader;1 {5c124537-adca-4456-b2b5-641ab687d1f6}
 component {E109C05F-D304-4ca5-8C44-6DE1BFAF1F74} newsblog.js
 contract @mozilla.org/accountmanager/extension;1?name=newsblog {E109C05F-D304-4ca5-8C44-6DE1BFAF1F74}
-category mailnews-accountmanager-extensions @mozilla.org/accountmanager/extension;1?name=newsblog
+category mailnews-accountmanager-extensions newsblog @mozilla.org/accountmanager/extension;1?name=newsblog
