@@ -89,4 +89,4 @@ static const mozilla::Module kMsgSMIMEModule = {
     kMsgSMIMEContracts
 };
 
-NSMODULE_DEFN(msgsmime) = &kMsgSMIMEModule;
+NSMODULE_DEFN(nsMsgSMIMEModule) = &kMsgSMIMEModule;

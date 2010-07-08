@@ -189,7 +189,7 @@ static const mozilla::Module kLDAPProtocolModule = {
     NULL
 };
 
-NSMODULE_DEFN(ldap) = &kLDAPProtocolModule;
+NSMODULE_DEFN(nsLDAPProtocolModule) = &kLDAPProtocolModule;
 
 #ifdef PR_LOGGING
 PRLogModuleInfo *gLDAPLogModule = 0;

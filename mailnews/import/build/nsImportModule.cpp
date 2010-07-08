@@ -236,6 +236,6 @@ static const mozilla::Module kMailNewsImportModule = {
   importModuleDtor
 };
 
-NSMODULE_DEFN(mailnewsimport) = &kMailNewsImportModule;
+NSMODULE_DEFN(nsImportServiceModule) = &kMailNewsImportModule;
 
 
