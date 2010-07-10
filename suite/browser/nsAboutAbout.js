@@ -35,6 +35,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
 const nsISupports           = Components.interfaces.nsISupports;
 const nsIAboutModule        = Components.interfaces.nsIAboutModule;
 const nsIFactory            = Components.interfaces.nsIFactory;
@@ -43,18 +45,13 @@ const nsIComponentRegistrar = Components.interfaces.nsIComponentRegistrar;
 
 const ABOUTABOUT_URI = "chrome://navigator/content/aboutAbout.html";
 
-var nsAboutAbout = {
-  /* nsISupports */
-  QueryInterface: function QueryInterface(iid) {
-    if (iid.equals(nsISupports) ||
-        iid.equals(nsIAboutModule) ||
-        iid.equals(nsIFactory))
-      return this;
-
-    throw Components.results.NS_ERROR_NO_INTERFACE;
+function AboutAbout() {}
+AboutAbout.prototype = {
+  classID: Components.ID("{2a57d8af-8728-4e63-b01e-29f4a4ebf9a7}"),
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIAboutModule]),
+  getURIFlags: function getURIFlags(aURI) {
+    return 0;
   },
-
-  /* nsIAboutModule */
   newChannel: function newChannel(aURI) {
     var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                               .getService(nsIIOService);
@@ -65,70 +62,10 @@ var nsAboutAbout = {
 
     return channel;
   },
-
-  getURIFlags: function getURIFlags(aURI) {
-    return 0;
-  },
-
-  /* nsIFactory */
-  createInstance: function createInstance(outer, iid) {
-    if (outer != null)
-      throw Components.results.NS_ERROR_NO_AGGREGATION;
-
-    return this.QueryInterface(iid);
-  },
-
   lockFactory: function lockFactory(lock) {
     /* no-op */
   }
 };
 
-const NS_ABOUT_MODULE_CONTRACTID = "@mozilla.org/network/protocol/about;1";
-const NS_ABOUT_MODULE_CONTRACTID_PREFIX = NS_ABOUT_MODULE_CONTRACTID + "?what=";
-const ABOUTABOUT_CONTRACTID = NS_ABOUT_MODULE_CONTRACTID_PREFIX + "about";
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([AboutAbout]);
 
-const ABOUTABOUT_CID = Components.ID("{2a57d8af-8728-4e63-b01e-29f4a4ebf9a7}");
-
-var Module = {
-  /* nsISupports */
-  QueryInterface: function QueryInterface(iid) {
-    if (iid.equals(Components.interfaces.nsIModule) ||
-        iid.equals(Components.interfaces.nsISupports))
-      return this;
-
-    throw Components.results.NS_ERROR_NO_INTERFACE;
-  },
-
-  /* nsIModule */
-  getClassObject: function getClassObject(compMgr, cid, iid) {
-    if (cid.equals(ABOUTABOUT_CID))
-      return nsAboutAbout.QueryInterface(iid);
-
-    throw Components.results.NS_ERROR_FACTORY_NOT_REGISTERED;
-  },
-    
-  registerSelf: function registerSelf(compMgr, fileSpec, location, type) {
-    var compReg = compMgr.QueryInterface(nsIComponentRegistrar);
-
-    compReg.registerFactoryLocation(ABOUTABOUT_CID,
-                                    "about:about",
-                                    ABOUTABOUT_CONTRACTID,
-                                    fileSpec,
-                                    location,
-                                    type);
-  },
-    
-  unregisterSelf: function unregisterSelf(compMgr, location, type) {
-    var compReg = compMgr.QueryInterface(nsIComponentRegistrar);
-    compReg.unregisterFactoryLocation(ABOUTABOUT_CID, location);
-  },
-
-  canUnload: function canUnload(compMgr) {
-    return true;
-  }
-};
-
-// NSGetModule: Return the nsIModule object.
-function NSGetModule(compMgr, fileSpec) {
-  return Module;
-}

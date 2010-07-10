@@ -49,6 +49,7 @@ PARALLEL_DIRS += test
 endif
 
 EXTRA_COMPONENTS = \
+	SuiteBrowser.manifest \
 	nsAboutAbout.js \
 	nsAboutRights.js \
 	nsBrowserContentHandler.js \
