@@ -55,9 +55,7 @@ const PREF_FORCE_TOOLKIT_UI = "browser.download.manager.useToolkitUI";
 function nsDownloadManagerUI() {}
 
 nsDownloadManagerUI.prototype = {
-  classDescription: "Used to show the Download Manager's UI to the user",
-  classID: Components.ID("08bbb4af-7bff-4b16-8ff7-d62f3ec5aa0c"),
-  contractID: "@mozilla.org/download-manager-ui;1",
+  classID: Components.ID("{08bbb4af-7bff-4b16-8ff7-d62f3ec5aa0c}"),
 
   //////////////////////////////////////////////////////////////////////////////
   //// nsIDownloadManagerUI
@@ -221,7 +219,4 @@ nsDownloadManagerUI.prototype = {
 
 let components = [nsDownloadManagerUI];
 
-function NSGetModule(compMgr, fileSpec)
-{
-  return XPCOMUtils.generateModule(components);
-}
+var NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

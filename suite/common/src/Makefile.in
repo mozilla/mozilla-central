@@ -49,6 +49,7 @@ EXTRA_COMPONENTS = \
 	nsAboutSessionRestore.js \
 	nsSessionStartup.js \
 	nsSuiteDownloadManagerUI.js \
+	nsSuiteDownloadManagerUI.manifest \
 	nsSuiteGlue.js \
 	$(NULL)
 
