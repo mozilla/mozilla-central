@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Stephen Lamm            <slamm@netscape.com>
  *   Robert John Churchill   <rjc@netscape.com>
+ *   Justin Wood             <Callek@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -54,14 +55,12 @@
 const DEBUG = false; /* set to false to suppress debug messages */
 const PANELS_RDF_FILE  = "UPnls"; /* directory services property to find panels.rdf */
 
-const SIDEBAR_CONTRACTID   = "@mozilla.org/sidebar;1";
 const SIDEBAR_CID      = Components.ID("{22117140-9c6e-11d3-aaf1-00805f8a4905}");
 const CONTAINER_CONTRACTID = "@mozilla.org/rdf/container;1";
 const DIR_SERV_CONTRACTID  = "@mozilla.org/file/directory_service;1"
 const NETSEARCH_CONTRACTID = "@mozilla.org/rdf/datasource;1?name=internetsearch"
 const IO_SERV_CONTRACTID   = "@mozilla.org/network/io-service;1";
 const nsISupports      = Components.interfaces.nsISupports;
-const nsIFactory       = Components.interfaces.nsIFactory;
 const nsISidebar       = Components.interfaces.nsISidebar;
 const nsIRDFContainer  = Components.interfaces.nsIRDFContainer;
 const nsIProperties    = Components.interfaces.nsIProperties;
@@ -69,6 +68,8 @@ const nsIFileURL       = Components.interfaces.nsIFileURL;
 const nsIRDFRemoteDataSource = Components.interfaces.nsIRDFRemoteDataSource;
 const nsIInternetSearchService = Components.interfaces.nsIInternetSearchService;
 const nsIClassInfo = Components.interfaces.nsIClassInfo;
+
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function nsSidebar()
 {
@@ -305,9 +306,6 @@ function (engineURL, iconURL, suggestedTitle, suggestedCategory)
 // property of nsIClassInfo
 nsSidebar.prototype.flags = nsIClassInfo.DOM_OBJECT;
 
-// property of nsIClassInfo
-nsSidebar.prototype.classDescription = "Sidebar";
-
 // method of nsIClassInfo
 nsSidebar.prototype.getInterfaces = function(count) {
     var interfaceList = [nsISidebar, nsIClassInfo];
@@ -318,78 +316,12 @@ nsSidebar.prototype.getInterfaces = function(count) {
 // method of nsIClassInfo
 nsSidebar.prototype.getHelperForLanguage = function(count) {return null;}
 
-nsSidebar.prototype.QueryInterface =
-function (iid) {
-    if (iid.equals(nsISidebar) ||
-        iid.equals(nsIClassInfo) ||
-        iid.equals(nsISupports))
-        return this;
+nsSidebar.prototype.QueryInterface = 
+    XPCOMUtils.generateQI([nsISidebar, nsIClassInfo, nsISupports]);
 
-    throw Components.results.NS_ERROR_NO_INTERFACE;
-}
+nsSidebar.prototype.classID = SIDEBAR_CID;
 
-var sidebarModule = new Object();
-
-sidebarModule.registerSelf =
-function (compMgr, fileSpec, location, type)
-{
-    debug("registering (all right -- a JavaScript module!)");
-    compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-
-    compMgr.registerFactoryLocation(SIDEBAR_CID,
-                                    "Sidebar JS Component",
-                                    SIDEBAR_CONTRACTID,
-                                    fileSpec,
-                                    location,
-                                    type);
-
-    const CATMAN_CONTRACTID = "@mozilla.org/categorymanager;1";
-    const nsICategoryManager = Components.interfaces.nsICategoryManager;
-    var catman = Components.classes[CATMAN_CONTRACTID].
-                            getService(nsICategoryManager);
-
-    const JAVASCRIPT_GLOBAL_PROPERTY_CATEGORY = "JavaScript global property";
-    catman.addCategoryEntry(JAVASCRIPT_GLOBAL_PROPERTY_CATEGORY,
-                            "sidebar",
-                            SIDEBAR_CONTRACTID,
-                            true,
-                            true);
-}
-
-sidebarModule.getClassObject =
-function (compMgr, cid, iid) {
-    if (!cid.equals(SIDEBAR_CID))
-        throw Components.results.NS_ERROR_NO_INTERFACE;
-
-    if (!iid.equals(Components.interfaces.nsIFactory))
-        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
-
-    return sidebarFactory;
-}
-
-sidebarModule.canUnload =
-function(compMgr)
-{
-    debug("Unloading component.");
-    return true;
-}
-
-/* factory object */
-var sidebarFactory = new Object();
-
-sidebarFactory.createInstance =
-function (outer, iid) {
-    debug("CI: " + iid);
-    if (outer != null)
-        throw Components.results.NS_ERROR_NO_AGGREGATION;
-
-    return (new nsSidebar()).QueryInterface(iid);
-}
-
-/* entrypoint */
-function NSGetModule(compMgr, fileSpec) {
-    return sidebarModule;
-}
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([nsSidebar]);
 
 /* static functions */
 if (DEBUG)

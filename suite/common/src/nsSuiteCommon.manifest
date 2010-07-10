@@ -14,3 +14,6 @@ contract @mozilla.org/suite/suiteglue;1 {bbbbe845-5a1b-40ee-813c-f84b8faaa07c}
 category app-startup nsSuiteGlue service,@mozilla.org/suite/suiteglue;1
 component {450a13bd-0d07-4e5d-a9f0-448c201728b1} nsSuiteGlue.js
 contract @mozilla.org/geolocation/prompt;1 {450a13bd-0d07-4e5d-a9f0-448c201728b1}
+component {22117140-9c6e-11d3-aaf1-00805f8a4905} nsSidebar.js
+contract @mozilla.org/sidebar;1 {22117140-9c6e-11d3-aaf1-00805f8a4905}
+category JavaScript-global-property sidebar @mozilla.org/sidebar;1
