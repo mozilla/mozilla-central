@@ -52,13 +52,16 @@ DEFINES += \
 	-DMOZ_APP_DISPLAYNAME=$(MOZ_APP_DISPLAYNAME) \
 	$(NULL)
 
-EXTRA_PP_COMPONENTS = \
+EXTRA_COMPONENTS = \
+	SuiteFeeds.manifest \
 	FeedConverter.js \
-	FeedWriter.js \
 	WebContentConverter.js \
 	nsAboutFeeds.js \
 	$(NULL)
 
+EXTRA_PP_COMPONENTS = \
+	FeedWriter.js \
+	$(NULL)
 
 CPPSRCS = \
 	nsFeedSniffer.cpp \

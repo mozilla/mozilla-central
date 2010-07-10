@@ -44,6 +44,8 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE = smile
 
+EXTRA_COMPONENTS = smileApplication.manifest
+
 EXTRA_PP_COMPONENTS = smileApplication.js
 
 include $(topsrcdir)/config/rules.mk

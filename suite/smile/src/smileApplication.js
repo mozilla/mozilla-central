@@ -319,9 +319,7 @@ function Application() {
 // Application implementation
 Application.prototype = {
   // for nsIClassInfo + XPCOMUtils
-  classDescription: "Application",
-  classID:          Components.ID("c9ba8f65-c936-4ac6-a859-8936832b0c12"),
-  contractID:       "@mozilla.org/smile/application;1",
+  classID:          Components.ID("{c9ba8f65-c936-4ac6-a859-8936832b0c12}"),
 
   // redefine the default factory for XPCOMUtils
   _xpcom_factory: ApplicationFactory,
@@ -377,11 +375,8 @@ Application.prototype = {
   }
 };
 
-//module initialization
-function NSGetModule(aCompMgr, aFileSpec) {
-  // set the proto, defined in extApplication.js
-  Application.prototype.__proto__ = extApplication.prototype;
-  return XPCOMUtils.generateModule([Application]);
-}
-
 #include ../../../mozilla/toolkit/components/exthelper/extApplication.js
+
+//module initialization
+Application.prototype.__proto__ = extApplication.prototype;
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([Application]);

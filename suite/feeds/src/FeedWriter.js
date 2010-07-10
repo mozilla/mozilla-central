@@ -1420,13 +1420,9 @@ FeedWriter.prototype = {
   },
 
   getHelperForLanguage: function getHelperForLanguage(language) null,
-  contractID: "@mozilla.org/browser/feeds/result-writer;1",
-  classDescription: "Feed Writer",
   classID: Components.ID("{49bb6593-3aff-4eb3-a068-2712c28bd58e}"),
   implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
   flags: Components.interfaces.nsIClassInfo.DOM_OBJECT,
-  _xpcom_categories: [{ category: "JavaScript global constructor",
-                        entry: "BrowserFeedWriter"}],
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIFeedWriter,
                                           Components.interfaces.nsIClassInfo,
                                           Components.interfaces.nsIDOMEventListener,
@@ -1435,6 +1431,4 @@ FeedWriter.prototype = {
 
 };
 
-function NSGetModule(cm, file) {
-  return XPCOMUtils.generateModule([FeedWriter]);
-}
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([FeedWriter]);

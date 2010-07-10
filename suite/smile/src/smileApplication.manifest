@@ -1,0 +1,3 @@
+component {c9ba8f65-c936-4ac6-a859-8936832b0c12} smileApplication.js
+contract @mozilla.org/smile/application;1 {c9ba8f65-c936-4ac6-a859-8936832b0c12}
+category JavaScript-global-privileged-property Application @mozilla.org/smile/application;1

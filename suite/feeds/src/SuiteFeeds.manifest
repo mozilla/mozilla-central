@@ -1,0 +1,18 @@
+component {88592f45-3866-4c8e-9d8a-ab58b290fcf7} FeedConverter.js
+contract @mozilla.org/streamconv;1?from=application/vnd.mozilla.maybe.feed&to=*/* {88592f45-3866-4c8e-9d8a-ab58b290fcf7}
+contract @mozilla.org/streamconv;1?from=application/vnd.mozilla.maybe.video.feed&to=*/* {88592f45-3866-4c8e-9d8a-ab58b290fcf7}
+contract @mozilla.org/streamconv;1?from=application/vnd.mozilla.maybe.audio.feed&to=*/* {88592f45-3866-4c8e-9d8a-ab58b290fcf7}
+component {e5b05e9d-f037-48e4-b9a4-b99476582927} FeedConverter.js
+contract @mozilla.org/browser/feeds/result-service;1 {e5b05e9d-f037-48e4-b9a4-b99476582927}
+component {a95d7f48-11be-4324-8872-d23bd79fe78b} FeedConverter.js
+contract @mozilla.org/network/protocol;1?name=feed {a95d7f48-11be-4324-8872-d23bd79fe78b}
+component {f0ff0fe4-1713-4D34-9323-3f5deb6a6a60} FeedConverter.js
+contract @mozilla.org/network/protocol;1?name=pcast {f0ff0fe4-1713-4D34-9323-3f5deb6a6a60}
+component {49bb6593-3aff-4eb3-a068-2712c28bd58e} FeedWriter.js
+contract @mozilla.org/browser/feeds/result-writer;1 {49bb6593-3aff-4eb3-a068-2712c28bd58e}
+category JavaScript-global-constructor BrowserFeedWriter @mozilla.org/browser/feeds/result-writer;1
+component {792a7e82-06a0-437c-af63-b2d12e808acc} WebContentConverter.js
+contract @mozilla.org/embeddor.implemented/web-content-handler-registrar;1 {792a7e82-06a0-437c-af63-b2d12e808acc}
+category app-startup WebContentConverter service,@mozilla.org/embeddor.implemented/web-content-handler-registrar;1
+component {f3487aac-65a0-4101-88a4-f7450c231351} nsAboutFeeds.js
+contract @mozilla.org/network/protocol/about;1?what=feeds {f3487aac-65a0-4101-88a4-f7450c231351}

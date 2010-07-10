@@ -1,0 +1,3 @@
+component {a3d5b950-690a-491f-a881-2c2cdcd241cb} nsSetDefault.js
+contract @mozilla.org/suite/default-browser-clh;1 {a3d5b950-690a-491f-a881-2c2cdcd241cb}
+category command-line-handler m-setdefault @mozilla.org/suite/default-browser-clh;1

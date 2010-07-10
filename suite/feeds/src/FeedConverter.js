@@ -169,8 +169,7 @@ FeedConverter.prototype = {
      Components.interfaces.nsIStreamListener,
      Components.interfaces.nsIRequestObserver,
      Components.interfaces.nsISupports]),
-  classDescription: "Feed Stream Converter",
-  classID: Components.ID("{88592F45-3866-4c8e-9D8A-AB58B290FCF7}"),
+  classID: Components.ID("{88592f45-3866-4c8e-9d8a-ab58b290fcf7}"),
   implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
 
   /**
@@ -362,41 +361,6 @@ FeedConverter.prototype = {
 };
 
 /**
- * Helper to register multiple components sharing the same prototype
- * using XPCOMUtils.
- */
-function build_component(component, ctor, properties) {
-  component.prototype = new ctor();
-  for (let name in properties) {
-    component.prototype[name] = properties[name];
-  }
-}
-
-function FeedConverter_feed() {
-}
-
-build_component(FeedConverter_feed, FeedConverter,
-                {contractID: "@mozilla.org/streamconv;1?from="
-                             + TYPE_MAYBE_FEED + "&to="
-                             + TYPE_ANY});
-
-function FeedConverter_audio_feed() {
-}
-
-build_component(FeedConverter_audio_feed, FeedConverter,
-                {contractID: "@mozilla.org/streamconv;1?from="
-                             + TYPE_MAYBE_AUDIO_FEED + "&to="
-                             + TYPE_ANY});
-
-function FeedConverter_video_feed() {
-}
-
-build_component(FeedConverter_video_feed, FeedConverter,
-                {contractID: "@mozilla.org/streamconv;1?from="
-                             + TYPE_MAYBE_VIDEO_FEED + "&to="
-                             + TYPE_ANY});
-
-/**
  * Keeps parsed FeedResults around for use elsewhere in the UI after the stream
  * converter completes.
  */
@@ -529,9 +493,7 @@ FeedResultService.prototype = {
 
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIFeedResultService,
                                          Components.interfaces.nsISupports]),
-  classID: Components.ID("{E5B05E9D-F037-48e4-B9A4-B99476582927}"),
-  classDescription: "Feed Result Service",
-  contractID: "@mozilla.org/browser/feeds/result-service;1",
+  classID: Components.ID("{e5b05e9d-f037-48e4-b9a4-b99476582927}"),
   implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT
 };
 
@@ -539,13 +501,15 @@ FeedResultService.prototype = {
  * A protocol handler that attempts to deal with the variant forms of feed:
  * URIs that are actually either http or https.
  */
-function _FeedProtocolHandler() {
+function GenericProtocolHandler(scheme, classID) {
   this._ioSvc = Components.classes["@mozilla.org/network/io-service;1"]
                           .getService(Components.interfaces.nsIIOService);
   this._http = this._ioSvc.getProtocolHandler("http");
+  this.scheme = scheme;
+  this.classID = classID;
 }
 
-_FeedProtocolHandler.prototype = {
+GenericProtocolHandler.prototype = {
   get protocolFlags() {
     return this._http.protocolFlags;
   },
@@ -609,27 +573,18 @@ _FeedProtocolHandler.prototype = {
 function FeedProtocolHandler() {
 }
 
-build_component(FeedProtocolHandler, _FeedProtocolHandler,
-                {classID: Components.ID("{A95D7F48-11BE-4324-8872-D23BD79FE78B}"),
-                 classDescription: "Feed Protocol Handler",
-                 contractID: "@mozilla.org/network/protocol;1?name=feed",
-                 scheme: "feed"
-                });
+FeedProtocolHandler.prototype = new GenericProtocolHandler("feed",
+    Components.ID("{a95d7f48-11be-4324-8872-d23bd79fe78b}"));
 
 function PodcastProtocolHandler() {
 }
 
-build_component(PodcastProtocolHandler, _FeedProtocolHandler,
-                {classID: Components.ID("{F0FF0FE4-1713-4d34-9323-3F5DEB6A6A60}"),
-                 classDescription: "Podcast Protocol Handler",
-                 contractID: "@mozilla.org/network/protocol;1?name=pcast",
-                 scheme: "pcast"
-                });
+PodcastProtocolHandler.prototype = new GenericProtocolHandler("pcast",
+    Components.ID("{f0ff0fe4-1713-4D34-9323-3f5deb6a6a60}"));
 
-var components = [FeedProtocolHandler, PodcastProtocolHandler, FeedResultService,
-                  FeedConverter_feed, FeedConverter_audio_feed,
-                  FeedConverter_video_feed];
+var components = [FeedConverter,
+                  FeedResultService,
+                  FeedProtocolHandler,
+                  PodcastProtocolHandler];
 
-function NSGetModule(cm, file) {
-  return XPCOMUtils.generateModule(components);
-}
+var NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

@@ -75,22 +75,14 @@ nsSetDefault.prototype = {
     }
   },
 
-  helpInfo: "  -setDefaultBrowser   Set this app as the default browser client.\n" +
-            "  -setDefaultMail      Set this app as the default mail client.\n" +
-            "  -setDefaultNews      Set this app as the default newsreader.\n" +
-            "  -setDefaultFeed      Set this app as the default feedreader.\n",
+  helpInfo: "  -setDefaultBrowser Set this app as the default browser client.\n" +
+            "  -setDefaultMail    Set this app as the default mail client.\n" +
+            "  -setDefaultNews    Set this app as the default newsreader.\n" +
+            "  -setDefaultFeed    Set this app as the default feedreader.\n",
 
-  classDescription: "Set Default Suite Cmdline Handler",
-  contractID: "@mozilla.org/suite/default-browser-clh;1",
-  classID: Components.ID("{A3D5B950-690A-491F-A881-2C2CDCD241CB}"),
-  QueryInterface: XPCOMUtils.generateQI([nsICommandLineHandler]),
-   _xpcom_categories: [{
-     category: "command-line-handler",
-     entry: "m-setdefault"
-   }]
+  classID: Components.ID("{a3d5b950-690a-491f-a881-2c2cdcd241cb}"),
+  QueryInterface: XPCOMUtils.generateQI([nsICommandLineHandler])
 }
 
-function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([nsSetDefault]);
-}
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([nsSetDefault]);
 
