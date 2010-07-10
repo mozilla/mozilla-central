@@ -48,8 +48,8 @@ EXTRA_COMPONENTS = \
 	nsAboutCertError.js \
 	nsAboutSessionRestore.js \
 	nsSessionStartup.js \
+	nsSuiteCommon.manifest \
 	nsSuiteDownloadManagerUI.js \
-	nsSuiteDownloadManagerUI.manifest \
 	nsSuiteGlue.js \
 	$(NULL)
 
