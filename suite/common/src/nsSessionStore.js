@@ -139,8 +139,6 @@ function SessionStoreService() {
 }
 
 SessionStoreService.prototype = {
-  classDescription: "Suite Session Store Service",
-  contractID: "@mozilla.org/suite/sessionstore;1",
   classID: Components.ID("{d37ccdf1-496f-4135-9575-037180af010d}"),
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsISessionStore,
                                          Components.interfaces.nsIDOMEventListener,
@@ -2880,5 +2878,4 @@ let XPathHelper = {
   }
 };
 
-function NSGetModule(aComMgr, aFileSpec)
-  XPCOMUtils.generateModule([SessionStoreService]);
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([SessionStoreService]);

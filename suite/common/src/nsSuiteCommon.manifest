@@ -1,0 +1,16 @@
+component {08bbb4af-7bff-4b16-8ff7-d62f3ec5aa0c} nsSuiteDownloadManagerUI.js
+contract @mozilla.org/download-manager-ui;1 {08bbb4af-7bff-4b16-8ff7-d62f3ec5aa0c}
+component {b24861fb-e91a-40dd-886d-68d26a9586c7} nsAboutCertError.js
+contract @mozilla.org/network/protocol/about;1?what=certerror {b24861fb-e91a-40dd-886d-68d26a9586c7}
+component {a03c813e-abe8-41de-8d0c-5aa85f877696} nsAboutSessionRestore.js
+contract @mozilla.org/network/protocol/about;1?what=sessionrestore {a03c813e-abe8-41de-8d0c-5aa85f877696}
+component {4e6c1112-57b6-44ba-adf9-99fb573b0a30} nsSessionStartup.js
+contract @mozilla.org/suite/sessionstartup;1 {4e6c1112-57b6-44ba-adf9-99fb573b0a30}
+category app-startup SessionStartup service,@mozilla.org/suite/sessionstartup;1
+component {d37ccdf1-496f-4135-9575-037180af010d} nsSessionStore.js
+contract @mozilla.org/suite/sessionstore;1 {d37ccdf1-496f-4135-9575-037180af010d}
+component {bbbbe845-5a1b-40ee-813c-f84b8faaa07c} nsSuiteGlue.js
+contract @mozilla.org/suite/suiteglue;1 {bbbbe845-5a1b-40ee-813c-f84b8faaa07c}
+category app-startup nsSuiteGlue service,@mozilla.org/suite/suiteglue;1
+component {450a13bd-0d07-4e5d-a9f0-448c201728b1} nsSuiteGlue.js
+contract @mozilla.org/geolocation/prompt;1 {450a13bd-0d07-4e5d-a9f0-448c201728b1}

@@ -38,8 +38,6 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function AboutSessionRestore() { }
 AboutSessionRestore.prototype = {
-  classDescription: "about:sessionrestore",
-  contractID: "@mozilla.org/network/protocol/about;1?what=sessionrestore",
   classID: Components.ID("{a03c813e-abe8-41de-8d0c-5aa85f877696}"),
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIAboutModule]),
 
@@ -56,6 +54,4 @@ AboutSessionRestore.prototype = {
   }
 };
 
-function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([AboutSessionRestore]);
-}
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([AboutSessionRestore[);

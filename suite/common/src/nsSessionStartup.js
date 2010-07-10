@@ -246,17 +246,8 @@ SessionStartup.prototype = {
   QueryInterface : XPCOMUtils.generateQI([Components.interfaces.nsIObserver,
                                           Components.interfaces.nsISupportsWeakReference,
                                           Components.interfaces.nsISessionStartup]),
-  classDescription: "Suite Session Startup Service",
-  classID:          Components.ID("{4e6c1112-57b6-44ba-adf9-99fb573b0a30}"),
-  contractID:       "@mozilla.org/suite/sessionstartup;1",
-
-  // get this contractID registered for certain categories via XPCOMUtils
-  _xpcom_categories: [
-    // make ourselves a startup observer
-    { category: "app-startup", service: true }
-  ]
+  classID: Components.ID("{4e6c1112-57b6-44ba-adf9-99fb573b0a30}")
 
 };
 
-function NSGetModule(aCompMgr, aFileSpec)
-  XPCOMUtils.generateModule([SessionStartup]);
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([SessionStartup]);

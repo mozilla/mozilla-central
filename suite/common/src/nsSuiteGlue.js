@@ -461,27 +461,18 @@ SuiteGlue.prototype = {
 
 
   // for XPCOM
-  classDescription: "SeaMonkey Suite Glue Service",
-  classID:          Components.ID("{bbbbe845-5a1b-40ee-813c-f84b8faaa07c}"),
-  contractID:       "@mozilla.org/suite/suiteglue;1",
+  classID: Components.ID("{bbbbe845-5a1b-40ee-813c-f84b8faaa07c}"),
 
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIObserver,
                                          Components.interfaces.nsISupportsWeakReference,
-                                         Components.interfaces.nsISuiteGlue]),
+                                         Components.interfaces.nsISuiteGlue])
 
-  // get this contractID registered for certain categories via XPCOMUtils
-  _xpcom_categories: [
-    // make SuiteGlue a startup observer
-    { category: "app-startup", service: true }
-  ]
 }
 
 function GeolocationPrompt() {}
 
 GeolocationPrompt.prototype = {
-  classDescription: "Geolocation Prompting Component",
-  classID:          Components.ID("{450a13bd-0d07-4e5d-a9f0-448c201728b1}"),
-  contractID:       "@mozilla.org/geolocation/prompt;1",
+  classID: Components.ID("{450a13bd-0d07-4e5d-a9f0-448c201728b1}"),
 
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIGeolocationPrompt]),
 
@@ -570,6 +561,4 @@ GeolocationPrompt.prototype = {
 };
 
 //module initialization
-function NSGetModule(aCompMgr, aFileSpec) {
-  return XPCOMUtils.generateModule([SuiteGlue, GeolocationPrompt]);
-}
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([SuiteGlue, GeolocationPrompt]);
