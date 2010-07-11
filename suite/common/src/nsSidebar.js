@@ -306,6 +306,9 @@ function (engineURL, iconURL, suggestedTitle, suggestedCategory)
 // property of nsIClassInfo
 nsSidebar.prototype.flags = nsIClassInfo.DOM_OBJECT;
 
+// property of nsIClassInfo
+nsSidebar.prototype.classDescription = "Sidebar";
+
 // method of nsIClassInfo
 nsSidebar.prototype.getInterfaces = function(count) {
     var interfaceList = [nsISidebar, nsIClassInfo];
