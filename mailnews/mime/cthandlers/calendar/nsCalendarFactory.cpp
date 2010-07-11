@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#include "nsIGenericFactory.h"
+#include "mozilla/ModuleUtils.h"
 
 /* Include all of the interfaces our factory can generate components for */
 #include "nsMimeContentTypeHandler.h"
@@ -91,17 +91,26 @@ nsCalendarMimeContentTypeHandlerConstructor(nsISupports *aOuter,
 // information like the function to create an instance, contractid, and
 // class name.
 //
-static const nsModuleComponentInfo components[] =
+NS_DEFINE_NAMED_CID(NS_CALENDAR_CONTENT_TYPE_HANDLER_CID);
+
+static const mozilla::Module::CIDEntry kCalendarHandlerCIDs[] =
 {
-  { "MIME Calendar Handler", NS_CALENDAR_CONTENT_TYPE_HANDLER_CID, "@mozilla.org/mimecth;1?type=text/calendar",
-    nsCalendarMimeContentTypeHandlerConstructor, }
+  { &kNS_CALENDAR_CONTENT_TYPE_HANDLER_CID, false, NULL,
+    nsCalendarMimeContentTypeHandlerConstructor },
+  { NULL }
 };
 
-////////////////////////////////////////////////////////////////////////
-// Implement the NSGetModule() exported function for your module
-// and the entire implementation of the module object.
-//
-NS_IMPL_NSGETMODULE(nsCalendarModule, components)
+static const mozilla::Module::ContractIDEntry kCalendarHandlerContracts[] =
+{
+  { "@mozilla.org/mimecth;1?type=text/calendar", &kNS_CALENDAR_CONTENT_TYPE_HANDLER_CID },
+  { NULL }
+};
 
+static const mozilla::Module kCalendarHandlerModule =
+{
+  mozilla::Module::kVersion,
+  kCalendarHandlerCIDs,
+  kCalendarHandlerContracts
+};
 
-
+NSMODULE_DEFN(nsCalendarModule) = &kCalendarHandlerModule;

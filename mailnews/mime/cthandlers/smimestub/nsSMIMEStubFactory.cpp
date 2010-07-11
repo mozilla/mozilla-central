@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIGenericFactory.h"
+#include "mozilla/ModuleUtils.h"
 
 /* Include all of the interfaces our factory can generate components for */
 #include "nsSMIMEStub.h"
@@ -90,19 +90,31 @@ nsSMimeMimeContentTypeHandlerConstructor(nsISupports *aOuter,
 // information like the function to create an instance, contractid, and
 // class name.
 //
-static const nsModuleComponentInfo components[] =
+NS_DEFINE_NAMED_CID(NS_SMIME_CONTENT_TYPE_HANDLER_CID);
+
+static const mozilla::Module::CIDEntry kSMIMEContentHandlerCIDs[] =
 {
-  { "MIME SMIMEStubed Mail Handler", NS_SMIME_CONTENT_TYPE_HANDLER_CID, "@mozilla.org/mimecth;1?type=application/x-pkcs7-mime",
-    nsSMimeMimeContentTypeHandlerConstructor, },
-
-  { "MIME SMIMEStubed Mail Handler", NS_SMIME_CONTENT_TYPE_HANDLER_CID, "@mozilla.org/mimecth;1?type=application/pkcs7-mime",
-     nsSMimeMimeContentTypeHandlerConstructor, }
-
-
+  { &kNS_SMIME_CONTENT_TYPE_HANDLER_CID, false, NULL,
+    nsSMimeMimeContentTypeHandlerConstructor },
+  { &kNS_SMIME_CONTENT_TYPE_HANDLER_CID, false, NULL,
+    nsSMimeMimeContentTypeHandlerConstructor },
+  { NULL }
 };
 
-////////////////////////////////////////////////////////////////////////
-// Implement the NSGetModule() exported function for your module
-// and the entire implementation of the module object.
-//
-NS_IMPL_NSGETMODULE(nsSMIMEModule, components)
+static const mozilla::Module::ContractIDEntry kSMIMEContentHandlerContracts[] =
+{
+  { "@mozilla.org/mimecth;1?type=application/x-pkcs7-mime",
+    &kNS_SMIME_CONTENT_TYPE_HANDLER_CID },
+  { "@mozilla.org/mimecth;1?type=application/pkcs7-mime",
+    &kNS_SMIME_CONTENT_TYPE_HANDLER_CID },
+  { NULL }
+};
+
+static const mozilla::Module kSMIMEContentHandlerModule =
+{
+  mozilla::Module::kVersion,
+  kSMIMEContentHandlerCIDs,
+  kSMIMEContentHandlerContracts
+};
+
+NSMODULE_DEFN(nsSMIMEModule) = &kSMIMEContentHandlerModule;
