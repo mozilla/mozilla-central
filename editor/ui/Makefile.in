@@ -49,7 +49,7 @@ DIRS           = \
 ifndef MOZ_STANDALONE_COMPOSER
 PREF_JS_EXPORTS = $(srcdir)/composer.js
 ifdef MOZ_SUITE
-EXTRA_COMPONENTS = nsComposerCmdLineHandler.js
+EXTRA_COMPONENTS = nsComposerCmdLineHandler.manifest nsComposerCmdLineHandler.js
 endif
 endif
 

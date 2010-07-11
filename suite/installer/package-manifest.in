@@ -470,6 +470,7 @@
 @BINPATH@/components/nsBlocklistService.js
 @BINPATH@/components/nsBrowserContentHandler.js
 @BINPATH@/components/nsComposerCmdLineHandler.js
+@BINPATH@/components/nsComposerCmdLineHandler.manifest
 @BINPATH@/components/nsContentDispatchChooser.js
 @BINPATH@/components/nsContentDispatchChooser.manifest
 @BINPATH@/components/nsContentPrefService.js

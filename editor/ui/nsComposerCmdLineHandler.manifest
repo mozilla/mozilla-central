@@ -1,0 +1,3 @@
+component {f7d8db95-ab5d-4393-a796-9112fe758cfa} nsComposerCmdLineHandler.js
+contract @mozilla.org/commandlinehandler/general-startup;1?type=editor {f7d8db95-ab5d-4393-a796-9112fe758cfa}
+category command-line-handler m-edit @mozilla.org/commandlinehandler/general-startup;1?type=editor
