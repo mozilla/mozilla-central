@@ -508,6 +508,7 @@
 @BINPATH@/components/nsSuiteGlue.js
 #ifdef XP_WIN32
 @BINPATH@/components/nsSetDefault.js
+@BINPATH@/components/nsSetDefault.manifest
 #endif
 @BINPATH@/components/nsTaggingService.js
 @BINPATH@/components/nsTryToClose.js
