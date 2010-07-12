@@ -138,7 +138,6 @@
 @BINPATH@/components/@DLL_PREFIX@autoconfig@DLL_SUFFIX@
 #endif
 @BINPATH@/components/@DLL_PREFIX@chardet@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@chrome@DLL_SUFFIX@
 #ifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@cmdlines@DLL_SUFFIX@
 #else
@@ -322,6 +321,7 @@
 @BINPATH@/components/editor.xpt
 @BINPATH@/components/embed_base.xpt
 @BINPATH@/components/extensions.xpt
+@BINPATH@/components/extensions.manifest
 @BINPATH@/components/exthandler.xpt
 @BINPATH@/components/exthelper.xpt
 @BINPATH@/components/fastfind.xpt
@@ -335,6 +335,7 @@
 @BINPATH@/components/imgicon.xpt
 @BINPATH@/components/imglib2.xpt
 @BINPATH@/components/inspector.xpt
+@BINPATH@/components/interfaces.manifest
 @BINPATH@/components/intl.xpt
 #ifndef MOZ_STATIC_BUILD
 @BINPATH@/components/@DLL_PREFIX@jar50@DLL_SUFFIX@
@@ -374,7 +375,7 @@
 @BINPATH@/components/necko_viewsource.xpt
 @BINPATH@/components/necko_wifi.xpt
 #ifdef MOZ_ENABLE_GNOMEVFS
-bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
+@BINPATH@/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 #endif
 @BINPATH@/components/parentalcontrols.xpt
 @BINPATH@/components/places.xpt
@@ -385,6 +386,7 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/proxyObject.xpt
 @BINPATH@/components/rdf.xpt
 @BINPATH@/components/satchel.xpt
+@BINPATH@/components/satchel.manifest
 @BINPATH@/components/saxparser.xpt
 @BINPATH@/components/shellservice.xpt
 @BINPATH@/components/shistory.xpt
@@ -393,11 +395,15 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/storage.xpt
 @BINPATH@/components/@DLL_PREFIX@suite@DLL_SUFFIX@
 @BINPATH@/components/suitebrowser.xpt
+@BINPATH@/components/SuiteBrowser.manifest
 @BINPATH@/components/suitecommon.xpt
+@BINPATH@/components/nsSuiteCommon.manifest
 @BINPATH@/components/suitefeeds.xpt
+@BINPATH@/components/SuiteFeeds.manifest
 #ifndef WINCE
 @BINPATH@/components/suitemigration.xpt
 #endif
+@BINPATH@/components/toolkitplaces.manifest
 @BINPATH@/components/toolkitprofile.xpt
 #ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/components/toolkitremote.xpt
@@ -440,44 +446,61 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/amContentHandler.js
 @BINPATH@/components/amWebInstallListener.js
 @BINPATH@/components/contentAreaDropListener.js
+@BINPATH@/components/contentAreaDropListener.manifest
 @BINPATH@/components/contentSecurityPolicy.js
+@BINPATH@/components/contentSecurityPolicy.manifest
 @BINPATH@/components/crypto-SDR.js
 @BINPATH@/components/FeedConverter.js
 @BINPATH@/components/FeedProcessor.js
+@BINPATH@/components/FeedProcessor.manifest
 @BINPATH@/components/FeedWriter.js
 @BINPATH@/components/GPSDGeolocationProvider.js
+@BINPATH@/components/GPSDGeolocationProvider.manifest
 @BINPATH@/components/jsconsole-clhandler.js
+@BINPATH@/components/jsconsole-clhandler.manifest
 @BINPATH@/components/NetworkGeolocationProvider.js
+@BINPATH@/components/NetworkGeolocationProvider.manifest
 @BINPATH@/components/nsAboutAbout.js
 @BINPATH@/components/nsAboutCertError.js
 @BINPATH@/components/nsAboutFeeds.js
 @BINPATH@/components/nsAboutRights.js
 @BINPATH@/components/nsAboutSessionRestore.js
 @BINPATH@/components/nsBadCertHandler.js
+@BINPATH@/components/nsBadCertHandler.manifest
 @BINPATH@/components/nsBlocklistService.js
 @BINPATH@/components/nsBrowserContentHandler.js
 @BINPATH@/components/nsComposerCmdLineHandler.js
 @BINPATH@/components/nsContentDispatchChooser.js
+@BINPATH@/components/nsContentDispatchChooser.manifest
 @BINPATH@/components/nsContentPrefService.js
+@BINPATH@/components/nsContentPrefService.manifest
 @BINPATH@/components/nsDefaultCLH.js
+@BINPATH@/components/nsDefaultCLH.manifest
 #ifdef MOZ_GTK2
 @BINPATH@/components/nsFilePicker.js
+@BINPATH@/components/nsFilePicker.manifest
 #endif
 @BINPATH@/components/nsFormAutoComplete.js
 @BINPATH@/components/nsFormHistory.js
 @BINPATH@/components/nsHandlerService.js
+@BINPATH@/components/nsHandlerService.manifest
 @BINPATH@/components/nsHelperAppDlg.js
+@BINPATH@/components/nsHelperAppDlg.manifest
 @BINPATH@/components/nsINIProcessor.js
+@BINPATH@/components/nsINIProcessor.manifest
 @BINPATH@/components/nsLivemarkService.js
 @BINPATH@/components/nsLoginInfo.js
 @BINPATH@/components/nsLoginManager.js
 @BINPATH@/components/nsLoginManagerPrompter.js
 @BINPATH@/components/nsMicrosummaryService.js
 @BINPATH@/components/nsPlacesAutoComplete.js
+@BINPATH@/components/nsPlacesAutoComplete.manifest
 @BINPATH@/components/nsPlacesDBFlush.js
 @BINPATH@/components/nsPlacesExpiration.js
 @BINPATH@/components/nsPrompter.js
+@BINPATH@/components/nsPrompter.manifest
 @BINPATH@/components/nsProxyAutoConfig.js
+@BINPATH@/components/nsProxyAutoConfig.manifest
 @BINPATH@/components/nsSessionStartup.js
 @BINPATH@/components/nsSessionStore.js
 @BINPATH@/components/nsSidebar.js
@@ -488,19 +511,27 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 #endif
 @BINPATH@/components/nsTaggingService.js
 @BINPATH@/components/nsTryToClose.js
+@BINPATH@/components/nsTryToClose.manifest
 @BINPATH@/components/nsTypeAheadFind.js
 #ifdef MOZ_UPDATER
 @BINPATH@/components/nsUpdateService.js
+@BINPATH@/components/nsUpdateService.manifest
 @BINPATH@/components/nsUpdateServiceStub.js
 #endif
 @BINPATH@/components/nsUpdateTimerManager.js
+@BINPATH@/components/nsUpdateTimerManager.manifest
 @BINPATH@/components/nsURLFormatter.js
+@BINPATH@/components/nsURLFormatter.manifest
 @BINPATH@/components/nsWebHandlerApp.js
-@BINPATH@/components/pluginGlue.js
+@BINPATH@/components/nsWebHandlerApp.manifest
+@BINPATH@/components/passwordmgr.manifest
+@BINPATH@/components/pluginGlue.manifest
 @BINPATH@/components/smileApplication.js
+@BINPATH@/components/smileApplication.manifest
 @BINPATH@/components/storage-Legacy.js
 @BINPATH@/components/storage-mozStorage.js
 @BINPATH@/components/txEXSLTRegExFunctions.js
+@BINPATH@/components/txEXSLTRegExFunctions.manifest
 @BINPATH@/components/WebContentConverter.js
 
 ; Modules
@@ -779,15 +810,18 @@ bin/libfreebl_32int64_3.so
 
 ; MailNews component xpts
 @BINPATH@/components/addrbook.xpt
+@BINPATH@/components/nsAddrbook.manifest
 @BINPATH@/components/fts3tok.xpt
 @BINPATH@/components/import.xpt
 @BINPATH@/components/impComm4xMail.xpt
+@BINPATH@/components/ldapComponents.manifest
 @BINPATH@/components/mailview.xpt
 @BINPATH@/components/mime.xpt
 #ifdef XP_WIN32
 @BINPATH@/components/mapihook.xpt
 #endif
 @BINPATH@/components/msgbase.xpt
+@BINPATH@/components/msgBase.manifest
 @BINPATH@/components/msgcompose.xpt
 @BINPATH@/components/msgdb.xpt
 @BINPATH@/components/msgimap.xpt
@@ -798,16 +832,22 @@ bin/libfreebl_32int64_3.so
 
 ; MailNews JS components
 @BINPATH@/components/mdn-service.js
+@BINPATH@/components/mdn-service.manifest
 @BINPATH@/components/msgAsyncPrompter.js
 @BINPATH@/components/newsblog.js
+@BINPATH@/components/newsblog.manifest
 @BINPATH@/components/nsAbAutoCompleteMyDomain.js
 @BINPATH@/components/nsAbAutoCompleteSearch.js
 @BINPATH@/components/nsAbLDAPAttributeMap.js
 @BINPATH@/components/nsMailNewsCommandLineHandler.js
 @BINPATH@/components/nsMsgTraitService.js
+@BINPATH@/components/nsMsgTraitService.manifest
 @BINPATH@/components/nsSMTPProtocolHandler.js
+@BINPATH@/components/nsSMTPProtocolHandler.manifest
 @BINPATH@/components/offlineStartup.js
+@BINPATH@/components/offlineStartup.manifest
 @BINPATH@/components/smime-service.js
+@BINPATH@/components/smime-service.manifest
 
 ; MailNews chrome
 @BINPATH@/chrome/messenger.jar
@@ -860,6 +900,7 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/chrome/gloda.manifest
 @BINPATH@/components/glautocomp.js
 @BINPATH@/components/jsmimeemitter.js
+@BINPATH@/components/gloda.manifest
 @BINPATH@/modules/gloda/*
 
 [chatzilla]

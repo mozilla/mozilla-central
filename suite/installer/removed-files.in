@@ -49,6 +49,7 @@ components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
 components/@DLL_PREFIX@caps@DLL_SUFFIX@
 components/chatzilla-service.js
+components/@DLL_PREFIX@chrome@DLL_SUFFIX@
 components/components.list
 components/crashreporter.xpt
 components/downloadmanager.xpt
@@ -78,6 +79,7 @@ components/nsUpdateServiceStub.js
 #endif
 components/nsXmlRpcClient.js
 components/@DLL_PREFIX@oji@DLL_SUFFIX@
+components/pluginGlue.js
 components/progressDlg.xpt
 components/search.xpt
 components/sidebar.xpt
