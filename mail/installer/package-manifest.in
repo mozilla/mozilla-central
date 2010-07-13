@@ -190,6 +190,7 @@
 @BINPATH@/components/nsMailDefaultHandler.js
 #ifndef XP_OS2
 @BINPATH@/components/nsSetDefaultMail.js
+@BINPATH@/components/shell.manifest
 #endif
 @BINPATH@/components/offlineStartup.js
 @BINPATH@/components/offlineStartup.manifest
@@ -279,6 +280,7 @@
 @BINPATH@/components/autoconfig.xpt
 
 ; Phishing Protection
+@BINPATH@/components/phishing.manifest
 @BINPATH@/components/nsPhishingProtectionApplication.js
 @BINPATH@/components/nsUrlClassifierListManager.js
 @BINPATH@/components/nsUrlClassifierLib.js
