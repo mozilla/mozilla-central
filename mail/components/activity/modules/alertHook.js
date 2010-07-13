@@ -40,6 +40,7 @@ const EXPORTED_SYMBOLS = ['alertHook'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cr = Components.results;
 
 const nsActWarning = Components.Constructor("@mozilla.org/activity-warning;1",
                                             "nsIActivityWarning", "init");
@@ -86,6 +87,19 @@ let alertHook =
       warning.groupingStyle = Ci.nsIActivity.GROUPING_STYLE_STANDALONE;
 
     this.activityMgr.addActivity(warning);
+
+    // If we have a message window in the url, then show a warning prompt,
+    // just like the modal code used to. Otherwise, don't.
+    try {
+      if (!aUrl || !aUrl.msgWindow)
+        return true;
+    }
+    // nsIMsgMailNewsUrl.msgWindow will throw on a null pointer, so that's
+    // what we're handling here.
+    catch (ex if (ex instanceof Ci.nsIException &&
+                  ex.result == Cr.NS_ERROR_INVALID_POINTER)) {
+      return true;
+    }
 
     try {
       this.alertService
