@@ -1,0 +1,3 @@
+component {ED117D0A-F6C2-47d8-8A71-0E15BABD2554} nsSetDefaultMail.js
+contract @mozilla.org/mail/default-mail-clh;1 {ED117D0A-F6C2-47d8-8A71-0E15BABD2554}
+category command-line-handler m-setdefaultmail @mozilla.org/mail/default-mail-clh;1

@@ -57,7 +57,10 @@ MOZILLA_INTERNAL_API = 1
 endif
 endif
 
-
+EXTRA_COMPONENTS = \
+  nsSetDefaultMail.js \
+  shell.manifest \
+  $(NULL)
 
 ifeq ($(OS_ARCH),WINNT)
 CPPSRCS = nsMailWinIntegration.cpp
@@ -74,13 +77,3 @@ endif
 FORCE_STATIC_LIB = 1
 
 include $(topsrcdir)/config/rules.mk
-JS_SET_MAIL_COMPONENT = nsSetDefaultMail.js
-
-CXXFLAGS += $(TK_CFLAGS)
-
-libs::
-	$(INSTALL) $(srcdir)/$(JS_SET_MAIL_COMPONENT) $(DIST)/bin/components
-
-clobber::
-	rm -f $(DIST)/bin/components/$(JS_SET_MAIL_COMPONENT)
-

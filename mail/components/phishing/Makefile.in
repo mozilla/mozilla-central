@@ -42,7 +42,11 @@ VPATH     = @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 EXTRA_PP_COMPONENTS = \
-         nsPhishingProtectionApplication.js \
-         $(NULL)
+  nsPhishingProtectionApplication.js \
+  $(NULL)
+
+EXTRA_COMPONENTS = \
+  phishing.manifest \
+  $(NULL)
 
 include $(topsrcdir)/config/rules.mk

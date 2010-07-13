@@ -65,16 +65,7 @@ nsSetDefaultMail.prototype = {
   },
 
   helpInfo : "  -setDefaultMail    Set this app as the default mail client.\n",
-
-  // XPCOMUtils info
-  _xpcom_categories: [{category: "command-line-handler",
-                       entry: "m-setdefaultmail"}],
-  classDescription: "Default Mail Cmdline Handler",
-  contractID: "@mozilla.org/mail/default-mail-clh;1",
-  classID: Components.ID("{ED117D0A-F6C2-47d8-8A71-0E15BABD2554}"),
+  classID: Components.ID("{ED117D0A-F6C2-47d8-8A71-0E15BABD2554}")
 };
 
-// NSGetModule: Return the nsIModule object.
-function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([nsSetDefaultMail]);
-}
+const NSGetFactory = XPCOMUtils.generateNSGetFactory([nsSetDefaultMail]);

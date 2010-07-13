@@ -1705,7 +1705,7 @@ endif
 ifneq (,$(filter %.js,$(EXTRA_COMPONENTS) $(EXTRA_PP_COMPONENTS)))
 ifeq (,$(filter %.manifest,$(EXTRA_COMPONENTS) $(EXTRA_PP_COMPONENTS)))
 ifndef NO_JS_MANIFEST
-#$(error .js component without matching .manifest)
+$(error .js component without matching .manifest)
 endif
 endif
 endif
