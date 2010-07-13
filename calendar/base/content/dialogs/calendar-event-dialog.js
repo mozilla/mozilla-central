@@ -1090,35 +1090,52 @@ function onUpdateAllDay() {
     }
     let allDay = getElementValue("event-all-day", "checked");
 
-    // store/restore datetimes when "All day" checkbox changes status
+    // Store/restore datetimes when "All day" checkbox changes status.
     if (allDay) {
         gOldStartTime = gStartTime.clone();
         gOldEndTime = gEndTime.clone();
+        // When events that end at 0:00 become all-day events, we need to
+        // subtract a day from the end date because the real end is midnight.
+        if (gEndTime.hour == 0 && gEndTime.minute == 0) {
+            let tempStartTime = gStartTime.clone();
+            let tempEndTime = gEndTime.clone();
+            tempStartTime.isDate = true;
+            tempEndTime.isDate = true;
+            tempStartTime.day++;
+            if (tempEndTime.compare(tempStartTime) >= 0) {
+                gEndTime.day--;
+            }
+        }
     } else {
         if (gStartTime.isDate || gEndTime.isDate) {
             if (!gOldStartTime && !gOldEndTime) {
-                // checkbox "all day" has been unchecked for the first time
+                // Checkbox "all day" has been unchecked for the first time.
                 gOldStartTime = gStartTime.clone();
-                gOldStartTime.isDate = 0;
+                gOldStartTime.isDate = false;
                 gOldStartTime.hour = getDefaultStartDate(window.initialStartDateValue).hour;
                 gOldEndTime = gEndTime.clone();
-                gOldEndTime.isDate = 0;
+                gOldEndTime.isDate = false;
                 gOldEndTime.hour = gOldStartTime.hour;
                 gOldEndTime.minute += getPrefSafe("calendar.event.defaultlength", 60);
             } else if (gOldStartTime != gStartTime || gOldEndTime != gEndTime) {
-                // checkbox "all day" has been unchecked after a date change
-                let startTimeHour =  gOldStartTime.hour;
+                // Checkbox "all day" has been unchecked after a date change.
+                let startTimeHour = gOldStartTime.hour;
                 let startTimeMinute = gOldStartTime.minute;
                 let endTimeHour = gOldEndTime.hour;
                 let endTimeMinute = gOldEndTime.minute;
                 gOldStartTime = gStartTime.clone();
-                gOldStartTime.isDate = 0;
+                gOldStartTime.isDate = false;
                 gOldStartTime.hour = startTimeHour;
                 gOldStartTime.minute = startTimeMinute;
                 gOldEndTime = gEndTime.clone();
-                gOldEndTime.isDate = 0;
+                gOldEndTime.isDate = false;
                 gOldEndTime.hour = endTimeHour;
                 gOldEndTime.minute = endTimeMinute;
+                // When we restore 0:00 as end time, we need to add one day to
+                // the end date in order to include the last day until midnight.
+                if (endTimeHour == 0 && endTimeMinute == 0) {
+                    gOldEndTime.day++;
+                }
             }
         }
         gStartTime = gOldStartTime.clone();
