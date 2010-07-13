@@ -397,7 +397,7 @@
 @BINPATH@/components/suitebrowser.xpt
 @BINPATH@/components/SuiteBrowser.manifest
 @BINPATH@/components/suitecommon.xpt
-@BINPATH@/components/nsSuiteCommon.manifest
+@BINPATH@/components/SuiteCommon.manifest
 @BINPATH@/components/suitefeeds.xpt
 @BINPATH@/components/SuiteFeeds.manifest
 #ifndef WINCE
