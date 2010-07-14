@@ -92,12 +92,12 @@ nsVCardMimeContentTypeHandlerConstructor(nsISupports *aOuter,
 }
 
 const mozilla::Module::CIDEntry kVCardCIDs[] = {
-  { &kNS_VCARD_CONTENT_TYPE_HANDLER_CID, false, NULL, nsVCardMimeContentTypeHandlerConstructor},
+  { &kNS_VCARD_CONTENT_TYPE_HANDLER_CID, false, NULL, nsVCardMimeContentTypeHandlerConstructor },
   { NULL }
 };
 
 const mozilla::Module::ContractIDEntry kVCardContracts[] = {
-  { "@mozilla.org/mimecth;1?type=text/x-vcard", &kNS_VCARD_CONTENT_TYPE_HANDLER_CID},
+  { "@mozilla.org/mimecth;1?type=text/x-vcard", &kNS_VCARD_CONTENT_TYPE_HANDLER_CID },
   { NULL }
 };
 

@@ -188,24 +188,24 @@ static const mozilla::Module::CategoryEntry kMailNewsImportCategories[] = {
 };
 
   const mozilla::Module::ContractIDEntry kMailNewsImportContracts[] = {
-  { NS_IMPORTSERVICE_CONTRACTID, &kNS_IMPORTSERVICE_CID},
-  { "@mozilla.org/import/import-mimeencode;1", &kNS_IMPORTMIMEENCODE_CID},
-  { "@mozilla.org/import/import-text;1", &kNS_TEXTIMPORT_CID},
-  { "@mozilla.org/import/import-comm4xMail;1", &kNS_COMM4XMAILIMPORT_CID},
-  { NS_COMM4XMAILIMPL_CONTRACTID, &kNS_COMM4XMAILIMPL_CID},
-  { NS_ICOMM4XPROFILE_CONTRACTID, &kNS_ICOMM4XPROFILE_CID},
+  { NS_IMPORTSERVICE_CONTRACTID, &kNS_IMPORTSERVICE_CID },
+  { "@mozilla.org/import/import-mimeencode;1", &kNS_IMPORTMIMEENCODE_CID },
+  { "@mozilla.org/import/import-text;1", &kNS_TEXTIMPORT_CID },
+  { "@mozilla.org/import/import-comm4xMail;1", &kNS_COMM4XMAILIMPORT_CID },
+  { NS_COMM4XMAILIMPL_CONTRACTID, &kNS_COMM4XMAILIMPL_CID },
+  { NS_ICOMM4XPROFILE_CONTRACTID, &kNS_ICOMM4XPROFILE_CID },
 #if defined(XP_WIN) || defined(XP_MACOSX)
-  { "@mozilla.org/import/import-eudora;1", &kNS_EUDORAIMPORT_CID},
+  { "@mozilla.org/import/import-eudora;1", &kNS_EUDORAIMPORT_CID },
 #endif
 #if defined(XP_MACOSX)
-  { "@mozilla.org/import/import-applemail;1", &kNS_APPLEMAILIMPORT_CID},
-  { NS_APPLEMAILIMPL_CONTRACTID, &kNS_APPLEMAILIMPL_CID},
+  { "@mozilla.org/import/import-applemail;1", &kNS_APPLEMAILIMPORT_CID },
+  { NS_APPLEMAILIMPL_CONTRACTID, &kNS_APPLEMAILIMPL_CID },
 #endif
 
 #ifdef XP_WIN
-  { "@mozilla.org/import/import-oe;1", &kNS_OEIMPORT_CID},
-  { "@mozilla.org/import/import-wm;1", &kNS_WMIMPORT_CID},
-  { "@mozilla.org/import/import-outlook;1", &kNS_OUTLOOKIMPORT_CID},
+  { "@mozilla.org/import/import-oe;1", &kNS_OEIMPORT_CID },
+  { "@mozilla.org/import/import-wm;1", &kNS_WMIMPORT_CID },
+  { "@mozilla.org/import/import-outlook;1", &kNS_OUTLOOKIMPORT_CID },
 #endif
   { NULL }
 };
