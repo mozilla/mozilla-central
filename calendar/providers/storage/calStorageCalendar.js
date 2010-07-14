@@ -1536,7 +1536,7 @@ calStorageCalendar.prototype = {
                             }
                         } else {
                             if (row.end_date)
-                                ritem.untilDate = newDateTime(row.end_date);
+                                ritem.untilDate = newDateTime(row.end_date, "UTC");
                             else
                                 ritem.untilDate = null;
                         }
