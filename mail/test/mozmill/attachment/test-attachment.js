@@ -49,7 +49,7 @@ Components.utils.import("resource://mozmill/modules/jum.js", jumlib);
 var elib = {};
 Components.utils.import('resource://mozmill/modules/elementslib.js', elib);
 var EventUtils = {};
-Cu.import('resource://mozmill/modules/EventUtils.js', EventUtils);
+Cu.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
 
 var folder = null;
 var composeHelper = null;

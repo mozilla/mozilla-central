@@ -108,12 +108,10 @@ APP_NAME = $(MOZ_APP_DISPLAYNAME)
 ifdef MOZ_DEBUG
 APP_NAME := $(APP_NAME)Debug
 endif
-PROGRAM_LOCATION = ../../../$(DIST)/$(APP_NAME).app/Contents/MacOS/
-PROGRAM = $(PROGRAM_LOCATION)thunderbird-bin$(BIN_SUFFIX)
+PROGRAM = ../../../$(DIST)/$(APP_NAME).app/
 else
 # Non-mac options
-PROGRAM_LOCATION = ../../../$(DIST)/bin/
-PROGRAM = $(PROGRAM_LOCATION)thunderbird$(BIN_SUFFIX)
+PROGRAM = ../../../$(DIST)/bin/thunderbird$(BIN_SUFFIX)
 endif
 
 mozmill::

@@ -41,7 +41,7 @@ var Cu = Components.utils;
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
 var EventUtils = {};
-Cu.import('resource://mozmill/modules/EventUtils.js', EventUtils);
+Cu.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
 var mozmill = {};
 Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
 var controller = {};

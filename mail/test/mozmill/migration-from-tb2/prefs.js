@@ -12,6 +12,7 @@
 user_pref("app.update.lastUpdateTime.addon-background-update-timer", 1273257684);
 user_pref("app.update.lastUpdateTime.background-update-timer", 1273257684);
 user_pref("app.update.lastUpdateTime.blocklist-background-update-timer", 1273257684);
+user_pref("extensions.checkCompatibility.3.2a", false);
 user_pref("extensions.lastAppVersion", "2.0.0.24");
 user_pref("intl.charsetmenu.mailview.cache", "windows-1252, ISO-8859-1, UTF-8");
 user_pref("ldap_2.prefs_migrated", true);
