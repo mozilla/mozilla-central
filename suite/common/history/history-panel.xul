@@ -66,7 +66,7 @@
     <key id="key_delete2"/>
   </keyset>
 
-  <popup id="placesContext"/>
+  <menupopup id="placesContext"/>
 
   <hbox align="center">
     <textbox id="search-box" flex="1" type="search"

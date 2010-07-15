@@ -82,7 +82,7 @@
              oncommand="goDoCommand('placesCmd_delete:domain');"/>
   </commandset>
 
-  <popup id="placesContext"
+  <menupopup id="placesContext"
          onpopupshowing="this._view = PlacesUIUtils.getViewForNode(document.popupNode);
                          return this._view.buildContextMenu(this);"
          onpopuphiding="this._view.destroyContextMenu();">
@@ -138,7 +138,7 @@
               label="&selectAllCmd.label;"
               accesskey="&selectAllCmd.accesskey;"
               selection="any"/>
-  </popup>
+  </menupopup>
 
   <menupopup id="viewPopup">
     <menu id="viewColumns"

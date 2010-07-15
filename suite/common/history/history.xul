@@ -102,7 +102,7 @@
   </keyset>
 
   <popupset id="placesPopupset">
-    <popup id="placesContext"/>
+    <menupopup id="placesContext"/>
   </popupset>
 
   <toolbox id="history-toolbox">

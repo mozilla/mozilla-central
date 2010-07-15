@@ -147,7 +147,7 @@
   </keyset>
 
   <popupset id="downloadPopupset">
-    <popup id="downloadContext">
+    <menupopup id="downloadContext">
       <menuitem id="dlContext-pause"
                 label="&cmd.pause.label;"
                 accesskey="&cmd.pause.accesskey;"
@@ -192,7 +192,7 @@
                 command="cmd_properties"/>
       <menuseparator/>
       <menuitem id="cMenu_selectAll"/>
-    </popup>
+    </menupopup>
   </popupset>
 
   <toolbox id="download-toolbox">

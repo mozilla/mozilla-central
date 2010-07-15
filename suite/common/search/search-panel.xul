@@ -57,9 +57,9 @@
   <stringbundle id="regionalBundle" src="chrome://communicator-region/locale/region.properties"/>
   
   <popupset>
-    <popup id="contextual" onpopupshowing="return fillContextMenu('contextual', 'resultList');" >
-      <menu />
-    </popup>
+    <menupopup id="contextual" onpopupshowing="return fillContextMenu('contextual', 'resultList');">
+      <menu/>
+    </menupopup>
   </popupset>
 
   <popupset id="descTooltipSet">

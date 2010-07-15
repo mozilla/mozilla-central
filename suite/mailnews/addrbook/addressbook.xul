@@ -162,7 +162,7 @@
 
 </keyset>
 
-<popup id="dirTreeContext">
+<menupopup id="dirTreeContext">
   <menuitem id="dirTreeContext-properties"
             label="&editItemButton.label;"
             accesskey="&editItemButton.accesskey;"
@@ -181,9 +181,9 @@
             label="&deleteItemButton.label;"
             accesskey="&deleteItemButton.accesskey;"
             command="button_delete"/>
-</popup>
+</menupopup>
 
-<popup id="abResultsTreeContext">
+<menupopup id="abResultsTreeContext">
   <menuitem id="abResultsTreeContext-properties"
             label="&editItemButton.label;"
             accesskey="&editItemButton.accesskey;"
@@ -202,7 +202,7 @@
             label="&deleteItemButton.label;"
             accesskey="&deleteItemButton.accesskey;"
             command="button_delete"/>
-</popup>
+</menupopup>
 
 <toolbox class="toolbox-top">
     <menubar id="ab-menubar" grippytooltiptext="&menuBar.tooltip;">

@@ -224,7 +224,7 @@
          
   <!-- bookmarks context menu -->
   <popupset id="bookmarksPopupset">
-    <popup id="bookmarks-context-menu" 
+    <menupopup id="bookmarks-context-menu" 
            onpopupshowing="return BookmarksMenu.createContextMenu(event);"
            onpopuphidden ="BookmarksMenu.destroyContextMenu(event);"/>
   </popupset>
