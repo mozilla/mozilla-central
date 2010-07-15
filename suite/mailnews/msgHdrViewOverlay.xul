@@ -60,7 +60,7 @@
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
 </stringbundleset>
 
-<popup id="messageIdContext" popupanchor="bottomleft"
+<menupopup id="messageIdContext" popupanchor="bottomleft"
        onpopupshowing="FillMessageIdContextMenu(document.popupNode);">
   <menuitem id="messageIdContext-messageIdTarget"
             disabled="true"/>
@@ -74,9 +74,9 @@
   <menuitem label="&CopyMessageId.label;"
             oncommand="var messageId = GetMessageIdFromNode(document.popupNode, false);
                        CopyString(messageId);"/>
-</popup>
+</menupopup>
 
-<popup id="emailAddressPopup" popupanchor="bottomleft"
+<menupopup id="emailAddressPopup" popupanchor="bottomleft"
        onpopupshowing="fillEmailAddressPopup(document.popupNode);
                        goUpdateCommand('cmd_createFilterFromPopup');">
   <menuitem id="emailAddressPlaceHolder" label="" disabled="true"/>
@@ -93,9 +93,9 @@
   <menuitem label="&CopyEmailAddress.label;"
             accesskey="&CopyEmailAddress.accesskey;"
             oncommand="CopyEmailAddress(document.popupNode)"/>
-</popup>
+</menupopup>
 
-<popup id="attachmentListContext" onpopupshowing="return onShowAttachmentContextMenu();">
+<menupopup id="attachmentListContext" onpopupshowing="return onShowAttachmentContextMenu();">
   <menuitem id="context-openAttachment" label="&openAttachmentCmd.label;" accesskey="&openAttachmentCmd.accesskey;"
      oncommand="handleAttachmentSelection('openAttachment');"/>
   <menuitem id="context-viewAttachment" label="&viewAttachmentCmd.label;" accesskey="&viewAttachmentCmd.accesskey;"
@@ -114,9 +114,9 @@
     label="&detachAllAttachmentsCmd.label;" accesskey="&detachAllAttachmentsCmd.accesskey;"/>
   <menuitem id="context-deleteAllAttachments" oncommand="HandleMultipleAttachments('deleteAttachment', currentAttachments);" 
     label="&deleteAllAttachmentsCmd.label;" accesskey="&deleteAllAttachmentsCmd.accesskey;"/>
-</popup>
+</menupopup>
 
-<popup id="attachmentMenuList">
+<menupopup id="attachmentMenuList">
   <menuseparator/>
   <menuitem id="file-saveAllAttachments" label="&saveAllAttachmentsCmd.label;" 
     accesskey="&saveAllAttachmentsCmd.accesskey;" oncommand="HandleMultipleAttachments('saveAttachment', currentAttachments);"/>
@@ -124,11 +124,11 @@
     accesskey="&detachAllAttachmentsCmd.accesskey;" oncommand="HandleMultipleAttachments('detachAttachment', currentAttachments);" />
   <menuitem id="file-deleteAllAttachments" label="&deleteAllAttachmentsCmd.label;" 
     accesskey="&deleteAllAttachmentsCmd.accesskey;" oncommand="HandleMultipleAttachments('deleteAttachment', currentAttachments);" />
-</popup>
+</menupopup>
 
-<popup id="copyUrlPopup">
+<menupopup id="copyUrlPopup">
   <menuitem label="&copyLinkCmd.label;" accesskey="&copyLinkCmd.accesskey;" oncommand="CopyWebsiteAddress(document.popupNode)"/>
-</popup>
+</menupopup>
 
 <hbox id="msgHeaderView" keywordrelated="true" originalclass="none" persist="state">
 

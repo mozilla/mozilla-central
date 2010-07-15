@@ -51,7 +51,7 @@
 
   <command id="toggleSidebar" oncommand="SidebarShowHide();"/>
   <key id="showHideSidebar" keycode="VK_F9" command="toggleSidebar"/>
-  <popup id="sidebarPopup" 
+  <menupopup id="sidebarPopup" 
     onpopupshowing="SidebarInitContextMenu(this, document.popupNode);">
     <menuitem id="switch-ctx-item" label="&sidebar.switch.label;" 
               accesskey="&sidebar.switch.accesskey;" default="true" 
@@ -70,7 +70,7 @@
     <menuitem id="customize-ctx-item" label="&sidebar.customize.label;" 
               accesskey="&sidebar.customize.accesskey;"
               oncommand="SidebarCustomize();"/>
-  </popup>
+  </menupopup>
 
   <!-- Overlay the sidebar panels -->
   <vbox id="sidebar-box" persist="hidden width collapsed">

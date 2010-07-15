@@ -129,23 +129,23 @@
   </script>
 
   <!-- context menu -->
-  <popup id="contentAreaContextMenu">
+  <menupopup id="contentAreaContextMenu">
     <menuitem id="context-blockimage"
               oncommand="cookieContextMenu.toggleImageBlocking(true);"
               insertafter="context-viewimage"/>
     <menuitem id="context-unblockimage"
               oncommand="cookieContextMenu.toggleImageBlocking(false);"
               insertafter="context-viewimage"/>
-  </popup>
+  </menupopup>
 
   <!-- Mail context menu -->
-  <popup id="mailContext">
+  <menupopup id="mailContext">
     <menuitem id="context-blockimage"
               oncommand="cookieContextMenu.toggleImageBlocking(true);"
               insertafter="context-viewimage"/>
     <menuitem id="context-unblockimage"
               oncommand="cookieContextMenu.toggleImageBlocking(false);"
               insertafter="context-viewimage"/>
-  </popup>
+  </menupopup>
 
 </overlay>

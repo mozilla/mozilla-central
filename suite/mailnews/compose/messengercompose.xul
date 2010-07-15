@@ -198,41 +198,78 @@
 </keyset>
 <keyset id="editorKeys"/>
 
-<popup id="sidebarPopup"/>
-<popup id="popupNotificationMenu"/>
+  <popupset id="msgComposePopupSet">
+    <menupopup id="sidebarPopup"/>
+    <menupopup id="popupNotificationMenu"/>
+    <menupopup id="toolbar-context-menu"/>
+    <panel id="customizeToolbarSheetPopup"/>
 
-<popup id="msgComposeContext" onpopupshowing="openEditorContextMenu(this);">
-  <menuitem id="spellCheckNoSuggestions" label="&spellCheckNoSuggestions.label;" disabled="true"/>
-  <menuseparator id="spellCheckAddSep"/>
-  <menuitem id="spellCheckAddToDictionary" label="&spellCheckAddToDictionary.label;" accesskey="&spellCheckAddToDictionary.accesskey;"
-            oncommand="InlineSpellCheckerUI.addToDictionary();"/>
-  <menuitem id="spellCheckIgnoreWord" label="&spellCheckIgnoreWord.label;" accesskey="&spellCheckIgnoreWord.accesskey;"
-            oncommand="InlineSpellCheckerUI.ignoreWord()"/>
-  <menuseparator id="spellCheckSuggestionsSeparator"/>
+    <menupopup id="msgComposeContext"
+               onpopupshowing="openEditorContextMenu(this);">
+      <menuitem id="spellCheckNoSuggestions"
+                label="&spellCheckNoSuggestions.label;"
+                disabled="true"/>
+      <menuseparator id="spellCheckAddSep"/>
+      <menuitem id="spellCheckAddToDictionary"
+                label="&spellCheckAddToDictionary.label;"
+                accesskey="&spellCheckAddToDictionary.accesskey;"
+                oncommand="InlineSpellCheckerUI.addToDictionary();"/>
+      <menuitem id="spellCheckIgnoreWord"
+                label="&spellCheckIgnoreWord.label;"
+                accesskey="&spellCheckIgnoreWord.accesskey;"
+                oncommand="InlineSpellCheckerUI.ignoreWord()"/>
+      <menuseparator id="spellCheckSuggestionsSeparator"/>
 
-  <menuitem label="&undo.label;" accesskey="&undo.accesskey;" command="cmd_undo"/>
-  <menuseparator/>
-  <menuitem label="&cut.label;" accesskey="&cut.accesskey;" command="cmd_cut"/>
-  <menuitem label="&copy.label;" accesskey="&copy.accesskey;" command="cmd_copy"/>
-  <menuitem label="&paste.label;" accesskey="&paste.accesskey;" command="cmd_paste"/>
-  <menuitem command="cmd_pasteNoFormatting"/>
-  <menuitem label="&pasteQuote.label;" accesskey="&pasteQuote.accesskey;" command="cmd_pasteQuote"/>
-  <menuitem label="&delete.label;" accesskey="&delete.accesskey;" command="cmd_delete"/>
-  <menuseparator/>
-  <menuitem label="&selectAll.label;" accesskey="&selectAll.accesskey;" command="cmd_selectAll"/>
-</popup>
+      <menuitem label="&undo.label;"
+                accesskey="&undo.accesskey;"
+                command="cmd_undo"/>
+      <menuseparator/>
+      <menuitem label="&cut.label;"
+                accesskey="&cut.accesskey;"
+                command="cmd_cut"/>
+      <menuitem label="&copy.label;"
+                accesskey="&copy.accesskey;"
+                command="cmd_copy"/>
+      <menuitem label="&paste.label;"
+                accesskey="&paste.accesskey;"
+                command="cmd_paste"/>
+      <menuitem command="cmd_pasteNoFormatting"/>
+      <menuitem label="&pasteQuote.label;"
+                accesskey="&pasteQuote.accesskey;"
+                command="cmd_pasteQuote"/>
+      <menuitem label="&delete.label;"
+                accesskey="&delete.accesskey;"
+                command="cmd_delete"/>
+      <menuseparator/>
+      <menuitem label="&selectAll.label;"
+                accesskey="&selectAll.accesskey;"
+                command="cmd_selectAll"/>
+    </menupopup>
 
-<popup id="msgComposeAttachmentContext" onpopupshowing="updateEditItems();">
-  <menuitem label="&openAttachment.label;" accesskey="&openAttachment.accesskey;" command="cmd_openAttachment"/>
-  <menuitem label="&delete.label;" accesskey="&delete.accesskey;" command="cmd_delete"/>
-  <menuitem label="&renameAttachment.label;" accesskey="&renameAttachment.accesskey;" command="cmd_renameAttachment"/>
-  <menuitem label="&selectAll.label;" accesskey="&selectAll.accesskey;" command="cmd_selectAll"/>
-  <menuseparator/>
-  <menuitem label="&attachFile.label;" accesskey="&attachFile.accesskey;" command="cmd_attachFile"/>
-  <menuitem label="&attachPage.label;" accesskey="&attachPage.accesskey;" command="cmd_attachPage"/>
-</popup>
+    <menupopup id="msgComposeAttachmentContext"
+               onpopupshowing="updateEditItems();">
+      <menuitem label="&openAttachment.label;"
+                accesskey="&openAttachment.accesskey;"
+                command="cmd_openAttachment"/>
+      <menuitem label="&delete.label;"
+                accesskey="&delete.accesskey;"
+                command="cmd_delete"/>
+      <menuitem label="&renameAttachment.label;"
+                accesskey="&renameAttachment.accesskey;"
+                command="cmd_renameAttachment"/>
+      <menuitem label="&selectAll.label;"
+                accesskey="&selectAll.accesskey;"
+                command="cmd_selectAll"/>
+      <menuseparator/>
+      <menuitem label="&attachFile.label;"
+                accesskey="&attachFile.accesskey;"
+                command="cmd_attachFile"/>
+      <menuitem label="&attachPage.label;"
+                accesskey="&attachPage.accesskey;"
+                command="cmd_attachPage"/>
+    </menupopup>
+  </popupset>
 
-<popup id="toolbar-context-menu"/>
   <toolbox id="compose-toolbox"
            class="toolbox-top"
            mode="full"
@@ -736,8 +773,6 @@
             context="msgComposeContext"/>
   </vbox>
 </hbox>
-
-  <panel id="customizeToolbarSheetPopup"/>
 
   <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="component-bar"/>

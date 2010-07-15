@@ -73,7 +73,7 @@
   <script type="application/javascript" src="chrome://global/content/nsClipboard.js"/>
   <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
   <script type="application/javascript" src="chrome://global/content/viewSourceUtils.js"/>
-  
+
   <!-- Content Area -->
   <script type="application/javascript" src="chrome://navigator/content/nsBrowserStatusHandler.js"/>
   <script type="application/javascript" src="chrome://navigator/content/nsBrowserContentListener.js"/>
@@ -85,7 +85,7 @@
   <!-- Shared Bookmarks Utility Library -->
   <script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarks.js"/>
   <script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarksMenu.js"/>
-  
+
   <!-- Navigator -->
   <script type="application/javascript" src="chrome://navigator/content/fullScreen.js"/>
   <script type="application/javascript" src="chrome://navigator/content/browser.js"/>
@@ -123,31 +123,46 @@
   </keyset>
   <keyset id="mainKeyset"/> <!-- Firefox extension compatibility -->
 
-  <popup id="backMenu" position="after_start" onpopupshowing="return BrowserBackMenu(event);" oncommand="gotoHistoryIndex(event);"/>
-  <popup id="forwardMenu" position="after_start" onpopupshowing="return BrowserForwardMenu(event);" oncommand="gotoHistoryIndex(event);"/>
-  <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
-  <popup id="sidebarPopup"/>
-
   <popupset id="bookmarksPopupset"/>
-  <tooltip  id="btTooltip"/>
   <template id="bookmarksMenuTemplate"/>
 
-  <tooltip id="home-button-tooltip" noautohide="true">
-    <vbox id="home-button-tooltip-inner" flex="1"/>
-  </tooltip>
+  <popupset id="mainPopupSet">
+    <menupopup id="backMenu"
+           position="after_start"
+           onpopupshowing="return BrowserBackMenu(event);"
+           oncommand="gotoHistoryIndex(event);"/>
+    <menupopup id="forwardMenu"
+           position="after_start"
+           onpopupshowing="return BrowserForwardMenu(event);"
+           oncommand="gotoHistoryIndex(event);"/>
+    <tooltip id="aHTMLTooltip"
+             onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
+    <menupopup id="sidebarPopup"/>
 
-  <popupset id="mainPopupSet"/> <!-- Firefox extension compatibility -->
+    <tooltip  id="btTooltip"/>
 
-  <popup id="toolbar-context-menu"/>
+    <tooltip id="home-button-tooltip" noautohide="true">
+      <vbox id="home-button-tooltip-inner" flex="1"/>
+    </tooltip>
+
+    <menupopup id="toolbar-context-menu"/>
+
+    <menupopup id="feedsPopup" popupanchor="bottomright" popupalign="topright"
+               onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
+               oncommand="subscribeToFeed(event.target.statusText, event);"
+               onclick="checkForMiddleClick(this, event);"/>
+    <panel id="PopupAutoComplete" type="autocomplete" noautofocus="true"/>
+
+    <menupopup id="popupBlockerMenu"
+               oncommand="popupBlockerMenuCommand(event.target);"
+               onpopupshowing="return popupBlockerMenuShowing(event)"/>
+    <!-- Items are generated, see popupBlockerMenuShowing() -->
+    <menupopup id="popupNotificationMenu"/>
+    <menupopup id="networkProperties"/>
+  </popupset>
 
   <!-- context menu -->
   <popupset id="contentAreaContextSet"/>
-
-  <popup id="feedsPopup" popupanchor="bottomright" popupalign="topright"
-         onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
-         oncommand="subscribeToFeed(event.target.statusText, event);"
-         onclick="checkForMiddleClick(this, event);"/>
-  <panel type="autocomplete" id="PopupAutoComplete" noautofocus="true"/>
 
   <toolbox id="navigator-toolbox" class="toolbox-top" deferattached="true"
            mode="full" defaultmode="full">
@@ -430,11 +445,11 @@
     </toolbarpalette>
 
   </toolbox>
-    
+
   <hbox flex="1">
     <vbox id="sidebar-box" class="chromeclass-extrachrome"/>
     <splitter id="sidebar-splitter" class="chromeclass-extrachrome" />
-  
+
     <!-- we only need to handle |ondragdrop| because everything else is
           taken care of by the builtin behavior inside the tabbrowser -->
     <vbox id="appcontent" flex="1"
@@ -475,14 +490,4 @@
                     id="security-button" dir="reverse"
                     oncommand="BrowserPageInfo(null, 'securityTab')"/>
   </statusbar> 
-  <popupset>
-    <menupopup id="popupBlockerMenu"
-               oncommand="popupBlockerMenuCommand(event.target);"
-               onpopupshowing="return popupBlockerMenuShowing(event)"/>
-    <!-- Items are generated, see popupBlockerMenuShowing() -->
-  </popupset>
-  <popup id="popupNotificationMenu"/>
-  <popupset>
-    <popup id="networkProperties"/>
-  </popupset>
 </window>

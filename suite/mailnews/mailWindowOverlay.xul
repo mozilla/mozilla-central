@@ -463,7 +463,7 @@
 
 </keyset>
 
-  <popup id="folderPaneContext"
+  <menupopup id="folderPaneContext"
          onpopupshowing="return FillFolderPaneContextMenu();"
          onpopuphiding="if (event.target == this) FolderPaneOnPopupHiding();">
     <menuitem id="folderPaneContext-getMessages"
@@ -541,9 +541,9 @@
               label="&folderContextSettings.label;"
               accesskey="&folderContextSettings.accesskey;"
               oncommand="MsgFolderProperties();"/>
-  </popup>
+  </menupopup>
 
-  <popup id="mailContext"
+  <menupopup id="mailContext"
          onpopupshowing="return event.target != this ||
                                 FillMailContextMenu(this);"
          onpopuphiding="if (event.target == this) MailContextOnPopupHiding();">
@@ -933,7 +933,7 @@
               oncommand="initBMService();
                          BookmarksUtils.addBookmark(gContextMenu.linkURL,
                                                     gContextMenu.linkText());"/>
-  </popup>
+  </menupopup>
 
   <toolbar type="menubar"
            id="mail-toolbar-menubar2"

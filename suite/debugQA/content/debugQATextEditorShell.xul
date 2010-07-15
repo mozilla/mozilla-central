@@ -141,7 +141,7 @@
     </toolbar>
   </toolbox>
 
-  <popup id="popupNotificationMenu"/>
+  <menupopup id="popupNotificationMenu"/>
 
   <hbox id="sidebar-parent" flex="1">
     <!-- From sidebarOverlay.xul -->

@@ -34,7 +34,7 @@
                type="checkbox"
                oncommand="toggleOfflineStatus();"/>
 
-  <popup id="networkProperties" onpopupshown="InitProxyMenu();">
+  <menupopup id="networkProperties" onpopupshown="InitProxyMenu();">
     <menuitem id="network-proxy-no"
               type="radio"
               name="status"
@@ -70,9 +70,9 @@
     <menuitem label="&proxy.label;"
               accesskey="&proxy.accesskey;"
               oncommand="goPreferences('proxies_pane');"/>
-  </popup>
+  </menupopup>
 
-  <popup id="toolbar-context-menu"
+  <menupopup id="toolbar-context-menu"
          onpopupshowing="onViewToolbarsPopupShowing(event);"
          oncommand="onViewToolbarCommand(event);">
     <menuseparator id="toolbarmode-sep"/>
@@ -114,7 +114,7 @@
               label="&customizeToolbarContext.label;"
               accesskey="&customizeToolbarContext.accesskey;"/>
 
-  </popup>
+  </menupopup>
 
   <panel id="customizeToolbarSheetPopup" noautohide="true">
     <iframe id="customizeToolbarSheetIFrame"
@@ -383,7 +383,7 @@
     </menupopup>
   </menu>
 
-  <popup id="popupNotificationMenu"
+  <menupopup id="popupNotificationMenu"
          oncommand="popupBlockerMenuCommand(event.target);"
          onpopupshowing="return popupNotificationMenuShowing(event)">
     <menuitem id="allowPopupsForSite" hidden="true" accesskey="&allowPopups.accesskey;"
@@ -396,6 +396,6 @@
               oncommand="disablePopupBlockerNotifications();"/>
     <menuseparator id="popupNotificationMenuSeparator" hidden="true"/>
     <!-- Additional items are generated, see popupNotificationMenuShowing() -->
-  </popup>
+  </menupopup>
 
 </overlay>
