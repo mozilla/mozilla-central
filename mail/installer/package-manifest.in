@@ -786,6 +786,7 @@
 #else
 @BINPATH@/components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
 #endif
+@BINPATH@/@DLL_PREFIX@angle@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@gkgfx@DLL_SUFFIX@
 #ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/@DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
