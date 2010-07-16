@@ -111,6 +111,7 @@
 @BINPATH@/mozilla-xremote-client
 @BINPATH@/run-mozilla.sh
 #endif
+@BINPATH@/@DLL_PREFIX@angle@DLL_SUFFIX@
 #ifndef MOZ_STATIC_BUILD
 #ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/@DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
