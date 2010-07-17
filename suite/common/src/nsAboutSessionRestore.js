@@ -54,4 +54,4 @@ AboutSessionRestore.prototype = {
   }
 };
 
-var NSGetFactory = XPCOMUtils.generateNSGetFactory([AboutSessionRestore[);
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([AboutSessionRestore]);
