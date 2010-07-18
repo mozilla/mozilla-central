@@ -177,7 +177,7 @@ public:
     // Parallel array to mEnabledHeaders
     nsTArray<nsCString> mEnabledHeadersDelimiters;
     PRBool mCustomHeaderTokenization; // Are there any preference-set tokenization customizations?
-    PRInt32 mMaxLengthForToken; // maximum length of a token
+    PRUint32 mMaxLengthForToken; // maximum length of a token
     // should we convert iframe to div during tokenization?
     PRBool mIframeToDiv;
 
@@ -239,7 +239,7 @@ public:
      * @param aMaximumTokenCount  prune tokens if number of tokens exceeds
      *                            this value.  == 0  for no pruning
      */
-    void writeTrainingData(PRInt32 aMaximumTokenCount);
+    void writeTrainingData(PRUint32 aMaximumTokenCount);
 
     /**
      * read the corpus information from file storage
