@@ -682,22 +682,17 @@ FeedWriter.prototype = {
     if (file instanceof Components.interfaces.nsILocalFileWin) {
       try {
         return file.getVersionInfoField("FileDescription");
-      }
-      catch (e) {
-      }
+      } catch (e) {}
     }
 #endif
 #ifdef XP_MACOSX
-    var lfm = file.QueryInterface(Components.interfaces.nsILocalFileMac);
-    try {
-      return lfm.bundleDisplayName;
-    }
-    catch (e) {
-      // fall through to the file name
+    if (file instanceof Components.interfaces.nsILocalFileMac) {
+      try {
+        return file.bundleDisplayName;
+      } catch (e) {}
     }
 #endif
-    var url = this._ioSvc.newFileURI(file).QueryInterface(Components.interfaces.nsIURL);
-    return url.fileName;
+    return file.fileName;
   },
 
   /**

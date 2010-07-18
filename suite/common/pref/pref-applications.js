@@ -139,41 +139,28 @@ const kActionManageApp = -1;
 //****************************************************************************//
 // Utilities
 
-function getDisplayNameForFile(aFile) {
-/*
+function getFileDisplayName(aFile) {
 #ifdef XP_WIN
-*/
   if (aFile instanceof Components.interfaces.nsILocalFileWin) {
     try {
       return aFile.getVersionInfoField("FileDescription");
-    }
-    catch(ex) {
-      // fall through to the file name
-    }
+    } catch (e) {}
   }
-/*
 #endif
 #ifdef XP_MACOSX
-*/
   if (aFile instanceof Components.interfaces.nsILocalFileMac) {
     try {
       return aFile.bundleDisplayName;
-    }
-    catch(ex) {
-      // fall through to the file name
-    }
+    } catch (e) {}
   }
-/*
 #endif
-*/
-
   return aFile.leafName;
 }
 
 function getLocalHandlerApp(aFile) {
   var localHandlerApp = Components.classes["@mozilla.org/uriloader/local-handler-app;1"]
                                   .createInstance(nsILocalHandlerApp);
-  localHandlerApp.name = getDisplayNameForFile(aFile);
+  localHandlerApp.name = getFileDisplayName(aFile);
   localHandlerApp.executable = aFile;
 
   return localHandlerApp;
@@ -654,7 +641,7 @@ FeedHandlerInfo.prototype = {
     if (defaultFeedReader) {
       let handlerApp = Components.classes["@mozilla.org/uriloader/local-handler-app;1"]
                                  .createInstance(nsIHandlerApp);
-      handlerApp.name = getDisplayNameForFile(defaultFeedReader);
+      handlerApp.name = getFileDisplayName(defaultFeedReader);
       handlerApp.QueryInterface(nsILocalHandlerApp);
       handlerApp.executable = defaultFeedReader;
 
@@ -1245,7 +1232,7 @@ var gApplicationsPane = {
       case nsIHandlerInfo.useHelperApp:
         var preferredApp = aHandlerInfo.preferredApplicationHandler;
         var name = (preferredApp instanceof nsILocalHandlerApp) ?
-                   getDisplayNameForFile(preferredApp.executable) :
+                   getFileDisplayName(preferredApp.executable) :
                    preferredApp.name;
         return this._prefsBundle.getFormattedString("useApp", [name]);
 
@@ -1422,7 +1409,7 @@ var gApplicationsPane = {
       menuItem.setAttribute("value", nsIHandlerInfo.useHelperApp);
       let label;
       if (possibleApp instanceof nsILocalHandlerApp)
-        label = getDisplayNameForFile(possibleApp.executable);
+        label = getFileDisplayName(possibleApp.executable);
       else
         label = possibleApp.name;
       label = this._prefsBundle.getFormattedString("useApp", [label]);
@@ -1682,7 +1669,7 @@ var gApplicationsPane = {
         this._isValidHandlerExecutable(fp.file)) {
       handlerApp = Components.classes["@mozilla.org/uriloader/local-handler-app;1"]
                              .createInstance(nsILocalHandlerApp);
-      handlerApp.name = getDisplayNameForFile(fp.file);
+      handlerApp.name = getFileDisplayName(fp.file);
       handlerApp.executable = fp.file;
 
       // Add the app to the type's list of possible handlers.
