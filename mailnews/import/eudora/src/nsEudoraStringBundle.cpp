@@ -58,7 +58,7 @@ nsIStringBundle *nsEudoraStringBundle::GetStringBundle( void)
     return( m_pBundle);
 
   nsresult          rv;
-  char*             propertyURL = EUDORA_MSGS_URL;
+  const char*       propertyURL = EUDORA_MSGS_URL;
   nsIStringBundle*  sBundle = nsnull;
 
   nsCOMPtr<nsIStringBundleService> sBundleService =
