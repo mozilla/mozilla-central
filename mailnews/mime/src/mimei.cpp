@@ -1680,7 +1680,7 @@ MimeOptions_write(MimeDisplayOptions *opt, nsCString &name, const char *data,
     if (opt->state->separator_suppressed_p)
       opt->state->separator_suppressed_p = PR_FALSE;
     else {
-      char *sep = "<BR><FIELDSET CLASS=\"mimeAttachmentHeader\">";
+      const char *sep = "<BR><FIELDSET CLASS=\"mimeAttachmentHeader\">";
       int lstatus = opt->output_fn(sep, strlen(sep), closure);
       opt->state->separator_suppressed_p = PR_FALSE;
       if (lstatus < 0) return lstatus;
