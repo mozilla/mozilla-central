@@ -118,10 +118,17 @@ static NS_DEFINE_CID(kMailboxServiceCID,          NS_MAILBOXSERVICE_CID);
 /////////////////////////////////////////////////////////////////////////////
 
 nsLocalMailCopyState::nsLocalMailCopyState() :
-  m_curDstKey(0xffffffff), m_curCopyIndex(0),
-  m_totalMsgCount(0), m_dataBufferSize(0), m_leftOver(0),
-  m_isMove(PR_FALSE), m_dummyEnvelopeNeeded(PR_FALSE), m_fromLineSeen(PR_FALSE), m_writeFailed(PR_FALSE),
-  m_notifyFolderLoaded(PR_FALSE), m_flags(0)
+  m_flags(0),
+  m_curDstKey(0xffffffff),
+  m_curCopyIndex(0),
+  m_totalMsgCount(0),
+  m_dataBufferSize(0),
+  m_leftOver(0),
+  m_isMove(PR_FALSE),
+  m_dummyEnvelopeNeeded(PR_FALSE),
+  m_fromLineSeen(PR_FALSE),
+  m_writeFailed(PR_FALSE),
+  m_notifyFolderLoaded(PR_FALSE)
 {
   LL_I2L(m_lastProgressTime, PR_IntervalToMilliseconds(PR_IntervalNow()));
 }
