@@ -179,7 +179,7 @@ static int ObjStackTop;
 extern "C" {
 #endif
 
-    extern void yyerror(char *s);
+    extern void yyerror(const char *s);
 	  extern char** fieldedProp;
 
 #ifdef __cplusplus
@@ -1238,7 +1238,7 @@ void registerMimeErrorHandler(MimeErrorHandler me)
     mimeErrorHandler = me;
     }
 
-void mime_error(char *s)
+void mime_error(const char *s)
 {
   char msg[256];
   if (mimeErrorHandler) {
