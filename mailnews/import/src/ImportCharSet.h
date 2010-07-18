@@ -193,11 +193,11 @@ public:
   }
 
   inline static PRInt32 stricmp( const char * pS1, const char * pS2) {
-    while (*pS1 && *pS2 && (m_upperCaseMap[*pS1] == m_upperCaseMap[*pS2])) {
+    while (*pS1 && *pS2 && (m_upperCaseMap[PRUint8(*pS1)] == m_upperCaseMap[PRUint8(*pS2)])) {
       pS1++;
       pS2++;
     }
-    return( m_upperCaseMap[*pS1] - m_upperCaseMap[*pS2]);
+    return( m_upperCaseMap[PRUint8(*pS1)] - m_upperCaseMap[PRUint8(*pS2)]);
   }
 
 };
