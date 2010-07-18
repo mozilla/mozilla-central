@@ -214,7 +214,7 @@
     var browser = getBrowser();
     var tab = event.originalTarget;
     if (tab.localName == "tab" &&
-        tab.parentNode == browser.mTabContainer) {
+        tab.parentNode == browser.tabContainer) {
       tab.linkedBrowser.userTypedValue = url;
       if (tab == browser.mCurrentTab && url != "about:blank") {
           gURLBar.value = url;

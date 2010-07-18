@@ -151,14 +151,14 @@
       <field name="mStrip" readonly="true">
         document.getAnonymousElementByAttribute(this, "anonid", "strip");
       </field>
-      <field name="mTabContainer" readonly="true">
+      <field name="tabContainer" readonly="true">
         document.getAnonymousElementByAttribute(this, "anonid", "tabcontainer");
       </field>
       <field name="mPanelContainer" readonly="true">
         document.getAnonymousElementByAttribute(this, "anonid", "panelcontainer");
       </field>
       <field name="tabs" readonly="true">
-        this.mTabContainer.childNodes
+        this.tabContainer.childNodes
       </field>
       <field name="mStringBundle">
         document.getAnonymousElementByAttribute(this, "anonid", "tbstringbundle");
@@ -1079,7 +1079,7 @@
                               newBrowser.currentURI,
                               newBrowser.securityUI,
                               newBrowser,
-                              this.mTabListeners[this.mTabContainer.selectedIndex].mFeeds);
+                              this.mTabListeners[this.tabContainer.selectedIndex].mFeeds);
 
             // Update the window title.
             this.updateTitlebar();
@@ -1463,7 +1463,7 @@
             if (!blank)
               t.setAttribute("label", aURI);
 
-            this.mTabContainer.appendChild(t);
+            this.tabContainer.appendChild(t);
 
             var b = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
                                              "browser");
@@ -1542,7 +1542,7 @@
             if ((aRelatedToCurrent || aReferrerURI) &&
                 this.mPrefs.getBoolPref("browser.tabs.insertRelatedAfterCurrent")) {
               var lastRelatedIndex = this.mLastRelatedIndex ||
-                                     this.mTabContainer.selectedIndex;
+                                     this.tabContainer.selectedIndex;
               this.moveTabTo(t, ++lastRelatedIndex);
               this.mLastRelatedIndex = lastRelatedIndex;
             }
@@ -1591,7 +1591,7 @@
                 if (aTab.localName != "tab")
                   aTab = this.mCurrentTab;
                 else
-                  this.mTabContainer.selectedItem = aTab;
+                  this.tabContainer.selectedItem = aTab;
 
                 for (var i = this.tabs.length - 1; i >= 0; --i) {
                   if (this.tabs[i] != aTab)
@@ -1644,7 +1644,7 @@
             var b = savedData.browser;
             var hist = savedData.history;
 
-            this.mTabContainer.appendChild(t);
+            this.tabContainer.appendChild(t);
             if (t.previousSibling.selected)
               t.setAttribute("afterselected", true);
 
@@ -1755,7 +1755,7 @@
             oldBrowser.setAttribute("type", "content");
 
             // Now select the new tab before nuking the old one.
-            var currentIndex = this.mTabContainer.selectedIndex;
+            var currentIndex = this.tabContainer.selectedIndex;
 
             var newIndex = -1;
             if (currentIndex > index)
@@ -1772,14 +1772,14 @@
 
             // Clean up before/afterselected attributes before removing the tab
             aTab._selected = false;
-            this.mTabContainer.removeChild(aTab);
+            this.tabContainer.removeChild(aTab);
 
             // When the current tab is removed select a new tab
             // and fire select events on tabpanels and tabs
             if (this.mPreviousTab && (aTab == this.mCurrentTab))
               this.selectedTab = this.mPreviousTab;
             else {
-              this.mTabContainer.selectedIndex = newIndex;
+              this.tabContainer.selectedIndex = newIndex;
 
               // We need to explicitly clear this, because updateCurrentBrowser
               // doesn't get called for a background tab
@@ -1997,12 +1997,6 @@
         </body>
       </method>
 
-      <property name="tabContainer">
-        <getter>
-          return this.mTabContainer;
-        </getter>
-      </property>
-
       <property name="selectedTab">
         <getter>
           return this.mTabBox.selectedTab;
@@ -2061,7 +2055,7 @@
         <body>
           <![CDATA[
             if (aDragSession.sourceNode &&
-                aDragSession.sourceNode.parentNode == this.mTabContainer) {
+                aDragSession.sourceNode.parentNode == this.tabContainer) {
               var newIndex = this.getDropIndex(aEvent);
               var tabIndex = this.getTabIndex(aDragSession.sourceNode);
               if (newIndex == tabIndex || newIndex == tabIndex + 1)
@@ -2088,7 +2082,7 @@
             var ind = document.getAnonymousElementByAttribute(this, "class", "tab-drop-indicator");
 
             var newIndexOn = aDragSession.sourceNode &&
-                             aDragSession.sourceNode.parentNode == this.mTabContainer ?
+                             aDragSession.sourceNode.parentNode == this.tabContainer ?
                              -1 : this.getDropOnIndex(aEvent);
 
             var ltr = window.getComputedStyle(this, null).direction == "ltr";
@@ -2135,7 +2129,7 @@
             var newIndex = this.getDropIndex(aEvent);
             var tabIndex;
             if (aDragSession.sourceNode &&
-                aDragSession.sourceNode.parentNode == this.mTabContainer) {
+                aDragSession.sourceNode.parentNode == this.tabContainer) {
               tabIndex = this.getTabIndex(aDragSession.sourceNode);
               if (newIndex > tabIndex)
                 newIndex--;
@@ -2233,7 +2227,7 @@
 
             if (aDestIndex >= aSrcIndex)
               ++aDestIndex;
-            var tab = this.mTabContainer.insertBefore(this.tabs[aSrcIndex], this.tabs.item(aDestIndex));
+            var tab = this.tabContainer.insertBefore(this.tabs[aSrcIndex], this.tabs.item(aDestIndex));
 
             this.mCurrentTab._selected = true;
 
@@ -2308,7 +2302,7 @@
       <method name="moveTabForward">
         <body>
           <![CDATA[
-            var tabPos = this.mTabContainer.selectedIndex;
+            var tabPos = this.tabContainer.selectedIndex;
             if (tabPos < this.browsers.length - 1) {
               this.moveTabTo(tabPos, tabPos + 1);
               this.mCurrentTab.focus();
@@ -2322,7 +2316,7 @@
       <method name="moveTabBackward">
         <body>
           <![CDATA[
-            var tabPos = this.mTabContainer.selectedIndex;
+            var tabPos = this.tabContainer.selectedIndex;
             if (tabPos > 0) {
               this.moveTabTo(tabPos, tabPos - 1);
               this.mCurrentTab.focus();
@@ -2336,7 +2330,7 @@
       <method name="moveTabToStart">
         <body>
           <![CDATA[
-            var tabPos = this.mTabContainer.selectedIndex;
+            var tabPos = this.tabContainer.selectedIndex;
             if (tabPos > 0) {
               this.moveTabTo(tabPos, 0);
               this.mCurrentTab.focus();
@@ -2348,7 +2342,7 @@
       <method name="moveTabToEnd">
         <body>
           <![CDATA[
-            var tabPos = this.mTabContainer.selectedIndex;
+            var tabPos = this.tabContainer.selectedIndex;
             if (tabPos < this.browsers.length - 1) {
               this.moveTabTo(tabPos, this.browsers.length - 1);
               this.mCurrentTab.focus();
@@ -2378,7 +2372,7 @@
               var data = aGroup[i];
               if ("sessionHistory" in data) {
                 this.addTab("about:blank", null);
-                var browser = this.mTabContainer.lastChild.linkedBrowser;
+                var browser = this.tabContainer.lastChild.linkedBrowser;
                 // need to hold on to the listener so it won't go away
                 // addProgressListener only has a weak pointer to it
                 browser._SHListener =
@@ -2390,7 +2384,7 @@
               }
             }
             if (i < oldCount) {
-              var firstTab = this.mTabContainer.firstChild;
+              var firstTab = this.tabContainer.firstChild;
               var browserData = {
                 sessionHistory : firstTab.linkedBrowser.sessionHistory
               }
@@ -2431,7 +2425,7 @@
           } else {
             this.backBrowserGroup = this.replaceGroup(aGroup);
             this.forwardBrowserGroup = [];
-            tab = this.mTabContainer.firstChild;
+            tab = this.tabContainer.firstChild;
           }
           return tab;
         ]]>
@@ -2664,7 +2658,7 @@
       <constructor>
         <![CDATA[
           this.mCurrentBrowser = this.mPanelContainer.firstChild.firstChild;
-          this.mCurrentTab = this.mTabContainer.firstChild;
+          this.mCurrentTab = this.tabContainer.firstChild;
           document.addEventListener("keypress", this._keyEventHandler, false);
           this.mTabBox.handleCtrlTab = !/Mac/.test(navigator.platform);
           this.arrowKeysShouldWrap = /Mac/.test(navigator.platform);
@@ -2742,6 +2736,8 @@
       </destructor>
 
       <!-- Deprecated stuff, implemented for backwards compatibility. -->
+      <property name="mTabContainer" readonly="true"
+                onget="return this.tabContainer;"/>
       <property name="mTabs" readonly="true"
                 onget="return this.tabs;"/>
     </implementation>
