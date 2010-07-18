@@ -252,13 +252,6 @@
                     url="chrome://communicator/content/pref/pref-mousewheel.xul"/>
         </treechildren>
       </treeitem>
-
-      <!-- commented out until bug 82487 is fixed 
-      <treeitem id="offlineItem"
-                label="&offline.label;"
-                helpTopic="mail_prefs_offline"
-                url="chrome://communicator/content/pref/pref-offline.xul"/>
-      -->
     </treechildren>
   </tree>
 

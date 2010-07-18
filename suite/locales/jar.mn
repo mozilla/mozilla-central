@@ -159,7 +159,6 @@
   locale/@AB_CD@/communicator/pref/pref-locationbar.dtd                     (%chrome/common/pref/pref-locationbar.dtd)
   locale/@AB_CD@/communicator/pref/pref-mousewheel.dtd                      (%chrome/common/pref/pref-mousewheel.dtd)
   locale/@AB_CD@/communicator/pref/pref-navigator.dtd                       (%chrome/common/pref/pref-navigator.dtd)
-  locale/@AB_CD@/communicator/pref/pref-offline.dtd                         (%chrome/common/pref/pref-offline.dtd)
   locale/@AB_CD@/communicator/pref/pref-passwords.dtd                       (%chrome/common/pref/pref-passwords.dtd)
   locale/@AB_CD@/communicator/pref/pref-policies.dtd                        (%chrome/common/pref/pref-policies.dtd)
   locale/@AB_CD@/communicator/pref/pref-popups.dtd                          (%chrome/common/pref/pref-popups.dtd)
