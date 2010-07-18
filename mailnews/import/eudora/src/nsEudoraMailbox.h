@@ -217,7 +217,7 @@ protected:
 
 private:
   PRInt64    m_mailSize;
-  PRInt32      m_fromLen;
+  PRUint32      m_fromLen;
   nsVoidArray    m_attachments;
 };
 

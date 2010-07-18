@@ -1352,7 +1352,7 @@ nsresult nsEudoraMailbox::FillMailBuffer( ReadFileState *pState, SimpleBufferTon
     char *    pBuffer = read.m_pBuffer + read.m_bytesInBuf;
     nsresult  rv = pState->pInputStream->Read(pBuffer, count, &bytesRead);
     if (NS_FAILED( rv)) return( rv);
-    if (bytesRead != count) return( NS_ERROR_FAILURE);
+    if (bytesRead != PRUint32(count)) return( NS_ERROR_FAILURE);
     read.m_bytesInBuf += bytesRead;
     pState->offset += bytesRead;
   }
