@@ -86,7 +86,7 @@ void DUMP_FILENAME( nsIFile *pFile, PRBool endLine)
 #define DUMP_FILENAME( x, y)
 #endif
 
-static char *eudoraWeekDays[7] = {
+static const char *eudoraWeekDays[7] = {
   "Mon",
   "Tue",
   "Wed",
@@ -96,7 +96,7 @@ static char *eudoraWeekDays[7] = {
   "Sun"
 };
 
-static char *eudoraMonths[12] = {
+static const char *eudoraMonths[12] = {
   "Jan",
   "Feb",
   "Mar",
@@ -898,7 +898,7 @@ PRInt32 nsEudoraMailbox::IsEndHeaders( SimpleBufferTonyRCopiedOnce& data)
 
 
 
-static char *eudoraTag[] = {
+static const char *eudoraTag[] = {
   "<x-html>",
   "</x-html>",
   "<x-rich>",
@@ -1232,7 +1232,7 @@ void nsEudoraMailbox::EmptyAttachments( void)
   m_attachments.Clear();
 }
 
-static char *eudoraAttachLines[] = {
+static const char *eudoraAttachLines[] = {
   "Attachment Converted:",
   "Attachment converted:",
   "Pièce jointe convertie :",
