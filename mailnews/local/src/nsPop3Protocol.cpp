@@ -2158,7 +2158,7 @@ PRInt32 nsPop3Protocol::SendPassword()
     else
       rv = NS_ERROR_NULL_POINTER;
 
-    if (NS_SUCCEEDED(rv) && digest)
+    if (NS_SUCCEEDED(rv))
     {
       nsCAutoString encodedDigest;
       char hexVal[8];
@@ -2188,7 +2188,7 @@ PRInt32 nsPop3Protocol::SendPassword()
     rv = MSGApopMD5(m_ApopTimestamp.get(), m_ApopTimestamp.Length(),
                     m_passwordResult.get(), m_passwordResult.Length(), digest);
 
-    if (NS_SUCCEEDED(rv) && digest)
+    if (NS_SUCCEEDED(rv))
     {
       nsCAutoString encodedDigest;
       char hexVal[8];
