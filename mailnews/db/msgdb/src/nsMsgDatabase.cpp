@@ -2776,8 +2776,11 @@ nsMsgDBEnumerator::nsMsgDBEnumerator(nsMsgDatabase* db,
                                      nsMsgDBEnumeratorFilter filter,
                                      void* closure,
                                      PRBool iterateForwards)
-    : mDB(db), mDone(PR_FALSE), mFilter(filter),
-      mClosure(closure), mIterateForwards(iterateForwards),
+    : mDB(db),
+      mDone(PR_FALSE),
+      mIterateForwards(iterateForwards),
+      mFilter(filter),
+      mClosure(closure),
       mStopPos(-1)
 {
   mNextPrefetched = PR_FALSE;
