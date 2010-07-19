@@ -71,6 +71,7 @@ _BROWSER_FILES = browser_bug413915.js \
                  browser_alltabslistener.js \
                  alltabslistener.html \
                  browser_relatedTabs.js \
+                 browser_selectTabAtIndex.js \
     $(NULL)
 
 ifneq (cocoa,$(MOZ_WIDGET_TOOLKIT))
