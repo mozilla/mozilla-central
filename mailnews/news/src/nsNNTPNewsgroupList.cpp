@@ -97,7 +97,7 @@
 #include "nsServiceManagerUtils.h"
 
 // update status on header download once per second
-#define MIN_STATUS_UPDATE_INTERVAL PR_USEC_PER_SEC
+#define MIN_STATUS_UPDATE_INTERVAL PRTime(PR_USEC_PER_SEC)
 
 
 nsNNTPNewsgroupList::nsNNTPNewsgroupList()
@@ -1115,7 +1115,7 @@ nsNNTPNewsgroupList::AddHeader(const char *header, const char *value)
   {
     rv = m_newMsgHdr->SetLineCount(atol(value));
   }
-  else if (m_filterHeaders.IndexOf(nsDependentCString(header)) != -1)
+  else if (m_filterHeaders.IndexOf(nsDependentCString(header)) != m_filterHeaders.NoIndex)
   {
     rv = m_newMsgHdr->SetStringProperty(header, value);
   }
