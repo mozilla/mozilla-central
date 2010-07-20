@@ -38,7 +38,7 @@
 -->
 
 <!-- Note to localizers, don't localize the strings 'width' or 'height' -->
-<!ENTITY  pageInfoWindow.dimensions  "width: 100ch; height: 30em;">
+<!ENTITY  pageInfoWindow.dimensions  "width: 100ch; height: 38em;">
 
 <!ENTITY  copy.key              "C">
 <!ENTITY  copy.label            "Copy">
