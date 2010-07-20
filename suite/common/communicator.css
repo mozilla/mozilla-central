@@ -126,3 +126,14 @@ prefwindow {
 prefpane {
   -moz-binding: url("chrome://communicator/content/bindings/prefwindow.xml#prefpane");
 }
+
+/******* lightweight themes *******/
+window[lwtheme="true"] {
+  background-repeat: no-repeat;
+  background-position: top right;
+}
+
+statusbar[lwthemefooter="true"] {
+  background-repeat: no-repeat;
+  background-position: bottom left;
+}

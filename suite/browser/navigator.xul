@@ -65,6 +65,8 @@
         title="&mainWindow.title;" 
         titlemodifier="&mainWindow.titlemodifier;" 
         titlemenuseparator="&mainWindow.titlemodifiermenuseparator;"
+        lightweightthemes="true"
+        lightweightthemesfooter="status-bar"
         windowtype="navigator:browser"
         persist="screenX screenY width height sizemode"> 
 

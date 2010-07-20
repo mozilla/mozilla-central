@@ -488,10 +488,10 @@ pref("extensions.dss.switchPending", false);    // Non-dynamic switch pending af
                                                 // restart.
 
 pref("xpinstall.enabled", true);
-pref("xpinstall.whitelist.add.103", "addons.mozilla.org");
+pref("xpinstall.whitelist.add", "addons.mozilla.org");
+pref("xpinstall.whitelist.add.36", "getpersonas.com");
 
-pref("xpinstall.whitelist.add", "update.mozilla.org");
-pref("xpinstall.blacklist.add", "");
+pref("lightweightThemes.update.enabled", true);
 
 // Customizable toolbar stuff
 pref("custtoolbar.personal_toolbar_folder", "");

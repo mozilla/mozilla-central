@@ -291,6 +291,15 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   min-width: 0px;
 }
 
+#urlbar:-moz-lwtheme:not([focused="true"]),
+.tabbrowser-tab:-moz-lwtheme:not([selected="true"]) {
+  opacity: .8;
+}
+
+.tabbrowser-tab:-moz-lwtheme {
+  text-shadow: none;
+}
+
 #urlbar {
   border: 3px solid;
   -moz-border-top-colors: transparent ThreeDShadow ThreeDDarkShadow;
@@ -395,6 +404,11 @@ panel[nomatch="true"] > .autocomplete-search-box {
   min-height: 25px;
   font: message-box;
   font-weight: bold;
+}
+
+#search-button:-moz-lwtheme,
+#go-button:-moz-lwtheme {
+  opacity: .8;
 }
 
 #search-button {
