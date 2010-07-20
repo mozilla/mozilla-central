@@ -49,7 +49,7 @@ function OnLoadAddLanguages()
   gLanguageNames = window.arguments[0];
   gAvailableLanguages = document.getElementById("availableLanguages");
   gSelectedLanguages = document.getElementById("intl.accept_languages").value
-                               .split(/\s*,\s*/);
+                               .toLowerCase().split(/\s*,\s*/);
   gOtherLanguages = document.getElementById("otherLanguages");
 
   if (gLanguageNames)

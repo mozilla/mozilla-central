@@ -134,7 +134,7 @@ function ReadAvailableLanguages()
 function ReadActiveLanguages()
 {
   var arrayOfPrefs = document.getElementById("intl.accept_languages").value
-                             .split(/\s*,\s*/);
+                             .toLowerCase().split(/\s*,\s*/);
 
   // No need to rebuild listitems if languages in prefs and listitems match.
   if (InSync(arrayOfPrefs))
