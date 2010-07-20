@@ -97,8 +97,8 @@ menuitem[_moz-menuactive="true"][disabled="true"] {
 }
 
 .menu-iconic-icon {
-  min-width: 16px;
-  min-height: 16px;
+  width: 16px;
+  height: 16px;
   list-style-image: inherit;
 }
 
