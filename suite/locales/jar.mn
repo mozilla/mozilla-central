@@ -73,6 +73,7 @@
   locale/@AB_CD@/communicator/help/help-indexAZ.rdf                         (%chrome/common/help/help-indexAZ.rdf)
   locale/@AB_CD@/communicator/help/help-win.rdf                             (%chrome/common/help/help-win.rdf)
   locale/@AB_CD@/communicator/help/mail_help.xhtml                          (%chrome/common/help/mail_help.xhtml)
+  locale/@AB_CD@/communicator/help/mailnews_preferences.xhtml               (%chrome/common/help/mailnews_preferences.xhtml)
   locale/@AB_CD@/communicator/help/mail_sec_help.xhtml                      (%chrome/common/help/mail_sec_help.xhtml)
   locale/@AB_CD@/communicator/help/nav_help.xhtml                           (%chrome/common/help/nav_help.xhtml)
   locale/@AB_CD@/communicator/help/page_info_help.xhtml                     (%chrome/common/help/page_info_help.xhtml)
