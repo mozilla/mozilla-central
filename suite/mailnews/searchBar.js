@@ -88,7 +88,7 @@ var gSearchNotificationListener =
 
         // ### TODO need to find out if there's quick search within a virtual folder.
         if (gCurrentVirtualFolderUri &&
-         (!gSearchInput || gSearchInput.value == "" || gSearchInput.showingSearchCriteria))
+            (!gSearchInput || gSearchInput.value == ""))
         {
           var vFolder = GetMsgFolderFromUri(gCurrentVirtualFolderUri, false);
           var dbFolderInfo = vFolder.msgDatabase.dBFolderInfo;
@@ -190,8 +190,7 @@ function onEnterInSearchBar()
 {
    if (!gSearchBundle)
      getDocumentElements();
-   viewDebug ("onEnterInSearchBar gSearchInput.value = " /* + gSearchInput.value + " showing criteria = " + gSearchInput.showingSearchCriteria */ +"\n");
-   if (gSearchInput.value == ""  /* || gSearchInput.showingSearchCriteria */) 
+   if (gSearchInput.value == "") 
    {
     let viewType = gDBView && gDBView.viewType;
     if (viewType == nsMsgViewType.eShowQuickSearchResults ||
@@ -214,9 +213,7 @@ function onEnterInSearchBar()
      }
      else if (gPreQuickSearchView && !gDefaultSearchViewTerms)// may be a quick search from a cross-folder virtual folder
       restorePreSearchView();
-     
-//     gSearchInput.showingSearchCriteria = true;
-     
+
      gQSViewIsDirty = false;
      return;
    }
@@ -461,8 +458,6 @@ function ClearQSIfNecessary()
 function Search(str)
 {
   GetSearchInput();
-
-  viewDebug("in Search str = " + str + "gSearchInput.showingSearchCriteria = " + gSearchInput.showingSearchCriteria + "\n");
 
   if (str != gSearchInput.value)
   {
