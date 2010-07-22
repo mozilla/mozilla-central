@@ -132,3 +132,15 @@ toolbar[labelalign="end"] .toolbarbutton-1 .toolbarbutton-text {
 .toolbar-primary > toolbarpaletteitem > toolbarseparator {
   margin: 0px 8px;
 }
+
+/* ::::: solid background status bar panel ::::: */
+
+.statusbarpanel-backgroundbox {
+  -moz-box-align: stretch;
+  padding: 0px;
+}
+
+.statusbarpanel-backgroundbox > .statusbarpanel-contentbox {
+  padding: 0px 4px;
+  -moz-box-align: center;
+}

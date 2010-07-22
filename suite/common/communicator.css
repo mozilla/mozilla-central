@@ -127,6 +127,10 @@ prefpane {
   -moz-binding: url("chrome://communicator/content/bindings/prefwindow.xml#prefpane");
 }
 
+.statusbarpanel-backgroundbox {
+  -moz-binding: url("chrome://communicator/content/bindings/general.xml#statusbarpanel-backgroundbox");
+}
+
 /******* lightweight themes *******/
 window[lwtheme="true"] {
   background-repeat: no-repeat;

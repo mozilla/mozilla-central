@@ -105,6 +105,7 @@ comm.jar:
 #endif
 #endif
 #endif
+   content/communicator/bindings/general.xml                        (bindings/general.xml)
    content/communicator/bindings/notification.xml                   (bindings/notification.xml)
    content/communicator/bindings/toolbar.xml                        (bindings/toolbar.xml)
 *  content/communicator/bindings/prefwindow.xml                     (bindings/prefwindow.xml)
