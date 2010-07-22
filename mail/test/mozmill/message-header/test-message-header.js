@@ -345,11 +345,17 @@ function test_show_all_header_mode() {
 }
 
 function change_to_header_normal_mode() {
+  // Make sure we've enabled this menu before we try to click it.
+  mc.click(mc.eid("menu_View_Popup"));
+  mc.click(mc.eid("menu_HeadersPopup"));
   mc.click(new elib.Elem(mc.menus.View.viewheadersmenu.viewnormalheaders));
   mc.sleep(0);
 }
 
 function change_to_all_header_mode() {
+  // Make sure we've enabled this menu before we try to click it.
+  mc.click(mc.eid("menu_View_Popup"));
+  mc.click(mc.eid("menu_HeadersPopup"));
   mc.click(new elib.Elem(mc.menus.View.viewheadersmenu.viewallheaders));
   mc.sleep(0);
 }
