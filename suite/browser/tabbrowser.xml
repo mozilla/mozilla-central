@@ -1280,7 +1280,7 @@
                                            uri, origURI, event.target,
                                            event.target.type,
                                            null) == nsIContentPolicy.ACCEPT) {
-                this.setIcon(this.tabs[i], href);
+                this.setIcon(this.tabs[i], uri);
               }
               return;
             }
