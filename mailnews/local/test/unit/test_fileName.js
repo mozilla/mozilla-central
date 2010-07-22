@@ -22,12 +22,12 @@ function run_test() {
   pop3dir.append("Mail");
   pop3dir.append("poptest");
   // Copy the file to the local mail directory
-  bugmail.copyTo(localMailDir, "bugmail/1");
-  bugmailmsf.copyTo(localMailDir, "bugmail/1.msf");
+  bugmail.copyTo(localMailDir, "bugmail:1");
+  bugmailmsf.copyTo(localMailDir, "bugmail:1.msf");
 
   // Copy the file to the pop3 server mail directory
-  bugmail.copyTo(pop3dir, "bugmail/1");
-  bugmailmsf.copyTo(pop3dir, "bugmail/1.msf");
+  bugmail.copyTo(pop3dir, "bugmail:1");
+  bugmailmsf.copyTo(pop3dir, "bugmail:1.msf");
 
   const prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
                  .getService(Components.interfaces.nsIPrefBranch);
