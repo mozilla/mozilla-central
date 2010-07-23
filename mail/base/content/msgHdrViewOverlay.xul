@@ -55,8 +55,8 @@
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
 </stringbundleset>
 
-<popup id="messageIdContext" popupanchor="bottomleft"
-       onpopupshowing="FillMessageIdContextMenu(document.popupNode);">
+<menupopup id="messageIdContext" popupanchor="bottomleft"
+           onpopupshowing="FillMessageIdContextMenu(document.popupNode);">
   <menuitem id="messageIdContext-messageIdTarget"
             disabled="true"/>
   <menuseparator id="messageIdContext-separator"/>
@@ -72,9 +72,9 @@
             label="&CopyMessageId.label;"
             oncommand="var messageId = GetMessageIdFromNode(document.popupNode, false);
                        CopyMessageId(messageId);"/>
-</popup>
+</menupopup>
 
-<popup id="attachmentListContext" onpopupshowing="return onShowAttachmentContextMenu();">
+<menupopup id="attachmentListContext" onpopupshowing="return onShowAttachmentContextMenu();">
   <menuitem id="context-openAttachment" label="&openAttachmentCmd.label;" accesskey="&openAttachmentCmd.accesskey;"
             oncommand="HandleSelectedAttachments('open');"/>
   <menuitem id="context-saveAttachment" label="&saveAsAttachmentCmd.label;" accesskey="&saveAsAttachmentCmd.accesskey;"
@@ -90,9 +90,9 @@
     label="&detachAllAttachmentsCmd.label;"/>
   <menuitem id="context-deleteAllAttachments" oncommand="HandleAllAttachments('delete');" 
     label="&deleteAllAttachmentsCmd.label;"/>
-</popup>
+</menupopup>
 
-<popup id="attachmentMenuList">
+<menupopup id="attachmentMenuList">
   <menuseparator/>
   <menuitem id="file-saveAllAttachments" label="&saveAllAttachmentsCmd.label;" 
     accesskey="&saveAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('save');"/>
@@ -100,18 +100,18 @@
     accesskey="&detachAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('detach');" />
   <menuitem id="file-deleteAllAttachments" label="&deleteAllAttachmentsCmd.label;" 
     accesskey="&deleteAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('delete');" />
-</popup>
+</menupopup>
 
-<popup id="header-toolbar-context-menu">
+<menupopup id="header-toolbar-context-menu">
   <menuitem id="CustomizeHeaderToolbar"
             oncommand="CustomizeMailToolbar('header-view-toolbox', 'CustomizeHeaderToolbar')"
             label="&customizeToolbar.label;"
             accesskey="&customizeToolbar.accesskey;"/>
-</popup>
+</menupopup>
 
-<popup id="copyUrlPopup" popupanchor="bottomleft">
+<menupopup id="copyUrlPopup" popupanchor="bottomleft">
   <menuitem label="&copyLinkCmd.label;" accesskey="&copyLinkCmd.accesskey;" oncommand="CopyWebsiteAddress(document.popupNode)"/>
-</popup>
+</menupopup>
 
 <hbox id="msgHeaderView" collapsed="true" class="main-header-area">
   <deck id="msgHeaderViewDeck" selectedIndex="0" 

@@ -68,14 +68,14 @@
   <script type="application/javascript" src="chrome://messenger/content/addressbook/abResultsPane.js"/>
   <script type="application/javascript" src="chrome://messenger/content/addressbook/abContactsPanel.js"/>
 
-  <popup id="cardProperties">
+  <menupopup id="cardProperties">
     <menuitem label="&deleteAddrBookCard.label;" oncommand="AbDelete();"/>
     <menuitem label="&addrBookCardProperties.label;" oncommand="AbEditSelectedCard();"/>
     <menuseparator/>
     <menuitem label="&addtoToFieldMenu.label;" oncommand="addSelectedAddresses('addr_to');"/>
     <menuitem label="&addtoCcFieldMenu.label;" oncommand="addSelectedAddresses('addr_cc');"/>
     <menuitem label="&addtoBccFieldMenu.label;" oncommand="addSelectedAddresses('addr_bcc');"/>
-  </popup>
+  </menupopup>
 
   <vbox id="results_box" flex="1">
     <separator class="thin"/>

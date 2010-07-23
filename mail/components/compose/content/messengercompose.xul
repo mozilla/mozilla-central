@@ -264,8 +264,8 @@
 
 <keyset id="editorKeys"/>
 
-<popup id="msgComposeContext"
-       onpopupshowing="if (event.target != this) return true; openEditorContextMenu(this);">
+<menupopup id="msgComposeContext"
+           onpopupshowing="if (event.target != this) return true; openEditorContextMenu(this);">
 
   <menuitem id="spellCheckNoSuggestions" label="&spellCheckNoSuggestions.label;" disabled="true"/>
   <menuseparator id="spellCheckAddSep"/>
@@ -284,9 +284,9 @@
   <menuitem label="&delete.label;" accesskey="&delete.accesskey;" command="cmd_delete"/>
   <menuseparator/>
   <menuitem label="&selectAll.label;" accesskey="&selectAll.accesskey;" command="cmd_selectAll"/>
-</popup>
+</menupopup>
 
-<popup id="msgComposeAttachmentContext" onpopupshowing="updateEditItems();">
+<menupopup id="msgComposeAttachmentContext" onpopupshowing="updateEditItems();">
   <menuitem label="&openAttachment.label;" accesskey="&openAttachment.accesskey;" command="cmd_openAttachment"/>
   <menuitem label="&removeAttachment.label;" accesskey="&removeAttachment.accesskey;" command="cmd_delete"/>
   <menuitem label="&renameAttachment.label;" accesskey="&renameAttachment.accesskey;" command="cmd_renameAttachment"/>
@@ -294,16 +294,16 @@
   <menuseparator/>
   <menuitem label="&attachFile.label;" accesskey="&attachFile.accesskey;" command="cmd_attachFile"/>
   <menuitem label="&attachPage.label;" accesskey="&attachPage.accesskey;" command="cmd_attachPage"/>
-</popup>
+</menupopup>
 
-<popup id="toolbar-context-menu"
-       onpopupshowing="onViewToolbarsPopupShowing(event, 'compose-toolbox');">
+<menupopup id="toolbar-context-menu"
+           onpopupshowing="onViewToolbarsPopupShowing(event, 'compose-toolbox');">
   <menuseparator/>
   <menuitem id="CustomizeComposeToolbar"
             command="cmd_CustomizeComposeToolbar"
             label="&customizeToolbar.label;"
             accesskey="&customizeToolbar.accesskey;"/>
-</popup>
+</menupopup>
 
   <toolbox id="compose-toolbox"
            class="toolbox-top"

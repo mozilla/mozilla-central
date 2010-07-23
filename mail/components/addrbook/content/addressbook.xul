@@ -198,7 +198,7 @@
 
 <keyset id="baseMenuKeyset"/>
 
-<popup id="dirTreeContext">
+<menupopup id="dirTreeContext">
   <menuitem id="dirTreeContext-properties"
             label="&editButton2.label;"
             accesskey="&editButton2.accesskey;"
@@ -216,9 +216,9 @@
             accesskey="&deleteButton2.accesskey;"
             observes="button_delete"
             oncommand="goDoCommand('button_delete');"/>
-</popup>
+</menupopup>
 
-<popup id="abResultsTreeContext">
+<menupopup id="abResultsTreeContext">
   <menuitem id="abResultsTreeContext-properties"
             label="&editButton2.label;"
             accesskey="&editButton2.accesskey;"
@@ -238,16 +238,16 @@
             accesskey="&deleteButton2.accesskey;"
             observes="button_delete"
             oncommand="goDoCommand('button_delete');"/>
-</popup>
+</menupopup>
 
-<popup id="toolbar-context-menu"
-       onpopupshowing="onViewToolbarsPopupShowing(event, 'ab-toolbox');">
+<menupopup id="toolbar-context-menu"
+           onpopupshowing="onViewToolbarsPopupShowing(event, 'ab-toolbox');">
   <menuseparator id="customizeABToolbarMenuSeparator"/>
   <menuitem id="CustomizeABToolbar"
             command="cmd_CustomizeABToolbar"
             label="&customizeToolbar.label;"
             accesskey="&customizeToolbar.accesskey;"/>
-</popup>
+</menupopup>
 
 <toolbox id="ab-toolbox"
          class="toolbox-top"

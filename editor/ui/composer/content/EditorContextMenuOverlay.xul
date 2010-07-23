@@ -48,8 +48,8 @@
 <script type="application/javascript" src="chrome://global/content/inlineSpellCheckUI.js"/>
 
 <popupset id="editorContentContextSet">
- <popup id="editorContentContext"   
-   onpopupshowing="EditorFillContextMenu(event, this);"> 
+ <menupopup id="editorContentContext"   
+            onpopupshowing="EditorFillContextMenu(event, this);"> 
     <menuitem id="spellCheckNoSuggestions" label="&spellCheckNoSuggestions.label;" disabled="true"/>
     <menuseparator id="spellCheckAddSep"/>
     <menuitem id="spellCheckAddToDictionary"
@@ -210,9 +210,9 @@
               label="&tableOrCellColor.label;"
               accesskey="&tableOrCellColor.accesskey;"
               observes="cmd_TableOrCellColor"/>
- </popup>
+ </menupopup>
 
- <popup id="editorSourceContext">
+ <menupopup id="editorSourceContext">
    <menuitem label="&undoCmd.label;"
              accesskey="&undoCmd.accesskey;"
              command="cmd_undo"/>
@@ -236,9 +236,9 @@
    <menuitem label="&selectAllCmd.label;"
              accesskey="&selectAllCmd.accesskey;"
              command="cmd_selectAll"/>
- </popup>
+ </menupopup>
 
- <popup id="structToolbarContext">
+ <menupopup id="structToolbarContext">
    <menuitem id="structSelect"     label="&structSelect.label;"
                                    accesskey="&structSelect.accesskey;"
                                    oncommand="StructSelectTag()"/>
@@ -253,7 +253,7 @@
    <menuitem id="advancedPropsTag" label="&advancedPropertiesCmd.label;"
                                    accesskey="&advancedPropertiesCmd.accesskey;"
                                    oncommand="OpenAdvancedProperties()"/>
- </popup>
+ </menupopup>
 
 </popupset>
 

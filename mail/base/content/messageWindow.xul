@@ -119,9 +119,9 @@
 
   <popupset>
     <panel id="editContactPanel"/>
-    <popup id="emailAddressPopup" class="emailAddressPopup" position="after_start"
-           onpopupshowing="setupEmailAddressPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup')); goUpdateCommand('cmd_createFilterFromPopup')"
-           onpopuphiding="hideEmailAddressPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))">
+    <menupopup id="emailAddressPopup" class="emailAddressPopup" position="after_start"
+               onpopupshowing="setupEmailAddressPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup')); goUpdateCommand('cmd_createFilterFromPopup')"
+               onpopuphiding="hideEmailAddressPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))">
       <menuitem id="emailAddressPlaceHolder" label=""
                 disabled="true"/>
       <menuseparator/>
@@ -146,17 +146,17 @@
                 accesskey="&CreateFilterFrom.accesskey;"
                 oncommand="CreateFilter(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"
                 observes="cmd_createFilterFromPopup"/>
-    </popup>
+    </menupopup>
 
-    <popup id="messageIdContext"/>
+    <menupopup id="messageIdContext"/>
 
-    <popup id="mailContext"/>
+    <menupopup id="mailContext"/>
   </popupset>
 
-  <popup id="attachmentListContext"/>
-  <popup id="header-toolbar-context-menu"/>
-  <popup id="copyUrlPopup"/>
-  <popup id="toolbar-context-menu"/>
+  <menupopup id="attachmentListContext"/>
+  <menupopup id="header-toolbar-context-menu"/>
+  <menupopup id="copyUrlPopup"/>
+  <menupopup id="toolbar-context-menu"/>
 
   <toolbox id="mail-toolbox" class="toolbox-top">
   </toolbox>

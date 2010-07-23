@@ -541,9 +541,9 @@
 </keyset>
 
   <!-- "Please keep all items and separators up to date in nsContextMenu.js when making changes here" -->
-  <popup id="mailContext"
-         onpopupshowing="return fillMailContextMenu(event);"
-         onpopuphiding="mailContextOnPopupHiding(event);">
+  <menupopup id="mailContext"
+             onpopupshowing="return fillMailContextMenu(event);"
+             onpopuphiding="mailContextOnPopupHiding(event);">
     <menuitem id="mailContext-openInBrowser"
               label="&openInBrowser.label;"
               accesskey="&openInBrowser.accesskey;"
@@ -792,11 +792,11 @@
               label="&reportPhishingURL.label;"
               accesskey="&reportPhishingURL.accesskey;"
               oncommand="gPhishingDetector.reportPhishingURL(gContextMenu.linkURL);"/>
-  </popup>
+  </menupopup>
 
-  <popup id="folderPaneContext"
-         onpopupshowing="return fillFolderPaneContextMenu();"
-         onpopuphiding="if (event.target == this) folderPaneOnPopupHiding();">
+  <menupopup id="folderPaneContext"
+             onpopupshowing="return fillFolderPaneContextMenu();"
+             onpopuphiding="if (event.target == this) folderPaneOnPopupHiding();">
     <menuitem id="folderPaneContext-getMessages"
               label="&folderContextGetMessages.label;"
               accesskey="&folderContextGetMessages.accesskey;"
@@ -874,16 +874,16 @@
               label="&folderContextSettings.label;"
               accesskey="&folderContextSettings.accesskey;"
               oncommand="gFolderTreeController.editFolder();"/>
-  </popup>
+  </menupopup>
 
-  <popup id="toolbar-context-menu"
-         onpopupshowing="onViewToolbarsPopupShowing(event, 'mail-toolbox');">
+  <menupopup id="toolbar-context-menu"
+             onpopupshowing="onViewToolbarsPopupShowing(event, 'mail-toolbox');">
     <menuseparator id="customizeMailToolbarMenuSeparator"/>
     <menuitem id="CustomizeMailToolbar"
               command="cmd_CustomizeMailToolbar"
               label="&customizeToolbar.label;"
               accesskey="&customizeToolbar.accesskey;"/>
-  </popup>
+  </menupopup>
 
 <toolbox id="mail-toolbox"
          class="toolbox-top"

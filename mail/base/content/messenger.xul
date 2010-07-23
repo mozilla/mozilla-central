@@ -159,18 +159,18 @@
   <panel id="editContactPanel"/>
 </popupset>
 
-<popup id="mailContext"/>
-<popup id="folderPaneContext"/>
-<popup id="attachmentListContext"/>
-<popup id="header-toolbar-context-menu"/>
-<popup id="copyUrlPopup"/>
-<popup id="toolbar-context-menu"/>
+<menupopup id="mailContext"/>
+<menupopup id="folderPaneContext"/>
+<menupopup id="attachmentListContext"/>
+<menupopup id="header-toolbar-context-menu"/>
+<menupopup id="copyUrlPopup"/>
+<menupopup id="toolbar-context-menu"/>
 
 <tooltip id="attachmentListTooltip"/>
 
-<popup id="emailAddressPopup" position="after_start" class="emailAddressPopup"
-       onpopupshowing="setupEmailAddressPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup')); goUpdateCommand('cmd_createFilterFromPopup')"
-       onpopuphiding="hideEmailNewsPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'));">
+<menupopup id="emailAddressPopup" position="after_start" class="emailAddressPopup"
+           onpopupshowing="setupEmailAddressPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup')); goUpdateCommand('cmd_createFilterFromPopup')"
+           onpopuphiding="hideEmailNewsPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'));">
     <menuitem id="emailAddressPlaceHolder"
               disabled="true"/>
     <menuseparator/>
@@ -195,9 +195,9 @@
               accesskey="&CreateFilterFrom.accesskey;"
               oncommand="CreateFilter(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"
               observes="cmd_createFilterFromPopup"/>
-</popup>
+</menupopup>
 
-<popup id="copyPopup">
+<menupopup id="copyPopup">
      <menuitem id="copyMenuitem"
                label="&copyCmd.label;"
                accesskey="&copyCmd.accesskey;"
@@ -207,11 +207,11 @@
                           .copyString(window.getSelection().isCollapsed ?
                               document.popupNode.textContent :
                               window.getSelection().toString());"/>
-</popup>
+</menupopup>
 
-<popup id="newsgroupPopup" position="after_start" class="newsgroupPopup"
-       onpopupshowing="setupNewsgroupPopup(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup')); goUpdateCommand('cmd_createFilterFromPopup')"
-       onpopuphiding="hideEmailNewsPopup(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup'));">
+<menupopup id="newsgroupPopup" position="after_start" class="newsgroupPopup"
+           onpopupshowing="setupNewsgroupPopup(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup')); goUpdateCommand('cmd_createFilterFromPopup')"
+           onpopuphiding="hideEmailNewsPopup(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup'));">
     <menuitem id="newsgroupPlaceHolder"
               disabled="true"/>
     <menuseparator/>
@@ -228,9 +228,9 @@
     <menuitem id="subscribeToNewsgroupItem" label="&SubscribeToNewsgroup.label;"
               accesskey="&SubscribeToNewsgroup.accesskey;"
               oncommand="SubscribeToNewsgroup(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup'))"/>
-</popup>
+</menupopup>
 
-<popup id="messageIdContext"/>
+<menupopup id="messageIdContext"/>
 
 <tooltip id="folderpopup" class="folderSummaryPopup"/>
 

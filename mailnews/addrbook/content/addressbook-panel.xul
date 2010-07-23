@@ -73,7 +73,7 @@
     <command id="cmd_newlist" oncommand="AbNewList();"/>
   </commandset>
 
-  <popup id="composeMail" onpopupshowing="CommandUpdate_AddressBook();">
+  <menupopup id="composeMail" onpopupshowing="CommandUpdate_AddressBook();">
     <menuitem label="&toButton.label;" accesskey="&toButton.accesskey;" oncommand="AbPanelAdd('addr_to');" default="true"/>
     <menuitem label="&ccButton.label;" accesskey="&ccButton.accesskey;" oncommand="AbPanelAdd('addr_cc');"/>
     <menuitem label="&bccButton.label;" accesskey="&bccButton.accesskey;" oncommand="AbPanelAdd('addr_bcc');"/>
@@ -86,7 +86,7 @@
     <menuitem label="&newAddrBookMailingList.label;" accesskey="&newAddrBookMailingList.accesskey;" command="cmd_newlist"/>
     <menuseparator/>
     <menuitem label="&addrBookCardProperties.label;" accesskey="&addrBookCardProperties.accesskey;" oncommand="AbEditSelectedCard();"/>
-  </popup>
+  </menupopup>
   <vbox id="results_box" flex="1">
     <hbox id="panel-bar" class="toolbar" align="center">
 	  <label value="&lookIn.label;" control="addressbookList" id="lookInLabel"/>

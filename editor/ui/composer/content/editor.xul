@@ -89,8 +89,8 @@
   <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 
   <popupset id="editorContentContextSet"/>
-  <popup id="sidebarPopup"/>
-  <popup id="popupNotificationMenu"/>
+  <menupopup id="sidebarPopup"/>
+  <menupopup id="popupNotificationMenu"/>
 
   <commandset id="tasksCommands">
     <commandset id="globalEditMenuItems"/>
