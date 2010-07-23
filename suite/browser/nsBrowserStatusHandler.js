@@ -142,6 +142,15 @@ nsBrowserStatusHandler.prototype =
       this.statusTextField.label = text;
   },
 
+/**
+ * Returns true if |aMimeType| is text-based, false otherwise.
+ *
+ * @param aMimeType
+ *        The MIME type to check.
+ *
+ * If adding types to this function, please also check the similar
+ * function in mozilla/toolkit/content/widgets/findbar.xml.
+ */
   mimeTypeIsTextBased : function(contentType)
   {
     return /^text\/|\+xml$/.test(contentType) ||
