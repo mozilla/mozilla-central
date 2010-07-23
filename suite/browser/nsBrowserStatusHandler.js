@@ -427,7 +427,12 @@ nsBrowserStatusHandler.prototype =
     var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                     .getService(Components.interfaces.nsIObserverService);
 
-    if (!gURLBar.value && getWebNavigation().currentURI.spec == "about:blank")
+    // Set the URI now if it isn't already set, so that the user can tell which
+    // site is loading. Only do this if user requested the load via chrome UI,
+    // to minimise spoofing risk.
+    if (!content.opener &&
+        !gURLBar.value &&
+        getWebNavigation().currentURI.spec == "about:blank")
       URLBarSetURI(uri);
 
     try {
