@@ -236,17 +236,21 @@ function MailToolboxCustomizeDone(aEvent, customizePopupId)
   if (this.UpdateMailToolbar != undefined)
     UpdateMailToolbar(focus);
 
-  document.getElementById("header-view-toolbox").removeAttribute("doCustomization");
+  var toolbox = document.getElementsByAttribute("doCustomization", "true")[0];
+  if (toolbox) {
+    toolbox.removeAttribute("doCustomization");
 
-  // The GetMail button is stuck in a strange state right now, since the
-  // customization wrapping preserves its children, but not its initialized
-  // state. Fix that here.
-  if (document.getElementById("button-getmsg")) {
-    // We can't use _teardown here, because it'll remove the Get All menuitem
-    let popup = document.getElementById("button-getMsgPopup");
-    let sep = document.getElementById("button-getAllNewMsgSeparator");
-    while (popup.lastChild != sep)
-      popup.removeChild(popup.lastChild);
+    // The GetMail button is stuck in a strange state right now, since the
+    // customization wrapping preserves its children, but not its initialized
+    // state. Fix that here.
+    // Fix Bug 565045: Only treat "Get Message Button" if it is in our toolbox
+    var popup = toolbox.getElementsByAttribute("id", "button-getMsgPopup")[0];
+    if (popup) {
+      // We can't use _teardown here, because it'll remove the Get All menuitem
+      let sep = toolbox.getElementsByAttribute("id", "button-getAllNewMsgSeparator")[0];
+      while (popup.lastChild != sep)
+        popup.removeChild(popup.lastChild);
+    }
   }
   UpdateJunkButton();
   UpdateReplyButtons();
