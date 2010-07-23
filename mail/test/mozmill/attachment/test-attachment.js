@@ -185,3 +185,49 @@ function test_selected_attachments_are_cleared() {
   assert_equals(mc.e("attachmentList").selectedItems.length, 0,
                 "We had selected items after loading a new message!");
 }
+
+function test_attachments_menu() {
+  be_in_folder(folder);
+
+  // Add and select a message with two attachments.
+  let multiple = addMsgToFolderAndCheckAttachment(folder, "multiple",
+                                                  [TESTS[0].attachment,
+                                                   TESTS[1].attachment]);
+  select_click_row(multiple);
+
+  let cwc = composeHelper.open_compose_with_forward();
+  let attachment = cwc.e("attachmentBucket");
+
+  // Focus the attachmentBucket
+  attachment.focus();
+  assert_equals(cwc.e("cmd_delete").getAttribute("label"), "Remove Attachments",
+                "attachmentBucket is focused!");
+
+  // Select 1 attachment, and
+  // focus the subject to see the label change and to execute isCommandEnabled
+  cwc.click(new elib.Elem(attachment.children[0]));
+  cwc.e("msgSubject").focus();
+  assert_equals(cwc.e("cmd_delete").getAttribute("label"), "Delete",
+		"attachmentBucket is not focused!");
+
+  // Focus back to the attachmentBucket
+  attachment.focus();
+  assert_equals(cwc.e("cmd_delete").getAttribute("label"), "Remove Attachment",
+	        "Only 1 attachment is selected!");
+
+  // Select 2 attachments, and focus the identity for the same purpose
+  attachment.focus();
+  cwc.click(new elib.Elem(attachment.children[1]));
+  EventUtils.synthesizeMouse(attachment.children[0], 0, 0,
+                             {accelKey: true}, cwc.window);
+  cwc.e("msgIdentity").focus();
+  assert_equals(cwc.e("cmd_delete").getAttribute("label"), "Delete",
+		"attachmentBucket is not focused!");
+
+  // Focus back to the attachmentBucket
+  attachment.focus();
+  assert_equals(cwc.e("cmd_delete").getAttribute("label"), "Remove Attachments",
+  	        "Multiple attachments are selected!");
+
+  composeHelper.close_compose_window(cwc);
+}

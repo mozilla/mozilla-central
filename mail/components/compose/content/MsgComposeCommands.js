@@ -452,7 +452,24 @@ var defaultController =
 
       //Edit Menu
       case "cmd_delete":
-        return MessageGetNumSelectedAttachments();
+        var numSelectedAttachments = MessageGetNumSelectedAttachments();
+
+        var cmdDelete = document.getElementById("cmd_delete");
+        var textValue = cmdDelete.getAttribute("valueDefault");
+        var accesskeyValue = cmdDelete.getAttribute("valueDefaultAccessKey");
+
+        var hasAttachments = MessageHasAttachments();
+        if (hasAttachments) {
+          var bundle = document.getElementById("bundle_composeMsgs");
+          textValue = bundle.getString("removeAttachmentMsgs");
+          textValue = PluralForm.get(numSelectedAttachments, textValue);
+          accesskeyValue = cmdDelete.getAttribute("valueRemoveAttachmentAccessKey");
+        }
+
+        cmdDelete.setAttribute("label", textValue);
+        cmdDelete.setAttribute("accesskey", accesskeyValue);
+
+        return hasAttachments ? numSelectedAttachments : 0;
       case "cmd_selectAll":
         return MessageHasAttachments();
       case "cmd_openAttachment":
