@@ -19,3 +19,6 @@
 <!ENTITY findAsYouTypeAutoLinks.label "Links only">
 <!ENTITY findAsYouTypeAutoLinks.accesskey "o">
 
+<!ENTITY findAsYouTypeFindbarEnable.label "Show the find toolbar during find as you type">
+<!ENTITY findAsYouTypeFindbarEnable.accesskey "S">
+<!ENTITY findAsYouTypeFindbarEnableTip.label "Note: Find as you type without showing the findbar does not allow international text entry.">

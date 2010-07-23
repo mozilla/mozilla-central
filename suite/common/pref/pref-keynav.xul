@@ -63,6 +63,9 @@
       <preference id="accessibility.tabfocus"
                   name="accessibility.tabfocus"
                   type="int"/>
+      <preference id="accessibility.typeaheadfind.usefindbar"
+                  name="accessibility.typeaheadfind.usefindbar"
+                  type="bool"/>
     </preferences>
 
     <groupbox id="tabNavigationPrefs"
@@ -114,7 +117,12 @@
                   label="&findAsYouTypeTimeout.label;"
                   accesskey="&findAsYouTypeTimeout.accesskey;"
                   preference="accessibility.typeaheadfind.enabletimeout"/>
+      <checkbox id="findAsYouTypeFindbarEnable"
+                  label="&findAsYouTypeFindbarEnable.label;"
+                  accesskey="&findAsYouTypeFindbarEnable.accesskey;"
+                  preference="accessibility.typeaheadfind.usefindbar"/>
       </vbox>
+      <description>&findAsYouTypeFindbarEnableTip.label;</description>
     </groupbox>
 
   </prefpane>

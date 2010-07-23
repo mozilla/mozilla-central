@@ -1,0 +1,178 @@
+<?xml version="1.0"?>
+<!--
+   SeaMonkey Flexible Findbar
+
+   The binding implemented here mostly works like its toolkit ancestor,
+   except that it will not appear during a manually triggered type ahead find
+   if accessibility.typeaheadfind.usefindbar is false, and the automatic
+   typeahead find is controlled by the accessibility.typeaheadfind.autostart
+   preference instead of the accessibility.typeaheadfind preference.
+
+   This allows the in status bar type ahead find to be used in place of the
+   findbar implementation and allows the in status bar type ahead find
+   to only need to cache the accessibility.typeaheadfind preference branch.
+-->
+
+<!DOCTYPE bindings>
+
+<bindings id="findbarBindings"
+          xmlns="http://www.mozilla.org/xbl">
+
+  <binding id="findbar"
+           extends="chrome://global/content/bindings/findbar.xml#findbar">
+    <implementation>
+      <constructor><![CDATA[
+        var prefsvc =
+          Components.classes["@mozilla.org/preferences-service;1"]
+                    .getService(Components.interfaces.nsIPrefBranch2);
+
+        prefsvc.removeObserver("accessibility.typeaheadfind",
+                               this._observer);
+        prefsvc.addObserver("accessibility.typeaheadfind.autostart",
+                            this._suiteObserver, false);
+        prefsvc.addObserver("accessibility.typeaheadfind.usefindbar",
+                            this._suiteObserver, false);
+
+        this._useTypeAheadFind =
+          prefsvc.getBoolPref("accessibility.typeaheadfind.autostart");
+        this._useTypeAheadFindFindbar =
+          prefsvc.getBoolPref("accessibility.typeaheadfind.usefindbar");
+      ]]></constructor>
+
+      <field name="_suiteObserver"><![CDATA[({
+        _self: this,
+
+        QueryInterface: function(aIID) {
+          if (aIID.equals(Components.interfaces.nsIObserver) ||
+              aIID.equals(Components.interfaces.nsISupportsWeakReference) ||
+              aIID.equals(Components.interfaces.nsISupports))
+            return this;
+
+          throw Components.results.NS_ERROR_NO_INTERFACE;
+        },
+
+        observe: function(aSubject, aTopic, aPrefName) {
+          if (aTopic != "nsPref:changed")
+            return;
+
+          var prefsvc =
+            aSubject.QueryInterface(Components.interfaces.nsIPrefBranch2);
+
+          switch (aPrefName) {
+            case "accessibility.typeaheadfind.autostart":
+              this._self._useTypeAheadFind = prefsvc.getBoolPref(aPrefName);
+              break;
+            case "accessibility.typeaheadfind.usefindbar":
+              this._self._useTypeAheadFindFindbar = prefsvc.getBoolPref(aPrefName);
+              break;
+           }
+        }
+      })]]></field>
+
+      <!-- This is necessary because the destructor isn't called when
+           we are removed from a document that is not destroyed. This
+           needs to be explicitly called in this case -->
+      <method name="destroy">
+        <body><![CDATA[
+          if (this._destroyed)
+            return;
+          this._destroyed = true;
+
+          // It is possible that the findbar may be destroyed before any
+          // documents it is listening to (see nsIEditActionListener code below).
+          // Thus, to avoid leaking, if we are listening to any editors, unhook
+          // ourselves now, and remove our cached copies
+          if (this._editors) {
+            for (var x = this._editors.length - 1; x >= 0; --x)
+              this._unhookListenersAtIndex(x);
+          }
+
+          this.browser = null;
+
+          var prefsvc =
+            Components.classes["@mozilla.org/preferences-service;1"]
+                      .getService(Components.interfaces.nsIPrefBranch2);
+          prefsvc.removeObserver("accessibility.typeaheadfind.linksonly",
+                                 this._observer);
+          prefsvc.removeObserver("accessibility.typeaheadfind.casesensitive",
+                                 this._observer);
+          prefsvc.removeObserver("accessibility.typeaheadfind.usefindbar",
+                                 this._suiteObserver);
+          prefsvc.removeObserver("accessibility.typeaheadfind.autostart",
+                                 this._suiteObserver);
+        ]]></body>
+      </method>
+
+      <!--
+        - Returns whether FAYT can be used for the given event in
+        - the current content state.
+        -->
+      <method name="_shouldFastFind">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+          if (!this._useTypeAheadFindFindbar || aEvent.ctrlKey ||
+              aEvent.altKey || aEvent.metaKey || aEvent.getPreventDefault())
+            return false;
+
+          var win = document.commandDispatcher.focusedWindow;
+          if (win)
+            if (!this._mimeTypeIsTextBased(win.document.contentType))
+              return false;
+
+          var elt = document.commandDispatcher.focusedElement;
+          if (elt) {
+            if (elt instanceof NSHTMLInputElement && elt.mozIsTextField(false))
+              return false;
+
+            if (elt instanceof HTMLTextAreaElement ||
+                elt instanceof HTMLSelectElement ||
+                elt instanceof HTMLIsIndexElement ||
+                elt instanceof HTMLObjectElement ||
+                elt instanceof HTMLEmbedElement)
+              return false;
+          }
+
+          if (win) {
+            try {
+              var editingSession = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                                   .getInterface(Components.interfaces.nsIWebNavigation)
+                                   .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                                   .getInterface(Components.interfaces.nsIEditingSession);
+              if (editingSession.windowIsEditable(win))
+                return false;
+            }
+            catch (e) {
+              // If someone built with composer disabled, we can't get an editing session.
+            }
+          }
+
+          return true;
+        ]]></body>
+      </method>
+
+      <method name="startFastFind">
+        <parameter name="aMode"/>
+        <body><![CDATA[
+          if (this._findMode == aMode && this._quickFindTimeout) {
+            this._findField.select();
+            this._findField.focus();
+            return;
+          }
+
+          // Clear bar first, so that when openFindBar() calls setCaseSensitivity()
+          // it doesn't get confused by a lingering value
+          this._findField.value = "";
+
+          if (this._quickFindTimeout)
+            clearTimeout(this._quickFindTimeout);
+          this.open(aMode);
+          this._setFindCloseTimeout();
+          this._findField.select();
+          this._findField.focus();
+
+          this._updateStatusUI(this.nsITypeAheadFind.FIND_FOUND);
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+</bindings>

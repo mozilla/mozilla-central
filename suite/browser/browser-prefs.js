@@ -107,6 +107,9 @@ pref("browser.download.progress.closeWhenDone", false);
 // feedback from their action.
 pref("browser.download.saveLinkAsFilenameTimeout", 1000);
 
+// Use the findbar instead of the dialog box
+pref("browser.findbar.enabled", true);
+
 // various default search settings
 pref("browser.search.defaulturl", "chrome://navigator-region/locale/region.properties");
 pref("browser.search.opensidebarsearchpanel", true);
@@ -319,6 +322,9 @@ pref("layout.spellcheckDefault", 1);
 pref("accessibility.blockautorefresh", false);
 
 // special TypeAheadFind settings
+
+// Use the findbar for type ahead find, instead of the XPFE implementation
+pref("accessibility.typeaheadfind.usefindbar", true);
 pref("accessibility.typeaheadfind.flashBar", 0);
 #ifndef XP_UNIX
 pref("accessibility.typeaheadfind.soundURL", "default");

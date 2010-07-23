@@ -317,9 +317,9 @@
            oncommand="goDoCommand('cmd_switchTextDirection');"
            disabled="true"/>
   <command id="cmd_findTypeText" 
-           oncommand="goDoCommand('cmd_findTypeText')"/>
+           oncommand="findTextAsYouType();"/>
   <command id="cmd_findTypeLinks" 
-           oncommand="goDoCommand('cmd_findTypeLinks')"/>
+           oncommand="findLinksAsYouType();"/>
         
   <!-- Not needed yet, window will need this: -->
   <!-- broadcaster id="cmd_preferences"/ -->

@@ -2678,6 +2678,20 @@
         </body>
       </method>
 
+      <field name="_fastFind">null</field>
+      <property name="fastFind" readonly="true">
+        <getter>
+        <![CDATA[
+          if (!this._fastFind) {
+            this._fastFind = Components.classes["@mozilla.org/typeaheadfind;1"]
+                                       .createInstance(Components.interfaces.nsITypeAheadFind);
+            this._fastFind.init(this.docShell);
+          }
+          return this._fastFind;
+        ]]>
+        </getter>
+      </property>
+
       <constructor>
         <![CDATA[
           this.mCurrentBrowser = this.mPanelContainer.firstChild.firstChild;

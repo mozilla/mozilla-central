@@ -456,6 +456,7 @@
           taken care of by the builtin behavior inside the tabbrowser -->
     <vbox id="appcontent" flex="1"
          ondragdrop="nsDragAndDrop.drop(event, contentAreaDNDObserver);">
+      <findbar id="FindToolbar" browserid="content"/>
 
       <!-- this box is temporary, pending XBLified <browser> -->
       <hbox id="browser" flex="1">
