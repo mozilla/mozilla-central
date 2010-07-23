@@ -249,15 +249,11 @@ function replaceVariables(account, realname, emailfull, password)
                                                otherVariables);
   account.outgoing.username = _replaceVariable(account.outgoing.username,
                                                otherVariables);
-  // With the variables in mind, capitalize the hostnames which will then be
-  // sanitized and decapitalized. (Bug 546278)
   account.incoming.hostname =
-    sanitize.hostname(_replaceVariable(account.incoming.hostname.toUpperCase(),
-                                       otherVariables));
+    _replaceVariable(account.incoming.hostname, otherVariables);
   if (account.outgoing.hostname) // will be null if user picked existing server.
     account.outgoing.hostname =
-      sanitize.hostname(_replaceVariable(account.outgoing.hostname.toUpperCase(),
-                                         otherVariables));
+      _replaceVariable(account.outgoing.hostname, otherVariables);
   account.identity.realname =
     _replaceVariable(account.identity.realname, otherVariables);
   account.identity.emailAddress =
