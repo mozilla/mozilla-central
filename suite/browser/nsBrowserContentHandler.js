@@ -467,7 +467,7 @@ var nsBrowserContentHandler = {
                                  .getService(nsIPrefService)
                                  .getBranch("general.startup.");
 
-      var startupArray = prefBranch.getChildList("", {});
+      var startupArray = prefBranch.getChildList("");
 
       for (var i = 0; i < startupArray.length; ++i) {
         this.currentArgument = startupArray[i];

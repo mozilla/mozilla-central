@@ -235,7 +235,7 @@ function _init()
   var enabledBranch = prefs.getBranch("mailnews.traits.enabled.");
   var antiIdBranch = prefs.getBranch("mailnews.traits.antiId.");
   _lastIndex = prefs.getBranch("mailnews.traits.").getIntPref("lastIndex");
-  var ids = idBranch.getChildList("", {});
+  var ids = idBranch.getChildList("");
   for (var i = 0; i < ids.length; i++)
   {
     var id = idBranch.getCharPref(ids[i]);

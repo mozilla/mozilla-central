@@ -117,7 +117,7 @@ function ShowHideToolbarSeparators(toolbar) {
 
 function ShowHideToolbarButtons()
 {
-  var array = gPrefs.getChildList(kEditorToolbarPrefs, {});
+  var array = gPrefs.getChildList(kEditorToolbarPrefs);
   for (var i in array) {
     var prefName = array[i];
     var id = prefName.substr(kEditorToolbarPrefs.length) + "Button";
