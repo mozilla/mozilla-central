@@ -23,6 +23,7 @@
 # Contributor(s):
 #   Karsten Düsterloh <mnyromyr@tprac.de>
 #   Simon Paquet <bugzilla@babylonsounds.com>
+#   Thomas Düllmann <bugzilla2010@duellmann24.net>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -539,6 +540,7 @@
   <keyset id="baseMenuKeyset"/>
 </keyset>
 
+  <!-- "Please keep all items and separators up to date in nsContextMenu.js when making changes here" -->
   <popup id="mailContext"
          onpopupshowing="return fillMailContextMenu(event);"
          onpopuphiding="mailContextOnPopupHiding(event);">
@@ -610,10 +612,6 @@
               accesskey="&contextOpenConversation.accesskey;"
               oncommand="gConversationOpener.openConversationForMessages(gFolderDisplay.selectedMessages);"/>
     <menuseparator id="mailContext-sep-open2"/>
-    <menuitem id="mailContext-archive"
-              label="&contextArchive.label;"
-              accesskey="&contextArchive.accesskey;"
-              oncommand="MsgArchiveSelectedMessages(event);"/>
     <menuitem id="mailContext-replySender"
               label="&contextReplySender.label;"
               accesskey="&contextReplySender.accesskey;"
@@ -643,54 +641,17 @@
               accesskey="&contextEditAsNew.accesskey;"
               oncommand="MsgEditMessageAsNew();"/>
     <menuseparator id="mailContext-sep-reply"/>
-    <menuitem id="mailContext-copyMessageUrl"
-              label="&copyMessageLocation.label;"
-              accesskey="&copyMessageLocation.accesskey;"
-              oncommand="CopyMessageUrl()"/>
-    <menu id="mailContext-moveMenu"
-          label="&contextMoveMsgMenu.label;"
-          accesskey="&contextMoveMsgMenu.accesskey;"
-          oncommand="MsgMoveMessage(event.target._folder)">
-      <menupopup id="mailContext-fileHereMenu"
-                 type="folder"
-                 mode="filing"
-                 showFileHereLabel="true"
-                 showRecent="true"
-                 fileHereLabel="&fileHereMenu.label;"
-                 fileHereAccessKey="&fileHereMenu.accesskey;"
-                 recentLabel="&contextMoveCopyMsgRecentMenu.label;"
-                 recentAccessKey="&contextMoveCopyMsgRecentMenu.accesskey;"/>
-    </menu>
-    <menu id="mailContext-copyMenu"
-          label="&contextCopyMsgMenu.label;"
-          accesskey="&contextCopyMsgMenu.accesskey;"
-          oncommand="MsgCopyMessage(event.target._folder)">
-      <menupopup id="mailContext-copyHereMenu"
-                 type="folder"
-                 mode="filing"
-                 showFileHereLabel="true"
-                 showRecent="true"
-                 fileHereLabel="&copyHereMenu.label;"
-                 fileHereAccessKey="&copyHereMenu.accesskey;"
-                 recentLabel="&contextMoveCopyMsgRecentMenu.label;"
-                 recentAccessKey="&contextMoveCopyMsgRecentMenu.accesskey;"/>
-    </menu>
-    <menuitem id="mailContext-moveToFolderAgain"
-              command="cmd_moveToFolderAgain"
-              label="&moveToFolderAgain.label;"
-              accesskey="&moveToFolderAgain.accesskey;"/>
-    <menuseparator id="paneContext-afterMove"/>
     <menu id="mailContext-tags" label="&tagMenu.label;" accesskey="&tagMenu.accesskey;">
       <menupopup id="mailContext-tagpopup"
                  onpopupshowing="InitMessageTags(this)">
-        <menuitem id="mailContext-tagRemoveAll"
-                  oncommand="RemoveAllMessageTags();"/>
-        <menuseparator id="mailContext-sep-afterTagRemoveAll"/>
-        <menuseparator id="mailContext-sep-beforeAddNewTag"/>
         <menuitem id="addNewTag"
                   label="&addNewTag.label;"
                   accesskey="&addNewTag.accesskey;"
                   oncommand="AddTag();"/>
+        <menuseparator id="mailContext-sep-afterTagAddNew"/>
+        <menuitem id="mailContext-tagRemoveAll"
+                  oncommand="RemoveAllMessageTags();"/>
+        <menuseparator id="mailContext-sep-afterTagRemoveAll"/>
       </menupopup>
     </menu>
     <menu id="mailContext-mark"
@@ -737,6 +698,47 @@
       </menupopup>
     </menu>
     <menuseparator id="mailContext-sep-afterMarkMenu"/>
+    <menuitem id="mailContext-copyMessageUrl"
+              label="&copyMessageLocation.label;"
+              accesskey="&copyMessageLocation.accesskey;"
+              oncommand="CopyMessageUrl()"/>
+    <menuitem id="mailContext-archive"
+              label="&contextArchive.label;"
+              accesskey="&contextArchive.accesskey;"
+              oncommand="MsgArchiveSelectedMessages(event);"/>
+    <menu id="mailContext-moveMenu"
+          label="&contextMoveMsgMenu.label;"
+          accesskey="&contextMoveMsgMenu.accesskey;"
+          oncommand="MsgMoveMessage(event.target._folder)">
+      <menupopup id="mailContext-fileHereMenu"
+                 type="folder"
+                 mode="filing"
+                 showFileHereLabel="true"
+                 showRecent="true"
+                 fileHereLabel="&fileHereMenu.label;"
+                 fileHereAccessKey="&fileHereMenu.accesskey;"
+                 recentLabel="&contextMoveCopyMsgRecentMenu.label;"
+                 recentAccessKey="&contextMoveCopyMsgRecentMenu.accesskey;"/>
+    </menu>
+    <menu id="mailContext-copyMenu"
+          label="&contextCopyMsgMenu.label;"
+          accesskey="&contextCopyMsgMenu.accesskey;"
+          oncommand="MsgCopyMessage(event.target._folder)">
+      <menupopup id="mailContext-copyHereMenu"
+                 type="folder"
+                 mode="filing"
+                 showFileHereLabel="true"
+                 showRecent="true"
+                 fileHereLabel="&copyHereMenu.label;"
+                 fileHereAccessKey="&copyHereMenu.accesskey;"
+                 recentLabel="&contextMoveCopyMsgRecentMenu.label;"
+                 recentAccessKey="&contextMoveCopyMsgRecentMenu.accesskey;"/>
+    </menu>
+    <menuitem id="mailContext-moveToFolderAgain"
+              command="cmd_moveToFolderAgain"
+              label="&moveToFolderAgain.label;"
+              accesskey="&moveToFolderAgain.accesskey;"/>
+    <menuseparator id="paneContext-afterMove"/>
     <menuitem id="mailContext-saveAs"
               label="&contextSaveAs.label;"
               accesskey="&contextSaveAs.accesskey;"
@@ -1350,10 +1352,6 @@
                       accesskey="&newMsgCmd.accesskey;"
                       key="key_newMessage2"
                       oncommand="MsgNewMessage(null);"/>
-            <menuitem id="archiveMainMenu" label="&archiveMsgCmd.label;"
-                      accesskey="&archiveMsgCmd.accesskey;"
-                      key="key_archive"
-                      command="cmd_archive"/>
             <menuitem id="replyMainMenu" label="&replyMsgCmd.label;"
                       accesskey="&replyMsgCmd.accesskey;"
                       key="key_reply"
@@ -1393,6 +1391,7 @@
                       accesskey="&editMsgAsNewCmd.accesskey;"
                       key="key_editAsNew"
                       command="cmd_editAsNew"/>
+            <menuseparator id="messageMenuAfterCompositionCommandsSeparator"/>
             <menuitem id="openMessageWindowMenuitem" label="&openMessageWindowCmd.label;"
                       command="cmd_openMessage"
                       accesskey="&openMessageWindowCmd.accesskey;"
@@ -1426,35 +1425,13 @@
               </menupopup>
             </menu>
             <menuseparator id="messageAfterOpenMsgSeparator"/>
-            <menu id="moveMenu"
-                  label="&moveMsgToMenu.label;"
-                  accesskey="&moveMsgToMenu.accesskey;"
-                  oncommand="MsgMoveMessage(event.target._folder)">
-              <menupopup type="folder" mode="filing" showFileHereLabel="true"
-                         showRecent="true" fileHereLabel="&fileHereMenu.label;"
-                         fileHereAccessKey="&fileHereMenu.accesskey;"
-                         recentLabel="&moveCopyMsgRecentMenu.label;"
-                         recentAccessKey="&moveCopyMsgRecentMenu.accesskey;"/>
-            </menu>
-            <menu id="copyMenu"
-                  label="&copyMsgToMenu.label;"
-                  accesskey="&copyMsgToMenu.accesskey;"
-                  oncommand="MsgCopyMessage(event.target._folder)">
-              <menupopup type="folder" mode="filing" showFileHereLabel="true"
-                         showRecent="true" fileHereLabel="&copyHereMenu.label;"
-                         fileHereAccessKey="&copyHereMenu.accesskey;"
-                         recentLabel="&moveCopyMsgRecentMenu.label;"
-                         recentAccessKey="&moveCopyMsgRecentMenu.accesskey;"/>
-            </menu>
-            <menuitem id="moveToFolderAgain" key="key_moveToFolderAgain" command="cmd_moveToFolderAgain"
-                      label="&moveToFolderAgain.label;" accesskey="&moveToFolderAgain.accesskey;"/>
             <menu id="tagMenu" label="&tagMenu.label;" accesskey="&tagMenu.accesskey;" command="cmd_tag">
               <menupopup id="tagMenu-tagpopup" onpopupshowing="InitMessageTags(this)">
-              <menuitem id="tagMenu-tagRemoveAll" oncommand="RemoveAllMessageTags();"/>
-                <menuseparator id="tagMenuAfterRemoveSeparator"/>
-                <menuseparator id="tagMenuBeforeAddSeparator"/>
                 <menuitem id="addNewTag" label="&addNewTag.label;" accesskey="&addNewTag.accesskey;"
                           oncommand="AddTag();"/>
+                <menuseparator id="tagMenu-sep-afterTagAddNew"/>
+                <menuitem id="tagMenu-tagRemoveAll" oncommand="RemoveAllMessageTags();"/>
+                <menuseparator id="tagMenuAfterRemoveSeparator"/>
               </menupopup>
             </menu>
             <menu id="markMenu" label="&markMenu.label;" accesskey="&markMenu.accesskey;">
@@ -1489,6 +1466,33 @@
               </menupopup>
             </menu>
             <menuseparator id="messageMenuAfterMarkSeparator"/>
+            <menuitem id="archiveMainMenu" label="&archiveMsgCmd.label;"
+                      accesskey="&archiveMsgCmd.accesskey;"
+                      key="key_archive"
+                      command="cmd_archive"/>
+            <menu id="moveMenu"
+                  label="&moveMsgToMenu.label;"
+                  accesskey="&moveMsgToMenu.accesskey;"
+                  oncommand="MsgMoveMessage(event.target._folder)">
+              <menupopup type="folder" mode="filing" showFileHereLabel="true"
+                         showRecent="true" fileHereLabel="&fileHereMenu.label;"
+                         fileHereAccessKey="&fileHereMenu.accesskey;"
+                         recentLabel="&moveCopyMsgRecentMenu.label;"
+                         recentAccessKey="&moveCopyMsgRecentMenu.accesskey;"/>
+            </menu>
+            <menu id="copyMenu"
+                  label="&copyMsgToMenu.label;"
+                  accesskey="&copyMsgToMenu.accesskey;"
+                  oncommand="MsgCopyMessage(event.target._folder)">
+              <menupopup type="folder" mode="filing" showFileHereLabel="true"
+                         showRecent="true" fileHereLabel="&copyHereMenu.label;"
+                         fileHereAccessKey="&copyHereMenu.accesskey;"
+                         recentLabel="&moveCopyMsgRecentMenu.label;"
+                         recentAccessKey="&moveCopyMsgRecentMenu.accesskey;"/>
+            </menu>
+            <menuitem id="moveToFolderAgain" key="key_moveToFolderAgain" command="cmd_moveToFolderAgain"
+                      label="&moveToFolderAgain.label;" accesskey="&moveToFolderAgain.accesskey;"/>
+            <menuseparator id="messageMenuAfterMoveCommandsSeparator"/>
             <menuitem id="createFilter" label="&createFilter.label;"
                       accesskey="&createFilter.accesskey;"
                       command="cmd_createFilterFromMenu"/>
@@ -1804,13 +1808,13 @@
                    tooltiptext="&tagButton.tooltip;"
                    command="cmd_tag">
       <menupopup id="button-tagpopup" onpopupshowing="InitMessageTags(this)">
-        <menuitem id="button-tagRemoveAll" oncommand="RemoveAllMessageTags();"/>
-        <menuseparator id="button-afterTagRemoveAllSeparator"/>
-        <menuseparator id="beforeAddNewTagSeparator"/>
         <menuitem id="addNewTag"
                   label="&addNewTag.label;"
                   accesskey="&addNewTag.accesskey;"
                   oncommand="AddTag();"/>
+        <menuseparator id="button-tagpopup-sep-afterTagAddNew"/>
+        <menuitem id="button-tagRemoveAll" oncommand="RemoveAllMessageTags();"/>
+        <menuseparator id="button-afterTagRemoveAllSeparator"/>
       </menupopup>
     </toolbarbutton>
     <toolbarbutton id="button-address"

@@ -33,6 +33,7 @@
  *   Dan Mosedale <dmose@mozilla.org>
  *   Michiel van Leeuwen <mvl@exedo.nl>
  *   Joachim Herb <herb@leo.org>
+ *   Thomas Düllmann <bugzilla2010@duellmann24.net>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -669,17 +670,13 @@ function InitMessageTags(menuPopup)
   var tagArray = tagService.getAllTags({});
   var tagCount = tagArray.length;
 
-  // remove any existing non-static entries...
-  var menuseparator = menuPopup.lastChild.previousSibling;
+  // remove any existing non-static entries...  (clear tags list before rebuilding it)
   for (var i = menuPopup.childNodes.length; i > 4; --i)
-    menuPopup.removeChild(menuseparator.previousSibling);
-
-  // hide double menuseparator
-  menuseparator.previousSibling.hidden = !tagCount;
+    menuPopup.removeChild(menuPopup.lastChild);
 
   // create label and accesskey for the static remove item
   var tagRemoveLabel = gMessengerBundle.getString("mailnews.tags.remove");
-  SetMessageTagLabel(menuPopup.firstChild, 0, tagRemoveLabel);
+  SetMessageTagLabel(menuPopup.lastChild.previousSibling, 0, tagRemoveLabel);
 
   // now rebuild the list
   var msgHdr = gFolderDisplay.selectedMessage;
@@ -701,7 +698,7 @@ function InitMessageTags(menuPopup)
     var color = taginfo.color;
     if (color)
       newMenuItem.setAttribute("class", "lc-" + color.substr(1));
-    menuPopup.insertBefore(newMenuItem, menuseparator);
+    menuPopup.appendChild(newMenuItem);
   }
 }
 

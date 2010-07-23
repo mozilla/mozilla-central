@@ -24,6 +24,7 @@
  *   Blake Ross <blakeross@telocity.com>
  *   Gervase Markham <gerv@gerv.net>
  *   Phil Ringnalda <philringnalda@gmail.com>
+ *   Thomas Düllmann <bugzilla2010@duellmann24.net>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -286,6 +287,8 @@ nsContextMenu.prototype = {
       "mailContext-sep-open-browser", "mailContext-sep-link",
       "mailContext-sep-open", "mailContext-sep-open2",
       "mailContext-sep-reply", "paneContext-afterMove",
+      "mailContext-sep-afterTagAddNew", "mailContext-sep-afterTagRemoveAll",
+      "mailContext-sep-afterMarkAllRead", "mailContext-sep-afterMarkFlagged",
       "mailContext-sep-afterMarkMenu", "mailContext-sep-edit",
       "mailContext-sep-copy", "mailContext-sep-reportPhishing"
     ];
