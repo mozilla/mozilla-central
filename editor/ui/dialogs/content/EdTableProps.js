@@ -281,11 +281,6 @@ function Startup()
   // If first initializing, we really aren't changing anything
   gCellDataChanged = false;
 
-  if (gDialog.TabBox.selectedTab == gDialog.CellTab)
-    setTimeout("gDialog.SelectionList.focus()", 0);
-  else
-    SetTextboxFocus(gDialog.TableRowsInput);
-
   SetWindowLocation();
 }
 

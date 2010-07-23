@@ -501,7 +501,7 @@ function _awSetFocus()
     if (top.awFocusRetry < 8)
     {
       dump("_awSetFocus failed, try it again...\n");
-      setTimeout("_awSetFocus();", 0);
+      setTimeout(_awSetFocus, 0);
     }
     else
       dump("_awSetFocus failed, forget about it!\n");

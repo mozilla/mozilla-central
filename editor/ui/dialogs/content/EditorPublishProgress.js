@@ -387,7 +387,7 @@ function RequestCloseDialog()
   if (!gDialog.KeepOpen.checked)
   {
     // Leave window open a minimum amount of time 
-    gTimerID = setTimeout("CloseDialog();", 3000);
+    gTimerID = setTimeout(CloseDialog, 3000);
   }
 
   // Set "completed" message if we succeeded

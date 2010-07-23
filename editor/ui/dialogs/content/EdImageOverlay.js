@@ -397,7 +397,7 @@ function ChangeImageSrc()
   if (gTimerID)
     clearTimeout(gTimerID);
 
-  gTimerID = setTimeout("LoadPreviewImage()", 800);
+  gTimerID = setTimeout(LoadPreviewImage, 800);
 
   SetRelativeCheckbox();
   doOverallEnabling();

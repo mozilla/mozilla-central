@@ -58,7 +58,7 @@ function KeepCurrentPage()
 function UseOtherPage()
 {
   // Reload the URL -- that will get other editor's contents
-  setTimeout("window.opener.EditorLoadUrl(GetDocumentUrl())", 10);
+  window.opener.setTimeout(window.opener.EditorLoadUrl, 0, GetDocumentUrl());
   SaveWindowLocation();
   return true;
 }

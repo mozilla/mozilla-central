@@ -140,7 +140,7 @@ dump(" *** Linkcount = "+gNumLinksToCheck+"\n");
   gStartedAllChecks = true;
 
   // Start timer to limit how long we wait for link checking
-  gLinkCheckTimerID = setTimeout("LinkCheckTimeOut()", 5000);
+  gLinkCheckTimerID = setTimeout(LinkCheckTimeOut, 5000);
   window.sizeToContent();
 }
 

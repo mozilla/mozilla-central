@@ -152,7 +152,7 @@ function fixBgDiv(){
     frameDoc.getElementById("bgDiv").style.height = imageEl.offsetHeight;
   }
   else
-    setTimeout("fixBgDiv()", 100);
+    setTimeout(fixBgDiv, 100);
 }
 
 function hideToolbar(){
