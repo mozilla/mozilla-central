@@ -86,6 +86,11 @@ var sessionStoreManager =
    */
   _shutdownStateSaved: false,
 
+  /**
+   * This is called on startup, and when a new 3 pane window is opened after
+   * the last 3 pane window was closed (e.g., on the mac, closing the last
+   * window doesn't shut down the app).
+   */
   _init: function ssm_init()
   {
     this._loadSessionFile();
@@ -116,6 +121,9 @@ var sessionStoreManager =
       // delete the file in case there is something crash-inducing about
       // the restoration process
       sessionFile.remove(false);
+      // clear the current state so that subsequent writes won't think
+      // the state hasn't changed.
+      this._currentStateString = null;
 
       if (data) {
         try {
@@ -238,14 +246,15 @@ var sessionStoreManager =
    */
   loadingWindow: function ssm_loadingWindow(aWindow)
   {
-    let firstWindow = !this._initialized;
+    let firstWindow = !this._initialized || this._shutdownStateSaved;
     if (firstWindow)
       this._init();
-    
+
     // If we are seeing a new 3-pane, we are obviously not in a shutdown
     // state anymore.  (This would happen if all the 3panes got closed but
     // we did not quit because another window was open and then a 3pane showed
     // up again.  This can happen in both unit tests and real life.)
+    // We treat this case like the first window case, and do a session restore.
     this._shutdownStateSaved = false;
 
     let windowState = null;

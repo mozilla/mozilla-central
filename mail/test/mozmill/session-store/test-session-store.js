@@ -195,6 +195,44 @@ function test_single_3pane_periodic_session_persistence() {
                 "saved state and loaded state should be equal");
 }
 
+function test_restore_single_3pane_persistence() {
+  be_in_folder(folderA);
+  toggle_message_pane();
+  assert_message_pane_hidden();
+
+  // get the state object. this assumes there is one and only one
+  // 3pane window.
+  let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"].
+                      getService(Ci.nsIWindowWatcher);
+  let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"].
+                       getService(Ci.nsIWindowMediator);
+  let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+
+  // make sure we have a different window open, so that we don't start shutting
+  // down just because the last window was closed
+  let abwc = openAddressBook(windowWatcher);
+
+  // close the 3pane window
+  mail3PaneWindow.close();
+
+  mc = open3PaneWindow(windowWatcher);
+  be_in_folder(folderA);
+  assert_message_pane_hidden();
+  // restore message pane.
+  toggle_message_pane();
+
+  // We don't need the address book window any more.
+  plan_for_window_close(abwc);
+  abwc.window.close();
+  wait_for_window_close();
+}
+
+function test_restore_single_3pane_persistence_again() {
+  // test that repeating the save w/o changing the state restores
+  // correctly.
+  test_restore_single_3pane_persistence();
+}
+
 function test_multiple_3pane_periodic_session_persistence() {
   // open a few more 3pane windows
   let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"].
@@ -259,11 +297,13 @@ function test_bad_session_file_simple() {
 }
 
 function test_clean_shutdown_session_persistence_simple() {
+
   // open a few more 3pane windows
   let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"].
                       getService(Ci.nsIWindowWatcher);
-  for (var i = 0; i < 3; ++i)
+  for (var i = 0; i < 3; ++i) {
     open3PaneWindow(windowWatcher);
+  }
 
   // make sure we have a different window open, so that we don't start shutting
   // down just because the last window was closed
@@ -294,14 +334,10 @@ function test_clean_shutdown_session_persistence_simple() {
   jumlib.assert(JSON.stringify(windowState) == JSON.stringify(lastWindowState),
                 "saved state and loaded state should be equal");
 
-  // XXX we force the session store manager to think it's not initialized
-  // so that it'll load the session file and restore the state of the last
-  // open window 3pane window.
-  sessionStoreManager._initialized = false;
 
   open3PaneWindow(windowWatcher);
 
-  // we don't need the search window any more
+  // We don't need the address book window any more.
   plan_for_window_close(abwc);
   abwc.window.close();
   wait_for_window_close();
