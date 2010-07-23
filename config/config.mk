@@ -56,11 +56,6 @@ endif
 ifndef INCLUDED_AUTOCONF_MK
 include $(DEPTH)/config/autoconf.mk
 endif
-ifndef INCLUDED_INSURE_MK
-ifdef MOZ_INSURIFYING
-include $(MOZILLA_SRCDIR)/config/insure.mk
-endif
-endif
 
 COMMA = ,
 

@@ -1477,10 +1477,7 @@ if test "$GNU_CC"; then
     _PEDANTIC=1
 
     if test -z "$INTEL_CC"; then
-      _IGNORE_LONG_LONG_WARNINGS=1
       _WARNINGS_CFLAGS="${_WARNINGS_CFLAGS} -W"
-    else
-      _IGNORE_LONG_LONG_WARNINGS=
     fi
 
 
@@ -1867,7 +1864,6 @@ case "$target" in
 *-bsdi*)
     dnl -pedantic doesn't play well with BSDI's _very_ modified gcc (shlicc2)
     _PEDANTIC=
-    _IGNORE_LONG_LONG_WARNINGS=
     case $OS_RELEASE in
 	4.*|5.*)
             STRIP="$STRIP -d"
@@ -5617,16 +5613,13 @@ fi
 
 AC_SUBST(MOZ_NATIVE_SQLITE)
 
+dnl ========================================================
 dnl = Enable help viewer (off by default)
 dnl ========================================================
-MOZ_ARG_ENABLE_BOOL(help-viewer,
-[  --enable-help-viewer        Enable help viewer],
-    MOZ_HELP_VIEWER=1,
-    MOZ_HELP_VIEWER= )
 if test -n "$MOZ_HELP_VIEWER"; then
+     dnl Do this if defined in confvars.sh
      AC_DEFINE(MOZ_HELP_VIEWER)
 fi
-AC_SUBST(MOZ_HELP_VIEWER)
 
 dnl ========================================================
 dnl = Enable safe browsing (anti-phishing)
@@ -6224,27 +6217,6 @@ MOZ_ARG_ENABLE_STRING(profile-modules,
                           Enable/disable profiling for specific modules],
 [ MOZ_PROFILE_MODULES=`echo $enableval| sed 's/,/ /g'` ] )
 
-MOZ_ARG_ENABLE_BOOL(insure,
-[  --enable-insure         Enable insure++ instrumentation (linux only)],
-    _ENABLE_INSURE=1,
-    _ENABLE_INSURE= )
-if test -n "$_ENABLE_INSURE"; then
-    MOZ_INSURE="insure"
-    MOZ_INSURIFYING=1
-    MOZ_INSURE_DIRS="."
-    MOZ_INSURE_EXCLUDE_DIRS="config"
-fi
-
-MOZ_ARG_WITH_STRING(insure-dirs,
-[  --with-insure-dirs=DIRS
-                          Dirs to instrument with insure ],
-    MOZ_INSURE_DIRS=$withval )
-
-MOZ_ARG_WITH_STRING(insure-exclude-dirs,
-[  --with-insure-exclude-dirs=DIRS
-                          Dirs to not instrument with insure ],
-    MOZ_INSURE_EXCLUDE_DIRS="config $withval" )
-
 dnl ========================================================
 dnl = Support for Quantify (Windows)
 dnl ========================================================
@@ -6406,28 +6378,6 @@ else
 fi
 
 dnl ========================================================
-dnl Pass -Wno-long-long to the compiler
-dnl ========================================================
-MOZ_ARG_DISABLE_BOOL(long-long-warning,
-[  --disable-long-long-warning
-                          Do not warn about use of non-ANSI long long type (if supported)],
-    _IGNORE_LONG_LONG_WARNINGS=1,
-    _IGNORE_LONG_LONG_WARNINGS=)
-
-if test -n "$_IGNORE_LONG_LONG_WARNINGS"; then
-    _SAVE_CFLAGS="$CFLAGS"
-    CFLAGS="$CFLAGS ${_COMPILER_PREFIX}-Wno-long-long"
-    AC_MSG_CHECKING([whether compiler supports -Wno-long-long])
-    AC_TRY_COMPILE([], [return(0);],
-      [ _WARNINGS_CFLAGS="${_WARNINGS_CFLAGS} ${_COMPILER_PREFIX}-Wno-long-long"
-        _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} ${_COMPILER_PREFIX}-Wno-long-long"
-        result="yes" ],
-      result="no")
-    AC_MSG_RESULT([$result])
-    CFLAGS="$_SAVE_CFLAGS"
-fi
-
-dnl ========================================================
 dnl Profile guided optimization
 dnl ========================================================
 dnl Test for profiling options
@@ -6503,7 +6453,7 @@ MOZ_ARG_DISABLE_BOOL(pedantic,
 _PEDANTIC= )
 if test "$_PEDANTIC"; then
     _SAVE_CXXFLAGS=$CXXFLAGS
-    CXXFLAGS="$CXXFLAGS ${_WARNINGS_CXXFLAGS} ${_COMPILER_PREFIX}-pedantic"
+    CXXFLAGS="$CXXFLAGS ${_WARNINGS_CXXFLAGS} ${_COMPILER_PREFIX}-pedantic ${_COMPILER_PREFIX}-Wno-long-long"
     AC_MSG_CHECKING([whether C++ compiler has -pedantic long long bug])
     AC_TRY_COMPILE([$configure_static_assert_macros],
                    [CONFIGURE_STATIC_ASSERT(sizeof(long long) == 8)],
@@ -6513,8 +6463,8 @@ if test "$_PEDANTIC"; then
 
     case "$result" in
     no)
-        _WARNINGS_CFLAGS="${_WARNINGS_CFLAGS} ${_COMPILER_PREFIX}-pedantic"
-        _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} ${_COMPILER_PREFIX}-pedantic"
+        _WARNINGS_CFLAGS="${_WARNINGS_CFLAGS} ${_COMPILER_PREFIX}-pedantic ${_COMPILER_PREFIX}-Wno-long-long"
+        _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} ${_COMPILER_PREFIX}-pedantic ${_COMPILER_PREFIX}-Wno-long-long"
         ;;
     yes)
         AC_MSG_ERROR([Your compiler appears to have a known bug where long long is miscompiled when using -pedantic.  Reconfigure using --disable-pedantic. ])
@@ -6990,11 +6940,7 @@ AC_SUBST(MOZ_JPROF)
 AC_SUBST(MOZ_SHARK)
 AC_SUBST(MOZ_JSLOADER)
 AC_SUBST(MOZ_USE_NATIVE_UCONV)
-AC_SUBST(MOZ_INSURE)
-AC_SUBST(MOZ_INSURE_DIRS)
-AC_SUBST(MOZ_INSURE_EXCLUDE_DIRS)
 AC_SUBST(MOZ_QUANTIFY)
-AC_SUBST(MOZ_INSURIFYING)
 AC_SUBST(MOZ_LDAP_XPCOM)
 AC_SUBST(MOZ_LDAP_XPCOM_EXPERIMENTAL)
 AC_SUBST(LDAP_CFLAGS)
@@ -7004,6 +6950,7 @@ AC_SUBST(MOZ_PLACES_BOOKMARKS)
 AC_SUBST(MOZ_STORAGE)
 AC_SUBST(MOZ_FEEDS)
 AC_SUBST(NS_PRINTING)
+AC_SUBST(MOZ_HELP_VIEWER)
 
 AC_SUBST(MOZ_PROFILELOCKING)
 
