@@ -534,7 +534,10 @@ NS_IMETHODIMP nsPop3IncomingServer::DownloadMailFromServers(nsISupportsArray *aS
   return getMailChainer->GetNewMailForServers(aServers, aMsgWindow, aFolder, aUrlListener);
 }
 
-NS_IMETHODIMP nsPop3IncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlListener *aUrlListener, nsIMsgFolder *aInbox, nsIURI **aResult)
+NS_IMETHODIMP nsPop3IncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow,
+                                               nsIUrlListener *aUrlListener,
+                                               nsIMsgFolder *aInbox,
+                                               nsIURI **aResult)
 {
   nsresult rv;
   nsCOMPtr<nsIPop3Service> pop3Service = do_GetService(kCPop3ServiceCID, &rv);
@@ -578,11 +581,12 @@ nsPop3IncomingServer::GetNewMessages(nsIMsgFolder *aFolder, nsIMsgWindow *aMsgWi
     nsCOMPtr <nsISupports> supports;
     this->QueryInterface(NS_GET_IID(nsISupports), getter_AddRefs(supports));
     deferredServers->InsertElementAt(supports, 0);
-    rv = getMailChainer->GetNewMailForServers(deferredServers, aMsgWindow, inbox, aUrlListener);
+    return getMailChainer->GetNewMailForServers(deferredServers, aMsgWindow, inbox, aUrlListener);
   }
-  else
-    rv = pop3Service->GetNewMail(aMsgWindow, aUrlListener, inbox, this, getter_AddRefs(url));
-  return rv;
+  if (m_runningProtocol)
+    return NS_MSG_FOLDER_BUSY;
+
+  return pop3Service->GetNewMail(aMsgWindow, aUrlListener, inbox, this, getter_AddRefs(url));
 }
 
 NS_IMETHODIMP
@@ -760,8 +764,10 @@ nsresult nsPop3GetMailChainer::RunNextGetNewMail()
       nsCOMPtr <nsIMsgIncomingServer> downloadingToServer;
       m_folderToDownloadTo->GetServer(getter_AddRefs(downloadingToServer));
       popServer->GetDeferGetNewMail(&deferGetNewMail);
-      nsCOMPtr <nsIMsgIncomingServer> server = do_QueryInterface(popServer);
-      if (deferGetNewMail || downloadingToServer == server)
+      nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(popServer);
+      nsCOMPtr<nsIPop3Protocol> protocol;
+      popServer->GetRunningProtocol(getter_AddRefs(protocol));
+      if ((deferGetNewMail || downloadingToServer == server) && !protocol)
       {
         // have to call routine that just gets mail for one server,
         // and ignores deferred servers...
