@@ -492,10 +492,12 @@ BuildAttachmentList(MimeObject *anObject, nsMsgAttachmentData *aAttachData, cons
             !PL_strcasecmp (child->content_type, TEXT_HTML) ||
             !PL_strcasecmp (child->content_type, TEXT_MDL))
         {
+                              // and it doesn't have a filename
           if (child->headers) // and finally, be sure it doesn't have a content-disposition: attachment
           {
             char * disp = MimeHeaders_get (child->headers, HEADER_CONTENT_DISPOSITION, PR_TRUE, PR_FALSE);
-            if (!disp || PL_strcasecmp (disp, "attachment"))
+            if (!MimeHeaders_get_name(child->headers, nsnull) &&
+                (!disp || PL_strcasecmp(disp, "attachment")))
               continue;
           }
           else

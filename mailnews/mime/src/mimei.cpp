@@ -942,22 +942,9 @@ mime_create (const char *content_type, MimeHeaders *hdrs,
     if (mime_subclass_p(clazz, (MimeObjectClass *)&mimeInlineTextClass))
     {
       /* It's a text type.  Write it only if it's the *first* part
-         that we're writing, and then only if it has no "filename"
-         specified (the assumption here being, if it has a filename,
-         it wasn't simply typed into the text field -- it was actually
-         an attached document.) */
+         that we're writing*/
       if (opts->state && opts->state->first_part_written_p)
         clazz = (MimeObjectClass *)&mimeExternalObjectClass;
-      else
-      {
-        /* If there's a name, then write this as an attachment. */
-        char *name = (hdrs ? MimeHeaders_get_name(hdrs, opts) : nsnull);
-        if (name)
-        {
-          clazz = (MimeObjectClass *)&mimeExternalObjectClass;
-          PR_Free(name);
-        }
-      }
     }
     else
       if (mime_subclass_p(clazz,(MimeObjectClass *)&mimeContainerClass) &&
