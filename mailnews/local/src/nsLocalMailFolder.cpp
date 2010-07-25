@@ -747,15 +747,7 @@ nsMsgLocalMailFolder::CreateSubfolderInternal(const nsAString& folderName,
   //Make sure the new folder name is valid
   nsAutoString safeFolderName(folderName);
   NS_MsgHashIfNecessary(safeFolderName);
-  nsCAutoString nativeFolderName;
-  rv = NS_CopyUnicodeToNative(safeFolderName, nativeFolderName);
-  if (NS_FAILED(rv) || nativeFolderName.IsEmpty()) {
-    ThrowAlertMsg("folderCreationFailed", msgWindow);
-    // I'm returning this value so the dialog stays up
-    return NS_MSG_FOLDER_EXISTS;
-  }
-
-  path->AppendNative(nativeFolderName);
+  path->Append(safeFolderName);
   PRBool exists;
   path->Exists(&exists);
   if (exists) //check this because localized names are different from disk names
@@ -835,8 +827,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CompactAll(nsIUrlListener *aListener,
     PRUint32 expungedBytes = 0;
     for (PRUint32 i = 0; i < cnt; i++)
     {
-      nsCOMPtr<nsISupports> supports = dont_AddRef(allDescendents->ElementAt(i));
-      nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(supports, &rv);
+      nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i);
       NS_ENSURE_SUCCESS(rv, rv);
 
       expungedBytes = 0;
@@ -846,7 +837,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CompactAll(nsIUrlListener *aListener,
       NS_ENSURE_SUCCESS(rv, rv);
 
       if (expungedBytes > 0)
-        rv = folderArray->AppendElement(supports, PR_FALSE);
+        rv = folderArray->AppendElement(folder, PR_FALSE);
     }
     rv = folderArray->GetLength(&cnt);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -1148,12 +1139,6 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
 
   nsAutoString safeName(aNewName);
   NS_MsgHashIfNecessary(safeName);
-  nsCAutoString newDiskName;
-  if (NS_FAILED(NS_CopyUnicodeToNative(safeName, newDiskName)))
-    return NS_ERROR_FAILURE;
-
-  nsCAutoString oldLeafName;
-  oldPathFile->GetNativeLeafName(oldLeafName);
 
   if (mName.Equals(aNewName, nsCaseInsensitiveStringComparator()))
   {
@@ -1176,22 +1161,22 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
     return rv;
 
   ForceDBClosed();
-  nsCAutoString newNameDirStr = newDiskName;  //save of dir name before appending .msf
-  rv = oldPathFile->MoveToNative(nsnull, newDiskName);
+  nsAutoString newNameDirStr = safeName;  //save dir name before appending .msf
+  rv = oldPathFile->MoveTo(nsnull, safeName);
   if (NS_FAILED(rv))
   {
     ThrowAlertMsg("folderRenameFailed", msgWindow);
     return rv;
   }
 
-  newDiskName += SUMMARY_SUFFIX;
-  oldSummaryFile->MoveToNative(nsnull, newDiskName);
+  safeName.AppendLiteral(SUMMARY_SUFFIX);
+  oldSummaryFile->MoveTo(nsnull, safeName);
 
   if (count > 0)
   {
     // rename "*.sbd" directory
-    newNameDirStr += ".sbd";
-    dirFile->MoveToNative(nsnull, newNameDirStr);
+    newNameDirStr.AppendLiteral(".sbd");
+    dirFile->MoveTo(nsnull, newNameDirStr);
   }
 
   nsCOMPtr<nsIMsgFolder> newFolder;
@@ -1228,7 +1213,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
         parentFolder->NotifyItemAdded(newFolder);
       }
       SetFilePath(nsnull); // forget our path, since this folder object renamed itself
-      nsCOMPtr<nsIAtom> folderRenameAtom = do_GetAtom("RenameCompleted");
+      nsCOMPtr<nsIAtom> folderRenameAtom = MsgGetAtom("RenameCompleted");
       newFolder->NotifyFolderEvent(folderRenameAtom);
 
       nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
@@ -1689,15 +1674,9 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
   rv = srcFolder->GetURI(protocolType);
   protocolType.SetLength(protocolType.FindChar(':'));
 
-#ifdef MOZILLA_INTERNAL_API
   PRBool needOfflineBody = (WeAreOffline() &&
-    (protocolType.LowerCaseEqualsLiteral("imap") ||
-     protocolType.LowerCaseEqualsLiteral("news")));
-#else
-  PRBool needOfflineBody  = (WeAreOffline() &&
-    (protocolType.Equals("imap", CaseInsensitiveCompare) ||
-     protocolType.Equals("news", CaseInsensitiveCompare)));
-#endif
+    (MsgLowerCaseEqualsLiteral(protocolType, "imap") ||
+     MsgLowerCaseEqualsLiteral(protocolType, "news")));
   PRInt64 totalMsgSize = 0;
   PRUint32 numMessages = 0;
   messages->GetLength(&numMessages);
@@ -1786,11 +1765,7 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
     return rv;
   }
 
-#ifdef MOZILLA_INTERNAL_API
-  if (!protocolType.LowerCaseEqualsLiteral("mailbox"))
-#else
-  if (!protocolType.Equals("mailbox", CaseInsensitiveCompare))
-#endif
+  if (!MsgLowerCaseEqualsLiteral(protocolType, "mailbox"))
   {
     mCopyState->m_dummyEnvelopeNeeded = PR_TRUE;
     nsParseMailMessageState* parseMsgState = new nsParseMailMessageState();
@@ -1824,13 +1799,8 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
     }
   }
 
-#ifdef MOZILLA_INTERNAL_API
-  if (numMsgs > 1 && ((protocolType.LowerCaseEqualsLiteral("imap") && !WeAreOffline()) || 
-                      protocolType.LowerCaseEqualsLiteral("mailbox")))
-#else
-  if (numMsgs > 1 && ((protocolType.Equals("imap", CaseInsensitiveCompare) && !WeAreOffline()) || 
-                      protocolType.Equals("mailbox", CaseInsensitiveCompare)))
-#endif
+  if (numMsgs > 1 && ((MsgLowerCaseEqualsLiteral(protocolType, "imap") && !WeAreOffline()) ||
+                      MsgLowerCaseEqualsLiteral(protocolType, "mailbox")))
   {
     mCopyState->m_copyingMultipleMessages = PR_TRUE;
     rv = CopyMessagesTo(mCopyState->m_messages, keyArray, msgWindow, this, isMove);
@@ -3622,7 +3592,7 @@ nsMsgLocalMailFolder::NotifyCompactCompleted()
   (void) RefreshSizeOnDisk();
   (void) CloseDBIfFolderNotOpen();
   nsCOMPtr <nsIAtom> compactCompletedAtom;
-  compactCompletedAtom = do_GetAtom("CompactCompleted");
+  compactCompletedAtom = MsgGetAtom("CompactCompleted");
   NotifyFolderEvent(compactCompletedAtom);
   return NS_OK;
 }

@@ -47,6 +47,8 @@
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIDBFolderInfo.h"
 #include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMsgUtils.h"
 
 nsrefcnt nsRssIncomingServer::gInstanceCount    = 0;
 
@@ -171,8 +173,7 @@ NS_IMETHODIMP nsRssIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
 
   for (PRUint32 index = 0; index < cnt; index++)
   {
-    supports = getter_AddRefs(allDescendents->ElementAt(index));
-    rssFolder = do_QueryInterface(supports, &rv);
+    supports = do_QueryElementAt(allDescendents, index);
     if (rssFolder)
     {
       urlListener = do_QueryInterface(rssFolder);
@@ -344,8 +345,7 @@ nsresult nsRssIncomingServer::FolderChanged(nsIMsgFolder *aFolder, PRBool aUnsub
 
       for (PRUint32 index = 0; index < cnt; index++)
       {
-        supports = getter_AddRefs(allDescendents->ElementAt(index));
-        rssFolder = do_QueryInterface(supports, &rv);
+        rssFolder = do_QueryElementAt(allDescendents, index, &rv);
         if (rssFolder)
           rssDownloader->UpdateSubscriptionsDS(rssFolder, aUnsubscribe);
       }

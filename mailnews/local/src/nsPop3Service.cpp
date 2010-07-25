@@ -352,7 +352,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
     if (!_retval) return rv;
     nsCAutoString folderUri(aSpec);
     nsCOMPtr<nsIRDFResource> resource;
-    PRInt32 offset = folderUri.Find("?");
+    PRInt32 offset = folderUri.FindChar('?');
     if (offset != -1)
         folderUri.SetLength(offset);
 
@@ -450,7 +450,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
           offset = messageUri.Find("?number=");
           if (offset != -1)
             messageUri.Replace(offset, 8, "#");
-          offset = messageUri.Find("&");
+          offset = messageUri.FindChar('&');
           if (offset != -1)
             messageUri.SetLength(offset);
           popurl->SetMessageUri(messageUri.get());

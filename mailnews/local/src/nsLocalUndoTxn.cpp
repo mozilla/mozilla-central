@@ -51,6 +51,7 @@
 #include "nsIMutableArray.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
+#include "nsMsgUtils.h"
 
 nsLocalMoveCopyMsgTxn::nsLocalMoveCopyMsgTxn()  : m_srcIsImap4(PR_FALSE)
 {
@@ -74,11 +75,7 @@ nsLocalMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsIMsgFolder* dstFolder,
     nsCString protocolType;
     rv = srcFolder->GetURI(protocolType);
     protocolType.SetLength(protocolType.FindChar(':'));
-#ifdef MOZILLA_INTERNAL_API
-    if (protocolType.LowerCaseEqualsLiteral("imap"))
-#else
-    if (protocolType.Equals("imap", CaseInsensitiveCompare))
-#endif
+    if (MsgLowerCaseEqualsLiteral(protocolType, "imap"))
       m_srcIsImap4 = PR_TRUE;
     return nsMsgTxn::Init();
 }
@@ -155,12 +152,7 @@ nsLocalMoveCopyMsgTxn::UndoImapDeleteFlag(nsIMsgFolder* folder,
           msgIds.Append(',');
       msgIds.AppendInt((PRInt32) keyArray[i]);
     }
-    nsIThread *thread;
-#ifdef MOZILLA_INTERNAL_API    
-    thread = NS_GetCurrentThread();
-#else
-    NS_GetCurrentThread(&thread);
-#endif
+    nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
     if (thread)
     {
       // This is to make sure that we are in the selected state

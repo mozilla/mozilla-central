@@ -1134,7 +1134,7 @@ SEARCH_NEWLINE:
         if (lastSemicolon != -1)
         {
           nsCAutoString receivedDate;
-          receivedDate = StringTail(receivedHdr, receivedHdr.Length() - lastSemicolon - 1);
+          receivedDate = Substring(receivedHdr, lastSemicolon + 1);
           receivedDate.Trim(" \t\b\r\n");
           PRTime resultTime;
           if (PR_ParseTimeString (receivedDate.get(), PR_FALSE, &resultTime) == PR_SUCCESS)
@@ -2015,13 +2015,8 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         }
       case nsMsgFilterAction::MoveToFolder:
         // if moving to a different file, do it.
-#ifdef MOZILLA_INTERNAL_API
         if (actionTargetFolderUri.get() && !m_inboxUri.Equals(actionTargetFolderUri,
                                                               nsCaseInsensitiveCStringComparator()))
-#else
-        if (actionTargetFolderUri.get() && !m_inboxUri.Equals(actionTargetFolderUri,
-                                                              CaseInsensitiveCompare))
-#endif
         {
           nsresult err;
           nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &err));

@@ -560,7 +560,7 @@ nsresult nsPop3Protocol::Initialize(nsIURI * aURL)
         if (notificationCallbacks)
         {
           nsCOMPtr<nsIInterfaceRequestor> aggregrateIR;
-          NS_NewInterfaceRequestorAggregation(notificationCallbacks, ir, getter_AddRefs(aggregrateIR));
+          MsgNewInterfaceRequestorAggregation(notificationCallbacks, ir, getter_AddRefs(aggregrateIR));
           ir = aggregrateIR;
         }
       }
@@ -1492,13 +1492,13 @@ PRInt32 nsPop3Protocol::CapaResponse(nsIInputStream* inputStream,
         nsCAutoString responseLine;
         responseLine.Assign(line + 5);
 
-        if (responseLine.Find("PLAIN", PR_TRUE) >= 0)
+        if (responseLine.Find("PLAIN", CaseInsensitiveCompare) >= 0)
             SetCapFlag(POP3_HAS_AUTH_PLAIN);
 
-        if (responseLine.Find("LOGIN", PR_TRUE) >= 0)
+        if (responseLine.Find("LOGIN", CaseInsensitiveCompare) >= 0)
             SetCapFlag(POP3_HAS_AUTH_LOGIN);
 
-        if (responseLine.Find("GSSAPI", PR_TRUE) >= 0)
+        if (responseLine.Find("GSSAPI", CaseInsensitiveCompare) >= 0)
             SetCapFlag(POP3_HAS_AUTH_GSSAPI);
 
         nsresult rv;
@@ -1506,13 +1506,13 @@ PRInt32 nsPop3Protocol::CapaResponse(nsIInputStream* inputStream,
         // this checks if psm is installed...
         if (NS_SUCCEEDED(rv))
         {
-            if (responseLine.Find("CRAM-MD5", PR_TRUE) >= 0)
+            if (responseLine.Find("CRAM-MD5", CaseInsensitiveCompare) >= 0)
                 SetCapFlag(POP3_HAS_AUTH_CRAM_MD5);
 
-            if (responseLine.Find("NTLM", PR_TRUE) >= 0)
+            if (responseLine.Find("NTLM", CaseInsensitiveCompare) >= 0)
                 SetCapFlag(POP3_HAS_AUTH_NTLM);
 
-            if (responseLine.Find("MSN", PR_TRUE) >= 0)
+            if (responseLine.Find("MSN", CaseInsensitiveCompare) >= 0)
                 SetCapFlag(POP3_HAS_AUTH_NTLM|POP3_HAS_AUTH_MSN);
         }
 
@@ -4158,7 +4158,7 @@ nsresult nsPop3Protocol::GetApopTimestamp()
   while (PR_TRUE)
   {
     // search for previous <
-    if ((startMark = m_commandResponse.RFindChar('<', startMark - 1)) < 0)
+    if ((startMark = MsgRFindChar(m_commandResponse, '<', startMark - 1)) < 0)
       return NS_ERROR_FAILURE;
 
     // search for next >
