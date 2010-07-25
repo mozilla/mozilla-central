@@ -131,12 +131,12 @@ prefpane {
   -moz-binding: url("chrome://communicator/content/bindings/prefwindow.xml#prefpane");
 }
 
-.statusbarpanel-backgroundbox {
-  -moz-binding: url("chrome://communicator/content/bindings/general.xml#statusbarpanel-backgroundbox");
-}
-
 findbar {
   -moz-binding: url("chrome://communicator/content/bindings/findbar.xml#findbar");
+}
+
+.statusbarpanel-backgroundbox {
+  -moz-binding: url("chrome://communicator/content/bindings/general.xml#statusbarpanel-backgroundbox");
 }
 
 /******* lightweight themes *******/
