@@ -81,11 +81,12 @@ function toDownloadManager()
   }
 }
   
-function toEM( aPane )
+function toEM(aView)
 {
-  //XXXCallek Don't let more than one tab have this
-  //XXXCallek Use aPane once Bug 560449 is fixed
-  goAbout("addons");
+  switchToTabHavingURI("about:addons", true, function(browser) {
+    if (aView)
+      browser.contentWindow.wrappedJSObject.loadView(aView);
+  });
 }
 
 function toBookmarksManager()

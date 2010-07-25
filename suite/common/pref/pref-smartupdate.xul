@@ -132,7 +132,8 @@
         </rows>
       </grid>
       <vbox align="end">
-        <button id="startAddonManager" oncommand="toEM('extensions');"
+        <button id="startAddonManager"
+                oncommand="toEM('addons://list/extensions');"
                 label="&addonManagerButton.label;"
                 accesskey="&addonManagerButton.accesskey;"/>
       </vbox>

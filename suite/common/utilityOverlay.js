@@ -1314,6 +1314,74 @@ function openUILinkArrayIn(urlArray, where, allowThirdPartyFixup)
   return w;
 }
 
+/**
+ * Switch to a tab that has a given URI, and focusses its browser window.
+ * If a matching tab is in this window, it will be switched to. Otherwise, other
+ * windows will be searched.
+ *
+ * @param aURI
+ *        URI to search for
+ * @param aOpenNew
+ *        True to open a new tab and switch to it, if no existing tab is found
+ * @param A callback to call when the tab is open, the tab's browser will be
+ *        passed as an argument
+ * @return True if a tab was switched to (or opened), false otherwise
+ */
+function switchToTabHavingURI(aURI, aOpenNew, aCallback) {
+  function switchIfURIInWindow(aWindow) {
+    if (!("gBrowser" in aWindow))
+      return false;
+    let browsers = aWindow.gBrowser.browsers;
+    for (let i = 0; i < browsers.length; i++) {
+      let browser = browsers[i];
+      if (browser.currentURI.equals(aURI)) {
+        // Focus the matching window & tab
+        aWindow.focus();
+        aWindow.gBrowser.tabContainer.selectedIndex = i;
+        if (aCallback)
+          aCallback(browser);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // This can be passed either nsIURI or a string.
+  if (!(aURI instanceof Components.interfaces.nsIURI))
+    aURI = Services.io.newURI(aURI, null, null);
+
+  // Prioritise this window.
+  if (switchIfURIInWindow(window))
+    return true;
+
+  let winEnum = Services.wm.getEnumerator("navigator:browser");
+  while (winEnum.hasMoreElements()) {
+    let browserWin = winEnum.getNext();
+    // Skip closed (but not yet destroyed) windows,
+    // and the current window (which was checked earlier).
+    if (browserWin.closed || browserWin == window)
+      continue;
+    if (switchIfURIInWindow(browserWin))
+      return true;
+  }
+
+  // No opened tab has that url.
+  if (aOpenNew) {
+    let browser = openUILinkIn(aURI.spec, "tab");
+    if (aCallback) {
+      browser.addEventListener("pageshow", function(event) {
+        if (event.target.location.href != aURI.spec)
+          return;
+        browser.removeEventListener("pageshow", arguments.callee, true);
+        aCallback(browser);
+      }, true);
+    }
+    return true;
+  }
+
+  return false;
+}
+
 function subscribeToFeed(href, event) {
   // Just load the feed in the content area to either subscribe or show the
   // preview UI
