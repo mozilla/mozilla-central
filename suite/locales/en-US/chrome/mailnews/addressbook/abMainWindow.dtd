@@ -117,6 +117,7 @@
 <!ENTITY newimButton.label                              "Instant Message">  
 <!ENTITY newimButton.accesskey                          "I">  
 <!ENTITY searchNameAndEmail.placeholder                 "Search Name and Email">
+<!ENTITY searchBox.title                                "Search">
 
 <!-- Tooltips -->
 <!ENTITY addressbookToolbar.tooltip                     "Address Book Toolbar">

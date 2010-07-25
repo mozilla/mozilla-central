@@ -156,6 +156,12 @@ function OnLoadAddressBook()
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadCardView();
 
+  // Before and after callbacks for the customizeToolbar code
+  var abToolbox = getAbToolbox();
+  abToolbox.customizeInit = AbToolboxCustomizeInit;
+  abToolbox.customizeDone = AbToolboxCustomizeDone;
+  abToolbox.customizeChange = AbToolboxCustomizeChange;
+
   //workaround - add setTimeout to make sure dynamic overlays get loaded first
   setTimeout(OnLoadDirTree, 0);
 
@@ -668,4 +674,24 @@ function onAllowOnlineCheck(target)
 
   // Now redisplay the card view pane.
   UpdateCardView();
+}
+
+function getAbToolbox()
+{
+  return document.getElementById("ab-toolbox");
+}
+
+function AbToolboxCustomizeInit()
+{
+  toolboxCustomizeInit("ab-menubar");
+}
+
+function AbToolboxCustomizeDone(aToolboxChanged)
+{
+  toolboxCustomizeDone("ab-menubar", getAbToolbox(), aToolboxChanged);
+}
+
+function AbToolboxCustomizeChange(event)
+{
+  toolboxCustomizeChange(getAbToolbox(), event);
 }

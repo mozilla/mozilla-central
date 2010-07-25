@@ -22,6 +22,7 @@
 
  Contributor(s):
    Seth Spitzer <sspitzer@netscape.com>
+   Ian Neal <iann_bugzilla@blueyonder.co.uk>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -83,13 +84,13 @@
 <script type="application/javascript" src="chrome://messenger/content/msgPrintEngine.js"/>
 
   <commandset id="addressBook">
-  <commandset id="CommandUpdate_AddressBook"
-        commandupdater="true"
-        events="focus,addrbook-select"
-        oncommandupdate="CommandUpdate_AddressBook()"/>
-  <commandset id="selectEditMenuItems"/> 
-  <commandset id="undoEditMenuItems"/>
-  <commandset id="globalEditMenuItems"/>
+    <commandset id="CommandUpdate_AddressBook"
+                commandupdater="true"
+                events="focus,addrbook-select"
+                oncommandupdate="CommandUpdate_AddressBook()"/>
+    <commandset id="selectEditMenuItems"/> 
+    <commandset id="undoEditMenuItems"/>
+    <commandset id="globalEditMenuItems"/>
     <command id="cmd_newNavigator"/>
     <command id="cmd_newEditor"/>
     <command id="cmd_newcard" oncommand="AbNewCard();"/>
@@ -120,7 +121,9 @@
     <command id="button_delete" oncommand="goDoCommand('button_delete');"/>
     <command id="cmd_swapFirstNameLastName" oncommand="AbSwapFirstNameLastName()"/>
     <commandset id="tasksCommands"/>
-</commandset>
+    <command id="cmd_CustomizeToolbars"
+             oncommand="goCustomizeToolbar(getAbToolbox());"/>
+  </commandset>
 
 <broadcasterset id="abBroadcasters">
   <!-- Edit Menu -->
@@ -204,8 +207,28 @@
             command="button_delete"/>
 </menupopup>
 
-<toolbox class="toolbox-top">
-    <menubar id="ab-menubar" grippytooltiptext="&menuBar.tooltip;">
+<menupopup id="toolbar-context-menu"/>
+
+<toolbox id="ab-toolbox"
+         mode="full"
+         defaultmode="full"
+         class="toolbox-top">
+  <toolbar type="menubar"
+           id="addrbook-toolbar-menubar2"
+           class="chromeclass-menubar"
+           persist="collapsed"
+           grippytooltiptext="&menuBar.tooltip;"
+           customizable="true"
+           defaultset="menubar-items"
+           mode="icons"
+           iconsize="small"
+           defaultmode="icons"
+           defaulticonsize="small"
+           context="toolbar-context-menu">
+    <toolbaritem id="menubar-items"
+                 class="menubar-items"
+                 align="center">
+      <menubar id="ab-menubar">
         <menu id="menu_File">
             <menupopup id="menu_FilePopup">
                 <menu id="menu_New">
@@ -268,7 +291,7 @@
                         <menuitem id="menu_showAbToolbar"
                                   label="&showAbToolbarCmd.label;"
                                   accesskey="&showAbToolbarCmd.accesskey;"
-                                  oncommand="goToggleToolbar('abToolbar', 'menu_showAbToolbar')"
+                                  oncommand="goToggleToolbar('ab-bar2', 'menu_showAbToolbar')"
                                   checked="true" type="checkbox"/>
                         <menuitem id="menu_showTaskbar"/>
                         <menuseparator/>
@@ -390,43 +413,81 @@
         <menu id="windowMenu"/>
         <menu id="menu_Help"/>
         <spacer flex="1"/>
-    </menubar>
-    
-    <!-- toolbar -->
-        <toolbar class="chromeclass-toolbar toolbar-primary" id="abToolbar" persist="collapsed" grippytooltiptext="&addressbookToolbar.tooltip;">
-        <toolbarbutton class="toolbarbutton-1" id="button-newcard"
-                       label="&newContactButton.label;" command="cmd_newcard"
-                       tooltiptext="&newContactButton.tooltip;"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-newlist" label="&newlistButton.label;" tooltiptext="&newlistButton.tooltip;" command="cmd_newlist"/>
-        <toolbarseparator class="toolbarseparator-primary"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-editcard"
-                       label="&editItemButton.label;" command="cmd_properties"
-                       tooltiptext="&editItemButton.tooltip;"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-newmessage" label="&newmsgButton.label;" tooltiptext="&newmsgButton.tooltip;" command="cmd_newmessage"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-newim" label="&newIM.label;" tooltiptext="&newIM.tooltip;" command="cmd_newim"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-delete"
-                       label="&deleteItemButton.label;" command="button_delete"
-                       tooltiptext="&deleteItemButton.tooltip;"/>
+      </menubar>
+    </toolbaritem>
+  </toolbar>
+  <toolbar class="chromeclass-toolbar toolbar-primary"
+           id="ab-bar2"
+           persist="collapsed"
+           customizable="true"
+           grippytooltiptext="&addressbookToolbar.tooltip;"
+           toolbarname="&showAbToolbarCmd.label;"
+           accesskey="&showAbToolbarCmd.accesskey;"
+           defaultset="button-newcard,button-newlist,separator,button-editcard,button-newmessage,button-newim,button-abdelete,spring,searchBox,throbber-box"
+           togglemenuitem="menu_showAbToolbar"
+           context="toolbar-context-menu">
+    <toolbarbutton id="button-newcard"
+                   class="toolbarbutton-1"
+                   label="&newContactButton.label;"
+                   tooltiptext="&newContactButton.tooltip;"
+                   removable="true"
+                   oncommand="AbNewCard();"/>
+    <toolbarbutton id="button-newlist"
+                   class="toolbarbutton-1"
+                   label="&newlistButton.label;"
+                   tooltiptext="&newlistButton.tooltip;"
+                   removable="true"
+                   oncommand="AbNewList();"/>
+    <toolbarbutton id="button-editcard"
+                   class="toolbarbutton-1"
+                   label="&editItemButton.label;"
+                   tooltiptext="&editItemButton.tooltip;"
+                   removable="true"
+                   oncommand="goDoCommand('button_edit');"/>
+    <toolbarbutton id="button-newmessage"
+                   class="toolbarbutton-1"
+                   label="&newmsgButton.label;"
+                   tooltiptext="&newmsgButton.tooltip;"
+                   removable="true"
+                   oncommand="AbNewMessage();"/>
+    <toolbarbutton id="button-newim"
+                   class="toolbarbutton-1"
+                   label="&newIM.label;"
+                   tooltiptext="&newIM.tooltip;"
+                   removable="true"
+                   oncommand="AbIMSelected();"/>
+    <toolbarbutton id="button-abdelete"
+                   class="toolbarbutton-1"
+                   label="&deleteItemButton.label;"
+                   tooltiptext="&deleteItemButton.tooltip;"
+                   removable="true"
+                   oncommand="goDoCommand('button_delete');"/>
+    <toolbaritem id="searchBox"
+                 title="&searchBox.title;"
+                 removable="true"
+                 align="center"
+                 class="chromeclass-toolbar-additional">
+      <textbox id="searchInput"
+               type="search"
+               placeholder="&searchNameAndEmail.placeholder;"
+               clickSelectsAll="true"
+               oncommand="onEnterInSearchBar();"
+               onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();"/>
+    </toolbaritem>
 
-      <toolbarspring/>
-      <toolbaritem id="searchBox" align="center">
-        <textbox id="searchInput"
-                 type="search"
-                 placeholder="&searchNameAndEmail.placeholder;"
-                 clickSelectsAll="true"
-                 oncommand="onEnterInSearchBar();"
-                 onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();"/>
-      </toolbaritem>
-
-      <toolbaritem id="throbber-box" align="center">
-        <button id="navigator-throbber"
-                tooltiptext="&throbber.tooltip;"
-                oncommand="goClickThrobber('addressbook.throbber.url')">
-          <observes element="broadcaster_throbber" attribute="busy"/>
-        </button>
-      </toolbaritem>
-    </toolbar>
-  </toolbox>
+    <toolbaritem id="throbber-box"
+                 removable="true"
+                 align="center">
+      <button id="navigator-throbber"
+              tooltiptext="&throbber.tooltip;"
+              oncommand="goClickThrobber('addressbook.throbber.url')">
+        <observes element="broadcaster_throbber" attribute="busy"/>
+      </button>
+    </toolbaritem>
+  </toolbar>
+  <toolbarpalette id="AbToolbarPalette"/>
+  <toolbarset id="customToolbars" context="toolbar-context-menu"/>
+</toolbox>
 
   <!-- The main address book three pane -->
   <hbox flex="1">
@@ -454,7 +515,8 @@
       </hbox>
     </vbox>
   </hbox>
-  
+
+  <panel id="customizeToolbarSheetPopup"/>
   <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="component-bar"/>
     <statusbarpanel id="statusText" flex="1" value="&statusText.label;"/>  

@@ -46,17 +46,14 @@
 
 /* ::::: primary toolbar masthead ::::: */
 
-#abToolbar > .toolbar-holder > .toolbar-primary-icon {
+#ab-bar2 > .toolbar-holder > .toolbar-primary-icon {
   background-image: url("chrome://messenger/skin/addressbook/icons/mast-ab.gif");
 }
 
 /* ::::: primary toolbar buttons ::::: */
 
-.toolbarbutton-1 {
-  list-style-image: url("chrome://messenger/skin/icons/btn1.gif");
-}
-
 #button-newcard {
+  list-style-image: url("chrome://messenger/skin/icons/btn1.gif");
   -moz-image-region: rect(476px 49px 509px 0);
 }
 
@@ -73,6 +70,7 @@
 } 
 
 #button-newlist {
+  list-style-image: url("chrome://messenger/skin/icons/btn1.gif");
   -moz-image-region: rect(510px 49px 543px 0);
 }
 
@@ -89,6 +87,7 @@
 } 
 
 #button-editcard {
+  list-style-image: url("chrome://messenger/skin/icons/btn1.gif");
   -moz-image-region: rect(442px 49px 475px 0);
 }
 
@@ -105,8 +104,10 @@
 } 
 
 #button-newmessage {
+  list-style-image: url("chrome://messenger/skin/icons/btn1.gif");
   -moz-image-region: rect(170px 49px 203px 0);
 }
+
 
 #button-newmessage:hover {
   -moz-image-region: rect(170px 99px 203px 50px);
@@ -136,19 +137,20 @@
   list-style-image: url("chrome://messenger/skin/addressbook/icons/im-dis.gif");
 } 
 
-#button-delete {
+#button-abdelete {
+  list-style-image: url("chrome://messenger/skin/icons/btn1.gif");
   -moz-image-region: rect(408px 49px 441px 0);
 }
 
-#button-delete:hover {
+#button-abdelete:hover {
   -moz-image-region: rect(408px 99px 441px 50px);
 } 
 
-#button-delete:hover:active {
+#button-abdelete:hover:active {
   -moz-image-region: rect(408px 149px 441px 100px);
 }
 
-#button-delete[disabled] {
+#button-abdelete[disabled] {
   -moz-image-region: rect(408px 199px 441px 150px) !important;
 } 
 

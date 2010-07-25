@@ -60,6 +60,9 @@
 
 #throbber-box {
   -moz-box-align: start;
+}
+
+.toolbar-primary #throbber-box {
   background: url("chrome://communicator/skin/toolbar/prtb-bg-noline.gif") #B1BDC9 repeat-x top;
 }
 

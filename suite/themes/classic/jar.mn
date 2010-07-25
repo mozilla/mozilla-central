@@ -8,6 +8,7 @@ classic.jar:
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/primaryToolbar.css
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/messengercompose/messengercompose.css
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/smime/msgCompSMIMEOverlay.css
+% style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/addressbook/addressbook.css
 #ifdef XP_MACOSX
   skin/classic/communicator/aboutSessionRestore.css                     (mac/communicator/aboutSessionRestore.css)
   skin/classic/communicator/button.css                                  (mac/communicator/button.css)
