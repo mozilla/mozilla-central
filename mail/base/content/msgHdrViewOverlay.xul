@@ -94,6 +94,9 @@
 
 <menupopup id="attachmentMenuList">
   <menuseparator/>
+  <menuitem id="file-openAllAttachments" label="&openAllAttachmentsCmd.label;" 
+            accesskey="&openAllAttachmentsCmd.accesskey;"
+            oncommand="HandleAllAttachments('open');" />
   <menuitem id="file-saveAllAttachments" label="&saveAllAttachmentsCmd.label;" 
     accesskey="&saveAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('save');"/>
   <menuitem id="file-detachAllAttachments" label="&detachAllAttachmentsCmd.label;" 
