@@ -319,7 +319,7 @@ function ddumpObject(obj, name, maxDepth, curDepth)
     return;
 
   var i = 0;
-  for (prop in obj)
+  for (let prop in obj)
   {
     i++;
     try {

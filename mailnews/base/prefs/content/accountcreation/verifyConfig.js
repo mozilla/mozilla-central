@@ -165,6 +165,7 @@ urlListener.prototype =
 
   OnStopRunningUrl: function(aUrl, aExitCode)
   {
+    this._log.info("Finished testing " + aUrl + " resulted in " + aExitCode);
     if (Components.isSuccessCode(aExitCode))
     {
       this._cleanup();

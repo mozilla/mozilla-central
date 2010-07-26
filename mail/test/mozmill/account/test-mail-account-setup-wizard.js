@@ -38,7 +38,7 @@
 var MODULE_NAME = "test-mail-account-setup-wizard";
 
 var RELATIVE_ROOT = "../shared-modules";
-var MODULE_REQUIRES = ["window-helpers"];
+var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers"];
 
 var mozmill = {};
 Components.utils.import("resource://mozmill/modules/mozmill.js", mozmill);
@@ -47,18 +47,21 @@ Components.utils.import("resource://mozmill/modules/controller.js", controller);
 var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
 
-var wh, mc, awc, account, incoming, outgoing;
+var wh, awc, account, incoming, outgoing;
 
 var user = {
   name: "Yamato Nadeshiko",
   email: "yamato.nadeshiko@example.com",
-  password: "abc12345"
+  password: "abc12345",
+  incomingHost: "testin.example.com",
+  outgoingHost: "testout.example.com",
 };
 
 function setupModule(module) {
   wh = collector.getModule("window-helpers");
-  mc = wh.wait_for_existing_window("mail:3pane");
   wh.installInto(module);
+  fdh = collector.getModule("folder-display-helpers");
+  fdh.installInto(module);
 }
 
 // Select File > New > Mail Account to open the Mail Account Setup Wizard
@@ -161,11 +164,11 @@ function subtest_verify_account(amc) {
     },
     "incoming server hostname": {
       // Note: N in the hostName is uppercase
-      actual: incoming.hostName, expected: "pop.example.com"
+      actual: incoming.hostName, expected: user.incomingHost
     },
     "outgoing server hostname": {
       // And this is lowercase
-      actual: outgoing.hostname, expected: "smtp.example.com"
+      actual: outgoing.hostname, expected: user.outgoingHost
     },
     "user real name": { actual: identity.fullName, expected: user.name },
     "user email address": { actual: identity.email, expected: user.email }
@@ -185,4 +188,57 @@ function subtest_verify_account(amc) {
   if (has_error)
     throw new Error("Configured " + i + " is " + config[i].actual +
                     ". It should be " + config[i].expected + ".");
+}
+
+/**
+ * Make sure that we don't re-set the information we get from the config
+ * file if the password is incorrect.
+ **/
+function test_bad_password_uses_old_settings() {
+  // Set the pref to load a local autoconfig file.
+  let pref = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
+  let pref_name = "mailnews.auto_config_url";
+  let url = collector.addHttpResource("../account/xml", "autoconfig");
+  try {
+    pref.setCharPref(pref_name, url);
+
+    // Force .com MIME-Type to text/xml
+   collector.httpd.registerContentType("com", "text/xml");
+
+    mc.sleep(0);
+    awc = open_mail_account_setup_wizard();
+
+    // Input user's account information
+    awc.e("realname").focus();
+    input_value(user.name);
+    awc.keypress(null, "VK_TAB", {});
+    input_value(user.email);
+    awc.keypress(null, "VK_TAB", {});
+    input_value(user.password);
+
+    // Load the autoconfig file from http://localhost:433**/autoconfig/example.com
+    awc.e("next_button").click();
+
+    let config = null;
+
+    awc.waitForEval("subject.disabled == false", 8000, 600,
+                    awc.e("create_button"));
+    awc.e("create_button").click();
+
+    awc.waitForEval("subject.disabled == false", 8000, 600,
+                    awc.e("create_button"));
+    awc.e("create_button").click();
+
+    // Make sure all the values are the same as in the user object.
+    awc.sleep(1000);
+    assert_equals(awc.e("outgoing_server").value, user.outgoingHost,
+                  "Outgoing server changed!");
+    assert_equals(awc.e("incoming_server").value, user.incomingHost,
+                  "incoming server changed!");
+  }
+  finally {
+    // Clean up
+    pref.clearUserPref(pref_name);
+    awc.e("cancel_button").click();;
+  }
 }

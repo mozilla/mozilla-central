@@ -706,6 +706,11 @@ EmailConfigWizard.prototype =
 
       gEmailWizardLogger.info("OK/Create button clicked");
 
+      this._password = document.getElementById("password").value;
+      replaceVariables(this._currentConfigFilledIn, this._realname, this._email,
+                       this._password);
+      this.updateConfig(this._currentConfigFilledIn);
+
       // we can't check if the account already exists here, because
       // we created it to test the password already.
       if (this._outgoingWarning || this._incomingWarning)
@@ -837,8 +842,11 @@ EmailConfigWizard.prototype =
                         },
                         function(e) // failure
                         {
-                          document.getElementById('create_button').disabled = false;
-                          me.editConfigDetails();
+                          // Enable the username and password fields, and
+                          // the create button to re-check.
+                          document.getElementById("create_button").disabled = false;
+                          document.getElementById("username").disabled = false;
+                          document.getElementById("password").disabled = false;
                         });
     else
       this.finish();
@@ -847,7 +855,9 @@ EmailConfigWizard.prototype =
   verifyConfig : function(successCallback, errorCallback)
   {
     var me = this;
+    gEmailWizardLogger.info("Verifying config.");
     this.startSpinner("username", "checking_password");
+
     // logic function defined in verifyConfig.js
     verifyConfig(
       this._currentConfigFilledIn,
