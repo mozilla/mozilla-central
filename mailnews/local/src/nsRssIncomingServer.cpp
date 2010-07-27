@@ -167,13 +167,12 @@ NS_IMETHODIMP nsRssIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
   PRUint32 cnt =0;
   allDescendents->Count(&cnt);
 
-  nsCOMPtr<nsISupports> supports;
   nsCOMPtr<nsIUrlListener> urlListener;
   nsCOMPtr<nsIMsgFolder> rssFolder;
 
   for (PRUint32 index = 0; index < cnt; index++)
   {
-    supports = do_QueryElementAt(allDescendents, index);
+    rssFolder = do_QueryElementAt(allDescendents, index);
     if (rssFolder)
     {
       urlListener = do_QueryInterface(rssFolder);
@@ -340,7 +339,6 @@ nsresult nsRssIncomingServer::FolderChanged(nsIMsgFolder *aFolder, PRBool aUnsub
       PRUint32 cnt = 0;
       allDescendents->Count(&cnt);
 
-      nsCOMPtr<nsISupports> supports;
       nsCOMPtr<nsIMsgFolder> rssFolder;
 
       for (PRUint32 index = 0; index < cnt; index++)
