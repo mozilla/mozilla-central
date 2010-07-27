@@ -1,4 +1,3 @@
-Components.utils.import("resource://gre/modules/Services.jsm");
 const gTestRoot = "chrome://mochikit/content/browser/suite/browser/test/";
 
 var gTestBrowser = null;
@@ -73,8 +72,6 @@ TabOpenListener.prototype = {
 function test() {
   waitForExplicitFinish();
 
-  // Pref set/clear and Services import needed until bug 505311 lands.
-  Services.prefs.setIntPref("browser.link.open_external", 3);
   var newTab = gBrowser.addTab();
   gBrowser.selectedTab = newTab;
   gTestBrowser = gBrowser.selectedBrowser;
@@ -85,7 +82,6 @@ function test() {
 function finishTest() {
   gTestBrowser.removeEventListener("load", pageLoad, true);
   gBrowser.removeCurrentTab();
-  Services.prefs.clearUserPref("browser.link.open_external");
   window.focus();
   finish();
 }
