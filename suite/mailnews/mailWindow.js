@@ -276,13 +276,12 @@ function messagePaneOnClick(event)
   var href = ceParams.href;
 
   // we know that http://, https://, ftp://, file://, chrome://, 
-  // resource://, about:, and gopher:// (as if), 
-  // should load in a browser.  but if we don't have one of those
-  // (examples are mailto, imap, news, mailbox, snews, nntp, ldap, 
-  // and externally handled schemes like aim)
-  // we may or may not want a browser window, in which case we return here
-  // and let the normal code handle it
-  var needABrowser = /(^http(s)?:|^ftp:|^file:|^gopher:|^chrome:|^resource:|^about:)/i;
+  // resource://, and about, should load in a browser.  but if 
+  // we don't have one of those (examples are mailto, imap, news, mailbox, snews, 
+  // nntp, ldap, and externally handled schemes like aim) we may or may not 
+  // want a browser window, in which case we return here and let the normal code 
+  // handle it
+  var needABrowser = /(^http(s)?:|^ftp:|^file:|^chrome:|^resource:|^about:)/i;
   if (href.search(needABrowser) == -1) 
     return true;
 

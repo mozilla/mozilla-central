@@ -162,7 +162,7 @@ function Init()
 
   if (baseURI && (baseURI.indexOf("file://") != 0)) {
     // Note: DON'T add the HTTPIndex datasource into the tree
-    // for file URLs, only do it for FTP/Gopher/etc URLs; the "rdf:files"
+    // for file URLs, only do it for other URLs; the "rdf:files"
     // datasources handles file URLs
     tree.database.AddDataSource(HTTPIndex);
   }

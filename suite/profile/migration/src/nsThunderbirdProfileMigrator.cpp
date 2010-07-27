@@ -490,8 +490,6 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("network.proxy.autoconfig_url",            String),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.ftp",                       String),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.ftp_port",                  Int),
-  MAKESAMETYPEPREFTRANSFORM("network.proxy.gopher",                    String),
-  MAKESAMETYPEPREFTRANSFORM("network.proxy.gopher_port",               Int),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.http",                      String),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.http_port",                 Int),
   MAKESAMETYPEPREFTRANSFORM("network.proxy.no_proxies_on",             String),

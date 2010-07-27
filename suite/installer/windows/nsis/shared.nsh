@@ -94,6 +94,7 @@
     ${EndIf}
   ${EndIf}
 
+  ${RemoveDeprecatedKeys}
   ; Add Software\Mozilla\ registry entries
   ${SetAppKeys}
 
@@ -224,6 +225,7 @@
 !define SetAsDefaultAppUser "!insertmacro SetAsDefaultAppUser"
 
 !macro SetAsDefaultAppGlobal
+  ${RemoveDeprecatedKeys}
   SetShellVarContext all      ; Set SHCTX to all users (e.g. HKLM)
   ; Make sure that the MapiProxy and the mozMapi32 dll copies exist as we will
   ; use those to register as default mail app. When using a ZIP build, the DLL 
@@ -327,9 +329,6 @@
   ${AddDDEHandlerValues} "ftp" "$1" "$8,0" "" "" "${DDEApplication}" "$3" "WWW_OpenURL"
   ${AddDDEHandlerValues} "http" "$1" "$8,0" "" "" "${DDEApplication}" "$3" "WWW_OpenURL"
   ${AddDDEHandlerValues} "https" "$1" "$8,0" "" "" "${DDEApplication}" "$3" "WWW_OpenURL"
-
-  ${AddDDEHandlerValues} "gopher" "$1" "$8,0" "URL:Gopher Protocol" "true" \
-                         "${DDEApplication}" "$3" "WWW_OpenURL"
 
   ReadRegStr $6 HKCR ".htm" ""
   ${If} "$6" != "SeaMonkeyHTML"
@@ -440,7 +439,6 @@
   WriteRegStr HKLM "$0\Capabilities\StartMenu" "StartMenuInternet" "$R9"
 
   WriteRegStr HKLM "$0\Capabilities\URLAssociations" "ftp"    "SeaMonkeyURL"
-  WriteRegStr HKLM "$0\Capabilities\URLAssociations" "gopher" "SeaMonkeyURL"
   WriteRegStr HKLM "$0\Capabilities\URLAssociations" "http"   "SeaMonkeyURL"
   WriteRegStr HKLM "$0\Capabilities\URLAssociations" "https"  "SeaMonkeyURL"
 
@@ -754,6 +752,36 @@
   ${EndIf}
 !macroend
 !define UpdateProtocolHandlers "!insertmacro UpdateProtocolHandlers"
+!insertmacro RegCleanAppHandler
+
+; Removes various registry entries for reasons noted below (does not use SHCTX).
+!macro RemoveDeprecatedKeys
+  StrCpy $0 "SOFTWARE\Classes"
+  ; Remove support for launching gopher urls from the shell during install or
+  ; update if the DefaultIcon is from seamonkey.exe.
+  ${RegCleanAppHandler} "gopher"
+  
+  ; Remove support for launching chrome urls from the shell during install or
+  ; update if the DefaultIcon is from seamonkey.exe (Bug 301073).
+  ${RegCleanAppHandler} "chrome"
+  
+  ; Delete gopher from Capabilities\URLAssociations if it is present.
+  ${StrFilter} "${FileMainEXE}" "+" "" "" $R9
+  StrCpy $0 "Software\Clients\StartMenuInternet\$R9"
+  ClearErrors
+  ReadRegStr $2 HKLM "$0\Capabilities\URLAssociations" "gopher"
+  ${Unless} ${Errors}
+    DeleteRegValue HKLM "$0\Capabilities\URLAssociations" "gopher"
+  ${EndUnless}
+
+  ; Delete gopher from the user's UrlAssociations if it points to SeamonkeyURL.
+  StrCpy $0 "Software\Microsoft\Windows\Shell\Associations\UrlAssociations\gopher"
+  ReadRegStr $2 HKCU "$0\UserChoice" "Progid"
+  ${If} "$2" == "SeamonkeyURL"
+    DeleteRegKey HKCU "$0"
+  ${EndIf}
+!macroend
+!define RemoveDeprecatedKeys "!insertmacro RemoveDeprecatedKeys"
 
 !macro FixClassKeys
   StrCpy $0 "SOFTWARE\Classes"
@@ -783,18 +811,6 @@
 
   ; Protocol handler keys and name value pairs that may need to be updated during
   ; install or upgrade.
-
-  ; Bug 301073 Comment #9 makes it so Firefox no longer supports launching
-  ; chrome urls from the shell so remove it during install or update if the
-  ; DefaultIcon is from firefox.exe.
-  ReadRegStr $2 SHCTX "$0\chrome\DefaultIcon" ""
-
-  ClearErrors
-  ${WordFind} "$2" "${FileMainEXE}" "E+1{" $R1
-
-  ${Unless} ${Errors}
-    DeleteRegKey SHCTX "$0\chrome"
-  ${EndUnless}
 
   ; Store the command to open the app with an url in a register for easy access.
   GetFullPathName $8 "$INSTDIR\${FileMainEXE}"
@@ -831,20 +847,6 @@
   ${Unless} ${Errors}
     ${AddHandlerValues} "$0\ftp" "$1" "$8,0" "" "" "true"
   ${EndUnless}
-
-  ; Only set the gopher key if it doesn't already exist with a default value
-  ReadRegStr $2 SHCTX "$0\gopher" ""
-  ${If} $2 == ""
-    ${AddHandlerValues} "$0\gopher" "$1" "$8,0" "URL:Gopher Protocol" "true" "true"
-  ${Else}
-    ReadRegStr $2 SHCTX "$0\gopher\shell\open\command" ""
-    ClearErrors
-    ${WordFind} "$2" "${FileMainEXE}" "E+1{" $R1
-    ${Unless} ${Errors}
-      ${AddHandlerValues} "$0\gopher" "$1" "$8,0" "URL:Gopher Protocol" "true" "true"
-    ${EndUnless}
-  ${EndIf}
-
 
   ; MAIL/NEWS part
   GetFullPathName $8 "$INSTDIR\${FileMainEXE}"

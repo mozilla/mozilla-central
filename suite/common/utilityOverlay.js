@@ -54,7 +54,6 @@ Components.utils.import("resource://gre/modules/Services.jsm");
  **/
 
 const kProxyManual = ["network.proxy.ftp",
-                      "network.proxy.gopher",
                       "network.proxy.http",
                       "network.proxy.socks",
                       "network.proxy.ssl"];

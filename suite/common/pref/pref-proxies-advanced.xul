@@ -77,12 +77,6 @@
       <preference id="network.proxy.ftp_port"
                   name="network.proxy.ftp_port"
                   type="int"/>
-      <preference id="network.proxy.gopher"
-                  name="network.proxy.gopher"
-                  type="string"/>
-      <preference id="network.proxy.gopher_port"
-                  name="network.proxy.gopher_port"
-                  type="int"/>
       <preference id="network.proxy.share_proxy_settings"
                   name="network.proxy.share_proxy_settings"
                   type="bool"
@@ -187,27 +181,6 @@
             </hbox>
           </row>
 
-          <row>
-            <hbox align="center" pack="end">
-              <label value="&gopher.label;"
-                     accesskey="&gopher.accesskey;"
-                     control="networkProxyGopher"/>
-            </hbox>
-            <hbox align="center">
-              <textbox id="networkProxyGopher"
-                       preference="network.proxy.gopher"
-                       flex="1"
-                       class="uri-element"/>
-              <label value="&port.label;"
-                     accesskey="&gopherPort.accesskey;"
-                     control="networkProxyGopher_Port"/>
-              <textbox id="networkProxyGopher_Port"
-                       preference="network.proxy.gopher_port"
-                       type="number"
-                       max="65535"
-                       size="5"/>
-            </hbox>
-          </row>
         </rows>
       </grid>
     </groupbox>

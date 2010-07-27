@@ -313,7 +313,7 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
   }
 
   // never load unexposed protocols except for http, https and file. 
-  // Protocols like ftp, gopher are always blocked.
+  // Protocols like ftp are always blocked.
   if (ShouldBlockUnexposedProtocol(aContentLocation))
     return NS_OK;
 

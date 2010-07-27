@@ -81,12 +81,6 @@
       <preference id="network.proxy.ftp_port"
                   name="network.proxy.ftp_port"
                   type="int"/>
-      <preference id="network.proxy.gopher"
-                  name="network.proxy.gopher"
-                  type="string"/>
-      <preference id="network.proxy.gopher_port"
-                  name="network.proxy.gopher_port"
-                  type="int"/>
       <preference id="network.proxy.share_proxy_settings"
                   name="network.proxy.share_proxy_settings"
                   type="bool"/>
