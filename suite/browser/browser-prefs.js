@@ -220,10 +220,10 @@ pref("places.frecency.unvisitedTypedBonus", 200);
 
 // Tabbed browser
 pref("browser.tabs.loadDivertedInBackground", false);
-pref("browser.tabs.loadInBackground", false);
+pref("browser.tabs.loadInBackground", true);
 pref("browser.tabs.opentabfor.doubleclick", false);
-pref("browser.tabs.opentabfor.middleclick", false);
-pref("browser.tabs.opentabfor.urlbar", false);
+pref("browser.tabs.opentabfor.middleclick", true);
+pref("browser.tabs.opentabfor.urlbar", true);
 pref("browser.tabs.tooltippreview.enable", true);
 pref("browser.tabs.tooltippreview.width", 300);
 pref("browser.tabs.autoHide", true);
@@ -262,15 +262,14 @@ pref("browser.windows.loadOnNewWindow", 1);
 
 // external link handling in tabbed browsers. values from nsIBrowserDOMWindow.
 // 0=default window, 1=current window/tab, 2=new window, 3=new tab in most recent window
-pref("browser.link.open_external", 2); // open externally-launched links in a new window
-
-// handle links targeting new windows
-pref("browser.link.open_newwindow", 2);
+pref("browser.link.open_external", 3);
+// internal links handling in tabbed browsers. see .open_external for values.
+pref("browser.link.open_newwindow", 3);
 
 // 0: no restrictions - divert everything
 // 1: don't divert window.open at all
 // 2: don't divert window.open with features
-pref("browser.link.open_newwindow.restriction", 0); 
+pref("browser.link.open_newwindow.restriction", 2);
 
 // Translation service
 pref("browser.translation.service", "chrome://navigator-region/locale/region.properties");
