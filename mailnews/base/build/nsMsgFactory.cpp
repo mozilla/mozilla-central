@@ -131,6 +131,7 @@
 #include "nsMsgFolderNotificationService.h"
 
 #include "nsMailDirProvider.h"
+#include "nsServiceManagerUtils.h"
 
 #ifdef XP_WIN
 #include "nsMessengerWinIntegration.h"
