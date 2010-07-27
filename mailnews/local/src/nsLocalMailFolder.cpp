@@ -827,7 +827,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CompactAll(nsIUrlListener *aListener,
     PRUint32 expungedBytes = 0;
     for (PRUint32 i = 0; i < cnt; i++)
     {
-      nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i);
+      nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
 
       expungedBytes = 0;

@@ -78,6 +78,7 @@
 #include "nsCollationCID.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
+#include "nsAlgorithm.h"
 
 #if defined(DEBUG_sspitzer_) || defined(DEBUG_seth_)
 #define DEBUG_MSGKEYSET 1
