@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,15 +35,46 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function calProtocolHandler(contractid) {
-    this.scheme = contractid.substr("@mozilla.org/network/protocol;1?name=".length);
-    this.mHttpProtocol = getIOService().getProtocolHandler(this.scheme == "webcal" ? "http" : "https");
+
+/** Constructor for webcal: protocol handler */
+function calProtocolHandlerWebcal() {
+    calProtocolHandler.call(this, "webcal");
+}
+
+/** Constructor for webcals: protocl handler */
+function calProtocolHandlerWebcals() {
+    calProtocolHandler.call(this, "webcals");
+}
+
+/**
+ * Generic webcal constructor
+ *
+ * @param scheme        The scheme to init for (webcal, webcals)
+ */
+function calProtocolHandler(scheme) {
+    this.scheme = scheme;
+    this.mHttpProtocol = cal.getIOService().getProtocolHandler(this.scheme == "webcal" ? "http" : "https");
 }
 
 calProtocolHandler.prototype = {
+    getInterfaces: function cP_getInterfaces(aCount) {
+        const interfaces = [Components.interfaces.nsIProtocolHandler,
+                            Components.interfaces.nsIClassInfo,
+                            Components.interfaces.nsISupports];
+
+        aCount.value = interfaces.length;
+        return interfaces;
+    },
+    getHelperForLanguage: function cP_getHelperForLanguage(aLang) {
+        return null;
+    },
+    classDescription: "Describes a VALARM",
+    /* classID/contractID is filled in at the end of this file */
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
     QueryInterface: function cph_QueryInterface(aIID) {
-        return doQueryInterface(this, calProtocolHandler.prototype, aIID,
-                                [ Components.interfaces.nsIProtocolHandler, Components.interfaces.nsISupports ]);
+        return cal.doQueryInterface(this, calProtocolHandler.prototype, aIID, null, this);
     },
 
     get defaultPort() {
@@ -76,5 +108,16 @@ calProtocolHandler.prototype = {
         // We are not overriding any special ports
         return false;
     }
-}
+};
+
+calProtocolHandlerWebcal.prototype = {
+    __proto__: calProtocolHandler.prototype,
+    contractID: "@mozilla.org/network/protocol;1?name=webcal",
+    classID: Components.ID("{1153c73a-39be-46aa-9ba9-656d188865ca}")
+};
+calProtocolHandlerWebcals.prototype = {
+    __proto__: calProtocolHandler.prototype,
+    contractID: "@mozilla.org/network/protocol;1?name=webcals",
+    classID: Components.ID("{bdf71224-365d-4493-856a-a7e74026f766}")
+};
 

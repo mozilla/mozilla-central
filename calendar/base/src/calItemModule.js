@@ -142,15 +142,15 @@ const componentData =
      script: "calItipItem.js",
      constructor: "calItipItem"},
 
-    {cid: Components.ID("{1e2fc0e2-bf5f-4d60-9f1e-5e92cf517c0b}"),
+    {cid: Components.ID("{1153c73a-39be-46aa-9ba9-656d188865ca}"),
      contractid: "@mozilla.org/network/protocol;1?name=webcal",
      script: "calProtocolHandler.js",
-     constructor: "calProtocolHandler"},
+     constructor: "calProtocolHandlerWebcal"},
 
-    {cid: Components.ID("{b2ee6f91-b061-4527-97a1-b85361775fc1}"),
+    {cid: Components.ID("{bdf71224-365d-4493-856a-a7e74026f766}"),
      contractid: "@mozilla.org/network/protocol;1?name=webcals",
      script: "calProtocolHandler.js",
-     constructor: "calProtocolHandler"},
+     constructor: "calProtocolHandlerWebcals"},
 
     {cid: Components.ID("{6fe88047-75b6-4874-80e8-5f5800f14984}"),
      contractid: "@mozilla.org/calendar/ics-parser;1",
