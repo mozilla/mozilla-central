@@ -103,6 +103,12 @@ function createRecurrenceRule() {
            createInstance(Components.interfaces.calIRecurrenceRule);
 }
 
+/* Returns a clean new calIRecurrenceRule */
+function createRecurrenceDate() {
+    return Components.classes["@mozilla.org/calendar/recurrence-date;1"].
+           createInstance(Components.interfaces.calIRecurrenceDate);
+}
+
 /* Returns a clean new calIAttendee */
 function createAttendee() {
     return Components.classes["@mozilla.org/calendar/attendee;1"].

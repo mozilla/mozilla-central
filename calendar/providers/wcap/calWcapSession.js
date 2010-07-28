@@ -872,8 +872,7 @@ calWcapSession.prototype = {
         if (ar.length > 0 && ar[0].length > 0) {
             // workarounding cs duration bug, missing "T":
             var dur = ar[0].replace(/(^P)(\d+[HMS]$)/, "$1T$2");
-            alarmStart = new CalDuration();
-            alarmStart.icalString = dur;
+            alarmStart = cal.createDuration(dur);
             alarmStart.isNegative = !alarmStart.isNegative;
         }
         return alarmStart;

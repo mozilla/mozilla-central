@@ -842,11 +842,11 @@ calItemBase.prototype = {
                 switch (recprop.propertyName) {
                     case "RRULE":
                     case "EXRULE":
-                        ritem = new CalRecurrenceRule();
+                        ritem = cal.createRecurrenceRule();
                         break;
                     case "RDATE":
                     case "EXDATE":
-                        ritem = new CalRecurrenceDate();
+                        ritem = cal.createRecurrenceDate();
                         break;
                     default:
                         continue;
@@ -854,8 +854,7 @@ calItemBase.prototype = {
                 ritem.icalProperty = recprop;
 
                 if (!rec) {
-                    rec = new calRecurrenceInfo();
-                    rec.item = this;
+                    rec = cal.createRecurrenceInfo(this);
                 }
                 rec.appendRecurrenceItem(ritem);
             }

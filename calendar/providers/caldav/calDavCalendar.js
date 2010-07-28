@@ -2040,8 +2040,6 @@ calDavCalendar.prototype = {
 
             if (request.responseStatus == 200) {
                 var periodsToReturn = [];
-                var CalPeriod = new Components.Constructor("@mozilla.org/calendar/period;1",
-                                                           "calIPeriod");
                 var fbTypeMap = {};
                 fbTypeMap["FREE"] = calIFreeBusyInterval.FREE;
                 fbTypeMap["BUSY"] = calIFreeBusyInterval.BUSY;

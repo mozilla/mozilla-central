@@ -56,10 +56,6 @@ const calIFreeBusyInterval = Components.interfaces.calIFreeBusyInterval;
 const calICalendarSearchProvider = Components.interfaces.calICalendarSearchProvider;
 const calIErrors = Components.interfaces.calIErrors;
 
-// ctors:
-var CalDuration;
-var CalPeriod;
-
 // some string resources:
 var g_privateItemTitle;
 var g_confidentialItemTitle;
@@ -78,10 +74,6 @@ var LOG_LEVEL = 0;
 
 function initWcapProvider() {
     try {        
-        // ctors:
-        CalDuration = new Components.Constructor("@mozilla.org/calendar/duration;1", "calIDuration");
-        CalPeriod = new Components.Constructor("@mozilla.org/calendar/period;1", "calIPeriod");
-
         initLogging();
 
         // some string resources:

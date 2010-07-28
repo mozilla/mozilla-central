@@ -39,44 +39,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const kCalRecurrenceInfoContractID = "@mozilla.org/calendar/recurrence-info;1";
-const kCalIRecurrenceInfo = Components.interfaces.calIRecurrenceInfo;
-
-const kCalRecurrenceRuleContractID = "@mozilla.org/calendar/recurrence-rule;1";
-const kCalIRecurrenceRule = Components.interfaces.calIRecurrenceRule;
-
-const kCalRecurrenceDateSetContractID = "@mozilla.org/calendar/recurrence-date-set;1";
-const kCalIRecurrenceDateSet = Components.interfaces.calIRecurrenceDateSet;
-
-const kCalRecurrenceDateContractID = "@mozilla.org/calendar/recurrence-date;1";
-const kCalIRecurrenceDate = Components.interfaces.calIRecurrenceDate;
-
-/* Constructor helpers, lazily initialized to avoid registration races. */
-var CalRecurrenceInfo = null;
-var CalRecurrenceRule = null;
-var CalRecurrenceDateSet = null;
-var CalRecurrenceDate = null;
-var CalDateTime = null;
-var CalDuration = null;
-var CalItipItem = null;
-
-var componentInitRun = false;
-function initBaseComponent()
-{
-    CalRecurrenceInfo = new Components.Constructor(kCalRecurrenceInfoContractID, kCalIRecurrenceInfo);
-    CalRecurrenceRule = new Components.Constructor(kCalRecurrenceRuleContractID, kCalIRecurrenceRule);
-    CalRecurrenceDateSet = new Components.Constructor(kCalRecurrenceDateSetContractID, kCalIRecurrenceDateSet);
-    CalRecurrenceDate = new Components.Constructor(kCalRecurrenceDateContractID, kCalIRecurrenceDate);
-
-    CalDateTime = new Components.Constructor("@mozilla.org/calendar/datetime;1",
-                                             Components.interfaces.calIDateTime);
-    CalDuration = new Components.Constructor("@mozilla.org/calendar/duration;1",
-                                             Components.interfaces.calIDateTime);
-    CalItipItem = new Components.Constructor("@mozilla.org/calendar/itip-item;1",
-                                             Components.interfaces.calIItipItem);
-}
-
-
 /* Update these in calBaseCID.h */
 const componentData =
     [
@@ -287,11 +249,6 @@ var calItemModule = {
 
         if (!this.mScriptsLoaded)
             this.loadScripts();
-
-        if (!componentInitRun) {
-            initBaseComponent();
-            componentInitRun = true;
-        }
 
         for (var i = 0; i < componentData.length; i++) {
             if (cid.equals(componentData[i].cid)) {
