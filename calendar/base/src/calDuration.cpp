@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Stuart Parmenter <stuart.parmenter@oracle.com>
  *   Dan Mosedale <dan.mosedale@oracle.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -51,6 +52,7 @@
 #define SECONDS_PER_HOUR     3600
 #define SECONDS_PER_MINUTE     60
 
+NS_IMPL_CLASSINFO(calDuration, NULL, 0, CAL_DURATION_CID)
 NS_IMPL_ISUPPORTS1_CI(calDuration, calIDuration)
 
 calDuration::calDuration()

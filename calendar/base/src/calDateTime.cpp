@@ -24,6 +24,7 @@
  *   Michiel van Leeuwen <mvl@exedo.nl>
  *   Clint Talbert <cmtalbert@myfastmail.com>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -59,6 +60,7 @@ extern "C" {
 #define CAL_ATTR_SET_POST Normalize()
 #include "calAttributeHelpers.h"
 
+NS_IMPL_CLASSINFO(calDateTime, NULL, 0, CAL_DATETIME_CID)
 NS_IMPL_ISUPPORTS2_CI(calDateTime, calIDateTime, nsIXPCScriptable)
 
 calDateTime::calDateTime()

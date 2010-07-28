@@ -56,6 +56,7 @@ extern "C" {
     #include "ical.h"
 }
 
+NS_IMPL_CLASSINFO(calRecurrenceDate, NULL, 0, CAL_RECURRENCEDATE_CID)
 NS_IMPL_ISUPPORTS2_CI(calRecurrenceDate, calIRecurrenceItem, calIRecurrenceDate)
 
 calRecurrenceDate::calRecurrenceDate()

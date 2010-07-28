@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
  *   Daniel Boelzle <mozilla@boelzle.org>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,7 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIGenericFactory.h"
+#include "mozilla/ModuleUtils.h"
 #include "calDateTime.h"
 #include "calDuration.h"
 #include "calPeriod.h"
@@ -47,99 +48,54 @@
 
 #include "calBaseCID.h"
 
-NS_GENERIC_FACTORY_CONSTRUCTOR(calDuration)
-NS_DECL_CLASSINFO(calDuration)
-
-NS_GENERIC_FACTORY_CONSTRUCTOR(calPeriod)
-NS_DECL_CLASSINFO(calPeriod)
-
-NS_GENERIC_FACTORY_CONSTRUCTOR(calRecurrenceRule)
-NS_DECL_CLASSINFO(calRecurrenceRule)
-
-NS_GENERIC_FACTORY_CONSTRUCTOR(calRecurrenceDate)
-NS_DECL_CLASSINFO(calRecurrenceDate)
-
-NS_GENERIC_FACTORY_CONSTRUCTOR(calRecurrenceDateSet)
-NS_DECL_CLASSINFO(calRecurrenceDateSet)
-
 NS_GENERIC_FACTORY_CONSTRUCTOR(calDateTime)
-NS_DECL_CLASSINFO(calDateTime)
+NS_DEFINE_NAMED_CID(CAL_DATETIME_CID);
+
+NS_GENERIC_FACTORY_CONSTRUCTOR(calDuration)
+NS_DEFINE_NAMED_CID(CAL_DURATION_CID);
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(calICSService)
+NS_DEFINE_NAMED_CID(CAL_ICSSERVICE_CID);
 
-static const nsModuleComponentInfo components[] =
-{
-    { "Calendar DateTime Object",
-      CAL_DATETIME_CID,
-      CAL_DATETIME_CONTRACTID,
-      calDateTimeConstructor,
-      NULL,
-      NULL,
-      NULL,
-      NS_CI_INTERFACE_GETTER_NAME(calDateTime),
-      NULL,
-      &NS_CLASSINFO_NAME(calDateTime)
-    },
-    { "Calendar Duration Object",
-      CAL_DURATION_CID,
-      CAL_DURATION_CONTRACTID,
-      calDurationConstructor,
-      NULL,
-      NULL,
-      NULL,
-      NS_CI_INTERFACE_GETTER_NAME(calDuration),
-      NULL,
-      &NS_CLASSINFO_NAME(calDuration)
-    },
-    { "Calendar Period Object",
-      CAL_PERIOD_CID,
-      CAL_PERIOD_CONTRACTID,
-      calPeriodConstructor,
-      NULL,
-      NULL,
-      NULL,
-      NS_CI_INTERFACE_GETTER_NAME(calPeriod),
-      NULL,
-      &NS_CLASSINFO_NAME(calPeriod)
-    },
-    { "ICS parser/serializer",
-      CAL_ICSSERVICE_CID,
-      CAL_ICSSERVICE_CONTRACTID,
-      calICSServiceConstructor
-    },
-    { "Calendar Recurrence Rule",
-      CAL_RECURRENCERULE_CID,
-      CAL_RECURRENCERULE_CONTRACTID,
-      calRecurrenceRuleConstructor,
-      NULL,
-      NULL,
-      NULL,
-      NS_CI_INTERFACE_GETTER_NAME(calRecurrenceRule),
-      NULL,
-      &NS_CLASSINFO_NAME(calRecurrenceRule)
-    },
-    { "Calendar Recurrence Date",
-      CAL_RECURRENCEDATE_CID,
-      CAL_RECURRENCEDATE_CONTRACTID,
-      calRecurrenceDateConstructor,
-      NULL,
-      NULL,
-      NULL,
-      NS_CI_INTERFACE_GETTER_NAME(calRecurrenceDate),
-      NULL,
-      &NS_CLASSINFO_NAME(calRecurrenceDate)
-    },
-    { "Calendar Recurrence Date Set",
-      CAL_RECURRENCEDATESET_CID,
-      CAL_RECURRENCEDATESET_CONTRACTID,
-      calRecurrenceDateSetConstructor,
-      NULL,
-      NULL,
-      NULL,
-      NS_CI_INTERFACE_GETTER_NAME(calRecurrenceDateSet),
-      NULL,
-      &NS_CLASSINFO_NAME(calRecurrenceDateSet)
-    }
+NS_GENERIC_FACTORY_CONSTRUCTOR(calPeriod)
+NS_DEFINE_NAMED_CID(CAL_PERIOD_CID);
+
+NS_GENERIC_FACTORY_CONSTRUCTOR(calRecurrenceDate)
+NS_DEFINE_NAMED_CID(CAL_RECURRENCEDATE_CID);
+
+NS_GENERIC_FACTORY_CONSTRUCTOR(calRecurrenceDateSet)
+NS_DEFINE_NAMED_CID(CAL_RECURRENCEDATESET_CID);
+
+NS_GENERIC_FACTORY_CONSTRUCTOR(calRecurrenceRule)
+NS_DEFINE_NAMED_CID(CAL_RECURRENCERULE_CID);
+
+
+const mozilla::Module::CIDEntry kCalBaseCIDs[] = {
+    { &kCAL_DATETIME_CID, false, NULL, calDateTimeConstructor },
+    { &kCAL_DURATION_CID, false, NULL, calDurationConstructor },
+    { &kCAL_ICSSERVICE_CID, true, NULL, calICSServiceConstructor },
+    { &kCAL_PERIOD_CID, false, NULL, calPeriodConstructor },
+    { &kCAL_RECURRENCERULE_CID, false, NULL, calRecurrenceRuleConstructor },
+    { &kCAL_RECURRENCEDATE_CID, false, NULL, calRecurrenceDateConstructor },
+    { &kCAL_RECURRENCEDATESET_CID, false, NULL, calRecurrenceDateSetConstructor },
+    { NULL }
 };
 
-NS_IMPL_NSGETMODULE(calBaseModule, components)
+const mozilla::Module::ContractIDEntry kCalBaseContracts[] = {
+    { CAL_DATETIME_CONTRACTID, &kCAL_DATETIME_CID },
+    { CAL_DURATION_CONTRACTID, &kCAL_DURATION_CID },
+    { CAL_ICSSERVICE_CONTRACTID, &kCAL_ICSSERVICE_CID },
+    { CAL_PERIOD_CONTRACTID, &kCAL_PERIOD_CID },
+    { CAL_RECURRENCERULE_CONTRACTID, &kCAL_RECURRENCERULE_CID },
+    { CAL_RECURRENCEDATE_CONTRACTID, &kCAL_RECURRENCEDATE_CID },
+    { CAL_RECURRENCEDATESET_CONTRACTID, &kCAL_RECURRENCEDATESET_CID },
+    { NULL }
+};
+
+static const mozilla::Module kCalBaseModule = {
+    mozilla::Module::kVersion,
+    kCalBaseCIDs,
+    kCalBaseContracts
+};
+
+NSMODULE_DEFN(calBaseModule) = &kCalBaseModule;

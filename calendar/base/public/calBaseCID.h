@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
  *   Mike Shaver <shaver@off.net>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -60,6 +61,11 @@
     { 0xae4ca6c3, 0x981b, 0x4f66, { 0xa0, 0xce, 0x2f, 0x2c, 0x21, 0x8a, 0xd9, 0xe3 } }
 #define CAL_ICSSERVICE_CONTRACTID \
     "@mozilla.org/calendar/ics-service;1"
+
+#define CAL_ICALPROPERTY_CID \
+    { 0x17349a10, 0x5d80, 0x47fa, { 0x9b, 0xea, 0xf2, 0x29, 0x57, 0x35, 0x76, 0x75 } }
+#define CAL_ICALCOMPONENT_CID \
+    { 0xc4637c40, 0x3c4c, 0x4ecd, { 0xb8, 0x02, 0x8b, 0x5b, 0x46, 0xbd, 0xf5, 0xa4 } }
 
 #define CAL_TIMEZONESERVICE_CID \
     { 0x1a23ace4, 0xa0dd, 0x43b4, { 0x96, 0xa8, 0xb3, 0xcd, 0x41, 0x9a, 0x14, 0xa5 } }

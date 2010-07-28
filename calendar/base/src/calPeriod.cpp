@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,6 +43,7 @@
 
 #include "calUtils.h"
 
+NS_IMPL_CLASSINFO(calPeriod, NULL, 0, CAL_PERIOD_CID)
 NS_IMPL_ISUPPORTS1_CI(calPeriod, calIPeriod)
 
 calPeriod::calPeriod()

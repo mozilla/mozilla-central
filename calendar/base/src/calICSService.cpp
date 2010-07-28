@@ -22,6 +22,7 @@
  *   Mike Shaver <shaver@off.net>
  *   Michiel van Leeuwen <mvl@exedo.nl>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -56,6 +57,7 @@ calIcalProperty::~calIcalProperty()
     }
 }
 
+NS_IMPL_CLASSINFO(calIcalProperty, NULL, 0, CAL_ICALPROPERTY_CID)
 NS_IMPL_ISUPPORTS1(calIcalProperty, calIIcalProperty)
 
 NS_IMETHODIMP_(icalproperty *)
@@ -814,6 +816,8 @@ calIcalComponent::Get##Attrname(calIDuration **dtp)                     \
     return NS_OK;                                                       \
 }
 
+
+NS_IMPL_CLASSINFO(calIcalComponent, NULL, nsIClassInfo::THREADSAFE, CAL_ICALCOMPONENT_CID)
 NS_IMPL_THREADSAFE_ISUPPORTS2(calIcalComponent, calIIcalComponent, nsIClassInfo)
 NS_IMPL_CI_INTERFACE_GETTER1(calIcalComponent, calIIcalComponent)
 NS_IMPL_THREADSAFE_CI(calIcalComponent)
@@ -1198,6 +1202,7 @@ calIcalComponent::AddProperty(calIIcalProperty * prop)
 //     return NS_OK;
 // }
 
+NS_IMPL_CLASSINFO(calICSService, NULL, nsIClassInfo::THREADSAFE, CAL_ICSSERVICE_CID)
 NS_IMPL_THREADSAFE_ISUPPORTS2(calICSService, calIICSService, nsIClassInfo)
 NS_IMPL_CI_INTERFACE_GETTER1(calICSService, calIICSService)
 NS_IMPL_THREADSAFE_CI(calICSService)
