@@ -3084,6 +3084,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
           // and we have to add a pending listener for each of them.
           if (!buffer.IsEmpty())
           {
+            ParseAndVerifyVirtualFolderScope(buffer, rdf);
             dbFolderInfo->SetCharProperty(kSearchFolderUriProp, buffer);
             AddVFListenersForVF(virtualFolder, buffer, rdf, msgDBService);
           }
@@ -3205,6 +3206,43 @@ nsresult nsMsgAccountManager::WriteLineToOutputStream(const char *prefix, const 
   outputStream->Write(line, strlen(line), &writeCount);
   outputStream->Write("\n", 1, &writeCount);
   return NS_OK;
+}
+
+/**
+ * Parse the '|' separated folder uri string into individual folders, verify
+ * that the folders are real. If we were to add things like wildcards, we
+ * could implement the expansion into real folders here.
+ *
+ * @param buffer On input, list of folder uri's, on output, verified list.
+ * @param rdf rdf service
+ */
+void nsMsgAccountManager::ParseAndVerifyVirtualFolderScope(nsCString &buffer,
+                                                           nsIRDFService *rdf)
+{
+  nsCString verifiedFolders;
+  nsTArray<nsCString> folderUris;
+  ParseString(buffer, '|', folderUris);
+  nsCOMPtr <nsIRDFResource> resource;
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  nsCOMPtr<nsIMsgFolder> parent;
+
+  for (PRUint32 i = 0; i < folderUris.Length(); i++)
+  {
+    rdf->GetResource(folderUris[i], getter_AddRefs(resource));
+    nsCOMPtr <nsIMsgFolder> realFolder = do_QueryInterface(resource);
+    if (!realFolder)
+      continue;
+    realFolder->GetParent(getter_AddRefs(parent));
+    if (!parent)
+      continue;
+    realFolder->GetServer(getter_AddRefs(server));
+    if (!server)
+      continue;
+    if (!verifiedFolders.IsEmpty())
+      verifiedFolders.Append('|');
+    verifiedFolders.Append(folderUris[i]);
+  }
+  buffer.Assign(verifiedFolders);
 }
 
 // This conveniently works to add a single folder as well.
@@ -3583,6 +3621,8 @@ nsMsgAccountManager::RemoveFolderFromSmartFolder(nsIMsgFolder *aFolder,
 {
   nsCString removedFolderURI;
   aFolder->GetURI(removedFolderURI);
+  removedFolderURI.Insert('|', 0);
+  removedFolderURI.Append('|');
   PRUint32 flags;
   aFolder->GetFlags(&flags);
   NS_ASSERTION(!(flags & flagsChanged), "smart folder flag should not be set");
