@@ -53,9 +53,6 @@ Components.utils.import("resource://calendar/modules/calStorageHelpers.jsm");
 const USECS_PER_SECOND = 1000000;
 const kCalICalendar = Components.interfaces.calICalendar;
 
-var gTransCount = {};
-var gTransErr = {};
-
 //
 // calStorageCalendar
 //
@@ -623,8 +620,8 @@ calStorageCalendar.prototype = {
                                     aRangeStart, aRangeEnd, aListener) {
         let this_ = this;
         cal.postPone(function() {
-                this_.getItems_(aItemFilter, aCount, aRangeStart, aRangeEnd, aListener);
-            });
+            this_.getItems_(aItemFilter, aCount, aRangeStart, aRangeEnd, aListener);
+        });
     },
     getItems_: function cSC_getItems_(aItemFilter, aCount,
                                       aRangeStart, aRangeEnd, aListener)
@@ -1800,9 +1797,9 @@ calStorageCalendar.prototype = {
     flushItem: function cSC_flushItem(item, olditem) {
         ASSERT(!item.recurrenceId, "no parent item passed!", true);
 
-        this.acquireTransaction();
         try {
             this.deleteItemById(olditem ? olditem.id : item.id);
+            this.acquireTransaction();
             this.writeItem(item, olditem);
         } catch (e) {
             this.releaseTransaction(e);
@@ -2211,57 +2208,25 @@ calStorageCalendar.prototype = {
     },
 
     /**
-     * Acquire a transaction for this calendar. This begins a transaction if the
-     * transaction count for the given calendar is zero and otherwise reuses the
-     * existing transaction.
+     * Acquire a transaction for this calendar.
      */
     acquireTransaction: function cSC_acquireTransaction() {
-        let calId = this.id;
-        if (!(calId in gTransCount)) {
-            gTransCount[calId] = 0;
-        }
-        if (gTransCount[calId]++ == 0) {
-            this.mDB.beginTransaction();
-        }
+        this.mDB.beginTransaction();
     },
 
     /**
-     * Releases one level of transactions for this calendar. If the transaction
-     * count reaches zero and no error has occurred, the transaction is committed.
-     * Calling this function with an error remembers that an error has occurred,
-     * when the transaction count reaches zero, the transaction is rolled back.
+     * Releases one level of transactions for this calendar.
      *
      * @param err       (optional) If set, the transaction is set to fail when
      *                    the count reaches zero.
      */
     releaseTransaction: function cSC_releaseTransaction(err) {
-        let calId = this.id;
         if (err) {
-            this.logError("releaseTransaction on error", err);
-            gTransErr[calId] = err;
-        }
-
-        if (gTransCount[calId] > 0) {
-            if (--gTransCount[calId] == 0) {
-                if (gTransErr[calId]) {
-                    this.mDB.rollbackTransaction();
-                    delete gTransErr[calId];
-                } else {
-                    this.mDB.commitTransaction();
-                }
-            }
+            cal.ERROR("DB error: " + this.mDB.lastErrorString + "\nexc: " + err);
+            this.mDB.rollbackTransaction();
         } else {
-            ASSERT(gTransCount[calId] > 0, "unexpected batch count!");
+            this.mDB.commitTransaction();
         }
-    },
-
-    startBatch: function cSC_startBatch() {
-        this.acquireTransaction();
-        this.__proto__.__proto__.startBatch.apply(this, arguments);
-    },
-    endBatch: function cSC_endBatch() {
-        this.releaseTransaction();
-        this.__proto__.__proto__.endBatch.apply(this, arguments);
     },
 
     //
