@@ -909,7 +909,6 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/components/glautocomp.js
 @BINPATH@/components/jsmimeemitter.js
 @BINPATH@/components/gloda.manifest
-@BINPATH@/modules/gloda/*
 
 [chatzilla]
 @BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/chatzilla.jar
