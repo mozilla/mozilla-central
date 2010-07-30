@@ -1895,13 +1895,17 @@ NS_IMETHODIMP  nsImapIncomingServer::FEAlertFromServer(const nsACString& aString
   NS_ENSURE_TRUE(imapUrl, NS_ERROR_INVALID_ARG);
 
   nsImapState imapState;
+  nsImapAction imapAction;
+
   imapUrl->GetRequiredImapState(&imapState);
+  imapUrl->GetImapAction(&imapAction);
   nsString folderName;
 
   NS_ConvertUTF8toUTF16 unicodeMsg(message);
 
   nsCOMPtr<nsIMsgFolder> folder;
-  if (imapState == nsIImapUrl::nsImapSelectedState)
+  if (imapState == nsIImapUrl::nsImapSelectedState ||
+      imapAction == nsIImapUrl::nsImapFolderStatus)
   {
     aUrl->GetFolder(getter_AddRefs(folder));
     if (folder)
