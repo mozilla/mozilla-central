@@ -68,8 +68,6 @@
 
 ; Modules
 @BINPATH@/modules/*
-@BINPATH@/modules/activity/*
-@BINPATH@/modules/gloda/*
 
 ; Optional RSS extension
 [newsblog]
