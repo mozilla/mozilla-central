@@ -58,4 +58,7 @@ CHROME_DEPS += $(abs_srcdir)/app-license.html
 # Use suite/common/app-license.html as input when generating 
 # chrome://content/communicator/license.html to override 
 # chrome://global/content/license.html (about:license)
-DEFINES += -DAPP_EULA_BLOCK=$(abs_srcdir)/app-license.html
+DEFINES += -DAPP_EULA_BLOCK=$(abs_srcdir)/app-license.html \
+           -DMOZ_APP_VERSION=$(MOZ_APP_VERSION) \
+           $(NULL)
+

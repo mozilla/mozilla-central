@@ -1,5 +1,7 @@
 component {08bbb4af-7bff-4b16-8ff7-d62f3ec5aa0c} nsSuiteDownloadManagerUI.js
 contract @mozilla.org/download-manager-ui;1 {08bbb4af-7bff-4b16-8ff7-d62f3ec5aa0c}
+component {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f} nsAbout.js
+contract @mozilla.org/network/protocol/about;1?what= {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
 component {b24861fb-e91a-40dd-886d-68d26a9586c7} nsAboutCertError.js
 contract @mozilla.org/network/protocol/about;1?what=certerror {b24861fb-e91a-40dd-886d-68d26a9586c7}
 component {a03c813e-abe8-41de-8d0c-5aa85f877696} nsAboutSessionRestore.js
