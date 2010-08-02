@@ -47,6 +47,8 @@ var EXPORTED_SYMBOLS = [ "migrateMailnews" ];
 Components.utils.import("resource:///modules/errUtils.js");
 //Components.utils.import("resource:///modules/Services.js");
 const Ci = Components.interfaces;
+const kServerPrefVersion = 1;
+const kSmtpPrefVersion = 1;
 var gPrefs;
 
 function migrateMailnews()
@@ -82,6 +84,8 @@ function MigrateServerAuthPref()
       if (!gPrefs.prefHasUserValue(server + "useSecAuth") &&
           !gPrefs.prefHasUserValue(server + "auth_login"))
         continue;
+      if (gPrefs.prefHasUserValue(server + "migrated"))
+        continue;
       // auth_login = false => old-style auth
       // else: useSecAuth = true => "secure auth"
       // else: cleartext pw
@@ -99,6 +103,7 @@ function MigrateServerAuthPref()
                            Ci.nsMsgAuthMethod.secure :
                            Ci.nsMsgAuthMethod.passwordCleartext) :
                        Ci.nsMsgAuthMethod.old);
+      gPrefs.setIntPref(server + "migrated", kServerPrefVersion);
     }
 
     // same again for SMTP servers
@@ -112,6 +117,8 @@ function MigrateServerAuthPref()
         continue;
       if (!gPrefs.prefHasUserValue(server + "useSecAuth") &&
           !gPrefs.prefHasUserValue(server + "auth_method"))
+        continue;
+      if (gPrefs.prefHasUserValue(server + "migrated"))
         continue;
       // auth_method = 0 => no auth
       // else: useSecAuth = true => "secure auth"
@@ -130,6 +137,7 @@ function MigrateServerAuthPref()
                             Ci.nsMsgAuthMethod.secure :
                             Ci.nsMsgAuthMethod.passwordCleartext) :
                         Ci.nsMsgAuthMethod.none);
+      gPrefs.setIntPref(server + "migrated", kSmtpPrefVersion);
     }
   } catch(e) { logException(e); }
 }
