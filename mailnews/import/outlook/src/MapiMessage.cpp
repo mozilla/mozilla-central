@@ -464,10 +464,18 @@ BOOL CMapiMessage::FetchBody( void)
   else if (pVal && (PROP_TYPE( pVal->ulPropTag) == PT_TSTRING) && (pVal->Value.LPSZ) && (*(pVal->Value.LPSZ)))
     m_body = pVal->Value.LPSZ;
 
-  // kind-hearted Outlook will give us html even for a plain text message. But it will include
-  // a comment saying it did the conversion. We'll use this as a hack to really use
-  // the plain text part.
-  if (!m_body.IsEmpty() && m_body.Find("<!-- Converted from text/plain format -->") == kNotFound)
+  // Kind-hearted Outlook will give us html even for a plain text message.
+  // But it will include a comment saying it did the conversion.
+  // We'll use this as a hack to really use the plain text part.
+  //
+  // Sadly there are cases where this string is returned despite the fact
+  // that the message is indeed HTML.
+  //
+  // To detect the "true" plain text messages, we look for our string
+  // immediately following the <BODY> tag.
+  if (!m_body.IsEmpty() &&
+      m_body.Find("<BODY>\r\n<!-- Converted from text/plain format -->") ==
+      kNotFound)
     m_bodyIsHtml = TRUE;
   else
   {
