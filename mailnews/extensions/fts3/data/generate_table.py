@@ -257,7 +257,7 @@ print '''
 
 unsigned int normalize_character(const unsigned int c)
 {
-  if (c > ''' + ('0x%x' % (maxmapping,)) + ''' || !gNormalizeTable[c >> 6])
+  if (c >= ''' + ('0x%x' % (maxmapping,)) + ''' || !gNormalizeTable[c >> 6])
     return c;
   return gNormalizeTable[c >> 6][c & 0x3f];
 }

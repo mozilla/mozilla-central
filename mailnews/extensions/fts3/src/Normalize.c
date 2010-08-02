@@ -1955,7 +1955,7 @@ static const unsigned short* gNormalizeTable[] = {
 
 unsigned int normalize_character(const unsigned int c)
 {
-  if (c > 0x10000 || !gNormalizeTable[c >> 6])
+  if (c >= 0x10000 || !gNormalizeTable[c >> 6])
     return c;
   return gNormalizeTable[c >> 6][c & 0x3f];
 }
