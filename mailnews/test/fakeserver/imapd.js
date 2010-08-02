@@ -750,7 +750,7 @@ IMAP_RFC3501_handler.prototype = {
       this._lastCommand = command;
       // Are we allowed to execute this command?
       if (this._enabledCommands[this._state].indexOf(command) == -1)
-        return this._tag + " BAD illegal command for current state";
+        return this._tag + " BAD illegal command for current state " + this._state;
 
       try {
         // Format the arguments nicely
@@ -1001,8 +1001,11 @@ IMAP_RFC3501_handler.prototype = {
     var mbox = this._daemon.getMailbox(args[0]);
     if (!mbox || mbox.name == "")
       return "NO no such mailbox";
-    if (mbox._children.length > 0 && "\\Noselect" in mbox.flags)
-      return "NO cannot delete mailbox";
+    if (mbox._children.length > 0) {
+      for (let i = 0; i < mbox.flags.length; i++)
+        if (mbox.flags[i] == "\\Noselect")
+          return "NO cannot delete mailbox";
+    }
     this._daemon.deleteMailbox(mbox);
     return "OK DELETE completed";
   },
@@ -1055,6 +1058,9 @@ IMAP_RFC3501_handler.prototype = {
     var box = this._daemon.getMailbox(args[0]);
     if (!box)
       return "NO no such mailbox exists";
+    for (let i = 0; i < box.flags.length; i++)
+      if (box.flags[i] == "\\Noselect")
+        return "NO STATUS not allowed on Noselect folder";
     var parts = [];
     for each (var status in args[1]) {
       var line = status + " ";

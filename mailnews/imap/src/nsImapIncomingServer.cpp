@@ -2366,7 +2366,7 @@ nsImapIncomingServer::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
       }
       // if we get an error running the url, it's better
       // not to chain the next url.
-      if (NS_FAILED(exitCode))
+      if (NS_FAILED(exitCode) && exitCode != NS_MSG_ERROR_IMAP_COMMAND_FAILED)
         m_foldersToStat.Clear();
       if (m_foldersToStat.Count() > 0)
         m_foldersToStat[0]->UpdateStatus(this, nsnull);
@@ -2994,19 +2994,20 @@ nsImapIncomingServer::GetNewMessagesForNonInboxFolders(nsIMsgFolder *aFolder,
   // or if we are forced to check all folders
   PRUint32 flags = 0;
   aFolder->GetFlags(&flags);
-  if ((forceAllFolders &&
-      !(flags & (nsMsgFolderFlags::Inbox | nsMsgFolderFlags::Trash | nsMsgFolderFlags::Junk |
-               nsMsgFolderFlags::ImapNoselect | nsMsgFolderFlags::Virtual))) ||
-      (flags & nsMsgFolderFlags::CheckNew))
+  nsresult rv;
+  nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(aFolder, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  PRBool canOpen;
+  imapFolder->GetCanOpenFolder(&canOpen);
+  if (canOpen && ((forceAllFolders &&
+                 !(flags & (nsMsgFolderFlags::Inbox | nsMsgFolderFlags::Trash |
+                   nsMsgFolderFlags::Junk | nsMsgFolderFlags::Virtual))) ||
+                flags & nsMsgFolderFlags::CheckNew))
   {
     // Get new messages for this folder.
     aFolder->SetGettingNewMessages(PR_TRUE);
     if (performingBiff)
-    {
-      nsCOMPtr<nsIMsgImapMailFolder> imapFolder(do_QueryInterface(aFolder));
-      if (imapFolder)
-        imapFolder->SetPerformingBiff(PR_TRUE);
-    }
+      imapFolder->SetPerformingBiff(PR_TRUE);
     PRBool isOpen = PR_FALSE;
     nsCOMPtr <nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID);
     if (mailSession && aFolder)
@@ -3022,9 +3023,7 @@ nsImapIncomingServer::GetNewMessagesForNonInboxFolders(nsIMsgFolder *aFolder,
     }
     if (gUseStatus && !isOpen)
     {
-      nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(aFolder);
-      if (imapFolder && !isServer &&
-          m_foldersToStat.IndexOf(imapFolder) == -1)
+      if (!isServer && m_foldersToStat.IndexOf(imapFolder) == -1)
         m_foldersToStat.AppendObject(imapFolder);
     }
     else
@@ -3033,7 +3032,7 @@ nsImapIncomingServer::GetNewMessagesForNonInboxFolders(nsIMsgFolder *aFolder,
 
   // Loop through all subfolders to get new messages for them.
   nsCOMPtr<nsISimpleEnumerator> enumerator;
-  nsresult rv = aFolder->GetSubFolders(getter_AddRefs(enumerator));
+  rv = aFolder->GetSubFolders(getter_AddRefs(enumerator));
   if (NS_FAILED(rv))
     return rv;
 
