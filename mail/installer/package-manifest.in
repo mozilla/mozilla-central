@@ -324,6 +324,7 @@
 @BINPATH@/components/content_xslt.xpt
 @BINPATH@/components/content_xtf.xpt
 @BINPATH@/components/htmlparser.xpt
+@BINPATH@/components/layout.xpt
 @BINPATH@/components/layout_base.xpt
 #ifdef NS_PRINTING
 @BINPATH@/components/layout_printing.xpt
@@ -537,6 +538,7 @@
 @BINPATH@/components/contentAreaDropListener.manifest
 @BINPATH@/components/contentSecurityPolicy.js
 @BINPATH@/components/contentSecurityPolicy.manifest
+@BINPATH@/components/directory.xpt
 @BINPATH@/components/jsconsole-clhandler.js
 @BINPATH@/components/jsconsole-clhandler.manifest
 @BINPATH@/components/layout_xul_tree.xpt
