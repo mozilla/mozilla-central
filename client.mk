@@ -323,6 +323,7 @@ $(OBJDIR)/config/autoconf.mk: $(TOPSRCDIR)/config/autoconf.mk.in
 	  CONFIG_FILES=config/autoconf.mk ./config.status
 endif
 
+
 ####################################
 # Depend
 
