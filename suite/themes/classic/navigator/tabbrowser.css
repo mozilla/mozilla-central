@@ -2,9 +2,11 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 .tabbrowser-strip {
-  padding-bottom: 3px;
-  border-bottom: 2px solid;
-  -moz-border-bottom-colors: ThreeDDarkShadow ThreeDShadow;
+  min-height: 0px;
+  padding: 0px;
+  /* 1px ThreeDShadow bottom border that doesn't take up space and that
+     selected panel can just draw over */
+  -moz-box-shadow: 0px -1px ThreeDShadow inset;
 }
 
 tabpanels {
@@ -18,21 +20,32 @@ tabpanels {
 .tabs-left,
 .tabs-right {
   width: 3px;
+  border-bottom: none;
 }
 
 .tab-icon {
   margin-top: 1px;
-  -moz-margin-end: 3px;
+  -moz-margin-start: 1px;
+  -moz-margin-end: 4px;
   width: 16px;
   height: 16px;
 }
 
 .tabbrowser-tab {
   list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.png"); 
+  padding: 0px 2px 2px;
+  margin-bottom: 1px;
+  border-bottom: none;
 }
 
 .tabbrowser-tab[busy] {
   list-style-image: url("chrome://communicator/skin/icons/loading.gif");
+}
+
+.tabbrowser-tab[selected="true"] {
+  margin-bottom: 0px;
+  padding-top: 2px; /* compensates the top margin of background tabs */
+  padding-bottom: 3px; /* compensates the bottom margin of background tabs */
 }
 
 /* ::::: close button ::::: */
@@ -43,7 +56,7 @@ tabpanels {
 }
 
 .tabs-closebutton > .toolbarbutton-icon {
-  margin: 0;
+  margin: 0px;
 }
 
 .tabs-newbutton {

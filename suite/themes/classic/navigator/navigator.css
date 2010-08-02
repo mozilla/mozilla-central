@@ -439,13 +439,6 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
 
 /* ::::: content area ::::: */
 
-#content {
-  border-top: 1px solid ThreeDDarkShadow;
-  border-bottom: 1px solid ThreeDLightShadow;
-  border-left: 2px solid;
-  -moz-border-left-colors: ThreeDShadow ThreeDDarkShadow;
-}
-
 #status-bar {
   border-top: none;
   min-width: 1px;
