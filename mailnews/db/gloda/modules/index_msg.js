@@ -1691,6 +1691,19 @@ var GlodaMsgIndexer = {
         !(aMsgFolder instanceof nsIMsgImapMailFolder))
       return false;
 
+    // Some folders do not really exist; we can detect this by getStringProperty
+    //  exploding when we call it.  This is primarily a concern because
+    //  _mapFolder calls said exploding method, but we also don't want to
+    //  even think about indexing folders that don't exist.  (Such folders are
+    //  likely the result of a messed up profile.)
+    try {
+      // flags is used because it should always be in the cache avoiding a miss
+      //  which would compel an msf open.
+      aMsgFolder.getStringProperty("flags");
+    } catch (ex) {
+      return false;
+    }
+
     // Now see what our gloda folder information has to say about the folder.
     let glodaFolder = GlodaDatastore._mapFolder(aMsgFolder);
     return glodaFolder.indexingPriority != glodaFolder.kIndexingNeverPriority;
