@@ -666,6 +666,7 @@ NS_IMETHODIMP nsDBFolderInfo::SetCharacterSet(const nsACString &charSet)
 
 NS_IMETHODIMP nsDBFolderInfo::GetCharacterSetOverride(PRBool *characterSetOverride)
 {
+  NS_ENSURE_ARG_POINTER(characterSetOverride);
   *characterSetOverride = m_charSetOverride;
   return NS_OK;
 }

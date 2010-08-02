@@ -2044,7 +2044,7 @@ nsresult nsMsgDatabase::IsHeaderRead(nsIMsgDBHdr *msgHdr, PRBool *pRead)
   // can't call GetFlags, because it will be recursive.
   PRUint32 flags;
   hdr->GetRawFlags(&flags);
-  *pRead = (flags & nsMsgMessageFlags::Read) != 0;
+  *pRead = !!(flags & nsMsgMessageFlags::Read);
   return NS_OK;
 }
 
@@ -2058,7 +2058,7 @@ NS_IMETHODIMP nsMsgDatabase::IsMarked(nsMsgKey key, PRBool *pMarked)
 
   PRUint32 flags;
   (void)msgHdr->GetFlags(&flags);
-  *pMarked = (flags & nsMsgMessageFlags::Marked) == nsMsgMessageFlags::Marked;
+  *pMarked = !!(flags & nsMsgMessageFlags::Marked);
   return rv;
 }
 
@@ -2077,7 +2077,7 @@ NS_IMETHODIMP nsMsgDatabase::IsIgnored(nsMsgKey key, PRBool *pIgnored)
 
   PRUint32 threadFlags;
   threadHdr->GetFlags(&threadFlags);
-  *pIgnored = (threadFlags & nsMsgMessageFlags::Ignored) ? PR_TRUE : PR_FALSE;
+  *pIgnored = !!(threadFlags & nsMsgMessageFlags::Ignored);
   return rv;
 }
 
@@ -2093,7 +2093,7 @@ nsresult nsMsgDatabase::HasAttachments(nsMsgKey key, PRBool *pHasThem)
 
   PRUint32 flags;
   (void)msgHdr->GetFlags(&flags);
-  *pHasThem = (flags & nsMsgMessageFlags::Attachment) ? PR_TRUE : PR_FALSE;
+  *pHasThem = !!(flags & nsMsgMessageFlags::Attachment);
   return rv;
 }
 
@@ -2441,7 +2441,7 @@ NS_IMETHODIMP nsMsgDatabase::IsMDNNeeded(nsMsgKey key, PRBool *pNeeded)
 
   PRUint32 flags;
   (void)msgHdr->GetFlags(&flags);
-  *pNeeded = ((flags & nsMsgMessageFlags::MDNReportNeeded) == nsMsgMessageFlags::MDNReportNeeded);
+  *pNeeded = !!(flags & nsMsgMessageFlags::MDNReportNeeded);
   return rv;
 }
 
@@ -2463,7 +2463,7 @@ nsresult nsMsgDatabase::IsMDNSent(nsMsgKey key, PRBool *pSent)
 
   PRUint32 flags;
   (void)msgHdr->GetFlags(&flags);
-  *pSent = flags & nsMsgMessageFlags::MDNReportSent;
+  *pSent = !!(flags & nsMsgMessageFlags::MDNReportSent);
   return rv;
 }
 
@@ -3999,7 +3999,7 @@ nsresult nsMsgDatabase::GetBooleanProperty(nsIMdbRow *row, const char *propertyN
 {
   PRUint32 res;
   nsresult rv = GetUint32Property(row, propertyName, &res, (PRUint32) defaultValue);
-  *result = (PRBool) res;
+  *result = !!res;
   return rv;
 }
 
