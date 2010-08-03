@@ -199,10 +199,8 @@ nsMailServer.prototype = {
     this._socket.close();
     this._socket = null;
 
-    if (this._readers.some(function (e) { return e.observer.forced })) {
-      do_test_finished();
+    if (this._readers.some(function (e) { return e.observer.forced }))
       return;
-    }
 
     // spin an event loop and wait for the socket-close notification
     var thr = gThreadManager.currentThread;
