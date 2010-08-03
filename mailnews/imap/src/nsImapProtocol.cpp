@@ -8838,9 +8838,9 @@ nsImapMockChannel::OnCacheEntryAvailable(nsICacheEntryDescriptor *entry, nsCache
     else
     {
       rv = ReadFromMemCache(entry);
-      NotifyStartEndReadFromCache(PR_TRUE);
       if (NS_SUCCEEDED(rv))
       {
+        NotifyStartEndReadFromCache(PR_TRUE);
         if (access & nsICache::ACCESS_WRITE)
           entry->MarkValid();
         return NS_OK; // kick out if reading from the cache succeeded...
