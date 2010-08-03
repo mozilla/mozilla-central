@@ -63,6 +63,7 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         width="500" height="400"
         persist="width height screenX screenY sizemode"
+        toggletoolbar="true"
         windowtype="history:manager">
 
   <commandset id="tasksCommands">

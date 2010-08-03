@@ -52,10 +52,6 @@
   background-color: #EEEEEE;
 }
 
-#addressbookWindow[chromehidden~="toolbar"][chromehidden~="location"][chromehidden~="directories"] {
-  border-top: 1px solid rgba(0,0,0,0.65);
-}
-
 /* ::::: primary toolbar buttons ::::: */
 
 #button-newcard {

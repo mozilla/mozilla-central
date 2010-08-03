@@ -59,6 +59,7 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         width="500" height="400" screenX="10" screenY="10"
         persist="width height screenX screenY sizemode"
+        toggletoolbar="true"
         windowtype="Download:Manager">
 
   <script type="application/javascript"

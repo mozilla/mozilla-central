@@ -73,6 +73,7 @@
         title="&editorWindow.titlemodifier;"
         titlemodifier="&editorWindow.titlemodifier;"
         titlemenuseparator="&editorWindow.titlemodifiermenuseparator;"
+        toggletoolbar="true"
         windowtype="composer:html"
         width="640" height="480"
         screenX="10" screenY="10"

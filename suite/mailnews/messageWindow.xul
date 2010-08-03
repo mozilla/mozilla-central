@@ -61,6 +61,7 @@
         width="750"
         height="500"
         persist="width height screenX screenY sizemode"
+        toggletoolbar="true"
         windowtype="mail:messageWindow">
 
   <stringbundleset id="stringbundleset">

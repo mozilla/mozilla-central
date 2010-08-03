@@ -65,6 +65,7 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         width="630" height="400" screenX="20" screenY="20"
         persist="width height screenX screenY sizemode"
+        toggletoolbar="true"
         onload="Startup();" onunload="Shutdown();">
 
   <!-- The order of loading of these script files is IMPORTANT -->

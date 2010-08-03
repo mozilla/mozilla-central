@@ -52,10 +52,6 @@
   background-color: #EEEEEE;
 }
 
-#messengerWindow[chromehidden~="toolbar"][chromehidden~="location"][chromehidden~="directories"] {
-  border-top: 1px solid rgba(0,0,0,0.65);
-}
-
 /* :::::
    :: Make sure the min height is small so we can
    :: resize the pane vertically -EDV

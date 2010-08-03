@@ -65,6 +65,7 @@
         style="width: 60em; height: 40em;"
         screenX="10" screenY="10"
         persist="width height screenX screenY sizemode"
+        toggletoolbar="true"
         windowtype="mail:3pane">
 
 <stringbundleset id="stringbundleset">
