@@ -56,7 +56,7 @@ MOZILLA_INTERNAL_API = 1
 endif
 endif
 
-CPPSRCS = nsModule.cpp \
+CPPSRCS = nsMailComps.cpp \
           $(NULL)
 
 ifeq ($(OS_ARCH),WINNT)
