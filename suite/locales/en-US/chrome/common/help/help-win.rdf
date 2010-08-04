@@ -112,14 +112,4 @@
    </nc:subheadings>
 </rdf:Description>
 
-<rdf:Description about="help-indexAZ.rdf#s">
-   <nc:subheadings>
-     <rdf:Seq><rdf:li>
-       <rdf:Description ID="System"
-         nc:name="System Preferences"
-	 nc:link="cs_nav_prefs_advanced.xhtml#system"/>
-     </rdf:li></rdf:Seq>
-   </nc:subheadings>
-</rdf:Description>
-
 </rdf:RDF>

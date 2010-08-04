@@ -1667,11 +1667,6 @@
          nc:link="privsec_help.xhtml"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="preferences:smart_browsing"
-         nc:name="smart browsing preferences"
-         nc:link="cs_nav_prefs_navigator.xhtml#smart_browsing"/>
-     </rdf:li>
-     <rdf:li>
        <rdf:Description ID="preferences:SSL"
          nc:name="SSL preferences"
          nc:link="ssl_help.xhtml#privacy_and_security_preferences_ssl"/>

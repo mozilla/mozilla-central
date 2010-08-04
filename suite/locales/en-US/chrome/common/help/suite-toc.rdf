@@ -866,15 +866,6 @@
     </nc:subheadings>
   </rdf:Description>
 
-<rdf:Description about="#privacy_levels">
-    <nc:subheadings>
-      <rdf:Seq>
-        <rdf:li><rdf:Description ID="privacy_levels-level" nc:name="Level of Privacy" nc:link="using_priv_help.xhtml#level_of_privacy"/> </rdf:li>
-        <rdf:li><rdf:Description ID="privacy_levels-accept" nc:name="Cookie Acceptance Policy" nc:link="using_priv_help.xhtml#cookie_acceptance_policy"/> </rdf:li>
-      </rdf:Seq>
-    </nc:subheadings>
-  </rdf:Description>
-
 <rdf:Description about="#using-priv-help-password">
     <nc:subheadings>
       <rdf:Seq>
