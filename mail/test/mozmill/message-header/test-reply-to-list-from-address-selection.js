@@ -126,9 +126,8 @@ var addIdentitiesAndFolder = function() {
 function test_Reply_To_List_From_Address() {
   be_in_folder(testFolder);
 
-  select_click_row(0);
-  plan_for_new_window("mail:messageWindow");
-  open_selected_message();
+  let curMessage = select_click_row(0);
+  assert_selected_and_displayed(mc, curMessage);
 
   replyToListWindow = composeHelper.open_compose_with_reply_to_list();
 
