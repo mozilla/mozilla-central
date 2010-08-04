@@ -1632,6 +1632,11 @@
          nc:link="cs_nav_prefs_navigator.xhtml#languages"/>
      </rdf:li>
      <rdf:li>
+       <rdf:Description ID="preferences:Link_Behavior"
+         nc:name="Link Behavior preferences"
+         nc:link="cs_nav_prefs_navigator.xhtml#link_behavior"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="preferences:Navigator"
          nc:name="Browser preferences"
          nc:link="cs_nav_prefs_navigator.xhtml#navigator_preferences"/>

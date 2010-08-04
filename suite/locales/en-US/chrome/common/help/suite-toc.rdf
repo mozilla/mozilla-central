@@ -792,6 +792,7 @@
         <rdf:li><rdf:Description ID="navigator_pref_location_bar" nc:name="Location Bar" nc:link="cs_nav_prefs_navigator.xhtml#location_bar"/> </rdf:li>
         <rdf:li><rdf:Description ID="navigator_pref_internet_searching" nc:name="Internet Search" nc:link="cs_nav_prefs_navigator.xhtml#internet_search"/> </rdf:li>
         <rdf:li><rdf:Description ID="navigator_pref_tabbed_browsing" nc:name="Tabbed Browsing" nc:link="cs_nav_prefs_navigator.xhtml#tabbed_browsing"/> </rdf:li>
+        <rdf:li><rdf:Description ID="navigator_pref_link_behavior" nc:name="Link Behavior" nc:link="cs_nav_prefs_navigator.xhtml#link_behavior"/> </rdf:li>
         <rdf:li><rdf:Description ID="navigator_pref_downloads" nc:name="Downloads" nc:link="cs_nav_prefs_navigator.xhtml#downloads"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
