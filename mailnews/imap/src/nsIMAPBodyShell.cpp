@@ -790,7 +790,8 @@ PRBool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
       PL_strncasecmp(m_bodySubType, "x-pkcs7", 7)	// and it's not a signature (signatures are inline)
       )
       return PR_FALSE;	// we can leave it on the server
-    
+    if (!PL_strcasecmp(m_bodyType, "AUDIO"))
+      return PR_FALSE;
     // Here's where we can add some more intelligence -- let's leave out
     // any other parts that we know we can't display inline.
     return PR_TRUE;	// we're downloading it inline
