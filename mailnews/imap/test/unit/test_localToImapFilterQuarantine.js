@@ -44,7 +44,7 @@
 
 load("../../mailnews/resources/POP3pump.js");
 
-// async support 
+// async support
 load("../../mailnews/resources/logHelper.js");
 load("../../mailnews/resources/mailTestUtils.js");
 load("../../mailnews/resources/asyncTestUtils.js");
@@ -69,7 +69,7 @@ function createSubfolder()
 {
   gIMAPIncomingServer.rootFolder.createSubfolder("subfolder", null);
   dl('wait for folderAdded notification');
-  yield false; 
+  yield false;
   gSubfolder = gIMAPIncomingServer.rootFolder.getChildNamed("subfolder");
   do_check_true(gSubfolder instanceof Ci.nsIMsgImapMailFolder);
   gSubfolder.updateFolderWithListener(null, urlListener);
@@ -182,6 +182,9 @@ var urlListener = {
 
 function run_test()
 {
+  if ("@mozilla.org/gnome-gconf-service;1" in Cc)
+    return;
+
   // quarantine messages
   let prefs = Cc["@mozilla.org/preferences-service;1"]
                 .getService(Ci.nsIPrefBranch);
