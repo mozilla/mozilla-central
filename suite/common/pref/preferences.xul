@@ -144,7 +144,7 @@
           <treeitem id="linksItem"
                     label="&links.label;"
                     prefpane="links_pane"
-                    helpTopic="navigator_pref_tabbed_browsing"
+                    helpTopic="navigator_pref_link_behavior"
                     url="chrome://communicator/content/pref/pref-links.xul"/>
           <treeitem id="downloadItem"
                     label="&download.label;"
