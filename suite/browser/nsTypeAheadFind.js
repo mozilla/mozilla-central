@@ -196,7 +196,7 @@ typeAheadFind.prototype = {
       return true;
 
     // Don't start a find if the focus is on an editable field
-    if (element instanceof Components.interfaces.nsIDOMNSHTMLInputElement &&
+    if (element instanceof Components.interfaces.nsIDOMHTMLInputElement &&
         element.mozIsTextField(false))
       return true;
 
