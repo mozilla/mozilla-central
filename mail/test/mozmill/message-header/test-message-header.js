@@ -345,22 +345,18 @@ function test_show_all_header_mode() {
 }
 
 function change_to_header_normal_mode() {
-  // Make sure we've enabled this menu before we try to click it.
-  mc.click(mc.eid("menu_View_Popup"));
-  mc.sleep(0);
-  mc.click(mc.eid("menu_HeadersPopup"));
-  mc.sleep(0);
-  mc.click(new elib.Elem(mc.menus.View.viewheadersmenu.viewnormalheaders));
+  // XXX Clicking on check menu items doesn't work in 1.4.1b1 (bug 474486)...
+  //  mc.click(new elib.Elem(mc.menus.View.viewheadersmenu.viewnormalheaders));
+  // ... so call the function instead.
+  mc.window.MsgViewNormalHeaders();
   mc.sleep(0);
 }
 
 function change_to_all_header_mode() {
-  // Make sure we've enabled this menu before we try to click it.
-  mc.click(mc.eid("menu_View_Popup"));
-  mc.sleep(0);
-  mc.click(mc.eid("menu_HeadersPopup"));
-  mc.sleep(0);
-  mc.click(new elib.Elem(mc.menus.View.viewheadersmenu.viewallheaders));
+  // XXX Clicking on check menu items doesn't work in 1.4.1b1 (bug 474486)...
+  //  mc.click(new elib.Elem(mc.menus.View.viewheadersmenu.viewallheaders));
+  // ... so call the function instead.
+  mc.window.MsgViewAllHeaders();
   mc.sleep(0);
 }
 
