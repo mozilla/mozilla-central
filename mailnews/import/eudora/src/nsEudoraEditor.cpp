@@ -1293,8 +1293,47 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetAlt(nsAString & aAlt)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-
 NS_IMETHODIMP nsEudoraHTMLImageElement::SetAlt(const nsAString & aAlt)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+// attribute DOMString lowsrc
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetLowsrc(nsAString &aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetLowsrc(const nsAString &aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+// readonly attribute DOMString complete
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetComplete(PRBool *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+// readonly attribute long naturalWidth
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetNaturalWidth(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+// readonly attribute long naturalHeight
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetNaturalHeight(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+// readonly attribute long x
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetX(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+// readonly attribute long y
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetY(PRInt32 *aResult)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
