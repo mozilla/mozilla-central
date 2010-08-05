@@ -239,6 +239,8 @@ pref("browser.tabs.loadGroup", 1);
 
 // how many browsers can be saved in the DOM (by the tabbed browser)
 pref("browser.tabs.max_tabs_undo", 3);
+// should popups by saved in the DOM (by the tabbed browser)
+pref("browser.tabs.cache_popups", false);
 
 // tab width and clipping
 pref("browser.tabs.tabMinWidth", 100);
