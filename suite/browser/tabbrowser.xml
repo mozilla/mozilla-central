@@ -1445,14 +1445,13 @@
                 arguments[1] != null &&
                 typeof arguments[1] == "object" &&
                 !(arguments[1] instanceof Components.interfaces.nsIURI)) {
-              ({
-                referrerURI: aReferrerURI,
-                charset: aCharset,
-                postData: aPostData,
-                focusNewTab: aFocusNewTab,
-                allowThirdPartyFixup: aAllowThirdPartyFixup,
-                relatedToCurrent: aRelatedToCurrent
-              } = arguments[1]);
+              let params = arguments[1];
+              aReferrerURI          = params.referrerURI;
+              aCharset              = params.charset;
+              aPostData             = params.postData;
+              aFocusNewtab          = params.focusNewTab;
+              aAllowThirdPartyFixup = params.allowThirdPartyFixup;
+              aRelatedToCurrent     = params.relatedToCurrent;
             }
 
             this._browsers = null; // invalidate cache

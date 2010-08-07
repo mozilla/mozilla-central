@@ -598,7 +598,7 @@ function goAbout(aProtocol)
     target = "current";
     break;
   default:
-    target = "tab";
+    target = "tabfocused";
   }
   openUILinkIn(url, target);
 }
@@ -1190,6 +1190,7 @@ function whereToOpenLink(e, ignoreButton, ignoreSave)
  *  "current"     current tab            (if there aren't any browser windows, then in a new window instead)
  *  "tab"         new tab                (if there aren't any browser windows, then in a new window instead)
  *  "tabshifted"  same as "tab" but in background if default is to select new tabs, and vice versa
+ *  "tabfocused"  same as "tab" but explicitly focus new tab
  *  "window"      new window
  *  "save"        save to disk (with no filename hint!)
  *
@@ -1258,6 +1259,17 @@ function openUILinkIn(url, where, aAllowThirdPartyFixup, aPostData, aReferrerURI
       browser.selectedTab = tab;
       w.content.focus();
     }
+    break;
+  case "tabfocused":
+    var browser = w.getBrowser();
+    var tab = browser.addTab(url, {
+                referrerURI: aReferrerURI,
+                postData: aPostData,
+                allowThirdPartyFixup: aAllowThirdPartyFixup,
+                relatedToCurrent: aRelatedToCurrent
+              });
+    browser.selectedTab = tab;
+    w.content.focus();
     break;
   }
 
@@ -1366,7 +1378,7 @@ function switchToTabHavingURI(aURI, aOpenNew, aCallback) {
 
   // No opened tab has that url.
   if (aOpenNew) {
-    let browser = openUILinkIn(aURI.spec, "tab");
+    let browser = openUILinkIn(aURI.spec, "tabfocused");
     if (aCallback) {
       browser.addEventListener("pageshow", function(event) {
         if (event.target.location.href != aURI.spec)
