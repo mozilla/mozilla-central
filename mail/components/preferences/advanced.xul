@@ -262,7 +262,7 @@
               </hbox>
               <hbox>
                 <checkbox id="closeMsgWindowOnDelete"
-                          label="&closeMsgWindowOnDelete.label;"
+                          label="&closeMsgWindowOnMoveOrDelete.label;"
                           accesskey="&closeMsgWindowOnDelete.accesskey;"
                           preference="mail.close_message_window.on_delete"/>
               </hbox>
