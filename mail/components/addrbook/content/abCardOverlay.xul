@@ -1,0 +1,436 @@
+<?xml version="1.0"?> 
+<!-- ***** BEGIN LICENSE BLOCK *****
+ Version: MPL 1.1/GPL 2.0/LGPL 2.1
+
+ The contents of this file are subject to the Mozilla Public License Version
+ 1.1 (the "License"); you may not use this file except in compliance with
+ the License. You may obtain a copy of the License at
+ http://www.mozilla.org/MPL/
+
+ Software distributed under the License is distributed on an "AS IS" basis,
+ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ for the specific language governing rights and limitations under the
+ License.
+
+ The Original Code is Mozilla Communicator client code, released
+ March 31, 1998.
+
+ The Initial Developer of the Original Code is
+ Netscape Communications Corporation.
+ Portions created by the Initial Developer are Copyright (C) 1998-1999
+ the Initial Developer. All Rights Reserved.
+
+ Contributor(s):
+   Friedrich Beckmann <friedrich.beckmann@gmx.de>
+
+ Alternatively, the contents of this file may be used under the terms of
+ either of the GNU General Public License Version 2 or later (the "GPL"),
+ or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ in which case the provisions of the GPL or the LGPL are applicable instead
+ of those above. If you wish to allow use of your version of this file only
+ under the terms of either the GPL or the LGPL, and not to allow others to
+ use your version of this file under the terms of the MPL, indicate your
+ decision by deleting the provisions above and replace them with the notice
+ and other provisions required by the GPL or the LGPL. If you do not delete
+ the provisions above, a recipient may use your version of this file under
+ the terms of any one of the MPL, the GPL or the LGPL.
+
+ ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://messenger/skin/addressbook/cardDialog.css" type="text/css"?>
+
+<!DOCTYPE overlay SYSTEM "chrome://messenger/locale/addressbook/abCardOverlay.dtd">
+
+<overlay id="editcardOverlay"
+     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+     xmlns:html="http://www.w3.org/1999/xhtml">
+
+<stringbundleset id="stringbundleset">
+  <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
+</stringbundleset>
+
+<script type="application/javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
+<script type="application/javascript" src="chrome://messenger/content/addressbook/abCardOverlay.js"/>
+
+<vbox id="editcard">
+  <tabbox>
+    <tabs id="abTabs">
+      <tab id="contactTabButton" label="&Contact.tab;"
+           accesskey="&Contact.accesskey;"/>
+      <tab id="homeTabButton" label="&Home.tab;" accesskey="&Home.accesskey;"/>
+      <tab id="workTabButton" label="&Work.tab;" accesskey="&Work.accesskey;"/>
+      <tab id="otherTabButton" label="&Other.tab;" accesskey="&Other.accesskey;"/>
+      <tab id="photoTabButton" label="&Photo.tab;" accesskey="&Photo.accesskey;"/>
+    </tabs>
+
+    <tabpanels id="abTabPanels" flex="1">
+      <!-- ** Name Tab ** -->
+      <!-- The following vbox contains two hboxes
+           top: Name/Email/Phonenumber bottom: Email prefs. -->
+      <vbox id="abNameTab" >
+        <!-- This hbox contains two vboxes
+             left: Name/Email, right: Phonenumbers -->
+        <hbox>
+          <vbox> <!-- This box contains the Names and Emailnames -->
+
+            <!-- LOCALIZATION NOTE:
+                 NameField1, NameField2, PhoneticField1, PhoneticField2
+                 those fields are either LN or FN depends on the target country.
+                 They are configurable in the .dtd file.
+              -->
+
+            <hbox align="center">
+              <spacer flex="1"/>
+              <label control="&NameField1.id;" value="&NameField1.label;"
+                     accesskey="&NameField1.accesskey;"/>
+              <hbox class="CardEditWidth" align="center">
+                <textbox id="&NameField1.id;" flex="1"
+                         oninput="GenerateDisplayName()"/>
+
+                <!-- LOCALIZATION NOTE:
+                     Fields for phonetic are disabled as default and can be
+                     enabled by^editing "mail.addr_book.show_phonetic_fields"
+                  -->
+
+                <spacer id="PhoneticSpacer1" flex="1" hidden="true"/>
+                <label id="PhoneticLabel1" control="&PhoneticField1.id;"
+                       value="&PhoneticField1.label;" hidden="true"/>
+                <textbox id="&PhoneticField1.id;" flex="1" hidden="true"/>
+              </hbox>
+            </hbox>
+            <hbox align="center">
+              <spacer flex="1"/>
+              <label control="&NameField2.id;" value="&NameField2.label;"
+                     accesskey="&NameField2.accesskey;"/>
+              <hbox class="CardEditWidth" align="center">
+                <textbox id="&NameField2.id;" flex="1"
+                         oninput="GenerateDisplayName()"/>
+
+                <!-- LOCALIZATION NOTE:
+                     Fields for phonetic are disabled as default and can be
+                     enabled by editing "mail.addr_book.show_phonetic_fields"
+                  -->
+
+                <spacer id="PhoneticSpacer2" flex="1" hidden="true"/>
+                <label id="PhoneticLabel2" control="&PhoneticField2.id;"
+                       value="&PhoneticField2.label;" hidden="true"/>
+                <textbox id="&PhoneticField2.id;" flex="1" hidden="true"/>
+              </hbox>
+            </hbox>
+            <hbox align="center">
+              <spacer flex="1"/>
+              <label control="DisplayName" value="&DisplayName.label;"
+                     accesskey="&DisplayName.accesskey;" />
+              <hbox class="CardEditWidth">
+                <textbox id="DisplayName" flex="1"
+                         oninput="DisplayNameChanged()"/>
+              </hbox>
+            </hbox>
+            <hbox id="nickNameContainer" align="center">
+              <spacer flex="1"/>
+              <label control="NickName" value="&NickName.label;"
+                     accesskey="&NickName.accesskey;"/>
+              <hbox class="CardEditWidth">
+                <textbox id="NickName" flex="1"/>
+              </hbox>
+            </hbox>
+            <hbox align="center">
+              <spacer flex="1"/>
+              <label control="PrimaryEmail" value="&PrimaryEmail.label;"
+                     accesskey="&PrimaryEmail.accesskey;"/>
+              <hbox class="CardEditWidth">
+                <textbox id="PrimaryEmail" flex="1" class="uri-element"/>
+              </hbox>
+            </hbox>
+            <hbox id="secondaryEmailContainer" align="center">
+              <spacer flex="1"/>
+              <label control="SecondEmail" value="&SecondEmail.label;"
+                     accesskey="&SecondEmail.accesskey;"/>
+              <hbox class="CardEditWidth">
+                <textbox id="SecondEmail" flex="1" class="uri-element"/>
+              </hbox>
+            </hbox>
+            <hbox id="screenNameContainer" align="center">
+              <spacer flex="1"/>
+              <label control="ScreenName" value="&ScreenName.label;"
+                     accesskey="&ScreenName.accesskey;"/>
+              <hbox class="CardEditWidth">
+                <textbox id="ScreenName" flex="1"/>
+              </hbox>
+            </hbox>
+          </vbox> <!-- End of Name/Email -->
+          <!-- Phone Number section -->
+          <vbox>
+            <hbox align="center">
+              <spacer flex="1"/>
+              <label control="WorkPhone" value="&WorkPhone.label;"
+                     accesskey="&WorkPhone.accesskey;" />
+              <textbox id="WorkPhone" class="PhoneEditWidth"/>
+            </hbox>
+            <hbox align="center">
+              <spacer flex="1"/>
+              <label control="HomePhone" value="&HomePhone.label;"
+                     accesskey="&HomePhone.accesskey;"/>
+              <textbox id="HomePhone" class="PhoneEditWidth"/>
+            </hbox>
+            <hbox align="center">
+              <spacer flex="1"/>
+              <label control="FaxNumber" value="&FaxNumber.label;"
+                     accesskey="&FaxNumber.accesskey;"/>
+              <textbox id="FaxNumber" class="PhoneEditWidth"/>
+            </hbox>
+            <hbox align="center">
+              <spacer flex="1"/>
+              <label control="PagerNumber" value="&PagerNumber.label;"
+                     accesskey="&PagerNumber.accesskey;"/>
+              <textbox id="PagerNumber" class="PhoneEditWidth"/>
+            </hbox>
+            <hbox align="center">
+              <spacer flex="1"/>
+              <label control="CellularNumber" value="&CellularNumber.label;"
+                     accesskey="&CellularNumber.accesskey;"/>
+              <textbox id="CellularNumber" class="PhoneEditWidth"/>
+            </hbox>
+          </vbox> <!-- End of Phonenumbers -->
+        </hbox> <!-- End of Name/Email/Phonenumbers -->
+        <!-- Email Preferences -->
+        <hbox>
+          <vbox valign="middle">
+            <label control="PreferMailFormatPopup"
+                   value="&PreferMailFormat.label;"
+                   accesskey="&PreferMailFormat.accesskey;"/>
+          </vbox>
+          <menulist id="PreferMailFormatPopup">
+            <menupopup>
+              <!-- 0,1,2 come from nsIAbPreferMailFormat in nsIAbCard.idl -->
+              <menuitem value="0" label="&Unknown.label;"/>
+              <menuitem value="1" label="&PlainText.label;"/>
+              <menuitem value="2" label="&HTML.label;"/>
+            </menupopup>
+          </menulist>
+          <checkbox id="allowRemoteContent" label="&allowRemoteContent1.label;"
+                    accesskey="&allowRemoteContent1.accesskey;"
+                    tooltiptext="&allowRemoteContent1.tooltip;"/>
+        </hbox>
+      </vbox> <!-- End of Name Tab -->
+
+      <!-- ** Home Address Tab ** -->
+      <vbox id="abHomeTab" >
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="HomeAddress" value="&HomeAddress.label;"
+                 accesskey="&HomeAddress.accesskey;"/>
+          <hbox class="AddressCardEditWidth">
+            <textbox id="HomeAddress" flex="1"/>
+          </hbox>
+        </hbox>
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="HomeAddress2" value="&HomeAddress2.label;"
+                 accesskey="&HomeAddress2.accesskey;"/>
+          <hbox class="AddressCardEditWidth">
+            <textbox id="HomeAddress2" flex="1"/>
+          </hbox>
+        </hbox>
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="HomeCity" value="&HomeCity.label;"
+                 accesskey="&HomeCity.accesskey;"/>
+          <hbox class="AddressCardEditWidth">
+            <textbox id="HomeCity" flex="1"/>
+          </hbox>
+        </hbox>
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="HomeState" value="&HomeState.label;"
+                 accesskey="&HomeState.accesskey;"/>
+          <hbox align="center" class="AddressCardEditWidth">
+            <textbox id="HomeState" flex="1"/>
+            <spacer class="stateZipSpacer"/>
+            <label control="HomeZipCode" value="&HomeZipCode.label;"
+                   accesskey="&HomeZipCode.accesskey;"/>
+            <textbox id="HomeZipCode" class="ZipWidth"/>
+          </hbox>
+        </hbox>
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="HomeCountry" value="&HomeCountry.label;"
+                 accesskey="&HomeCountry.accesskey;"/>
+          <hbox class="AddressCardEditWidth">
+            <textbox id="HomeCountry" flex="1"/>
+          </hbox>
+        </hbox>
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="WebPage2" value="&HomeWebPage.label;"
+                 accesskey="&HomeWebPage.accesskey;"/>
+          <hbox class="AddressCardEditWidth">
+            <textbox id="WebPage2" flex="1" class="uri-element"/>
+          </hbox>
+        </hbox>
+        <hbox id="birthdayField" align="center">
+          <spacer flex="1"/>
+          <label control="Birthday" value="&Birthday.label;"
+                 accesskey="&Birthday.accesskey;"/>
+          <hbox class="AddressCardEditWidth" align="center">
+            <!-- NOTE: This datepicker is modified.
+                 See abCardOverlay.js for details-->
+            <datepicker id="Birthday" type="popup"/>
+            <label value="&In.label;"/>
+            <textbox id="BirthYear" maxlength="4"
+                     emptytext="&Year.emptytext;" class="YearWidth" />
+            <label control="Age" value="&Or.value;"/>
+            <textbox id="Age" maxlength="4"
+                     emptytext="&Age.emptytext;" class="YearWidth" />
+            <label value="&YearsOld.label;"/>
+            <spacer flex="1"/>
+          </hbox>
+        </hbox>
+      </vbox>
+
+      <!-- ** Business Address Tab ** -->
+      <vbox id="abBusinessTab" >
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="JobTitle" value="&JobTitle.label;"
+                 accesskey="&JobTitle.accesskey;"/>
+          <hbox class="AddressCardEditWidth" align="center">
+            <textbox id="JobTitle" flex="1"/>
+            <label control="Department" value="&Department.label;"
+                   accesskey="&Department.accesskey;"/>
+            <textbox id="Department" flex="1"/>
+          </hbox>
+        </hbox>
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="Company" value="&Company.label;"
+                 accesskey="&Company.accesskey;"/>
+          <hbox class="AddressCardEditWidth">
+            <textbox id="Company" flex="1"/>
+          </hbox>
+        </hbox>
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="WorkAddress" value="&WorkAddress.label;"
+                 accesskey="&WorkAddress.accesskey;"/>
+          <hbox class="AddressCardEditWidth">
+            <textbox id="WorkAddress" flex="1"/>
+          </hbox>
+        </hbox>
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="WorkAddress2" value="&WorkAddress2.label;"
+                 accesskey="&WorkAddress2.accesskey;"/>
+          <hbox class="AddressCardEditWidth">
+            <textbox id="WorkAddress2" flex="1"/>
+          </hbox>
+        </hbox>
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="WorkCity" value="&WorkCity.label;"
+                 accesskey="&WorkCity.accesskey;"/>
+          <hbox class="AddressCardEditWidth">
+            <textbox id="WorkCity" flex="1"/>
+          </hbox>
+        </hbox>
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="WorkState" value="&WorkState.label;"
+                 accesskey="&WorkState.accesskey;"/>
+          <hbox class="AddressCardEditWidth" align="center">
+            <textbox id="WorkState" flex="1"/>
+            <spacer class="stateZipSpacer"/>
+            <label control="WorkZipCode" value="&WorkZipCode.label;"
+                   accesskey="&WorkZipCode.accesskey;"/>
+            <textbox id="WorkZipCode" class="ZipWidth"/>
+          </hbox>
+        </hbox>
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="WorkCountry" value="&WorkCountry.label;"
+                 accesskey="&WorkCountry.accesskey;"/>
+          <hbox class="AddressCardEditWidth">
+            <textbox id="WorkCountry" flex="1"/>
+          </hbox>
+        </hbox>
+        <hbox align="center">
+          <spacer flex="1"/>
+          <label control="WebPage1" value="&WorkWebPage.label;"
+                 accesskey="&WorkWebPage.accesskey;"/>
+          <hbox class="AddressCardEditWidth">
+            <textbox id="WebPage1" flex="1" class="uri-element"/>
+          </hbox>
+        </hbox>
+      </vbox>
+
+      <!-- ** Other Tab ** -->
+      <vbox id="abOtherTab" >
+        <vbox id="customFields">
+          <hbox flex="1" align="center">
+            <label control="Custom1" value="&Custom1.label;"
+                   accesskey="&Custom1.accesskey;"/>
+            <textbox id="Custom1" flex="1"/>
+          </hbox>
+          <hbox flex="1" align="center">
+            <label control="Custom2" value="&Custom2.label;"
+                   accesskey="&Custom2.accesskey;"/>
+            <textbox id="Custom2" flex="1"/>
+          </hbox>
+          <hbox flex="1" align="center">
+            <label control="Custom3" value="&Custom3.label;"
+                   accesskey="&Custom3.accesskey;"/>
+            <textbox id="Custom3" flex="1"/>
+          </hbox>
+          <hbox flex="1" align="center">
+            <label control="Custom4" value="&Custom4.label;"
+                   accesskey="&Custom4.accesskey;"/>
+            <textbox id="Custom4" flex="1"/>
+          </hbox>
+        </vbox>
+        <label control="Notes" value="&Notes.label;"
+               accesskey="&Notes.accesskey;"/>
+        <textbox id="Notes" multiline="true" wrap="virtual" flex="1"/>
+      </vbox>
+
+      <!-- ** Photo Tab ** -->
+      <hbox id="abPhotoTab" align="center">
+        <description style="min-width: 25ch; max-width: 25ch; text-align: center">
+          <html:img id="photo" style="max-width: 25ch; max-height: 25ch;"/>
+        </description>
+        <groupbox flex="1">
+          <caption label="&PhotoDesc.label;"/>
+          <radiogroup id="PhotoType" onselect="updatePhoto();">
+            <radio value="generic" label="&GenericPhoto.label;"
+                   accesskey="&GenericPhoto.accesskey;"/>
+            <menulist id="GenericPhotoList" class="indent" flex="1"
+                      oncommand="updatePhoto('generic');">
+              <menupopup>
+                <menuitem label="&DefaultPhoto.label;" selected="true"
+                          value="chrome://messenger/skin/addressbook/icons/contact-generic.png"
+                          image="chrome://messenger/skin/addressbook/icons/contact-generic-tiny.png"/>
+              </menupopup>
+            </menulist>
+            <radio value="file" label="&PhotoFile.label;"
+                   accesskey="&PhotoFile.accesskey;"/>
+            <hbox class="indent">
+              <filefield id="PhotoFile" maxlength="255" flex="1"/>
+              <button oncommand="browsePhoto();" id="BrowsePhoto"
+                      label="&BrowsePhoto.label;"
+                      accesskey="&BrowsePhoto.accesskey;"/>
+            </hbox>
+            <radio value="web" label="&PhotoURL.label;"
+                   accesskey="&PhotoURL.accesskey;"/>
+            <hbox class="indent">
+              <textbox id="PhotoURI" maxlength="255" flex="1"
+                       emptytext="&PhotoURL.emptytext;"/>
+              <button oncommand="updatePhoto('web');" id="UpdatePhoto"
+                      label="&UpdatePhoto.label;"
+                      accesskey="&UpdatePhoto.accesskey;"/>
+            </hbox>
+          </radiogroup>
+        </groupbox>
+      </hbox>
+    </tabpanels>
+  </tabbox>
+</vbox>
+</overlay>
