@@ -58,10 +58,6 @@ PARALLEL_DIRS	+= \
 	news \
 	$(NULL)
 
-ifdef ENABLE_TESTS
-PARALLEL_DIRS	+= test
-endif
-
 ifeq ($(OS_ARCH),WINNT)
 ifndef GNU_CC
 PARALLEL_DIRS	+= mapi/mapiDLL mapi/mapihook
