@@ -61,6 +61,7 @@ const kExistingWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_CURRENTWI
 const kNewWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWWINDOW;
 const kNewTab = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWTAB;
 const nsIPrefLocalizedString = Components.interfaces.nsIPrefLocalizedString;
+var TAB_DROP_TYPE = "application/x-moz-tabbrowser-tab";
 var gShowBiDi = false;
 var gUtilityBundle = null;
 

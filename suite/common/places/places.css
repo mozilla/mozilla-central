@@ -1,0 +1,21 @@
+tree[type="places"] {
+  -moz-binding: url("chrome://communicator/content/places/tree.xml#places-tree");
+}
+
+.bookmarks-toolbar-customize,
+toolbarpaletteitem #PlacesToolbarItems {
+  display: none;
+}
+
+toolbarpaletteitem .bookmarks-toolbar-customize {
+  display: -moz-box;
+}
+
+.toolbar-drop-indicator {
+  position: relative;
+  z-index: 1;
+}
+
+menupopup[placespopup="true"] {
+  -moz-binding: url("chrome://communicator/content/places/menu.xml#places-popup-base");
+}
