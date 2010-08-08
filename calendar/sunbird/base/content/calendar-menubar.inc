@@ -59,8 +59,8 @@
                      observes="calendar_new_event_command"/>
            <menuitem id="calendar-new-todo-menu"
                      key="calendar-new-todo-key"
-                     label="&event.new.todo;"
-                     accesskey="&event.new.todo.accesskey;"
+                     label="&event.new.task;"
+                     accesskey="&event.new.task.accesskey;"
                      observes="calendar_new_todo_command"/>
            <menuitem id="calendar-new-calendar-menu"
                      key="new_calendar_key"

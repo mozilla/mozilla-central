@@ -367,8 +367,8 @@
                   command="calendar_new_event_command"
                   observes="calendar_new_event_command"/>
         <menuitem id="ltnNewTask2"
-                  label="&event.new.todo;"
-                  accesskey="&event.new.todo.accesskey;"
+                  label="&event.new.task;"
+                  accesskey="&event.new.task.accesskey;"
                   key="calendar-new-todo-key"
                   command="calendar_new_todo_command"
                   observes="calendar_new_todo_command"/>
