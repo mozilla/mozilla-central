@@ -1310,7 +1310,7 @@
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:working_offline"
          nc:name="working offline"
-         nc:link="mail_help.xhtml#working_offline"/>
+         nc:link="mailnews_offline.xhtml#working_offline"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -1399,7 +1399,7 @@
      <rdf:li>
        <rdf:Description ID="Offline:Mail_and_Newsgroups"
          nc:name="Offline Mail and News"
-         nc:link="mail_help.xhtml#working_offline"/>
+         nc:link="mailnews_offline.xhtml#working_offline"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -2223,7 +2223,7 @@
      <rdf:li>
        <rdf:Description ID="Working_Offline"
          nc:name="Working Offline"
-         nc:link="mail_help.xhtml#working_offline"/>
+         nc:link="mailnews_offline.xhtml#working_offline"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
