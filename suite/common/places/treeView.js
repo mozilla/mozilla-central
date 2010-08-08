@@ -616,7 +616,7 @@ PlacesTreeView.prototype = {
     if (PlacesUtils.nodeIsSeparator(aNode) && this.isSorted())
       return;
 
-    var parentRow;
+    let parentRow;
     if (aParentNode != this._rootNode) {
       parentRow = this._getRowForNode(aParentNode);
 
@@ -726,7 +726,7 @@ PlacesTreeView.prototype = {
       return;
 
     // Restore selection.
-    var rowToSelect = Math.min(oldRow, this._rows.length - 1);
+    let rowToSelect = Math.min(oldRow, this._rows.length - 1);
     this.selection.rangedSelect(rowToSelect, rowToSelect, true);
   },
 
