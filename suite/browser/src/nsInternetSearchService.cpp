@@ -75,7 +75,6 @@
 #include "nsIHttpChannel.h"
 #include "nsIUploadChannel.h"
 #include "nsIInputStream.h"
-#include "nsIBookmarksService.h"
 #include "nsIStringBundle.h"
 #include "nsIObserverService.h"
 #include "nsIURL.h"
@@ -1581,26 +1580,6 @@ InternetSearchDataSource::GetAllCmds(nsIRDFResource* source,
           &isSearchResult);
   if (NS_SUCCEEDED(rv) && isSearchResult)
   {
-#ifndef MOZ_PLACES_BOOKMARKS
-    nsCOMPtr<nsIRDFDataSource>  datasource;
-    if (NS_SUCCEEDED(rv = mRDFService->GetDataSource("rdf:bookmarks", getter_AddRefs(datasource))))
-    {
-      nsCOMPtr<nsIBookmarksService> bookmarks (do_QueryInterface(datasource));
-      if (bookmarks)
-      {
-        nsAutoString uri;
-        if (getSearchURI(source, uri))
-        {
-          PRBool  isBookmarkedFlag = PR_FALSE;
-          rv = bookmarks->IsBookmarked(NS_ConvertUTF16toUTF8(uri).get(), &isBookmarkedFlag);
-          if (NS_SUCCEEDED(rv) && !isBookmarkedFlag)
-          {
-            cmdArray->AppendElement(mNC_SearchCommand_AddToBookmarks);
-          }
-        }
-      }
-    }
-#endif
     cmdArray->AppendElement(mNC_SearchCommand_AddQueryToBookmarks);
     cmdArray->AppendElement(mNC_BookmarkSeparator);
 
@@ -1698,23 +1677,6 @@ InternetSearchDataSource::addToBookmarks(nsIRDFResource *src)
     }
   }
 
-#ifndef MOZ_PLACES_BOOKMARKS
-  nsCOMPtr<nsIRDFDataSource>  datasource;
-  if (NS_SUCCEEDED(rv = mRDFService->GetDataSource("rdf:bookmarks", getter_AddRefs(datasource))))
-  {
-    nsCOMPtr<nsIBookmarksService> bookmarks (do_QueryInterface(datasource));
-    if (bookmarks)
-    {
-      nsAutoString uri;
-      if (getSearchURI(src, uri))
-      {
-        rv = bookmarks->AddBookmarkImmediately(uri.get(),
-                                               name, nsIBookmarksService::BOOKMARK_SEARCH_TYPE, nsnull);
-      }
-    }
-  }
-#endif
-
   return(NS_OK);
 }
 
@@ -1770,17 +1732,6 @@ InternetSearchDataSource::addQueryToBookmarks(nsIRDFResource *src)
       }
     }
   }
-
-#ifndef MOZ_PLACES_BOOKMARKS
-  nsCOMPtr<nsIRDFDataSource>  datasource;
-  if (NS_SUCCEEDED(rv = mRDFService->GetDataSource("rdf:bookmarks", getter_AddRefs(datasource))))
-  {
-    nsCOMPtr<nsIBookmarksService> bookmarks (do_QueryInterface(datasource));
-    if (bookmarks)
-      rv = bookmarks->AddBookmarkImmediately(uriUni, value.get(),
-                                             nsIBookmarksService::BOOKMARK_SEARCH_TYPE, nsnull);
-  }
-#endif
 
   return(NS_OK);
 }

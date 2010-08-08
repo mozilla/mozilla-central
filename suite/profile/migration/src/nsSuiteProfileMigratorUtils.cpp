@@ -38,7 +38,6 @@
 
 #include "nsSuiteProfileMigratorUtils.h"
 #include "nsIPrefBranch.h"
-#include "nsIBookmarksService.h"
 #include "nsIFile.h"
 #include "nsIInputStream.h"
 #include "nsILineInputStream.h"
@@ -217,76 +216,6 @@ nsresult
 ImportBookmarksHTML(nsIFile* aBookmarksFile,
                     const PRUnichar* aImportSourceNameKey)
 {
-  nsresult rv;
-
-  nsCOMPtr<nsIBookmarksService> bms =
-    do_GetService("@mozilla.org/browser/bookmarks-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsISupportsArray> params(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIRDFService> rdfs =
-    do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIRDFResource> prop;
-  rv = rdfs->GetResource(NC_URI(URL), getter_AddRefs(prop));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIRDFLiteral> url;
-  nsAutoString path;
-  aBookmarksFile->GetPath(path);
-  rdfs->GetLiteral(path.get(), getter_AddRefs(url));
-
-  params->AppendElement(prop);
-  params->AppendElement(url);
-  
-  nsCOMPtr<nsIRDFResource> importCmd;
-  rv = rdfs->GetResource(NC_URI(command?cmd=import), getter_AddRefs(importCmd));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIRDFResource> root;
-  rv = rdfs->GetResource(NS_LITERAL_CSTRING("NC:BookmarksRoot"),
-                         getter_AddRefs(root));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // Look for the localized name of the bookmarks toolbar
-  nsCOMPtr<nsIStringBundleService> bundleService =
-           do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIStringBundle> bundle;
-  rv = bundleService->CreateBundle(MIGRATION_BUNDLE, getter_AddRefs(bundle));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsString sourceName;
-  bundle->GetStringFromName(aImportSourceNameKey, getter_Copies(sourceName));
-
-  const PRUnichar* sourceNameStrings[] = { sourceName.get() };
-  nsString importedBookmarksTitle;
-  bundle->FormatStringFromName(
-    NS_LITERAL_STRING("importedBookmarksFolder").get(),
-    sourceNameStrings, 1,
-    getter_Copies(importedBookmarksTitle));
-
-  nsCOMPtr<nsIRDFResource> folder;
-  bms->CreateFolderInContainer(importedBookmarksTitle.get(), root, -1,
-                               getter_AddRefs(folder));
-
-  nsCOMPtr<nsIRDFResource> folderProp;
-  rv = rdfs->GetResource(NC_URI(Folder), getter_AddRefs(folderProp));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  params->AppendElement(folderProp);
-  params->AppendElement(folder);
-
-  nsCOMPtr<nsISupportsArray> sources(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-  sources->AppendElement(folder);
-
-  nsCOMPtr<nsIRDFDataSource> ds = do_QueryInterface(bms, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return ds->DoCommand(sources, importCmd, params);
+  // XXX: need to make this work with places
+  return NS_OK;
 }
