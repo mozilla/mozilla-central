@@ -49,7 +49,7 @@
 windowdragbox {
   height: 36px;
   -moz-appearance: -moz-mac-unified-toolbar;
-  -moz-box-pack: center;
+  -moz-box-align: center;
 }
 
 #tabbox {

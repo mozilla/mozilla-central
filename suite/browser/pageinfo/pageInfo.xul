@@ -109,7 +109,7 @@
   </menupopup>
 
   <tabbox id="tabbox" flex="1">
-    <windowdragbox>
+    <windowdragbox orient="vertical">
       <tabs id="tabs"
             onselect="[gImageView, gFormView, gLinkView].forEach(ensureSelection);">
         <tab id="generalTab"
