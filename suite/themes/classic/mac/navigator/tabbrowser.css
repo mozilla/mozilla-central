@@ -46,7 +46,6 @@ tabpanels {
   -moz-appearance: none;
 }
 
-
 .tabbrowser-tab:not([selected="true"]):-moz-locale-dir(ltr),
 .tabbrowser-tab:not([selected="true"]):-moz-locale-dir(rtl):first-child {
   -moz-border-right-colors: transparent rgba(0, 0, 0, 0.19);
@@ -56,7 +55,6 @@ tabpanels {
 .tabbrowser-tab:not([selected="true"]):-moz-locale-dir(rtl) {
   -moz-border-left-colors: transparent rgba(0, 0, 0, 0.19);
 }
-
 
 .tabbrowser-tab:not(:first-child) {
   -moz-margin-start: -3px;
