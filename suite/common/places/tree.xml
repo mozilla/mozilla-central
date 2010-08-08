@@ -326,8 +326,9 @@
             let min = { }, max = { };
             selection.getRangeAt(i, min, max);
 
-            for (let j = min.value; j <= max.value; ++j)
-              nodes.push(resultview.nodeForTreeIndex(j));
+            if (max.value > -1)
+              for (let j = min.value; j <= max.value; ++j)
+                nodes.push(resultview.nodeForTreeIndex(j));
           }
           return nodes;
         ]]></getter>
