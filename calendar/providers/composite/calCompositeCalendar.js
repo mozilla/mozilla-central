@@ -36,6 +36,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 //
 // calCompositeCalendar.js
 //
@@ -111,25 +114,34 @@ function calCompositeCalendar () {
 }
 
 calCompositeCalendar.prototype = {
+    classID: Components.ID("{aeff788d-63b0-4996-91fb-40a7654c6224}"),
+    contractID: "@mozilla.org/calendar/calendar;1?type=composite",
+    classDescription: "Composite Calendar Provider",
+
+    getInterfaces: function getInterfaces(count) {
+        const ifaces = [Components.interfaces.calICalendarProvider,
+                        Components.interfaces.calICalendar,
+                        Components.interfaces.calICompositeCalendar,
+                        Components.interfaces.nsIClassInfo,
+                        Components.interfaces.nsISupports];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+    getHelperForLanguage: function getHelperForLanguage(language) {
+        return null;
+    },
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
+    QueryInterface: function (aIID) {
+        return cal.doQueryInterface(this, calCompositeCalendar.prototype, aIID, null, this);
+    },
+
     //
     // private members
     //
     mDefaultCalendar: null,
 
-    //
-    // nsISupports interface
-    //
-    QueryInterface: function (aIID) {
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.calICalendarProvider) &&
-            !aIID.equals(Components.interfaces.calICalendar) &&
-            !aIID.equals(Components.interfaces.calICompositeCalendar))
-        {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-
-        return this;
-    },
 
     //
     // calICalendarProvider interface
@@ -139,7 +151,7 @@ calCompositeCalendar.prototype = {
     },
 
     get displayName() {
-        return calGetString("calendar", "compositeName");
+        return cal.calGetString("calendar", "compositeName");
     },
 
     createCalendar: function comp_createCal() {
@@ -176,8 +188,8 @@ calCompositeCalendar.prototype = {
         this.mPrefPrefix = aPrefPrefix;
         this.mActivePref = aPrefPrefix + "-in-composite";
         this.mDefaultPref = aPrefPrefix + "-default";
-        var mgr = getCalendarManager();
-        var cals = mgr.getCalendars({});
+        let mgr = cal.getCalendarManager();
+        let cals = mgr.getCalendars({});
 
         cals.forEach(function (c) {
             if (c.getProperty(this.mActivePref))
@@ -337,7 +349,7 @@ calCompositeCalendar.prototype = {
     mCompositeObservers: null,
     mObservers: null,
     addObserver: function (aObserver) {
-        if (calInstanceOf(aObserver, Components.interfaces.calICompositeObserver)) {
+        if (cal.calInstanceOf(aObserver, Components.interfaces.calICompositeObserver)) {
             this.mCompositeObservers.add(aObserver);
         }
         this.mObservers.add(aObserver);
@@ -345,7 +357,7 @@ calCompositeCalendar.prototype = {
 
     // void removeObserver( in calIObserver observer );
     removeObserver: function (aObserver) {
-        if (calInstanceOf(aObserver, Components.interfaces.calICompositeObserver)) {
+        if (cal.calInstanceOf(aObserver, Components.interfaces.calICompositeObserver)) {
             this.mCompositeObservers.remove(aObserver);
         }
         this.mObservers.remove(aObserver);
@@ -362,7 +374,7 @@ calCompositeCalendar.prototype = {
                     calendar.refresh();
                 }
             } catch (e) {
-                ASSERT(false, e);
+                cal.ASSERT(false, e);
                 delete this.mObserverHelper.pendingLoads[calendar.id];
             }
         }
@@ -375,16 +387,16 @@ calCompositeCalendar.prototype = {
 
     // void modifyItem( in calIItemBase aNewItem, in calIItemBase aOldItem, in calIOperationListener aListener );
     modifyItem: function (aNewItem, aOldItem, aListener) {
-        ASSERT(aNewItem.calendar, "Composite can't modify item with null calendar", true);
-        ASSERT(aNewItem.calendar != this, "Composite can't modify item with this calendar", true);
+        cal.ASSERT(aNewItem.calendar, "Composite can't modify item with null calendar", true);
+        cal.ASSERT(aNewItem.calendar != this, "Composite can't modify item with this calendar", true);
 
         return aNewItem.calendar.modifyItem(aNewItem, aOldItem, aListener);
     },
 
     // void deleteItem( in string id, in calIOperationListener aListener );
     deleteItem: function (aItem, aListener) {
-        ASSERT(aItem.calendar, "Composite can't delete item with null calendar", true);
-        ASSERT(aItem.calendar != this, "Composite can't delete item with this calendar", true);
+        cal.ASSERT(aItem.calendar, "Composite can't delete item with null calendar", true);
+        cal.ASSERT(aItem.calendar != this, "Composite can't delete item with this calendar", true);
 
         return aItem.calendar.deleteItem(aItem, aListener);
     },
@@ -396,13 +408,13 @@ calCompositeCalendar.prototype = {
 
     // void getItem( in string aId, in calIOperationListener aListener );
     getItem: function (aId, aListener) {
-        var enabledCalendars = this.enabledCalendars;
-        var cmpListener = new calCompositeGetListenerHelper(this, aListener);
+        let enabledCalendars = this.enabledCalendars;
+        let cmpListener = new calCompositeGetListenerHelper(this, aListener);
         for each (let calendar in enabledCalendars) {
             try {
                 cmpListener.opGroup.add(calendar.getItem(aId, cmpListener));
             } catch (exc) {
-                ASSERT(false, exc);
+                cal.ASSERT(false, exc);
             }
         }
         return cmpListener.opGroup;
@@ -413,7 +425,7 @@ calCompositeCalendar.prototype = {
     //                in calIOperationListener aListener );
     getItems: function (aItemFilter, aCount, aRangeStart, aRangeEnd, aListener) {
         // If there are no calendars, then we just call onOperationComplete
-        var enabledCalendars = this.enabledCalendars;
+        let enabledCalendars = this.enabledCalendars;
         if (enabledCalendars.length == 0) {
             aListener.onOperationComplete (this,
                                            Components.results.NS_OK,
@@ -427,7 +439,7 @@ calCompositeCalendar.prototype = {
                 this.mStatusObserver.startMeteors(Components.interfaces.calIStatusObserver.UNDETERMINED_PROGRESS, -1);
             }
         }
-        var cmpListener = new calCompositeGetListenerHelper(this, aListener, aCount);
+        let cmpListener = new calCompositeGetListenerHelper(this, aListener, aCount);
 
         for each (let calendar in enabledCalendars) {
             try {
@@ -437,7 +449,7 @@ calCompositeCalendar.prototype = {
                                                           aRangeEnd,
                                                           cmpListener));
             } catch (exc) {
-                ASSERT(false, exc);
+                cal.ASSERT(false, exc);
             }
         }
         return cmpListener.opGroup;
@@ -486,9 +498,9 @@ calCompositeGetListenerHelper.prototype = {
 
     get opGroup() {
         if (!this.mOpGroup) {
-            var this_ = this;
+            let this_ = this;
             function cancelFunc() { // operation group has been cancelled
-                var listener = this_.mRealListener;
+                let listener = this_.mRealListener;
                 this_.mRealListener = null;
                 if (listener) {
                     listener.onOperationComplete(
@@ -499,7 +511,7 @@ calCompositeGetListenerHelper.prototype = {
                     }
                 }
             }
-            this.mOpGroup = new calOperationGroup(cancelFunc);
+            this.mOpGroup = new cal.calOperationGroup(cancelFunc);
         }
         return this.mOpGroup;
     },
@@ -581,62 +593,5 @@ calCompositeGetListenerHelper.prototype = {
 
 };
 
-// nsIFactory
-const calCompositeCalendarFactory = {
-    createInstance: function (outer, iid) {
-        if (outer != null)
-            throw Components.results.NS_ERROR_NO_AGGREGATION;
-        return (new calCompositeCalendar()).QueryInterface(iid);
-    }
-};
-
-/****
- **** module registration
- ****/
-
-var calCompositeCalendarModule = {
-    mCID: Components.ID("{aeff788d-63b0-4996-91fb-40a7654c6224}"),
-    mContractID: "@mozilla.org/calendar/calendar;1?type=composite",
-
-    mUtilsLoaded: false,
-    loadUtils: function compositeLoadUtils() {
-        if (this.mUtilsLoaded)
-            return;
-
-        Components.utils.import("resource://calendar/modules/calUtils.jsm");
-        Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
-        cal.loadScripts(["calUtils.js"], Components.utils.getGlobalForObject(this));
-
-        this.mUtilsLoaded = true;
-    },
-
-    registerSelf: function (compMgr, fileSpec, location, type) {
-        compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-        compMgr.registerFactoryLocation(this.mCID,
-                                        "Calendar composite provider",
-                                        this.mContractID,
-                                        fileSpec,
-                                        location,
-                                        type);
-    },
-
-    getClassObject: function (compMgr, cid, iid) {
-        if (!cid.equals(this.mCID))
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-
-        if (!iid.equals(Components.interfaces.nsIFactory))
-            throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
-
-        this.loadUtils();
-
-        return calCompositeCalendarFactory;
-    },
-
-    canUnload: function(compMgr) {
-        return true;
-    }
-};
-
-function NSGetModule(compMgr, fileSpec) {
-    return calCompositeCalendarModule;
-}
+/** Module Registration */
+var NSGetModule = XPCOMUtils.generateNSGetModule([calCompositeCalendar]);

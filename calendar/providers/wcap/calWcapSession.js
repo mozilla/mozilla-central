@@ -136,9 +136,29 @@ function calWcapSession(contextId) {
     getCalendarManager().addObserver(this);
 }
 calWcapSession.prototype = {
+    getInterfaces: function ci_wcapSession_getInterfaces(count) {
+        const ifaces = [calIWcapSession,
+                        calIFreeBusyProvider,
+                        calICalendarSearchProvider,
+                        Components.interfaces.calITimezoneProvider,
+                        Components.interfaces.calICalendarManagerObserver,
+                        Components.interfaces.nsIClassInfo,
+                        nsISupports];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+    classDescription: "Sun Java System Calendar Server WCAP Session",
+    contractID: "@mozilla.org/calendar/wcap/session;1",
+    classID: Components.ID("{cbf803fd-4469-4999-ae39-367af1c7b077}"),
+    getHelperForLanguage: function ci_wcapSession_getHelperForLanguage(language) {
+        return null;
+    },
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
     // nsISupports:
     QueryInterface: function calWcapSession_QueryInterface(iid) {
-        return doQueryInterface(this, calWcapSession.prototype, iid, null, g_classInfo.wcapSession);
+        return cal.doQueryInterface(this, calWcapSession.prototype, iid, null, this);
     },
 
     toString: function calWcapSession_toString(msg) {

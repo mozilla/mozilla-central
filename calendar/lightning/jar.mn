@@ -65,3 +65,4 @@ calendar.jar:
     content/calendar/publishDialog.xul                     (/calendar/resources/content/publishDialog.xul)
     content/calendar/sound.wav                             (/calendar/resources/content/sound.wav)
     skin/calendar/datetimepickers/datetimepickers.css      (/calendar/resources/skin/classic/datetimepickers/datetimepickers.css)
+% resource calendar .

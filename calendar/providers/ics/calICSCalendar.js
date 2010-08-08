@@ -39,6 +39,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
+
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
 
 //
@@ -68,16 +72,34 @@ function calICSCalendar() {
 calICSCalendar.prototype = {
     __proto__: cal.ProviderBase.prototype,
 
+    classID: Components.ID("{f8438bff-a3c9-4ed5-b23f-2663b5469abf}"),
+    contractID: "@mozilla.org/calendar/calendar;1?type=ics",
+    classDescription: "Calendar ICS provider",
+
+    getInterfaces: function getInterfaces(count) {
+        const ifaces = [Components.interfaces.calICalendarProvider,
+                        Components.interfaces.calICalendar,
+                        Components.interfaces.calISchedulingSupport,
+                        Components.interfaces.nsIStreamListener,
+                        Components.interfaces.nsIStreamLoaderObserver,
+                        Components.interfaces.nsIChannelEventSink,
+                        Components.interfaces.nsIInterfaceRequestor,
+                        Components.interfaces.nsIClassInfo,
+                        Components.interfaces.nsISupports];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+    getHelperForLanguage: function getHelperForLanguage(language) {
+        return null;
+    },
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
     mObserver: null,
     locked: false,
 
     QueryInterface: function (aIID) {
-        return doQueryInterface(this, calICSCalendar.prototype, aIID,
-                                [Components.interfaces.calICalendarProvider,
-                                 Components.interfaces.nsIStreamListener,
-                                 Components.interfaces.nsIStreamLoaderObserver,
-                                 Components.interfaces.nsIChannelEventSink,
-                                 Components.interfaces.nsIInterfaceRequestor]);
+        return cal.doQueryInterface(this, calICSCalendar.prototype, aIID, null, this);
     },
     
     initICSCalendar: function() {
@@ -1032,3 +1054,21 @@ fileHooks.prototype = {
         return true;
     }
 };
+
+/** Module Registration */
+const scriptLoadOrder = [
+    "calUtils.js",
+];
+
+function NSGetModule(cid) {
+    if (!this.scriptsLoaded) {
+        Services.io.getProtocolHandler("resource")
+                .QueryInterface(Components.interfaces.nsIResProtocolHandler)
+                .setSubstitution("calendar", Services.io.newFileURI(__LOCATION__.parent.parent));
+        Components.utils.import("resource://calendar/modules/calUtils.jsm");
+        cal.loadScripts(scriptLoadOrder, Components.utils.getGlobalForObject(this));
+        this.scriptsLoaded = true;
+    }
+
+    return (XPCOMUtils.generateNSGetModule([calICSCalendar]))(cid);
+}

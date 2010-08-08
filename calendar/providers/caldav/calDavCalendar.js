@@ -46,6 +46,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
@@ -102,18 +105,34 @@ const CALDAV_DELETE_ITEM = 3;
 calDavCalendar.prototype = {
     __proto__: cal.ProviderBase.prototype,
 
+    classID: Components.ID("{a35fc6ea-3d92-11d9-89f9-00045ace3b8d}"),
+    contractID: "@mozilla.org/calendar/calendar;1?type=caldav",
+    classDescription: "Calendar CalDAV back-end",
+
+    getInterfaces: function getInterfaces(count) {
+        const ifaces = [Components.interfaces.calICalendarProvider,
+                        Components.interfaces.nsIInterfaceRequestor,
+                        Components.interfaces.calIFreeBusyProvider,
+                        Components.interfaces.nsIChannelEventSink,
+                        Components.interfaces.calIItipTransport,
+                        Components.interfaces.calIChangeLog,
+                        calICalDavCalendar,
+                        Components.interfaces.nsIClassInfo,
+                        Components.interfaces.nsISupports];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+    getHelperForLanguage: function getHelperForLanguage(language) {
+        return null;
+    },
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
     //
     // nsISupports interface
     //
     QueryInterface: function caldav_QueryInterface(aIID) {
-        return doQueryInterface(this, calDavCalendar.prototype, aIID,
-                                [Components.interfaces.calICalendarProvider,
-                                 Components.interfaces.nsIInterfaceRequestor,
-                                 Components.interfaces.calIFreeBusyProvider,
-                                 Components.interfaces.nsIChannelEventSink,
-                                 Components.interfaces.calIItipTransport,
-                                 Components.interfaces.calIChangeLog,
-                                 calICalDavCalendar]);
+        return cal.doQueryInterface(this, calDavCalendar.prototype, aIID, null, this);
     },
 
     // An array of components that are supported by the server. The default is
@@ -2478,3 +2497,22 @@ calDavObserver.prototype = {
         this.mCalendar.notifyError(aErrNo, aMessage);
     }
 };
+
+/** Module Registration */
+const scriptLoadOrder = [
+    "calUtils.js",
+    "calDavRequestHandlers.js"
+];
+
+function NSGetModule(cid) {
+    if (!this.scriptsLoaded) {
+        Services.io.getProtocolHandler("resource")
+                .QueryInterface(Components.interfaces.nsIResProtocolHandler)
+                .setSubstitution("calendar", Services.io.newFileURI(__LOCATION__.parent.parent));
+        Components.utils.import("resource://calendar/modules/calUtils.jsm");
+        cal.loadScripts(scriptLoadOrder, Components.utils.getGlobalForObject(this));
+        this.scriptsLoaded = true;
+    }
+
+    return (XPCOMUtils.generateNSGetModule([calDavCalendar]))(cid);
+}

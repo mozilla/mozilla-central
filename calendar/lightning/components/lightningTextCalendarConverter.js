@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -38,6 +37,9 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 function makeTableRow(val) {
     return "<tr><td>" + val[0] + "</td><td>" + val[1] + "</td></tr>\n";
@@ -149,7 +151,7 @@ function createHtml(event)
                                                                eventLocation));
         }
 
-        var dateString = getDateFormatter().formatItemInterval(event);
+        var dateString = cal.getDateFormatter().formatItemInterval(event);
         var labelText = stringBundle.GetStringFromName("imipHtml.when");
         html.body.table.appendChild(createHtmlTableSection(labelText,
                                                            dateString));
@@ -186,14 +188,30 @@ function createHtml(event)
 function ltnMimeConverter() { }
 
 ltnMimeConverter.prototype = {
-    QueryInterface: function QI(aIID) {
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.nsISimpleMimeConverter))
-        {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
+    classID: Components.ID("{c70acb08-464e-4e55-899d-b2c84c5409fa}"),
+    contractID: "@mozilla.org/lightning/mime-converter;1",
+    classDescription: "Lightning text/calendar handler",
 
-        return this;
+    getInterfaces: function getInterfaces(count) {
+        const ifaces = [Components.interfaces.nsISimpleMimeConverter,
+                        Components.interfaces.nsIClassInfo,
+                        Components.interfaces.nsISupports];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+    getHelperForLanguage: function getHelperForLanguage(language) {
+        return null;
+    },
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
+    _xpcom_categories: [{
+        category: 'simple-mime-converters',
+        entry: 'text/calendar'
+    }],
+
+    QueryInterface: function QI(aIID) {
+        return cal.doQueryInterface(this, ltnMimeConverter.prototype, aIID, null, this);
     },
 
     mUri: null,
@@ -210,7 +228,7 @@ ltnMimeConverter.prototype = {
         parser.parseString(data);
         let event = null;
         for each (var item in parser.getItems({})) {
-            if (isEvent(item)) {
+            if (cal.isEvent(item)) {
                 if (item.hasProperty("X-MOZ-FAKED-MASTER")) {
                     // if it's a faked master, take any overridden item to get a real occurrence:
                     let exc = item.recurrenceInfo.getExceptionFor(item.startDate);
@@ -262,61 +280,4 @@ ltnMimeConverter.prototype = {
     }
 };
 
-var myModule = {
-    registerSelf: function RS(aCompMgr, aFileSpec, aLocation, aType) {
-        debug("*** Registering Lightning text/calendar handler\n");
-        var compMgr = aCompMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-        compMgr.registerFactoryLocation(this.myCID,
-                                        "Lightning text/calendar handler",
-                                        this.myContractID,
-                                        aFileSpec,
-                                        aLocation,
-                                        aType);
-
-        var catman = Components.classes["@mozilla.org/categorymanager;1"]
-                               .getService(Components.interfaces.nsICategoryManager);
-
-        catman.addCategoryEntry("simple-mime-converters", "text/calendar",
-                                this.myContractID, true, true);
-    },
-
-    mScriptsLoaded: false,
-    getClassObject: function GCO(aCompMgr, aCid, aIid) {
-        if (!this.mScriptsLoaded) {
-
-            Components.utils.import("resource://calendar/modules/calUtils.jsm");
-            cal.loadScripts(["calUtils.js"], Components.utils.getGlobalForObject(this));
-
-            this.mScriptsLoaded = true;
-        }
-
-        if (!aCid.equals(this.myCID)) {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-        if (!aIid.equals(Components.interfaces.nsIFactory)) {
-            throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
-        }
-        return this.myFactory;
-    },
-
-    myCID: Components.ID("{c70acb08-464e-4e55-899d-b2c84c5409fa}"),
-
-    myContractID: "@mozilla.org/lightning/mime-converter;1",
-
-    myFactory: {
-        createInstance: function mfCI(aOuter, aIid) {
-            if (aOuter != null) {
-                throw Components.results.NS_ERROR_NO_AGGREGATION;
-            }
-            return (new ltnMimeConverter()).QueryInterface(aIid);
-        }
-    },
-
-    canUnload: function CU(aCompMgr) {
-        return true;
-    }
-};
-
-function NSGetModule(compMgr, fileSpec) {
-    return myModule;
-}
+var NSGetModule = XPCOMUtils.generateNSGetModule([ltnMimeConverter]);

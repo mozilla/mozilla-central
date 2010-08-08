@@ -43,10 +43,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
 Components.utils.import("resource://calendar/modules/calStorageUpgrade.jsm");
 Components.utils.import("resource://calendar/modules/calStorageHelpers.jsm");
 
@@ -66,6 +68,28 @@ function calStorageCalendar() {
 
 calStorageCalendar.prototype = {
     __proto__: cal.ProviderBase.prototype,
+
+    classID: Components.ID("{b3eaa1c4-5dfe-4c0a-b62a-b3a514218461}"),
+    contractID: "@mozilla.org/calendar/calendar;1?type=storage",
+    classDescription: "Calendar Storage Provider",
+    getInterfaces: function (count) {
+        let ifaces = [
+            Components.interfaces.nsISupports,
+            Components.interfaces.calICalendarManager,
+            Components.interfaces.calIStartupService,
+            Components.interfaces.nsIObserver,
+            Components.interfaces.nsIClassInfo
+        ];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+
+    getHelperForLanguage: function (language) {
+        return null;
+    },
+
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
     //
     // private members
     //
@@ -2344,3 +2368,21 @@ calStorageCalendar.prototype = {
         cal.ERROR(logMessage + "\n" + STACK(10));
     }
 };
+
+/** Module Registration */
+const scriptLoadOrder = [
+    "calUtils.js",
+];
+
+function NSGetModule(cid) {
+    if (!this.scriptsLoaded) {
+        Services.io.getProtocolHandler("resource")
+                .QueryInterface(Components.interfaces.nsIResProtocolHandler)
+                .setSubstitution("calendar", Services.io.newFileURI(__LOCATION__.parent.parent));
+        Components.utils.import("resource://calendar/modules/calUtils.jsm");
+        cal.loadScripts(scriptLoadOrder, Components.utils.getGlobalForObject(this));
+        this.scriptsLoaded = true;
+    }
+
+    return (XPCOMUtils.generateNSGetModule([calStorageCalendar]))(cid);
+}

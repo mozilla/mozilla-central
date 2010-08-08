@@ -44,17 +44,8 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE = calICSalendar
+MODULE = calICSCalendar
 
-EXTRA_COMPONENTS = calICSCalendarModule.js
-EXTRA_SCRIPTS = calICSCalendar.js
-
-libs:: $(EXTRA_SCRIPTS)
-	if test ! -d $(FINAL_TARGET)/calendar-js; then $(NSINSTALL) -D $(FINAL_TARGET)/calendar-js; fi
-	$(INSTALL) $^ $(FINAL_TARGET)/calendar-js
-
-# The install target must use SYSINSTALL, which is NSINSTALL in copy mode.
-install:: $(EXTRA_SCRIPTS)
-	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/calendar-js
+EXTRA_COMPONENTS = calICSCalendar.js
 
 include $(topsrcdir)/config/rules.mk

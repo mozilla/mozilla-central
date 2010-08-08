@@ -37,7 +37,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 //
 // calMemoryCalendar.js
@@ -54,19 +58,37 @@ function calMemoryCalendar() {
 calMemoryCalendar.prototype = {
     __proto__: cal.ProviderBase.prototype,
 
+    classID: Components.ID("{bda0dd7f-0a2f-4fcf-ba08-5517e6fbf133}"),
+    contractID: "@mozilla.org/calendar/calendar;1?type=memory",
+    classDescription: "Calendar Memory Provider",
+
+    getInterfaces: function getInterfaces(count) {
+        const ifaces = [Components.interfaces.calICalendar,
+                        Components.interfaces.calISchedulingSupport,
+                        Components.interfaces.calISyncWriteCalendar,
+                        Components.interfaces.calICalendarProvider,
+                        Components.interfaces.nsIClassInfo,
+                        Components.interfaces.nsISupports];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+    getHelperForLanguage: function getHelperForLanguage(language) {
+        return null;
+    },
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
     //
     // nsISupports interface
     // 
     QueryInterface: function (aIID) {
-        return doQueryInterface(this, calMemoryCalendar.prototype, aIID,
-                                [Components.interfaces.calISyncWriteCalendar,
-                                 Components.interfaces.calICalendarProvider]);
+        return cal.doQueryInterface(this, calMemoryCalendar.prototype, aIID, null, this);
     },
 
     initMemoryCalendar: function() {
         this.mObservers = new cal.ObserverBag(Components.interfaces.calIObserver);
         this.mItems = {};
-        this.mMetaData = new calPropertyBag();
+        this.mMetaData = new cal.calPropertyBag();
     },
 
     //
@@ -77,7 +99,7 @@ calMemoryCalendar.prototype = {
     },
 
     get displayName() {
-        return calGetString("calendar", "memoryName");
+        return cal.calGetString("calendar", "memoryName");
     },
 
     createCalendar: function mem_createCal() {
@@ -87,7 +109,7 @@ calMemoryCalendar.prototype = {
     deleteCalendar: function mem_deleteCal(cal, listener) {
         cal = cal.wrappedJSObject;
         cal.mItems = {};
-        cal.mMetaData = new calPropertyBag();
+        cal.mMetaData = new cal.calPropertyBag();
 
         try {
             listener.onDeleteCalendar(cal, Components.results.NS_OK, null);
@@ -316,9 +338,9 @@ calMemoryCalendar.prototype = {
         var item = this.mItems[aId];
         var iid = null;
 
-        if (isEvent(item)) {
+        if (cal.isEvent(item)) {
             iid = Components.interfaces.calIEvent;
-        } else if (isToDo(item)) {
+        } else if (cal.isToDo(item)) {
             iid = Components.interfaces.calITodo;
         } else {
             this.notifyOperationComplete(aListener,
@@ -415,12 +437,12 @@ calMemoryCalendar.prototype = {
             }
         }
 
-        aRangeStart = ensureDateTime(aRangeStart);
-        aRangeEnd = ensureDateTime(aRangeEnd);
+        aRangeStart = cal.ensureDateTime(aRangeStart);
+        aRangeEnd = cal.ensureDateTime(aRangeEnd);
 
-        for (var itemIndex in this.mItems) {
-            var item = this.mItems[itemIndex];
-            var isEvent_ = isEvent(item);
+        for (let itemIndex in this.mItems) {
+            let item = this.mItems[itemIndex];
+            let isEvent_ = cal.isEvent(item);
             if (isEvent_) {
                 if (!wantEvents) {
                     continue;
@@ -441,7 +463,7 @@ calMemoryCalendar.prototype = {
                 itemsFound = itemsFound.concat(occurrences);
             } else if ((!wantUnrespondedInvitations || checkUnrespondedInvitation(item)) &&
                        (isEvent_ || checkCompleted(item)) &&
-                       checkIfInRange(item, aRangeStart, aRangeEnd)) {
+                       cal.checkIfInRange(item, aRangeStart, aRangeEnd)) {
                 // This needs fixing for recurring items, e.g. DTSTART of parent may occur before aRangeStart.
                 // This will be changed with bug 416975.
                 itemsFound.push(item);
@@ -486,3 +508,6 @@ calMemoryCalendar.prototype = {
         out_count.value = out_ids.value.length;
     }
 };
+
+/** Module Registration */
+var NSGetModule = XPCOMUtils.generateNSGetModule([calMemoryCalendar]);

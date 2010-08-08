@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -20,6 +19,7 @@
  *
  * Contributor(s):
  *   Mike Shaver <shaver@mozilla.org>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -35,43 +35,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 const CI = Components.interfaces;
 
 const ITIP_HANDLER_MIMETYPE = "application/x-itip-internal";
 const ITIP_HANDLER_PROTOCOL = "moz-cal-handle-itip";
 
-const CAL_ITIP_PROTO_HANDLER_CID =
-    Components.ID("{6E957006-B4CE-11D9-B053-001124736B74}");
-const CAL_ITIP_PROTO_HANDLER_CONTRACTID =
-    "@mozilla.org/network/protocol;1?name=" + ITIP_HANDLER_PROTOCOL;
-
-const CALMGR_CONTRACTID = "@mozilla.org/calendar/manager;1";
-
-const ItipProtocolHandlerFactory =
-{
-    createInstance: function (outer, iid) {
-        if (outer != null)
-            throw Components.results.NS_ERROR_NO_AGGREGATION;
-
-        return (new ItipProtocolHandler()).QueryInterface(iid);
-    }
-};
-
-const CAL_ITIP_CONTENT_HANDLER_CID =
-    Components.ID("{47C31F2B-B4DE-11D9-BFE6-001124736B74}");
-const CAL_ITIP_CONTENT_HANDLER_CONTRACTID =
-    "@mozilla.org/uriloader/content-handler;1?type=" +
-    ITIP_HANDLER_MIMETYPE;
-
-const ItipContentHandlerFactory =
-{
-    createInstance: function (outer, iid) {
-        if (outer != null)
-            throw Components.results.NS_ERROR_NO_AGGREGATION;
-
-        return (new ItipContentHandler()).QueryInterface(iid);
-    }
-};
 
 function NYI()
 {
@@ -84,13 +56,26 @@ function ItipChannel(URI)
 }
 
 ItipChannel.prototype = {
-    QueryInterface: function (aIID) {
-        if (!aIID.equals(CI.nsISupports) &&
-            !aIID.equals(CI.nsIChannel) &&
-            !aIID.equals(CI.nsIRequest))
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        
-        return this;
+    classID: Components.ID("{643e0328-36f6-411d-a107-16238dff9cd7}"),
+    contractID: "@mozilla.org/calendar/itip-channel;1",
+    classDescription: "Calendar Itip Channel",
+
+    getInterfaces: function getInterfaces(count) {
+        const ifaces = [Components.interfaces.nsIChannel,
+                        Components.interfaces.nsIRequest,
+                        Components.interfaces.nsIClassInfo,
+                        Components.interfaces.nsISupports];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+    getHelperForLanguage: function getHelperForLanguage(language) {
+        return null;
+    },
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
+    QueryInterface: function QueryInterface(aIID) {
+        return cal.doQueryInterface(this, ItipChannel.prototype, aIID, null, this);
     },
     
     contentType: ITIP_HANDLER_MIMETYPE,
@@ -119,12 +104,23 @@ ItipChannel.prototype = {
 function ItipProtocolHandler() { }
 
 ItipProtocolHandler.prototype = {
-    QueryInterface: function (aIID) {
-        if (!aIID.equals(CI.nsISupports) &&
-            !aIID.equals(CI.nsIProtocolHandler))
-            throw Components.results.NS_ERROR_NO_INTERFACE;
+    classID: Components.ID("{6e957006-b4ce-11d9-b053-001124736B74}"),
+    contractID: "@mozilla.org/network/protocol;1?name=" + ITIP_HANDLER_PROTOCOL,
+    getInterfaces: function getInterfaces(count) {
+        const ifaces = [Components.interfaces.nsIProtocolHandler,
+                        Components.interfaces.nsIClassInfo,
+                        Components.interfaces.nsISupports];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+    getHelperForLanguage: function getHelperForLanguage(language) {
+        return null;
+    },
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
 
-        return this;
+    QueryInterface: function QI(aIID) {
+        return cal.doQueryInterface(this, ItipProtocolHandler.prototype, aIID, null, this);
     },
     
     protocolFlags: CI.nsIProtocolHandler.URI_NORELATIVE | CI.nsIProtocolHandler.URI_DANGEROUS_TO_LOAD,
@@ -132,8 +128,8 @@ ItipProtocolHandler.prototype = {
     isSecure: false,
     newURI: function (spec, charSet, baseURI)
     {
-        var cls = Components.classes["@mozilla.org/network/standard-url;1"];
-        var url = cls.createInstance(CI.nsIStandardURL);
+        let cls = Components.classes["@mozilla.org/network/standard-url;1"];
+        let url = cls.createInstance(CI.nsIStandardURL);
         url.init(CI.nsIStandardURL.URLTYPE_STANDARD, 0, spec, charSet, baseURI);
         dump("Creating new URI for " + spec + "\n");
         return url.QueryInterface(CI.nsIURI);
@@ -148,76 +144,52 @@ ItipProtocolHandler.prototype = {
 function ItipContentHandler() { }
 
 ItipContentHandler.prototype = {
+    classID: Components.ID("{47c31f2b-b4de-11d9-bfe6-001124736B74}"),
+    contractID: "@mozilla.org/uriloader/content-handler;1?type=" + ITIP_HANDLER_MIMETYPE,
+    classDescription: "Lightning text/calendar content handler",
+
+    getInterfaces: function getInterfaces(count) {
+        const ifaces = [Components.interfaces.nsIContentHandler,
+                        Components.interfaces.nsIClassInfo,
+                        Components.interfaces.nsISupports];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+    getHelperForLanguage: function getHelperForLanguage(language) {
+        return null;
+    },
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
     QueryInterface: function (aIID) {
-        if (!aIID.equals(CI.nsISupports) &&
-            !aIID.equals(CI.nsIContentHandler))
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        
-        return this;
+        return cal.doQueryInterface(this, ItipContentHandler.prototype, aIID, null, this);
     },
 
     handleContent: function (contentType, windowTarget, request)
     {
-        dump("Handling some itip content, whee\n");
-        var channel = request.QueryInterface(CI.nsIChannel);
-        var uri = channel.URI.spec;
+        let channel = request.QueryInterface(CI.nsIChannel);
+        let uri = channel.URI.spec;
         if (uri.indexOf(ITIP_HANDLER_PROTOCOL + ":") != 0) {
-            dump("unexpected uri " + uri + "\n");
+            cal.ERROR("Unexpected iTIP uri: " + uri + "\n");
             return Components.results.NS_ERROR_FAILURE;
         }
         // moz-cal-handle-itip:///?
-        var paramString = uri.substring(ITIP_HANDLER_PROTOCOL.length + 4);
-        var paramArray = paramString.split("&");
-        var paramBlock = { };
+        let paramString = uri.substring(ITIP_HANDLER_PROTOCOL.length + 4);
+        let paramArray = paramString.split("&");
+        let paramBlock = { };
         paramArray.forEach(function (v) {
-            var parts = v.split("=");
+            let parts = v.split("=");
             paramBlock[parts[0]] = unescape(unescape(parts[1]));
             });
         // dump("content-handler: have params " + paramBlock.toSource() + "\n");
-        var event = Components.classes["@mozilla.org/calendar/event;1"].
-            createInstance(CI.calIEvent);
-        event.icalString = paramBlock.data;
+        let event = cal.createEvent(paramBlock.data);
         dump("Processing iTIP event '" + event.title + "' from " +
             event.organizer.id + " (" + event.id + ")\n");
-        var calMgr = Components.classes[CALMGR_CONTRACTID].getService(CI.calICalendarManager);
-        var cals = calMgr.getCalendars({});
+        let calMgr = cal.getCalendarManager();
+        let cals = calMgr.getCalendars({});
         cals[0].addItem(event, null);
     }
 };
 
-var myModule = {
-    registerSelf: function (compMgr, fileSpec, location, type) {
-        debug("*** Registering Lightning " + ITIP_HANDLER_PROTOCOL + ": handler\n");
-        compMgr = compMgr.QueryInterface(CI.nsIComponentRegistrar);
-        compMgr.registerFactoryLocation(CAL_ITIP_PROTO_HANDLER_CID,
-                                        "Lightning " + ITIP_HANDLER_PROTOCOL + ": handler",
-                                        CAL_ITIP_PROTO_HANDLER_CONTRACTID,
-                                        fileSpec, location, type);
-        debug("*** Registering Lightning " + ITIP_HANDLER_MIMETYPE + " handler\n");
-        compMgr.registerFactoryLocation(CAL_ITIP_CONTENT_HANDLER_CID,
-                                        "Lightning " + ITIP_HANDLER_MIMETYPE + " handler",
-                                        CAL_ITIP_CONTENT_HANDLER_CONTRACTID,
-                                        fileSpec, location, type);
-    },
-
-    getClassObject: function (compMgr, cid, iid) {
-        if (!iid.equals(Components.interfaces.nsIFactory))
-            throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
-
-        if (cid.equals(CAL_ITIP_PROTO_HANDLER_CID))
-            return ItipProtocolHandlerFactory;
-
-        if (cid.equals(CAL_ITIP_CONTENT_HANDLER_CID))
-            return ItipContentHandlerFactory;
-
-       throw Components.results.NS_ERROR_NO_INTERFACE;
-    },
-
-    canUnload: function(compMgr) {
-        return true;
-    }
-};
-
-function NSGetModule(compMgr, fileSpec) {
-    return myModule;
-}
+var components = [ItipChannel, ItipProtocolHandler, ItipContentHandler];
+var NSGetModule = XPCOMUtils.generateNSGetModule(components);
