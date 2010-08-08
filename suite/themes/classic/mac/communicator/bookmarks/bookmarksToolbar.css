@@ -55,8 +55,8 @@ toolbarbutton.bookmark-item[container="true"][open="true"]:not([disabled="true"]
   list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-folder-active.png");
 }
 
-toolbarbutton.bookmark-item[disabled="true"],
-toolbarbutton.bookmark-item[disabled="true"][container="true"] {
+toolbarbutton.bookmark-item[disabled="true"] > .toolbarbutton-icon ,
+toolbarbutton.bookmark-item[disabled="true"][container="true"] > .toolbarbutton-icon  {
   opacity: 0.5 !important;
 }
 

@@ -259,6 +259,10 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   opacity: 0.75;
 }
 
+#urlbar:-moz-lwtheme:not([focused="true"]) {
+  opacity: 0.9;
+}
+
 /* nsNativeThemeCocoa adds top/bottom padding to textfields... */
 #urlbar > .autocomplete-textbox-container,
 #urlbar > .autocomplete-history-dropmarker {
@@ -446,6 +450,11 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
   background-image: url("chrome://communicator/skin/toolbar-gradient22.png");
   background-repeat: repeat-x;
   border-bottom: 1px solid rgb(159, 159, 159);
+}
+
+#PersonalToolbar:-moz-lwtheme {
+  background-color: transparent;
+  background-image: none;
 }
 
 #PersonalToolbar:-moz-window-inactive {

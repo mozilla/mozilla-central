@@ -51,6 +51,11 @@
   border-bottom: 1px solid rgb(159, 159, 159);
 }
 
+#linktoolbar:-moz-lwtheme {
+  background-color: transparent;
+  background-image: none;
+}
+
 #linktoolbar:-moz-window-inactive {
   opacity: 0.75;
 }

@@ -46,15 +46,17 @@ tabpanels {
   -moz-appearance: none;
 }
 
-.tabbrowser-tab:-moz-locale-dir(ltr),
-.tabbrowser-tab:-moz-locale-dir(rtl):first-child {
+
+.tabbrowser-tab:not([selected="true"]):-moz-locale-dir(ltr),
+.tabbrowser-tab:not([selected="true"]):-moz-locale-dir(rtl):first-child {
   -moz-border-right-colors: transparent rgba(0, 0, 0, 0.19);
 }
 
-.tabbrowser-tab:-moz-locale-dir(ltr):first-child,
-.tabbrowser-tab:-moz-locale-dir(rtl) {
+.tabbrowser-tab:not([selected="true"]):-moz-locale-dir(ltr):first-child,
+.tabbrowser-tab:not([selected="true"]):-moz-locale-dir(rtl) {
   -moz-border-left-colors: transparent rgba(0, 0, 0, 0.19);
 }
+
 
 .tabbrowser-tab:not(:first-child) {
   -moz-margin-start: -3px;
@@ -64,13 +66,29 @@ tabpanels {
   padding: 4px 7px;
 }
 
+.tab-middle:-moz-lwtheme {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.tab-middle:-moz-lwtheme:not([selected="true"]) > .tab-text {
+  opacity: 0.8;
+}
+
 .tab-middle[selected="true"] {
   padding: 1px 7px 4px;
   background-color: #E8E8E8;
 }
 
+.tab-middle[selected="true"]:-moz-lwtheme {
+  background-color: transparent;
+}
+
 .tabbrowser-tab:hover > .tab-middle:not([selected="true"]) {
   background-color: rgba(0, 0, 0, 0.1);
+}
+
+.tabbrowser-tab:-moz-lwtheme:hover > .tab-middle:not([selected="true"]) {
+  background-color: rgba(0, 0, 0, 0.20);
 }
 
 .tabbrowser-tab[busy] {
