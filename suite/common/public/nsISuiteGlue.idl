@@ -68,4 +68,9 @@ interface nsISuiteGlue : nsISupports
    *
    */
   void sanitize(in nsIDOMWindow aParentWindow);
+
+  /**
+   * Add Smart Bookmarks special queries to bookmarks menu and toolbar folder.
+   */
+  void ensurePlacesDefaultQueriesInitialized();
 };

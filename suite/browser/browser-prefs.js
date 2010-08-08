@@ -78,10 +78,6 @@ pref("browser.send_pings", false);
 
 pref("browser.chrome.site_icons", true);
 pref("browser.chrome.favicons", false);
-pref("browser.chrome.image_icons.max_size", 1024);
-
-// 0 = never, 1 = when in cache, 2 = always
-pref("browser.chrome.load_toolbar_icons", 0);
 
 pref("browser.download.finished_download_sound", false);
 pref("browser.download.finished_sound_url", "");
@@ -162,6 +158,10 @@ pref("browser.urlbar.match.url", "@");
 pref("browser.search.param.Google.1.custom", "chrome://navigator/content/searchconfig.properties");
 pref("browser.search.param.Google.1.default", "chrome://navigator/content/searchconfig.properties");
 
+// Whether or not microsummary and generator updates are enabled.
+pref("browser.microsummary.enabled", true);
+pref("browser.microsummary.updateGenerators", true);
+
 pref("browser.history.grouping", "day");
 pref("browser.sessionhistory.max_entries", 50);
 
@@ -177,18 +177,6 @@ pref("places.database.cache_to_memory_percentage", 6);
 // the (maximum) number of the recent visits to sample
 // when calculating frecency
 pref("places.frecency.numVisits", 10);
-
-// Number of records to update frecency for when idle.
-pref("places.frecency.numCalcOnIdle", 50);
-
-// Number of records to update frecency for when migrating from
-// a pre-frecency build.
-pref("places.frecency.numCalcOnMigrate", 50);
-
-// Perform frecency recalculation after this amount of idle, repeating.
-// A value of zero disables updating of frecency on idle.
-// Default is 1 minute (60000ms).
-pref("places.frecency.updateIdleTime", 60000);
 
 // buckets (in days) for frecency calculation
 pref("places.frecency.firstBucketCutoff", 4);
@@ -208,7 +196,7 @@ pref("places.frecency.embedVisitBonus", 0);
 pref("places.frecency.framedLinkVisitBonus", 0);
 pref("places.frecency.linkVisitBonus", 100);
 pref("places.frecency.typedVisitBonus", 2000);
-pref("places.frecency.bookmarkVisitBonus", 150);
+pref("places.frecency.bookmarkVisitBonus", 75);
 pref("places.frecency.downloadVisitBonus", 0);
 pref("places.frecency.permRedirectVisitBonus", 0);
 pref("places.frecency.tempRedirectVisitBonus", 0);
@@ -217,6 +205,17 @@ pref("places.frecency.defaultVisitBonus", 0);
 // bonus (in percent) for place types for frecency calculations
 pref("places.frecency.unvisitedBookmarkBonus", 140);
 pref("places.frecency.unvisitedTypedBonus", 200);
+
+// By default, do not export HTML at shutdown.
+// If true, at shutdown the bookmarks in your menu and toolbar will
+// be exported as HTML to the bookmarks.html file.
+pref("browser.bookmarks.autoExportHTML", false);
+
+// The maximum number of daily bookmark backups to
+// keep in {PROFILEDIR}/bookmarkbackups. Special values:
+// -1: unlimited
+//  0: no backups created (and deletes all existing backups)
+pref("browser.bookmarks.max_backups", 10);
 
 // Tabbed browser
 pref("browser.tabs.loadDivertedInBackground", false);
