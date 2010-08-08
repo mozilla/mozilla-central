@@ -908,6 +908,11 @@ FeedWriter.prototype = {
           Components.utils.evalInSandbox(codeStr, this._contentSandbox);
           break;
         }
+       case "bookmarks":
+         var liveBookmarksMenuItem = this._document.getElementById("liveBookmarksMenuItem");
+         if (liveBookmarksMenuItem)
+           this._safeDoCommand(liveBookmarksMenuItem);
+         break;
       // fall through if this._selectedApp is null
       default:
         var messengerFeedsMenuItem = this._document.getElementById("messengerFeedsMenuItem");
@@ -1282,6 +1287,10 @@ FeedWriter.prototype = {
           prefs.setComplexValue(getPrefAppForType(feedType), Components.interfaces.nsILocalFile,
                                 this._defaultSystemReader);
           prefs.setCharPref(getPrefReaderForType(feedType), "client");
+          break;
+        case "liveBookmarksMenuItem":
+          defaultHandler = "bookmarks";
+          prefs.setCharPref(getPrefReaderForType(feedType), "bookmarks");
           break;
         case "messengerFeedsMenuItem":
           defaultHandler = "messenger";

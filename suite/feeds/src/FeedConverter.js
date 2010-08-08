@@ -433,6 +433,11 @@ FeedResultService.prototype = {
       LOG("unexpected handler: " + handler);
       // fall through
     case "bookmarks":
+      var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                         .getService(Components.interfaces.nsIWindowMediator);
+      var topWindow = wm.getMostRecentWindow("navigator:browser");
+      topWindow.PlacesCommandHook.addLiveBookmark(spec, title, subtitle);
+      break;
     case "messenger":
       Components.classes["@mozilla.org/newsblog-feed-downloader;1"]
                 .getService(Components.interfaces.nsINewsBlogFeedDownloader)

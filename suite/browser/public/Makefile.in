@@ -46,7 +46,6 @@ MODULE		= suitebrowser
 XPIDL_MODULE	= suitebrowser
 
 XPIDLSRCS = \
-	nsIBookmarksService.idl \
 	nsISearchService.idl \
 	$(NULL)
 

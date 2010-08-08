@@ -46,7 +46,6 @@ const ISEARCH_CONTRACTID       = "@mozilla.org/rdf/datasource;1?name=internetsea
 const RDFSERVICE_CONTRACTID    = "@mozilla.org/rdf/rdf-service;1";
 const BMARKS_CONTRACTID        = "@mozilla.org/browser/bookmarks-service;1";
 
-const nsIBookmarksService      = Components.interfaces.nsIBookmarksService;
 const nsIRDFService            = Components.interfaces.nsIRDFService;
 const nsIRDFLiteral            = Components.interfaces.nsIRDFLiteral;
 const nsIRDFDataSource         = Components.interfaces.nsIRDFDataSource;
@@ -942,8 +941,7 @@ function saveSearch()
   var searchTitle = searchBundle.stringBundle.formatStringFromName(
                       "searchTitle", [lastSearchText], 1);
 
-  var bmks = Components.classes[BMARKS_CONTRACTID].getService(nsIBookmarksService);
-  bmks.addBookmarkImmediately(lastSearchURI, searchTitle, bmks.BOOKMARK_SEARCH_TYPE, null);
+  // XXXplaces: add lastSearchURI to bookmarks with searchTitle
 }
 
 var gPageNumber = 0;

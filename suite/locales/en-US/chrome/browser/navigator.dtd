@@ -158,6 +158,7 @@
 <!ENTITY  bookmarksButton.tooltip     "Bookmarks list">
 <!ENTITY  homeButton.label            "Home">
 <!ENTITY  bookmarksToolbarItem.label  "Bookmarks Toolbar Items">
+<!ENTITY bookmarksToolbarChevron.tooltip "Show more bookmarks">
 
 <!-- Statusbar -->
 <!ENTITY  statusText.label            "Done">

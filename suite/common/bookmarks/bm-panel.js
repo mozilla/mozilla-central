@@ -1,4 +1,3 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -14,17 +13,16 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
+ * The Initial Developer of the Original Code is Mozilla Foundation.
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Ben Goodger <ben@netscape.com> (Original Author)
+ *   Dan Mills <thunder@mozilla.com> (Original Author)
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either of the GNU General Public License Version 2 or later (the "GPL"),
- * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
  * under the terms of either the GPL or the LGPL, and not to allow others to
@@ -36,33 +34,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
-////////////////////////////////////////////////////////////////////////////////
-// Get the two bookmarks utility libraries running, attach controllers, focus
-// tree widget, etc. 
-function Startup() 
-{
-  // correct keybinding command attributes which don't do our business yet
-  var key = document.getElementById("key_delete");
-  if (key.getAttribute("command"))
-    key.setAttribute("command", "cmd_bm_delete");
-  key = document.getElementById("key_delete2");
-  if (key.getAttribute("command"))
-    key.setAttribute("command", "cmd_bm_delete");
-
-  var bookmarksView = document.getElementById("bookmarks-view");  
-  bookmarksView.tree.view.selection.select(0);
+function init() {
+  document.getElementById("bookmarks-view").place =
+    "place:queryType=1&folder=" + window.top.PlacesUIUtils.allBookmarksFolderId;
 }
 
-function addBookmark() {
-  var contentArea = top.document.getElementById('content');                   
-  if (contentArea) {
-    const browsers = contentArea.browsers;
-    if (browsers.length > 1)
-      BookmarksUtils.addBookmarkForTabBrowser(contentArea);
-    else
-      BookmarksUtils.addBookmarkForBrowser(contentArea.webNavigation, true);    
-  }
+function searchBookmarks(aSearchString) {
+  var tree = document.getElementById('bookmarks-view');
+  if (!aSearchString)
+    tree.place = tree.place;
   else
-    BookmarksUtils.addBookmark(null, null, undefined, true);
+    tree.applyFilter(aSearchString,
+                     [PlacesUtils.bookmarksMenuFolderId,
+                      PlacesUtils.unfiledBookmarksFolderId,
+                      PlacesUtils.toolbarFolderId]);
 }
+

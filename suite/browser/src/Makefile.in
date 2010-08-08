@@ -48,7 +48,6 @@ META_COMPONENT  = suite
 
 
 CPPSRCS = \
-	nsBookmarksService.cpp \
 	nsInternetSearchService.cpp \
 	nsLocalSearchService.cpp \
 	$(NULL)

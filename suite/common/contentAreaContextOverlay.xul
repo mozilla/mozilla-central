@@ -97,9 +97,7 @@
       <menuitem id="context-bookmarklink"
                 label="&bookmarkLinkCmd.label;"
                 accesskey="&bookmarkLinkCmd.accesskey;"
-                oncommand="BookmarksUtils.addBookmark(gContextMenu.linkURL,
-                                                      gContextMenu.linkText(),
-                                                      undefined, false);"/>
+                oncommand="gContextMenu.bookmarkLink();"/>
       <menuitem id="context-savelink"
                 valueSaveAs="&saveLinkAsCmd.label;"
                 valueSave="&saveLinkCmd.label;"
@@ -212,7 +210,7 @@
       <menuitem id="context-bookmarkpage"
                 label="&bookmarkPageCmd.label;"
                 accesskey="&bookmarkPageCmd.accesskey;"
-                oncommand="gContextMenu.addBookmark();"/>
+                oncommand="gContextMenu.bookmarkThisPage();"/>
       <menuitem id="context-savepage"
                 valueSaveAs="&savePageAsCmd.label;"
                 valueSave="&savePageCmd.label;"

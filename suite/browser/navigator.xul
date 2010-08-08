@@ -40,13 +40,14 @@
 
 
 <?xml-stylesheet href="chrome://navigator/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://communicator/content/places/places.css" type="text/css"?>
 
 <?xul-overlay href="chrome://navigator/content/navigatorOverlay.xul"?>
 <?xul-overlay href="chrome://navigator/content/mailNavigatorOverlay.xul"?>
 <?xul-overlay href="chrome://navigator/content/linkToolbarOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/contentAreaContextOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/sidebar/sidebarOverlay.xul"?>
-<?xul-overlay href="chrome://communicator/content/bookmarks/bookmarksOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/bookmarks/placesOverlay.xul"?>
 
 
 <!DOCTYPE window [
@@ -85,16 +86,16 @@
   <script type="application/javascript" src="chrome://communicator/content/findUtils.js"/>
   <script type="application/javascript" src="chrome://global/content/printUtils.js"/>
 
-  <!-- Shared Bookmarks Utility Library -->
-  <script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarks.js"/>
-  <script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarksMenu.js"/>
-
   <!-- Navigator -->
   <script type="application/javascript" src="chrome://navigator/content/fullScreen.js"/>
   <script type="application/javascript" src="chrome://navigator/content/browser.js"/>
   <script type="application/javascript" src="chrome://navigator/content/navigator.js"/>
   <script type="application/javascript" src="chrome://navigator/content/navigatorDD.js"/>
   <script type="application/javascript" src="chrome://navigator/content/sessionHistoryUI.js"/>
+
+  <!-- Places Bookmarks Utilities -->
+  <script type="application/javascript" src="chrome://communicator/content/places/browserPlacesViews.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/bookmarks/browser-places.js"/>
 
   <!-- hook for stringbundle overlays -->
   <stringbundleset id="stringbundleset">
@@ -104,7 +105,7 @@
     <stringbundle id="findBundle" src="chrome://global/locale/finddialog.properties"/>
   </stringbundleset>
 
-  <commandset id="commands">    
+  <commandset id="commands">
     <commandset id="findTypeMenuItems"/>
     <commandset id="globalEditMenuItems"/>
     <commandset id="selectEditMenuItems"/>
@@ -116,6 +117,8 @@
 
   <commandset id="mainCommandSet"/> <!-- Firefox extension compatibility -->
 
+  <commandset id="placesCommands"/>
+
   <!-- broadcasters are appended from the overlay -->
   <broadcasterset id="navBroadcasters"/>
   <broadcasterset id="mainBroadcasterSet"/> <!-- Firefox extension compatibility -->
@@ -125,9 +128,6 @@
     <key id="showHideSidebar"/>
   </keyset>
   <keyset id="mainKeyset"/> <!-- Firefox extension compatibility -->
-
-  <popupset id="bookmarksPopupset"/>
-  <template id="bookmarksMenuTemplate"/>
 
   <popupset id="mainPopupSet">
     <menupopup id="backMenu"
@@ -142,8 +142,6 @@
              onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
     <menupopup id="sidebarPopup"/>
 
-    <tooltip  id="btTooltip"/>
-
     <tooltip id="home-button-tooltip" noautohide="true">
       <vbox id="home-button-tooltip-inner" flex="1"/>
     </tooltip>
@@ -155,6 +153,11 @@
                oncommand="subscribeToFeed(event.target.statusText, event);"
                onclick="checkForMiddleClick(this, event);"/>
     <panel id="PopupAutoComplete" type="autocomplete" noautofocus="true"/>
+
+    <menupopup id="placesContext"/>
+
+    <!-- Bookmarks and history tooltip -->
+    <tooltip id="bhTooltip"/>
 
     <menupopup id="popupBlockerMenu"
                oncommand="popupBlockerMenuCommand(event.target);"
@@ -304,9 +307,8 @@
             <image id="page-proxy-favicon" validate="never"
                    ondraggesture="PageProxyDragGesture(event);"
                    onload="this.parentNode.selectedIndex = 1;
-                           event.stopPropagation();
-                           HandleBookmarkIcon(this.src, true);"
-                   onerror="gBrowser.addToMissedIconCache(this.src); HandleBookmarkIcon(this.src, false);"
+                           event.stopPropagation();"
+                   onerror="gBrowser.addToMissedIconCache(this.src);"
                    tooltiptext="&proxyIcon.tooltip;"/>
           </deck>
           <hbox id="urlbar-icons"
@@ -367,81 +369,95 @@
                 tooltiptext="&throbber.tooltip;"/>
       </toolbaritem>
 
-      <!-- "Bookmarks" button on personal toolbar -->                           
-      <toolbarbutton type="menu" id="bookmarks-button" class="bookmark-item"
+      <!-- "Bookmarks" button on personal toolbar -->
+      <toolbarbutton type="menu" id="bookmarks-button"
+                     class="bookmark-item" container="true"
                      label="&bookmarksButton.label;"
-                     datasources="rdf:bookmarks rdf:files rdf:localsearch rdf:internetsearch"
-                     ref="NC:BookmarksRoot" container="true" flags="dont-test-empty"
-                     tooltip="btTooltip"
-                     oncommand="BookmarksMenu.loadBookmark(event, this.database);"
-                     onclick="BookmarksMenu.loadBookmarkMiddleClick(event, this.database)" 
-                     template="bookmarksMenuTemplate"
-                     onmouseover="BookmarksToolbar.autoOpenMenu(event.target);"
-                     onpopupshowing="BookmarksToolbar.onMenuOpen(event.target);"
-                     onpopuphidden="BookmarksToolbar.onMenuClose(event.target);"
-                     ondraggesture="if (event.target.id!='bookmarks-button') nsDragAndDrop.startDrag(event, BookmarksMenuDNDObserver); event.stopPropagation()"
-                     ondragdrop="nsDragAndDrop.drop(event, BookmarksMenuDNDObserver); event.stopPropagation()"
-                     ondragenter="nsDragAndDrop.dragEnter(event, BookmarksMenuDNDObserver); event.stopPropagation()"
-                     ondragexit="nsDragAndDrop.dragExit(event, BookmarksMenuDNDObserver); event.stopPropagation()"
-                     ondragover="nsDragAndDrop.dragOver(event, BookmarksMenuDNDObserver); event.stopPropagation()">
-        <menupopup context="bookmarks-context-menu"
-                   onpopupshowing="updateGroupmarkCommand();">
+                     ondragenter="PlacesMenuDNDHandler.onDragEnter(event);"
+                     ondragover="PlacesMenuDNDHandler.onDragOver(event);"
+                     ondragleave="PlacesMenuDNDHandler.onDragLeave(event);"
+                     ondrop="PlacesMenuDNDHandler.onDrop(event);">
+        <menupopup id="BMB_bookmarksPopup"
+                   placespopup="true"
+                   context="placesContext"
+                   openInTabs="children"
+                   oncommand="BookmarksEventHandler.onCommand(event);"
+                   onclick="BookmarksEventHandler.onClick(event);"
+                   onpopupshowing="BookmarksMenuButton.onPopupShowing(event);
+                                   if (!this.parentNode._placesView)
+                                     new PlacesMenu(event, 'place:folder=BOOKMARKS_MENU');"
+                   tooltip="bhTooltip" popupsinherittooltip="true">
           <menuitem command="Browser:AddBookmark"/>
           <menuitem command="Browser:AddBookmarkAs"/>
-          <menuitem command="Browser:AddGroupmarkAs"/>
+          <menuitem command="Browser:BookmarkAllTabs"/>
           <menuitem command="Browser:ManageBookmark"/>
-          <menuseparator id="lastStaticSeparator"/>
+          <menuseparator/>
+          <menu class="menu-iconic" disabled="true"
+                label="&feedsMenu.label;" accesskey="&feedsMenu.accesskey;">
+            <menupopup onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
+                       oncommand="subscribeToFeed(event.target.statusText, event);"
+                       onclick="checkForMiddleClick(this, event);"/>
+          </menu>
+          <menuseparator/>
+          <menuseparator/>
+          <menu id="BMB_bookmarksToolbarFolderMenu"
+                class="menu-iconic bookmark-item"
+                label="&personalbarCmd.label;"
+                container="true">
+            <menupopup id="BMB_bookmarksToolbarFolderPopup"
+                       placespopup="true"
+                       context="placesContext"
+                       onpopupshowing="if (!this.parentNode._placesView)
+                                         new PlacesMenu(event, 'place:folder=TOOLBAR');"/>
+          </menu>
+          <menu id="BMB_unsortedBookmarksFolderMenu"
+                class="menu-iconic bookmark-item"
+                container="true">
+            <menupopup id="BMB_unsortedBookmarksFolderPopup"
+                       placespopup="true"
+                       context="placesContext"
+                       onpopupshowing="if (!this.parentNode._placesView)
+                                         new PlacesMenu(event, 'place:folder=UNFILED_BOOKMARKS');"/>
+          </menu>
+          <menuseparator/>
         </menupopup>
       </toolbarbutton>
 
-      <toolbaritem id="personal-bookmarks"
-                   flex="1"
-                   style="min-width:0px; width:0px;"
-                   class="chromeclass-directories"
-               onmouseover="BookmarksToolbar.autoOpenMenu(event.target);"
-               onpopupshowing="BookmarksToolbar.onMenuOpen(event.target);"
-               onpopuphidden="BookmarksToolbar.onMenuClose(event.target);"
-               ondraggesture="nsDragAndDrop.startDrag(event, BookmarksMenuDNDObserver)"
-               ondragdrop="nsDragAndDrop.drop(event, BookmarksMenuDNDObserver); event.stopPropagation()"
-               ondragenter="nsDragAndDrop.dragEnter(event, BookmarksMenuDNDObserver); event.stopPropagation()"
-               ondragexit="nsDragAndDrop.dragExit(event, BookmarksMenuDNDObserver); event.stopPropagation()"
-               ondragover="nsDragAndDrop.dragOver(event, BookmarksMenuDNDObserver); event.stopPropagation()">
-
-        <toolbarbutton class="bookmark-item bookmarks-toolbar-customize" mousethrough="never"
-                       label="&bookmarksToolbarItem.label;"/>
-
-        <!-- Personal toolbar items -->
-        <hbox id="bookmarks-ptf" flex="1" style="min-width: 1px;"
-              class="bookmarks-toolbar-items"
-              context="bookmarks-context-menu"
-              template="bookmarksMenuTemplate"
-              datasources="rdf:bookmarks rdf:files rdf:localsearch rdf:internetsearch"
-              ref="NC:PersonalToolbarFolder" flags="dont-test-empty"
-              rdf:type="http://home.netscape.com/NC-rdf#Folder"
-              tooltip="btTooltip"
-              oncommand="BookmarksUtils.loadBookmarkBrowser(event, this.database)"
-              onclick="BookmarksMenu.loadBookmarkMiddleClick(event, this.database)"
-              onmouseover="BookmarksToolbar.autoOpenMenu(event.target);"
-              onpopupshowing="BookmarksToolbar.onMenuOpen(event.target);"
-              onpopuphidden="BookmarksToolbar.onMenuClose(event.target);">
-        </hbox>
-        <hbox class="bookmarks-toolbar-overflow-items" mousethrough="always">
-          <hbox mousethrough="always" id="overflow-padder" flex="1"/>
-          <toolbarbutton id="bookmarks-chevron" type="menu" class="chevron"
-                         mousethrough="never" collapsed="true"
-                         datasources="rdf:bookmarks rdf:files rdf:localsearch rdf:internetsearch"
-                         template="bookmarksMenuTemplate"
-                         ref="NC:PersonalToolbarFolder" flags="dont-test-empty"
-                         tooltip="btTooltip"
-                         oncommand="BookmarksUtils.loadBookmarkBrowser(event, this.database)"
-                         onclick="BookmarksMenu.loadBookmarkMiddleClick(event, this.database)"
-                         onmouseover="BookmarksToolbar.autoOpenMenu(event.target);"
-                         onpopupshowing="BookmarksToolbar.onMenuOpen(event.target);"
-                         onpopuphidden="BookmarksToolbar.onMenuClose(event.target);">
-            <menupopup id="bookmarks-chevron-popup"
-                       context="bookmarks-context-menu"
-                       onpopupshowing="if (event.target == this) BookmarksToolbar.updateOverflowMenu(this);"/>
-          </toolbarbutton>
+      <toolbaritem flex="1" id="personal-bookmarks" title="&bookmarksToolbarItem.label;"
+                   removable="true">
+        <hbox flex="1"
+              id="PlacesToolbar"
+              context="placesContext"
+              onclick="BookmarksEventHandler.onClick(event);"
+              oncommand="BookmarksEventHandler.onCommand(event);"
+              tooltip="bhTooltip"
+              popupsinherittooltip="true">
+          <toolbarbutton class="bookmark-item bookmarks-toolbar-customize"
+                         mousethrough="never"
+                         label="&bookmarksToolbarItem.label;"/>
+          <hbox flex="1">
+            <hbox align="center">
+              <image id="PlacesToolbarDropIndicator"
+                     mousethrough="always"
+                     collapsed="true"/>
+            </hbox>
+            <scrollbox orient="horizontal"
+                       id="PlacesToolbarItems"
+                       flex="1"/>
+            <toolbarbutton type="menu"
+                           id="PlacesChevron"
+                           class="chevron"
+                           mousethrough="never"
+                           collapsed="true"
+                           tooltiptext="&bookmarksToolbarChevron.tooltip;"
+                           onpopupshowing="this.parentNode.parentNode
+                                               ._placesView._onChevronPopupShowing(event);">
+              <menupopup id="PlacesChevronPopup"
+                         placespopup="true"
+                         tooltip="bhTooltip" popupsinherittooltip="true"
+                         context="placesContext"/>
+            </toolbarbutton>
+          </hbox>
         </hbox>
       </toolbaritem>
 

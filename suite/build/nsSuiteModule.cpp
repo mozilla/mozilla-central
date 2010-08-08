@@ -45,7 +45,6 @@
 #include "nsLocalSearchService.h"
 #include "nsNetCID.h"
 #include "nsRDFCID.h"
-#include "nsBookmarksService.h"
 #include "nsFeedSniffer.h"
 
 #if defined(XP_WIN)
@@ -77,7 +76,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsSeamonkeyProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsThunderbirdProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(LocalSearchDataSource, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(InternetSearchDataSource, Init)
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsBookmarksService, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsFeedSniffer)
 
 #if defined(XP_WIN)
@@ -96,7 +94,6 @@ NS_DEFINE_NAMED_CID(NS_SEAMONKEYPROFILEMIGRATOR_CID);
 NS_DEFINE_NAMED_CID(NS_THUNDERBIRDPROFILEMIGRATOR_CID);
 NS_DEFINE_NAMED_CID(NS_RDFFINDDATASOURCE_CID);
 NS_DEFINE_NAMED_CID(NS_RDFSEARCHDATASOURCE_CID);
-NS_DEFINE_NAMED_CID(NS_BOOKMARKS_SERVICE_CID);
 NS_DEFINE_NAMED_CID(NS_FEEDSNIFFER_CID);
 
 /////////////////////////////////////////////////////////////////////////////
@@ -118,7 +115,6 @@ static const mozilla::Module::CIDEntry kSuiteCIDs[] = {
   { &kNS_THUNDERBIRDPROFILEMIGRATOR_CID, false, NULL, nsThunderbirdProfileMigratorConstructor },
   { &kNS_RDFFINDDATASOURCE_CID, false, NULL, LocalSearchDataSourceConstructor },
   { &kNS_RDFSEARCHDATASOURCE_CID, false, NULL, InternetSearchDataSourceConstructor },
-  { &kNS_BOOKMARKS_SERVICE_CID, false, NULL, nsBookmarksServiceConstructor },
   { &kNS_FEEDSNIFFER_CID, false, NULL, nsFeedSnifferConstructor },
   { NULL }
 };
@@ -143,9 +139,6 @@ static const mozilla::Module::ContractIDEntry kSuiteContracts[] = {
   { NS_LOCALSEARCH_DATASOURCE_CONTRACTID, &kNS_RDFFINDDATASOURCE_CID },
   { NS_INTERNETSEARCH_SERVICE_CONTRACTID, &kNS_RDFSEARCHDATASOURCE_CID },
   { NS_INTERNETSEARCH_DATASOURCE_CONTRACTID, &kNS_RDFSEARCHDATASOURCE_CID },
-  { NS_BOOKMARKS_SERVICE_CONTRACTID, &kNS_BOOKMARKS_SERVICE_CID },
-  { "@mozilla.org/embeddor.implemented/bookmark-charset-resolver;1", &kNS_BOOKMARKS_SERVICE_CID },
-  { NS_BOOKMARKS_DATASOURCE_CONTRACTID, &kNS_BOOKMARKS_SERVICE_CID },
   { NS_FEEDSNIFFER_CONTRACTID, &kNS_FEEDSNIFFER_CID },
   { NULL }
 };

@@ -43,6 +43,12 @@ panel[for="urlbar"] {
   display: none;
 }
 
+/* ::::: bookmarks toolbar ::::: */
+
+toolbarpaletteitem[place="palette"] > toolbaritem > hbox[type="places"] {
+  display: none;
+}
+
 /* ::::: autohide the menubar for full screen on linux too ::::: */
 
 #toolbar-menubar[autohide="true"]

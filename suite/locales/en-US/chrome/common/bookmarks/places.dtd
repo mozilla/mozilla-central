@@ -1,0 +1,104 @@
+<!ENTITY bookmarksManager.title         "Bookmarks Manager">
+<!ENTITY bookmarksManager.width         "700">
+<!ENTITY bookmarksManager.height        "500">
+
+<!ENTITY file.accesskey                 "F">
+<!ENTITY file.close.label               "Close">
+<!ENTITY file.close.accesskey           "C">
+<!ENTITY cmd.close.key                  "w">
+
+<!ENTITY view.columns.label             "Show Columns">
+<!ENTITY view.columns.accesskey         "C">
+<!ENTITY view.sort.label                "Sort">
+<!ENTITY view.sort.accesskey            "S">
+<!ENTITY view.unsorted.label            "Unsorted">
+<!ENTITY view.unsorted.accesskey        "U">
+<!ENTITY view.sortAscending.label       "A > Z Sort Order">
+<!ENTITY view.sortAscending.accesskey   "A">
+<!ENTITY view.sortDescending.label      "Z > A Sort Order">
+<!ENTITY view.sortDescending.accesskey  "Z">
+
+<!ENTITY cmd.findInBookmarks.label      "Find in Bookmarks…">
+<!ENTITY cmd.findInBookmarks.accesskey  "F">
+<!ENTITY cmd.findCurrent.label          "Find in Current Collection…">
+<!ENTITY cmd.findCurrent.accesskey      "i">
+
+<!ENTITY cmd.exportHTML.label           "Export HTML…">
+<!ENTITY cmd.exportHTML.accesskey       "E">
+<!ENTITY cmd.importHTML.label           "Import HTML…">
+<!ENTITY cmd.importHTML.accesskey       "I">
+
+<!ENTITY cmd.backup.label               "Backup…">
+<!ENTITY cmd.backup.accesskey           "B">
+<!ENTITY cmd.restore2.label             "Restore">
+<!ENTITY cmd.restore2.accesskey         "R">
+<!ENTITY cmd.restoreFromFile.label      "Choose File…">
+<!ENTITY cmd.restoreFromFile.accesskey  "C">
+
+<!ENTITY cmd.bookmarkLink.label         "Bookmark This Page…">
+<!ENTITY cmd.bookmarkLink.accesskey     "B">
+<!ENTITY cmd.delete.label               "Delete This Page">
+<!ENTITY cmd.delete.accesskey           "D">
+<!ENTITY cmd.deleteDomainData.label     "Forget About This Site">
+<!ENTITY cmd.deleteDomainData.accesskey "F">
+
+<!ENTITY cmd.open.label                  "Open">
+<!ENTITY cmd.open.accesskey              "O">
+<!ENTITY cmd.open_window.label           "Open in a New Window">
+<!ENTITY cmd.open_window.accesskey       "N">
+<!ENTITY cmd.open_tab.label              "Open in a New Tab">
+<!ENTITY cmd.open_tab.accesskey          "w">
+<!ENTITY cmd.open_all_in_tabs.label      "Open All in Tabs">
+<!ENTITY cmd.open_all_in_tabs.accesskey  "O">
+
+<!ENTITY cmd.properties.label      "Properties">
+<!ENTITY cmd.properties.accesskey  "i">
+
+<!ENTITY cmd.sortby_name.label              "Sort By Name">
+<!ENTITY cmd.sortby_name.accesskey          "r">
+
+<!ENTITY cmd.new_bookmark.label            "New Bookmark…">
+<!ENTITY cmd.new_bookmark.accesskey        "B">
+<!ENTITY cmd.new_folder.label              "New Folder…">
+<!ENTITY cmd.new_folder.accesskey          "o">
+<!ENTITY cmd.context_new_folder.accesskey  "F">
+<!ENTITY cmd.new_separator.label           "New Separator">
+<!ENTITY cmd.new_separator.accesskey       "S">
+
+<!ENTITY cmd.reloadLivebookmark.label      "Reload Live Bookmark">
+<!ENTITY cmd.reloadLivebookmark.accesskey  "R">
+<!ENTITY cmd.reloadMicrosummary.label      "Reload Live Title">
+<!ENTITY cmd.reloadMicrosummary.accesskey  "R">
+
+<!ENTITY cmd.moveBookmarks.label                  "Move…">
+<!ENTITY cmd.moveBookmarks.accesskey              "M">
+
+<!ENTITY col.name.label          "Name">
+<!ENTITY col.tags.label          "Tags">
+<!ENTITY col.url.label           "Location">
+<!ENTITY col.lastvisit.label     "Visit Date">
+<!ENTITY col.visitcount.label    "Visit Count">
+<!ENTITY col.keyword.label       "Keyword">
+<!ENTITY col.description.label   "Description">
+<!ENTITY col.dateadded.label     "Added">
+<!ENTITY col.lastmodified.label  "Last Modified">
+
+<!ENTITY search.label                              "Search:">
+<!ENTITY search.accesskey                          "S">
+<!ENTITY search.scopeFolder.label                  "Selected Folder">
+<!ENTITY search.scopeFolder.accesskey              "r">
+<!ENTITY search.scopeBookmarks.label               "Bookmarks">
+<!ENTITY search.scopeBookmarks.accesskey           "k">
+<!ENTITY saveSearch.label                          "Save">
+<!ENTITY saveSearch.accesskey                      "S">
+
+<!ENTITY cmd.find.key  "f">
+
+<!ENTITY backButton.tooltip  "Go back">
+<!ENTITY forwardButton.tooltip  "Go forward">
+
+<!ENTITY detailsPane.more.label "More">
+<!ENTITY detailsPane.more.accesskey "e">
+<!ENTITY detailsPane.less.label "Less">
+<!ENTITY detailsPane.less.accesskey "e">
+<!ENTITY detailsPane.selectAnItemText.description "Select an item to view and edit its properties">

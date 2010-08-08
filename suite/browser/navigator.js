@@ -47,7 +47,6 @@ var gURLBar = null;
 var gProxyButton = null;
 var gProxyFavIcon = null;
 var gProxyDeck = null;
-var gBookmarksService = null;
 var gSearchService = null;
 var gNavigatorBundle;
 var gBrandBundle;
@@ -191,7 +190,6 @@ function pageShowEventHandlers(event)
 {
   // Filter out events that are not about the document load we are interested in
   if (event.originalTarget == content.document) {
-    UpdateBookmarksLastVisitedDate(event);
     UpdateInternetSearchResults(event);
     checkForDirectoryListing();
     postURLToNativeWidget();
@@ -233,34 +231,6 @@ function updateHomeButtonTooltip()
     var label = document.createElementNS(XUL_NAMESPACE, "label");
     label.setAttribute("value", homePage[i]);
     tooltip.appendChild(label);
-  }
-}
-
-//////////////////////////////// BOOKMARKS ////////////////////////////////////
-
-function UpdateBookmarksLastVisitedDate(event)
-{
-  var url = getWebNavigation().currentURI.spec;
-  if (url) {
-    // if the URL is bookmarked, update its "Last Visited" date
-    if (!gBookmarksService)
-      gBookmarksService = Components.classes["@mozilla.org/browser/bookmarks-service;1"]
-                                    .getService(Components.interfaces.nsIBookmarksService);
-
-    gBookmarksService.updateLastVisitedDate(url, content.document.characterSet);
-  }
-}
-
-function HandleBookmarkIcon(iconURL, addFlag)
-{
-  var url = content.document.documentURI;
-  if (url) {
-    // update URL with new icon reference
-    if (!gBookmarksService)
-      gBookmarksService = Components.classes["@mozilla.org/browser/bookmarks-service;1"]
-                                    .getService(Components.interfaces.nsIBookmarksService);
-    if (addFlag)    gBookmarksService.updateBookmarkIcon(url, iconURL);
-    else            gBookmarksService.removeBookmarkIcon(url, iconURL);
   }
 }
 
@@ -637,8 +607,10 @@ function Startup()
   getNavToolbox().customizeDone = BrowserToolboxCustomizeDone;
   getNavToolbox().customizeChange = BrowserToolboxCustomizeChange;
 
-  // now load bookmarks after a delay
-  setTimeout(LoadBookmarksCallback, 0);
+  PlacesToolbarHelper.init();
+
+  // bookmark-all-tabs command
+  gBookmarkAllTabsHandler.init();
 
   gBrowser.mPanelContainer.addEventListener("InstallBrowserTheme", LightWeightThemeWebInstaller, false, true);
   gBrowser.mPanelContainer.addEventListener("PreviewBrowserTheme", LightWeightThemeWebInstaller, false, true);
@@ -662,20 +634,6 @@ function UpdateNavBar()
     if (!previous || !previous.classList.contains("nav-bar-class"))
       element.classList.add("nav-bar-first");
   }
-}
-
-function LoadBookmarksCallback()
-{
-  // loads the services
-  initServices();
-  initBMService();
-  BMSVC.readBookmarks();
-  var bt = document.getElementById("bookmarks-ptf");
-  if (bt) {
-    bt.database.AddObserver(BookmarksToolbarRDFObserver);
-  }
-  window.addEventListener("resize", BookmarksToolbar.resizeFunc, false);
-  controllers.appendController(BookmarksMenuController);
 }
 
 function InitSessionStoreCallback()
@@ -709,18 +667,6 @@ function WindowFocusTimerCallback(element)
   }
 }
 
-function BrowserFlushBookmarks()
-{
-  // Flush bookmarks (used when window closes or is cached).
-  try {
-    // If bookmarks are dirty, flush 'em to disk
-    var bmks = Components.classes["@mozilla.org/browser/bookmarks-service;1"]
-                         .getService(Components.interfaces.nsIRDFRemoteDataSource);
-    bmks.Flush();
-  } catch(ex) {
-  }
-}
-
 function Shutdown()
 {
   AddonManager.removeAddonListener(gAddonListener);
@@ -734,17 +680,6 @@ function Shutdown()
     // Perhaps we didn't get around to adding the progress listener
   }
 
-  try {
-    controllers.removeController(BookmarksMenuController);
-  } catch (ex) {
-    // Perhaps we didn't get around to adding the controller
-  }
-
-  var bt = document.getElementById("bookmarks-ptf");
-  if (bt) {
-    bt.database.RemoveObserver(BookmarksToolbarRDFObserver);
-  }
-
   window.XULBrowserWindow.destroy();
   window.XULBrowserWindow = null;
   window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
@@ -753,8 +688,6 @@ function Shutdown()
         .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
         .getInterface(Components.interfaces.nsIXULWindow)
         .XULBrowserWindow = null;
-
-  BrowserFlushBookmarks();
 
   // unregister us as a pref listener
   removePrefListener(gTabStripPrefListener);
@@ -909,7 +842,7 @@ function BrowserHome(aEvent)
 {
   var tab;
   var homePage = getHomePage();
-  var target = !gBrowser ? "window": !aEvent ? "current" : BookmarksUtils.getBrowserTargetFromEvent(aEvent);
+  var target = !gBrowser ? "window" : whereToOpenLink(aEvent);
 
   if (homePage.length == 1) {
     switch (target) {
@@ -917,8 +850,9 @@ function BrowserHome(aEvent)
       loadURI(homePage[0]);
       break;
     case "tab":
+    case "tabshifted":
       tab = gBrowser.addTab(homePage[0]);
-      if (!BookmarksUtils.shouldLoadTabInBackground(aEvent))
+      if (target != "tabshifted")
         gBrowser.selectedTab = tab;
       break;
     case "window":
@@ -933,33 +867,47 @@ function BrowserHome(aEvent)
         URIs.push({URI: homePage[i]});
 
       tab = gBrowser.loadGroup(URIs);
-      
-      if (!BookmarksUtils.shouldLoadTabInBackground(aEvent))
+
+      if (target != "tabshifted")
         gBrowser.selectedTab = tab;
     }
   }
 }
 
-function addBookmarkAs()
-{
-  const browsers = gBrowser.browsers;
-  if (browsers.length > 1)
-    BookmarksUtils.addBookmarkForTabBrowser(gBrowser);
-  else
-    BookmarksUtils.addBookmarkForBrowser(gBrowser.webNavigation, true);
-}
+/**
+ * This also takes care of updating the command enabled-state when tabs are
+ * created or removed.
+ */
+var gBookmarkAllTabsHandler = {
+  init: function () {
+    this._command = document.getElementById("Browser:BookmarkAllTabs");
+    gBrowser.tabContainer.addEventListener("TabOpen", this, true);
+    gBrowser.tabContainer.addEventListener("TabClose", this, true);
+    this._updateCommandState();
+  },
 
-function addGroupmarkAs()
-{
-  BookmarksUtils.addBookmarkForTabBrowser(gBrowser, true);
-}
+  _updateCommandState: function BATH__updateCommandState(aTabClose) {
+    var numTabs = gBrowser.browsers.length;
 
-function updateGroupmarkCommand()
-{
-  const disabled = (!gBrowser || gBrowser.browsers.length == 1);
-  document.getElementById("Browser:AddGroupmarkAs")
-          .setAttribute("disabled", disabled);
-}
+    // The TabClose event is fired before the tab is removed from the DOM
+    if (aTabClose)
+      numTabs--;
+
+    if (numTabs > 1)
+      this._command.removeAttribute("disabled");
+    else
+      this._command.setAttribute("disabled", "true");
+  },
+
+  doCommand: function BATH_doCommand() {
+    PlacesCommandHook.bookmarkCurrentPages();
+  },
+
+  // nsIDOMEventListener
+  handleEvent: function(aEvent) {
+    this._updateCommandState(aEvent.type == "TabClose");
+  }
+};
 
 function readRDFString(aDS,aRes,aProp)
 {
@@ -1202,7 +1150,9 @@ function BrowserOpenWindow()
   //opens a window where users can select a web location to open
   var params = { browser: window, action: null, url: "" };
   openDialog("chrome://communicator/content/openLocation.xul", "_blank", "chrome,modal,titlebar", params);
-  var url = getShortcutOrURI(params.url);
+  var postData = { };
+  var url = getShortcutOrURI(params.url, postData);
+  // XXX: need to actually deal with the postData, see bug 553459
   switch (params.action) {
     case "0": // current window
       loadURI(url, null, nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP);
@@ -1485,7 +1435,9 @@ function BrowserLoadURL(aTriggeringEvent)
     }
 
     var browser = getBrowser();
-    url = getShortcutOrURI(url);
+    var postData = {};
+    url = getShortcutOrURI(url, postData);
+    // XXX: need to actually deal with the postData, see bug 553459
     // Accept both Control and Meta (=Command) as New-Window-Modifiers
     if (aTriggeringEvent &&
         (('ctrlKey' in aTriggeringEvent && aTriggeringEvent.ctrlKey) ||
@@ -1545,60 +1497,69 @@ function BrowserLoadURL(aTriggeringEvent)
   }
 }
 
-function getShortcutOrURI(url)
+function getShortcutOrURI(aURL, aPostDataRef)
 {
-  // rjc: added support for URL shortcuts (3/30/1999)
-  try {
-    if (!gBookmarksService)
-      gBookmarksService = Components.classes["@mozilla.org/browser/bookmarks-service;1"]
-                                    .getService(Components.interfaces.nsIBookmarksService);
+  var shortcutURL = null;
+  var keyword = aURL;
+  var param = "";
 
-    var shortcutURL = gBookmarksService.resolveKeyword(url);
-    if (!shortcutURL) {
-      // rjc: add support for string substitution with shortcuts (4/4/2000)
-      //      (see bug # 29871 for details)
-      var aOffset = url.indexOf(" ");
-      if (aOffset > 0) {
-        var cmd = url.substr(0, aOffset);
-        var text = url.substr(aOffset+1);
-        shortcutURL = gBookmarksService.resolveKeyword(cmd);
-        // Bug 123006 : %s replace and URI escape, %S replace with raw value
-        if (shortcutURL && text) {
-          var encodedText = null; 
-          var charset = "";
-          const re = /^(.*)\&mozcharset=([a-zA-Z][_\-a-zA-Z0-9]+)\s*$/; 
-          var matches = shortcutURL.match(re);
-          if (matches) {
-             shortcutURL = matches[1];
-             charset = matches[2];
-          }
-          else if (/%s/.test(shortcutURL)) {
-            try {
-              charset = BMSVC.getLastCharset(shortcutURL);
-            } catch (ex) {
-            }
-          }
+  var offset = aURL.indexOf(" ");
+  if (offset > 0) {
+    keyword = aURL.substr(0, offset);
+    param = aURL.substr(offset + 1);
+  }
 
-          if (charset)
-            encodedText = escape(convertFromUnicode(charset, text)); 
-          else  // default case: charset=UTF-8
-            encodedText = encodeURIComponent(text);
+  if (!aPostDataRef)
+    aPostDataRef = {};
 
-          if (encodedText && /%[sS]/.test(shortcutURL))
-            shortcutURL = shortcutURL.replace(/%s/g, encodedText)
-                                     .replace(/%S/g, text);
-          else 
-            shortcutURL = null;
-        }
-      }
+  // XXX: In the future, ask the search service if it knows that keyword
+
+  [shortcutURL, aPostDataRef.value] =
+    PlacesUtils.getURLAndPostDataForKeyword(keyword);
+
+  if (!shortcutURL)
+    return aURL;
+
+  var postData = "";
+  if (aPostDataRef.value)
+    postData = unescape(aPostDataRef.value);
+
+  if (/%s/i.test(shortcutURL) || /%s/i.test(postData)) {
+    var charset = "";
+    const re = /^(.*)\&mozcharset=([a-zA-Z][_\-a-zA-Z0-9]+)\s*$/;
+    var matches = shortcutURL.match(re);
+    if (matches)
+      [, shortcutURL, charset] = matches;
+    else {
+      // Try to get the saved character-set.
+      try {
+        // makeURI throws if URI is invalid.
+        // Will return an empty string if character-set is not found.
+        charset = PlacesUtils.history.getCharsetForURI(makeURI(shortcutURL));
+      } catch (e) {}
     }
 
-    if (shortcutURL)
-      url = shortcutURL;
+    var encodedParam = "";
+    if (charset)
+      encodedParam = escape(convertFromUnicode(charset, param));
+    else // Default charset is UTF-8
+      encodedParam = encodeURIComponent(param);
 
-  } catch (ex) {
+    shortcutURL = shortcutURL.replace(/%s/g, encodedParam).replace(/%S/g, param);
+
+    if (/%s/i.test(postData)) // POST keyword
+      aPostDataRef.value = getPostDataStream(postData, param, encodedParam,
+                                             "application/x-www-form-urlencoded");
   }
-  return url;
+  else if (param) {
+    // This keyword doesn't take a parameter, but one was provided. Just return
+    // the original URL.
+    aPostDataRef.value = null;
+
+    return aURL;
+  }
+
+  return shortcutURL;
 }
 
 function readFromClipboard()
@@ -1744,17 +1705,6 @@ function hiddenWindowStartup()
   gNavigatorBundle = document.getElementById("bundle_navigator");
   gNavigatorRegionBundle = document.getElementById("bundle_navigator_region");
   gBrandBundle = document.getElementById("bundle_brand");
-
-  // now load bookmarks after a delay
-  setTimeout(hiddenWindowLoadBookmarksCallback, 0);
-}
-
-function hiddenWindowLoadBookmarksCallback()
-{
-  // loads the services
-  initServices();
-  initBMService();
-  BMSVC.readBookmarks();  
 }
 
 var consoleListener = {
@@ -2563,6 +2513,7 @@ function BrowserToolboxCustomizeInit()
 {
   SetPageProxyState("invalid", null);
   toolboxCustomizeInit("main-menubar");
+  PlacesToolbarHelper.customizeStart();
 }
 
 function BrowserToolboxCustomizeDone(aToolboxChanged)
@@ -2578,25 +2529,7 @@ function BrowserToolboxCustomizeDone(aToolboxChanged)
   else
     gURLBar.value = value;
 
-  // fix up the personal toolbar folder
-  var bt = document.getElementById("bookmarks-ptf");
-  if (isElementVisible(bt)) {
-    // XXXRatty: do we still need to reinstate the BookmarksToolbarRDFObserver?
-    let btchevron = document.getElementById("bookmarks-chevron");
-    // no uniqueness is guaranteed, so we have to remove first
-    try {
-      bt.database.RemoveObserver(BookmarksToolbarRDFObserver);
-    } catch (ex) {
-      // ignore
-    }
-    bt.database.AddObserver(BookmarksToolbarRDFObserver);
-    bt.builder.rebuild();
-    btchevron.builder.rebuild();
-
-    // fake a resize; this function takes care of flowing bookmarks
-    // from the bar to the overflow item
-    BookmarksToolbar.resizeFunc(null);
-  }
+  PlacesToolbarHelper.customizeDone();
 }
 
 function BrowserToolboxCustomizeChange(event)

@@ -1019,24 +1019,31 @@ nsContextMenu.prototype = {
     clipboard.copyString(this.getEmail());
   },
 
-  addBookmark: function() {
-    var docshell = document.getElementById( "content" ).webNavigation;
-    BookmarksUtils.addBookmark(docshell.currentURI.spec,
-                               docshell.document.title,
-                               docshell.document.characterSet,
-                               false);
+  bookmarkThisPage : function() {
+    window.top.PlacesCommandHook.bookmarkPage(this.browser,
+                                              PlacesUtils.bookmarksMenuFolderId,
+                                              true);
+  },
+
+  bookmarkLink: function CM_bookmarkLink() {
+    window.top.PlacesCommandHook.bookmarkLink(PlacesUtils.bookmarksMenuFolderId,
+                                              this.linkURL,
+                                              this.linkText());
   },
 
   addBookmarkForFrame: function() {
     var doc = this.target.ownerDocument;
-    var uri = doc.location.href;
-    var title = doc.title;
-    if (!title)
-      title = uri;
-    BookmarksUtils.addBookmark(uri,
-                               title,
-                               doc.characterSet,
-                               false);
+    var uri = doc.documentURIObject;
+
+    var itemId = PlacesUtils.getMostRecentBookmarkForURI(uri);
+    if (itemId == -1) {
+      var title = doc.title;
+      var description = PlacesUIUtils.getDescriptionFromDocument(doc);
+      PlacesUIUtils.showMinimalAddBookmarkUI(uri, title, description);
+    }
+    else
+      PlacesUIUtils.showItemProperties(itemId,
+                                       PlacesUtils.bookmarks.TYPE_BOOKMARK);
   },
 
   // Open Metadata window for node

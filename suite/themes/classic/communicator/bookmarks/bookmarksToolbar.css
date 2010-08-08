@@ -91,22 +91,20 @@ toolbarbutton.bookmark-item[disabled="true"][container="true"] {
   display: none;
 }
 
+/* Prevent [mode="icons"] from hiding the label */
+.bookmark-item > .toolbarbutton-text {
+  display: -moz-box !important;
+}
+
 /* ..... drag and drop styles ..... */
 
-toolbarbutton.bookmark-item[dragover-left="true"] {
-  -moz-border-left-colors: ThreeDDarkShadow;
+#PlacesToolbarDropIndicator {
+  list-style-image: url("chrome://communicator/skin/bookmarks/toolbarDropMarker.png");
 }
 
-toolbarbutton.bookmark-item[dragover-right="true"] {
-  -moz-border-right-colors: ThreeDDarkShadow;
-}
-
-toolbarbutton.bookmark-item[dragover-top="true"] {
-  -moz-appearance: none;
-  -moz-border-top-colors: ThreeDDarkShadow;
-  -moz-border-right-colors: ThreeDDarkShadow;
-  -moz-border-bottom-colors: ThreeDDarkShadow;
-  -moz-border-left-colors: ThreeDDarkShadow;
+toolbarbutton.bookmark-item[dragover="true"][open="true"] {
+  background: Highlight !important;
+  color: HighlightText !important;
 }
 
 /* ::::: bookmark menus ::::: */
@@ -122,10 +120,6 @@ menuitem.bookmark-item {
   height: 16px;
 }
 
-.bookmark-group {
-  list-style-image: url(chrome://communicator/skin/bookmarks/bookmark-group.png) !important;
-}
-
 .menuitem-iconic.bookmark-item[disabled="true"] {
   list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item-dis.png");
 }
@@ -136,17 +130,17 @@ menuitem.bookmark-item {
 
 /* ..... drag and drop styles ..... */
 
-menu.bookmark-item[dragover-top="true"],
-menuitem.bookmark-item[dragover-top="true"] {
-  border-top: 1px solid ThreeDDarkShadow !important;
-} 
-
-menu.bookmark-item[dragover-bottom="true"],
-menuitem.bookmark-item[dragover-bottom="true"] {
-  border-bottom: 1px solid ThreeDDarkShadow !important;
+/* rules for menupopup drop indicators */
+.menupopup-drop-indicator-bar {
+  position: relative;
+  /* these two margins must together compensate the indicator's height */
+  margin-top: -1px;
+  margin-bottom: -1px;
 }
 
-menu.bookmark-item[dragover="true"] {
-  background: Highlight !important;
-  color: HighlightText !important;
+.menupopup-drop-indicator {
+  list-style-image: none;
+  height: 2px;
+  -moz-margin-end: -4em;
+  background-color: Highlight;
 }

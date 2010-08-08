@@ -337,24 +337,16 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
 }
 
 #page-proxy-button {
-  list-style-image: url("chrome://communicator/skin/bookmarks/location.gif"); 
-} 
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.png"); 
+}
 
 #page-proxy-favicon {
   list-style-image: none;
-} 
-
-#page-proxy-button[pageproxystate="valid"]:hover  {
-  list-style-image: url("chrome://communicator/skin/bookmarks/location-hov.gif");
-}
-  
-#page-proxy-button[pageproxystate="valid"]:hover:active {
-  list-style-image: url("chrome://communicator/skin/bookmarks/location-act.gif");
 }
 
 #page-proxy-button[pageproxystate="invalid"] {
   cursor: default;
-  list-style-image: url("chrome://communicator/skin/bookmarks/location-dis.gif");
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item-dis.png");
 }
 
 /* ::::: autocomplete ::::: */

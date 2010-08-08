@@ -73,7 +73,6 @@
 
   <!-- Shared Bookmarks Utility Library -->
   <script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarks.js"/>
-  <script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarksMenu.js"/>
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_navigator" src="chrome://navigator/locale/navigator.properties"/>
