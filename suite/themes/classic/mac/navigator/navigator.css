@@ -347,9 +347,8 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   -moz-appearance: none !important;
   max-width: none !important;
   font: inherit;
-  padding: 0px 2px 0px 2px;
+  padding: 2px;
   margin: 0;
-  -moz-margin-start: -18px; /* hack to adjust for the menuitem label margin in menu.css */
 }
 
 .autocomplete-history-popup > menuitem[_moz-menuactive="true"],
