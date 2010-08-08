@@ -115,6 +115,41 @@
              oncommand="goDoPlacesCommand('placesCmd_delete');"/>
   </commandset>
 
+  <panel id="editBookmarkPanel"
+          orient="vertical"
+          ignorekeys="true"
+          hidden="true"
+          onpopupshown="StarUI.panelShown(event);"
+          aria-labelledby="editBookmarkPanelTitle">
+    <row id="editBookmarkPanelHeader" align="center" hidden="true">
+      <vbox align="center">
+        <image id="editBookmarkPanelStarIcon"/>
+      </vbox>
+      <vbox>
+        <label id="editBookmarkPanelTitle"/>
+        <description id="editBookmarkPanelDescription"/>
+        <hbox>
+          <button id="editBookmarkPanelRemoveButton"
+                  class="editBookmarkPanelHeaderButton"
+                  oncommand="StarUI.removeBookmarkButtonCommand();"
+                  accesskey="&editBookmark.removeBookmark.accessKey;"/>
+        </hbox>
+      </vbox>
+    </row>
+    <vbox id="editBookmarkPanelContent" flex="1" hidden="true"/>
+    <hbox id="editBookmarkPanelBottomButtons" pack="end">
+      <button id="editBookmarkPanelDeleteButton"
+              class="editBookmarkPanelBottomButton"
+              label="&editBookmark.cancel.label;"
+              oncommand="StarUI.cancelButtonOnCommand();"/>
+      <button id="editBookmarkPanelDoneButton"
+              class="editBookmarkPanelBottomButton"
+              label="&editBookmark.done.label;"
+              default="true"
+              oncommand="StarUI.panel.hidePopup();"/>
+    </hbox>
+  </panel>
+
   <menupopup id="placesContext"
              onpopupshowing="this._view = PlacesUIUtils.getViewForNode(document.popupNode);
                              return this._view.buildContextMenu(this);"

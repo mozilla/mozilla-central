@@ -13,17 +13,14 @@
    - for the specific language governing rights and limitations under the
    - License.
    -
-   - The Original Code is the Places Bookmark Properties dialog.
+   - The Original Code is the Places Organizer.
    -
    - The Initial Developer of the Original Code is Google Inc.
-   - Portions created by the Initial Developer are Copyright (C) 2006
+   - Portions created by the Initial Developer are Copyright (C) 2005-2006
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
-   -   Joe Hughes <jhughes@google.com>
    -   Asaf Romano <mano@mozilla.com>
-   -   Ehsan Akhgari <ehsan.akhgari@gmail.com>
-   -   Marco Bonardo <mak77@bonardo.net>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,40 +36,50 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://communicator/skin/"?>
-<?xml-stylesheet href="chrome://communicator/content/places/places.css"?>
-<?xml-stylesheet href="chrome://communicator/skin/bookmarks/editBookmarkOverlay.css"?>
+<?xml-stylesheet href="chrome://global/skin/"?>
 <?xml-stylesheet href="chrome://communicator/skin/bookmarks/bookmarks.css"?>
+<?xml-stylesheet href="chrome://communicator/content/bookmarks/places.css"?>
 
 <?xul-overlay href="chrome://communicator/content/bookmarks/placesOverlay.xul"?>
-<?xul-overlay href="chrome://communicator/content/bookmarks/editBookmarkOverlay.xul"?>
 
-<!DOCTYPE dialog [
-  <!ENTITY % editBookmarkOverlayDTD SYSTEM "chrome://communicator/locale/bookmarks/editBookmarkOverlay.dtd">
-  %editBookmarkOverlayDTD;
+<!DOCTYPE window [
+  <!ENTITY % moveBookmarksDTD SYSTEM "chrome://communicator/locale/bookmarks/moveBookmarks.dtd">
+  %moveBookmarksDTD;
 ]>
 
-<dialog id="bookmarkproperties"
-        buttons="accept, cancel"
-        buttoniconaccept="save"
-        ondialogaccept="BookmarkPropertiesPanel.onDialogAccept();"
-        ondialogcancel="BookmarkPropertiesPanel.onDialogCancel();"
+<dialog id="moveBookmarkDialog"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        onload="BookmarkPropertiesPanel.onDialogLoad();"
-        onunload="BookmarkPropertiesPanel.onDialogUnload();"
-        style="min-width: 30em;"
-        persist="screenX screenY width">
-
-  <stringbundleset id="stringbundleset">
-    <stringbundle id="stringBundle"
-                  src="chrome://communicator/locale/bookmarks/bm-props.properties"/>
-  </stringbundleset>
+        ondialogaccept="return gMoveBookmarksDialog.onOK(event);"
+        title="&window.title;"
+        onload="gMoveBookmarksDialog.init();"
+        style="&window.style;"
+        screenX="24"
+        screenY="24"
+        persist="screenX screenY width height">
 
   <script type="application/javascript"
-          src="chrome://communicator/content/bookmarks/editBookmarkOverlay.js"/>
-  <script type="application/javascript"
-          src="chrome://communicator/content/bookmarks/bm-props.js"/>
+          src="chrome://communicator/content/bookmarks/moveBookmarks.js"/>
 
-<vbox id="editBookmarkPanelContent"/>
-
+  <hbox flex="1">
+    <label id="movetolabel" value="&moveTo.label;" control="foldersTree"/>
+    <hbox flex="1">
+      <tree id="foldersTree"
+            class="placesTree"
+            flex="1"
+            type="places"
+            seltype="single"
+            hidecolumnpicker="true">
+        <treecols>
+          <treecol id="title" flex="1" primary="true" hideheader="true"/>
+        </treecols>
+        <treechildren id="placesListChildren" view="placesList" flex="1"/>
+      </tree>
+      <vbox>
+        <button id="newFolderButton"
+                label="&newFolderButton.label;"
+                accesskey="&newFolderButton.accesskey;"
+                oncommand="gMoveBookmarksDialog.newFolder();"/>
+      </vbox>
+    </hbox>
+  </hbox>
 </dialog>

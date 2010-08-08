@@ -96,6 +96,7 @@
   <!-- Places Bookmarks Utilities -->
   <script type="application/javascript" src="chrome://communicator/content/places/browserPlacesViews.js"/>
   <script type="application/javascript" src="chrome://communicator/content/bookmarks/browser-places.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/bookmarks/editBookmarkOverlay.js"/>
 
   <!-- hook for stringbundle overlays -->
   <stringbundleset id="stringbundleset">
@@ -153,6 +154,8 @@
                oncommand="subscribeToFeed(event.target.statusText, event);"
                onclick="checkForMiddleClick(this, event);"/>
     <panel id="PopupAutoComplete" type="autocomplete" noautofocus="true"/>
+
+    <panel id="editBookmarkPanel"/>
 
     <menupopup id="placesContext"/>
 

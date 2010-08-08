@@ -102,3 +102,7 @@
 <!ENTITY detailsPane.less.label "Less">
 <!ENTITY detailsPane.less.accesskey "e">
 <!ENTITY detailsPane.selectAnItemText.description "Select an item to view and edit its properties">
+
+<!ENTITY editBookmark.done.label "Done">
+<!ENTITY editBookmark.cancel.label "Cancel">
+<!ENTITY editBookmark.removeBookmark.accessKey "R">

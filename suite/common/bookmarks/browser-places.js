@@ -38,6 +38,251 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var StarUI = {
+  _itemId: -1,
+  uri: null,
+  _batching: false,
+
+  _element: function(aID) {
+    return document.getElementById(aID);
+  },
+
+  // Edit-bookmark panel
+  get panel() {
+    delete this.panel;
+    var element = this._element("editBookmarkPanel");
+    // initially the panel is hidden
+    // to avoid impacting startup / new window performance
+    element.hidden = false;
+    element.addEventListener("popuphidden", this, false);
+    element.addEventListener("keypress", this, false);
+    return this.panel = element;
+  },
+
+  // Array of command elements to disable when the panel is opened.
+  get _blockedCommands() {
+    delete this._blockedCommands;
+    return this._blockedCommands =
+      ["cmd_close", "cmd_closeWindow"].map(function (id) this._element(id), this);
+  },
+
+  _blockCommands: function SU__blockCommands() {
+    this._blockedCommands.forEach(function (elt) {
+      // make sure not to permanently disable this item (see bug 409155)
+      if (elt.hasAttribute("wasDisabled"))
+        return;
+      if (elt.getAttribute("disabled") == "true") {
+        elt.setAttribute("wasDisabled", "true");
+      } else {
+        elt.setAttribute("wasDisabled", "false");
+        elt.setAttribute("disabled", "true");
+      }
+    });
+  },
+
+  _restoreCommandsState: function SU__restoreCommandsState() {
+    this._blockedCommands.forEach(function (elt) {
+      if (elt.getAttribute("wasDisabled") != "true")
+        elt.removeAttribute("disabled");
+      elt.removeAttribute("wasDisabled");
+    });
+  },
+
+  // nsIDOMEventListener
+  handleEvent: function SU_handleEvent(aEvent) {
+    switch (aEvent.type) {
+      case "popuphidden":
+        if (aEvent.originalTarget == this.panel) {
+          if (!this._element("editBookmarkPanelContent").hidden)
+            this.quitEditMode();
+
+          this._restoreCommandsState();
+          this._itemId = -1;
+          if (this._batching) {
+            PlacesUIUtils.ptm.endBatch();
+            this._batching = false;
+          }
+
+          switch (this._actionOnHide) {
+            case "cancel": {
+              PlacesUIUtils.ptm.undoTransaction();
+              break;
+            }
+            case "remove": {
+              // Remove all bookmarks for the bookmark's url, this also removes
+              // the tags for the url.
+              PlacesUIUtils.ptm.beginBatch();
+              let itemIds = PlacesUtils.getBookmarksForURI(this._uriForRemoval);
+              for (let i = 0; i < itemIds.length; i++) {
+                let txn = PlacesUIUtils.ptm.removeItem(itemIds[i]);
+                PlacesUIUtils.ptm.doTransaction(txn);
+              }
+              PlacesUIUtils.ptm.endBatch();
+              this._uriForRemoval = null;
+              break;
+            }
+          }
+          this._actionOnHide = "";
+        }
+        break;
+      case "keypress":
+        if (aEvent.getPreventDefault()) {
+          // The event has already been consumed inside of the panel.
+          break;
+        }
+        switch (aEvent.keyCode) {
+          case KeyEvent.DOM_VK_ESCAPE:
+            if (!this._element("editBookmarkPanelContent").hidden)
+              this.cancelButtonOnCommand();
+            break;
+          case KeyEvent.DOM_VK_RETURN:
+            if (aEvent.target.className == "expander-up" ||
+                aEvent.target.className == "expander-down" ||
+                aEvent.target.id == "editBMPanel_newFolderButton") {
+              //XXX Why is this necessary? The getPreventDefault() check should
+              //    be enough.
+              break;
+            }
+            this.panel.hidePopup();
+            break;
+        }
+        break;
+    }
+  },
+
+  _overlayLoaded: false,
+  _overlayLoading: false,
+  showEditBookmarkPopup:
+  function SU_showEditBookmarkPopup(aItemId, aAnchorElement, aPosition) {
+    // Performance: load the overlay the first time the panel is opened
+    // (see bug 392443).
+    if (this._overlayLoading)
+      return;
+
+    if (this._overlayLoaded) {
+      this._doShowEditBookmarkPanel(aItemId, aAnchorElement, aPosition);
+      return;
+    }
+
+    var loadObserver = {
+      _self: this,
+      _itemId: aItemId,
+      _anchorElement: aAnchorElement,
+      _position: aPosition,
+      observe: function (aSubject, aTopic, aData) {
+        this._self._overlayLoading = false;
+        this._self._overlayLoaded = true;
+        this._self._doShowEditBookmarkPanel(this._itemId, this._anchorElement,
+                                            this._position);
+      }
+    };
+    this._overlayLoading = true;
+    document.loadOverlay("chrome://communicator/content/bookmarks/editBookmarkOverlay.xul",
+                         loadObserver);
+  },
+
+  _doShowEditBookmarkPanel:
+  function SU__doShowEditBookmarkPanel(aItemId, aAnchorElement, aPosition) {
+    if (this.panel.state != "closed")
+      return;
+
+    this._blockCommands(); // un-done in the popuphiding handler
+
+    // Move the header (star, title, possibly a button) into the grid,
+    // so that it aligns nicely with the other items (bug 484022).
+    var rows = this._element("editBookmarkPanelGrid").lastChild;
+    var header = this._element("editBookmarkPanelHeader");
+    rows.insertBefore(header, rows.firstChild);
+    header.hidden = false;
+
+    // Set panel title:
+    // if we are batching, i.e. the bookmark has been added now,
+    // then show Page Bookmarked, else if the bookmark did already exist,
+    // we are about editing it, then use Edit This Bookmark.
+    this._element("editBookmarkPanelTitle").value =
+      this._batching ?
+        gNavigatorBundle.getString("editBookmarkPanel.pageBookmarkedTitle") :
+        gNavigatorBundle.getString("editBookmarkPanel.editBookmarkTitle");
+
+    // No description; show the Done, Cancel;
+    this._element("editBookmarkPanelDescription").textContent = "";
+    this._element("editBookmarkPanelBottomButtons").hidden = false;
+    this._element("editBookmarkPanelContent").hidden = false;
+
+    // The remove button is shown only if we're not already batching, i.e.
+    // if the cancel button/ESC does not remove the bookmark.
+    this._element("editBookmarkPanelRemoveButton").hidden = this._batching;
+
+    // The label of the remove button differs if the URI is bookmarked
+    // multiple times.
+    var bookmarks = PlacesUtils.getBookmarksForURI(gBrowser.currentURI);
+    var forms = gNavigatorBundle.getString("editBookmark.removeBookmarks.label");
+    var label = PluralForm.get(bookmarks.length, forms).replace("#1", bookmarks.length);
+    this._element("editBookmarkPanelRemoveButton").label = label;
+
+    // unset the unstarred state, if set
+    this._element("editBookmarkPanelStarIcon").removeAttribute("unstarred");
+
+    this._itemId = aItemId !== undefined ? aItemId : this._itemId;
+    this.beginBatch();
+
+    // Consume dismiss clicks, see bug 400924
+    this.panel.popupBoxObject
+        .setConsumeRollupEvent(Components.interfaces.nsIPopupBoxObject.ROLLUP_CONSUME);
+    this.panel.openPopup(aAnchorElement, aPosition, -1, -1);
+
+    gEditItemOverlay.initPanel(this._itemId,
+                               { hiddenRows: ["description", "location",
+                                              "loadInSidebar", "keyword"] });
+  },
+
+  panelShown:
+  function SU_panelShown(aEvent) {
+    if (aEvent.target == this.panel) {
+      if (!this._element("editBookmarkPanelContent").hidden) {
+        let fieldToFocus = "editBMPanel_" +
+          Services.prefs.getCharPref("browser.bookmarks.editDialog.firstEditField");
+        var elt = this._element(fieldToFocus);
+        elt.focus();
+        elt.select();
+      }
+      else {
+        // Note this isn't actually used anymore, we should remove this
+        // once we decide not to bring back the page bookmarked notification
+        this.panel.focus();
+      }
+    }
+  },
+
+  quitEditMode: function SU_quitEditMode() {
+    this._element("editBookmarkPanelContent").hidden = true;
+    this._element("editBookmarkPanelBottomButtons").hidden = true;
+    gEditItemOverlay.uninitPanel(true);
+  },
+
+  editButtonCommand: function SU_editButtonCommand() {
+    this.showEditBookmarkPopup();
+  },
+
+  cancelButtonOnCommand: function SU_cancelButtonOnCommand() {
+    this._actionOnHide = "cancel";
+    this.panel.hidePopup();
+  },
+
+  removeBookmarkButtonCommand: function SU_removeBookmarkButtonCommand() {
+    this._uriForRemoval = PlacesUtils.bookmarks.getBookmarkURI(this._itemId);
+    this._actionOnHide = "remove";
+    this.panel.hidePopup();
+  },
+
+  beginBatch: function SU_beginBatch() {
+    if (!this._batching) {
+      PlacesUIUtils.ptm.beginBatch();
+      this._batching = true;
+    }
+  }
+}
+
 var PlacesCommandHook = {
   /**
    * Adds a bookmark to the page loaded in the given browser.

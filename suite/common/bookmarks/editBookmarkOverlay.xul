@@ -1,0 +1,263 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is the Places Edit Bookmarks Panel code.
+   -
+   - The Initial Developer of the Original Code is
+   - Mozilla Corporation.
+   - Portions created by the Initial Developer are Copyright (C) 2007
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Asaf Romano <mano@mozilla.com> (Original Author)
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE overlay [
+<!ENTITY % editBookmarkOverlayDTD SYSTEM "chrome://communicator/locale/bookmarks/editBookmarkOverlay.dtd">
+%editBookmarkOverlayDTD;
+]>
+
+<?xml-stylesheet href="chrome://communicator/skin/bookmarks/editBookmarkOverlay.css"?>
+<?xml-stylesheet href="chrome://communicator/skin/bookmarks/bookmarks.css"?>
+
+<overlay id="editBookmarkOverlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <vbox id="editBookmarkPanelContent">
+    <broadcaster id="paneElementsBroadcaster"/>
+
+    <hbox id="editBMPanel_selectionCount" hidden="true" pack="center">
+      <label id="editBMPanel_itemsCountText"/>
+    </hbox>
+
+    <grid id="editBookmarkPanelGrid" flex="1">
+      <columns id="editBMPanel_columns">
+        <column id="editBMPanel_labelColumn" />
+        <column flex="1" id="editBMPanel_editColumn" />
+      </columns>
+      <rows id="editBMPanel_rows">
+        <row align="center" id="editBMPanel_nameRow">
+          <label value="&editBookmarkOverlay.name.label;"
+                 class="editBMPanel_rowLabel"
+                 accesskey="&editBookmarkOverlay.name.accesskey;"
+                 control="editBMPanel_namePicker"
+                 observes="paneElementsBroadcaster"/>
+          <menulist id="editBMPanel_namePicker"
+                    flex="1"
+                    editable="true"
+                    droppable="false"
+                    oninput="gEditItemOverlay.onNamePickerInput();"
+                    onblur="gEditItemOverlay.onNamePickerChange();"
+                    oncommand="gEditItemOverlay.onNamePickerChange();"
+                    observes="paneElementsBroadcaster">
+            <menupopup>
+              <menuitem id="editBMPanel_userEnteredName"/>
+              <menuitem disabled="true">
+                <menuseparator flex="1"/>
+                <label value="&editBookmarkOverlay.liveTitlesSeparator.label;"/>
+              </menuitem>
+            </menupopup>
+          </menulist>
+        </row>
+
+        <row align="center" id="editBMPanel_locationRow">
+          <label value="&editBookmarkOverlay.location.label;"
+                 class="editBMPanel_rowLabel"
+                 accesskey="&editBookmarkOverlay.location.accesskey;"
+                 control="editBMPanel_locationField"
+                 observes="paneElementsBroadcaster"/>
+          <textbox id="editBMPanel_locationField"
+                   class="uri-element"
+                   onblur="gEditItemOverlay.onLocationFieldBlur();"
+                   observes="paneElementsBroadcaster"/>
+        </row>
+
+        <row align="center" id="editBMPanel_feedLocationRow">
+          <label value="&editBookmarkOverlay.feedLocation.label;"
+                 class="editBMPanel_rowLabel"
+                 accesskey="&editBookmarkOverlay.feedLocation.accesskey;"
+                 control="editBMPanel_feedLocationField"
+                 observes="paneElementsBroadcaster"/>
+          <textbox id="editBMPanel_feedLocationField"
+                   class="uri-element"
+                   onblur="gEditItemOverlay.onFeedLocationFieldBlur();"
+                   observes="paneElementsBroadcaster"/>
+        </row>
+
+        <row align="center" id="editBMPanel_siteLocationRow">
+          <label value="&editBookmarkOverlay.siteLocation.label;"
+                 class="editBMPanel_rowLabel"
+                 accesskey="&editBookmarkOverlay.siteLocation.accesskey;"
+                 control="editBMPanel_siteLocationField"
+                 observes="paneElementsBroadcaster"/>
+          <textbox id="editBMPanel_siteLocationField"
+                   class="uri-element"
+                   onblur="gEditItemOverlay.onSiteLocationFieldBlur();"
+                   observes="paneElementsBroadcaster"/>
+        </row>
+
+        <row align="center" id="editBMPanel_folderRow">
+          <label value="&editBookmarkOverlay.folder.label;"
+                 class="editBMPanel_rowLabel"
+                 control="editBMPanel_folderMenuList"
+                 observes="paneElementsBroadcaster"/>
+          <hbox flex="1" align="center">
+            <menulist id="editBMPanel_folderMenuList"
+                      class="folder-icon"
+                      flex="1"
+                      oncommand="gEditItemOverlay.onFolderMenuListCommand(event);"
+                      observes="paneElementsBroadcaster">
+              <menupopup>
+                <!-- Static item for special folders -->
+                <menuitem id="editBMPanel_toolbarFolderItem"
+                          class="menuitem-iconic folder-icon"/>
+                <menuitem id="editBMPanel_bmRootItem"
+                          class="menuitem-iconic folder-icon"/>
+                <menuitem id="editBMPanel_unfiledRootItem"
+                          class="menuitem-iconic folder-icon"/>
+                <menuseparator id="editBMPanel_chooseFolderSeparator"/>
+                <menuitem id="editBMPanel_chooseFolderMenuItem"
+                          label="&editBookmarkOverlay.choose.label;"
+                          class="menuitem-iconic folder-icon"/>
+                <menuseparator id="editBMPanel_foldersSeparator" hidden="true"/>
+              </menupopup>
+            </menulist>
+            <button id="editBMPanel_foldersExpander"
+                    class="expander-down"
+                    tooltiptext="&editBookmarkOverlay.foldersExpanderDown.tooltip;"
+                    tooltiptextdown="&editBookmarkOverlay.foldersExpanderDown.tooltip;"
+                    tooltiptextup="&editBookmarkOverlay.expanderUp.tooltip;"
+                    oncommand="gEditItemOverlay.toggleFolderTreeVisibility();"
+                    observes="paneElementsBroadcaster"/>
+          </hbox>
+        </row>
+
+        <row align="center" id="editBMPanel_folderTreeRow" collapsed="true">
+          <spacer/>
+          <vbox flex="1">
+            <tree id="editBMPanel_folderTree"
+                  class="placesTree"
+                  type="places"
+                  height="150"
+                  editable="true"
+                  onselect="gEditItemOverlay.onFolderTreeSelect();"
+                  hidecolumnpicker="true"
+                  observes="paneElementsBroadcaster">
+              <treecols>
+                <treecol anonid="title" flex="1" primary="true" hideheader="true"/>
+              </treecols>
+              <treechildren flex="1"/>
+            </tree>
+
+            <hbox id="editBMPanel_newFolderBox">
+              <button label="&editBookmarkOverlay.newFolderButton.label;"
+                      id="editBMPanel_newFolderButton"
+                      accesskey="&editBookmarkOverlay.newFolderButton.accesskey;"
+                      oncommand="gEditItemOverlay.newFolder();"/>
+            </hbox>
+          </vbox>
+        </row>
+
+        <row align="center" id="editBMPanel_tagsRow">
+          <label value="&editBookmarkOverlay.tags.label;"
+                 class="editBMPanel_rowLabel"
+                 accesskey="&editBookmarkOverlay.tags.accesskey;"
+                 control="editBMPanel_tagsField"
+                 observes="paneElementsBroadcaster"/>
+          <hbox flex="1" align="center">
+            <textbox id="editBMPanel_tagsField"
+                     type="autocomplete"
+                     class="padded"
+                     flex="1"
+                     autocompletesearch="places-tag-autocomplete" 
+                     completedefaultindex="true"
+                     tabscrolling="true"
+                     showcommentcolumn="true"
+                     onblur="gEditItemOverlay.onTagsFieldBlur();"
+                     observes="paneElementsBroadcaster"
+                     placeholder="&editBookmarkOverlay.tagsEmptyDesc.label;"/>
+            <button id="editBMPanel_tagsSelectorExpander"
+                    class="expander-down"
+                    tooltiptext="&editBookmarkOverlay.tagsExpanderDown.tooltip;"
+                    tooltiptextdown="&editBookmarkOverlay.tagsExpanderDown.tooltip;"
+                    tooltiptextup="&editBookmarkOverlay.expanderUp.tooltip;"
+                    oncommand="gEditItemOverlay.toggleTagsSelector();"
+                    observes="paneElementsBroadcaster"/>
+          </hbox>
+        </row>
+
+        <row id="editBMPanel_tagsSelectorRow"
+             align="center"
+             collapsed="true">
+          <spacer/>
+          <listbox id="editBMPanel_tagsSelector"
+                   height="150"
+                   observes="paneElementsBroadcaster"/>
+        </row>
+
+        <row align="center" id="editBMPanel_keywordRow">
+          <observes element="additionalInfoBroadcaster" attribute="hidden"/>
+          <label value="&editBookmarkOverlay.keyword.label;"
+                 class="editBMPanel_rowLabel"
+                 accesskey="&editBookmarkOverlay.keyword.accesskey;"
+                 control="editBMPanel_keywordField"
+                 observes="paneElementsBroadcaster"/>
+          <textbox id="editBMPanel_keywordField"
+                   onblur="gEditItemOverlay.onKeywordFieldBlur();"
+                   observes="paneElementsBroadcaster"/>
+        </row>
+
+        <row id="editBMPanel_descriptionRow">
+          <observes element="additionalInfoBroadcaster" attribute="hidden"/>
+          <label value="&editBookmarkOverlay.description.label;"
+                 class="editBMPanel_rowLabel"
+                 accesskey="&editBookmarkOverlay.description.accesskey;"
+                 control="editBMPanel_descriptionField"
+                 observes="paneElementsBroadcaster"/>
+          <textbox id="editBMPanel_descriptionField"
+                   multiline="true"
+                   onblur="gEditItemOverlay.onDescriptionFieldBlur();"
+                   observes="paneElementsBroadcaster"/>
+        </row>
+      </rows>
+    </grid>
+
+    <checkbox id="editBMPanel_loadInSidebarCheckbox"
+              label="&editBookmarkOverlay.loadInSidebar.label;"
+              accesskey="&editBookmarkOverlay.loadInSidebar.accesskey;"
+              oncommand="gEditItemOverlay.onLoadInSidebarCheckboxCommand();"
+              observes="paneElementsBroadcaster">
+      <observes element="additionalInfoBroadcaster" attribute="hidden"/>
+    </checkbox>
+
+    <!-- If the ids are changing or additional fields are being added, be sure
+         to sync the values in places.js -->
+    <broadcaster id="additionalInfoBroadcaster"/>
+
+  </vbox>
+</overlay>

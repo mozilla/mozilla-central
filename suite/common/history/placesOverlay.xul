@@ -54,8 +54,6 @@
   <script type="application/javascript"
           src="chrome://global/content/globalOverlay.js"/>
   <script type="application/javascript"
-          src="chrome://communicator/content/bookmarks/bookmarks.js"/>
-  <script type="application/javascript"
           src="chrome://communicator/content/history/history.js"/>
   <script type="application/javascript"
           src="chrome://communicator/content/history/utils.js"/>

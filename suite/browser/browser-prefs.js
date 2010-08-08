@@ -217,6 +217,10 @@ pref("browser.bookmarks.autoExportHTML", false);
 //  0: no backups created (and deletes all existing backups)
 pref("browser.bookmarks.max_backups", 10);
 
+// Don't try to alter this pref, it'll be reset the next time you use the
+// bookmarking dialog
+pref("browser.bookmarks.editDialog.firstEditField", "namePicker");
+
 // Tabbed browser
 pref("browser.tabs.loadDivertedInBackground", false);
 pref("browser.tabs.loadInBackground", true);

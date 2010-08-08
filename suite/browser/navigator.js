@@ -41,6 +41,15 @@
 
 Components.utils.import("resource://gre/modules/AddonManager.jsm");
 
+__defineGetter__("PluralForm", function() {
+  Components.utils.import("resource://gre/modules/PluralForm.jsm");
+  return this.PluralForm;
+});
+__defineSetter__("PluralForm", function (val) {
+  delete this.PluralForm;
+  return this.PluralForm = val;
+});
+
 const REMOTESERVICE_CONTRACTID = "@mozilla.org/toolkit/remote-service;1";
 const XUL_NAMESPACE = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 var gURLBar = null;

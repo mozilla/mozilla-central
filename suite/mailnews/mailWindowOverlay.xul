@@ -74,9 +74,12 @@
 <script type="application/javascript" src="chrome://messenger-newsblog/content/newsblogOverlay.js"/>
 <script type="application/javascript" src="chrome://messenger/content/mail-offline.js"/>
 <script type="application/javascript" src="chrome://communicator/content/findUtils.js"/>
-<script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarks.js"/>
 <script type="application/javascript" src="chrome://global/content/printUtils.js"/>
 <script type="application/javascript" src="chrome://messenger/content/folderDisplay.js"/>
+<script type="application/javascript"><![CDATA[
+  Components.utils.import("resource://gre/modules/PlacesUtils.jsm");
+  Components.utils.import("resource:///modules/PlacesUIUtils.jsm");
+]]></script>
 
 <stringbundleset id="stringbundleset">
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
@@ -930,9 +933,8 @@
     <menuitem id="context-bookmarklink"
               label="&bookmarkLinkCmd.label;"
               accesskey="&bookmarkLinkCmd.accesskey;"
-              oncommand="initBMService();
-                         BookmarksUtils.addBookmark(gContextMenu.linkURL,
-                                                    gContextMenu.linkText());"/>
+              oncommand="PlacesUIUtils.showMinimalAddBookmarkUI(makeURI(gContextMenu.linkURL),
+                                                                gContextMenu.linkText());"/>
   </menupopup>
 
   <toolbar type="menubar"

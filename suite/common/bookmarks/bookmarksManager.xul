@@ -1,269 +1,449 @@
 <?xml version="1.0"?>
 
-<!-- -*- Mode: HTML; indent-tabs-mode: nil; -*- -->
-<!--
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is the Places Organizer.
+   -
+   - The Initial Developer of the Original Code is Google Inc.
+   - Portions created by the Initial Developer are Copyright (C) 2005-2006
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Ben Goodger <beng@google.com>
+   -   Annie Sullivan <annie.sullivan@gmail.com>
+   -   Asaf Romano <mano@mozilla.com>
+   -   Ehsan Akhgari <ehsan.akhgari@gmail.com>
+   -   Dietrich Ayala <dietrich@mozilla.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
 
- ***** BEGIN LICENSE BLOCK *****
- Version: MPL 1.1/GPL 2.0/LGPL 2.1
+<?xml-stylesheet href="chrome://communicator/content/places/places.css"?>
+<?xml-stylesheet href="chrome://communicator/content/bookmarks/organizer.css"?>
 
- The contents of this file are subject to the Mozilla Public License Version
- 1.1 (the "License"); you may not use this file except in compliance with
- the License. You may obtain a copy of the License at
- http://www.mozilla.org/MPL/
+<?xml-stylesheet href="chrome://global/skin/"?>
+<?xml-stylesheet href="chrome://communicator/skin/bookmarks/bookmarks.css"?>
+<?xml-stylesheet href="chrome://communicator/skin/bookmarks/bookmarksManager.css"?>
 
- Software distributed under the License is distributed on an "AS IS" basis,
- WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- for the specific language governing rights and limitations under the
- License.
+<?xul-overlay href="chrome://communicator/content/bookmarks/editBookmarkOverlay.xul"?>
 
- The Original Code is mozilla.org code.
-
- The Initial Developer of the Original Code is
- Netscape Communications Corporation.
- Portions created by the Initial Developer are Copyright (C) 1998
- the Initial Developer. All Rights Reserved.
-
- Contributor(s):
-   Ben Goodger <ben@netscape.com>
-   Blake Ross <blakeross@telocity.com>
-   Dean Tessman <dean_tessman@hotmail.com>
-   Mike Kowalski <mikejk@ameritech.net>
-
- Alternatively, the contents of this file may be used under the terms of
- either of the GNU General Public License Version 2 or later (the "GPL"),
- or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- in which case the provisions of the GPL or the LGPL are applicable instead
- of those above. If you wish to allow use of your version of this file only
- under the terms of either the GPL or the LGPL, and not to allow others to
- use your version of this file under the terms of the MPL, indicate your
- decision by deleting the provisions above and replace them with the notice
- and other provisions required by the GPL or the LGPL. If you do not delete
- the provisions above, a recipient may use your version of this file under
- the terms of any one of the MPL, the GPL or the LGPL.
-
- ***** END LICENSE BLOCK ***** -->
-
-<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://communicator/skin/bookmarks/bookmarksWindow.css" type="text/css"?>
-<?xml-stylesheet href="chrome://communicator/content/bookmarks/bookmarks.css" type="text/css"?>
-<?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
-<?xul-overlay href="chrome://communicator/content/bookmarks/bookmarksOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/tasksOverlay.xul"?>
+<?xul-overlay href="chrome://global/content/editMenuOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/bookmarks/placesOverlay.xul"?>
 
 <!DOCTYPE window [
-<!ENTITY % utilDTD SYSTEM "chrome://communicator/locale/utilityOverlay.dtd" >
-%utilDTD;
-<!ENTITY % bmDTD SYSTEM "chrome://communicator/locale/bookmarks/bookmarks.dtd">
-%bmDTD;
+<!ENTITY % placesDTD SYSTEM "chrome://communicator/locale/bookmarks/places.dtd">
+%placesDTD;
+<!ENTITY % editMenuOverlayDTD SYSTEM "chrome://global/locale/editMenuOverlay.dtd">
+%editMenuOverlayDTD;
+<!ENTITY % navDTD SYSTEM "chrome://navigator/locale/navigator.dtd">
+%navDTD;
 ]>
 
-<window id="bookmark-window" windowtype="bookmarks:manager"
-        title="&bookmarksWindowTitle.label;"
-        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        xmlns:web="http://home.netscape.com/WEB-rdf#"
+<window id="places"
+        title="&bookmarksManager.title;"
+        windowtype="bookmarks:manager"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        width="630" height="400" screenX="20" screenY="20"
-        persist="width height screenX screenY sizemode"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        onload="PlacesOrganizer.init();"
+        onunload="PlacesOrganizer.destroy();"
+        width="&bookmarksManager.width;" height="&bookmarksManager.height;"
+        screenX="10" screenY="10"
         toggletoolbar="true"
-        onload="Startup();" onunload="Shutdown();">
+        persist="width height screenX screenY sizemode">
 
-  <!-- The order of loading of these script files is IMPORTANT -->
+  <script type="application/javascript"
+          src="chrome://communicator/content/bookmarks/bookmarksManager.js"/>
+  <script type="application/javascript"
+          src="chrome://communicator/content/bookmarks/editBookmarkOverlay.js"/>
 
-  <!-- XXX - This should SO become an XBL widget -->
-  <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
+  <stringbundleset id="placesStringSet">
+    <stringbundle id="brandStrings" src="chrome://branding/locale/brand.properties"/>
+  </stringbundleset>
 
-  <!-- Shared Bookmarks Utility Library -->
-  <script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarks.js"/>
-  <!-- Bookmarks Window -->
-  <script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarksManager.js"/>
 
-  <!-- Bookmarks Window Drag & Drop -->
-  <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
-
-  <popupset id="bookmarksPopupset"/>
-
-  <commands id="commands">
-    <commandset id="CommandUpdate_Bookmarks"
-                events="focus,tree-select"
-                oncommandupdate="document.getElementById('bookmarks-view').onCommandUpdate();">
-    </commandset>
-
-    <commandset id="tasksCommands"/>
-
-    <!-- File Menu -->
-    <command id="cmd_close" oncommand="close()"/>
+  <commandset id="editMenuCommands"/>
+  <commandset id="placesCommands"/>
+  <commandset id="tasksCommands">
     <command id="cmd_quit"/>
-    <!-- Edit Menu -->
-    <command id="cmd_undo"/>
-    <command id="cmd_redo"/>
-  </commands>
-  
-  <stringbundleset id="stringbundleset"/>
+  </commandset>
 
+  <commandset id="organizerCommandSet">
+    <command id="OrganizerCommand_find:all"
+             label="&cmd.findInBookmarks.label;"
+             accesskey="&cmd.findInBookmarks.accesskey;"
+             oncommand="PlacesSearchBox.findAll();"/>
+    <command id="OrganizerCommand_find:current"
+             label="&cmd.findCurrent.label;"
+             accesskey="&cmd.findCurrent.accesskey;"
+             oncommand="PlacesSearchBox.findCurrent();"/>
+    <command id="OrganizerCommand_export"
+             oncommand="PlacesOrganizer.exportBookmarks();"/>
+    <command id="OrganizerCommand_import"
+             oncommand="PlacesOrganizer.importBookmarks();"/>
+    <command id="OrganizerCommand_backup"
+             oncommand="PlacesOrganizer.backupBookmarks();"/>
+    <command id="OrganizerCommand_restoreFromFile"
+             oncommand="PlacesOrganizer.onRestoreBookmarksFromFile();"/>
+    <command id="OrganizerCommand_search:save"
+             oncommand="PlacesOrganizer.saveSearch();"/>
+    <command id="OrganizerCommand_search:moreCriteria"
+             oncommand="PlacesQueryBuilder.addRow();"/>
+    <command id="OrganizerCommand:Back"
+             oncommand="PlacesOrganizer.back();"/>
+    <command id="OrganizerCommand:Forward"
+             oncommand="PlacesOrganizer.forward();"/>
+  </commandset>
+
+
+  <keyset id="placesOrganizerKeyset">
+    <!-- Instantiation Keys -->
+    <key id="placesKey_close" key="&cmd.close.key;" modifiers="accel" 
+         oncommand="close();"/>
+
+    <!-- Command Keys -->
+    <key id="placesKey_find:all"
+         command="OrganizerCommand_find:all" 
+         key="&cmd.find.key;"
+         modifiers="accel"/>
+    <key id="placesKey_find:current"
+         command="OrganizerCommand_find:current" 
+         key="&cmd.find.key;"
+         modifiers="accel,shift"/>
+
+    <!-- Back/Forward Keys Support -->
+    <key id="placesKey_goBackKb"
+         keycode="VK_LEFT"
+         command="OrganizerCommand:Back"
+         modifiers="accel"/>
+    <key id="placesKey_goForwardKb"
+         keycode="VK_RIGHT"
+         command="OrganizerCommand:Forward"
+         modifiers="accel"/>
+  </keyset>
+
+  <keyset id="editMenuKeys">
+    <key id="key_delete2" keycode="VK_BACK" command="cmd_delete"/>
+  </keyset>
   <keyset id="tasksKeys">
-    <!-- File Menu -->
-    <key id="key_close"/>
+    <key id="key_close2" disabled="true"/>
     <key id="key_quit"/>
   </keyset>
-  <keyset id="bookmarks-tasksKeys">
-    <key key="&search.key;"
-         modifiers="accel"
-         oncommand="focusElement(document.getElementById('search-box'));"/>
-  </keyset>
 
-  <toolbox id="bookmarks-toolbox">
-    <menubar id="main-menubar" grippytooltiptext="&menuBar.tooltip;">
-      <menu id="menu_File">
-        <menupopup id="menu_FilePopup">
-          <menu id="menu_New">
-            <menupopup>
-              <menuitem label="&menuitem.newBookmark.label;"
-                        accesskey="&menuitem.newBookmark.accesskey;"
-                        observes="cmd_bm_newbookmark"/>
-              <menuitem label="&menuitem.newFolder.label;"
-                        accesskey="&menuitem.newFolder.accesskey;"
-                        observes="cmd_bm_newfolder"/>
-              <menuitem label="&menuitem.newSeparator.label;"
-                        accesskey="&menuitem.newSeparator.accesskey;"
-                        observes="cmd_bm_newseparator"/>
-            </menupopup>
-          </menu>
-          <menuitem label="&menuitem.open.label;"
-                    accesskey="&menuitem.open.accesskey;"
-                    oncommand="OpenBookmarksFile();"/>
-          <menuitem id="menu_close"/>
-        </menupopup>
-      </menu>
-      <menu id="menu_Edit">
-        <menupopup>
-          <menuitem id="menu_undo"/>
-          <menuitem id="menu_redo"/>
-          <menuseparator/>
-          <menuitem id="menu_bm_cut"
-                    label="&cutCmd.label;" accesskey="&cutCmd.accesskey;"
-                    key="key_cut" command="cmd_bm_cut"/>
-          <menuitem id="menu_bm_copy"
-                    label="&copyCmd.label;" accesskey="&copyCmd.accesskey;"
-                    key="key_copy" command="cmd_bm_copy"/>
-          <menuitem id="menu_bm_paste"
-                    label="&pasteCmd.label;" accesskey="&pasteCmd.accesskey;"
-                    key="key_paste" command="cmd_bm_paste"/>
-          <menuitem id="menu_bm_delete"
-                    label="&deleteCmd.label;" accesskey="&deleteCmd.accesskey;"
-                    key="key_delete" command="cmd_bm_delete"/>
-          <menuseparator/>
-          <menuitem id="menu_bm_selectAll"
-                    label="&selectAllCmd.label;" accesskey="&selectAllCmd.accesskey;"
-                    key="key_selectAll" command="cmd_bm_selectAll"/>
-          <menuseparator/>
-          <menuitem label="&menuitem.moveBookmark.label;"
-                    accesskey="&menuitem.moveBookmark.accesskey;"
-                    command="cmd_bm_movebookmark"/>
-          <menuseparator/>
-          <menuitem label="&command.sortFolder.label;"
-                    accesskey="&command.sortFolder.accesskey;"
-                    key="bm_key_sortFolder"
-                    command="cmd_bm_sortfolder"/>
-          <menuitem label="&command.sortFolderByName.label;"
-                    accesskey="&command.sortFolderByName.accesskey;"
-                    command="cmd_bm_sortfolderbyname"/>
-          <menuseparator/>
-          <menuitem label="&menuitem.properties.label;"
-                    accesskey="&menuitem.properties.accesskey;"
-                    key="bm_key_properties"
-                    command="cmd_bm_properties" />
-        </menupopup>
-      </menu>
+  <popupset id="placesPopupset">
+    <menupopup id="placesContext"/>
+    <menupopup id="placesColumnsContext"
+               onpopupshowing="ViewMenu.fillWithColumns(event, null, null, 'checkbox', null);"
+               oncommand="ViewMenu.showHideColumn(event.target); event.stopPropagation();"/>
+  </popupset>
 
-      <menu id="menu_View">
-        <menupopup>
-          <menuitem id="viewCommandToolbar" type="checkbox" class="menuitem-iconic"
-                    label="&menuitem.view.command.toolbar.label;"
-                    accesskey="&menuitem.view.command.toolbar.accesskey;"
-                    oncommand="goToggleToolbar('command-toolbar', 'viewCommandToolbar'); event.stopPropagation();"
-                    checked="true"/>
-          <menu label="&menuitem.view.show_columns.label;"
-                accesskey="&menuitem.view.show_columns.accesskey;">
-            <menupopup id="columnsPopup" onpopupshowing="UpdateViewColumns();"
-                       oncommand="onViewMenuColumnItemSelected(event);">
-              <menuitem id="columnMenuItem:Name" disabled="true" label="&treecol.name.label;"
-                        accesskey="&treecol.name.accesskey;" type="checkbox"/>
-              <menuitem id="columnMenuItem:URL" label="&treecol.url.label;"
-                        accesskey="&treecol.url.accesskey;" type="checkbox"/>
-              <menuitem id="columnMenuItem:ShortcutURL" label="&treecol.shortcut.label;"
-                        accesskey="&treecol.shortcut.accesskey;" type="checkbox"/>
-              <menuitem id="columnMenuItem:Description" label="&treecol.description.label;"
-                        accesskey="&treecol.description.accesskey;" type="checkbox"/>
-              <menuitem id="columnMenuItem:BookmarkAddDate" label="&treecol.addedon.label;"
-                        accesskey="&treecol.addedon.accesskey;" type="checkbox"/>
-              <menuitem id="columnMenuItem:LastModifiedDate" label="&treecol.lastmod.label;"
-                        accesskey="&treecol.lastmod.accesskey;" type="checkbox"/>
-              <menuitem id="columnMenuItem:LastVisitDate" label="&treecol.lastvisit.label;"
-                        accesskey="&treecol.lastvisit.accesskey;" type="checkbox"/>
-            </menupopup>
-          </menu>
-          <menuseparator/>
-          <menuitem label="&menuitem.newbookmarkfolder.label;"
-                    command="cmd_bm_setnewbookmarkfolder"
-                    accesskey="&menuitem.newbookmarkfolder.accesskey;"/>
-          <menuitem label="&menuitem.newinternetsearchfolder.label;"
-                    command="cmd_bm_setnewsearchfolder"
-                    accesskey="&menuitem.newinternetsearchfolder.accesskey;"/>
-          <menuitem label="&menuitem.personaltoolbarfolder.label;"
-                    command="cmd_bm_setpersonaltoolbarfolder"
-                    accesskey="&menuitem.personaltoolbarfolder.accesskey;"/>
-        </menupopup>
-      </menu>
-      <menu id="tasksMenu">
-        <menupopup id="taskPopup">
-          <menuitem command="cmd_bm_find" key="bm_key_find"
-                    label="&menuitem.find.label;"
-                    accesskey="&menuitem.find.accesskey;"/>
-          <menuitem label="&menuitem.import.label;"
-                    accesskey="&menuitem.import.accesskey;"
-                    observes="cmd_bm_import"/>
-          <menuitem label="&menuitem.export.label;"
-                    accesskey="&menuitem.export.accesskey;"
-                    observes="cmd_bm_export"/>
-          <menuseparator/>
-        </menupopup>
-      </menu>
-      <menu id="windowMenu"/>
-      <menu id="menu_Help"/>
-    </menubar>
+  <toolbox id="placesToolbox">
+    <toolbar class="chromeclass-toolbar" id="placesToolbar" align="center">
+      <menubar id="placesMenu">
+        <menu id="menu_File">
+          <menupopup id="menu_FilePopup">
+            <menuitem id="newbookmark"
+                      command="placesCmd_new:bookmark"
+                      label="&cmd.new_bookmark.label;"
+                      accesskey="&cmd.new_bookmark.accesskey;"/>
+            <menuitem id="newfolder"
+                      command="placesCmd_new:folder"
+                      label="&cmd.new_folder.label;"
+                      accesskey="&cmd.new_folder.accesskey;"/>
+            <menuitem id="newseparator"
+                      command="placesCmd_new:separator"
+                      label="&cmd.new_separator.label;"
+                      accesskey="&cmd.new_separator.accesskey;"/>
+            <menuseparator id="fileNewSeparator"/>
+            <menuitem id="orgClose"
+                      key="placesKey_close" 
+                      label="&file.close.label;"
+                      accesskey="&file.close.accesskey;" 
+                      oncommand="close();"/>
+          </menupopup>
+        </menu>
 
-    <toolbar class="chromeclass-toolbar" id="command-toolbar" grippytooltiptext="&bookmarkToolbar.tooltip;">
-      <toolbarbutton id="newfolder" label="&button.newFolder.label;"
-                     accesskey="&button.newFolder.accesskey;"
-                     command="cmd_bm_newfolder"/>
-      <toolbarbutton id="newseparator" label="&button.newSeparator.label;"
-                     accesskey="&button.newSeparator.accesskey;"
-                     command="cmd_bm_newseparator"/>
-      <toolbarseparator/>
-      <toolbarbutton id="moveBookmark" label="&button.moveBookmark.label;"
-                     accesskey="&button.moveBookmark.accesskey;"
-                     command="cmd_bm_movebookmark"/>
-      <toolbarseparator/>
-      <toolbarbutton id="properties" label="&button.properties.label;"
-                     accesskey="&button.properties.accesskey;"
-                     command="cmd_bm_properties"/>
-      <toolbarbutton id="rename" label="&button.rename.label;"
-                     accesskey="&button.rename.accesskey;"
-                     command="cmd_bm_rename"/>
-      <toolbarbutton id="delete" label="&button.delete.label;"
-                     accesskey="&button.delete.accesskey;"
-                     command="cmd_bm_delete"/>
-      <toolbarspring/>
-      <toolbaritem id="bookmarks-search-box" align="center">
-        <textbox id="search-box" type="search" clickSelectsAll="true"
-                 placeholder="&search.placeholder;"
-                 oncommand="document.getElementById('bookmarks-view').searchBookmarks(this.value)"/>
-      </toolbaritem>
+        <menu id="menu_Edit">
+          <menupopup id="menu_EditPopup">
+            <menuitem id="orgCut"
+                      command="cmd_cut"
+                      label="&cutCmd.label;"
+                      key="key_cut"
+                      accesskey="&cutCmd.accesskey;"
+                      selection="separator|link|folder|mixed"/>
+            <menuitem id="orgCopy"
+                      command="cmd_copy"
+                      label="&copyCmd.label;"
+                      key="key_copy"
+                      accesskey="&copyCmd.accesskey;"
+                      selection="separator|link|folder|mixed"/>
+            <menuitem id="orgPaste"
+                      command="cmd_paste"
+                      label="&pasteCmd.label;"
+                      key="key_paste"
+                      accesskey="&pasteCmd.accesskey;"
+                      selection="mutable"/>
+            <menuitem id="orgUndo"
+                      command="cmd_undo"
+                      label="&undoCmd.label;"
+                      key="key_undo"
+                      accesskey="&undoCmd.accesskey;"/>
+            <menuitem id="orgRedo"
+                      command="cmd_redo"
+                      label="&redoCmd.label;"
+                      key="key_redo"
+                      accesskey="&redoCmd.accesskey;"/>
+
+            <menuseparator id="selectAllSeparator"/>
+
+            <menuitem id="orgSelectAll"
+                      command="cmd_selectAll"
+                      label="&selectAllCmd.label;"
+                      key="key_selectAll"
+                      accesskey="&selectAllCmd.accesskey;"/>
+
+            <menuseparator id="orgMoveSeparator"/>
+            <menuitem id="orgMoveBookmarks"
+                      command="placesCmd_moveBookmarks"
+                      label="&cmd.moveBookmarks.label;"
+                      accesskey="&cmd.moveBookmarks.accesskey;"/>
+            <menuitem id="orgDelete"
+                      command="cmd_delete"
+                      label="&deleteCmd.label;"
+                      key="key_delete"
+                      accesskey="&deleteCmd.accesskey;"/>
+          </menupopup>
+        </menu>
+
+        <menu id="menu_View">
+          <menupopup id="menu_ViewPopup">
+            <menu id="viewColumns"
+                  label="&view.columns.label;" accesskey="&view.columns.accesskey;">
+              <menupopup onpopupshowing="ViewMenu.fillWithColumns(event, null, null, 'checkbox', null);"
+                         oncommand="ViewMenu.showHideColumn(event.target); event.stopPropagation();"/>
+            </menu>
+
+            <menu id="viewSort" label="&view.sort.label;"
+                  accesskey="&view.sort.accesskey;">
+              <menupopup onpopupshowing="ViewMenu.populateSortMenu(event);"
+                         oncommand="ViewMenu.setSortColumn(event.target.column, null);">
+                <menuitem id="viewUnsorted" type="radio" name="columns" 
+                          label="&view.unsorted.label;" accesskey="&view.unsorted.accesskey;"
+                          oncommand="ViewMenu.setSortColumn(null, null);"/>
+                <menuseparator id="directionSeparator"/>
+                <menuitem id="viewSortAscending" type="radio" name="direction" 
+                          label="&view.sortAscending.label;" accesskey="&view.sortAscending.accesskey;"
+                          oncommand="ViewMenu.setSortColumn(null, 'ascending'); event.stopPropagation();"/>
+                <menuitem id="viewSortDescending" type="radio" name="direction" 
+                          label="&view.sortDescending.label;" accesskey="&view.sortDescending.accesskey;"
+                          oncommand="ViewMenu.setSortColumn(null, 'descending'); event.stopPropagation();"/>
+              </menupopup>
+            </menu>
+          </menupopup>
+        </menu>
+
+        <!-- tasks menu filled from tasksOverlay -->
+        <menu id="tasksMenu">
+          <menupopup id="taskPopup">
+            <menuitem id="backupBookmarks"
+                      command="OrganizerCommand_backup"
+                      label="&cmd.backup.label;"
+                      accesskey="&cmd.backup.accesskey;"/>
+            <menu id="fileRestoreMenu" label="&cmd.restore2.label;"
+                      accesskey="&cmd.restore2.accesskey;">
+              <menupopup id="fileRestorePopup" onpopupshowing="PlacesOrganizer.populateRestoreMenu();">
+                <menuitem id="restoreFromFile"
+                          command="OrganizerCommand_restoreFromFile"
+                          label="&cmd.restoreFromFile.label;"
+                          accesskey="&cmd.restoreFromFile.accesskey;"/>
+              </menupopup>
+            </menu>
+            <menuseparator/>
+            <menuitem id="fileImport"
+                      command="OrganizerCommand_import"
+                      label="&cmd.importHTML.label;"
+                      accesskey="&cmd.importHTML.accesskey;"/>
+            <menuitem id="fileExport"
+                      command="OrganizerCommand_export"
+                      label="&cmd.exportHTML.label;"
+                      accesskey="&cmd.exportHTML.accesskey;"/>
+            <menuseparator/>
+          </menupopup>
+        </menu>
+
+        <!-- window menu filled from tasksOverlay -->
+        <menu id="windowMenu"/>
+
+        <!-- help menu filled from globalOverlay -->
+        <menu id="menu_Help"/>
+      </menubar>
+
+      <spacer flex="1"/>
+      <toolbarbutton id="back-button" class="toolbarbutton-1 chromeclass-toolbar-additional"
+                     command="OrganizerCommand:Back"
+                     tooltiptext="&backButton.tooltip;"
+                     disabled="true"/>
+
+      <toolbarbutton id="forward-button" class="toolbarbutton-1 chromeclass-toolbar-additional"
+                     command="OrganizerCommand:Forward"
+                     tooltiptext="&forwardButton.tooltip;"
+                     disabled="true"/>
+
+
+      <textbox id="searchFilter"
+               clickSelectsAll="true"
+               type="search"
+               aria-controls="placeContent"
+               oncommand="PlacesSearchBox.search(this.value);"
+               collection="bookmarks">
+      </textbox>
     </toolbar>
   </toolbox>
 
-  <bookmarks-tree id="bookmarks-view" flex="1"/>
+  <hbox flex="1" id="placesView">
+    <tree id="placesList"
+          class="placesTree"
+          type="places"
+          hidecolumnpicker="true" context="placesContext"
+          onselect="PlacesOrganizer.onPlaceSelected(true);"
+          onclick="PlacesOrganizer.onTreeClick(event);"
+          onfocus="PlacesOrganizer.onTreeFocus(event);"
+          seltype="single"
+          persist="width"
+          width="200"
+          minwidth="100"
+          maxwidth="400">
+      <treecols>
+        <treecol anonid="title" flex="1" primary="true" hideheader="true"/>
+      </treecols>
+      <treechildren flex="1"/>
+    </tree>
+    <splitter collapse="none" persist="state"></splitter>
+    <vbox id="contentView" flex="4">
+      <deck id="contentDeck" flex="1">
+        <vbox id="defaultView" flex="1">
+          <vbox id="searchModifiers" hidden="true">
+            <toolbar id="organizerScopeBar" class="chromeclass-toolbar" align="center">
+              <label id="scopeBarTitle" value="&search.label;"/>
+              <toolbarbutton id="scopeBarAll" type="radio" group="scopeBar"
+                             oncommand="PlacesQueryBuilder.onScopeSelected(this);"
+                             label="&search.scopeBookmarks.label;"
+                             accesskey="&search.scopeBookmarks.accesskey;"/>
+              <toolbarbutton id="scopeBarFolder" type="radio" group="scopeBar"
+                             oncommand="PlacesQueryBuilder.onScopeSelected(this);"
+                             accesskey="&search.scopeFolder.accesskey;"
+                             emptytitle="&search.scopeFolder.label;" flex="1"/>
+              <!-- The folder scope button should flex but not take up more room
+                   than its label needs.  The only simple way to do that is to
+                   set a really big flex on the spacer, e.g., 2^31 - 1. -->
+              <spacer flex="2147483647"/>
+              <button id="saveSearch" class="small"
+                       label="&saveSearch.label;" accesskey="&saveSearch.accesskey;"
+                       command="OrganizerCommand_search:save"/>
+            </toolbar>
 
+          </vbox>
+          <vbox flex="1">
+            <tree id="placeContent" class="placesTree" context="placesContext"
+                  hidecolumnpicker="true"
+                  flex="1" type="places"
+                  enableColumnDrag="true"
+                  onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) PlacesOrganizer.openSelectedNode(event);"
+                  onopenflatcontainer="PlacesOrganizer.openFlatContainer(aContainer);"
+                  onselect="PlacesOrganizer.onContentTreeSelect();"
+                  onfocus="PlacesOrganizer.onTreeFocus(event);"
+                  onclick="PlacesOrganizer.onTreeClick(event);">
+              <treecols id="placeContentColumns" context="placesColumnsContext">
+                <treecol label="&col.name.label;" id="placesContentTitle" anonid="title" flex="5" primary="true" ordinal="1" 
+                         persist="width hidden ordinal sortActive sortDirection"/>
+                <splitter class="tree-splitter"/>
+                <treecol label="&col.tags.label;" id="placesContentTags" anonid="tags" flex="2"
+                         persist="width hidden ordinal sortActive sortDirection"/>
+                <splitter class="tree-splitter"/>
+                <treecol label="&col.url.label;" id="placesContentUrl" anonid="url" flex="5"
+                         persist="width hidden ordinal sortActive sortDirection"/>
+                <splitter class="tree-splitter"/>
+                <treecol label="&col.lastvisit.label;" id="placesContentDate" anonid="date" flex="1" hidden="true"
+                         persist="width hidden ordinal sortActive sortDirection"/>
+                <splitter class="tree-splitter"/>
+                <treecol label="&col.visitcount.label;" id="placesContentVisitCount" anonid="visitCount" flex="1" hidden="true"
+                         persist="width hidden ordinal sortActive sortDirection"/>
+                <splitter class="tree-splitter"/>
+                <treecol label="&col.keyword.label;" id="placesContentKeyword" anonid="keyword" flex="1" hidden="true"
+                         persist="width hidden ordinal sortActive sortDirection"/>
+                <splitter class="tree-splitter"/>
+                <treecol label="&col.description.label;" id="placesContentDescription" anonid="description" flex="1" hidden="true"
+                         persist="width hidden ordinal sortActive sortDirection"/>
+                <splitter class="tree-splitter"/>
+                <treecol label="&col.dateadded.label;" id="placesContentDateAdded" anonid="dateAdded" flex="1" hidden="true"
+                         persist="width hidden ordinal sortActive sortDirection"/>
+                <splitter class="tree-splitter"/>
+                <treecol label="&col.lastmodified.label;" id="placesContentLastModified" anonid="lastModified" flex="1" hidden="true"
+                         persist="width hidden ordinal sortActive sortDirection"/>
+              </treecols>
+              <treechildren flex="1"/>
+            </tree>
+            <hbox id="infoPaneBox" style="height: 11em;">
+              <deck flex="1" id="detailsDeck">
+                <vbox id="itemsCountBox" align="center">
+                  <spacer flex="3"/>
+                  <label id="itemsCountText"/>
+                  <spacer flex="1"/>
+                  <description id="selectItemDescription">
+                     &detailsPane.selectAnItemText.description;
+                  </description>
+                  <spacer flex="3"/>
+                </vbox>
+                <vbox id="infoBox" minimal="true">
+                  <vbox id="editBookmarkPanelContent"/>
+                  <spacer flex="1"/>
+                  <hbox id="infoBoxExpanderWrapper" align="center">
+
+                    <button type="image" id="infoBoxExpander"
+                            class="expander-down"
+                            oncommand="PlacesOrganizer.toggleAdditionalInfoFields();"
+                            observes="paneElementsBroadcaster"/>
+
+                    <label id="infoBoxExpanderLabel"
+                           lesslabel="&detailsPane.less.label;"
+                           lessaccesskey="&detailsPane.less.accesskey;"
+                           morelabel="&detailsPane.more.label;"
+                           moreaccesskey="&detailsPane.more.accesskey;"
+                           value="&detailsPane.more.label;"
+                           accesskey="&detailsPane.more.accesskey;"
+                           control="infoBoxExpander"/>
+
+                    <spacer flex="1"/>
+                  </hbox>
+                </vbox>
+              </deck>
+            </hbox>
+          </vbox>
+        </vbox>
+      </deck>
+    </vbox>
+  </hbox>
 </window>
-

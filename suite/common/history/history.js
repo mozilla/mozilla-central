@@ -187,24 +187,27 @@ function GroupBy(aMenuItem)
   searchHistory("");
 }
 
-// we need bookmarks.js to set bookmarks!
 function historyAddBookmarks()
 {
+  // HACK: as we're importing the actual PlacesUIUtils but that name is taken
+  // by a cut-down history-specific version, store that latter one temporarily
+  var HistoryUtils = PlacesUIUtils;
+  Components.utils.import("resource:///modules/PlacesUIUtils.jsm");
   var count = gHistoryTree.view.selection.count;
   if (count == 1)
-    BookmarksUtils.addBookmark(gHistoryTree.selectedNode.uri,
-                               gHistoryTree.selectedNode.title, null, true);
+    PlacesUIUtils.showMinimalAddBookmarkUI(PlacesUtils._uri(gHistoryTree.selectedNode.uri),
+                                           gHistoryTree.selectedNode.title);
   else if (count > 1) {
-    if (!BMSVC) {
-      initServices();
-      initBMService();
-    }
     selNodes = gHistoryTree.getSelectionNodes();
+    var tabList = [];
     for (var i = 0; i < selNodes.length; i++) {
       if (PlacesUtils.nodeIsURI(selNodes[i]))
-        BookmarksUtils.addBookmark(selNodes[i].uri, selNodes[i].title, null, false);
+        tabList.push(PlacesUtils._uri(selNodes[i].uri));
     }
+    PlacesUIUtils.showMinimalAddMultiBookmarkUI(tabList);
   }
+  // restore the PlacesUIUtils the history UI actually wants
+  PlacesUIUtils = HistoryUtils;
 }
 
 function searchHistory(aInput)
