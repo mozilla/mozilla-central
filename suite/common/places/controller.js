@@ -65,6 +65,9 @@ const REMOVE_PAGES_CHUNKLEN = 300;
 // urls for privacy reasons, but does not cause heavy disk access
 const REMOVE_PAGES_MAX_SINGLEREMOVES = 10;
 
+// XXX: should pull in from global definition, see bug 585500
+var TAB_DROP_TYPE = "application/x-moz-tabbrowser-tab";
+
 /**
  * Represents an insertion point within a container where we can insert
  * items.
