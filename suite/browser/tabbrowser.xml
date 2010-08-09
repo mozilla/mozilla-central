@@ -1449,7 +1449,7 @@
               aReferrerURI          = params.referrerURI;
               aCharset              = params.charset;
               aPostData             = params.postData;
-              aFocusNewtab          = params.focusNewTab;
+              aFocusNewTab          = params.focusNewTab;
               aAllowThirdPartyFixup = params.allowThirdPartyFixup;
               aRelatedToCurrent     = params.relatedToCurrent;
             }
