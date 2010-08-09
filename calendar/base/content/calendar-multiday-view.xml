@@ -3064,7 +3064,7 @@
           function setUpDayHeaderBox(aDayBox) {
               aDayBox.date = d;
               aDayBox.calendarView = calView;
-              aDayBox.setAttribute("orient", orient);
+              aDayBox.setAttribute("orient", "vertical");
           }
 
           this.mDateColumns = new Array();
