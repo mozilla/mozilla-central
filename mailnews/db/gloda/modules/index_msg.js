@@ -1766,10 +1766,12 @@ var GlodaMsgIndexer = {
    *       potential reindexing side-effects
    *
    * @param {nsIMsgFolder} aFolder
+   * @param {boolean} aAllowSpecialFolderIndexing
    */
-  resetFolderIndexingPriority: function glodaResetFolderIndexingPriority(aFolder) {
+  resetFolderIndexingPriority: function glodaResetFolderIndexingPriority(aFolder, aAllowSpecialFolderIndexing) {
     this.setFolderIndexingPriority(aFolder,
-      GlodaDatastore.getDefaultIndexingPriority(aFolder));
+      GlodaDatastore.getDefaultIndexingPriority(aFolder,
+                                                aAllowSpecialFolderIndexing));
   },
 
   /**

@@ -157,7 +157,9 @@ function folderPropsOKButton()
     let glodaCheckbox = document.getElementById("folderIncludeInGlobalSearch");
     if (!glodaCheckbox.hidden) {
       if(glodaCheckbox.checked) {
-        Gloda.resetFolderIndexingPriority(gMsgFolder);
+        // We pass true here so that folders such as trash and junk can still
+        // have a priority set.
+        Gloda.resetFolderIndexingPriority(gMsgFolder, true);
       } else {
         Gloda.setFolderIndexingPriority(gMsgFolder,
           Gloda.getFolderForFolder(gMsgFolder).kIndexingNeverPriority);
@@ -216,7 +218,11 @@ function folderPropsOnLoad()
   }
 
   const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-  var serverType = window.arguments[0].serverType;
+  const serverType = window.arguments[0].serverType;
+
+  // Do this first, because of gloda we may want to override some of the hidden
+  // statuses.
+  hideShowControls(serverType);
 
   if (gMsgFolder) {
     // We really need a functioning database, so we'll detect problems
@@ -271,7 +277,8 @@ function folderPropsOnLoad()
       .getService(Components.interfaces.nsIPrefBranch);
     var glodaEnabled = prefs
       .getBoolPref("mailnews.database.global.indexer.enabled");
-    if (!glodaEnabled) {
+    if (!glodaEnabled || (gMsgFolder.flags & (nsMsgFolderFlags.Queue |
+                                              nsMsgFolderFlags.Newsgroup))) {
       glodaCheckbox.hidden = true;
     } else {
       // otherwise, the user can choose whether this file gets indexed
@@ -300,7 +307,6 @@ function folderPropsOnLoad()
     }
     catch (ex) {}
   }
-  hideShowControls(serverType);
   onCheckKeepMsg();
   onUseDefaultRetentionSettings();
 }

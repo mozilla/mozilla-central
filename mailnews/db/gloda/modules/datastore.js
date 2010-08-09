@@ -1846,31 +1846,37 @@ var GlodaDatastore = {
 
   /**
    * Return the default messaging priority for a folder of this type, based
-   * on the folder's flags.
+   * on the folder's flags. If aAllowSpecialFolderIndexing is true, then
+   * folders suchs as Trash and Junk will be indexed.
    *
    * @param {nsIMsgFolder} aFolder
+   * @param {boolean} aAllowSpecialFolderIndexing
    * @returns {Number}
    */
-  getDefaultIndexingPriority: function gloda_ds_getDefaultIndexingPriority(aFolder) {
+  getDefaultIndexingPriority: function gloda_ds_getDefaultIndexingPriority(aFolder, aAllowSpecialFolderIndexing) {
 
     let indexingPriority = GlodaFolder.prototype.kIndexingDefaultPriority;
-    // Do not walk into trash/junk folders.
-    // Queue folders should also be ignored just because messages should not
+    // Do not walk into trash/junk folders, unless the user is explicitly
+    //  telling us to do so.
+    if (aFolder.flags & (Ci.nsMsgFolderFlags.Trash
+                         | Ci.nsMsgFolderFlags.Junk))
+      indexingPriority = aAllowSpecialFolderIndexing ?
+                           GlodaFolder.prototype.kIndexingDefaultPriority :
+                           GlodaFolder.prototype.kIndexingNeverPriority;
+    // Queue folders should always be ignored just because messages should not
     //  spend much time in there.
     // We hate newsgroups, and public IMAP folders are similar.
     // Other user IMAP folders should be ignored because it's not this user's
     //  mail.
-    if (aFolder.flags & (Ci.nsMsgFolderFlags.Trash
-                         | Ci.nsMsgFolderFlags.Junk
-                         | Ci.nsMsgFolderFlags.Queue
-                         | Ci.nsMsgFolderFlags.Newsgroup
-                         // In unit testing at least folders can be confusingly
-                         //  labeled ImapPublic when they should not be.  Or
-                         //  at least I don't think they should be.  So they're
-                         //  legit for now.
-                         //| Ci.nsMsgFolderFlags.ImapPublic
-                         //| Ci.nsMsgFolderFlags.ImapOtherUser
-                        ))
+    else if (aFolder.flags & (Ci.nsMsgFolderFlags.Queue
+                              | Ci.nsMsgFolderFlags.Newsgroup
+                              // In unit testing at least folders can be
+                              // confusingly labeled ImapPublic when they
+                              // should not be.  Or at least I don't think they
+                              // should be.  So they're legit for now.
+                              //| Ci.nsMsgFolderFlags.ImapPublic
+                              //| Ci.nsMsgFolderFlags.ImapOtherUser
+                             ))
       indexingPriority = GlodaFolder.prototype.kIndexingNeverPriority;
     else if (aFolder.flags & Ci.nsMsgFolderFlags.Inbox)
       indexingPriority = GlodaFolder.prototype.kIndexingInboxPriority;
