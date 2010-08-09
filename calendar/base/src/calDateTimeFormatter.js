@@ -24,6 +24,7 @@
  *  Eric Belhaire <belhaire@ief.u-psud.fr>
  *  Michiel van Leeuwen <mvl@exedo.nl>
  *  Matthew Willis <lilmatt@mozilla.com>
+ *  Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -99,215 +100,196 @@ function calDateTimeFormatter() {
     } catch (e) {
         this.mUseLongDateService = false;
     }
-
 }
 
-calDateTimeFormatter.prototype.QueryInterface =
-function QueryInterface(aIID) {
-    if (!aIID.equals(Components.interfaces.nsISupports) &&
-        !aIID.equals(Components.interfaces.calIDateTimeFormatter)) {
-        throw Components.results.NS_ERROR_NO_INTERFACE;
-    }
+calDateTimeFormatter.prototype = {
+    getInterfaces: function getInterfaces(aCount) {
+        const interfaces = [Components.interfaces.calIDateTimeFormatter,
+                            Components.interfaces.nsIClassInfo,
+                            Components.interfaces.nsISupports];
 
-    return this;
-};
+        aCount.value = interfaces.length;
+        return interfaces;
+    },
 
-calDateTimeFormatter.prototype.formatDate =
-function formatDate(aDate) {
-    // Format the date using user's format preference (long or short)
-    var format;
-    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefBranch);
-    try {
-        format = prefBranch.getIntPref("calendar.date.format");
-    } catch(e) {
-        format = 0;
-    }
+    getHelperForLanguage: function cA_getHelperForLanguage(aLang) {
+        return null;
+    },
+    contractID: "@mozilla.org/calendar/datetime-formatter;1",
+    classDescription: "Formats Dates and Times",
+    classID: Components.ID("{4123da9a-f047-42da-a7d0-cc4175b9f36a}"),
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
 
-    if (format == 0)
-        return this.formatDateLong(aDate);
-    else
-        return this.formatDateShort(aDate);
-};
+    QueryInterface: function QueryInterface(aIID) {
+        return cal.doQueryInterface(this, calDateTimeFormatter.prototype, aIID, null, this);
+    },
 
-calDateTimeFormatter.prototype.formatDateShort =
-function formatDateShort(aDate) {
-    return this.mDateService.FormatDate("",
-                                        nsIScriptableDateFormat.dateFormatShort,
-                                        aDate.year,
-                                        aDate.month + 1,
-                                        aDate.day);
-};
+    formatDate: function formatDate(aDate) {
+        // Format the date using user's format preference (long or short)
+        let format = cal.getPrefSafe("calendar.date.format", 0);
+        return (format == 0 ? this.formatDateLong(aDate) : this.formatDateShort(aDate));
+    },
 
-calDateTimeFormatter.prototype.formatDateLong =
-function formatDateLong(aDate) {
-    if (this.mUseLongDateService) {
+    formatDateShort: function formatDateShort(aDate) {
         return this.mDateService.FormatDate("",
-                                            nsIScriptableDateFormat.dateFormatLong,
+                                            nsIScriptableDateFormat.dateFormatShort,
                                             aDate.year,
                                             aDate.month + 1,
                                             aDate.day);
-    } else {
-        // HACK We are probably on Linux and want a string in long format.
-        // dateService.dateFormatLong on Linux may return a short string, so
-        // build our own.
-        return this.shortDayName(aDate.weekday) + " " +
-               aDate.day + " " +
-               this.shortMonthName(aDate.month) + " " +
-               aDate.year;
-    }
-};
+    },
 
-calDateTimeFormatter.prototype.formatDateWithoutYear =
-function formatDateWithoutYear(aDate) {
-    // Doing this the hard way, because nsIScriptableDateFormat doesn't
-    // have a way to not include the year.
-    if (this.mMonthFirst) {
-        return this.shortMonthName(aDate.month) + " " + aDate.day;
-    } else {
-        return aDate.day + " " + this.shortMonthName(aDate.month);
-    }
-};
-
-
-calDateTimeFormatter.prototype.formatTime =
-function formatTime(aDate) {
-    if (aDate.isDate)
-        return this.mDateStringBundle.GetStringFromName("AllDay");
-
-    return this.mDateService.FormatTime("",
-                                        nsIScriptableDateFormat.timeFormatNoSeconds,
-                                        aDate.hour,
-                                        aDate.minute,
-                                        0);
-};
-
-calDateTimeFormatter.prototype.formatDateTime =
-function formatDateTime(aDate) {
-    var formattedDate = this.formatDate(aDate);
-    var formattedTime = this.formatTime(aDate);
-
-    var timeBeforeDate;
-    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefBranch);
-    try {
-        timeBeforeDate = prefBranch.getBoolPref("calendar.date.formatTimeBeforeDate");
-    } catch(e) {
-        timeBeforeDate = 0;
-    }
-
-    if (timeBeforeDate)
-        return formattedTime+" "+formattedDate;
-    else
-        return formattedDate+" "+formattedTime;
-};
-
-calDateTimeFormatter.prototype.formatInterval =
-function formatInterval(aStartDate, aEndDate) {
-    // Check for tasks without start and/or due date 
-    if (aEndDate == null && aStartDate == null ) {
-        return calGetString("calendar", "datetimeIntervalTaskWithoutDate");
-    } else if (aEndDate == null ) {
-        let startDateString = this.formatDate(aStartDate);
-        let startTime = this.formatTime(aStartDate);
-        return calGetString("calendar", "datetimeIntervalTaskWithoutDueDate", [startDateString, startTime]);
-    } else if (aStartDate == null) {
-        let endDateString = this.formatDate(aEndDate);
-        let endTime = this.formatTime(aEndDate);
-        return calGetString("calendar", "datetimeIntervalTaskWithoutStartDate", [endDateString, endTime]);
-    }
-    // Here there are only events or tasks with both start and due date.
-    // make sure start and end use the same timezone when formatting intervals:
-    var endDate = aEndDate.getInTimezone(aStartDate.timezone);
-    var testdate = aStartDate.clone();
-    testdate.isDate = true;
-    var sameDay = (testdate.compare(endDate) == 0);
-    if (aStartDate.isDate) {
-        // All-day interval, so we should leave out the time part
-        if (sameDay) {
-            return this.formatDateLong(aStartDate);
+    formatDateLong: function formatDateLong(aDate) {
+        if (this.mUseLongDateService) {
+            return this.mDateService.FormatDate("",
+                                                nsIScriptableDateFormat.dateFormatLong,
+                                                aDate.year,
+                                                aDate.month + 1,
+                                                aDate.day);
         } else {
-            var startMonthName = this.monthName(aStartDate.month);
-            var startDay = aStartDate.day;
-            var startYear = aStartDate.year;
-            var endMonthName = this.monthName(endDate.month);
-            var endDay = endDate.day;
-            var endYear = endDate.year;
-            if (aStartDate.year != endDate.year) {
-                return calGetString("calendar", "dayIntervalBetweenYears", [startMonthName, startDay, startYear, endMonthName, endDay, endYear]);
-            } else if (aStartDate.month != endDate.month) {
-                return calGetString("calendar", "dayIntervalBetweenMonths", [startMonthName, startDay, endMonthName, endDay, endYear]);
-            } else {
-                return calGetString("calendar", "dayIntervalInMonth", [startMonthName, startDay, endDay, endYear]);
-            }
+            // HACK We are probably on Linux and want a string in long format.
+            // dateService.dateFormatLong on Linux may return a short string, so
+            // build our own.
+            return this.shortDayName(aDate.weekday) + " " +
+                   aDate.day + " " +
+                   this.shortMonthName(aDate.month) + " " +
+                   aDate.year;
         }
-    } else {
-        var startDateString = this.formatDate(aStartDate);
-        var startTime = this.formatTime(aStartDate);
-        var endDateString = this.formatDate(endDate);
-        var endTime = this.formatTime(endDate);
-        // non-allday, so need to return date and time
-        if (sameDay) {
-            // End is on the same day as start, so we can leave out the end date
-            if (startTime == endTime) {
-                // End time is on the same time as start, so we can leave out the end time
-                // "5 Jan 2006 13:00"
-                return calGetString("calendar", "datetimeIntervalOnSameDateTime", [startDateString, startTime]);
+    },
+
+    formatDateWithoutYear: function formatDateWithoutYear(aDate) {
+        // Doing this the hard way, because nsIScriptableDateFormat doesn't
+        // have a way to not include the year.
+        if (this.mMonthFirst) {
+            return this.shortMonthName(aDate.month) + " " + aDate.day;
+        } else {
+            return aDate.day + " " + this.shortMonthName(aDate.month);
+        }
+    },
+
+    formatTime: function formatTime(aDate) {
+        if (aDate.isDate)
+            return this.mDateStringBundle.GetStringFromName("AllDay");
+
+        return this.mDateService.FormatTime("",
+                                            nsIScriptableDateFormat.timeFormatNoSeconds,
+                                            aDate.hour,
+                                            aDate.minute,
+                                            0);
+    },
+
+    formatDateTime: function formatDateTime(aDate) {
+        let formattedDate = this.formatDate(aDate);
+        let formattedTime = this.formatTime(aDate);
+
+        let timeBeforeDate = cal.getPrefSafe("calendar.date.formatTimeBeforeDate", false);
+        if (timeBeforeDate) {
+            return formattedTime + " " + formattedDate;
+        } else {
+            return formattedDate + " " + formattedTime;
+        }
+    },
+
+    formatInterval: function formatInterval(aStartDate, aEndDate) {
+        // Check for tasks without start and/or due date
+        if (aEndDate == null && aStartDate == null ) {
+            return calGetString("calendar", "datetimeIntervalTaskWithoutDate");
+        } else if (aEndDate == null) {
+            let startDateString = this.formatDate(aStartDate);
+            let startTime = this.formatTime(aStartDate);
+            return calGetString("calendar", "datetimeIntervalTaskWithoutDueDate", [startDateString, startTime]);
+        } else if (aStartDate == null) {
+            let endDateString = this.formatDate(aEndDate);
+            let endTime = this.formatTime(aEndDate);
+            return calGetString("calendar", "datetimeIntervalTaskWithoutStartDate", [endDateString, endTime]);
+        }
+        // Here there are only events or tasks with both start and due date.
+        // make sure start and end use the same timezone when formatting intervals:
+        let endDate = aEndDate.getInTimezone(aStartDate.timezone);
+        let testdate = aStartDate.clone();
+        testdate.isDate = true;
+        let sameDay = (testdate.compare(endDate) == 0);
+        if (aStartDate.isDate) {
+            // All-day interval, so we should leave out the time part
+            if (sameDay) {
+                return this.formatDateLong(aStartDate);
             } else {
-                // still include end time
-                // "5 Jan 2006 13:00 - 17:00"
-                return calGetString("calendar", "datetimeIntervalOnSameDay", [startDateString, startTime, endTime]);
+                let startMonthName = this.monthName(aStartDate.month);
+                let startDay = aStartDate.day;
+                let startYear = aStartDate.year;
+                let endMonthName = this.monthName(endDate.month);
+                let endDay = endDate.day;
+                let endYear = endDate.year;
+                if (aStartDate.year != endDate.year) {
+                    return calGetString("calendar", "dayIntervalBetweenYears", [startMonthName, startDay, startYear, endMonthName, endDay, endYear]);
+                } else if (aStartDate.month != endDate.month) {
+                    return calGetString("calendar", "dayIntervalBetweenMonths", [startMonthName, startDay, endMonthName, endDay, endYear]);
+                } else {
+                    return calGetString("calendar", "dayIntervalInMonth", [startMonthName, startDay, endDay, endYear]);
+                }
             }
         } else {
-            // Spanning multiple days, so need to include date and time
-            // for start and end
-            // "5 Jan 2006 13:00 - 7 Jan 2006 9:00"
-            return calGetString("calendar", "datetimeIntervalOnSeveralDays", [startDateString, startTime, endDateString, endTime]);
+            let startDateString = this.formatDate(aStartDate);
+            let startTime = this.formatTime(aStartDate);
+            let endDateString = this.formatDate(endDate);
+            let endTime = this.formatTime(endDate);
+            // non-allday, so need to return date and time
+            if (sameDay) {
+                // End is on the same day as start, so we can leave out the end date
+                if (startTime == endTime) {
+                    // End time is on the same time as start, so we can leave out the end time
+                    // "5 Jan 2006 13:00"
+                    return calGetString("calendar", "datetimeIntervalOnSameDateTime", [startDateString, startTime]);
+                } else {
+                    // still include end time
+                    // "5 Jan 2006 13:00 - 17:00"
+                    return calGetString("calendar", "datetimeIntervalOnSameDay", [startDateString, startTime, endTime]);
+                }
+            } else {
+                // Spanning multiple days, so need to include date and time
+                // for start and end
+                // "5 Jan 2006 13:00 - 7 Jan 2006 9:00"
+                return calGetString("calendar", "datetimeIntervalOnSeveralDays", [startDateString, startTime, endDateString, endTime]);
+            }
         }
+    },
+
+    formatItemInterval: function formatItemInterval(aItem) {
+        let start = aItem[calGetStartDateProp(aItem)];
+        let end = aItem[calGetEndDateProp(aItem)];
+        let kDefaultTimezone = calendarDefaultTimezone();
+        // Check for tasks without start and/or due date
+        if (start) {
+            start = start.getInTimezone(kDefaultTimezone);
+        }
+        if (end) {
+            end = end.getInTimezone(kDefaultTimezone);
+        }
+        // EndDate is exclusive. For all-day events, we ened to substract one day,
+        // to get into a format that's understandable.
+        if (start && start.isDate && end) {
+            end.day -= 1;
+        }
+        return this.formatInterval(start, end);
+    },
+
+    monthName: function monthName(aMonthIndex) {
+        let oneBasedMonthIndex = aMonthIndex + 1;
+        return this.mDateStringBundle.GetStringFromName("month." + oneBasedMonthIndex + ".name" );
+    },
+
+    shortMonthName: function shortMonthName(aMonthIndex) {
+        let oneBasedMonthIndex = aMonthIndex + 1;
+        return this.mDateStringBundle.GetStringFromName("month." + oneBasedMonthIndex + ".Mmm" );
+    },
+
+    dayName: function monthName(aDayIndex) {
+        let oneBasedDayIndex = aDayIndex + 1;
+        return this.mDateStringBundle.GetStringFromName("day." + oneBasedDayIndex + ".name" );
+    },
+
+    shortDayName: function shortDayName(aDayIndex) {
+        let oneBasedDayIndex = aDayIndex + 1;
+        return this.mDateStringBundle.GetStringFromName("day." + oneBasedDayIndex + ".Mmm" );
     }
-}
-
-
-calDateTimeFormatter.prototype.formatItemInterval =
-function formatItemInterval(aItem) {
-    let start = aItem[calGetStartDateProp(aItem)];
-    let end = aItem[calGetEndDateProp(aItem)];
-    let kDefaultTimezone = calendarDefaultTimezone();
-    // Check for tasks without start and/or due date
-    if (start) {
-        start = start.getInTimezone(kDefaultTimezone);
-    }
-    if (end) {
-        end = end.getInTimezone(kDefaultTimezone);
-    }
-    // EndDate is exclusive. For all-day events, we ened to substract one day,
-    // to get into a format that's understandable.
-    if (start && start.isDate && end) {
-        end.day -= 1;
-    }
-    return this.formatInterval(start, end);
-};
-
-calDateTimeFormatter.prototype.monthName =
-function monthName(aMonthIndex) {
-    var oneBasedMonthIndex = aMonthIndex + 1;
-    return this.mDateStringBundle.GetStringFromName("month." + oneBasedMonthIndex + ".name" );
-};
-
-calDateTimeFormatter.prototype.shortMonthName =
-function shortMonthName(aMonthIndex) {
-    var oneBasedMonthIndex = aMonthIndex + 1;
-    return this.mDateStringBundle.GetStringFromName("month." + oneBasedMonthIndex + ".Mmm" );
-};
-
-calDateTimeFormatter.prototype.dayName =
-function monthName(aDayIndex) {
-    var oneBasedDayIndex = aDayIndex + 1;
-    return this.mDateStringBundle.GetStringFromName("day." + oneBasedDayIndex + ".name" );
-};
-
-calDateTimeFormatter.prototype.shortDayName =
-function shortDayName(aDayIndex) {
-    var oneBasedDayIndex = aDayIndex + 1;
-    return this.mDateStringBundle.GetStringFromName("day." + oneBasedDayIndex + ".Mmm" );
 };

@@ -53,7 +53,9 @@ function calEvent() {
     }
 }
 
-var calEventClassInfo = {
+calEvent.prototype = {
+    __proto__: calItemBase.prototype,
+
     getInterfaces: function (count) {
         var ifaces = [
             Components.interfaces.nsISupports,
@@ -74,14 +76,10 @@ var calEventClassInfo = {
     classDescription: "Calendar Event",
     classID: Components.ID("{974339d5-ab86-4491-aaaf-2b2ca177c12b}"),
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0
-};
-
-calEvent.prototype = {
-    __proto__: calItemBase.prototype,
+    flags: 0,
 
     QueryInterface: function (aIID) {
-        return doQueryInterface(this, calEvent.prototype, aIID, null, calEventClassInfo);
+        return cal.doQueryInterface(this, calEvent.prototype, aIID, null, this);
     },
 
     cloneShallow: function (aNewParent) {

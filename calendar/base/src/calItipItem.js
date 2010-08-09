@@ -38,6 +38,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 
 /**
@@ -53,7 +54,7 @@ calItipItem.prototype = {
 
     // nsIClassInfo:
     getInterfaces: function ciiGI(count) {
-        var ifaces = [
+        let ifaces = [
             Components.interfaces.nsIClassInfo,
             Components.interfaces.nsISupports,
             Components.interfaces.calIItipItem
@@ -73,7 +74,7 @@ calItipItem.prototype = {
     flags: 0,
 
     QueryInterface: function ciiQI(aIID) {
-        return doQueryInterface(this, calItipItem.prototype, aIID, null, this);
+        return cal.doQueryInterface(this, calItipItem.prototype, aIID, null, this);
     },
 
     mIsSend: false,
@@ -193,7 +194,7 @@ calItipItem.prototype = {
         // method is (using user feedback, prefs, etc.) for the given
         // receivedMethod.  The RFC tells us to treat items without a METHOD
         // as if they were METHOD:REQUEST.
-        for each (var prop in parser.getProperties({})) {
+        for each (let prop in parser.getProperties({})) {
             if (prop.propertyName == "METHOD") {
                 this.mReceivedMethod = prop.value;
                 this.mResponseMethod = prop.value;
@@ -220,7 +221,7 @@ calItipItem.prototype = {
 
     /**
      * This returns both the array and the number of items. An easy way to
-     * call it is: var itemArray = itipItem.getItemList({ });
+     * call it is: let itemArray = itipItem.getItemList({ });
      */
     getItemList: function ciiGIL(itemCountRef) {
         if (!this.mIsInitialized) {
@@ -241,8 +242,8 @@ calItipItem.prototype = {
             aAttendeeId = ("mailto:" + aAttendeeId);
         }
 
-        for each (var item in this.mItemList) {
-            var attendee = item.getAttendeeById(aAttendeeId);
+        for each (let item in this.mItemList) {
+            let attendee = item.getAttendeeById(aAttendeeId);
             if (attendee) {
                 // Replies should not have the RSVP property.
                 // XXX BUG 351589: workaround for updating an attendee

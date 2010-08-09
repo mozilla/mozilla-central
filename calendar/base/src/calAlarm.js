@@ -67,17 +67,18 @@ calAlarm.prototype = {
     mRepeat: 0,
 
     QueryInterface: function cA_QueryInterface(aIID) {
-        return doQueryInterface(this, calAlarm.__proto__, aIID, null, this);
+        return cal.doQueryInterface(this, calAlarm.prototype, aIID, null, this);
     },
 
     /**
      * nsIClassInfo
      */
     getInterfaces: function cA_getInterfaces(aCount) {
-        const interfaces = [Components.interfaces.calIAlarm,
-                            Components.interfaces.nsISupports];
+        let interfaces = [Components.interfaces.calIAlarm,
+                            Components.interfaces.nsISupports,
+                            Components.interfaces.nsIClassInfo];
 
-        aCount = interfaces.length;
+        aCount.value = interfaces.length;
         return interfaces;
     },
     getHelperForLanguage: function cA_getHelperForLanguage(aLang) {

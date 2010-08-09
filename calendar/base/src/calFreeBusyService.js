@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -101,7 +102,7 @@ calFreeBusyService.prototype = {
     },
     contractID: "@mozilla.org/calendar/freebusy-service;1",
     classDescription: "Calendar FreeBusy Service",
-    classID: Components.ID("{29C56CD5-D36E-453a-ACDE-0083BD4FE6D3}"),
+    classID: Components.ID("{29c56cd5-d36e-453a-acde-0083bd4fe6d3}"),
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
     flags: Components.interfaces.nsIClassInfo.SINGLETON,
 

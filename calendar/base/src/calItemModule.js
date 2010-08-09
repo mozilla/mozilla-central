@@ -76,13 +76,13 @@ const componentData =
      categories: {"app-startup": "alarm-service-startup"},
      service: true},
 
-    {cid: Components.ID("{29C56CD5-D36E-453a-ACDE-0083BD4FE6D3}"),
+    {cid: Components.ID("{29c56cd5-d36e-453a-acde-0083bd4fe6d3}"),
      contractid: "@mozilla.org/calendar/freebusy-service;1",
      script: "calFreeBusyService.js",
      constructor: "calFreeBusyService",
      service: true},
 
-    {cid: Components.ID("{F5F743CD-8997-428e-BC1B-644E73F61203}"),
+    {cid: Components.ID("{f5f743cd-8997-428e-bc1b-644e73f61203}"),
      contractid: "@mozilla.org/calendar/calendarsearch-service;1",
      script: "calCalendarSearchService.js",
      constructor: "calCalendarSearchService",

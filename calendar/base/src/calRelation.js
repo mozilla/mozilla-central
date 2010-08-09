@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 /**
  * calRelation prototype definition
@@ -66,7 +68,7 @@ calRelation.prototype = {
      * @see nsIClassInfo
      */
     getInterfaces: function cR_getInterfaces(aCount) {
-        var ifaces = [
+        let ifaces = [
             Components.interfaces.nsISupports,
             Components.interfaces.calIRelation,
             Components.interfaces.nsIClassInfo
@@ -104,8 +106,8 @@ calRelation.prototype = {
     },
 
     get icalProperty(attProp) {
-        var icssvc = getIcsService();
-        var icalatt = icssvc.createIcalProperty("RELATED-TO");
+        let icssvc = getIcsService();
+        let icalatt = icssvc.createIcalProperty("RELATED-TO");
         if (this.mId) {
             icalatt.value = this.mId;
         }

@@ -46,14 +46,26 @@ function calTransactionManager() {
 }
 
 calTransactionManager.prototype = {
+    // nsIClassInfo:
+    getInterfaces: function getInterfaces(count) {
+        const ifaces = [Components.interfaces.nsISupports,
+                        Components.interfaces.nsIClassInfo,
+                        Components.interfaces.calITransactionManager];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+    classDescription: "Calendar Transaction Manager",
+    contractID: "mozilla.org/calendar/transactionmanager;1",
+    classID: Components.ID("{40a1ccf4-5f54-4815-b842-abf06f84dbfd}"),
+
+    getHelperForLanguage: function getHelperForLanguage(language) {
+        return null;
+    },
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: Components.interfaces.nsIClassInfo.SINGLETON,
 
     QueryInterface: function cTM_QueryInterface(aIID) {
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.calITransactionManager))
-        {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-        return this;
+        return cal.doQueryInterface(this, calTransactionManager.prototype, aIID, null, this);
     },
 
     transactionManager: null,
@@ -140,14 +152,27 @@ calTransaction.prototype = {
     mListener: null,
     mIsDoTransaction: false,
 
-    QueryInterface: function cT_QueryInterface(aIID) {
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.nsITransaction) &&
-            !aIID.equals(Components.interfaces.calIOperationListener))
-        {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-        return this;
+    // nsIClassInfo:
+    getInterfaces: function getInterfaces(count) {
+        const ifaces = [Components.interfaces.nsISupports,
+                        Components.interfaces.nsIClassInfo,
+                        Components.interfaces.nsITransaction,
+                        Components.interfaces.calIOperationListener];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+    classDescription: "Calendar Transaction",
+    contractID: "mozilla.org/calendar/transaction;1",
+    classID: Components.ID("{fcb54c82-2fb9-42cb-bf44-1e197a55e520}"),
+
+    getHelperForLanguage: function getHelperForLanguage(language) {
+        return null;
+    },
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
+    QueryInterface: function cTM_QueryInterface(aIID) {
+        return cal.doQueryInterface(this, calTransactionManager.prototype, aIID, null, this);
     },
 
     onOperationComplete: function cT_onOperationComplete(aCalendar,

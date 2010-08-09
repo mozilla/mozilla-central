@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -102,7 +103,7 @@ calCalendarSearchService.prototype = {
     },
     contractID: "@mozilla.org/calendar/calendarsearch-service;1",
     classDescription: "Calendar Search Service",
-    classID: Components.ID("{F5F743CD-8997-428e-BC1B-644E73F61203}"),
+    classID: Components.ID("{f5f743cd-8997-428e-bc1b-644e73f61203}"),
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
     flags: Components.interfaces.nsIClassInfo.SINGLETON,
 

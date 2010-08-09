@@ -54,7 +54,9 @@ function calTodo() {
     };
 }
 
-var calTodoClassInfo = {
+calTodo.prototype = {
+    __proto__: calItemBase.prototype,
+
     getInterfaces: function (count) {
         var ifaces = [
             Components.interfaces.nsISupports,
@@ -75,14 +77,10 @@ var calTodoClassInfo = {
     classDescription: "Calendar Todo",
     classID: Components.ID("{7af51168-6abe-4a31-984d-6f8a3989212d}"),
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0
-};
-
-calTodo.prototype = {
-    __proto__: calItemBase.prototype,
+    flags: 0,
 
     QueryInterface: function (aIID) {
-        return doQueryInterface(this, calEvent.prototype, aIID, null, calTodoClassInfo);
+        return cal.doQueryInterface(this, calTodo.prototype, aIID, null, this);
     },
 
     cloneShallow: function (aNewParent) {

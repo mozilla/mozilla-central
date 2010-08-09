@@ -1,5 +1,4 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -20,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -45,77 +45,84 @@ function calIcsSerializer() {
     this.mComponents = [];
 }
 
-calIcsSerializer.prototype.QueryInterface =
-function QueryInterface(aIID) {
-    if (!aIID.equals(Components.interfaces.nsISupports) &&
-        !aIID.equals(Components.interfaces.calIIcsSerializer)) {
-        throw Components.results.NS_ERROR_NO_INTERFACE;
-    }
+calIcsSerializer.prototype = {
+    // nsIClassInfo:
+    classID: Components.ID("{207a6682-8ff1-4203-9160-729ec28c8766}"),
+    contractID: "@mozilla.org/calendar/ics-serializer;1",
+    classDescription: "Calendar ICS Serializer",
 
-    return this;
+    getInterfaces: function getInterfaces(count) {
+        const ifaces = [Components.interfaces.calIIcsSerializer,
+                        Components.interfaces.nsIClassInfo,
+                        Components.interfaces.nsISupports];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+    getHelperForLanguage: function getHelperForLanguage(language) {
+        return null;
+    },
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
+    QueryInterface: function QueryInterface(aIID) {
+        return doQueryInterface(this, calIcsSerializer.prototype, aIID, null, this);
+    },
+
+    addItems: function is_addItems(aItems, aCount) {
+        if (aCount > 0) {
+            this.mItems = this.mItems.concat(aItems);
+        }
+    },
+
+    addProperty: function is_addProperty(aProperty) {
+       this.mProperties.push(aProperty);
+    },
+
+    addComponent: function is_addComponent(aComponent) {
+       this.mComponents.push(aComponent);
+    },
+
+    serializeToString: function is_serializeToString() {
+        let calComp = this.getIcalComponent();
+        return calComp.serializeToICS();
+    },
+
+    serializeToInputStream: function is_serializeToStream(aStream) {
+        let calComp = this.getIcalComponent();
+        return calComp.serializeToICSStream();
+    },
+
+    serializeToStream: function is_serializeToStream(aStream) {
+        let str = this.serializeToString();
+
+        // Convert the javascript string to an array of bytes, using the
+        // UTF8 encoder
+        let convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
+                                   .createInstance(Components.interfaces.nsIConverterOutputStream);
+        convStream.init(aStream, 'UTF-8', 0, 0x0000);
+
+        convStream.writeString(str);
+        convStream.close();
+    },
+
+    getIcalComponent: function is_getIcalComponent() {
+        let calComp = getIcsService().createIcalComponent("VCALENDAR");
+        calSetProdidVersion(calComp);
+
+        // xxx todo: think about that the below code doesn't clone the properties/components,
+        //           thus ownership is moved to returned VCALENDAR...
+
+        for each (let prop in this.mProperties) {
+            calComp.addProperty(prop);
+        }
+        for each (let comp in this.mComponents) {
+            calComp.addSubcomponent(comp);
+        }
+
+        for (let item in cal.itemIterator(this.mItems)) {
+            calComp.addSubcomponent(item.icalComponent);
+        }
+
+        return calComp;
+    }
 };
-
-calIcsSerializer.prototype.addItems =
-function is_addItems(aItems, aCount) {
-    if (aCount > 0) {
-        this.mItems = this.mItems.concat(aItems);
-    }
-}
-
-calIcsSerializer.prototype.addProperty =
-function is_addProperty(aProperty) {
-   this.mProperties.push(aProperty);
-}
-
-calIcsSerializer.prototype.addComponent =
-function is_addComponent(aComponent) {
-   this.mComponents.push(aComponent);
-}
-
-calIcsSerializer.prototype.serializeToString =
-function is_serializeToString() {
-    var calComp = this.getIcalComponent();
-    return calComp.serializeToICS();
-}
-
-calIcsSerializer.prototype.serializeToInputStream =
-function is_serializeToStream(aStream) {
-    var calComp = this.getIcalComponent();
-    return calComp.serializeToICSStream();
-};
-
-calIcsSerializer.prototype.serializeToStream =
-function is_serializeToStream(aStream) {
-    var str = this.serializeToString();
-
-    // Convert the javascript string to an array of bytes, using the
-    // UTF8 encoder
-    var convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
-                               .createInstance(Components.interfaces.nsIConverterOutputStream);
-    convStream.init(aStream, 'UTF-8', 0, 0x0000);
-
-    convStream.writeString(str);
-    convStream.close();
-};
-
-calIcsSerializer.prototype.getIcalComponent =
-function is_getIcalComponent() {
-    var calComp = getIcsService().createIcalComponent("VCALENDAR");
-    calSetProdidVersion(calComp);
-
-    // xxx todo: think about that the below code doesn't clone the properties/components,
-    //           thus ownership is moved to returned VCALENDAR...
-
-    for each (var prop in this.mProperties) {
-        calComp.addProperty(prop);
-    }
-    for each (var comp in this.mComponents) {
-        calComp.addSubcomponent(comp);
-    }
-
-    for (let item in cal.itemIterator(this.mItems)) {
-        calComp.addSubcomponent(item.icalComponent);
-    }
-
-    return calComp;
-}

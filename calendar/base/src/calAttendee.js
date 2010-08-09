@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Mike Shaver <shaver@off.net>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -43,7 +44,7 @@ function calAttendee() {
     this.mProperties = new calPropertyBag();
 }
 
-var calAttendeeClassInfo = {
+calAttendee.prototype = {
     getInterfaces: function (count) {
         var ifaces = [
             Components.interfaces.nsISupports,
@@ -62,22 +63,10 @@ var calAttendeeClassInfo = {
     classDescription: "Calendar Attendee",
     classID: Components.ID("{5c8dcaa3-170c-4a73-8142-d531156f664d}"),
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0
-};
+    flags: 0,
 
-
-calAttendee.prototype = {
     QueryInterface: function (aIID) {
-        if (aIID.equals(Components.interfaces.nsIClassInfo))
-            return calAttendeeClassInfo;
-
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.calIAttendee))
-        {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-
-        return this;
+        return cal.doQueryInterface(this, calAttendee.prototype, aIID, null, this);
     },
 
     mImmutable: false,

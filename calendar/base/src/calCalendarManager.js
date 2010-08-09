@@ -122,9 +122,13 @@ function calCalendarManager() {
     this.mObservers = new calListenerBag(Components.interfaces.calICalendarManagerObserver);
 }
 
-var calCalendarManagerClassInfo = {
+calCalendarManager.prototype = {
+    contractID: "@mozilla.org/calendar/manager;1",
+    classDescription: "Calendar Manager",
+    classID: Components.ID("{f42585e7-e736-4600-985d-9624c1c51992}"),
+
     getInterfaces: function (count) {
-        var ifaces = [
+        let ifaces = [
             Components.interfaces.nsISupports,
             Components.interfaces.calICalendarManager,
             Components.interfaces.calIStartupService,
@@ -139,20 +143,10 @@ var calCalendarManagerClassInfo = {
         return null;
     },
 
-    contractID: "@mozilla.org/calendar/manager;1",
-    classDescription: "Calendar Manager",
-    classID: Components.ID("{f42585e7-e736-4600-985d-9624c1c51992}"),
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: Components.interfaces.nsIClassInfo.SINGLETON
-};
-
-calCalendarManager.prototype = {
+    flags: Components.interfaces.nsIClassInfo.SINGLETON,
     QueryInterface: function (aIID) {
-        return doQueryInterface(this,
-                                calCalendarManager.prototype,
-                                aIID,
-                                null,
-                                calCalendarManagerClassInfo);
+        return cal.doQueryInterface(this, calCalendarManager.prototype, aIID, null, this);
     },
 
     get networkCalendarCount() {
