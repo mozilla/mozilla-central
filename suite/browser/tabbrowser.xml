@@ -1067,9 +1067,11 @@
                     .focus(null);
               }
               this.mCurrentBrowser.setAttribute("type", "content-targetable");
+              this.mCurrentBrowser.docShell.isActive = false;
             }
 
             newBrowser.setAttribute("type", "content-primary");
+            newBrowser.docShell.isActive = true;
             this.mCurrentBrowser = newBrowser;
             this.mCurrentTab = this.selectedTab;
 
@@ -1517,7 +1519,7 @@
                           Components.interfaces.nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP :
                           Components.interfaces.nsIWebNavigation.LOAD_FLAGS_NONE;
 
-              b.loadURIWithFlags(aURI, flags, aReferrerURI, aCharset);
+              b.loadURIWithFlags(aURI, flags, aReferrerURI, aCharset, aPostData);
             }
 
             if (aFocusNewTab) {
@@ -1525,10 +1527,15 @@
               this.selectedTab = t;
               this.mPreviousTab = parentTab;
             }
-            else
+            else {
+              // We start our browsers out as inactive, and then maintain
+              // activeness in the tab switcher.
+              b.docShell.isActive = false;
+
               // The user opened a background tab, so updateCurrentBrowser
               // won't be called.  Explicitly clear the previous tab.
               this.mPreviousTab = null;
+            }
 
             var evt = document.createEvent("Events");
             evt.initEvent("TabOpen", true, false);
