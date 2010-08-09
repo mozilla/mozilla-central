@@ -412,4 +412,4 @@ calItipEmailTransport.prototype = {
     }
 };
 
-var NSGetModule = XPCOMUtils.generateNSGetModule([calItipEmailTransport]);
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([calItipEmailTransport]);

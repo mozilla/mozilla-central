@@ -83,7 +83,7 @@ function initWcapProvider() {
         g_privateItemTitle = calGetString("wcap", "privateItem.title.text");
         g_confidentialItemTitle = calGetString("wcap", "confidentialItem.title.text");
         g_busyItemTitle = calGetString("wcap", "busyItem.title.text");
-        g_busyPhantomItemUuidPrefix = ("PHANTOM_uuid_" + getUUID());
+        g_busyPhantomItemUuidPrefix = ("PHANTOM_uuid_" + cal.getUUID());
 
         CACHE_LAST_RESULTS = getPref("calendar.wcap.cache_last_results", 4);
         CACHE_LAST_RESULTS_INVALIDATE = getPref("calendar.wcap.cache_last_results_invalidate", 120);
@@ -103,7 +103,7 @@ const scriptLoadOrder = [
     "calWcapCalendarItems.js"
 ];
 
-function NSGetModule(cid) {
+function NSGetFactory(cid) {
     try {
     if (!this.scriptsLoaded) {
         Services.io.getProtocolHandler("resource")
@@ -122,7 +122,7 @@ function NSGetModule(cid) {
         calWcapSession
     ];
 
-    return (XPCOMUtils.generateNSGetModule(components))(cid);
+    return (XPCOMUtils.generateNSGetFactory(components))(cid);
 
     } catch (e) {
         cal.WARN("ERROR: " + e);

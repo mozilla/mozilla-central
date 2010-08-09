@@ -70,6 +70,7 @@ CPPSRCS = calDateTime.cpp \
 	  $(NULL)
 
 EXTRA_COMPONENTS = \
+    calItemModule.manifest \
     calItemModule.js \
     $(NULL)
 

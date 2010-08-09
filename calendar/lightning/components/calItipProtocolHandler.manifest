@@ -1,0 +1,8 @@
+component {643e0328-36f6-411d-a107-16238dff9cd7} calItipProtocolHandler.js
+contract @mozilla.org/calendar/itip-channel;1 {643e0328-36f6-411d-a107-16238dff9cd7}
+
+component {6e957006-b4ce-11d9-b053-001124736B74} calItipProtocolHandler.js
+contract @mozilla.org/network/protocol;1?name=moz-cal-handle-itip {6e957006-b4ce-11d9-b053-001124736B74}
+
+component {47c31f2b-b4de-11d9-bfe6-001124736B74} calItipProtocolHandler.js
+contract @mozilla.org/uriloader/content-handler;1?type=application/x-itip-internal {47c31f2b-b4de-11d9-bfe6-001124736B74}

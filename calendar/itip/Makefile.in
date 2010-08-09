@@ -20,6 +20,7 @@
 #
 # Contributor(s):
 #   Clint Talbert <ctalbert.moz@gmail.com>
+#   Philipp Kewisch <mozilla@kewis.ch>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,6 +45,9 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE = calItipEmailTransport
 
-EXTRA_COMPONENTS = calItipEmailTransport.js
+EXTRA_COMPONENTS = \
+    calItipEmailTransport.js \
+    calItipEmailTransport.manifest \
+    $(NULL)
 
 include $(topsrcdir)/config/rules.mk

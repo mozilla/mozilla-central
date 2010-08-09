@@ -188,13 +188,13 @@ bin\components\zipwriter.xpt
 
 ; JavaScript components
 bin\components\calCompositeCalendar.js
-bin\components\calDavCalendarModule.js
+bin\components\calDavCalendar.js
 bin\components\calendarService.js
-bin\components\calICSCalendarModule.js
+bin\components\calICSCalendar.js
 bin\components\calImportExportModule.js
 bin\components\calItemModule.js
-bin\components\calMemoryCalendarModule.js
-bin\components\calStorageCalendarModule.js
+bin\components\calMemoryCalendar.js
+bin\components\calStorageCalendar.js
 bin\components\calWcapCalendarModule.js
 bin\components\jsconsole-clhandler.js
 bin\components\NetworkGeolocationProvider.js
@@ -234,26 +234,22 @@ bin\calendar-js\calCachedCalendar.js
 bin\calendar-js\calCalendarManager.js
 bin\calendar-js\calCalendarSearchService.js
 bin\calendar-js\calDateTimeFormatter.js
-bin\calendar-js\calDavCalendar.js
 bin\calendar-js\calDavRequestHandlers.js
 bin\calendar-js\calEvent.js
 bin\calendar-js\calFilter.js
 bin\calendar-js\calFreeBusyService.js
 bin\calendar-js\calHtmlExport.js
-bin\calendar-js\calICSCalendar.js
 bin\calendar-js\calIcsImportExport.js
 bin\calendar-js\calIcsParser.js
 bin\calendar-js\calIcsSerializer.js
 bin\calendar-js\calItemBase.js
 bin\calendar-js\calItipItem.js
 bin\calendar-js\calListFormatter.js
-bin\calendar-js\calMemoryCalendar.js
 bin\calendar-js\calMonthGridPrinter.js
 bin\calendar-js\calOutlookCSVImportExport.js
 bin\calendar-js\calProtocolHandler.js
 bin\calendar-js\calRecurrenceInfo.js
 bin\calendar-js\calRelation.js
-bin\calendar-js\calStorageCalendar.js
 bin\calendar-js\calTimezoneService.js
 bin\calendar-js\calTodo.js
 bin\calendar-js\calTransactionManager.js

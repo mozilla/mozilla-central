@@ -44,7 +44,11 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE = calStorageCalendar
 
-EXTRA_COMPONENTS = calStorageCalendar.js
+EXTRA_COMPONENTS = \
+    calStorageCalendar.js \
+    calStorageCalendar.manifest \
+    $(NULL)
+
 EXTRA_JS_MODULES = \
     calStorageHelpers.jsm \
     calStorageUpgrade.jsm \

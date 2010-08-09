@@ -1,0 +1,8 @@
+component {cf4d93e5-af79-451a-95f3-109055b32ef0} calWcapCalendarModule.js
+contract @mozilla.org/calendar/calendar;1?type=wcap {cf4d93e5-af79-451a-95f3-109055b32ef0}
+
+component {cbf803fd-4469-4999-ae39-367af1c7b077} calWcapCalendarModule.js
+contract @mozilla.org/calendar/wcap/session;1 {cbf803fd-4469-4999-ae39-367af1c7b077}
+
+component {e3c62b37-83cf-41ec-9872-0af9f952430a} calWcapCalendarModule.js
+contract @mozilla.org/calendar/wcap/network-request;1 {e3c62b37-83cf-41ec-9872-0af9f952430a}

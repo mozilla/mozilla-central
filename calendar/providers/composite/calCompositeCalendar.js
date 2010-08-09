@@ -594,4 +594,4 @@ calCompositeGetListenerHelper.prototype = {
 };
 
 /** Module Registration */
-var NSGetModule = XPCOMUtils.generateNSGetModule([calCompositeCalendar]);
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([calCompositeCalendar]);

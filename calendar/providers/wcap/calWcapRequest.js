@@ -53,7 +53,7 @@
 
 function generateRequestId() {
     if (!generateRequestId.mRequestPrefix) {
-        generateRequestId.mRequestPrefix = (getUUID() + "-");
+        generateRequestId.mRequestPrefix = (cal.getUUID() + "-");
         generateRequestId.mRequestId = 0;
     }
     ++generateRequestId.mRequestId;

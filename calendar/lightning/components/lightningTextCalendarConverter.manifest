@@ -1,0 +1,3 @@
+component {c70acb08-464e-4e55-899d-b2c84c5409fa} lightningTextCalendarConverter.js
+contract @mozilla.org/lightning/mime-converter;1 {c70acb08-464e-4e55-899d-b2c84c5409fa}
+category simple-mime-converters text/calendar @mozilla.org/lightning-mime-converter;1

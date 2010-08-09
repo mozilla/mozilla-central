@@ -1,0 +1,2 @@
+component {aeff788d-63b0-4996-91fb-40a7654c6224} calCompositeCalendar.js
+contract @mozilla.org/calendar/calendar;1?type=composite {aeff788d-63b0-4996-91fb-40a7654c6224}

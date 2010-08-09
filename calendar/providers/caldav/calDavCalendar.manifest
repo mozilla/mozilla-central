@@ -1,0 +1,2 @@
+component {a35fc6ea-3d92-11d9-89f9-00045ace3b8d} calDavCalendar.js
+contract @mozilla.org/calendar/calendar;1?type=caldav {a35fc6ea-3d92-11d9-89f9-00045ace3b8d}

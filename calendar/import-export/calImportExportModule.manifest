@@ -1,0 +1,31 @@
+component {1e3e33dc-445a-49de-b2b6-15b2a050bb9d} calIcsImportExport.js
+contract @mozilla.org/calendar/import;1?type=ics {1e3e33dc-445a-49de-b2b6-15b2a050bb9d}
+category cal-importers cal-ics-importer @mozilla.org/calendar/import;1?type=ics
+
+component {a6a524ce-adff-4a0f-bb7d-d1aaad4adc60} calIcsImportExport.js
+contract @mozilla.org/calendar/export;1?type=ics {a6a524ce-adff-4a0f-bb7d-d1aaad4adc60}
+category cal-exporters cal-ics-exporter @mozilla.org/calendar/export;1?type=ics
+
+component {72d9ab35-9b1b-442a-8cd0-ae49f00b159b} calHtmlExport.js
+contract @mozilla.org/calendar/export;1?type=htmllist {72d9ab35-9b1b-442a-8cd0-ae49f00b159b}
+category cal-exporters cal-html-list-exporter @mozilla.org/calendar/export;1?type=htmllist
+
+component {9ae04413-fee3-45b9-8bbb-1eb39a4cbd1b} calListFormatter.js
+contract @mozilla.org/calendar/printformatter;1?type=list {9ae04413-fee3-45b9-8bbb-1eb39a4cbd1b}
+category cal-print-formatters cal-list-printformatter @mozilla.org/calendar/printformatter;1?type=list
+
+component {f42d5132-92c4-487b-b5c8-38bf292d74c1} calMonthGridPrinter.js
+contract @mozilla.org/calendar/printformatter;1?type=monthgrid {f42d5132-92c4-487b-b5c8-38bf292d74c1}
+category cal-print-formatters cal-month-printer @mozilla.org/calendar/printformatter;1?type=monthgrid
+
+component {2d6ec97b-9109-4b92-89c5-d4b4806619ce} calWeekPrinter.js
+contract @mozilla.org/calendar/printformatter;1?type=weekplan {2d6ec97b-9109-4b92-89c5-d4b4806619ce}
+category cal-print-formatters cal-week-planner-printer @mozilla.org/calendar/printformatter;1?type=weekplan
+
+component {64a5d17a-0497-48c5-b54f-72b15c9e9a14} calOutlookCSVImportExport.js
+contract @mozilla.org/calendar/import;1?type=csv {64a5d17a-0497-48c5-b54f-72b15c9e9a14}
+category cal-importers cal-outlookcsv-importer @mozilla.org/calendar/import;1?type=csv
+
+component {48e6d3a6-b41b-4052-9ed2-40b27800bd4b} calOutlookCSVImportExport.js
+contract @mozilla.org/calendar/export;1?type=csv {48e6d3a6-b41b-4052-9ed2-40b27800bd4b}
+category cal-exporters cal-outlookcsv-exporter @mozilla.org/calendar/export;1?type=csv

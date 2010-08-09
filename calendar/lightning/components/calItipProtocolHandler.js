@@ -192,4 +192,4 @@ ItipContentHandler.prototype = {
 };
 
 var components = [ItipChannel, ItipProtocolHandler, ItipContentHandler];
-var NSGetModule = XPCOMUtils.generateNSGetModule(components);
+var NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

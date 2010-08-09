@@ -365,13 +365,7 @@ extensions/talkback@mozilla.org/components/talkback.so
 components/nsUpdateService.js
 components/nsUpdateServiceStub.js
 #endif
-#
-# bug 404085 (Consolidate provider methods into a default calendar
-# implementation)
-components/calDavCalendar.js
-components/calICSCalendar.js
-components/calMemoryCalendar.js
-components/calStorageCalendar.js
+
 # bug 381049 (Moved crashreporter interface)
 components/crashreporter.xpt
 # bug 415330 (Remove XPInstall leftovers)
@@ -482,3 +476,8 @@ components/contentprefs.xpt
 
 # Bug 522712 - Port |Bug 511761 - Only use compatibility.ini (not .autoreg, or stat()s) to invalidate fastloads and other caches| to comm-central (apps)
 .autoreg
+
+# Bug 576746 - new xpcom registration, we're cleaning up some extra files here
+components/calStorageCalendarModule.js
+components/calMemoryCalendarModule.js
+components/calICSCalendarModule.js

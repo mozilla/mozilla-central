@@ -1,0 +1,71 @@
+component {b8db7c7f-c168-4e11-becb-f26c1c4f5f8f} calItemModule.js
+contract @mozilla.org/calendar/alarm;1 {b8db7c7f-c168-4e11-becb-f26c1c4f5f8f}
+
+component {7a9200dd-6a64-4fff-a798-c5802186e2cc} calItemModule.js
+contract @mozilla.org/calendar/alarm-service;1 {7a9200dd-6a64-4fff-a798-c5802186e2cc}
+
+component {4b7ae030-ed79-11d9-8cd6-0800200c9a66} calItemModule.js
+contract @mozilla.org/calendar/alarm-monitor;1 {4b7ae030-ed79-11d9-8cd6-0800200c9a66}
+category alarm-service-startup calendar-alarm-monitor @mozilla.org/calendar/alarm-monitor;1
+category alarm-service-shutdown calendar-alarm-monitor @mozilla.org/calendar/alarm-monitor;1
+
+component {5c8dcaa3-170c-4a73-8142-d531156f664d} calItemModule.js
+contract @mozilla.org/calendar/attendee;1 {5c8dcaa3-170c-4a73-8142-d531156f664d}
+
+component {5f76b352-ab75-4c2b-82c9-9206dbbf8571} calItemModule.js
+contract @mozilla.org/calendar/attachment;1 {5f76b352-ab75-4c2b-82c9-9206dbbf8571}
+
+component {f42585e7-e736-4600-985d-9624c1c51992} calItemModule.js
+contract @mozilla.org/calendar/manager;1 {f42585e7-e736-4600-985d-9624c1c51992}
+
+component {f5f743cd-8997-428e-bc1b-644e73f61203} calItemModule.js
+contract @mozilla.org/calendar/calendarsearch-service;1 {f5f743cd-8997-428e-bc1b-644e73f61203}
+
+component {4123da9a-f047-42da-a7d0-cc4175b9f36a} calItemModule.js
+contract @mozilla.org/calendar/datetime-formatter;1 {4123da9a-f047-42da-a7d0-cc4175b9f36a}
+
+component {974339d5-ab86-4491-aaaf-2b2ca177c12b} calItemModule.js
+contract @mozilla.org/calendar/event;1 {974339d5-ab86-4491-aaaf-2b2ca177c12b}
+
+component {29c56cd5-d36e-453a-acde-0083bd4fe6d3} calItemModule.js
+contract @mozilla.org/calendar/freebusy-service;1 {29c56cd5-d36e-453a-acde-0083bd4fe6d3}
+
+component {6fe88047-75b6-4874-80e8-5f5800f14984} calItemModule.js
+contract @mozilla.org/calendar/ics-parser;1 {6fe88047-75b6-4874-80e8-5f5800f14984}
+
+component {207a6682-8ff1-4203-9160-729ec28c8766} calItemModule.js
+contract @mozilla.org/calendar/ics-serializer;1 {207a6682-8ff1-4203-9160-729ec28c8766}
+
+component {f41392ab-dcad-4bad-818f-b3d1631c4d93} calItemModule.js
+contract @mozilla.org/calendar/itip-item;1 {f41392ab-dcad-4bad-818f-b3d1631c4d93}
+
+component {1e2fc0e2-bf5f-4d60-9f1e-5e92cf517c0b} calItemModule.js
+contract @mozilla.org/network/protocol;1?name=webcal {1e2fc0e2-bf5f-4d60-9f1e-5e92cf517c0b}
+
+component {b2ee6f91-b061-4527-97a1-b85361775fc1} calItemModule.js
+contract @mozilla.org/network/protocol;1?name=webcals {b2ee6f91-b061-4527-97a1-b85361775fc1}
+
+component {04027036-5884-4a30-b4af-f2cad79f6edf} calItemModule.js
+contract @mozilla.org/calendar/recurrence-info;1 {04027036-5884-4a30-b4af-f2cad79f6edf}
+
+component {76810fae-abad-4019-917a-08e95d5bbd68} calItemModule.js
+contract @mozilla.org/calendar/relation;1 {76810fae-abad-4019-917a-08e95d5bbd68}
+
+component {2547331f-34c0-4a4b-b93c-b503538ba6d6} calItemModule.js
+contract @mozilla.org/calendar/startup-service;1 {2547331f-34c0-4a4b-b93c-b503538ba6d6}
+category profile-after-change calendar-startup-service @mozilla.org/calendar/startup-service;1
+
+component {fcb54c82-2fb9-42cb-bf44-1e197a55e520} calItemModule.js
+contract @mozilla.org/calendar/transaction;1 {fcb54c82-2fb9-42cb-bf44-1e197a55e520}
+
+component {40a1ccf4-5f54-4815-b842-abf06f84dbfd} calItemModule.js
+contract @mozilla.org/calendar/transactionmanager;1 {40a1ccf4-5f54-4815-b842-abf06f84dbfd}
+
+component {1a23ace4-a0dd-43b4-96a8-b3cd419a14a5} calItemModule.js
+contract @mozilla.org/calendar/timezone-service;1 {1a23ace4-a0dd-43b4-96a8-b3cd419a14a5}
+
+component {7af51168-6abe-4a31-984d-6f8a3989212d} calItemModule.js
+contract @mozilla.org/calendar/todo;1 {7af51168-6abe-4a31-984d-6f8a3989212d}
+
+component {6877bbdd-f336-46f5-98ce-fe86d0285cc1} calItemModule.js
+contract @mozilla.org/calendar/weekinfo-service;1 {6877bbdd-f336-46f5-98ce-fe86d0285cc1}

@@ -74,7 +74,7 @@ function splitUriParams(uri) {
 function getWcapSessionFor(calendar, uri) {
     let contextId = calendar.getProperty("shared_context");
     if (!contextId) {
-        contextId = getUUID();
+        contextId = cal.getUUID();
         calendar.setProperty("shared_context", contextId);
     }
 

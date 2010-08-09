@@ -1,0 +1,2 @@
+component {d4d7b59e-c9e0-4a7a-b5e8-5958f85515f0} calItipEmailTransport.js
+contract @mozilla.org/calendar/itip-transport;1?type=email {d4d7b59e-c9e0-4a7a-b5e8-5958f85515f0}

@@ -205,11 +205,6 @@ ltnMimeConverter.prototype = {
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
     flags: 0,
 
-    _xpcom_categories: [{
-        category: 'simple-mime-converters',
-        entry: 'text/calendar'
-    }],
-
     QueryInterface: function QI(aIID) {
         return cal.doQueryInterface(this, ltnMimeConverter.prototype, aIID, null, this);
     },
@@ -280,4 +275,4 @@ ltnMimeConverter.prototype = {
     }
 };
 
-var NSGetModule = XPCOMUtils.generateNSGetModule([ltnMimeConverter]);
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([ltnMimeConverter]);

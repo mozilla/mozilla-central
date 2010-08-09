@@ -151,7 +151,7 @@ calMemoryCalendar.prototype = {
         if (this.readOnly) 
             throw Components.interfaces.calIErrors.CAL_IS_READONLY;
         if (aItem.id == null && aItem.isMutable)
-            aItem.id = getUUID();
+            aItem.id = cal.getUUID();
 
         if (aItem.id == null) {
             this.notifyOperationComplete(aListener,
@@ -510,4 +510,4 @@ calMemoryCalendar.prototype = {
 };
 
 /** Module Registration */
-var NSGetModule = XPCOMUtils.generateNSGetModule([calMemoryCalendar]);
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([calMemoryCalendar]);

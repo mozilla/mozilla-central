@@ -507,7 +507,7 @@ calDavCalendar.prototype = {
      */
     doAdoptItem: function caldav_doAdoptItem(aItem, aListener, aIgnoreEtag) {
         if (aItem.id == null && aItem.isMutable) {
-            aItem.id = getUUID();
+            aItem.id = cal.getUUID();
         }
 
         if (aItem.id == null) {
@@ -2022,7 +2022,7 @@ calDavCalendar.prototype = {
         fbComp.addProperty(prop);
         fbComp.startTime = aRangeStart.getInTimezone(UTC());
         fbComp.endTime = aRangeEnd.getInTimezone(UTC());
-        fbComp.uid = getUUID();
+        fbComp.uid = cal.getUUID();
         prop = getIcsService().createIcalProperty("ATTENDEE");
         prop.setParameter("PARTSTAT", "NEEDS-ACTION");
         prop.setParameter("ROLE", "REQ-PARTICIPANT");
@@ -2504,7 +2504,7 @@ const scriptLoadOrder = [
     "calDavRequestHandlers.js"
 ];
 
-function NSGetModule(cid) {
+function NSGetFactory(cid) {
     if (!this.scriptsLoaded) {
         Services.io.getProtocolHandler("resource")
                 .QueryInterface(Components.interfaces.nsIResProtocolHandler)
@@ -2514,5 +2514,5 @@ function NSGetModule(cid) {
         this.scriptsLoaded = true;
     }
 
-    return (XPCOMUtils.generateNSGetModule([calDavCalendar]))(cid);
+    return (XPCOMUtils.generateNSGetFactory([calDavCalendar]))(cid);
 }

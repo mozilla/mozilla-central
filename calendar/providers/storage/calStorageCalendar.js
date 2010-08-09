@@ -2374,7 +2374,7 @@ const scriptLoadOrder = [
     "calUtils.js",
 ];
 
-function NSGetModule(cid) {
+function NSGetFactory(cid) {
     if (!this.scriptsLoaded) {
         Services.io.getProtocolHandler("resource")
                 .QueryInterface(Components.interfaces.nsIResProtocolHandler)
@@ -2384,5 +2384,5 @@ function NSGetModule(cid) {
         this.scriptsLoaded = true;
     }
 
-    return (XPCOMUtils.generateNSGetModule([calStorageCalendar]))(cid);
+    return (XPCOMUtils.generateNSGetFactory([calStorageCalendar]))(cid);
 }
