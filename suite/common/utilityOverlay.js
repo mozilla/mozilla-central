@@ -1245,6 +1245,10 @@ function openUILinkIn(url, where, aAllowThirdPartyFixup, aPostData, aReferrerURI
     w.loadURI(url, aPostData, flags);
     w.content.focus();
     break;
+  case "tabfocused":
+    // forces tab to be focused
+    loadInBackground = true;
+    // fall through
   case "tabshifted":
     loadInBackground = !loadInBackground;
     // fall through
@@ -1260,17 +1264,6 @@ function openUILinkIn(url, where, aAllowThirdPartyFixup, aPostData, aReferrerURI
       browser.selectedTab = tab;
       w.content.focus();
     }
-    break;
-  case "tabfocused":
-    var browser = w.getBrowser();
-    var tab = browser.addTab(url, {
-                referrerURI: aReferrerURI,
-                postData: aPostData,
-                allowThirdPartyFixup: aAllowThirdPartyFixup,
-                relatedToCurrent: aRelatedToCurrent
-              });
-    browser.selectedTab = tab;
-    w.content.focus();
     break;
   }
 
