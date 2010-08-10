@@ -89,8 +89,7 @@ function setupModule() {
     do_check_eq: function() {},
     do_check_neq: function() {},
   };
-  folderDisplayHelper.load_via_src_path("mailnews/test/fakeserver/nntpd.js",
-                                        testHelperModule);
+  folderDisplayHelper.load_via_src_path("nntpd.js", testHelperModule);
 }
 
 function installInto(module) {

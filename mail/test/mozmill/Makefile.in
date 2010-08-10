@@ -63,7 +63,6 @@ _HARNESS_FILES = \
 GARBAGE += automation.py
 
 $(_DEST_DIR):
-	echo $(_HARNESS_FILES)
 	$(NSINSTALL) -D $@
 
 $(_HARNESS_FILES): $(_DEST_DIR)
@@ -72,3 +71,16 @@ $(_HARNESS_FILES): $(_DEST_DIR)
 libs:: $(_HARNESS_FILES)
 	echo $(_HARNESS_FILES)
 	$(INSTALL) $(_HARNESS_FILES) $(_DEST_DIR)
+
+# Copy the mailnews and mail resources that we require.
+libs::
+	$(INSTALL) $(topsrcdir)/mailnews/test/resources/* $(MOZDEPTH)/_tests/mozmill/resources
+	$(INSTALL) $(topsrcdir)/mailnews/test/fakeserver/* $(MOZDEPTH)/_tests/mozmill/resources
+	$(INSTALL) $(topsrcdir)/mail/base/test/unit/resources/* $(MOZDEPTH)/_tests/mozmill/resources
+
+PKG_STAGE = $(DIST)/test-package-stage
+
+stage-package:
+	$(NSINSTALL) -D $(PKG_STAGE)/mozmill/
+	@(cd $(topsrcdir)/mail/test/mozmill && tar $(TAR_CREATE_FLAGS) - *) | (cd $(PKG_STAGE)/mozmill/ && tar -xf -)
+	@(cd $(MOZDEPTH)/_tests/mozmill && tar $(TAR_CREATE_FLAGS) - *) | (cd $(PKG_STAGE)/mozmill/ && tar -xf -)

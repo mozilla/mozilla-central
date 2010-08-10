@@ -62,6 +62,13 @@ Cu.import('resource:///modules/MailUtils.js');
 Cu.import('resource:///modules/MailConsts.js');
 Cu.import('resource:///modules/mailViewManager.js');
 
+const FILE_LOAD_PATHS = [
+  "../resources",
+  "../../../../mailnews/test/resources",
+  "../../../../mail/base/test/unit/resources",
+  "../../../../mailnews/test/fakeserver"
+];
+
 /**
  * List of keys not to export via installInto; values do not matter, we just
  *  use true.
@@ -139,8 +146,7 @@ function setupModule() {
 
   // The xpcshell test resources assume they are loaded into a single global
   //  namespace, so we need to help them out to maintain their delusion.
-  load_via_src_path('mailnews/test/resources/logHelper.js',
-                    testHelperModule);
+  load_via_src_path('logHelper.js', testHelperModule);
   mark_action = testHelperModule.mark_action;
   mark_failure = testHelperModule.mark_failure;
 
@@ -159,20 +165,14 @@ function setupModule() {
         new testHelperModule._Failure(obj.exception.message, obj.exception));
     });
 
-  load_via_src_path('mailnews/test/resources/asyncTestUtils.js',
-                    testHelperModule);
-  load_via_src_path('mailnews/test/resources/messageGenerator.js',
-                    testHelperModule);
-  load_via_src_path('mailnews/test/resources/messageModifier.js',
-                    testHelperModule);
-  load_via_src_path('mailnews/test/resources/messageInjection.js',
-                    testHelperModule);
-  load_via_src_path('mail/base/test/unit/resources/viewWrapperTestUtils.js',
-                    testHelperModule);
+  load_via_src_path('asyncTestUtils.js', testHelperModule);
+  load_via_src_path('messageGenerator.js', testHelperModule);
+  load_via_src_path('messageModifier.js', testHelperModule);
+  load_via_src_path('messageInjection.js', testHelperModule);
+  load_via_src_path('viewWrapperTestUtils.js', testHelperModule);
 
   // provide super helpful folder event info (when logHelper cares)
-  load_via_src_path('mailnews/test/resources/folderEventLogHelper.js',
-                    testHelperModule);
+  load_via_src_path('folderEventLogHelper.js', testHelperModule);
   testHelperModule.registerFolderEventLogHelper();
 
   // messageInjection wants a gMessageGenerator (and so do we)
@@ -2488,14 +2488,30 @@ function load_via_src_path(aPath, aModule) {
   let ioService = Cc["@mozilla.org/network/io-service;1"]
                     .getService(Ci.nsIIOService);
 
-  let srcPath = os.abspath("../../../..",os.getFileForPath( __file__));
-  let fullPath = os.abspath(aPath, os.getFileForPath(srcPath));
+  let thisFilePath = os.getFileForPath(__file__);
 
-  let file = Cc["@mozilla.org/file/local;1"]
-               .createInstance(Ci.nsILocalFile);
-  file.initWithPath(fullPath);
-  let uri = ioService.newFileURI(file).spec;
-  loader.loadSubScript(uri, aModule);
+  for (let i = 0; i < FILE_LOAD_PATHS.length; ++i) {
+    let srcPath = os.abspath(FILE_LOAD_PATHS[i], thisFilePath);
+    let fullPath = os.abspath(aPath, os.getFileForPath(srcPath));
+
+    let file = Cc["@mozilla.org/file/local;1"]
+                 .createInstance(Ci.nsILocalFile);
+    file.initWithPath(fullPath);
+
+    if (file.exists()) {
+      try {
+        let uri = ioService.newFileURI(file).spec;
+        loader.loadSubScript(uri, aModule);
+        return;
+      }
+      catch (ex) {
+        throw new Error("Unable to load file: " + fullPath + " exception: " + ex);
+      }
+    }
+  }
+
+  // If we've got this far, then we weren't successful, fail out.
+  throw new Error("Could not find " + aModule + " in available paths");
 }
 
 function assert_equals(a, b, comment)

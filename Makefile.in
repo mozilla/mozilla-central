@@ -79,10 +79,11 @@ ifdef ENABLE_TESTS
 check \
 mochitest mochitest-plain mochitest-chrome mochitest-browser-chrome mochitest-a11y \
 reftest crashtest \
-xpcshell-tests \
-package-tests::
+xpcshell-tests::
 	$(MAKE) -C mozilla $@
-else
+endif
+
+ifndef MOZ_THUNDERBIRD
 package-tests::
 	$(MAKE) -C mozilla $@
 endif

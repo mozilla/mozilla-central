@@ -95,38 +95,9 @@ upload::
 	@$(MAKE) -C mail/installer upload
 
 ifdef ENABLE_TESTS
-# Additional mailnews targets to call automated test suites
-include $(topsrcdir)/mailnews/testsuite-targets.mk
-
-# Instructions below this line are for mail/ specific tests.
-
-MOZMILLDIR=$(DEPTH)/mozilla/_tests/mozmill
-
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-# Mac options
-APP_NAME = $(MOZ_APP_DISPLAYNAME)
-ifdef MOZ_DEBUG
-APP_NAME := $(APP_NAME)Debug
-endif
-PROGRAM = ../../../$(DIST)/$(APP_NAME).app/
+include $(srcdir)/mail/testsuite-targets.mk
 else
-# Non-mac options
-PROGRAM = ../../../$(DIST)/bin/thunderbird$(BIN_SUFFIX)
+package-tests::
 endif
-
-mozmill::
-	cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= $(PYTHON) \
-	runtestlist.py --list=mozmilltests.list --binary=$(PROGRAM) \
-	--dir=$(call core_abspath,$(topsrcdir))/mail/test/mozmill \
-	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
-	$(MOZMILL_EXTRA)
-
-mozmill-one::
-	cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= $(PYTHON) runtest.py \
-	--test=$(call core_abspath,$(topsrcdir))/mail/test/mozmill/$(SOLO_TEST) \
-	--binary=$(PROGRAM) \
-	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
-	$(MOZMILL_EXTRA)
-endif # ENABLE_TESTS
 
 endif # COMM_BUILD
