@@ -730,7 +730,7 @@ calCalendarManager.prototype = {
             let prefService = Components.classes["@mozilla.org/preferences-service;1"]
                                         .getService(Components.interfaces.nsIPrefBranch);
             let allCals = {};
-            for each (let key in prefService.getChildList(REGISTRY_BRANCH, {})) { // merge down all keys
+            for each (let key in prefService.getChildList(REGISTRY_BRANCH)) { // merge down all keys
                 allCals[key.substring(0, key.indexOf(".", REGISTRY_BRANCH.length))] = true;
             }
 
