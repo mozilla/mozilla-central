@@ -44,7 +44,8 @@ AboutCertError.prototype = {
 
   getURIFlags: function(aURI) {
     return (Components.interfaces.nsIAboutModule.ALLOW_SCRIPT |
-            Components.interfaces.nsIAboutModule.URI_SAFE_FOR_UNTRUSTED_CONTENT);
+            Components.interfaces.nsIAboutModule.URI_SAFE_FOR_UNTRUSTED_CONTENT |
+            Components.interfaces.nsIAboutModule.HIDE_FROM_ABOUTABOUT);
   },
 
   newChannel: function(aURI) {

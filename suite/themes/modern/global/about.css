@@ -54,3 +54,8 @@ ul {
 ul > li {
   margin-top: .5em;
 }
+
+.columns {
+  -moz-column-width: 20em;
+  -moz-column-gap: 3em;
+}

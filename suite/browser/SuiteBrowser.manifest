@@ -1,5 +1,3 @@
-component {2a57d8af-8728-4e63-b01e-29f4a4ebf9a7} nsAboutAbout.js
-contract @mozilla.org/network/protocol/about;1?what=about {2a57d8af-8728-4e63-b01e-29f4a4ebf9a7}
 component {89e9da80-4c03-46a0-a357-cf77bbef98b9} nsAboutRights.js
 contract @mozilla.org/network/protocol/about;1?what=rights {89e9da80-4c03-46a0-a357-cf77bbef98b9}
 component {c2343730-dc2c-11d3-98b3-001083010e9b} nsBrowserContentHandler.js

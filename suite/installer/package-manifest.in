@@ -463,7 +463,6 @@
 @BINPATH@/components/NetworkGeolocationProvider.js
 @BINPATH@/components/NetworkGeolocationProvider.manifest
 @BINPATH@/components/nsAbout.js
-@BINPATH@/components/nsAboutAbout.js
 @BINPATH@/components/nsAboutCertError.js
 @BINPATH@/components/nsAboutFeeds.js
 @BINPATH@/components/nsAboutRights.js
