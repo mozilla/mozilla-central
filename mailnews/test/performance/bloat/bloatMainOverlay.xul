@@ -38,6 +38,6 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <overlay id="bloatMainOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <script src="chrome://mailbloat/content/bloatMainOverlay.js"/>
+  <script src="chrome://mailnewstest/content/bloatMainOverlay.js"/>
 </overlay>
 
