@@ -1370,8 +1370,7 @@
                 charset: aCharset,
                 postData: aPostData,
                 inBackground: aLoadInBackground,
-                allowThirdPartyFixup: aAllowThirdPartyFixup,
-                relatedToCurrent: aRelatedToCurrent
+                allowThirdPartyFixup: aAllowThirdPartyFixup
               };
             }
 
