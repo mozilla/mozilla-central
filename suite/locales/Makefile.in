@@ -49,6 +49,14 @@ vpath %.png @srcdir@/en-US/searchplugins
 vpath %.src $(LOCALE_SRCDIR)/searchplugins
 vpath %.png $(LOCALE_SRCDIR)/searchplugins
 
+ifdef LOCALE_MERGEDIR
+vpath crashreporter%.ini $(LOCALE_MERGEDIR)/browser/crashreporter
+endif
+vpath crashreporter%.ini $(LOCALE_SRCDIR)/crashreporter
+ifdef LOCALE_MERGEDIR
+vpath crashreporter%.ini @srcdir@/en-US/crashreporter
+endif
+
 run_for_effects := $(shell if test ! -d $(DIST); then $(NSINSTALL) -D $(DIST); fi; if test ! -d $(DIST)/branding; then $(NSINSTALL) -D $(DIST)/branding; fi)
 _ABS_DIST := $(call core_abspath,$(DIST))
 
@@ -361,6 +369,11 @@ else
 	  sed -e "s/%MOZ_APP_DISPLAYNAME%/$(MOZ_APP_DISPLAYNAME)/" > \
 	  $(FINAL_TARGET)/updater.ini
 endif
+endif
+
+ifdef MOZ_CRASHREPORTER
+libs:: crashreporter-override.ini
+	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)
 endif
 
 # This variable is to allow the wget-en-US target to know which ftp server to download from

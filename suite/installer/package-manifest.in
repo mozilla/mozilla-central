@@ -754,7 +754,7 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/Throbber-small.gif
 #endif
 #endif
-; MOZ_CRASHREPORTER
+@BINPATH@/crashreporter-override.ini
 #endif
 
 ; [ActiveX]
