@@ -88,17 +88,18 @@ toolbarbutton.bookmark-item[disabled="true"][container="true"] {
   display: none;
 }
 
+/* Prevent [mode="icons"] from hiding the label */
+.bookmark-item > .toolbarbutton-text {
+  display: -moz-box !important;
+}
+
 /* ..... drag and drop styles ..... */
 
-toolbarbutton.bookmark-item[dragover-left="true"] {
-  border-left-color: #000000;
+#PlacesToolbarDropIndicator {
+  list-style-image: url("chrome://communicator/skin/bookmarks/toolbarDropMarker.png");
 }
 
-toolbarbutton.bookmark-item[dragover-right="true"] {
-  border-right-color: #000000;
-}
-
-toolbarbutton.bookmark-item[dragover-top="true"] {
+toolbarbutton.bookmark-item[dragover="true"][open="true"] {
   border: 1px solid #000000;
 }
 
@@ -111,10 +112,6 @@ menuitem.bookmark-item {
   padding: 1px 2px;
 }
 
-.bookmark-group {
-  list-style-image: url(chrome://communicator/skin/bookmarks/bookmark-group.gif) !important;
-}
-
 menuitem.bookmark-item[disabled="true"] {
   list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item-dis.gif");
 }
@@ -125,18 +122,17 @@ menuitem.bookmark-item[disabled="true"][container="true"] {
 
 /* ..... drag and drop styles ..... */
 
-menu.bookmark-item[dragover-top="true"],
-menuitem.bookmark-item[dragover-top="true"] {
-  border-top: 1px solid #000000 !important;
-} 
-
-menu.bookmark-item[dragover-bottom="true"],
-menuitem.bookmark-item[dragover-bottom="true"] {
-  border-bottom: 1px solid #000000 !important;
+/* rules for menupopup drop indicators */
+.menupopup-drop-indicator-bar {
+  position: relative;
+  /* these two margins must together compensate the indicator's height */
+  margin-top: -1px;
+  margin-bottom: -1px;
 }
 
-menu.bookmark-item[dragover="true"] {
-  background: #424F63 !important;
-  color: #FFFFFF !important;
+.menupopup-drop-indicator {
+  list-style-image: none;
+  height: 2px;
+  -moz-margin-end: -4em;
+  background-color: #424F63;
 }
-
