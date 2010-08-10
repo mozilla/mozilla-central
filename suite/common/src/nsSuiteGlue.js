@@ -367,15 +367,16 @@ SuiteGlue.prototype = {
                   Services.prompt.BUTTON_POS_0_DEFAULT;
 
       var neverAsk = {value:false};
-      var button0Title, button2Title;
-      var button1Title = quitBundle.GetStringFromName("cancelTitle");
+      var button0Title, button1Title, button2Title;
       var neverAskText = quitBundle.GetStringFromName("neverAsk");
 
-      if (aQuitType == "restart")
-        button0Title = quitBundle.GetStringFromName("restartTitle");
-      else {
+      if (aQuitType == "restart") {
+        button0Title = quitBundle.GetStringFromName("restartNowTitle");
+        button1Title = quitBundle.GetStringFromName("restartLaterTitle");
+      } else {
         flags += Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_2;
         button0Title = quitBundle.GetStringFromName("saveTitle");
+        button1Title = quitBundle.GetStringFromName("cancelTitle");
         button2Title = quitBundle.GetStringFromName("quitTitle");
       }
 
