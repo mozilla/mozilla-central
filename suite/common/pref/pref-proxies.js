@@ -104,7 +104,6 @@ function DefaultForShareSettingsPref()
 {
   return gHTTP.value == gSSL.value &&
          gHTTP.value == gFTP.value &&
-         gHTTP.value == gGopher.value &&
          gHTTPPort.value == gSSLPort.value &&
          gHTTPPort.value == gFTPPort.value;
 }
