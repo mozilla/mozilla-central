@@ -830,6 +830,10 @@
         <body>
           <![CDATA[
             var iconURL = this.buildFavIconString(aURI);
+            if (this.mFaviconService) {
+              let uri = Services.io.newURI(iconURL, null, null);
+              this.mFaviconService.setAndLoadFaviconForPage(aURI, uri, false);
+            }
             var entry = this.openCacheEntry(iconURL, Components.interfaces.nsICache.ACCESS_READ);
             if (!entry)
               aElt.setAttribute(aAttr, iconURL);
