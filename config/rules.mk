@@ -180,6 +180,7 @@ check-interactive:
 	  $(testxpcsrcdir)/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  --test-path=$(SOLO_FILE) \
+	  --profile-name=$(MOZ_APP_NAME) \
 	  --interactive \
 	  $(DIST)/bin/xpcshell \
 	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
@@ -191,6 +192,9 @@ check-one:
 	  $(testxpcsrcdir)/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  --test-path=$(SOLO_FILE) \
+	  --profile-name=$(MOZ_APP_NAME) \
+	  --verbose \
+	  $(EXTRA_TEST_ARGS) \
 	  $(DIST)/bin/xpcshell \
 	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
 
@@ -367,6 +371,7 @@ _OBJS			= \
 	$(JRI_STUB_CFILES) \
 	$(addsuffix .$(OBJ_SUFFIX), $(JMC_GEN)) \
 	$(CSRCS:.c=.$(OBJ_SUFFIX)) \
+	$(SSRCS:.S=.$(OBJ_SUFFIX)) \
 	$(patsubst %.cc,%.$(OBJ_SUFFIX),$(CPPSRCS:.cpp=.$(OBJ_SUFFIX))) \
 	$(CMSRCS:.m=.$(OBJ_SUFFIX)) \
 	$(CMMSRCS:.mm=.$(OBJ_SUFFIX)) \
@@ -596,15 +601,6 @@ endif
 endif
 endif
 
-ifeq ($(OS_ARCH),Linux)
-ifneq (,$(filter mips mipsel,$(OS_TEST)))
-ifeq ($(MODULE),layout)
-OS_CFLAGS += -Wa,-xgot
-OS_CXXFLAGS += -Wa,-xgot
-endif
-endif
-endif
-
 #
 # HP-UXBeOS specific section: for COMPONENTS only, add -Bsymbolic flag
 # which uses internal symbols first
@@ -653,6 +649,14 @@ ifdef IS_COMPONENT
 EXTRA_DSO_LDOPTS += -Wl,-Bsymbolic
 endif
 endif 
+
+#
+# GNU doesn't have path length limitation
+#
+
+ifeq ($(OS_ARCH),GNU)
+OS_CPPFLAGS += -DPATH_MAX=1024 -DMAXPATHLEN=1024
+endif
 
 #
 # MINGW32
@@ -758,6 +762,7 @@ $(foreach tier,$(TIERS),tier_$(tier))::
 	$(foreach dir,$($@_staticdirs),$(call SUBMAKE,,$(dir)))
 	$(MAKE) export_$@
 	$(MAKE) libs_$@
+	$(MAKE) tools_$@
 
 # Do everything from scratch
 everything::
@@ -914,7 +919,7 @@ endif # !NO_DIST_INSTALL
 
 ifndef NO_PROFILE_GUIDED_OPTIMIZE
 ifdef MOZ_PROFILE_USE
-ifeq ($(OS_ARCH)_$(GNU_CC)$(INTERNAL_TOOLS), WINNT_)
+ifeq ($(OS_ARCH)_$(GNU_CC), WINNT_)
 # When building with PGO, we have to make sure to re-link
 # in the MOZ_PROFILE_USE phase if we linked in the
 # MOZ_PROFILE_GENERATE phase. We'll touch this pgo.relink
@@ -1184,7 +1189,7 @@ ifndef MOZ_OS2_USE_DECLSPEC
 	$(FILTER) $(OBJS) $(SHARED_LIBRARY_LIBS) >> $@
 endif	
 else
-	echo    _NSGetModule >> $@
+	echo    _NSModule >> $@
 endif
 else
 ifndef MOZ_OS2_USE_DECLSPEC
@@ -1300,8 +1305,7 @@ ifdef MOZ_PROFILE_GENERATE
 	touch -t `date +%Y%m%d%H%M.%S -d "now+5seconds"` pgo.relink
 endif
 endif	# WINNT && !GCC
-ifeq ($(OS_ARCH),Darwin)
-else # non-Darwin
+ifneq ($(OS_ARCH),Darwin)
 	@rm -f $(SUB_SHLOBJS)
 endif # Darwin
 	@rm -f foodummyfilefoo $(DELETE_AFTER_LINK)
@@ -1340,7 +1344,7 @@ _MDDEPFILE = $(MDDEPDIR)/$(@F).pp
 define MAKE_DEPS_AUTO
 if test -d $(@D); then \
 	echo "Building deps for $<"; \
-	$(MKDEPEND) -o'.$(OBJ_SUFFIX)' -f- $(DEFINES) $(ACDEFINES) $(INCLUDES) $< 2>/dev/null | sed -e "s|^[^ ]*/||" > $(_MDDEPFILE) ; \
+	$(MKDEPEND) -o'.$(OBJ_SUFFIX)' -f- $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $(INCLUDES) $< 2>/dev/null | sed -e "s|^[^ ]*/||" > $(_MDDEPFILE) ; \
 fi
 endef
 
@@ -1726,7 +1730,7 @@ ifndef NO_DIST_INSTALL
 	$(EXIT_ON_ERROR) \
 	$(NSINSTALL) -D $(FINAL_TARGET)/components; \
 	for i in $^; do \
-          fname=`basename $$i`; \
+	  fname=`basename $$i`; \
 	  dest=$(FINAL_TARGET)/components/$${fname}; \
 	  $(RM) -f $$dest; \
 	  $(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $$i > $$dest; \
@@ -1983,6 +1987,12 @@ ifneq (,$(OBJS)$(XPIDLSRCS)$(SIMPLE_PROGRAMS))
 MDDEPEND_FILES		:= $(strip $(wildcard $(MDDEPDIR)/*.pp))
 
 ifneq (,$(MDDEPEND_FILES))
+# The script mddepend.pl checks the dependencies and writes to stdout
+# one rule to force out-of-date objects. For example,
+#   foo.o boo.o: FORCE
+# The script has an advantage over including the *.pp files directly
+# because it handles the case when header files are removed from the build.
+# 'make' would complain that there is no way to build missing headers.
 ALL_PP_RESULTS = $(shell $(PERL) $(BUILD_TOOLS)/mddepend.pl - $(MDDEPEND_FILES))
 $(eval $(ALL_PP_RESULTS))
 endif
@@ -2015,9 +2025,7 @@ endif
 # Disallow parallel builds with MSVC < 8
 #
 ifneq (,$(filter 1200 1300 1310,$(_MSC_VER)))
-ifneq (,$(OBJS)$(HOST_OBJS))
 .NOTPARALLEL:
-endif
 endif
 
 #
@@ -2054,6 +2062,9 @@ echo-variable-%:
 echo-tiers:
 	@echo $(TIERS)
 
+echo-tier-dirs:
+	@$(foreach tier,$(TIERS),echo '$(tier):'; echo '  dirs: $(tier_$(tier)_dirs)'; echo '  staticdirs: $(tier_$(tier)_staticdirs)'; )
+
 echo-dirs:
 	@echo $(DIRS)
 
@@ -2062,15 +2073,6 @@ echo-module:
 
 echo-requires:
 	@echo $(REQUIRES)
-
-echo-requires-recursive::
-ifdef _REPORT_ALL_DIRS
-	@echo $(subst $(topsrcdir)/,,$(srcdir)): $(MODULE): $(REQUIRES)
-else
-	@$(if $(REQUIRES),echo $(subst $(topsrcdir)/,,$(srcdir)): $(MODULE): $(REQUIRES))
-endif
-	$(LOOP_OVER_PARALLEL_DIRS)
-	$(LOOP_OVER_DIRS)
 
 echo-depth-path:
 	@$(MOZILLA_SRCDIR)/build/unix/print-depth-path.sh
@@ -2191,3 +2193,6 @@ CHECK_FROZEN_VARIABLES = $(foreach var,$(FREEZE_VARIABLES), \
 
 libs export libs::
 	$(CHECK_FROZEN_VARIABLES)
+
+default::
+	if test -d $(DIST)/bin ; then touch $(DIST)/bin/.purgecaches ; fi
