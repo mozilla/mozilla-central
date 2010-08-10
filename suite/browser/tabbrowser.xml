@@ -731,12 +731,11 @@
         <body>
           <![CDATA[
             var browser = aTab.linkedBrowser;
-            browser.mIconURL = aURI instanceof Components.interfaces.nsIURI ?
-                               aURI.spec : aURI;
+            if (!(aURI instanceof Components.interfaces.nsIURI))
+              aURI = Services.io.newURI(aURI, null, null);
+            browser.mIconURL = aURI.spec;
 
             if (aURI && this.mFaviconService) {
-              if (!(aURI instanceof Components.interfaces.nsIURI))
-                aURI = makeURI(aURI);
               this.mFaviconService.setAndLoadFaviconForPage(browser.currentURI,
                                                             aURI, false);
             }
@@ -1210,20 +1209,15 @@
 
               // The following code is only executed once, see
               // 'continue' above, and the following return(s)
-              
+
               // Verify that the load of this href is legal.
               // We check first with the security manager
               const nsIScriptSecurityManager =
                 Components.interfaces.nsIScriptSecurityManager;
 
-              // Get the IOService so we can make URIs
-              const ioService =
-                Components.classes["@mozilla.org/network/io-service;1"]
-                          .getService(Components.interfaces.nsIIOService);
-
               const targetDoc = event.target.ownerDocument;
               // Make a URI out of our href.
-              var uri = ioService.newURI(href, targetDoc.characterSet, null);
+              var uri = Services.io.newURI(href, targetDoc.characterSet, null);
 
               // Verify that the load of this icon is legal.
               // error pages can load their favicon, to be on the safe side,
@@ -1276,8 +1270,8 @@
                 return; // Refuse to load if we can't do a security check.
               }
 
-              var origURI = ioService.newURI(targetDoc.documentURI,
-                                             targetDoc.characterSet, null);
+              var origURI = Services.io.newURI(targetDoc.documentURI,
+                                               targetDoc.characterSet, null);
               if (contentPolicy.shouldLoad(nsIContentPolicy.TYPE_IMAGE,
                                            uri, origURI, event.target,
                                            event.target.type,
@@ -1702,7 +1696,6 @@
         <parameter name="aDisableUndo"/>
         <body>
           <![CDATA[
-            this._browsers = null; // invalidate cache
             this.mLastRelatedIndex = 0;
 
             if (aTab.localName != "tab")
@@ -1776,6 +1769,10 @@
 
             if (oldBrowser == this.mCurrentBrowser)
               this.mCurrentBrowser = null;
+
+            // Invalidate browsers cache, as the tab is removed from the
+            // tab container.
+            this._browsers = null;
 
             // Clean up before/afterselected attributes before removing the tab
             aTab._selected = false;
@@ -2048,14 +2045,8 @@
       <property name="browsers" readonly="true">
         <getter>
           <![CDATA[
-            if (!this._browsers) {
-              var browsers = [];
-              browsers.item = function(i) {return this[i];}
-              for (var i = 0; i < this.tabs.length; i++)
-                browsers.push(this.tabs[i].linkedBrowser);
-              this._browsers = browsers;
-            }
-            return this._browsers;
+            return this._browsers ||
+                   (this._browsers = Array.map(this.tabs, function (tab) tab.linkedBrowser));
           ]]>
         </getter>
       </property>
