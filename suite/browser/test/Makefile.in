@@ -58,6 +58,7 @@ _TEST_FILES =	test_feed_discovery.html \
 
 _BROWSER_FILES = browser_bug413915.js \
                  browser_bug427559.js \
+                 browser_bug585511.js \
                  browser_page_style_menu.js \
                  page_style_sample.html \
                  browser_feed_tab.js \
