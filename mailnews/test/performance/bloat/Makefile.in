@@ -44,36 +44,13 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= mailbloat
 
-ifdef XPI_NAME
-NO_JS_MANIFEST = 1
-DIST_FILES = install.rdf
-
-# Used in install.rdf
 USE_EXTENSION_MANIFEST = 1
-endif
+DIST_FILES = install.rdf
 
 include $(topsrcdir)/config/rules.mk
 
-# We're installing to _tests/mailbloat/extension
-TARGET_DEPTH = ../../..
-include $(MOZILLA_DIR)/build/automation-build.mk
+FINAL_TARGET = $(MOZDEPTH)/_tests/mailbloat/mailbloat
 
-_DEST_DIR = $(MOZDEPTH)/_tests/mailbloat/
-
-# We want to get an extension-packaged version of mailbloat as well, 
-# so this seems to be the simplest way to make that happen.
-ifdef XPI_NAME
 libs::
 	$(NSINSTALL) -D $(FINAL_TARGET)/defaults/preferences
 	$(NSINSTALL) $(srcdir)/mailnewsTestPrefs.js $(FINAL_TARGET)/defaults/preferences
-else
-make-xpi:
-	+$(MAKE) libs XPI_NAME=mailbloat
-copy-harness: make-xpi
-libs:: copy-harness
-endif
-
-# Copy the mailbloat extension bits to $(_DEST_DIR)
-copy-harness: 
-	$(NSINSTALL) -D $(_DEST_DIR)
-	(cd $(DIST)/xpi-stage && tar $(TAR_CREATE_FLAGS) - mailbloat) | (cd $(_DEST_DIR) && tar -xf -)
