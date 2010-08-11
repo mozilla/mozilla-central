@@ -402,7 +402,6 @@
                        onclick="checkForMiddleClick(this, event);"/>
           </menu>
           <menuseparator/>
-          <menuseparator/>
           <menu id="BMB_bookmarksToolbarFolderMenu"
                 class="menu-iconic bookmark-item"
                 label="&personalbarCmd.label;"
