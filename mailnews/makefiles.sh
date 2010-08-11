@@ -137,4 +137,5 @@ mailnews/news/build/Makefile
 mailnews/news/public/Makefile
 mailnews/news/src/Makefile
 mailnews/news/test/Makefile
+mailnews/test/performance/bloat/Makefile
 "
