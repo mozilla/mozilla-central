@@ -114,7 +114,6 @@ treechildren::-moz-tree-image(container, OrganizerQuery_UnfiledBookmarks) {
 }
 
 /* query-nodes should be styled even if they're not expandable */
-.bookmark-item[container][query],
 treechildren::-moz-tree-image(title, query) {
   list-style-image: url("chrome://communicator/skin/bookmarks/query.png");
   -moz-image-region: auto;
