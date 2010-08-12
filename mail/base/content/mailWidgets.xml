@@ -456,8 +456,9 @@
               this.maxLinesBeforeMore);
             const dt = Components.interfaces.nsMimeHeaderDisplayTypes;
             var headerchoice = Application.prefs.getValue("mail.show_headers",
-                                                          dt.AllHeaders);
-            if (headerchoice == dt.AllHeaders) {
+                                                          dt.NormalHeaders);
+            if (this.maxLinesBeforeMore < 1 ||
+                headerchoice == dt.AllHeaders) {
               this.fillAddressesNode(this.emailAddresses, true);
               this.longEmailAddresses.removeAttribute("singleline");
             }

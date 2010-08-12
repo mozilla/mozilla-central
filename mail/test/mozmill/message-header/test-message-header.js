@@ -459,7 +459,7 @@ function subtest_change_to_all_header_mode(toDescription) {
 
   change_to_all_header_mode();
   // test that (n more) is gone
-  moreNode = mc.a('expandedtoBox', {class: 'moreIndicator'});
+  let moreNode = mc.a('expandedtoBox', {class: 'moreIndicator'});
   if (!moreNode.collapsed) {
     throw new Error("more node should be collapsed in all header lines mode");
   }
@@ -494,7 +494,7 @@ function subtest_more_widget_star_click(toDescription) {
 /**
  * Make sure the (more) widget hidden pref actually works with a
  * non-default value.
-  */
+ */
 function test_more_widget_with_maxlines_of_3(){
 
   // set maxLines to 3
@@ -505,6 +505,49 @@ function test_more_widget_with_maxlines_of_3(){
 
   // call test_more_widget again
   test_more_widget();
+}
+
+/**
+ * Make sure the (more) widget hidden pref also works with an
+ * "all" (0) non-default value.
+ */
+function test_more_widget_with_disabled_more(){
+
+  // set maxLines to 0
+  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
+    .getService(Ci.nsIPrefService).getBranch(null);
+  let maxLines = prefBranch.setIntPref(
+    "mailnews.headers.show_n_lines_before_more", 0);
+
+  // generate message with 35 recips (effectively guarantees overflow for n=3)
+  be_in_folder(folder);
+  let msg = create_message({toCount: 35});
+
+  // add the message to the end of the folder
+  add_message_to_folder(folder, msg);
+
+  // select and open the last message
+  let curMessage = select_click_row(-1);
+
+  // make sure it loads
+  wait_for_message_display_completion(mc);
+  assert_selected_and_displayed(mc, curMessage);
+
+  // test that (n more) is gone
+  let moreNode = mc.a('expandedtoBox', {class: 'moreIndicator'});
+  if (!moreNode.collapsed) {
+    throw new Error("more node should be collapsed in n=0 case");
+  }
+
+  // get the description element containing the addresses
+  let toDescription = mc.a('expandedtoBox', {class: "headerValue"});
+
+  // test that we actually have more lines than the 3 we know are filled
+  let newNumLines = help_get_num_lines(toDescription);
+  if (newNumLines <= 3) {
+    throw new Error("number of address lines present in all addresses mode = " +
+      newNumLines + "<= number of expected minimum of 3 lines filled");
+  }
 }
 
 /**
