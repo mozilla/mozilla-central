@@ -41,7 +41,7 @@ interface nsIMsgWindow;
 interface nsIArray;
 interface nsIMutableArray;
 
-[scriptable, uuid(7512f927-b8f0-48c4-b101-03e859e61281)]
+[scriptable, uuid(8D4950BC-9D6F-4886-94A2-A0A551B3376E)] 
 interface nsIAutoSyncState : nsISupports {
 
   /**
@@ -54,21 +54,14 @@ interface nsIAutoSyncState : nsISupports {
   /** STATUS issued. Will check to see if  any counts changed since last STATUS */
   const long stStatusIssued = 1;
 
-  /**
-   * Status found new messages. Update should be issued next. Status most
-   * likely was issued by non-autosync code (e.g., check other folders for
-   * new messages).
-   */
-  const long stUpdateNeeded = 2;
-
   /** Update issued. Will figure out if there are any bodies to download */
-  const long stUpdateIssued = 3;
+  const long stUpdateIssued = 2;
 
   /** Message body download in progress */
-  const long stDownloadInProgress = 4;
+  const long stDownloadInProgress = 3;
 
   /** ready to download the next group of messages */
-  const long stReadyToDownload = 5;
+  const long stReadyToDownload = 4;
 
   /**
    * Puts the download queue offset to its previous position. 
@@ -95,11 +88,6 @@ interface nsIAutoSyncState : nsISupports {
    * Tests whether the given folder has the same imap server. 
    */
   boolean isSibling(in nsIAutoSyncState aAnotherStateObj);
-
-  /**
-   * Update the folder to find new message headers to download
-   */
-  void updateFolder();
 
   /**
    * Downloads the bodies of the given messages from the server.

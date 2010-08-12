@@ -379,9 +379,6 @@ protected:
 
   nsresult MarkMessagesImapDeleted(nsTArray<nsMsgKey> *keyArray, PRBool deleted, nsIMsgDatabase *db);
 
-  // Notifies imap autosync that it should update this folder when it
-  // gets a chance.
-  void NotifyHasPendingMsgs();
   void UpdatePendingCounts();
   void SetIMAPDeletedFlag(nsIMsgDatabase *mailDB, const nsTArray<nsMsgKey> &msgids, PRBool markDeleted);
   virtual PRBool ShowDeletedMessages();

@@ -113,7 +113,7 @@ interface nsIAutoSyncMgrListener : nsISupports {
 };
 
 
-[scriptable, uuid(7fe0b48e-f5d8-4747-beb7-888c9cced3a5)]
+[scriptable, uuid(E8DC3FD2-E321-400B-B52D-416E39EF5335)] 
 interface nsIAutoSyncManager : nsISupports {
 
   /** 
@@ -121,26 +121,26 @@ interface nsIAutoSyncManager : nsISupports {
    */
   const long dmParallel = 0;
   const long dmChained = 1;
-
+  
   /**
    * Suggested minimum grouping size in bytes for message downloads.
    * Setting this attribute to 0 resets its value to the 
    * hardcoded default.
    */
   attribute unsigned long groupSize;
-
-  /**
+  
+  /** 
    * Active strategy function to prioritize
    * messages in the download queue
    */
   attribute nsIAutoSyncMsgStrategy msgStrategy;
-
-  /**
+  
+  /** 
    * Active strategy function to prioritize
    * folders in the download queue
    */
   attribute nsIAutoSyncFolderStrategy folderStrategy;
-
+  
   /**
    * Adds a listener to notify about auto-sync events
    */
@@ -197,15 +197,7 @@ interface nsIAutoSyncManager : nsISupports {
    * Active download model; Chained (serial), or Parallel
    */
   attribute long downloadModel;
-
-  /**
-   * The imap folder corresponding to aAutoSyncState has had a message
-   * added to it. Autosync may want to add this folder to the update q.
-   *
-   * @param aAutoSyncState state obj for folder needing updating
-   */
-  void onFolderHasPendingMsgs(in nsIAutoSyncState aAutoSyncState);
-
+  
   /// Pause autosync (e.g., we're downloading for offline).
   void pause();
   
