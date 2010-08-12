@@ -2036,7 +2036,7 @@ NS_IMETHODIMP nsImapMailFolder::ReadFromFolderCacheElem(nsIMsgFolderCacheElement
   PRInt32 lastSyncTimeInSec;
   if ( NS_FAILED(element->GetInt32Property("lastSyncTimeInSec", (PRInt32 *) &lastSyncTimeInSec)) )
     lastSyncTimeInSec = 0U;
-  
+
   // make sure that auto-sync state object is created
   InitAutoSyncState();
   m_autoSyncStateObj->SetLastSyncTimeInSec(lastSyncTimeInSec);
@@ -2940,6 +2940,9 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxStatus(
   SetPerformingBiff(PR_FALSE);
   if (m_numServerUnseenMessages != numUnread || m_numServerTotalMessages != numTotal)
   {
+    if (numUnread > m_numServerUnseenMessages ||
+        m_numServerTotalMessages > numTotal)
+      NotifyHasPendingMsgs();
     summaryChanged = PR_TRUE;
     m_numServerUnseenMessages = numUnread;
     m_numServerTotalMessages = numTotal;
@@ -5421,7 +5424,7 @@ void nsImapMailFolder::UpdatePendingCounts()
 {
   if (m_copyState)
   {
-    ChangeNumPendingTotalMessages(m_copyState->m_isCrossServerOp ? 1 : m_copyState->m_totalCount);
+    ChangePendingTotal(m_copyState->m_isCrossServerOp ? 1 : m_copyState->m_totalCount);
 
     // count the moves that were unread
     int numUnread = m_copyState->m_unreadCount;
@@ -5674,24 +5677,25 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
     {
       nsTArray<nsMsgKey> keysToDownload;
       GetBodysToDownload(&keysToDownload);
-      if (!keysToDownload.IsEmpty())
+      // this is the case when DownloadAllForOffline is called.
+      if (!keysToDownload.IsEmpty() && (m_downloadingFolderForOfflineUse ||
+                                        autoDownloadNewHeaders))
       {
-        // this is the case when DownloadAllForOffline is called.
-        if (m_downloadingFolderForOfflineUse || autoDownloadNewHeaders)
-        {
-          notifiedBodies = PR_TRUE;
-          aProtocol->NotifyBodysToDownload(keysToDownload.Elements(), keysToDownload.Length());
-        }
-        else
-        {
-          // create auto-sync state object lazily
-          InitAutoSyncState();
-        
-          // make enough room for new downloads
-          m_autoSyncStateObj->ManageStorageSpace();
-          
-          m_autoSyncStateObj->OnNewHeaderFetchCompleted(keysToDownload);
-        }
+        notifiedBodies = PR_TRUE;
+        aProtocol->NotifyBodysToDownload(keysToDownload.Elements(), keysToDownload.Length());
+      }
+      else
+      {
+        // create auto-sync state object lazily
+        InitAutoSyncState();
+
+        // make enough room for new downloads
+        m_autoSyncStateObj->ManageStorageSpace();
+        m_autoSyncStateObj->SetServerCounts(m_numServerTotalMessages,
+                                            m_numServerRecentMessages,
+                                            m_numServerUnseenMessages,
+                                            m_nextUID);
+        m_autoSyncStateObj->OnNewHeaderFetchCompleted(keysToDownload);
       }
     }
     if (!notifiedBodies)
@@ -9052,7 +9056,18 @@ NS_IMETHODIMP nsImapMailFolder::GetCustomIdentity(nsIMsgIdentity **aIdentity)
 NS_IMETHODIMP nsImapMailFolder::ChangePendingTotal(PRInt32 aDelta)
 {
   ChangeNumPendingTotalMessages(aDelta);
+  if (aDelta > 0)
+    NotifyHasPendingMsgs();
   return NS_OK;
+}
+
+void nsImapMailFolder::NotifyHasPendingMsgs()
+{
+  InitAutoSyncState();
+  nsresult rv;
+  nsCOMPtr<nsIAutoSyncManager> autoSyncMgr = do_GetService(NS_AUTOSYNCMANAGER_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv)) 
+    autoSyncMgr->OnFolderHasPendingMsgs(m_autoSyncStateObj);
 }
 
 /* void changePendingUnread (in long aDelta); */
@@ -9093,10 +9108,10 @@ NS_IMETHODIMP nsImapMailFolder::GetServerNextUID(PRInt32 *aNextUID)
 NS_IMETHODIMP nsImapMailFolder::GetAutoSyncStateObj(nsIAutoSyncState **autoSyncStateObj)
 {
   NS_ENSURE_ARG_POINTER(autoSyncStateObj);
-  
+
   // create auto-sync state object lazily
   InitAutoSyncState();
-    
+
   NS_IF_ADDREF(*autoSyncStateObj = m_autoSyncStateObj);
   return NS_OK;
 }
@@ -9129,12 +9144,24 @@ NS_IMETHODIMP nsImapMailFolder::InitiateAutoSync(nsIUrlListener *aUrlListener)
   nsresult rv = m_autoSyncStateObj->ManageStorageSpace();
   NS_ENSURE_SUCCESS(rv, rv);
 
+  PRInt32 syncState;
+  m_autoSyncStateObj->GetState(&syncState);
+  if (syncState == nsAutoSyncState::stUpdateNeeded)
+    return m_autoSyncStateObj->UpdateFolder();
+
+  // We only want to init the autosyncStateObj server counts the first time
+  // we update, and update it when the STATUS call finishes. This deals with
+  // the case where biff is doing a STATUS on a non-inbox folder, which
+  // can make autosync think the counts aren't changing.
+  PRTime lastUpdateTime;
+  m_autoSyncStateObj->GetLastUpdateTime(&lastUpdateTime);
+  if (!lastUpdateTime)
+    m_autoSyncStateObj->SetServerCounts(m_numServerTotalMessages,
+                                        m_numServerRecentMessages,
+                                        m_numServerUnseenMessages,
+                                        m_nextUID);
   // Issue a STATUS command and see if any counts changed.
   m_autoSyncStateObj->SetState(nsAutoSyncState::stStatusIssued);
-  m_autoSyncStateObj->SetServerCounts(m_numServerTotalMessages,
-                                      m_numServerRecentMessages,
-                                      m_numServerUnseenMessages,
-                                      m_nextUID);
   // The OnStopRunningUrl method of the autosync state obj
   // will check if the counts or next uid have changed,
   // and if so, will issue an UpdateFolder().
