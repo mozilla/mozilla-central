@@ -105,6 +105,13 @@ class nsIMsgFolder;
  * Download Model:
  *  Parallel model should be used with the imap servers that do not have any "max number of sessions
  *  per IP" limit, and when the bandwidth is significantly large.
+ *
+ * How it really works:
+ * The AutoSyncManager gets an idle notification. First it processes any
+ * folders in the discovery queue (which means it schedules message download
+ * for any messages it previously determined it should download). Then it sets
+ * a timer, and in the timer callback, it processes the update q, by calling 
+ * InitiateAutoSync on the first folder in the update q.
  */
  
 /**
@@ -156,7 +163,7 @@ class nsAutoSyncManager : public nsIObserver,
   static const PRUint32 kFirstGroupSizeLimit = 60U*1024U /* 60K */; 
   static const PRInt32 kIdleTimeInSec = 10;
   static const PRUint32 kGroupRetryCount = 3;
-  
+
   enum IdleState { systemIdle, appIdle, notIdle };
   enum UpdateState { initiated, completed };
       
@@ -167,24 +174,24 @@ class nsAutoSyncManager : public nsIObserver,
     NS_DECL_NSIAUTOSYNCMANAGER
 
     nsAutoSyncManager();
-    
+
   private:
     ~nsAutoSyncManager();
 
-    void SetIdleState(IdleState st);    
+    void SetIdleState(IdleState st);
     IdleState GetIdleState() const;
     nsresult StartIdleProcessing();
     nsresult AutoUpdateFolders(); 
     void ScheduleFolderForOfflineDownload(nsIAutoSyncState *aAutoSyncStateObj);
     nsresult DownloadMessagesForOffline(nsIAutoSyncState *aAutoSyncStateObj, PRUint32 aSizeLimit = 0);
     nsresult HandleDownloadErrorFor(nsIAutoSyncState *aAutoSyncStateObj, const nsresult error);
-    
+
     // Helper methods for priority Q operations
     static
-    void ChainFoldersInQ(const nsCOMArray<nsIAutoSyncState> &aQueue, 
+    void ChainFoldersInQ(const nsCOMArray<nsIAutoSyncState> &aQueue,
                           nsCOMArray<nsIAutoSyncState> &aChainedQ);
     static
-    nsIAutoSyncState* SearchQForSibling(const nsCOMArray<nsIAutoSyncState> &aQueue, 
+    nsIAutoSyncState* SearchQForSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
                           nsIAutoSyncState *aAutoSyncStateObj, PRInt32 aStartIdx, PRInt32 *aIndex = nsnull);
     static
     PRBool DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncState> &aQueue, 
@@ -196,35 +203,37 @@ class nsAutoSyncManager : public nsIObserver,
     static 
     nsIAutoSyncState* GetHighestPrioSibling(const nsCOMArray<nsIAutoSyncState> &aQueue, 
                           nsIAutoSyncState *aAutoSyncStateObj, PRInt32 *aIndex = nsnull);
-    
+
     /// timer to process existing keys and updates
     void InitTimer();
     static void TimerCallback(nsITimer *aTimer, void *aClosure);
     void StopTimer();
     void StartTimerIfNeeded();
-    
+
     /// pref helpers
     PRUint32 GetUpdateIntervalFor(nsIAutoSyncState *aAutoSyncStateObj);
-    
+
   protected:
     nsCOMPtr<nsIAutoSyncMsgStrategy> mMsgStrategyImpl;
     nsCOMPtr<nsIAutoSyncFolderStrategy> mFolderStrategyImpl;
     // contains the folders that will be downloaded on background
     nsCOMArray<nsIAutoSyncState> mPriorityQ;
-    // contains the folders that will be examined for existing headers
+    // contains the folders that will be examined for existing headers and
+    // adds the headers we don't have offline into the autosyncState
+    // object's download queue.
     nsCOMArray<nsIAutoSyncState> mDiscoveryQ;
-    // contains the folders that will be updated in order
-    // (see nsImapMailFolder::UpdateFolder for update operation)
+    // contains the folders that will be checked for new messages with STATUS,
+    // and if there are any, we'll call UpdateFolder on them.
     nsCOMArray<nsIAutoSyncState> mUpdateQ;
     // this is the update state for the current folder.
     UpdateState mUpdateState;
-    
+
     // This is set if auto sync has been completely paused.
     PRBool mPaused;
     // This is set if we've finished startup and should start
     // paying attention to idle notifications.
     PRBool mStartupDone;
-   
+
   private:
     PRUint32 mGroupSize;
     IdleState mIdleState;
