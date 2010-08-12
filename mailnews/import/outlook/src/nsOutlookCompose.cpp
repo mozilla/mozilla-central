@@ -475,6 +475,34 @@ void nsOutlookCompose::ExtractCharset( nsString& str)
     str.Truncate();
 }
 
+void nsOutlookCompose::ExtractMetaCharset( nsCString str, nsString& newstr)
+{
+  PRInt32 idx_endhead = str.Find( "/head", CaseInsensitiveCompare);
+  PRInt32 idx_charset = str.Find( "charset=", CaseInsensitiveCompare);
+  if (idx_charset == -1 || idx_endhead == -1 || idx_charset > idx_endhead) {
+    newstr.Truncate();
+    return;
+  }
+
+  idx_charset += 8;
+
+  // remove everything from the string after the next ; or " or space,
+  // whichever comes first.
+  // The inital sting looks something like
+  // <META content="text/html; charset=utf-8" http-equiv=Content-Type>
+  // <META content="text/html; charset=utf-8;" http-equiv=Content-Type>
+  // <META content="text/html; charset=utf-8 ;" http-equiv=Content-Type>
+  // <META content="text/html; charset=utf-8 " http-equiv=Content-Type>
+  PRInt32 idx  = str.FindCharInSet( ";\" ", idx_charset);
+
+  if (idx == kNotFound) {
+    // what??, no ; " or space, we give up
+    newstr.Truncate();
+  } else {
+    CopyASCIItoUTF16 (Substring(str, idx_charset, idx - idx_charset), newstr);
+  }
+}
+
 void nsOutlookCompose::ExtractType( nsString& str)
 {
   nsString tStr;
@@ -604,8 +632,10 @@ nsresult nsOutlookCompose::SendTheMessage(nsMsgDeliverMode mode, nsCString &useT
   // Use platform charset as default if the msg doesn't specify one
   // (ie, no 'charset' param in the Content-Type: header). As the last
   // resort we'll use the mail default charset.
+  PRBool try_to_improve_charset = PR_FALSE;
   if (headerVal.IsEmpty())
   {
+    try_to_improve_charset = PR_TRUE;
     CopyASCIItoUTF16(nsMsgI18NFileSystemCharset(), headerVal);
     if (headerVal.IsEmpty())
     { // last resort
@@ -613,8 +643,22 @@ nsresult nsOutlookCompose::SendTheMessage(nsMsgDeliverMode mode, nsCString &useT
                                                   NS_LITERAL_STRING("ISO-8859-1"), headerVal);
     }
   }
-  m_pMsgFields->SetCharacterSet( NS_LossyConvertUTF16toASCII(headerVal).get() );
   charSet = headerVal;
+
+  char *pMimeType = nsnull;
+  if (!bodyType.IsEmpty())
+    pMimeType = ToNewCString(bodyType);
+  if (!pMimeType)
+    pMimeType = NS_strdup ("text/plain");
+
+  if (try_to_improve_charset && strcmp (pMimeType, "text/html") == 0) {
+    // get charset from HTML meta tag
+    ExtractMetaCharset (m_Body, headerVal);
+    if (headerVal.IsEmpty())
+      headerVal = charSet;
+  }
+
+  m_pMsgFields->SetCharacterSet( NS_LossyConvertUTF16toASCII(headerVal).get() );
   GetHeaderValue( m_Headers.get(), m_Headers.Length(), "CC:", headerVal);
   if (!headerVal.IsEmpty())
     m_pMsgFields->SetCc( headerVal);
@@ -628,13 +672,7 @@ nsresult nsOutlookCompose::SendTheMessage(nsMsgDeliverMode mode, nsCString &useT
     m_pMsgFields->SetReplyTo( headerVal);
 
   // what about all of the other headers?!?!?!?!?!?!
-  char *pMimeType = nsnull;
-  if (!bodyType.IsEmpty())
-    pMimeType = ToNewCString(bodyType);
 
-  if (!pMimeType)
-    pMimeType = strdup ("text/plain");
-  // IMPORT_LOG0( "Outlook compose calling CreateAndSendMessage\n");
   nsMsgAttachedFile *pAttach = GetLocalAttachments();
 
   // Do body conversion here
@@ -646,6 +684,7 @@ nsresult nsOutlookCompose::SendTheMessage(nsMsgDeliverMode mode, nsCString &useT
                                     uniBody, body);
   uniBody.Truncate();
 
+  // IMPORT_LOG0( "Outlook compose calling CreateAndSendMessage\n");
   rv = m_pSendProxy->CreateAndSendMessage(
                     nsnull,                       // no editor shell
                     m_pIdentity,                  // dummy identity

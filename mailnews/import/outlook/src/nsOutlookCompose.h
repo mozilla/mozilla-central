@@ -152,6 +152,7 @@ private:
     CopyUTF8toUTF16(hVal, val);
   }
   void    ExtractCharset( nsString& str);
+  void    ExtractMetaCharset( nsCString str, nsString& newstr);
   void    ExtractType( nsString& str);
 
   nsMsgAttachedFile * GetLocalAttachments( void);
