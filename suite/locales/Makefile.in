@@ -200,10 +200,10 @@ libs-%:
 	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$* BOTH_MANIFESTS=1
 	@$(MAKE) -C ../../editor/ui/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	if test -d ../../mozilla/extensions/irc; then \
-	  $(MAKE) -C ../../mozilla/extensions/irc/locales libs-$* \
+	  $(MAKE) -C ../../mozilla/extensions/irc/locales libs-$*; \
 	fi
 	if test -d ../../mozilla/extensions/venkman; then \
-	  $(MAKE) -C ../../mozilla/extensions/venkman/locales libs-$* \
+	  $(MAKE) -C ../../mozilla/extensions/venkman/locales libs-$*; \
 	fi
 	@$(MAKE) -C ../../mozilla/extensions/reporter/locales libs AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) -C ../../mozilla/extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
