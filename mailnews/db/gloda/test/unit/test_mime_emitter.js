@@ -282,6 +282,8 @@ function test_stream_message(info) {
   MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
     verify_stream_message(info, synMsg, aMsgHdr, aMimeMsg);
   });
+
+  yield false;
 }
 
 var deathToNewlineTypeThings = /[\r\n]+/g;
@@ -386,6 +388,86 @@ function test_sane_bodies() {
       do_throw("Mime body length is " + bodyPart.body.length + " bytes long but should not be!");
     async_driver();
   }, false, {saneBodySize: true});
+
+  yield false;
+}
+
+// additional testing for the correctness of allAttachments and
+// allUserAttachments representation
+
+var partTachNestedMessages = [
+  msgGen.makeMessage(),
+  msgGen.makeMessage({
+      attachments: [tachImage]
+    }),
+  msgGen.makeMessage({
+      attachments: [tachImage, { contentType: "message/rfc822", body: "W000t" }, tachApplication]
+    })
+];
+
+var attMessagesParams = [
+  {
+    name: 'attached rfc822',
+    bodyPart: new SyntheticPartMultiMixed([partAlternative,
+                                           partTachNestedMessages[0]]),
+  },
+  {
+    name: 'attached rfc822 w. image inside',
+    bodyPart: new SyntheticPartMultiMixed([partAlternative,
+                                           partTachNestedMessages[1]]),
+  },
+  {
+    name: 'attached x/funky + attached rfc822 w. (image + rfc822 + x/funky) inside',
+    bodyPart: new SyntheticPartMultiMixed([partAlternative,
+                                           partTachApplication,
+                                           partTachNestedMessages[2]]),
+  }
+];
+
+var expectedAttachmentsInfo = [
+  {
+    allAttachmentsContentTypes: [],
+    allUserAttachmentsContentTypes: ["message/rfc822"]
+  },
+  {
+    allAttachmentsContentTypes: ["image/png"],
+    allUserAttachmentsContentTypes: ["message/rfc822"]
+  },
+  {
+    allAttachmentsContentTypes: ["application/x-funky", "image/png", "application/x-funky"],
+    allUserAttachmentsContentTypes: ["application/x-funky", "message/rfc822"]
+  },
+];
+
+function test_attachments_correctness () {
+  for each (let [i, params] in Iterator(attMessagesParams)) {
+    let synMsg = gMessageGenerator.makeMessage(params);
+    let synSet = new SyntheticMessageSet([synMsg]);
+    yield add_sets_to_folder(gInbox, [synSet]);
+
+    let msgHdr = synSet.getMsgHdr(0);
+
+    MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
+      try {
+        let expected = expectedAttachmentsInfo[i];
+
+        do_check_eq(aMimeMsg.allAttachments.length, expected.allAttachmentsContentTypes.length);
+        for each (let [j, att] in Iterator(aMimeMsg.allAttachments))
+          do_check_eq(att.contentType, expected.allAttachmentsContentTypes[j]);
+
+        do_check_eq(aMimeMsg.allUserAttachments.length, expected.allUserAttachmentsContentTypes.length);
+        for each (let [j, att] in Iterator(aMimeMsg.allUserAttachments))
+          do_check_eq(att.contentType, expected.allUserAttachmentsContentTypes[j]);
+      } catch (e) {
+        dump(aMimeMsg.prettyString()+"\n");
+        do_throw(e);
+      }
+
+      async_driver();
+    }, false);
+
+    yield false;
+  }
 }
 
 /* ===== Driver ===== */
@@ -393,6 +475,7 @@ function test_sane_bodies() {
 var tests = [
   parameterizeTest(test_stream_message, messageInfos),
   test_sane_bodies,
+  test_attachments_correctness,
 ];
 
 var gInbox;

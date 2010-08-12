@@ -129,8 +129,18 @@ CallbackStreamListener.prototype = {
 
     delete MsgHdrToMimeMessage.RESULT_RENDEVOUZ[aContext.spec];
 
-    for (let i = 0; i < this._callbacksThis.length; i++)
-      this._callbacks[i].call(this._callbacksThis[i], this._msgHdr, message);
+    for (let i = 0; i < this._callbacksThis.length; i++) {
+      try {
+        this._callbacks[i].call(this._callbacksThis[i], this._msgHdr, message);
+      } catch (e) {
+        // Most of the time, exceptions will silently disappear into the endless
+        // deeps of XPConnect, and never reach the surface ever again. At least
+        // warn the user if he has dump enabled.
+        dump("The MsgHdrToMimeMessage callback threw an exception: "+e+"\n");
+        // That one will probably never make it to the original caller.
+        throw(e);
+      }
+    }
 
     this._msgHdr = null;
     this._request = null;
@@ -347,6 +357,21 @@ MimeMessage.prototype = {
   },
 
   /**
+   * @return a list of all attachments contained in this message, with
+   *    included/forwarded messages treated as real attachments. Attachments
+   *    contained in inner messages won't be shown.
+   */
+  get allUserAttachments() {
+    if (this.url)
+      // The jsmimeemitter camouflaged us as a MimeAttachment
+      return [this];
+    else
+      // Why is there no flatten method for arrays?
+      return [child.allUserAttachments for each ([, child] in Iterator(this.parts))]
+        .reduce(function (a, b) a.concat(b), []);
+  },
+
+  /**
    * @param aMsgFolder A message folder, any message folder.  Because this is
    *    a hack.
    * @return The concatenation of all of the body parts where parts
@@ -423,6 +448,10 @@ MimeContainer.prototype = {
     }
     return results;
   },
+  get allUserAttachments () {
+    return [child.allUserAttachments for each ([, child] in Iterator(this.parts))]
+      .reduce(function (a, b) a.concat(b), []);
+  },
   coerceBodyToPlaintext:
       function MimeContainer_coerceBodyToPlaintext(aMsgFolder) {
     if (this.contentType == "multipart/alternative") {
@@ -482,6 +511,9 @@ MimeBody.prototype = {
   get allAttachments() {
     return []; // we are a leaf
   },
+  get allUserAttachments() {
+    return []; // we are a leaf
+  },
   coerceBodyToPlaintext:
       function MimeBody_coerceBodyToPlaintext(aMsgFolder) {
     if (this.contentType == "text/plain")
@@ -520,6 +552,9 @@ function MimeUnknown(aContentType) {
 MimeUnknown.prototype = {
   __proto__: HeaderHandlerBase,
   get allAttachments() {
+    return []; // we are a leaf
+  },
+  get allUserAttachments() {
     return []; // we are a leaf
   },
   prettyString: function MimeUnknown_prettyString(aVerbose, aIndent) {
@@ -589,6 +624,9 @@ MimeMessageAttachment.prototype = {
   },
   get allAttachments() {
     return [this]; // we are a leaf, so just us.
+  },
+  get allUserAttachments() {
+    return [this];
   },
   prettyString: function MimeMessageAttachment_prettyString(aVerbose, aIndent) {
     let s = "Attachment: " + this.name + ", " + this.contentType;

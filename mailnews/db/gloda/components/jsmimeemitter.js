@@ -341,7 +341,20 @@ MimeMessageEmitter.prototype = {
     this._state = kStateInAttachment;
 
     if (aContentType == "message/rfc822") {
-      // we already have all we need to know about the message, ignore it
+      // we want to offer extension authors a way to see attachments as the
+      // message readers sees them, which means attaching an extra url property
+      // to the part that was already created before
+      aUrl = aUrl.replace("header=filter&emitter=js&", "");
+      let partMatch = this._partRE.exec(aUrl);
+      if (partMatch) {
+        // we disguise this MimeMessage into something that can be used as a
+        // MimeAttachment so that it is transparent for the user code
+        let partName = partMatch[1];
+        this._partMap[partName].url = aUrl;
+        this._partMap[partName].isExternalAttachment = aIsExternalAttachment;
+        this._partMap[partName].name = aName;
+        this._partMap[partName].isRealAttachment = true;
+      }
     }
     else if (aIsExternalAttachment) {
       // external attachments do not pass their part path information.
