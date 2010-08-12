@@ -67,7 +67,8 @@ const msgFlagOffline = Ci.nsMsgMessageFlags.Offline;
 
 var gGotAlert;
 
-var gAutoSyncManager;
+var gAutoSyncManager = Cc["@mozilla.org/imap/autosyncmgr;1"]
+                       .getService(Ci.nsIAutoSyncManager);
 
 var CopyListener = {
   OnStartCopy: function() {},
@@ -214,8 +215,6 @@ function run_test()
   MFNService.addListener(mfnListener, flags);
   addMessageToFolder(gIMAPInbox);
 
-  gAutoSyncManager = Cc["@mozilla.org/imap/autosyncmgr;1"]
-                       .getService(Ci.nsIAutoSyncManager);
   async_run_tests(tests);
 }
 
