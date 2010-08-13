@@ -80,8 +80,8 @@ function getBestIdentity(identities, optionalHint)
       // as one of your multiple identities.
 
       if (!identity) {
-        for (id = 0; id < identitiesCount; ++id) {
-          tempID = identities.GetElementAt(id).QueryInterface(Components.interfaces.nsIMsgIdentity);
+        let nsIMsgIdentity = Components.interfaces.nsIMsgIdentity;
+        for each (var tempID in fixIterator(identities, nsIMsgIdentity)) {
           // extract out the partial domain
           var start = tempID.email.lastIndexOf("@"); // be sure to include the @ sign in our search to reduce the risk of false positives
           if (optionalHint.search(tempID.email.slice(start).toLowerCase()) >= 0) {
@@ -339,14 +339,6 @@ function NewMessageToSelectedAddresses(type, format, identity) {
       msgComposeService.OpenComposeWindowWithParams(null, params);
     }
   }
-}
-
-function NewFolder(name, folder)
-{
-  if (!folder || !name)
-    return;
-
-  folder.createSubfolder(name, msgWindow);
 }
 
 function Subscribe(preselectedMsgFolder)
