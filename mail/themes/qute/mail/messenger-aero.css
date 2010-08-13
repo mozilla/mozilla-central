@@ -3,3 +3,54 @@
 .toolbar-primary {
   -moz-appearance: none;
 }
+
+.foldersTree {
+  -moz-appearance: none;
+}
+
+@media all and (-moz-windows-default-theme) {
+  treechildren::-moz-tree-row {
+    border: 1px solid transparent;
+  }
+
+  treechildren::-moz-tree-row(hover) {
+    border: 1px solid Highlight;
+  }
+
+  listitem,
+  treechildren::-moz-tree-row {
+    min-height: 20px;
+    border-width: 2px !important;
+    -moz-border-radius: 3px;
+  }
+
+  listitem[selected="true"],
+  treechildren::-moz-tree-row(hover),
+  treechildren::-moz-tree-row(selected),
+  treechildren::-moz-tree-row(dummy, selected) {
+    background-image: -moz-linear-gradient(rgba(255,255,255,.98), rgba(255,255,255,.82)) !important;
+    background-repeat: no-repeat;
+    background-color: Highlight;
+    background-size: 100% 100%;
+    -moz-border-top-colors: Highlight rgba(255,255,255,.4) !important;
+    -moz-border-right-colors: Highlight rgba(255,255,255,.4) !important;
+    -moz-border-left-colors: Highlight rgba(255,255,255,.4) !important;
+    -moz-border-bottom-colors: Highlight rgba(255,255,255,.6) !important;
+  }
+
+  listitem[selected="true"][current="true"],
+  treechildren::-moz-tree-row(selected, focus),
+  treechildren::-moz-tree-row(dummy, selected, focus) {
+    background-image: -moz-linear-gradient(rgba(255,255,255,.85), rgba(255,255,255,.6)) !important;
+  }
+
+  treechildren::-moz-tree-cell-text {
+    border-color: transparent;
+	background-color: transparent;
+  }
+
+  listitem[selected="true"][current="true"],
+  treechildren::-moz-tree-cell-text(selected, focus) {
+    color: -moz-DialogText;
+  }
+}

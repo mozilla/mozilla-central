@@ -27,3 +27,7 @@ treechildren::-moz-tree-image(unreadButtonColHeader) {
 treechildren::-moz-tree-image(junkStatusCol) {
   -moz-margin-start: -3px;
 }
+
+#threadTree treechildren::-moz-tree-row(odd) {
+  background-image: none;
+}
