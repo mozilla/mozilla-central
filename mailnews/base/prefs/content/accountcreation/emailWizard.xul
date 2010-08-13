@@ -386,7 +386,7 @@
       </groupbox>
     </vbox>
     <spacer flex="1"/>
-    <hbox>
+    <hbox id="button_box">
       <button id="advanced_settings"
               label="&manualSetup.label;"
               accesskey="&manualSetup.accesskey;"

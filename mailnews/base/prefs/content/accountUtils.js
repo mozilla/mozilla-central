@@ -213,7 +213,12 @@ function MsgAccountWizard(wizardCallback)
   setTimeout(function() { msgOpenAccountWizard(wizardCallback); }, 0);
 }
 
-// @see msgNewMailAccount below
+/**
+ * Open the Old Mail Account Wizard, or focus it if it's already open.
+ *
+ * @param wizardCallback if the wizard is run, callback when it is done.
+ * @see msgNewMailAccount below for the new implementation.
+ */
 function msgOpenAccountWizard(wizardCallback)
 {
   gNewAccountToLoad = null;
@@ -315,15 +320,24 @@ function migrateGlobalQuotingPrefs(allIdentities)
 // we do this from a timer because if this is called from the onload=
 // handler, then the parent window doesn't appear until after the wizard
 // has closed, and this is confusing to the user
-function NewMailAccount(msgWindow, okCallback)
+function NewMailAccount(msgWindow, okCallback, extraData)
 {
   if (!msgWindow)
     throw new Error("NewMailAccount must be given a msgWindow.");
-  setTimeout(msgNewMailAccount, 0, msgWindow, okCallback);
+  setTimeout(msgNewMailAccount, 0, msgWindow, okCallback, extraData);
 }
 
-// @see msgOpenAccountWizard above
-function msgNewMailAccount(msgWindow, okCallback)
+/**
+ * Open the New Mail Account Wizard, or focus it if it's already open.
+ *
+ * @param msgWindow a msgWindow for us to use to verify the accounts.
+ * @param okCallback an optional callback for us to call back to if
+ *                   everything's okay.
+ * @param extraData an optional param that allows us to pass data in and
+ *                  out.  Used in the upcoming AccountProvisioner add-on.
+ * @see msgOpenAccountWizard below for the previous implementation.
+ */
+function msgNewMailAccount(msgWindow, okCallback, extraData)
 {
   if (!msgWindow)
     throw new Error("msgNewMailAccount must be given a msgWindow.");
@@ -335,7 +349,10 @@ function msgNewMailAccount(msgWindow, okCallback)
     existingWindow.focus();
   else
     window.openDialog("chrome://messenger/content/accountcreation/emailWizard.xul",
-                      "AccountSetup", "chrome,titlebar,centerscreen",{msgWindow:msgWindow, okCallback:okCallback});
+                      "AccountSetup", "chrome,titlebar,centerscreen",
+                      {msgWindow:msgWindow,
+                       okCallback:okCallback,
+                       extraData:extraData});
 
   // If we started with no servers at all and "smtp servers" list selected,
   // refresh display somehow. Bug 58506.
