@@ -66,7 +66,15 @@ endif # } LIBXUL_SDK
 MOZ_PKG_APPNAME = $(MOZ_APP_NAME)
 APPNAME = $(MOZ_APP_DISPLAYNAME)$(DBGTAG).app
 INSTALLER_DIR = $(MOZ_BUILD_APP)/installer
-BUILDCONFIG_JAR = $(APP_CONTENTS)/chrome/toolkit.jar
+BUILDCONFIG_BASE = $(APP_CONTENTS)/chrome
+
+ifeq ($(MOZ_CHROME_FILE_FORMAT),jar)
+BUILDCONFIG = $(BUILDCONFIG_BASE)/toolkit.jar
+FIX_MODE = jar
+else
+BUILDCONFIG = $(BUILDCONFIG_BASE)/toolkit/
+FIX_MODE = file
+endif
 
 postflight_all:
 # Build the universal package out of only the bits that would be released.
@@ -85,9 +93,9 @@ postflight_all:
 	      $(DIST_ARCH_2)/$(MOZ_PKG_APPNAME)/$(APPNAME)/$(APP_CONTENTS)/*.chk
 # The only difference betewen the two trees now should be the
 # about:buildconfig page.  Fix it up.
-	$(TOPSRCDIR)/mozilla/build/macosx/universal/fix-buildconfig \
-	  $(DIST_ARCH_1)/$(MOZ_PKG_APPNAME)/$(APPNAME)/$(BUILDCONFIG_JAR) \
-	  $(DIST_ARCH_2)/$(MOZ_PKG_APPNAME)/$(APPNAME)/$(BUILDCONFIG_JAR)
+	$(TOPSRCDIR)/mozilla/build/macosx/universal/fix-buildconfig $(FIX_MODE) \
+	  $(DIST_ARCH_1)/$(MOZ_PKG_APPNAME)/$(APPNAME)/$(BUILDCONFIG) \
+	  $(DIST_ARCH_2)/$(MOZ_PKG_APPNAME)/$(APPNAME)/$(BUILDCONFIG)
 	mkdir -p $(DIST_UNI)/$(MOZ_PKG_APPNAME)
 	rm -f $(DIST_ARCH_2)/universal
 	ln -s $(DIST_UNI) $(DIST_ARCH_2)/universal
