@@ -70,19 +70,19 @@ const kDeleteOrMoveMsgCompleted = Cc["@mozilla.org/atom-service;1"]
 // application of filters due to a body search
 const gTestArray =
 [  // The initial tests do not result in new messages added.
-  function MoveToFolder() {
-    gAction.type = Ci.nsMsgFilterAction.MoveToFolder;
-    gAction.targetFolderUri = gSubfolder.URI;
-    gChecks = function checkMoveToFolder() {
-      testCounts(false, 0, 0, 0);
-      do_check_eq(gSubfolderCount + 1, folderCount(gSubfolder));
+//  function MoveToFolder() {
+//    gAction.type = Ci.nsMsgFilterAction.MoveToFolder;
+//    gAction.targetFolderUri = gSubfolder.URI;
+//    gChecks = function checkMoveToFolder() {
+//      testCounts(false, 0, 0, 0);
+//      do_check_eq(gSubfolderCount + 1, folderCount(gSubfolder));
       // no net messages were added to the inbox
-      do_check_eq(gInboxCount, folderCount(gIMAPInbox));
-    }
-    gInboxCount = folderCount(gIMAPInbox);
-    gSubfolderCount = folderCount(gSubfolder);
-    setupTest(gFilter, gAction);
-  },
+//      do_check_eq(gInboxCount, folderCount(gIMAPInbox));
+//    }
+//    gInboxCount = folderCount(gIMAPInbox);
+//    gSubfolderCount = folderCount(gSubfolder);
+//    setupTest(gFilter, gAction);
+//  },
   function MoveToFolderBody() {
     gAction.type = Ci.nsMsgFilterAction.MoveToFolder;
     gAction.targetFolderUri = gSubfolder.URI;
