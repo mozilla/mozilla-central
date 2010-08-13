@@ -565,6 +565,27 @@ void nsMsgDatabase::ClearEnumerators()
     copyEnumerators[i]->Clear();
 }
 
+nsMsgThread *nsMsgDatabase::FindExistingThread(nsMsgKey threadId)
+{
+  PRInt32 numThreads = m_threads.Length();
+  for (PRUint32 i = 0; i < numThreads; i++)
+    if (m_threads[i]->m_threadKey == threadId)
+      return m_threads[i];
+
+  return nsnull;
+}
+
+void nsMsgDatabase::ClearThreads()
+{
+  // clear out existing threads
+  nsTArray<nsMsgThread *> copyThreads;
+  copyThreads.SwapElements(m_threads);
+
+  PRInt32 numThreads = copyThreads.Length();
+  for (PRUint32 i = 0; i < numThreads; i++)
+    copyThreads[i]->Clear();
+}
+
 void nsMsgDatabase::ClearCachedObjects(PRBool dbGoingAway)
 {
   ClearHdrCache(PR_FALSE);
@@ -575,13 +596,16 @@ void nsMsgDatabase::ClearCachedObjects(PRBool dbGoingAway)
     printf("leaking %d headers in %s\n", m_headersInUse->entryCount, (const char *) m_dbName);
   }
 #endif
+  m_cachedThread = nsnull;
+  m_cachedThreadId = nsMsgKey_None;
   // We should only clear the use hdr cache when the db is going away, or we could
   // end up with multiple copies of the same logical msg hdr, which will lead to
   // ref-counting problems.
   if (dbGoingAway)
+  {
     ClearUseHdrCache();
-  m_cachedThread = nsnull;
-  m_cachedThreadId = nsMsgKey_None;
+    ClearThreads();
+  }
   m_thumb = nsnull;
 }
 
@@ -3288,8 +3312,13 @@ nsresult nsMsgDBThreadEnumerator::PrefetchNext()
     if (NS_FAILED(rv))
       return rv;
 
-    mResultThread = new nsMsgThread(mDB, table);
-    if(mResultThread)
+    mdbOid tableId;
+    table->GetOid(mDB->GetEnv(), &tableId);
+
+    mResultThread = mDB->FindExistingThread(tableId.mOid_Id);
+    if (!mResultThread)
+      mResultThread = new nsMsgThread(mDB, table);
+    if (mResultThread)
     {
       PRUint32 numChildren = 0;
       NS_ADDREF(mResultThread);
@@ -4646,13 +4675,13 @@ nsresult nsMsgDatabase::GetThreadForMsgKey(nsMsgKey msgKey, nsIMsgThread **aResu
 nsIMsgThread *  nsMsgDatabase::GetThreadForThreadId(nsMsgKey threadId)
 {
 
-  if (threadId == m_cachedThreadId && m_cachedThread)
+  nsIMsgThread *retThread = (threadId == m_cachedThreadId && m_cachedThread) ?
+    m_cachedThread : FindExistingThread(threadId);
+  if (retThread)
   {
-    nsIMsgThread *retThread = m_cachedThread;
     NS_ADDREF(retThread);
     return retThread;
   }
-  nsMsgThread *pThread = nsnull;
   if (m_mdbStore)
   {
     mdbOid tableId;
@@ -4664,16 +4693,16 @@ nsIMsgThread *  nsMsgDatabase::GetThreadForThreadId(nsMsgKey threadId)
 
     if (NS_SUCCEEDED(res) && threadTable)
     {
-      pThread = new nsMsgThread(this, threadTable);
-      if(pThread)
+      retThread = new nsMsgThread(this, threadTable);
+      if (retThread)
       {
-        NS_ADDREF(pThread);
-        m_cachedThread = pThread;
+        NS_ADDREF(retThread);
+        m_cachedThread = retThread;
         m_cachedThreadId = threadId;
       }
     }
   }
-  return pThread;
+  return retThread;
 }
 
 // make the passed in header a thread header

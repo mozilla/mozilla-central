@@ -358,7 +358,16 @@ protected:
   nsresult      AddHdrToUseCache(nsIMsgDBHdr *hdr, nsMsgKey key); 
   nsresult      ClearUseHdrCache();
   nsresult      RemoveHdrFromUseCache(nsIMsgDBHdr *hdr, nsMsgKey key);
-  
+
+  // not-reference holding array of threads we've handed out.
+  // If a db goes away, it will clean up the outstanding threads.
+  // We use an nsTArray because we don't expect to ever have very many
+  // of these, rarely more than 5.
+  nsTArray<nsMsgThread *> m_threads;
+  // Clear outstanding thread objects
+  void ClearThreads();
+  nsMsgThread *FindExistingThread(nsMsgKey threadId);
+
   mdb_pos       FindInsertIndexInSortedTable(nsIMdbTable *table, mdb_id idToInsert);
 
   void          ClearCachedObjects(PRBool dbGoingAway);

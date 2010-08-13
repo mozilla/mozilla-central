@@ -54,6 +54,7 @@ public:
   virtual ~nsMsgThread();
   
   friend class nsMsgThreadEnumerator;
+  friend class nsMsgDatabase;
   
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGTHREAD
@@ -66,6 +67,7 @@ public:
 protected:
 
   void                  Init();
+  void                  Clear();
   virtual nsresult      InitCachedValues();
   nsresult              ChangeChildCount(PRInt32 delta);
   nsresult              ChangeUnreadChildCount(PRInt32 delta);

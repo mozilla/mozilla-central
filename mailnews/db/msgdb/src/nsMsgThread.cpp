@@ -44,7 +44,6 @@
 
 NS_IMPL_ISUPPORTS1(nsMsgThread, nsIMsgThread)
 
-
 nsMsgThread::nsMsgThread()
 {
   MOZ_COUNT_CTOR(nsMsgThread);
@@ -57,8 +56,16 @@ nsMsgThread::nsMsgThread(nsMsgDatabase *db, nsIMdbTable *table)
   m_mdbTable = table;
   m_mdbDB = db;
   if (db)
+  {
     db->AddRef();
-
+    db->m_threads.AppendElement(this);
+  }
+  else
+    NS_ERROR("no db for thread");
+#ifdef DEBUG_David_Bienvenu
+  if (m_mdbDB->m_threads.Length() > 5)
+    printf("more than five outstanding threads\n");
+#endif
   if (table && db)
   {
     table->GetMetaRow(db->GetEnv(), nsnull, nsnull, &m_metaRow);
@@ -84,12 +91,21 @@ void nsMsgThread::Init()
 nsMsgThread::~nsMsgThread()
 {
   MOZ_COUNT_DTOR(nsMsgThread);
-  if (m_mdbTable)
-    m_mdbTable->Release();
-  if (m_metaRow)
-    m_metaRow->Release();
   if (m_mdbDB)
-    m_mdbDB->Release();
+  {
+    PRBool found = m_mdbDB->m_threads.RemoveElement(this);
+    NS_ASSERTION(found, "removing thread not in threads array");
+  }
+  else
+    NS_ERROR("null db in thread");
+  Clear();
+}
+
+void nsMsgThread::Clear()
+{
+  NS_IF_RELEASE(m_mdbTable);
+  NS_IF_RELEASE(m_metaRow);
+  NS_IF_RELEASE(m_mdbDB);
 }
 
 nsresult nsMsgThread::InitCachedValues()
