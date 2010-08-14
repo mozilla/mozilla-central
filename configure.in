@@ -6647,8 +6647,8 @@ else
   else
     _topsrcdirwin=`cd \`dirname $0\`; pwd -W`
     dnl cl.py provides dependency generation for MSVC
-    CC_WRAPPER="$PYTHON -O $_topsrcdirwin/build/cl.py"
-    CXX_WRAPPER="$PYTHON -O $_topsrcdirwin/build/cl.py"
+    CC_WRAPPER="$PYTHON -O $_topsrcdirwin/mozilla/build/cl.py"
+    CXX_WRAPPER="$PYTHON -O $_topsrcdirwin/mozilla/build/cl.py"
     COMPILER_DEPEND=1
   fi
 fi
