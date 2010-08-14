@@ -4195,6 +4195,11 @@ if test -n "$SYSTEM_LIBXUL" && test -z "$MOZ_ENABLE_LIBXUL"; then
     AC_MSG_ERROR([--with-system-libxul needs --with-libxul-sdk])
 fi
 
+MOZ_ARG_DISABLE_BOOL(shared-js,
+[  --disable-shared-js    Disable the shared JavaScript library, use a static.],
+    JS_SHARED_LIBRARY=0,
+    JS_SHARED_LIBRARY=1)
+
 dnl ========================================================
 dnl = If NSPR was not detected in the system, 
 dnl = use the one in the source tree (mozilla/nsprpub)
@@ -7378,11 +7383,18 @@ if test -n "$L10NBASEDIR"; then
     dnl Override the initial value with the new one which is guaranteed to be an absolute path.
     ac_configure_args="$ac_configure_args --with-l10n-base=$L10NBASEDIR"
 fi
+
+# Make sure we've got js set to shared or static appropriately
+if test -z "$JS_SHARED_LIBRARY"; then
+    ac_configure_args="$ac_configure_args --enable-shared-js"
+fi
+
 # for Mac universal builds, we need to call the Mozilla configure with MOZ_BUILD_APP=[ppc|i386]
 MOZ_BUILD_APP_CACHED="$MOZ_BUILD_APP"
 if test -n "$MOZ_CURRENT_PROJECT"; then
     export MOZ_BUILD_APP="$MOZ_CURRENT_PROJECT"
 fi
+
 AC_OUTPUT_SUBDIRS(mozilla)
 ac_configure_args="$_SUBDIR_CONFIG_ARGS"
 MOZ_BUILD_APP="$MOZ_BUILD_APP_CACHED"
