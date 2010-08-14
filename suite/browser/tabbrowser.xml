@@ -1089,6 +1089,9 @@
             // Update the window title.
             this.updateTitlebar();
 
+            // FAYT
+            this.fastFind.setDocShell(this.mCurrentBrowser.docShell);
+
             // If the new tab is busy, and our current state is not busy, then
             // we need to fire a start to all progress listeners.
             const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
