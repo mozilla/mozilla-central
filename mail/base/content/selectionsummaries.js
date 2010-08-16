@@ -205,14 +205,17 @@ MultiMessageSummary.prototype = {
     let numThreads = 0;
     let headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"].
                          getService(Components.interfaces.nsIMsgHeaderParser);
+    let viewThreadId = function (aMsgHdr) {
+      let thread = gDBView.getThreadContainingMsgHdr(aMsgHdr);
+      return thread.threadKey;
+    };
     for (let [,msgHdr] in Iterator(this._msgHdrs))
     {
-      if (! threads[msgHdr.threadId]) {
-        threads[msgHdr.threadId] = [msgHdr];
+      if (! threads[viewThreadId(msgHdr)]) {
+        threads[viewThreadId(msgHdr)] = [msgHdr];
         numThreads += 1;
-      }
-      else {
-        threads[msgHdr.threadId].push(msgHdr);
+      } else {
+        threads[viewThreadId(msgHdr)].push(msgHdr);
       }
     }
 

@@ -338,10 +338,15 @@ MessageDisplayWidget.prototype = {
 
     // figure out if we're looking at one thread or more than one thread
     let selectedMessages = this.folderDisplay.selectedMessages;
-    let firstThreadId = selectedMessages[0].threadId;
+    let selectedIndices = this.folderDisplay.selectedIndices;
+    let dbView = this.folderDisplay.view.dbView;
+    let firstThreadId = dbView.getThreadContainingIndex(selectedIndices[0])
+      .getChildHdrAt(0).messageKey;
     let oneThread = true;
-    for (let i = 0; i < selectedMessages.length; i++) {
-      if (selectedMessages[i].threadId != firstThreadId) {
+    for (let i = 0; i < selectedIndices.length; i++) {
+      let threadId = dbView.getThreadContainingIndex(selectedIndices[i])
+        .getChildHdrAt(0).messageKey;
+      if (threadId != firstThreadId) {
         oneThread = false;
         break;
       }

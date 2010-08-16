@@ -285,3 +285,54 @@ function test_summary_updates_when_new_message_added_to_collapsed_thread() {
   assert_selected(thread1Root);
   assert_messages_summarized(mc, thread1All);
 }
+
+function test_summary_when_multiple_identities() {
+  // First half of the test, makes sure messageDisplay.js understands there's
+  // only one thread
+  let folder1 = create_folder("Search1");
+  be_in_folder(folder1);
+  let thread1 = create_thread(1);
+  add_sets_to_folders([folder1], [thread1]);
+
+  let folder2 = create_folder("Search2");
+  be_in_folder(folder2);
+  make_new_sets_in_folders([folder2], [{count: 1, inReplyTo: thread1}])
+
+  let folderVirtual = create_virtual_folder([folder1, folder2], {}, true, "SearchBoth");
+
+  // Do the needed tricks
+  be_in_folder(folder1);
+  select_click_row(0);
+  plan_to_wait_for_folder_events("DeleteOrMoveMsgCompleted",
+                                 "DeleteOrMoveMsgFailed");
+  mc.window.MsgMoveMessage(folder2);
+  wait_for_folder_events();
+
+  be_in_folder(folder2);
+  select_click_row(1);
+  plan_to_wait_for_folder_events("DeleteOrMoveMsgCompleted",
+                                 "DeleteOrMoveMsgFailed");
+  mc.window.MsgMoveMessage(folder1);
+  wait_for_folder_events();
+
+  be_in_folder(folderVirtual);
+  make_display_threaded();
+  collapse_all_threads();
+
+  // Assertions
+  select_click_row(0);
+  assert_messages_summarized(mc, mc.folderDisplay.selectedMessages);
+  // Thread summary uses class wrappedsender, while multimessage summary uses
+  // class author.
+  assert_summary_contains_N_divs('author', 0);
+  assert_summary_contains_N_divs('wrappedsender', 2);
+
+  // Second half of the test, makes sure MultiMessageSummary groups messages
+  // according to their view thread id
+  let thread1 = create_thread(1);
+  add_sets_to_folders([folder1], [thread1]);
+  be_in_folder(folderVirtual);
+  select_shift_click_row(1);
+
+  assert_summary_contains_N_divs('author', 2);
+}
