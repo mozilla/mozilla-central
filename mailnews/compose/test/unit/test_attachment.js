@@ -210,8 +210,7 @@ function doTest(test)
     // Set a limit in case the notifications haven't arrived (i.e. a problem)
     do_timeout(10000, function() {
         if(gCurTestNum == test)
-	  do_throw("Notifications not received in 10000 ms for operation " + testFn.name +
-            ", current status is " + gCurrStatus);
+	  do_throw("Notifications not received in 10000 ms for operation " + testFn.name);
         }
       );
     try {

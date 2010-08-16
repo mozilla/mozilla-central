@@ -1,4 +1,4 @@
-// This file tests undoing of an imap delete to the trash. 
+// This file tests undoing of an imap delete to the trash.
 // There are three main cases:
 // 1. Normal undo
 // 2. Undo after the source folder has been compacted.
@@ -92,7 +92,7 @@ const gTestArray =
   function undoDelete() {
     gMsgWindow.transactionManager.undoTransaction();
     // after undo, we select the trash and then the inbox, so that we sync
-    // up with the server, and clear out the effects of having done the 
+    // up with the server, and clear out the effects of having done the
     // delete offline.
     let trash = gRootFolder.getChildNamed("Trash");
     trash.QueryInterface(Ci.nsIMsgImapMailFolder)
@@ -197,8 +197,7 @@ function doTest(test)
     // Set a limit of ten seconds; if the notifications haven't arrived by then there's a problem.
     do_timeout(10000, function(){
         if (gCurTestNum == test)
-          do_throw("Notifications not received in 10000 ms for operation " + testFn.name + 
-            ", current status is " + gCurrStatus);
+          do_throw("Notifications not received in 10000 ms for operation " + testFn.name);
         }
       );
     try {

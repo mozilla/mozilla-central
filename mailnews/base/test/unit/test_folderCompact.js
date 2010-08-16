@@ -195,8 +195,7 @@ function doTest(test)
     do_timeout(10000, function(){
 
         if (gCurTestNum == test)
-          do_throw("Notifications not received in 10000 ms for operation " + testFn.name + 
-            ", current status is " + gCurrStatus);
+          do_throw("Notifications not received in 10000 ms for operation " + testFn.name);
         }
       );
     try {

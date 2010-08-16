@@ -487,8 +487,7 @@ function doTest()
     do_timeout(10000, function()
         {
           if (gCurTestNum == test)
-            do_throw("Notifications not received in 10000 ms for operation " + testFn.name +
-              ", current status is " + gCurrStatus);
+            do_throw("Notifications not received in 10000 ms for operation " + testFn.name);
         }
       );
     try {
@@ -628,7 +627,7 @@ DBListener.prototype =
     {
       this.counts.onParentChanged++;
     },
-    
+
   onAnnouncerGoingAway:
     function onAnnouncerGoingAway(instigator)
     {
@@ -639,25 +638,25 @@ DBListener.prototype =
         catch (e) {dump(" listener not found\n");}
       this.counts.onAnnouncerGoingAway++;
     },
-    
+
   onReadChanged:
     function onReadChanged(aInstigator)
     {
       this.counts.onReadChanged++;
     },
-    
+
   onJunkScoreChanged:
     function onJunkScoreChanged(aInstigator)
     {
       this.counts.onJunkScoreChanged++;
     },
-    
+
   onHdrPropertyChanged:
     function onHdrPropertyChanged(aHdrToChange, aPreChange, aStatus, aInstigator)
     {
       this.counts.onHdrPropertyChanged++;
     },
-    
+
   onEvent:
     function onEvent(aDB, aEvent)
     {
