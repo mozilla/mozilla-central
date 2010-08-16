@@ -37,6 +37,7 @@
  *
  * ***** END LICENSE BLOCK *****
  */
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 /**
  * Global Object to hold methods for the alarms pref pane
@@ -106,9 +107,8 @@ var gAlarmsPane = {
     convertURLToLocalFile: function gAP_convertURLToLocalFile(aFileURL) {
         // Convert the file url into a nsILocalFile
         if (aFileURL) {
-            var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                                .getService(Components.interfaces.nsIIOService);
-            var fph = ios.getProtocolHandler("file")
+            var fph = cal.getIOService()
+                         .getProtocolHandler("file")
                          .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
             return fph.getFileFromURLSpec(aFileURL);
         } else {
@@ -174,8 +174,7 @@ var gAlarmsPane = {
         var soundUrl = document.getElementById("alarmSoundFileField").value;
         var soundIfc = Components.classes["@mozilla.org/sound;1"]
                             .createInstance(Components.interfaces.nsISound);
-        var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                            .getService(Components.interfaces.nsIIOService);
+        var ios = cal.getIOService();
         var url;
         try {
             soundIfc.init();

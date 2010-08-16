@@ -36,6 +36,8 @@
 
 var RELATIVE_ROOT = './shared-modules';
 var MODULE_REQUIRES = ['CalendarUtils', 'ModalDialogAPI'];
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 
 const sleep = 500;
 var hour = 8;
@@ -57,9 +59,7 @@ var setupModule = function(module) {
                    .getService(Components.interfaces.nsIProperties)
                    .get("TmpD", Components.interfaces.nsIFile);
   file.append(calendar + ".ics");
-  let fileURI = Components.classes["@mozilla.org/network/io-service;1"]
-                          .getService(Components.interfaces.nsIIOService)
-                          .newFileURI(file);
+  let fileURI = cal.getIOService().newFileURI(file);
   uri = fileURI.prePath + fileURI.path;
 }
 

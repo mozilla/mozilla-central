@@ -202,18 +202,6 @@ var gDataMigrator = {
     },
 
     /**
-     * Cached getter for the IO Service
-     * XXX replace with cal.getIOService()
-     */
-    get ioService() {
-        if (!this.mIoService) {
-            this.mIoService = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
-        }
-        return this.mIoService;
-    },
-
-    /**
      * Call to do a general data migration (for a clean profile)  Will run
      * through all of the known migrator-checkers.  These checkers will return
      * an array of valid dataMigrator objects, for each kind of data they find.
@@ -456,7 +444,7 @@ var gDataMigrator = {
                 tempFile.append("icalTemp.ics");
                 tempFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE,
                                       parseInt("0600", 8));
-                var tempUri = gDataMigrator.ioService.newFileURI(tempFile);
+                var tempUri = cal.getIOService().newFileURI(tempFile);
 
                 var stream = Components.classes["@mozilla.org/network/file-output-stream;1"]
                              .createInstance(Components.interfaces.nsIFileOutputStream);

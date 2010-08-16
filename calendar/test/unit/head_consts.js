@@ -37,17 +37,15 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-let protHandler = Components.classes["@mozilla.org/network/io-service;1"]
-                            .getService(Components.interfaces.nsIIOService2)
-                            .getProtocolHandler("resource")
-                            .QueryInterface(Components.interfaces.nsIResProtocolHandler);
+let protHandler = cal.getIOService()
+                     .getProtocolHandler("resource")
+                     .QueryInterface(Components.interfaces.nsIResProtocolHandler);
 protHandler.setSubstitution("calendar", protHandler.getSubstitution("gre"));
-
-Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 // we might want to use calUtils.jsm only in the future throughout all tests,
 // but for now source in good old calUtils.js:
@@ -111,9 +109,7 @@ function getStorageCal() {
     db.append("test_storage.sqlite");
 
     // create URI
-    var ioSvc = Cc["@mozilla.org/network/io-service;1"]
-                .getService(Ci.nsIIOService);
-    var uri = ioSvc.newFileURI(db);
+    var uri = cal.getIOService().newFileURI(db);
 
     // create storage calendar
     var cal = Cc["@mozilla.org/calendar/calendar;1?type=storage"]

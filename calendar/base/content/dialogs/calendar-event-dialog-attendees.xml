@@ -143,9 +143,6 @@
         } catch (ex) {
         }
 
-        this.mIOService = Components.classes["@mozilla.org/network/io-service;1"]
-                                    .getService(Components.interfaces.nsIIOService);
-        this.mIsOffline = this.mIOService.offline;
       ]]></constructor>
 
       <method name="onLoad">
@@ -1018,7 +1015,7 @@
                       Components.interfaces.nsILDAPAutoCompleteSession);
           }
 
-          if (LDAPSession && autocompleteDirectory && !this.mIsOffline) {
+          if (LDAPSession && autocompleteDirectory && !cal.getIOService().offline) {
               // Add observer on the directory server we are autocompleting against
               // only if current server is different from previous.
               // Remove observer if current server is different from previous

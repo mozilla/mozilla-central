@@ -94,13 +94,9 @@ function openRegionURL(aResourceName)
     else
       urlToOpen = regionBundle.GetStringFromName(aResourceName);
       
-    var uri = Components.classes["@mozilla.org/network/io-service;1"]
-              .getService(Components.interfaces.nsIIOService)
-              .newURI(urlToOpen, null, null);
-
     var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
                       .getService(Components.interfaces.nsIExternalProtocolService);
-    protocolSvc.loadUrl(uri);
+    protocolSvc.loadUrl(cal.getIOService().newURI(urlToOpen, null, null));
   } catch (ex) {}
 }
 
@@ -114,13 +110,9 @@ function openFormattedRegionURL(aPrefName)
 {
   var formattedUrl = getFormattedRegionURL(aPrefName);
   
-  var uri = Components.classes["@mozilla.org/network/io-service;1"].
-                       getService(Components.interfaces.nsIIOService).
-                       newURI(formattedUrl, null, null);
-
   var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"].
                                getService(Components.interfaces.nsIExternalProtocolService);
-  protocolSvc.loadUrl(uri);  
+  protocolSvc.loadUrl(cal.getIOService().newURI(formattedUrl, null, null));
 }
 
 /**
@@ -158,9 +150,5 @@ function launchBrowser(UrlToGoTo)
     (Components
      .classes["@mozilla.org/uriloader/external-protocol-service;1"]
      .getService(Components.interfaces.nsIExternalProtocolService));
-  var nsURI = (Components
-               .classes["@mozilla.org/network/io-service;1"]
-               .getService(Components.interfaces.nsIIOService)
-               .newURI(UrlToGoTo, null, null));
-  externalLoader.loadUrl(nsURI);
+  externalLoader.loadUrl(cal.getIOService().newURI(UrlToGoTo, null, null));
 }

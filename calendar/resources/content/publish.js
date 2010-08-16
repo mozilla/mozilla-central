@@ -35,6 +35,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 /**
  * publishCalendarData
@@ -157,10 +158,7 @@ function publishItemArray(aItemArray, aPath, aProgressDialog) {
 
     var icsURL = makeURL(aPath);
 
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
-
-    var channel = ioService.newChannelFromURI(icsURL);
+    var channel = cal.getIOService().newChannelFromURI(icsURL);
     if (icsURL.schemeIs('webcal'))
         icsURL.scheme = 'http';
     if (icsURL.schemeIs('webcals'))

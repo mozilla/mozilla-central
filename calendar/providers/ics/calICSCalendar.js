@@ -146,9 +146,7 @@ calICSCalendar.prototype = {
 
         // Use the ioservice, to create a channel, which makes finding the
         // right hooks to use easier.
-        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                  .getService(Components.interfaces.nsIIOService);
-        var channel = ioService.newChannelFromURI(this.mUri);
+        var channel = cal.getIOService().newChannelFromURI(this.mUri);
 
         if (calInstanceOf(channel, Components.interfaces.nsIHttpChannel)) {
             this.mHooks = new httpHooks();
@@ -182,10 +180,7 @@ calICSCalendar.prototype = {
     },
 
     doRefresh: function calICSCalendar_doRefresh() {
-        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                  .getService(Components.interfaces.nsIIOService);
-
-        var channel = ioService.newChannelFromURI(this.mUri);
+        var channel = cal.getIOService().newChannelFromURI(this.mUri);
         this.prepareChannel(channel);
 
         var streamLoader = Components.classes["@mozilla.org/network/stream-loader;1"]
@@ -313,10 +308,7 @@ calICSCalendar.prototype = {
                     // All events are returned. Now set up a channel and a
                     // streamloader to upload.  onStopRequest will be called
                     // once the write has finished
-                    var ioService = Components.classes
-                        ["@mozilla.org/network/io-service;1"]
-                        .getService(Components.interfaces.nsIIOService);
-                    var channel = ioService.newChannelFromURI(savedthis.mUri);
+                    var channel = cal.getIOService().newChannelFromURI(savedthis.mUri);
 
                     // Allow the hook to add things to the channel, like a
                     // header that checks etags
@@ -761,9 +753,7 @@ calICSCalendar.prototype = {
         purgeOldBackups();
 
         // Now go download the remote file, and store it somewhere local.
-        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                  .getService(CI.nsIIOService);
-        var channel = ioService.newChannelFromURI(this.mUri);
+        var channel = cal.getIOService().newChannelFromURI(this.mUri);
         channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
         channel.notificationCallbacks = this;
 

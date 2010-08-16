@@ -308,12 +308,10 @@ calDNDBaseObserver.prototype = {
                 break;
             case "application/x-moz-file-promise":
             case "text/x-moz-url":
-                var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                .getService(Components.interfaces.nsIIOService);
-                var uri = ioService.newURI(data.toString(), null, null);
+                var uri = cal.getIOService().newURI(data.toString(), null, null);
                 var loader = Components.classes["@mozilla.org/network/unichar-stream-loader;1"]
                              .createInstance(Components.interfaces.nsIUnicharStreamLoader);
-                var channel = ioService.newChannelFromURI(uri);
+                var channel = cal.getIOService().newChannelFromURI(uri);
                 channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
 
                 var self = this;
