@@ -286,7 +286,7 @@ static  PRInt32     attIndex = 0;
 
 nsresult
 GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayOptions *options,
-                       PRBool isAnAppleDoublePart, PRInt32 attSize, nsMsgAttachmentData *aAttachData)
+                       PRBool isAnAppleDoublePart, nsMsgAttachmentData *aAttachData)
 {
   nsCString imappart;
   nsCString part;
@@ -343,7 +343,6 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   tmp->real_type = object->content_type ? strdup(object->content_type) : nsnull;
   tmp->real_encoding = object->encoding ? strdup(object->encoding) : nsnull;
   tmp->isExternalAttachment = isExternalAttachment;
-  tmp->size = attSize;
 
   PRInt32 i;
   char *charset = nsnull;
@@ -518,15 +517,9 @@ BuildAttachmentList(MimeObject *anObject, nsMsgAttachmentData *aAttachData, cons
     PRBool isAnAppleDoublePart = mime_typep(child, (MimeObjectClass *) &mimeMultipartAppleDoubleClass) &&
                                  ((MimeContainer *)child)->nchildren == 2;
 
-    // -1 means we don't know the size. So far, we only give the size of leaf
-    // objects
-    PRInt32 attSize = -1;
-    if (isALeafObject)
-      attSize = ((MimeLeaf *)child)->sizeSoFar;
-
     if (isALeafObject || isAnInlineMessage || isAnAppleDoublePart)
     {
-      rv = GenerateAttachmentData(child, aMessageURL, anObject->options, isAnAppleDoublePart, attSize, aAttachData);
+      rv = GenerateAttachmentData(child, aMessageURL, anObject->options, isAnAppleDoublePart, aAttachData);
       NS_ENSURE_SUCCESS(rv, rv);
     }
 
@@ -591,7 +584,7 @@ MimeGetAttachmentList(MimeObject *tobj, const char *aMessageURL, nsMsgAttachment
 
   if (isAnInlineMessage)
   {
-    rv = GenerateAttachmentData(obj, aMessageURL, obj->options, PR_FALSE, -1, *data);
+    rv = GenerateAttachmentData(obj, aMessageURL, obj->options, PR_FALSE, *data);
     NS_ENSURE_SUCCESS(rv, rv);
   }
   return BuildAttachmentList((MimeObject *) cobj, *data, aMessageURL);
@@ -645,11 +638,8 @@ NotifyEmittersOfAttachmentList(MimeDisplayOptions     *opt,
     if ( tmp->url )
       tmp->url->GetSpec(spec);
 
-    nsCAutoString sizeStr;
-    sizeStr.AppendInt(tmp->size);
     mimeEmitterStartAttachment(opt, tmp->real_name, tmp->real_type, spec.get(), tmp->isExternalAttachment);
     mimeEmitterAddAttachmentField(opt, HEADER_X_MOZILLA_PART_URL, spec.get());
-    mimeEmitterAddAttachmentField(opt, HEADER_X_MOZILLA_PART_SIZE, sizeStr.get());
 
     if ( (opt->format_out == nsMimeOutput::nsMimeMessageQuoting) ||
          (opt->format_out == nsMimeOutput::nsMimeMessageBodyQuoting) ||
@@ -662,7 +652,7 @@ NotifyEmittersOfAttachmentList(MimeDisplayOptions     *opt,
 
       /* rhp - for now, just leave these here, but they are really
                not necessary
-      printf("URL for Part      : %s\n", spec.get());
+      printf("URL for Part      : %s\n", spec);
       printf("Real Name         : %s\n", tmp->real_name);
       printf("Desired Type      : %s\n", tmp->desired_type);
       printf("Real Type         : %s\n", tmp->real_type);
@@ -670,7 +660,6 @@ NotifyEmittersOfAttachmentList(MimeDisplayOptions     *opt,
       printf("Description       : %s\n", tmp->description);
       printf("Mac Type          : %s\n", tmp->x_mac_type);
       printf("Mac Creator       : %s\n", tmp->x_mac_creator);
-      printf("Size              : %d\n", tmp->size);
       */
     }
 
@@ -1461,7 +1450,6 @@ MimeDisplayOptions::MimeDisplayOptions()
   quote_attachment_inline_p = PR_FALSE;
   notify_nested_bodies = PR_FALSE;
   write_pure_bodies = PR_FALSE;
-  stream_all_attachments = PR_FALSE;
 }
 
 MimeDisplayOptions::~MimeDisplayOptions()

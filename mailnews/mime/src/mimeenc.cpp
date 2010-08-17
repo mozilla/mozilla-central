@@ -71,8 +71,7 @@ struct MimeDecoderData {
 
 
 static int
-mime_decode_qp_buffer (MimeDecoderData *data, const char *buffer,
-          PRInt32 length, PRInt32 *outSize)
+mime_decode_qp_buffer (MimeDecoderData *data, const char *buffer, PRInt32 length)
 {
   /* Warning, we are overwriting the buffer which was passed in.
    This is ok, because decoding these formats will never result
@@ -195,10 +194,6 @@ mime_decode_qp_buffer (MimeDecoderData *data, const char *buffer,
     }
   }
 
-  // Fill the size
-  if (outSize)
-    *outSize = out - buffer;
-
   /* Now that we've altered the data in place, write it. */
   if (out > buffer)
   return data->write_buffer (buffer, (out - buffer), data->closure);
@@ -252,7 +247,7 @@ mime_decode_base64_token (const char *in, char *out)
 
 static int
 mime_decode_base64_buffer (MimeDecoderData *data,
-               const char *buffer, PRInt32 length, PRInt32 *outSize)
+               const char *buffer, PRInt32 length)
 {
   /* Warning, we are overwriting the buffer which was passed in.
    This is ok, because decoding these formats will never result
@@ -326,8 +321,6 @@ mime_decode_base64_buffer (MimeDecoderData *data,
     }
   }
 
-  if (outSize)
-    *outSize = out - buffer;
   /* Now that we've altered the data in place, write it. */
   if (out > buffer)
   return data->write_buffer (buffer, (out - buffer), data->closure);
@@ -338,7 +331,7 @@ mime_decode_base64_buffer (MimeDecoderData *data,
 
 static int
 mime_decode_uue_buffer (MimeDecoderData *data,
-            const char *input_buffer, PRInt32 input_length, PRInt32 *outSize)
+            const char *input_buffer, PRInt32 input_length)
 {
   /* First, copy input_buffer into state->line_buffer until we have
    a complete line.
@@ -554,10 +547,6 @@ mime_decode_uue_buffer (MimeDecoderData *data,
       if (out > line)
       status = data->write_buffer (line, (out - line), data->closure);
 
-      // The assertion above tells us this is >= 0
-      if (outSize)
-        *outSize = out - line;
-
       /* Reset the line so that we don't think it's partial next time. */
       *line = 0;
 
@@ -575,7 +564,7 @@ mime_decode_uue_buffer (MimeDecoderData *data,
 
 static int
 mime_decode_yenc_buffer (MimeDecoderData *data,
-            const char *input_buffer, PRInt32 input_length, PRInt32 *outSize)
+            const char *input_buffer, PRInt32 input_length)
 {
   /* First, copy input_buffer into state->line_buffer until we have
    a complete line.
@@ -749,10 +738,6 @@ mime_decode_yenc_buffer (MimeDecoderData *data,
         dest ++;
       }
 
-      // The assertion below is helpful, too
-      if (outSize)
-        *outSize = dest - line;
-
       /* Now write out what we decoded for this line. */
       NS_ASSERTION(dest >= line && dest < src, "nothing to write!");
       if (dest > line)
@@ -843,21 +828,20 @@ MimeYDecoderInit (nsresult (*output_fn) (const char *, PRInt32, void *),
 }
 
 int
-MimeDecoderWrite (MimeDecoderData *data, const char *buffer, PRInt32 size,
-          PRInt32 *outSize)
+MimeDecoderWrite (MimeDecoderData *data, const char *buffer, PRInt32 size)
 {
   NS_ASSERTION(data, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
   if (!data) return -1;
   switch(data->encoding)
   {
   case mime_Base64:
-    return mime_decode_base64_buffer (data, buffer, size, outSize);
+    return mime_decode_base64_buffer (data, buffer, size);
   case mime_QuotedPrintable:
-    return mime_decode_qp_buffer (data, buffer, size, outSize);
+    return mime_decode_qp_buffer (data, buffer, size);
   case mime_uuencode:
-    return mime_decode_uue_buffer (data, buffer, size, outSize);
+    return mime_decode_uue_buffer (data, buffer, size);
   case mime_yencode:
-    return mime_decode_yenc_buffer (data, buffer, size, outSize);
+    return mime_decode_yenc_buffer (data, buffer, size);
   default:
     NS_ERROR("Invalid decoding");
     return -1;

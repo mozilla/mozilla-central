@@ -92,8 +92,7 @@ MimeEncoderData *MimeUUEncoderInit (const char *filename,
 
 /* Push data through the encoder/decoder, causing the above-provided write_fn
    to be called with encoded/decoded data. */
-int MimeDecoderWrite (MimeDecoderData *data, const char *buffer, PRInt32 size,
-                  PRInt32 *outSize);
+int MimeDecoderWrite (MimeDecoderData *data, const char *buffer, PRInt32 size);
 int MimeEncoderWrite (MimeEncoderData *data, const char *buffer, PRInt32 size);
 
 /* When you're done encoding/decoding, call this to free the data.  If

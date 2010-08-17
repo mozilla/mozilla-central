@@ -2011,7 +2011,7 @@ mime_decompose_file_output_fn (const char     *buf,
     return NS_OK;
 
   if (mdd->decoder_data) {
-    ret = MimeDecoderWrite(mdd->decoder_data, buf, size, nsnull);
+    ret = MimeDecoderWrite(mdd->decoder_data, buf, size);
     if (ret == -1) return -1;
   }
   else

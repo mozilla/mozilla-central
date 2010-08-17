@@ -406,13 +406,6 @@ public:
    *  primarily introduced for the benefit of the javascript emitter.
    */
   PRBool write_pure_bodies;
-
-  /**
-   * When true, forces all attachments to be decoded and streamed to the mime
-   *  emitter. At the moment, only the JS mime emitter uses this. Other mime
-   *  emitters would probably choke.
-   */
-  PRBool stream_all_attachments;
 };
 
 #endif /* _MODLMIME_H_ */

@@ -1560,10 +1560,6 @@ mime_parse_url_options(const char *url, MimeDisplayOptions *options)
         //  current offenders are:
         //  - MimeInlineImage
         options->write_pure_bodies = PR_TRUE;
-        // we also want (in this case) libmime to decode all attachments, not
-        // just the ones it displays inline, so that we can count the bytes and
-        // notify the js mime emitter about the total size of attachments
-        options->stream_all_attachments = PR_TRUE;
       }
     }
 

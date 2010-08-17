@@ -221,13 +221,6 @@ MimeInlineImage_parse_decoded_buffer (const char *buf, PRInt32 size, MimeObject 
   MimeInlineImage *img  = (MimeInlineImage *) obj;
   int status;
 
-  /* Don't do a roundtrip through XPConnect when we're only interested in
-   * metadata and size. 0 means ok, the caller just checks for negative return
-   * value
-   */
-  if (obj->options && obj->options->stream_all_attachments)
-    return 0;
-
   if (obj->output_p &&
     obj->options &&
     !obj->options->write_html_p)

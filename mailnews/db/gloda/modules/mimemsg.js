@@ -372,14 +372,6 @@ MimeMessage.prototype = {
   },
 
   /**
-   * @return the total size of this message, that is, the size of all subparts
-   */
-  get size () {
-    return [child.size for each ([, child] in Iterator(this.parts))]
-      .reduce(function (a, b) a + Math.max(b, 0), 0);
-  },
-
-  /**
    * @param aMsgFolder A message folder, any message folder.  Because this is
    *    a hack.
    * @return The concatenation of all of the body parts where parts
@@ -460,10 +452,6 @@ MimeContainer.prototype = {
     return [child.allUserAttachments for each ([, child] in Iterator(this.parts))]
       .reduce(function (a, b) a.concat(b), []);
   },
-  get size () {
-    return [child.size for each ([, child] in Iterator(this.parts))]
-      .reduce(function (a, b) a + Math.max(b, 0), 0);
-  },
   coerceBodyToPlaintext:
       function MimeContainer_coerceBodyToPlaintext(aMsgFolder) {
     if (this.contentType == "multipart/alternative") {
@@ -525,9 +513,6 @@ MimeBody.prototype = {
   },
   get allUserAttachments() {
     return []; // we are a leaf
-  },
-  get size() {
-    return this.body.length;
   },
   coerceBodyToPlaintext:
       function MimeBody_coerceBodyToPlaintext(aMsgFolder) {
@@ -609,8 +594,6 @@ function getLocalizedPartStr() {
  * @ivar contentType The MIME content type of this part.
  * @ivar url The URL to stream if you want the contents of this part.
  * @ivar isExternal Is the attachment stored someplace else than in the message?
- * @ivar size The size of the attachment if available, -1 otherwise (size is set
- *  after initialization by jsmimeemitter.js)
  */
 function MimeMessageAttachment(aPartName, aName, aContentType, aUrl,
                                aIsExternal) {
