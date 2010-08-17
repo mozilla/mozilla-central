@@ -67,10 +67,10 @@ function SuiteGlue() {
 SuiteGlue.prototype = {
   _saveSession: false,
   _sound: null,
-  _hasIdleObserver: false,
-  _hasPlacesInitObserver: false,
-  _hasPlacesLockedObserver: false,
-  _hasPlacesShutdownObserver: false,
+  _isIdleObserver: false,
+  _isPlacesInitObserver: false,
+  _isPlacesLockedObserver: false,
+  _isPlacesShutdownObserver: false,
   _isPlacesDatabaseLocked: false,
 
   _setPrefToSaveSession: function()
@@ -126,22 +126,22 @@ SuiteGlue.prototype = {
       case "places-init-complete":
         this._initPlaces();
         Services.obs.removeObserver(this, "places-init-complete");
-        this._hasPlacesInitObserver = false;
+        this._isPlacesInitObserver = false;
         // No longer needed, since history was initialized completely.
         Services.obs.removeObserver(this, "places-database-locked");
-        this._hasPlacesLockedObserver = false;
+        this._isPlacesLockedObserver = false;
         break;
       case "places-database-locked":
         this._isPlacesDatabaseLocked = true;
         // Stop observing, so further attempts to load history service
         // will not show the prompt.
         Services.obs.removeObserver(this, "places-database-locked");
-        this._hasPlacesLockedObserver = false;
+        this._isPlacesLockedObserver = false;
         break;
       case "places-shutdown":
-        if (this._hasPlacesShutdownObserver) {
+        if (this._isPlacesShutdownObserver) {
           Services.obs.removeObserver(this, "places-shutdown");
-          this._hasPlacesShutdownObserver = false;
+          this._isPlacesShutdownObserver = false;
         }
         // places-shutdown is fired on profile-before-change, but before
         // Places executes the last flush and closes connection.
@@ -176,11 +176,11 @@ SuiteGlue.prototype = {
     Services.obs.addObserver(this, "session-save", false);
     Services.obs.addObserver(this, "dl-done", false);
     Services.obs.addObserver(this, "places-init-complete", false);
-    this._hasPlacesInitObserver = true;
+    this._isPlacesInitObserver = true;
     Services.obs.addObserver(this, "places-database-locked", false);
-    this._hasPlacesLockedObserver = true;
+    this._isPlacesLockedObserver = true;
     Services.obs.addObserver(this, "places-shutdown", false);
-    this._hasPlacesShutdownObserver = true;
+    this._isPlacesShutdownObserver = true;
     try {
       tryToClose = Components.classes["@mozilla.org/appshell/trytoclose;1"]
                              .getService(Components.interfaces.nsIObserver);
@@ -203,13 +203,13 @@ SuiteGlue.prototype = {
     Services.obs.removeObserver(this, "browser-lastwindow-close-granted");
     Services.obs.removeObserver(this, "session-save");
     Services.obs.removeObserver(this, "dl-done");
-    if (this._hasIdleObserver)
+    if (this._isIdleObserver)
       this._idleService.removeIdleObserver(this, BOOKMARKS_BACKUP_IDLE_TIME);
-    if (this._hasPlacesInitObserver)
+    if (this._isPlacesInitObserver)
       Services.obs.removeObserver(this, "places-init-complete");
-    if (this._hasPlacesLockedObserver)
+    if (this._isPlacesLockedObserver)
       Services.obs.removeObserver(this, "places-database-locked");
-    if (this._hasPlacesShutdownObserver)
+    if (this._isPlacesShutdownObserver)
       Services.obs.removeObserver(this, "places-shutdown");
   },
 
@@ -657,9 +657,9 @@ SuiteGlue.prototype = {
 
     // Initialize bookmark archiving on idle.
     // Once a day, either on idle or shutdown, bookmarks are backed up.
-    if (!this._hasIdleObserver) {
+    if (!this._isIdleObserver) {
       this._idleService.addIdleObserver(this, BOOKMARKS_BACKUP_IDLE_TIME);
-      this._hasIdleObserver = true;
+      this._isIdleObserver = true;
     }
   },
 
@@ -672,9 +672,9 @@ SuiteGlue.prototype = {
    *       so replace this method with a no-op when first called.
    */
   _shutdownPlaces: function() {
-    if (this._hasIdleObserver) {
+    if (this._isIdleObserver) {
       this._idleService.removeIdleObserver(this, BOOKMARKS_BACKUP_IDLE_TIME);
-      this._hasIdleObserver = false;
+      this._isIdleObserver = false;
     }
     this._backupBookmarks();
 
