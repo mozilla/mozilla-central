@@ -288,8 +288,8 @@ ifeq (WINNT,$(OS_ARCH))
 	$(RM) -r $(STAGEDIST)/uninstall
 	$(NSINSTALL) -D $(STAGEDIST)/uninstall
 	cp ../installer/windows/l10ngen/helper.exe $(STAGEDIST)/uninstall
-	$(RM) $(_ABS_DIST)/l10n-stage/setup.exe; \
-	cp ../installer/windows/l10ngen/setup.exe $(_ABS_DIST)/l10n-stage; \
+	$(RM) $(_ABS_DIST)/l10n-stage/setup.exe
+	cp ../installer/windows/l10ngen/setup.exe $(_ABS_DIST)/l10n-stage
 endif
 # copy xpi-stage over, but not install.rdf and chrome.manifest,
 # those are just for language packs
