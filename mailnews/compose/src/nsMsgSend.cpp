@@ -3002,6 +3002,10 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
   AddMailFollowupToHeader();
   AddMailReplyToHeader();
 
+  if (aType == nsIMsgCompType::ForwardInline ||
+      aType == nsIMsgCompType::ForwardAsAttachment)
+    AddXForwardedMessageIdHeader();
+
   pStr = fields->GetPriority();
   if (pStr)
     mCompFields->SetPriority((char *) pStr);
@@ -3270,6 +3274,16 @@ nsMsgComposeAndSend::AddMailReplyToHeader() {
   mCompFields->SetOtherRandomHeaders(customHeaders.get());
   PR_Free(mimeHeader);
   return NS_OK;
+}
+
+nsresult
+nsMsgComposeAndSend::AddXForwardedMessageIdHeader() {
+  nsCAutoString otherHeaders;
+  otherHeaders.Append(nsDependentCString(mCompFields->GetOtherRandomHeaders()));
+  otherHeaders.Append(NS_LITERAL_CSTRING("X-Forwarded-Message-Id: "));
+  otherHeaders.Append(nsDependentCString(mCompFields->GetReferences()));
+  otherHeaders.Append(NS_LITERAL_CSTRING("\r\n"));
+  return mCompFields->SetOtherRandomHeaders(otherHeaders.get());
 }
 
 nsresult

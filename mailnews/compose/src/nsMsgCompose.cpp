@@ -1740,6 +1740,24 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
         m_compFields->SetCharacterSet(charset.get());
       }
     }
+
+    // We want to treat this message as a reference too
+    nsCOMPtr<nsIMsgDBHdr> msgHdr;
+    rv = GetMsgDBHdrFromURI(originalMsgURI, getter_AddRefs(msgHdr));
+    if (NS_SUCCEEDED(rv))
+    {
+      nsCAutoString messageId;
+      msgHdr->GetMessageId(getter_Copies(messageId));
+
+      nsCAutoString reference;
+      reference.Append(NS_LITERAL_CSTRING("<"));
+      reference.Append(messageId);
+      reference.Append(NS_LITERAL_CSTRING(">"));
+      // We're forwarding, which means we're composing a message that has no
+      // references yet, so we can set the value safely
+      m_compFields->SetReferences(reference.get());
+    }
+
     return rv;
   }
 
@@ -2036,6 +2054,27 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
           }
         case nsIMsgCompType::ForwardAsAttachment:
           {
+            // Add the forwarded message in the references, first
+            nsCAutoString messageId;
+            msgHdr->GetMessageId(getter_Copies(messageId));
+            if (isFirstPass)
+            {
+              nsCAutoString reference;
+              reference.Append(NS_LITERAL_CSTRING("<"));
+              reference.Append(messageId);
+              reference.Append(NS_LITERAL_CSTRING(">"));
+              m_compFields->SetReferences(reference.get());
+            }
+            else
+            {
+              nsCAutoString references;
+              m_compFields->GetReferences(getter_Copies(references));
+              references.Append(NS_LITERAL_CSTRING(" <"));
+              references.Append(messageId);
+              references.Append(NS_LITERAL_CSTRING(">"));
+              m_compFields->SetReferences(references.get());
+            }
+
             PRUint32 flags;
 
             msgHdr->GetFlags(&flags);
@@ -2109,6 +2148,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             m_compFields->SetBcc(empty);
             m_compFields->SetNewsgroups(empty);
             m_compFields->SetFollowupTo(empty);
+            break;
           }
       }
     }
