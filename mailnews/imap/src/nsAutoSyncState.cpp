@@ -515,8 +515,9 @@ NS_IMETHODIMP nsAutoSyncState::GetState(PRInt32 *aState)
   return NS_OK;
 }
 
-const char *stateStrings[] = {"idle", "status issued", "update issued", "downloading",
-                            "ready to download"};
+const char *stateStrings[] = {"idle", "status issued", "update needed",
+                              "update issued", "downloading",
+                              "ready to download"};
 
 NS_IMETHODIMP nsAutoSyncState::SetState(PRInt32 aState)
 {
