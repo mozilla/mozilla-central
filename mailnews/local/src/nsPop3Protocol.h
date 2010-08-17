@@ -326,8 +326,12 @@ private:
 
   // progress state information
   void UpdateProgressPercent (PRUint32 totalDone, PRUint32 total);
-  void UpdateStatus(PRInt32 aStatusID);
+  void UpdateStatus(const nsString &aStatusName);
   void UpdateStatusWithString(const PRUnichar * aString);
+  nsresult FormatCounterString(const nsString &stringName,
+                               PRUint32 count1,
+                               PRUint32 count2,
+                               nsString &resultString);
 
   PRInt32  m_bytesInMsgReceived;
   PRInt32  m_totalFolderSize;

@@ -638,12 +638,44 @@ PRUint32 nsPop3Protocol::GetCapFlags()
     return m_pop3ConData->capability_flags;
 }
 
-void nsPop3Protocol::UpdateStatus(PRInt32 aStatusID)
+nsresult nsPop3Protocol::FormatCounterString(const nsString &stringName,
+                                             PRUint32 count1,
+                                             PRUint32 count2,
+                                             nsString &resultString)
+{
+  nsAutoString count1String;
+  count1String.AppendInt(count1);
+
+  nsAutoString count2String;
+  count2String.AppendInt(count2);
+
+  nsCOMPtr<nsIMsgIncomingServer> server(do_QueryInterface(m_pop3Server));
+  nsString hostName;
+  server->GetPrettyName(hostName);
+  const PRUnichar *formatStrings[] = {
+    count1String.get(),
+    count2String.get(),
+    hostName.get()
+  };
+
+  return mLocalBundle->FormatStringFromName(stringName.get(),
+                                            formatStrings, 3,
+                                            getter_Copies(resultString));
+}
+
+void nsPop3Protocol::UpdateStatus(const nsString &aStatusName)
 {
   if (m_statusFeedback)
   {
+    nsCOMPtr<nsIMsgIncomingServer> server(do_QueryInterface(m_pop3Server));
+    nsString hostName;
+    server->GetPrettyName(hostName);
+    const PRUnichar *formatStrings[] = {
+      hostName.get()
+    };
     nsString statusString;
-    mLocalBundle->GetStringFromID(aStatusID, getter_Copies(statusString));
+    mLocalBundle->FormatStringFromName(aStatusName.get(), formatStrings, 1,
+                                       getter_Copies(statusString));
     UpdateStatusWithString(statusString.get());
   }
 }
@@ -3202,23 +3234,12 @@ nsPop3Protocol::SendRetr()
     }
     else
     {
-      nsresult rv;
-
-      nsAutoString realNewString;
-      realNewString.AppendInt(m_pop3ConData->real_new_counter);
-
-      nsAutoString reallyNewMessages;
-      reallyNewMessages.AppendInt(m_pop3ConData->really_new_messages);
-
-      const PRUnichar *formatStrings[] = {
-        realNewString.get(),
-          reallyNewMessages.get(),
-      };
-
       nsString finalString;
-      rv = mLocalBundle->FormatStringFromID(LOCAL_STATUS_RECEIVING_MESSAGE_OF,
-        formatStrings, 2,
-        getter_Copies(finalString));
+      nsresult rv = FormatCounterString(NS_LITERAL_STRING("receivingMsgs"),
+                          m_pop3ConData->real_new_counter,
+                          m_pop3ConData->really_new_messages,
+                          finalString);
+
       NS_ASSERTION(NS_SUCCEEDED(rv), "couldn't format string");
       if (m_statusFeedback)
         m_statusFeedback->ShowStatusString(finalString);
@@ -3859,7 +3880,7 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
       break;
 
     case POP3_AUTH_GSSAPI_FIRST:
-      UpdateStatus(POP3_CONNECT_HOST_CONTACTED_SENDING_LOGIN_INFORMATION);
+      UpdateStatus(NS_LITERAL_STRING("hostContacted"));
       status = AuthGSSAPIResponse(true);
       break;
 
@@ -3873,7 +3894,7 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
       break;
 
     case POP3_FINISH_OBTAIN_PASSWORD_BEFORE_USERNAME:
-      UpdateStatus(POP3_CONNECT_HOST_CONTACTED_SENDING_LOGIN_INFORMATION);
+      UpdateStatus(NS_LITERAL_STRING("hostContacted"));
       status = SendUsername();
       break;
 
@@ -3981,21 +4002,18 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
 
           if (m_totalDownloadSize <= 0)
           {
-            UpdateStatus(POP3_NO_MESSAGES);
+            UpdateStatus(NS_LITERAL_STRING("noMessages"));
             /* There are no new messages.  */
           }
           else
           {
-            nsString statusTemplate;
-            mLocalBundle->GetStringFromID(POP3_DOWNLOAD_COUNT, getter_Copies(statusTemplate));
-            if (!statusTemplate.IsEmpty())
-            {
-              PRUnichar * statusString = nsTextFormatter::smprintf(statusTemplate.get(),
-                m_pop3ConData->real_new_counter - 1,
-                m_pop3ConData->really_new_messages);
-              UpdateStatusWithString(statusString);
-              nsTextFormatter::smprintf_free(statusString);
-            }
+            nsString statusString;
+            nsresult rv = FormatCounterString(NS_LITERAL_STRING("receivedMessages"),
+                                              m_pop3ConData->real_new_counter - 1,
+                                              m_pop3ConData->really_new_messages,
+                                              statusString);
+            if (NS_SUCCEEDED(rv))
+              UpdateStatusWithString(statusString.get());
           }
         }
       }
@@ -4047,16 +4065,13 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
 
       if(m_pop3ConData->msg_del_started)
       {
-        nsString statusTemplate;
-        mLocalBundle->GetStringFromID(POP3_DOWNLOAD_COUNT, getter_Copies(statusTemplate));
-        if (!statusTemplate.IsEmpty())
-        {
-          PRUnichar * statusString = nsTextFormatter::smprintf(statusTemplate.get(),
-            m_pop3ConData->real_new_counter - 1,
-            m_pop3ConData->really_new_messages);
-          UpdateStatusWithString(statusString);
-          nsTextFormatter::smprintf_free(statusString);
-        }
+        nsString statusString;
+        nsresult rv = FormatCounterString(NS_LITERAL_STRING("receivedMessages"),
+                                 m_pop3ConData->real_new_counter - 1,
+                                 m_pop3ConData->really_new_messages,
+                                 statusString);
+        if (NS_SUCCEEDED(rv))
+          UpdateStatusWithString(statusString.get());
 
         NS_ASSERTION (!TestFlag(POP3_PASSWORD_FAILED), "POP3_PASSWORD_FAILED set when del_started");
         m_nsIPop3Sink->AbortMailDelivery(this);

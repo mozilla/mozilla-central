@@ -8,14 +8,10 @@
 
 #define LOCAL_STATUS_SELECTING_MAILBOX                        4000
 #define LOCAL_STATUS_DOCUMENT_DONE                            4001
-#define LOCAL_STATUS_RECEIVING_MESSAGE_OF                     4002
 #define POP3_SERVER_ERROR                                     4003
 #define POP3_USERNAME_FAILURE                                 4004
 #define POP3_PASSWORD_FAILURE                                 4005
 #define POP3_MESSAGE_WRITE_ERROR                              4006
-#define POP3_CONNECT_HOST_CONTACTED_SENDING_LOGIN_INFORMATION 4007
-#define POP3_NO_MESSAGES                                      4008
-#define POP3_DOWNLOAD_COUNT                                   4009
 #define POP3_RETR_FAILURE                                     4012
 #define POP3_PASSWORD_UNDEFINED                               4013
 #define POP3_USERNAME_UNDEFINED                               4014
