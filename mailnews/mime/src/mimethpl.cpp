@@ -105,28 +105,31 @@ MimeInlineTextHTMLAsPlaintext_parse_eof (MimeObject *obj, PRBool abort_p)
                                        (MimeInlineTextHTMLAsPlaintext *) obj;
 
   if (!textHTMLPlain || !textHTMLPlain->complete_buffer)
-  {
     return 0;
-  }
+
   nsString& cb = *(textHTMLPlain->complete_buffer);
-  nsString asPlaintext;
-  PRUint32 flags = nsIDocumentEncoder::OutputFormatted
-    | nsIDocumentEncoder::OutputWrap
-    | nsIDocumentEncoder::OutputFormatFlowed
-    | nsIDocumentEncoder::OutputLFLineBreak
-    | nsIDocumentEncoder::OutputNoScriptContent
-    | nsIDocumentEncoder::OutputNoFramesContent
-    | nsIDocumentEncoder::OutputBodyOnly;
-  HTML2Plaintext(cb, asPlaintext, flags, 80);
 
-  NS_ConvertUTF16toUTF8 resultCStr(asPlaintext);
-  // TODO parse each line independently
-  status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_line(
-                             resultCStr.BeginWriting(),
-                             resultCStr.Length(),
-                             obj);
+  // could be empty, e.g., if part isn't actually being displayed
+  if (cb.Length())
+  {
+    nsString asPlaintext;
+    PRUint32 flags = nsIDocumentEncoder::OutputFormatted
+      | nsIDocumentEncoder::OutputWrap
+      | nsIDocumentEncoder::OutputFormatFlowed
+      | nsIDocumentEncoder::OutputLFLineBreak
+      | nsIDocumentEncoder::OutputNoScriptContent
+      | nsIDocumentEncoder::OutputNoFramesContent
+      | nsIDocumentEncoder::OutputBodyOnly;
+    HTML2Plaintext(cb, asPlaintext, flags, 80);
 
-  cb.Truncate();
+    NS_ConvertUTF16toUTF8 resultCStr(asPlaintext);
+    // TODO parse each line independently
+    status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_line(
+                               resultCStr.BeginWriting(),
+                               resultCStr.Length(),
+                               obj);
+    cb.Truncate();
+  }
 
   if (status < 0)
     return status;
