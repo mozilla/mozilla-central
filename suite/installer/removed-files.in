@@ -138,6 +138,11 @@ extensions/p@m/components/palmsync.xpt
 extensions/p@m/defaults/preferences/palmsync.js
 extensions/p@m/install.rdf
 extensions/p@m/mozABConduit.dll
+#endif
+#ifdef UNIX_BUT_NOT_MAC
+@DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
+#endif
+#ifdef XP_WIN
 gksvggdiplus.dll
 #endif
 greprefs/all.js
@@ -354,9 +359,6 @@ components/libwidget_mac.dylib
 components/gkwidget.dll
 components/msgMapi.dll
 components/xppref32.dll
-#endif
-#ifdef UNIX_BUT_NOT_MAC
-@DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
 #endif
 @DLL_PREFIX@gkgfx@DLL_SUFFIX@
 #ifdef UNIX_BUT_NOT_MAC
