@@ -124,10 +124,12 @@
 ; [Components]
 #ifndef MOZ_STATIC_BUILD
 ; shared component binaries
+#ifdef ACCESSIBILITY
 #ifdef XP_OS2
 @BINPATH@/components/@DLL_PREFIX@access@DLL_SUFFIX@
 #else
 @BINPATH@/components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
+#endif
 #endif
 @BINPATH@/components/@DLL_PREFIX@appcomps@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@auth@DLL_SUFFIX@

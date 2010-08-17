@@ -44,6 +44,10 @@ chrome/installed-chrome.txt
 chrome/reporter.jar
 chrome/reporter.manifest
 chrome/venkman.jar
+#ifndef ACCESSIBILITY
+; '! MOZ_STATIC_BUILD' case.
+components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
+#endif
 components/airbag.xpt
 components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
