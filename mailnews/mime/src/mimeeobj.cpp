@@ -215,9 +215,9 @@ MimeExternalObject_parse_buffer (const char *buffer, PRInt32 size, MimeObject *o
   NS_ASSERTION(!obj->closed_p, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
   if (obj->closed_p) return -1;
 
-  if (obj->output_p &&
-    obj->options &&
-    !obj->options->write_html_p)
+  // If we want to stream anyway, or we have a good reason to stream
+  if ((obj->options && obj->options->stream_all_attachments) ||
+      obj->output_p && obj->options && !obj->options->write_html_p)
   {
     /* The data will be base64-decoded and passed to
      MimeExternalObject_parse_decoded_buffer. */
@@ -246,15 +246,22 @@ MimeExternalObject_parse_decoded_buffer (const char *buf, PRInt32 size,
    buffer the decoded data -- we want to simply pass it along to the
    backend, without going through our `parse_line' method.
    */
-  if (!obj->output_p ||
-    !obj->options ||
-    obj->options->write_html_p)
+  // So unless it's intentional and we do want to actually stream it...
+  if (!(obj->options && obj->options->stream_all_attachments) &&
+      (!obj->output_p || !obj->options || obj->options->write_html_p))
   {
     NS_ERROR("MimeObject is missing some data");
     return -1;
   }
 
-  return MimeObject_write(obj, buf, size, PR_TRUE);
+  /* Don't do a roundtrip through XPConnect when we're only interested in
+   * metadata and size. 0 means ok, the caller just checks for negative return
+   * value
+   */
+  if (obj->options && obj->options->stream_all_attachments)
+    return 0;
+  else
+    return MimeObject_write(obj, buf, size, PR_TRUE);
 }
 
 

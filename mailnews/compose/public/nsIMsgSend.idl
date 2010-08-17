@@ -115,6 +115,7 @@ struct nsMsgAttachmentData
 
   char *x_mac_type, *x_mac_creator; // Mac-specific data that should show up as optional parameters
                                     // to the content-type header.
+  PRInt32 size;                  // The size of the attachment. May be 0.
   PRBool  isExternalAttachment;  // Flag for determining if the attachment is external
 };
 

@@ -167,7 +167,6 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
           && obj->options->format_out != nsMimeOutput::nsMimeMessageAttach)
   return MimeObject_write(obj, line, length, PR_TRUE);
 
-
   if (mult->state == MimeMultipartEpilogue)  /* already done */
     boundary = MimeMultipartBoundaryTypeNone;
   else
