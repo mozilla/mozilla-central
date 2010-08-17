@@ -45,7 +45,11 @@ interface nsIMutableArray;
 interface nsIAutoSyncState : nsISupports {
 
   /**
-   * Auto-Sync states
+   * Auto-Sync states.
+   *
+   * ***WARNING***: If you change these, be sure to update stateStrings in
+   * nsAutoSyncState.cpp. If you do not, out-of-bounds memory accesses may
+   * happen.
    */
 
   /** sync'd and no pending messages */
