@@ -162,7 +162,7 @@ typedef struct nsMsgAttachedFile
 [ptr] native nsMsgAttachedFile(nsMsgAttachedFile);
 [ptr] native nsMsgAttachmentHandler(nsMsgAttachmentHandler);
 
-[scriptable, uuid(8a3eb87e-6643-439b-bf0c-3aa2ede692ef)]
+[scriptable, uuid(1313d4e4-3ac4-4fe7-bae5-e7049018c331)]
 interface nsIMsgSend : nsISupports 
 {
   //
