@@ -3,7 +3,8 @@ tree[type="places"] {
 }
 
 .bookmarks-toolbar-customize,
-toolbarpaletteitem #PlacesToolbarItems {
+toolbarpaletteitem #PlacesToolbarItems,
+toolbarpaletteitem #PlacesChevron {
   display: none;
 }
 

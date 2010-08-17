@@ -45,7 +45,7 @@ panel[for="urlbar"] {
 
 /* ::::: bookmarks toolbar ::::: */
 
-toolbarpaletteitem[place="palette"] > toolbaritem > hbox[type="places"] {
+#wrapper-personal-bookmarks[place="palette"] > toolbaritem > #PlacesToolbar {
   display: none;
 }
 

@@ -457,7 +457,7 @@ var PlacesCommandHook = {
     if (!manager) {
       // No currently open places window, so open one with the specified mode.
       openDialog("chrome://communicator/content/bookmarks/bookmarksManager.xul",
-                 "", "chrome,toolbar=yes,dialog=no,resizable", aLeftPaneRoot);
+                 "", "all,dialog=no", aLeftPaneRoot);
     }
     else {
       manager.PlacesOrganizer.selectLeftPaneQuery(aLeftPaneRoot);

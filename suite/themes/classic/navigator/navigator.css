@@ -540,27 +540,15 @@ toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
   for the drag/drop UI.
 */
 .bookmarks-toolbar-customize {
-  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-folder-open.png");
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmarksToolbar.png");
   display: none;
   max-width: 15em !important;
 }
 
-toolbarpaletteitem[place] > #personal-bookmarks > .bookmarks-toolbar-customize {
-  display: -moz-box;
-}
-
-toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-customize {
-  -moz-box-orient: vertical;
-}
-
-toolbarpaletteitem[place="toolbar"] > #personal-bookmarks > .bookmarks-toolbar-overflow-items,
-toolbarpaletteitem[place="toolbar"] > #personal-bookmarks > .bookmarks-toolbar-items {
-  visibility: collapse;
-}
-
-toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-overflow-items,
-toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-items {
-  display: none;
+#wrapper-personal-bookmarks[place="palette"] > .toolbarpaletteitem-box {
+  width: 16px;
+  height: 16px;
+  background: url("chrome://communicator/skin/bookmarks/bookmarksToolbar.png") no-repeat;
 }
 
 /* ::::: feeds ::::: */
