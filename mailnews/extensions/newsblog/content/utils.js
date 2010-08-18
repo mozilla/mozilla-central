@@ -449,15 +449,15 @@ function createURN(name)
   // escaped.
   // NULL characters are removed before encoding.
 
-  name = name.replace("\0", "", "g");
+  name = name.replace(/\0/g, "");
 
   var encoded = encodeURI(name);
 
-  encoded = encoded.replace("#", "%23", "g");
-  encoded = encoded.replace("/", "%2f", "g");
-  encoded = encoded.replace("?", "%3f", "g");
-  encoded = encoded.replace("&", "%26", "g");
-  encoded = encoded.replace("~", "%7e", "g");
+  encoded = encoded.replace(/\#/g, "%23");
+  encoded = encoded.replace(/\//g, "%2f");
+  encoded = encoded.replace(/\?/g, "%3f");
+  encoded = encoded.replace(/\&/g, "%26");
+  encoded = encoded.replace(/\~/g, "%7e");
 
   return FZ_ITEM_NS + encoded;
 }
