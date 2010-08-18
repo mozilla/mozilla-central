@@ -183,7 +183,7 @@ function loadFileToString(aFile, aCharset) {
  */
 function get_file_system(aFile) {
   if (!("@mozilla.org/windows-registry-key;1" in Cc))
-    throw new Exception("get_file_system is only supported on Windows");
+    throw new Error("get_file_system is only supported on Windows");
 
   // Win32 type and other constants.
   const BOOL = ctypes.int32_t;
@@ -217,8 +217,8 @@ function get_file_system(aFile) {
     let volumePath = new (ctypes.jschar.array(filePath.length + 2));
 
     if (!GetVolumePathName(filePath, volumePath, volumePath.length)) {
-      throw new Exception("Unable to get volume path for " + filePath + ", error " +
-                          GetLastError());
+      throw new Error("Unable to get volume path for " + filePath + ", error " +
+                      GetLastError());
     }
 
     // Returns information about the file system for the given volume path. We just need
@@ -242,8 +242,8 @@ function get_file_system(aFile) {
 
     if (!GetVolumeInformation(volumePath, null, 0, null, null, null, fsName,
                               fsName.length)) {
-      throw new Exception("Unable to get volume information for " +
-                          volumePath.readString() + ", error " + GetLastError());
+      throw new Error("Unable to get volume information for " +
+                      volumePath.readString() + ", error " + GetLastError());
     }
 
     return fsName.readString();
@@ -335,8 +335,8 @@ function mark_file_region_sparse(aFile, aRegionStart, aRegionBytes) {
                              FILE_ATTRIBUTE_NORMAL, null);
       let hFileInt = ctypes.cast(hFile, ctypes.intptr_t);
       if (ctypes.Int64.compare(hFileInt.value, INVALID_HANDLE_VALUE) == 0) {
-        throw new Exception("CreateFile failed for " + filePath + ", error " +
-                            GetLastError());
+        throw new Error("CreateFile failed for " + filePath + ", error " +
+                        GetLastError());
       }
 
       try {
@@ -364,8 +364,8 @@ function mark_file_region_sparse(aFile, aRegionStart, aRegionBytes) {
         if (!DeviceIoControl(hFile, FSCTL_SET_SPARSE, sparseBuffer.address(),
                              FILE_SET_SPARSE_BUFFER.size, null, 0,
                              bytesReturned.address(), null)) {
-          throw new Exception("Unable to mark file as sparse, error " +
-                              GetLastError());
+          throw new Error("Unable to mark file as sparse, error " +
+                          GetLastError());
         }
         
         let zdInfo = new FILE_ZERO_DATA_INFORMATION();
@@ -376,8 +376,8 @@ function mark_file_region_sparse(aFile, aRegionStart, aRegionBytes) {
         if (!DeviceIoControl(hFile, FSCTL_SET_ZERO_DATA, zdInfo.address(),
                              FILE_ZERO_DATA_INFORMATION.size, null, 0,
                              bytesReturned.address(), null)) {
-          throw new Exception("Unable to mark region as zero, error " +
-                              GetLastError());
+          throw new Error("Unable to mark region as zero, error " +
+                          GetLastError());
         }
 
         // Move to past the sparse region and mark it as the end of the file. The
@@ -392,8 +392,8 @@ function mark_file_region_sparse(aFile, aRegionStart, aRegionBytes) {
           ctypes.uint32_t    // in: dwMoveMethod
         );
         if (!SetFilePointerEx(hFile, regionEnd, null, FILE_BEGIN)) {
-          throw new Exception("Unable to set file pointer to end, error " +
-                              GetLastError());
+          throw new Error("Unable to set file pointer to end, error " +
+                          GetLastError());
         }
 
         let SetEndOfFile = kernel32.declare(
@@ -403,7 +403,7 @@ function mark_file_region_sparse(aFile, aRegionStart, aRegionBytes) {
           HANDLE // in: hFile
         );
         if (!SetEndOfFile(hFile))
-          throw new Exception("Unable to set end of file, error " + GetLastError());
+          throw new Error("Unable to set end of file, error " + GetLastError());
 
         return true;
       }
