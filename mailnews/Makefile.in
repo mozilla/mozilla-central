@@ -60,7 +60,6 @@ PARALLEL_DIRS	+= \
 
 ifdef ENABLE_TESTS
 PARALLEL_DIRS += \
-  test \
   test/performance/bloat \
   $(NULL)
 endif

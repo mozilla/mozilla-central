@@ -9,6 +9,7 @@ var gIMAPDaemon, gServer, gIMAPIncomingServer;
 const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
                        .getService(Ci.nsIMsgMessageService);
 
+load("../../mailnews/resources/mailTestUtils.js");
 load("../../mailnews/resources/messageGenerator.js");
 
 var gDownloadedOnce = false;
@@ -35,49 +36,29 @@ function run_test()
   prefBranch.setBoolPref("mail.biff.show_tray_icon", false);
   prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
 
+  // Figure out the name of the IMAP inbox
+  let inboxFile = gIMAPIncomingServer.rootMsgFolder.filePath.clone();
+  inboxFile.append("INBOX");
+  if (!inboxFile.exists())
+    inboxFile.create(Ci.nsIFile.NORMAL_FILE_TYPE, parseInt("0644", 8));
+
   // On Windows, check whether the drive is NTFS. If it is, mark the file as
   // sparse. If it isn't, then bail out now, because in all probability it is
   // FAT32, which doesn't support file sizes greater than 4 GB.
-  if ("@mozilla.org/windows-registry-key;1" in Cc)
+  if ("@mozilla.org/windows-registry-key;1" in Cc &&
+      get_file_system(inboxFile) != "NTFS")
   {
-    // Figure out the name of the IMAP inbox
-    let file = gIMAPIncomingServer.rootMsgFolder.filePath.clone();
-    file.append("INBOX");
-    if (!file.exists())
-      file.create(Ci.nsIFile.NORMAL_FILE_TYPE, parseInt("0644", 8));
-
-    // Now call upon our helper
-    let helper = do_get_cwd().clone();
-    // '../../mailnews/LargeOfflineStoreHelper.exe'.
-    helper = helper.parent.parent;
-    helper.normalize();
-    helper.append("mailnews");
-    helper.append("LargeOfflineStoreHelper.exe");
-    if (!helper.exists()) {
-      do_throw(helper.leafName + " not found");
-    }
-
-    let helperProc = Cc["@mozilla.org/process/util;1"]
-                       .createInstance(Ci.nsIProcess);
-    helperProc.init(helper);
-    let args = [file.path];
-    // XXX This needs to be fixed to use runw once it lands (bug 411511)
-    helperProc.run(true, args, args.length);
-    let exitValue = helperProc.exitValue;
-
-    // 0 is success, 1 is "unable to run," and any other value is failure
-    if (exitValue == 1)
-    {
-      dump("On Windows, this test only works on NTFS volumes.\n");
-      endTest();
-      return;
-    }
-
-    if (exitValue != 0)
-    {
-      do_throw(helper.leafName + " failed with exit value " + exitValue +
-                 ", see above for details");
-    }
+    dump("On Windows, this test only works on NTFS volumes.\n");
+    endTest();
+    return;
+  }
+  let isFileSparse = mark_file_region_sparse(inboxFile, 0, 0x10000000f);
+  if (!isFileSparse && inboxFile.diskSpaceAvailable < 0x200000000)
+  {
+    dump("On systems where files can't be marked sparse, this test needs 8 " +
+         "GB of free disk space.\n");
+    endTest();
+    return;
   }
 
   let inbox = gIMAPDaemon.getMailbox("INBOX");
@@ -109,17 +90,6 @@ function run_test()
 
   // Get the IMAP inbox...
   let rootFolder = gIMAPIncomingServer.rootFolder;
-  let freeDiskSpace = rootFolder.filePath.diskSpaceAvailable;
-
-  // On Windows, the file is marked as sparse above. Linux file systems
-  // generally support sparse files automatically. OS X's HFS+, however, doesn't
-  // support sparse files, so check for at least 8 GB of free disk space before
-  // consuming 4 GB.
-  if ("nsILocalFileMac" in Ci && freeDiskSpace < 0x200000000) {
-    dump("On MacOSX, this test needs 8 GB of free disk space.\n");
-    endTest();
-    return;
-  }
 
   gIMAPInbox = rootFolder.getFolderWithFlags(Ci.nsMsgFolderFlags.Inbox);
   let outputStream = gIMAPInbox.offlineStoreOutputStream
