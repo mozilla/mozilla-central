@@ -1622,13 +1622,6 @@
             if (ds.contentViewer && !ds.contentViewer.permitUnload())
               return;
 
-            aTab.tabData = {
-              pos: this.getTabIndex(aTab),
-              panel: oldBrowser.parentNode.id,
-              title: oldBrowser.contentDocument.title ||
-                     this.getTitleForURI(oldBrowser.currentURI) ||
-                     this.mStringBundle.getString("tabs.untitled")
-            }
             // We're committed to closing the tab now.
             // Dispatch a notification.
             // We dispatch it before any teardown so that event listeners can
@@ -1636,6 +1629,12 @@
             var event = document.createEvent('Events');
             event.initEvent("TabClose", true, false);
             aTab.dispatchEvent(event);
+            var tabData = aTab.tabData || {};
+            tabData.pos = this.getTabIndex(aTab);
+            tabData.panel = oldBrowser.parentNode.id;
+            tabData.title = oldBrowser.contentDocument.title ||
+                            this.getTitleForURI(oldBrowser.currentURI) ||
+                            this.mStringBundle.getString("tabs.untitled");
 
             var l = this.tabs.length;
             switch (l) {
@@ -1739,9 +1738,9 @@
             //    into bfcache - allows for saving of JS modifications
             //    and also saves RAM by allowing bfcache to evict the full page
 
-            aTab.tabData.browser = oldBrowser;
-            aTab.tabData.history = oldSH;
-            this.savedBrowsers.unshift(aTab.tabData);
+            tabData.browser = oldBrowser;
+            tabData.history = oldSH;
+            this.savedBrowsers.unshift(tabData);
 
             var newSH = Components.classes["@mozilla.org/browser/shistory;1"]
                                   .createInstance(Components.interfaces.nsISHistoryInternal);
@@ -1758,7 +1757,7 @@
 
             // remove overflow from the undo stack
             if (this.savedBrowsers.length > maxUndoDepth) {
-              var tabData = this.savedBrowsers.pop();
+              tabData = this.savedBrowsers.pop();
               var deadBrowser = tabData.browser;
               delete tabData.browser;
               delete tabData.history;

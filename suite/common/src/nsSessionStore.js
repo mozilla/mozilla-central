@@ -688,9 +688,7 @@ SessionStoreService.prototype = {
 
     // store closed-tab data for undo
     if (tabState.entries.length > 0) {
-      let tabbrowser = aWindow.getBrowser();
-
-      aTab.tabData.state = tabState;
+      aTab.tabData = { state: tabState };
       var closedTabs = this._windows[aWindow.__SSi]._closedTabs;
       closedTabs.unshift(aTab.tabData);
       if (closedTabs.length > maxTabsUndo)
