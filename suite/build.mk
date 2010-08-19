@@ -43,6 +43,8 @@ endif
 
 TIERS += app
 
+tier_app_dirs += xpfe/components/autocomplete
+
 ifdef MOZ_EXTENSIONS
 tier_app_dirs += extensions
 endif
