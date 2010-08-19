@@ -78,7 +78,10 @@
 #include "nsIContentViewer.h"
 
 // embedding
+#ifdef NS_PRINTING
 #include "nsIWebBrowserPrint.h"
+#include "nsMsgPrintEngine.h"
+#endif
 
 /* for access to docshell */
 #include "nsPIDOMWindow.h"
@@ -121,9 +124,6 @@
 // charset conversions
 #include "nsMsgMimeCID.h"
 #include "nsIMimeConverter.h"
-
-// Printing
-#include "nsMsgPrintEngine.h"
 
 // Save As
 #include "nsIFilePicker.h"
