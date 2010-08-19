@@ -292,7 +292,7 @@ classic.jar:
   skin/classic/aero/messenger/searchBox.css                        (mail/searchBox.css)
   skin/classic/aero/messenger/junkMail.css                         (mail/junkMail.css)
   skin/classic/aero/messenger/folderMenus.css                      (mail/folderMenus.css)
-  skin/classic/aero/messenger/folderPane.css                       (mail/folderPane.css)
+* skin/classic/aero/messenger/folderPane.css                       (mail/folderPane-aero.css)
   skin/classic/aero/messenger/subscribe.css                        (mail/subscribe.css)
   skin/classic/aero/messenger/virtualFolderListDialog.css          (mail/virtualFolderListDialog.css)
   skin/classic/aero/messenger/searchDialog.css                     (mail/searchDialog.css)
