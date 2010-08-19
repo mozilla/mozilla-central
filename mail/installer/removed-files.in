@@ -46,6 +46,7 @@ components/compreg.dat
 components/components.list
 components/history.xpt
 components/jsconsole.xpt
+components/layout.xpt
 components/mailnews.xpt
 components/mozgnome.xpt
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@

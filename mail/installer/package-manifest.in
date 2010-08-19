@@ -324,8 +324,8 @@
 @BINPATH@/components/content_xslt.xpt
 @BINPATH@/components/content_xtf.xpt
 @BINPATH@/components/htmlparser.xpt
-@BINPATH@/components/layout.xpt
 @BINPATH@/components/layout_base.xpt
+@BINPATH@/components/layout_forms.xpt
 #ifdef NS_PRINTING
 @BINPATH@/components/layout_printing.xpt
 #endif
