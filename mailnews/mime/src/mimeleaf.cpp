@@ -116,6 +116,9 @@ MimeLeaf_parse_begin (MimeObject *obj)
   MimeLeaf *leaf = (MimeLeaf *) obj;
   MimeDecoderData *(*fn) (nsresult (*) (const char*, PRInt32, void*), void*) = 0;
 
+  // Initial size is zero
+  leaf->sizeSoFar = 0;
+
   /* Initialize a decoder if necessary.
    */
   if (!obj->encoding)
@@ -167,14 +170,21 @@ MimeLeaf_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
     !obj->options->output_fn)
   return 0;
 
+  int rv;
   if (leaf->decoder_data &&
       obj->options && 
       obj->options->format_out != nsMimeOutput::nsMimeMessageDecrypt
-      && obj->options->format_out != nsMimeOutput::nsMimeMessageAttach)
-  return MimeDecoderWrite (leaf->decoder_data, buffer, size);
-  else
-  return ((MimeLeafClass *)obj->clazz)->parse_decoded_buffer (buffer, size,
+      && obj->options->format_out != nsMimeOutput::nsMimeMessageAttach) {
+    int outSize = 0;
+    rv = MimeDecoderWrite (leaf->decoder_data, buffer, size, &outSize);
+    leaf->sizeSoFar += outSize;
+  }
+  else {
+    rv = ((MimeLeafClass *)obj->clazz)->parse_decoded_buffer (buffer, size,
                                 obj);
+    leaf->sizeSoFar += size;
+  }
+  return rv;
 }
 
 static int

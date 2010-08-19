@@ -91,6 +91,7 @@ function MimeMessageEmitter() {
   this._outputListener = null;
 
   this._curPart = null;
+  this._curAttachment = null;
   this._partMap = {};
 
   this._state = kStateUnknown;
@@ -112,6 +113,7 @@ MimeMessageEmitter.prototype = {
     this._curPart = new this._mimeMsg.MimeMessage();
     // the partName is intentionally ""!  not a place-holder!
     this._curPart.partName = "";
+    this._curAttachment = "";
     this._partMap[""] = this._curPart;
 
     // pull options across...
@@ -129,6 +131,7 @@ MimeMessageEmitter.prototype = {
     this._outputListener = null;
 
     this._curPart = null;
+    this._curAttachment = null;
     this._partMap = null;
   },
 
@@ -340,16 +343,22 @@ MimeMessageEmitter.prototype = {
       aUrl, aIsExternalAttachment) {
     this._state = kStateInAttachment;
 
+    // we need to strip our magic flags from the URL
+    aUrl = aUrl.replace("header=filter&emitter=js&", "");
+    // the url should contain a part= piece that tells us the part name, which
+    // we then use to figure out where to place that part if it's a real
+    // attachment.
+    let partMatch = this._partRE.exec(aUrl);
+    let partName = partMatch && partMatch[1];
+    this._curAttachment = partName;
+
     if (aContentType == "message/rfc822") {
       // we want to offer extension authors a way to see attachments as the
       // message readers sees them, which means attaching an extra url property
       // to the part that was already created before
-      aUrl = aUrl.replace("header=filter&emitter=js&", "");
-      let partMatch = this._partRE.exec(aUrl);
-      if (partMatch) {
+      if (partName) {
         // we disguise this MimeMessage into something that can be used as a
         // MimeAttachment so that it is transparent for the user code
-        let partName = partMatch[1];
         this._partMap[partName].url = aUrl;
         this._partMap[partName].isExternalAttachment = aIsExternalAttachment;
         this._partMap[partName].name = aName;
@@ -362,13 +371,8 @@ MimeMessageEmitter.prototype = {
       // X-Mozilla-PartURL) receive the same thing; the URL to the file on disk.
     }
     else {
-      // we need to strip our magic flags from the URL
-      aUrl = aUrl.replace("header=filter&emitter=js&", "");
-      // the url should contain a part= piece that tells us the part name, which
-      //  we then use to figure out where.
-      let partMatch = this._partRE.exec(aUrl);
-      if (partMatch) {
-        let part = new this._mimeMsg.MimeMessageAttachment(partMatch[1],
+      if (partName) {
+        let part = new this._mimeMsg.MimeMessageAttachment(partName,
             aName, aContentType, aUrl, aIsExternalAttachment);
         if (part.isRealAttachment) {
           // replace the existing part with the attachment...
@@ -378,10 +382,15 @@ MimeMessageEmitter.prototype = {
     }
   },
   addAttachmentField: function mime_emitter_addAttachmentField(aField, aValue) {
-    // all that gets passed in here is X-Mozilla-PartURL with a value that
+    // what gets passed in here is X-Mozilla-PartURL with a value that
     //  is completely identical to aUrl from the call to startAttachment.
     //  (it's the same variable they use in each case).  As such, there is
-    //  no reason to handle anything here.
+    //  no reason to handle that here.
+    //
+    //  However, we also pass information about the size of the attachment, and
+    //  that we want to handle
+    if (aField == "X-Mozilla-PartSize" && this._curPart)
+        this._partMap[this._curAttachment].size = parseInt(aValue);
   },
   endAttachment: function mime_emitter_endAttachment() {
     // don't need to do anything here, since we don't care about the headers.

@@ -441,7 +441,7 @@ MimeMultipartSigned_parse_line (const char *line, PRInt32 length, MimeObject *ob
       /* Feed this line into the signature verification routines. */
 
       if (sig->sig_decoder_data)
-      status = MimeDecoderWrite (sig->sig_decoder_data, line, length);
+      status = MimeDecoderWrite (sig->sig_decoder_data, line, length, nsnull);
       else
       status = (((MimeMultipartSignedClass *) obj->clazz)
             ->crypto_signature_hash (line, length,

@@ -167,7 +167,7 @@ MimeEncrypted_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
    the child of this object. */
 
   if (enc->decoder_data)
-  return MimeDecoderWrite (enc->decoder_data, buffer, size);
+  return MimeDecoderWrite (enc->decoder_data, buffer, size, nsnull);
   else
   return ((MimeEncryptedClass *)obj->clazz)->parse_decoded_buffer (buffer,
                                    size,

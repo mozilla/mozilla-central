@@ -78,6 +78,11 @@ struct MimeLeaf {
   /* If we're doing Base64, Quoted-Printable, or UU decoding, this is the
    state object for the decoder. */
   MimeDecoderData *decoder_data;
+
+  /* We want to count the size of the MimeObject to offer consumers the
+   * opportunity to display the sizes of attachments.
+   */
+  int sizeSoFar;
 };
 
 #endif /* _MIMELEAF_H_ */
