@@ -81,6 +81,8 @@ public:
   /// Handles event posted to event queue to batch notifications.
   void ProcessUpdateEvent(nsIMsgFolder *folder, nsIMsgDatabase *db);
 
+  void DecrementNewMsgCount();
+
   nsCOMPtr <nsIMsgFolder> m_virtualFolder; // folder we're listening to db changes on behalf of.
   nsCOMPtr <nsIMsgFolder> m_folderWatching; // folder whose db we're listening to.
   nsCOMPtr <nsISupportsArray> m_searchTerms;

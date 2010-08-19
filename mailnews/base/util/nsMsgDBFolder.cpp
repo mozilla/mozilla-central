@@ -556,8 +556,11 @@ NS_IMETHODIMP nsMsgDBFolder::GetFirstNewMessage(nsIMsgDBHdr **firstNewMessage)
 NS_IMETHODIMP nsMsgDBFolder::ClearNewMessages()
 {
   nsresult rv = NS_OK;
-  //If there's no db then there's nothing to clear.
-  if(mDatabase)
+  PRBool dbWasCached = mDatabase != nsnull;
+  if (!dbWasCached)
+    GetDatabase();
+
+  if (mDatabase)
   {
     PRUint32 numNewKeys;
     PRUint32 *newMessageKeys;
@@ -570,6 +573,9 @@ NS_IMETHODIMP nsMsgDBFolder::ClearNewMessages()
     }
     mDatabase->ClearNewList(PR_TRUE);
   }
+  if (!dbWasCached)
+    SetMsgDatabase(nsnull);
+
   m_newMsgs.Clear();
   mNumNewBiffMessages = 0;
   return rv;
@@ -3041,6 +3047,12 @@ nsMsgDBFolder::parseURI(PRBool needServer)
 
       nsCString serverType;
       GetIncomingServerType(serverType);
+      if (serverType.IsEmpty())
+      {
+        NS_WARNING("can't determine folder's server type");
+        return NS_ERROR_FAILURE;
+      }
+
       url->SetScheme(serverType);
       rv = accountManager->FindServerByURI(url, PR_FALSE,
                                       getter_AddRefs(server));

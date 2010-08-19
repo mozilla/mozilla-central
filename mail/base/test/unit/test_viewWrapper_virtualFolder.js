@@ -357,6 +357,36 @@ function test_virtual_folder_mail_views_unread(aNumFolders) {
   verify_messages_in_view([fooOne, fooTwo, fooThree], viewWrapper);
 }
 
+// This tests that clearing the new messages in a folder also clears the
+// new flag on saved search folders based on the real folder. This could be a
+// core view test, or a mozmill test, but I think the view wrapper stuff
+// is involved in some of the issues here, so this is a compromise.
+function test_virtual_folder_mail_new_handling() {
+  let viewWrapper = make_view_wrapper();
+
+  let [folders, fooOne, fooTwo] = make_folders_with_sets(
+    1, [{subject: "foo 1"}, {subject: "foo 2"}]);
+  let folder = folders[0];
+  let virtFolder = make_virtual_folder(folders, {subject: "foo"});
+
+  yield async_view_open(viewWrapper, folder);
+
+  let [fooThree, nopeThree] = make_new_sets_in_folders(folders,
+    [{subject: "foo 3"}, {}]);
+
+  if (!virtFolder.hasNewMessages)
+    do_throw("saved search should have new messages!");
+
+  if (!folder.hasNewMessages)
+    do_throw("folder should have new messages!");
+  
+  viewWrapper.close();
+  folder.msgDatabase = null;
+  folder.clearNewMessages();
+  if (virtFolder.hasNewMessages)
+    do_throw("saved search should not have new messages!");
+}
+
 var tests = [
   // -- single-folder backed virtual folder
   test_virtual_folder_single_load_no_pred,
@@ -379,6 +409,7 @@ var tests = [
   test_virtual_folder_underlying_folder_deleted,
   // -- mail views (parameterized)
   parameterizeTest(test_virtual_folder_mail_views_unread, [1, 4]),
+  test_virtual_folder_mail_new_handling,
 ];
 
 function run_test() {

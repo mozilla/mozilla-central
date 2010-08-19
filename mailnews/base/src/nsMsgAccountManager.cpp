@@ -1211,6 +1211,12 @@ nsMsgAccountManager::LoadAccounts()
   if (m_accountsLoaded)
     return NS_OK;
 
+  nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
+
+  if (NS_SUCCEEDED(rv))
+    mailSession->AddFolderListener(this, nsIFolderListener::added |
+                                         nsIFolderListener::removed |
+                                         nsIFolderListener::intPropertyChanged);
   // If we have code trying to do things after we've unloaded accounts,
   // ignore it.
   if (m_shutdownInProgress || m_haveShutdown)
@@ -1456,12 +1462,6 @@ nsMsgAccountManager::LoadAccounts()
       }
     }
   }
-  nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
-
-  if (NS_SUCCEEDED(rv))
-    mailSession->AddFolderListener(this, nsIFolderListener::added |
-                                         nsIFolderListener::removed |
-                                         nsIFolderListener::intPropertyChanged);
   return NS_OK;
 }
 
@@ -2744,6 +2744,17 @@ VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBo
   return NS_OK;
 }
 
+void VirtualFolderChangeListener::DecrementNewMsgCount()
+{
+  PRInt32 numNewMessages;
+  m_virtualFolder->GetNumNewMessages(PR_FALSE, &numNewMessages);
+  if (numNewMessages > 0)
+    numNewMessages--;
+  m_virtualFolder->SetNumNewMessages(numNewMessages);
+  if (!numNewMessages)
+    m_virtualFolder->SetHasNewMessages(PR_FALSE);
+}
+
 NS_IMETHODIMP VirtualFolderChangeListener::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
 {
   nsCOMPtr <nsIMsgDatabase> msgDB;
@@ -2804,13 +2815,8 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrCh
     if (totalDelta)
       dbFolderInfo->ChangeNumMessages(totalDelta);
     if (unreadDelta == -1 && aOldFlags & nsMsgMessageFlags::New)
-    {
-      PRInt32 numNewMessages;
-      m_virtualFolder->GetNumNewMessages(PR_FALSE, &numNewMessages);
-      m_virtualFolder->SetNumNewMessages(numNewMessages - 1);
-      if (numNewMessages == 1)
-        m_virtualFolder->SetHasNewMessages(PR_FALSE);
-    }
+      DecrementNewMsgCount();
+
     if (totalDelta)
     {
       nsCString searchUri;
@@ -2820,6 +2826,10 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrCh
 
     PostUpdateEvent(m_virtualFolder, virtDatabase);
   }
+  else if (oldMatch && (aOldFlags & nsMsgMessageFlags::New) &&
+           !(aNewFlags & nsMsgMessageFlags::New))
+    DecrementNewMsgCount();
+
   return rv;
 }
 

@@ -1887,7 +1887,11 @@ let gFolderTreeView = {
     }
   },
 
-  OnItemBoolPropertyChanged: function(aItem, aProperty, aOld, aNew) {},
+  OnItemBoolPropertyChanged: function(aItem, aProperty, aOld, aNew) {
+    let index = this.getIndexOfFolder(aItem);
+    if (index != null)
+      this._tree.invalidateRow(index);
+  },
   OnItemUnicharPropertyChanged: function(aItem, aProperty, aOld, aNew) {},
   OnItemPropertyFlagChanged: function(aItem, aProperty, aOld, aNew) {},
   OnItemEvent: function(aFolder, aEvent) {
