@@ -24,6 +24,7 @@ resizer[dir="bottomright"],
 resizer[dir="bottomend"]:-moz-locale-dir(ltr) {
   background-image: url("chrome://global/skin/icons/resizer.png");
   background-position: bottom right;
+  background-repeat: no-repeat;
   cursor: se-resize;
   width: 15px;
   height: 15px;
@@ -35,5 +36,10 @@ resizer[dir="topright"] {
 
 resizer[dir="bottomleft"],
 resizer[dir="bottomend"]:-moz-locale-dir(rtl) {
+  background-image: url("chrome://global/skin/icons/resizer-rtl.png");
+  background-position: bottom left;
+  background-repeat: no-repeat;
   cursor: sw-resize;
+  width: 15px;
+  height: 15px;
 }
