@@ -38,13 +38,7 @@
 var EXPORTED_SYMBOLS = ["SearchIntegration"];
 
 #ifdef XP_WIN
-
-#ifdef MOZ_DISABLE_VISTA_SDK_REQUIREMENTS
-// Set SearchIntegration to null, as we don't have it
-var SearchIntegration = null;
-#else
 Components.utils.import("resource:///modules/WinSearchIntegration.js");
-#endif
 
 #else
 

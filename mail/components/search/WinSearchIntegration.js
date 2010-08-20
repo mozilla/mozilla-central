@@ -50,6 +50,11 @@ const CRLF="\r\n";
 const ACCESS_WOW64_64KEY = 0x0100;
 
 /**
+ * The contract ID for the helper service.
+ */
+const WINSEARCHHELPER_CONTRACTID = "@mozilla.org/mail/windows-search-helper;1";
+
+/**
  * All the registry keys required for integration
  */
 const gRegKeys =
@@ -112,7 +117,7 @@ let SearchIntegration =
   get _winSearchHelper()
   {
     if (!this.__winSearchHelper)
-      this.__winSearchHelper = Cc["@mozilla.org/mail/windows-search-helper;1"]
+      this.__winSearchHelper = Cc[WINSEARCHHELPER_CONTRACTID]
                                  .getService(Ci.nsIMailWinSearchHelper);
     return this.__winSearchHelper;
   },
@@ -169,6 +174,14 @@ let SearchIntegration =
   _init: function winsearch_init()
   {
     this._initLogging();
+    // If the helper service isn't present, we weren't compiled with the needed
+    // support. Mark ourselves null and return
+    if (!(WINSEARCHHELPER_CONTRACTID in Cc))
+    {
+      SearchIntegration = null;
+      return;
+    }
+
     // We're currently only enabled on Vista and above
     let sysInfo = Cc["@mozilla.org/system-info;1"]
                     .getService(Ci.nsIPropertyBag2);

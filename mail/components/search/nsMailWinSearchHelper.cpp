@@ -35,6 +35,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
+
 #include "nsMailWinSearchHelper.h"
 #include "nsDirectoryServiceUtils.h"
 #include "nsAutoPtr.h"
@@ -301,3 +303,5 @@ NS_IMETHODIMP nsMailWinSearchHelper::RunSetup(PRBool aEnable)
 
   return SUCCEEDED(HRESULT_FROM_WIN32(dwRet)) ? NS_OK : NS_ERROR_FAILURE;
 }
+
+#endif // MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
