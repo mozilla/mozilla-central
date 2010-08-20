@@ -4,13 +4,15 @@
 
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
 
+load("../../mailnews/resources/messageGenerator.js");
+
 const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
                        .getService(Ci.nsIMsgMessageService);
 
 // Globals
 var gRootFolder;
 var gIMAPInbox, gIMAPTrashFolder;
-var gEmptyLocal1, gEmptyLocal2, gEmptyLocal3;
+var gEmptyLocal1, gEmptyLocal2, gEmptyLocal3, gNotEmptyLocal4;
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
 var gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                 .getService(Ci.nsIMsgCopyService);
@@ -81,6 +83,18 @@ const gTestArray =
     do_check_neq(folder2, null);
     do_check_neq(folder3, null);
     doTest(++gCurTestNum);
+  },
+  function testImapFolderCopyFailure() {
+    let folders = new Array;
+    folders.push(gNotEmptyLocal4.QueryInterface(Ci.nsIMsgFolder));
+    let array = toXPCOMArray(folders, Ci.nsIMutableArray);
+    gServer._handler.commandToFail = "APPEND";
+    // we expect NS_MSG_ERROR_IMAP_COMMAND_FAILED;
+    CopyListener._expectedStatus = 0x80550021;
+    gCopyService.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
+  },
+  function finishTest() {
+    doTest(++gCurTestNum);
   }
 ];
 
@@ -125,6 +139,13 @@ function run_test()
   gEmptyLocal1 = gLocalIncomingServer.rootFolder.addSubfolder("empty 1");
   gEmptyLocal2 = gLocalIncomingServer.rootFolder.addSubfolder("empty 2");
   gEmptyLocal3 = gLocalIncomingServer.rootFolder.addSubfolder("empty 3");
+  gNotEmptyLocal4 = gLocalIncomingServer.rootFolder.addSubfolder("not empty 4");
+
+  let messageGenerator = new MessageGenerator();
+  let message = messageGenerator.makeMessage();
+  gNotEmptyLocal4.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  gNotEmptyLocal4.addMessage(message.toMboxString());
+
   // Get the server list...
   gIMAPIncomingServer.performExpand(null);
 
@@ -180,6 +201,7 @@ function doTest(test)
 // is completed.
 var CopyListener =
 {
+  _expectedStatus : 0,
   OnStartCopy: function() {},
   OnProgress: function(aProgress, aProgressMax) {},
   SetMessageKey: function(aKey)
@@ -190,7 +212,7 @@ var CopyListener =
   {
     dump("in OnStopCopy " + gCurTestNum + "\n");
     // Check: message successfully copied.
-    do_check_eq(aStatus, 0);
+    do_check_eq(aStatus, this._expectedStatus);
     // Ugly hack: make sure we don't get stuck in a JS->C++->JS->C++... call stack
     // This can happen with a bunch of synchronous functions grouped together, and
     // can even cause tests to fail because they're still waiting for the listener
@@ -201,14 +223,13 @@ var CopyListener =
 
 function endTest()
 {
+  dump("in end test\n");
   // Cleanup, null out everything, close all cached connections and stop the
   // server
   gRootFolder = null;
   gIMAPInbox = null;
   gIMAPTrashFolder = null;
-  gServer.resetTest();
   gIMAPIncomingServer.closeCachedConnections();
-  gServer.performTest();
   gServer.stop();
   let thread = gThreadManager.currentThread;
   while (thread.hasPendingEvents())

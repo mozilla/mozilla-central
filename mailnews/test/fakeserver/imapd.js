@@ -641,6 +641,8 @@ function IMAP_RFC3501_handler(daemon) {
   this.dropOnStartTLS = false;
   // This can be used to simulate timeouts on large copies
   this.copySleep = 0;
+  // This can be used to cause the artificial failure of any given command.
+  this.commandToFail = "";
   // map: property = auth scheme {String}, value = start function on this obj
   this._kAuthSchemeStartFunction = {};
 
@@ -746,6 +748,8 @@ IMAP_RFC3501_handler.prototype = {
   },
   _dispatchCommand : function (command, args) {
     command = command.toUpperCase();
+    if (command == this.commandToFail.toUpperCase())
+      return this._tag + " NO " + command + " failed";
     if (command in this) {
       this._lastCommand = command;
       // Are we allowed to execute this command?

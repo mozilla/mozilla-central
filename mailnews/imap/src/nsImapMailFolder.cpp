@@ -7640,8 +7640,12 @@ NS_IMETHODIMP nsImapFolderCopyState::OnStopCopy(nsresult aStatus)
   if (NS_SUCCEEDED(aStatus))
     return AdvanceToNextFolder(aStatus);
   if (m_copySrvcListener)
+  {
     (void) m_copySrvcListener->OnStopCopy(aStatus);
-  delete this;
+    m_copySrvcListener = nsnull;
+  }
+  Release();
+
   return NS_OK;
 }
 
