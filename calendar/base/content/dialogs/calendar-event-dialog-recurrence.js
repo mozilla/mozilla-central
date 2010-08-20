@@ -40,6 +40,7 @@
 var gIsReadOnly = false;
 var gStartTime = null;
 var gEndTime = null;
+var gUntilDate = null;
 
 /**
  * Sets up the recurrence dialog from the window arguments. Takes care of filling
@@ -227,13 +228,18 @@ function initializeControls(rule) {
             setElementValue("repeat-ntimes-count", rule.count );
         }
     } else {
-        var untilDate = rule.untilDate;
+        let untilDate = rule.untilDate;
         if (!untilDate) {
             setElementValue("recurrence-duration", "forever");
         } else {
-            untilDate = untilDate.getInTimezone(gStartTime.timezone); // calIRecurrenceRule::untilDate is always UTC or floating
+            gUntilDate = untilDate.getInTimezone(gStartTime.timezone); // calIRecurrenceRule::untilDate is always UTC or floating
+            // Change the until date to start date if the rule has a forbidden
+            // value (earlier than the start date).
+            if (gUntilDate.compare(gStartTime) < 0) {
+                gUntilDate = gStartTime.clone();
+            }
             setElementValue("recurrence-duration", "until");
-            setElementValue("repeat-until-date", untilDate.getInTimezone(floating()).jsDate);
+            setElementValue("repeat-until-date", gUntilDate.getInTimezone(floating()).jsDate);
         }
     }
 }
@@ -387,6 +393,18 @@ function onAccept() {
     var args = window.arguments[0];
     var item = args.calendarEvent;
     args.onOk(onSave(item));
+    // Don't close the dialog if a warning must be showed.
+    return !checkUntilDate.warning;
+}
+
+/**
+ * Handler function to be called when the Cancel button is pressed.
+ *
+ * @return      Returns true if the window should be closed
+ */
+function onCancel() {
+    // Don't show any warning if the dialog must be closed.
+    checkUntilDate.warning = false;
     return true;
 }
 
@@ -595,6 +613,37 @@ function updatePreview() {
     var recInfo = onSave(item);
     var preview = document.getElementById("recurrence-preview");
     preview.updatePreview(recInfo);
+}
+
+/**
+ * Checks the until date just entered in the datepicker in order to avoid
+ * setting a date earlier than the start date.
+ * Restores the previous correct date, shows a warning and prevents to close the
+ * dialog when the user enters a wrong until date.
+ */
+function checkUntilDate() {
+    let untilDate = jsDateToDateTime(getElementValue("repeat-until-date"), gStartTime.timezone);
+    let startDate = gStartTime.clone();
+    startDate.isDate = true;
+    if (untilDate.compare(startDate) < 0) {
+        setElementValue("repeat-until-date", (gUntilDate || gStartTime).getInTimezone(floating()).jsDate);
+        checkUntilDate.warning = true;
+        let callback = function() {
+            // No warning when the dialog is being closed with the Cancel button.
+            if (!checkUntilDate.warning) {
+                return;
+            }
+            let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                          .getService(Components.interfaces.nsIPromptService);
+            promptService.alert(null, document.title,
+                                calGetString("calendar", "warningUntilBeforeStart"));
+            checkUntilDate.warning = false;
+        }
+        setTimeout(callback, 1);
+    } else {
+        gUntilDate = untilDate;
+        updateRecurrenceControls();
+    }
 }
 
 /**

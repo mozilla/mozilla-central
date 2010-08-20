@@ -52,7 +52,7 @@
         windowtype="Calendar:EventDialog:Recurrence"
         onload="onLoad()"
         ondialogaccept="return onAccept();"
-        ondialogcancel="return true;"
+        ondialogcancel="return onCancel();"
         persist="screenX screenY width height"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
@@ -527,7 +527,7 @@
                  disable-on-occurrence="true"
                  control="repeat-until-date"/>
           <datepicker id="repeat-until-date"
-                      onchange="updateRecurrenceControls();"
+                      onchange="checkUntilDate();"
                       disable-on-readonly="true"
                       disable-on-occurrence="true"/>
         </box>
