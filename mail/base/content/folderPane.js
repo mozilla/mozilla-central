@@ -926,7 +926,7 @@ let gFolderTreeView = {
   {
     for each (child in fixIterator(folder.subFolders, Components.interfaces.nsIMsgFolder)) {
       // if the folder selection is based on a string propery, use that
-      if (aFolderName == child.getStringProperty("smartFolderName")) {
+      if (aFolderName == getSmartFolderName(child)) {
         folders.push(child);
         // Add sub-folders if requested.
         if (deep)
@@ -1485,7 +1485,6 @@ let gFolderTreeView = {
         }
         return null;
       },
-      
       /**
        * check to see if a folder is a smart folder
        */
@@ -1495,7 +1494,7 @@ let gFolderTreeView = {
         // Also check the folder name itself, as containers do not
         // have the smartFolderName property.  We check all folders here, since
         // a "real" folder might be marked as a child of a smart folder.
-        let smartFolderName = aFolder.getStringProperty("smartFolderName");
+        let smartFolderName = getSmartFolderName(aFolder);
         return smartFolderName && this.getSmartFolderTypeByName(smartFolderName) ||
             this.getSmartFolderTypeByName(aFolder.name);
       },
@@ -1523,7 +1522,7 @@ let gFolderTreeView = {
        * special folder, else returns null.
        */
       _getSmartFolderType: function ftv_smart__getSmartFolderType(aFolder) {
-        let smartFolderName = aFolder.getStringProperty("smartFolderName");
+        let smartFolderName = getSmartFolderName(aFolder);
         for each (let [, type] in Iterator(this._flagNameList)) {
           if (smartFolderName) {
             if (type[1] == smartFolderName)
@@ -1964,7 +1963,7 @@ ftvItem.prototype = {
                              .getAtom("specialFolder-"+this._folder.name.replace(' ','')));
     }
     // if there is a smartFolder name property, add it
-    let smartFolderName = this._folder.getStringProperty("smartFolderName");
+    let smartFolderName = getSmartFolderName(this._folder);
     if (smartFolderName) {
       aProps.AppendElement(Components.classes["@mozilla.org/atom-service;1"]
                          .getService(Components.interfaces.nsIAtomService)
@@ -2431,6 +2430,15 @@ function sortFolderItems (aFtvItems) {
     return a.text.toLowerCase() > b.text.toLowerCase();
   }
   aFtvItems.sort(sorter);
+}
+
+function getSmartFolderName(aFolder) {
+  try {
+    return aFolder.getStringProperty("smartFolderName");
+  } catch (ex) {
+    Components.utils.reportError(ex);
+    return null;
+  }
 }
 
 /**
