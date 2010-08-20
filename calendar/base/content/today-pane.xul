@@ -200,7 +200,7 @@
                   <observes element="calendar_new_event_command" attribute="disabled"/>
                 </toolbarbutton>
              </toolbar>
-             <popup id="agenda-menu" onpopupshowing="if (event.target == event.currentTarget) { agendaListbox.buildAgendaPopupMenu(this) }"/>
+             <menupopup id="agenda-menu" onpopupshowing="if (event.target == event.currentTarget) { agendaListbox.buildAgendaPopupMenu(this) }"/>
              <vbox id="agenda-menu-box" hidden="true">
                <menuitem label="&calendar.context.modifyorviewitem.label;"
                          accesskey="&calendar.context.modifyorviewitem.accesskey;"

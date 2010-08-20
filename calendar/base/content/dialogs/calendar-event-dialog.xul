@@ -280,11 +280,11 @@
              command="cmd_selectAll"/>
     </keyset>
 
-  <popup id="event-dialog-toolbar-context-menu">
+  <menupopup id="event-dialog-toolbar-context-menu">
     <menuitem id="CustomizeDialogToolbar"
               label="&event.menu.view.toolbars.customize.label;"
               command="cmd_customize"/>
-  </popup>
+  </menupopup>
 
   <!-- Toolbox contains the toolbar and menubar -->
     <toolbox id="event-toolbox" class="toolbox-top" mode="full">
@@ -1125,7 +1125,7 @@
     </statusbar>
 
     <popupset id="event-dialog-popupset">
-      <popup id="attendee-popup" position="after_start">
+      <menupopup id="attendee-popup" position="after_start">
         <menuitem id="attendee-popup-invite-menuitem"
                   label="&event.invite.attendees.label;"
                   accesskey="&event.invite.attendees.accesskey;"
@@ -1142,7 +1142,7 @@
                   command="cmd_email_undecided"/>
         <menuseparator id="attendee-popup-separator"/>
         <menuitem class="status-icon menuitem-iconic" oncommand="sendMailToAttendees([event.target.attendee])" crop="end"/>
-      </popup>
+      </menupopup>
       <menupopup id="attachment-popup">
             <menuitem id="attachment-popup-open"
                       label="&event.attachments.popup.open.label;"

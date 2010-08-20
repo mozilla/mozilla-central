@@ -178,7 +178,7 @@
              noautohide="true"/>
 
     <!-- CALENDAR ITEM CONTEXT MENU -->
-    <popup id="calendar-item-context-menu" onpopupshowing="return setupContextItemType(event, currentView().getSelectedItems({}));">
+    <menupopup id="calendar-item-context-menu" onpopupshowing="return setupContextItemType(event, currentView().getSelectedItems({}));">
       <menuitem id="calendar-item-context-menu-modify-menuitem"
                 label="&calendar.context.modifyorviewitem.label;"
                 accesskey="&calendar.context.modifyorviewitem.accesskey;"
@@ -239,10 +239,10 @@
       <menuitem id="calendar-item-context-menu-delete-menuitem"
                 key="calendar-delete-item-key"
                 observes="calendar_delete_event_command"/>
-    </popup>
+    </menupopup>
 
     <!-- CALENDAR VIEW CONTEXT MENU -->
-    <popup id="calendar-view-context-menu">
+    <menupopup id="calendar-view-context-menu">
       <menuitem id="calendar-view-context-menu-newevent"
                 label="&calendar.context.newevent.label;"
                 observes="calendar_new_event_context_command"
@@ -296,7 +296,7 @@
                 key="key_paste"
                 observes="cmd_paste"
                 command="cmd_paste"/>
-    </popup>
+    </menupopup>
 
     <!-- TASK ITEM CONTEXT MENU -->
     <menupopup id="taskitem-context-menu" onpopupshowing="changeContextMenuForTask(event);">

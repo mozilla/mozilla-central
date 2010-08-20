@@ -45,8 +45,8 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <popupset id="calendar-popupset">
-    <popup id="list-calendars-context-menu"
-           onpopupshowing="return calendarListSetupContextMenu(event);">
+    <menupopup id="list-calendars-context-menu"
+               onpopupshowing="return calendarListSetupContextMenu(event);">
       <menuitem id="list-calendars-context-new"
                 label="&calendar.context.newserver.label;"
                 accesskey="&calendar.context.newserver.accesskey;"
@@ -78,7 +78,7 @@
                 label="&calendar.context.properties.label;"
                 accesskey="&calendar.context.properties.accesskey;"
                 observes="calendar_edit_calendar_command"/>
-    </popup>
+    </menupopup>
     <tooltip id="calendar-list-tooltip"
              onpopupshowing="return calendarListTooltipShowing(event)"/>
   </popupset>

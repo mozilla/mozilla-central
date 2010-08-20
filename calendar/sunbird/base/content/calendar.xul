@@ -101,12 +101,12 @@
 
 <!-- GENERAL CONTEXT MENU -->
 <popupset id="calendar-popupset">
-  <popup id="toolbar-context-menu">
+  <menupopup id="toolbar-context-menu">
     <menuitem command="cmd_CustomizeToolbars"
               id="toolbar-context-menu-customize"
               label="&sunbird.context.customize.label;"
               accesskey="&sunbird.context.customize.accesskey;"/>
-  </popup>
+  </menupopup>
 </popupset>
 
 <commandset id="commands"/>

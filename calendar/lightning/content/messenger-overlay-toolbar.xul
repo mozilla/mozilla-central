@@ -55,7 +55,7 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <popup id="mailContext">
+  <menupopup id="mailContext">
     <menu id="mailContext-calendar-convert-menu"
           insertafter="mailContext-moveToFolderAgain"
           label="&calendar.context.convertmenu.label;"
@@ -71,7 +71,7 @@
                   oncommand="calendarTaskButtonDNDObserver.onDropMessage(gFolderDisplay.selectedMessage)"/>
       </menupopup>
     </menu>
-  </popup>
+  </menupopup>
 
   <!-- The popup id here must match the popup id in the SeaMonkey
        New Message button. See Bug 506461 -->
