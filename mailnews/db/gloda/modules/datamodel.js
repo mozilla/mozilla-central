@@ -37,7 +37,7 @@
 
 const EXPORTED_SYMBOLS = ["GlodaAttributeDBDef",
                     "GlodaConversation", "GlodaFolder", "GlodaMessage",
-                    "GlodaContact", "GlodaIdentity"];
+                    "GlodaContact", "GlodaIdentity", "GlodaAttachment"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -122,9 +122,14 @@ GlodaAttributeDBDef.prototype = {
       }
     }
     else {
-      for each (let [, instanceValue] in Iterator(aInstanceValues)) {
-        dbAttributes.push([this._id,
-                           nounDef.toParamAndValue(instanceValue)[1]]);
+      // Not generating any attributes is ok. This basically means the noun is
+      // just an informative property on the Gloda Message and has no real
+      // indexing purposes.
+      if ("toParamAndValue" in nounDef) {
+        for each (let [, instanceValue] in Iterator(aInstanceValues)) {
+          dbAttributes.push([this._id,
+                             nounDef.toParamAndValue(instanceValue)[1]]);
+        }
       }
     }
     return dbAttributes;
@@ -834,4 +839,30 @@ GlodaIdentity.prototype = {
     }
     return "";
   }
+};
+
+
+/**
+ * An attachment, with as much information as we can gather on it
+ */
+function GlodaAttachment(aName, aContentType, aSize, aURL) {
+  // _datastore set on the prototype by GlodaDatastore
+  this._name = aName;
+  this._contentType = aContentType;
+  this._size = aSize;
+  this._url = aURL;
+}
+
+GlodaAttachment.prototype = {
+  NOUN_ID: 105,
+  // set by GlodaDatastore
+  get name() { return this._name; },
+  get contentType() { return this._contentType; },
+  get size() { return this._size; },
+  get url() { return this._url; },
+
+  toString: function gloda_attachment_toString() {
+    return "attachment: " + this._name + ":" + this._contentType;
+  },
+
 };

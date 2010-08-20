@@ -771,6 +771,10 @@ var Gloda = {
    *  class.
    */
   NOUN_IDENTITY: GlodaIdentity.prototype.NOUN_ID, // 104
+  /**
+   * An attachment to a message. A message may have many different attachments.
+   */
+  NOUN_ATTACHMENT: GlodaAttachment.prototype.NOUN_ID, // 105
 
   /**
    * Parameterized identities, for use in the from-me, to-me, cc-me optimization
@@ -889,6 +893,7 @@ var Gloda = {
         aNounDef.tableName = "ext_" + aNounDef.name;
       // this creates the data table and binder and hooks everything up
       GlodaDatastore.createNounTable(aNounDef);
+
       if (!aNounDef.toParamAndValue)
         aNounDef.toParamAndValue = function (aThing) {
           if (aThing instanceof aNounDef.class)
@@ -1337,6 +1342,23 @@ var Gloda = {
         else // assume they're just passing the id directly
           return [null, aIdentity];
       }}, this.NOUN_IDENTITY);
+    this.defineNoun({
+      name: "attachment-infos",
+      clazz: GlodaAttachment,
+      allowsArbitraryAttrs: false,
+      isPrimitive: false,
+      toJSON: function (x) {
+          return {
+            name: x.name,
+            contentType: x.contentType,
+            size: x.size,
+            url: x.url
+          }
+        },
+      fromJSON: function (x) {
+          return new GlodaAttachment(x.name, x.contentType, x.size, x.url);
+        },
+      }, this.NOUN_ATTACHMENT);
 
     // parameterized identity is just two identities; we store the first one
     //  (whose value set must be very constrainted, like the 'me' identities)

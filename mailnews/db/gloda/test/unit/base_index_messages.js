@@ -380,8 +380,13 @@ var fundamentalGlodaMessageId;
 function test_attributes_fundamental() {
   // create a synthetic message with attachment
   let smsg = msgGen.makeMessage({
+    name: 'test message',
+    bodyPart: new SyntheticPartMultiMixed([
+      new SyntheticPartLeaf({body: 'I like cheese!'}),
+      msgGen.makeMessage({ body: { body: 'I like wine!' }}), // that's one attachment
+    ]),
     attachments: [
-      {filename: 'bob.txt', body: 'I like cheese!'}
+      {filename: 'bob.txt', body: 'I like bread!'} // and that's another one
     ],
   });
   // save it off for test_attributes_fundamental_from_disk
@@ -436,6 +441,23 @@ function verify_attributes_fundamental(smsg, gmsg) {
     do_check_eq(gmsg.attachmentTypes[0], "text/plain");
     do_check_eq(gmsg.attachmentNames.length, 1);
     do_check_eq(gmsg.attachmentNames[0], "bob.txt");
+
+    let expectedInfos = [
+      // the name for that one is generated randomly
+      { contentType: "message/rfc822" },
+      { name: "bob.txt", contentType: "text/plain" },
+    ];
+    let expectedSize = 14;
+    do_check_eq(gmsg.attachmentInfos.length, 2);
+    for each (let [i, attInfos] in Iterator(gmsg.attachmentInfos)) {
+      for (let k in expectedInfos[i])
+        do_check_eq(attInfos[k], expectedInfos[i][k]);
+      // because it's unreliable and depends on the platform
+      do_check_true(Math.abs(attInfos.size - expectedSize) <= 2);
+      // because the url contains the path to the folder on disk which depends
+      // on the test setup
+      do_check_true(attInfos.url.length > 0);
+    }
   }
   else {
     // Make sure we don't actually get attachments!

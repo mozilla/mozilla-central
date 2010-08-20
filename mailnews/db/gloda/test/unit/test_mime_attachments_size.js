@@ -168,39 +168,73 @@ var messageInfos = [
   },*/
   // all of the other common cases work fine
   {
-    name: 'text/plain w/app attachment (=> multipart/mixed)',
+    name: '.eml attachment',
+    bodyPart: new SyntheticPartMultiMixed([
+      partHtml,
+      msgGen.makeMessage({ body: { body: originalText } }),
+    ]),
+    epsilon: 4,
+  },
+  {
+    name: 'all sorts of "real" attachments',
     bodyPart: partHtml,
     attachments: [tachImage, tachPdf, tachUU,
       tachApplication, tachText, tachInlineText,],
+    epsilon: 2,
   },
 ];
 
-function check_attachments(aMimeMsg) {
+function check_attachments(aMimeMsg, epsilon) {
   if (aMimeMsg == null)
     do_throw("We really should have gotten a result!");
 
-  /* Today's gory details: libmime somehow counts the trailing newline for an
-   * attachment MIME part. Most of the time, assuming attachment has N bytes (no matter
-   * what's inside, newlines or not), libmime will return N + 1 bytes. On Linux
-   * and Mac, this always holds. However, on Windows, if the attachment is not
-   * encoded (that is, is inline text), libmime will return N + 2 bytes.
-   *
-   * This means on Windows, att.size = 175 for application/x-funky, 174 for
-   * other test attachments (and the real size is 173 bytes).
-   */
-  let epsilon = ("@mozilla.org/windows-registry-key;1" in Components.classes) ? 2 : 1;
+  dump(aMimeMsg.prettyString()+"\n");
 
-  do_check_true(aMimeMsg.allAttachments.length > 0);
+  /* It is hard to get a byte count that's perfectly accurate. When composing
+   * the message, the MIME structure goes like this (for an encoded attachment):
+   *
+   * XXXXXXXXXX 
+   * XXXXXXXXXX    <-- encoded block
+   * XXXXXXXXXX
+   *               <-- newline
+   * --chopchop    <-- MIME separator
+   *
+   * libmime counts bytes all the way up to the separator, which means it counts
+   * the bytes for the extra line. Since newlines in emails are \n, most of the
+   * time we get att.size = 174 instead of 173.
+   *
+   * Due to mysterious line encoding issues, for attachments that are
+   * text/plain, we get att.size = 175 instead of 174 on Windows.
+   *
+   * Due to the way the fake messages are created, the test message with an .eml
+   * attachment gets an extra new line before the separator.
+   *
+   * de me dire
+   * je m'endor   <-- text/plain attachment
+   * s. >>.
+   *              <-- aaarggh! an extra newline!
+   *
+   * --chopchop
+   *
+   * So that raises the count to 175 on Unix, and 177 on Windows, because of
+   * that weird newline issue.
+   *
+   * The good news is, it's just a fixed extra cost. There no issues with the
+   * inner contents of the attachment, you can add as many newlines as you want
+   * in it, Unix or Windows, the count won't get past the bounds.
+   */
+
+  do_check_true(aMimeMsg.allUserAttachments.length > 0);
 
   let totalSize = htmlText.length;
 
-  for each (let [i, att] in Iterator(aMimeMsg.allAttachments)) {
-    dump("*** Attachment now is "+att.name+"\n");
-    do_check_true((att.size - originalText.length) <= epsilon);
+  for each (let [i, att] in Iterator(aMimeMsg.allUserAttachments)) {
+    dump("*** Attachment now is "+att.name+" "+att.size+"\n");
+    do_check_true(Math.abs(att.size - originalText.length) <= epsilon);
     totalSize += att.size;
   }
 
-  do_check_true((aMimeMsg.size - totalSize) <= epsilon);
+  do_check_true(Math.abs(aMimeMsg.size - totalSize) <= epsilon);
 
   async_driver();
 }
@@ -215,7 +249,7 @@ function test_message_attachments(info) {
 
   MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
     try {
-      check_attachments(aMimeMsg);
+      check_attachments(aMimeMsg, info.epsilon);
     } catch (e) {
       do_throw(e);
     }

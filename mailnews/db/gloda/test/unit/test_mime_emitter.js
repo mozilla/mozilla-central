@@ -401,7 +401,7 @@ var partTachNestedMessages = [
       attachments: [tachImage]
     }),
   msgGen.makeMessage({
-      attachments: [tachImage, { contentType: "message/rfc822", body: "W000t" }, tachApplication]
+      attachments: [tachImage, tachApplication]
     })
 ];
 
@@ -417,7 +417,7 @@ var attMessagesParams = [
                                            partTachNestedMessages[1]]),
   },
   {
-    name: 'attached x/funky + attached rfc822 w. (image + rfc822 + x/funky) inside',
+    name: 'attached x/funky + attached rfc822 w. (image + x/funky) inside',
     bodyPart: new SyntheticPartMultiMixed([partAlternative,
                                            partTachApplication,
                                            partTachNestedMessages[2]]),

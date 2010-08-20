@@ -48,6 +48,7 @@ Cu.import("resource:///modules/StringBundle.js");
 Cu.import("resource:///modules/gloda/utils.js");
 Cu.import("resource:///modules/gloda/gloda.js");
 Cu.import("resource:///modules/gloda/datastore.js");
+Cu.import("resource:///modules/gloda/datamodel.js"); // for GlodaAttachment
 
 Cu.import("resource:///modules/gloda/noun_mimetype.js");
 Cu.import("resource:///modules/gloda/connotent.js");
@@ -361,6 +362,18 @@ var GlodaFundAttr = {
       objectNoun: Gloda.NOUN_MIME_TYPE,
       });
 
+    // Attachment infos
+    this._attrAttachmentInfos = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrFundamental,
+      attributeName: "attachmentInfos",
+      singular: false,
+      emptySetIsSignificant: false,
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_ATTACHMENT,
+      });
+
     // --- Optimization
     /**
      * Involves means any of from/to/cc/bcc.  The queries get ugly enough
@@ -548,6 +561,20 @@ var GlodaFundAttr = {
       if (attachmentTypes.length) {
         aGlodaMessage.attachmentTypes = attachmentTypes;
       }
+
+      // This is not the same kind of attachments as above. Now, we want to
+      // provide convenience attributes to Gloda consumers, so that they can run
+      // through the list of attachments of a given message, to possibly build a
+      // visualization on top of it. We still reject bogus mime types, which
+      // means yencode won't be supported. Oh, I feel really bad.
+      let attachmentInfos = [];
+      for each (let [, att] in Iterator(aMimeMsg.allUserAttachments)) {
+        if (att.isRealAttachment && (att.contentType.indexOf("/") != -1)) {
+          attachmentInfos.push(
+            new GlodaAttachment(att.name, att.contentType, att.size, att.url));
+        }
+      }
+      aGlodaMessage.attachmentInfos = attachmentInfos;
     }
 
     // TODO: deal with mailing lists, including implicit-to.  this will require
