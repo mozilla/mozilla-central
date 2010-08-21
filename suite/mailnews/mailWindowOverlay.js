@@ -2243,6 +2243,14 @@ function getMessageBrowser()
   return gMessageBrowser;
 }
 
+// The zoom manager, view source and possibly some other functions still rely
+// on the getBrowser function.
+function getBrowser()
+{
+  return GetTabMail() ? GetTabMail().getBrowserForSelectedTab() :
+                        getMessageBrowser();
+}
+
 function getMarkupDocumentViewer()
 {
   return getMessageBrowser().markupDocumentViewer;
