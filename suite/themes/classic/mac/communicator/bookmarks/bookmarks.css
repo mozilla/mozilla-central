@@ -108,6 +108,7 @@ treechildren::-moz-tree-image(container, OrganizerQuery_BookmarksMenu) {
 }
 
 #unsortedBookmarksFolderMenu,
+#BMB_unsortedBookmarksFolderMenu,
 treechildren::-moz-tree-image(container, OrganizerQuery_UnfiledBookmarks) {
   list-style-image: url("chrome://communicator/skin/bookmarks/unsortedBookmarks.png");
   -moz-image-region: auto;
