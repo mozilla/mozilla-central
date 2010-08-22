@@ -1,37 +1,7 @@
 
-/* Place List, Place Content */
-.placesTree {
-  margin: 0px;
-}
-
-#placesList {
-  -moz-appearance: none;
-  margin: 0px;
-  border: none;
-  padding: 0;
-}
-
-#placeContent {
-  -moz-appearance: none;
-  border: 0px;
-}
-
-#infoPaneBox {
-  border-top: 1px solid ThreeDShadow;
-  padding: 5px;
-}
-
-.small, .small[disabled="true"] {
-  min-width: 0px;
-  padding: 0px 4px 0px 4px;
-  margin: 0px;  
-  border: 0px;
-}
-
-.small .button-text,
-.small .button-box {
-  padding: 0px;
-  border: 0px;
+/* Info box */
+#detailsDeck {
+  margin: 5px;
 }
 
 #infoBoxExpanderLabel {
@@ -39,33 +9,6 @@
 }
 
 #organizerScopeBar {
-  -moz-appearance: toolbox;
   padding: 2px 0;
   -moz-padding-end: 3px;
-}
-
-#organizerScopeBar > toolbarbutton {
-  -moz-appearance: none;
-  border: 1px solid transparent;
-  -moz-border-radius: 2px;
-  padding: 0 !important;
-  margin: 0 1px;
-}
-
-#organizerScopeBar > toolbarbutton > .toolbarbutton-icon {
-  padding: 0;
-  margin: 0;
-}
-
-#organizerScopeBar > toolbarbutton > .toolbarbutton-text {
-   margin: 0;
-   padding: 2px 5px;
-}
-
-#organizerScopeBar > toolbarbutton:not([disabled="true"]):not([checked="true"]):hover {
-  border-color: ThreeDShadow;
-}
-
-#organizerScopeBar > toolbarbutton[checked="true"] {
-  border-color: ThreeDDarkShadow !important;
 }
