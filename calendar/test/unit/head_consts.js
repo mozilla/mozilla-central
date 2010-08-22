@@ -37,15 +37,17 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-let protHandler = cal.getIOService()
+let protHandler = Components.classes["@mozilla.org/network/io-service;1"]
+                     .getService(Components.interfaces.nsIIOService2)
                      .getProtocolHandler("resource")
                      .QueryInterface(Components.interfaces.nsIResProtocolHandler);
 protHandler.setSubstitution("calendar", protHandler.getSubstitution("gre"));
+
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 // we might want to use calUtils.jsm only in the future throughout all tests,
 // but for now source in good old calUtils.js:
