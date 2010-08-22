@@ -310,15 +310,12 @@
             window.CheckGenerics,
             []
           ],
-/* Disable DOMI from this test, since it doesn't load right on trunk
-   for some reason, but we want this test green.
         // DOM Inspector
         "chrome://inspector/content/inspector.xul":
           [
             window.CheckGenerics,
             []
           ],
-*/
 /* Passes test but has major leak. (Bug 504730)
         // Venkman
         "chrome://venkman/content/venkman.xul":
