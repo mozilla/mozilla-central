@@ -181,6 +181,7 @@
 #ifdef BUILD_CTYPES
 @BINPATH@/components/@DLL_PREFIX@jsctypes@DLL_SUFFIX@
 #endif
+@BINPATH@/components/@DLL_PREFIX@jsperf@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@mork@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@necko@DLL_SUFFIX@
 #ifdef XP_OS2
