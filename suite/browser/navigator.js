@@ -323,36 +323,33 @@ function nsBrowserAccess() {
 
 nsBrowserAccess.prototype = {
   openURI: function openURI(aURI, aOpener, aWhere, aContext) {
-    var loadflags = aContext == nsIBrowserDOMWindow.OPEN_EXTERNAL ?
-                    nsIWebNavigation.LOAD_FLAGS_FROM_EXTERNAL :
-                    nsIWebNavigation.LOAD_FLAGS_NONE;
-
+    var isExternal = aContext == nsIBrowserDOMWindow.OPEN_EXTERNAL;
     if (aWhere == nsIBrowserDOMWindow.OPEN_DEFAULTWINDOW)
-      if (aContext == nsIBrowserDOMWindow.OPEN_EXTERNAL)
+      if (isExternal)
         aWhere = Services.prefs.getIntPref("browser.link.open_external");
       else
         aWhere = Services.prefs.getIntPref("browser.link.open_newwindow");
     var referrer = aOpener ? aOpener.QueryInterface(nsIInterfaceRequestor)
                                     .getInterface(nsIWebNavigation)
                                     .currentURI : null;
+    var uri = aURI ? aURI.spec : "about:blank";
     switch (aWhere) {
       case nsIBrowserDOMWindow.OPEN_NEWWINDOW:
-        var uri = aURI ? aURI.spec : "about:blank";
         return window.openDialog(getBrowserURL(), "_blank", "all,dialog=no",
                                  uri, null, referrer);
       case nsIBrowserDOMWindow.OPEN_NEWTAB:
         var bgLoad = Services.prefs.getBoolPref("browser.tabs.loadDivertedInBackground");
         var isRelated = referrer ? true : false;
-        var newTab = gBrowser.loadOneTab("about:blank", {inBackground: bgLoad,
-                                                         relatedToCurrent: isRelated});
-        var browser = gBrowser.getBrowserForTab(newTab);
-        if (aURI) {
-          try {
-            browser.loadURIWithFlags(aURI.spec, loadflags, referrer);
-          } catch (e) {}
-        }
-        return browser.contentWindow;
+        var newTab = gBrowser.loadOneTab(uri, {inBackground: bgLoad,
+                                               fromExternal: isExternal,
+                                               relatedToCurrent: isRelated,
+                                               referrerURI: referrer});
+        return gBrowser.getBrowserForTab(newTab).contentWindow;
       default:
+        var loadflags = isExternal ?
+                        nsIWebNavigation.LOAD_FLAGS_FROM_EXTERNAL :
+                        nsIWebNavigation.LOAD_FLAGS_NONE;
+
         if (!aOpener) {
           if (aURI)
             gBrowser.loadURIWithFlags(aURI.spec, loadflags);
