@@ -146,6 +146,7 @@ extensions/p@m/mozABConduit.dll
 #ifdef UNIX_BUT_NOT_MAC
 @DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
 #endif
+@DLL_PREFIX@gfxutils@DLL_SUFFIX@
 #ifdef XP_WIN
 gksvggdiplus.dll
 #endif
