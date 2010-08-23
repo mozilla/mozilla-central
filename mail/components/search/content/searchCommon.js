@@ -147,7 +147,7 @@ let SearchSupport =
     // Don't cache this value either
     return this._prefBranch.getBoolPref("firstRunDone");
   },
-  set firstRunDone()
+  set firstRunDone(aAlwaysTrue)
   {
     this._prefBranch.setBoolPref("firstRunDone", true);
   },
