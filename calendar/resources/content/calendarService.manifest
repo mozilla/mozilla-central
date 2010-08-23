@@ -1,0 +1,9 @@
+component {65ef4b0b-d116-4b93-bf8a-84525991bf27} calendarService.js
+contract @mozilla.org/commandlinehandler/general-startup;1?type=calendar {65ef4b0b-d116-4b93-bf8a-84525992bf27}
+category command-line-handler x-default @mozilla.org/commandlinehandler/general-startup;1?type=calendar
+
+component {9ebf4c8a-7770-40a6-aeed-e1738129535a} calendarService.js
+contract @mozilla.org/uriloader/content-handler;1?type=text/calendar {9ebf4c8a-7770-40a6-aeed-e1738129535a}
+
+component {1e36ef5d-92d9-488f-ada6-9f15a1b57acf} calendarService.js
+contract @mozilla.org/calendar/webcal-channel;1 {1e36ef5d-92d9-488f-ada6-9f15a1b57acf}
