@@ -152,11 +152,6 @@
 #else
 @BINPATH@/components/@DLL_PREFIX@embedcomponents@DLL_SUFFIX@
 #endif
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@extnsion@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@extensions@DLL_SUFFIX@
-#endif
 #ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/components/@DLL_PREFIX@fileview@DLL_SUFFIX@
 #endif
@@ -353,8 +348,8 @@
 #else
 @BINPATH@/components/@DLL_PREFIX@jsd@DLL_SUFFIX@
 #endif
-@BINPATH@/components/layout.xpt
 @BINPATH@/components/layout_base.xpt
+@BINPATH@/components/layout_forms.xpt
 #ifdef NS_PRINTING
 @BINPATH@/components/layout_printing.xpt
 #endif
