@@ -108,19 +108,18 @@
                         value="days"/>
             </menupopup>
           </menulist>
-          <menulist id="reminder-relation" oncommand="updateReminder(event)" flex="1">
-            <menupopup>
-              <menuitem label="&reminder.relation.before.label;" value="before"/>
-              <menuitem label="&reminder.relation.after.label;" value="after"/>
-            </menupopup>
-          </menulist>
         </hbox>
-        <menulist id="reminder-origin" oncommand="updateReminder(event)">
-          <menupopup id="reminder-origin-menupopup">
-            <menuitem id="reminder-origin-start-menuitem"
-                      value="START"/>
-            <menuitem id="reminder-origin-end-menuitem"
-                      value="END"/>
+        <menulist id="reminder-relation-origin" oncommand="updateReminder(event)">
+          <menupopup id="reminder-relation-origin-menupopup">
+            <!-- The labels here will be set in calendar-event-dialog-reminder.js -->
+            <menuitem id="reminder-before-start-menuitem"
+                      value="before-START"/>
+            <menuitem id="reminder-after-start-menuitem"
+                      value="after-START"/>
+            <menuitem id="reminder-before-end-menuitem"
+                      value="before-END"/>
+            <menuitem id="reminder-after-end-menuitem"
+                      value="after-END"/>
           </menupopup>
         </menulist>
       </vbox>

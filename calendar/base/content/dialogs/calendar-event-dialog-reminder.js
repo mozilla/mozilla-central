@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -48,12 +49,24 @@ function onLoad() {
 
     // Make sure the origin menulist uses the right labels, depending on if the
     // dialog is showing an event or task.
-    document.getElementById("reminder-origin-start-menuitem")
-            .setAttribute("label", calGetString("calendar-alarms",
-                                                getItemBundleStringName("reminderDialogOriginBegin")));
-    document.getElementById("reminder-origin-end-menuitem")
-            .setAttribute("label", calGetString("calendar-alarms",
-                                                getItemBundleStringName("reminderDialogOriginEnd")));
+    function _sn(x) cal.calGetString("calendar-alarms", getItemBundleStringName(x));
+
+    setElementValue("reminder-before-start-menuitem",
+                    _sn("reminderCustomOriginBeginBefore"),
+                    "label");
+
+    setElementValue("reminder-after-start-menuitem",
+                    _sn("reminderCustomOriginBeginAfter"),
+                    "label");
+
+    setElementValue("reminder-before-end-menuitem",
+                    _sn("reminderCustomOriginEndBefore"),
+                    "label");
+
+    setElementValue("reminder-after-end-menuitem",
+                    _sn("reminderCustomOriginEndAfter"),
+                    "label");
+
 
     // Set up the action map
     let supportedActions = calendar.getProperty("capabilities.alarms.actionValues") ||
@@ -155,8 +168,7 @@ function setupRadioEnabledState(aDisableAll) {
 
     setElementValue("reminder-length", relativeDisabled, "disabled");
     setElementValue("reminder-unit", relativeDisabled, "disabled");
-    setElementValue("reminder-relation", relativeDisabled, "disabled");
-    setElementValue("reminder-origin", relativeDisabled, "disabled");
+    setElementValue("reminder-relation-origin", relativeDisabled, "disabled");
 
     setElementValue("reminder-absolute-date", absoluteDisabled, "disabled");
 
@@ -243,8 +255,7 @@ function setupListItem(aListItem, aReminder, aItem) {
 function onReminderSelected() {
     let length = document.getElementById("reminder-length");
     let unit = document.getElementById("reminder-unit");
-    let relation = document.getElementById("reminder-relation");
-    let origin = document.getElementById("reminder-origin");
+    let relationOrigin = document.getElementById("reminder-relation-origin");
     let absDate = document.getElementById("reminder-absolute-date");
     let actionType = document.getElementById("reminder-actions-menulist");
     let relationType = document.getElementById("reminder-relation-radiogroup");
@@ -281,18 +292,17 @@ function onReminderSelected() {
             }
 
             // Relation
-            if (reminder.offset.isNegative) {
-                relation.value =  "before";
-            } else {
-                relation.value = "after";
-            }
+            let relation = (reminder.offset.isNegative ? "before" : "after");
 
             // Origin
+            let origin;
             if (reminder.related == Components.interfaces.calIAlarm.ALARM_RELATED_START) {
-                origin.value = "START";
+                origin = "START";
             } else if (reminder.related == Components.interfaces.calIAlarm.ALARM_RELATED_END) {
-                origin.value = "END";
+                origin = "END";
             }
+
+            relationOrigin.value = [relation, origin].join("-");
         }
     } else {
         // no list item is selected, disable elements
@@ -325,8 +335,8 @@ function updateReminder(event) {
     let reminder = listitem.reminder;
     let length = document.getElementById("reminder-length");
     let unit = document.getElementById("reminder-unit");
-    let relation = document.getElementById("reminder-relation");
-    let origin = document.getElementById("reminder-origin");
+    let relationOrigin = document.getElementById("reminder-relation-origin");
+    let [relation, origin] = relationOrigin.value.split("-");
     let absDate = document.getElementById("reminder-absolute-date");
     let action = document.getElementById("reminder-actions-menulist").selectedItem.value;
 
@@ -335,9 +345,9 @@ function updateReminder(event) {
 
     let relationType;
     if (relationItem.value == "relative") {
-        if (origin.value == "START") {
+        if (origin == "START") {
             reminder.related = Components.interfaces.calIAlarm.ALARM_RELATED_START;
-        } else if (origin.value == "END") {
+        } else if (origin == "END") {
             reminder.related = Components.interfaces.calIAlarm.ALARM_RELATED_END;
         }
 
@@ -345,7 +355,7 @@ function updateReminder(event) {
         let offset = cal.createDuration();
         offset[unit.value] = length.value;
         offset.normalize();
-        offset.isNegative = (relation.value == "before");
+        offset.isNegative = (relation == "before");
         reminder.offset = offset;
     } else if (relationItem.value == "absolute") {
         reminder.related = Components.interfaces.calIAlarm.ALARM_RELATED_ABSOLUTE;
