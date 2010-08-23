@@ -71,9 +71,9 @@
    bugs that occur when minimonth is displayed in a popup (as in datepicker):
      Currently (2005.3)
        whenever a child popup is hidden, the parent popup needs to be reshown.
-         Use onpopuplisthidden to reshow parent popop (hidePopup, showPopup).
+         Use onpopuplisthidden to reshow parent popop (hidePopup, openPopup).
        When title month or year changes, parent popup may need to be reshown.
-         Use onmonthchange to reshow parent popop (hidePopup, showPopup).
+         Use onmonthchange to reshow parent popop (hidePopup, openPopup).
 */
 -->
 <!DOCTYPE bindings 
@@ -141,9 +141,9 @@
                             chromedir="&locale.dir;"
                             tooltiptext="&onemonthforward.tooltip;"/>
        <xul:popupset anonid="minmonth-popupset">
-         <xul:popup anonid="months-popup" position="after_start"
-                    onpopupshowing="event.stopPropagation();"
-                    onpopuphidden="firePopupListHidden();">
+         <xul:menupopup anonid="months-popup" position="after_start"
+                        onpopupshowing="event.stopPropagation();"
+                        onpopuphidden="firePopupListHidden();">
            <xul:vbox>
              <xul:text class="minimonth-list" value="&month.1.name;" index="0"/>
              <xul:text class="minimonth-list" value="&month.2.name;" index="1"/>
@@ -158,10 +158,10 @@
              <xul:text class="minimonth-list" value="&month.11.name;" index="10"/>
              <xul:text class="minimonth-list" value="&month.12.name;" index="11"/>
            </xul:vbox>
-         </xul:popup>
-         <xul:popup anonid="years-popup" position="after_start"
-                    onpopupshowing="moveYears('reset', 0); event.stopPropagation();"
-                    onpopuphidden="firePopupListHidden();">
+         </xul:menupopup>
+         <xul:menupopup anonid="years-popup" position="after_start"
+                        onpopupshowing="moveYears('reset', 0); event.stopPropagation();"
+                        onpopuphidden="firePopupListHidden();">
            <xul:vbox>
              <xul:autorepeatbutton class="autorepeatbutton-up"
                                    orient="vertical"
@@ -179,7 +179,7 @@
                                    orient="vertical"
                                    oncommand="moveYears('down', 1);"/>
            </xul:vbox>
-         </xul:popup>
+         </xul:menupopup>
        </xul:popupset>
      </content>
      <implementation>
@@ -213,14 +213,14 @@
            if (this.mPopup)
                this.mPopup.hidePopup();
            this.mPopup = document.getAnonymousElementByAttribute(this, "anonid", aPopupAnonId);
-           this.mPopup.showPopup(aEvent.target, -1, -1, "popup", "bottomleft", "topleft");
+           this.mPopup.openPopup(aEvent.target, "after_start");
          ]]></body>
        </method>
 
        <method name="hidePopupList">
          <body><![CDATA[
            // Close open popups (if any)
-           var popup = this.mPopup;
+           let popup = this.mPopup;
            this.mPopup = null;
            if (popup)
                popup.hidePopup();
@@ -237,9 +237,9 @@
        <method name="updateMonthPopup">
          <parameter name="aDate"/>
          <body><![CDATA[
-           var months = document.getAnonymousElementByAttribute(this, "anonid", "months-popup").firstChild.childNodes;
-           var month = aDate.getMonth();
-           for (var i = 0; i < months.length; i++) {
+           let months = document.getAnonymousElementByAttribute(this, "anonid", "months-popup").firstChild.childNodes;
+           let month = aDate.getMonth();
+           for (let i = 0; i < months.length; i++) {
                months[i].setAttribute("current", (i == month) ? "true" : "false");
            }
          ]]></body>
@@ -247,12 +247,12 @@
        <method name="updateYearPopup">
          <parameter name="aDate"/>
          <body><![CDATA[
-           var years = document.getAnonymousElementByAttribute(this, "anonid", "years-popup").firstChild.childNodes;
-           var year = new Date(aDate);
-           var compFullYear = aDate.getFullYear();
+           let years = document.getAnonymousElementByAttribute(this, "anonid", "years-popup").firstChild.childNodes;
+           let year = new Date(aDate);
+           let compFullYear = aDate.getFullYear();
            year.setFullYear(Math.max(1, compFullYear - parseInt(years.length / 2, 10) + 1));
-           for (var i = 1; i < years.length - 1; i++) {
-               var curfullYear = year.getFullYear();
+           for (let i = 1; i < years.length - 1; i++) {
+               let curfullYear = year.getFullYear();
                years[i].setAttribute("value", curfullYear);
                years[i].setAttribute("current", (curfullYear == compFullYear) ? "true" : "false");
                year.setFullYear(curfullYear + 1);
@@ -263,9 +263,9 @@
        <method name="scrollYears">
          <parameter name="event"/>
          <body><![CDATA[
-           var yearPopup = getParentNodeOrThis(event.target, "popup");
+           let yearPopup = getParentNodeOrThis(event.target, "menupopup");
            if (yearPopup) {
-               var monthList = yearPopup.getElementsByAttribute("class", "minimonth-list");
+               let monthList = yearPopup.getElementsByAttribute("class", "minimonth-list");
                if (monthList && monthList.length > 0) {
                    if (event.detail == NSUIEvent.SCROLL_PAGE_UP) {
                      this.moveYears('up', monthList.length);
@@ -288,12 +288,12 @@
          <parameter name="scrollOffset"/>
          <body><![CDATA[
            // Update the year popup
-           var years = document.getAnonymousElementByAttribute(this, "anonid", "years-popup").firstChild.childNodes;
-           var current = this.getAttribute("year");
-           var offset;
+           let years = document.getAnonymousElementByAttribute(this, "anonid", "years-popup").firstChild.childNodes;
+           let current = this.getAttribute("year");
+           let offset;
            switch (direction) {
                case "reset":
-                   var middleyear = years[Math.floor(years.length / 2)].getAttribute("value");
+                   let middleyear = years[Math.floor(years.length / 2)].getAttribute("value");
                    if (current <= (years.length / 2)) {
                        offset = - years[1].getAttribute("value") + 1;
                    } else {
@@ -318,8 +318,8 @@
 
            // Go through all visible years and set the new value. Be sure to
            // skip the autorepeatbuttons.
-           for (var i = 1; i < years.length - 1; i++) {
-               var value = parseInt(years[i].getAttribute("value"), 10) + offset;
+           for (let i = 1; i < years.length - 1; i++) {
+               let value = parseInt(years[i].getAttribute("value"), 10) + offset;
                years[i].setAttribute("value", value);
                years[i].setAttribute("current", value == current ? "true" : "false");
            }
@@ -332,10 +332,10 @@
       <!-- handle click from nested months popup and years popup -->
       <handler event="click">
         <![CDATA[
-          var element = event.originalTarget;
-          var popup = getParentNodeOrThis(element, "popup");
+          let element = event.originalTarget;
+          let popup = getParentNodeOrThis(element, "menupopup");
           if (popup) {
-              var anonid = popup.getAttribute("anonid")
+              let anonid = popup.getAttribute("anonid")
               switch(anonid) {
                   case "months-popup":
                       this.hidePopupList();
@@ -343,7 +343,7 @@
                       break;
                   case "years-popup":
                       this.hidePopupList();
-                      var value = element.getAttribute("value");
+                      let value = element.getAttribute("value");
                       if (value) {
                           this.kMinimonth.switchYear(value);
                       }

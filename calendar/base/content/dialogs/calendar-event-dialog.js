@@ -2956,7 +2956,7 @@ function showAttendeePopup(event) {
 
     // Show the popup.
     var attendeeList = document.getElementById("attendee-list");
-    popup.showPopup(attendeeList, -1, -1, "context", "bottomleft", "topleft");
+    popup.openPopup(attendeeList, "after_start", 0, 0, true);
 }
 
 /**
