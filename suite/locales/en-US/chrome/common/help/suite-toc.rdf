@@ -149,7 +149,7 @@
         <rdf:li> <rdf:Description ID="mail-doc-folders" nc:name="Organizing Your Messages" nc:link="mail_help.xhtml#organizing_your_messages" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-junk" nc:name="Controlling Junk Mail" nc:link="mail_help.xhtml#controlling_junk_mail" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-importing-other" nc:name="Importing Mail from Other Programs" nc:link="mail_help.xhtml#importing_mail_from_other_programs" /> </rdf:li>
-        <rdf:li> <rdf:Description ID="mail-doc-news" nc:name="Getting Started With Newsgroups" nc:link="mail_help.xhtml#getting_started_with_newsgroups" /> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-doc-news" nc:name="Getting Started With Newsgroups" nc:link="mailnews_newsgroups.xhtml#getting_started_with_newsgroups" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-blogs" nc:name="Getting Started With Blogs &amp; News Feeds" nc:link="mailnews_blogs_and_feeds.xhtml#getting_started_with_blogs_and_news_feeds" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-offline" nc:name="Working Offline" nc:link="mailnews_offline.xhtml#working_offline" /> </rdf:li>
         <rdf:li> <rdf:Description ID="sign-encrypt" nc:name="Signing &amp; Encrypting Messages" nc:link="mail_sec_help.xhtml#signing_and_encrypting_messages" /> </rdf:li>
@@ -362,13 +362,13 @@
   <rdf:Description about="#mail-doc-news">
     <nc:subheadings>
       <rdf:Seq>
-        <rdf:li> <rdf:Description ID="mail-subscribe" nc:name="Subscribing to Newsgroups" nc:link="mail_help.xhtml#subscribing_to_newsgroups"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="mail-reading-news" nc:name="Reading Newsgroup Messages" nc:link="mail_help.xhtml#reading_newsgroup_messages"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="mail-posting" nc:name="Posting Newsgroup Messages" nc:link="mail_help.xhtml#posting_newsgroup_messages"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="mail-replying-news" nc:name="Contributing to Ongoing Discussions" nc:link="mail_help.xhtml#contributing_to_ongoing_discussions"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="mail-monitoring" nc:name="Monitoring Threads" nc:link="mail_help.xhtml#monitoring_threads"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="mail-delete-news" nc:name="Removing a Newsgroup" nc:link="mail_help.xhtml#removing_a_newsgroup"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="mail-add-newsserver" nc:name="Adding a Newsgroup Server" nc:link="mail_help.xhtml#adding_a_newsgroup_server"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-subscribe" nc:name="Subscribing to Newsgroups" nc:link="mailnews_newsgroups.xhtml#subscribing_to_newsgroups"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-reading-news" nc:name="Reading Newsgroup Messages" nc:link="mailnews_newsgroups.xhtml#reading_newsgroup_messages"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-posting" nc:name="Posting Newsgroup Messages" nc:link="mailnews_newsgroups.xhtml#posting_newsgroup_messages"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-replying-news" nc:name="Contributing to Ongoing Discussions" nc:link="mailnews_newsgroups.xhtml#contributing_to_ongoing_discussions"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-monitoring" nc:name="Monitoring Threads" nc:link="mailnews_newsgroups.xhtml#monitoring_threads"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-delete-news" nc:name="Removing a Newsgroup" nc:link="mailnews_newsgroups.xhtml#removing_a_newsgroup"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-add-newsserver" nc:name="Adding a Newsgroup Server" nc:link="mailnews_newsgroups.xhtml#adding_a_newsgroup_server"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>
