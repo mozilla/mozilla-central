@@ -591,9 +591,9 @@ var messageHeaderSink = {
 
       gMessageDisplay.onLoadCompleted();
 
-      for (index in gMessageListeners) {
-        if ("onEndAttachments" in gMessageListeners[index])
-          gMessageListeners[index].onEndAttachments();
+      for each (let [, listener] in Iterator(gMessageListeners)) {
+        if ("onEndAttachments" in listener)
+          listener.onEndAttachments();
       }
     },
 
@@ -735,9 +735,8 @@ function OnTagsChange()
 // table
 function ClearHeaderView(headerTable)
 {
-  for (index in headerTable)
+  for each (let [, headerEntry] in Iterator(headerTable))
   {
-     var headerEntry = headerTable[index];
      if (headerEntry.enclosingBox.clearHeaderValues)
      {
        headerEntry.enclosingBox.clearHeaderValues();
@@ -750,20 +749,16 @@ function ClearHeaderView(headerTable)
 // make sure that any valid header entry in the table is collapsed
 function hideHeaderView(headerTable)
 {
-  for (index in headerTable)
-  {
-    headerTable[index].enclosingRow.collapsed = true;
-  }
+  for each (let [, headerEntry] in Iterator(headerTable))
+    headerEntry.enclosingRow.collapsed = true;
 }
 
 // make sure that any valid header entry in the table specified is
 // visible
 function showHeaderView(headerTable)
 {
-  var headerEntry;
-  for (index in headerTable)
+  for each (let [, headerEntry] in Iterator(headerTable))
   {
-    headerEntry = headerTable[index];
     if (headerEntry.valid)
     {
       headerEntry.enclosingRow.collapsed = false;
@@ -781,9 +776,9 @@ function EnsureMinimumNumberOfHeaders (headerTable)
     return;
 
   var numVisibleHeaders = 0;
-  for (index in headerTable)
+  for each (let [, headerEntry] in Iterator(headerTable))
   {
-    if (headerTable[index].valid)
+    if (headerEntry.valid)
       numVisibleHeaders ++;
   }
 
@@ -793,11 +788,11 @@ function EnsureMinimumNumberOfHeaders (headerTable)
     var numEmptyHeaders = gMinNumberOfHeaders - numVisibleHeaders;
 
     // we may have already dynamically created our empty rows and we just need to make them visible
-    for (index in headerTable)
+    for each (let [index, headerEntry] in Iterator(headerTable))
     {
       if (index.indexOf("Dummy-Header") == 0 && numEmptyHeaders)
       {
-        headerTable[index].valid = true;
+        headerEntry.valid = true;
         numEmptyHeaders--;
       }
     }
@@ -921,9 +916,8 @@ function createNewHeaderView(headerName, label)
  */
 function RemoveNewHeaderViews(aHeaderTable)
 {
-  for (var index in aHeaderTable)
+  for each (let [, headerEntry] in Iterator(aHeaderTable))
   {
-    var headerEntry = aHeaderTable[index];
     if (headerEntry.isNewHeader)
       headerEntry.enclosingRow.parentNode.removeChild(headerEntry.enclosingRow);
   }
@@ -1790,10 +1784,8 @@ function displayAttachmentsForExpandedView()
     expandedAttachmentBox.removeAttribute("height");
 
     var attachmentList = document.getElementById('attachmentList');
-    for (index in currentAttachments)
+    for each (let [, attachment] in Iterator(currentAttachments))
     {
-      var attachment = currentAttachments[index];
-
       // Create a new attachment widget
       var displayName = createAttachmentDisplayName(attachment);
       var attachmentView = attachmentList.appendItem(displayName);
@@ -1860,21 +1852,18 @@ function FillAttachmentListPopup(popup)
   if (!gBuildAttachmentPopupForCurrentMsg)
     return;
 
-  var attachmentIndex = 0;
-
   // otherwise we need to build the attachment view...
   // First clear out the old view...
   ClearAttachmentMenu(popup);
 
   var canDetachOrDeleteAll = CanDetachAttachments();
 
-  for (index in currentAttachments)
+  for each (let [attachmentIndex, attachment] in Iterator(currentAttachments))
   {
-    ++attachmentIndex;
-    addAttachmentToPopup(popup, currentAttachments[index], attachmentIndex);
+    addAttachmentToPopup(popup, attachment, attachmentIndex);
     if (canDetachOrDeleteAll &&
-        (currentAttachments[index].isExternalAttachment ||
-        currentAttachments[index].contentType == 'text/x-moz-deleted'))
+        (attachment.isExternalAttachment ||
+         attachment.contentType == 'text/x-moz-deleted'))
       canDetachOrDeleteAll = false;
   }
 
@@ -2192,7 +2181,7 @@ nsFlavorDataProvider.prototype =
       // of all the current attachments so we can cheat and scan through them
 
       var attachment = null;
-      for (index in currentAttachments)
+      for each (let index in Iterator(currentAttachments, true))
       {
         attachment = currentAttachments[index];
         if (attachment.url == srcUrlPrimitive)
