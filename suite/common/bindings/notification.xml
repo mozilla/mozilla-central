@@ -46,16 +46,9 @@
             if (!this._activeBrowser) {
               const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
               var browsers = this.getElementsByTagNameNS(XUL_NS, "browser");
-              if (browsers.length == 1) {
-                this._activeBrowser = browsers.item(0);
-              } else if (browsers.length) {
-                for (var i = 0; i < browsers.length; i++) {
-                  if (browsers.item(i).docShell) {
-                    this._activeBrowser = browsers.item(i);
-                    break;
-                  }
-                }
-              }
+              for (var i = 0; this._activeBrowser = browsers.item(i); i++)
+                if (!this._activeBrowser.hidden)
+                  break;
             }
             return this._activeBrowser;
           ]]>
@@ -705,7 +698,10 @@
       <xul:vbox class="notification-inner outset" flex="1" xbl:inherits="type">
         <xul:hbox align="center">
           <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
-          <xul:spacer flex="1"/>
+          <xul:arrowscrollbox orient="horizontal" flex="1" pack="end"
+                              oncommand="document.getBindingParent(this)._doButtonCommand(event);">
+            <children/>
+          </xul:arrowscrollbox>
           <xul:toolbarbutton ondblclick="event.stopPropagation();"
                              class="messageCloseButton tabbable"
                              xbl:inherits="hidden=hideclose"
@@ -713,11 +709,6 @@
                              oncommand="document.getBindingParent(this).close();"/>
         </xul:hbox>
         <xul:description anonid="messageText" class="messageText" flex="1" xbl:inherits="xbl:text=label"/>
-        <xul:hbox anonid="details"
-                  oncommand="document.getBindingParent(this)._doButtonCommand(event);">
-          <xul:spacer flex="1"/>
-          <children/>
-        </xul:hbox>
       </xul:vbox>
     </content>
   </binding>
