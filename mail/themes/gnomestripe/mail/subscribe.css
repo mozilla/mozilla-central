@@ -35,7 +35,7 @@ treechildren::-moz-tree-image(nameColumn) {
   background-repeat: no-repeat;
   background-color: transparent;
   background-attachment: scroll;
-  -moz-background-clip: border;
+  background-clip: border-box;
   -moz-background-inline-policy: continuous;
   -moz-background-origin: border;
   background-image: url("moz-icon://stock/gtk-directory?size=menu");
