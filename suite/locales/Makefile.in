@@ -59,6 +59,7 @@ endif
 
 run_for_effects := $(shell if test ! -d $(DIST); then $(NSINSTALL) -D $(DIST); fi; if test ! -d $(DIST)/branding; then $(NSINSTALL) -D $(DIST)/branding; fi)
 _ABS_DIST := $(call core_abspath,$(DIST))
+_ABS_SRCDIR := $(call core_abspath,$(topsrcdir))
 
 SUBMAKEFILES += \
 	$(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/Makefile \
@@ -240,7 +241,7 @@ repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
 	  ZIP_IN=$(WIN32_INSTALLER_IN) \
 	  ZIP_OUT=$(WIN32_INSTALLER_OUT) \
 	  SFX_HEADER="$(PWD)/../installer/windows/l10ngen/7zSD.sfx \
-	              $(topsrcdir)/suite/installer/windows/app.tag"
+	              $(_ABS_SRCDIR)/suite/installer/windows/app.tag"
 
 ifeq (WINNT,$(OS_ARCH))
 repackage-win32-installer-%: $(WIN32_INSTALLER_IN) libs-%
