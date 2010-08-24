@@ -91,7 +91,7 @@ protected:
   nsCOMPtr<nsIInterfaceRequestor> m_notificationCallbacks;
   nsCString m_contentType;
   nsCString m_contentCharset;
-  PRInt32 m_contentLength;
+  PRInt64 m_contentLength;
 };
 
 #endif  // nsNntpMockChannel_h___

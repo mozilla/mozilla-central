@@ -674,13 +674,13 @@ NS_IMETHODIMP nsMsgProtocol::SetContentCharset(const nsACString &aContentCharset
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsMsgProtocol::GetContentLength(PRInt32 * aContentLength)
+NS_IMETHODIMP nsMsgProtocol::GetContentLength(PRInt64 *aContentLength)
 {
   *aContentLength = mContentLength;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgProtocol::SetContentLength(PRInt32 aContentLength)
+NS_IMETHODIMP nsMsgProtocol::SetContentLength(PRInt64 aContentLength)
 {
   mContentLength = aContentLength;
   return NS_OK;

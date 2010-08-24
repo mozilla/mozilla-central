@@ -9243,14 +9243,14 @@ NS_IMETHODIMP nsImapMockChannel::SetContentCharset(const nsACString &aContentCha
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsImapMockChannel::GetContentLength(PRInt32 * aContentLength)
+NS_IMETHODIMP nsImapMockChannel::GetContentLength(PRInt64 * aContentLength)
 {
   *aContentLength = mContentLength;
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsImapMockChannel::SetContentLength(PRInt32 aContentLength)
+nsImapMockChannel::SetContentLength(PRInt64 aContentLength)
 {
     mContentLength = aContentLength;
     return NS_OK;

@@ -235,7 +235,7 @@ NS_IMETHODIMP nsNntpMockChannel::SetContentCharset(const nsACString &aCharset)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsNntpMockChannel::GetContentLength(PRInt32 *length)
+NS_IMETHODIMP nsNntpMockChannel::GetContentLength(PRInt64 *length)
 {
   FORWARD_CALL(GetContentLength, length)
   *length = m_contentLength;
@@ -243,7 +243,7 @@ NS_IMETHODIMP nsNntpMockChannel::GetContentLength(PRInt32 *length)
 }
 
 NS_IMETHODIMP
-nsNntpMockChannel::SetContentLength(PRInt32 aLength)
+nsNntpMockChannel::SetContentLength(PRInt64 aLength)
 {
   FORWARD_CALL(SetContentLength, aLength)
   m_contentLength = aLength;
