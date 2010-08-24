@@ -53,6 +53,7 @@
         onkeypress="gEmailConfigWizard.onKeyDown(event)"
         onclose="gEmailConfigWizard.onWizardShutdown();"
         onunload="gEmailConfigWizard.onWizardShutdown();"
+        onfocus="gEmailConfigWizard.onFocus();"
         >
 
   <stringbundleset>
