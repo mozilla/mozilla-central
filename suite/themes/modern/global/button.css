@@ -36,10 +36,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 /* ===== button.css =====================================================
-  == Styles used by the XUL button element.
+  == Styles used by the XUL (and XHTML in netError.xhtml) button element.
   ======================================================================= */
-
-@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 /* :::::::::: button :::::::::: */
 
@@ -183,3 +181,9 @@ button.plain:hover:active
   padding: 0px;
 }
 
+/* ::::: xhtml buttons ::::: */
+
+button::-moz-focus-inner {
+  padding: 0px;
+  border: 0px none;
+}

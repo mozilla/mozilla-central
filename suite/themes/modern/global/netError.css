@@ -8,6 +8,8 @@
  *              Akihiro Misaki <spitfire.kuden@gmail.com>
  */
 
+@import url("chrome://global/skin/button.css");
+
 html {
   background: #FFF;
 }
