@@ -158,22 +158,6 @@ EmailConfigWizard.prototype =
     window.sizeToContent();
   },
 
-  /* Correct the behavior of remember_password checkbox in case we change
-   * signon.rememberSignons = true and come back
-   */
-  onFocus: function() {
-    let passwordElt = document.getElementById("password");
-    let rememberPasswordElt = document.getElementById("remember_password");
-    let rememberSignons_pref =
-      Application.prefs.getValue("signon.rememberSignons", true);
-
-    rememberPasswordElt.disabled = !rememberSignons_pref ||
-                                  passwordElt.value.length < 1;
-    rememberPasswordElt.checked = rememberSignons_pref &&
-                                  !this._userChangedPassword &&
-                                  passwordElt.value.length >= 1;
-  },
-
   /* When the next button is clicked we've moved from the initial account
    * information stage to using that information to configure account details.
    */
@@ -431,19 +415,19 @@ EmailConfigWizard.prototype =
         break;
     }
   },
-
+  
   oninputPassword : function()
   {
     let passwordElt = document.getElementById("password");
     let rememberPasswordElt = document.getElementById("remember_password");
-    let rememberSignons_pref =
-      Application.prefs.getValue("signon.rememberSignons", true);
-
-    rememberPasswordElt.disabled = !rememberSignons_pref ||
-                                   passwordElt.value.length < 1;
-    rememberPasswordElt.checked = rememberSignons_pref &&
-                                  !this._userChangedPassword &&
-                                  passwordElt.value.length >= 1;
+    rememberPasswordElt.disabled = false;
+    if (passwordElt.value.length < 1) {
+      rememberPasswordElt.disabled = true;
+      rememberPasswordElt.checked = false;
+      this._userChangedPassword = false;
+    }
+    else if (!this._userChangedPassword)
+      rememberPasswordElt.checked = true;
   },
 
   /* If the user just tabbed through the password input without entering
@@ -454,14 +438,11 @@ EmailConfigWizard.prototype =
   {
     let passwordElt = document.getElementById("password");
     let rememberPasswordElt = document.getElementById("remember_password");
-    let rememberSignons_pref =
-        Application.prefs.getValue("signon.rememberSignons", true);
-
     if (passwordElt.value.length < 1) {
       rememberPasswordElt.disabled = true;
       passwordElt.type = "text";
     }
-    else if (rememberSignons_pref)
+    else
       rememberPasswordElt.disabled = false;
   },
 
