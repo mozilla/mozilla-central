@@ -53,11 +53,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsMemory.h"
 #include "nsAlgorithm.h"
-
-// XXX These strings should go in properties file XXX //
-#define MIME_MULTIPART_SIGNED_BLURB "This is a cryptographically signed message in MIME format."
-#define MIME_SMIME_ENCRYPTED_CONTENT_DESCRIPTION "S/MIME Encrypted Message"
-#define MIME_SMIME_SIGNATURE_CONTENT_DESCRIPTION "S/MIME Cryptographic Signature"
+#include "nsString.h"
 
 #define MK_MIME_ERROR_WRITING_FILE -1
 
@@ -549,6 +545,21 @@ nsresult nsMsgComposeSecure::MimeInitMultipartSigned(PRBool aOuter, nsIMsgSendRe
 nsresult nsMsgComposeSecure::MimeInitEncryption(PRBool aSign, nsIMsgSendReport *sendReport)
 {
   nsresult rv;
+  nsCOMPtr<nsIStringBundleService> bundleSvc =
+                  do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIStringBundle> sMIMEBundle;
+  nsXPIDLString mime_smime_enc_content_desc;
+
+  bundleSvc->CreateBundle(SMIME_STRBUNDLE_URL, getter_AddRefs(sMIMEBundle));
+
+  if (!sMIMEBundle)
+    return NS_ERROR_FAILURE;
+ 
+  sMIMEBundle->GetStringFromName(NS_LITERAL_STRING("mime_smimeEncryptedContentDesc").get(),
+                                 getter_Copies(mime_smime_enc_content_desc));
+  NS_ConvertUTF16toUTF8 enc_content_desc_utf8(mime_smime_enc_content_desc);
 
   /* First, construct and write out the opaque-crypto-blob MIME header data.
    */
@@ -561,7 +572,8 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(PRBool aSign, nsIMsgSendReport *
           "; filename=\"smime.p7m\"" CRLF
         "Content-Description: %s" CRLF
         CRLF,
-        MIME_SMIME_ENCRYPTED_CONTENT_DESCRIPTION);
+        enc_content_desc_utf8.get());
+
   PRUint32 L;
   if (!s) return NS_ERROR_OUT_OF_MEMORY;
   L = strlen(s);
@@ -637,8 +649,28 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (PRBool aOuter, nsIMsgSen
   int status;
   nsresult rv;
   nsCOMPtr<nsICMSMessage> cinfo = do_CreateInstance(NS_CMSMESSAGE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   nsCOMPtr<nsICMSEncoder> encoder = do_CreateInstance(NS_CMSENCODER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   char * header = nsnull;
+  nsCOMPtr<nsIStringBundleService> bundleSvc =
+                  do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIStringBundle> sMIMEBundle;
+  nsXPIDLString mime_smime_sig_content_desc;
+
+  bundleSvc->CreateBundle(SMIME_STRBUNDLE_URL, getter_AddRefs(sMIMEBundle));
+
+  if (!sMIMEBundle)
+    return NS_ERROR_FAILURE;
+  
+  sMIMEBundle->GetStringFromName(NS_LITERAL_STRING("mime_smimeSignatureContentDesc").get(),
+                                 getter_Copies(mime_smime_sig_content_desc));
+
+  NS_ConvertUTF16toUTF8 sig_content_desc_utf8(mime_smime_sig_content_desc);
 
   /* Compute the hash...
    */
@@ -665,7 +697,8 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (PRBool aOuter, nsIMsgSen
           "Content-Description: %s" CRLF
           CRLF,
           mMultipartSignedBoundary,
-          MIME_SMIME_SIGNATURE_CONTENT_DESCRIPTION);
+          sig_content_desc_utf8.get());
+          
   if (!header) {
     rv = NS_ERROR_OUT_OF_MEMORY;
     goto FAIL;
@@ -1030,14 +1063,27 @@ make_multipart_signed_header_string(PRBool outer_p,
 {
   *header_return = 0;
   *boundary_return = mime_make_separator("ms");
-  const char * crypto_multipart_blurb = nsnull;
+  nsresult rv;
+
+  nsCOMPtr<nsIStringBundleService> bundleSvc =
+                  do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIStringBundle> sMIMEBundle;
+  nsXPIDLString crypto_multipart_blurb;
+
+  bundleSvc->CreateBundle(SMIME_STRBUNDLE_URL, getter_AddRefs(sMIMEBundle));
+  if (!sMIMEBundle)
+    return NS_ERROR_FAILURE;
 
   if (!*boundary_return)
 	return NS_ERROR_OUT_OF_MEMORY;
 
   if (outer_p) {
-	  crypto_multipart_blurb = MIME_MULTIPART_SIGNED_BLURB;
+	  sMIMEBundle->GetStringFromName(NS_LITERAL_STRING("mime_multipartSignedBlurb").get(),
+                                    getter_Copies(crypto_multipart_blurb));
   }
+  NS_ConvertUTF16toUTF8 multipart_blurb_utf8(crypto_multipart_blurb);
 
   *header_return = PR_smprintf(
         "Content-Type: " MULTIPART_SIGNED "; "
@@ -1049,8 +1095,8 @@ make_multipart_signed_header_string(PRBool outer_p,
 				"--%s" CRLF,
 
 				*boundary_return,
-				(crypto_multipart_blurb ? crypto_multipart_blurb : ""),
-				(crypto_multipart_blurb ? CRLF CRLF : ""),
+				(crypto_multipart_blurb.IsEmpty() ? "" : multipart_blurb_utf8.get()),
+				(crypto_multipart_blurb.IsEmpty() ? "" : CRLF CRLF),
 				*boundary_return);
 
   if (!*header_return) {
