@@ -137,7 +137,8 @@
           this.collapsed = !this.glodaEnabled;
 
           // make sure we set our emptytext here from the get-go
-          this._updateVisibleText();
+        if (this.hasAttribute("emptytext"))
+          this.placeholder = this.getAttribute("emptytext");
         } catch (e) {
           logException(e, true);
         }
