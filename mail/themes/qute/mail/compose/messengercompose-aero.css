@@ -368,6 +368,12 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
   color: #555566;
 }
 
+@media all and (-moz-windows-default-theme) {
+  treechildren.autocomplete-treebody::-moz-tree-cell-text(selected) {
+    color: -moz-DialogText !important;
+  }
+}
+
 #addressingWidget {
   -moz-user-focus: none;
   width: 0;
