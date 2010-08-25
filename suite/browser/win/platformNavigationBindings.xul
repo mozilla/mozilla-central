@@ -16,7 +16,7 @@
     <key keycode="VK_F5" oncommand="BrowserReload();"/>
     <key keycode="VK_F5" modifiers="control" oncommand="BrowserReloadSkipCache();"/>
 
-    <key id="goHome" keycode="VK_HOME" command="Browser:Home" modifiers="alt"/>
+    <key id="goHome" keycode="VK_HOME" oncommand="BrowserHome();" modifiers="alt"/>
 
     <key id="key_fullScreen" keycode="VK_F11" command="View:FullScreen"/>
     <key id="key_newTabWithTargetBg" keycode="VK_INSERT" command="cmd_newTabWithTarget"/>
