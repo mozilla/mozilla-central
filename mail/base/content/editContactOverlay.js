@@ -211,8 +211,11 @@ var editContactInlineUI = {
     }
 
     // We can assume the email address stays the same, so just update the name
-    this._cardDetails.card.displayName =
-      document.getElementById("editContactName").value;
+    var newName = document.getElementById("editContactName").value;
+    if (newName != this._cardDetails.card.displayName) {
+      this._cardDetails.card.displayName = newName;
+      this._cardDetails.card.setProperty("PreferDisplayName", true);
+    }
 
     // Save the card
     this._cardDetails.book.modifyCard(this._cardDetails.card);

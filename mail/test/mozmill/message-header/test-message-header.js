@@ -42,7 +42,8 @@
 var MODULE_NAME = 'test-message-header';
 
 var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
+var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers',
+                       'address-book-helpers'];
 
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
@@ -54,6 +55,8 @@ function setupModule(module) {
   fdh.installInto(module);
   let wh = collector.getModule('window-helpers');
   wh.installInto(module);
+  let abh = collector.getModule('address-book-helpers');
+  abh.installInto(module);
 
   folder = create_folder("MessageWindowA");
 
@@ -368,32 +371,6 @@ function change_to_all_header_mode() {
 function help_get_num_lines(node) {
   let style = mc.window.getComputedStyle(node, null);
   return style.height / style.lineHeight;
-}
-
-/**
- * Make sure that there is no card for this email address
- * @param emailAddress the address that should have no cards
- */
-function ensure_no_card_exists(emailAddress)
-{
-  var books = Components.classes["@mozilla.org/abmanager;1"]
-                        .getService(Components.interfaces.nsIAbManager)
-                        .directories;
-
-  while (books.hasMoreElements()) {
-    var ab = books.getNext()
-                  .QueryInterface(Components.interfaces.nsIAbDirectory);
-    try {
-      var card = ab.cardForEmailAddress(emailAddress);
-      if (card) {
-        let cardArray = Cc["@mozilla.org/array;1"]
-                          .createInstance(Ci.nsIMutableArray);
-        cardArray.appendElement(card, false);
-        ab.deleteCards(cardArray);
-      }
-    }
-    catch (ex) { }
-  }
 }
 
 /**

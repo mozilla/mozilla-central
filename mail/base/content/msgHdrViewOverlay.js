@@ -169,7 +169,7 @@ function createHeaderEntry(prefix, headerListInfo)
 
   // stash this so that the <mail-multi-emailheaderfield/> binding can
   // later attach it to any <mail-emailaddress> tags it creates for later
-  // extraction and use by AddExtraAddressProcessing.
+  // extraction and use by UpdateEmailNodeDetails.
   this.enclosingBox.headerName = headerListInfo.name;
 
 }
@@ -1105,83 +1105,80 @@ function OutputEmailAddresses(headerEntry, emailAddresses)
 
 function updateEmailAddressNode(emailAddressNode, address)
 {
-  emailAddressNode.setAttribute("label", address.fullAddress || address.displayName);
   emailAddressNode.setAttribute("emailAddress", address.emailAddress);
   emailAddressNode.setAttribute("fullAddress", address.fullAddress);
   emailAddressNode.setAttribute("displayName", address.displayName);
   emailAddressNode.removeAttribute("tooltiptext");
 
-  AddExtraAddressProcessing(address.emailAddress, emailAddressNode);
+  UpdateEmailNodeDetails(address.emailAddress, emailAddressNode);
 }
 
-function AddExtraAddressProcessing(emailAddress, documentNode)
+/**
+ * Take an email address and compose a sensible display name based on the
+ * header display name and/or the display name from the address book. If no
+ * appropriate name can be made (e.g. there is no card for this address),
+ * returns |null|.
+ *
+ * @param aEmailAddress       the email address to format
+ * @param aHeaderDisplayName  the display name from the header, if any
+ * @param aContext            the field being formatted (e.g. "to", "from")
+ * @param aCard               the address book card, if any
+ * @return The formatted display name, or null
+ */
+function FormatDisplayName(aEmailAddress, aHeaderDisplayName, aContext, aCard)
 {
-  // Always get the card details so we can show add or edit menu options.
-  var cardDetails = getCardForEmail(emailAddress);
-  documentNode.cardDetails = cardDetails;
-
-  if (!cardDetails.card) {
-    documentNode.setAttribute("hascard", "false");
-    documentNode.setAttribute("tooltipstar",
-      document.getElementById("addToAddressBookItem").label);
-  }
-  else {
-    documentNode.setAttribute("hascard", "true");
-    documentNode.setAttribute("tooltipstar",
-      document.getElementById("editContactItem").label);
-  }
-
-  if (!gShowCondensedEmailAddresses)
-    return;
+  var displayName = null;
+  var identity = getBestIdentity(accountManager.allIdentities);
+  var card = aCard || getCardForEmail(aEmailAddress).card;
 
   // If this address is one of the user's identities...
-  var displayName;
-  var identity = getBestIdentity(accountManager.allIdentities);
-  if (emailAddress == identity.email) {
+  if (aEmailAddress == identity.email) {
 
     // ...pick a localized version of the word "You" appropriate to this
     // specific header; fall back to the version used by the "to" header
     // if nothing else is available.
-    let headerName = documentNode.getAttribute("headerName");
     try {
-      displayName = gMessengerBundle.getString("header" + headerName +
+      displayName = gMessengerBundle.getString("header" + aContext +
                                                "FieldYou");
     } catch (ex) {
       displayName = gMessengerBundle.getString("headertoFieldYou");
     }
-  }
-  else
-  {
-    if (!cardDetails.card)
-      return;
-    displayName = cardDetails.card.displayName;
+
+    // Make sure we have an unambiguous name if there are multiple identities
+    if (accountManager.allIdentities.Count() > 1)
+      displayName += " <"+identity.email+">";
   }
 
-  if (!displayName)
-    return;
+  // If we don't have a card, refuse to generate a display name. Places calling
+  // this are then responsible for falling back to something else (e.g. the
+  // value from the message header).
+  if (card) {
+    if (!displayName)
+      displayName = aHeaderDisplayName;
 
-  documentNode.setAttribute("label", displayName);
-  documentNode.setAttribute("tooltiptext", emailAddress);
+    // getProperty may return a "1" or "0" string, we want a boolean
+    if (!displayName || card.getProperty("PreferDisplayName", true) != false)
+      displayName = card.displayName;
+  }
+
+  return displayName;
 }
 
 function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
   // If we haven't been given specific details, search for a card.
   var cardDetails = aCardDetails ? aCardDetails :
                                    getCardForEmail(aEmailAddress);
-  var displayName = null;
-
   aDocumentNode.cardDetails = cardDetails;
 
-  if (cardDetails.card) {
-    displayName = cardDetails.card.displayName;
-    aDocumentNode.setAttribute("hascard", "true");
-    aDocumentNode.setAttribute("tooltipstar",
-                               document.getElementById("editContactItem").label);
-  }
-  else {
+  if (!cardDetails.card) {
     aDocumentNode.setAttribute("hascard", "false");
     aDocumentNode.setAttribute("tooltipstar",
-                               document.getElementById("addToAddressBookItem").label);
+      document.getElementById("addToAddressBookItem").label);
+  }
+  else {
+    aDocumentNode.setAttribute("hascard", "true");
+    aDocumentNode.setAttribute("tooltipstar",
+      document.getElementById("editContactItem").label);
   }
 
   // When we are adding cards, we don't want to move the display around if the
@@ -1190,14 +1187,19 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
   if (aDocumentNode.hasAttribute("updatingUI"))
     return;
 
+  var displayName = FormatDisplayName(aEmailAddress,
+                                      aDocumentNode.getAttribute("displayName"),
+                                      aDocumentNode.getAttribute("headerName"),
+                                      aDocumentNode.cardDetails.card);
+
   if (gShowCondensedEmailAddresses && displayName) {
     aDocumentNode.setAttribute("label", displayName);
     aDocumentNode.setAttribute("tooltiptext", aEmailAddress);
   }
   else
     aDocumentNode.setAttribute("label",
-                              aDocumentNode.getAttribute("fullAddress") ||
-                              aDocumentNode.getAttribute("displayName"));
+      aDocumentNode.getAttribute("fullAddress") ||
+      aDocumentNode.getAttribute("displayName"));
 }
 
 function UpdateExtraAddressProcessing(aAddressData, aDocumentNode, aAction,
@@ -1209,7 +1211,10 @@ function UpdateExtraAddressProcessing(aAddressData, aDocumentNode, aAction,
         aDocumentNode.cardDetails.card &&
         aItem.hasEmailAddress(aAddressData.emailAddress)) {
       aDocumentNode.cardDetails.card = aItem;
-      var displayName = aItem.displayName;
+      var displayName = FormatDisplayName(aAddressData.emailAddress,
+                                          aDocumentNode.getAttribute("displayName"),
+                                          aDocumentNode.getAttribute("headerName"),
+                                          aDocumentNode.cardDetails.card);
 
       if (gShowCondensedEmailAddresses && displayName)
         aDocumentNode.setAttribute("label", displayName);
