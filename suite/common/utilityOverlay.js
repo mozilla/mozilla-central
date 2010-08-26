@@ -956,7 +956,7 @@ function BrowserOnCommand(event)
   // Exception" or "Get Me Out Of Here" button
   if (/^about:neterror\?e=nssBadCert/.test(ownerDoc.documentURI) ||
       /^about:certerror\?/.test(ownerDoc.documentURI)) {
-    if (ot.id == 'exceptionDialogButton') {
+    if (ot.getAttribute('anonid') == 'exceptionDialogButton') {
       var params = { exceptionAdded : false };
 
       try {
@@ -978,7 +978,7 @@ function BrowserOnCommand(event)
       if (params.exceptionAdded)
         ownerDoc.location.reload();
     }
-    else if (ot.id == 'getMeOutOfHereButton') {
+    else if (ot.getAttribute('anonid') == 'getMeOutOfHereButton') {
       // Redirect them to a known-functioning page, default start page
       var url = "about:blank";
       try {

@@ -1,0 +1,3 @@
+span {
+  -moz-binding: url("chrome://communicator/content/certError.xml#button");
+}
