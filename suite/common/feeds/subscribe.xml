@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE bindings SYSTEM "chrome://communicator/locale/feeds/subscribe.dtd">
+
+<bindings id="feedBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <binding id="feedreaderUI">
+    <content>
+      <xul:vbox>
+        <xul:hbox align="center">
+          <xul:description anonid="subscribeUsingDescription" class="subscribeUsingDescription"/>
+          <xul:menulist anonid="handlersMenuList" class="handlersMenuList" aria-labelledby="subscribeUsingDescription">
+            <xul:menupopup menugenerated="true" anonid="handlersMenuPopup" class="handlersMenuPopup">
+              <xul:menuitem anonid="messengerFeedsMenuItem" label="&feedMessenger;" class="menuitem-iconic messengerFeedsMenuItem" image="chrome://communicator/skin/icons/feedIcon16.png" selected="true"/>
+              <xul:menuitem anonid="liveBookmarksMenuItem" label="&feedLiveBookmarks;" class="menuitem-iconic liveBookmarksMenuItem" image="chrome://communicator/skin/icons/feedIcon16.png"/>
+              <xul:menuseparator/>
+            </xul:menupopup>
+          </xul:menulist>
+        </xul:hbox>
+        <xul:hbox>
+          <xul:checkbox anonid="alwaysUse" class="alwaysUse" checked="false"/>
+        </xul:hbox>
+        <xul:hbox align="center">
+          <xul:spacer flex="1"/>
+          <xul:button label="&feedSubscribeNow;" anonid="subscribeButton" class="subscribeButton"/>
+        </xul:hbox>
+      </xul:vbox>
+    </content>
+    <implementation>
+      <constructor>
+        SubscribeHandler.init();
+      </constructor>
+    </implementation>
+    <resources>
+      <stylesheet src="chrome://communicator/skin/feed-subscribe-ui.css"/>
+    </resources>
+  </binding>
+</bindings>

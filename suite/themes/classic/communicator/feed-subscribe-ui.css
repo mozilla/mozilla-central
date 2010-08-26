@@ -1,0 +1,16 @@
+#feedSubscribeLine {
+  font: message-box;
+}
+
+.menuitem-iconic {
+  -moz-padding-start: 2px;
+}
+
+.menu-iconic-left {
+  display: -moz-box;
+  -moz-padding-end: 2px;
+}
+
+menupopup:-moz-locale-dir(rtl) {
+  direction: rtl;
+}

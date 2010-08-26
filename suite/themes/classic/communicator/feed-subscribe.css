@@ -48,8 +48,6 @@ html {
   display: none;
 }
 
-
-
 #feedHeader[firstrun="true"] #feedIntroText {
   padding-top: 0.1em;
   -moz-padding-start: 0.6em;
@@ -62,14 +60,6 @@ html {
 
 #feedSubscribeLine {
   padding-top: 0.2em;
-}
-
-#messengerFeedsMenuItem {
-  list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png");
-}
-
-#feedHeader[dir="rtl"] #handlersMenuList > menupopup {
-  direction: rtl;
 }
 
 /* Don't print subscription UI */

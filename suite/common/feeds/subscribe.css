@@ -1,0 +1,3 @@
+#feedSubscribeLine {
+  -moz-binding: url(chrome://communicator/content/feeds/subscribe.xml#feedreaderUI);
+}

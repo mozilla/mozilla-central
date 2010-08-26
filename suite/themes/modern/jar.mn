@@ -55,6 +55,7 @@ modern.jar:
   skin/modern/communicator/downloads/downloadButtons.png           (communicator/downloads/downloadButtons.png)
   skin/modern/communicator/downloads/downloadmanager.css           (communicator/downloads/downloadmanager.css)
   skin/modern/communicator/feed-subscribe.css                      (communicator/feed-subscribe.css)
+  skin/modern/communicator/feed-subscribe-ui.css                   (communicator/feed-subscribe-ui.css)
   skin/modern/communicator/fullscreen-video.css                    (communicator/fullscreen-video.css)
   skin/modern/communicator/history/calendar.png                    (communicator/history/calendar.png)
   skin/modern/communicator/icons/alwaysAsk.png                     (communicator/icons/alwaysAsk.png)

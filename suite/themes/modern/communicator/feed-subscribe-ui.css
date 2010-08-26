@@ -1,0 +1,7 @@
+#feedSubscribeLine {
+  font: message-box;
+}
+
+menupopup:-moz-locale-dir(rtl) {
+  direction: rtl;
+}

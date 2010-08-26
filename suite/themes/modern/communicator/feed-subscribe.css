@@ -100,14 +100,6 @@ html {
   padding-top: 0.2em;
 }
 
-#messengerFeedsMenuItem {
-  list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png");
-}
-
-#feedHeader[dir="rtl"] #handlersMenuList > menupopup {
-  direction: rtl;
-}
-
 /* Don't print subscription UI */
 @media print {
   #feedHeaderContainer {
