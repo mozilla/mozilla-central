@@ -7,7 +7,7 @@
 <!ENTITY  focusSearch1.key            "f">
 <!ENTITY  focusSearch2.key            "k">
 
-<!ENTITY  filter.emptytext            "Search">
+<!ENTITY  filter.placeholder          "Search">
 
 <!ENTITY saveTo.label                 "Save files to">
 <!ENTITY saveTo.accesskey             "S">

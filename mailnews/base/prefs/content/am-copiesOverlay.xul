@@ -161,7 +161,7 @@
             <textbox wsm_persist="true" id="identity.doCcList" flex="1"
                   aria-labelledby="identity.doCc"
                   prefstring="mail.identity.%identitykey%.doCcList" class="uri-element"
-                  emptytext="&ccAddressList.emptytext;"/>
+                  placeholder="&ccAddressList.placeholder;"/>
           </row>
           <row align="center">
             <checkbox wsm_persist="true" id="identity.doBcc" label="&bccAddress.label;"
@@ -173,7 +173,7 @@
             <textbox wsm_persist="true" id="identity.doBccList" flex="1"
                   aria-labelledby="identity.doBcc"
                   prefstring="mail.identity.%identitykey%.doBccList" class="uri-element"
-                  emptytext="&bccAddressList.emptytext;"/>
+                  placeholder="&bccAddressList.placeholder;"/>
           </row>
         </rows>
       </grid>

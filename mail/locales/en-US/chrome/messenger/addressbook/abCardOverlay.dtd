@@ -119,9 +119,9 @@ content in HTML messages from this contact.">
 <!ENTITY Birthday.label                 "Birthday:">
 <!ENTITY Birthday.accesskey             "B">
 <!ENTITY In.label                       "">
-<!ENTITY Year.emptytext                 "Year">
+<!ENTITY Year.placeholder               "Year">
 <!ENTITY Or.value                       "or">
-<!ENTITY Age.emptytext                  "Age">
+<!ENTITY Age.placeholder                "Age">
 <!ENTITY YearsOld.label                 "">
 
 <!ENTITY Work.tab                       "Work">
@@ -172,6 +172,6 @@ content in HTML messages from this contact.">
 <!ENTITY BrowsePhoto.accesskey          "r">
 <!ENTITY PhotoURL.label                 "On the Web">
 <!ENTITY PhotoURL.accesskey             "b">
-<!ENTITY PhotoURL.emptytext             "Paste or type the web address of a photo">
+<!ENTITY PhotoURL.placeholder           "Paste or type the web address of a photo">
 <!ENTITY UpdatePhoto.label              "Update">
 <!ENTITY UpdatePhoto.accesskey          "u">

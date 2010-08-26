@@ -148,7 +148,7 @@
                />
         <textbox id="qfb-qs-textbox" flex="1"
                  type="search"
-                 emptytext=""
+                 placeholder=""
                  emptytextbase="&quickFilterBar.textbox.emptyText.base;"
                  keyLabelNonMac="&quickFilterBar.textbox.emptyText.keyLabel.nonmac;"
                  keyLabelMac="&quickFilterBar.textbox.emptyText.keyLabel1.mac;"

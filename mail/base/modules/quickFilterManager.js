@@ -1079,9 +1079,9 @@ let MessageTextFilter = {
    *  thread pane.
    */
   domBindExtra: function MessageTextFilter_domBind(aDocument, aMuxer, aNode) {
-    // -- platform-dependent emptytext setup
+    // -- platform-dependent placeholder setup
     aNode.setAttribute(
-      "emptytext",
+      "placeholder",
       aNode.getAttribute("emptytextbase")
            .replace("#1", aNode.getAttribute(Application.platformIsMac ?
                                              "keyLabelMac" : "keyLabelNonMac")));

@@ -96,7 +96,7 @@
         Cu.import("resource:///modules/errUtils.js");
         try {
           this.setAttribute(
-            "emptytext",
+            "placeholder",
             this.getAttribute("emptytextbase")
                  .replace("#1", this.getAttribute(
                                   Application.platformIsMac ?
@@ -137,8 +137,8 @@
           this.collapsed = !this.glodaEnabled;
 
           // make sure we set our emptytext here from the get-go
-        if (this.hasAttribute("emptytext"))
-          this.placeholder = this.getAttribute("emptytext");
+        if (this.hasAttribute("placeholder"))
+          this.placeholder = this.getAttribute("placeholder");
         } catch (e) {
           logException(e, true);
         }

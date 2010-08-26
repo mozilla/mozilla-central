@@ -580,7 +580,7 @@
       <toolbaritem id="search-container" title="&searchItem.title;" align="center" class="chromeclass-toolbar-additional">
         <textbox id="peopleSearchInput" flex="1" timeout="800"
                  type="search"
-                 emptytext="&SearchNameOrEmail.label;"
+                 placeholder="&SearchNameOrEmail.label;"
                  oncommand="onEnterInSearchBar();"/>
       </toolbaritem>     
   </toolbarpalette>

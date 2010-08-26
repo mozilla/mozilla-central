@@ -94,7 +94,7 @@
       <label value="&searchInput.label;" accesskey="&searchInput.accesskey;"
              control="peopleSearchInput"/>
       <textbox id="peopleSearchInput" flex="1" type="search" timeout="800"
-               emptytext="&SearchNameOrEmail.label;" clickSelectsAll="true"
+               placeholder="&SearchNameOrEmail.label;" clickSelectsAll="true"
                oncommand="onEnterInSearchBar();"/>
     </vbox>
 
