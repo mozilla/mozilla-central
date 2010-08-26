@@ -380,6 +380,18 @@ MimeMessage.prototype = {
   },
 
   /**
+   * In the case of attached messages, libmime considers them as attachments,
+   * and if the body is, say, quoted-printable encoded, then libmime will start
+   * counting bytes and notify the js mime emitter about it. The JS mime emitter
+   * being a nice guy, it will try to set a size on us. While this is the
+   * expected behavior for MimeMsgAttachments, we must make sure we can handle
+   * that (failing to write a setter results in exceptions being thrown).
+   */
+  set size (whatever) {
+    // nop
+  },
+
+  /**
    * @param aMsgFolder A message folder, any message folder.  Because this is
    *    a hack.
    * @return The concatenation of all of the body parts where parts
@@ -464,6 +476,9 @@ MimeContainer.prototype = {
     return [child.size for each ([, child] in Iterator(this.parts))]
       .reduce(function (a, b) a + Math.max(b, 0), 0);
   },
+  set size (whatever) {
+    // nop
+  },
   coerceBodyToPlaintext:
       function MimeContainer_coerceBodyToPlaintext(aMsgFolder) {
     if (this.contentType == "multipart/alternative") {
@@ -528,6 +543,9 @@ MimeBody.prototype = {
   },
   get size() {
     return this.body.length;
+  },
+  set size (whatever) {
+    // nop
   },
   coerceBodyToPlaintext:
       function MimeBody_coerceBodyToPlaintext(aMsgFolder) {
