@@ -145,19 +145,23 @@ static void openMailWindow(const nsACString& aFolderUri)
   rv = mailSession->GetTopmostMsgWindow(getter_AddRefs(topMostMsgWindow));
   if (topMostMsgWindow)
   {
-    if (!aFolderUri.IsEmpty())
-    {
-      nsCOMPtr<nsIMsgWindowCommands> windowCommands;
-      topMostMsgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
-      if (windowCommands)
-        windowCommands->SelectFolder(aFolderUri);
-    }
     nsCOMPtr<nsIDOMWindowInternal> domWindow;
     topMostMsgWindow->GetDomWindow(getter_AddRefs(domWindow));
     if (domWindow)
+    {
+      if (!aFolderUri.IsEmpty())
+      {
+        nsCOMPtr<nsIMsgWindowCommands> windowCommands;
+        topMostMsgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
+        if (windowCommands)
+          windowCommands->SelectFolder(aFolderUri);
+      }
+      nsCOMPtr<nsIDOMWindowInternal> domWindow;
       activateWindow(domWindow);
+      return;
+    }
   }
-  else
+
   {
     // the user doesn't have a mail window open already so open one for them...
     nsCOMPtr<nsIMessengerWindowService> messengerWindowService =
@@ -589,18 +593,19 @@ nsresult nsMessengerWinIntegration::AlertClicked()
   if (topMostMsgWindow)
   {
     nsCOMPtr<nsIDOMWindowInternal> domWindow;
-    rv = topMostMsgWindow->GetDomWindow(getter_AddRefs(domWindow));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    activateWindow(domWindow);
+    topMostMsgWindow->GetDomWindow(getter_AddRefs(domWindow));
+    if (domWindow)
+    {
+      activateWindow(domWindow);
+      return NS_OK;
+    }
   }
-#else
+#endif
   // make sure we don't insert the icon in the system tray since the user clicked on the alert.
   mSuppressBiffIcon = PR_TRUE;
   nsCString folderURI;
   GetFirstFolderWithNewMail(folderURI);
   openMailWindow(folderURI);
-#endif
   return NS_OK;
 }
 
