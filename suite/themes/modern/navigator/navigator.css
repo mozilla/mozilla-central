@@ -638,8 +638,8 @@ toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
 }
 
 /* Prevent [mode="icons"|"text"] from hiding the label and icon */
-#bookmarks-ptf .bookmark-item > .toolbarbutton-text,
-#bookmarks-ptf .bookmark-item > .toolbarbutton-icon {
+#PlacesToolbarItems .bookmark-item > .toolbarbutton-text,
+#PlacesToolbarItems .bookmark-item > .toolbarbutton-icon {
   display: -moz-box !important;
 }
 

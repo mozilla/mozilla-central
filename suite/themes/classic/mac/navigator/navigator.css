@@ -455,16 +455,16 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
 
 #PersonalToolbar > #home-button,
 #PersonalToolbar > .bookmark-item,
-#personal-bookmarks > .bookmark-item,
-#bookmarks-ptf > .bookmark-item {
+#PlacesToolbar > .bookmark-item,
+#PlacesToolbarItems > .bookmark-item {
   text-shadow: none;
 }
 
 #PersonalToolbar > #home-button:hover:active,
 #PersonalToolbar > .bookmark-item:hover:active,
 #PersonalToolbar > .bookmark-item[container="true"][open="true"],
-#bookmarks-ptf > .bookmark-item:hover:active,
-#bookmarks-ptf > .bookmark-item[container="true"][open="true"] {
+#PlacesToolbarItems > .bookmark-item:hover:active,
+#PlacesToolbarItems > .bookmark-item[container="true"][open="true"] {
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7) !important;
 }
 
@@ -507,8 +507,8 @@ toolbar[mode="text"] #bookmarks-chevron > .toolbarbutton-icon {
 }
 
 /* Prevent [mode="icons"|"text"] from hiding the label and icon */
-#bookmarks-ptf .bookmark-item > .toolbarbutton-text,
-#bookmarks-ptf .bookmark-item > .toolbarbutton-icon {
+#PlacesToolbarItems .bookmark-item > .toolbarbutton-text,
+#PlacesToolbarItems .bookmark-item > .toolbarbutton-icon {
   display: -moz-box !important;
 }
 
