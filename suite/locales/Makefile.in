@@ -214,7 +214,6 @@ libs-%:
 	if test -d ../../mozilla/extensions/venkman; then \
 	  $(MAKE) -C ../../mozilla/extensions/venkman/locales libs-$*; \
 	fi
-	@$(MAKE) -C ../../mozilla/extensions/reporter/locales libs AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) -C ../../mozilla/extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref BOTH_MANIFESTS=1
 

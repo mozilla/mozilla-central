@@ -127,6 +127,7 @@ crashreporter@BIN_SUFFIX@
 crashreporter.ini
 #endif
 #endif
+defaults/pref/reporter.js
 defaults/wallet/DistinguishedSchema.tbl
 defaults/wallet/FieldSchema.tbl
 defaults/wallet/PositionalSchema.tbl

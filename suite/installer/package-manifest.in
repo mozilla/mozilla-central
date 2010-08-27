@@ -630,7 +630,6 @@
 @BINPATH@/@PREF_DIR@/browser-prefs.js
 @BINPATH@/@PREF_DIR@/channel-prefs.js
 @BINPATH@/@PREF_DIR@/composer.js
-@BINPATH@/@PREF_DIR@/reporter.js
 @BINPATH@/greprefs.js
 @BINPATH@/defaults/autoconfig/platform.js
 @BINPATH@/defaults/autoconfig/prefcalls.js
