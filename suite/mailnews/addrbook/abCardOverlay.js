@@ -291,7 +291,7 @@ function OnLoadEditCard()
         document.getElementById("PhotoType").disabled        = true;
         document.getElementById("GenericPhotoList").disabled = true;
         document.getElementById("PhotoURI").disabled         = true;
-        document.getElementById("PhotoURI").emptyText        = "";
+        document.getElementById("PhotoURI").placeholder      = "";
         document.getElementById("BrowsePhoto").disabled      = true;
         document.getElementById("UpdatePhoto").disabled      = true;
 
