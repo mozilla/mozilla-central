@@ -707,7 +707,7 @@ calItemBase.prototype = {
     get icalString() {
         throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
     },
-    set icalString() {
+    set icalString(str) {
         throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
     },
 
@@ -915,7 +915,7 @@ calItemBase.prototype = {
     get icalComponent() {
         throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
     },
-    set icalComponent() {
+    set icalComponent(val) {
         throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
     },
 

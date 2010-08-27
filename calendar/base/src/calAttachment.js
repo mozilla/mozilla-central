@@ -108,7 +108,7 @@ calAttachment.prototype = {
         return (this.mEncoding = aValue);
     },
 
-    get icalProperty(attProp) {
+    get icalProperty() {
         var icssvc = getIcsService();
         var icalatt = icssvc.createIcalProperty("ATTACH");
         if (this.mUri) {

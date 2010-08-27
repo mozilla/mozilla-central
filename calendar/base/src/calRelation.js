@@ -105,7 +105,7 @@ calRelation.prototype = {
         return (this.mId = aRelId);
     },
 
-    get icalProperty(attProp) {
+    get icalProperty() {
         let icssvc = getIcsService();
         let icalatt = icssvc.createIcalProperty("RELATED-TO");
         if (this.mId) {
