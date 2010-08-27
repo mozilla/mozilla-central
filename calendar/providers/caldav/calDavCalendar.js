@@ -2407,7 +2407,7 @@ calDavCalendar.prototype = {
     },
 
     // nsIChannelEventSink implementation
-    onChannelRedirect: function caldav_onChannelRedirect(aOldChannel, aNewChannel, aFlags) {
+    asyncOnChannelRedirect: function caldav_asyncOonChannelRedirect(aOldChannel, aNewChannel, aFlags, aCallback) {
 
         let uploadData;
         let uploadContent;
@@ -2453,6 +2453,8 @@ calDavCalendar.prototype = {
         copyHeader("If-Match");
 
         aNewChannel.requestMethod = aOldChannel.requestMethod;
+
+        aCallback.onRedirectVerifyCallback(Components.results.NS_OK);
     }
 };
 

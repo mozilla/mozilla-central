@@ -275,11 +275,13 @@ calWcapNetworkRequest.prototype = {
     /**
      * @see nsIChannelEventSink
      */
-    onChannelRedirect: function calWcapNetworkRequest_onChannelRedirect(aOldChannel,
-                                                                        aNewChannel,
-                                                                        aFlags) {
+    asyncOnChannelRedirect: function calWcapNetworkRequest_asyncOnChannelRedirect(aOldChannel,
+                                                                                  aNewChannel,
+                                                                                  aFlags,
+                                                                                  aCallback) {
         // all we need to do to the new channel is the basic preparation
         this.prepareChannel(aNewChannel);
+        aCallback.onRedirectVerifyCallback(Components.results.NS_OK);
     },
 
     /**

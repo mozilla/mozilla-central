@@ -199,8 +199,9 @@ calICSCalendar.prototype = {
     },
 
     // nsIChannelEventSink implementation
-    onChannelRedirect: function(aOldChannel, aNewChannel, aFlags) {
+    asyncOnChannelRedirect: function(aOldChannel, aNewChannel, aFlags, aCallback) {
         this.prepareChannel(aNewChannel);
+        aCallback.onRedirectVerifyCallback(Components.results.NS_OK);
     },
 
     // nsIStreamLoaderObserver impl
