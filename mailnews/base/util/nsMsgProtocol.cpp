@@ -674,6 +674,12 @@ NS_IMETHODIMP nsMsgProtocol::SetContentCharset(const nsACString &aContentCharset
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsMsgProtocol::GetContentDisposition(nsACString &aContentDisposition)
+{
+  aContentDisposition.Truncate();
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgProtocol::GetContentLength(PRInt64 *aContentLength)
 {
   *aContentLength = mContentLength;

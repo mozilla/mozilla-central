@@ -235,6 +235,12 @@ NS_IMETHODIMP nsNntpMockChannel::SetContentCharset(const nsACString &aCharset)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsNntpMockChannel::GetContentDisposition(nsACString &aContentDisposition)
+{
+  aContentDisposition.Truncate();
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsNntpMockChannel::GetContentLength(PRInt64 *length)
 {
   FORWARD_CALL(GetContentLength, length)
