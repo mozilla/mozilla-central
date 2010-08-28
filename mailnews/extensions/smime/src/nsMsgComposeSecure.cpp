@@ -53,7 +53,6 @@
 #include "nsServiceManagerUtils.h"
 #include "nsMemory.h"
 #include "nsAlgorithm.h"
-#include "nsString.h"
 
 #define MK_MIME_ERROR_WRITING_FILE -1
 
@@ -550,7 +549,7 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(PRBool aSign, nsIMsgSendReport *
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIStringBundle> sMIMEBundle;
-  nsXPIDLString mime_smime_enc_content_desc;
+  nsString mime_smime_enc_content_desc;
 
   bundleSvc->CreateBundle(SMIME_STRBUNDLE_URL, getter_AddRefs(sMIMEBundle));
 
@@ -660,7 +659,7 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (PRBool aOuter, nsIMsgSen
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIStringBundle> sMIMEBundle;
-  nsXPIDLString mime_smime_sig_content_desc;
+  nsString mime_smime_sig_content_desc;
 
   bundleSvc->CreateBundle(SMIME_STRBUNDLE_URL, getter_AddRefs(sMIMEBundle));
 
@@ -1070,7 +1069,7 @@ make_multipart_signed_header_string(PRBool outer_p,
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIStringBundle> sMIMEBundle;
-  nsXPIDLString crypto_multipart_blurb;
+  nsString crypto_multipart_blurb;
 
   bundleSvc->CreateBundle(SMIME_STRBUNDLE_URL, getter_AddRefs(sMIMEBundle));
   if (!sMIMEBundle)
