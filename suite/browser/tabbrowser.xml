@@ -916,7 +916,7 @@
             } catch (e) {
             }
 
-            window.QueryInterface(nsIInterfaceRequestor)
+            window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
                   .getInterface(Components.interfaces.nsIWebNavigation)
                   .QueryInterface(Components.interfaces.nsIBaseWindow).title = newTitle;
           ]]>
