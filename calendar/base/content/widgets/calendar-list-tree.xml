@@ -115,7 +115,12 @@
             this.listTree.removeCalendar(aCalendar);
         },
 
-        onCalendarDeleting: function cMO_onCalendarDeleting(aCalendar) { }
+        onCalendarDeleting: function cMO_onCalendarDeleting(aCalendar) {
+            // Now that the calendar is unregistered, update the commands to
+            // make sure that New Event/Task commands are correctly
+            // enabled/disabled.
+            document.commandDispatcher.updateCommands("calendar_commands");
+        }
       })
       ]]></field>
       <field name="compositeObserver"><![CDATA[
@@ -163,9 +168,15 @@
         onError: function cO_onError(aCalendar, aErrNo, aMessage) { },
 
         onPropertyChanged: function cO_onPropertyChanged(aCalendar,
-                                                          aName,
-                                                          aValue,
-                                                          aOldValue) {
+                                                         aName,
+                                                         aValue,
+                                                         aOldValue) {
+            switch (aName) {
+                case "disabled":
+                case "readOnly":
+                    document.commandDispatcher.updateCommands("calendar_commands");
+                    break;
+            }
         },
 
         onPropertyDeleting: function cO_onPropertyDeleting(aCalendar,
