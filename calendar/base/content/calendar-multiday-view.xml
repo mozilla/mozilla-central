@@ -1435,9 +1435,13 @@
           // don't let mouse position go outside the window edges
           let pos = Math.max(0, mousePos) - dragState.mouseOffset;
 
-          // snap to 15 minute intervals
-          let interval = col.mPixPerMin * 15;
-          let curmin = Math.floor(pos/interval) * 15;
+          // snap interval: 15 minutes or 1 minute if modifier key is pressed
+          let snapIntMin = (event.shiftKey &&
+                            !event.ctrlKey &&
+                            !event.altKey  &&
+                            !event.metaKey) ? 1 : 15;
+          let interval = col.mPixPerMin * snapIntMin;
+          let curmin = Math.floor(pos / interval) * snapIntMin;
           let deltamin = curmin - dragState.origMin;
 
           let shadowElements;
@@ -1478,9 +1482,9 @@
               dragState.endMin = shadowElements.endMin;
 
               // but we need to not go past the end; if we hit
-              // the end, then we'll clamp to the previous 15-min interval
+              // the end, then we'll clamp to the previous snap interval minute
               if (dragState.limitEndMin <= dragState.startMin) {
-                  dragState.startMin = Math.floor((dragState.limitEndMin - 15) / 15) * 15;
+                  dragState.startMin = Math.floor((dragState.limitEndMin - snapIntMin) / snapIntMin) * snapIntMin;
               }
           } else if (dragState.dragType == "modify-end") {
               // if we're modifying the end, the start time is fixed, and we'll always
@@ -1491,9 +1495,9 @@
               dragState.endMin = shadowElements.endMin;
 
               // but we need to not go past the start; if we hit
-              // the start, then we'll clamp to the next 15-min interval
+              // the start, then we'll clamp to the next snap interval minute
               if (dragState.lastEnd <= dragState.limitStartMin) {
-                  dragState.endMin = Math.floor((dragState.limitStartMin + 15) / 15) * 15;
+                  dragState.endMin = Math.floor((dragState.limitStartMin + snapIntMin) / snapIntMin) * snapIntMin;
                   dragState.lastEnd = dragState.endMin;
               }
           }
@@ -1517,15 +1521,15 @@
       <method name="onEventSweepMouseUp">
         <parameter name="event"/>
         <body><![CDATA[
-          var col = document.calendarEventColumnDragging;
+          let col = document.calendarEventColumnDragging;
           if (!col) return;
 
-          var dragState = col.mDragState;
+          let dragState = col.mDragState;
 
           let lateralColumns = col.firstLastShadowColumns();
           let column = lateralColumns.firstCol;
           let index = lateralColumns.firstIndex;
-          while (column && index < col.mDragState.shadows) {
+          while (column && index < dragState.shadows) {
               column.fgboxes.dragbox.removeAttribute("dragging");
               column.fgboxes.box.removeAttribute("dragging");
               column = column.nextSibling;
@@ -1575,7 +1579,7 @@
 
               // Our views are pegged to the default timezone.  If the event
               // isn't also in the timezone, we're going to need to do some
-              // tweaking.  We could just do this for every eventm but
+              // tweaking. We could just do this for every event but
               // getInTimezone is slow, so it's much better to only do this
               // when the timezones actually differ from the view's.
               if (this.mTimezone != newStart.timezone ||
@@ -1603,7 +1607,8 @@
 
           if (dragState.dragType == "move") {
               // Figure out how much the event moved to take the same position
-              // of the shadow (snap to full 15 minutes and multiples).
+              // of the shadow (snap to full 15 minutes and multiples or 1 minute
+              // if modifier key is pressed).
               let duration = dragDay.subtractDate(dragState.origDate);
               let minutes = dragState.lastStart - dragState.realStart;
 
@@ -1681,6 +1686,7 @@
         <!-- mouse screenX/screenY from the event -->
         <parameter name="aMouseX"/>
         <parameter name="aMouseY"/>
+        <parameter name="aSnapInt"/>
         <body><![CDATA[
           if (!isCalendarWritable(aOccurrence.calendar) ||
               aOccurrence.calendar.getProperty("capabilities.events.supported") === false) {
@@ -1696,11 +1702,12 @@
               shadows: null
           };
 
-          var interval = this.mPixPerMin * 15;
-          var sizeattr;
+          // snap interval: 15 minutes or 1 minute if modifier key is pressed
+          let snapIntMin = aSnapInt || 15;
+          let interval = this.mPixPerMin * snapIntMin;
+          let sizeattr;
 
-          //dump ("AMY: " + aMouseY + " boY: " + this.parentNode.boxObject.screenY + "\n");
-          var frameloc;
+          let frameloc;
           if (this.getAttribute("orient") == "vertical") {
               this.mDragState.origLoc = aMouseY;
               frameloc = aMouseY - this.parentNode.boxObject.screenY;
@@ -1711,7 +1718,7 @@
               sizeattr = "width";
           }
 
-          var mins = this.getStartEndMinutesForOccurrence(aOccurrence);
+          let mins = this.getStartEndMinutesForOccurrence(aOccurrence);
 
           // these are only used to compute durations or to compute UI
           // sizes, so offset by this.mStartMin for sanity here (at the
@@ -1727,7 +1734,7 @@
               this.mDragState.limitEndMin = mins.realEnd;
 
               // snap start
-              this.mDragState.origMin = Math.floor(mins.start/15) * 15;
+              this.mDragState.origMin = Math.floor(mins.start / snapIntMin) * snapIntMin;
 
               // show the shadows and drag labels when clicking on gripbars
               let shadowElements = this.getShadowElements(this.mDragState.origMin,
@@ -1751,7 +1758,7 @@
               this.mDragState.limitStartMin = mins.realStart;
 
               // snap end
-              this.mDragState.origMin = Math.floor(mins.end/15) * 15;
+              this.mDragState.origMin = Math.floor(mins.end / snapIntMin) * snapIntMin;
 
               // show the shadows and drag labels when clicking on gripbars
               let shadowElements = this.getShadowElements(this.mDragState.limitStartMin,
@@ -1775,8 +1782,8 @@
               // but we also use the min of start and end separately because
               // we keep track of both to figure out the real shadow size.
               // We snap to the start and add the real duration to find the end
-              this.mDragState.origMin = Math.floor(mins.start/15) * 15;
-              this.mDragState.origMinStart = Math.floor(mins.realStart/15) * 15;
+              this.mDragState.origMin = Math.floor(mins.start / snapIntMin) * snapIntMin;
+              this.mDragState.origMinStart = Math.floor(mins.realStart / snapIntMin) * snapIntMin;
               this.mDragState.origMinEnd = this.mDragState.limitDurationMin + this.mDragState.origMinStart;
               this.mDragState.realStart = mins.realStart;
               let shadowElements = this.getShadowElements(this.mDragState.origMinStart,
@@ -1920,7 +1927,7 @@
         this.calendarView.selectedDay = this.mDate;
 
         // If the selected calendar is readOnly, we don't want any sweeping.
-        var cal = getSelectedCalendar();
+        let cal = getSelectedCalendar();
         if (!isCalendarWritable(cal) ||
             cal.getProperty("capabilities.events.supported") === false) {
             return;
@@ -1931,9 +1938,6 @@
             return;
         }
 
-        // snap to 15 minute intervals
-        var interval = this.mPixPerMin * 15;
-
         this.mDragState = {
             origColumn: this,
             dragType: "new",
@@ -1942,13 +1946,20 @@
             shadows: null
         };
 
+        // snap interval: 15 minutes or 1 minute if modifier key is pressed
+        let snapIntMin = (event.shiftKey &&
+                          !event.ctrlKey &&
+                          !event.altKey  &&
+                          !event.metaKey) ? 1 : 15;
+        let interval = this.mPixPerMin * snapIntMin;
+
         if (this.getAttribute("orient") == "vertical") {
             this.mDragState.origLoc = event.screenY;
-            this.mDragState.origMin = Math.floor((event.screenY - this.parentNode.boxObject.screenY)/interval) * 15;
+            this.mDragState.origMin = Math.floor((event.screenY - this.parentNode.boxObject.screenY)/interval) * snapIntMin;
             this.fgboxes.dragspacer.setAttribute("height", this.mDragState.origMin * this.mPixPerMin);
         } else {
             this.mDragState.origLoc = event.screenX;
-            this.mDragState.origMin = Math.floor((event.screenX - this.parentNode.boxObject.screenX)/interval) * 15;
+            this.mDragState.origMin = Math.floor((event.screenY - this.parentNode.boxObject.screenY)/interval) * snapIntMin;
             this.fgboxes.dragspacer.setAttribute("width", this.mDragState.origMin * this.mPixPerMin);
         }
 
@@ -2271,18 +2282,24 @@
         this.mMouseX = event.screenX;
         this.mMouseY = event.screenY;
 
-        var whichside = event.whichside;
+        let whichside = event.whichside;
         if (!whichside) {
-          // may be click or drag,
-          // so wait for mousemove (or mouseout if fast) to start item move drag
-          this.mInMouseDown = true;
-          return;
+            // may be click or drag,
+            // so wait for mousemove (or mouseout if fast) to start item move drag
+            this.mInMouseDown = true;
+            return;
         } else {
-          this.calendarView.setSelectedItems(1,
-            [event.ctrlKey ? this.mOccurrence.parentItem : this.mOccurrence]);
+            this.calendarView.setSelectedItems(1,
+                [event.ctrlKey ? this.mOccurrence.parentItem : this.mOccurrence]);
 
-          // start edge resize drag
-          this.parentColumn.startSweepingToModifyEvent(this, this.mOccurrence, whichside, event.screenX, event.screenY);
+            let snapIntMin = (event.shiftKey &&
+                              !event.ctrlKey &&
+                              !event.altKey  &&
+                              !event.metaKey) ? 1 : 15;
+            // start edge resize drag
+            this.parentColumn.startSweepingToModifyEvent(this, this.mOccurrence, whichside,
+                                                         event.screenX, event.screenY,
+                                                         snapIntMin);
         }
       ]]></handler>
 
