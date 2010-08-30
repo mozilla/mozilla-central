@@ -484,7 +484,7 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
 }
 
 #bookmarks-button[open="true"],
-.bookmark-item[container="true"]:hover:active {
+.bookmark-item[container="true"]:not([disabled="true"]):hover:active {
   list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-folder-active.png");
 }
 

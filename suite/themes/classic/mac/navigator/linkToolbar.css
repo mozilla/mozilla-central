@@ -64,8 +64,8 @@
   text-shadow: none;
 }
 
-#linktoolbar > .bookmark-item:hover:active,
-#linktoolbar > .bookmark-item[container="true"][open="true"] {
+#linktoolbar > .bookmark-item:not([disabled="true"]):hover:active,
+#linktoolbar > .bookmark-item[container="true"]:not([disabled="true"]):hover:active {
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
 }
 
@@ -78,7 +78,7 @@
   list-style-image    : url("chrome://navigator/skin/btn1/top.gif");
 }
 
-#link-top:hover:active
+#link-top:not([disabled="true"]):hover:active
 {
   list-style-image    : url("chrome://navigator/skin/btn1/top-hover.gif");
 }
@@ -88,7 +88,7 @@
   list-style-image    : url("chrome://navigator/skin/btn1/up.gif");
 }
 
-#link-up:hover:active
+#link-up:not([disabled="true"]):hover:active
 {
   list-style-image    : url("chrome://navigator/skin/btn1/up-hover.gif");
 }
@@ -98,7 +98,7 @@
   list-style-image    : url("chrome://navigator/skin/btn1/first.gif");
 }
 
-#link-first:hover:active
+#link-first:not([disabled="true"]):hover:active
 {
   list-style-image    : url("chrome://navigator/skin/btn1/first-hover.gif");
 }
@@ -108,7 +108,7 @@
   list-style-image    : url("chrome://navigator/skin/btn1/previous.gif");
 }
 
-#link-prev:hover:active
+#link-prev:not([disabled="true"]):hover:active
 {
   list-style-image    : url("chrome://navigator/skin/btn1/previous-hover.gif");
 }
@@ -118,7 +118,7 @@
   list-style-image    : url("chrome://navigator/skin/btn1/next.gif");
 }
 
-#link-next:hover:active
+#link-next:not([disabled="true"]):hover:active
 {
   list-style-image    : url("chrome://navigator/skin/btn1/next-hover.gif");
 }
@@ -128,7 +128,7 @@
   list-style-image    : url("chrome://navigator/skin/btn1/last.gif");
 }
 
-#link-last:hover:active
+#link-last:not([disabled="true"]):hover:active
 {
   list-style-image    : url("chrome://navigator/skin/btn1/last-hover.gif");
 }
