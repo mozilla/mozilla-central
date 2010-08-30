@@ -315,7 +315,7 @@ function test() {
   let originalState = ss.getBrowserState();
   function runNextTest() {
     if (tests.length) {
-      tests.shift()();
+      executeSoon(tests.shift());
     } else {
       ss.setBrowserState(originalState);
       executeSoon(function () {
