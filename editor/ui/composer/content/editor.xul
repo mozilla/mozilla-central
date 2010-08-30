@@ -213,7 +213,10 @@
     <toolbarbutton id="spellingButton"/>
     <spacer flex="1"/>
     <hbox id="throbber-box" align="center">
-      <button id="navigator-throbber" oncommand="goClickThrobber('editor.throbber.url')" tooltiptext="&throbber.tooltip;">
+      <button id="navigator-throbber"
+              oncommand="goClickThrobber('editor.throbber.url', event)"
+              onclick="checkForMiddleClick(this, event);"
+              tooltiptext="&throbber.tooltip;">
         <observes element="Editor:Throbber" attribute="busy"/>
       </button>
     </hbox> 

@@ -480,8 +480,9 @@
                  removable="true"
                  align="center">
       <button id="navigator-throbber"
-              tooltiptext="&throbber.tooltip;"
-              oncommand="goClickThrobber('addressbook.throbber.url')">
+              oncommand="goClickThrobber('addressbook.throbber.url', event)"
+              onclick="checkForMiddleClick(this, event);"
+              tooltiptext="&throbber.tooltip;">
         <observes element="broadcaster_throbber" attribute="busy"/>
       </button>
     </toolbaritem>

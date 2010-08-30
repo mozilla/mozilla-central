@@ -2314,7 +2314,8 @@
     <toolbaritem id="throbber-box"
                  align="center">
         <button id="navigator-throbber"
-                oncommand="goClickThrobber('messenger.throbber.url')"
+                oncommand="goClickThrobber('messenger.throbber.url', event)"
+                onclick="checkForMiddleClick(this, event);"
                 tooltiptext="&throbber.tooltip;"/>
     </toolbaritem>
   </toolbarpalette>

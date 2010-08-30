@@ -800,7 +800,7 @@ nsContextMenu.prototype = {
   },
 
   // Change current window to the URL of the image, video, or audio.
-  viewMedia: function() {
+  viewMedia: function(aEvent) {
     var viewURL;
     if (this.onCanvas)
       viewURL = this.target.toDataURL();
@@ -809,7 +809,12 @@ nsContextMenu.prototype = {
       urlSecurityCheck(viewURL, this.target.nodePrincipal,
                        Components.interfaces.nsIScriptSecurityManager.ALLOW_CHROME);
     }
-    openTopWin(viewURL, this.target.ownerDocument.defaultView);
+    var doc = this.target.ownerDocument;
+    var where = whereToOpenLink(aEvent);
+    if (where == "current")
+      openTopWin(viewURL, doc.defaultView);
+    else
+      openUILinkIn(viewURL, where, null, null, doc.documentURIObject);
   },
 
   // Full screen video playback
@@ -822,10 +827,15 @@ nsContextMenu.prototype = {
   },
 
   // Change current window to the URL of the background image.
-  viewBGImage: function() {
+  viewBGImage: function(aEvent) {
     urlSecurityCheck(this.bgImageURL, this.target.nodePrincipal,
                      Components.interfaces.nsIScriptSecurityManager.ALLOW_CHROME);
-    openTopWin(this.bgImageURL, this.target.ownerDocument.defaultView);
+    var doc = this.target.ownerDocument;
+    var where = whereToOpenLink(aEvent);
+    if (where == "current")
+      openTopWin(this.bgImageURL, doc.defaultView);
+    else
+      openUILinkIn(this.bgImageURL, where, null, null, doc.documentURIObject);
   },
 
   setWallpaper: function() {

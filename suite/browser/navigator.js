@@ -716,17 +716,40 @@ function Translate()
   }
 }
 
+function OpenSessionHistoryIn(aWhere, aDelta)
+{
+  var win = aWhere == "window" ? null : window;
+  var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                     .getService(Components.interfaces.nsISessionStore);
+  var tab = ss.duplicateTab(win, gBrowser.selectedTab, aDelta, true);
+
+  var loadInBackground = getBoolPref("browser.tabs.loadInBackground", false);
+
+  switch (aWhere) {
+  case "tabfocused":
+    // forces tab to be focused
+    loadInBackground = true;
+    // fall through
+  case "tabshifted":
+    loadInBackground = !loadInBackground;
+    // fall through
+  case "tab":
+    if (!loadInBackground) {
+      getBrowser().selectedTab = tab;
+      window.content.focus();
+    }
+  }
+}
+
 function gotoHistoryIndex(aEvent)
 {
   var index = aEvent.target.getAttribute("index");
   if (!index)
     return false;
 
-  if (index == "back")
-    gBrowser.goBackGroup();
-  else if (index ==  "forward")
-    gBrowser.goForwardGroup();
-  else {
+  var where = whereToOpenLink(aEvent);
+  if (where == "current") {
+    // Normal click. Go there in the current tab and update session history.
     try {
       getWebNavigation().gotoIndex(index);
     }
@@ -734,16 +757,26 @@ function gotoHistoryIndex(aEvent)
       return false;
     }
   }
+  else {
+    // Modified click. Go there in a new tab/window. Include session history.
+    var delta = index - getWebNavigation().sessionHistory.index;
+    OpenSessionHistoryIn(where, delta);
+  }
   return true;
-
 }
 
-function BrowserBack()
+function BrowserBack(aEvent)
 {
-  try {
-    getBrowser().goBack();
+  var where = whereToOpenLink(aEvent, false, true);
+
+  if (where == "current") {
+    try {
+      getBrowser().goBack();
+    }
+    catch(ex) {}
   }
-  catch(ex) {
+  else {
+    OpenSessionHistoryIn(where, -1);
   }
 }
 
@@ -759,12 +792,19 @@ function BrowserHandleBackspace()
   }
 }
 
-function BrowserForward()
+function BrowserForward(aEvent)
 {
-  try {
-    getBrowser().goForward();
+  var where = whereToOpenLink(aEvent, false, true);
+
+  if (where == "current") {
+    try {
+      getBrowser().goForward();
+    }
+    catch(ex) {
+    }
   }
-  catch(ex) {
+  else {
+    OpenSessionHistoryIn(where, 1);
   }
 }
 
@@ -827,53 +867,29 @@ function BrowserStop()
   }
 }
 
-function BrowserReload()
+function BrowserReload(aEvent)
 {
-  const reloadFlags = nsIWebNavigation.LOAD_FLAGS_NONE;
-  return BrowserReloadWithFlags(reloadFlags);
+  var where = whereToOpenLink(aEvent, false, true);
+  if (where == "current")
+    BrowserReloadWithFlags(nsIWebNavigation.LOAD_FLAGS_NONE);
+  else if (where == null && aEvent.shiftKey)
+    BrowserReloadSkipCache();
+  else
+    OpenSessionHistoryIn(where, 0);
 }
 
 function BrowserReloadSkipCache()
 {
   // Bypass proxy and cache.
   const reloadFlags = nsIWebNavigation.LOAD_FLAGS_BYPASS_PROXY | nsIWebNavigation.LOAD_FLAGS_BYPASS_CACHE;
-  return BrowserReloadWithFlags(reloadFlags);
+  BrowserReloadWithFlags(reloadFlags);
 }
 
 function BrowserHome(aEvent)
 {
-  var tab;
   var homePage = getHomePage();
-  var target = !gBrowser ? "window" : whereToOpenLink(aEvent);
-
-  if (homePage.length == 1) {
-    switch (target) {
-    case "current":
-      loadURI(homePage[0]);
-      break;
-    case "tab":
-    case "tabshifted":
-      tab = gBrowser.addTab(homePage[0]);
-      if (target != "tabshifted")
-        gBrowser.selectedTab = tab;
-      break;
-    case "window":
-      openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", homePage[0]);
-    }
-  } else {
-    if (target == "window")
-      openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", homePage.join("\n"));
-    else {
-      var URIs = [];
-      for (var i in homePage)
-        URIs.push({URI: homePage[i]});
-
-      tab = gBrowser.loadGroup(URIs);
-
-      if (target != "tabshifted")
-        gBrowser.selectedTab = tab;
-    }
-  }
+  var where = whereToOpenLink(aEvent, false, true);
+  openUILinkArrayIn(homePage, where);
 }
 
 /**
@@ -2182,10 +2198,9 @@ function handlePageProxyClick(aEvent)
     break;
   case 1:
     // bug 111337 - load url/keyword from clipboard
-    return middleMousePaste(aEvent);
+    middleMousePaste(aEvent);
     break;
   }
-  return true;
 }
 
 function updateComponentBarBroadcaster()

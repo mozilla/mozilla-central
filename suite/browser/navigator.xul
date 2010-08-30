@@ -134,11 +134,13 @@
     <menupopup id="backMenu"
            position="after_start"
            onpopupshowing="return BrowserBackMenu(event);"
-           oncommand="gotoHistoryIndex(event);"/>
+           oncommand="gotoHistoryIndex(event);"
+           onclick="checkForMiddleClick(this, event);"/>
     <menupopup id="forwardMenu"
            position="after_start"
            onpopupshowing="return BrowserForwardMenu(event);"
-           oncommand="gotoHistoryIndex(event);"/>
+           oncommand="gotoHistoryIndex(event);"
+           onclick="checkForMiddleClick(this, event);"/>
     <tooltip id="aHTMLTooltip"
              onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
     <menupopup id="sidebarPopup"/>
@@ -237,7 +239,8 @@
       <toolbarbutton id="back-button" type="menu-button"
                      class="toolbarbutton-1 chromeclass-toolbar-additional"
                      label="&backButton.label;"
-                     oncommand="if (event.target==this) BrowserBack(); else gotoHistoryIndex(event);"
+                     oncommand="if (event.target==this) BrowserBack(event); else gotoHistoryIndex(event);"
+                     onclick="checkForMiddleClick(this, event);"
                      context="backMenu"
                      tooltiptext="&backButton.tooltip;">
         <observes element="canGoBack" attribute="disabled"/>
@@ -247,7 +250,8 @@
       <toolbarbutton id="forward-button" type="menu-button"
                      class="toolbarbutton-1 chromeclass-toolbar-additional"
                      label="&forwardButton.label;"
-                     oncommand="if (event.target==this) BrowserForward(); else gotoHistoryIndex(event);"
+                     oncommand="if (event.target==this) BrowserForward(event); else gotoHistoryIndex(event);"
+                     onclick="checkForMiddleClick(this, event);"
                      context="forwardMenu"
                      tooltiptext="&forwardButton.tooltip;">
         <observes element="canGoForward" attribute="disabled"/>
@@ -257,7 +261,8 @@
       <toolbarbutton id="reload-button"
                      class="toolbarbutton-1 chromeclass-toolbar-additional"
                      label="&reloadButton.label;"
-                     oncommand="if (event.shiftKey) BrowserReloadSkipCache(); else BrowserReload();"
+                     oncommand="BrowserReload(event);"
+                     onclick="checkForMiddleClick(this, event);"
                      tooltiptext="&reloadButton.tooltip;"/>
 
       <toolbarbutton id="stop-button"
@@ -368,7 +373,9 @@
       </toolbarbutton>
 
       <toolbaritem id="throbber-box" align="center">
-        <button id="navigator-throbber" oncommand="goClickThrobber('browser.throbber.url')"
+        <button id="navigator-throbber"
+                oncommand="goClickThrobber('browser.throbber.url', event)"
+                onclick="checkForMiddleClick(this, event);"
                 tooltiptext="&throbber.tooltip;"/>
       </toolbaritem>
 

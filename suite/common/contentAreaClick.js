@@ -122,9 +122,7 @@
 
     if (pref && !isKeyCommand && event.button == 1 &&
         pref.getBoolPref("middlemouse.contentLoadURL")) {
-      if (middleMousePaste(event)) {
-        event.stopPropagation();
-      }
+      middleMousePaste(event);
     }
     return true;
   }
@@ -189,11 +187,11 @@
   var gGlobalHistory = null;
   var gURIFixup = null;
 
-  function middleMousePaste( event )
+  function middleMousePaste(event)
   {
     var url = readFromClipboard();
     if (!url)
-      return false;
+      return;
     addToUrlbarHistory(url);
     url = getShortcutOrURI(url);
 
@@ -207,7 +205,9 @@
 
       url = gURIFixup.createFixupURI(url, nsIURIFixup.FIXUP_FLAGS_MAKE_ALTERNATE_URI).spec;
 
-      return openNewTabOrWindow(event, url, null);
+      if (openNewTabOrWindow(event, url, null))
+        event.stopPropagation();
+      return;
     }
 
     // If ctrl wasn't down, then just load the url in the targeted win/tab.
@@ -234,9 +234,7 @@
       }
       loadURI(url);
     }
-
     event.stopPropagation();
-    return true;
   }
 
   function addToUrlbarHistory(aUrlToAdd)

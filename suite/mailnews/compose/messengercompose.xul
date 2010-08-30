@@ -746,7 +746,8 @@
       <toolbaritem id="throbber-box"
                    align="center">
           <button id="navigator-throbber"
-                  oncommand="goClickThrobber('compose.throbber.url')"
+                  oncommand="goClickThrobber('compose.throbber.url', event)"
+                  onclick="checkForMiddleClick(this, event);"
                   tooltiptext="&throbber.tooltip;">
             <observes element="broadcaster_throbber" attribute="busy"/>
           </button>

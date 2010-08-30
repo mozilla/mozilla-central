@@ -516,19 +516,20 @@ function toolboxCustomizeChange(toolbox, event)
   }
 }
 
-function goClickThrobber( urlPref )
+function goClickThrobber(urlPref, aEvent)
 {
   var url;
   try {
     url = Services.prefs.getComplexValue(urlPref, nsIPrefLocalizedString).data;
   }
-
   catch(e) {
     url = null;
   }
 
-  if ( url )
-    openUILink(url);
+  if (url) {
+    var where = whereToOpenLink(aEvent, false, true, true);
+    return openUILinkIn(url, where);
+  }
 }
 
 function getTopWin()
@@ -1134,10 +1135,10 @@ function getBoolPref(prefname, def)
 }
 
 // openUILink handles clicks on UI elements that cause URLs to load.
-function openUILink(url, e, ignoreButton, ignoreSave, allowKeywordFixup)
+function openUILink(url, e, ignoreButton, ignoreSave, allowKeywordFixup, postData, referrerUrl)
 {
   var where = whereToOpenLink(e, ignoreButton, ignoreSave);
-  return openUILinkIn(url, where, allowKeywordFixup);
+  return openUILinkIn(url, where, allowKeywordFixup, postData, referrerUrl);
 }
 
 /* whereToOpenLink() looks at an event to decide where to open a link.
@@ -1146,7 +1147,8 @@ function openUILink(url, e, ignoreButton, ignoreSave, allowKeywordFixup)
  *
  * The logic for modifiers is as following:
  * If browser.tabs.opentabfor.middleclick is true, then Ctrl (or Meta) and middle-click
- * open a new tab, depending on Shift and browser.tabs.loadInBackground.
+ * open a new tab, depending on Shift, browser.tabs.loadInBackground, and
+ * ignoreBackground.
  * Otherwise if middlemouse.openNewWindow is true, then Ctrl (or Meta) and middle-click
  * open a new window.
  * Otherwise if middle-click is pressed then nothing happens.
@@ -1154,7 +1156,7 @@ function openUILink(url, e, ignoreButton, ignoreSave, allowKeywordFixup)
  * Otherwise if Alt, or Shift, or Ctrl (or Meta) is pressed then nothing happens.
  * Otherwise the most recent browser is used for left clicks.
  */
-function whereToOpenLink(e, ignoreButton, ignoreSave)
+function whereToOpenLink(e, ignoreButton, ignoreSave, ignoreBackground)
 {
   if (!e)
     return "current";
@@ -1169,7 +1171,7 @@ function whereToOpenLink(e, ignoreButton, ignoreSave)
 
   if (meta || ctrl || middle) {
     if (getBoolPref("browser.tabs.opentabfor.middleclick", true))
-      return shift ? "tabshifted" : "tab";
+      return ignoreBackground ? "tabfocused" : shift ? "tabshifted" : "tab";
     if (getBoolPref("middlemouse.openNewWindow", true))
       return "window";
     if (middle)
@@ -1313,8 +1315,9 @@ function openUILinkArrayIn(urlArray, where, allowThirdPartyFixup)
       w.content.focus();
     }
   }
+  var relatedToCurrent = where == "current";
   for (var i = 1; i < urlArray.length; i++)
-    browser.addTab(urlArray[i], {allowThirdPartyFixup: allowThirdPartyFixup});
+    browser.addTab(urlArray[i], {allowThirdPartyFixup: allowThirdPartyFixup, relatedToCurrent: relatedToCurrent});
 
   return w;
 }

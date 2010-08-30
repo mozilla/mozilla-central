@@ -330,7 +330,12 @@
                   command="View:FullScreen" hidden="true"/>
         <menuseparator />
         <menuitem label="&stopCmd.label;" accesskey="&stopCmd.accesskey;" id="menuitem-stop" disabled="true" oncommand="BrowserStop();" key="key_stop"/>
-        <menuitem id="menuitem_reload" accesskey="&reloadCmd.accesskey;" key="key_reload" label="&reloadCmd.label;" oncommand="BrowserReload();"/>
+        <menuitem id="menuitem_reload"
+                  label="&reloadCmd.label;"
+                  accesskey="&reloadCmd.accesskey;"
+                  key="key_reload"
+                  oncommand="BrowserReload(event);"
+                  onclick="checkForMiddleClick(this, event);"/>
         <menuseparator />
   
         <!-- overlayed from viewZoomOverlay.xul -->
@@ -373,19 +378,24 @@
     <menu id="history-menu"
           label="&goMenu.label;"
           accesskey="&goMenu.accesskey;"
-          oncommand="gotoHistoryIndex(event);">
+          oncommand="gotoHistoryIndex(event);"
+          onclick="checkForMiddleClick(this, event);">
       <menupopup id="goPopup"
                  onpopupshowing="updateGoMenu(event);">
         <menuitem id="historyMenuBack"
                   label="&goBackCmd.label;"
                   accesskey="&goBackCmd.accesskey;"
                   key="goBackKb"
-                  command="Browser:Back"/>
+                  oncommand="BrowserBack(event);"
+                  onclick="checkForMiddleClick(this, event);"
+                  observes="canGoBack"/>
         <menuitem id="historyMenuForward"
                   label="&goForwardCmd.label;"
                   accesskey="&goForwardCmd.accesskey;"
                   key="goForwardKb"
-                  command="Browser:Forward"/>
+                  oncommand="BrowserForward(event);"
+                  onclick="checkForMiddleClick(this, event);"
+                  observes="canGoForward"/>
         <menuitem id="historyMenuUp"
                   label="&goUpCmd.label;"
                   accesskey="&goUpCmd.accesskey;"
@@ -395,6 +405,7 @@
                   label="&goHomeCmd.label;"
                   accesskey="&goHomeCmd.accesskey;"
                   command="Browser:Home"
+                  onclick="checkForMiddleClick(this, event);"
                   key="goHome"/>
         <menuseparator/>
         <menuitem id="menu_showAllHistory"
