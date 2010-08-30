@@ -100,7 +100,15 @@ function findAgainInPage(findInstData, reverse)
 {
   var findbar = document.getElementById("FindToolbar");
   if (findbar && Services.prefs.getBoolPref("browser.findbar.enabled"))
-    document.getElementById("FindToolbar").onFindAgainCommand(reverse);
+  {
+    // first, look to see whether XPFE typeaheadfind wants to find next
+    var sip = Components.classes["@mozilla.org/supports-interface-pointer;1"]
+                        .createInstance(Components.interfaces.nsISupportsInterfacePointer);
+    sip.data = content;
+    Services.obs.notifyObservers(sip, "nsWebBrowserFind_FindAgain", reverse ? "up" : "down");
+    if (sip.data) // XPFE typeahead find was not interested in this find next
+      findbar.onFindAgainCommand(reverse);
+  }
   else
   {
     // get the find service, which stores global find state, and init the
@@ -142,7 +150,8 @@ function findAgainInPage(findInstData, reverse)
 
 function canFindAgainInPage()
 {
-  if (isFindbarEnabled())
+  var findbar = document.getElementById("FindToolbar");
+  if (findbar && Services.prefs.getBoolPref("browser.findbar.enabled"))
     // The findbar will just be brought up in an error state if you cannot find text again.
     return true;
 
