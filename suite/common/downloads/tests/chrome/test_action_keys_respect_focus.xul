@@ -260,7 +260,11 @@ function test()
       if (aTopic != DLMGR_UI_DONE)
         return;
 
-      var win = aSubject;
+      SimpleTest.waitForFocus(function () { continueTest(aSubject) }, aSubject);
+    }
+  };
+
+  function continueTest(win) {
       var downloadTree = win.document.getElementById("downloadTree");
       var searchbox = win.document.getElementById("search-box");
       var clearList = win.document.getElementById("clearListButton");
@@ -361,8 +365,8 @@ function test()
 
           break;
       }
-    }
-  };
+  }
+
   obs.addObserver(testObs, DLMGR_UI_DONE, false);
 
   // Show the Download Manager UI

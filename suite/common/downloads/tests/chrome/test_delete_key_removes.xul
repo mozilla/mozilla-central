@@ -154,7 +154,11 @@ function test()
       if (aTopic != DLMGR_UI_DONE)
         return;
 
-      var win = aSubject;
+      SimpleTest.waitForFocus(function () { deleteDL(aSubject) }, aSubject);
+    }
+  };
+
+  function deleteDL(win) {
       var doc = win.document;
 
       var stmt = db.createStatement("SELECT COUNT(*) FROM moz_downloads");
@@ -184,8 +188,7 @@ function test()
       dmFile.remove(false);
       os.removeObserver(testObs, DLMGR_UI_DONE);
       SimpleTest.finish();
-    }
-  };
+  }
 
   // Register with the observer service
   os.addObserver(testObs, DLMGR_UI_DONE, false);

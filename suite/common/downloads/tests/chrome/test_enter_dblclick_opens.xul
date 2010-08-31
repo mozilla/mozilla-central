@@ -223,15 +223,20 @@ function test()
       if (aTopic != DLMGR_UI_DONE)
         return;
 
-      var win = aSubject;
+      SimpleTest.waitForFocus(function () { continueTest(aSubject) }, aSubject);
+    }
+  };
+
+  function continueTest(win) {
       dm.addListener(new dlObs(win));
 
-      // add second download: FINISHED state, actually created (checked by cmd_open)
+      // add second download: FINISHED state, actually created
+      // (checked by cmd_open)
       addDownload();
 
       obs.removeObserver(testObs, DLMGR_UI_DONE);
-    }
-  };
+  }
+
   obs.addObserver(testObs, DLMGR_UI_DONE, false);
 
   // Show the Download Manager UI

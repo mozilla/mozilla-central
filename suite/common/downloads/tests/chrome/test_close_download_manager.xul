@@ -90,15 +90,19 @@ function runTest()
                       .getService(Components.interfaces.nsIObserverService);
   var testObs = {
     observe: function(aSubject, aTopic, aData) {
-      var win = aSubject;
+      SimpleTest.waitForFocus(function () { closeDM(aSubject) }, aSubject);
+    }
+  };
+
+  function closeDM(win) {
       // if we add more ways to close DM with keys, add more cases here
       switch(testPhase++) {
         case 0:
           obs.removeObserver(testObs, DLMGR_UI_DONE);
           testCloseDMWithAccelKey(win);
       }
-    }
-  };
+  }
+
   obs.addObserver(testObs, DLMGR_UI_DONE, false);
 
   Components.classes["@mozilla.org/download-manager-ui;1"]

@@ -99,8 +99,11 @@ function test()
       if (aTopic != DLMGR_UI_DONE)
         return;
 
-      var win = aSubject;
+      SimpleTest.waitForFocus(function () { continueTest(aSubject) }, aSubject);
+    }
+  };
 
+  function continueTest(win) {
       // Now we can run our tests
       for each (let t in testFuncs)
         t(win);
@@ -108,8 +111,7 @@ function test()
       win.close();
       os.removeObserver(testObs, DLMGR_UI_DONE);
       SimpleTest.finish();
-    }
-  };
+  }
 
   // Register with the observer service
   os.addObserver(testObs, DLMGR_UI_DONE, false);

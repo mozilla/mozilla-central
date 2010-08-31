@@ -173,7 +173,11 @@ function test()
       if (aTopic != DLMGR_UI_DONE)
         return;
 
-      var win = aSubject;
+      SimpleTest.waitForFocus(function () { continueTest(aSubject) }, aSubject);
+    }
+  };
+
+  function continueTest(win) {
       var doc = win.document;
       dm.addListener(new dlObs(win));
 
@@ -181,8 +185,7 @@ function test()
       // we need to focus the download as well
       doc.getElementById("downloadTree").view.selection.select(0);
       os.removeObserver(testObs, DLMGR_UI_DONE);
-    }
-  };
+  }
 
   // Register with the observer service
   os.addObserver(testObs, DLMGR_UI_DONE, false);
