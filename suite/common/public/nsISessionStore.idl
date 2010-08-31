@@ -47,7 +47,7 @@ interface nsIDOMNode;
  * - and allows to restore everything into one window.
  */
 
-[scriptable, uuid(c8543c08-396f-40ef-8170-3bfcd4a18ab8)]
+[scriptable, uuid(e63e4931-ff9f-4840-a203-b787223e057d)]
 interface nsISessionStore : nsISupports
 {
   /**
@@ -101,11 +101,16 @@ interface nsISessionStore : nsISupports
   /**
    * Duplicates a given tab as thoroughly as possible.
    *
-   * @param aWindow is the window into which the tab will be duplicated.
-   * @param aTab    is the tab to duplicate (can be from a different window).
-   * @return a reference to the newly created tab.
+   * @param aWindow  is the window into which the tab will be duplicated.
+   *                 Pass null if you want to create a new window.
+   * @param aTab     is the tab to duplicate (can be from a different window).
+   * @param aDelta   is the offset to the history entry that you want to load.
+   * @param aRelated is a flag to be passed to addTab().
+   * @return a reference to the newly created tab, or null if opening a window.
    */
-  nsIDOMNode duplicateTab(in nsIDOMWindow aWindow, in nsIDOMNode aTab);
+  nsIDOMNode duplicateTab(in nsIDOMWindow aWindow, in nsIDOMNode aTab,
+                          [optional] in long aDelta,
+                          [optional] in boolean aRelated);
 
   /**
    * Get the number of restore-able tabs for a window

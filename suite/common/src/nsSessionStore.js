@@ -828,19 +828,26 @@ SessionStoreService.prototype = {
     this.restoreHistoryPrecursor(window, [aTab], [tabState], 0, 0, 0);
   },
 
-  duplicateTab: function sss_duplicateTab(aWindow, aTab) {
+  duplicateTab: function sss_duplicateTab(aWindow, aTab, aDelta, aRelated) {
     if (!aTab.ownerDocument || !aTab.ownerDocument.defaultView.__SSi ||
-        !aWindow.getBrowser)
+        aWindow && !aWindow.getBrowser)
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
     var tabState = this._collectTabData(aTab, true);
     var sourceWindow = aTab.ownerDocument.defaultView;
     this._updateTextAndScrollDataForTab(sourceWindow, aTab.linkedBrowser, tabState, true);
+    tabState.index += aDelta;
 
-    var newTab = aWindow.getBrowser().addTab();
-    this.restoreHistoryPrecursor(aWindow, [newTab], [tabState], 0, 0, 0);
+    if (aWindow) {
+      var newTab = aWindow.getBrowser()
+                          .addTab(null, { relatedToCurrent: aRelated });
+      this.restoreHistoryPrecursor(aWindow, [newTab], [tabState], 0, 0, 0);
+      return newTab;
+    }
 
-    return newTab;
+    var state = { windows: [{ tabs: [tabState] }] };
+    this.windowToFocus = this._openWindowWithState(state);
+    return null;
   },
 
   getClosedTabCount: function sss_getClosedTabCount(aWindow) {
