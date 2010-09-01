@@ -156,7 +156,6 @@ static void openMailWindow(const nsACString& aFolderUri)
         if (windowCommands)
           windowCommands->SelectFolder(aFolderUri);
       }
-      nsCOMPtr<nsIDOMWindowInternal> domWindow;
       activateWindow(domWindow);
       return;
     }
