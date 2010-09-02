@@ -1341,7 +1341,7 @@ function openUILinkArrayIn(urlArray, where, allowThirdPartyFixup)
  */
 function switchToTabHavingURI(aURI, aOpenNew, aCallback) {
   function switchIfURIInWindow(aWindow) {
-    if (!("gBrowser" in aWindow))
+    if (!aWindow.gBrowser)
       return false;
     let browsers = aWindow.gBrowser.browsers;
     for (let i = 0; i < browsers.length; i++) {
