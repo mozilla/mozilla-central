@@ -1364,6 +1364,14 @@ function undoCloseWindow(aIndex)
   return ss.undoCloseWindow(aIndex);
 }
 
+/*
+ * Determines if a tab is "empty" using isBrowserEmpty from utilityOverlay.js
+ */
+function isTabEmpty(aTab)
+{
+  return isBrowserEmpty(aTab.linkedBrowser);
+}
+
 function BrowserCloseOtherTabs()
 {
   var browser = getBrowser();

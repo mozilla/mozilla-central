@@ -1242,6 +1242,10 @@ function openUILinkIn(url, where, aAllowThirdPartyFixup, aPostData, aReferrerURI
 
   var loadInBackground = getBoolPref("browser.tabs.loadInBackground", false);
 
+  // reuse the browser if its current tab is empty
+  if (isBrowserEmpty(w.getBrowser()))
+    where = "current";
+
   switch (where) {
   case "current":
     w.loadURI(url, aPostData, flags);
@@ -1375,19 +1379,27 @@ function switchToTabHavingURI(aURI, aOpenNew, aCallback) {
 
   // No opened tab has that url.
   if (aOpenNew) {
-    let browser = openUILinkIn(aURI.spec, "tabfocused");
+    let browserWin = openUILinkIn(aURI.spec, "tabfocused");
     if (aCallback) {
-      browser.addEventListener("pageshow", function(event) {
+      browserWin.addEventListener("pageshow", function(event) {
         if (event.target.location.href != aURI.spec)
           return;
-        browser.removeEventListener("pageshow", arguments.callee, true);
-        aCallback(browser);
+        browserWin.removeEventListener("pageshow", arguments.callee, true);
+        aCallback(browserWin.getBrowser().selectedBrowser);
       }, true);
     }
     return true;
   }
 
   return false;
+}
+
+// Determines if a browser is "empty"
+function isBrowserEmpty(aBrowser) {
+  return aBrowser.sessionHistory.count < 2 &&
+         aBrowser.currentURI.spec == "about:blank" &&
+         !aBrowser.contentDocument.body.hasChildNodes() &&
+         !aBrowser.webProgress.isLoadingDocument;
 }
 
 function subscribeToFeed(href, event) {
