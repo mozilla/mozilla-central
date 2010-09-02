@@ -1,21 +1,23 @@
 var tab1, tab2;
 
-function executeSoon(step) {
-  todo(false, "Using setTimeout(,0) instead of real executeSoon() otherwise this test breaks");
-  setTimeout(step, 0);
+function focus_in_navbar()
+{
+  var parent = document.activeElement.parentNode;
+  while (parent && parent.id != "nav-bar")
+    parent = parent.parentNode;
+
+  return (parent != null);
 }
 
-function test() {
+function test()
+{
   waitForExplicitFinish();
 
   tab1 = gBrowser.addTab();
   tab2 = gBrowser.addTab();
-  executeSoon(step1);
-}
 
-function step1() {
   EventUtils.synthesizeMouse(tab1, 9, 9, {});
-  executeSoon(step2);
+  setTimeout(step2, 0);
 }
 
 function step2()
@@ -24,34 +26,21 @@ function step2()
   isnot(document.activeElement, tab1, "mouse on tab not activeElement");
 
   EventUtils.synthesizeMouse(tab1, 9, 9, {});
-  executeSoon(step3);
+  setTimeout(step3, 0);
 }
 
 function step3()
 {
-  todo_is(document.activeElement, tab1, "mouse on tab again activeElement");
+  isnot(document.activeElement, tab1, "mouse on tab again activeElement");
 
-  document.getElementById("urlbar").inputField.focus();
-  EventUtils.synthesizeKey("VK_TAB", { });
+  document.getElementById("urlbar").focus();
+  while (focus_in_navbar())
+    EventUtils.synthesizeKey("VK_TAB", { });
 
-  let osString = Components.classes["@mozilla.org/xre/app-info;1"]
-                           .getService(Ci.nsIXULRuntime).OS;
-  if (osString != "Linux" || document.activeElement == tab1) {
-    // Expected behavior.
-    is(document.activeElement, tab1, "tab key to tab activeElement");
-  } else {
-    // Linux intermittent failure.
-    // Check local name too to help diagnose bug 491624.
-    todo_is(document.activeElement.localName, "tab",
-            "tab key to tab activeElement (bug 491624: name = " +
-              document.activeElement.localName + ")");
-    todo_is(document.activeElement, tab1,
-            "tab key to tab activeElement (bug 491624: object = " +
-              document.activeElement + ")");
-  }
+  is(document.activeElement, tab1, "tab key to tab activeElement");
 
   EventUtils.synthesizeMouse(tab1, 9, 9, {});
-  executeSoon(step4);
+  setTimeout(step4, 0);
 }
 
 function step4()
@@ -59,12 +48,23 @@ function step4()
   is(document.activeElement, tab1, "mouse on tab while focused still activeElement");
 
   EventUtils.synthesizeMouse(tab2, 9, 9, {});
-  executeSoon(step5);
+  setTimeout(step5, 0);
 }
 
 function step5()
 {
+  // The tabbox selects a tab within a setTimeout in a bubbling mousedown event
+  // listener, and focuses the current tab if another tab previously had focus.
   is(document.activeElement, tab2, "mouse on another tab while focused still activeElement");
+
+  content.focus();
+  EventUtils.synthesizeMouse(tab2, 9, 30, {button: 1, type: "mousedown"});
+  setTimeout(step6, 0);
+}
+
+function step6()
+{
+  isnot(document.activeElement, tab2, "tab not focused via middle click");
 
   gBrowser.removeTab(tab1);
   gBrowser.removeTab(tab2);
