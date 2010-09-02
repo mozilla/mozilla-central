@@ -309,6 +309,8 @@ pref("offline.download.download_messages",  0);
 
 pref("browser.formfill.expire_days",        180);
 
+pref("mailnews.ui.deleteMarksRead", true);
+
 // -- folders (Mac: these are binary aliases.)
 pref("mail.signature_file",             "");
 pref("mail.directory",                  "");

@@ -1045,10 +1045,12 @@ function MsgGetNextNMessages()
 
 function MsgDeleteMessage(aReallyDelete)
 {
-  // if the user deletes a message before its mark as read timer goes off,
-  // we should mark it as read this ensures that we clear the biff indicator
-  // from the system tray when the user deletes the new message
-  MarkSelectedMessagesRead(true);
+  // If the user deletes a message before its mark as read timer goes off,
+  // we should mark it as read (unless the user changed the pref). This
+  // ensures that we clear the biff indicator from the system tray when
+  // the user deletes the new message.
+  if (pref.getBoolPref("mailnews.ui.deleteMarksRead"))
+    MarkSelectedMessagesRead(true);
   SetNextMessageAfterDelete();
 
   // determine if we're using the IMAP delete model
