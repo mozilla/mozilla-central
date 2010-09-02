@@ -692,7 +692,7 @@ FeedWriter.prototype = {
       } catch (e) {}
     }
 #endif
-    return file.fileName;
+    return file.leafName;
   },
 
   /**
