@@ -57,6 +57,10 @@ toolbarbutton[doubleimage="true"] {
   -moz-binding: url(chrome://calendar/content/widgets/calendar-widgets.xml#doubleimage-toolbarbutton);
 }
 
+toolbarbutton[todaypane="true"] {
+  -moz-binding: url(chrome://calendar/content/widgets/calendar-widgets.xml#todaypane-toolbarbutton);
+}
+
 minimonth {
   -moz-binding: url("chrome://calendar/content/widgets/minimonth.xml#minimonth");
 }

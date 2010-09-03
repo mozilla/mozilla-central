@@ -570,7 +570,7 @@
     <statusbarpanel id="calendar-show-todaypane-panel"
                     pack="center">
       <toolbarbutton id="calendar-status-todaypane-button"
-                     doubleimage="true"
+                     todaypane="true"
                      type="checkbox"
                      label="&todaypane.statusButton.label;"
                      tooltiptext="&calendar.todaypane.button.tooltip;"

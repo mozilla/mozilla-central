@@ -236,6 +236,10 @@ function refreshUIBits() {
 
         // update the unifinder
         refreshEventTree();
+
+        // update today's date on todaypane button
+        document.getElementById("calendar-status-todaypane-button").setUpTodayDate();
+
     } catch (exc) {
         ASSERT(false, exc);
     }

@@ -152,9 +152,21 @@ radio[pane=paneLightning] {
   -moz-appearance: none;
 }
 
-#calendar-status-todaypane-button > .toolbarbutton-icon-begin {
+#calendar-status-todaypane-button > stack > .toolbarbutton-icon-begin {
   list-style-image: url(chrome://calendar/skin/toolbar-small.png);
   -moz-image-region: rect(0px 336px 16px 320px);
+}
+
+#calendar-status-todaypane-button > stack > .toolbarbutton-day-text {
+  text-align: center;
+  margin-left: 0px;
+  margin-top: 4px;
+  margin-bottom: -4px;
+  font-size: 7pt;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  color: DarkBlue;
+  background-color: transparent;
 }
 
 /* shift the today pane button label up by one pixel to center it */
