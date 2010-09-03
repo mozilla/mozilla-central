@@ -105,13 +105,14 @@ NS_IMETHODIMP nsMsgTxn::DeleteProperty(const nsAString& name)
 }
 
 //
-// nsSimpleProperty class and impl; used for GetEnumerator
+// nsMailSimpleProperty class and impl; used for GetEnumerator
+// This is same as nsSimpleProperty but for external API use.
 //
 
-class nsSimpleProperty : public nsIProperty 
+class nsMailSimpleProperty : public nsIProperty 
 {
 public:
-  nsSimpleProperty(const nsAString& aName, nsIVariant* aValue)
+  nsMailSimpleProperty(const nsAString& aName, nsIVariant* aValue)
       : mName(aName), mValue(aValue)
   {
   }
@@ -123,21 +124,21 @@ protected:
   nsCOMPtr<nsIVariant> mValue;
 };
 
-NS_IMPL_ISUPPORTS1(nsSimpleProperty, nsIProperty)
+NS_IMPL_ISUPPORTS1(nsMailSimpleProperty, nsIProperty)
 
-NS_IMETHODIMP nsSimpleProperty::GetName(nsAString& aName)
+NS_IMETHODIMP nsMailSimpleProperty::GetName(nsAString& aName)
 {
   aName.Assign(mName);
   return NS_OK;
 }
 
-NS_IMETHODIMP nsSimpleProperty::GetValue(nsIVariant* *aValue)
+NS_IMETHODIMP nsMailSimpleProperty::GetValue(nsIVariant* *aValue)
 {
   NS_IF_ADDREF(*aValue = mValue);
   return NS_OK;
 }
 
-// end nsSimpleProperty
+// end nsMailSimpleProperty
 
 static PLDHashOperator
 PropertyHashToArrayFunc (const nsAString &aKey,
@@ -146,7 +147,7 @@ PropertyHashToArrayFunc (const nsAString &aKey,
 {
   nsCOMArray<nsIProperty> *propertyArray =
       static_cast<nsCOMArray<nsIProperty> *>(userArg);
-  nsSimpleProperty *sprop = new nsSimpleProperty(aKey, aData);
+  nsMailSimpleProperty *sprop = new nsMailSimpleProperty(aKey, aData);
   propertyArray->AppendObject(sprop);
   return PL_DHASH_NEXT;
 }
