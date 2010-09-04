@@ -441,6 +441,41 @@ pref("app.update.url.details", "chrome://communicator-region/locale/region.prope
 // User-settable override to app.update.url for testing purposes.
 //pref("app.update.url.override", "");
  
+// Enables some extra Application Update Logging (can reduce performance)
+pref("app.update.log", false);
+
+// When |app.update.cert.requireBuiltIn| is true or not specified the
+// final certificate and all certificates the connection is redirected to before
+// the final certificate for the url specified in the |app.update.url|
+// preference must be built-in.
+pref("app.update.cert.requireBuiltIn", true);
+
+// When |app.update.cert.checkAttributes| is true or not specified the
+// certificate attributes specified in the |app.update.certs.| preference branch
+// are checked against the certificate for the url specified by the
+// |app.update.url| preference.
+pref("app.update.cert.checkAttributes", true);
+
+// The number of certificate attribute check failures to allow for background
+// update checks before notifying the user of the failure. User initiated update
+// checks always notify the user of the certificate attribute check failure.
+pref("app.update.cert.maxErrors", 5);
+
+// The |app.update.certs.| preference branch contains branches that are
+// sequentially numbered starting at 1 that contain attribute name / value
+// pairs for the certificate used by the server that hosts the update xml file
+// as specified in the |app.update.url| preference. When these preferences are
+// present the following conditions apply for a successful update check:
+// 1. the uri scheme must be https
+// 2. the preference name must exist as an attribute name on the certificate and
+//    the value for the name must be the same as the value for the attribute
+//    name on the certificate.
+// If these conditions aren't met it will be treated the same as when there is
+// no update available. This validation will not be performed when using the
+// |app.update.url.override| preference for update checking.
+pref("app.update.certs.1.issuerName", "OU=Equifax Secure Certificate Authority,O=Equifax,C=US");
+pref("app.update.certs.1.commonName", "aus2-community.mozilla.org");
+
 // Interval: Time between checks for a new version (in seconds)
 //           default=1 day
 pref("app.update.interval", 86400);
