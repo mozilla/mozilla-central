@@ -38,6 +38,7 @@
  ***** END LICENSE BLOCK ***** -->
 
 <?xul-overlay href="chrome://navigator/content/navigatorOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/bookmarks/placesOverlay.xul"?>
 
 <!-- hiddenwindow is a "minimal" XUL window intended for creating the,
      er, hidden window.  This window is never shown, but on platforms
@@ -71,8 +72,9 @@
   <script type="application/javascript" src="chrome://navigator/content/browser.js"/>
   <script type="application/javascript" src="chrome://navigator/content/navigator.js"/>
 
-  <!-- Shared Bookmarks Utility Library -->
-  <script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarks.js"/>
+  <!-- Places Bookmarks Utilities -->
+  <script type="application/javascript" src="chrome://communicator/content/places/browserPlacesViews.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/bookmarks/browser-places.js"/>
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_navigator" src="chrome://navigator/locale/navigator.properties"/>
@@ -94,11 +96,10 @@
     <commandset id="selectEditMenuItems"/>
     <commandset id="undoEditMenuItems"/>
     <commandset id="clipboardEditMenuItems"/>
+    <commandset id="placesCommands"/>
   </commandset>
 
   <broadcasterset id="navBroadcasters"/>
-
-  <template id="bookmarksMenuTemplate"/>
 
   <!-- it's the whole navigator.xul menubar! hidden windows need to
        have a menubar for situations where they're the only window remaining
