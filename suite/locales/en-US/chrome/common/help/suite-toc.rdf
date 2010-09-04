@@ -140,6 +140,7 @@
     <nc:subheadings>
       <rdf:Seq>
         <rdf:li> <rdf:Description ID="mail-doc" nc:name="Getting Started with Mail" nc:link="mail_help.xhtml#getting_started_with_mozilla_mail_and_newsgroups" /> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-importing-other" nc:name="Importing Mail from Other Programs" nc:link="mail_help.xhtml#importing_mail_from_other_programs" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-read"    nc:name="Reading Messages" nc:link="mail_help.xhtml#reading_messages" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-send"    nc:name="Sending Messages" nc:link="mail_help.xhtml#sending_messages" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-html"    nc:name="Creating HTML Mail Messages" nc:link="mail_help.xhtml#creating_html_mail_messages" /> </rdf:li>
@@ -148,7 +149,6 @@
         <rdf:li> <rdf:Description ID="mail-doc-address" nc:name="Using Address Books" nc:link="mail_help.xhtml#using_address_books" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-folders" nc:name="Organizing Your Messages" nc:link="mail_help.xhtml#organizing_your_messages" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-junk" nc:name="Controlling Junk Mail" nc:link="mail_help.xhtml#controlling_junk_mail" /> </rdf:li>
-        <rdf:li> <rdf:Description ID="mail-importing-other" nc:name="Importing Mail from Other Programs" nc:link="mail_help.xhtml#importing_mail_from_other_programs" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-news" nc:name="Getting Started With Newsgroups" nc:link="mailnews_newsgroups.xhtml#getting_started_with_newsgroups" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-blogs" nc:name="Getting Started With Blogs &amp; News Feeds" nc:link="mailnews_blogs_and_feeds.xhtml#getting_started_with_blogs_and_news_feeds" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-offline" nc:name="Working Offline" nc:link="mailnews_offline.xhtml#working_offline" /> </rdf:li>
@@ -166,6 +166,15 @@
         <rdf:li> <rdf:Description ID="mail-doc-setup" nc:name="Using the Mail Account Setup Wizard"  nc:link="mail_help.xhtml#using_the_mail_account_setup_wizard"/> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-add" nc:name="Setting Up Additional Accounts"  nc:link="mail_help.xhtml#setting_up_additional_mail_and_news_accounts"/> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-change" nc:name="Changing the Settings for an Account"  nc:link="mail_help.xhtml#changing_the_settings_for_an_account"/> </rdf:li>
+      </rdf:Seq>
+    </nc:subheadings>
+  </rdf:Description>
+
+ <rdf:Description about="#mail-importing-other">
+    <nc:subheadings>
+      <rdf:Seq>
+        <rdf:li> <rdf:Description ID="mail-importing-mail-messages" nc:name="Importing Mail Messages" nc:link="mail_help.xhtml#importing_mail_messages" /> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-importing-mail-settings" nc:name="Importing Mail Settings" nc:link="mail_help.xhtml#importing_mail_settings" /> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>
@@ -346,15 +355,6 @@
         <rdf:li> <rdf:Description ID="mail-junk-options" nc:name="Junk Mail Controls Options" nc:link="mail_help.xhtml#junk_controls_options" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-junk-filters" nc:name="Junk Mail Controls and Filters" nc:link="mail_help.xhtml#junk_controls_and_filters" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-junk-phishing" nc:name="Phishing Detection" nc:link="mail_help.xhtml#phishing_detection" /> </rdf:li>
-      </rdf:Seq>
-    </nc:subheadings>
-  </rdf:Description>
-
-<rdf:Description about="#mail-importing-other">
-    <nc:subheadings>
-      <rdf:Seq>
-        <rdf:li> <rdf:Description ID="mail-importing-mail-messages" nc:name="Importing Mail Messages" nc:link="mail_help.xhtml#importing_mail_messages" /> </rdf:li>
-        <rdf:li> <rdf:Description ID="mail-importing-mail-settings" nc:name="Importing Mail Settings" nc:link="mail_help.xhtml#importing_mail_settings" /> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>
