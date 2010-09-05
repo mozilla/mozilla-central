@@ -135,7 +135,8 @@ nsContextMenu.prototype = {
     this.showItem("mailContext-media-mute", onMedia && !this.target.muted);
     this.showItem("mailContext-media-unmute", onMedia && this.target.muted);
     if (onMedia) {
-      let hasError = this.target.error != null;
+      let hasError = this.target.error != null ||
+                     this.target.networkState == this.target.NETWORK_NO_SOURCE;
       this.setItemAttr("mailContext-media-play", "disabled", hasError);
       this.setItemAttr("mailContext-media-pause", "disabled", hasError);
       this.setItemAttr("mailContext-media-mute", "disabled", hasError);
