@@ -161,6 +161,11 @@ var editContactInlineUI = {
     document.getElementById("editContactEmail").value =
       aAnchorElement.getAttribute("emailAddress");
 
+    document.getElementById("editContactAddressBookList").value =
+      this._cardDetails.book.URI;
+    document.getElementById("editContactAddressBookList").disabled =
+      !this._writeable;
+
     this.panel.popupBoxObject
         .setConsumeRollupEvent(Components.interfaces
                                          .nsIPopupBoxObject.ROLLUP_CONSUME);
@@ -210,6 +215,15 @@ var editContactInlineUI = {
       return;
     }
 
+    let originalBook = this._cardDetails.book;
+
+    let abURI = document.getElementById("editContactAddressBookList").value;
+    if (abURI != originalBook.URI) {
+      let abManager = Components.classes["@mozilla.org/abmanager;1"]
+                                .getService(Components.interfaces.nsIAbManager);
+      this._cardDetails.book = abManager.getDirectory(abURI);
+    }
+
     // We can assume the email address stays the same, so just update the name
     var newName = document.getElementById("editContactName").value;
     if (newName != this._cardDetails.card.displayName) {
@@ -218,7 +232,23 @@ var editContactInlineUI = {
     }
 
     // Save the card
-    this._cardDetails.book.modifyCard(this._cardDetails.card);
+    if (this._cardDetails.book.hasCard(this._cardDetails.card)) {
+      // Address book wasn't changed.
+      this._cardDetails.book.modifyCard(this._cardDetails.card);
+    }
+    else {
+      // We changed address books for the card.
+
+      // Delete  it from the old place...
+      let cardArray = Components.classes["@mozilla.org/array;1"]
+                              .createInstance(Components.interfaces.nsIMutableArray);
+      cardArray.appendElement(this._cardDetails.card, false);
+      originalBook.deleteCards(cardArray);
+
+      // ... and add it to the chosen address book.
+      this._cardDetails.book.addCard(this._cardDetails.card);
+    }
+
     this.panel.hidePopup();
   }
 }

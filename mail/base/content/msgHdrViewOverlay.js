@@ -1356,26 +1356,34 @@ function onClickEmailStar(event, emailAddressNode)
     AddContact(emailAddressNode);
 }
 
+/**
+ * Takes the email address node, adds a new contact from the node's
+ * displayName and emailAddress attributes to the personal address book.
+ * @param emailAddressNode a node with displayName and emailAddress attributes
+ */
 function AddContact(emailAddressNode)
 {
-  if (emailAddressNode) {
-    // When we collect an address, it updates the AB which sends out
-    // notifications to update the UI. In the add case we don't want to update
-    // the UI so that accidentally double-clicking on the star doesn't lead
-    // to something strange (i.e star would be moved out from underneath,
-    // leaving something else there).
-    emailAddressNode.setAttribute("updatingUI", true);
+  // When we collect an address, it updates the AB which sends out
+  // notifications to update the UI. In the add case we don't want to update
+  // the UI so that accidentally double-clicking on the star doesn't lead
+  // to something strange (i.e star would be moved out from underneath,
+  // leaving something else there).
+  emailAddressNode.setAttribute("updatingUI", true);
 
-    // Just save the new node straight away
-    Components.classes["@mozilla.org/addressbook/services/addressCollector;1"]
-      .getService(Components.interfaces.nsIAbAddressCollector)
-      .collectSingleAddress(emailAddressNode.getAttribute("emailAddress"),
-                            emailAddressNode.getAttribute("displayName"), true,
-                            Components.interfaces.nsIAbPreferMailFormat.unknown,
-                            true);
+  let abManager = Components.classes["@mozilla.org/abmanager;1"]
+                            .getService(Components.interfaces.nsIAbManager);
+  const kPersonalAddressbookURI = "moz-abmdbdirectory://abook.mab";
+  let addressBook = abManager.getDirectory(kPersonalAddressbookURI);
 
-    emailAddressNode.removeAttribute("updatingUI");
-  }
+  let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"]
+                       .createInstance(Components.interfaces.nsIAbCard);
+  card.displayName = emailAddressNode.getAttribute("displayName");
+  card.primaryEmail = emailAddressNode.getAttribute("emailAddress");
+
+  // Just save the new node straight away.
+  addressBook.addCard(card);
+
+  emailAddressNode.removeAttribute("updatingUI");
 }
 
 function EditContact(emailAddressNode)

@@ -52,10 +52,10 @@
   </stringbundleset>
 
   <panel id="editContactPanel" orient="vertical" ignorekeys="true" hidden="true"
-	 aria-labelledby="editContactPanelTitle"
-	 onpopuphidden="editContactInlineUI.onPopupHidden(event);"
+         aria-labelledby="editContactPanelTitle"
+         onpopuphidden="editContactInlineUI.onPopupHidden(event);"
          onpopupshown="editContactInlineUI.onPopupShown(event);"
-	 onkeypress="editContactInlineUI.onKeyPress(event, true);">
+         onkeypress="editContactInlineUI.onKeyPress(event, true);">
     <hbox flex="1" align="top">
       <image id="editContactPanelIcon"/>
       <label id="editContactPanelTitle" flex="1"/>
@@ -65,7 +65,7 @@
               oncommand="editContactInlineUI.deleteContact();"
               onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
     </hbox>
-      
+
     <vbox id="editContactContent">
       <grid id="editContactGrid" flex="1">
         <columns>
@@ -80,14 +80,24 @@
             <textbox id="editContactName" class="editContactTextbox"
                      onkeypress="editContactInlineUI.onKeyPress(event, true);"/>
           </row>
-	  <row align="center" id="editContactEmailRow">
+          <row align="center" id="editContactEmailRow">
             <label value="&editContactEmail.label;"
                    accesskey="&editContactEmail.accesskey;"
                    control="editContactEmail"/>
             <textbox id="editContactEmail" readonly="true"
                      class="editContactTextbox"
                      onkeypress="editContactInlineUI.onKeyPress(event, true);"/>
-	  </row>
+          </row>
+          <row align="center" id="editContactABRow">
+            <label id="editContactAddressBook"
+                   value="&editContactAddressBook.label;"
+                   accesskey="&editContactAddressBook.accesskey;"
+                   control="editContactAddressBookList"/>
+            <menulist id="editContactAddressBookList" flex="1">
+              <menupopup id="editContactAddressBookList-menupopup"
+                         class="addrbooksPopup"/>
+            </menulist>
+          </row>
         </rows>
       </grid>
     </vbox>
@@ -102,25 +112,24 @@
               label="&editContactPanelDone.label;"
               accesskey="&editContactPanelDone.accesskey;" default="true"
               oncommand="editContactInlineUI.saveChanges();"
-	      onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+              onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
       <button id="editContactPanelCancelButton"
               label="&editContactPanelCancel.label;"
               accesskey="&editContactPanelCancel.accesskey;"
               oncommand="editContactInlineUI.panel.hidePopup();"
-	      onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+              onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
 #else
       <button id="editContactPanelCancelButton"
               label="&editContactPanelCancel.label;"
               accesskey="&editContactPanelCancel.accesskey;"
               oncommand="editContactInlineUI.panel.hidePopup();"
-	      onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+              onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
       <button id="editContactPanelDoneButton"
               label="&editContactPanelDone.label;"
               accesskey="&editContactPanelDone.accesskey;" default="true"
               oncommand="editContactInlineUI.saveChanges();"
-	      onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+              onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
 #endif
     </hbox>
   </panel>
 </overlay>
- 

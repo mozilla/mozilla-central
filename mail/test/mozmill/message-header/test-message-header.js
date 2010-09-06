@@ -263,6 +263,39 @@ function test_a11y_attrs() {
   headersToTest.forEach(verify_header_a11y);
 }
 
+/**
+ * Test that clicking the adding an address node adds it to the address book.
+ */
+function test_add_contact_from_context_menu() {
+  // Click the contact to show the emailAddressPopup popup menu.
+  mc.click(mc.aid("expandedfromBox", {tagName: "mail-emailaddress"}));
+
+  var addToAddressBookItem = mc.window.document.getElementById("addToAddressBookItem");
+  if (addToAddressBookItem.hidden)
+    throw new Error("addToAddressBookItem is hidden for unknown contact");
+  var editContactItem = mc.window.document.getElementById("editContactItem");
+  if (!editContactItem.getAttribute("hidden"))
+    throw new Error("editContactItem is NOT hidden for unknown contact");
+
+  // Click the Add to Address Book context menu entry.
+  mc.click(mc.eid("addToAddressBookItem"));
+  // (for reasons unknown, the pop-up does not close itself)
+  close_popup();
+
+  // Now click the contact again, the context menu should now show the
+  // Edit Contact menu instead.
+  mc.click(mc.aid("expandedfromBox", {tagName: "mail-emailaddress"}));
+  // (for reasons unknown, the pop-up does not close itself)
+  close_popup();
+
+  addToAddressBookItem = mc.window.document.getElementById("addToAddressBookItem");
+  if (!addToAddressBookItem.hidden)
+    throw new Error("addToAddressBookItem is NOT hidden for known contact");
+  editContactItem = mc.window.document.getElementById("editContactItem");
+  if (editContactItem.hidden)
+    throw new Error("editContactItem is hidden for known contact");
+}
+
 function test_that_msg_without_date_clears_previous_headers() {
   be_in_folder(folder);
 
