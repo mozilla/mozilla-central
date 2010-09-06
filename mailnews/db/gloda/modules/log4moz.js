@@ -486,8 +486,10 @@ BasicFormatter.prototype = {
 
   format: function BF_format(message) {
     let date = new Date(message.time);
+    // The trick below prevents errors further down because mo is null or
+    //  undefined.
     let messageString = [
-      ((typeof(mo) == "object") ? mo.toString() : mo) for each
+      ("" + mo) for each
       ([,mo] in Iterator(message.messageObjects))].join(" ");
     return date.toLocaleFormat(this.dateFormat) + "\t" +
       message.loggerName + "\t" + message.levelDesc + "\t" +
