@@ -354,6 +354,7 @@ function InitMessageMenu()
   document.getElementById("killThread").hidden = !isNews;
   document.getElementById("killSubthread").hidden = !isNews;
   document.getElementById("watchThread").hidden = !isNews;
+  document.getElementById("menu_cancel").hidden = !isNews;
 
 
   // Disable the move and copy menus if there are no messages selected or if
@@ -1016,9 +1017,7 @@ function UpdateDeleteToolbarButton()
 function UpdateDeleteCommand()
 {
   var value = "value";
-  if (gFolderDisplay.selectedMessageIsNews)
-    value += "News";
-  else if (SelectedMessagesAreDeleted())
+  if (SelectedMessagesAreDeleted())
     value += "IMAPDeleted";
   if (GetNumSelectedMessages() < 2)
     value += "Message";
@@ -1226,18 +1225,8 @@ function MsgCopyMessage(aDestFolder)
  */
 function MsgMoveMessage(aDestFolder)
 {
-  // We don't move news messages, we copy them.
-  // XXX this check is incorrect in two ways. For saved searches we could have
-  // cross folder/newsgroup messages, so this check would do the wrong thing.
-  // For global search views, we don't have a msgFolder - however as we don't
-  // index newsgroup messages, we can at least temporarily get away with this.
-  if (gDBView.msgFolder && isNewsURI(gDBView.msgFolder.URI))
-    gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, aDestFolder);
-  else
-  {
-    gFolderDisplay.hintAboutToDeleteMessages();
-    gDBView.doCommandWithFolder(nsMsgViewCommandType.moveMessages, aDestFolder);
-  }
+  gFolderDisplay.hintAboutToDeleteMessages();
+  gDBView.doCommandWithFolder(nsMsgViewCommandType.moveMessages, aDestFolder);
   pref.setCharPref("mail.last_msg_movecopy_target_uri", aDestFolder.URI);
   pref.setBoolPref("mail.last_msg_movecopy_was_move", true);
 }
@@ -2203,12 +2192,7 @@ function SetUpToolbarButtons(uri)
   if (!deleteButton)
     return;
 
-  // Eventually, we might want to set up the toolbar differently for imap,
-  // pop, and news.  For now, just tweak it based on if it is news or not.
-  if (isNewsURI(uri))
-    deleteButton.setAttribute('hidden', true);
-  else
-    deleteButton.removeAttribute('hidden');
+  deleteButton.removeAttribute('hidden');
 }
 
 function MsgSynchronizeOffline()

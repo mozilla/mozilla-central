@@ -410,6 +410,16 @@ interface nsIMsgFolder : nsISupports {
 
   ACString getUriForMsg(in nsIMsgDBHdr msgHdr);
 
+  /**
+   * Deletes the messages from the folder.
+   *
+   * @param messages      The array of nsIMsgDBHdr objects to be deleted.
+   * @param msgWindow     The standard message window object, for alerts et al.
+   * @param deleteStorage Whether or not the message should be truly deleted, as
+                          opposed to moving to trash.
+   * @param isMove        Whether or not this is a deletion for moving messages.
+   * @param allowUndo     Whether this action should be undoable.
+   */
   void deleteMessages(in nsIArray messages,
                       in nsIMsgWindow msgWindow,
                       in boolean deleteStorage, in boolean isMove,

@@ -101,8 +101,7 @@ var nsSearchResultsController =
           case "cmd_shiftDelete":
           case "button_delete":
             // this assumes that advanced searches don't cross accounts
-            if (GetNumSelectedMessages() <= 0 ||
-                isNewsURI(gFolderDisplay.view.dbView.getURIForViewIndex(0)))
+            if (GetNumSelectedMessages() <= 0)
               enabled = false;
             break;
           case "saveas_vf_button":
@@ -619,11 +618,6 @@ function GetNumSelectedMessages()
 
 function MsgDeleteSelectedMessages(aCommandType)
 {
-    // we don't delete news messages, we just return in that case
-    if (gFolderDisplay.selectedMessageIsNews)
-        return;
-
-    // if mail messages delete
     gFolderDisplay.hintAboutToDeleteMessages();
     gFolderDisplay.doCommand(aCommandType);
 }
@@ -640,16 +634,9 @@ function MoveMessageInSearch(destFolder)
   let destMsgFolder = GetMsgFolderFromUri(destUri).QueryInterface(
                         Components.interfaces.nsIMsgFolder);
 
-  // we don't move news messages, we copy them
-  if (gFolderDisplay.selectedMessageIsNews) {
-    gFolderDisplay.doCommandWithFolder(nsMsgViewCommandType.copyMessages,
-                                       destMsgFolder);
-  }
-  else {
-    gFolderDisplay.hintAboutToDeleteMessages();
-    gFolderDisplay.doCommandWithFolder(nsMsgViewCommandType.moveMessages,
-                                       destMsgFolder);
-  }
+  gFolderDisplay.hintAboutToDeleteMessages();
+  gFolderDisplay.doCommandWithFolder(nsMsgViewCommandType.moveMessages,
+                                     destMsgFolder);
 }
 
 function OpenInFolder()

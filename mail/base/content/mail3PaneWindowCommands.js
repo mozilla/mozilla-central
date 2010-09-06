@@ -250,6 +250,7 @@ var DefaultController =
       case "cmd_watchThread":
       case "cmd_killThread":
       case "cmd_killSubthread":
+      case "cmd_cancel":
         return(gFolderDisplay.selectedMessageIsNews);
 
       default:
@@ -273,6 +274,11 @@ var DefaultController =
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.deleteMsg);
       case "cmd_shiftDelete":
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.deleteNoTrash);
+      case "cmd_cancel": {
+        let selectedMessages = gFolderDisplay.selectedMessages;
+        return selectedMessages.length == 1 && selectedMessages[0].folder &&
+               selectedMessages[0].folder.server.type == "nntp";
+      }
       case "cmd_deleteFolder":
         var folders = gFolderTreeView.getSelectedFolders();
         if (folders.length == 1) {
@@ -620,6 +626,11 @@ var DefaultController =
         if (!gRightMouseButtonSavedSelection)
           gFolderDisplay.hintAboutToDeleteMessages();
         gFolderDisplay.doCommand(nsMsgViewCommandType.deleteMsg);
+        break;
+      case "cmd_cancel":
+        let message = gFolderDisplay.selectedMessages[0];
+        message.folder.QueryInterface(Components.interfaces.nsIMsgNewsFolder)
+                      .cancelMessage(message, msgWindow);
         break;
       case "cmd_shiftDelete":
         MarkSelectedMessagesRead(true);

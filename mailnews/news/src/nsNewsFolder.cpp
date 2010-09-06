@@ -401,14 +401,6 @@ nsMsgNewsFolder::GetCanFileMessages(PRBool *aResult)
 }
 
 NS_IMETHODIMP
-nsMsgNewsFolder::GetCanDeleteMessages(PRBool *aCanDeleteMessages)
-{
-  NS_ENSURE_ARG_POINTER(aCanDeleteMessages);
-  *aCanDeleteMessages = PR_FALSE;
-  return NS_OK;
-}
-
-NS_IMETHODIMP
 nsMsgNewsFolder::GetCanCreateSubfolders(PRBool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
@@ -791,51 +783,60 @@ NS_IMETHODIMP nsMsgNewsFolder::GetSizeOnDisk(PRUint32 *size)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* this is news, so remember that DeleteMessage is really CANCEL. */
 NS_IMETHODIMP
 nsMsgNewsFolder::DeleteMessages(nsIArray *messages, nsIMsgWindow *aMsgWindow,
                                 PRBool deleteStorage, PRBool isMove,
-                                nsIMsgCopyServiceListener* listener, PRBool allowUndo)
+                                nsIMsgCopyServiceListener* listener,
+                                PRBool allowUndo)
 {
   nsresult rv = NS_OK;
 
   NS_ENSURE_ARG_POINTER(messages);
   NS_ENSURE_ARG_POINTER(aMsgWindow);
 
-  PRUint32 count = 0;
-  rv = messages->GetLength(&count);
+  if (!isMove)
+  {
+    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+    if (notifier)
+      notifier->NotifyMsgsDeleted(messages);
+  }
+
+  rv = GetDatabase();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  if (count != 1)
+  rv = EnableNotifications(allMessageCountNotifications, PR_FALSE, PR_TRUE);
+  if (NS_SUCCEEDED(rv))
   {
-    nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+    PRUint32 count = 0;
+    rv = messages->GetLength(&count);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIStringBundle> bundle;
-    rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsString alertText;
-    rv = bundle->GetStringFromName(NS_LITERAL_STRING("onlyCancelOneMessage").get(), getter_Copies(alertText));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsIPrompt> dialog;
-    rv = aMsgWindow->GetPromptDialog(getter_AddRefs(dialog));
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    if (dialog)
+    for (PRUint32 i = 0; i < count && NS_SUCCEEDED(rv); i++)
     {
-      rv = dialog->Alert(nsnull, alertText.get());
-      NS_ENSURE_SUCCESS(rv,rv);
+      nsCOMPtr<nsIMsgDBHdr> msgHdr = do_QueryElementAt(messages, i, &rv);
+      if (msgHdr)
+        rv = mDatabase->DeleteHeader(msgHdr, nsnull, PR_TRUE, PR_TRUE);
     }
-    // return failure, since the cancel failed
-    return NS_ERROR_FAILURE;
+    EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_TRUE);
   }
+ 
+  if (!isMove) 
+    NotifyFolderEvent(NS_SUCCEEDED(rv) ? mDeleteOrMoveMsgCompletedAtom :
+      mDeleteOrMoveMsgFailedAtom);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgNewsFolder::CancelMessage(nsIMsgDBHdr *msgHdr,
+                                             nsIMsgWindow *aMsgWindow)
+{
+  NS_ENSURE_ARG_POINTER(msgHdr);
+  NS_ENSURE_ARG_POINTER(aMsgWindow);
+
+  nsresult rv;
 
   nsCOMPtr <nsINntpService> nntpService = do_GetService(NS_NNTPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
-
-  nsCOMPtr<nsIMsgDBHdr> msgHdr(do_QueryElementAt(messages, 0));
 
   // for cancel, we need to
   // turn "newsmessage://sspitzer@news.mozilla.org/netscape.test#5428"

@@ -716,7 +716,7 @@ var MessageWindowController =
       case "cmd_shiftDelete":
       case "button_shiftDelete":
         loadedFolder = GetLoadedMsgFolder();
-        return gCurrentMessageUri && loadedFolder && (loadedFolder.canDeleteMessages || isNewsURI(gCurrentFolderUri));
+        return gCurrentMessageUri && loadedFolder && loadedFolder.canDeleteMessages;
       case "button_junk":
         UpdateJunkToolbarButton();
         // fall through

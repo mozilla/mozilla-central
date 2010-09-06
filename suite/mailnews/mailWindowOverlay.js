@@ -389,6 +389,10 @@ function InitMessageMenu()
   if (watchThreadMenuItem) {
       watchThreadMenuItem.setAttribute("hidden", isNews ? "" : "true");
   }
+  var cancelMenuItem = document.getElementById("menu_cancel");
+  if (cancelMenuItem) {
+      cancelMenuItem.setAttribute("hidden", isNews ? "" : "true");
+  }
 
   // Disable the Move and Copy menus if there are no messages selected.
   // Disable the Move menu if we can't delete messages from the folder.
@@ -874,9 +878,7 @@ function UpdateDeleteCommand()
 {
   var value = "value";
   var uri = GetFirstSelectedMessage();
-  if (IsNewsMessage(uri))
-    value += "News";
-  else if (SelectedMessagesAreDeleted())
+  if (SelectedMessagesAreDeleted())
     value += "IMAPDeleted";
   if (GetNumSelectedMessages() < 2)
     value += "Message";
@@ -1085,14 +1087,8 @@ function MsgMoveMessage(destFolder)
     // get the msg folder we're moving messages into
     var destUri = destFolder.getAttribute('id');
     let destMsgFolder = GetMsgFolderFromUri(destUri);
-    // we don't move news messages, we copy them
-    if (isNewsURI(gDBView.msgFolder.URI)) {
-      gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, destMsgFolder);
-    }
-    else {
-      SetNextMessageAfterDelete();
-      gDBView.doCommandWithFolder(nsMsgViewCommandType.moveMessages, destMsgFolder);
-    }
+    SetNextMessageAfterDelete();
+    gDBView.doCommandWithFolder(nsMsgViewCommandType.moveMessages, destMsgFolder);
   }
   catch (ex) {
     dump("MsgMoveMessage failed: " + ex + "\n");

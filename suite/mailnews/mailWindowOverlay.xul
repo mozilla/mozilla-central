@@ -199,14 +199,10 @@
          valueMessageAccessKey="&deleteMsgCmd.accesskey;"
          valueIMAPDeletedMessage="&undeleteMsgCmd.label;"
          valueIMAPDeletedMessageAccessKey="&undeleteMsgCmd.accesskey;"
-         valueNewsMessage="&cancelNewsMsgCmd.label;"
-         valueNewsMessageAccessKey="&cancelNewsMsgCmd.accesskey;"
          valueMessages="&deleteMsgsCmd.label;"
          valueMessagesAccessKey="&deleteMsgsCmd.accesskey;"
          valueIMAPDeletedMessages="&undeleteMsgsCmd.label;"
-         valueIMAPDeletedMessagesAccessKey="&undeleteMsgsCmd.accesskey;"
-         valueNewsMessages="&cancelNewsMsgsCmd.label;"
-         valueNewsMessagesAccessKey="&cancelNewsMsgsCmd.accesskey;"/>
+         valueIMAPDeletedMessagesAccessKey="&undeleteMsgsCmd.accesskey;"/>
   <command id="cmd_selectAll"/>
   <command id="cmd_selectThread" oncommand="goDoCommand('cmd_selectThread')"/>
   <command id="cmd_selectFlagged" oncommand="goDoCommand('cmd_selectFlagged')"/>
@@ -261,6 +257,7 @@
   <command id="cmd_editAsNew" oncommand="goDoCommand('cmd_editAsNew')"/>
   <command id="cmd_openMessage" oncommand="goDoCommand('cmd_openMessage')"/>
   <command id="cmd_createFilterFromMenu" oncommand="goDoCommand('cmd_createFilterFromMenu')"/>
+  <command id="cmd_cancel" oncommand="goDoCommand('cmd_cancel')"/>
   <command id="cmd_killThread" oncommand="goDoCommand('cmd_killThread')"/>
   <command id="cmd_killSubthread" oncommand="goDoCommand('cmd_killSubthread')"/>
   <command id="cmd_watchThread" oncommand="goDoCommand('cmd_watchThread')"/>
@@ -1864,6 +1861,10 @@
               accesskey="&createFilter.accesskey;"
               command="cmd_createFilterFromMenu"/>
     <menuseparator id="threadItemsSeparator"/>
+    <menuitem id="menu_cancel"
+              label="&cancelNewsMsgCmd.label;"
+              accesskey="&cancelNewsMsgCmd.accesskey;"
+              command="cmd_cancel"/>
     <menuitem id="killThread"
               label="&killThreadMenu.label;"
               accesskey="&killThreadMenu.accesskey;"

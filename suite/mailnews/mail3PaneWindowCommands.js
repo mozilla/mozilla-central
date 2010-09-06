@@ -246,6 +246,7 @@ var DefaultController =
       case "cmd_watchThread":
       case "cmd_killThread":
       case "cmd_killSubthread":
+      case "cmd_cancel":
         return(isNewsURI(GetFirstSelectedMessage()));
 
 			default:
@@ -275,6 +276,9 @@ var DefaultController =
         if (gDBView)
           gDBView.getCommandStatus(nsMsgViewCommandType.deleteNoTrash, enabled, checkStatus);
         return enabled.value;
+      case "cmd_cancel":
+        return GetNumSelectedMessages() == 1 &&
+               gFolderDisplay.selectedMessageIsNews;
       case "button_junk":
         UpdateJunkToolbarButton();
         if (gDBView)
@@ -556,6 +560,11 @@ var DefaultController =
       case "button_shiftDelete":
         MsgDeleteMessage(true);
         UpdateDeleteToolbarButton(false);
+        break;
+      case "cmd_cancel":
+        let message = gFolderDisplay.selectedMessage;
+        message.folder.QueryInterface(Components.interfaces.nsIMsgNewsFolder)
+                      .cancelMessage(message, msgWindow);
         break;
       case "cmd_killThread":
         /* kill thread kills the thread and then does a next unread */
