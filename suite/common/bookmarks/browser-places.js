@@ -685,6 +685,85 @@ var PlacesMenuDNDHandler = {
 };
 
 
+var PlacesStarButton = {
+  init: function PSB_init() {
+    try {
+      PlacesUtils.bookmarks.addObserver(this, false);
+    } catch(ex) {
+      Components.utils.reportError("PlacesStarButton.init(): error adding bookmark observer: " + ex);
+    }
+  },
+
+  uninit: function PSB_uninit() {
+    try {
+      PlacesUtils.bookmarks.removeObserver(this);
+    } catch(ex) {}
+  },
+
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsINavBookmarkObserver]),
+
+  _starred: false,
+  _batching: false,
+
+  updateState: function PSB_updateState() {
+    var starIcon = document.getElementById("star-button");
+
+    var uri = gBrowser.currentURI;
+    this._starred = PlacesUtils.getMostRecentBookmarkForURI(uri) != -1 ||
+                    PlacesUtils.getMostRecentFolderForFeedURI(uri) != -1;
+    if (this._starred) {
+      starIcon.setAttribute("starred", "true");
+      starIcon.setAttribute("tooltiptext", gNavigatorBundle.getString("starButtonOn.tooltip"));
+    }
+    else {
+      starIcon.removeAttribute("starred");
+      starIcon.setAttribute("tooltiptext", gNavigatorBundle.getString("starButtonOff.tooltip"));
+    }
+  },
+
+  onClick: function PSB_onClick(aEvent) {
+    if (aEvent.button == 0)
+      PlacesCommandHook.bookmarkCurrentPage(this._starred);
+
+    // don't bubble to the textbox so that the address won't be selected
+    aEvent.stopPropagation();
+  },
+
+  // nsINavBookmarkObserver
+  onBeginUpdateBatch: function PSB_onBeginUpdateBatch() {
+    this._batching = true;
+  },
+
+  onEndUpdateBatch: function PSB_onEndUpdateBatch() {
+    this.updateState();
+    this._batching = false;
+  },
+
+  onItemAdded: function PSB_onItemAdded(aItemId, aFolder, aIndex, aItemType) {
+    if (!this._batching && !this._starred)
+      this.updateState();
+  },
+
+  onBeforeItemRemoved: function() {},
+
+  onItemRemoved: function PSB_onItemRemoved(aItemId, aFolder, aIndex,
+                                            aItemType) {
+    if (!this._batching && this._starred)
+      this.updateState();
+  },
+
+  onItemChanged: function PSB_onItemChanged(aItemId, aProperty,
+                                            aIsAnnotationProperty, aNewValue,
+                                            aLastModified, aItemType) {
+    if (!this._batching && aProperty == "uri")
+      this.updateState();
+  },
+
+  onItemVisited: function() {},
+  onItemMoved: function() {}
+};
+
+
 // This object handles the initialization and uninitialization of the bookmarks
 // toolbar.  updateState is called when the browser window is opened and
 // after closing the toolbar customization dialog.

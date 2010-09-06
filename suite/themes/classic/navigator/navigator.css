@@ -551,6 +551,33 @@ toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
   background: url("chrome://communicator/skin/bookmarks/bookmarksToolbar.png") no-repeat;
 }
 
+/* ::::: star button ::::: */
+
+#star-button {
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark.png");
+  -moz-image-region: rect(16px 16px 32px 0px);
+}
+
+#star-button:hover {
+  -moz-image-region: rect(16px 32px 32px 16px);
+}
+
+#star-button:hover:active {
+  -moz-image-region: rect(16px 48px 32px 32px);
+}
+
+#star-button[starred="true"] {
+  -moz-image-region: rect(0px 16px 16px 0px);
+}
+
+#star-button[starred="true"]:hover {
+  -moz-image-region: rect(0px 32px 16px 16px);
+}
+
+#star-button[starred="true"]:hover:active {
+  -moz-image-region: rect(0px 48px 16px 32px);
+}
+
 /* ::::: feeds ::::: */
 
 #feedsMenu {

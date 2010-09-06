@@ -609,6 +609,8 @@ function Startup()
   getNavToolbox().customizeDone = BrowserToolboxCustomizeDone;
   getNavToolbox().customizeChange = BrowserToolboxCustomizeChange;
 
+  PlacesStarButton.init();
+
   PlacesToolbarHelper.init();
 
   // bookmark-all-tabs command
@@ -672,6 +674,8 @@ function WindowFocusTimerCallback(element)
 function Shutdown()
 {
   AddonManager.removeAddonListener(gAddonListener);
+
+  PlacesStarButton.uninit();
 
   // shut down browser access support
   window.browserDOMWindow = null;

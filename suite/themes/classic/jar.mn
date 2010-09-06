@@ -58,6 +58,7 @@ classic.jar:
   skin/classic/communicator/tasksOverlay.css                            (communicator/tasksOverlay.css)
   skin/classic/communicator/viewSourceOverlay.css                       (communicator/viewSourceOverlay.css)
   skin/classic/communicator/bookmarks/allBookmarks.png                  (communicator/bookmarks/allBookmarks.png)
+  skin/classic/communicator/bookmarks/bookmark.png                      (communicator/bookmarks/bookmark.png)
   skin/classic/communicator/bookmarks/bookmark-item-dis.png             (communicator/bookmarks/bookmark-item-dis.png)
   skin/classic/communicator/bookmarks/bookmark-item.png                 (communicator/bookmarks/bookmark-item.png)
   skin/classic/communicator/bookmarks/bookmarksManager.css              (communicator/bookmarks/bookmarksManager.css)
