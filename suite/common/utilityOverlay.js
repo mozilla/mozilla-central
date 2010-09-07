@@ -1398,8 +1398,7 @@ function switchToTabHavingURI(aURI, aOpenNew, aCallback) {
 function isBrowserEmpty(aBrowser) {
   return aBrowser.sessionHistory.count < 2 &&
          aBrowser.currentURI.spec == "about:blank" &&
-         !aBrowser.contentDocument.body.hasChildNodes() &&
-         !aBrowser.webProgress.isLoadingDocument;
+         !aBrowser.contentDocument.body.hasChildNodes();
 }
 
 function subscribeToFeed(href, event) {
