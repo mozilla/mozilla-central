@@ -39,6 +39,7 @@ DEPTH		= ../../../..
 topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
+relativesrcdir = mailnews/test/performance/bloat
 
 include $(DEPTH)/config/autoconf.mk
 
