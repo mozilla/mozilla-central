@@ -42,9 +42,6 @@ relativesrcdir = mailnews/extensions/bayesian-spam-filter/test
 
 include $(DEPTH)/config/autoconf.mk
 
-# Module name for xpcshell tests.
-MODULE         = test_bayes
-
 XPCSHELL_TESTS = unit
 
 include $(topsrcdir)/config/rules.mk

@@ -45,7 +45,6 @@ relativesrcdir = suite/common/places/tests
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE = test_suite_places
 XPCSHELL_TESTS = unit
 
 include $(topsrcdir)/config/rules.mk

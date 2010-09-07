@@ -44,9 +44,6 @@ relativesrcdir = mailnews/db/msgdb/test
 
 include $(DEPTH)/config/autoconf.mk
 
-# Module name for xpcshell tests.
-MODULE         = test_mailnewsdb
-
 XPCSHELL_TESTS = unit
 
 include $(topsrcdir)/config/rules.mk

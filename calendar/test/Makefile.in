@@ -45,8 +45,6 @@ relativesrcdir = calendar/test
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= test_calendar
-
 XPCSHELL_TESTS = unit
 
 include $(topsrcdir)/config/rules.mk

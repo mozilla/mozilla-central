@@ -44,9 +44,6 @@ relativesrcdir = mailnews/mime/test
 
 include $(DEPTH)/config/autoconf.mk
 
-# Module name for xpcshell tests.
-MODULE         = test_mime
-
 XPCSHELL_TESTS = unit
 
 include $(topsrcdir)/config/rules.mk

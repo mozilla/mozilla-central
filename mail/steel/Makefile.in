@@ -44,7 +44,6 @@ relativesrcdir = mail/steel
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE        = steel
 XPIDL_MODULE  = steel
 
 XPIDLSRCS = steelIApplication.idl
