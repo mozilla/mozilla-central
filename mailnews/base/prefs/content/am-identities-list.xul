@@ -52,11 +52,11 @@
 <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/>
 <script type="application/javascript" src="am-identities-list.js"/>
 
-<label control="identitiesList" flex="1">&identitiesListDesc.label;</label>
+<label control="identitiesList">&identitiesListDesc.label;</label>
 
 <separator class="thin"/>
 
-<hbox>
+<hbox flex="1">
   <listbox id="identitiesList" ondblclick="onEdit(event);" onselect="updateButtons();" flex="1" style="height: 0px;"/>
 
   <vbox>
