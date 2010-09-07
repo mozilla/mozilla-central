@@ -50,7 +50,8 @@ let gSelectionSummaryStrings = {
   messagesSize: "messagesSize",
   noticeText: "noticeText",
   noSubject: "noSubject",
-}
+};
+let gSelectionSummaryStringsInitialized = false;
 
 /**
  * loadSelectionSummaryStrings does the routine localization of non-pluralized
@@ -58,16 +59,17 @@ let gSelectionSummaryStrings = {
  * locale.
  */
 function loadSelectionSummaryStrings() {
+  if (gSelectionSummaryStringsInitialized)
+    return;
+
+  gSelectionSummaryStringsInitialized = true;
+
   // convert strings to those in the string bundle
   let getStr = function(string) document.getElementById("bundle_multimessages").getString(string);
-  var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].getService();
-  strBundleService = strBundleService.QueryInterface(Components.interfaces.nsIStringBundleService);
-    for (let [name, value] in Iterator(gSelectionSummaryStrings))
-      gSelectionSummaryStrings[name] = typeof value == "string" ?
-        getStr(value) : value.map(gSelectionSummaryStrings);
+  for (let [name, value] in Iterator(gSelectionSummaryStrings))
+    gSelectionSummaryStrings[name] = typeof value == "string" ?
+      getStr(value) : value.map(gSelectionSummaryStrings);
 }
-
-loadSelectionSummaryStrings();
 
 // Ah, wouldn't it be nice if there was platform code to do the following...
 
@@ -137,6 +139,9 @@ function _mm_removeClass(node, classname) {
 function MultiMessageSummary(aMessages, aListener) {
   this._msgHdrs = aMessages;
   this._listener = aListener;
+
+  // Ensure the summary selection strings are loaded.
+  loadSelectionSummaryStrings();
 }
 
 MultiMessageSummary.prototype = {
@@ -498,6 +503,9 @@ function ThreadSummary(aMessages, aListener)
 {
   this._msgHdrs = aMessages;
   this._listener = aListener;
+
+  // Ensure the summary selection strings are loaded.
+  loadSelectionSummaryStrings();
 }
 
 ThreadSummary.prototype = {
