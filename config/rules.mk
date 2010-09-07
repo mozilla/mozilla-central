@@ -132,9 +132,6 @@ endif
 ifdef ENABLE_TESTS
 
 ifdef XPCSHELL_TESTS
-ifndef MODULE
-$(error Must define MODULE when defining XPCSHELL_TESTS.)
-endif
 
 testxpcobjdir = $(MOZDEPTH)/_tests/xpcshell
 
@@ -147,7 +144,7 @@ TEST_INSTALLER = $(INSTALL)
 endif
 
 define _INSTALL_TESTS
-$(TEST_INSTALLER) $(wildcard $(srcdir)/$(dir)/*) $(testxpcobjdir)/$(MODULE)/$(dir)
+$(TEST_INSTALLER) $(wildcard $(srcdir)/$(dir)/*) $(testxpcobjdir)/$(relativesrcdir)/$(dir)
 
 endef # do not remove the blank line!
 
@@ -157,7 +154,7 @@ libs::
 	$(foreach dir,$(XPCSHELL_TESTS),$(_INSTALL_TESTS))
 	$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py \
 	  $(testxpcobjdir)/all-test-dirs.list \
-	  $(addprefix $(MODULE)/,$(XPCSHELL_TESTS))
+	  $(addprefix $(relativesrcdir)/,$(XPCSHELL_TESTS))
 
 testxpcsrcdir = $(MOZILLA_SRCDIR)/testing/xpcshell
 
@@ -169,7 +166,7 @@ xpcshell-tests:
 	  $(testxpcsrcdir)/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  $(DIST)/bin/xpcshell \
-	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
+	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(relativesrcdir)/$(dir))
 
 # Execute a single test, specified in $(SOLO_FILE), but don't automatically
 # start the test. Instead, present the xpcshell prompt so the user can
@@ -183,7 +180,7 @@ check-interactive:
 	  --profile-name=$(MOZ_APP_NAME) \
 	  --interactive \
 	  $(DIST)/bin/xpcshell \
-	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
+	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(relativesrcdir)/$(dir))
 
 # Execute a single test, specified in $(SOLO_FILE)
 check-one:
@@ -196,7 +193,7 @@ check-one:
 	  --verbose \
 	  $(EXTRA_TEST_ARGS) \
 	  $(DIST)/bin/xpcshell \
-	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
+	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(relativesrcdir)/$(dir))
 
 endif # XPCSHELL_TESTS
 
