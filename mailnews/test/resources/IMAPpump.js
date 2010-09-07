@@ -47,14 +47,19 @@
 if (typeof gIMAPpump_js__ == "undefined") {
 var gIMAPpump_js__ = true;
 
+// We can be executed from multiple depths
+// Provide understandable error message
+if (typeof gDEPTH == "undefined")
+  do_throw("gDEPTH must be defined when using IMAPpump.js");
+
 // add imap fake server methods if missing
 
 if (typeof gMaild_js__ == "undefined")
-  load("../../mailnews/fakeserver/maild.js");
+  load(gDEPTH + "mailnews/fakeserver/maild.js");
 if (typeof AuthPLAIN == "undefined")
-  load("../../mailnews/fakeserver/auth.js");
+  load(gDEPTH + "mailnews/fakeserver/auth.js");
 if (typeof imapDaemon == "undefined")
-  load("../../mailnews/fakeserver/imapd.js");
+  load(gDEPTH + "mailnews/fakeserver/imapd.js");
 
 // define globals
 var gIMAPDaemon;         // the imap fake server daemon

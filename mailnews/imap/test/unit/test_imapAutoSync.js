@@ -102,13 +102,13 @@ Cm.registerFactory(kMockIdleServiceCID, "Mock idle service",
                    IDLE_SERVICE_CONTRACTID, gMockIdleServiceFactory);
 
 // IMAP pump
-load("../../mailnews/resources/IMAPpump.js");
-load("../../mailnews/resources/logHelper.js");
+load("../../../resources/IMAPpump.js");
+load("../../../resources/logHelper.js");
 
-load("../../mailnews/resources/asyncTestUtils.js");
+load("../../../resources/asyncTestUtils.js");
 
-load("../../mailnews/resources/alertTestUtils.js");
-load("../../mailnews/resources/messageGenerator.js");
+load("../../../resources/alertTestUtils.js");
+load("../../../resources/messageGenerator.js");
 
 // Globals
 

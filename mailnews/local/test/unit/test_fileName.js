@@ -13,8 +13,8 @@ function run_test() {
   if (! ("nsILocalFileMac" in Components.interfaces))
     return;
   // test file with ':' in the name (generated from Mozilla 1.8 branch).
-  let bugmail = do_get_file("../../mailnews/data/bugmail-1");
-  let bugmailmsf = do_get_file("../../mailnews/data/bugmail-1.msf");
+  let bugmail = do_get_file("../../../data/bugmail-1");
+  let bugmailmsf = do_get_file("../../../data/bugmail-1.msf");
   let localMailDir = gProfileDir.clone();
   localMailDir.append("Mail");
   localMailDir.append("Local Folders");

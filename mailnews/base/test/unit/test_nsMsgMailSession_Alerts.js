@@ -5,7 +5,7 @@
  */
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-load("../../mailnews/resources/alertTestUtils.js");
+load("../../../resources/alertTestUtils.js");
 
 var gDialogTitle = null;
 var gText = null;

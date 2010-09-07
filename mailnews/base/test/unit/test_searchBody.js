@@ -37,7 +37,7 @@
 /*
  * This tests various body search criteria.
  */
-load("../../mailnews/resources/searchTestUtils.js");
+load("../../../resources/searchTestUtils.js");
 
 const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);
@@ -64,10 +64,10 @@ const Body = nsMsgSearchAttrib.Body;
 
 var Files =
 [
-  "../../mailnews/data/base64-1",
-  "../../mailnews/data/basic1",
-  "../../mailnews/data/multipart-base64-2",
-  "../../mailnews/data/bug132340"
+  "../../../data/base64-1",
+  "../../../data/basic1",
+  "../../../data/multipart-base64-2",
+  "../../../data/bug132340"
 ]
 var Tests =
 [

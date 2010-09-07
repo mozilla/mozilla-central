@@ -38,9 +38,9 @@
  * Tests nsIMessenger's detachAttachmentsWOPrompts
  */
 
-load("../../mailnews/resources/logHelper.js");
-load("../../mailnews/resources/mailTestUtils.js");
-load("../../mailnews/resources/asyncTestUtils.js");
+load("../../../resources/logHelper.js");
+load("../../../resources/mailTestUtils.js");
+load("../../../resources/asyncTestUtils.js");
 
 // javascript mime emitter functions
 mimeMsg = {};
@@ -59,7 +59,7 @@ var tests = [
 function startCopy()
 {
   // Get a message into the local filestore.
-  var mailFile = do_get_file("../../mailnews/data/external-attach-test");
+  var mailFile = do_get_file("../../../data/external-attach-test");
   copyService.CopyFileMessage(mailFile, gLocalInboxFolder, null, false, 0,
                               "", asyncCopyListener, null);
   yield false;

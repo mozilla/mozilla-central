@@ -1,9 +1,9 @@
 // Import the servers
-load("../../mailnews/fakeserver/maild.js");
-load("../../mailnews/fakeserver/nntpd.js");
+load("../../../fakeserver/maild.js");
+load("../../../fakeserver/nntpd.js");
 
 // Generic mailnews resource scripts
-load("../../mailnews/resources/mailDirService.js");
+load("../../../resources/mailDirService.js");
 
 const kSimpleNewsArticle =
   "From: John Doe <john.doe@example.com>\n"+

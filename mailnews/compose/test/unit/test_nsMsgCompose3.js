@@ -62,7 +62,7 @@ function checkPopulate(aTo, aNonHTMLRecipients, aPreferMailOut, aCheckTo)
 
 function run_test() {
   // Test setup - copy the data files into place
-  let testAB = do_get_file("../../mailnews/data/tb2hexpopularity.mab");
+  let testAB = do_get_file("../../../data/tb2hexpopularity.mab");
 
   // Copy the file to the profile directory for a PAB
   testAB.copyTo(gProfileDir, kPABData.fileName);

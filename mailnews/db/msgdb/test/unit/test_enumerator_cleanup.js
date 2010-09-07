@@ -4,7 +4,7 @@
 
 const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);
-const anyOldMessage = do_get_file("../../mailnews/data/bugmail1");
+const anyOldMessage = do_get_file("../../../../data/bugmail1");
 
 /**
  * Test closing a db with an outstanding enumerator.

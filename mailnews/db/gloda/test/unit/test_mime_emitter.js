@@ -50,14 +50,14 @@
  *  adds a lot of runtime overhead which makes certain debugging strategies like
  *  using chronicle-recorder impractical.
  */
-load("../../mailnews/resources/mailDirService.js");
-load("../../mailnews/resources/mailTestUtils.js");
-load("../../mailnews/resources/logHelper.js");
-load("../../mailnews/resources/asyncTestUtils.js");
+load("../../../../resources/mailDirService.js");
+load("../../../../resources/mailTestUtils.js");
+load("../../../../resources/logHelper.js");
+load("../../../../resources/asyncTestUtils.js");
 
-load("../../mailnews/resources/messageGenerator.js");
-load("../../mailnews/resources/messageModifier.js");
-load("../../mailnews/resources/messageInjection.js");
+load("../../../../resources/messageGenerator.js");
+load("../../../../resources/messageModifier.js");
+load("../../../../resources/messageInjection.js");
 
 // Create a message generator
 const msgGen = gMessageGenerator = new MessageGenerator();

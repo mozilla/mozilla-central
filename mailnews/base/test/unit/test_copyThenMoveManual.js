@@ -5,8 +5,8 @@
  * Original author: Kent James <kent@caspia.com>
  */
 
-load("../../mailnews/resources/POP3pump.js");
-const gFiles = ["../../mailnews/data/bugmail1"];
+load("../../../resources/POP3pump.js");
+const gFiles = ["../../../data/bugmail1"];
 var gCopyFolder;
 var gMoveFolder;
 var gFilter; // the test filter

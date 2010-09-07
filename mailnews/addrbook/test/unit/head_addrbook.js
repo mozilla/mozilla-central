@@ -1,5 +1,5 @@
 // Import the main scripts that mailnews tests need to set up and tear down
-load("../../mailnews/resources/mailDirService.js");
+load("../../../resources/mailDirService.js");
 
 // Import the required setup scripts.
-load("../../mailnews/resources/abSetup.js");
+load("../../../resources/abSetup.js");

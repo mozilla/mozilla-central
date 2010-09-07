@@ -14,7 +14,7 @@
  * Does not currently test: quoted-printable, stripping quotes, UTF-8, small values of
  * bytesToRead.
  */
-const kDataRoot = "../../mailnews/data/"
+const kDataRoot = "../../../data/"
 
 function create(fileName, bytes, compressQuotes, stripHTML, outContentType)
 {

@@ -7,7 +7,7 @@
  * just check roundtrips, against static values etc..
  */
 
-load("../../mailnews/fakeserver/auth.js")
+load("../../../fakeserver/auth.js")
 
 const kUsername = "fred1";
 const kPassword = "wilma2";

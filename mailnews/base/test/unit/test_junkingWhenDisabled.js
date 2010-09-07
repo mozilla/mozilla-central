@@ -4,12 +4,12 @@
  *  James using test_nsMsgDBView.js as a base.
  */
 
-load("../../mailnews/resources/logHelper.js");
-load("../../mailnews/resources/asyncTestUtils.js");
+load("../../../resources/logHelper.js");
+load("../../../resources/asyncTestUtils.js");
 
-load("../../mailnews/resources/messageGenerator.js");
-load("../../mailnews/resources/messageModifier.js");
-load("../../mailnews/resources/messageInjection.js");
+load("../../../resources/messageGenerator.js");
+load("../../../resources/messageModifier.js");
+load("../../../resources/messageInjection.js");
 
 Components.utils.import("resource:///modules/jsTreeSelection.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");

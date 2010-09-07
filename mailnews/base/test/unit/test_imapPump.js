@@ -37,12 +37,12 @@
 // This test is intended as a simple demonstration of the imap pump test method
 
 // async support 
-load("../../mailnews/resources/logHelper.js");
-load("../../mailnews/resources/mailTestUtils.js");
-load("../../mailnews/resources/asyncTestUtils.js");
+load("../../../resources/logHelper.js");
+load("../../../resources/mailTestUtils.js");
+load("../../../resources/asyncTestUtils.js");
 
 // IMAP pump
-load("../../mailnews/resources/IMAPpump.js");
+load("../../../resources/IMAPpump.js");
 
 // Globals
 
@@ -96,7 +96,7 @@ function firstMsgHdr(folder) {
 // given a test file, return the file uri spec
 function specForFileName(aFileName)
 {
-  let file = do_get_file("../../mailnews/data/" + aFileName);
+  let file = do_get_file("../../../data/" + aFileName);
   let msgfileuri = Cc["@mozilla.org/network/io-service;1"]
                      .getService(Ci.nsIIOService)
                      .newFileURI(file)

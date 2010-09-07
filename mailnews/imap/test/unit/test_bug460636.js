@@ -8,7 +8,7 @@ const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
                        .getService(Ci.nsIMsgMessageService);
 
 const gFileName = "bug460636";
-const gMsgFile = do_get_file("../../mailnews/data/" + gFileName);
+const gMsgFile = do_get_file("../../../data/" + gFileName);
                      
 function run_test()
 {

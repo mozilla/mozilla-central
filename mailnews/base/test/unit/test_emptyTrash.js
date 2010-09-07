@@ -137,7 +137,7 @@ function run_test()
 {
   loadLocalMailAccount();
   // Load up a message so that we can copy it in later.
-  gMsgFile1 = do_get_file("../../mailnews/data/bugmail10");
+  gMsgFile1 = do_get_file("../../../data/bugmail10");
   // our front end code clears the msg db when it gets told the folder for
   // an open view has been deleted - so simulate that.
   var folderDeletedListener = new gMFListener();

@@ -11,7 +11,7 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
-load("../../mailnews/resources/alertTestUtils.js");
+load("../../../resources/alertTestUtils.js");
 
 var test = null;
 var server;
@@ -187,7 +187,7 @@ function run_test()
   prefSvc.setBoolPref("signon.debug", true);
 
   // Passwords File (generated from Mozilla 1.8 branch).
-  let signons = do_get_file("../../mailnews/data/signons-mailnews1.8.txt");
+  let signons = do_get_file("../../../data/signons-mailnews1.8.txt");
 
   // Copy the file to the profile directory for a PAB
   signons.copyTo(gProfileDir, "signons.txt");

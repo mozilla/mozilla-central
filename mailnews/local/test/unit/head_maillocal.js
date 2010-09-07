@@ -1,11 +1,13 @@
+gDEPTH = "../../../../";
+
 // Import the main scripts that mailnews tests need to set up and tear down
-load("../../mailnews/resources/mailDirService.js");
-load("../../mailnews/resources/mailTestUtils.js");
+load("../../../resources/mailDirService.js");
+load("../../../resources/mailTestUtils.js");
 
 // Import the pop3 server scripts
-load("../../mailnews/fakeserver/maild.js")
-load("../../mailnews/fakeserver/auth.js")
-load("../../mailnews/fakeserver/pop3d.js")
+load("../../../fakeserver/maild.js")
+load("../../../fakeserver/auth.js")
+load("../../../fakeserver/pop3d.js")
 
 const POP3_PORT = 1024+110;
 

@@ -43,12 +43,12 @@ function checkPopulate(aTo, aNonHTMLRecipients, aPreferMailOut, aCheckTo)
 
 function run_test() {
   // Test setup - copy the data files into place
-  var testAB = do_get_file("../../mailnews/data/abLists1.mab");
+  var testAB = do_get_file("../../../data/abLists1.mab");
 
   // Copy the file to the profile directory for a PAB
   testAB.copyTo(gProfileDir, kPABData.fileName);
 
-  testAB = do_get_file("../../mailnews/data/abLists2.mab");
+  testAB = do_get_file("../../../data/abLists2.mab");
 
   // Copy the file to the profile directory for a CAB
   testAB.copyTo(gProfileDir, kCABData.fileName);

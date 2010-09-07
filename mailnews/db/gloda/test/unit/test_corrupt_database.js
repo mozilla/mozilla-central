@@ -44,10 +44,10 @@
  * We do use the rest of the test infrastructure though.
  */
 
-load("../../mailnews/resources/mailDirService.js");
-load("../../mailnews/resources/mailTestUtils.js");
-load("../../mailnews/resources/logHelper.js");
-load("../../mailnews/resources/asyncTestUtils.js");
+load("../../../../resources/mailDirService.js");
+load("../../../../resources/mailTestUtils.js");
+load("../../../../resources/logHelper.js");
+load("../../../../resources/asyncTestUtils.js");
 
 // -- Do configure the gloda prefs though...
 const gPrefs = Cc["@mozilla.org/preferences-service;1"]

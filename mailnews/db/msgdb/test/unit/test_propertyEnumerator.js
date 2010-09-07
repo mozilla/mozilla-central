@@ -36,7 +36,7 @@
 
  // tests propertyEnumerator in nsIMsgDBHdr;
 
-load("../../mailnews/resources/mailTestUtils.js");
+load("../../../../resources/mailTestUtils.js");
 
 const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);
@@ -46,7 +46,7 @@ function run_test() {
   loadLocalMailAccount();
   // Get a message into the local filestore.
   // Function continue_test() continues the testing after the copy.
-  var bugmail1 = do_get_file("../../mailnews/data/bugmail1");
+  var bugmail1 = do_get_file("../../../../data/bugmail1");
   do_test_pending();
   copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
                               "", copyListener, null);

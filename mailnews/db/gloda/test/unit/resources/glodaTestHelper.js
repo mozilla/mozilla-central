@@ -54,16 +54,16 @@
  */
 
 // Import the main scripts that mailnews tests need to set up and tear down
-load("../../mailnews/resources/mailDirService.js");
-load("../../mailnews/resources/mailTestUtils.js");
-load("../../mailnews/resources/logHelper.js");
-load("../../mailnews/resources/asyncTestUtils.js");
+load("../../../../resources/mailDirService.js");
+load("../../../../resources/mailTestUtils.js");
+load("../../../../resources/logHelper.js");
+load("../../../../resources/asyncTestUtils.js");
 
-load("../../mailnews/resources/messageGenerator.js");
-load("../../mailnews/resources/messageModifier.js");
-load("../../mailnews/resources/messageInjection.js");
+load("../../../../resources/messageGenerator.js");
+load("../../../../resources/messageModifier.js");
+load("../../../../resources/messageInjection.js");
 
-load("../../mailnews/resources/folderEventLogHelper.js");
+load("../../../../resources/folderEventLogHelper.js");
 // register this before gloda gets a chance to do anything so that
 registerFolderEventLogHelper();
 

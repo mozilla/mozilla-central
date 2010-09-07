@@ -126,7 +126,7 @@ var doTestingListener =
 
 function getSpec(aFileName)
 {
-  var file = do_get_file("../../test_bayes/unit/resources/" + aFileName);
+  var file = do_get_file("../../../bayesian-spam-filter/test/unit/resources/" + aFileName);
   var uri = nsIIOService.newFileURI(file).QueryInterface(Ci.nsIURL);
   uri.query = "type=application/x-message-display";
   return uri.spec;

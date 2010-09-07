@@ -5,7 +5,7 @@ var gServer, gImapServer;
 var gIMAPInbox, gIMAPFolder1, gIMAPFolder2;
 var gFolder2Mailbox;
 
-load("../../mailnews/resources/messageGenerator.js");
+load("../../../resources/messageGenerator.js");
 
 const nsIIOService = Cc["@mozilla.org/network/io-service;1"]
                      .getService(Ci.nsIIOService);

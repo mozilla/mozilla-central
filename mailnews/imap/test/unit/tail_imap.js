@@ -1,1 +1,1 @@
-load("../../mailnews/resources/mailShutdown.js");
+load("../../../resources/mailShutdown.js");

@@ -14,14 +14,18 @@
  * Original Author: Kent James <kent@caspia.com>
  *
  */
+// We can be executed from multiple depths
+// Provide understandable error message
+if (typeof gDEPTH == "undefined")
+  do_throw("gDEPTH must be defined when using IMAPpump.js");
 
 // Import the pop3 server scripts
 if (typeof nsMailServer == 'undefined')
-  load("../../mailnews/fakeserver/maild.js");
+  load(gDEPTH + "mailnews/fakeserver/maild.js");
 if (typeof AuthPLAIN == 'undefined')
-  load("../../mailnews/fakeserver/auth.js")
+  load(gDEPTH + "mailnews/fakeserver/auth.js")
 if (typeof pop3Daemon == 'undefined')
-  load("../../mailnews/fakeserver/pop3d.js");
+  load(gDEPTH + "mailnews/fakeserver/pop3d.js");
 
 function POP3Pump()
 {

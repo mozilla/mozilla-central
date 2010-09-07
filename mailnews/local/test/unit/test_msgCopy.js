@@ -38,7 +38,7 @@
 
 const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);
-const bugmail11 = do_get_file("../../mailnews/data/bugmail11");
+const bugmail11 = do_get_file("../../../data/bugmail11");
                      
 // main test
 

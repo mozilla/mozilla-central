@@ -45,7 +45,7 @@ const am = Components.classes["@mozilla.org/messenger/account-manager;1"]
 
 function run_test()
 {
-  let vfdat = do_get_file("../../mailnews/data/test_virtualFolders.dat");
+  let vfdat = do_get_file("../../../data/test_virtualFolders.dat");
 
   vfdat.copyTo(gProfileDir, "virtualFolders.dat");
   loadLocalMailAccount();

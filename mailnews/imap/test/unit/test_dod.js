@@ -44,7 +44,7 @@ function run_test()
   );
 
   let fileNames = [];
-  let msgFiles = do_get_file("../../mailnews/data/").directoryEntries;
+  let msgFiles = do_get_file("../../../data/").directoryEntries;
   while (msgFiles.hasMoreElements()) {
     let file = msgFiles.getNext();
     let msgfileuri = ioS.newFileURI(file).QueryInterface(Ci.nsIFileURL);

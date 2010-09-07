@@ -20,7 +20,7 @@ function run_test() {
   handler.kAuthRequired = true;
 
   // Passwords File (generated from Mozilla 1.8 branch).
-  var signons = do_get_file("../../mailnews/data/signons-mailnews1.8.txt");
+  var signons = do_get_file("../../../data/signons-mailnews1.8.txt");
 
   // Copy the file to the profile directory for a PAB
   signons.copyTo(gProfileDir, "signons.txt");

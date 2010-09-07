@@ -39,12 +39,12 @@
  * This test iterates over the test files in gTestFiles, and streams
  * each as a message and makes sure the streaming doesn't assert or crash.
  */
-load("../../mailnews/resources/mailTestUtils.js");
+load("../../../resources/mailTestUtils.js");
 Components.utils.import("resource:///modules/IOUtils.js");
 
 var gTestFiles =[ 
-  "../../mailnews/data/bug505221",
-  "../../mailnews/data/bug513543",
+  "../../../data/bug505221",
+  "../../../data/bug513543",
 ];
 
 var gMsgEnumerator;

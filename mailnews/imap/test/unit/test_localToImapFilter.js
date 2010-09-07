@@ -7,7 +7,7 @@
  * Original author: Kent James <kent@caspia.com>
  */
 
-load("../../mailnews/resources/POP3pump.js");
+load("../../../resources/POP3pump.js");
 Components.utils.import("resource:///modules/folderUtils.jsm");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
@@ -26,8 +26,8 @@ var gMessages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
 var gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                 .getService(Ci.nsIMsgCopyService);
 var gCurTestNum;
-const gFiles = ["../../mailnews/data/bugmail1",
-                "../../mailnews/data/draft1"];
+const gFiles = ["../../../data/bugmail1",
+                "../../../data/draft1"];
 
 const gTestArray =
 [

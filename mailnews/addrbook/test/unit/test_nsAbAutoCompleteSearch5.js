@@ -46,7 +46,7 @@ acObserver.prototype = {
 
 function run_test() {
   // Copy the data files into place
-  let testAB = do_get_file("../../mailnews/data/tb2hexpopularity.mab");
+  let testAB = do_get_file("../../../data/tb2hexpopularity.mab");
 
   testAB.copyTo(gProfileDir, kPABData.fileName);
 

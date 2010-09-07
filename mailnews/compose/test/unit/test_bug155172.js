@@ -3,7 +3,7 @@
  * Authentication tests for SMTP.
  */
 
-load("../../mailnews/resources/alertTestUtils.js");
+load("../../../resources/alertTestUtils.js");
 
 var gNewPassword = null;
 

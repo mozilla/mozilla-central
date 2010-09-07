@@ -9,8 +9,8 @@ var gIMAPDaemon, gServer, gIMAPIncomingServer;
 const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
                        .getService(Ci.nsIMsgMessageService);
 
-load("../../mailnews/resources/mailTestUtils.js");
-load("../../mailnews/resources/messageGenerator.js");
+load("../../../resources/mailTestUtils.js");
+load("../../../resources/messageGenerator.js");
 
 var gDownloadedOnce = false;
 var gIMAPInbox;

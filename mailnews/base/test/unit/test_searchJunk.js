@@ -36,7 +36,7 @@
 
 // Testing of search by junk percent and junk score origin
 
-load("../../mailnews/resources/searchTestUtils.js");
+load("../../../resources/searchTestUtils.js");
 
 const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);
@@ -55,7 +55,7 @@ const offlineMail = nsMsgSearchScope.offlineMail;
 const JunkScoreOrigin = nsMsgSearchAttrib.JunkScoreOrigin;
 const JunkPercent = nsMsgSearchAttrib.JunkPercent;
 
-const fileName = "../../mailnews/data/bugmail1";
+const fileName = "../../../data/bugmail1";
 
 /*
  * The search for junkpercent is defined as the effective value,

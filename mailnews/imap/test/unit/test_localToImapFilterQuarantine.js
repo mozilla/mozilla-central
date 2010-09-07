@@ -42,15 +42,15 @@
  *
  */
 
-load("../../mailnews/resources/POP3pump.js");
+load("../../../resources/POP3pump.js");
 
 // async support
-load("../../mailnews/resources/logHelper.js");
-load("../../mailnews/resources/mailTestUtils.js");
-load("../../mailnews/resources/asyncTestUtils.js");
+load("../../../resources/logHelper.js");
+load("../../../resources/mailTestUtils.js");
+load("../../../resources/asyncTestUtils.js");
 
 // IMAP pump
-load("../../mailnews/resources/IMAPpump.js");
+load("../../../resources/IMAPpump.js");
 
 setupIMAPPump();
 
@@ -91,7 +91,7 @@ function getLocalMessages() {
   filter.enabled = true;
   filterList.insertFilterAt(0, filter);
 
-  gPOP3Pump.files = ["../../mailnews/data/bugmail1"];
+  gPOP3Pump.files = ["../../../data/bugmail1"];
   gPOP3Pump.onDone = function() {dump('POP3Pump done\n');async_driver();};
   gPOP3Pump.run();
   dl('waiting for POP3Pump done');
@@ -116,8 +116,8 @@ function updateSubfolderAndTest() {
 
 function get2Messages()
 {
-  gPOP3Pump.files = ["../../mailnews/data/bugmail10",
-                     "../../mailnews/data/draft1"]
+  gPOP3Pump.files = ["../../../data/bugmail10",
+                     "../../../data/draft1"]
   gPOP3Pump.onDone = function() {dump('POP3Pump done\n');async_driver();};
   gPOP3Pump.run();
   dl('waiting for POP3Pump done');

@@ -1,14 +1,14 @@
 // Import the main scripts that mailnews tests need to set up and tear down
-load("../../mailnews/resources/mailDirService.js");
-load("../../mailnews/resources/mailTestUtils.js");
+load("../../../resources/mailDirService.js");
+load("../../../resources/mailTestUtils.js");
 
 // Import the required setup scripts.
-load("../../mailnews/resources/abSetup.js");
+load("../../../resources/abSetup.js");
 
 // Import the smtp server scripts
-load("../../mailnews/fakeserver/maild.js")
-load("../../mailnews/fakeserver/auth.js")
-load("../../mailnews/fakeserver/smtpd.js")
+load("../../../fakeserver/maild.js")
+load("../../../fakeserver/auth.js")
+load("../../../fakeserver/smtpd.js")
 
 const SMTP_PORT = 1024+120;
 

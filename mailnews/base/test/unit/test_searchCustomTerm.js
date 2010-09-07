@@ -38,7 +38,7 @@
  * Testing of custom search features.
  *
  */
-load("../../mailnews/resources/searchTestUtils.js");
+load("../../../resources/searchTestUtils.js");
 
 const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);
@@ -108,7 +108,7 @@ function run_test()
 
   // Get a message into the local filestore.
   // function testSearch() continues the testing after the copy.
-  let bugmail1 = do_get_file("../../mailnews/data/bugmail1");
+  let bugmail1 = do_get_file("../../../data/bugmail1");
   do_test_pending();
 
   copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,

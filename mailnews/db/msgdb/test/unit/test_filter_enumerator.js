@@ -1,4 +1,4 @@
-load("../../mailnews/resources/messageGenerator.js");
+load("../../../../resources/messageGenerator.js");
 
 var gMessages = [];
 const nsMsgSearchScope  = Ci.nsMsgSearchScope;

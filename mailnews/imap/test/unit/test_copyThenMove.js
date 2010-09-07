@@ -41,14 +41,14 @@ const gTestArray =
   },
   function getLocalMessage1() {
     dump("getLocalMessage\n");
-    var file = do_get_file("../../mailnews/data/bugmail1");
+    var file = do_get_file("../../../data/bugmail1");
     gCopyService.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
                                 "", CopyListener, null);
   },
   function getLocalMessage2() {
     gMessages.appendElement(gLocalInboxFolder.GetMessageHeader(gLastKey), false);
     dump("getLocalMessage\n");
-    var file = do_get_file("../../mailnews/data/draft1");
+    var file = do_get_file("../../../data/draft1");
     gCopyService.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
                                 "", CopyListener, null);
   },

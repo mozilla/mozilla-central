@@ -8,7 +8,7 @@
  *   - A correct state at the end of attempting to send.
  */
 
-load("../../mailnews/resources/alertTestUtils.js");
+load("../../../resources/alertTestUtils.js");
 
 var type = null;
 var test = null;

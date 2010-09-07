@@ -22,11 +22,11 @@ var gMsgWindow;
 var gRootFolder;
 var gCurTestNum;
 
-var gMsgFile1 = do_get_file("../../mailnews/data/bugmail10");
+var gMsgFile1 = do_get_file("../../../data/bugmail10");
 const gMsgId1 = "200806061706.m56H6RWT004933@mrapp54.mozilla.org";
-var gMsgFile2 = do_get_file("../../mailnews/data/image-attach-test");
+var gMsgFile2 = do_get_file("../../../data/image-attach-test");
 const gMsgId2 = "4A947F73.5030709@xxx.com";
-var gMsgFile3 = do_get_file("../../mailnews/data/external-attach-test");
+var gMsgFile3 = do_get_file("../../../data/external-attach-test");
 const gMsgId3 = "876TY.5030709@xxx.com";
 
 // We use this as a display consumer

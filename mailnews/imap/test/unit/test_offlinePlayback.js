@@ -15,7 +15,7 @@ const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
 const nsIIOService = Cc["@mozilla.org/network/io-service;1"]
                      .getService(Ci.nsIIOService);
 
-load("../../mailnews/resources/messageGenerator.js");
+load("../../../resources/messageGenerator.js");
 
 var gIMAPInbox;
 var gTest;
@@ -61,7 +61,7 @@ const gTestArray =
                              null, true);
     copyService.CopyMessages(gIMAPInbox, headers2, gThirdFolder, true, null,
                              null, true);
-    var file = do_get_file("../../mailnews/data/bugmail10");
+    var file = do_get_file("../../../data/bugmail10");
     copyService.CopyFileMessage(file, gIMAPInbox, null, false, 0,
                                 "", CopyListener, null);
   },

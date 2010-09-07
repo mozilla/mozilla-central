@@ -38,7 +38,7 @@
  * tests post-plugin message filters as implemented in bug 198100
  */
 
-load("../../mailnews/resources/POP3pump.js");
+load("../../../resources/POP3pump.js");
 
 // Globals
 
@@ -56,8 +56,8 @@ const kClass = 1;  // classify files with traits
 var gTest; // currently active test
 var gMsgHdr; // current message header
 
-const kJunkFile = "../../mailnews/data/bugmail1";
-const kGoodFile = "../../mailnews/data/draft1";
+const kJunkFile = "../../../data/bugmail1";
+const kGoodFile = "../../../data/draft1";
 
 const kPriorityLow = 3;
 const kPriorityHigh = 5;
@@ -293,7 +293,7 @@ function startCommand()
 
 function getSpec(aFileName)
 {
-  var file = do_get_file("../../mailnews/data/" + aFileName);
+  var file = do_get_file(aFileName);
   var uri = Cc["@mozilla.org/network/io-service;1"]
                .getService(Ci.nsIIOService)
                .newFileURI(file).QueryInterface(Ci.nsIURL);

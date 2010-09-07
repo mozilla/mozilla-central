@@ -12,7 +12,7 @@
  */
 
 // Take a multipart message as we're testing attachment URLs as well
-const gFile = do_get_file("../../mailnews/data/multipart-complex2");
+const gFile = do_get_file("../../../data/multipart-complex2");
 var gIMAPDaemon, gIMAPServer, gIMAPIncomingServer, gIMAPInbox;
 const gMFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
                       .getService(Ci.nsIMsgFolderNotificationService);

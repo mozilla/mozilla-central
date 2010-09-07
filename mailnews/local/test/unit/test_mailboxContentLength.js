@@ -12,7 +12,7 @@
  */
 
 // Take a multipart message as we're testing attachment URLs as well
-var gFile = do_get_file("../../mailnews/data/multipart-complex2");
+var gFile = do_get_file("../../../data/multipart-complex2");
 var gMessageKey;
 
 function run_test()

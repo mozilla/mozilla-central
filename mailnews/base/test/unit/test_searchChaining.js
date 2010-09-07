@@ -40,7 +40,7 @@
 
 // main test
 
-load("../../mailnews/resources/messageGenerator.js");
+load("../../../resources/messageGenerator.js");
 
 var gIMAPInbox;
 var gServer, gIMAPIncomingServer;
@@ -54,7 +54,7 @@ var gIMAPDaemon, gServer, gIMAPIncomingServer;
 function run_test()
 {
   // Pull in the IMAP fake server code
-  load("../../test_imap/unit/head_server.js");
+  load("../../../imap/test/unit/head_server.js");
 
   loadLocalMailAccount();
 

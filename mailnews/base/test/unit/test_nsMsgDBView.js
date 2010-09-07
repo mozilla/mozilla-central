@@ -9,12 +9,12 @@
  * You may also want to look into the test_viewWrapper_*.js tests as well.
  */
 
-load("../../mailnews/resources/logHelper.js");
-load("../../mailnews/resources/asyncTestUtils.js");
+load("../../../resources/logHelper.js");
+load("../../../resources/asyncTestUtils.js");
 
-load("../../mailnews/resources/messageGenerator.js");
-load("../../mailnews/resources/messageModifier.js");
-load("../../mailnews/resources/messageInjection.js");
+load("../../../resources/messageGenerator.js");
+load("../../../resources/messageModifier.js");
+load("../../../resources/messageInjection.js");
 
 var gMessageGenerator = new MessageGenerator();
 var gScenarioFactory = new MessageScenarioFactory(gMessageGenerator);

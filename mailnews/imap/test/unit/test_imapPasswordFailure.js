@@ -11,7 +11,7 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
-load("../../mailnews/resources/alertTestUtils.js");
+load("../../../resources/alertTestUtils.js");
 
 const kUserName = "user";
 const kInvalidPassword = "imaptest";
@@ -83,7 +83,7 @@ function run_test() {
   do_test_pending();
 
   // Passwords File (generated from Mozilla 1.8 branch).
-  let signons = do_get_file("../../mailnews/data/signons-mailnews1.8-imap.txt");
+  let signons = do_get_file("../../../data/signons-mailnews1.8-imap.txt");
 
   // Copy the file to the profile directory for a PAB
   signons.copyTo(gProfileDir, "signons.txt");

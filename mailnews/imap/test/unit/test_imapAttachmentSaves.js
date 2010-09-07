@@ -40,17 +40,17 @@
  * Tests imap save and detach attachments.
  */
 
-load("../../mailnews/resources/logHelper.js");
-load("../../mailnews/resources/mailTestUtils.js");
-load("../../mailnews/resources/asyncTestUtils.js");
-load("../../mailnews/resources/messageGenerator.js");
+load("../../../resources/logHelper.js");
+load("../../../resources/mailTestUtils.js");
+load("../../../resources/asyncTestUtils.js");
+load("../../../resources/messageGenerator.js");
 
 // javascript mime emitter functions
 mimeMsg = {};
 Components.utils.import("resource:///modules/gloda/mimemsg.js", mimeMsg);
 
 // IMAP pump
-load("../../mailnews/resources/IMAPpump.js");
+load("../../../resources/IMAPpump.js");
 
 const kAttachFileName = 'bob.txt';
 

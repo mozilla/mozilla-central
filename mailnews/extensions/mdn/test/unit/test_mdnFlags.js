@@ -3,8 +3,8 @@
  * reprompt when the user re-selects a message.
  */
 
-load("../../mailnews/resources/mailDirService.js");
-load("../../mailnews/resources/mailTestUtils.js");
+load("../../../../resources/mailDirService.js");
+load("../../../../resources/mailTestUtils.js");
 
 var gMessenger = Cc["@mozilla.org/messenger;1"].
                    createInstance(Ci.nsIMessenger);

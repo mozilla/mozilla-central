@@ -37,6 +37,11 @@
 
 var gMessageGenerator, gMessageScenarioFactory;
 
+// We can be executed from multiple depths
+// Provide understandable error message
+if (typeof gDEPTH == "undefined")
+  do_throw("gDEPTH must be defined when using messageInjection.js");
+
 /*
  * IMAP port is 1167
  */
@@ -73,7 +78,7 @@ function configure_message_injection(aInjectionConfig) {
 
   if (mis.injectionConfig.mode == "pop") {
     // -- Pull in the POP3 fake-server / local account helper code
-    load("../../test_mailnewslocal/unit/head_maillocal.js");
+    load(gDEPTH + "mailnews/local/test/unit/head_maillocal.js");
     // set up POP3 fakeserver to feed things in...
     [mis.daemon, mis.server] = setupServerDaemon();
     // (this will call loadLocalMailAccount())
@@ -141,7 +146,7 @@ function configure_message_injection(aInjectionConfig) {
                        mis.injectionConfig.offline);
 
     // Pull in the IMAP fake server code
-    load("../../test_imap/unit/head_server.js");
+    load(gDEPTH + "mailnews/imap/test/unit/head_server.js");
 
     // set up IMAP fakeserver and incoming server
     mis.daemon = new imapDaemon();

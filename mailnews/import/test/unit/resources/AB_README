@@ -26,14 +26,14 @@ the extension) and the name you chose for the JSON object.
 Here is a sample LDIF unit test that doesn't check the results:
 function run_test()
 {
-  var file = do_get_file("../mailnews/import/test/resources/basic_ldif_addressbook.ldif");
+  var file = do_get_file("resources/basic_ldif_addressbook.ldif");
   new AbImportHelper(file, "LDIF").beginImport();
 }
 
 Here is a sample CSV unit test that checks the results:
 function run_test()
 {
-  var file = do_get_file("../mailnews/import/test/resources/basic_csv_addressbook.csv");
+  var file = do_get_file("resources/basic_csv_addressbook.csv");
   new AbImportHelper(file, "CSV", "basic_csv_addressbook",
                      "basic_addressbook").beginImport();
 }

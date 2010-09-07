@@ -15,17 +15,17 @@
 * - Adding new messages directly to mailboxes
 */
 
-load("../../mailnews/resources/msgFolderListenerSetup.js");
+load("../../../resources/msgFolderListenerSetup.js");
 
 // Globals
 var gRootFolder;
 var gIMAPInbox, gIMAPFolder2, gIMAPFolder3, gIMAPTrashFolder;
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
-const gMsgFile1 = do_get_file("../../mailnews/data/bugmail10");
-const gMsgFile2 = do_get_file("../../mailnews/data/bugmail11");
-const gMsgFile3 = do_get_file("../../mailnews/data/draft1");
-const gMsgFile4 = do_get_file("../../mailnews/data/bugmail7");
-const gMsgFile5 = do_get_file("../../mailnews/data/bugmail6");
+const gMsgFile1 = do_get_file("../../../data/bugmail10");
+const gMsgFile2 = do_get_file("../../../data/bugmail11");
+const gMsgFile3 = do_get_file("../../../data/draft1");
+const gMsgFile4 = do_get_file("../../../data/bugmail7");
+const gMsgFile5 = do_get_file("../../../data/bugmail6");
 
 // Copied straight from the example files
 const gMsgId1 = "200806061706.m56H6RWT004933@mrapp54.mozilla.org";

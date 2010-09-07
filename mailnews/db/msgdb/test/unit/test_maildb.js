@@ -3,7 +3,7 @@
  * Test suite for msg database functions.
  */
 
-load("../../mailnews/resources/messageGenerator.js");
+load("../../../../resources/messageGenerator.js");
 
 var dbService;
 var gTestFolder;

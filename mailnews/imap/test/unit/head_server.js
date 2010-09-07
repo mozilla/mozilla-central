@@ -1,11 +1,16 @@
+// We can be executed from multiple depths
+// Provide gDEPTH if not already defined
+if (typeof gDEPTH == "undefined")
+  gDEPTH = "../../../../";
+
 // Import fakeserver
-load("../../mailnews/fakeserver/maild.js");
-load("../../mailnews/fakeserver/auth.js");
-load("../../mailnews/fakeserver/imapd.js");
+load(gDEPTH + "mailnews/fakeserver/maild.js");
+load(gDEPTH + "mailnews/fakeserver/auth.js");
+load(gDEPTH + "mailnews/fakeserver/imapd.js");
 
 // And mailnews scripts
-load("../../mailnews/resources/mailDirService.js");
-load("../../mailnews/resources/mailTestUtils.js");
+load(gDEPTH + "mailnews/resources/mailDirService.js");
+load(gDEPTH + "mailnews/resources/mailTestUtils.js");
 
 const IMAP_PORT = 1024 + 143;
 

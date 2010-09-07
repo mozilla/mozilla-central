@@ -192,7 +192,7 @@ function run_test()
 
   // Get a message into the local filestore. function testSearch() continues
   // the testing after the copy.
-  var bugmail1 = do_get_file("../../mailnews/data/bugmail1");
+  var bugmail1 = do_get_file("../../../data/bugmail1");
   do_test_pending();
   gCopyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
                               "", copyListener, null);

@@ -18,7 +18,7 @@
 // * Test all actions
 ////////////////////////////////////////////////////////////////////////////////
 
-load("../../mailnews/resources/filterTestUtils.js");
+load("../../../resources/filterTestUtils.js");
 
 // These are the expected results for testing filter triggers
 var attribResults = {

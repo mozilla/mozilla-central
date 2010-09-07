@@ -2,8 +2,8 @@
 
 /* Test of accessing over 2GB local folder */
 
-load("../../mailnews/resources/messageGenerator.js");
-const bugmail10 = do_get_file("../../mailnews/data/bugmail10");
+load("../../../resources/messageGenerator.js");
+const bugmail10 = do_get_file("../../../data/bugmail10");
 
 var gLocalTrashFolder;
 var gCopyService;

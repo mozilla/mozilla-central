@@ -39,10 +39,10 @@
  */
  
 // add address book setup
-load("../../mailnews/resources/abSetup.js");
+load("../../../resources/abSetup.js");
 
 // add fake POP3 server driver
-load("../../mailnews/resources/POP3pump.js");
+load("../../../resources/POP3pump.js");
 
 const prefs = Cc["@mozilla.org/preferences-service;1"]
                 .getService(Ci.nsIPrefBranch);
@@ -65,8 +65,8 @@ const prefs = Cc["@mozilla.org/preferences-service;1"]
 
 var Files = 
 [
-  "../../mailnews/data/bugmail1",
-  "../../mailnews/data/bugmail3"
+  "../../../data/bugmail1",
+  "../../../data/bugmail3"
 ]
 
 let hdrs = [];
@@ -75,7 +75,7 @@ function run_test()
 {
 
   // Test setup - copy the data file into place
-  var testAB = do_get_file("../../test_addbook/unit/data/cardForEmail.mab");
+  var testAB = do_get_file("../../../addrbook/test/unit/data/cardForEmail.mab");
 
   // Copy the file to the profile directory for a PAB (this is the personal address book)
   testAB.copyTo(gProfileDir, kPABData.fileName);

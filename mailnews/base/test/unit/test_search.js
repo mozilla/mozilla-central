@@ -40,7 +40,7 @@
  * This tests some search attributes not tested by other specific tests,
  * e.g., test_searchTag.js or test_searchJunk.js
  */
-load("../../mailnews/resources/searchTestUtils.js");
+load("../../../resources/searchTestUtils.js");
 
 const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);
@@ -152,7 +152,7 @@ function run_test()
 
   // Get a message into the local filestore. function testSearch() continues
   // the testing after the copy.
-  var bugmail1 = do_get_file("../../mailnews/data/bugmail1");
+  var bugmail1 = do_get_file("../../../data/bugmail1");
   do_test_pending();
   copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
                               "", copyListener, null);

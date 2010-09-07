@@ -2,7 +2,7 @@
  * The intent of this file is to demonstrate a minimal
  * POP3 unit test using the testing file POP3Pump.js
  */
-load("../../mailnews/resources/POP3pump.js");
+load("../../../resources/POP3pump.js");
 
 var testSubjects = ["[Bug 397009] A filter will let me tag, but not untag",
                     "Hello, did you receive my bugmail?"];
@@ -14,8 +14,8 @@ function run_test()
   // demonstration of access to the fake server
   dump("Server " + gPOP3Pump.fakeServer.prettyName + " is loaded\n");
 
-  gPOP3Pump.files = ["../../mailnews/data/bugmail1",
-                      "../../mailnews/data/draft1"];
+  gPOP3Pump.files = ["../../../data/bugmail1",
+                      "../../../data/draft1"];
   gPOP3Pump.onDone = continueTest;
   do_test_pending();
   gPOP3Pump.run();

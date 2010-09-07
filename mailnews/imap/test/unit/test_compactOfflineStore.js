@@ -9,11 +9,11 @@ var gIMAPDaemon, gServer, gIMAPIncomingServer;
 const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
                        .getService(Ci.nsIMsgMessageService);
 
-load("../../mailnews/resources/messageGenerator.js");
+load("../../../resources/messageGenerator.js");
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
-load("../../mailnews/resources/alertTestUtils.js");
+load("../../../resources/alertTestUtils.js");
 
 // Globals
 var gRootFolder;
@@ -22,11 +22,11 @@ var gIMAPDaemon, gServer, gIMAPIncomingServer;
 var gImapInboxOfflineStoreSize;
 var gCurTestNum;
 
-const gMsgFile1 = do_get_file("../../mailnews/data/bugmail10");
-const gMsgFile2 = do_get_file("../../mailnews/data/bugmail11");
-const gMsgFile3 = do_get_file("../../mailnews/data/draft1");
-const gMsgFile4 = do_get_file("../../mailnews/data/bugmail7");
-const gMsgFile5 = do_get_file("../../mailnews/data/bugmail6");
+const gMsgFile1 = do_get_file("../../../data/bugmail10");
+const gMsgFile2 = do_get_file("../../../data/bugmail11");
+const gMsgFile3 = do_get_file("../../../data/draft1");
+const gMsgFile4 = do_get_file("../../../data/bugmail7");
+const gMsgFile5 = do_get_file("../../../data/bugmail6");
 
 // Copied straight from the example files
 const gMsgId1 = "200806061706.m56H6RWT004933@mrapp54.mozilla.org";

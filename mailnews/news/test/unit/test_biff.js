@@ -1,7 +1,7 @@
 // This tests that we can execute biff properly, specifically that filters are
 // run during biff, producing correct counts.
 
-load("../../mailnews/resources/filterTestUtils.js");
+load("../../../resources/filterTestUtils.js");
 
 function run_test() {
   // Set up the server and add in filters
