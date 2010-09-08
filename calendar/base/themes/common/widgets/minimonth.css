@@ -165,17 +165,19 @@ minimonth {
 
 .minimonth-day[today="true"] {
   background-color: #dfeaf4;
-  border-top: 1px solid #BAC4CC;
-  border-bottom: 1px solid #E8F5FF;
-  border-left: 1px solid #BAC4CC;
-  border-right: 1px solid #E8F5FF;
+  border: 1px solid #67ACD8;
 }
 
 .minimonth-day[selected="true"] {
-  background-color: #FFE79C;
+  background-color: #FFFABC;
   color: #2E4E73;
   border: 1px solid #D9C585;
 }
+
+.minimonth-day[selected="true"][today="true"] {
+  background-color: #F2EDB2;
+  border: 1px solid #67ACD8;
+ }
 
 .minimonth-day[busy] {
   font-weight: bold;

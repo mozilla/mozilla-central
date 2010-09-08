@@ -27,6 +27,7 @@
  *   Simon Paquet <bugzilla@babylonsounds.com>
  *   Berend Cornelius <berend.cornelius@sun.com>
  *   Christian Jansen <christian.jansen@sun.com>
+ *   Gianfranco Balza <bv1578@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -65,6 +66,9 @@ calendar-category-box:not([categories]) {
 }
 
 /* Multiday view */
+box[anonid="daybox"] {
+    border-bottom: 1px solid #D2D2D2;
+}
 
 /* Margin that allows event creation by click and drag when the time slot is
    full of events. On the right side in normal view ... */
@@ -77,7 +81,7 @@ stack[anonid="boxstack"] > box[anonid="topbox"][orient="vertical"] {
 }
 
 calendar-event-column {
-  background-color: #FFFFFF;
+    background-color: #FFFFFF;
 }
 
 calendar-event-column[orient="horizontal"] {
@@ -86,6 +90,20 @@ calendar-event-column[orient="horizontal"] {
 
 calendar-event-column[orient="vertical"] {
     border-left: 1px solid #D2D2D2;
+}
+
+calendar-event-column[orient="horizontal"][relation="today"] {
+    border-top: 1px solid #67ACD8;
+    border-bottom: 1px solid #67ACD8;
+    margin-bottom: -1px;
+    position: relative;
+}
+
+calendar-event-column[orient="vertical"][relation="today"] {
+    border-left: 1px solid #67ACD8;
+    border-right: 1px solid #67ACD8;
+    -moz-margin-end: -1px;
+    position: relative;
 }
 
 calendar-header-container {
@@ -101,13 +119,28 @@ calendar-header-container[weekend="true"],
 
 calendar-header-container[relation="today"],
 .calendar-event-column-linebox[relation="today"],
-calendar-day-label[relation="today"] {
+calendar-day-label[orient][relation="today"] {
     background-color: #dfeaf4;
+}
+
+calendar-header-container[relation="today"] {
+    border-left: 1px solid #67ACD8;
+    border-right: 1px solid #67ACD8;
+    -moz-margin-end: -1px;
+    position: relative;
+}
+
+calendar-header-container[relation="today"][rotated="true"] {
+    border-top: 1px solid #67ACD8;
+    border-bottom: 1px solid #67ACD8 !important;
+    border-right: 1px solid #D2D2D2;
+    margin-top: -1px;
+    position: relative;
 }
 
 calendar-header-container[selected="true"],
 .calendar-event-column-linebox[selected="true"] {
-    background-color: #FFF0C0;
+    background-color: #FFFABC;
 }
 
 calendar-header-container[weekend="true"][relation="today"],
@@ -124,15 +157,23 @@ calendar-header-container[weekend="true"][relation="today"],
 calendar-header-container[weekend="true"][selected="true"],
 .calendar-event-column-linebox[weekend="true"][selected="true"],
 .calendar-event-column-linebox[off-time="true"][selected="true"] {
-    background-color: #F2E4B6;
+    background-color: #F2EDB2;
 }
 
 .calendar-event-column-linebox[orient="horizontal"] {
-  border-right: 1px solid #D2D2D2;
+    border-right: 1px solid #D2D2D2;
 }
 
 .calendar-event-column-linebox[orient="vertical"] {
     border-bottom: 1px solid #D2D2D2;
+}
+
+.calendar-event-column-linebox[orient="horizontal"][relation="today"]:last-child {
+    border-right: 1px solid #67ACD8;
+}
+
+.calendar-event-column-linebox[orient="vertical"][relation="today"]:last-child {
+    border-bottom: 1px solid #67ACD8;
 }
 
 /* Make sure we extend the bold line separating scrollable and non-scrollable
@@ -147,19 +188,24 @@ calendar-header-container[weekend="true"][selected="true"],
 
 .calendar-header-day-box[orient="horizontal"] {
     border-right: 1px solid #D2D2D2;
-    border-top: 1px solid #D2D2D2;
     border-bottom: 2px solid #D2D2D2;
     overflow-x: hidden;
     overflow-y: auto;
     max-height: 120px;
 }
 
+.calendar-header-day-box[orient="horizontal"][todaylastinview="true"] {
+    border-right: 1px solid #67ACD8;
+}
+
 /* Make sure the box for day-labels appears to end before the scrollbar. */
 .calendar-label-day-box[orient="horizontal"] {
+    border-top: 1px solid #D2D2D2;
     border-right: 1px solid #D2D2D2;
 }
+
 .calendar-label-day-box[orient="vertical"] {
-    border-bottom: 1px solid #D2D2D2;
+    border-top: 1px solid #D2D2D2;
 }
 
 .calendar-header-day-box[orient="vertical"] {
@@ -169,7 +215,7 @@ calendar-header-container[weekend="true"][selected="true"],
 
 /* Make sure to have a border between the edge of the views and the scrollbar. */
 .calendar-day-box {
-    border-right: 1px solid transparent;
+    border-right: 1px solid #D2D2D2;
 }
 
 .fgdragbox {
@@ -334,11 +380,11 @@ calendar-day-label {
     background-color: white;
     background-image: url("chrome://calendar/skin/calendar-day-label-back.png");
     border-left: 1px solid #D2D2D2;
-    border-top: 1px solid #D2D2D2;
+    border-bottom: 1px solid #D2D2D2;
 }
 
 calendar-day-label[selected="true"] {
-    background-color: #FFF0C0;
+    background-color: #FFFABC !important;
 }
 
 calendar-day-label[orient="vertical"] {
@@ -346,11 +392,20 @@ calendar-day-label[orient="vertical"] {
     min-width: 110px;
 }
 
+calendar-day-label[relation="today"],
+calendar-day-label[relation="today1day"] {
+    border: 1px solid #67ACD8;
+    -moz-margin-end: -1px;
+    margin-top: -1px;
+    position: relative;
+}
+
 .calendar-day-label-name {
     text-align: center;
 }
 
-.calendar-day-label-name[selected="true"] {
+.calendar-day-label-name[relation="today"],
+.calendar-day-label-name[relation="today1day"] {
     font-weight: bold;
 }
 
@@ -403,24 +458,31 @@ calendar-month-day-box {
 
 .calendar-month-day-box-current-month[relation="today"],
 .calendar-month-day-box-day-off[relation="today"],
-.calendar-month-day-box-other-month[relation="today"],
-.calendar-month-day-box-date-label[relation="today"] {
+.calendar-month-day-box-other-month[relation="today"] {
     background-color: #dfeaf4;
+    border: 1px solid #67ACD8 !important;
+    -moz-margin-end: -1px !important;
+    margin-top: -1px !important;
+    position: relative;
 }
 
 .calendar-month-day-box-date-label[relation="today"] {
     background-color: #d7e2ec;
+    font-weight: bold;
 }
 
 .calendar-month-day-box-current-month[selected="true"],
 .calendar-month-day-box-day-off[selected="true"],
 .calendar-month-day-box-other-month[selected="true"] {
-    background-color: #ffe79c;
+    background-color: #FFFABC;
 }
 
 .calendar-month-day-box-date-label[selected="true"] {
-    background-color: #f7e093;
-    font-weight: bold;
+    background-color: #F2EDB2;
+}
+
+.calendar-month-day-box-date-label[relation="today"][selected="true"] {
+    background-color: #F2EDB2;
 }
 
 .calendar-month-day-box-date-label {
@@ -459,7 +521,7 @@ calendar-month-day-box-item[selected="true"] .calendar-event-selection {
 
 .labeldaybox-container {
     border-right: 1px solid #D2D2D2;
-    border-bottom: 1px solid #D2D2D2;
+    border-top: 1px solid #D2D2D2;
 }
 
 calendar-editable-item[selected="true"] .calendar-event-selection {

@@ -29,6 +29,7 @@
    -   Markus Adrario <MarkusAdrario@web.de>
    -   Berend Cornelius <berend.cornelius@sun.com>
    -   Martin Schroeder <mschroeder@mozilla.x-home.org>
+   -   Gianfranco Balza <bv1578@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -3082,6 +3083,10 @@
               aDayBox.date = d;
               aDayBox.calendarView = calView;
               aDayBox.setAttribute("orient", "vertical");
+              // Since the calendar-header-container boxes have the same vertical
+              // orientation for normal and rotated views, it needs an attribute
+              // "rotated" in order to have different css rules.
+              setBooleanAttribute(aDayBox, "rotated", orient == "horizontal");
           }
 
           this.mDateColumns = new Array();
@@ -3142,24 +3147,36 @@
                   labelbox.date = d;
               }
               // Set attributes for date relations.
-              if (this.numVisibleDates > 1) {
-                  switch (d.compare(today)) {
-                      case -1:
-                          dayHeaderBox.setAttribute("relation", "past");
-                          dayEventsBox.setAttribute("relation", "past");
-                          labelbox.setAttribute("relation", "past");
-                          break;
-                      case 0:
-                          dayHeaderBox.setAttribute("relation", "today");
-                          dayEventsBox.setAttribute("relation", "today");
-                          labelbox.setAttribute("relation", "today");
-                          break;
-                      case 1:
-                          dayHeaderBox.setAttribute("relation", "future");
-                          dayEventsBox.setAttribute("relation", "future");
-                          labelbox.setAttribute("relation", "future");
-                          break;
-                  }
+              let headerDayBox = document.getAnonymousElementByAttribute(
+                                     this, "anonid", "headerdaybox");
+              headerDayBox.removeAttribute("todaylastinview");
+              switch (d.compare(today)) {
+                  case -1:
+                      dayHeaderBox.setAttribute("relation", "past");
+                      dayEventsBox.setAttribute("relation", "past");
+                      labelbox.setAttribute("relation", "past");
+                      break;
+                  case 0:
+                      let relation_ = this.numVisibleDates == 1 ? "today1day" : "today";
+                      dayHeaderBox.setAttribute("relation", relation_);
+                      dayEventsBox.setAttribute("relation", relation_);
+                      labelbox.setAttribute("relation", relation_);
+
+                      // Due to equalsize=always being set on the dayboxes
+                      // parent, there are a few issues showing the border of
+                      // the last daybox correctly. To work around this, we're
+                      // setting an attribute we can use in CSS. For more
+                      // information about this hack, see bug 455045
+                      if (dayHeaderBox == headerdaybox.childNodes[headerdaybox.childNodes.length - 1] &&
+                          this.numVisibleDates > 1) {
+                          headerDayBox.setAttribute("todaylastinview", "true");
+                      }
+                      break;
+                  case 1:
+                      dayHeaderBox.setAttribute("relation", "future");
+                      dayEventsBox.setAttribute("relation", "future");
+                      labelbox.setAttribute("relation", "future");
+                      break;
               }
               // We don't want to actually mess with our original dates, plus
               // they're likely to be immutable.

@@ -823,8 +823,8 @@
 
   <binding id="calendar-day-label" extends="xul:box">
     <content flex="1" pack="center">
-      <xul:label anonid="longWeekdayName" class="calendar-day-label-name" xbl:inherits="selected"/>
-      <xul:label anonid="shortWeekdayName" class="calendar-day-label-name" hidden="true" xbl:inherits="selected"/>
+      <xul:label anonid="longWeekdayName" class="calendar-day-label-name" xbl:inherits="selected,relation"/>
+      <xul:label anonid="shortWeekdayName" class="calendar-day-label-name" hidden="true" xbl:inherits="selected,relation"/>
     </content>
     <implementation>
       <field name="mWeekday">-1</field>
