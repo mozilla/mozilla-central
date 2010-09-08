@@ -1181,9 +1181,7 @@ cygwin*|mingw*|mks*|msvc*)
     HOST_OS_ARCH=WINNT
     ;;
 darwin*)
-  if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
     HOST_OS_ARCH=Darwin
-  fi
     ;;
 linux*)
     HOST_OS_ARCH=Linux
