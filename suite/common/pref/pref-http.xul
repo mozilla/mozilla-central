@@ -69,6 +69,9 @@
       <preference id="network.http.proxy.pipelining"
                   name="network.http.proxy.pipelining"
                   type="bool"/>
+      <preference id="general.useragent.compatMode.firefox"
+                  name="general.useragent.compatMode.firefox"
+                  type="bool"/>
     </preferences>
 
     <description>&prefPara;</description>
@@ -131,6 +134,13 @@
 
     <description>&prefPipeWarning;</description>
 
+    <groupbox>
+      <caption label="&prefUseragent.label;"/>
+      <checkbox id="uaFirefoxCompat"
+                label="&prefFirefoxCompat.label;"
+                accesskey="&prefFirefoxCompat.accesskey;"
+                preference="general.useragent.compatMode.firefox"/>
+    </groupbox>
   </prefpane>
 
 </overlay>
