@@ -1,4 +1,4 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 <!-- ***** BEGIN LICENSE BLOCK *****
  Version: MPL 1.1/GPL 2.0/LGPL 2.1
 
@@ -62,6 +62,9 @@
       <preference id="browser.tabs.warnOnClose"
                   name="browser.tabs.warnOnClose"
                   type="bool"/>
+      <preference id="browser.tabs.insertRelatedAfterCurrent"
+                  name="browser.tabs.insertRelatedAfterCurrent"
+                  type="bool"/>
       <preference id="browser.tabs.loadGroup"
                   name="browser.tabs.loadGroup"
                   type="int"/>
@@ -76,17 +79,21 @@
       <groupbox id="generalTabPreferences" align="start">
         <caption label="&tabDisplay.label;"/>
         <checkbox id="tabStrip"
-                  label="&autoHide.label;" 
-                  accesskey="&autoHide.accesskey;" 
+                  label="&autoHide.label;"
+                  accesskey="&autoHide.accesskey;"
                   preference="browser.tabs.autoHide"/>
         <checkbox id="tabBackground"
-                  label="&background.label;" 
-                  accesskey="&background.accesskey;" 
+                  label="&background.label;"
+                  accesskey="&background.accesskey;"
                   preference="browser.tabs.loadInBackground"/>
         <checkbox id="tabWarnOnClose"
                   label="&warnOnClose.label;"
                   accesskey="&warnOnClose.accesskey;"
                   preference="browser.tabs.warnOnClose"/>
+        <checkbox id="tabRelatedAfterCurrent"
+                  label="&relatedAfterCurrent.label;"
+                  accesskey="&relatedAfterCurrent.accesskey;"
+                  preference="browser.tabs.insertRelatedAfterCurrent"/>
       </groupbox>
 
       <groupbox id="loadGroupPreferences" align="start">
@@ -100,18 +107,18 @@
           <radio value="1"
                  label="&loadGroupReplace.label;"
                  accesskey="&loadGroupReplace.accesskey;"/>
-        </radiogroup> 
+        </radiogroup>
       </groupbox>
 
       <groupbox id="useTabPreferences" align="start">
         <caption label="&openTabs.label;"/>
           <checkbox id="middleClick"
-                    label="&middleClick.label;" 
-                    accesskey="&middleClick.accesskey;" 
+                    label="&middleClick.label;"
+                    accesskey="&middleClick.accesskey;"
                     preference="browser.tabs.opentabfor.middleclick"/>
           <checkbox id="urlBar"
-                    label="&urlbar.label;" 
-                    accesskey="&urlbar.accesskey;" 
+                    label="&urlbar.label;"
+                    accesskey="&urlbar.accesskey;"
                     preference="browser.tabs.opentabfor.urlbar"/>
       </groupbox>
   </prefpane>
