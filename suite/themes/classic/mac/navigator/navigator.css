@@ -488,21 +488,21 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
   list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-folder-active.png");
 }
 
-#bookmarks-chevron {
+toolbarbutton.chevron {
   list-style-image: url("chrome://navigator/skin/icons/chevron.gif");
   height: 16px;
   width: 16px;
 }
 
-#bookmarks-chevron > .toolbarbutton-menu-dropmarker {
+toolbarbutton.chevron > .toolbarbutton-menu-dropmarker {
   display: none;
 }
 
-#bookmarks-chevron > .toolbarbutton-text {
+toolbarbutton.chevron > .toolbarbutton-text {
   display: none; /* hide chevron label which has a width even if blank */
 }
 
-toolbar[mode="text"] #bookmarks-chevron > .toolbarbutton-icon {
+toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
   display: -moz-box; /* display chevron icon in text mode */
 }
 
