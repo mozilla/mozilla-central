@@ -142,6 +142,7 @@ function setupModule() {
     },
     do_check_eq: function() {},
     do_check_neq: function() {},
+    gDEPTH: "../../",
   };
 
   // The xpcshell test resources assume they are loaded into a single global
