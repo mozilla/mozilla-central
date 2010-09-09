@@ -139,9 +139,13 @@ function testHTMLComposeWindowSwitchSignatures() {
 
   // In html compose, the signature is inside the last node, which has a
   // class="moz-signature".
-  assert_equals(node.className, "moz-signature")
+  assert_equals(node.className, "moz-signature");
   node = node.firstChild; // text node containing the signature divider
-  assert_equals(node.nodeValue, "-- \nTinderbox is soo 90ies");
+  assert_equals(node.nodeValue, "-- ");
+  node = node.nextSibling;
+  assert_equals(node.localName, "br");
+  node = node.nextSibling;
+  assert_equals(node.nodeValue, "Tinderbox is soo 90ies");
 
   // Now switch identities!
   let menuID = cwc.e("msgIdentity");
