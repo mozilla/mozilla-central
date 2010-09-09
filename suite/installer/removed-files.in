@@ -55,6 +55,7 @@ components/@DLL_PREFIX@caps@DLL_SUFFIX@
 components/chatzilla-service.js
 components/@DLL_PREFIX@chrome@DLL_SUFFIX@
 components/components.list
+components/compreg.dat
 components/crashreporter.xpt
 components/downloadmanager.xpt
 components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
@@ -118,7 +119,7 @@ components/@DLL_PREFIX@xpconnect@DLL_SUFFIX@
 #endif
 components/@DLL_PREFIX@xpinstall@DLL_SUFFIX@
 #endif
-compreg.dat
+components/xpti.dat
 #ifndef MOZ_CRASHREPORTER
 #ifdef XP_MACOSX
 crashreporter.app/
@@ -260,7 +261,6 @@ updater.app/Contents/MacOS/updater.ini
 #endif
 xpicleanup@BIN_SUFFIX@
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
-xpti.dat
 
 #ifndef MOZ_STATIC_MAIL_BUILD
 ; '! MOZ_STATIC_BUILD' case.
