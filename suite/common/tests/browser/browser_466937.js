@@ -44,9 +44,14 @@ function test() {
   catch (ex) { }
   waitForExplicitFinish();
   
+  var file = Components.classes["@mozilla.org/file/directory_service;1"]
+             .getService(Components.interfaces.nsIProperties)
+             .get("TmpD", Components.interfaces.nsILocalFile);
+  file.append("466937_test.file");
+  let testPath = file.path;
+  
   let testURL = "http://mochi.test:8888/browser/" +
     "suite/common/tests/browser/browser_466937_sample.html";
-  let testPath = "/home/user/regular.file";
   
   let tab = getBrowser().addTab(testURL);
   let window = tab.ownerDocument.defaultView;
