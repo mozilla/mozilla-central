@@ -491,6 +491,7 @@
 @BINPATH@/components/nsHelperAppDlg.manifest
 @BINPATH@/components/nsINIProcessor.js
 @BINPATH@/components/nsINIProcessor.manifest
+@BINPATH@/components/nsInputListAutoComplete.js
 @BINPATH@/components/nsLivemarkService.js
 @BINPATH@/components/nsLoginInfo.js
 @BINPATH@/components/nsLoginManager.js
