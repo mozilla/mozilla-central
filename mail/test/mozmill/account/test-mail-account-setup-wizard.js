@@ -38,7 +38,8 @@
 var MODULE_NAME = "test-mail-account-setup-wizard";
 
 var RELATIVE_ROOT = "../shared-modules";
-var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers"];
+var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers",
+                       "account-manager-helpers", "keyboard-helpers" ];
 
 var mozmill = {};
 Components.utils.import("resource://mozmill/modules/mozmill.js", mozmill);
@@ -60,8 +61,12 @@ var user = {
 function setupModule(module) {
   wh = collector.getModule("window-helpers");
   wh.installInto(module);
-  fdh = collector.getModule("folder-display-helpers");
+  var fdh = collector.getModule("folder-display-helpers");
   fdh.installInto(module);
+  var amh = collector.getModule("account-manager-helpers");
+  amh.installInto(module);
+  var kh = collector.getModule("keyboard-helpers");
+  kh.installInto(module);
 }
 
 // Select File > New > Mail Account to open the Mail Account Setup Wizard
@@ -69,23 +74,6 @@ function open_mail_account_setup_wizard() {
   wh.plan_for_new_window("mail:autoconfig");
   mc.click(new elib.Elem(mc.menus.menu_File.menu_New.newMailAccountMenuItem));
   return wh.wait_for_new_window("mail:autoconfig");
-}
-
-// Open the Account Manager from the Mail Account Setup Wizard
-function open_advanced_settings() {
-  wh.plan_for_modal_dialog("mailnews:accountmanager", subtest_verify_account);
-  awc.e("advanced_settings").click();
-  return wh.wait_for_modal_dialog("mailnews:accountmanager");
-}
-
-function close_mail_account_setup_wizard() {
-  wh.close_window(awc);
-}
-
-// Emulate manual input
-function input_value(str) {
-  for (let i = 0; i < str.length; i++)
-    awc.keypress(null, str.charAt(i), {});
 }
 
 // Remove an account on the Account Manager
@@ -123,11 +111,11 @@ function test_mail_account_setup() {
 
   // Input user's account information
   awc.e("realname").focus();
-  input_value(user.name);
+  input_value(awc, user.name);
   awc.keypress(null, "VK_TAB", {});
-  input_value(user.email);
+  input_value(awc, user.email);
   awc.keypress(null, "VK_TAB", {});
-  input_value(user.password);
+  input_value(awc, user.password);
 
   // Load the autoconfig file from http://localhost:433**/autoconfig/example.com
   awc.e("next_button").click();
@@ -142,7 +130,7 @@ function test_mail_account_setup() {
   // Open the advanced settings (Account Manager) to create the account
   // immediately.  We use an invalid email/password so the setup will fail
   // anyway.
-  open_advanced_settings();
+  open_advanced_settings_from_account_wizard(subtest_verify_account, awc);
 
   // Clean up
   pref.clearUserPref(pref_name);
@@ -210,11 +198,11 @@ function test_bad_password_uses_old_settings() {
 
     // Input user's account information
     awc.e("realname").focus();
-    input_value(user.name);
+    input_value(awc, user.name);
     awc.keypress(null, "VK_TAB", {});
-    input_value(user.email);
+    input_value(awc, user.email);
     awc.keypress(null, "VK_TAB", {});
-    input_value(user.password);
+    input_value(awc, user.password);
 
     // Load the autoconfig file from http://localhost:433**/autoconfig/example.com
     awc.e("next_button").click();
