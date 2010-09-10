@@ -121,7 +121,7 @@
     <panel id="editContactPanel"/>
     <menupopup id="emailAddressPopup" class="emailAddressPopup" position="after_start"
                onpopupshowing="setupEmailAddressPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup')); goUpdateCommand('cmd_createFilterFromPopup')"
-               onpopuphiding="hideEmailAddressPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))">
+               onpopuphiding="hideEmailNewsPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))">
       <menuitem id="emailAddressPlaceHolder" label=""
                 disabled="true"/>
       <menuseparator/>
