@@ -244,7 +244,7 @@ calMemoryCalendar.prototype = {
             var storedOldItem = this.mItems[aOldItem.id];
 
             // compareItems is not suitable here. See bug 418805.
-            if (!compareItemContent(storedOldItem, aOldItem)) {
+            if (!cal.compareItemContent(storedOldItem, aOldItem)) {
                 return reportError("old item mismatch in modifyItem");
             }
 
