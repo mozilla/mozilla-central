@@ -82,7 +82,11 @@ treechildren::-moz-tree-image(Name, query, dayContainer) {
 .bookmark-item[container][livemark],
 treechildren::-moz-tree-image(title, container, livemark) {
   list-style-image: url("chrome://communicator/skin/bookmarks/livemark-folder.png");
-  -moz-image-region: auto;
+}
+
+#PlacesToolbarItems > .bookmark-item[container][livemark]:hover:active,
+#PlacesToolbarItems > .bookmark-item[container][livemark][open="true"] {
+  list-style-image: url("chrome://communicator/skin/bookmarks/livemark-folder-active.png");
 }
 
 .bookmark-item[container][livemark] .bookmark-item,
@@ -92,39 +96,39 @@ treechildren::-moz-tree-image(title, livemarkItem) {
 
 treechildren::-moz-tree-image(container, OrganizerQuery_AllBookmarks) {
   list-style-image: url("chrome://communicator/skin/bookmarks/allBookmarks.png");
-  -moz-image-region: auto;
 }
 
 #bookmarksToolbarFolderMenu,
 #BMB_bookmarksToolbarFolderMenu,
 treechildren::-moz-tree-image(container, OrganizerQuery_BookmarksToolbar) {
   list-style-image: url("chrome://communicator/skin/bookmarks/bookmarksToolbar.png");
-  -moz-image-region: auto;
 }
 
 treechildren::-moz-tree-image(container, OrganizerQuery_BookmarksMenu) {
   list-style-image: url("chrome://communicator/skin/bookmarks/bookmarksMenu.png");
-  -moz-image-region: auto;
 }
 
 #unsortedBookmarksFolderMenu,
 #BMB_unsortedBookmarksFolderMenu,
 treechildren::-moz-tree-image(container, OrganizerQuery_UnfiledBookmarks) {
   list-style-image: url("chrome://communicator/skin/bookmarks/unsortedBookmarks.png");
-  -moz-image-region: auto;
 }
 
 /* query-nodes should be styled even if they're not expandable */
+.bookmark-item[query],
 treechildren::-moz-tree-image(title, query) {
   list-style-image: url("chrome://communicator/skin/bookmarks/query.png");
-  -moz-image-region: auto;
+}
+
+#PlacesToolbarItems > .bookmark-item[query]:hover:active,
+#PlacesToolbarItems > .bookmark-item[query][open="true"] {
+  list-style-image: url("chrome://communicator/skin/bookmarks/query-active.png");
 }
 
 .bookmark-item[query][tagContainer],
 treechildren::-moz-tree-image(title, query, tagContainer),
 treechildren::-moz-tree-image(query, OrganizerQuery_Tags) {
   list-style-image: url("chrome://mozapps/skin/places/tagContainerIcon.png");
-  -moz-image-region: auto;
 }
 
 treechildren::-moz-tree-image(Name, separator),
