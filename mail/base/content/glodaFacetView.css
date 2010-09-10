@@ -58,18 +58,22 @@ body {
   background: white;
 }
 
+#table>div {
+  display: table-row;
+}
+
 .facets-sidebar {
   display: table-cell;
   width: 20em;
   background-color: #e0eaf5;
   padding: 4px;
   min-height: 100%;
-  padding-left: 1em;
+  -moz-padding-start: 1em;
   font-size: 90%;
 }
 
 #main-column {
-  padding-left: 1em;
+  -moz-padding-start: 1em;
   display: table-cell;
 }
 
@@ -81,7 +85,7 @@ body {
 
 #data-column {
   margin-top: 1em;
-  margin-right: 1em;
+  -moz-margin-end: 1em;
   max-width: 40em;
 }
 
@@ -99,9 +103,7 @@ body {
   border: 1px solid #729fcf;
   -moz-border-radius: 5px;
   background: white;
-  padding-left: 20px;
-  padding-right: 20px;
-  padding-bottom: 20px;
+  padding: 20px;
   padding-top: 0px;
   text-align: center;
 }
@@ -159,9 +161,9 @@ body {
   height: 40px;
   font-size: 140% !important;
   padding: 2px;
-  padding-left: 0;
+  -moz-padding-start: 0;
   padding-top: 1em;
-  padding-right: 80px;
+  -moz-padding-end: 80px;
 }
 
 .explanation-fulltext-label {
@@ -188,7 +190,7 @@ body {
 .explanation-query-involves,
 .explanation-query-tagged {
   color: #3465a4;
-  margin-right: 0.5ex;
+  -moz-margin-end: 0.5ex;
 }
 
 /* ===== Facets ===== */
@@ -235,7 +237,7 @@ h2 {
 .facet > h3,
 .facet-content > h3 {
   font-size: 90%;
-  padding-left: 0;
+  -moz-padding-start: 0;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
 }
@@ -262,8 +264,8 @@ h2 {
   display: block;
   padding: 0px;
   padding-top: 0.5em;
-  margin-right: 1em;
-  padding-left: 2em;
+  -moz-margin-end: 1em;
+  -moz-padding-start: 2em;
   padding-bottom: 1em;
 }
 
@@ -273,17 +275,22 @@ h2 {
   bottom: 0;
   margin: 5px;
   font-size: 90%;
-  text-align: right;
+  text-align: end;
   display: none; /* $('.date-toggle').show() is run if there are results */
   width: 46px !important;
   height: 17px !important;
-  margin-right: 2px;
+  -moz-margin-end: 2px;
   margin-top: 2px;
   padding: 4px;
   background-image: url("chrome://messenger/skin/icons/timeline.png");
   background-position: center;
   background-repeat: no-repeat;
   -moz-border-radius: 4px;
+}
+
+html[dir="rtl"] #date-toggle {
+  right: auto;
+  left: 1em;
 }
 
 #date-toggle:hover,
@@ -305,6 +312,11 @@ h2 {
   -moz-border-radius: 4px;
 }
 
+html[dir="rtl"] .facet-date-zoom-out {
+  left: auto;
+  right: 0;
+}
+
 .facetious[type="date"][zoomedout="false"] .facet-date-zoom-out {
   background-image: url("chrome://messenger/skin/icons/zoomout.png");
   background-color: #babdb6;
@@ -320,6 +332,11 @@ h2 {
   position: absolute;
   top: 0;
   left: 0;
+}
+
+html[dir="rtl"] .date-vis-frame {
+  left: auto;
+  right: 0;
 }
 
 /* === Boolean Facet === */
@@ -339,7 +356,7 @@ h2 {
 
 .facet-checkbox-bubble {
   padding: 2px;
-  padding-right: 6px;
+  -moz-padding-end: 6px;
   border: solid transparent 1px;
   cursor: pointer;
   color: #333;
@@ -432,9 +449,14 @@ h2 {
 .bar-count {
   position: absolute;
   right: 3px;
-  margin-right: 1.5em;
+  -moz-margin-end: 1.5em;
   line-height: 1.6em;
   color: GrayText;
+}
+
+html[dir="rtl"] .bar-count {
+  right: auto;
+  left: 3px;
 }
 
 .barry {
@@ -463,9 +485,13 @@ h2 {
   text-decoration: none;
   display: block;
   padding: 0.3em 2em 0.3em 0.5em;
-  padding-right: 4em;
+  -moz-padding-end: 4em;
   position: relative;
   z-index: 2;
+}
+
+html[dir="rtl"] .bar-link {
+  padding: 0.3em 0.5em 0.3em 2em;
 }
 
 .bar:hover > .bar-link {
@@ -503,6 +529,12 @@ h2 {
   line-height: 1.6em;
 }
 
+html[dir="rtl"] .bar-percent {
+  left: auto;
+  right: 0;
+  text-indent: 9999px;
+}
+
 .bar:hover > .bar-percent {
   background: #ceeaf5;
 }
@@ -525,7 +557,7 @@ h2 {
 .results-message-count {
   display: table-cell;
   margin: 0;
-  padding-left: 2px;
+  -moz-padding-start: 2px;
   font-weight: normal;
   font-size: small;
 }
@@ -552,8 +584,8 @@ h2 {
 
 .results-message-sort-bar {
   display: table-cell;
-  padding-right: 2px;
-  text-align: right;
+  -moz-padding-end: 2px;
+  text-align: end;
   font-size: small;
 }
 
@@ -633,22 +665,26 @@ h2 {
 }
 .message-meta {
   float: right;
-  padding-left: 2em;
-  text-align: right;
+  -moz-padding-start: 2em;
+  text-align: end;
   max-width: 20em;
   max-height: 10em;
   overflow: hidden;
   color: #999;
 }
 
+html[dir="rtl"] .message-meta {
+  float: left;
+}
+
 .message-attachments {
-  text-align: right;
+  text-align: end;
   overflow: hidden;
 }
 
 .message-attachment {
   max-width: 20em;
-  text-align: left;
+  text-align: start;
   display: inline-block;
   white-space: nowrap;
   -moz-padding-start: 1ex;
@@ -669,12 +705,16 @@ h2 {
   background: url("chrome://messenger/skin/icons/attachment.png") transparent no-repeat center right;
 }
 
+html[dir="rtl"] .message-attachment-icon {
+  background-position: center left;
+}
+
 .message-line {
   position: relative;
 }
 
 .message-addresses-group {
-  text-align: right;
+  text-align: end;
 }
 
 .message-date {
@@ -689,15 +729,15 @@ h2 {
 }
 
 .message-addresses-group {
-  padding-left: 1em;
+  -moz-padding-start: 1em;
 }
 
 .message-subject-group {
-  padding-left: 2px; /* to lign up the subjects with the "Top N messages out of M" */
+  -moz-padding-start: 2px; /* to line up the subjects with the "Top N messages out of M" */
 }
 
 .message-author, .message-recipients {
-  text-align: right;
+  text-align: end;
   display: inline;
   color: #222;
 }
@@ -713,14 +753,14 @@ h2 {
 
 .message-body {
   color: black;
-  margin-left: 1em;
+  -moz-margin-start: 1em;
   font-family: monospace;
   font-size: medium;
   white-space: pre-wrap;
 }
 
 .message-recipients-group {
-  margin-left: 0.5em;
+  -moz-margin-start: 0.5em;
   font-size: small;
 }
 
@@ -749,9 +789,13 @@ h2 {
   float: right;
   padding: 0.2em 1em;
   font-size: small;
-  margin-right: 1em;
+  -moz-margin-end: 1em;
   margin-bottom: 2em;
   color: #000000;
+}
+
+html[dir="rtl"] .show-more {
+  float: left;
 }
 
 .show-more:hover,
@@ -779,6 +823,10 @@ img.loading, img.empty {
   padding: 0;
   border: none;
   vertical-align: middle;
+}
+
+html[dir="rtl"] img.empty {
+  -moz-transform: scaleX(-1);
 }
 
 div.empty {

@@ -620,6 +620,7 @@
           let label = barNode.getElementsByClassName("bar-link")[0].textContent;
           this.build(facetDef, label, groupValue);
           this.node.setAttribute("selected", "true");
+          var rtl = window.getComputedStyle(this, null).direction == "rtl";
           /* We show different menus if we're on an "unselected" facet value,
              or if we're on a preselected facet value, whether included or
              excluded. The variety attribute handles that through CSS */
@@ -628,13 +629,22 @@
           let X, Y;
           if (event.type == "click") {
             // center the menu on the mouse click
-            X = event.pageX- 10;
+            if (rtl)
+              X = event.pageX + 10;
+            else
+              X = event.pageX - 10;
             Y = Math.max(20, event.pageY - 15);
           } else {
-            X = rect.left + rect.width / 2- 20;
+            if (rtl)
+              X = rect.left + rect.width / 2 + 20;
+            else
+              X = rect.left + rect.width / 2 - 20;
             Y = rect.top - 10;
           }
-          this.style.left = X + "px";
+          if (rtl)
+            this.style.left = (X - this.getBoundingClientRect().width) + "px";
+          else
+            this.style.left = X + "px";
           this.style.top = Y + "px";
 
           if (variety == "remainder")

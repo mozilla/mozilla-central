@@ -13,7 +13,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
     xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en">
+    version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en"
+    dir="&locale.dir;">
 <head>
   <!-- XBL bindings CSS -->
   <link rel="stylesheet"
@@ -37,45 +38,47 @@
   <script type="application/javascript;version=1.8"
       src="chrome://messenger/content/glodaFacetVis.js"></script>
 </head>
-<body id="body" onload="reachOutAndTouchFrame()" dir="&locale.dir;"
+<body id="body" onload="reachOutAndTouchFrame()"
       onkeypress="if (event.keyCode == event.DOM_VK_ESCAPE) document.getElementById('popup-menu').hide();"
       onmouseup="return clickOnBody(event)">
   <div id="popup-menu" class="popup-menu" variety="invisible"/>
   <div id="table">
-    <div class="facets facets-sidebar" id="facets">
-      <h1 id="filter-header-label">&glodaFacetView.filters.label;</h1>
-      <div>
-        <div id="facet-fromMe" class="facetious" type="boolean" attr="fromMe"
-             uninitialized="true" />
-        <div id="facet-toMe" class="facetious" type="boolean" attr="toMe"
-             uninitialized="true" />
-        <div id="facet-star" class="facetious" type="boolean" attr="star"
-             uninitialized="true"/><br />
-        <div id="facet-attachmentTypes" class="facetious" type="boolean-filtered"
-             attr="attachmentTypes"
-             groupDisplayProperty="categoryLabel"
-             uninitialized="true"/>
+    <div>
+        <div class="facets facets-sidebar" id="facets">
+          <h1 id="filter-header-label">&glodaFacetView.filters.label;</h1>
+          <div>
+            <div id="facet-fromMe" class="facetious" type="boolean" attr="fromMe"
+                 uninitialized="true" />
+            <div id="facet-toMe" class="facetious" type="boolean" attr="toMe"
+                 uninitialized="true" />
+            <div id="facet-star" class="facetious" type="boolean" attr="star"
+                 uninitialized="true"/><br />
+            <div id="facet-attachmentTypes" class="facetious" type="boolean-filtered"
+                 attr="attachmentTypes"
+                 groupDisplayProperty="categoryLabel"
+                 uninitialized="true"/>
+          </div>
+        </div>
+        <div id="main-column">
+          <div id="header">
+            <div id="date-toggle" class="date-toggle" tabindex="0" role="button"
+               onclick="FacetContext.toggleTimeline()"
+               onkeypress="if (event.charCode == KeyEvent.DOM_VK_SPACE) { FacetContext.toggleTimeline(); event.preventDefault() }"/>
+            <div id="search-value"/>
+            <div id="query-explanation"/>
+          </div>
+          <div id="data-column">
+            <div id="facet-date" class="facetious" type="date" />
+            <div class="results" id="results" type="message" />
+            <div class="loading" id="showLoading"><span class="loading"><img class="loading" src="chrome://global/skin/icons/loading_16.png"/>&glodaFacetView.loading.label;</span></div>
+            <div class="empty" id="showEmpty"><span class="empty"><img class="empty" src="chrome://messenger/skin/icons/empty-search-results.png"/>&glodaFacetView.empty.label;</span></div>
+            <div class="show-more" id="showMore" tabindex="0" role="button"
+                 onclick="FacetContext.showMore()"
+                 onkeypress="if (event.charCode == KeyEvent.DOM_VK_SPACE) { FacetContext.showMore(); event.preventDefault() }"
+                 >&glodaFacetView.pageMore.label;</div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div id="main-column">
-      <div id="header">
-        <div id="date-toggle" class="date-toggle" tabindex="0" role="button"
-           onclick="FacetContext.toggleTimeline()"
-           onkeypress="if (event.charCode == KeyEvent.DOM_VK_SPACE) { FacetContext.toggleTimeline(); event.preventDefault() }"/>
-        <div id="search-value"/>
-        <div id="query-explanation"/>
-      </div>
-      <div id="data-column">
-        <div id="facet-date" class="facetious" type="date" />
-        <div class="results" id="results" type="message" />
-        <div class="loading" id="showLoading"><span class="loading"><img class="loading" src="chrome://global/skin/icons/loading_16.png"/>&glodaFacetView.loading.label;</span></div>
-        <div class="empty" id="showEmpty"><span class="empty"><img class="empty" src="chrome://messenger/skin/icons/empty-search-results.png"/>&glodaFacetView.empty.label;</span></div>
-        <div class="show-more" id="showMore" tabindex="0" role="button"
-             onclick="FacetContext.showMore()"
-             onkeypress="if (event.charCode == KeyEvent.DOM_VK_SPACE) { FacetContext.showMore(); event.preventDefault() }"
-             >&glodaFacetView.pageMore.label;</div>
-      </div>
-    </div>
   </div>
 </body>
 </html>
