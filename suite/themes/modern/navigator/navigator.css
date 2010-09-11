@@ -451,16 +451,16 @@ toolbarpaletteitem > .nav-bar-class {
 .nav-bar-first:-moz-locale-dir(ltr),
 toolbarpaletteitem > .nav-bar-class:-moz-locale-dir(rtl),
 toolbarpaletteitem > .nav-bar-class:-moz-locale-dir(ltr) {
-  -moz-border-radius-bottomleft: 3px;
-  -moz-border-radius-topleft: 3px;
+  border-bottom-left-radius: 3px;
+  border-top-left-radius: 3px;
 }
 
 .nav-bar-last:-moz-locale-dir(ltr),
 .nav-bar-first:-moz-locale-dir(rtl),
 toolbarpaletteitem > .nav-bar-class:-moz-locale-dir(ltr),
 toolbarpaletteitem > .nav-bar-class:-moz-locale-dir(rtl) {
-  -moz-border-radius-bottomright: 3px;
-  -moz-border-radius-topright: 3px;
+  border-bottom-right-radius: 3px;
+  border-top-right-radius: 3px;
 }
 
 toolbar[mode="text"] > .nav-bar-class,

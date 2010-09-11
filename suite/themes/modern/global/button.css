@@ -48,7 +48,7 @@ button {
   -moz-border-right-colors: transparent transparent transparent #000000 #A2AEBB #A7B4C1;
   -moz-border-bottom-colors: transparent transparent transparent #000000 #97A6B6 #9DAAB9;
   -moz-border-left-colors: transparent transparent transparent #000000 #BBC6D1 #B1BBC9;
-  -moz-border-radius: 5px;
+  border-radius: 5px;
   min-width: 6em;
   background-color: #AAB6C4;
   background-clip: padding-box;
@@ -124,7 +124,7 @@ button[default="true"]:hover:active {
   -moz-border-right-colors: transparent transparent #000000 #000000 #8290A5 #899AAC;
   -moz-border-bottom-colors: transparent transparent #000000 #000000 #8290A5 #899AAC;
   -moz-border-left-colors: transparent transparent #000000 #000000 #8290A5 #899AAC;
-  -moz-border-radius: 4px;
+  border-radius: 4px;
 }
 
 button[default="true"]:hover:active:focus {

@@ -95,7 +95,7 @@ richlistitem[type="download"]:not([selected="true"]) .status {
   -moz-border-right-colors: transparent !important;
   -moz-border-bottom-colors: transparent !important;
   -moz-border-left-colors: transparent !important;
-  -moz-border-radius: 0 !important;
+  border-radius: 0 !important;
   outline: none !important;
 }
 

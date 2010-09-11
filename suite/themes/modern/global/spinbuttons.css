@@ -45,7 +45,7 @@ spinbuttons {
   -moz-border-right-colors: #2D3B49 #A7B4C1;
   -moz-border-bottom-colors: #2D3B49 #9DAAB9;
   -moz-border-left-colors: #5D616E #B1BBC9;
-  -moz-border-radius: 0;
+  border-radius: 0;
   background: #B1BBC5 50% 50% no-repeat;
   width: 13px;
   min-width: 13px;

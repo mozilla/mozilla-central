@@ -23,7 +23,7 @@ h2 {
   margin-top: 25px;
   padding: 5px;
   border: 1px solid #494F5D;
-  -moz-border-radius: 10px;
+  border-radius: 10px;
 }
 
 .memValue {

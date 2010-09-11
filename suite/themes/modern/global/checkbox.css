@@ -61,7 +61,7 @@ checkbox {
 
 checkbox:focus {
   border-color: #98A5B2;
-  -moz-border-radius: 4px 5px;
+  border-radius: 4px 5px;
 }
 
 /* ..... disabled state ..... */

@@ -75,8 +75,8 @@ tab {
   -moz-border-right-colors: #000000 #90A0B0 #98A7B5;
   -moz-border-bottom-colors: #000000 #98A7B5;
   -moz-border-left-colors: #000000 #90A0B0 #98A7B5;
-  -moz-border-radius-topleft: 3px;
-  -moz-border-radius-topright: 3px;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
   padding: 1px 3px;
   /*background-color: #8C9DAF;*/
   background-color: #9CABBA;
@@ -126,10 +126,10 @@ tab[selected="true"]:hover:active {
 .tab-bottom {
   -moz-border-top-colors: #000000 #8C9DAF #8C9DAF;
   -moz-border-bottom-colors: #000000 #8190A5 #899AAC #8D9EB0;
-  -moz-border-radius-topleft: 0;
-  -moz-border-radius-topright: 0;
-  -moz-border-radius-bottomright: 3px;
-  -moz-border-radius-bottomleft: 3px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 3px;
+  border-bottom-left-radius: 3px;
 }
 
 .tab-bottom:hover:active {

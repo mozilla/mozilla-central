@@ -51,7 +51,7 @@ radio {
   padding-bottom: 1px;
   -moz-padding-start: 4px;
   -moz-padding-end: 2px;
-  -moz-border-radius: 4px 5px;
+  border-radius: 4px 5px;
 }
 
 .radio-icon {

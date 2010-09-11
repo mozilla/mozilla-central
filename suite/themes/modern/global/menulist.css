@@ -78,8 +78,8 @@ menulist {
   -moz-border-top-colors: #000000 #BBC4D1 #B3BBC9;
   -moz-border-bottom-colors: #000000 #99A7B7 #9EACBB;
   -moz-border-left-colors: #000000 #BBC4D1 #B3BBC9;
-  -moz-border-radius-topleft: 2px;
-  -moz-border-radius-bottomleft: 2px;
+  border-top-left-radius: 2px;
+  border-bottom-left-radius: 2px;
   background-color: #A6B3C0;
   -moz-padding-start: 8px;
 }
@@ -87,8 +87,8 @@ menulist {
 .menulist-dropmarker {
   border-left: 2px solid;
   -moz-border-left-colors: #6D7C8F #C1CBD9;
-  -moz-border-radius-topleft: 0px;
-  -moz-border-radius-bottomleft: 0px;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
 }
 
 .menulist-dropmarker > .dropmarker-icon {
@@ -99,7 +99,7 @@ menulist {
 
 menulist:focus {
   border-color: #98A5B2;
-  -moz-border-radius: 7px;
+  border-radius: 7px;
   background-color: #98A5B2;
 }
 
@@ -162,8 +162,8 @@ html|*.menulist-editable-input {
 
 menulist[focused="true"] {
   border-color: #98A5B2;
-  -moz-border-radius-topright: 7px;
-  -moz-border-radius-bottomright: 7px;
+  border-top-right-radius: 7px;
+  border-bottom-right-radius: 7px;
   background-color: #98A5B2;
 }
 
@@ -178,7 +178,7 @@ menulist[focused="true"] {
   -moz-border-right-colors: #5D616E #99A9BA;
   -moz-border-bottom-colors: #5D616E #99A9BA;
   -moz-border-left-colors: #CED5DD #A6B3C0;
-  -moz-border-radius: 0;
+  border-radius: 0;
   padding: 1px;
   min-height: 0px;
   background-color: #A6B3C0;
@@ -204,7 +204,7 @@ menulist[focused="true"] {
 }
 
 .menulist-compact:focus {
-  -moz-border-radius: 0;
+  border-radius: 0;
 }
       
 .menulist-compact[open="true"] {

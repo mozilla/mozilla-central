@@ -94,7 +94,7 @@ tabpanels {
 }
 
 .tabbrowser-tab[selected="true"] {
-  -moz-border-radius: 2px;
+  border-radius: 2px;
   border-top-width: 2px;
   -moz-border-top-colors: rgba(0, 0, 0, 0.1) #888;
   -moz-border-left-colors: rgba(0, 0, 0, 0.08) #888;

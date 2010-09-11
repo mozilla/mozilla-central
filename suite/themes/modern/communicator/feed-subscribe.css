@@ -51,7 +51,7 @@ html {
 
 #feedHeaderContainer {
   border: 1px solid #2D3B49;
-  -moz-border-radius: 10px;
+  border-radius: 10px;
   margin: -4em auto 0 auto;
   background-color: #C7D0D9;
 }

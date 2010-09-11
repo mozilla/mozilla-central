@@ -410,7 +410,7 @@ vbox[typeName="status"][type="header-recommended"] > label {
   -moz-border-right-colors: #000000 #A2AEBB #a7b4c1;
   -moz-border-bottom-colors: #000000 #97A6B6 #9DAAB9;
   -moz-border-left-colors: #000000 #BBC6D1 #B1BBC9;
-  -moz-border-radius: 2px;
+  border-radius: 2px;
   min-width: 60px;
   background-color: #AAB6C4;
   color: #000000;

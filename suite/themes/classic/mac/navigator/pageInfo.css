@@ -63,7 +63,7 @@ windowdragbox {
   margin: 5px 0 9px;
   -moz-appearance: none;
   background-color: rgba(0, 0, 0, 0.55);
-  -moz-border-radius: 3px;
+  border-radius: 3px;
   -moz-box-shadow: 0 1px rgba(255, 255, 255, 0.4);
 }
 
@@ -126,15 +126,15 @@ tab[selected=true]:-moz-window-inactive {
 
 #tabs:-moz-locale-dir(ltr) > :first-child,
 #tabs:-moz-locale-dir(rtl) > :last-child {
-  -moz-border-radius-topleft: 2px;
-  -moz-border-radius-bottomleft: 2px;
+  border-top-left-radius: 2px;
+  border-bottom-left-radius: 2px;
    border-left: none !important;
 }
 
 #tabs:-moz-locale-dir(ltr) > :last-child,
 #tabs:-moz-locale-dir(rtl) > :first-child {
-  -moz-border-radius-topright: 2px;
-  -moz-border-radius-bottomright: 2px;
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
 }
 
 /* Misc */
