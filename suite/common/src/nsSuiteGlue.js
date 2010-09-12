@@ -961,16 +961,25 @@ SuiteGlue.prototype = {
 
 }
 
-function GeolocationPrompt() {}
+function ContentPermissionPrompt() {}
 
-GeolocationPrompt.prototype = {
-  classID: Components.ID("{450a13bd-0d07-4e5d-a9f0-448c201728b1}"),
+ContentPermissionPrompt.prototype = {
+  classID: Components.ID("{9d4c845d-3f09-402a-b66d-50f291d7d50f}"),
 
-  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIGeolocationPrompt]),
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIContentPermissionPrompt]),
 
   prompt: function(aRequest)
   {
-    switch (Services.perms.testExactPermission(aRequest.requestingURI, "geo")) {
+    if (aRequest.type != "geolocation")
+      return;
+
+    var requestingURI = aRequest.uri;
+
+    // Ignore requests from non-nsIStandardURLs
+    if (!(requestingURI instanceof Components.interfaces.nsIStandardURL))
+      return;
+
+    switch (Services.perms.testExactPermission(requestingURI, "geo")) {
       case Services.perms.ALLOW_ACTION:
         aRequest.allow();
         return;
@@ -980,7 +989,7 @@ GeolocationPrompt.prototype = {
     }
 
     var notificationBox =
-        aRequest.requestingWindow
+        aRequest.window
                 .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
                 .getInterface(Components.interfaces.nsIWebNavigation)
                 .QueryInterface(Components.interfaces.nsIDocShell)
@@ -999,7 +1008,7 @@ GeolocationPrompt.prototype = {
               // in tests, click can be fast enough that our hack hasn't set up the checkbox yet
               if (notification.getElementsByClassName("rememberChoice")[0] &&
                   notification.getElementsByClassName("rememberChoice")[0].checked)
-                Services.perms.add(aRequest.requestingURI, "geo",
+                Services.perms.add(requestingURI, "geo",
                                    Services.perms.ALLOW_ACTION);
               aRequest.allow();
             },
@@ -1010,7 +1019,7 @@ GeolocationPrompt.prototype = {
               // in tests, click can be fast enough that our hack hasn't set up the checkbox yet
               if (notification.getElementsByClassName("rememberChoice")[0] &&
                   notification.getElementsByClassName("rememberChoice")[0].checked)
-                Services.perms.add(aRequest.requestingURI, "geo",
+                Services.perms.add(requestingURI, "geo",
                                    Services.perms.DENY_ACTION);
               aRequest.cancel();
             },
@@ -1018,7 +1027,7 @@ GeolocationPrompt.prototype = {
 
       var message =
           notificationBundle.formatStringFromName("geolocation.siteWantsToKnow",
-                                                  [aRequest.requestingURI.spec], 1);
+                                                  [requestingURI.spec], 1);
       var newBar = notificationBox.appendNotification(message,
                                                       "geolocation",
                                                       "chrome://communicator/skin/icons/geo.png",
@@ -1053,4 +1062,4 @@ GeolocationPrompt.prototype = {
 };
 
 //module initialization
-var NSGetFactory = XPCOMUtils.generateNSGetFactory([SuiteGlue, GeolocationPrompt]);
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([SuiteGlue, ContentPermissionPrompt]);
