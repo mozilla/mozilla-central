@@ -151,16 +151,6 @@
   border-color: -moz-mac-focusring;
 }
 
-.tab-close-button {
-  margin: 0;
-}
-
-.tabmail-strip {
-  border-bottom: 1px solid #A1A1A1;
-  padding-bottom: 3px;
-  background-color: #E8E8E8;
-}
-
 /* ..... folder pane adjustments ..... */
 
 .folderview-cycler,
@@ -192,7 +182,12 @@
 
 /* ..... tabmail ..... */
 
+.tabmail-strip {
+  border-bottom: 1px solid #A1A1A1;
+  padding-bottom: 3px;
+  background-color: #E8E8E8;
+}
+
 .tab-close-button {
   margin: 0;
 }
-
