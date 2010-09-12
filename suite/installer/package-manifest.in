@@ -637,6 +637,12 @@
 @BINPATH@/defaults/autoconfig/prefcalls.js
 
 ; [Layout Engine Resources]
+; Layout debug extension.
+#ifdef MOZ_DEBUG
+@BINPATH@/chrome/layoutdebug.jar
+@BINPATH@/chrome/layoutdebug.manifest
+@BINPATH@/components/layout_debug.xpt
+#endif
 ; Style Sheets, Graphics and other Resources used by the layout engine. 
 @BINPATH@/res/contenteditable.css
 @BINPATH@/res/designmode.css
