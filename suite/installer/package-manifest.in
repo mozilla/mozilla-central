@@ -638,10 +638,13 @@
 
 ; [Layout Engine Resources]
 ; Layout debug extension.
+#ifdef ENABLE_TESTS
 #ifdef MOZ_DEBUG
 @BINPATH@/chrome/layoutdebug.jar
 @BINPATH@/chrome/layoutdebug.manifest
+@BINPATH@/components/@DLL_PREFIX@gkdebug@DLL_SUFFIX@
 @BINPATH@/components/layout_debug.xpt
+#endif
 #endif
 ; Style Sheets, Graphics and other Resources used by the layout engine. 
 @BINPATH@/res/contenteditable.css

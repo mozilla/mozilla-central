@@ -41,8 +41,12 @@ chrome/icons/default/msgcomposeWindow16.xpm
 chrome/icons/default/venkman-window.xpm
 chrome/icons/default/venkman-window16.xpm
 chrome/installed-chrome.txt
+#ifndef ENABLE_TESTS
+chrome/layoutdebug.jar
+#else
 #ifndef MOZ_DEBUG
 chrome/layoutdebug.jar
+#endif
 #endif
 chrome/reporter.jar
 chrome/reporter.manifest
@@ -61,6 +65,13 @@ components/components.list
 components/compreg.dat
 components/crashreporter.xpt
 components/downloadmanager.xpt
+#ifndef ENABLE_TESTS
+components/@DLL_PREFIX@gkdebug@DLL_SUFFIX@
+#else
+#ifndef MOZ_DEBUG
+components/@DLL_PREFIX@gkdebug@DLL_SUFFIX@
+#endif
+#endif
 components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
 components/mozbrwsr.xpt
 components/@DLL_PREFIX@mozfind@DLL_SUFFIX@
