@@ -64,7 +64,7 @@ windowdragbox {
   -moz-appearance: none;
   background-color: rgba(0, 0, 0, 0.55);
   border-radius: 3px;
-  -moz-box-shadow: 0 1px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 1px rgba(255, 255, 255, 0.4);
 }
 
 .tab-middle {
@@ -93,19 +93,19 @@ tab {
 
 tab:active:hover {
   background: #B5B5B5;
-  -moz-box-shadow: inset rgba(0, 0, 0, 0.3) 0 -6px 14px, inset #000 0 1px 4px, inset rgba(0, 0, 0, 0.2) 0 1px 4px;
+  box-shadow: inset rgba(0, 0, 0, 0.3) 0 -6px 10px, inset #000 0 1px 3px, inset rgba(0, 0, 0, 0.2) 0 1px 3px;
 }
 
 tab[selected=true] {
   color: #FFF !important;
   text-shadow:  0 1px rgba(0, 0, 0, 0.4);
   background: #606060;
-  -moz-box-shadow: inset #2A2A2A 0 3px 5px;
+  box-shadow: inset #2A2A2A 0 3px 3.5px;
 }
 
 tab[selected=true]:active:hover {
   background-color: #4E4E4E;
-  -moz-box-shadow: inset #1c1c1c 0 3px 5px;
+  box-shadow: inset #1c1c1c 0 3px 3.5px;
 }
 
 #tabs:-moz-window-inactive {
@@ -121,7 +121,7 @@ tab:-moz-window-inactive {
 tab[selected=true]:-moz-window-inactive {
   color: #E6E6E6 !important; /* remove this when we support click-through */
   background: #8E8E8E;
-  -moz-box-shadow: inset rgba(0, 0, 0, 0.5) 0 3px 5px;
+  box-shadow: inset rgba(0, 0, 0, 0.5) 0 3px 3.5px;
 }
 
 #tabs:-moz-locale-dir(ltr) > :first-child,

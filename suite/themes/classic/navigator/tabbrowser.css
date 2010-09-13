@@ -6,7 +6,7 @@
   padding: 0px;
   /* 1px ThreeDShadow bottom border that doesn't take up space and that
      selected panel can just draw over */
-  -moz-box-shadow: 0px -1px ThreeDShadow inset;
+  box-shadow: 0px -1px ThreeDShadow inset;
 }
 
 tabpanels {

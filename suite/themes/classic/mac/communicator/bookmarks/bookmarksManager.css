@@ -119,7 +119,7 @@ button[group="scopeBar"][checked="true"] {
 
 button[group="scopeBar"]:active:hover,
 button[group="scopeBar"][checked="true"] {
-  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.4), 0 1px rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.4), 0 1px rgba(255, 255, 255, 0.4);
 }
 
 button[group="scopeBar"]:active:hover {
@@ -145,18 +145,18 @@ button[group="scopeBar"]:active:hover {
   border: 1px solid rgba(0, 0, 0, .4);
   text-shadow: 0 1px rgba(255, 255, 255, .4);
   background: -moz-linear-gradient(top, #FFF, #CACACA) repeat-x;
-  -moz-box-shadow: 0 1px rgba(255, 255, 255, .4);
+  box-shadow: 0 1px rgba(255, 255, 255, .4);
 }
 
 #saveSearch:active:hover {
   background: #CCCCCC;
-  -moz-box-shadow: inset 0 1px 4px rgba(0, 0, 0, .2), 0 1px rgba(255, 255, 255, .4);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2), 0 1px rgba(255, 255, 255, .4);
 }
 
 #saveSearch:focus {
-  -moz-box-shadow: 0 0 1px -moz-mac-focusring inset, 0 0 4px 1px -moz-mac-focusring, 0 0 2px 1px -moz-mac-focusring, 0 1px rgba(255, 255, 255, .4);
+  box-shadow: 0 0 1px -moz-mac-focusring inset, 0 0 3px 1px -moz-mac-focusring, 0 0 1.5px 1px -moz-mac-focusring, 0 1px rgba(255, 255, 255, .4);
 }
 
 #saveSearch:active:hover:focus {
-  -moz-box-shadow: 0 0 1px -moz-mac-focusring inset, 0 0 4px 1px -moz-mac-focusring, 0 0 2px 1px -moz-mac-focusring, inset 0 1px 4px rgba(0, 0, 0, .2), 0 1px rgba(255, 255, 255, .4);
+  box-shadow: 0 0 1px -moz-mac-focusring inset, 0 0 3px 1px -moz-mac-focusring, 0 0 1.5px 1px -moz-mac-focusring, inset 0 1px 3px rgba(0, 0, 0, .2), 0 1px rgba(255, 255, 255, .4);
 }
