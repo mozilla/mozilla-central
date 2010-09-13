@@ -182,9 +182,6 @@ var urlListener = {
 
 function run_test()
 {
-  if ("@mozilla.org/gnome-gconf-service;1" in Cc)
-    return;
-
   // quarantine messages
   let prefs = Cc["@mozilla.org/preferences-service;1"]
                 .getService(Ci.nsIPrefBranch);
