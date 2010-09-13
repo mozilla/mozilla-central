@@ -94,7 +94,7 @@
                    type="number"
                    size="1"
                    min="0"
-                   oninput="updateReminder(event)"/>
+                   onkeyup="updateReminder(event)"/>
           <menulist id="reminder-unit" oncommand="updateReminder(event)" flex="1">
             <menupopup id="reminder-unit-menupopup">
               <menuitem id="reminder-minutes-menuitem"
