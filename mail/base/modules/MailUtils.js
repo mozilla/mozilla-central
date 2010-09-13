@@ -288,11 +288,13 @@ var MailUtils =
                      .getService(Ci.nsIStringBundleService).createBundle(
                          "chrome://messenger/locale/messenger.properties");
 
-      let title = bundle.getString("openWindowWarningTitle");
-      let message = bundle.getFormattedString("openWindowWarningText", [numMessages]);
+      let title = bundle.GetStringFromName("openWindowWarningTitle");
+      let params = [numMessages];
+      let message = bundle.formatStringFromName("openWindowWarningText",
+                                                params, params.length);
       let promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
                             .getService(Ci.nsIPromptService);
-      if (!promptService.confirm(null, title, text))
+      if (!promptService.confirm(null, title, message))
         return;
     }
 
