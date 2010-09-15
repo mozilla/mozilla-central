@@ -332,6 +332,9 @@ endif
 libs:: $(srcdir)/profile/prefs.js
 	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin/defaults/profile
 
+libs:: blocklist.xml
+	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin
+
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 
 AB := $(firstword $(subst -, ,$(AB_CD)))

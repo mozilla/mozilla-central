@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist">
+  <emItems>
+    <emItem id="langpack-vi-VN@firefox.mozilla.org">
+      <versionRange minVersion="2.0" maxVersion="2.0"/>
+    </emItem>
+    <emItem id="masterfiler@gmail.com">
+      <versionRange severity="3"/>
+    </emItem>
+    <emItem id="support@daemon-tools.cc">
+      <versionRange minVersion=" " maxVersion="1.0.0.5"/>
+    </emItem>
+    <emItem id="{2224e955-00e9-4613-a844-ce69fccaae91}"/>
+    <emItem id="{3f963a5b-e555-4543-90e2-c3908898db71}">
+      <versionRange minVersion=" " maxVersion="8.5"/>
+    </emItem>
+    <emItem id="{847b3a00-7ab1-11d4-8f02-006008948af5}">
+      <versionRange minVersion=" " maxVersion="0.97a">
+        <targetApplication id="{3550f703-e582-4d05-9a08-453d09bdfdc6}">
+           <versionRange minVersion="3.0pre" maxVersion="*"/>
+        </targetApplication>
+      </versionRange>
+    </emItem>
+    <emItem id="{8CE11043-9A15-4207-A565-0C94C42D590D}"/>
+    <emItem id="{B13721C7-F507-4982-B2E5-502A71474FED}">
+      <versionRange minVersion=" " maxVersion="3.3.0.3970" severity="1"/>
+    </emItem>
+    <emItem id="{E8E88AB0-7182-11DF-904E-6045E0D72085}"/>
+  </emItems>
+<pluginItems>
+  <pluginItem>
+    <match name="filename" exp="NPFFAddOn.dll"/>
+    <versionRange/>
+  </pluginItem>
+  <pluginItem>
+    <match name="filename" exp="NPMySrch.dll"/>
+    <versionRange/>
+  </pluginItem>
+</pluginItems>
+</blocklist>
