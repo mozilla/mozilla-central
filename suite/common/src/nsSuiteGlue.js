@@ -456,37 +456,11 @@ SuiteGlue.prototype = {
 
   _showRightsNotification: function(aSubject) {
     // Stick the notification onto the selected tab of the active browser window.
-    var browser = aSubject.getBrowser(); // for closure in notification bar callback
-    var notifyBox = browser.getNotificationBox();
-
-    var brandBundle  = Services.strings.createBundle("chrome://branding/locale/brand.properties");
-    var rightsBundle = Services.strings.createBundle("chrome://branding/locale/aboutRights.properties");
-
-    var buttonLabel      = rightsBundle.GetStringFromName("buttonLabel");
-    var buttonAccessKey  = rightsBundle.GetStringFromName("buttonAccessKey");
-    var productName      = brandBundle.GetStringFromName("brandFullName");
-    var notifyRightsText = rightsBundle.formatStringFromName("notifyRightsText",
-                                                             [productName], 1);
-
-    var buttons = [
-                    {
-                      label:     buttonLabel,
-                      accessKey: buttonAccessKey,
-                      popup:     null,
-                      callback: function(aNotificationBar, aButton) {
-                        browser.selectedTab = browser.addTab("about:rights");
-                      }
-                    }
-                  ];
+    aSubject.getBrowser().getNotificationBox().showRightsNotification();
 
     // Set pref to indicate we've shown the notficiation.
     var currentVersion = Services.prefs.getIntPref("browser.rights.version");
     Services.prefs.setBoolPref("browser.rights." + currentVersion + ".shown", true);
-
-    var box = notifyBox.appendNotification(notifyRightsText, "about-rights",
-                                           null, notifyBox.PRIORITY_INFO_LOW,
-                                           buttons);
-    box.persistence = 3; // arbitrary number, just so bar sticks around for a bit
   },
 
   /**

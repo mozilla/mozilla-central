@@ -376,6 +376,34 @@
         </body>
       </method>
 
+      <method name="showRightsNotification">
+        <body>
+          <![CDATA[
+            var rightsBundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                                         .getService(Components.interfaces.nsIStringBundleService)
+                                         .createBundle("chrome://branding/locale/aboutRights.properties");
+            var buttonLabel = rightsBundle.GetStringFromName("buttonLabel");
+            var buttonAccessKey = rightsBundle.GetStringFromName("buttonAccessKey");
+            var productName = this._brandStringBundle.GetStringFromName("brandFullName");
+            var notifyRightsText = rightsBundle.formatStringFromName("notifyRightsText", [productName], 1);
+
+            var buttons = [{
+              label: buttonLabel,
+              accessKey: buttonAccessKey,
+              popup: null,
+              callback: function (aNotificationBox, aButton) {
+                var browser = document.getBindingParent(aNotificationBox);
+                browser.addTab("about:rights", { focusNewTab: true });
+              }
+            }];
+            var box = this.appendNotification(notifyRightsText, "about-rights",
+                                              null, this.PRIORITY_INFO_LOW,
+                                              buttons);
+            box.persistence = 3; // arbitrary number, just so bar sticks around for a bit
+          ]]>
+        </body>
+      </method>
+
       <constructor>
         <![CDATA[
           var os = Components.classes["@mozilla.org/observer-service;1"]
