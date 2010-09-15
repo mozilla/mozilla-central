@@ -452,8 +452,12 @@ calMemoryCalendar.prototype = {
             }
 
             if (itemReturnOccurrences && item.recurrenceInfo) {
-                var occurrences = item.recurrenceInfo.getOccurrences(
-                    aRangeStart, aRangeEnd, aCount ? aCount - itemsFound.length : 0, {});
+                let startDate  = aRangeStart;
+                if (!aRangeStart && cal.isToDo(item)) {
+                    startDate = item.entryDate;
+                }
+                let occurrences = item.recurrenceInfo.getOccurrences(
+                    startDate, aRangeEnd, aCount ? aCount - itemsFound.length : 0, {});
                 if (wantUnrespondedInvitations) {
                     occurrences = occurrences.filter(checkUnrespondedInvitation);
                 }

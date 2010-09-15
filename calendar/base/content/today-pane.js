@@ -255,7 +255,8 @@ var TodayPane = {
      * start date.
      */
     updatePeriod: function updatePeriod() {
-        return agendaListbox.refreshPeriodDates(this.start.clone());
+        agendaListbox.refreshPeriodDates(this.start.clone());
+        updateCalendarToDoUnifinder();
     },
 
     /**

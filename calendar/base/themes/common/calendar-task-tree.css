@@ -130,6 +130,11 @@
     -moz-image-region: rect(0 13px 13px 0);
 }
 
+.calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, repeating) {
+    list-style-image: url(chrome://calendar/skin/unifinder-images.png);
+    -moz-image-region: rect(0 39px 13px 26px);
+}
+
 .calendar-task-tree-col-priority {
     list-style-image: url(chrome://calendar/skin/unifinder-images.png);
     -moz-image-region: rect(0 65px 13px 52px);

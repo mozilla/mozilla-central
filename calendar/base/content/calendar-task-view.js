@@ -187,11 +187,8 @@ function taskViewUpdate(filter) {
 
     var tree = document.getElementById("calendar-task-tree");
 
-    // set the filters
-    tree.mFilter.propertyFilter  = filter;
-    tree.mFilter.setDateFilter(filter);
-
-    tree.refresh();
+    // update the filter
+    tree.updateFilter(filter || "all");
 }
 
 /**

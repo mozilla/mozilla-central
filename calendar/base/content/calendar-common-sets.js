@@ -770,9 +770,13 @@ function setupContextItemType(event, items) {
  * @param aNewDate      The new date as a JSDate.
  */
 function minimonthPick(aNewDate) {
-  if (isSunbird() || gCurrentMode == "calendar") {
+  if (cal.isSunbird() || gCurrentMode == "calendar" || gCurrentMode == "task") {
       let cdt = jsDateToDateTime(aNewDate, currentView().timezone);
       cdt.isDate = true;
       currentView().goToDay(cdt);
+
+      // update date filter for task tree
+      let tree = document.getElementById(cal.isSunbird() ? "unifinder-todo-tree" : "calendar-task-tree");
+      tree.updateFilter();
   }
 }

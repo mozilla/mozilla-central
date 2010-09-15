@@ -76,6 +76,9 @@ function commonFinishCalendar() {
     // Unload the calendar manager
     unloadCalendarManager();
 
+    // clean up the unifinder
+    finishCalendarToDoUnifinder();
+
     // Remove the command controller
     removeCalendarCommandController();
 

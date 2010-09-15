@@ -1118,6 +1118,9 @@ function checkIfInRange(item, rangeStart, rangeEnd, returnDtstartOrDue)
 function getProgressAtom(aTask) {
     var now = new Date();
 
+    if (aTask.recurrenceInfo)
+      return "repeating";
+
     if (aTask.isCompleted)
       return "completed";
 

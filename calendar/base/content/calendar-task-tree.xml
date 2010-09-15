@@ -248,6 +248,7 @@
       <field name="mFilter">null</field>
       <field name="mStartDate">null</field>
       <field name="mEndDate">null</field>
+      <field name="mDateRangeFilter">null</field>
 
       <property name="currentIndex">
         <getter><![CDATA[
@@ -526,8 +527,11 @@
           // column (e.g., unread/flag/etc.) is clicked.
           cycleCell: function mTV_cycleCell(aRow, aCol) {
               var task = this.binding.mTaskArray[aRow];
-              if(!task)
+
+              // prevent toggling completed status for parent items of repeating tasks
+              if (!task || task.recurrenceInfo) {
                   return;
+              }
               if (aCol != null) {
                   var content = aCol.element.getAttribute("itemproperty");
                   if (content == "completed")  {
@@ -573,11 +577,11 @@
                       // return title, or "Untitled" if empty/null
                       return (task.title ? task.title.replace(/\n/g, ' ') : calGetString("calendar", "eventUntitled"));
                   case "entryDate":
-                      return this._formatDateTime(task.entryDate);
+                      return task.recurrenceInfo ? calGetString("dateFormat", "Repeating") : this._formatDateTime(task.entryDate);
                   case "dueDate":
-                      return this._formatDateTime(task.dueDate);
+                      return task.recurrenceInfo ? calGetString("dateFormat", "Repeating") : this._formatDateTime(task.dueDate);
                   case "completedDate":
-                      return this._formatDateTime(task.completedDate);
+                      return task.recurrenceInfo ? calGetString("dateFormat", "Repeating") : this._formatDateTime(task.completedDate);
                   case "percentComplete":
                       return (task.percentComplete > 0 ? task.percentComplete + "%" : "");
                   case "categories":
@@ -831,18 +835,39 @@
 
           onAddItem: function tTO_onAddItem(aItem) {
               if (cal.isToDo(aItem) &&
-                  this.binding.mFilter.isItemInFilters(aItem) &&
                   !this.mBatchCount) { 
-                  this.binding.mTreeView.addItem(aItem);
+
+                  // get occurrences of repeating items
+                  let occs;
+                  if (this.binding.mFilter.endDate) {
+                      occs = aItem.getOccurrencesBetween(this.binding.mFilter.startDate,
+                                                         this.binding.mFilter.endDate,
+                                                         {});
+                  } else {
+                      occs = [aItem];
+                  }
+                  for each (let occ in occs) {
+                      if (this.binding.mFilter.isItemInFilters(occ)) {
+                          this.binding.mTreeView.addItem(occ);
+                      }
+                  }
               }
           },
 
           onModifyItem: function tTO_onModifyItem(aNewItem, aOldItem) {
               if ((cal.isToDo(aNewItem) || cal.isToDo(aOldItem))
                   && !this.mBatchCount) {
-                  // forward the call to the view which will in turn
-                  // update the internal reference and the view.
-                  this.binding.mTreeView.modifyItem(aNewItem, aOldItem);
+
+                  if ((this.binding.mFilter.endDate) &&
+                      (aOldItem.recurrenceInfo || aNewItem.recurrenceInfo)) {
+
+                      // if item is repeating refresh to updated all modified occurrences
+                      this.binding.refresh();
+                  } else {
+                      // forward the call to the view which will in turn
+                      // update the internal reference and the view.
+                      this.binding.mTreeView.modifyItem(aNewItem, aOldItem);
+                  }
 
                   // we also need to notify potential listeners.
                   var event = document.createEvent('Events');
@@ -853,7 +878,17 @@
 
           onDeleteItem: function tTO_onDeleteItem(aDeletedItem) {
               if (cal.isToDo(aDeletedItem) && !this.mBatchCount) {
-                  this.binding.mTreeView.removeItem(aDeletedItem);
+
+                  // get occurrences of repeating items
+                  let occs;
+                  if (this.binding.mFilter.endDate) {
+                      occs = aDeletedItem.getOccurrencesBetween(this.binding.mFilter.startDate,
+                                                                this.binding.mFilter.endDate,
+                                                                {});
+                  } else {
+                      occs = [aDeletedItem];
+                  }
+                  occs.forEach(this.binding.mTreeView.removeItem, this.binding.mTreeView);
               }
           },
 
@@ -944,7 +979,7 @@
                       aCalendar.ITEM_FILTER_COMPLETED_ALL;
                   filter |= aCalendar.ITEM_FILTER_TYPE_TODO;
 
-                  if (savedThis.mFilter.startDate && savedThis.mFilter.endDate) {
+                  if (savedThis.mFilter.endDate) {
                       filter |= aCalendar.ITEM_FILTER_CLASS_OCCURRENCES;
                   }
                   aCalendar.getItems(filter,
@@ -1081,6 +1116,26 @@
           return initialDate ? initialDate : now();
         ]]></body>
       </method>
+
+      <method name="updateFilter">
+        <parameter name="aFilter"/>
+        <body><![CDATA[
+            this.mFilter.propertyFilter = aFilter || this.mFilter.propertyFilter || "all";
+            this.mDateRangeFilter = aFilter || this.mDateRangeFilter;
+            if (this.mDateRangeFilter) {
+                this.mFilter.setDateFilter(this.mDateRangeFilter);
+            } else {
+                let oneDay = cal.createDuration();
+                oneDay.days = 1;
+                this.mFilter.startDate = cal.createDateTime();
+                this.mFilter.endDate = this.getInitialDate().clone();
+                this.mFilter.endDate.addDuration(oneDay);
+            }
+
+            this.refresh();
+        ]]></body>
+      </method>
+
     </implementation>
 
     <handlers>
@@ -1155,7 +1210,7 @@
     <implementation>
       <method name="getInitialDate">
             <body><![CDATA[
-              let initialDate = agendaListbox.today.start;
+              let initialDate = agendaListbox.today ? agendaListbox.today.start : now();
               return initialDate ? initialDate : now();
             ]]></body>
       </method>

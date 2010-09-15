@@ -102,6 +102,9 @@ calFilter.prototype = {
         },
         completed: function cF_filterCompleted(item) {
             return (percentCompleted(item) >= 100);
+        },
+        repeating: function cF_filterRepeating(item) {
+            return (item.recurrenceInfo != null);
         }
     },
 
@@ -197,63 +200,78 @@ calFilter.prototype = {
  */
 
 function getDatesForFilter(aFilter) {
-    var EndDate = createDateTime();
-    var StartDate = createDateTime();
-    var Duration = createDuration();
-    var oneDay = createDuration();
+    let endDate = cal.createDateTime();
+    let startDate = cal.createDateTime();
+    let duration = cal.createDuration();
+    let oneDay = cal.createDuration();
     oneDay.days = 1;
 
-    var durFilterReg = /next|last\d+\D+$/
+    let durFilterReg = /next|last\d+\D+$/
     if (durFilterReg.exec(aFilter)) {
-        Duration =  durationFromFilter(aFilter);
-        if (!Duration) {
-          EndDate = null;
-          StartDate = null;
+        duration =  durationFromFilter(aFilter);
+        if (!duration) {
+            endDate = null;
+            startDate = null;
         } else {
-          StartDate = now();
-          EndDate = now();
-          EndDate.addDuration(Duration);
+            startDate = cal.now();
+            endDate = cal.now();
+            endDate.addDuration(duration);
         }
     } else {
       switch (aFilter) {
         case "all":
-            StartDate = null;
-            EndDate = null;
+            startDate = null;
+            endDate = null;
             break;
 
         case "today":
-            StartDate = now();
-            StartDate.isDate = true;
-            EndDate = now();
-            EndDate.isDate = true;
-            EndDate.addDuration(oneDay);
+            startDate = cal.now();
+            startDate.isDate = true;
+            endDate = cal.now();
+            endDate.isDate = true;
+            endDate.addDuration(oneDay);
             break;
 
         case "thisCalendarMonth":
-            StartDate = now().startOfMonth;
-            EndDate = now().endOfMonth;
-            EndDate.addDuration(oneDay);
+            startDate = cal.now().startOfMonth;
+            endDate = cal.now().endOfMonth;
+            endDate.addDuration(oneDay);
             break;
 
         case "future":
-            StartDate = now();
-            EndDate = null;
+            startDate = cal.now();
+            endDate = null;
             break;
 
         case "current":
-            var SelectedDate = currentView().selectedDay;
-            StartDate = SelectedDate.clone();
-            StartDate.isDate = true;
-            EndDate = StartDate.clone();
-            EndDate.addDuration(oneDay);
+            let selectedDate = currentView().selectedDay;
+            startDate = selectedDate.clone();
+            startDate.isDate = true;
+            endDate = startDate.clone();
+            endDate.addDuration(oneDay);
             break;
+
+        case "throughcurrent":
+        case "open":
+        case "overdue":
+        case "completed":
+        case "notstarted":
+            // use the later of the current date or the selected date of the current view
+            endDate = currentView().selectedDay.clone();
+            if (endDate.jsDate < cal.now().jsDate) {
+                endDate = cal.now();
+            }
+            endDate.isDate = true;
+            endDate.addDuration(oneDay);
+            break;
+
         default:
-            StartDate = null;
-            EndDate = null;
+            startDate = null;
+            endDate = null;
             break;
       }
     }
-    return [StartDate, EndDate];
+    return [startDate, endDate];
 }
 
 /**

@@ -257,13 +257,13 @@
                   accesskey="&calendar.tasks.view.filtertasks.accesskey;"
                   command="calendar_toggle_filter_command"/>
         <menuseparator id="ltnTasksViewSeparator"/>
-        <menuitem id="ltnTasksViewFilterAll"
+        <menuitem id="ltnTasksViewFilterCurrent"
                   name="filtergroup"
-                  value="all"
+                  value="throughcurrent"
                   type="radio"
                   command="calendar_task_filter_command"
-                  label="&calendar.task.filter.all.label;"
-                  accesskey="&calendar.task.filter.all.accesskey;"/>
+                  label="&calendar.task.filter.current.label;"
+                  accesskey="&calendar.task.filter.current.accesskey;"/>
         <menuitem id="ltnTasksViewFilterToday"
                   name="filtergroup"
                   value="today"
@@ -306,6 +306,13 @@
                   command="calendar_task_filter_command"
                   label="&calendar.task.filter.open.label;"
                   accesskey="&calendar.task.filter.open.accesskey;"/>
+        <menuitem id="ltnTasksViewFilterAll"
+                  name="filtergroup"
+                  value="all"
+                  type="radio"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.all.label;"
+                  accesskey="&calendar.task.filter.all.accesskey;"/>
       </menupopup>
     </menu>
   </menupopup>
@@ -515,13 +522,14 @@
                    <observes element="filterBroadcaster"
                              attribute="value"
                              onbroadcast="checkRadioControl(this.parentNode, document.getElementById('filterBroadcaster').getAttribute('value'));"/>
-                   <radio id="opt_all_filter" label="&calendar.task.filter.all.label;" value="all" command="calendar_task_filter_command"/>
+                   <radio id="opt_throughcurrent_filter" label="&calendar.task.filter.current.label;" value="throughcurrent" command="calendar_task_filter_command"/>
                    <radio id="opt_today_filter" label="&calendar.task.filter.today.label;" value="today" command="calendar_task_filter_command"/>
                    <radio id="opt_next7days_filter" label="&calendar.task.filter.next7days.label;" value="next7days" command="calendar_task_filter_command"/>
                    <radio id="opt_notstarted_filter" label="&calendar.task.filter.notstarted.label;" value="notstarted" command="calendar_task_filter_command"/>
                    <radio id="opt_overdue_filter" label="&calendar.task.filter.overdue.label;" value="overdue" command="calendar_task_filter_command"/>
                    <radio id="opt_completed_filter" label="&calendar.task.filter.completed.label;" value="completed" command="calendar_task_filter_command"/>
                    <radio id="opt_open_filter" label="&calendar.task.filter.open.label;" value="open" command="calendar_task_filter_command"/>
+                   <radio id="opt_all_filter" label="&calendar.task.filter.all.label;" value="all" command="calendar_task_filter_command"/>
                  </radiogroup>
               </modevbox>
             </modevbox>

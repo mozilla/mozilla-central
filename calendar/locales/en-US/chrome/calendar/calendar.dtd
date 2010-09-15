@@ -151,6 +151,10 @@
 <!ENTITY calendar.task.filter.completed.accesskey   "C">
 <!ENTITY calendar.task.filter.open.label            "Incomplete Tasks">
 <!ENTITY calendar.task.filter.open.accesskey        "m">
+<!ENTITY calendar.task.filter.current.label         "Current Tasks">
+<!ENTITY calendar.task.filter.current.accesskey     "u">
+<!ENTITY calendar.task.filter.repeating.label       "Repeating Tasks">
+<!ENTITY calendar.task.filter.repeating.accesskey   "R">
 
 <!ENTITY calendar.task-details.title.label           "title">
 <!ENTITY calendar.task-details.organizer.label       "from">

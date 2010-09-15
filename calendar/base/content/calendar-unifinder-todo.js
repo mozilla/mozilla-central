@@ -50,16 +50,30 @@ function prepareCalendarToDoUnifinder() {
     if (isSunbird()) {
         document.getElementById("todo-label").removeAttribute("collapsed");
     }
-    updateShowCompleted();
+
+    // add listener to update the date filters
+    getViewDeck().addEventListener("dayselect", updateCalendarToDoUnifinder, false);
+
+    updateCalendarToDoUnifinder();
 }
 
 /**
- * Handler function to update the show completed view in the unifinder todo.
+ * Updates the applied filter and show completed view of the unifinder todo.
  */
-function updateShowCompleted() {
+function updateCalendarToDoUnifinder() {
     // Set up hiding completed tasks for the unifinder-todo tree
     var showCompleted = document.getElementById("show-completed-checkbox").checked;
     var tree = document.getElementById("unifinder-todo-tree");
+
+    // update the filter
     tree.showCompleted = showCompleted;
-    tree.refresh();
+    tree.updateFilter();
+}
+
+/**
+ * Called when the window is unloaded to clean up the unifinder-todo.
+ */
+function finishCalendarToDoUnifinder() {
+    // remove listeners
+    getViewDeck().removeEventListener("dayselect", updateCalendarToDoUnifinder, false);
 }
