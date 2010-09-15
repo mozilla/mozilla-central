@@ -159,8 +159,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mail.smtpserver.smtp1.username' :  "tinderbox",
         'mail.smtpservers' :  "smtp1",
         'mail.startup.enabledMailCheckOnce' :  True,
-        'extensions.checkCompatibility.3.1b': False,
-        'extensions.checkCompatibility.3.2a': False,
+        'extensions.checkCompatibility.3.3a': False,
         # In case a developer is working on a laptop without a network
         # connection, don't detect offline mode; hence we'll still startup
         # online which is what mozmill currently requires. It'll also protect us
