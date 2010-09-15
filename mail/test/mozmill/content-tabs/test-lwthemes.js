@@ -78,6 +78,13 @@ let AlertWatcher = {
     if (!this.alerted)
       aController.waitForEval("subject.alerted", ALERT_TIMEOUT, 100, this);
 
+    // Double check the notification box has finished animating.
+    let notificationBox =
+      mc.tabmail.selectedTab.panel.getElementsByTagName("notificationbox")[0];
+    if (notificationBox && notificationBox._animating)
+      aController.waitForEval("!subject._animating", ALERT_TIMEOUT, 100,
+                              notificationBox);
+
     aController.window.document.removeEventListener("AlertActive",
                                                     this.alertActive, false);
   },
@@ -114,7 +121,6 @@ function currentLwTheme() {
 function install_theme(themeNo, previousThemeNo) {
   let notificationBox =
     mc.tabmail.selectedTab.panel.getElementsByTagName("notificationbox")[0];
-  notificationBox.slideSteps = 1;
 
   // Clicking the button will bring up a notification box requesting to allow
   // installation of the theme
@@ -122,9 +128,6 @@ function install_theme(themeNo, previousThemeNo) {
   mc.click(new elib.Elem(mc.window.content.document
                            .getElementById("install" + themeNo)));
   AlertWatcher.waitForAlert(mc);
-
-  // sleep so the one frame happens.
-  mc.sleep(55);
 
   // We're going to acknowledge the theme installation being allowed, and
   // in doing so, the theme will be installed. However, we also will get a new
@@ -141,9 +144,6 @@ function install_theme(themeNo, previousThemeNo) {
   if (currentLwTheme().id != ("test-0" + themeNo))
     throw new Error("Incorrect theme installed, expected: test-0" + themeNo +
                     " got " + currentLwTheme().id);
-
-  // sleep so the one frame happens.
-  mc.sleep(55);
 
   // Now click the undo button, no new notification bar this time.
   check_and_click_notification_box_action_in_current_tab(2, 0);
@@ -166,8 +166,6 @@ function install_theme(themeNo, previousThemeNo) {
                            .getElementById("install" + themeNo)));
   AlertWatcher.waitForAlert(mc);
 
-  mc.sleep(55);
-
   // We're going to acknowledge the theme installation being allowed, and
   // in doing so, the theme will be installed. However, we also will get a new
   // notification box displayed saying the installation is complete, so we'll
@@ -178,9 +176,6 @@ function install_theme(themeNo, previousThemeNo) {
 
   // Now just close the notification box
   close_notification_box_in_current_tab();
-
-  // Wait one frame.
-  mc.sleep(55);
 
   // And one final check for what we've got installed.
   if (!currentLwTheme())
