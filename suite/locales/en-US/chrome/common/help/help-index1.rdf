@@ -729,7 +729,7 @@
      <rdf:li>
        <rdf:Description ID="Filing_messages"
          nc:name="Filing messages"
-         nc:link="mail_help.xhtml#filing_messages_in_folders"/>
+         nc:link="mailnews_organizing.xhtml#filing_messages_in_folders"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Find_Links_As_You_Type"
@@ -1155,17 +1155,17 @@
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:copying_folders"
          nc:name="copying folders"
-         nc:link="mail_help.xhtml#moving_or_copying_a_folder"/>
+         nc:link="mailnews_organizing.xhtml#moving_or_copying_a_folder"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:creating_filters"
          nc:name="creating filters"
-         nc:link="mail_help.xhtml#creating_message_filters"/>
+         nc:link="mailnews_organizing.xhtml#creating_message_filters"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:creating_folders"
          nc:name="creating folders"
-         nc:link="mail_help.xhtml#creating_a_folder"/>
+         nc:link="mailnews_organizing.xhtml#creating_a_folder"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:creating_HTML_mail_messages"
@@ -1180,7 +1180,7 @@
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:filing_messages"
          nc:name="filing messages"
-         nc:link="mail_help.xhtml#filing_messages_in_folders"/>
+         nc:link="mailnews_organizing.xhtml#filing_messages_in_folders"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:forwarding_messages"
@@ -1225,7 +1225,7 @@
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:message_searching"
          nc:name="message searching"
-         nc:link="mail_help.xhtml#searching_through_messages"/>
+         nc:link="mailnews_organizing.xhtml#searching_through_messages"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:network_preferences"
@@ -1245,7 +1245,7 @@
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:renaming_folders"
          nc:name="renaming folders"
-         nc:link="mail_help.xhtml#renaming_a_folder"/>
+         nc:link="mailnews_organizing.xhtml#renaming_a_folder"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:replying_to_messages"
@@ -1419,7 +1419,7 @@
      <rdf:li>
        <rdf:Description ID="phishing"
          nc:name="phishing"
-         nc:link="mail_help.xhtml#phishing_detection"/>
+         nc:link="mailnews_organizing.xhtml#phishing_detection"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="plugins"
@@ -2070,7 +2070,7 @@
      <rdf:li>
        <rdf:Description ID="Tags"
          nc:name="Tags"
-         nc:link="mail_help.xhtml#tagging_messages"/>
+         nc:link="mailnews_organizing.xhtml#tagging_messages"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="themes"
