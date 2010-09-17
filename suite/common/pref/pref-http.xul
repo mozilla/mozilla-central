@@ -90,7 +90,7 @@
                    accesskey="&prefEnableHTTP11.accesskey;"/>
           </radiogroup>
 
-          <separator/>
+          <separator class="thin"/>
 
           <checkbox id="enableKeepAlive"
                     label="&prefEnableKeepAlive.label;"
@@ -117,7 +117,7 @@
                    accesskey="&prefEnableHTTP11Proxy.accesskey;"/>
           </radiogroup>
 
-          <separator/>
+          <separator class="thin"/>
 
           <checkbox id="enableKeepAliveProxy"
                     label="&prefEnableKeepAlive.label;"
@@ -133,6 +133,8 @@
     </hbox>
 
     <description>&prefPipeWarning;</description>
+
+    <separator class="thin"/>
 
     <groupbox>
       <caption label="&prefUseragent.label;"/>
