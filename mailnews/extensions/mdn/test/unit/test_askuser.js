@@ -30,6 +30,8 @@ function run_test()
   let receivedHeader = mimeHdr.extractHeader("To", false);
   dump(receivedHeader+"\n");
 
+  let localFolder = gLocalInboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  gLocalInboxFolder.addMessage("From \r\n"+ headers + "\r\nhello\r\n");
   // Need to setup some prefs  
   let prefs = Components.classes["@mozilla.org/preferences-service;1"].
                   getService(Components.interfaces.nsIPrefService);
@@ -43,7 +45,7 @@ function run_test()
 
   var msgWindow = {};
  
-  var msgHdr = {};
+  var msgHdr = gLocalInboxFolder.GetMessageHeader(0);
 
   // Everything looks good so far, let's generate the MDN response.
   var mdnGenerator = Components.classes["@mozilla.org/messenger-mdn/generator;1"]
