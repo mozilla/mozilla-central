@@ -183,15 +183,6 @@
           </menupopup>
         </menu>
 
-        <menu id="leakMenu" label="Leak Detector" hidden="true">
-          <menupopup>
-            <menuitem label="Dump Memory Leaks" oncommand="dumpMemoryLeaks();"/>
-            <menuitem label="Trace Chrome" oncommand="traceChrome();"/>
-            <menuitem label="Trace Document" oncommand="traceDocument();"/>
-            <menuitem label="Verbose" checked="false" type="checkbox"
-                      oncommand="traceVerbose(this.getAttribute('checked'))"/>
-          </menupopup>
-        </menu>
       </menupopup>
     </menu>
 
