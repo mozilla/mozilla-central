@@ -44,7 +44,7 @@
 if ("@mozilla.org/network/protocol/about;1?what=bloat" in Components.classes)
   window.addEventListener("load", onLoadBloat, false);
 
-// Unhide (and enable) the Bloat menu and its associated (shared) separator.
+// Unhide (and enable) the Bloat menu and its associated separator.
 function onLoadBloat()
 {
   window.removeEventListener("load", onLoadBloat, false);
@@ -62,6 +62,6 @@ function onLoadBloat()
       envSvc.exists("XPCOM_MEM_LEAK_LOG"))
     document.getElementById("bloatMenu").disabled = false;
 
-  document.getElementById("bloatAndLeakSeparator").hidden = false;
+  document.getElementById("bloatSeparator").hidden = false;
   document.getElementById("bloatMenu").hidden = false;
 }

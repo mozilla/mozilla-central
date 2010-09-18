@@ -170,7 +170,7 @@
         <menuitem label="Show Build Configuration"
                   oncommand="openTopWin('about:buildconfig');"/>
 
-        <menuseparator id="bloatAndLeakSeparator" hidden="true"/>
+        <menuseparator id="bloatSeparator" hidden="true"/>
 
         <menu id="bloatMenu" label="Bloat Stats" hidden="true" disabled="true">
           <menupopup>
@@ -182,7 +182,6 @@
                       oncommand="openTopWin('about:bloat?clear');"/>
           </menupopup>
         </menu>
-
       </menupopup>
     </menu>
 
