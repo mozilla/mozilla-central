@@ -643,8 +643,8 @@ tab[calview] {
     background-color: #F2F2F2;
     color: #2E4E73;
     border-bottom: 1px solid #D2D2D2;
-    -moz-border-radius-topleft: 4px;
-    -moz-border-radius-topright: 4px;  
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;  
     -moz-border-right-colors: #D2D2D2 transparent;
     -moz-border-left-colors: transparent #D2D2D2;  
     font-size: 14px;
