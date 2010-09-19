@@ -5,3 +5,7 @@ component {44346520-c5d2-44e5-a1ec-034e04d7fac4} nsMailDefaultHandler.js
 contract @mozilla.org/mail/clh;1 {44346520-c5d2-44e5-a1ec-034e04d7fac4}
 category command-line-handler x-default @mozilla.org/mail/clh;1
 category command-line-validator b-default @mozilla.org/mail/clh;1
+
+component {1c73f03a-b817-4640-b984-18c3478a9ae3} mailContentHandler.js
+contract @mozilla.org/uriloader/content-handler;1?type=text/html {1c73f03a-b817-4640-b984-18c3478a9ae3}
+contract @mozilla.org/uriloader/content-handler;1?type=text/plain {1c73f03a-b817-4640-b984-18c3478a9ae3}

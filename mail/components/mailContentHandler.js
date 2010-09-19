@@ -44,16 +44,20 @@ const Cr = Components.results;
 // defined in nsIContentHandler.idl.
 const NS_ERROR_WONT_HANDLE_CONTENT = 0x805d0001;
 
-const mch_CID = Components.ID("{1c73f03a-b817-4640-b984-18c3478a9ae3}");
-const CONTRACTID_PREFIX = "@mozilla.org/uriloader/content-handler;1?type=";
+function mailContentHandler() {
+}
+mailContentHandler.prototype = {
+  classID: Components.ID("{1c73f03a-b817-4640-b984-18c3478a9ae3}"),
 
-const CONTENT_TYPES =
-  [ "text/html",
-    "text/plain"
-  ];
+  _xpcom_factory: {
+    createInstance: function mch_factory_ci(outer, iid) {
+      if (outer)
+        throw Components.results.NS_ERROR_NO_AGGREGATION;
+      return gMailContentHandler.QueryInterface(iid);
+    }
+  },
 
-var mailContentHandler = {
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIContentHandler, Ci.nsIFactory]),
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIContentHandler]),
 
   openInExternal: function mch_OpenInExternal(uri) {
     Cc["@mozilla.org/uriloader/external-protocol-service;1"]
@@ -100,40 +104,6 @@ var mailContentHandler = {
     // No-op.
   }
 };
+var gMailContentHandler = new mailContentHandler();
 
-var Module = {
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIModule]),
-
-  getClassObject: function mod_getClassObject(compMgr, cid, iid) {
-    if (cid.equals(mch_CID))
-      return mailContentHandler.QueryInterface(iid);
-
-    throw Components.results.NS_ERROR_NO_INTERFACE;
-  },
-
-  registerSelf: function mod_registerSelf(compMgr, fileSpec, location, type) {
-    var compReg = compMgr.QueryInterface(Ci.nsIComponentRegistrar);
-
-    function registerType(contentType) {
-      compReg.registerFactoryLocation(mch_CID,
-                                      "mailContentHandler",
-                                      CONTRACTID_PREFIX + contentType,
-                                      fileSpec, location, type);
-    }
-
-    CONTENT_TYPES.forEach(registerType);
-  },
-
-  unregisterSelf: function mod_unregisterSelf(compMgr, location, type) {
-    compMgr.QueryInterface(Ci.nsIComponentRegistrar)
-           .unregisterFactoryLocation(mch_CID, location);
-  },
-
-  canUnload: function(compMgr) {
-    return true;
-  }
-};
-
-function NSGetModule(compMgr, fileSpec) {
-  return Module;
-}
+const NSGetFactory = XPCOMUtils.generateNSGetFactory([mailContentHandler]);
