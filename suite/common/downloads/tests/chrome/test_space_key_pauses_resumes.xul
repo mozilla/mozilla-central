@@ -70,9 +70,17 @@ bug413985obs.prototype = {
     if ("timer-callback" == aTopic) {
       if (this.wasFinished) {
         // We're done!
+        var dm = Components.classes["@mozilla.org/download-manager;1"]
+                           .getService(Components.interfaces.nsIDownloadManager);
+        dm.removeListener(this);
         this.mWin.close();
         SimpleTest.finish();
       } else {
+        if (!this.wasPaused)
+          this.wasPaused = true;
+        else if (!this.wasResumed)
+          this.wasResumed = true;
+
         // dispatch a space keypress to pause/resume the download
         synthesizeKey(" ", {}, this.mWin);
       }
@@ -81,41 +89,47 @@ bug413985obs.prototype = {
 
   onDownloadStateChange: function(aState, aDownload)
   {
-    if (aDownload.state == Components.interfaces.nsIDownloadManager.DOWNLOAD_DOWNLOADING &&
-        !this.wasPaused) {
-      this.wasPaused = true;
-      // We have to do this on a timer so other JS stuff that handles the UI
-      // can actually catch up to us...
-      var timer = Components.classes["@mozilla.org/timer;1"]
-                            .createInstance(Components.interfaces.nsITimer);
-      timer.init(this, 0, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
-    }
+    switch (aDownload.state) {
+      case Components.interfaces.nsIDownloadManager.DOWNLOAD_DOWNLOADING:
+        if (!this.wasPaused) {
+          ok(true, "The download was started successfully");
+          // We have to do this on a timer so other JS stuff that handles the UI
+          // can actually catch up to us...
+          var timer = Components.classes["@mozilla.org/timer;1"]
+                                .createInstance(Components.interfaces.nsITimer);
+          timer.init(this, 0, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+        } else {
+          ok(this.wasResumed, "The download was resumed successfully");
+        }
+        break;
 
-    if (aDownload.state == Components.interfaces.nsIDownloadManager.DOWNLOAD_PAUSED &&
-        !this.wasResumed) {
-      this.wasResumed = true;
-      // We have to do this on a timer so other JS stuff that handles the UI
-      // can actually catch up to us...
-      var timer = Components.classes["@mozilla.org/timer;1"]
-                            .createInstance(Components.interfaces.nsITimer);
-      timer.init(this, 0, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
-    }
+      case Components.interfaces.nsIDownloadManager.DOWNLOAD_PAUSED:
+        ok(this.wasPaused && !this.wasResumed,
+           "The download was paused successfully");
+        if (!this.wasResumed) {
+          // We have to do this on a timer so other JS stuff that handles the UI
+          // can actually catch up to us...
+          var timer = Components.classes["@mozilla.org/timer;1"]
+                                .createInstance(Components.interfaces.nsITimer);
+          timer.init(this, 0, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+        }
+        break;
 
-    if (aDownload.state == Components.interfaces.nsIDownloadManager.DOWNLOAD_FINISHED) {
-      ok(this.wasPaused && this.wasResumed,
-         "The download was paused, and then resumed to completion");
-      this.wasFinished = true;
-      aDownload.targetFile.remove(false);
+      case Components.interfaces.nsIDownloadManager.DOWNLOAD_FINISHED:
+        ok(this.wasPaused && this.wasResumed,
+           "The download was paused, and then resumed to completion");
+        this.wasFinished = true;
+        aDownload.targetFile.remove(false);
 
-      var dm = Components.classes["@mozilla.org/download-manager;1"]
-                         .getService(Components.interfaces.nsIDownloadManager);
-      dm.removeListener(this);
+        // We have to do this on a timer so other JS stuff that handles the UI
+        // can actually catch up to us...
+        var timer = Components.classes["@mozilla.org/timer;1"]
+                              .createInstance(Components.interfaces.nsITimer);
+        timer.init(this, 0, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+        break;
 
-      // We have to do this on a timer so other JS stuff that handles the UI
-      // can actually catch up to us...
-      var timer = Components.classes["@mozilla.org/timer;1"]
-                            .createInstance(Components.interfaces.nsITimer);
-      timer.init(this, 0, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+      default:
+        break;
     }
   },
   onStateChange: function(a, b, c, d, e) { },
@@ -150,7 +164,7 @@ function test()
       destFile.remove(false);
 
     var dl = dm.addDownload(Components.interfaces.nsIDownloadManager.DOWNLOAD_TYPE_DOWNLOAD,
-                            createURI("http://example.com/httpd.js"),
+                            createURI("http://example.com/tests/fonts/mplus/mplus-1p-regular.ttf"),
                             createURI(destFile), null, null,
                             Math.round(Date.now() * 1000), null, persist);
 
