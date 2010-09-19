@@ -121,7 +121,8 @@
     }
 
     if (pref && !isKeyCommand && event.button == 1 &&
-        pref.getBoolPref("middlemouse.contentLoadURL")) {
+        pref.getBoolPref("middlemouse.contentLoadURL") &&
+        !pref.getBoolPref("general.autoScroll")) {
       middleMousePaste(event);
     }
     return true;
