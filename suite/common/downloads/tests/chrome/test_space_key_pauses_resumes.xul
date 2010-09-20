@@ -89,6 +89,7 @@ bug413985obs.prototype = {
 
   onDownloadStateChange: function(aState, aDownload)
   {
+    ok(true, "State value = " + aDownload.state);
     switch (aDownload.state) {
       case Components.interfaces.nsIDownloadManager.DOWNLOAD_DOWNLOADING:
         if (!this.wasPaused) {
