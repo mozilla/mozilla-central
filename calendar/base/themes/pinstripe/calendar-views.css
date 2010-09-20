@@ -65,14 +65,15 @@ calendar-category-box:not([categories]) {
 }
 
 /* Multiday view */
+
 /* Margin that allows event creation by click and drag when the time slot is
-   full of events. On the left side in normal view ... */
-box[anonid="topbox"][orient="horizontal"] {
-    -moz-margin-start: 5px;
+   full of events. On the right side in normal view ... */
+stack[anonid="boxstack"] > box[anonid="topbox"][orient="horizontal"] {
+    -moz-margin-end: 5px;
 }
-/* ... and on top in rotate view. */
-box[anonid="topbox"][orient="vertical"] {
-    margin-top: 5px;
+/* ... and on bottom in rotate view. */
+stack[anonid="boxstack"] > box[anonid="topbox"][orient="vertical"] {
+    margin-bottom: 5px;
 }
 
 calendar-event-column {
