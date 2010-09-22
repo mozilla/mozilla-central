@@ -44,12 +44,12 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE = mailhistory
 LIBRARY_NAME = mailhistory_s
-ifdef BUILD_STATIC_LIBS
-MOZILLA_INTERNAL_API = 1
-else
+# Linux builds should use external API except when we are building libxul.
 ifneq ($(MOZ_WIDGET_TOOLKIT), gtk2)
 MOZILLA_INTERNAL_API = 1
 endif
+ifdef MOZ_ENABLE_LIBXUL
+MOZILLA_INTERNAL_API = 1
 endif
 
 CPPSRCS = \
