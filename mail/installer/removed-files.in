@@ -95,6 +95,11 @@ components/@DLL_PREFIX@walletviewers@DLL_SUFFIX@
   components/widget_mac.xpt
 #endif
 components/@DLL_PREFIX@xpcom_compat_c@DLL_SUFFIX@
+#ifdef XP_OS2
+  components/@DLL_PREFIX@xpcomcor@DLL_SUFFIX@
+#else
+  components/@DLL_PREFIX@xpcom_core@DLL_SUFFIX@
+#endif
 components/xpcom_obsolete.xpt
 components/xpinstall.xpt
 components/@DLL_PREFIX@xpinstal@DLL_SUFFIX@
@@ -408,125 +413,125 @@ components/palmSync.xpt
 
 # ****************************************************************************
 # * The first of two chunks of removing shared libraries: this removes the   *
-# * current shared libraries if we are going from a current shared build to  *
-# * a static build; the next removes the Windows dlls that were present when *
-* * we switched to static builds by default, in 2004-05. If a new library is *
+# * shared libraries if we are going from a current shared build to a static *
+# * build, although unlikely, we'll keep them in here anyway.                *
+# * The next removes the Windows dlls that were present when                 *
+# * we switched to static builds by default, in 2004-05. If a new library is *
 # * added, it should be added here, if a library is removed, the dll should  *
 # * be added below if it was present in 2004.                                *
 # ****************************************************************************
-#ifdef MOZ_STATIC_BUILD
-  components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
-  components/@DLL_PREFIX@appshell@DLL_SUFFIX@
-  components/@DLL_PREFIX@auth@DLL_SUFFIX@
-  components/@DLL_PREFIX@autoconfig@DLL_SUFFIX@
-  components/@DLL_PREFIX@caps@DLL_SUFFIX@
-  components/@DLL_PREFIX@chardet@DLL_SUFFIX@
-  components/@DLL_PREFIX@chrome@DLL_SUFFIX@
+components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
+components/@DLL_PREFIX@appshell@DLL_SUFFIX@
+components/@DLL_PREFIX@auth@DLL_SUFFIX@
+components/@DLL_PREFIX@autoconfig@DLL_SUFFIX@
+components/@DLL_PREFIX@caps@DLL_SUFFIX@
+components/@DLL_PREFIX@chardet@DLL_SUFFIX@
+components/@DLL_PREFIX@chrome@DLL_SUFFIX@
+#ifdef XP_WIN
+  components/@DLL_PREFIX@cmdlines@DLL_SUFFIX@
+#else
+  components/@DLL_PREFIX@commandlines@DLL_SUFFIX@
+#endif
+components/@DLL_PREFIX@composer@DLL_SUFFIX@
+components/@DLL_PREFIX@cookie@DLL_SUFFIX@
+components/@DLL_PREFIX@docshell@DLL_SUFFIX@
+components/@DLL_PREFIX@embedcomponents@DLL_SUFFIX@
+components/@DLL_PREFIX@fileview@DLL_SUFFIX@
+components/@DLL_PREFIX@gkgfxthebes@DLL_SUFFIX@
+components/@DLL_PREFIX@gklayout@DLL_SUFFIX@
+components/@DLL_PREFIX@gkplugin@DLL_SUFFIX@
+components/@DLL_PREFIX@gkwidget@DLL_SUFFIX@
+#ifdef XP_WIN
+  components/@DLL_PREFIX@gkparser@DLL_SUFFIX@
+#else
+  components/@DLL_PREFIX@htmlpars@DLL_SUFFIX@
+#endif
+components/@DLL_PREFIX@i18n@DLL_SUFFIX@
+components/@DLL_PREFIX@imgicon@DLL_SUFFIX@
+components/@DLL_PREFIX@imglib2@DLL_SUFFIX@
+components/@DLL_PREFIX@import@DLL_SUFFIX@
+components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
+components/@DLL_PREFIX@jar50@DLL_SUFFIX@
+#ifndef XP_WIN
+  components/@DLL_PREFIX@jsd@DLL_SUFFIX@
+#else
+  components/@DLL_PREFIX@jsd3250@DLL_SUFFIX@
+#endif
+components/@DLL_PREFIX@mail@DLL_SUFFIX@
+#ifdef XP_OS2
+  components/@DLL_PREFIX@mailcmp@DLL_SUFFIX@
+#else
   #ifdef XP_WIN
-    components/@DLL_PREFIX@cmdlines@DLL_SUFFIX@
-  #else
-    components/@DLL_PREFIX@commandlines@DLL_SUFFIX@
-  #endif
-  components/@DLL_PREFIX@composer@DLL_SUFFIX@
-  components/@DLL_PREFIX@cookie@DLL_SUFFIX@
-  components/@DLL_PREFIX@docshell@DLL_SUFFIX@
-  components/@DLL_PREFIX@embedcomponents@DLL_SUFFIX@
-  components/@DLL_PREFIX@fileview@DLL_SUFFIX@
-  components/@DLL_PREFIX@gkgfxthebes@DLL_SUFFIX@
-  components/@DLL_PREFIX@gklayout@DLL_SUFFIX@
-  components/@DLL_PREFIX@gkplugin@DLL_SUFFIX@
-  components/@DLL_PREFIX@gkwidget@DLL_SUFFIX@
-  #ifdef XP_WIN
-    components/@DLL_PREFIX@gkparser@DLL_SUFFIX@
-  #else
-    components/@DLL_PREFIX@htmlpars@DLL_SUFFIX@
-  #endif
-  components/@DLL_PREFIX@i18n@DLL_SUFFIX@
-  components/@DLL_PREFIX@imgicon@DLL_SUFFIX@
-  components/@DLL_PREFIX@imglib2@DLL_SUFFIX@
-  components/@DLL_PREFIX@import@DLL_SUFFIX@
-  components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
-  components/@DLL_PREFIX@jar50@DLL_SUFFIX@
-  components/@DLL_PREFIX@mail@DLL_SUFFIX@
-  #ifdef XP_OS2
     components/@DLL_PREFIX@mailcmp@DLL_SUFFIX@
-  #else
-    #ifdef XP_WIN
-      components/@DLL_PREFIX@mailcmp@DLL_SUFFIX@
-    #endif
-    components/@DLL_PREFIX@mailcomps@DLL_SUFFIX@
   #endif
-  components/@DLL_PREFIX@mork@DLL_SUFFIX@
-  components/@DLL_PREFIX@mozfind@DLL_SUFFIX@
-  components/@DLL_PREFIX@mozldap@DLL_SUFFIX@
-  components/@DLL_PREFIX@msgMapi@DLL_SUFFIX@
-  components/@DLL_PREFIX@msgsmime@DLL_SUFFIX@
-  components/@DLL_PREFIX@necko@DLL_SUFFIX@
-  #ifdef XP_WIN
-    components/@DLL_PREFIX@appshell@DLL_SUFFIX@
-    components/@DLL_PREFIX@perms@DLL_SUFFIX@
-  #else
-    components/@DLL_PREFIX@nsappshell@DLL_SUFFIX@
-    components/@DLL_PREFIX@permissions@DLL_SUFFIX@
-  #endif
-  components/@DLL_PREFIX@pipboot@DLL_SUFFIX@
-  components/@DLL_PREFIX@pipnss@DLL_SUFFIX@
-  components/@DLL_PREFIX@pippki@DLL_SUFFIX@
-  #ifdef XP_WIN
-    components/@DLL_PREFIX@xppref32@DLL_SUFFIX@
-  #else
-    components/@DLL_PREFIX@pref@DLL_SUFFIX@
-  #endif
-  components/@DLL_PREFIX@rdf@DLL_SUFFIX@
-  components/@DLL_PREFIX@remoteservice@DLL_SUFFIX@
-  #ifdef XP_WIN
-    components/@DLL_PREFIX@spellchk@DLL_SUFFIX@
-    components/@DLL_PREFIX@strgcmps@DLL_SUFFIX@
-  #else
-    components/@DLL_PREFIX@spellchecker@DLL_SUFFIX@
-    components/@DLL_PREFIX@storagecomps@DLL_SUFFIX@
-  #endif
-  components/@DLL_PREFIX@system-pref@DLL_SUFFIX@
-  #ifdef XP_WIN
-    components/@DLL_PREFIX@tkautoc@DLL_SUFFIX@
-    components/@DLL_PREFIX@tkitcmps@DLL_SUFFIX@
-  #else
-    components/@DLL_PREFIX@tkautocomplete@DLL_SUFFIX@
-    components/@DLL_PREFIX@toolkitcomps@DLL_SUFFIX@
-  #endif
-  components/@DLL_PREFIX@txmgr@DLL_SUFFIX@
-  components/@DLL_PREFIX@uconv@DLL_SUFFIX@
-  components/@DLL_PREFIX@ucvmath@DLL_SUFFIX@
-  components/@DLL_PREFIX@universalchardet@DLL_SUFFIX@
-  components/@DLL_PREFIX@unixproxy@DLL_SUFFIX@
-  components/@DLL_PREFIX@osxproxy@DLL_SUFFIX@
-  components/@DLL_PREFIX@webbrwsr@DLL_SUFFIX@
-  components/@DLL_PREFIX@widget_gtk2@DLL_SUFFIX@
-  components/@DLL_PREFIX@widget_mac@DLL_SUFFIX@
-  components/@DLL_PREFIX@gkwidget@DLL_SUFFIX@
-  components/@DLL_PREFIX@windowds@DLL_SUFFIX@
-  #ifdef XP_WIN
-    components/@DLL_PREFIX@xpautoc@DLL_SUFFIX@
-    components/@DLL_PREFIX@xpc3250@DLL_SUFFIX@
-  #else
-    components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
-    components/@DLL_PREFIX@xpconnect@DLL_SUFFIX@
-  #endif
-  components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
-  @DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
-  @DLL_PREFIX@gkgfx@DLL_SUFFIX@
-  @DLL_PREFIX@gtkxtbin@DLL_SUFFIX@
-  @DLL_PREFIX@mozz@DLL_SUFFIX@
-  @DLL_PREFIX@thebes@DLL_SUFFIX@
-  #ifdef XP_WIN
-    xpcshell.exe
-  #else
-    xpcshell
-  #endif
-  @DLL_PREFIX@xul@DLL_SUFFIX@
-  #ifdef XP_MACOSX
-    XUL
-  #endif
+  components/@DLL_PREFIX@mailcomps@DLL_SUFFIX@
+#endif
+components/@DLL_PREFIX@mork@DLL_SUFFIX@
+components/@DLL_PREFIX@mozfind@DLL_SUFFIX@
+components/@DLL_PREFIX@mozldap@DLL_SUFFIX@
+components/@DLL_PREFIX@msgMapi@DLL_SUFFIX@
+components/@DLL_PREFIX@msgsmime@DLL_SUFFIX@
+components/@DLL_PREFIX@necko@DLL_SUFFIX@
+#ifdef XP_WIN
+  components/@DLL_PREFIX@appshell@DLL_SUFFIX@
+  components/@DLL_PREFIX@perms@DLL_SUFFIX@
+#else
+  components/@DLL_PREFIX@nsappshell@DLL_SUFFIX@
+  components/@DLL_PREFIX@permissions@DLL_SUFFIX@
+#endif
+components/@DLL_PREFIX@pipboot@DLL_SUFFIX@
+components/@DLL_PREFIX@pipnss@DLL_SUFFIX@
+components/@DLL_PREFIX@pippki@DLL_SUFFIX@
+#ifdef XP_WIN
+  components/@DLL_PREFIX@xppref32@DLL_SUFFIX@
+#else
+  components/@DLL_PREFIX@pref@DLL_SUFFIX@
+#endif
+components/@DLL_PREFIX@rdf@DLL_SUFFIX@
+components/@DLL_PREFIX@remoteservice@DLL_SUFFIX@
+#ifdef XP_WIN
+  components/@DLL_PREFIX@spellchk@DLL_SUFFIX@
+  components/@DLL_PREFIX@strgcmps@DLL_SUFFIX@
+#else
+  components/@DLL_PREFIX@spellchecker@DLL_SUFFIX@
+  components/@DLL_PREFIX@storagecomps@DLL_SUFFIX@
+#endif
+components/@DLL_PREFIX@system-pref@DLL_SUFFIX@
+#ifdef XP_WIN
+  components/@DLL_PREFIX@tkautoc@DLL_SUFFIX@
+  components/@DLL_PREFIX@tkitcmps@DLL_SUFFIX@
+#else
+  components/@DLL_PREFIX@tkautocomplete@DLL_SUFFIX@
+  components/@DLL_PREFIX@toolkitcomps@DLL_SUFFIX@
+#endif
+components/@DLL_PREFIX@txmgr@DLL_SUFFIX@
+components/@DLL_PREFIX@uconv@DLL_SUFFIX@
+components/@DLL_PREFIX@ucvmath@DLL_SUFFIX@
+components/@DLL_PREFIX@universalchardet@DLL_SUFFIX@
+components/@DLL_PREFIX@unixproxy@DLL_SUFFIX@
+components/@DLL_PREFIX@osxproxy@DLL_SUFFIX@
+components/@DLL_PREFIX@webbrwsr@DLL_SUFFIX@
+components/@DLL_PREFIX@widget_gtk2@DLL_SUFFIX@
+components/@DLL_PREFIX@widget_mac@DLL_SUFFIX@
+components/@DLL_PREFIX@gkwidget@DLL_SUFFIX@
+components/@DLL_PREFIX@windowds@DLL_SUFFIX@
+#ifdef XP_WIN
+  components/@DLL_PREFIX@xpautoc@DLL_SUFFIX@
+  components/@DLL_PREFIX@xpc3250@DLL_SUFFIX@
+#else
+  components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
+  components/@DLL_PREFIX@xpconnect@DLL_SUFFIX@
+#endif
+components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
+@DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
+@DLL_PREFIX@gkgfx@DLL_SUFFIX@
+@DLL_PREFIX@gtkxtbin@DLL_SUFFIX@
+@DLL_PREFIX@mozz@DLL_SUFFIX@
+@DLL_PREFIX@thebes@DLL_SUFFIX@
+#ifdef XP_WIN
+  xpcshell.exe
+#else
+  xpcshell
 #endif
 # ****************************************************************************
 # * End removing current shared libraries                                    *

@@ -66,7 +66,7 @@ endif
 
 ifeq ($(OS_ARCH),WINNT)
 ifndef GNU_CC
-PARALLEL_DIRS	+= mapi/mapiDLL mapi/mapihook
+TOOL_DIRS += mapi/mapiDLL mapi/mapihook
 endif
 endif
 

@@ -85,15 +85,8 @@ MOZ_PKG_MAC_ICON=branding/disk.icns
 MOZ_PKG_MAC_EXTRA=--symlink "/Applications:/ "
 endif
 
-# You do *NOT* want to set MAIL_PKG_SHARED: shared builds are slower at
-# everything except being rebuilt. It only exists so we can package builds
-# where xpcshell will work, to run tests on packaged builds. If you want to
-# package, install, or build an installer, build with --enable-static in your
-# mozconfig instead.
-ifndef MAIL_PKG_SHARED
-ifndef BUILD_STATIC_LIBS
-$(error you need an "--enable-static" build to package a build)
-endif
+ifndef MOZ_ENABLE_LIBXUL
+$(error you need an "--enable-libxul" build to package a build)
 endif
 
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk

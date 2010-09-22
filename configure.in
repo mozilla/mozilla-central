@@ -6528,8 +6528,8 @@ else
     XPCOM_LIBS="$DYNAMIC_XPCOM_LIBS"
 fi
 
-dnl Disable static mail in debug builds, but not with libxul sdk.
-if test -n "$MOZ_DEBUG" -a -z "$LIBXUL_SDK"; then
+dnl Disable static mail in debug builds, but not with libxul.
+if test -n "$MOZ_DEBUG" -a -z "$MOZ_ENABLE_LIBXUL"; then
    MOZ_STATIC_MAIL_BUILD=
 fi
 
@@ -6725,7 +6725,14 @@ if test "$MOZ_LDAP_XPCOM"; then
     else
         LDAP_LIBS='-L${DIST}/bin -L${DIST}/lib -lldap60 -lprldap60 -lldif60'
     fi
+
+    dnl export LDAP_LIBS so that confvars.sh can pick it up, so when we get to
+    dnl linking libxul in the mozilla-central build system, we'll have the LDAP
+    dnl LIBS
+    export LDAP_LIBS
+    export LDAP_COMPONENT=mozldap
 fi
+
 
 dnl ========================================================
 dnl =

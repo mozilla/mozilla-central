@@ -1,4 +1,3 @@
-#
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,18 +11,18 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is mozilla.org code.
+# The Original Code is the Mozilla build system.
 #
 # The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
+#   Kyle Huey <me@kylehuey.com>
+# Portions created by the Initial Developer are Copyright (C) 2010
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
 #
 # Alternatively, the contents of this file may be used under the terms of
-# either of the GNU General Public License Version 2 or later (the "GPL"),
-# or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
 # in which case the provisions of the GPL or the LGPL are applicable instead
 # of those above. If you wish to allow use of your version of this file only
 # under the terms of either the GPL or the LGPL, and not to allow others to
@@ -35,22 +34,17 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../..
-topsrcdir	= @top_srcdir@
-srcdir		= @srcdir@
-VPATH		= @srcdir@
+APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/mozilla/xpfe/components/autocomplete
 
-include $(DEPTH)/config/autoconf.mk
+#ifdef MOZ_LDAP_XPCOM
+APP_LIBXUL_STATICDIRS += $(DEPTH)$(SUBDIR)/directory/c-sdk
+APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/directory/xpcom
+#endif
 
-MODULE		= msgbase
-
-PARALLEL_DIRS	= public src util ispdata
-
-DIRS		= search/public
-
-ifdef ENABLE_TESTS
-TOOL_DIRS += test
+ifdef MOZ_MAIL_NEWS
+APP_LIBXUL_DIRS += \
+  $(DEPTH)$(SUBDIR)/mailnews/base \
+  $(DEPTH)$(SUBDIR)/mailnews/mime/public \
+  $(DEPTH)$(SUBDIR)/mailnews \
+  $(NULL)
 endif
-
-include $(topsrcdir)/config/rules.mk
-

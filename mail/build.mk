@@ -37,13 +37,19 @@
 
 ifndef COMM_BUILD # Mozilla Makefile
 
+ifdef MOZ_ENABLE_LIBXUL
+SUBDIR=/..
+include $(topsrcdir)/../bridge/bridge.mk
+# For libxul builds this gets linked into libxul. For non-libxul
+# builds, the build of components is controlled in mail/Makefile.in
+APP_LIBXUL_DIRS += $(DEPTH)/../mail/components
+endif
+
 ifndef LIBXUL_SDK
 include $(topsrcdir)/toolkit/toolkit-tiers.mk
 endif
 
 TIERS += app
-
-tier_app_dirs += xpfe/components/autocomplete
 
 ifdef MOZ_EXTENSIONS
 tier_app_dirs += extensions
@@ -51,24 +57,20 @@ endif
 
 else # toplevel Makefile
 
-TIERS += app
-
-ifdef MOZ_LDAP_XPCOM
-tier_app_staticdirs += directory/c-sdk
-tier_app_dirs += directory/xpcom
+ifndef MOZ_ENABLE_LIBXUL
+SUBDIR =
+include $(topsrcdir)/bridge/bridge.mk
+tier_app_staticdirs += $(APP_LIBXUL_STATICDIRS)
+tier_app_dirs += $(APP_LIBXUL_DIRS)
 endif
+
+TIERS += app
 
 ifdef MOZ_COMPOSER
 tier_app_dirs += editor/ui
 endif
 
 tier_app_dirs += $(MOZ_BRANDING_DIRECTORY)
-
-tier_app_dirs += \
-	mailnews/base \
-	mailnews/mime/public \
-	mailnews \
-	$(NULL)
 
 ifdef MOZ_CALENDAR
 tier_app_dirs += calendar/lightning

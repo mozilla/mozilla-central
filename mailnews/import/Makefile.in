@@ -58,7 +58,7 @@ endif
 endif
 
 ifdef ENABLE_TESTS
-PARALLEL_DIRS	+= test
+TOOL_DIRS += test
 endif
 
 DIRS = build

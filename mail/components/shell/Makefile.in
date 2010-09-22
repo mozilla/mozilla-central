@@ -49,12 +49,12 @@ DEFINES += -DMOZ_APP_NAME=\"$(MOZ_APP_NAME)\"
 MODULE = shellservice
 LIBRARY_NAME = shellservice_s
 MODULE_NAME = nsMailShellModule
-ifdef BUILD_STATIC_LIBS
-MOZILLA_INTERNAL_API = 1
-else
+# Linux builds should use external API except when we are building libxul.
 ifneq ($(MOZ_WIDGET_TOOLKIT), gtk2)
 MOZILLA_INTERNAL_API = 1
 endif
+ifdef MOZ_ENABLE_LIBXUL
+MOZILLA_INTERNAL_API = 1
 endif
 
 EXTRA_COMPONENTS = \
