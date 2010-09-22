@@ -54,19 +54,11 @@
 @BINPATH@/@DLL_PREFIX@plc4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plds4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@xpcom@DLL_SUFFIX@
-#ifdef XP_OS2
-@BINPATH@/@DLL_PREFIX@xpcomcor@DLL_SUFFIX@
-#else
-@BINPATH@/@DLL_PREFIX@xpcom_core@DLL_SUFFIX@
-#endif
 @BINPATH@/@DLL_PREFIX@nspr4@DLL_SUFFIX@
-#ifndef MOZ_STATIC_BUILD
-@BINPATH@/@DLL_PREFIX@mozz@DLL_SUFFIX@
 #ifdef XP_MACOSX
 @BINPATH@/XUL
 #else
 @BINPATH@/@DLL_PREFIX@xul@DLL_SUFFIX@
-#endif
 #endif
 #ifdef WINCE
 @BINPATH@/mozce_shunt.dll
@@ -344,11 +336,6 @@
 #endif
 @BINPATH@/components/jar.xpt
 @BINPATH@/components/jsdservice.xpt
-#ifdef XP_WIN32
-@BINPATH@/components/@DLL_PREFIX@jsd3250@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@jsd@DLL_SUFFIX@
-#endif
 @BINPATH@/components/layout_base.xpt
 @BINPATH@/components/layout_forms.xpt
 #ifdef NS_PRINTING

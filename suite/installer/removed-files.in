@@ -192,6 +192,7 @@ modules/dbViewWrapper.js
 modules/mailViewManager.js
 modules/quickSearchManager.js
 modules/searchSpec.js
+@DLL_PREFIX@mozz@DLL_SUFFIX@
 #ifdef XP_WIN
 #ifdef MOZ_MEMORY
 Microsoft.VC80.CRT.manifest
@@ -310,6 +311,12 @@ msgbsutl.dll
 #else
 @DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
 #endif
+#ifdef XP_WIN32
+  components/@DLL_PREFIX@jsd3250@DLL_SUFFIX@
+#else
+  components/@DLL_PREFIX@jsd@DLL_SUFFIX@
+#endif
+
 
 #ifdef MOZ_STATIC_BUILD
 ; 'MOZ_STATIC_BUILD' case.
@@ -373,6 +380,7 @@ components/@DLL_PREFIX@webbrwsr@DLL_SUFFIX@
 components/@DLL_PREFIX@widget_gtk2@DLL_SUFFIX@
 components/@DLL_PREFIX@windowds@DLL_SUFFIX@
 components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
+components/@DLL_PREFIX@xpcom_core@DLL_SUFFIX@
 components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
 #ifdef XP_MACOSX
 components/libjar50.dylib
@@ -387,7 +395,6 @@ components/xppref32.dll
 #ifdef UNIX_BUT_NOT_MAC
 @DLL_PREFIX@gtkxtbin@DLL_SUFFIX@
 #endif
-@DLL_PREFIX@mozz@DLL_SUFFIX@
 @DLL_PREFIX@thebes@DLL_SUFFIX@
 #ifdef XP_MACOSX
 XUL
