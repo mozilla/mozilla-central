@@ -103,151 +103,8 @@
 @BINPATH@/mozilla-xremote-client
 @BINPATH@/run-mozilla.sh
 #endif
-#ifndef MOZ_STATIC_BUILD
-@BINPATH@/@DLL_PREFIX@angle@DLL_SUFFIX@
-#ifdef UNIX_BUT_NOT_MAC
-@BINPATH@/@DLL_PREFIX@gtkxtbin@DLL_SUFFIX@
-#endif
-@BINPATH@/@DLL_PREFIX@gkgfx@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@ycbcr@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@thebes@DLL_SUFFIX@
-#endif
 
 ; [Components]
-#ifndef MOZ_STATIC_BUILD
-; shared component binaries
-#ifdef ACCESSIBILITY
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@access@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
-#endif
-#endif
-@BINPATH@/components/@DLL_PREFIX@appcomps@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@auth@DLL_SUFFIX@
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@autocfg@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@autoconfig@DLL_SUFFIX@
-#endif
-@BINPATH@/components/@DLL_PREFIX@chardet@DLL_SUFFIX@
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@cmdlines@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@commandlines@DLL_SUFFIX@
-#endif
-@BINPATH@/components/@DLL_PREFIX@composer@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@cookie@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@docshell@DLL_SUFFIX@
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@embedcmp@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@embedcomponents@DLL_SUFFIX@
-#endif
-#ifdef UNIX_BUT_NOT_MAC
-@BINPATH@/components/@DLL_PREFIX@fileview@DLL_SUFFIX@
-#endif
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@gkgfxthb@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@gkgfxthebes@DLL_SUFFIX@
-#endif
-@BINPATH@/components/@DLL_PREFIX@gklayout@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@gkplugin@DLL_SUFFIX@
-#ifdef XP_WIN32
-@BINPATH@/components/@DLL_PREFIX@gkwidget@DLL_SUFFIX@
-#endif
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@gkparser@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@htmlpars@DLL_SUFFIX@
-#endif
-@BINPATH@/components/@DLL_PREFIX@i18n@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@imgicon@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@imglib2@DLL_SUFFIX@
-#ifdef BUILD_CTYPES
-@BINPATH@/components/@DLL_PREFIX@jsctypes@DLL_SUFFIX@
-#endif
-@BINPATH@/components/@DLL_PREFIX@jsperf@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@mork@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@necko@DLL_SUFFIX@
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@appshell@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@perms@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@nsappshell@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@permissions@DLL_SUFFIX@
-#endif
-@BINPATH@/components/@DLL_PREFIX@places@DLL_SUFFIX@
-#ifdef XP_WIN32
-@BINPATH@/components/@DLL_PREFIX@xppref32@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@pref@DLL_SUFFIX@
-#endif
-#ifdef XP_WIN32
-@BINPATH@/components/@DLL_PREFIX@windowsproxy@DLL_SUFFIX@
-#elifdef XP_UNIX
-#ifdef XP_MACOSX
-@BINPATH@/components/@DLL_PREFIX@osxproxy@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@unixproxy@DLL_SUFFIX@
-#endif
-#endif
-@BINPATH@/components/@DLL_PREFIX@rdf@DLL_SUFFIX@
-#ifdef UNIX_BUT_NOT_MAC
-@BINPATH@/components/@DLL_PREFIX@remoteservice@DLL_SUFFIX@
-#endif
-@BINPATH@/components/@DLL_PREFIX@satchel@DLL_SUFFIX@
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@spellchk@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@strgcmps@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@spellchecker@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@storagecomps@DLL_SUFFIX@
-#endif
-#ifdef UNIX_BUT_NOT_MAC
-@BINPATH@/components/@DLL_PREFIX@system-pref@DLL_SUFFIX@
-#endif
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@tkautoc@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@tkitcmps@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@tkautocomplete@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@toolkitcomps@DLL_SUFFIX@
-#endif
-@BINPATH@/components/@DLL_PREFIX@txmgr@DLL_SUFFIX@
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@mozuconv@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@uconv@DLL_SUFFIX@
-#endif
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@ucdet@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@universalchardet@DLL_SUFFIX@
-#endif
-@BINPATH@/components/@DLL_PREFIX@webbrwsr@DLL_SUFFIX@
-#ifdef MOZ_GTK2
-@BINPATH@/components/@DLL_PREFIX@widget_gtk2@DLL_SUFFIX@
-#elifdef XP_MACOSX
-@BINPATH@/components/@DLL_PREFIX@widget_mac@DLL_SUFFIX@
-#elifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@wdgtos2@DLL_SUFFIX@
-#endif
-@BINPATH@/components/@DLL_PREFIX@windowds@DLL_SUFFIX@
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@xpautoc@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
-#endif
-#ifdef XP_OS2
-@BINPATH@/components/@DLL_PREFIX@zipwrite@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
-#endif
-; ! MOZ_STATIC_BUILD
-#endif
-
 @BINPATH@/components/components.manifest
 #ifdef ACCESSIBILITY
 #ifdef XP_WIN32
@@ -331,9 +188,6 @@
 @BINPATH@/components/inspector.xpt
 @BINPATH@/components/interfaces.manifest
 @BINPATH@/components/intl.xpt
-#ifndef MOZ_STATIC_BUILD
-@BINPATH@/components/@DLL_PREFIX@jar50@DLL_SUFFIX@
-#endif
 @BINPATH@/components/jar.xpt
 @BINPATH@/components/jsdservice.xpt
 @BINPATH@/components/layout_base.xpt
@@ -382,6 +236,7 @@
 @BINPATH@/components/shistory.xpt
 @BINPATH@/components/smile.xpt
 @BINPATH@/components/spellchecker.xpt
+@BINPATH@/components/startupcache.xpt
 @BINPATH@/components/storage.xpt
 @BINPATH@/components/@DLL_PREFIX@suite@DLL_SUFFIX@
 @BINPATH@/components/suitebrowser.xpt
@@ -633,7 +488,6 @@
 #ifdef MOZ_DEBUG
 @BINPATH@/chrome/layoutdebug.jar
 @BINPATH@/chrome/layoutdebug.manifest
-@BINPATH@/components/@DLL_PREFIX@gkdebug@DLL_SUFFIX@
 @BINPATH@/components/layout_debug.xpt
 #endif
 #endif
@@ -676,11 +530,6 @@
 
 ; [Personal Security Manager]
 ;
-#ifndef MOZ_STATIC_BUILD
-@BINPATH@/components/@DLL_PREFIX@pipboot@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@pipnss@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@pippki@DLL_SUFFIX@
-#endif
 @BINPATH@/components/pipboot.xpt
 @BINPATH@/components/pipnss.xpt
 @BINPATH@/components/pippki.xpt
@@ -715,9 +564,6 @@ bin/libfreebl_32int64_3.so
 #endif
 
 ; LDAP components need to be in the browser for AutoConfig
-#ifndef MOZ_STATIC_BUILD
-@BINPATH@/components/@DLL_PREFIX@mozldap@DLL_SUFFIX@
-#endif
 @BINPATH@/components/mozldap.xpt
 @BINPATH@/components/nsLDAPProtocolHandler.js
 #ifdef XP_WIN32
@@ -770,49 +616,6 @@ bin/libfreebl_32int64_3.so
 #endif
 
 [mail]
-; MailNews component binaries
-#ifndef MOZ_STATIC_BUILD
-@BINPATH@/components/@DLL_PREFIX@import@DLL_SUFFIX@
-#ifdef XP_WIN32
-@BINPATH@/components/msgMapi.dll
-#endif
-@BINPATH@/components/@DLL_PREFIX@msgsmime@DLL_SUFFIX@
-
-#ifdef MOZ_STATIC_MAIL_BUILD
-@BINPATH@/components/@DLL_PREFIX@mail@DLL_SUFFIX@
-#else
-@BINPATH@/components/@DLL_PREFIX@addrbook@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@bayesflt@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@fts3tok@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@mailview@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@mime@DLL_SUFFIX@
-#ifdef XP_OS2
-@BINPATH@/components/mimeemit.dll
-#else
-@BINPATH@/components/@DLL_PREFIX@mimeemitter@DLL_SUFFIX@
-#endif
-@BINPATH@/components/@DLL_PREFIX@msgbase@DLL_SUFFIX@
-#ifdef XP_OS2
-@BINPATH@/components/msgcompo.dll
-#else
-@BINPATH@/components/@DLL_PREFIX@msgcompose@DLL_SUFFIX@
-#endif
-@BINPATH@/components/@DLL_PREFIX@msgdb@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@msgimap@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@msglocal@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@msgmdn@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@msgnews@DLL_SUFFIX@
-@BINPATH@/components/@DLL_PREFIX@vcard@DLL_SUFFIX@
-#ifdef XP_OS2
-@BINPATH@/msgbsutl.dll
-#else
-@BINPATH@/@DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
-#endif
-; ! MOZ_STATIC_MAIL_BUILD
-#endif
-; ! MOZ_STATIC_BUILD
-#endif
-
 ; MailNews component xpts
 @BINPATH@/components/addrbook.xpt
 @BINPATH@/components/nsAddrbook.manifest

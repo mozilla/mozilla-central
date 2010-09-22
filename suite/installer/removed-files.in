@@ -51,10 +51,6 @@ chrome/layoutdebug.jar
 chrome/reporter.jar
 chrome/reporter.manifest
 chrome/venkman.jar
-#ifndef ACCESSIBILITY
-; '! MOZ_STATIC_BUILD' case.
-components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
-#endif
 components/airbag.xpt
 components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
@@ -280,10 +276,9 @@ updater.app/Contents/MacOS/updater.ini
 xpicleanup@BIN_SUFFIX@
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 
-#ifndef MOZ_STATIC_MAIL_BUILD
-; '! MOZ_STATIC_BUILD' case.
+; pre-libxul static mail library
 components/@DLL_PREFIX@mail@DLL_SUFFIX@
-#else
+; shared mail libraries
 components/@DLL_PREFIX@addrbook@DLL_SUFFIX@
 components/@DLL_PREFIX@bayesflt@DLL_SUFFIX@
 components/@DLL_PREFIX@fts3tok@DLL_SUFFIX@
@@ -317,9 +312,7 @@ msgbsutl.dll
   components/@DLL_PREFIX@jsd@DLL_SUFFIX@
 #endif
 
-
-#ifdef MOZ_STATIC_BUILD
-; 'MOZ_STATIC_BUILD' case.
+; pre-static-build, pre-libxul shared libraries
 components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
 components/@DLL_PREFIX@appcomps@DLL_SUFFIX@
 components/@DLL_PREFIX@auth@DLL_SUFFIX@
@@ -400,10 +393,6 @@ components/xppref32.dll
 XUL
 #else
 @DLL_PREFIX@xul@DLL_SUFFIX@
-#endif
-; MOZ_STATIC_BUILD
-#endif
-; MOZ_STATIC_MAIL_BUILD
 #endif
 
 ; Library files which used to have a short name.
