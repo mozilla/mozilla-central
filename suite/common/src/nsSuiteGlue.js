@@ -961,76 +961,27 @@ ContentPermissionPrompt.prototype = {
         return;
     }
 
-    var notificationBox =
-        aRequest.window
-                .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-                .getInterface(Components.interfaces.nsIWebNavigation)
-                .QueryInterface(Components.interfaces.nsIDocShell)
-                .chromeEventHandler.parentNode.wrappedJSObject;
-
-    var notification = notificationBox.getNotificationWithValue("geolocation");
-    if (!notification) {
-      var notificationBundle =
-          Services.strings.createBundle("chrome://communicator/locale/notification.properties");
-
-      var buttons =
-          [{
-            label: notificationBundle.GetStringFromName("geolocation.shareLocation"),
-            accessKey: notificationBundle.GetStringFromName("geolocation.shareLocation.accesskey"),
-            callback: function(notification) {
-              // in tests, click can be fast enough that our hack hasn't set up the checkbox yet
-              if (notification.getElementsByClassName("rememberChoice")[0] &&
-                  notification.getElementsByClassName("rememberChoice")[0].checked)
-                Services.perms.add(requestingURI, "geo",
-                                   Services.perms.ALLOW_ACTION);
-              aRequest.allow();
-            },
-          }, {
-            label: notificationBundle.GetStringFromName("geolocation.dontShareLocation"),
-            accessKey: notificationBundle.GetStringFromName("geolocation.dontShareLocation.accesskey"),
-            callback: function(notification) {
-              // in tests, click can be fast enough that our hack hasn't set up the checkbox yet
-              if (notification.getElementsByClassName("rememberChoice")[0] &&
-                  notification.getElementsByClassName("rememberChoice")[0].checked)
-                Services.perms.add(requestingURI, "geo",
-                                   Services.perms.DENY_ACTION);
-              aRequest.cancel();
-            },
-          }];
-
-      var message =
-          notificationBundle.formatStringFromName("geolocation.siteWantsToKnow",
-                                                  [requestingURI.spec], 1);
-      var newBar = notificationBox.appendNotification(message,
-                                                      "geolocation",
-                                                      "chrome://communicator/skin/icons/geo.png",
-                                                      notificationBox.PRIORITY_INFO_HIGH,
-                                                      buttons);
-
-      // For whatever reason, if we do this immediately
-      // (eg, without the setTimeout), the "link"
-      // element does not show up in the notification
-      // bar.
-      function geolocation_hacks_to_notification () {
-        var checkbox = newBar.ownerDocument.createElementNS(XULNS, "checkbox");
-        checkbox.className = "rememberChoice";
-        checkbox.setAttribute("label", notificationBundle.GetStringFromName("geolocation.remember"));
-        newBar.appendChild(checkbox);
-
-        var link = newBar.ownerDocument.createElementNS(XULNS, "label");
-        link.className = "text-link";
-        link.setAttribute("value", notificationBundle.GetStringFromName("geolocation.learnMore"));
-
-        var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                                  .getService(Components.interfaces.nsIURLFormatter);
-        link.href = formatter.formatURLPref("browser.geolocation.warning.infoURL");
-
-        var description = newBar.ownerDocument.getAnonymousElementByAttribute(newBar, "anonid", "messageText");
-        description.appendChild(link);
-      };
-
-      notificationBox.ownerDocument.defaultView.setTimeout(geolocation_hacks_to_notification, 0);
+    function allowCallback(remember) {
+      if (remember)
+        Services.perms.add(requestingURI, "geo", Services.perms.ALLOW_ACTION);
+      aRequest.allow();
     }
+
+    function cancelCallback(remember) {
+      if (remember)
+        Services.perms.add(requestingURI, "geo", Services.perms.DENY_ACTION);
+      aRequest.cancel();
+    }
+
+    aRequest.window
+            .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+            .getInterface(Components.interfaces.nsIWebNavigation)
+            .QueryInterface(Components.interfaces.nsIDocShell)
+            .chromeEventHandler.parentNode.wrappedJSObject
+            .showGeolocationPrompt(requestingURI.spec,
+                                   "chrome://communicator/skin/icons/geo.png",
+                                   allowCallback,
+                                   cancelCallback);
   },
 };
 

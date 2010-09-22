@@ -404,6 +404,60 @@
         </body>
       </method>
 
+      <method name="showGeolocationPrompt">
+        <parameter name="spec"/>
+        <parameter name="image"/>
+        <parameter name="allowCallback"/>
+        <parameter name="cancelCallback"/>
+        <body>
+          <![CDATA[
+            var type = "geolocation";
+            if (this.getNotificationWithValue(type))
+              return;
+
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName(type + ".shareLocation"),
+              accessKey: this._stringBundle.GetStringFromName(type + ".shareLocation.accesskey"),
+              popup: null,
+              callback: function (aNotificationBox, aButton) {
+                allowCallback(aNotificationBox.checkbox.checked);
+              }
+            }, {
+              label: this._stringBundle.GetStringFromName(type + ".dontShareLocation"),
+              accessKey: this._stringBundle.GetStringFromName(type + ".dontShareLocation.accesskey"),
+              popup: null,
+              callback: function (aNotificationBox, aButton) {
+                cancelCallback(aNotificationBox.checkbox.checked);
+              }
+            }];
+            var message = this._stringBundle
+                              .formatStringFromName(type + ".siteWantsToKnow",
+                                                    [spec], 1);
+            var box = this.appendNotification(message, type, image,
+                                              this.PRIORITY_INFO_HIGH, buttons);
+            // Create the checkbox on a timeout to allow the XBL to bind first.
+            setTimeout(function(stringBundle) {
+              box.checkbox = document.createElement("checkbox");
+              box.checkbox.className = "rememberChoice";
+              box.checkbox.setAttribute("label", stringBundle.GetStringFromName(type + ".remember"));
+              box.appendChild(box.checkbox);
+              var link = document.createElement("label");
+              link.className = "text-link";
+              link.setAttribute("value", stringBundle.GetStringFromName(type + ".learnMore"));
+
+              var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                                        .getService(Components.interfaces.nsIURLFormatter);
+              link.href = formatter.formatURLPref("browser.geolocation.warning.infoURL");
+
+              document.getAnonymousElementByAttribute(box, "anonid", "messageText").appendChild(link);
+            }, 0, this._stringBundle);
+
+            // Tests try to access the checkbox before we've created it.
+            box.checkbox = { checked: false };
+          ]]>
+        </body>
+      </method>
+
       <constructor>
         <![CDATA[
           var os = Components.classes["@mozilla.org/observer-service;1"]
