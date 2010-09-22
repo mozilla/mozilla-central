@@ -102,7 +102,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         # say yes to debug output via dump
         'browser.dom.window.dump.enabled': True,
         # say no to slow script warnings
-        'dom.max_chrome_script_run_time': 200,
+        'dom.max_chrome_script_run_time': 0,
         'dom.max_script_run_time': 0,
         # disable extension stuffs
         'extensions.update.enabled'    : False,
