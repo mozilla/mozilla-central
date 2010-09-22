@@ -21,7 +21,7 @@
      <rdf:li>
        <rdf:Description ID="address_books"
          nc:name="address books"
-         nc:link="mail_help.xhtml#about_address_books"/>
+         nc:link="mailnews_addressbooks.xhtml#about_address_books"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="attaching_files_to_messages"
@@ -66,37 +66,37 @@
      <rdf:Seq><rdf:li>
        <rdf:Description ID="address_books:adding_entries"
          nc:name="adding address book entries"
-         nc:link="mail_help.xhtml#adding_entries_to_your_address_books"/>
+         nc:link="mailnews_addressbooks.xhtml#adding_entries_to_your_address_books"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="address_books:creating"
          nc:name="creating a new address book"
-         nc:link="mail_help.xhtml#creating_a_new_address_book"/>
+         nc:link="mailnews_addressbooks.xhtml#creating_a_new_address_book"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="address_books:creating_mailing_lists"
          nc:name="creating mailing lists"
-         nc:link="mail_help.xhtml#creating_a_mailing_list"/>
+         nc:link="mailnews_addressbooks.xhtml#creating_a_mailing_list"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="address_books:exporting"
          nc:name="exporting address books"
-         nc:link="mail_help.xhtml#exporting_address_books"/>
+         nc:link="mailnews_addressbooks.xhtml#exporting_address_books"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="address_books:importing"
          nc:name="importing address books"
-         nc:link="mail_help.xhtml#importing_address_books"/>
+         nc:link="mailnews_addressbooks.xhtml#importing_address_books"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="address_books:LDAP_directories"
          nc:name="LDAP directories"
-         nc:link="mail_help.xhtml#adding_and_removing_ldap_directories"/>
+         nc:link="mailnews_addressbooks.xhtml#adding_and_removing_ldap_directories"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="address_books:searching"
          nc:name="searching your address book"
-         nc:link="mail_help.xhtml#searching_address_books_and_directories"/>
+         nc:link="mailnews_addressbooks.xhtml#searching_address_books_and_directories"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -674,7 +674,7 @@
      <rdf:Seq><rdf:li>
        <rdf:Description ID="email_addresses:address_books_and"
          nc:name="adding e-mail addresses to address books"
-         nc:link="mail_help.xhtml#adding_entries_to_your_address_books"/>
+         nc:link="mailnews_addressbooks.xhtml#adding_entries_to_your_address_books"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="email_addresses:in_mail_messages"
@@ -896,7 +896,7 @@
      <rdf:Seq><rdf:li>
        <rdf:Description ID="import:address_book"
          nc:name="import address books"
-         nc:link="mail_help.xhtml#importing_address_books"/>
+         nc:link="mailnews_addressbooks.xhtml#importing_address_books"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="import:bookmark_list"
@@ -1020,7 +1020,7 @@
      <rdf:li>
        <rdf:Description ID="LDAP"
          nc:name="LDAP"
-         nc:link="mail_help.xhtml#adding_and_removing_ldap_directories"/>
+         nc:link="mailnews_addressbooks.xhtml#adding_and_removing_ldap_directories"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="lock_icon"
@@ -1050,12 +1050,12 @@
      <rdf:Seq><rdf:li>
        <rdf:Description ID="LDAP:adding_to_address_book"
          nc:name="adding directories to address book"
-         nc:link="mail_help.xhtml#adding_and_removing_ldap_directories"/>
+         nc:link="mailnews_addressbooks.xhtml#adding_and_removing_ldap_directories"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="LDAP:directory_server_settings"
          nc:name="directory server settings"
-         nc:link="mail_help.xhtml#directory_server_settings"/>
+         nc:link="mailnews_addressbooks.xhtml#directory_server_settings"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="LDAP:global_settings"
@@ -1290,7 +1290,7 @@
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:using_address_books"
          nc:name="using address books"
-         nc:link="mail_help.xhtml#using_address_books"/>
+         nc:link="mailnews_addressbooks.xhtml#using_address_books"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:using_attachments"
