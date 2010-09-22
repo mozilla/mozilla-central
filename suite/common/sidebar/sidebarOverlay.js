@@ -775,8 +775,6 @@ function sidebar_overlay_init() {
       // Obtain the pref for limiting the number of tabs in view
       try
       {
-        var prefs = Components.classes["@mozilla.org/preferences-service;1"].
-                      getService(Components.interfaces.nsIPrefBranch);
         gNumTabsInViewPref = prefs.getIntPref("sidebar.num_tabs_in_view");
       }
       catch (ex)
@@ -958,13 +956,21 @@ function get_sidebar_datasource_uri() {
 //     %LOCALE%  -->  Application locale (e.g. en-US).
 //     %SIDEBAR_VERSION% --> Sidebar file format version (e.g. 0.1).
 function get_remote_datasource_url() {
-  var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                            .getService(Components.interfaces.nsIURLFormatter);
-
-  var url = formatter.formatURLPref("sidebar.customize.all_panels.url");
-  url = url.replace(/%SIDEBAR_VERSION%/g, SIDEBAR_VERSION);
-  // Convert the %LOCALE% value (in the url) to lower case (e.g. en-us).
-  url = url.toLowerCase();
+  let url;
+  try {
+    // Can't use formatURLPref(): replace() needs to be done before formatURL(),
+    // otherwise the latter reports an (ignorable) error.
+    url = prefs.getComplexValue("sidebar.customize.all_panels.url",
+                                Components.interfaces.nsISupportsString)
+               .data
+               .replace(/%SIDEBAR_VERSION%/g, SIDEBAR_VERSION);
+    url = urlFormatter.formatURL(url);
+    // Convert the %LOCALE% value (in the url) to lower case (e.g. en-us).
+    url = url.toLowerCase();
+  } catch(ex) {
+    // "about:blank": formatURLPref() default value.
+    url = "about:blank";
+  }
 
   debug("Remote url is " + url);
   return url;
@@ -1136,8 +1142,6 @@ function BrowseMorePanels()
   var browser_url = "chrome://navigator/content/navigator.xul";
   var locale;
   try {
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch);
     url = prefs.getCharPref("sidebar.customize.directory.url");
     var temp = prefs.getCharPref("browser.chromeURL");
     if (temp) browser_url = temp;
