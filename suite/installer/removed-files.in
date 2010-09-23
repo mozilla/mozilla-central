@@ -69,9 +69,6 @@ components/@DLL_PREFIX@gkdebug@DLL_SUFFIX@
 #endif
 #endif
 components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
-#ifndef MOZ_IPC
-components/messageWakeupService.js
-#endif
 components/mozbrwsr.xpt
 components/@DLL_PREFIX@mozfind@DLL_SUFFIX@
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@

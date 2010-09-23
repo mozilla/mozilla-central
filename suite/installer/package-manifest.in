@@ -308,10 +308,11 @@
 @BINPATH@/components/GPSDGeolocationProvider.manifest
 @BINPATH@/components/jsconsole-clhandler.js
 @BINPATH@/components/jsconsole-clhandler.manifest
-#ifdef MOZ_IPC
-@BINPATH@/components/messageWakeupService.js
-@BINPATH@/components/messageWakeupService.manifest
-#endif
+; This is not used yet, so don't package it at all
+;#ifdef MOZ_IPC
+;@BINPATH@/components/messageWakeupService.js
+;@BINPATH@/components/messageWakeupService.manifest
+;#endif
 @BINPATH@/components/NetworkGeolocationProvider.js
 @BINPATH@/components/NetworkGeolocationProvider.manifest
 @BINPATH@/components/nsAbout.js
