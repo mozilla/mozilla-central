@@ -606,10 +606,21 @@ pref("dom.disable_window_flip",        true);
 // prevent JS from disabling or replacing context menus
 pref("dom.event.contextmenu.enabled",  true);
 
-#ifndef MOZ_IPC
+// The default for this pref reflects whether the build is capable of IPC.
+// (Turning it on in a no-IPC build will have no effect.)
+#ifdef XP_MACOSX
+// OSX still has only partial support for IPC.  Note that the PowerPC
+// and x86 builds must generate identical copies of this file, so we
+// can't make the prefs indicate that IPC is not available at all in
+// PowerPC builds.
 pref("dom.ipc.plugins.enabled", false);
-#else
+// These plug-ins will run OOP by default
+pref("dom.ipc.plugins.enabled.flash player.plugin", true);
+pref("dom.ipc.plugins.enabled.javaplugin2_npapi.plugin", true);
+#elifdef MOZ_IPC
 pref("dom.ipc.plugins.enabled", true);
+#else
+pref("dom.ipc.plugins.enabled", false);
 #endif
 
 // plugin finder service url

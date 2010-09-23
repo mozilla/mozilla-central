@@ -47,9 +47,6 @@
 
 [xpcom]
 @BINPATH@/dependentlibs.list
-#ifdef MOZ_IPC
-@BINPATH@/mozilla-runtime@BIN_SUFFIX@
-#endif
 @BINPATH@/@DLL_PREFIX@mozjs@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plc4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plds4@DLL_SUFFIX@
@@ -59,6 +56,13 @@
 @BINPATH@/XUL
 #else
 @BINPATH@/@DLL_PREFIX@xul@DLL_SUFFIX@
+#endif
+#ifdef MOZ_IPC
+#ifdef XP_MACOSX
+@BINPATH@/@MOZ_CHILD_PROCESS_NAME@.app/
+#else
+@BINPATH@/@MOZ_CHILD_PROCESS_NAME@
+#endif
 #endif
 #ifdef WINCE
 @BINPATH@/mozce_shunt.dll
@@ -189,6 +193,7 @@
 @BINPATH@/components/interfaces.manifest
 @BINPATH@/components/intl.xpt
 @BINPATH@/components/jar.xpt
+@BINPATH@/components/jetpack.xpt
 @BINPATH@/components/jsdservice.xpt
 @BINPATH@/components/layout_base.xpt
 @BINPATH@/components/layout_forms.xpt

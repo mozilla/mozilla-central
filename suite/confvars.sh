@@ -55,9 +55,6 @@ MOZ_HELP_VIEWER=1
 MOZ_TOOLKIT_SEARCH=
 MOZ_MORK=1
 MOZ_STATIC_BUILD_UNSUPPORTED=1
-# Until we can build with libxul, we can't have ipc either. (Bug 531292)
-MOZ_IPC=
-
 # XXX This currently specifies mork due to an error in the core build
 # config. Bug 598613 will fix this.
 MOZ_APP_COMPONENT_LIBS="mail msgsmime import xpautocomplete mork $LDAP_COMPONENT"
