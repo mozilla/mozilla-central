@@ -56,6 +56,7 @@
 #include "nsIMimeConverter.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"
+#include "nsIDateTimeFormat.h"
 
 //
 // The base emitter will serve as the place to do all of the caching,
@@ -171,6 +172,10 @@ protected:
   // For I18N Conversion...
   nsCOMPtr<nsIMimeConverter> mUnicodeConverter;
   nsString            mCharset;
+  nsCOMPtr<nsIDateTimeFormat> mDateFormatter;
+  nsresult GenerateDateString(const char * dateString, nsACString& formattedDate);
+  // The caller is expected to free the result of GetLocalizedDateString
+  char* GetLocalizedDateString(const char * dateString);
 };
 
 #endif /* _nsMimeBaseEmitter_h_ */

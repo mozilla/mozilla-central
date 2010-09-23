@@ -48,7 +48,6 @@
 #include "nsIChannel.h"
 #include "nsIMimeMiscStatus.h"
 #include "nsIMimeConverter.h"
-#include "nsIDateTimeFormat.h"
 
 class nsMimeHtmlDisplayEmitter : public nsMimeBaseEmitter {
 public:
@@ -88,8 +87,6 @@ protected:
     nsresult StartAttachmentInBody(const nsACString &name,
                                    const char *contentType, const char *url);
 
-    nsCOMPtr<nsIDateTimeFormat> mDateFormatter;
-    nsresult GenerateDateString(const char * dateString, nsACString& formattedDate);
     nsresult BroadcastHeaders(nsIMsgHeaderSink * aHeaderSink, PRInt32 aHeaderMode, PRBool aFromNewsgroup);
 };
 

@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Henrik Gemal <mozilla@gemal.dk>
+ *   Tobias Koenig <tobias.koenig@credativ.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -60,9 +61,11 @@
 #include "nsIMimeHeaders.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgMailNewsUrl.h"
+#include "nsDateTimeFormatCID.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsMsgUtils.h"
+#include "nsTextFormatter.h"
 
 static PRLogModuleInfo * gMimeEmitterLogModule = nsnull;
 
@@ -696,9 +699,133 @@ nsMimeBaseEmitter::AddAllHeaders(const nsACString &allheaders)
 ////////////////////////////////////////////////////////////////////////////////
 
 nsresult
+nsMimeBaseEmitter::GenerateDateString(const char * dateString, nsACString &formattedDate)
+{
+  nsresult rv = NS_OK;
+
+  if (!mDateFormatter) {
+    mDateFormatter = do_CreateInstance(NS_DATETIMEFORMAT_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  /**
+   * See if the user wants to have the date displayed in the senders
+   * timezone (including the timezone offset).
+   * We also evaluate the pref original_date which was introduced
+   * as makeshift in bug 118899.
+   */
+  PRBool displaySenderTimezone = PR_FALSE;
+  PRBool displayOriginalDate = PR_FALSE;
+
+  nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIPrefBranch> dateFormatPrefs;
+  rv = prefs->GetBranch("mailnews.display.", getter_AddRefs(dateFormatPrefs));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  dateFormatPrefs->GetBoolPref("date_senders_timezone", &displaySenderTimezone);
+  dateFormatPrefs->GetBoolPref("original_date", &displayOriginalDate);
+  // migrate old pref to date_senders_timezone
+  if (displayOriginalDate && !displaySenderTimezone)
+    dateFormatPrefs->SetBoolPref("date_senders_timezone", PR_TRUE);
+
+  PRExplodedTime explodedMsgTime;
+  rv = PR_ParseTimeStringToExplodedTime(dateString, PR_FALSE, &explodedMsgTime);
+  /**
+   * To determine the date format to use, comparison of current and message
+   * time has to be made. If displaying in local time, both timestamps have
+   * to be in local time. If displaying in senders time zone, leave the compare
+   * time in that time zone.
+   * Otherwise in TZ+0100 on 2009-03-12 a message from 2009-03-11T20:49-0700
+   * would be displayed as "20:49 -0700" though it in fact is not from the
+   * same day.
+   */
+  PRExplodedTime explodedCompTime;
+  if (displaySenderTimezone)
+    explodedCompTime = explodedMsgTime;
+  else
+    PR_ExplodeTime(PR_ImplodeTime(&explodedMsgTime), PR_LocalTimeParameters, &explodedCompTime);
+
+  PRExplodedTime explodedCurrentTime;
+  PR_ExplodeTime(PR_Now(), PR_LocalTimeParameters, &explodedCurrentTime);
+
+  // if the message is from today, don't show the date, only the time. (i.e. 3:15 pm)
+  // if the message is from the last week, show the day of the week.   (i.e. Mon 3:15 pm)
+  // in all other cases, show the full date (03/19/01 3:15 pm)
+  nsDateFormatSelector dateFormat = kDateFormatShort;
+  if (explodedCurrentTime.tm_year == explodedCompTime.tm_year &&
+      explodedCurrentTime.tm_month == explodedCompTime.tm_month &&
+      explodedCurrentTime.tm_mday == explodedCompTime.tm_mday)
+  {
+    // same day...
+    dateFormat = kDateFormatNone;
+  }
+
+  nsAutoString formattedDateString;
+  if (NS_SUCCEEDED(rv))
+  {
+    rv = mDateFormatter->FormatPRExplodedTime(nsnull /* nsILocale* locale */,
+                                              dateFormat,
+                                              kTimeFormatNoSeconds,
+                                              &explodedCompTime,
+                                              formattedDateString);
+
+    if (NS_SUCCEEDED(rv))
+    {
+      if (displaySenderTimezone)
+      {
+        // offset of local time from UTC in minutes
+        PRInt32 senderoffset = (explodedMsgTime.tm_params.tp_gmt_offset +
+                                explodedMsgTime.tm_params.tp_dst_offset) / 60;
+        // append offset to date string
+        PRUnichar *tzstring =
+          nsTextFormatter::smprintf(NS_LITERAL_STRING(" %+05d").get(),
+                                    (senderoffset / 60 * 100) +
+                                    (senderoffset % 60));
+        formattedDateString.Append(tzstring);
+        nsTextFormatter::smprintf_free(tzstring);
+      }
+
+      CopyUTF16toUTF8(formattedDateString, formattedDate);
+    }
+  }
+
+  return rv;
+}
+
+char*
+nsMimeBaseEmitter::GetLocalizedDateString(const char * dateString)
+{
+  char *i18nValue = nsnull;
+
+  PRBool displayOriginalDate = PR_FALSE;
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
+
+  if (prefBranch)
+    prefBranch->GetBoolPref("mailnews.display.original_date",
+                            &displayOriginalDate);
+
+  if (!displayOriginalDate)
+  {
+    nsCAutoString convertedDateString;
+    nsresult rv = GenerateDateString(dateString, convertedDateString);
+    if (NS_SUCCEEDED(rv))
+      i18nValue = strdup(convertedDateString.get());
+    else
+      i18nValue = strdup(dateString);
+  }
+  else
+    i18nValue = strdup(dateString);
+
+  return i18nValue;
+}
+
+nsresult
 nsMimeBaseEmitter::WriteHeaderFieldHTML(const char *field, const char *value)
 {
-  char  *newValue = nsnull;
+  char *newValue = nsnull;
+  char *i18nValue = nsnull;
 
   if ( (!field) || (!value) )
     return NS_OK;
@@ -710,22 +837,33 @@ nsMimeBaseEmitter::WriteHeaderFieldHTML(const char *field, const char *value)
   if (!EmitThisHeaderForPrefSetting(mHeaderDisplayType, field))
     return NS_OK;
 
+  //
+  // If we encounter the 'Date' header we try to convert it's value
+  // into localized format.
+  //
+  if ( strcmp(field, "Date") == 0 )
+    i18nValue = GetLocalizedDateString(value);
+  else
+    i18nValue = strdup(value);
+
   if ( (mUnicodeConverter) && (mFormat != nsMimeOutput::nsMimeMessageSaveAs) )
   {
     nsCString tValue;
 
     // we're going to need a converter to convert
     nsresult rv = mUnicodeConverter->DecodeMimeHeaderToCharPtr(
-      value, nsnull, PR_FALSE, PR_TRUE, getter_Copies(tValue));
+      i18nValue, nsnull, PR_FALSE, PR_TRUE, getter_Copies(tValue));
     if (NS_SUCCEEDED(rv) && !tValue.IsEmpty())
       newValue = MsgEscapeHTML(tValue.get());
     else
-      newValue = MsgEscapeHTML(value);
+      newValue = MsgEscapeHTML(i18nValue);
   }
   else
   {
-    newValue = MsgEscapeHTML(value);
+    newValue = MsgEscapeHTML(i18nValue);
   }
+
+  free(i18nValue);
 
   if (!newValue)
     return NS_OK;
