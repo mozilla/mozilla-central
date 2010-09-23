@@ -368,7 +368,6 @@ var gPermissionManager = {
                               .getService(Components.interfaces.nsIIOService);
     var prefList = [["xpinstall.whitelist.add", this._pm.ALLOW_ACTION],
                     ["xpinstall.whitelist.add.36", this._pm.ALLOW_ACTION],
-                    ["xpinstall.whitelist.add.103", this._pm.ALLOW_ACTION],
                     ["xpinstall.blacklist.add", this._pm.DENY_ACTION]];
 
     prefList.forEach(function ([pref, permission]) {
