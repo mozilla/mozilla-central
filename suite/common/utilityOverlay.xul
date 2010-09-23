@@ -364,7 +364,7 @@
                 id="releaseUrl"
                 oncommand="goReleaseNotes();"/>
 
-      <menuseparator id="menu_HelpUpdatesSeparator"/>
+      <menuseparator id="updateSeparator"/>
 
       <menuitem accesskey="&updateCmd.accesskey;" label="&updateCmd.label;"
                 id="checkForUpdates" oncommand="checkForUpdates();"/>
