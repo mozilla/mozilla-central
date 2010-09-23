@@ -57,5 +57,6 @@
     <em:iconURL>chrome://calendar/skin/cal-icon32.png</em:iconURL>
     <em:optionsURL>chrome://messenger/content/preferences/preferences.xul</em:optionsURL>
     <em:targetPlatform>@TARGET_PLATFORM@</em:targetPlatform>
+    <em:unpack>true</em:unpack>
   </Description>
 </RDF>
