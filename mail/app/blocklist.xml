@@ -30,11 +30,19 @@
 <pluginItems>
   <pluginItem>
     <match name="filename" exp="NPFFAddOn.dll"/>
-    <versionRange/>
+    <versionRange>
+    </versionRange>
   </pluginItem>
   <pluginItem>
     <match name="filename" exp="NPMySrch.dll"/>
-    <versionRange/>
+    <versionRange>
+    </versionRange>
+  </pluginItem>
+  <pluginItem>
+    <match name="name" exp="[0-6]\.0\.[01]\d{2}\.\d+"/>
+    <match name="filename" exp="npdeploytk.dll"/>
+    <versionRange severity="1">
+    </versionRange>
   </pluginItem>
 </pluginItems>
 </blocklist>
