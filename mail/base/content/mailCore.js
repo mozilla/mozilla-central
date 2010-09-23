@@ -386,23 +386,7 @@ function openOptionsDialog(aPaneID, aTabID)
 
 function openAddonsMgr(aPane)
 {
-  const EMTYPE = "Extension:Manager";
-  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                     .getService(Components.interfaces.nsIWindowMediator);
-  var theEM = wm.getMostRecentWindow(EMTYPE);
-  if (theEM) {
-    theEM.focus();
-    if (aPane)
-      theEM.showView(aPane);
-    return;
-  }
-
-  const EMURL = "chrome://mozapps/content/extensions/extensions.xul";
-  const EMFEATURES = "chrome,menubar,extra-chrome,toolbar,dialog=no,resizable";
-  if (aPane)
-    window.openDialog(EMURL, "", EMFEATURES, aPane);
-  else
-    window.openDialog(EMURL, "", EMFEATURES);
+  openContentTab("about:addons", "addons.mozilla.org");
 }
 
 function openActivityMgr()

@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 function tabProgressListener(aTab, aStartsBlank) {
   this.mTab = aTab;
@@ -146,6 +147,30 @@ var specialTabs = {
   // This will open any special tabs if necessary on startup.
   openSpecialTabsOnStartup: function() {
     window.addEventListener("unload", specialTabs.onunload, false);
+
+    let browser = document.getElementById("dummycontentbrowser");
+
+    // Manually hook up session and global history for the first browser
+    // so that we don't have to load global history before bringing up a
+    // window.
+    // Wire up session and global history before any possible
+    // progress notifications for back/forward button updating
+    browser.webNavigation.sessionHistory =
+      Components.classes["@mozilla.org/browser/shistory;1"]
+                .createInstance(Components.interfaces.nsISHistory);
+    Services.obs.addObserver(browser, "browser:purge-session-history", false);
+
+    // remove the disablehistory attribute so the browser cleans up, as
+    // though it had done this work itself
+    browser.removeAttribute("disablehistory");
+
+    // enable global history
+    try {
+      browser.docShell.QueryInterface(Components.interfaces.nsIDocShellHistory)
+             .useGlobalHistory = true;
+    } catch(ex) {
+      Components.utils.reportError("Places database may be locked: " + ex);
+    }
 
     Components.classes["@mozilla.org/observer-service;1"]
               .getService(Components.interfaces.nsIObserverService)

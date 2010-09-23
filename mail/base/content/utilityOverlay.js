@@ -318,7 +318,7 @@ function openWhatsNew()
   openContentTab(startpage);
 }
 
-function openContentTab(url)
+function openContentTab(url, handlerRegExp)
 {
   let tabmail = document.getElementById("tabmail");
   if (!tabmail) {
@@ -332,13 +332,17 @@ function openContentTab(url)
     }
   }
 
+  let clickHandler = null;
+  if (handlerRegExp)
+    clickHandler = "specialTabs.siteClickHandler(event, new RegExp(\"" + handlerRegExp + "\"));";
+
   if (tabmail)
-    tabmail.openTab("contentTab", {contentPage: url});
+    tabmail.openTab("contentTab", {contentPage: url, clickHandler: clickHandler});
   else
     window.openDialog("chrome://messenger/content/", "_blank",
                       "chrome,dialog=no,all", null,
                       { tabType: "contentTab",
-                        tabParams: {contentPage: url} });
+                        tabParams: {contentPage: url, clickHandler: clickHandler} });
 }
 
 /**
