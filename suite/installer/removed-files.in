@@ -61,14 +61,8 @@ components/components.list
 components/compreg.dat
 components/crashreporter.xpt
 components/downloadmanager.xpt
-#ifndef ENABLE_TESTS
-components/@DLL_PREFIX@gkdebug@DLL_SUFFIX@
-#else
-#ifndef MOZ_DEBUG
-components/@DLL_PREFIX@gkdebug@DLL_SUFFIX@
-#endif
-#endif
 components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
+components/@DLL_PREFIX@jar50@DLL_SUFFIX@
 components/mozbrwsr.xpt
 components/@DLL_PREFIX@mozfind@DLL_SUFFIX@
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@
@@ -267,6 +261,11 @@ Throbber-small.gif
 #ifdef XP_MACOSX
 updater.app/Contents/MacOS/updater.ini
 #endif
+#ifdef XP_OS2
+  @DLL_PREFIX@xpcomcor@DLL_SUFFIX@
+#else
+  @DLL_PREFIX@xpcom_core@DLL_SUFFIX@
+#endif
 xpicleanup@BIN_SUFFIX@
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 
@@ -300,7 +299,7 @@ msgbsutl.dll
 #else
 @DLL_PREFIX@msgbaseutil@DLL_SUFFIX@
 #endif
-#ifdef XP_WIN32
+#ifdef XP_WIN
   components/@DLL_PREFIX@jsd3250@DLL_SUFFIX@
 #else
   components/@DLL_PREFIX@jsd@DLL_SUFFIX@
@@ -329,7 +328,6 @@ components/@DLL_PREFIX@i18n@DLL_SUFFIX@
 components/@DLL_PREFIX@imgicon@DLL_SUFFIX@
 components/@DLL_PREFIX@imglib2@DLL_SUFFIX@
 components/@DLL_PREFIX@import@DLL_SUFFIX@
-components/@DLL_PREFIX@jar50@DLL_SUFFIX@
 components/@DLL_PREFIX@jsctypes@DLL_SUFFIX@
 components/@DLL_PREFIX@mail@DLL_SUFFIX@
 components/@DLL_PREFIX@mork@DLL_SUFFIX@
@@ -367,10 +365,8 @@ components/@DLL_PREFIX@webbrwsr@DLL_SUFFIX@
 components/@DLL_PREFIX@widget_gtk2@DLL_SUFFIX@
 components/@DLL_PREFIX@windowds@DLL_SUFFIX@
 components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
-components/@DLL_PREFIX@xpcom_core@DLL_SUFFIX@
 components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
 #ifdef XP_MACOSX
-components/libjar50.dylib
 components/libwidget_mac.dylib
 #endif
 #ifdef XP_WIN
