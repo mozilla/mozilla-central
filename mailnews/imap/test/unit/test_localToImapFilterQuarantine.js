@@ -54,6 +54,8 @@ load("../../../resources/IMAPpump.js");
 
 setupIMAPPump();
 
+var gFinishedRunningURL = -1;
+
 // tests
 
 const gTests = [
@@ -98,9 +100,30 @@ function getLocalMessages() {
   yield false;
 }
 
+function checkResult() {
+  if (gFinishedRunningURL == 1) {
+    async_driver();
+    gFinishedRunningURL = -1;
+    return;
+  }
+  else if (gFinishedRunningURL == 0) {
+    gSubfolder.updateFolderWithListener(null, urlListener);
+    do_timeout(100, checkResult);
+    return;
+  }
+  // Else just ignore it.
+}
+
 function updateSubfolderAndTest() {
+  // The previous function does an append, which may take a bit of time to
+  // complete. Unfortunately updateFolderWithListener succeeds successfully
+  // if there is a url running, but doesn't tell us that is the case. So we
+  // have to run updateFolderWithListener several times to actually find out
+  // when we are done.
+  gFinishedRunningURL = 0;
   gSubfolder.updateFolderWithListener(null, urlListener);
   dl('wait for OnStopRunningURL');
+  do_timeout(100, checkResult);
   yield false;
 
   // kill some time
@@ -117,7 +140,7 @@ function updateSubfolderAndTest() {
 function get2Messages()
 {
   gPOP3Pump.files = ["../../../data/bugmail10",
-                     "../../../data/draft1"]
+                     "../../../data/draft1"];
   gPOP3Pump.onDone = function() {dump('POP3Pump done\n');async_driver();};
   gPOP3Pump.run();
   dl('waiting for POP3Pump done');
@@ -125,8 +148,15 @@ function get2Messages()
 }
 
 function updateSubfolderAndTest2() {
+  // The previous function does an append, which may take a bit of time to
+  // complete. Unfortunately updateFolderWithListener succeeds successfully
+  // if there is a url running, but doesn't tell us that is the case. So we
+  // have to run updateFolderWithListener several times to actually find out
+  // when we are done.
+  gFinishedRunningURL = 0;
   gSubfolder.updateFolderWithListener(null, urlListener);
   dl('wait for OnStopRunningURL');
+  do_timeout(100, checkResult);
   yield false;
 
   // kill some time
@@ -163,7 +193,7 @@ mfnListener =
 
   msgAdded: function msgAdded(aMsg)
   {
-    dl('msgAdded to folder <' + aMsg.folder.name + '> subject <' + aMsg.subject + '>')
+    dl('msgAdded to folder <' + aMsg.folder.name + '> subject <' + aMsg.subject + '>');
   },
 
 };
@@ -174,7 +204,8 @@ var urlListener = {
   },
   OnStopRunningUrl: function _OnStopRunningUrl(aUrl, aExitCode) {
     dl('OnStopRunningUrl');
-    async_driver();
+    gFinishedRunningURL = 1;
+    checkResult();
   }
 };
 
