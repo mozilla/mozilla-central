@@ -69,11 +69,6 @@ var gIgnoreClick = false;
 var gURIFixup = null;
 var gThemes = [];
 
-var gInitialPages = [
-  "about:blank",
-  "about:sessionrestore"
-];
-
 //cached elements
 var gBrowser = null;
 
@@ -725,12 +720,13 @@ function Translate()
   }
 }
 
-function OpenSessionHistoryIn(aWhere, aDelta)
+function OpenSessionHistoryIn(aWhere, aDelta, aTab)
 {
   var win = aWhere == "window" ? null : window;
-  var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
-  var tab = ss.duplicateTab(win, gBrowser.selectedTab, aDelta, true);
+  aTab = aTab || getBrowser().selectedTab;
+  var tab = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                      .getService(Components.interfaces.nsISessionStore)
+                      .duplicateTab(win, aTab, aDelta, true);
 
   var loadInBackground = getBoolPref("browser.tabs.loadInBackground", false);
 
@@ -748,6 +744,29 @@ function OpenSessionHistoryIn(aWhere, aDelta)
       window.content.focus();
     }
   }
+}
+
+/* Firefox compatibility shim *
+ * duplicateTabIn duplicates tab in a place specified by the parameter |where|.
+ *
+ * |where| can be:
+ *  "tab"         new tab
+ *  "tabshifted"  same as "tab" but in background if default is to select new
+ *                tabs, and vice versa
+ *  "tabfocused"  same as "tab" but override any background preferences and
+ *                focus the new tab
+ *  "window"      new window
+ *
+ * historyIndex is a history index to set the page to when the new tab is
+ * created and loaded, it can for example be used to go back one page for the
+ * duplicated tab.
+ */
+function duplicateTabIn(aTab, aWhere, aHistoryIndex)
+{
+  aTab = aTab || getBrowser().selectedTab;
+  var currentIndex = aTab.linkedBrowser.sessionHistory.index;
+  var delta = aHistoryIndex == null ? 0 : aHistoryIndex - currentIndex;
+  OpenSessionHistoryIn(aWhere, delta, aTab)
 }
 
 function gotoHistoryIndex(aEvent)
@@ -1846,8 +1865,8 @@ function URLBarSetURI(aURI, aValid) {
 
   // Replace "about:blank" with an empty string
   // only if there's no opener (bug 370555).
-  if (gInitialPages.indexOf(uri.spec) != -1)
-    value = (content.opener || getWebNavigation().canGoBack) ? uri.spec : "";
+  if (uri.spec == "about:blank")
+    value = content.opener || getWebNavigation().canGoBack ? "about:blank" : "";
   else
     value = losslessDecodeURI(uri);
 
