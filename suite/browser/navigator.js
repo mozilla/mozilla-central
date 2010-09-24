@@ -69,6 +69,11 @@ var gIgnoreClick = false;
 var gURIFixup = null;
 var gThemes = [];
 
+var gInitialPages = [
+  "about:blank",
+  "about:sessionrestore"
+];
+
 //cached elements
 var gBrowser = null;
 
@@ -1841,8 +1846,8 @@ function URLBarSetURI(aURI, aValid) {
 
   // Replace "about:blank" with an empty string
   // only if there's no opener (bug 370555).
-  if (uri.spec == "about:blank")
-    value = content.opener || getWebNavigation().canGoBack ? "about:blank" : "";
+  if (gInitialPages.indexOf(uri.spec) != -1)
+    value = (content.opener || getWebNavigation().canGoBack) ? uri.spec : "";
   else
     value = losslessDecodeURI(uri);
 
