@@ -69,7 +69,9 @@ static const char* const sFeedProtocols[] = {
   "feed"
 };
 
-nsMailGNOMEIntegration::nsMailGNOMEIntegration(): mCheckedThisSession(PR_FALSE)
+nsMailGNOMEIntegration::nsMailGNOMEIntegration(): 
+                          mCheckedThisSession(PR_FALSE),
+                          mAppIsInPath(PR_FALSE)
 {}
 
 nsresult
@@ -88,6 +90,9 @@ nsMailGNOMEIntegration::Init()
   // the locale encoding.  If it's not set, they use UTF-8.
   mUseLocaleFilenames = PR_GetEnv("G_BROKEN_FILENAMES") != nsnull;
 
+  if (GetAppPathFromLauncher())
+      return NS_OK;
+
   nsCOMPtr<nsIFile> appPath;
   rv = NS_GetSpecialDirectory(NS_XPCOM_CURRENT_PROCESS_DIR,
                               getter_AddRefs(appPath));
@@ -102,6 +107,34 @@ nsMailGNOMEIntegration::Init()
 
 NS_IMPL_ISUPPORTS1(nsMailGNOMEIntegration, nsIShellService)
 
+PRBool
+nsMailGNOMEIntegration::GetAppPathFromLauncher()
+{
+  gchar *tmp;
+
+  const char *launcher = PR_GetEnv("MOZ_APP_LAUNCHER");
+  if (!launcher)
+    return PR_FALSE;
+
+  if (g_path_is_absolute(launcher)) {
+    mAppPath = launcher;
+    tmp = g_path_get_basename(launcher);
+    gchar *fullpath = g_find_program_in_path(tmp);
+    if (fullpath && mAppPath.Equals(fullpath)) {
+      mAppIsInPath = PR_TRUE;
+      g_free(fullpath);
+    }
+  } else {
+    tmp = g_find_program_in_path(launcher);
+    if (!tmp)
+      return PR_FALSE;
+    mAppPath = tmp;
+    mAppIsInPath = PR_TRUE;
+  }
+
+  g_free(tmp);
+  return PR_TRUE;
+}
 
 NS_IMETHODIMP
 nsMailGNOMEIntegration::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRBool * aIsDefaultClient)
@@ -219,9 +252,18 @@ nsresult
 nsMailGNOMEIntegration::MakeDefault(const char* const *aProtocols,
                                     unsigned int aLength)
 {
+  nsCAutoString appKeyValue;
   nsCOMPtr<nsIGConfService> gconf = do_GetService(NS_GCONFSERVICE_CONTRACTID);
-  nsCAutoString appKeyValue(mAppPath);
-  appKeyValue.AppendLiteral(" \"%s\"");
+  if(mAppIsInPath) {
+    // mAppPath is in the users path, so use only the basename as the launcher
+    gchar *tmp = g_path_get_basename(mAppPath.get());
+    appKeyValue = tmp;
+    g_free(tmp);
+  } else {
+    appKeyValue = mAppPath;
+  }
+
+  appKeyValue.AppendLiteral(" %s");
 
   for (unsigned int i = 0; i < aLength; ++i) {
     nsresult rv = gconf->SetAppForProtocol(nsDependentCString(aProtocols[i]),
