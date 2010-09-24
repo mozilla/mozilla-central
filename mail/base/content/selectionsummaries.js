@@ -115,6 +115,33 @@ function _mm_removeClass(node, classname) {
   node.setAttribute('class', newclasses.join(' '));
 }
 
+/**
+ * Format the display name for the multi-message/thread summaries. First, try
+ * using FormatDisplayName, then fall back to the header's display name or the
+ * address.
+ *
+ * @param aHeaderParser An instance of |nsIMsgHeaderParser|
+ * @param aHeaderValue  The raw header value
+ * @param aContext      The context of the header field (e.g. "to", "from")
+ * @return The formatted display name
+ */
+function _mm_FormatDisplayName(aHeaderParser, aHeaderValue, aContext)
+{
+  let addresses = {};
+  let fullNames = {};
+  let names = {};
+  let numAddresses = aHeaderParser.parseHeadersWithArray(aHeaderValue,
+    addresses, names, fullNames);
+
+  if (numAddresses > 0) {
+    return FormatDisplayName(addresses.value[0], names.value[0], aContext) ||
+      names.value[0] || addresses.value[0];
+  }
+  else {
+    // Something strange happened, just return the raw header value.
+    return aHeaderValue;
+  }
+}
 
 /**
  * the MultiMessageSummary class is responsible for populating the message pane
@@ -274,7 +301,7 @@ MultiMessageSummary.prototype = {
         msg_classes += " starred";
 
       let subject = msgs[0].mime2DecodedSubject || gSelectionSummaryStrings['noSubject'];
-      let author = headerParser.extractHeaderAddressName(msgs[0].mime2DecodedAuthor);
+      let author = _mm_FormatDisplayName(headerParser, msgs[0].mime2DecodedAuthor, "from");
 
       let countstring = "";
       if (numMsgs > 1) {
@@ -549,7 +576,7 @@ ThreadSummary.prototype = {
       if (msgHdr.isFlagged)
         msg_classes += " starred";
 
-      let senderName = headerParser.extractHeaderAddressName(msgHdr.mime2DecodedAuthor);
+      let senderName = _mm_FormatDisplayName(headerParser, msgHdr.mime2DecodedAuthor, "from");
       let date = makeFriendlyDateAgo(new Date(msgHdr.date/1000));
 
       let msgContents = <div class="row">
