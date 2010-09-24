@@ -47,6 +47,8 @@
   locale/@AB_CD@/communicator/bookmarks/editBookmarkOverlay.dtd             (%chrome/common/bookmarks/editBookmarkOverlay.dtd)
   locale/@AB_CD@/communicator/bookmarks/moveBookmarks.dtd                   (%chrome/common/bookmarks/moveBookmarks.dtd)
   locale/@AB_CD@/communicator/bookmarks/places.dtd                          (%chrome/common/bookmarks/places.dtd)
+  locale/@AB_CD@/communicator/dataman/dataman.dtd                           (%chrome/common/dataman/dataman.dtd)
+  locale/@AB_CD@/communicator/dataman/dataman.properties                    (%chrome/common/dataman/dataman.properties)
   locale/@AB_CD@/communicator/directory/directory.dtd                       (%chrome/common/directory/directory.dtd)
   locale/@AB_CD@/communicator/downloads/downloadmanager.dtd                 (%chrome/common/downloads/downloadmanager.dtd)
   locale/@AB_CD@/communicator/downloads/downloadmanager.properties          (%chrome/common/downloads/downloadmanager.properties)

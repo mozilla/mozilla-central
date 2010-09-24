@@ -1,0 +1,486 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is KaiRo's data manager.
+   -
+   - The Initial Developer of the Original Code is
+   - Robert Kaiser <kairo@kairo.at>.
+   - Portions created by the Initial Developer are Copyright (C) 2010
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Robert Kaiser <kairo@kairo.at> (original author)
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://communicator/content/dataman/dataman.css" type="text/css"?>
+<?xml-stylesheet href="chrome://communicator/skin/dataman/dataman.css" type="text/css"?>
+
+<!DOCTYPE page [
+<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+%brandDTD;
+<!ENTITY % datamanDTD SYSTEM "chrome://communicator/locale/dataman/dataman.dtd">
+%datamanDTD;
+]>
+
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      id="dataman-page" title="&dataman.windowTitle;"
+      onload="gDataman.initialize();"
+      onunload="gDataman.shutdown();">
+
+  <script type="application/javascript"
+          src="chrome://communicator/content/dataman/dataman.js"/>
+
+  <stringbundleset id="datamanBundleSet">
+    <stringbundle id="datamanBundle"
+                  src="chrome://communicator/locale/dataman/dataman.properties"/>
+  </stringbundleset>
+
+  <commandset id="datamanCommands">
+    <command id="cmd_selectAll"
+             oncommand="gTabs.selectAll();"/>
+    <command id="cmd_search_domain"
+             oncommand="gDomains.focusSearch();"/>
+    <command id="cmd_search_data"
+             oncommand="gTabs.focusSearch();"/>
+  </commandset>
+
+  <keyset id="datamanKeys">
+    <key id="key_selectAll"
+         command="cmd_selectAll"
+         key="&selectAll.key;"
+         modifiers="accel"/>
+    <key id="key_search_domain"
+         command="cmd_search_domain"
+         key="&domain.search.key;"
+         modifiers="accel"/>
+    <key id="key_search_data"
+         command="cmd_search_data"
+         key="&data.search.key;"
+         modifiers="accel"/>
+  </keyset>
+
+  <popupset id="datamanContextSet">
+    <menupopup id="domainTreeContextMenu"
+               onpopupshowing="gDomains.updateContext();">
+      <menuitem id="domain-context-forget"
+                label_domain="&domain.ctx.forgetdomain.label;"
+                accesskey_domain="&domain.ctx.forgetdomain.accesskey;"
+                label_global="&domain.ctx.forgetglobal.label;"
+                accesskey_global="&domain.ctx.forgetglobal.accesskey;"
+                oncommand="gDomains.forget();"/>
+    </menupopup>
+
+    <menupopup id="cookiesTreeContextMenu"
+               onpopupshowing="gCookies.updateContext();">
+      <menuitem id="cookies-context-remove"
+                label="&cookies.ctx.remove.label;"
+                accesskey="&cookies.ctx.remove.accesskey;"
+                oncommand="gCookies.delete();"/>
+      <menuitem id="cookies-context-selectall"
+                label="&cookies.ctx.selectAll.label;"
+                accesskey="&cookies.ctx.selectAll.accesskey;"
+                oncommand="gCookies.selectAll();"/>
+    </menupopup>
+
+    <menupopup id="prefsTreeContextMenu"
+               onpopupshowing="gPrefs.updateContext();">
+      <menuitem id="prefs-context-remove"
+                label="&prefs.ctx.remove.label;"
+                accesskey="&prefs.ctx.remove.accesskey;"
+                oncommand="gPrefs.delete();"/>
+      <menuitem id="prefs-context-selectall"
+                label="&prefs.ctx.selectAll.label;"
+                accesskey="&prefs.ctx.selectAll.accesskey;"
+                oncommand="gPrefs.selectAll();"/>
+    </menupopup>
+
+    <menupopup id="passwordsTreeContextMenu"
+               onpopupshowing="gPasswords.updateContext();">
+      <menuitem id="pwd-context-remove"
+                label="&pwd.ctx.remove.label;"
+                accesskey="&pwd.ctx.remove.accesskey;"
+                oncommand="gPasswords.delete();"/>
+      <menuitem id="pwd-context-copypassword"
+                label="&pwd.ctx.copyPasswordCmd.label;"
+                accesskey="&pwd.ctx.copyPasswordCmd.accesskey;"
+                oncommand="gPasswords.copyPassword();"/>
+      <menuitem id="pwd-context-selectall"
+                label="&pwd.ctx.selectAll.label;"
+                accesskey="&pwd.ctx.selectAll.accesskey;"
+                oncommand="gPasswords.selectAll();"/>
+    </menupopup>
+
+    <menupopup id="formdataTreeContextMenu"
+               onpopupshowing="gFormdata.updateContext();">
+      <menuitem id="fdata-context-remove"
+                label="&fdata.ctx.remove.label;"
+                accesskey="&fdata.ctx.remove.accesskey;"
+                oncommand="gFormdata.delete();"/>
+      <menuitem id="fdata-context-selectall"
+                label="&fdata.ctx.selectAll.label;"
+                accesskey="&fdata.ctx.selectAll.accesskey;"
+                oncommand="gFormdata.selectAll();"/>
+    </menupopup>
+  </popupset>
+
+  <hbox flex="1">
+    <vbox flex="1">
+      <textbox id="domainSearch"
+               clickSelectsAll="true"
+               type="search"
+               class="compact"
+               placeholder="&domain.search.placeholder;"
+               oncommand="gDomains.search(this.value);"/>
+      <tree id="domainTree"
+            seltype="single"
+            flex="1"
+            hidecolumnpicker="true"
+            onkeypress="gDomains.handleKeyPress(event);"
+            onselect="gDomains.select();"
+            context="domainTreeContextMenu">
+        <treecols>
+          <treecol id="domainCol"
+                   label="&domain.tree.domain.label;"
+                   flex="1"
+                   sortDirection="ascending"/>
+        </treecols>
+        <treechildren/>
+      </tree>
+    </vbox>
+
+    <splitter/>
+
+    <tabbox id="tabbox" flex="6">
+      <tabs onselect="gTabs.select();">
+        <tab id="cookiesTab" label="&tab.cookies.label;" disabled="true"/>
+        <tab id="permissionsTab" label="&tab.permissions.label;" disabled="true"/>
+        <tab id="preferencesTab" label="&tab.preferences.label;" disabled="true"/>
+        <tab id="passwordsTab" label="&tab.passwords.label;" disabled="true"/>
+        <tab id="formdataTab" label="&tab.formdata.label;" disabled="true"/>
+        <tab id="forgetTab" label="&tab.forget.label;" hidden="true"/>
+      </tabs>
+
+      <tabpanels id="tabpanels" flex="1">
+        <vbox id="cookiesPanel">
+          <description>&cookies.description;</description>
+          <tree id="cookiesTree"
+                flex="1"
+                onkeypress="gCookies.handleKeyPress(event);"
+                onselect="gCookies.select();"
+                context="cookiesTreeContextMenu">
+            <treecols onclick="gCookies.sort(event.target, true, true);">
+              <treecol id="cookieHostCol"
+                       label="&cookies.tree.host.label;"
+                       flex="5"
+                       persist="width hidden"/>
+              <splitter class="tree-splitter"/>
+              <treecol id="cookieNameCol"
+                       label="&cookies.tree.name.label;"
+                       flex="5"
+                       persist="width hidden"/>
+              <splitter class="tree-splitter"/>
+              <treecol id="cookieExpiresCol"
+                       label="&cookies.tree.expires.label;"
+                       flex="10"
+                       hidden="true"
+                       persist="width hidden"/>
+            </treecols>
+            <treechildren/>
+          </tree>
+
+          <groupbox>
+            <caption label="&cookies.infobox.label;"/>
+            <grid flex="1">
+              <columns>
+                <column/>
+                <column flex="1"/>
+              </columns>
+
+              <rows>
+                <row align="center">
+                  <hbox pack="end">
+                    <label value="&cookies.info.name.label;"
+                           control="cookieInfoName"/>
+                  </hbox>
+                  <textbox id="cookieInfoName" readonly="true" class="plain"/>
+                </row>
+
+                <row align="center">
+                  <hbox pack="end">
+                    <label value="&cookies.info.value.label;"
+                           control="cookieInfoValue"/>
+                  </hbox>
+                  <textbox id="cookieInfoValue" readonly="true" class="plain"/>
+                </row>
+
+                <row align="center">
+                  <hbox pack="end">
+                    <label id="cookieInfoHostLabel"
+                           value="&cookies.info.host.label;"
+                           value_host="&cookies.info.host.label;"
+                           value_domain="&cookies.info.domain.label;"
+                           control="cookieInfoHost"/>
+                  </hbox>
+                  <textbox id="cookieInfoHost" readonly="true" class="plain"/>
+                </row>
+
+                <row align="center">
+                  <hbox pack="end">
+                    <label value="&cookies.info.path.label;"
+                           control="cookieInfoPath"/>
+                  </hbox>
+                  <textbox id="cookieInfoPath" readonly="true" class="plain"/>
+                </row>
+
+                <row align="center">
+                  <hbox pack="end">
+                    <label value="&cookies.info.sendtype.label;"
+                           control="cookieInfoSendType"/>
+                  </hbox>
+                  <textbox id="cookieInfoSendType" readonly="true" class="plain"/>
+                </row>
+
+                <row align="center">
+                  <hbox pack="end">
+                    <label value="&cookies.info.expires.label;"
+                           control="cookieInfoExpires"/>
+                  </hbox>
+                  <textbox id="cookieInfoExpires" readonly="true" class="plain"/>
+                </row>
+              </rows>
+            </grid>
+          </groupbox>
+
+          <hbox id="cookieButtons" align="center">
+            <button id="cookieRemove"
+                    label="&cookies.button.remove.label;"
+                    accesskey="&cookies.button.remove.accesskey;"
+                    disabled="true"
+                    oncommand="gCookies.delete();"/>
+            <checkbox id="cookieBlockOnRemove"
+                      label="&cookies.blockOnRemove.label;"
+                      accesskey="&cookies.blockOnRemove.accesskey;"
+                      persist="checked"/>
+          </hbox>
+        </vbox>
+
+        <vbox id="permissionsPanel">
+          <richlistbox id="permList" flex="1"/>
+        </vbox>
+
+        <vbox id="preferencesPanel">
+          <description>&prefs.description;</description>
+          <tree id="prefsTree"
+                flex="1"
+                onkeypress="gPrefs.handleKeyPress(event);"
+                onselect="gPrefs.select();"
+                context="prefsTreeContextMenu">
+            <treecols onclick="gPrefs.sort(event.target, true, true);">
+              <treecol id="prefsHostCol"
+                       label="&prefs.tree.host.label;"
+                       flex="5"
+                       persist="width hidden"/>
+              <splitter class="tree-splitter"/>
+              <treecol id="prefsNameCol"
+                       label="&prefs.tree.name.label;"
+                       flex="5"
+                       persist="width hidden"/>
+              <splitter class="tree-splitter"/>
+              <treecol id="prefsValueCol"
+                       label="&prefs.tree.value.label;"
+                       flex="10"
+                       persist="width hidden"/>
+            </treecols>
+            <treechildren/>
+          </tree>
+          <hbox id="prefsButtons">
+            <button id="prefsRemove"
+                    label="&prefs.button.remove.label;"
+                    accesskey="&prefs.button.remove.accesskey;"
+                    disabled="true"
+                    oncommand="gPrefs.delete();"/>
+          </hbox>
+        </vbox>
+
+        <vbox id="passwordsPanel">
+          <description>&pwd.description;</description>
+          <tree id="passwordsTree"
+                flex="1"
+                hidecolumnpicker="true"
+                onkeypress="gPasswords.handleKeyPress(event);"
+                onselect="gPasswords.select();"
+                context="passwordsTreeContextMenu">
+            <treecols onclick="gPasswords.sort(event.target, true, true);">
+              <treecol id="pwdHostCol"
+                       label="&pwd.tree.host.label;"
+                       flex="5"
+                       persist="width"/>
+              <splitter class="tree-splitter"/>
+              <treecol id="pwdUserCol"
+                       label="&pwd.tree.username.label;"
+                       flex="2"
+                       persist="width"/>
+              <splitter class="tree-splitter"/>
+              <treecol id="pwdPasswordCol"
+                       label="&pwd.tree.password.label;"
+                       flex="2"
+                       hidden="true"
+                       persist="width"/>
+            </treecols>
+            <treechildren/>
+          </tree>
+          <hbox id="passwordButtons">
+            <button id="pwdRemove"
+                    label="&pwd.button.remove.label;"
+                    accesskey="&pwd.button.remove.accesskey;"
+                    disabled="true"
+                    oncommand="gPasswords.delete();"/>
+            <spacer flex="1"/>
+            <button id="pwdToggle"
+                    oncommand="gPasswords.togglePasswordVisible();"/>
+          </hbox>
+        </vbox>
+
+        <vbox id="formdataPanel">
+          <textbox id="fdataSearch"
+                   clickSelectsAll="true"
+                   type="search"
+                   class="compact"
+                   placeholder="&fdata.search.placeholder;"
+                   oncommand="gFormdata.search(this.value);"/>
+          <tree id="formdataTree"
+                flex="1"
+                onkeypress="gFormdata.handleKeyPress(event);"
+                onselect="gFormdata.select();"
+                context="formdataTreeContextMenu">
+            <treecols onclick="gFormdata.sort(event.target, true, true);">
+              <treecol id="fdataFieldCol"
+                       label="&fdata.tree.fieldname.label;"
+                       flex="5"
+                       persist="width hidden"/>
+              <splitter class="tree-splitter"/>
+              <treecol id="fdataValueCol"
+                       label="&fdata.tree.value.label;"
+                       flex="10"
+                       persist="width hidden"/>
+              <splitter class="tree-splitter"/>
+              <treecol id="fdataCountCol"
+                       label="&fdata.tree.usecount.label;"
+                       flex="2"
+                       hidden="true"
+                       persist="width hidden"/>
+              <splitter class="tree-splitter"/>
+              <treecol id="fdataFirstCol"
+                       label="&fdata.tree.firstused.label;"
+                       flex="10"
+                       hidden="true"
+                       persist="width hidden"/>
+              <splitter class="tree-splitter"/>
+              <treecol id="fdataLastCol"
+                       label="&fdata.tree.lastused.label;"
+                       flex="10"
+                       hidden="true"
+                       persist="width hidden"/>
+            </treecols>
+            <treechildren/>
+          </tree>
+          <hbox id="formdataButtons">
+            <button id="fdataRemove"
+                    label="&fdata.button.remove.label;"
+                    accesskey="&fdata.button.remove.accesskey;"
+                    disabled="true"
+                    oncommand="gFormdata.delete();"/>
+          </hbox>
+        </vbox>
+
+        <vbox id="forgetPanel">
+          <description id="forgetDesc"/>
+          <hbox>
+            <checkbox id="forgetCookies"
+                      label="&forget.cookies.label;"
+                      accesskey="&forget.cookies.accesskey;"
+                      disabled="true"
+                      oncommand="gForget.updateOptions();"/>
+            <label id="forgetCookiesLabel"
+                   value="&forget.cookies.label;"
+                   hidden="true"/>
+          </hbox>
+          <hbox>
+            <checkbox id="forgetPermissions"
+                      label="&forget.permissions.label;"
+                      accesskey="&forget.permissions.accesskey;"
+                      disabled="true"
+                      oncommand="gForget.updateOptions();"/>
+            <label id="forgetPermissionsLabel"
+                   value="&forget.permissions.label;"
+                   hidden="true"/>
+          </hbox>
+          <hbox>
+            <checkbox id="forgetPreferences"
+                      label="&forget.preferences.label;"
+                      accesskey="&forget.preferences.accesskey;"
+                      disabled="true"
+                      oncommand="gForget.updateOptions();"/>
+            <label id="forgetPreferencesLabel"
+                   value="&forget.preferences.label;"
+                   hidden="true"/>
+          </hbox>
+          <hbox>
+            <checkbox id="forgetPasswords"
+                      label="&forget.passwords.label;"
+                      accesskey="&forget.passwords.accesskey;"
+                      disabled="true"
+                      oncommand="gForget.updateOptions();"/>
+            <label id="forgetPasswordsLabel"
+                   value="&forget.passwords.label;"
+                   hidden="true"/>
+          </hbox>
+          <hbox>
+            <checkbox id="forgetFormdata"
+                      label="&forget.formdata.label;"
+                      accesskey="&forget.formdata.accesskey;"
+                      disabled="true"
+                      hidden="true"
+                      oncommand="gForget.updateOptions();"/>
+            <label id="forgetFormdataLabel"
+                   value="&forget.formdata.label;"
+                   hidden="true"/>
+          </hbox>
+          <hbox>
+            <button id="forgetButton"
+                    label="&forget.button.label;"
+                    accesskey="&forget.button.accesskey;"
+                    disabled="true"
+                    oncommand="gForget.forget();"/>
+          </hbox>
+        </vbox>
+      </tabpanels>
+    </tabbox>
+  </hbox>
+
+</page>

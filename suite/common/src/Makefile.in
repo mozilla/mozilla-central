@@ -47,6 +47,7 @@ MODULE		= suitecommon
 EXTRA_COMPONENTS = \
 	nsAbout.js \
 	nsAboutCertError.js \
+	nsAboutData.js \
 	nsAboutSessionRestore.js \
 	nsSessionStartup.js \
 	nsSidebar.js \

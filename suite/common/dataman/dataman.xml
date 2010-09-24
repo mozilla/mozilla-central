@@ -1,0 +1,244 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is KaiRo's data manager.
+   -
+   - The Initial Developer of the Original Code is
+   - Robert Kaiser <kairo@kairo.at>.
+   - Portions created by the Initial Developer are Copyright (C) 2010
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Robert Kaiser <kairo@kairo.at> (original author)
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE bindings [
+<!ENTITY % datamanDTD SYSTEM "chrome://communicator/locale/dataman/dataman.dtd">
+%datamanDTD;
+]>
+
+<bindings id="datamanBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="perm-base-item"
+           extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <implementation>
+      <constructor><![CDATA[
+        var permLabel = document.getAnonymousElementByAttribute(this, "anonid",
+                                                                "permLabel");
+        try {
+          permLabel.value = gDataman.bundle.getString("perm." + this.type + ".label");
+        }
+        catch (e) {
+          permLabel.value = this.type;
+        }
+        this._updateRadio();
+      ]]></constructor>
+
+      <property name="capability">
+        <getter><![CDATA[
+          if (this.hasAttribute("capability"))
+            return this.getAttribute("capability");
+          return -1;
+        ]]></getter>
+        <setter><![CDATA[
+          this.setAttribute("capability", val);
+          this._updateRadio();
+        ]]></setter>
+      </property>
+
+      <property name="host" readonly="true"
+                onget="return this.getAttribute('host');"/>
+
+      <property name="type" readonly="true"
+                onget="return this.getAttribute('type');"/>
+
+      <method name="_updateRadio">
+        <body><![CDATA[
+          let radio = document.getAnonymousElementByAttribute(this, "anonid",
+                                                              "permSetting-" + this.capability);
+          if (radio)
+            radio.radioGroup.selectedItem = radio;
+          else {
+            let radioGroup = document.getAnonymousElementByAttribute(this, "anonid",
+                                                                     "radioGroup");
+            radioGroup.selectedIndex = -1;
+          }
+        ]]></body>
+      </method>
+
+      <method name="useDefault">
+        <parameter name="aChecked"/>
+        <parameter name="aUIUpdateOnly"/>
+        <body><![CDATA[
+          let checkbox = document.getAnonymousElementByAttribute(this, "anonid",
+                                                                 "useDefault");
+          if (checkbox.checked != aChecked)
+            checkbox.checked = aChecked;
+          let radioGroup = document.getAnonymousElementByAttribute(this, "anonid",
+                                                                   "radioGroup");
+          radioGroup.disabled = aChecked;
+          if (aChecked) {
+            if (!aUIUpdateOnly)
+              Services.perms.remove(this.host, this.type);
+            this.capability = gPerms.getDefault(this.type);
+          }
+          this._updateRadio();
+        ]]></body>
+      </method>
+
+      <method name="setCapability">
+        <parameter name="aValue"/>
+        <parameter name="aUIUpdateOnly"/>
+        <body><![CDATA[
+          this.capability = aValue;
+          let radio = document.getAnonymousElementByAttribute(this, "anonid",
+                                                              "permSetting-" + aValue);
+          if (radio && !radio.selected)
+            radio.radioGroup.selectedItem = radio;
+          if (!aUIUpdateOnly)
+            Services.perms.add(Services.io.newURI("http://" + this.host, null, null),
+                               this.type, aValue);
+        ]]></body>
+      </method>
+
+    </implementation>
+  </binding>
+
+  <binding id="perm-generic-item"
+           extends="chrome://communicator/content/dataman/dataman.xml#perm-base-item">
+    <content>
+      <xul:hbox>
+        <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=rawHost"/>
+        <xul:label anonid="permLabel" class="permissionLabel" control="radioGroup"/>
+      </xul:hbox>
+      <xul:hbox role="group" aria-labelledby="permLabel">
+        <xul:checkbox class="indent" anonid="useDefault" label="&perm.UseDefault;"
+                      oncommand="document.getBindingParent(this).useDefault(this.checked);"/>
+        <xul:spacer flex="1"/>
+        <xul:radiogroup anonid="radioGroup" orient="horizontal">
+          <xul:radio anonid="permSetting-1" label="&perm.Allow;"
+                     oncommand="document.getBindingParent(this).setCapability(Services.perms.ALLOW_ACTION);"/>
+          <xul:radio anonid="permSetting-2" label="&perm.Block;"
+                     oncommand="document.getBindingParent(this).setCapability(Services.perms.DENY_ACTION);"/>
+        </xul:radiogroup>
+      </xul:hbox>
+    </content>
+  </binding>
+
+  <binding id="perm-cookie-item"
+           extends="chrome://communicator/content/dataman/dataman.xml#perm-base-item">
+    <content>
+      <xul:hbox>
+        <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=rawHost"/>
+        <xul:label anonid="permLabel" class="permissionLabel" control="radioGroup"/>
+      </xul:hbox>
+      <xul:hbox role="group" aria-labelledby="permLabel">
+        <xul:checkbox class="indent" anonid="useDefault" label="&perm.UseDefault;"
+                      oncommand="document.getBindingParent(this).useDefault(this.checked);"/>
+        <xul:spacer flex="1"/>
+        <xul:radiogroup anonid="radioGroup" orient="horizontal">
+          <xul:radio anonid="permSetting-1" label="&perm.Allow;"
+                     oncommand="document.getBindingParent(this).setCapability(Services.perms.ALLOW_ACTION);"/>
+          <xul:radio anonid="permSetting-8" label="&perm.AllowSession;"
+                     oncommand="document.getBindingParent(this).setCapability(Components.interfaces.nsICookiePermission.ACCESS_SESSION);"/>
+          <xul:radio anonid="permSetting-2" label="&perm.Block;"
+                     oncommand="document.getBindingParent(this).setCapability(Services.perms.DENY_ACTION);"/>
+        </xul:radiogroup>
+      </xul:hbox>
+    </content>
+  </binding>
+
+  <binding id="perm-geo-item"
+           extends="chrome://communicator/content/dataman/dataman.xml#perm-base-item">
+    <content>
+      <xul:hbox>
+        <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=rawHost"/>
+        <xul:label anonid="permLabel" class="permissionLabel" control="radioGroup"/>
+      </xul:hbox>
+      <xul:hbox role="group" aria-labelledby="permLabel">
+        <xul:checkbox class="indent" anonid="useDefault" label="&perm.AskAlways;"
+                      oncommand="document.getBindingParent(this).useDefault(this.checked);"/>
+        <xul:spacer flex="1"/>
+        <xul:radiogroup anonid="radioGroup" orient="horizontal">
+          <xul:radio anonid="permSetting-1" label="&perm.Allow;"
+                     oncommand="document.getBindingParent(this).setCapability(Services.perms.ALLOW_ACTION);"/>
+          <xul:radio anonid="permSetting-2" label="&perm.Block;"
+                     oncommand="document.getBindingParent(this).setCapability(Services.perms.DENY_ACTION);"/>
+        </xul:radiogroup>
+      </xul:hbox>
+    </content>
+  </binding>
+
+  <binding id="perm-password-item" extends="chrome://communicator/content/dataman/dataman.xml#perm-base-item">
+    <content>
+      <xul:hbox>
+        <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=rawHost"/>
+        <xul:label anonid="permLabel" class="permissionLabel" control="radioGroup"/>
+      </xul:hbox>
+      <xul:hbox role="group" aria-labelledby="permLabel">
+        <xul:checkbox class="indent" anonid="useDefault" hidden="true"/>
+        <xul:spacer flex="1"/>
+        <xul:radiogroup anonid="radioGroup" orient="horizontal">
+          <xul:radio anonid="permSetting-1" label="&perm.AskAlways;"
+                     oncommand="document.getBindingParent(this).setCapability(Services.perms.ALLOW_ACTION);"/>
+          <xul:radio anonid="permSetting-2" label="&perm.NeverSave;"
+                     oncommand="document.getBindingParent(this).setCapability(Services.perms.DENY_ACTION);"/>
+        </xul:radiogroup>
+      </xul:hbox>
+    </content>
+
+    <implementation>
+      <method name="useDefault">
+        <parameter name="aChecked"/>
+        <body><![CDATA[
+          // just for compat, makes it easier to generically "delete" perms
+          if (aChecked)
+            this.setCapability(Services.perms.ALLOW_ACTION);
+        ]]></body>
+      </method>
+
+      <method name="setCapability">
+        <parameter name="aValue"/>
+        <parameter name="aUIUpdateOnly"/>
+        <body><![CDATA[
+          this.capability = aValue;
+          let radio = document.getAnonymousElementByAttribute(this, "anonid",
+                                                              "permSetting-" + aValue);
+          if (radio && !radio.selected)
+            radio.radioGroup.selectedItem = radio;
+          if (!aUIUpdateOnly)
+            gLocSvc.pwd.setLoginSavingEnabled(this.host,
+                                              aValue == Services.perms.ALLOW_ACTION);
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+
+</bindings>

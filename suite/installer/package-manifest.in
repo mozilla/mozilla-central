@@ -317,6 +317,7 @@
 @BINPATH@/components/NetworkGeolocationProvider.manifest
 @BINPATH@/components/nsAbout.js
 @BINPATH@/components/nsAboutCertError.js
+@BINPATH@/components/nsAboutData.js
 @BINPATH@/components/nsAboutFeeds.js
 @BINPATH@/components/nsAboutRights.js
 @BINPATH@/components/nsAboutSessionRestore.js
