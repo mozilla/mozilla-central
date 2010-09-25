@@ -405,7 +405,8 @@
       </method>
 
       <method name="showGeolocationPrompt">
-        <parameter name="spec"/>
+        <parameter name="file"/>
+        <parameter name="site"/>
         <parameter name="image"/>
         <parameter name="allowCallback"/>
         <parameter name="cancelCallback"/>
@@ -430,17 +431,25 @@
                 cancelCallback(aNotificationBox.checkbox.checked);
               }
             }];
-            var message = this._stringBundle
-                              .formatStringFromName(type + ".siteWantsToKnow",
-                                                    [spec], 1);
+            var message;
+            if (site)
+              message = this._stringBundle
+                            .formatStringFromName(type + ".siteWantsToKnow",
+                                                  [site], 1);
+            else
+              message = this._stringBundle
+                            .formatStringFromName(type + ".fileWantsToKnow",
+                                                  [file], 1);
             var box = this.appendNotification(message, type, image,
                                               this.PRIORITY_INFO_HIGH, buttons);
             // Create the checkbox on a timeout to allow the XBL to bind first.
             setTimeout(function(stringBundle) {
-              box.checkbox = document.createElement("checkbox");
-              box.checkbox.className = "rememberChoice";
-              box.checkbox.setAttribute("label", stringBundle.GetStringFromName(type + ".remember"));
-              box.appendChild(box.checkbox);
+              if (site) {
+                box.checkbox = document.createElement("checkbox");
+                box.checkbox.className = "rememberChoice";
+                box.checkbox.setAttribute("label", stringBundle.GetStringFromName(type + ".remember"));
+                box.appendChild(box.checkbox);
+              }
               var link = document.createElement("label");
               link.className = "text-link";
               link.setAttribute("value", stringBundle.GetStringFromName(type + ".learnMore"));
@@ -452,7 +461,7 @@
               document.getAnonymousElementByAttribute(box, "anonid", "messageText").appendChild(link);
             }, 0, this._stringBundle);
 
-            // Tests try to access the checkbox before we've created it.
+            // Create a dummy checkbox so file requests don't try to remember.
             box.checkbox = { checked: false };
           ]]>
         </body>

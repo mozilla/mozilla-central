@@ -946,10 +946,14 @@ ContentPermissionPrompt.prototype = {
     if (aRequest.type != "geolocation")
       return;
 
+    var path, host;
     var requestingURI = aRequest.uri;
-
+    if (requestingURI instanceof Components.interfaces.nsIFileURL)
+      path = requestingURI.file.path;
+    else if (requestingURI instanceof Components.interfaces.nsIStandardURL)
+      host = requestingURI.host;
     // Ignore requests from non-nsIStandardURLs
-    if (!(requestingURI instanceof Components.interfaces.nsIStandardURL))
+    else
       return;
 
     switch (Services.perms.testExactPermission(requestingURI, "geo")) {
@@ -978,7 +982,7 @@ ContentPermissionPrompt.prototype = {
             .getInterface(Components.interfaces.nsIWebNavigation)
             .QueryInterface(Components.interfaces.nsIDocShell)
             .chromeEventHandler.parentNode.wrappedJSObject
-            .showGeolocationPrompt(requestingURI.spec,
+            .showGeolocationPrompt(path, host,
                                    "chrome://communicator/skin/icons/geo.png",
                                    allowCallback,
                                    cancelCallback);
