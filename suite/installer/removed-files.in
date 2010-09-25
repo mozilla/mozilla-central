@@ -379,11 +379,6 @@ components/xppref32.dll
 @DLL_PREFIX@gtkxtbin@DLL_SUFFIX@
 #endif
 @DLL_PREFIX@thebes@DLL_SUFFIX@
-#ifdef XP_MACOSX
-XUL
-#else
-@DLL_PREFIX@xul@DLL_SUFFIX@
-#endif
 
 ; Library files which used to have a short name.
 #ifdef XP_WIN
