@@ -48,6 +48,10 @@
   background-color: AppWorkspace;
 }
 
+#sidebar-box:-moz-lwtheme {
+  background-color: transparent;
+}
+
 /* ::::: sidebar header ::::: */
 
 .sidebarheader-main {
@@ -61,7 +65,14 @@
   -moz-padding-end: 2px;
 }
 
-#sidebar-panel-picker {
+.sidebarheader-main:-moz-lwtheme {
+  -moz-appearance: none;
+  background-color: transparent;
+  color: inherit;
+}
+
+#sidebar-panel-picker:not(:-moz-lwtheme) {
+  /* would override hover/active styles, so let lwtheme do it in its own way */
   color: inherit;
 }
 
@@ -122,6 +133,10 @@
   cursor: pointer;
   background-color: -moz-Dialog;
   color: -moz-DialogText;
+}
+
+.box-texttab:-moz-lwtheme {
+  text-shadow: none;
 }
 
 .box-texttab,
