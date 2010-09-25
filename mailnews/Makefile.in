@@ -96,7 +96,7 @@ libs::
 # list is kept in the same order as the effective DIRS just so things turn up
 # in the same order as the build.
 
-TEST_DIRS = base $(PARALLEL_DIRS) extensions/bayesian-spam-filter
+TEST_DIRS = base $(PARALLEL_DIRS) extensions/bayesian-spam-filter extensions/mdn
 
 xpcshell-tests::
 	for dir in $(TEST_DIRS); do \
