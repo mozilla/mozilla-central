@@ -56,7 +56,6 @@
 
 .sidebarheader-main {
   -moz-appearance: toolbar;
-  border: 1px outset InactiveCaption;
   background-color: InactiveCaption;
   color: CaptionText;
   padding-top: 1px;
@@ -133,6 +132,10 @@
   cursor: pointer;
   background-color: -moz-Dialog;
   color: -moz-DialogText;
+}
+
+.box-texttab:-moz-lwtheme {
+  text-shadow: none;
 }
 
 .box-texttab,
