@@ -110,7 +110,6 @@ function OnLoadCardView()
   cvData.cvEmail1Box    = doc.getElementById("cvEmail1Box");
   cvData.cvEmail1      = doc.getElementById("cvEmail1");
   cvData.cvScreennameBox    = doc.getElementById("cvScreennameBox");
-  cvData.cvAimPresence = doc.getElementById("cvAimPresence");
   cvData.cvScreenname    = doc.getElementById("cvScreenname");
   cvData.cvBuddyIcon              = doc.getElementById("cvBuddyIcon");
   cvData.cvListNameBox    = doc.getElementById("cvListNameBox");
@@ -191,11 +190,6 @@ function GetAddressesFromURI(uri)
   return addresses;
 }
 
-function GoIM()
-{
-  LaunchUrl(top.cvData.cvAimPresence.getAttribute("url"));
-}
-
 function DisplayCardViewPane(realCard)
 {
   var generatedName = realCard.generateName(gPrefs.getIntPref("mail.addr_book.lastnamefirst"));
@@ -253,18 +247,6 @@ function DisplayCardViewPane(realCard)
   var hasScreenName = HandleLink(data.cvScreenname, zScreenName,
                                  card.getProperty("_AimScreenName"),
                                  data.cvScreennameBox, goimURL);
-
-  data.cvAimPresence.removeAttribute("src");
-  data.cvAimPresence.removeAttribute("url");
-  data.cvAimPresence.setAttribute("width","0");
-
-#if 0
-    // for now, disable the presence check since we don't really support this anymore but we may again in the future.
-    // I'm leaving the code here for historical reference. See Bug #295726.
-    data.cvAimPresence.setAttribute("src","http://big.oscar.aol.com:80/" + card.getProperty("_AimScreenName") + "?on_url=http://ncmail.netscape.com/include/nc/images/online.gif&off_url=http://ncmail.netscape.com/include/nc/images/offline.gif");
-    data.cvAimPresence.setAttribute("url", goimURL);
-    data.cvAimPresence.setAttribute("width","16");
-#endif
 
    visible = hasScreenName || visible;
    visible = HandleLink(data.cvEmail2, zSecondaryEmail,

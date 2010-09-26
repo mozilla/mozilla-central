@@ -197,7 +197,6 @@ pref("mail.pane_config.dynamic",            0);
 pref("mail.addr_book.mapit_url.format", "chrome://messenger-region/locale/region.properties");
 #ifdef MOZ_SUITE
 pref("mailnews.start_page.url", "chrome://messenger-region/locale/region.properties");
-pref("mail.addr_book.im.onlineCheckAllowed", false);
 pref("messenger.throbber.url", "chrome://messenger-region/locale/region.properties");
 pref("compose.throbber.url", "chrome://messenger-region/locale/region.properties");
 pref("addressbook.throbber.url", "chrome://messenger-region/locale/region.properties");

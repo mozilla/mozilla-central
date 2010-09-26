@@ -60,7 +60,6 @@ const kLastNameFirst = 1;
 const kFirstNameFirst = 2;
 const kLDAPDirectory = 0; // defined in nsDirPrefs.h
 const kPABDirectory  = 2; // defined in nsDirPrefs.h
-const kPrefOnlineCheckAllowed = "mail.addr_book.im.onlineCheckAllowed";
 
 // Note: We need to keep this listener as it does not just handle dir
 // pane deletes but also deletes of address books and lists from places like
@@ -234,9 +233,6 @@ function GetCurrentPrefs()
   if (showPhoneticFields == "true")
     document.getElementById("cmd_SortBy_PhoneticName")
             .setAttribute("hidden", "false");
-
-  document.getElementById("menu_allow_online_check")
-          .setAttribute("checked", gPrefs.getBoolPref(kPrefOnlineCheckAllowed));
 }
 
 
@@ -663,17 +659,6 @@ function AbIMSelected()
   }
 
   LaunchUrl(url);
-}
-
-function onAllowOnlineCheck(target)
-{
-  // Update the pref
-  gPrefs.setBoolPref(kPrefOnlineCheckAllowed,
-                     document.getElementById("menu_allow_online_check")
-                             .getAttribute("checked") == "true");
-
-  // Now redisplay the card view pane.
-  UpdateCardView();
 }
 
 function getAbToolbox()
