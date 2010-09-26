@@ -76,10 +76,10 @@ default export libs clean realclean distclean alldep maybe_clobber_profiledbuild
 	$(MAKE) -C mozilla $@
 
 ifdef ENABLE_TESTS
-check \
-mochitest mochitest-plain mochitest-chrome mochitest-browser-chrome mochitest-a11y \
-reftest crashtest \
-xpcshell-tests::
+check mochitest reftest crashtest xpcshell-tests::
+	$(MAKE) -C mozilla $@
+
+mochitest-% ::
 	$(MAKE) -C mozilla $@
 endif
 
