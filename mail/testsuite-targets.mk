@@ -31,12 +31,12 @@ mozmill-one::
 	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
 	$(MOZMILL_EXTRA)
 
-# XXX Really we should be re-using the mozilla-central
-# testing/testsuite-targets.mk. However, to get mozmill tests packaged and
-# running, we've just implemented what we need here for now.
+# XXX The mozilla/testing/testsuite-targets.mk doesn't really allow for hooks
+# outside of itself. Therefore we replicate the functionality we need here,
+# calling into the relevant mozilla dirs when necessary for the core tests.
 ifndef UNIVERSAL_BINARY
 PKG_STAGE = $(DIST)/test-package-stage
-package-tests:: stage-mozmill
+package-tests:: stage-mozilla-tests stage-mozmill
 else
 # This staging area has been built for us by universal/flight.mk
 PKG_STAGE = $(DIST)/universal/test-package-stage
@@ -51,6 +51,17 @@ package-tests::
 make-stage-dir:
 	rm -rf $(PKG_STAGE) && $(NSINSTALL) -D $(PKG_STAGE) && $(NSINSTALL) -D $(PKG_STAGE)/bin && $(NSINSTALL) -D $(PKG_STAGE)/bin/components && $(NSINSTALL) -D $(PKG_STAGE)/certs
 
+# Of the core tests, we only currently support xpcshell. Unfortunately
+# some of the required xpcshell bits are packaged by mochitest, so we have to
+# package those as well.
+stage-mozilla-tests: make-stage-dir
+	$(MAKE) -C $(DEPTH)/mozilla/testing/mochitest stage-package
+	$(MAKE) -C $(DEPTH)/mozilla/testing/xpcshell stage-package
+
+# Although we should probably depend on make-stage-dir here, we don't as the
+# make-stage-dir actually removes the package directory for us. Given that we
+# are running stage-mozilla-tests which calls testing/testsuite-targets.mk which
+# does do this for some tests, then we're actually fine.
 stage-mozmill: make-stage-dir
 	$(MAKE) -C $(DEPTH)/mail/test/mozmill stage-package
 
