@@ -2544,10 +2544,13 @@ var gMessageNotificationBar =
                     1, // 1 << (kMsgNotificationPhishingBar - 1)
                     2, // 1 << (kMsgNotificationJunkBar - 1)
                     4, // 1 << (kMsgNotificationRemoteImages - 1)
-                    8  // 1 << (kMsgNotificationMSN - 1) 
+                    8  // 1 << (kMsgNotificationMSN - 1)
                   ],
 
-  mMsgNotificationBar: document.getElementById('msgNotificationBar'),
+  get mMsgNotificationBar() {
+    delete this.mMsgNotificationBar;
+    return this.mMsgNotificationBar = document.getElementById('msgNotificationBar');
+  },
 
   setJunkMsg: function(aMsgHdr)
   {
@@ -2580,14 +2583,14 @@ var gMessageNotificationBar =
   {
     this.updateMsgNotificationBar(kMsgNotificationPhishingBar, true);
   },
-  
+
   setMDNMsg: function(aMdnGenerator, aMsgHeader)
   {
     this.mdnGenerator = aMdnGenerator;
     this.msgHeader = aMsgHeader;
     this.updateMsgNotificationBar(kMsgNotificationMDN, true);
   },
-  
+
   clearMsgNotifications: function()
   {
     this.mBarStatus = 0;
