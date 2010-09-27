@@ -731,8 +731,9 @@ nsMsgSendPart::Write()
           break;  // Now can do normal reads for the body.
         }
       }
+      PR_Free(lineBuffer);
     }
-        
+
     while (status >= 0) 
     {
       PRUint32 bytesRead;
