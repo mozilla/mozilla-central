@@ -389,7 +389,7 @@ MimeMessageEmitter.prototype = {
     //
     //  However, we also pass information about the size of the attachment, and
     //  that we want to handle
-    if (aField == "X-Mozilla-PartSize" && this._curPart)
+    if (aField == "X-Mozilla-PartSize" && (this._curAttachment in this._partMap))
         this._partMap[this._curAttachment].size = parseInt(aValue);
   },
   endAttachment: function mime_emitter_endAttachment() {
