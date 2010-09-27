@@ -99,6 +99,7 @@ messenger.jar:
     content/messenger/addressbook/abCardOverlay.js                             (addrbook/abCardOverlay.js)
     content/messenger/addressbook/abCardOverlay.xul                            (addrbook/abCardOverlay.xul)
     content/messenger/addressbook/abCardViewOverlay.js                         (addrbook/abCardViewOverlay.js)
+    content/messenger/addressbook/abCardViewOverlay.xul                        (addrbook/abCardViewOverlay.xul)
     content/messenger/addressbook/abMailListDialog.xul                         (addrbook/abMailListDialog.xul)
     content/messenger/addressbook/abEditListDialog.xul                         (addrbook/abEditListDialog.xul)
     content/messenger/addressbook/abListOverlay.xul                            (addrbook/abListOverlay.xul)
