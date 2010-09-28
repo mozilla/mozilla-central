@@ -80,6 +80,7 @@
   locale/@AB_CD@/communicator/help/mailnews_offline.xhtml                   (%chrome/common/help/mailnews_offline.xhtml)
   locale/@AB_CD@/communicator/help/mailnews_organizing.xhtml                (%chrome/common/help/mailnews_organizing.xhtml)
   locale/@AB_CD@/communicator/help/mailnews_preferences.xhtml               (%chrome/common/help/mailnews_preferences.xhtml)
+  locale/@AB_CD@/communicator/help/mailnews_using_mail.xhtml                (%chrome/common/help/mailnews_using_mail.xhtml)
   locale/@AB_CD@/communicator/help/mail_sec_help.xhtml                      (%chrome/common/help/mail_sec_help.xhtml)
   locale/@AB_CD@/communicator/help/nav_help.xhtml                           (%chrome/common/help/nav_help.xhtml)
   locale/@AB_CD@/communicator/help/page_info_help.xhtml                     (%chrome/common/help/page_info_help.xhtml)
