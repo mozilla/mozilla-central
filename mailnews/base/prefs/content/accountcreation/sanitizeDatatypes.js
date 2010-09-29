@@ -120,13 +120,19 @@ var sanitize =
    * Allow only letters, numbers, "-" and "."
    * Empty strings not allowed.
    * Currently does not support IDN (international domain names).
-   * HACK: "%" is allowed, because we allow placeholders in hostnames in the
-   * config file.
    */
   hostname : function(unchecked)
   {
     var str = this.nonemptystring(unchecked);
-    if (!/^[a-zA-Z0-9\-\.%]*$/.test(unchecked))
+
+    // Allow placeholders. TODO move to a new hostnameOrPlaceholder()
+    // The regex is "anything, followed by one or more (placeholders than
+    // anything)".  This doesn't catch the non-placeholder case, but that's
+    // handled down below.
+    if (/^[a-zA-Z0-9\-\.]*(%[A-Z0-9]+%[a-zA-Z0-9\-\.]*)+$/.test(str))
+      return str;
+
+    if (!/^[a-zA-Z0-9\-\.]*$/.test(str))
       throw new MalformedException("hostname_syntax.error", unchecked);
 
     return str.toLowerCase();
