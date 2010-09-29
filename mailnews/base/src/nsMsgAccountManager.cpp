@@ -3707,7 +3707,8 @@ nsMsgAccountManager::FolderUriForPath(nsILocalFile *aLocalPath,
 {
   NS_ENSURE_ARG_POINTER(aLocalPath);
   PRBool equals;
-  if (NS_SUCCEEDED(aLocalPath->Equals(m_lastPathLookedUp, &equals)) && equals)
+  if (m_lastPathLookedUp &&
+      NS_SUCCEEDED(aLocalPath->Equals(m_lastPathLookedUp, &equals)) && equals)
   {
     aMailboxUri = m_lastFolderURIForPath;
     return NS_OK;
