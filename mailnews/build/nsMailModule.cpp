@@ -146,6 +146,7 @@
 #include "nsCURILoader.h"
 #include "nsMessengerContentHandler.h"
 #include "nsStopwatch.h"
+#include "MailNewsDLF.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // addrbook includes
@@ -326,6 +327,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 // mailnews base factories
 ////////////////////////////////////////////////////////////////////////////////
+using namespace mozilla::mailnews;
+
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMessengerBootstrap)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgMailSession, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMessenger)
@@ -387,6 +390,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMessengerUnixIntegration, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMessengerContentHandler)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgContentPolicy, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsStopwatch)
+NS_GENERIC_FACTORY_CONSTRUCTOR(MailNewsDLF)
 
 NS_DEFINE_NAMED_CID(NS_MESSENGERBOOTSTRAP_CID);
 NS_DEFINE_NAMED_CID(NS_MESSENGERWINDOWSERVICE_CID);
@@ -450,6 +454,7 @@ NS_DEFINE_NAMED_CID(NS_MSGCONTENTPOLICY_CID);
 NS_DEFINE_NAMED_CID(NS_MSGSHUTDOWNSERVICE_CID);
 NS_DEFINE_NAMED_CID(MAILDIRPROVIDER_CID);
 NS_DEFINE_NAMED_CID(NS_STOPWATCH_CID);
+NS_DEFINE_NAMED_CID(NS_MAILNEWSDLF_CID);
 
 ////////////////////////////////////////////////////////////////////////////////
 // addrbook factories
@@ -846,6 +851,7 @@ const mozilla::Module::CIDEntry kMailNewsCIDs[] = {
   { &kNS_MSGSHUTDOWNSERVICE_CID, false, NULL, nsMsgShutdownServiceConstructor},
   { &kMAILDIRPROVIDER_CID, false, NULL, nsMailDirProviderConstructor},
   { &kNS_STOPWATCH_CID, false, NULL, nsStopwatchConstructor},
+  { &kNS_MAILNEWSDLF_CID, false, NULL, MailNewsDLFConstructor},
   // Address Book Entries
   { &kNS_ABMANAGER_CID, false, NULL, nsAbManagerConstructor },
   { &kNS_ABDIRECTORYDATASOURCE_CID, false, NULL, nsAbDirectoryDataSourceConstructor },
@@ -1040,6 +1046,7 @@ const mozilla::Module::ContractIDEntry kMailNewsContracts[] = {
   { NS_MSGSHUTDOWNSERVICE_CONTRACTID, &kNS_MSGSHUTDOWNSERVICE_CID },
   { NS_MAILDIRPROVIDER_CONTRACTID, &kMAILDIRPROVIDER_CID },
   { NS_STOPWATCH_CONTRACTID, &kNS_STOPWATCH_CID },
+  { NS_MAILNEWSDLF_CONTRACTID, &kNS_MAILNEWSDLF_CID },
   // Address Book Entries
   { NS_ABMANAGER_CONTRACTID, &kNS_ABMANAGER_CID },
   { NS_ABMANAGERSTARTUPHANDLER_CONTRACTID, &kNS_ABMANAGER_CID },
@@ -1201,6 +1208,7 @@ static const mozilla::Module::CategoryEntry kMailNewsCategories[] = {
   // MailNews Base Entries
   { XPCOM_DIRECTORY_PROVIDER_CATEGORY, "mail-directory-provider", NS_MAILDIRPROVIDER_CONTRACTID },
   { "content-policy", NS_MSGCONTENTPOLICY_CONTRACTID, NS_MSGCONTENTPOLICY_CONTRACTID },
+  MAILNEWSDLF_CATEGORIES
 #ifdef XP_MACOSX
   { "app-startup", NS_MESSENGEROSINTEGRATION_CONTRACTID, "service," NS_MESSENGEROSINTEGRATION_CONTRACTID}
 ,

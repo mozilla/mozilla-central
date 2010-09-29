@@ -533,4 +533,15 @@
 #define NS_MSGASYNCPROMPTER_CONTRACTID \
   "@mozilla.org/messenger/msgAsyncPrompter;1"
 
+//
+// MailNewsDLF
+//
+#define NS_MAILNEWSDLF_CID \
+{ /* DE0F34A9-A87F-4F4C-B978-6187DB187B90 */ \
+  0xde0f34a9, 0xa87f, 0x4f4c, \
+    { 0xb9, 0x78, 0x61, 0x87, 0xdb, 0x18, 0x7b, 0x90 }}
+
+#define NS_MAILNEWSDLF_CONTRACTID \
+  "@mozilla.org/mailnews/document-loader-factory;1"
+
 #endif // nsMessageBaseCID_h__

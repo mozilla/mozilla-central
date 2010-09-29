@@ -153,6 +153,10 @@
 
 #include "nsStopwatch.h"
 
+#include "MailNewsDLF.h"
+
+using namespace mozilla::mailnews;
+
 // private factory declarations for each component we know how to produce
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMessengerBootstrap)
@@ -216,6 +220,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgContentPolicy, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMailDirProvider)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgShutdownService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsStopwatch)
+NS_GENERIC_FACTORY_CONSTRUCTOR(MailNewsDLF)
 
 NS_DEFINE_NAMED_CID(NS_MESSENGERBOOTSTRAP_CID);
 NS_DEFINE_NAMED_CID(NS_MESSENGERWINDOWSERVICE_CID);
@@ -279,6 +284,7 @@ NS_DEFINE_NAMED_CID(NS_MSGCONTENTPOLICY_CID);
 NS_DEFINE_NAMED_CID(NS_MSGSHUTDOWNSERVICE_CID);
 NS_DEFINE_NAMED_CID(MAILDIRPROVIDER_CID);
 NS_DEFINE_NAMED_CID(NS_STOPWATCH_CID);
+NS_DEFINE_NAMED_CID(NS_MAILNEWSDLF_CID);
 
 const mozilla::Module::CIDEntry kMailNewsBaseCIDs[] = {
   { &kNS_MESSENGERBOOTSTRAP_CID, false, NULL, nsMessengerBootstrapConstructor },
@@ -343,6 +349,7 @@ const mozilla::Module::CIDEntry kMailNewsBaseCIDs[] = {
   { &kNS_MSGSHUTDOWNSERVICE_CID, false, NULL, nsMsgShutdownServiceConstructor },
   { &kMAILDIRPROVIDER_CID, false, NULL, nsMailDirProviderConstructor },
   { &kNS_STOPWATCH_CID, false, NULL, nsStopwatchConstructor },
+  { &kNS_MAILNEWSDLF_CID, false, NULL, MailNewsDLFConstructor },
   {NULL}
 };
 
@@ -409,12 +416,14 @@ const mozilla::Module::ContractIDEntry kMailNewsBaseContracts[] = {
   { NS_MSGSHUTDOWNSERVICE_CONTRACTID, &kNS_MSGSHUTDOWNSERVICE_CID },
   { NS_MAILDIRPROVIDER_CONTRACTID, &kMAILDIRPROVIDER_CID },
   { NS_STOPWATCH_CONTRACTID, &kNS_STOPWATCH_CID },
+  { NS_MAILNEWSDLF_CONTRACTID, &kNS_MAILNEWSDLF_CID },
   { NULL }
 };
 
 static const mozilla::Module::CategoryEntry kMailNewsBaseCategories[] = {
     { XPCOM_DIRECTORY_PROVIDER_CATEGORY, "mail-directory-provider", NS_MAILDIRPROVIDER_CONTRACTID },
     { "content-policy", NS_MSGCONTENTPOLICY_CONTRACTID, NS_MSGCONTENTPOLICY_CONTRACTID },
+    MAILNEWSDLF_CATEGORIES
 #ifdef XP_MACOSX
     { "app-startup", NS_MESSENGEROSINTEGRATION_CONTRACTID, "service," NS_MESSENGEROSINTEGRATION_CONTRACTID },
 #endif

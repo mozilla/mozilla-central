@@ -90,6 +90,7 @@ CPPSRCS		= \
 		nsMsgTagService.cpp\
                 nsMsgFolderNotificationService.cpp\
 		nsMailDirProvider.cpp\
+		MailNewsDLF.cpp \
 		$(NULL)
 
 ifdef NS_PRINTING
