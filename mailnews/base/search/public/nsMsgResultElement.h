@@ -40,7 +40,6 @@
 
 #include "nsMsgSearchCore.h"
 #include "nsIMsgSearchAdapter.h"
-#include "nsMsgSearchArray.h"
 
 // nsMsgResultElement specifies a single search hit.
 

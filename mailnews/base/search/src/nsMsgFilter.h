@@ -43,7 +43,6 @@
 #include "nscore.h"
 #include "nsISupports.h"
 #include "nsIMsgFilter.h"
-#include "nsMsgSearchArray.h"
 #include "nsIMsgSearchScopeTerm.h"
 #include "nsMsgSearchBoolExpression.h"
 #include "nsIDateTimeFormat.h"

@@ -39,7 +39,6 @@
 #define __nsMsgSearchScopeTerm_h
 
 #include "nsMsgSearchCore.h"
-#include "nsMsgSearchArray.h"
 #include "nsMsgSearchScopeTerm.h"
 #include "nsIMsgSearchAdapter.h"
 #include "nsIMsgFolder.h"

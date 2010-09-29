@@ -48,7 +48,6 @@ XPIDL_MODULE	= msgsearch
 EXPORTS		= \
 		nsMsgBodyHandler.h \
 		nsMsgResultElement.h \
-		nsMsgSearchArray.h \
 		nsMsgSearchBoolExpression.h \
 		nsMsgSearchScopeTerm.h \
 		nsMsgSearchTerm.h \

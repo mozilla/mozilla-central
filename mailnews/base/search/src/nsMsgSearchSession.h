@@ -44,14 +44,20 @@
 #include "nsIUrlListener.h"
 #include "nsIMsgWindow.h"
 #include "nsITimer.h"
-#include "nsMsgSearchArray.h"
 #include "nsISupportsArray.h"
 #include "nsCOMArray.h"
 #include "nsWeakReference.h"
 #include "nsTObserverArray.h"
+#include "nsMsgSearchScopeTerm.h"
 
 class nsMsgSearchAdapter;
 class nsMsgSearchBoolExpression;
+
+class nsMsgSearchScopeTermArray : public nsVoidArray
+{
+public:
+  nsMsgSearchScopeTerm *ElementAt(PRUint32 i) const { return (nsMsgSearchScopeTerm*) nsVoidArray::SafeElementAt(i); }
+};
 
 class nsMsgSearchSession : public nsIMsgSearchSession, public nsIUrlListener, public nsSupportsWeakReference
 {
@@ -103,11 +109,8 @@ protected:
    */
   PRInt32 m_iListener;
 
-  nsMsgResultArray m_resultList;
-
   void DestroyTermList ();
   void DestroyScopeList ();
-  void DestroyResultList ();
 
   static void TimerCallback(nsITimer *aTimer, void *aClosure);
   // support for searching multiple scopes in serial

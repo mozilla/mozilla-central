@@ -72,7 +72,6 @@ nsMsgSearchSession::~nsMsgSearchSession()
 {
   InterruptSearch();
   delete m_expressionTree;
-  DestroyResultList ();
   DestroyScopeList ();
   DestroyTermList ();
 }
@@ -622,30 +621,6 @@ nsresult nsMsgSearchSession::NotifyListenersDone(nsresult aStatus)
   m_iListener = -1;
   return NS_OK;
 }
-
-
-NS_IMETHODIMP nsMsgSearchSession::AddResultElement (nsMsgResultElement *element)
-{
-  NS_ASSERTION(element, "no null elements");
-
-  m_resultList.AppendElement (element);
-
-  return NS_OK;
-}
-
-
-void nsMsgSearchSession::DestroyResultList ()
-{
-  nsMsgResultElement *result = nsnull;
-  for (int i = 0; i < m_resultList.Count(); i++)
-  {
-    result = m_resultList.ElementAt(i);
-    //    NS_ASSERTION (result->IsValid(), "invalid search result");
-    delete result;
-  }
-  m_resultList.Clear();
-}
-
 
 void nsMsgSearchSession::DestroyScopeList()
 {
