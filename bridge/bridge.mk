@@ -34,6 +34,8 @@
 #
 # ***** END LICENSE BLOCK *****
 
+INCLUDED_BRIDGE_MK = 1
+
 APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/mozilla/xpfe/components/autocomplete
 
 #ifdef MOZ_LDAP_XPCOM

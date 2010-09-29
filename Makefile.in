@@ -60,6 +60,13 @@ include $(topsrcdir)/config/config.mk
 
 default alldep all:: $(topsrcdir)/configure config.status
 
+ifndef INCLUDED_BRIDGE_MK
+include $(topsrcdir)/bridge/bridge.mk
+endif
+
+# workaround Bug 599809 by making these makefiles be generated here
+SUBMAKEFILES += $(addsuffix /Makefile, $(APP_LIBXUL_DIRS) $(APP_LIBXUL_STATICDIRS))
+
 $(topsrcdir)/configure: $(topsrcdir)/configure.in
 	@echo "STOP!  configure.in has changed, and your configure is out of date."
 	@echo "Please rerun autoconf and configure."
@@ -72,19 +79,20 @@ config.status: $(topsrcdir)/configure
 	@echo "To ignore this message, touch 'config.status' in the build directory."
 	@exit 1
 
-default export libs clean realclean distclean alldep maybe_clobber_profiledbuild uploadsymbols all::
+default export libs clean realclean distclean alldep \
+maybe_clobber_profiledbuild uploadsymbols all:: $(SUBMAKEFILES)
 	$(MAKE) -C mozilla $@
 
 ifdef ENABLE_TESTS
-check mochitest reftest crashtest xpcshell-tests::
+check mochitest reftest crashtest xpcshell-tests:: $(SUBMAKEFILES)
 	$(MAKE) -C mozilla $@
 
-mochitest-% ::
+mochitest-% :: $(SUBMAKEFILES)
 	$(MAKE) -C mozilla $@
 endif
 
 ifndef MOZ_THUNDERBIRD
-package-tests::
+package-tests:: $(SUBMAKEFILES)
 	$(MAKE) -C mozilla $@
 endif
 
@@ -103,7 +111,7 @@ ifeq ($(OS_ARCH),WINNT)
   MAKE_SYM_STORE_PATH=..
 endif
 
-buildsymbols ::
+buildsymbols :: $(SUBMAKEFILES)
 	$(MAKE) -C mozilla MAKE_SYM_STORE_PATH=$(MAKE_SYM_STORE_PATH) SYM_STORE_SOURCE_DIRS="$(topsrcdir)/mozilla/extensions/inspector $(topsrcdir)/mozilla $(topsrcdir)" $@
 
 include $(topsrcdir)/config/rules.mk
