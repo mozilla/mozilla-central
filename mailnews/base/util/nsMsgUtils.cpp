@@ -838,8 +838,12 @@ nsresult GetExistingFolder(const nsCString& aFolderURI, nsIMsgFolder **aFolder)
   // Parent doesn't exist means that this folder doesn't exist.
   nsCOMPtr<nsIMsgFolder> parentFolder;
   rv = thisFolder->GetParent(getter_AddRefs(parentFolder));
-  if (NS_SUCCEEDED(rv) && parentFolder)
+  if (NS_SUCCEEDED(rv)) {
+    // When parentFolder is null with NS_OK, we should return error.
+    NS_ENSURE_TRUE(parentFolder, NS_ERROR_FAILURE);
+
     NS_ADDREF(*aFolder = thisFolder);
+  }
   return rv;
 }
 
