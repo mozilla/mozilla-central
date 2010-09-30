@@ -1,0 +1,105 @@
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is Mozilla Calendar code.
+#
+# The Initial Developer of the Original Code is
+#   Philipp Kewisch <mozilla@kewis.ch>
+# Portions created by the Initial Developer are Copyright (C) 2010
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#
+# Alternatively, the contents of this file may be used under the terms of
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# in which case the provisions of the GPL or the LGPL are applicable instead
+# of those above. If you wish to allow use of your version of this file only
+# under the terms of either the GPL or the LGPL, and not to allow others to
+# use your version of this file under the terms of the MPL, indicate your
+# decision by deleting the provisions above and replace them with the notice
+# and other provisions required by the GPL or the LGPL. If you do not delete
+# the provisions above, a recipient may use your version of this file under
+# the terms of any one of the MPL, the GPL or the LGPL.
+#
+# ***** END LICENSE BLOCK *****
+
+_ABS_DIST := $(call core_abspath,$(DIST))
+ZIP_IN ?= $(_ABS_DIST)/xpi-stage/$(XPI_NAME).xpi
+
+# This variable is to allow the wget-en-US target to know which ftp server to download from
+ifndef EN_US_BINARY_URL
+EN_US_BINARY_URL = $(error You must set EN_US_BINARY_URL)
+endif
+
+wget-en-US:
+ifndef WGET
+	$(error wget not installed)
+endif
+	(cd $(DIST)/xpi-stage && $(WGET) -nv -N $(EN_US_BINARY_URL)/$(XPI_NAME).xpi)
+	@echo "Downloaded $(EN_US_BINARY_URL)/$(PACKAGE) to	$(ZIP_IN)"
+
+unpack: $(ZIP_IN)
+# We're unpacking directly into FINAL_TARGET, this keeps code to do manual
+# repacks cleaner.
+	if test -d $(FINAL_TARGET); then \
+	  $(RM) -r -v $(FINAL_TARGET); \
+	fi
+	$(NSINSTALL) -D $(FINAL_TARGET)
+	cd $(FINAL_TARGET) && $(UNZIP) $(ZIP_IN)
+	@echo done unpacking
+
+# Call this target to upload the localized lightning package.
+l10n-upload-%: AB_CD=$*
+l10n-upload-%:
+	$(PYTHON) $(MOZILLA_SRCDIR)/build/upload.py --base-path $(DIST)	"$(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)"
+
+# Call this target to trigger repackaging lightning for a specific language
+# Usage: make AB_CD=<language> repack-l10n
+repack-l10n: L10N_XPI_NAME=$(subst -en-US,,$(XPI_NAME)-$(AB_CD))
+repack-l10n: repack-clobber libs-$(AB_CD) repack-process-extrafiles
+	@echo "Finished repackaging $(XPI_NAME) locale for Language $(AB_CD)"
+
+# This target should not be called directly
+repack-clobber-all:
+	@echo "Repackaging $(XPI_NAME) locale for Language $(AB_CD)"
+	rm -rf $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)
+	cp -R $(DIST)/xpi-stage/$(XPI_NAME) $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)
+
+# This target should not be called directly
+repack-clobber: repack-clobber-all
+	rm $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/lightning-en-US.jar
+	rm $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/calendar-en-US.jar
+
+# Repack the existing lightning to contain all locales in lightning-all.xpi
+repack-l10n-all: AB_CD=all
+repack-l10n-all: L10N_XPI_NAME=lightning-all
+repack-l10n-all: repack-clobber-all $(addprefix libs-,$(shell cat $(topsrcdir)/calendar/locales/shipped-locales))
+
+# Helper target to align names better to targets from other locale Makefiles
+repack-l10n-%:
+	$(MAKE) AB_CD=$* repack-l10n
+
+# Actual locale packaging targets. If L10N_XPI_NAME is set, then use it.
+# Otherwise keep the original XPI_NAME
+libs-%: FINAL_XPI_NAME=$(if $(L10N_XPI_NAME),$(L10N_XPI_NAME),$(XPI_NAME))
+libs-%:
+	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
+	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
+
+# For localized xpis, the install.rdf and lightning-l10n.js need to be
+# reprocessed with some defines from the locale.
+repack-process-extrafiles: LOCALE_BASEDIR=$(call EXPAND_LOCALE_SRCDIR,calendar/locales)
+repack-process-extrafiles:
+	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(XULAPP_DEFINES) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) -I $(LOCALE_BASEDIR)/defines.inc $(srcdir)/install.rdf > $(DIST)/xpi-stage/$(L10N_XPI_NAME)/install.rdf
+	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(PREF_PPFLAGS) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $(LOCALE_BASEDIR)/lightning-l10n.js  > $(DIST)/xpi-stage/$(L10N_XPI_NAME)/$(PREF_DIR)/lightning-l10n.js

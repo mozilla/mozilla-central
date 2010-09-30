@@ -39,7 +39,7 @@
       </Description>
     </em:targetApplication>
 
-    <em:id>{e2fda1a4-762b-4020-b5ad-a41df1933103}</em:id>
+    <em:id>@XPI_EM_ID@</em:id>
     <em:name>Lightning</em:name>
     <em:version>@LIGHTNING_VERSION@</em:version> <!-- BuildID=@GRE_BUILDID@ -->
     <em:description>An integrated calendar for Thunderbird</em:description>

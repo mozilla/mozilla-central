@@ -50,9 +50,13 @@ export XPI_NAME = lightning
 export USE_EXTENSION_MANIFEST = 1
 XPI_PKGNAME = lightning
 
+XPI_EM_ID = {e2fda1a4-762b-4020-b5ad-a41df1933103}
+
 STRIP_XPI = 1
-DIST_FILES = install.rdf
+DIST_FILES = install.rdf application.ini
 PREF_JS_EXPORTS = $(srcdir)/content/lightning.js
+
+# Lighting version number
 LIGHTNING_VERSION := $(shell cat $(srcdir)/../sunbird/config/version.txt)
 THUNDERBIRD_VERSION := $(shell cat $(topsrcdir)/mail/config/version.txt)
 SEAMONKEY_VERSION := $(shell cat $(topsrcdir)/suite/config/version.txt)
@@ -64,6 +68,34 @@ ifneq (,$(findstring pre,$(LIGHTNING_VERSION)))
 DEFINES += -DLIGHTNING_PRERELEASE_VERSION=1
 endif
 
+# Gecko milestone
+GRE_MILESTONE = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build Milestone)
+ifdef GRE_MILESTONE
+DEFINES += -DGRE_MILESTONE=$(GRE_MILESTONE)
+endif
+
+# comm-central source repo and stamp
+SOURCE_STAMP ?= $(firstword $(shell hg -R $(topsrcdir) parent --template="{node|short}\n" 2>/dev/null))
+ifdef SOURCE_STAMP
+DEFINES += -DSOURCE_STAMP="$(SOURCE_STAMP)"
+endif
+
+SOURCE_REPO := $(shell hg -R $(topsrcdir) showconfig paths.default 2>/dev/null | sed -e "s/^ssh:/http:/")
+ifdef SOURCE_REPO
+DEFINES += -DSOURCE_REPO="$(SOURCE_REPO)"
+endif
+
+# Mozilla source repo and stamps
+MOZ_SOURCE_STAMP ?= $(firstword $(shell hg -R $(MOZILLA_SRCDIR) parent --template="{node|short}\n" 2>/dev/null))
+ifdef MOZ_SOURCE_STAMP
+DEFINES += -DMOZ_SOURCE_STAMP="$(MOZ_SOURCE_STAMP)"
+endif
+
+MOZ_SOURCE_REPO := $(shell hg -R $(MOZILLA_SRCDIR) showconfig paths.default 2>/dev/null | sed -e "s/^ssh:/http:/")
+ifdef MOZ_SOURCE_REPO
+DEFINES += -DMOZ_SOURCE_REPO="$(MOZ_SOURCE_REPO)"
+endif
+
 # include config.mk here so myconfig or app-config can set DISABLE_LIGHTNING_INSTALL
 include $(topsrcdir)/config/config.mk
 
@@ -73,7 +105,7 @@ include $(topsrcdir)/config/config.mk
 ifndef DISABLE_LIGHTNING_INSTALL
 ifndef MOZ_SUNBIRD
 # install Lightning as a global extension in dist/bin/extensions/
-INSTALL_EXTENSION_ID   = {e2fda1a4-762b-4020-b5ad-a41df1933103}
+INSTALL_EXTENSION_ID = $(XPI_EM_ID)
 endif
 endif
 
@@ -104,6 +136,7 @@ DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
            -DLIGHTNING_VERSION=$(LIGHTNING_VERSION) \
            -DLIGHTNING_FIREFOX=$(LIGHTNING_FIREFOX) \
            -DTARGET_PLATFORM=$(OS_TARGET)_$(TARGET_XPCOM_ABI) \
+           -DXPI_EM_ID=$(XPI_EM_ID) \
            -DTHEME=$(THEME) \
            $(NULL)
 
@@ -115,39 +148,17 @@ libs::
 	$(NSINSTALL) $(srcdir)/../timezones/timezones.sqlite $(FINAL_TARGET)
 
 include $(topsrcdir)/config/rules.mk
+include $(srcdir)/lightning-packager.mk
 
-# Call this target to trigger repackaging lightning for a specific language
-# Usage: make AB_CD=<language> repack-l10n
-repack-l10n: L10N_XPI_NAME=$(subst -en-US,,$(XPI_NAME)-$(AB_CD))
-repack-l10n: repack-clobber libs-$(AB_CD) repack-process-extrafiles
-	@echo "Finished repackaging $(XPI_NAME) locale for Language $(AB_CD)"
+ident:
+	@printf "comm_revision "
+	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py \
+	    $(FINAL_TARGET)/application.ini App SourceStamp
+	@printf "moz_revision "
+	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py \
+	    $(FINAL_TARGET)/application.ini Build SourceStamp
+	@printf "buildid "
+	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py \
+	    $(FINAL_TARGET)/application.ini App BuildID
 
-# This target should not be called directly
-repack-clobber-all:
-	@echo "Repackaging $(XPI_NAME) locale for Language $(AB_CD)"
-	rm -rf $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)
-	cp -R $(DIST)/xpi-stage/$(XPI_NAME) $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)
 
-# This target should not be called directly
-repack-clobber: repack-clobber-all
-	rm $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/lightning-en-US.jar
-	rm $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/calendar-en-US.jar
-
-# Repack the existing lightning to contain all locales in lightning-all.xpi
-repack-l10n-all: AB_CD=all
-repack-l10n-all: L10N_XPI_NAME=lightning-all
-repack-l10n-all: repack-clobber-all $(addprefix libs-,$(shell cat $(topsrcdir)/calendar/locales/shipped-locales))
-
-# Actual locale packaging targets. If L10N_XPI_NAME is set, then use it.
-# Otherwise keep the original XPI_NAME
-libs-%: FINAL_XPI_NAME=$(if $(L10N_XPI_NAME),$(L10N_XPI_NAME),$(XPI_NAME))
-libs-%:
-	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
-	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
-
-# For localized xpis, the install.rdf and lightning-l10n.js need to be
-# reprocessed with some defines from the locale.
-repack-process-extrafiles: LOCALE_BASEDIR=$(call EXPAND_LOCALE_SRCDIR,calendar/locales)
-repack-process-extrafiles:
-	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(XULAPP_DEFINES) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) -I $(LOCALE_BASEDIR)/defines.inc $(srcdir)/install.rdf > $(DIST)/xpi-stage/$(L10N_XPI_NAME)/install.rdf
-	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(PREF_PPFLAGS) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $(LOCALE_BASEDIR)/lightning-l10n.js  > $(DIST)/xpi-stage/$(L10N_XPI_NAME)/$(PREF_DIR)/lightning-l10n.js
