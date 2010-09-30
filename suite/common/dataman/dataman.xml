@@ -50,14 +50,13 @@
            extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
     <implementation>
       <constructor><![CDATA[
-        var permLabel = document.getAnonymousElementByAttribute(this, "anonid",
-                                                                "permLabel");
+        var permLabel = this.type;
         try {
-          permLabel.value = gDataman.bundle.getString("perm." + this.type + ".label");
+          permLabel = gDataman.bundle.getString("perm." + this.type + ".label");
         }
         catch (e) {
-          permLabel.value = this.type;
         }
+        this.setAttribute("label", permLabel);
         this._updateRadio();
       ]]></constructor>
 
@@ -136,7 +135,7 @@
     <content>
       <xul:hbox>
         <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=rawHost"/>
-        <xul:label anonid="permLabel" class="permissionLabel" control="radioGroup"/>
+        <xul:label anonid="permLabel" class="permissionLabel" xbl:inherits="value=label" control="radioGroup"/>
       </xul:hbox>
       <xul:hbox role="group" aria-labelledby="permLabel">
         <xul:checkbox class="indent" anonid="useDefault" label="&perm.UseDefault;"
@@ -157,7 +156,7 @@
     <content>
       <xul:hbox>
         <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=rawHost"/>
-        <xul:label anonid="permLabel" class="permissionLabel" control="radioGroup"/>
+        <xul:label anonid="permLabel" class="permissionLabel" xbl:inherits="value=label" control="radioGroup"/>
       </xul:hbox>
       <xul:hbox role="group" aria-labelledby="permLabel">
         <xul:checkbox class="indent" anonid="useDefault" label="&perm.UseDefault;"
@@ -180,7 +179,7 @@
     <content>
       <xul:hbox>
         <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=rawHost"/>
-        <xul:label anonid="permLabel" class="permissionLabel" control="radioGroup"/>
+        <xul:label anonid="permLabel" class="permissionLabel" xbl:inherits="value=label" control="radioGroup"/>
       </xul:hbox>
       <xul:hbox role="group" aria-labelledby="permLabel">
         <xul:checkbox class="indent" anonid="useDefault" label="&perm.AskAlways;"
@@ -200,7 +199,7 @@
     <content>
       <xul:hbox>
         <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=rawHost"/>
-        <xul:label anonid="permLabel" class="permissionLabel" control="radioGroup"/>
+        <xul:label anonid="permLabel" class="permissionLabel" xbl:inherits="value=label" control="radioGroup"/>
       </xul:hbox>
       <xul:hbox role="group" aria-labelledby="permLabel">
         <xul:checkbox class="indent" anonid="useDefault" hidden="true"/>
