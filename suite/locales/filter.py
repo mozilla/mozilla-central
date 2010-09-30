@@ -14,8 +14,7 @@ def test(mod, path, entity = None):
     return True
   if entity is None:
     # missing and obsolete files
-    return not (re.match(r"searchplugins\/.+\.src", path) or
-                re.match(r"searchplugins\/.+\.png", path) or
+    return not (re.match(r"searchplugins\/.+\.xml", path) or
                 re.match(r"chrome\/common\/help\/images\/[A-Za-z-_]+\.[a-z]+", path))
   if path == "defines.inc":
     return entity != "MOZ_LANGPACK_CONTRIBUTORS"
