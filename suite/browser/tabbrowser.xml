@@ -1561,8 +1561,8 @@
 
             this._browsers = null;
 
-            var t = this.referenceTab.cloneNode(true);
             var savedData = this.savedBrowsers.splice(aIndex, 1)[0];
+            var t = savedData.tab;
             var b = savedData.browser;
             var hist = savedData.history;
 
@@ -1571,14 +1571,11 @@
               t.setAttribute("afterselected", true);
 
             // navigate back to the proper page from the light page
-            b.webNavigation.goBack();
+            b.stop();
+            b.webNavigation.gotoIndex(0);
 
             // reattach the old history
             b.webNavigation.sessionHistory = hist;
-
-            var uniqueID = b.parentNode.id;
-            t.linkedPanel = uniqueID;
-            t.linkedBrowser = b;
 
             // Hook up the title change listener again
             b.addEventListener("DOMTitleChanged", this.onTitleChanged, true);
@@ -1745,6 +1742,7 @@
             //    into bfcache - allows for saving of JS modifications
             //    and also saves RAM by allowing bfcache to evict the full page
 
+            tabData.tab = aTab;
             tabData.browser = oldBrowser;
             tabData.history = oldSH;
             this.savedBrowsers.unshift(tabData);
@@ -1766,6 +1764,7 @@
             if (this.savedBrowsers.length > maxUndoDepth) {
               tabData = this.savedBrowsers.pop();
               var deadBrowser = tabData.browser;
+              delete tabData.tab;
               delete tabData.browser;
               delete tabData.history;
               deadBrowser.parentNode.destroy();
@@ -1789,6 +1788,7 @@
 
             var tabData = this.savedBrowsers.splice(aIndex, 1)[0];
             var deadBrowser = tabData.browser;
+            delete tabData.tab;
             delete tabData.browser;
             delete tabData.history;
             deadBrowser.parentNode.destroy();
@@ -2583,6 +2583,7 @@
             while (this.savedBrowsers.length) {
               var tabData = this.savedBrowsers.pop();
               var deadBrowser = tabData.browser;
+              delete tabData.tab;
               delete tabData.browser;
               delete tabData.history;
               deadBrowser.parentNode.destroy();
