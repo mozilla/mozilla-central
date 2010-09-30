@@ -66,7 +66,6 @@ endif
 LOCAL_INCLUDES += \
 		-I$(topsrcdir)/suite/profile \
 		-I$(topsrcdir)/suite/profile/migration/src \
-		-I$(topsrcdir)/suite/browser/src \
 		-I$(topsrcdir)/suite/shell/src \
 		-I$(topsrcdir)/suite/feeds/src \
 		$(NULL)
@@ -74,9 +73,13 @@ LOCAL_INCLUDES += \
 SHARED_LIBRARY_LIBS = \
 	../profile/$(LIB_PREFIX)suiteprofile_s.$(LIB_SUFFIX) \
 	../profile/migration/src/$(LIB_PREFIX)suitemigration_s.$(LIB_SUFFIX) \
-	../browser/src/$(LIB_PREFIX)suitebrowser_s.$(LIB_SUFFIX) \
 	../feeds/src/$(LIB_PREFIX)suitefeeds_s.$(LIB_SUFFIX) \
 	$(NULL)
+
+ifeq ($(OS_ARCH),WINNT)
+LOCAL_INCLUDES += -I$(topsrcdir)/suite/browser/src
+SHARED_LIBRARY_LIBS += ../browser/src/$(LIB_PREFIX)suitebrowser_s.$(LIB_SUFFIX)
+endif
 
 # We need to link the windows shell service into seamonkey.exe.
 ifdef BUILD_STATIC_LIBS

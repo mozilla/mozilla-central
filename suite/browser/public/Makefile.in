@@ -45,9 +45,7 @@ include $(DEPTH)/config/autoconf.mk
 MODULE		= suitebrowser
 XPIDL_MODULE	= suitebrowser
 
-ifeq ($(OS_ARCH),WINNT)
 XPIDLSRCS += nsIUrlWidget.idl
-endif
 
 include $(topsrcdir)/config/rules.mk
 

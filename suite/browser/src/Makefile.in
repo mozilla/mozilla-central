@@ -46,9 +46,7 @@ MODULE		= suitebrowser
 LIBRARY_NAME	= suitebrowser_s
 META_COMPONENT  = suite
 
-ifeq ($(OS_ARCH),WINNT)
 CPPSRCS += nsUrlWidget.cpp
-endif
 
 FORCE_STATIC_LIB = 1
 FORCE_USE_PIC=1
