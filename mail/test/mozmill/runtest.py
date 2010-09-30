@@ -121,6 +121,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mailnews.ui.junk.firstuse': False,
         # other unknown voodoo
         # -- dummied up local accounts to stop the account wizard
+        'mail.account.account1.identities' :  "id1",
         'mail.account.account1.server' :  "server1",
         'mail.account.account2.identities' :  "id1,id2",
         'mail.account.account2.server' :  "server2",

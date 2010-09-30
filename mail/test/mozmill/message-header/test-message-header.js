@@ -62,7 +62,8 @@ function setupModule(module) {
 
   // create a message that has the interesting headers that commonly
   // show up in the message header pane for testing
-  let msg = create_message({cc: [["John Doe", "john.doe@momo.invalid"]],
+  let msg = create_message({cc: msgGen.makeNamesAndAddresses(20), // YYY
+                            subject: "This is a really, really, really, really, really, really, really, really, long subject.",
                             clobberHeaders: {
                               "Newsgroups": "alt.test",
                               "Reply-To": "J. Doe <j.doe@momo.invalid>",
@@ -70,6 +71,11 @@ function setupModule(module) {
                               "Bcc": "Richard Roe <richard.roe@momo.invalid>"
                             }});
 
+  add_message_to_folder(folder, msg);
+
+  // create a message that has boring headers to be able to switch to and
+  // back from, to force the more button to collapse again.
+  msg = create_message();
   add_message_to_folder(folder, msg);
 }
 
@@ -124,6 +130,46 @@ function test_add_tag_with_really_long_label() {
   tagsLabel.value = oldTagsValue;
   mc.keypress(mc.eid("expandedHeadersNameColumn"), "1", {});
   mc.keypress(mc.eid("expandedHeadersNameColumn"), "1", {});
+}
+
+function test_more_button_with_many_recipients()
+{
+  // Start on the interesting message.
+  let curMessage = select_click_row(0);
+
+  // make sure it loads
+  wait_for_message_display_completion(mc);
+  assert_selected_and_displayed(mc, curMessage);
+
+  // Check the mode of the header.
+  let headerBox = mc.eid("expandedHeaderView");
+  let previousHeaderMode = headerBox.node.getAttribute("show_header_mode");
+
+  // Click the "more" button.
+  let moreIndicator = mc.eid("expandedccBox");
+  moreIndicator = mc.window.document.getAnonymousElementByAttribute(
+                    moreIndicator.node, "anonid", "more");
+  moreIndicator = new elementslib.Elem(moreIndicator);
+  mc.click(moreIndicator);
+
+  // Check the new mode of the header.
+  if (headerBox.node.getAttribute("show_header_mode") != "all")
+    throw new Error("Header Mode didn't change to 'all'!  " + "old=" +
+                    previousHeaderMode + ", new=" +
+                    headerBox.node.getAttribute("show_header_mode"));
+
+  // Switch to the boring message, to force the more button to collapse.
+  let curMessage = select_click_row(1);
+
+  // make sure it loads
+  wait_for_message_display_completion(mc);
+  assert_selected_and_displayed(mc, curMessage);
+
+  // Check the even newer mode of the header.
+  if (headerBox.node.getAttribute("show_header_mode") != previousHeaderMode)
+    throw new Error("Header Mode changed from " + previousHeaderMode +
+                    " to " + headerBox.node.getAttribute("show_header_mode") +
+                    " and didn't change back.");
 }
 
 /**
