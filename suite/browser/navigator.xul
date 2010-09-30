@@ -355,7 +355,7 @@
                 class="button-toolbar chromeclass-location"
                 label="&searchButton.label;"
                 tooltiptext="&searchButton.tooltip;"
-                oncommand="OpenSearch('internet', QualifySearchTerm());"
+                oncommand="BrowserSearch.loadSearch(QualifySearchTerm());"
                 ondragover="nsDragAndDrop.dragOver(event, searchButtonObserver);"
                 ondragdrop="nsDragAndDrop.drop(event, searchButtonObserver);"
                 ondragexit="nsDragAndDrop.dragExit(event, searchButtonObserver);"/>

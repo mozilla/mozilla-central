@@ -612,7 +612,7 @@ nsContextMenu.prototype = {
           }
         }
 
-        // Background image?  Don't bother if we've already found a 
+        // Background image?  Don't bother if we've already found a
         // background image further down the hierarchy.  Otherwise,
         // we look for the computed background-image style.
         if (!this.hasBGImage) {
@@ -1205,13 +1205,21 @@ nsContextMenu.prototype = {
     if (searchSelectText.length > 15)
       searchSelectText = searchSelectText.substr(0, 15) + this.ellipsis;
 
-    // Format "Search for <selection>" string to show in menu.
+    // Use the current engine if it's a browser window and the search bar is
+    // visible, the default engine otherwise.
+    var engineName = "";
+    if (window.BrowserSearch && BrowserSearch.searchBar && isElementVisible(BrowserSearch.searchBar))
+      engineName = Services.search.currentEngine.name;
+    else
+      engineName = Services.search.defaultEngine.name;
+
+    // format "Search <engine> for <selection>" string to show in menu
     const bundle = document.getElementById("contentAreaCommandsBundle");
-    searchSelectText = bundle.getFormattedString("searchText",
-                                                 [searchSelectText]);
-    this.setItemAttr("context-searchselect", "label", searchSelectText);
+    var menuLabel = bundle.getFormattedString("contextMenuSearchText",
+                                              [engineName, searchSelectText]);
+    this.setItemAttr("context-searchselect", "label", menuLabel);
     this.setItemAttr("context-searchselect", "accesskey",
-                     bundle.getString("searchText.accesskey"));
+                     bundle.getString("contextMenuSearchText.accesskey"));
 
     return true;
   },

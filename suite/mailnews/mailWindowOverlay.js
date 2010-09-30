@@ -1755,19 +1755,20 @@ function MsgOpenSelectedMessageInExistingWindow()
     return false;
 }
 
-function MsgOpenSearch(aSearchStr, aReverseBackgroundPref)
+function MsgBrowserSearch(aSearchStr)
 {
   var topWindow = getTopWin();
   if (topWindow)
   {
-    topWindow.OpenSearch("internet", aSearchStr, true, aReverseBackgroundPref);
+    topWindow.BrowserSearch.loadSearch(aSearchStr, true);
+    topWindow.focus();
   }
   else
   {
     // open the requested window, but block it until it's fully loaded
     function NewSearchWindowLoaded()
     {
-      topWindow.setTimeout(topWindow.OpenSearch, 0, "internet", aSearchStr, false, aReverseBackgroundPref);
+      topWindow.setTimeout(topWindow.BrowserSearch.loadSearch, 0, aSearchStr, false);
       // make sure that this handler is called only once
       topWindow.removeEventListener("load", NewSearchWindowLoaded, false);
     }

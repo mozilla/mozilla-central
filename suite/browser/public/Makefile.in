@@ -45,10 +45,6 @@ include $(DEPTH)/config/autoconf.mk
 MODULE		= suitebrowser
 XPIDL_MODULE	= suitebrowser
 
-XPIDLSRCS = \
-	nsISearchService.idl \
-	$(NULL)
-
 ifeq ($(OS_ARCH),WINNT)
 XPIDLSRCS += nsIUrlWidget.idl
 endif

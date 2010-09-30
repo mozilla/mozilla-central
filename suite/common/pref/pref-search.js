@@ -16,12 +16,13 @@
  *
  * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998-1999
+ * Portions created by the Initial Developer are Copyright (C) 1998-2010
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
  *   Robert John Churchill <rjc@netscape.com>
  *   Mark Olson <maolson@earthlink.net>
+ *   Robert Kaiser <kairo@kairo.at>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -37,37 +38,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function Startup()
-{
-  var engineList = document.getElementById("engineList");
-  // Need to set ref attribute once overlay has loaded
-  engineList.setAttribute("ref", "NC:SearchEngineRoot");
-  // Due to a bug in the internet search service, the first time
-  // ref is set only one menuitem is built, so force a rebuild
-  engineList.builder.rebuild();
+Components.utils.import("resource://gre/modules/Services.jsm");
 
-  // Since the menulist starts off empty it has no selected item
-  // so try and set it to the preference value.
-  var pref = document.getElementById(engineList.getAttribute("preference"));
-  engineList.value = pref.value;
-
-  // nothing is selected
-  if (!engineList.selectedItem)
-  {
-    var name = document.getElementById("browser.search.defaultenginename").value;
-    var selectedItem = engineList.getElementsByAttribute("label", name).item(0);
- 
-    if (selectedItem)
-    {
-      // select a locale-dependent predefined search engine
-      // in absence of a user default
-      engineList.selectedItem = selectedItem;
-    }
-    else
-    {
-      // select the first listed search engine
-      engineList.selectedIndex = 0;
-    }
-    pref.value = engineList.value;
+function Startup() {
+  var menulist = document.getElementById("engineList");
+  var engines = Services.search.getVisibleEngines();
+  for (let i = 0; i < engines.length; i++) {
+    let name = engines[i].name;
+    let menuitem = menulist.appendItem(name, name);
+    menuitem.setAttribute("class", "menuitem-iconic");
+    if (engines[i].iconURI)
+      menuitem.setAttribute("image", engines[i].iconURI.spec);
+    menulist.menupopup.appendChild(menuitem);
+    menuitem.engine = engines[i];
   }
+  menulist.value = Services.search.defaultEngine.name;
 }

@@ -1,3 +1,4 @@
+creativecommons
 google
-dmoz
-jeeves
+wikipedia
+yahoo

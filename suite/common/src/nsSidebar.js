@@ -59,16 +59,19 @@ const SIDEBAR_CID      = Components.ID("{22117140-9c6e-11d3-aaf1-00805f8a4905}")
 const CONTAINER_CONTRACTID = "@mozilla.org/rdf/container;1";
 const DIR_SERV_CONTRACTID  = "@mozilla.org/file/directory_service;1"
 const NETSEARCH_CONTRACTID = "@mozilla.org/rdf/datasource;1?name=internetsearch"
-const IO_SERV_CONTRACTID   = "@mozilla.org/network/io-service;1";
 const nsISupports      = Components.interfaces.nsISupports;
 const nsISidebar       = Components.interfaces.nsISidebar;
+const nsISidebarExternal = Components.interfaces.nsISidebarExternal;
 const nsIRDFContainer  = Components.interfaces.nsIRDFContainer;
 const nsIProperties    = Components.interfaces.nsIProperties;
 const nsIFileURL       = Components.interfaces.nsIFileURL;
 const nsIRDFRemoteDataSource = Components.interfaces.nsIRDFRemoteDataSource;
-const nsIInternetSearchService = Components.interfaces.nsIInternetSearchService;
 const nsIClassInfo = Components.interfaces.nsIClassInfo;
 
+// File extension for Sherlock search plugin description files
+const SHERLOCK_FILE_EXT_REGEXP = /\.src$/i;
+
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function nsSidebar()
@@ -81,11 +84,6 @@ function nsSidebar()
     debug('datasource_uri is ' + this.datasource_uri);
     this.resource = 'urn:sidebar:current-panel-list';
     this.datasource = this.rdf.GetDataSource(this.datasource_uri);
-
-    const PROMPTSERVICE_CONTRACTID = "@mozilla.org/embedcomp/prompt-service;1";
-    const nsIPromptService = Components.interfaces.nsIPromptService;
-    this.promptService =
-        Components.classes[PROMPTSERVICE_CONTRACTID].getService(nsIPromptService);
 }
 
 nsSidebar.prototype.nc = "http://home.netscape.com/NC-rdf#";
@@ -156,8 +154,8 @@ function (aTitle, aContentURL, aCustomizeURL, aPersist)
     if (panel_index != -1)
     {
         try {
-            stringBundle = srGetStrBundle("chrome://communicator/locale/sidebar/sidebar.properties");
-            brandStringBundle = srGetStrBundle("chrome://branding/locale/brand.properties");
+            stringBundle = Services.strings.createBundle("chrome://communicator/locale/sidebar/sidebar.properties");
+            brandStringBundle = Services.strings.createBundle("chrome://branding/locale/brand.properties");
             if (stringBundle) {
                 sidebarName = brandStringBundle.GetStringFromName("sidebarName");
                 titleMessage = stringBundle.GetStringFromName("dupePanelAlertTitle");
@@ -171,14 +169,14 @@ function (aTitle, aContentURL, aCustomizeURL, aPersist)
             dialogMessage = aContentURL + " already exists in Sidebar.  No string bundle";
         }
 
-        this.promptService.alert(null, titleMessage, dialogMessage);
+        Services.prompt.alert(null, titleMessage, dialogMessage);
 
         return;
     }
 
     try {
-        stringBundle = srGetStrBundle("chrome://communicator/locale/sidebar/sidebar.properties");
-        brandStringBundle = srGetStrBundle("chrome://branding/locale/brand.properties");
+        stringBundle = Services.strings.createBundle("chrome://communicator/locale/sidebar/sidebar.properties");
+        brandStringBundle = Services.strings.createBundle("chrome://branding/locale/brand.properties");
         if (stringBundle) {
             sidebarName = brandStringBundle.GetStringFromName("sidebarName");
             titleMessage = stringBundle.GetStringFromName("addPanelConfirmTitle");
@@ -199,7 +197,7 @@ function (aTitle, aContentURL, aCustomizeURL, aPersist)
         dialogMessage = "No string bundle.  Add the Tab '" + aTitle + "' to Sidebar?\n\n" + "Source: " + aContentURL;
     }
 
-    var rv = this.promptService.confirm(null, titleMessage, dialogMessage);
+    var rv = Services.prompt.confirm(null, titleMessage, dialogMessage);
 
     if (!rv)
         return;
@@ -240,67 +238,100 @@ function (aTitle, aContentURL, aCustomizeURL, aPersist)
     this.datasource.QueryInterface(nsIRDFRemoteDataSource).Flush();
 }
 
-/* decorate prototype to provide ``class'' methods and property accessors */
+nsSidebar.prototype.validateSearchEngine =
+function (engineURL, iconURL)
+{
+  try
+  {
+    // Make sure the URLs are HTTP, HTTPS, or FTP.
+    var isWeb = /^(https?|ftp):\/\//i;
+
+    if (!isWeb.test(engineURL))
+      throw "Unsupported search engine URL";
+
+    if (iconURL && !isWeb.test(iconURL))
+      throw "Unsupported search icon URL.";
+  }
+  catch(ex)
+  {
+    debug(ex);
+    Components.utils.reportError("Invalid argument passed to window.sidebar.addSearchEngine: " + ex);
+
+    var searchBundle = Services.strings.createBundle("chrome://global/locale/search/search.properties");
+    var brandBundle = Services.strings.createBundle("chrome://branding/locale/brand.properties");
+    var brandName = brandBundle.GetStringFromName("brandShortName");
+    var title = searchBundle.GetStringFromName("error_invalid_engine_title");
+    var msg = searchBundle.formatStringFromName("error_invalid_engine_msg",
+                                                [brandName], 1);
+    Services.ww.getNewPrompter(null).alert(title, msg);
+    return false;
+  }
+
+  return true;
+}
+
+// The suggestedTitle and suggestedCategory parameters are ignored, but remain
+// for backward compatibility.
 nsSidebar.prototype.addSearchEngine =
 function (engineURL, iconURL, suggestedTitle, suggestedCategory)
 {
-    debug("addSearchEngine(" + engineURL + ", " + iconURL + ", " +
-          suggestedCategory + ", " + suggestedTitle + ")");
+  debug("addSearchEngine(" + engineURL + ", " + iconURL + ", " +
+        suggestedCategory + ", " + suggestedTitle + ")");
 
-    try
-    {
-        // make sure using HTTP or HTTPS and refering to a .src file
-        // for the engine.
-        if (! /^https?:\/\/.+\.src$/i.test(engineURL))
-            throw "Unsupported search engine URL";
+  if (!this.validateSearchEngine(engineURL, iconURL))
+    return;
 
-        // make sure using HTTP or HTTPS and refering to a
-        // .gif/.jpg/.jpeg/.png file for the icon.
-        if (! /^https?:\/\/.+\.(gif|jpg|jpeg|png)$/i.test(iconURL))
-            throw "Unsupported search icon URL";
-    }
-    catch(ex)
-    {
-        debug(ex);
-        this.promptService.alert(null, "Error", "Failed to add the search engine.");
-        throw Components.results.NS_ERROR_INVALID_ARG;
-    }
+  // OpenSearch files will likely be far more common than Sherlock files, and
+  // have less consistent suffixes, so we assume that ".src" is a Sherlock
+  // (text) file, and anything else is OpenSearch (XML).
+  var dataType;
+  if (SHERLOCK_FILE_EXT_REGEXP.test(engineURL))
+    dataType = Components.interfaces.nsISearchEngine.DATA_TEXT;
+  else
+    dataType = Components.interfaces.nsISearchEngine.DATA_XML;
 
-    var titleMessage, dialogMessage;
-    try {
-        var stringBundle = srGetStrBundle("chrome://communicator/locale/sidebar/sidebar.properties");
-        var brandStringBundle = srGetStrBundle("chrome://branding/locale/brand.properties");
-        if (stringBundle) {
-            sidebarName = brandStringBundle.GetStringFromName("sidebarName");
-            titleMessage = stringBundle.GetStringFromName("addEngineConfirmTitle");
-            dialogMessage = stringBundle.GetStringFromName("addEngineConfirmMessage");
-            dialogMessage = dialogMessage.replace(/%title%/, suggestedTitle);
-            dialogMessage = dialogMessage.replace(/%category%/, suggestedCategory);
-            dialogMessage = dialogMessage.replace(/%url%/, engineURL);
-            dialogMessage = dialogMessage.replace(/#/g, "\n");
-            dialogMessage = dialogMessage.replace(/%name%/, sidebarName);
-        }
-    }
-    catch (e) {
-        titleMessage = "Add Search Engine";
-        dialogMessage = "Add the following search engine?\n\nName: " + suggestedTitle;
-        dialogMessage += "\nSearch Category: " + suggestedCategory;
-        dialogMessage += "\nSource: " + engineURL;
-    }
+  Services.search.addEngine(engineURL, dataType, iconURL, true);
+}
 
-    var rv = this.promptService.confirm(null, titleMessage, dialogMessage);
+// This function exists largely to implement window.external.AddSearchProvider(),
+// to match other browsers' APIs.  The capitalization, although nonstandard here,
+// is therefore important.
+nsSidebar.prototype.AddSearchProvider =
+function (aDescriptionURL)
+{
+  // Get the favicon URL for the current page, or our best guess at the current
+  // page since we don't have easy access to the active document.  Most search
+  // engines will override this with an icon specified in the OpenSearch
+  // description anyway.
+  var win = Services.wm.getMostRecentWindow("navigator:browser");
+  var browser = win.getBrowser();
+  var iconURL = "";
+  // Use documentURIObject in the check for shouldLoadFavIcon so that we
+  // do the right thing with about:-style error pages.  Bug 453442
+  if (browser.shouldLoadFavIcon(browser.selectedBrowser
+                                       .contentDocument
+                                       .documentURIObject))
+    iconURL = browser.getIcon();
 
-    if (!rv)
-        return;
+  if (!this.validateSearchEngine(aDescriptionURL, iconURL))
+    return;
 
-    var internetSearch = Components.classes[NETSEARCH_CONTRACTID].getService();
-    if (internetSearch)
-        internetSearch = internetSearch.QueryInterface(nsIInternetSearchService);
-    if (internetSearch)
-    {
-        internetSearch.AddSearchEngine(engineURL, iconURL, suggestedTitle,
-                                       suggestedCategory);
-    }
+  const typeXML = Components.interfaces.nsISearchEngine.DATA_XML;
+  Services.search.addEngine(aDescriptionURL, typeXML, iconURL, true);
+}
+
+// This function exists to implement window.external.IsSearchProviderInstalled(),
+// for compatibility with other browsers.  It will return an integer value
+// indicating whether the given engine is installed for the current user.
+// However, it is currently stubbed out due to security/privacy concerns
+// stemming from difficulties in determining what domain issued the request.
+// See bug 340604 and
+// http://msdn.microsoft.com/en-us/library/aa342526%28VS.85%29.aspx .
+// XXX Implement this!
+nsSidebar.prototype.IsSearchProviderInstalled =
+function (aSearchURL)
+{
+  return 0;
 }
 
 // property of nsIClassInfo
@@ -311,7 +342,7 @@ nsSidebar.prototype.classDescription = "Sidebar";
 
 // method of nsIClassInfo
 nsSidebar.prototype.getInterfaces = function(count) {
-    var interfaceList = [nsISidebar, nsIClassInfo];
+    var interfaceList = [nsISidebar, nsISidebarExternal, nsIClassInfo];
     count.value = interfaceList.length;
     return interfaceList;
 }
@@ -319,8 +350,8 @@ nsSidebar.prototype.getInterfaces = function(count) {
 // method of nsIClassInfo
 nsSidebar.prototype.getHelperForLanguage = function(count) {return null;}
 
-nsSidebar.prototype.QueryInterface = 
-    XPCOMUtils.generateQI([nsISidebar, nsIClassInfo, nsISupports]);
+nsSidebar.prototype.QueryInterface =
+    XPCOMUtils.generateQI([nsISidebar, nsISidebarExternal, nsIClassInfo]);
 
 nsSidebar.prototype.classID = SIDEBAR_CID;
 
@@ -353,8 +384,7 @@ function getSidebarDatasourceURI(panels_file_id)
             return null;
         }
 
-        var io_service = Components.classes[IO_SERV_CONTRACTID].getService(Components.interfaces.nsIIOService);
-        var file_handler = io_service.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+        var file_handler = Services.io.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
         var sidebar_uri = file_handler.getURLSpecFromFile(sidebar_file);
         debug("sidebar uri is " + sidebar_uri);
         return sidebar_uri;
@@ -365,18 +395,4 @@ function getSidebarDatasourceURI(panels_file_id)
         debug("caught " + ex + " getting sidebar datasource uri");
         return null;
     }
-}
-
-
-// String bundle service
-var gStrBundleService = null;
-
-function srGetStrBundle(path)
-{
-  if (!gStrBundleService)
-    gStrBundleService =
-      Components.classes["@mozilla.org/intl/stringbundle;1"]
-                .getService(Components.interfaces.nsIStringBundleService);
-
-  return gStrBundleService.createBundle(path);
 }

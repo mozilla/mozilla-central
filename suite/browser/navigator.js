@@ -56,7 +56,6 @@ var gURLBar = null;
 var gProxyButton = null;
 var gProxyFavIcon = null;
 var gProxyDeck = null;
-var gSearchService = null;
 var gNavigatorBundle;
 var gBrandBundle;
 var gNavigatorRegionBundle;
@@ -204,7 +203,6 @@ function pageShowEventHandlers(event)
 {
   // Filter out events that are not about the document load we are interested in
   if (event.originalTarget == content.document) {
-    UpdateInternetSearchResults(event);
     checkForDirectoryListing();
     postURLToNativeWidget();
   }
@@ -245,19 +243,6 @@ function updateHomeButtonTooltip()
     var label = document.createElementNS(XUL_NAMESPACE, "label");
     label.setAttribute("value", homePage[i]);
     tooltip.appendChild(label);
-  }
-}
-
-function UpdateInternetSearchResults(event)
-{
-  var url = getWebNavigation().currentURI.spec;
-  if (url && isSearchPanelOpen())
-  {
-    if (!gSearchService)
-      gSearchService = Components.classes["@mozilla.org/rdf/datasource;1?name=internetsearch"]
-                                 .getService(Components.interfaces.nsIInternetSearchService);
-
-    gSearchService.FindInternetSearchResults(url);
   }
 }
 
@@ -393,7 +378,7 @@ function HandleAppCommandEvent(aEvent)
       BrowserStop();
       break;
     case "Search":
-      BrowserSearchInternet();
+      BrowserSearch.webSearch();
       break;
     case "Bookmarks":
       toBookmarksManager();
@@ -960,56 +945,180 @@ var gBookmarkAllTabsHandler = {
   }
 };
 
-function readRDFString(aDS,aRes,aProp)
-{
-  var n = aDS.GetTarget(aRes, aProp, true);
-  return n ? n.QueryInterface(Components.interfaces.nsIRDFLiteral).Value : "";
-}
+const BrowserSearch = {
+  addEngine: function(engine, targetDoc) {
+    Services.console.logStringMessage("BrowserSearch.addEngine will be implemented in bug 401417.");
+  },
 
-function ensureDefaultEnginePrefs(aRDF,aDS) 
-{
-  var defaultName = Services.prefs.getComplexValue("browser.search.defaultenginename",
-                                                   nsIPrefLocalizedString).data;
-  var kNC_Root = aRDF.GetResource("NC:SearchEngineRoot");
-  var kNC_child = aRDF.GetResource("http://home.netscape.com/NC-rdf#child");
-  var kNC_Name = aRDF.GetResource("http://home.netscape.com/NC-rdf#Name");
+  /**
+   * Update the browser UI to show whether or not additional engines are
+   * available when a page is loaded or the user switches tabs to a page that
+   * has search engines.
+   */
+  updateSearchButton: function() {
+    Services.console.logStringMessage("BrowserSearch.updateSearchButton will be implemented in bug 401417.");
+  },
 
-  var arcs = aDS.GetTargets(kNC_Root, kNC_child, true);
-  while (arcs.hasMoreElements()) {
-    var engineRes = arcs.getNext().QueryInterface(Components.interfaces.nsIRDFResource);
-    var name = readRDFString(aDS, engineRes, kNC_Name);
-    if (name == defaultName)
-      mPrefs.setCharPref("browser.search.defaultengine", engineRes.Value);
+  /**
+   * Gives focus to the search bar, if it is present on the toolbar, or to the
+   * search sidebar, if it is open, or loads the default engine's search form
+   * otherwise. For Mac, opens a new window or focuses an existing window, if
+   * necessary.
+   */
+  webSearch: function BrowserSearch_webSearch() {
+    if (/Mac/.test(navigator.platform)) {
+      if (window.location.href != getBrowserURL()) {
+        var win = getTopWin();
+        if (win) {
+          // If there's an open browser window, it should handle this command
+          win.focus();
+          win.BrowserSearch.webSearch();
+        } else {
+          // If there are no open browser windows, open a new one
+
+          // This needs to be in a timeout so that we don't end up refocused
+          // in the url bar
+          function webSearchCallback() {
+            setTimeout(BrowserSearch.webSearch, 0);
+          }
+
+          win = window.openDialog(getBrowserURL(), "_blank",
+                                  "chrome,all,dialog=no", "about:blank");
+          win.addEventListener("load", webSearchCallback, false);
+        }
+        return;
+      }
+    }
+
+    if (isElementVisible(this.searchBar)) {
+      searchBar.select();
+      searchBar.focus();
+    } else if (isElementVisible(this.searchSidebar)) {
+      searchSidebar.focus();
+    } else {
+      loadURI(Services.search.defaultEngine.searchForm);
+    }
+  },
+
+  /**
+   * Loads a search results page, given a set of search terms. Uses the current
+   * engine if the search bar is visible, or the default engine otherwise.
+   *
+   * @param searchText
+   *        The search terms to use for the search.
+   *
+   * @param useNewTab
+   *        Boolean indicating whether or not the search should load in a new
+   *        tab.
+   */
+  loadSearch: function BrowserSearch_search(searchText, useNewTab) {
+    var engine;
+
+    // If the search bar is visible, use the current engine, otherwise, fall
+    // back to the default engine.
+    if ((this.searchBar && isElementVisible(this.searchBar)) ||
+        (this.searchSidebar && isElementVisible(this.searchSidebar)))
+      engine = Services.search.currentEngine;
+    else
+      engine = Services.search.defaultEngine;
+
+    var submission = engine.getSubmission(searchText); // HTML response
+
+    // getSubmission can return null if the engine doesn't have a URL
+    // with a text/html response type.  This is unlikely (since
+    // SearchService._addEngineToStore() should fail for such an engine),
+    // but let's be on the safe side.
+    if (!submission)
+      return;
+
+    if (useNewTab) {
+      gBrowser.loadOneTab(submission.uri.spec,
+                          { postData: submission.postData,
+                            relatedToCurrent: true,
+                            inBackground: false });
+    } else
+      loadURI(submission.uri.spec, null, submission.postData, false);
+
+    // should we try and open up the sidebar to show the "Search Results" panel?
+    var autoOpenSidebar = false;
+    try {
+      autoOpenSidebar = Services.prefs.getBoolPref("browser.search.opensidebarsearchpanel");
+    } catch (e) {}
+    if (autoOpenSidebar)
+      this.revealSidebar();
+  },
+
+  /**
+   * Returns the search bar element if it is present in the toolbar, null otherwise.
+   */
+  get searchBar() {
+    return document.getElementById("searchbar");
+  },
+
+  /**
+   * Returns the search sidebar element if it is present in the toolbar, null otherwise.
+   */
+  get searchSidebar() {
+    return document.getElementById("urn:sidebar:panel:search");
+  },
+
+  /**
+   * Reveal the search sidebar panel.
+   */
+  revealSidebar: function BrowserSearch_revealSidebar() {
+    // first lets check if the search panel will be shown at all
+    // by checking the sidebar datasource to see if there is an entry
+    // for the search panel, and if it is excluded for navigator or not
+
+    var searchPanelExists = false;
+
+    var myPanel = document.getElementById("urn:sidebar:panel:search");
+    if (myPanel) {
+      var panel = sidebarObj.panels.get_panel_from_header_node(myPanel);
+      searchPanelExists = !panel.is_excluded();
+
+    } else if (sidebarObj.never_built) {
+      // XXXsearch: in theory, this should work when the sidebar isn't loaded,
+      //            in practice, it fails as sidebarObj.datasource_uri isn't defined
+      try {
+        var datasource = RDF.GetDataSourceBlocking(sidebarObj.datasource_uri);
+        var aboutValue = RDF.GetResource("urn:sidebar:panel:search");
+
+        // check if the panel is even in the list by checking for its content
+        var contentProp = RDF.GetResource("http://home.netscape.com/NC-rdf#content");
+        var content = datasource.GetTarget(aboutValue, contentProp, true);
+
+        if (content instanceof Components.interfaces.nsIRDFLiteral) {
+          // the search panel entry exists, now check if it is excluded
+          // for navigator
+          var excludeProp = RDF.GetResource("http://home.netscape.com/NC-rdf#exclude");
+          var exclude = datasource.GetTarget(aboutValue, excludeProp, true);
+
+          if (exclude instanceof Components.interfaces.nsIRDFLiteral) {
+            searchPanelExists = (exclude.Value.indexOf("navigator:browser") < 0);
+          } else {
+            // panel exists and no exclude set
+            searchPanelExists = true;
+          }
+        }
+      } catch (e) {
+        searchPanelExists = false;
+      }
+    }
+
+    if (searchPanelExists) {
+      // make sure the sidebar is open, else SidebarSelectPanel() will fail
+      if (sidebar_is_hidden())
+        SidebarShowHide();
+
+      if (sidebar_is_collapsed())
+        SidebarExpandCollapse();
+
+      var searchPanel = document.getElementById("urn:sidebar:panel:search");
+      if (searchPanel)
+        SidebarSelectPanel(searchPanel, true, true); // lives in sidebarOverlay.js
+    }
   }
-}
-
-function ensureSearchPref()
-{
-  var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                      .getService(Components.interfaces.nsIRDFService);
-  var ds = rdf.GetDataSource("rdf:internetsearch");
-  var kNC_Name = rdf.GetResource("http://home.netscape.com/NC-rdf#Name");
-  var defaultEngine;
-  try {
-    defaultEngine = Services.prefs.getCharPref("browser.search.defaultengine");
-  } catch(ex) {
-    ensureDefaultEnginePrefs(rdf, ds);
-    defaultEngine = Services.prefs.getCharPref("browser.search.defaultengine");
-  }
-}
-
-function getSearchUrl(attr)
-{
-  var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                      .getService(Components.interfaces.nsIRDFService);
-  var ds = rdf.GetDataSource("rdf:internetsearch");
-  var kNC_Root = rdf.GetResource("NC:SearchEngineRoot");
-  var defaultEngine = Services.prefs.getCharPref("browser.search.defaultengine");
-  var engineRes = rdf.GetResource(defaultEngine);
-  var prop = "http://home.netscape.com/NC-rdf#" + attr;
-  var kNC_attr = rdf.GetResource(prop);
-  var searchURL = readRDFString(ds, engineRes, kNC_attr);
-  return searchURL;
 }
 
 function QualifySearchTerm()
@@ -1021,178 +1130,6 @@ function QualifySearchTerm()
     return gURLBar.value;
   return "";
 }
-
-function OpenSearch(tabName, searchStr, newWindowOrTabFlag, reverseBackgroundPref)
-{
-  //This function needs to be split up someday.
-
-  var autoOpenSearchPanel = false;
-  var defaultSearchURL = null;
-  var fallbackDefaultSearchURL = gNavigatorRegionBundle.getString("fallbackDefaultSearchURL");
-  ensureSearchPref()
-  //Check to see if search string contains "://" or "ftp." or white space.
-  //If it does treat as url and match for pattern
-
-  var urlmatch= /(:\/\/|^ftp\.)[^ \S]+$/ 
-  var forceAsURL = urlmatch.test(searchStr);
-
-  try {
-    autoOpenSearchPanel = Services.prefs.getBoolPref("browser.search.opensidebarsearchpanel");
-    defaultSearchURL = Services.prefs.getComplexValue("browser.search.defaulturl",
-                                                      nsIPrefLocalizedString).data;
-  } catch (ex) {
-  }
-
-  // Fallback to a default url (one that we can get sidebar search results for)
-  if (!defaultSearchURL)
-    defaultSearchURL = fallbackDefaultSearchURL;
-
-  if (!searchStr) {
-    BrowserSearchInternet();
-  } else {
-
-    //Check to see if location bar field is a url
-    //If it is a url go to URL.  A Url is "://" or "." as commented above
-    //Otherwise search on entry
-    if (forceAsURL) {
-       BrowserLoadURL()
-    } else {
-      if (searchStr) {
-        var escapedSearchStr = encodeURIComponent(searchStr);
-        defaultSearchURL += escapedSearchStr;
-        var searchDS = Components.classes["@mozilla.org/rdf/datasource;1?name=internetsearch"]
-                                 .getService(Components.interfaces.nsIInternetSearchService);
-
-        searchDS.RememberLastSearchText(escapedSearchStr);
-        try {
-          var searchEngineURI = Services.prefs.getCharPref("browser.search.defaultengine");
-          if (searchEngineURI) {
-            var searchURL = getSearchUrl("actionButton");
-            if (searchURL) {
-              defaultSearchURL = searchURL + escapedSearchStr; 
-            } else {
-              searchURL = searchDS.GetInternetSearchURL(searchEngineURI, escapedSearchStr, 0, 0, {value:0});
-              if (searchURL)
-                defaultSearchURL = searchURL;
-            }
-          }
-        } catch (ex) {
-        }
-
-        if (!newWindowOrTabFlag)
-          loadURI(defaultSearchURL);
-        else if (!Services.prefs.getBoolPref("browser.search.opentabforcontextsearch"))
-          window.open(defaultSearchURL, "_blank");
-        else {
-          var newTab = gBrowser.addTab(defaultSearchURL);
-          var loadInBackground = Services.prefs.getBoolPref("browser.tabs.loadInBackground");
-          if (reverseBackgroundPref)
-            loadInBackground = !loadInBackground;
-          if (!loadInBackground)
-            gBrowser.selectedTab = newTab;
-        }
-      }
-    }
-  }
-
-  // should we try and open up the sidebar to show the "Search Results" panel?
-  if (autoOpenSearchPanel)
-    RevealSearchPanel();
-}
-
-function RevealSearchPanel()
-{
-  // first lets check if the search panel will be shown at all
-  // by checking the sidebar datasource to see if there is an entry
-  // for the search panel, and if it is excluded for navigator or not
-  
-  var searchPanelExists = false;
-  
-  if (document.getElementById("urn:sidebar:panel:search")) {
-    var myPanel = document.getElementById("urn:sidebar:panel:search");
-    var panel = sidebarObj.panels.get_panel_from_header_node(myPanel);
-
-    searchPanelExists = !panel.is_excluded();
-  } else if (sidebarObj.never_built) {
-
-    try{
-      var datasource = RDF.GetDataSourceBlocking(sidebarObj.datasource_uri);
-      var aboutValue = RDF.GetResource("urn:sidebar:panel:search");
-
-      // check if the panel is even in the list by checking for its content
-      var contentProp = RDF.GetResource("http://home.netscape.com/NC-rdf#content");
-      var content = datasource.GetTarget(aboutValue, contentProp, true);
-     
-      if (content instanceof Components.interfaces.nsIRDFLiteral){
-        // the search panel entry exists, now check if it is excluded
-        // for navigator
-        var excludeProp = RDF.GetResource("http://home.netscape.com/NC-rdf#exclude");
-        var exclude = datasource.GetTarget(aboutValue, excludeProp, true);
-
-        if (exclude instanceof Components.interfaces.nsIRDFLiteral) {
-          searchPanelExists = (exclude.Value.indexOf("navigator:browser") < 0);
-        } else {
-          // panel exists and no exclude set
-          searchPanelExists = true;
-        }
-      }
-    } catch(e){
-      searchPanelExists = false;
-    }
-  }
-
-  if (searchPanelExists) {
-    // make sure the sidebar is open, else SidebarSelectPanel() will fail
-    if (sidebar_is_hidden())
-      SidebarShowHide();
-  
-    if (sidebar_is_collapsed())
-      SidebarExpandCollapse();
-
-    var searchPanel = document.getElementById("urn:sidebar:panel:search");
-    if (searchPanel)
-      SidebarSelectPanel(searchPanel, true, true); // lives in sidebarOverlay.js      
-  }
-}
-
-function isSearchPanelOpen()
-{
-  return ( !sidebar_is_hidden()    && 
-           !sidebar_is_collapsed() && 
-           SidebarGetLastSelectedPanel() == "urn:sidebar:panel:search"
-         );
-}
-
-function BrowserSearchInternet()
-{
-  try {
-    var searchEngineURI = Services.prefs.getCharPref("browser.search.defaultengine");
-    if (searchEngineURI) {
-      var searchRoot = getSearchUrl("searchForm");
-      if (searchRoot) {
-        openTopWin(searchRoot);
-        return;
-      } else {
-        // Get a search URL and guess that the front page of the site has a search form.
-        var searchDS = Components.classes["@mozilla.org/rdf/datasource;1?name=internetsearch"]
-                                 .getService(Components.interfaces.nsIInternetSearchService);
-        var searchURL = searchDS.GetInternetSearchURL(searchEngineURI, "ABC", 0, 0, {value:0});
-        if (searchURL) {
-          searchRoot = searchURL.match(/^[^:]+:\/\/[^?/]+/i);
-          if (searchRoot) {
-            openTopWin(searchRoot + "/");
-            return;
-          }
-        }
-      }
-    }
-  } catch (ex) {
-  }
-
-  // Fallback if the stuff above fails: use the hard-coded search engine
-  openTopWin(gNavigatorRegionBundle.getString("otherSearchURL"));
-}
-
 
 //Note: BrowserNewEditorWindow() was moved to globalOverlay.xul and renamed to NewEditorWindow()
 

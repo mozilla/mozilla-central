@@ -52,7 +52,6 @@ MOZ_OFFICIAL_BRANDING_DIRECTORY=suite/branding/nightly
 MOZ_EXTENSIONS_DEFAULT=" venkman inspector irc gnomevfs"
 MOZ_UPDATER=1
 MOZ_HELP_VIEWER=1
-MOZ_TOOLKIT_SEARCH=
 MOZ_MORK=1
 MOZ_STATIC_BUILD_UNSUPPORTED=1
 # XXX This currently specifies mork due to an error in the core build

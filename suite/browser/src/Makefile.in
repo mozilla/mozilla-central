@@ -46,12 +46,6 @@ MODULE		= suitebrowser
 LIBRARY_NAME	= suitebrowser_s
 META_COMPONENT  = suite
 
-
-CPPSRCS = \
-	nsInternetSearchService.cpp \
-	nsLocalSearchService.cpp \
-	$(NULL)
-
 ifeq ($(OS_ARCH),WINNT)
 CPPSRCS += nsUrlWidget.cpp
 endif

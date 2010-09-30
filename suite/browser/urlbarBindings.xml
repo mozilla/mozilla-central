@@ -183,18 +183,11 @@
       ]]></field>
 
       <field name="mEnginesReady">false</field>
-      
+
       <property name="overrideValue" readonly="true">
         <getter><![CDATA[
           if (this.mSearchBox.selectedIndex != -1) {
-            // save the value.  RevealSearchPanel can close the popup
-            var returnValue = this.mSearchBox.overrideValue;
-            try {
-              if (pref.getBoolPref("browser.search.opensidebarsearchpanel"))
-                RevealSearchPanel();
-            } catch (ex) {
-            }
-            return returnValue;
+            return this.mSearchBox.overrideValue;
           }
           return null;
         ]]></getter>
@@ -207,16 +200,14 @@
             this.showSearch = this.mPrefs.getBoolPref("browser.urlbar.showSearch");
         ]]></body>
       </method>
-      
+
       <method name="addEngine">
-        <parameter name="aEngineId"/>
         <parameter name="aName"/>
         <parameter name="aIcon"/>
         <parameter name="aSearchBarUrl"/>
         <body><![CDATA[
           var box = document.createElement("box");
           box.setAttribute("class", "autocomplete-search-engine");
-          box.setAttribute("searchEngine", aEngineId);
           box.setAttribute("name", aName);
           box.setAttribute("icon", aIcon);
           box.setAttribute("searchBarUrl", aSearchBarUrl);
@@ -231,81 +222,17 @@
             this.mSearchBox.removeChild(this.mSearchBox.lastChild);
         ]]></body>
       </method>
-   
+
       <method name="updateEngines">
         <body><![CDATA[
-          var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                      .getService(Components.interfaces.nsIRDFService);
-          try {
-            var ds = rdf.GetDataSource("rdf:internetsearch");
-          } catch (ex) {
-            // sometimes bad profiles cause this error, which horks the hold urlbar
-            return;
-          }
-                              
-          const kNC_Name = rdf.GetResource("http://home.netscape.com/NC-rdf#Name");
-          const kNC_Icon = rdf.GetResource("http://home.netscape.com/NC-rdf#Icon");
-          const kNC_searchBarUrl = rdf.GetResource("http://home.netscape.com/NC-rdf#actionBar");
-        
-          var defaultEngine = null;
-          try {
-            defaultEngine = this.mPrefs.getComplexValue("browser.search.defaultengine",
-                                                        Components.interfaces.nsISupportsString).data;
-          } catch(ex) {
-            // this will re-invoke updateEngines via the pref observer if the pref changes
-            this.ensureDefaultEnginePrefs(rdf, ds);
-            return;
-          }
-          
+          var defaultEngine = Services.search.defaultEngine;
           if (defaultEngine) {
             this.clearEngines();
-            
-            if (ds) {
-              var res = rdf.GetResource(defaultEngine);
-              try {
-                var searchBarUrl = this.readRDFString(ds, res, kNC_searchBarUrl);
-              } catch(ex) {
-                searchBarUrl = null;
-              }
-              if (searchBarUrl == null) {
-                // this will re-invoke updateEngines via the pref observer if the pref changes
-                this.ensureDefaultEnginePrefs(rdf, ds);
-                return;
-              }
-              this.addEngine(res.Value, 
-                            this.readRDFString(ds, res, kNC_Name),
-                            this.readRDFString(ds, res, kNC_Icon),
-                            searchBarUrl);
-            }
+            this.addEngine(defaultEngine.name, defaultEngine.iconURI,
+                           defaultEngine.searchForm);
           }
-          
-          this.mEnginesReady = true;
-        ]]></body>
-      </method>
 
-      <method name="ensureDefaultEnginePrefs">
-        <parameter name="aRDF"/>
-        <parameter name="aDS"/>
-        <body><![CDATA[
-          var defaultName = this.mPrefs.getComplexValue("browser.search.defaultenginename",
-                                                        Components.interfaces.nsIPrefLocalizedString).data;
-          const kNC_Root = aRDF.GetResource("NC:SearchEngineRoot");
-          const kNC_child = aRDF.GetResource("http://home.netscape.com/NC-rdf#child");
-          const kNC_Name = aRDF.GetResource("http://home.netscape.com/NC-rdf#Name");
-          
-          var arcs = aDS.GetTargets(kNC_Root, kNC_child, true);
-          while (arcs.hasMoreElements()) {
-            var engineRes = arcs.getNext().QueryInterface(Components.interfaces.nsIRDFResource);
-            var name = this.readRDFString(aDS, engineRes, kNC_Name);
-            if (name == defaultName) {
-              var str = Components.classes["@mozilla.org/supports-string;1"]
-                                  .createInstance(Components.interfaces.nsISupportsString);
-              str.data = engineRes.Value;
-              this.mPrefs.setComplexValue("browser.search.defaultengine",
-                                          Components.interfaces.nsISupportsString,
-                                          str);
-            }
-          }
+          this.mEnginesReady = true;
         ]]></body>
       </method>
 
@@ -445,18 +372,24 @@
         <getter><![CDATA[
           var item = this.activeChild;
           if (item) {
-            const ISEARCH_CONTRACTID = "@mozilla.org/rdf/datasource;1?name=internetsearch";
-            const nsIInternetSearchService = Components.interfaces.nsIInternetSearchService;           
-            var searchService = Components.classes[ISEARCH_CONTRACTID].getService(nsIInternetSearchService);
-            var searchEng = item.getAttribute("searchEngine");
-            var searchEngUrl = item.getAttribute("searchBarUrl");
-            var escapedSearch = encodeURIComponent(this.mSearchValue)
-            if (searchEngUrl) {
-                searchEngUrl += escapedSearch;
-                return searchEngUrl;
-            } else {
-              return searchService.GetInternetSearchURL(item.getAttribute("searchEngine"),escapedSearch, 0, 0, {value:0});
-            }
+            // XXXsearch: using default engine for now, this ignores the following values:
+            //            item.getAttribute("searchEngine") and item.getAttribute("searchBarUrl")
+            var engine = Services.search.defaultEngine;
+
+            var submission = engine.getSubmission(this.mSearchValue); // HTML response
+
+            // getSubmission can return null if the engine doesn't have a URL
+            // with a text/html response type.  This is unlikely (since
+            // SearchService._addEngineToStore() should fail for such an engine),
+            // but let's be on the safe side.
+            if (!submission)
+              return null;
+
+            // XXXsearch: the submission object may have postData but .overrideValue can't deal with that
+            //            see http://mxr.mozilla.org/comm-central/source/mozilla/netwerk/base/public/nsIBrowserSearchService.idl#47
+            //            we need to figure out what to do with that case here
+
+            return submission.uri.spec;
           }
           return null;
         ]]></getter>

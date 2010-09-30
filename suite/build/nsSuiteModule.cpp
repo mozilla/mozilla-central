@@ -41,8 +41,6 @@
 #include "nsProfileMigrator.h"
 #include "nsSeamonkeyProfileMigrator.h"
 #include "nsThunderbirdProfileMigrator.h"
-#include "nsInternetSearchService.h"
-#include "nsLocalSearchService.h"
 #include "nsNetCID.h"
 #include "nsRDFCID.h"
 #include "nsFeedSniffer.h"
@@ -74,8 +72,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsSuiteDirectoryProvider)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSeamonkeyProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsThunderbirdProfileMigrator)
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(LocalSearchDataSource, Init)
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(InternetSearchDataSource, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsFeedSniffer)
 
 #if defined(XP_WIN)
@@ -92,8 +88,6 @@ NS_DEFINE_NAMED_CID(NS_SUITEDIRECTORYPROVIDER_CID);
 NS_DEFINE_NAMED_CID(NS_SUITEPROFILEMIGRATOR_CID);
 NS_DEFINE_NAMED_CID(NS_SEAMONKEYPROFILEMIGRATOR_CID);
 NS_DEFINE_NAMED_CID(NS_THUNDERBIRDPROFILEMIGRATOR_CID);
-NS_DEFINE_NAMED_CID(NS_RDFFINDDATASOURCE_CID);
-NS_DEFINE_NAMED_CID(NS_RDFSEARCHDATASOURCE_CID);
 NS_DEFINE_NAMED_CID(NS_FEEDSNIFFER_CID);
 
 /////////////////////////////////////////////////////////////////////////////
@@ -113,8 +107,6 @@ static const mozilla::Module::CIDEntry kSuiteCIDs[] = {
   { &kNS_SUITEPROFILEMIGRATOR_CID, false, NULL, nsProfileMigratorConstructor },
   { &kNS_SEAMONKEYPROFILEMIGRATOR_CID, false, NULL, nsSeamonkeyProfileMigratorConstructor },
   { &kNS_THUNDERBIRDPROFILEMIGRATOR_CID, false, NULL, nsThunderbirdProfileMigratorConstructor },
-  { &kNS_RDFFINDDATASOURCE_CID, false, NULL, LocalSearchDataSourceConstructor },
-  { &kNS_RDFSEARCHDATASOURCE_CID, false, NULL, InternetSearchDataSourceConstructor },
   { &kNS_FEEDSNIFFER_CID, false, NULL, nsFeedSnifferConstructor },
   { NULL }
 };
@@ -135,10 +127,6 @@ static const mozilla::Module::ContractIDEntry kSuiteContracts[] = {
   { NS_PROFILEMIGRATOR_CONTRACTID, &kNS_SUITEPROFILEMIGRATOR_CID },
   { NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX "seamonkey", &kNS_SEAMONKEYPROFILEMIGRATOR_CID },
   { NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX "thunderbird", &kNS_THUNDERBIRDPROFILEMIGRATOR_CID },
-  { NS_LOCALSEARCH_SERVICE_CONTRACTID, &kNS_RDFFINDDATASOURCE_CID },
-  { NS_LOCALSEARCH_DATASOURCE_CONTRACTID, &kNS_RDFFINDDATASOURCE_CID },
-  { NS_INTERNETSEARCH_SERVICE_CONTRACTID, &kNS_RDFSEARCHDATASOURCE_CID },
-  { NS_INTERNETSEARCH_DATASOURCE_CONTRACTID, &kNS_RDFSEARCHDATASOURCE_CID },
   { NS_FEEDSNIFFER_CONTRACTID, &kNS_FEEDSNIFFER_CID },
   { NULL }
 };

@@ -106,15 +106,40 @@ pref("browser.download.saveLinkAsFilenameTimeout", 1000);
 // Use the findbar instead of the dialog box
 pref("browser.findbar.enabled", true);
 
-// various default search settings
-pref("browser.search.defaulturl", "chrome://navigator-region/locale/region.properties");
-pref("browser.search.opensidebarsearchpanel", true);
-pref("browser.search.opentabforcontextsearch", false);
-pref("browser.search.last_search_category", "NC:SearchCategory?category=urn:search:category:1");
-pref("browser.search.mode", 0);
-// basic search popup constraint: minimum sherlock plugin version displayed
-// (note: must be a string representation of a float or it'll default to 0.0)
-pref("browser.search.basic.min_ver", "0.0");
+// search engines URL
+pref("browser.search.searchEnginesURL", "https://addons.mozilla.org/%LOCALE%/%APP%/search-engines/");
+
+// pointer to the default engine name
+pref("browser.search.defaultenginename", "chrome://communicator-region/locale/region.properties");
+
+// Disable logging for the search service by default.
+pref("browser.search.log", false);
+
+// Ordering of Search Engines in the Engine list.
+pref("browser.search.order.1", "chrome://communicator-region/locale/region.properties");
+pref("browser.search.order.2", "chrome://communicator-region/locale/region.properties");
+
+// Search (side)bar results always open in a new tab.
+pref("browser.search.openintab", false);
+
+// Invoking a search reveals the sidebar panel.
+pref("browser.search.opensidebarsearchpanel", false);
+
+// Send ping to the server to update.
+pref("browser.search.update", true);
+
+// Disable logging for the search service update system by default.
+pref("browser.search.update.log", false);
+
+// Check whether we need to perform engine updates every 6 hours
+pref("browser.search.update.interval", 21600);
+
+// Smart Browsing prefs
+pref("keyword.enabled", true);
+// Override the default keyword.URL. Empty value means
+// "use the search service's default engine"
+pref("keyword.URL", "");
+
 pref("browser.urlbar.autocomplete.enabled", true);
 pref("browser.urlbar.clickSelectsAll", true);
 // when clickSelectsAll=true, does it also apply when the click is past end of text?
@@ -154,9 +179,6 @@ pref("browser.urlbar.restrict.openpage", "%");
 pref("browser.urlbar.restrict.typed", "~");
 pref("browser.urlbar.match.title", "#");
 pref("browser.urlbar.match.url", "@");
-
-pref("browser.search.param.Google.1.custom", "chrome://navigator/content/searchconfig.properties");
-pref("browser.search.param.Google.1.default", "chrome://navigator/content/searchconfig.properties");
 
 // Whether or not microsummary and generator updates are enabled.
 pref("browser.microsummary.enabled", true);
@@ -279,14 +301,6 @@ pref("browser.link.open_newwindow.restriction", 2);
 // Translation service
 pref("browser.translation.service", "chrome://navigator-region/locale/region.properties");
 pref("browser.translation.serviceDomain", "chrome://navigator-region/locale/region.properties");
-  
-// Smart Browsing prefs
-pref("browser.related.provider", "http://www-rl.netscape.com/wtgn?");
-pref("browser.related.disabledForDomains", "");
-pref("keyword.enabled", true);
-
-//Internet Search
-pref("browser.search.defaultenginename", "chrome://communicator-region/locale/region.properties");
 
 // 0 goes back
 // 1 act like pgup

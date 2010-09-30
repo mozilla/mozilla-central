@@ -259,7 +259,7 @@
                 command="cmd_selectAll"/>
       <menuseparator id="context-sep-selectall"/>
       <menuitem id="context-searchselect"
-                oncommand="OpenSearch('internet', gContextMenu.searchSelected(), true, event.shiftKey);"/>
+                oncommand="BrowserSearch.loadSearch(gContextMenu.searchSelected(), true);"/>
       <menuseparator id="frame-sep"/>
       <menu id="frame" label="&thisFrameMenu.label;" accesskey="&thisFrameMenu.accesskey;">
         <menupopup id="frame_popup">
