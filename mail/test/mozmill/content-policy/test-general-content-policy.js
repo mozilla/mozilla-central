@@ -218,13 +218,12 @@ function allowRemoteContentAndCheck(test) {
   plan_for_message_display(mc);
 
   // Click on the allow remote content button
-  mc.click(new elib.ID(mozmill.getMail3PaneController().window.document, "remoteContentBarButton"));
+  mc.click(new elib.ID(mc.window.document, "remoteContentBarButton"));
 
   wait_for_message_display_completion(mc, true);
 
-  if (!test.checkForAllowed(
-        mozmill.getMail3PaneController().window.content.document
-               .getElementById("testelement")))
+  if (!test.checkForAllowed(mc.window.content.document
+                              .getElementById("testelement")))
     throw new Error(test.type + " has been unexpectedly blocked in message content");
 }
 
