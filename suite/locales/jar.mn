@@ -301,7 +301,7 @@
   locale/@AB_CD@/messenger/subscribe.properties                             (%chrome/mailnews/subscribe.properties)
   locale/@AB_CD@/messenger/textImportMsgs.properties                        (%chrome/mailnews/textImportMsgs.properties)
   locale/@AB_CD@/messenger/threadpane.dtd                                   (%chrome/mailnews/threadpane.dtd)
-  locale/@AB_CD@/messenger/vCardImportMsgs.properties                       (%chrome/mailnews/vCardImportMsgs.properties
+  locale/@AB_CD@/messenger/vCardImportMsgs.properties                       (%chrome/mailnews/vCardImportMsgs.properties)
   locale/@AB_CD@/messenger/vcard.properties                                 (%chrome/mailnews/vcard.properties)
   locale/@AB_CD@/messenger/viewLog.dtd                                      (%chrome/mailnews/viewLog.dtd)
   locale/@AB_CD@/messenger/virtualFolderProperties.dtd                      (%chrome/mailnews/virtualFolderProperties.dtd)
