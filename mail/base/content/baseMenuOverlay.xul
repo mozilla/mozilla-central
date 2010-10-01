@@ -80,7 +80,7 @@
                 label="&featureConfiguratorCmd.label;"
                 accesskey="&featureConfiguratorCmd.accesskey;"
                 oncommand="openFeatureConfigurator(false);"/>
-      <menuseparator id="menu_HelpAboutSeparator"/>
+      <menuseparator id="updateSeparator"/>
       <menuitem id="checkForUpdates" class="menuitem-iconic"
 #ifdef MOZ_UPDATER
                 label="&updateCmd.label;"
@@ -89,7 +89,7 @@
                 hidden="true"/>
 #endif
 #ifndef XP_MACOSX
-      <menuseparator id="menu_HelpAfterUpdatesSeparator"/>
+      <menuseparator id="aboutSeparator"/>
 #endif
       <menuitem id="aboutName"
                 label="&aboutMenuCmd.label;"
