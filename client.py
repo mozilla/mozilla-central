@@ -56,24 +56,35 @@ SWITCH_MOZILLA_REPO_REPLACE = '%s://hg.mozilla.org/mozilla-central/'
 SWITCH_MOZILLA_BASE_REV = "GECKO_1_9_1_BASE"
 
 import sys
-# Check Python version: 2.5+ is required for `from subprocess import check_call`.
+# Test Python Version. 2.4 required for `import subprocess`
 pyver = sys.version_info
-if pyver[0] <= 1 or (pyver[0] == 2 and pyver[1] < 5):
-  sys.exit("ERROR: Python 2.5 or newer required")
+if pyver[0] <= 1 or (pyver[0] == 2 and pyver[1] < 4):
+  sys.exit("ERROR: Python 2.4 or newer required")
 elif pyver[0] >= 3:
-  sys.exit("ERROR: Python series 3 is not supported, use series 2 >= 2.5")
+  sys.exit("ERROR: Python series 3 is not supported, use series 2 > 2.4")
 del pyver
 
 import os
 import datetime
 from optparse import OptionParser, OptionValueError
-from subprocess import check_call
 
 topsrcdir = os.path.dirname(__file__)
 if topsrcdir == '':
     topsrcdir = '.'
 
 TREE_STATE_FILE = os.path.join(topsrcdir, '.treestate')
+
+try:
+    from subprocess import check_call
+except ImportError:
+    import subprocess
+    def check_call(*popenargs, **kwargs):
+        retcode = subprocess.call(*popenargs, **kwargs)
+        if retcode:
+            cmd = kwargs.get("args")
+            if cmd is None:
+                cmd = popenargs[0]
+                raise Exception("Command '%s' returned non-zero exit status %i" % (cmd, retcode))
 
 def check_call_noisy(cmd, retryMax=0, *args, **kwargs):
   """Wrapper around execute_check_call() to allow retries before failing.
