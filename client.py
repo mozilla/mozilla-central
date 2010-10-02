@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# Warning, this file must be compatible with Python 2.4, for our
+# various tools, such as http://mxr.mozilla.org/ see-also: Bug 601207
+
 # Repo Defaults
 # 'REV' controls the default rev for All the various repo's
 # Define x_REV to override. Where x can be one of:
@@ -61,7 +64,7 @@ pyver = sys.version_info
 if pyver[0] <= 1 or (pyver[0] == 2 and pyver[1] < 4):
   sys.exit("ERROR: Python 2.4 or newer required")
 elif pyver[0] >= 3:
-  sys.exit("ERROR: Python series 3 is not supported, use series 2 > 2.4")
+  sys.exit("ERROR: Python series 3 is not supported, use series 2 >= 2.4")
 del pyver
 
 import os
