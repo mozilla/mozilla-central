@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 
+<!DOCTYPE bindings [
+  <!ENTITY % textcontextDTD SYSTEM "chrome://communicator/locale/utilityOverlay.dtd">
+  %textcontextDTD;
+]>
+
 <bindings id="urlbarBindings"
           xmlns="http://www.mozilla.org/xbl"
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -11,13 +16,15 @@
         var pbi = this.mPrefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
         if (pbi)
           pbi.addObserver("browser.urlbar", this.mPrefObserver, false);
-        
+
         this.updatePref("browser.urlbar.showPopup");
         this.updatePref("browser.urlbar.autoFill");
         this.updatePref("browser.urlbar.showSearch");
+        this.inputField.controllers.insertControllerAt(0, this._editItemsController);
       ]]></constructor>
 
       <destructor><![CDATA[
+        this.inputField.controllers.removeController(this._editItemsController);
         var pbi = this.mPrefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
         if (pbi)
           pbi.removeObserver("browser.urlbar", this.mPrefObserver);
@@ -93,9 +100,41 @@
           }
         ]]></body>
       </method>
+
+      <field name="_editItemsController"><![CDATA[
+        ({
+          editor: this.editor,
+          _fireEvent: this._fireEvent.bind(this),
+          supportsCommand: function(aCommand) {
+            switch (aCommand) {
+              case "cmd_pasteAndGo":
+                return true;
+            }
+            return false;
+          },
+          isCommandEnabled: function(aCommand) {
+            switch (aCommand) {
+              case "cmd_pasteAndGo":
+                return document.commandDispatcher
+                               .getControllerForCommand("cmd_paste")
+                               .isCommandEnabled("cmd_paste");
+            }
+          },
+          doCommand: function(aCommand) {
+            switch (aCommand) {
+              case "cmd_pasteAndGo":
+                this.value = "";
+                goDoCommand("cmd_paste");
+                this._fireEvent("textentered", "pasting");
+                break;
+            }
+          }.bind(this),
+          onEvent: function(aEventName) {}
+        })
+      ]]></field>
     </implementation>
   </binding>
-  
+
   <binding id="autocomplete-result-popup" extends="chrome://global/content/autocomplete.xml#autocomplete-result-popup">
     <content>
       <xul:tree anonid="tree" class="autocomplete-tree plain" flex="1">
@@ -421,5 +460,27 @@
       </handler>
     </handlers>
   </binding>
-  
+
+  <binding id="input-box-paste" extends="chrome://global/content/bindings/textbox.xml#input-box">
+    <content context="_child">
+      <children/>
+      <xul:menupopup anonid="input-box-contextmenu"
+                     class="textbox-contextmenu"
+                     onpopupshowing="if (document.commandDispatcher.focusedElement != this.parentNode.firstChild)
+                                       this.parentNode.firstChild.focus();
+                                     this.parentNode._doPopupItemEnabling(this);"
+                     oncommand="var cmd = event.originalTarget.getAttribute('cmd'); if(cmd) { this.parentNode.doCommand(cmd); event.stopPropagation(); }">
+        <xul:menuitem label="&undoCmd.label;" accesskey="&undoCmd.accesskey;" cmd="cmd_undo"/>
+        <xul:menuseparator/>
+        <xul:menuitem label="&cutCmd.label;" accesskey="&cutCmd.accesskey;" cmd="cmd_cut"/>
+        <xul:menuitem label="&copyCmd.label;" accesskey="&copyCmd.accesskey;" cmd="cmd_copy"/>
+        <xul:menuitem label="&pasteCmd.label;" accesskey="&pasteCmd.accesskey;" cmd="cmd_paste"/>
+        <xul:menuitem label="&pasteGoCmd.label;" accesskey="&pasteGoCmd.accesskey;" cmd="cmd_pasteAndGo"/>
+        <xul:menuitem label="&deleteCmd.label;" accesskey="&deleteCmd.accesskey;" cmd="cmd_delete"/>
+        <xul:menuseparator/>
+        <xul:menuitem label="&selectAllCmd.label;" accesskey="&selectAllCmd.accesskey;" cmd="cmd_selectAll"/>
+      </xul:menupopup>
+    </content>
+  </binding>
+
 </bindings>

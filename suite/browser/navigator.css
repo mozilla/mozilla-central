@@ -24,6 +24,10 @@ tabbrowser {
   -moz-binding: url("chrome://navigator/content/urlbarBindings.xml#urlbar");
 }
 
+#urlbar > .autocomplete-textbox-container > .textbox-input-box {
+  -moz-binding: url("chrome://navigator/content/urlbarBindings.xml#input-box-paste");
+}
+
 panel[for="urlbar"] {
   -moz-binding: url("chrome://navigator/content/urlbarBindings.xml#autocomplete-result-popup") !important;
 }

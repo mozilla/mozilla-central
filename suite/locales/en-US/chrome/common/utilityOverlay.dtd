@@ -36,6 +36,8 @@
 <!ENTITY pasteCmd.label						"Paste">  
 <!ENTITY pasteCmd.key						"V">  
 <!ENTITY pasteCmd.accesskey					"p"> 
+<!ENTITY pasteGoCmd.label					"Paste &amp; Go">
+<!ENTITY pasteGoCmd.accesskey				"G">
 <!ENTITY deleteCmd.label					"Delete">  
 <!ENTITY deleteCmd.accesskey				"d"> 
 <!ENTITY selectAllCmd.label					"Select All">  
