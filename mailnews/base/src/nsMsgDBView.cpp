@@ -782,7 +782,8 @@ nsresult nsMsgDBView::SaveAndClearSelection(nsMsgKey *aCurrentMsgKey, nsTArray<n
   if (aCurrentMsgKey)
   {
     PRInt32 currentIndex;
-    if (NS_SUCCEEDED(mTreeSelection->GetCurrentIndex(&currentIndex)) && currentIndex >= 0 && currentIndex < GetSize())
+    if (NS_SUCCEEDED(mTreeSelection->GetCurrentIndex(&currentIndex)) &&
+        currentIndex >= 0 && PRUint32(currentIndex) < GetSize())
       *aCurrentMsgKey = m_keys[currentIndex];
     else
       *aCurrentMsgKey = nsMsgKey_None;
@@ -1101,7 +1102,8 @@ NS_IMETHODIMP nsMsgDBView::SelectionChanged()
     nsresult rv = mTreeSelection->GetRangeAt(0, &startRange, &endRange);
     NS_ENSURE_SUCCESS(rv, NS_OK); // tree doesn't care if we failed
 
-    if (startRange >= 0 && startRange == endRange && startRange < GetSize())
+    if (startRange >= 0 && startRange == endRange &&
+        PRUint32(startRange) < GetSize())
     {
       if (!mRemovingRow)
       {
@@ -1181,7 +1183,7 @@ nsresult nsMsgDBView::GetSelectedIndices(nsMsgViewIndexArray& selection)
           selection[count++] = rangeIndex;
       }
     }
-    NS_ASSERTION(selection.Length() == count, "selection count is wrong");
+    NS_ASSERTION(selection.Length() == PRUint32(count), "selection count is wrong");
     selection.SetLength(count);
   }
   else
@@ -2785,7 +2787,7 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
     if (thisIsImapFolder)
       imapUids.SetLength(length);
 
-    for (PRInt32 i = 0; i < length; i++)
+    for (PRUint32 i = 0; i < length; i++)
     {
       nsMsgKey msgKey;
       nsCOMPtr<nsIMsgDBHdr> msgHdr = do_QueryElementAt(messages, i);
@@ -2856,7 +2858,6 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
   {
     imapMessageFlagsType flags = kNoImapMsgFlag;
     PRBool addFlags = PR_FALSE;
-    PRBool isRead = PR_FALSE;
     nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));
     switch (command)
     {
@@ -2955,7 +2956,7 @@ nsresult nsMsgDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indic
   NS_ENSURE_SUCCESS(rv, rv);
   PRUint32 numMsgs;
   messageArray->GetLength(&numMsgs);
-  if (numIndices != numMsgs)
+  if (PRUint32(numIndices) != numMsgs)
   {
     const char *warnPref = "mail.warn_on_collapsed_thread_operation";
     PRBool shouldWarn = PR_FALSE;
@@ -3336,7 +3337,7 @@ nsMsgDBView::PerformActionsOnJunkMsgs(PRBool msgsAreJunk)
       nsCOMPtr<nsIMsgImapMailFolder> imapFolder(do_QueryInterface(srcFolder));
       nsTArray<nsMsgKey> imapUids;
       imapUids.SetLength(numJunkHdrs);
-      for (int32 i = 0; i < numJunkHdrs; i++)
+      for (uint32 i = 0; i < numJunkHdrs; i++)
       {
         nsCOMPtr<nsIMsgDBHdr> msgHdr = do_QueryElementAt(mJunkHdrs, i);
         msgHdr->GetMessageKey(&imapUids[i]);
@@ -4767,7 +4768,7 @@ nsresult nsMsgDBView::ExpandByIndex(nsMsgViewIndex index, PRUint32 *pNumExpanded
 
 nsresult nsMsgDBView::CollapseAll()
 {
-  for (PRInt32 i = 0; i < GetSize(); i++)
+  for (PRUint32 i = 0; i < GetSize(); i++)
   {
     PRUint32 numExpanded;
     PRUint32 flags = m_flags[i];
@@ -6288,7 +6289,7 @@ NS_IMETHODIMP nsMsgDBView::NavigateStatus(nsMsgNavigationTypeValue motion, PRBoo
                 enable = PR_TRUE;
             break;
         case nsMsgNavigationType::nextMessage:
-            if (IsValidIndex(index) && index < GetSize() - 1)
+            if (IsValidIndex(index) && PRUint32(index) < GetSize() - 1)
                 enable = PR_TRUE;
             break;
         case nsMsgNavigationType::previousMessage:
@@ -6792,7 +6793,7 @@ nsMsgDBView::GetMsgToSelectAfterDelete(nsMsgViewIndex *msgToSelectAfterDelete)
     PRInt32 startRange;
     PRInt32 endRange;
     nsresult rv = mTreeSelection->GetRangeCount(&selectionCount);
-    for (PRUint32 i = 0; i < selectionCount; i++)
+    for (PRInt32 i = 0; i < selectionCount; i++)
     {
       rv = mTreeSelection->GetRangeAt(i, &startRange, &endRange);
       
@@ -7019,10 +7020,10 @@ NS_IMETHODIMP nsMsgDBView::GetViewIndexForFirstSelectedMsg(nsMsgViewIndex *aView
     return rv;
 
   // check that the first index is valid, it may not be if nothing is selected
-  if (startRange >= 0 && startRange < GetSize())
-    *aViewIndex = startRange;
-  else
+  if (startRange < 0 || PRUint32(startRange) >= GetSize())
     return NS_ERROR_UNEXPECTED;
+
+  *aViewIndex = startRange;
   return NS_OK;
 }
 
@@ -7045,15 +7046,13 @@ nsMsgDBView::GetKeyForFirstSelectedMessage(nsMsgKey *key)
     return rv;
 
   // check that the first index is valid, it may not be if nothing is selected
-  if (startRange >= 0 && startRange < GetSize())
-  {
-    if (m_flags[startRange] & MSG_VIEW_FLAG_DUMMY)
-      return NS_MSG_INVALID_DBVIEW_INDEX;
-
-    *key = m_keys[startRange];
-  }
-  else
+  if (startRange < 0 || PRUint32(startRange) >= GetSize())
     return NS_ERROR_UNEXPECTED;
+
+  if (m_flags[startRange] & MSG_VIEW_FLAG_DUMMY)
+    return NS_MSG_INVALID_DBVIEW_INDEX;
+
+  *key = m_keys[startRange];
   return NS_OK;
 }
 

@@ -333,7 +333,7 @@ protected:
                                         nsMsgKey parentKey, PRInt32 level,
                                         nsMsgViewIndex *viewIndex,
                                         PRUint32 *pNumListed);
-  PRInt32  GetSize(void) {return(m_keys.Length());}
+  PRUint32 GetSize(void) {return(m_keys.Length());}
 
   // notification api's
   void  EnableChangeUpdates();
