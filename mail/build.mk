@@ -100,8 +100,6 @@ upload::
 
 ifdef ENABLE_TESTS
 include $(srcdir)/mail/testsuite-targets.mk
-else
-package-tests::
 endif
 
 endif # COMM_BUILD
