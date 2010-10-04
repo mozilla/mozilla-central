@@ -62,10 +62,9 @@ treechildren::-moz-tree-twisty {
 
 /* :::::::::::::::::::::::::::::::::::: */
 
-#mailContent:-moz-lwtheme {
+#tabmail:-moz-lwtheme {
   text-shadow: none;
 }
-
 
 #folderPaneBox {
   border-right: 1px solid #8B8B8B;
