@@ -36,9 +36,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 .today-subpane {
+  border-color: ThreeDShadow;
+  border-style: solid;
+  border-width: 1px 0;
+  margin-bottom: 3px;
   padding: 0px;
-  border: 1px solid ThreeDShadow;
-  margin: 3px;
 }
 
 #buttonspacer {
@@ -51,8 +53,19 @@
   border-left: 1px solid ThreeDShadow;
 }
 
-#agenda-panel {
-  margin: 3px;
+#today-pane-panel:-moz-lwtheme {
+  background-color: transparent;
+  border-top: 1px solid ThreeDShadow;
+}
+
+#agenda-panel:-moz-lwtheme > vbox,
+#today-pane-splitter:-moz-lwtheme,
+#todo-tab-panel:-moz-lwtheme {
+  background-color: -moz-Dialog;
+}
+
+#today-pane-panel:-moz-lwtheme > vbox {
+  text-shadow: none;
 }
 
 #mini-day-image {
@@ -206,6 +219,7 @@
 
 #agenda-listbox {
   -moz-user-focus: normal;
+  margin: 3px;
 }
 
 agenda-checkbox-richlist-item {
