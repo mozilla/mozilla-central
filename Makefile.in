@@ -89,11 +89,11 @@ check mochitest reftest crashtest xpcshell-tests:: $(SUBMAKEFILES)
 
 mochitest-% :: $(SUBMAKEFILES)
 	$(MAKE) -C mozilla $@
-endif
 
 ifndef MOZ_THUNDERBIRD
 package-tests:: $(SUBMAKEFILES)
 	$(MAKE) -C mozilla $@
+endif
 endif
 
 # http://bugzilla.mozilla.org/show_bug.cgi?id=450485
@@ -127,4 +127,3 @@ DIST_GARBAGE = config.cache config.log config.status config-defs.h \
 distclean::
 	cat unallmakefiles | $(XARGS) rm -f
 	rm -f $(DIST_GARBAGE)
-
