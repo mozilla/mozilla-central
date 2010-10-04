@@ -1983,7 +1983,15 @@ ftvItem.prototype = {
     const Ci = Components.interfaces;
     // We're caching our child list to save perf.
     if (!this._children) {
-      let iter = fixIterator(this._folder.subFolders, Ci.nsIMsgFolder);
+      let iter;
+      try {
+        iter = fixIterator(this._folder.subFolders, Ci.nsIMsgFolder);
+      } catch (ex) {
+        Components.classes["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService)
+          .logStringMessage("Discovering children for " + this._folder.URI + " failed with " +
+                            "exception: " + ex);
+        iter = [];
+      }
       this._children = [new ftvItem(f) for each (f in iter)];
 
       sortFolderItems(this._children);
