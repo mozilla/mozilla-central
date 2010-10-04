@@ -87,7 +87,7 @@
 
 .tabmail-tab {
   -moz-appearance: none;
-  -moz-border-radius: 0 0 6px 6px;
+  border-radius: 0 0 6px 6px;
   color: #222;
   -moz-box-pack: center;
   -moz-box-align: center;

@@ -13,7 +13,7 @@
   padding: 0 2px;
   text-shadow: rgba(255, 255, 255, 0.4) 0 1px;
   border: 1px solid rgba(0, 0, 0, 0.6);
-  -moz-border-radius: 3px;
+  border-radius: 3px;
   -moz-box-shadow: inset 0 20px 16px -10px #FFF, 0 1px rgba(255, 255, 255, 0.4);
 }
 

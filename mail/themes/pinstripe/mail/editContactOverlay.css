@@ -42,8 +42,8 @@
   -moz-appearance: none;
   background-color: rgba(68,68,68,0.9);
   border: 1px solid rgba(255,255,255,0.15);
-  -moz-border-radius: 8px;
-  -moz-border-radius-topleft: 0px ;
+  border-radius: 8px;
+  border-top-left-radius: 0px ;
   padding: 10px 8px 6px;
   margin-top: 4px;
   color: #ffffff;
@@ -81,7 +81,7 @@
   background: url("chrome://messenger/skin/hud-style-button-middle-background.png") repeat-x #464646 center center;
   border-width: 3px;
   border-style: solid;
-  -moz-border-radius: 20px;
+  border-radius: 20px;
   -moz-border-top-colors: rgba(0,0,0,0.35) rgba(26,26,26,0.5) rgba(255,255,255,0.4);
   -moz-border-right-colors: rgba(0,0,0,0.35) rgba(26,26,26,0.5) rgba(255,255,255,0.4);
   -moz-border-bottom-colors: rgba(128,128,128,0.35) rgba(0,0,0,0.5) rgba(255,255,255,0.15);
@@ -120,7 +120,7 @@
   -moz-border-right-colors: #1c1c1c #636363;
   -moz-border-bottom-colors: #1c1c1c #797979;
   -moz-border-left-colors: #1c1c1c #636363;
-  -moz-border-radius: 1px;
+  border-radius: 1px;
   padding: 0;
   background-color: #666666;
   color: #ffffff;
@@ -153,7 +153,7 @@
   -moz-appearance: none;
   background: url("chrome://messenger/skin/hud-style-button-middle-background.png") repeat-x #464646 center center;
   border: 3px solid;
-  -moz-border-radius: 5px;
+  border-radius: 5px;
   -moz-border-top-colors: rgba(0,0,0,0.35) rgba(26,26,26,0.5) rgba(255,255,255,0.4);
   -moz-border-right-colors: rgba(53,53,53,1) rgba(53,53,53,1) rgba(162,162,162,1);
   -moz-border-bottom-colors: rgba(128,128,128,0.35) rgba(0,0,0,0.5) rgba(255,255,255,0.15);

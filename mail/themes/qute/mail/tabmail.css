@@ -92,14 +92,14 @@
   height: 24px;
   background: url("chrome://messenger/skin/icons/tab-left.png") no-repeat;
   background-color: -moz-dialog;
-  -moz-border-radius-topleft: 4px;
+  border-top-left-radius: 4px;
 }
 
 .tabmail-tab:-moz-locale-dir(rtl) > .tab-image-left {
   background: url("chrome://messenger/skin/icons/tab-right.png") no-repeat;
   background-color: -moz-dialog;
-  -moz-border-radius-topleft: 0px;
-  -moz-border-radius-topright: 4px;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 4px;
 }
 
 .tabmail-tab:not([selected="true"]):not(:hover) > .tab-image-left {
@@ -128,14 +128,14 @@
   height: 24px;
   background: url("chrome://messenger/skin/icons/tab-right.png") no-repeat;
   background-color: -moz-dialog;
-  -moz-border-radius-topright: 4px;
+  border-top-right-radius: 4px;
 }
 
 .tabmail-tab:-moz-locale-dir(rtl) > .tab-image-right {
   background: url("chrome://messenger/skin/icons/tab-left.png") no-repeat;
   background-color: -moz-dialog;
-  -moz-border-radius-topleft: 4px;
-  -moz-border-radius-topright: 0px;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 0px;
 }
 
 .tabmail-tab:not([selected="true"]):not(:hover) > .tab-image-right {
@@ -326,14 +326,14 @@ tabpanels {
   background-repeat: no-repeat;
   background-image: url("chrome://messenger/skin/icons/tab-arrow-start-bkgnd-enabled.png");
   background-color: -moz-dialog;
-  -moz-border-radius-topright: 4px;
+  border-top-right-radius: 4px;
 }
 
 .tabmail-arrowscrollbox:-moz-locale-dir(rtl) > .scrollbutton-up {
   list-style-image: url("chrome://messenger/skin/icons/tab-arrow-end.png");
   background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-enabled.png");
-  -moz-border-radius-topleft: 4px;
-  -moz-border-radius-topright: 0px;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 0px;
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-up[disabled="true"] {
@@ -375,13 +375,13 @@ tabpanels {
   background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-enabled.png");
   background-repeat: no-repeat;
   background-color: -moz-dialog;
-  -moz-border-radius-topleft: 4px;
+  border-top-left-radius: 4px;
 }
 
 .tabmail-arrowscrollbox:-moz-locale-dir(rtl) > stack > .scrollbutton-down-box {
   background-image: url("chrome://messenger/skin/icons/tab-arrow-start-bkgnd-enabled.png");
-  -moz-border-radius-topleft: 0px;
-  -moz-border-radius-topright: 4px;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 4px;
 }
 
 .tabmail-arrowscrollbox > stack > .scrollbutton-down-box[disabled="true"] {
@@ -454,19 +454,19 @@ tabpanels {
   background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-enabled.png");
   background-repeat: no-repeat;
   background-color: -moz-dialog;
-  -moz-border-radius-topleft: 4px;
+  border-top-left-radius: 4px;
 }
 
 stack:-moz-locale-dir(rtl) > hbox > .tabs-alltabs-box {
   background-image: url("chrome://messenger/skin/icons/tab-arrow-start-bkgnd-enabled.png");
-  -moz-border-radius-topleft: 0px;
-  -moz-border-radius-topright: 4px;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 4px;
 }
 
 .tabmail-tabs[overflow="true"] .tabs-alltabs-box {
   background-image: url("chrome://messenger/skin/icons/alltabs-box-overflow-end-bkgnd.png");
-  -moz-border-radius-topleft: 0px;
-  -moz-border-radius-topright: 0px;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
 }
 
 .tabmail-tabs[overflow="true"] stack:-moz-locale-dir(rtl) > hbox > .tabs-alltabs-box {

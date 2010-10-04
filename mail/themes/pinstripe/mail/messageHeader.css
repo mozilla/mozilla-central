@@ -136,8 +136,8 @@ html|div#expandedHeadersTopBox {
 #editMessageBox
 {
   min-width: 1px;
-  -moz-border-radius-bottomleft: 0.2em;
-  -moz-border-radius-bottomright: 0.2em;
+  border-bottom-left-radius: 0.2em;
+  border-bottom-right-radius: 0.2em;
 }
 
 #editMessageDescription
@@ -203,7 +203,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 {
   background-color: #E6E6E6;
   border: 1px solid #C8C8C8;
-  -moz-border-radius: 7px;
+  border-radius: 7px;
   margin: 0px 6px 6px;
   padding: 4px;  
   min-height: 30px;
@@ -248,7 +248,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .msgHeaderView-button {
   -moz-appearance: none;
-  -moz-border-radius: 4px;
+  border-radius: 4px;
   min-height: 22px;
   min-width: 22px;
   max-height: 22px;
@@ -280,7 +280,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   padding: 0 3px;
   background-color: rgb(211,215,207);
   border: 2px solid #C0C3C6;
-  -moz-border-radius: 4px;
+  border-radius: 4px;
   -moz-border-top-colors: none;
   -moz-border-right-colors: none;
   -moz-border-bottom-colors: none;
@@ -291,7 +291,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 .msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-button {
   -moz-appearance: none;
   background-color: rgb(211,215,207);
-  -moz-border-radius: 0px;
+  border-radius: 0px;
   border: 0;
   border-right: 2px solid transparent;
   -moz-padding-end: 0.2em;
@@ -546,7 +546,7 @@ window[toolboxId="header-view-toolbox"] #wrapper-spring {
   padding: 0 0.5ex;
   -moz-margin-start: 0px;
   background-image: url("chrome://messenger/skin/tagbg.png");
-  -moz-border-radius: 3px;
+  border-radius: 3px;
   border-width: 0.5px;
   border-style: outset;
   text-shadow: 0 1px 0 rgba(238,238,236,0.4); /* Tango Alumninum 1 */
@@ -579,7 +579,7 @@ window[toolboxId="header-view-toolbox"] #wrapper-spring {
   -moz-padding-start: 3px !important;
   -moz-padding-end: 3px !important;
   background-color: transparent;
-  -moz-border-radius: 2px;
+  border-radius: 2px;
 }
 
 .emailDisplayButton:hover {
@@ -592,10 +592,10 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
     make sure that the email bubble stays displayed, and
     tweak the bottom to blend in more w/ the menu */
   cursor: pointer;
-  -moz-border-radius: 3px;
+  border-radius: 3px;
   background-color: #fcaf3e; /* tango orange */
-  -moz-border-radius-bottomleft: 0;
-  -moz-border-radius-bottomright: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 /* this is for the comma in between email addresses */

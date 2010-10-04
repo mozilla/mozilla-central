@@ -95,13 +95,13 @@ body {
   color: #3465a4;
   font-size: 80%;
   overflow: hidden;
-  -moz-border-radius: 5px;
+  border-radius: 5px;
   -moz-box-shadow: 1px 1px 1px black;
 }
 
 .popup-menuitem {
   border: 1px solid #729fcf;
-  -moz-border-radius: 5px;
+  border-radius: 5px;
   background: white;
   padding: 20px;
   padding-top: 0px;
@@ -125,16 +125,16 @@ body {
 }
 
 .popup-menuitem.top {
-  -moz-border-radius-bottomleft: 0;
-  -moz-border-radius-bottomright: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
   padding-top: 5px;
   padding-bottom: 5px;
   border-bottom: 0px;
 }
 
 .popup-menuitem.bottom {
-  -moz-border-radius-topleft: 0;
-  -moz-border-radius-topright: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
   padding-top: 5px;
   padding-bottom: 5px;
 }
@@ -285,7 +285,7 @@ h2 {
   background-image: url("chrome://messenger/skin/icons/timeline.png");
   background-position: center;
   background-repeat: no-repeat;
-  -moz-border-radius: 4px;
+  border-radius: 4px;
 }
 
 html[dir="rtl"] #date-toggle {
@@ -309,7 +309,7 @@ html[dir="rtl"] #date-toggle {
   height: 24px !important;
   background-position: center center;
   background-repeat: no-repeat;
-  -moz-border-radius: 4px;
+  border-radius: 4px;
 }
 
 html[dir="rtl"] .facet-date-zoom-out {
@@ -373,7 +373,7 @@ html[dir="rtl"] .date-vis-frame {
 .facetious[type="boolean"]:not([disabled]):hover > .facet-checkbox-bubble,
 .facetious[type="boolean-filtered"]:not([disabled]):hover > .facet-checkbox-bubble {
   background-color: #729fcf;
-  -moz-border-radius: 4px;
+  border-radius: 4px;
   color: #ffffff;
 
 }
@@ -424,7 +424,7 @@ html[dir="rtl"] .date-vis-frame {
   color: #000000;
   background-color: #babdb6;
   cursor: pointer;
-  -moz-border-radius: 4px;
+  border-radius: 4px;
 }
 
 .facet-more[needed="true"]:hover,
@@ -569,7 +569,7 @@ html[dir="rtl"] .bar-percent {
 .results-message-showall-button {
   padding: 0.2em 1em;
   font-size: small;
-  -moz-border-radius: 4px;
+  border-radius: 4px;
   cursor: pointer;
   text-align: center;
 }
@@ -599,7 +599,7 @@ html[dir="rtl"] .bar-percent {
 
 .results-message-sort-value:hover,
 .results-message-sort-value:focus {
-  -moz-border-radius: 4px;
+  border-radius: 4px;
   background-color: #729fcf;
   color: #ffffff;
   cursor: pointer;
@@ -770,7 +770,7 @@ html[dir="rtl"] .message-attachment-icon {
   -moz-margin-end: 3px;
   padding: 0 0.5ex;
   background-image: url("chrome://messenger/skin/tagbg.png");
-  -moz-border-radius: 3px;
+  border-radius: 3px;
   border-style: outset;
   border-width: 0.5px;
   text-shadow: 0 1px 0 rgba(238,238,236,0.4); /* Tango Alumninum 1 */
@@ -785,7 +785,7 @@ html[dir="rtl"] .message-attachment-icon {
 .show-more {
   display: none; /* $('.show-more').show() is run if there are results */
   background-color: #babdb6;
-  -moz-border-radius: 4px;
+  border-radius: 4px;
   float: right;
   padding: 0.2em 1em;
   font-size: small;
@@ -815,7 +815,7 @@ span.loading, span.empty {
   color: ButtonText;
   background-color: ButtonFace;
   border: 1px outset ThreeDShadow;
-  -moz-border-radius: 3px;
+  border-radius: 3px;
 }
 
 img.loading, img.empty {

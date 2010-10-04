@@ -16,7 +16,7 @@ body {
 
 #mozupdate {
   clear: both;
-  -moz-border-radius: 0.4ex;
+  border-radius: 0.4ex;
   border: 1px solid #FFD8B9;
   left: 1em;
   right: 1em;

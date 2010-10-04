@@ -89,7 +89,7 @@ vbox.icon[state='weak'] {
 
 .warning {
   padding: 2em;
-  -moz-border-radius: 10px;
+  border-radius: 10px;
   background-color: #772222;
   border: 1px solid threedshadow;
 }

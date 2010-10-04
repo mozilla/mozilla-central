@@ -9,7 +9,7 @@
   -moz-margin-end: 5px;
   -moz-appearance: none;
   border: 1px solid #5F5F5F;
-  -moz-border-radius: 4px;
+  border-radius: 4px;
   background: url(chrome://global/skin/icons/white-gray-gradient.gif) #A09E9D repeat-x top center;
   min-height: 0;
   min-width: 0;

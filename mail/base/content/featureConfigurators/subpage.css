@@ -57,7 +57,7 @@ h1 {
   color: #000000;
   background-color: #babdb6;
   cursor: pointer;
-  -moz-border-radius: 3px;
+  border-radius: 3px;
   text-shadow: rgba(255, 255, 255, 0.4) 0 1px;
 }
 
@@ -134,7 +134,7 @@ html[dir="rtl"] #disk-space-used {
 #disk-space-warning {
   background-color: Highlight;
   color: HighlightText;
-  -moz-border-radius: 4px;
+  border-radius: 4px;
   padding: 7px;
   margin: 3px 0;
 }

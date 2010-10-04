@@ -689,10 +689,10 @@ toolbar[iconsize="small"] #button-archive[disabled] {
   border: 1px solid #DDDDE1;
   color: black;
   padding: 0.3em 0.2em;
-  -moz-border-radius-bottomleft: 0.2em;
-  -moz-border-radius-bottomright: 0.2em;
-  -moz-border-radius-topleft: 0.2em;
-  -moz-border-radius-topright: 0.2em;
+  border-bottom-left-radius: 0.2em;
+  border-bottom-right-radius: 0.2em;
+  border-top-left-radius: 0.2em;
+  border-top-right-radius: 0.2em;
 }
 
 #remoteContentDescription {
@@ -725,10 +725,10 @@ toolbar[iconsize="small"] #button-archive[disabled] {
   border: 1px solid #DDDDE1;
   color: black;
   padding: 0.3em 0.2em;
-  -moz-border-radius-bottomleft: 0.2em;
-  -moz-border-radius-bottomright: 0.2em;
-  -moz-border-radius-topleft: 0.2em;
-  -moz-border-radius-topright: 0.2em;
+  border-bottom-left-radius: 0.2em;
+  border-bottom-right-radius: 0.2em;
+  border-top-left-radius: 0.2em;
+  border-top-right-radius: 0.2em;
 }
 
 

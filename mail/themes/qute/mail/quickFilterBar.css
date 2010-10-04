@@ -13,7 +13,7 @@
   -moz-border-left-colors: threedshadow #f2f2f2;
   -moz-border-right-colors: threedshadow #f2f2f2;
   border-bottom: none;
-  -moz-border-radius: 4px 4px 0pt 0pt;
+  border-radius: 4px 4px 0pt 0pt;
   margin: 2px 2px 3px 0;
   padding: 0 !important;
   -moz-padding-start: 4px !important;

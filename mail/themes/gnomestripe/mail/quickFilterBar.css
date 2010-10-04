@@ -61,7 +61,7 @@
   text-shadow: none;
   background: none;
   border: 1px solid transparent;
-  -moz-border-radius: 0;
+  border-radius: 0;
   border-width: 0;
 }
 

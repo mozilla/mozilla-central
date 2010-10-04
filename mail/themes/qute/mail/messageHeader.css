@@ -112,8 +112,8 @@ html|div#expandedHeadersTopBox {
 #editMessageBox
 {
   min-width: 1px;
-  -moz-border-radius-bottomleft: 0.2em;
-  -moz-border-radius-bottomright: 0.2em;
+  border-bottom-left-radius: 0.2em;
+  border-bottom-right-radius: 0.2em;
 }
 
 #editMessageDescription
@@ -416,7 +416,7 @@ toolbarpaletteitem .msgHeaderView-button {
   margin-top: 1px;
   margin-bottom: 2px;
   padding: 0px 3px;
-  -moz-border-radius: 4px;
+  border-radius: 4px;
   -moz-border-top-colors: none;
   -moz-border-right-colors: none;
   -moz-border-bottom-colors: none;
@@ -427,7 +427,7 @@ toolbarpaletteitem .msgHeaderView-button {
 .msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-button {
   -moz-appearance: none;
   background-color: rgb(211,215,207);
-  -moz-border-radius: 0px;
+  border-radius: 0px;
   border: 0;
   border-right: 2px solid transparent;
   -moz-padding-end: 0.2em;
@@ -527,7 +527,7 @@ toolbarpaletteitem .msgHeaderView-button {
   padding: 0 0.5ex;
   -moz-margin-start: 0px;
   background-image: url("chrome://messenger/skin/tagbg.png");
-  -moz-border-radius: 3px;
+  border-radius: 3px;
   border-width: 0.5px;
   border-style: outset;
   text-shadow: 0 1px 0 rgba(238,238,236,0.4); /* Tango Alumninum 1 */
@@ -561,7 +561,7 @@ toolbarpaletteitem .msgHeaderView-button {
   -moz-padding-start: 3px !important;
   -moz-padding-end: 3px !important;
   background-color: transparent;
-  -moz-border-radius: 2px;
+  border-radius: 2px;
   border: 1px dotted transparent;
 }
 
@@ -576,11 +576,11 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
     make sure that the email bubble stays displayed, and
     tweak the bottom to blend in more w/ the menu */
   cursor: pointer;
-  -moz-border-radius: 3px;
+  border-radius: 3px;
   color: HighlightText;
   background-color: Highlight;
-  -moz-border-radius-bottomleft: 0;
-  -moz-border-radius-bottomright: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .emailSeparator {

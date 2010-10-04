@@ -27,7 +27,7 @@ blockquote[type=cite] {
   margin: 1ex;
   border-width: 0px 2px 0px 2px;
   border-style: none solid none solid;
-  -moz-border-radius: 2px;
+  border-radius: 2px;
 }
 
 /* ::::: Colorize block quote borders. We only go 5 levels deep. ::::: */

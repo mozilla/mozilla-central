@@ -19,7 +19,7 @@
 
 .errordescription {
   background-color: InfoBackground;
-  -moz-border-radius: 4px;
+  border-radius: 4px;
   margin-top: 3px;
   -moz-padding-start: 3px;
 }
@@ -104,7 +104,7 @@ vbox.icon[state='weak'] {
 
 .warning {
   padding: 2em;
-  -moz-border-radius: 10px;
+  border-radius: 10px;
   background-color: #772222;
   border: 1px solid threedshadow;
 }
