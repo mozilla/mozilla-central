@@ -754,6 +754,16 @@ toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
   list-style-image: url("chrome://navigator/skin/icons/popup-blocked.png");
 }
 
+#invalid-form-popup {
+  border: 1px solid #000000;
+  padding: 2px 3px 0px 3px;
+  max-width: 40em;
+  background-color: #FFFFE7;
+  color: #000000;
+  font: message-box;
+  font-weight: bold;
+}
+
 /* ::::: star button ::::: */
 
 #star-button {

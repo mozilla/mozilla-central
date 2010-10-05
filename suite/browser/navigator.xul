@@ -157,6 +157,11 @@
                onclick="checkForMiddleClick(this, event);"/>
     <panel id="PopupAutoComplete" type="autocomplete" noautofocus="true"/>
 
+    <!-- for invalid form error message -->
+    <panel id="invalid-form-popup" noautofocus="true" hidden="true" level="parent">
+      <description/>
+    </panel>
+
     <panel id="editBookmarkPanel"/>
 
     <menupopup id="placesContext"/>

@@ -324,6 +324,11 @@ nsBrowserStatusHandler.prototype =
      }
    }
 
+    // Hide the form invalid popup.
+    if (gFormSubmitObserver.panelIsOpen()) {
+      gFormSubmitObserver.panel.hidePopup();
+    }
+
     // XXX temporary hack for bug 104532.
     // Depends heavily on setOverLink implementation
     if (!aRequest)

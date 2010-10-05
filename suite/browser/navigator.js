@@ -40,6 +40,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://gre/modules/AddonManager.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 __defineGetter__("PluralForm", function() {
   Components.utils.import("resource://gre/modules/PluralForm.jsm");
@@ -161,6 +162,71 @@ const gPopupPermListener = {
   }
 };
 
+const gFormSubmitObserver = {
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIFormSubmitObserver,
+                                         Components.interfaces.nsIObserver]),
+
+  panel: null,
+
+  init: function()
+  {
+    this.panel = document.getElementById("invalid-form-popup");
+  },
+
+  panelIsOpen: function()
+  {
+    return this.panel && this.panel.state != "hiding" &&
+           this.panel.state != "closed";
+  },
+
+  notifyInvalidSubmit: function (aFormElement, aInvalidElements)
+  {
+    // We are going to handle invalid form submission attempt by focusing the
+    // first invalid element and show the corresponding validation message in a
+    // panel attached to the element.
+    if (!aInvalidElements.length) {
+      return;
+    }
+
+    // Don't show the popup if the current tab doesn't contain the invalid form.
+    if (aFormElement.ownerDocument.defaultView.top != content) {
+      return;
+    }
+
+    let element = aInvalidElements.queryElementAt(0, Components.interfaces.nsISupports);
+
+    if (!(element instanceof HTMLInputElement ||
+          element instanceof HTMLTextAreaElement ||
+          element instanceof HTMLSelectElement ||
+          element instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    // Limit the message to 256 characters.
+    this.panel.firstChild.textContent = element.validationMessage.substring(0, 256);
+
+    element.focus();
+
+    // If the user type something or blurs the element, we want to remove the popup.
+    // We could check for clicks but a click already removes the popup.
+    function eventHandler() {
+      gFormSubmitObserver.panel.hidePopup();
+    };
+    element.addEventListener("input", eventHandler, false);
+    element.addEventListener("blur", eventHandler, false);
+
+    // One event to bring them all and in the darkness bind them.
+    this.panel.addEventListener("popuphiding", function popupHidingHandler(aEvent) {
+      aEvent.target.removeEventListener("popuphiding", popupHidingHandler, false);
+      element.removeEventListener("input", eventHandler, false);
+      element.removeEventListener("blur", eventHandler, false);
+    }, false);
+
+    this.panel.hidden = false;
+    this.panel.openPopup(element, "after_start", 0, 0);
+  }
+};
+
 /**
 * Pref listener handler functions.
 * Both functions assume that observer.domain is set to 
@@ -192,6 +258,17 @@ function addPopupPermListener(observer)
 function removePopupPermListener(observer)
 {
   Services.obs.removeObserver(observer, "popup-perm-close");
+}
+
+function addFormSubmitObserver(observer)
+{
+  observer.init();
+  Services.obs.addObserver(observer, "invalidformsubmit", false);
+}
+
+function removeFormSubmitObserver(observer)
+{
+  Services.obs.removeObserver(observer, "invalidformsubmit", false);
 }
 
 /**
@@ -436,6 +513,7 @@ function Startup()
   addPrefListener(gHomepagePrefListener);
   addPrefListener(gStatusBarPopupIconPrefListener);
   addPopupPermListener(gPopupPermListener);
+  addFormSubmitObserver(gFormSubmitObserver);
 
   window.browserContentListener =
     new nsBrowserContentListener(window, getBrowser());
@@ -702,6 +780,7 @@ function Shutdown()
   removePrefListener(gHomepagePrefListener);
   removePrefListener(gStatusBarPopupIconPrefListener);
   removePopupPermListener(gPopupPermListener);
+  removeFormSubmitObserver(gFormSubmitObserver);
 
   window.browserContentListener.close();
 }

@@ -469,6 +469,14 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
   list-style-image: url("chrome://navigator/skin/icons/popup-blocked.png");
 }
 
+#invalid-form-popup {
+  -moz-appearance: tooltip;
+  padding: 2px 3px 0px 3px;
+  max-width: 40em;
+  color: InfoText;
+  font-weight: bold;
+}
+
 /* ::::: personal toolbar ::::: */
 
 #PersonalToolbar {
