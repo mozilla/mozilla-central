@@ -319,10 +319,18 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
           PR_snprintf(buf, sizeof(buf), X_MOZILLA_STATUS_FORMAT,
             flags & 0x0000FFFF);
           PRInt32 lineLen = PL_strlen(buf);
-          PRUint64 status2Pos = statusPos + lineLen + MSG_LINEBREAK_LEN;
+          PRUint64 status2Pos = statusPos + lineLen;
           fileStream->Write(buf, lineLen, &bytesWritten);
-          
+
           // time to upate x-mozilla-status2
+          // first find it by finding end of previous line, see bug 234935
+          seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, status2Pos);
+          do
+          {
+            rv = inputStream->Read(buf, 1, &bytesRead);
+            status2Pos++;
+          } while (NS_SUCCEEDED(rv) && (*buf == '\n' || *buf == '\r'));
+          status2Pos--;
           seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, status2Pos);
           if (NS_SUCCEEDED(inputStream->Read(buf, X_MOZILLA_STATUS2_LEN + 10, &bytesRead)))
           {
