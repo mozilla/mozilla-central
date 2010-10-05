@@ -58,8 +58,8 @@ textbox {
   font: inherit;
 }
 
-textbox[empty="true"],
-textbox[isempty="true"] {
+html|*.textbox-input:-moz-placeholder,
+html|*.textbox-textarea:-moz-placeholder {
   color: #999999;
 }
 
