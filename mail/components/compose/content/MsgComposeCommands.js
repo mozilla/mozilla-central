@@ -2149,11 +2149,11 @@ function CheckValidEmailAddress(to, cc, bcc)
   var invalidStr = null;
   // crude check that the to, cc, and bcc fields contain at least one '@'.
   // We could parse each address, but that might be overkill.
-  if (to.length > 0 && (to.indexOf("@") <= 0 || to.indexOf("@") == to.length - 1))
+  if (to.length > 0 && (to.indexOf("@") <= 0 && to.toLowerCase() != "postmaster" || to.indexOf("@") == to.length - 1))
     invalidStr = to;
-  else if (cc.length > 0 && (cc.indexOf("@") <= 0 || cc.indexOf("@") == cc.length - 1))
+  else if (cc.length > 0 && (cc.indexOf("@") <= 0 && cc.toLowerCase() != "postmaster" || cc.indexOf("@") == cc.length - 1))
     invalidStr = cc;
-  else if (bcc.length > 0 && (bcc.indexOf("@") <= 0 || bcc.indexOf("@") == bcc.length - 1))
+  else if (bcc.length > 0 && (bcc.indexOf("@") <= 0 && bcc.toLowerCase() != "postmaster" || bcc.indexOf("@") == bcc.length - 1))
     invalidStr = bcc;
   if (invalidStr)
   {
