@@ -199,14 +199,13 @@ function initializeHeaderViewTables()
 {
   // iterate over each header in our header list arrays and create header entries
   // for each one. These header entries are then stored in the appropriate header table
-  var index;
-  for (index = 0; index < gCollapsedHeaderList.length; index++)
+  for (let index = 0; index < gCollapsedHeaderList.length; index++)
   {
     gCollapsedHeaderView[gCollapsedHeaderList[index].name] = 
       new createHeaderEntry('collapsed', gCollapsedHeaderList[index]);
   }
 
-  for (index = 0; index < gExpandedHeaderList.length; index++)
+  for (let index = 0; index < gExpandedHeaderList.length; index++)
   {
     var headerName = gExpandedHeaderList[index].name;
     gExpandedHeaderView[headerName] = new createHeaderEntry('expanded', gExpandedHeaderList[index]);
@@ -214,28 +213,28 @@ function initializeHeaderViewTables()
 
   var extraHeaders = gExtraExpandedHeaders.match(/[^ ]+/g);
   if (extraHeaders) {
-    for (index = 0; index < extraHeaders.length; index++)
+    for (let index = 0; index < extraHeaders.length; index++)
     {
-      var extraHeader = extraHeaders[index];
+      let extraHeader = extraHeaders[index];
       gExpandedHeaderView[extraHeader.toLowerCase()] = new createNewHeaderView(extraHeader, extraHeader + ':');
     }
   }
 
   if (gShowOrganization)
   {
-    var organizationEntry = {name:"organization", outputFunction:updateHeaderValue};
+    let organizationEntry = {name:"organization", outputFunction:updateHeaderValue};
     gExpandedHeaderView[organizationEntry.name] = new createHeaderEntry('expanded', organizationEntry);
   }
 
   if (gShowUserAgent)
   {
-    var userAgentEntry = {name:"user-agent", outputFunction:updateHeaderValue};
+    let userAgentEntry = {name:"user-agent", outputFunction:updateHeaderValue};
     gExpandedHeaderView[userAgentEntry.name] = new createHeaderEntry('expanded', userAgentEntry);
   }
 
   if (gShowMessageId)
   {
-    var messageIdEntry = {name:"message-id", outputFunction:OutputMessageIds};
+    let messageIdEntry = {name:"message-id", outputFunction:OutputMessageIds};
     gExpandedHeaderView[messageIdEntry.name] = new createHeaderEntry('expanded', messageIdEntry);
   }
 }
@@ -504,7 +503,7 @@ var messageHeaderSink = {
       else
         displayAttachmentsForExpandedView();
 
-      for (index in gMessageListeners) {
+      for (let index in gMessageListeners) {
         if ("onEndAttachments" in gMessageListeners[index])
           gMessageListeners[index].onEndAttachments();
       }
@@ -606,7 +605,7 @@ function SetTagHeader()
   // Rebuild the keywords string with just the keys that are actual tags or
   // legacy labels and not other keywords like Junk and NonJunk.
   // Retain their order, though, with the label as oldest element.
-  for (var i = msgKeyArray.length - 1; i >= 0; --i)
+  for (let i = msgKeyArray.length - 1; i >= 0; --i)
     if (!(msgKeyArray[i] in tagKeys))
       msgKeyArray.splice(i, 1); // remove non-tag key
   var msgKeys = msgKeyArray.join(" ");
@@ -668,9 +667,9 @@ function OnTagsChange()
 // table
 function ClearHeaderView(headerTable)
 {
-  for (index in headerTable)
+  for (let index in headerTable)
   {
-     var headerEntry = headerTable[index];
+     let headerEntry = headerTable[index];
      if (headerEntry.useToggle)
      {
        headerEntry.enclosingBox.clearHeaderValues();
@@ -683,7 +682,7 @@ function ClearHeaderView(headerTable)
 // make sure that any valid header entry in the table is collapsed
 function hideHeaderView(headerTable)
 {
-  for (index in headerTable)
+  for (let index in headerTable)
   {
     headerTable[index].enclosingBox.collapsed = true;
   }
@@ -693,10 +692,9 @@ function hideHeaderView(headerTable)
 // visible
 function showHeaderView(headerTable)
 {
-  var headerEntry;
-  for (index in headerTable)
+  for (let index in headerTable)
   {
-    headerEntry = headerTable[index];
+    let headerEntry = headerTable[index];
     if (headerEntry.valid)
     {
       headerEntry.enclosingBox.collapsed = false;
@@ -800,9 +798,9 @@ function createNewHeaderView(headerName, label)
  */
 function RemoveNewHeaderViews(aHeaderTable)
 {
-  for (var index in aHeaderTable)
+  for (let index in aHeaderTable)
   {
-    var headerEntry = aHeaderTable[index];
+    let headerEntry = aHeaderTable[index];
     if (headerEntry.isNewHeader)
       headerEntry.enclosingBox.parentNode
                  .removeChild(headerEntry.enclosingBox);
@@ -817,18 +815,17 @@ function UpdateMessageHeaders()
   // iterate over each header we received and see if we have a matching entry in each
   // header view table...
 
-  var headerName;
-  for (headerName in currentHeaderData)
+  for (let headerName in currentHeaderData)
   {
-    var headerField = currentHeaderData[headerName];
-    var headerEntry = null;
+    let headerField = currentHeaderData[headerName];
+    let headerEntry = null;
 
     if (headerName == "subject")
     {
       try {
         if (gDBView.keyForFirstSelectedMessage == nsMsgKey_None)
         {
-          var folder = null;
+          let folder = null;
           if (gCurrentFolderUri)
             folder = GetMsgFolderFromUri(gCurrentFolderUri);
           setTitleFromFolder(folder, headerField.headerValue);
@@ -852,7 +849,7 @@ function UpdateMessageHeaders()
         // fill in a headerEntry
         if (headerName == "message-id" || headerName == "in-reply-to")
         {
-          var messageIdEntry = {name:headerName, outputFunction:OutputMessageIds};
+          let messageIdEntry = {name:headerName, outputFunction:OutputMessageIds};
           gExpandedHeaderView[headerName] = new createHeaderEntry('expanded', messageIdEntry);
         }
         else
@@ -953,7 +950,7 @@ function OutputMessageIds(headerEntry, headerValue)
   var messageIdArray = headerValue.split(/\s+/);
 
   headerEntry.enclosingBox.clearHeaderValues();
-  for (var i = 0; i < messageIdArray.length; i++)
+  for (let i = 0; i < messageIdArray.length; i++)
     headerEntry.enclosingBox.addMessageIdView(messageIdArray[i]);
 
   headerEntry.enclosingBox.fillMessageIdNodes();
@@ -1255,20 +1252,20 @@ function onShowAttachmentContextMenu()
   var anyDetached = false; // at least one detached attachment in the list
 
   // Check if one or more of the selected attachments are deleted.
-  for (var i = 0; i < selectedAttachments.length && !deletedAmongSelected; i++)
+  for (let i = 0; i < selectedAttachments.length && !deletedAmongSelected; i++)
     deletedAmongSelected =
       (selectedAttachments[i].attachment.contentType == 'text/x-moz-deleted');
 
   // Check if one or more of the selected attachments are detached.
-  for (var i = 0; i < selectedAttachments.length && !detachedAmongSelected; i++)
+  for (let i = 0; i < selectedAttachments.length && !detachedAmongSelected; i++)
     detachedAmongSelected = selectedAttachments[i].attachment.isExternalAttachment;
 
   // Check if any attachments are deleted.
-  for (var i = 0; i < currentAttachments.length && !anyDeleted; i++)
+  for (let i = 0; i < currentAttachments.length && !anyDeleted; i++)
     anyDeleted = (currentAttachments[i].contentType == 'text/x-moz-deleted');
 
   // Check if any attachments are detached.
-  for (var i = 0; i < currentAttachments.length && !anyDetached; i++)
+  for (let i = 0; i < currentAttachments.length && !anyDetached; i++)
     anyDetached = currentAttachments[i].isExternalAttachment;
 
   if (!deletedAmongSelected && selectedAttachments.length == 1)
@@ -1345,15 +1342,15 @@ function displayAttachmentsForExpandedView()
   var numAttachments = currentAttachments.length;
   if (numAttachments > 0 && !gBuildAttachmentsForCurrentMsg)
   {
-    var attachmentList = document.getElementById('attachmentList');
+    let attachmentList = document.getElementById('attachmentList');
 
-    for (index in currentAttachments)
+    for (let index in currentAttachments)
     {
-      var attachment = currentAttachments[index];
+      let attachment = currentAttachments[index];
 
       // create a listitem for the attachment listbox
-      var displayName = createAttachmentDisplayName(attachment);
-      var item = attachmentList.appendItem(displayName, "");
+      let displayName = createAttachmentDisplayName(attachment);
+      let item = attachmentList.appendItem(displayName, "");
       item.setAttribute("crop", "center");
       item.setAttribute("class", "listitem-iconic attachment-item"); 
       item.setAttribute("tooltiptext", attachment.displayName);
@@ -1405,7 +1402,7 @@ function FillAttachmentListPopup(popup)
 
   var canDetachOrDeleteAll = CanDetachAttachments();
 
-  for (index in currentAttachments)
+  for (let index in currentAttachments)
   {
     ++attachmentIndex;
     addAttachmentToPopup(popup, currentAttachments[index], attachmentIndex);
@@ -1522,7 +1519,7 @@ function HandleMultipleAttachments(commandPrefix, selectedAttachments)
    // populate these arrays..
    for (let index in selectedAttachments)
    {
-     var attachment = selectedAttachments[index].attachment;
+     let attachment = selectedAttachments[index].attachment;
      attachmentContentTypeArray[index] = attachment.contentType;
      attachmentUrlArray[index] = attachment.url;
      attachmentDisplayNameArray[index] = encodeURI(attachment.displayName);
@@ -1682,7 +1679,7 @@ nsFlavorDataProvider.prototype =
       // of all the current attachments so we can cheat and scan through them
 
       var attachment = null;
-      for (index in currentAttachments)
+      for (let index in currentAttachments)
       {
         attachment = currentAttachments[index];
         if (attachment.url == srcUrlPrimitive)
