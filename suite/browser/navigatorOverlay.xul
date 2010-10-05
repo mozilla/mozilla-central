@@ -211,7 +211,7 @@
     <commandset id="tasksCommands"/>
 
     <!-- Tools Menu -->
-    <command id="Browser:SearchInternet" oncommand="BrowserSearchInternet();"/>
+    <command id="Browser:SearchInternet" oncommand="BrowserSearch.webSearch();"/>
     <command id="Tools:Sanitize"
              oncommand="Components.classes['@mozilla.org/suite/suiteglue;1'].getService(Components.interfaces.nsISuiteGlue).sanitize(window);"/>
 
