@@ -70,6 +70,8 @@ modern.jar:
   skin/modern/communicator/icons/feedIcon.png                      (communicator/icons/feedIcon.png)
   skin/modern/communicator/icons/feedIcon16.png                    (communicator/icons/feedIcon16.png)
   skin/modern/communicator/icons/geo.png                           (communicator/icons/geo.png)
+  skin/modern/communicator/icons/geolocation-16.png                (communicator/icons/geolocation-16.png)
+  skin/modern/communicator/icons/geolocation-64.png                (communicator/icons/geolocation-64.png)
   skin/modern/communicator/icons/identity.png                      (communicator/icons/identity.png)
   skin/modern/communicator/icons/loading.gif                       (communicator/icons/loading.gif)
   skin/modern/communicator/icons/lock-broken.png                   (communicator/icons/lock-broken.png)

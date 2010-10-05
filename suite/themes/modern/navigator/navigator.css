@@ -508,6 +508,38 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
   background: #E8DB99;
 }
 
+/* ::::: notification popups ::::: */
+
+#notification-popup {
+  padding: 10px;
+  margin-top: 3px;
+}
+
+.popup-notification-icon {
+  width: 64px;
+  height: 64px;
+  -moz-margin-end: 10px;
+}
+
+.popup-notification-icon[popupid="geolocation"] {
+  list-style-image: url("chrome://communicator/skin/icons/geolocation-64.png");
+}
+
+/* Notification icon box */
+#notification-popup-box {
+  -moz-margin-end: 3px;
+}
+
+.notification-anchor-icon:-moz-focusring {
+  outline: 1px dotted;
+}
+
+#geo-notification-icon {
+  list-style-image: url("chrome://communicator/skin/icons/geolocation-16.png");
+  width: 16px;
+  height: 16px;
+}
+
 /* ::::: page proxy icon ::::: */
 
 #page-proxy-deck,

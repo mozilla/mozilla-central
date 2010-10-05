@@ -612,6 +612,18 @@ function Startup()
 
   // initialize the session-restore service
   setTimeout(InitSessionStoreCallback, 0);
+
+  if (Services.prefs.getBoolPref("browser.doorhanger.enabled")) {
+    XPCOMUtils.defineLazyGetter(window, "PopupNotifications", function() {
+      var tmp = {};
+      Components.utils.import("resource://gre/modules/PopupNotifications.jsm", tmp);
+      return XULBrowserWindow.popupNotifications = new tmp.PopupNotifications(
+          getBrowser(),
+          document.getElementById("notification-popup"),
+          document.getElementById("notification-popup-box"));
+    });
+    getBrowser().setAttribute("popupnotification", "true");
+  }
 }
 
 function UpdateNavBar()

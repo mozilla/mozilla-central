@@ -164,6 +164,8 @@
     <!-- Bookmarks and history tooltip -->
     <tooltip id="bhTooltip"/>
 
+    <panel id="notification-popup" position="after_start" noautofocus="true" hidden="true"/>
+
     <menupopup id="popupBlockerMenu"
                oncommand="popupBlockerMenuCommand(event.target);"
                onpopupshowing="return popupBlockerMenuShowing(event)"/>
@@ -306,6 +308,9 @@
                  onfocus="URLBarFocusHandler(event);"
                  onmousedown="URLBarMouseDownHandler(event);"
                  onclick="URLBarClickHandler(event);">
+          <box id="notification-popup-box" hidden="true" align="center">
+            <image id="geo-notification-icon" class="notification-anchor-icon" role="button"/>
+          </box>
           <deck id="page-proxy-deck"
                 class="urlbar-icons"
                 onclick="handlePageProxyClick(event);">

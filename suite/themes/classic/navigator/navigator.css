@@ -322,6 +322,40 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   display: none;
 }
 
+/* ::::: notification popups ::::: */
+
+#notification-popup {
+  -moz-appearance: menupopup;
+  color: MenuText;
+  padding: 10px;
+  margin-top: 3px;
+}
+
+.popup-notification-icon {
+  width: 64px;
+  height: 64px;
+  -moz-margin-end: 10px;
+}
+
+.popup-notification-icon[popupid="geolocation"] {
+  list-style-image: url("chrome://communicator/skin/icons/geolocation-64.png");
+}
+
+/* Notification icon box */
+#notification-popup-box {
+  margin: 0 3px;
+}
+
+.notification-anchor-icon:-moz-focusring {
+  outline: 1px dotted -moz-DialogText;
+}
+
+#geo-notification-icon {
+  list-style-image: url("chrome://communicator/skin/icons/geolocation-16.png");
+  width: 16px;
+  height: 16px;
+}
+
 /* ::::: page proxy icon ::::: */
 
 #page-proxy-deck,

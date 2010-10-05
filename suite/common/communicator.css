@@ -51,6 +51,10 @@ toolbar[printpreview="true"] {
   -moz-binding: url("chrome://communicator/content/bindings/notification.xml#browser-notificationbox");
 }
 
+.browser-notificationbox[popup="true"] {
+  -moz-binding: url("chrome://communicator/content/bindings/notification.xml#popup-notification");
+}
+
 /* ::::: toolbaritem ::::: */
 toolbaritem {
   -moz-binding: url("chrome://global/content/bindings/general.xml#basecontrol");

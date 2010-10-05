@@ -61,6 +61,17 @@ panel[for="urlbar"] {
   overflow: hidden;
 }
 
+/* notification anchors should only be visible when their associated
+   notifications are */
+.notification-anchor-icon {
+  display: none;
+  -moz-user-focus: normal;
+}
+
+#notification-popup-box[anchorid="geo-notification-icon"] > #geo-notification-icon {
+  display: -moz-box;
+}
+
 #toolbar-menubar[autohide="true"][inactive="true"]
 {
   min-height: 0px !important;
