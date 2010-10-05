@@ -28,6 +28,35 @@ treechildren::-moz-tree-image(junkStatusCol) {
   -moz-margin-start: -3px;
 }
 
+#viewPickerPopup menuitem, #viewPickerPopup menu {
+  -moz-appearance: none;
+  color: -moz-FieldText;
+  background-color: menuitem;
+}
+
+#viewPickerPopup menuitem[_moz-menuactive="true"], #viewPickerPopup menu[_moz-menuactive="true"] {
+  border: 1px solid highlight;
+  background-color: highlight;
+  color: highlighttext;
+}
+
+#folderLocationPopup {
+  -moz-appearance: none !important;
+  background-color: white !important;
+  color: -moz-FieldText;
+  border: 1px solid black;
+}
+
+#folderLocationPopup menuitem[_moz-menuactive="true"], #folderLocationPopup menu[_moz-menuactive="true"] {
+  -moz-appearance: none !important;
+  color: HighlightText;
+  background-color: menuitem;
+}
+
+#folderLocationPopup menuitem:first-child {
+padding: 4px 0px;
+}
+
 #threadTree treechildren::-moz-tree-row(odd) {
   background-image: none;
 }
