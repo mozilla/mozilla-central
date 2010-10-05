@@ -42,10 +42,13 @@
 #include "nsILocalFile.h"
 #include "nsIStringBundle.h"
 #include "nsStringGlue.h"
+#include "nsTArray.h"
+#include "nsIObserverService.h"
+#include "nsITimer.h"
+#include "nsIMailProfileMigrator.h"
 
 class nsIFile;
 class nsIPrefBranch;
-class nsVoidArray;
 class nsIMutableArray;
 
 struct fileTransactionEntry {
@@ -55,13 +58,20 @@ struct fileTransactionEntry {
 };
 
 
-class nsNetscapeProfileMigratorBase
+class nsNetscapeProfileMigratorBase : public nsIMailProfileMigrator,
+                                      public nsITimerCallback
+                                      
 {
 public:
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSITIMERCALLBACK
+
   nsNetscapeProfileMigratorBase();
   virtual ~nsNetscapeProfileMigratorBase() { };
 
-public:
+  NS_IMETHOD GetSourceHasMultipleProfiles(PRBool* aResult);
+  NS_IMETHOD GetSourceExists(PRBool* aResult);
+
   typedef nsresult(*prefConverter)(void*, nsIPrefBranch*);
 
   struct PrefTransform {
@@ -90,6 +100,9 @@ public:
   nsresult RecursiveCopy(nsIFile* srcDir, nsIFile* destDir); // helper routine
 
 protected:
+  void CopyNextFolder();
+  void EndCopyFolders();
+
   nsresult GetProfileDataFromProfilesIni(nsILocalFile* aDataDir,
                                          nsIMutableArray* aProfileNames,
                                          nsIMutableArray* aProfileLocations);
@@ -102,13 +115,19 @@ protected:
   nsresult GetSignonFileName(PRBool aReplace, char** aFileName);
   nsresult LocateSignonsFile(char** aResult);
 
-protected:
   nsCOMPtr<nsILocalFile> mSourceProfile;
   nsCOMPtr<nsIFile> mTargetProfile;
-  nsCOMPtr<nsIStringBundle> mBundle;
 
-  nsVoidArray * mFileCopyTransactions; // list of src/destination files we still have to copy into the new profile directory
+  // List of src/destination files we still have to copy into the new profile
+  // directory.
+  nsTArray<fileTransactionEntry> mFileCopyTransactions;
   PRUint32 mFileCopyTransactionIndex;
+
+  PRInt64 mMaxProgress;
+  PRInt64 mCurrentProgress;
+
+  nsCOMPtr<nsIObserverService> mObserverService;
+  nsCOMPtr<nsITimer> mFileIOTimer;
 };
  
 #endif

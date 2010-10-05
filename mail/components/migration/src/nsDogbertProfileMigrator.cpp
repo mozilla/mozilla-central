@@ -45,7 +45,6 @@
 #include "nsDogbertProfileMigrator.h"
 #include "nsIRelativeFilePref.h"
 #include "nsAppDirectoryServiceDefs.h"
-#include "nsVoidArray.h"
 #include "prprf.h"
 #include "prmem.h"
 #include "prenv.h"
@@ -217,89 +216,10 @@ NS_IMPL_ISUPPORTS2(nsDogbertProfileMigrator, nsIMailProfileMigrator, nsITimerCal
 
 nsDogbertProfileMigrator::nsDogbertProfileMigrator()
 {
-  mObserverService = do_GetService("@mozilla.org/observer-service;1");
-  mMaxProgress = LL_ZERO;
-  mCurrentProgress = LL_ZERO;
 }
 
 nsDogbertProfileMigrator::~nsDogbertProfileMigrator()
 {
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// nsITimerCallback
-
-NS_IMETHODIMP
-nsDogbertProfileMigrator::Notify(nsITimer *timer)
-{
-  CopyNextFolder();
-  return NS_OK;
-}
-
-void nsDogbertProfileMigrator::CopyNextFolder()
-{
-  if (mFileCopyTransactionIndex < mFileCopyTransactions->Count())
-  {
-    PRUint32 percentage = 0;
-    fileTransactionEntry* fileTransaction = (fileTransactionEntry*) mFileCopyTransactions->SafeElementAt(mFileCopyTransactionIndex++);
-    if (fileTransaction) // copy the file
-    {
-      fileTransaction->srcFile->CopyTo(fileTransaction->destFile, fileTransaction->newName);
-
-      // add to our current progress
-      PRInt64 fileSize;
-      fileTransaction->srcFile->GetFileSize(&fileSize);
-      LL_ADD(mCurrentProgress, mCurrentProgress, fileSize);
-
-      PRInt64 percentDone;
-      LL_MUL(percentDone, mCurrentProgress, 100);
-
-      LL_DIV(percentDone, percentDone, mMaxProgress);
-
-      LL_L2UI(percentage, percentDone);
-
-      nsAutoString index;
-      index.AppendInt( percentage );
-
-      NOTIFY_OBSERVERS(MIGRATION_PROGRESS, index.get());
-    }
-    // fire a timer to handle the next one.
-    mFileIOTimer = do_CreateInstance("@mozilla.org/timer;1");
-    if (mFileIOTimer)
-      mFileIOTimer->InitWithCallback(static_cast<nsITimerCallback *>(this), percentage == 100 ? 500 : 0, nsITimer::TYPE_ONE_SHOT);
-  } else
-    EndCopyFolders();
-
-  return;
-}
-
-void nsDogbertProfileMigrator::EndCopyFolders()
-{
-  // clear out the file transaction array
-  if (mFileCopyTransactions)
-  {
-    PRUint32 count = mFileCopyTransactions->Count();
-    for (PRUint32 i = 0; i < count; ++i)
-    {
-      fileTransactionEntry* fileTransaction = (fileTransactionEntry*) mFileCopyTransactions->ElementAt(i);
-      if (fileTransaction)
-      {
-        fileTransaction->srcFile = nsnull;
-        fileTransaction->destFile = nsnull;
-        delete fileTransaction;
-      }
-    }
-
-    mFileCopyTransactions->Clear();
-    delete mFileCopyTransactions;
-  }
-
-  // notify the UI that we are done with the migration process
-  nsAutoString index;
-  index.AppendInt(nsIMailProfileMigrator::MAILDATA);
-  NOTIFY_OBSERVERS(MIGRATION_ITEMAFTERMIGRATE, index.get());
-
-  NOTIFY_OBSERVERS(MIGRATION_ENDED, nsnull);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -333,40 +253,6 @@ nsDogbertProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
            | nsIMailProfileMigrator::MAILDATA
            | nsIMailProfileMigrator::NEWSDATA
            | nsIMailProfileMigrator::ADDRESSBOOK_DATA;
-
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsDogbertProfileMigrator::GetSourceExists(PRBool* aResult)
-{
-  nsCOMPtr<nsIArray> profiles;
-  GetSourceProfiles(getter_AddRefs(profiles));
-
-  if (profiles) {
-    PRUint32 count;
-    profiles->GetLength(&count);
-    *aResult = count > 0;
-  }
-  else
-    *aResult = PR_FALSE;
-
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsDogbertProfileMigrator::GetSourceHasMultipleProfiles(PRBool* aResult)
-{
-  nsCOMPtr<nsIArray> profiles;
-  GetSourceProfiles(getter_AddRefs(profiles));
-
-  if (profiles) {
-    PRUint32 count;
-    profiles->GetLength(&count);
-    *aResult = count > 1;
-  }
-  else
-    *aResult = PR_FALSE;
 
   return NS_OK;
 }
@@ -553,16 +439,13 @@ nsresult nsDogbertProfileMigrator::CopyPreferences()
   ProcessPrefsCallback(oldProfDirStr.get(), newProfDirStr.get());
 
   // Generate the max progress value now that we know all of the files we need to copy
-  PRUint32 count = mFileCopyTransactions->Count();
+  PRUint32 count = mFileCopyTransactions.Length();
   for (PRUint32 i = 0; i < count; ++i)
   {
-    fileTransactionEntry* fileTransaction = (fileTransactionEntry*) mFileCopyTransactions->ElementAt(i);
-    if (fileTransaction)
-    {
-      PRInt64 fileSize;
-      fileTransaction->srcFile->GetFileSize(&fileSize);
-      LL_ADD(mMaxProgress, mMaxProgress, fileSize);
-    }
+    fileTransactionEntry fileTransaction = mFileCopyTransactions.ElementAt(i);
+    PRInt64 fileSize;
+    fileTransaction.srcFile->GetFileSize(&fileSize);
+    LL_ADD(mMaxProgress, mMaxProgress, fileSize);
   }
 
   CopyNextFolder();
@@ -1425,12 +1308,11 @@ nsresult nsDogbertProfileMigrator::CopyFilesByPattern(nsILocalFile * oldPathFile
 
 nsresult nsDogbertProfileMigrator::AddFileCopyToList(nsIFile * aOldPath, nsIFile * aNewPath, const char * newName)
 {
-  fileTransactionEntry* fileEntry = new fileTransactionEntry;
-  fileEntry->srcFile = do_QueryInterface(aOldPath);
-  fileEntry->destFile = do_QueryInterface(aNewPath);
-  fileEntry->newName = NS_ConvertUTF8toUTF16(newName);
-  mFileCopyTransactions->AppendElement((void*) fileEntry);
-
+  fileTransactionEntry fileEntry;
+  fileEntry.srcFile = do_QueryInterface(aOldPath);
+  fileEntry.destFile = do_QueryInterface(aNewPath);
+  fileEntry.newName = NS_ConvertUTF8toUTF16(newName);
+  mFileCopyTransactions.AppendElement(fileEntry);
   return NS_OK;
 }
 

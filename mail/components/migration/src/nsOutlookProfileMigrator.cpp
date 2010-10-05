@@ -39,8 +39,6 @@
 #include "nsIServiceManager.h"
 #include "nsOutlookProfileMigrator.h"
 #include "nsIProfileMigrator.h"
-#include "nsVoidArray.h"
-
 #include "nsIImportSettings.h"
 #include "nsIFile.h"
 

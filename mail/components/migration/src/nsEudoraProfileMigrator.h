@@ -51,7 +51,6 @@
 class nsIFile;
 class nsIPrefBranch;
 class nsIPrefService;
-class nsVoidArray;
 
 class nsEudoraProfileMigrator : public nsIMailProfileMigrator,
                             public nsITimerCallback,

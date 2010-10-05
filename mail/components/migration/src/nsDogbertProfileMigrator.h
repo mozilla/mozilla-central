@@ -40,10 +40,8 @@
 
 #include "nsIMailProfileMigrator.h"
 #include "nsILocalFile.h"
-#include "nsIObserverService.h"
 #include "nsIMutableArray.h"
 #include "nsNetscapeProfileMigratorBase.h"
-#include "nsITimer.h"
 
 #include "nsIPrefBranch.h"
 
@@ -77,17 +75,20 @@ public:
   nsresult GetPlatformCharset(nsCString& aCharset);
 };
 
-class nsDogbertProfileMigrator :   public nsNetscapeProfileMigratorBase, 
-                                   public nsIMailProfileMigrator,
-                                   public nsITimerCallback
+class nsDogbertProfileMigrator :   public nsNetscapeProfileMigratorBase
 {
 public:
-  NS_DECL_NSIMAILPROFILEMIGRATOR
   NS_DECL_ISUPPORTS
-  NS_DECL_NSITIMERCALLBACK
 
   nsDogbertProfileMigrator();
   virtual ~nsDogbertProfileMigrator();
+
+  // nsIMailProfileMigrator methods
+  NS_IMETHOD Migrate(PRUint16 aItems, nsIProfileStartup* aStartup,
+                        const PRUnichar* aProfile);
+  NS_IMETHOD GetMigrateData(const PRUnichar* aProfile, PRBool aReplace,
+                            PRUint16* aResult);
+  NS_IMETHOD GetSourceProfiles(nsIArray** aResult);
 
 protected:
   void GetSourceProfile(const PRUnichar* aProfile);
@@ -96,12 +97,7 @@ protected:
 
 private:
   nsCOMPtr<nsIMutableArray> mProfiles;
-  nsCOMPtr<nsIObserverService> mObserverService;
-  nsCOMPtr<nsITimer> mFileIOTimer;
 
-  PRInt64 mMaxProgress;
-  PRInt64 mCurrentProgress;
-  
   nsCOMPtr<nsIPrefBranch> mPrefs;
   nsCOMPtr<nsILocalFile> m_prefsFile;
 protected:
@@ -149,8 +145,6 @@ protected:
                           const char *pattern);
 
   nsresult AddFileCopyToList(nsIFile * aOldPath, nsIFile * aNewPath, const char * newFileName);
-  void CopyNextFolder();
-  void EndCopyFolders();
 
 #ifdef NEED_TO_COPY_AND_RENAME_NEWSRC_FILES
   nsresult CopyAndRenameNewsrcFiles(nsILocalFile *newPath);

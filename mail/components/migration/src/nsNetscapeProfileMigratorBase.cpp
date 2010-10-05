@@ -54,8 +54,8 @@
 #include "nsNetUtil.h"
 #include "prtime.h"
 #include "prprf.h"
-#include "nsVoidArray.h"
 #include "nsINIParser.h"
+#include "nsMailProfileMigratorUtils.h"
 
 #define MIGRATION_BUNDLE "chrome://messenger/locale/migration/migration.properties"
 
@@ -65,13 +65,14 @@
 // nsNetscapeProfileMigratorBase
 nsNetscapeProfileMigratorBase::nsNetscapeProfileMigratorBase()
 {
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService(NS_STRINGBUNDLE_CONTRACTID));
-  bundleService->CreateBundle(MIGRATION_BUNDLE, getter_AddRefs(mBundle));
-
-  // create the array we'll be using to keep track of the asynchronous file copy routines
-  mFileCopyTransactions = new nsVoidArray();
+  mObserverService = do_GetService("@mozilla.org/observer-service;1");
+  mMaxProgress = LL_ZERO;
+  mCurrentProgress = LL_ZERO;
   mFileCopyTransactionIndex = 0;
 }
+
+NS_IMPL_ISUPPORTS2(nsNetscapeProfileMigratorBase, nsIMailProfileMigrator,
+                   nsITimerCallback)
 
 static nsresult
 regerr2nsresult(REGERR errCode)
@@ -515,11 +516,11 @@ nsresult nsNetscapeProfileMigratorBase::RecursiveCopy(nsIFile* srcDir, nsIFile* 
         {
           // we aren't going to do any actual file copying here. Instead, add this to our
           // file transaction list so we can copy files asynchronously...
-          fileTransactionEntry* fileEntry = new fileTransactionEntry;
-          fileEntry->srcFile = dirEntry;
-          fileEntry->destFile = destDir;
+          fileTransactionEntry fileEntry;
+          fileEntry.srcFile = dirEntry;
+          fileEntry.destFile = destDir;
 
-          mFileCopyTransactions->AppendElement((void*) fileEntry);
+          mFileCopyTransactions.AppendElement(fileEntry);
         }
       }
     }
@@ -530,3 +531,99 @@ nsresult nsNetscapeProfileMigratorBase::RecursiveCopy(nsIFile* srcDir, nsIFile* 
   return rv;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// nsITimerCallback
+
+NS_IMETHODIMP
+nsNetscapeProfileMigratorBase::Notify(nsITimer *timer)
+{
+  CopyNextFolder();
+  return NS_OK;
+}
+
+void nsNetscapeProfileMigratorBase::CopyNextFolder()
+{
+  if (mFileCopyTransactionIndex < mFileCopyTransactions.Length())
+  {
+    PRUint32 percentage = 0;
+    fileTransactionEntry fileTransaction =
+      mFileCopyTransactions.ElementAt(mFileCopyTransactionIndex++);
+
+    // copy the file
+    fileTransaction.srcFile->CopyTo(fileTransaction.destFile,
+                                    fileTransaction.newName);
+
+    // add to our current progress
+    PRInt64 fileSize;
+    fileTransaction.srcFile->GetFileSize(&fileSize);
+    LL_ADD(mCurrentProgress, mCurrentProgress, fileSize);
+
+    PRInt64 percentDone;
+    LL_MUL(percentDone, mCurrentProgress, 100);
+
+    LL_DIV(percentDone, percentDone, mMaxProgress);
+
+    LL_L2UI(percentage, percentDone);
+
+    nsAutoString index;
+    index.AppendInt(percentage);
+
+    NOTIFY_OBSERVERS(MIGRATION_PROGRESS, index.get());
+
+    // fire a timer to handle the next one.
+    mFileIOTimer = do_CreateInstance("@mozilla.org/timer;1");
+
+    if (mFileIOTimer)
+      mFileIOTimer->InitWithCallback(static_cast<nsITimerCallback *>(this), percentage == 100 ? 500 : 0, nsITimer::TYPE_ONE_SHOT);
+  } else
+    EndCopyFolders();
+
+  return;
+}
+
+void nsNetscapeProfileMigratorBase::EndCopyFolders()
+{
+  mFileCopyTransactions.Clear();
+  mFileCopyTransactionIndex = 0;
+
+  // notify the UI that we are done with the migration process
+  nsAutoString index;
+  index.AppendInt(nsIMailProfileMigrator::MAILDATA);
+  NOTIFY_OBSERVERS(MIGRATION_ITEMAFTERMIGRATE, index.get());
+
+  NOTIFY_OBSERVERS(MIGRATION_ENDED, nsnull);
+}
+
+NS_IMETHODIMP
+nsNetscapeProfileMigratorBase::GetSourceHasMultipleProfiles(PRBool* aResult)
+{
+  nsCOMPtr<nsIArray> profiles;
+  GetSourceProfiles(getter_AddRefs(profiles));
+
+  if (profiles) {
+    PRUint32 count;
+    profiles->GetLength(&count);
+    *aResult = count > 1;
+  }
+  else
+    *aResult = PR_FALSE;
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsNetscapeProfileMigratorBase::GetSourceExists(PRBool* aResult)
+{
+  nsCOMPtr<nsIArray> profiles;
+  GetSourceProfiles(getter_AddRefs(profiles));
+
+  if (profiles) {
+    PRUint32 count;
+    profiles->GetLength(&count);
+    *aResult = count > 0;
+  }
+  else
+    *aResult = PR_FALSE;
+
+  return NS_OK;
+}

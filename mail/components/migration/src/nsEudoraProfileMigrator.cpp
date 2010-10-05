@@ -47,8 +47,6 @@
 #include "nsNetUtil.h"
 #include "nsEudoraProfileMigrator.h"
 #include "nsIProfileMigrator.h"
-#include "nsVoidArray.h"
-
 #include "nsIImportSettings.h"
 #include "nsIFile.h"
 
