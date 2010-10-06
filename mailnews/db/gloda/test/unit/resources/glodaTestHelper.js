@@ -75,6 +75,22 @@ const scenarios = gMessageScenarioFactory = new MessageScenarioFactory(msgGen);
 
 Components.utils.import("resource:///modules/errUtils.js");
 
+/**
+ * Create a 'me' identity of "me@localhost" for the benefit of Gloda.  At the
+ *  time of this writing, Gloda only initializes Gloda.myIdentities and
+ *  Gloda.myContact at startup with no event-driven updates.  As such, this
+ *  function needs to be called prior to gloda startup.
+ */
+function createMeIdentity() {
+  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
+                  .getService(Ci.nsIMsgAccountManager);
+  let identity = acctMgr.createIdentity;
+  identity.email = "me@localhost";
+  identity.fullName = "Me";
+}
+// and run it now...
+createMeIdentity();
+
 // -- Set the gloda prefs
 const gPrefs = Cc["@mozilla.org/preferences-service;1"]
                  .getService(Ci.nsIPrefBranch);
@@ -1202,30 +1218,11 @@ function nukeGlodaCachesAndCollections() {
         _indexMessageState.catchAllCollection);
   }
 
-  // caches are intended to be cleared, but we also don't want to lose our
+  // caches aren't intended to be cleared, but we also don't want to lose our
   //  caches, so we need to create new ones from the ashes of the old ones.
   let oldCaches = GlodaCollectionManager._cachesByNoun;
   GlodaCollectionManager._cachesByNoun = {};
   for each (let cache in oldCaches) {
     GlodaCollectionManager.defineCache(cache._nounDef, cache._maxCacheSize);
   }
-}
-
-/**
- * Undo the work of Gloda._initMyIdentities, clearing caches as a (required)
- *  side effect.
- */
-function resetGlodaMyIdentities() {
-  // clobber contact/identities
-  Gloda.myContact = null;
-  Gloda.myIdentities = {};
-
-  // wipe out the collections so clearing the caches will work
-  Gloda._myContactCollection =
-    Gloda.explicitCollection(Gloda.NOUN_CONTACT, []);
-  Gloda._myIdentitiesCollection =
-    Gloda.explicitCollection(Gloda.NOUN_IDENTITY, []);
-
-  // clear the caches
-  nukeGlodaCachesAndCollections();
 }

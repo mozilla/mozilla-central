@@ -513,19 +513,6 @@ var Gloda = {
     let myEmailAddresses = {}; // process each email at most once; stored here
 
     let fullName, fallbackName;
-    /*
-     * Keep track of all of the contacts possessed by the identities we have
-     *  seen.  We break this out into its own list for use by
-     *  detectAndObliterateMixedCaseEmails (which will eventually be removed)
-     *  to tell us about the contact that a clobbered identity was associated
-     *  with.  This simplifies the possible logic permutations since we are
-     *  guaranteed the continuity of the 'me' contact in the case this is not
-     *  the first-run and all known identities were mixed-case.
-     *
-     * (Because detectAndObliterateMixedCaseEmails will be eventually removed,
-     *  this list can be simplified out of existence if required.)
-     */
-    let existingContacts = [];
     let existingIdentities = [];
     let identitiesToCreate = [];
 
@@ -536,36 +523,6 @@ var Gloda = {
     // nothing to do if there are no accounts/identities.
     if (!numIdentities)
       return;
-
-    // add contact to existingContacts if not already present
-    function observeMeContact(contact) {
-      if (existingContacts.indexOf(contact) != -1)
-        return;
-      existingContacts.push(contact);
-    }
-
-    /*
-     * We used to forget to normalize our e-mail addresses to lowercase.  This
-     *  means that we need to detect mixed-case e-mail addresses and destroy
-     *  their database records.
-     *
-     * This function and calls to it can be removed when we next bump the
-     *  schema rev to require the database to be blown away.  I have added
-     *  a comment to GlodaDatastore._migrate to this effect.
-     */
-    function detectAndObliterateMixedCaseEmails(email) {
-      if (email.toLowerCase() === email)
-        return;
-      let identity = GlodaDatastore.getIdentity("email", email);
-      if (!identity)
-        return;
-      // (resolve the contact)
-      identity._contact = GlodaDatastore.getContactByID(identity.contactID);
-      // note the contact
-      observeMeContact(identity.contact);
-      // delete the identity
-      GlodaDatastore.deleteIdentityById(identity.id);
-    }
 
     for (let iIdentity = 0; iIdentity < numIdentities; iIdentity++) {
       let msgIdentity = msgAccountManager.allIdentities.GetElementAt(iIdentity)
@@ -582,31 +539,26 @@ var Gloda = {
       // find the identities if they exist, flag to create them if they don't
       if (emailAddress) {
         let parsed = GlodaUtils.parseMailAddresses(emailAddress);
-        detectAndObliterateMixedCaseEmails(parsed.addresses[0]);
-        let normAddress = parsed.addresses[0].toLowerCase();
-
         if (!(parsed.addresses[0] in myEmailAddresses)) {
-          let identity = GlodaDatastore.getIdentity("email", normAddress);
-
+          let identity = GlodaDatastore.getIdentity("email",
+                                                    parsed.addresses[0]);
           if (identity)
             existingIdentities.push(identity);
           else
-            identitiesToCreate.push(normAddress);
-          myEmailAddresses[normAddress] = true;
+            identitiesToCreate.push(parsed.addresses[0]);
+          myEmailAddresses[parsed.addresses[0]] = true;
         }
       }
       if (replyTo) {
         let parsed = GlodaUtils.parseMailAddresses(replyTo);
-        detectAndObliterateMixedCaseEmails(parsed.addresses[0]);
-        let normAddress = parsed.addresses[0].toLowerCase();
-
-        if (!(normAddress in myEmailAddresses)) {
-          let identity = GlodaDatastore.getIdentity("email", normAddress);
+        if (!(parsed.addresses[0] in myEmailAddresses)) {
+          let identity = GlodaDatastore.getIdentity("email",
+                                                    parsed.addresses[0]);
           if (identity)
             existingIdentities.push(identity);
           else
-            identitiesToCreate.push(normAddress);
-          myEmailAddresses[normAddress] = true;
+            identitiesToCreate.push(parsed.addresses[0]);
+          myEmailAddresses[parsed.addresses[0]] = true;
         }
       }
     }
@@ -614,34 +566,11 @@ var Gloda = {
     // we need to establish the identity.contact portions of the relationship
     for each (let [,identity] in Iterator(existingIdentities)) {
       identity._contact = GlodaDatastore.getContactByID(identity.contactID);
-      observeMeContact(identity._contact);
     }
 
-    if (existingContacts.length) {
+    if (existingIdentities.length) {
       // just use the first guy's contact
-      myContact = existingContacts[0];
-
-      // If we have more than one contact, merge the others into the first.
-      //  This really just consists of propagating the popularity and making
-      //  sure all existing contacts have their database row reference their
-      if (existingContacts.length > 1) {
-        for each (let [, contact] in Iterator(existingContacts.slice(1))) {
-          myContact._popularity += contact.popularity;
-          GlodaDatastore.deleteContactById(contact.id);
-        }
-        // persist changes to popularity
-        GlodaDatastore.updateContact(myContact);
-
-        // update any existing identities that need to be updated...
-        for each (let [, identity] in Iterator(existingIdentities)) {
-          if (identity.contactID !== myContact.id) {
-            identity._contactID = myContact.id;
-            identity._contact = myContact;
-
-            GlodaDatastore.updateIdentityOwner(identity.id, myContact.id);
-          }
-        }
-      }
+      myContact = existingIdentities[0].contact;
     }
     else {
       // create a new contact
