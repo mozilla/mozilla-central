@@ -1342,11 +1342,6 @@ var GlodaDatastore = {
     //  the schema to 26 if 22 is the next number but you have an explodey
     //  change!)
 
-    // >>>>>>> NEXT TIME WE BUMP THE SCHEMA REVISION AND CLOBBER THE DATABASE
-    //  WE WANT TO CHANGE Gloda._initMyIdentities TO STOP USING
-    //  detectAndObliterateMixedCaseEmails SINCE SUCH THINGS WILL NO LONGER
-    //  EXIST. <<<<<<<<<<
-
     // If it's not version 20 or inside our safe bound-range of 25, nuke.
     if (aCurVersion < 20 || aCurVersion > 25) {
       aDBConnection.close();
@@ -3667,33 +3662,6 @@ var GlodaDatastore = {
     return contact;
   },
 
-  /**
-   * Synchronous deletion of an identity, for use by legacy "me" logic cleaning
-   *  up after badness.
-   */
-  deleteContactById: function gloda_ds_deleteContactById(aId) {
-    let delContact, delAttributes;
-    try {
-      delAttributes = this._createSyncStatement(
-        "DELETE FROM contactAttributes WHERE contactID = ?1", true);
-      delAttributes.bindInt64Parameter(0, aId);
-      this._syncStep(delAttributes);
-
-      delContact = this._createSyncStatement(
-        "DELETE FROM contacts WHERE id = ?1", true);
-      delContact.bindInt64Parameter(0, aId);
-      this._syncStep(delContact);
-    }
-    finally {
-      if (delContact)
-        delContact.finalize();
-      if (delAttributes)
-        delAttributes.finalize();
-    }
-    GlodaCollectionManager.itemsDeleted(GlodaContact.prototype.NOUN_ID,
-                                        [aId]);
-  },
-
   /* ********** Identity ********** */
   /** next identity id, managed for async use reasons. */
   _nextIdentityId: 1,
@@ -3753,11 +3721,6 @@ var GlodaDatastore = {
    * Synchronous lookup of an identity by kind and value, only for use by
    *  the legacy gloda core code that creates a concept of "me".
    *  Ex: (email, foo@bar.com)
-   *
-   * This method does not ensure that aValue is lowercase; it is on the caller
-   *  to make sure they are passing the right thing.  (Test logic uses this to
-   *  work with an illegal identity with a mixed-case value, which is why we
-   *  continue to do this.)
    */
   getIdentity: function gloda_ds_getIdentity(aKind, aValue) {
     let identity = GlodaCollectionManager.cacheLookupOneByUniqueValue(
@@ -3773,44 +3736,6 @@ var GlodaDatastore = {
     ibkv.reset();
 
     return identity;
-  },
-
-  /**
-   * Synchronous mutation of an identity for init identities contact cleanup.
-   */
-  updateIdentityOwner: function gloda_ds_updateIdentityOwner(aId, aContactId) {
-    let stmt;
-    try {
-      stmt = this._createSyncStatement(
-        "UPDATE identities SET contactID = ?2 WHERE id = ?1", true);
-      stmt.bindInt64Parameter(0, aId);
-      stmt.bindInt64Parameter(1, aContactId);
-      this._syncStep(stmt);
-    }
-    finally {
-      if (stmt)
-        stmt.finalize();
-    }
-  },
-
-  /**
-   * Synchronous deletion of an identity, for use by legacy "me" logic cleaning
-   *  up after badness.
-   */
-  deleteIdentityById: function gloda_ds_deleteIdentityById(aId) {
-    let stmt;
-    try {
-      stmt = this._createSyncStatement(
-        "DELETE FROM identities WHERE id = ?1", true);
-      stmt.bindInt64Parameter(0, aId);
-      this._syncStep(stmt);
-    }
-    finally {
-      if (stmt)
-        stmt.finalize();
-    }
-    GlodaCollectionManager.itemsDeleted(GlodaIdentity.prototype.NOUN_ID,
-                                        [aId]);
   },
 };
 GlodaAttributeDBDef.prototype._datastore = GlodaDatastore;
