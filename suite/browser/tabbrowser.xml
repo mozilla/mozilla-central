@@ -120,7 +120,7 @@
           </xul:tabs>
         </xul:hbox>
         <xul:tabpanels flex="1" class="plain" selectedIndex="0" anonid="panelcontainer">
-          <xul:notificationbox class="browser-notificationbox" xbl:inherits="popup=popupnotification">
+          <xul:notificationbox class="browser-notificationbox" xbl:inherits="popupnotification">
             <xul:browser flex="1" type="content-primary" xbl:inherits="tooltip=contenttooltip,contextmenu=contentcontextmenu,autocompletepopup"/>
           </xul:notificationbox>
         </xul:tabpanels>
@@ -1389,7 +1389,7 @@
             var n = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
                                              "notificationbox");
             n.setAttribute("class", "browser-notificationbox");
-            n.setAttribute("popup", this.getAttribute("popupnotification"));
+            n.setAttribute("popupnotification", this.getAttribute("popupnotification"));
             n.appendChild(b);
             this.mPanelContainer.appendChild(n);
 
