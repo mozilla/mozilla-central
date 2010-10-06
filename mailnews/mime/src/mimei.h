@@ -430,8 +430,7 @@ extern int MimeOptions_write(MimeDisplayOptions *, nsCString &name,
 /* Writes out the right kind of HR (or rather, queues it for writing.) */
 extern int MimeObject_write_separator(MimeObject *);
 
-extern PRBool MimeObjectChildIsMessageBody(MimeObject *obj,
-                                           PRBool *isAlterOrRelated);
+extern PRBool MimeObjectIsMessageBody(MimeObject *obj);
 
 /* This is the data tagged to contexts and the declaration needs to be
    in a header file since more than mimemoz.c needs to see it now...

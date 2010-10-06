@@ -58,10 +58,11 @@ extern "C" MimeMultipartAlternativeClass mimeMultipartAlternativeClass;
 struct MimeMultipartAlternative {
   MimeMultipart multipart;      /* superclass variables */
 
-  MimeHeaders *buffered_hdrs;    /* The headers of the currently-pending
-                     part. */
-  MimePartBufferData *part_buffer;  /* The data of the current-pending part
-                     (see mimepbuf.h) */
+  MimeHeaders **buffered_hdrs;    /* The headers of pending parts */
+  MimePartBufferData **part_buffers;  /* The data of pending parts
+                                         (see mimepbuf.h) */
+  PRInt32 pending_parts;
+  PRInt32 max_parts;
 };
 
 #endif /* _MIMEMALT_H_ */

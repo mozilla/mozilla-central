@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Jonathan Kamens <jik@kamens.us>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -149,6 +150,7 @@ static int
 MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 {
   MimeMultipart *mult = (MimeMultipart *) obj;
+  MimeContainer *container = (MimeContainer*) obj; 
   int status = 0;
   MimeMultipartBoundaryType boundary;
 
@@ -201,7 +203,6 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
           obj->options->state->partsToStrip.Length() > 0)
       {
         nsCAutoString newPart(mime_part_address(obj));
-        MimeContainer *container = (MimeContainer*) obj; 
         newPart.Append('.');
         newPart.AppendInt(container->nchildren + 1);
         obj->options->state->strippingPart = PR_FALSE;
@@ -250,6 +251,8 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
     /* Parse this line as a header for the sub-part. */
     {
       status = MimeHeaders_parse_line(line, length, mult->hdrs);
+      PRBool stripping = PR_FALSE;
+
       if (status < 0) return status;
       
       // If this line is blank, we're now done parsing headers, and should
@@ -260,6 +263,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
         if (obj->options && obj->options->state &&
             obj->options->state->strippingPart)
         {
+          stripping = PR_TRUE;
           PRBool detachingPart = obj->options->state->detachedFilePath.Length() > 0;
 
           nsCAutoString fileName;
@@ -306,107 +310,17 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
           MimeWriteAString(obj, NS_LITERAL_CSTRING(MSG_LINEBREAK"You deleted an attachment from this message. The original MIME headers for the attachment were:"MSG_LINEBREAK));
           MimeHeaders_write_raw_headers(mult->hdrs, obj->options, PR_FALSE);
         }
+        PRInt32 old_nchildren = container->nchildren;
         status = ((MimeMultipartClass *) obj->clazz)->create_child(obj);
         if (status < 0) return status;
         NS_ASSERTION(mult->state != MimeMultipartHeaders,
                      "mult->state shouldn't be MimeMultipartHeaders");
 
-        // Ok, at this point, we need to examine the headers and see if there
-        // is a special charset (i.e. non US-ASCII) for this message. If so, 
-        // we need to tell the emitter that this is the case for use in in any
-        // possible reply or forward operation.
-        //
-        PRBool isBody = PR_FALSE;
-        PRBool isAlternative = PR_FALSE;
-
-        MimeContainer *container = (MimeContainer*) obj; 
-        // check if we're stripping the part of this newly created child.
-        if (container->children && container->nchildren > 0)
-        {
+        if (!stripping && container->nchildren > old_nchildren && obj->options &&
+            !mime_typep(obj, (MimeObjectClass*)&mimeMultipartAlternativeClass)) {
+          // Notify emitter about content type and part path.
           MimeObject *kid = container->children[container->nchildren-1];
-          if (kid->output_p)
-            kid->output_p = !(obj->options && obj->options->state &&
-                              obj->options->state->strippingPart);
-        }
-        if (container->children && container->nchildren == 1)
-        {
-          PRBool isAlternativeOrRelated = PR_FALSE;
-          isBody = MimeObjectChildIsMessageBody(obj, &isAlternativeOrRelated);
-
-          // MimeObjectChildIsMessageBody returns false for "multipart/related"
-          // but we want to use the first part charset if that's a body.
-          // I don't want to change the behavior of MimeObjectChildIsMessageBody
-          // which is used by other places, so do the body check here.
-          if (!isBody && 
-              isAlternativeOrRelated &&
-              mime_subclass_p(obj->clazz, (MimeObjectClass*) &mimeMultipartRelatedClass))
-          {
-            MimeObject *firstChild = container->children[0];
-            char *disposition = MimeHeaders_get (firstChild->headers,
-                                                 HEADER_CONTENT_DISPOSITION, 
-                                                 PR_TRUE,
-                                                 PR_FALSE);
-            if (!disposition)
-            {
-              if (!PL_strcasecmp (firstChild->content_type, TEXT_PLAIN) ||
-                  !PL_strcasecmp (firstChild->content_type, TEXT_HTML) ||
-                  !PL_strcasecmp (firstChild->content_type, TEXT_MDL) ||
-                  !PL_strcasecmp (firstChild->content_type, MULTIPART_ALTERNATIVE) ||
-                  !PL_strcasecmp (firstChild->content_type, MULTIPART_RELATED) ||
-                  !PL_strcasecmp (firstChild->content_type, MESSAGE_NEWS) ||
-                  !PL_strcasecmp (firstChild->content_type, MESSAGE_RFC822))
-                isBody = PR_TRUE;
-            }
-          }
-        }
-        else 
-          isAlternative = mime_subclass_p(obj->clazz, (MimeObjectClass*) &mimeMultipartAlternativeClass);
-
-        // If "multipart/alternative" or the first part is a message body
-        // then we should check for a charset and notify the emitter  
-        // if one exists.
-        if (obj->options &&
-            ((isAlternative && mult->state != MimeMultipartSkipPartLine) ||
-             isBody || obj->options->notify_nested_bodies))
-        {
-          {
-            char *ct = MimeHeaders_get(mult->hdrs, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
-            if (ct)
-            {
-              if (obj->options->notify_nested_bodies)
-                mimeEmitterAddHeaderField(obj->options, HEADER_CONTENT_TYPE,
-                                          ct);
-             char *cset = MimeHeaders_get_parameter (ct, "charset", NULL, NULL);
-             if (cset)
-             {
-                mimeEmitterUpdateCharacterSet(obj->options, cset);
-                if (!(obj->options->override_charset))
-                  // Also set this charset to msgWindow
-                  SetMailCharacterSetToMsgWindow(obj, cset);
-              }
-
-              PR_FREEIF(ct);
-              PR_FREEIF(cset);
-            }
-            // no content type means text/plain.
-            else if (obj->options->notify_nested_bodies)
-            {
-              mimeEmitterAddHeaderField(obj->options, HEADER_CONTENT_TYPE,
-                                        "text/plain");
-            }
-            if (obj->options->notify_nested_bodies && container->nchildren)
-            {
-              MimeObject *kid = container->children[container->nchildren-1];
-              char *part_path = mime_part_address(kid);
-              if (part_path)
-              {
-                mimeEmitterAddHeaderField(obj->options,
-                                          "x-jsemitter-part-path",
-                                          part_path);
-                PR_Free(part_path);
-              }
-            }
-          }
+          MimeMultipart_notify_emitter(kid);
         }
       }
       break;
@@ -427,10 +341,6 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
       if (status < 0) return status;
       break;
 
-    case MimeMultipartSkipPartLine:
-      /* we are skipping that part, therefore just ignore the line */
-      break;
-
     default:
       NS_ERROR("unexpected state in parse line");
       return -1;
@@ -444,6 +354,45 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
   return 0;
 }
 
+void MimeMultipart_notify_emitter(MimeObject *obj)
+{
+  char *ct = nsnull;
+
+  NS_ASSERTION(obj->options, "MimeMultipart_notify_emitter called with null options");
+  if (! obj->options)
+    return;
+
+  ct = MimeHeaders_get(obj->headers, HEADER_CONTENT_TYPE,
+                       PR_FALSE, PR_FALSE);
+  if (obj->options->notify_nested_bodies) {
+    mimeEmitterAddHeaderField(obj->options, HEADER_CONTENT_TYPE,
+                              ct ? ct : TEXT_PLAIN);
+    char *part_path = mime_part_address(obj);
+    if (part_path) {
+      mimeEmitterAddHeaderField(obj->options, "x-jsemitter-part-path",
+                                part_path);
+      PR_Free(part_path);
+    }
+  }
+
+  // Examine the headers and see if there is a special charset
+  // (i.e. non US-ASCII) for this message. If so, we need to
+  // tell the emitter that this is the case for use in any
+  // possible reply or forward operation.
+  if (ct && (obj->options->notify_nested_bodies ||
+             MimeObjectIsMessageBody(obj))) {
+    char *cset = MimeHeaders_get_parameter(ct, "charset", NULL, NULL);
+    if (cset) {
+      mimeEmitterUpdateCharacterSet(obj->options, cset);
+      if (!obj->options->override_charset)
+        // Also set this charset to msgWindow
+        SetMailCharacterSetToMsgWindow(obj, cset);
+      PR_Free(cset);
+    }
+  }
+
+  PR_FREEIF(ct);
+}
 
 static MimeMultipartBoundaryType
 MimeMultipart_check_boundary(MimeObject *obj, const char *line, PRInt32 length)
@@ -593,6 +542,9 @@ MimeMultipart_create_child(MimeObject *obj)
 static PRBool
 MimeMultipart_output_child_p(MimeObject *obj, MimeObject *child)
 {
+  /* We don't output a child if we're stripping it. */
+  if (obj->options && obj->options->state && obj->options->state->strippingPart)
+    return PR_FALSE;
   /* if we are saving an apple double attachment, ignore the appledouble wrapper part */
   return (obj->options && obj->options->write_html_p) ||
           PL_strcasecmp(child->content_type, MULTIPART_APPLEDOUBLE);
@@ -748,15 +700,15 @@ MimeMultipart_parse_eof (MimeObject *obj, PRBool abort_p)
 
   if (obj->closed_p) return 0;
 
-  /* Push out one last newline if part of the last line is still in the
-   ibuffer.  If this happens, this object does not end in a trailing newline
-   (and the parse_line method will be called with a string with no trailing
+  /* Push out the last trailing line if there's one in the buffer.  If
+   this happens, this object does not end in a trailing newline (and
+   the parse_line method will be called with a string with no trailing
    newline, which isn't the usual case.)
    */
   if (!abort_p && obj->ibuffer_fp > 0)
   {
-    int status = obj->clazz->parse_buffer (obj->ibuffer, obj->ibuffer_fp,
-                       obj);
+    /* There is leftover data without a terminating newline. */
+    int status = obj->clazz->parse_line(obj->ibuffer, obj->ibuffer_fp,obj);
     obj->ibuffer_fp = 0;
     if (status < 0)
     {

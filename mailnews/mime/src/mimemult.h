@@ -93,7 +93,6 @@ typedef enum {
   MimeMultipartHeaders,
   MimeMultipartPartFirstLine,
   MimeMultipartPartLine,
-  MimeMultipartSkipPartLine,
   MimeMultipartEpilogue
 } MimeMultipartParseState;
 
@@ -127,4 +126,5 @@ struct MimeMultipart {
   MimeMultipartParseState state;  /* State of parser */
 };
 
+extern void MimeMultipart_notify_emitter(MimeObject *);
 #endif /* _MIMEMULT_H_ */

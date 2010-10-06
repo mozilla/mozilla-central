@@ -477,7 +477,8 @@ BuildAttachmentList(MimeObject *anObject, nsMsgAttachmentData *aAttachData, cons
   nsresult              rv;
   PRInt32               i;
   MimeContainer         *cobj = (MimeContainer *) anObject;
-
+  PRBool                found_output = PR_FALSE;
+  
   if ( (!anObject) || (!cobj->children) || (!cobj->nchildren) ||
        (mime_typep(anObject, (MimeObjectClass *)&mimeExternalBodyClass)))
     return NS_OK;
@@ -486,8 +487,14 @@ BuildAttachmentList(MimeObject *anObject, nsMsgAttachmentData *aAttachData, cons
   {
     MimeObject    *child = cobj->children[i];
 
-    // Skip the first child if it's in fact a message body
-    if (i == 0)                                         // it's the first child
+    // Skip attachments that are not being output
+    if (! child->output_p)
+      continue;
+    
+    // Skip the first child that's being output if it's in fact a message body
+    PRBool first_output = !found_output;
+    found_output = PR_TRUE;
+    if (first_output)                                   // it's the first child being output
       if (child->content_type)                          // and it's content-type is one of folowing...
         if (!PL_strcasecmp (child->content_type, TEXT_PLAIN) ||
             !PL_strcasecmp (child->content_type, TEXT_HTML) ||
@@ -1301,64 +1308,59 @@ mime_get_main_object(MimeObject* obj)
   return nsnull;
 }
 
-PRBool MimeObjectChildIsMessageBody(MimeObject *obj,
-                   PRBool *isAlternativeOrRelated)
+static
+PRBool MimeObjectIsMessageBodyNoClimb(MimeObject *parent,
+                                      MimeObject *looking_for,
+                                      PRBool *stop)
 {
-  char *disp = 0;
-  PRBool bRet = PR_FALSE;
-  MimeObject *firstChild = 0;
-  MimeContainer *container = (MimeContainer*) obj;
+  MimeContainer *container = (MimeContainer *)parent;
+  PRInt32 i;
+  char *disp;
 
-  if (isAlternativeOrRelated)
-    *isAlternativeOrRelated = PR_FALSE;
+  NS_ASSERTION(stop, "NULL stop to MimeObjectIsMessageBodyNoClimb");
 
-  if (!container ||
-    !mime_subclass_p(obj->clazz,
-             (MimeObjectClass*) &mimeContainerClass))
-  {
-    return bRet;
+  for (i = 0; i < container->nchildren; i++) {
+    MimeObject *child = container->children[i];
+    PRBool is_body = PR_FALSE;
+
+    // The body can't be something we're not displaying.
+    if (! child->output_p)
+      is_body = PR_FALSE;
+    else if ((disp = MimeHeaders_get (child->headers, HEADER_CONTENT_DISPOSITION,
+                                      PR_TRUE, PR_FALSE))) {
+      PR_Free(disp);
+      is_body = PR_FALSE;
+    }
+    else if (PL_strcasecmp (child->content_type, TEXT_PLAIN) &&
+             PL_strcasecmp (child->content_type, TEXT_HTML) &&
+             PL_strcasecmp (child->content_type, TEXT_MDL) &&
+             PL_strcasecmp (child->content_type, MESSAGE_NEWS) &&
+             PL_strcasecmp (child->content_type, MESSAGE_RFC822))
+      is_body = PR_FALSE;
+
+    if (is_body || child == looking_for) {
+      *stop = PR_TRUE;
+      return child == looking_for;
+    }
+
+    // The body could be down inside a multipart child, so search recursively.
+    if (mime_subclass_p(child->clazz, (MimeObjectClass*) &mimeContainerClass)) {
+      is_body = MimeObjectIsMessageBodyNoClimb(child, looking_for, stop);
+      if (is_body || *stop)
+        return is_body;
+    }
   }
-  else if (mime_subclass_p(obj->clazz, (MimeObjectClass*)
-               &mimeMultipartRelatedClass))
-  {
-    if (isAlternativeOrRelated)
-      *isAlternativeOrRelated = PR_TRUE;
-    return bRet;
-  }
-  else if (mime_subclass_p(obj->clazz, (MimeObjectClass*)
-               &mimeMultipartAlternativeClass))
-  {
-    if (isAlternativeOrRelated)
-      *isAlternativeOrRelated = PR_TRUE;
-    return bRet;
-  }
+  return PR_FALSE;
+}
 
-  if (container->children)
-    firstChild = container->children[0];
-
-  if (!firstChild ||
-    !firstChild->content_type ||
-    !firstChild->headers)
-    return bRet;
-
-  disp = MimeHeaders_get (firstChild->headers,
-              HEADER_CONTENT_DISPOSITION,
-              PR_TRUE,
-              PR_FALSE);
-  if (disp /* && !PL_strcasecmp (disp, "attachment") */)
-    bRet = PR_FALSE;
-  else if (!PL_strcasecmp (firstChild->content_type, TEXT_PLAIN) ||
-       !PL_strcasecmp (firstChild->content_type, TEXT_HTML) ||
-       !PL_strcasecmp (firstChild->content_type, TEXT_MDL) ||
-       !PL_strcasecmp (firstChild->content_type, MULTIPART_ALTERNATIVE) ||
-       !PL_strcasecmp (firstChild->content_type, MULTIPART_RELATED) ||
-       !PL_strcasecmp (firstChild->content_type, MESSAGE_NEWS) ||
-       !PL_strcasecmp (firstChild->content_type, MESSAGE_RFC822))
-    bRet = PR_TRUE;
-  else
-    bRet = PR_FALSE;
-  PR_FREEIF(disp);
-  return bRet;
+/* Should this be static in mimemult.cpp? */
+PRBool MimeObjectIsMessageBody(MimeObject *looking_for)
+{
+  PRBool stop = PR_FALSE;
+  MimeObject *root = looking_for;
+  while (root->parent)
+    root = root->parent;
+  return MimeObjectIsMessageBodyNoClimb(root, looking_for, &stop);
 }
 
 //
