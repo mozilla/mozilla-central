@@ -69,6 +69,7 @@ nsAbAutoCompleteMyDomain.prototype = {
       errorDescription: null,
       matchCount: address ? 1 : 0,
       getValueAt: function() { return address; },
+      getLabelAt: function() { return this.getValueAt(); },
       getCommentAt: function() { return null; },
       getStyleAt: function() { return "default-match"; },
       getImageAt: function() { return null; },

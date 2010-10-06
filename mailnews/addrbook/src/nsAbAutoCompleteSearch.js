@@ -66,6 +66,10 @@ nsAbAutoCompleteResult.prototype = {
     return this._searchResults[aIndex].value;
   },
 
+  getLabelAt: function getLabelAt(aIndex) {
+    return this.getValueAt(aIndex);
+  },
+
   getCommentAt: function getCommentAt(aIndex) {
     return this._searchResults[aIndex].comment;
   },

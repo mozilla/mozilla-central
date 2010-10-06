@@ -45,7 +45,7 @@ interface nsIAbCard;
  * provide extra facilities for obtaining more details of the results of
  * an address book search.
  */
-[scriptable, uuid(04cf19a9-6dd1-48c6-b3f8-38a1425660ba)]
+[scriptable, uuid(66fb7d23-a87c-4a0a-8dd7-b8b052d4cfac)]
 interface nsIAbAutoCompleteResult : nsIAutoCompleteResult {
   /**
    * Get the card from the result at the given index

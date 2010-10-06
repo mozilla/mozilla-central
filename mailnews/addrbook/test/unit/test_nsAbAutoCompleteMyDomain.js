@@ -86,6 +86,7 @@ function run_test() {
   do_check_eq(obs._result.matchCount, 1);
 
   do_check_eq(obs._result.getValueAt(0), "a@b");
+  do_check_eq(obs._result.getLabelAt(0), "a@b");
   do_check_eq(obs._result.getCommentAt(0), null);
   do_check_eq(obs._result.getStyleAt(0), "default-match");
   do_check_eq(obs._result.getImageAt(0), null);
@@ -101,6 +102,7 @@ function run_test() {
   do_check_eq(obs._result.matchCount, 1);
 
   do_check_eq(obs._result.getValueAt(0), "test1@invalid.com");
+  do_check_eq(obs._result.getLabelAt(0), "test1@invalid.com");
   do_check_eq(obs._result.getCommentAt(0), null);
   do_check_eq(obs._result.getStyleAt(0), "default-match");
   do_check_eq(obs._result.getImageAt(0), null);

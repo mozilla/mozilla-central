@@ -39,6 +39,10 @@ nsAbAutoCompleteResult.prototype = {
     return this._searchResults[aIndex].value;
   },
 
+  getLabelAt: function getLabelAt(aIndex) {
+    return this.getValueAt(aIndex);
+  },
+
   getCommentAt: function getCommentAt(aIndex) {
     return this._searchResults[aIndex].comment;
   },
@@ -182,6 +186,7 @@ function run_test() {
 
     for (var i = 0; i < element.expected.length; ++i) {
       do_check_eq(obs._result.getValueAt(i), results[element.expected[i]].email);
+      do_check_eq(obs._result.getLabelAt(i), results[element.expected[i]].email);
       do_check_eq(obs._result.getCommentAt(i), results[element.expected[i]].dirName);
       do_check_eq(obs._result.getStyleAt(i), "local-abook");
       do_check_eq(obs._result.getImageAt(i), "");

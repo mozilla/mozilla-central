@@ -128,6 +128,7 @@ function run_test()
 
     for (var i = 0; i < expectedResults[index].length; ++i) {
       do_check_eq(obs._result.getValueAt(i), expectedResults[index][i]);
+      do_check_eq(obs._result.getLabelAt(i), expectedResults[index][i]);
       do_check_eq(obs._result.getCommentAt(i), "");
       do_check_eq(obs._result.getStyleAt(i), "local-abook");
       do_check_eq(obs._result.getImageAt(i), "");
@@ -152,6 +153,7 @@ function run_test()
 
     for (var i = 0; i < reductionExpectedResults[index].length; ++i) {
       do_check_eq(obs._result.getValueAt(i), reductionExpectedResults[index][i]);
+      do_check_eq(obs._result.getLabelAt(i), reductionExpectedResults[index][i]);
       do_check_eq(obs._result.getCommentAt(i), "");
       do_check_eq(obs._result.getStyleAt(i), "local-abook");
       do_check_eq(obs._result.getImageAt(i), "");

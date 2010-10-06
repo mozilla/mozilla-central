@@ -161,6 +161,9 @@ nsAutoCompleteGlodaResult.prototype = {
     let thing = this._results[aIndex];
     return thing.name || thing.value || thing.subject;
   },
+  getLabelAt: function(aIndex) {
+    return this.getValueAt(aIndex);
+  },
   // rich uses this to be the "title".  it is the upper text
   // we try and show the identity here.
   getCommentAt: function(aIndex) {

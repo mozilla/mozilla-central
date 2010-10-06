@@ -88,6 +88,7 @@ function run_test()
 
     for (var i = 0; i < element.expected.length; ++i) {
       do_check_eq(obs._result.getValueAt(i), cards[element.expected[i]].value);
+      do_check_eq(obs._result.getLabelAt(i), cards[element.expected[i]].value);
       do_check_eq(obs._result.getCommentAt(i), "");
       do_check_eq(obs._result.getStyleAt(i), "local-abook");
       do_check_eq(obs._result.getImageAt(i), "");
