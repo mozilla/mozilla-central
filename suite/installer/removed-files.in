@@ -180,6 +180,9 @@ modules/dbViewWrapper.js
 modules/mailViewManager.js
 modules/quickSearchManager.js
 modules/searchSpec.js
+#ifdef MOZ_STATIC_JS
+@DLL_PREFIX@mozjs@DLL_SUFFIX@
+#endif
 @DLL_PREFIX@mozz@DLL_SUFFIX@
 #ifdef XP_WIN
 #ifdef MOZ_MEMORY

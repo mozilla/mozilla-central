@@ -42,7 +42,9 @@
 #ifdef MOZ_IPC
 @BINPATH@/mozilla-runtime@BIN_SUFFIX@
 #endif
+#ifndef MOZ_STATIC_JS
 @BINPATH@/@DLL_PREFIX@mozjs@DLL_SUFFIX@
+#endif
 #ifdef XP_WIN32
 #ifndef MOZ_MEMORY
 @BINPATH@/Microsoft.VC80.CRT.manifest

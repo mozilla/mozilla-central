@@ -297,6 +297,9 @@ component.reg
     mozcpp19.dll
   #endif
 #endif
+#ifdef MOZ_STATIC_JS
+@DLL_PREFIX@mozjs@DLL_SUFFIX@
+#endif
 mozilla-installer-bin
 nsldap32v50.dll
 @DLL_PREFIX@ldap50@DLL_SUFFIX@

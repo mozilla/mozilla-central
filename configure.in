@@ -1114,7 +1114,8 @@ MOZ_BZ2_CFLAGS=
 MOZ_BZ2_LIBS='$(call EXPAND_LIBNAME_PATH,bz2,$(DEPTH)/mozilla/modules/libbz2/src)'
 MOZ_PNG_CFLAGS=
 MOZ_PNG_LIBS='$(call EXPAND_LIBNAME_PATH,mozpng,$(DEPTH)/mozilla/modules/libimg/png)'
-MOZ_JS_LIBS='-L$(LIBXUL_DIST)/bin -lmozjs'
+MOZ_JS_STATIC_LIBS='-L$(LIBXUL_DIST)/bin -ljs_static'
+MOZ_JS_SHARED_LIBS='-L$(LIBXUL_DIST)/bin -lmozjs'
 DYNAMIC_XPCOM_LIBS='-L$(LIBXUL_DIST)/bin -lxpcom -lxpcom_core -lmozalloc'
 MOZ_FIX_LINK_PATHS='-Wl,-rpath-link,$(LIBXUL_DIST)/bin:/usr/lib:/usr/local/lib:/lib -Wl,-rpath-link,$(prefix)/lib'
 XPCOM_FROZEN_LDOPTS='-L$(LIBXUL_DIST)/bin -lxpcom -lmozalloc'
@@ -2140,7 +2141,8 @@ ia64*-hpux*)
     MOZ_DEBUG_FLAGS='-Zi'
     MOZ_DEBUG_LDFLAGS='-DEBUG -DEBUGTYPE:CV'
     MOZ_FIX_LINK_PATHS=
-    MOZ_JS_LIBS='$(LIBXUL_DIST)/lib/mozjs.lib'
+    MOZ_JS_STATIC_LIBS='$(LIBXUL_DIST)/lib/js_static.lib'
+    MOZ_JS_SHARED_LIBS='$(LIBXUL_DIST)/lib/mozjs.lib'
     OBJ_SUFFIX=obj
     RANLIB='echo not_ranlib'
     STRIP='echo not_strip'
@@ -2243,7 +2245,8 @@ ia64*-hpux*)
         MOZ_DEBUG_LDFLAGS='-DEBUG -DEBUGTYPE:CV'
         WARNINGS_AS_ERRORS='-WX'
     	MOZ_OPTIMIZE_FLAGS='-O1'
-        MOZ_JS_LIBS='$(LIBXUL_DIST)/lib/mozjs.lib'
+        MOZ_JS_STATIC_LIBS='$(LIBXUL_DIST)/lib/js_static.lib'
+        MOZ_JS_SHARED_LIBS='$(LIBXUL_DIST)/lib/mozjs.lib'
         MOZ_FIX_LINK_PATHS=
         DYNAMIC_XPCOM_LIBS='$(LIBXUL_DIST)/lib/xpcom.lib $(LIBXUL_DIST)/lib/xpcom_core.lib $(LIBXUL_DIST)/lib/mozalloc.lib'
         XPCOM_FROZEN_LDOPTS='$(LIBXUL_DIST)/lib/xpcom.lib $(LIBXUL_DIST)/lib/mozalloc.lib'
@@ -4207,10 +4210,29 @@ if test -n "$SYSTEM_LIBXUL" && test -z "$MOZ_ENABLE_LIBXUL"; then
     AC_MSG_ERROR([--with-system-libxul needs --with-libxul-sdk])
 fi
 
-MOZ_ARG_DISABLE_BOOL(shared-js,
-[  --disable-shared-js    Disable the shared JavaScript library, use a static.],
-    JS_SHARED_LIBRARY=0,
-    JS_SHARED_LIBRARY=1)
+# split JS out by default to avoid VS2005 PGO crash (bug 591836).
+if test "$OS_ARCH" = "WINNT"; then
+  ENABLE_SHARED_JS=1
+fi
+
+MOZ_ARG_ENABLE_BOOL(shared-js,
+[  --enable-shared-js     Create a shared Javascript library.],
+    ENABLE_SHARED_JS=1,
+    ENABLE_SHARED_JS=)
+
+if test -z "$MOZ_ENABLE_LIBXUL"; then
+  dnl --disable-libxul implies shared js
+  ENABLE_SHARED_JS=1
+fi
+
+if test -n "$ENABLE_SHARED_JS"; then
+  JS_SHARED_LIBRARY=1
+  MOZ_JS_LIBS=$MOZ_JS_SHARED_LIBS
+else
+  MOZ_JS_LIBS=$MOZ_JS_STATIC_LIBS
+  AC_DEFINE(MOZ_STATIC_JS)
+fi
+AC_SUBST(JS_SHARED_LIBRARY)
 
 dnl ========================================================
 dnl = If NSPR was not detected in the system, 
@@ -7207,11 +7229,6 @@ ac_configure_args="$_SUBDIR_CONFIG_ARGS --enable-application=../$MOZ_BUILD_APP -
 if test -n "$L10NBASEDIR"; then
     dnl Override the initial value with the new one which is guaranteed to be an absolute path.
     ac_configure_args="$ac_configure_args --with-l10n-base=$L10NBASEDIR"
-fi
-
-# Make sure we've got js set to shared or static appropriately
-if test -z "$JS_SHARED_LIBRARY"; then
-    ac_configure_args="$ac_configure_args --enable-shared-js"
 fi
 
 # for Mac universal builds, we need to call the Mozilla configure with MOZ_BUILD_APP=[ppc|i386]
