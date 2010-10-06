@@ -164,3 +164,8 @@
 .tab-close-button {
   list-style-image: url("chrome://global/skin/icons/close.gif");
 }
+
+.tabmail-tab[type="folder"][IsServer="true"],
+.alltabs-item[selected="true"] {
+  font-weight: bold;
+}

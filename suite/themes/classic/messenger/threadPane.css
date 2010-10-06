@@ -190,13 +190,9 @@ treechildren::-moz-tree-image(junkStatusCol, notjunk) {
   -moz-padding-end: 4px;
 }
 
-/* ..... subject column and tab icons ..... */
+/* ..... subject column, tab and menuitem icons ..... */
 
-.tabmail-tab[type="message"] .tab-icon {
-  margin-top: -4px;
-}
-
-.tabmail-tab[type="message"],
+.icon-holder[type="message"],
 treechildren::-moz-tree-image(subjectCol) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail.png");
 }
@@ -209,17 +205,17 @@ treechildren::-moz-tree-image(subjectCol, new) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-new.png");
 }
 
-.tabmail-tab[type="message"][Attachment="true"],
+.icon-holder[type="message"][Attachment="true"],
 tree[noattachcol="true"] > treechildren::-moz-tree-image(subjectCol, attach) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-attach.png");
 }
 
-.tabmail-tab[type="message"][IMAPDeleted="true"],
+.icon-holder[type="message"][IMAPDeleted="true"],
 treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-imapdelete.png");
 }
 
-.tabmail-tab[type="message"][Offline="true"],
+.icon-holder[type="message"][Offline="true"],
 treechildren::-moz-tree-image(subjectCol, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-offl.png");
 }
@@ -228,38 +224,32 @@ treechildren::-moz-tree-image(subjectCol, new, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-new-offl.png");
 }
 
-.tabmail-tab[type="message"][Attachment="true"][Offline="true"],
+.icon-holder[type="message"][Attachment="true"][Offline="true"],
 tree[noattachcol="true"] > treechildren::-moz-tree-image(subjectCol, attach, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-attach-offl.png");
 }
 
-.tabmail-tab[type="message"][IMAPDeleted="true"][Offline="true"],
+.icon-holder[type="message"][IMAPDeleted="true"][Offline="true"],
 treechildren::-moz-tree-image(subjectCol, imapdeleted, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-delete-offl.png");
 }
 
-/* the news icons are only 14px high, unfortunately */
-.tabmail-tab[type="message"][MessageType="rss"] .tab-icon,
-.tabmail-tab[type="message"][MessageType="nntp"] .tab-icon {
-  height: 14px;
-}
-
-.tabmail-tab[type="message"][MessageType="rss"],
-.tabmail-tab[type="message"][MessageType="nntp"],
+.icon-holder[type="message"][MessageType="rss"],
+.icon-holder[type="message"][MessageType="nntp"],
 treechildren::-moz-tree-image(subjectCol, rss),
 treechildren::-moz-tree-image(subjectCol, news) {
   list-style-image: url("chrome://messenger/skin/icons/message-news.png");
 }
 
-.tabmail-tab[type="message"][MessageType="rss"][Attachment="true"],
-.tabmail-tab[type="message"][MessageType="nntp"][Attachment="true"],
+.icon-holder[type="message"][MessageType="rss"][Attachment="true"],
+.icon-holder[type="message"][MessageType="nntp"][Attachment="true"],
 tree[noattachcol="true"] > treechildren::-moz-tree-image(subjectCol, rss, attach),
 tree[noattachcol="true"] > treechildren::-moz-tree-image(subjectCol, news, attach) {
   list-style-image: url("chrome://messenger/skin/icons/message-news-attach.png");
 }
 
-.tabmail-tab[type="message"][MessageType="rss"][Attachment="true"][Offline="true"],
-.tabmail-tab[type="message"][MessageType="nntp"][Attachment="true"][Offline="true"],
+.icon-holder[type="message"][MessageType="rss"][Attachment="true"][Offline="true"],
+.icon-holder[type="message"][MessageType="nntp"][Attachment="true"][Offline="true"],
 tree[noattachcol="true"] > treechildren::-moz-tree-image(subjectCol, rss, attach, offline),
 tree[noattachcol="true"] > treechildren::-moz-tree-image(subjectCol, news, attach, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-news-attach-offl.png");
@@ -282,8 +272,8 @@ treechildren::-moz-tree-image(subjectCol, news, new, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-news-new-offl.png");
 }
 
-.tabmail-tab[type="message"][MessageType="rss"][Offline="true"],
-.tabmail-tab[type="message"][MessageType="nntp"][Offline="true"],
+.icon-holder[type="message"][MessageType="rss"][Offline="true"],
+.icon-holder[type="message"][MessageType="nntp"][Offline="true"],
 treechildren::-moz-tree-image(subjectCol, rss, offline),
 treechildren::-moz-tree-image(subjectCol, news, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-news-offl.png");
@@ -328,4 +318,3 @@ treechildren::-moz-tree-image(news, threadCol, container, hasUnread, ignore, off
 #totalCol {
   text-align: right;
 }
-

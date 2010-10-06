@@ -235,7 +235,7 @@
                      width="0"
                      minwidth="100"
                      flex="100"
-                     class="tabbrowser-tab tabmail-tab"
+                     class="tabbrowser-tab tabmail-tab icon-holder"
                      crop="end"/>
             <children/>
           </xul:tabs>
@@ -444,7 +444,7 @@
             t.width = 0;
             t.setAttribute("flex", "100");
             t.setAttribute("validate", "never");
-            t.className = "tabbrowser-tab tabmail-tab";
+            t.className = "tabbrowser-tab tabmail-tab icon-holder";
             // for styling purposes, apply the type to the tab
             // (this attribute may be overwritten by mode functions)
             t.setAttribute("type", tabInfo.mode.type);
@@ -1059,7 +1059,7 @@
                                  type="menu"
                                  anonid="alltabs-button"
                                  tooltipstring="&tabmailAllTabs.tooltip;">
-                <xul:menupopup class="menulist-menupopup tabs-alltabs-popup"
+                <xul:menupopup class="tabs-alltabs-popup"
                                anonid="alltabs-popup"
                                position="after_end"/>
               </xul:toolbarbutton>
@@ -1403,15 +1403,25 @@
             let menuItem = document.createElementNS(
               "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
               "menuitem");
-            menuItem.setAttribute("class", "menuitem-iconic alltabs-item");
+            menuItem.setAttribute("class", "menuitem-iconic alltabs-item icon-holder");
             menuItem.setAttribute("label", aTabNode.label);
             menuItem.setAttribute("crop",  aTabNode.getAttribute("crop"));
             menuItem.setAttribute("image", aTabNode.getAttribute("image"));
 
-            if (aTabNode.hasAttribute("busy"))
-              menuItem.setAttribute("busy", aTabNode.getAttribute("busy"));
-            if (aTabNode.selected)
-              menuItem.setAttribute("selected", "true");
+            let attributes = ["busy", "selected", "type", "NewMessages", "ServerType",
+                              "SpecialFolder", "ImapShared", "BiffState", "IsServer",
+                              "IsSecure", "Attachment", "IMAPDeleted", "Offline",
+                              "MessageType"];
+
+            attributes.forEach(
+              function(attribute)
+              {
+                if (aTabNode.hasAttribute(attribute))
+                {
+                  menuItem.setAttribute(attribute, aTabNode.getAttribute(attribute));
+                }
+              }
+            );
 
             // Keep some attributes of the menuitem in sync with its
             // corresponding tab (e.g. the tab label)
@@ -1421,6 +1431,8 @@
             document.addBroadcastListenerFor(aTabNode, menuItem, "image");
             document.addBroadcastListenerFor(aTabNode, menuItem, "busy");
             document.addBroadcastListenerFor(aTabNode, menuItem, "selected");
+            document.addBroadcastListenerFor(aTabNode, menuItem, "NewMessages");
+            document.addBroadcastListenerFor(aTabNode, menuItem, "BiffState");
             aTabNode.addEventListener("TabClose", this, false);
             menuItem.tab = aTabNode;
             menuItem.addEventListener("command", this, false);
@@ -1464,6 +1476,8 @@
             document.removeBroadcastListenerFor(menuItem.tab, menuItem, "image");
             document.removeBroadcastListenerFor(menuItem.tab, menuItem, "busy");
             document.removeBroadcastListenerFor(menuItem.tab, menuItem, "selected");
+            document.removeBroadcastListenerFor(menuItem.tab, menuItem, "NewMessages");
+            document.removeBroadcastListenerFor(menuItem.tab, menuItem, "BiffState");
             menuItem.removeEventListener("command", this, false);
             menuItem.tab.removeEventListener("TabClose", this, false);
             menuItem.tab.mCorrespondingMenuitem = null;

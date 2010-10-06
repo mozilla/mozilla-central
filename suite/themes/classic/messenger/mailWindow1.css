@@ -152,3 +152,13 @@ tabpanels {
 .tab-close-button {
   margin: 0;
 }
+
+.tabmail-tab[type="message"] .tab-icon {
+  margin-top: -2px;
+}
+
+.tabmail-tab[type="folder"][NewMessages="true"],
+.tabmail-tab[type="folder"][IsServer="true"],
+.alltabs-item[selected="true"] {
+  font-weight: bold;
+}
