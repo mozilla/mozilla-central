@@ -21,6 +21,7 @@
 @APPNAME@/Contents/PkgInfo
 @APPNAME@/Contents/Plug-Ins/
 @APPNAME@/Contents/Resources/
+@APPNAME@/Contents/Library/
 #endif
 
 [@AB_CD@]
