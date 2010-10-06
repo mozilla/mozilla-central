@@ -377,6 +377,7 @@
 @BINPATH@/components/nsDefaultCLH.manifest
 @BINPATH@/components/nsFormAutoComplete.js
 @BINPATH@/components/nsFormHistory.js
+@BINPATH@/components/nsInputListAutoComplete.js
 @BINPATH@/components/nsPrompter.js
 @BINPATH@/components/nsPrompter.manifest
 #ifdef XP_MACOSX
@@ -414,6 +415,7 @@
 @BINPATH@/components/dom_html.xpt
 @BINPATH@/components/dom_indexeddb.xpt
 @BINPATH@/components/dom_json.xpt
+@BINPATH@/components/dom_notification.xpt
 @BINPATH@/components/dom_offline.xpt
 @BINPATH@/components/dom_range.xpt
 @BINPATH@/components/dom_sidebar.xpt
