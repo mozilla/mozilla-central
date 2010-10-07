@@ -64,7 +64,9 @@ pyver = sys.version_info
 if pyver[0] <= 1 or (pyver[0] == 2 and pyver[1] < 4):
   sys.exit("ERROR: Python 2.4 or newer required")
 elif pyver[0] >= 3:
-  sys.exit("ERROR: Python series 3 is not supported, use series 2 >= 2.4")
+  # Python series 3 will syntax error here, Hack needed per Bug 601649c#8
+  print "ERROR: Python series 3 is not supported, use series 2 >= 2.4"
+  sys.exit() # Do an explicit sys.exit for code clarity.
 del pyver
 
 import os
