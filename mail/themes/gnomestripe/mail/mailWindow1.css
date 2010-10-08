@@ -316,6 +316,10 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   border: 1px solid ThreeDShadow;
 }
 
+#threadpane-splitter[collapsed="true"] + #messagepanebox {
+  border-top: none;
+}
+
 /* ..... status bar adjustments ..... */
 
 #quotaMeter {
