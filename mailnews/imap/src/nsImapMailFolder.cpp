@@ -6642,6 +6642,9 @@ nsImapMailFolder::CopyNextStreamMessage(PRBool copySucceeded, nsISupports *copyS
       }
     }
   }
+  if (NS_FAILED(rv))
+    (void) OnCopyCompleted(mailCopyState->m_srcSupport, rv);
+
   return rv;
 }
 
