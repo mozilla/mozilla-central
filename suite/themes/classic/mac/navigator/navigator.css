@@ -318,8 +318,8 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
 }
 
 .notification-anchor-icon:-moz-focusring {
-  -moz-box-shadow: 0 0 3px 1px -moz-mac-focusring inset,
-                   0 0 3px 2px -moz-mac-focusring;
+  box-shadow: 0 0 2px 1px -moz-mac-focusring inset,
+              0 0 2px 2px -moz-mac-focusring;
 }
 
 #geo-notification-icon {
