@@ -1049,7 +1049,7 @@ function awSizerMouseUp()
 function awDocumentKeyPress(event)
 {
   try {
-    var id = event.target.getAttribute('id');
+    var id = event.target.id;
     if (id.substr(0, 11) == 'addressCol1')
       awMenulistKeyPress(event, event.target);
   } catch (e) { }
