@@ -654,7 +654,7 @@
      <rdf:li>
        <rdf:Description ID="encryption"
          nc:name="encryption"
-         nc:link="mail_sec_help.xhtml#signing_and_encrypting_messages"/>
+         nc:link="mailnews_security.xhtml#signing_and_encrypting_messages"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="JSConsole"
@@ -689,12 +689,12 @@
      <rdf:Seq><rdf:li>
        <rdf:Description ID="encryption:about"
          nc:name="about encryption and signing"
-         nc:link="mail_sec_help.xhtml#about_digital_signatures_and_encryption"/>
+         nc:link="mailnews_security.xhtml#about_digital_signatures_and_encryption"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="encryption:of_email_messages"
          nc:name="encrypted e-mail messages"
-         nc:link="mail_sec_help.xhtml#signing_and_encrypting_messages"/>
+         nc:link="mailnews_security.xhtml#signing_and_encrypting_messages"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="encryption:of_stored_sensitive_information"
@@ -704,7 +704,7 @@
      <rdf:li>
        <rdf:Description ID="encryption:settings_for_email"
          nc:name="encryption settings"
-         nc:link="mail_sec_help.xhtml#configuring_security_settings"/>
+         nc:link="mailnews_security.xhtml#configuring_security_settings"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="encryption:status_of_web_page"
@@ -1845,7 +1845,7 @@
      <rdf:li>
        <rdf:Description ID="signing_email_messages"
          nc:name="signing e-mail messages"
-         nc:link="mail_sec_help.xhtml#signing_and_encrypting_messages"/>
+         nc:link="mailnews_security.xhtml#signing_and_encrypting_messages"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="smart_cards"
@@ -1910,7 +1910,7 @@
      <rdf:Seq><rdf:li>
        <rdf:Description ID="security:checking_before_sending_message"
          nc:name="checking security before sending message"
-         nc:link="mail_sec_help.xhtml#message_security_compose_window"/>
+         nc:link="mailnews_security.xhtml#message_security_compose_window"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="security:checking_for_a_web_page"
@@ -1920,7 +1920,7 @@
      <rdf:li>
        <rdf:Description ID="security:checking_for_received_messages"
          nc:name="checking security for received messages"
-         nc:link="mail_sec_help.xhtml#reading_signed_and_encrypted_messages"/>
+         nc:link="mailnews_security.xhtml#reading_signed_and_encrypted_messages"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="security:preferences"
