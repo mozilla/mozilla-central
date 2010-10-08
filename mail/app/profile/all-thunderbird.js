@@ -58,7 +58,7 @@ pref("mail.rights.version", 0);
 
 // Don't show the about:rights notification in debug or non-official builds.
 #ifdef DEBUG
-pref("mail.rights.override", false);
+pref("mail.rights.override", true);
 #endif
 #ifndef OFFICIAL_BUILD
 pref("mail.rights.override", true);
