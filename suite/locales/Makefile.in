@@ -274,7 +274,7 @@ clobber-zip:
 unpack: $(STAGEDIST)
 	@echo done unpacking
 
-repackage-zip: ZIP_OUT?="$(_ABS_DIST)/$(PACKAGE)"
+repackage-zip: ZIP_OUT?=$(_ABS_DIST)/$(PACKAGE)
 repackage-zip: UNPACKAGE="$(ZIP_IN)"
 repackage-zip:
 ifeq (WINNT,$(OS_ARCH))
