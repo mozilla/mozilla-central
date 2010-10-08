@@ -43,6 +43,7 @@ if [ "$COMM_BUILD" ]; then
   MOZ_LDAP_XPCOM=1
 fi
 MOZ_STATIC_MAIL_BUILD=1
+MOZ_CHROME_FILE_FORMAT=jar
 MOZ_COMPOSER=1
 MOZ_SUITE=1
 MOZ_APP_VERSION=`cat ${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt`
