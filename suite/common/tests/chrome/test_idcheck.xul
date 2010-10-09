@@ -44,18 +44,25 @@
         onload="RunTest();">
   <description>Chrome Window ID Checking Tests</description>
 
-  <script type="application/javascript" 
+  <script type="application/javascript"
           src="chrome://mochikit/content/MochiKit/packed.js"/>
   <script type="application/javascript"
           src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"/>
   <script type="application/javascript"
-          src="chrome://mochikit/content/chrome/suite/common/tests/chrome/mailTestUtils.js"/>
+          src="chrome://mochikit/content/chrome-harness.js"/>
 
   <script type="application/javascript">
   <![CDATA[
     // mailTestUtils.js requires these constants, so we may as well use them
     const Cc = Components.classes;
     const Ci = Components.interfaces;
+
+    let scriptLoader = Cc["@mozilla.org/moz/jssubscript-loader;1"].
+                getService(Ci.mozIJSSubScriptLoader);
+
+    let rootDir = getRootDirectory(window.location.href);
+    scriptLoader.loadSubScript(rootDir + "mailTestUtils.js", this);
+
     var gLoadedWindows = {};
 
     // Have all loaded windows been closed again?
@@ -123,7 +130,7 @@
           todo(false, "disabled id checks: " + filename + "#" + id);
         }
       }
-      
+
       // finally, close the loaded window
       aDocument.defaultView.close();
     }

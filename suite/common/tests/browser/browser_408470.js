@@ -44,9 +44,9 @@ function test() {
   waitForExplicitFinish();
   
   let pendingCount = 1;
-  let testUrl = "chrome://mochikit/content/browser/" +
-    "suite/common/tests/browser/browser_408470_sample.html";
-  let tab = gBrowser.addTab(testUrl);
+  let rootDir = getRootDirectory(gTestPath);
+  let testURL = rootDir + "browser_408470_sample.html";
+  let tab = gBrowser.addTab(testURL);
   let window = tab.ownerDocument.defaultView;
   
   tab.linkedBrowser.addEventListener("load", function(aEvent) {

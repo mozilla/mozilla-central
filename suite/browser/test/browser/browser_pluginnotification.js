@@ -1,4 +1,4 @@
-const gTestRoot = "chrome://mochikit/content/browser/suite/browser/test/";
+const gTestRoot = getRootDirectory(gTestPath);
 
 var gTestBrowser = null;
 var gNextTest = null;

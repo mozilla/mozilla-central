@@ -124,8 +124,8 @@ function test() {
 
   gPrefService.setIntPref("browser.sessionstore.privacy_level", 2);
   
-  let testURL = "chrome://mochikit/content/browser/" +
-    "suite/common/tests/browser/browser_346337_sample.html";
+  let rootDir = getRootDirectory(gTestPath);
+  let testURL = rootDir + "browser_346337_sample.html";
   let tab = tabbrowser.addTab(testURL);
   tab.linkedBrowser.addEventListener("load", function(aEvent) {
     this.removeEventListener("load", arguments.callee, true);
