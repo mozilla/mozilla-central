@@ -1808,12 +1808,9 @@ PRBool nsImapProtocol::ProcessCurrentURL()
 
   if (imapMailFolderSink)
   {
-    rv = imapMailFolderSink->CopyNextStreamMessage(GetServerStateParser().LastCommandSuccessful() &&
-                                                   NS_SUCCEEDED(GetConnectionStatus()),
-                                                   copyState);
-    if (NS_FAILED(rv))
-      PR_LOG(IMAP, PR_LOG_ALWAYS, ("CopyNextStreamMessage failed:%lx\n", rv));
-
+    imapMailFolderSink->CopyNextStreamMessage(GetServerStateParser().LastCommandSuccessful() &&
+                                              NS_SUCCEEDED(GetConnectionStatus()),
+                                              copyState);
     if (copyState)
     {
       nsCOMPtr<nsIThread> thread = do_GetMainThread();
