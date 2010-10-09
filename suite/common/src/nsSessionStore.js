@@ -850,26 +850,7 @@ SessionStoreService.prototype = {
     return null;
   },
 
-  getClosedTabCount: function sss_getClosedTabCount(aWindow) {
-    if (!aWindow.__SSi && aWindow.__SS_dyingCache)
-      return aWindow.__SS_dyingCache._closedTabs.length;
-
-    if (!aWindow.__SSi)
-      // XXXzeniko shouldn't we throw here?
-      return 0; // not a browser window, or not otherwise tracked by SS.
-
-    var closedTabs = this._windows[aWindow.__SSi]._closedTabs;
-    closedTabs = closedTabs.concat(aWindow.getBrowser().savedBrowsers);
-    closedTabs = closedTabs.filter(function(aTabData, aIndex, aArray) {
-      return aArray.indexOf(aTabData) == aIndex;
-    });
-    return closedTabs.length;
-  },
-
-  getClosedTabData: function sss_getClosedTabData(aWindow) {
-    if (!aWindow.__SSi && !aWindow.__SS_dyingCache)
-      throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
-
+  _getClosedTabs: function sss_getClosedTabs(aWindow) {
     if (!aWindow.__SSi)
       return this._toJSONString(aWindow.__SS_dyingCache._closedTabs);
 
@@ -878,19 +859,36 @@ SessionStoreService.prototype = {
     closedTabs = closedTabs.filter(function(aTabData, aIndex, aArray) {
       return aArray.indexOf(aTabData) == aIndex;
     });
-    return this._toJSONString(closedTabs);
+    return closedTabs;
+  },
+
+  getClosedTabCount: function sss_getClosedTabCount(aWindow) {
+    if (!aWindow.__SSi && !aWindow.__SS_dyingCache)
+      // XXXzeniko shouldn't we throw here?
+      return 0; // not a browser window, or not otherwise tracked by SS.
+
+    return this._getClosedTabs(aWindow).length;
+  },
+
+  getClosedTabData: function sss_getClosedTabData(aWindow) {
+    if (!aWindow.__SSi && !aWindow.__SS_dyingCache)
+      throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
+
+    return this._toJSONString(this._getClosedTabs(aWindow));
   },
 
   undoCloseTab: function sss_undoCloseTab(aWindow, aIndex) {
     if (!aWindow.__SSi)
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
-    var closedTabs = this._windows[aWindow.__SSi]._closedTabs;
+    var closedTabs = this._getClosedTabs(aWindow);
     if (!(aIndex in closedTabs))
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
     // fetch the data of closed tab, while removing it from the array
-    let closedTab = closedTabs.splice(aIndex, 1)[0];
+    let closedTab = closedTabs[aIndex];
+    if (aIndex in this._windows[aWindow.__SSi]._closedTabs)
+      this._windows[aWindow.__SSi]._closedTabs.splice(aIndex, 1);
     var browser = aWindow.getBrowser();
     var index = browser.savedBrowsers.indexOf(closedTab);
     if (index != -1)
@@ -898,7 +896,6 @@ SessionStoreService.prototype = {
       return browser.restoreTab(index);
 
     // create a new tab
-    var browser = aWindow.getBrowser();
     var tab = browser.addTab();
 
     // restore the tab's position
@@ -918,12 +915,14 @@ SessionStoreService.prototype = {
     if (!aWindow.__SSi)
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
-    var closedTabs = this._windows[aWindow.__SSi]._closedTabs;
+    var closedTabs = this._getClosedTabs(aWindow);
     if (!(aIndex in closedTabs))
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
     // remove closed tab from the array
-    var closedTab = closedTabs.splice(aIndex, 1)[0];
+    var closedTab = closedTabs[aIndex];
+    if (aIndex in this._windows[aWindow.__SSi]._closedTabs)
+      this._windows[aWindow.__SSi]._closedTabs.splice(aIndex, 1);
     var browser = aWindow.getBrowser();
     var index = browser.savedBrowsers.indexOf(closedTab);
     if (index != -1)
