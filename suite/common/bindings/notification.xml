@@ -783,68 +783,6 @@
     </handlers>
   </binding>
 
-  <binding id="popup-notification"
-           extends="chrome://communicator/content/bindings/notification.xml#browser-notificationbox">
-    <implementation>
-      <method name="showGeolocationPrompt">
-        <parameter name="file"/>
-        <parameter name="site"/>
-        <parameter name="image"/>
-        <parameter name="allowCallback"/>
-        <parameter name="cancelCallback"/>
-        <body>
-          <![CDATA[
-            var type = "geolocation";
-            var mainAction = {
-              label: this._stringBundle.GetStringFromName(type + ".shareLocation"),
-              accessKey: this._stringBundle.GetStringFromName(type + ".shareLocation.accesskey"),
-              callback: function(aNotification) {
-                allowCallback(false);
-              }
-            };
-
-            var secondaryActions = [{
-              label: this._stringBundle.GetStringFromName(type + ".dontShareLocation"),
-              accessKey: this._stringBundle.GetStringFromName(type + ".dontShareLocation.accesskey"),
-              callback: function (aNotification) {
-                cancelCallback(false);
-              }
-            }, {
-              label: this._stringBundle.GetStringFromName(type + ".neverShareLocation"),
-              accessKey: this._stringBundle.GetStringFromName(type + ".neverShareLocation.accesskey"),
-              callback: function (aNotification) {
-                cancelCallback(true);
-              }
-            }, {
-              label: this._stringBundle.GetStringFromName(type + ".alwaysShareLocation"),
-              accessKey: this._stringBundle.GetStringFromName(type + ".alwaysShareLocation.accesskey"),
-              callback: function (aNotification) {
-                allowCallback(true);
-              }
-            }];
-
-            var message;
-            if (site) {
-              message = this._stringBundle
-                            .formatStringFromName(type + ".siteWantsToKnow",
-                                                  [site], 1);
-            } else {
-              message = this._stringBundle
-                            .formatStringFromName(type + ".fileWantsToKnow",
-                                                  [file], 1);
-              secondaryActions.length = 1;
-            }
-
-            PopupNotifications.show(this.activeBrowser,
-                                    "geolocation", message,
-                                    "geo-notification-icon", mainAction,
-                                    secondaryActions);
-          ]]>
-        </body>
-      </method>
-    </implementation>
-  </binding>
-
   <binding id="sidebar-notification"
            extends="chrome://global/content/bindings/notification.xml#notification">
     <content>
