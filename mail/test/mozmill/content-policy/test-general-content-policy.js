@@ -54,7 +54,7 @@
 var MODULE_NAME = 'test-general-content-policy';
 
 var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['folder-display-helpers', 'compose-helpers'];
+var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers', 'compose-helpers'];
 var jumlib = {};
 Components.utils.import("resource://mozmill/modules/jum.js", jumlib);
 var elib = {};
@@ -128,6 +128,8 @@ const msgBodyEnd = '</body>\n</html>\n';
 var setupModule = function (module) {
   let fdh = collector.getModule('folder-display-helpers');
   fdh.installInto(module);
+  let wh = collector.getModule('window-helpers');
+  wh.installInto(module);
   composeHelper = collector.getModule('compose-helpers');
   composeHelper.installInto(module);
 
@@ -212,6 +214,25 @@ function checkComposeWindow(test, replyType, loadAllowed) {
   composeHelper.close_compose_window(replyWindow);
 }
 
+/**
+ * Check remote content in stand-alone message window, and reload
+ */
+ function checkStandaloneMessageWindow(test, loadAllowed) {
+  plan_for_new_window("mail:messageWindow");
+  // Open it
+  set_open_message_behavior("NEW_WINDOW");
+  open_selected_message();
+  let msgc = wait_for_new_window("mail:messageWindow");
+  wait_for_message_display_completion(msgc, true);
+  if (test.checkForAllowed(
+          msgc.window.content.document.getElementById("testelement")) != loadAllowed)
+    throw new Error(test.type + " has not been blocked in message content as expected.");
+
+  // Clean up, close the window
+  close_message_window(msgc);
+}
+
+
 function allowRemoteContentAndCheck(test) {
   addMsgToFolderAndCheckContent(folder, test);
 
@@ -266,6 +287,9 @@ function test_generalContentPolicy() {
       // Check denied in forward window
       checkComposeWindow(TESTS[i], false, false);
 
+      // Check denied in standalone message window
+      checkStandaloneMessageWindow(TESTS[i], false);
+
       // Now allow the remote content and check result
       allowRemoteContentAndCheck(TESTS[i]);
     }
@@ -275,6 +299,9 @@ function test_generalContentPolicy() {
 
     // Check allowed in forward window
     checkComposeWindow(TESTS[i], false, true);
+
+      // Check allowed in standalone message window
+      checkStandaloneMessageWindow(TESTS[i], true);
 
     // Check allowed in content tab
     checkContentTab(TESTS[i]);
