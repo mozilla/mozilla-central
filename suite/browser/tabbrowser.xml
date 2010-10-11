@@ -107,7 +107,7 @@
                     tooltiptextclose="&closeTabButton.tooltip;"
                     setfocus="false"
                     onclick="this.parentNode.parentNode.parentNode.onTabClick(event);"
-                    xbl:inherits="onnewtab"
+                    xbl:inherits="onnewtab,onnewtabclick"
                     onclosetab="var node = this.parentNode;
                                 while (node.localName != 'tabbrowser')
                                   node = node.parentNode;
@@ -2766,7 +2766,7 @@
           <xul:hbox>
             <xul:stack>
               <xul:spacer class="tabs-left"/>
-              <xul:toolbarbutton class="tabs-newbutton" xbl:inherits="oncommand=onnewtab,tooltiptext=tooltiptextnew"/>
+              <xul:toolbarbutton class="tabs-newbutton" xbl:inherits="oncommand=onnewtab,onclick=onnewtabclick,tooltiptext=tooltiptextnew"/>
             </xul:stack>
             <xul:hbox flex="1" style="min-width: 1px; overflow: -moz-hidden-unscrollable;">
               <children/>

@@ -502,6 +502,7 @@
                     flex="1" contenttooltip="aHTMLTooltip"
                     contentcontextmenu="contentAreaContextMenu"
                     onnewtab="BrowserOpenTab();"
+                    onnewtabclick="checkForMiddleClick(this, event);"
                     autocompletepopup="PopupAutoComplete"
                     onbookmarkgroup="addGroupmarkAs();"
                     onclick="return contentAreaClick(event);"
