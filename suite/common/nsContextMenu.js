@@ -1208,7 +1208,7 @@ nsContextMenu.prototype = {
     // Use the current engine if it's a browser window and the search bar is
     // visible, the default engine otherwise.
     var engineName = "";
-    if (window.BrowserSearch && BrowserSearch.searchBar && isElementVisible(BrowserSearch.searchBar))
+    if (window.BrowserSearch && isElementVisible(BrowserSearch.searchBar))
       engineName = Services.search.currentEngine.name;
     else
       engineName = Services.search.defaultEngine.name;

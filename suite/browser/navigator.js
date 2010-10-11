@@ -1107,8 +1107,8 @@ const BrowserSearch = {
 
     // If the search bar is visible, use the current engine, otherwise, fall
     // back to the default engine.
-    if ((this.searchBar && isElementVisible(this.searchBar)) ||
-        (this.searchSidebar && isElementVisible(this.searchSidebar)))
+    if (isElementVisible(this.searchBar) ||
+        isElementVisible(this.searchSidebar))
       engine = Services.search.currentEngine;
     else
       engine = Services.search.defaultEngine;

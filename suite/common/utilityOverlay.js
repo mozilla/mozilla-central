@@ -857,6 +857,9 @@ function focusElement(aElement)
  
 function isElementVisible(aElement)
 {
+  if (!aElement)
+    return false;
+
   // If aElement or a direct or indirect parent is hidden or collapsed,
   // height, width or both will be 0.
   var bo = aElement.boxObject;
