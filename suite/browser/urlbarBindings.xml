@@ -119,6 +119,7 @@
                                .getControllerForCommand("cmd_paste")
                                .isCommandEnabled("cmd_paste");
             }
+            return false;
           },
           doCommand: function(aCommand) {
             switch (aCommand) {
