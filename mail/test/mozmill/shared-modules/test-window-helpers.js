@@ -799,6 +799,30 @@ var AugmentEverybodyWith = {
 };
 
 /**
+ * Clicks and other mouse operations used to be recognized just outside a curved
+ * border but are no longer so (bug 595652), so we need these wrappers to
+ * perform the operations at the center when aLeft or aTop aren't passed in.
+ */
+const MOUSE_OPS_TO_WRAP = [
+  "click", "doubleClick", "mouseDown", "mouseOut", "mouseOver", "mouseUp",
+  "middleClick", "rightClick",
+];
+
+for (let [, mouseOp] in Iterator(MOUSE_OPS_TO_WRAP)) {
+  let thisMouseOp = mouseOp;
+  let wrapperFunc = function (aElem, aLeft, aTop) {
+    let rect = aElem.getNode().getBoundingClientRect();
+    if (aLeft === undefined)
+      aLeft = rect.width / 2;
+    if (aTop === undefined)
+      aTop = rect.height / 2;
+    // |this| refers to the window that gets augmented, which is what we want
+    this.__proto__[thisMouseOp](aElem, aLeft, aTop);
+  };
+  AugmentEverybodyWith.methods[thisMouseOp] = wrapperFunc;
+}
+
+/**
  * Per-windowtype augmentations.  Please use the documentation and general
  *  example of mail:3pane as your example.
  */
