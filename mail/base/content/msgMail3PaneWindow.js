@@ -552,7 +552,7 @@ function OnUnloadMessenger()
   sessionStoreManager.unloadingWindow(window);
 
   let tabmail = document.getElementById("tabmail");
-  tabmail.closeTabs();
+  tabmail._teardown();
 
   var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
                               .getService(Components.interfaces.nsIMsgMailSession);

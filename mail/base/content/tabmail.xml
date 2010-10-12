@@ -678,18 +678,6 @@
           ]]>
         </body>
       </method>
-      <method name="closeTabs">
-        <body>
-          <![CDATA[
-            for (var i = 0; i < this.tabInfo.length; i++) {
-              let tab = this.tabInfo[i];
-              
-              let tabCloseFunc = tab.mode.closeTab || tab.mode.tabType.closeTab;
-              tabCloseFunc.call(tab.mode.tabType, tab);
-            }
-          ]]>
-        </body>
-      </method>
       <method name="removeTabByNode">
         <parameter name="aTabNode"/>
         <body>
@@ -820,6 +808,21 @@
           else
             this.tabContainer.selectedIndex = 0;
         ]]></body>
+      </method>
+
+      <!-- Called when the window is being unloaded, this calls the close
+           function for every tab. -->
+      <method name="_teardown">
+        <body>
+          <![CDATA[
+            for (var i = 0; i < this.tabInfo.length; i++) {
+              let tab = this.tabInfo[i];
+              
+              let tabCloseFunc = tab.mode.closeTab || tab.mode.tabType.closeTab;
+              tabCloseFunc.call(tab.mode.tabType, tab);
+            }
+          ]]>
+        </body>
       </method>
 
       <property name="selectedTab" readonly="true">
