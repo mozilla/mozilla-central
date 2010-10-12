@@ -87,10 +87,7 @@ function toArray(aObj, aUseKeys) {
  *         var array = toArray(fixIterator(xpcomEnumerator));
  */
 function fixIterator(aEnum, aIface) {
-  // is it a javascript array?  We can't do instanceof because we, as a module,
-  //  get our own copy of Array, which is guaranteed distinct from our caller's
-  //  Array instance.  So we test for .length
-  if (aEnum.length) {
+  if (Array.isArray(aEnum)) {
     if (!aIface)
       return (o for ([, o] in Iterator(aEnum)));
     else

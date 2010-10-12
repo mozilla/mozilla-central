@@ -186,10 +186,8 @@ var MimeTypeNoun = {
               "gloda.mimetype.category." + key + ".label");
         }
 
-        // Is it an array?  (We do not have isArray in 1.9.1 and since it comes
-        //  from another JS module, it has its own Array global, so instanceof
-        //  fails us.)  If it is, just process this depth
-        if ("length" in value) {
+        // Is it an array? If so, just process this depth
+        if (Array.isArray(value)) {
           for each (let [, mimeTypeStr] in Iterator(value)) {
             mimeTypeToCategory[mimeTypeStr] = categories;
           }

@@ -301,9 +301,7 @@ function __simple_obj_copy(aObj, aDepthAllowed) {
       oot[key] = "truncated, string rep: " + value.toString();
     }
     // array?  we don't count that as depth for now.
-    else if (("length" in value) &&
-             ("constructor" in value) &&
-             (value.constructor.name == "Array")) {
+    else if (Array.isArray(value)) {
       oot[key] = [__value_copy(v, nextDepth) for each
                    ([, v] in Iterator(value))];
     }

@@ -302,7 +302,7 @@ function wait_for_gloda_indexer(aSynMessageSets, aConfig) {
 
   if (aSynMessageSets == null)
     aSynMessageSets = [];
-  else if (!("length" in aSynMessageSets))
+  else if (!Array.isArray(aSynMessageSets))
     aSynMessageSets = [aSynMessageSets];
 
   ims.synMessageSets = aSynMessageSets;
@@ -317,7 +317,7 @@ function wait_for_gloda_indexer(aSynMessageSets, aConfig) {
   ims.verifier = get_val("verifier");
   ims.augmentSynSets = get_val("augment");
   ims.deletionSynSets = get_val("deleted");
-  if (ims.deletionSynSets && !("length" in ims.deletionSynSets))
+  if (ims.deletionSynSets && !Array.isArray(ims.deletionSynSets))
     ims.deletionSynSets = [ims.deletionSynSets];
 
   ims.expectedWorkerRecoveredCount = get_val("recovered");
