@@ -55,8 +55,6 @@
         </getter>
       </property>
 
-      <field name="_addedProgressListener">false</field>
-
       <method name="addProgressListener">
         <body>
           <![CDATA[

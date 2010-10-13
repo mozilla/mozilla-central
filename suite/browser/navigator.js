@@ -501,13 +501,28 @@ function Startup()
   updateHomeButtonTooltip();
 
   // initialize observers and listeners
-  window.XULBrowserWindow = new nsBrowserStatusHandler();
-  window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-        .getInterface(Components.interfaces.nsIWebNavigation)
-        .QueryInterface(Components.interfaces.nsIDocShellTreeItem).treeOwner
-        .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-        .getInterface(Components.interfaces.nsIXULWindow)
-        .XULBrowserWindow = window.XULBrowserWindow;
+  var xw = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                 .getInterface(Components.interfaces.nsIWebNavigation)
+                 .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+                 .treeOwner
+                 .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                 .getInterface(Components.interfaces.nsIXULWindow);
+  xw.XULBrowserWindow = window.XULBrowserWindow = new nsBrowserStatusHandler();
+
+  if (Services.prefs.getBoolPref("browser.doorhanger.enabled")) {
+    XPCOMUtils.defineLazyGetter(window, "PopupNotifications", function() {
+      var tmp = {};
+      Components.utils.import("resource://gre/modules/PopupNotifications.jsm", tmp);
+      return XULBrowserWindow.popupNotifications = new tmp.PopupNotifications(
+          getBrowser(),
+          document.getElementById("notification-popup"),
+          document.getElementById("notification-popup-box"));
+    });
+    gBrowser.setAttribute("popupnotification", "true");
+    // This resets popup window scrollbar visibility, so override it.
+    if (!(xw.chromeFlags & Components.interfaces.nsIWebBrowserChrome.CHROME_SCROLLBARS))
+      gBrowser.selectedBrowser.style.overflow = "hidden";
+  }
 
   addPrefListener(gTabStripPrefListener);
   addPrefListener(gHomepagePrefListener);
@@ -690,18 +705,6 @@ function Startup()
 
   // initialize the session-restore service
   setTimeout(InitSessionStoreCallback, 0);
-
-  if (Services.prefs.getBoolPref("browser.doorhanger.enabled")) {
-    XPCOMUtils.defineLazyGetter(window, "PopupNotifications", function() {
-      var tmp = {};
-      Components.utils.import("resource://gre/modules/PopupNotifications.jsm", tmp);
-      return XULBrowserWindow.popupNotifications = new tmp.PopupNotifications(
-          getBrowser(),
-          document.getElementById("notification-popup"),
-          document.getElementById("notification-popup-box"));
-    });
-    getBrowser().setAttribute("popupnotification", "true");
-  }
 }
 
 function UpdateNavBar()
