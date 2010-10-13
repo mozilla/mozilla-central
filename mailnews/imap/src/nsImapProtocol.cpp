@@ -3939,7 +3939,7 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
     // a partial sync using CHANGEDSINCE, or a sync from the previous
     // highwater mark.
 
-    // if the folder doesn't know about a the highest uid, or the flag state
+    // if the folder doesn't know about the highest uid, or the flag state
     // is empty, and we're not using CondStore, we need a full sync.
     PRBool needFullFolderSync = !mFolderHighestUID || (flagStateEmpty && !UseCondStore());
 

@@ -473,7 +473,7 @@ nsresult nsSpamSettings::UpdateJunkFolderState()
       // XXX TODO
       // JUNK MAIL RELATED
       // (in ClearFlag?) we need to make sure that this folder
-      // is not a the junk folder for another account
+      // is not the junk folder for another account
       // the same goes for set flag.  have fun with all that.
       oldJunkFolder->ClearFlag(nsMsgFolderFlags::Junk);
     }
