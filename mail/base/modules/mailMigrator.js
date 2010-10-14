@@ -100,7 +100,7 @@ var MailMigrator = {
       if (sysInfo.getPropertyAsDouble("version") >= 6.0) {
         let fontPrefVersion =
           this._prefBranch.getIntPref("mail.font.windows.version");
-        if (!fontPrefVersion) {
+        if (fontPrefVersion < 2) {
           let fonts = {
             serif: "Cambria",
             sans: "Calibri",
@@ -108,12 +108,17 @@ var MailMigrator = {
             variableSize: 17,
             fixedSize: 14,
           };
-          // Encodings to switch to the new fonts for.
-          let encodings = ["x-unicode", "x-western"];
+          // Encodings to switch to the new fonts.
+          let encodings = [];
+          // (Thunderbird 3.1)
+          if (fontPrefVersion < 1)
+            encodings.push("x-unicode", "x-western");
+          // (Thunderbird 3.2)
+          encodings.push("x-central-euro", "x-cyrillic", "x-baltic", "el", "tr");
 
           this._switchDefaultFonts(fonts, encodings);
 
-          this._prefBranch.setIntPref("mail.font.windows.version", 1);
+          this._prefBranch.setIntPref("mail.font.windows.version", 2);
         }
       }
     }

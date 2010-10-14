@@ -495,6 +495,11 @@ pref("mailnews.migration.header_addons_url","http://live.mozillamessaging.com/%A
 pref("font.default", "sans-serif");
 pref("font.default.x-unicode", "sans-serif");
 pref("font.default.x-western", "sans-serif");
+pref("font.default.x-central-euro", "sans-serif");
+pref("font.default.x-cyrillic", "sans-serif");
+pref("font.default.x-baltic", "sans-serif");
+pref("font.default.el", "sans-serif");
+pref("font.default.tr", "sans-serif");
 
 #ifdef XP_MACOSX
 pref("font.name.sans-serif.x-unicode", "Lucida Grande");
@@ -510,6 +515,41 @@ pref("font.name-list.sans-serif.x-western", "Lucida Grande");
 pref("font.name-list.monospace.x-western", "Menlo, Monaco");
 pref("font.size.variable.x-western", 15);
 pref("font.size.fixed.x-western", 12);
+
+pref("font.name.sans-serif.x-central-euro", "Lucida Grande");
+pref("font.name.monospace.x-central-euro", "Menlo");
+pref("font.name-list.sans-serif.x-central-euro", "Lucida Grande");
+pref("font.name-list.monospace.x-central-euro", "Menlo, Monaco");
+pref("font.size.variable.x-central-euro", 15);
+pref("font.size.fixed.x-central-euro", 12);
+
+pref("font.name.sans-serif.x-cyrillic", "Lucida Grande");
+pref("font.name.monospace.x-cyrillic", "Menlo");
+pref("font.name-list.sans-serif.x-cyrillic", "Lucida Grande");
+pref("font.name-list.monospace.x-cyrillic", "Menlo, Monaco");
+pref("font.size.variable.x-cyrillic", 15);
+pref("font.size.fixed.x-cyrillic", 12);
+
+pref("font.name.sans-serif.x-baltic", "Lucida Grande");
+pref("font.name.monospace.x-baltic", "Menlo");
+pref("font.name-list.sans-serif.x-baltic", "Lucida Grande");
+pref("font.name-list.monospace.x-baltic", "Menlo, Monaco");
+pref("font.size.variable.x-baltic", 15);
+pref("font.size.fixed.x-baltic", 12);
+
+pref("font.name.sans-serif.el", "Lucida Grande");
+pref("font.name.monospace.el", "Menlo");
+pref("font.name-list.sans-serif.el", "Lucida Grande");
+pref("font.name-list.monospace.el", "Menlo, Monaco");
+pref("font.size.variable.el", 15);
+pref("font.size.fixed.el", 12);
+
+pref("font.name.sans-serif.tr", "Lucida Grande");
+pref("font.name.monospace.tr", "Menlo");
+pref("font.name-list.sans-serif.tr", "Lucida Grande");
+pref("font.name-list.monospace.tr", "Menlo, Monaco");
+pref("font.size.variable.tr", 15);
+pref("font.size.fixed.tr", 12);
 #endif
 
 // Since different versions of Windows need different settings, we'll handle
@@ -527,6 +567,26 @@ pref("font.name-list.monospace.x-unicode", "monospace");
 pref("font.name-list.serif.x-western", "serif");
 pref("font.name-list.sans-serif.x-western", "sans-serif");
 pref("font.name-list.monospace.x-western", "monospace");
+
+pref("font.name-list.serif.x-central-euro", "serif");
+pref("font.name-list.sans-serif.x-central-euro", "sans-serif");
+pref("font.name-list.monospace.x-central-euro", "monospace");
+
+pref("font.name-list.serif.x-cyrillic", "serif");
+pref("font.name-list.sans-serif.x-cyrillic", "sans-serif");
+pref("font.name-list.monospace.x-cyrillic", "monospace");
+
+pref("font.name-list.serif.x-baltic", "serif");
+pref("font.name-list.sans-serif.x-baltic", "sans-serif");
+pref("font.name-list.monospace.x-baltic", "monospace");
+
+pref("font.name-list.serif.el", "serif");
+pref("font.name-list.sans-serif.el", "sans-serif");
+pref("font.name-list.monospace.el", "monospace");
+
+pref("font.name-list.serif.tr", "serif");
+pref("font.name-list.sans-serif.tr", "sans-serif");
+pref("font.name-list.monospace.tr", "monospace");
 #endif
 
 pref("mail.font.windows.version", 0);
