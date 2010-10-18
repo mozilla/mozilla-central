@@ -61,6 +61,7 @@
       <listcell class="addressingWidgetCell" align="stretch">
         <menulist id="addressCol1#1" disableonsend="true"
                   class="aw-menulist menulist-compact" flex="1"  
+                  onkeypress="awMenulistKeyPress(event, this)"
                   oncommand="gContentChanged=true; awSetAutoComplete(this.id.slice(this.id.lastIndexOf('#') + 1));">
           <menupopup>
             <menuitem value="addr_to" label="&toAddr.label;"/>

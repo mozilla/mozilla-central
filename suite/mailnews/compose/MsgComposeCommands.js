@@ -1218,8 +1218,6 @@ function ComposeStartup(recycled, aParams)
 
   var identityList = document.getElementById("msgIdentity");
 
-  document.addEventListener("keypress", awDocumentKeyPress, true);
-
   if (identityList)
     FillIdentityList(identityList);
 
