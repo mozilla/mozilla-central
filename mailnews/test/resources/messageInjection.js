@@ -673,10 +673,18 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
   else {
     do_throw("Message injection is not configured!");
   }
-  iterFolders = _looperator(aMsgFolders);
 
   if (mis.injectionConfig.mode == "local") {
-    let iPerSet = 0, folder = iterFolders.next();
+    // Note: in order to cut down on excessive fsync()s, we do a two-pass
+    //  approach.  In the first pass we just allocate messages to the folder
+    //  we are going to insert them into.  In the second pass we insert the
+    //  messages into folders in batches and perform any mutations.
+    let folderBatches = [{folder: folder, messages: []} for each
+                         ([, folder] in Iterator(aMsgFolders))];
+    iterFolders = _looperator(folderBatches);
+    let iPerSet = 0, folderBatch = iterFolders.next();
+
+    // - allocate messages to folders
     // loop, incrementing our subscript until all message sets are out of messages
     let didSomething;
     do {
@@ -684,31 +692,46 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
       // for each message set, if it is not out of messages, add the message
       for each (let [, messageSet] in Iterator(aMessageSets)) {
         if (iPerSet < messageSet.synMessages.length) {
-          let synMsg = messageSet._trackMessageAddition(folder, iPerSet);
-          folder.gettingNewMessages = true;
-          folder.addMessage(synMsg.toMboxString());
-          // if we need to mark the message as junk grab the header and do so
-          // (The message set can mark the whole set as junk, but not just
-          //  specific messages.)
-          if (synMsg.metaState.junk) {
-            let msgHdr = messageSet.getMsgHdr(iPerSet);
-            msgHdr.setStringProperty("junkscore", "100");
-          }
-          if (synMsg.metaState.read) {
-            // XXX this will generate an event; I'm not sure if we should be
-            //  trying to avoid that or not.  This case is really only added
-            //  for IMAP where this makes more sense.
-            let msgHdr = messageSet.getMsgHdr(iPerSet);
-            msgHdr.markRead(true);
-          }
-          folder.gettingNewMessages = false;
-          folder.hasNewMessages = true;
+          let synMsg = messageSet._trackMessageAddition(folderBatch.folder,
+                                                        iPerSet);
+          folderBatch.messages.push(synMsg);
           didSomething = true;
         }
       }
       iPerSet++;
-      folder = iterFolders.next();
+      folderBatch = iterFolders.next();
     } while (didSomething);
+
+    // - inject messages
+    for each ([, folderBatch] in Iterator(folderBatches)) {
+      // it is conceivable some folders might not get any messages, skip them.
+      if (!folderBatch.messages.length)
+        continue;
+
+      let folder = folderBatch.folder;
+      folder.gettingNewMessages = true;
+      let messageStrings = [synMsg.toMboxString() for each
+                            ([, synMsg] in Iterator(folderBatch.messages))];
+      folder.addMessageBatch(messageStrings.length, messageStrings);
+      for each (let [, synMsg] in Iterator(folderBatch.messages)) {
+        // if we need to mark the message as junk grab the header and do so
+        // (The message set can mark the whole set as junk, but not just
+        //  specific messages.)
+        if (synMsg.metaState.junk) {
+          let msgHdr = messageSet.getMsgHdr(iPerSet);
+          msgHdr.setStringProperty("junkscore", "100");
+        }
+        if (synMsg.metaState.read) {
+          // XXX this will generate an event; I'm not sure if we should be
+          //  trying to avoid that or not.  This case is really only added
+          //  for IMAP where this makes more sense.
+          let msgHdr = messageSet.getMsgHdr(iPerSet);
+          msgHdr.markRead(true);
+        }
+      }
+      folder.gettingNewMessages = false;
+      folder.hasNewMessages = true;
+    }
 
     // make sure that junk filtering gets a turn
     // XXX we probably need to be doing more in terms of filters here,
@@ -719,6 +742,7 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
     }
   }
   else if (mis.injectionConfig.mode == "imap") {
+    iterFolders = _looperator(aMsgFolders);
     // we need to call updateFolder on all the folders, not just the first
     //  one...
     return async_run({func: function() {
@@ -777,6 +801,8 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
     }});
   }
   else if (mis.injectionConfig.mode == "pop") {
+    iterFolders = _looperator(aMsgFolders);
+
     let iPerSet = 0, folder = iterFolders.next();
     // loop, incrementing our subscript until all message sets are out of messages
     let didSomething;

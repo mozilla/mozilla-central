@@ -56,7 +56,7 @@ interface nsIMsgCopyServiceListener;
 struct nsLocalFolderScanState;
 %}
 
-[scriptable, uuid(6AA1A91E-F51A-4a94-A5F7-90489D1DE826)]
+[scriptable, uuid(73d0ae1b-cceb-4a74-a7dd-048b15b20fa7)]
 interface nsIMsgLocalMailFolder : nsISupports {
   /**
    * set the default flags on the subfolders of this folder, such as
@@ -88,6 +88,20 @@ interface nsIMsgLocalMailFolder : nsISupports {
   // this adds a message to the end of the folder, parsing it as it goes, and
   // applying filters, if applicable.
   void addMessage(in string aMessage);
+  /**
+   * Add one or more messages to the end of the folder in a single batch.  Each
+   * batch requires an fsync() on the mailbox file so it is a good idea to
+   * try and minimize the number of calls you make to this method or addMessage.
+   *
+   * Filters are applied, if applicable.
+   *
+   * @param aMessageCount The number of messages.
+   * @param aMessages An array of pointers to strings containing entire message
+   *     bodies.
+   */
+  void addMessageBatch(in PRUint32 aMessageCount,
+                       [array, size_is(aMessageCount)] in string aMessages);
+
   /**
    * functions for updating the UI while running DownloadMessagesForOffline:
    * delete the old message before adding its newly downloaded body, and

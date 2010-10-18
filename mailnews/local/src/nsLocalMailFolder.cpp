@@ -3824,10 +3824,18 @@ nsMsgLocalMailFolder::GetUidlFromFolder(nsLocalFolderScanState *aState, nsIMsgDB
   return rv;
 }
 
-  // this adds a message to the end of the folder, parsing it as it goes, and
-  // applying filters, if applicable.
+// this adds a message to the end of the folder, parsing it as it goes, and
+// applying filters, if applicable.
 NS_IMETHODIMP
 nsMsgLocalMailFolder::AddMessage(const char *aMessage)
+{
+  const char *aMessages[] = {aMessage};
+  return AddMessageBatch(1, aMessages);
+}
+
+NS_IMETHODIMP
+nsMsgLocalMailFolder::AddMessageBatch(PRUint32 aMessageCount,
+                                      const char **aMessages)
 {
   nsCOMPtr<nsILocalFile> path;
   nsresult rv = GetFilePath(getter_AddRefs(path));
@@ -3846,6 +3854,8 @@ nsMsgLocalMailFolder::AddMessage(const char *aMessage)
   nsRefPtr<nsParseNewMailState> newMailParser = new nsParseNewMailState;
   if (newMailParser == nsnull)
     return NS_ERROR_OUT_OF_MEMORY;
+  if (!mGettingNewMessages)
+    newMailParser->DisableFilters();
 
   nsCOMPtr<nsIMsgFolder> rootFolder;
   rv = GetRootFolder(getter_AddRefs(rootFolder));
@@ -3862,23 +3872,29 @@ nsMsgLocalMailFolder::AddMessage(const char *aMessage)
   nsCOMPtr <nsIInputStream> inputStream = do_QueryInterface(outFileStream);
   rv = newMailParser->Init(rootFolder, this,
                            path, inputStream, nsnull);
-
-  if (!mGettingNewMessages)
-    newMailParser->DisableFilters();
-
+  // nsMailDatabase needs the stream so it can update the status flags during
+  // the OnStopRequest logic.
+  newMailParser->SetDBFolderStream(outFileStream);
   if (NS_SUCCEEDED(rv))
   {
-    PRUint32 bytesWritten;
-    outFileStream->Write(aMessage, strlen(aMessage), &bytesWritten);
-    newMailParser->BufferInput(aMessage, strlen(aMessage));
-
-    outFileStream->Flush();
-    newMailParser->SetDBFolderStream(outFileStream);
-    newMailParser->OnStopRequest(nsnull, nsnull, NS_OK);
-    newMailParser->SetDBFolderStream(nsnull); // stream is going away
-    outFileStream->Close();
-    newMailParser->EndMsgDownload();
+    for (PRUint32 i = 0; i < aMessageCount; i++)
+    {
+      PRUint32 bytesWritten, messageLen = strlen(aMessages[i]);
+      outFileStream->Write(aMessages[i], messageLen, &bytesWritten);
+      newMailParser->BufferInput(aMessages[i], messageLen);
+      // this spits out a header.
+      newMailParser->OnStopRequest(nsnull, nsnull, NS_OK);
+    }
   }
+
+  // Flush performs an fsync and so must be done outside the loop for reasonable
+  // performance.
+  outFileStream->Flush();
+  // The parser tells the mail db to forget about this stream.
+  newMailParser->SetDBFolderStream(nsnull); // stream is going away
+  outFileStream->Close();
+  newMailParser->EndMsgDownload();
+
   ReleaseSemaphore(static_cast<nsIMsgLocalMailFolder*>(this));
   return rv;
 }
