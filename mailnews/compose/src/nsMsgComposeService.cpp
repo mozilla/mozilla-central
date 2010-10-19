@@ -775,14 +775,12 @@ NS_IMETHODIMP nsMsgComposeService::OpenComposeWindowWithURI(const char * aMsgCom
   return rv;
 }
 
-NS_IMETHODIMP nsMsgComposeService::InitCompose(nsIDOMWindowInternal *aWindow,
-                                          nsIMsgComposeParams *params,
-                                          nsIMsgCompose **_retval)
+NS_IMETHODIMP nsMsgComposeService::InitCompose(nsIMsgComposeParams *aParams,
+                                               nsIDOMWindowInternal *aWindow,
+                                               nsIDocShell *aDocShell,
+                                               nsIMsgCompose **_retval)
 {
-  nsresult rv;
-
-  /* we need to remove the window from the cache
-  */
+  // We need to remove the window from the cache.
   PRInt32 i;
   for (i = 0; i < mMaxRecycledWindows; i ++)
     if (mCachedWindows[i].window == aWindow)
@@ -791,10 +789,12 @@ NS_IMETHODIMP nsMsgComposeService::InitCompose(nsIDOMWindowInternal *aWindow,
       break;
     }
 
-  nsCOMPtr <nsIMsgCompose> msgCompose = do_CreateInstance(NS_MSGCOMPOSE_CONTRACTID, &rv);
+  nsresult rv;
+  nsCOMPtr<nsIMsgCompose> msgCompose =
+    do_CreateInstance(NS_MSGCOMPOSE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = msgCompose->Initialize(aWindow, params);
+  rv = msgCompose->Initialize(aParams, aWindow, aDocShell);
   NS_ENSURE_SUCCESS(rv,rv);
 
   NS_IF_ADDREF(*_retval = msgCompose);
@@ -1043,7 +1043,7 @@ NS_IMETHODIMP nsMsgTemplateReplyHelper::OnStopRunningUrl(nsIURI *aUrl, nsresult 
 
   /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
 
-  rv = pMsgCompose->Initialize(parentWindow, pMsgComposeParams) ;
+  rv = pMsgCompose->Initialize(pMsgComposeParams, parentWindow, nsnull);
   NS_ENSURE_SUCCESS(rv,rv);
 
   Release();
@@ -1290,7 +1290,7 @@ nsMsgComposeService::ForwardMessage(const nsAString &forwardTo,
   NS_ENSURE_SUCCESS(rv,rv);
 
   /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
-  rv = pMsgCompose->Initialize(parentWindow, pMsgComposeParams) ;
+  rv = pMsgCompose->Initialize(pMsgComposeParams, parentWindow, nsnull);
   NS_ENSURE_SUCCESS(rv,rv);
 
   rv = pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nsnull, nsnull, nsnull);
@@ -1474,51 +1474,58 @@ nsresult nsMsgComposeService::AddGlobalHtmlDomains()
 }
 
 NS_IMETHODIMP
-nsMsgComposeService::RegisterComposeWindow(nsIDOMWindowInternal * aWindow, nsIMsgCompose *aComposeObject)
+nsMsgComposeService::RegisterComposeDocShell(nsIDocShell *aDocShell,
+                                             nsIMsgCompose *aComposeObject)
 {
-  NS_ENSURE_ARG_POINTER(aWindow);
+  NS_ENSURE_ARG_POINTER(aDocShell);
   NS_ENSURE_ARG_POINTER(aComposeObject);
 
   nsresult rv;
 
   // add the msg compose / dom window mapping to our hash table
-  nsCOMPtr<nsIWeakReference> weakDOMWindow = do_GetWeakReference(aWindow, &rv);
+  nsCOMPtr<nsIWeakReference> weakDocShell = do_GetWeakReference(aDocShell, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
   nsCOMPtr<nsIWeakReference> weakMsgComposePtr = do_GetWeakReference(aComposeObject);
   NS_ENSURE_SUCCESS(rv,rv);
-  mOpenComposeWindows.Put(weakDOMWindow, weakMsgComposePtr);
+  mOpenComposeWindows.Put(weakDocShell, weakMsgComposePtr);
 
   return rv;
 }
 
 NS_IMETHODIMP
-nsMsgComposeService::UnregisterComposeWindow(nsIDOMWindowInternal * aWindow)
+nsMsgComposeService::UnregisterComposeDocShell(nsIDocShell *aDocShell)
 {
-  NS_ENSURE_ARG_POINTER(aWindow);
+  NS_ENSURE_ARG_POINTER(aDocShell);
 
   nsresult rv;
-  nsCOMPtr<nsIWeakReference> weakDOMWindow = do_GetWeakReference(aWindow, &rv);
+  nsCOMPtr<nsIWeakReference> weakDocShell = do_GetWeakReference(aDocShell, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  mOpenComposeWindows.Remove(weakDOMWindow);
+  mOpenComposeWindows.Remove(weakDocShell);
 
   return rv;
 }
 
 NS_IMETHODIMP
-nsMsgComposeService::GetMsgComposeForWindow(nsIDOMWindowInternal * aWindow, nsIMsgCompose ** aComposeObject)
+nsMsgComposeService::GetMsgComposeForDocShell(nsIDocShell *aDocShell,
+                                              nsIMsgCompose **aComposeObject)
 {
-  NS_ENSURE_ARG_POINTER(aWindow);
+  NS_ENSURE_ARG_POINTER(aDocShell);
   NS_ENSURE_ARG_POINTER(aComposeObject);
+
+  if (!mOpenComposeWindows.Count())
+    return NS_ERROR_FAILURE;
 
   // get the weak reference for our dom window
   nsresult rv;
-  nsCOMPtr<nsIWeakReference> weakDOMWindow = do_GetWeakReference(aWindow, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsCOMPtr<nsIWeakReference> weakDocShell = do_GetWeakReference(aDocShell, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIWeakReference> weakMsgComposePtr;
 
-  NS_ENSURE_TRUE(mOpenComposeWindows.Get(weakDOMWindow, getter_AddRefs(weakMsgComposePtr)), NS_ERROR_FAILURE);
+  if (!mOpenComposeWindows.Get(weakDocShell,
+                               getter_AddRefs(weakMsgComposePtr)))
+    return NS_ERROR_FAILURE;
 
   nsCOMPtr<nsIMsgCompose> msgCompose = do_QueryReferent(weakMsgComposePtr, &rv);
   NS_ENSURE_SUCCESS(rv, rv);

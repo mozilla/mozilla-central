@@ -28,7 +28,7 @@ function checkPopulate(aTo, aNonHTMLRecipients, aPreferMailOut, aCheckTo)
 
   params.composeFields = fields;
 
-  msgCompose.Initialize(null, params);
+  msgCompose.initialize(params);
 
   var nonHTMLRecipients = new Object();
 
@@ -63,7 +63,7 @@ function run_test() {
   var params = Components.classes[MsgComposeParamsContractID]
                          .createInstance(nsIMsgComposeParams);
 
-  msgCompose.Initialize(null, params);
+  msgCompose.initialize(params);
 
   // Test - checkAndPopulateRecipients basic functionality.
 
@@ -87,7 +87,7 @@ function run_test() {
 
   params.composeFields = fields;
 
-  msgCompose.Initialize(null, params);
+  msgCompose.initialize(params);
 
   var nonHTMLRecipients = new Object();
 

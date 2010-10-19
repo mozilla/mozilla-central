@@ -48,6 +48,7 @@
 interface nsIMsgSend;
 interface nsIMsgIdentity;
 interface nsIMsgProgress;
+interface nsIDocShell;
 interface nsIDOMWindowInternal;
 interface nsIDOMWindow;
 interface nsIDOMNode;
@@ -132,11 +133,21 @@ interface nsIMsgComposeRecyclingListener : nsISupports {
   void onReopen(in nsIMsgComposeParams params);
 };
 
-[scriptable, uuid(85d1f6be-6be3-4d55-8ef0-2c8c176dc5d5)]
+[scriptable, uuid(fc9dc1dc-7726-4d29-bb92-a0227f526651)]
 interface nsIMsgCompose : nsIMsgSendListener {
 
-  /* ... */
-  void Initialize(in nsIDOMWindowInternal aWindow, in nsIMsgComposeParams aParams); 
+  /**
+   * Initializes the msg compose object.
+   *
+   * @param aParams   An nsIMsgComposeParams object containing the initial
+   *                  details for the compose.
+   * @param aWindow   The optional window associated with this compose object.
+   * @param aDocShell The optional docShell of the editor element that is used
+   *                  for composing.
+   */
+  void initialize(in nsIMsgComposeParams aParams,
+                  [optional] in nsIDOMWindowInternal aWindow,
+                  [optional] in nsIDocShell aDocShell); 
 
   /* ... */
   void SetDocumentCharset(in string charset);

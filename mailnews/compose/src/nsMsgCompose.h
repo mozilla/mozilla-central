@@ -124,6 +124,7 @@ private:
   
 	nsCOMPtr<nsIEditor>                       m_editor;
 	nsIDOMWindowInternal                      *m_window;
+  nsCOMPtr<nsIDocShell>                     mDocShell;
   nsCOMPtr<nsIBaseWindow>                   m_baseWindow;
 	nsMsgCompFields                           *m_compFields;
 	nsCOMPtr<nsIMsgIdentity>                  m_identity;

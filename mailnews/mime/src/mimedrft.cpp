@@ -306,7 +306,7 @@ SendTheMessage(nsIMsgCompFields *   compFields,
   NS_ENSURE_SUCCESS(rv, rv);
 
   /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
-  rv = pMsgCompose->Initialize(nsnull, pMsgComposeParams) ;
+  rv = pMsgCompose->Initialize(pMsgComposeParams, nsnull, nsnull);
   NS_ENSURE_SUCCESS(rv,rv);
 
   return pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nsnull, nsnull, nsnull) ;

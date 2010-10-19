@@ -1520,7 +1520,10 @@ function ComposeStartup(recycled, aParams)
   LoadIdentity(true);
   var composeSvc = Components.classes["@mozilla.org/messengercompose;1"]
                              .getService(Components.interfaces.nsIMsgComposeService);
-  gMsgCompose = composeSvc.InitCompose(window, params);
+
+  // Get the <editor> element to startup an editor
+  var editorElement = GetCurrentEditorElement();
+  gMsgCompose = composeSvc.initCompose(params, window, editorElement.docShell);
   if (gMsgCompose)
   {
     // set the close listener
@@ -1528,9 +1531,6 @@ function ComposeStartup(recycled, aParams)
 
     //Lets the compose object knows that we are dealing with a recycled window
     gMsgCompose.recycledWindow = recycled;
-
-    // Get the <editor> element to startup an editor
-    var editorElement = GetCurrentEditorElement();
 
     document.getElementById("returnReceiptMenu")
             .setAttribute('checked', gMsgCompose.compFields.returnReceipt);
@@ -2646,7 +2646,7 @@ function SetComposeWindowTitle()
 // This is hooked up to the OS's window close widget (e.g., "X" for Windows)
 function ComposeCanClose()
 {
-  // Do this early, so ldap sessions have a better chance to 
+  // Do this early, so ldap sessions have a better chance to
   // cleanup after themselves.
   ReleaseAutoCompleteState();
   if (gSendOrSaveOperationInProgress)

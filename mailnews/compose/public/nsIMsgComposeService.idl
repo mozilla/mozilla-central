@@ -41,13 +41,13 @@
 #include "nsIMsgComposeParams.idl"
 
 interface nsIURI;
-interface nsIDOMWindowInternal;
+interface nsIDocShell;
 interface nsIMsgWindow;
 interface nsIMsgIdentity;
 interface nsIMsgIncomingServer;
 interface nsIMsgDBHdr;
 
-[scriptable, uuid(dbf4b3a7-dc38-4362-a620-ff5d22b3777c)]
+[scriptable, uuid(b73dae1e-7e97-45aa-8669-dacbb7e9fbd0)]
 interface nsIMsgComposeService : nsISupports {
 
   /* we need a msg window because when we forward inline we may need progress */
@@ -69,10 +69,20 @@ interface nsIMsgComposeService : nsISupports {
   /* ... */
   void OpenComposeWindowWithParams(in string msgComposeWindowURL, in nsIMsgComposeParams params);
 
-  /* ... */
-  nsIMsgCompose InitCompose(in nsIDOMWindowInternal aWindow, in nsIMsgComposeParams params);
+  /**
+   * Creates an nsIMsgCompose instance, initalizes it, and manages the window
+   * recycling cache.
+   *
+   * @param aParams   An nsIMsgComposeParams object containing the initial
+   *                  details for the compose.
+   * @param aWindow   The optional window associated with this compose object.
+   * @param aDocShell The optional docShell of the editor element that is used
+   *                  for composing.
+   */
+  nsIMsgCompose initCompose(in nsIMsgComposeParams aParams,
+                            [optional] in nsIDOMWindowInternal aWindow, 
+                            [optional] in nsIDocShell aDocShell);
 
-  
   /**
   * defaultIdentity
   *
@@ -132,31 +142,33 @@ interface nsIMsgComposeService : nsISupports {
                          in nsIMsgWindow msgWindow, in nsIMsgIncomingServer server);
 
   /** 
-   * Every open compose window registers itself with the compose service 
-   * This allows consumers to get the msg compose object associated with a dom window
+   * The docShell of each editor element used for composing should be registered
+   * with this service. docShells passed to initCompose get registered
+   * automatically. The registrations are typically used to get the msgCompose
+   * window when determining what remote content to allow to be displayed.
    *
-   * @param aWindow The DOM Window 
+   * @param aDocShell The nsIDocShell of the editor element. 
    * @param aMsgCompose The compose object associated with the compose window
-   *
    */
-  void registerComposeWindow(in nsIDOMWindowInternal aWindow, in nsIMsgCompose aMsgCompose);
+  void registerComposeDocShell(in nsIDocShell aDocShell,
+                               in nsIMsgCompose aMsgCompose);
 
   /** 
-   * When a compose window is being closed (or recyled), it unregisters itself
-   * from the compose service. 
+   * When an editor docShell is being closed (or recycled), you should
+   * unregister it from this service. nsIMsgCompose normally calls this
+   * automatically for items passed to initCompose.
    *
-   * @param aWindow The DOM Window 
-   *
+   * @param aDocShell The nsIDocShell of the editor element. 
    */
-  void unregisterComposeWindow(in nsIDOMWindowInternal aWindow);
+  void unregisterComposeDocShell(in nsIDocShell aDocShell);
   
   /**
-   * For aWindow, returns the nsIMsgCompose object associated with the window.
+   * For a given docShell, returns the nsIMsgCompose object associated with it.
    *
-   * @param aWindow The DOMWindow associated with the compose window.
+   * @param aDocShell The nsIDocShell of the editor element. 
    *
-   * @return NS_ERROR_FAILURE if we could not find a nsIMsgCompose for the passed in
-   *         DOM Window.
+   * @return NS_ERROR_FAILURE if we could not find a nsIMsgCompose for
+   *         the passed in docShell.
    */
-  nsIMsgCompose getMsgComposeForWindow(in nsIDOMWindowInternal aWindow);
+  nsIMsgCompose getMsgComposeForDocShell(in nsIDocShell aDocShell);
 };

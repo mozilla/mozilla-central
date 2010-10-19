@@ -1279,7 +1279,10 @@ function ComposeStartup(recycled, aParams)
   LoadIdentity(true);
   if (sMsgComposeService)
   {
-    gMsgCompose = sMsgComposeService.InitCompose(window, params);
+    // Get the <editor> element to startup an editor
+    var editorElement = GetCurrentEditorElement();
+    gMsgCompose = sMsgComposeService.initCompose(params, window,
+                                                 editorElement.docShell);
     if (gMsgCompose)
     {
       // set the close listener
@@ -1288,8 +1291,6 @@ function ComposeStartup(recycled, aParams)
       //Lets the compose object knows that we are dealing with a recycled window
       gMsgCompose.recycledWindow = recycled;
 
-      // Get the <editor> element to startup an editor
-      var editorElement = GetCurrentEditorElement();
       if (!editorElement)
       {
         dump("Failed to get editor element!\n");

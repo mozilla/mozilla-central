@@ -53,6 +53,7 @@
 #include "nsStringGlue.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIWebProgressListener.h"
+#include "nsIMsgCompose.h"
 
 /* DBFCFDF0-4489-4faa-8122-190FD1EFA16C */
 #define NS_MSGCONTENTPOLICY_CID \
@@ -97,10 +98,10 @@ protected:
   void ShouldAcceptContentForPotentialMsg(nsIURI *aOriginatorLocation,
                                           nsIURI *aContentLocation,
                                           PRInt16 *aDecision);
-  void ComposeShouldLoad(nsIDocShell *aRootDocShell,
+  void ComposeShouldLoad(nsIMsgCompose *aMsgCompose,
                          nsISupports *aRequestingContext, 
                          nsIURI *aContentLocation, PRInt16 *aDecision);
-  nsresult IsComposeWindow(nsIDocShell *aAppDocShell, PRBool &isComposeWindow);
+  already_AddRefed<nsIMsgCompose> GetMsgComposeForContext(nsISupports *aRequestingContext);
 
   nsresult GetRootDocShellForContext(nsISupports *aRequestingContext,
                                      nsIDocShell **aDocShell);

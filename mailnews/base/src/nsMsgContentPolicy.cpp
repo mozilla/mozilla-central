@@ -55,7 +55,6 @@
 #include "nsNetUtil.h"
 
 #include "nsIMsgComposeService.h"
-#include "nsIMsgCompose.h"
 #include "nsMsgCompCID.h"
 
 // needed by the content load policy manager
@@ -324,23 +323,12 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
     return NS_OK;
   }
 
-  // Non-Thunderbird apps got this earlier.
-#ifdef MOZ_THUNDERBIRD
-  nsCOMPtr<nsIDocShell> rootDocShell;
-  rv = GetRootDocShellForContext(aRequestingContext,
-                                 getter_AddRefs(rootDocShell));
-  NS_ENSURE_SUCCESS(rv, rv);
-#endif
-
   // Extract the windowtype to handle compose windows separately from mail
-  PRBool isComposeWindow = PR_FALSE;
-  rv = IsComposeWindow(rootDocShell, isComposeWindow);
-  NS_ENSURE_SUCCESS(rv, NS_OK);
-
+  nsCOMPtr<nsIMsgCompose> msgCompose = GetMsgComposeForContext(aRequestingContext);
   // Work out if we're in a compose window or not.
-  if (isComposeWindow)
+  if (msgCompose)
   {
-    ComposeShouldLoad(rootDocShell, aRequestingContext, aContentLocation,
+    ComposeShouldLoad(msgCompose, aRequestingContext, aContentLocation,
                       aDecision);
     return NS_OK;
   }
@@ -585,30 +573,21 @@ nsMsgContentPolicy::ShouldAcceptContentForPotentialMsg(nsIURI *aOriginatorLocati
  * Content policy logic for compose windows
  * 
  */
-void nsMsgContentPolicy::ComposeShouldLoad(nsIDocShell * aRootDocShell, nsISupports * aRequestingContext,
-                                               nsIURI * aContentLocation, PRInt16 * aDecision)
+void nsMsgContentPolicy::ComposeShouldLoad(nsIMsgCompose *aMsgCompose,
+                                           nsISupports *aRequestingContext,
+                                           nsIURI *aContentLocation,
+                                           PRInt16 *aDecision)
 {
   NS_PRECONDITION(*aDecision == nsIContentPolicy::REJECT_REQUEST,
                   "ComposeShouldLoad expects default decision to be reject!");
 
   nsresult rv;
-
-  nsCOMPtr<nsIDOMWindowInternal> window(do_GetInterface(aRootDocShell, &rv));
-  NS_ENSURE_SUCCESS(rv, );
-
-  nsCOMPtr<nsIMsgComposeService> composeService (do_GetService(NS_MSGCOMPOSESERVICE_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, );
-
-  nsCOMPtr<nsIMsgCompose> msgCompose;
-  rv = composeService->GetMsgComposeForWindow(window, getter_AddRefs(msgCompose));
-  NS_ENSURE_SUCCESS(rv, );
-
   nsCString originalMsgURI;
-  msgCompose->GetOriginalMsgURI(getter_Copies(originalMsgURI));
+  rv = aMsgCompose->GetOriginalMsgURI(getter_Copies(originalMsgURI));
   NS_ENSURE_SUCCESS(rv, );
 
   MSG_ComposeType composeType;
-  rv = msgCompose->GetType(&composeType);
+  rv = aMsgCompose->GetType(&composeType);
   NS_ENSURE_SUCCESS(rv, );
 
   // Only allow remote content for new mail compositions or mailto
@@ -635,7 +614,7 @@ void nsMsgContentPolicy::ComposeShouldLoad(nsIDocShell * aRootDocShell, nsISuppo
     if (*aDecision == nsIContentPolicy::REJECT_REQUEST)
     {
       PRBool insertingQuotedContent = PR_TRUE;
-      msgCompose->GetInsertingQuotedContent(&insertingQuotedContent);
+      aMsgCompose->GetInsertingQuotedContent(&insertingQuotedContent);
       nsCOMPtr<nsIDOMHTMLImageElement> imageElement(do_QueryInterface(aRequestingContext));
       if (!insertingQuotedContent && imageElement)
       {
@@ -648,32 +627,29 @@ void nsMsgContentPolicy::ComposeShouldLoad(nsIDocShell * aRootDocShell, nsISuppo
   }
 }
 
-/**
- * Uses the root docshell to determine if we're in a compose window or not.
- */
-nsresult nsMsgContentPolicy::IsComposeWindow(nsIDocShell *aRootDocShell,
-                                             PRBool &aIsComposeWindow)
+already_AddRefed<nsIMsgCompose> nsMsgContentPolicy::GetMsgComposeForContext(nsISupports *aRequestingContext)
 {
   nsresult rv;
-  // get the dom document element
-  nsCOMPtr<nsIDOMDocument> domDocument = do_GetInterface(aRootDocShell, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIDOMElement> windowEl;
-  rv = domDocument->GetDocumentElement(getter_AddRefs(windowEl));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsIDocShell *shell = NS_CP_GetDocShellFromContext(aRequestingContext);
+  nsCOMPtr<nsIDocShellTreeItem> docShellTreeItem(do_QueryInterface(shell, &rv));
+  NS_ENSURE_SUCCESS(rv, nsnull);
 
-  nsAutoString windowType;
-  // GetDocumentElement may succeed but return nsnull, if it does, we'll
-  // treat the window as a non-msgcompose window.
-  if (windowEl)
-  {
-    rv = windowEl->GetAttribute(NS_LITERAL_STRING("windowtype"), windowType);
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
+  nsCOMPtr<nsIDocShellTreeItem> rootItem;
+  rv = docShellTreeItem->GetSameTypeRootTreeItem(getter_AddRefs(rootItem));
+  NS_ENSURE_SUCCESS(rv, nsnull);
 
-  aIsComposeWindow = windowType.Equals(NS_LITERAL_STRING("msgcompose"));
-  return NS_OK;
+  nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(rootItem, &rv));
+  NS_ENSURE_SUCCESS(rv, nsnull);
+
+  nsCOMPtr<nsIMsgComposeService> composeService(do_GetService(NS_MSGCOMPOSESERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, nsnull);
+
+  nsIMsgCompose* msgCompose = nsnull;
+  // Don't bother checking rv, as GetMsgComposeForDocShell returns NS_ERROR_FAILURE
+  // for not found. We default to nsnull, so we're still returning a valid value.
+  composeService->GetMsgComposeForDocShell(docShell, &msgCompose);
+  return msgCompose;
 }
 
 nsresult nsMsgContentPolicy::DisableJSOnMailNewsUrlDocshells(

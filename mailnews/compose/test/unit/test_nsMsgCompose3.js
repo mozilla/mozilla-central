@@ -47,7 +47,7 @@ function checkPopulate(aTo, aNonHTMLRecipients, aPreferMailOut, aCheckTo)
 
   params.composeFields = fields;
 
-  msgCompose.Initialize(null, params);
+  msgCompose.initialize(params);
 
   let nonHTMLRecipients = new Object();
 

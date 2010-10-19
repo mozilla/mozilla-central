@@ -785,12 +785,14 @@ nsMsgCompose::GetQuotingToFollow(PRBool* quotingToFollow)
 }
 
 NS_IMETHODIMP
-nsMsgCompose::Initialize(nsIDOMWindowInternal *aWindow, nsIMsgComposeParams *params)
+nsMsgCompose::Initialize(nsIMsgComposeParams *aParams,
+                         nsIDOMWindowInternal *aWindow,
+                         nsIDocShell *aDocShell)
 {
-  NS_ENSURE_ARG_POINTER(params);
+  NS_ENSURE_ARG_POINTER(aParams);
   nsresult rv;
 
-  params->GetIdentity(getter_AddRefs(m_identity));
+  aParams->GetIdentity(getter_AddRefs(m_identity));
 
   if (aWindow)
   {
@@ -811,17 +813,17 @@ nsMsgCompose::Initialize(nsIDOMWindowInternal *aWindow, nsIMsgComposeParams *par
   }
 
   MSG_ComposeFormat format;
-  params->GetFormat(&format);
+  aParams->GetFormat(&format);
 
   MSG_ComposeType type;
-  params->GetType(&type);
+  aParams->GetType(&type);
 
   nsCString originalMsgURI;
-  params->GetOriginalMsgURI(getter_Copies(originalMsgURI));
-  params->GetOrigMsgHdr(getter_AddRefs(mOrigMsgHdr));
+  aParams->GetOriginalMsgURI(getter_Copies(originalMsgURI));
+  aParams->GetOrigMsgHdr(getter_AddRefs(mOrigMsgHdr));
 
   nsCOMPtr<nsIMsgCompFields> composeFields;
-  params->GetComposeFields(getter_AddRefs(composeFields));
+  aParams->GetComposeFields(getter_AddRefs(composeFields));
 
   nsCOMPtr<nsIMsgComposeService> composeService = do_GetService(NS_MSGCOMPOSESERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -868,20 +870,21 @@ nsMsgCompose::Initialize(nsIDOMWindowInternal *aWindow, nsIMsgComposeParams *par
   }
 
   nsCOMPtr<nsIMsgSendListener> externalSendListener;
-  params->GetSendListener(getter_AddRefs(externalSendListener));
+  aParams->GetSendListener(getter_AddRefs(externalSendListener));
   if(externalSendListener)
     AddMsgSendListener( externalSendListener );
 
   nsCString smtpPassword;
-  params->GetSmtpPassword(getter_Copies(smtpPassword));
+  aParams->GetSmtpPassword(getter_Copies(smtpPassword));
   mSmtpPassword = smtpPassword;
 
-  params->GetHtmlToQuote(mHtmlToQuote);
+  aParams->GetHtmlToQuote(mHtmlToQuote);
 
-  if (aWindow)
+  if (aDocShell)
   {
+    mDocShell = aDocShell;
     // register the compose object with the compose service
-    rv = composeService->RegisterComposeWindow(aWindow, this);
+    rv = composeService->RegisterComposeDocShell(aDocShell, this);
     NS_ENSURE_SUCCESS(rv, rv);
   }
   return CreateMessage(originalMsgURI.get(), type, composeFields);
@@ -1359,8 +1362,9 @@ NS_IMETHODIMP nsMsgCompose::CloseWindow(PRBool recycleIt)
   NS_ENSURE_SUCCESS(rv,rv);
 
   // unregister the compose object with the compose service
-  rv = composeService->UnregisterComposeWindow(m_window);
+  rv = composeService->UnregisterComposeDocShell(mDocShell);
   NS_ENSURE_SUCCESS(rv, rv);
+  mDocShell = nsnull;
 
   recycleIt = recycleIt && !IsLastWindow();
   if (recycleIt)

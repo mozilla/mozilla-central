@@ -378,7 +378,7 @@ nsresult nsMapiHook::BlindSendMail (unsigned long aSession, nsIMsgCompFields * a
 
   /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
 
-  rv = pMsgCompose->Initialize(hiddenWindow, pMsgComposeParams) ;
+  rv = pMsgCompose->Initialize(pMsgComposeParams, hiddenWindow, nsnull);
   if (NS_FAILED(rv)) return rv ;
 
   return pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, pMsgId, nsnull, nsnull, nsnull) ;
