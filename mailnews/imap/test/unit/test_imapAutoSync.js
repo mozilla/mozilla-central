@@ -50,57 +50,6 @@
 // We also test that folders that have messages added to them via move/copy
 // get put in the front of the queue.
 
-// Override the system idle service, so that we can make autosync believe the
-// system is never idle. Make sure this happens at the very beginning, before
-// any code possibly using the idle service has had a chance to run.
-Components.utils.import("resource:///modules/XPCOMUtils.jsm");
-
-const Cm = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
-const IDLE_SERVICE_CONTRACTID = "@mozilla.org/widget/idleservice;1";
-var gRealIdleServiceCID = Cm.contractIDToCID(IDLE_SERVICE_CONTRACTID);
-const kMockIdleServiceCID = Components.ID("814042c1-d0f7-42d1-af88-2ed8f12663f1");
-
-var gMockIdleService = {
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIIdleService]),
-  // removeIdleObserver below might be called too late for Ci to work, so cache
-  // the interface
-  _nsIAutoSyncManager: Ci.nsIAutoSyncManager,
-  _realIdleService: Components.classesByID[gRealIdleServiceCID]
-                                          .getService(Ci.nsIIdleService),
-
-  addIdleObserver: function MockIdleService_addIdleObserver(aObserver, aTime) {
-    if (aObserver instanceof this._nsIAutoSyncManager)
-      return;
-    this._realIdleService.addIdleObserver(aObserver, aTime);
-  },
-
-  removeIdleObserver: function MockIdleService_removeIdleObserver(aObserver,
-                                                                  aTime) {
-    if (aObserver instanceof this._nsIAutoSyncManager)
-      return;
-    this._realIdleService.removeIdleObserver(aObserver, aTime);
-  },
-
-  get idleTime() {
-    // We'd ideally discriminate against the autosync manager here too, but we
-    // can't.
-    return this._realIdleServie.idleTime;
-  },
-};
-
-var gMockIdleServiceFactory = {
-  createInstance: function MISF_createInstance(aOuter, aIID) {
-    if (aOuter != null)
-      throw Components.results.NS_ERROR_NO_AGGREGATION;
-    return gMockIdleService.QueryInterface(aIID);
-  },
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIFactory]),
-};
-
-Cm.registerFactory(kMockIdleServiceCID, "Mock idle service",
-                   IDLE_SERVICE_CONTRACTID, gMockIdleServiceFactory);
-
 // IMAP pump
 load("../../../resources/IMAPpump.js");
 load("../../../resources/logHelper.js");
@@ -255,14 +204,6 @@ function endTest()
 
 function run_test()
 {
-  // Make sure the mock idle service got registered before any getService calls
-  // could happen for the real idle service.
-  let idleService = Cc[IDLE_SERVICE_CONTRACTID].getService(Ci.nsIIdleService);
-  // This explicitly gets the mock idle service.
-  let mockIdleService = Components.classesByID[kMockIdleServiceCID]
-                                  .getService(Ci.nsIIdleService);
-  do_check_eq(idleService, mockIdleService);
-
   // Add folder listeners that will capture async events
   const nsIMFNService = Ci.nsIMsgFolderNotificationService;
   let MFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
