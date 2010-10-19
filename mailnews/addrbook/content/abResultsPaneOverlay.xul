@@ -56,62 +56,62 @@
 
   <treecols id="abResultsTreeCols">
   <!-- these column ids must match up to the mork column names, except for GeneratedName, see nsIAddrDatabase.idl -->
-    <treecol id="GeneratedName" class="sortDirectionIndicator"
+    <treecol id="GeneratedName"
              persist="hidden ordinal width sortDirection" flex="1" 
              label="&GeneratedName.label;" primary="true"/>
     <splitter class="tree-splitter"/>
-    <treecol id="PrimaryEmail" class="sortDirectionIndicator"
+    <treecol id="PrimaryEmail"
              persist="hidden ordinal width sortDirection" flex="1"
              label="&PrimaryEmail.label;"/>
     <splitter class="tree-splitter"/>
-    <treecol id="_AimScreenName" class="sortDirectionIndicator"
+    <treecol id="_AimScreenName"
              persist="hidden ordinal width sortDirection" flex="1"
              label="&ScreenName.label;"/>
     <splitter class="tree-splitter"/>
-    <treecol id="Company" class="sortDirectionIndicator"
+    <treecol id="Company"
              persist="hidden ordinal width sortDirection" flex="1"
              label="&Company.label;"/>
     <splitter class="tree-splitter"/>
-    <treecol id="NickName" class="sortDirectionIndicator"
+    <treecol id="NickName"
              persist="hidden ordinal width sortDirection" flex="1"
              label="&NickName.label;" hidden="true"/>
     <splitter class="tree-splitter"/>
-    <treecol id="SecondEmail" class="sortDirectionIndicator" 
+    <treecol id="SecondEmail"
              persist="hidden ordinal width sortDirection" flex="1"
              label="&SecondEmail.label;" hidden="true"/>
     <splitter class="tree-splitter"/>
-    <treecol id="Department" class="sortDirectionIndicator" 
+    <treecol id="Department"
              persist="hidden ordinal width sortDirection" flex="1"
              label="&Department.label;" hidden="true"/>
     <splitter class="tree-splitter"/>
-    <treecol id="JobTitle" class="sortDirectionIndicator" 
+    <treecol id="JobTitle"
              persist="hidden ordinal width sortDirection" flex="1"
              label="&JobTitle.label;" hidden="true"/>
     <splitter class="tree-splitter"/>
-    <treecol id="CellularNumber" class="sortDirectionIndicator"
+    <treecol id="CellularNumber"
              persist="hidden ordinal width sortDirection" flex="1"
              label="&CellularNumber.label;" hidden="true"/>
     <splitter class="tree-splitter"/>
-    <treecol id="PagerNumber" class="sortDirectionIndicator" 
+    <treecol id="PagerNumber"
              persist="hidden ordinal width sortDirection" flex="1"
              label="&PagerNumber.label;" hidden="true"/>
     <splitter class="tree-splitter"/>
-    <treecol id="FaxNumber" class="sortDirectionIndicator" 
+    <treecol id="FaxNumber"
              persist="hidden ordinal width sortDirection" flex="1"
              label="&FaxNumber.label;" hidden="true"/>
     <splitter class="tree-splitter"/>
-    <treecol id="HomePhone" class="sortDirectionIndicator" 
+    <treecol id="HomePhone"
              persist="hidden ordinal width sortDirection" flex="1"
              label="&HomePhone.label;" hidden="true"/>
     <splitter class="tree-splitter"/>
-    <treecol id="WorkPhone" class="sortDirectionIndicator" 
+    <treecol id="WorkPhone"
              persist="hidden ordinal width sortDirection" flex="1"
              label="&WorkPhone.label;"/>
     
     <!-- LOCALIZATION NOTE: _PhoneticName may be enabled for Japanese builds. -->
     <!--
     <splitter class="tree-splitter"/>
-    <treecol id="_PhoneticName" class="sortDirectionIndicator" 
+    <treecol id="_PhoneticName"
              persist="hidden ordinal width sortDirection" flex="1"
              label="&_PhoneticName.label;" hidden="true"/>
      -->

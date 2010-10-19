@@ -398,13 +398,13 @@
       <treecol id="Name"
                label="&col.name.label;"
                tooltiptext="&col.name.tooltip;"
-               class="sortDirectionIndicator" flex="3"
+               flex="3"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
       <treecol id="Status" hidden="true"
                label="&col.status.label;"
                tooltiptext="&col.status.tooltip;"
-               class="sortDirectionIndicator" flex="1"
+               flex="1"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
       <treecol id="ActionPlay" cycler="true"
@@ -422,55 +422,55 @@
       <treecol id="Progress" type="progressmeter"
                label="&col.progress.label;"
                tooltiptext="&col.progress.tooltip;"
-               class="sortDirectionIndicator" flex="3"
+               flex="3"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
       <treecol id="ProgressPercent" hidden="true"
                label="&col.progresstext.label;"
                tooltiptext="&col.progresstext.tooltip;"
-               class="sortDirectionIndicator" flex="1"
+               flex="1"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
       <treecol id="TimeRemaining"
                label="&col.timeremaining.label;"
                tooltiptext="&col.timeremaining.tooltip;"
-               class="sortDirectionIndicator" flex="1"
+               flex="1"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
       <treecol id="Transferred"
                label="&col.transferred.label;"
                tooltiptext="&col.transferred.tooltip;"
-               class="sortDirectionIndicator" flex="1"
+               flex="1"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
       <treecol id="TransferRate"
                label="&col.transferrate.label;"
                tooltiptext="&col.transferrate.tooltip;"
-               class="sortDirectionIndicator" flex="1"
+               flex="1"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
       <treecol id="TimeElapsed" hidden="true"
                label="&col.timeelapsed.label;"
                tooltiptext="&col.timeelapsed.tooltip;"
-               class="sortDirectionIndicator" flex="1"
+               flex="1"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
       <treecol id="StartTime" hidden="true"
                label="&col.starttime.label;"
                tooltiptext="&col.starttime.tooltip;"
-               class="sortDirectionIndicator" flex="1"
+               flex="1"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
       <treecol id="EndTime" hidden="true"
                label="&col.endtime.label;"
                tooltiptext="&col.endtime.tooltip;"
-               class="sortDirectionIndicator" flex="1"
+               flex="1"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
       <treecol id="Source" hidden="true"
                label="&col.source.label;"
                tooltiptext="&col.source.tooltip;"
-               class="sortDirectionIndicator" flex="1"
+               flex="1"
                persist="width hidden ordinal sortActive sortDirection"/>
     </treecols>
     <treechildren ondblclick="goDoCommand('cmd_open');"

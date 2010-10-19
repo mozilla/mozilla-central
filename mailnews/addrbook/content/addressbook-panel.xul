@@ -108,10 +108,10 @@
           sortCol="GeneratedName" persist="sortCol">
   <treecols>
     <!-- these column ids must match up to the mork column names, see nsIAddrDatabase.idl -->
-    <treecol id="GeneratedName" class="sortDirectionIndicator" 
+    <treecol id="GeneratedName"
           persist="hidden ordinal width sortDirection" flex="1" label="&GeneratedName.label;" primary="true"/>
     <splitter class="tree-splitter"/>
-    <treecol id="PrimaryEmail" class="sortDirectionIndicator" 
+    <treecol id="PrimaryEmail"
           persist="hidden ordinal width sortDirection" 
       hiddenbydefault="true"
       flex="1" label="&PrimaryEmail.label;"/>
