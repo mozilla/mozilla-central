@@ -390,6 +390,7 @@
 @BINPATH@/components/nsWebHandlerApp.js
 @BINPATH@/components/nsWebHandlerApp.manifest
 @BINPATH@/components/passwordmgr.manifest
+@BINPATH@/components/PlacesCategoriesStarter.js
 @BINPATH@/components/pluginGlue.manifest
 @BINPATH@/components/smileApplication.js
 @BINPATH@/components/smileApplication.manifest
