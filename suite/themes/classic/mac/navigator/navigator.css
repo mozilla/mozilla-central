@@ -312,6 +312,10 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   list-style-image: url("chrome://communicator/skin/icons/geolocation-64.png");
 }
 
+.popup-notification-icon[popupid="password-save"] {
+  list-style-image: url("chrome://mozapps/skin/passwordmgr/key-64.png");
+}
+
 /* Notification icon box */
 #notification-popup-box {
   margin: 0 3px;
@@ -324,6 +328,12 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
 
 #geo-notification-icon {
   list-style-image: url("chrome://communicator/skin/icons/geolocation-16.png");
+  width: 16px;
+  height: 16px;
+}
+
+#password-notification-icon {
+  list-style-image: url("chrome://mozapps/skin/passwordmgr/key-16.png");
   width: 16px;
   height: 16px;
 }

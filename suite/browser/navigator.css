@@ -68,7 +68,8 @@ panel[for="urlbar"] {
   -moz-user-focus: normal;
 }
 
-#notification-popup-box[anchorid="geo-notification-icon"] > #geo-notification-icon {
+#notification-popup-box[anchorid="geo-notification-icon"] > #geo-notification-icon,
+#notification-popup-box[anchorid="password-notification-icon"] > #password-notification-icon {
   display: -moz-box;
 }
 
