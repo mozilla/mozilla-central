@@ -163,6 +163,7 @@
             <tree id="editBMPanel_folderTree"
                   class="placesTree"
                   type="places"
+                  treelines="true"
                   height="150"
                   editable="true"
                   onselect="gEditItemOverlay.onFolderTreeSelect();"

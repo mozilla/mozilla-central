@@ -324,8 +324,7 @@ var PlacesCommandHook = {
         StarUI.beginBatch();
       }
 
-      var parent = aParent != undefined ?
-                   aParent : PlacesUtils.unfiledBookmarksFolderId;
+      var parent = aParent || PlacesUtils.unfiledBookmarksFolderId;
       var descAnno = { name: PlacesUIUtils.DESCRIPTION_ANNO, value: description };
       var txn = PlacesUIUtils.ptm.createItem(uri, parent, -1,
                                              title, null, [descAnno]);
@@ -351,6 +350,37 @@ var PlacesCommandHook = {
     }
 
     StarUI.showEditBookmarkPopup(itemId, aBrowser, "overlap");
+  },
+
+  /**
+   * Adds a bookmark to the page loaded in the given browser using the
+   * properties dialog.
+   *
+   * @param aBrowser
+   *        a <browser> element.
+   * @param [optional] aParent
+   *        The folder in which to create a new bookmark if the page loaded in
+   *        aBrowser isn't bookmarked yet, defaults to the unfiled root.
+   */
+  bookmarkPageAs: function PCH_bookmarkPageAs(aBrowser, aParent) {
+    var uri = aBrowser.currentURI;
+    var webNav = aBrowser.webNavigation;
+    var url = webNav.currentURI;
+    var title;
+    var description;
+    try {
+      title = webNav.document.title || url.spec;
+      description = PlacesUIUtils.getDescriptionFromDocument(webNav.document);
+    }
+    catch (e) { }
+
+    var parent = aParent || PlacesUtils.bookmarksMenuFolderId;
+
+    var insertPoint = new InsertionPoint(parent,
+                                         PlacesUtils.bookmarks.DEFAULT_INDEX);
+    var hiddenRows = ["loadInSidebar"];
+    PlacesUIUtils.showAddBookmarkUI(uri, title, description, insertPoint, true,
+                                    null, null, null, null, hiddenRows);
   },
 
   /**

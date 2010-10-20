@@ -191,7 +191,7 @@
              oncommand="PlacesCommandHook.bookmarkCurrentPage(false, PlacesUtils.bookmarksMenuFolderId);"/>
     <command id="Browser:AddBookmarkAs"
              label="&addCurPageAsCmd.label;" accesskey="&addCurPageAsCmd.accesskey;"
-             oncommand="PlacesCommandHook.bookmarkCurrentPage(true, PlacesUtils.bookmarksMenuFolderId);"/>
+             oncommand="PlacesCommandHook.bookmarkPageAs(gBrowser.selectedBrowser, PlacesUtils.bookmarksMenuFolderId);"/>
     <!-- The command is disabled for the hidden window. Otherwise its enabled
          state is handled by gBookmarkAllTabsHandler. -->
     <command id="Browser:BookmarkAllTabs"

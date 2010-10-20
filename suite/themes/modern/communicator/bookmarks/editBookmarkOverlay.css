@@ -69,6 +69,7 @@
 
 #editBookmarkPanelContent {
   min-width: 23em;
+  width: 32em;
 }
 
 #editBMPanel_folderTree {

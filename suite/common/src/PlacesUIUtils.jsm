@@ -347,6 +347,9 @@ var PlacesUIUtils = {
    *        POST data for POST-style keywords.
    * @param [optional] aCharSet
    *        The character set for the bookmarked page.
+   * @param [optional] aHiddenRows
+   *        An array of rows to hide that is passed through to the
+            bookmark properties dialog.
    * @return true if any transaction has been performed.
    *
    * Notes:
@@ -363,7 +366,8 @@ var PlacesUIUtils = {
                                                      aLoadInSidebar,
                                                      aKeyword,
                                                      aPostData,
-                                                     aCharSet) {
+                                                     aCharSet,
+                                                     aHiddenRows) {
     var info = {
       action: "add",
       type: "bookmark"
@@ -379,10 +383,12 @@ var PlacesUIUtils = {
     if (aDescription)
       info.description = aDescription;
 
+    info.hiddenRows = aHiddenRows || [];
+
     if (aDefaultInsertionPoint) {
       info.defaultInsertionPoint = aDefaultInsertionPoint;
       if (!aShowPicker)
-        info.hiddenRows = ["folderPicker"];
+        info.hiddenRows.push("folderPicker");
     }
 
     if (aLoadInSidebar)
