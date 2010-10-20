@@ -7,7 +7,7 @@
      <rdf:Seq><rdf:li>
        <rdf:Description ID="Account_Settings"
          nc:name="Account Settings"
-         nc:link="mail_help.xhtml#changing_the_settings_for_an_account"/>
+         nc:link="mailnews_getting_started.xhtml#changing_the_settings_for_an_account"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="adding"
@@ -41,17 +41,17 @@
      <rdf:li>
        <rdf:Description ID="adding:blog_account"
          nc:name="creating a new blog account"
-         nc:link="mail_help.xhtml#setting_up_additional_mail_and_news_accounts"/>
+         nc:link="mailnews_getting_started.xhtml#setting_up_additional_mail_and_news_accounts"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="adding:mail_account"
          nc:name="creating a new mail account"
-         nc:link="mail_help.xhtml#setting_up_additional_mail_and_news_accounts"/>
+         nc:link="mailnews_getting_started.xhtml#setting_up_additional_mail_and_news_accounts"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="adding:newsgroup_account"
          nc:name="adding a new newsgroup account"
-         nc:link="mail_help.xhtml#setting_up_additional_mail_and_news_accounts"/>
+         nc:link="mailnews_getting_started.xhtml#setting_up_additional_mail_and_news_accounts"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="adding:table_elements"
@@ -921,7 +921,7 @@
      <rdf:li>
        <rdf:Description ID="import:mail"
          nc:name="import mail or settings from other programs"
-         nc:link="mail_help.xhtml#importing_mail_from_other_programs"/>
+         nc:link="mailnews_getting_started.xhtml#importing_mail_from_other_programs"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -1075,7 +1075,7 @@
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups"
          nc:name="Mail and Newsgroups"
-         nc:link="mail_help.xhtml"/>
+         nc:link="mailnews_getting_started.xhtml"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="master_password"
@@ -1095,12 +1095,12 @@
      <rdf:Seq><rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:Account_Setup_Wizard"
          nc:name="Account Setup Wizard"
-         nc:link="mail_help.xhtml#using_the_mail_account_setup_wizard"/>
+         nc:link="mailnews_getting_started.xhtml#using_the_mail_account_setup_wizard"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:adding_accounts"
          nc:name="adding accounts"
-         nc:link="mail_help.xhtml#setting_up_additional_mail_and_news_accounts"/>
+         nc:link="mailnews_getting_started.xhtml#setting_up_additional_mail_and_news_accounts"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:address_autocompletion"
@@ -1130,7 +1130,7 @@
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:changing_account_settings"
          nc:name="changing account settings"
-         nc:link="mail_help.xhtml#changing_the_settings_for_an_account"/>
+         nc:link="mailnews_getting_started.xhtml#changing_the_settings_for_an_account"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:Character_Encoding"
