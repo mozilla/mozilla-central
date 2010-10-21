@@ -99,14 +99,14 @@ html|div#expandedHeadersTopBox {
   border: 1px solid transparent;
   font-size: 100%;
   padding-top: 0px;
-  -moz-box-shadow: none;
+  box-shadow: none;
 }
 
 #otherActionsButton:hover {
   color: black;
   border: 1px solid rgb(145,145,145);
   background-color: rgb(210,210,210);
-  -moz-box-shadow: 0px 4px 4px 0px rgb(255,255,255) inset;
+  box-shadow: 0 4px 3px 0 rgb(255,255,255) inset;
 }
 
 
@@ -259,13 +259,13 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   list-style-image: none; /* overrides the rule from primaryToolbar.css */
   background-color: rgb(210,210,210);
   border: 1px solid rgb(145,145,145);
-  -moz-box-shadow: 0px 20px 16px -10px rgb(255,255,255) inset, 0px 1px rgba(255,255,255, 0.4);
+  box-shadow: 0 20px 11.5px -10px rgb(255,255,255) inset, 0 1px rgba(255,255,255, 0.4);
 }
 
 .msgHeaderView-button:active,
 .msgHeaderView-button[type="menu-button"][open] {
   background-color: rgb(186,186,186);
-  -moz-box-shadow: 0px 4px 4px 0px rgb(140,140,140) inset;
+  box-shadow: 0 4px 3px 0 rgb(140,140,140) inset;
 }
 
 .msgHeaderView-flat-button {

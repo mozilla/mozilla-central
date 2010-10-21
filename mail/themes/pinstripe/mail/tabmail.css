@@ -112,7 +112,7 @@
 }
 
 .tabmail-tabs:-moz-lwtheme {
-  -moz-box-shadow: inset 0 1px 0 rgba(50,50,50,.5);
+  box-shadow: inset 0 1px 0 rgba(50,50,50,.5);
 }
 
 .tabmail-tab:-moz-lwtheme[selected="true"] {
@@ -152,7 +152,7 @@
 .tabs-container:-moz-lwtheme-darktext > .tabs-closebutton,
 .tabbrowser-arrowscrollbox:-moz-lwtheme-darktext > .scrollbutton-up,
 .tabmail-arrowscrollbox:-moz-lwtheme-darktext > .scrollbutton-down {
-  -moz-box-shadow: inset 0 1px 0 rgba(50,50,50,.5);
+  box-shadow: inset 0 1px 0 rgba(50,50,50,.5);
 }
 
 .tabs-newtab-button:-moz-lwtheme-brighttext,
@@ -160,7 +160,7 @@
 .tabs-container:-moz-lwtheme-brighttext > .tabs-closebutton,
 .tabmail-arrowscrollbox:-moz-lwtheme-brighttext > .scrollbutton-up,
 .tabmail-arrowscrollbox:-moz-lwtheme-brighttext > .scrollbutton-down {
-  -moz-box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
 }
 
 .tabmail-tab:not([selected="true"]) {

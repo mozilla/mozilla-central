@@ -96,7 +96,7 @@ body {
   font-size: 80%;
   overflow: hidden;
   border-radius: 5px;
-  -moz-box-shadow: 1px 1px 1px black;
+  box-shadow: 1px 1px 1px black;
 }
 
 .popup-menuitem {

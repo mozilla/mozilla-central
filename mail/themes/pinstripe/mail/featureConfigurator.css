@@ -14,14 +14,14 @@
   text-shadow: rgba(255, 255, 255, 0.4) 0 1px;
   border: 1px solid rgba(0, 0, 0, 0.6);
   border-radius: 3px;
-  -moz-box-shadow: inset 0 20px 16px -10px #FFF, 0 1px rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 20px 11.5px -10px #FFF, 0 1px rgba(255, 255, 255, 0.4);
 }
 
 #buttons button:hover:active:not([disabled="true"]) {
   background: #B5B5B5;
   text-shadow: rgba(255, 255, 255, 0.4) 0 1px;
-  -moz-box-shadow: inset rgba(0, 0, 0, 0.4) 0 -5px 12px,
-                   inset rgba(0, 0, 0, 1) 0 1px 3px,
+  box-shadow: inset rgba(0, 0, 0, 0.4) 0 -5px 8.5px,
+                   inset rgba(0, 0, 0, 1) 0 1px 2px,
                    0 1px rgba(255, 255, 255, 0.4);
 
 }

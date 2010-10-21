@@ -95,7 +95,7 @@
 #quick-filter-bar toolbarbutton[checked="true"],
 #quick-filter-bar toolbarbutton[checked="true"]:hover {
   background-color: rgba(136, 136, 136, 1);
-  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.4), 0 1px rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.4), 0 1px rgba(255, 255, 255, 0.4);
   color: #FFF !important;
   text-shadow: 0 1px rgba(0, 0, 0, .4) !important;
 }
@@ -104,7 +104,7 @@
 #quick-filter-bar toolbarbutton[checked="true"]:active,
 #quick-filter-bar toolbarbutton:active:hover {
   background-color: rgba(0, 0, 0, .5);
-  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.4), 0 1px rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.4), 0 1px rgba(255, 255, 255, 0.4);
   color: #FFF;
   text-shadow: 0 1px rgba(0, 0, 0, .4) !important;
 }
