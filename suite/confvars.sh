@@ -55,8 +55,6 @@ MOZ_UPDATER=1
 MOZ_HELP_VIEWER=1
 MOZ_MORK=1
 MOZ_STATIC_BUILD_UNSUPPORTED=1
-# XXX This currently specifies mork due to an error in the core build
-# config. Bug 598613 will fix this.
-MOZ_APP_COMPONENT_LIBS="mail msgsmime import xpautocomplete mork $LDAP_COMPONENT"
+MOZ_APP_COMPONENT_LIBS="mail msgsmime import xpautocomplete $LDAP_COMPONENT"
 MOZ_APP_EXTRA_LIBS="$LDAP_LIBS"
 MOZ_APP_COMPONENT_INCLUDE=nsSuiteComponents.h

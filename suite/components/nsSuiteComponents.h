@@ -39,6 +39,4 @@
 // mail/components/build/nsMailComponents.h
 // needs updating to.
 
-// XXX This currently specifies nsMorkModule due to an error in the core build
-// config. Bug 598613 will fix this.
-#define APP_COMPONENT_MODULES MODULE(xpAutoComplete) MODULE(nsMailModule) MODULE(nsMsgSMIMEModule) MODULE(nsImportServiceModule) MODULE(nsLDAPProtocolModule) MODULE(nsMorkModule)
+#define APP_COMPONENT_MODULES MODULE(xpAutoComplete) MODULE(nsMailModule) MODULE(nsMsgSMIMEModule) MODULE(nsImportServiceModule) MODULE(nsLDAPProtocolModule)
