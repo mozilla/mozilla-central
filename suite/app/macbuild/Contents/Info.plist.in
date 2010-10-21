@@ -28,7 +28,9 @@
 	<true/>
 	<key>CGDisableCoalescedUpdates</key>
 	<true/>
-	<key>CFBundleDocumentTypes</key>
+        <key>LSMinimumSystemVersion</key>
+        <string>10.5.0</string>
+        <key>CFBundleDocumentTypes</key>
 	<array>
 	
 	<!--Updated Metadata begins here-->
