@@ -396,8 +396,10 @@
 
                 // hide the last node spanning into the additional line (n>1)
                 // also hide it if <30px left after sliding the address (n=1)
+                // or if the last address would be truncated without "more"
                 if (curLine >= this.maxLinesBeforeMore &&
                     (this.maxLinesBeforeMore > 1 ||
+                     (i+1 == this.mAddresses.length && overLineWidth > 30) ||
                      newLineWidth - overLineWidth < 30)) {
                   aAddressesNode.lastChild.hidden = true;
                   i--;
