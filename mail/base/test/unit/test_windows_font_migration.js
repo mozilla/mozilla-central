@@ -282,16 +282,20 @@ function test_migrating_non_default_font_sizes(aVerifier) {
   gPrefBranch.setIntPref("font.size.variable.x-unicode", 20);
   gPrefBranch.setIntPref("font.size.fixed.x-western", 30);
   gPrefBranch.setIntPref("font.size.variable.x-central-euro", 40);
+  gPrefBranch.setIntPref("font.size.fixed.x-cyrillic", 50);
+  gPrefBranch.setIntPref("font.size.variable.x-baltic", 60);
+  gPrefBranch.setIntPref("font.size.fixed.el", 70);
+  gPrefBranch.setIntPref("font.size.variable.tr", 80);
 
   MailMigrator.migrateToClearTypeFonts();
 
   aVerifier("x-unicode", {variableSizeNonMigrated: 20});
   aVerifier("x-western", {fixedSizeNonMigrated: 30});
   aVerifier("x-central-euro", {variableSizeNonMigrated: 40});
-  aVerifier("x-cyrillic", null);
-  aVerifier("x-baltic", null);
-  aVerifier("el", null);
-  aVerifier("tr", null);
+  aVerifier("x-cyrillic", {fixedSizeNonMigrated: 50});
+  aVerifier("x-baltic", {variableSizeNonMigrated: 60});
+  aVerifier("el", {fixedSizeNonMigrated: 70});
+  aVerifier("tr", {variableSizeNonMigrated: 80});
 }
 
 /**
