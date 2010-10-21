@@ -653,7 +653,7 @@ function calGetString(aBundleName, aStringName, aParams, aComponent) {
 }
 
 /**
- * Gets the value of a the fiels of a string array in a .properties file from the calendar bundle
+ * Gets the value of the fields of a string array in a .properties file from the calendar bundle
  *
  * @param aBundleName  the name of the properties file. It is assumed that the
  *                     file lives in chrome://calendar/locale/

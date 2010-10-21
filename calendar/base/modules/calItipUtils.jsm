@@ -602,7 +602,7 @@ ItipOpListener.prototype = {
 };
 
 /** local to this module file
- * Add a the parameter SCHEDULE-AGENT=CLIENT to the item before it is
+ * Add a parameter SCHEDULE-AGENT=CLIENT to the item before it is
  * created or updated so that the providers knows scheduling will
  * be handled by the client.
  *
