@@ -147,6 +147,9 @@ endif
 ifdef ENABLE_TESTS
 
 ifdef XPCSHELL_TESTS
+ifndef relativesrcdir
+$(error Must define relativesrcdir when defining XPCSHELL_TESTS.)
+endif
 
 testxpcobjdir = $(MOZDEPTH)/_tests/xpcshell
 
@@ -1758,7 +1761,7 @@ endif
 ifneq (,$(filter %.js,$(EXTRA_COMPONENTS) $(EXTRA_PP_COMPONENTS)))
 ifeq (,$(filter %.manifest,$(EXTRA_COMPONENTS) $(EXTRA_PP_COMPONENTS)))
 ifndef NO_JS_MANIFEST
-$(error .js component without matching .manifest)
+$(error .js component without matching .manifest. See https://developer.mozilla.org/en/XPCOM/XPCOM_changes_in_Gecko_2.0)
 endif
 endif
 endif
@@ -2241,5 +2244,5 @@ CHECK_FROZEN_VARIABLES = $(foreach var,$(FREEZE_VARIABLES), \
 libs export libs::
 	$(CHECK_FROZEN_VARIABLES)
 
-default::
+default all::
 	if test -d $(DIST)/bin ; then touch $(DIST)/bin/.purgecaches ; fi
