@@ -408,8 +408,35 @@ var nsMailDefaultHandler = {
         }
       }
       else {
-        openURI(cmdLine.resolveURI(uri));
-        // XXX: add error-handling here! (error dialog, if nothing else)
+        // This must be a regular filename. Use it to create a new message with attachment.
+        try {
+          let msgComposeService = Components.classes["@mozilla.org/messengercompose;1"]
+                                            .getService(Components.interfaces.nsIMsgComposeService);
+          let msgParams = Components.classes["@mozilla.org/messengercompose/composeparams;1"]
+                                    .createInstance(Components.interfaces.nsIMsgComposeParams);
+          let composeFields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
+                                        .createInstance(Components.interfaces.nsIMsgCompFields);
+          let attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
+                                     .createInstance(Components.interfaces.nsIMsgAttachment);
+          let localFile = Components.classes["@mozilla.org/file/local;1"]
+                                    .createInstance(Components.interfaces.nsILocalFile);
+          let ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                                    .getService(Components.interfaces.nsIIOService);
+          let fileHandler = ioService.getProtocolHandler("file")
+                                     .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+
+          localFile.initWithPath(uri);
+          attachment.url = fileHandler.getURLSpecFromFile(localFile);;
+          composeFields.addAttachment(attachment);
+
+          msgParams.type = Components.interfaces.nsIMsgCompType.New;
+          msgParams.format = Components.interfaces.nsIMsgCompFormat.Default;
+          msgParams.composeFields = composeFields;
+
+          msgComposeService.OpenComposeWindowWithParams(null, msgParams);
+        } catch (e) {
+          dump(e);
+        }
       }
     } else {
       var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
