@@ -188,13 +188,16 @@
              prefstring="mail.server.%serverkey%.check_time"/>
     <label id="biffEnd" control="server.biffMinutes" value="&biffEnd.label;"/>
   </hbox>
-  <!-- POP3 -->
-  <vbox align="start" hidefor="imap,nntp,movemail">
+  <!-- Necessary for POP3 and Movemail (Bug 480945) -->
+  <!-- https://bugzilla.mozilla.org/show_bug.cgi?id=480945 -->
+  <vbox align="start" hidefor="imap,nntp">
     <checkbox wsm_persist="true" id="server.downloadOnBiff"
               label="&downloadOnBiff.label;" prefattribute="value"
               accesskey="&downloadOnBiff.accesskey;"
               prefstring="mail.server.%serverkey%.download_on_biff"/>
-
+  </vbox>
+  <!-- POP3 -->
+  <vbox align="start" hidefor="imap,nntp,movemail">
     <checkbox wsm_persist="true" id="pop3.headersOnly"
               label="&headersOnly.label;"
               accesskey="&headersOnly.accesskey;"
