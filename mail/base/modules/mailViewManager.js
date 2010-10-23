@@ -125,7 +125,7 @@ var MailViewManager = {
       if (mailView.mailViewName == aName)
         return this._wrapCustomView(i);
     }
-    throw Exception("No custom view with name: " + aName);
+    throw new Error("No custom view with name: " + aName);
   },
 
   /**

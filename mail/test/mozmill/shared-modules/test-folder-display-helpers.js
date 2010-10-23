@@ -1762,7 +1762,7 @@ function _internal_assert_displayed(trustSelection, troller, desiredIndices) {
     // make sure the message display thinks we are in multi-message mode
     if (troller.messageDisplay.singleMessageDisplay)
       throw new Error("Message display should not be in single message display"+
-                      "mode!  Selected indices: " + selectedIndices);
+                      "mode!  Desired indices: " + desiredIndices);
 
     // now make sure that we actually are in nultiple message display mode
     let singleMessagePane = troller.e("singlemessage");
