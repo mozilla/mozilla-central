@@ -104,7 +104,7 @@ function createMessage(folding, input) {
   var params = Cc["@mozilla.org/messengercompose/composeparams;1"]
                  .createInstance(Ci.nsIMsgComposeParams);
   params.composeFields = fields;
-  msgCompose.Initialize(null, params);
+  msgCompose.initialize(params);
   var identity = getSmtpIdentity(null, gSmtpServer);
 
   var rootFolder = gLocalIncomingServer.rootMsgFolder;
