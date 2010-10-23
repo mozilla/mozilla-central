@@ -138,3 +138,15 @@
 #help-sidebar-splitter {
   -moz-border-end: 1px solid #BEBEBE;
 }
+
+
+/* make findbar appear above content */
+#appcontent {
+  -moz-box-direction: reverse;
+}
+
+/* style findbar for being on top */
+#FindToolbar {
+  border-top: none;
+  border-bottom: 1px solid #888888;
+}

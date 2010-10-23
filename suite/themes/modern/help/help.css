@@ -171,3 +171,8 @@ toolbar toolbarbutton {
 #context-copy[disabled="true"] {
   display: none;
 }
+
+/* make findbar appear above content */
+#appcontent {
+  -moz-box-direction: reverse;
+}

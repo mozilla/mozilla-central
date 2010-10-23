@@ -122,3 +122,18 @@
 #help-print-button[disabled="true"] {
   -moz-image-region: rect(0 119px 29px 90px);
 }
+
+/* make findbar appear above content */
+#appcontent {
+  -moz-box-direction: reverse;
+}
+
+/* style findbar for being on top */
+#FindToolbar {
+  border-top: none;
+  border-bottom: 2px solid;
+  -moz-border-bottom-colors: ThreeDShadow ThreeDHighlight;
+  padding-top: 1px;
+  padding-bottom: 0px;
+  min-width: 1px;
+}
