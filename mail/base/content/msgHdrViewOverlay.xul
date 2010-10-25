@@ -133,7 +133,8 @@
                    defaulticonsize="small"
                    minwidth="50px"
                    defaultlabelalign="end"
-                   defaultmode="full">
+                   defaultmode="full"
+                   style="float: right;">
             <toolbarpalette id="header-view-toolbar-palette">
               <!-- XXXdmose need to move these commands to a controller, either
                    on the header view, the message pane, or the default
