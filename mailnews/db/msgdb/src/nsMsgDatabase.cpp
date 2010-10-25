@@ -445,36 +445,6 @@ void nsMsgDatabase::GetGlobalPrefs()
   }
 }
 
-// we never need to call this because we check the use cache first,
-// and any hdr in this cache will be in the use cache.
-nsresult nsMsgDatabase::GetHdrFromCache(nsMsgKey key, nsIMsgDBHdr* *result)
-{
-  if (!result)
-    return NS_ERROR_NULL_POINTER;
-
-  nsresult rv = NS_ERROR_FAILURE;
-
-  *result = nsnull;
-  if (m_bCacheHeaders && m_cachedHeaders)
-  {
-    PLDHashEntryHdr *entry;
-    entry = PL_DHashTableOperate(m_cachedHeaders, (const void *) key, PL_DHASH_LOOKUP);
-    if (PL_DHASH_ENTRY_IS_BUSY(entry))
-    {
-      MsgHdrHashElement* element = reinterpret_cast<MsgHdrHashElement*>(entry);
-      *result = element->mHdr;
-      // need to do our own add ref because the PL_DHashTable doesn't addref.
-      if (*result)
-      {
-        NS_ADDREF(*result);
-        rv = NS_OK;
-      }
-    }
-
-  }
-  return rv;
-}
-
 nsresult nsMsgDatabase::AddHdrToCache(nsIMsgDBHdr *hdr, nsMsgKey key) // do we want key? We could get it from hdr
 {
   if (m_bCacheHeaders)

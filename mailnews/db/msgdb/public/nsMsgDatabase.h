@@ -348,7 +348,6 @@ protected:
   nsIMsgHeaderParser  *m_HeaderParser;
   
   // header caching stuff - MRU headers, keeps them around in memory
-  nsresult      GetHdrFromCache(nsMsgKey key, nsIMsgDBHdr* *result);
   nsresult      AddHdrToCache(nsIMsgDBHdr *hdr, nsMsgKey key);
   nsresult      ClearHdrCache(PRBool reInit);
   nsresult      RemoveHdrFromCache(nsIMsgDBHdr *hdr, nsMsgKey key);
