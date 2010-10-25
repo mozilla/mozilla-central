@@ -72,6 +72,7 @@ _BROWSER_FILES = browser_bug413915.js \
                  plugin_test.html \
                  plugin_both.html \
                  plugin_both2.html \
+                 browser_popupNotification.js \
                  browser_scope.js \
                  browser_alltabslistener.js \
                  alltabslistener.html \
