@@ -2522,6 +2522,13 @@ function assert_equals(a, b, comment)
   assert_true(a == b, comment + ": '"+ a + "' != '" + b + "'.");
 }
 
+function assert_not_equals(a, b, comment)
+{
+  if (!comment)
+    comment = "a == b";
+  assert_true(a != b, comment + ": '"+ a + "' == '" + b + "'.");
+}
+
 // something less sucky than do_check_true
 function assert_true(aBeTrue, aWhy) {
   if (!aBeTrue)

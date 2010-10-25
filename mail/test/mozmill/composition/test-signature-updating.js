@@ -71,7 +71,7 @@ var setupModule = function (module) {
 
 function setupComposeWin(toAddr, subj, body) {
   cwc.type(cwc.a("addressingWidget", {class: "addressingWidgetCell", crazyDeck: 1}), toAddr);
-  cwc.type(cwc.eid("msgSubject"), subj)
+  cwc.type(cwc.eid("msgSubject"), subj);
   cwc.type(cwc.eid("content-frame"), body);
 }
 
@@ -79,9 +79,13 @@ function setupComposeWin(toAddr, subj, body) {
  * Test that the plaintext compose window has a signature initially,
  * and has the correct signature after switching to another identity.
  */
-function testPlaintextComposeWindowSwitchSignatures() {
+function plaintextComposeWindowSwitchSignatures(suppressSigSep) {
   prefBranch.setBoolPref("mail.identity.id1.compose_html", false);
   cwc = composeHelper.open_compose_new_mail();
+  prefBranch.setBoolPref("mail.identity.id1.suppress_signature_separator",
+                         suppressSigSep);
+  prefBranch.setBoolPref("mail.identity.id2.suppress_signature_separator",
+                         suppressSigSep);
 
   setupComposeWin("", "Plaintext compose window", "Body, first line.");
 
@@ -94,8 +98,11 @@ function testPlaintextComposeWindowSwitchSignatures() {
   assert_equals(node.localName, "br");
   node = node.previousSibling;
   assert_equals(node.nodeValue, "Tinderbox is soo 90ies");
-  node = node.previousSibling.previousSibling; // a <br> element, then the next text node
-  assert_equals(node.nodeValue, "-- ");
+  if (!suppressSigSep) {
+    // a <br> element, then the next text node
+    node = node.previousSibling.previousSibling;
+    assert_equals(node.nodeValue, "-- ");
+  }
 
   // Now switch identities!
   let menuID = cwc.e("msgIdentity");
@@ -110,26 +117,45 @@ function testPlaintextComposeWindowSwitchSignatures() {
   assert_equals(node.localName, "br");
   node = node.previousSibling;
   assert_equals(node.nodeValue, "Tinderboxpushlog is the new *hotness!*");
-  node = node.previousSibling.previousSibling; // a <br> element, then the next text node
-  assert_equals(node.nodeValue, "-- ");
+  if (!suppressSigSep) {
+    // a <br> element, then the next text node
+    node = node.previousSibling.previousSibling;
+    assert_equals(node.nodeValue, "-- ");
+  }
 
   // Now check that the original signature has been removed!
   let bodyFirstChild =  contentFrame.contentDocument.body.firstChild;
   while (node != bodyFirstChild) {
     node = node.previousSibling;
-    jumlib.assertNotEquals(node.nodeValue, "Tinderbox is soo 90ies");
-    jumlib.assertNotEquals(node.nodeValue, "-- ");
+    if (node) {
+      assert_not_equals(node.nodeValue, "Tinderbox is soo 90ies");
+      assert_not_equals(node.nodeValue, "-- ");
+    }
   }
   assert_equals(node.nodeValue, "Body, first line.");
 
   composeHelper.close_compose_window(cwc);
 }
 
+function testPlaintextComposeWindowSwitchSignatures() {
+  plaintextComposeWindowSwitchSignatures(false);
+}
+
+// XXX Disabled due to not correctly switching signatures with no separator
+// See bug TBD
+//function testPlaintextComposeWindowSwitchSignaturesWithSuppressedSeparator() {
+//  plaintextComposeWindowSwitchSignatures(true);
+//}
+
 /**
  * Same test, but with an HTML compose window
  */
-function testHTMLComposeWindowSwitchSignatures() {
+function HTMLComposeWindowSwitchSignatures(suppressSigSep) {
   prefBranch.setBoolPref("mail.identity.id1.compose_html", true);
+  prefBranch.setBoolPref("mail.identity.id1.suppress_signature_separator",
+                         suppressSigSep);
+  prefBranch.setBoolPref("mail.identity.id2.suppress_signature_separator",
+                         suppressSigSep);
   cwc = composeHelper.open_compose_new_mail();
 
   setupComposeWin("", "HTML compose window", "Body, first line.");
@@ -141,10 +167,12 @@ function testHTMLComposeWindowSwitchSignatures() {
   // class="moz-signature".
   assert_equals(node.className, "moz-signature");
   node = node.firstChild; // text node containing the signature divider
-  assert_equals(node.nodeValue, "-- ");
-  node = node.nextSibling;
-  assert_equals(node.localName, "br");
-  node = node.nextSibling;
+  if (!suppressSigSep) {
+    assert_equals(node.nodeValue, "-- ");
+    node = node.nextSibling;
+    assert_equals(node.localName, "br");
+    node = node.nextSibling;
+  }
   assert_equals(node.nodeValue, "Tinderbox is soo 90ies");
 
   // Now switch identities!
@@ -158,10 +186,12 @@ function testHTMLComposeWindowSwitchSignatures() {
   // with class="moz-signature".
   assert_equals(node.className, "moz-signature");
   node = node.firstChild; // text node containing the signature divider
-  assert_equals(node.nodeValue, "-- ");
-  node = node.nextSibling;
-  assert_equals(node.localName, "br");
-  node = node.nextSibling;
+  if (!suppressSigSep) {
+    assert_equals(node.nodeValue, "-- ");
+    node = node.nextSibling;
+    assert_equals(node.localName, "br");
+    node = node.nextSibling;
+  }
   assert_equals(node.nodeValue, "Tinderboxpushlog is the new ");
   node = node.nextSibling;
   assert_equals(node.localName, "b");
@@ -181,4 +211,12 @@ function testHTMLComposeWindowSwitchSignatures() {
   assert_equals(node, contentFrame.contentDocument.body.lastChild);
 
   composeHelper.close_compose_window(cwc);
+}
+
+function testHTMLComposeWindowSwitchSignatures() {
+  HTMLComposeWindowSwitchSignatures(false);
+}
+
+function testHTMLComposeWindowSwitchSignaturesWithSuppressedSeparator() {
+  HTMLComposeWindowSwitchSignatures(true);
 }
