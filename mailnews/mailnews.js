@@ -426,6 +426,9 @@ pref("mail.identity.default.sig_bottom", true); // true=below quoted false=above
 pref("mail.identity.default.sig_on_fwd", false); // Include signature on fwd?
 pref("mail.identity.default.sig_on_reply", true); // Include signature on re?
 
+// Suppress double-dash signature separator
+pref("mail.identity.default.suppress_signature_separator", false);
+ 
 // default to archives folder on same server.
 pref("mail.identity.default.archives_folder_picker_mode", "0");
 

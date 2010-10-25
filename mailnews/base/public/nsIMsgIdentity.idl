@@ -45,7 +45,7 @@
  * Each identity is identified by a key, which is the <id> string in
  * the identity preferences, such as in mail.identity.<id>.replyTo.
  */
-[scriptable, uuid(033bddfe-9727-11de-848a-00c09fcbe317)]
+[scriptable, uuid(5e68bec0-aa51-11df-94e2-0800200c9a66)]
 interface nsIMsgIdentity : nsISupports {
   /**
    * Internal preferences ID.
@@ -138,6 +138,11 @@ interface nsIMsgIdentity : nsISupports {
    * Does htmlSigText contain HTML? Use plain text if false.
    */
   attribute boolean htmlSigFormat;
+
+  /**
+   * Suppress the double-dash signature separator
+   */
+  attribute boolean suppressSigSep;
 
   /**
    * The encoded string representing the vcard.

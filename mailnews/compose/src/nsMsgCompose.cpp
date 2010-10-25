@@ -4119,6 +4119,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   nsAutoString sigOutput;
   PRInt32      reply_on_top = 0;
   PRBool       sig_bottom = PR_TRUE;
+  PRBool        suppressSigSep = PR_FALSE;
 
   nsCOMPtr<nsILocalFile> sigFile;
   if (identity)
@@ -4128,6 +4129,8 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
 
     identity->GetReplyOnTop(&reply_on_top);
     identity->GetSigBottom(&sig_bottom);
+    identity->GetSuppressSigSep(&suppressSigSep);
+
     rv = identity->GetAttachSignature(&attachFile);
     if (NS_SUCCEEDED(rv) && attachFile)
     {
@@ -4197,8 +4200,11 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
     {
       sigOutput.AppendLiteral(htmlBreak);
       sigOutput.AppendLiteral(htmlsigopen);
-      if (reply_on_top != 1 || sig_bottom || !aQuoted)
+      if ((mType == nsIMsgCompType::NewsPost || !suppressSigSep) && 
+          (reply_on_top != 1 || sig_bottom || !aQuoted)) {
         sigOutput.AppendLiteral(dashes);
+      }
+
       sigOutput.AppendLiteral(htmlBreak);
       sigOutput.AppendLiteral("<img src=\"file:///");
            /* XXX pp This gives me 4 slashes on Unix, that's at least one to
@@ -4284,8 +4290,9 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
     {
       nsDependentSubstring firstFourChars(sigData, 0, 4);
 
-      if (!(firstFourChars.EqualsLiteral("-- \n") ||
-            firstFourChars.EqualsLiteral("-- \r")))
+      if ((mType == nsIMsgCompType::NewsPost || !suppressSigSep) && 
+         !(firstFourChars.EqualsLiteral("-- \n") ||
+           firstFourChars.EqualsLiteral("-- \r")))
       {
         sigOutput.AppendLiteral(dashes);
 

@@ -198,6 +198,8 @@ NS_IMPL_IDPREF_BOOL(BccSelf, "bcc_self")
 NS_IMPL_IDPREF_BOOL(BccOthers, "bcc_other")
 NS_IMPL_IDPREF_STR (BccList, "bcc_other_list")
 
+NS_IMPL_IDPREF_BOOL(SuppressSigSep, "suppress_signature_separator")
+
 NS_IMPL_IDPREF_BOOL(DoCc, "doCc")
 NS_IMPL_IDPREF_STR (DoCcList, "doCcList")
 
@@ -579,6 +581,7 @@ nsMsgIdentity::Copy(nsIMsgIdentity *identity)
     COPY_IDENTITY_BOOL_VALUE(identity,GetAttachVCard,SetAttachVCard)
     COPY_IDENTITY_STR_VALUE(identity,GetEscapedVCard,SetEscapedVCard)
     COPY_IDENTITY_STR_VALUE(identity,GetSmtpServerKey,SetSmtpServerKey)
+    COPY_IDENTITY_BOOL_VALUE(identity,GetSuppressSigSep,SetSuppressSigSep)
     return NS_OK;
 }
 
