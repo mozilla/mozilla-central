@@ -89,6 +89,11 @@ html|div#expandedHeadersTopBox {
   -moz-appearance: none;
   -moz-padding-end: 6px;
   padding-top: 3px;
+  float: right;
+}
+
+#header-view-toolbox:-moz-locale-dir(rtl) {
+  float: left;
 }
 
 #header-view-toolbar {
