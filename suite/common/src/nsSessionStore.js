@@ -110,6 +110,11 @@ const CAPABILITIES = [
   "DNSPrefetch", "Auth"
 ];
 
+// These keys are for internal use only - they shouldn't be part of the JSON
+// that gets saved to disk nor part of the strings returned by the API.
+const INTERNAL_KEYS = ["_tabStillLoading", "_hosts", "_formDataSaved",
+                       "_tab", "_browser", "_history"];
+
 #ifndef XP_WIN
 #define BROKEN_WM_Z_ORDER
 #endif
@@ -544,9 +549,9 @@ SessionStoreService.prototype = {
       this.onTabAdd(aWindow, tabbrowser.browsers[i], true);
     }
     // notification of tab add/remove/selection
-    tabbrowser.addEventListener("TabOpen", this, true);
-    tabbrowser.addEventListener("TabClose", this, true);
-    tabbrowser.addEventListener("TabSelect", this, true);
+    tabbrowser.tabContainer.addEventListener("TabOpen", this, true);
+    tabbrowser.tabContainer.addEventListener("TabClose", this, true);
+    tabbrowser.tabContainer.addEventListener("TabSelect", this, true);
   },
 
   /**
@@ -578,9 +583,9 @@ SessionStoreService.prototype = {
 
     var tabbrowser = aWindow.getBrowser();
 
-    tabbrowser.removeEventListener("TabOpen", this, true);
-    tabbrowser.removeEventListener("TabClose", this, true);
-    tabbrowser.removeEventListener("TabSelect", this, true);
+    tabbrowser.tabContainer.removeEventListener("TabOpen", this, true);
+    tabbrowser.tabContainer.removeEventListener("TabClose", this, true);
+    tabbrowser.tabContainer.removeEventListener("TabSelect", this, true);
 
     let winData = this._windows[aWindow.__SSi];
     if (this._loadState == STATE_RUNNING) { // window not closed during a regular shut-down
@@ -778,6 +783,7 @@ SessionStoreService.prototype = {
     this._forEachBrowserWindow(function(aWindow) {
       if (aWindow != window) {
         aWindow.close();
+        this.onClose(aWindow);
       }
     });
 
@@ -1880,11 +1886,12 @@ SessionStoreService.prototype = {
 
     // mark the tabs as loading
     for (t = 0; t < aTabs.length; t++) {
-      var tab = aTabs[t];
-      var browser = tabbrowser.getBrowserForTab(tab);
+      let tab = aTabs[t];
+      let browser = tabbrowser.getBrowserForTab(tab);
+      let tabData = aTabData[t];
 
-      aTabData[t]._tabStillLoading = true;
-      if (!aTabData[t].entries || aTabData[t].entries.length == 0) {
+      tabData._tabStillLoading = true;
+      if (!tabData.entries || tabData.entries.length == 0) {
         // make sure to blank out this tab's content
         // (just purging the tab's history won't be enough)
         browser.contentDocument.location = "about:blank";
@@ -1898,13 +1905,13 @@ SessionStoreService.prototype = {
 
       // wall-paper fix for bug 439675: make sure that the URL to be loaded
       // is always visible in the address bar
-      let activeIndex = (aTabData[t].index || aTabData[t].entries.length) - 1;
-      let activePageData = aTabData[t].entries[activeIndex] || null;
+      let activeIndex = (tabData.index || tabData.entries.length) - 1;
+      let activePageData = tabData.entries[activeIndex] || null;
       browser.userTypedValue = activePageData ? activePageData.url || null : null;
 
       // keep the data around to prevent dataloss in case
       // a tab gets closed before it's been properly restored
-      browser.__SS_data = aTabData[t];
+      browser.__SS_data = tabData;
     }
 
     // make sure to restore the selected tab first (if any)
@@ -2689,7 +2696,8 @@ SessionStoreService.prototype = {
    */
   _toJSONString: function sss_toJSONString(aJSObject) {
     function exclude(key, value) {
-      return value instanceof Components.interfaces.nsISupports ? undefined : value;
+      // returning undefined results in the exclusion of that key
+      return (INTERNAL_KEYS.indexOf(key) != -1) ? undefined : value;
     }
     return JSON.stringify(aJSObject, exclude);
   },
