@@ -54,8 +54,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsMsgAppleDouble.h"
 #include "nsMsgAppleCodes.h"
-
-#include <Carbon/Carbon.h>
+#include "nsILocalFileMac.h"
 
 /*
 **	Local Functions prototypes.
@@ -149,27 +148,27 @@ int fill_apple_mime_header(
 int ap_encode_file_infor(
 	appledouble_encode_object *p_ap_encode_obj)
 {
-	CInfoPBRec cipbr;
-	HFileInfo *fpb = (HFileInfo *)&cipbr;
 	ap_header	head;
 	ap_entry 	entries[NUM_ENTRIES];
 	ap_dates 	dates;
 	short 		i;
 	long 		comlen;
-	DateTimeRec cur_time;
-	unsigned 	long cur_secs;
 	char 		comment[256];
-	Str63		fname;
 	int	 		status;
+    
+    nsCOMPtr <nsILocalFile> resFile;
+    NS_NewNativeLocalFile(nsDependentCString(p_ap_encode_obj->fname), PR_TRUE,
+                          getter_AddRefs(resFile));
+    if (!resFile)
+        return errFileOpen;
 
-	strcpy((char *)fname+1,p_ap_encode_obj->fname);
-	fname[0] = strlen(p_ap_encode_obj->fname);
-	
-	fpb->ioNamePtr = fname;
-	fpb->ioDirID   = p_ap_encode_obj->dirId;
-	fpb->ioVRefNum = p_ap_encode_obj->vRefNum;
-	fpb->ioFDirIndex = 0;
-	if (PBGetCatInfoSync(&cipbr) != noErr) 
+    FSRef ref;
+    nsCOMPtr <nsILocalFileMac> macFile = do_QueryInterface(resFile);
+    if (NS_FAILED(macFile->GetFSRef(&ref)))
+        return errFileOpen;
+
+    FSCatalogInfo catalogInfo;
+    if (::FSGetCatalogInfo(&ref, kFSCatInfoFinderInfo, &catalogInfo, nsnull, nsnull, nsnull) != noErr)
 	{
 		return errFileOpen;
 	}
@@ -223,9 +222,11 @@ int ap_encode_file_infor(
 		return status;
 
 	/* write entry descriptors */
+    nsCAutoString leafname;
+    macFile->GetNativeLeafName(leafname);
 	entries[0].offset = sizeof (head) + sizeof (ap_entry) * head.entries;
 	entries[0].id 	= ENT_NAME;
-	entries[0].length = *fpb->ioNamePtr;
+    entries[0].length = leafname.Length();
 	entries[1].id 	= ENT_FINFO;
 	entries[1].length = sizeof (FInfo) + sizeof (FXInfo);
 	entries[2].id 	= ENT_DATES;
@@ -233,9 +234,9 @@ int ap_encode_file_infor(
 	entries[3].id 	= ENT_COMMENT;
 	entries[3].length = comlen;
 	entries[4].id 	= ENT_RFORK;
-	entries[4].length = fpb->ioFlRLgLen;
+    entries[4].length = catalogInfo.rsrcLogicalSize;
 	entries[5].id 	= ENT_DFORK;
-	entries[5].length = fpb->ioFlLgLen;
+    entries[5].length = catalogInfo.dataLogicalSize;
 
 	/* correct the link in the entries. */
 	for (i = 1; i < NUM_ENTRIES; ++i) 
@@ -250,31 +251,29 @@ int ap_encode_file_infor(
 
 	/* write name */
 	status = to64(p_ap_encode_obj,
-					(char *) fpb->ioNamePtr + 1,
-					*fpb->ioNamePtr); 
+					(char *) leafname.get(),
+					leafname.Length()); 
 	if (status != noErr)
 		return status;
 	
 	/* write finder info */
 	status = to64(p_ap_encode_obj,
-					(char *) &fpb->ioFlFndrInfo,
+					(char *) &catalogInfo.finderInfo,
 					sizeof (FInfo));
 	if (status != noErr)
 		return status;
 					  
 	status = to64(p_ap_encode_obj,
-					(char *) &fpb->ioFlXFndrInfo,
+					(char *) &catalogInfo.extFinderInfo,
 					sizeof (FXInfo));
 	if (status != noErr)
 		return status;
 
 	/* write dates */
-	GetTime(&cur_time);
-	DateToSeconds(&cur_time, &cur_secs);
-	dates.create = fpb->ioFlCrDat + CONVERT_TIME;
-	dates.modify = fpb->ioFlMdDat + CONVERT_TIME;
-	dates.backup = fpb->ioFlBkDat + CONVERT_TIME;
-	dates.access = cur_secs + CONVERT_TIME;
+    dates.create = catalogInfo.createDate.lowSeconds + CONVERT_TIME;
+    dates.modify = catalogInfo.contentModDate.lowSeconds + CONVERT_TIME;
+    dates.backup = catalogInfo.backupDate.lowSeconds + CONVERT_TIME;
+    dates.access = catalogInfo.accessDate.lowSeconds + CONVERT_TIME;
 	status = to64(p_ap_encode_obj,
 					(char *) &dates,
 					sizeof (ap_dates)); 
@@ -291,7 +290,8 @@ int ap_encode_file_infor(
 	/*
 	**	Get some help information on deciding the file type.
 	*/
-	if (fpb->ioFlFndrInfo.fdType == 'TEXT' || fpb->ioFlFndrInfo.fdType == 'text')
+    if (((FileInfo*)(&catalogInfo.finderInfo))->fileType == 'TEXT' ||
+        ((FileInfo*)(&catalogInfo.finderInfo))->fileType == 'text')
 	{
 		p_ap_encode_obj->text_file_type = true;
 	}
@@ -308,12 +308,11 @@ int ap_encode_header(
 	appledouble_encode_object* p_ap_encode_obj, 
 	PRBool  firstime)
 {
-	Str255 	name;
 	char   	rd_buff[256];
-	short   fileId;
+    FSIORefNum fileId;
 	OSErr	retval = noErr;
 	int    	status;
-	long	inCount;
+    ByteCount inCount;
 	
 	if (firstime)
 	{
@@ -332,14 +331,21 @@ int ap_encode_header(
 		/*
 		** preparing to encode the resource fork.
 		*/
-		name[0] = strlen(p_ap_encode_obj->fname);
-		strcpy((char *)name+1, p_ap_encode_obj->fname);
-		if (HOpenRF(p_ap_encode_obj->vRefNum, p_ap_encode_obj->dirId,
-					name, fsRdPerm,
-					&p_ap_encode_obj->fileId) != noErr)
-		{
-			return errFileOpen;			
-		}
+        nsCOMPtr <nsILocalFile> myFile;
+        NS_NewNativeLocalFile(nsDependentCString(p_ap_encode_obj->fname), PR_TRUE, getter_AddRefs(myFile));
+        if (!myFile)
+            return errFileOpen;
+
+        FSRef ref;
+        nsCOMPtr <nsILocalFileMac> macFile = do_QueryInterface(myFile);
+        if (NS_FAILED(macFile->GetFSRef(&ref)))
+            return errFileOpen;
+
+        HFSUniStr255 forkName;
+        ::FSGetResourceForkName(&forkName);
+        retval = ::FSOpenFork(&ref, forkName.length, forkName.unicode, fsRdPerm, &p_ap_encode_obj->fileId);
+        if (retval != noErr)
+            return retval;
 	}
 
 	fileId = p_ap_encode_obj->fileId;
@@ -348,8 +354,8 @@ int ap_encode_header(
 		if (BUFF_LEFT(p_ap_encode_obj) < 400)
 			break;
 			
-		inCount = 256;
-		retval = FSRead(fileId, &inCount, rd_buff);
+        inCount = 0;
+        retval = ::FSReadFork(fileId, fsAtMark, 0, 256, rd_buff, &inCount);
 		if (inCount)
 		{
 			status = to64(p_ap_encode_obj,
@@ -362,7 +368,8 @@ int ap_encode_header(
 	
 	if (retval == eofErr)
 	{
-		FSClose(fileId);
+        ::FSCloseFork(fileId);
+        p_ap_encode_obj->fileId = 0;
 
 		status = finish64(p_ap_encode_obj);
 		if (status != noErr)
@@ -454,11 +461,10 @@ int ap_encode_data(
 	appledouble_encode_object* p_ap_encode_obj, 
 	PRBool firstime)
 {
-	Str255		name;
 	char   		rd_buff[256];
-	short		fileId;
+    FSIORefNum fileId;
 	OSErr		retval = noErr;
-	long		in_count;
+    ByteCount in_count;
 	int			status;
 	
 	if (firstime)
@@ -468,16 +474,23 @@ int ap_encode_data(
 		/*
 		** preparing to encode the data fork.
 		*/
-		name[0] = strlen(p_ap_encode_obj->fname);
-    PL_strcpy((char*)name+1, p_ap_encode_obj->fname);
-		if (HOpen( 	p_ap_encode_obj->vRefNum,
-					p_ap_encode_obj->dirId, 
-					name, 
-					fsRdPerm, 
-					&fileId) != noErr)
-		{
-			return errFileOpen;
-		}
+        nsCOMPtr <nsILocalFile> resFile;
+        NS_NewNativeLocalFile(nsDependentCString(p_ap_encode_obj->fname), PR_TRUE,
+                              getter_AddRefs(resFile));
+        if (!resFile)
+            return errFileOpen;
+
+        FSRef ref;
+        nsCOMPtr <nsILocalFileMac> macFile = do_QueryInterface(resFile);
+        if (NS_FAILED(macFile->GetFSRef(&ref)))
+            return errFileOpen;
+
+        HFSUniStr255 forkName;
+        ::FSGetDataForkName(&forkName);
+        retval = ::FSOpenFork(&ref, forkName.length, forkName.unicode, fsRdPerm, &fileId);
+        if (retval != noErr)
+            return retval;
+
 		p_ap_encode_obj->fileId = fileId;
 			
 		
@@ -486,12 +499,12 @@ int ap_encode_data(
       /*
       **	do a smart check for the file type.
       */
-      in_count = 256;
-      retval 	 = FSRead(fileId, &in_count, rd_buff);
+      in_count = 0;
+      retval = ::FSReadFork(fileId, fsFromStart, 0, 256, rd_buff, &in_count);
       magic_type = magic_look(rd_buff, in_count);
       
       /* don't forget to rewind the index to start point. */ 
-      SetFPos(fileId, fsFromStart, 0L);
+      ::FSSetForkPosition(fileId, fsFromStart, 0);
       /* and reset retVal just in case... */
       if (retval == eofErr)
         retval = noErr;
@@ -504,11 +517,13 @@ int ap_encode_data(
 		/*
 		**	the data portion header information.
 		*/
+        nsCAutoString leafName;
+        resFile->GetNativeLeafName(leafName);
 		PR_snprintf(rd_buff, sizeof(rd_buff),
 			"Content-Type: %s; name=\"%s\"" CRLF "Content-Transfer-Encoding: base64" CRLF "Content-Disposition: inline; filename=\"%s\""CRLF CRLF,
 			magic_type,
-			p_ap_encode_obj->fname,
-			p_ap_encode_obj->fname);
+			leafName.get(),
+			leafName.get());
 			
 		status = write_stream(p_ap_encode_obj, 
 					rd_buff, 
@@ -522,10 +537,8 @@ int ap_encode_data(
 		if (BUFF_LEFT(p_ap_encode_obj) < 400)
 			break;
 			
-		in_count = 256;
-		retval = FSRead(p_ap_encode_obj->fileId, 
-						&in_count, 
-						rd_buff);
+        in_count = 0;
+        retval = ::FSReadFork(p_ap_encode_obj->fileId, fsAtMark, 0, 256, rd_buff, &in_count);
 		if (in_count)
 		{
 /*			replace(rd_buff, in_count, '\r', '\n');	 						*/
@@ -540,7 +553,8 @@ int ap_encode_data(
 	
 	if (retval == eofErr)
 	{
-		FSClose(p_ap_encode_obj->fileId);
+        ::FSCloseFork(p_ap_encode_obj->fileId);
+        p_ap_encode_obj->fileId = 0;
 
 		status = finish64(p_ap_encode_obj);
 		if (status != noErr)

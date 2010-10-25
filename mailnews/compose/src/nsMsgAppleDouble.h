@@ -55,6 +55,8 @@
 #include "nsIOutputStream.h"
 #include "nsCOMPtr.h"
 
+#include <CoreServices/CoreServices.h>
+
 #define NOERR			0
 #define errDone			1
 								/* Done with current operation.	*/
@@ -83,10 +85,8 @@ enum
 
 typedef struct _appledouble_encode_object 
 {
-	char	fname[64];
-	PRInt32	dirId; 
-	PRInt16	vRefNum;
-	PRInt16	fileId;				/* the id for the open file (data/resource fork) */
+    char    fname[256];
+    FSIORefNum fileId;				/* the id for the open file (data/resource fork) */
 
 	int 	state;
 	int		text_file_type;		/* if the file has a text file type with it.	*/

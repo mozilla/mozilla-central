@@ -58,23 +58,6 @@
 #include "prmem.h"
 #include "nsNetUtil.h"
 
-#include <Carbon/Carbon.h>
-
-OSStatus
-PathToSpec(const UInt8 *path, FSSpec *spec)
-{
-  if (!spec)
-    return -1;
-
-  // convert POSIX path to FSRef
-  FSRef ref;
-  OSStatus result = FSPathMakeRef(path, &ref, NULL);
-  if (result != noErr)
-    return result;
-
-  // convert FSRef to FSSpec
-  return FSGetCatalogInfo(&ref, kFSCatInfoNone, NULL, NULL, spec, NULL);
-}
 
 void	
 MacGetFileType(nsILocalFile   *fs, 
@@ -85,7 +68,7 @@ MacGetFileType(nsILocalFile   *fs,
 	if ((fs == NULL) || (fileType == NULL) || (encoding == NULL))
 		return;
 
-  PRBool exists;
+  PRBool exists = PR_FALSE;
   fs->Exists(&exists);
   if (!exists)
     return;
@@ -94,14 +77,14 @@ MacGetFileType(nsILocalFile   *fs,
 	*fileType = NULL;
 	*encoding = NULL;
 
-	FInfo		fndrInfo;
-  FSSpec fsSpec;
-  nsCString nativePath;
-  fs->GetNativePath(nativePath);
-  PathToSpec((UInt8 *)nativePath.get(), &fsSpec);
-  OSErr err = FSpGetFInfo (&fsSpec, &fndrInfo);
+  nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(fs);
+  FSRef fsRef;
+  FSCatalogInfo catalogInfo;
+  OSErr err = errFileOpen;
+  if (NS_SUCCEEDED(macFile->GetFSRef(&fsRef)))
+    err = ::FSGetCatalogInfo(&fsRef, kFSCatInfoFinderInfo, &catalogInfo, nsnull, nsnull, nsnull);
 
-  if ( (err != noErr) || (fndrInfo.fdType == 'TEXT') )
+  if ( (err != noErr) || (((FileInfo*)(&catalogInfo.finderInfo))->fileType == 'TEXT') )
     *fileType = strdup(APPLICATION_OCTET_STREAM);
   else
   {
@@ -142,24 +125,23 @@ int ap_encode_init( appledouble_encode_object *p_ap_encode_obj,
                     const char                *fname,
                     char                      *separator)
 {
-	FSSpec	fspec;
-	
   nsCOMPtr <nsILocalFile> myFile;
   NS_NewNativeLocalFile(nsDependentCString(fname), PR_TRUE, getter_AddRefs(myFile));
   PRBool exists;
   if (myFile && NS_SUCCEEDED(myFile->Exists(&exists)) && !exists)
     return -1;
 
-	PathToSpec((const UInt8 *)fname, &fspec);
+  nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(myFile);
+  nsCAutoString path;
+  macFile->GetNativePath(path);
+
 	memset(p_ap_encode_obj, 0, sizeof(appledouble_encode_object));
 	
 	/*
 	**	Fill out the source file inforamtion.
 	*/	
-	memcpy(p_ap_encode_obj->fname, fspec.name+1, *fspec.name);
-	p_ap_encode_obj->fname[*fspec.name] = '\0';
-	p_ap_encode_obj->vRefNum = fspec.vRefNum;
-	p_ap_encode_obj->dirId   = fspec.parID;
+  memcpy(p_ap_encode_obj->fname, path.get(), path.Length());
+  p_ap_encode_obj->fname[path.Length()] = '\0';
 	
 	p_ap_encode_obj->boundary = strdup(separator);
 	return noErr;
@@ -308,7 +290,7 @@ int ap_encode_end(
 		return noErr;
 
 	if (p_ap_encode_obj->fileId)			/* close the file if it is open.	*/
-		FSClose(p_ap_encode_obj->fileId);
+    ::FSCloseFork(p_ap_encode_obj->fileId);
 
 	PR_FREEIF(p_ap_encode_obj->boundary);		/* the boundary string.				*/
 	
