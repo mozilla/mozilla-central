@@ -393,7 +393,7 @@ function test_reset_to_inbox() {
 }
 
 function subtest_say_yes(cwc) {
-  cwc.window.commonDialogOnAccept();
+  cwc.window.Dialog.onButton0();
 }
 
 function _apply_to_folder_common(aChildrenToo) {
