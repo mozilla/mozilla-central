@@ -631,6 +631,7 @@ nsMsgFilter::MatchHdr(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder,
                       PRUint32 headersSize, PRBool *pResult)
 {
   NS_ENSURE_ARG_POINTER(folder);
+  NS_ENSURE_ARG_POINTER(msgHdr);
   // use offlineMail because
   nsCString folderCharset;
   folder->GetCharset(folderCharset);
