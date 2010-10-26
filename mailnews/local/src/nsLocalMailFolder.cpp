@@ -2538,15 +2538,15 @@ void nsMsgLocalMailFolder::CopyPropertiesToMsgHdr(nsIMsgDBHdr *destHdr,
   destHdr->SetLabel(label);
 }
 
-NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
+NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool aCopySucceeded)
 {
   if (!mCopyState)
     return NS_OK;
 
   // we are the destination folder for a move/copy
-  nsresult rv = copySucceeded ? NS_OK : NS_ERROR_FAILURE;
+  nsresult rv = aCopySucceeded ? NS_OK : NS_ERROR_FAILURE;
 
-  if (!copySucceeded || mCopyState->m_writeFailed)
+  if (!aCopySucceeded || mCopyState->m_writeFailed)
   {
     if (mCopyState->m_fileStream)
       mCopyState->m_fileStream->Close();
@@ -2575,36 +2575,33 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
   nsRefPtr<nsLocalMoveCopyMsgTxn> localUndoTxn = mCopyState->m_undoMsgTxn;
 
   nsCOMPtr <nsISeekableStream> seekableStream;
-  if (mCopyState)
-  {
-    NS_ASSERTION(mCopyState->m_leftOver == 0, "whoops, something wrong with previous copy");
-    mCopyState->m_leftOver = 0; // reset to 0.
-    // need to reset this in case we're move/copying multiple msgs.
-    mCopyState->m_fromLineSeen = PR_FALSE;
+  NS_ASSERTION(mCopyState->m_leftOver == 0, "whoops, something wrong with previous copy");
+  mCopyState->m_leftOver = 0; // reset to 0.
+  // need to reset this in case we're move/copying multiple msgs.
+  mCopyState->m_fromLineSeen = PR_FALSE;
 
+  // flush the copied message. We need a close at the end to get the
+  // file size and time updated correctly.
+  if (mCopyState->m_fileStream)
+  {
+    seekableStream = do_QueryInterface(mCopyState->m_fileStream);
+    if (mCopyState->m_dummyEnvelopeNeeded)
+    {
+      PRUint32 bytesWritten;
+      seekableStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
+      mCopyState->m_fileStream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &bytesWritten);
+      if (mCopyState->m_parseMsgState)
+        mCopyState->m_parseMsgState->ParseAFolderLine(CRLF, MSG_LINEBREAK_LEN);
+    }
     // flush the copied message. We need a close at the end to get the
     // file size and time updated correctly.
-    if (mCopyState->m_fileStream)
-    {
-      seekableStream = do_QueryInterface(mCopyState->m_fileStream);
-      if (mCopyState->m_dummyEnvelopeNeeded)
-      {
-        PRUint32 bytesWritten;
-        seekableStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
-        mCopyState->m_fileStream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &bytesWritten);
-        if (mCopyState->m_parseMsgState)
-          mCopyState->m_parseMsgState->ParseAFolderLine(CRLF, MSG_LINEBREAK_LEN);
-      }
-      // flush the copied message. We need a close at the end to get the
-      // file size and time updated correctly.
-      if (multipleCopiesFinished)
-        mCopyState->m_fileStream->Close();
-      else
-        mCopyState->m_fileStream->Flush();
-    }
+    if (multipleCopiesFinished)
+      mCopyState->m_fileStream->Close();
+    else
+      mCopyState->m_fileStream->Flush();
   }
   //Copy the header to the new database
-  if (copySucceeded && mCopyState->m_message)
+  if (mCopyState->m_message)
   {
     //  CopyMessages() goes here, and CopyFileMessages() with metadata to save;
     nsCOMPtr<nsIMsgDBHdr> newHdr;
