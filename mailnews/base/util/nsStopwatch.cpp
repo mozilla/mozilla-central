@@ -1,3 +1,5 @@
+#include "nsStopwatch.h"
+
 #include <stdio.h>
 #include <time.h>
 #if defined(XP_UNIX) || defined(XP_OS2)
@@ -5,14 +7,11 @@
 #include <sys/times.h>
 #include <sys/time.h>
 #include <errno.h>
-#endif
-#ifdef XP_WIN
+#elif defined(XP_WIN)
 #include "windows.h"
-#endif
+#endif // elif defined(XP_WIN)
 
-#include "nsStopwatch.h"
 #include "nsMemory.h"
-
 /*
  * This basis for the logic in this file comes from (will used to come from):
  *  (mozilla/)modules/libutil/public/stopwatch.cpp.
@@ -29,18 +28,19 @@ NS_IMPL_ISUPPORTS1(nsStopwatch, nsIStopwatch)
 
 #ifdef WINCE
 #error "WINCE apparently does not provide the clock support we require."
-#endif
-
-#if defined(XP_UNIX) || defined(XP_OS2)
+#elif defined(XP_UNIX) || defined(XP_OS2)
 /** the number of ticks per second */
 static double gTicks = 0;
-#define MICRO_SECONDS_TO_SECONDS_MULT 1.0e-6;
+#define MICRO_SECONDS_TO_SECONDS_MULT static_cast<double>(1.0e-6)
 #elif defined(WIN32)
-// a tick every 100ns, 10 per us, 10 * 1000 per ms, 10 * 1000 * 1000 per sec.
-#define TICKS_PER_SECOND 10000000.0
+#ifdef DEBUG
+#include "nsPrintfCString.h"
+#endif
+// 1 tick per 100ns = 10 per us = 10 * 1,000 per ms = 10 * 1,000 * 1,000 per sec.
+#define WIN32_TICK_RESOLUTION static_cast<double>(1.0e-7)
 // subtract off to get to the unix epoch
 #define UNIX_EPOCH_IN_FILE_TIME 116444736000000000L
-#endif // XP_UNIX
+#endif // elif defined(WIN32)
 
 nsStopwatch::nsStopwatch()
  : fTotalRealTimeSecs(0.0)
@@ -123,9 +123,8 @@ double nsStopwatch::GetRealTime()
             } ftRealTime; // time the process has spent in kernel mode
   SYSTEMTIME st;
   GetSystemTime(&st);
-  SystemTimeToFileTime(&st,&ftRealTime.ftFileTime);
-  return (double)(ftRealTime.ftInt64 - UNIX_EPOCH_IN_FILE_TIME) /
-                 TICKS_PER_SECOND;
+  SystemTimeToFileTime(&st, &ftRealTime.ftFileTime);
+  return (ftRealTime.ftInt64 - UNIX_EPOCH_IN_FILE_TIME) * WIN32_TICK_RESOLUTION;
 #else
 #error "nsStopwatch not supported on this platform."
 #endif
@@ -139,7 +138,6 @@ double nsStopwatch::GetCPUTime()
   return (double)(cpt.tms_utime+cpt.tms_stime) / gTicks;
 #elif defined(WIN32)
 
-  DWORD       ret;
   FILETIME    ftCreate,       // when the process was created
               ftExit;         // when the process exited
 
@@ -152,26 +150,23 @@ double nsStopwatch::GetCPUTime()
             } ftUser;   // time the process has spent in user mode
 
   HANDLE hProcess = GetCurrentProcess();
-  ret = GetProcessTimes (hProcess, &ftCreate, &ftExit,
-                                   &ftKernel.ftFileTime,
-                                   &ftUser.ftFileTime);
-  if (ret != PR_TRUE)
-  {
-    ret = GetLastError ();
 #ifdef DEBUG
-    printf("%s 0x%lx\n"," Error on GetProcessTimes", (int)ret);
+  BOOL ret =
 #endif
-  }
+    GetProcessTimes(hProcess, &ftCreate, &ftExit,
+                              &ftKernel.ftFileTime, &ftUser.ftFileTime);
+#ifdef DEBUG
+  if (!ret)
+    NS_ERROR(nsPrintfCString("GetProcessTimes() failed, error=0x%lx.", GetLastError()).get());
+#endif
 
   /*
    * Process times are returned in a 64-bit structure, as the number of
    * 100 nanosecond ticks since 1 January 1601.  User mode and kernel mode
    * times for this process are in separate 64-bit structures.
-   * To convert to floating point seconds, we will:
-   *
-   *          Convert sum of high 32-bit quantities to 64-bit int
+   * Add them and convert the result to seconds.
    */
-  return (double) (ftKernel.ftInt64 + ftUser.ftInt64) / TICKS_PER_SECOND;
+  return (ftKernel.ftInt64 + ftUser.ftInt64) * WIN32_TICK_RESOLUTION;
 #else
 #error "nsStopwatch not supported on this platform."
 #endif
