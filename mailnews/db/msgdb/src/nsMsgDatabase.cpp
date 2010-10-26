@@ -1414,14 +1414,15 @@ if (m_mdbAllMsgHeadersTable)
   return err;
 }
 
-// caller must Release result.
 NS_IMETHODIMP nsMsgDatabase::GetDBFolderInfo(nsIDBFolderInfo  **result)
 {
+  if (!m_dbFolderInfo)
+  {
+    NS_ERROR("db must be corrupt");
+    return NS_ERROR_NULL_POINTER;
+  }
   NS_ADDREF(*result = m_dbFolderInfo);
-  if (m_dbFolderInfo)
-    return NS_OK;
-  NS_ERROR("db must be corrupt");
-  return NS_ERROR_NULL_POINTER; // it's an error if we can't get this
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgDatabase::Commit(nsMsgDBCommit commitType)
