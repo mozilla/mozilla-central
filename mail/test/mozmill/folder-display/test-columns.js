@@ -393,7 +393,7 @@ function test_reset_to_inbox() {
 }
 
 function subtest_say_yes(cwc) {
-  cwc.window.Dialog.onButton0();
+  cwc.window.document.documentElement.getButton('accept').doCommand();
 }
 
 function _apply_to_folder_common(aChildrenToo) {
@@ -417,6 +417,7 @@ function _apply_to_folder_common(aChildrenToo) {
  *  children.  Make sure the folder changes but the children do not.
  */
 function test_apply_to_folder_no_children() {
+  // XXX Fails on Mac, see bug 563908
   if (Application.platformIsMac)
     return;
 
@@ -455,6 +456,7 @@ function test_apply_to_folder_no_children() {
  *  Make sure the folder and its children change.
  */
 function test_apply_to_folder_and_children() {
+  // XXX Fails on Mac, see bug 563908
   if (Application.platformIsMac)
     return;
 
