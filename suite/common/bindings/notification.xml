@@ -155,6 +155,18 @@
                   this.addonInstallBlocked(installInfo);
                 break;
 
+              case "addon-install-complete":
+                var installInfo = aSubject.QueryInterface(Components.interfaces.amIWebInstallInfo);
+                if (installInfo.originatingWindow.top == browser.contentWindow)
+                  this.addonInstallComplete(installInfo);
+                break;
+
+              case "addon-install-failed":
+                var installInfo = aSubject.QueryInterface(Components.interfaces.amIWebInstallInfo);
+                if (installInfo.originatingWindow.top == browser.contentWindow)
+                  this.addonInstallFailed(installInfo);
+                break;
+
               case "nsPref:changed":
                 if (aData == "privacy.popups.showBrowserMessage") {
                   if (this._prefs.getBoolPref(aData))
@@ -473,11 +485,114 @@
         </body>
       </method>
 
+      <method name="addonInstallComplete">
+        <parameter name="installInfo"/>
+        <body>
+          <![CDATA[
+            var tmp = {};
+            Components.utils.import("resource://gre/modules/AddonManager.jsm", tmp);
+            Components.utils.import("resource://gre/modules/PluralForm.jsm", tmp);
+
+            var notificationName = "addon-installed"
+            var addonNotification = this.getNotificationWithValue(notificationName);
+            if (addonNotification)
+              this.removeNotification(addonNotification);
+
+            var buttons = [];
+            var messageString;
+            if (installInfo.installs.some(function(install)
+                  install.addon.pendingOperations &
+                  tmp.AddonManager.PENDING_INSTALL)) {
+              messageString = this._stringBundle.GetStringFromName("addonsInstalledNeedsRestart");
+              buttons.push({
+                label: this._stringBundle.GetStringFromName("addonInstallRestartButton"),
+                accessKey: this._stringBundle.GetStringFromName("addonInstallRestartButton.accesskey"),
+                callback: function () {
+                  Application.restart();
+                }
+              });
+            } else {
+              messageString = this._stringBundle.GetStringFromName("addonsInstalled");
+            }
+
+            if ("toEM" in window) {
+              buttons.push({
+                label: this._stringBundle.GetStringFromName("addonInstallManageButton"),
+                accessKey: this._stringBundle.GetStringFromName("addonInstallManageButton.accesskey"),
+                callback: function() {
+                  window.toEM("addons://list/extension");
+                }
+              });
+            }
+
+            var brandShortName = this._brandStringBundle.GetStringFromName("brandShortName");
+            messageString = tmp.PluralForm.get(installInfo.installs.length, messageString)
+                                          .replace("#1", installInfo.installs[0].name)
+                                          .replace("#2", installInfo.installs.length)
+                                          .replace("#3", brandShortName);
+            var priority = this.PRIORITY_WARNING_MEDIUM;
+            var iconURL = "chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png";
+            this.appendNotification(messageString, notificationName,
+                                    iconURL, priority, buttons);
+          ]]>
+        </body>
+      </method>
+
+      <method name="addonInstallFailed">
+        <parameter name="installInfo"/>
+        <body>
+          <![CDATA[
+            var notificationName = "addon-error";
+            if (!this.getNotificationWithValue(notificationName)) {
+              var host;
+              try {
+                // this fails with nsSimpleURIs like data: URIs
+                host = installInfo.originatingURI.host;
+              } catch (ex) {
+                host = this._stringBundle.GetStringFromName("xpinstallHostNotAvailable");
+              }
+
+              var error = "addonErrorIncompatible";
+              var name = installInfo.installs[0].name;
+              installInfo.installs.some(function(install) {
+                if (install.error) {
+                  name = install.name;
+                  error = "addonError" + install.error;
+                  return true;
+                }
+                if (install.addon.blocklistState ==
+                    Components.interfaces.nsIBlocklistService.STATE_BLOCKED) {
+                  name = install.name;
+                  error = "addonErrorBlocklisted";
+                }
+                return false;
+              });
+
+              var brandShortName = this._brandStringBundle.GetStringFromName("brandShortName");
+              var version = Components.classes["@mozilla.org/xre/app-info;1"]
+                                      .getService(Components.interfaces.nsIXULAppInfo).version;
+              var messageString = this._stringBundle.GetStringFromName(error)
+                                                    .replace("#1", name)
+                                                    .replace("#2", host)
+                                                    .replace("#3", brandShortName)
+                                                    .replace("#4", version);
+
+              var priority = this.PRIORITY_WARNING_MEDIUM;
+              var iconURL = "chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png";
+              this.appendNotification(messageString, notificationName,
+                                      iconURL, priority, []);
+            }
+          ]]>
+        </body>
+      </method>
+
       <constructor>
         <![CDATA[
           var os = Components.classes["@mozilla.org/observer-service;1"]
                              .getService(Components.interfaces.nsIObserverService);
           os.addObserver(this, "addon-install-blocked", false);
+          os.addObserver(this, "addon-install-complete", false);
+          os.addObserver(this, "addon-install-failed", false);
           os.addObserver(this, "perm-changed", false);
 
           this._prefs.addObserver("plugins.hide_infobar_for_missing_plugin", this, false);
@@ -515,6 +630,12 @@
                                 .getService(Components.interfaces.nsIObserverService);
             try {
               os.removeObserver(this, "addon-install-blocked");
+            } catch (ex) {}
+            try {
+              os.removeObserver(this, "addon-install-complete");
+            } catch (ex) {}
+            try {
+              os.removeObserver(this, "addon-install-failed");
             } catch (ex) {}
             try {
               os.removeObserver(this, "perm-changed");
