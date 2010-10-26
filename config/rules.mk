@@ -1163,7 +1163,7 @@ ifneq (,$(BUILD_STATIC_LIBS)$(FORCE_STATIC_LIB))
 LOBJS	+= $(SHARED_LIBRARY_LIBS)
 endif
 else
-NONFAKE_SHARED_LIBRARY_LIBS = $(filter-out %.fake,$call (EXPAND_FAKELIBS,$(SHARED_LIBRARY_LIBS)))
+NONFAKE_SHARED_LIBRARY_LIBS = $(filter-out %.fake,$(call EXPAND_FAKELIBS,$(SHARED_LIBRARY_LIBS)))
 ifeq (,$(NONFAKE_SHARED_LIBRARY_LIBS))
 # All of our SHARED_LIBRARY_LIBS have fake equivalents. Score!
 # Just pass the original object files around.
