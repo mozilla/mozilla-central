@@ -409,6 +409,10 @@ pref("mail.identity.default.fcc_folder", "mailbox://nobody@Local%20Folders/Sent"
 pref("mail.identity.default.fcc_reply_follows_parent", false);
 pref("mail.identity.default.autocompleteToMyDomain", false);
 
+// archive into 0: single folder, 1: yearly folder, 2: year/year-month folder
+pref("mail.identity.default.archive_granularity", 1);
+pref("mail.identity.default.archive_keep_folder_structure", false);
+
 // keep these defaults for backwards compatibility and migration
 
 // but .doBcc and .doBccList are the right ones from now on.
@@ -530,8 +534,6 @@ pref("mail.server.default.offline_download",true);
 // -1 means no limit, no purging of offline stores.
 pref("mail.server.default.autosync_max_age_days", -1);
 
-pref("mail.server.default.archive_granularity", 1);
-pref("mail.server.default.archive_keep_folder_structure", false);
 // the probablilty threshold over which messages are classified as junk
 // this number is divided by 100 before it is used. The classifier can be fine tuned
 // by changing this pref. Typical values are .99, .95, .90, .5, etc.

@@ -187,7 +187,23 @@ interface nsIMsgIdentity : nsISupports {
   attribute ACString archiveFolder;
   attribute ACString stationeryFolder;
   /** @} */
-  
+
+  /**
+   * @{
+   * This attribute and constants control the granularity of sub-folders of the
+   * Archives folder - either messages go in the single archive folder, or a
+   * yearly archive folder, or in a monthly archive folder with a yearly
+   * parent folder. If the server doesn't support folders that both contain
+   * messages and have sub-folders, we will ignore this setting.
+   */
+  attribute long archiveGranularity;
+  const long singleArchiveFolder = 0;
+  const long perYearArchiveFolders = 1;
+  const long perMonthArchiveFolders = 2;
+  /// Maintain the source folder name when creating Archive subfolders
+  attribute boolean archiveKeepFolderStructure;
+  /** @} */
+
   attribute boolean showSaveMsgDlg;
   attribute ACString directoryServer;
   attribute boolean overrideGlobalPref;

@@ -1204,22 +1204,32 @@ BatchMessageMover.prototype =
       let msgYear = msgDate.getFullYear().toString();
       let monthFolderName = msgDate.toLocaleFormat("%Y-%m");
 
-      // RSS servers don't have an identity so we special case the archives URI.
       let archiveFolderUri;
-      if (server.type == 'rss')
+      let archiveGranularity;
+      let archiveKeepFolderStructure;
+      if (server.type == "rss") {
+        // RSS servers don't have an identity so we special case the archives URI.
         archiveFolderUri = server.serverURI + "/Archives";
-      else
-        archiveFolderUri = GetIdentityForHeader(msgHdr,
-          Components.interfaces.nsIMsgCompType.ReplyAll).archiveFolder;
+        archiveGranularity =
+          Application.prefs.get("mail.identity.default.archive_granularity").value;
+        archiveKeepFolderStructure =
+          Application.prefs.get("mail.identity.default.archive_keep_folder_structure").value;
+      }
+      else {
+        let identity = GetIdentityForHeader(msgHdr,
+          Components.interfaces.nsIMsgCompType.ReplyAll);
+        archiveFolderUri = identity.archiveFolder;
+        archiveGranularity = identity.archiveGranularity;
+        archiveKeepFolderStructure = identity.archiveKeepFolderStructure;
+      }
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
-      let afServer = archiveFolder.server;
 
       let copyBatchKey = msgHdr.folder.URI + '\000' + monthFolderName;
       if (!(copyBatchKey in this._batches))
         this._batches[copyBatchKey] = [msgHdr.folder,
                                        archiveFolderUri,
-                                       afServer.archiveGranularity,
-                                       afServer.archiveKeepFolderStructure,
+                                       archiveGranularity,
+                                       archiveKeepFolderStructure,
                                        msgYear,
                                        monthFolderName];
       this._batches[copyBatchKey].push(msgHdr);
@@ -1257,8 +1267,8 @@ BatchMessageMover.prototype =
           return;
       }
       if (!archiveFolder.canCreateSubfolders)
-        granularity = Components.interfaces.nsIMsgIncomingServer.singleArchiveFolder;
-      if (granularity >= Components.interfaces.nsIMsgIncomingServer.perYearArchiveFolders)
+        granularity = Components.interfaces.nsIMsgIdentity.singleArchiveFolder;
+      if (granularity >= Components.interfaces.nsIMsgIdentity.perYearArchiveFolders)
       {
         archiveFolderUri += "/" + msgYear;
         dstFolder = GetMsgFolderFromUri(archiveFolderUri, false);
@@ -1269,7 +1279,7 @@ BatchMessageMover.prototype =
             return;
         }
       }
-      if (granularity >= Components.interfaces.nsIMsgIncomingServer.perMonthArchiveFolders)
+      if (granularity >= Components.interfaces.nsIMsgIdentity.perMonthArchiveFolders)
       {
         archiveFolderUri += "/" + msgMonth;
         dstFolder = GetMsgFolderFromUri(archiveFolderUri, false);

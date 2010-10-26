@@ -50,6 +50,8 @@ Components.utils.import("resource:///modules/MailUtils.js");
 var archiveSrcFolder = null;
 var archiveURI;
 
+var acctMgr;
+
 var setupModule = function(module) {
   let fdh = collector.getModule('folder-display-helpers');
   fdh.installInto(module);
@@ -58,6 +60,7 @@ var setupModule = function(module) {
   // Create messages from 20 different months, which will mean 2 different
   // years as well.
   make_new_sets_in_folder(archiveSrcFolder, [{count: 20, age_incr: {weeks: 5}}]);
+
 };
 
 function test_yearly_archive() {
@@ -69,8 +72,12 @@ function yearly_archive(keep_structure) {
   make_display_unthreaded();
   mc.folderDisplay.view.sort(Ci.nsMsgViewSortType.byDate, Ci.nsMsgViewSortOrder.ascending);
 
-  let server = mc.folderDisplay.view.dbView.getMsgHdrAt(0).folder.server;
-  server.archiveGranularity = Ci.nsIMsgIncomingServer.perYearArchiveFolders;
+  acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+              .getService(Ci.nsIMsgAccountManager);
+
+  let identity = acctMgr.getFirstIdentityForServer(mc.folderDisplay.view.dbView
+                                                   .getMsgHdrAt(0).folder.server);
+  identity.archiveGranularity = Ci.nsIMsgIdentity.perYearArchiveFolders;
   // We need to get all the info about the messages before we do the archive,
   // because deleting the headers could make extracting values from them fail.
   let firstMsgHdr = mc.folderDisplay.view.dbView.getMsgHdrAt(0);
@@ -113,8 +120,9 @@ function test_monthly_archive() {
 
 function monthly_archive(keep_structure) {
   be_in_folder(archiveSrcFolder);
-  let server = mc.folderDisplay.view.dbView.getMsgHdrAt(0).folder.server;
-  server.archiveGranularity = Ci.nsIMsgIncomingServer.perMonthArchiveFolders;
+  let identity = acctMgr.getFirstIdentityForServer(mc.folderDisplay.view.dbView
+                                                   .getMsgHdrAt(0).folder.server);
+  identity.archiveGranularity = Ci.nsIMsgIdentity.perMonthArchiveFolders;
   select_click_row(0);
   select_control_click_row(1);
 
@@ -157,7 +165,7 @@ function monthly_archive(keep_structure) {
 function test_folder_structure_archiving() {
   Cc["@mozilla.org/preferences-service;1"]
    .getService(Ci.nsIPrefService).getBranch(null)
-   .setBoolPref("mail.server.default.archive_keep_folder_structure", true);
+   .setBoolPref("mail.identity.default.archive_keep_folder_structure", true);
   monthly_archive(true);
   yearly_archive(true);
 }

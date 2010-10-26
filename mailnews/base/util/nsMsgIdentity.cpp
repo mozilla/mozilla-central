@@ -273,6 +273,9 @@ NS_IMPL_FOLDERPREF_STR(DraftFolder, "draft_folder", "Drafts", nsMsgFolderFlags::
 NS_IMPL_FOLDERPREF_STR(ArchiveFolder, "archive_folder", "Archives", nsMsgFolderFlags::Archive)
 NS_IMPL_FOLDERPREF_STR(StationeryFolder, "stationery_folder", "Templates", nsMsgFolderFlags::Templates)
 
+NS_IMPL_IDPREF_INT(ArchiveGranularity, "archive_granularity")
+NS_IMPL_IDPREF_BOOL(ArchiveKeepFolderStructure, "archive_keep_folder_structure")
+
 NS_IMPL_IDPREF_BOOL(ShowSaveMsgDlg, "showSaveMsgDlg")
 NS_IMPL_IDPREF_STR (DirectoryServer, "directoryServer")
 NS_IMPL_IDPREF_BOOL(OverrideGlobalPref, "overrideGlobal_Pref")

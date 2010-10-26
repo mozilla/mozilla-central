@@ -393,7 +393,7 @@ function enter_folder(aFolder) {
   }
   if (!controller.waitForEval('subject()', NORMAL_TIMEOUT, FAST_INTERVAL,
                               isDisplayedFolder))
-    mark_failure(["Timeout trying to enter folder", aFolder]);
+    mark_failure(["Timeout trying to enter folder", aFolder.URI]);
 
   wait_for_all_messages_to_load();
 
