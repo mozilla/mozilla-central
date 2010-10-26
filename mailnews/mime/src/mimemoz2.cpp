@@ -345,6 +345,10 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   tmp->isExternalAttachment = isExternalAttachment;
   tmp->size = attSize;
 
+  char *part_addr = mime_imap_part_address(object);
+  tmp->isDownloaded = (part_addr == nsnull);
+  PR_FREEIF(part_addr);
+
   PRInt32 i;
   char *charset = nsnull;
   char *disp = MimeHeaders_get(object->headers, HEADER_CONTENT_DISPOSITION, PR_FALSE, PR_FALSE);
@@ -654,9 +658,13 @@ NotifyEmittersOfAttachmentList(MimeDisplayOptions     *opt,
 
     nsCAutoString sizeStr;
     sizeStr.AppendInt(tmp->size);
+    nsCAutoString downloadedStr;
+    downloadedStr.AppendInt(tmp->isDownloaded);
+
     mimeEmitterStartAttachment(opt, tmp->real_name, tmp->real_type, spec.get(), tmp->isExternalAttachment);
     mimeEmitterAddAttachmentField(opt, HEADER_X_MOZILLA_PART_URL, spec.get());
     mimeEmitterAddAttachmentField(opt, HEADER_X_MOZILLA_PART_SIZE, sizeStr.get());
+    mimeEmitterAddAttachmentField(opt, HEADER_X_MOZILLA_PART_DOWNLOADED, downloadedStr.get());
 
     if ( (opt->format_out == nsMimeOutput::nsMimeMessageQuoting) ||
          (opt->format_out == nsMimeOutput::nsMimeMessageBodyQuoting) ||
@@ -1463,7 +1471,7 @@ MimeDisplayOptions::MimeDisplayOptions()
   quote_attachment_inline_p = PR_FALSE;
   notify_nested_bodies = PR_FALSE;
   write_pure_bodies = PR_FALSE;
-  stream_all_attachments = PR_FALSE;
+  metadata_only = PR_FALSE;
 }
 
 MimeDisplayOptions::~MimeDisplayOptions()

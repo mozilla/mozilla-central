@@ -225,7 +225,7 @@ MimeInlineImage_parse_decoded_buffer (const char *buf, PRInt32 size, MimeObject 
    * metadata and size. 0 means ok, the caller just checks for negative return
    * value
    */
-  if (obj->options && obj->options->stream_all_attachments)
+  if (obj->options && obj->options->metadata_only)
     return 0;
 
   if (obj->output_p &&

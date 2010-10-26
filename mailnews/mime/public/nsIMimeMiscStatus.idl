@@ -61,7 +61,7 @@ interface nsIMimeMiscStatus : nsISupports{
 // this is a simple interface which allows someone to listen to all the headers 
 // that are discovered by mime. We can use this when displaying a message to update
 // the msg header in JS. 
-[scriptable, uuid(8AA47266-1226-490B-9467-5E865CC58074)]
+[scriptable, uuid(AD0CB800-CCD0-11DF-BD3B-0800200C9A66)]
 interface nsIMsgHeaderSink : nsISupports 
 {
   // You must finish consuming the iterators before returning from processHeaders. aHeaderNames and aHeaderValues will ALWAYS have the same
@@ -70,6 +70,14 @@ interface nsIMsgHeaderSink : nsISupports
 
   void handleAttachment(in string contentType, in string url, in wstring displayName, in string uri,
                         in boolean aNotDownloaded);
+
+  /**
+   * Add a metadata field to the current attachment, e.g. "X-Mozilla-PartSize".
+   *
+   * @param field The field to add
+   * @param value The value of the field
+   */
+  void addAttachmentField(in string field, in string value);
   void onEndAllAttachments();
     
   // onEndMsgHeaders is called after libmime is done processing a message. At this point it is safe for

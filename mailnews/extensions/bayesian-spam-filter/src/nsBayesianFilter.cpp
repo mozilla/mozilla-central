@@ -1050,6 +1050,11 @@ NS_IMETHODIMP TokenStreamListener::HandleAttachment(const char *contentType, con
     return NS_OK;
 }
 
+NS_IMETHODIMP TokenStreamListener::AddAttachmentField(const char *field, const char *value)
+{
+    return NS_OK;
+}
+
 NS_IMETHODIMP TokenStreamListener::OnEndAllAttachments()
 {
     return NS_OK;

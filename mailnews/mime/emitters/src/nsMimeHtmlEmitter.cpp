@@ -387,7 +387,7 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const nsACString &name,
                                  unicodeHeaderValue.get(), uriString.get(),
                                  aIsExternalAttachment);
 
-    mSkipAttachment = PR_TRUE;
+    mSkipAttachment = PR_FALSE;
   }
   else if (mFormat == nsMimeOutput::nsMimeMessagePrintOutput)
   {
@@ -460,7 +460,7 @@ nsMimeHtmlDisplayEmitter::StartAttachmentInBody(const nsACString &name,
 nsresult
 nsMimeHtmlDisplayEmitter::AddAttachmentField(const char *field, const char *value)
 {
-  if (mSkipAttachment || BroadCastHeadersAndAttachments())
+  if (mSkipAttachment)
     return NS_OK;
 
   // Don't let bad things happen
@@ -471,25 +471,33 @@ nsMimeHtmlDisplayEmitter::AddAttachmentField(const char *field, const char *valu
   if (!strcmp(field, HEADER_X_MOZILLA_PART_URL))
     return NS_OK;
 
-  char  *newValue = MsgEscapeHTML(value);
+  nsCOMPtr<nsIMsgHeaderSink> headerSink;
+  nsresult rv = GetHeaderSink(getter_AddRefs(headerSink));
+  if (NS_SUCCEEDED(rv) && headerSink) {
+    headerSink->AddAttachmentField(field, value);
+  }
+  else {
+    char  *newValue = MsgEscapeHTML(value);
 
-  UtilityWrite("<tr>");
+    UtilityWrite("<tr>");
 
-  UtilityWrite("<td>");
-  UtilityWrite("<div align=right class=\"headerdisplayname\" style=\"display:inline;\">");
+    UtilityWrite("<td>");
+    UtilityWrite("<div align=right class=\"headerdisplayname\" style=\"display:inline;\">");
 
-  UtilityWrite(field);
-  UtilityWrite(":");
-  UtilityWrite("</div>");
-  UtilityWrite("</td>");
-  UtilityWrite("<td>");
+    UtilityWrite(field);
+    UtilityWrite(":");
+    UtilityWrite("</div>");
+    UtilityWrite("</td>");
+    UtilityWrite("<td>");
 
-  UtilityWrite(newValue);
+    UtilityWrite(newValue);
 
-  UtilityWrite("</td>");
-  UtilityWrite("</tr>");
+    UtilityWrite("</td>");
+    UtilityWrite("</tr>");
 
-  PR_Free(newValue);
+    PR_Free(newValue);
+  }
+
   return NS_OK;
 }
 

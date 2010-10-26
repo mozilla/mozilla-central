@@ -408,11 +408,12 @@ public:
   PRBool write_pure_bodies;
 
   /**
-   * When true, forces all attachments to be decoded and streamed to the mime
-   *  emitter. At the moment, only the JS mime emitter uses this. Other mime
-   *  emitters would probably choke.
+   * When true, only processes metadata (i.e. size) for streamed attachments.
+   *  Mime emitters that expect any attachment data (including inline text and
+   *  image attachments) should leave this as false (the default value).  At
+   *  the moment, only the JS mime emitter uses this.
    */
-  PRBool stream_all_attachments;
+  PRBool metadata_only;
 };
 
 #endif /* _MODLMIME_H_ */
