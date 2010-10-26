@@ -1808,11 +1808,14 @@ PRBool nsImapProtocol::ProcessCurrentURL()
 
   if (imapMailFolderSink)
   {
-    imapMailFolderSink->CopyNextStreamMessage(GetServerStateParser().LastCommandSuccessful() &&
-                                              NS_SUCCEEDED(GetConnectionStatus()),
-                                              copyState);
     if (copyState)
     {
+      rv = imapMailFolderSink->CopyNextStreamMessage(GetServerStateParser().LastCommandSuccessful() &&
+                                                NS_SUCCEEDED(GetConnectionStatus()),
+                                                copyState);
+      if (NS_FAILED(rv))
+        PR_LOG(IMAP, PR_LOG_ALWAYS, ("CopyNextStreamMessage failed:%lx\n", rv));
+
       nsCOMPtr<nsIThread> thread = do_GetMainThread();
       nsISupports *doomed = nsnull;
       copyState.swap(doomed);
@@ -1822,6 +1825,8 @@ PRBool nsImapProtocol::ProcessCurrentURL()
     m_imapMailFolderSink = imapMailFolderSink;
     imapMailFolderSink = nsnull;
   }
+  else
+    PR_LOG(IMAP, PR_LOG_ALWAYS, ("null imapMailFolderSink\n"));
 
   // now try queued urls, now that we've released this connection.
   if (m_imapServerSink)
