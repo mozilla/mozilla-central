@@ -48,16 +48,10 @@
 #include "nsCOMArray.h"
 #include "nsWeakReference.h"
 #include "nsTObserverArray.h"
-#include "nsMsgSearchScopeTerm.h"
 
 class nsMsgSearchAdapter;
 class nsMsgSearchBoolExpression;
-
-class nsMsgSearchScopeTermArray : public nsVoidArray
-{
-public:
-  nsMsgSearchScopeTerm *ElementAt(PRUint32 i) const { return (nsMsgSearchScopeTerm*) nsVoidArray::SafeElementAt(i); }
-};
+class nsMsgSearchScopeTerm;
 
 class nsMsgSearchSession : public nsIMsgSearchSession, public nsIUrlListener, public nsSupportsWeakReference
 {
@@ -86,7 +80,7 @@ protected:
   void EnableFolderNotifications(PRBool aEnable);
   void ReleaseFolderDBRef();
 
-  nsMsgSearchScopeTermArray m_scopeList;
+  nsTArray<nsMsgSearchScopeTerm*> m_scopeList;
   nsCOMPtr <nsISupportsArray> m_termList;
 
   nsTArray<nsCOMPtr<nsIMsgSearchNotify> > m_listenerList;
@@ -118,7 +112,7 @@ protected:
   nsresult TimeSliceParallel ();
 
   nsMsgSearchAttribValue m_sortAttribute;
-  PRInt32 m_idxRunningScope;
+  PRUint32 m_idxRunningScope;
   nsMsgSearchType m_searchType;
   PRBool m_handlingError;
   PRInt32 m_urlQueueIndex;

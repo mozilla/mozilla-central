@@ -183,7 +183,7 @@ nsMsgSearchSession::GetNthSearchTerm(PRInt32 whichTerm,
 NS_IMETHODIMP nsMsgSearchSession::CountSearchScopes(PRInt32 *_retval)
 {
   NS_ENSURE_ARG(_retval);
-  *_retval = m_scopeList.Count();
+  *_retval = m_scopeList.Length();
   return NS_OK;
 }
 
@@ -193,9 +193,10 @@ nsMsgSearchSession::GetNthSearchScope(PRInt32 which,
                                       nsMsgSearchScopeValue *scopeId,
                                       nsIMsgFolder **folder)
 {
-  // argh, does this do an addref?
-  nsMsgSearchScopeTerm *scopeTerm = (nsMsgSearchScopeTerm *) m_scopeList.SafeElementAt(which);
-    if (!scopeTerm) return NS_ERROR_INVALID_ARG;
+  nsMsgSearchScopeTerm *scopeTerm = m_scopeList.SafeElementAt(which, nsnull);
+  if (!scopeTerm)
+    return NS_ERROR_INVALID_ARG;
+
   *scopeId = scopeTerm->m_attribute;
   *folder = scopeTerm->m_folder;
   NS_IF_ADDREF(*folder);
@@ -295,15 +296,15 @@ NS_IMETHODIMP nsMsgSearchSession::InterruptSearch()
   if (msgWindow)
   {
     EnableFolderNotifications(PR_TRUE);
-    if (m_idxRunningScope < m_scopeList.Count())
+    if (m_idxRunningScope < m_scopeList.Length())
       msgWindow->StopUrls();
 
-    while (m_idxRunningScope < m_scopeList.Count())
+    while (m_idxRunningScope < m_scopeList.Length())
     {
       ReleaseFolderDBRef();
       m_idxRunningScope++;
     }
-    //m_idxRunningScope = m_scopeList.Count() so it will make us not run another url
+    //m_idxRunningScope = m_scopeList.Length() so it will make us not run another url
   }
   if (m_backgroundTimer)
   {
@@ -399,7 +400,7 @@ NS_IMETHODIMP nsMsgSearchSession::OnStopRunningUrl(nsIURI *url, nsresult aExitCo
   m_idxRunningScope++;
   if (++m_urlQueueIndex < m_urlQueue.Count())
     GetNextUrl();
-  else if (m_idxRunningScope < m_scopeList.Count())
+  else if (m_idxRunningScope < m_scopeList.Length())
     DoNextSearch();
   else
     NotifyListenersDone(aExitCode);
@@ -428,7 +429,7 @@ nsresult nsMsgSearchSession::Initialize()
     return NS_MSG_ERROR_NO_SEARCH_VALUES;
 
   // if we don't have any search scopes to search, return that code.
-  if (m_scopeList.Count() == 0)
+  if (m_scopeList.Length() == 0)
     return NS_MSG_ERROR_INVALID_SEARCH_SCOPE;
 
   m_urlQueue.Clear(); // clear out old urls, if any.
@@ -437,7 +438,7 @@ nsresult nsMsgSearchSession::Initialize()
 
   // If this term list (loosely specified here by the first term) should be
   // scheduled in parallel, build up a list of scopes to do the round-robin scheduling
-  for (int i = 0; i < m_scopeList.Count() && NS_SUCCEEDED(err); i++)
+  for (PRUint32 i = 0; i < m_scopeList.Length() && NS_SUCCEEDED(err); i++)
   {
     scopeTerm = m_scopeList.ElementAt(i);
     // NS_ASSERTION(scopeTerm->IsValid());
@@ -473,14 +474,14 @@ nsresult nsMsgSearchSession::DoNextSearch()
 
 nsresult nsMsgSearchSession::BuildUrlQueue ()
 {
-  PRInt32 i;
-  for (i = m_idxRunningScope; i < m_scopeList.Count(); i++)
+  PRUint32 i;
+  for (i = m_idxRunningScope; i < m_scopeList.Length(); i++)
   {
     nsMsgSearchScopeTerm *scope = m_scopeList.ElementAt(i);
     if (scope->m_attribute != nsMsgSearchScope::onlineMail &&
       (scope->m_attribute != nsMsgSearchScope::news && scope->m_searchServer))
       break;
-    nsCOMPtr <nsIMsgSearchAdapter> adapter = do_QueryInterface((m_scopeList.ElementAt(i))->m_adapter);
+    nsCOMPtr <nsIMsgSearchAdapter> adapter = do_QueryInterface(scope->m_adapter);
     nsCString url;
     if (adapter)
     {
@@ -549,7 +550,7 @@ nsresult nsMsgSearchSession::AddUrl(const char *url)
   {
     aTimer->Cancel();
     searchSession->m_backgroundTimer = nsnull;
-    if (searchSession->m_idxRunningScope < searchSession->m_scopeList.Count())
+    if (searchSession->m_idxRunningScope < searchSession->m_scopeList.Length())
       searchSession->DoNextSearch();
     else
       searchSession->NotifyListenersDone(NS_OK);
@@ -624,10 +625,9 @@ nsresult nsMsgSearchSession::NotifyListenersDone(nsresult aStatus)
 
 void nsMsgSearchSession::DestroyScopeList()
 {
-  nsMsgSearchScopeTerm *scope = NULL;
-  PRInt32 count = m_scopeList.Count();
+  nsMsgSearchScopeTerm *scope = nsnull;
 
-  for (PRInt32 i = count-1; i >= 0; i--)
+  for (PRInt32 i = m_scopeList.Length() - 1; i >= 0; i--)
   {
     scope = m_scopeList.ElementAt(i);
     //    NS_ASSERTION (scope->IsValid(), "invalid search scope");
@@ -646,7 +646,7 @@ void nsMsgSearchSession::DestroyTermList ()
 
 nsMsgSearchScopeTerm *nsMsgSearchSession::GetRunningScope()
 {
-    return (nsMsgSearchScopeTerm *) m_scopeList.SafeElementAt(m_idxRunningScope);
+  return m_scopeList.SafeElementAt(m_idxRunningScope, nsnull);
 }
 
 nsresult nsMsgSearchSession::TimeSlice (PRBool *aDone)
@@ -736,7 +736,7 @@ nsMsgSearchSession::EnableFolderNotifications(PRBool aEnable)
 NS_IMETHODIMP
 nsMsgSearchSession::MatchHdr(nsIMsgDBHdr *aMsgHdr, nsIMsgDatabase *aDatabase, PRBool *aResult)
 {
-  nsMsgSearchScopeTerm *scope = (nsMsgSearchScopeTerm *)m_scopeList.SafeElementAt(0);
+  nsMsgSearchScopeTerm *scope = m_scopeList.SafeElementAt(0, nsnull);
   if (scope)
   {
     if (!scope->m_adapter)
