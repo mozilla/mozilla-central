@@ -1833,7 +1833,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
       // save the charset of a message being replied to because
       // we need to use it when decoding RFC-2047-encoded author name
-      // with |charsetOverride == PR_TRUE|
+      // with |charsetOverride|.
       nsCAutoString originCharset(charset);
 
       PRBool replyInDefault = PR_FALSE;
