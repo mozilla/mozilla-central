@@ -89,13 +89,17 @@ ifeq (,$(wildcard client.mk))
 TOPSRCDIR := $(patsubst %/,%,$(dir $(MAKEFILE_LIST)))
 MOZ_OBJDIR = .
 else
-TOPSRCDIR :=  $(CWD)
+TOPSRCDIR := $(CWD)
 endif
 endif
 
 # try to find autoconf 2.13 - discard errors from 'which'
 # MacOS X 10.4 sends "no autoconf*" errors to stdout, discard those via grep
 AUTOCONF ?= $(shell which autoconf-2.13 autoconf2.13 autoconf213 2>/dev/null | grep -v '^no autoconf' | head -1)
+
+ifeq (,$(strip $(AUTOCONF)))
+AUTOCONF=$(error Couldn't find autoconf 2.13)
+endif
 
 MKDIR := mkdir
 SH := /bin/sh
@@ -250,7 +254,7 @@ endif
 # loop through them.
 
 ifeq (,$(MOZ_CURRENT_PROJECT)$(if $(MOZ_BUILD_PROJECTS),,1))
-configure depend build install export libs clean realclean distclean alldep preflight postflight maybe_clobber_profiledbuild::
+configure depend build install export libs clean realclean distclean alldep preflight postflight maybe_clobber_profiledbuild upload sdk::
 	set -e; \
 	for app in $(MOZ_BUILD_PROJECTS); do \
 	  $(MAKE) -f $(TOPSRCDIR)/client.mk $@ MOZ_CURRENT_PROJECT=$$app; \
@@ -303,7 +307,6 @@ configure-files: $(CONFIGURES)
 configure:: configure-files
 ifdef MOZ_BUILD_PROJECTS
 	@if test ! -d $(MOZ_OBJDIR); then $(MKDIR) $(MOZ_OBJDIR); else true; fi
-	export MOZ_CURRENT_PROJECT
 endif
 	@if test ! -d $(OBJDIR); then $(MKDIR) $(OBJDIR); else true; fi
 	@echo cd $(OBJDIR);
@@ -350,7 +353,7 @@ build::  $(OBJDIR)/Makefile $(OBJDIR)/config.status
 # Other targets
 
 # Pass these target onto the real build system
-install export libs clean realclean distclean alldep maybe_clobber_profiledbuild:: $(OBJDIR)/Makefile $(OBJDIR)/config.status
+install export libs clean realclean distclean alldep maybe_clobber_profiledbuild upload sdk:: $(OBJDIR)/Makefile $(OBJDIR)/config.status
 	$(MOZ_MAKE) $@
 
 ####################################
