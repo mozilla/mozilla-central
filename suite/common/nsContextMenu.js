@@ -940,15 +940,18 @@ nsContextMenu.prototype = {
       }
     }
 
-    // in case we need to prompt the user for authentication
     function Callbacks() {}
     Callbacks.prototype = {
       getInterface: function getInterface(aIID) {
         if (aIID.equals(Components.interfaces.nsIAuthPrompt) ||
             aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
-          var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                             .getService(Components.interfaces.nsIPromptFactory);
-          return ww.getPrompt(doc.defaultView, aIID);
+          // If the channel demands authentication prompt, we must cancel it
+          // because the save-as-timer would expire and cancel the channel
+          // before we get credentials from user.  Both authentication dialog
+          // and save as dialog would appear on the screen as we fall back to
+          // the old fashioned way after the timeout.
+          timer.cancel();
+          channel.cancel(NS_ERROR_SAVE_LINK_AS_TIMEOUT);
         }
         throw Components.results.NS_ERROR_NO_INTERFACE;
       }
