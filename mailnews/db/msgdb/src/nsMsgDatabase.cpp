@@ -3378,9 +3378,16 @@ NS_IMETHODIMP nsMsgDatabase::CreateNewHdr(nsMsgKey key, nsIMsgDBHdr **pnewHdr)
 
 NS_IMETHODIMP nsMsgDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool notify)
 {
+  NS_ENSURE_ARG_POINTER(newHdr);
   nsMsgHdr* hdr = static_cast<nsMsgHdr*>(newHdr);          // closed system, cast ok
   PRBool newThread;
-
+  PRBool hasKey;
+  ContainsKey(hdr->m_messageKey, &hasKey);
+  if (hasKey)
+  {
+    NS_ERROR("adding hdr that already exists");
+    return NS_ERROR_FAILURE;
+  }
   nsresult err = ThreadNewHdr(hdr, newThread);
   // we thread header before we add it to the all headers table
   // so that subject and reference threading will work (otherwise,

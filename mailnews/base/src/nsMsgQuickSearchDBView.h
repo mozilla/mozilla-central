@@ -106,6 +106,7 @@ protected:
                                         PRUint32 *pNumListed);
   virtual nsresult ListIdsInThreadOrder(nsIMsgThread *threadHdr,
                                         nsMsgKey parentKey, PRInt32 level,
+                                        PRInt32 callLevel,
                                         nsMsgKey keyToSkip,
                                         nsMsgViewIndex *viewIndex,
                                         PRUint32 *pNumListed);

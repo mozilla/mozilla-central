@@ -690,6 +690,7 @@ nsresult nsMsgQuickSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgV
 nsresult
 nsMsgQuickSearchDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr,
                                              nsMsgKey parentKey, PRInt32 level,
+                                             PRInt32 callLevel,
                                              nsMsgKey keyToSkip,
                                              nsMsgViewIndex *viewIndex,
                                              PRUint32 *pNumListed)
@@ -721,7 +722,7 @@ nsMsgQuickSearchDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr,
       // while loop before overflowing the stack with recursive calls.
       // Technically, this is an error, but forcing a database rebuild
       // is too destructive so we just return.
-      if (*pNumListed > numChildren)
+      if (*pNumListed > numChildren || callLevel > numChildren)
       {
         NS_ERROR("loop in message threading while listing children");
         return NS_OK;
@@ -737,7 +738,8 @@ nsMsgQuickSearchDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr,
         (*viewIndex)++;
         childLevel++;
       }
-      rv = ListIdsInThreadOrder(threadHdr, msgKey, childLevel, keyToSkip, viewIndex, pNumListed);
+      rv = ListIdsInThreadOrder(threadHdr, msgKey, childLevel, callLevel + 1,
+                                keyToSkip, viewIndex, pNumListed);
     }
   }
   return rv;
@@ -749,8 +751,8 @@ nsMsgQuickSearchDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr,
                                              nsMsgViewIndex *viewIndex,
                                              PRUint32 *pNumListed)
 {
-  nsresult rv = ListIdsInThreadOrder(threadHdr, parentKey, level, nsMsgKey_None,
-                                     viewIndex, pNumListed);
+  nsresult rv = ListIdsInThreadOrder(threadHdr, parentKey, level, level,
+                                     nsMsgKey_None, viewIndex, pNumListed);
   // Because a quick search view might not have the actual thread root
   // as its root, and thus might have a message that potentially has siblings
   // as its root, and the enumerator will miss the siblings, we might need to
@@ -768,8 +770,8 @@ nsMsgQuickSearchDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr,
     {
       rootParent->GetMessageKey(&rootKey);
       if (rootKey != parentKey)
-        rv = ListIdsInThreadOrder(threadHdr, rootKey, level, parentKey, viewIndex,
-                                  pNumListed);
+        rv = ListIdsInThreadOrder(threadHdr, rootKey, level, level, parentKey,
+                                  viewIndex, pNumListed);
     }
   }
   return rv;
