@@ -162,8 +162,9 @@ VirtualFolderWrapper.prototype = {
       this.dbFolderInfo.getCharProperty("searchFolderUri").split("|");
     let folders = [];
     for each (let [, folderURI] in Iterator(virtualFolderUris)) {
-      folders.push(rdfService.GetResource(folderURI)
-                             .QueryInterface(Ci.nsIMsgFolder));
+      if (folderURI)
+        folders.push(rdfService.GetResource(folderURI)
+                               .QueryInterface(Ci.nsIMsgFolder));
     }
     return folders;
   },
