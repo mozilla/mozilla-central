@@ -41,10 +41,11 @@ const Cu = Components.utils;
 
 Cu.import("resource:///modules/errUtils.js");
 Cu.import("resource:///modules/iteratorUtils.jsm");
-Cu.import("resource://gre/modules/DownloadUtils.jsm");
 
 var gPrefBranch = Cc["@mozilla.org/preferences-service;1"]
                     .getService(Ci.nsIPrefBranch);
+var gMessenger = Cc["@mozilla.org/messenger;1"]
+                   .createInstance(Ci.nsIMessenger);
 
 
 var AutoSyncConfigurator = {
@@ -89,13 +90,9 @@ var AutoSyncConfigurator = {
       }
       sizeDifference = estimatedSize - currentSize;
 
-      let formatSize = function as_formatSize(aNumBytes) {
-        let [size, unit] = DownloadUtils.convertByteUnits(aNumBytes);
-        return size + " " + unit;
-      }
-      $("#free-space").text(formatSize(freeSpace));
-      $("#current-size").text(formatSize(currentSize));
-      $("#size-difference").text(formatSize(sizeDifference));
+      $("#free-space").text(gMessenger.formatFileSize(freeSpace));
+      $("#current-size").text(gMessenger.formatFileSize(currentSize));
+      $("#size-difference").text(gMessenger.formatFileSize(sizeDifference));
 
       // If we will leave <50MB or take up >50% of free space then warn.
       let newFreeSpace = freeSpace - sizeDifference;
