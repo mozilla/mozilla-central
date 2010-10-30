@@ -140,7 +140,7 @@ function test3() {
 }
 
 function test4(tab, win) {
-  todo_is(win.wrappedJSObject.gViewController.currentViewId, "addons://list/plugin", "Should have displayed the plugins pane");
+  is(win.wrappedJSObject.gViewController.currentViewId, "addons://list/plugin", "Should have displayed the plugins pane");
   gBrowser.removeTab(tab);
 }
 
