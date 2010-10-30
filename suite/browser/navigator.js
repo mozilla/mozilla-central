@@ -1130,8 +1130,11 @@ const BrowserSearch = {
                           { postData: submission.postData,
                             relatedToCurrent: true,
                             inBackground: false });
-    } else
-      loadURI(submission.uri.spec, null, submission.postData, false);
+    } else {
+      gBrowser.loadURIWithFlags(submission.uri.spec, nsIWebNavigation.LOAD_FLAGS_NONE,
+                                null, null, submission.postData);
+      window.content.focus();
+    }
 
     // should we try and open up the sidebar to show the "Search Results" panel?
     var autoOpenSidebar = false;
