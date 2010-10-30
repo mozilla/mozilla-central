@@ -1091,6 +1091,7 @@ const BrowserSearch = {
       searchSidebar.focus();
     } else {
       loadURI(Services.search.defaultEngine.searchForm);
+      window.content.focus();
     }
   },
 
