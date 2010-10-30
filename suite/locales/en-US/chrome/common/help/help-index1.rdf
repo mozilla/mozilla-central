@@ -618,6 +618,11 @@
 <rdf:Description about="help-indexAZ.rdf#d">
    <nc:subheadings>
      <rdf:Seq><rdf:li>
+       <rdf:Description ID="default_account"
+         nc:name="default account"
+         nc:link="mailnews_getting_started.xhtml#set_as_default"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="device_manager"
          nc:name="Device Manager"
          nc:link="using_certs_help.xhtml#about_security_devices_and_modules"/>
