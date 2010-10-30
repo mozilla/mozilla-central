@@ -82,19 +82,8 @@ dnl export this, so the var is set for mozilla/configure
 MOZCONFIG=`$_AUTOCONF_TOOLS_DIR/mozconfig-find $topsrcdir`
 export MOZCONFIG
 
-dnl Check for Perl first -- needed for win32 SDK checks
-MOZ_PATH_PROGS(PERL, $PERL perl5 perl)
-if test -z "$PERL" -o "$PERL" = ":"; then
-    AC_MSG_ERROR([perl not found in \$PATH])
-fi
-
-
-dnl Get mozilla version from central milestone file
-MOZILLA_VERSION=`$PERL $MOZILLA_SRCDIR/config/milestone.pl -topsrcdir $MOZILLA_SRCDIR`
-
 MOZ_DEB_TIMESTAMP=`date +"%a, %d  %b %Y %T %z"   2>&1` 
 AC_SUBST(MOZ_DEB_TIMESTAMP)
-
 
 dnl ========================================================
 dnl =
@@ -249,6 +238,12 @@ if test ! -z "$L10NBASEDIR"; then
     fi
 fi
 AC_SUBST(L10NBASEDIR)
+
+dnl Check for Perl first -- needed for win32 SDK checks
+MOZ_PATH_PROGS(PERL, $PERL perl5 perl)
+if test -z "$PERL" -o "$PERL" = ":"; then
+    AC_MSG_ERROR([perl not found in \$PATH])
+fi
 
 dnl ========================================================
 dnl Checks for compilers.
@@ -1801,6 +1796,9 @@ case "$host" in
     HOST_OPTIMIZE_FLAGS="${HOST_OPTIMIZE_FLAGS=-O2}"
     ;;
 esac
+
+dnl Get mozilla version from central milestone file
+MOZILLA_VERSION=`$PERL $MOZILLA_SRCDIR/config/milestone.pl -topsrcdir $MOZILLA_SRCDIR`
 
 dnl Get version of various core apps from the version files.
 SUNBIRD_VERSION=`cat $topsrcdir/calendar/sunbird/config/version.txt`
