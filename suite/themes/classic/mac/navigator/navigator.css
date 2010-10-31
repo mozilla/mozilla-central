@@ -220,6 +220,11 @@ toolbar[iconsize="small"] > #home-button[disabled="true"] {
   -moz-image-region: rect(80px 59px 99px 40px) !important;
 }
 
+#FindToolbar {
+  border-top: none;
+  border-bottom: 1px solid #888888;
+}
+
 /* ::::: fullscreen window controls ::::: */
 
 #window-controls {

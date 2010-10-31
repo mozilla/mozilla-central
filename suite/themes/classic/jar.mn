@@ -15,6 +15,7 @@ classic.jar:
   skin/classic/communicator/communicator.css                            (mac/communicator/communicator.css)
   skin/classic/communicator/helpOverlay.css                             (mac/communicator/helpOverlay.css)
   skin/classic/communicator/toolbar.css                                 (mac/communicator/toolbar.css)
+  skin/classic/communicator/viewSourceOverlay.css                       (mac/communicator/viewSourceOverlay.css)
   skin/classic/communicator/bookmarks/bookmark-folder-active.png        (mac/communicator/bookmarks/bookmark-folder-active.png)
   skin/classic/communicator/bookmarks/bookmarks.css                     (mac/communicator/bookmarks/bookmarks.css)
   skin/classic/communicator/bookmarks/bookmarksManager.css              (mac/communicator/bookmarks/bookmarksManager.css)
@@ -51,6 +52,7 @@ classic.jar:
 #else
   skin/classic/communicator/toolbar.css                                 (communicator/toolbar.css)
 #endif
+  skin/classic/communicator/viewSourceOverlay.css                       (communicator/viewSourceOverlay.css)
   skin/classic/communicator/bookmarks/bookmark-folder-closed.png        (communicator/bookmarks/bookmark-folder-closed.png)
   skin/classic/communicator/bookmarks/bookmark-folder-dis.png           (communicator/bookmarks/bookmark-folder-dis.png)
   skin/classic/communicator/bookmarks/bookmark-folder-open.png          (communicator/bookmarks/bookmark-folder-open.png)
@@ -80,7 +82,6 @@ classic.jar:
   skin/classic/communicator/prefpanels.css                              (communicator/prefpanels.css)
   skin/classic/communicator/smileys.css                                 (communicator/smileys.css)
   skin/classic/communicator/tasksOverlay.css                            (communicator/tasksOverlay.css)
-  skin/classic/communicator/viewSourceOverlay.css                       (communicator/viewSourceOverlay.css)
   skin/classic/communicator/bookmarks/allBookmarks.png                  (communicator/bookmarks/allBookmarks.png)
   skin/classic/communicator/bookmarks/bookmark.png                      (communicator/bookmarks/bookmark.png)
   skin/classic/communicator/bookmarks/bookmark-item-dis.png             (communicator/bookmarks/bookmark-item-dis.png)
