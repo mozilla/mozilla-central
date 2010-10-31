@@ -934,7 +934,7 @@
   <binding id="tabmail-arrowscrollbox"
            extends="chrome://global/content/bindings/scrollbox.xml#arrowscrollbox-clicktoscroll">
     <content>
-      <xul:toolbarbutton class="scrollbutton-up"
+      <xul:toolbarbutton class="scrollbutton-up tab-scrollbutton-up"
                          collapsed="true"
                          xbl:inherits="orient"
                          anonid="scrollbutton-up"
@@ -955,7 +955,7 @@
                   class="scrollbutton-down-box-animate"
                   collapsed="true"
                   anonid="down-box-animate"/>
-        <xul:toolbarbutton class="scrollbutton-down"
+        <xul:toolbarbutton class="scrollbutton-down tab-scrollbutton-down"
                            collapsed="true"
                            xbl:inherits="orient"
                            anonid="scrollbutton-down"
