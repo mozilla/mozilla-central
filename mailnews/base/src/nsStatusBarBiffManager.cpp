@@ -76,7 +76,6 @@ nsStatusBarBiffManager::~nsStatusBarBiffManager()
 #define PREF_NEW_MAIL_SOUND_TYPE         "mail.biff.play_sound.type"
 #define SYSTEM_SOUND_TYPE 0
 #define CUSTOM_SOUND_TYPE 1
-#define DEFAULT_SYSTEM_SOUND NS_LITERAL_STRING("_moz_mailbeep")
 
 nsresult nsStatusBarBiffManager::Init()
 {
@@ -155,8 +154,13 @@ nsresult nsStatusBarBiffManager::PlayBiffSound()
   
   // if nothing played, play the default system sound
   if (!customSoundPlayed) {
-    rv = mSound->PlaySystemSound(DEFAULT_SYSTEM_SOUND);
-    NS_ENSURE_SUCCESS(rv,rv);
+#ifdef XP_MACOSX
+    // Mac has no specific event sounds, so just beep instead.
+    rv = mSound->Beep();
+#else
+    rv = mSound->PlayEventSound(nsISound::EVENT_NEW_MAIL_RECIEVED);
+#endif
+    NS_ENSURE_SUCCESS(rv, rv);
   }
   return rv;
 }
