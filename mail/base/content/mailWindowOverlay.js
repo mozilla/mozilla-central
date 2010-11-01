@@ -1472,15 +1472,12 @@ BatchMessageMover.prototype = {
       }
       delete this._batches[key];
     }
+    gFolderDisplay.hintMassMoveCompleted();
 
     Components.classes["@mozilla.org/messenger/msgnotificationservice;1"]
               .getService(Components.interfaces.nsIMsgFolderNotificationService)
               .removeListener(this);
 
-    // We're just going to select the message now.
-    let treeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
-    treeView.selection.select(this.messageToSelectAfterWereDone);
-    treeView.selectionChanged();
   },
   OnStartRunningUrl: function(url) {
   },
