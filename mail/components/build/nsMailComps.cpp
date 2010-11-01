@@ -42,10 +42,6 @@
 #include "nsProfileMigrator.h"
 #include "nsSeamonkeyProfileMigrator.h"
 
-#if !defined(XP_BEOS)
-#include "nsDogbertProfileMigrator.h"
-#endif
-
 #ifndef MOZ_PLACES
 #include "nsDocShellCID.h"
 #include "history.h"
@@ -58,10 +54,6 @@ NS_GENERIC_FACTORY_SINGLETON_CONSTRUCTOR(History, History::GetSingleton)
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSeamonkeyProfileMigrator)
-
-#if !defined(XP_BEOS)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsDogbertProfileMigrator)
-#endif
 
 #ifdef XP_WIN32
 
@@ -95,9 +87,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMailWinSearchHelper, Init)
 
 NS_DEFINE_NAMED_CID(NS_THUNDERBIRD_PROFILEIMPORT_CID);
 NS_DEFINE_NAMED_CID(NS_SEAMONKEYPROFILEMIGRATOR_CID);
-#ifndef XP_BEOS
-NS_DEFINE_NAMED_CID(NS_DOGBERTPROFILEMIGRATOR_CID);
-#endif
 
 #ifdef XP_WIN32
 NS_DEFINE_NAMED_CID(NS_OEXPRESSPROFILEMIGRATOR_CID);
@@ -127,9 +116,6 @@ NS_DEFINE_NAMED_CID(NS_HISTORYSERVICE_CID);
 const mozilla::Module::CIDEntry kMailCIDs[] = {
   { &kNS_THUNDERBIRD_PROFILEIMPORT_CID, false, NULL, nsProfileMigratorConstructor },
   { &kNS_SEAMONKEYPROFILEMIGRATOR_CID, false, NULL, nsSeamonkeyProfileMigratorConstructor },
-#if !defined(XP_BEOS)
-  { &kNS_DOGBERTPROFILEMIGRATOR_CID, false, NULL, nsDogbertProfileMigratorConstructor },
-#endif
 #ifdef XP_WIN32
   { &kNS_OEXPRESSPROFILEMIGRATOR_CID, false, NULL, nsOEProfileMigratorConstructor },
   { &kNS_OUTLOOKPROFILEMIGRATOR_CID, false, NULL, nsOutlookProfileMigratorConstructor },
@@ -156,9 +142,6 @@ const mozilla::Module::CIDEntry kMailCIDs[] = {
 const mozilla::Module::ContractIDEntry kMailContracts[] = {
   { NS_PROFILEMIGRATOR_CONTRACTID, &kNS_THUNDERBIRD_PROFILEIMPORT_CID },
   { NS_MAILPROFILEMIGRATOR_CONTRACTID_PREFIX "seamonkey", &kNS_SEAMONKEYPROFILEMIGRATOR_CID },
-#if !defined(XP_BEOS)
-  { NS_MAILPROFILEMIGRATOR_CONTRACTID_PREFIX "dogbert", &kNS_DOGBERTPROFILEMIGRATOR_CID },
-#endif
 #ifdef XP_WIN32
   { NS_MAILPROFILEMIGRATOR_CONTRACTID_PREFIX "oexpress", &kNS_OEXPRESSPROFILEMIGRATOR_CID },
   { NS_MAILPROFILEMIGRATOR_CONTRACTID_PREFIX "outlook", &kNS_OUTLOOKPROFILEMIGRATOR_CID },

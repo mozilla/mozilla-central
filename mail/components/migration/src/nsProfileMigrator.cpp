@@ -116,7 +116,6 @@ typedef struct {
 
 #define INTERNAL_NAME_THUNDERBIRD     "Thunderbird"
 #define INTERNAL_NAME_SEAMONKEY       "Mozilla"
-#define INTERNAL_NAME_DOGBERT         "Netscape Messenger"
 #endif
 
 nsresult
@@ -160,7 +159,6 @@ nsProfileMigrator::GetDefaultMailMigratorKey(nsACString& aKey, nsCOMPtr<nsIMailP
     "seamonkey",
     "oexpress",
     "outlook",
-    "dogbert",
     "eudora",
     ""
   };
