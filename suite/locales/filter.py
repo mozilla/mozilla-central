@@ -21,5 +21,12 @@ def test(mod, path, entity = None):
   if path == "profile/bookmarks.extra" or path == "profile/panels.extra":
     # ignore files for additional bookmarks and panels
     return False
-  
-  return True
+    
+  if path == "chrome/common/region.properties":
+    return not re.match(r"browser\.search\.order\.[1-9]", entity)
+
+  if path != "chrome/browser/region.properties":
+    # only region.properties exceptions remain, compare all others
+    return True
+
+  return not re.match(r"browser\.contentHandlers\.types\.[0-5]", entity)
