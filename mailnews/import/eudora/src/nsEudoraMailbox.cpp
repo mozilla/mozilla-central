@@ -194,8 +194,8 @@ PRUint32 EudoraTOCEntry::GetMozillaStatus2Flags()
 
 
 nsEudoraMailbox::nsEudoraMailbox()
+: m_fromLen(0)
 {
-  m_fromLen = 0;
 }
 
 nsEudoraMailbox::~nsEudoraMailbox()
@@ -1344,8 +1344,8 @@ nsresult nsEudoraMailbox::FillMailBuffer( ReadFileState *pState, SimpleBufferTon
     read.m_writeOffset = 0;
   }
 
-  PRInt32  count = read.m_size - read.m_bytesInBuf;
-  if (((PRUint32)count + pState->offset) > pState->size)
+  PRUint32  count = read.m_size - read.m_bytesInBuf;
+  if ((count + pState->offset) > pState->size)
     count = pState->size - pState->offset;
   if (count) {
     PRUint32    bytesRead = 0;

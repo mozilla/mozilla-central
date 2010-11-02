@@ -120,10 +120,10 @@ public:
 
   PRBool  m_convertCRs;
   char *  m_pBuffer;
-  PRInt32  m_bytesInBuf;  // used when reading into this buffer
+  PRUint32  m_bytesInBuf;  // used when reading into this buffer
   PRInt32  m_size;      // allocated size of buffer
   PRInt32  m_growBy;    // duh
-  PRInt32  m_writeOffset;  // used when writing into and reading from the buffer
+  PRUint32 m_writeOffset;  // used when writing into and reading from the buffer
 };
 
 
