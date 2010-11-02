@@ -1064,7 +1064,9 @@ enum MESSENGER_SAVEAS_FILE_TYPE
 #define TEXT_FILE_EXTENSION ".txt"
 
 NS_IMETHODIMP
-nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity, const nsAString& aMsgFilename)
+nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile,
+                    nsIMsgIdentity *aIdentity, const nsAString& aMsgFilename,
+                    PRBool aBypassFilePicker)
 {
   nsCOMPtr<nsIMsgMessageService> messageService;
   nsCOMPtr<nsIUrlListener> urlListener;
@@ -1080,10 +1082,31 @@ nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile, nsIMsgIdentity *aIde
   if (aAsFile)
   {
     nsCOMPtr<nsILocalFile> saveAsFile;
-    rv = GetSaveAsFile(aMsgFilename, &saveAsFileType, getter_AddRefs(saveAsFile));
-    // A null saveAsFile means that the user canceled the save as
-    if (NS_FAILED(rv) || !saveAsFile)
-      goto done;
+    // show the file picker if BypassFilePicker is not specified (null) or false
+    if (!aBypassFilePicker) {
+      rv = GetSaveAsFile(aMsgFilename, &saveAsFileType, getter_AddRefs(saveAsFile));
+      // A null saveAsFile means that the user canceled the save as
+      if (NS_FAILED(rv) || !saveAsFile)
+        goto done;
+    }
+    else {
+      saveAsFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+      rv = saveAsFile->InitWithPath(aMsgFilename);
+      if (NS_FAILED(rv))
+        goto done;      
+      if (StringEndsWith(aMsgFilename, NS_LITERAL_STRING(TEXT_FILE_EXTENSION),
+                         nsCaseInsensitiveStringComparator()))
+        saveAsFileType = TEXT_FILE_TYPE;
+      else if ((StringEndsWith(aMsgFilename,
+                               NS_LITERAL_STRING(HTML_FILE_EXTENSION),
+                               nsCaseInsensitiveStringComparator())) ||
+               (StringEndsWith(aMsgFilename,
+                               NS_LITERAL_STRING(HTML_FILE_EXTENSION2),
+                               nsCaseInsensitiveStringComparator())))
+        saveAsFileType = HTML_FILE_TYPE;
+      else
+        saveAsFileType = EML_FILE_TYPE;
+    } 
 
     // XXX todo
     // document the ownership model of saveListener

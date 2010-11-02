@@ -49,7 +49,7 @@ interface nsIMsgMessageService;
 interface nsIFile;
 interface nsIUrlListener;
 
-[scriptable, uuid(be6f7aa0-36bd-11df-9879-0800200c9a66)]
+[scriptable, uuid(61f62ed0-dde4-11df-85ca-0800200c9a66)]
 interface nsIMessenger : nsISupports {
 
     const long eUnknown = 0;
@@ -79,7 +79,24 @@ interface nsIMessenger : nsISupports {
     void undo(in nsIMsgWindow msgWindow);
     void redo(in nsIMsgWindow msgWindow);
     void setDocumentCharset(in ACString characterSet);
-    void saveAs(in ACString aURI, in boolean aAsFile, in nsIMsgIdentity aIdentity, in AString aMsgFilename);
+    /**
+     * Saves a given message to a file or template.
+     *
+     * @param aURI         The URI of the message to save
+     * @param aAsFile      If true, save as file, otherwise save as a template
+     * @param aIdentity    When saving as a template, this is used to determine
+     *                     the location to save the template to.
+     * @param aMsgFilename When saving as a file, the filename to save the
+     *                     message as, or the default filename for the file
+     *                     picker.
+     * @param aBypassFilePicker
+     *                     If not specified or false, this function will show
+     *                     a file picker when saving as a file. If true, no
+     *                     file picker will be shown.
+     */
+    void saveAs(in ACString aURI, in boolean aAsFile,
+                in nsIMsgIdentity aIdentity, in AString aMsgFilename,
+                [optional] in boolean aBypassFilePicker);
 
     /**
      * Save the given messages as files in a folder - the user will be prompted
