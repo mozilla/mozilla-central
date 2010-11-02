@@ -169,3 +169,18 @@ function test_folder_structure_archiving() {
   monthly_archive(true);
   yearly_archive(true);
 }
+
+function test_selection_after_archive() {
+  be_in_folder(archiveSrcFolder);
+  let identity = acctMgr.getFirstIdentityForServer(mc.folderDisplay.view.dbView
+                                                   .getMsgHdrAt(0).folder.server);
+  identity.archiveGranularity = Ci.nsIMsgIdentity.perMonthArchiveFolders;
+  // We had a bug where we would always select the 0th message after an
+  // archive, so test that we'll actually select the next remaining message
+  // by archiving rows 1 & 2 and verifying that the 3rd message gets selected.
+  let hdrToSelect = select_click_row(3);
+  select_click_row(1);
+  select_control_click_row(2);
+  archive_selected_messages();
+  assert_selected_and_displayed(hdrToSelect);
+}
