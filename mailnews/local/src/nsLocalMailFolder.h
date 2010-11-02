@@ -234,6 +234,16 @@ protected:
   nsresult CopyMessageTo(nsISupports *message, nsIMsgFolder *dstFolder,
                          nsIMsgWindow *msgWindow, PRBool isMove);
 
+  /**
+   * Checks if there's room in the target folder to copy message(s) into.
+   * If not, handles alerting the user, and sending the copy notifications.
+   */
+  PRBool CheckIfSpaceForCopy(nsIMsgWindow *msgWindow,
+                             nsIMsgFolder *srcFolder,
+                             nsISupports *srcSupports,
+                             PRBool isMove,
+                             PRInt64 totalMsgSize);
+
   // copy multiple messages at a time from this folder
   nsresult CopyMessagesTo(nsIArray *messages, nsTArray<nsMsgKey> &keyArray,
                                        nsIMsgWindow *aMsgWindow,

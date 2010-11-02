@@ -1656,6 +1656,32 @@ nsMsgLocalMailFolder::SortMessagesBasedOnKey(nsTArray<nsMsgKey> &aKeyArray, nsIM
   return rv;
 }
 
+PRBool nsMsgLocalMailFolder::CheckIfSpaceForCopy(nsIMsgWindow *msgWindow,
+                                                 nsIMsgFolder *srcFolder,
+                                                 nsISupports *srcSupports,
+                                                 PRBool isMove,
+                                                 PRInt64 totalMsgSize)
+{
+  PRInt64 sizeOnDisk;
+
+  nsCOMPtr <nsILocalFile> filePath;
+  nsresult rv = GetFilePath(getter_AddRefs(filePath));
+  if (NS_SUCCEEDED(rv))
+    rv = filePath->GetFileSize(&sizeOnDisk);
+
+  // check if the folder size + the size of the messages will be > 4GB or so.
+  // If so, warn, and return an error.
+  if (NS_FAILED(rv) || sizeOnDisk + totalMsgSize > 0xFFC00000)
+  {
+    ThrowAlertMsg("mailboxTooLarge", msgWindow);
+    if (isMove && srcFolder)
+      srcFolder->NotifyFolderEvent(mDeleteOrMoveMsgFailedAtom);
+    OnCopyCompleted(srcSupports, PR_FALSE);
+    return PR_FALSE;
+  }
+  return PR_TRUE;
+}
+
 NS_IMETHODIMP
 nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
                                    messages, PRBool isMove,
@@ -1717,22 +1743,9 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
     }
   }
 
-  PRInt64 sizeOnDisk;
-
-  nsCOMPtr <nsILocalFile> filePath;
-  rv = GetFilePath(getter_AddRefs(filePath));
-  if (NS_SUCCEEDED(rv))
-    rv = filePath->GetFileSize(&sizeOnDisk);
-
-  // check if the folder size + the size of the messages will be > 4GB or so.
-  // If so, warn, and return an error.
-  if (NS_FAILED(rv) || sizeOnDisk + totalMsgSize > 0xFFC00000)
-  {
-    ThrowAlertMsg("mailboxTooLarge", msgWindow);
-    if (isMove)
-      srcFolder->NotifyFolderEvent(mDeleteOrMoveMsgFailedAtom);
-    return OnCopyCompleted(srcSupport, PR_FALSE);
-  }
+  if (!CheckIfSpaceForCopy(msgWindow, srcFolder, srcSupport, isMove,
+                           totalMsgSize))
+    return NS_OK;
 
   // don't update the counts in the dest folder until it is all over
   EnableNotifications(allMessageCountNotifications, PR_FALSE, PR_FALSE /*dbBatching*/);  //dest folder doesn't need db batching
@@ -2160,10 +2173,16 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile,
                                       nsIMsgWindow *msgWindow,
                                       nsIMsgCopyServiceListener* listener)
 {
+  NS_ENSURE_ARG_POINTER(aFile);
   nsresult rv = NS_ERROR_NULL_POINTER;
   nsParseMailMessageState* parseMsgState = nsnull;
   PRInt64 fileSize = 0;
+
   nsCOMPtr<nsISupports> fileSupport(do_QueryInterface(aFile, &rv));
+
+  aFile->GetFileSize(&fileSize);
+  if (!CheckIfSpaceForCopy(msgWindow, nsnull, fileSupport, PR_FALSE, fileSize))
+    return NS_OK;
 
   nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
 
@@ -2189,8 +2208,6 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile,
 
     nsCOMPtr<nsIInputStream> inputStream;
     rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aFile);
-    if (NS_SUCCEEDED(rv)) 
-      aFile->GetFileSize(&fileSize);
 
     // All or none for adding a message file to the store
     if (NS_SUCCEEDED(rv) && fileSize > PR_INT32_MAX)
