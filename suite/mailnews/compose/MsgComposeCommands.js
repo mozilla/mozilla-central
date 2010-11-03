@@ -628,6 +628,7 @@ function updateComposeItems()
 
     // Options Menu
     goUpdateCommand("cmd_spelling");
+    goUpdateCommand("cmd_quoteMessage");
   } catch(e) {}
 }
 
@@ -660,11 +661,6 @@ function updateEditItems()
   goUpdateCommand("cmd_find");
   goUpdateCommand("cmd_findNext");
   goUpdateCommand("cmd_findPrev");
-}
-
-function updateOptionItems()
-{
-  goUpdateCommand("cmd_quoteMessage");
 }
 
 var messageComposeOfflineObserver = {

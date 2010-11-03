@@ -457,8 +457,7 @@
           <menu id="optionsMenu"
                 label="&optionsMenu.label;"
                 accesskey="&optionsMenu.accesskey;">
-            <menupopup id="optionsMenuPopup"
-                       onpopupshowing="updateOptionItems();">
+            <menupopup id="optionsMenuPopup">
               <menuitem id="menu_selectAddress"
                         label="&selectAddressCmd.label;"
                         accesskey="&selectAddressCmd.accesskey;"
