@@ -869,11 +869,3 @@ calDateTime::OuterObject(nsIXPConnectWrappedNative *wrapper, JSContext *cx,
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
-
-/* JSObjectPtr innerObject(in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj); */
-NS_IMETHODIMP
-calDateTime::InnerObject(nsIXPConnectWrappedNative *wrapper, JSContext *cx,
-                         JSObject *obj, JSObject **_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
