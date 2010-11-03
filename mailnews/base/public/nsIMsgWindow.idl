@@ -53,7 +53,7 @@ interface nsIMsgWindowCommands : nsISupports {
   void clearMsgPane();
 };
 
-[scriptable, uuid(7e8fbaaa-d2f1-4751-af8e-8213fdb60a03)]
+[scriptable, uuid(8ad06f07-2230-4917-968c-2269588dbf7d)]
 interface nsIMsgWindow : nsISupports {
   attribute nsIMsgStatusFeedback statusFeedback;
   attribute nsIMsgWindowCommands windowCommands;
@@ -68,6 +68,13 @@ interface nsIMsgWindow : nsISupports {
    * to listen for OnLocationChange notifications.
    */
   attribute nsIDocShell rootDocShell;
+
+  /**
+   * @note Small helper function used to optimize our use of a weak reference
+   * on the message window docshell. Under no circumstances should you be
+   * holding on to the docshell returned here outside the scope of your routine.
+   */
+  readonly attribute nsIDocShell messageWindowDocShell;
   
   /**
    * These are currently used to set notification callbacks on

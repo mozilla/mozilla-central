@@ -106,8 +106,9 @@ nsresult nsMsgWindow::Init()
   return mTransactionManager->SetMaxTransactionCount(-1);
 }
 
-void nsMsgWindow::GetMessageWindowDocShell(nsIDocShell ** aDocShell)
+NS_IMETHODIMP nsMsgWindow::GetMessageWindowDocShell(nsIDocShell ** aDocShell)
 {
+  *aDocShell = nsnull;
   nsCOMPtr<nsIDocShell> docShell(do_QueryReferent(mMessageWindowDocShellWeak));
   if (!docShell)
   {
@@ -121,12 +122,14 @@ void nsMsgWindow::GetMessageWindowDocShell(nsIDocShell ** aDocShell)
          rootAsNode->FindChildWithName(NS_LITERAL_STRING("messagepane").get(),
                                        PR_TRUE, PR_FALSE, nsnull, nsnull,
                                        getter_AddRefs(msgDocShellItem));
+      NS_ENSURE_TRUE(msgDocShellItem, NS_ERROR_FAILURE);
       docShell = do_QueryInterface(msgDocShellItem);
       // we don't own mMessageWindowDocShell so don't try to keep a reference to it!
       mMessageWindowDocShellWeak = do_GetWeakReference(docShell);
     }
   }
   docShell.swap(*aDocShell);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgWindow::CloseWindow()

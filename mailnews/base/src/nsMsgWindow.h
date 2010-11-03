@@ -82,10 +82,6 @@ protected:
   nsCString mMailCharacterSet;
   PRBool    mCharsetOverride;
   PRBool    m_stopped;
-  // small helper function used to optimize our use of a weak reference
-  // on the message window docshell. Under no circumstances should you be holding on to
-  // the docshell returned here outside the scope of your routine.
-  void GetMessageWindowDocShell(nsIDocShell ** aDocShell);
 };
 
 #endif

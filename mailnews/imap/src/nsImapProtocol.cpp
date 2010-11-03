@@ -777,7 +777,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
       if (msgWindow)
       {
         nsCOMPtr<nsIDocShell> docShell;
-        msgWindow->GetRootDocShell(getter_AddRefs(docShell));
+        msgWindow->GetMessageWindowDocShell(getter_AddRefs(docShell));
         nsCOMPtr<nsIInterfaceRequestor> ir(do_QueryInterface(docShell));
         nsCOMPtr<nsIInterfaceRequestor> interfaceRequestor;
         msgWindow->GetNotificationCallbacks(getter_AddRefs(interfaceRequestor));
