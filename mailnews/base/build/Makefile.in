@@ -44,9 +44,6 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= msgbase
 LIBRARY_NAME	= msgbase
-ifeq ($(OS_ARCH),WINNT)
-RESFILE		= mail.res
-endif
 META_COMPONENT = mail
 EXPORT_LIBRARY = 1
 IS_COMPONENT	= 1

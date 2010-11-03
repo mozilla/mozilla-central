@@ -314,23 +314,13 @@ NOTIFYICONDATAW sBiffIconData = { sizeof(NOTIFYICONDATAW),
 static const PRUint32 kMaxTooltipSize = sizeof(sBiffIconData.szTip) /
                                         sizeof(sBiffIconData.szTip[0]) - 1;
 
-#ifdef MOZ_STATIC_BUILD
-#define MAIL_DLL_NAME NULL
-#else
-#ifdef MOZ_STATIC_MAIL_BUILD
-#define MAIL_DLL_NAME "mail.dll"
-#else
-#define MAIL_DLL_NAME "msgbase.dll"
-#endif
-#endif
-
 void nsMessengerWinIntegration::InitializeBiffStatusIcon()
 {
   // initialize our biff status bar icon
   Create();
 
   sBiffIconData.hWnd = (HWND) msgWindow;
-  sBiffIconData.hIcon = ::LoadIcon( ::GetModuleHandle( MAIL_DLL_NAME ), MAKEINTRESOURCE(IDI_MAILBIFF) );
+  sBiffIconData.hIcon = ::LoadIcon( ::GetModuleHandle( NULL ), MAKEINTRESOURCE(IDI_MAILBIFF) );
 
   mBiffIconInitialized = PR_TRUE;
 }
