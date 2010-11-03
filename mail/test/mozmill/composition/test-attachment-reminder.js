@@ -181,18 +181,18 @@ function clickSendAndHandleSendError(controller) {
 
 /** Click the "Oh, I Did!" button. */
 function clickOhIDid(controller) {
-  controller.window.commonDialogOnExtra1();
+  controller.window.document.documentElement.getButton('extra1').doCommand();
 }
 
 /** Click the "No, Send Now" button */
 function clickNoSendNow(controller) {
-  controller.window.commonDialogOnAccept();
+  controller.window.document.documentElement.getButton('accept').doCommand();
 }
 
 /** Click Ok in the Send Message Error dialog. */
 function clickOkOnSendError(controller) {
   if (controller.window.document.title != "Send Message Error")
     throw new Error("Not a send error dialog; title=" + controller.window.document.title);
-  controller.window.commonDialogOnAccept();
+  controller.window.document.documentElement.getButton('accept').doCommand();
 }
 
