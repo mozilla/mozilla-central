@@ -1162,7 +1162,7 @@ function updateEmailAddressNode(emailAddressNode, address)
 function FormatDisplayName(aEmailAddress, aHeaderDisplayName, aContext, aCard)
 {
   var displayName = null;
-  var identity = getBestIdentity(accountManager.allIdentities);
+  var identity = getBestIdentity(accountManager.allIdentities, aEmailAddress);
   var card = aCard || getCardForEmail(aEmailAddress).card;
 
   // If this address is one of the user's identities...
