@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Joe Hewitt (hewitt@netscape.com)
  *   Manuel Reimer (Manuel.Reimer@gmx.de)
+ *   Jens Hatlak (jh@junetz.de)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -243,4 +244,17 @@ html|p {
 
 #resultsTree {
   border-left: 1px solid ThreeDShadow;
+}
+
+/* ::::: lightweight themes ::::: */
+
+#CardViewOuterBox:-moz-lwtheme,
+treecols:-moz-lwtheme {
+  text-shadow: none;
+  color: -moz-dialogtext;
+  background-color: -moz-dialog;
+}
+
+#searchInput:-moz-lwtheme {
+  opacity: .8;
 }
