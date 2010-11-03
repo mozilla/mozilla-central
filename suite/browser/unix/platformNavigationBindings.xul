@@ -16,6 +16,10 @@
     <key key="&goForwardCmd.commandKey;" command="Browser:Forward" modifiers="accel"/>
     <key id="key_stop" keycode="VK_ESCAPE" oncommand="BrowserStop();"/>
 
+    <!-- Supporting IE 'refresh' shortcut key -->
+    <key keycode="VK_F5" oncommand="BrowserReload();"/>
+    <key keycode="VK_F5" modifiers="control" oncommand="BrowserReloadSkipCache();"/>
+
     <!-- Specific keybinding for Sun keyboard -->
     <key keycode="&findOnCmd.commandkey2;" command="Browser:Find"/>
 
@@ -23,6 +27,12 @@
     <key id="key_fullScreen" keycode="VK_F11" command="View:FullScreen"/>
     <key id="key_newTabWithTargetBg" keycode="VK_INSERT" command="cmd_newTabWithTarget"/>
     <key id="key_newTabWithTargetFg" keycode="VK_INSERT" modifiers="alt" command="cmd_newTabWithTarget"/>
+  </keyset>
+
+  <keyset id="viewSourceKeys">
+    <!-- Supporting IE 'refresh' shortcut key in view source -->
+    <key keycode="VK_F5" oncommand="BrowserReload();"/>
+    <key keycode="VK_F5" modifiers="control" oncommand="BrowserReloadSkipCache();"/>
   </keyset>
 
   <menuitem id="menuitem_fullScreen" hidden="false"/>
