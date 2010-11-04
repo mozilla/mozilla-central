@@ -270,11 +270,13 @@ urlListener.prototype =
   _cleanup : function()
   {
     // Avoid pref pollution, clear out server prefs.
-    Cc["@mozilla.org/messenger/account-manager;1"]
-    .getService(Ci.nsIMsgAccountManager)
-    .removeIncomingServer(this.mServer, true);
+    if (this.mServer) {
+      Cc["@mozilla.org/messenger/account-manager;1"]
+      .getService(Ci.nsIMsgAccountManager)
+      .removeIncomingServer(this.mServer, true);
 
-    this.mServer = null;
+      this.mServer = null;
+    }
   },
 
   // Suppress any certificate errors

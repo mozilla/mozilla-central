@@ -486,6 +486,8 @@ NS_IMETHODIMP
 nsMsgAccountManager::RemoveIncomingServer(nsIMsgIncomingServer *aServer, 
                                           PRBool aCleanupFiles)
 {
+  NS_ENSURE_ARG_POINTER(aServer);
+
   nsCString serverKey;
   nsresult rv = aServer->GetKey(serverKey);
   NS_ENSURE_SUCCESS(rv, rv);
