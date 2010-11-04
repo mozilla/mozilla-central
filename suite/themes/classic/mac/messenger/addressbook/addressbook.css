@@ -23,6 +23,7 @@
  *   Joe Hewitt <hewitt@netscape.com>
  *   Manuel Reimer <Manuel.Reimer@gmx.de>
  *   Stefan Hermes <stefanh@inbox.com>
+ *   Jens Hatlak <jh@junetz.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -271,4 +272,15 @@ html|p {
 
 #resultsTree {
   border-left: 1px solid ThreeDShadow;
+}
+
+/* ::::: lightweight themes ::::: */
+
+#CardViewOuterBox:-moz-lwtheme,
+treecols:-moz-lwtheme {
+  text-shadow: none;
+}
+
+#searchInput:-moz-lwtheme:not([focused="true"]) {
+  opacity: 0.9;
 }
