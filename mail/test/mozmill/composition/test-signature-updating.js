@@ -67,6 +67,14 @@ var setupModule = function (module) {
   composeHelper.installInto(module);
   let wh = collector.getModule("window-helpers");
   wh.installInto(module);
+
+  // Ensure we're in the tinderbox account as that has the right identities set
+  // up for this test.
+  let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
+                  .getService(Ci.nsIMsgAccountManager);
+  let server = acctMgr.FindServer("tinderbox", "tinderbox", "pop3");
+  let inbox = server.rootFolder.getChildNamed("Inbox");
+  be_in_folder(inbox);
 };
 
 function setupComposeWin(toAddr, subj, body) {
