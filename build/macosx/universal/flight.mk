@@ -124,6 +124,7 @@ ifndef MOZ_SUNBIRD
 endif
 endif
 endif
+ifdef ENABLE_TESTS
 # A universal .dmg can now be produced by making in either architecture's
 # INSTALLER_DIR.
 # Now, repeat the process for the test package.
@@ -148,3 +149,4 @@ endif
 	      $(DIST_ARCH_2)/test-package-stage                         \
 	      $(DIST_UNI)/test-package-stage; \
 	fi
+endif
