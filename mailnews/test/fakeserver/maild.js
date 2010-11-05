@@ -431,6 +431,9 @@ nsMailReader.prototype = {
 
         this._preventLFMunge = false;
         this._handler.postCommand(this);
+
+        if (this.watchWord && command == this.watchWord)
+          this.stopTest();
       } catch (e) {
         response = this._handler.onServerFault(e);
         if (e instanceof Error) {

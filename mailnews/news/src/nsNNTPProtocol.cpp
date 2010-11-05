@@ -4734,6 +4734,15 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
   if (!mailnewsurl)
     return NS_OK; // probably no data available - it's OK.
 
+  if (!m_nntpServer)
+  {
+    // Parsing must result in our m_nntpServer being set, so we should never
+    // have a case where m_nntpServer being false is safe. Most likely, we have
+    // already closed our socket and we are merely flushing out the socket
+    // receive queue. Since the user told us to stop, don't process any more
+    // input.
+    return inputStream->Close();
+  }
 
   ClearFlag(NNTP_PAUSE_FOR_READ);
 

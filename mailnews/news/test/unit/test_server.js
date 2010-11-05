@@ -118,7 +118,45 @@ function testConnectionLimit() {
   while (thread.hasPendingEvents())
     thread.processNextEvent(true);
 }
+
+function testReentrantClose() {
+  // What we are testing is that a CloseConnection that spins the event loop
+  // does not cause a crash.
+  var handler = new NNTP_RFC977_handler(daemon);
+  var server = new nsMailServer(handler);
+  server.start(NNTP_PORT);
+
+  var listener = {
+    OnStartRunningUrl: function (url) {},
+    OnStopRunningUrl: function (url, rv) {
+      // Spin the event loop (entering nsNNTPProtocol::ProcessProtocolState)
+      let thread = gThreadManager.currentThread;
+      while (thread.hasPendingEvents())
+        thread.processNextEvent(true);
+    }
+  };
+  // Nice multi-step command--we can close while executing this URL if we are
+  // careful.
+  var url = URLCreator.newURI("news://localhost:" + NNTP_PORT +
+    "/test.filter", null, null);
+  url.QueryInterface(Ci.nsIMsgMailNewsUrl);
+  url.RegisterListener(listener);
+
+  _server.loadNewsUrl(url, null, null);
+  server.performTest("GROUP");
+  dump("Stopping server\n");
+  gThreadManager.currentThread.dispatch(
+    { run: function() { _server.closeCachedConnections(); } },
+    Ci.nsIEventTarget.DISPATCH_NORMAL);
+  server.performTest();
+  server.stop();
+
+  // Break refcnt loops
+  listener = url = null;
+}
+
 function run_test() {
   testRFC977();
   testConnectionLimit();
+  testReentrantClose();
 }
