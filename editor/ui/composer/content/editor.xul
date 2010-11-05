@@ -74,6 +74,8 @@
         titlemodifier="&editorWindow.titlemodifier;"
         titlemenuseparator="&editorWindow.titlemodifiermenuseparator;"
         toggletoolbar="true"
+        lightweightthemes="true"
+        lightweightthemesfooter="status-bar"
         windowtype="composer:html"
         width="640" height="480"
         screenX="10" screenY="10"

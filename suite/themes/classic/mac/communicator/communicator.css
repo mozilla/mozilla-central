@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Joe Hewitt <hewitt@netscape.com>
  *   Manuel Reimer <Manuel.Reimer@gmx.de>
+ *   Jens Hatlak <jh@junetz.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -106,3 +107,10 @@ grippy {
   border: none;
   margin: 0px !important;
 }
+
+/* ::::: lightweight themes ::::: */
+
+toolbar menulist:-moz-lwtheme {
+  opacity: 0.8;
+}
+
