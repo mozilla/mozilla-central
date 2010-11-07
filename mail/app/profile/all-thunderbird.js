@@ -179,7 +179,6 @@ pref("xpinstall.whitelist.add.36", "getpersonas.com");
 
 pref("mail.shell.checkDefaultClient", true);
 pref("mail.spellcheck.inline", true);
-pref("mail.showPreviewText", true); // enables preview text in mail alerts and folder tooltips
 
 pref("mail.biff.alert.show_preview", true);
 pref("mail.biff.alert.show_subject", true);
@@ -351,10 +350,6 @@ pref("browser.download.manager.addToRecentDocs", true);
 
 pref("javascript.options.showInConsole",    true);
 
-// -- folders (Mac: these are binary aliases.)
-pref("mail.signature_file",             "");
-pref("mail.directory",                  "");
-pref("news.directory",                  "");
 pref("spellchecker.dictionary", "");
 // Dictionary download preference
 pref("spellchecker.dictionaries.download.url", "https://addons.mozilla.org/%LOCALE%/%APP%/dictionaries/");

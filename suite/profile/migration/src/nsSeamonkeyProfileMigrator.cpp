@@ -413,8 +413,6 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
 
   MAKESAMETYPEPREFTRANSFORM("mail.send_struct",                        Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.show_headers",                       Int),
-  MAKESAMETYPEPREFTRANSFORM("mail.showPreviewText",                    Bool),
-  MAKESAMETYPEPREFTRANSFORM("mail.signature_date",                     Int),
   MAKESAMETYPEPREFTRANSFORM("mail.smtp.useMatchingDomainServer",       Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.smtp.useMatchingHostNameServer",     Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.smtp.defaultserver",                 String),
@@ -496,10 +494,8 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("msgcompose.text_color",                   String),
 
   MAKESAMETYPEPREFTRANSFORM("news.get_messages_on_select",             Bool),
-  MAKESAMETYPEPREFTRANSFORM("news.show_first_unread",                  Bool),
   MAKESAMETYPEPREFTRANSFORM("news.show_size_in_lines",                 Bool),
   MAKESAMETYPEPREFTRANSFORM("news.update_unread_on_expand",            Bool),
-  MAKESAMETYPEPREFTRANSFORM("news.wrap_long_lines",                    Bool),
 
   // pdi is the new preference, but nii is the old one - so do nii first, and
   // then do pdi to account for both situations

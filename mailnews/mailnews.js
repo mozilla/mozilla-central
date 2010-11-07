@@ -37,31 +37,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// this is a hidden preference setting, see bugzilla bug 80035
-// (http://bugzilla.mozilla.org/show_bug.cgi?id=80035)
-//
-// the default value for this setting is true which means when migrating from
-// Netscape 4.x, mozilla will copy all the contents of Local Folders and Imap
-// Folder to the newly created subfolders of migrated mozilla profile
-// when this value is set to false, mozilla will not copy these contents and
-// still share them with Netscape 4.x
-//
-// Advantages of forbidding copy operation:
-//     reduce the disk usage
-//     quick migration
-// Disadvantage of forbidding copy operation:
-//     without perfect lock mechanism, there is possibility of data corruption
-//     when Netscape 4.x and mozilla run at the same time and access the same
-//     mail file at the same time
-pref("mail.migration.copyMailFiles", true);
-
 //mailnews.timeline_is_enabled should be set to true ONLY for perf measurement-timeline builds.
 pref("mailnews.timeline_is_enabled", false);
 
 pref("mailnews.logComposePerformance", false);
 
 pref("mail.wrap_long_lines",                true);
-pref("news.wrap_long_lines",                true);
 pref("mail.inline_attachments",             true);
 pref("mail.reply_quote_inline",             false);
 
@@ -121,13 +102,6 @@ pref("mailnews.tcptimeout", 100);
 
 pref("mailnews.headers.showSender", false);
 
-// Mail server preferences, pop by default
-// 0 pop, 1 imap; (Unix only:) 2 movemail, 3 inbox.
-pref("mail.server_type", 0);
-
-pref("mail.default_drafts", "");    // empty string use default Drafts name;
-pref("mail.default_templates", ""); // empty string use default Templates name
-
 // set to 0 if you don't want to ignore timestamp differences between
 // local mail folders and the value stored in the corresponding .msf file.
 // 0 was the default up to and including 1.5. I've made the default
@@ -138,8 +112,6 @@ pref("mail.db_timestamp_leeway", 4000);
 // check all folders for new mail
 pref("mail.check_all_imap_folders_for_new", false);
 
-pref("mail.imap.server_sub_directory",      "");
-pref("mail.imap.max_cached_connections",    10);
 pref("mail.imap.chunk_size",                65536);
 pref("mail.imap.min_chunk_size_threshold",  98304);
 pref("mail.imap.chunk_fast",                2);
@@ -147,9 +119,7 @@ pref("mail.imap.chunk_ideal",               4);
 pref("mail.imap.chunk_add",                 8192);
 pref("mail.imap.hide_other_users",          false);
 pref("mail.imap.hide_unused_namespaces",    true);
-pref("mail.imap.new_mail_get_headers",      true);
 pref("mail.imap.auto_unsubscribe_from_noselect_folders",    true);
-pref("mail.imap.cleanup_inbox_on_exit",     false);
 pref("mail.imap.mime_parts_on_demand",      true);
 pref("mail.imap.mime_parts_on_demand_max_depth", 15);
 pref("mail.imap.mime_parts_on_demand_threshold", 30000);
@@ -165,25 +135,13 @@ pref("mail.imap.delegateOtherUsersFolders", false);
 pref("mail.thread_without_re",              false); // if false, only thread by subject if Re:
 pref("mail.strict_threading",               true);  // if true, don't thread by subject at all
 pref("mail.correct_threading",              true);  // if true, makes sure threading works correctly always (see bug 181446)
-pref("mail.leave_on_server",                false);
-pref("mail.check_new_mail",                 false);
-pref("mail.pop3_gets_new_mail",             false);
-pref("mail.check_time",                     10);
-pref("mail.pop_name",                       "");
 pref("mail.pop3.deleteFromServerOnMove",    false);
-pref("mail.pop_password",                   "");
 pref("mail.fixed_width_messages",           true);
 pref("mail.citation_color",                 "#000000"); // quoted color
 pref("mail.quoted_style",                   0); // 0=plain, 1=bold, 2=italic, 3=bolditalic
 pref("mail.quoted_size",                    0); // 0=normal, 1=big, 2=small
 pref("mail.quoted_graphical",               true); // use HTML-style quoting for displaying plain text
 pref("mail.quoteasblock",                   true); // use HTML-style quoting for quoting plain text
-pref("mail.identity.organization",          "");
-pref("mail.identity.reply_to",              "");
-pref("mail.identity.username",              "");
-pref("mail.identity.useremail",             "");
-pref("mail.use_fcc",                        true);
-pref("mail.cc_self",                        false);
 pref("mail.strictly_mime",                  false);
 pref("mail.strictly_mime_headers",          true);
 // 0/1 (name param is encoded in a legacy way), 2(RFC 2231 only)
@@ -217,7 +175,6 @@ pref("mail.addr_book.lastnamefirst", 0);
 pref("mail.addr_book.displayName.autoGeneration", true);
 pref("mail.addr_book.displayName.lastnamefirst", "chrome://messenger/locale/messenger.properties");
 pref("mail.addr_book.show_phonetic_fields", "chrome://messenger/locale/messenger.properties");
-pref("mail.attach_vcard",                   false);
 pref("mail.html_compose",                   true);
 // you can specify multiple, option headers
 // this will show up in the address picker in the compose window
@@ -225,7 +182,6 @@ pref("mail.html_compose",                   true);
 pref("mail.compose.other.header", "");
 pref("mail.compose.autosave", true);
 pref("mail.compose.autosaveinterval", 5); // in minutes
-pref("mail.fcc_folder",                     "");
 
 pref("mail.default_html_action", 0);          // 0=ask, 1=plain, 2=html, 3=both
 
@@ -246,14 +202,6 @@ pref("mail.dsn.request_on_delay_on", true);            // DSN request is sent wi
 pref("mail.dsn.request_never_on", false);              // DSN request is not sent with NEVER option
 pref("mail.dsn.ret_full_on", true);                    // DSN request is sent with RET FULL option
 
-pref("mail.showPreviewText", false);
-
-pref("news.use_fcc",                        true);
-pref("news.cc_self",                        false);
-pref("news.fcc_folder",                     "");
-pref("news.notify.on",                      true);
-pref("news.max_articles",                   500);
-pref("news.mark_old_read",                  false);
 pref("news.show_size_in_lines",             true);
 pref("news.update_unread_on_expand",        true);
 pref("news.get_messages_on_select",         true);
@@ -313,11 +261,7 @@ pref("mapi.blind-send.enabled",             true);
 
 pref("offline.autoDetect",                  false); // automatically move the user offline or online based on the network connection
 
-pref("ldap_2.autoComplete.interval", 650);
-pref("ldap_2.autoComplete.enabled", true);
 pref("ldap_2.autoComplete.useDirectory", false);
-pref("ldap_2.autoComplete.useAddressBooks", true);
-pref("ldap_2.autoComplete.skipDirectoryIfLocalMatchFound", true);
 pref("ldap_2.autoComplete.directoryServer", "");
 
 pref("ldap_2.servers.pab.position", 1);
@@ -817,19 +761,6 @@ pref("ldap_2.servers.osx.description", "chrome://messenger/locale/addressbook/ad
 pref("ldap_2.servers.osx.dirType", 3);
 pref("mail.notification.sound",             "");
 pref("mail.notification.count.inbox_only", true);
-#else
-#ifdef XP_UNIX
-pref("mail.check_new_mail", true);
-pref("mail.signature_file", "~/.signature");
-pref("mailnews.reply_with_extra_lines", 0);
-pref("mail.sash_geometry", "");
-pref("news.cache_xover", false);
-pref("news.show_first_unread", false);
-pref("news.sash_geometry", "");
-pref("mail.signature_date", 0);
-# XP_UNIX
-#endif
-# XP_MACOSX, else
 #endif
 
 // gtk2 (*nix) lacks transparent/translucent drag support (bug 376238), so we

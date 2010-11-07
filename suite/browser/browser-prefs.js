@@ -328,10 +328,6 @@ pref("browser.formfill.expire_days",        180);
 
 pref("mailnews.ui.deleteMarksRead", true);
 
-// -- folders (Mac: these are binary aliases.)
-pref("mail.signature_file",             "");
-pref("mail.directory",                  "");
-pref("news.directory",                  "");
 pref("spellchecker.dictionaries.download.url", "chrome://branding/locale/brand.properties");
 
 // this will automatically enable inline spellchecking (if it is available) for

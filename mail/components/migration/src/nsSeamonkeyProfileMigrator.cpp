@@ -332,7 +332,6 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mail.collect_addressbook",                 String),
   MAKESAMETYPEPREFTRANSFORM("mail.collect_email_address_outgoing",      Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.wrap_long_lines",                     Bool),
-  MAKESAMETYPEPREFTRANSFORM("news.wrap_long_lines",                     Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.customHeaders",                   String),
   MAKESAMETYPEPREFTRANSFORM("mail.default_html_action",                 Int),
   MAKESAMETYPEPREFTRANSFORM("mail.forward_message_mode",                Int),
