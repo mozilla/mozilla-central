@@ -40,7 +40,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-var gMessengerBundle = document.getElementById("bundle_messenger");
 
 // Controller object for folder pane
 var FolderPaneController =

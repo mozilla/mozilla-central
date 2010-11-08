@@ -59,8 +59,8 @@ const mozISpellCheckingEngine = Components.interfaces.mozISpellCheckingEngine;
  * static globals, need to be initialized only once
  */
 var sMsgComposeService = Components.classes["@mozilla.org/messengercompose;1"].getService(Components.interfaces.nsIMsgComposeService);
-var sComposeMsgsBundle = document.getElementById("bundle_composeMsgs");
-var sBrandBundle = document.getElementById("brandBundle");
+var sComposeMsgsBundle;
+var sBrandBundle;
 
 var sPrefs = null;
 var sPrefBranchInternal = null;
@@ -1458,6 +1458,9 @@ function WizCallback(state)
 
 function ComposeLoad()
 {
+  sComposeMsgsBundle = document.getElementById("bundle_composeMsgs");
+  sBrandBundle = document.getElementById("brandBundle");
+
   // First get the preferences service
   try {
     var prefService = Components.classes["@mozilla.org/preferences-service;1"]
