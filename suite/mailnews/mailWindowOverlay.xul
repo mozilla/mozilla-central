@@ -410,6 +410,7 @@
   <key id="key_findTypeLinks"/>
   <key id="key_stop" keycode="VK_ESCAPE" command="cmd_stop"/>
   <keyset id="viewZoomKeys"/>
+  <key id="key_reload"/>
 
   <!-- Tab/F6 Keys -->
   <key keycode="VK_TAB" oncommand="SwitchPaneFocus(event);" modifiers="control,shift"/>
@@ -1379,6 +1380,7 @@
                 command="cmd_stop"/>
       <menuitem id="menu_Stop"
                 label="&reloadCmd.label;"
+                key="key_reload"
                 accesskey="&reloadCmd.accesskey;"
                 command="cmd_reload"/>
       <menuseparator id="viewAfterStopSeparator"/>

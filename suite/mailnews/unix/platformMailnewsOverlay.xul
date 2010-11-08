@@ -9,6 +9,9 @@
     <!-- Delete Key -->
     <key id="key_shiftDelete" keycode="VK_DELETE" modifiers="shift" command="cmd_shiftDelete"/>
 
+    <!-- Reload Key -->
+    <key id="key_reload" keycode="VK_F5" oncommand="ReloadMessage();"/>
+
     <!-- Find -->
     <keyset id="mailKeys">
         <key keycode="VK_F19" oncommand="goDoCommand('cmd_find')"/>

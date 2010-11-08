@@ -7,4 +7,7 @@
     <!-- Delete Key -->
     <key id="key_shiftDelete" keycode="VK_DELETE" modifiers="shift" command="cmd_shiftDelete"/>
 
+    <!-- Reload Key -->
+    <key id="key_reload" keycode="VK_F5" oncommand="ReloadMessage();"/>
+
 </overlay>		
