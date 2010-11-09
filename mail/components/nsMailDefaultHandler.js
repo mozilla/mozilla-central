@@ -425,8 +425,9 @@ var nsMailDefaultHandler = {
           let fileHandler = ioService.getProtocolHandler("file")
                                      .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 
-          localFile.initWithPath(uri);
-          attachment.url = fileHandler.getURLSpecFromFile(localFile);;
+          // Unescape the URI so that we work with clients that escape spaces.
+          localFile.initWithPath(unescape(uri));
+          attachment.url = fileHandler.getURLSpecFromFile(localFile);
           composeFields.addAttachment(attachment);
 
           msgParams.type = Components.interfaces.nsIMsgCompType.New;
