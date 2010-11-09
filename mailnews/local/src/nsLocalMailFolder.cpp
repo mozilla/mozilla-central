@@ -1671,7 +1671,7 @@ PRBool nsMsgLocalMailFolder::CheckIfSpaceForCopy(nsIMsgWindow *msgWindow,
 
   // check if the folder size + the size of the messages will be > 4GB or so.
   // If so, warn, and return an error.
-  if (NS_FAILED(rv) || sizeOnDisk + totalMsgSize > 0xFFC00000)
+  if (NS_FAILED(rv) || sizeOnDisk + totalMsgSize > 0xFFC00000LL)
   {
     ThrowAlertMsg("mailboxTooLarge", msgWindow);
     if (isMove && srcFolder)

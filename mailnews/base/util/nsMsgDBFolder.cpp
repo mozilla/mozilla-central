@@ -5104,14 +5104,10 @@ NS_IMETHODIMP nsMsgDBFolder::ThrowAlertMsg(const char * msgName, nsIMsgWindow *m
   nsresult rv = GetStringWithFolderNameFromBundle(msgName, alertString);
   if (NS_SUCCEEDED(rv) && !alertString.IsEmpty() && msgWindow)
   {
-    nsCOMPtr <nsIDocShell> docShell;
-    msgWindow->GetRootDocShell(getter_AddRefs(docShell));
-    if (docShell)
-    {
-      nsCOMPtr<nsIPrompt> dialog(do_GetInterface(docShell));
-      if (dialog && !alertString.IsEmpty())
-        dialog->Alert(nsnull, alertString.get());
-    }
+    nsCOMPtr<nsIPrompt> dialog;
+    msgWindow->GetPromptDialog(getter_AddRefs(dialog));
+    if (dialog)
+      dialog->Alert(nsnull, alertString.get());
   }
   return rv;
 }
