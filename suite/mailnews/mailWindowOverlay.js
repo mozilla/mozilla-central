@@ -2639,8 +2639,6 @@ var gMessageNotificationBar =
                     8  // 1 << (kMsgNotificationMDN - 1)
                   ],
 
-  mMsgNotificationBar: document.getElementById('msgNotificationBar'),
-
   setJunkMsg: function(aMsgHdr)
   {
     var isJunk = false;
@@ -2687,8 +2685,9 @@ var gMessageNotificationBar =
   clearMsgNotifications: function()
   {
     this.mBarStatus = 0;
-    this.mMsgNotificationBar.selectedIndex = 0;
-    this.mMsgNotificationBar.collapsed = true;
+    var msgNotificationBar = document.getElementById('msgNotificationBar');
+    msgNotificationBar.selectedIndex = 0;
+    msgNotificationBar.collapsed = true;
   },
 
   // private method used to set our message notification deck to the correct value...
@@ -2700,9 +2699,10 @@ var gMessageNotificationBar =
 
     // the phishing message takes precedence over the junk message
     // which takes precedence over the remote content message
-    this.mMsgNotificationBar.selectedIndex = this.mBarFlagValues.indexOf(status & -status);
+    var msgNotificationBar = document.getElementById('msgNotificationBar');
+    msgNotificationBar.selectedIndex = this.mBarFlagValues.indexOf(status & -status);
 
-    this.mMsgNotificationBar.collapsed = !status;
+    msgNotificationBar.collapsed = !status;
   },
 
   /**

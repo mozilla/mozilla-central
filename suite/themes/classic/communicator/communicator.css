@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Joe Hewitt <hewitt@netscape.com>
  *   Manuel Reimer <Manuel.Reimer@gmx.de>
+ *   Jens Hatlak <jh@junetz.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -107,3 +108,10 @@ menu.menu-iconic > .menu-iconic-left,
 menuitem.menuitem-iconic > .menu-iconic-left {
   display: -moz-box;
 }
+
+/* ::::: lightweight themes ::::: */
+
+toolbar menulist:-moz-lwtheme {
+  opacity: .8;
+}
+
