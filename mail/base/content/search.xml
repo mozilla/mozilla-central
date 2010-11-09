@@ -249,7 +249,7 @@
               tabmail.openTab("glodaFacet", {
                 searcher: new GlodaMsgSearcher(null, row.item, row.andTerms)
               });
-            } else {
+            } else if (row.nounDef) {
               if (row.nounDef.name == "tag") {
                 theQuery = theQuery.tags(row.item);
               } else if (row.nounDef.name == "identity") {
