@@ -39,6 +39,8 @@
 
 Components.utils.import("resource:///modules/appIdleManager.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource:///modules/gloda/log4moz.js");
+Components.utils.import("resource:///modules/gloda/public.js");
 
 //This file stores variables common to mail windows
 var messenger;
@@ -51,8 +53,6 @@ var accountManager;
 
 var gMessengerBundle;
 var gBrandBundle;
-
-Components.utils.import("resource:///modules/gloda/log4moz.js");
 
 var gContextMenu;
 var gMailWindowLog = Log4Moz.getConfiguredLogger("mailWindow", Log4Moz.Level.Debug, Log4Moz.Level.Debug, Log4Moz.Level.Debug);
