@@ -66,6 +66,8 @@
         screenX="10" screenY="10"
         persist="width height screenX screenY sizemode"
         toggletoolbar="true"
+        lightweightthemes="true"
+        lightweightthemesfooter="status-bar"
         windowtype="mail:3pane">
 
 <stringbundleset id="stringbundleset">

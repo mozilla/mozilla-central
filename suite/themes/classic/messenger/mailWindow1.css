@@ -162,3 +162,11 @@ tabpanels {
 .alltabs-item[selected="true"] {
   font-weight: bold;
 }
+
+.tabmail-tab:-moz-lwtheme:not([selected="true"]) {
+  opacity: .8;
+}
+
+.tabmail-tab:-moz-lwtheme {
+  text-shadow: none;
+}

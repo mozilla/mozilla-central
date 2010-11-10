@@ -111,7 +111,8 @@ menuitem.menuitem-iconic > .menu-iconic-left {
 
 /* ::::: lightweight themes ::::: */
 
-toolbar menulist:-moz-lwtheme {
+toolbar button:-moz-lwtheme,
+toolbar menulist:-moz-lwtheme:not([open="true"]),
+toolbar textbox:-moz-lwtheme:not([focused="true"]) {
   opacity: .8;
 }
-

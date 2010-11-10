@@ -77,6 +77,8 @@
         onfocus="EditorOnFocus()"
         title="&msgComposeWindow.title;"
         toggletoolbar="true"
+        lightweightthemes="true"
+        lightweightthemesfooter="status-bar"
         windowtype="msgcompose"
         width="640" height="480"
         persist="screenX screenY width height sizemode">

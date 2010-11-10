@@ -576,6 +576,10 @@ toolbar[iconsize="small"] > #button-stop[disabled="true"] {
   color: black;
 }
 
+.msgNotificationBar:-moz-lwtheme {
+  text-shadow: none;
+}
+
 .msgNotificationBarText {
   font-weight: bold;
 }

@@ -280,7 +280,3 @@ html|p {
 treecols:-moz-lwtheme {
   text-shadow: none;
 }
-
-#searchInput:-moz-lwtheme:not([focused="true"]) {
-  opacity: 0.9;
-}

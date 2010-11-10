@@ -264,10 +264,6 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   opacity: 0.75;
 }
 
-#urlbar:-moz-lwtheme:not([focused="true"]) {
-  opacity: 0.9;
-}
-
 /* nsNativeThemeCocoa adds top/bottom padding to textfields... */
 #urlbar > .autocomplete-textbox-container,
 #urlbar > .autocomplete-history-dropmarker {

@@ -254,7 +254,3 @@ treecols:-moz-lwtheme {
   color: -moz-dialogtext;
   background-color: -moz-dialog;
 }
-
-#searchInput:-moz-lwtheme {
-  opacity: .8;
-}
