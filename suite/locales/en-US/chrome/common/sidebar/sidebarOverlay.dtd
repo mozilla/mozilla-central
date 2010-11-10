@@ -63,3 +63,7 @@
 <!ENTITY sidebar.close.tooltip       "Close Sidebar">
 <!ENTITY sidebar.open.tooltip        "Open Sidebar">
 
+<!ENTITY sidebar.search.label         "Search">
+<!ENTITY sidebar.client-bookmarks.label     "Bookmarks">
+<!ENTITY sidebar.client-history.label       "History">
+<!ENTITY sidebar.client-addressbook.label   "Address Book">

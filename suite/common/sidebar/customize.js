@@ -502,7 +502,16 @@ function Save()
   current_panels = sidebarObj.container.GetElements();
   while (current_panels.hasMoreElements()) {
     panel = current_panels.getNext().QueryInterface(Components.interfaces.nsIRDFResource);
-    if (panel.Value in panels) {
+
+    // "Check if the item is one of the broadcaster panels imported to RDF from
+    // mainBroadcasterSet. If so, then don't remove it from datasource.
+    var master_list = sidebarObj.datasource.GetTarget(RDF.GetResource(allPanelsObj.resource), RDF.GetResource(NC + "panel-list"), true);
+    var masterSeq = Components.classes["@mozilla.org/rdf/container;1"]
+                              .createInstance(Components.interfaces.nsIRDFContainer);
+    masterSeq.Init(sidebarObj.datasource, master_list);
+    var inmaster = (masterSeq.IndexOf(panel) != -1);
+
+    if (panel.Value in panels || inmaster) {
       // This panel will remain in the sidebar.
       // Remove the resource, but keep all the other attributes.
       // Removing it will allow it to be added in the correct order.

@@ -185,7 +185,6 @@
   locale/@AB_CD@/communicator/profile/profileSelection.properties           (%chrome/common/profile/profileSelection.properties)
   locale/@AB_CD@/communicator/search/search-panel.dtd                       (%chrome/common/search/search-panel.dtd)
   locale/@AB_CD@/communicator/sidebar/customize.dtd                         (%chrome/common/sidebar/customize.dtd)
-  locale/@AB_CD@/communicator/sidebar/local-panels.dtd                      (%chrome/common/sidebar/local-panels.dtd)
   locale/@AB_CD@/communicator/sidebar/preview.dtd                           (%chrome/common/sidebar/preview.dtd)
   locale/@AB_CD@/communicator/sidebar/sidebar.properties                    (%chrome/common/sidebar/sidebar.properties)
   locale/@AB_CD@/communicator/sidebar/sidebarOverlay.dtd                    (%chrome/common/sidebar/sidebarOverlay.dtd)

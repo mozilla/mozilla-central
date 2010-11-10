@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 4; insert-tabs-mode: nil; c-basic-offset: 2 -*-
+/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -583,7 +583,7 @@ sbPanel.prototype.is_persistent =
 function ()
 {
     var rv = false;
-    var datasource = RDF.GetDataSource(sidebarObj.datasource_uri);
+    var datasource = sidebarObj.datasource;
     var persistNode = datasource.GetTarget(RDF.GetResource(this.id),
                                            RDF.GetResource(NC + "persist"),
                                            true);
@@ -739,14 +739,18 @@ function sidebar_overlay_init() {
   gMustInit = false;
   sidebarObj.panels = new sbPanelList('sidebar-panels');
   sidebarObj.datasource_uri = get_sidebar_datasource_uri();
+  sidebarObj.datasource = RDF.GetDataSourceBlocking(sidebarObj.datasource_uri);
   sidebarObj.resource = 'urn:sidebar:current-panel-list';
 
   sidebarObj.master_datasources = "";
   sidebarObj.master_datasources = get_remote_datasource_url();
-  sidebarObj.master_datasources += " chrome://communicator/content/sidebar/local-panels.rdf";
+  sidebarObj.master_datasources += " " + sidebarObj.datasource_uri;
   sidebarObj.master_resource = 'urn:sidebar:master-panel-list';
   sidebarObj.component = document.documentElement.getAttribute('windowtype');
   debug("sidebarObj.component is " + sidebarObj.component);
+
+  // Sync RDF with broadcasters.
+  SidebarBroadcastersToRDF();
 
   // Initialize the display
   var sidebar_element = document.getElementById('sidebar-box');
@@ -814,7 +818,7 @@ function sidebar_open_default_panel(wait, tries) {
     return;
   gBusyOpeningDefault = true;
 
-  var ds = RDF.GetDataSource(sidebarObj.datasource_uri);
+  var ds = sidebarObj.datasource;
   var currentListRes = RDF.GetResource("urn:sidebar:current-panel-list");
   var panelListRes = RDF.GetResource("http://home.netscape.com/NC-rdf#panel-list");
   var container = ds.GetTarget(currentListRes, panelListRes, true);
@@ -874,7 +878,6 @@ function check_for_missing_panels() {
           channel.open();
         }
         catch(ex if (ex.result == NS_ERROR_FILE_NOT_FOUND)) {
-          sidebarObj.datasource = RDF.GetDataSource(sidebarObj.datasource_uri);
           sidebarObj.datasource.Assert(RDF.GetResource(currHeader.getAttribute("id")),
                                        RDF.GetResource(NC + "exclude"),
                                        RDF.GetLiteral(sidebarObj.component),
@@ -928,7 +931,7 @@ function sidebar_revert_to_default_panels() {
     sidebar_file = sidebar_get_panels_file();
 
     debug("sidebar defaults reloaded");
-    var datasource = RDF.GetDataSource(sidebarObj.datasource_uri);
+    var datasource = sidebarObj.datasource;
     datasource.QueryInterface(Components.interfaces.nsIRDFRemoteDataSource).Refresh(true);
   } catch (ex) {
     debug("Error: Unable to reload panel defaults file.\n");
@@ -977,7 +980,7 @@ function get_remote_datasource_url() {
 }
 
 function sidebar_fixup_datasource() {
-  var datasource = RDF.GetDataSource(sidebarObj.datasource_uri);
+  var datasource = sidebarObj.datasource;
   var resource = RDF.GetResource(sidebarObj.resource);
 
   var panel_list = datasource.GetTarget(resource,
@@ -1243,7 +1246,7 @@ function SidebarShowHide() {
 
 function SidebarBuildPickerPopup() {
   var menu = document.getElementById('sidebar-panel-picker-popup');
-  menu.database.AddDataSource(RDF.GetDataSource(sidebarObj.datasource_uri));
+  menu.database.AddDataSource(sidebarObj.datasource);
   menu.builder.rebuild();
 
   for (var ii=3; ii < menu.childNodes.length; ii++) {
@@ -1261,7 +1264,6 @@ function SidebarBuildPickerPopup() {
 function SidebarTogglePanel(panel_menuitem) {
   // Create a "container" wrapper around the current panels to
   // manipulate the RDF:Seq more easily.
-  sidebarObj.datasource = RDF.GetDataSource(sidebarObj.datasource_uri);
 
   var did_exclude = false;
   var panel_id = panel_menuitem.getAttribute('id');
@@ -1624,6 +1626,119 @@ if (!SB_DEBUG) {
     }
   }
 }
+
+function SidebarBroadcastersToRDF()
+{
+  // Translation rules to translate between new broadcaster id and old RDF id.
+  const TRANSLATE = {viewBookmarksSidebar:   "bookmarks",
+                     viewHistorySidebar:     "history",
+                     viewSearchSidebar:      "search",
+                     viewAddressbookSidebar: "addressbook"};
+  const URN_PREFIX = "urn:sidebar:panel:";
+
+  const RDFCU = Components.classes['@mozilla.org/rdf/container-utils;1']
+                          .getService(Components.interfaces.nsIRDFContainerUtils);
+
+  /*
+   * Initialize RDF stuff.
+   */
+  let ds = sidebarObj.datasource;
+  let panelListRes = RDF.GetResource(NC + "panel-list");
+
+  let currentListRes = RDF.GetResource(sidebarObj.resource);
+  let masterListRes = RDF.GetResource(sidebarObj.master_resource);
+  let currentTarget = ds.GetTarget(currentListRes, panelListRes, true);
+  let masterTarget = ds.GetTarget(masterListRes, panelListRes, true);
+  if (!masterTarget) {
+    // No "master-panel-list" found, so create it.
+    masterTarget = RDF.GetAnonymousResource();
+    ds.Assert(masterListRes, panelListRes, masterTarget, true);
+  }
+  let currentSeq = RDFCU.MakeSeq(ds, currentTarget);
+  let masterSeq = RDFCU.MakeSeq(ds, masterTarget);
+
+  /*
+   * Run over broadcasters in browser window and add/update RDF entries
+   * based on them.
+   */
+  let titleRes = RDF.GetResource(NC + "title");
+  let urlRes = RDF.GetResource(NC + "content");
+
+  let bset = document.getElementById("mainBroadcasterSet");
+  let broadcasters = bset.getElementsByTagName("broadcaster");
+  let bclist = {};
+  for (let bId = 0; bId < broadcasters.length; bId++) {
+    let curBC = broadcasters[bId];
+    let title = curBC.getAttribute("sidebartitle") || curBC.getAttribute("label");
+    let url = curBC.getAttribute("sidebarurl");
+    let bcid = (curBC.id in TRANSLATE) ? TRANSLATE[curBC.id] : curBC.id;
+
+    if (!url || !title || !bcid)
+      continue;
+
+    // This one is needed later to check for obsolete sidebars.
+    bclist[bcid] = 1;
+
+    let panelRes = RDF.GetResource(URN_PREFIX + bcid);
+
+    // Literals of values that should be in RDF.
+    let titleLit = RDF.GetLiteral(title);
+    let urlLit = RDF.GetLiteral(url);
+    // Literals of values that are in RDF.
+    let curtitleLit = ds.GetTarget(panelRes, titleRes, true);
+    let cururlLit = ds.GetTarget(panelRes, urlRes, true);
+
+    // If the item doesn't already exist, create it.
+    if (!curtitleLit && !cururlLit) {
+      ds.Assert(panelRes, titleRes, titleLit, true);
+      ds.Assert(panelRes, urlRes, titleLit, true);
+      masterSeq.AppendElement(panelRes);
+      if (currentSeq.IndexOf(panelRes) == -1)
+        currentSeq.AppendElement(panelRes);
+    }
+    // Item already exists, but perhaps we need to update...
+    else {
+      let curtitle = curtitleLit.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
+      let cururl = cururlLit.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
+
+      if (curtitle != title)
+        ds.Change(panelRes, titleRes, curtitleLit, titleLit);
+
+      if (cururl != url)
+        ds.Change(panelRes, urlRes, cururlLit, urlLit);
+    }
+  }
+
+  /*
+   * Do the same the other way around to delete obsolete sidebars.
+   */
+
+  let masterElements = masterSeq.GetElements();
+  while (masterElements.hasMoreElements()) {
+    let curElementRes = masterElements.getNext();
+    let curId = curElementRes.QueryInterface(Components.interfaces.nsIRDFResource).Value;
+
+    if (curId.substr(0, URN_PREFIX.length) != URN_PREFIX)
+      continue;
+
+    curId = curId.substr(URN_PREFIX.length);
+    if (!(curId in bclist)) {
+      let properties = ds.ArcLabelsOut(curElementRes);
+      while(properties.hasMoreElements()) {
+        let propertyRes = properties.getNext();
+        let valueLit = ds.GetTarget(curElementRes, propertyRes, true);
+        ds.Unassert(curElementRes, propertyRes, valueLit);
+      }
+      masterSeq.RemoveElement(curElementRes, true);
+      if (currentSeq.IndexOf(curElementRes) != -1)
+        currentSeq.RemoveElement(curElementRes, true);
+    }
+  }
+
+  // Write modified data.
+  sidebarObj.datasource.QueryInterface(Components.interfaces.nsIRDFRemoteDataSource).Flush();
+}
+
 
 //////////////////////////////////////////////////////////////
 // Install the load/unload handlers

@@ -49,6 +49,38 @@
 <overlay id="sidebarOverlay"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
+  <!-- Overlay of broadcasterset to get our panels in -->
+  <broadcasterset id="mainBroadcasterSet">
+    <broadcaster id="viewBookmarksSidebar"
+                 autoCheck="false"
+                 type="checkbox"
+                 group="sidebar"
+                 sidebartitle="&sidebar.client-bookmarks.label;"
+                 sidebarurl="chrome://communicator/content/bookmarks/bm-panel.xul"
+                 oncommand="toggleSidebar('viewBookmarksSidebar');"/>
+    <broadcaster id="viewHistorySidebar"
+                 autoCheck="false"
+                 type="checkbox"
+                 group="sidebar"
+                 sidebartitle="&sidebar.client-history.label;"
+                 sidebarurl="chrome://communicator/content/history/history-panel.xul"
+                 oncommand="toggleSidebar('viewHistorySidebar');"/>
+    <broadcaster id="viewSearchSidebar"
+                 autoCheck="false"
+                 type="checkbox"
+                 group="sidebar"
+                 sidebartitle="&sidebar.search.label;"
+                 sidebarurl="chrome://communicator/content/search/search-panel.xul"
+                 oncommand="toggleSidebar('viewSearchSidebar');"/>
+    <broadcaster id="viewAddressbookSidebar"
+                 autoCheck="false"
+                 type="checkbox"
+                 group="sidebar"
+                 sidebartitle="&sidebar.client-addressbook.label;"
+                 sidebarurl="chrome://messenger/content/addressbook/addressbook-panel.xul"
+                 oncommand="toggleSidebar('viewAddressbookSidebar');"/>
+  </broadcasterset>
+
   <command id="toggleSidebar" oncommand="SidebarShowHide();"/>
   <key id="showHideSidebar" keycode="VK_F9" command="toggleSidebar"/>
   <menupopup id="sidebarPopup" 

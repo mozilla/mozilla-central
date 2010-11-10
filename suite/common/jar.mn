@@ -238,7 +238,6 @@ comm.jar:
    content/communicator/sidebar/customize-panel.xul                 (sidebar/customize-panel.xul)
    content/communicator/sidebar/customize.js                        (sidebar/customize.js)
    content/communicator/sidebar/customize.xul                       (sidebar/customize.xul)
-   content/communicator/sidebar/local-panels.rdf                    (sidebar/local-panels.rdf)
    content/communicator/sidebar/PageNotFound.xul                    (sidebar/PageNotFound.xul)
    content/communicator/sidebar/preview.js                          (sidebar/preview.js)
    content/communicator/sidebar/preview.xul                         (sidebar/preview.xul)
