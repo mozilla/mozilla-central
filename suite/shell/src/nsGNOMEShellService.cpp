@@ -54,16 +54,6 @@ nsGNOMEShellService::Init()
 {
   nsresult rv;
 
-  // GConf and GnomeVFS _must_ be available, or we do not allow
-  // CreateInstance to succeed.
-
-  nsCOMPtr<nsIGConfService> gconf = do_GetService(NS_GCONFSERVICE_CONTRACTID);
-  nsCOMPtr<nsIGnomeVFSService> vfs =
-    do_GetService(NS_GNOMEVFSSERVICE_CONTRACTID);
-
-  if (!gconf || !vfs)
-    return NS_ERROR_NOT_AVAILABLE;
-
   // Check G_BROKEN_FILENAMES.  If it's set, then filenames in glib use
   // the locale encoding.  If it's not set, they use UTF-8.
   mUseLocaleFilenames = PR_GetEnv("G_BROKEN_FILENAMES") != nsnull;
