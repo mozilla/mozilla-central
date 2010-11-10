@@ -101,6 +101,7 @@
 	  <textbox id="searchInput" flex="1" type="search"
                aria-labelledby="lookInLabel addressbookList forLabel"
                aria-controls="abResultsTree"
+               placeholder="&for.placeholder;"
                oncommand="onEnterInSearchBar();" clickSelectsAll="true"/>
 	</hbox>
 

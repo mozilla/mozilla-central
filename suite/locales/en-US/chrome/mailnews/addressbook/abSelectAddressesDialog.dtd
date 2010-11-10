@@ -55,6 +55,7 @@
 <!ENTITY lookIn.accesskey                    "L"> 
 <!ENTITY for.label                           "for:"> 
 <!ENTITY for.accesskey                       "f"> 
+<!ENTITY for.placeholder                     "Name or Email">
 <!ENTITY addressMessageTo.label              "Address message to:"> 
 
 <!-- Tooltips items -->  

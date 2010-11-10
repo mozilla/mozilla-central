@@ -83,6 +83,7 @@
       <label value="&for.label;" accesskey="&for.accesskey;" control="searchInput"/>
       <textbox id="searchInput" flex="1" type="search"
                aria-controls="abResultsTree"
+               placeholder="&for.placeholder;"
                oncommand="onEnterInSearchBar();" clickSelectsAll="true"/>
     </hbox>
     
