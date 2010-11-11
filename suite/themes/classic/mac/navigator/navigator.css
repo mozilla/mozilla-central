@@ -233,25 +233,15 @@ toolbar[iconsize="small"] > #home-button[disabled="true"] {
   padding-bottom: 0px;
   -moz-padding-start: 4px;
   -moz-padding-end: 2px;
-  border-left: 2px solid;
-  -moz-border-left-colors: ThreeDHighlight ThreeDShadow;
 }
 
 toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   display: -moz-box;
 }
 
-#minimize-button {
-  list-style-image: url("chrome://navigator/skin/icons/minimize.gif");
-} 
-
 #restore-button {
-  list-style-image: url("chrome://navigator/skin/icons/restore.gif");
-} 
-
-#close-button {
-  list-style-image: url("chrome://navigator/skin/icons/close.gif");
-} 
+  list-style-image: url("chrome://navigator/skin/icons/restore.png");
+}
   
 /* ::::: nav-bar-inner ::::: */
 

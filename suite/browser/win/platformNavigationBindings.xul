@@ -29,7 +29,6 @@
     <key keycode="VK_F5" modifiers="control" oncommand="BrowserReloadSkipCache();"/>
   </keyset>
 
-  <menuitem id="menuitem_fullScreen" hidden="false"/>
 </overlay>
 
 
