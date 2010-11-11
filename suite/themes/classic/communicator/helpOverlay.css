@@ -130,10 +130,10 @@
 
 /* style findbar for being on top */
 #FindToolbar {
-  border-top: none;
+  -moz-border-top-colors: ThreeDHighlight;
+  border-top-width: 1px;
   border-bottom: 2px solid;
   -moz-border-bottom-colors: ThreeDShadow ThreeDHighlight;
   padding-top: 1px;
   padding-bottom: 0px;
-  min-width: 1px;
 }
