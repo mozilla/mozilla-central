@@ -175,13 +175,10 @@ function HTMLComposeWindowSwitchSignatures(suppressSigSep) {
   // class="moz-signature".
   assert_equals(node.className, "moz-signature");
   node = node.firstChild; // text node containing the signature divider
-  if (!suppressSigSep) {
-    assert_equals(node.nodeValue, "-- ");
-    node = node.nextSibling;
-    assert_equals(node.localName, "br");
-    node = node.nextSibling;
-  }
-  assert_equals(node.nodeValue, "Tinderbox is soo 90ies");
+  if (suppressSigSep)
+    assert_equals(node.nodeValue, "Tinderbox is soo 90ies");
+  else
+    assert_equals(node.nodeValue, "-- \nTinderbox is soo 90ies");
 
   // Now switch identities!
   let menuID = cwc.e("msgIdentity");
