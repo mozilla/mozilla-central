@@ -8915,20 +8915,29 @@ nsresult nsImapMockChannel::OpenCacheEntry()
     }
   }
   PRInt32 uidValidity = -1;
+  nsCacheAccessMode cacheAccess = nsICache::ACCESS_READ_WRITE;
+
   nsCOMPtr <nsIImapUrl> imapUrl = do_QueryInterface(m_url, &rv);
   if (imapUrl)
   {
+    PRBool storeResultsOffline;
     nsCOMPtr <nsIImapMailFolderSink> folderSink;
+
     rv = imapUrl->GetImapMailFolderSink(getter_AddRefs(folderSink));
     if (folderSink)
       folderSink->GetUidValidity(&uidValidity);
+    imapUrl->GetStoreResultsOffline(&storeResultsOffline);
+    // If we're storing the message in the offline store, don't
+    // write to the disk cache.
+    if (storeResultsOffline)
+      cacheAccess = nsICache::ACCESS_READ;
   }
   // stick the uid validity in front of the url, so that if the uid validity
   // changes, we won't re-use the wrong cache entries.
   nsCAutoString cacheKey;
   cacheKey.AppendInt(uidValidity, 16);
   cacheKey.Append(urlSpec);
-  return cacheSession->AsyncOpenCacheEntry(cacheKey, nsICache::ACCESS_READ_WRITE, this);
+  return cacheSession->AsyncOpenCacheEntry(cacheKey, cacheAccess, this);
 }
 
 nsresult nsImapMockChannel::ReadFromMemCache(nsICacheEntryDescriptor *entry)
