@@ -264,6 +264,18 @@ public:
   virtual ~nsSMimeVerificationListener() {}
   
 protected:
+  /**
+   * It is safe to declare this implementation as thread safe,
+   * despite not using a lock to protect the members.
+   * Because of the way the object will be used, we don't expect a race.
+   * After construction, the object is passed to another thread,
+   * but will no longer be accessed on the original thread.
+   * The other thread is unable to access/modify self's data members.
+   * When the other thread is finished, it will call into the "Notify"
+   * callback. Self's members will be accessed on the other thread,
+   * but this is fine, because there is no race with the original thread.
+   * Race-protection for XPCOM reference counting is sufficient.
+   */
   nsCOMPtr<nsIMsgSMIMEHeaderSink> mHeaderSink;
   PRInt32 mMimeNestingLevel;
 
@@ -273,7 +285,7 @@ protected:
   nsCString mSenderName;
 };
 
-NS_IMPL_ISUPPORTS1(nsSMimeVerificationListener, nsISMimeVerificationListener)
+NS_IMPL_THREADSAFE_ISUPPORTS1(nsSMimeVerificationListener, nsISMimeVerificationListener)
 
 nsSMimeVerificationListener::nsSMimeVerificationListener(const char *aFromAddr, const char *aFromName,
                                                          const char *aSenderAddr, const char *aSenderName,
