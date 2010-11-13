@@ -14,3 +14,5 @@ pref("app.update.interval", 86400);
 // The time interval between the downloading of mar file chunks in the
 // background (in seconds)
 pref("app.update.download.backgroundInterval", 600);
+
+pref("app.vendorURL", "http://www.mozillamessaging.com/%LOCALE%/%APP%/");
