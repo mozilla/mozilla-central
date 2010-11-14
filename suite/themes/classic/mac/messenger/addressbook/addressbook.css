@@ -190,7 +190,7 @@
 }
 
 /* CardView styles - used in the Card View Pane */
-
+ 
 #CardViewBox {
   -moz-user-focus: ignore;
   overflow: auto;
@@ -276,7 +276,8 @@ html|p {
 
 /* ::::: lightweight themes ::::: */
 
-#CardViewOuterBox:-moz-lwtheme,
-treecols:-moz-lwtheme {
-  text-shadow: none;
+#CardViewOuterBox:-moz-lwtheme {
+  background-color: -moz-dialog;
+  color: -moz-dialogtext;
+  text-shadow: none
 }

@@ -113,3 +113,7 @@ grippy {
 toolbar textbox:-moz-lwtheme:not([focused="true"]) {
   opacity: 0.9;
 }
+
+treecols:-moz-lwtheme {
+  text-shadow: none;
+}

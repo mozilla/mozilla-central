@@ -47,8 +47,7 @@
 
 /* ::::: lightweight themes ::::: */
 
-#msgHeaderView:-moz-lwtheme,
-treecols:-moz-lwtheme {
+#msgHeaderView:-moz-lwtheme {
   text-shadow: none;
   color: -moz-dialogtext;
   background-color: -moz-dialog;
