@@ -260,3 +260,7 @@ treechildren::-moz-tree-image(remote-err) {
   color: -moz-dialogtext;
   background-color: -moz-dialog;
 }
+
+#MsgHeadersToolbar textbox:-moz-lwtheme {
+  opacity: 1;
+}
