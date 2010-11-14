@@ -556,11 +556,12 @@
         <parameter name="aMessageIdNode"/>
         <parameter name="aIndex"/>
         <parameter name="aMessageId"/>
+        <parameter name="aLastId"/>
         <body>
           <![CDATA[
             var showFullMessageIds = this.showFullMessageIds;
 
-            if (showFullMessageIds)
+            if (showFullMessageIds || aIndex == aLastId)
             {
               aMessageIdNode.setAttribute("label", aMessageId);
               aMessageIdNode.removeAttribute("tooltiptext");
@@ -588,11 +589,14 @@
             while (messageIdNodes.length > numMessageIds * 2 - 1)
               headerValue.removeChild(headerValue.lastChild);
 
+            this.toggleIcon.hidden = numMessageIds <= 1;
+
             for (var index = 0; index < numMessageIds; index++)
             {
               if (index * 2 <= messageIdNodes.length - 1)
               {
-                this.updateMessageIdNode(messageIdNodes[index * 2], index + 1, this.mMessageIds[index]);
+                this.updateMessageIdNode(messageIdNodes[index * 2], index + 1,
+                                         this.mMessageIds[index], numMessageIds);
               }
               else
               {
@@ -606,7 +610,8 @@
                   headerValue.appendChild(textNode);
                 }
                 var itemInDocument = headerValue.appendChild(newMessageIdNode);
-                this.updateMessageIdNode(itemInDocument, index + 1, this.mMessageIds[index]);
+                this.updateMessageIdNode(itemInDocument, index + 1,
+                                         this.mMessageIds[index], numMessageIds);
               }
             }
           ]]>
