@@ -89,14 +89,14 @@ cal.auth = {
 
         let aText;
         if (aFixedUsername) {
-            aText = cal.calGetString("prompts", "EnterPasswordFor", [aUsername.value, aCalendarName], "global");
+            aText = cal.calGetString("commonDialogs", "EnterPasswordFor", [aUsername.value, aCalendarName], "global");
             return prompter.promptPassword(aTitle,
                                            aText,
                                            aPassword,
                                            savepassword,
                                            aSavePassword);
         } else {
-            aText = cal.calGetString("prompts", "EnterUserPasswordFor", [aCalendarName], "global");
+            aText = cal.calGetString("commonDialogs", "EnterUserPasswordFor", [aCalendarName], "global");
             return prompter.promptUsernameAndPassword(aTitle,
                                                       aText,
                                                       aUsername,
