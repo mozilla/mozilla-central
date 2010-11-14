@@ -275,6 +275,7 @@ toolbar[iconsize="small"] > #home-button[disabled="true"] {
   -moz-padding-end: 2px;
   border-left: 2px solid;
   -moz-border-left-colors: ThreeDHighlight ThreeDShadow;
+  background-color: -moz-Dialog;
 }
 
 toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
