@@ -595,10 +595,16 @@ function GetSelectedMessages()
 function SetupCommandUpdateHandlers()
 {
   top.controllers.insertControllerAt(0, defaultController);
+
+  document.getElementById("optionsMenuPopup")
+          .addEventListener("popupshowing", updateOptionItems, true);
 }
 
 function UnloadCommandUpdateHandlers()
 {
+  document.getElementById("optionsMenuPopup")
+          .removeEventListener("popupshowing", updateOptionItems, true);
+
   top.controllers.removeController(defaultController);
 }
 
@@ -644,6 +650,7 @@ function updateComposeItems()
 
     // Options Menu
     goUpdateCommand("cmd_spelling");
+    // Workaround to update 'Quote' toolbar button. (See bug 609926.)
     goUpdateCommand("cmd_quoteMessage");
   } catch(e) {}
 }
@@ -675,6 +682,11 @@ function updateEditItems()
   goUpdateCommand("cmd_find");
   goUpdateCommand("cmd_findNext");
   goUpdateCommand("cmd_findPrev");
+}
+
+function updateOptionItems()
+{
+  goUpdateCommand("cmd_quoteMessage");
 }
 
 var messageComposeOfflineObserver =
