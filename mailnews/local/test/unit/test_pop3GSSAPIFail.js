@@ -190,6 +190,12 @@ GSSAPIFail_handler.prototype = {
 }
 
 function run_test() {
+  var isOSX = ("nsILocalFileMac" in Components.interfaces);
+  if (isOSX) {
+    dump("INFO | test_punycodeURIs.js | Skipping test on mac, bug 604653")
+      return;
+  }
+
   // Disable new mail notifications
   var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
     .getService(Components.interfaces.nsIPrefBranch);
