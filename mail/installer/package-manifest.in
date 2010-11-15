@@ -461,6 +461,7 @@
 @BINPATH@/components/necko_socket.xpt
 @BINPATH@/components/necko_viewsource.xpt
 @BINPATH@/components/necko_wifi.xpt
+@BINPATH@/components/necko_wyciwyg.xpt
 @BINPATH@/components/nsProxyAutoConfig.js
 @BINPATH@/components/nsProxyAutoConfig.manifest
 
@@ -535,6 +536,8 @@
 @BINPATH@/components/fastfind.xpt
 @BINPATH@/components/find.xpt
 @BINPATH@/components/chardet.xpt
+@BINPATH@/components/ConsoleAPI.js
+@BINPATH@/components/ConsoleAPI.manifest
 @BINPATH@/components/contentAreaDropListener.js
 @BINPATH@/components/contentAreaDropListener.manifest
 @BINPATH@/components/contentSecurityPolicy.js
