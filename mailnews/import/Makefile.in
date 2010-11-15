@@ -47,7 +47,12 @@ MODULE		= import
 PARALLEL_DIRS	= public src text/src vcard/src comm4x/public comm4x/src
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
+ifeq (x86_64,$(OS_TEST))
+# Compilation of eudora disabled for now, see bug 537872
+PARALLEL_DIRS   += applemail/src
+else
 PARALLEL_DIRS	+= eudora/src applemail/src
+endif
 endif
 
 ifeq ($(OS_ARCH),WINNT)

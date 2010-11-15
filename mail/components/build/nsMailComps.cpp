@@ -98,7 +98,9 @@ NS_DEFINE_NAMED_CID(NS_MAILWINSEARCHHELPER_CID);
 #endif // !XP_WIN32
 
 #if defined (XP_WIN32) || defined (XP_MACOSX)
+#ifndef __LP64__
 NS_DEFINE_NAMED_CID(NS_EUDORAPROFILEMIGRATOR_CID);
+#endif
 #endif
 
 #ifdef MOZ_WIDGET_GTK2
@@ -125,7 +127,9 @@ const mozilla::Module::CIDEntry kMailCIDs[] = {
 #endif // MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
 #endif // !XP_WIN32
 #if defined (XP_WIN32) || defined (XP_MACOSX)
+#ifndef __LP64__
   { &kNS_EUDORAPROFILEMIGRATOR_CID, false, NULL, nsEudoraProfileMigratorConstructor },
+#endif
 #endif
 #ifdef MOZ_WIDGET_GTK2
   { &kNS_MAILGNOMEINTEGRATION_CID, false, NULL, nsMailGNOMEIntegrationConstructor },
@@ -151,7 +155,9 @@ const mozilla::Module::ContractIDEntry kMailContracts[] = {
 #endif // MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
 #endif // !XP_WIN32
 #if defined (XP_WIN32) || defined (XP_MACOSX)
+#ifndef __LP64__
   { NS_MAILPROFILEMIGRATOR_CONTRACTID_PREFIX "eudora", &kNS_EUDORAPROFILEMIGRATOR_CID },
+#endif
 #endif
 #ifdef MOZ_WIDGET_GTK2
   { "@mozilla.org/mail/shell-service;1", &kNS_MAILGNOMEINTEGRATION_CID },

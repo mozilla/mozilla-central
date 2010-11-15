@@ -64,7 +64,9 @@ SHARED_LIBRARY_LIBS = \
 		$(NULL)
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
+ifneq (x86_64,$(OS_TEST))
 SHARED_LIBRARY_LIBS += ../eudora/src/$(LIB_PREFIX)impEudra_s.$(LIB_SUFFIX)
+endif
 SHARED_LIBRARY_LIBS += ../applemail/src/$(LIB_PREFIX)applmail_s.$(LIB_SUFFIX)
 endif
 

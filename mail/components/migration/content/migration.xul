@@ -74,7 +74,10 @@
 
 #ifdef XP_UNIX
 #ifdef XP_MACOSX
+#ifndef __LP64__
+      <!-- eudora import disabled on Mac 64 bit due to bug 537872 -->
       <radio id="eudora"    label="&importFromEudora.label;"    accesskey="&importFromEudora.accesskey;"/>
+#endif
 #endif
 #endif
 
