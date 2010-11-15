@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -43,24 +44,72 @@ interface nsINNTPNewsgroupPost;
 
 typedef long nsNewsAction;
 
+/**
+ * Represents specific attributes to a URL for news usage.
+ *
+ * Note that the urls represented by this interface can be one of five schemes:
+ * [s]news, nntp[s], or news-message. Any URI that is valid under RFC 5538 will
+ * be accepted. However, it is possible for some queries to be invalid. There
+ * are also a few important things to note:
+ *
+ * - Missing authorities in [s]news: URIs cause nsIMsgMailNewsUrl::server and
+ *   nsIMsgMessageUrl::folder to be null.
+ * - nsIMsgMailNewsUrl::server and nsIMsgMessageUrl::folder will be null if the
+ *   specified server does not actually exist. In addition, the folder is null
+ *   if the group is not currently subscribed on that server.
+ * - Although news-message URIs are parsable, there is no protocol handler
+ *   associated with this url. To run these, you should convert these to the
+ *   corresponding [s]news or nntp URL, and set the original one in
+ *   nsIMsgMessageUrl::uri and ::originalSpec.
+ * - A URI that results in an ActionUnknown will not be run.
+ * - Cancel URIs require the original spec to also be set, so it can find both
+ *   the message ID and the group/key combination.
+ * * Some actions require either a group or a message id. Since actions can be
+ *   set after the fact, these conditions are not verified.
+ */
 [scriptable, uuid(b8bb6567-7433-4a52-beae-20e8122deb78)]
 interface nsINntpUrl : nsISupports {
+  /// For ActionPostArticle URIs, the message to be posted.
   attribute nsINNTPNewsgroupPost messageToPost;
+
+  /**
+   * The action that this URL will take when run.
+   *
+   * Most actions can be automatically determined from the URL spec as follows:
+   *
+   * 1. The query string is searched for the appropriate action.
+   *
+   * 2. A non-empty message ID or key is found (sets ActionFetchArticle).
+   *
+   * 3. A non-empty group is found (ActionGetNewNews or ActionListGroups).
+   */
   attribute nsNewsAction newsAction;
+
+  /// For ActionGetNewNews URIs, whether or not to get older messages.
   attribute boolean getOldMessages;
 
+  /// The action of this news URI could not be determined
   const nsNewsAction ActionUnknown = 0;
-  const nsNewsAction ActionGetNewNews = 1;
-  const nsNewsAction ActionFetchArticle = 2;
+  /// Fetch the contents of an article
+  const nsNewsAction ActionFetchArticle = 1;
+  /// Fetch the part of an article (requires ?part=)
+  const nsNewsAction ActionFetchPart = 2;
+  /// Save the contents of an article to disk
   const nsNewsAction ActionSaveMessageToDisk = 3;
+  /// Cancel the article (requires ?cancel)
   const nsNewsAction ActionCancelArticle = 4;
+  /// Post an article
   const nsNewsAction ActionPostArticle = 5;
-  const nsNewsAction ActionSearch = 6;
-  const nsNewsAction ActionUpdateCounts = 7;
-  const nsNewsAction ActionListGroups = 8;
-  const nsNewsAction ActionFetchPart = 9;
-  const nsNewsAction ActionAutoSubscribe = 10;
-  const nsNewsAction ActionListIds = 11;
+  /// List the non-expired ids in the newsgroup (requires ?list-ids)
+  const nsNewsAction ActionListIds = 6;
+  /// Do an online newsgroup search (requires ?search)
+  const nsNewsAction ActionSearch = 7;
+  /// Retrieve new messages from the server
+  const nsNewsAction ActionGetNewNews = 8;
+  /// List groups for subscribe
+  const nsNewsAction ActionListGroups = 9;
+  /// List new groups for subscribe (requires ?new-groups)
+  const nsNewsAction ActionListNewGroups = 10;
 
   /// Constant for the default NNTP over ssl port number
   const PRInt32 DEFAULT_NNTP_PORT = 119;

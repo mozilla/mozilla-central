@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Pierre Phaneuf <pp@ludusdesign.com>
+ *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -87,9 +88,27 @@ NS_INTERFACE_MAP_BEGIN(nsNntpUrl)
    NS_INTERFACE_MAP_ENTRY(nsIMsgI18NUrl)
 NS_INTERFACE_MAP_END_INHERITING(nsMsgMailNewsUrl)
 
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Begin nsINntpUrl specific support
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/* News URI parsing explanation:
+ * We support 3 different news URI schemes, essentially boiling down to 8
+ * different formats:
+ * news://host/group
+ * news://host/message
+ * news://host/
+ * news:group
+ * news:message
+ * nntp://host/group
+ * nntp://host/group/key
+ * news-message://host/group#key
+ *
+ * In addition, we use queries on the news URIs with authorities for internal
+ * NNTP processing. The most important one is ?group=group&key=key, for cache
+ * canonicalization.
+ */
+
 NS_IMETHODIMP nsNntpUrl::SetSpec(const nsACString &aSpec)
 {
   nsresult rv = nsMsgMailNewsUrl::SetSpec(aSpec);
@@ -235,9 +254,9 @@ NS_IMETHODIMP nsNntpUrl::GetMessageFile(nsIFile ** aFile)
   return NS_OK;
 }
 
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // End nsINntpUrl specific support
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 nsresult nsNntpUrl::SetMessageToPost(nsINNTPNewsgroupPost *post)
 {

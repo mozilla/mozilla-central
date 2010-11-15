@@ -27,6 +27,7 @@
  *   Jeff Tsai <jefft@netscape.com>
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Håkan Waara <hwaara@chello.se>
+ *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -208,10 +209,6 @@ const char *const stateLabels[] = {
 "NNTP_READ_GROUP_BODY",
 "NNTP_SEND_GROUP_FOR_ARTICLE",
 "NNTP_SEND_GROUP_FOR_ARTICLE_RESPONSE",
-"NNTP_PROFILE_ADD",
-"NNTP_PROFILE_ADD_RESPONSE",
-"NNTP_PROFILE_DELETE",
-"NNTP_PROFILE_DELETE_RESPONSE",
 "NNTP_SEND_ARTICLE_NUMBER",
 "NEWS_PROCESS_BODIES",
 "NNTP_PRINT_ARTICLE_HEADERS",
@@ -249,11 +246,9 @@ const char *const stateLabels[] = {
 #define CANCEL_WANTED   2
 #define GROUP_WANTED    3
 #define NEWS_POST       4
-#define NEW_GROUPS      6
-#define SEARCH_WANTED   7
-#define PRETTY_NAMES_WANTED 8
-#define PROFILE_WANTED  9
-#define IDS_WANTED    10
+#define NEW_GROUPS      5
+#define SEARCH_WANTED   6
+#define IDS_WANTED      7
 
 /* the output_buffer_size must be larger than the largest possible line
  * 2000 seems good for news
@@ -1092,17 +1087,7 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
              m_typeWanted = NEW_GROUPS;
       else
       {
-        if (PL_strstr(commandSpecificData.get(), "?list-pretty"))
-        {
-          m_typeWanted = PRETTY_NAMES_WANTED;
-          m_commandSpecificData = ToNewCString(commandSpecificData);
-        }
-        else if (PL_strstr(commandSpecificData.get(), "?profile"))
-        {
-          m_typeWanted = PROFILE_WANTED;
-          m_commandSpecificData = ToNewCString(commandSpecificData);
-        }
-        else if (PL_strstr(commandSpecificData.get(), "?list-ids"))
+        if (PL_strstr(commandSpecificData.get(), "?list-ids"))
         {
           m_typeWanted = IDS_WANTED;
           m_commandSpecificData = ToNewCString(commandSpecificData);
@@ -2169,37 +2154,6 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommand(nsIURI * url)
             m_nextStateAfterResponse = NNTP_XPAT_SEND;
     }
   }
-  else if (m_typeWanted == PRETTY_NAMES_WANTED)
-  {
-    nsresult rv;
-    PRBool listpretty=PR_FALSE;
-    rv = m_nntpServer->QueryExtension("LISTPRETTY",&listpretty);
-    if (NS_SUCCEEDED(rv) && listpretty)
-    {
-      m_nextState = NNTP_LIST_PRETTY_NAMES;
-      return 0;
-    }
-    else
-    {
-      NS_ASSERTION(PR_FALSE, "unexpected");
-      m_nextState = NNTP_ERROR;
-    }
-  }
-  else if (m_typeWanted == PROFILE_WANTED)
-  {
-    char *slash = PL_strchr (m_commandSpecificData, '/');
-    if (slash)
-    {
-      char *allocatedCommand = MSG_UnEscapeSearchUrl (slash + 1);
-      if (allocatedCommand)
-      {
-        NS_MsgSACopy(&command, allocatedCommand);
-        PR_Free(allocatedCommand);
-      }
-    }
-    m_nextState = NNTP_RESPONSE;
-      m_nextStateAfterResponse = NNTP_PROFILE_DELETE_RESPONSE;
-  }
   else if (m_typeWanted == IDS_WANTED)
   {
     m_nextState = NNTP_LIST_GROUP;
@@ -2234,7 +2188,7 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommand(nsIURI * url)
     PR_Free(command);
 
   m_nextState = NNTP_RESPONSE;
-  if (m_typeWanted != SEARCH_WANTED && m_typeWanted != PROFILE_WANTED)
+  if (m_typeWanted != SEARCH_WANTED)
     m_nextStateAfterResponse = SEND_FIRST_NNTP_COMMAND_RESPONSE;
   SetFlag(NNTP_PAUSE_FOR_READ);
     return(status);
@@ -4714,17 +4668,6 @@ PRInt32 nsNNTPProtocol::SetupForTransfer()
     m_nextState = NNTP_BEGIN_ARTICLE;
   else if (m_typeWanted== SEARCH_WANTED)
     m_nextState = NNTP_XPAT_SEND;
-  else if (m_typeWanted == PRETTY_NAMES_WANTED)
-    m_nextState = NNTP_LIST_PRETTY_NAMES;
-#ifdef UNREADY_CODE
-  else if (m_typeWanted == PROFILE_WANTED)
-  {
-    if (PL_strstr(ce->URL_s->address, "PROFILE NEW"))
-      m_nextState = NNTP_PROFILE_ADD;
-    else
-      m_nextState = NNTP_PROFILE_DELETE;
-  }
-#endif
   else
   {
     NS_ERROR("unexpected");
