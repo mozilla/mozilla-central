@@ -319,7 +319,6 @@ nsNNTPProtocol::nsNNTPProtocol(nsIURI * aURL, nsIMsgWindow *aMsgWindow)
   m_cancelDistribution = nsnull;
   m_cancelID = nsnull;
 
-  m_messageID = nsnull;
   m_key = nsMsgKey_None;
 
   m_searchData = nsnull;
@@ -366,7 +365,6 @@ void nsNNTPProtocol::Cleanup()  //free char* member variables
   PR_FREEIF(m_cancelNewsgroups);
   PR_FREEIF(m_cancelDistribution);
   PR_FREEIF(m_cancelID);
-  PR_FREEIF(m_messageID);
 }
 
 NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow)
@@ -432,15 +430,13 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
   SetIsBusy(PR_TRUE);
 
   nsCString group;
-  nsCString commandSpecificData;
-  PR_FREEIF(m_messageID);
 
   // Initialize m_newsAction before possible use in ParseURL method
   m_runningURL->GetNewsAction(&m_newsAction);
   
   // parse url to get the msg folder and check if the message is in the folder's
   // local cache before opening a new socket and trying to download the message
-  rv = ParseURL(m_url, group, &m_messageID, commandSpecificData);
+  rv = ParseURL(m_url, group, m_messageID);
 
   if (NS_SUCCEEDED(rv) && m_runningURL)
   {
@@ -535,8 +531,6 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
   m_lastPossibleArticle = 0;
   m_numArticlesLoaded = 0;
   m_numArticlesWanted = 0;
-
-  PR_FREEIF(m_messageID);
 
   m_key = nsMsgKey_None;
 
@@ -772,10 +766,8 @@ nsresult nsNNTPProtocol::ReadFromMemCache(nsICacheEntryDescriptor *entry)
     if (NS_FAILED(rv)) return rv;
 
     nsCString group;
-    nsCString commandSpecificData;
     // do this to get m_key set, so that marking the message read will work.
-    PR_FREEIF(m_messageID);
-    rv = ParseURL(m_url, group, &m_messageID, commandSpecificData);
+    rv = ParseURL(m_url, group, m_messageID);
 
     nsNntpCacheStreamListener * cacheListener = new nsNntpCacheStreamListener();
     if (!cacheListener)
@@ -1009,7 +1001,6 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
   NS_ENSURE_ARG_POINTER(aURL);
 
   nsCString group;
-  nsCString commandSpecificData;
   m_ContentType.Truncate();
   nsresult rv = NS_OK;
 
@@ -1019,170 +1010,140 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
 
   SetIsBusy(PR_TRUE);
 
-  PR_FREEIF(m_messageID);
-  m_messageID = nsnull;
-
-  rv = ParseURL(aURL, group, &m_messageID, commandSpecificData);
+  rv = ParseURL(aURL, group, m_messageID);
   NS_ASSERTION(NS_SUCCEEDED(rv),"failed to parse news url");
   //if (NS_FAILED(rv)) return rv;
   // XXX group returned from ParseURL is assumed to be in UTF-8
   NS_ASSERTION(MsgIsUTF8(group), "newsgroup name is not in UTF-8");
+  NS_ASSERTION(m_nntpServer, "Parsing must result in an m_nntpServer");
 
-  PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) m_messageID = %s", this, m_messageID ? m_messageID :"(null)"));
+  PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) m_messageID = %s", this, m_messageID.get()));
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) group = %s", this, group.get()));
-  PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) commandSpecificData = %s", this, !commandSpecificData.IsEmpty() ? commandSpecificData.get():"(null)"));
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) m_key = %d",this,m_key));
 
-  /* We are posting a user-written message
-     if and only if this message has a message to post
-     Cancel messages are created later with a ?cancel URL
-  */
-  nsCOMPtr <nsINNTPNewsgroupPost> message;
-  rv = m_runningURL->GetMessageToPost(getter_AddRefs(message));
-  if (NS_SUCCEEDED(rv) && message)
+  if (m_newsAction == nsINntpUrl::ActionFetchArticle ||
+      m_newsAction == nsINntpUrl::ActionFetchPart ||
+      m_newsAction == nsINntpUrl::ActionSaveMessageToDisk)
+    m_typeWanted = ARTICLE_WANTED;
+  else if (m_newsAction == nsINntpUrl::ActionCancelArticle)
+    m_typeWanted = CANCEL_WANTED;
+  else if (m_newsAction == nsINntpUrl::ActionPostArticle)
   {
     m_typeWanted = NEWS_POST;
-    NS_MsgSACopy(&m_messageID, "");
+    m_messageID = "";
+  }
+  else if (m_newsAction == nsINntpUrl::ActionListIds)
+  {
+    m_typeWanted = IDS_WANTED;
+    rv = m_nntpServer->FindGroup(group, getter_AddRefs(m_newsFolder));
+  }
+  else if (m_newsAction == nsINntpUrl::ActionSearch)
+  {
+    m_typeWanted = SEARCH_WANTED;
+
+    // Get the search data
+    nsCString commandSpecificData, unescapedCommandSpecificData;
+    nsCOMPtr<nsIURL> url = do_QueryInterface(m_runningURL);
+    rv = url->GetQuery(commandSpecificData);
+    NS_ENSURE_SUCCESS(rv, rv);
+    MsgUnescapeString(commandSpecificData, 0, unescapedCommandSpecificData);
+    m_searchData = ToNewCString(unescapedCommandSpecificData);
+
+    rv = m_nntpServer->FindGroup(group, getter_AddRefs(m_newsFolder));
+    if (!m_newsFolder)
+      goto FAIL;
+  }
+  else if (m_newsAction == nsINntpUrl::ActionGetNewNews)
+  {
+    PRBool containsGroup = PR_TRUE;
+    rv = m_nntpServer->ContainsNewsgroup(group, &containsGroup);
+    if (NS_FAILED(rv))
+      goto FAIL;
+
+    if (!containsGroup)
+    {
+      // We have the name of a newsgroup which we're not subscribed to,
+      // the next step is to ask the user whether we should subscribe to it.
+      nsCOMPtr<nsIPrompt> dialog;
+
+      if (m_msgWindow)
+        m_msgWindow->GetPromptDialog(getter_AddRefs(dialog));
+
+      if (!dialog)
+      {
+         nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
+         wwatch->GetNewPrompter(nsnull, getter_AddRefs(dialog));
+      }
+
+      nsString statusString, confirmText;
+      nsCOMPtr<nsIStringBundle> bundle;
+      nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID);
+
+      // to handle non-ASCII newsgroup names, we store them internally
+      // as escaped. decode and unescape the newsgroup name so we'll
+      // display a proper name.
+
+      nsAutoString unescapedName;
+      rv = NS_MsgDecodeUnescapeURLPath(group, unescapedName);
+      NS_ENSURE_SUCCESS(rv,rv);
+
+      bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
+      const PRUnichar *formatStrings[1] = { unescapedName.get() };
+
+      rv = bundle->FormatStringFromName(
+        NS_LITERAL_STRING("autoSubscribeText").get(), formatStrings, 1,
+        getter_Copies(confirmText));
+      NS_ENSURE_SUCCESS(rv,rv);
+
+      PRBool confirmResult = PR_FALSE;
+      rv = dialog->Confirm(nsnull, confirmText.get(), &confirmResult);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      if (confirmResult)
+      {
+         rv = m_nntpServer->SubscribeToNewsgroup(group);
+         containsGroup = PR_TRUE;
+      }
+      else
+      {
+        // XXX FIX ME
+        // the way news is current written, we've already opened the socket
+        // and initialized the connection.
+        //
+        // until that is fixed, when the user cancels an autosubscribe, we've got to close it and clean up after ourselves
+        //
+        // see bug http://bugzilla.mozilla.org/show_bug.cgi?id=108293
+        // another problem, autosubscribe urls are ending up as cache entries
+        // because the default action on nntp urls is ActionFetchArticle
+        //
+        // see bug http://bugzilla.mozilla.org/show_bug.cgi?id=108294
+        if (m_runningURL)
+          FinishMemCacheEntry(PR_FALSE); // cleanup mem cache entry
+
+        return CloseConnection();
+      }
+    }
+
+    // If we have a group (since before, or just subscribed), set the m_newsFolder.
+    if (containsGroup)
+    {
+      rv = m_nntpServer->FindGroup(group, getter_AddRefs(m_newsFolder));
+      if (!m_newsFolder)
+        goto FAIL;
+    }
+    m_typeWanted = GROUP_WANTED;
   }
   else if (m_newsAction == nsINntpUrl::ActionListGroups)
     m_typeWanted = LIST_WANTED;
-  else if (m_newsAction == nsINntpUrl::ActionCancelArticle)
-    m_typeWanted = CANCEL_WANTED;
+  else if (m_newsAction == nsINntpUrl::ActionListNewGroups)
+    m_typeWanted = NEW_GROUPS;
+  else if (!m_messageID.IsEmpty() || m_key != nsMsgKey_None)
+    m_typeWanted = ARTICLE_WANTED;
   else
-    if (m_messageID || (m_key != nsMsgKey_None))
-    {
-    /*
-    news-message://HOST/GROUP#key
-    news://HOST/MESSAGE_ID
-
-      not sure about these:
-
-        news:MESSAGE_ID
-        news:/GROUP/MESSAGE_ID (useless)
-        news://HOST/GROUP/MESSAGE_ID (useless)
-      */
-      m_typeWanted = ARTICLE_WANTED;
-    }
-    else if (!commandSpecificData.IsEmpty())
-    {
-      if (PL_strstr (commandSpecificData.get(), "?newgroups"))
-      /* news://HOST/?newsgroups
-      news:/GROUP/?newsgroups (useless)
-      news:?newsgroups (default host)
-       */
-             m_typeWanted = NEW_GROUPS;
-      else
-      {
-        if (PL_strstr(commandSpecificData.get(), "?list-ids"))
-        {
-          m_typeWanted = IDS_WANTED;
-
-          rv = m_nntpServer->FindGroup(group, getter_AddRefs(m_newsFolder));
-          if (!m_newsFolder) goto FAIL;
-        }
-        else
-        {
-          m_typeWanted = SEARCH_WANTED;
-          nsCString unescapedCommandSpecificData;
-          MsgUnescapeString(commandSpecificData, 0, unescapedCommandSpecificData);
-          m_searchData = ToNewCString(unescapedCommandSpecificData);
-
-          rv = m_nntpServer->FindGroup(group, getter_AddRefs(m_newsFolder));
-          if (!m_newsFolder) goto FAIL;
-        }
-      }
-    }
-    else if (!group.IsEmpty())
-    {
-    /* news:GROUP
-    news:/GROUP
-    news://HOST/GROUP
-      */
-        if (m_nntpServer)
-        {
-          PRBool containsGroup = PR_TRUE;
-          rv = m_nntpServer->ContainsNewsgroup(group, &containsGroup);
-          if (NS_FAILED(rv)) goto FAIL;
-
-          if (!containsGroup)
-          {
-            // We have the name of a newsgroup which we're not subscribed to,
-            // the next step is to ask the user whether we should subscribe to it.
-
-            nsCOMPtr<nsIPrompt> dialog;
-
-            if (m_msgWindow)
-              m_msgWindow->GetPromptDialog(getter_AddRefs(dialog));
-
-            if (!dialog)
-            {
-              nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
-              wwatch->GetNewPrompter(nsnull, getter_AddRefs(dialog));
-            }
-
-            nsString statusString, confirmText;
-            nsCOMPtr<nsIStringBundle> bundle;
-            nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID);
-
-            // to handle non-ASCII newsgroup names, we store them internally
-            // as escaped. decode and unescape the newsgroup name so we'll
-            // display a proper name.
-
-            nsAutoString unescapedName;
-            rv = NS_MsgDecodeUnescapeURLPath(group, unescapedName);
-            NS_ENSURE_SUCCESS(rv,rv);
-
-            bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
-            const PRUnichar *formatStrings[1] = { unescapedName.get() };
-
-            rv = bundle->FormatStringFromName(NS_LITERAL_STRING("autoSubscribeText").get(),
-              formatStrings, 1,
-              getter_Copies(confirmText));
-            NS_ENSURE_SUCCESS(rv,rv);
-
-            PRBool confirmResult = PR_FALSE;
-            rv = dialog->Confirm(nsnull, confirmText.get(), &confirmResult);
-            NS_ENSURE_SUCCESS(rv, rv);
-
-            if (confirmResult)
-            {
-              rv = m_nntpServer->SubscribeToNewsgroup(group);
-              containsGroup = PR_TRUE;
-            }
-            else {
-              // XXX FIX ME
-              // the way news is current written, we've already opened the socket
-              // and initialized the connection.
-              //
-              // until that is fixed, when the user cancels an autosubscribe, we've got to close it and clean up after ourselves
-              //
-              // see bug http://bugzilla.mozilla.org/show_bug.cgi?id=108293
-              // another problem, autosubscribe urls are ending up as cache entries
-              // because the default action on nntp urls is ActionFetchArticle
-              //
-              // see bug http://bugzilla.mozilla.org/show_bug.cgi?id=108294
-              if (m_runningURL)
-                FinishMemCacheEntry(PR_FALSE); // cleanup mem cache entry
-
-              return CloseConnection();
-            }
-          }
-
-          // If we have a group (since before, or just subscribed), set the m_newsFolder.
-          if (containsGroup)
-          {
-            rv = m_nntpServer->FindGroup(group, getter_AddRefs(m_newsFolder));
-            if (!m_newsFolder) goto FAIL;
-          }
-        }
-        m_typeWanted = GROUP_WANTED;
-    }
-    else
-    {
-      // news: or news://HOST
-      NS_ASSERTION(0, "Should not get here!");
-      rv = NS_ERROR_FAILURE;
-    }
+  {
+    NS_NOTREACHED("Unknown news action");
+    rv = NS_ERROR_FAILURE;
+  }
 
     // if this connection comes from the cache, we need to initialize the
     // load group here, by generating the start request notification. nsMsgProtocol::OnStartRequest
@@ -1229,11 +1190,11 @@ FAIL:
       if (m_key != nsMsgKey_None)
         NS_ASSERTION(m_newsFolder, "ARTICLE_WANTED needs m_newsFolder w/ key");
       else
-        NS_ASSERTION(m_messageID, "ARTICLE_WANTED needs m_messageID w/o key");
+        NS_ASSERTION(!m_messageID.IsEmpty(), "ARTICLE_WANTED needs m_messageID w/o key");
     }
     else if (m_typeWanted == CANCEL_WANTED)
     {
-      NS_ASSERTION(m_messageID, "CANCEL_WANTED needs m_messageID");
+      NS_ASSERTION(!m_messageID.IsEmpty(), "CANCEL_WANTED needs m_messageID");
       NS_ASSERTION(m_newsFolder, "CANCEL_WANTED needs m_newsFolder");
       NS_ASSERTION(m_key != nsMsgKey_None, "CANCEL_WANTED needs m_key");
     }
@@ -1245,7 +1206,6 @@ FAIL:
       NS_ASSERTION(m_newsFolder, "IDS_WANTED needs m_newsFolder");
 
     return rv;
-
 }
 
 void nsNNTPProtocol::FinishMemCacheEntry(PRBool valid)
@@ -1290,58 +1250,10 @@ NS_IMETHODIMP nsNNTPProtocol::Cancel(nsresult status)  // handle stop button
     return nsMsgProtocol::Cancel(NS_BINDING_ABORTED);
 }
 
-/*
-   FIX THIS COMMENT, this is how 4.x worked.  6.x is different.
-
-   The main news load init routine, and URL parser.
-   The syntax of news URLs is:
-
-   To list all hosts:
-     news:
-
-   To list all groups on a host, or to post a new message:
-     news://HOST
-
-   To list some articles in a group:
-     news:GROUP
-     news:/GROUP
-     news://HOST/GROUP
-
-   To list a particular range of articles in a group:
-     news:GROUP/N1-N2
-     news:/GROUP/N1-N2
-     news://HOST/GROUP/N1-N2
-
-   To retrieve an article:
-     news:MESSAGE-ID                (message-id must contain "@")
-
-    To cancel an article:
-     news:MESSAGE-ID?cancel
-
-   (Note that message IDs may contain / before the @:)
-
-     news:SOME/ID@HOST?headers=all
-     news:/SOME/ID@HOST?headers=all
-     news:/SOME?ID@HOST?headers=all
-        are the same as
-     news://HOST/SOME/ID@HOST?headers=all
-     news://HOST//SOME/ID@HOST?headers=all
-     news://HOST//SOME?ID@HOST?headers=all
-        bug: if the ID is <//xxx@host> we will parse this correctly:
-          news://non-default-host///xxx@host
-        but will mis-parse it if it's on the default host:
-          news://xxx@host
-        whoever had the idea to leave the <> off the IDs should be flogged.
-    So, we'll make sure we quote / in message IDs as %2F.
- */
 nsresult
-nsNNTPProtocol::ParseURL(nsIURI *aURL, nsCString &aGroup, char **aMessageID,
-                         nsACString &aCommandSpecificData)
+nsNNTPProtocol::ParseURL(nsIURI *aURL, nsCString &aGroup, nsCString &aMessageID)
 {
     NS_ENSURE_ARG_POINTER(aURL);
-    NS_ENSURE_ARG_POINTER(aMessageID);
-
-  nsCAutoString message_id;
 
     PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) ParseURL",this));
 
@@ -1380,60 +1292,13 @@ nsNNTPProtocol::ParseURL(nsIURI *aURL, nsCString &aGroup, char **aMessageID,
         m_currentGroup.Truncate();
     }
 
-  // get the file path part and store it as the group...
-  nsCAutoString fullPath;
-  rv = aURL->GetPath(fullPath);
-  NS_ENSURE_SUCCESS(rv,rv);
+  // Load the values from the URL for parsing.
+  rv = m_runningURL->GetGroup(aGroup);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = m_runningURL->GetMessageID(aMessageID);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) fullPath = %s",this, fullPath.get()));
-
-  if (fullPath.First() == '/')
-    aGroup = Substring(fullPath, 1);
-  else
-    aGroup = fullPath;
-
-  // more to do here, but for now, this works.
-  // only escape if we are doing a search
-  nsCString unescapedGroup;
-  MsgUnescapeString(aGroup, 0, unescapedGroup);
-  if (m_newsAction == nsINntpUrl::ActionSearch)
-    aGroup = unescapedGroup;
-  else if (aGroup.Find("@") != -1 || aGroup.Find("%40") != -1)
-  {
-    message_id = unescapedGroup;
-    aGroup.Truncate();
-  }
-
-  /* At this point, the search data is attached to `message_id' (if there is
-     one) or `aGroup' (otherwise.)
-     Separate the search data from what it is clinging to, being careful to
-     interpret the "?" only if it comes after the "@" in an ID, since the
-     syntax of message IDs is tricky.  (There may be a ? in the random-
-     characters part of the ID (before @), but not in the host part (after @).)
-   */
-   if (message_id.Length())
-   {
-     PRInt32 atIndex = message_id.Find("@");
-     PRInt32 index = message_id.Find("?", atIndex);
-     if (index >= 0)
-     {
-       aCommandSpecificData = Substring(message_id, index);
-       message_id.SetLength(index);
-     }
-   }
-   else if (aGroup.Length())
-   {
-     PRInt32 index = aGroup.Find("?");
-     if (index >= 0)
-     {
-       aCommandSpecificData = Substring(aGroup, index);
-       aGroup.SetLength(index);
-     }
-   }
-
-  NS_ASSERTION(!message_id.Length() || message_id != aGroup, "something not null");
-  if (message_id.Length() > 0)
-    *aMessageID = NS_strdup(message_id.get());
+  NS_ASSERTION(aMessageID.IsEmpty() || aMessageID != aGroup, "something not null");
 
   // If we are cancelling, we've got our message id, m_key, and m_newsFolder.
   // Bail out now to prevent messing those up.
@@ -1442,12 +1307,14 @@ nsNNTPProtocol::ParseURL(nsIURI *aURL, nsCString &aGroup, char **aMessageID,
 
   nsCAutoString serverURI;
 
-  if (*aMessageID) {
+  if (!aMessageID.IsEmpty())
+  {
     // if this is a message id, use the pre path (the server) for the folder uri.
     rv = aURL->GetPrePath(serverURI);
     NS_ENSURE_SUCCESS(rv,rv);
   }
-  else if (aGroup.Length()) {
+  else if (!aGroup.IsEmpty())
+  {
     if (aGroup.Find("*") >= 0) {
       rv = aURL->GetPrePath(serverURI);
       NS_ENSURE_SUCCESS(rv,rv);
@@ -1464,13 +1331,13 @@ nsNNTPProtocol::ParseURL(nsIURI *aURL, nsCString &aGroup, char **aMessageID,
     // for authentication, we set m_newsFolder to be the server's folder.
     // while we are here, we set m_nntpServer.
 
-    if (*aMessageID)
+    if (!aMessageID.IsEmpty())
     { // for news://host/message-id decompose complete url
       nsCAutoString urlSpec;
       m_url->GetAsciiSpec(urlSpec);
       rv = nntpService->DecomposeNewsURI(urlSpec.get(), getter_AddRefs(folder), &m_key);
     }
-    if ((!*aMessageID) || NS_FAILED(rv))
+    if (aMessageID.IsEmpty() || NS_FAILED(rv))
     { // for news://host/* decompose only server uri
       rv = nntpService->DecomposeNewsURI(serverURI.get(), getter_AddRefs(folder), &m_key);
       NS_ENSURE_SUCCESS(rv,rv);
@@ -2115,8 +1982,8 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommand(nsIURI * url)
   }
   else  /* article or cancel */
   {
-    NS_ASSERTION(m_messageID, "No message ID, bailing!");
-    if (!m_messageID) return -1;
+    NS_ASSERTION(!m_messageID.IsEmpty(), "No message ID, bailing!");
+    if (m_messageID.IsEmpty()) return -1;
 
     if (m_typeWanted == CANCEL_WANTED)
       NS_MsgSACopy(&command, "HEAD ");
@@ -2125,10 +1992,10 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommand(nsIURI * url)
       NS_MsgSACopy(&command, "ARTICLE ");
     }
 
-    if (*m_messageID != '<')
+    if (m_messageID[0] != '<')
       NS_MsgSACat(&command,"<");
 
-    NS_MsgSACat(&command, m_messageID);
+    NS_MsgSACat(&command, m_messageID.get());
 
     if (PL_strchr(command+8, '>')==0)
       NS_MsgSACat(&command,">");
@@ -3610,11 +3477,6 @@ PRInt32 nsNNTPProtocol::ReadNewsgroupResponse()
   if (m_responseCode == MK_NNTP_RESPONSE_ARTICLE_HEAD)
   {     /* Head follows - parse it:*/
     m_nextState = NNTP_READ_GROUP_BODY;
-
-    if(m_messageID)
-      *m_messageID = '\0';
-
-    m_key = nsMsgKey_None;
 
     return 0;
   }

@@ -49,6 +49,7 @@
 #include "plstr.h"
 #include "prprf.h"
 #include "nsNewsUtils.h"
+#include "nsMsgUtils.h"
 #include "nsISupportsObsolete.h"
 
 #include "nntpCore.h"
@@ -75,7 +76,6 @@ nsNntpUrl::nsNntpUrl()
 
 nsNntpUrl::~nsNntpUrl()
 {
-  NS_IF_RELEASE(m_newsgroupPost);
 }
 
 NS_IMPL_ADDREF_INHERITED(nsNntpUrl, nsMsgMailNewsUrl)
@@ -114,9 +114,44 @@ NS_IMETHODIMP nsNntpUrl::SetSpec(const nsACString &aSpec)
   nsresult rv = nsMsgMailNewsUrl::SetSpec(aSpec);
   NS_ENSURE_SUCCESS(rv,rv);
 
+  nsCAutoString scheme;
+  rv = GetScheme(scheme);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (scheme.EqualsLiteral("news") || scheme.EqualsLiteral("snews"))
+    rv = ParseNewsURL();
+  NS_ENSURE_SUCCESS(rv, rv);
+
   rv = DetermineNewsAction();
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;
+}
+
+nsresult nsNntpUrl::ParseNewsURL()
+{
+  // The path here is the group/msgid portion
+  nsCAutoString path;
+  nsresult rv = GetFilePath(path);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // If the path is empty, we have no authority component
+  if (path.IsEmpty())
+  {
+    rv = GetSpec(path);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  // Drop the potential beginning from the path
+  if (path.Length() && path[0] == '/')
+    path = Substring(path, 1);
+
+  // The presence of an `@' is a sign we have a msgid
+  if (path.Find("@") != -1 || path.Find("%40") != -1)
+    MsgUnescapeString(path, 0, m_messageID);
+  else
+    MsgUnescapeString(path, 0, m_group);
+
+  return NS_OK;
 }
 
 nsresult nsNntpUrl::DetermineNewsAction()
@@ -125,62 +160,59 @@ nsresult nsNntpUrl::DetermineNewsAction()
   nsresult rv = nsMsgMailNewsUrl::GetPath(path);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  if (!strcmp(path.get(),"/*")) {
-    // news://news.mozilla.org/*
-    // get all newsgroups on the server, for subscribe
-    m_newsAction = nsINntpUrl::ActionListGroups;
+  nsCAutoString query;
+  rv = GetQuery(query);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (query.EqualsLiteral("cancel"))
+  {
+    m_newsAction = nsINntpUrl::ActionCancelArticle;
     return NS_OK;
   }
-
-  if (!strcmp(path.get(),"/")) {
-    // could be news:netscape.public.mozilla.mail-news or news://news.mozilla.org
-    // news:netscape.public.mozilla.mail-news gets turned into news://netscape.public.mozilla.mail-news/ by nsStandardURL
-    // news://news.mozilla.org gets turned in to news://news.mozilla.org/ by nsStandardURL
-    // news://news.mozilla.org is nsINntpUrl::ActionUpdateCounts
-    // (which is "update the unread counts for all groups that we're subscribed to on news.mozilla.org)
-    // news:netscape.public.mozilla.mail-news is nsINntpUrl::AutoSubscribe
-    //
-    // also in here for, news:3B98D201.3020100@cs.com
-    // and when posting, and during message display GetCodeBasePrinciple() and nsMimeNewURI()
-    //
-    // set it as unknown (so we won't try to check the cache for it
-    // we'll figure out the action later, or it will be set on the url by the caller.
-    m_newsAction = nsINntpUrl::ActionUnknown;
+  if (query.EqualsLiteral("list-ids"))
+  {
+    m_newsAction = nsINntpUrl::ActionListIds;
     return NS_OK;
   }
-
-  if (PL_strcasestr(path.get(), "?part=") || PL_strcasestr(path.get(), "&part=")) {
+  if (query.EqualsLiteral("newgroups"))
+  {
+    m_newsAction = nsINntpUrl::ActionListNewGroups;
+    return NS_OK;
+  }
+  if (StringBeginsWith(query, NS_LITERAL_CSTRING("search")))
+  {
+    m_newsAction = nsINntpUrl::ActionSearch;
+    return NS_OK;
+  }
+  if (StringBeginsWith(query, NS_LITERAL_CSTRING("part=")) ||
+      query.Find("&part=") > 0)
+  {
     // news://news.mozilla.org:119/3B98D201.3020100%40cs.com?part=1
     // news://news.mozilla.org:119/b58dme%24aia2%40ripley.netscape.com?header=print&part=1.2&type=image/jpeg&filename=Pole.jpg
     m_newsAction = nsINntpUrl::ActionFetchPart;
     return NS_OK;
   }
 
-  if (PL_strcasestr(path.get(), "?cancel")) {
-    // news://news.mozilla.org/3C06C0E8.5090107@sspitzer.org?cancel
-    m_newsAction = nsINntpUrl::ActionCancelArticle;
-    return NS_OK;
-  }
-
-  if (PL_strcasestr(path.get(), "?list-ids")) {
-    // news://news.mozilla.org/netscape.test?list-ids
-    // remove all cancelled articles from netscape.test
-    m_newsAction = nsINntpUrl::ActionListIds;
-    return NS_OK;
-  }
-
-  if (strchr(path.get(), '@') || strstr(path.get(),"%40")) {
-    // news://news.mozilla.org/3B98D201.3020100@cs.com
-    // news://news.mozilla.org/3B98D201.3020100%40cs.com
+  if (!m_messageID.IsEmpty())
+  {
     m_newsAction = nsINntpUrl::ActionFetchArticle;
     return NS_OK;
   }
 
-  // news://news.mozilla.org/netscape.test could be
-  // get new news for netscape.test (nsINntpUrl::ActionGetNewNews)
-  // or subscribe to netscape.test (nsINntpUrl::AutoSubscribe)
-  // set it as unknown (so we won't try to check the cache for it
-  // we'll figure out the action later, or it will be set on the url by the caller.
+  if (m_group.Find("*") >= 0)
+  {
+    // If the group is a wildmat, list groups instead of grabbing a group.
+    m_newsAction = nsINntpUrl::ActionListGroups;
+    return NS_OK;
+  }
+  if (!m_group.IsEmpty())
+  {
+    m_newsAction = nsINntpUrl::ActionGetNewNews;
+    return NS_OK;
+  }
+
+  // At this point, we have a URI that contains neither a query, a group, nor a
+  // message ID. Ergo, we don't know what it is.
   m_newsAction = nsINntpUrl::ActionUnknown;
   return NS_OK;
 }
@@ -209,6 +241,18 @@ NS_IMETHODIMP nsNntpUrl::GetNewsAction(nsNewsAction *aNewsAction)
 NS_IMETHODIMP nsNntpUrl::SetNewsAction(nsNewsAction aNewsAction)
 {
   m_newsAction = aNewsAction;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsNntpUrl::GetGroup(nsACString &group)
+{
+  group = m_group;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsNntpUrl::GetMessageID(nsACString &messageID)
+{
+  messageID = m_messageID;
   return NS_OK;
 }
 
@@ -260,22 +304,17 @@ NS_IMETHODIMP nsNntpUrl::GetMessageFile(nsIFile ** aFile)
 
 nsresult nsNntpUrl::SetMessageToPost(nsINNTPNewsgroupPost *post)
 {
-    NS_LOCK_INSTANCE();
-    NS_IF_RELEASE(m_newsgroupPost);
-    m_newsgroupPost=post;
-    if (m_newsgroupPost) NS_ADDREF(m_newsgroupPost);
-    NS_UNLOCK_INSTANCE();
-    return NS_OK;
+  m_newsgroupPost = post;
+  if (post)
+    SetNewsAction(nsINntpUrl::ActionPostArticle);
+  return NS_OK;
 }
 
 nsresult nsNntpUrl::GetMessageToPost(nsINNTPNewsgroupPost **aPost)
 {
-    NS_LOCK_INSTANCE();
-    if (!aPost) return NS_ERROR_NULL_POINTER;
-    *aPost = m_newsgroupPost;
-    if (*aPost) NS_ADDREF(*aPost);
-    NS_UNLOCK_INSTANCE();
-    return NS_OK;
+  NS_ENSURE_ARG_POINTER(aPost);
+  NS_IF_ADDREF(*aPost = m_newsgroupPost);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsNntpUrl::GetMessageHeader(nsIMsgDBHdr ** aMsgHdr)

@@ -67,8 +67,9 @@ public:
 
 private:
   nsresult DetermineNewsAction();
+  nsresult ParseNewsURL();
 
-  nsINNTPNewsgroupPost *m_newsgroupPost;
+  nsCOMPtr<nsINNTPNewsgroupPost> m_newsgroupPost;
   nsNewsAction m_newsAction; // the action this url represents...parse mailbox, display messages, etc.
 
   nsCString mURI; // the RDF URI associated with this url.
@@ -83,6 +84,9 @@ private:
   PRPackedBool  m_addDummyEnvelope;
   PRPackedBool  m_canonicalLineEnding;
   PRPackedBool  m_getOldMessages;
+
+  nsCString m_group;
+  nsCString m_messageID;
 };
 
 #endif // nsNntpUrl_h__

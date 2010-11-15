@@ -251,7 +251,7 @@ private:
   PRInt32   m_readNewsListCount;
 
   // Per news article state information. (article number, author, subject, id, etc
-  char   *m_messageID;
+  nsCString m_messageID;
   PRInt32   m_articleNumber;   /* current article number */
   char   *m_searchData;
 
@@ -461,7 +461,7 @@ private:
   // End of Protocol Methods
   //////////////////////////////////////////////////////////////////////////////
 
-  nsresult ParseURL(nsIURI * aURL, nsCString &aGroup, char ** aMessageID, nsACString &aCommandSpecificData);
+  nsresult ParseURL(nsIURI *aURL, nsCString &aGroup, nsCString &aMessageID);
 
   void SetProgressBarPercent(PRUint32 aProgress, PRUint32 aProgressMax);
   nsresult SetProgressStatus(const PRUnichar *aMessage);
