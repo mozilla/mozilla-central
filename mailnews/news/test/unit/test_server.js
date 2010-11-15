@@ -45,14 +45,14 @@ function testRFC977() {
     transaction = server.playTransaction();
     do_check_transaction(transaction, ["MODE READER", "LIST"]);
 
-    // GROUP_WANTED fails without UI
     // Test - getting group headers
-    /*test = "news:test.empty";
+    test = "news:test.subscribe.empty";
     server.resetTest();
-    setupProtocolTest(NNTP_PORT, prefix+"test.empty");
+    setupProtocolTest(NNTP_PORT, prefix+"test.subscribe.empty");
     server.performTest();
     transaction = server.playTransaction();
-    do_check_transaction(transaction, []);*/
+    do_check_transaction(transaction, ["MODE READER",
+      "GROUP test.subscribe.empty"]);
 
     // Test - getting an article
     test = "news:MESSAGE_ID";
@@ -63,15 +63,14 @@ function testRFC977() {
     do_check_transaction(transaction, ["MODE READER",
         "ARTICLE <TSS1@nntp.test>"]);
 
-    // Broken because of folder brokenness
     // Test - news expiration
-    /*test = "news:GROUP/?list-ids";
+    test = "news:GROUP?list-ids";
     server.resetTest();
-    setupProtocolTest(NNTP_PORT, prefix+"test.subscribe.empty/?list-ids");
+    setupProtocolTest(NNTP_PORT, prefix+"test.filter?list-ids");
     server.performTest();
     transaction = server.playTransaction();
     do_check_transaction(transaction, ["MODE READER",
-        "LISTGROUP test.subscribe.empty"]);*/
+        "listgroup test.filter"]);
 
     // Test - posting
     test = "news with post";
@@ -106,7 +105,8 @@ function testConnectionLimit() {
   var transaction;
 
   // To test make connections limit, we run two URIs simultaneously.
-  setupProtocolTest(NNTP_PORT, prefix+"*");
+  var url = URLCreator.newURI(prefix+"*", null, null);
+  _server.loadNewsUrl(url, null, null);
   setupProtocolTest(NNTP_PORT, prefix+"TSS1@nntp.test");
   server.performTest();
   // We should have length one... which means this must be a transaction object,

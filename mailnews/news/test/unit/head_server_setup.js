@@ -18,6 +18,7 @@ const kSimpleNewsArticle =
 // It is an array of tuples, where the first element is the group name and the
 // second element is whether or not we should subscribe to it.
 var groups = [
+  ["misc.test", false],
   ["test.empty", false],
   ["test.subscribe.empty", true],
   ["test.subscribe.simple", true],

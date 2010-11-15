@@ -113,7 +113,9 @@ nsNNTPArticleList::FinishAddingArticleKeys()
 {
   // if the last n messages in the group are cancelled, they won't have gotten removed
   // so we have to go and remove them now.
-  m_idsDeleted.AppendElements(&m_idsInDB[m_dbIndex], m_idsInDB.Length() - m_dbIndex);
+  if (m_dbIndex < m_idsInDB.Length())
+    m_idsDeleted.AppendElements(&m_idsInDB[m_dbIndex],
+      m_idsInDB.Length() - m_dbIndex);
   
   if (m_idsDeleted.Length())
     m_newsFolder->RemoveMessages(m_idsDeleted);

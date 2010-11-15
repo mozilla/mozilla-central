@@ -103,6 +103,27 @@ function newsArticle(text) {
   this.fulltext = preamble + '\n' + this.body;
 }
 
+/**
+ * This function converts an NNTP wildmat into a regular expression.
+ *
+ * I don't know how accurate it is wrt i18n characters, but it's primary usage
+ * right now is just XPAT, where i18n effects are utterly unspecified, so I am
+ * not too concerned.
+ *
+ * This also neglects cases where special characters are in [] blocks.
+ */
+function wildmat2regex(wildmat) {
+  // Special characters in regex that aren't special in wildmat
+  wildmat = wildmat.replace(/[$+.()|{}^]/, function (str) {
+      return "\\" + str;
+  });
+  wildmat = wildmat.replace(/(\\*)([*?])/, function (str, p1, p2) {
+    if (p1.length % 2 == 0)
+      return p2 == '*' ? '.*' : '.';
+  });
+  return new RegExp(wildmat);
+}
+
 // NNTP FLAGS
 const NNTP_POSTABLE = 0x0001;
 
@@ -417,7 +438,7 @@ subclass(NNTP_RFC2980_handler, NNTP_RFC977_handler, {
   XOVER : function (args) {
     if (!this.group)
       return "412 No group selected";
-    
+
     var response = "224 List of articles\n";
     for each (var key in this.group.keys) {
       response += key + "\t";
@@ -436,7 +457,37 @@ subclass(NNTP_RFC2980_handler, NNTP_RFC977_handler, {
     return response;
   },
   XPAT : function (args) {
-    return "502 Command not implemented";
+    if (!this.group)
+      return "412 No group selected";
+
+    /* XPAT header range ... */
+    args = args.split(/ +/, 3);
+    let header = args[0].toLowerCase();
+    let regex = wildmat2regex(args[2]);
+
+    let response = "221 Results follow\n";
+    for each (let key in this._filterRange(args[1], this.group.keys)) {
+      let article = this.group[key];
+      if (header in article.headers && regex.test(article.headers[header])) {
+        response += key + ' ' + article.headers[header] + '\n';
+      }
+    }
+    return response + '.';
+  },
+
+  _filterRange: function (range, keys) {
+    let dash = range.indexOf('-');
+    let low, high;
+    if (dash < 0) {
+      low = high = parseInt(range);
+    } else {
+      low = parseInt(range.substring(0, dash));
+      if (dash < range.length - 1)
+        high = range.substring(dash + 1);
+      else
+        high = 1.0 / 0.0; // Everything is less than this
+    }
+    return keys.filter(function (e) { return low <= e && e <= high; });
   }
 });
 
