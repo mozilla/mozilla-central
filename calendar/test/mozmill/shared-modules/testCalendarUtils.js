@@ -359,11 +359,11 @@ function findEventsInNode(node, eventNodes) {
 }
 
 /**
- *  Helper function to enter event dialog data
+ *  Helper function to enter event/task dialog data
  *  @param data - dataset object
- *                  title - event title
- *                  location - event location
- *                  description - event description
+ *                  title - event/task title
+ *                  location - event/task location
+ *                  description - event/task description
  *                  category - category label
  *                  allday - boolean value
  *                  startdate - Date object
@@ -380,27 +380,44 @@ function findEventsInNode(node, eventNodes) {
  *                  freebusy - free/busy
  *                  attachment.add - url to add
  *                  attachment.remove - label of url to remove (without http://)
- *  @param event - event controller
+ *  @param event - event/task controller
  */
 function setData(data, event) {
   let eventDialog = '/id("calendar-event-dialog")/id("event-grid")/id("event-grid-rows")/';
+  let taskDialog = '/id("calendar-task-dialog")/id("event-grid")/id("event-grid-rows")/';
+  let dialog;
+  let isEvent = true;
+  
+  // see if it's an event dialog
+  try {
+    (new elementslib.Lookup(event.window.document, eventDialog)).getNode();
+    dialog = eventDialog;
+  } catch (error) {
+    dialog = taskDialog;
+    isEvent = false;
+  }
+
   let dateInput = 'anon({"anonid":"hbox"})/anon({"anonid":"date-picker"})/'
     + 'anon({"class":"datepicker-box-class"})/{"class":"datepicker-text-class"}/'
     + 'anon({"class":"menulist-editable-box textbox-input-box"})/anon({"anonid":"input"})';
   let timeInput = 'anon({"anonid":"hbox"})/anon({"anonid":"time-picker"})/'
     + 'anon({"class":"timepicker-box-class"})/anon({"class":"timepicker-text-class"})/'
     + 'anon({"flex":"1"})/anon({"anonid":"input"})'
-  let startDateInput = new elementslib.Lookup(event.window.document, eventDialog
-    + 'id("event-grid-startdate-row")/id("event-grid-startdate-picker-box")/id("event-starttime")/'
+  let startDateInput = new elementslib.Lookup(event.window.document, dialog
+    + 'id("event-grid-startdate-row")/id("event-grid-startdate-picker-box")/'
+    + (isEvent ? 'id("event-starttime")/' : 'id("todo-entrydate")/')
     + dateInput);
-  let endDateInput = new elementslib.Lookup(event.window.document, eventDialog
-    + 'id("event-grid-enddate-row")/[1]/id("event-grid-enddate-picker-box")/id("event-endtime")/'
+  let endDateInput = new elementslib.Lookup(event.window.document, dialog
+    + 'id("event-grid-enddate-row")/[1]/id("event-grid-enddate-picker-box")/'
+    + (isEvent ? 'id("event-endtime")/' : 'id("todo-duedate")/')
     + dateInput);
-  let startTimeInput = new elementslib.Lookup(event.window.document, eventDialog
-    + 'id("event-grid-startdate-row")/id("event-grid-startdate-picker-box")/id("event-starttime")/'
+  let startTimeInput = new elementslib.Lookup(event.window.document, dialog
+    + 'id("event-grid-startdate-row")/id("event-grid-startdate-picker-box")/'
+    + (isEvent ? 'id("event-starttime")/' : 'id("todo-entrydate")/')
     + timeInput);
-  let endTimeInput = new elementslib.Lookup(event.window.document, eventDialog
-    + 'id("event-grid-enddate-row")/[1]/id("event-grid-enddate-picker-box")/id("event-endtime")/'
+  let endTimeInput = new elementslib.Lookup(event.window.document, dialog
+    + 'id("event-grid-enddate-row")/[1]/id("event-grid-enddate-picker-box")/'
+    + (isEvent ? 'id("event-endtime")/' : 'id("todo-duedate")/')
     + timeInput);
   let dateService = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
                               .getService(Components.interfaces.nsIScriptableDateFormat);
@@ -412,11 +429,11 @@ function setData(data, event) {
   // title
   if (data.title != undefined) {
     if (!mac) {
-      event.keypress(new elementslib.Lookup(event.window.document, eventDialog
+      event.keypress(new elementslib.Lookup(event.window.document, dialog
         + 'id("event-grid-title-row")/id("item-title")/anon({"class":"textbox-input-box"})/'
         + 'anon({"anonid":"input"})'),
         'a', {ctrlKey: true});
-      event.type(new elementslib.Lookup(event.window.document, eventDialog
+      event.type(new elementslib.Lookup(event.window.document, dialog
         + 'id("event-grid-title-row")/id("item-title")/anon({"class":"textbox-input-box"})/'
         + 'anon({"anonid":"input"})'),
         data.title);
@@ -429,11 +446,11 @@ function setData(data, event) {
   // location
   if (data.location != undefined) {
     if (!mac) {
-      event.keypress(new elementslib.Lookup(event.window.document, eventDialog
+      event.keypress(new elementslib.Lookup(event.window.document, dialog
         + 'id("event-grid-location-row")/id("item-location")/anon({"class":"textbox-input-box"})/'
         + 'anon({"anonid":"input"})'),
         'a', {ctrlKey: true});
-      event.type(new elementslib.Lookup(event.window.document, eventDialog
+      event.type(new elementslib.Lookup(event.window.document, dialog
         + 'id("event-grid-location-row")/id("item-location")/anon({"class":"textbox-input-box"})/'
         + 'anon({"anonid":"input"})'),
         data.location);
@@ -466,6 +483,8 @@ function setData(data, event) {
   if (data.startdate != undefined && data.startdate.constructor.name == 'Date') {
     let startdate = dateService.FormatDate("", dateService.dateFormatShort,
       data.startdate.getFullYear(), data.startdate.getMonth() + 1, data.startdate.getDate());
+    if(!isEvent)
+      event.check(new elementslib.ID(event.window.document, "todo-has-entrydate"), true);
     if (utilsapi.appInfo.os.toLowerCase().indexOf("darwin") == -1) {
       event.keypress(startDateInput, 'a', {ctrlKey: true});
       event.type(startDateInput, startdate);
@@ -490,6 +509,8 @@ function setData(data, event) {
   if (data.enddate != undefined && data.enddate.constructor.name == 'Date') {
     let enddate = dateService.FormatDate("", dateService.dateFormatShort,
       data.enddate.getFullYear(), data.enddate.getMonth() + 1, data.enddate.getDate());
+    if(!isEvent)
+      event.check(new elementslib.ID(event.window.document, "todo-has-duedate"), true);
     if (utilsapi.appInfo.os.toLowerCase().indexOf("darwin") == -1) {
       event.keypress(endDateInput, 'a', {ctrlKey: true});
       event.type(endDateInput, enddate);
@@ -525,16 +546,16 @@ function setData(data, event) {
   // description
   if (data.description != undefined) {
     if (!mac) {
-      event.keypress(new elementslib.Lookup(event.window.document, eventDialog
+      event.keypress(new elementslib.Lookup(event.window.document, dialog
         + 'id("event-grid-description-row")/id("item-description")/'
         + 'anon({"class":"textbox-input-box"})/anon({"anonid":"input"})'),
         'a', {ctrlKey: true});
-      event.type(new elementslib.Lookup(event.window.document, eventDialog
+      event.type(new elementslib.Lookup(event.window.document, dialog
         + 'id("event-grid-description-row")/id("item-description")/'
         + 'anon({"class":"textbox-input-box"})/anon({"anonid":"input"})'),
         data.description);
     } else {
-      let descField = new elementslib.Lookup(event.window.document, eventDialog
+      let descField = new elementslib.Lookup(event.window.document, dialog
         + 'id("event-grid-description-row")/id("item-description")/'
         + 'anon({"class":"textbox-input-box"})/anon({"anonid":"input"})');
       descField.getNode().value = data.description;
@@ -576,7 +597,7 @@ function setData(data, event) {
       event.click(new elementslib.ID(event.window.document, "button-url"));
     }
     if (data.attachment.delete != undefined) {
-      event.click(new elementslib.Lookup(event.window.document, eventDialog
+      event.click(new elementslib.Lookup(event.window.document, dialog
         + 'id("event-grid-attachment-row")/id("attachment-link")/{"label":"' +
         data.attachment.delete + '"}'));
       event.keypress(new elementslib.ID(event.window.document, "attachment-link"), "VK_DELETE", {});
