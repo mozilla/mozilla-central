@@ -25,7 +25,7 @@
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -237,7 +237,6 @@ calItipItem.prototype = {
      */
     setAttendeeStatus: function ciiSAS(aAttendeeId, aStatus) {
         // Append "mailto:" to the attendee if it is missing it.
-        aAttendeeId = aAttendeeId.toLowerCase();
         if (!aAttendeeId.match(/^mailto:/i)) {
             aAttendeeId = ("mailto:" + aAttendeeId);
         }
