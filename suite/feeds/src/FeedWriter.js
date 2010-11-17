@@ -1282,7 +1282,6 @@ FeedWriter.prototype = {
           wccr.setAutoHandler(this._getMimeTypeForFeedType(feedType), handler);
 
         this._window.location.href = handler.getHandlerURI(this._window.location.href);
-        return;
       }
     }
     else {
