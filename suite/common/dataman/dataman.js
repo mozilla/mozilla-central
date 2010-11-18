@@ -882,6 +882,11 @@ var gCookies = {
     }
     if (!this.displayedCookies.length)
       gDomains.removeDomainOrFlag(gDomains.selectedDomain.title, "hasCookies");
+    // Select the entry after the first deleted one or the last of all entries.
+    if (selections.length && this.displayedCookies.length)
+      this.tree.view.selection.toggleSelect(selections[0] < this.displayedCookies.length ?
+                                            selections[0] :
+                                            this.displayedCookies.length - 1);
   },
 
   updateContext: function cookies_updateContext() {
@@ -1418,6 +1423,11 @@ var gPrefs = {
     }
     if (!this.prefs.length)
       gDomains.removeDomainOrFlag(gDomains.selectedDomain.title, "hasPreferences");
+    // Select the entry after the first deleted one or the last of all entries.
+    if (selections.length && this.prefs.length)
+      this.tree.view.selection.toggleSelect(selections[0] < this.prefs.length ?
+                                            selections[0] :
+                                            this.prefs.length - 1);
   },
 
   updateContext: function prefs_updateContext() {
@@ -1708,6 +1718,11 @@ var gPasswords = {
     }
     if (!this.displayedSignons.length)
       gDomains.removeDomainOrFlag(gDomains.selectedDomain.title, "hasPasswords");
+    // Select the entry after the first deleted one or the last of all entries.
+    if (selections.length && this.displayedSignons.length)
+      this.tree.view.selection.toggleSelect(selections[0] < this.displayedSignons.length ?
+                                            selections[0] :
+                                            this.displayedSignons.length - 1);
   },
 
   togglePasswordVisible: function passwords_togglePasswordVisible() {
@@ -2087,6 +2102,11 @@ var gFormdata = {
       this.tree.treeBoxObject.rowCountChanged(selections[i], -1);
       gLocSvc.fhist.removeEntry(delFData.fieldname, delFData.value);
     }
+    // Select the entry after the first deleted one or the last of all entries.
+    if (selections.length && this.displayedFormdata.length)
+      this.tree.view.selection.toggleSelect(selections[0] < this.displayedFormdata.length ?
+                                            selections[0] :
+                                            this.displayedFormdata.length - 1);
   },
 
   search: function formdata_search(aSearchString) {

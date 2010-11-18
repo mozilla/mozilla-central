@@ -207,8 +207,10 @@ function test_fdata_panel(aWin) {
   aWin.document.getElementById("fdataRemove").click();
   is(aWin.gFormdata.tree.view.rowCount, 5,
      "After remove button, the correct number of form data entries is listed");
-  is(aWin.gFormdata.tree.view.selection.count, 0,
-     "After remove button, no items are selected");
+  is(aWin.gFormdata.tree.view.selection.count, 1,
+     "After remove button, one item is selected again");
+  is(aWin.gFormdata.tree.currentIndex, 4,
+     "After remove button, correct index is selected");
   Services.obs.notifyObservers(window, TEST_DONE, null);
 },
 
@@ -520,13 +522,17 @@ function test_passwords_panel(aWin) {
   aWin.document.getElementById("pwdRemove").click();
   is(aWin.gPasswords.tree.view.rowCount, 1,
      "After deleting, the correct number of passwords is listed");
-  is(aWin.gPasswords.tree.view.selection.count, 0,
-     "After deleting, no passwords are selected");
-  is(aWin.document.getElementById("pwdRemove").disabled, true,
-     "After deleting, the remove button is disabled");
+  is(aWin.gPasswords.tree.view.selection.count, 1,
+     "After deleting, one password is selected again");
+  is(aWin.gPasswords.tree.currentIndex, 0,
+     "After deleting, correct index is selected");
+  is(aWin.document.getElementById("pwdRemove").disabled, false,
+     "After deleting, the remove button is still enabled");
 
   aWin.gPasswords.tree.view.selection.select(0);
   aWin.document.getElementById("pwdRemove").click();
+  is(aWin.document.getElementById("pwdRemove").disabled, true,
+     "After deleting last password, the remove button is disabled");
   is(aWin.gTabs.activePanel, "cookiesPanel",
      "After deleting last password, cookies panel is selected again");
   Services.obs.notifyObservers(window, TEST_DONE, null);
