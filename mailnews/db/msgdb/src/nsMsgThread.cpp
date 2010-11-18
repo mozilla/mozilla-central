@@ -204,14 +204,13 @@ NS_IMETHODIMP nsMsgThread::GetNumUnreadChildren (PRUint32 *result)
 
 nsresult nsMsgThread::RerootThread(nsIMsgDBHdr *newParentOfOldRoot, nsIMsgDBHdr *oldRoot, nsIDBChangeAnnouncer *announcer)
 {
+  nsresult rv = NS_OK;
+  mdb_pos outPos;
+  nsMsgKey newHdrAncestor;
   nsCOMPtr <nsIMsgDBHdr> ancestorHdr = newParentOfOldRoot;
   nsMsgKey newRoot;
-  newParentOfOldRoot->GetMessageKey(&newRoot);
-  mdb_pos outPos;
 
-  nsMsgKey newHdrAncestor;
   ancestorHdr->GetMessageKey(&newRoot);
-  nsresult rv = NS_OK;
   // loop trying to find the oldest ancestor of this msg
   // that is a parent of the root. The oldest ancestor will
   // become the root of the thread.
