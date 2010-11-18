@@ -52,6 +52,7 @@ import jsbridge
 import mozmill
 import socket
 import copy
+import simplejson
 SCRIPT_DIRECTORY = os.path.abspath(os.path.realpath(os.path.dirname(sys.argv[0])))
 sys.path.append(SCRIPT_DIRECTORY)
 
@@ -319,10 +320,20 @@ class ThunderTestCLI(mozmill.CLI):
                     fd.close()
 
 TEST_RESULTS = []
+# Versions of MozMill prior to 1.5 did not output test-pass /
+# TEST-UNEXPECTED-FAIL. Since 1.5 happened this gets output, so we only want
+# a summary at the end to make it easy for developers.
 # override mozmill's default logging case, which I hate.
 def logFailure(obj):
+    if isinstance(obj, basestring):
+        obj = simplejson.loads(obj)
     FAILURE_LIST.append(obj)
 def logEndTest(obj):
+    # If we've got a string here, we know we're later than 1.5, and we can just
+    # display a summary at the end as 1.5 will do TEST-UNEXPECTED-FAIL for us.
+    if isinstance(obj, str):
+        obj = simplejson.loads(obj)
+        obj['summary'] = True
     TEST_RESULTS.append(obj)
 #mozmill.LoggerListener.cases['mozmill.fail'] = logFailure
 mozmill.LoggerListener.cases['mozmill.endTest'] = logEndTest
@@ -366,10 +377,13 @@ import pprint
 def prettyPrintResults():
     for result in TEST_RESULTS:
         #pprint.pprint(result)
+        testOrSummary = 'TEST'
+        if 'summary' in result:
+            testOrSummary = 'SUMMARY'
         if len(result['fails']) == 0:
-            print 'TEST-PASS | ', result['name']
+            print '%s-PASS | %s' % (testOrSummary, result['name'])
         else:
-            print 'TEST-UNEXPECTED-FAIL | %s | %s' % (prettifyFilename(result['filename']), result['name'])
+            print '%s-UNEXPECTED-FAIL | %s | %s' % (testOrSummary, prettifyFilename(result['filename']), result['name'])
         for failure in result['fails']:
             if 'exception' in failure:
                 prettyPrintException(failure['exception'])
