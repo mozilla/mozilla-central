@@ -102,12 +102,14 @@ nsBrowserStatusHandler.prototype =
     this.feedsMenu       = null;
   },
 
+  // nsIXULBrowserWindow
   setJSStatus : function(status)
   {
     this.jsStatus = status;
     this.updateStatusField();
   },
 
+  // nsIXULBrowserWindow
   setJSDefaultStatus : function(status)
   {
     this.jsDefaultStatus = status;
@@ -120,6 +122,7 @@ nsBrowserStatusHandler.prototype =
     this.updateStatusField();
   },
 
+  // nsIXULBrowserWindow
   setOverLink : function(link, context)
   {
     this.overLink = link;
@@ -131,6 +134,12 @@ nsBrowserStatusHandler.prototype =
       this.statusTextField.setAttribute('crop', 'center');
     else
       this.statusTextField.setAttribute('crop', 'end');
+  },
+
+  // nsIXULBrowserWindow
+  // Called before links are navigated to to allow us to retarget them if needed.
+  onBeforeLinkTraversal: function(originalTarget, linkURI, linkNode, isAppTab) {
+    return originalTarget;
   },
 
   updateStatusField : function()

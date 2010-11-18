@@ -91,6 +91,10 @@ _BROWSER_FILES = \
 	browser_526613.js \
 	browser_528776.js \
 	browser_isempty.js \
+	browser_markPageAsFollowedLink.js \
+	framedPage.html \
+	frameLeft.html \
+	frameRight.html \
 	$(NULL)
 
 libs::	$(_BROWSER_FILES)

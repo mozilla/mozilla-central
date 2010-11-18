@@ -354,7 +354,7 @@
       <toolbox id="searchModifiers" hidden="true">
         <toolbar id="organizerScopeBar" xpfe="false"
                  class="chromeclass-toolbar" align="center">
-          <label id="scopeBarTitle" value="&search.label;"/>
+          <label id="scopeBarTitle" value="&search.in.label;"/>
           <button id="scopeBarAll" class="small-margin"
                   type="radio" group="scopeBar"
                   oncommand="PlacesQueryBuilder.onScopeSelected(this);"

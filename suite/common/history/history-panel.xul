@@ -53,11 +53,11 @@
 <page id="history-panel" orient="vertical"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       onload="HistoryCommonInit();"
-      onunload="SidebarUtils.clearURLFromStatusBar();"
+      onunload="SidebarUtils.setMouseoverURL('');"
       elementtofocus="search-box">
 
   <script type="application/javascript"
-          src="chrome://communicator/content/history/sidebarUtils.js"/>
+          src="chrome://communicator/content/places/sidebarUtils.js"/>
 
   <commandset id="editMenuCommands"/>
   <commandset id="placesCommands"/>
@@ -87,7 +87,7 @@
         onkeypress="SidebarUtils.handleTreeKeyPress(event);"
         onclick="SidebarUtils.handleTreeClick(this, event, true);"
         onmousemove="SidebarUtils.handleTreeMouseMove(event);"
-        onmouseout="SidebarUtils.clearURLFromStatusBar();">
+        onmouseout="SidebarUtils.setMouseoverURL('');">
     <treecols context="">
       <treecol label="&col.title.label;" id="Name" flex="4"
                persist="width hidden ordinal sortActive sortDirection"/>

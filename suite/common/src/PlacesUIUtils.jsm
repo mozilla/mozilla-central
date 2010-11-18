@@ -721,7 +721,7 @@ var PlacesUIUtils = {
    * This is actually used to distinguish user-initiated visits in frames
    * so automatic visits can be correctly ignored.
    */
-  markPageAsFollowedLink: function PUIU_markPageAsUserClicked(aURL) {
+  markPageAsFollowedLink: function PUIU_markPageAsFollowedLink(aURL) {
     PlacesUtils.history.QueryInterface(Components.interfaces.nsIBrowserHistory)
                .markPageAsFollowedLink(this.createFixedURI(aURL));
   },

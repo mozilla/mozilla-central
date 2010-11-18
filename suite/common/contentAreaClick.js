@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+// /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -116,6 +116,14 @@
             isPhishingURL(ceParams.linkNode, false, href))
           return false;
         handleLinkClick(event, href, ceParams.linkNode);
+
+        // Mark the page as a user followed link.  This is done so that history can
+        // distinguish automatic embed visits from user activated ones.  For example
+        // pages loaded in frames are embed visits and lost with the session, while
+        // visits across frames should be preserved.
+        try {
+          PlacesUIUtils.markPageAsFollowedLink(href);
+        } catch (ex) { /* Skip invalid URIs. */ }
       }
       return true;
     }
@@ -125,6 +133,7 @@
         !pref.getBoolPref("general.autoScroll")) {
       middleMousePaste(event);
     }
+
     return true;
   }
 
