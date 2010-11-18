@@ -39,6 +39,7 @@
 var rdfcontainer =  Components.classes["@mozilla.org/rdf/container-utils;1"].getService(Components.interfaces.nsIRDFContainerUtils);
 var rdfparser = Components.classes["@mozilla.org/rdf/xml-parser;1"].createInstance(Components.interfaces.nsIRDFXMLParser);
 var serializer = Components.classes["@mozilla.org/xmlextras/xmlserializer;1"].createInstance(Components.interfaces.nsIDOMSerializer);
+var gIOService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
 
 function FeedParser() 
 {}
@@ -139,6 +140,21 @@ FeedParser.prototype =
         if (!guidNode.hasAttribute("isPermaLink") ||
             guidNode.getAttribute("isPermaLink") == "true")
           isPermaLink = true;
+        // if attribute isPermaLink is missing, it is good to check the validity
+        // of <guid> value as an URL to avoid linking to non-URL strings
+        if (!guidNode.hasAttribute("isPermaLink"))
+        {
+          try
+          {
+            gIOService.newURI(guid, null, null);
+            if (gIOService.extractScheme(guid) == "tag")
+              isPermaLink = false;
+          }
+          catch (ex)
+          {
+            isPermaLink = false;
+          }
+        }
 
         item.id = guid;
         item.isStoredWithId = true;
