@@ -754,7 +754,7 @@ mime_decode_yenc_buffer (MimeDecoderData *data,
         *outSize = dest - line;
 
       /* Now write out what we decoded for this line. */
-      NS_ASSERTION(dest >= line && dest < src, "nothing to write!");
+      NS_ASSERTION(dest >= line && dest <= src, "nothing to write!");
       if (dest > line)
       {
         status = data->write_buffer (line, dest - line, data->closure);
