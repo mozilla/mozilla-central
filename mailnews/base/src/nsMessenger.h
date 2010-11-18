@@ -108,7 +108,6 @@ private:
   nsresult SetDisplayProperties();
 
   nsString mId;
-  void *mScriptObject;
   nsCOMPtr<nsITransactionManager> mTxnMgr;
 
   /* rhp - need this to drive message display */

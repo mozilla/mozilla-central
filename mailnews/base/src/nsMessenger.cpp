@@ -300,7 +300,6 @@ public:
 //
 nsMessenger::nsMessenger()
 {
-  mScriptObject = nsnull;
   mCurHistoryPos = -2; // first message selected goes at position 0.
   //  InitializeFolderRoot();
 }
