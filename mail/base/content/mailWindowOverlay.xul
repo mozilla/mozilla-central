@@ -1337,6 +1337,20 @@
                     accesskey="&goBackCmd.accesskey;" command="cmd_goBack"
                     key="key_goBack"/>
           <menuseparator id="goNextSeparator"/>
+          <menu id="goFolderMenu"
+                label="&folderMenu.label;"
+                accesskey="&folderMenu.accesskey;"
+                oncommand="gFolderTreeView.selectFolder(event.target._folder, true)">
+            <menupopup id="menu_GoFolderPopup"
+                       type="folder"
+                       showFileHereLabel="true"
+                       fileHereLabel="&thisFolder.label;"
+                       fileHereAccessKey="&thisFolder.accesskey;"
+                       showRecent="true"
+                       recentLabel="&contextMoveCopyMsgRecentMenu.label;"
+                       recentAccessKey="&contextMoveCopyMsgRecentMenu.accesskey;"/>
+          </menu>
+          <menuseparator id="goFolderSeparator"/>
           <menuitem id="goStartPage"
                     label="&startPageCmd.label;"
                     accesskey="&startPageCmd.accesskey;"
