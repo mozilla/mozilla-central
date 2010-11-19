@@ -21,7 +21,7 @@
  *
  * Contributor(s):
  *   ddrinan@netscape.com
- *   Scott MacGreogr <mscott@netscape.com>
+ *   Scott MacGregor <mscott@netscape.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -151,38 +151,36 @@ function showNeedSetupInfo()
     openHelp("sign-encrypt", "chrome://communicator/locale/help/suitehelp.rdf");
 }
 
-function noEncryption()
+function toggleEncryptMessage()
 {
   if (!gSMFields)
     return;
 
-  gSMFields.requireEncryptMessage = false;
-  setNoEncryptionUI();
-}
+  gSMFields.requireEncryptMessage = !gSMFields.requireEncryptMessage;
 
-function encryptMessage()
-{
-  if (!gSMFields)
-    return;
-
-  if (!gCurrentIdentity.getUnicharAttribute("encryption_cert_name"))
+  if (gSMFields.requireEncryptMessage)
   {
-    gSMFields.requireEncryptMessage = false;
-    setNoEncryptionUI();
-    showNeedSetupInfo();
-    return;
-  }
+    // Make sure we have a cert.
+    if (!gCurrentIdentity.getUnicharAttribute("encryption_cert_name"))
+    {
+      gSMFields.requireEncryptMessage = false;
+      showNeedSetupInfo();
+      return;
+    }
 
-  gSMFields.requireEncryptMessage = true;
-  setEncryptionUI();
+    setEncryptionUI();
+  }
+  else
+  {
+    setNoEncryptionUI();
+  }
 }
 
-function signMessage()
+function toggleSignMessage()
 {
   if (!gSMFields)
     return;
 
-  // toggle
   gSMFields.signMessage = !gSMFields.signMessage;
 
   if (gSMFields.signMessage) // make sure we have a cert name...
@@ -209,8 +207,6 @@ function setSecuritySettings(menu_id)
 
   document.getElementById("menu_securityEncryptRequire" + menu_id)
           .setAttribute("checked", gSMFields.requireEncryptMessage);
-  document.getElementById("menu_securityNoEncryption" + menu_id)
-          .setAttribute("checked", !gSMFields.requireEncryptMessage);
   document.getElementById("menu_securitySign" + menu_id)
           .setAttribute("checked", gSMFields.signMessage);
 }
@@ -227,16 +223,12 @@ function doSecurityButton()
 
   switch (what)
   {
-    case "noEncryption":
-      noEncryption();
-      break;
-
     case "encryptMessage":
-      encryptMessage();
+      toggleEncryptMessage();
       break;
 
     case "signMessage":
-      signMessage();
+      toggleSignMessage();
       break;
 
     case "show":
