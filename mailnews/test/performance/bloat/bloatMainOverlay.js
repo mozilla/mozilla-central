@@ -16,7 +16,7 @@
  *   Mark Banner <bugzilla@standard8.plus.com>
  *
  * The Initial Developer of the Original Code is
- * Mozilla Messaging.
+ * the Mozilla Foundation.
  * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
