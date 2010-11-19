@@ -72,6 +72,7 @@ function installInto(module) {
   module.open_compose_with_forward_as_attachments = open_compose_with_forward_as_attachments;
   module.open_compose_with_element_click = open_compose_with_element_click;
   module.close_compose_window = close_compose_window;
+  module.add_attachment = add_attachment;
 }
 
 /**
@@ -239,4 +240,14 @@ function wait_for_compose_window(aController) {
   aController.sleep(1000);
 
   return replyWindow;
+}
+
+/**
+ * Add an attachment to the compose window
+ * @param aComposeWindow the composition window in question
+ * @param aAttachment the nsIMsgAttachment object containing the attachment's
+ *        info
+ */
+function add_attachment(aComposeWindow, aAttachment) {
+  aComposeWindow.window.AddUrlAttachment(aAttachment);
 }

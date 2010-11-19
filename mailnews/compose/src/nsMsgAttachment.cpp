@@ -44,6 +44,7 @@ NS_IMPL_ISUPPORTS1(nsMsgAttachment, nsIMsgAttachment)
 nsMsgAttachment::nsMsgAttachment()
 {
   mTemporary = PR_FALSE;
+  mSize = -1;
 }
 
 nsMsgAttachment::~nsMsgAttachment()
@@ -196,6 +197,20 @@ NS_IMETHODIMP nsMsgAttachment::GetMacCreator(char * *aMacCreator)
 NS_IMETHODIMP nsMsgAttachment::SetMacCreator(const char * aMacCreator)
 {
   mMacCreator = aMacCreator;
+  return NS_OK;
+}
+
+/* attribute PRInt64 size; */
+NS_IMETHODIMP nsMsgAttachment::GetSize(PRInt64 *aSize)
+{
+  NS_ENSURE_ARG_POINTER(aSize);
+
+  *aSize = mSize;
+  return NS_OK;
+}
+NS_IMETHODIMP nsMsgAttachment::SetSize(PRInt64 aSize)
+{
+  mSize = aSize;
   return NS_OK;
 }
 
