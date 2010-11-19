@@ -55,6 +55,9 @@
       <preference id="browser.cache.disk.capacity"
                   name="browser.cache.disk.capacity"
                   type="int"/>
+      <preference id="browser.cache.disk.smart_size.enabled"
+                  name="browser.cache.disk.smart_size.enabled"
+                  type="bool"/>
       <preference id="pref.advanced.cache.disable_button.clear_disk"
                   name="pref.advanced.cache.disable_button.clear_disk"
                   type="bool"/>
@@ -74,10 +77,18 @@
 
       <description>&cachePara;</description>
 
+      <vbox align="start">
+        <label id="cacheSizeInfo"/>
+        <checkbox id="allowSmartSize"
+                  label="&cacheCheck.label;"
+                  accesskey="&cacheCheck.accesskey;"
+                  onsyncfrompreference="return document.getElementById('cache_pane').ReadSmartSizeEnabled();"
+                  preference="browser.cache.disk.smart_size.enabled"/>
+      </vbox>
       <hbox align="center">
         <label id="browserCacheDiskCacheBefore"
-               value="&diskCache.label;"
-               accesskey="&diskCache.accesskey;"
+               value="&diskCacheUpTo.label;"
+               accesskey="&diskCacheUpTo.accesskey;"
                control="browserCacheDiskCache"/>
         <textbox id="browserCacheDiskCache"
                  size="5"
@@ -87,7 +98,7 @@
                  onsyncfrompreference="return document.getElementById('cache_pane').ReadCacheDiskCapacity();"
                  onsynctopreference="return document.getElementById('cache_pane').WriteCacheDiskCapacity(this);"/>
         <label id="browserCacheDiskCacheAfter"
-               value="&mbytes;"/>
+               value="&spaceMbytes;"/>
         <button label="&clearDiskCache.label;"
                 accesskey="&clearDiskCache.accesskey;"
                 oncommand="ClearDiskAndMemCache();"
@@ -116,28 +127,20 @@
 
       <separator class="thin"/>
 
-      <description>&docCache;</description>
+      <label control="browserCacheCheckDocFrequency"
+             value="&docCache.label;"
+             accesskey="&docCache.accesskey;"/>
       <hbox align="start">
-        <radiogroup id="browserCacheCheckDocFrequency"
-                    orient="horizontal"
-                    preference="browser.cache.check_doc_frequency">
-          <vbox flex="1">
-            <radio value="1"
-                   label="&everyTimeRadio.label;"
-                   accesskey="&everyTimeRadio.accesskey;"/>
-            <radio value="3"
-                   label="&autoRadio.label;"
-                   accesskey="&autoRadio.accesskey;"/>
-          </vbox>
-          <vbox flex="1">
-            <radio value="0"
-                   label="&oncePsessionRadio.label;"
-                   accesskey="&oncePsessionRadio.accesskey;"/>
-            <radio value="2"
-                   label="&neverRadio.label;"
-                   accesskey="&neverRadio.accesskey;"/>
-          </vbox>
-        </radiogroup>
+        <menulist id="browserCacheCheckDocFrequency"
+                  class="indent"
+                  preference="browser.cache.check_doc_frequency">
+          <menupopup>
+            <menuitem value="1" label="&checkEveryTime.label;"/>
+            <menuitem value="3" label="&checkAutomatically.label;"/>
+            <menuitem value="0" label="&checkOncePerSession.label;"/>
+            <menuitem value="2" label="&checkNever.label;"/>
+          </menupopup>
+        </menulist>
       </hbox>
 
     </groupbox>

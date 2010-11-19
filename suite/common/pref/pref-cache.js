@@ -39,6 +39,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/DownloadUtils.jsm");
+
+function Startup()
+{
+  updateActualCacheSize();
+}
+
 // because the cache is in kilobytes, and the UI is in megabytes.
 function ReadCacheDiskCapacity()
 {
@@ -99,4 +106,47 @@ function ClearDiskAndMemCache()
   Components.classes["@mozilla.org/network/cache-service;1"]
             .getService(Components.interfaces.nsICacheService)
             .evictEntries(Components.interfaces.nsICache.STORE_ANYWHERE);
+}
+
+function updateCacheSizeUI(cacheSizeEnabled)
+{
+  document.getElementById("browserCacheDiskCacheBefore").disabled = cacheSizeEnabled;
+  document.getElementById("browserCacheDiskCache").disabled = cacheSizeEnabled;
+  document.getElementById("browserCacheDiskCacheAfter").disabled = cacheSizeEnabled;
+}
+
+function ReadSmartSizeEnabled()
+{
+  var enabled = document.getElementById("browser.cache.disk.smart_size.enabled").value;
+  updateCacheSizeUI(enabled);
+  return enabled;
+}
+
+function updateActualCacheSize()
+{
+  var visitor = {
+    visitDevice: function (deviceID, deviceInfo)
+    {
+      if (deviceID == "disk") {
+        var actualSizeLabel = document.getElementById("cacheSizeInfo");
+        var sizeStrings = DownloadUtils.convertByteUnits(deviceInfo.totalSize);
+        var prefStrBundle = document.getElementById("bundle_prefutilities");
+        var sizeStr = prefStrBundle.getFormattedString("cacheSizeInfo",
+                                                        sizeStrings);
+        actualSizeLabel.textContent = sizeStr;
+      }
+      // Do not enumerate entries
+      return false;
+    },
+
+    visitEntry: function (deviceID, entryInfo)
+    {
+      // Do not enumerate entries.
+      return false;
+    }
+  };
+
+  Components.classes["@mozilla.org/network/cache-service;1"]
+            .getService(Components.interfaces.nsICacheService)
+            .visitEntries(visitor);
 }
