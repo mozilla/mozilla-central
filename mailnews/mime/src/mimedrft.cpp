@@ -175,7 +175,6 @@ mime_dump_attachments ( nsMsgAttachmentData *attachData )
     printf("Description       : %s\n", tmp->description ? tmp->description : "nsnull");
     printf("Mac Type          : %s\n", tmp->x_mac_type ? tmp->x_mac_type : "nsnull");
     printf("Mac Creator       : %s\n", tmp->x_mac_creator ? tmp->x_mac_creator : "nsnull");
-    printf("Size in bytes     : %d\n", tmp->size);
     i++;
     tmp++;
   }
@@ -219,7 +218,6 @@ nsresult CreateComposeParams(nsCOMPtr<nsIMsgComposeParams> &pMsgComposeParams,
           attachment->SetContentType(curAttachment->real_type);
           attachment->SetMacType(curAttachment->x_mac_type);
           attachment->SetMacCreator(curAttachment->x_mac_creator);
-          attachment->SetSize(curAttachment->size);
           compFields->AddAttachment(attachment);
         }
       }
@@ -607,8 +605,6 @@ mime_draft_process_attachments(mime_draft_data *mdd)
     {
       NS_MsgSACopy ( &(tmp->x_mac_creator), tmpFile->x_mac_creator );
     }
-
-    tmp->size = tmpFile->size;
 
     if (bodyAsAttachment && (i == 0))
       tmpFile = mdd->attachments;
@@ -1887,7 +1883,6 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
     PR_FREEIF(boundary);
     PR_FREEIF(tmp_value);
   }
-  newAttachment->size = 0;
   newAttachment->encoding = MimeHeaders_get ( headers, HEADER_CONTENT_TRANSFER_ENCODING,
                                               PR_FALSE, PR_FALSE );
   newAttachment->description = MimeHeaders_get( headers, HEADER_CONTENT_DESCRIPTION,
@@ -2016,10 +2011,8 @@ mime_decompose_file_output_fn (const char     *buf,
     return NS_OK;
 
   if (mdd->decoder_data) {
-    PRInt32 outsize;
-    ret = MimeDecoderWrite(mdd->decoder_data, buf, size, &outsize);
+    ret = MimeDecoderWrite(mdd->decoder_data, buf, size, nsnull);
     if (ret == -1) return -1;
-    mdd->curAttachment->size += outsize;
   }
   else
   {
@@ -2027,7 +2020,6 @@ mime_decompose_file_output_fn (const char     *buf,
     mdd->tmpFileStream->Write(buf, size, &bytesWritten);
     if (bytesWritten < size)
       return MIME_ERROR_WRITING_FILE;
-    mdd->curAttachment->size += size;
   }
 
   return NS_OK;

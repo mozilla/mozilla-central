@@ -68,9 +68,6 @@ var sDictCount = 0;
 var msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
                           .createInstance(Components.interfaces.nsIMsgWindow);
 
-var gMessenger = Components.classes["@mozilla.org/messenger;1"]
-                           .createInstance(Components.interfaces.nsIMessenger)
-
 /**
  * Global variables, need to be re-initialized every time mostly because we need to release them when the window close
  */
@@ -2872,7 +2869,6 @@ function AddFileAttachment(file)
                              .createInstance(Components.interfaces.nsIMsgAttachment);
 
   attachment.url = fileHandler.getURLSpecFromFile(file);
-  attachment.size = file.fileSize;
   AddUrlAttachment(attachment);
 }
 
@@ -2901,11 +2897,7 @@ function AddUrlAttachment(attachment)
     attachment.name = bundle.getString("partAttachmentSafeName");
 
   var bucket = document.getElementById("attachmentBucket");
-  var nameAndSize = attachment.name;
-  if (attachment.size != -1)
-    nameAndSize += " ("+gMessenger.formatFileSize(attachment.size)+")";
-  var item = bucket.appendItem(nameAndSize, "");
-
+  var item = bucket.appendItem(attachment.name, "");
   item.attachment = attachment; // Full attachment object stored here.
   try {
     item.setAttribute("tooltiptext", decodeURI(attachment.url));
@@ -2914,7 +2906,6 @@ function AddUrlAttachment(attachment)
     item.setAttribute("tooltiptext", attachment.url);
   }
   item.setAttribute("class", "listitem-iconic");
-  item.setAttribute("crop", "center");
 
   // For local file urls, we are better off using the full file url because
   // moz-icon will actually resolve the file url and get the right icon from
@@ -3101,7 +3092,9 @@ function OpenSelectedAttachment()
     if (messagePrefix.test(attachmentUrl))
     {
       // we must be dealing with a forwarded attachment, treat this special
-      var msgHdr = gMessenger.messageServiceFromURI(attachmentUrl).messageURIToMsgHdr(attachmentUrl);
+      var messenger = Components.classes["@mozilla.org/messenger;1"].createInstance();
+      messenger = messenger.QueryInterface(Components.interfaces.nsIMessenger);
+      var msgHdr = messenger.messageServiceFromURI(attachmentUrl).messageURIToMsgHdr(attachmentUrl);
       if (msgHdr)
         MailUtils.openMessageInNewWindow(msgHdr);
     }
@@ -3475,7 +3468,6 @@ var envelopeDragObserver = {
       {
         var item = dataList[i].first;
         var prettyName;
-        var size;
         var rawData = item.data;
 
         // We could be dropping an attachment OR an address, check and do the right thing..
@@ -3490,23 +3482,16 @@ var envelopeDragObserver = {
                                         .getService(Components.interfaces.nsIIOService)
                                         .getProtocolHandler("file")
                                         .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
-
-            size = rawData.fileSize;
             rawData = fileHandler.getURLSpecFromFile(rawData);
-          }
-          else if (item.flavour.contentType == "text/x-moz-message")
-          {
-            size = gMessenger.messageServiceFromURI(rawData)
-                             .messageURIToMsgHdr(rawData).messageSize;
           }
           else
           {
-            var pieces = rawData.split("\n");
-            rawData = pieces[0];
-            if (pieces.length > 1)
-              prettyName = pieces[1];
-            if (pieces.length > 2)
-              size = parseInt(pieces[2]);
+            var separator = rawData.indexOf("\n");
+            if (separator != -1)
+            {
+              prettyName = rawData.substr(separator+1);
+              rawData = rawData.substr(0,separator);
+            }
           }
 
           if (DuplicateFileAlreadyAttached(rawData))
@@ -3540,8 +3525,6 @@ var envelopeDragObserver = {
                                      .createInstance(Components.interfaces.nsIMsgAttachment);
               attachment.url = rawData;
               attachment.name = prettyName;
-              if (size !== undefined)
-                attachment.size = size;
               AddUrlAttachment(attachment);
             }
           }

@@ -37,7 +37,7 @@
 
 #include "nsISupports.idl"
 
-[scriptable, uuid(908a8090-cce4-11df-bd3b-0800200c9a66)]
+[scriptable, uuid(98f03f72-8b29-4c49-8975-b45fc08a6a82)]
 interface nsIMsgAttachment : nsISupports {
 
   /**
@@ -104,14 +104,7 @@ interface nsIMsgAttachment : nsISupports {
    * @If omitted, will be determined automatically (if possible).
    */
   attribute string    charset;
-
-  /**
-   * size attribute
-   *
-   * @Specify the size of the attachment.
-   */
-  attribute PRInt64   size;
-
+  
   /**
    * macType attribute
    *

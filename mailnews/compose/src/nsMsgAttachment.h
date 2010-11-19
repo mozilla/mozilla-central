@@ -63,7 +63,6 @@ private:
   nsCString   mCharset;
   nsCString   mMacType;
   nsCString   mMacCreator;
-  PRInt64     mSize;
 };
 
 

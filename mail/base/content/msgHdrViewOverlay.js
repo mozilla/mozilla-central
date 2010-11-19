@@ -2196,7 +2196,7 @@ var attachmentAreaDNDObserver = {
         var info = attachment.url + "&type=" + attachment.contentType +
                    "&filename=" + encodeURIComponent(attachment.displayName);
         data.addDataForFlavour("text/x-moz-url",
-                               info + "\n" + attachment.displayName + "\n" + attachment.size);
+                               info + "\n" + attachment.displayName);
         data.addDataForFlavour("text/x-moz-url-data", attachment.url);
         data.addDataForFlavour("text/x-moz-url-desc", attachment.displayName);
         data.addDataForFlavour("application/x-moz-file-promise-url",
