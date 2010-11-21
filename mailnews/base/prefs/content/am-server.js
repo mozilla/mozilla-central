@@ -95,6 +95,7 @@ function initServerType()
   setLabelFromStringBundle("authMethod-no", "authNo");
   setLabelFromStringBundle("authMethod-old", "authOld");
   setLabelFromStringBundle("authMethod-kerberos", "authKerberos");
+  setLabelFromStringBundle("authMethod-external", "authExternal");
   setLabelFromStringBundle("authMethod-ntlm", "authNTLM");
   setLabelFromStringBundle("authMethod-anysecure", "authAnySecure");
   setLabelFromStringBundle("authMethod-any", "authAny");

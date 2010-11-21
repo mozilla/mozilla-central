@@ -5471,6 +5471,9 @@ void nsImapProtocol::InitPrefAuthMethods(PRInt32 authMethodPrefValue)
       case nsMsgAuthMethod::GSSAPI:
         m_prefAuthMethods = kHasAuthGssApiCapability;
         break;
+      case nsMsgAuthMethod::External:
+        m_prefAuthMethods = kHasAuthExternalCapability;
+        break;
       case nsMsgAuthMethod::secure:
         m_prefAuthMethods = kHasCRAMCapability |
             kHasAuthGssApiCapability |
@@ -5486,7 +5489,8 @@ void nsImapProtocol::InitPrefAuthMethods(PRInt32 authMethodPrefValue)
         m_prefAuthMethods = kHasAuthOldLoginCapability |
             kHasAuthLoginCapability | kHasAuthPlainCapability |
             kHasCRAMCapability | kHasAuthGssApiCapability |
-            kHasAuthNTLMCapability | kHasAuthMSNCapability;
+            kHasAuthNTLMCapability | kHasAuthMSNCapability |
+            kHasAuthExternalCapability;
         break;
     }
     NS_ASSERTION(m_prefAuthMethods != kCapabilityUndefined,
@@ -5506,12 +5510,15 @@ nsresult nsImapProtocol::ChooseAuthMethod()
   PR_LOG(IMAP, PR_LOG_DEBUG, ("IMAP auth: server caps 0x%X, pref 0x%X, failed 0x%X, avail caps 0x%X",
         serverCaps, m_prefAuthMethods, m_failedAuthMethods, availCaps));
   PR_LOG(IMAP, PR_LOG_DEBUG, ("(GSSAPI = 0x%X, CRAM = 0x%X, NTLM = 0x%X, "
-        "MSN =  0x%X, PLAIN = 0x%X, LOGIN = 0x%X, old-style IMAP login = 0x%X)",
+        "MSN =  0x%X, PLAIN = 0x%X, LOGIN = 0x%X, old-style IMAP login = 0x%X)"
+        "auth external IMAP login = 0x%X",
         kHasAuthGssApiCapability, kHasCRAMCapability, kHasAuthNTLMCapability,
         kHasAuthMSNCapability, kHasAuthPlainCapability, kHasAuthLoginCapability,
-        kHasAuthOldLoginCapability));
+        kHasAuthOldLoginCapability, kHasAuthExternalCapability));
 
-  if (kHasAuthGssApiCapability & availCaps)
+  if (kHasAuthExternalCapability & availCaps)
+    m_currentAuthMethod = kHasAuthExternalCapability;
+  else if (kHasAuthGssApiCapability & availCaps)
     m_currentAuthMethod = kHasAuthGssApiCapability;
   else if (kHasCRAMCapability & availCaps)
     m_currentAuthMethod = kHasCRAMCapability;
@@ -5561,7 +5568,22 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &passwo
 
   PR_LOG(IMAP, PR_LOG_DEBUG, ("IMAP: trying auth method 0x%X", m_currentAuthMethod));
 
-  if (flag & kHasCRAMCapability)
+  if (flag & kHasAuthExternalCapability)
+  {
+      char *base64UserName = PL_Base64Encode(userName, strlen(userName), nsnull);
+      nsCAutoString command (GetServerCommandTag());
+      command.Append(" authenticate EXTERNAL " );
+      command.Append(base64UserName);
+      command.Append(CRLF);
+	  PR_Free(base64UserName);
+      rv = SendData(command.get());
+      ParseIMAPandCheckForNewMail();
+      nsImapServerResponseParser &parser = GetServerStateParser();
+      if (parser.LastCommandSuccessful())
+        return NS_OK;
+      parser.SetCapabilityFlag(parser.GetCapabilityFlag() & ~kHasAuthExternalCapability);
+  }
+  else if (flag & kHasCRAMCapability)
   {
     NS_ENSURE_TRUE(m_imapServerSink, NS_ERROR_NULL_POINTER);
     PR_LOG(IMAP, PR_LOG_DEBUG, ("MD5 auth"));
@@ -8268,6 +8290,7 @@ PRBool nsImapProtocol::TryToLogon()
   {
       // Get password
       if (m_currentAuthMethod != kHasAuthGssApiCapability && // GSSAPI uses no pw in apps
+          m_currentAuthMethod != kHasAuthExternalCapability &&
           m_currentAuthMethod != kHasAuthNoneCapability)
       {
           rv = GetPassword(password, newPasswordRequested);

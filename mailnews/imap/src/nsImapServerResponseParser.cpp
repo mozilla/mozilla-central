@@ -2220,6 +2220,8 @@ void nsImapServerResponseParser::capability_data()
         fCapabilityFlag |= kHasAuthGssApiCapability;
       else if (token.Equals("AUTH=MSN", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasAuthMSNCapability;
+      else if (token.Equals("AUTH=EXTERNAL", nsCaseInsensitiveCStringComparator()))
+        fCapabilityFlag |= kHasAuthExternalCapability;
       else if (token.Equals("STARTTLS", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasStartTLSCapability;
       else if (token.Equals("LOGINDISABLED", nsCaseInsensitiveCStringComparator()))

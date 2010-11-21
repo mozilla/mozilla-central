@@ -104,6 +104,8 @@ interface nsMsgAuthMethod {
     /// NTLM is a Windows single-singon scheme.
     /// Includes MSN / Passport.net, which is the same with a different name.
     const nsMsgAuthMethodValue NTLM = 6;
+    /// Auth External is cert-based authentication
+    const nsMsgAuthMethodValue External = 7;
     /// Encrypted password or Kerberos / GSSAPI or NTLM.
     /// @deprecated - for migration only.
     const nsMsgAuthMethodValue secure = 8;

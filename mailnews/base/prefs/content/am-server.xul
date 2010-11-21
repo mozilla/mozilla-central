@@ -156,6 +156,7 @@
               <menuitem id="authMethod-password-encrypted" value="4"/>
               <menuitem id="authMethod-kerberos" value="5"/>
               <menuitem id="authMethod-ntlm" value="6"/>
+              <menuitem id="authMethod-external" value="7"/>
               <menuitem id="authMethod-anysecure" value="8"/>
               <menuitem id="authMethod-any" value="9"/>
             </menupopup>
