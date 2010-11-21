@@ -13,6 +13,7 @@
         <rdf:li> <rdf:Description nc:name="CA" nc:link="glossary.xhtml#ca"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="CA certificate" nc:link="glossary.xhtml#ca_certificate"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="cache" nc:link="glossary.xhtml#cache"/> </rdf:li>
+        <rdf:li> <rdf:Description nc:name="caret browsing" nc:link="glossary.xhtml#caret_browsing"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="certificate" nc:link="glossary.xhtml#certificate"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="certificate authority (CA)" nc:link="glossary.xhtml#certificate_authority"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="certificate backup password" nc:link="glossary.xhtml#certificate_backup_password"/> </rdf:li>

@@ -1136,6 +1136,7 @@
       <rdf:Seq>
         <rdf:li><rdf:Description ID="shortcuts_using" nc:name="Using Shortcuts" nc:link="shortcuts.xhtml#using_shortcuts"/> </rdf:li>
         <rdf:li><rdf:Description ID="shortcuts_general" nc:name="General &brandShortName; Shortcuts" nc:link="shortcuts.xhtml#general_mozilla_shortcuts"/> </rdf:li>
+        <rdf:li><rdf:Description ID="shortcuts-text-field" nc:name="Text Field Shortcuts" nc:link="shortcuts.xhtml#text_field_shortcuts"/> </rdf:li>
         <rdf:li><rdf:Description ID="shortcuts_navigator" nc:name="Browser Shortcuts" nc:link="shortcuts_navigator.xhtml"/> </rdf:li>
         <rdf:li><rdf:Description ID="shortcuts_mail" nc:name="Mail &amp; Newsgroups Shortcuts" nc:link="shortcuts_mailnews.xhtml"/> </rdf:li>
         <rdf:li><rdf:Description ID="shortcuts_composer" nc:name="Composer Shortcuts" nc:link="shortcuts_composer.xhtml"/> </rdf:li>
