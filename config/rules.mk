@@ -183,6 +183,7 @@ xpcshell-tests:
 	  -I$(MOZILLA_DIR)/build \
 	  $(testxpcsrcdir)/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \
+	  $(EXTRA_TEST_ARGS) \
 	  $(DIST)/bin/xpcshell \
 	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(relativesrcdir)/$(dir))
 
