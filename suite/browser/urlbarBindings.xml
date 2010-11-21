@@ -101,30 +101,78 @@
         ]]></body>
       </method>
 
+      <method name="_getSelectedValueForClipboard">
+        <body>
+          <![CDATA[
+            var inputVal = this.inputField.value;
+            var val = inputVal.substring(this.selectionStart, this.selectionEnd);
+
+            /* If the entire value is selected and it's a valid non-javascript,
+               non-data URI, encode it. */
+            if (val == inputVal &&
+                gProxyButton.getAttribute("pageproxystate") == "valid") {
+              var uri;
+              try {
+                uri = makeURI(val);
+              } catch (e) {}
+
+              if (uri && !uri.schemeIs("javascript") && !uri.schemeIs("data")) {
+                val = uri.spec;
+
+                // Parentheses are known to confuse third-party applications (bug 458565).
+                val = val.replace(/[()]/g, function (c) escape(c));
+              }
+            }
+
+            return val;
+          ]]>
+        </body>
+      </method>
+
       <field name="_editItemsController"><![CDATA[
         ({
-          editor: this.editor,
-          _fireEvent: this._fireEvent.bind(this),
           supportsCommand: function(aCommand) {
             switch (aCommand) {
+              case "cmd_copy":
+              case "cmd_cut":
               case "cmd_pasteAndGo":
                 return true;
             }
             return false;
           },
           isCommandEnabled: function(aCommand) {
+            var hasSelection = this.selectionStart < this.selectionEnd;
             switch (aCommand) {
+              case "cmd_copy":
+                return hasSelection;
+              case "cmd_cut":
+                return !this.readOnly && hasSelection;
               case "cmd_pasteAndGo":
                 return document.commandDispatcher
                                .getControllerForCommand("cmd_paste")
                                .isCommandEnabled("cmd_paste");
             }
             return false;
-          },
+          }.bind(this),
           doCommand: function(aCommand) {
             switch (aCommand) {
+              case "cmd_copy":
+              case "cmd_cut":
+                var val = this._getSelectedValueForClipboard();
+                var controller = this._editItemsController;
+                if (!val || !controller.isCommandEnabled(aCommand))
+                  return;
+
+                Components.classes["@mozilla.org/widget/clipboardhelper;1"]
+                          .getService(Components.interfaces.nsIClipboardHelper)
+                          .copyString(val);
+
+                if (aCommand == "cmd_cut")
+                  goDoCommand("cmd_delete");
+                break;
+
               case "cmd_pasteAndGo":
-                this.value = "";
+                this.select();
                 goDoCommand("cmd_paste");
                 this._fireEvent("textentered", "pasting");
                 break;
