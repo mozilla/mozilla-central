@@ -720,3 +720,11 @@ mail-headerfield > .headerValue {
   -moz-user-select: text;
   word-wrap: break-word;
 }
+
+#header-view-toolbox {
+  float: right;
+}
+
+#header-view-toolbox:-moz-locale-dir(rtl) {
+  float: left;
+}

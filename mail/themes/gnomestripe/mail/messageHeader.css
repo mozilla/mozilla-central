@@ -679,3 +679,11 @@ mail-headerfield > .headerValue {
 .hdrTrashButton > .button-box > .button-icon {
   list-style-image: url("moz-icon://stock/gtk-delete?size=menu");
 }
+
+#header-view-toolbox {
+  float: right;
+}
+
+#header-view-toolbox:-moz-locale-dir(rtl) {
+  float: left;
+}

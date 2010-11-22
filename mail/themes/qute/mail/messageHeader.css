@@ -697,3 +697,11 @@ mail-headerfield > .headerValue {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 128px 16px 112px);
 }
+
+#header-view-toolbox {
+  float: right;
+}
+
+#header-view-toolbox:-moz-locale-dir(rtl) {
+  float: left;
+}
