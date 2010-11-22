@@ -59,7 +59,7 @@ const fsDebugAll = 3;
 /**
  * JavaScript constructors for commonly-used classes; precreating these is a
  * speedup over doing the same from base principles.  See the docs at
- * http://developer.mozilla.org/en/docs/Components.Constructor for details.
+ * http://developer.mozilla.org/en/Components.Constructor for details.
  */
 const ServerSocket = CC("@mozilla.org/network/server-socket;1",
                         "nsIServerSocket",

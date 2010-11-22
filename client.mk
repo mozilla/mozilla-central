@@ -55,7 +55,7 @@
 #    clean
 #    distclean
 #
-# See http://developer.mozilla.org/en/docs/Build_Documentation for 
+# See http://developer.mozilla.org/en/Build_Documentation for 
 # more information.
 #
 # Options:

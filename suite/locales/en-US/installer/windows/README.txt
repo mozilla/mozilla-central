@@ -75,7 +75,7 @@ released builds may cause problems.
 Note: These instructions do not tell you how to build SeaMonkey.
 For info on building SeaMonkey from the mozilla.org source code, see
 
-  http://developer.mozilla.org/en/docs/Build_Documentation
+  http://developer.mozilla.org/en/Build_Documentation
 
 
 Windows Installation Instructions

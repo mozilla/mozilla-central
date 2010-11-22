@@ -6,7 +6,7 @@
 // because we don't actually do any work to make sure the profile goes away, but
 // it will mimic the behaviour in the app sufficiently.
 //
-// See also http://developer.mozilla.org/en/docs/Observer_Notifications
+// See also http://developer.mozilla.org/en/Observer_Notifications
 function postShutdownNotifications()
 {
   var observerService = Cc["@mozilla.org/observer-service;1"]
