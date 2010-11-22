@@ -23,6 +23,7 @@
    -
    - Contributor(s):
    -   Robert Kaiser <kairo@kairo.at>
+   -   Philip Chee <philip.chee@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -45,7 +46,8 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="content_pane"
-            label="&pref.content.title;">
+            label="&pref.content.title;"
+            script="chrome://communicator/content/pref/pref-content.js">
 
     <preferences id="content_preferences">
       <preference id="browser.chrome.site_icons"
@@ -57,12 +59,22 @@
       <preference id="general.smoothScroll"
                   name="general.smoothScroll"
                   type="bool"/>
+      <preference id="gfx.direct2d.disabled"
+                  name="gfx.direct2d.disabled"
+                  type="bool" inverted="true"/>
+      <preference id="layers.accelerate-none"
+                  name="layers.accelerate-none"
+                  type="bool" inverted="true"
+                  onchange="updateHardwareAcceleration(this.value);"/>
       <preference id="browser.enable_automatic_image_resizing"
                   name="browser.enable_automatic_image_resizing"
                   type="bool"/>
       <preference id="browser.zoom.full"
                   name="browser.zoom.full"
                   type="bool" inverted="true"/>
+      <preference id="accessibility.blockautorefresh"
+                  name="accessibility.blockautorefresh"
+                  type="bool"/>
     </preferences>
 
     <description>&pref.content.description;</description>
@@ -87,6 +99,10 @@
                 label="&useSmoothScroll.label;"
                 accesskey="&useSmoothScroll.accesskey;"
                 preference="general.smoothScroll"/>
+      <checkbox id="allowHWAccel"
+                label="&allowHWAccel.label;"
+                accesskey="&allowHWAccel.accesskey;"
+                preference="layers.accelerate-none"/>
       <checkbox id="enableAutomaticImageResizing"
                 label="&enableAutomaticImageResizing.label;"
                 accesskey="&enableAutomaticImageResizing.accesskey;"
@@ -95,6 +111,10 @@
                 label="&textZoomOnly.label;"
                 accesskey="&textZoomOnly.accesskey;"
                 preference="browser.zoom.full"/>
+      <checkbox id="blockAutoRefresh"
+                label="&blockAutoRefresh.label;"
+                accesskey="&blockAutoRefresh.accesskey;"
+                preference="accessibility.blockautorefresh"/>
     </vbox>
 
   </prefpane>

@@ -188,6 +188,7 @@ comm.jar:
    content/communicator/pref/pref-cache.xul                         (pref/pref-cache.xul)
    content/communicator/pref/pref-colors.js                         (pref/pref-colors.js)
    content/communicator/pref/pref-colors.xul                        (pref/pref-colors.xul)
+   content/communicator/pref/pref-content.js                        (pref/pref-content.js)
    content/communicator/pref/pref-content.xul                       (pref/pref-content.xul)
    content/communicator/pref/pref-cookies.js                        (pref/pref-cookies.js)
    content/communicator/pref/pref-cookies.xul                       (pref/pref-cookies.xul)
