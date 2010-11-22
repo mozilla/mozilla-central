@@ -66,7 +66,6 @@
 
 #clearListButton[disabled="true"],
 #clearListButton:-moz-window-inactive {
-  color: #7C7C7C !important; /* remove this when we support click-through */
   border-color: rgba(146, 146, 146, 0.84);
   background-image: -moz-linear-gradient(top, #FFFFFF, #CCCCCC);
 }

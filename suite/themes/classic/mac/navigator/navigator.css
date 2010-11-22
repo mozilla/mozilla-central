@@ -250,10 +250,6 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   min-width: 0px;
 }
 
-#nav-bar-inner:-moz-window-inactive {
-  opacity: 0.75;
-}
-
 /* nsNativeThemeCocoa adds top/bottom padding to textfields... */
 #urlbar > .autocomplete-textbox-container,
 #urlbar > .autocomplete-history-dropmarker {
@@ -278,10 +274,6 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
 #wrapper-nav-bar-inner[place="palette"] > #nav-bar-inner > .button-toolbar,
 #wrapper-nav-bar-inner[place="palette"] > #nav-bar-inner > #urlbar > .urlbar-icons {
   display: none;
-}
-
-#nav-bar > toolbaritem:-moz-window-inactive {
-  opacity: 0.75;
 }
 
 /* ::::: notification popups ::::: */
@@ -491,10 +483,6 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
 #PersonalToolbar:-moz-lwtheme {
   background-color: transparent;
   background-image: none;
-}
-
-#PersonalToolbar:-moz-window-inactive {
-  opacity: 0.75;
 }
 
 #PersonalToolbar > #home-button,

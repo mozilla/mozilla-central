@@ -113,13 +113,11 @@ tab[selected=true]:active:hover {
 }
 
 tab:-moz-window-inactive {
-  color: #7C7C7C !important; /* remove this when we support click-through */
   border-color: rgba(0, 0, 0, 0.4);
   background-image: -moz-linear-gradient(top, #FFF, #CCC);
 }
 
 tab[selected=true]:-moz-window-inactive {
-  color: #E6E6E6 !important; /* remove this when we support click-through */
   background: #8E8E8E;
   box-shadow: inset rgba(0, 0, 0, 0.5) 0 3px 3.5px;
 }

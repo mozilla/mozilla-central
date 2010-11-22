@@ -56,10 +56,6 @@
   background-image: none;
 }
 
-#linktoolbar:-moz-window-inactive {
-  opacity: 0.75;
-}
-
 #linktoolbar > .bookmark-item {
   text-shadow: none;
 }
