@@ -97,6 +97,10 @@ ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
 SHARED_LIBRARY_LIBS += ../search/$(LIB_PREFIX)winsearch_s.$(LIB_SUFFIX)
 endif
 
+ifndef MOZ_PLACES
+SHARED_LIBRARY_LIBS += ../history/$(LIB_PREFIX)mailhistory_s.$(LIB_SUFFIX)
+endif
+
 ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS += \
 	$(LIBXUL_DIST)/../modules/libreg/src/$(LIB_PREFIX)mozreg_s.$(LIB_SUFFIX) \
