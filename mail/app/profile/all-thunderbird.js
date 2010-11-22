@@ -610,3 +610,48 @@ pref("browser.link.open_newwindow", 3);
 pref("browser.link.open_newwindow.restriction", 0);
 
 pref("browser.tabs.loadDivertedInBackground", false);
+
+// Disable places by default as we don't want to store global history
+// Below we define reasonable defaults as copied from Firefox so that we have
+// something sensible should an extension wish to enable this.
+pref("places.history.enabled", false);
+
+// The percentage of system memory that the Places database can use.  Out of the
+// allowed cache size it will at most use the size of the database file.
+// Changes to this value are effective after an application restart.
+// Acceptable values are between 0 and 50.
+pref("places.database.cache_to_memory_percentage", 6);
+
+// the (maximum) number of the recent visits to sample
+// when calculating frecency
+pref("places.frecency.numVisits", 10);
+
+// buckets (in days) for frecency calculation
+pref("places.frecency.firstBucketCutoff", 4);
+pref("places.frecency.secondBucketCutoff", 14);
+pref("places.frecency.thirdBucketCutoff", 31);
+pref("places.frecency.fourthBucketCutoff", 90);
+
+// weights for buckets for frecency calculations
+pref("places.frecency.firstBucketWeight", 100);
+pref("places.frecency.secondBucketWeight", 70);
+pref("places.frecency.thirdBucketWeight", 50);
+pref("places.frecency.fourthBucketWeight", 30);
+pref("places.frecency.defaultBucketWeight", 10);
+
+// bonus (in percent) for visit transition types for frecency calculations
+pref("places.frecency.embedVisitBonus", 0);
+pref("places.frecency.framedLinkVisitBonus", 0);
+pref("places.frecency.linkVisitBonus", 100);
+pref("places.frecency.typedVisitBonus", 2000);
+pref("places.frecency.bookmarkVisitBonus", 75);
+pref("places.frecency.downloadVisitBonus", 0);
+pref("places.frecency.permRedirectVisitBonus", 0);
+pref("places.frecency.tempRedirectVisitBonus", 0);
+pref("places.frecency.defaultVisitBonus", 0);
+
+// bonus (in percent) for place types for frecency calculations
+pref("places.frecency.unvisitedBookmarkBonus", 140);
+pref("places.frecency.unvisitedTypedBonus", 200);
+
+pref("browser.urlbar.restrict.openpage", "%");

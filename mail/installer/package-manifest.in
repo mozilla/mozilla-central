@@ -379,8 +379,17 @@
 @BINPATH@/components/nsFormAutoComplete.js
 @BINPATH@/components/nsFormHistory.js
 @BINPATH@/components/nsInputListAutoComplete.js
+@BINPATH@/components/nsLivemarkService.js
+@BINPATH@/components/nsMicrosummaryService.js
+@BINPATH@/components/nsPlacesAutoComplete.js
+@BINPATH@/components/nsPlacesAutoComplete.manifest
+@BINPATH@/components/nsPlacesDBFlush.js
+@BINPATH@/components/nsPlacesExpiration.js
 @BINPATH@/components/nsPrompter.js
 @BINPATH@/components/nsPrompter.manifest
+@BINPATH@/components/nsTaggingService.js
+@BINPATH@/components/PlacesCategoriesStarter.js
+@BINPATH@/components/toolkitplaces.manifest
 #ifdef XP_MACOSX
 @BINPATH@/components/libalerts_s.dylib
 #elifdef XP_UNIX
