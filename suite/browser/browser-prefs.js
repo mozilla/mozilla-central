@@ -626,8 +626,8 @@ pref("dom.event.contextmenu.enabled",  true);
 pref("dom.ipc.plugins.enabled.i386", false);
 pref("dom.ipc.plugins.enabled.i386.flash player.plugin", true);
 pref("dom.ipc.plugins.enabled.i386.javaplugin2_npapi.plugin", true);
-// ppc IPC preferences, ppc is not capable of IPC
-pref("dom.ipc.plugins.enabled.ppc", false);
+// x86_64 ipc preferences
+pref("dom.ipc.plugins.enabled.x86_64", true);
 #elifdef MOZ_IPC
 pref("dom.ipc.plugins.enabled", true);
 #else
