@@ -37,8 +37,8 @@
 # ***** END LICENSE BLOCK *****
 
 add_makefiles "
-directory/xpcom/Makefile
-directory/xpcom/base/Makefile
-directory/xpcom/base/public/Makefile
-directory/xpcom/base/src/Makefile
+ldap/xpcom/Makefile
+ldap/xpcom/base/Makefile
+ldap/xpcom/base/public/Makefile
+ldap/xpcom/base/src/Makefile
 "

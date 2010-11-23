@@ -39,8 +39,8 @@ INCLUDED_BRIDGE_MK = 1
 APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/mozilla/xpfe/components/autocomplete
 
 #ifdef MOZ_LDAP_XPCOM
-APP_LIBXUL_STATICDIRS += $(DEPTH)$(SUBDIR)/directory/c-sdk
-APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/directory/xpcom
+APP_LIBXUL_STATICDIRS += $(DEPTH)$(SUBDIR)/ldap/sdks/c-sdk
+APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/ldap/xpcom
 #endif
 
 ifdef MOZ_MAIL_NEWS

@@ -61,7 +61,7 @@ config/autoconf.mk
 "
 
 if [ "$MOZ_LDAP_XPCOM" ]; then
-  . "${srcdir}/directory/makefiles.sh"
+  . "${srcdir}/ldap/makefiles.sh"
 fi
 
 if [ "$MOZ_COMPOSER" ]; then

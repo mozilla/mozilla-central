@@ -6,14 +6,14 @@
 # Repo Defaults
 # 'REV' controls the default rev for All the various repo's
 # Define x_REV to override. Where x can be one of:
-#  "COMM", "MOZILLA", "CHATZILLA", "INSPECTOR" or "VENKMAN"
+#  "COMM", "MOZILLA", "CHATZILLA", "INSPECTOR", "VENKMAN", "LDAPSDKS"
 DEFAULTS = {
   # Global Default Revision
   'REV': "default",
 
-  # LDAP
-  'LDAPCSDK_CO_TAG': 'LDAPCSDK_6_0_6D_MOZILLA_RTM',
-  'LDAPCSDK_DIRS': ('directory/c-sdk',),
+  # LDAPSDKS
+  'LDAPSDKS_REPO': 'http://hg.mozilla.org/projects/ldap-sdks/',
+  'LDAPSDKS_REV': 'LDAPCSDK_6_0_6D_MOZILLA_RTM',
 
   # URL of the default hg repository to clone for ChatZilla.
   'CHATZILLA_REPO': 'http://hg.mozilla.org/chatzilla/',
@@ -309,23 +309,6 @@ def do_hg_pull(dir, repository, hg, rev):
     check_call([hg, 'parent', '-R', fulldir,
                 '--template=Updated to revision {node}.\n'])
 
-def do_cvs_checkout(modules, tag, cvsroot, cvs, checkoutdir):
-    """Check out a CVS directory into the checkoutdir subdirectory.
-    modules is a list of directories to check out, e.g. ['extensions/irc']
-    """
-    for module in modules:
-        (parent, leaf) = os.path.split(module)
-        print "CVS checkout begin: " + datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-        revopt = ((tag == 'HEAD') and ['-A']) or ['-r', tag]
-        # Explicitly never retry 'cvs checkout': otherwise any merge failures are ignored.
-        # No way to tell whether a failure is caused by a network error or a local conflict: better be safe.
-        check_call_noisy([cvs, '-d', cvsroot, '-q',
-                          'checkout', '-P'] + revopt + ['-d', leaf,
-                          'mozilla/%s' % module],
-                         retryMax=0,
-                         cwd=os.path.join(topsrcdir, checkoutdir, parent))
-        print "CVS checkout end: " + datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-
 def check_retries_option(option, opt_str, value, parser):
   if value < 0:
     raise OptionValueError("%s option value needs to be positive (not '%d')" % (opt_str, value))
@@ -349,6 +332,7 @@ def do_apply_patches(topsrcdir, hg):
         'chatzilla': os.path.join('mozilla', 'extensions', 'irc'),
         'inspector': os.path.join('mozilla', 'extensions', 'inspector'),
         'venkman':   os.path.join('mozilla', 'extensions', 'venkman'),
+        'ldap':      os.path.join('ldap', 'sdks'),
     }
 
     for prefix in prefix_map.keys():
@@ -391,9 +375,15 @@ o.add_option("--inspector-rev", dest="inspector_rev",
              default=None,
              help="Revision of DOM Inspector repository to update to. Default: \"" + get_DEFAULT_tag('INSPECTOR_REV') + "\"")
 
+o.add_option("--ldap-repo", dest="ldap_repo",
+             default=None,
+             help="URL of LDAP repository to pull from (default: use hg default in ldap/sdks/.hg/hgrc; or if that file doesn't exist use \"" + DEFAULTS['LDAPSDKS_REPO'] + "\".)")
 o.add_option("--skip-ldap", dest="skip_ldap",
              action="store_true", default=False,
-             help="Skip pulling LDAP from the Mozilla CVS repository.")
+             help="Skip pulling the LDAP repository.")
+o.add_option("--ldap-rev", dest="ldap_rev",
+             default=None,
+             help="Revision of LDAP repository to update to. Default: \"" + get_DEFAULT_tag('LDAPSDKS_REV') + "\"")
 
 o.add_option("--chatzilla-repo", dest = "chatzilla_repo",
              default = None,
@@ -424,12 +414,6 @@ o.add_option("--hg-options", dest="hgopts",
              help="Pass arbitrary options to hg commands (i.e. --debug, --time)")
 o.add_option("--hg-clone-options", dest="hgcloneopts",
              help="Pass arbitrary options to hg clone commands (i.e. --uncompressed)")
-
-o.add_option("--cvs", dest="cvs", default=os.environ.get('CVS', 'cvs'),
-             help="The location of the cvs binary")
-o.add_option("--cvsroot", dest="cvsroot",
-             default=os.environ.get('CVSROOT', ':pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot'),
-             help="The CVSROOT (default: :pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot")
 
 o.add_option("--retries", dest="retries", type="int", metavar="NUM",
              default=1, help="Number of times to retry a failed command before giving up. (default: 1)",
@@ -523,6 +507,20 @@ def fixup_venkman_repo_options(options):
     if options.venkman_rev is None:
         options.venkman_rev = get_DEFAULT_tag("VENKMAN_REV")
 
+def fixup_ldap_repo_options(options):
+    """Handle special case: initial checkout of LDAP.
+
+    See fixup_comm_repo_options().
+    """
+
+    # No cvs backup needed as LDAP directory name changed when it moved to hg
+    if options.ldap_repo is None and \
+            not os.path.exists(os.path.join(topsrcdir, 'ldap', 'sdks')):
+        options.ldap_repo = DEFAULTS['LDAPSDKS_REPO']
+
+    if options.ldap_rev is None:
+        options.ldap_rev = get_DEFAULT_tag("LDAPSDKS_REV")
+
 try:
     (options, (action,)) = o.parse_args()
 except ValueError:
@@ -532,7 +530,8 @@ except ValueError:
 if options.default_rev:
   # We now wish to override all the DEFAULTS.
   DEFAULTS['REV'] = options.default_rev
-  for index in ['CHATZILLA', 'INSPECTOR', 'VENKMAN', 'COMM', 'MOZILLA']:
+  for index in ['CHATZILLA', 'INSPECTOR', 'VENKMAN', 'COMM', 'MOZILLA',
+                'LDAPSDKS']:
     index += "_REV"
     # Clear the rest from file-defaults
     if index in DEFAULTS:
@@ -567,7 +566,8 @@ if action in ('checkout', 'co'):
         do_hg_pull(os.path.join('mozilla', 'extensions', 'inspector'), options.inspector_repo, options.hg, options.inspector_rev)
 
     if not options.skip_ldap:
-        do_cvs_checkout(DEFAULTS['LDAPCSDK_DIRS'], DEFAULTS['LDAPCSDK_CO_TAG'], options.cvsroot, options.cvs, '')
+        fixup_ldap_repo_options(options)
+        do_hg_pull(os.path.join('ldap', 'sdks'), options.ldap_repo, options.hg, options.ldap_rev)
 
     if not options.skip_venkman:
         fixup_venkman_repo_options(options)
