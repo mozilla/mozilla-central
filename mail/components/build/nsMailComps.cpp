@@ -42,16 +42,6 @@
 #include "nsProfileMigrator.h"
 #include "nsSeamonkeyProfileMigrator.h"
 
-#ifndef MOZ_PLACES
-#include "nsDocShellCID.h"
-#include "history.h"
-
-using namespace mozilla;
-
-NS_GENERIC_FACTORY_SINGLETON_CONSTRUCTOR(History, History::GetSingleton)
-
-#endif
-
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSeamonkeyProfileMigrator)
 
@@ -111,10 +101,6 @@ NS_DEFINE_NAMED_CID(NS_MAILGNOMEINTEGRATION_CID);
 NS_DEFINE_NAMED_CID(NS_MAILMACINTEGRATION_CID);
 #endif
 
-#ifndef MOZ_PLACES
-NS_DEFINE_NAMED_CID(NS_HISTORYSERVICE_CID);
-#endif
-
 const mozilla::Module::CIDEntry kMailCIDs[] = {
   { &kNS_THUNDERBIRD_PROFILEIMPORT_CID, false, NULL, nsProfileMigratorConstructor },
   { &kNS_SEAMONKEYPROFILEMIGRATOR_CID, false, NULL, nsSeamonkeyProfileMigratorConstructor },
@@ -136,9 +122,6 @@ const mozilla::Module::CIDEntry kMailCIDs[] = {
 #endif
 #ifdef XP_MACOSX
   { &kNS_MAILMACINTEGRATION_CID, false, NULL, nsMailMacIntegrationConstructor },
-#endif
-#ifndef MOZ_PLACES
-  { &kNS_HISTORYSERVICE_CID, false, NULL, HistoryConstructor },
 #endif
   { NULL }
 };
@@ -164,9 +147,6 @@ const mozilla::Module::ContractIDEntry kMailContracts[] = {
 #endif
 #ifdef XP_MACOSX
   { "@mozilla.org/mail/shell-service;1", &kNS_MAILMACINTEGRATION_CID },
-#endif
-#ifndef MOZ_PLACES
-  { NS_IHISTORY_CONTRACTID, &kNS_HISTORYSERVICE_CID },
 #endif
   { NULL }
 };

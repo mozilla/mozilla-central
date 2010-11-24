@@ -54,10 +54,6 @@ ifdef MOZ_SAFE_BROWSING
 DIRS += phishing 
 endif
 
-ifndef MOZ_PLACES
-DIRS += history
-endif
-
 DIRS += build
 
 EXTRA_COMPONENTS = \
