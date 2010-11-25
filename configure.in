@@ -2081,9 +2081,9 @@ ia64*-hpux*)
         esac
         # If we're building with --enable-profiling, we need a frame pointer.
         if test -z "$MOZ_PROFILING"; then
-            MOZ_OPTIMIZE_FLAGS="-Os -freorder-blocks -fno-reorder-functions -fomit-frame-pointer $MOZ_OPTIMIZE_SIZE_TWEAK"
+            MOZ_OPTIMIZE_FLAGS="-Os -freorder-blocks -fomit-frame-pointer $MOZ_OPTIMIZE_SIZE_TWEAK"
         else
-            MOZ_OPTIMIZE_FLAGS="-Os -freorder-blocks -fno-reorder-functions -fno-omit-frame-pointer $MOZ_OPTIMIZE_SIZE_TWEAK"
+            MOZ_OPTIMIZE_FLAGS="-Os -freorder-blocks -fno-omit-frame-pointer $MOZ_OPTIMIZE_SIZE_TWEAK"
         fi
         MOZ_DEBUG_FLAGS="-g"
     fi
@@ -6288,7 +6288,7 @@ MOZ_PROFILE_GUIDED_OPTIMIZE_DISABLE=)
 AC_SUBST(MOZ_PROFILE_GUIDED_OPTIMIZE_DISABLE)
 
 _SAVE_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS -fprofile-generate"
+CFLAGS="$CFLAGS -fprofile-generate -fprofile-correction"
 
 AC_MSG_CHECKING([whether C compiler supports -fprofile-generate])
 AC_TRY_COMPILE([], [return 0;],
@@ -6298,7 +6298,7 @@ AC_MSG_RESULT([$result])
 
 if test $result = "yes"; then
   PROFILE_GEN_LDFLAGS="-fprofile-generate"
-  PROFILE_USE_CFLAGS="-fprofile-use"
+  PROFILE_USE_CFLAGS="-fprofile-use -fprofile-correction -Wcoverage-mismatch -freorder-blocks-and-partition"
   PROFILE_USE_LDFLAGS="-fprofile-use"
 fi
 
