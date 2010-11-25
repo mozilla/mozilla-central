@@ -3452,11 +3452,17 @@ nsMsgLocalMailFolder::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
     }
   }
 
-  if (m_parsingFolder && mReparseListener)
+  if (m_parsingFolder)
   {
-    nsCOMPtr<nsIUrlListener> saveReparseListener = mReparseListener;
-    mReparseListener = nsnull;
-    saveReparseListener->OnStopRunningUrl(aUrl, aExitCode);
+    // Clear this before calling OnStopRunningUrl, in case the url listener
+    // tries to get the database.
+    m_parsingFolder = PR_FALSE;
+    if (mReparseListener)
+    {
+      nsCOMPtr<nsIUrlListener> saveReparseListener = mReparseListener;
+      mReparseListener = nsnull;
+      saveReparseListener->OnStopRunningUrl(aUrl, aExitCode);
+    }
   }
   if (mFlags & nsMsgFolderFlags::Inbox)
   {
@@ -3471,7 +3477,6 @@ nsMsgLocalMailFolder::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
         server->SetPerformingBiff(PR_FALSE);  //biff is over
     }
   }
-  m_parsingFolder = PR_FALSE;
   return nsMsgDBFolder::OnStopRunningUrl(aUrl, aExitCode);
 }
 

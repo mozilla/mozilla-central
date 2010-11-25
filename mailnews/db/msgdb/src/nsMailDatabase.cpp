@@ -417,7 +417,7 @@ void nsMailDatabase::GetMailboxModProperties(PRInt64 *aSize, PRUint32 *aDate)
 NS_IMETHODIMP nsMailDatabase::GetSummaryValid(PRBool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  PRUint32 folderSize;
+  PRUint64 folderSize;
   PRUint32  folderDate;
   PRInt32 numUnreadMessages;
   nsAutoString errorMsg;
@@ -501,7 +501,7 @@ NS_IMETHODIMP nsMailDatabase::SetSummaryValid(PRBool valid)
       PRUint32 actualFolderTimeStamp;
       PRInt64 fileSize;
       GetMailboxModProperties(&fileSize, &actualFolderTimeStamp);
-      m_dbFolderInfo->SetFolderSize((PRUint32) fileSize);
+      m_dbFolderInfo->SetFolderSize(fileSize);
       m_dbFolderInfo->SetFolderDate(actualFolderTimeStamp);
       m_dbFolderInfo->SetVersion(GetCurVersion());
     }

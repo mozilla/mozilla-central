@@ -9,6 +9,7 @@ load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 load("../../../resources/alertTestUtils.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+load("../../../resources/messageGenerator.js");
 
 var gLocalInboxSize;
 
@@ -56,11 +57,21 @@ var copyListener = {
 };
 
 
+// If we're running out of memory parsing the folder, lowering the
+// block size might help, though it will slow the test down and consume
+// more disk space.
+const kSparseBlockSize = 102400000;
+
 function run_test()
 {
   loadLocalMailAccount();
 
   let inboxFile = gLocalInboxFolder.filePath.clone();
+  // put a single message in the Inbox.
+  let messageGenerator = new MessageGenerator();
+  let message = messageGenerator.makeMessage();
+  let localInbox = gLocalInboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  localInbox.addMessage(message.toMboxString());
 
   // On Windows, check whether the drive is NTFS. If it is, mark the file as
   // sparse. If it isn't, then bail out now, because in all probability it is
@@ -72,22 +83,25 @@ function run_test()
     endTest();
     return;
   }
-  let isFileSparse = mark_file_region_sparse(inboxFile, 0, 0x10000000f);
-  if (!isFileSparse && inboxFile.diskSpaceAvailable < 0x200000000)
+  if (inboxFile.diskSpaceAvailable < 0x1100000000)
   {
-    dump("On systems where files can't be marked sparse, this test needs 8 " +
-         "GB of free disk space.\n");
+    dump("this test needs >4 GB of free disk space.\n");
     endTest();
     return;
   }
+  do {
+    let nextOffset = gLocalInboxFolder.filePath.fileSize + kSparseBlockSize;
+    mark_file_region_sparse(inboxFile, gLocalInboxFolder.filePath.fileSize,
+                            kSparseBlockSize);
+    let outputStream = gLocalInboxFolder.offlineStoreOutputStream
+      .QueryInterface(Ci.nsISeekableStream);
+    outputStream.seek(0, nextOffset);
+    let mboxString = "\r\n" + message.toMboxString();
+    outputStream.write(mboxString, mboxString.length);
+    outputStream.close();
+  }
+  while (gLocalInboxFolder.filePath.fileSize < 0x100000000)
 
-  // extend local folder to over 2GB
-  let outputStream = gLocalInboxFolder.offlineStoreOutputStream
-    .QueryInterface(Ci.nsISeekableStream);
-  // seek past 4GB.
-  outputStream.seek(0, 0x10000000f);
-  outputStream.write(" ", 1);
-  outputStream.close();
   gLocalInboxSize = gLocalInboxFolder.filePath.fileSize;
 
   // "Master" do_test_pending(), paired with a do_test_finished() at the end of
@@ -103,9 +117,58 @@ function run_test()
                                 "", copyListener, dummyMsgWindow);
   } catch (ex) {
   }
-  endTest();
-
+  gLocalInboxFolder.msgDatabase = null;
+  try {
+    gLocalInboxFolder.getDatabaseWithReparse(ParseListener, dummyMsgWindow);
+  } catch (ex) {
+    do_check_true(ex.result == Cr.NS_ERROR_NOT_INITIALIZED);
+  }
 }
+
+function testCompact()
+{
+  let msgDB = gLocalInboxFolder.msgDatabase;
+  let enumerator = msgDB.EnumerateMessages();
+  let firstHdr = true;
+  let messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
+  while (enumerator.hasMoreElements()) {
+    var header = enumerator.getNext();
+    if (header instanceof Components.interfaces.nsIMsgDBHdr && !firstHdr)
+      messages.appendElement(header, false);
+    firstHdr = false;
+  }
+  // mark messages as deleted.
+  gLocalInboxFolder.deleteMessages(messages, null, true, false, null, false);
+  gLocalInboxFolder.compact(CompactListener, null);
+}
+
+var ParseListener =
+{
+  OnStartRunningUrl: function (aUrl) {
+  },
+  OnStopRunningUrl: function (aUrl, aExitCode) {
+    // Check: message successfully copied.
+    do_check_eq(aExitCode, 0);
+    do_check_true(gLocalInboxFolder.msgDatabase.summaryValid);
+    testCompact();
+  }
+};
+
+var CompactListener =
+{
+  OnStartRunningUrl: function (aUrl) {
+  },
+  OnStopRunningUrl: function (aUrl, aExitCode) {
+    // Check: message successfully copied.
+    do_check_eq(aExitCode, 0);
+    do_check_true(gLocalInboxFolder.msgDatabase.summaryValid);
+    // check that folder size isn't much bigger than our sparse block size,
+    // i.e., that we just have one message.
+    do_check_true(gLocalInboxFolder.filePath.fileSize < kSparseBlockSize + 1000);
+    do_check_eq(gLocalInboxFolder.getTotalMessages(false), 1);
+    endTest();
+  }
+};
 
 function endTest()
 {

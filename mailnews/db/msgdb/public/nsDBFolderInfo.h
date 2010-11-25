@@ -80,37 +80,40 @@ public:
   
   nsresult      InitFromExistingDB();
   // get and set arbitrary property, aka row cell value.
-  nsresult	SetPropertyWithToken(mdb_token aProperty, const nsAString &propertyStr);
-  nsresult	SetUint32PropertyWithToken(mdb_token aProperty, PRUint32 propertyValue);
-  nsresult	SetInt32PropertyWithToken(mdb_token aProperty, PRInt32 propertyValue);
-  nsresult	GetPropertyWithToken(mdb_token aProperty, nsAString &resultProperty);
-  nsresult	GetUint32PropertyWithToken(mdb_token aProperty, PRUint32 &propertyValue, PRUint32 defaultValue = 0);
-  nsresult	GetInt32PropertyWithToken(mdb_token aProperty, PRInt32 &propertyValue, PRInt32 defaultValue = 0);
+  nsresult SetPropertyWithToken(mdb_token aProperty, const nsAString &propertyStr);
+  nsresult SetUint32PropertyWithToken(mdb_token aProperty, PRUint32 propertyValue);
+  nsresult SetInt32PropertyWithToken(mdb_token aProperty, PRInt32 propertyValue);
+  nsresult GetPropertyWithToken(mdb_token aProperty, nsAString &resultProperty);
+  nsresult GetUint32PropertyWithToken(mdb_token aProperty, PRUint32 &propertyValue, PRUint32 defaultValue = 0);
+  nsresult GetInt32PropertyWithToken(mdb_token aProperty, PRInt32 &propertyValue, PRInt32 defaultValue = 0);
+  nsresult SetUint64Property(const char *aProperty, PRUint64 propertyValue);
+  nsresult GetUint64PropertyWithToken(mdb_token columnToken,
+                                      PRUint64 *propertyValue);
 
   nsTArray<nsMsgKey> m_lateredKeys; // list of latered messages
   
 protected:
-  
+
   // initialize from appropriate table and row in existing db.
   nsresult InitMDBInfo();
   nsresult LoadMemberVariables();
 
   nsresult AdjustHighWater(nsMsgKey highWater, PRBool force);
-  
+
   void ReleaseExternalReferences(); // let go of any references to other objects.
-  
-  PRInt32   m_folderSize;
-  PRInt32   m_expungedBytes;	// sum of size of deleted messages in folder
+
+  PRUint64  m_folderSize;
+  PRInt32   m_expungedBytes; // sum of size of deleted messages in folder
   PRUint32  m_folderDate;
-  nsMsgKey  m_highWaterMessageKey;	// largest news article number or imap uid whose header we've seen
-  
+  nsMsgKey  m_highWaterMessageKey; // largest news article number or imap uid whose header we've seen
+
   //  m_numUnreadMessages and m_numMessages can never be negative. 0 means 'no msgs'.
   PRInt32   m_numUnreadMessages;
   PRInt32   m_numMessages;    // includes expunged and ignored messages
-  
+
   PRInt32   m_flags;  // folder specific flags. This holds things like re-use thread pane,
   // configured for off-line use, use default retrieval, purge article/header options
-  
+
   PRUint16    m_version;                // for upgrading...
   PRInt16     m_IMAPHierarchySeparator;	// imap path separator
   

@@ -180,7 +180,7 @@ nsDBFolderInfo::nsDBFolderInfo(nsMsgDatabase *mdb)
   // mail only (for now)
   m_folderSize = 0;
   m_folderDate = 0;
-  m_expungedBytes = 0;	// sum of size of deleted messages in folder
+  m_expungedBytes = 0; // sum of size of deleted messages in folder
   m_highWaterMessageKey = 0;
 
   m_numUnreadMessages = 0;
@@ -402,7 +402,7 @@ nsresult nsDBFolderInfo::LoadMemberVariables()
   GetInt32PropertyWithToken(m_numMessagesColumnToken, m_numMessages);
   GetInt32PropertyWithToken(m_numUnreadMessagesColumnToken, m_numUnreadMessages);
   GetInt32PropertyWithToken(m_flagsColumnToken, m_flags);
-  GetInt32PropertyWithToken(m_folderSizeColumnToken, m_folderSize);
+  GetUint64PropertyWithToken(m_folderSizeColumnToken, &m_folderSize);
   GetInt32PropertyWithToken(m_folderDateColumnToken, (PRInt32 &) m_folderDate);
   GetInt32PropertyWithToken(m_imapUidValidityColumnToken, m_ImapUidValidity);
   GetInt32PropertyWithToken(m_expiredMarkColumnToken, (PRInt32 &) m_expiredMark);
@@ -457,17 +457,17 @@ NS_IMETHODIMP nsDBFolderInfo::OnKeyAdded(nsMsgKey aNewKey)
 }
 
 NS_IMETHODIMP
-nsDBFolderInfo::GetFolderSize(PRUint32 *size)
+nsDBFolderInfo::GetFolderSize(PRUint64 *size)
 {
   NS_ENSURE_ARG_POINTER(size);
   *size = m_folderSize;
   return NS_OK;
 }
 
-NS_IMETHODIMP	nsDBFolderInfo::SetFolderSize(PRUint32 size)
+NS_IMETHODIMP nsDBFolderInfo::SetFolderSize(PRUint64 size)
 {
   m_folderSize = size;
-  return SetUint32PropertyWithToken(m_folderSizeColumnToken, m_folderSize);
+  return SetUint64Property(kFolderSizeColumnName, m_folderSize);
 }
 
 NS_IMETHODIMP
@@ -847,6 +847,12 @@ nsresult  nsDBFolderInfo::SetUint32PropertyWithToken(mdb_token aProperty, PRUint
   return m_mdb->UInt32ToRowCellColumn(m_mdbRow, aProperty, propertyValue);
 }
 
+nsresult  nsDBFolderInfo::SetUint64Property(const char *aProperty,
+                                            PRUint64 propertyValue)
+{
+  return m_mdb->SetUint64Property(m_mdbRow, aProperty, propertyValue);
+}
+
 nsresult  nsDBFolderInfo::SetInt32PropertyWithToken(mdb_token aProperty, PRInt32 propertyValue)
 {
   nsAutoString propertyStr;
@@ -872,6 +878,12 @@ nsresult nsDBFolderInfo::GetInt32PropertyWithToken(mdb_token aProperty, PRInt32 
 NS_IMETHODIMP nsDBFolderInfo::GetUint32Property(const char *propertyName, PRUint32 defaultValue, PRUint32 *propertyValue)
 {
   return m_mdb->GetUint32Property(m_mdbRow, propertyName, propertyValue, defaultValue);
+}
+
+nsresult nsDBFolderInfo::GetUint64PropertyWithToken(mdb_token columnToken,
+                                                    PRUint64 *propertyValue)
+{
+  return m_mdb->RowCellColumnToUInt64(m_mdbRow, columnToken, propertyValue, 0);
 }
 
 NS_IMETHODIMP nsDBFolderInfo::GetBooleanProperty(const char *propertyName, PRBool defaultValue, PRBool *propertyValue)

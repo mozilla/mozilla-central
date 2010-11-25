@@ -38,7 +38,7 @@
 #include "nsISupports.idl"
 #include "MailNewsTypes2.idl"
 
-[scriptable, uuid(d2cae295-53ce-4ed8-b704-af018e6d49a4)]
+[scriptable, uuid(538577e4-80e9-4567-8de1-3578efaef62d)]
 interface  nsIDBFolderInfo : nsISupports {
   attribute long flags;
 
@@ -69,7 +69,7 @@ interface  nsIDBFolderInfo : nsISupports {
 
   attribute nsMsgKey highWater;
   attribute nsMsgKey expiredMark;
-  attribute unsigned long folderSize;
+  attribute unsigned long long folderSize;
   attribute unsigned long folderDate;
   void changeNumUnreadMessages(in long aDelta);
   void changeNumMessages(in long aDelta);
