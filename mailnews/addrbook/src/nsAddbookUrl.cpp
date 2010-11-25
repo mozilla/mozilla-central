@@ -198,7 +198,13 @@ NS_IMETHODIMP nsAddbookUrl::SchemeIs(const char *aScheme, PRBool *_retval)
 
 NS_IMETHODIMP nsAddbookUrl::Equals(nsIURI *other, PRBool *_retval)
 {
-	return m_baseURL->Equals(other, _retval);
+  // The passed-in URI might be an nsMailtoUrl. Pass our inner URL to its
+  // Equals method. The other nsMailtoUrl will then pass its inner URL to
+  // to the Equals method of our inner URL. Other URIs will return false.
+  if (other)
+    return other->Equals(m_baseURL, _retval);
+
+  return m_baseURL->Equals(other, _retval);
 }
 
 NS_IMETHODIMP nsAddbookUrl::Clone(nsIURI **_retval)
