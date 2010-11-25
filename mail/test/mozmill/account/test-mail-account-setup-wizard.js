@@ -227,6 +227,72 @@ function test_bad_password_uses_old_settings() {
   finally {
     // Clean up
     pref.clearUserPref(pref_name);
-    awc.e("cancel_button").click();;
+    awc.e("cancel_button").click();
+  }
+}
+
+function test_remember_password() {
+  remember_password_test(true);
+  remember_password_test(false);
+}
+
+/* Test remember_password checkbox behavior with
+ * signon.rememberSignons set to "aPrefValue"
+ */
+function remember_password_test(aPrefValue) {
+  let pref = Cc["@mozilla.org/preferences-service;1"]
+      .getService(Ci.nsIPrefBranch);
+
+  // save the pref for backup purpose
+  let rememberSignons_pref_save =
+      pref.getBoolPref("signon.rememberSignons", true);
+
+  pref.setBoolPref("signon.rememberSignons", aPrefValue);
+
+  // without this, it breaks the test, don't know why
+  mc.sleep(0);
+  awc = open_mail_account_setup_wizard();
+
+  try {
+  let password = new elementslib.ID(awc.window.document, "password");
+  let rememberPassword =
+      new elementslib.ID(awc.window.document, "remember_password");
+
+  // password field is empty and the checkbox is disabled initially
+  // -> uncheck checkbox
+
+  awc.assertProperty(rememberPassword, "disabled", true);
+  awc.assertNotChecked(rememberPassword);
+
+  // type something in the password field
+  awc.e("password").focus();
+  input_value(awc, "testing");
+
+  awc.assertProperty(rememberPassword, "disabled", !aPrefValue);
+  if (aPrefValue) {
+    // password field is not empty any more
+    // -> enable and check checkbox
+    awc.assertChecked(rememberPassword);
+  }
+  else {
+    // password field is not empty any more, but aPrefValue is false
+    // -> disable and uncheck checkbox
+    awc.assertNotChecked(rememberPassword);
+  }
+
+  // empty the password field
+  awc.keypress(password, 'a', {accelKey: true});
+  awc.keypress(password, 'VK_DELETE', {});
+
+  // password field is empty -> disable and uncheck checkbox
+  awc.assertProperty(rememberPassword, "disabled", true);
+  awc.assertNotChecked(rememberPassword);
+
+  // restore the saved signon.rememberSignons value
+  pref.setBoolPref("signon.rememberSignons", rememberSignons_pref_save);
+  }
+  finally {
+    // close the wizard
+    awc.e("cancel_button").click();
   }
 }
