@@ -65,12 +65,17 @@ SHARED_LIBRARY_LIBS = \
     $(DEPTH)/calendar/libical/src/libical/$(LIB_PREFIX)mozical.$(LIB_SUFFIX) \
     $(NULL)
 
+ifdef JS_SHARED_LIBRARY 
+EXTRA_DSO_LDOPTS += $(MOZ_JS_LIBS)
+else
+EXTRA_DSO_LDOPTS += $(XPCOM_LIBS)
+endif
+
 ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS += \
 	$(LIBS_DIR) \
 	$(EXTRA_DSO_LIBS) \
 	$(MOZ_COMPONENT_LIBS) \
-	$(MOZ_JS_LIBS) \
 	$(NULL)
 else
 EXTRA_DSO_LDOPTS += \
@@ -78,7 +83,6 @@ EXTRA_DSO_LDOPTS += \
 	$(EXTRA_DSO_LIBS) \
 	$(NSPR_LIBS) \
 	$(XPCOM_GLUE_LDOPTS) \
-	$(MOZ_JS_LIBS) \
 	$(NULL)
 endif
 
