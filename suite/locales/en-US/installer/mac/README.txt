@@ -27,7 +27,7 @@
 
   Hardware Requirements:
 
-  - Macintosh computer with an Intel x86 or PowerPC G4/G5 processor
+  - Macintosh computer with an Intel x86 processor
   - 200 MB of free hard disk space
 
 
