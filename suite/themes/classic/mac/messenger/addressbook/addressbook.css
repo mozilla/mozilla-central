@@ -262,18 +262,6 @@ html|p {
   border: none !important;
 }
 
-/* ::::: border adjustments ::::: */
-
-#dirTree,
-#resultsTree { 
-  border: none;
-  margin: 0px !important;
-}
-
-#resultsTree {
-  border-left: 1px solid ThreeDShadow;
-}
-
 /* ::::: lightweight themes ::::: */
 
 #CardViewOuterBox:-moz-lwtheme {

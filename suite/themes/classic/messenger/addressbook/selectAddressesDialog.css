@@ -49,13 +49,7 @@
   padding: 0.5em 0 1.0em;
 }
 
-#resultsTree, #dirTree
-#resultsTree > .tree-container-treerows,
-#dirTree > .tree-container-treerows {
-  border: none;
-}
-
-#resultsTree {
+#abResultsTree {
   min-width: 10px;
 }
 
@@ -86,4 +80,3 @@
   width: 10px;
   height: 15px;
 }
-

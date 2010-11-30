@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Stefan Hermes <stefanh@inbox.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -53,8 +54,18 @@
   height: 100px;
 }
 
+#searchTermList > listitem[selected="true"] {
+  background-color: inherit;
+}
+
+listcell > hbox {
+  -moz-box-pack: end;
+}
+
 #searchResultListBox {
-  margin: 5px;
+  -moz-appearance: listbox;
+  -moz-margin-start: 4px;
+  -moz-margin-end: 4px;
   height: 100px;
 }
 
@@ -63,28 +74,73 @@
   padding: 0px;
 }
 
+menulist {
+  width: 18em;
+}
+
+.search-menulist {
+  width: 12em;
+}
+
 .search-menulist[unavailable="true"] {
   color: GrayText;
 }
 
-menulist {
-  width: 12em;
-}
-
-menulist > menupopup > menuitem {
-  -moz-padding-end: 2px;
-}
-
-textbox {
-  margin: 1px 4px;
-}
-
 .small-button {
-  min-width: 3em;
-  padding: 0px;
-  margin: 0px 1px;
+  -moz-appearance: none;
+  font: icon;
+  text-shadow: 0 1px #F2F2F2;
+  border: 1px solid #A8A8A8; 
+  background: -moz-linear-gradient(bottom, #ECECEC, #ECECEC 50%, #F9F9F9 0%, #F9F9F9);
+  min-width: 22px;
+  height: 20px;
+  padding: 0 1px 1px 0;
+  margin: 0;
 }
 
-listbox {
-  padding-top: 2px;
+.small-button:not([disabled="true"]):hover:active {
+  background: -moz-linear-gradient(bottom, #B0B0B0, #B4B4B4 50%, #BFBFBF 0%, #BABABA);
+  border: 1px solid #9C9C9C;
+}
+
+.small-button:focus {
+  box-shadow: 0 0 2px 1px #7499D8,
+              1px 0 2px 1px #7499D8,
+              inset 0 0 2px #7499D8;
+}
+
+.small-button:focus + .small-button {
+  box-shadow: inset 1px 0 #7499D8;
+}
+
+.small-button + .small-button:focus {
+  box-shadow: 0 0 2px 1px #7499D8,
+              -1px 0 2px 1px #7499D8,
+              inset 0 0 2px #7499D8;
+}
+
+.small-button:-moz-system-metric(mac-graphite-theme):focus {
+  box-shadow: 0 0 2px 1px #757E8B,
+              1px 0 2px 1px #757E8B,
+              inset 0 0 2px #757E8B;
+}
+
+.small-button:-moz-system-metric(mac-graphite-theme):focus + .small-button {
+  box-shadow: inset 1px 0 #757E8B;
+}
+
+.small-button + .small-button:-moz-system-metric(mac-graphite-theme):focus {
+  box-shadow: 0 0 2px 1px #757E8B,
+              -1px 0 2px 1px #757E8B,
+              inset 0 0 2px #757E8B;
+}
+
+.small-button[disabled="true"] {
+  opacity: 0.6;
+}
+
+.small-button + .small-button,
+.small-button + .small-button:hover:active {
+  border-left-width: 0;
+  min-width: 21px;
 }
