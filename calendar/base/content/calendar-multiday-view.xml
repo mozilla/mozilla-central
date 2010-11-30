@@ -1311,8 +1311,7 @@
           // next/previous day. This happens when current offset is different
           // from offset stored in mDragState
           if (aCurrentOffset != null) {
-              if (this.mDragState.offset > aCurrentOffset &&
-                  firstCol.previousSibling) {
+              if (this.mDragState.offset > aCurrentOffset && firstCol.previousSibling) {
                   firstCol.previousSibling.fgboxes.dragbox.removeAttribute("dragging");
                   firstCol.previousSibling.fgboxes.box.removeAttribute("dragging");
               }
@@ -1445,25 +1444,31 @@
           let curmin = Math.floor(pos / interval) * snapIntMin;
           let deltamin = curmin - dragState.origMin;
 
+          // variables to keep track of the start/end times for the event under
+          // construction (values sometimes different from those needed to
+          // build the drag shadows)
+          dragState.lastEnd = dragState.origMin;
+          dragState.lastStart = dragState.origMinStart;
+
           let shadowElements;
           if (dragState.dragType == "new") {
               if (deltamin < 0) {
                   // create a new event modifying the start. End time is fixed
-                  // and start moves only in this day so we can immediately
-                  // build a single shadow and show the labels
+                  // and start time is always in this day, hence we don't need
+                  // to keep track of any other value and we can build the drag
+                  // shadow without calling getShadowElements()
                   dragState.startMin = dragState.origMin + deltamin;
                   dragState.endMin = dragState.origMin;
-                  col.fgboxes.dragspacer.setAttribute(sizeattr, dragState.startMin * col.mPixPerMin);
-                  col.fgboxes.dragbox.setAttribute(sizeattr, Math.abs((dragState.endMin - dragState.startMin) * col.mPixPerMin));
-                  col.updateDragLabels();
-                  return;
+                  shadowElements = {shadows: 1, offset: 0,
+                                    startMin: dragState.startMin,
+                                    endMin: dragState.endMin};
               } else {
                   // create a new event modifying the end. Start time is fixed
                   // but the end can also go on the next day (at least for 0:00)
                   // so we need to keep track and build a shadow for one or two days
                   dragState.startMin = dragState.origMin;
                   dragState.endMin = dragState.origMin + deltamin;
-                  dragState.lastEnd = dragState.origMin + deltamin;
+                  dragState.lastEnd += deltamin;
                   shadowElements = col.getShadowElements(dragState.limitStartMin, dragState.lastEnd);
                   dragState.endMin = shadowElements.endMin;
               }
@@ -1472,7 +1477,7 @@
               // is negative, the event start is in the previous day. We keep
               // track to calculate the event's final position with "lastStart"
               // variable, while startMin and endMin allow to build the shadows
-              dragState.lastStart = dragState.origMinStart + deltamin;
+              dragState.lastStart += deltamin;
               shadowElements = col.getShadowElements(dragState.lastStart, dragState.origMinEnd + deltamin);
               dragState.startMin = shadowElements.startMin;
               dragState.endMin = shadowElements.endMin;
@@ -1490,7 +1495,7 @@
           } else if (dragState.dragType == "modify-end") {
               // if we're modifying the end, the start time is fixed, and we'll always
               // set the spacer to a constant size.
-              dragState.lastEnd = dragState.origMin + deltamin;
+              dragState.lastEnd += deltamin;
               shadowElements = col.getShadowElements(dragState.limitStartMin, dragState.lastEnd);
               dragState.startMin = shadowElements.startMin;
               dragState.endMin = shadowElements.endMin;
