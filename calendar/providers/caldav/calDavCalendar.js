@@ -1945,7 +1945,7 @@ calDavCalendar.prototype = {
     },
 
     buildDetailedMessage : function caldav_buildDetailedMessage(status, extraInfo) {
-        if (!status || !extraInfo) {
+        if (!status) {
             return "";
         }
 
@@ -1959,7 +1959,7 @@ calDavCalendar.prototype = {
         }
         return props.formatStringFromName("caldavRequestStatusCode", [ status ], 1) + ", " +
                statusString + "\n\n" +
-               extraInfo;
+               (extraInfo ? extraInfo : "");
 
     },
 
