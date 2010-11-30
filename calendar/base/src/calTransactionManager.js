@@ -172,7 +172,7 @@ calTransaction.prototype = {
     flags: 0,
 
     QueryInterface: function cTM_QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calTransactionManager.prototype, aIID, null, this);
+        return cal.doQueryInterface(this, calTransaction.prototype, aIID, null, this);
     },
 
     onOperationComplete: function cT_onOperationComplete(aCalendar,
@@ -259,7 +259,7 @@ calTransaction.prototype = {
                 break;
         }
     },
-    
+
     undoTransaction: function cT_undoTransaction() {
         this.mIsDoTransaction = false;
         switch (this.mAction) {
@@ -284,7 +284,7 @@ calTransaction.prototype = {
                 break;
         }
     },
-    
+
     redoTransaction: function cT_redoTransaction() {
         this.doTransaction();
     },
