@@ -1361,7 +1361,7 @@ function ShouldShowAttachmentNotification(async)
     // together to foobar.
     let brs = mailBodyNode.getElementsByTagName("br");
     for (let i = brs.length - 1; i >= 0; i--) {
-      brs[i].parentNode.replaceChild(document.createTextNode("\n"), brs[i]);
+      brs[i].parentNode.replaceChild(mailBodyNode.ownerDocument.createTextNode("\n"), brs[i]);
     }
 
     // Ignore signature (plain text compose mode).
