@@ -40,33 +40,10 @@ DEPTH		= ../../..
 topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
-relativesrcdir = directory/xpcom/tests
+relativesrcdir  = ldap/xpcom/tests
 
 include $(DEPTH)/config/autoconf.mk
 
 XPCSHELL_TESTS	= unit
 
 include $(topsrcdir)/config/rules.mk
-
-# Note that for the time being "ldapshell" requires LDAP Experimental
-#
-
-ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
-
-DEFINES += -DMOZ_LDAP_XPCOM_EXPERIMENTAL
-
-ifeq ($(OS_ARCH),WINNT)
-# need this because xpcshell built with readline won't work in cygwin shells
-RUN		= cmd /c start
-else
-RUN		= $(DIST)/bin/run-mozilla.sh
-endif
-
-XPCSHELL	= $(DIST)/bin/xpcshell
-
-.PHONY: ldapshell
-ldapshell:
-	$(CYGWIN_WRAPPER) $(RUN) $(XPCSHELL) \
-		-f $(srcdir)/ldapshell.js \
-		-f -
-endif

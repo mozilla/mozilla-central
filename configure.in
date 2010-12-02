@@ -5360,16 +5360,6 @@ if test -n "$MOZ_TREE_FREETYPE"; then
 fi
 
 dnl ========================================================
-dnl experimental ldap features
-dnl ========================================================
-MOZ_ARG_ENABLE_BOOL(ldap-experimental,
-[  --enable-ldap-experimental
-                          Enable LDAP experimental features],
-    MOZ_LDAP_XPCOM_EXPERIMENTAL=1,
-    MOZ_LDAP_XPCOM_EXPERIMENTAL=)
-
-
-dnl ========================================================
 dnl Installer
 dnl ========================================================
 case "$target_os" in
@@ -6824,7 +6814,6 @@ AC_SUBST(MOZ_PROFILING)
 AC_SUBST(MOZ_USE_NATIVE_UCONV)
 AC_SUBST(MOZ_QUANTIFY)
 AC_SUBST(MOZ_LDAP_XPCOM)
-AC_SUBST(MOZ_LDAP_XPCOM_EXPERIMENTAL)
 AC_SUBST(LDAP_CFLAGS)
 AC_SUBST(LDAP_LIBS)
 AC_SUBST(LIBICONV)

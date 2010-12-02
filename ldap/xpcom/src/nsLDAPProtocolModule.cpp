@@ -57,10 +57,6 @@
 #endif
 #include "ldappr.h"
 
-#ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
-#include "nsLDAPChannel.h"
-#endif
-
 // use the default constructor
 //
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPConnection)
@@ -76,9 +72,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPControl)
 #ifdef MOZ_PREF_EXTENSIONS
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPSyncQuery)
 #endif
-#ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPChannel)
-#endif
 
 NS_DEFINE_NAMED_CID(NS_LDAPCONNECTION_CID);
 NS_DEFINE_NAMED_CID(NS_LDAPOPERATION_CID);
@@ -89,9 +82,6 @@ NS_DEFINE_NAMED_CID(NS_LDAPSERVICE_CID);
 NS_DEFINE_NAMED_CID(NS_LDAPURL_CID);
 NS_DEFINE_NAMED_CID(NS_LDAPBERVALUE_CID);
 NS_DEFINE_NAMED_CID(NS_LDAPBERELEMENT_CID);
-#ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
-NS_DEFINE_NAMED_CID(NS_LDAPCHANNEL_CID);
-#endif
 #ifdef MOZ_PREF_EXTENSIONS
 NS_DEFINE_NAMED_CID(NS_LDAPSYNCQUERY_CID);
 #endif
@@ -110,9 +100,6 @@ const mozilla::Module::CIDEntry kLDAPProtocolCIDs[] = {
   { &kNS_LDAPURL_CID, false, NULL, nsLDAPURLConstructor},
   { &kNS_LDAPBERVALUE_CID, false, NULL, nsLDAPBERValueConstructor},
   { &kNS_LDAPBERELEMENT_CID, false, NULL, nsLDAPBERElementConstructor},
-#ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
-  { &kNS_LDAPCHANNEL_CID, false, NULL, nsLDAPChannelConstructor},
-#endif
 #ifdef MOZ_PREF_EXTENSIONS
   { &kNS_LDAPSYNCQUERY_CID, false, NULL, nsLDAPSyncQueryConstructor},
 #endif
@@ -131,9 +118,6 @@ const mozilla::Module::ContractIDEntry kLDAPProtocolContracts[] = {
   { "@mozilla.org/network/ldap-url;1", &kNS_LDAPURL_CID},
   { "@mozilla.org/network/ldap-ber-value;1", &kNS_LDAPBERVALUE_CID},
   { "@mozilla.org/network/ldap-ber-element;1", &kNS_LDAPBERELEMENT_CID},
-#ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
-  { "@mozilla.org/network/ldap-channel;1", &kNS_LDAPCHANNEL_CID},
-#endif
 #ifdef MOZ_PREF_EXTENSIONS
   { "@mozilla.org/ldapsyncquery;1", &kNS_LDAPSYNCQUERY_CID},
 #endif

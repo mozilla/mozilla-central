@@ -43,19 +43,13 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS		= \
-		base \
+PARALLEL_DIRS	= \
+		public \
+		src \
 		$(NULL)
-
-ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
-DIRS		+= \
-		datasource \
-		$(NULL)
-endif
 
 ifdef ENABLE_TESTS
-DIRS		+= \
-		tests
+TOOL_DIRS += tests
 endif
 
 include $(topsrcdir)/config/rules.mk

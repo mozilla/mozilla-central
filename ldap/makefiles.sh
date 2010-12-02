@@ -38,7 +38,6 @@
 
 add_makefiles "
 ldap/xpcom/Makefile
-ldap/xpcom/base/Makefile
-ldap/xpcom/base/public/Makefile
-ldap/xpcom/base/src/Makefile
+ldap/xpcom/public/Makefile
+ldap/xpcom/src/Makefile
 "

@@ -16,7 +16,7 @@
 #
 # The Initial Developer of the Original Code is
 # Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 2001
+# Portions created by the Initial Developer are Copyright (C) 2000
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
@@ -43,7 +43,48 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXTRA_COMPONENTS = nsLDAPDataSource.manifest nsLDAPDataSource.js
+MODULE		= mozldap
+LIBRARY_NAME	= mozldap
+EXPORT_LIBRARY	= 1
+IS_COMPONENT	= 1
+MODULE_NAME	= nsLDAPProtocolModule
+MOZILLA_INTERNAL_API = 1
+LIBXUL_LIBRARY	= 1
+
+EXTRA_COMPONENTS = \
+		nsLDAPProtocolHandler.js \
+		ldapComponents.manifest \
+		$(NULL)
+
+CPPSRCS		= \
+		nsLDAPProtocolModule.cpp \
+		nsLDAPMessage.cpp \
+		nsLDAPConnection.cpp \
+		nsLDAPOperation.cpp \
+		nsLDAPURL.cpp \
+		nsLDAPServer.cpp \
+		nsLDAPService.cpp \
+		nsLDAPBERValue.cpp \
+		nsLDAPControl.cpp \
+		nsLDAPBERElement.cpp \
+		nsLDAPModification.cpp \
+		$(NULL)
+
+ifdef MOZ_PREF_EXTENSIONS
+DEFINES += -DMOZ_PREF_EXTENSIONS
+
+CPPSRCS += nsLDAPSyncQuery.cpp
+endif
+
+ifdef MOZ_PSM
+DEFINES		+= -DMOZ_PSM
+CPPSRCS		+= \
+		nsLDAPSecurityGlue.cpp \
+		$(NULL)
+endif
+
+EXTRA_DSO_LDOPTS += $(MOZ_COMPONENT_LIBS) $(LDAP_LIBS)
 
 include $(topsrcdir)/config/rules.mk
 
+LOCAL_INCLUDES	= $(LDAP_CFLAGS)
