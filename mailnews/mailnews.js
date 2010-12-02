@@ -623,6 +623,7 @@ pref("mail.biff.play_sound.type", 0);
 pref("mail.biff.play_sound.url", "");
 pref("mail.biff.show_alert", true);
 pref("mail.biff.show_tray_icon", true); // currently Windows-only
+pref("mail.biff.show_balloon", true); // currently Windows-only
 pref("mail.biff.animate_dock_icon", false);
 
 // add jitter to biff interval

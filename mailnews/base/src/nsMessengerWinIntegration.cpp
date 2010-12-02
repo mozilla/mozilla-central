@@ -95,10 +95,28 @@
 #define NEW_MAIL_ALERT_ICON "chrome://messenger/skin/icons/new-mail-alert.png"
 #define SHOW_ALERT_PREF     "mail.biff.show_alert"
 #define SHOW_TRAY_ICON_PREF "mail.biff.show_tray_icon"
+#define SHOW_BALLOON_PREF   "mail.biff.show_balloon"
 
 // since we are including windows.h in this file, undefine get user name....
 #ifdef GetUserName
 #undef GetUserName
+#endif
+
+#ifndef NIIF_USER
+#define NIIF_USER       0x00000004
+#endif
+
+#ifndef NIIF_NOSOUND
+#define NIIF_NOSOUND    0x00000010
+#endif
+
+#ifndef NIN_BALOONUSERCLICK
+#define NIN_BALLOONUSERCLICK (WM_USER + 5)
+#endif
+
+#if _WIN32_IE < 0x600
+#undef NOTIFYICONDATAW_V2_SIZE
+#define NOTIFYICONDATAW_V2_SIZE sizeof(NOTIFYICONDATAW)
 #endif
 
 // begin shameless copying from nsNativeAppSupportWin
@@ -188,7 +206,7 @@ static void CALLBACK delayedSingleClick(HWND msgWindow, UINT msg, INT_PTR idEven
     // we know we are dealing with the windows integration object
     nsMessengerWinIntegration * winIntegrationService = static_cast<nsMessengerWinIntegration*>
                                                                    (static_cast<nsIMessengerOSIntegration*>(integrationService.get()));
-    winIntegrationService->ShowNewAlertNotification(PR_TRUE);
+    winIntegrationService->ShowNewAlertNotification(PR_TRUE, EmptyString(), EmptyString());
   }
 #endif
 }
@@ -205,7 +223,7 @@ static LRESULT CALLBACK MessageWindowProc( HWND msgWindow, UINT msg, WPARAM wp, 
       // a WM_LBUTTONDBLK event.
       ::SetTimer(msgWindow, 1, GetDoubleClickTime(), (TIMERPROC) delayedSingleClick);
     }
-    else if (lp == WM_LBUTTONDBLCLK)
+    else if (lp == WM_LBUTTONDBLCLK || lp == NIN_BALLOONUSERCLICK)
     {
       ::KillTimer(msgWindow, 1);
       openMailWindow(EmptyCString());
@@ -303,16 +321,26 @@ nsMessengerWinIntegration::ResetCurrent()
   return NS_OK;
 }
 
-NOTIFYICONDATAW sBiffIconData = { sizeof(NOTIFYICONDATAW),
+NOTIFYICONDATAW sBiffIconData = { NOTIFYICONDATAW_V2_SIZE,
                                   0,
                                   2,
-                                  NIF_ICON | NIF_MESSAGE | NIF_TIP,
+                                  NIF_ICON | NIF_MESSAGE | NIF_TIP | NIF_INFO,
                                   WM_USER,
                                   0,
-                                  0 };
+                                  L"",
+                                  0,
+                                  0,
+                                  L"",
+                                  30000,
+                                  L"",
+                                  NIIF_USER | NIIF_NOSOUND };
 // allow for the null terminator
 static const PRUint32 kMaxTooltipSize = sizeof(sBiffIconData.szTip) /
                                         sizeof(sBiffIconData.szTip[0]) - 1;
+static const PRUint32 kMaxBalloonSize = sizeof(sBiffIconData.szInfo) /
+                                        sizeof(sBiffIconData.szInfo[0]) - 1;
+static const PRUint32 kMaxBalloonTitle = sizeof(sBiffIconData.szInfoTitle) /
+                                         sizeof(sBiffIconData.szInfoTitle[0]) - 1;
 
 void nsMessengerWinIntegration::InitializeBiffStatusIcon()
 {
@@ -435,7 +463,8 @@ nsresult nsMessengerWinIntegration::GetStringBundle(nsIStringBundle **aBundle)
 }
 
 #ifndef MOZ_THUNDERBIRD
-nsresult nsMessengerWinIntegration::ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText,
+nsresult nsMessengerWinIntegration::ShowAlertMessage(const nsString& aAlertTitle,
+                                                     const nsString& aAlertText,
                                                      const nsACString& aFolderURI)
 {
   nsresult rv;
@@ -446,6 +475,14 @@ nsresult nsMessengerWinIntegration::ShowAlertMessage(const nsAString& aAlertTitl
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool showBalloon = PR_FALSE;
+  prefBranch->GetBoolPref(SHOW_BALLOON_PREF, &showBalloon);
+  sBiffIconData.szInfo[0] = '\0';
+  if (showBalloon) {
+    ::wcsncpy( sBiffIconData.szInfoTitle, aAlertTitle.get(), kMaxBalloonTitle);
+    ::wcsncpy( sBiffIconData.szInfo, aAlertText.get(), kMaxBalloonSize);
+  }
 
   PRBool showAlert = PR_TRUE;
   prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
@@ -472,7 +509,7 @@ nsresult nsMessengerWinIntegration::ShowAlertMessage(const nsAString& aAlertTitl
 // Opening Thunderbird's new mail alert notification window
 // aUserInitiated --> true if we are opening the alert notification in response to a user action
 //                    like clicking on the biff icon
-nsresult nsMessengerWinIntegration::ShowNewAlertNotification(PRBool aUserInitiated)
+nsresult nsMessengerWinIntegration::ShowNewAlertNotification(PRBool aUserInitiated, const nsString& aAlertTitle, const nsString& aAlertText)
 {
   nsresult rv;
 
@@ -481,6 +518,16 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(PRBool aUserInitiat
     return NS_OK;
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool showBalloon = PR_FALSE;
+  prefBranch->GetBoolPref(SHOW_BALLOON_PREF, &showBalloon);
+  sBiffIconData.szInfo[0] = '\0';
+  if (showBalloon) {
+    ::wcsncpy( sBiffIconData.szInfoTitle, aAlertTitle.get(), kMaxBalloonTitle);
+    ::wcsncpy( sBiffIconData.szInfo, aAlertText.get(), kMaxBalloonSize);
+  }
+
   PRBool showAlert = PR_TRUE;
 
   if (prefBranch)
@@ -561,7 +608,7 @@ nsresult nsMessengerWinIntegration::AlertFinished()
     if (prefBranch)
       prefBranch->GetBoolPref(SHOW_TRAY_ICON_PREF, &showTrayIcon);
   }
-  if (showTrayIcon)
+  if (showTrayIcon || sBiffIconData.szInfo[0])
   {
     GenericShellNotify(NIM_ADD);
     mBiffIconVisible = PR_TRUE;
@@ -677,7 +724,7 @@ void nsMessengerWinIntegration::FillToolTipInfo()
 #ifndef MOZ_THUNDERBIRD
     ShowAlertMessage(accountName, animatedAlertText, EmptyCString());
 #else
-    ShowNewAlertNotification(PR_FALSE);
+    ShowNewAlertNotification(PR_FALSE, accountName, animatedAlertText);
 #endif
   }
   else

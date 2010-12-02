@@ -84,7 +84,9 @@ public:
   NS_DECL_NSIOBSERVER
 
 #ifdef MOZ_THUNDERBIRD
-  nsresult ShowNewAlertNotification(PRBool aUserInitiated);
+  nsresult ShowNewAlertNotification(PRBool aUserInitiated, const nsString& aAlertTitle, const nsString& aAlertText);
+#else
+  nsresult ShowAlertMessage(const nsString& aAlertTitle, const nsString& aAlertText, const nsACString& aFolderURI);
 #endif
 
 private:
@@ -96,9 +98,6 @@ private:
   void GenericShellNotify(DWORD aMessage);
   void DestroyBiffIcon();
 
-#ifndef MOZ_THUNDERBIRD
-  nsresult ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText, const nsACString& aFolderURI);
-#endif
   nsresult GetFirstFolderWithNewMail(nsACString& aFolderURI);
 
   nsresult GetStringBundle(nsIStringBundle **aBundle);
