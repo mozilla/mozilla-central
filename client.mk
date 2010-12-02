@@ -289,7 +289,7 @@ CONFIG_STATUS_DEPS := \
 	$(TOPSRCDIR)/mozilla/allmakefiles.sh \
 	$(wildcard $(TOPSRCDIR)/mozilla/nsprpub/configure) \
 	$(wildcard $(TOPSRCDIR)/mozilla/config/milestone.txt) \
-	$(wildcard $(TOPSRCDIR)/directory/c-sdk/configure) \
+	$(wildcard $(TOPSRCDIR)/ldap/sdks/c-sdk/configure) \
 	$(wildcard $(addsuffix confvars.sh,$(wildcard $(TOPSRCDIR)/*/))) \
 	$(NULL)
 
