@@ -1,0 +1,27 @@
+%include messageHeader.css
+
+.hdrReplyButton > .toolbarbutton-menubutton-button {
+  -moz-appearance: none;
+  min-width: 1em;
+  min-height: 1ex;
+  margin: 0px;
+  /* important required to override messenger.css rules */
+  -moz-padding-start: 3px !important;
+  -moz-padding-end: 3px !important;
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+}
+
+toolbar[iconsize="small"] .msgHeaderView-button .toolbarbutton-text {
+  margin-bottom: 1px !important;
+}
+
+toolbar[mode="text"] .msgHeaderView-button .toolbarbutton-text {
+  padding-top: 0 !important;
+}
+
+.msgHeaderView-button,
+toolbarpaletteitem .msgHeaderView-button {
+  -moz-appearance: none;
+  min-height: 24px;
+}
