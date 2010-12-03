@@ -331,13 +331,25 @@ treechildren::-moz-tree-image(DirCol, IsRemote-true, IsSecure-true) {
 /* ::::: splitters ::::: */
 
 #dirTree-splitter {
-  min-width: 1px;
-  border-right: none;
+  border: none;
+  -moz-border-end: 1px solid #A9B7C9;
+  min-width: 0;
+  width: 3px;
+  background-color: transparent;
+  -moz-margin-start: -3px;
+  position: relative;
+  z-index: 10;
 }
 
 #results-splitter {
   border: none;
-  min-height: 1px;
+  border-top: 1px solid #A9B7C9;
+  min-height: 0;
+  height: 3px;
+  background-color: transparent;
+  margin-bottom: -3px;
+  position: relative;
+  z-index: 10;
 }
 
 /* ::::: results pane ::::: */
@@ -347,9 +359,9 @@ treechildren::-moz-tree-image(DirCol, IsRemote-true, IsSecure-true) {
   background-color: #EEF3FA;
   color: -moz-FieldText;
   -moz-border-right-colors: ThreeDHighlight ThreeDLightShadow;
-  border-left: 0px none;
+  border-left: none;
   border-right: 1px solid;
-  border-bottom: 0px none;
+  border-bottom: none;
 }
 
 treechildren::-moz-tree-image(GeneratedName) {
@@ -365,10 +377,8 @@ treechildren::-moz-tree-image(GeneratedName, MailList) {
 /* ::::: card view pane ::::: */
 
 #CardViewOuterBox {
+  border: none;
   border-top: 1px solid ThreeDShadow;
-  border-left: 0px none;
-  border-right: 0px none;
-  border-bottom: 0px none;
 }
 
 #CardViewBox {
