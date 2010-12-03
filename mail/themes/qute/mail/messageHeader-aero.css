@@ -1,5 +1,15 @@
 %include messageHeader.css
 
+#header-view-toolbox {
+  background-color: transparent;
+}
+
+@media all and (-moz-windows-compositor) {
+  #msgHeaderView {
+    background: #f8f8f8;
+  }
+}
+
 .hdrReplyButton > .toolbarbutton-menubutton-button {
   -moz-appearance: none;
   min-width: 1em;

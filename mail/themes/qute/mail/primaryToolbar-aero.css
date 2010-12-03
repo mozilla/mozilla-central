@@ -1,5 +1,34 @@
 %include primaryToolbar.css
 
+/* :::: Toolbar :::: */
+
+#mail-toolbox {
+  -moz-appearance: none;
+  border-top: none;
+  background-color: transparent;
+}
+
+#mail-toolbox > toolbar:not(:-moz-lwtheme) {
+  -moz-appearance: none;
+  border-style: none;
+  background-color: -moz-Dialog;
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0),
+                    rgba(255, 255, 255, 0));
+}
+
+@media all and (-moz-windows-default-theme) {
+  #mail-toolbox > toolbar:not(:-moz-lwtheme) {
+    background-color: rgb(227, 237, 246);
+  }
+}
+
+#mail-toolbox > toolbar:first-child:not(:-moz-lwtheme) {
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
+                    rgba(255, 255, 255, 0));
+}
+
+/* ::::: primary toolbar buttons ::::: */
+
 .toolbarbutton-menubutton-button,
 .toolbarbutton-menubutton-dropmarker,
 .toolbarbutton-1 {
