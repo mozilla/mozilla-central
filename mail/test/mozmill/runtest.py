@@ -52,7 +52,13 @@ import jsbridge
 import mozmill
 import socket
 import copy
-import simplejson
+
+# Python 2.6 has the json module, but Python 2.5 doesn't.
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 SCRIPT_DIRECTORY = os.path.abspath(os.path.realpath(os.path.dirname(sys.argv[0])))
 sys.path.append(SCRIPT_DIRECTORY)
 
@@ -326,13 +332,13 @@ TEST_RESULTS = []
 # override mozmill's default logging case, which I hate.
 def logFailure(obj):
     if isinstance(obj, basestring):
-        obj = simplejson.loads(obj)
+        obj = json.loads(obj)
     FAILURE_LIST.append(obj)
 def logEndTest(obj):
     # If we've got a string here, we know we're later than 1.5, and we can just
     # display a summary at the end as 1.5 will do TEST-UNEXPECTED-FAIL for us.
     if isinstance(obj, str):
-        obj = simplejson.loads(obj)
+        obj = json.loads(obj)
         obj['summary'] = True
     TEST_RESULTS.append(obj)
 #mozmill.LoggerListener.cases['mozmill.fail'] = logFailure
