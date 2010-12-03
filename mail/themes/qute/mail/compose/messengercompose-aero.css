@@ -47,6 +47,37 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+/* :::: Toolbar :::: */
+
+#compose-toolbox {
+  -moz-appearance: none;
+  border-top: none;
+  background-color: transparent;
+}
+
+toolbar:not(:-moz-lwtheme) {
+  -moz-appearance: none;
+  border: none;
+  background-color: -moz-Dialog;
+}
+
+@media all and (-moz-windows-default-theme) {
+  toolbar:not(:-moz-lwtheme) {
+    background-color: rgb(227, 237, 246);
+  }
+}
+
+#compose-toolbox > toolbar:first-child:not(:-moz-lwtheme) {
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
+                    rgba(255, 255, 255, .0));
+}
+
+#compose-toolbox > toolbar:last-of-type:not(:-moz-lwtheme) {
+  background-image: -moz-linear-gradient(transparent, transparent 10%,
+                    rgba(0, 0, 0, .03) 50%, rgba(0, 0, 0, .1) 90%,
+                    rgba(0, 0, 0, .2));
+}
+
 /* ::::: primary toolbar buttons ::::: */
 
 .toolbarbutton-menubutton-button,
