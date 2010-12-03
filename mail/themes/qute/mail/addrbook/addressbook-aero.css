@@ -271,6 +271,22 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   background-color: -moz-Dialog;
 }
 
+/* ::::: Search Textbox ::::: */
+
+#peopleSearchInput {
+  -moz-appearance: none;
+  background-clip: padding-box;
+  border: 1px solid ThreeDDarkShadow;
+  border-radius: 4px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .1) inset, 0 1px 0 rgba(255, 255, 255, .4);
+}
+
+@media all and (-moz-windows-default-theme) {
+  #peopleSearchInput {
+    border-color: rgba(0, 0, 0, .25) rgba(0, 0, 0, .32) rgba(0, 0, 0, .37);
+  }
+}
+
 /* ::::: directory pane adjustments ::::: */
 
 #abDirTreeHeader-title {
