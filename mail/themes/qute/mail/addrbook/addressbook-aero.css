@@ -36,7 +36,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-%include addressbook.css
+/* ===== addressbook.css ================================================
+   == Styles for the main Address Book window.
+   ====================================================================== */
+
+@import url("chrome://messenger/skin/");
+@import url("chrome://global/skin/toolbar.css");
+
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+@namespace html url("http://www.w3.org/1999/xhtml");
 
 /* :::: Toolbar :::: */
 
@@ -189,16 +197,126 @@ toolbarbutton[type="menu-button"][open="true"] >
   -moz-transition: background-color .4s;
 }
 
+.toolbarbutton-menubutton-button > .toolbarbutton-icon,
+.toolbarbutton-1 > .toolbarbutton-icon {
+  -moz-margin-end: 0;
+  width: 18px;
+  height: 18px;
+}
+
+toolbar[iconsize="small"] .toolbarbutton-menubutton-button > .toolbarbutton-icon,
+toolbar[iconsize="small"] .toolbarbutton-1 > .toolbarbutton-icon {
+  margin: 1px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Default icons have a built-in glow, so they are 18*18px even in small mode,
+   except for the large back icon, which is why the code below uses 'auto'
+   rather than 18px. This will pick the correct size based on the image
+   region. */
+:-moz-any(
+    #button-newcard, #button-newlist, #button-editcard, #button-newmessage,
+    #button-newim, #button-abdelete) .toolbarbutton-icon {
+  margin: 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+toolbar[iconsize="small"] .toolbarbutton-menubutton-button > .toolbarbutton-text,
+toolbar[iconsize="small"] .toolbarbutton-1 > .toolbarbutton-text {
+  margin: 0 !important;
+}
+
+toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1 .toolbarbutton-text {
+  -moz-padding-start: 2px;
+}
+
+toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
+  text-align: start;
+}
+
+#button-newcard {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(0px 18px 18px 0px);
+}
+
+#button-newlist {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(0px 36px 18px 18px);
+}
+
+#button-editcard {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(0px 54px 18px 36px);
+}
+
+#button-newmessage {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(0px 72px 18px 54px);
+}
+
+#button-newim {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(0px 90px 18px 72px);
+}
+
+#button-abdelete {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(0px 108px 18px 90px);
+}
+
+#abContent {
+  -moz-appearance: toolbox;
+  background-color: -moz-Dialog;
+}
+
+/* ::::: directory pane adjustments ::::: */
+
+#abDirTreeHeader-title {
+  -moz-padding-start: 4px;
+}
+
+/* ::::: directory pane icons ::::: */
+
+treechildren::-moz-tree-image(DirCol) {
+  -moz-margin-end: 2px;
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addrbook.png");
+}
+
+treechildren::-moz-tree-image(DirCol, IsMailList-true) {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/ablist.png");
+}
+
+treechildren::-moz-tree-image(DirCol, IsRemote-true) {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/remote-addrbook.png");
+}
+
+treechildren::-moz-tree-image(DirCol, IsRemote-true, IsSecure-true) {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/secure-remote-addrbook.png");
+}
+
+/* Don't use the listbox appearance as that gives us a blue-grey top border
+   that collides with the primary toolbar border */
 #dirTree {
   -moz-appearance:  none;
   background-color: #EEF3FA;
-  border-left: 0px none;
+  color: -moz-FieldText;
+  border-left: none;
   border-right: 1px solid #EEF3FA;
-  border-bottom: 0px none;
+  border-bottom: none;
 }
+
+#dirTree [sortDirection="ascending"],
+#dirTree [sortDirection="descending"] {
+  list-style-image: none;
+}
+
+/* ::::: splitters ::::: */
 
 #dirTree-splitter {
   min-width: 1px;
+  border-right: none;
 }
 
 #results-splitter {
@@ -206,13 +324,29 @@ toolbarbutton[type="menu-button"][open="true"] >
   min-height: 1px;
 }
 
+/* ::::: results pane ::::: */
+
 #abResultsTree {
   -moz-appearance:  none;
   background-color: #EEF3FA;
+  color: -moz-FieldText;
+  -moz-border-right-colors: ThreeDHighlight ThreeDLightShadow;
   border-left: 0px none;
   border-right: 1px solid;
   border-bottom: 0px none;
 }
+
+treechildren::-moz-tree-image(GeneratedName) {
+  -moz-margin-end: 2px;
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/abcard.png");
+}
+
+treechildren::-moz-tree-image(GeneratedName, MailList) {
+  -moz-margin-end: 2px;
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/ablist.png");
+}
+
+/* ::::: card view pane ::::: */
 
 #CardViewOuterBox {
   border-top: 1px solid ThreeDShadow;
@@ -225,6 +359,69 @@ toolbarbutton[type="menu-button"][open="true"] >
   -moz-user-focus: ignore;
   overflow: auto;
   min-width: 150px;
+  color: -moz-FieldText;
   background-color: #EEF3FA;
   border-top: 1px #EEF3FA;
+}
+
+#CardViewInnerBox {
+  margin-top: 2px;
+  margin-bottom: 2px;
+  padding: 0 8px;
+}
+
+#CardTitle {
+  font-size: 150%;
+  font-weight: bold;
+  border-bottom: 2px solid -moz-FieldText;
+  min-width: 120px;
+  margin: 0px;
+}
+ 
+.cardViewGroup {
+  margin-top: 8px;
+  padding-bottom: 5px;
+  min-width: 50px;
+}
+
+.CardViewHeading {
+  padding: 1px;
+  -moz-padding-start: 5px;
+  background-color: Highlight;
+  color: HighlightText;
+  font-weight: bold;
+  min-width: 30px;
+}
+
+#cvBuddyIcon {
+  -moz-padding-start: 20px;
+  padding-top: 2px;
+}
+
+.CardViewText,
+.CardViewLink {
+  -moz-padding-start: 20px;
+  -moz-padding-end: 2px;
+  min-width: 30px;
+  margin: 0px;
+}
+
+.CardViewLink {
+  color: -moz-nativehyperlinktext;
+  cursor: pointer;
+}
+
+#cvHomeMapIt, #cvWorkMapIt {
+  margin-bottom: 0px;
+}
+
+html|a {
+  -moz-padding-start: 0px;
+  -moz-padding-end: 2px;
+  border: none !important;
+  text-decoration: underline;
+}
+
+html|p {
+  border: none !important;
 }
