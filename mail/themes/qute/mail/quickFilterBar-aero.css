@@ -1,0 +1,220 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is quickFilterBar.css.
+ *
+ * The Initial Developer of the Original Code is
+ * The Mozilla Foundation.
+ * Portions created by the Initial Developer are Copyright (C) 2010
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Richard Marti <mozilla@paenglab.ch>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+ 
+@import url("chrome://messenger/content/quickFilterBar.css");
+
+/* :::: Filter Tab Bar Button :::: */
+
+#qfb-show-filter-bar {
+  -moz-appearance: none;
+  list-style-image: url("chrome://messenger/skin/icons/filter.png");
+  background: -moz-linear-gradient(left, transparent, transparent 1px,
+              rgba(255, 255, 255, .4) 1px, rgba(255, 255, 255, .4));
+  background-position: -5px -2px;
+  background-repeat: no-repeat;
+  background-size: 200%;
+  border: 0;
+  margin: 3px 0 0;
+  -moz-margin-end: 1px;
+  padding: 0 4px;
+  -moz-border-image: url(chrome://messenger/skin/icons/tab.png) 4 5 3 6 /
+                     4px 5px 3px 6px repeat stretch;
+  height: 22px;
+  border-radius: 10px 8px 0 0;
+}
+
+#qfb-show-filter-bar:hover {
+  background-image: -moz-linear-gradient(left, transparent, transparent 1px,
+                    rgba(255, 255, 255, .6) 1px, rgba(255, 255, 255, .6));
+}
+
+#qfb-show-filter-bar:hover:active,
+#qfb-show-filter-bar[checked],
+#qfb-show-filter-bar[checked]:hover {
+  background-image: -moz-linear-gradient(left, transparent, transparent 1px,
+                    rgba(255, 255, 255, .8) 1px, rgba(255, 255, 255, .9));
+}
+
+#qfb-show-filter-bar > .toolbarbutton-icon {
+  padding: 0 3px;
+}
+
+#qfb-show-filter-bar > .toolbarbutton-text {
+  display: none;
+}
+
+/* :::: Filter Bar :::: */
+
+#quick-filter-bar-main-bar {
+  border-left: 1px solid ThreeDShadow;
+  border-top: 1px solid ThreeDHighlight;
+  border-bottom: 1px solid ThreeDShadow;
+}
+
+#quick-filter-bar-main-bar:-moz-system-metric(windows-default-theme) {
+  background: -moz-linear-gradient(top, #f2f7fd 0, #e9f2fc 12px, #e3eefb 12px,
+              #e3eefb 100%);
+  border-left: 2px solid;
+  border-top: 1px solid #fff;
+  border-bottom: 2px solid;
+  -moz-border-left-colors: #9196a2 #fff;
+  -moz-border-bottom-colors: #9196a2 #fff;
+}
+
+#quick-filter-bar-expando {
+  border-left: 1px solid ThreeDShadow;
+}
+
+#quick-filter-bar-expando:-moz-system-metric(windows-default-theme) {
+  border-left: 2px solid;
+  -moz-border-left-colors: #9196a2 #fff;
+  background: #f2f6fb;
+}
+
+#quick-filter-bar-tab-bar,
+#quick-filter-bar-filter-text-bar {
+  border-top: 1px solid ThreeDHighlight;
+  border-bottom: 1px solid ThreeDShadow;
+}
+
+#quick-filter-bar-tab-bar:-moz-system-metric(windows-default-theme),
+#quick-filter-bar-filter-text-bar:-moz-system-metric(windows-default-theme) {
+  border-top: 1px solid #fff;
+  border-bottom: 2px solid;
+  -moz-border-bottom-colors: #9196a2 #fff;
+}
+
+#quick-filter-bar[filterActive="searching"] {
+  
+}
+#threadTree[filterActive="searching"] {
+  background-color: #ffffcc;
+}
+
+#quick-filter-bar[filterActive="matches"] {
+  
+}
+#threadTree[filterActive="matches"] {
+  background-color: #f2f9fc;
+}
+
+#quick-filter-bar[filterActive="nomatches"] {
+  
+}
+#threadTree[filterActive="nomatches"] {
+  background: -moz-repeating-linear-gradient(top left -45deg, #fff0f4,
+              #fff0f4 5px, white 5px, white 10px);
+}
+
+/* :::: Filter Buttons :::: */
+
+#quick-filter-bar-main-bar toolbarbutton {
+  -moz-margin-start: 1px;
+  -moz-margin-end: 1px;
+}
+
+/* keep that hideous outline focus ring from showing on the checked buttons */
+#quick-filter-bar-main-bar toolbarbutton:focus {
+  outline: none;
+}
+
+#qfb-filter-label:-moz-system-metric(windows-default-theme) {
+  color: GrayText;
+}
+
+#qfb-sticky {
+  list-style-image: url("chrome://messenger/skin/icons/xp-pin-grey.png");
+}
+
+#qfb-sticky[checked] {
+  list-style-image: url("chrome://messenger/skin/icons/xp-pin-red.png");
+}
+
+#qfb-unread {
+  list-style-image: url("chrome://messenger/skin/icons/readmail.png");
+}
+
+#qfb-unread[checked] {
+  list-style-image: url("chrome://messenger/skin/icons/unreadmail.png");
+}
+
+#qfb-starred {
+  list-style-image: url("chrome://messenger/skin/icons/flag-empty.png");
+}
+
+#qfb-starred[checked] {
+  list-style-image: url("chrome://messenger/skin/icons/flag-col.png");
+}
+
+.qfb-starred-nostar {
+  list-style-image: url("chrome://messenger/skin/starContact.png");
+  -moz-image-region:rect(0px 32px 16px 16px);
+}
+
+#qfb-inaddrbook {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/abcard.png");
+}
+
+#qfb-tags {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 256px 16px 240px);
+}
+
+#qfb-tags[disabled] {
+  -moz-image-region: rect(48px, 384px, 72px, 360px) !important;
+}
+
+#qfb-attachment {
+  list-style-image: url("chrome://messenger/skin/icons/attachment-col.png");
+}
+
+#quick-filter-bar[filterActive="matches"] #qfb-results-label {
+  color: green;
+}
+
+#quick-filter-bar[filterActive="nomatches"] #qfb-results-label {
+  color: #f66;
+}
+
+#quick-filter-bar-expando toolbarbutton,
+#quick-filter-bar-expando toolbarbutton[checked] {
+  -moz-padding-end: 6px !important;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  -moz-margin-start: 1px;
+  -moz-margin-end: 1px;
+}
