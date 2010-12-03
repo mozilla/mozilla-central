@@ -166,6 +166,9 @@ function nsMsgStatusFeedback()
   this._progressBarContainer = document.getElementById("statusbar-progresspanel");
   this._throbber = document.getElementById("throbber-box");
   this._activeProcesses = new Array();
+
+  // make sure the stop button is accurate from the get-go
+  goUpdateCommand("cmd_stop");
 }
 
 nsMsgStatusFeedback.prototype =
@@ -242,6 +245,9 @@ nsMsgStatusFeedback.prototype =
     // Start the throbber.
     if (this._throbber)
       this._throbber.setAttribute("busy", true);
+
+    // Update the stop button
+    goUpdateCommand("cmd_stop");
   },
 
   startMeteors: function() {
@@ -274,6 +280,9 @@ nsMsgStatusFeedback.prototype =
     // Turn progress meter off.
     this._statusFeedbackProgress = -1;
     this.updateProgress();
+
+    // Update the stop button
+    goUpdateCommand("cmd_stop");
   },
 
   stopMeteors: function() {

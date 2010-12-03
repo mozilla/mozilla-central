@@ -466,7 +466,8 @@ let QuickFilterBarMuxer = {
     if (!("quickFilter" in aTab._ext))
       return null;
 
-    if (aCommand == "cmd_stop" || aCommand == "cmd_find" ||
+    if (aCommand == "cmd_popQuickFilterBarStack" ||
+        aCommand == "cmd_find" ||
         aCommand == "cmd_toggleQuickFilterBar")
       return true;
     else
@@ -477,7 +478,8 @@ let QuickFilterBarMuxer = {
     if (!("quickFilter" in aTab._ext))
       return null;
 
-    if (aCommand == "cmd_stop" || aCommand == "cmd_find" ||
+    if (aCommand == "cmd_popQuickFilterBarStack" ||
+        aCommand == "cmd_find" ||
         aCommand == "cmd_toggleQuickFilterBar")
       return true;
     else
@@ -488,7 +490,7 @@ let QuickFilterBarMuxer = {
     if (!("quickFilter" in aTab._ext))
       return null;
 
-    if (aCommand == "cmd_stop") {
+    if (aCommand == "cmd_popQuickFilterBarStack") {
       QuickFilterBarMuxer.cmdEscapeFilterStack();
       return true;
     }

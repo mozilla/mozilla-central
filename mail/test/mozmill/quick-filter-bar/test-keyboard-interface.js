@@ -118,9 +118,9 @@ function test_escape_rules() {
 
   // Escape should clear the text constraint but the bar should still be
   //  visible.  The trick here is that escape is clearing the text widget
-  //  and is not falling through to the cmd_stop case so we end up with a
-  //  situation where the _lastFilterAttr is the textbox but the textbox
-  //  does not actually have any active filter.
+  //  and is not falling through to the cmd_popQuickFilterBarStack case so we
+  //  end up with a situation where the _lastFilterAttr is the textbox but the
+  //  textbox does not actually have any active filter.
   mc.keypress(null, "VK_ESCAPE", {});
   assert_quick_filter_bar_visible(true);
   assert_constraints_expressed({});

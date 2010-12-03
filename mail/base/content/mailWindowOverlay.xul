@@ -214,6 +214,7 @@
   <command id="cmd_find" oncommand="goDoCommand('cmd_find')" disabled="true"/>
   <command id="cmd_findAgain" oncommand="goDoCommand('cmd_findAgain')" disabled="true"/>
   <command id="cmd_findPrevious"  oncommand="goDoCommand('cmd_findPrevious')"  disabled="true"/>
+  <!-- Stop/abort current network activities. -->
   <command id="cmd_stop" oncommand="goDoCommand('cmd_stop')"/>
   <command id="cmd_reload" oncommand="goDoCommand('cmd_reload')"/>
 </commandset>
@@ -437,7 +438,6 @@
   <key keycode="&findAgainCmd.key2;"   oncommand="goDoCommand('cmd_findAgain')"/>
   <key keycode="&findPrevCmd.key2;"    oncommand="goDoCommand('cmd_findPrevious')"  modifiers="shift"/>
   <key id="key_quickSearchFocus" key="&quickSearchCmd.key;"  oncommand="QuickSearchFocus()" modifiers="accel"/>
-  <key id="key_stop" keycode="VK_ESCAPE" command="cmd_stop"/>
 
   <keyset id="viewZoomKeys">
     <key id="key_fullZoomReduce"  key="&fullZoomReduceCmd.commandkey;"
