@@ -1,5 +1,43 @@
 %include mailWindow1.css
 
+#folderpane_splitter,
+#threadpane-splitter:not([orient="vertical"]) {
+  border: none;
+  -moz-border-end: 1px solid #A9B7C9;
+  min-width: 0;
+  width: 3px;
+  background-color: transparent;
+  -moz-margin-start: -3px;
+  position: relative;
+  z-index: 10;
+}
+
+#threadpane-splitter,
+#attachment-splitter {
+  border: none;
+  border-top: 1px solid #A9B7C9;
+  min-height: 0;
+  height: 3px;
+  background-color: transparent;
+  margin-bottom: -3px;
+  position: relative;
+  z-index: 10;
+}
+
+#threadpane-splitter[collapsed="true"] {
+  display: none;
+}
+
+#accountCentralBox,
+#threadTree {
+  -moz-border-start: none;
+}
+
+#messagepanebox {
+  border-top-width: 0px;
+  -moz-border-start: none;
+}
+
 .folderview-cycler {
   -moz-padding-start: 5px;
   -moz-padding-end: 5px;
