@@ -78,6 +78,10 @@ toolbar:not(:-moz-lwtheme) {
                     rgba(0, 0, 0, .2));
 }
 
+#MsgHeadersToolbar {
+  min-height: 132px;
+}
+
 /* ::::: primary toolbar buttons ::::: */
 
 .toolbarbutton-menubutton-button,
@@ -198,6 +202,38 @@ toolbarbutton[type="menu-button"][open="true"] >
   -moz-transition: background-color .4s;
 }
 
+.toolbarbutton-menubutton-button > .toolbarbutton-icon,
+.toolbarbutton-1 > .toolbarbutton-icon {
+  -moz-margin-end: 0;
+  width: 18px;
+  height: 18px;
+}
+
+toolbar[iconsize="small"] .toolbarbutton-menubutton-button > .toolbarbutton-icon,
+toolbar[iconsize="small"] .toolbarbutton-1 > .toolbarbutton-icon {
+  margin: 1px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Default icons have a built-in glow, so they are 18*18px even in small mode,
+   except for the large back icon, which is why the code below uses 'auto'
+   rather than 18px. This will pick the correct size based on the image
+   region. */
+:-moz-any(
+    #button-send, #button-contacts, #spellingButton, #button-attach,
+    #button-security, #button-save, #quoteButton, #cut-button,
+    #copy-button, #paste-button) .toolbarbutton-icon {
+  margin: 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+toolbar[iconsize="small"] .toolbarbutton-menubutton-button > .toolbarbutton-text,
+toolbar[iconsize="small"] .toolbarbutton-1 > .toolbarbutton-text {
+  margin: 0 !important;
+}
+
 toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1 .toolbarbutton-text {
   -moz-padding-start: 2px;
 }
@@ -208,238 +244,49 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 
 #button-send {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
-  -moz-image-region: rect(0px 24px 24px 0px);
-}
-
-#button-send:hover {
-  -moz-image-region: rect(24px 24px 48px 0px);
-}
-
-#button-send[disabled="true"] {
-  -moz-image-region: rect(48px 24px 72px 0px) !important;
+  -moz-image-region: rect(0px 18px 18px 0px);
 }
 
 #button-contacts {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
-  -moz-image-region: rect(0px 48px 24px 24px) !important;
-}
-
-#button-contacts:hover {
-  -moz-image-region: rect(24px 48px 48px 24px) !important;
-}
-
-#button-contacts[disabled="true"] {
-  -moz-image-region: rect(48px 48px 72px 24px) !important;
+  -moz-image-region: rect(0px 36px 18px 18px) !important;
 }
 
 #spellingButton {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
-  -moz-image-region: rect(0px 72px 24px 48px);
-}
-
-#spellingButton:hover {
-  -moz-image-region: rect(24px 72px 48px 48px);
-}
-
-#spellingButton[disabled="true"] {
-  -moz-image-region: rect(48px 72px 72px 48px) !important;
+  -moz-image-region: rect(0px 54px 18px 36px);
 }
 
 #button-attach {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
-  -moz-image-region: rect(0px 96px 24px 72px);
+  -moz-image-region: rect(0px 72px 18px 54px);
 }
 
-#button-attach:hover {
-  -moz-image-region: rect(24px 96px 48px 72px);
-}
-
-#button-attach[disabled="true"] {
-  -moz-image-region: rect(48px 96px 72px 72px) !important;
+#button-security {
+  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png") !important;
+  -moz-image-region: rect(0px 90px 18px 72px) !important;
 }
 
 #button-save {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
-  -moz-image-region: rect(0px 144px 24px 120px);
-}
-
-#button-save:hover {
-  -moz-image-region: rect(24px 144px 48px 120px);
-}
-
-#button-save[disabled="true"] {
-  -moz-image-region: rect(48px 144px 72px 120px) !important;
+  -moz-image-region: rect(0px 108px 18px 90px);
 }
 
 #quoteButton {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
-  -moz-image-region: rect(0px 168px 24px 144px);
+  -moz-image-region: rect(0px 126px 18px 108px);
 }
-
-#quoteButton:hover {
-  -moz-image-region: rect(24px 168px 48px 144px);
-}
-
-#quoteButton[disabled="true"] {
-  -moz-image-region: rect(48px 168px 72px 144px) !important;
-}
-
 #cut-button {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
-  -moz-image-region: rect(0px 192px 24px 168px);
+  -moz-image-region: rect(0px 144px 18px 126px);
 }
-
-#cut-button:hover {
-  -moz-image-region: rect(24px 192px 48px 168px);
-}
-
-#cut-button[disabled="true"] {
-  -moz-image-region: rect(48px 192px 72px 168px) !important;
-}
-
 #copy-button {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
-  -moz-image-region: rect(0px 216px 24px 192px);
+  -moz-image-region: rect(0px 162px 18px 144px);
 }
-
-#copy-button:hover {
-  -moz-image-region: rect(24px 216px 48px 192px);
-}
-
-#copy-button[disabled="true"] {
-  -moz-image-region: rect(48px 216px 72px 192px) !important;
-}
-
 #paste-button {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
-  -moz-image-region: rect(0px 240px 24px 216px);
-}
-
-#paste-button:hover {
-  -moz-image-region: rect(24px 240px 48px 216px);
-}
-
-#paste-button[disabled="true"] {
-  -moz-image-region: rect(48px 240px 72px 216px) !important;
-}
-
-/* ::::: small primary toolbar buttons ::::: */
-
-toolbar[iconsize="small"] #button-send {
-  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
-  -moz-image-region: rect(0px 16px 16px 0px);
-}
-
-toolbar[iconsize="small"] #button-send:hover {
-  -moz-image-region: rect(16px 16px 32px 0px);
-}
-
-toolbar[iconsize="small"] #button-send[disabled] {
-  -moz-image-region: rect(32px 16px 48px 0px) !important;
-}
-
-toolbar[iconsize="small"] #button-contacts {
-  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
-  -moz-image-region: rect(0px 32px 16px 16px) !important;
-}
-
-toolbar[iconsize="small"] #button-contacts:hover {
-  -moz-image-region: rect(16px 32px 32px 16px) !important;
-}
-
-toolbar[iconsize="small"] #button-contacts[disabled] {
-  -moz-image-region: rect(32px 32px 48px 16px) !important;
-}
-
-toolbar[iconsize="small"] #spellingButton {
-  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
-  -moz-image-region: rect(0px 48px 16px 32px);
-}
-
-toolbar[iconsize="small"] #spellingButton:hover {
-  -moz-image-region: rect(16px 48px 32px 32px);
-}
-
-toolbar[iconsize="small"] #spellingButton[disabled="true"] {
-  -moz-image-region: rect(32px 48px 48px 32px) !important;
-}
-
-toolbar[iconsize="small"] #button-attach {
-  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
-  -moz-image-region: rect(0px 64px 16px 48px);
-}
-
-toolbar[iconsize="small"] #button-attach:hover {
-  -moz-image-region: rect(16px 64px 32px 48px);
-}
-
-toolbar[iconsize="small"] #button-attach[disabled] {
-  -moz-image-region: rect(32px 64px 48px 48px) !important;
-}
-
-toolbar[iconsize="small"] #button-save {
-  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
-  -moz-image-region: rect(0px 96px 16px 80px);
-}
-
-toolbar[iconsize="small"] #button-save:hover {
-  -moz-image-region: rect(16px 96px 32px 80px);
-}
-
-toolbar[iconsize="small"] #button-save[disabled] {
-  -moz-image-region: rect(32px 96px 48px 80px) !important;
-}
-
-toolbar[iconsize="small"] #quoteButton {
-  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
-  -moz-image-region: rect(0px 112px 16px 96px);
-}
-
-toolbar[iconsize="small"] #quoteButton:hover {
-  -moz-image-region: rect(16px 112px 32px 96px);
-}
-
-toolbar[iconsize="small"] #quoteButton[disabled="true"] {
-  -moz-image-region: rect(32px 112px 48px 96px) !important;
-}
-
-toolbar[iconsize="small"] #cut-button {
-  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
-  -moz-image-region: rect(0px 128px 16px 112px);
-}
-
-toolbar[iconsize="small"] #cut-button:hover {
-  -moz-image-region: rect(16px 128px 32px 112px);
-}
-
-toolbar[iconsize="small"] #cut-button[disabled="true"] {
-  -moz-image-region: rect(32px 128px 48px 112px) !important;
-}
-
-toolbar[iconsize="small"] #copy-button {
-  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
-  -moz-image-region: rect(0px 144px 16px 128px);
-}
-
-toolbar[iconsize="small"] #copy-button:hover {
-  -moz-image-region: rect(16px 144px 32px 128px);
-}
-
-toolbar[iconsize="small"] #copy-button[disabled="true"] {
-  -moz-image-region: rect(32px 144px 48px 128px) !important;
-}
-
-toolbar[iconsize="small"] #paste-button {
-  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
-  -moz-image-region: rect(0px 160px 16px 144px);
-}
-
-toolbar[iconsize="small"] #paste-button:hover {
-  -moz-image-region: rect(16px 160px 32px 144px);
-}
-
-toolbar[iconsize="small"] #paste-button[disabled="true"] {
-  -moz-image-region: rect(32px 160px 48px 144px) !important;
+  -moz-image-region: rect(0px 180px 18px 162px);
 }
 
 /* ::::: special toolbar colors ::::: */
@@ -476,7 +323,8 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
   cursor: pointer;
 }
 
-/* XXX I should really have a selector rule here to select just .listcell-icon objects underneath the attachmentList listbox */
+/* XXX I should really have a selector rule here to select just .listcell-icon
+   objects underneath the attachmentList listbox */
 
 .listcell-icon {
   -moz-margin-start: 2px;
@@ -554,10 +402,6 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 
 .aw-menulist > dropmarker {
   height: 11px;
-}
-
-#MsgHeadersToolbar {
-  min-height: 132px;
 }
 
 /* ::::: format toolbar ::::: */
