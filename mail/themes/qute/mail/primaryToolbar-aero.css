@@ -1,4 +1,50 @@
-%include primaryToolbar.css
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is primaryToolbar.css.
+ *
+ * The Initial Developer of the Original Code is
+ * The Mozilla Foundation.
+ * Portions created by the Initial Developer are Copyright (C) 2010
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Richard Marti <mozilla@paenglab.ch>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+/* ===== primaryToolbar.css =============================================
+   == Images for the Mail primary toolbar.
+   == This file is mainly about the general look-and-feel of
+   == native-OS-style toolbars at the top of various windows, as well as
+   == the specifically about the ones that appear on the 3-pane window and
+   == the standalone message window.  The other native-OS-style toolbars
+   == (addressbook and compose) are already styled elsewhere.
+   ====================================================================== */
+
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 /* :::: Toolbar :::: */
 
@@ -145,4 +191,195 @@ toolbarbutton[type="menu-button"][open="true"] >
 .toolbarbutton-1[checked="true"]:not(:active):hover {
   background-color: rgba(90%, 90%, 90%, .4);
   -moz-transition: background-color .4s;
+}
+
+.toolbarbutton-menubutton-button > .toolbarbutton-icon,
+.toolbarbutton-1 > .toolbarbutton-icon {
+  -moz-margin-end: 0;
+  width: 18px;
+  height: 18px;
+}
+
+toolbar[iconsize="small"] .toolbarbutton-menubutton-button > .toolbarbutton-icon,
+toolbar[iconsize="small"] .toolbarbutton-1 > .toolbarbutton-icon {
+  margin: 1px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Default icons have a built-in glow, so they are 18*18px even in small mode,
+   except for the large back icon, which is why the code below uses 'auto'
+   rather than 18px. This will pick the correct size based on the image
+   region. */
+:-moz-any(
+    #button-getmsg, #button-newmsg, #button-address, #button-reply,
+    #button-replyall, #button-replylist, #button-forward, .delete-button,
+    .junk-button, #button-print, #button-stop, #button-file, #button-next,
+    #button-previous, #button-mark, #button-tag, #button-goback,
+    #button-goforward, #button-compact, #button-archive,
+    #hdrReplyButton, #hdrReplyToSenderButton, #hdrReplyAllButton,
+    #hdrReplyListButton, #hdrForwardButton, #hdrTrashButton, #hdrJunkButton
+	) .toolbarbutton-icon {
+  margin: 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+toolbar[iconsize="small"] .toolbarbutton-menubutton-button > .toolbarbutton-text,
+toolbar[iconsize="small"] .toolbarbutton-1 > .toolbarbutton-text {
+  margin: 0 !important;
+}
+
+toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1 .toolbarbutton-text {
+  -moz-padding-start: 2px;
+}
+
+toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
+  text-align: start;
+}
+
+.toolbarbutton-1[type="menu"] {
+  -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
+}
+
+toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
+  -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu");
+}
+
+#button-getmsg {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 18px, 18px, 0px);
+}
+
+#button-newmsg {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 36px, 18px, 18px);
+}
+
+#button-address {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 54px, 18px, 36px);
+}
+
+#button-reply {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 72px, 18px, 54px);
+}
+
+#button-replyall {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 90px, 18px, 72px);
+}
+
+#button-replylist {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 126px, 18px, 108px);
+}
+
+#button-forward {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 108px, 18px, 90px);
+}
+
+.delete-button {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 144px, 18px, 126px);
+}
+
+.junk-button {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 162px, 18px, 144px);
+}
+
+#button-print {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 180px 18px 162px);
+}
+
+#button-stop {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 198px 18px 180px);
+}
+
+#button-file {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 216px 18px 198px);
+}
+
+#button-next {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 234px 18px 216px);
+}
+
+#button-previous {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 252px 18px 234px);
+}
+
+#button-mark {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 270px, 18px, 252px);
+}
+
+#button-tag {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 288px, 18px, 270px);
+}
+
+#button-goback {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 306px, 18px, 288px);
+}
+
+#button-goforward {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 324px, 18px, 306px);
+}
+
+#button-compact {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 342px, 18px, 324px);
+}
+
+#button-archive {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 360px, 18px, 342px);
+}
+
+/* ::::: message notification bar style rules ::::: */
+
+.msgNotificationBar {
+  background-color: InfoBackground;
+  color: InfoText;  
+  border-bottom: 1px solid ThreeDDarkShadow;
+  padding: 3px;
+}
+
+.msgNotificationBarText {
+  font-weight: bold;
+}
+
+.msgNotificaton-smallText {
+  -moz-padding-start: 10px;
+  font-size: 90%;
+}
+
+#junkBarImage {
+  list-style-image: url("chrome://messenger/skin/icons/junk.png");
+}
+
+#junkIcon {
+  list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
+}
+
+#remoteContentImage {
+  list-style-image: url("chrome://messenger/skin/icons/remote-blocked.png"); 
+}
+
+#phishingBarImage {
+  list-style-image: url("chrome://messenger/skin/icons/phishing.png");
+}
+
+#mdnBarImage {
+  list-style-image: url("chrome://messenger/skin/icons/warning.png");
 }
