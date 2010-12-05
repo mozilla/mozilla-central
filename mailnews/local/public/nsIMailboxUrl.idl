@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -50,42 +50,42 @@ typedef long nsMailboxAction;
 interface nsIMailboxUrl : nsISupports {
 
   // Mailbox urls which parse a mailbox folder require a consumer of the
-    // stream which will represent the mailbox. This consumer is the mailbox
-    // parser. As data from the mailbox folder is read in, the data will be
-    // written to a stream and the consumer will be notified through
-    // nsIStreamListenter::OnDataAvailable that the stream has data
+  // stream which will represent the mailbox. This consumer is the mailbox
+  // parser. As data from the mailbox folder is read in, the data will be
+  // written to a stream and the consumer will be notified through
+  // nsIStreamListenter::OnDataAvailable that the stream has data
   // available...
   // mscott: I wonder if the caller should be allowed to create and set
-    // the stream they want the data written to as well? Hmm....
+  // the stream they want the data written to as well? Hmm....
 
-    attribute nsIStreamListener mailboxParser;
+  attribute nsIStreamListener mailboxParser;
 
   /////////////////////////////////////////////////////////////////////////
   // Copy/Move mailbox urls require a mailbox copy handler which actually
-    // performs the copy.
+  // performs the copy.
   /////////////////////////////////////////////////////////////////////////
-    attribute nsIStreamListener mailboxCopyHandler;
+  attribute nsIStreamListener mailboxCopyHandler;
 
-    // Some mailbox urls include a message key for the message in question.
-    readonly attribute nsMsgKey messageKey;
+  // Some mailbox urls include a message key for the message in question.
+  readonly attribute nsMsgKey messageKey;
 
-    // this is to support multiple msg move/copy in one url
-    void setMoveCopyMsgKeys(out nsMsgKey keysToFlag, in long numKeys);
-    void getMoveCopyMsgHdrForIndex(in unsigned long msgIndex, out nsIMsgDBHdr msgHdr);
-    readonly attribute unsigned long numMoveCopyMsgs;
-    attribute unsigned long curMoveCopyMsgIndex;
+  // this is to support multiple msg move/copy in one url
+  void setMoveCopyMsgKeys(out nsMsgKey keysToFlag, in long numKeys);
+  void getMoveCopyMsgHdrForIndex(in unsigned long msgIndex, out nsIMsgDBHdr msgHdr);
+  readonly attribute unsigned long numMoveCopyMsgs;
+  attribute unsigned long curMoveCopyMsgIndex;
   // mailbox urls to fetch a mail message can specify the size of
-    // the message...
+  // the message...
   // this saves us the trouble of having to open up the msg db and ask
-    // ourselves...
-    attribute unsigned long messageSize;
+  // ourselves...
+  attribute unsigned long messageSize;
 
-    attribute nsMailboxAction mailboxAction;
+  attribute nsMailboxAction mailboxAction;
 
-    /* these are nsMailboxActions */
+  /* these are nsMailboxActions */
   const long ActionParseMailbox = 0;
-    const long ActionFetchMessage = 1;
-    const long ActionCopyMessage = 2;
+  const long ActionFetchMessage = 1;
+  const long ActionCopyMessage = 2;
   const long ActionMoveMessage = 3;
   const long ActionSaveMessageToDisk = 4;
   const long ActionAppendMessageToDisk = 5;
