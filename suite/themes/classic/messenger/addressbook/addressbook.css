@@ -167,7 +167,8 @@
   border-top: 1px solid ThreeDDarkShadow;
   border-bottom: 1px solid ThreeDLightShadow;
   border-right: 1px solid ThreeDLightShadow;
-  background-color: #FFFFFF;
+  background-color: -moz-Field;
+  color: -moz-FieldText;
 }
 
 #CardViewInnerBox {
@@ -179,7 +180,7 @@
 #CardTitle {
   font-size: 150%;
   font-weight: bold;
-  border-bottom: 2px solid black;
+  border-bottom: 2px solid -moz-FieldText;
   min-width: 120px;
   margin: 0px;
 }
@@ -214,8 +215,8 @@
 }
 
 .CardViewLink {
-  color: blue;
   text-decoration: underline;
+  color: -moz-nativehyperlinktext;
   cursor: pointer;
 }
 
