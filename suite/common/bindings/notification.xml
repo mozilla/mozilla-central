@@ -161,6 +161,12 @@
                   this.addonInstallComplete(installInfo);
                 break;
 
+              case "addon-install-disabled":
+                var installInfo = aSubject.QueryInterface(Components.interfaces.amIWebInstallInfo);
+                if (installInfo.originatingWindow.top == browser.contentWindow)
+                  this.addonInstallDisabled(installInfo);
+                break;
+
               case "addon-install-failed":
                 var installInfo = aSubject.QueryInterface(Components.interfaces.amIWebInstallInfo);
                 if (installInfo.originatingWindow.top == browser.contentWindow)
@@ -432,48 +438,26 @@
         <parameter name="installInfo"/>
         <body>
           <![CDATA[
-            var notificationName, messageString, buttons;
-            var prefBranch = this._prefs; // used by editPrefs callback
-
-            if (!prefBranch.getBoolPref("xpinstall.enabled")) {
-              notificationName = "xpinstall-disabled";
-              if (prefBranch.prefIsLocked("xpinstall.enabled")) {
-                messageString = this._stringBundle.GetStringFromName("xpinstallDisabledMessageLocked");
-                buttons = [];
-              } else {
-                messageString = this._stringBundle.GetStringFromName("xpinstallDisabledMessage");
-                buttons = [{
-                  label: this._stringBundle.GetStringFromName("xpinstallDisabledButton"),
-                  accessKey: this._stringBundle.GetStringFromName("xpinstallDisabledButton.accesskey"),
-                  popup: null,
-                  callback: function editPrefs() {
-                    prefBranch.setBoolPref("xpinstall.enabled", true);
-                    return false;
-                  }
-                }];
-              }
-            } else {
-              var host;
-              try {
-                // this fails with nsSimpleURIs like data: URIs
-                host = installInfo.originatingURI.host;
-              } catch (ex) {
-                host = this._stringBundle.GetStringFromName("xpinstallHostNotAvailable");
-              }
-              notificationName = "xpinstall";
-              var brandShortName = this._brandStringBundle.GetStringFromName("brandShortName");
-              messageString = this._stringBundle.formatStringFromName("xpinstallPromptWarning",
-                                                                      [brandShortName, host], 2);
-              buttons = [{
-                label: this._stringBundle.GetStringFromName("xpinstallPromptInstallButton"),
-                accessKey: this._stringBundle.GetStringFromName("xpinstallPromptInstallButton.accesskey"),
-                popup: null,
-                callback: function allowInstall() {
-                  installInfo.install();
-                  return false;
-                }
-              }];
+            var host;
+            try {
+              // this fails with nsSimpleURIs like data: URIs
+              host = installInfo.originatingURI.host;
+            } catch (ex) {
+              host = this._stringBundle.GetStringFromName("xpinstallHostNotAvailable");
             }
+            var notificationName = "addon-install-blocked";
+            var brandShortName = this._brandStringBundle.GetStringFromName("brandShortName");
+            var messageString = this._stringBundle.formatStringFromName("xpinstallPromptWarning",
+                                                                        [brandShortName, host], 2);
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName("xpinstallPromptInstallButton"),
+              accessKey: this._stringBundle.GetStringFromName("xpinstallPromptInstallButton.accesskey"),
+              popup: null,
+              callback: function allowInstall() {
+                installInfo.install();
+                return false;
+              }
+            }];
 
             if (!this.getNotificationWithValue(notificationName)) {
               var priority = this.PRIORITY_WARNING_MEDIUM;
@@ -538,6 +522,40 @@
         </body>
       </method>
 
+      <method name="addonInstallDisabled">
+        <parameter name="installInfo"/>
+        <body>
+          <![CDATA[
+            var messageString, buttons;
+            var prefBranch = this._prefs; // used by editPrefs callback
+
+            var notificationName = "addon-install-disabled";
+            if (prefBranch.prefIsLocked("xpinstall.enabled")) {
+              messageString = this._stringBundle.GetStringFromName("xpinstallDisabledMessageLocked");
+              buttons = [];
+            } else {
+              messageString = this._stringBundle.GetStringFromName("xpinstallDisabledMessage");
+              buttons = [{
+                label: this._stringBundle.GetStringFromName("xpinstallDisabledButton"),
+                accessKey: this._stringBundle.GetStringFromName("xpinstallDisabledButton.accesskey"),
+                popup: null,
+                callback: function editPrefs() {
+                  prefBranch.setBoolPref("xpinstall.enabled", true);
+                  return false;
+                }
+              }];
+            }
+
+            if (!this.getNotificationWithValue(notificationName)) {
+              var priority = this.PRIORITY_WARNING_MEDIUM;
+              var iconURL = "chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png";
+              this.appendNotification(messageString, notificationName,
+                                      iconURL, priority, buttons);
+            }
+          ]]>
+        </body>
+      </method>
+
       <method name="addonInstallFailed">
         <parameter name="installInfo"/>
         <body>
@@ -592,6 +610,7 @@
                              .getService(Components.interfaces.nsIObserverService);
           os.addObserver(this, "addon-install-blocked", false);
           os.addObserver(this, "addon-install-complete", false);
+          os.addObserver(this, "addon-install-disabled", false);
           os.addObserver(this, "addon-install-failed", false);
           os.addObserver(this, "perm-changed", false);
 
@@ -633,6 +652,9 @@
             } catch (ex) {}
             try {
               os.removeObserver(this, "addon-install-complete");
+            } catch (ex) {}
+            try {
+              os.removeObserver(this, "addon-install-disabled");
             } catch (ex) {}
             try {
               os.removeObserver(this, "addon-install-failed");
