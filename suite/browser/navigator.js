@@ -2703,13 +2703,14 @@ var LightWeightThemeWebInstaller = {
     var previousTheme = this._manager.currentTheme;
     this._manager.currentTheme = newTheme;
     if (this._manager.currentTheme &&
-        this._manager.currentTheme.id == newTheme.id) {
+        this._manager.currentTheme.id == newTheme.id)
       this._postInstallNotification(newTheme, previousTheme);
-      // Posting the install notification destroys the permission notification,
-      // so tell the former that it's closed already.
-      return true;
-    }
-    return false;
+    else
+      this._postRestartNotification(newTheme);
+
+    // Posting the notification destroys the permission notification,
+    // so tell the former that it's closed already.
+    return true;
   },
 
   _postInstallNotification: function (newTheme, previousTheme) {
@@ -2737,6 +2738,30 @@ var LightWeightThemeWebInstaller = {
     var notificationBox = gBrowser.getNotificationBox();
     var notificationBar =
       notificationBox.appendNotification(text("message"),
+                                         "lwtheme-install-notification", "",
+                                         notificationBox.PRIORITY_INFO_MEDIUM,
+                                         buttons);
+    notificationBar.persistence = 1;
+    notificationBar.timeout = Date.now() + 20000; // 20 seconds
+  },
+
+  _postRestartNotification: function (newTheme) {
+    var message = gNavigatorBundle.getFormattedString("lwthemeNeedsRestart.message",
+                                                      [newTheme.name]);
+
+    var buttons = [{
+      label: gNavigatorBundle.getString("lwthemeNeedsRestart.restartButton"),
+      accessKey: gNavigatorBundle.getString("lwthemeNeedsRestart.restartButton.accesskey"),
+      callback: function () {
+        Application.restart();
+      }
+    }];
+
+    this._removePreviousNotifications();
+
+    var notificationBox = gBrowser.getNotificationBox();
+    var notificationBar =
+      notificationBox.appendNotification(message,
                                          "lwtheme-install-notification", "",
                                          notificationBox.PRIORITY_INFO_MEDIUM,
                                          buttons);
