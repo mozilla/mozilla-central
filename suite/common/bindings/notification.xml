@@ -956,6 +956,181 @@
           ]]>
         </body>
       </method>
+
+      <method name="addonInstallBlocked">
+        <parameter name="installInfo"/>
+        <body>
+          <![CDATA[
+            var host;
+            try {
+              // this fails with nsSimpleURIs like data: URIs
+              host = installInfo.originatingURI.host;
+            } catch (ex) {
+              host = this._stringBundle.GetStringFromName("xpinstallHostNotAvailable");
+            }
+            var brandShortName = this._brandStringBundle.GetStringFromName("brandShortName");
+            var messageString = this._stringBundle.formatStringFromName("xpinstallPromptWarning",
+                                                                        [brandShortName, host], 2);
+            var action = {
+              label: this._stringBundle.GetStringFromName("xpinstallPromptInstallButton"),
+              accessKey: this._stringBundle.GetStringFromName("xpinstallPromptInstallButton.accesskey"),
+              callback: function allowInstall() {
+                installInfo.install();
+                return false;
+              }
+            };
+
+            // Make notifications persist a minimum of 30 seconds
+            var options = {
+              timeout: Date.now() + 30000
+            };
+            PopupNotifications.show(this.activeBrowser,
+                                    "addon-install-blocked", messageString,
+                                    "addons-notification-icon", action,
+                                    null, options);
+          ]]>
+        </body>
+      </method>
+
+      <method name="addonInstallComplete">
+        <parameter name="installInfo"/>
+        <body>
+          <![CDATA[
+            var tmp = {};
+            Components.utils.import("resource://gre/modules/AddonManager.jsm", tmp);
+            Components.utils.import("resource://gre/modules/PluralForm.jsm", tmp);
+
+            var messageString;
+            var mainAction = null;
+            var secondaryActions = null;
+
+            if ("toEM" in window) {
+              mainAction = {
+                label: this._stringBundle.GetStringFromName("addonInstallManageButton"),
+                accessKey: this._stringBundle.GetStringFromName("addonInstallManageButton.accesskey"),
+                callback: function() {
+                  window.toEM("addons://list/extension");
+                }
+              };
+            }
+
+            if (installInfo.installs.some(function(install)
+                  install.addon.pendingOperations &
+                  tmp.AddonManager.PENDING_INSTALL)) {
+              messageString = this._stringBundle.GetStringFromName("addonsInstalledNeedsRestart");
+              if (mainAction)
+                secondaryActions = [mainAction];
+              mainAction = {
+                label: this._stringBundle.GetStringFromName("addonInstallRestartButton"),
+                accessKey: this._stringBundle.GetStringFromName("addonInstallRestartButton.accesskey"),
+                callback: function () {
+                  Application.restart();
+                }
+              };
+            } else {
+              messageString = this._stringBundle.GetStringFromName("addonsInstalled");
+            }
+
+            var brandShortName = this._brandStringBundle.GetStringFromName("brandShortName");
+            messageString = tmp.PluralForm.get(installInfo.installs.length, messageString)
+                                          .replace("#1", installInfo.installs[0].name)
+                                          .replace("#2", installInfo.installs.length)
+                                          .replace("#3", brandShortName);
+
+            // Make notifications persist a minimum of 30 seconds
+            var options = {
+              timeout: Date.now() + 30000
+            };
+            PopupNotifications.show(this.activeBrowser,
+                                    "addon-install-complete", messageString,
+                                    "addons-notification-icon", mainAction,
+                                    secondaryActions, options);
+          ]]>
+        </body>
+      </method>
+
+      <method name="addonInstallDisabled">
+        <parameter name="installInfo"/>
+        <body>
+          <![CDATA[
+            var messageString;
+            var action = null;
+            var prefBranch = this._prefs; // used by editPrefs callback
+
+            if (prefBranch.prefIsLocked("xpinstall.enabled"))
+              messageString = this._stringBundle.GetStringFromName("xpinstallDisabledMessageLocked");
+            else {
+              messageString = this._stringBundle.GetStringFromName("xpinstallDisabledMessage");
+              action = {
+                label: this._stringBundle.GetStringFromName("xpinstallDisabledButton"),
+                accessKey: this._stringBundle.GetStringFromName("xpinstallDisabledButton.accesskey"),
+                callback: function editPrefs() {
+                  prefBranch.setBoolPref("xpinstall.enabled", true);
+                }
+              };
+            }
+
+            // Make notifications persist a minimum of 30 seconds
+            var options = {
+              timeout: Date.now() + 30000
+            };
+            PopupNotifications.show(this.activeBrowser,
+                                    "addon-install-disabled", messageString,
+                                    "addons-notification-icon", action,
+                                    null, options);
+          ]]>
+        </body>
+      </method>
+
+      <method name="addonInstallFailed">
+        <parameter name="installInfo"/>
+        <body>
+          <![CDATA[
+            var host;
+            try {
+              // this fails with nsSimpleURIs like data: URIs
+              host = installInfo.originatingURI.host;
+            } catch (ex) {
+              host = this._stringBundle.GetStringFromName("xpinstallHostNotAvailable");
+            }
+
+            var error = "addonErrorIncompatible";
+            var name = installInfo.installs[0].name;
+            installInfo.installs.some(function(install) {
+              if (install.error) {
+                name = install.name;
+                error = "addonError" + install.error;
+                return true;
+              }
+              if (install.addon.blocklistState ==
+                  Components.interfaces.nsIBlocklistService.STATE_BLOCKED) {
+                name = install.name;
+                error = "addonErrorBlocklisted";
+              }
+              return false;
+            });
+
+            var brandShortName = this._brandStringBundle.GetStringFromName("brandShortName");
+            var version = Components.classes["@mozilla.org/xre/app-info;1"]
+                                    .getService(Components.interfaces.nsIXULAppInfo).version;
+            var messageString = this._stringBundle.GetStringFromName(error)
+                                                  .replace("#1", name)
+                                                  .replace("#2", host)
+                                                  .replace("#3", brandShortName)
+                                                  .replace("#4", version);
+
+            // Make notifications persist a minimum of 30 seconds
+            var options = {
+              timeout: Date.now() + 30000
+            };
+            PopupNotifications.show(this.activeBrowser,
+                                    "addon-install-failed", messageString,
+                                    "addons-notification-icon", null,
+                                    null, options);
+          ]]>
+        </body>
+      </method>
+
     </implementation>
   </binding>
 

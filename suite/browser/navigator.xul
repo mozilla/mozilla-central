@@ -315,6 +315,7 @@
                  onclick="URLBarClickHandler(event);">
           <box id="notification-popup-box" hidden="true" align="center">
             <image id="geo-notification-icon" class="notification-anchor-icon" role="button"/>
+            <image id="addons-notification-icon" class="notification-anchor-icon" role="button"/>
             <image id="password-notification-icon" class="notification-anchor-icon" role="button"/>
           </box>
           <deck id="page-proxy-deck"

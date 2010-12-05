@@ -525,6 +525,15 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
   list-style-image: url("chrome://communicator/skin/icons/geolocation-64.png");
 }
 
+.popup-notification-icon[popupid="addon-install-disabled"],
+.popup-notification-icon[popupid="addon-install-blocked"],
+.popup-notification-icon[popupid="addon-install-failed"],
+.popup-notification-icon[popupid="addon-install-complete"] {
+  list-style-image: url("chrome://mozapps/skin/extensions/extensionGeneric.png");
+  width: 32px;
+  height: 32px;
+}
+
 .popup-notification-icon[popupid="password-save"] {
   list-style-image: url("chrome://mozapps/skin/passwordmgr/key-64.png");
 }
@@ -540,6 +549,12 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
 
 #geo-notification-icon {
   list-style-image: url("chrome://communicator/skin/icons/geolocation-16.png");
+  width: 16px;
+  height: 16px;
+}
+
+#addons-notification-icon {
+  list-style-image: url("chrome://mozapps/skin/extensions/extensionGeneric-16.png");
   width: 16px;
   height: 16px;
 }
