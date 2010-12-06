@@ -354,7 +354,7 @@
                 label="&goButton.label;"
                 tooltiptext="&goButton.tooltip;"
                 default="true"
-                oncommand="addToUrlbarHistory(gURLBar.value); BrowserLoadURL(event);"
+                oncommand="handleURLBarCommand('none', event);"
                 ondragover="nsDragAndDrop.dragOver(event, goButtonObserver);"
                 ondragdrop="nsDragAndDrop.drop(event, goButtonObserver);"
                 ondragexit="nsDragAndDrop.dragExit(event, goButtonObserver);"/>

@@ -467,6 +467,13 @@ function HandleAppCommandEvent(aEvent)
   }
 }
 
+/* window.arguments[0]: URL(s) to load
+                        (string, with one or more URLs separated by \n)
+ *                 [1]: character set (string)
+ *                 [2]: referrer (nsIURI)
+ *                 [3]: postData (nsIInputStream)
+ *                 [4]: allowThirdPartyFixup (bool)
+ */
 function Startup()
 {
   AddonManager.addAddonListener(gAddonListener);
@@ -627,10 +634,9 @@ function Startup()
   if (uriToLoad != "about:blank") {
     gURLBar.value = uriToLoad;
     browser.userTypedValue = uriToLoad;
-    if ("arguments" in window && window.arguments.length >= 4) {
-      loadURI(uriToLoad, window.arguments[2], window.arguments[3]);
-    } else if ("arguments" in window && window.arguments.length == 3) {
-      loadURI(uriToLoad, window.arguments[2]);
+    if ("arguments" in window && window.arguments.length >= 3) {
+      loadURI(uriToLoad, window.arguments[2], window.arguments[3] || null,
+              window.arguments[4] || false);
     } else {
       loadURI(uriToLoad);
     }
@@ -1131,8 +1137,7 @@ const BrowserSearch = {
                             relatedToCurrent: true,
                             inBackground: false });
     } else {
-      gBrowser.loadURIWithFlags(submission.uri.spec, nsIWebNavigation.LOAD_FLAGS_NONE,
-                                null, null, submission.postData);
+      loadURI(submission.uri.spec, null, submission.postData, false);
       window.content.focus();
     }
 
@@ -1237,20 +1242,19 @@ function BrowserOpenWindow()
   openDialog("chrome://communicator/content/openLocation.xul", "_blank", "chrome,modal,titlebar", params);
   var postData = { };
   var url = getShortcutOrURI(params.url, postData);
-  // XXX: need to actually deal with the postData, see bug 553459
   switch (params.action) {
     case "0": // current window
-      loadURI(url, null, nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP);
+      loadURI(url, null, postData.value, true);
       break;
     case "1": // new window
       openDialog(getBrowserURL(), "_blank", "all,dialog=no", url, null, null,
-                 nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP);
+                 postData.value, true);
       break;
     case "2": // edit
       editPage(url);
       break;
     case "3": // new tab
-      gBrowser.selectedTab = gBrowser.addTab(url, {allowThirdPartyFixup: true});
+      gBrowser.selectedTab = gBrowser.addTab(url, {allowThirdPartyFixup: true, postData: postData.value});
       break;
   }
 }
@@ -1488,18 +1492,33 @@ function BrowserCloseWindow()
   window.close();
 }
 
-function loadURI(uri, referrer, flags)
+function loadURI(uri, referrer, postData, allowThirdPartyFixup)
 {
   try {
-    getBrowser().loadURIWithFlags(uri, flags, referrer);
+    var flags = nsIWebNavigation.LOAD_FLAGS_NONE;
+    if (allowThirdPartyFixup) {
+      flags = nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP;
+    }
+    else if (typeof postData == "number") {
+      // Deal with legacy code that passes load flags in the third argument.
+      flags = postData;
+      postData = null;
+    }
+    gBrowser.loadURIWithFlags(uri, flags, referrer, null, postData);
   } catch (e) {
   }
 }
 
-function BrowserLoadURL(aTriggeringEvent)
+function handleURLBarCommand(aUserAction, aTriggeringEvent)
 {
   // Remove leading and trailing spaces first
   var url = gURLBar.value.trim();
+  try {
+    addToUrlbarHistory(url);
+  } catch (ex) {
+    // Things may go wrong when adding url to the location bar history,
+    // but don't let that interfere with the loading of the url.
+  }
 
   if (url.match(/^view-source:/)) {
     gViewSourceUtils.viewSource(url.replace(/^view-source:/, ""), null, null);
@@ -1530,7 +1549,6 @@ function BrowserLoadURL(aTriggeringEvent)
     var browser = getBrowser();
     var postData = {};
     url = getShortcutOrURI(url, postData);
-    // XXX: need to actually deal with the postData, see bug 553459
     // Accept both Control and Meta (=Command) as New-Window-Modifiers
     if (aTriggeringEvent &&
         (('ctrlKey' in aTriggeringEvent && aTriggeringEvent.ctrlKey) ||
@@ -1544,7 +1562,7 @@ function BrowserLoadURL(aTriggeringEvent)
 
       if (openTab) {
         // Open link in new tab
-        var t = browser.addTab(url, {allowThirdPartyFixup: true});
+        var t = browser.addTab(url, {allowThirdPartyFixup: true, postData: postData.value});
 
         // Focus new tab unless shift is pressed
         if (!shiftPressed) {
@@ -1554,7 +1572,7 @@ function BrowserLoadURL(aTriggeringEvent)
       } else {
         // Open a new window with the URL
         var newWin = openDialog(getBrowserURL(), "_blank", "all,dialog=no", url,
-            null, null, nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP);
+            null, null, postData.value, true);
         // Reset url in the urlbar
         URLBarSetURI();
 
@@ -1584,7 +1602,7 @@ function BrowserLoadURL(aTriggeringEvent)
     } else {
       // No modifier was pressed, load the URL normally and
       // focus the content area
-      loadURI(url, null, nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP);
+      loadURI(url, null, postData.value, true);
       content.focus();
     }
   }
@@ -1605,7 +1623,12 @@ function getShortcutOrURI(aURL, aPostDataRef)
   if (!aPostDataRef)
     aPostDataRef = {};
 
-  // XXX: In the future, ask the search service if it knows that keyword
+  var engine = Services.search.getEngineByAlias(keyword);
+  if (engine) {
+    var submission = engine.getSubmission(param);
+    aPostDataRef.value = submission.postData;
+    return submission.uri.spec;
+  }
 
   [shortcutURL, aPostDataRef.value] =
     PlacesUtils.getURLAndPostDataForKeyword(keyword);
@@ -2202,18 +2225,6 @@ function handleURLBarRevert()
   // tell widget to revert to last typed text only if the user
   // was scrolling when they hit escape
   return isScrolling;
-}
-
-function handleURLBarCommand(aUserAction, aTriggeringEvent)
-{
-  try {
-    addToUrlbarHistory(gURLBar.value);
-  } catch (ex) {
-    // Things may go wrong when adding url to session history,
-    // but don't let that interfere with the loading of the url.
-  }
-  
-  BrowserLoadURL(aTriggeringEvent); 
 }
 
 function UpdatePageProxyState()

@@ -1200,7 +1200,7 @@ function whereToOpenLink(e, ignoreButton, ignoreSave, ignoreBackground)
  *  "window"      new window
  *  "save"        save to disk (with no filename hint!)
  *
- * allowThirdPartyFixup controls whether third party services such as Google's
+ * aAllowThirdPartyFixup controls whether third party services such as Google's
  * I'm Feeling Lucky are allowed to interpret this URL. This parameter may be
  * undefined, which is treated as false.
  *
@@ -1234,13 +1234,9 @@ function openUILinkIn(url, where, aAllowThirdPartyFixup, aPostData, aReferrerURI
 
   var w = getTopWin();
 
-  const nsIWebNavigation = Components.interfaces.nsIWebNavigation;
-  var flags = aAllowThirdPartyFixup ? nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP :
-                                     nsIWebNavigation.LOAD_FLAGS_NONE;
-
   if (!w || where == "window") {
     return window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", url,
-                             null, null, flags);
+                             null, null, aPostData, aAllowThirdPartyFixup);
   }
 
   var loadInBackground = getBoolPref("browser.tabs.loadInBackground", false);
@@ -1251,7 +1247,7 @@ function openUILinkIn(url, where, aAllowThirdPartyFixup, aPostData, aReferrerURI
 
   switch (where) {
   case "current":
-    w.loadURI(url, aPostData, flags);
+    w.loadURI(url, aReferrerURI, aPostData, aAllowThirdPartyFixup);
     w.content.focus();
     break;
   case "tabfocused":
@@ -1294,14 +1290,10 @@ function openUILinkArrayIn(urlArray, where, allowThirdPartyFixup)
 
   var w = getTopWin();
 
-  const nsIWebNavigation = Components.interfaces.nsIWebNavigation;
-  var flags = allowThirdPartyFixup ? nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP :
-                                     nsIWebNavigation.LOAD_FLAGS_NONE;
-
   if (!w || where == "window") {
     return window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no",
                              urlArray.join("\n"), // Pretend that we're a home page group
-                             null, null, flags);
+                             null, null, null, allowThirdPartyFixup);
   }
 
   var loadInBackground = getBoolPref("browser.tabs.loadInBackground", false);
@@ -1309,7 +1301,7 @@ function openUILinkArrayIn(urlArray, where, allowThirdPartyFixup)
   var browser = w.getBrowser();
   switch (where) {
   case "current":
-    w.loadURI(urlArray[0], null, flags);
+    w.loadURI(urlArray[0], null, null, allowThirdPartyFixup);
     w.content.focus();
     break;
   case "tabshifted":
