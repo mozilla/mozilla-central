@@ -4976,7 +4976,7 @@ then
 fi
 
 dnl ========================================================
-dnl = GnomeVFS support module
+dnl = GnomeVFS, GIO and GConf support module
 dnl ========================================================
 
 if test "$MOZ_X11"
@@ -4989,6 +4989,9 @@ then
         MOZ_ENABLE_GCONF=1
     fi
 
+    dnl ========================================================
+    dnl = GnomeVFS support module
+    dnl ========================================================
     MOZ_ARG_DISABLE_BOOL(gnomevfs,
     [  --disable-gnomevfs      Disable GnomeVFS support ],
         MOZ_ENABLE_GNOMEVFS=,
@@ -5010,24 +5013,6 @@ then
 
     AC_SUBST(MOZ_ENABLE_GNOMEVFS)
 
-    if test "$MOZ_ENABLE_GCONF"
-    then
-        PKG_CHECK_MODULES(MOZ_GCONF, gconf-2.0 >= $GCONF_VERSION,[
-            MOZ_GCONF_LIBS=`echo $MOZ_GCONF_LIBS | sed 's/-llinc\>//'`
-            MOZ_ENABLE_GCONF=1
-        ],[
-            MOZ_ENABLE_GCONF=
-        ])
-    fi
-
-    if test "$MOZ_ENABLE_GCONF"; then
-        AC_DEFINE(MOZ_ENABLE_GCONF)
-    fi
-
-    AC_SUBST(MOZ_ENABLE_GCONF)
-    AC_SUBST(MOZ_GCONF_CFLAGS)
-    AC_SUBST(MOZ_GCONF_LIBS)
-
     dnl ========================================================
     dnl = GIO support module
     dnl ========================================================
@@ -5048,22 +5033,48 @@ then
             MOZ_ENABLE_GIO=
         ])
     fi
+
+    dnl ========================================================
+    dnl = GConf support module
+    dnl ========================================================
+    if test "$MOZ_ENABLE_GCONF"
+    then
+        PKG_CHECK_MODULES(MOZ_GCONF, gconf-2.0 >= $GCONF_VERSION gobject-2.0 ,[
+            MOZ_ENABLE_GCONF=1
+        ],[
+            MOZ_ENABLE_GCONF=
+        ])
+     fi
 fi
+
+dnl ========================================================
+dnl = libnotify support
+dnl ========================================================
 
 if test "$MOZ_ENABLE_GTK2"
 then
-    # The GNOME component is built if gtk2, gconf and gnome-vfs
-    # are all available.
+    MOZ_ENABLE_LIBNOTIFY=1
 
-    if test "$MOZ_ENABLE_GTK2" -a "$MOZ_ENABLE_GCONF" && \
-            (test "$MOZ_ENABLE_GNOMEVFS" || test "$MOZ_ENABLE_GIO"); then
-      MOZ_ENABLE_GNOME_COMPONENT=1
-    else
-      MOZ_ENABLE_GNOME_COMPONENT=
-    fi
-
-    AC_SUBST(MOZ_ENABLE_GNOME_COMPONENT)
+    MOZ_ARG_DISABLE_BOOL(libnotify,
+    [  --disable-libnotify       Disable libnotify support ],
+    MOZ_ENABLE_LIBNOTIFY=)
 fi
+
+dnl ========================================================
+dnl = GNOME component (mozgnome)
+dnl ========================================================
+
+# The GNOME component is built if one of
+# gnome-vfs, gio, gconf or libnotify is available.
+if test "$MOZ_ENABLE_GCONF" || \
+   test "$MOZ_ENABLE_GNOMEVFS" || \
+   test "$MOZ_ENABLE_GIO" || \
+   test "$MOZ_ENABLE_LIBNOTIFY"; then
+    MOZ_ENABLE_GNOME_COMPONENT=1
+else
+    MOZ_ENABLE_GNOME_COMPONENT=
+fi
+AC_SUBST(MOZ_ENABLE_GNOME_COMPONENT)
 
 dnl ========================================================
 dnl = dbus support
