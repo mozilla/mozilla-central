@@ -72,7 +72,7 @@ function calDavCalendar() {
     this.mCalendarUserAddress = null;
     this.mPrincipalUrl = null;
     this.mSenderAddress = null;
-    this.mHrefIndex = {};
+    this.mPathIndex = {};
     this.mAuthScheme = null;
     this.mAuthRealm = null;
     this.mObserver = null;
@@ -198,7 +198,7 @@ calDavCalendar.prototype = {
                 }
                 try {
                     this.mWebdavSyncToken = null;
-                    this.mTargetCalendar.deleteMetaData("sync-token");
+                    this.mTargetCalendar.deleteMetaData("webdav-sync-token");
                 } catch(e) {
                     cal.ERROR(e);
                 }
@@ -236,7 +236,7 @@ calDavCalendar.prototype = {
             var itemData = cacheValues[count];
             if (itemId == "ctag") {
                 this.mCtag = itemData;
-            } else if (itemId == "sync-token") {
+            } else if (itemId == "webdav-sync-token") {
                 this.mWebdavSyncToken = itemData;
             } else {
                 var itemDataArray = itemData.split("\u001A");
@@ -244,8 +244,8 @@ calDavCalendar.prototype = {
                 var resourcePath = itemDataArray[1];
                 var isInboxItem = itemDataArray[2];
                 if (itemDataArray.length == 3) {
-                    this.mHrefIndex[resourcePath] = itemId;
-                    var locationPath = decodeURIComponent(resourcePath)
+                    this.mPathIndex[resourcePath] = itemId;
+                    var locationPath = resourcePath
                         .substr(this.mLocationPath.length);
                     var item = { etag: etag,
                                  isNew: false,
@@ -381,17 +381,33 @@ calDavCalendar.prototype = {
         return this.mAuthRealm;
     },
 
+    /**
+     * Builds a correctly encoded nsIURI based on the baseUri and the insert
+     * string. The returned uri is basically the baseURI + aInsertString
+     *
+     * @param aInsertString  String to append to the base uri, for example,
+     *                       when creating an event this would be the
+     *                       event file name (event.ics), if null, an empty
+     *                       string is used.
+     * @param aBaseUri       base uri (nsIURI object), if null, this.calendarUri
+     *                       will be used.
+     */
     makeUri: function caldav_makeUri(aInsertString, aBaseUri) {
         let baseUri = aBaseUri || this.calendarUri;
-        let spec = baseUri.spec + (aInsertString || "");
-        if (this.mUriParams) {
-            spec += this.mUriParams;
-        }
-        return makeURL(spec);
+        // Build a string containing the full path, decoded, so it looks like
+        // this:
+        // /some path/insert string.ics
+        let decodedPath = this.ensureDecodedPath(baseUri.path) + (aInsertString || "");
+
+        // Build the nsIURI by specifying a string with a fully encoded path
+        // the end result will be something like this:
+        // http://caldav.example.com:8080/some%20path/insert%20string.ics
+        let url = cal.makeURL(baseUri.prePath + this.ensureEncodedPath(decodedPath) + (this.mUriParams || ""));
+        return url;
     },
 
     get mLocationPath() {
-        return decodeURIComponent(this.calendarUri.path);
+        return this.ensureDecodedPath(this.calendarUri.path);
     },
 
     getItemLocationPath: function caldav_getItemLocationPath(aItem) {
@@ -473,7 +489,7 @@ calDavCalendar.prototype = {
 
     mItemInfoCache: null,
 
-    mHrefIndex: null,
+    mPathIndex: null,
 
     /**
      * addItem()
@@ -774,8 +790,8 @@ calDavCalendar.prototype = {
                     } else {
                         thisCalendar.mTargetCalendar.deleteItem(aItem, aListener);
                     }
-                    let decodedHRef = decodeURIComponent(eventUri.path);
-                    delete thisCalendar.mHrefIndex[decodedHRef];
+                    let decodedPath = thisCalendar.ensureDecodedPath(eventUri.path);
+                    delete thisCalendar.mPathIndex[decodedPath];
                     delete thisCalendar.mItemInfoCache[aItem.id];
                     cal.LOG("CalDAV: Item deleted successfully from calendar" +
                             thisCalendar.name);
@@ -838,16 +854,15 @@ calDavCalendar.prototype = {
     /**
      * Add an item to the target calendar
      *
-     * @param href      Item href
+     * @param path      Item path MUST NOT BE ENCODED
      * @param calData   iCalendar string representation of the item
      * @param aUri      Base URI of the request
      * @param aListener Listener
      */
-    addTargetCalendarItem : function caldav_addTargetCalendarItem(href,calData,aUri, etag, aListener) {
+    addTargetCalendarItem : function caldav_addTargetCalendarItem(path,calData,aUri, etag, aListener) {
         let parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
                                .createInstance(Components.interfaces.calIIcsParser);
         let uriPathComponentLength = aUri.path.split("/").length;
-        let resourcePath = this.ensurePath(href);
         try {
             parser.parseString(calData);
         } catch (e) {
@@ -878,7 +893,7 @@ calDavCalendar.prototype = {
         item.calendar = this.superCalendar;
         if (isReply && this.isInbox(aUri.spec)) {
             if (this.hasScheduling) {
-                this.processItipReply(item, resourcePath);
+                this.processItipReply(item, path);
             }
             cal.WARN("REPLY method but calendar does not support scheduling");
             return;
@@ -886,20 +901,19 @@ calDavCalendar.prototype = {
 
         // Strip of the same number of components as the request
         // uri's path has. This way we make sure to handle servers
-        // that pass hrefs like /dav/user/Calendar while
+        // that pass paths like /dav/user/Calendar while
         // the request uri is like /dav/user@example.org/Calendar.
-        let resPathComponents = resourcePath.split("/");
+        let resPathComponents = path.split("/");
         resPathComponents.splice(0, uriPathComponentLength - 1);
-        let locationPath = decodeURIComponent(resPathComponents.join("/"));
+        let locationPath = resPathComponents.join("/");
         let isInboxItem = this.isInbox(aUri.spec);
 
-        let hrefPath = this.ensurePath(href);
-        if (this.mHrefIndex[hrefPath] &&
+        if (this.mPathIndex[path] &&
             !this.mItemInfoCache[item.id]) {
             // If we get here it means a meeting has kept the same filename
             // but changed its uid, which can happen server side.
             // Delete the meeting before re-adding it
-            this.deleteTargetCalendarItem(hrefPath);
+            this.deleteTargetCalendarItem(path);
         }
 
         if (this.mItemInfoCache[item.id]) {
@@ -910,7 +924,7 @@ calDavCalendar.prototype = {
         this.mItemInfoCache[item.id].locationPath = locationPath;
         this.mItemInfoCache[item.id].isInboxItem = isInboxItem;
 
-        this.mHrefIndex[hrefPath] = item.id;
+        this.mPathIndex[path] = item.id;
         this.mItemInfoCache[item.id].etag = etag;
         if (this.mItemInfoCache[item.id].isNew) {
             this.mTargetCalendar.adoptItem(item, aListener);
@@ -919,14 +933,14 @@ calDavCalendar.prototype = {
         }
 
         if (this.isCached) {
-            this.setMetaData(item.id, resourcePath, etag, isInboxItem);
+            this.setMetaData(item.id, path, etag, isInboxItem);
         }
     },
 
     /**
      * Deletes an item from the target calendar
      *
-     * @param path Path of the item to delete
+     * @param path Path of the item to delete, must not be encoded
      */
     deleteTargetCalendarItem: function caldav_deleteTargetCalendarItem(path) {
         let foundItem;
@@ -944,7 +958,7 @@ calDavCalendar.prototype = {
             onOperationComplete: function deleteLocalItem_getItem_onOperationComplete() {}
         };
 
-        this.mTargetCalendar.getItem(this.mHrefIndex[path],
+        this.mTargetCalendar.getItem(this.mPathIndex[path],
                                      getItemListener);
         // Since the target calendar's operations are synchronous, we can
         // safely set variables from this function.
@@ -954,7 +968,7 @@ calDavCalendar.prototype = {
                 (wasInboxItem === false && !this.isInbox(path))) {
 
                 cal.LOG("CalDAV: deleting item: " + path + ", uid: " + foundItem.id);
-                delete this.mHrefIndex[path];
+                delete this.mPathIndex[path];
                 delete this.mItemInfoCache[foundItem.id];
                 this.mTargetCalendar.deleteItem(foundItem,
                                                 getItemListener);
@@ -1055,7 +1069,7 @@ calDavCalendar.prototype = {
         let locationPath = this.getItemLocationPath(aItem);
         let itemUri = this.makeUri(locationPath);
 
-        let multiget = new multigetSyncHandler([itemUri.path],
+        let multiget = new multigetSyncHandler([this.ensureDecodedPath(itemUri.path)],
                                                this,
                                                this.makeUri(),
                                                null,
@@ -1659,8 +1673,7 @@ calDavCalendar.prototype = {
             var pcs = multistatus..D::["principal-collection-set"]..D::href;
             var nsList = [];
             for (var ns in pcs) {
-                var nsString = pcs[ns].toString();
-                var nsPath = thisCalendar.ensurePath(nsString);
+                var nsPath = thisCalendar.ensureDecodedPath(pcs[ns].toString());
                 nsList.push(nsPath);
             }
 
@@ -1701,7 +1714,7 @@ calDavCalendar.prototype = {
         }
 
         // Remove trailing slash, if its there
-        var homePath = this.mCalHomeSet.path.replace(/\/$/,"");
+        var homePath = this.ensureEncodedPath(this.mCalHomeSet.spec.replace(/\/$/,""));
 
         var C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
         var D = new Namespace("D", "DAV:");
@@ -1743,17 +1756,8 @@ calDavCalendar.prototype = {
         }
 
         // We want a trailing slash, ensure it.
-        let nsUri = this.calendarUri.clone();
         let nextNS = aNameSpaceList.pop().replace(/([^\/])$/, "$1/");
-        let requestUri;
-        // nextNS could be either a spec or a path
-        if (nextNS.charAt(0) == "/") {
-            nsUri.path = nextNS;
-            requestUri = this.makeUri(null, nsUri);
-        } else {
-            requestUri = makeURL(nextNS);
-        }
-
+        let requestUri = makeURL(this.calendarUri.prePath + this.ensureEncodedPath(nextNS));
 
         if (this.verboseLogging()) {
             cal.LOG("CalDAV: send: " + queryMethod + " " + requestUri.spec + "\n" + queryXml);
@@ -1817,10 +1821,10 @@ calDavCalendar.prototype = {
                 }
                 let ibUrl = thisCalendar.mUri.clone();
                 try {
-                    ibUrl.path = thisCalendar.ensurePath(response..*::["schedule-inbox-URL"]..*::href[0].toString());
+                    ibUrl.path = thisCalendar.ensureDecodedPath(response..*::["schedule-inbox-URL"]..*::href[0].toString());
                 } catch (ex) {
                     // most likely this is a Kerio server that omits the "href"
-                    ibUrl.path = thisCalendar.ensurePath(response..*::["schedule-inbox-URL"].toString());
+                    ibUrl.path = thisCalendar.ensureDecodedPath(response..*::["schedule-inbox-URL"].toString());
                 }
 
                 // Make sure the inbox uri has a / at the end, as we do with the
@@ -1838,10 +1842,10 @@ calDavCalendar.prototype = {
 
                 let obUrl = thisCalendar.mUri.clone();
                 try {
-                    obUrl.path = thisCalendar.ensurePath(response..*::["schedule-outbox-URL"]..*::href[0].toString());
+                    obUrl.path = thisCalendar.ensureDecodedPath(response..*::["schedule-outbox-URL"]..*::href[0].toString());
                 } catch (ex) {
                     // most likely this is a Kerio server that omits the "href"
-                    obUrl.path = thisCalendar.ensurePath(response..*::["schedule-outbox-URL"].toString());
+                    obUrl.path = thisCalendar.ensureDecodedPath(response..*::["schedule-outbox-URL"].toString());
                 }
 
                 // Make sure the outbox uri has a / at the end, as we do with
@@ -2142,14 +2146,60 @@ calDavCalendar.prototype = {
         cal.sendHttpRequest(cal.createStreamLoader(), httpchannel, streamListener);
     },
 
-    ensurePath: function caldav_ensurePath(aString) {
-        if (aString.charAt(0) != "/") {
-            var bogusUri = makeURL(aString);
-            return bogusUri.path;
+    /**
+     * Extract the path from the full spec, if the regexp failed, log
+     * warning and return unaltered path.
+     */
+    extractPathFromSpec : function caldav_extractPathFromSpec(aSpec) {
+        // The parsed array should look like this:
+        // a[0] = full string
+        // a[1] = scheme
+        // a[2] = everything between the scheme and the start of the path
+        // a[3] = extracted path
+        let a = aSpec.match("(https?)(://[^/]*)([^#?]*)");
+        if (a[3]) {
+          return a[3];
         }
-        return aString;
+        cal.WARN("CalDAV: Spec could not be parsed, returning as-is: "+ aSpec);
+        return aSpec;
+    },
+    /**
+     * This is called to create an encoded path from a unencoded path OR
+     * encoded full url
+     *
+     * @param aString {string} un-encoded path OR encoded uri spec.
+     */
+    ensureEncodedPath: function caldav_ensureEncodedPath(aString) {
+        if (aString.charAt(0) != "/") {
+            aString = this.ensureDecodedPath(aString);
+        }
+        var uriComponents = aString.split("/");
+        uriComponents = uriComponents.map(encodeURIComponent);
+        return uriComponents.join("/");
     },
 
+    /**
+     * This is called to get a decoded path from an encoded path or uri spec.
+     *
+     * @param aString {string} Represents either a path
+     * or a full uri that needs to be decoded.
+     */
+    ensureDecodedPath: function caldav_ensureDecodedPath(aString) {
+        if (aString.charAt(0) != "/") {
+            aString = this.extractPathFromSpec(aString);
+        }
+
+        var uriComponents = aString.split("/");
+        for (var i = 0 ; i < uriComponents.length ; i++ ) {
+            try {
+                uriComponents[i] = decodeURIComponent(uriComponents[i]);
+            }
+            catch (e) {
+                cal.WARN("CalDAV: Exception decoding path " + aString + ", segment: " + uriComponents[i]);
+            }
+        }
+        return uriComponents.join("/");
+    },
     isInbox: function caldav_isInbox(aString) {
         return ((this.hasScheduling || this.hasAutoScheduling) && this.mInboxUrl &&
                 aString.indexOf(this.mInboxUrl.spec) == 0);
@@ -2223,7 +2273,7 @@ calDavCalendar.prototype = {
             // item was successful
             if (aStatus == 0) { // aStatus undocumented; 0 seems to indicate no error
                 var delUri = thisCalendar.calendarUri.clone();
-                delUri.path = aPath;
+                delUri.path = thisCalendar.ensureEncodedPath(aPath);
                 thisCalendar.doDeleteItem(aItem, null, true, true, delUri);
             }
         };

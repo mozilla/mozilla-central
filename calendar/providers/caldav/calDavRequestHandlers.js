@@ -135,7 +135,7 @@ etagsHandler.prototype = {
 
         let needsRefresh = false;
         try {
-            for (let path in this.calendar.mHrefIndex) {
+            for (let path in this.calendar.mPathIndex) {
                 if (path in this.itemsReported ||
                     path.substr(0, this.baseUri.length) == this.baseUri) {
                     // If the item is also on the server, check the next.
@@ -157,14 +157,14 @@ etagsHandler.prototype = {
                     onOperationComplete: function etags_getItem_onOperationComplete() {}
                 };
 
-                this.calendar.mTargetCalendar.getItem(this.calendar.mHrefIndex[path],
+                this.calendar.mTargetCalendar.getItem(this.calendar.mPathIndex[path],
                                                       getItemListener);
                 if (foundItem) {
                     let wasInboxItem = this.calendar.mItemInfoCache[foundItem.id].isInboxItem;
                     if ((wasInboxItem && this.calendar.isInbox(this.baseUri.spec)) ||
                         (wasInboxItem === false && !this.calendar.isInbox(this.baseUri.spec))) {
                         cal.LOG("Deleting local href: " + path)
-                        delete this.calendar.mHrefIndex[path];
+                        delete this.calendar.mPathIndex[path];
                         this.calendar.mTargetCalendar.deleteItem(foundItem, null);
                         needsRefresh = true;
                     }
@@ -269,7 +269,9 @@ etagsHandler.prototype = {
                     r.href && r.href.length &&
                     r.getcontenttype && r.getcontenttype.length &&
                     !r.isCollection) {
-                    let href;
+
+                    r.href = this.calendar.ensureDecodedPath(r.href);
+
                     if (r.getcontenttype.substr(0, 14) == "message/rfc822") {
                         // workaround for a Scalix bug which causes incorrect
                         // contenttype to be returned.
@@ -279,22 +281,16 @@ etagsHandler.prototype = {
                         // workaround Kerio wierdness
                         r.getcontenttype = "text/calendar";
                     }
-                    if (r.getcontenttype.substr(0,13) == "text/calendar") {
-                        // Only handle calendar items
-                        if (this.skipIndex < 0) {
-                            href = this.calendar.ensurePath(r.href);
-                            this.skipIndex = r.href.indexOf(href);
-                        } else {
-                            href = r.href.substr(this.skipIndex);
-                        }
-                        href = decodeURIComponent(href);
-                        if (href && href.length) {
-                            this.itemsReported[href] = r.getetag;
 
-                            let itemUid = this.calendar.mHrefIndex[href];
+                    // Only handle calendar items
+                    if (r.getcontenttype.substr(0,13) == "text/calendar") {
+                        if (r.href && r.href.length) {
+                            this.itemsReported[r.href] = r.getetag;
+
+                            let itemUid = this.calendar.mPathIndex[r.href];
                             if (!itemUid ||
                                 r.getetag != this.calendar.mItemInfoCache[itemUid].etag) {
-                                this.itemsNeedFetching.push(href);
+                                this.itemsNeedFetching.push(r.href);
                             }
                         }
                     }
@@ -520,7 +516,7 @@ webDavSyncHandler.prototype = {
             // null token means reset or first refresh indicating we did
             // a full sync; remove local items that were not returned in this full
             // sync
-            for (let path in this.calendar.mHrefIndex) {
+            for (let path in this.calendar.mPathIndex) {
                 if (!this.itemsReported[path] &&
                     path.substr(0, this.baseUri.path.length) == this.baseUri.path) {
                     this.calendar.deleteTargetCalendarItem(path);
@@ -594,14 +590,14 @@ webDavSyncHandler.prototype = {
                 let r = this.currentResponse;
                 if (r.href &&
                     r.href.length) {
-                    r.href = decodeURIComponent(r.href);
+                    r.href = this.calendar.ensureDecodedPath(r.href);
                 }
                 // Deleted item
                 if (r.href && r.href.length &&
                     r.status &&
                     r.status.length &&
                     r.status.indexOf(" 404") > 0) {
-                    if (this.calendar.mHrefIndex[r.href]) {
+                    if (this.calendar.mPathIndex[r.href]) {
                         this.changeCount++;
                         this.calendar.deleteTargetCalendarItem(r.href);
                     }
@@ -618,7 +614,7 @@ webDavSyncHandler.prototype = {
                             r.status.indexOf(" 204") ||  // draft 0, 1 and 2 needed it so treat no status
                             r.status.indexOf(" 201"))) { // and status 201 and 204 the same
                     this.itemsReported[r.href] = r.getetag;
-                    let itemId = this.calendar.mHrefIndex[r.href];
+                    let itemId = this.calendar.mPathIndex[r.href];
                     let oldEtag = (itemId && this.calendar.mItemInfoCache[itemId].etag);
 
                     if (!oldEtag || oldEtag != r.getetag) {
@@ -677,7 +673,8 @@ webDavSyncHandler.prototype = {
  * It uses the SAX parser to incrementally parse the items and compose the
  * resulting multiget.
  *
- * @param aItemsNeedFetching    The array of items to fetch
+ * @param aItemsNeedFetching    The array of items to fetch, this must be an
+ *                              array of un-encoded paths.
  * @param aCalendar             The (unwrapped) calendar this request belongs to
  * @param aBaseUri              The URI requested (i.e inbox or collection)
  * @param aNewSyncToken         (optional) new Sync token to set if operation successful
@@ -739,7 +736,9 @@ multigetSyncHandler.prototype = {
         let batchSize = cal.getPrefSafe("calendar.caldav.multigetBatchSize", 100);
         while (this.itemsNeedFetching.length && batchSize > 0) {
             batchSize --;
-            let locpath = this.itemsNeedFetching.pop();
+            // ensureEncodedPath extracts only the path component of the item and
+            // encodes it before it is sent to the server
+            let locpath = this.calendar.ensureEncodedPath(this.itemsNeedFetching.pop());
             queryXml.D::prop += <D:href xmlns:D={D}>{locpath}</D:href>;
         }
 
@@ -916,13 +915,13 @@ multigetSyncHandler.prototype = {
                 let r = this.currentResponse;
                 if (r.href &&
                     r.href.length) {
-                    r.href = decodeURIComponent(r.href);
+                    r.href = this.calendar.ensureDecodedPath(r.href);
                 }
                 if (r.href && r.href.length &&
                     r.status &&
                     r.status.length &&
                     r.status.indexOf(" 404") > 0) {
-                    if (this.calendar.mHrefIndex[r.href]) {
+                    if (this.calendar.mPathIndex[r.href]) {
                         this.changeCount++;
                         this.calendar.deleteTargetCalendarItem(r.href);
                     } else {
@@ -933,7 +932,7 @@ multigetSyncHandler.prototype = {
                            r.href && r.href.length &&
                            r.calendardata && r.calendardata.length) {
                     let oldEtag;
-                    let itemId = this.calendar.mHrefIndex[r.href];
+                    let itemId = this.calendar.mPathIndex[r.href];
                     if (itemId) {
                         oldEtag = this.calendar.mItemInfoCache[itemId].etag;
                     } else {
@@ -949,7 +948,7 @@ multigetSyncHandler.prototype = {
                     }
                 } else {
                     cal.WARN("CalDAV: Unexpected response, status: " +
-                             r.status + ", href: " + r.href + " calendar-data:");
+                             r.status + ", href: " + r.href + " calendar-data:\n" + r.calendardata);
                     this.unhandledErrors++;
                 }
                 break;
