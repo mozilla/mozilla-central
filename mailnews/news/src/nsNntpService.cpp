@@ -596,8 +596,8 @@ nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder **
       keyStr = Substring(newsUrl, keyPos + kNewsURIKeyQueryLen);
       // get message key
       nsMsgKey key = nsMsgKey_None;
-      nsresult errorCode;
-      key = keyStr.ToInteger(&errorCode, 10);
+      key = keyStr.ToInteger(&rv, 10);
+      NS_ENSURE_SUCCESS(rv,rv);
 
       // get userPass
       nsCAutoString userPass;
@@ -632,11 +632,8 @@ nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder **
                                      getter_AddRefs(child));
       NS_ENSURE_SUCCESS(rv,rv);
 
-      if (!errorCode)
-      {
-        child.swap(*aFolder);
-        *aMsgKey = key;
-      }
+      child.swap(*aFolder);
+      *aMsgKey = key;
     }
     else
     {
@@ -644,6 +641,11 @@ nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder **
       NS_ENSURE_SUCCESS(rv,rv);
       *aMsgKey = nsMsgKey_None;
     }
+  }
+  else
+  {
+    // This schema isn't supported
+    return NS_ERROR_INVALID_ARG;
   }
 
   return NS_OK;
