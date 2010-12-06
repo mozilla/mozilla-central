@@ -25,7 +25,7 @@
 #endif
 
 [@AB_CD@]
-@BINPATH@/chrome/@AB_CD@.jar
+@BINPATH@/chrome/@AB_CD@@JAREXT@
 @BINPATH@/chrome/@AB_CD@.manifest
 @BINPATH@/@PREF_DIR@/all-l10n.js
 @BINPATH@/dictionaries/*
@@ -69,7 +69,7 @@
 
 ; Optional RSS extension
 [newsblog]
-@BINPATH@/chrome/newsblog.jar
+@BINPATH@/chrome/newsblog@JAREXT@
 @BINPATH@/chrome/newsblog.manifest
 @BINPATH@/components/newsblog.js
 @BINPATH@/components/newsblog.manifest
@@ -149,11 +149,11 @@
 @BINPATH@/components/xpcom_io.xpt
 @BINPATH@/components/xpcom_threads.xpt
 @BINPATH@/components/xpcom_xpti.xpt
-@BINPATH@/chrome/toolkit.jar
+@BINPATH@/chrome/toolkit@JAREXT@
 @BINPATH@/chrome/toolkit.manifest
-@BINPATH@/chrome/comm.jar
+@BINPATH@/chrome/comm@JAREXT@
 @BINPATH@/chrome/comm.manifest
-@BINPATH@/chrome/messenger.jar
+@BINPATH@/chrome/messenger@JAREXT@
 @BINPATH@/chrome/messenger.manifest
 #ifndef XP_UNIX
 @BINPATH@/chrome/icons/default/abcardWindow.ico
@@ -168,7 +168,7 @@
 @BINPATH@/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/preview.png
 
 ; Gloda
-@BINPATH@/chrome/gloda.jar
+@BINPATH@/chrome/gloda@JAREXT@
 @BINPATH@/chrome/gloda.manifest
 @BINPATH@/components/glautocomp.js
 @BINPATH@/components/gloda.manifest
@@ -205,7 +205,7 @@
 ; Chrome Files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-@BINPATH@/chrome/classic.jar
+@BINPATH@/chrome/classic@JAREXT@
 @BINPATH@/chrome/classic.manifest
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -522,7 +522,7 @@
 @BINPATH@/@DLL_PREFIX@nssdbm3.chk
 #endif
 #endif
-@BINPATH@/chrome/pippki.jar
+@BINPATH@/chrome/pippki@JAREXT@
 @BINPATH@/chrome/pippki.manifest
 
 ; for Solaris SPARC

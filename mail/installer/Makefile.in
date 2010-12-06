@@ -59,6 +59,12 @@ MOZ_LOCALIZED_PKG_LIST = $(AB_CD)
 
 DEFINES += -DAB_CD=$(AB_CD) -DMOZ_APP_NAME=$(MOZ_APP_NAME) -DPREF_DIR=$(PREF_DIR)
 
+ifeq ($(MOZ_CHROME_FILE_FORMAT), jar)
+DEFINES += -DJAREXT=.jar
+else
+DEFINES += -DJAREXT=
+endif
+
 ifdef MOZ_UPDATER
 DEFINES += -DMOZ_UPDATER=1
 endif
@@ -88,6 +94,8 @@ endif
 ifndef MOZ_ENABLE_LIBXUL
 $(error you need an "--enable-libxul" build to package a build)
 endif
+
+NON_OMNIJAR_FILES = defaults/messenger/mailViews.dat
 
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
 

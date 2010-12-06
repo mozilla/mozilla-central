@@ -85,6 +85,8 @@ UNINSTALLER_PACKAGE_HOOK = $(RM) -r $(STAGEDIST)/uninstall; \
     $(NULL)
 endif
 
+NON_OMNIJAR_FILES = defaults/messenger/mailViews.dat
+
 include $(topsrcdir)/config/rules.mk
 
 include $(topsrcdir)/mozilla/toolkit/locales/l10n.mk

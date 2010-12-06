@@ -59,9 +59,9 @@ const nsMsgSearchOp = Components.interfaces.nsMsgSearchOp;
 
 // XXX we need to know whether the gloda indexer is enabled for upsell reasons,
 // but this should really just be exposed on the main Gloda public interface.
-Cu.import("resource://app/modules/gloda/indexer.js");
+Cu.import("resource:///modules/gloda/indexer.js");
 // we need to be able to create gloda message searcher instances for upsells:
-Cu.import("resource://app/modules/gloda/msg_search.js");
+Cu.import("resource:///modules/gloda/msg_search.js");
 
 
 /**
