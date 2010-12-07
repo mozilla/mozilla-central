@@ -635,9 +635,7 @@ function GetDefaultBrowserColors()
 
 function TextIsURI(selectedText)
 {
-  return selectedText && /^http:\/\/|^https:\/\/|^file:\/\/|\
-    ^ftp:\/\/|^about:|^mailto:|^news:|^snews:|^telnet:|^ldap:|\
-    ^ldaps:|^gopher:|^finger:|^javascript:/i.test(selectedText);
+  return selectedText && /^http:\/\/|^https:\/\/|^file:\/\/|^ftp:\/\/|^about:|^mailto:|^news:|^snews:|^telnet:|^ldap:|^ldaps:|^gopher:|^finger:|^javascript:/i.test(selectedText);
 }
 
 function IsUrlAboutBlank(urlString)
