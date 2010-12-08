@@ -23,7 +23,7 @@
        command="Tasks:ErrorConsole" modifiers="accel,shift"/>
 </keyset>
 <commandset id="tasksCommands">
-  <command id="Tasks:DataMan" oncommand="goAbout('data');"/>
+  <command id="Tasks:DataMan" oncommand="toDataManager();"/>
   <command id="Tasks:Navigator" oncommand="toNavigator();"/>
   <command id="Tasks:ErrorConsole" oncommand="toJavaScriptConsole();"/>
 </commandset>

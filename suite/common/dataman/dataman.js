@@ -66,6 +66,7 @@ XPCOMUtils.defineLazyServiceGetter(gLocSvc, "clipboard",
 var gDataman = {
   bundle: null,
   debug: false,
+  viewToLoad: [],
 
   initialize: function dataman_initialize() {
     try {
@@ -92,6 +93,21 @@ var gDataman = {
     Services.obs.removeObserver(this, "satchel-storage-changed");
 
     gDomains.shutdown();
+  },
+
+  loadView: function dataman_loadView(aView) {
+    // Set variable, used in initizalization routine.
+    // Syntax: <domain>|<pane> (|<pane> is optional)
+    // Examples: example.com
+    //           example.org|permissions
+    // Allowed pane names:
+    //   cookies, permissions, preferences, passwords, formdata
+    // Invalid views fall back to the default available ones
+    // Full host names (even including ports) for domain are allowed
+    this.viewToLoad = aView.split('|');
+    if (gDomains.listLoadCompleted)
+      gDomains.loadView();
+    // Else will call this at the end of loading the list.
   },
 
   debugMsg: function dataman_debugMsg(aLogMessage) {
@@ -219,6 +235,7 @@ var gDomains = {
 
   ignoreSelect: false,
   ignoreUpdate: false,
+  listLoadCompleted: false,
 
   initialize: function domain_initialize() {
     gDataman.debugMsg("Start building domain list: " + Date.now()/1000);
@@ -233,7 +250,8 @@ var gDomains = {
                                hasPreferences: Services.contentPrefs.getPrefs(null).enumerator.hasMoreElements(),
                                hasFormData: true};
     this.search("");
-    this.tree.view.selection.select(0);
+    if (!gDataman.viewToLoad.length)
+      this.tree.view.selection.select(0);
 
     let loaderInstance;
     function nextStep() {
@@ -298,9 +316,9 @@ var gDomains = {
       gDomains.search(gDomains.searchfield.value);
       yield setTimeout(nextStep, 0);
 
-      // Send a notification that we finished.
       gDataman.debugMsg("Domain list built: " + Date.now()/1000);
-      Services.obs.notifyObservers(window, "dataman-loaded", null);
+      gDomains.listLoadCompleted = true;
+      gDomains.loadView();
       yield;
     }
     loaderInstance = loader();
@@ -310,6 +328,47 @@ var gDomains = {
   shutdown: function domain_shutdown() {
     gTabs.shutdown();
     this.tree.view = null;
+  },
+
+  loadView: function domain_loadView() {
+    // load the view set in the dataman object.
+    gDataman.debugMsg("Load View: " + gDataman.viewToLoad.join(", "));
+    let loaderInstance;
+    function nextStep() {
+      loaderInstance.next();
+    }
+    function loader() {
+      if (gDataman.viewToLoad.length) {
+        gDataman.debugMsg("Domain for view found");
+        let host = gDataman.viewToLoad[0];
+        // Might have a host:port case, fake a scheme when none present.
+        if (!/:\//.test(host))
+          host = "foo://" + host;
+        let viewdomain = gDomains.getDomainFromHost(host);
+        for (let i = 0; i < gDomains.displayedDomains.length; i++) {
+          if (gDomains.displayedDomains[i].title == viewdomain) {
+            gDomains.tree.view.selection.select(i);
+            gDomains.tree.treeBoxObject.ensureRowIsVisible(i);
+            break;
+          }
+        }
+        yield setTimeout(nextStep, 0);
+
+        if (gDataman.viewToLoad.length > 1) {
+          gDataman.debugMsg("Pane for view found");
+          let loadTabID = gDataman.viewToLoad[1] + "Tab";
+          if (gTabs[loadTabID] && !gTabs[loadTabID].disabled)
+            gTabs.tabbox.selectedTab = gTabs[loadTabID];
+        }
+      }
+      yield setTimeout(nextStep, 0);
+
+      // Send a notification that we have finished.
+      Services.obs.notifyObservers(window, "dataman-loaded", null);
+      yield;
+    }
+    loaderInstance = loader();
+    setTimeout(nextStep, 0);
   },
 
   _getObjID: function domain__getObjID(aIdx) {

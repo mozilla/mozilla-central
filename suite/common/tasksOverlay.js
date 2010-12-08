@@ -80,7 +80,15 @@ function toDownloadManager()
     dlUI.show(window);
   }
 }
-  
+
+function toDataManager(aView)
+{
+  switchToTabHavingURI("about:data", true, function(browser) {
+    if (aView)
+      browser.contentWindow.wrappedJSObject.gDataman.loadView(aView);
+  });
+}
+
 function toEM(aView)
 {
   switchToTabHavingURI("about:addons", true, function(browser) {

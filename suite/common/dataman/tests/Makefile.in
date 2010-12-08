@@ -45,6 +45,7 @@ include $(topsrcdir)/config/rules.mk
 
 _BROWSER_FILES = \
     browser_dataman_basics.js \
+    browser_dataman_callviews.js \
     $(NULL)
 
 libs:: $(_BROWSER_FILES)

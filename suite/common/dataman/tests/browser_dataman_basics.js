@@ -2,11 +2,11 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-// Test basic functionality of the data manager
+// Test basic functionality of the data manager.
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 
-// happen to match what's used in Data Manager itself
+// Happens to match what's used in Data Manager itself.
 var gLocSvc = {
   cookie: Components.classes["@mozilla.org/cookiemanager;1"]
                     .getService(Components.interfaces.nsICookieManager2),
