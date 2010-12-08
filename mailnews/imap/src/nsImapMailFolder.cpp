@@ -1930,9 +1930,9 @@ nsImapMailFolder::MarkMessagesRead(nsIArray *messages, PRBool markRead)
     nsCAutoString messageIds;
     nsTArray<nsMsgKey> keysToMarkRead;
     rv = BuildIdsAndKeyArray(messages, messageIds, keysToMarkRead);
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    StoreImapFlags(kImapMsgSeenFlag, markRead,  keysToMarkRead.Elements(), keysToMarkRead.Length(), nsnull);
+    StoreImapFlags(kImapMsgSeenFlag, markRead, keysToMarkRead.Elements(), keysToMarkRead.Length(), nsnull);
     rv = GetDatabase();
     if (NS_SUCCEEDED(rv))
       mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
@@ -4798,7 +4798,11 @@ nsresult nsImapMailFolder::NotifyMessageFlagsFromHdr(nsIMsgDBHdr *dbHdr, nsMsgKe
   mDatabase->MarkHdrReplied(dbHdr, (flags & kImapMsgAnsweredFlag) != 0, nsnull);
   mDatabase->MarkHdrMarked(dbHdr, (flags & kImapMsgFlaggedFlag) != 0, nsnull);
   mDatabase->MarkImapDeleted(msgKey, (flags & kImapMsgDeletedFlag) != 0, nsnull);
-  mDatabase->MarkForwarded(msgKey, (flags & kImapMsgForwardedFlag) != 0, nsnull);
+
+  PRUint32 supportedFlags;
+  GetSupportedUserFlags(&supportedFlags);
+  if (supportedFlags & kImapMsgSupportForwardedFlag)
+    mDatabase->MarkForwarded(msgKey, (flags & kImapMsgForwardedFlag) != 0, nsnull);
   // this turns on labels, but it doesn't handle the case where the user
   // unlabels a message on one machine, and expects it to be unlabeled
   // on their other machines. If I turn that on, I'll be removing all the labels
@@ -4808,13 +4812,11 @@ nsresult nsImapMailFolder::NotifyMessageFlagsFromHdr(nsIMsgDBHdr *dbHdr, nsMsgKe
     mDatabase->SetLabel(msgKey, (flags & kImapMsgLabelFlags) >> 9);
   else
   {
-    PRUint32 supportedFlags;
-    GetSupportedUserFlags(&supportedFlags);
     if (supportedFlags & kImapMsgLabelFlags)
       mDatabase->SetLabel(msgKey, 0);
   }
-  if (flags & kImapMsgMDNSentFlag)
-    mDatabase->MarkMDNSent(msgKey, PR_TRUE, nsnull);
+  if (supportedFlags & kImapMsgSupportMDNSentFlag)
+    mDatabase->MarkMDNSent(msgKey, (flags & kImapMsgMDNSentFlag) != 0, nsnull);
 
   return NS_OK;
 }
