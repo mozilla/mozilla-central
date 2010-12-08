@@ -116,11 +116,12 @@
   </commandset>
 
   <panel id="editBookmarkPanel"
-          orient="vertical"
-          ignorekeys="true"
-          hidden="true"
-          onpopupshown="StarUI.panelShown(event);"
-          aria-labelledby="editBookmarkPanelTitle">
+         type="arrow"
+         orient="vertical"
+         ignorekeys="true"
+         hidden="true"
+         onpopupshown="StarUI.panelShown(event);"
+         aria-labelledby="editBookmarkPanelTitle">
     <row id="editBookmarkPanelHeader" align="center" hidden="true">
       <vbox align="center">
         <image id="editBookmarkPanelStarIcon"/>

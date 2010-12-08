@@ -229,7 +229,7 @@ var StarUI = {
     // Consume dismiss clicks, see bug 400924
     this.panel.popupBoxObject
         .setConsumeRollupEvent(Components.interfaces.nsIPopupBoxObject.ROLLUP_CONSUME);
-    this.panel.openPopup(aAnchorElement, aPosition, -1, -1);
+    this.panel.openPopup(aAnchorElement, aPosition);
 
     gEditItemOverlay.initPanel(this._itemId,
                                { hiddenRows: ["description", "location",
@@ -342,7 +342,8 @@ var PlacesCommandHook = {
       if (ubIcons) {
         // Make sure the bookmark properties dialog hangs toward the middle of
         // the location bar in RTL builds
-        let position = (getComputedStyle(gNavToolbox, "").direction == "rtl") ? 'after_start' : 'after_end';
+        let position = (getComputedStyle(gNavToolbox, "").direction == "rtl") ?
+          'bottomcenter topleft' : 'bottomcenter topright';
         if (aShowEditUI)
           StarUI.showEditBookmarkPopup(itemId, ubIcons, position);
         return;
