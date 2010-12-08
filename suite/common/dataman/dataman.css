@@ -35,6 +35,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+@namespace xhtml "http://www.w3.org/1999/xhtml";
+
+/* HTML link elements do weird things to the layout if they are not hidden */
+xhtml|link {
+  display: none;
+}
+
 /* generic item gets used for permissions that don't need any special treatment */
 richlistitem.permission {
   -moz-binding: url('chrome://communicator/content/dataman/dataman.xml#perm-generic-item');

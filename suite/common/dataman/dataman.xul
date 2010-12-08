@@ -48,9 +48,13 @@
 ]>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      xmlns:xhtml="http://www.w3.org/1999/xhtml"
       id="dataman-page" title="&dataman.windowTitle;"
       onload="gDataman.initialize();"
       onunload="gDataman.shutdown();">
+
+  <xhtml:link rel="shortcut icon"
+              href="chrome://communicator/skin/dataman/datamanIcon-16.png"/>
 
   <script type="application/javascript"
           src="chrome://communicator/content/dataman/dataman.js"/>

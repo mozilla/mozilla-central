@@ -49,6 +49,7 @@ modern.jar:
   skin/modern/communicator/brand/throbber16-anim.png               (communicator/brand/throbber16-anim.png)
   skin/modern/communicator/brand/throbber16-single.png             (communicator/brand/throbber16-single.png)
   skin/modern/communicator/dataman/dataman.css                     (communicator/dataman/dataman.css)
+  skin/modern/communicator/dataman/datamanIcon-16.png              (communicator/dataman/datamanIcon-16.png)
   skin/modern/communicator/directory/file-folder-closed.gif        (communicator/directory/file-folder-closed.gif)
   skin/modern/communicator/directory/file-folder-open.gif          (communicator/directory/file-folder-open.gif)
   skin/modern/communicator/directory/file-icon.gif                 (communicator/directory/file-icon.gif)

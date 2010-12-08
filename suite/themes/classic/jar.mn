@@ -93,6 +93,7 @@ classic.jar:
   skin/classic/communicator/brand/throbber16-anim.png                   (communicator/brand/throbber16-anim.png)
   skin/classic/communicator/brand/throbber16-single.png                 (communicator/brand/throbber16-single.png)
   skin/classic/communicator/dataman/dataman.css                         (communicator/dataman/dataman.css)
+  skin/classic/communicator/dataman/datamanIcon-16.png                  (communicator/dataman/datamanIcon-16.png)
   skin/classic/communicator/directory/directory.css                     (communicator/directory/directory.css)
   skin/classic/communicator/feed-subscribe.css                          (communicator/feed-subscribe.css)
   skin/classic/communicator/feed-subscribe-ui.css                       (communicator/feed-subscribe-ui.css)
