@@ -43,6 +43,7 @@
          xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
+  <script type="application/javascript" src="chrome://global/content/viewZoomOverlay.js"/>
   <script type="application/javascript" src="chrome://communicator/content/viewZoomOverlay.js"/>
 
   <stringbundle id="bundle_viewZoom" src="chrome://communicator/locale/viewZoomOverlay.properties"/>
@@ -56,14 +57,15 @@
   </keyset>
 
   <commandset id="viewZoomCommands">
-    <command id="cmd_zoomReduce"  oncommand="ZoomManager.prototype.getInstance().reduce();"/>
-    <command id="cmd_zoomEnlarge" oncommand="ZoomManager.prototype.getInstance().enlarge();"/>
-    <command id="cmd_zoomReset"   oncommand="ZoomManager.prototype.getInstance().reset();"/>
+    <command id="cmd_zoomReduce"  oncommand="FullZoom.reduce();"/>
+    <command id="cmd_zoomEnlarge" oncommand="FullZoom.enlarge();"/>
+    <command id="cmd_zoomReset"   oncommand="FullZoom.reset();"/>
     <command id="cmd_zoomOther"   oncommand="setZoomOther();"/>
+    <command id="cmd_fullZoomToggle" oncommand="ZoomManager.toggleZoom();"/>
   </commandset>
 
   <menu id="menu_zoom" accesskey="&zoomMenu.accesskey;">
-    <menupopup id="menu_zoomPopup" onpopupshowing="updateZoomMenu();" oncommand="ZoomManager.prototype.getInstance().currentZoom = event.target.value;">
+    <menupopup id="menu_zoomPopup" onpopupshowing="updateZoomMenu();" oncommand="FullZoom.zoom(event.target.value / 100);">
       <menuitem id="menu_zoomReduce"
                 key="key_zoomReduce"
                 label="&zoomReduceCmd.label;"

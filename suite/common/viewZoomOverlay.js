@@ -23,6 +23,9 @@
  * Contributor(s):
  *   Peter Annema <disttsc@bart.nl> (Original Author)
  *   Jonas Sicking <sicking@bigfoot.com>
+ *   Myk Melez <myk@mozilla.org>
+ *   Dão Gottwald <dao@mozilla.com>
+ *   Ehsan Akhgari <ehsan.akhgari@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -38,213 +41,331 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/** Document Zoom Management Code
- *
- * To use this, you'll need to have a <menu id="menu_zoom"/>
- * and a getMarkupDocumentViewer() function which returns a
- * nsIMarkupDocumentViewer.
- *
- **/
+// One of the possible values for the mousewheel.* preferences.
+// From nsEventStateManager.cpp.
+const MOUSE_SCROLL_ZOOM = 3;
 
-function ZoomManager() {
-  this.bundle = document.getElementById("bundle_viewZoom");
+/**
+ * Controls the "full zoom" setting and its site-specific preferences.
+ */
+var FullZoom = {
+  // Identifies the setting in the content prefs database.
+  name: "browser.content.full-zoom",
 
-  // factorAnchor starts on factorOther
-  this.factorOther = parseInt(this.bundle.getString("valueOther"));
-  this.factorAnchor = this.factorOther;
-}
-
-ZoomManager.prototype = {
-  instance : null,
-
-  getInstance : function() {
-    if (!ZoomManager.prototype.instance)
-      ZoomManager.prototype.instance = new ZoomManager();
-
-    return ZoomManager.prototype.instance;
+  // The global value (if any) for the setting.  Lazily loaded from the service
+  // when first requested, then updated by the pref change listener as it changes.
+  // If there is no global value, then this should be undefined.
+  get globalValue() {
+    var globalValue = Services.contentPrefs.getPref(null, this.name);
+    if (typeof globalValue != "undefined")
+      globalValue = this._ensureValid(globalValue);
+    delete this.globalValue;
+    return this.globalValue = globalValue;
   },
 
-  MIN : 1,
-  MAX : 2000,
+  // browser.zoom.siteSpecific preference cache
+  _siteSpecificPref: undefined,
 
-  bundle : null,
+  // browser.zoom.updateBackgroundTabs preference cache
+  updateBackgroundTabs: undefined,
 
-  zoomFactorsString : "", // cache
-  zoomFactors : null,
-
-  factorOther : 300,
-  factorAnchor : 300,
-  steps : 0,
-
-  pref : Components.classes["@mozilla.org/preferences-service;1"]
-                   .getService(Components.interfaces.nsIPrefService)
-                   .getBranch(null),
-
-  get zoomType() {
-    return this.pref.getBoolPref("browser.zoom.full") ? "fullZoom" : "textZoom";
+  get siteSpecific() {
+    return this._siteSpecificPref;
   },
 
-  get currentZoom() {
-    var currentZoom;
+  //**************************************************************************//
+  // nsISupports
+
+  QueryInterface:
+  XPCOMUtils.generateQI([Components.interfaces.nsIDOMEventListener,
+                         Components.interfaces.nsIObserver,
+                         Components.interfaces.nsIContentPrefObserver,
+                         Components.interfaces.nsISupportsWeakReference,
+                         Components.interfaces.nsISupports]),
+
+  //**************************************************************************//
+  // Initialization & Destruction
+
+  init: function FullZoom_init() {
+    // Listen for scrollwheel events so we can save scrollwheel-based changes.
+    window.addEventListener("DOMMouseScroll", this, false);
+
+    // Register ourselves with the service so we know when our pref changes.
+    Services.contentPrefs.addObserver(this.name, this);
+
+    this._siteSpecificPref =
+      Services.prefs.getBoolPref("browser.zoom.siteSpecific");
+    this.updateBackgroundTabs =
+      Services.prefs.getBoolPref("browser.zoom.updateBackgroundTabs");
+    // Listen for changes to the browser.zoom branch so we can enable/disable
+    // updating background tabs and per-site saving and restoring of zoom levels.
+    Services.prefs.addObserver("browser.zoom.", this, true);
+  },
+
+  destroy: function FullZoom_destroy() {
+    Services.prefs.removeObserver("browser.zoom.", this);
+    Services.contentPrefs.removeObserver(this.name, this);
+    window.removeEventListener("DOMMouseScroll", this, false);
+  },
+
+
+  //**************************************************************************//
+  // Event Handlers
+
+  // nsIDOMEventListener
+
+  handleEvent: function FullZoom_handleEvent(event) {
+    switch (event.type) {
+      case "DOMMouseScroll":
+        this._handleMouseScrolled(event);
+        break;
+    }
+  },
+
+  _handleMouseScrolled: function FullZoom_handleMouseScrolled(event) {
+    // Construct the "mousewheel action" pref key corresponding to this event.
+    // Based on nsEventStateManager::GetBasePrefKeyForMouseWheel.
+    var pref = "mousewheel";
+    if (event.axis == event.HORIZONTAL_AXIS)
+      pref += ".horizscroll";
+
+    if (event.shiftKey)
+      pref += ".withshiftkey";
+    else if (event.ctrlKey)
+      pref += ".withcontrolkey";
+    else if (event.altKey)
+      pref += ".withaltkey";
+    else if (event.metaKey)
+      pref += ".withmetakey";
+    else
+      pref += ".withnokey";
+
+    pref += ".action";
+
+    // Don't do anything if this isn't a "zoom" scroll event.
+    var isZoomEvent = false;
     try {
-      currentZoom = Math.round(getMarkupDocumentViewer()[this.zoomType] * 100);
-      if (this.indexOf(currentZoom) == -1) {
-        if (currentZoom != this.factorOther) {
-          this.factorOther = currentZoom;
-          this.factorAnchor = this.factorOther;
+      isZoomEvent = (Services.prefs.getIntPref(pref) == MOUSE_SCROLL_ZOOM);
+    } catch (e) {}
+    if (!isZoomEvent)
+      return;
+
+    // XXX Lazily cache all the possible action prefs so we don't have to get
+    // them anew from the pref service for every scroll event?  We'd have to
+    // make sure to observe them so we can update the cache when they change.
+
+    // We have to call _applySettingToPref in a timeout because we handle
+    // the event before the event state manager has a chance to apply the zoom
+    // during nsEventStateManager::PostHandleEvent.
+    window.setTimeout(function (self) { self._applySettingToPref() }, 0, this);
+  },
+
+  // nsIObserver
+
+  observe: function (aSubject, aTopic, aData) {
+    switch (aTopic) {
+      case "nsPref:changed":
+        switch (aData) {
+          case "browser.zoom.siteSpecific":
+            this._siteSpecificPref =
+              Services.prefs.getBoolPref("browser.zoom.siteSpecific");
+            break;
+          case "browser.zoom.updateBackgroundTabs":
+            this.updateBackgroundTabs =
+              Services.prefs.getBoolPref("browser.zoom.updateBackgroundTabs");
+            break;
         }
-      }
-    } catch (e) {
-      currentZoom = 100;
-    }
-    return currentZoom;
-  },
-
-  set currentZoom(aZoom) {
-    if (aZoom < this.MIN || aZoom > this.MAX)
-      throw Components.results.NS_ERROR_INVALID_ARG;
-
-    getMarkupDocumentViewer()[this.zoomType] = aZoom / 100;
-  },
-
-  enlarge : function() {
-    this.jump(1);
-  },
-
-  reduce : function() {
-    this.jump(-1);
-  },
-
-  reset : function() {
-    this.currentZoom = 100;
-  },
-
-  getZoomFactors : function() {
-    this.ensureZoomFactors();
-
-    return this.zoomFactors;
-  },
-
-  indexOf : function(aZoom) {
-    this.ensureZoomFactors();
-
-    var index = -1;
-    if (this.isZoomInRange(aZoom)) {
-      index = this.zoomFactors.length - 1;
-      while (index >= 0 && this.zoomFactors[index] != aZoom)
-        --index;
-    }
-
-    return index;
-  },
-
-  /***** internal helper functions below here *****/
-
-  ensureZoomFactors : function() {
-    var zoomFactorsString = this.bundle.getString("values");
-    if (this.zoomFactorsString != zoomFactorsString) {
-      this.zoomFactorsString = zoomFactorsString;
-      this.zoomFactors = zoomFactorsString.split(",");
-      for (var i = 0; i<this.zoomFactors.length; ++i)
-        this.zoomFactors[i] = parseInt(this.zoomFactors[i]);
+        break;
     }
   },
 
-  isLevelInRange : function(aLevel) {
-    return (aLevel >= 0 && aLevel < this.zoomFactors.length);
+  // nsIContentPrefObserver
+
+  onContentPrefSet: function FullZoom_onContentPrefSet(aGroup, aName, aValue) {
+    if (aGroup == Services.contentPrefs.grouper.group(getBrowser().currentURI))
+      this._applyPrefToSetting(aValue);
+    else if (aGroup == null) {
+      this.globalValue = this._ensureValid(aValue);
+
+      // If the current page doesn't have a site-specific preference,
+      // then its zoom should be set to the new global preference now that
+      // the global preference has changed.
+      if (!Services.contentPrefs.hasPref(getBrowser().currentURI, this.name))
+        this._applyPrefToSetting();
+    }
   },
 
-  isZoomInRange : function(aZoom) {
-    return (aZoom >= this.zoomFactors[0] && aZoom <= this.zoomFactors[this.zoomFactors.length - 1]);
+  onContentPrefRemoved: function FullZoom_onContentPrefRemoved(aGroup, aName) {
+    if (aGroup == Services.contentPrefs.grouper.group(getBrowser().currentURI))
+      this._applyPrefToSetting();
+    else if (aGroup == null) {
+      this.globalValue = undefined;
+
+      // If the current page doesn't have a site-specific preference,
+      // then its zoom should be set to the default preference now that
+      // the global preference has changed.
+      if (!Services.contentPrefs.hasPref(getBrowser().currentURI, this.name))
+        this._applyPrefToSetting();
+    }
   },
 
-  jump : function(aDirection) {
-    if (aDirection != -1 && aDirection != 1)
-      throw Components.results.NS_ERROR_INVALID_ARG;
+  // location change observer
 
-    this.ensureZoomFactors();
+  /**
+   * Called when the location of a tab changes.
+   * When that happens, we need to update the current zoom level if appropriate.
+   *
+   * @param aURI
+   *        A URI object representing the new location.
+   * @param aIsTabSwitch
+   *        Whether this location change has happened because of a tab switch.
+   * @param aBrowser
+   *        (optional) browser object displaying the document
+   */
+  onLocationChange: function FullZoom_onLocationChange(aURI, aIsTabSwitch, aBrowser) {
+    if (!aURI || !this.siteSpecific)
+      return;
 
-    var currentZoom = this.currentZoom;
-    var insertIndex = -1;
-    var stepFactor = parseFloat(this.bundle.getString("stepFactor"));
-
-    // temporarily add factorOther to list
-    if (this.isZoomInRange(this.factorOther)) {
-      insertIndex = 0;
-      while (this.zoomFactors[insertIndex] < this.factorOther)
-        ++insertIndex;
-
-      if (this.zoomFactors[insertIndex] != this.factorOther)
-        this.zoomFactors.splice(insertIndex, 0, this.factorOther);
+    // Avoid the cps roundtrip and apply the default/global pref.
+    if (aURI.spec == "about:blank") {
+      this._applyPrefToSetting(undefined, aBrowser);
+      return;
     }
 
-    var factor;
-    var done = false;
+    var self = this;
+    Services.contentPrefs.getPref(aURI, this.name, function (aResult) {
+      // Check that we're still where we expect to be in case this took a while.
+      if (!aBrowser || aURI.equals(aBrowser.currentURI))
+        self._applyPrefToSetting(aResult, aBrowser);
+    });
+  },
 
-    if (this.isZoomInRange(currentZoom)) {
-      var index = this.indexOf(currentZoom);
-      if (aDirection == -1 && index == 0 ||
-          aDirection ==  1 && index == this.zoomFactors.length - 1) {
-        this.steps = 0;
-        this.factorAnchor = this.zoomFactors[index];
-      } else {
-        factor = this.zoomFactors[index + aDirection];
-        done = true;
-      }
-    }
+  // update state of zoom type menu item
 
-    if (!done) {
-      this.steps += aDirection;
-      factor = this.factorAnchor * Math.pow(stepFactor, this.steps);
-      if (factor < this.MIN || factor > this.MAX) {
-        this.steps -= aDirection;
-        factor = this.factorAnchor * Math.pow(stepFactor, this.steps);
-      }
-      factor = Math.round(factor);
-      if (this.isZoomInRange(factor))
-        factor = this.snap(factor);
+  updateMenu: function FullZoom_updateMenu() {
+    var menuItem = document.getElementById("toggle_zoom");
+
+    menuItem.setAttribute("checked", !ZoomManager.useFullZoom);
+  },
+
+  //**************************************************************************//
+  // Setting & Pref Manipulation
+
+  reduce: function FullZoom_reduce() {
+    ZoomManager.reduce();
+    this._applySettingToPref();
+  },
+
+  enlarge: function FullZoom_enlarge() {
+    ZoomManager.enlarge();
+    this._applySettingToPref();
+  },
+
+  zoom: function FullZoom_zoom(aZoomValue) {
+    ZoomManager.zoom = aZoomValue;
+    this._applySettingToPref();
+  },
+
+  reset: function FullZoom_reset() {
+    if (typeof this.globalValue != "undefined")
+      ZoomManager.zoom = this.globalValue;
+    else
+      ZoomManager.reset();
+
+    this._removePref();
+  },
+
+  /**
+   * Set the zoom level for the current tab.
+   *
+   * Per nsPresContext::setFullZoom, we can set the zoom to its current value
+   * without significant impact on performance, as the setting is only applied
+   * if it differs from the current setting.  In fact getting the zoom and then
+   * checking ourselves if it differs costs more.
+   * 
+   * And perhaps we should always set the zoom even if it was more expensive,
+   * since DocumentViewerImpl::SetTextZoom claims that child documents can have
+   * a different text zoom (although it would be unusual), and it implies that
+   * those child text zooms should get updated when the parent zoom gets set,
+   * and perhaps the same is true for full zoom
+   * (although DocumentViewerImpl::SetFullZoom doesn't mention it).
+   *
+   * So when we apply new zoom values to the browser, we simply set the zoom.
+   * We don't check first to see if the new value is the same as the current
+   * one.
+   **/
+  _applyPrefToSetting: function FullZoom_applyPrefToSetting(aValue, aBrowser) {
+    if (!this.siteSpecific || window.gInPrintPreviewMode)
+      return;
+
+    var browser = aBrowser || (getBrowser() && getBrowser().selectedBrowser);
+    try {
+      if (browser.contentDocument instanceof Components.interfaces.nsIImageDocument)
+        ZoomManager.setZoomForBrowser(browser, 1);
+      else if (typeof aValue != "undefined")
+        ZoomManager.setZoomForBrowser(browser, this._ensureValid(aValue));
+      else if (typeof this.globalValue != "undefined")
+        ZoomManager.setZoomForBrowser(browser, this.globalValue);
       else
-        this.factorOther = factor;
+        ZoomManager.setZoomForBrowser(browser, 1);
     }
-
-    if (insertIndex != -1)
-      this.zoomFactors.splice(insertIndex, 1);
-
-    this.currentZoom = factor;
+    catch(ex) {}
   },
 
-  snap : function(aZoom) {
-    if (this.isZoomInRange(aZoom)) {
-      var level = 0;
-      while (this.zoomFactors[level + 1] < aZoom)
-        ++level;
+  _applySettingToPref: function FullZoom_applySettingToPref() {
+    if (!this.siteSpecific || window.gInPrintPreviewMode ||
+        content.document instanceof Components.interfaces.nsIImageDocument)
+      return;
 
-      // if aZoom closer to [level + 1] than [level], snap to [level + 1]
-      if ((this.zoomFactors[level + 1] - aZoom) < (aZoom - this.zoomFactors[level]))
-        ++level;
+    var zoomLevel = ZoomManager.zoom;
+    Services.contentPrefs.setPref(getBrowser().currentURI, this.name, zoomLevel);
+  },
 
-      aZoom = this.zoomFactors[level];
-    }
+  _removePref: function FullZoom_removePref() {
+    if (!(content.document instanceof Components.interfaces.nsIImageDocument))
+      Services.contentPrefs.removePref(getBrowser().currentURI, this.name);
+  },
 
-    return aZoom;
+
+  //**************************************************************************//
+  // Utilities
+
+  _ensureValid: function FullZoom_ensureValid(aValue) {
+    if (isNaN(aValue))
+      return 1;
+
+    if (aValue < ZoomManager.MIN)
+      return ZoomManager.MIN;
+
+    if (aValue > ZoomManager.MAX)
+      return ZoomManager.MAX;
+
+    return aValue;
   }
-}
+};
 
 /***** init and helper functions for viewZoomOverlay.xul *****/
 window.addEventListener("load", registerZoomManager, false);
+window.addEventListener("unload", unregisterZoomManager, false);
 
-function registerZoomManager()
-{
+function registerZoomManager() {
+  FullZoom.init();
+
+  var zoomBundle = document.getElementById("bundle_viewZoom");
   var zoomMenu = document.getElementById("menu_zoom");
-  var zoom = ZoomManager.prototype.getInstance();
-
   var parentMenu = zoomMenu.parentNode;
   parentMenu.addEventListener("popupshowing", updateViewMenu, false);
 
+  var accessKeys = zoomBundle.getString("accessKeys").split(",");
+  var zoomFactors = zoomBundle.getString("values").split(",");
+
+  // Make sure the zoom manager has the same values as us
+  Services.prefs.setCharPref("toolkit.zoomManager.zoomValues",
+                             zoomFactors.map(function(aVal) {return aVal/100;})
+                                        .join(","));
+
   var insertBefore = document.getElementById("menu_zoomInsertBefore");
   var popup = insertBefore.parentNode;
-  var accessKeys = zoom.bundle.getString("accessKeys").split(",");
-  var zoomFactors = zoom.getZoomFactors();
   for (var i = 0; i < zoomFactors.length; ++i) {
     var menuItem = document.createElement("menuitem");
     menuItem.setAttribute("type", "radio");
@@ -252,11 +373,11 @@ function registerZoomManager()
 
     var label;
     if (zoomFactors[i] == 100) {
-      label = zoom.bundle.getString("labelOriginal");
+      label = zoomBundle.getString("labelOriginal");
       menuItem.setAttribute("key", "key_zoomReset");
     }
     else
-      label = zoom.bundle.getString("label");
+      label = zoomBundle.getString("label");
 
     menuItem.setAttribute("label", label.replace(/%zoom%/, zoomFactors[i]));
     menuItem.setAttribute("accesskey", accessKeys[i]);
@@ -265,31 +386,33 @@ function registerZoomManager()
   }
 }
 
-function updateViewMenu()
-{
-  var zoom = ZoomManager.prototype.getInstance();
+function unregisterZoomManager() {
+  FullZoom.destroy();
+}
 
+function updateViewMenu() {
+  var zoomBundle = document.getElementById("bundle_viewZoom");
   var zoomMenu = document.getElementById("menu_zoom");
-  var menuLabel = zoom.bundle.getString(zoom.zoomType).replace(/%zoom%/, zoom.currentZoom);
+  var zoomType = ZoomManager.useFullZoom ? "fullZoom" : "textZoom";
+  var menuLabel = zoomBundle.getString(zoomType)
+                            .replace(/%zoom%/, Math.round(ZoomManager.zoom * 100));
   zoomMenu.setAttribute("label", menuLabel);
 }
 
-function updateZoomMenu()
-{
-  var zoom = ZoomManager.prototype.getInstance();
-
-  var currentZoom = zoom.currentZoom;
-
+function updateZoomMenu() {
+  var zoomBundle = document.getElementById("bundle_viewZoom");
   var zoomOther = document.getElementById("menu_zoomOther");
-  var label = zoom.bundle.getString("labelOther");
-  zoomOther.setAttribute("label", label.replace(/%zoom%/, zoom.factorOther));
-  zoomOther.setAttribute("value", zoom.factorOther);
+  var label = zoomBundle.getString("labelOther");
+  var factorOther = zoomOther.getAttribute("value") ||
+                    zoomBundle.getString("valueOther");
+  zoomOther.setAttribute("label", label.replace(/%zoom%/, factorOther));
+  zoomOther.setAttribute("value", factorOther);
 
   var popup = document.getElementById("menu_zoomPopup");
   var item = popup.firstChild;
   while (item) {
     if (item.getAttribute("name") == "zoom") {
-      if (item.getAttribute("value") == currentZoom)
+      if (item.getAttribute("value") == Math.round(ZoomManager.zoom * 100))
         item.setAttribute("checked","true");
       else
         item.removeAttribute("checked");
@@ -298,14 +421,16 @@ function updateZoomMenu()
   }
 }
 
-function setZoomOther()
-{
-  var zoom = ZoomManager.prototype.getInstance();
-
+function setZoomOther() {
+  var zoomOther = document.getElementById("menu_zoomOther");
   // open dialog and ask for new value
-  var o = {value: zoom.factorOther, zoomMin: zoom.MIN, zoomMax: zoom.MAX};
+  var o = {value: zoomOther.getAttribute("value"),
+           zoomMin: ZoomManager.MIN * 100,
+           zoomMax: ZoomManager.MAX * 100};
   window.openDialog("chrome://communicator/content/askViewZoom.xul",
                     "", "chrome,modal,centerscreen", o);
-  if (o.zoomOK)
-    zoom.currentZoom = o.value;
+  if (o.zoomOK) {
+    zoomOther.setAttribute("value", o.value);
+    ZoomManager.zoom = o.value / 100;
+  }
 }

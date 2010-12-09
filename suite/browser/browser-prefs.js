@@ -316,7 +316,15 @@ pref("browser.backspace_action", 0);
 // 2 - pre-populate site URL and pre-fetch certificate.
 pref("browser.ssl_override_behavior", 2);
 
+// if true, use full page zoom instead of text zoom
 pref("browser.zoom.full", true);
+
+// Whether or not to save and restore zoom levels on a per-site basis.
+pref("browser.zoom.siteSpecific", true);
+
+// Whether or not to update background tabs to the current zoom level
+// once they come to the foreground (i.e. get activated).
+pref("browser.zoom.updateBackgroundTabs", true);
 
 pref("javascript.options.showInConsole",    true);
 

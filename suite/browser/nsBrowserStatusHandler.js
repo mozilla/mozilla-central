@@ -378,6 +378,11 @@ nsBrowserStatusHandler.prototype =
       this.feedsMenu.setAttribute("disabled", "true");
       this.feedsButton.hidden = true;
       this.feeds = [];
+
+      // When background tab comes into foreground or loading a new page
+      // (aRequest set), might want to update zoom.
+      if (FullZoom.updateBackgroundTabs || aRequest)
+        FullZoom.onLocationChange(getBrowser().currentURI, !aRequest, browser);
     }
     UpdateBackForwardButtons();
 
