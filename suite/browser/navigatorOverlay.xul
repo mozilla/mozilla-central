@@ -417,6 +417,11 @@
                   key="key_gotoHistory"/>
         <menuseparator id="startHistorySeparator" hidden="true"/>
         <menuseparator id="endHistorySeparator" hidden="true"/>
+        <menuitem id="historyRestoreLastSession"
+                  label="&historyRestoreLastSession.label;"
+                  accesskey="&historyRestoreLastSessionCmd.accesskey;"
+                  oncommand="restoreLastSession();"
+                  disabled="true"/>
       </menupopup>
     </menu>
 

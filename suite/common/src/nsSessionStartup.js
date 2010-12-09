@@ -132,10 +132,12 @@ SessionStartup.prototype = {
       this._sessionType = Components.interfaces.nsISessionStartup.RECOVER_SESSION;
     else if (!lastSessionCrashed && doResumeSession)
       this._sessionType = Components.interfaces.nsISessionStartup.RESUME_SESSION;
+    else if (initialState)
+      this._sessionType = Components.interfaces.nsISessionStartup.DEFER_SESSION;
     else
       this._iniString = null; // reset the state string
 
-    if (this._sessionType != Components.interfaces.nsISessionStartup.NO_SESSION) {
+    if (this.doRestore()) {
       // wait for the first browser window to open
       Services.obs.addObserver(this, "browser:purge-session-history", true);
     }
@@ -184,7 +186,8 @@ SessionStartup.prototype = {
    * @returns bool
    */
   doRestore: function sss_doRestore() {
-    return this._sessionType != Components.interfaces.nsISessionStartup.NO_SESSION;
+    return this._sessionType == Components.interfaces.nsISessionStartup.RECOVER_SESSION ||
+           this._sessionType == Components.interfaces.nsISessionStartup.RESUME_SESSION;
   },
 
   /**

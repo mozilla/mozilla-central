@@ -734,6 +734,12 @@ function InitSessionStoreCallback()
     var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
                        .getService(Components.interfaces.nsISessionStore);
     ss.init(window);
+
+    //Check if we have "Deferred Session Restore"
+    let restoreItem = document.getElementById("historyRestoreLastSession");
+
+    if (ss.canRestoreLastSession)
+      restoreItem.removeAttribute("disabled");
   } catch(ex) {
     dump("nsSessionStore could not be initialized: " + ex + "\n");
   }
@@ -1433,6 +1439,12 @@ function undoCloseWindow(aIndex)
                      .getService(Components.interfaces.nsISessionStore);
 
   return ss.undoCloseWindow(aIndex);
+}
+
+function restoreLastSession() {
+  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                     .getService(Components.interfaces.nsISessionStore);
+  ss.restoreLastSession();
 }
 
 /*

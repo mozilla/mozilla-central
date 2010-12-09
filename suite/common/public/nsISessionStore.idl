@@ -47,13 +47,31 @@ interface nsIDOMNode;
  * - and allows to restore everything into one window.
  */
 
-[scriptable, uuid(e63e4931-ff9f-4840-a203-b787223e057d)]
+[scriptable, uuid(a2f14785-c4d4-4bac-b048-a849d2e74513)]
 interface nsISessionStore : nsISupports
 {
   /**
    * Initialize the service
    */
   void init(in nsIDOMWindow aWindow);
+
+  /**
+   * Is it possible to restore the previous session. Will always be false when
+   * in Private Browsing mode.
+   */
+  attribute boolean canRestoreLastSession;
+
+  /**
+   * Restore the previous session if possible. This will not overwrite the
+   * current session. Instead the previous session will be merged into the
+   * current session. Current windows will be reused if they were windows that
+   * pinned tabs were previously restored into. New windows will be opened as
+   * needed.
+   *
+   * Note: This will throw if there is no previous state to restore. Check with
+   * canRestoreLastSession first to avoid thrown errors.
+   */
+  void restoreLastSession();
 
   /**
    * Get the current browsing state.
