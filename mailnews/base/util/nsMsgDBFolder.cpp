@@ -806,7 +806,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint64 *off
       if (seekableStream)
       {
         rv = seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, *offset);
-        char startOfMsg[100];
+        char startOfMsg[200];
         PRUint32 bytesRead = 0;
         PRUint32 bytesToRead = sizeof(startOfMsg) - 1;
         if (NS_SUCCEEDED(rv))
@@ -832,8 +832,18 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint64 *off
                  MsgAdvanceToNextLine(startOfMsg, msgOffset, bytesRead - 1);
             }
           }
-         *offset += msgOffset;
-         *size -= msgOffset;
+          PRInt32 findPos = MsgFindCharInSet(nsDependentCString(startOfMsg),
+                                             ":\n\r", msgOffset);
+          // Check that the first line is a header line, i.e., with a ':' in it
+          if (findPos != -1 && startOfMsg[findPos] == ':')
+          {
+            *offset += msgOffset;
+            *size -= msgOffset;
+          }
+          else
+          {
+            rv = NS_ERROR_FAILURE;
+          }
         }
       }
     }

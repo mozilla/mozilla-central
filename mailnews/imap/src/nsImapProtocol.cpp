@@ -8988,13 +8988,30 @@ nsresult nsImapMockChannel::ReadFromMemCache(nsICacheEntryDescriptor *entry)
     rv = entry->GetMetaDataElement("ContentModified", getter_Copies(annotation));
     if (NS_SUCCEEDED(rv) && !annotation.IsEmpty())
       shouldUseCacheEntry = annotation.EqualsLiteral("Not Modified");
+  }
+  if (shouldUseCacheEntry)
+  {
+    nsCOMPtr<nsIInputStream> in;
+    PRUint32 readCount;
+    rv = entry->OpenInputStream(0, getter_AddRefs(in));
+    NS_ENSURE_SUCCESS(rv, rv);
+    const int kFirstBlockSize = 100;
+    char firstBlock[kFirstBlockSize + 1];
 
+    rv = in->Read(firstBlock, sizeof(firstBlock), &readCount);
+    NS_ENSURE_SUCCESS(rv, rv);
+    firstBlock[kFirstBlockSize] = '\0';
+    PRInt32 findPos = MsgFindCharInSet(nsDependentCString(firstBlock),
+                                       ":\n\r", 0);
+    // Check that the first line is a header line, i.e., with a ':' in it
+    shouldUseCacheEntry = findPos != -1 && firstBlock[findPos] == ':';
+    in->Close();
   }
   if (shouldUseCacheEntry)
   {
     nsCOMPtr<nsIInputStream> in;
     rv = entry->OpenInputStream(0, getter_AddRefs(in));
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
      // if mem cache entry is broken or empty, return error.
     PRUint32 bytesAvailable;
     rv = in->Available(&bytesAvailable);
