@@ -203,29 +203,48 @@ const ltnOnItipItem = {
 };
 
 /**
- * Add self to gMessageListeners defined in msgHdrViewOverlay.js
+ * Hide the imip bar and reset the itip item.
+ */
+function ltnHideImipBar() {
+    document.getElementById("imip-bar").collapsed = true;
+    hideElement("imip-button1");
+    hideElement("imip-button2");
+    hideElement("imip-button3");
+    // Clear our iMIP/iTIP stuff so it doesn't contain stale information.
+    gItipItem = null;
+}
+
+/**
+ * Load Handler called to initialize the imip bar
  */
 function ltnImipOnLoad() {
+    // Add a listener to gMessageListeners defined in msgHdrViewOverlay.js
     let listener = {
         onStartHeaders: function onImipStartHeaders() {
-            var imipBar = document.getElementById("imip-bar");
-            imipBar.setAttribute("collapsed", "true");
-            hideElement("imip-button1");
-            hideElement("imip-button2");
-            hideElement("imip-button3");
-            // A new message is starting.
-            // Clear our iMIP/iTIP stuff so it doesn't contain stale information.
-            gItipItem = null;
+            // A new message is starting. Hiding the bar resets all imip data.
+            ltnHideImipBar();
         },
         onEndHeaders: function onImipEndHeaders() {
-        }
+        },
     };
     gMessageListeners.push(listener);
+
+    // We need to extend the HideMessageHeaderPane function to also hide the
+    // message header pane. Otherwise, the imip bar will still be shown when
+    // changing folders.
+    ltnImipOnLoad.tbHideMessageHeaderPane = HideMessageHeaderPane;
+    HideMessageHeaderPane = function ltnHideMessageHeaderPane() {
+        ltnHideImipBar();
+        ltnImipOnLoad.tbHideMessageHeaderPane.apply(null, arguments);
+    };
 
     // Set up our observers
     cal.getObserverService().addObserver(ltnOnItipItem, "onItipItemCreation", false);
 }
 
+/**
+ * Unload handler to clean up after the imip bar
+ */
 function ltnImipOnUnload() {
     removeEventListener("messagepane-loaded", ltnImipOnLoad, true);
     removeEventListener("messagepane-unloaded", ltnImipOnUnload, true);
