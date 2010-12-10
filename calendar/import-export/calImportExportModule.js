@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -38,6 +37,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const scriptLoadOrder = [
     "calIcsImportExport.js",
     "calHtmlExport.js",
@@ -47,7 +49,6 @@ const scriptLoadOrder = [
     "calMonthGridPrinter.js",
     "calWeekPrinter.js"
 ];
-
 
 function NSGetFactory(cid) {
     if (!this.scriptsLoaded) {
@@ -70,5 +71,6 @@ function NSGetFactory(cid) {
         calMonthPrinter,
         calWeekPrinter
     ];
+
     return (XPCOMUtils.generateNSGetFactory(components))(cid);
 }

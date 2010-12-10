@@ -1,5 +1,4 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -20,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,33 +36,44 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * A thin wrapper that is a print formatter, and just calls the html (list) 
+ * A thin wrapper that is a print formatter, and just calls the html (list)
  * exporter
  */
-
 function calListFormatter() {
-    this.wrappedJSObject = this;
 }
 
-calListFormatter.prototype.QueryInterface =
-function QueryInterface(aIID) {
-    if (!aIID.equals(Components.interfaces.nsISupports) &&
-        !aIID.equals(Components.interfaces.calIPrintFormatter)) {
-        throw Components.results.NS_ERROR_NO_INTERFACE;
+calListFormatter.prototype = {
+    getInterfaces: function (count) {
+        const ifaces = [
+            Components.interfaces.nsISupports,
+            Components.interfaces.nsIClassInfo,
+            Components.interfaces.calIPrintFormatter,
+        ];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+
+    getHelperForLanguage: function (language) {
+        return null;
+    },
+
+    contractID: "@mozilla.org/calendar/printformatter;1?type=list",
+    classDescription: "Calendar List Print Formatter",
+    classID: Components.ID("{9ae04413-fee3-45b9-8bbb-1eb39a4cbd1b}"),
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
+    QueryInterface: function QueryInterface(aIID) {
+        return cal.doQueryInterface(this, calListFormatter.prototype, aIID, null, this);
+    },
+
+    get name() {
+        return cal.calGetString("calendar", "formatListName");
+    },
+
+    formatToHtml: function list_formatToHtml(aStream, aStart, aEnd, aCount, aItems, aTitle) {
+        let htmlexporter = Components.classes["@mozilla.org/calendar/export;1?type=htmllist"]
+                                     .createInstance(Components.interfaces.calIExporter);
+        htmlexporter.exportToStream(aStream, aCount, aItems, aTitle);
     }
-
-    return this;
-};
-
-calListFormatter.prototype.getName =
-function list_getName() {
-    return calGetString("calendar", "formatListName");
-};
-calListFormatter.prototype.__defineGetter__("name", calListFormatter.prototype.getName);
-
-calListFormatter.prototype.formatToHtml =
-function list_formatToHtml(aStream, aStart, aEnd, aCount, aItems, aTitle) {
-    var htmlexporter = Components.classes["@mozilla.org/calendar/export;1?type=htmllist"]
-                                 .createInstance(Components.interfaces.calIExporter);
-    htmlexporter.exportToStream(aStream, aCount, aItems, aTitle);
 };

@@ -1,5 +1,4 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -68,7 +67,7 @@ function loadEventsFromFile(aCalendar) {
             nsIFilePicker.modeOpen);
     fp.defaultExtension = "ics";
 
-    // Get a list of exporters
+    // Get a list of importers
     let contractids = new Array();
     let catman = Components.classes["@mozilla.org/categorymanager;1"]
                            .getService(Components.interfaces.nsICategoryManager);
@@ -78,11 +77,16 @@ function loadEventsFromFile(aCalendar) {
         let entry = catenum.getNext();
         entry = entry.QueryInterface(Components.interfaces.nsISupportsCString);
         let contractid = catman.getCategoryEntry('cal-importers', entry);
-        let exporter = Components.classes[contractid]
+        let importer;
+        try {
+            importer = Components.classes[contractid]
                                  .getService(Components.interfaces.calIImporter);
-        let types = exporter.getFileTypes({});
-        let type;
-        for each (type in types) {
+        } catch (e) {
+            cal.WARN("Could not initialize importer: " + contractid + "\nError: " + e);
+            continue;
+        }
+        let types = importer.getFileTypes({});
+        for each (let type in types) {
             fp.appendFilter(type.description, type.extensionFilter);
             if (type.extensionFilter=="*." + fp.defaultExtension) {
                 fp.filterIndex = currentListLength;
@@ -92,9 +96,10 @@ function loadEventsFromFile(aCalendar) {
         }
     }
 
-    fp.show();
+    let rv = fp.show();
 
-    if (fp.file && fp.file.path && fp.file.path.length > 0) {
+    if (rv != nsIFilePicker.returnCancel &&
+        fp.file && fp.file.path && fp.file.path.length > 0) {
         let filePath = fp.file.path;
         let importer = Components.classes[contractids[fp.filterIndex]]
                                  .getService(Components.interfaces.calIImporter);
@@ -260,10 +265,15 @@ function saveEventsToFile(calendarEventArray, aDefaultFileName) {
         let entry = catenum.getNext();
         entry = entry.QueryInterface(Components.interfaces.nsISupportsCString);
         let contractid = catman.getCategoryEntry('cal-exporters', entry);
-        let exporter = Components.classes[contractid]
+        let exporter;
+        try {
+            exporter = Components.classes[contractid]
                                  .getService(Components.interfaces.calIExporter);
+        } catch (e) {
+            cal.WARN("Could not initialize exporter: " + contractid + "\nError: " + e);
+            continue;
+        }
         let types = exporter.getFileTypes({});
-        let type;
         for each (let type in types) {
             fp.appendFilter(type.description, type.extensionFilter);
             if (type.extensionFilter=="*." + fp.defaultExtension) {
@@ -274,10 +284,11 @@ function saveEventsToFile(calendarEventArray, aDefaultFileName) {
         }
     }
 
-    fp.show();
+    let rv = fp.show();
 
     // Now find out as what to save, convert the events and save to file.
-    if (fp.file && fp.file.path.length > 0) {
+    if (rv != nsIFilePicker.returnCancel &&
+        fp.file && fp.file.path.length > 0) {
         const UTF8 = "UTF-8";
         let aDataStream;
         let extension;

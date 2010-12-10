@@ -1,5 +1,4 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -38,173 +37,178 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// Export
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
+// Export
 function calHtmlExporter() {
-    this.wrappedJSObject = this;
 }
 
-calHtmlExporter.prototype.QueryInterface =
-function QueryInterface(aIID) {
-    if (!aIID.equals(Components.interfaces.nsISupports) &&
-        !aIID.equals(Components.interfaces.calIExporter)) {
-        throw Components.results.NS_ERROR_NO_INTERFACE;
-    }
+calHtmlExporter.prototype = {
+    getInterfaces: function (count) {
+        const ifaces = [
+            Components.interfaces.nsISupports,
+            Components.interfaces.nsIClassInfo,
+            Components.interfaces.calIExporter,
+        ];
+        count.value = ifaces.length;
+        return ifaces;
+    },
 
-    return this;
-};
+    getHelperForLanguage: function (language) {
+        return null;
+    },
 
-calHtmlExporter.prototype.getFileTypes =
-function getFileTypes(aCount) {
-    aCount.value = 1;
-    var wildmat = '*.html; *.htm';
-    var label = calGetString("calendar", 'filterHtml', [wildmat]);
-    return([{defaultExtension:'html', 
-             extensionFilter: wildmat, 
-             description: label}]);
-};
+    contractID: "@mozilla.org/calendar/export;1?type=html",
+    classDescription: "Calendar HTML Exporter",
+    classID: Components.ID("{72d9ab35-9b1b-442a-8cd0-ae49f00b159b}"),
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
 
-// not prototype.export. export is reserved.
-calHtmlExporter.prototype.exportToStream =
-function html_exportToStream(aStream, aCount, aItems, aTitle) {
-    var dateFormatter = 
-        Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                  .getService(Components.interfaces.calIDateTimeFormatter);
+    QueryInterface: function QueryInterface(aIID) {
+        return cal.doQueryInterface(this, calHtmlExporter.prototype, aIID, null, this);
+    },
 
-    var documentTitle = aTitle;
-    if (!documentTitle) {
-        documentTitle = calGetString("calendar", "HTMLTitle");
-    }
+    getFileTypes: function getFileTypes(aCount) {
+        aCount.value = 1;
+        let wildmat = '*.html; *.htm';
+        let label = cal.calGetString("calendar", 'filterHtml', [wildmat]);
+        return [{ defaultExtension:'html',
+                  extensionFilter: wildmat,
+                  description: label }];
+    },
 
-    var html =
-        <html>
-            <head>
-                <title>{documentTitle}</title>
-                <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
-                <style type='text/css'/>
-            </head>
-            <body>
-                <!-- Note on the use of the summarykey class: this is a
-                     special class, because in the default style, it is hidden.
-                     The div is still included for those that want a different
-                     style, where the key is visible -->
-            </body>
-        </html>;
-    // XXX The html comment above won't propagate to the resulting html.
-    //     Should fix that, one day.
+    exportToStream: function html_exportToStream(aStream, aCount, aItems, aTitle) {
+        let documentTitle = aTitle || cal.calGetString("calendar", "HTMLTitle");
 
-    // Using this way to create the styles, because { and } are special chars
-    // in e4x. They have to be escaped, which doesn't improve readability
-    html.head.style = ".vevent {border: 1px solid black; padding: 0px; margin-bottom: 10px;}\n";
-    html.head.style += "div.key {font-style: italic; margin-left: 3px;}\n";
-    html.head.style += "div.value {margin-left: 20px;}\n";
-    html.head.style += "abbr {border: none;}\n";
-    html.head.style += ".summarykey {display: none;}\n";
-    html.head.style += "div.summary {background: white; font-weight: bold; margin: 0px; padding: 3px;}\n";
+        let html =
+            <html>
+                <head>
+                    <title>{documentTitle}</title>
+                    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+                    <style type='text/css'/>
+                </head>
+                <body>
+                    <!-- Note on the use of the summarykey class: this is a
+                         special class, because in the default style, it is hidden.
+                         The div is still included for those that want a different
+                         style, where the key is visible -->
+                </body>
+            </html>;
+        // XXX The html comment above won't propagate to the resulting html.
+        //     Should fix that, one day.
 
-    // Sort aItems
-    function sortFunc(a, b) {
-        var start_a = a[calGetStartDateProp(a)];
-        if (!start_a) {
-            return -1;
+        // Using this way to create the styles, because { and } are special chars
+        // in e4x. They have to be escaped, which doesn't improve readability
+        html.head.style = ".vevent {border: 1px solid black; padding: 0px; margin-bottom: 10px;}\n";
+        html.head.style += "div.key {font-style: italic; margin-left: 3px;}\n";
+        html.head.style += "div.value {margin-left: 20px;}\n";
+        html.head.style += "abbr {border: none;}\n";
+        html.head.style += ".summarykey {display: none;}\n";
+        html.head.style += "div.summary {background: white; font-weight: bold; margin: 0px; padding: 3px;}\n";
+
+        // Sort aItems
+        function sortFunc(a, b) {
+            let start_a = a[cal.calGetStartDateProp(a)];
+            if (!start_a) {
+                return -1;
+            }
+            let start_b = b[cal.calGetStartDateProp(b)];
+            if (!start_b) {
+                return 1;
+            }
+            return start_a.compare(start_b);
         }
-        var start_b = b[calGetStartDateProp(b)];
-        if (!start_b) {
-            return 1;
-        }
-        return start_a.compare(start_b);
-    }
-    aItems.sort(sortFunc);
+        aItems.sort(sortFunc);
 
-    var prefixTitle = calGetString("calendar", "htmlPrefixTitle");
-    var prefixWhen = calGetString("calendar", "htmlPrefixWhen");
-    var prefixLocation = calGetString("calendar", "htmlPrefixLocation");
-    var prefixDescription = calGetString("calendar", "htmlPrefixDescription");
-    var defaultTimezone = calendarDefaultTimezone();
+        let prefixTitle = cal.calGetString("calendar", "htmlPrefixTitle");
+        let prefixWhen = cal.calGetString("calendar", "htmlPrefixWhen");
+        let prefixLocation = cal.calGetString("calendar", "htmlPrefixLocation");
+        let prefixDescription = cal.calGetString("calendar", "htmlPrefixDescription");
+        let defaultTimezone = cal.calendarDefaultTimezone();
 
-    for (var pos = 0; pos < aItems.length; ++pos) {
-        var item = aItems[pos];
+        for (let pos = 0; pos < aItems.length; ++pos) {
+            let item = aItems[pos];
 
-        // Put properties of the event in a definition list
-        // Use hCalendar classes as bonus
-        var ev = <div class='vevent'/>;
-        var fmtTaskCompleted = calGetString("calendar",
-                                            "htmlTaskCompleted",
-                                            [item.title]);
+            // Put properties of the event in a definition list
+            // Use hCalendar classes as bonus
+            let ev = <div class='vevent'/>;
+            let fmtTaskCompleted = cal.calGetString("calendar",
+                                                    "htmlTaskCompleted",
+                                                    [item.title]);
 
-        // Title
-        ev.appendChild(
-            <div>
-                <div class='key summarykey'>{prefixTitle}</div>
-                <div class='value summary'>{item.isCompleted ? fmtTaskCompleted : item.title}</div>
-            </div>
-        );
-        var startDate = item[calGetStartDateProp(item)];
-        var endDate = item[calGetEndDateProp(item)];
-        var dateString = dateFormatter.formatItemInterval(item);
-
-        if (startDate != null || endDate != null) {
-            // This is a task with a start or due date, format accordingly
+            // Title
             ev.appendChild(
                 <div>
-                    <div class='key'>{prefixWhen}</div>
-                    <div class='value'>
-                        <abbr class='dtstart' title={startDate ? startDate.icalString : "none"}>{dateString}</abbr>
+                    <div class='key summarykey'>{prefixTitle}</div>
+                    <div class='value summary'>{item.isCompleted ? fmtTaskCompleted : item.title}</div>
+                </div>
+            );
+            let startDate = item[cal.calGetStartDateProp(item)];
+            let endDate = item[cal.calGetEndDateProp(item)];
+            let dateString = cal.getDateFormatter().formatItemInterval(item);
+
+            if (startDate != null || endDate != null) {
+                // This is a task with a start or due date, format accordingly
+                ev.appendChild(
+                    <div>
+                        <div class='key'>{prefixWhen}</div>
+                        <div class='value'>
+                            <abbr class='dtstart' title={startDate ? startDate.icalString : "none"}>{dateString}</abbr>
+                        </div>
                     </div>
-                </div>
-            );
-        }
-        // Location
-        if (item.getProperty('LOCATION')) {
-            ev.appendChild(
-                <div>
-                    <div class='key'>{prefixLocation}</div>
-                    <div class='value location'>{item.getProperty('LOCATION')}</div>
-                </div>
-            );
-        }
+                );
+            }
+            // Location
+            if (item.getProperty('LOCATION')) {
+                ev.appendChild(
+                    <div>
+                        <div class='key'>{prefixLocation}</div>
+                        <div class='value location'>{item.getProperty('LOCATION')}</div>
+                    </div>
+                );
+            }
 
-        // Description, inside a pre to preserve formating when needed.
-        var desc = item.getProperty('DESCRIPTION');
-        if (desc && desc.length > 0) { 
-            var usePre = false;
-            if (desc.indexOf("\n ") >= 0 || desc.indexOf("\n\t") >= 0 ||
-                desc.indexOf(" ") == 0 || desc.indexOf("\t") == 0)
-                // (RegExp /^[ \t]/ doesn't work.)
-                // contains indented preformatted text after beginning or newline
-                // so preserve indentation with PRE.
-                usePre = true;
+            // Description, inside a pre to preserve formating when needed.
+            let desc = item.getProperty('DESCRIPTION');
+            if (desc && desc.length > 0) {
+                let usePre = false;
+                if (desc.indexOf("\n ") >= 0 || desc.indexOf("\n\t") >= 0 ||
+                    desc.indexOf(" ") == 0 || desc.indexOf("\t") == 0)
+                    // (RegExp /^[ \t]/ doesn't work.)
+                    // contains indented preformatted text after beginning or newline
+                    // so preserve indentation with PRE.
+                    usePre = true;
 
-            var descnode = 
-                <div>
-                    <div class='key'>{prefixDescription}</div>
-                    <div class='value'/>
-                </div>;
+                let descnode =
+                    <div>
+                        <div class='key'>{prefixDescription}</div>
+                        <div class='value'/>
+                    </div>;
 
-            if (usePre) {
-                descnode.div[1] = <pre class='description'>{desc}</pre>;
-            } else {
-                var lines = desc.split('\n');
-                for (var i in lines) {
-                    descnode.div[1].appendChild(lines[i]);
-                    // Add a new line, except after the last line
-                    if (i != (lines.length-1)) {
-                        descnode.div[1].appendChild(<br/>);
+                if (usePre) {
+                    descnode.div[1] = <pre class='description'>{desc}</pre>;
+                } else {
+                    let lines = desc.split('\n');
+                    for (let i in lines) {
+                        descnode.div[1].appendChild(lines[i]);
+                        // Add a new line, except after the last line
+                        if (i != (lines.length-1)) {
+                            descnode.div[1].appendChild(<br/>);
+                        }
                     }
                 }
+                ev.appendChild(descnode);
             }
-            ev.appendChild(descnode);
+            html.body.appendChild(ev);
         }
-        html.body.appendChild(ev);
+
+        // Convert the javascript string to an array of bytes, using the
+        // utf8 encoder
+        let convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
+                                   .createInstance(Components.interfaces.nsIConverterOutputStream);
+        convStream.init(aStream, 'UTF-8', 0, 0x0000);
+
+        let str = html.toXMLString()
+        convStream.writeString(str);
     }
-
-    // Convert the javascript string to an array of bytes, using the
-    // utf8 encoder
-    var convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
-                               .createInstance(Components.interfaces.nsIConverterOutputStream);
-    convStream.init(aStream, 'UTF-8', 0, 0x0000);
-
-    var str = html.toXMLString()
-    convStream.writeString(str);
-    return;
 };

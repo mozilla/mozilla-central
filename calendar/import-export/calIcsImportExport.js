@@ -1,5 +1,4 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -20,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,65 +35,92 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// Import
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
-function calIcsImporter() {
-    this.wrappedJSObject = this;
-}
-
-calIcsImporter.prototype.QueryInterface =
-function QueryInterface(aIID) {
-    if (!aIID.equals(Components.interfaces.nsISupports) &&
-        !aIID.equals(Components.interfaces.calIImporter)) {
-        throw Components.results.NS_ERROR_NO_INTERFACE;
-    }
-
-    return this;
-};
-
+// Shared functions
 function getIcsFileTypes(aCount) {
     aCount.value = 1;
-    var wildmat = '*.ics';
-    var label = calGetString("calendar", 'filterIcs', [wildmat]);
-    return([{defaultExtension:'ics', 
-             extensionFilter: wildmat, 
-             description: label}]);
+    let wildmat = '*.ics';
+    let label = cal.calGetString("calendar", 'filterIcs', [wildmat]);
+    return [{ defaultExtension: 'ics',
+              extensionFilter: wildmat,
+              description: label }];
 }
 
-calIcsImporter.prototype.getFileTypes = getIcsFileTypes;
-
-calIcsImporter.prototype.importFromStream =
-function ics_importFromStream(aStream, aCount) {
-    var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"].
-                            createInstance(Components.interfaces.calIIcsParser);
-    parser.parseFromStream(aStream, null);
-    return parser.getItems(aCount);
-};
-
-
-// Export
-
-function calIcsExporter() {
-    this.wrappedJSObject = this;
+// Importer
+function calIcsImporter() {
 }
 
-calIcsExporter.prototype.QueryInterface =
-function QueryInterface(aIID) {
-    if (!aIID.equals(Components.interfaces.nsISupports) &&
-        !aIID.equals(Components.interfaces.calIExporter)) {
-        throw Components.results.NS_ERROR_NO_INTERFACE;
+calIcsImporter.prototype = {
+    getInterfaces: function (count) {
+        const ifaces = [
+            Components.interfaces.nsISupports,
+            Components.interfaces.nsIClassInfo,
+            Components.interfaces.calIImporter,
+        ];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+
+    getHelperForLanguage: function (language) {
+        return null;
+    },
+
+    contractID: "@mozilla.org/calendar/import;1?type=ics",
+    classDescription: "Calendar ICS Importer",
+    classID: Components.ID("{1e3e33dc-445a-49de-b2b6-15b2a050bb9d}"),
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
+    QueryInterface: function QueryInterface(aIID) {
+        return cal.doQueryInterface(this, calIcsImporter.prototype, aIID, null, this);
+    },
+
+    getFileTypes: getIcsFileTypes,
+
+    importFromStream: function importFromStream(aStream, aCount) {
+        let parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
+                               .createInstance(Components.interfaces.calIIcsParser);
+        parser.parseFromStream(aStream, null);
+        return parser.getItems(aCount);
     }
-
-    return this;
 };
 
-calIcsExporter.prototype.getFileTypes = getIcsFileTypes;
+// Exporter
+function calIcsExporter() {
+}
 
-// not prototype.export. export is reserved.
-calIcsExporter.prototype.exportToStream =
-function ics_exportToStream(aStream, aCount, aItems) {
-    var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"].
-                                createInstance(Components.interfaces.calIIcsSerializer);
-    serializer.addItems(aItems, aItems.length);
-    serializer.serializeToStream(aStream);
+calIcsExporter.prototype = {
+    getInterfaces: function (count) {
+        const ifaces = [
+            Components.interfaces.nsISupports,
+            Components.interfaces.nsIClassInfo,
+            Components.interfaces.calIExporter,
+        ];
+        count.value = ifaces.length;
+        return ifaces;
+    },
+
+    getHelperForLanguage: function (language) {
+        return null;
+    },
+
+    contractID: "@mozilla.org/calendar/export;1?type=ics",
+    classDescription: "Calendar ICS Exporter",
+    classID: Components.ID("{a6a524ce-adff-4a0f-bb7d-d1aaad4adc60}"),
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: 0,
+
+    QueryInterface: function QueryInterface(aIID) {
+        return cal.doQueryInterface(this, calIcsExporter.prototype, aIID, null, this);
+    },
+
+    getFileTypes: getIcsFileTypes,
+
+    exportToStream: function exportToStream(aStream, aCount, aItems) {
+        let serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"]
+                                   .createInstance(Components.interfaces.calIIcsSerializer);
+        serializer.addItems(aItems, aItems.length);
+        serializer.serializeToStream(aStream);
+    }
 };
