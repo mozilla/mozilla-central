@@ -6,6 +6,8 @@ component {b24861fb-e91a-40dd-886d-68d26a9586c7} nsAboutCertError.js
 contract @mozilla.org/network/protocol/about;1?what=certerror {b24861fb-e91a-40dd-886d-68d26a9586c7}
 component {7a02e7fe-b32c-40ea-a790-246ca49b6061} nsAboutData.js
 contract @mozilla.org/network/protocol/about;1?what=data {7a02e7fe-b32c-40ea-a790-246ca49b6061}
+component {3d19bdd7-2200-4724-9c97-31797d4c9269} nsAboutLife.js
+contract @mozilla.org/network/protocol/about;1?what=life {3d19bdd7-2200-4724-9c97-31797d4c9269}
 component {a03c813e-abe8-41de-8d0c-5aa85f877696} nsAboutSessionRestore.js
 contract @mozilla.org/network/protocol/about;1?what=sessionrestore {a03c813e-abe8-41de-8d0c-5aa85f877696}
 component {4e6c1112-57b6-44ba-adf9-99fb573b0a30} nsSessionStartup.js
