@@ -559,7 +559,7 @@ static void porter_stemmer(const unsigned char *zIn, unsigned int nIn, unsigned 
   char zReverse[28];
   char *z, *z2;
   const unsigned char *zTerm = zIn + nIn;
-  unsigned char *zTmp = zIn;
+  const unsigned char *zTmp = zIn;
 
   if( nIn<3 || nIn>=sizeof(zReverse)-7 ){
     /* The word is too big or too small for the porter stemmer.
