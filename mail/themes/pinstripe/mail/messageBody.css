@@ -196,13 +196,34 @@ body[selected="false"] {
   border: none;
 }
 
+/* Attachment display styling (for inline attachments and printing) */
 .mimeAttachmentHeader {
   border-style: none;
-  border-top: 1px solid gray;
+  border-top: 1px solid GrayText;
 }
 
-.mimeAttachmentName {
+.mimeAttachmentHeaderName {
   color: GrayText;
   font-size: 80%;
   font-family: Arial, sans-serif;
+}
+
+div.mimeAttachmentWrap {
+  padding: 0 1em;
+}
+
+table.mimeAttachmentTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.mimeAttachmentTable tr + tr > td {
+  border-top: 1px solid GrayText;
+}
+
+.mimeAttachmentFile {
+}
+
+.mimeAttachmentSize {
+  text-align: right;
 }

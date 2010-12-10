@@ -1693,7 +1693,7 @@ MimeOptions_write(MimeDisplayOptions *opt, nsCString &name, const char *data,
       if (lstatus < 0) return lstatus;
 
       if (!name.IsEmpty()) {
-          sep = "<LEGEND CLASS=\"mimeAttachmentName\">";
+          sep = "<LEGEND CLASS=\"mimeAttachmentHeaderName\">";
           lstatus = opt->output_fn(sep, strlen(sep), closure);
           opt->state->separator_suppressed_p = PR_FALSE;
           if (lstatus < 0) return lstatus;

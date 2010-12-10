@@ -176,13 +176,13 @@ nsMimeHtmlDisplayEmitter::GetHeaderSink(nsIMsgHeaderSink ** aHeaderSink)
         msgurl->GetMsgHeaderSink(getter_AddRefs(mHeaderSink));
         if (!mHeaderSink)  // if the url is not overriding the header sink, then just get the one from the msg window
         {
-        nsCOMPtr<nsIMsgWindow> msgWindow;
-        msgurl->GetMsgWindow(getter_AddRefs(msgWindow));
-        if (msgWindow)
-          msgWindow->GetMsgHeaderSink(getter_AddRefs(mHeaderSink));
+          nsCOMPtr<nsIMsgWindow> msgWindow;
+          msgurl->GetMsgWindow(getter_AddRefs(msgWindow));
+          if (msgWindow)
+            msgWindow->GetMsgHeaderSink(getter_AddRefs(mHeaderSink));
+        }
       }
     }
-  }
   }
 
   *aHeaderSink = mHeaderSink;
@@ -213,7 +213,6 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
       ToLowerCase(extraExpandedHeaders);
       ParseString(extraExpandedHeaders, ' ', extraExpandedHeadersArray);
     }
-
   }
 
   for (PRInt32 i=0; i<mHeaderArray->Count(); i++)
@@ -292,7 +291,7 @@ NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders(const nsACString &name)
     if (!PL_strcasecmp("Newsgroups", headerInfo->name))
     {
       bFromNewsgroups = PR_TRUE;
-    break;
+      break;
     }
   }
 
@@ -302,10 +301,10 @@ NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders(const nsACString &name)
 
   if (headerSink)
   {
-  PRInt32 viewMode = 0;
-  nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  if (pPrefBranch)
-    rv = pPrefBranch->GetIntPref("mail.show_headers", &viewMode);
+    PRInt32 viewMode = 0;
+    nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+    if (pPrefBranch)
+      rv = pPrefBranch->GetIntPref("mail.show_headers", &viewMode);
 
     rv = BroadcastHeaders(headerSink, viewMode, bFromNewsgroups);
   } // if header Sink
@@ -423,37 +422,48 @@ nsMimeHtmlDisplayEmitter::StartAttachmentInBody(const nsACString &name,
         (!strcmp(contentType, APPLICATION_XPKCS7_SIGNATURE)) ||
         (!strcmp(contentType, APPLICATION_PKCS7_SIGNATURE)) ||
         (!strcmp(contentType, TEXT_VCARD)))
-     ) {
+     )
+  {
      mSkipAttachment = PR_TRUE;
      return NS_OK;
   }
 
-  if (!mFirst) {
+  if (mFirst)
+  {
     UtilityWrite("<br><fieldset class=\"mimeAttachmentHeader\">");
-    if (!name.IsEmpty()) {
-      UtilityWrite("<legend class=\"mimeAttachmentName\">");
-      UtilityWrite(name);
+    if (!name.IsEmpty())
+    {
+      nsresult rv;
+
+      nsCOMPtr<nsIStringBundleService> bundleSvc =
+        do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsCOMPtr<nsIStringBundle> bundle;
+      rv = bundleSvc->CreateBundle("chrome://messenger/locale/messenger.properties",
+                                   getter_AddRefs(bundle));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsString attachmentsHeader;
+      bundle->GetStringFromName(NS_LITERAL_STRING("attachmentsPrintHeader").get(),
+                                getter_Copies(attachmentsHeader)); 
+
+      UtilityWrite("<legend class=\"mimeAttachmentHeaderName\">");
+      UtilityWrite(NS_ConvertUTF16toUTF8(attachmentsHeader).get());
       UtilityWrite("</legend>");
     }
     UtilityWrite("</fieldset>");
+    UtilityWrite("<div class=\"mimeAttachmentWrap\">");
+    UtilityWrite("<table class=\"mimeAttachmentTable\">");
   }
 
-  mFirst = PR_FALSE;
-
-  UtilityWrite("<center>");
-  UtilityWrite("<table border>");
   UtilityWrite("<tr>");
-  UtilityWrite("<td>");
 
-  UtilityWrite("<div align=right class=\"headerdisplayname\" style=\"display:inline;\">");
-
+  UtilityWrite("<td class=\"mimeAttachmentFile\">");
   UtilityWrite(name);
-
-  UtilityWrite("</div>");
-
   UtilityWrite("</td>");
-  UtilityWrite("<td>");
-  UtilityWrite("<table border=0>");
+
+  mFirst = PR_FALSE;
   return NS_OK;
 }
 
@@ -473,29 +483,22 @@ nsMimeHtmlDisplayEmitter::AddAttachmentField(const char *field, const char *valu
 
   nsCOMPtr<nsIMsgHeaderSink> headerSink;
   nsresult rv = GetHeaderSink(getter_AddRefs(headerSink));
-  if (NS_SUCCEEDED(rv) && headerSink) {
+  if (NS_SUCCEEDED(rv) && headerSink)
+  {
     headerSink->AddAttachmentField(field, value);
   }
-  else {
-    char  *newValue = MsgEscapeHTML(value);
+  else
+  {
+    // Currently, we only care about the part size.
+    if (strcmp(field, HEADER_X_MOZILLA_PART_SIZE))
+      return NS_OK;
 
-    UtilityWrite("<tr>");
-
-    UtilityWrite("<td>");
-    UtilityWrite("<div align=right class=\"headerdisplayname\" style=\"display:inline;\">");
-
-    UtilityWrite(field);
-    UtilityWrite(":");
-    UtilityWrite("</div>");
+    PRUint64 size = atoi(value);
+    nsAutoString sizeString;
+    rv = FormatFileSize(size, PR_FALSE, sizeString);
+    UtilityWrite("<td class=\"mimeAttachmentSize\">");
+    UtilityWrite(NS_ConvertUTF16toUTF8(sizeString).get());
     UtilityWrite("</td>");
-    UtilityWrite("<td>");
-
-    UtilityWrite(newValue);
-
-    UtilityWrite("</td>");
-    UtilityWrite("</tr>");
-
-    PR_Free(newValue);
   }
 
   return NS_OK;
@@ -512,15 +515,9 @@ nsMimeHtmlDisplayEmitter::EndAttachment()
   if (BroadCastHeadersAndAttachments())
     return NS_OK;
 
-  if (mFormat == nsMimeOutput::nsMimeMessagePrintOutput) {
-    UtilityWrite("</table>");
-    UtilityWrite("</td>");
+  if (mFormat == nsMimeOutput::nsMimeMessagePrintOutput)
     UtilityWrite("</tr>");
 
-    UtilityWrite("</table>");
-    UtilityWrite("</center>");
-    UtilityWrite("<br>");
-  }
   return NS_OK;
 }
 
@@ -532,6 +529,13 @@ nsMimeHtmlDisplayEmitter::EndAllAttachments()
   rv = GetHeaderSink(getter_AddRefs(headerSink));
   if (headerSink)
     headerSink->OnEndAllAttachments();
+
+  if (mFormat == nsMimeOutput::nsMimeMessagePrintOutput)
+  {
+    UtilityWrite("</table>");
+    UtilityWrite("</div>");
+  }
+
   return rv;
 }
 
@@ -548,8 +552,8 @@ nsMimeHtmlDisplayEmitter::EndBody()
 {
   if (mFormat != nsMimeOutput::nsMimeMessageFilterSniffer)
   {
-  UtilityWriteCRLF("</body>");
-  UtilityWriteCRLF("</html>");
+    UtilityWriteCRLF("</body>");
+    UtilityWriteCRLF("</html>");
   }
   nsCOMPtr<nsIMsgHeaderSink> headerSink;
   nsresult rv = GetHeaderSink(getter_AddRefs(headerSink));
