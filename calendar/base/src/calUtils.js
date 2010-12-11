@@ -1057,8 +1057,8 @@ function calGetEndDateProp(aItem) {
  */
 function checkIfInRange(item, rangeStart, rangeEnd, returnDtstartOrDue)
 {
-    var startDate;
-    var endDate;
+    let startDate;
+    let endDate;
     if (isEvent(item)) {
         startDate = item.startDate;
         if (!startDate) { // DTSTART mandatory
@@ -1067,9 +1067,9 @@ function checkIfInRange(item, rangeStart, rangeEnd, returnDtstartOrDue)
         }
         endDate = (item.endDate || startDate);
     } else {
-        var dueDate = item.dueDate;
+        let dueDate = item.dueDate;
         startDate = (item.entryDate || dueDate);
-        if (!startDate) {
+        if (!item.entryDate) {
             if (returnDtstartOrDue) { // DTSTART or DUE mandatory
                 return null;
             }
@@ -1077,9 +1077,9 @@ function checkIfInRange(item, rangeStart, rangeEnd, returnDtstartOrDue)
             // A "VTODO" calendar component without the "DTSTART" and "DUE" (or
             // "DURATION") properties specifies a to-do that will be associated
             // with each successive calendar date, until it is completed.
-            var completedDate = item.completedDate;
+            let completedDate = item.completedDate;
             if (completedDate) {
-                var queryStart = ensureDateTime(rangeStart);
+                let queryStart = ensureDateTime(rangeStart);
                 completedDate = ensureDateTime(completedDate);
                 return (!queryStart || completedDate.compare(queryStart) > 0);
             }
@@ -1088,11 +1088,11 @@ function checkIfInRange(item, rangeStart, rangeEnd, returnDtstartOrDue)
         endDate = (dueDate || startDate);
     }
 
-    var start = ensureDateTime(startDate);
-    var end = ensureDateTime(endDate);
+    let start = ensureDateTime(startDate);
+    let end = ensureDateTime(endDate);
 
-    var queryStart = ensureDateTime(rangeStart);
-    var queryEnd = ensureDateTime(rangeEnd);
+    let queryStart = ensureDateTime(rangeStart);
+    let queryEnd = ensureDateTime(rangeEnd);
 
     if (start.compare(end) == 0) {
         if ((!queryStart || start.compare(queryStart) >= 0) &&

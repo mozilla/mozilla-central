@@ -966,19 +966,14 @@ calStorageCalendar.prototype = {
             "  (("+floatingTodoEntry+" = :range_start + :start_offset) OR " +
             "   ("+nonFloatingTodoEntry+" = :range_start))) OR " +
             " ((todo_due IS NULL) AND " +
-            "  (((("+floatingTodoEntry+" >= :range_start + :start_offset) OR " +
+            "  ((("+floatingTodoEntry+" >= :range_start + :start_offset) OR " +
             "    ("+nonFloatingTodoEntry+" >= :range_start)) AND " +
             "    (("+floatingTodoEntry+" < :range_end + :end_offset) OR " +
-            "     ("+nonFloatingTodoEntry+" < :range_end))) OR " +
-            "   ((todo_entry IS NULL) AND " +
-            "    ((("+floatingCompleted+" > :range_start + :start_offset) OR " +
-            "      ("+nonFloatingCompleted+" > :range_start)) OR " +
-            "     (todo_completed IS NULL))))) OR " +
+            "     ("+nonFloatingTodoEntry+" < :range_end)))) OR " +
             " ((todo_entry IS NULL) AND " +
-            "  (("+floatingTodoDue+" >= :range_start + :start_offset) OR " +
-            "   ("+nonFloatingTodoDue+" >= :range_start)) AND " +
-            "  (("+floatingTodoDue+" < :range_end + :end_offset) OR " +
-            "   ("+nonFloatingTodoDue+" < :range_end)))) " +
+            "  ((("+floatingCompleted+" > :range_start + :start_offset) OR " +
+            "    ("+nonFloatingCompleted+" > :range_start)) OR " +
+            "   (todo_completed IS NULL)))) " +
             " AND cal_id = :cal_id AND flags & 16 == 0 AND recurrence_id IS NULL"
             );
 
