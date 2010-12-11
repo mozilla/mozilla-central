@@ -221,7 +221,9 @@ DiscreteFaceter.prototype = {
       if (filter && !filter(val))
         continue;
 
-      if (val in groups)
+      // We need to use hasOwnProperty because we cannot guarantee that the
+      //  contents of val won't collide with the attributes in Object.prototype.
+      if (groups.hasOwnProperty(val))
         groups[val].push(item);
       else {
         groups[val] = [item];
@@ -262,7 +264,11 @@ DiscreteFaceter.prototype = {
         continue;
 
       let valId = (val == null) ? null : val[idAttr];
-      if (valId in groupMap) {
+      // We need to use hasOwnProperty because tag nouns are complex objects
+      //  with id's that are non-numeric and so can collide with the contents
+      //  of Object.prototype.  (Note: the "tags" attribute is actually handled
+      //  by the DiscreteSetFaceter.)
+      if (groupMap.hasOwnProperty(valId)) {
         groups[valId].push(item);
       }
       else {
@@ -329,7 +335,10 @@ DiscreteSetFaceter.prototype = {
         if (filter && !filter(val))
           continue;
 
-        if (val in groups)
+        // We need to use hasOwnProperty because we cannot guarantee that the
+        //  contents of val won't collide with the attributes in
+        //  Object.prototype.
+        if (groups.hasOwnProperty(val))
           groups[val].push(item);
         else {
           groups[val] = [item];
@@ -374,7 +383,10 @@ DiscreteSetFaceter.prototype = {
           continue;
 
         let valId = (val == null) ? null : val[idAttr];
-        if (valId in groupMap) {
+        // We need to use hasOwnProperty because tag nouns are complex objects
+        //  with id's that are non-numeric and so can collide with the contents
+        //  of Object.prototype.
+        if (groupMap.hasOwnProperty(valId)) {
           groups[valId].push(item);
         }
         else {

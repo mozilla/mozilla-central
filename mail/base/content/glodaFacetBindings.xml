@@ -892,7 +892,10 @@
               continue;
 
             let groupStr = nounDef.userVisibleString(groupValue, false);
-            if (groupStr in ambiguousKeyValues)
+            // We use hasOwnProperty because it is possible that groupStr could
+            //  be the same as the name of one of the attributes on
+            //  Object.prototype.
+            if (ambiguousKeyValues.hasOwnProperty(groupStr))
               ambiguousKeyValues[groupStr] = true;
             else
               ambiguousKeyValues[groupStr] = false;
