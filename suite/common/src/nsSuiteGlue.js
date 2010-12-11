@@ -245,6 +245,9 @@ SuiteGlue.prototype = {
     if (this._isPlacesDatabaseLocked) {
       this._showPlacesLockedNotificationBox(aWindow);
     }
+    // Detect if updates are off and warn for outdated builds.
+    if (this._shouldShowUpdateWarning())
+      this._showUpdateWarning(aWindow);
   },
 
   // profile shutdown handler (contains profile cleanup routines)
@@ -460,6 +463,64 @@ SuiteGlue.prototype = {
     // Set pref to indicate we've shown the notficiation.
     var currentVersion = Services.prefs.getIntPref("browser.rights.version");
     Services.prefs.setBoolPref("browser.rights." + currentVersion + ".shown", true);
+  },
+
+  /*
+   * _shouldShowUpdateWarning - Determines if the user should be warned about
+   * having updates off and an old build that likely should be updated.
+   */
+  _shouldShowUpdateWarning: function () {
+    // Look for an unconditional override pref. If set, do what it says.
+    // (true --> never show, false --> always show)
+    try {
+      return !Services.prefs.getBoolPref("app.updatecheck.override");
+    } catch (e) { }
+    // If updates are enabled, we don't need to worry.
+    if (Services.prefs.getBoolPref("app.update.enabled"))
+      return false;
+    var maxAge = 90 * 86400; // 90 days
+    var now = Math.round(Date.now() / 1000);
+    // If there was an automated update tried in the interval, don't worry.
+    var lastUpdateTime = Services.prefs.getIntPref("app.update.lastUpdateTime.background-update-timer");
+    if (lastUpdateTime + maxAge > now)
+      return false;
+
+    var buildID = Services.appinfo.appBuildID;
+    // construct build date from ID
+    var buildDate = new Date(buildID.substr(0, 4),
+                             buildID.substr(4, 2) - 1,
+                             buildID.substr(6, 2));
+    var buildTime = Math.round(buildDate / 1000);
+    // We should warn if the build is older than the max age.
+    return (buildTime + maxAge <= now);
+  },
+
+  _showUpdateWarning: function(aSubject) {
+    // Stick the notification onto the selected tab of the active browser window.
+    var brandBundle  = Services.strings.createBundle("chrome://branding/locale/brand.properties");
+    var applicationName = brandBundle.GetStringFromName("brandShortName");
+    var notificationBundle = Services.strings.createBundle("chrome://communicator/locale/notification.properties");
+    var title = notificationBundle.GetStringFromName("updatePrompt.title");
+    var text = notificationBundle.formatStringFromName("updatePrompt.text", [applicationName], 1);
+    var buttonText = notificationBundle.GetStringFromName("updatePromptCheckButton.label");
+    var accessKey = notificationBundle.GetStringFromName("updatePromptCheckButton.accessKey");
+
+    var buttons = [{
+      label: buttonText,
+      accessKey: accessKey,
+      popup: null,
+      callback: function(aNotificationBar, aButton) {
+        Components.classes["@mozilla.org/updates/update-prompt;1"]
+                  .createInstance(Components.interfaces.nsIUpdatePrompt)
+                  .checkForUpdates();
+      }
+    }];
+
+    var notifyBox = aSubject.getBrowser().getNotificationBox();
+    var box = notifyBox.appendNotification(text, title, null,
+                                           notifyBox.PRIORITY_CRITICAL_MEDIUM,
+                                           buttons);
+    box.persistence = -1; // Until user closes it
   },
 
   /**
@@ -711,7 +772,7 @@ SuiteGlue.prototype = {
       }
     }];
 
-    var notifyBox = aSubject.gBrowser.getNotificationBox();
+    var notifyBox = aSubject.getBrowser().getNotificationBox();
     var box = notifyBox.appendNotification(text, title, null,
                                            notifyBox.PRIORITY_CRITICAL_MEDIUM,
                                            buttons);
