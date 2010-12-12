@@ -326,6 +326,7 @@
 @BINPATH@/components/nsAboutCertError.js
 @BINPATH@/components/nsAboutData.js
 @BINPATH@/components/nsAboutFeeds.js
+@BINPATH@/components/nsAboutLife.js
 @BINPATH@/components/nsAboutRights.js
 @BINPATH@/components/nsAboutSessionRestore.js
 @BINPATH@/components/nsBadCertHandler.js
