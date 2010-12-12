@@ -340,7 +340,7 @@ FeedItem.prototype =
     // If the date looks like it's in W3C-DTF format, convert it into
     // an IETF standard date.  Otherwise assume it's in IETF format.
     if (this.mDate.search(/^\d\d\d\d/) != -1)
-      this.mDate = W3CToIETFDate(this.mDate);
+      this.mDate = new Date(this.mDate).toUTCString();
 
     // Escape occurrences of "From " at the beginning of lines of
     // content per the mbox standard, since "From " denotes a new

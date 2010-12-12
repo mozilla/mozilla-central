@@ -46,7 +46,6 @@ if (DEBUG)
 else
   debug = function() {}
 
-Components.utils.import("resource://gre/modules/ISO8601DateUtils.jsm");
 var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
                     .getService(Components.interfaces.nsIRDFService);
 var rsspref = Components.classes["@mozilla.org/preferences-service;1"]
@@ -417,15 +416,10 @@ function dateRescue(dateString)
   }
   if(dateString.search(/^\d\d\d\d/) != -1)
     //Could be a ISO8601/W3C date
-    return W3CToIETFDate(dateString);
+    return new Date(dateString).toUTCString();
 
   // Can't help. Set to current time.
   return (new Date()).toString();
-}
-
-function W3CToIETFDate(dateString) {
-  var date = ISO8601DateUtils.parse(dateString);
-  return date.toUTCString();
 }
 
 function htmlEscape(s)
