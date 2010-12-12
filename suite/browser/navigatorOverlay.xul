@@ -419,7 +419,7 @@
         <menuseparator id="endHistorySeparator" hidden="true"/>
         <menuitem id="historyRestoreLastSession"
                   label="&historyRestoreLastSession.label;"
-                  accesskey="&historyRestoreLastSessionCmd.accesskey;"
+                  accesskey="&historyRestoreLastSession.accesskey;"
                   oncommand="restoreLastSession();"
                   disabled="true"/>
       </menupopup>

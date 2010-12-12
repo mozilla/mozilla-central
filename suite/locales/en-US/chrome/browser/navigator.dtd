@@ -109,7 +109,7 @@
 <!ENTITY goHomeCmd.label "Home">
 <!ENTITY goHomeCmd.accesskey "h">
 <!ENTITY historyRestoreLastSession.label "Restore Previous Session">
-<!ENTITY historyRestoreLastSessionCmd.accesskey "R">
+<!ENTITY historyRestoreLastSession.accesskey "R">
 
 <!ENTITY bookmarksMenu.label "Bookmarks">
 <!ENTITY bookmarksMenu.accesskey "B">
