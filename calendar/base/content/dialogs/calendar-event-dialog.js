@@ -310,6 +310,11 @@ function onCommandCancel() {
  *
  */
 function onCancel() {
+    // The datepickers need to remove the focus in order to trigger the
+    // validation of the values just edited, with the keyboard, but not yet
+    // confirmed (i.e. not followed by a click, a tab or enter keys pressure).
+    document.documentElement.focus();
+
     if (!gConfirmCancel || (gConfirmCancel && onCommandCancel())) {
         dispose();
         return true;
@@ -2233,6 +2238,11 @@ function saveItem() {
  *                                save prompt just before the window is closing.
  */
 function onCommandSave(aIsClosing) {
+    // The datepickers need to remove the focus in order to trigger the
+    // validation of the values just edited, with the keyboard, but not yet
+    // confirmed (i.e. not followed by a click, a tab or enter keys pressure).
+    document.documentElement.focus();
+
     let originalItem = window.calendarItem;
     let item = saveItem();
     let calendar = getCurrentCalendar();
