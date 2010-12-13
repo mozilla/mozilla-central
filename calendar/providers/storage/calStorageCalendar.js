@@ -239,15 +239,13 @@ calStorageCalendar.prototype = {
      * setter and requires those two attributes to be set.
      */
     prepareInitDB: function cSC_prepareInitDB() {
-        let dbService = Components.classes["@mozilla.org/storage/service;1"]
-                                  .getService(Components.interfaces.mozIStorageService);
         if (this.uri.schemeIs("file")) {
             let fileURL = this.uri.QueryInterface(Components.interfaces.nsIFileURL);
             if (!fileURL)
                 throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
 
             // open the database
-            this.mDB = dbService.openDatabase(fileURL.file);
+            this.mDB = Services.storage.openDatabase(fileURL.file);
             upgradeDB(this.mDB);
         } else if (this.uri.schemeIs("moz-profile-calendar")) {
             // This is an old-style moz-profile-calendar. It requires some
@@ -255,11 +253,13 @@ calStorageCalendar.prototype = {
 
             let localDB = cal.getCalendarDirectory();
             localDB.append("local.sqlite");
-            localDB = dbService.openDatabase(localDB);
+            localDB = Services.storage.openDatabase(localDB);
 
             // First, we need to check if this is from 0.9, i.e we need to
             // migrate from storage.sdb to local.sqlite.
-            this.mDB = dbService.openSpecialDatabase("profile");
+            let storageSdb = Services.dirsvc.get("ProfD", Components.interfaces.nsILocalFile);
+            storageSdb.append("storage.sdb");
+            this.mDB = Services.storage.openDatabase(storageSdb);
             if (this.mDB.tableExists("cal_events")) {
                 cal.LOG("Storage: Migrating storage.sdb -> local.sqlite");
                 upgradeDB(this.mDB); // upgrade schema before migating data
@@ -393,7 +393,7 @@ calStorageCalendar.prototype = {
             // New style uri, no need for migration here
             let localDB = cal.getCalendarDirectory();
             localDB.append("local.sqlite");
-            localDB = dbService.openDatabase(localDB);
+            localDB = Services.storage.openDatabase(localDB);
 
             this.mDB = localDB;
             upgradeDB(this.mDB);

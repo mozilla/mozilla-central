@@ -433,9 +433,9 @@ calCalendarManager.prototype = {
     },
 
     checkAndMigrateDB: function calmgr_checkAndMigrateDB() {
-        let dbService = Components.classes["@mozilla.org/storage/service;1"]
-                                  .getService(Components.interfaces.mozIStorageService);
-        db = dbService.openSpecialDatabase("profile");
+        let storageSdb = Services.dirsvc.get("ProfD", Components.interfaces.nsILocalFile);
+        storageSdb.append("storage.sdb");
+        db = Services.storage.openDatabase(storageSdb);
 
         db.beginTransactionAs(Components.interfaces.mozIStorageConnection.TRANSACTION_EXCLUSIVE);
         try {
