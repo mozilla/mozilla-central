@@ -464,6 +464,7 @@
       <command id="new_task_tab"
                oncommand="document.getElementById('tabmail').openTab('tasks', { title: document.getElementById('task-tab-button').getAttribute('tooltiptext') })"/>
       <command id="calendar_go_to_today_command"
+               observes="calendar_mode_calendar"
                oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('tooltiptext') }); goToDate(now())"/>
     </commandset>
 

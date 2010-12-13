@@ -159,7 +159,7 @@
     <key id="calendar-month-view-key" key="4"
          observes="calendar_month-view_command"
 #expand  modifiers="__CAL_VIEW_MODIFIERS__"/>
-    <key id="calendar-go-to-today-key" keycode="VK_DOWN" observes="calendar_go_to_today_command" modifiers="accel"/>
+    <key id="calendar-go-to-today-key" keycode="VK_END" observes="calendar_go_to_today_command" modifiers="alt"/>
     <key id="calendar-delete-item-key" keycode="VK_DELETE" observes="calendar_delete_event_command"/>
     <key id="calendar-delete-todo-key" keycode="VK_DELETE" observes="calendar_delete_todo_command"/>
   </keyset>
