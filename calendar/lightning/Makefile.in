@@ -60,9 +60,6 @@ PREF_JS_EXPORTS = $(srcdir)/content/lightning.js
 LIGHTNING_VERSION := $(shell cat $(srcdir)/../sunbird/config/version.txt)
 THUNDERBIRD_VERSION := $(shell cat $(topsrcdir)/mail/config/version.txt)
 SEAMONKEY_VERSION := $(shell cat $(topsrcdir)/suite/config/version.txt)
-ifdef LIGHTNING_FIREFOX
-FIREFOX_VERSION := $(shell cat $(MOZILLA_SRCDIR)/browser/config/version.txt)
-endif
 
 ifneq (,$(findstring pre,$(LIGHTNING_VERSION)))
 DEFINES += -DLIGHTNING_PRERELEASE_VERSION=1
@@ -122,7 +119,6 @@ DIRS = ../libical \
 # Select a theme from which to pull our skin goodness
 # OS X: pinstripe
 # Others: winstripe
-
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 THEME=pinstripe
 else
@@ -131,10 +127,8 @@ endif
 
 DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
            -DAB_CD=$(AB_CD) \
-           -DFIREFOX_VERSION=$(FIREFOX_VERSION) \
            -DSEAMONKEY_VERSION=$(SEAMONKEY_VERSION) \
            -DLIGHTNING_VERSION=$(LIGHTNING_VERSION) \
-           -DLIGHTNING_FIREFOX=$(LIGHTNING_FIREFOX) \
            -DTARGET_PLATFORM=$(OS_TARGET)_$(TARGET_XPCOM_ABI) \
            -DXPI_EM_ID=$(XPI_EM_ID) \
            -DTHEME=$(THEME) \
@@ -160,5 +154,3 @@ ident:
 	@printf "buildid "
 	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py \
 	    $(FINAL_TARGET)/application.ini App BuildID
-
-

@@ -5,8 +5,8 @@
      xmlns:em="http://www.mozilla.org/2004/em-rdf#">
 
   <Description about="urn:mozilla:install-manifest">
-    <!-- Target Application this extension can install into, 
-        with minimum and maximum supported versions. --> 
+    <!-- Target Application this extension can install into,
+        with minimum and maximum supported versions. -->
     <em:targetApplication>
       <Description>
         <!-- thunderbird -->
@@ -15,20 +15,6 @@
         <em:maxVersion>@THUNDERBIRD_VERSION@</em:maxVersion>
       </Description>
     </em:targetApplication>
-
-#if LIGHTNING_FIREFOX
-    <!-- We only allow installation of Lightning into Firefox for ease of
-       - development. You can edit the JS and then click reload in Firefox as
-       - opposed to having to restart Thunderbird after each edit. -->
-    <em:targetApplication>
-      <Description>
-        <!-- firefox -->
-        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-        <em:minVersion>@FIREFOX_VERSION@</em:minVersion>
-        <em:maxVersion>@FIREFOX_VERSION@</em:maxVersion>
-      </Description>
-    </em:targetApplication>
-#endif
 
     <em:targetApplication>
       <Description>
