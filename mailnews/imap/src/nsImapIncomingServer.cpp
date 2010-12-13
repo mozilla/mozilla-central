@@ -535,7 +535,10 @@ nsImapIncomingServer::LoadNextQueuedUrl(nsIImapProtocol *aProtocol, PRBool *aRes
             nsImapProtocol::LogImapUrl("playing queued url", aImapUrl);
             rv = protocolInstance->LoadImapUrl(url, aConsumer);
             NS_ASSERTION(NS_SUCCEEDED(rv), "failed running queued url");
-            urlRun = PR_TRUE;
+            PRBool isInbox;
+            protocolInstance->IsBusy(&urlRun, &isInbox);
+            if (!urlRun)
+              nsImapProtocol::LogImapUrl("didn't need to run", aImapUrl);
             removeUrlFromQueue = PR_TRUE;
           }
         }

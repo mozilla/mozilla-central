@@ -1993,10 +1993,70 @@ nsresult nsImapProtocol::SendData(const char * dataBuffer, PRBool aSuppressLoggi
   // ProcessProtocolState - we override this only so we'll link - it should never get called.
 
 nsresult nsImapProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
-									PRUint32 sourceOffset, PRUint32 length)
+                                              PRUint32 sourceOffset, PRUint32 length)
 {
   return NS_OK;
 }
+
+PRBool nsImapProtocol::TryToRunUrlLocally(nsIURI *aURL, nsISupports *aConsumer)
+{
+  nsresult rv;
+  nsCOMPtr<nsIImapUrl> imapUrl(do_QueryInterface(aURL, &rv));
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(aURL);
+  nsCString messageIdString;
+  imapUrl->GetListOfMessageIds(messageIdString);
+  PRBool useLocalCache = PR_FALSE;
+  if (!messageIdString.IsEmpty() && !HandlingMultipleMessages(messageIdString))
+  {
+    nsImapAction action;
+    imapUrl->GetImapAction(&action);
+    nsCOMPtr <nsIMsgFolder> folder;
+    mailnewsUrl->GetFolder(getter_AddRefs(folder));
+    NS_ENSURE_TRUE(folder, PR_FALSE);
+
+    folder->HasMsgOffline(atoi(messageIdString.get()), &useLocalCache);
+    mailnewsUrl->SetMsgIsInLocalCache(useLocalCache);
+    // We're downloading a single message for offline use, and it's
+    // already offline. So we shouldn't do anything, but we do
+    // need to notify the url listener.
+    if (useLocalCache && action == nsIImapUrl::nsImapMsgDownloadForOffline)
+    {
+      nsCOMPtr<nsIImapMailFolderSink> folderSink(do_QueryInterface(folder));
+      // This causes the url listener to get OnStart and Stop notifications.
+      folderSink->SetUrlState(this, mailnewsUrl, PR_TRUE, NS_OK);
+      folderSink->SetUrlState(this, mailnewsUrl, PR_FALSE, NS_OK);
+      return PR_TRUE;
+    }
+  }
+  if (!useLocalCache)
+    return PR_FALSE;
+
+  nsCOMPtr<nsIImapMockChannel> mockChannel;
+  imapUrl->GetMockChannel(getter_AddRefs(mockChannel));
+  if (!mockChannel)
+    return PR_FALSE;
+
+  nsImapMockChannel *imapChannel = static_cast<nsImapMockChannel *>(mockChannel.get());
+  if (!imapChannel)
+    return PR_FALSE;
+
+  nsCOMPtr <nsILoadGroup> loadGroup;
+  imapChannel->GetLoadGroup(getter_AddRefs(loadGroup));
+  if (!loadGroup) // if we don't have one, the url will snag one from the msg window...
+    mailnewsUrl->GetLoadGroup(getter_AddRefs(loadGroup));
+
+  if (loadGroup)
+    loadGroup->RemoveRequest((nsIRequest *) mockChannel, nsnull /* context isupports */, NS_OK);
+
+  if (imapChannel->ReadFromLocalCache())
+  {
+    (void) imapChannel->NotifyStartEndReadFromCache(PR_TRUE);
+    return PR_TRUE;
+  }
+  return PR_FALSE;
+}
+
 
 // LoadImapUrl takes a url, initializes all of our url specific data by calling SetupUrl.
 // If we don't have a connection yet, we open the connection. Finally, we signal the
@@ -2013,6 +2073,8 @@ NS_IMETHODIMP nsImapProtocol::LoadImapUrl(nsIURI * aURL, nsISupports * aConsumer
     aURL->GetSpec(urlSpec);
     printf("loading url %s\n", urlSpec.get());
 #endif
+    if (TryToRunUrlLocally(aURL, aConsumer))
+      return NS_OK;
     m_urlInProgress = PR_TRUE;
     m_imapMailFolderSink = nsnull;
     rv = SetupWithUrl(aURL, aConsumer);
@@ -8988,6 +9050,26 @@ nsresult nsImapMockChannel::ReadFromMemCache(nsICacheEntryDescriptor *entry)
     rv = entry->GetMetaDataElement("ContentModified", getter_Copies(annotation));
     if (NS_SUCCEEDED(rv) && !annotation.IsEmpty())
       shouldUseCacheEntry = annotation.EqualsLiteral("Not Modified");
+    if (shouldUseCacheEntry)
+    {
+      PRUint32 entrySize;
+
+      rv = entry->GetDataSize(&entrySize);
+      nsCOMPtr<nsIMsgMessageUrl> msgUrl(do_QueryInterface(m_url));
+      if (msgUrl)
+      {
+        nsCOMPtr<nsIMsgDBHdr> msgHdr;
+        // A failure to get a message header isn't an error
+        msgUrl->GetMessageHeader(getter_AddRefs(msgHdr));
+        if (msgHdr)
+        {
+          PRUint32 messageSize;
+          if (NS_SUCCEEDED(msgHdr->GetMessageSize(&messageSize)) &&
+              messageSize != entrySize)
+            shouldUseCacheEntry = PR_FALSE;
+        }
+      }
+    }
   }
   if (shouldUseCacheEntry)
   {
@@ -9021,7 +9103,7 @@ nsresult nsImapMockChannel::ReadFromMemCache(nsICacheEntryDescriptor *entry)
 
     nsCOMPtr<nsIInputStreamPump> pump;
     rv = NS_NewInputStreamPump(getter_AddRefs(pump), in);
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
 
     // if we are going to read from the cache, then create a mock stream listener class and use it
     nsImapCacheStreamListener * cacheListener = new nsImapCacheStreamListener();

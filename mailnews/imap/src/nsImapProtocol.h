@@ -453,6 +453,15 @@ private:
   // initialization function given a new url and transport layer
   nsresult  SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer);
   void ReleaseUrlState(PRBool rerunningUrl); // release any state that is stored on a per action basis.
+  /**
+   * Last ditch effort to run the url without using an imap connection.
+   * If it turns out that we don't need to run the url at all (e.g., we're
+   * trying to download a single message for offline use and it has already
+   * been downloaded, this function will send the appropriate notifications.
+   *
+   * @returns true if the url has been run locally, or doesn't need to be run.
+   */
+  PRBool TryToRunUrlLocally(nsIURI *aURL, nsISupports *aConsumer);
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // Communication methods --> Reading and writing protocol
@@ -699,6 +708,7 @@ class nsImapMockChannel : public nsIImapMockChannel
                         , public nsSupportsWeakReference
 {
 public:
+  friend class nsImapProtocol;
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSIIMAPMOCKCHANNEL

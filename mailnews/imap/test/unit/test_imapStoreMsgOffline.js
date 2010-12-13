@@ -10,6 +10,15 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
+load("../../../resources/asyncTestUtils.js");
+
+load("../../../resources/messageGenerator.js");
+load("../../../resources/messageModifier.js");
+load("../../../resources/messageInjection.js");
+
+var gMessageGenerator = new MessageGenerator();
+var gScenarioFactory = new MessageScenarioFactory(gMessageGenerator);
+
 const nsMsgMessageFlags = Ci.nsMsgMessageFlags;
 
 var gServer;
@@ -28,6 +37,10 @@ var gMsgFile2 = do_get_file("../../../data/image-attach-test");
 const gMsgId2 = "4A947F73.5030709@xxx.com";
 var gMsgFile3 = do_get_file("../../../data/external-attach-test");
 const gMsgId3 = "876TY.5030709@xxx.com";
+
+var gFirstNewMsg;
+var gFirstMsgSize;
+var gImapInboxOfflineStoreSize;
 
 // We use this as a display consumer
 var streamListener =
@@ -208,8 +221,84 @@ const gTestArray =
     // can't turn this on because our fake server doesn't support body structure.
 //    do_check_eq(msg3.flags & nsMsgMessageFlags.Offline, 0);
     do_timeout(0, function(){doTest(++gCurTestNum)});
-  }
+  },
+  function addNewMsgs() {
+    let mbox = gIMAPDaemon.getMailbox("INBOX")
+    // make a couple messges
+    let messages = [];
+    let bodyString = "";
+    for (i = 0; i < 100; i++)
+      bodyString += "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\r\n";
+
+    let gMessageGenerator = new MessageGenerator();
+    messages = messages.concat(gMessageGenerator.makeMessage({body: {body: bodyString, contentType: "text/plain"}}));
+
+    gFirstNewMsg = mbox.uidnext;
+    // need to account for x-mozilla-status, status2, and envelope.
+    gFirstMsgSize = messages[0].toMessageString().length + 102;
+
+    let ioService = Cc["@mozilla.org/network/io-service;1"]
+                      .getService(Ci.nsIIOService);
+
+    messages.forEach(function (message)
+    {
+      let dataUri = ioService.newURI("data:text/plain;base64," +
+                                      btoa(message.toMessageString()),
+                                     null, null);
+      mbox.addMessage(new imapMessage(dataUri.spec, mbox.uidnext++, []));
+    });
+    gIMAPInbox.updateFolderWithListener(null, URLListener);
+  },
+  function testQueuedOfflineDownload()
+  {
+    // Make sure that streaming the same message and then trying to download
+    // it for offline use doesn't end up in it getting added to the offline 
+    // store twice.
+    gImapInboxOfflineStoreSize = gIMAPInbox.filePath.fileSize + gFirstMsgSize;
+    let newMsgHdr = gIMAPInbox.GetMessageHeader(gFirstNewMsg);
+    let msgURI = newMsgHdr.folder.getUriForMsg(newMsgHdr);
+    let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
+    let msgServ = messenger.messageServiceFromURI(msgURI);
+    msgServ.streamMessage(msgURI, gStreamListener, null, null, false, "", false);
+    let msgs = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
+    msgs.appendElement(gIMAPInbox.GetMessageHeader(gFirstNewMsg), false);
+    gIMAPInbox.DownloadMessagesForOffline(msgs, null);
+  },
+  function firstStreamFinished()
+  {
+    dump("first stream finished\n");
+    // Wait for a couple seconds for the second download to either start
+    // writing to the offline store (failure case), or complete instantly.
+    // If DownloadMessagesForOffline took a listener, we wouldn't have to
+    // do this.
+    do_timeout(2000, function(){doTest(++gCurTestNum);});
+  },
+  function checkOfflineStoreSize()
+  {
+    dump("checking offline store size\n");
+    do_check_true(gIMAPInbox.filePath.fileSize <= gImapInboxOfflineStoreSize);
+    do_timeout(0, function(){doTest(++gCurTestNum);});
+  },
 ]
+
+gStreamListener = {
+  QueryInterface : XPCOMUtils.generateQI([Ci.nsIStreamListener]),
+  _stream : null,
+  _data : null,
+  onStartRequest : function (aRequest, aContext) {
+    this._data = "";
+  },
+  onStopRequest : function (aRequest, aContext, aStatusCode) {
+    do_timeout(0, function(){doTest(++gCurTestNum);});
+  },
+  onDataAvailable : function (aRequest, aContext, aInputStream, aOff, aCount) {
+    if (this._stream == null) {
+      this._stream = Cc["@mozilla.org/scriptableinputstream;1"].createInstance(Ci.nsIScriptableInputStream);
+      this._stream.init(aInputStream);
+    }
+    this._data += this._stream.read(aCount);
+  },
+};
 
 function doTest(test)
 {
