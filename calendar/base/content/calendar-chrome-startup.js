@@ -43,7 +43,7 @@ function commonInitCalendar() {
     loadCalendarManager();
 
     // Restore the last shown calendar view
-    selectCalendarView(getLastCalendarView());
+    switchCalendarView(getLastCalendarView(), false);
 
     // set up the unifinder
     prepareCalendarToDoUnifinder();

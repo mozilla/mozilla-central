@@ -168,38 +168,39 @@
       </menupopup>
     </menu>
     <menu id="ltnCalendarMenu"
+          observes="calendar_in_foreground"
           insertbefore="viewSortMenuSeparator"
           label="&lightning.menu.view.calendar.label;"
           accesskey="&lightning.menu.view.calendar.accesskey;">
-      <menupopup id="ltnTasksMenuPopup">
+      <menupopup id="ltnCalendarMenuPopup">
         <menuitem id="ltnChangeViewDay"
                   label="&lightning.toolbar.day.label;"
                   accesskey="&lightning.toolbar.day.accesskey;"
                   type="radio"
                   name="calendarMenuViews"
                   key="calendar-day-view-key"
-                  observes="calendar_day-view_command"/>
+                  command="calendar_day-view_command"/>
         <menuitem id="ltnChangeViewWeek"
                   label="&lightning.toolbar.week.label;"
                   accesskey="&lightning.toolbar.week.accesskey;"
                   type="radio"
                   name="calendarMenuViews"
                   key="calendar-week-view-key"
-                  observes="calendar_week-view_command"/>
+                  command="calendar_week-view_command"/>
         <menuitem id="ltnChangeViewMultiweek"
                   label="&lightning.toolbar.multiweek.label;"
                   accesskey="&lightning.toolbar.multiweek.accesskey;"
                   type="radio"
                   name="calendarMenuViews"
                   key="calendar-multiweek-view-key"
-                  observes="calendar_multiweek-view_command"/>
+                  command="calendar_multiweek-view_command"/>
         <menuitem id="ltnChangeViewMonth"
                   label="&lightning.toolbar.month.label;"
                   accesskey="&lightning.toolbar.month.accesskey;"
                   type="radio"
                   name="calendarMenuViews"
                   key="calendar-month-view-key"
-                  observes="calendar_month-view_command"/>
+                  command="calendar_month-view_command"/>
         <menuseparator id="ltnBeforeCalendarViewSection"/>
         <menuitem id="ltnTasksViewMinimonth"
                   type="checkbox"
@@ -381,15 +382,27 @@
                   observes="calendar_new_todo_command"/>
         <menuseparator id="before-Calendar-Mode-Section"/>
         <menuitem id="ltnMenuSwitchToCalendar"
+                  type="checkbox"
                   label="&lightning.toolbar.calendar.label;"
                   accesskey="&lightning.toolbar.calendar.accesskey;"
                   command="switch2calendar"
-                  key="openLightningKey"/>
+                  key="openLightningKey"
+                  autocheck="false">
+          <observes element="modeBroadcaster"
+                    attribute="mode"
+                    onbroadcast="this.parentNode.setAttribute('checked', '' + document.getElementById('modeBroadcaster').getAttribute('mode') == 'calendar')"/>
+        </menuitem>
         <menuitem id="ltnMenuSwitchToTask"
+                  type="checkbox"
                   label="&lightning.toolbar.task.label;"
                   accesskey="&lightning.toolbar.task.accesskey;"
                   command="switch2task"
-                  key="openTasksKey"/>
+                  key="openTasksKey"
+                  autocheck="false">
+          <observes element="modeBroadcaster"
+                    attribute="mode"
+                    onbroadcast="this.parentNode.setAttribute('checked', '' + document.getElementById('modeBroadcaster').getAttribute('mode') == 'task')"/>
+        </menuitem>
         <menuseparator id="ltnBeforeCalendarSection"/>
         <!-- Menuitems have different schema just to match sunbird -->
         <menuitem id="calendar-export-menu"
@@ -452,9 +465,6 @@
     <commandset id="calendar_commands">
       <command id="agenda_delete_event_command" oncommand="agendaListbox.deleteSelectedItem(false);"/>
       <command id="agenda_edit_event_command" oncommand="agendaListbox.editSelectedItem(event);"/>
-      <command id="switch2mail"
-               checked="true"
-               oncommand="document.getElementById('tabmail').selectTabByMode('folder')"/>
       <command id="switch2calendar"
                oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('tooltiptext') })"/>
       <command id="switch2task"

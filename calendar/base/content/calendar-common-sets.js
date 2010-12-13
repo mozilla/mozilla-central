@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -75,6 +76,11 @@ var calendarController = {
 
         "calendar_toggle_orientation_command": true,
         "calendar_toggle_workdays_only_command": true,
+
+        "calendar_day-view_command": true,
+        "calendar_week-view_command": true,
+        "calendar_multiweek-view_command": true,
+        "calendar_month-view_command": true,
 
         "calendar_task_filter_command": true,
         "calendar_reload_remote_calendars": true,
@@ -190,6 +196,10 @@ var calendarController = {
 
             // The following commands need calendar mode, be careful when
             // changing things.
+            case "calendar_day-view_command":
+            case "calendar_week-view_command":
+            case "calendar_multiweek-view_command":
+            case "calendar_month-view_command":
             case "calendar_show_unifinder_command":
             case "calendar_mode_calendar":
                 return this.isInMode("calendar");
@@ -364,6 +374,20 @@ var calendarController = {
             case "calendar_toggle_workdays_only_command":
                 toggleWorkdaysOnly();
                 break;
+
+            case "calendar_day-view_command":
+                switchCalendarView("day", true);
+                break;
+            case "calendar_week-view_command":
+                switchCalendarView("week", true);
+                break;
+            case "calendar_multiweek-view_command":
+                switchCalendarView("multiweek", true);
+                break;
+            case "calendar_month-view_command":
+                switchCalendarView("month", true);
+                break;
+
             default:
                 if (this.defaultController && !this.isCalendarInForeground()) {
                     // If calendar is not in foreground, let the default controller take

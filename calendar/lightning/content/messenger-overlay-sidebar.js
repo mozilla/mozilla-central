@@ -195,9 +195,6 @@ function ltnOnLoad(event) {
     // Take care of common initialization
     commonInitCalendar();
 
-    // Hide the calendar view so it doesn't push the status-bar offscreen
-    collapseElement(document.getElementById("calendar-view-box"));
-
     // Add an unload function to the window so we don't leak any listeners
     window.addEventListener("unload", ltnFinish, false);
 
@@ -249,33 +246,24 @@ function refreshUIBits() {
 }
 
 /**
- * Select the calendar view in the background, not switching to calendar mode if
- * in mail mode.
+ * Switch the calendar view, and optionally switch to calendar mode.
+ *
+ * @param aType     The type of view to select.
+ * @param aShow     If true, the mode will be switched to calendar if not
+ *                    already there.
  */
-function ltnSelectCalendarView(type) {
-    gLastShownCalendarView = type;
+function ltnSwitchCalendarView(aType, aShow) {
+    gLastShownCalendarView = aType;
 
-    // Sunbird/Lightning Common view switching code
-    switchToView(type);
-
-}
-
-/**
- * Show the calendar view, also switching to calendar mode if in mail mode
- */
-function ltnShowCalendarView(type)
-{
-    gLastShownCalendarView = type;
-
-    if (gCurrentMode != 'calendar') {
-        // This function in turn calls showCalendarView(), so return afterwards.
+    if (aShow && gCurrentMode != "calendar") {
+        // This function in turn calls switchToView(), so return afterwards.
         ltnSwitch2Calendar();
         return;
     }
 
-    ltnSelectCalendarView(type);
+    // Sunbird/Lightning common view switching code
+    switchToView(aType);
 }
-
 
 /**
  * This function has the sole responsibility to switch back to
@@ -402,7 +390,6 @@ function openInvitationsDialog() {
 /**
  * the current mode is set to a string defining the current
  * mode we're in. allowed values are:
- *  - 'mode'
  *  - 'mail'
  *  - 'calendar'
  *  - 'task'
@@ -415,13 +402,6 @@ var gCurrentMode = 'mail';
 
 function ltnSwitch2Mail() {
   if (gCurrentMode != 'mail') {
-    var switch2mail = document.getElementById("switch2mail");
-    var switch2calendar = document.getElementById("switch2calendar");
-    var switch2task = document.getElementById("switch2task");
-    switch2mail.setAttribute("checked", "true");
-    switch2calendar.removeAttribute("checked");
-    switch2task.removeAttribute("checked");
-
     gCurrentMode = 'mail';
     document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);
 
@@ -436,24 +416,15 @@ function ltnSwitch2Mail() {
 
 function ltnSwitch2Calendar() {
   if (gCurrentMode != 'calendar') {
-    var switch2mail = document.getElementById("switch2mail");
-    var switch2calendar = document.getElementById("switch2calendar");
-    var switch2task = document.getElementById("switch2task");
-    switch2mail.removeAttribute("checked");
-    switch2calendar.setAttribute("checked", "true");
-    switch2task.removeAttribute("checked");
-
     gCurrentMode = 'calendar';
     document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);
 
     // display the calendar panel on the display deck
-    var viewBox = document.getElementById("calendar-view-box");
-    uncollapseElement(viewBox);
-    var deck = document.getElementById("calendarDisplayDeck");
-    deck.selectedPanel = viewBox;
+    let deck = document.getElementById("calendarDisplayDeck");
+    deck.selectedPanel = document.getElementById("calendar-view-box");
 
     // show the last displayed type of calendar view
-    showCalendarView(gLastShownCalendarView);
+    switchToView(gLastShownCalendarView);
 
     document.commandDispatcher.updateCommands('calendar_commands');
     window.setCursor("auto");
@@ -466,21 +437,12 @@ function ltnSwitch2Calendar() {
 
 function ltnSwitch2Task() {
   if (gCurrentMode != 'task') {
-    var switch2mail = document.getElementById("switch2mail");
-    var switch2calendar = document.getElementById("switch2calendar");
-    var switch2task = document.getElementById("switch2task");
-    switch2mail.removeAttribute("checked");
-    switch2calendar.removeAttribute("checked");
-    switch2task.setAttribute("checked", "true");
-
     gCurrentMode = 'task';
     document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);
 
     // display the task panel on the display deck
-    var taskBox = document.getElementById("calendar-task-box");
-    uncollapseElement(taskBox);
-    var deck = document.getElementById("calendarDisplayDeck");
-    deck.selectedPanel = taskBox;
+    let deck = document.getElementById("calendarDisplayDeck");
+    deck.selectedPanel = document.getElementById("calendar-task-box");
 
     document.commandDispatcher.updateCommands('calendar_commands');
     window.setCursor("auto");

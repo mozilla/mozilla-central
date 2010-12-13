@@ -22,6 +22,7 @@
    - Contributor(s):
    - Simon Paquet <bugzilla@babylonsounds.com>
    - Berend Cornelius <berend.cornelius@sun.com>
+   - Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -90,10 +91,10 @@
 
     <command id="calendar_show_unifinder_command" oncommand="goDoCommand('calendar_show_unifinder_command')"/>
     <!-- The dash instead of the underscore is intended. the 'xxx-view' part should be the id of the view in the deck -->
-    <command id="calendar_day-view_command" oncommand="showCalendarView('day')"/>
-    <command id="calendar_week-view_command" oncommand="showCalendarView('week')"/>
-    <command id="calendar_multiweek-view_command" oncommand="showCalendarView('multiweek')"/>
-    <command id="calendar_month-view_command" oncommand="showCalendarView('month')"/>
+    <command id="calendar_day-view_command" oncommand="goDoCommand('calendar_day-view_command')"/>
+    <command id="calendar_week-view_command" oncommand="goDoCommand('calendar_week-view_command')"/>
+    <command id="calendar_multiweek-view_command" oncommand="goDoCommand('calendar_multiweek-view_command')"/>
+    <command id="calendar_month-view_command" oncommand="goDoCommand('calendar_month-view_command')"/>
     <command id="calendar_task_category_command" oncommand="contextChangeTaskCategory(event);"/>
     <command id="calendar_toggle_completed_command" oncommand="toggleCompleted(event)"/>
     <command id="calendar_percentComplete-0_command" oncommand="contextChangeTaskProgress(event, 0)"/>

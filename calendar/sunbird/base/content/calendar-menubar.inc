@@ -389,7 +389,7 @@
                      accesskey="&calendar.addons.accesskey;"
                      command="Tools:Addons"/>
            <menuseparator id="devToolsSeparator"/>
-           <menuitem id="javascriptConsole" 
+           <menuitem id="javascriptConsole"
                      label="&errorConsoleCmd.label;"
                      accesskey="&errorConsoleCmd.accesskey;"
                      oncommand="toJavaScriptConsole();"/>

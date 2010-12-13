@@ -273,34 +273,17 @@ var calendarViewController = {
 
 /**
  * This function provides a neutral way to switch between views.
- * XXX Kind of confusing. This function calls the app specific function, which
- * again calls the common switchToView function. They should be consolidated in
- * a different bug.
  *
- * @param type      The type of view to show
- * @param event     (optional) A DOM event that caused the view to show.
+ * @param aType     The type of view to select.
+ * @param aShow     If true, the calendar view is forced to be shown, i.e.
+ *                    bringing the view to the front if the application is
+ *                    showing other elements (Lightning).
  */
-function showCalendarView(type, event) {
-    if (isSunbird()) {
-        sbSwitchToView(type, event);
-    } else if (document.getElementById('switch2calendar').getAttribute('checked')) {
-        ltnShowCalendarView(type, event);
-    }
-    onCalendarViewResize(event);
-}
-
-/**
- * This function acts like showCalendarView, but does not bring the view to the front
- * if the application is showing other elements (i.e Lightning).
- *
- * @see showCalendarView
- * @param type          The type of view to select.
- */
-function selectCalendarView(type) {
-    if (isSunbird()) {
-        sbSwitchToView(type);
+function switchCalendarView(aType, aShow) {
+    if (cal.isSunbird()) {
+        sbSwitchToView(aType);
     } else {
-        ltnSelectCalendarView(type);
+        ltnSwitchCalendarView(aType, aShow);
     }
 }
 
@@ -387,6 +370,8 @@ function switchToView(aViewType) {
 
     view.goToDay(selectedDay);
     view.setSelectedItems(currentSelection.length, currentSelection);
+
+    onCalendarViewResize();
 }
 
 /**
