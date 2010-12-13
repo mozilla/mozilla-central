@@ -371,11 +371,6 @@ calDavCalendar.prototype = {
     // Indicates that the server supports Webdav Sync
     // see: http://tools.ietf.org/html/draft-daboo-webdav-sync
     mHasWebdavSyncSupport: false,
-    // By default, assume that the server can return the calendar-data
-    // property on a sync request, if not supported (ie: Apple Server),
-    // a subsequent multiget needs to be sent to the server to retrieve
-    // the calendar-data property.
-    mHasWebdavSyncCalendarDataSupport: true,
 
     get authRealm() {
         return this.mAuthRealm;
