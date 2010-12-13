@@ -27,6 +27,7 @@
    -   Hubert Gajewski <hubert@hubertgajewski.com>, Aviary.pl
    -   Fred Jendrzejewski <fred.jen@web.de>
    -   Simon Vaillancourt <simon.at.orcl@gmail.com>   
+   -   Gianfranco Balza <bv1578@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,6 +45,7 @@
 
 <!ENTITY event.title.label                  "Edit Item" >
 
+<!ENTITY event.dialog.keepDurationButton.tooltip  "">
 
 <!ENTITY newevent.from.label                "From" >
 <!ENTITY newevent.to.label                  "To" >

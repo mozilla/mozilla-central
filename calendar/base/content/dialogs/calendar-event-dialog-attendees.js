@@ -20,6 +20,7 @@
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Gianfranco Balza <bv1578@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -457,7 +458,7 @@ function updateEndTime() {
             promptService.alert(
                 null,
                 document.title,
-                calGetString("calendar", "warningNegativeDuration"));
+                calGetString("calendar", "warningEndBeforeStart"));
         }
         setTimeout(callback, 1);
     }

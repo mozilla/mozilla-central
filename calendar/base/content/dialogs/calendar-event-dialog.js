@@ -24,6 +24,7 @@
  *   Fred Jendrzejewski <fred.jen@web.de>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Markus Adrario <Mozilla@Adrario.de>
+ *   Gianfranco Balza <bv1578@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -507,25 +508,38 @@ function loadDateTime(item) {
             duration = endTime.subtractDate(startTime);
         }
         setElementValue("cmd_attendees", !(hasEntryDate && hasDueDate), "disabled");
+        setBooleanAttribute("keepduration-button", "disabled", !(hasEntryDate && hasDueDate));
         gStartTime = startTime;
         gEndTime = endTime;
         gItemDuration = duration;
     }
 }
 
+/**
+ * Toggles the "keep" attribute every time the keepduration-button is pressed.
+ */
+function toggleKeepDuration() {
+    let kdb = document.getElementById("keepduration-button");
+    // To make the "keep" attribute persistent, it mustn't be removed when in
+    // false state (bug 15232).
+    kdb.setAttribute("keep", kdb.getAttribute("keep") == "true" ? "false" : "true");
+}
 
 /**
  * Handler function to be used when the start time or end time of the event have
- * changed. If aKeepDuration is true then the end time will be modified so that
- * the total duration of the item stays the same.
+ * changed. According to the state of the button "keepduration-button", it's
+ * possible to change separately the start date from the end date or keep them
+ * "linked" so that the total duration of the item can change or stay the same.
  *
- * @param aKeepDuration   If true, the duration will be kept constant.
+ * @param aDatepickerId   The datepicker's Id
  */
-function dateTimeControls2State(aKeepDuration) {
+function dateTimeControls2State(aDatepickerId) {
     if (gIgnoreUpdate) {
         return;
     }
 
+    let keepDuration = document.getElementById("keepduration-button")
+                           .getAttribute("keep") == "true";
     var startWidgetId;
     var endWidgetId;
     if (isEvent(window.calendarItem)) {
@@ -557,33 +571,42 @@ function dateTimeControls2State(aKeepDuration) {
     }
 
     if (gEndTime) {
-        if (aKeepDuration) {
-            gEndTime = gStartTime.clone();
-            if (gItemDuration) {
-                gEndTime.addDuration(gItemDuration);
-                gEndTime = gEndTime.getInTimezone(gEndTimezone);
+        let timezone = gEndTimezone;
+        if (timezone.isUTC) {
+            if (gStartTime && !compareObjects(gStartTimezone, gEndTimezone)) {
+                timezone = gStartTimezone;
             }
-        } else {
-            var timezone = gEndTimezone;
-            if (timezone.isUTC) {
-                if (gStartTime && !compareObjects(gStartTimezone, gEndTimezone)) {
-                    timezone = gStartTimezone;
+        }
+        gEndTime = jsDateToDateTime(
+            getElementValue(endWidgetId),
+            (menuItem.getAttribute('checked') == 'true') ? timezone : kDefaultTimezone);
+        if (keepDuration) {
+            if (aDatepickerId == endWidgetId) {
+                let fduration = gItemDuration.clone();
+                fduration.isNegative = true;
+                gStartTime = gEndTime.clone();
+                gStartTime.addDuration(fduration);
+                gStartTime = gStartTime.getInTimezone(gStartTimezone);
+            } else {
+                gEndTime = gStartTime.clone();
+                if (gItemDuration) {
+                    gEndTime.addDuration(gItemDuration);
+                    gEndTime = gEndTime.getInTimezone(gEndTimezone);
                 }
             }
-            gEndTime = jsDateToDateTime(
-                getElementValue(endWidgetId),
-                (menuItem.getAttribute('checked') == 'true') ? timezone : kDefaultTimezone);
         }
     }
 
     if (getElementValue("event-all-day", "checked")) {
         gStartTime.isDate = true;
+        gEndTime.isDate = true;
+        gItemDuration = gEndTime.subtractDate(gStartTime);
     }
 
     // calculate the new duration of start/end-time.
     // don't allow for negative durations.
     var warning = false;
-    if (!aKeepDuration && gStartTime && gEndTime) {
+    if (!keepDuration && gStartTime && gEndTime) {
         if (gEndTime.compare(gStartTime) >= 0) {
             gItemDuration = gEndTime.subtractDate(gStartTime);
         } else {
@@ -603,7 +626,9 @@ function dateTimeControls2State(aKeepDuration) {
             promptService.alert(
                 null,
                 document.title,
-                calGetString("calendar", "warningNegativeDuration"));
+                calGetString("calendar",
+                             (aDatepickerId == endWidgetId) ? "warningEndBeforeStart"
+                                                            : "warningStartAfterEnd"));
         }
         setTimeout(callback, 1);
     }
@@ -688,6 +713,7 @@ function updateDateCheckboxes(aDatePickerId, aCheckboxId, aDateTime) {
         gItemDuration = null;
     }
     setElementValue("cmd_attendees", !(hasEntryDate && hasDueDate), "disabled");
+    setBooleanAttribute("keepduration-button", "disabled", !(hasEntryDate && hasDueDate));
     updateDateTime();
     updateTimezone();
 }
@@ -1171,7 +1197,7 @@ function onUpdateAllDay() {
         return;
     }
 
-    var allDay = getElementValue("event-all-day", "checked");
+    let allDay = getElementValue("event-all-day", "checked");
     setElementValue("event-starttime", allDay, "timepickerdisabled");
     setElementValue("event-endtime", allDay, "timepickerdisabled");
 
@@ -1179,6 +1205,7 @@ function onUpdateAllDay() {
 
     gStartTime.isDate = allDay;
     gEndTime.isDate = allDay;
+    gItemDuration = gEndTime.subtractDate(gStartTime);
 
     updateDateTime();
     updateRepeatDetails();
@@ -2837,8 +2864,8 @@ function updateRepeatDetails() {
         let kDefaultTimezone = calendarDefaultTimezone();
         let event = cal.isEvent(item);
 
-        let startDate =  getElementValue( event ? "event-starttime" : "todo-entrydate");
-        let endDate =  getElementValue( event ? "event-endtime" : "todo-duedate");
+        let startDate = getElementValue(event ? "event-starttime" : "todo-entrydate");
+        let endDate = getElementValue(event ? "event-endtime" : "todo-duedate");
         startDate = jsDateToDateTime(startDate, kDefaultTimezone);
         endDate = jsDateToDateTime(endDate, kDefaultTimezone);
 

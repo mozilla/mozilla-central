@@ -121,6 +121,7 @@ calendar.jar:
     skin/calendar/calendar-task-tree.css                   (themes/common/calendar-task-tree.css)
     skin/calendar/daypicker-background.png                 (themes/common/images/daypicker-background.png)
     skin/calendar/day-box-item-image.png                   (themes/common/images/day-box-item-image.png)
+    skin/calendar/event-dialog-keepduration-button.png     (themes/common/images/event-dialog-keepduration-button.png)
     skin/calendar/event-grippy-bottom.png                  (themes/common/images/event-grippy-bottom.png)
     skin/calendar/event-grippy-left.png                    (themes/common/images/event-grippy-left.png)
     skin/calendar/event-grippy-right.png                   (themes/common/images/event-grippy-right.png)

@@ -20,6 +20,7 @@
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
  *   Markus Adrario <Mozilla@Adrario.de>
+ *   Gianfranco Balza <bv1578@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -51,6 +52,56 @@ label.label {
 #item-alarm,
 .datepicker-text-class {
     min-width: 12em;
+}
+
+/*--------------------------------------------------------------------
+ *   Event dialog keep duration button
+ *-------------------------------------------------------------------*/
+
+#keepduration-button {
+    list-style-image: url(chrome://calendar/skin/event-dialog-keepduration-button.png);
+    -moz-image-region: rect(0px 14px 24px 7px);
+    padding: 3px;
+    -moz-padding-start: 6px;
+    -moz-padding-end: 6px;
+    -moz-margin-start: -3px;
+    margin-bottom: -15px;
+    position: relative;
+    -moz-user-focus: normal;
+}
+
+#keepduration-button[keep="true"] {
+    -moz-image-region: rect(0px 7px 24px 0px);
+}
+
+#keepduration-button[disabled="true"] {
+    -moz-image-region: rect(24px 14px 48px 7px);
+}
+
+#keepduration-button[keep="true"][disabled="true"] {
+    -moz-image-region: rect(24px 7px 48px 0px);
+}
+
+#keepduration-button > label {
+    display: none;
+}
+
+.keepduration-link-image {
+    list-style-image: url(chrome://calendar/skin/event-dialog-keepduration-button.png);
+}
+
+#link-image-top {
+    -moz-image-region: rect(0px 23px 6px 15px);
+    margin-top: 0.6em;
+}
+
+#link-image-bottom {
+    -moz-image-region: rect(18px 23px 24px 15px);
+    margin-bottom: 0.6em;
+}
+
+#timezone-endtime {
+    -moz-margin-start: 15px;
 }
 
 /*--------------------------------------------------------------------
