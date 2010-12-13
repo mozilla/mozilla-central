@@ -866,6 +866,10 @@ mime_create (const char *content_type, MimeHeaders *hdrs,
     if (name)
     {
       override_content_type = opts->file_type_fn (name, opts->stream_closure);
+      // appledouble isn't a valid override content type, and makes
+      // attachments invisible.
+      if (!PL_strcasecmp(override_content_type, MULTIPART_APPLEDOUBLE))
+        override_content_type = nsnull;
       PR_FREEIF(name);
 
       // If we get here and it is not the unknown content type from the

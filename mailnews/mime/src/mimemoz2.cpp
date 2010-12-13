@@ -404,6 +404,9 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
           nsMemory::Free(charset);
           disp = MimeHeaders_get(((MimeContainer *)object)->children[i]->headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
           tmp->real_name = MimeHeaders_get_parameter(disp, "name", &charset, nsnull);
+          tmp->real_type =
+            MimeHeaders_get(((MimeContainer *)object)->children[i]->headers,
+                            HEADER_CONTENT_TYPE, PR_TRUE, PR_FALSE);
         }
 
       if (tmp->real_name)
