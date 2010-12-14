@@ -1217,6 +1217,10 @@ function GetSelectedFolderIndex()
 // It will also keep the outline/dotted line in the original row.
 function ChangeSelectionWithoutContentLoad(event, tree)
 {
+  // usually, we're only interested in tree content clicks, not scrollbars etc.
+  if (event.originalTarget.localName != "treechildren")
+    return;
+
     var treeBoxObj = tree.treeBoxObject;
     var treeSelection = tree.view.selection;
 
@@ -1255,6 +1259,10 @@ function TreeOnMouseDown(event)
 
 function FolderPaneOnClick(event)
 {
+  // usually, we're only interested in tree content clicks, not scrollbars etc.
+  if (event.originalTarget.localName != "treechildren")
+    return;
+
   // we may want to open the folder in a new tab on middle click
   if (event.button == kMouseButtonMiddle)
   {
@@ -1280,11 +1288,6 @@ function FolderPaneOnClick(event)
       // clicking on the name column in the folder pane should not sort
       event.stopPropagation();
     }
-  }
-  else if ((event.originalTarget.localName == "slider") ||
-           (event.originalTarget.localName == "scrollbarbutton"))
-  {
-    event.stopPropagation();
   }
   else if ((event.detail == 2) &&
            (elt.value != "twisty") &&

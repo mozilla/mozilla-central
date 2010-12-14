@@ -42,10 +42,13 @@ var gThreadPaneCommandUpdater = null;
 
 function ThreadPaneOnClick(event)
 {
+  // usually, we're only interested in tree content clicks, not scrollbars etc.
+  let t = event.originalTarget;
+
   // we may want to open the message in a new tab on middle click
   if (event.button == kMouseButtonMiddle)
   {
-    if (AllowOpenTabOnMiddleClick())
+    if (t.localName == "treechildren" && AllowOpenTabOnMiddleClick())
     {
       // we don't allow new tabs in the search dialog
       if ("RestoreSelectionWithoutContentLoad" in window)
@@ -66,7 +69,6 @@ function ThreadPaneOnClick(event)
   // We also get in here for clicks on the "treecol" (headers) and the
   // "scrollbarbutton" (scrollbar buttons), but we don't want those events to
   // cause a "double click".
-  var t = event.originalTarget;
   if (t.localName == "treecol")
   {
     HandleColumnClick(t.id);
