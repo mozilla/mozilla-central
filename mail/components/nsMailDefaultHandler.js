@@ -409,22 +409,22 @@ var nsMailDefaultHandler = {
       }
       else {
         // This must be a regular filename. Use it to create a new message with attachment.
-        try {
-          let msgComposeService = Components.classes["@mozilla.org/messengercompose;1"]
-                                            .getService(Components.interfaces.nsIMsgComposeService);
-          let msgParams = Components.classes["@mozilla.org/messengercompose/composeparams;1"]
-                                    .createInstance(Components.interfaces.nsIMsgComposeParams);
-          let composeFields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
-                                        .createInstance(Components.interfaces.nsIMsgCompFields);
-          let attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
-                                     .createInstance(Components.interfaces.nsIMsgAttachment);
-          let localFile = Components.classes["@mozilla.org/file/local;1"]
-                                    .createInstance(Components.interfaces.nsILocalFile);
-          let ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                    .getService(Components.interfaces.nsIIOService);
-          let fileHandler = ioService.getProtocolHandler("file")
-                                     .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+        let msgComposeService = Components.classes["@mozilla.org/messengercompose;1"]
+                                          .getService(Components.interfaces.nsIMsgComposeService);
+        let msgParams = Components.classes["@mozilla.org/messengercompose/composeparams;1"]
+                                  .createInstance(Components.interfaces.nsIMsgComposeParams);
+        let composeFields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
+                                      .createInstance(Components.interfaces.nsIMsgCompFields);
+        let attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
+                                   .createInstance(Components.interfaces.nsIMsgAttachment);
+        let localFile = Components.classes["@mozilla.org/file/local;1"]
+                                  .createInstance(Components.interfaces.nsILocalFile);
+        let ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                                  .getService(Components.interfaces.nsIIOService);
+        let fileHandler = ioService.getProtocolHandler("file")
+                                   .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 
+        try {
           // Unescape the URI so that we work with clients that escape spaces.
           localFile.initWithPath(unescape(uri));
           attachment.url = fileHandler.getURLSpecFromFile(localFile);
@@ -436,7 +436,7 @@ var nsMailDefaultHandler = {
 
           msgComposeService.OpenComposeWindowWithParams(null, msgParams);
         } catch (e) {
-          dump(e);
+          openURI(cmdLine.resolveURI(uri));
         }
       }
     } else {
