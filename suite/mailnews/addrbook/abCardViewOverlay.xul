@@ -56,7 +56,7 @@
         <hbox style="min-width: 10ch; max-width: 10ch;">
           <spacer flex="1"/>
           <html:img align="center" src="" id="cvPhoto"
-            style="max-width: 10ch; max-height: 10ch; min-width: 1ch;"/>
+            style="max-width: 10ch; max-height: 10ch; min-width: 1ch; display: block"/>
           <spacer flex="1"/>
         </hbox>
       </vbox>
@@ -98,7 +98,7 @@
             </vbox>
           </hbox>
           <description class="CardViewLink" id="cvHomeWebPageBox">
-            <html:a onclick="return openLink('cvHomeWebPage');" href="" id="cvHomeWebPage"/>
+            <html:a onclick="return openLink(event);" href="" id="cvHomeWebPage"/>
           </description>
         </vbox>
 
@@ -156,7 +156,7 @@
             </vbox>
           </hbox>
           <description class="CardViewLink" id="cvWorkWebPageBox">
-            <html:a onclick="return openLink('cvWorkWebPage');" href="" id="cvWorkWebPage"/>
+            <html:a onclick="return openLink(event);" href="" id="cvWorkWebPage"/>
           </description>
         </vbox>
       </vbox>

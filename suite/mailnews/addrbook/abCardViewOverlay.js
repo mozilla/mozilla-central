@@ -533,9 +533,9 @@ function CreateMapItURL(address1, address2, city, state, zip, country)
   return urlFormat;
 }
 
-function openLink(id)
+function openLink(aEvent)
 {
-  openTopWin(document.getElementById(id).getAttribute("href"));
+  openAsExternal(aEvent.target.getAttribute("href"));
   // return false, so we don't load the href in the addressbook window
   return false;
 }
