@@ -56,8 +56,9 @@
             autopanes="true"> 
 
   <script type="application/javascript" src="chrome://communicator/content/pref/preferences.js"/>
-  <!-- Used by pref-smartupdate, pref-cookies, pref-images and pref-popups -->
-  <script type="application/javascript" src="chrome://communicator/content/permissions/permissionsOverlay.js"/>
+  <!-- Used by pref-smartupdate, pref-security, pref-cookies, pref-images, pref-popups and pref-passwords -->
+  <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/tasksOverlay.js"/>
 
   <stringbundle id="bundle_prefutilities"
                 src="chrome://communicator/locale/pref/prefutilities.properties"/>

@@ -75,8 +75,10 @@
       </radiogroup>
 
       <hbox pack="end">
-        <button id="viewImages" label="&viewImages.label;"
-                accesskey="&viewImages.accesskey;" oncommand="viewImages();"
+        <button id="viewImages"
+                label="&viewPermissions.label;"
+                accesskey="&viewPermissions.accesskey;"
+                oncommand="toDataManager('|permissions');"
                 preference="pref.advanced.images.disable_button.view_image"/>
       </hbox>
     </groupbox>

@@ -101,10 +101,10 @@
                   preference="dom.disable_open_during_load"/>   
         <spacer flex="1"/>
         <button id="exceptionsButton"
-                label="&popupExceptions.label;"
-                accesskey="&popupExceptions.accesskey;"
+                label="&viewPermissions.label;"
+                accesskey="&viewPermissions.accesskey;"
                 preference="pref.advanced.popups.disable_button.view_popups"
-                oncommand="viewPopups('');"/>
+                oncommand="toDataManager('|permissions');"/>
       </hbox>
       <separator class="thin"/>
       <description id="whenBlock">&whenBlock.description;</description>

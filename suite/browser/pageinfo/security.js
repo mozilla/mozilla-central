@@ -137,47 +137,15 @@ var security = {
    */
   viewCookies : function()
   {
-    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                       .getService(Components.interfaces.nsIWindowMediator);
-    var win = wm.getMostRecentWindow("mozilla:cookieviewer");
-    var eTLDService = Components.classes["@mozilla.org/network/effective-tld-service;1"].
-                      getService(Components.interfaces.nsIEffectiveTLDService);
-
-    var eTLD;
-    var uri = gDocument.documentURIObject;
-    try {
-      eTLD = eTLDService.getBaseDomain(uri);
-    }
-    catch (e) {
-      // getBaseDomain will fail if the host is an IP address or is empty
-      eTLD = uri.asciiHost;
-    }
-
-    if (win) {
-      win.setFilter(eTLD);
-      win.focus();
-    }
-    else
-      window.openDialog("chrome://communicator/content/permissions/cookieViewer.xul",
-                        "", "resizable", {filterString : eTLD});
+    toDataManager(this._getSecurityInfo().hostName + '|cookies');
   },
-  
+
   /**
    * Open the login manager window
    */
   viewPasswords : function()
   {
-    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                       .getService(Components.interfaces.nsIWindowMediator);
-    var win = wm.getMostRecentWindow("Toolkit:PasswordManager");
-    if (win) {
-      win.setFilter(this._getSecurityInfo().hostName);
-      win.focus();
-    }
-    else
-      window.openDialog("chrome://communicator/content/passwordManager.xul",
-                        "", "resizable",
-                        {filterString : this._getSecurityInfo().hostName});
+    toDataManager(this._getSecurityInfo().hostName + '|passwords');
   },
 
   _cert : null
@@ -242,10 +210,12 @@ function securityOnLoad() {
   var yesStr = pageInfoBundle.getString("yes");
   var noStr = pageInfoBundle.getString("no");
 
-  setText("security-privacy-cookies-value",
-          hostHasCookies(info.hostName) ? yesStr : noStr);
-  setText("security-privacy-passwords-value",
-          realmHasPasswords(info.fullLocation) ? yesStr : noStr);
+  var hasCookies = hostHasCookies(info.hostName);
+  setText("security-privacy-cookies-value", hasCookies ? yesStr : noStr);
+  document.getElementById("security-view-cookies").disabled = !hasCookies;
+  var hasPasswords = realmHasPasswords(info.fullLocation);
+  setText("security-privacy-passwords-value", hasPasswords ? yesStr : noStr);
+  document.getElementById("security-view-password").disabled = !hasPasswords;
 
   var visitCount = previousVisitCount(info.hostName);
   if(visitCount > 1) {

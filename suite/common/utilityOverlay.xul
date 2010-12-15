@@ -390,7 +390,7 @@
               oncommand="this.notificationbox.allowPopupsForSite(event);"/>
     <menuitem id="showPopupManager" label="&showPopupManager.label;"
               accesskey="&showPopupManager.accesskey;"
-              oncommand="viewPopups(this.hostport)"/>
+              oncommand="toDataManager(this.hostport + '|permissions|add|popup')"/>
     <menuitem id="dontShowMessage" label="&dontShowMessage.label;"
               accesskey="&dontShowMessage.accesskey;"
               oncommand="disablePopupBlockerNotifications();"/>

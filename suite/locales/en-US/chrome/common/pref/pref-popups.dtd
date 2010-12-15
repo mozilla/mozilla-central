@@ -5,8 +5,8 @@
 <!ENTITY popupBlock.label               "Block unrequested popup windows">
 <!ENTITY popupBlock.accesskey           "B">
 
-<!ENTITY popupExceptions.label          "Allowed Websites…">
-<!ENTITY popupExceptions.accesskey      "A">
+<!ENTITY viewPermissions.label          "Manage Permissions">
+<!ENTITY viewPermissions.accesskey      "M">
 
 <!ENTITY whenBlock.description          "When a popup window has been blocked:">
 <!ENTITY playSound.label                "Play a sound:">

@@ -3,8 +3,8 @@
 <!ENTITY smartTitle.label                     "Manage Software Installations and Updates">
 <!ENTITY enableSU.label                       "Allow websites to install extensions and updates">
 <!ENTITY enableSU.accesskey                   "x">
-<!ENTITY allowedSites.label                   "Allowed Websites">
-<!ENTITY allowedSites.accesskey               "e">
+<!ENTITY viewPermissions.label                "Manage Permissions">
+<!ENTITY viewPermissions.accesskey            "P">
 
 <!ENTITY verifyUpdates.caption                "Updates">
 <!ENTITY autoUpdates.label                    "Automatically check for updates to:">

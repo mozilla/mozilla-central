@@ -43,7 +43,6 @@
 <overlay id="cookieNavigatorOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/javascript" src="chrome://communicator/content/permissions/permissionsOverlay.js"/>
   <script type="application/javascript">
   <![CDATA[
     /******* THE FOLLOWING IS FOR THE TASKMENU OVERLAY *******/
@@ -220,7 +219,7 @@
         <menuseparator/>
         <menuitem label="&cookieDisplayCookiesCmd.label;"
                   accesskey="&cookieDisplayCookiesCmd.accesskey;" 
-                  oncommand="viewCookies();"/> 
+                  oncommand="toDataManager('|cookies');"/>
       </menupopup>
     </menu>
     <menu label="&cookieImageManager.label;"
@@ -249,7 +248,7 @@
         <menuseparator/>
         <menuitem label="&cookieDisplayImagesCmd.label;"
                   accesskey="&cookieDisplayImagesCmd.accesskey;" 
-                  oncommand="viewImages();"/> 
+                  oncommand="toDataManager('|permissions');"/>
       </menupopup>
     </menu>
     <menu label="&cookiePopupManager.label;"
@@ -261,10 +260,10 @@
       <menupopup>
         <menuitem id="AllowPopups" label="&cookieAllowPopupsCmd.label;"
                   accesskey="&cookieAllowPopupsCmd.accesskey;" 
-                  oncommand="viewPopups(popupHost());"/>
+                  oncommand="toDataManager(popupHost() + '|permissions|add|popup');"/>
         <menuitem id="ManagePopups" label="&cookieManagePopups.label;"
                   accesskey="&cookieManagePopups.accesskey;"
-                  oncommand="viewPopups('');"
+                  oncommand="toDataManager('|permissions');"
                   hidden="true"/>
         <menuseparator id="popupMenuSeparator" hidden="true"/>
         <!-- Additional items are generated (except for mac - see bug 533097)

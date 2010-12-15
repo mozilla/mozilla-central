@@ -67,6 +67,7 @@
   <script type="application/javascript" src="chrome://navigator/content/pageinfo/security.js"/>
   <script type="application/javascript" src="chrome://help/content/contextHelp.js"/>
   <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/tasksOverlay.js"/>
 
   <stringbundleset id="pageinfobundleset">
     <stringbundle id="pageinfobundle" src="chrome://navigator/locale/pageInfo.properties"/>

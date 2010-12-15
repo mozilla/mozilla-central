@@ -47,13 +47,6 @@ function toNavigator()
     OpenBrowserWindow();
 }
 
-function toPasswordManager()
-{
-  toOpenWindowByType("Toolkit:PasswordManager",
-                     "chrome://communicator/content/passwordManager.xul",
-                     "resizable");
-}
-
 function ExpirePassword()
 {
   // Queries the HTTP Auth Manager and clears all sessions

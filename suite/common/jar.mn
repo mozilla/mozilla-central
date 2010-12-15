@@ -163,7 +163,6 @@ comm.jar:
    content/communicator/permissions/permissionsManager.js           (permissions/permissionsManager.js)
    content/communicator/permissions/permissionsManager.xul          (permissions/permissionsManager.xul)
    content/communicator/permissions/permissionsNavigatorOverlay.xul (permissions/permissionsNavigatorOverlay.xul)
-   content/communicator/permissions/permissionsOverlay.js           (permissions/permissionsOverlay.js)
    content/communicator/permissions/treeUtils.js                    (permissions/treeUtils.js)
 *  content/communicator/places/browserPlacesViews.js                (places/browserPlacesViews.js)
    content/communicator/places/controller.js                        (places/controller.js)

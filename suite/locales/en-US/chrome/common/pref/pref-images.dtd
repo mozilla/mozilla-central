@@ -14,8 +14,8 @@
 <!ENTITY accOrgImagesRadio.accesskey    "r">
 <!ENTITY disableImages.label            "Do not load any images">
 <!ENTITY disableImages.accesskey        "n">
-<!ENTITY viewImages.label               "Manage Image Permissions">
-<!ENTITY viewImages.accesskey           "P">
+<!ENTITY viewPermissions.label          "Manage Permissions">
+<!ENTITY viewPermissions.accesskey      "P">
 <!ENTITY animLoopingTitle.label         "Animated images should loop">
 <!ENTITY animLoopAsSpecified.label      "As many times as the image specifies">
 <!ENTITY animLoopAsSpecified.accesskey  "m">

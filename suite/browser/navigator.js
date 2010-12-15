@@ -2370,8 +2370,8 @@ function StatusbarViewPopupManager()
   }
   catch(ex) { }
   
-  // open whitelist with site prefilled to unblock
-  viewPopups(hostPort);
+  // Open Data Manager permissions pane site and type prefilled to add.
+  toDataManager(hostPort + "|permissions|add|popup");
 }
 
 function popupBlockerMenuShowing(event)

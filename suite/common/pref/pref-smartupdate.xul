@@ -49,7 +49,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="smartupdate_pane"
             label="&pref.smartUpdate.title;"
-            script="chrome://communicator/content/tasksOverlay.js chrome://communicator/content/pref/pref-smartupdate.js">
+            script="chrome://communicator/content/pref/pref-smartupdate.js">
 
     <preferences id="smartupdate_preferences">
       <preference id="xpinstall.enabled"
@@ -89,8 +89,10 @@
       <hbox align="center">
         <checkbox id="XPInstallEnabled" label="&enableSU.label;" flex="1"
                   accesskey="&enableSU.accesskey;" preference="xpinstall.enabled"/>
-        <button id="allowedSitesButton" label="&allowedSites.label;"
-                accesskey="&allowedSites.accesskey;" oncommand="viewInstalls('');"/>
+        <button id="allowedSitesButton"
+                label="&viewPermissions.label;"
+                accesskey="&viewPermissions.accesskey;"
+                oncommand="toDataManager('|permissions');"/>
       </hbox>
     </groupbox>
 
