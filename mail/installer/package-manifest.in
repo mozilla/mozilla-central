@@ -118,7 +118,9 @@
 @BINPATH@/components/activityComponents.manifest
 @BINPATH@/components/addrbook.xpt
 @BINPATH@/components/fts3tok.xpt
-@BINPATH@/components/interfaces.manifest
+; interfaces.manifest doesn't get packaged because it is dynamically
+; re-created at packaging time when linking the xpts that will actually
+; go into the package, so the test related interfaces aren't included.
 @BINPATH@/components/mime.xpt
 @BINPATH@/components/steel.xpt
 @BINPATH@/components/msgAsyncPrompter.js
