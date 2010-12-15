@@ -100,10 +100,12 @@ var gDataman = {
     // Syntax: <domain>|<pane> (|<pane> is optional)
     // Examples: example.com
     //           example.org|permissions
+    //           |cookies
     // Allowed pane names:
     //   cookies, permissions, preferences, passwords, formdata
     // Invalid views fall back to the default available ones
     // Full host names (even including ports) for domain are allowed
+    // Empty domain with a pane specified will only list this data type
     this.viewToLoad = aView.split('|');
     if (gDomains.listLoadCompleted)
       gDomains.loadView();
@@ -225,6 +227,7 @@ var gBaseTreeView = {
 // :::::::::::::::::::: domain list ::::::::::::::::::::
 var gDomains = {
   tree: null,
+  selectfield: null,
   searchfield: null,
 
   domains: {},
@@ -243,6 +246,7 @@ var gDomains = {
     this.tree = document.getElementById("domainTree");
     this.tree.view = this;
 
+    this.selectfield = document.getElementById("typeSelect");
     this.searchfield = document.getElementById("domainSearch");
 
     // global "domain"
@@ -339,26 +343,37 @@ var gDomains = {
     }
     function loader() {
       if (gDataman.viewToLoad.length) {
-        gDataman.debugMsg("Domain for view found");
-        let host = gDataman.viewToLoad[0];
-        // Might have a host:port case, fake a scheme when none present.
-        if (!/:\//.test(host))
-          host = "foo://" + host;
-        let viewdomain = gDomains.getDomainFromHost(host);
-        for (let i = 0; i < gDomains.displayedDomains.length; i++) {
-          if (gDomains.displayedDomains[i].title == viewdomain) {
-            gDomains.tree.view.selection.select(i);
-            gDomains.tree.treeBoxObject.ensureRowIsVisible(i);
-            break;
-          }
+        if (gDataman.viewToLoad[0] == "" && gDataman.viewToLoad.length > 1) {
+          gDataman.debugMsg("Select a specific data type");
+          let sType = gDataman.viewToLoad[1].substr(0,1).toUpperCase() +
+                      gDataman.viewToLoad[1].substr(1);
+          gDomains.selectfield.value = sType;
+          gDomains.selectType(sType);
         }
-        yield setTimeout(nextStep, 0);
+        else {
+          gDataman.debugMsg("Domain for view found");
+          gDomains.selectfield.value = "all";
+          gDomains.selectType("all");
+          let host = gDataman.viewToLoad[0];
+          // Might have a host:port case, fake a scheme when none present.
+          if (!/:\//.test(host))
+            host = "foo://" + host;
+          let viewdomain = gDomains.getDomainFromHost(host);
+          for (let i = 0; i < gDomains.displayedDomains.length; i++) {
+            if (gDomains.displayedDomains[i].title == viewdomain) {
+              gDomains.tree.view.selection.select(i);
+              gDomains.tree.treeBoxObject.ensureRowIsVisible(i);
+              break;
+            }
+          }
+          yield setTimeout(nextStep, 0);
 
-        if (gDataman.viewToLoad.length > 1) {
-          gDataman.debugMsg("Pane for view found");
-          let loadTabID = gDataman.viewToLoad[1] + "Tab";
-          if (gTabs[loadTabID] && !gTabs[loadTabID].disabled)
-            gTabs.tabbox.selectedTab = gTabs[loadTabID];
+          if (gDataman.viewToLoad.length > 1) {
+            gDataman.debugMsg("Pane for view found");
+            let loadTabID = gDataman.viewToLoad[1] + "Tab";
+            if (gTabs[loadTabID] && !gTabs[loadTabID].disabled)
+              gTabs.tabbox.selectedTab = gTabs[loadTabID];
+          }
         }
       }
       yield setTimeout(nextStep, 0);
@@ -566,6 +581,9 @@ var gDomains = {
   },
 
   sort: function domain_sort() {
+    if (!this.displayedDomains.length)
+      return;
+
     // compare function for two domain items
     let compfunc = function domain_sort_compare(aOne, aTwo) {
       return aOne.title.localeCompare(aTwo.title);
@@ -582,15 +600,21 @@ var gDomains = {
     gTabs.tabbox.selectedTab = gTabs.forgetTab;
   },
 
-  search: function domain_search(aSearchString) {
+  selectType: function domain_selectType(aType) {
+    this.search(this.searchfield.value, aType);
+  },
+
+  search: function domain_search(aSearchString, aType) {
     this.ignoreSelect = true;
     this.tree.treeBoxObject.beginUpdateBatch();
     var selectionCache = gDataman.getSelectedIDs(this.tree, this._getObjID);
     this.tree.view.selection.clearSelection();
     this.displayedDomains = [];
     var lcSearch = aSearchString.toLocaleLowerCase();
+    var sType = aType || this.selectfield.value;
     for (let domain in this.domainObjects) {
-      if (domain.toLocaleLowerCase().indexOf(lcSearch) != -1)
+      if (domain.toLocaleLowerCase().indexOf(lcSearch) != -1 &&
+          (sType == "all" || this.domainObjects[domain]["has" + sType]))
         this.displayedDomains.push(this.domainObjects[domain]);
     }
     this.sort();

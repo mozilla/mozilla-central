@@ -154,6 +154,16 @@
 
   <hbox flex="1">
     <vbox flex="1">
+      <menulist id="typeSelect"
+                oncommand="gDomains.selectType(this.value);">
+        <menupopup>
+          <menuitem label="&select.all.label;" value="all"/>
+          <menuitem label="&select.cookies.label;" value="Cookies"/>
+          <menuitem label="&select.permissions.label;" value="Permissions"/>
+          <menuitem label="&select.preferences.label;" value="Preferences"/>
+          <menuitem label="&select.passwords.label;" value="Passwords"/>
+        </menupopup>
+      </menulist>
       <textbox id="domainSearch"
                clickSelectsAll="true"
                type="search"

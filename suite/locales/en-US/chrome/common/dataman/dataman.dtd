@@ -39,6 +39,12 @@
 
 <!ENTITY selectAll.key "a">
 
+<!ENTITY select.all.label "All data types">
+<!ENTITY select.cookies.label "Cookies only">
+<!ENTITY select.permissions.label "Permissions only">
+<!ENTITY select.preferences.label "Preferences only">
+<!ENTITY select.passwords.label "Passwords only">
+
 <!ENTITY domain.search.placeholder "Search Domains">
 <!ENTITY domain.search.key "f">
 

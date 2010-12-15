@@ -117,5 +117,28 @@ function test_load_unknown_domain(aWin) {
   is(aWin.gTabs.activePanel, "formdataPanel",
     "Step " + testIndex + ": Form data panel is selected");
   aWin.close();
+  gBrowser.addTab();
+  toDataManager("|cookies");
+},
+
+function test_load_datatype(aWin) {
+  is(aWin.gDomains.selectfield.value, "Cookies",
+    "Step " + testIndex + ": The correct menulist item is selected");
+  is(aWin.gDomains.tree.view.rowCount, 1,
+    "Step " + testIndex + ": The correct number of domains is listed");
+  aWin.gDomains.tree.view.selection.select(0);
+  is(aWin.gDomains.selectedDomain.title, "getpersonas.com",
+    "Step " + testIndex + ": The listed domain is correct");
+  toDataManager("www.getpersonas.com");
+},
+
+function test_escape_datatype(aWin) {
+  is(aWin.gDomains.selectfield.value, "all",
+    "Step " + testIndex + ": The correct menulist item is selected");
+  is(aWin.gDomains.tree.view.selection.count, 1,
+    "Step " + testIndex + ": One domain is selected");
+  is(aWin.gDomains.selectedDomain.title, "getpersonas.com",
+    "Step " + testIndex + ": The correct domain is selected");
+  aWin.close();
 }
 ];
