@@ -14,6 +14,8 @@ var gLocSvc = {
                    .getService(Components.interfaces.nsIFormHistory2),
   pwd: Components.classes["@mozilla.org/login-manager;1"]
                  .getService(Components.interfaces.nsILoginManager),
+  idn: Components.classes["@mozilla.org/network/idn-service;1"]
+                 .getService(Components.interfaces.nsIIDNService),
 }
 
 const DATAMAN_LOADED = "dataman-loaded";
@@ -605,6 +607,74 @@ function test_passwords_panel(aWin) {
      "After deleting last password, the remove button is disabled");
   is(aWin.gTabs.activePanel, "cookiesPanel",
      "After deleting last password, cookies panel is selected again");
+  Services.obs.notifyObservers(window, TEST_DONE, null);
+},
+
+function test_idn(aWin) {
+  // Use a domain with an existing permission.
+  let testDomain = "xn--hxajbheg2az3al.xn--jxalpdlp";
+  let idnDomain = gLocSvc.idn.convertToDisplayIDN(testDomain, {});
+  isnot(testDomain, idnDomain, "Using a valid IDN domain");
+  // Add IDN cookie.
+  gLocSvc.cookie.add(testDomain, "", "name0", "value0",
+                     false, false, true, parseInt(Date.now() / 1000) + 600);
+  aWin.gDomains.tree.view.selection.select(12);
+  is(aWin.gDomains.selectedDomain.title, testDomain,
+     "For IDN tests, correct domain is selected");
+  is(aWin.gDomains.selectedDomain.displayTitle, idnDomain,
+     "The display title of that domain is correct");
+  is(aWin.gTabs.activePanel, "cookiesPanel",
+     "Cookies panel is selected");
+  is(aWin.gCookies.tree.view.getCellText(0, aWin.gCookies.tree.columns["cookieHostCol"]),
+     idnDomain,
+     "Correct domain displayed for IDN cookie");
+  aWin.gCookies.tree.view.selection.select(0);
+  aWin.document.getElementById("cookieRemove").click();
+
+  is(aWin.gTabs.activePanel, "permissionsPanel",
+     "After deleting, correctly switched to permissions panel");
+  let perm = aWin.gPerms.list.children[0];
+  is(perm.host, "bug413909." + testDomain,
+     "Permission has correct host");
+  is(perm.getAttribute("displayHost"), "bug413909." + idnDomain,
+     "Permission has correct display host");
+
+  // Add pref with decoded IDN name.
+  Services.contentPrefs.setPref(testDomain, "data_manager.test", "foo");
+  aWin.gTabs.tabbox.selectedTab = aWin.document.getElementById("preferencesTab");
+  is(aWin.gTabs.activePanel, "preferencesPanel",
+     "Successfully switched to preferences panel for IDN tests");
+  // Add pref with encoded IDN name while panel is shown (different code path).
+  Services.contentPrefs.setPref(idnDomain, "data_manager.test2", "bar");
+  is(aWin.gPrefs.tree.view.getCellText(0, aWin.gPrefs.tree.columns["prefsHostCol"]),
+     idnDomain,
+     "Correct domain displayed for punycode IDN preference");
+  is(aWin.gPrefs.tree.view.getCellText(1, aWin.gPrefs.tree.columns["prefsHostCol"]),
+     idnDomain,
+     "Correct domain displayed for utf8 IDN preference");
+  aWin.gPrefs.tree.view.selection.select(0);
+  aWin.document.getElementById("prefsRemove").click();
+  aWin.document.getElementById("prefsRemove").click();
+  is(aWin.gTabs.activePanel, "permissionsPanel",
+     "After deleting, correctly switched back to permissions panel");
+
+  // Add IDN password (usually have encoded names)
+  let loginInfo1 = Components.classes["@mozilla.org/login-manager/loginInfo;1"]
+                             .createInstance(Components.interfaces.nsILoginInfo);
+  loginInfo1.init("http://" + idnDomain, "http://" + idnDomain, null,
+                  "dataman", "mysecret", "user", "pwd");
+  gLocSvc.pwd.addLogin(loginInfo1);
+  aWin.gTabs.tabbox.selectedTab = aWin.document.getElementById("passwordsTab");
+  is(aWin.gTabs.activePanel, "passwordsPanel",
+     "Successfully switched to passwords panel for IDN tests");
+  is(aWin.gPasswords.tree.view.getCellText(0, aWin.gPasswords.tree.columns["pwdHostCol"]),
+     "http://" + idnDomain,
+     "Correct domain displayed for IDN password");
+  aWin.gPasswords.tree.view.selection.select(0);
+  aWin.document.getElementById("pwdRemove").click();
+  is(aWin.gTabs.activePanel, "permissionsPanel",
+     "After deleting, correctly switched back to permissions panel");
+
   Services.obs.notifyObservers(window, TEST_DONE, null);
 },
 

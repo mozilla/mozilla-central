@@ -147,7 +147,7 @@
            extends="chrome://communicator/content/dataman/dataman.xml#perm-base-item">
     <content>
       <xul:hbox>
-        <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=rawHost"/>
+        <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=displayHost"/>
         <xul:label anonid="permLabel" class="permissionLabel" xbl:inherits="value=label" control="radioGroup"/>
       </xul:hbox>
       <xul:hbox role="group" aria-labelledby="permLabel">
@@ -168,7 +168,7 @@
            extends="chrome://communicator/content/dataman/dataman.xml#perm-base-item">
     <content>
       <xul:hbox>
-        <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=rawHost"/>
+        <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=displayHost"/>
         <xul:label anonid="permLabel" class="permissionLabel" xbl:inherits="value=label" control="radioGroup"/>
       </xul:hbox>
       <xul:hbox role="group" aria-labelledby="permLabel">
@@ -191,7 +191,7 @@
            extends="chrome://communicator/content/dataman/dataman.xml#perm-base-item">
     <content>
       <xul:hbox>
-        <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=rawHost"/>
+        <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=displayHost"/>
         <xul:label anonid="permLabel" class="permissionLabel" xbl:inherits="value=label" control="radioGroup"/>
       </xul:hbox>
       <xul:hbox role="group" aria-labelledby="permLabel">
@@ -211,7 +211,7 @@
   <binding id="perm-password-item" extends="chrome://communicator/content/dataman/dataman.xml#perm-base-item">
     <content>
       <xul:hbox>
-        <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=rawHost"/>
+        <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=displayHost"/>
         <xul:label anonid="permLabel" class="permissionLabel" xbl:inherits="value=label" control="radioGroup"/>
       </xul:hbox>
       <xul:hbox role="group" aria-labelledby="permLabel">
