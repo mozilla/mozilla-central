@@ -399,7 +399,7 @@
                      label="&bookmarksButton.label;"
                      ondragenter="PlacesMenuDNDHandler.onDragEnter(event);"
                      ondragover="PlacesMenuDNDHandler.onDragOver(event);"
-                     ondragleave="PlacesMenuDNDHandler.onDragLeave(event);"
+                     ondragexit="PlacesMenuDNDHandler.onDragExit(event);"
                      ondrop="PlacesMenuDNDHandler.onDrop(event);">
         <menupopup id="BMB_bookmarksPopup"
                    placespopup="true"
