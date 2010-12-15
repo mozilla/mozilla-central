@@ -127,7 +127,20 @@
         ]]></body>
       </method>
 
+      <method name="handleKeyPress">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+          if (aEvent.keyCode == KeyEvent.DOM_VK_DELETE) {
+            this.useDefault(true);
+          }
+       ]]></body>
+      </method>
     </implementation>
+
+    <handlers>
+      <handler event="keypress" phase="capturing"
+               action="return this.handleKeyPress(event);"/>
+    </handlers>
   </binding>
 
   <binding id="perm-generic-item"

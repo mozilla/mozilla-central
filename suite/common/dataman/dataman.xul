@@ -304,7 +304,9 @@
         </vbox>
 
         <vbox id="permissionsPanel">
-          <richlistbox id="permList" flex="1"/>
+          <richlistbox id="permList" flex="1"
+                       onkeypress="if (this.selectedItem)
+                                     this.selectedItem.handleKeyPress(event);"/>
 
           <hbox id="permAddBox" align="center">
             <hbox id="permSelectionBox" align="center" hidden="true">
