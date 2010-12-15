@@ -51,7 +51,8 @@
       xmlns:xhtml="http://www.w3.org/1999/xhtml"
       id="dataman-page" title="&dataman.windowTitle;"
       onload="gDataman.initialize();"
-      onunload="gDataman.shutdown();">
+      onunload="gDataman.shutdown();"
+      onkeypress="gDataman.handleKeyPress(event);">
 
   <xhtml:link rel="shortcut icon"
               href="chrome://communicator/skin/dataman/datamanIcon-16.png"/>
@@ -196,7 +197,8 @@
         <tab id="preferencesTab" label="&tab.preferences.label;" disabled="true"/>
         <tab id="passwordsTab" label="&tab.passwords.label;" disabled="true"/>
         <tab id="formdataTab" label="&tab.formdata.label;" disabled="true"/>
-        <tab id="forgetTab" label="&tab.forget.label;" hidden="true"/>
+        <tab id="forgetTab" label="&tab.forget.label;" hidden="true"
+             onkeypress="gForget.handleKeyPress(event);"/>
       </tabs>
 
       <tabpanels id="tabpanels" flex="1">
