@@ -305,6 +305,22 @@
 
         <vbox id="permissionsPanel">
           <richlistbox id="permList" flex="1"/>
+
+          <hbox id="permAddBox" align="center">
+            <hbox id="permSelectionBox" align="center" hidden="true">
+              <textbox id="permHost"
+                       clickSelectsAll="true"
+                       class="compact"
+                       placeholder="&perm.host.placeholder;"
+                       oninput="gPerms.addCheck();"/>
+              <menulist id="permType"
+                        oncommand="gPerms.addCheck();"/>
+            </hbox>
+            <button id="permAddButton"
+                    label="&perm.button.add.label;"
+                    accesskey="&perm.button.add.accesskey;"
+                    oncommand="gPerms.addButtonClick();"/>
+          </hbox>
         </vbox>
 
         <vbox id="preferencesPanel">

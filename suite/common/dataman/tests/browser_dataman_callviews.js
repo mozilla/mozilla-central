@@ -16,8 +16,10 @@ const DATAMAN_LOADED = "dataman-loaded";
 var testIndex = 0;
 
 function test() {
-  // Add cookie.
+  // Add cookies.
   gLocSvc.cookie.add("getpersonas.com", "", "name0", "value0",
+                     false, false, true, parseInt(Date.now() / 1000) + 600);
+  gLocSvc.cookie.add("drumbeat.org", "", "name1", "value1",
                      false, false, true, parseInt(Date.now() / 1000) + 600);
 
   //Services.prefs.setBoolPref("data_manager.debug", true);
@@ -43,6 +45,7 @@ function test() {
           // Finish this up!
           Services.obs.removeObserver(testObs, DATAMAN_LOADED);
           gLocSvc.cookie.remove("getpersonas.com", "name0", "value0", false);
+          gLocSvc.cookie.remove("drumbeat.org", "name1", "value1", false);
           finish();
         }
       }
@@ -114,8 +117,8 @@ function test_load_unknown_domain(aWin) {
     "Step " + testIndex + ": One domain is selected");
   is(aWin.gDomains.selectedDomain.title, "*",
     "Step " + testIndex + ": The correct domain is selected");
-  is(aWin.gTabs.activePanel, "formdataPanel",
-    "Step " + testIndex + ": Form data panel is selected");
+  is(aWin.gTabs.activePanel, "permissionsPanel",
+    "Step " + testIndex + ": Permissions panel is selected");
   aWin.close();
   gBrowser.addTab();
   toDataManager("|cookies");
@@ -124,9 +127,9 @@ function test_load_unknown_domain(aWin) {
 function test_load_datatype(aWin) {
   is(aWin.gDomains.selectfield.value, "Cookies",
     "Step " + testIndex + ": The correct menulist item is selected");
-  is(aWin.gDomains.tree.view.rowCount, 1,
+  is(aWin.gDomains.tree.view.rowCount, 2,
     "Step " + testIndex + ": The correct number of domains is listed");
-  aWin.gDomains.tree.view.selection.select(0);
+  aWin.gDomains.tree.view.selection.select(1);
   is(aWin.gDomains.selectedDomain.title, "getpersonas.com",
     "Step " + testIndex + ": The listed domain is correct");
   toDataManager("www.getpersonas.com");
@@ -139,6 +142,56 @@ function test_escape_datatype(aWin) {
     "Step " + testIndex + ": One domain is selected");
   is(aWin.gDomains.selectedDomain.title, "getpersonas.com",
     "Step " + testIndex + ": The correct domain is selected");
+  aWin.close();
+  gBrowser.addTab();
+  toDataManager("sub.getpersonas.com:8888|permissions|add|popup");
+},
+
+function test_load_add_perm_existdomain(aWin) {
+  is(aWin.gDomains.tree.view.selection.count, 1,
+    "Step " + testIndex + ": One domain is selected");
+  is(aWin.gDomains.selectedDomain.title, "getpersonas.com",
+    "Step " + testIndex + ": The correct domain is selected");
+  is(aWin.gTabs.activePanel, "permissionsPanel",
+    "Step " + testIndex + ": Permissions panel is selected");
+  is(aWin.gPerms.addSelBox.hidden, false,
+    "Step " + testIndex + ": The addition box is shown");
+  is(aWin.gPerms.addHost.value, "sub.getpersonas.com:8888",
+    "Step " + testIndex + ": The correct host and port has been entered");
+  is(aWin.gPerms.addType.value, "popup",
+    "Step " + testIndex + ": The correct permission type has been selected");
+  toDataManager("foo.geckoisgecko.org|permissions|add|image");
+},
+
+function test_switch_add_perm_newdomain(aWin) {
+  is(aWin.gDomains.tree.view.selection.count, 1,
+    "Step " + testIndex + ": One domain is selected");
+  is(aWin.gDomains.selectedDomain.title, "*",
+    "Step " + testIndex + ": The correct domain is selected");
+  is(aWin.gTabs.activePanel, "permissionsPanel",
+    "Step " + testIndex + ": Permissions panel is selected");
+  is(aWin.gPerms.addSelBox.hidden, false,
+    "Step " + testIndex + ": The addition box is shown");
+  is(aWin.gPerms.addHost.value, "foo.geckoisgecko.org",
+    "Step " + testIndex + ": The correct host has been entered");
+  is(aWin.gPerms.addType.value, "image",
+    "Step " + testIndex + ": The correct permission type has been selected");
+  toDataManager("drumbeat.org|permissions|add|cookie");
+},
+
+function test_switch_add_perm_nopermdomain(aWin) {
+  is(aWin.gDomains.tree.view.selection.count, 1,
+    "Step " + testIndex + ": One domain is selected");
+  is(aWin.gDomains.selectedDomain.title, "*",
+    "Step " + testIndex + ": The correct domain is selected");
+  is(aWin.gTabs.activePanel, "permissionsPanel",
+    "Step " + testIndex + ": Permissions panel is selected");
+  is(aWin.gPerms.addSelBox.hidden, false,
+    "Step " + testIndex + ": The addition box is shown");
+  is(aWin.gPerms.addHost.value, "drumbeat.org",
+    "Step " + testIndex + ": The correct host has been entered");
+  is(aWin.gPerms.addType.value, "cookie",
+    "Step " + testIndex + ": The correct permission type has been selected");
   aWin.close();
 }
 ];

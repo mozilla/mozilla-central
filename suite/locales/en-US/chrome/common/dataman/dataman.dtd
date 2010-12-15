@@ -100,6 +100,10 @@
 <!ENTITY perm.AllowSession "Allow for Session">
 <!ENTITY perm.Block "Block">
 
+<!ENTITY perm.host.placeholder "Enter a host name">
+<!ENTITY perm.button.add.label "Add">
+<!ENTITY perm.button.add.accesskey "A">
+
 <!-- preferences -->
 <!ENTITY prefs.description "Content preferences are a way for &brandShortName; to save its settings, like zoom levels, specifically for a website.">
 

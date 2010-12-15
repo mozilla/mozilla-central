@@ -142,8 +142,9 @@ function test_open_state(aWin) {
 },
 
 function test_fdata_panel(aWin) {
+  aWin.gTabs.tabbox.selectedTab = aWin.document.getElementById("formdataTab");
   is(aWin.gTabs.activePanel, "formdataPanel",
-     "Form data panel is selected");
+     "Form data panel is selected again");
   is(aWin.gFormdata.tree.view.rowCount, 6,
      "The correct number of form data entries is listed");
 
@@ -384,6 +385,75 @@ function test_permissions_panel(aWin) {
   aWin.gDomains.tree.view.selection.select(7); // Switch back to rebuild the perm list.
   is(aWin.gPerms.list.children.length, 1,
      "After the test, the correct number of permissions is displayed in the list");
+  Services.obs.notifyObservers(window, TEST_DONE, null);
+},
+
+function test_permissions_add(aWin) {
+  aWin.gDomains.tree.view.selection.select(0);
+  is(aWin.gDomains.selectedDomain.title, "*",
+     "For add permissions tests, * domain is selected again");
+  is(aWin.gTabs.activePanel, "permissionsPanel",
+     "Permissions panel is selected");
+  is(aWin.gPerms.list.disabled, true,
+     "The permissions list is disabled");
+  is(aWin.gPerms.addButton.disabled, false,
+     "The add permissions button is enabled");
+  aWin.gPerms.addButton.click();
+  is(aWin.gPerms.addSelBox.hidden, false,
+     "The addition box is shown");
+  is(aWin.gPerms.addHost.value, "",
+     "The host is empty");
+  is(aWin.gPerms.addType.value, "",
+     "No type is selected");
+  is(aWin.gPerms.addButton.disabled, true,
+     "The add permissions button is disabled");
+  aWin.gPerms.addHost.value = "foo";
+  aWin.gTabs.tabbox.selectedTab = aWin.document.getElementById("formdataTab");
+  is(aWin.gTabs.activePanel, "formdataPanel",
+     "Successfully switched to form data panel");
+  aWin.gTabs.tabbox.selectedTab = aWin.document.getElementById("permissionsTab");
+  is(aWin.gTabs.activePanel, "permissionsPanel",
+     "Successfully switched back to permissions panel");
+  is(aWin.gPerms.addButton.disabled, false,
+     "The add permissions button is enabled again");
+  is(aWin.gPerms.addSelBox.hidden, true,
+     "The addition box is hidden");
+  aWin.gPerms.addButton.click();
+  is(aWin.gPerms.addHost.value, "",
+     "The host is empty again");
+  is(aWin.gPerms.addType.value, "",
+     "No type is selected still");
+  aWin.gPerms.addHost.value = "data.permfoobar.com";
+  aWin.gPerms.addType.value = "cookie";
+  aWin.gPerms.addType.click();
+  is(aWin.gPerms.addButton.disabled, false,
+     "With host and type set, the add permissions button is enabled");
+  aWin.gPerms.addButton.click();
+  is(aWin.gPerms.list.disabled, false,
+     "After adding, the permissions list is enabled");
+  is(aWin.gPerms.list.children.length, 1,
+     "A permission is displayed in the list");
+  let perm = aWin.gPerms.list.children[0];
+  is(perm.type, "cookie",
+     "Added permission has correct type");
+  is(perm.host, "data.permfoobar.com",
+     "Added permission has correct host");
+  is(perm.capability, 1,
+     "Added permission has correct value (default)");
+  aWin.gTabs.tabbox.selectedTab = aWin.document.getElementById("formdataTab");
+  aWin.gTabs.tabbox.selectedTab = aWin.document.getElementById("permissionsTab");
+  is(aWin.gPerms.list.disabled, true,
+     "After switching between panels, the permissions list is disabled again");
+  aWin.gDomains.tree.view.selection.select(7);
+  is(aWin.gDomains.selectedDomain.title, "getpersonas.com",
+     "Switched to correct domain for another add test");
+  is(aWin.gTabs.activePanel, "permissionsPanel",
+     "Permissions panel is selected");
+  aWin.gPerms.addButton.click();
+  is(aWin.gPerms.addHost.value, "getpersonas.com",
+     "On add, the host is set correctly");
+  is(aWin.gPerms.addType.value, "",
+     "Again, no type is selected");
   Services.obs.notifyObservers(window, TEST_DONE, null);
 },
 

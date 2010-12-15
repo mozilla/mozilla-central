@@ -40,6 +40,10 @@
   overflow: auto;
 }
 
+#permList[disabled="true"] {
+  opacity: .5;
+}
+
 .permission {
   padding-top: 6px;
   padding-bottom: 6px;
