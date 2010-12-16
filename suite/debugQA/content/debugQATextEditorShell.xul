@@ -75,7 +75,6 @@
   <script type="application/javascript" src="chrome://editor/content/editor.js"/>
   <script type="application/javascript" src="chrome://editor/content/ComposerCommands.js"/>
   <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
-  <script type="application/javascript" src="chrome://communicator/content/contentAreaDD.js"/>
 
   <commands id="commands">
     <commandset id="globalEditMenuItems"/>

@@ -165,8 +165,7 @@
         datasources="rdf:null"
         ref="urn:sidebar:current-panel-list"
         persist="last-selected-panel height collapsed" flex="1"
-        onclick="return contentAreaClick(event);"
-        ondraggesture="nsDragAndDrop.startDrag(event, contentAreaDNDObserver);">
+        onclick="return contentAreaClick(event);">
         <template id="sidebar-template">
           <rule>
             <conditions>

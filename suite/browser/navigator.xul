@@ -82,7 +82,6 @@
   <script type="application/javascript" src="chrome://navigator/content/nsBrowserStatusHandler.js"/>
   <script type="application/javascript" src="chrome://navigator/content/nsBrowserContentListener.js"/>
   <script type="application/javascript" src="chrome://communicator/content/contentAreaClick.js"/>
-  <script type="application/javascript" src="chrome://communicator/content/contentAreaDD.js"/>
   <script type="application/javascript" src="chrome://communicator/content/findUtils.js"/>
   <script type="application/javascript" src="chrome://global/content/printUtils.js"/>
 
@@ -492,10 +491,7 @@
     <vbox id="sidebar-box" class="chromeclass-extrachrome"/>
     <splitter id="sidebar-splitter" class="chromeclass-extrachrome" />
 
-    <!-- we only need to handle |ondragdrop| because everything else is
-          taken care of by the builtin behavior inside the tabbrowser -->
-    <vbox id="appcontent" flex="1"
-         ondragdrop="nsDragAndDrop.drop(event, contentAreaDNDObserver);">
+    <vbox id="appcontent" flex="1">
       <findbar id="FindToolbar" browserid="content"/>
 
       <!-- this box is temporary, pending XBLified <browser> -->
@@ -518,8 +514,7 @@
 
   <panel id="customizeToolbarSheetPopup"/>
 
-  <statusbar id="status-bar" class="chromeclass-status"
-             ondragdrop="nsDragAndDrop.drop(event, contentAreaDNDObserver);">
+  <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="component-bar"/>
     <statusbarpanel id="statusbar-display" label="&statusText.label;" flex="1"/>
     <statusbarpanel class="statusbarpanel-progress" id="statusbar-progresspanel" collapsed="true">

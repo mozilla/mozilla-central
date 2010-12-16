@@ -91,7 +91,6 @@
   <stringbundle id="brandBundle" src="chrome://branding/locale/brand.properties"/>
 </stringbundleset>
 
-<script type="application/javascript" src="chrome://communicator/content/contentAreaDD.js"/>
 <script type="application/javascript" src="chrome://communicator/content/contentAreaClick.js"/>
 <script type="application/javascript" src="chrome://global/content/printUtils.js"/>
 <script type="application/javascript" src="chrome://messenger/content/accountUtils.js"/>

@@ -956,7 +956,12 @@
             this.mLastRelatedIndex = 0;
 
             var newBrowser = this.mPanelContainer.selectedPanel.firstChild;
+            // Transfer the dropped link handler to the new browser.
+            // Note: closing the current tab sets mCurrentBrowser to null
+            //       so we use mCurrentTab.linkedBrowser instead.
+            newBrowser.droppedLinkHandler = this.mCurrentTab.linkedBrowser.droppedLinkHandler;
             if (this.mCurrentBrowser) {
+              this.mCurrentBrowser.droppedLinkHandler = null;
               // Only save the focused element if it is in our content window
               // or in an ancestor window.
               var focusedWindow = document.commandDispatcher.focusedWindow;
@@ -2591,6 +2596,10 @@
       <property name="userTypedValue"
                 onget="return this.mCurrentBrowser.userTypedValue;"
                 onset="return this.mCurrentBrowser.userTypedValue = val;"/>
+
+      <property name="droppedLinkHandler"
+                onget="return this.mCurrentBrowser.droppedLinkHandler;"
+                onset="return this.mCurrentBrowser.droppedLinkHandler = val;"/>
 
       <method name="observe">
         <parameter name="aSubject"/>

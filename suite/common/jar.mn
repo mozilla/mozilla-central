@@ -59,7 +59,6 @@ comm.jar:
    content/communicator/certError.xml
    content/communicator/communicator.css
    content/communicator/consoleOverlay.xul
-   content/communicator/contentAreaDD.js
    content/communicator/contentAreaClick.js
    content/communicator/contentAreaContextOverlay.xul
    content/communicator/defaultClientDialog.js

@@ -590,6 +590,8 @@ function Startup()
 
   // hook up UI through progress listener
   getBrowser().addProgressListener(window.XULBrowserWindow, Components.interfaces.nsIWebProgress.NOTIFY_ALL);
+  // hook up drag'n'drop
+  getBrowser().droppedLinkHandler = handleDroppedLink;
 
   var uriToLoad = "";
 
@@ -1689,6 +1691,18 @@ function getShortcutOrURI(aURL, aPostDataRef)
 
   return shortcutURL;
 }
+
+function handleDroppedLink(event, url, name)
+{
+  var postData = { };
+  var uri = getShortcutOrURI(url, postData);
+  if (uri)
+    loadURI(uri, null, postData.value, false);
+
+  // Keep the event from being handled by the dragDrop listeners
+  // built-in to gecko if they happen to be above us.
+  event.preventDefault();
+};
 
 function readFromClipboard()
 {
