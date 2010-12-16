@@ -385,7 +385,6 @@
 @BINPATH@/components/nsMicrosummaryService.js
 @BINPATH@/components/nsPlacesAutoComplete.js
 @BINPATH@/components/nsPlacesAutoComplete.manifest
-@BINPATH@/components/nsPlacesDBFlush.js
 @BINPATH@/components/nsPlacesExpiration.js
 @BINPATH@/components/nsPrompter.js
 @BINPATH@/components/nsPrompter.manifest
