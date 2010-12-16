@@ -608,6 +608,11 @@ toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
   -moz-image-region: rect(0px 48px 16px 32px);
 }
 
+#editBookmarkPanelStarIcon {
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark.png");
+  -moz-image-region: rect(0px 16px 16px 0px);
+}
+
 /* ::::: feeds ::::: */
 
 #feedsMenu {

@@ -126,19 +126,15 @@
       <vbox align="center">
         <image id="editBookmarkPanelStarIcon"/>
       </vbox>
-      <vbox>
-        <label id="editBookmarkPanelTitle"/>
-        <description id="editBookmarkPanelDescription"/>
-        <hbox>
-          <button id="editBookmarkPanelRemoveButton"
-                  class="editBookmarkPanelHeaderButton"
-                  oncommand="StarUI.removeBookmarkButtonCommand();"
-                  accesskey="&editBookmark.removeBookmark.accessKey;"/>
-        </hbox>
-      </vbox>
+      <label id="editBookmarkPanelTitle"/>
     </row>
     <vbox id="editBookmarkPanelContent" flex="1" hidden="true"/>
-    <hbox id="editBookmarkPanelBottomButtons" pack="end">
+    <hbox id="editBookmarkPanelBottomButtons">
+      <button id="editBookmarkPanelRemoveButton"
+              class="editBookmarkPanelHeaderButton"
+              oncommand="StarUI.removeBookmarkButtonCommand();"
+              accesskey="&editBookmark.removeBookmark.accessKey;"/>
+      <spacer flex="1"/>
       <button id="editBookmarkPanelDeleteButton"
               class="editBookmarkPanelBottomButton"
               label="&editBookmark.cancel.label;"

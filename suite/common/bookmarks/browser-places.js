@@ -204,8 +204,6 @@ var StarUI = {
         gNavigatorBundle.getString("editBookmarkPanel.pageBookmarkedTitle") :
         gNavigatorBundle.getString("editBookmarkPanel.editBookmarkTitle");
 
-    // No description; show the Done, Cancel;
-    this._element("editBookmarkPanelDescription").textContent = "";
     this._element("editBookmarkPanelBottomButtons").hidden = false;
     this._element("editBookmarkPanelContent").hidden = false;
 
@@ -219,9 +217,6 @@ var StarUI = {
     var forms = gNavigatorBundle.getString("editBookmark.removeBookmarks.label");
     var label = PluralForm.get(bookmarks.length, forms).replace("#1", bookmarks.length);
     this._element("editBookmarkPanelRemoveButton").label = label;
-
-    // unset the unstarred state, if set
-    this._element("editBookmarkPanelStarIcon").removeAttribute("unstarred");
 
     this._itemId = aItemId !== undefined ? aItemId : this._itemId;
     this.beginBatch();
