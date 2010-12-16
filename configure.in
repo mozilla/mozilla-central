@@ -4229,30 +4229,6 @@ if test -n "$SYSTEM_LIBXUL" -a -z "$MOZ_ENABLE_LIBXUL"; then
     AC_MSG_ERROR([--with-system-libxul needs --with-libxul-sdk])
 fi
 
-# split JS out by default to avoid VS2005 PGO crash (bug 591836).
-if test "$OS_ARCH" = "WINNT"; then
-  ENABLE_SHARED_JS=1
-fi
-
-MOZ_ARG_ENABLE_BOOL(shared-js,
-[  --enable-shared-js     Create a shared Javascript library.],
-    ENABLE_SHARED_JS=1,
-    ENABLE_SHARED_JS=)
-
-if test -z "$MOZ_ENABLE_LIBXUL"; then
-  dnl --disable-libxul implies shared js
-  ENABLE_SHARED_JS=1
-fi
-
-if test -n "$ENABLE_SHARED_JS"; then
-  JS_SHARED_LIBRARY=1
-  MOZ_JS_LIBS=$MOZ_JS_SHARED_LIBS
-else
-  MOZ_JS_LIBS=$MOZ_JS_STATIC_LIBS
-  AC_DEFINE(MOZ_STATIC_JS)
-fi
-AC_SUBST(JS_SHARED_LIBRARY)
-
 dnl ========================================================
 dnl = If NSPR was not detected in the system, 
 dnl = use the one in the source tree (mozilla/nsprpub)
@@ -6548,6 +6524,30 @@ MOZ_ARG_ENABLE_BOOL(libxul,
 [  --enable-libxul         Enable building of libxul],
     MOZ_ENABLE_LIBXUL=1,
     MOZ_ENABLE_LIBXUL=)
+
+# split JS out by default to avoid VS2005 PGO crash (bug 591836).
+if test "$OS_ARCH" = "WINNT"; then
+  ENABLE_SHARED_JS=1
+fi
+
+MOZ_ARG_ENABLE_BOOL(shared-js,
+[  --enable-shared-js     Create a shared Javascript library.],
+    ENABLE_SHARED_JS=1,
+    ENABLE_SHARED_JS=)
+
+if test -z "$MOZ_ENABLE_LIBXUL"; then
+  dnl --disable-libxul implies shared js
+  ENABLE_SHARED_JS=1
+fi
+
+if test -n "$ENABLE_SHARED_JS"; then
+  JS_SHARED_LIBRARY=1
+  MOZ_JS_LIBS=$MOZ_JS_SHARED_LIBS
+else
+  MOZ_JS_LIBS=$MOZ_JS_STATIC_LIBS
+  AC_DEFINE(MOZ_STATIC_JS)
+fi
+AC_SUBST(JS_SHARED_LIBRARY)
 
 if test -n "$MOZ_STATIC_BUILD_UNSUPPORTED" -a -n "$BUILD_STATIC_LIBS"; then
 	AC_MSG_ERROR([--enable-static is not supported for building $MOZ_APP_NAME. You probably want --enable-libxul.])
