@@ -187,9 +187,6 @@
       <field name="mLastRelatedIndex">
         0
       </field>
-      <field name="mIsBusy">
-        false
-      </field>
       <field name="mMissedIconCache">
         null
       </field>
@@ -412,6 +409,12 @@
             mBrowser: aBrowser,
             mBlank: aStartsBlank,
             mFeeds: [],
+            mRequest: null,
+            mStateFlags: 0,
+            mStatus: 0,
+            mMessage: "",
+            mCurProgress: 0,
+            mMaxProgress: 0,
 
             onProgressChange: function (aWebProgress, aRequest,
                                         aCurSelfProgress, aMaxSelfProgress,
@@ -421,6 +424,9 @@
 
               if (this.mBlank)
                 return;
+
+              this.mCurProgress = aCurTotalProgress;
+              this.mMaxProgress = aMaxTotalProgress;
 
               this.mTabBrowser._callProgressListeners(this.mBrowser, "onProgressChange",
                                                       [aWebProgress, aRequest,
@@ -455,9 +461,6 @@
                   this.mTab.setAttribute("busy", "true");
                   this.mTab.label = this.mTabBrowser.mStringBundle.getString("tabs.loading");
                   this.mTab.removeAttribute("image");
-
-                  if (this.mTabBrowser.mCurrentTab == this.mTab)
-                    this.mTabBrowser.mIsBusy = true;
                 }
               }
               else if (aStateFlags & nsIWebProgressListener.STATE_STOP &&
@@ -505,13 +508,15 @@
 
                 if (this.mTab.label == this.mTabBrowser.mStringBundle.getString("tabs.loading"))
                   this.mTabBrowser.setTabTitle(this.mTab);
-
-                if (this.mTabBrowser.mCurrentTab == this.mTab)
-                  this.mTabBrowser.mIsBusy = false;
               }
 
               if (oldBlank)
                 return;
+
+              this.mRequest = aRequest;
+              this.mStateFlags = aStateFlags;
+              this.mStatus = aStatus;
+              this.mMessage = "";
 
               this.mTabBrowser._callProgressListeners(this.mBrowser, "onStateChange",
                                                       [aWebProgress, aRequest, aStateFlags, aStatus]);
@@ -555,6 +560,8 @@
             onStatusChange: function(aWebProgress, aRequest, aStatus, aMessage) {
               if (this.mBlank)
                 return;
+
+              this.mMessage = aMessage;
 
               this.mTabBrowser._callProgressListeners(this.mBrowser, "onStatusChange",
                                                       [aWebProgress, aRequest, aStatus, aMessage]);
@@ -1001,6 +1008,7 @@
             newBrowser.docShell.isActive = true;
             this.mCurrentBrowser = newBrowser;
             this.mCurrentTab = this.selectedTab;
+            var tabListener = this.mTabListeners[this.tabContainer.selectedIndex];
 
             // Update the URL bar.
             this.updateUrlBar(newBrowser.webProgress,
@@ -1008,7 +1016,7 @@
                               newBrowser.currentURI,
                               newBrowser.securityUI,
                               newBrowser,
-                              this.mTabListeners[this.tabContainer.selectedIndex].mFeeds);
+                              tabListener.mFeeds);
 
             // Update the window title.
             this.updateTitlebar();
@@ -1016,30 +1024,43 @@
             // FAYT
             this.fastFind.setDocShell(this.mCurrentBrowser.docShell);
 
-            // If the new tab is busy, and our current state is not busy, then
-            // we need to fire a start to all progress listeners.
+            // Send the state, status and progress to all progress listeners.
             const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
-            if (this.mCurrentTab.hasAttribute("busy") && !this.mIsBusy) {
-              this.mIsBusy = true;
+            var flags = tabListener.mStateFlags &
+                (nsIWebProgressListener.STATE_START |
+                 nsIWebProgressListener.STATE_STOP);
+            this._callProgressListeners(null, "onStateChange",
+                                        [this.mCurrentBrowser.webProgress,
+                                         tabListener.mRequest,
+                                         flags,
+                                         tabListener.mStatus],
+                                        true, false);
 
-              this._callProgressListeners(null, "onStateChange",
-                                          [this.mCurrentBrowser.webProgress, null,
-                                           nsIWebProgressListener.STATE_START |
-                                           nsIWebProgressListener.STATE_IS_NETWORK, 0],
-                                          true, false);
-            }
+            this._callProgressListeners(null, "onStatusChange",
+                                        [this.mCurrentBrowser.webProgress,
+                                         tabListener.mRequest,
+                                         tabListener.mStatus,
+                                         tabListener.mMessage],
+                                        true, false);
 
-            // If the new tab is not busy, and our current state is busy, then
-            // we need to fire a stop to all progress listeners.
-            if (!this.mCurrentTab.hasAttribute("busy") && this.mIsBusy) {
-              this.mIsBusy = false;
+            this._callProgressListeners(this.mBrowser, "onProgressChange",
+                                        [this.mCurrentBrowser.webProgress,
+                                         tabListener.mRequest,
+                                         tabListener.mCurProgress,
+                                         tabListener.mMaxProgress,
+                                         tabListener.mCurProgress,
+                                         tabListener.mMaxProgress],
+                                        true, false);
 
-              this._callProgressListeners(null, "onStateChange",
-                                          [this.mCurrentBrowser.webProgress, null,
-                                           nsIWebProgressListener.STATE_STOP |
-                                           nsIWebProgressListener.STATE_IS_NETWORK, 0],
-                                          true, false);
-            }
+            // Also send the onUpdateCurrentBrowser event for compatibility
+            var progress = tabListener.mMaxProgress > 0 ?
+                tabListener.mCurProgress / tabListener.mMaxProgress : 0;
+            this._callProgressListeners(this.mBrowser, "onUpdateCurrentBrowser",
+                                        [tabListener.mStateFlags,
+                                         tabListener.mStatus,
+                                         tabListener.mMessage,
+                                         progress],
+                                        true, false);
 
             // We've selected the new tab, so go ahead and notify listeners
             var event = document.createEvent("Events");
