@@ -2652,9 +2652,6 @@ nsresult nsMsgDBView::GetHeadersFromSelection(PRUint32 *indices,
       {
         rv = ListCollapsedChildren(viewIndex, messageArray);
       }
-      // if we are deleting rows, save off the view indices
-      if (m_deletingRows)
-        mIndicesToNoteChange.AppendElement(indices[index]);
     }
   }
   return rv;
