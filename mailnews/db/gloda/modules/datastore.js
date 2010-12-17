@@ -3460,13 +3460,30 @@ var GlodaDatastore = {
         else // just propagate the value, it's some form of simple sentinel
           aItem[attrib.boundName] = jsonValue;
       }
-      // otherwise, the value just needs to be de-persisted, or not
+      // otherwise, the value just needs to be de-persisted, or...
       else if (objectNounDef.fromJSON) {
-        if (attrib.singular)
-          aItem[attrib.boundName] = objectNounDef.fromJSON(jsonValue);
-        else
-          aItem[attrib.boundName] = [objectNounDef.fromJSON(val) for each
-            ([, val] in Iterator(jsonValue))];
+        if (attrib.singular) {
+          // For consistency with the non-singular case, we don't assign the
+          //  attribute if undefined is returned.
+          let deserialized = objectNounDef.fromJSON(jsonValue);
+          if (deserialized !== undefined)
+            aItem[attrib.boundName] = deserialized;
+        }
+        else {
+          // Convert all the entries in the list filtering out any undefined
+          //  values. (TagNoun will do this if the tag is now dead.)
+          let outList = [];
+          for each (let [, val] in Iterator(jsonValue)) {
+            let deserialized = objectNounDef.fromJSON(val);
+            if (deserialized !== undefined)
+              outList.push(deserialized);
+          }
+          // Note: It's possible if we filtered things out that this is an empty
+          //  list.  This is acceptable because this is somewhat of an unusual
+          //  case and I don't think we want to further complicate our
+          //  semantics.
+          aItem[attrib.boundName] = outList;
+        }
       }
       // it's fine as is
       else

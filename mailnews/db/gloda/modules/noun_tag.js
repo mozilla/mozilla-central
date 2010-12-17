@@ -103,7 +103,8 @@ var TagNoun = {
     return aTag.key;
   },
   fromJSON: function gloda_noun_tag_fromJSON(aTagKey, aIgnored) {
-    let tag = this._tagMap[aTagKey];
+    let tag = this._tagMap.hasOwnProperty(aTagKey) ? this._tagMap[aTagKey]
+                : undefined;
     // you will note that if a tag is removed, we are unable to aggressively
     //  deal with this.  we are okay with this, but it would be nice to be able
     //  to listen to the message tag service to know when we should rebuild.
