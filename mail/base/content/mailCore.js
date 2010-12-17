@@ -506,3 +506,98 @@ function getMostRecentMailWindow() {
 
   return win;
 }
+
+var attachmentAreaDNDObserver = {
+  onDragStart: function (aEvent, aAttachmentData, aDragAction)
+  {
+    var target = aEvent.target;
+
+    // The message reader will hold an attachment in a descriptionitem, while
+    // the compose window holds it in a listitem.
+    if (target.localName == "descriptionitem" ||
+        target.localName == "listitem")
+    {
+      var attachment = target.attachment;
+      if (attachment.contentType == "text/x-moz-deleted")
+        return;
+
+      var name = attachment.name || attachment.displayName;
+
+      var data = new TransferData();
+      if (attachment.url && name)
+      {
+        // Only add type/filename info for non-file URLs that don't already
+        // have it.
+        if (/(^file:|&filename=)/.test(attachment.url))
+          var info = attachment.url;
+        else
+          var info = attachment.url + "&type=" + attachment.contentType +
+                     "&filename=" + encodeURIComponent(name);
+
+        data.addDataForFlavour("text/x-moz-url",
+                               info + "\n" + name + "\n" + attachment.size);
+        data.addDataForFlavour("text/x-moz-url-data", attachment.url);
+        data.addDataForFlavour("text/x-moz-url-desc", name);
+        data.addDataForFlavour("application/x-moz-file-promise-url",
+                               attachment.url);
+        data.addDataForFlavour("application/x-moz-file-promise",
+                               new nsFlavorDataProvider(), 0,
+                               Components.interfaces.nsISupports);
+      }
+      aAttachmentData.data = data;
+    }
+  }
+};
+
+function nsFlavorDataProvider()
+{
+}
+
+nsFlavorDataProvider.prototype =
+{
+  QueryInterface : function(iid)
+  {
+      if (iid.equals(Components.interfaces.nsIFlavorDataProvider) ||
+          iid.equals(Components.interfaces.nsISupports))
+        return this;
+      throw Components.results.NS_NOINTERFACE;
+  },
+
+  getFlavorData : function(aTransferable, aFlavor, aData, aDataLen)
+  {
+    // get the url for the attachment
+    if (aFlavor == "application/x-moz-file-promise")
+    {
+      var urlPrimitive = { };
+      var dataSize = { };
+      aTransferable.getTransferData("application/x-moz-file-promise-url", urlPrimitive, dataSize);
+
+      var srcUrlPrimitive = urlPrimitive.value.QueryInterface(Components.interfaces.nsISupportsString);
+
+      // now get the destination file location from kFilePromiseDirectoryMime
+      var dirPrimitive = {};
+      aTransferable.getTransferData("application/x-moz-file-promise-dir", dirPrimitive, dataSize);
+      var destDirectory = dirPrimitive.value.QueryInterface(Components.interfaces.nsILocalFile);
+
+      // now save the attachment to the specified location
+      // XXX: we need more information than just the attachment url to save it, fortunately, we have an array
+      // of all the current attachments so we can cheat and scan through them
+
+      var attachment = null;
+      for each (let index in Iterator(currentAttachments, true))
+      {
+        attachment = currentAttachments[index];
+        if (attachment.url == srcUrlPrimitive)
+          break;
+      }
+
+      // call our code for saving attachments
+      if (attachment)
+      {
+        var destFilePath = messenger.saveAttachmentToFolder(attachment.contentType, attachment.url, encodeURIComponent(attachment.displayName), attachment.uri, destDirectory);
+        aData.value = destFilePath.QueryInterface(Components.interfaces.nsISupports);
+        aDataLen.value = 4;
+      }
+    }
+  }
+}
