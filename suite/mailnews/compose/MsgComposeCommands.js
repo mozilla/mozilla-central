@@ -75,9 +75,8 @@ var sDictCount = 0;
    this kind of cross file global stuff in the future and instead pass this object as parameter when needed by function
    in the other js file.
 */
-var msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"].createInstance();
-msgWindow = msgWindow.QueryInterface(Components.interfaces.nsIMsgWindow);
-
+var msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
+                          .createInstance(Components.interfaces.nsIMsgWindow);
 
 /**
  * Global variables, need to be re-initialized every time mostly because we need to release them when the window close
@@ -1200,9 +1199,6 @@ function ComposeStartup(recycled, aParams)
   var params = null; // New way to pass parameters to the compose window as a nsIMsgComposeParameters object
   var args = null;   // old way, parameters are passed as a string
 
-  if (recycled)
-    dump("This is a recycled compose window!\n");
-
   if (aParams)
     params = aParams;
   else if (window.arguments && window.arguments[0]) {
@@ -1258,11 +1254,22 @@ function ComposeStartup(recycled, aParams)
       if (args.attachment)
       {
         var attachmentList = args.attachment.split(",");
-        var attachment;
+        var localFile = Components.classes["@mozilla.org/file/local;1"]
+                                  .createInstance(Components.interfaces.nsILocalFile);
+        var fileHandler = Services.io.getProtocolHandler("file")
+                                  .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
         for (let i = 0; i < attachmentList.length; i++)
         {
-          attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"].createInstance(Components.interfaces.nsIMsgAttachment);
-          attachment.url = attachmentList[i];
+          let attachmentStr = attachmentList[i];
+          let attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
+                                     .createInstance(Components.interfaces.nsIMsgAttachment);
+
+          try {
+            localFile.initWithPath(attachmentStr);
+            attachment.url = fileHandler.getURLSpecFromFile(localFile);
+          } catch (e) {
+            attachment.url = encodeURI(attachmentStr);
+          }
           composeFields.addAttachment(attachment);
         }
       }
@@ -1273,7 +1280,8 @@ function ComposeStartup(recycled, aParams)
     }
   }
 
-  if (!params.identity) {
+  // " <>" is an empty identity, and most likely not valid
+  if (!params.identity || params.identity.identityName == " <>") {
     // no pre selected identity, so use the default account
     var identities = gAccountManager.defaultAccount.identities;
     if (identities.Count() == 0)
@@ -1405,14 +1413,14 @@ function ComposeStartup(recycled, aParams)
     }
   }
 
-  // create URI of the folder from draftId 
+  // create URI of the folder from draftId
   var draftId = msgCompFields.draftId;
   var folderURI = draftId.substring(0, draftId.indexOf("#")).replace("-message", "");
-  
+
   try {
     const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
     var folder = sRDF.GetResource(folderURI);
-  
+
     gEditingDraft = (folder instanceof Components.interfaces.nsIMsgFolder) &&
                     (folder.flags & nsMsgFolderFlags.Drafts);
   }
