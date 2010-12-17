@@ -40,6 +40,7 @@
 #include "mimemult.h"  /*   |     |--- MimeMultipart (abstract)      */
 #include "mimemsig.h"  /*   |     |     |--- MimeMultipartSigned (abstract)*/
 #include "mimetext.h"  /*   |     |--- MimeInlineText (abstract)      */
+#include "mimecryp.h"
 #include "mimecth.h"
 
 /*
@@ -80,6 +81,12 @@ extern "C" void *
 XPCOM_GetmimeMultipartSignedClass(void)
 {
   return (void *) &mimeMultipartSignedClass;
+}
+
+extern "C" void *
+XPCOM_GetmimeEncryptedClass(void)
+{
+  return (void *) &mimeEncryptedClass;
 }
 
 extern "C" int

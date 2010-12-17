@@ -116,6 +116,13 @@ nsMimeObjectClassAccess::GetmimeMultipartSignedClass(void **ptr)
 }
 
 nsresult 
+nsMimeObjectClassAccess::GetmimeEncryptedClass(void **ptr)
+{
+  *ptr = XPCOM_GetmimeEncryptedClass();
+  return NS_OK;
+}
+
+nsresult
 nsMimeObjectClassAccess::MimeCreate(char * content_type, void * hdrs, void * opts, void **ptr)
 {
   *ptr = XPCOM_Mime_create(content_type, hdrs, opts);

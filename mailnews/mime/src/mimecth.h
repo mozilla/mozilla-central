@@ -51,6 +51,7 @@
 #include "mimemult.h"  /*   |     |--- MimeMultipart (abstract)      */
 #include "mimemsig.h"  /*   |     |     |--- MimeMultipartSigned (abstract)*/
 #include "mimetext.h"  /*   |     |--- MimeInlineText (abstract)      */
+#include "mimecryp.h"
 
 /*
   This header exposes functions that are necessary to access the
@@ -132,6 +133,7 @@ extern MimeObjectClass           *MIME_GetmimeObjectClass(void);
 extern MimeContainerClass        *MIME_GetmimeContainerClass(void);
 extern MimeMultipartClass        *MIME_GetmimeMultipartClass(void);
 extern MimeMultipartSignedClass  *MIME_GetmimeMultipartSignedClass(void);
+extern MimeEncryptedClass        *MIME_GetmimeEncryptedClass(void);
 
 /*
  * These are the functions that need to be implemented by the

@@ -75,3 +75,9 @@ MIME_GetmimeMultipartSignedClass(void)
 {
   return &mimeMultipartSignedClass;
 }
+
+MimeEncryptedClass *
+MIME_GetmimeEncryptedClass(void)
+{
+  return &mimeEncryptedClass;
+}
