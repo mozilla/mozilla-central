@@ -42,10 +42,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd" [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
-<!ENTITY % regionDTD SYSTEM "chrome://global-region/locale/region.dtd" >
-<!ENTITY % startDTD SYSTEM "chrome://messenger/locale/start.dtd" >
 %brandDTD;
-%regionDTD;
+<!ENTITY % startDTD SYSTEM "chrome://messenger/locale/start.dtd" >
 %startDTD;
 ]>
 
@@ -82,9 +80,12 @@
   var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
                             .getService(Components.interfaces.nsIURLFormatter);
   var vendorURL = formatter.formatURLPref("app.vendorURL");
-  var vendor = document.getElementById("vendorURL");
-  if (vendor)
-    vendor.setAttribute("href", vendorURL);
+
+  if (vendorURL != "about:blank") {
+    var vendor = document.getElementById("vendorURL");
+    if (vendor)
+      vendor.setAttribute("href", vendorURL);
+  }
 
   var dictURL = formatter.formatURLPref("spellchecker.dictionaries.download.url");
   var dictionaries = document.getElementById("dictURL");
