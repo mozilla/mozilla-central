@@ -141,6 +141,7 @@
 @BINPATH@/components/nsActivityManagerUI.js
 @BINPATH@/components/nsAddrbook.manifest
 @BINPATH@/components/nsMailNewsCommandLineHandler.js
+@BINPATH@/components/services-crypto-component.xpt
 #ifndef XP_OS2
 @BINPATH@/components/shellservice.xpt
 #endif
