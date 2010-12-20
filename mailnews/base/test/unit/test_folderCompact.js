@@ -143,12 +143,29 @@ const gTestArray =
     do_check_neq(gLocalFolder3.expungedBytes, 0);
     gLocalFolder3.compact(urlListener, null);
   },
+  function testDeleteMessages2() {
+    do_check_eq(gExpectedFolderSize, gLocalFolder3.filePath.fileSize);
+    var folder2DB = gLocalFolder2.msgDatabase;
+    gMsgHdrs[0].hdr = folder2DB.getMsgHdrForMessageID(gMsgHdrs[0].ID);
+
+    // Now delete the message
+    deleteMessages(gLocalFolder2, [gMsgHdrs[0].hdr], false, false);
+  },
   function compactAllFolders()
   {
-    do_check_eq(gExpectedFolderSize, gLocalFolder3.filePath.fileSize);
     gExpectedInboxSize = calculateFolderSize(gLocalInboxFolder);
     gExpectedFolder2Size = calculateFolderSize(gLocalFolder2);
     gExpectedFolder3Size = calculateFolderSize(gLocalFolder3);
+    // force expunged bytes count to get cached.
+    let localFolder2ExpungedBytes = gLocalFolder2.expungedBytes;
+    // mark localFolder2 as having an invalid db, and remove it
+    // for good measure.
+    gLocalFolder2.msgDatabase.summaryValid = false;
+    gLocalFolder2.msgDatabase = null;
+    gLocalFolder2.ForceDBClosed();
+    let dbPath = gLocalFolder2.filePath;
+    dbPath.leafName = dbPath.leafName + ".msf";
+    dbPath.remove(false);
     gLocalInboxFolder.compactAll(urlListener, null, true);
   },
   function lastTestCheck()

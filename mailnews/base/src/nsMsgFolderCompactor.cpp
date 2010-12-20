@@ -346,7 +346,7 @@ NS_IMETHODIMP nsFolderCompactState::OnStopRunningUrl(nsIURI *url, nsresult statu
   {
     m_parsingFolder = PR_FALSE;
     if (NS_SUCCEEDED(status))
-      status = Compact(m_folder, m_compactingOfflineFolders, this, m_window);
+      status = Compact(m_folder, m_compactingOfflineFolders, m_listener, m_window);
     else if (m_compactAll)
       CompactNextFolder();
   }
