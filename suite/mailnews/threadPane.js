@@ -51,7 +51,7 @@ function ThreadPaneOnClick(event)
     if (t.localName == "treechildren" && AllowOpenTabOnMiddleClick())
     {
       // we don't allow new tabs in the search dialog
-      if ("RestoreSelectionWithoutContentLoad" in window)
+      if (document.documentElement.id != "searchMailWindow")
       {
         MsgOpenNewTabForMessage();
         RestoreSelectionWithoutContentLoad(GetThreadTree());
@@ -228,8 +228,9 @@ function ThreadPaneDoubleClick()
                    Components.interfaces.nsIMsgCompFormat.Default,
                    loadedFolder, messageArray);
   }
-  else if (AllowOpenTabOnDoubleClick())
-  {
+  else if (AllowOpenTabOnDoubleClick() &&
+           document.documentElement.id != "searchMailWindow")
+  {        // we don't allow new tabs in the search dialog
     // open the message in a new tab on double click
     MsgOpenNewTabForMessage();
     RestoreSelectionWithoutContentLoad(GetThreadTree());
