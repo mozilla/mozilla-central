@@ -315,12 +315,13 @@ treechildren::-moz-tree-image(DirCol, IsRemote-true, IsSecure-true) {
 /* Don't use the listbox appearance as that gives us a blue-grey top border
    that collides with the primary toolbar border */
 #dirTree {
-  -moz-appearance:  none;
-  background-color: #EEF3FA;
-  color: -moz-FieldText;
-  border-left: none;
-  border-right: 1px solid #EEF3FA;
-  border-bottom: none;
+  -moz-border-end: 1px solid transparent;
+}
+
+@media all and (-moz-windows-default-theme) {
+  #dirTree {
+    background-color: #EEF3FA;
+  }
 }
 
 #dirTree [sortDirection="ascending"],
@@ -355,13 +356,13 @@ treechildren::-moz-tree-image(DirCol, IsRemote-true, IsSecure-true) {
 /* ::::: results pane ::::: */
 
 #abResultsTree {
-  -moz-appearance:  none;
-  background-color: #EEF3FA;
-  color: -moz-FieldText;
-  -moz-border-right-colors: ThreeDHighlight ThreeDLightShadow;
-  border-left: none;
-  border-right: 1px solid;
-  border-bottom: none;
+  -moz-border-end: 1px solid ThreeDHighlight;
+}
+
+@media all and (-moz-windows-default-theme) {
+  #abResultsTree {
+    background-color: #EEF3FA;
+  }
 }
 
 treechildren::-moz-tree-image(GeneratedName) {
@@ -386,8 +387,13 @@ treechildren::-moz-tree-image(GeneratedName, MailList) {
   overflow: auto;
   min-width: 150px;
   color: -moz-FieldText;
-  background-color: #EEF3FA;
-  border-top: 1px #EEF3FA;
+  background-color: -moz-Field;
+}
+
+@media all and (-moz-windows-default-theme) {
+  #CardViewBox {
+    background-color: #EEF3FA;
+  }
 }
 
 #CardViewInnerBox {
