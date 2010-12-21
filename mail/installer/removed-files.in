@@ -324,15 +324,23 @@ regxpcom.exe
 
 #ifdef MOZ_OMNIJAR
   chrome/@AB_CD@.jar
+  chrome/@AB_CD@.manifest
   chrome/classic.jar
+  chrome/classic.manifest
   chrome/comm.jar
+  chrome/comm.manifest
   chrome/gloda.jar
+  chrome/gloda.manifest
   chrome/localized.manifest
   chrome/messenger.jar
+  chrome/messenger.manifest
   chrome/newsblog.jar
+  chrome/newsblog.manifest
   chrome/nonlocalized.manifest
   chrome/pippki.jar
+  chrome/pippki.manifest
   chrome/toolkit.jar
+  chrome/toolkit.manifest
   components/aboutRights.js
   components/addonManager.js
   components/amContentHandler.js
@@ -354,6 +362,7 @@ regxpcom.exe
   components/msgAsyncPrompter.js
   components/NetworkGeolocationProvider.js
   components/newsblog.js
+  components/newsblog.manifest
   components/nsAbAutoCompleteMyDomain.js
   components/nsAbAutoCompleteSearch.js
   components/nsAbLDAPAttributeMap.js
