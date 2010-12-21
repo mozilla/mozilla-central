@@ -190,12 +190,12 @@
 }
 
 #qfb-tags {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 256px 16px 240px);
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(1px, 287px, 17px, 271px);
 }
 
 #qfb-tags[disabled] {
-  -moz-image-region: rect(48px, 384px, 72px, 360px) !important;
+  opacity: .4;
 }
 
 #qfb-attachment {
