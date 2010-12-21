@@ -331,7 +331,9 @@
     <tree id="placesList"
           class="plain placesTree"
           type="places"
-          hidecolumnpicker="true" context="placesContext"
+          hidecolumnpicker="true"
+          treelines="true"
+          context="placesContext"
           onselect="PlacesOrganizer.onPlaceSelected(true);"
           onclick="PlacesOrganizer.onTreeClick(event);"
           onfocus="PlacesOrganizer.onTreeFocus(event);"
@@ -376,6 +378,7 @@
       </toolbox>
       <tree id="placeContent"
             class="plain placesTree"
+            treelines="true"
             context="placesContext"
             flex="1"
             type="places"

@@ -65,6 +65,7 @@
     <hbox flex="1">
       <tree id="foldersTree"
             class="placesTree"
+            treelines="true"
             flex="1"
             type="places"
             seltype="single"

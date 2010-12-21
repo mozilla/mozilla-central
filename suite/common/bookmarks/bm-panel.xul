@@ -79,6 +79,7 @@
   <tree id="bookmarks-view" class="sidebar-placesTree" type="places"
         flex="1"
         hidecolumnpicker="true"
+        treelines="true"
         context="placesContext"
         onkeypress="SidebarUtils.handleTreeKeyPress(event);"
         onclick="SidebarUtils.handleTreeClick(this, event, true);"
