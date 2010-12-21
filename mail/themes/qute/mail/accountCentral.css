@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Richard Marti <mozilla@paenglab.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,7 +45,7 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 #acctCentralGrid {
-  background-color: #FFFFFF;
+  background-color: Window;
 }
 
 separator {
@@ -64,7 +65,7 @@ separator.thin {
   -moz-padding-end: 0px;
   font-size: 180%;
   font-weight: bold;
-  color: #000000;
+  color: WindowText;
 }
 
 .acctCentralRow {
@@ -79,18 +80,24 @@ separator.thin {
 }
 
 .acctCentralRowTitleBox {
-  background-color: -moz-Dialog;
-  -moz-appearance: toolbox;
+  background-color: ButtonFace;
+  border: 1px solid ThreeDDarkShadow;
+  margin: 15px 6px 0px;
+  border-radius: 3px;
+  color: -moz-DialogText;
+  padding-top: 2px;
+  padding-bottom: 0;
+  -moz-padding-start: 8px;
+  -moz-padding-end: 4px;
   font-size: 150%;
   font-weight: bold;
-  color: #000000;
 }
 
 /* ::::: links ::::: */
 
 .acctCentralLinkText {
   cursor: pointer;
-  color: #212731;
+  color: WindowText;
   -moz-padding-start: 45px;
   margin-top: .55em;
   margin-bottom: .55em;
@@ -98,15 +105,15 @@ separator.thin {
 }
 
 .acctCentralLinkText:hover {
-  color: #39598E;
+  color: -moz-NativehyperlinkText;
 }
 
 .acctCentralLinkText:hover:active {
-  color: #000000;
+  color: -moz-html-CellHighlight;
 }
 
 #ReadMessages label {
-  background: url("chrome://messenger/skin/accountcentral/read-messages.png")  no-repeat !important;
+  background: url("chrome://messenger/skin/accountcentral/read-messages.png") no-repeat !important;
 }
 
 #ReadMessages label:-moz-locale-dir(rtl) {
@@ -114,7 +121,7 @@ separator.thin {
 }
 
 #ComposeMessage label {
-  background: url("chrome://messenger/skin/accountcentral/write-message.png")  no-repeat !important;
+  background: url("chrome://messenger/skin/accountcentral/write-message.png") no-repeat !important;
 }
 
 #ComposeMessage label:-moz-locale-dir(rtl) {
@@ -122,7 +129,7 @@ separator.thin {
 }
 
 #AccountSettings label {
-  background: url("chrome://messenger/skin/accountcentral/account-settings.png")  no-repeat !important;
+  background: url("chrome://messenger/skin/accountcentral/account-settings.png") no-repeat !important;
 }
 
 #AccountSettings label:-moz-locale-dir(rtl) {
@@ -130,7 +137,7 @@ separator.thin {
 }
 
 #CreateAccount label {
-  background: url("chrome://messenger/skin/accountcentral/create-account.png")  no-repeat !important;
+  background: url("chrome://messenger/skin/accountcentral/create-account.png") no-repeat !important;
 }
 
 #CreateAccount label:-moz-locale-dir(rtl) {
@@ -138,7 +145,7 @@ separator.thin {
 }
 
 #SearchMessages label {
-  background: url("chrome://messenger/skin/accountcentral/search-messages.png")  no-repeat !important;
+  background: url("chrome://messenger/skin/accountcentral/search-messages.png") no-repeat !important;
 }
 
 #SearchMessages label:-moz-locale-dir(rtl) {
@@ -146,7 +153,7 @@ separator.thin {
 }
 
 #CreateFilters label {
-  background: url("chrome://messenger/skin/accountcentral/manage-filters.png")  no-repeat !important;
+  background: url("chrome://messenger/skin/accountcentral/manage-filters.png") no-repeat !important;
 }
 
 #CreateFilters label:-moz-locale-dir(rtl) {
@@ -154,7 +161,7 @@ separator.thin {
 }
 
 #OfflineSettings label {
-  background: url("chrome://messenger/skin/accountcentral/offline-settings.png")  no-repeat !important;
+  background: url("chrome://messenger/skin/accountcentral/offline-settings.png") no-repeat !important;
 }
 
 #OfflineSettings label:-moz-locale-dir(rtl) {
@@ -162,7 +169,7 @@ separator.thin {
 }
 
 #SubscribeImapFolders label {
-  background: url("chrome://messenger/skin/accountcentral/manage-imap.png")  no-repeat !important;
+  background: url("chrome://messenger/skin/accountcentral/manage-imap.png") no-repeat !important;
 }
 
 #SubscribeImapFolders label:-moz-locale-dir(rtl) {
@@ -170,7 +177,7 @@ separator.thin {
 }
 
 #SubscribeNewsgroups label {
-  background: url("chrome://messenger/skin/accountcentral/manage-newsgroups.png")  no-repeat !important;
+  background: url("chrome://messenger/skin/accountcentral/manage-newsgroups.png") no-repeat !important;
 }
 
 #SubscribeNewsgroups label:-moz-locale-dir(rtl) {
@@ -178,10 +185,17 @@ separator.thin {
 }
 
 #SubscribeRSS label {
-  background: url("chrome://messenger/skin/accountcentral/manage-rss.png")  no-repeat !important;
+  background: url("chrome://messenger/skin/accountcentral/manage-rss.png") no-repeat !important;
 }
 
 #SubscribeRSS label:-moz-locale-dir(rtl) {
   background: url("chrome://messenger/skin/accountcentral/manage-rss.png") right no-repeat !important;
 }
 
+#JunkSettingsMail label {
+  background: url("chrome://messenger/skin/icons/junk.png") no-repeat !important;
+}
+
+#JunkSettingsMail label:-moz-locale-dir(rtl) {
+  background: url("chrome://messenger/skin/icons/junk.png") right no-repeat !important;
+}
