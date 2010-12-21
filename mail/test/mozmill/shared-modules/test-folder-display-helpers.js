@@ -1764,6 +1764,11 @@ function _internal_assert_displayed(trustSelection, troller, desiredIndices) {
       throw new Error("Message display should not be in single message display"+
                       "mode!  Desired indices: " + desiredIndices);
 
+    // verify that the message pane browser is displaying about:blank
+    if (mc.window.content.location.href != "about:blank")
+      throw new Error("the content pane should be blank, but is showing: '" +
+                      mc.window.content.location.href + "'");
+
     // now make sure that we actually are in nultiple message display mode
     let singleMessagePane = troller.e("singlemessage");
     let multiMessagePane = troller.e("multimessage");

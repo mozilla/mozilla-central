@@ -80,6 +80,10 @@ MessageDisplayWidget.prototype = {
    * Set pane visibility based on this.singleMessageDisplay.
    */
   _updateActiveMessagePane: function MessageDisplayWidget_updateMessagePane() {
+    // If we're summarizing, might as well clear the message display so that
+    // when we return to it, we don't display prev selected message.
+    if (!this.singleMessageDisplay)
+      this.clearDisplay();
     // _singleMessageDisplay can be null, so use the property (getter)
     document.getElementById("singlemessage").hidden =
       !this.singleMessageDisplay;
