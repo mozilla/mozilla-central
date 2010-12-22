@@ -1980,6 +1980,11 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
   nsresult rv = aDstFolder->GetMsgDatabase(getter_AddRefs(destDB));
   // ### might need to send some notifications instead of just returning
 
+  PRBool isLocked;
+  aDstFolder->GetLocked(&isLocked);
+  if (isLocked)
+    return NS_MSG_FOLDER_BUSY;
+
   if (NS_SUCCEEDED(rv) && destDB)
   {
     nsMsgKey fakeKey;

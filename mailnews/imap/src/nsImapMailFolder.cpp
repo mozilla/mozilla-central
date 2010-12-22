@@ -1355,6 +1355,8 @@ NS_IMETHODIMP nsImapMailFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow 
     m_compactingOfflineStore = PR_TRUE;
     CompactOfflineStore(aMsgWindow, this);
   }
+  if (WeAreOffline())
+    return NS_OK;
   m_expunging = PR_TRUE;
   return Expunge(this, aMsgWindow);
 }
@@ -4456,13 +4458,18 @@ NS_IMETHODIMP nsImapMailFolder::DownloadMessagesForOffline(nsIArray *messages, n
   nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = AcquireSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
+  rv = AcquireSemaphore(static_cast<nsIMsgFolder*>(this));
   if (NS_FAILED(rv))
   {
     ThrowAlertMsg("operationFailedFolderBusy", window);
     return rv;
   }
-
+  rv = GetOfflineStoreOutputStream(getter_AddRefs(m_tempMessageStream));
+  if (NS_FAILED(rv))
+  {
+    ReleaseSemaphore(static_cast<nsIMsgFolder*>(this));
+    return rv;
+  }
   return imapService->DownloadMessagesForOffline(messageIds, this, this, window);
 }
 
@@ -4481,11 +4488,17 @@ NS_IMETHODIMP nsImapMailFolder::DownloadAllForOffline(nsIUrlListener *listener, 
     GetDatabase();
     m_downloadingFolderForOfflineUse = PR_TRUE;
 
-    rv = AcquireSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
+    rv = AcquireSemaphore(static_cast<nsIMsgFolder*>(this));
     if (NS_FAILED(rv))
     {
       m_downloadingFolderForOfflineUse = PR_FALSE;
       ThrowAlertMsg("operationFailedFolderBusy", msgWindow);
+      return rv;
+    }
+    rv = GetOfflineStoreOutputStream(getter_AddRefs(m_tempMessageStream));
+    if (NS_FAILED(rv))
+    {
+      ReleaseSemaphore(static_cast<nsIMsgFolder*>(this));
       return rv;
     }
     nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
@@ -4525,8 +4538,9 @@ nsImapMailFolder::ParseAdoptedMsgLine(const char *adoptedMessageLine,
     if (NS_SUCCEEDED(rv) && !m_offlineHeader)
       rv = NS_ERROR_UNEXPECTED;
     NS_ENSURE_SUCCESS(rv, rv);
-    rv = StartNewOfflineMessage();
     m_offlineHeader->SetMessageSize(aMsgSize);
+    rv = StartNewOfflineMessage();
+    NS_ENSURE_SUCCESS(rv, rv);
   }
   // adoptedMessageLine is actually a string with a lot of message lines, separated by native line terminators
   // we need to count the number of MSG_LINEBREAK's to determine how much to increment m_numOfflineMsgLines by.
@@ -4558,6 +4572,7 @@ void nsImapMailFolder::EndOfflineDownload()
   {
     m_tempMessageStream->Close();
     m_tempMessageStream = nsnull;
+    ReleaseSemaphore(static_cast<nsIMsgFolder*>(this));
     if (mDatabase)
       mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
   }
@@ -5103,7 +5118,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
   imapUrl->GetStoreResultsOffline(&downloadingForOfflineUse);
   if (downloadingForOfflineUse)
   {
-    ReleaseSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
+    ReleaseSemaphore(static_cast<nsIMsgFolder*>(this));
     endedOfflineDownload = PR_TRUE;
     EndOfflineDownload();
   }
@@ -6987,18 +7002,23 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
       nsMsgKey highWaterMark = nsMsgKey_None;
       folderInfo->GetHighWater(&highWaterMark);
       fakeBase += highWaterMark;
-
+      // N.B. We must not return out of the for loop - we need the matching 
+      // end notifications to be sent.
+      // We don't need to acquire the semaphor since this is synchronous
+      // on the UI thread but we should check if the offline store is locked.
+      PRBool isLocked;
+      GetLocked(&isLocked);
       nsCOMPtr <nsIInputStream> inputStream;
       nsCOMPtr<nsIOutputStream> outputStream;
       // only need the output stream if we got an input stream.
       if (NS_SUCCEEDED(srcFolder->GetOfflineStoreInputStream(
-                                    getter_AddRefs(inputStream))))
+                                    getter_AddRefs(inputStream))) && !isLocked)
         rv = GetOfflineStoreOutputStream(getter_AddRefs(outputStream));
       NS_ENSURE_SUCCESS(rv, rv);
 
       nsCString messageId;
       // put fake message in destination db, delete source if move
-      for (PRUint32 sourceKeyIndex=0; !stopit && (sourceKeyIndex < srcCount); sourceKeyIndex++)
+      for (PRUint32 sourceKeyIndex = 0; !stopit && (sourceKeyIndex < srcCount); sourceKeyIndex++)
       {
         PRBool messageReturningHome = PR_FALSE;
         nsCString originalSrcFolderURI;
@@ -7126,9 +7146,11 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
           {
             PRBool hasMsgOffline = PR_FALSE;
             srcFolder->HasMsgOffline(originalKey, &hasMsgOffline);
-            if (inputStream && hasMsgOffline)
+            if (inputStream && hasMsgOffline && !isLocked)
               CopyOfflineMsgBody(srcFolder, newMailHdr, mailHdr, inputStream,
                                  outputStream);
+            else
+              mDatabase->MarkOffline(fakeBase + sourceKeyIndex, PR_FALSE, nsnull);
 
             nsCOMPtr <nsIMsgOfflineImapOperation> destOp;
             mDatabase->GetOfflineOpForKey(fakeBase + sourceKeyIndex, PR_TRUE, getter_AddRefs(destOp));

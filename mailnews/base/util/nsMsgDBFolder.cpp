@@ -1615,7 +1615,24 @@ nsresult nsMsgDBFolder::StartNewOfflineMessage()
 {
   nsresult rv = NS_OK;
   if (!m_tempMessageStream)
+  {
+    PRBool isLocked;
+    GetLocked(&isLocked);
+    PRBool hasSemaphore = PR_FALSE;
+    if (isLocked)
+    {
+      // it's OK if we, the folder, have the semaphore.
+      TestSemaphore(static_cast<nsIMsgFolder*>(this), &hasSemaphore);
+      if (!hasSemaphore)
+      {
+        NS_WARNING("folder locked trying to download offline");
+        return NS_MSG_FOLDER_BUSY;
+      }
+    }
     rv = GetOfflineStoreOutputStream(getter_AddRefs(m_tempMessageStream));
+    if (NS_SUCCEEDED(rv) && !hasSemaphore)
+      AcquireSemaphore(static_cast<nsIMsgFolder*>(this));
+  }
   else
   {
     nsCOMPtr <nsISeekableStream> seekable;
@@ -1645,9 +1662,9 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
   if (m_tempMessageStream)
     seekable = do_QueryInterface(m_tempMessageStream);
 
-  mDatabase->MarkOffline(messageKey, PR_TRUE, nsnull);
   if (seekable)
   {
+    mDatabase->MarkOffline(messageKey, PR_TRUE, nsnull);
     m_tempMessageStream->Flush();
     PRInt64 tellPos;
     seekable->Tell(&tellPos);
@@ -1671,18 +1688,29 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
        (messageSize - (PRUint32) curStorePos) > (PRUint32) m_numOfflineMsgLines)
     {
        mDatabase->MarkOffline(messageKey, PR_FALSE, nsnull);
+       // we should truncate the offline store at messgeOffset
+       nsCOMPtr <nsILocalFile> localStore;
+       rv = GetFilePath(getter_AddRefs(localStore));
+       if (NS_SUCCEEDED(rv))
+       {
+         m_tempMessageStream->Close();
+         m_tempMessageStream = nsnull;
+         ReleaseSemaphore(static_cast<nsIMsgFolder*>(this));
+
+         localStore->SetFileSize(messageOffset);
+       }
        NS_ERROR("offline message too small");
     }
     else
       m_offlineHeader->SetLineCount(m_numOfflineMsgLines);
-  }
 #ifdef _DEBUG
-  nsCOMPtr<nsIInputStream> inputStream;
-  GetOfflineStoreInputStream(getter_AddRefs(inputStream));
-  if (inputStream)
-    NS_ASSERTION(VerifyOfflineMessage(m_offlineHeader, inputStream),
-                 "offline message doesn't start with From ");
+    nsCOMPtr<nsIInputStream> inputStream;
+    GetOfflineStoreInputStream(getter_AddRefs(inputStream));
+    if (inputStream)
+      NS_ASSERTION(VerifyOfflineMessage(m_offlineHeader, inputStream),
+                   "offline message doesn't start with From ");
 #endif
+  }
   m_offlineHeader = nsnull;
   return NS_OK;
 }

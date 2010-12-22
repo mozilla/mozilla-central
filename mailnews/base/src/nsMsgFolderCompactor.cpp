@@ -263,6 +263,7 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore,
    {
      m_folder->NotifyCompactCompleted();
      m_folder->ThrowAlertMsg("compactFolderDeniedLock", m_window);
+     m_db = nsnull;
      CleanupTempFilesAfterError();
      if (m_compactAll)
        return CompactNextFolder();
