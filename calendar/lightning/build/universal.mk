@@ -36,12 +36,12 @@
 # ***** END LICENSE BLOCK *****
 
 ifndef OBJDIR
-OBJDIR_PPC = $(MOZ_OBJDIR)/ppc
-OBJDIR_X86 = $(MOZ_OBJDIR)/i386
-DIST_PPC = $(OBJDIR_PPC)/mozilla/dist
-DIST_X86 = $(OBJDIR_X86)/mozilla/dist
-DIST_UNI = $(DIST_PPC)/universal
-OBJDIR = $(OBJDIR_PPC)
+OBJDIR_ARCH_1 = $(MOZ_OBJDIR)/$(firstword $(MOZ_BUILD_PROJECTS))
+OBJDIR_ARCH_2 = $(MOZ_OBJDIR)/$(word 2,$(MOZ_BUILD_PROJECTS))
+DIST_ARCH_1 = $(OBJDIR_ARCH_1)/mozilla/dist
+DIST_ARCH_2 = $(OBJDIR_ARCH_2)/mozilla/dist
+DIST_UNI = $(DIST_ARCH_1)/universal
+OBJDIR = $(OBJDIR_ARCH_1)
 endif
 
 include $(OBJDIR)/config/autoconf.mk
@@ -49,19 +49,19 @@ include $(OBJDIR)/config/autoconf.mk
 postflight_all:
 	mkdir -p $(DIST_UNI)/xpi-stage
 	rm -rf $(DIST_UNI)/xpi-stage/lightning*
-	cp -R $(DIST_PPC)/xpi-stage/lightning $(DIST_UNI)/xpi-stage
+	cp -R $(DIST_ARCH_1)/xpi-stage/lightning $(DIST_UNI)/xpi-stage
 	platform=`$(PYTHON) $(TOPSRCDIR)/calendar/lightning/build/get-platform.py \
-		$(DIST_PPC)/xpi-stage/lightning`; \
+		$(DIST_ARCH_1)/xpi-stage/lightning`; \
 	mkdir -p $(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components; \
 	mv $(DIST_UNI)/xpi-stage/lightning/components/*.dylib \
 		$(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components
 	platform=`$(PYTHON) $(TOPSRCDIR)/calendar/lightning/build/get-platform.py \
-		$(DIST_X86)/xpi-stage/lightning`; \
+		$(DIST_ARCH_2)/xpi-stage/lightning`; \
 	mkdir -p $(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components; \
-	cp $(DIST_X86)/xpi-stage/lightning/components/*.dylib \
+	cp $(DIST_ARCH_2)/xpi-stage/lightning/components/*.dylib \
 		$(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components
 	$(PYTHON) $(TOPSRCDIR)/build/merge-installrdf.py \
-		$(DIST_PPC)/xpi-stage/lightning \
-		$(DIST_X86)/xpi-stage/lightning \
+		$(DIST_ARCH_1)/xpi-stage/lightning \
+		$(DIST_ARCH_2)/xpi-stage/lightning \
 		> $(DIST_UNI)/xpi-stage/lightning/install.rdf
 	cd $(DIST_UNI)/xpi-stage/lightning && $(ZIP) -qr ../lightning.xpi *
