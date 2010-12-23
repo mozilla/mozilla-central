@@ -743,11 +743,13 @@
     <menuitem id="mailContext-printpreview"
               label="&contextPrintPreview.label;"
               accesskey="&contextPrintPreview.accesskey;"
-              oncommand="PrintEnginePrintPreview();"/>
+              observes="cmd_printpreview"
+              command="cmd_printpreview"/>
     <menuitem id="mailContext-print"
               label="&contextPrint.label;"
               accesskey="&contextPrint.accesskey;"
-              oncommand="PrintEnginePrint();"/>
+              observes="cmd_print"
+              command="cmd_print"/>
     <menuitem id="mailContext-delete"
               command="cmd_delete"/>
     <menuitem id="downloadSelected"

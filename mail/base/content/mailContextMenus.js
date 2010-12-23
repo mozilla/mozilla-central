@@ -96,6 +96,9 @@ function fillMailContextMenu(event)
   if (event.target != event.currentTarget)
     return true;
 
+  goUpdateCommand('cmd_printpreview');
+  goUpdateCommand('cmd_print');
+  
   gContextMenu = new nsContextMenu(event.target);
   return gContextMenu.shouldDisplay;
 }
