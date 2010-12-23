@@ -1388,7 +1388,16 @@ let gFolderTreeView = {
         for each (let folder in ftv._enumerateFolders)
           addIfRecent(folder);
 
-        recentFolders.sort(sorter);
+        // Sort the folder names alphabetically.
+        recentFolders.sort(function rf_sort(a, b){
+          var aLabel = a.prettyName;
+          var bLabel = b.prettyName;
+          if (aLabel == bLabel) {
+            aLabel = a.server.prettyName;
+            bLabel = b.server.prettyName;
+          }
+          return aLabel.toLocaleLowerCase() > bLabel.toLocaleLowerCase();
+        });
 
         let items = [new ftvItem(f) for each (f in recentFolders)];
 

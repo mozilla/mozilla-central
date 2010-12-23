@@ -633,6 +633,17 @@
           popup.setAttribute("generated", "true");
           menu.appendChild(popup);
 
+          // Make sure the entries are sorted alphabetically.
+          recentFolders.sort(function rf_sort(a, b){
+            var aLabel = a.prettyName;
+            if (dupeNames.indexOf(aLabel) != -1)
+              aLabel += " - " + a.server.prettyName;
+            var bLabel = b.prettyName;
+            if (dupeNames.indexOf(bLabel) != -1)
+              bLabel += " - " + b.server.prettyName;
+            return aLabel.toLocaleLowerCase() > bLabel.toLocaleLowerCase();
+          });
+
           // Create entries for each of the recent folders.
           for each (var folder in recentFolders) {
             var node = document.createElement("menuitem");
