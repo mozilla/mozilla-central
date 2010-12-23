@@ -543,7 +543,8 @@ var DefaultController =
         if (!targetURI)
           return false;
         let targetFolder = MailUtils.getFolderForURI(targetURI);
-        return targetFolder && targetFolder.filePath.exists() &&
+        // If parent is null, folder doesn't exist.
+        return targetFolder && targetFolder.parent &&
                GetNumSelectedMessages() > 0;
       case "cmd_fullZoomReduce":
       case "cmd_fullZoomEnlarge":

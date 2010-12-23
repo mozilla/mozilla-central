@@ -930,7 +930,8 @@ var MessageWindowController =
         if (!targetURI)
           return false;
         let targetFolder = MailUtils.getFolderForURI(targetURI);
-        return targetFolder && targetFolder.filePath.exists();
+        // If parent is null, folder doesn't exist.
+        return targetFolder && targetFolder.parent;
       case "cmd_applyFilters":
       case "cmd_runJunkControls":
       case "cmd_deleteJunk":
