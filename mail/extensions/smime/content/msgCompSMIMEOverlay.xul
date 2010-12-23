@@ -73,9 +73,13 @@
   </menupopup>
 
   <toolbarpalette id="MsgComposeToolbarPalette">
-    <toolbarbutton id="button-security" type="menu-button" insertbefore="button-save"
-                   oncommand="doSecurityButton();" class="toolbarbutton-1"
-                   label="&securityButton.label;" tooltiptext="&securityButton.tooltip;">
+    <toolbarbutton id="button-security"
+                   insertbefore="button-save"
+                   type="menu-button"
+                   class="toolbarbutton-1"
+                   label="&securityButton.label;"
+                   tooltiptext="&securityButton.tooltip;"
+                   oncommand="doSecurityButton();">
       <menupopup onpopupshowing="setSecuritySettings(2);">
         <menuitem id="menu_securityEncryptRequire2"
                   type="checkbox"
@@ -109,8 +113,10 @@
 
   <menupopup id="menu_View_Popup">
     <menuseparator id="viewMenuBeforeSecurityStatusSeparator"/>
-    <menuitem id="menu_viewSecurityStatus" label="&menu_viewSecurityStatus.label;"
-      accesskey="&menu_viewSecurityStatus.accesskey;" observes="cmd_viewSecurityStatus"/>
+    <menuitem id="menu_viewSecurityStatus"
+              label="&menu_viewSecurityStatus.label;"
+              accesskey="&menu_viewSecurityStatus.accesskey;"
+              observes="cmd_viewSecurityStatus"/>
   </menupopup>
 
 </overlay>
