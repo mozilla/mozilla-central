@@ -6772,7 +6772,8 @@ if test "$MOZ_LDAP_XPCOM"; then
     dnl linking libxul in the mozilla-central build system, we'll have the LDAP
     dnl LIBS
     export LDAP_LIBS
-    export LDAP_COMPONENT=mozldap
+    LDAP_COMPONENT=mozldap
+    export LDAP_COMPONENT
 fi
 
 
