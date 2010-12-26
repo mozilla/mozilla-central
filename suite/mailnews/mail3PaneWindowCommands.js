@@ -349,6 +349,7 @@ var DefaultController =
       case "cmd_markAsFlagged":
       case "button_file":
       case "cmd_file":
+        return GetNumSelectedMessages() > 0;
       case "cmd_archive":
         let selectedMessages = gFolderDisplay.selectedMessages;
         if (selectedMessages.length == 0)
