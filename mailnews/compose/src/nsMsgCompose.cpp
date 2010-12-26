@@ -564,7 +564,6 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
   nsCOMPtr<nsIHTMLEditor> htmlEditor (do_QueryInterface(m_editor));
   nsCOMPtr<nsIPlaintextEditor> textEditor (do_QueryInterface(m_editor));
   nsCOMPtr<nsIEditorMailSupport> mailEditor (do_QueryInterface(m_editor));
-  m_editor->BeginTransaction();
   PRInt32 reply_on_top = 0;
   PRBool sig_bottom = PR_TRUE;
   m_identity->GetReplyOnTop(&reply_on_top);
@@ -584,6 +583,7 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
 
     if (!aBuf.IsEmpty() && mailEditor)
     {
+      // This leaves the caret at the right place to insert a bottom signature.
       if (aHTMLEditor && !mCiteReference.IsEmpty())
         mailEditor->InsertAsCitedQuotation(aBuf,
                                            mCiteReference,
@@ -593,7 +593,6 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
         mailEditor->InsertAsQuotation(aBuf,
                                       getter_AddRefs(nodeInserted));
 
-      m_editor->EndOfDocument();
     }
 
     mInsertingQuotedContent = PR_FALSE;
@@ -663,7 +662,6 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
         textEditor->InsertText(aSignature);
     }
   }
-  m_editor->EndTransaction();
 
   if (aBuf.IsEmpty())
     m_editor->BeginningOfDocument();
