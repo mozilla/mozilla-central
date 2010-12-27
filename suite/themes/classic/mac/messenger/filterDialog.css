@@ -11,15 +11,16 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
  *
  * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Joe Hewitt <hewitt@netscape.com>
+ *   Manuel Reimer (Manuel.Reimer@gmx.de)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -46,11 +47,62 @@
 /* ::::: columns :::::: */
 
 treechildren::-moz-tree-image(activeColumn) {
-  list-style-image: url("chrome://global/skin/checkbox/cbox.gif");
+  list-style-image: url("chrome://messenger/skin/icons/dot.png");
 }
 
 treechildren::-moz-tree-image(activeColumn, Enabled-true) {
-  list-style-image: url("chrome://global/skin/checkbox/cbox-check.gif");
+ list-style-image: url("chrome://messenger/skin/icons/check.png");
+}
+
+.small-button {
+  -moz-appearance: none;
+  font: icon;
+  text-shadow: 0 1px #F2F2F2;
+  border: 1px solid #A8A8A8; 
+  background: -moz-linear-gradient(bottom, #ECECEC, #ECECEC 50%, #F9F9F9 0%, #F9F9F9);
+  min-width: 22px;
+  height: 20px;
+  padding: 0 1px 1px 0;
+  margin: 0;
+}
+
+.small-button:not([disabled="true"]):hover:active {
+  background: -moz-linear-gradient(bottom, #B0B0B0, #B4B4B4 50%, #BFBFBF 0%, #BABABA);
+  border: 1px solid #9C9C9C;
+}
+
+.small-button[disabled="true"] {
+  opacity: 0.6;
+}
+
+.small-button + .small-button,
+.small-button + .small-button:hover:active {
+  border-left-width: 0;
+  min-width: 21px;
+}
+
+
+.small-button:focus {
+  box-shadow:  inset 0 0 1px -moz-mac-focusring,
+               1px 0 2px 1px -moz-mac-focusring,
+               -1px 0 2px 1px -moz-mac-focusring;
+}
+
+.small-button:focus + .small-button {
+  box-shadow: inset 1px 0 -moz-mac-focusring;
+}
+
+listbox {
+  padding-top: 2px;
+}
+
+listcell > hbox {
+  -moz-box-pack: end;
+}
+
+/* No '.filler' here, so add margin to make more room. */
+hbox > .small-button + .small-button {
+  -moz-margin-end: 9px;
 }
 
 .search-menulist, .search-value-menulist {
@@ -58,21 +110,11 @@ treechildren::-moz-tree-image(activeColumn, Enabled-true) {
 }
 
 .search-menulist[unavailable="true"] {
-  color: #8C99AB;
+  color: GrayText;
 }
 
-.small-button {
-  min-width: 3em;
-  padding: 0px;
-  margin: 0px 1px;
-}
-
-listbox {
-  padding-top: 2px;
-}
-
-textbox {
-  margin: 1px 4px;
+#searchTermList > listitem[selected="true"] {
+  background-color: inherit;
 }
 
 #filterListDialog {

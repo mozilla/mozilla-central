@@ -190,6 +190,7 @@ classic.jar:
   skin/classic/editor/icons/progress-failed.gif                         (editor/icons/progress-failed.gif)
 #ifdef XP_MACOSX
   skin/classic/messenger/accountManage.css                              (mac/messenger/accountManage.css)
+  skin/classic/messenger/filterDialog.css                               (mac/messenger/filterDialog.css)
   skin/classic/messenger/mailWindow1.css                                (mac/messenger/mailWindow1.css)
   skin/classic/messenger/messageHeader.css                              (mac/messenger/messageHeader.css)
   skin/classic/messenger/primaryToolbar.css                             (mac/messenger/primaryToolbar.css)
@@ -210,6 +211,7 @@ classic.jar:
   skin/classic/messenger/smime/icons/smimeicons-small.png               (mac/messenger/smime/icons/smimeicons-small.png)
 #else
   skin/classic/messenger/accountManage.css                              (messenger/accountManage.css)
+  skin/classic/messenger/filterDialog.css                               (messenger/filterDialog.css)
   skin/classic/messenger/mailWindow1.css                                (messenger/mailWindow1.css)
   skin/classic/messenger/messageHeader.css                              (messenger/messageHeader.css)
   skin/classic/messenger/primaryToolbar.css                             (messenger/primaryToolbar.css)
@@ -237,7 +239,6 @@ classic.jar:
   skin/classic/messenger/subscribe.css                                  (messenger/subscribe.css)
   skin/classic/messenger/threadPane.css                                 (messenger/threadPane.css)
   skin/classic/messenger/threadPaneLabels.css                           (messenger/threadPaneLabels.css)
-  skin/classic/messenger/filterDialog.css                               (messenger/filterDialog.css)
   skin/classic/messenger/messageBody.css                                (messenger/messageBody.css)
   skin/classic/messenger/start.css                                      (messenger/start.css)
   skin/classic/messenger/virtualFolderListDialog.css                    (messenger/virtualFolderListDialog.css)
