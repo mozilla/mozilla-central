@@ -1014,6 +1014,17 @@ PlacesTreeView.prototype = {
     }
   },
 
+  _inBatchMode: false,
+  batching: function PTV_batching(aBatching) {
+    if (aBatching == this._inBatchMode)
+      return;
+    this._inBatchMode = this.selection.selectEventsSuppressed = aBatching;
+    if (aBatching)
+      this._tree.beginUpdateBatch();
+    else
+      this._tree.endUpdateBatch();
+  },
+
   get result() {
     return this._result;
   },
