@@ -179,6 +179,7 @@
               <button label="&editBookmarkOverlay.newFolderButton.label;"
                       id="editBMPanel_newFolderButton"
                       accesskey="&editBookmarkOverlay.newFolderButton.accesskey;"
+                      tooltiptext="&editBookmarkOverlay.newFolderButton.tooltip;"
                       oncommand="gEditItemOverlay.newFolder();"/>
             </hbox>
           </vbox>

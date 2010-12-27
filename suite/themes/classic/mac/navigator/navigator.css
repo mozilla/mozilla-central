@@ -22,6 +22,10 @@
  *   Joe Hewitt <hewitt@netscape.com>
  *   Manuel Reimer <Manuel.Reimer@gmx.de>
  *   Stefan Hermes <stefanh@inbox.com>
+ *   Asaf Romano <mozilla.mano@sent.com>
+ *   Kevin Gerich <kevin@kmgerich.com>
+ *   Stephen Horlander <stephen@noved.org>
+ *   Margaret Leibovic <margaret.leibovic@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -42,6 +46,7 @@
 @import url("chrome://communicator/skin/bookmarks/bookmarksToolbar.css");
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+@namespace html url("http://www.w3.org/1999/xhtml");
 
 #main-window {
   -moz-appearance: none;
@@ -611,6 +616,318 @@ toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
 #editBookmarkPanelStarIcon {
   list-style-image: url("chrome://communicator/skin/bookmarks/bookmark.png");
   -moz-image-region: rect(0px 16px 16px 0px);
+}
+
+#editBookmarkPanelTitle {
+  font-size: 130%;
+  font-weight: bold;
+}
+
+/* ::::: Edit bookmark panel ::::: */
+
+.editBookmarkPanelHeaderButton,
+.editBookmarkPanelBottomButton {
+  -moz-appearance: none;
+  color: #FFFFFF;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.65);
+  background-image: -moz-linear-gradient(rgba(110, 110, 110, 0.9),
+                                         rgba(70, 70, 70, 0.9) 49%,
+                                         rgba(50, 50, 50, 0.9) 51%,
+                                         rgba(40, 40, 40, 0.9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2),
+              inset 0 0 1px rgba(255, 255, 255, 0.1),
+              0 1px 0 rgba(255, 255, 255, 0.1);
+  background-clip: padding-box;
+  background-origin: padding-box;
+  padding: 2px 9px;
+  margin: 6px;
+  min-height: 22px;
+}
+
+.editBookmarkPanelHeaderButton:hover:active,
+.editBookmarkPanelBottomButton:hover:active {
+  background-image: -moz-linear-gradient(rgba(40, 40, 40, 0.9),
+                                         rgba(70, 70, 70, 0.9));
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2),
+              inset 0 1px 7px rgba(0, 0, 0, 0.4),
+              0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.editBookmarkPanelHeaderButton:-moz-focusring,
+.editBookmarkPanelBottomButton:-moz-focusring {
+  box-shadow: inset 0 0 1px -moz-mac-focusring,
+              0 0 4px 1px -moz-mac-focusring,
+              0 0 2px 1px -moz-mac-focusring;
+}
+
+.editBookmarkPanelBottomButton[default="true"] {
+  background-color: #666666;
+}
+
+#editBookmarkPanelHeader {
+  margin-bottom: 6px;
+}
+
+#editBMPanel_editColumn {
+  color: #FFFFFF;
+}
+
+/* The following elements come from editBookmarkOverlay.xul, but the styling is
+   specific to the HUD-styled editBookmarkPanel. Styling shared by all
+   editBookmarkOverlay.xul consumers should be in editBookmarkOverlay.css. */
+
+#editBMPanel_newFolderBox {
+  background-image: -moz-linear-gradient(rgb(90, 90 , 90), rgb(40, 40, 40));
+  background-origin: padding-box;
+  background-clip: padding-box;
+  border-radius: 0 0 3px 3px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-top: none;
+  box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15),
+              0 1px 0 rgba(255, 255, 255, 0.15);
+  padding: 0;
+  margin-left: 4px;
+  margin-right: 4px;
+  margin-bottom: 8px;
+  height:  20px;
+}
+
+#editBMPanel_newFolderButton {
+  -moz-appearance: none;
+  border: 0;
+  -moz-border-end-width: 3px;
+  border-style: solid;
+  -moz-border-right-colors: rgba(255, 255, 255, 0.1) rgba(0, 0, 0, 0.5) rgba(255, 255, 255, 0.1);
+  -moz-border-left-colors: rgba(255, 255, 255, 0.1) rgba(0, 0, 0, 0.5) rgba(255, 255, 255, 0.1);
+  padding: 0 9px;
+  margin: 0;
+  min-width: 21px;
+  min-height: 20px;
+  height: 20px;
+  color: #FFFFFF;
+  list-style-image: url("chrome://navigator/skin/icons/hud-style-new-folder-plus-sign.png");
+  position: relative;
+}
+
+#editBMPanel_newFolderButton .button-text {
+  display: none;
+}
+
+#editBMPanel_folderMenuList,
+#editBMPanel_tagsSelectorExpander,
+#editBMPanel_foldersExpander {
+  -moz-appearance: none;
+  color: #FFFFFF;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.65);
+  background-image: -moz-linear-gradient(rgba(110, 110, 110, 0.9),
+                                         rgba(70, 70, 70, 0.9) 49%,
+                                         rgba(50, 50, 50, 0.9) 51%,
+                                         rgba(40, 40, 40, 0.9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2),
+              inset 0 0 1px rgba(255, 255, 255, 0.1),
+              0 1px 0 rgba(255, 255, 255, 0.1);
+  background-clip: padding-box;
+  background-origin: padding-box;
+  border-radius: 3px;
+}
+
+#editBMPanel_folderMenuList {
+  padding: 2px 9px;
+  min-height: 22px;
+  -moz-padding-start: 4px;
+  -moz-padding-end: 0;
+}
+
+#editBMPanel_tagsSelectorExpander,
+#editBMPanel_foldersExpander {
+  -moz-margin-start: 4px;
+  -moz-margin-end: 2px;
+  padding: 0;
+  -moz-padding-start: 4px;
+  min-width: 10px;
+  min-height: 20px;
+}
+
+#editBMPanel_folderMenuList > .menulist-dropmarker {
+  -moz-appearance: none;
+  display: -moz-box;
+  background-color: transparent;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+#editBMPanel_folderMenuList > .menulist-dropmarker > .dropmarker-icon {
+  list-style-image: url("chrome://navigator/skin/icons/hud-style-dropmarker-double-arrows.png");
+}
+
+#editBMPanel_tagsSelector {
+  -moz-appearance: none;
+  border-radius: 2px;
+  background-color: rgba(50, 50, 50, 1);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-bottom: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15),
+              0 1px 0 rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+}
+
+/* hover:active */
+#editBMPanel_newFolderButton:hover:active,
+#editBMPanel_folderMenuList[open="true"],
+#editBMPanel_folderMenuList:hover:active,
+#editBMPanel_tagsSelectorExpander:hover:active,
+#editBMPanel_foldersExpander:hover:active {
+  background-image: -moz-linear-gradient(rgba(40, 40, 40, 0.9),
+                                         rgba(70, 70, 70, 0.9));
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2),
+              inset 0 1px 7px rgba(0, 0, 0, 0.4),
+              0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* focus ring */
+#editBMPanel_newFolderButton:-moz-focusring,
+#editBMPanel_folderMenuList:-moz-focusring,
+#editBMPanel_tagsSelector:-moz-focusring,
+#editBMPanel_tagsSelectorExpander:-moz-focusring,
+#editBMPanel_foldersExpander:-moz-focusring,
+#editBMPanel_tagsField[focused="true"],
+#editBMPanel_namePicker[droppable="false"][focused="true"] > .menulist-editable-box {
+  box-shadow: inset 0 0 1px -moz-mac-focusring,
+              0 0 4px 1px -moz-mac-focusring,
+              0 0 2px 1px -moz-mac-focusring;
+}
+
+/* expander icons */
+.expander-up,
+.expander-down:hover:active {
+  list-style-image: url("chrome://navigator/skin/icons/hud-style-expander-open.png") !important;
+}
+
+.expander-down,
+.expander-up:hover:active {
+  list-style-image: url("chrome://navigator/skin/icons/hud-style-expander-closed.png") !important;
+}
+
+/* folder tree */
+#editBMPanel_folderTree {
+  -moz-appearance: none;
+  border-radius: 2px 2px 0 0;
+  background-color: rgba(50, 50, 50, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-bottom: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  color: #FFFFFF;
+  /* Implements editBookmarkPanel resizing on folderTree un-collapse. */
+  min-width: 27em;
+  position: relative;
+}
+
+#editBMPanel_folderTree:-moz-focusring {
+  box-shadow: 0 0 4px 1px -moz-mac-focusring,
+              0 0 2px 1px -moz-mac-focusring;
+}
+
+#editBMPanel_folderTree > treechildren::-moz-tree-twisty {
+  -moz-appearance: none;
+  list-style-image: url("chrome://navigator/skin/icons/hud-style-twisties.png");
+  -moz-image-region: rect(0px, 10px, 10px, 0px);
+  margin-top: 1px;
+  -moz-margin-end: 1px;
+}
+
+#editBMPanel_folderTree > treechildren::-moz-tree-twisty(open) {
+  -moz-image-region: rect(0px, 20px, 10px, 10px);
+}
+
+#editBMPanel_folderTree > treechildren::-moz-tree-twisty(selected) {
+  -moz-image-region: rect(0px, 30px, 10px, 20px);
+}
+
+#editBMPanel_folderTree > treechildren::-moz-tree-twisty(selected, open) {
+  -moz-image-region: rect(0px, 40px, 10px, 30px);
+}
+
+#editBMPanel_folderTree  > treechildren::-moz-tree-row {
+  color: #FFFFFF;
+  background-color: transparent;
+  border: none;
+}
+
+#editBMPanel_folderTree > treechildren::-moz-tree-row(selected) {
+  background-color: #B3B3B3;
+}
+
+#editBMPanel_folderTree > treechildren::-moz-tree-cell-text(selected),
+#editBMPanel_folderTree > treechildren::-moz-tree-cell-text(selected, focus) {
+  color: #222222;
+}
+
+#editBMPanel_folderTree > treechildren::-moz-tree-row(selected, focus) {
+  background-color: #B3B3B3;
+}
+
+#editBMPanel_tagsSelector > listitem[selected="true"] {
+  color: #222222;
+  background-color: #B3B3B3;
+}
+
+/* name picker & text fields */
+#editBMPanel_tagsField,
+#editBMPanel_namePicker[droppable="false"] > .menulist-editable-box {
+  -moz-appearance: none !important;
+  -moz-padding-start: 3px !important;
+  margin: 2px !important;
+  border: 1px solid rgba(0, 0, 0, 0.5) !important;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.3);
+  background-color: #666666 !important;
+  background-clip: padding-box;
+  background-origin: padding-box;
+  color: #FFFFFF !important;
+  min-height: 20px;
+}
+
+#editBMPanel_namePicker[droppable="false"] > .menulist-editable-box > html|*.menulist-editable-input {
+  color: inherit;
+}
+
+#editBMPanel_tagsField > .autocomplete-textbox-container > .textbox-input-box > html|*.textbox-input:-moz-placeholder {
+  color: #BBBBBB;
+}
+
+#editBMPanel_tagsField[focused="true"],
+#editBMPanel_namePicker[droppable="false"][focused="true"] > .menulist-editable-box {
+  background-color: #EEEEEE !important;
+  color: #000000 !important;
+}
+
+#editBMPanel_namePicker[droppable="false"][disabled="true"] > .menulist-editable-box {
+  color: #FFFFFF !important;
+}
+
+.editBMPanel_rowLabel {
+  text-align: end;
+}
+
+/* checkboxes */
+#editBMPanel_loadInSidebarCheckbox > .checkbox-check,
+#editBMPanel_tagsSelector .listcell-check {
+  -moz-appearance: none;
+  background-color: transparent;
+  border: 0;
+  list-style-image: url("chrome://navigator/skin/icons/hud-style-check-box-empty.png");
+  min-height: 14px;
+  min-width: 14px;
+}
+
+#editBMPanel_loadInSidebarCheckbox > .checkbox-check[checked="true"],
+#editBMPanel_tagsSelector .listcell-check[checked="true"] {
+  list-style-image: url("chrome://navigator/skin/icons/hud-style-check-box-checked.png");
 }
 
 /* ::::: feeds ::::: */
