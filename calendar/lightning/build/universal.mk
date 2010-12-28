@@ -50,16 +50,19 @@ postflight_all:
 	mkdir -p $(DIST_UNI)/xpi-stage
 	rm -rf $(DIST_UNI)/xpi-stage/lightning*
 	cp -R $(DIST_ARCH_1)/xpi-stage/lightning $(DIST_UNI)/xpi-stage
+	rm -f $(DIST_UNI)/xpi-stage/lightning/components/components.manifest
 	platform=`$(PYTHON) $(TOPSRCDIR)/calendar/lightning/build/get-platform.py \
 		$(DIST_ARCH_1)/xpi-stage/lightning`; \
-	mkdir -p $(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components; \
+	mkdir -p $(DIST_UNI)/xpi-stage/lightning/components/$$platform; \
 	mv $(DIST_UNI)/xpi-stage/lightning/components/*.dylib \
-		$(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components
+		$(DIST_UNI)/xpi-stage/lightning/components/$$platform; \
+	$(foreach dylib,$(wildcard $(DIST_ARCH_1)/xpi-stage/lightning/components/*.dylib),echo binary-component $$platform/$(notdir $(dylib)) ABI=$$platform >> $(DIST_UNI)/xpi-stage/lightning/components/components.manifest)
 	platform=`$(PYTHON) $(TOPSRCDIR)/calendar/lightning/build/get-platform.py \
 		$(DIST_ARCH_2)/xpi-stage/lightning`; \
-	mkdir -p $(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components; \
+	mkdir -p $(DIST_UNI)/xpi-stage/lightning/components/$$platform; \
 	cp $(DIST_ARCH_2)/xpi-stage/lightning/components/*.dylib \
-		$(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components
+		$(DIST_UNI)/xpi-stage/lightning/components/$$platform; \
+	$(foreach dylib,$(wildcard $(DIST_ARCH_2)/xpi-stage/lightning/components/*.dylib),echo binary-component $$platform/$(notdir $(dylib)) ABI=$$platform >> $(DIST_UNI)/xpi-stage/lightning/components/components.manifest)
 	$(PYTHON) $(TOPSRCDIR)/build/merge-installrdf.py \
 		$(DIST_ARCH_1)/xpi-stage/lightning \
 		$(DIST_ARCH_2)/xpi-stage/lightning \
