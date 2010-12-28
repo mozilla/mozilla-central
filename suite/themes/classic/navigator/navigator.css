@@ -301,14 +301,6 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   min-width: 0px;
 }
 
-.tabbrowser-tab:-moz-lwtheme:not([selected="true"]) {
-  opacity: .8;
-}
-
-.tabbrowser-tab:-moz-lwtheme {
-  text-shadow: none;
-}
-
 #urlbar {
   border: 3px solid;
   -moz-border-top-colors: transparent ThreeDShadow ThreeDDarkShadow;

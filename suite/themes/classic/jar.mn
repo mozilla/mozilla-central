@@ -391,6 +391,8 @@ classic.jar:
   skin/classic/navigator/icons/navigatoricons.png                       (navigator/icons/navigatoricons.png)
   skin/classic/navigator/icons/navigatoricons-small.png                 (navigator/icons/navigatoricons-small.png)
   skin/classic/navigator/icons/restore.gif                              (navigator/icons/restore.gif)
+  skin/classic/navigator/icons/tab-arrow-left.gif                       (navigator/icons/tab-arrow-left.gif)
+  skin/classic/navigator/icons/tab-arrow-right.gif                      (navigator/icons/tab-arrow-right.gif)
 #endif
   skin/classic/navigator/btn1/feeds.png                                 (navigator/btn1/feeds.png)
   skin/classic/navigator/btn1/first.gif                                 (navigator/btn1/first.gif)

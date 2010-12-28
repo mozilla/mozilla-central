@@ -117,6 +117,65 @@ tabpanels {
   -moz-border-left-colors: transparent transparent;
 }
 
+/* ::::: Tab scrollbox arrow ::::: */
+
+.scrollbutton-up,
+.scrollbutton-down {
+  border: 0;
+  padding: 0 4px;
+  margin: 0;
+}
+
+.scrollbutton-up {
+  border-right: 2px solid;
+  -moz-border-right-colors: rgba(0, 0, 0, 0.19) transparent;
+  list-style-image: url("chrome://messenger/skin/icons/tab-arrow-left.png");
+  -moz-image-region: rect(0, 7px, 11px, 0);
+}
+
+.scrollbutton-up[disabled="true"] {
+  -moz-image-region: rect(0, 14px, 11px, 7px);
+  -moz-border-right-colors: transparent transparent;
+}
+
+.scrollbutton-down {
+  border-left: 2px solid;
+  -moz-border-left-colors: rgba(0, 0, 0, 0.19) transparent;
+  list-style-image: url("chrome://messenger/skin/icons/tab-arrow-right.png");
+  -moz-image-region: rect(0, 7px, 11px, 0);
+  -moz-transition: box-shadow 1s ease-out;
+}
+
+.scrollbutton-down[notifybgtab="true"] {
+  background-color: Highlight;
+  box-shadow: 0 0 9px 9px Highlight inset;
+  -moz-transition: none;
+}
+
+.scrollbutton-down[disabled="true"] {
+  -moz-image-region: rect(0, 14px, 11px, 7px);
+  -moz-border-left-colors: transparent transparent;
+}
+
+.scrollbutton-up:hover:not([disabled="true"]),
+.scrollbutton-down:hover:not([disabled="true"]) {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.scrollbutton-up:hover:active:not([disabled="true"]),
+.scrollbutton-down:hover:active:not([disabled="true"]) {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* All Tabs Menupopup */
+.alltabs-item {
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.png");
+}
+
+.alltabs-item[busy] {
+  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+}
+
 /* ::::: close button ::::: */
 
 .tabs-closebutton {
@@ -147,7 +206,7 @@ tabpanels {
 .tab-drop-indicator-bar {
   height: 11px;
   margin-top: -11px;
-  -moz-margin-start: -8px;
+  -moz-margin-start: -6px;
   position: relative;
 }
  

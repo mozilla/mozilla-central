@@ -20,6 +20,8 @@
  *
  * Contributor(s):
  *   Joe Hewitt <hewitt@netscape.com>
+ *   Philip Chee <philip.chee@gmail.com>
+ *   Akihiro Misaki <spitfire.kuden@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -55,7 +57,7 @@
 
 tab {
   padding: 0px 3px;
-  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.gif"); 
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.gif");
 }
 
 tab[busy] {
@@ -66,6 +68,74 @@ tab[busy] {
   -moz-margin-end: 3px;
   width: 16px;
   height: 16px;
+}
+
+.toolbarbutton-text {
+  display: none;
+}
+
+.toolbarbutton-icon {
+  margin: 0px;
+}
+
+/* ::::: Tab scrollbox arrow, and all-tabs buttons ::::: */
+
+.scrollbutton-up,
+.scrollbutton-down,
+.tabs-alltabs-button {
+  margin: 0px;
+  border-bottom: 2px solid;
+  -moz-border-bottom-colors: #000000 transparent;
+}
+
+.scrollbutton-up:not([disabled="true"]):-moz-locale-dir(ltr),
+.scrollbutton-down:not([disabled="true"]):-moz-locale-dir(rtl) {
+  border-right: 2px solid;
+  -moz-border-right-colors: #000000 transparent;
+}
+
+.scrollbutton-up:not([disabled="true"]):-moz-locale-dir(rtl),
+.scrollbutton-down:not([disabled="true"]):-moz-locale-dir(ltr) {
+  border-left: 2px solid;
+  -moz-border-left-colors: #000000 transparent;
+}
+
+.scrollbutton-down {
+  -moz-transition: background-color 1s ease-out;
+}
+
+.scrollbutton-down:hover,
+.scrollbutton-down[notifybgtab="true"],
+.scrollbutton-down[disabled="true"] {
+  -moz-transition: none;
+}
+
+.scrollbutton-down[notifybgtab="true"] {
+  background-color: #8C9AA8;
+}
+
+.scrollbutton-up:not([disabled="true"]):hover,
+.scrollbutton-down:not([disabled="true"]):hover {
+  border-color: #EEF0F3;
+}
+
+.scrollbutton-up:not([disabled="true"]):hover:active,
+.scrollbutton-down:not([disabled="true"]):hover:active {
+  border-color: #86929E;
+  background-color: #8C9AA8;
+}
+
+/* All tabs menupopup */
+.alltabs-item {
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.gif");
+}
+
+.alltabs-item[selected="true"] {
+  font-weight: bold;
+}
+
+.alltabs-item[busy] {
+  list-style-image: url("chrome://communicator/skin/icons/loading.gif");
 }
 
 /* ::::: close button ::::: */
@@ -111,7 +181,7 @@ tab[busy] {
 .tab-drop-indicator-bar {
     height: 11px;
     margin-top: -11px;
-    -moz-margin-start: -8px;
+    -moz-margin-start: -6px;
     position: relative;
 }
 
