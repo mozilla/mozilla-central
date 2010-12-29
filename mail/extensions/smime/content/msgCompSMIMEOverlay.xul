@@ -116,7 +116,7 @@
     <menuitem id="menu_viewSecurityStatus"
               label="&menu_viewSecurityStatus.label;"
               accesskey="&menu_viewSecurityStatus.accesskey;"
-              observes="cmd_viewSecurityStatus"/>
+              command="cmd_viewSecurityStatus"/>
   </menupopup>
 
 </overlay>
