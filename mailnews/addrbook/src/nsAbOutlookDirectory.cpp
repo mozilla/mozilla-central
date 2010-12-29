@@ -342,6 +342,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::DeleteCards(nsIArray *aCardList)
 
         retCode = ExtractCardEntry(card, entryString) ;
         if (NS_SUCCEEDED(retCode) && !entryString.IsEmpty()) {
+            card->SetDirectoryId(EmptyCString());
 
             cardEntry.Assign(entryString) ;
             if (!mapiAddBook->DeleteEntry(*mMapiData, cardEntry)) {
@@ -1067,6 +1068,9 @@ nsresult nsAbOutlookDirectory::GetChildCards(nsIMutableArray *aCards,
     return NS_ERROR_FAILURE;
   }
 
+  nsCAutoString ourUuid;
+  GetUuid(ourUuid);
+
   nsCAutoString entryId;
   nsCAutoString uriName;
   nsCOMPtr<nsIAbCard> childCard;
@@ -1079,6 +1083,7 @@ nsresult nsAbOutlookDirectory::GetChildCards(nsIMutableArray *aCards,
 
     rv = OutlookCardForURI(uriName, getter_AddRefs(childCard));
     NS_ENSURE_SUCCESS(rv, rv);
+    childCard->SetDirectoryId(ourUuid);
 
     aCards->AppendElement(childCard, PR_FALSE);
   }
@@ -1273,6 +1278,10 @@ nsresult nsAbOutlookDirectory::CreateCard(nsIAbCard *aData, nsIAbCard **aNewCard
     nsCOMPtr<nsIAbCard> newCard;
     retCode = OutlookCardForURI(uri, getter_AddRefs(newCard));
     NS_ENSURE_SUCCESS(retCode, retCode);
+
+    nsCAutoString ourUuid;
+    GetUuid(ourUuid);
+    newCard->SetDirectoryId(ourUuid);
 
     if (!didCopy) {
         retCode = newCard->Copy(aData) ;
@@ -1490,6 +1499,7 @@ nsresult OutlookCardForURI(const nsACString &aUri, nsIAbCard **newCard)
   NS_ENSURE_SUCCESS(rv, rv);
 
   card->SetPropertyAsAUTF8String("OutlookEntryURI", aUri);
+  card->SetLocalId(aUri);
 
   nsMapiEntry mapiData;
   mapiData.Assign(entry);

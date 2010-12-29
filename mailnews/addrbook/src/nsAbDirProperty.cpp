@@ -75,7 +75,19 @@ nsAbDirProperty::~nsAbDirProperty(void)
 #endif
 }
 
-NS_IMPL_ISUPPORTS1(nsAbDirProperty,nsIAbDirectory)
+NS_IMPL_ISUPPORTS3(nsAbDirProperty, nsIAbDirectory, nsIAbCollection, nsIAbItem)
+
+NS_IMETHODIMP nsAbDirProperty::GetUuid(nsACString &uuid)
+{
+  // XXX: not all directories have a dirPrefId...
+  nsresult rv = GetDirPrefId(uuid);
+  NS_ENSURE_SUCCESS(rv, rv);
+  uuid.Append('&');
+  nsString dirName;
+  GetDirName(dirName);
+  uuid.Append(NS_ConvertUTF16toUTF8(dirName));
+  return rv;
+}
 
 NS_IMETHODIMP nsAbDirProperty::GenerateName(PRInt32 aGenerateFormat,
                                             nsIStringBundle *aBundle,

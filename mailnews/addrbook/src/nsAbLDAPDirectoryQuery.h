@@ -66,6 +66,7 @@ protected:
 private:
   nsCOMPtr<nsILDAPConnection> mConnection;
   nsCOMPtr<nsILDAPURL> mDirectoryUrl;
+  nsCString mDirectoryId;
   nsCOMArray<nsIAbDirSearchListener> mListeners;
   nsCString mCurrentLogin;
   nsCString mCurrentMechanism;

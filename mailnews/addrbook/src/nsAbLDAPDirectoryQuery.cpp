@@ -402,6 +402,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   if (!mConnection || !mDirectoryUrl)
   {
     mDirectoryUrl = currentUrl;
+    aDirectory->GetUuid(mDirectoryId);
     mCurrentLogin = login;
     mCurrentMechanism = saslMechanism;
     mCurrentProtocolVersion = protocolVersion;
@@ -420,6 +421,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
     if (!equal)
     {
       mDirectoryUrl = currentUrl;
+      aDirectory->GetUuid(mDirectoryId);
       mCurrentLogin = login;
       mCurrentMechanism = saslMechanism;
       mCurrentProtocolVersion = protocolVersion;
@@ -628,6 +630,8 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::StopQuery(PRInt32 contextID)
 
 NS_IMETHODIMP nsAbLDAPDirectoryQuery::OnQueryFoundCard(nsIAbCard *aCard)
 {
+  aCard->SetDirectoryId(mDirectoryId);
+
   for (PRInt32 i = 0; i < mListeners.Count(); ++i)
     mListeners[i]->OnSearchFoundCard(aCard);
 

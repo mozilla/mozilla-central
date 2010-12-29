@@ -1252,10 +1252,46 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewCardAndAddToDB(nsIAbCard *aNewCard, PRBoo
 {
   nsCOMPtr <nsIMdbRow> cardRow;
 
-  if (!aNewCard || !m_mdbPabTable || !m_mdbEnv)
+  if (!aNewCard || !m_mdbPabTable || !m_mdbEnv || !m_mdbStore)
     return NS_ERROR_NULL_POINTER;
 
-  nsresult rv = GetNewRow(getter_AddRefs(cardRow));
+  // Per the UUID requirements, we want to try to reuse the local id if at all
+  // possible. nsACString::ToInteger probably won't fail if the local id looks
+  // like "23bozo" (returning 23 instead), but it's okay since we aren't going
+  // to overwrite anything with 23 if it already exists and the id for the row
+  // doesn't matter otherwise.
+  nsresult rv;
+
+  nsCAutoString id;
+  aNewCard->GetLocalId(id);
+
+  mdbOid rowId;
+  rowId.mOid_Scope = m_CardRowScopeToken;
+  rowId.mOid_Id = id.ToInteger(&rv, 10);
+  if (NS_SUCCEEDED(rv))
+  {
+    // Mork is being very naughty here. If the table does not have the oid, we
+    // should be able to reuse it. To be on the safe side, however, we're going
+    // to reference the store's reference count.
+    mdb_count rowCount = 1;
+    m_mdbStore->GetRowRefCount(m_mdbEnv, &rowId, &rowCount);
+    if (rowCount == 0)
+    {
+      // So apparently, the row can have a count of 0 yet still exist (probably
+      // meaning we haven't flushed it out of memory). In this case, we need to
+      // get the row and cut its cells.
+      rv = m_mdbStore->GetRow(m_mdbEnv, &rowId, getter_AddRefs(cardRow));
+      if (NS_SUCCEEDED(rv) && cardRow)
+        cardRow->CutAllColumns(m_mdbEnv);
+      else
+        rv = m_mdbStore->NewRowWithOid(m_mdbEnv, &rowId, getter_AddRefs(cardRow));
+    }
+  }
+
+  // If we don't have a cardRow yet, just get one with any ol' id.
+  if (!cardRow)
+    rv = GetNewRow(getter_AddRefs(cardRow));
+
   if (NS_SUCCEEDED(rv) && cardRow)
   {
     AddAttributeColumnsToRow(aNewCard, cardRow);
@@ -1266,6 +1302,13 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewCardAndAddToDB(nsIAbCard *aNewCard, PRBoo
     rv = GetIntColumn(cardRow, m_RecordKeyColumnToken, &key, 0);
     if (NS_SUCCEEDED(rv))
       aNewCard->SetPropertyAsUint32(kRecordKeyColumn, key);
+    
+    aNewCard->GetPropertyAsAUTF8String(kRowIDProperty, id);
+    aNewCard->SetLocalId(id);
+
+    if (m_dbDirectory)
+      m_dbDirectory->GetUuid(id);
+    aNewCard->SetDirectoryId(id);
 
     mdb_err merror = m_mdbPabTable->AddRow(m_mdbEnv, cardRow);
     if (merror != NS_OK) return NS_ERROR_FAILURE;
@@ -1632,6 +1675,9 @@ NS_IMETHODIMP nsAddrDatabase::DeleteCard(nsIAbCard *aCard, PRBool aNotify, nsIAb
   NS_ENSURE_SUCCESS(err,err);
   if (!pCardRow)
     return NS_OK;
+
+  // Reset the directory id
+  aCard->SetDirectoryId(EmptyCString());
 
   // Add the deleted card to the deletedcards table
   nsCOMPtr <nsIMdbRow> cardRow;
@@ -2907,6 +2953,14 @@ nsresult nsAddrDatabase::CreateCard(nsIMdbRow* cardRow, mdb_id listRowID, nsIAbC
         InitCardFromRow(personCard, cardRow);
         personCard->SetPropertyAsUint32(kRowIDProperty, rowID);
 
+        nsCAutoString id;
+        id.AppendInt(rowID);
+        personCard->SetLocalId(id);
+
+        if (m_dbDirectory)
+         m_dbDirectory->GetUuid(id);
+        personCard->SetDirectoryId(id);
+
         NS_IF_ADDREF(*result = personCard);
     }
 
@@ -2953,6 +3007,14 @@ nsresult nsAddrDatabase::CreateABListCard(nsIMdbRow* listRow, nsIAbCard **result
             personCard->SetPropertyAsUint32(kRowIDProperty, rowID);
             personCard->SetIsMailList(PR_TRUE);
             personCard->SetMailListURI(listURI);
+
+            nsCAutoString id;
+            id.AppendInt(rowID);
+            personCard->SetLocalId(id);
+
+            if (m_dbDirectory)
+             m_dbDirectory->GetUuid(id);
+            personCard->SetDirectoryId(id);
         }
 
         NS_IF_ADDREF(*result = personCard);

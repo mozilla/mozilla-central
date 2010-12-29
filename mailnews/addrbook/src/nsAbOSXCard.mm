@@ -187,6 +187,8 @@ nsAbOSXCard::Init(const char *aUri)
   nsresult rv = nsRDFResource::Init(aUri);
   NS_ENSURE_SUCCESS(rv, rv);
   
+  SetLocalId(nsDependentCString(aUri));
+
   return Update(PR_FALSE);
 }
 

@@ -53,7 +53,15 @@ interface nsIAbPreferMailFormat {
 /**
  * An interface representing an address book card.
  *
- * Fundamentally, it is a collection of properties. Modifying a property in
+ * The UUID of a card is a composition of a directory ID and a per-directory ID.
+ * The per-directory ID is reflected in the localId property. If either of these
+ * properties change, the UUID will change correspondingly.
+ *
+ * None of these IDs will be reflected in the property collection. Neither
+ * nsIAbCard::properties, nsIAbCard::deleteProperty, nor any of the property
+ * getters and setters are able to interact with these properties.
+ *
+ * Fundamentally, a card is a collection of properties. Modifying a property in
  * some way on a card does not change the backend used to store the card; the
  * directory is required to do make the changes here.
  *
@@ -90,9 +98,54 @@ interface nsIAbPreferMailFormat {
  *   - PhotoName
  *   - PhotoType
  *   - PhotoURI
+ *
+ * The contract id for the standard implementation is
+ * <tt>\@mozilla.org/addressbook/cardproperty;1</tt>.
  */
-[scriptable, uuid(fdac4023-cd19-4e75-9a88-8e48881076ea)]
+[scriptable, uuid(21c4308b-e1e2-4ab2-abdc-e1f4431c7055)]
 interface nsIAbCard : nsIAbItem {
+  /**
+   * The UUID for the nsIAbDirectory containing this card.
+   *
+   * The directory considered to contain this card is the directory which
+   * produced this card (e.g., through nsIAbDirectory::getCardForProperty) or
+   * the last directory to modify this card, if another directory did so. If the
+   * last directory to modify this card deleted it, then this card is considered
+   * unassociated.
+   *
+   * If this card is not associated with a directory, this string will be empty.
+   *
+   * There is no standardized way to associate a card with multiple directories.
+   *
+   * Consumers of this interface outside of directory implementations SHOULD
+   * NOT, in general, modify this property.
+   */
+  attribute AUTF8String directoryId;
+
+  /**
+   * The per-directory ID of this card.
+   *
+   * This property is the second part of the tuple logically representing a card
+   * UUID. It shares many requirements with that of nsIAbItem::uuid. In
+   * particular:
+   * - It MUST be unique (within the scope of its directory).
+   * - The empty string MUST only be used to indicate that it has not yet been
+   *   assigned a localId.
+   * - It is STRONGLY RECOMMENDED that this id is consistent across sessions and
+   *   that, should the card be deleted, its ids will not be reused.
+   * - The format of localId is left undefined.
+   *
+   * As long as directoryId is not changed, this property SHOULD NOT be changed.
+   * If directoryId is changed, the new directory MAY choose to reuse the same
+   * localId if reasonable. However, consumers MUST NOT assume that two cards
+   * with different directoryIds but the same localId are logically the same
+   * card.
+   *
+   * Similar to directoryId, consumers of cards outside of directory
+   * implementations SHOULD NOT, in general, modify this property.
+   */
+  attribute AUTF8String localId;
+
   /**
    * A list of all the properties that this card has as an enumerator, whose
    * members are all nsIProperty objects.

@@ -77,6 +77,7 @@ protected:
   // Store most of the properties here
   nsInterfaceHashtable<nsCStringHashKey, nsIVariant> m_properties;
 
+  nsCString m_directoryId, m_localId;
 private:
   nsresult AppendSection(const AppendItem *aArray, PRInt16 aCount, const nsString& aHeading, nsIStringBundle *aBundle, mozITXTToHTMLConv *aConv, nsString &aResult);
   nsresult AppendLine(const AppendItem &aItem, mozITXTToHTMLConv *aConv, nsString &aResult);

@@ -53,7 +53,7 @@ interface nsISimpleEnumerator;
  * It contains the main functions to create and delete address books as well
  * as some helper functions.
  */
-[scriptable, uuid(3b869b86-c4df-4cae-8dc9-c18073d2593f)]
+[scriptable, uuid(549bf1f6-ada4-40c5-9f59-4ea9eda4a935)]
 interface nsIAbManager : nsISupports 
 {
   /**
@@ -189,4 +189,16 @@ interface nsIAbManager : nsISupports
    * @return            A card containing the translated vcard data.
    */
   nsIAbCard escapedVCardToAbCard(in string escapedVCardStr);
+
+  /**
+   * Generates a UUID from a (directory ID, local ID) tuple.
+   *
+   * Use of this method is preferred in such cases, since it is designed to work
+   * with other methods of this interface.
+   *
+   * @param directoryId The directory ID.
+   * @param localId     The per-directory ID.
+   * @return            A string to use for the UUID.
+   */
+  AUTF8String generateUUID(in AUTF8String directoryId, in AUTF8String localId);
 };

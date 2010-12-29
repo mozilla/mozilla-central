@@ -809,6 +809,10 @@ NS_IMETHODIMP nsAbLDAPDirectory::AddCard(nsIAbCard *aUpdatedCard,
   rv = card->SetDn(cardDN);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  nsCAutoString ourUuid;
+  GetUuid(ourUuid);
+  copyToCard->SetDirectoryId(ourUuid);
+
   // Launch query
   rv = DoModify(this, nsILDAPModification::MOD_ADD, cardDN, modArray,
                 EmptyCString(), EmptyCString());
@@ -842,6 +846,9 @@ NS_IMETHODIMP nsAbLDAPDirectory::DeleteCards(nsIArray *aCards)
     
     rv = card->GetDn(cardDN);
     NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIAbCard> realCard(do_QueryInterface(card));
+    realCard->SetDirectoryId(EmptyCString());
    
     // Launch query
     rv = DoModify(this, nsILDAPModification::MOD_DELETE, cardDN, nsnull,

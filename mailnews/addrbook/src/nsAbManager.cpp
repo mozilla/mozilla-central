@@ -1245,3 +1245,13 @@ nsAbManager::GetHelpInfo(nsACString& aResult)
   aResult.Assign(NS_LITERAL_CSTRING("  -addressbook       Open the address book at startup.\n"));
   return NS_OK;
 }
+
+NS_IMETHODIMP
+nsAbManager::GenerateUUID(const nsACString &aDirectoryId,
+                          const nsACString &aLocalId, nsACString &uuid)
+{
+  uuid.Assign(aDirectoryId);
+  uuid.Append('#');
+  uuid.Append(aLocalId);
+  return NS_OK;
+}

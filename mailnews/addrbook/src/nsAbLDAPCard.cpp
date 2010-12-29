@@ -275,6 +275,7 @@ NS_IMETHODIMP nsAbLDAPCard::GetDn(nsACString &aDN)
 
 NS_IMETHODIMP nsAbLDAPCard::SetDn(const nsACString &aDN)
 {
+  SetLocalId(aDN);
   return SetPropertyAsAUTF8String(kDNColumn, aDN);
 }
 

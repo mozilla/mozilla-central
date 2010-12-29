@@ -497,6 +497,9 @@ nsAbOSXDirectory::Init(const char *aUri)
     cardList = mCardList;
   }
 
+  nsCAutoString ourUuid;
+  GetUuid(ourUuid);
+
   unsigned int nbCards = [cards count];
   nsCOMPtr<nsIAbCard> card;
   for (unsigned int i = 0; i < nbCards; ++i)
@@ -504,6 +507,8 @@ nsAbOSXDirectory::Init(const char *aUri)
     rv = ConvertToCard(gRDFService, [cards objectAtIndex:i],
                        getter_AddRefs(card));
     NS_ENSURE_SUCCESS(rv, rv);
+
+    card->SetDirectoryId(ourUuid);
 
     cardList->AppendElement(card, PR_FALSE);
   }
@@ -745,6 +750,10 @@ nsresult
 nsAbOSXDirectory::AssertCard(nsIAbManager *aManager,
                              nsIAbCard *aCard)
 {
+  nsCAutoString ourUuid;
+  GetUuid(ourUuid);
+  aCard->SetDirectoryId(ourUuid);
+
   nsresult rv = m_IsMailList ? m_AddressList->AppendElement(aCard, PR_FALSE) :
                                mCardList->AppendElement(aCard, PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -818,6 +827,10 @@ nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
       mCardList->Clear();
     NS_ENSURE_SUCCESS(rv, rv);
   
+    // The uuid for initializing cards
+    nsCAutoString ourUuid;
+    GetUuid(ourUuid);
+
     // Fill the results array and update the card list
     unsigned int nbCards = [cards count];
   
@@ -828,6 +841,7 @@ nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
       rv = ConvertToCard(gRDFService, [cards objectAtIndex:i],
                          getter_AddRefs(card));
       NS_ENSURE_SUCCESS(rv, rv);
+      card->SetDirectoryId(ourUuid);
 
       mCardList->AppendElement(card, PR_FALSE);
     }
@@ -1045,6 +1059,10 @@ nsAbOSXDirectory::OnSearchFoundCard(nsIAbCard *aCard)
   
   rv = mCardList->AppendElement(aCard, PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCAutoString ourUuid;
+  GetUuid(ourUuid);
+  aCard->SetDirectoryId(ourUuid);
   
   return NS_OK;
 }

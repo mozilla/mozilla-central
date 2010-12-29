@@ -45,8 +45,25 @@ interface nsIStringBundle;
 /**
  * A containable item for address books.
  */
-[scriptable, uuid(f7320616-3139-419b-a7c3-37441da3caf3)]
+[scriptable, uuid(bb691a55-cbfe-4cf8-974a-e18cfa845a73)]
 interface nsIAbItem : nsISupports {
+  /**
+   * A universally-unique identifier for this item.
+   *
+   * If this item cannot be associated with a UUID for some reason, it MUST
+   * return the empty string. The empty string MUST NOT be a valid UUID for any
+   * item. Under no circumstances may this function throw an error.
+   *
+   * It is STRONGLY RECOMMENDED that implementations guarantee that this UUID
+   * will not change between two different sessions of the application and that,
+   * if this item is deleted, the UUID will not be reused.
+   *
+   * The format of the UUID for a generic nsIAbItem is purposefully left
+   * undefined, although any item contained by an nsIAbDirectory SHOULD use
+   * nsIAbManager::generateUUID to generate the UUID.
+   */
+  readonly attribute AUTF8String uuid;
+
   /**
    * @{
    * These constants reflect the possible values of the
