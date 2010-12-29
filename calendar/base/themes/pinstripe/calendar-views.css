@@ -290,7 +290,7 @@ calendar-event-box[selected="true"] {
     border-bottom: 1px solid #727272;
 }
 
-calendar-event-box[selected="true"] .calendar-event-selection {
+calendar-event-box[selected="true"] .calendar-color-box {
     color: #000000 !important;
     background-color: #ffdb67 !important;
 }
@@ -500,7 +500,7 @@ calendar-month-day-box-item {
     padding: 0px 1px;
 }
 
-calendar-month-day-box-item[selected="true"] .calendar-event-selection {
+calendar-month-day-box-item[selected="true"] .calendar-color-box {
     color: #000000 !important;
     background-color: #ffdb67 !important;
 }
@@ -667,14 +667,25 @@ calendar-month-day-box-item[invitation-status="NEEDS-ACTION"] {
 
 calendar-event-box[invitation-status="TENTATIVE"],
 calendar-editable-item[invitation-status="TENTATIVE"],
-calendar-month-day-box-item[invitation-status="TENTATIVE"] {
+calendar-month-day-box-item[invitation-status="TENTATIVE"],
+calendar-event-box[status="TENTATIVE"],
+calendar-editable-item[status="TENTATIVE"],
+calendar-month-day-box-item[status="TENTATIVE"] {
     opacity: 0.5;
 }
 
 calendar-event-box[invitation-status="DECLINED"],
 calendar-editable-item[invitation-status="DECLINED"],
-calendar-month-day-box-item[invitation-status="DECLINED"] {
-    opacity: 0.3;
+calendar-month-day-box-item[invitation-status="DECLINED"],
+calendar-event-box[status="CANCELLED"],
+calendar-editable-item[status="CANCELLED"],
+calendar-month-day-box-item[status="CANCELLED"] {
+    opacity: 0.5;
+}
+
+calendar-month-day-box-item[status="CANCELLED"] .calendar-color-box,
+calendar-event-box[status="CANCELLED"] .calendar-color-box {
+    text-decoration: line-through;
 }
 
 /* Navigation controls for the views */

@@ -246,7 +246,7 @@
 
           // status attribute
           if (item.status) {
-              this.setAttribute("status", item.status.toLowerCase());
+              this.setAttribute("status", item.status.toUpperCase());
           }
 
           // item class
