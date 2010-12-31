@@ -44,10 +44,10 @@
 
 /* parses NewsMessageURI */
 nsresult
-nsParseNewsMessageURI(const char* uri, nsCString& folderURI, PRUint32 *key)
+nsParseNewsMessageURI(const char* uri, nsCString& group, PRUint32 *key)
 {
-    NS_ENSURE_ARG_POINTER(uri);
-    NS_ENSURE_ARG_POINTER(key);
+  NS_ENSURE_ARG_POINTER(uri);
+  NS_ENSURE_ARG_POINTER(key);
 
   nsCAutoString uriStr(uri);
   PRInt32 keySeparator = uriStr.FindChar('#');
@@ -55,8 +55,12 @@ nsParseNewsMessageURI(const char* uri, nsCString& folderURI, PRUint32 *key)
   {
     PRInt32 keyEndSeparator = MsgFindCharInSet(uriStr, "?&", keySeparator);
 
-    folderURI = StringHead(uriStr, keySeparator);
-    folderURI.Cut(4, 8);    // cut out the -message part of news-message:
+    // Grab between the last '/' and the '#' for the key
+    group = StringHead(uriStr, keySeparator);
+    PRInt32 groupSeparator = group.RFind("/");
+    if (groupSeparator == -1)
+      return NS_ERROR_FAILURE;
+    group = Substring(group, groupSeparator + 1);
 
     nsCAutoString keyStr;
     if (keyEndSeparator != -1)

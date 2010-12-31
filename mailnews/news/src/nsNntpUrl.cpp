@@ -124,7 +124,6 @@ NS_IMETHODIMP nsNntpUrl::SetSpec(const nsACString &aSpec)
     GetSpec(spec);
     rv = nsParseNewsMessageURI(spec.get(), m_group, &m_key);
     NS_ENSURE_SUCCESS(rv, NS_ERROR_MALFORMED_URI);
-    m_group = Substring(m_group, m_group.RFind("/") + 1);
   }
   else
     return NS_ERROR_MALFORMED_URI;

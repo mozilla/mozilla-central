@@ -55,7 +55,7 @@ static const char kNewsURIKeyQuery[] = "&key=";
 #define kNewsURIKeyQueryLen 5
 
 extern nsresult
-nsParseNewsMessageURI(const char* uri, nsCString& messageUriWithoutKey, PRUint32 *key);
+nsParseNewsMessageURI(const char* uri, nsCString& group, PRUint32 *key);
 
 extern nsresult
 nsCreateNewsBaseMessageURI(const char *baseURI, nsCString &baseMessageURI);
