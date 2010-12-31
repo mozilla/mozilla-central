@@ -1741,9 +1741,9 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
    if (NS_SUCCEEDED(rv))
    {
      nsCOMPtr<nsISupportsArray> allServers;
-     accountMgr->GetAllServers(getter_AddRefs(allServers));
+     rv = accountMgr->GetAllServers(getter_AddRefs(allServers));
      NS_ENSURE_SUCCESS(rv, rv);
-     PRUint32 numServers, serverIndex=0;
+     PRUint32 numServers = 0, serverIndex = 0;
      rv = allServers->Count(&numServers);
      PRInt32 offlineSupportLevel;
      if ( numServers > 0 )
