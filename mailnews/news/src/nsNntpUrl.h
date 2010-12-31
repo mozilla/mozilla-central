@@ -55,7 +55,8 @@ public:
 
   NS_IMETHOD IsUrlType(PRUint32 type, PRBool *isType);
 
-  // nsIMsgFolder override
+  // nsIMsgMailNewsUrl overrides
+  NS_IMETHOD GetServer(nsIMsgIncomingServer **server);
   NS_IMETHOD GetFolder(nsIMsgFolder **msgFolder);
   NS_IMETHOD Clone(nsIURI **_retval);
 
@@ -87,6 +88,7 @@ private:
 
   nsCString m_group;
   nsCString m_messageID;
+  PRUint32 m_key;
 };
 
 #endif // nsNntpUrl_h__

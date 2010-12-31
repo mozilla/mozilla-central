@@ -25,15 +25,15 @@ function run_test() {
     let hdr = getMessageHeaderFromUrl("nntp://localhost:" + NNTP_PORT);
     do_check_true(false); 
   } catch (e) {
-    do_check_true(e.result == Components.results.NS_ERROR_ILLEGAL_VALUE);
+    do_check_eq(e.result, Components.results.NS_ERROR_MALFORMED_URI);
   }
 
   try {
     // msgkey is invalid for news:// protocol
     let hdr = getMessageHeaderFromUrl("news://localhost:" + NNTP_PORT +
-                                      "/message-id?group=test.subscribe.simple&key=abcdefghijk");
+                                      "/123@example.invalid?group=test.subscribe.simple&key=abcdefghijk");
     do_check_true(false); 
   } catch (e) {
-    do_check_true(e.result == Components.results.NS_ERROR_ILLEGAL_VALUE);
+    do_check_eq(e.result, Components.results.NS_ERROR_MALFORMED_URI);
   }
 }

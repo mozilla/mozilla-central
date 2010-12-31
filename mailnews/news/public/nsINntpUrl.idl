@@ -67,7 +67,7 @@ typedef long nsNewsAction;
  * * Some actions require either a group or a message id. Since actions can be
  *   set after the fact, these conditions are not verified.
  */
-[scriptable, uuid(d2ac7147-63c4-4f3f-b949-552381bc5241)]
+[scriptable, uuid(5f250c8c-d6b7-48b7-8ff4-7ff51dba19ae)]
 interface nsINntpUrl : nsISupports {
   /// For ActionPostArticle URIs, the message to be posted.
   attribute nsINNTPNewsgroupPost messageToPost;
@@ -93,6 +93,9 @@ interface nsINntpUrl : nsISupports {
 
   /// The message ID portion of the URI, if one is present
   readonly attribute ACString messageID;
+
+  /// The message key portion of the URI or nsMsgKey_None if not present
+  readonly attribute unsigned long key;
 
   /// The action of this news URI could not be determined
   const nsNewsAction ActionUnknown = 0;
