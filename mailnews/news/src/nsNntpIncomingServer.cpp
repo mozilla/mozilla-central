@@ -512,7 +512,7 @@ nsNntpIncomingServer::CreateProtocolInstance(nsINNTPProtocol ** aNntpConnection,
   // we may need to flag the protocol connection as busy so we don't get
   // a race
   // condition where someone else goes through this code
-  nsNNTPProtocol * protocolInstance = new nsNNTPProtocol(url, aMsgWindow);
+  nsNNTPProtocol *protocolInstance = new nsNNTPProtocol(this, url, aMsgWindow);
   if (!protocolInstance)
     return NS_ERROR_OUT_OF_MEMORY;
 

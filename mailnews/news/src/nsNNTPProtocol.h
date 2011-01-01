@@ -161,9 +161,10 @@ public:
     // nsITimerCallback interfaces
     NS_DECL_NSITIMERCALLBACK
 
-    // Creating a protocol instance requires the URL
-    // need to call Initialize after we do a new of nsNNTPProtocol
-    nsNNTPProtocol(nsIURI * aURL, nsIMsgWindow *aMsgWindow);
+  // Creating a protocol instance requires the URL
+  // need to call Initialize after we do a new of nsNNTPProtocol
+  nsNNTPProtocol(nsINntpIncomingServer *aServer, nsIURI *aURL,
+                 nsIMsgWindow *aMsgWindow);
   virtual ~nsNNTPProtocol();
 
   // stop binding is a "notification" informing us that the stream associated with aURL is going away.

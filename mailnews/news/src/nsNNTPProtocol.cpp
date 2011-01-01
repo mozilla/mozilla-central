@@ -303,8 +303,10 @@ NS_INTERFACE_MAP_BEGIN(nsNNTPProtocol)
   NS_INTERFACE_MAP_ENTRY(nsICacheListener)
 NS_INTERFACE_MAP_END_INHERITING(nsMsgProtocol)
 
-nsNNTPProtocol::nsNNTPProtocol(nsIURI * aURL, nsIMsgWindow *aMsgWindow)
-: nsMsgProtocol(aURL)
+nsNNTPProtocol::nsNNTPProtocol(nsINntpIncomingServer *aServer, nsIURI *aURL,
+                               nsIMsgWindow *aMsgWindow)
+: nsMsgProtocol(aURL),
+  m_nntpServer(aServer)
 {
   if (!NNTP)
     NNTP = PR_NewLogModule("NNTP");
@@ -374,30 +376,7 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
   }
   nsMsgProtocol::InitFromURI(aURL);
 
-  nsCAutoString userPass;
-  rv = m_url->GetUserPass(userPass);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  nsCAutoString hostName;
-  rv = m_url->GetAsciiHost(hostName);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  nsCString unescapedUserPass;
-  MsgUnescapeString(userPass, 0, unescapedUserPass);
-
-  // find the server
-  nsCOMPtr<nsIMsgIncomingServer> server;
-  rv = accountManager->FindServer(unescapedUserPass, hostName, NS_LITERAL_CSTRING("nntp"),
-    getter_AddRefs(server));
-  NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
-  if (!server) return NS_MSG_INVALID_OR_MISSING_SERVER;
-
-  m_nntpServer = do_QueryInterface(server, &rv);
-  NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
-  if (!m_nntpServer) return NS_MSG_INVALID_OR_MISSING_SERVER;
+  nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_nntpServer);
 
   rv = m_nntpServer->GetMaxArticles(&m_maxArticles);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -488,7 +467,6 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
       ir = do_QueryInterface(docShell);
     }
 
-    PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) opening connection to %s on port %d",this, hostName.get(), port));
     // call base class to set up the transport
 
     PRInt32 port = 0;
@@ -497,6 +475,9 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
 
     rv = server->GetRealHostName(hostName);
     NS_ENSURE_SUCCESS(rv, rv);
+
+    PR_LOG(NNTP, PR_LOG_ALWAYS, ("(%p) opening connection to %s on port %d",
+      this, hostName.get(), port));
 
     nsCOMPtr<nsIProxyInfo> proxyInfo;
     rv = MsgExamineForProxy("nntp", hostName.get(), port, getter_AddRefs(proxyInfo));
@@ -1262,6 +1243,9 @@ nsNNTPProtocol::ParseURL(nsIURI *aURL, nsCString &aGroup, nsCString &aMessageID)
     nsCOMPtr<nsIMsgMessageUrl> msgUrl = do_QueryInterface(m_runningURL, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
+    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(msgUrl, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
     nsCString spec;
     rv = msgUrl->GetOriginalSpec(getter_Copies(spec));
     NS_ENSURE_SUCCESS(rv,rv);
@@ -1302,66 +1286,28 @@ nsNNTPProtocol::ParseURL(nsIURI *aURL, nsCString &aGroup, nsCString &aMessageID)
   if (m_newsAction == nsINntpUrl::ActionCancelArticle)
     return NS_OK;
 
-  nsCAutoString serverURI;
+  rv = m_runningURL->GetKey(&m_key);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  if (!aMessageID.IsEmpty())
+  // Check if the key is in the local cache.
+  // It's possible that we're have a server/group/key combo that doesn't exist
+  // (think nntp://server/group/key), so not having the folder isn't a bad
+  // thing.
+  if (m_key != nsMsgKey_None)
   {
-    // if this is a message id, use the pre path (the server) for the folder uri.
-    rv = aURL->GetPrePath(serverURI);
-    NS_ENSURE_SUCCESS(rv,rv);
-  }
-  else if (!aGroup.IsEmpty())
-  {
-    if (aGroup.Find("*") >= 0) {
-      rv = aURL->GetPrePath(serverURI);
-      NS_ENSURE_SUCCESS(rv,rv);
-    }
-    else {
-      // let if fall through.  we'll set m_newsFolder later.
-    }
-  }
+    rv = mailnewsUrl->GetFolder(getter_AddRefs(folder));
+    m_newsFolder = do_QueryInterface(folder);
 
-  if (!serverURI.IsEmpty()) {
-    // if we get here, we, we are either doing:
-    // news://host/message-id or news://host/*
-    // (but not news://host/message-id?cancel)
-    // for authentication, we set m_newsFolder to be the server's folder.
-    // while we are here, we set m_nntpServer.
-
-    if (!aMessageID.IsEmpty())
-    { // for news://host/message-id decompose complete url
-      nsCAutoString urlSpec;
-      m_url->GetAsciiSpec(urlSpec);
-      rv = nntpService->DecomposeNewsURI(urlSpec.get(), getter_AddRefs(folder), &m_key);
-    }
-    if (aMessageID.IsEmpty() || NS_FAILED(rv))
-    { // for news://host/* decompose only server uri
-      rv = nntpService->DecomposeNewsURI(serverURI.get(), getter_AddRefs(folder), &m_key);
-      NS_ENSURE_SUCCESS(rv,rv);
-    }
-
-
-    if (m_key != nsMsgKey_None)
+    if (NS_SUCCEEDED(rv) && m_newsFolder)
     {
-      // check if message is in local cache
       PRBool useLocalCache = PR_FALSE;
       rv = folder->HasMsgOffline(m_key, &useLocalCache);
       NS_ENSURE_SUCCESS(rv,rv);
 
       // set message is in local cache
-      nsCOMPtr <nsIMsgMailNewsUrl> newsURL = do_QueryInterface(m_url);
-      rv = newsURL->SetMsgIsInLocalCache(useLocalCache);
+      rv = mailnewsUrl->SetMsgIsInLocalCache(useLocalCache);
       NS_ENSURE_SUCCESS(rv,rv);
     }
-
-    // since we are reading a message in this folder, we can set m_newsFolder
-    m_newsFolder = do_QueryInterface(folder, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    rv = m_newsFolder->GetNntpServer(getter_AddRefs(m_nntpServer));
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    m_currentGroup.Truncate();
   }
 
   return NS_OK;
