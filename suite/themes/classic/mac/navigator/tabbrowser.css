@@ -117,6 +117,14 @@ tabpanels {
   -moz-border-left-colors: transparent transparent;
 }
 
+.toolbarbutton-text {
+  display: none;
+}
+
+.toolbarbutton-icon {
+  margin: 0 !important; /* needs to override communicator.css */
+}
+
 /* ::::: Tab scrollbox arrow ::::: */
 
 .scrollbutton-up,
@@ -148,7 +156,7 @@ tabpanels {
 
 .scrollbutton-down[notifybgtab="true"] {
   background-color: Highlight;
-  box-shadow: 0 0 9px 9px Highlight inset;
+  box-shadow: 0 0 0 9px rgba(0, 0, 0, 0.2) inset;
   -moz-transition: none;
 }
 
@@ -190,11 +198,6 @@ tabpanels {
 
 .tabs-closebutton:active:hover {
   list-style-image: url("chrome://global/skin/icons/closetab-active.png");
-}
-
-.tabs-closebutton > .toolbarbutton-icon,
-.tabs-closebutton > .toolbarbutton-text {
-  margin: 0 !important;
 }
 
 .tabs-newbutton {
