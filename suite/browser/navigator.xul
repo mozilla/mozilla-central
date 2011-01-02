@@ -168,7 +168,7 @@
     <!-- Bookmarks and history tooltip -->
     <tooltip id="bhTooltip"/>
 
-    <panel id="notification-popup" position="after_start" noautofocus="true" hidden="true"/>
+    <panel id="notification-popup" type="arrow" position="after_start" noautofocus="true" hidden="true"/>
 
     <menupopup id="popupBlockerMenu"
                oncommand="popupBlockerMenuCommand(event.target);"

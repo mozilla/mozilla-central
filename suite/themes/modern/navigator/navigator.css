@@ -510,11 +510,6 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
 
 /* ::::: notification popups ::::: */
 
-#notification-popup {
-  padding: 10px;
-  margin-top: 3px;
-}
-
 .popup-notification-icon {
   width: 64px;
   height: 64px;
