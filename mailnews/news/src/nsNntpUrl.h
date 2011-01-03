@@ -69,6 +69,7 @@ public:
 private:
   nsresult DetermineNewsAction();
   nsresult ParseNewsURL();
+  nsresult ParseNntpURL();
 
   nsCOMPtr<nsINNTPNewsgroupPost> m_newsgroupPost;
   nsNewsAction m_newsAction; // the action this url represents...parse mailbox, display messages, etc.

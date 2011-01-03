@@ -1,0 +1,25 @@
+Message-ID: <89550684-f0df-4e9a-aea6-07645e238dd2>
+Subject: Attachment test
+From: =?ISO-8859-1?Q?Marcin_Miko=3Fajczak?= <marcin.mikolajczak@hotmail.invalid>
+Date: 2007-11-09 18:37:09
+Newsgroups: test1
+Content-Type: multipart/mixed; boundary="------------060805070701070202060104"
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.8.1.6) Gecko/20070728 Thunderbird/2.0.0.6 Mnenhy/0.7.5.666
+
+This is a multi-part message in MIME format.
+--------------060805070701070202060104
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+This message has an attachment.
+
+--------------060805070701070202060104
+Content-Type: text/plain;
+ name="Test.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="Test.txt"
+
+VGhpcyBpcyBhIHRlc3QgYXR0YWNobWVudC4=
+--------------060805070701070202060104--

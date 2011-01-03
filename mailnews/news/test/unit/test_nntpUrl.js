@@ -18,16 +18,6 @@ function getMessageHeaderFromUrl(aUrl) {
 function run_test() {
 
   // This is crash test for Bug 392729
-
-  try {
-    // nntp:// protocol isn't supported yet until bug 226890 is fixed.
-    // When We pass invlid nntp:// protocol format, we should throw a exception.
-    let hdr = getMessageHeaderFromUrl("nntp://localhost:" + NNTP_PORT);
-    do_check_true(false); 
-  } catch (e) {
-    do_check_eq(e.result, Components.results.NS_ERROR_MALFORMED_URI);
-  }
-
   try {
     // msgkey is invalid for news:// protocol
     let hdr = getMessageHeaderFromUrl("news://localhost:" + NNTP_PORT +

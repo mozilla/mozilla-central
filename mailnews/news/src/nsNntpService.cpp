@@ -1696,7 +1696,6 @@ nsNntpService::HandleContent(const char * aContentType, nsIInterfaceRequestor* a
       NS_ENSURE_SUCCESS(rv, rv);
 
       PRInt32 cutChar = uriStr.FindChar('?');
-      NS_ASSERTION(cutChar > 0, "No query in the list-ids?");
       if (cutChar > 0)
         uriStr.SetLength(cutChar);
 

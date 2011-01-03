@@ -109,7 +109,26 @@ NS_INTERFACE_MAP_END_INHERITING(nsMsgMailNewsUrl)
 
 NS_IMETHODIMP nsNntpUrl::SetSpec(const nsACString &aSpec)
 {
-  nsresult rv = nsMsgMailNewsUrl::SetSpec(aSpec);
+  // For [s]news: URIs, we need to munge the spec if it is no authority, because
+  // the URI parser guesses the wrong thing otherwise
+  nsCString parseSpec(aSpec);
+  PRInt32 colon = parseSpec.Find(":");
+
+  // Our smallest scheme is 4 characters long, so colon must be at least 4
+  if (colon < 4 || colon + 1 == (PRInt32) parseSpec.Length())
+    return NS_ERROR_MALFORMED_URI;
+
+  if (Substring(parseSpec, colon - 4, 4).EqualsLiteral("news") &&
+      parseSpec[colon + 1] != '/')
+  {
+    // To make this parse properly, we add in three slashes, which convinces the
+    // parser that the authority component is empty.
+    parseSpec = Substring(aSpec, 0, colon + 1);
+    parseSpec.AppendLiteral("///");
+    parseSpec += Substring(aSpec, colon + 1);
+  }
+
+  nsresult rv = nsMsgMailNewsUrl::SetSpec(parseSpec);
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCAutoString scheme;
@@ -118,6 +137,8 @@ NS_IMETHODIMP nsNntpUrl::SetSpec(const nsACString &aSpec)
 
   if (scheme.EqualsLiteral("news") || scheme.EqualsLiteral("snews"))
     rv = ParseNewsURL();
+  else if (scheme.EqualsLiteral("nntp") || scheme.EqualsLiteral("nntps"))
+    rv = ParseNntpURL();
   else if (scheme.EqualsLiteral("news-message"))
   {
     nsCAutoString spec;
@@ -140,13 +161,6 @@ nsresult nsNntpUrl::ParseNewsURL()
   nsCAutoString path;
   nsresult rv = GetFilePath(path);
   NS_ENSURE_SUCCESS(rv, rv);
-
-  // If the path is empty, we have no authority component
-  if (path.IsEmpty())
-  {
-    rv = GetSpec(path);
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
 
   // Drop the potential beginning from the path
   if (path.Length() && path[0] == '/')
@@ -174,6 +188,40 @@ nsresult nsNntpUrl::ParseNewsURL()
   }
   else
     MsgUnescapeString(path, 0, m_group);
+
+  return NS_OK;
+}
+
+nsresult nsNntpUrl::ParseNntpURL()
+{
+  nsCAutoString path;
+  nsresult rv = GetFilePath(path);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (path.Length() > 0 && path[0] == '/')
+    path = Substring(path, 1);
+
+  if (path.IsEmpty())
+    return NS_ERROR_MALFORMED_URI;
+
+  PRInt32 slash = path.FindChar('/');
+  if (slash == -1)
+  {
+    m_group = path;
+    m_key = nsMsgKey_None;
+  }
+  else
+  {
+    m_group = Substring(path, 0, slash);
+    nsCAutoString keyStr;
+    keyStr = Substring(path, slash + 1);
+    m_key = keyStr.ToInteger(&rv, 10);
+    NS_ENSURE_SUCCESS(rv, NS_ERROR_MALFORMED_URI);
+
+    // Keys must be at least one
+    if (m_key == 0)
+      return NS_ERROR_MALFORMED_URI;
+  }
 
   return NS_OK;
 }

@@ -178,3 +178,51 @@ function do_check_transaction(real, expected) {
   do_check_eq(real.them.join(","), expected.join(","));
   dump("Passed test " + test + "\n");
 }
+
+function make_article(file) {
+  var fstream = Cc["@mozilla.org/network/file-input-stream;1"]
+                  .createInstance(Ci.nsIFileInputStream);
+  var sstream = Cc["@mozilla.org/scriptableinputstream;1"]
+                  .createInstance(Ci.nsIScriptableInputStream);
+  fstream.init(file, -1, 0, 0);
+  sstream.init(fstream);
+
+  var post = "";
+  for (let part = sstream.read(4096); part.length > 0;) {
+    post += part;
+    part = sstream.read(4096);
+  }
+  sstream.close();
+  fstream.close();
+  return new newsArticle(post);
+}
+
+var articleTextListener = {
+  data: "",
+  finished: false,
+
+  QueryInterface:
+    XPCOMUtils.generateQI([Ci.nsIStreamListener, Ci.nsIRequestObserver]),
+
+  // nsIRequestObserver
+  onStartRequest: function(aRequest, aContext) {
+  },
+  onStopRequest: function(aRequest, aContext, aStatusCode) {
+    do_check_eq(aStatusCode, 0);
+
+    // Reduce any \r\n to just \n so we can do a good comparison on any
+    // platform.
+    this.data = this.data.replace(/\r\n/g, "\n");
+    this.finished = true;
+  },
+
+  // nsIStreamListener
+  onDataAvailable: function(aRequest, aContext, aInputStream, aOffset, aCount) {
+    let scriptStream = Cc["@mozilla.org/scriptableinputstream;1"]
+                         .createInstance(Ci.nsIScriptableInputStream);
+
+    scriptStream.init(aInputStream);
+
+    this.data += scriptStream.read(aCount);
+  }
+};

@@ -68,16 +68,73 @@ let tests = [
     key: 123
   },
 
+  // No-authority uris
+  { uri: "news:rec.games.pinball",
+    server: null,
+    folder: null,
+    newsAction: Ci.nsINntpUrl.ActionGetNewNews,
+    group: "rec.games.pinball",
+    host: ""
+  },
+  { uri: "news:message-id@some-host.invalid",
+    server: null,
+    folder: null,
+    newsAction: Ci.nsINntpUrl.ActionFetchArticle,
+    messageID: "message-id@some-host.invalid",
+    group: "",
+    key: 0xffffffff
+  },
+
   // news-message://host/group#key
   { uri: "news-message://localhost/test.simple.subscribe#1",
     newsAction: Ci.nsINntpUrl.ActionFetchArticle,
     group: "test.simple.subscribe",
     key: 1
   },
+
+  // nntp://host/group
+  { uri: "nntp://localhost/test.filter",
+    get server() { return localserver; },
+    get folder() { return localserver.rootFolder.getChildNamed("test.filter"); },
+    newsAction: Ci.nsINntpUrl.ActionGetNewNews,
+    group: "test.filter"
+  },
+  { uri: "nntp://localhost/i.dont.exist",
+    get server() { return localserver; },
+    folder: null,
+    newsAction: Ci.nsINntpUrl.ActionGetNewNews,
+    group: "i.dont.exist"
+  },
+  { uri: "nntp://news.example.invalid/i.dont.exist",
+    server: null,
+    folder: null,
+    newsAction: Ci.nsINntpUrl.ActionGetNewNews,
+    group: "i.dont.exist"
+  },
+
+  // nntp://host/group/key
+  { uri: "nntp://localhost/test.filter/123",
+    get server() { return localserver; },
+    get folder() { return localserver.rootFolder.getChildNamed("test.filter"); },
+    newsAction: Ci.nsINntpUrl.ActionFetchArticle,
+    group: "test.filter",
+    key: 123
+  },
+  { uri: "nntp://localhost/i.dont.exist/123",
+    get server() { return localserver; },
+    folder: null,
+    newsAction: Ci.nsINntpUrl.ActionFetchArticle,
+    group: "i.dont.exist",
+    key: 123
+  },
 ];
 
 let invalid_uris = [
-  "news-message://localhost/test.simple.subscribe#hello"
+  "news-message://localhost/test.simple.subscribe#hello",
+  "nntp://localhost/",
+  "nntp://localhost/a.group/hello",
+  "nntp://localhost/a.group/0",
+  "nntp:a.group"
 ];
 
 function run_test() {
