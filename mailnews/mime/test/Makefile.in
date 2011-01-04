@@ -52,6 +52,11 @@ endif
 CPP_UNIT_TESTS = \
 		TestMimeCrash.cpp \
 		$(NULL)
+
+LIBS += \
+	$(XPCOM_LIBS) \
+	$(NSPR_LIBS) \
+	$(NULL)
 endif
 
 XPCSHELL_TESTS = unit
