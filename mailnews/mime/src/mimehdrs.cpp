@@ -401,14 +401,14 @@ MimeHeaders_get (MimeHeaders *hdrs, const char *header_name,
     char *s;
 
     /* Skip over whitespace after colon. */
-    while (contents <= end && IS_SPACE(contents[0])) {
+    while (contents < end && IS_SPACE(contents[0])) {
       /* Mac or Unix style line break, followed by space or tab. */
-      if (contents <= (end - 1) &&
+      if (contents < (end - 1) &&
          (contents[0] == '\r' || contents[0] == '\n') &&
          (contents[1] == ' ' || contents[1] == '\t'))
         contents += 2;
       /* Windows style line break, followed by space or tab. */
-      else if (contents <= (end - 2) &&
+      else if (contents < (end - 2) &&
                contents[0] == '\r' && contents[1] == '\n' &&
               (contents[2] == ' ' || contents[2] == '\t'))
         contents += 3;
@@ -419,8 +419,10 @@ MimeHeaders_get (MimeHeaders *hdrs, const char *header_name,
          followed by non-whitespace, or a line break followed by
          another line break
        */
-      else
+      else {
+        end = contents;
         break;
+      }
     }
 
     /* If we're supposed to strip at the first token, pull `end' back to
@@ -429,7 +431,7 @@ MimeHeaders_get (MimeHeaders *hdrs, const char *header_name,
     if (strip_p)
       {
       for (s = contents;
-         s <= end && *s != ';' && *s != ',' && !IS_SPACE(*s);
+         s < end && *s != ';' && *s != ',' && !IS_SPACE(*s);
          s++)
         ;
       end = s;
