@@ -267,6 +267,7 @@ imapMailbox.prototype = {
   get displayName() {
     var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
                       .createInstance(Ci.nsIScriptableUnicodeConverter);
+    converter.isInternal = true;
     converter.charset = "x-imap4-modified-utf7";
     return converter.ConvertFromUnicode(this.fullName.replace(
       /([\\"])/g, '\\$1')) + converter.Finish();
@@ -575,6 +576,7 @@ function formatArg(argument, spec) {
   } else if (spec == "mailbox") {
     var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
                       .createInstance(Ci.nsIScriptableUnicodeConverter);
+    converter.isInternal = true;
     converter.charset = "x-imap4-modified-utf7";
     argument = converter.ConvertToUnicode(argument);
   } else if (spec == "string") {
