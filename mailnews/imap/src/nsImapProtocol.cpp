@@ -122,7 +122,7 @@ PRLogModuleInfo *IMAP;
 #define IMAP_ENV_HEADERS "From To Cc Bcc Subject Date Message-ID "
 #define IMAP_DB_HEADERS "Priority X-Priority References Newsgroups In-Reply-To Content-Type"
 #define IMAP_ENV_AND_DB_HEADERS IMAP_ENV_HEADERS IMAP_DB_HEADERS
-static const PRIntervalTime kImapSleepTime = PR_MillisecondsToInterval(1000);
+static const PRIntervalTime kImapSleepTime = PR_MillisecondsToInterval(60000);
 static PRInt32 gPromoteNoopToCheckCount = 0;
 static const PRUint32 kFlagChangesBeforeCheck = 10;
 static const PRInt32 kMaxSecondsBeforeCheck = 600;
@@ -8696,16 +8696,21 @@ nsresult nsImapMockChannel::NotifyStartEndReadFromCache(PRBool start)
 {
   nsresult rv = NS_OK;
   mReadingFromCache = start;
-  nsCOMPtr <nsIImapUrl> imapUrl = do_QueryInterface(m_url, &rv);
+  nsCOMPtr<nsIImapUrl> imapUrl = do_QueryInterface(m_url, &rv);
+  nsCOMPtr<nsIImapProtocol> imapProtocol = do_QueryReferent(m_protocol);
   if (imapUrl)
   {
-    nsCOMPtr <nsIImapMailFolderSink> folderSink;
+    nsCOMPtr<nsIImapMailFolderSink> folderSink;
     rv = imapUrl->GetImapMailFolderSink(getter_AddRefs(folderSink));
     if (folderSink)
     {
-      nsCOMPtr <nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(m_url);
+      nsCOMPtr<nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(m_url);
       rv = folderSink->SetUrlState(nsnull /* we don't know the protocol */,
                                    mailUrl, start, m_cancelStatus);
+
+      // Required for killing ImapProtocol thread
+      if (m_cancelStatus != NS_OK && imapProtocol)
+        imapProtocol->TellThreadToDie(PR_FALSE);
     }
   }
   return rv;
@@ -9461,7 +9466,7 @@ NS_IMETHODIMP nsImapMockChannel::Cancel(nsresult status)
     DoomCacheEntry(mailnewsUrl);
   }
 
-  // ### Perhaps this can be removed, but I'm not at all convinced yet.
+  // Required for killing ImapProtocol thread
   if (imapProtocol)
     imapProtocol->TellThreadToDie(PR_FALSE);
 
