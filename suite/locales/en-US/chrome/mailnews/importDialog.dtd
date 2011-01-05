@@ -69,11 +69,3 @@
 
 <!ENTITY title.label              "Title">
 <!ENTITY processing.label         "Importing…">
-
-<!ENTITY FieldDiscInputText1.label  "Netscape Communicator 4.x has one mailing address for each card, while &brandShortName; has two (Home and Work).">
-<!ENTITY FieldDiscInputText2.label  "Select the category in which you want to store the imported mailing addresses:">
-<!ENTITY FieldDiscWarning.label  "This category will be used for all the entries of the selected address book: ">
-<!ENTITY importHome.label        "Home">
-<!ENTITY importHome.accesskey    "H">
-<!ENTITY importWork.label        "Work">
-<!ENTITY importWork.accesskey    "W">

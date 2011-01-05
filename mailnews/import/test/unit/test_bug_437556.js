@@ -1,5 +1,5 @@
 /**
- * Test for a regression of Bug 437556: mailnews crashes while importing an 
+ * Test for a regression of Bug 437556: mailnews crashes while importing an
  * address book if a field map is required but not set.
  */
 function run_test()
@@ -16,6 +16,6 @@ function run_test()
   do_check_true(abInterface.WantsProgress());
   // start the import
   // BeginImport should return false and log an error if the fieldMap isn't set
-  do_check_false(abInterface.BeginImport(null, errorStr, false));
+  do_check_false(abInterface.BeginImport(null, errorStr));
   do_check_neq(errorStr, "");
 }

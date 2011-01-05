@@ -100,7 +100,7 @@ nsresult nsProfileMigratorBase::ImportAddressBook(nsIImportModule * aImportModul
   PRBool importResult;
   PRBool wantsProgress;
   mGenericImporter->WantsProgress(&wantsProgress);
-  rv = mGenericImporter->BeginImport(nsnull, nsnull, PR_TRUE, &importResult);
+  rv = mGenericImporter->BeginImport(nsnull, nsnull, &importResult);
 
   if (wantsProgress)
     ContinueImport();
@@ -144,7 +144,7 @@ nsresult nsProfileMigratorBase::ImportMailData(nsIImportModule * aImportModule)
   PRBool importResult;
   PRBool wantsProgress;
   mGenericImporter->WantsProgress(&wantsProgress);
-  rv = mGenericImporter->BeginImport(nsnull, nsnull, PR_TRUE, &importResult);
+  rv = mGenericImporter->BeginImport(nsnull, nsnull, &importResult);
 
   mProcessingMailFolders = PR_TRUE;
 

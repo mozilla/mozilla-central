@@ -45,8 +45,6 @@ var errorStr = null;
 var inputStr = null ;
 var progressInfo = null;
 var selectedModuleName = null;
-
-var selLocIsHome = false ;
 var addInterface = null ;
 
 const nsISupportsString = Components.interfaces.nsISupportsString;
@@ -742,7 +740,7 @@ function ImportMail( module, success, error) {
   }
 
   if (mailInterface.WantsProgress()) {
-   if (mailInterface.BeginImport( success, error, false)) {	
+   if (mailInterface.BeginImport(success, error)) {	
       top.progressInfo.importInterface = mailInterface;
       // top.intervalState = setInterval( "ContinueImport()", 100);
       return true;
@@ -751,7 +749,7 @@ function ImportMail( module, success, error) {
       return false;
   }
   else
-    return mailInterface.BeginImport( success, error, false) ? true : false;
+    return mailInterface.BeginImport(success, error);
 }
 
 
@@ -833,10 +831,10 @@ function ImportAddress( module, success, error) {
     else {
       // ask for file
       try {
-        filePicker.init( top.window, gImportMsgsBundle.getString('ImportSelectAddrFile'), Components.interfaces.nsIFilePicker.modeOpen);
-        if (selectedModuleName == gImportMsgsBundle.getString('Comm4xImportName'))
-          filePicker.appendFilter(gImportMsgsBundle.getString('Comm4xFiles'),"*.na2");
-        else if (selectedModuleName == gImportMsgsBundle.getString('VCardImportName')) {
+        filePicker.init(top.window,
+                        gImportMsgsBundle.getString('ImportSelectAddrFile'),
+                        Components.interfaces.nsIFilePicker.modeOpen);
+        if (selectedModuleName == gImportMsgsBundle.getString('VCardImportName')) {
           var addressbookBundle = document.getElementById("bundle_addressbook");
           filePicker.appendFilter(addressbookBundle.getString('VCFFiles'), "*.vcf");
         } else {
@@ -876,21 +874,6 @@ function ImportAddress( module, success, error) {
     addInterface.SetData("addressLocation", file);
   }
 
-  // no need to use the fieldmap for 4.x import since we are using separate dialog
-  if (selectedModuleName == gImportMsgsBundle.getString('Comm4xImportName'))
-  {
-               var deck = document.getElementById("stateDeck");
-               deck.setAttribute("selectedIndex", "4");
-               var isHomeRadioGroup = document.getElementById("homeorwork");
-               isHomeRadioGroup.selectedItem = document.getElementById("workRadio");
-               var forwardButton = document.getElementById("forward");
-               forwardButton.removeAttribute("disabled");
-               var warning = document.getElementById("warning");
-               var textStr = "   " + path ;
-               warning.setAttribute ('value', textStr) ;
-               return false;
-  }
-
   var map = addInterface.GetData( "fieldMap");
   if (map != null) {
     map = map.QueryInterface( Components.interfaces.nsIImportFieldMap);
@@ -910,23 +893,15 @@ function ImportAddress( module, success, error) {
   }
 
   if (addInterface.WantsProgress()) {
-    if (addInterface.BeginImport( success, error, selLocIsHome)) {   	
+    if (addInterface.BeginImport(success, error)) {
       top.progressInfo.importInterface = addInterface;
       // top.intervalState = setInterval( "ContinueImport()", 100);
-      return( true);
+      return true;
     }
-    else {
-      return( false);
-    }
+    return false;
   }
-  else {
-    if (addInterface.BeginImport( success, error, selLocIsHome)) {	
-      return( true);
-    }
-    else {
-      return( false);
-    }
-  }
+
+  return addInterface.BeginImport(success, error);
 }
 
 /*
@@ -1000,31 +975,7 @@ function next()
   case "3":
     close();
     break;
-  case "4" :
-    var isHomeRadioGroup = document.getElementById("homeorwork");
-    if (isHomeRadioGroup.selectedItem.getAttribute("value") == "Home")
-               selLocIsHome = true ;
-       ExportComm4x() ;
-       break ;
   }
-}
-
-function ExportComm4x()
-{
-  var result ;
-  if (addInterface.WantsProgress())
-  {
-    result = addInterface.BeginImport( successStr, errorStr, selLocIsHome) ;
-       top.progressInfo.importInterface = addInterface;
-       ShowResults(true, result) ;
-  }
-  else
-  {
-    result = addInterface.BeginImport( successStr, errorStr, selLocIsHome) ;
-       ShowResults(false, result) ;
-  }
-
-  return true ;
 }
 
 function SelectFirstItem()

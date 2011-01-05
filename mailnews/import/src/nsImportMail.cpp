@@ -98,19 +98,14 @@ public:
 
   NS_IMETHOD GetStatus( const char *statusKind, PRInt32 *_retval);
 
-  /* boolean WantsProgress (); */
   NS_IMETHOD WantsProgress(PRBool *_retval);
 
-    /* boolean BeginImport (in nsISupportsString successLog, in nsISupportsString errorLog, in boolean isAddrLocHome); */
-    NS_IMETHODIMP BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, PRBool isAddrLocHome, PRBool *_retval) ;
+  NS_IMETHODIMP BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, PRBool *_retval) ;
 
-  /* boolean ContinueImport (); */
   NS_IMETHOD ContinueImport(PRBool *_retval);
 
-  /* long GetProgress (); */
   NS_IMETHOD GetProgress(PRInt32 *_retval);
 
-  /* void CancelImport (); */
   NS_IMETHOD CancelImport(void);
 
 private:
@@ -481,7 +476,7 @@ void nsImportGenericMail::GetMailboxName( PRUint32 index, nsISupportsString *pSt
   }
 }
 
-NS_IMETHODIMP nsImportGenericMail::BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, PRBool isAddrLocHome, PRBool *_retval)
+NS_IMETHODIMP nsImportGenericMail::BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, PRBool *_retval)
 {
   NS_PRECONDITION(_retval != nsnull, "null ptr");
     if (!_retval)

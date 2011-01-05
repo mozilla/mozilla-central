@@ -126,22 +126,6 @@
         <description id="results" flex="1"/>
       </hbox>
     </vbox>
-    <vbox class="wizard-box">
-      <description>&FieldDiscInputText1.label;</description>
-      <description>&FieldDiscInputText2.label;</description>
-      <separator/>
-      <separator class="thin"/>
-      <radiogroup id="homeorwork" class="indent">
-        <radio value="Home" id="homeRadio" label="&importHome.label;"
-               accesskey="&importHome.accesskey;"/>
-        <radio value="Work" id="workRadio" label="&importWork.label;"
-               accesskey="&importWork.accesskey;"/>
-      </radiogroup>
-         <separator/>
-         <separator/>
-         <description>&FieldDiscWarning.label;</description>
-         <label id="warning" flex="1"/>
-    </vbox>
   </deck>
 
   <separator/>

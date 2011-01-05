@@ -46,7 +46,7 @@
 interface nsIDOMWindowInternal;
 interface nsISupportsString;
 
-[scriptable, uuid(9b5c20c0-2348-11d3-a206-00a0cc26da63)]
+[scriptable, uuid(d64a87b8-aeb4-da40-fe28-57df1e50c64f)]
 interface nsIImportGeneric : nsISupports
 {
   /* Use these to prepare for the import */
@@ -95,7 +95,8 @@ interface nsIImportGeneric : nsISupports
       failure of the import.  Failure can be reported even if WantsProgress
       returned TRUE.
      */
-  boolean         BeginImport( in nsISupportsString successLog, in nsISupportsString errorLog, in boolean isAddrLocHome);
+  boolean BeginImport(in nsISupportsString successLog,
+                      in nsISupportsString errorLog);
     /*
       If WantsProgress returned TRUE then this will indicate if the import should
       continue.  If this returns FALSE then no other methods should be called

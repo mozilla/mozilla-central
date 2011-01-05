@@ -85,19 +85,14 @@ public:
 
   NS_IMETHOD GetStatus( const char *statusKind, PRInt32 *_retval);
 
-  /* boolean WantsProgress (); */
   NS_IMETHOD WantsProgress(PRBool *_retval);
 
-    /* boolean BeginImport (in nsISupportsString successLog, in nsISupportsString errorLog, in boolean isAddrLocHome); */
-    NS_IMETHOD BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, PRBool isAddrLocHome, PRBool *_retval) ;
+  NS_IMETHOD BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, PRBool *_retval) ;
 
-  /* boolean ContinueImport (); */
   NS_IMETHOD ContinueImport(PRBool *_retval);
 
-  /* long GetProgress (); */
   NS_IMETHOD GetProgress(PRInt32 *_retval);
 
-  /* void CancelImport (); */
   NS_IMETHOD CancelImport(void);
 
 private:
@@ -144,7 +139,6 @@ public:
   nsISupportsString *    successLog;
   nsISupportsString *    errorLog;
   char *            pDestinationUri;
-  PRBool                      bAddrLocInput ;
     nsIStringBundle*            stringBundle;
 
   AddressThreadData();
@@ -538,7 +532,7 @@ void nsImportGenericAddressBooks::SetLogs( nsString& success, nsString& error, n
   }
 }
 
-NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, PRBool isAddrLocHome, PRBool *_retval)
+NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, PRBool *_retval)
 {
   NS_PRECONDITION(_retval != nsnull, "null ptr");
     if (!_retval)
@@ -601,7 +595,6 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
   NS_IF_ADDREF( m_pSuccessLog);
   if (m_pDestinationUri)
     m_pThreadData->pDestinationUri = strdup( m_pDestinationUri);
-  m_pThreadData->bAddrLocInput = isAddrLocHome ;
 
   NS_IF_ADDREF(m_pThreadData->stringBundle = m_stringBundle);
 
@@ -1033,7 +1026,6 @@ static void ImportAddressThread( void *stuff)
                                                        proxyAddrDatabase,
                                                        pData->fieldMap,
                                                        pData->ldifService,
-                                                       pData->bAddrLocInput,
                                                        &pError,
                                                        &pSuccess,
                                                        &fatalError);

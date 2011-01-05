@@ -6,7 +6,7 @@ var gAbImportHelper;
  * If you would like the results checked, add a new array in the addressbook
  * JSON file in the resources folder and supply aAbName and aJsonName.
  * See AB_README for more information.
- * 
+ *
  * @param aFile     An instance of nsIAbFile to import.
  * @param aType     The type of import.  Should be LDIF, CSV, or TAB.
  *
@@ -78,7 +78,7 @@ AbImportHelper.prototype =
       this.mAbInterface.SetData("fieldMap", this.getDefaultFieldMap(true));
 
     do_check_true(this.mAbInterface.WantsProgress());
-    do_check_true(this.mAbInterface.BeginImport(null, null, false));
+    do_check_true(this.mAbInterface.BeginImport(null, null));
     do_test_pending();
     this.checkProgress();
   },
@@ -140,7 +140,7 @@ AbImportHelper.prototype =
    */
   checkProgress: function()
   {
-    do_check_true(this.mAbInterface && 
+    do_check_true(this.mAbInterface &&
                   this.mAbInterface instanceof Ci.nsIImportGeneric);
     do_check_true(this.mAbInterface.ContinueImport());
     // if the import isn't done, check again in 200 milliseconds.
@@ -266,7 +266,7 @@ AbImportHelper.prototype =
     istream.close();
     fis.close();
     // decode the JSON and get the array of cards
-    var nsIJSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);  
+    var nsIJSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
     var arr = nsIJSON.decode(json)[aName];
     do_check_true(arr && arr.length > 0);
     return arr;

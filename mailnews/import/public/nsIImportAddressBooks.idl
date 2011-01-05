@@ -73,7 +73,7 @@ interface  nsIOutputStream;
 interface  nsIAddrDatabase;
 interface  nsIImportFieldMap;
 
-[scriptable, uuid(49e2bdf8-c5c3-4425-8c67-f20d15d45a71)]
+[scriptable, uuid(d64a87ba-f87b-6378-5ed1-4025a7474334)]
 interface nsIImportAddressBooks : nsISupports
 {
 
@@ -139,7 +139,6 @@ interface nsIImportAddressBooks : nsISupports
    *                        acceptable if it is not required), may be required
    *                        for certain import types (e.g. nsIAbLDIFService for
    *                        LDIF import).
-   * @param aIsAddrLocHome  Whether or not an address is the home location.
    * @param aErrorLog       The error log from the import.
    * @param aSuccessLog     The success log from the import.
    * @param aFatalError     True if there was a fatal error doing the import.
@@ -148,7 +147,6 @@ interface nsIImportAddressBooks : nsISupports
                          in nsIAddrDatabase aDestination,
                          in nsIImportFieldMap aFieldMap,
                          in nsISupports aSupportService,
-                         in boolean aIsAddrLocHome,
                          out wstring aErrorLog,
                          out wstring aSuccessLog,
                          out boolean aFatalError);

@@ -97,7 +97,6 @@ public:
                                nsIAddrDatabase *destination,
                                nsIImportFieldMap *fieldMap,
                                nsISupports *aSupportService,
-                               PRBool isAddrLocHome,
                                PRUnichar **errorLog,
                                PRUnichar **successLog,
                                PRBool *fatalError);
@@ -377,7 +376,6 @@ NS_IMETHODIMP ImportVCardAddressImpl::ImportAddressBook(
     nsIAddrDatabase *pDestination,
     nsIImportFieldMap *fieldMap,
     nsISupports *aSupportService,
-    PRBool isAddrLocHome,
     PRUnichar ** pErrorLog,
     PRUnichar ** pSuccessLog,
     PRBool * fatalError)
