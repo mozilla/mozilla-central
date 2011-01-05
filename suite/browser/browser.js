@@ -190,10 +190,10 @@ var PrintPreviewListener = {
   onExit: function () {
     getBrowser().selectedTab = this._tabBeforePrintPreview;
     this._tabBeforePrintPreview = null;
-    getBrowser().removeTab(this._printPreviewTab, true);
-    this._printPreviewTab = null;
     gInPrintPreviewMode = false;
     toggleAffectedChrome(false);
+    getBrowser().removeTab(this._printPreviewTab, true);
+    this._printPreviewTab = null;
   }
 };
 
