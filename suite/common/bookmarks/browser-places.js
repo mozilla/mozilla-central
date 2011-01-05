@@ -750,9 +750,6 @@ var PlacesStarButton = {
   onClick: function PSB_onClick(aEvent) {
     if (aEvent.button == 0)
       PlacesCommandHook.bookmarkCurrentPage(this._starred);
-
-    // don't bubble to the textbox so that the address won't be selected
-    aEvent.stopPropagation();
   },
 
   // nsINavBookmarkObserver

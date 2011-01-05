@@ -312,7 +312,9 @@
                  onfocus="URLBarFocusHandler(event);"
                  onmousedown="URLBarMouseDownHandler(event);"
                  onclick="URLBarClickHandler(event);">
-          <box id="notification-popup-box" hidden="true" align="center">
+          <box id="notification-popup-box" hidden="true" align="center"
+               onmousedown="event.stopPropagation();"
+               onclick="event.stopPropagation();">
             <image id="geo-notification-icon" class="notification-anchor-icon" role="button"/>
             <image id="addons-notification-icon" class="notification-anchor-icon" role="button"/>
             <image id="password-notification-icon" class="notification-anchor-icon" role="button"/>
@@ -330,8 +332,9 @@
                    onerror="gBrowser.addToMissedIconCache(this.src);"
                    tooltiptext="&proxyIcon.tooltip;"/>
           </deck>
-          <hbox id="urlbar-icons"
-                class="urlbar-icons">
+          <hbox id="urlbar-icons" class="urlbar-icons"
+                onmousedown="event.stopPropagation();"
+                onclick="event.stopPropagation();">
             <image id="feedsButton" hidden="true" popup="feedsPopup"/>
             <image id="ev-button" hidden="true"
                    onclick="if (event.button == 0) BrowserPageInfo(null, 'securityTab');"/>
