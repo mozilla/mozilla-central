@@ -1032,11 +1032,14 @@ nsOfflineStoreCompactState::FinishCompact()
   nsCString leafName;
   path->GetNativeLeafName(leafName);
 
+  if (m_fileStream)
+  {
     // close down the temp file stream; preparing for deleting the old folder
     // and its database; then rename the temp folder and database
-  m_fileStream->Flush();
-  m_fileStream->Close();
-  m_fileStream = nsnull;
+    m_fileStream->Flush();
+    m_fileStream->Close();
+    m_fileStream = nsnull;
+  }
 
     // make sure the new database is valid
   nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
