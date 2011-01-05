@@ -305,10 +305,10 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 /* ::::: attachment reminder ::::: */
 
 #attachmentNotificationBox > notification .messageImage {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   background-image: url(chrome://messenger/skin/messengercompose/compose-toolbar.png);
-  background-position: -72px top;
+  background-position: -54px top;
 }
 
 #attachmentReminderText {
