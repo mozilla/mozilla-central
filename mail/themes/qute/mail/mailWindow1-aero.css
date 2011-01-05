@@ -3,34 +3,65 @@
 #folderpane_splitter,
 #threadpane-splitter:not([orient="vertical"]) {
   border: none;
-  -moz-border-end: 1px solid #A9B7C9;
+  border-left: 1px solid #A9B7C9;
   min-width: 0;
-  width: 3px;
+  width: 5px;
   background-color: transparent;
-  -moz-margin-start: -3px;
+  margin-top: 0;
+  -moz-margin-end: -5px;
   position: relative;
   z-index: 10;
+  -moz-transition: border-width .3s ease-in;
+}
+
+/* Until Bug 621351 is fixed we need border-right and border-left in
+ * combination with -moz-locale-dir instead of -moz-border-end and
+ * -moz-border-start for -moz-transition
+ */
+
+#folderpane_splitter:-moz-locale-dir(rtl),
+#threadpane-splitter:not([orient="vertical"]):-moz-locale-dir(rtl) {
+  border-right: 1px solid #A9B7C9;
+}
+
+#folderpane_splitter[state="collapsed"]:hover {
+  border-left: 4px solid highlight;
+}
+
+#folderpane_splitter[state="collapsed"]:hover:-moz-locale-dir(rtl) {
+  border-right: 4px solid highlight;
 }
 
 #threadpane-splitter,
 #attachment-splitter {
   border: none;
-  border-top: 1px solid #A9B7C9;
+  border-bottom: 1px solid #A9B7C9;
   min-height: 0;
-  height: 3px;
+  height: 5px;
   background-color: transparent;
-  margin-bottom: -3px;
+  margin-top: -5px;
   position: relative;
   z-index: 10;
+  -moz-transition: border-width .3s ease-in;
 }
 
-#threadpane-splitter[collapsed="true"] {
-  display: none;
+#attachment-splitter:not([state="collapsed"]) {
+  border-bottom: 1px solid transparent;
+}
+
+#attachment-splitter,
+#threadpane-splitter[state="collapsed"] {
+  -moz-transition: border-color .3s;
+}
+
+#threadpane-splitter[state="collapsed"]:hover,
+#attachment-splitter[state="collapsed"]:hover {
+  border-bottom: 4px solid highlight;
 }
 
 #accountCentralBox,
 #threadTree {
-  -moz-border-start: none;
+  -moz-border-end: none;
 }
 
 #messagepanebox {
