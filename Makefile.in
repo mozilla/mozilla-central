@@ -112,7 +112,7 @@ ifeq ($(OS_ARCH),WINNT)
 endif
 
 buildsymbols :: $(SUBMAKEFILES)
-	$(MAKE) -C mozilla MAKE_SYM_STORE_PATH=$(MAKE_SYM_STORE_PATH) SYM_STORE_SOURCE_DIRS="$(topsrcdir)/mozilla/extensions/inspector $(topsrcdir)/mozilla $(topsrcdir)" $@
+	$(MAKE) -C mozilla MAKE_SYM_STORE_PATH=$(MAKE_SYM_STORE_PATH) SYM_STORE_SOURCE_DIRS="$(topsrcdir)/mozilla/extensions/inspector $(topsrcdir)/ldap/sdks/c-sdk $(topsrcdir)/mozilla $(topsrcdir)" $@
 
 include $(topsrcdir)/config/rules.mk
 
