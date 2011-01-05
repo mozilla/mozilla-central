@@ -130,23 +130,17 @@ public:
 
   // nsIImportAddressBooks interface
 
-  /* PRBool GetSupportsMultiple (); */
   NS_IMETHOD GetSupportsMultiple(PRBool *_retval) { *_retval = PR_TRUE; return( NS_OK);}
 
-  /* PRBool GetAutoFind (out wstring description); */
   NS_IMETHOD GetAutoFind(PRUnichar **description, PRBool *_retval);
 
-  /* PRBool GetNeedsFieldMap ( nsIFile location); */
   NS_IMETHOD GetNeedsFieldMap(nsIFile *location, PRBool *_retval) { *_retval = PR_FALSE; return( NS_OK);}
 
-  /* void GetDefaultLocation (out nsIFile location, out boolean found, out boolean userVerify); */
   NS_IMETHOD GetDefaultLocation(nsIFile **location, PRBool *found, PRBool *userVerify)
     { return( NS_ERROR_FAILURE);}
 
-  /* nsISupportsArray FindAddressBooks (in nsIFile location); */
   NS_IMETHOD FindAddressBooks(nsIFile *location, nsISupportsArray **_retval);
 
-  /* nsISupports GetFieldMap (in nsIImportABDescriptor source); */
   NS_IMETHOD InitFieldMap(nsIImportFieldMap *fieldMap)
     { return( NS_ERROR_FAILURE); }
 
@@ -154,12 +148,10 @@ public:
                                nsIAddrDatabase *destination,
                                nsIImportFieldMap *fieldMap,
                                nsISupports *aSupportService,
-                               PRBool isAddrLocHome,
                                PRUnichar **errorLog,
                                PRUnichar **successLog,
                                PRBool *fatalError);
 
-  /* unsigned long GetImportProgress (); */
   NS_IMETHOD GetImportProgress(PRUint32 *_retval);
 
   NS_IMETHOD GetSampleData( PRInt32 index, PRBool *pFound, PRUnichar **pStr)
@@ -564,7 +556,6 @@ NS_IMETHODIMP ImportOutlookAddressImpl::ImportAddressBook(nsIImportABDescriptor 
                                                           nsIAddrDatabase *destination,
                                                           nsIImportFieldMap *fieldMap,
                                                           nsISupports *aSupportService,
-                                                          PRBool isAddrLocHome,
                                                           PRUnichar **pErrorLog,
                                                           PRUnichar **pSuccessLog,
                                                           PRBool *fatalError)
