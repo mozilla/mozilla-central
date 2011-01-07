@@ -660,6 +660,19 @@ function assert_tab_titled_from(aTab, aWhat) {
 }
 
 /**
+ * Assert that the given tab's title is what is given.
+ *
+ * @param aTab The tab to check.
+ * @param aTitle The title to check.
+ */
+function assert_tab_has_title(aTab, aTitle) {
+  if (aTab.title != aTitle)
+    mark_failure(["Tab title of tab", aTab,
+                  "should be '" + aTitle + "' but is not." +
+                  " (Current title: '" + aTab.title + "')"]);
+}
+
+/**
  * Close a tab.  If no tab is specified, it is assumed you want to close the
  *  current tab.
  */

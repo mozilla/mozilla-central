@@ -112,13 +112,20 @@ tabProgressListener.prototype =
         tabmail.setTabBusy(this.mTab, true);
         tabmail.setTabTitle(this.mTab);
       }
+
+      // Set our unit testing variables accordingly
+      this.mTab.pageLoading = true;
+      this.mTab.pageLoaded = false;
     }
     else if (aStateFlags & nsIWebProgressListener.STATE_STOP &&
              aStateFlags & nsIWebProgressListener.STATE_IS_NETWORK) {
       this.mBlank = false;
-
       tabmail.setTabBusy(this.mTab, false);
       tabmail.setTabTitle(this.mTab);
+
+      // Set our unit testing variables accordingly
+      this.mTab.pageLoading = false;
+      this.mTab.pageLoaded = true;
     }
   },
   onStatusChange: function tPL_onStatusChange(aWebProgress, aRequest, aStatus,
@@ -289,6 +296,10 @@ var specialTabs = {
       aTab.progressListener = new tabProgressListener(aTab, false);
 
       filter.addProgressListener(aTab.progressListener, Components.interfaces.nsIWebProgress.NOTIFY_ALL);
+
+      // Initialize our unit testing variables.
+      aTab.pageLoading = false;
+      aTab.pageLoaded = false;
 
       // Now start loading the content.
       aTab.title = this.loadingTabString;
