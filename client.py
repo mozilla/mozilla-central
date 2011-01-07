@@ -13,7 +13,7 @@ DEFAULTS = {
 
   # LDAPSDKS
   'LDAPSDKS_REPO': 'http://hg.mozilla.org/projects/ldap-sdks/',
-  'LDAPSDKS_REV': 'LDAPCSDK_6_0_6D_MOZILLA_RTM',
+  'LDAPSDKS_REV': 'LDAPCSDK_6_0_7_RTM',
 
   # URL of the default hg repository to clone for ChatZilla.
   'CHATZILLA_REPO': 'http://hg.mozilla.org/chatzilla/',
