@@ -2662,9 +2662,11 @@ void nsImapServerResponseParser::bodystructure_data()
   {
     // Turn the BODYSTRUCTURE response into a form that the nsIMAPBodypartMessage can be constructed from.
     // FIXME: Follow up on bug 384210 to investigate why the caller has to duplicate the two in-param strings.
-    nsIMAPBodypartMessage *message = new nsIMAPBodypartMessage(NULL, NULL, PR_TRUE,
-                                                               strdup("message"), strdup("rfc822"),
-                                                               NULL, NULL, NULL, 0);
+    nsIMAPBodypartMessage *message =
+      new nsIMAPBodypartMessage(NULL, NULL, PR_TRUE, strdup("message"),
+                                strdup("rfc822"),
+                                NULL, NULL, NULL, 0,
+                                fServerConnection.GetPreferPlainText());
     nsIMAPBodypart *body = bodystructure_part(PL_strdup("1"), message);
     if (body)
       message->SetBody(body);
@@ -2793,12 +2795,17 @@ nsImapServerResponseParser::bodystructure_leaf(char *partNum, nsIMAPBodypart *pa
     {
       skip_to_close_paren();
       return new nsIMAPBodypartLeaf(partNum, parentPart, bodyType, bodySubType,
-          bodyID, bodyDescription, bodyEncoding, partLength);
+                                    bodyID, bodyDescription, bodyEncoding,
+                                    partLength,
+                                    fServerConnection.GetPreferPlainText());
     }
     
     // This part is of type "message/rfc822"  (probably a forwarded message)
-    nsIMAPBodypartMessage *message = new nsIMAPBodypartMessage(partNum, parentPart, PR_FALSE,
-      bodyType, bodySubType, bodyID, bodyDescription, bodyEncoding, partLength);
+    nsIMAPBodypartMessage *message =
+      new nsIMAPBodypartMessage(partNum, parentPart, PR_FALSE,
+                                bodyType, bodySubType, bodyID, bodyDescription,
+                                bodyEncoding, partLength,
+                                fServerConnection.GetPreferPlainText());
 
     // there are three additional fields: envelope structure, bodystructure, and size in lines    
     // historical note: this code was originally in nsIMAPBodypartMessage::ParseIntoObjects()

@@ -742,3 +742,15 @@ NS_IMETHODIMP nsIMAPHostSessionList::FindShellInCacheForHost(const char *serverK
 	PR_ExitMonitor(gCachedHostInfoMonitor);
 	return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
 }
+
+NS_IMETHODIMP 
+nsIMAPHostSessionList::ClearShellCacheForHost(const char *serverKey)
+{
+  PR_EnterMonitor(gCachedHostInfoMonitor);
+  nsIMAPHostInfo *host = FindHost(serverKey);
+  if (host && host->fShellCache)
+    host->fShellCache->Clear();
+  PR_ExitMonitor(gCachedHostInfoMonitor);
+  return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
+}
+

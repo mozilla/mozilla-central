@@ -178,22 +178,29 @@ protected:
 class nsIMAPBodypartLeaf : public nsIMAPBodypart
 {
 public:
-    nsIMAPBodypartLeaf(char *partNum, nsIMAPBodypart *parentPart,
-      char *bodyType, char *bodySubType, char *bodyID, char *bodyDescription, char *bodyEncoding, PRInt32 partLength);
+  nsIMAPBodypartLeaf(char *partNum, nsIMAPBodypart *parentPart, char *bodyType,
+                     char *bodySubType, char *bodyID, char *bodyDescription,
+                     char *bodyEncoding, PRInt32 partLength,
+                     PRBool preferPlainText);
 	virtual nsIMAPBodypartType	GetType();
     // Generates an HTML representation of this part.  Returns content length generated, -1 if failed.
     virtual PRInt32 Generate(nsIMAPBodyShell *aShell, PRBool stream, PRBool prefetch);
     // returns PR_TRUE if this part should be fetched inline for generation.
     virtual PRBool ShouldFetchInline(nsIMAPBodyShell *aShell);
     virtual PRBool PreflightCheckAllInline(nsIMAPBodyShell *aShell);
+private:
+  PRBool mPreferPlainText;
 };
 
 
 class nsIMAPBodypartMessage : public nsIMAPBodypartLeaf
 {
 public:
-    nsIMAPBodypartMessage(char *partNum, nsIMAPBodypart *parentPart, PRBool topLevelMessage,
-      char *bodyType, char *bodySubType, char *bodyID, char *bodyDescription, char *bodyEncoding, PRInt32 partLength);
+  nsIMAPBodypartMessage(char *partNum, nsIMAPBodypart *parentPart,
+                        PRBool topLevelMessage, char *bodyType,
+                        char *bodySubType, char *bodyID,
+                        char *bodyDescription, char *bodyEncoding,
+                        PRInt32 partLength, PRBool preferPlainText);
     void SetBody(nsIMAPBodypart *body);
 	virtual nsIMAPBodypartType	GetType();
 	virtual ~nsIMAPBodypartMessage();
@@ -262,16 +269,16 @@ public:
   PRBool	GetPseudoInterrupted();
   PRBool DeathSignalReceived();
   nsCString &GetUID() { return m_UID; }
-  const char	*GetFolderName() { return m_folderName; }
-  char	*GetGeneratingPart() { return m_generatingPart; }
-  PRBool	IsBeingGenerated() { return m_isBeingGenerated; }	// Returns PR_TRUE if this is in the process of being
-															  // generated, so we don't re-enter
+  const char *GetFolderName() { return m_folderName; }
+  char *GetGeneratingPart() { return m_generatingPart; }
+  // Returns PR_TRUE if this is in the process of being generated,
+  // so we don't re-enter
+  PRBool IsBeingGenerated() { return m_isBeingGenerated; }
   PRBool IsShellCached() { return m_cached; }
-  void	SetIsCached(PRBool isCached) { m_cached = isCached; }
-  PRBool	GetGeneratingWholeMessage() { return m_generatingWholeMessage; }
+  void SetIsCached(PRBool isCached) { m_cached = isCached; }
+  PRBool GetGeneratingWholeMessage() { return m_generatingWholeMessage; }
   IMAP_ContentModifiedType	GetContentModified() { return m_contentModified; }
-  void	SetContentModified(IMAP_ContentModifiedType modType) { m_contentModified = modType; }
-
+  void SetContentModified(IMAP_ContentModifiedType modType) { m_contentModified = modType; }
 protected:
 
   nsIMAPBodypartMessage	*m_message;
@@ -317,6 +324,7 @@ public:
 	nsIMAPBodyShell	*FindShellForUID(nsCString &UID, const char *mailboxName, IMAP_ContentModifiedType modType);	// Looks up a shell in the cache given the message's UID.
 	nsIMAPBodyShell	*FindShellForUID(PRUint32 UID, const char *mailboxName, IMAP_ContentModifiedType modType);	// Looks up a shell in the cache given the message's UID.
 															// Returns the shell if found, NULL if not found.
+  void Clear();
 
 protected:
 	nsIMAPBodyShellCache();

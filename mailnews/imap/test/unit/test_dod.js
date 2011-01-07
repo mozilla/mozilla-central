@@ -1,15 +1,16 @@
 /*
  * Test bodystructure and body fetch by parts. Messages with problem of
  * 'This part will be downloaded on demand' in message pane content (text) area.
- * To add messages to the test, place the 'markerRe' text used for testing in the
- * offending part that is displaying the problem message.
+ * To add messages to the test, place the 'markerRe' text used for testing in
+ * the offending part that is displaying the problem message.
  * Prepend to the filename 'bodystructure' and save in the database
  * See current test files for examples.
  */
 var gServer, gIMAPIncomingServer;
+
 function run_test()
 {
-  let IMAPDaemon = new imapDaemon();;
+  let IMAPDaemon = new imapDaemon();
   const ioS = Cc["@mozilla.org/network/io-service;1"]
                 .getService(Ci.nsIIOService);
 
@@ -21,14 +22,17 @@ function run_test()
   prefBranch.setBoolPref("mail.biff.show_alert", false);
   prefBranch.setBoolPref("mail.biff.show_tray_icon",    false);
   prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
+
   // Force bodypart fetching as best as we can.
-  // It would be adviseable to enable log and check to be sure body[] is not being
-  // fetched in lieu of parts. There may be conditions that bypass bodypart fetch.
+  // It would be adviseable to enable log and check to be sure body[] is not
+  // being fetched in lieu of parts. There may be conditions that bypass
+  // bodypart fetch.
   prefBranch.setBoolPref("mail.inline_attachments",     false);
   prefBranch.setIntPref ("browser.cache.disk.capacity",              0);
   prefBranch.setIntPref ("mail.imap.mime_parts_on_demand_threshold", 1);
   prefBranch.setIntPref ("mailnews.display.disallow_mime_handlers",  0);
   prefBranch.setBoolPref("mail.server.default.fetch_by_chunks",  false);
+  prefBranch.setBoolPref("mail.server.server1.autosync_offline_stores", false);
 
   gServer = makeServer(IMAPDaemon, "");
   gIMAPIncomingServer = createLocalIMAPServer();
@@ -37,10 +41,9 @@ function run_test()
                 .getService(Ci.nsIMsgMessageService);
 
   do_test_pending();
-  do_timeout(10000, function(){
+  do_timeout(10000, function() {
     do_throw('Tests did not complete within 10 seconds. ABORTING.');
-    }
-  );
+  });
 
   let fileNames = [];
   let msgFiles = do_get_file("../../../data/").directoryEntries;
@@ -77,7 +80,7 @@ function run_test()
       scriptableInStream.init(inStream);
       let availableCount;
       let buf = "";
-      while(availableCount =  scriptableInStream.available()) {
+      while ((availableCount = scriptableInStream.available())) {
         buf += scriptableInStream.read(availableCount);
       }
       dump("##########\nTesting--->" + fileNames[i-1] +
@@ -87,7 +90,7 @@ function run_test()
            "; 'prefer plain text': " + isPlain + "\n");
       try {
         do_check_true(markerRe.test(buf));
-       }
+      }
       catch(e){}
     }
   }

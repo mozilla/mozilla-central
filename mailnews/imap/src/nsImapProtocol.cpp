@@ -819,6 +819,24 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
     if (imapServer)
       imapServer->GetFetchByChunks(&m_fetchByChunks);
 
+    nsAutoString trashFolderName;
+    if (NS_SUCCEEDED(imapServer->GetTrashFolderName(trashFolderName)))
+      CopyUTF16toMUTF7(trashFolderName, m_trashFolderName);
+
+    nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
+    if (prefBranch)
+    {
+      PRBool preferPlainText;
+      prefBranch->GetBoolPref("mailnews.display.prefer_plaintext", &preferPlainText);
+      // If the pref has changed since the last time we ran a url,
+      // clear the shell cache for this host.
+      if (preferPlainText != m_preferPlainText)
+      {
+        m_hostSessionList->ClearShellCacheForHost(GetImapServerKey());
+        m_preferPlainText = preferPlainText;
+      }
+    }
+
     if ( m_runningUrl && !m_transport /* and we don't have a transport yet */)
     {
       // extract the file name and create a file transport...
@@ -4898,7 +4916,7 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
 
         // Don't set the Trash flag if not using the Trash model
         if (GetDeleteIsMoveToTrash() && !onlineTrashFolderExists &&
-            adoptedBoxSpec->mAllocatedPathName.Find(GetTrashFolderName()) != -1)
+            adoptedBoxSpec->mAllocatedPathName.Find(m_trashFolderName) != -1)
         {
           PRBool trashExists = PR_FALSE;
           nsCString trashMatch;
@@ -7554,25 +7572,8 @@ void nsImapProtocol::RenameMailbox(const char *existingName,
 char * nsImapProtocol::CreatePossibleTrashName(const char *prefix)
 {
   nsCString returnTrash(prefix);
-
-  returnTrash += GetTrashFolderName();
+  returnTrash += m_trashFolderName;
   return ToNewCString(returnTrash);
-}
-
-const char * nsImapProtocol::GetTrashFolderName()
-{
-  if (m_trashFolderName.IsEmpty())
-  {
-    nsCOMPtr<nsIImapIncomingServer> server = do_QueryReferent(m_server);
-    if (server)
-    {
-      nsAutoString trashFolderName;
-      if (NS_SUCCEEDED(server->GetTrashFolderName(trashFolderName)))
-        CopyUTF16toMUTF7(trashFolderName, m_trashFolderName);
-    }
-  }
-
-  return m_trashFolderName.get();
 }
 
 void nsImapProtocol::Lsub(const char *mailboxPattern, PRBool addDirectoryIfNecessary)

@@ -156,7 +156,7 @@ public:
   // Message Body Shells
   NS_IMETHOD AddShellToCacheForHost(const char *serverKey, nsIMAPBodyShell *shell);
   NS_IMETHOD FindShellInCacheForHost(const char *serverKey, const char *mailboxName, const char *UID, IMAP_ContentModifiedType modType, nsIMAPBodyShell	**result);
-
+  NS_IMETHOD ClearShellCacheForHost(const char *serverKey);
   PRMonitor *gCachedHostInfoMonitor;
   nsIMAPHostInfo *fHostInfoList;
 protected:

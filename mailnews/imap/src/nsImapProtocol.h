@@ -343,6 +343,8 @@ public:
   // Quota support
   void UpdateFolderQuotaData(nsCString& aQuotaRoot, PRUint32 aUsed, PRUint32 aMax);
 
+  PRBool GetPreferPlainText() { return m_preferPlainText; }
+
 private:
   // the following flag is used to determine when a url is currently being run. It is cleared when we
   // finish processng a url and it is set whenever we call Load on a url
@@ -566,7 +568,6 @@ private:
 
   PRBool  MailboxIsNoSelectMailbox(const char *mailboxName);
   char * CreatePossibleTrashName(const char *prefix);
-  const char * GetTrashFolderName();
   PRBool FolderNeedsACLInitialized(const char *folderName);
   void DiscoverMailboxList();
   void DiscoverAllAndSubscribedBoxes();
@@ -671,6 +672,7 @@ private:
   PRBool  m_autoSubscribe, m_autoUnsubscribe, m_autoSubscribeOnOpen;
   PRBool m_closeNeededBeforeSelect;
   PRBool m_retryUrlOnError;
+  PRBool m_preferPlainText;
 
   enum EMailboxHierarchyNameState {
     kNoOperationInProgress,
