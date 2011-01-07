@@ -78,6 +78,21 @@ function run_test()
       "\r\n",
       result:
       null
+    },
+    /* possible crash case for Bug 574961 */
+    { header:
+      "Content-Type: \r\n" +
+      "                                " +
+      "                                " +
+      "                                " +
+      "                                " +
+      "                                " +
+      "                                " +
+      "                                " +
+      "                                " +
+      "              \r\n",
+      result:
+      null,
     }
   ];
 
