@@ -102,8 +102,9 @@ nsresult nsEmlxHelperUtils::ConvertToMboxRD(const char *aMessageBufferStart, con
       const char *fromLineStart = foundFromStr;
       while (fromLineStart-- >= aMessageBufferStart) {
         if (*fromLineStart == '\n' || fromLineStart == aMessageBufferStart) {
-          fromLineStart++;
-          foundFromLines.AppendElement(aMessageBufferStart);
+          if (fromLineStart > aMessageBufferStart)
+            fromLineStart++;
+          foundFromLines.AppendElement(fromLineStart);
           break;
         }
         else if (*fromLineStart != '>')
@@ -122,8 +123,6 @@ nsresult nsEmlxHelperUtils::ConvertToMboxRD(const char *aMessageBufferStart, con
 
   // go through foundFromLines
   if (foundFromLines.Length()) {
-    // pre-grow the string to the right size
-    aOutBuffer.SetLength((aMessageBufferEnd-aMessageBufferStart) + foundFromLines.Length());
 
     const char *chunkStart = aMessageBufferStart;
     for (unsigned i=0; i<foundFromLines.Length(); ++i) {
@@ -132,6 +131,7 @@ nsresult nsEmlxHelperUtils::ConvertToMboxRD(const char *aMessageBufferStart, con
 
       chunkStart = foundFromLines[i];
     }
+    aOutBuffer.Append(chunkStart, (aMessageBufferEnd - chunkStart));
   }
 
   return NS_OK;
