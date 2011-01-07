@@ -121,7 +121,6 @@ pref("mail.imap.hide_other_users",          false);
 pref("mail.imap.hide_unused_namespaces",    true);
 pref("mail.imap.auto_unsubscribe_from_noselect_folders",    true);
 pref("mail.imap.mime_parts_on_demand",      true);
-pref("mail.imap.mime_parts_on_demand_max_depth", 15);
 pref("mail.imap.mime_parts_on_demand_threshold", 30000);
 pref("mail.imap.use_literal_plus",          true);
 pref("mail.imap.expunge_after_delete",      false);

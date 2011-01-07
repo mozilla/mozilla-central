@@ -29,7 +29,6 @@ function run_test()
   prefBranch.setIntPref ("mail.imap.mime_parts_on_demand_threshold", 1);
   prefBranch.setIntPref ("mailnews.display.disallow_mime_handlers",  0);
   prefBranch.setBoolPref("mail.server.default.fetch_by_chunks",  false);
-  prefBranch.setIntPref ("mail.imap.mime_parts_on_demand_max_depth", 1);
 
   gServer = makeServer(IMAPDaemon, "");
   gIMAPIncomingServer = createLocalIMAPServer();

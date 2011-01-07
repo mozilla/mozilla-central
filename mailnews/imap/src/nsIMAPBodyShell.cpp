@@ -54,11 +54,6 @@
 // These are used to parse IMAP BODYSTRUCTURE responses, and intelligently (?)
 // figure out what parts we need to display inline.
 
-static PRInt32 gMaxDepth = 0;	// Maximum depth that we will descend before marking a shell invalid.
-                                // This will be initialized from the prefs the first time a shell is created.
-                                // This is to protect against excessively complex (deep) BODYSTRUCTURE responses.
-
-
 /*
         Create a nsIMAPBodyShell from a full BODYSTRUCUTRE response from the parser.
 
@@ -77,15 +72,6 @@ static PRInt32 gMaxDepth = 0;	// Maximum depth that we will descend before marki
 
 nsIMAPBodyShell::nsIMAPBodyShell(nsImapProtocol *protocolConnection, nsIMAPBodypartMessage *message, PRUint32 UID, const char *folderName)
 {
-  if (gMaxDepth == 0)
-  {
-    nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
-    if (prefBranch) {
-      // one-time initialization
-      prefBranch->GetIntPref("mail.imap.mime_parts_on_demand_max_depth", &gMaxDepth);
-    }
-  }
-  
   m_isValid = PR_FALSE;
   m_isBeingGenerated = PR_FALSE;
   m_cached = PR_FALSE;
