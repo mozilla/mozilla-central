@@ -642,10 +642,12 @@ calDateTime::GetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
     NS_ENSURE_ARG_POINTER(_retval);
 
     if (JSID_IS_STRING(id)) {
-        nsDependentString const val(
-            reinterpret_cast<PRUnichar const*>(
-                JS_GetStringChars(JSID_TO_STRING(id))),
-                JS_GetStringLength(JSID_TO_STRING(id)));
+        size_t length;
+        JSString *idString = JSID_TO_STRING(id);
+        const jschar *str = JS_GetStringCharsAndLength(cx, idString, &length);
+
+        nsDependentString const val(reinterpret_cast<PRUnichar const*>(str), length);
+ 
         if (val.EqualsLiteral("jsDate")) {
             PRTime tmp, thousand;
             jsdouble msec;
@@ -680,10 +682,12 @@ calDateTime::SetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
     NS_ENSURE_ARG_POINTER(_retval);
 
     if (JSID_IS_STRING(id)) {
-        nsDependentString const val(
-            reinterpret_cast<PRUnichar const*>(
-                JS_GetStringChars(JSID_TO_STRING(id))),
-                JS_GetStringLength(JSID_TO_STRING(id)));
+        size_t length;
+        JSString *idString = JSID_TO_STRING(id);
+        const jschar *str = JS_GetStringCharsAndLength(cx, idString, &length);
+
+        nsDependentString const val(reinterpret_cast<PRUnichar const*>(str), length);
+
         if (val.EqualsLiteral("jsDate") && vp) {
             JSObject *dobj;
             if (!JSVAL_IS_OBJECT(*vp) ||
@@ -782,13 +786,15 @@ calDateTime::NewResolve(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
     NS_ENSURE_ARG_POINTER(_retval);
 
     if (JSID_IS_STRING(id)) {
-        JSString *str = JSID_TO_STRING(id);
-        nsDependentString const name(
-            reinterpret_cast<PRUnichar const*>(JS_GetStringChars(str)),
-            JS_GetStringLength(str));
+        size_t length;
+        JSString *idString = JSID_TO_STRING(id);
+        const jschar *str = JS_GetStringCharsAndLength(cx, idString, &length);
+
+        nsDependentString const name(reinterpret_cast<PRUnichar const*>(str), length);
+
         if (name.EqualsLiteral("jsDate")) {
-            *_retval = JS_DefineUCProperty(cx, obj, JS_GetStringChars(str),
-                                           JS_GetStringLength(str),
+            *_retval = JS_DefineUCProperty(cx, obj, str,
+                                           length,
                                            JSVAL_VOID,
                                            nsnull, nsnull, 0);
             *objp = obj;
