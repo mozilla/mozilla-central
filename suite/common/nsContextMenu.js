@@ -284,16 +284,15 @@ nsContextMenu.prototype = {
     this.showItem("spell-check-enabled", canSpell);
     this.showItem("spell-separator", canSpell || this.possibleSpellChecking);
     if (canSpell)
-      document.getElementById("spell-check-enabled")
-              .setAttribute("checked", InlineSpellCheckerUI.enabled);
+      this.setItemAttr("spell-check-enabled", "checked", InlineSpellCheckerUI.enabled);
     this.showItem("spell-add-to-dictionary", onMisspelling);
     this.showItem("spell-ignore-word", onMisspelling);
 
     // suggestion list
     this.showItem("spell-add-separator", onMisspelling);
     this.showItem("spell-suggestions-separator", onMisspelling);
-    if (onMisspelling) {
-      var menu = document.getElementById("contentAreaContextMenu");
+    var menu = document.getElementById("contentAreaContextMenu");
+    if (onMisspelling && menu) {
       var suggestionsSeparator = document.getElementById("spell-add-separator");
       var numsug = InlineSpellCheckerUI.addSuggestionsToMenu(menu, suggestionsSeparator, 5);
       this.showItem("spell-no-suggestions", numsug == 0);
@@ -303,8 +302,8 @@ nsContextMenu.prototype = {
 
     // dictionary list
     this.showItem("spell-dictionaries", InlineSpellCheckerUI.enabled);
-    if (canSpell) {
-      var dictMenu = document.getElementById("spell-dictionaries-menu");
+    var dictMenu = document.getElementById("spell-dictionaries-menu");
+    if (canSpell && dictMenu) {
       var dictSep = document.getElementById("spell-language-separator");
       InlineSpellCheckerUI.addDictionaryListToMenu(dictMenu, dictSep);
     }
