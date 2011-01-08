@@ -2862,3 +2862,58 @@ var LightWeightThemeWebInstaller = {
                                     node.baseURI);
   }
 }
+
+function AddKeywordForSearchField() {
+  var node = document.popupNode;
+  var doc = node.ownerDocument;
+  var charset = doc.characterSet;
+  var title = gNavigatorBundle.getFormattedString("addKeywordTitleAutoFill",
+                                                  [doc.title]);
+  var description = PlacesUIUtils.getDescriptionFromDocument(doc);
+  var postData = null;
+  var form = node.form;
+  var spec = form.action || doc.documentURI;
+
+  function encodeNameValuePair(aName, aValue) {
+    return encodeURIComponent(aName) + "=" + encodeURIComponent(aValue);
+  }
+
+  let el = null;
+  let type = null;
+  let formData = [];
+  for (var i = 0; i < form.elements.length; i++) {
+    el = form.elements[i];
+
+    if (!el.type) // happens with fieldsets
+      continue;
+
+    if (el == node) {
+      formData.push(encodeNameValuePair(el.name, "") + "%s");
+      continue;
+    }
+    
+    type = el.type;
+
+    if (((el instanceof HTMLInputElement && el.mozIsTextField(true)) ||
+        type == "hidden" || type == "textarea") ||
+        ((type == "checkbox" || type == "radio") && el.checked)) {
+      formData.push(encodeNameValuePair(el.name, el.value));
+    } else if (el instanceof HTMLSelectElement && el.selectedIndex >= 0) {
+      for (var j = 0; j < el.options.length; j++) {
+        if (el.options[j].selected)
+          formData.push(encodeNameValuePair(el.name, el.options[j].value));
+      }
+    }
+  }
+
+  if (form.method == "post" &&
+      form.enctype == "application/x-www-form-urlencoded") {
+    postData = formData.join("&");
+  } else { // get
+    spec += spec.indexOf("?") != -1 ? "&" : "?";
+    spec += formData.join("&");
+  }
+
+  PlacesUIUtils.showMinimalAddBookmarkUI(makeURI(spec), title, description, null,
+                                         null, null, "", postData, charset);
+}

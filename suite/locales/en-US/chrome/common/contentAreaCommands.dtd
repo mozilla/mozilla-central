@@ -13,6 +13,8 @@
 <!ENTITY openFrameCmd.accesskey       "W">
 <!ENTITY openFrameCmdInTab.label      "Open Frame in New Tab">
 <!ENTITY openFrameCmdInTab.accesskey  "T">
+<!ENTITY keywordfield.label           "Add a Keyword for this Search…">
+<!ENTITY keywordfield.accesskey       "K">
 <!ENTITY showOnlyThisFrameCmd.label     "Show Only This Frame">
 <!ENTITY showOnlyThisFrameCmd.accesskey "S">
 <!ENTITY goBackCmd.label              "Back">

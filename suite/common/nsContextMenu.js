@@ -57,6 +57,7 @@ function nsContextMenu(aXulMenu, aBrowser) {
   this.menu              = null;
   this.popupURL          = null;
   this.onTextInput       = false;
+  this.onKeywordField    = false;
   this.onImage           = false;
   this.onLoadedImage     = false;
   this.onCanvas          = false;
@@ -248,6 +249,7 @@ nsContextMenu.prototype = {
                     this.onStandaloneImage || this.onVideo || this.onAudio));
     this.showItem("context-bookmarklink", this.onLink && !this.onMailtoLink);
     this.showItem("context-searchselect", this.isTextSelected && !this.onTextInput);
+    this.showItem("context-keywordfield", this.onTextInput && this.onKeywordField);
     this.showItem("frame", this.inFrame);
     this.showItem("frame-sep", this.inFrame);
     if (this.inFrame)
@@ -412,6 +414,7 @@ nsContextMenu.prototype = {
     this.onAudio               = false;
     this.onMetaDataItem        = false;
     this.onTextInput           = false;
+    this.onKeywordField        = false;
     this.mediaURL              = "";
     this.onLink                = false;
     this.linkURL               = "";
@@ -493,6 +496,7 @@ nsContextMenu.prototype = {
           InlineSpellCheckerUI.init(this.target.QueryInterface(Components.interfaces.nsIDOMNSEditableElement).editor);
           InlineSpellCheckerUI.initFromEvent(aRangeParent, aRangeOffset);
         }
+        this.onKeywordField = this.isTargetAKeywordField(this.target);
       }
       else if (this.target instanceof HTMLTextAreaElement) {
         this.onTextInput = true;
@@ -1297,6 +1301,18 @@ nsContextMenu.prototype = {
     return (aNode instanceof HTMLTextAreaElement);
   },
 
+  isTargetAKeywordField: function(aNode) {
+    if (!(aNode instanceof HTMLInputElement))
+      return false;
+
+    var form = aNode.form;
+    if (!form || !aNode.mozIsTextField(true))
+      return false;
+
+    return form.method == "get" || (form.method == "post" &&
+           form.enctype == "application/x-www-form-urlencoded");
+  },
+  
   // Determines whether or not the separator with the specified ID should be
   // shown or not by determining if there are any non-hidden items between it
   // and the previous separator.
