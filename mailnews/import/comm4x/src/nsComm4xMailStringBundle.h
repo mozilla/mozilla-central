@@ -37,7 +37,7 @@
 #ifndef nsComm4xMailStringBundle_H__
 #define nsComm4xMailStringBundle_H__
 
-#define COMM4XMAILIMPORT_NAME                                   2000
+#define COMM4XMAILIMPORT_NAME                 "comm4xImportName"
 #define COMM4XMAILIMPORT_DESCRIPTION                            2001
 #define COMM4XMAILIMPORT_MAILBOX_SUCCESS                        2002
 #define COMM4XMAILIMPORT_MAILBOX_BADPARAM                       2003

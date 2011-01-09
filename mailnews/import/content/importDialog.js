@@ -651,7 +651,9 @@ function ImportMail( module, success, error) {
   if (loc == null) {
     // No location found, check to see if we can ask the user.
     if (mailInterface.GetStatus( "canUserSetLocation") != 0) {
-    if (selectedModuleName == gImportMsgsBundle.getString('Comm4xImportName'))
+      if (selectedModuleName ==
+          document.getElementById("bundle_comm4xImportMsgs")
+                  .getString('comm4xImportName'))
     {
       var errorValue = true;
       //open the profile dialog.
@@ -834,7 +836,9 @@ function ImportAddress( module, success, error) {
         filePicker.init(top.window,
                         gImportMsgsBundle.getString('ImportSelectAddrFile'),
                         Components.interfaces.nsIFilePicker.modeOpen);
-        if (selectedModuleName == gImportMsgsBundle.getString('VCardImportName')) {
+        if (selectedModuleName ==
+            document.getElementById("bundle_vcardImportMsgs")
+                    .getString("vCardImportName")) {
           var addressbookBundle = document.getElementById("bundle_addressbook");
           filePicker.appendFilter(addressbookBundle.getString('VCFFiles'), "*.vcf");
         } else {
