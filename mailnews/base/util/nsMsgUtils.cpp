@@ -367,17 +367,6 @@ MsgFindCharInSet(const nsString &aString,
 #endif
 }
 
-// XXX : this may have other clients, in which case we'd better move it to
-//       xpcom/io/nsNativeCharsetUtils with nsAString in place of nsAutoString
-static PRBool ConvertibleToNative(const nsAutoString& str)
-{
-    nsCAutoString native;
-    nsAutoString roundTripped;
-    NS_CopyUnicodeToNative(str, native);
-    NS_CopyNativeToUnicode(native, roundTripped);
-    return str.Equals(roundTripped);
-}
-
 #if defined(XP_UNIX) || defined(XP_BEOS)
   const static PRUint32 MAX_LEN = 55;
 #elif defined(XP_WIN32)
@@ -469,7 +458,8 @@ nsresult NS_MsgHashIfNecessary(nsAutoString &name)
   PRInt32 keptLength = -1;
   if (illegalCharacterIndex != -1)
     keptLength = illegalCharacterIndex;
-  else if (!ConvertibleToNative(name))
+  /* Can be converted from utf8 to utf16 and back to utf8 (convertibleToNative): */
+  else if (!name.Equals(NS_ConvertUTF8toUTF16(NS_ConvertUTF16toUTF8(name))))
     keptLength = 0;
   else if (name.Length() > MAX_LEN) {
     keptLength = MAX_LEN-8;
