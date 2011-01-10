@@ -425,6 +425,10 @@ function loadDialog(item) {
     // hide rows based on if this is an event or todo
     updateStyle();
 
+    // Synchronize link-top-image with keep-duration-button status
+    let keepAttribute = document.getElementById("keepduration-button").getAttribute("keep") == "true";
+    setBooleanAttribute("link-image-top", "keep", keepAttribute);
+
     updateDateTime();
 
     updateCalendar();
@@ -520,26 +524,32 @@ function loadDateTime(item) {
  */
 function toggleKeepDuration() {
     let kdb = document.getElementById("keepduration-button");
+    let keepAttribute = kdb.getAttribute("keep") == "true";
     // To make the "keep" attribute persistent, it mustn't be removed when in
     // false state (bug 15232).
-    kdb.setAttribute("keep", kdb.getAttribute("keep") == "true" ? "false" : "true");
+    kdb.setAttribute("keep", keepAttribute ? "false" : "true");
+    setBooleanAttribute("link-image-top", "keep", !keepAttribute);
 }
 
 /**
- * Handler function to be used when the start time or end time of the event have
- * changed. According to the state of the button "keepduration-button", it's
- * possible to change separately the start date from the end date or keep them
- * "linked" so that the total duration of the item can change or stay the same.
+ * Handler function to be used when the Start time or End time of the event have
+ * changed.
+ * When changing the Start date, the End date changes automatically so the
+ * event/task's duration stays the same. Instead the End date is not linked
+ * to the Start date unless the the keepDurationButton has the "keep" attribute
+ * set to true. In this case modifying the End date changes the Start date in
+ * order to keep the same duration.
  *
- * @param aDatepickerId   The datepicker's Id
+ * @param aStartDatepicker     If true the Start or Entry datepicker has changed,
+ *                             otherwise the End or Due datepicker has changed.
  */
-function dateTimeControls2State(aDatepickerId) {
+function dateTimeControls2State(aStartDatepicker) {
     if (gIgnoreUpdate) {
         return;
     }
-
-    let keepDuration = document.getElementById("keepduration-button")
-                           .getAttribute("keep") == "true";
+    let keepAttribute = document.getElementById("keepduration-button")
+                                .getAttribute("keep") == "true";
+    let allDay = getElementValue("event-all-day", "checked");
     var startWidgetId;
     var endWidgetId;
     if (isEvent(window.calendarItem)) {
@@ -567,37 +577,41 @@ function dateTimeControls2State(aDatepickerId) {
         // timezone instead of converting.
         gStartTime = jsDateToDateTime(
             getElementValue(startWidgetId),
-            (menuItem.getAttribute('checked') == 'true') ? gStartTimezone : kDefaultTimezone);
+            (menuItem.getAttribute('checked') == 'true' || allDay) ? gStartTimezone : kDefaultTimezone);
+        gStartTime.isDate = allDay;
     }
-
     if (gEndTime) {
-        let timezone = gEndTimezone;
-        if (timezone.isUTC) {
-            if (gStartTime && !compareObjects(gStartTimezone, gEndTimezone)) {
-                timezone = gStartTimezone;
+        if (aStartDatepicker) {
+            // Change the End date in order to keep the duration.
+            gEndTime = gStartTime.clone();
+            if (gItemDuration) {
+                gEndTime.addDuration(gItemDuration);
+                gEndTime = gEndTime.getInTimezone(gEndTimezone);
             }
-        }
-        gEndTime = jsDateToDateTime(
-            getElementValue(endWidgetId),
-            (menuItem.getAttribute('checked') == 'true') ? timezone : kDefaultTimezone);
-        if (keepDuration) {
-            if (aDatepickerId == endWidgetId) {
+        } else {
+            let timezone = gEndTimezone;
+            if (timezone.isUTC) {
+                if (gStartTime && !compareObjects(gStartTimezone, gEndTimezone)) {
+                    timezone = gStartTimezone;
+                }
+            }
+            gEndTime = jsDateToDateTime(
+                getElementValue(endWidgetId),
+                (menuItem.getAttribute('checked') == 'true' || allDay) ? timezone : kDefaultTimezone);
+            gEndTime.isDate = allDay;
+            if (keepAttribute) {
+                // Keepduration button links the the Start date to the End date
+                // -> change the Start date in order to keep the duration.
                 let fduration = gItemDuration.clone();
                 fduration.isNegative = true;
                 gStartTime = gEndTime.clone();
                 gStartTime.addDuration(fduration);
                 gStartTime = gStartTime.getInTimezone(gStartTimezone);
-            } else {
-                gEndTime = gStartTime.clone();
-                if (gItemDuration) {
-                    gEndTime.addDuration(gItemDuration);
-                    gEndTime = gEndTime.getInTimezone(gEndTimezone);
-                }
             }
         }
     }
 
-    if (getElementValue("event-all-day", "checked")) {
+    if (allDay) {
         gStartTime.isDate = true;
         gEndTime.isDate = true;
         gItemDuration = gEndTime.subtractDate(gStartTime);
@@ -606,7 +620,7 @@ function dateTimeControls2State(aDatepickerId) {
     // calculate the new duration of start/end-time.
     // don't allow for negative durations.
     var warning = false;
-    if (!keepDuration && gStartTime && gEndTime) {
+    if (!aStartDatepicker && gStartTime && gEndTime) {
         if (gEndTime.compare(gStartTime) >= 0) {
             gItemDuration = gEndTime.subtractDate(gStartTime);
         } else {
@@ -626,9 +640,7 @@ function dateTimeControls2State(aDatepickerId) {
             promptService.alert(
                 null,
                 document.title,
-                calGetString("calendar",
-                             (aDatepickerId == endWidgetId) ? "warningEndBeforeStart"
-                                                            : "warningStartAfterEnd"));
+                calGetString("calendar", "warningEndBeforeStart"));
         }
         setTimeout(callback, 1);
     }

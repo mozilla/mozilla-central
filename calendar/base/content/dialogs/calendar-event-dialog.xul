@@ -753,7 +753,7 @@
                     <datetimepicker id="event-starttime"
                                     class="event-only"
                                     disable-on-readonly="true"
-                                    onchange="dateTimeControls2State(this.id);"/>
+                                    onchange="dateTimeControls2State(true);"/>
                     <checkbox id="todo-has-entrydate"
                               class="todo-only checkbox-no-label"
                               disable-on-readonly="true"
@@ -761,16 +761,17 @@
                     <datetimepicker id="todo-entrydate"
                                     class="todo-only"
                                     disable-on-readonly="true"
-                                    onchange="dateTimeControls2State(this.id);"/>
+                                    onchange="dateTimeControls2State(true);"/>
                     <vbox>
                         <hbox>
-                            <image id="link-image-top" class="keepduration-link-image"/>
+                            <image id="link-image-top" class="keepduration-link-image" keep="true"/>
                         </hbox>
                         <spacer flex="1"/>
                         <toolbarbutton id="keepduration-button"
+                                       accesskey="&event.dialog.keepDurationButton.accesskey;"
                                        oncommand="toggleKeepDuration();"
                                        persist="keep"
-                                       keep="true"
+                                       keep="false"
                                        tooltiptext="&event.dialog.keepDurationButton.tooltip;"/>
                     </vbox>
                     <hbox align="center">
@@ -806,7 +807,7 @@
                         <datetimepicker id="event-endtime"
                                         class="event-only"
                                         disable-on-readonly="true"
-                                        onchange="dateTimeControls2State(this.id);"/>
+                                        onchange="dateTimeControls2State(false);"/>
                         <checkbox id="todo-has-duedate"
                                   class="todo-only checkbox-no-label"
                                   disable-on-readonly="true"
@@ -814,7 +815,7 @@
                         <datetimepicker id="todo-duedate"
                                         class="todo-only"
                                         disable-on-readonly="true"
-                                        onchange="dateTimeControls2State(this.id);"/>
+                                        onchange="dateTimeControls2State(false);"/>
                         <vbox pack="end">
                             <image id="link-image-bottom" class="keepduration-link-image"/>
                         </vbox>

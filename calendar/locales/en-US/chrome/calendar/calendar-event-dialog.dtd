@@ -45,7 +45,8 @@
 
 <!ENTITY event.title.label                  "Edit Item" >
 
-<!ENTITY event.dialog.keepDurationButton.tooltip  "">
+<!ENTITY event.dialog.keepDurationButton.tooltip   "Keep the duration when changing the End date">
+<!ENTITY event.dialog.keepDurationButton.accesskey "k">
 
 <!ENTITY newevent.from.label                "From" >
 <!ENTITY newevent.to.label                  "To" >
