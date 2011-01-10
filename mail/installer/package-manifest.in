@@ -113,7 +113,7 @@
 @BINPATH@/isp/*
 
 @BINPATH@/components/components.manifest
-@BINPATH@/components/aboutRights.js
+@BINPATH@/components/aboutRedirector.js
 @BINPATH@/components/activity.xpt
 @BINPATH@/components/activityComponents.manifest
 @BINPATH@/components/addrbook.xpt

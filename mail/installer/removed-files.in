@@ -51,6 +51,7 @@ components/mailnews.xpt
 components/mozgnome.xpt
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/necko_data.xpt
+components/aboutRights.js
 components/nsAddonRepository.js
 components/nsBackgroundUpdateService.js
 components/nsCloseAllWindows.js
@@ -322,6 +323,13 @@ regxpcom.exe
 # * End generic removals section.                                            *
 # ****************************************************************************
 
+# ****************************************************************************
+# * Remove the files that were included in the omnijar at the time of the    *
+# * switch to omnijar. If a file is removed from the build later, it should  *
+# * be moved up to the generic removals section, but new files need not be   *
+# * added to this section.                                                   *
+# ****************************************************************************
+
 #ifdef MOZ_OMNIJAR
   chrome/@AB_CD@.jar
   chrome/@AB_CD@.manifest
@@ -341,7 +349,6 @@ regxpcom.exe
   chrome/pippki.manifest
   chrome/toolkit.jar
   chrome/toolkit.manifest
-  components/aboutRights.js
   components/addonManager.js
   components/amContentHandler.js
   components/amWebInstallListener.js
