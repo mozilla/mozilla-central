@@ -74,7 +74,6 @@
 
   <toolbarpalette id="MsgComposeToolbarPalette">
     <toolbarbutton id="button-security"
-                   insertbefore="button-save"
                    type="menu-button"
                    class="toolbarbutton-1"
                    label="&securityButton.label;"
