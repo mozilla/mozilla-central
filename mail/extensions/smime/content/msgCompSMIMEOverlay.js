@@ -404,8 +404,7 @@ function onComposerFromChanged()
     if (encryptionPolicy != kEncryptionPolicy_Always) // Encrypted (policy unencrypted, manually changed).
     {
       // Make sure we have a cert for encryption.
-      var encryptionCertName = gCurrentIdentity.getUnicharAttribute("encryption_cert_name");
-      useEncryption = encryptionCertName;
+      useEncryption = !!gCurrentIdentity.getUnicharAttribute("encryption_cert_name");
     }
   }
   gSMFields.requireEncryptMessage = useEncryption;
@@ -432,8 +431,7 @@ function onComposerFromChanged()
     if (!signMessage) // Signed (policy unsigned, manually changed).
     {
       // Make sure we have a cert for signing.
-      var signingCertName = gCurrentIdentity.getUnicharAttribute("signing_cert_name");
-      useSigning = signingCertName;
+      useSigning = !!gCurrentIdentity.getUnicharAttribute("signing_cert_name");
     }
   }
   gSMFields.signMessage = useSigning;
