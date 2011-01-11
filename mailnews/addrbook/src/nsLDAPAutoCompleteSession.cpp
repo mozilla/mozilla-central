@@ -94,6 +94,13 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
                                          nsIAutoCompleteResults *previousSearchResult,
                                          nsIAutoCompleteListener *listener)
 {
+  NS_ENSURE_ARG_POINTER(listener);
+  if (!mFormatter)
+  {
+    NS_WARNING("mFormatter should not be null for nsLDAPAutoCompleteSession::OnStartLookup");
+    return NS_ERROR_NOT_INITIALIZED;
+  }
+
     nsresult rv; // Hold return values from XPCOM calls
 
 #ifdef PR_LOGGING
@@ -108,14 +115,8 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
 
     PR_LOG(sLDAPAutoCompleteLogModule, PR_LOG_DEBUG, 
            ("nsLDAPAutoCompleteSession::OnStartLookup entered\n"));
-    
-    if (!listener) {
-        NS_ERROR("nsLDAPAutoCompleteSession::OnStartLookup(): NULL listener"
-                 "passed in");
-        return NS_ERROR_NULL_POINTER;
-    } else {
-        mListener = listener;   // Save it for later callbacks
-    }
+
+    mListener = listener;
 
     // Ignore the empty string, strings with @ in them, and strings
     // that are too short.
@@ -141,9 +142,6 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
                                  NS_ERROR_FAILURE, mState);
         return NS_ERROR_FAILURE;
     }
-
-    NS_ASSERTION(mFormatter, "nsLDAPAutoCompleteSession::OnStartLookup(): "
-                 "formatter attribute has not been set");
 
     // See if this is a narrow search that we could potentially do locally.
     if (previousSearchResult) {
