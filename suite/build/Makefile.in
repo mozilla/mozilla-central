@@ -76,11 +76,6 @@ SHARED_LIBRARY_LIBS = \
 	../feeds/src/$(LIB_PREFIX)suitefeeds_s.$(LIB_SUFFIX) \
 	$(NULL)
 
-ifeq ($(OS_ARCH),WINNT)
-LOCAL_INCLUDES += -I$(topsrcdir)/suite/browser/src
-SHARED_LIBRARY_LIBS += ../browser/src/$(LIB_PREFIX)suitebrowser_s.$(LIB_SUFFIX)
-endif
-
 # We need to link the windows shell service into seamonkey.exe.
 ifdef BUILD_STATIC_LIBS
 BUILD_STATIC_SHELL = 1

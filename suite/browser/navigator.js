@@ -285,7 +285,6 @@ function pageShowEventHandlers(event)
   // Filter out events that are not about the document load we are interested in
   if (event.originalTarget == content.document) {
     checkForDirectoryListing();
-    postURLToNativeWidget();
   }
 }
 
@@ -1914,25 +1913,6 @@ function clearErrorNotification()
   statusbarDisplay.removeAttribute("error");
   statusbarDisplay.removeEventListener("click", loadErrorConsole, true);
   consoleListener.isShowingError = false;
-}
-
-const NS_URLWIDGET_CONTRACTID = "@mozilla.org/urlwidget;1";
-var urlWidgetService = null;
-if (NS_URLWIDGET_CONTRACTID in Components.classes) {
-  urlWidgetService = Components.classes[NS_URLWIDGET_CONTRACTID]
-                               .getService(Components.interfaces.nsIUrlWidget);
-}
-
-//Posts the currently displayed url to a native widget so third-party apps can observe it.
-function postURLToNativeWidget()
-{
-  if (urlWidgetService) {
-    var url = getWebNavigation().currentURI.spec;
-    try {
-      urlWidgetService.SetURLToHiddenControl(url, window);
-    } catch(ex) {
-    }
-  }
 }
 
 function checkForDirectoryListing()

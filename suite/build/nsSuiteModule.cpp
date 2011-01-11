@@ -46,7 +46,6 @@
 #include "nsFeedSniffer.h"
 
 #if defined(XP_WIN)
-#include "nsUrlWidget.h"
 #if !defined(BUILD_STATIC_SHELL)
 #include "nsWindowsShellService.h"
 #endif
@@ -59,7 +58,6 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(XP_WIN)
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsUrlWidget, Init)
 #if !defined(BUILD_STATIC_SHELL)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsWindowsShellService, Init)
 #endif
@@ -74,9 +72,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsSeamonkeyProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsThunderbirdProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsFeedSniffer)
 
-#if defined(XP_WIN)
-NS_DEFINE_NAMED_CID(NS_IURLWIDGET_CID);
-#endif
 #if defined(NS_SUITEWININTEGRATION_CID)
 NS_DEFINE_NAMED_CID(NS_SUITEWININTEGRATION_CID);
 #elif defined(NS_SUITEMACINTEGRATION_CID)
@@ -93,9 +88,6 @@ NS_DEFINE_NAMED_CID(NS_FEEDSNIFFER_CID);
 /////////////////////////////////////////////////////////////////////////////
 
 static const mozilla::Module::CIDEntry kSuiteCIDs[] = {
-#if defined(XP_WIN)
-  { &kNS_IURLWIDGET_CID, false, NULL, nsUrlWidgetConstructor },
-#endif
 #if defined(NS_SUITEWININTEGRATION_CID)
   { &kNS_SUITEWININTEGRATION_CID, false, NULL, nsWindowsShellServiceConstructor },
 #elif defined(NS_SUITEMACINTEGRATION_CID)
@@ -112,9 +104,6 @@ static const mozilla::Module::CIDEntry kSuiteCIDs[] = {
 };
 
 static const mozilla::Module::ContractIDEntry kSuiteContracts[] = {
-#if defined(XP_WIN)
-  { NS_IURLWIDGET_CONTRACTID, &kNS_IURLWIDGET_CID },
-#endif
 #if defined(NS_SUITEWININTEGRATION_CID)
   { NS_SUITESHELLSERVICE_CONTRACTID, &kNS_SUITEWININTEGRATION_CID },
   { NS_SUITEFEEDSERVICE_CONTRACTID, &kNS_SUITEWININTEGRATION_CID },

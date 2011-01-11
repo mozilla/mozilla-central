@@ -40,8 +40,6 @@ add_makefiles "
   suite/Makefile
   suite/app/Makefile
   suite/browser/Makefile
-  suite/browser/public/Makefile
-  suite/browser/src/Makefile
   suite/build/Makefile
   suite/debugQA/Makefile
   suite/debugQA/locales/Makefile
