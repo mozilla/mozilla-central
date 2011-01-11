@@ -16,7 +16,7 @@ var gLocSvc = {
                  .getService(Components.interfaces.nsILoginManager),
   idn: Components.classes["@mozilla.org/network/idn-service;1"]
                  .getService(Components.interfaces.nsIIDNService),
-}
+};
 
 const DATAMAN_LOADED = "dataman-loaded";
 const TEST_DONE = "dataman-test-done";

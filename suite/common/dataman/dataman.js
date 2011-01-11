@@ -350,7 +350,7 @@ var gDomains = {
   },
 
   loadView: function domain_loadView() {
-    // load the view set in the dataman object.
+    // Load the view set in the dataman object.
     gDataman.debugMsg("Load View: " + gDataman.viewToLoad.join(", "));
     let loaderInstance;
     function nextStep() {
@@ -364,6 +364,19 @@ var gDomains = {
                       gDataman.viewToLoad[1].substr(1);
           gDomains.selectfield.value = sType;
           gDomains.selectType(sType);
+          yield setTimeout(nextStep, 0);
+
+          if (gDomains.tree.view.rowCount) {
+            // Select first domain and panel fitting selected type.
+            gDomains.tree.view.selection.select(0);
+            gDomains.tree.treeBoxObject.ensureRowIsVisible(0);
+            yield setTimeout(nextStep, 0);
+
+            // This should always exist and be enabled, but play safe.
+            let loadTabID = gDataman.viewToLoad[1] + "Tab";
+            if (gTabs[loadTabID] && !gTabs[loadTabID].disabled)
+              gTabs.tabbox.selectedTab = gTabs[loadTabID];
+          }
         }
         else {
           gDataman.debugMsg("Domain for view found");

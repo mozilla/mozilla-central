@@ -10,7 +10,7 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 var gLocSvc = {
   cookie: Components.classes["@mozilla.org/cookiemanager;1"]
                     .getService(Components.interfaces.nsICookieManager2),
-}
+};
 
 const DATAMAN_LOADED = "dataman-loaded";
 var testIndex = 0;
@@ -129,9 +129,29 @@ function test_load_datatype(aWin) {
     "Step " + testIndex + ": The correct menulist item is selected");
   is(aWin.gDomains.tree.view.rowCount, 2,
     "Step " + testIndex + ": The correct number of domains is listed");
+  is(aWin.gDomains.tree.view.selection.count, 1,
+    "Step " + testIndex + ": One domain is selected");
+  is(aWin.gDomains.selectedDomain.title, "drumbeat.org",
+    "Step " + testIndex + ": The selected domain is correct");
+  is(aWin.gTabs.activePanel, "cookiesPanel",
+    "Step " + testIndex + ": Cookies panel is selected");
   aWin.gDomains.tree.view.selection.select(1);
   is(aWin.gDomains.selectedDomain.title, "getpersonas.com",
-    "Step " + testIndex + ": The listed domain is correct");
+    "Step " + testIndex + ": The second domain is correct as well");
+  toDataManager("|permissions");
+},
+
+function test_switch_datatype(aWin) {
+  is(aWin.gDomains.selectfield.value, "Permissions",
+    "Step " + testIndex + ": The correct menulist item is selected");
+  is(aWin.gDomains.tree.view.rowCount, 12,
+    "Step " + testIndex + ": The correct number of domains is listed");
+  is(aWin.gDomains.tree.view.selection.count, 1,
+    "Step " + testIndex + ": One domain is selected");
+  is(aWin.gDomains.selectedDomain.title, "*",
+    "Step " + testIndex + ": The selected domain is correct");
+  is(aWin.gTabs.activePanel, "permissionsPanel",
+    "Step " + testIndex + ": Permissions panel is selected");
   toDataManager("www.getpersonas.com");
 },
 
