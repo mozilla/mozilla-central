@@ -2613,6 +2613,7 @@ function LoadMsgWithRemoteContent()
   // then reload the message
 
   setMsgHdrPropertyAndReload("remoteContentPolicy", kAllowRemoteContent);
+  window.content.focus();
 }
 
 /**
