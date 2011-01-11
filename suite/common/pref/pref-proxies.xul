@@ -168,13 +168,14 @@
               </hbox>
             </row>
 
-            <row align="center"> 
+            <row align="baseline">
               <hbox align="center" pack="end">
                 <label value="&noproxy.label;"
                        accesskey="&noproxy.accesskey;"
                        control="networkProxyNone"/>
               </hbox>
               <textbox id="networkProxyNone"
+                       multiline="true"
                        preference="network.proxy.no_proxies_on"
                        class="uri-element"/>
             </row>
