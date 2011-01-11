@@ -86,6 +86,7 @@ EXTRA_SCRIPTS = \
     calEvent.js \
     calFilter.js \
     calIcsParser.js \
+    calIcsParser-worker.js \
     calIcsSerializer.js \
     calItemBase.js \
     calItipItem.js \
