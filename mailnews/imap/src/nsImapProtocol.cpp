@@ -2350,7 +2350,7 @@ void nsImapProtocol::IncrementCommandTagNumber()
     sprintf(m_currentServerCommandTag,"%ld", (long) ++m_currentServerCommandTagNumber);
 }
 
-char *nsImapProtocol::GetServerCommandTag()
+const char *nsImapProtocol::GetServerCommandTag()
 {
     return m_currentServerCommandTag;
 }
@@ -4919,27 +4919,27 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
             adoptedBoxSpec->mAllocatedPathName.Find(m_trashFolderName) != -1)
         {
           PRBool trashExists = PR_FALSE;
-          nsCString trashMatch;
-          trashMatch.Adopt(CreatePossibleTrashName(nsPrefix));
+          nsCString trashMatch(CreatePossibleTrashName(nsPrefix));
+          nsCString serverTrashName;
+          m_runningUrl->AllocateCanonicalPath(trashMatch.get(),
+                                              ns->GetDelimiter(),
+                                              getter_Copies(serverTrashName));
+          if (StringBeginsWith(serverTrashName,
+                               NS_LITERAL_CSTRING("INBOX/"),
+                               nsCaseInsensitiveCStringComparator()))
           {
-            char *serverTrashName = nsnull;
-            m_runningUrl->AllocateCanonicalPath(trashMatch.get(), ns->GetDelimiter(), &serverTrashName);
-            if (serverTrashName)
-            {
-              if (StringBeginsWith(nsDependentCString(serverTrashName), NS_LITERAL_CSTRING("INBOX/"), nsCaseInsensitiveCStringComparator()))
-              {
-                nsCAutoString pathName(adoptedBoxSpec->mAllocatedPathName.get() + 6);
-                trashExists = StringBeginsWith(adoptedBoxSpec->mAllocatedPathName, nsDependentCString(serverTrashName), nsCaseInsensitiveCStringComparator()) &&  /* "INBOX/" */
-                              pathName.Equals(nsDependentCString(serverTrashName + 6));
-              }
-              else
-                trashExists = adoptedBoxSpec->mAllocatedPathName.Equals(serverTrashName);
-              
-              if (m_hostSessionList)
-                m_hostSessionList->SetOnlineTrashFolderExistsForHost(GetImapServerKey(), trashExists);
-              PR_Free(serverTrashName);
-            }
+            nsCAutoString pathName(adoptedBoxSpec->mAllocatedPathName.get() + 6);
+            trashExists =
+              StringBeginsWith(adoptedBoxSpec->mAllocatedPathName,
+                               serverTrashName,
+                               nsCaseInsensitiveCStringComparator()) && /* "INBOX/" */
+              pathName.Equals(Substring(serverTrashName, 6));
           }
+          else
+            trashExists = adoptedBoxSpec->mAllocatedPathName.Equals(serverTrashName);
+              
+          if (m_hostSessionList)
+            m_hostSessionList->SetOnlineTrashFolderExistsForHost(GetImapServerKey(), trashExists);
 
           if (trashExists)
             adoptedBoxSpec->mBoxFlags |= kImapTrash;
@@ -7054,10 +7054,10 @@ void nsImapProtocol::OnMoveFolderHierarchy(const char * sourceMailbox)
     if (destinationMailbox)
     {
         nsCString newBoxName;
-        char onlineDirSeparator = kOnlineHierarchySeparatorUnknown;
+        newBoxName.Adopt(destinationMailbox);
 
+        char onlineDirSeparator = kOnlineHierarchySeparatorUnknown;
         m_runningUrl->GetOnlineSubDirSeparator(&onlineDirSeparator);
-        newBoxName = destinationMailbox;
 
         nsCString oldBoxName(sourceMailbox);
         PRInt32 leafStart = oldBoxName.RFindChar(onlineDirSeparator);
@@ -7417,9 +7417,9 @@ void nsImapProtocol::MailboxDiscoveryFinished()
       // maybe we're not subscribed to the Trash folder
       if (personalDir)
       {
-        char *originalTrashName = CreatePossibleTrashName(personalDir);
+        nsCString originalTrashName(CreatePossibleTrashName(personalDir));
         m_hierarchyNameState = kDiscoverTrashFolderInProgress;
-        List(originalTrashName, PR_TRUE);
+        List(originalTrashName.get(), PR_TRUE);
         m_hierarchyNameState = kNoOperationInProgress;
       }
     }
@@ -7428,30 +7428,24 @@ void nsImapProtocol::MailboxDiscoveryFinished()
     // Delete-is-move-to-Trash model, and there is a personal namespace
     if (!trashFolderExists && GetDeleteIsMoveToTrash() && ns)
     {
-      char *trashName = CreatePossibleTrashName(ns->GetPrefix());
-      if (trashName)
-      {
-        char *onlineTrashName = nsnull;
-        m_runningUrl->AllocateServerPath(trashName, ns->GetDelimiter(), &onlineTrashName);
-        if (onlineTrashName)
-        {
-          GetServerStateParser().SetReportingErrors(PR_FALSE);
-          PRBool created = CreateMailboxRespectingSubscriptions(onlineTrashName);
-          GetServerStateParser().SetReportingErrors(PR_TRUE);
+      nsCString trashName(CreatePossibleTrashName(ns->GetPrefix()));
+      nsCString onlineTrashName;
+      m_runningUrl->AllocateServerPath(trashName.get(), ns->GetDelimiter(),
+                                       getter_Copies(onlineTrashName));
 
-          // force discovery of new trash folder.
-          if (created)
-          {
-            m_hierarchyNameState = kDiscoverTrashFolderInProgress;
-            List(onlineTrashName, PR_FALSE);
-            m_hierarchyNameState = kNoOperationInProgress;
-          }
-          else
-            m_hostSessionList->SetOnlineTrashFolderExistsForHost(GetImapServerKey(), PR_TRUE);
-          PR_Free(onlineTrashName);
-        }
-        PR_Free(trashName);
-      } // if trash name
+      GetServerStateParser().SetReportingErrors(PR_FALSE);
+      PRBool created = CreateMailboxRespectingSubscriptions(onlineTrashName.get());
+      GetServerStateParser().SetReportingErrors(PR_TRUE);
+
+      // force discovery of new trash folder.
+      if (created)
+      {
+        m_hierarchyNameState = kDiscoverTrashFolderInProgress;
+        List(onlineTrashName.get(), PR_FALSE);
+        m_hierarchyNameState = kNoOperationInProgress;
+      }
+      else
+        m_hostSessionList->SetOnlineTrashFolderExistsForHost(GetImapServerKey(), PR_TRUE);
     } //if trashg folder doesn't exist
     m_hostSessionList->SetHaveWeEverDiscoveredFoldersForHost(GetImapServerKey(), PR_TRUE);
 
@@ -7569,11 +7563,11 @@ void nsImapProtocol::RenameMailbox(const char *existingName,
     ParseIMAPandCheckForNewMail();
 }
 
-char * nsImapProtocol::CreatePossibleTrashName(const char *prefix)
+nsCString nsImapProtocol::CreatePossibleTrashName(const char *prefix)
 {
   nsCString returnTrash(prefix);
   returnTrash += m_trashFolderName;
-  return ToNewCString(returnTrash);
+  return returnTrash;
 }
 
 void nsImapProtocol::Lsub(const char *mailboxPattern, PRBool addDirectoryIfNecessary)

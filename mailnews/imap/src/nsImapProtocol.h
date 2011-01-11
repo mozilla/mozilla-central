@@ -496,7 +496,7 @@ private:
   char m_currentServerCommandTag[10];   // enough for a billion
   int  m_currentServerCommandTagNumber;
   void IncrementCommandTagNumber();
-  char *GetServerCommandTag();
+  const char *GetServerCommandTag();
 
   void StartTLS();
 
@@ -567,7 +567,7 @@ private:
   PRBool FolderIsSelected(const char *mailboxName);
 
   PRBool  MailboxIsNoSelectMailbox(const char *mailboxName);
-  char * CreatePossibleTrashName(const char *prefix);
+  nsCString CreatePossibleTrashName(const char *prefix);
   PRBool FolderNeedsACLInitialized(const char *folderName);
   void DiscoverMailboxList();
   void DiscoverAllAndSubscribedBoxes();
