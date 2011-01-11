@@ -371,6 +371,29 @@
         </body>
       </method>
 
+      <method name="showUpdateWarning">
+        <body>
+          <![CDATA[
+            var brandShortName = this._brandStringBundle.GetStringFromName("brandShortName");
+            var message = this._stringBundle.formatStringFromName("updatePrompt.text", [brandShortName], 1);
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName("updatePromptCheckButton.label"),
+              accessKey: this._stringBundle.GetStringFromName("updatePromptCheckButton.accesskey"),
+              popup: null,
+              callback: function() {
+                Components.classes["@mozilla.org/updates/update-prompt;1"]
+                          .createInstance(Components.interfaces.nsIUpdatePrompt)
+                          .checkForUpdates();
+              }
+            }];
+            var box = this.appendNotification(message, "update-warning", null,
+                                              this.PRIORITY_CRITICAL_MEDIUM,
+                                              buttons);
+            box.persistence = -1; // until user closes it
+          ]]>
+        </body>
+      </method>
+
       <method name="showGeolocationPrompt">
         <parameter name="file"/>
         <parameter name="site"/>

@@ -233,9 +233,11 @@ SuiteGlue.prototype = {
   // Browser startup complete. All initial windows have opened.
   _onBrowserStartup: function(aWindow)
   {
+    var notifyBox = aWindow.getBrowser().getNotificationBox();
+
     // Show about:rights notification, if needed.
     if (this._shouldShowRights())
-      this._showRightsNotification(aWindow);
+      this._showRightsNotification(notifyBox);
 
     // Load the "more info" page for a locked places.sqlite
     // This property is set earlier in the startup process:
@@ -247,7 +249,7 @@ SuiteGlue.prototype = {
     }
     // Detect if updates are off and warn for outdated builds.
     if (this._shouldShowUpdateWarning())
-      this._showUpdateWarning(aWindow);
+      notifyBox.showUpdateWarning();
   },
 
   // profile shutdown handler (contains profile cleanup routines)
@@ -456,9 +458,9 @@ SuiteGlue.prototype = {
     return true;
   },
 
-  _showRightsNotification: function(aSubject) {
+  _showRightsNotification: function(aNotifyBox) {
     // Stick the notification onto the selected tab of the active browser window.
-    aSubject.getBrowser().getNotificationBox().showRightsNotification();
+    aNotifyBox.showRightsNotification();
 
     // Set pref to indicate we've shown the notficiation.
     var currentVersion = Services.prefs.getIntPref("browser.rights.version");
@@ -493,34 +495,6 @@ SuiteGlue.prototype = {
     var buildTime = Math.round(buildDate / 1000);
     // We should warn if the build is older than the max age.
     return (buildTime + maxAge <= now);
-  },
-
-  _showUpdateWarning: function(aSubject) {
-    // Stick the notification onto the selected tab of the active browser window.
-    var brandBundle  = Services.strings.createBundle("chrome://branding/locale/brand.properties");
-    var applicationName = brandBundle.GetStringFromName("brandShortName");
-    var notificationBundle = Services.strings.createBundle("chrome://communicator/locale/notification.properties");
-    var title = notificationBundle.GetStringFromName("updatePrompt.title");
-    var text = notificationBundle.formatStringFromName("updatePrompt.text", [applicationName], 1);
-    var buttonText = notificationBundle.GetStringFromName("updatePromptCheckButton.label");
-    var accessKey = notificationBundle.GetStringFromName("updatePromptCheckButton.accessKey");
-
-    var buttons = [{
-      label: buttonText,
-      accessKey: accessKey,
-      popup: null,
-      callback: function(aNotificationBar, aButton) {
-        Components.classes["@mozilla.org/updates/update-prompt;1"]
-                  .createInstance(Components.interfaces.nsIUpdatePrompt)
-                  .checkForUpdates();
-      }
-    }];
-
-    var notifyBox = aSubject.getBrowser().getNotificationBox();
-    var box = notifyBox.appendNotification(text, title, null,
-                                           notifyBox.PRIORITY_CRITICAL_MEDIUM,
-                                           buttons);
-    box.persistence = -1; // Until user closes it
   },
 
   /**
