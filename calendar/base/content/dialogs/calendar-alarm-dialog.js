@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 /**
  * Helper function to get the alarm service and cache it.
@@ -59,8 +60,7 @@ function getAlarmService() {
  */
 function onSnoozeAlarm(event) {
     // reschedule alarm:
-    var duration = Components.classes["@mozilla.org/calendar/duration;1"]
-                             .createInstance(Components.interfaces.calIDuration);
+    let duration = cal.createDuration();
     duration.minutes = event.detail;
     duration.normalize();
     getAlarmService().snoozeAlarm(event.target.item, event.target.alarm, duration);
@@ -81,7 +81,7 @@ function onDismissAlarm(event) {
  */
 function onDismissAllAlarms() {
     // removes widgets on the fly:
-    var alarmRichlist = document.getElementById("alarm-richlist");
+    let alarmRichlist = document.getElementById("alarm-richlist");
 
     // Make a copy of the child nodes as they get modified live
     for each (let node in Array.slice(alarmRichlist.childNodes)) {
@@ -100,9 +100,9 @@ function onDismissAllAlarms() {
  */
 function onItemDetails(event) {
     // We want this to happen in a calendar window.
-    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+    let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                        .getService(Components.interfaces.nsIWindowMediator);
-    var calWindow = wm.getMostRecentWindow("calendarMainWindow") ||
+    let calWindow = wm.getMostRecentWindow("calendarMainWindow") ||
                     wm.getMostRecentWindow("mail:3pane");
     calWindow.modifyEventWithDialog(event.target.item, null, true);
 }
@@ -117,9 +117,9 @@ function setupWindow() {
     // setTimeout to wait until we are there, then setInterval to execute every
     // minute. Since setInterval is not totally exact, we may run into problems
     // here. I hope not!
-    var current = new Date();
+    let current = new Date();
 
-    var timeout = (60 - current.getSeconds()) * 1000;
+    let timeout = (60 - current.getSeconds()) * 1000;
     gRelativeDateUpdateTimer = setTimeout(function wait_until_next_minute() {
         updateRelativeDates();
         gRelativeDateUpdateTimer = setInterval(updateRelativeDates, 60 * 1000);
@@ -134,14 +134,14 @@ function setupWindow() {
  * alarms and clean up the relative date update timer.
  */
 function finishWindow() {
-    var alarmRichlist = document.getElementById("alarm-richlist");
+    let alarmRichlist = document.getElementById("alarm-richlist");
 
     if (alarmRichlist.childNodes.length > 0) {
         // If there are still items, the window wasn't closed using dismiss
         // all/snooze all. This can happen when the closer is clicked or escape
         // is pressed. Snooze all remaining items using the default snooze
         // property.
-        var snoozePref = getPrefSafe("calendar.alarms.defaultsnoozelength", 0);
+        let snoozePref = getPrefSafe("calendar.alarms.defaultsnoozelength", 0);
         if (snoozePref <= 0) {
             snoozePref = 5;
         }
@@ -166,7 +166,7 @@ function onFocusWindow() {
  * Timer callback to update all relative date labels
  */
 function updateRelativeDates() {
-    var alarmRichlist = document.getElementById("alarm-richlist");
+    let alarmRichlist = document.getElementById("alarm-richlist");
     for each (let node in Array.slice(alarmRichlist.childNodes)) {
         if (node.item && node.alarm) {
             node.updateRelativeDateLabel();
@@ -175,35 +175,16 @@ function updateRelativeDates() {
 }
 
 /**
- * Opens the alarm snooze popup, using the event to determine the position.
- * The given container item must be an object that has a function snoozeAlarm.
- * This function will be called with the chosen alarm duration in minutes.
- *
- * @param event           The event used to determine the position of the popup
- * @param aContainerItem  The container item as described above
- */
-function openSnoozeWindow(event, aContainerItem) {
-    const uri = "chrome://calendar/content/calendar-alarm-snooze-popup.xul";
-    var pos = ",left=" + (event.target.boxObject.screenX - 3) +
-             ",top=" + (event.target.boxObject.screenY + event.target.boxObject.height - 3);
-    window.openDialog(uri,
-                      "CalendarAlarmSnoozePopup",
-                      "chrome,dependent=yes,titlebar=no" + pos,
-                      aContainerItem);
-}
-
-/**
  * Function to snooze all alarms the given number of minutes.
  *
  * @param aDurationMinutes    The duration in minutes
  */
 function snoozeAllItems(aDurationMinutes) {
-    var duration = Components.classes["@mozilla.org/calendar/duration;1"]
-                             .createInstance(Components.interfaces.calIDuration);
+    let duration = cal.createDuration();
     duration.minutes = aDurationMinutes;
     duration.normalize();
 
-    var alarmRichlist = document.getElementById("alarm-richlist");
+    let alarmRichlist = document.getElementById("alarm-richlist");
 
     // Make a copy of the child nodes as they get modified live
     for each (let node in Array.slice(alarmRichlist.childNodes)) {
@@ -218,8 +199,8 @@ function snoozeAllItems(aDurationMinutes) {
  * Sets up the window title, counting the number of alarms in the window.
  */
 function setupTitle() {
-    var alarmRichlist = document.getElementById("alarm-richlist");
-    var reminders = alarmRichlist.childNodes.length;
+    let alarmRichlist = document.getElementById("alarm-richlist");
+    let reminders = alarmRichlist.childNodes.length;
 
     let title = PluralForm.get(reminders, calGetString("calendar", "alarmWindowTitle.label"));
     document.title = title.replace("#1", reminders);
@@ -267,8 +248,8 @@ function removeWidgetFor(aItem, aAlarm) {
     let hashId = aItem.hashId;
     let alarmRichlist = document.getElementById("alarm-richlist");
     let nodes = alarmRichlist.childNodes;
-    for (var i = nodes.length - 1; i >= 0; --i) {
-        var widget = nodes[i];
+    for (let i = nodes.length - 1; i >= 0; --i) {
+        let widget = nodes[i];
         if (widget.item && widget.item.hashId == hashId &&
             widget.alarm && widget.alarm.icalString == aAlarm.icalString) {
 
@@ -308,6 +289,8 @@ function removeWidgetFor(aItem, aAlarm) {
  * @param event         The DOM event from the click action
  */
 function onSelectAlarm(event) {
-    document.getElementById("alarm-richlist")
-            .ensureElementIsVisible(event.target.getSelectedItem(0));
+    let richList = document.getElementById("alarm-richlist")
+    if (richList == event.target) {
+        richList.ensureElementIsVisible(richList.getSelectedItem(0));
+    }
 }

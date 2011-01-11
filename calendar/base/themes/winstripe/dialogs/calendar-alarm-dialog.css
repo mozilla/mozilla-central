@@ -36,7 +36,11 @@
 
 /* Bindings */
 calendar-alarm-widget {
-    -moz-binding: url(chrome://calendar/content/calendar-alarm-widget.xml#calendar-alarm-widget);
+    -moz-binding: url(chrome://calendar/content/widgets/calendar-alarm-widget.xml#calendar-alarm-widget);
+}
+
+menupopup[type="snooze-menupopup"] > arrowscrollbox {
+    -moz-binding: url(chrome://calendar/content/widgets/calendar-alarm-widget.xml#calendar-snooze-popup);
 }
 
 /* Alarm dialog styles */
@@ -96,91 +100,54 @@ calendar-alarm-widget[selected="true"] .alarm-calendar-image {
     min-height: 15px;
 }
 
-/* Custom alarm popup styles */
-#calendar-alarm-snooze-popup-window {
-    background-color: menu;
-    color: menutext;
-    border: 1px solid ThreeDShadow;
-    z-index: 2147483648;
-}
-
-#custom-menupopup-radiogroup .radio-check-box1 {
-    display: none;
-}
-
-#custom-menupopup-radiogroup radio[selected] {
-    background-color: Highlight;
-    color: HighlightText;
-}
-
-#custom-menupopup-radiogroup radio  {
-    -moz-appearance: none;
-    min-height: 1.5ex;
-    max-width: 42em;
-    padding: 3px;
-    margin: 1px;
-    background-color: transparent;
-    color: menutext;
-}
-
-#custom-menupopup-radiogroup > radio > .radio-label-box {
-    -moz-margin-start: 17px;
-    border: 0;
-}
-
-.custom-menupopup-ok-button {
+.snooze-popup-ok-button {
     -moz-image-region: rect(0px, 14px, 14px, 0px);
 }
 
-.custom-menupopup-ok-button:hover {
+.snooze-popup-ok-button:hover {
     -moz-image-region: rect(14px, 14px, 28px, 0px);
+    background-color: -moz-menuhover;
 }
 
-.custom-menupopup-ok-button:active {
+.snooze-popup-ok-button:active {
     -moz-image-region: rect(28px, 14px, 42px, 0px);
 }
 
-.custom-menupopup-ok-button[disabled="true"] {
+.snooze-popup-ok-button[disabled="true"] {
     -moz-image-region: rect(42px, 14px, 56px, 0px);
 }
 
-.custom-menupopup-cancel-button {
+.snooze-popup-cancel-button {
     -moz-image-region: rect(0px, 28px, 14px, 14px);
 }
 
-.custom-menupopup-cancel-button:hover {
+.snooze-popup-cancel-button:hover {
     -moz-image-region: rect(14px, 28px, 28px, 14px);
+    background-color: -moz-menuhover;
 }
 
-.custom-menupopup-cancel-button:active {
+.snooze-popup-cancel-button:active {
     -moz-image-region: rect(28px, 28px, 42px, 14px);
 }
 
-.custom-menupopup-ok-button,
-.custom-menupopup-cancel-button {
+.snooze-popup-button {
     list-style-image: url(chrome://calendar/skin/ok-cancel.png);
-    background-color: transparent;
-    border: 0;
-    padding: 0;
-    margin: 2px;
     min-width: 0;
-    -moz-appearance: none;
+    -moz-appearance: toolbarbutton;
 }
 
-.custom-menupopup-ok-button > .button-box,
-.custom-menupopup-cancel-button > .button-box {
+.snooze-popup-button > .button-box > .button-icon {
+    margin: 0;
+}
+
+.snooze-popup-button > .button-box {
     border: 0;
     padding: 0;
     -moz-box-pack: center;
     -moz-box-align: center;
 }
 
-.custom-menupopup-ok-button:focus > .button-box,
-.custom-menupopup-cancel-button:focus > .button-box {
+.snooze-popup-button:focus > .button-box {
     border: 1px dotted ThreeDDarkShadow;
     padding: 0;
-}
-
-.button-menu-dropmarker {
-    height: 11px;
 }

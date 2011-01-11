@@ -40,7 +40,11 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE bindings SYSTEM "chrome://calendar/locale/calendar.dtd">
+<!DOCTYPE bindings
+[
+  <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd1;
+  <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd2;
+]>
 
 <bindings id="calendar-alarms"
    xmlns="http://www.mozilla.org/xbl"
@@ -53,46 +57,45 @@
       <stylesheet src="chrome://calendar/skin/calendar-alarm-dialog.css"/>
     </resources>
 
-    <content>
-      <xul:hbox flex="1">
-        <xul:vbox pack="start">
-          <xul:image class="alarm-calendar-image"/>
+    <content orient="horizontal">
+      <xul:vbox pack="start">
+        <xul:image class="alarm-calendar-image"/>
+      </xul:vbox>
+      <xul:vbox>
+        <xul:label anonid="alarm-title-label" class="alarm-title-label" crop="end"/>
+        <xul:vbox class="additional-information-box">
+          <xul:label anonid="alarm-date-label" class="alarm-date-label"/>
+          <xul:hbox>
+            <xul:label anonid="alarm-location-label" class="location-label">&calendar.alarm.location.label;</xul:label>
+            <xul:description anonid="alarm-location-description" class="alarm-location-description" crop="end"/>
+          </xul:hbox>
+          <xul:hbox pack="start">
+            <xul:label class="text-link alarm-details-label"
+                   value="&calendar.alarm.details.label;"
+                   onclick="showDetails(event)"
+                   onkeypress="showDetails(event)"/>
+          </xul:hbox>
         </xul:vbox>
-        <xul:vbox>
-          <xul:label anonid="alarm-title-label" class="alarm-title-label" crop="end"/>
-          <xul:vbox class="additional-information-box">
-            <xul:label anonid="alarm-date-label" class="alarm-date-label"/>
-            <xul:hbox>
-              <xul:label anonid="alarm-location-label" class="location-label">&calendar.alarm.location.label;</xul:label>
-              <xul:description anonid="alarm-location-description" class="alarm-location-description" crop="end"/>
-            </xul:hbox>
-            <xul:hbox pack="start">
-              <xul:label class="text-link alarm-details-label"
-                     value="&calendar.alarm.details.label;"
-                     onclick="showDetails(event)"
-                     onkeypress="showDetails(event)"/>
-            </xul:hbox>
-          </xul:vbox>
-        </xul:vbox>
-        <xul:spacer flex="1"/>
-        <xul:label anonid="alarm-relative-date-label" class="alarm-relative-date-label"/>
-        <xul:vbox class="alarm-action-buttons" pack="center">
-          <xul:button anonid="alarm-snooze-button"
-                      oncommand="_openSnoozeWindow(event); return false;">
-            <xul:label class="button-text" value="&calendar.alarm.snoozefor.label;"/>
-            <xul:dropmarker class="button-menu-dropmarker"/>
-          </xul:button>
-          <xul:button anonid="alarm-dismiss-button"
-                      label="&calendar.alarm.dismiss.label;"
-                      oncommand="dismissAlarm()"/>
-        </xul:vbox>
-      </xul:hbox>
+      </xul:vbox>
+      <xul:spacer flex="1"/>
+      <xul:label anonid="alarm-relative-date-label" class="alarm-relative-date-label"/>
+      <xul:vbox class="alarm-action-buttons" pack="center">
+        <xul:button anonid="alarm-snooze-button"
+                    type="menu"
+                    label="&calendar.alarm.snoozefor.label;">
+          <xul:menupopup type="snooze-menupopup" ignorekeys="true"/>
+        </xul:button>
+        <xul:button anonid="alarm-dismiss-button"
+                    label="&calendar.alarm.dismiss.label;"
+                    oncommand="dismissAlarm()"/>
+      </xul:vbox>
     </content>
 
     <implementation>
       <constructor><![CDATA[
         Components.utils.import("resource://calendar/modules/calUtils.jsm");
       ]]></constructor>
+
       <field name="mItem">null</field>
       <field name="mAlarm">null</field>
 
@@ -104,9 +107,6 @@
                 onset="this.mAlarm = val; this.updateLabels(); return val;"/>
 
       <method name="updateLabels">
-        <!--
-          -
-          -->
         <body><![CDATA[
           if (!this.mItem || !this.mAlarm) {
               // Setup not complete, do nothing for now.
@@ -207,36 +207,173 @@
               (event.type == "keypress" &&
                (event.keyCode == event.DOM_VK_ENTER ||
                 event.keyCode == event.DOM_VK_RETURN))) {
-              var detailsEvent = document.createEvent('Events');
+              let detailsEvent = document.createEvent('Events');
               detailsEvent.initEvent('itemdetails', true, false);
               this.dispatchEvent(detailsEvent);
           }
         ]]></body>
       </method>
 
-      <method name="snoozeAlarm">
-        <parameter name="minutes"/>
-        <body><![CDATA[
-          var snoozeEvent = document.createEvent('Events');
-          snoozeEvent.initEvent('snooze', true, false);
-          snoozeEvent.detail = minutes;
-          this.dispatchEvent(snoozeEvent);
-        ]]></body>
-      </method>
-
       <method name="dismissAlarm">
         <body><![CDATA[
-          var dismissEvent = document.createEvent('Events');
+          let dismissEvent = document.createEvent('Events');
           dismissEvent.initEvent('dismiss', true, false);
           this.dispatchEvent(dismissEvent);
         ]]></body>
       </method>
+    </implementation>
+  </binding>
 
-      <method name="_openSnoozeWindow">
+  <binding id="calendar-snooze-popup">
+    <content ignorekeys="true">
+      <xul:menuitem label="&calendar.alarm.snooze.5minutes.label;"
+                    value="5"
+                    oncommand="snoozeItem(event)"/>
+      <xul:menuitem label="&calendar.alarm.snooze.10minutes.label;"
+                    value="10"
+                    oncommand="snoozeItem(event)"/>
+      <xul:menuitem label="&calendar.alarm.snooze.15minutes.label;"
+                    value="15"
+                    oncommand="snoozeItem(event)"/>
+      <xul:menuitem label="&calendar.alarm.snooze.30minutes.label;"
+                    value="30"
+                    oncommand="snoozeItem(event)"/>
+      <xul:menuitem label="&calendar.alarm.snooze.45minutes.label;"
+                    value="45"
+                    oncommand="snoozeItem(event)"/>
+      <xul:menuitem label="&calendar.alarm.snooze.1hour.label;"
+                    value="60"
+                    oncommand="snoozeItem(event)"/>
+      <xul:menuitem label="&calendar.alarm.snooze.2hours.label;"
+                    value="120"
+                    oncommand="snoozeItem(event)"/>
+      <xul:menuitem label="&calendar.alarm.snooze.1day.label;"
+                    value="1440"
+                    oncommand="snoozeItem(event)"/>
+      <children/>
+      <xul:menuseparator/>
+      <xul:hbox class="snooze-options-box">
+        <xul:textbox anonid="snooze-value-textbox"
+                     oninput="updateAccessibleName()"
+                     type="number"
+                     hidespinbuttons="true"
+                     size="3"/>
+        <xul:menulist anonid="snooze-unit-menulist"
+                      class="snooze-unit-menulist menuitem-non-iconic"
+                      allowevents="true">
+         <xul:menupopup anonid="snooze-unit-menupopup"
+                        position="after_start"
+                        ignorekeys="true"
+                        class="menulist-menupopup">
+           <xul:menuitem closemenu="single" class="unit-menuitem" label="&calendar.global.units.minutes;" value="1"/>
+           <xul:menuitem closemenu="single" class="unit-menuitem" label="&calendar.global.units.hours;" value="60"/>
+           <xul:menuitem closemenu="single" class="unit-menuitem" label="&calendar.global.units.days;" value="1440"/>
+         </xul:menupopup>
+        </xul:menulist>
+        <xul:toolbarbutton anonid="snooze-popup-ok"
+                           class="snooze-popup-button snooze-popup-ok-button"
+                           oncommand="snoozeOk()"/>
+        <xul:toolbarbutton anonid="snooze-popup-cancel"
+                           class="snooze-popup-button snooze-popup-cancel-button"
+                           aria-label="&calendar.alarm.snooze.cancel;"
+                           oncommand="snoozeCancel()"/>
+      </xul:hbox>
+    </content>
+    <implementation>
+      <constructor><![CDATA[
+        let snoozePref = getPrefSafe("calendar.alarms.defaultsnoozelength", 0);
+        if (snoozePref <= 0) {
+          snoozePref = 5;
+        }
+
+        let unitList = document.getAnonymousElementByAttribute(this, "anonid", "snooze-unit-menulist");
+        let unitValue = document.getAnonymousElementByAttribute(this, "anonid", "snooze-value-textbox");
+
+        let selectedIndex = 0;
+        if ((snoozePref % 60) == 0) {
+            snoozePref = snoozePref / 60;
+            if ((snoozePref % 24) == 0) {
+                snoozePref = snoozePref / 24;
+                selectedIndex = 2; // Days
+            } else {
+                selectedIndex = 1; // Hours
+            }
+        } else {
+            selectedIndex = 0; // Minutes
+        }
+
+        unitList.selectedIndex = selectedIndex;
+        unitValue.value = snoozePref;
+
+        updateAccessibleName();
+      ]]></constructor>
+
+      <method name="snoozeAlarm">
+        <parameter name="minutes"/>
+        <body><![CDATA[
+          let snoozeEvent = document.createEvent('Events');
+          snoozeEvent.initEvent('snooze', true, false);
+          snoozeEvent.detail = minutes;
+
+          // The onsnooze attribute is set on the menupopup, this binding is
+          // instanciated on the menupopup's arrowscrollbox. Therefore we need
+          // to go up one node.
+          let handler = this.parentNode.getAttribute("onsnooze");
+          let cancel = false;
+          if (handler) {
+              let fn = new Function("event", handler);
+              cancel = (fn.call(this, snoozeEvent) === false);
+          }
+
+          if (!cancel) {
+              this.dispatchEvent(snoozeEvent);
+          }
+        ]]></body>
+      </method>
+
+      <method name="snoozeItem">
         <parameter name="event"/>
         <body><![CDATA[
-          // Call the function from calendar-alarm-dialog.js
-          openSnoozeWindow(event, this); 
+          this.snoozeAlarm(event.target.value);
+        ]]></body>
+      </method>
+
+      <method name="snoozeOk">
+        <body><![CDATA[
+          let unitList = document.getAnonymousElementByAttribute(this, "anonid", "snooze-unit-menulist");
+          let unitValue = document.getAnonymousElementByAttribute(this, "anonid", "snooze-value-textbox");
+
+          let minutes = (unitList.value || 1) * unitValue.value;
+          this.snoozeAlarm(minutes);
+        ]]></body>
+      </method>
+
+      <method name="snoozeCancel">
+        <body><![CDATA[
+          this.parentNode.hidePopup();
+        ]]></body>
+      </method>
+
+      <method name="updateAccessibleName">
+        <body><![CDATA[
+          let unitList = document.getAnonymousElementByAttribute(this, "anonid", "snooze-unit-menulist");
+          let unitValue = document.getAnonymousElementByAttribute(this, "anonid", "snooze-value-textbox");
+          let okButton = document.getAnonymousElementByAttribute(this, "anonid", "snooze-popup-ok");
+
+          let unitName = {
+              1: "Minutes",
+              60: "Hours",
+              1440: "Days"
+          }[unitList.value] || "Minutes";
+
+          let pluralString = calGetString("calendar-alarms", "reminderCustomUnit" + unitName);
+          let unitPlural = PluralForm.get(unitValue.value, pluralString)
+                                     .replace("#1", unitValue.value);
+
+          let accessibleString = calGetString("calendar-alarms",
+                                              "reminderSnoozeOkA11y",
+                                              [unitPlural]);
+          okButton.setAttribute("aria-label", accessibleString);
         ]]></body>
       </method>
     </implementation>

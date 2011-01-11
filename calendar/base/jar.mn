@@ -4,9 +4,6 @@ calendar.jar:
 % style chrome://calendar/content/calendar-event-dialog.xul chrome://global/skin/toolbar.css
     content/calendar/agenda-listbox.js                     (content/agenda-listbox.js)
     content/calendar/agenda-listbox.xml                    (content/agenda-listbox.xml)
-    content/calendar/calendar-alarm-snooze-popup.xul       (content/calendar-alarm-snooze-popup.xul)
-    content/calendar/calendar-alarm-snooze-popup.js        (content/calendar-alarm-snooze-popup.js)
-    content/calendar/calendar-alarm-widget.xml             (content/calendar-alarm-widget.xml)
     content/calendar/calendar-bindings.css                 (content/calendar-bindings.css)
     content/calendar/calendar-calendars-list.xul           (content/calendar-calendars-list.xul)
     content/calendar/calendar-chrome-startup.js            (content/calendar-chrome-startup.js)
@@ -92,6 +89,7 @@ calendar.jar:
     content/calendar/preferences/views.js                  (content/preferences/views.js)
     content/calendar/preferences/views.xul                 (content/preferences/views.xul)
     content/calendar/widgets/minimonth.xml                 (content/widgets/minimonth.xml)
+    content/calendar/widgets/calendar-alarm-widget.xml     (content/widgets/calendar-alarm-widget.xml)
     content/calendar/widgets/calendar-widgets.xml          (content/widgets/calendar-widgets.xml)
     content/calendar/widgets/calendar-list-tree.xml        (content/widgets/calendar-list-tree.xml)
     content/calendar/calendar-subscriptions-list.xml       (content/widgets/calendar-subscriptions-list.xml)
