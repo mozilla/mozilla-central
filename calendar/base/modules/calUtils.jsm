@@ -398,8 +398,10 @@ let cal = {
             newItem[calGetStartDateProp(newItem)] = start;
             let oldDuration = aOldItem.duration;
             if (oldDuration) {
+                let oldEnd = aOldItem[calGetEndDateProp(aOldItem)];
                 let newEnd = start.clone();
                 newEnd.addDuration(oldDuration);
+                newEnd = newEnd.getInTimezone(oldEnd.timezone);
                 newItem[calGetEndDateProp(newItem)] = newEnd;
             }
         } else if (newItem[calGetEndDateProp(newItem)]) {
