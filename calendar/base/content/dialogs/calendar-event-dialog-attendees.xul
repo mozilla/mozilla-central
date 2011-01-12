@@ -53,7 +53,7 @@
         onload="onLoad()"
         ondialogaccept="return onAccept();"
         ondialogcancel="return onCancel();"
-        persist="screenX screenY"
+        persist="screenX screenY height width"
         orient="vertical"
         style="padding-top: 8px; padding-bottom: 10px; -moz-padding-start: 8px; -moz-padding-end: 10px;"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -84,7 +84,8 @@
                    class="zoom-out-icon"
                    oncommand="zoomWithButtons(true);"/>
     <menulist id="zoom-menulist"
-              oncommand="onZoomFactor(this.value);">
+              oncommand="setZoomFactor(this.value);"
+              persist="value">
       <menupopup>
         <menuitem label="400%" value="25"/>
         <menuitem label="200%" value="50"/>
@@ -98,13 +99,13 @@
                    oncommand="zoomWithButtons(false);"/>
   </hbox>
   <hbox flex="1">
-    <vbox flex="1">
+    <vbox id="attendees-container" flex="1" persist="width">
       <box class="attendee-spacer-top"/>
       <attendees-list flex="1" id="attendees-list"/>
       <box class="attendee-spacer-bottom"/>
     </vbox>
     <splitter id="splitter"/>
-    <vbox>
+    <vbox id="freebusy-container" persist="width">
       <stack flex="1">
         <vbox flex="1">
           <freebusy-timebar id="timebar"

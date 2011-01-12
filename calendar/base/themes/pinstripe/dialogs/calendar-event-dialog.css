@@ -475,6 +475,18 @@ toolbar[iconsize="small"] #button-question:hover:active {
     padding: 0px;
 }
 
+/*--------------------------------------------------------------------
+ *   freebusy
+ *-------------------------------------------------------------------*/
+#freebusy-container {
+    overflow: hidden;
+    min-width: 100px;
+}
+
+#freebusy-grid {
+    min-width: 1px;
+}
+
 #calendar-summary-dialog {
     min-width: 35em;
 }
