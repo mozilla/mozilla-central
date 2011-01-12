@@ -721,6 +721,13 @@ nsMessenger::DetachAttachmentsWOPrompts(nsIFile* aDestFolder,
                                         const char **aMessageUriArray,
                                         nsIUrlListener *aListener)
 {
+  NS_ENSURE_ARG_POINTER(aDestFolder);
+  NS_ENSURE_ARG_POINTER(aContentTypeArray);
+  NS_ENSURE_ARG_POINTER(aUrlArray);
+  NS_ENSURE_ARG_POINTER(aMessageUriArray);
+  NS_ENSURE_ARG_POINTER(aDisplayNameArray);
+  if (!aCount)
+    return NS_OK;
   nsSaveAllAttachmentsState *saveState;
   nsCOMPtr<nsIFile> clone;
   nsresult rv = aDestFolder->Clone(getter_AddRefs(clone));
