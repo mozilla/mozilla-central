@@ -149,6 +149,20 @@
               return;
 
             switch (aTopic) {
+              case "indexedDB-permissions-prompt":
+                var requestor = aSubject.QueryInterface(Components.interfaces.nsIInterfaceRequestor);
+                var contentWindow = requestor.getInterface(Components.interfaces.nsIDOMWindow);
+                if (contentWindow.top == browser.contentWindow)
+                  this.promptIndexedDB(requestor, contentWindow, "permissions");
+                break;
+
+              case "indexedDB-quota-prompt":
+                var requestor = aSubject.QueryInterface(Components.interfaces.nsIInterfaceRequestor);
+                var contentWindow = requestor.getInterface(Components.interfaces.nsIDOMWindow);
+                if (contentWindow.top == browser.contentWindow)
+                  this.promptIndexedDB(requestor, contentWindow, "usage", aData);
+                break;
+
               case "addon-install-blocked":
                 var installInfo = aSubject.QueryInterface(Components.interfaces.amIWebInstallInfo);
                 if (installInfo.originatingWindow.top == browser.contentWindow)
@@ -457,6 +471,40 @@
         </body>
       </method>
 
+      <method name="promptIndexedDB">
+        <parameter name="aRequestor"/>
+        <parameter name="aWindow"/>
+        <parameter name="aTopic"/>
+        <parameter name="aData"/>
+        <body>
+          <![CDATA[
+            var host = aWindow.document.documentURIObject.asciiHost;
+            var message = this._stringBundle.formatStringFromName("offlineApps." + aTopic, [host, aData], 2);
+            var observer = aRequestor.getInterface(Components.interfaces.nsIObserver);
+            var nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName("offlineApps.allow"),
+              accessKey: this._stringBundle.GetStringFromName("offlineApps.allow.accesskey"),
+              popup: null,
+              callback: function allowIndexedDB() {
+                observer.observe(null, "indexedDB-" + aTopic + "-response",
+                                 nsIPermissionManager.ALLOW_ACTION);
+              }
+            }, {
+              label: this._stringBundle.GetStringFromName("offlineApps.deny"),
+              accessKey: this._stringBundle.GetStringFromName("offlineApps.deny.accesskey"),
+              popup: null,
+              callback: function denyIndexedDB() {
+                observer.observe(null, "indexedDB-" + aTopic + "-response",
+                                 nsIPermissionManager.DENY_ACTION);
+              }
+            }];
+            this.appendNotification(message, aTopic, null,
+                                    this.PRIOITY_INFO_HIGH, buttons);
+          ]]>
+        </body>
+      </method>
+
       <method name="addonInstallBlocked">
         <parameter name="installInfo"/>
         <body>
@@ -631,6 +679,8 @@
         <![CDATA[
           var os = Components.classes["@mozilla.org/observer-service;1"]
                              .getService(Components.interfaces.nsIObserverService);
+          os.addObserver(this, "indexedDB-permissions-prompt", false);
+          os.addObserver(this, "indexedDB-quota-prompt", false);
           os.addObserver(this, "addon-install-blocked", false);
           os.addObserver(this, "addon-install-complete", false);
           os.addObserver(this, "addon-install-disabled", false);
@@ -670,6 +720,12 @@
             this._activeBrowser = null;
             var os = Components.classes["@mozilla.org/observer-service;1"]
                                 .getService(Components.interfaces.nsIObserverService);
+            try {
+              os.removeObserver(this, "indexedDB-permissions-prompt");
+            } catch (ex) {}
+            try {
+              os.removeObserver(this, "indexedDB-quota-prompt");
+            } catch (ex) {}
             try {
               os.removeObserver(this, "addon-install-blocked");
             } catch (ex) {}
