@@ -64,7 +64,7 @@ const scenarios = gMessageScenarioFactory = new MessageScenarioFactory(msgGen);
  * holds. However, on Windows, if the attachment is not encoded (that is, is
  * inline text), libmime will return N + 2 bytes.
  */
-const epsilon = ('@mozilla.org/windows-registry-key;1' in Components.classes) ? 2 : 1;
+const epsilon = ('@mozilla.org/windows-registry-key;1' in Components.classes) ? 4 : 2;
 
 const textAttachment =
   "Can't make the frug contest, Helen; stomach's upset. I'll fix you, " +
@@ -220,12 +220,9 @@ let gMessageHeaderSink = {
                              aIsExternalAttachment) {
   },
   addAttachmentField: function(aName, aValue) {
-    dump("*** "+aName+" "+aValue+" "+this.size+"\n");
     // Only record the information for the first attachment.
     if (aName == "X-Mozilla-PartSize" && (this.size == null))
       this.size = parseInt(aValue);
-    dump("*** "+aName+" "+aValue+" "+this.size+"\n");
-    dump("\n");
   },
 
   // stub functions from nsIMsgHeaderSink
