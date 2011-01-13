@@ -381,10 +381,24 @@ function _normalize_for_json(aObj, aDepthAllowed, aJsonMeNotNeeded) {
     };
   }
   // === Generic ===
+  // DOM nodes, including elements
+  else if (aObj instanceof Ci.nsIDOMNode) {
+    let name = aObj.nodeName;
+    if (aObj instanceof Ci.nsIDOMElement)
+      name += "#" + aObj.getAttribute("id");
+
+    return {
+      type: "domNode",
+      name: name,
+      value: aObj.nodeValue,
+      namespace: aObj.namespaceURI,
+    };
+  }
   // Although straight JS exceptions should serialize pretty well, we can
   //  improve things by making "stack" more friendly.
   else if (aObj instanceof Error) {
     return {
+      type: "error",
       message: aObj.message,
       fileName: aObj.fileName,
       lineNumber: aObj.lineNumber,
@@ -420,7 +434,10 @@ function _normalize_for_json(aObj, aDepthAllowed, aJsonMeNotNeeded) {
     // Do not fall into simple object walking if this is an XPCOM interface.
     //  We might run across getters and that leads to nothing good.
     if (aObj instanceof Ci.nsISupports) {
-      return aObj.toString();
+      return {
+        type: "XPCOM",
+        name: aObj.toString(),
+      }
     }
   }
 
@@ -536,11 +553,14 @@ function mark_failure(aRichString) {
   let args = [_testLoggerActiveContext];
   let text = "";
   for each (let [i, richThing] in Iterator(aRichString)) {
-    text += (i ? " " : "") + richThing;
-    if (richThing == null || typeof(richThing) != "object")
+    text += (i ? " " : "");
+    if (richThing == null || typeof(richThing) != "object") {
+      text += richThing;
       args.push(richThing);
+    }
     else {
       let jsonThing = _normalize_for_json(richThing);
+      text += "[" + jsonThing.type + " " + jsonThing.name + "]";
       // hook things up to be json serialized.
       if (!("_jsonMe" in jsonThing))
         jsonThing.__proto__ = _fake_json_proto;
