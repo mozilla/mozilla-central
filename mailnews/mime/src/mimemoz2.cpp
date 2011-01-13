@@ -478,6 +478,22 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   return NS_OK;
 }
 
+nsresult MimeGetSize(MimeObject *child, PRInt32 *size) {
+  PRBool isLeaf = mime_subclass_p(child->clazz, (MimeObjectClass *) &mimeLeafClass);
+  PRBool isContainer = mime_subclass_p(child->clazz, (MimeObjectClass *) &mimeContainerClass);
+
+  if (isLeaf) {
+    *size += ((MimeLeaf *)child)->sizeSoFar;
+  } else if (isContainer) {
+    int i;
+    MimeContainer *cont = (MimeContainer *)child;
+    for (i = 0; i < cont->nchildren; ++i) {
+      MimeGetSize(cont->children[i], size);
+    }
+  }
+  return NS_OK;
+}
+
 nsresult
 BuildAttachmentList(MimeObject *anObject, nsMsgAttachmentData *aAttachData, const char *aMessageURL)
 {
@@ -532,11 +548,11 @@ BuildAttachmentList(MimeObject *anObject, nsMsgAttachmentData *aAttachData, cons
     PRBool isAnAppleDoublePart = mime_typep(child, (MimeObjectClass *) &mimeMultipartAppleDoubleClass) &&
                                  ((MimeContainer *)child)->nchildren == 2;
 
-    // -1 means we don't know the size. So far, we only give the size of leaf
-    // objects
-    PRInt32 attSize = -1;
-    if (isALeafObject)
-      attSize = ((MimeLeaf *)child)->sizeSoFar;
+    // The function below does not necessarily set the size to something (I
+    // don't think it will work for external objects, for instance, since they
+    // are neither containers nor leafs).
+    PRInt32 attSize = 0;
+    MimeGetSize(child, &attSize);
 
     if (isALeafObject || isAnInlineMessage || isAnAppleDoublePart)
     {

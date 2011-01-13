@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *    Jim Porter <jvporter@wisc.edu>
+ *    Jonathan Protzenko <jonathan.protzenko@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -109,6 +110,13 @@ const yencText =
   "=yend size=174 crc32=7efccd8e\n";
 const yencSize = 174;
 
+const partHtml = new SyntheticPartLeaf(
+  "<html><head></head><body>I am HTML! Woo! </body></html>",
+  {
+    contentType: "text/html"
+  }
+);
+
 // create some messages that have various types of attachments
 let messages = [
   // text attachment
@@ -148,6 +156,27 @@ let messages = [
                                     { contentType: '' } ),
     subject: "yEnc-Prefix: \"jane.doe\" 174 yEnc bytes - yEnc test (1)",
     size: yencSize },
+  // an attached eml that used to return a size that's -1
+  {
+    bodyPart: new SyntheticPartMultiMixed([
+      partHtml,
+      msgGen.makeMessage({ body: { body: textAttachment } }),
+    ]),
+    size: textAttachment.length + 1,
+  },
+  // this is an attached message that has itself an attachment
+  {
+    bodyPart: new SyntheticPartMultiMixed([
+      partHtml,
+      msgGen.makeMessage({ body: { body: textAttachment },
+                           attachments: [{ body: imageAttachment,
+                            contentType: 'application/x-ubik',
+                            filename: 'ubik',
+                            encoding: 'base64',
+                            format: '' }] }),
+    ]),
+    size: textAttachment.length + imageSize,
+  },
   ];
 
 
@@ -156,8 +185,16 @@ let gStreamListener = {
 
   // nsIRequestObserver part
   onStartRequest: function (aRequest, aContext) {
+    // We reset the size here because we know that we only expect one attachment
+    //  per test email. In the case of the attached .eml with nested
+    //  attachments, this allows us to properly discard the nested attachment
+    //  sizes.
+    // msgHdrViewOverlay.js has a stack of attachment infos that properly
+    //  handles this.
+    gMessageHeaderSink.size = null;
   },
   onStopRequest: function (aRequest, aContext, aStatusCode) {
+    dump("*** Size is "+gMessageHeaderSink.size+" (expecting "+this.expectedSize+")\n\n");
     do_check_true(Math.abs(gMessageHeaderSink.size - this.expectedSize) <= epsilon);
     async_driver();
   },
@@ -181,11 +218,14 @@ let gStreamListener = {
 let gMessageHeaderSink = {
   handleAttachment: function(aContentType, aUrl, aDisplayName, aUri,
                              aIsExternalAttachment) {
-    this.size = null;
   },
   addAttachmentField: function(aName, aValue) {
-    if (aName == "X-Mozilla-PartSize")
+    dump("*** "+aName+" "+aValue+" "+this.size+"\n");
+    // Only record the information for the first attachment.
+    if (aName == "X-Mozilla-PartSize" && (this.size == null))
       this.size = parseInt(aValue);
+    dump("*** "+aName+" "+aValue+" "+this.size+"\n");
+    dump("\n");
   },
 
   // stub functions from nsIMsgHeaderSink
