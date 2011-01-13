@@ -379,6 +379,9 @@ def prettyPrintException(e):
                 print '           ', prettifyFilename(path), line
 
 
+# Tests that are useless and shouldn't be printed if successful
+TEST_BLACKLIST = ["setupModule", "setupTest", "teardownTest", "teardownModule"]
+
 import pprint
 def prettyPrintResults():
     for result in TEST_RESULTS:
@@ -387,7 +390,8 @@ def prettyPrintResults():
         if 'summary' in result:
             testOrSummary = 'SUMMARY'
         if len(result['fails']) == 0:
-            print '%s-PASS | %s' % (testOrSummary, result['name'])
+            if result['name'] not in TEST_BLACKLIST:
+                print '%s-PASS | %s' % (testOrSummary, result['name'])
         else:
             print '%s-UNEXPECTED-FAIL | %s | %s' % (testOrSummary, prettifyFilename(result['filename']), result['name'])
         for failure in result['fails']:
