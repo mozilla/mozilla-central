@@ -267,6 +267,17 @@ MessageDisplayWidget.prototype = {
   },
 
   /**
+   * FolderDisplayWidget will alert us when a message has been removed so that
+   * we can decide whether we want to handle it here, e.g. by closing the
+   * window/tab.
+   *
+   * @return true if the MessageDisplayWidget handled this event and the
+   *         FolderDisplayWidget should stop processing
+   */
+  onMessagesRemoved: function MessageDisplayWidget_onMessagesRemoved() {
+  },
+
+  /**
    * If we are already summarized and we get a new request to summarize, require
    *  that the selection has been stable for at least this many milliseconds
    *  before resummarizing.
@@ -538,6 +549,14 @@ MessageTabDisplayWidget.prototype = {
       // No summaries in a message tab
       this.singleMessageDisplay = true;
       return false;
+    }
+  },
+
+  onMessagesRemoved: function MessageTabDisplayWidget_onMessagesRemoved() {
+    if (this.folderDisplay.treeSelection.count == 0 &&
+        pref.getBoolPref("mail.close_message_window.on_delete")) {
+      document.getElementById("tabmail").closeTab(this.folderDisplay._tabInfo);
+      return true;
     }
   },
 

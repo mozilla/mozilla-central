@@ -1152,6 +1152,9 @@ FolderDisplayWidget.prototype = {
     FolderDisplayListenerManager._fireListeners("onMessagesRemoved",
                                                 [this]);
 
+    if (this.messageDisplay.onMessagesRemoved())
+      return;
+
     // - we saw this coming
     let rowCount = this.view.dbView.rowCount;
     if (!this._massMoveActive && (this._nextViewIndexAfterDelete != null)) {

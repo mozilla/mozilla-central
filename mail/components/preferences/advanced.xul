@@ -261,9 +261,9 @@
                 </radiogroup>
               </hbox>
               <hbox>
-                <checkbox id="closeMsgWindowOnDelete"
-                          label="&closeMsgWindowOnMoveOrDelete.label;"
-                          accesskey="&closeMsgWindowOnDelete.accesskey;"
+                <checkbox id="closeMsgOnMoveOrDelete"
+                          label="&closeMsgOnMoveOrDelete.label;"
+                          accesskey="&closeMsgOnMoveOrDelete.accesskey;"
                           preference="mail.close_message_window.on_delete"/>
               </hbox>
             </vbox>
