@@ -212,6 +212,7 @@ var DefaultController =
       case "button_mark":
       case "cmd_tag":
       case "cmd_markAsRead":
+      case "cmd_markAsUnread":
       case "cmd_markAllRead":
       case "cmd_markThreadAsRead":
       case "cmd_markReadByDate":
@@ -408,9 +409,12 @@ var DefaultController =
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.deleteJunk);
       case "button_mark":
       case "cmd_tag":
-      case "cmd_markAsRead":
       case "cmd_markThreadAsRead":
         return GetNumSelectedMessages() > 0;
+      case "cmd_markAsRead":
+        return CanMarkMsgAsRead(true);
+      case "cmd_markAsUnread":
+        return CanMarkMsgAsRead(false);
       case "button_previous":
       case "button_next":
         return IsViewNavigationItemEnabled();
@@ -784,8 +788,13 @@ var DefaultController =
         MsgSearchMessages();
         return;
       case "button_mark":
-      case "cmd_markAsRead":
         MsgMarkMsgAsRead();
+        return;
+      case "cmd_markAsRead":
+        MsgMarkMsgAsRead(true);
+        return;
+      case "cmd_markAsUnread":
+        MsgMarkMsgAsRead(false);
         return;
       case "cmd_markThreadAsRead":
         ClearPendingReadTimer();

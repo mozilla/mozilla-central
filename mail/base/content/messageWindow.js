@@ -711,6 +711,7 @@ var MessageWindowController =
       case "cmd_tag":
       case "button_mark":
       case "cmd_markAsRead":
+      case "cmd_markAsUnread":
       case "cmd_markAllRead":
       case "cmd_markThreadAsRead":
       case "cmd_markReadByDate":
@@ -856,7 +857,6 @@ var MessageWindowController =
       case "cmd_find":
       case "cmd_tag":
       case "button_mark":
-      case "cmd_markAsRead":
       case "cmd_markAllRead":
       case "cmd_markThreadAsRead":
       case "cmd_markReadByDate":
@@ -864,6 +864,10 @@ var MessageWindowController =
       case "cmd_viewNormalHeader":
       case "cmd_stop":
         return true;
+      case "cmd_markAsRead":
+        return CanMarkMsgAsRead(true);
+      case "cmd_markAsUnread":
+        return CanMarkMsgAsRead(false);
       case "cmd_markAsFlagged":
       case "button_file":
       case "cmd_file":
@@ -1050,8 +1054,13 @@ var MessageWindowController =
         MsgSearchMessages();
         break;
       case "button_mark":
-      case "cmd_markAsRead":
         MsgMarkMsgAsRead();
+        return;
+      case "cmd_markAsRead":
+        MsgMarkMsgAsRead(true);
+        return;
+      case "cmd_markAsUnread":
+        MsgMarkMsgAsRead(false);
         return;
       case "cmd_markThreadAsRead":
         ClearPendingReadTimer();

@@ -47,6 +47,7 @@ var MODULE_REQUIRES = ['folder-display-helpers'];
 
 Components.utils.import("resource:///modules/MailUtils.js");
 
+var unreadFolder;
 var archiveSrcFolder = null;
 var archiveURI;
 
@@ -56,12 +57,157 @@ var setupModule = function(module) {
   let fdh = collector.getModule('folder-display-helpers');
   fdh.installInto(module);
 
+  unreadFolder = create_folder("UnreadFolder");
   archiveSrcFolder = create_folder("ArchiveSrc");
+
+  make_new_sets_in_folder(unreadFolder, [{count: 2}]);
+
   // Create messages from 20 different months, which will mean 2 different
   // years as well.
   make_new_sets_in_folder(archiveSrcFolder, [{count: 20, age_incr: {weeks: 5}}]);
 
 };
+
+/**
+ * Ensures that all messages have a particular read status
+ * @param messages an array of nsIMsgDBHdrs to check
+ * @param read true if the messages should be marked read, false otherwise
+ */
+function check_read_status(messages, read) {
+  function read_str(read) {
+    return read ? "read" : "unread";
+  }
+
+  for (let i = 0; i < messages.length; i++)
+    assert_true(messages[i].isRead == read,
+                "Message marked as " + read_str(messages[i].isRead) +
+                ", expected " + read_str(read));
+}
+
+/**
+ * Ensures that the mark read/unread menu items are enabled/disabled properly
+ * @param canMarkRead true if the mark read item should be enabled
+ * @param canMarkUnread true if the mark unread item should be enabled
+ */
+function check_read_menuitems(canMarkRead, canMarkUnread) {
+  mc.click(mc.eid("messageMenu"));
+  mc.keypress(null, 'k', {}); // activate the mark submenu
+
+  let readEnabled = !mc.e("markReadMenuItem").disabled;
+  let unreadEnabled = !mc.e("markUnreadMenuItem").disabled;
+
+  // Close the menu so we can do stuff when we return
+  mc.keypress(null, "VK_ESCAPE", {});
+  mc.keypress(null, "VK_ESCAPE", {});
+
+  assert_true(readEnabled == canMarkRead,
+              "Mark read menu item " + (canMarkRead ? "dis" : "en") +
+              "abled when it shouldn't be!");
+
+  assert_true(unreadEnabled == canMarkUnread,
+              "Mark unread menu item " + (canMarkUnread ? "dis" : "en") +
+              "abled when it shouldn't be!");
+}
+
+function test_mark_one_read() {
+  be_in_folder(unreadFolder);
+  let curMessage = select_click_row(0);
+
+  curMessage.markRead(false);
+  mc.keypress(null, "m", {});
+  check_read_status([curMessage], true);
+}
+
+function test_mark_one_unread() {
+  be_in_folder(unreadFolder);
+  let curMessage = select_click_row(0);
+
+  curMessage.markRead(true);
+  mc.keypress(null, "m", {shiftKey: true});
+  check_read_status([curMessage], false);
+}
+
+function test_mark_n_read() {
+  be_in_folder(unreadFolder);
+  select_click_row(0);
+  let curMessages = select_shift_click_row(1);
+
+  for (let i = 0; i < curMessages.length; i++)
+    curMessages[i].markRead(false);
+  mc.keypress(null, "m", {});
+  check_read_status(curMessages, true);
+}
+
+function test_mark_n_unread() {
+  be_in_folder(unreadFolder);
+  select_click_row(0);
+  let curMessages = select_shift_click_row(1);
+
+  for (let i = 0; i < curMessages.length; i++)
+    curMessages[i].markRead(true);
+  mc.keypress(null, "m", {shiftKey: true});
+  check_read_status(curMessages, false);
+}
+
+function test_mark_n_read_mixed() {
+  be_in_folder(unreadFolder);
+  select_click_row(0);
+  let curMessages = select_shift_click_row(1);
+
+  curMessages[0].markRead(true);
+  curMessages[1].markRead(false);
+  mc.keypress(null, "m", {});
+  check_read_status(curMessages, true);
+
+  curMessages[0].markRead(false);
+  curMessages[1].markRead(true);
+  mc.keypress(null, "m", {});
+  check_read_status(curMessages, true);
+
+}
+
+function test_mark_n_unread_mixed() {
+  be_in_folder(unreadFolder);
+  select_click_row(0);
+  let curMessages = select_shift_click_row(1);
+
+  curMessages[0].markRead(false);
+  curMessages[1].markRead(true);
+  mc.keypress(null, "m", {shiftKey: true});
+  check_read_status(curMessages, false);
+
+  curMessages[0].markRead(true);
+  curMessages[1].markRead(false);
+  mc.keypress(null, "m", {shiftKey: true});
+  check_read_status(curMessages, false);
+}
+
+function test_mark_menu_read() {
+  be_in_folder(unreadFolder);
+  let curMessage = select_click_row(0);
+
+  curMessage.markRead(false);
+  check_read_menuitems(true, false);
+}
+
+function test_mark_menu_unread() {
+  be_in_folder(unreadFolder);
+  let curMessage = select_click_row(0);
+
+  curMessage.markRead(true);
+  check_read_menuitems(false, true);
+}
+
+function test_mark_menu_mixed() {
+  be_in_folder(unreadFolder);
+  select_click_row(0);
+  let curMessages = select_shift_click_row(1);
+
+  curMessages[0].markRead(false);
+  curMessages[1].markRead(true);
+
+  check_read_menuitems(true, true);
+}
 
 function test_yearly_archive() {
   yearly_archive(false);

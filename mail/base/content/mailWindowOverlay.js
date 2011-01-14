@@ -814,9 +814,6 @@ function forwardToolbarMenu_init(menuPopup)
 
 function InitMessageMark()
 {
-  document.getElementById("cmd_markAsRead")
-          .setAttribute("checked", SelectedMessagesAreRead());
-
   document.getElementById("cmd_markAsFlagged")
           .setAttribute("checked", SelectedMessagesAreFlagged());
 
@@ -1048,8 +1045,12 @@ function SelectedMessagesAreJunk()
 
 function SelectedMessagesAreRead()
 {
-  let firstSelectedMessage = gFolderDisplay.selectedMessage;
-  return firstSelectedMessage && firstSelectedMessage.isRead;
+  let messages = gFolderDisplay.selectedMessages;
+  if (messages.every(function(msg) { return msg.isRead; }))
+    return true;
+  if (messages.every(function(msg) { return !msg.isRead; }))
+    return false;
+  return undefined;
 }
 
 function SelectedMessagesAreFlagged()
@@ -1910,9 +1911,28 @@ function UpdateJunkButton()
   }
 }
 
-function MsgMarkMsgAsRead()
+/**
+ * Checks if the selected messages can be marked as read or unread
+ *
+ * @param read true if trying to mark messages as read, false otherwise
+ * @return true if the chosen operation can be performed
+ */
+function CanMarkMsgAsRead(read)
 {
-  MarkSelectedMessagesRead(!SelectedMessagesAreRead());
+  return SelectedMessagesAreRead() != read;
+}
+
+/**
+ * Marks the selected messages as read or unread
+ *
+ * @param read true if trying to mark messages as read, false if marking unread,
+ *        undefined if toggling the read status
+ */
+function MsgMarkMsgAsRead(read)
+{
+  if (read == undefined)
+    read = !gFolderDisplay.selectedMessage.isRead;
+  MarkSelectedMessagesRead(read);
 }
 
 function MsgMarkAsFlagged()
