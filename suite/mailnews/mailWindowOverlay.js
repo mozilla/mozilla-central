@@ -2724,6 +2724,7 @@ function LoadMsgWithRemoteContent()
   // then reload the message
 
   setMsgHdrPropertyAndReload("remoteContentPolicy", kAllowRemoteContent);
+  window.content.focus();
 }
 
 /**
@@ -2765,14 +2766,19 @@ function allowRemoteContentForSender()
   var enumerator = Components.classes["@mozilla.org/abmanager;1"]
                              .getService(Components.interfaces.nsIAbManager)
                              .directories;
-  var cardForEmailAddress;
-  var addrbook;
+  var cardForEmailAddress = null;
+  var addrbook = null;
   while (!cardForEmailAddress && enumerator.hasMoreElements())
   {
     addrbook = enumerator.getNext()
                          .QueryInterface(Components.interfaces.nsIAbDirectory);
-    try {
-      cardForEmailAddress = addrbook.cardForEmailAddress(authorEmailAddress);
+    // Try/catch because cardForEmailAddress will throw if not implemented.
+    try
+    {
+      // If it's a read-only book, don't find a card as we won't be able
+      // to modify the card.
+      if (!addrbook.readOnly)
+        cardForEmailAddress = addrbook.cardForEmailAddress(authorEmailAddress);
     } catch (e) {}
   }
 
