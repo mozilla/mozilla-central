@@ -127,21 +127,6 @@ nsMsgDisplayMessageByString(nsIPrompt * aPrompt, const PRUnichar * msg, const PR
 }
 
 nsresult
-nsMsgAskBooleanQuestionByID(nsIPrompt * aPrompt, PRInt32 msgID, PRBool *answer, const PRUnichar * windowTitle)
-{
-  nsresult rv;
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr<nsIStringBundle> bundle;
-  rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsString msg;
-  bundle->GetStringFromID(msgID, getter_Copies(msg));
-  return nsMsgAskBooleanQuestionByString(aPrompt, msg.get(), answer, windowTitle);
-}
-
-nsresult
 nsMsgAskBooleanQuestionByString(nsIPrompt * aPrompt, const PRUnichar * msg, PRBool *answer, const PRUnichar * windowTitle)
 {
   nsresult rv;

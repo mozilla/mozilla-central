@@ -4167,13 +4167,28 @@ nsMsgComposeAndSend::NotifyListenerOnStopCopy(nsresult aStatus)
   if (NS_FAILED(aStatus))
   {
     PRBool retry = PR_FALSE;
-    nsMsgAskBooleanQuestionByID(prompt, NS_MSG_ERROR_DOING_FCC, &retry, nsnull /* what title */);
-    if (retry)
-    {
-      mSendProgress = nsnull; // this was cancelled, so we need to clear it.
-      return DoFcc();
-    }
+    nsresult rv;
+    nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIStringBundle> bundle;
+    rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
+    NS_ENSURE_SUCCESS(rv, rv);
 
+    nsString msg;
+    const PRUnichar *formatStrings[] = { mSavedToFolderName.get() };
+
+    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("errorSavingMsg").get(),
+                                      formatStrings, 1,
+                                      getter_Copies(msg));
+    if (NS_SUCCEEDED(rv))
+    {
+      nsMsgAskBooleanQuestionByString(prompt, msg.get(), &retry, nsnull);
+      if (retry)
+      {
+        mSendProgress = nsnull; // this was cancelled, so we need to clear it.
+        return SendToMagicFolder(m_deliver_mode);
+      }
+    }
   }
   // Ok, now to support a second copy operation, we need to figure
   // out which copy request just finished. If the user has requested
@@ -4472,7 +4487,6 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
   PRBool        folderIsLocal = PR_TRUE;
   nsCString     turi;
   PRUnichar     *printfString = nsnull;
-  nsString folderName;
   nsString msg;
   nsCOMPtr<nsIMsgFolder> folder;
 
@@ -4577,10 +4591,10 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
       rdfService->GetResource(turi, getter_AddRefs(res));
       nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(res);
       if (folder)
-        folder->GetName(folderName);
+        folder->GetName(mSavedToFolderName);
     }
-    if (!folderName.IsEmpty())
-      printfString = nsTextFormatter::smprintf(msg.get(), folderName.get());
+    if (!mSavedToFolderName.IsEmpty())
+      printfString = nsTextFormatter::smprintf(msg.get(), mSavedToFolderName.get());
     else
       printfString = nsTextFormatter::smprintf(msg.get(), "?");
     if (printfString)

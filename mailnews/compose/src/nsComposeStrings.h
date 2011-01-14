@@ -68,7 +68,6 @@
 #define NS_MSG_UNDISCLOSED_RECIPIENTS               12566
 
 #define NS_MSG_ERROR_ATTACHING_FILE                 NS_MSG_GENERATE_FAILURE(12570)
-#define NS_MSG_ERROR_DOING_FCC                      12571
 
 #define NS_ERROR_SMTP_GREETING                      NS_MSG_GENERATE_FAILURE(12572)
 

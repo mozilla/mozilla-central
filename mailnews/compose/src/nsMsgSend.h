@@ -312,7 +312,8 @@ public:
                                                  // nsMsgSaveAsTemplate and nsMsgSendUnsent
   nsCOMPtr<nsIMsgDBHdr>     mMsgToReplace;       // If the mode is nsMsgSaveAsDraft, this is the message it will
                                                  // replace
-
+  nsString mSavedToFolderName; // Name of folder we're saving to, used when
+                               // displaying error on save.
   // These are needed for callbacks to the FE...
   nsCOMPtr<nsIDOMWindowInternal>  mParentWindow;
   nsCOMPtr<nsIMsgProgress>        mSendProgress;
