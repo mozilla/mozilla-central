@@ -8,6 +8,7 @@ classic.jar:
   skin/classic/messenger/featureConfigurators/folder-columns.png    (mail/featureConfigurators/folder-columns.png)
   skin/classic/messenger/featureConfigurators/toolbars.png    (mail/featureConfigurators/toolbars.png)
   skin/classic/messenger/primaryToolbar.css                   (mail/primaryToolbar.css)
+  skin/classic/messenger/aboutSupport.css                     (../qute/mail/aboutSupport.css)
   skin/classic/messenger/accountCentral.css                   (mail/accountCentral.css)
   skin/classic/messenger/accountCreation.css                  (mail/accountCreation.css)
   skin/classic/messenger/accountManage.css                    (mail/accountManage.css)

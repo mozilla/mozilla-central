@@ -78,6 +78,13 @@ function installInto(module) {
   module.plan_for_content_tab_load = plan_for_content_tab_load;
   module.wait_for_content_tab_load = wait_for_content_tab_load;
   module.assert_content_tab_has_url = assert_content_tab_has_url;
+  module.content_tab_e = content_tab_e;
+  module.get_element_display = get_element_display;
+  module.assert_element_hidden = assert_element_hidden;
+  module.assert_element_visible = assert_element_visible;
+  module.wait_for_element_display_value = wait_for_element_display_value;
+  module.assert_content_tab_text_present = assert_content_tab_text_present;
+  module.assert_content_tab_text_absent = assert_content_tab_text_absent;
 }
 
 /**
@@ -135,6 +142,7 @@ function open_content_tab_with_click(aElem, aController) {
   // We append new tabs at the end, so check the last one.
   let expectedNewTab = aController.tabmail.tabInfo[preCount];
   folderDisplayHelper.assert_selected_tab(expectedNewTab);
+  folderDisplayHelper.assert_tab_mode_name(expectedNewTab, "contentTab");
   wait_for_content_tab_load(expectedNewTab);
   return expectedNewTab;
 }
@@ -193,4 +201,75 @@ function assert_content_tab_has_url(aTab, aURL) {
   if (aTab.browser.currentURI.spec != aURL)
     mark_failure(["The tab", aTab, "should have URL", aURL, "but instead has",
                   aTab.browser.currentURI.spec]);
+}
+
+/**
+ * Get the element with the given ID from the content tab's displayed page.
+ */
+function content_tab_e(aTab, aId) {
+  return aTab.browser.contentDocument.getElementById(aId);
+}
+
+/**
+ * Returns the current "display" style property of an element.
+ */
+function get_element_display(aTab, aElem) {
+  let style = aTab.browser.contentWindow.getComputedStyle(aElem);
+  return style.getPropertyValue("display");
+}
+
+/**
+ * Asserts that the given element is hidden from view on the page.
+ */
+function assert_element_hidden(aTab, aElem) {
+  let display = get_element_display(aTab, aElem);
+  if (display != "none") {
+    mark_failure(["Element", aElem, "should be hidden but has display", display,
+                  "instead"]);
+  }
+}
+
+/**
+ * Asserts that the given element is visible on the page.
+ */
+function assert_element_visible(aTab, aElem) {
+  let display = get_element_display(aTab, aElem);
+  if (display != "inline") {
+    mark_failure(["Element", aElem, "should be visible but has display", display,
+                  "instead"]);
+  }
+}
+
+/**
+ * Waits for the element's display property to be the given value.
+ */
+function wait_for_element_display_value(aTab, aElem, aValue) {
+  function isValue() {
+    return get_element_display(aTab, aElem) == aValue;
+  }
+  if (!controller.waitForEval("subject()", NORMAL_TIMEOUT, FAST_INTERVAL,
+                              isValue)) {
+    mark_failure(["Timeout waiting for element", aElem, "to have display value",
+                  aValue]);
+  }
+}
+
+/**
+ * Asserts that the given text is present on the content tab's page.
+ */
+function assert_content_tab_text_present(aTab, aText) {
+  let html = aTab.browser.contentDocument.documentElement.innerHTML;
+  if (html.indexOf(aText) == -1) {
+    mark_failure(["Unable to find string \"" + aText + "\" on the content tab's page"]);
+  }
+}
+
+/**
+ * Asserts that the given text is absent on the content tab's page.
+ */
+function assert_content_tab_text_absent(aTab, aText) {
+  let html = aTab.browser.contentDocument.documentElement.innerHTML;
+  if (html.indexOf(aText) != -1) {
+    mark_failure(["Found string \"" + aText + "\" on the content tab's page"]);
+  }
 }

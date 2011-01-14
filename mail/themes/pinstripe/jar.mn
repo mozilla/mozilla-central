@@ -11,6 +11,7 @@ classic.jar:
   skin/classic/messenger/dialogs.css                             (mail/dialogs.css)
   skin/classic/messenger/messenger.css                           (mail/messenger.css)
   skin/classic/messenger/primaryToolbar.css                      (mail/primaryToolbar.css)
+  skin/classic/messenger/aboutSupport.css                        (../qute/mail/aboutSupport.css)
   skin/classic/messenger/accountCentral.css                      (mail/accountCentral.css)
   skin/classic/messenger/accountCreation.css                     (mail/accountCreation.css)
   skin/classic/messenger/accountManage.css                       (mail/accountManage.css)

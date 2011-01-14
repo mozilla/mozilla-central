@@ -1,0 +1,21 @@
+DEPTH     = ../../..
+topsrcdir = @top_srcdir@
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+
+include $(DEPTH)/config/autoconf.mk
+
+EXTRA_JS_MODULES = aboutSupport.js
+
+# Include the platform-specific module
+ifeq ($(MOZ_WIDGET_TOOLKIT), windows)
+EXTRA_JS_MODULES += aboutSupportWin32.js
+else
+ifeq ($(MOZ_WIDGET_TOOLKIT), cocoa)
+EXTRA_JS_MODULES += aboutSupportMac.js
+else
+EXTRA_JS_MODULES += aboutSupportUnix.js
+endif
+endif
+
+include $(topsrcdir)/config/rules.mk

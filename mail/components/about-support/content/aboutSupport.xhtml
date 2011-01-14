@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+  -   Version: MPL 1.1/GPL 2.0/LGPL 2.1
+  -
+  -  The contents of this file are subject to the Mozilla Public License Version
+  -  1.1 (the "License"); you may not use this file except in compliance with
+  -  the License. You may obtain a copy of the License at
+  -  http://www.mozilla.org/MPL/
+  -
+  -  Software distributed under the License is distributed on an "AS IS" basis,
+  -  WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+  -  for the specific language governing rights and limitations under the
+  -  License.
+  -
+  -  The Original Code is aboutSupport.xhtml.
+  -
+  -  The Initial Developer of the Original Code is
+  -  Mozilla Foundation
+  -  Portions created by the Initial Developer are Copyright (C) 2009
+  -  the Initial Developer. All Rights Reserved.
+  -
+  -  Contributor(s):
+  -    Curtis Bartley <cbartley@mozilla.com>
+  -    Siddharth Agarwal <sid.bugzilla@gmail.com>
+  -
+  -  Alternatively, the contents of this file may be used under the terms of
+  -  either the GNU General Public License Version 2 or later (the "GPL"), or
+  -  the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+  -  in which case the provisions of the GPL or the LGPL are applicable instead
+  -  of those above. If you wish to allow use of your version of this file only
+  -  under the terms of either the GPL or the LGPL, and not to allow others to
+  -  use your version of this file under the terms of the MPL, indicate your
+  -  decision by deleting the provisions above and replace them with the notice
+  -  and other provisions required by the GPL or the LGPL. If you do not delete
+  -  the provisions above, a recipient may use your version of this file under
+  -  the terms of any one of the MPL, the GPL or the LGPL.
+  -
+  -  ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE html [
+  <!ENTITY % htmlDTD PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd"> %htmlDTD;
+  <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd"> %globalDTD;
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd"> %brandDTD;
+  <!ENTITY % aboutSupportDTD SYSTEM "chrome://global/locale/aboutSupport.dtd"> %aboutSupportDTD;
+  <!ENTITY % aboutSupportMailDTD SYSTEM "chrome://messenger/locale/aboutSupportMail.dtd"> %aboutSupportMailDTD;
+]>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>&aboutSupport.pageTitle;</title>
+
+    <link rel="stylesheet" href="chrome://global/skin/aboutSupport.css"
+          type="text/css"/>
+    <link rel="stylesheet" href="chrome://messenger/skin/aboutSupport.css"
+          type="text/css"/>
+    <link rel="stylesheet" href="chrome://messenger/content/about-support/show-private.css"
+          type="text/css"/>
+    <!-- Private data is hidden by default. -->
+    <link rel="stylesheet" href="chrome://messenger/content/about-support/hide-private.css"
+          type="text/css" id="about-support-private"/>
+
+    <script type="application/javascript;version=1.7"
+            src="chrome://messenger/content/about-support/init.js"/>
+    <script type="application/javascript;version=1.7"
+            src="chrome://messenger/content/about-support/accounts.js"/>
+    <script type="application/javascript;version=1.7"
+            src="chrome://messenger/content/about-support/extensions.js"/>
+    <script type="application/javascript;version=1.7"
+            src="chrome://messenger/content/about-support/prefs.js"/>
+    <script type="application/javascript;version=1.7"
+            src="chrome://messenger/content/about-support/gfx.js"/>
+    <script type="application/javascript;version=1.7"
+            src="chrome://messenger/content/about-support/export.js"/>
+  </head>
+
+  <body dir="&locale.dir;">
+
+    <h1>
+      &aboutSupport.pageTitle;
+    </h1>
+
+    <div class="page-subtitle">
+        &aboutSupport.pageSubtitle;
+    </div>
+
+    <div>
+      <button onclick="copyToClipboard()">
+        &aboutSupport.copyToClipboard.label;
+      </button>
+      <button onclick="sendViaEmail()">
+        &aboutSupport.sendViaEmail.label;
+      </button>
+      <input type="checkbox" id="check-show-private-data" class="data-uionly"
+             onchange="onShowPrivateDataChange(this);" />
+      <label for="check-show-private-data">&aboutSupport.showPrivateData.mainText;
+      <span class="gray-text">&aboutSupport.showPrivateData.explanationText;</span></label>
+    </div>
+
+    <div id="contents">
+
+      <!-- - - - - - - - - - - - - - - - - - - - - -->
+
+      <h2 class="major-section">
+        &aboutSupport.appBasicsTitle;
+      </h2>
+
+      <table>
+        <tbody>
+          <tr>
+            <th class="column">
+              &aboutSupport.appBasicsName;
+            </th>
+
+            <td id="application-box">
+            </td>
+          </tr>
+
+          <tr>
+            <th class="column">
+              &aboutSupport.appBasicsVersion;
+            </th>
+
+            <td id="version-box">
+            </td>
+          </tr>
+
+          <tr>
+            <th class="column">
+              &aboutSupport.appBasicsUserAgent;
+            </th>
+
+            <td id="useragent-box">
+            </td>
+          </tr>
+
+          <tr>
+            <th class="column">
+              &aboutSupport.appBasicsProfileDir;
+            </th>
+
+            <td>
+              <div id="profile-dir-button-box" class="data-public">
+                <button onclick="openProfileDirectory()">
+#ifdef XP_MACOSX
+                  &aboutSupport.showMac.label;
+#else
+                  &aboutSupport.show.label;
+#endif
+                </button>
+              </div>
+              <span id="profile-dir-box" class="data-private"></span>
+              <span id="profile-fs-type-box"></span>
+            </td>
+          </tr>
+
+          <tr>
+            <th class="column">
+              &aboutSupport.appBasicsAppBuildID;
+            </th>
+
+            <td id="buildid-box">
+            </td>
+          </tr>
+
+          <tr>
+            <th class="column">
+              &aboutSupport.appBasicsEnabledPlugins;
+            </th>
+
+            <td>
+              <a href="about:plugins" target="_blank">about:plugins</a>
+            </td>
+          </tr>
+
+          <tr>
+            <th class="column">
+              &aboutSupport.appBasicsBuildConfig;
+            </th>
+
+            <td>
+              <a href="about:buildconfig" target="_blank">about:buildconfig</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - -->
+
+      <h2 class="major-section">
+        &aboutSupport.accountsTitle;
+      </h2>
+
+      <table id="accounts-table">
+        <thead>
+          <tr>
+            <th rowspan="2">
+              &aboutSupport.accountsID;
+            </th>
+
+            <th rowspan="2" class="data-private">
+              &aboutSupport.accountsName;
+            </th>
+
+            <th colspan="3">
+              &aboutSupport.accountsIncomingServer;
+            </th>
+
+            <th colspan="4">
+              &aboutSupport.accountsOutgoingServers;
+            </th>
+          </tr>
+          <tr class="thead-level2">
+            <!-- Incoming server -->
+            <th>
+              &aboutSupport.accountsName;
+            </th>
+
+            <th>
+              &aboutSupport.accountsConnSecurity;
+            </th>
+
+            <th>
+              &aboutSupport.accountsAuthMethod;
+            </th>
+
+            <!-- Outgoing servers -->
+            <th>
+              &aboutSupport.accountsName;
+            </th>
+
+            <th>
+              &aboutSupport.accountsConnSecurity;
+            </th>
+
+            <th>
+              &aboutSupport.accountsAuthMethod;
+            </th>
+
+            <th>
+              &aboutSupport.accountsDefault;
+            </th>
+          </tr>
+        </thead>
+
+        <tbody id="accounts-tbody">
+        </tbody>
+      </table>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - -->
+
+      <h2 class="major-section">
+        &aboutSupport.extensionsTitle;
+      </h2>
+
+      <table id="extensions-table">
+        <thead>
+          <tr>
+            <th>
+              &aboutSupport.extensionName;
+            </th>
+            <th>
+              &aboutSupport.extensionVersion;
+            </th>
+            <th>
+              &aboutSupport.extensionEnabled;
+            </th>
+            <th>
+              &aboutSupport.extensionId;
+            </th>
+          </tr>
+        </thead>
+        <tbody id="extensions-tbody">
+        </tbody>
+      </table>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - -->
+
+      <h2 class="major-section">
+        &aboutSupport.modifiedPrefsTitle;
+      </h2>
+
+      <table class="prefs-table">
+        <thead>
+          <tr>
+            <th class="name">
+              &aboutSupport.modifiedPrefsName;
+            </th>
+
+            <th class="value">
+              &aboutSupport.modifiedPrefsValue;
+            </th>
+          </tr>
+        </thead>
+
+        <tbody id="prefs-tbody">
+        </tbody>
+      </table>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - -->
+
+      <h2 class="major-section">
+        &aboutSupport.graphicsTitle;
+      </h2>
+
+      <table>
+        <tbody id="graphics-tbody">
+        </tbody>
+      </table>
+
+    </div>
+
+  </body>
+
+</html>

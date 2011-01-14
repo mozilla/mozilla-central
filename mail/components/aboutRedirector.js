@@ -49,11 +49,14 @@ AboutRedirector.prototype = {
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIAboutModule]),
 
   // Each entry in the map has the key as the part after the "about:" and the
-  // value as a record with url and flags entries.
+  // value as a record with url and flags entries. Note that each addition here
+  // should be coupled with a corresponding addition in mailComponents.manifest.
   _redirMap: {
     "rights": {url: "chrome://messenger/content/aboutRights.xhtml",
                flags: (Ci.nsIAboutModule.ALLOW_SCRIPT |
                        Ci.nsIAboutModule.URI_SAFE_FOR_UNTRUSTED_CONTENT)},
+    "support": {url: "chrome://messenger/content/about-support/aboutSupport.xhtml",
+                flags: Ci.nsIAboutModule.ALLOW_SCRIPT},
   },
 
   /**

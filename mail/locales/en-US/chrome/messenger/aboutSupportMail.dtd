@@ -1,0 +1,14 @@
+<!ENTITY aboutSupport.appBasicsAppBuildID "Application Build ID">
+
+<!ENTITY aboutSupport.accountsTitle "Mail and News Accounts">
+<!ENTITY aboutSupport.showPrivateData.mainText "Include account names">
+<!ENTITY aboutSupport.showPrivateData.explanationText "(possibly identifying information)">
+<!ENTITY aboutSupport.accountsID "ID">
+<!ENTITY aboutSupport.accountsName "Name">
+<!ENTITY aboutSupport.accountsIncomingServer "Incoming server">
+<!ENTITY aboutSupport.accountsOutgoingServers "Outgoing servers">
+<!ENTITY aboutSupport.accountsConnSecurity "Connection security">
+<!ENTITY aboutSupport.accountsAuthMethod "Authentication method">
+<!ENTITY aboutSupport.accountsDefault "Default?">
+
+<!ENTITY aboutSupport.sendViaEmail.label "Send via email">

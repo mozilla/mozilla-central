@@ -1,0 +1,13 @@
+messenger.jar:
+%   overlay chrome://messenger/content/messenger.xul           chrome://messenger/content/about-support/overlay.xul
+    content/messenger/about-support/hide-private.css           (content/hide-private.css)
+    content/messenger/about-support/show-private.css           (content/show-private.css)
+    content/messenger/about-support/init.js                    (content/init.js)
+    content/messenger/about-support/accounts.js                (content/accounts.js)
+    content/messenger/about-support/extensions.js              (content/extensions.js)
+    content/messenger/about-support/prefs.js                   (content/prefs.js)
+    content/messenger/about-support/gfx.js                     (content/gfx.js)
+    content/messenger/about-support/export.js                  (content/export.js)
+*   content/messenger/about-support/aboutSupport.xhtml         (content/aboutSupport.xhtml)
+    content/messenger/about-support/overlay.js                 (content/overlay.js)
+    content/messenger/about-support/overlay.xul                (content/overlay.xul)
