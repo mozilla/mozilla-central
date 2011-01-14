@@ -351,6 +351,7 @@
   <!-- File Menu -->
   <key id="key_close"/>
 #ifndef XP_MACOSX
+  <key id="key_close2" keycode="VK_F4" modifiers="accel" command="cmd_close"/>
   <key id="key_renameFolder" keycode="&renameFolder.key;" oncommand="goDoCommand('cmd_renameFolder')"/>
 #endif
 #ifdef XP_UNIX
