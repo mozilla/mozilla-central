@@ -117,6 +117,7 @@ classic.jar:
   skin/classic/messenger/icons/empty-search-results.png       (mail/icons/empty-search-results.png)
   skin/classic/messenger/icons/new-mail-alert.png             (mail/icons/new-mail-alert.png)
   skin/classic/messenger/icons/secure.png                     (mail/icons/secure.png)
+  skin/classic/messenger/icons/update.png                     (mail/icons/update.png)
   skin/classic/messenger/icons/insecure.png                   (mail/icons/insecure.png)
   skin/classic/messenger/icons/identity.png                   (mail/icons/identity.png)
   skin/classic/messenger/icons/tick.png                       (mail/icons/tick.png)

@@ -184,6 +184,7 @@ classic.jar:
   skin/classic/messenger/icons/offline.png                    (mail/icons/offline.png)
   skin/classic/messenger/icons/row.png                        (mail/icons/row.png)
   skin/classic/messenger/icons/secure.png                     (mail/icons/secure.png)
+  skin/classic/messenger/icons/update.png                     (mail/icons/update.png)
   skin/classic/messenger/icons/insecure.png                   (mail/icons/insecure.png)
   skin/classic/messenger/icons/identity.png                   (mail/icons/identity.png)
   skin/classic/messenger/icons/tick.png                       (mail/icons/tick.png)

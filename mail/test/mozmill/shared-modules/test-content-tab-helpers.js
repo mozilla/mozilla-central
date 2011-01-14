@@ -97,7 +97,9 @@ function installInto(module) {
  *
  * @returns The newly-opened tab.
  */
-function open_content_tab_with_url(aURL, aBackground, aController) {
+function open_content_tab_with_url(aURL, aClickHandler, aBackground, aController) {
+  if (aClickHandler === undefined)
+    aClickHandler = null;
   if (aBackground === undefined)
     aBackground = false;
   if (aController === undefined)
@@ -105,7 +107,8 @@ function open_content_tab_with_url(aURL, aBackground, aController) {
 
   let preCount = mc.tabmail.tabContainer.childNodes.length;
   let newTab = mc.tabmail.openTab("contentTab", {contentPage: aURL,
-                                                 background: aBackground});
+                                                 background: aBackground,
+                                                 clickHandler: aClickHandler});
   if (!controller.waitForEval("subject.childNodes.length == " + (preCount + 1),
                               FAST_TIMEOUT, FAST_INTERVAL,
                               aController.tabmail.tabContainer))
@@ -123,7 +126,7 @@ function open_content_tab_with_url(aURL, aBackground, aController) {
  * be opened in the foreground. The element is expected to be associated with
  * the given controller.
  *
- * @param aElem The element to click. 
+ * @param aElem The element to click.
  * @param [aController] The controller the element is associated with. Defaults
  *                      to |mc|.
  * @returns The newly-opened tab.

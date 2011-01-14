@@ -173,6 +173,7 @@ classic.jar:
   skin/classic/messenger/icons/readcol.png                       (mail/icons/readcol.png)
   skin/classic/messenger/icons/readmail.png                      (mail/icons/readmail.png)
   skin/classic/messenger/icons/secure.png                        (mail/icons/secure.png)
+  skin/classic/messenger/icons/update.png                        (mail/icons/update.png)
   skin/classic/messenger/icons/insecure.png                      (mail/icons/insecure.png)
   skin/classic/messenger/icons/identity.png                      (mail/icons/identity.png)
   skin/classic/messenger/icons/error.png                         (mail/icons/error.png)

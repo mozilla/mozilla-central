@@ -37,6 +37,7 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/AddonManager.jsm");
 
 function tabProgressListener(aTab, aStartsBlank) {
   this.mTab = aTab;
@@ -179,9 +180,7 @@ var specialTabs = {
       Components.utils.reportError("Places database may be locked: " + ex);
     }
 
-    Components.classes["@mozilla.org/observer-service;1"]
-              .getService(Components.interfaces.nsIObserverService)
-              .addObserver(specialTabs, "mail-startup-done", false);
+    Services.obs.addObserver(specialTabs, "mail-startup-done", false);
 
     let tabmail = document.getElementById('tabmail');
 
@@ -853,89 +852,179 @@ var specialTabs = {
     if (aTopic != "mail-startup-done")
       return;
 
-    let obsService =
-      Components.classes["@mozilla.org/observer-service;1"]
-                .getService(Components.interfaces.nsIObserverService);
-
-    obsService.removeObserver(specialTabs, "mail-startup-done");
-    obsService.addObserver(this.xpInstallObserver, "xpinstall-install-blocked", false);
+    Services.obs.removeObserver(specialTabs, "mail-startup-done");
+    Services.obs.addObserver(this.xpInstallObserver, "addon-install-disabled",
+                             false);
+    Services.obs.addObserver(this.xpInstallObserver, "addon-install-blocked",
+                             false);
+    Services.obs.addObserver(this.xpInstallObserver, "addon-install-failed",
+                             false);
+    Services.obs.addObserver(this.xpInstallObserver, "addon-install-complete",
+                             false);
   },
 
   onunload: function () {
     window.removeEventListener("unload", specialTabs.onunload, false);
 
-    Components.classes["@mozilla.org/observer-service;1"]
-      .getService(Components.interfaces.nsIObserverService)
-      .removeObserver(specialTabs.xpInstallObserver, "xpinstall-install-blocked");
+    Services.obs.removeObserver(specialTabs.xpInstallObserver,
+                                "addon-install-disabled");
+    Services.obs.removeObserver(specialTabs.xpInstallObserver,
+                                "addon-install-blocked");
+    Services.obs.removeObserver(specialTabs.xpInstallObserver,
+                                "addon-install-failed");
+    Services.obs.removeObserver(specialTabs.xpInstallObserver,
+                                "addon-install-complete");
   },
 
   xpInstallObserver: {
-    get _prefService() {
-      delete this._prefService;
-      return this._prefService =
-        Components.classes["@mozilla.org/preferences-service;1"]
-                  .getService(Components.interfaces.nsIPrefBranch2);
-    },
-
     observe: function (aSubject, aTopic, aData) {
+      const Ci = Components.interfaces;
       let brandBundle = document.getElementById("bundle_brand");
       let messengerBundle = document.getElementById("bundle_messenger");
+
+      let installInfo = aSubject.QueryInterface(Ci.amIWebInstallInfo);
+      let win = installInfo.originatingWindow;
+      let notificationBox = getNotificationBox(win.top);
+      let notificationID = aTopic;
+      let brandShortName = brandBundle.getString("brandShortName");
+      let notificationName, messageString, buttons;
+      const iconURL = "chrome://messenger/skin/icons/update.png";
+
       switch (aTopic) {
-      case "xpinstall-install-blocked":
-        let installInfo =
-          aSubject.QueryInterface(Components.interfaces.nsIXPIInstallInfo);
-        let win = installInfo.originatingWindow;
-        let notificationBox = getNotificationBox(win.top);
-        if (notificationBox) {
-          let host = installInfo.originatingURI.host;
-          let brandShortName = brandBundle.getString("brandShortName");
-          let notificationName, messageString, buttons;
-          if (!this._prefService.getBoolPref("xpinstall.enabled")) {
-            notificationName = "xpinstall-disabled";
-            if (this._prefService.prefIsLocked("xpinstall.enabled")) {
-              messageString = messengerBundle.getString("xpinstallDisabledMessageLocked");
-              buttons = [];
+      case "addon-install-disabled":
+        notificationID = "xpinstall-disabled";
+
+        if (Services.prefs.prefIsLocked("xpinstall.enabled")) {
+          messageString = messengerBundle.getString("xpinstallDisabledMessageLocked");
+          buttons = [];
+        }
+        else {
+          messageString = messengerBundle.getString("xpinstallDisabledMessage");
+
+          buttons = [{
+            label: messengerBundle.getString("xpinstallDisabledButton"),
+            accessKey: messengerBundle.getString("xpinstallDisabledButton.accesskey"),
+            popup: null,
+            callback: function editPrefs() {
+              Services.prefs.setBoolPref("xpinstall.enabled", true);
+              return false;
             }
-            else {
-              messageString = messengerBundle.getString("xpinstallDisabledMessage");
+          }];
+        }
+        if (!notificationBox.getNotificationWithValue(notificationID)) {
+          notificationBox.appendNotification(messageString, notificationID,
+                                             iconURL,
+                                             notificationBox.PRIORITY_CRITICAL_HIGH,
+                                             buttons);
+        }
+        break;
+      case "addon-install-blocked":
+        messageString =
+          messengerBundle.getFormattedString("xpinstallPromptWarning",
+                                             [brandShortName, installInfo.originatingURI.host]);
 
-              buttons = [{
-                label: messengerBundle.getString("xpinstallDisabledButton"),
-                accessKey: messengerBundle.getString("xpinstallDisabledButton.accesskey"),
-                popup: null,
-                callback: function editPrefs() {
-                  specialTabs.xpInstallObserver
-                             ._prefService.setBoolPref("xpinstall.enabled", true);
-                  return false;
-                }
-              }];
-            }
+        buttons = [{
+          label: messengerBundle.getString("xpinstallPromptAllowButton"),
+          accessKey: messengerBundle.getString("xpinstallPromptAllowButton.accesskey"),
+          popup: null,
+          callback: function() {
+            installInfo.install();
           }
-          else {
-            notificationName = "xpinstall";
-            messageString = messengerBundle.getFormattedString("xpinstallPromptWarning",
-                                                               [brandShortName, host]);
+        }];
 
-            buttons = [{
-              label: messengerBundle.getString("xpinstallPromptAllowButton"),
-              accessKey: messengerBundle.getString("xpinstallPromptAllowButton.accesskey"),
-              popup: null,
-              callback: function() {
-                var mgr = Components.classes["@mozilla.org/xpinstall/install-manager;1"]
-                  .createInstance(Components.interfaces.nsIXPInstallManager);
-                mgr.initManagerWithInstallInfo(installInfo);
-                return false;
-              }
-            }];
-          }
-
-          if (!notificationBox.getNotificationWithValue(notificationName)) {
-            const priority = notificationBox.PRIORITY_WARNING_MEDIUM;
-            const iconURL = "chrome://mozapps/skin/update/update.png";
+        if (!notificationBox.getNotificationWithValue(notificationName)) {
             notificationBox.appendNotification(messageString, notificationName,
-                                               iconURL, priority, buttons);
+                                               iconURL,
+                                               notificationBox.PRIORITY_MEDIUM_HIGH,
+                                               buttons);
+          }
+        break;
+      case "addon-install-failed":
+        // XXX TODO This isn't terribly ideal for the multiple failure case
+        for ([, install] in Iterator(installInfo.installs)) {
+          let host = (installInfo.originatingURI instanceof Ci.nsIStandardURL) &&
+                      installInfo.originatingURI.host;
+          if (!host)
+            host = (install.sourceURI instanceof Ci.nsIStandardURL) &&
+                    install.sourceURI.host;
+
+          let error = (host || install.error == 0) ?
+                       "addonError" : "addonLocalError";
+          if (install.error != 0)
+            error += install.error;
+          else if (install.addon.blocklistState == Ci.nsIBlocklistService.STATE_BLOCKED)
+            error += "Blocklisted";
+          else
+            error += "Incompatible";
+
+          messageString = messengerBundle.getString(error);
+          messageString = messageString.replace("#1", install.name);
+          if (host)
+            messageString = messageString.replace("#2", host);
+          messageString = messageString.replace("#3", brandShortName);
+          messageString = messageString.replace("#4", Services.appinfo.version);
+
+          if (!notificationBox.getNotificationWithValue(notificationID)) {
+            notificationBox.appendNotification(messageString,
+                                               notificationID,
+                                               iconURL,
+                                               notificationBox.PRIORITY_CRITICAL_HIGH,
+                                               []);
           }
         }
+        break;
+      case "addon-install-complete":
+        let needsRestart = installInfo.installs.some(function(i) {
+            return i.addon.pendingOperations != AddonManager.PENDING_NONE;
+        });
+
+        if (needsRestart) {
+          messageString = messengerBundle.getString("addonsInstalledNeedsRestart");
+          buttons = [{
+            label: messengerBundle.getString("addonInstallRestartButton"),
+            accessKey: messengerBundle.getString("addonInstallRestartButton.accesskey"),
+            popup: null,
+            callback: function() {
+              Application.restart();
+            }
+          }];
+        }
+        else {
+          messageString = messengerBundle.getString("addonsInstalled");
+          buttons = [{
+            label: messengerBundle.getString("addonInstallManage"),
+            accessKey: messengerBundle.getString("addonInstallManage.accesskey"),
+            popup: null,
+            callback: function() {
+              // Calculate the add-on type that is most popular in the list of
+              // installs.
+              let types = {};
+              let bestType = null;
+              for ([, install] in Iterator(installInfo)) {
+                if (install.type in types)
+                  types[install.type]++;
+                else
+                  types[install.type] = 1;
+
+                if (!bestType || types[install.type] > types[bestType])
+                  bestType = install.type;
+
+                openAddonsMgr("addons://list/" + bestType);
+              }
+            }
+          }];
+        }
+
+        messageString = PluralForm.get(installInfo.installs.length, messageString);
+        messageString = messageString.replace("#1", installInfo.installs[0].name);
+        messageString = messageString.replace("#2", installInfo.installs.length);
+        messageString = messageString.replace("#3", brandShortName);
+
+        notificationBox.appendNotification(messageString,
+                                           notificationID,
+                                           iconURL,
+                                           notificationBox.PRIORITY_INFO_MEDIUM,
+                                           buttons);
         break;
       }
     }
