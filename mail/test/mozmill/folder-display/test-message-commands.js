@@ -89,16 +89,16 @@ function check_read_status(messages, read) {
  * @param canMarkRead true if the mark read item should be enabled
  * @param canMarkUnread true if the mark unread item should be enabled
  */
-function check_read_menuitems(canMarkRead, canMarkUnread) {
-  mc.click(mc.eid("messageMenu"));
-  mc.keypress(null, 'k', {}); // activate the mark submenu
+function check_read_menuitems(index, canMarkRead, canMarkUnread) {
+  right_click_on_row(index);
+  mc.click_menus_in_sequence(mc.e("mailContext"), [{id: "mailContext-mark"}]);
 
-  let readEnabled = !mc.e("markReadMenuItem").disabled;
-  let unreadEnabled = !mc.e("markUnreadMenuItem").disabled;
+  let readEnabled = !mc.e("mailContext-markRead").disabled;
+  let unreadEnabled = !mc.e("mailContext-markUnread").disabled;
 
-  // Close the menu so we can do stuff when we return
-  mc.keypress(null, "VK_ESCAPE", {});
-  mc.keypress(null, "VK_ESCAPE", {});
+  // Close both the mark submenu and the main context menu
+  close_popup();
+  close_popup();
 
   assert_true(readEnabled == canMarkRead,
               "Mark read menu item " + (canMarkRead ? "dis" : "en") +
@@ -187,7 +187,7 @@ function test_mark_menu_read() {
   let curMessage = select_click_row(0);
 
   curMessage.markRead(false);
-  check_read_menuitems(true, false);
+  check_read_menuitems(0, true, false);
 }
 
 function test_mark_menu_unread() {
@@ -195,7 +195,7 @@ function test_mark_menu_unread() {
   let curMessage = select_click_row(0);
 
   curMessage.markRead(true);
-  check_read_menuitems(false, true);
+  check_read_menuitems(0, false, true);
 }
 
 function test_mark_menu_mixed() {
@@ -206,7 +206,7 @@ function test_mark_menu_mixed() {
   curMessages[0].markRead(false);
   curMessages[1].markRead(true);
 
-  check_read_menuitems(true, true);
+  check_read_menuitems(0, true, true);
 }
 
 function test_yearly_archive() {
