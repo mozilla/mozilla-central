@@ -89,6 +89,7 @@ function check_read_status(messages, read) {
  * @param canMarkRead true if the mark read item should be enabled
  * @param canMarkUnread true if the mark unread item should be enabled
  */
+
 function check_read_menuitems(index, canMarkRead, canMarkUnread) {
   right_click_on_row(index);
   mc.click_menus_in_sequence(mc.e("mailContext"), [{id: "mailContext-mark"}]);
@@ -108,7 +109,7 @@ function check_read_menuitems(index, canMarkRead, canMarkUnread) {
               "Mark unread menu item " + (canMarkUnread ? "dis" : "en") +
               "abled when it shouldn't be!");
 }
-
+/*
 function test_mark_one_read() {
   be_in_folder(unreadFolder);
   let curMessage = select_click_row(0);
@@ -208,6 +209,7 @@ function test_mark_menu_mixed() {
 
   check_read_menuitems(0, true, true);
 }
+*/
 
 function test_yearly_archive() {
   yearly_archive(false);
@@ -300,11 +302,11 @@ function monthly_archive(keep_structure) {
   let lastArchiveFolder = MailUtils.getFolderForURI(lastArchiveUri);
   be_in_folder(firstArchiveFolder);
   assert_true(mc.dbView.getMsgHdrAt(0).messageId == firstMsgHdrMsgId,
-              "Message should have been archived to Local Folders/" + 
+              "Message should have been archived to Local Folders/" +
               firstMsgYear + "/" + firstMonthFolderName + "/Archives, but it isn't present there");
   be_in_folder(lastArchiveFolder);
   assert_true(mc.dbView.getMsgHdrAt(0).messageId == lastMsgHdrMsgId,
-              "Message should have been archived to Local Folders/" + 
+              "Message should have been archived to Local Folders/" +
               lastMsgYear + "/" + lastMonthFolderName + "/Archives, but it isn't present there");
 }
 
