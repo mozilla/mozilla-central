@@ -163,6 +163,13 @@
                   this.promptIndexedDB(requestor, contentWindow, "usage", aData);
                 break;
 
+              case "indexedDB-quota-cancel":
+                var requestor = aSubject.QueryInterface(Components.interfaces.nsIInterfaceRequestor);
+                var contentWindow = requestor.getInterface(Components.interfaces.nsIDOMWindow);
+                if (contentWindow.top == browser.contentWindow)
+                  this.cancelIndexedDB(requestor, contentWindow, "usage", aData);
+                break;
+
               case "addon-install-blocked":
                 var installInfo = aSubject.QueryInterface(Components.interfaces.amIWebInstallInfo);
                 if (installInfo.originatingWindow.top == browser.contentWindow)
@@ -508,20 +515,57 @@
               accessKey: this._stringBundle.GetStringFromName("offlineApps.allow.accesskey"),
               popup: null,
               callback: function allowIndexedDB() {
+                clearTimeout(box.timeout);
                 observer.observe(null, "indexedDB-" + aTopic + "-response",
                                  nsIPermissionManager.ALLOW_ACTION);
+              }
+            }, {
+              label: this._stringBundle.GetStringFromName("offlineApps.later"),
+              accessKey: this._stringBundle.GetStringFromName("offlineApps.later.accesskey"),
+              popup: null,
+              callback: function laterIndexedDB() {
+                clearTimeout(box.timeout);
+                observer.observe(null, "indexedDB-" + aTopic + "-response",
+                                 nsIPermissionManager.UNKNOWN_ACTION);
               }
             }, {
               label: this._stringBundle.GetStringFromName("offlineApps.deny"),
               accessKey: this._stringBundle.GetStringFromName("offlineApps.deny.accesskey"),
               popup: null,
               callback: function denyIndexedDB() {
+                clearTimeout(box.timeout);
                 observer.observe(null, "indexedDB-" + aTopic + "-response",
                                  nsIPermissionManager.DENY_ACTION);
               }
             }];
-            this.appendNotification(message, aTopic, null,
-                                    this.PRIOITY_INFO_HIGH, buttons);
+            var box = this.appendNotification(message, aTopic, null,
+                                              this.PRIOITY_INFO_HIGH, buttons);
+            box.timeout = setTimeout(function() {
+              observer.observe(null, "indexedDB-" + aTopic + "-response",
+                               nsIPermissionManager.UNKNOWN_ACTION);
+              if (box.parentNode)
+                box.parentNode.removeNotification(box);
+            }, 300000); // 5 minutes
+          ]]>
+        </body>
+      </method>
+
+      <method name="cancelIndexedDB">
+        <parameter name="aRequestor"/>
+        <parameter name="aWindow"/>
+        <parameter name="aTopic"/>
+        <parameter name="aData"/>
+        <body>
+          <![CDATA[
+            var popupNotification = this.getNotificationWithValue(aTopic);
+            if (popupNotification) {
+              clearTimeout(popupNotification.timeout);
+              this.removeNotification(popupNotification);
+            }
+
+            var observer = aRequestor.getInterface(Components.interfaces.nsIObserver);
+            observer.observe(null, "indexedDB-" + aTopic + "-response",
+                             nsIPermissionManager.UNKNOWN_ACTION);
           ]]>
         </body>
       </method>
@@ -702,6 +746,7 @@
                              .getService(Components.interfaces.nsIObserverService);
           os.addObserver(this, "indexedDB-permissions-prompt", false);
           os.addObserver(this, "indexedDB-quota-prompt", false);
+          os.addObserver(this, "indexedDB-quota-cancel", false);
           os.addObserver(this, "addon-install-blocked", false);
           os.addObserver(this, "addon-install-complete", false);
           os.addObserver(this, "addon-install-disabled", false);
@@ -746,6 +791,9 @@
             } catch (ex) {}
             try {
               os.removeObserver(this, "indexedDB-quota-prompt");
+            } catch (ex) {}
+            try {
+              os.removeObserver(this, "indexedDB-quota-cancel");
             } catch (ex) {}
             try {
               os.removeObserver(this, "addon-install-blocked");
