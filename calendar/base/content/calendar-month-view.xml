@@ -802,11 +802,6 @@
           if (this.mSelectedItems.length) {
             this.mSelectedItems = [];
           }
-	  
-          // Clear out the old selection, since it won't be valid after relayout
-          if (this.mSelectedDayBox) {
-            this.mSelectedDayBox.selected = false;
-          }
 
           if (!this.mStartDate || !this.mEndDate) {
             throw Components.results.NS_ERROR_FAILURE;
