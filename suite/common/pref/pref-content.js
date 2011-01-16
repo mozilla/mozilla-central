@@ -35,6 +35,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * When the user toggles the layers.acceleration.disabled pref,
+ * sync its new value to the gfx.direct2d.disabled pref too.
+ */
 function updateHardwareAcceleration(aVal)
 {
   if (/^Win/.test(navigator.platform)) {
