@@ -241,9 +241,9 @@ SuiteGlue.prototype = {
 
     // Load the "more info" page for a locked places.sqlite
     // This property is set earlier by places-database-locked topic.
-    if (this._isPlacesDatabaseLocked) {
-      this._showPlacesLockedNotificationBox(aWindow);
-    }
+    if (this._isPlacesDatabaseLocked)
+      notifyBox.showPlacesLockedWarning();
+
     // Detect if updates are off and warn for outdated builds.
     if (this._shouldShowUpdateWarning())
       notifyBox.showUpdateWarning();
@@ -716,38 +716,6 @@ SuiteGlue.prototype = {
 
       PlacesUtils.backups.create(maxBackups); // Don't force creation.
     }
-  },
-
-  /**
-   * Show the notificationBox for a locked places database.
-   */
-  _showPlacesLockedNotificationBox: function(aSubject) {
-    // Stick the notification onto the selected tab of the active browser window.
-    var brandBundle  = Services.strings.createBundle("chrome://branding/locale/brand.properties");
-    var applicationName = brandBundle.GetStringFromName("brandShortName");
-    var placesBundle = Services.strings.createBundle("chrome://communicator/locale/places/places.properties");
-    var title = placesBundle.GetStringFromName("lockPrompt.title");
-    var text = placesBundle.formatStringFromName("lockPrompt.text", [applicationName], 1);
-    var buttonText = placesBundle.GetStringFromName("lockPromptInfoButton.label");
-    var accessKey = placesBundle.GetStringFromName("lockPromptInfoButton.accessKey");
-
-    var helpTopic = "places-locked";
-    var helpRDF = "chrome://communicator/locale/help/suitehelp.rdf";
-
-    var buttons = [{
-      label: buttonText,
-      accessKey: accessKey,
-      popup: null,
-      callback: function(aNotificationBar, aButton) {
-        aSubject.openHelp(helpTopic, helpRDF);
-      }
-    }];
-
-    var notifyBox = aSubject.getBrowser().getNotificationBox();
-    var box = notifyBox.appendNotification(text, title, null,
-                                           notifyBox.PRIORITY_CRITICAL_MEDIUM,
-                                           buttons);
-    box.persistence = -1; // Until user closes it
   },
 
   _updatePrefs: function()

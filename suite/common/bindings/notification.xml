@@ -385,6 +385,27 @@
         </body>
       </method>
 
+      <method name="showPlacesLockedWarning">
+        <body>
+          <![CDATA[
+            var brandShortName = this._brandStringBundle.GetStringFromName("brandShortName");
+            var message = this._stringBundle.formatStringFromName("lockPrompt.text", [brandShortName], 1);
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName("lockPromptInfoButton.label"),
+              accessKey: this._stringBundle.GetStringFromName("lockPromptInfoButton.accesskey"),
+              popup: null,
+              callback: function() {
+                openHelp("places-locked", "chrome://communicator/locale/help/suitehelp.rdf");
+              }
+            }];
+            var box = this.appendNotification(message, "places-locked", null,
+                                              this.PRIORITY_CRITICAL_MEDIUM,
+                                              buttons);
+            box.persistence = -1; // until user closes it
+          ]]>
+        </body>
+      </method>
+
       <method name="showUpdateWarning">
         <body>
           <![CDATA[
