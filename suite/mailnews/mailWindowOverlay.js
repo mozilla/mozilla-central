@@ -890,9 +890,20 @@ function UpdateDeleteCommand()
 
 function SelectedMessagesAreDeleted()
 {
-    return gDBView && gDBView.numSelected &&
-           (gDBView.hdrForFirstSelectedMessage.flags &
-            Components.interfaces.nsMsgMessageFlags.IMAPDeleted);
+  if (!gDBView || !gDBView.numSelected)
+    return false;
+
+  try
+  {
+    return gDBView.hdrForFirstSelectedMessage.flags &
+           Components.interfaces.nsMsgMessageFlags.IMAPDeleted;
+  }
+  catch (ex)
+  {
+    // hdrForFirstSelectedMessage found an empty or invalid selection
+    // even though numSelected indicated otherwise
+    return false;
+  }
 }
 
 function SelectedMessagesAreJunk()
