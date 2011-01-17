@@ -109,6 +109,8 @@ function check_read_menuitems(index, canMarkRead, canMarkUnread) {
               "Mark unread menu item " + (canMarkUnread ? "dis" : "en") +
               "abled when it shouldn't be!");
 }
+
+// XXX Disabled due to issues with running these tests on tinderbox
 /*
 function test_mark_one_read() {
   be_in_folder(unreadFolder);
@@ -182,6 +184,7 @@ function test_mark_n_unread_mixed() {
   mc.keypress(null, "m", {shiftKey: true});
   check_read_status(curMessages, false);
 }
+*/
 
 function test_mark_menu_read() {
   be_in_folder(unreadFolder);
@@ -209,7 +212,6 @@ function test_mark_menu_mixed() {
 
   check_read_menuitems(0, true, true);
 }
-*/
 
 function test_yearly_archive() {
   yearly_archive(false);
