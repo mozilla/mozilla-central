@@ -706,8 +706,6 @@ function Startup()
   getNavToolbox().customizeDone = BrowserToolboxCustomizeDone;
   getNavToolbox().customizeChange = BrowserToolboxCustomizeChange;
 
-  PlacesStarButton.init();
-
   PlacesToolbarHelper.init();
 
   // bookmark-all-tabs command
