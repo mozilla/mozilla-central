@@ -726,65 +726,112 @@ var PlacesStarButton = {
     } catch(ex) {}
   },
 
-  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsINavBookmarkObserver]),
+  QueryInterface: XPCOMUtils.generateQI([
+    Components.interfaces.nsINavBookmarkObserver
+  ]),
 
-  _starred: false,
-  _batching: false,
+  get _starredTooltip()
+  {
+    delete this._starredTooltip;
+    return this._starredTooltip =
+      gNavigatorBundle.getString("starButtonOn.tooltip");
+  },
+  get _unstarredTooltip()
+  {
+    delete this._unstarredTooltip;
+    return this._unstarredTooltip =
+      gNavigatorBundle.getString("starButtonOff.tooltip");
+  },
 
-  updateState: function PSB_updateState() {
-    var starIcon = document.getElementById("star-button");
+  updateState: function PSB_updateState()
+  {
+    if (this._uri && gBrowser.currentURI.equals(this._uri)) {
+      return;
+    }
 
-    var uri = gBrowser.currentURI;
-    this._starred = PlacesUtils.getMostRecentBookmarkForURI(uri) != -1 ||
-                    PlacesUtils.getMostRecentFolderForFeedURI(uri) != -1;
-    if (this._starred) {
+    // Reset tracked values.
+    this._uri = gBrowser.currentURI;
+    this._itemIds = [];
+
+    // Ignore clicks on the star while we update its state.
+    this._ignoreClicks = true;
+
+    PlacesUtils.asyncGetBookmarkIds(this._uri, function (aItemIds) {
+      this._itemIds = aItemIds;
+      this._updateStateInternal();
+      // Finally re-enable the star.
+      this._ignoreClicks = false;
+    }, this);
+  },
+
+  _updateStateInternal: function PSB__updateStateInternal()
+  {
+    let starIcon = document.getElementById("star-button");
+    if (this._itemIds.length > 0) {
       starIcon.setAttribute("starred", "true");
-      starIcon.setAttribute("tooltiptext", gNavigatorBundle.getString("starButtonOn.tooltip"));
+      starIcon.setAttribute("tooltiptext", this._starredTooltip);
     }
     else {
       starIcon.removeAttribute("starred");
-      starIcon.setAttribute("tooltiptext", gNavigatorBundle.getString("starButtonOff.tooltip"));
+      starIcon.setAttribute("tooltiptext", this._unstarredTooltip);
     }
   },
 
-  onClick: function PSB_onClick(aEvent) {
-    if (aEvent.button == 0)
-      PlacesCommandHook.bookmarkCurrentPage(this._starred);
+  onClick: function PSB_onClick(aEvent)
+  {
+    if (aEvent.button == 0 && !this._ignoreClicks)
+      PlacesCommandHook.bookmarkCurrentPage(this._itemIds.length > 0);
   },
 
   // nsINavBookmarkObserver
-  onBeginUpdateBatch: function PSB_onBeginUpdateBatch() {
-    this._batching = true;
+  onItemAdded:
+  function PSB_onItemAdded(aItemId, aFolder, aIndex, aItemType, aURI)
+  {
+    if (aURI.equals(this._uri)) {
+      // If a new bookmark has been added to the tracked uri, register it.
+      if (this._itemIds.indexOf(aItemId) == -1) {
+        this._itemIds.push(aItemId);
+        this._updateStateInternal();
+      }
+    }
   },
 
-  onEndUpdateBatch: function PSB_onEndUpdateBatch() {
-    this.updateState();
-    this._batching = false;
+  onItemRemoved:
+  function PSB_onItemRemoved(aItemId, aFolder, aIndex, aItemType)
+  {
+    let index = this._itemIds.indexOf(aItemId);
+    // If one of the tracked bookmarks has been removed, unregister it.
+    if (index != -1) {
+      this._itemIds.splice(index, 1);
+      this._updateStateInternal();
+    }
   },
 
-  onItemAdded: function PSB_onItemAdded(aItemId, aFolder, aIndex, aItemType,
-                                        aURI) {
-    if (!this._batching && !this._starred)
-      this.updateState();
+  onItemChanged:
+  function PSB_onItemChanged(aItemId, aProperty, aIsAnnotationProperty,
+                             aNewValue, aLastModified, aItemType)
+  {
+    if (aProperty == "uri") {
+      let index = this._itemIds.indexOf(aItemId);
+      // If the changed bookmark was tracked, check if it is now pointing to
+      // a different uri and unregister it.
+      if (index != -1 && aNewValue != this._uri.spec) {
+        this._itemIds.splice(index, 1);
+        this._updateStateInternal();
+      }
+      // If another bookmark is now pointing to the tracked uri, register it.
+      else if (index == -1 && aNewValue == this._uri.spec) {
+        this._itemIds.push(aItemId);
+        this._updateStateInternal();
+      }
+    }
   },
 
-  onBeforeItemRemoved: function() {},
-
-  onItemRemoved: function PSB_onItemRemoved(aItemId, aFolder, aIndex,
-                                            aItemType) {
-    if (!this._batching && this._starred)
-      this.updateState();
-  },
-
-  onItemChanged: function PSB_onItemChanged(aItemId, aProperty,
-                                            aIsAnnotationProperty, aNewValue,
-                                            aLastModified, aItemType) {
-    if (!this._batching && aProperty == "uri")
-      this.updateState();
-  },
-
-  onItemVisited: function() {},
-  onItemMoved: function() {}
+  onBeginUpdateBatch: function () {},
+  onEndUpdateBatch: function () {},
+  onBeforeItemRemoved: function () {},
+  onItemVisited: function () {},
+  onItemMoved: function () {}
 };
 
 
