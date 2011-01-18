@@ -25,7 +25,7 @@
 #endif
 
 [@AB_CD@]
-@BINPATH@/chrome/@AB_CD@.jar
+@BINPATH@/chrome/@AB_CD@@JAREXT@
 @BINPATH@/chrome/@AB_CD@.manifest
 @BINPATH@/defaults/messenger/mailViews.dat
 @BINPATH@/defaults/profile/bookmarks.html
@@ -110,6 +110,9 @@
 #endif
 
 ; [Components]
+; Although components.manifest ends up being shipped inside omni.jar
+; it still needs listing here as it is parsed for various binary
+; components before being packaged inside omni.jar.
 @BINPATH@/components/components.manifest
 #ifdef ACCESSIBILITY
 #ifdef XP_WIN32
@@ -191,7 +194,6 @@
 @BINPATH@/components/imgicon.xpt
 @BINPATH@/components/imglib2.xpt
 @BINPATH@/components/inspector.xpt
-@BINPATH@/components/interfaces.manifest
 @BINPATH@/components/intl.xpt
 @BINPATH@/components/jar.xpt
 @BINPATH@/components/jetpack.xpt
@@ -408,24 +410,32 @@
 @BINPATH@/modules/*
 
 ; [Browser Chrome Files]
-@BINPATH@/chrome/comm.jar
+@BINPATH@/chrome/comm@JAREXT@
 @BINPATH@/chrome/comm.manifest
-@BINPATH@/chrome/toolkit.jar
+@BINPATH@/chrome/toolkit@JAREXT@
 @BINPATH@/chrome/toolkit.manifest
 
 ; classic theme
-@BINPATH@/chrome/classic.jar
+@BINPATH@/chrome/classic@JAREXT@
 @BINPATH@/chrome/classic.manifest
+#ifdef MOZ_OMNIJAR
+@BINPATH@/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}.xpi
+#else
 @BINPATH@/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/icon.png
 @BINPATH@/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/install.rdf
 @BINPATH@/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/preview.png
+#endif
 
 ; modern theme
-@BINPATH@/extensions/modern@themes.mozilla.org/chrome/modern.jar
+#ifdef MOZ_OMNIJAR
+@BINPATH@/extensions/modern@themes.mozilla.org.xpi
+#else
+@BINPATH@/extensions/modern@themes.mozilla.org/chrome/modern@JAREXT@
 @BINPATH@/extensions/modern@themes.mozilla.org/chrome.manifest
 @BINPATH@/extensions/modern@themes.mozilla.org/icon.png
 @BINPATH@/extensions/modern@themes.mozilla.org/install.rdf
 @BINPATH@/extensions/modern@themes.mozilla.org/preview.png
+#endif
 
 ; shell icons
 #ifdef MOZ_GTK2
@@ -504,7 +514,7 @@
 ; Layout debug extension.
 #ifdef ENABLE_TESTS
 #ifdef MOZ_DEBUG
-@BINPATH@/chrome/layoutdebug.jar
+@BINPATH@/chrome/layoutdebug@JAREXT@
 @BINPATH@/chrome/layoutdebug.manifest
 @BINPATH@/components/layout_debug.xpt
 #endif
@@ -568,7 +578,7 @@
 @BINPATH@/@DLL_PREFIX@nssdbm3.chk
 #endif
 #endif
-@BINPATH@/chrome/pippki.jar
+@BINPATH@/chrome/pippki@JAREXT@
 @BINPATH@/chrome/pippki.manifest
 
 ; for Solaris SPARC
@@ -676,9 +686,9 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/components/smime-service.manifest
 
 ; MailNews chrome
-@BINPATH@/chrome/messenger.jar
+@BINPATH@/chrome/messenger@JAREXT@
 @BINPATH@/chrome/messenger.manifest
-@BINPATH@/chrome/newsblog.jar
+@BINPATH@/chrome/newsblog@JAREXT@
 @BINPATH@/chrome/newsblog.manifest
 #ifdef MOZ_GTK2
 @BINPATH@/chrome/icons/default/abcardWindow.png
@@ -722,14 +732,17 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/isp/SpamPal.sfd
 
 ; Gloda
-@BINPATH@/chrome/gloda.jar
+@BINPATH@/chrome/gloda@JAREXT@
 @BINPATH@/chrome/gloda.manifest
 @BINPATH@/components/glautocomp.js
 @BINPATH@/components/jsmimeemitter.js
 @BINPATH@/components/gloda.manifest
 
 [chatzilla]
-@BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/chatzilla.jar
+#ifdef MOZ_OMNIJAR
+@BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi
+#else
+@BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/chatzilla@JAREXT@
 #ifdef MOZ_GTK2
 @BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default/chatzilla-window.xpm
 @BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default/chatzilla-window16.xpm
@@ -740,30 +753,46 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/components/chatzilla-service.js
 @BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/components/components.list
 @BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/install.rdf
+#endif
 #ifdef LOCALE_BUILD
-@BINPATH@/extensions/langpack-@AB_CD@@chatzilla.mozilla.org/chrome/chatzilla.jar
+#ifdef MOZ_OMNIJAR
+@BINPATH@/extensions/langpack-@AB_CD@@chatzilla.mozilla.org.xpi
+#else
+@BINPATH@/extensions/langpack-@AB_CD@@chatzilla.mozilla.org/chrome/chatzilla@JAREXT@
 @BINPATH@/extensions/langpack-@AB_CD@@chatzilla.mozilla.org/chrome.manifest
 @BINPATH@/extensions/langpack-@AB_CD@@chatzilla.mozilla.org/install.js
 @BINPATH@/extensions/langpack-@AB_CD@@chatzilla.mozilla.org/install.rdf
 #endif
+#endif
 
 [venkman]
-@BINPATH@/extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/chrome/venkman.jar
+#ifdef MOZ_OMNIJAR
+@BINPATH@/extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi
+#else
+@BINPATH@/extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/chrome/venkman@JAREXT@
 @BINPATH@/extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/chrome.manifest
 @BINPATH@/extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/components/components.list
 @BINPATH@/extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/components/venkman-service.js
 @BINPATH@/extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/install.rdf
+#endif
 #ifdef LOCALE_BUILD
-@BINPATH@/extensions/langpack-@AB_CD@@venkman.mozilla.org/chrome/venkman.jar
+#ifdef MOZ_OMNIJAR
+@BINPATH@/extensions/langpack-@AB_CD@@venkman.mozilla.org.xpi
+#else
+@BINPATH@/extensions/langpack-@AB_CD@@venkman.mozilla.org/chrome/venkman@JAREXT@
 @BINPATH@/extensions/langpack-@AB_CD@@venkman.mozilla.org/chrome.manifest
 @BINPATH@/extensions/langpack-@AB_CD@@venkman.mozilla.org/install.js
 @BINPATH@/extensions/langpack-@AB_CD@@venkman.mozilla.org/install.rdf
 #endif
+#endif
 
 [inspector]
+#ifdef MOZ_OMNIJAR
+@BINPATH@/extensions/inspector@mozilla.org.xpi
+#else
 @BINPATH@/extensions/inspector@mozilla.org/install.rdf
 @BINPATH@/extensions/inspector@mozilla.org/chrome.manifest
-@BINPATH@/extensions/inspector@mozilla.org/chrome/inspector.jar
+@BINPATH@/extensions/inspector@mozilla.org/chrome/inspector@JAREXT@
 #ifdef MOZ_GTK2
 @BINPATH@/extensions/inspector@mozilla.org/platform/Linux/chrome/icons/default/winInspectorMain16.xpm
 @BINPATH@/extensions/inspector@mozilla.org/platform/Linux/chrome/icons/default/winInspectorMain.xpm
@@ -775,11 +804,16 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/extensions/inspector@mozilla.org/components/components.list
 @BINPATH@/extensions/inspector@mozilla.org/components/inspector-cmdline.js
 @BINPATH@/extensions/inspector@mozilla.org/defaults/preferences/inspector.js
+#endif
 
 [debugqa]
+#ifdef MOZ_OMNIJAR
+@BINPATH@/extensions/debugQA@mozilla.org.xpi
+#else
 @BINPATH@/extensions/debugQA@mozilla.org/install.rdf
 @BINPATH@/extensions/debugQA@mozilla.org/chrome.manifest
-@BINPATH@/extensions/debugQA@mozilla.org/chrome/debugqa.jar
+@BINPATH@/extensions/debugQA@mozilla.org/chrome/debugqa@JAREXT@
+#endif
 
 ; [FastStart]
 #ifdef WINCE

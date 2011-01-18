@@ -87,6 +87,8 @@ DEFINES += \
 
 PREF_JS_EXPORTS = $(LOCALE_SRCDIR)/suite-l10n.js
 
+NON_OMNIJAR_FILES = defaults/messenger/mailViews.dat
+
 include $(topsrcdir)/config/rules.mk
 
 ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
@@ -295,6 +297,9 @@ endif
 	if test -d ../../mozilla/extensions/venkman; then \
 	  $(MAKE) -C ../../mozilla/extensions/venkman/locales repackage-zip-$(AB_CD) STAGEDIST=$(STAGEDIST); \
 	fi
+ifdef MOZ_OMNIJAR
+	$(MAKE) -C ../app pack-ext AB_CD=$(AB_CD) STAGEDIST=$(STAGEDIST);
+endif
 ifneq (en,$(AB))
 ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 	mv $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/en.lproj $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/$(AB).lproj
