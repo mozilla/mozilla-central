@@ -232,12 +232,18 @@ var FullZoom = {
       return;
     }
 
-    var self = this;
-    Services.contentPrefs.getPref(aURI, this.name, function (aResult) {
-      // Check that we're still where we expect to be in case this took a while.
-      if (!aBrowser || aURI.equals(aBrowser.currentURI))
-        self._applyPrefToSetting(aResult, aBrowser);
-    });
+    if (Services.contentPrefs.hasCachedPref(aURI, this.name)) {
+      let zoomValue = Services.contentPrefs.getPref(aURI, this.name);
+      this._applyPrefToSetting(zoomValue, aBrowser);
+    } else {
+      var self = this;
+      Services.contentPrefs.getPref(aURI, this.name, function (aResult) {
+        // Check that we're still where we expect to be in case this took a while.
+        if (!aBrowser || aURI.equals(aBrowser.currentURI)) {
+          self._applyPrefToSetting(aResult, aBrowser);
+        }
+      });
+    }
   },
 
   // update state of zoom type menu item
