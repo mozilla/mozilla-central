@@ -212,27 +212,31 @@
   margin: 0;
 }
 
-.tab-scrollbutton-up {
+.tab-scrollbutton-up:-moz-locale-dir(ltr),
+.tab-scrollbutton-down:-moz-locale-dir(rtl) {
   border-right: 2px solid;
   -moz-border-right-colors: rgba(0, 0, 0, 0.19) transparent;
   list-style-image: url("chrome://messenger/skin/icons/tab-arrow-left.png");
-  -moz-image-region: rect(0px, 7px, 11px, 0px);
+  -moz-image-region: rect(0, 7px, 11px, 0);
 }
 
-.tab-scrollbutton-up[disabled="true"] {
-  -moz-image-region: rect(0px, 14px, 11px, 7px);
+.tab-scrollbutton-up[disabled="true"]:-moz-locale-dir(ltr),
+.tab-scrollbutton-down[disabled="true"]:-moz-locale-dir(rtl) {
+  -moz-image-region: rect(0, 14px, 11px, 7px);
   -moz-border-right-colors: transparent transparent;
 }
 
-.tab-scrollbutton-down {
+.tab-scrollbutton-down:-moz-locale-dir(ltr),
+.tab-scrollbutton-up:-moz-locale-dir(rtl) {
   border-left: 2px solid;
-  -moz-border-left-colors: rgba(0 ,0 ,0 , 0.19) transparent;
+  -moz-border-left-colors: rgba(0, 0, 0, 0.19) transparent;
   list-style-image: url("chrome://messenger/skin/icons/tab-arrow-right.png");
-  -moz-image-region: rect(0px, 7px, 11px, 0px);
+  -moz-image-region: rect(0, 7px, 11px, 0);
 }
 
-.tab-scrollbutton-down[disabled="true"] {
-  -moz-image-region: rect(0px, 14px, 11px, 7px);
+.tab-scrollbutton-down[disabled="true"]:-moz-locale-dir(ltr),
+.tab-scrollbutton-up[disabled="true"]:-moz-locale-dir(rtl) {
+  -moz-image-region: rect(0, 14px, 11px, 7px);
   -moz-border-left-colors: transparent transparent;
 }
 

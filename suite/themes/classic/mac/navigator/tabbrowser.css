@@ -134,19 +134,22 @@ tabpanels {
   margin: 0;
 }
 
-.scrollbutton-up {
+.scrollbutton-up:-moz-locale-dir(ltr),
+.scrollbutton-down:-moz-locale-dir(rtl) {
   border-right: 2px solid;
   -moz-border-right-colors: rgba(0, 0, 0, 0.19) transparent;
   list-style-image: url("chrome://messenger/skin/icons/tab-arrow-left.png");
   -moz-image-region: rect(0, 7px, 11px, 0);
 }
 
-.scrollbutton-up[disabled="true"] {
+.scrollbutton-up[disabled="true"]:-moz-locale-dir(ltr),
+.scrollbutton-down[disabled="true"]:-moz-locale-dir(rtl) {
   -moz-image-region: rect(0, 14px, 11px, 7px);
   -moz-border-right-colors: transparent transparent;
 }
 
-.scrollbutton-down {
+.scrollbutton-down:-moz-locale-dir(ltr),
+.scrollbutton-up:-moz-locale-dir(rtl) {
   border-left: 2px solid;
   -moz-border-left-colors: rgba(0, 0, 0, 0.19) transparent;
   list-style-image: url("chrome://messenger/skin/icons/tab-arrow-right.png");
@@ -160,7 +163,8 @@ tabpanels {
   -moz-transition: none;
 }
 
-.scrollbutton-down[disabled="true"] {
+.scrollbutton-down[disabled="true"]:-moz-locale-dir(ltr),
+.scrollbutton-up[disabled="true"]:-moz-locale-dir(rtl) {
   -moz-image-region: rect(0, 14px, 11px, 7px);
   -moz-border-left-colors: transparent transparent;
 }
