@@ -143,8 +143,8 @@ function testDetach()
   // The message should now have a detached attachment. Read the message,
   //  and search for "AttachmentDetached" which is added on detachment.
 
-  // Get the message header
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  // Get the message header - detached copy has UID 2.
+  let msgHdr = gIMAPInbox.GetMessageHeader(2);
   do_check_neq(msgHdr, null);
   let messageContent = getContentFromMessage(msgHdr);
   do_check_true(messageContent.indexOf("AttachmentDetached") != -1);

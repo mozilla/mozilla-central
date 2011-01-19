@@ -282,6 +282,12 @@ NS_IMETHODIMP nsRssIncomingServer::MsgsMoveCopyCompleted(
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsRssIncomingServer::MsgKeyChanged(nsMsgKey aOldKey,
+                                                 nsIMsgDBHdr *aNewHdr)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 NS_IMETHODIMP nsRssIncomingServer::FolderAdded(nsIMsgFolder *aFolder)
 {
   return FolderChanged(aFolder, PR_FALSE);

@@ -36,6 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsISupports.idl"
+#include "MailNewsTypes2.idl"
 
 interface nsIMsgDBHdr;
 interface nsIMsgFolder;
@@ -44,7 +45,7 @@ interface nsIArray;
 
 typedef unsigned long msgFolderListenerFlag;
 
-[scriptable, uuid(45420c55-b460-4a61-bd67-7f763a69a46e)]
+[scriptable, uuid(e54a592c-2f23-4771-9670-bdb9d4f5dbbd)]
 interface nsIMsgFolderNotificationService : nsISupports {
   /**
    * @name Notification flags
@@ -77,6 +78,10 @@ interface nsIMsgFolderNotificationService : nsISupports {
 
   /// nsIMsgFolderListener::itemEvent notification
   const msgFolderListenerFlag itemEvent = 0x1000000;
+
+  /// nsIMsgFolderListener::msgKeyChanged notification
+  const msgFolderListenerFlag msgKeyChanged = 0x2000000;
+
   /** @} */
 
   readonly attribute boolean hasListeners;
@@ -96,6 +101,19 @@ interface nsIMsgFolderNotificationService : nsISupports {
                                    in nsIMsgFolder aDestFolder,
                                    in nsIArray aDestMsgs);
 
+  /**
+   * Notify listeners that the msg key for a header has changed. Currently,
+   * this is used when we create a header for an offline imap move result,
+   * without knowing what the ultimate UID will be. When we download the
+   * headers for the new message, we replace the old "pseudo" header with
+   * a new header that has the correct UID/message key, by cloning the pseudo
+   * header, which maintains all the existing header attributes.
+   *
+   * @param aOldKey The fake UID. The header with this key has been removed
+   *                by the time this is called.
+   * @param aNewHdr The header that replaces the header with aOldKey.
+   */
+  void notifyMsgKeyChanged(in nsMsgKey aOldKey, in nsIMsgDBHdr aNewHdr);
   // folder specific functions
   // single folders, all the time
   void notifyFolderAdded(in nsIMsgFolder aFolder);

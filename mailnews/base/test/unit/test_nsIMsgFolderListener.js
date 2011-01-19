@@ -21,6 +21,7 @@ const gIndividualFlags =
   nsIMFNService.msgsClassified,
   nsIMFNService.msgsDeleted,
   nsIMFNService.msgsMoveCopyCompleted,
+  nsIMFNService.msgKeyChanged,
   nsIMFNService.folderAdded,
   nsIMFNService.folderDeleted,
   nsIMFNService.folderMoveCopyCompleted,
@@ -36,7 +37,6 @@ gMFListener.prototype =
 {
   mReceived: 0,
   mRemoveSelf: false,
-
   msgAdded: function (aMsg)
   {
     do_check_eq(this.mReceived & nsIMFNService.msgAdded, 0);
@@ -68,7 +68,15 @@ gMFListener.prototype =
     if (this.mRemoveSelf)
       gMFNService.removeListener(this);
   },
-  
+
+  msgKeyChanged: function(aOldMsgKey, aNewMsgHdr)
+  {
+    do_check_eq(this.mReceived & nsIMFNService.msgKeyChanged, 0);
+    this.mReceived |= nsIMFNService.msgKeyChanged;
+    if (this.mRemoveSelf)
+      gMFNService.removeListener(this);
+  },
+
   folderAdded: function (aFolder)
   {
     do_check_eq(this.mReceived & nsIMFNService.folderAdded, 0);
@@ -116,6 +124,7 @@ function NotifyMsgFolderListeners()
   gMFNService.notifyMsgsClassified(null, null, null);
   gMFNService.notifyMsgsDeleted(null);
   gMFNService.notifyMsgsMoveCopyCompleted(null, null, null, null);
+  gMFNService.notifyMsgKeyChanged(null, null);
   gMFNService.notifyFolderAdded(null);
   gMFNService.notifyFolderDeleted(null);
   gMFNService.notifyFolderMoveCopyCompleted(null, null, null);

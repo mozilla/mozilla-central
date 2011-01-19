@@ -376,6 +376,7 @@ protected:
   nsresult  NormalEndHeaderParseStream(nsIImapProtocol *aProtocol, nsIImapUrl *imapUrl);
 
   void EndOfflineDownload();
+  nsresult CopyFileToOfflineStore(nsILocalFile *srcFile);
 
   nsresult MarkMessagesImapDeleted(nsTArray<nsMsgKey> *keyArray, PRBool deleted, nsIMsgDatabase *db);
 
@@ -522,19 +523,21 @@ protected:
   // offline imap support
   PRBool m_downloadingFolderForOfflineUse;
   PRBool m_filterListRequiresBody;
-  
+
   // auto-sync (preemptive download) support
   nsRefPtr<nsAutoSyncState> m_autoSyncStateObj;
-  
+
   // Quota support
   nsCString m_folderQuotaRoot;
   PRUint32 m_folderQuotaUsedKB;
   PRUint32 m_folderQuotaMaxKB;
-  
+
   // Pseudo-Offline Playback support
   nsPlaybackRequest *m_pendingPlaybackReq;
   nsCOMPtr<nsITimer> m_playbackTimer;
   nsTArray<nsRefPtr<nsImapMoveCopyMsgTxn> > m_pendingOfflineMoves;
-
+  // hash table of mapping between messageids and message keys
+  // for pseudo hdrs.
+  nsDataHashtable<nsCStringHashKey, nsMsgKey> m_pseudoHdrs;
 };
 #endif

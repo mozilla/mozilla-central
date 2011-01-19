@@ -1,23 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* ***** BEGIN LICENSE BLOCK *****
- *
- * Any copyright is dedicated to the Public Domain.
- * http://creativecommons.org/licenses/publicdomain/
- *
- * ***** END LICENSE BLOCK ***** */
-
-/*
- * Setup for nsIMsgFolderListener tests.
- *
- * To create a test on top of this,
- *
- * - define a doTest function which accepts the number of the test as an argument.
- * - for each test, store the expected events as an array in gExpectedEvents, with
- *   format [event, item array] or [event, is move, item array, destination folder].
- * - use the copyListener and gMFListener
- * - make sure you set the function call flag once your function call is done.
- */
-
 const nsIMsgDBHdr = Ci.nsIMsgDBHdr;
 const nsIArray = Ci.nsIArray;
 const nsIMsgFolder = Ci.nsIMsgFolder;
@@ -30,6 +10,7 @@ const allTestedEvents =
   gMFNService.msgsClassified |
   gMFNService.msgsDeleted |
   gMFNService.msgsMoveCopyCompleted |
+  gMFNService.msgKeyChanged |
   gMFNService.folderAdded |
   gMFNService.folderDeleted |
   gMFNService.folderMoveCopyCompleted |
@@ -123,6 +104,17 @@ var gMFListener =
     }
   },
 
+  msgKeyChanged: function(aOldKey, aNewMsgHdr)
+  {
+    verify([gMFNService.msgKeyChanged, aOldKey, aNewMsgHdr]);
+    if (gExpectedEvents.length == 0)
+    {
+      gCurrStatus |= kStatus.notificationsDone;
+      if (gCurrStatus == kStatus.everythingDone)
+        resetStatusAndProceed();
+    }
+  },
+  
   folderAdded: function(aFolder)
   {
     verify([gMFNService.folderAdded, aFolder]);
@@ -317,6 +309,9 @@ function verify(event)
     // aTraitProcessed: was the message processed for traits?
     do_check_eq(expected[3], event[3]);
     break;
+  case gMFNService.msgKeyChanged:
+    do_check_eq(expected[1].messageId, event[2].expectedMessageId);
+    break;
   case gMFNService.msgsMoveCopyCompleted:
   case gMFNService.folderMoveCopyCompleted:
     // Check: Move or copy as expected.
@@ -331,23 +326,15 @@ function verify(event)
     if (eventType == gMFNService.folderMoveCopyCompleted)
       break;
 
-    // Check: destination headers.  We only expect these in the local folder
-    //  case, and in that case, we will not have heard about the headers ahead
-    //  of time, so the best we can do is make sure they match up.  To this end,
-    //  if null is expected then we check for null.  If true is expected, then
+    // Check: destination headers.  We expect these for local and imap folders,
+    //  but we will not have heard about the headers ahead of time,
+    //  so the best we can do is make sure they match up.  To this end,
     //  we check that the message-id header values match up.
-    if (expected[4] == null)
+    for (let iMsg = 0; iMsg < event[2].length; iMsg++)
     {
-      do_check_eq(null, event[4]);
-    }
-    else
-    {
-      for (let iMsg = 0; iMsg < event[2].length; iMsg++)
-      {
-        let srcHdr = event[2].queryElementAt(iMsg, nsIMsgDBHdr);
-        let destHdr = event[4].queryElementAt(iMsg, nsIMsgDBHdr);
-        do_check_eq(srcHdr.messageId, destHdr.messageId);
-      }
+      let srcHdr = event[2].queryElementAt(iMsg, nsIMsgDBHdr);
+      let destHdr = event[4].queryElementAt(iMsg, nsIMsgDBHdr);
+      do_check_eq(srcHdr.messageId, destHdr.messageId);
     }
     break;
   case gMFNService.folderAdded:

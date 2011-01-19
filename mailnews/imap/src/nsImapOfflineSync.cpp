@@ -613,14 +613,17 @@ PRBool nsImapOfflineSync::DestFolderOnSameServer(nsIMsgFolder *destFolder)
   return sameServer;
 }
 
-void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *currentOp)
+void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *aCurrentOp)
 {
+  nsCOMPtr<nsIMsgOfflineImapOperation> currentOp = aCurrentOp;
+
   nsTArray<nsMsgKey> matchingFlagKeys;
   PRUint32 currentKeyIndex = m_KeyIndex;
   nsCString copyDestination;
   currentOp->GetCopyDestination(0, getter_Copies(copyDestination));
   PRBool copyMatches = PR_TRUE;
-  
+  nsresult rv;
+
   do { // loop for all messsages with the same destination
     if (copyMatches)
     {
@@ -635,7 +638,8 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *current
     if (++currentKeyIndex < m_CurrentKeys.Length())
     {
       nsCString nextDestination;
-      nsresult rv = m_currentDB->GetOfflineOpForKey(m_CurrentKeys[currentKeyIndex], PR_FALSE, &currentOp);
+      rv = m_currentDB->GetOfflineOpForKey(m_CurrentKeys[currentKeyIndex],
+                                           PR_FALSE, getter_AddRefs(currentOp));
       copyMatches = PR_FALSE;
       if (NS_SUCCEEDED(rv) && currentOp)
       {
@@ -663,7 +667,6 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *current
     ProcessNextOperation();
     return;
   }
-  nsresult rv;
   nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_currentFolder);
   if (imapFolder && DestFolderOnSameServer(destFolder))
   {
@@ -680,9 +683,7 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *current
         nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
         rv = m_currentFolder->GetMessageHeader(matchingFlagKeys.ElementAt(keyIndex), getter_AddRefs(mailHdr));
         if (NS_SUCCEEDED(rv) && mailHdr)
-        {
           messages->AppendElement(mailHdr, PR_FALSE);
-        }
       }
       nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
       if (copyService)
@@ -828,6 +829,12 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
               m_currentDB->RemoveOfflineOp(currentOp);
               deletedGhostMsgs = PR_TRUE;
 
+              // Remember the pseudo headers before we delete them,
+              // and when we download new headers, tell listeners about the
+              // message key change between the pseudo headers and the real
+              // downloaded headers. Note that we're not currently sending
+              // a msgsDeleted notifcation for these headers, but the
+              // db listeners are notified about the deletion.
               // for imap folders, we should adjust the pending counts, because we
               // have a header that we know about, but don't have in the db.
               nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_currentFolder);
@@ -838,6 +845,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
                 imapFolder->ChangePendingTotal(1);
                 if (!hdrIsRead)
                   imapFolder->ChangePendingUnread(1);
+                imapFolder->AddMoveResultPseudoKey(curKey);
               }
               m_currentDB->DeleteMessage(curKey, nsnull, PR_FALSE);
             }

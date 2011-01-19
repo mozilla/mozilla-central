@@ -133,6 +133,7 @@
 #include "nsIMsgStatusFeedback.h"
 #include "nsAlgorithm.h"
 #include "nsPrintfCString.h"
+#include "nsMsgLineBuffer.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kParseMailMsgStateCID, NS_PARSEMAILMSGSTATE_CID);
@@ -2840,8 +2841,6 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
   }
   if (!keysToDelete.IsEmpty() && mDatabase)
   {
-    PRUint32 total;
-
     nsCOMPtr<nsIMutableArray> hdrsToDelete(do_CreateInstance(NS_ARRAY_CONTRACTID));
     MsgGetHeadersFromKeys(mDatabase, keysToDelete, hdrsToDelete);
     // Notify nsIMsgFolderListeners of a mass delete, but only if we actually have headers
@@ -2853,10 +2852,8 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
       if (notifier)
         notifier->NotifyMsgsDeleted(hdrsToDelete);
     }
-
     // It would be nice to notify RDF or whoever of a mass delete here.
     mDatabase->DeleteMessages(keysToDelete.Length(), keysToDelete.Elements(), nsnull);
-    total = keysToDelete.Length();
   }
   PRInt32 numUnreadFromServer;
   aSpec->GetNumUnseenMessages(&numUnreadFromServer);
@@ -3007,7 +3004,7 @@ NS_IMETHODIMP nsImapMailFolder::ParseMsgHdrs(nsIImapProtocol *aProtocol, nsIImap
     }
     if (mDatabase && NS_SUCCEEDED(mDatabase->ContainsKey(msgKey, &containsKey)) && containsKey)
     {
-      NS_ASSERTION(PR_FALSE, "downloading hdrs for hdr we already have");
+      NS_ERROR("downloading hdrs for hdr we already have");
       continue;
     }
     nsresult rv = SetupHeaderParseStream(msgSize, EmptyCString(), nsnull);
@@ -3187,8 +3184,23 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
   // here we need to tweak flags from uid state..
   if (mDatabase && (!m_msgMovedByFilter || ShowDeletedMessages()))
   {
-    mDatabase->AddNewHdrToDB(newMsgHdr, PR_TRUE);
     nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+    // Check if this header corresponds to a pseudo header
+    // we have from doing a pseudo-offline move and then downloading
+    // the real header from the server. In that case, we notify
+    // db/folder listeners that the pseudo-header has become the new
+    // header, i.e., the key has changed.
+    nsCString newMessageId;
+    nsMsgKey pseudoKey = nsMsgKey_None;
+    newMsgHdr->GetMessageId(getter_Copies(newMessageId));
+    if (m_pseudoHdrs.IsInitialized())
+      m_pseudoHdrs.Get(newMessageId, &pseudoKey);
+    if (notifier && pseudoKey != nsMsgKey_None)
+    {
+      notifier->NotifyMsgKeyChanged(pseudoKey, newMsgHdr);
+      m_pseudoHdrs.Remove(newMessageId);
+    }
+    mDatabase->AddNewHdrToDB(newMsgHdr, PR_TRUE);
     if (notifier)
       notifier->NotifyMsgAdded(newMsgHdr);
     // mark the header as not yet reported classified
@@ -3894,6 +3906,21 @@ nsImapMailFolder::ReplayOfflineMoveCopy(nsMsgKey *aMsgKeys, PRUint32 aNumKeys,
       mailnewsUrl->RegisterListener(folderListener);
   }
   return rv;
+}
+
+NS_IMETHODIMP nsImapMailFolder::AddMoveResultPseudoKey(nsMsgKey aMsgKey)
+{
+  nsCOMPtr<nsIMsgDBHdr> pseudoHdr;
+  mDatabase->GetMsgHdrForKey(aMsgKey, getter_AddRefs(pseudoHdr));
+  nsCString messageId;
+  pseudoHdr->GetMessageId(getter_Copies(messageId));
+  // err on the side of caution and ignore messages w/o messageid.
+  if (messageId.IsEmpty())
+    return NS_OK;
+  if (!m_pseudoHdrs.IsInitialized())
+    m_pseudoHdrs.Init(10);
+  m_pseudoHdrs.Put(messageId, aMsgKey);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsImapMailFolder::StoreImapFlags(PRInt32 flags, PRBool addFlags,
@@ -5706,8 +5733,6 @@ NS_IMETHODIMP
 nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
 {
   nsCOMPtr <nsIMsgWindow> msgWindow; // we might need this for the filter plugins.
-  if (mDatabase)
-    mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
   if (mBackupDatabase)
     RemoveBackupMsgDatabase();
 
@@ -6699,8 +6724,6 @@ nsImapMailFolder::CopyNextStreamMessage(PRBool copySucceeded, nsISupports *copyS
       if (numHdrs)
         notifier->NotifyMsgsMoveCopyCompleted(mailCopyState->m_isMove, mailCopyState->m_messages, this, nsnull);
     }
-
-
     if (mailCopyState->m_isMove)
     {
       nsCOMPtr<nsIMsgFolder> srcFolder(do_QueryInterface(mailCopyState->m_srcSupport, &rv));
@@ -6970,6 +6993,10 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
   nsCOMPtr<nsIImapIncomingServer> imapServer;
   rv = GetImapIncomingServer(getter_AddRefs(imapServer));
   nsCOMPtr<nsIMutableArray> msgHdrsCopied(do_CreateInstance(NS_ARRAY_CONTRACTID));
+  nsCOMPtr<nsIMutableArray> destMsgHdrs(do_CreateInstance(NS_ARRAY_CONTRACTID));
+
+  if (!msgHdrsCopied || !destMsgHdrs)
+    return NS_ERROR_OUT_OF_MEMORY;
 
   if (NS_SUCCEEDED(rv) && imapServer)
   {
@@ -7145,7 +7172,11 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
           if (NS_SUCCEEDED(stopit))
           {
             PRBool hasMsgOffline = PR_FALSE;
+
+            destMsgHdrs->AppendElement(newMailHdr, PR_FALSE);
             srcFolder->HasMsgOffline(originalKey, &hasMsgOffline);
+            newMailHdr->SetUint32Property("pseudoHdr", 1);
+
             if (inputStream && hasMsgOffline && !isLocked)
               CopyOfflineMsgBody(srcFolder, newMailHdr, mailHdr, inputStream,
                                  outputStream);
@@ -7237,7 +7268,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
   {
     nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
     if (notifier)
-      notifier->NotifyMsgsMoveCopyCompleted(isMove, msgHdrsCopied, this, nsnull);
+      notifier->NotifyMsgsMoveCopyCompleted(isMove, msgHdrsCopied, this, destMsgHdrs);
   }
 
   if (isMove && (deleteToTrash || deleteImmediately))
@@ -8122,8 +8153,113 @@ nsImapMailFolder::InitCopyState(nsISupports* srcSupport,
 }
 
 nsresult
+nsImapMailFolder::CopyFileToOfflineStore(nsILocalFile *srcFile)
+{
+  nsCOMPtr<nsIMsgDatabase> db;
+  nsresult rv = GetMsgDatabase(getter_AddRefs(db));
+
+  if (mDatabase)
+  {
+    nsMsgKey fakeKey;
+    mDatabase->GetNextFakeOfflineMsgKey(&fakeKey);
+    nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
+
+    nsCOMPtr<nsIMsgOfflineImapOperation> op;
+    rv = mDatabase->GetOfflineOpForKey(fakeKey, PR_TRUE, getter_AddRefs(op));
+    if (NS_SUCCEEDED(rv) && op)
+    {
+      nsCString destFolderUri;
+      GetURI(destFolderUri);
+      op->SetOperation(nsIMsgOfflineImapOperation::kMoveResult);
+      op->SetDestinationFolderURI(destFolderUri.get());
+      nsCOMPtr<nsIOutputStream> offlineStore;
+      rv = GetOfflineStoreOutputStream(getter_AddRefs(offlineStore));
+      SetFlag(nsMsgFolderFlags::OfflineEvents);
+
+      if (NS_SUCCEEDED(rv) && offlineStore)
+      {
+        PRInt64 curOfflineStorePos = 0;
+        nsCOMPtr<nsISeekableStream> seekable = do_QueryInterface(offlineStore);
+        if (seekable)
+          seekable->Tell(&curOfflineStorePos);
+        else
+        {
+          NS_ERROR("needs to be a random store!");
+          return NS_ERROR_FAILURE;
+        }
+
+        nsCOMPtr<nsIInputStream> inputStream;
+        nsCOMPtr<nsIMsgParseMailMsgState> msgParser =
+          do_CreateInstance(NS_PARSEMAILMSGSTATE_CONTRACTID, &rv);
+        msgParser->SetMailDB(mDatabase);
+
+        rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), srcFile);
+        if (NS_SUCCEEDED(rv) && inputStream)
+        {
+          // now, copy the temp file to the offline store for the cur folder.
+          PRInt32 inputBufferSize = 10240;
+          nsMsgLineStreamBuffer *inputStreamBuffer =
+            new nsMsgLineStreamBuffer(inputBufferSize, PR_TRUE, PR_FALSE);
+          PRInt64 fileSize;
+          srcFile->GetFileSize(&fileSize);
+          PRUint32 bytesWritten;
+          rv = NS_OK;
+          msgParser->SetState(nsIMsgParseMailMsgState::ParseHeadersState);
+          // set the env pos to fake key so the msg hdr will have that for a key
+          msgParser->SetEnvelopePos(fakeKey);
+          PRBool needMoreData = PR_FALSE;
+          char * newLine = nsnull;
+          PRUint32 numBytesInLine = 0;
+          do
+          {
+            newLine = inputStreamBuffer->ReadNextLine(inputStream, numBytesInLine, needMoreData);
+            if (newLine)
+            {
+              msgParser->ParseAFolderLine(newLine, numBytesInLine);
+              rv = offlineStore->Write(newLine, numBytesInLine, &bytesWritten);
+              NS_Free(newLine);
+            }
+          } while (newLine);
+
+          nsCOMPtr<nsIMsgDBHdr> fakeHdr;
+          msgParser->FinishHeader();
+          msgParser->GetNewMsgHdr(getter_AddRefs(fakeHdr));
+          if (fakeHdr)
+          {
+            if (NS_SUCCEEDED(rv) && fakeHdr)
+            {
+              PRUint32 resultFlags;
+              fakeHdr->SetMessageOffset(curOfflineStorePos);
+              fakeHdr->OrFlags(nsMsgMessageFlags::Offline | nsMsgMessageFlags::Read, &resultFlags);
+              fakeHdr->SetOfflineMessageSize(fileSize);
+              fakeHdr->SetUint32Property("pseudoHdr", 1);
+              mDatabase->AddNewHdrToDB(fakeHdr, PR_TRUE /* notify */);
+              SetFlag(nsMsgFolderFlags::OfflineEvents);
+              messages->AppendElement(fakeHdr, PR_FALSE);
+              SetPendingAttributes(messages, PR_FALSE);
+            }
+          }
+          inputStream->Close();
+          inputStream = nsnull;
+          delete inputStreamBuffer;
+        }
+      }
+    }
+  }
+  return rv;
+}
+
+nsresult
 nsImapMailFolder::OnCopyCompleted(nsISupports *srcSupport, nsresult rv)
 {
+  // if it's a file, and the copy succeeded, then fcc the offline
+  // store, and add a kMoveResult offline op.
+  if (NS_SUCCEEDED(rv) && m_copyState)
+  {
+    nsCOMPtr<nsILocalFile> srcFile(do_QueryInterface(srcSupport));
+    if (srcFile && (mFlags & nsMsgFolderFlags::Offline) && !WeAreOffline())
+      (void) CopyFileToOfflineStore(srcFile);
+  }
   m_copyState = nsnull;
   nsresult result;
   nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &result);

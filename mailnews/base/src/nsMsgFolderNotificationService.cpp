@@ -165,6 +165,14 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsMoveCopyCompleted(
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsMsgFolderNotificationService::NotifyMsgKeyChanged(nsMsgKey aOldKey,
+                                                    nsIMsgDBHdr *aNewHdr)
+{
+  NOTIFY_MSGFOLDER_LISTENERS(msgKeyChanged, MsgKeyChanged, (aOldKey, aNewHdr));
+  return NS_OK;
+}
+
 /* void notifyFolderAdded(in nsIMsgFolder aFolder); */
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyFolderAdded(nsIMsgFolder *aFolder)
 {

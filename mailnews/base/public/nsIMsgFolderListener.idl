@@ -36,6 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsISupports.idl"
+#include "MailNewsTypes2.idl"
 
 interface nsIMsgDBHdr;
 interface nsIMsgFolder;
@@ -51,7 +52,7 @@ interface nsIArray;
  * these two interfaces should be combined somehow.
  */
 
-[scriptable, uuid(63533aa2-9e03-424c-b308-a3ee5ad47bc5)]
+[scriptable, uuid(2f87be72-0565-4e64-a824-0eb9c258f884)]
 interface nsIMsgFolderListener : nsISupports {
   /**
    * Notified immediately after a message is added to a folder. This could be a
@@ -124,8 +125,12 @@ interface nsIMsgFolderListener : nsISupports {
    * @param aMove true if a move, false if a copy
    * @param aSrcMsgs An array of the message headers in the source folder
    * @param aDestFolder The folder these messages were moved to.
-   * @param aDestMsgs Present only for local folder moves, it provides the list
-   *     of target message headers.
+   * @param aDestMsgs This provides the list of target message headers.
+                      For imap messages, these will be "pseudo" headers, with
+                      a made up UID. When we download the "real" header, we
+                      will send a msgKeyChanged notification. Currently, if
+                      the imap move/copy happens strictly online (essentially,
+                      not user-initiated), then aDestMsgs will be null.
    *
    * @note
    * If messages are moved from a server which uses the IMAP delete model,
@@ -136,6 +141,23 @@ interface nsIMsgFolderListener : nsISupports {
                              in nsIArray aSrcMsgs,
                              in nsIMsgFolder aDestFolder,
                              in nsIArray aDestMsgs);
+
+  /**
+   * Notification sent when the msg key for a header may have changed.
+   * This is used when we create a header for an offline imap move result,
+   * without knowing what the ultimate UID will be. When we download the
+   * headers for the new message, we replace the old "pseudo" header with
+   * a new header that has the correct UID/message key. The uid of the new hdr
+   * may turn out to be the same as aOldKey if we've guessed correctly but
+   * the listener can use this notification to know that it can ignore the
+   * msgAdded notification that's coming for aNewHdr. We do NOT send a
+   * msgsDeleted notification for the pseudo header.
+   *
+   * @param aOldKey The fake UID. The header with this key has been removed
+   *                by the time this is called.
+   * @param aNewHdr The header that replaces the header with aOldKey.
+   */
+  void msgKeyChanged(in nsMsgKey aOldKey, in nsIMsgDBHdr aNewHdr);
 
   /**
    * Notified after a folder has been added.
