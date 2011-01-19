@@ -482,6 +482,7 @@ var GlodaMsgIndexer = {
       Ci.nsIMsgFolderNotificationService.msgsClassified |
         Ci.nsIMsgFolderNotificationService.msgsDeleted |
         Ci.nsIMsgFolderNotificationService.msgsMoveCopyCompleted |
+        Ci.nsIMsgFolderNotificationService.msgKeyChanged |
         Ci.nsIMsgFolderNotificationService.folderDeleted |
         Ci.nsIMsgFolderNotificationService.folderMoveCopyCompleted |
         Ci.nsIMsgFolderNotificationService.folderRenamed |
@@ -2303,6 +2304,11 @@ var GlodaMsgIndexer = {
       }
     },
 
+    msgKeyChanged: function gloda_indexer_msgKeyChangeded(aOldMsgKey,
+                             aNewMsgHdr) {
+      this.indexer._log.debug("MsgKeyChanged notification. " + aOldMsgKey +
+                              " to " + aNewMsgHdr.msgKey);
+    },
     /**
      * Handles folder no-longer-exists-ence.  We mark all messages as deleted
      *  and remove the folder from our URI table.  Currently, if a folder that
