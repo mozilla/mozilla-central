@@ -300,7 +300,7 @@ ifdef MOZ_OMNIJAR
 # NOTE: This is a hack to run this at the end of compilation, would be nicer
 # if this was done right away for built-in extensions in omnijar mode.
 # Listed extension GUIDs:
-# 972ce4c6-... Classic Theme, 59c81df5-... ChatZilla, f13b157f-... venkman
+# 972ce4c6-... Classic Theme, 59c81df5-... ChatZilla, f13b157f-... Venkman
 EXTENSIONS = \
   {972ce4c6-7e08-4474-a285-3208198ce6fd} \
   modern@themes.mozilla.org \
@@ -323,7 +323,7 @@ define _PACKAGE_EXTENSIONS
 @echo "Packaging $(dir).xpi..."
 if test -d "$(ABS_DIST)/extensions/$(dir)"; then \
 cd $(ABS_DIST)/extensions/$(dir)/; $(ZIP) -r9mX ../$(dir).xpi *; \
-rm -rf $(ABS_DIST)/extensions/$(dir); \
+cd ..; rm -rf $(ABS_DIST)/extensions/$(dir); \
 fi
 
 endef # do not remove the blank line!
