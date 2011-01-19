@@ -8624,7 +8624,12 @@ nsresult nsImapCacheStreamListener::Init(nsIStreamListener * aStreamListener, ns
 NS_IMETHODIMP
 nsImapCacheStreamListener::OnStartRequest(nsIRequest *request, nsISupports * aCtxt)
 {
-  nsCOMPtr <nsILoadGroup> loadGroup;
+  if (!mChannelToUse)
+  {
+    NS_ERROR("OnStartRequest called after OnStopRequest");
+    return NS_ERROR_NULL_POINTER;
+  }
+  nsCOMPtr<nsILoadGroup> loadGroup;
   mChannelToUse->GetLoadGroup(getter_AddRefs(loadGroup));
   nsCOMPtr<nsIRequest> ourRequest = do_QueryInterface(mChannelToUse);
   if (loadGroup)
@@ -8635,6 +8640,11 @@ nsImapCacheStreamListener::OnStartRequest(nsIRequest *request, nsISupports * aCt
 NS_IMETHODIMP
 nsImapCacheStreamListener::OnStopRequest(nsIRequest *request, nsISupports * aCtxt, nsresult aStatus)
 {
+  if (!mListener)
+  {
+    NS_ERROR("OnStopRequest called twice");
+    return NS_ERROR_NULL_POINTER;
+  }
   nsresult rv = mListener->OnStopRequest(mChannelToUse, aCtxt, aStatus);
   nsCOMPtr <nsILoadGroup> loadGroup;
   mChannelToUse->GetLoadGroup(getter_AddRefs(loadGroup));
