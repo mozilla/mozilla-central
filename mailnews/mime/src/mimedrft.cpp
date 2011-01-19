@@ -282,22 +282,21 @@ CreateTheComposeWindow(nsIMsgCompFields *   compFields,
 }
 
 nsresult
-SendTheMessage(nsIMsgCompFields *   compFields,
-               nsMsgAttachmentData *attachmentList,
-               MSG_ComposeType      composeType,
-               MSG_ComposeFormat    composeFormat,
-               nsIMsgIdentity *     identity,
-               const char *         originalMsgURI,
-               nsIMsgDBHdr *        origMsgHdr)
+ForwardMsgInline(nsIMsgCompFields *compFields,
+                 nsMsgAttachmentData *attachmentList,
+                 MSG_ComposeFormat composeFormat,
+                 nsIMsgIdentity *identity,
+                 const char *originalMsgURI,
+                 nsIMsgDBHdr *origMsgHdr)
 {
   nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams;
   nsresult rv = CreateComposeParams(pMsgComposeParams, compFields,
-                       attachmentList,
-                       composeType,
-                       composeFormat,
-                       identity,
-                       originalMsgURI,
-                       origMsgHdr);
+                                    attachmentList,
+                                    nsIMsgCompType::ForwardInline,
+                                    composeFormat,
+                                    identity,
+                                    originalMsgURI,
+                                    origMsgHdr);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgComposeService> msgComposeService =
@@ -311,7 +310,16 @@ SendTheMessage(nsIMsgCompFields *   compFields,
   rv = pMsgCompose->Initialize(pMsgComposeParams, nsnull, nsnull);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  return pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nsnull, nsnull, nsnull) ;
+  rv = pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nsnull, nsnull, nsnull);
+  if (NS_SUCCEEDED(rv))
+  {
+    nsCOMPtr<nsIMsgFolder> origFolder;
+    origMsgHdr->GetFolder(getter_AddRefs(origFolder));
+    if (origFolder)
+      origFolder->AddMessageDispositionState(
+                  origMsgHdr, nsIMsgFolder::nsMsgDispositionState_Forwarded);
+  }
+  return rv;
 }
 
 nsresult
@@ -1587,12 +1595,15 @@ mime_parse_stream_complete (nsMIMESession *stream)
           if (mdd->forwardInlineFilter)
           {
             fields->SetTo(mdd->forwardToAddress);
-            SendTheMessage(fields, newAttachData, nsIMsgCompType::ForwardInline,
-                           composeFormat, mdd->identity, mdd->originalMsgURI,
-                           mdd->origMsgHdr);
+            ForwardMsgInline(fields, newAttachData, composeFormat,
+                             mdd->identity, mdd->originalMsgURI,
+                             mdd->origMsgHdr);
           }
           else
-            CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::ForwardInline, composeFormat, mdd->identity, mdd->originalMsgURI, mdd->origMsgHdr);
+            CreateTheComposeWindow(fields, newAttachData,
+                                   nsIMsgCompType::ForwardInline, composeFormat,
+                                   mdd->identity, mdd->originalMsgURI,
+                                   mdd->origMsgHdr);
         }
         else
         {
