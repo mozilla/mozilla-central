@@ -250,10 +250,10 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                                            .replace("#2", rule.interval);
                 }
             } else if (rule.type == 'YEARLY') {
+                let bymonth = rule.getComponent("BYMONTH", {});
                 if (checkRecurrenceRule(rule, ['BYMONTH']) &&
                     checkRecurrenceRule(rule, ['BYMONTHDAY'])) {
-                    bymonth = rule.getComponent("BYMONTH", {});
-                    bymonthday = rule.getComponent("BYMONTHDAY", {});
+                    let bymonthday = rule.getComponent("BYMONTHDAY", {});
 
                     if (bymonth.length == 1 && bymonthday.length == 1) {
                         let monthNameString = getRString("repeatDetailsMonth" + bymonth[0]);
@@ -265,8 +265,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     }
                 } else if (checkRecurrenceRule(rule, ['BYMONTH']) &&
                            checkRecurrenceRule(rule, ['BYDAY'])) {
-                    bymonth = rule.getComponent("BYMONTH", {});
-                    byday = rule.getComponent("BYDAY", {});
+                    let byday = rule.getComponent("BYDAY", {});
 
                     if (bymonth.length == 1 && byday.length == 1) {
                         let dayString = "repeatDetailsDay" + day_of_week(byday[0]);
