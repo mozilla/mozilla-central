@@ -259,6 +259,7 @@ const _wait_for_gloda_indexer_defaults = {
   verifier: null,
   augment: false,
   deleted: null,
+  fullyIndexed: null,
 
   // Things should not be recovering or failing and cleaning up unless the test
   //  is expecting it.
@@ -296,6 +297,11 @@ const _wait_for_gloda_indexer_defaults = {
  * @param [aConfig.deleted] A single SyntheticMessageSet or list of them
  *     containing messages that should be recognized as deleted by the gloda
  *     indexer in this pass.
+ * @param [aConfig.fullyIndexed] A count of the number of messages we expect
+ *     to observe being fully indexed.  This is relevant because in the case
+ *     of message moves, gloda may generate an onItemsModified notification but
+ *     not reindex the message.  This attribute allows the tests to distinguish
+ *     between the two cases.
  */
 function wait_for_gloda_indexer(aSynMessageSets, aConfig) {
   let ims = _indexMessageState;
@@ -324,6 +330,8 @@ function wait_for_gloda_indexer(aSynMessageSets, aConfig) {
   ims.expectedFailedToRecoverCount = get_val("failedToRecover");
   ims.expectedCleanedUpCount = get_val("cleanedUp");
   ims.expectedHadNoCleanUpCount = get_val("hadNoCleanUp");
+
+  ims.expectedNumFullIndexed = get_val("fullyIndexed");
 
   // If we are waiting on certain events to occur first, block on those.
   if (ims.interestingEvents.length) {
@@ -357,6 +365,11 @@ var _indexMessageState = {
     this.catchAllCollection = Gloda._wildcardCollection(Gloda.NOUN_MESSAGE);
     this.catchAllCollection.listener = this;
 
+    // Register us with gloda as an attribute provider so that we can
+    //  distinguish between fully reindexed messages and fastpath indexed
+    //  messages.
+    Gloda._attrProviderOrderByNoun[Gloda.NOUN_MESSAGE].push(this);
+
     // waitingForEvents support
     // (we want this to happen after gloda registers its own listener, and it
     //  does.)
@@ -388,6 +401,8 @@ var _indexMessageState = {
   expectedCleanedUpCount: null,
   /** Expected value of |_workerHadNoCleanUpCount| at assertion time */
   expectedHadNoCleanUpCount: null,
+  /** Exepected value of |_numFullIndexed| at assertion time */
+  expectedNumFullIndexed: null,
 
   /** The number of times a worker had a recover helper and it recovered. */
   _workerRecoveredCount: 0,
@@ -558,6 +573,12 @@ var _indexMessageState = {
                     "Expected", this.expectedHadNoCleanUpCount,
                     "actual", this._workerHadNoCleanUpCount]);
 
+    if (this.expectedNumFullIndexed != null &&
+        this.expectedNumFullIndexed != this._numFullIndexed)
+      mark_failure(["Expected number of fully indexed messages did not match.",
+                    "Expected", this.expectedNumFullIndexed,
+                    "actual", this._numFullIndexed]);
+
     this._glodaMessagesByMessageId = {};
     this._glodaDeletionsByMessageId = {};
 
@@ -565,6 +586,8 @@ var _indexMessageState = {
     this._workerFailedToRecoverCount = 0;
     this._workerCleanedUpCount = 0;
     this._workerHadNoCleanUpCount = 0;
+
+    this._numFullIndexed = 0;
 
     // make sure xpcshell head.js knows we tested something
     _passedChecks++;
@@ -619,6 +642,23 @@ var _indexMessageState = {
 
       this._glodaDeletionsByMessageId[item.headerMessageID] = item;
     }
+  },
+
+  /**
+   * The number of messages that were fully (re)indexed using
+   *  Gloda.grokNounItem.
+   */
+  _numFullIndexed: 0,
+
+  providerName: "glodaTestHelper:fakeProvider",
+  /**
+   * Fake attribute provider processing function so we can distinguish
+   *  between fully reindexed messages and fast-path modified messages.
+   */
+  process: function(aItem, aRawReps, aIsConceptuallyNew, aCallbackHandle) {
+    this._numFullIndexed++;
+
+    yield Gloda.kWorkDone;
   },
 
   _numItemsAdded : 0,

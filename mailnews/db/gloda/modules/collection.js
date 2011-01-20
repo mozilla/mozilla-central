@@ -137,7 +137,21 @@ var GlodaCollectionManager = {
 
   /**
    * Lookup multiple nouns by ID from the cache/existing collections.
-   * @return [The number that were found, the number that were not found.]
+   *
+   * @param aNounID The kind of noun identified by its ID.
+   * @param aIDMap A dictionary/map whose keys must be gloda noun ids for the
+   *     given noun type and whose values are ignored.
+   * @param aTargetMap An object to hold the noun id's (key) and noun instances
+   *     (value) for the noun instances that were found available in memory
+   *     because they were cached or in existing query collections.
+   * @param [aDoCache=true] Should we add any items to the cache that we found
+   *     in collections that were in memory but not in the cache?  You would
+   *     likely want to pass false if you are only updating in-memory
+   *     representations rather than performing a new query.
+   *
+   * @return [The number that were found, the number that were not found,
+   *          a dictionary whose keys are the ids of noun instances that
+   *          were not found.]
    */
   cacheLookupMany: function gloda_colm_cacheLookupMany(aNounID, aIDMap,
       aTargetMap, aDoCache) {

@@ -898,11 +898,7 @@ function test_imap_add_unread_to_folder() {
 
 /**
  * Moving a message between folders should result in us knowing that the message
- *  is in the target location.  In the case of local moves, this happens
- *  automatically.  In the case of IMAP moves, we need to force the target folder
- *  to be updated.
- *
- * @todo Implication of UIDPLUS on IMAP are not understood / tested.
+ *  is in the target location.
  */
 function test_message_moving() {
   // - inject and insert
@@ -914,34 +910,48 @@ function test_message_moving() {
   let [destFolder, ignoreSet] = make_folder_with_sets([{count: 2}]);
   yield wait_for_message_injection();
 
-
   // (we want the gloda message mapping...)
   yield wait_for_gloda_indexer([msgSet, ignoreSet], {augment: true});
   let gmsg = msgSet.glodaMessages[0];
+  // save off the message key so we can make sure it changes.
+  let oldMessageKey = msgSet.getMsgHdr(0).messageKey;
 
-  // - move it to a new folder
+  // - fastpath (offline) move it to a new folder
   mark_sub_test_start("initial move");
-  yield async_move_messages(msgSet, destFolder);
+  yield async_move_messages(msgSet, destFolder, true);
 
   // - make sure gloda sees it in the new folder
-  // (In the local case, tThe move generates an itemsModified notification, so
-  //  we see it as indexing traffic even if the indexer never goes active.)
-  // (In the IMAP case, the message actually gets reindexed in the target
-  //  folder.)
-  yield wait_for_gloda_indexer(msgSet);
+  // Since we are doing offline IMAP moves, the fast-path should be taken and
+  //  so we should receive an itemsModified notification without a call to
+  //  Gloda.grokNounItem.
+  yield wait_for_gloda_indexer(msgSet, {fullyIndexed: 0});
 
   do_check_eq(gmsg.folderURI,
               get_real_injection_folder(destFolder).URI);
 
   // - make sure the message key is correct!
   do_check_eq(gmsg.messageKey, msgSet.getMsgHdr(0).messageKey);
+  // (sanity check that the messageKey actually changed for the message...)
+  do_check_neq(gmsg.messageKey, oldMessageKey);
 
-  // - move it back to its origin folder
+  // - make sure the indexer's _keyChangedBatchInfo dict is empty
+  for each (let [evilKey, evilValue] in
+              Iterator(GlodaMsgIndexer._keyChangedBatchInfo)) {
+    mark_failure(["GlodaMsgIndexer._keyChangedBatchInfo should be empty but",
+                  "has key:",  evilKey, "and value:", evilValue, "."]);
+  }
+
+  // - slowpath (IMAP online) move it back to its origin folder
   mark_sub_test_start("move it back");
-  yield async_move_messages(msgSet, srcFolder);
-  yield wait_for_gloda_indexer(msgSet);
+  yield async_move_messages(msgSet, srcFolder, false);
+  // In the IMAP case we will end up reindexing the message because we will
+  //  not be able to fast-path, but the local case will still be fast-pathed.
+  yield wait_for_gloda_indexer(msgSet,
+                               {fullyIndexed: message_injection_is_local() ?
+                                                0 : 1});
   do_check_eq(gmsg.folderURI,
               get_real_injection_folder(srcFolder).URI);
+  do_check_eq(gmsg.messageKey, msgSet.getMsgHdr(0).messageKey);
 }
 
 /**

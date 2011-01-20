@@ -862,13 +862,21 @@ function wait_for_message_injection() {
 /**
  * Asynchronously move messages in the given set to the destination folder.
  *
- * The IMAP case is much more complex, at least in the unit testing world:
- * XXX We have to force an update of the source folder because the fake
- *  server only allows one connection and that one connection currently
- *  is focused on destFolder; we have to force an update of srcFolder to
- *  get the move to actually hit the IMAP server.
+ * For IMAP moves we force an update of the source folder and then the
+ *  destination folder.  This ensures that any (pseudo-)offline operations in
+ *  the source folder have had a chance to run and that we have seen the changes
+ *  in the target folder.
+ * We additionally cause all of the message bodies to be downloaded in the
+ *  target folder if the folder has the Offline flag set.
+ *
+ * @param aSynMessageSet The messages to move.
+ * @param aDestFolder The target folder.
+ * @param [aAllowUndo=false] Should we generate undo operations and, as a
+ *     side-effect, offline operations?  (The code uses undo operations as
+ *     a proxy-indicator for it coming from the UI and therefore performing
+ *     pseudo-offline operations instead of trying to do things online.)
  */
-function async_move_messages(aSynMessageSet, aDestFolder) {
+function async_move_messages(aSynMessageSet, aDestFolder, aAllowUndo) {
   mark_action("messageInjection", "moving messages", aSynMessageSet.msgHdrList);
   return async_run({func: function () {
       // we need to make sure all folder promises are fulfilled
@@ -893,7 +901,7 @@ function async_move_messages(aSynMessageSet, aDestFolder) {
         copyService.CopyMessages(folder, xpcomHdrArray,
                                  realDestFolder, /* move */ true,
                                  asyncCopyListener, null,
-                                 /* do not allow undo, leaks */ false);
+                                 Boolean(aAllowUndo));
         // update the synthetic message set's folder entry...
         aSynMessageSet._folderSwap(folder, realDestFolder);
         yield false;

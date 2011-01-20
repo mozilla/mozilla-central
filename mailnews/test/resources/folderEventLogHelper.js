@@ -62,6 +62,7 @@ function registerFolderEventLogHelper() {
         Ci.nsIMsgFolderNotificationService.msgsClassified |
         Ci.nsIMsgFolderNotificationService.msgsDeleted |
         Ci.nsIMsgFolderNotificationService.msgsMoveCopyCompleted |
+        Ci.nsIMsgFolderNotificationService.msgKeyChanged |
         Ci.nsIMsgFolderNotificationService.folderDeleted |
         Ci.nsIMsgFolderNotificationService.folderMoveCopyCompleted |
         Ci.nsIMsgFolderNotificationService.folderRenamed |
@@ -117,6 +118,11 @@ let _folderEventLogHelper_msgFolderListener = {
       }
     }
     mark_action("msgEvent", "msgsMoveCopyCompleted", args);
+  },
+
+  msgKeyChanged: function felh_msgKeyChanged(aOldMsgKey, aNewMsgHdr) {
+    let args = ["old key", aOldMsgKey, "new header", aNewMsgHdr];
+    mark_action("msgEvent", "msgKeyChanged", args);
   },
 
   folderAdded: function felh_folderAdded(aFolder) {

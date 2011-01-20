@@ -127,6 +127,12 @@ function range(begin, end) {
 var PendingCommitTracker = {
   /**
    * Maps message URIs to their gloda ids.
+   *
+   * I am not entirely sure why I chose the URI for the key rather than
+   *  gloda folder ID + message key.  Most likely it was to simplify debugging
+   *  since the gloda folder ID is opaque while the URI is very informative.  It
+   *  is also possible I was afraid of IMAP folder renaming triggering a UID
+   *  renumbering?
    */
   _indexedMessagesPendingCommitByKey: {},
   /**
@@ -273,10 +279,13 @@ var PendingCommitTracker = {
 
   /**
    * A blind move is one where we have the source header but not the destination
-   *  header.  This happens for IMAP messages.
+   *  header.  This happens for IMAP messages that do not involve offline fake
+   *  headers.
    * XXX Since IMAP moves will propagate the gloda-id/gloda-dirty bits for us,
    *  we could detect the other side of the move when it shows up as a
-   *  msgsClassified event and restore the mapping information.
+   *  msgsClassified event and restore the mapping information.  Since the
+   *  offline fake header case should now cover the bulk of IMAP move
+   *  operations, we probably do not need to pursue this.
    *
    * We just re-dispatch to noteDirtyHeader because we can't do anything more
    *  clever.
@@ -1888,6 +1897,29 @@ var GlodaMsgIndexer = {
   },
 
   /* *********** Event Processing *********** */
+
+  /**
+   * Tracks messages we have received msgKeyChanged notifications for in order
+   *  to provide batching and to suppress needless reindexing when we receive
+   *  the expected follow-up msgsClassified notification.
+   *
+   * The entries in this dictionary should be extremely short-lived as we
+   *  receive the msgKeyChanged notification as the offline fake header is
+   *  converted into a real header (which is accompanied by a msgAdded
+   *  notification we don't pay attention to).  Once the headers finish
+   *  updating, the message classifier will get its at-bat and should likely
+   *  find that the messages have already been classified and so fast-path
+   *  them.
+   *
+   * The keys in this dictionary are chosen to be consistent with those of
+   *  PendingCommitTracker: the folder.URI + "#" + the (new) message key.
+   * The values in the dictionary are either an object with "id" (the gloda
+   *  id), "key" (the new message key), and "dirty" (is it dirty and so
+   *  should still be queued for indexing) attributes, or null indicating that
+   *  no change in message key occurred and so no database changes are required.
+   */
+  _keyChangedBatchInfo: {},
+
   /**
    * Common logic for things that want to feed event-driven indexing.  This gets
    *  called by both |_msgFolderListener.msgsClassified| when we are first
@@ -1895,10 +1927,26 @@ var GlodaMsgIndexer = {
    *  existing messages.  Although we could slightly specialize for the
    *  new-to-us case, it works out to be cleaner to just treat them the same
    *  and take a very small performance hit.
+   *
+   * @param aMsgHdrs Something fixIterator will work on to return an iterator
+   *     on the set of messages that we should treat as potentially changed.
+   * @param aDirtyingEvent Is this event inherently dirtying?  Receiving a
+   *     msgsClassified notification is not inherently dirtying because it is
+   *     just telling us that a message exists.  We use this knowledge to
+   *     ignore the msgsClassified notifications for messages we have received
+   *     msgKeyChanged notifications for and fast-pathed.  Since it is possible
+   *     for user action to do something that dirties the message between the
+   *     time we get the msgKeyChanged notification and when we receive the
+   *     msgsClassified notification, we want to make sure we don't get
+   *     confused.  (Although since we remove the message from our ignore-set
+   *     after the first notification, we would likely just mistakenly treat
+   *     the msgsClassified notification as something dirtying, so it would
+   *     still work out...)
    */
   _reindexChangedMessages: function gloda_indexer_reindexChangedMessage(
-    aMsgHdrs) {
+                                      aMsgHdrs, aDirtyingEvent) {
     let glodaIdsNeedingDeletion = null;
+    let messageKeyChangedIds = null, messageKeyChangedNewKeys = null;
     for each (let msgHdr in fixIterator(aMsgHdrs, nsIMsgDBHdr)) {
       // -- Index this folder?
       let msgFolder = msgHdr.folder;
@@ -1911,6 +1959,33 @@ var GlodaMsgIndexer = {
       let glodaFolder = GlodaDatastore._mapFolder(msgHdr.folder);
       if (glodaFolder.dirtyStatus == glodaFolder.kFolderFilthy)
         continue;
+
+      // -- msgKeyChanged event follow-up
+      if (!aDirtyingEvent) {
+        let keyChangedKey = msgHdr.folder.URI + "#" + msgHdr.messageKey;
+        if (keyChangedKey in this._keyChangedBatchInfo) {
+          var keyChangedInfo = this._keyChangedBatchInfo[keyChangedKey];
+          delete this._keyChangedBatchInfo[keyChangedKey];
+
+          // Null means to ignore this message because the key did not change
+          //  (and the message was not dirty so it is safe to ignore.)
+          if (keyChangedInfo == null)
+            continue;
+          // (the key may be null if we only generated the entry because the
+          //  message was dirty)
+          if (keyChangedInfo.key !== null) {
+            if (messageKeyChangedIds == null) {
+              messageKeyChangedIds = [];
+              messageKeyChangedNewKeys = [];
+            }
+            messageKeyChangedIds.push(keyChangedInfo.id);
+            messageKeyChangedNewKeys.push(keyChangedInfo.key);
+          }
+          // ignore the message because it was not dirty
+          if (!keyChangedInfo.isDirty)
+            continue;
+        }
+      }
 
       // -- Index this message?
       // We index local messages, IMAP messages that are offline, and IMAP
@@ -1983,6 +2058,11 @@ var GlodaMsgIndexer = {
       }
     }
 
+    // Process any message key changes (from earlier msgKeyChanged events)
+    if (messageKeyChangedIds != null)
+      GlodaDatastore.updateMessageKeys(messageKeyChangedIds,
+                                       messageKeyChangedNewKeys);
+
     // If we accumulated any deletions in there, batch them off now.
     if (glodaIdsNeedingDeletion) {
       GlodaDatastore.markMessagesDeletedByIDs(glodaIdsNeedingDeletion);
@@ -2015,16 +2095,22 @@ var GlodaMsgIndexer = {
     },
 
     /**
-     * XXX We treat all messages we see as if they have undergone a dirtying
-     *  event.  However, we should really be leveraging the hard work of the
-     *  mailnews IMAP subsystem to fast-path the IMAP move case and just
-     *  update the location information.
+     * Process (apparently newly added) messages that have been looked at by
+     *  the message classifier.  This ensures that if the message was going
+     *  to get marked as spam, this will have already happened.
+     *
+     * Besides truly new (to us) messages, We will also receive this event for
+     *  messages that are the result of IMAP message move/copy operations,
+     *  including both moves that generated offline fake headers and those that
+     *  did not.  In the offline fake header case, however, we are able to
+     *  ignore their msgsClassified events because we will have received a
+     *  msgKeyChanged notification sometime in the recent past.
      */
     msgsClassified: function gloda_indexer_msgsClassified(
                       aMsgHdrs, aJunkClassified, aTraitClassified) {
       this.indexer._log.debug("msgsClassified notification");
       try {
-        GlodaMsgIndexer._reindexChangedMessages(aMsgHdrs.enumerate());
+        GlodaMsgIndexer._reindexChangedMessages(aMsgHdrs.enumerate(), false);
       }
       catch (ex) {
         this.indexer._log.error("Explosion in msgsClassified handling: " +
@@ -2066,23 +2152,23 @@ var GlodaMsgIndexer = {
     /**
      * Process a move or copy.
      *
-     * Moves to a local folder are dealt with efficiently because we get both
-     *  the source and destination headers.  The only non-obvious thing is that
-     *  we need to make sure that we deal with the impact of filthy folders and
-     *  messages on gloda-id's (they invalidate the gloda-id).
+     * Moves to a local folder or an IMAP folder where we are generating offline
+     *  fake headers are dealt with efficiently because we get both the source
+     *  and destination headers.  The main ingredient to having offline fake
+     *  headers is that allowUndo was true when the operation was performance.
+     *  The only non-obvious thing is that we need to make sure that we deal
+     *  with the impact of filthy folders and messages on gloda-id's (they
+     *  invalidate the gloda-id).
      *
-     * Moves to an IMAP folder do not provide us with the target header, but the
-     *  IMAP code does have support for propagating properties on the message
-     *  header so when we see it in the msgsClassified (or msgAdded if we used
-     *  that anymore), it should have the properties of the source message
-     *  copied over.
+     * Moves to an IMAP folder that do not generate offline fake headers do not
+     *  provide us with the target header, but the IMAP SetPendingAttributes
+     *  logic will still attempt to propagate the properties on the message
+     *  header so when we eventually see it in the msgsClassified notification,
+     *  it should have the properties of the source message copied over.
      * We make sure that gloda-id's do not get propagated when messages are
      *  moved from IMAP folders that are marked filthy or are marked as not
      *  supposed to be indexed by clearing the pending attributes for the header
      *  being tracked by the destination IMAP folder.
-     * XXX We will receive a msgsClassified event for each message, so the
-     *  main thing we need to do is provide a hint to the indexing logic that
-     *  the gloda message in question should be reused and is not a duplicate.
      * We could fast-path the IMAP move case in msgsClassified by noticing that
      *  a message is showing up with a gloda-id header already and just
      *  performing an async location update.
@@ -2304,10 +2390,45 @@ var GlodaMsgIndexer = {
       }
     },
 
+    /**
+     * Queue up message key changes that are a result of offline fake headers
+     *  being made real for the actual update during the msgsClassified
+     *  notification that is expected after this.  We defer the
+     *  actual work (if there is any to be done; the fake header might have
+     *  guessed the right UID correctly) so that we can batch our work.
+     *
+     * The expectation is that there will be no meaningful time window between
+     *  this notification and the msgsClassified notification since the message
+     *  classifier should not actually need to classify the messages (they
+     *  should already have been classified) and so can fast-path them.
+     */
     msgKeyChanged: function gloda_indexer_msgKeyChangeded(aOldMsgKey,
                              aNewMsgHdr) {
-      this.indexer._log.debug("MsgKeyChanged notification. " + aOldMsgKey +
-                              " to " + aNewMsgHdr.msgKey);
+      try {
+        let val = null, newKey = aNewMsgHdr.messageKey;
+        let [glodaId, glodaDirty] =
+          PendingCommitTracker.getGlodaState(aNewMsgHdr);
+        // take no action on filthy messages,
+        // generate an entry if dirty or the keys don't match.
+        if ((glodaDirty !== GlodaMsgIndexer.kMessageFilthy) &&
+            ((glodaDirty === GlodaMsgIndexer.kMessageDirty) ||
+             (aOldMsgKey !== newKey))) {
+          val = {
+            id: glodaId,
+            key: (aOldMsgKey !== newKey) ? newKey : null,
+            isDirty: glodaDirty === GlodaMsgIndexer.kMessageDirty,
+          };
+        }
+
+        let key = aNewMsgHdr.folder.URI + "#" + aNewMsgHdr.messageKey;
+        this.indexer._keyChangedBatchInfo[key] = val;
+      }
+      // this is more for the unit test to fail rather than user error reporting
+      catch (ex) {
+        this.indexer._log.error("Problem encountered during msgKeyChanged" +
+                                " notification handling: " + ex + "\n\n" +
+                                ex.stack + " \n\n");
+      }
     },
     /**
      * Handles folder no-longer-exists-ence.  We mark all messages as deleted
@@ -2499,7 +2620,7 @@ var GlodaMsgIndexer = {
       else if (aEvent == "JunkStatusChanged") {
         this.indexer._log.debug("JunkStatusChanged notification");
         aItem.QueryInterface(Ci.nsIArray);
-        GlodaMsgIndexer._reindexChangedMessages(aItem.enumerate());
+        GlodaMsgIndexer._reindexChangedMessages(aItem.enumerate(), true);
       }
     },
   },
@@ -2558,7 +2679,7 @@ var GlodaMsgIndexer = {
            //  ignore IMAPDeleted too...
            (aOldValue ^ aNewValue) != nsMsgMessageFlags.IMAPDeleted) ||
           aProperty == this._kFlaggedAtom) {
-        GlodaMsgIndexer._reindexChangedMessages([aMsgHdr]);
+        GlodaMsgIndexer._reindexChangedMessages([aMsgHdr], true);
       }
     },
 

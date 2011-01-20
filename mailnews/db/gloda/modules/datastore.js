@@ -2500,24 +2500,30 @@ var GlodaDatastore = {
     let destFolderID = (typeof(aDestFolder) == "number") ? aDestFolder :
                          this._mapFolder(aDestFolder).id;
 
-    let modifiedItems = [];
+    // map gloda id to the new message key for in-memory rep transform below
+    let cacheLookupMap = {};
 
     for (let iMsg = 0; iMsg < aMessageIds.length; iMsg++) {
-      let id = aMessageIds[iMsg];
+      let id = aMessageIds[iMsg], msgKey = aNewMessageKeys[iMsg];
       statement.bindInt64Parameter(0, destFolderID);
-      statement.bindInt64Parameter(1, aNewMessageKeys[iMsg]);
+      statement.bindInt64Parameter(1, msgKey);
       statement.bindInt64Parameter(2, id);
       statement.executeAsync(this.trackAsync());
 
-      // so, if the message is currently loaded, we also need to change it up...
-      // XXX we should be using cacheLookupMany.
-      let message = GlodaCollectionManager.cacheLookupOne(
-        GlodaMessage.prototype.NOUN_ID, id);
-      if (message) {
-        message._folderID = destFolderID;
-        message._messageKey = aNewMessageKeys[iMsg];
-        modifiedItems.push(message);
-      }
+      cacheLookupMap[id] = msgKey;
+    }
+
+    // - perform the cache lookup so we can update in-memory representations
+    // found in memory items, and converted to list form for notification
+    let inMemoryItems = {}, modifiedItems = [];
+    GlodaCollectionManager.cacheLookupMany(GlodaMessage.prototype.NOUN_ID,
+                                           cacheLookupMap,
+                                           inMemoryItems,
+                                           /* do not cache */ false);
+    for each (let [glodaId, glodaMsg] in Iterator(inMemoryItems)) {
+      glodaMsg._folderID = destFolderID;
+      glodaMsg._messageKey = cacheLookupMap[glodaId];
+      modifiedItems.push(glodaMsg);
     }
 
     // tell the collection manager about the modified messages so it can update
@@ -2525,6 +2531,47 @@ var GlodaDatastore = {
     if (!aDoNotNotify && modifiedItems.length) {
       GlodaCollectionManager.itemsModified(GlodaMessage.prototype.NOUN_ID,
                                            modifiedItems);
+    }
+  },
+
+  get _updateMessageKeyStatement() {
+    let statement = this._createAsyncStatement(
+      "UPDATE messages SET messageKey = ?1 WHERE id = ?2");
+    this.__defineGetter__("_updateMessageKeyStatement",
+                          function() statement);
+    return this._updateMessageKeyStatement;
+  },
+
+  /**
+   * Update the message keys for the gloda messages with the given id's.  This
+   *  is to be used in response to msgKeyChanged notifications and is similar to
+   *  `updateMessageLocations` except that we do not update the folder and we
+   *  do not perform itemsModified notifications (because message keys are not
+   *  intended to be relevant to the gloda message abstraction).
+   */
+  updateMessageKeys: function(aMessageIds, aNewMessageKeys) {
+    let statement = this._updateMessageKeyStatement;
+
+    // map gloda id to the new message key for in-memory rep transform below
+    let cacheLookupMap = {};
+
+    for (let iMsg = 0; iMsg < aMessageIds.length; iMsg++) {
+      let id = aMessageIds[iMsg], msgKey = aNewMessageKeys[iMsg];
+      statement.bindInt64Parameter(0, msgKey);
+      statement.bindInt64Parameter(1, id);
+      statement.executeAsync(this.trackAsync());
+
+      cacheLookupMap[id] = msgKey;
+    }
+
+    // - perform the cache lookup so we can update in-memory representations
+    let inMemoryItems = {};
+    GlodaCollectionManager.cacheLookupMany(GlodaMessage.prototype.NOUN_ID,
+                                           cacheLookupMap,
+                                           inMemoryItems,
+                                           /* do not cache */ false);
+    for each (let [glodaId, glodaMsg] in Iterator(inMemoryItems)) {
+      glodaMsg._messageKey = cacheLookupMap[glodaId];
     }
   },
 
