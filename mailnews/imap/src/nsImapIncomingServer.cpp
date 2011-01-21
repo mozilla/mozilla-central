@@ -864,17 +864,8 @@ nsImapIncomingServer::CreateProtocolInstance(nsIEventTarget *aEventTarget,
   {
     nsCOMPtr<nsIImapHostSessionList> hostSession =
       do_GetService(kCImapHostSessionListCID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-    PRInt32 socketType;
-    if (NS_SUCCEEDED(GetSocketType(&socketType)) &&
-        socketType == nsMsgSocketType::trySTARTTLS)
-    {
-      PRUint32 capability = kCapabilityUndefined;
-      hostSession->GetCapabilityForHost(m_serverKey.get(), capability);
-      if (capability & kHasStartTLSCapability)
-        SetSocketType(nsMsgSocketType::alwaysSTARTTLS);
-    }
-    rv = protocolInstance->Initialize(hostSession, this, aEventTarget);
+    if (NS_SUCCEEDED(rv))
+      rv = protocolInstance->Initialize(hostSession, this, aEventTarget);
   }
 
   // take the protocol instance and add it to the connectionCache
