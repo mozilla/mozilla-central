@@ -941,7 +941,7 @@ var specialTabs = {
         break;
       case "addon-install-failed":
         // XXX TODO This isn't terribly ideal for the multiple failure case
-        for ([, install] in Iterator(installInfo.installs)) {
+        for (let [, install] in Iterator(installInfo.installs)) {
           let host = (installInfo.originatingURI instanceof Ci.nsIStandardURL) &&
                       installInfo.originatingURI.host;
           if (!host)
@@ -1000,7 +1000,7 @@ var specialTabs = {
               // installs.
               let types = {};
               let bestType = null;
-              for ([, install] in Iterator(installInfo)) {
+              for (let [, install] in Iterator(installInfo.installs)) {
                 if (install.type in types)
                   types[install.type]++;
                 else
