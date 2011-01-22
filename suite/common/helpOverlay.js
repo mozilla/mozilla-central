@@ -36,6 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var helpExternal;
 
 var helpContentListener = {
@@ -104,4 +106,16 @@ function contentClick(event) {
 
 function showSidebar() {
   document.getElementById("help-sidebar-splitter").setAttribute("state", "open");
+}
+
+// needed by findUtils.js
+var gFindInstData;
+function getFindInstData()
+{
+  if (!gFindInstData) {
+    gFindInstData = new nsFindInstData();
+    gFindInstData.browser = getBrowser();
+    // defaults for rootSearchWindow and currentSearchWindow are fine here
+  }
+  return gFindInstData;
 }

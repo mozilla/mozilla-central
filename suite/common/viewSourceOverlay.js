@@ -51,3 +51,15 @@ function onLoadViewSourceOverlay() {
 function ViewSourceEditPage() {
   editPage(window.content.location.href);
 }
+
+// needed by findUtils.js
+var gFindInstData;
+function getFindInstData()
+{
+  if (!gFindInstData) {
+    gFindInstData = new nsFindInstData();
+    gFindInstData.browser = getBrowser();
+    // defaults for rootSearchWindow and currentSearchWindow are fine here
+  }
+  return gFindInstData;
+}

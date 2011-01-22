@@ -58,12 +58,22 @@
           src="chrome://communicator/content/viewSourceOverlay.js"/>
   <script type="application/javascript"
           src="chrome://editor/content/editorApplicationOverlay.js"/>
+  <script type="application/javascript"
+          src="chrome://communicator/content/findUtils.js"/>
 
   <window id="viewSource">
     <commandset id="tasksCommands"/>
     <command id="cmd_newNavigator"/>
     <command id="cmd_newEditor"/>
     <command id="cmd_editPage" oncommand="ViewSourceEditPage();"/>
+    <command id="cmd_find"
+             oncommand="findInPage(getFindInstData());"/>
+    <command id="cmd_findAgain"
+             oncommand="findAgainInPage(getFindInstData(), false);"/>
+    <command id="cmd_findPrevious"
+             oncommand="findAgainInPage(getFindInstData(), true);"/>
+    <stringbundle id="findBundle"
+                  src="chrome://global/locale/finddialog.properties"/>
   </window>
 
   <keyset id="viewSourceKeys">
