@@ -103,6 +103,7 @@ VIAddVersionKey "OriginalFilename" "setup.exe"
 !insertmacro SetBrandNameVars
 !insertmacro UnloadUAC
 !insertmacro WriteRegStr2
+!insertmacro WriteRegDWORD2
 
 !include shared.nsh
 
@@ -307,6 +308,10 @@ Section "-Application" APP_IDX
   ; will be empty when the key is deleted. This allows the uninstaller to
   ; specify that only empty keys will be deleted.
   ${SetAppKeys}
+  
+  ; Uninstall keys can only exist under HKLM on some versions of windows. Since
+  ; it doesn't cause problems always add them.
+  ${SetUninstallKeys}
 
   ; These need special handling on uninstall since they may be overwritten by
   ; an install into a different location.
