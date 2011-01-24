@@ -506,6 +506,7 @@ function Startup()
 
   // Do all UI building here:
   UpdateNavBar();
+  updateWindowResizer();
 
   // set home button tooltip text
   updateHomeButtonTooltip();
@@ -689,6 +690,8 @@ function Startup()
 
   addEventListener("AppCommand", HandleAppCommandEvent, true);
 
+  addEventListener("resize", updateWindowResizer, false);
+
   // does clicking on the urlbar select its contents?
   gClickSelectsAll = Services.prefs.getBoolPref("browser.urlbar.clickSelectsAll");
   gClickAtEndSelects = Services.prefs.getBoolPref("browser.urlbar.clickAtEndSelects");
@@ -733,6 +736,13 @@ function UpdateNavBar()
     if (!previous || !previous.classList.contains("nav-bar-class"))
       element.classList.add("nav-bar-first");
   }
+}
+
+function updateWindowResizer()
+{
+  getBrowser().showWindowResizer =
+      window.windowState == window.STATE_NORMAL &&
+      !isElementVisible(document.getElementById("status-bar"));
 }
 
 function InitSessionStoreCallback()

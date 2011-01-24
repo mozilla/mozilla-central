@@ -967,6 +967,7 @@
             // Note: closing the current tab sets mCurrentBrowser to null
             //       so we use mCurrentTab.linkedBrowser instead.
             newBrowser.droppedLinkHandler = this.mCurrentTab.linkedBrowser.droppedLinkHandler;
+            newBrowser.showWindowResizer = this.mCurrentTab.linkedBrowser.showWindowResizer;
             if (this.mCurrentBrowser) {
               this.mCurrentBrowser.droppedLinkHandler = null;
               // Only save the focused element if it is in our content window
@@ -2638,6 +2639,10 @@
       <property name="droppedLinkHandler"
                 onget="return this.mCurrentBrowser.droppedLinkHandler;"
                 onset="return this.mCurrentBrowser.droppedLinkHandler = val;"/>
+
+      <property name="showWindowResizer"
+                onget="return this.mCurrentBrowser.showWindowResizer;"
+                onset="return this.mCurrentBrowser.showWindowResizer = val;"/>
 
       <method name="observe">
         <parameter name="aSubject"/>
