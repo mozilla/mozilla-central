@@ -617,20 +617,21 @@ SuiteGlue.prototype = {
       if (!autoExportHTML && smartBookmarksVersion != -1)
         Services.prefs.setIntPref("browser.places.smartBookmarksVersion", 0);
 
-      // Get bookmarks.html file location.
-      var dirService = Components.classes["@mozilla.org/file/directory_service;1"]
-                                 .getService(Components.interfaces.nsIProperties);
-
-      var bookmarksFile = null;
+      var bookmarksURI = null;
       if (restoreDefaultBookmarks) {
         // User wants to restore bookmarks.html file from default profile folder.
-        bookmarksFile = dirService.get("profDef", Components.interfaces.nsILocalFile);
-        bookmarksFile.append("bookmarks.html");
+        bookmarksURI = Services.io.newURI("resource:///defaults/profile/bookmarks.html", null, null);
       }
-      else
-        bookmarksFile = dirService.get("BMarks", Components.interfaces.nsILocalFile);
+      else {
+        // Get bookmarks.html file location.
+        var bookmarksFile = Components.classes["@mozilla.org/file/directory_service;1"]
+                                      .getService(Components.interfaces.nsIProperties)
+                                      .get("BMarks", Components.interfaces.nsILocalFile);
+        if (bookmarksFile.exists())
+          bookmarksURI = Services.io.newFileURI(bookmarksFile);
+      }
 
-      if (bookmarksFile.exists()) {
+      if (bookmarksURI) {
         // Add an import observer.  It will ensure that smart bookmarks are
         // created once the operation is complete.
         Services.obs.addObserver(this, "bookmarks-restore-success", false);
@@ -640,7 +641,7 @@ SuiteGlue.prototype = {
         try {
           var importer = Components.classes["@mozilla.org/browser/places/import-export-service;1"]
                                    .getService(Components.interfaces.nsIPlacesImportExportService);
-          importer.importHTMLFromFile(bookmarksFile, true /* overwrite existing */);
+          importer.importHTMLFromURI(bookmarksURI, true /* overwrite existing */);
         }
         catch(ex) {
           // Report the error, but ignore it.
