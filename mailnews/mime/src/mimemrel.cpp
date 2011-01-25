@@ -355,11 +355,12 @@ MimeStartParamExists(MimeObject *obj, MimeObject* child)
   char *st = (ct
               ? MimeHeaders_get_parameter(ct, HEADER_PARM_START, NULL, NULL)
               : 0);
+
+  PR_FREEIF(ct);
   if (!st)
     return PR_FALSE;
 
   PR_FREEIF(st);
-  PR_FREEIF(ct);
   return PR_TRUE;
 }
 
@@ -373,6 +374,8 @@ MimeThisIsStartPart(MimeObject *obj, MimeObject* child)
   st = (ct
         ? MimeHeaders_get_parameter(ct, HEADER_PARM_START, NULL, NULL)
         : 0);
+
+  PR_FREEIF(ct);
   if (!st)
     return PR_FALSE;
 
@@ -397,7 +400,6 @@ MimeThisIsStartPart(MimeObject *obj, MimeObject* child)
   }
 
   PR_FREEIF(st);
-  PR_FREEIF(ct);
   PR_FREEIF(cst);
   return rval;
 }
