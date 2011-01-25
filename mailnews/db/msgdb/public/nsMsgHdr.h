@@ -92,7 +92,8 @@ protected:
     PRUint32    m_statusOffset;	// offset in a local mail message of the mozilla status hdr
     PRUint32    m_flags;
     PRUint16    m_numReferences;	// x-ref header for threading
-    nsCStringArray      m_references;  // avoid parsing references every time we want one
+    // avoid parsing references every time we want one
+    nsTArray<nsCString> m_references;
     nsMsgPriorityValue  m_priority;
 
     // nsMsgHdrs will have to know what db and row they belong to, since they are really

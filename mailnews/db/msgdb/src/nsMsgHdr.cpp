@@ -360,9 +360,9 @@ nsresult nsMsgHdr::ParseReferences(const char *references)
                                     startNextRef == references);
     // Don't add self-references.
     if (!resultReference.IsEmpty() && !resultReference.Equals(messageId))
-      m_references.AppendCString(resultReference);
+      m_references.AppendElement(resultReference);
   }
-  m_numReferences = m_references.Count();
+  m_numReferences = m_references.Length();
   return NS_OK;
 }
 
@@ -374,7 +374,7 @@ NS_IMETHODIMP nsMsgHdr::GetStringReference(PRInt32 refNum, nsACString& resultRef
     GetNumReferences(nsnull); // it can handle the null
 
   if (refNum < m_numReferences)
-    m_references.CStringAt(refNum, resultReference);
+    resultReference = m_references.ElementAt(refNum);
   else
     err = NS_ERROR_ILLEGAL_VALUE;
   return err;
