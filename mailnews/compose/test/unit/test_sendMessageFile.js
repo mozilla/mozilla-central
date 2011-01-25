@@ -31,8 +31,6 @@ msl.prototype = {
   onStatus: function (aMsgID, aMsg) {
   },
   onStopSending: function (aMsgID, aStatus, aMsg, aReturnFile) {
-    do_test_finished();
-
     try {
       do_check_eq(aStatus, 0);
 
@@ -44,9 +42,6 @@ msl.prototype = {
 
       // Compare data file to what the server received
       do_check_eq(originalData, server._handler.post);
-
-      // Now wait till the copy is finished for the sent message
-      do_test_pending();
     } catch (e) {
       do_throw(e);
     } finally {
@@ -54,7 +49,7 @@ msl.prototype = {
 
       var thread = gThreadManager.currentThread;
       while (thread.hasPendingEvents())
-        thread.processNextEvent(true);
+        thread.processNextEvent(false);
     }
   },
   onGetDraftFolderURI: function (aFolderURI) {
@@ -72,7 +67,6 @@ msl.prototype = {
   GetMessageId: function (aMessageId) {
   },
   OnStopCopy: function (aStatus) {
-    do_test_finished();
     do_check_eq(aStatus, 0);
     try {
       // Now do a comparison of what is in the sent mail folder
@@ -85,18 +79,11 @@ msl.prototype = {
       fileData = fileData.substr(pos);
 
       do_check_eq(originalData, fileData);
-
-      server.resetTest();
     } catch (e) {
       do_throw(e);
     } finally {
-      server.stop();
-
-      var thread = gThreadManager.currentThread;
-      while (thread.hasPendingEvents())
-        thread.processNextEvent(true);
-
       finished = true;
+      do_test_finished();
     }
   },
 
