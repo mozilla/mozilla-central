@@ -95,22 +95,13 @@ msll.prototype = {
     } catch (e) {
       dump(e);
       do_throw(e);
-    } finally {
-      server.resetTest();
-      server.stop();
-
-      var thread = gThreadManager.currentThread;
-      while (thread.hasPendingEvents())
-      thread.processNextEvent(true);
     }
-    if (gMessageSendStatus == 0) {
-      dump("gMessageSendStatus to 1\n");
-      gMessageSendStatus = 1;
-    }
-    else if (gMessageSendStatus == 2) {
-      dump("next driver\n");
-      async_driver();
-    }
+    // The extra timeout here is to work around an issue where sometimes
+    // the sendUnsentMessages is completely synchronous up until onStopSending
+    // and sometimes it isn't. This protects us for the synchronous case to
+    // allow the sendUnsentMessages function to complete and exit before we
+    // call async_driver.
+    do_timeout(0, async_driver);
   }
 };
 
@@ -178,17 +169,8 @@ function sendUnsentMessages()
     server.performTest();
   } catch (e) {
     do_throw(e);
-  } finally {
-    server.stop();
-
-    var thread = gThreadManager.currentThread;
-    while (thread.hasPendingEvents())
-      thread.processNextEvent(true);
   }
-  if (!gMessageSendStatus)
-    gMessageSendStatus = 2;
-
-  return gMessageSendStatus == 1;
+  return false;
 }
 
 function runServerTest()
@@ -207,6 +189,10 @@ function actually_run_test() {
 
   // Check sent folder is now empty.
   do_check_eq(gSentFolder.getTotalMessages(false), 0);
+
+  // Reset the server
+  server.stop();
+  server.resetTest();
 
   // and reset counts
   resetCounts();
