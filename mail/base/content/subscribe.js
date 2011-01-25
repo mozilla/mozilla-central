@@ -228,10 +228,11 @@ function SubscribeOnLoad()
     }
   }
 
+  var serverMenu = document.getElementById("serverMenu");
+
   gServerURI = null;
   let folder = window.arguments[0].folder;
   if (folder && folder.server instanceof Components.interfaces.nsISubscribableServer) {
-    var serverMenu = document.getElementById("serverMenu");
     serverMenu.menupopup.selectFolder(folder.server.rootMsgFolder);
     try {
                         CleanUpSearchView();
