@@ -224,6 +224,9 @@ MimeMultipartRelated_finalize (MimeObject *obj)
   MimeMultipartRelated* relobj = (MimeMultipartRelated*) obj;
   PR_FREEIF(relobj->base_url);
   PR_FREEIF(relobj->curtag);
+  PR_FREEIF(relobj->buffered_hdrs->all_headers);
+  PR_FREEIF(relobj->buffered_hdrs->heads);
+  PR_FREEIF(relobj->buffered_hdrs);
         PR_FREEIF(relobj->head_buffer);
         relobj->head_buffer_fp = 0;
         relobj->head_buffer_size = 0;
@@ -564,8 +567,16 @@ MimeMultipartRelated_output_child_p(MimeObject *obj, MimeObject* child)
                 PR_Free(tmp);
                 if (tloc)
                 {
-                    MimeHashValue * value = new MimeHashValue(child, temp);
+                  MimeHashValue *value;
+                  value = (MimeHashValue*)PL_HashTableLookup(relobj->hash, tloc);
+
+                  if (!value)
+                  {
+                    value = new MimeHashValue(child, temp);
                     PL_HashTableAdd(relobj->hash, tloc, value);
+                  }
+                  else
+                    PR_smprintf_free(tloc);
                 }
               }
             }
