@@ -801,10 +801,11 @@ nsMsgSearchDBView::DoCommandWithFolder(nsMsgViewCommandTypeValue command, nsIMsg
 NS_IMETHODIMP nsMsgSearchDBView::DoCommand(nsMsgViewCommandTypeValue command)
 {
   mCommand = command;
-  if (command == nsMsgViewCommandType::deleteMsg || 
+  if (command == nsMsgViewCommandType::deleteMsg ||
       command == nsMsgViewCommandType::deleteNoTrash ||
-      command == nsMsgViewCommandType::selectAll || 
-      command ==nsMsgViewCommandType::expandAll ||
+      command == nsMsgViewCommandType::selectAll ||
+      command == nsMsgViewCommandType::selectThread ||
+      command == nsMsgViewCommandType::expandAll ||
       command == nsMsgViewCommandType::collapseAll)
     return nsMsgDBView::DoCommand(command);
   nsresult rv = NS_OK;

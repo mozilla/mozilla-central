@@ -185,6 +185,8 @@ function setupModule() {
   make_new_sets_in_folders = make_new_sets_in_folder =
     testHelperModule.make_new_sets_in_folders;
   add_sets_to_folders = testHelperModule.add_sets_to_folders;
+  make_folder_with_sets = testHelperModule.make_folder_with_sets;
+  make_virtual_folder = testHelperModule.make_virtual_folder;
 
   delete_message_set = testHelperModule.async_delete_messages;
 
@@ -2493,6 +2495,8 @@ var make_new_sets_in_folders;
 var make_new_sets_in_folder;
 var add_sets_to_folders;
 var delete_message_set;
+var make_folder_with_sets;
+var make_virtual_folder;
 
 /**
  * Load a file in its own 'module'.
