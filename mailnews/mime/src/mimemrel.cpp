@@ -1055,6 +1055,8 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, PRBool abort_p)
 
   body = mime_create(((ct && *ct) ? ct : (dct ? dct : TEXT_HTML)),
              relobj->buffered_hdrs, obj->options);
+
+  PR_FREEIF(ct);
   if (!body) {
     status = MIME_OUT_OF_MEMORY;
     goto FAIL;
