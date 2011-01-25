@@ -502,7 +502,6 @@ xpicleanup@BIN_SUFFIX@
   defaults/profile/bookmarks.html
   defaults/profile/localstore.rdf
   defaults/profile/mimeTypes.rdf
-  defaults/profile/panels.rdf
   defaults/profile/chrome
   defaults/profile/chrome/userChrome-example.css
   defaults/profile/chrome/userContent-example.css
