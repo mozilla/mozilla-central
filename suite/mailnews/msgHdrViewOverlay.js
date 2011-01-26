@@ -473,7 +473,30 @@ var messageHeaderSink = {
           return;
       }
 
-      currentAttachments.push (new createNewAttachmentInfo(contentType, url, displayName, uri, isExternalAttachment));
+      var size = null;
+      if (isExternalAttachment)
+      {
+        var fileHandler = Components.classes["@mozilla.org/network/io-service;1"]
+                                    .getService(Components.interfaces.nsIIOService)
+                                    .getProtocolHandler("file")
+                                    .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+        try
+        {
+          size = fileHandler.getFileFromURLSpec(url).fileSize;
+        }
+        catch(e)
+        {
+          dump("Couldn't open external attachment!");
+        }
+      }
+
+      currentAttachments.push(new createNewAttachmentInfo(contentType,
+                                                          url,
+                                                          displayName,
+                                                          uri,
+                                                          isExternalAttachment,
+                                                          size));
+
       // If we have an attachment, set the nsMsgMessageFlags.Attachment flag
       // on the hdr to cause the "message with attachment" icon to show up
       // in the thread pane.
@@ -492,6 +515,27 @@ var messageHeaderSink = {
         catch (ex) {
           dump("ex = " + ex + "\n");
         }
+      }
+    },
+
+    addAttachmentField: function(aField, aValue)
+    {
+      let last = currentAttachments[currentAttachments.length - 1];
+      if (aField == "X-Mozilla-PartSize" && !last.isExternalAttachment &&
+          last.contentType != "text/x-moz-deleted")
+      {
+        let size = parseInt(aValue);
+        // libmime returns -1 if it never managed to figure out the size.
+        if (size != -1)
+          last.size = size;
+      }
+      else if (aField == "X-Mozilla-PartDownloaded" && aValue == "0")
+      {
+        // We haven't downloaded the attachment, so any size we get from
+        // libmime is almost certainly inaccurate. Just get rid of it. (Note:
+        // this relies on the fact that PartDownloaded comes after PartSize from
+        // the MIME emitter.)
+        last.size = null;
       }
     },
 
@@ -1130,9 +1174,20 @@ function getCardForAddress(emailAddress)
   return null;
 }
 
-// createnewAttachmentInfo --> constructor method for creating new attachment object which goes into the
-// data attachment array.
-function createNewAttachmentInfo(contentType, url, displayName, uri, isExternalAttachment)
+/**
+ * Create a new attachment object which goes into the data attachment array.
+ * This method checks whether the passed attachment is empty or not.
+ *
+ * @param contentType The attachment's mimetype
+ * @param url The URL for the attachment
+ * @param displayName The name to be displayed for this attachment (usually the
+          filename)
+ * @param uri The URI for the message containing the attachment
+ * @param isExternalAttachment True if the attachment has been detached
+ * @param size The size in bytes of the attachment
+ */
+function createNewAttachmentInfo(contentType, url, displayName, uri,
+                                 isExternalAttachment, size)
 {
   this.contentType = contentType;
   this.url = url;
@@ -1140,6 +1195,7 @@ function createNewAttachmentInfo(contentType, url, displayName, uri, isExternalA
   this.uri = uri;
   this.isExternalAttachment = isExternalAttachment;
   this.attachment = this;
+  this.size = size;
 }
 
 createNewAttachmentInfo.prototype.saveAttachment = function saveAttachment()
@@ -1350,7 +1406,10 @@ function displayAttachmentsForExpandedView()
 
       // create a listitem for the attachment listbox
       let displayName = createAttachmentDisplayName(attachment);
-      let item = attachmentList.appendItem(displayName, "");
+      let nameAndSize = displayName;
+      if (attachment.size != null)
+        nameAndSize += " (" + messenger.formatFileSize(attachment.size) + ")";
+      let item = attachmentList.appendItem(nameAndSize, "");
       item.setAttribute("crop", "center");
       item.setAttribute("class", "listitem-iconic attachment-item"); 
       item.setAttribute("tooltiptext", attachment.displayName);
@@ -1358,6 +1417,7 @@ function displayAttachmentsForExpandedView()
       item.setAttribute("attachmentUrl", attachment.url);
       item.setAttribute("attachmentContentType", attachment.contentType);
       item.setAttribute("attachmentUri", attachment.uri);
+      item.setAttribute("attachmentSize", attachment.size);
       if (attachment.contentType == "text/x-moz-deleted")
         item.setAttribute('disabled', 'true');
       else
