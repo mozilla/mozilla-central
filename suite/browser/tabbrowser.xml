@@ -2275,8 +2275,8 @@
           <![CDATA[
             for (var i = 0; i < this.tabs.length; ++i) {
               var tabBoxObject = this.tabs[i].boxObject;
-              if (aEvent.clientX > tabBoxObject.screenX + tabBoxObject.width * .25 &&
-                  aEvent.clientX < tabBoxObject.screenX + tabBoxObject.width * .75)
+              if (aEvent.screenX > tabBoxObject.screenX + tabBoxObject.width * .25 &&
+                  aEvent.screenX < tabBoxObject.screenX + tabBoxObject.width * .75)
                 return i;
             }
 
