@@ -144,7 +144,10 @@ MOZ_PKG_MAC_EXTRA=--format UDBZ \
                   --copy "$(call EXPAND_LOCALE_SRCDIR,suite/locales)/installer/mac/README.txt"
 endif
 
-NON_OMNIJAR_FILES = defaults/messenger/mailViews.dat
+NON_OMNIJAR_FILES = \
+	defaults/messenger/mailViews.dat \
+	defaults/profile/panels.rdf \
+	$(NULL)
 
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
 
