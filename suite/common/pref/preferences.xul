@@ -56,7 +56,7 @@
             autopanes="true"> 
 
   <script type="application/javascript" src="chrome://communicator/content/pref/preferences.js"/>
-  <!-- Used by pref-smartupdate, pref-security, pref-cookies, pref-images, pref-popups and pref-passwords -->
+  <!-- Used by pref-smartupdate, pref-security, pref-cookies, pref-images, pref-popups and pref-passwords, as well as pref-sync (gSyncUtils.*open* -> openUILinkIn) -->
   <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
   <script type="application/javascript" src="chrome://communicator/content/tasksOverlay.js"/>
 
@@ -207,6 +207,13 @@
                     helpTopic="validation_prefs"/>
         </treechildren>
       </treeitem>
+
+      <!-- Sync -->
+      <treeitem id="syncItem"
+                label="&sync.label;"
+                prefpane="sync_pane"
+                url="chrome://communicator/content/pref/pref-sync.xul"
+                helpTopic="sync_prefs"/>
 
       <!-- Advanced items -->
       <treeitem container="true"
