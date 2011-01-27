@@ -46,7 +46,7 @@ interface nsISimpleEnumerator;
 /**
  * A collection of address book items.
  */
-[scriptable, uuid(67f9d071-3853-4ba1-bd85-df108dd10625)]
+[scriptable, uuid(70f6123f-e06b-4101-9750-4ce73b38134b)]
 interface nsIAbCollection : nsIAbItem {
   
   /**
