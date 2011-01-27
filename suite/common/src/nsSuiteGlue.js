@@ -78,6 +78,29 @@ SuiteGlue.prototype = {
     Services.prefs.setBoolPref("browser.sessionstore.resume_session_once", true);
   },
 
+  _setSyncAutoconnectDelay: function BG__setSyncAutoconnectDelay() {
+    // Assume that a non-zero value for services.sync.autoconnectDelay should override
+    if (Services.prefs.prefHasUserValue("services.sync.autoconnectDelay")) {
+      let prefDelay = Services.prefs.getIntPref("services.sync.autoconnectDelay");
+
+      if (prefDelay > 0)
+        return;
+    }
+
+    // delays are in seconds
+    const MAX_DELAY = 300;
+    let delay = 3;
+    let enum = Services.wm.getEnumerator("navigator:browser");
+    while (enum.hasMoreElements()) {
+      delay += enum.getNext().gBrowser.tabs.length;
+    }
+    delay = delay <= MAX_DELAY ? delay : MAX_DELAY;
+
+    let syncTemp = {};
+    Components.utils.import("resource://services-sync/service.js", syncTemp);
+    syncTemp.Weave.Service.delayedAutoConnect(delay);
+  },
+
   // nsIObserver implementation
   observe: function(subject, topic, data)
   {
@@ -114,6 +137,9 @@ SuiteGlue.prototype = {
       case "browser-lastwindow-close-granted":
         if (this._saveSession)
           this._setPrefToSaveSession();
+        break;
+      case "weave:service:ready":
+        this._setSyncAutoconnectDelay();
         break;
       case "session-save":
         this._setPrefToSaveSession();
@@ -172,6 +198,7 @@ SuiteGlue.prototype = {
     Services.obs.addObserver(this, "quit-application-granted", false);
     Services.obs.addObserver(this, "browser-lastwindow-close-requested", false);
     Services.obs.addObserver(this, "browser-lastwindow-close-granted", false);
+    Services.obs.addObserver(this, "weave:service:ready", false);
     Services.obs.addObserver(this, "session-save", false);
     Services.obs.addObserver(this, "dl-done", false);
     Services.obs.addObserver(this, "places-init-complete", false);
@@ -200,6 +227,7 @@ SuiteGlue.prototype = {
     Services.obs.removeObserver(this, "quit-application-granted");
     Services.obs.removeObserver(this, "browser-lastwindow-close-requested");
     Services.obs.removeObserver(this, "browser-lastwindow-close-granted");
+    Services.obs.removeObserver(this, "weave:service:ready");
     Services.obs.removeObserver(this, "session-save");
     Services.obs.removeObserver(this, "dl-done");
     if (this._isIdleObserver)

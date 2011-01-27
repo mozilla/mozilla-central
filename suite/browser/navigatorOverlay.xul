@@ -422,6 +422,10 @@
                   accesskey="&historyRestoreLastSession.accesskey;"
                   oncommand="restoreLastSession();"
                   disabled="true"/>
+        <menuitem id="sync-tabs-menuitem"
+                  label="&syncTabsMenu.label;"
+                  oncommand="BrowserOpenSyncTabs();"
+                  disabled="true"/>
       </menupopup>
     </menu>
 

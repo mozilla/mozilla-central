@@ -718,6 +718,9 @@ function Startup()
   gBrowser.mPanelContainer.addEventListener("PreviewBrowserTheme", LightWeightThemeWebInstaller, false, true);
   gBrowser.mPanelContainer.addEventListener("ResetBrowserThemePreview", LightWeightThemeWebInstaller, false, true);
 
+  // initialize the sync UI
+  gSyncUI.init();
+
   // initialize the session-restore service
   setTimeout(InitSessionStoreCallback, 0);
 }
@@ -1319,6 +1322,11 @@ function BrowserOpenTab()
     else
       setTimeout(WindowFocusTimerCallback, 0, content);
   }
+}
+
+function BrowserOpenSyncTabs()
+{
+  switchToTabHavingURI("about:sync-tabs", true);
 }
 
 /* Show file picker dialog configured for opening a file, and return 

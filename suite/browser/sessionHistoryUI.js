@@ -42,6 +42,26 @@ const MAX_HISTORY_MENU_ITEMS = 15;
 const MAX_URLBAR_HISTORY_MENU_ITEMS = 30;
 const MAX_URLBAR_HISTORY_ITEMS = 100;
 
+function toggleTabsFromOtherComputers()
+  {
+    // enable/disable the Tabs From Other Computers menu
+    let menuitem = document.getElementById("sync-tabs-menuitem");
+
+    // If Sync isn't configured yet, then don't show the menuitem.
+    if (Weave.Status.service == Weave.CLIENT_NOT_CONFIGURED ||
+        Weave.Svc.Prefs.get("firstSync", "") == "notReady") {
+      menuitem.hidden = true;
+      return;
+    }
+
+    // The tabs engine might never be inited (if services.sync.registerEngines
+    // is modified), so make sure we avoid undefined errors.
+    let enabled = Weave.Service.isLoggedIn && Weave.Engines.get("tabs") &&
+                  Weave.Engines.get("tabs").enabled;
+    menuitem.setAttribute("disabled", !enabled);
+    menuitem.hidden = false;
+  }
+
 function FillHistoryMenu(aParent, aMenu)
   {
     // Remove old entries if any
@@ -89,6 +109,7 @@ function FillHistoryMenu(aParent, aMenu)
               if (entry)
                 createRadioMenuItem(aParent, endHistory, j, entry.title, j == index);
             }
+          toggleTabsFromOtherComputers();
           break;
       }
     return true;
