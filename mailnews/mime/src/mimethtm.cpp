@@ -72,6 +72,9 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
 
   if (!obj->output_p) return 0;
 
+  status = MimeObject_write_separator(obj);
+  if (status < 0) return status;
+
   // Set a default font (otherwise unicode font will be used since the data is UTF-8).
   if (nsMimeOutput::nsMimeMessageBodyDisplay == obj->options->format_out ||
       nsMimeOutput::nsMimeMessagePrintOutput == obj->options->format_out)
@@ -84,11 +87,11 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
     {
       PR_snprintf(buf, 256, "<div class=\"moz-text-html\"  lang=\"%s\">",
                   fontLang.get());
-      status = MimeObject_write(obj, buf, strlen(buf), PR_FALSE);
+      status = MimeObject_write(obj, buf, strlen(buf), PR_TRUE);
     }
     else
     {
-      status = MimeObject_write(obj, "<div class=\"moz-text-html\">", 27, PR_FALSE);
+      status = MimeObject_write(obj, "<div class=\"moz-text-html\">", 27, PR_TRUE);
     }
     if(status<0) return status;
   }
@@ -151,11 +154,6 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
         if (status < 0) return status;
     }
   }
-
-  // rhp: For a change, we will write out a separator after formatted text
-  //      bodies.
-  status = MimeObject_write_separator(obj);
-  if (status < 0) return status;
 
   return 0;
 }

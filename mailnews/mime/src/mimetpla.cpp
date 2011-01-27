@@ -228,12 +228,13 @@ MimeInlineTextPlain_parse_begin (MimeObject *obj)
         }
         else
           openingDiv = "<pre wrap>\n";
-      status = MimeObject_write(obj, openingDiv.get(), openingDiv.Length(), PR_FALSE);
-      if (status < 0) return status;
 
       /* text/plain objects always have separators before and after them.
        Note that this is not the case for text/enriched objects. */
       status = MimeObject_write_separator(obj);
+      if (status < 0) return status;
+
+      status = MimeObject_write(obj, openingDiv.get(), openingDiv.Length(), PR_TRUE);
       if (status < 0) return status;
     }
   }
