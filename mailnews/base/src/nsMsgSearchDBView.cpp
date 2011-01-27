@@ -407,7 +407,7 @@ NS_IMETHODIMP nsMsgSearchDBView::GetFolderForViewIndex(nsMsgViewIndex index, nsI
   if (index == nsMsgViewIndex_None || index >= (PRUint32) m_folders.Count())
     return NS_MSG_INVALID_DBVIEW_INDEX;
   NS_IF_ADDREF(*aFolder = m_folders[index]);
-  return NS_OK;
+  return *aFolder ? NS_OK : NS_ERROR_NULL_POINTER;
 }
 
 nsresult nsMsgSearchDBView::GetDBForViewIndex(nsMsgViewIndex index, nsIMsgDatabase **db)
