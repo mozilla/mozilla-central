@@ -299,6 +299,20 @@ toolbarpaletteitem > #button-delete {
   -moz-image-region: rect(68px 199px 101px 150px) !important;
 }
 
+#sync-button {
+  list-style-image: url("chrome://communicator/skin/sync/sync-32.png");
+}
+
+#sync-button[status=active] {
+  list-style-image: url("chrome://communicator/skin/sync/sync-32-throbber.png");
+}
+
+#sync-button > .toolbarbutton-icon {
+  margin: 1px;
+  width: 32px;
+  height: 32px;
+}
+
 #locationFolders {
   width: 22em;
 }
@@ -364,6 +378,20 @@ toolbar[iconsize="small"] #button-stop:hover:active {
 
 toolbar[iconsize="small"] #button-stop[disabled="true"] {
   -moz-image-region: rect(19px 76px 38px 57px) !important;
+}
+
+toolbar[iconsize="small"] > #sync-button {
+  list-style-image: url("chrome://communicator/skin/sync/sync-16.png");
+}
+
+toolbar[iconsize="small"] > #sync-button[status=active] {
+  list-style-image: url("chrome://communicator/skin/sync/sync-16-throbber.png");
+}
+
+toolbar[iconsize="small"] > #sync-button > .toolbarbutton-icon {
+  margin: 1px;
+  width: 16px;
+  height: 16px;
 }
 
 /* ::::: message notification bar style rules ::::: */

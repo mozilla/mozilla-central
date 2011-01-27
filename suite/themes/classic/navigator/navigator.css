@@ -146,6 +146,20 @@
   -moz-image-region: rect(120px 119px 149px 90px) !important;
 }
 
+#sync-button {
+  list-style-image: url("chrome://communicator/skin/sync/sync-32.png");
+}
+
+#sync-button[status=active] {
+  list-style-image: url("chrome://communicator/skin/sync/sync-32-throbber.png");
+}
+
+#sync-button > .toolbarbutton-icon {
+  margin: 1px;
+  width: 32px;
+  height: 32px;
+}
+
 /* ::::: small primary toolbar buttons ::::: */
 
 toolbar[iconsize="small"] > toolbarpaletteitem > #back-button,
@@ -254,6 +268,20 @@ toolbar[iconsize="small"] > #home-button:hover:active {
 
 toolbar[iconsize="small"] > #home-button[disabled="true"] {
   -moz-image-region: rect(80px 79px 99px 60px) !important;
+}
+
+toolbar[iconsize="small"] > #sync-button {
+  list-style-image: url("chrome://communicator/skin/sync/sync-16.png");
+}
+
+toolbar[iconsize="small"] > #sync-button[status=active] {
+  list-style-image: url("chrome://communicator/skin/sync/sync-16-throbber.png");
+}
+
+toolbar[iconsize="small"] > #sync-button > .toolbarbutton-icon {
+  margin: 1px;
+  width: 16px;
+  height: 16px;
 }
 
 #FindToolbar {

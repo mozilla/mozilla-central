@@ -100,3 +100,13 @@
 .handler-type[typeClass="audioPodcastFeed"] {
   list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png");
 }
+
+/* ::::: Sync ::::: */
+
+#syncDesc {
+  padding: 0 12em;
+}
+
+#connectThrobber {
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
+}
