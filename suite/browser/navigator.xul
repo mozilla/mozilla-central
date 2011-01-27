@@ -315,6 +315,7 @@
           <box id="notification-popup-box" hidden="true" align="center"
                onmousedown="event.stopPropagation();"
                onclick="event.stopPropagation();">
+            <image id="default-notification-icon" class="notification-anchor-icon" role="button"/>
             <image id="geo-notification-icon" class="notification-anchor-icon" role="button"/>
             <image id="addons-notification-icon" class="notification-anchor-icon" role="button"/>
             <image id="password-notification-icon" class="notification-anchor-icon" role="button"/>

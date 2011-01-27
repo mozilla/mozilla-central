@@ -65,3 +65,10 @@ notification[type="critical"] {
 .messageCloseButton:hover:active {
   list-style-image: url("chrome://global/skin/icons/close-act.gif");
 }
+
+/* Popup notifications */
+
+.popup-notification-description {
+  max-width: 248px;
+  margin-top: 4px !important;
+}

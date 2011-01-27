@@ -542,6 +542,12 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
   outline: 1px dotted;
 }
 
+#default-notification-icon {
+  list-style-image: url("chrome://global/skin/icons/information-16.png");
+  width: 16px;
+  height: 16px;
+}
+
 #geo-notification-icon {
   list-style-image: url("chrome://communicator/skin/icons/geolocation-16.png");
   width: 16px;
