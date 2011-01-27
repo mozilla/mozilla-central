@@ -78,7 +78,6 @@ void nsMsgHdr::Init()
   m_date = LL_ZERO;
   m_flags = 0;
   m_mdbRow = NULL;
-  m_numReferences = 0;
   m_threadId = nsMsgKey_None;
   m_threadParent = nsMsgKey_None;
 }
@@ -335,13 +334,11 @@ NS_IMETHODIMP nsMsgHdr::GetNumReferences(PRUint16 *result)
     if (NS_SUCCEEDED(m_mdb->RowCellColumnToConstCharPtr(GetMDBRow(),
                        m_mdb->m_referencesColumnToken, &references)))
       ParseReferences(references);
-    else
-      m_numReferences = 0;
     m_initedValues |= REFERENCES_INITED;
   }
 
   if (result)
-    *result = m_numReferences;
+    *result = m_references.Length();
   // there is no real failure here; if there are no references, there are no
   //  references.
   return NS_OK;
@@ -362,7 +359,6 @@ nsresult nsMsgHdr::ParseReferences(const char *references)
     if (!resultReference.IsEmpty() && !resultReference.Equals(messageId))
       m_references.AppendElement(resultReference);
   }
-  m_numReferences = m_references.Length();
   return NS_OK;
 }
 
@@ -373,7 +369,7 @@ NS_IMETHODIMP nsMsgHdr::GetStringReference(PRInt32 refNum, nsACString& resultRef
   if(!(m_initedValues & REFERENCES_INITED))
     GetNumReferences(nsnull); // it can handle the null
 
-  if (refNum < m_numReferences)
+  if ((PRUint32)refNum < m_references.Length())
     resultReference = m_references.ElementAt(refNum);
   else
     err = NS_ERROR_ILLEGAL_VALUE;
@@ -419,13 +415,8 @@ NS_IMETHODIMP nsMsgHdr::SetAuthor(const char *author)
 NS_IMETHODIMP nsMsgHdr::SetReferences(const char *references)
 {
   NS_ENSURE_ARG_POINTER(references);
-  if (*references == '\0') {
-    m_numReferences = 0;
-  }
-  else {
-    m_references.Clear();
-    ParseReferences(references);
-  }
+  m_references.Clear();
+  ParseReferences(references);
 
   m_initedValues |= REFERENCES_INITED;
 
