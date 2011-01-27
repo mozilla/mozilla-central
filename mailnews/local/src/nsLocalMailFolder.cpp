@@ -1141,9 +1141,6 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
   if (count > 0)
     rv = CreateDirectoryForFolder(getter_AddRefs(dirFile));
 
-  // Convert from nsAString to nsCAutoString, as we will call moveToNative(),
-  // not moveTo().
-
   nsAutoString safeName(aNewName);
   NS_MsgHashIfNecessary(safeName);
 
@@ -1168,7 +1165,6 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
     return rv;
 
   ForceDBClosed();
-  nsAutoString newNameDirStr = safeName;  //save dir name before appending .msf
   rv = oldPathFile->MoveTo(nsnull, safeName);
   if (NS_FAILED(rv))
   {
@@ -1176,12 +1172,14 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
     return rv;
   }
 
-  safeName.AppendLiteral(SUMMARY_SUFFIX);
-  oldSummaryFile->MoveTo(nsnull, safeName);
+  nsAutoString summaryName(safeName);
+  summaryName.AppendLiteral(SUMMARY_SUFFIX);
+  oldSummaryFile->MoveTo(nsnull, summaryName);
 
   if (count > 0)
   {
     // rename "*.sbd" directory
+    nsAutoString newNameDirStr(safeName);
     newNameDirStr.AppendLiteral(".sbd");
     dirFile->MoveTo(nsnull, newNameDirStr);
   }
