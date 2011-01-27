@@ -135,6 +135,14 @@ function toggleAffectedChrome(aHide)
     {
       gChromeState.findbarWasHidden = true;
     }
+
+    gChromeState.syncNotificationsOpen = false;
+    var syncNotifications = document.getElementById("sync-notifications");
+    if (syncNotifications)
+    {
+      gChromeState.syncNotificationsOpen = !syncNotifications.notificationsHidden;
+      syncNotifications.notificationsHidden = true;
+    }
   }
   else
   {
@@ -156,6 +164,9 @@ function toggleAffectedChrome(aHide)
 
     if (!gChromeState.findbarWasHidden)
       findbar.open();
+
+    if (gChromeState.syncNotificationsOpen)
+      document.getElementById("sync-notifications").notificationsHidden = false;
   }
 
   // if we are unhiding and sidebar used to be there rebuild it
