@@ -56,6 +56,8 @@ ifdef MOZ_EXTENSIONS
 tier_app_dirs += extensions
 endif
 
+tier_app_dirs += services
+
 else # toplevel Makefile
 
 ifndef MOZ_ENABLE_LIBXUL

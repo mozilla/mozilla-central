@@ -241,6 +241,7 @@
 @BINPATH@/components/satchel.xpt
 @BINPATH@/components/satchel.manifest
 @BINPATH@/components/saxparser.xpt
+@BINPATH@/components/services-crypto.xpt
 @BINPATH@/components/services-crypto-component.xpt
 @BINPATH@/components/shellservice.xpt
 @BINPATH@/components/shistory.xpt
@@ -405,6 +406,9 @@
 @BINPATH@/components/txEXSLTRegExFunctions.js
 @BINPATH@/components/txEXSLTRegExFunctions.manifest
 @BINPATH@/components/WebContentConverter.js
+@BINPATH@/components/nsAboutSyncTabs.js
+@BINPATH@/components/SyncComponents.manifest
+@BINPATH@/components/Weave.js
 
 ; Modules
 @BINPATH@/modules/*
@@ -505,6 +509,7 @@
 ; All the browser/general pref files must be part of base to prevent migration bugs
 @BINPATH@/@PREF_DIR@/browser-prefs.js
 @BINPATH@/@PREF_DIR@/channel-prefs.js
+@BINPATH@/@PREF_DIR@/services-sync.js
 @BINPATH@/@PREF_DIR@/composer.js
 @BINPATH@/greprefs.js
 @BINPATH@/defaults/autoconfig/platform.js
