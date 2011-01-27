@@ -39,7 +39,7 @@
 /**
  * The core STEEL object, available in the global scope
  */
-[scriptable, uuid(90211d2e-3083-46a8-ae4d-75a244fd802a)]
+[scriptable, uuid(a4cb1fcd-6af7-4251-9879-28fd120b1c9d)]
 interface steelIApplication : extIApplication {
   /**
    * Returns true if the application is running on a Mac OS X. This is intended
