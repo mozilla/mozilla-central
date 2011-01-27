@@ -1,7 +1,9 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
- * Test suite for account manager functions.
+ * Test suite for local folder functions.
  */
+
+load("../../../resources/messageGenerator.js");
 
 function run_test() {
   var acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
@@ -94,6 +96,13 @@ function run_test() {
 
   var folder3 = root.addSubfolder("folder3");
   var folder3Local = folder3.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder);
+  var folder1Local = folder.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder);
+
+  // put a single message in folder1.
+  let messageGenerator = new MessageGenerator();
+  let message = messageGenerator.makeMessage();
+  folder1Local.addMessage(message.toMboxString());
+
   folder3Local.copyFolderLocal(folder, true, null, null);
 
   // Test - Get the new folders, make sure the old ones don't exist
@@ -114,11 +123,25 @@ function run_test() {
   do_check_false(folder.filePath.exists());
   do_check_false(folder2.filePath.exists());
 
+  // make sure getting the db doesn't throw an exception
+  let db = folder1Moved.msgDatabase;
+  do_check_true(db.summaryValid);
+
   // Move folders back, get them
   var rootLocal = root.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder);
   rootLocal.copyFolderLocal(folder1Moved, true, null, null);
   folder = root.getChildNamed("folder1");
   folder2 = folder.getChildNamed("folder2");
+
+  // Test - Rename (test that .msf file is renamed as well)
+  folder.rename("folder1-newname", null);
+  // make sure getting the db doesn't throw an exception, and is valid
+  folder = rootLocal.getChildNamed("folder1-newname");
+  let db = folder.msgDatabase;
+  do_check_true(db.summaryValid);
+
+  folder.rename("folder1", null);
+  folder = rootLocal.getChildNamed("folder1");
 
   // Test - propagateDelete (this tests recursiveDelete as well)
 
