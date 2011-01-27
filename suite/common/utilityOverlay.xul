@@ -21,6 +21,8 @@
   <script type="application/javascript"
           src="chrome://communicator/content/utilityOverlay.js"/>
   <script type="application/javascript"
+          src="chrome://communicator/content/sync/syncUI.js"/>
+  <script type="application/javascript"
           src="chrome://help/content/contextHelp.js"/>
 
   <stringbundleset>
@@ -398,4 +400,9 @@
     <!-- Additional items are generated, see popupNotificationMenuShowing() -->
   </menupopup>
 
+  <!-- Sync toolbar button -->
+  <toolbarbutton id="sync-button"
+                 class="toolbarbutton-1 chromeclass-toolbar-additional"
+                 label="&syncToolbarButton.label;"
+                 oncommand="gSyncUI.handleToolbarButton();"/>
 </overlay>

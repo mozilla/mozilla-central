@@ -28,6 +28,10 @@
   <command id="Tasks:ErrorConsole" oncommand="toJavaScriptConsole();"/>
 </commandset>
 
+<broadcasterset id="mainBroadcasterSet">
+  <broadcaster id="sync-setup-state" hidden="true"/>
+  <broadcaster id="sync-syncnow-state" hidden="true"/>
+</broadcasterset>
 
       <!-- Tasks Menu -->
       <menu id="tasksMenu" label="&tasksMenu.label;" accesskey="&tasksMenu.accesskey;">
@@ -54,6 +58,19 @@
           <menuitem id="addonsmgr" label="&addonsManagerCmd.label;"
                     accesskey="&addonsManagerCmd.accesskey;"
                     key="key_addonsManager" oncommand="toEM();"/>
+          <!-- only one of sync-setup or sync-syncnowitem will be showing at once -->
+          <menuitem id="sync-setup"
+                    label="&syncSetup.label;"
+                    accesskey="&syncSetup.accesskey;"
+                    observes="sync-setup-state"
+                    oncommand="gSyncUI.openSetup();"
+                    hidden="true"/>
+          <menuitem id="sync-syncnowitem"
+                    label="&syncSyncNowItem.label;"
+                    accesskey="&syncSyncNowItem.accesskey;"
+                    observes="sync-syncnow-state"
+                    oncommand="gSyncUI.doSync(event);"
+                    hidden="true"/>
           <menuseparator/>
           <menu label="&webDevelopment.label;" accesskey="&webDevelopment.accesskey;">
             <menupopup id="toolsPopup">

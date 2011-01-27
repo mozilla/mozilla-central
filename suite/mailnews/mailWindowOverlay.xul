@@ -2321,6 +2321,8 @@
                 onclick="checkForMiddleClick(this, event);"
                 tooltiptext="&throbber.tooltip;"/>
     </toolbaritem>
+    <!-- see utilityOverlay.xul -->
+    <toolbarbutton id="sync-button"/>
   </toolbarpalette>
 
 </toolbox>

@@ -124,6 +124,8 @@
   <broadcaster id="Communicator:WorkMode"/>
 </broadcasterset>
 
+<broadcasterset id="mainBroadcasterSet"/>
+
 <keyset id="mailKeys">
   <keyset id="tasksKeys"/>
 </keyset>

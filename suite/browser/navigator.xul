@@ -487,8 +487,9 @@
         </hbox>
       </toolbaritem>
 
+      <!-- see utilityOverlay.xul -->
+      <toolbarbutton id="sync-button"/>
     </toolbarpalette>
-
   </toolbox>
 
   <hbox flex="1">
