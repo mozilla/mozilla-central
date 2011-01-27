@@ -1,0 +1,48 @@
+<!-- The page shown when not logged in... -->
+<!ENTITY setupButton.label          "Set Up &syncBrand.fullName.label;">
+<!ENTITY setupButton.accesskey      "S">
+<!ENTITY weaveDesc.label            "&syncBrand.fullName.label; lets you access your history, bookmarks, passwords and open tabs across all your devices.">
+
+<!-- The page shown when logged in... -->
+<!ENTITY accountGroupboxCaption.label "&syncBrand.fullName.label; Account">
+<!ENTITY currentAccount.label         "Current Account:">
+
+<!-- Login error feedback -->
+<!ENTITY updatePass.label             "Update">
+<!ENTITY updatePass.accesskey         "U">
+<!ENTITY resetPass.label              "Reset">
+<!ENTITY resetPass.accesskey          "s">
+
+<!-- Manage Account -->
+<!ENTITY manageAccount.label          "Manage Account">
+<!ENTITY viewQuota.label              "View Quota">
+<!ENTITY viewQuota.accesskey          "V">
+<!ENTITY changePassword.label         "Change Password">
+<!ENTITY changePassword.accesskey     "C">
+<!ENTITY mySyncKey.label              "My Sync Key">
+<!ENTITY mySyncKey.accesskey          "M">
+<!ENTITY resetSync.label              "Reset Sync">
+<!ENTITY resetSync.accesskey          "e">
+<!ENTITY stopUsingAccount.label       "Stop Using This Account">
+<!ENTITY stopUsingAccount.accesskey   "A">
+
+<!-- Sync Settings -->
+<!ENTITY syncPrefsCaption.label       "Browser Sync">
+<!ENTITY syncComputerName.label       "Computer Name:">
+<!ENTITY syncComputerName.accesskey   "N">
+
+<!ENTITY syncMy.label               "Sync My">
+<!ENTITY engine.bookmarks.label     "Bookmarks">
+<!ENTITY engine.bookmarks.accesskey "B">
+<!ENTITY engine.tabs.label          "Tabs">
+<!ENTITY engine.tabs.accesskey      "T">
+<!ENTITY engine.history.label       "History">
+<!ENTITY engine.history.accesskey   "r">
+<!ENTITY engine.passwords.label     "Passwords">
+<!ENTITY engine.passwords.accesskey "w">
+<!ENTITY engine.prefs.label         "Preferences">
+<!ENTITY engine.prefs.accesskey     "P">
+
+<!-- Footer stuff -->
+<!ENTITY prefs.tosLink.label        "Terms of Service">
+<!ENTITY prefs.ppLink.label         "Privacy Policy">

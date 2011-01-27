@@ -197,6 +197,7 @@ clobber-%:
 libs-%:
 	$(NSINSTALL) -D $(DIST)/install
 	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$* BOTH_MANIFESTS=1
+	@$(MAKE) -C ../../mozilla/services/sync/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) -C ../../editor/ui/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	if test -d ../../mozilla/extensions/irc; then \
 	  $(MAKE) -C ../../mozilla/extensions/irc/locales libs-$*; \
