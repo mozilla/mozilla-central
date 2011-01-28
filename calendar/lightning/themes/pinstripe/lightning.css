@@ -116,18 +116,18 @@ radio[pane=paneLightning] {
 
 /* Write button */
 #newMsgButton-mail-menuitem {
-  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
+  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar-small.png);
   -moz-image-region: rect(0px 48px 24px 24px);
 }
 
 #newMsgButton-calendar-menuitem {
   list-style-image: url(chrome://calendar/skin/toolbar-small.png);
-  -moz-image-region: rect(0px 16px 16px 0px);
+  -moz-image-region: rect(74px 16px 90px 0px);
 }
 
 #newMsgButton-task-menuitem {
   list-style-image: url(chrome://calendar/skin/toolbar-small.png);
-  -moz-image-region: rect(0px 256px 16px 240px);
+  -moz-image-region: rect(74px 376px 90px 360px);
 }
 
 /* Today pane button in status bar */
