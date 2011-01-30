@@ -498,7 +498,6 @@ xpicleanup@BIN_SUFFIX@
   components/interfaces.manifest
   components/mail.xpt
   components/components.manifest
-  defaults/profile
   defaults/profile/bookmarks.html
   defaults/profile/localstore.rdf
   defaults/profile/mimeTypes.rdf
@@ -576,17 +575,21 @@ xpicleanup@BIN_SUFFIX@
   extensions/modern@themes.mozilla.org/icon.png
   extensions/modern@themes.mozilla.org/install.rdf
   extensions/modern@themes.mozilla.org/preview.png
+  modules
   modules/AddonLogging.jsm
   modules/AddonManager.jsm
   modules/AddonRepository.jsm
   modules/AddonUpdateChecker.jsm
   modules/CertUtils.jsm
   modules/CommonDialog.jsm
+  modules/CrashSubmit.jsm
   modules/CSPUtils.jsm
   modules/ctypes.jsm
   modules/debug.js
+  modules/dictUtils.js
   modules/DownloadLastDir.jsm
   modules/DownloadPaths.jsm
+  modules/DownloadTaskbarProgress.jsm
   modules/DownloadUtils.jsm
   modules/errUtils.js
   modules/FileUtils.jsm
@@ -646,6 +649,9 @@ xpicleanup@BIN_SUFFIX@
   modules/utils.js
   modules/virtualFolderWrapper.js
   modules/WindowDraggingUtils.jsm
+  modules/WorkerTest.jsm
+  modules/WorkerTest_subworker.js
+  modules/WorkerTest_worker.js
   modules/XPCOMUtils.jsm
   modules/XPIProvider.jsm
   greprefs.js
