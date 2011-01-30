@@ -198,13 +198,36 @@
       </field>
       <field name="_keyEventHandler" readonly="true">
       <![CDATA[({
-        tabbrowser: this,
         handleEvent: function handleEvent(aEvent) {
-          if (aEvent.ctrlKey && aEvent.keyCode == KeyEvent.DOM_VK_F4 &&
-              this.tabbrowser.mTabBox.handleCtrlPageUpDown &&
-              this.tabbrowser.getStripVisibility())
-            this.tabbrowser.removeCurrentTab();
-        }
+          if (aEvent.altKey)
+            return;
+
+          if (/Mac/.test(navigator.platform)) {
+            if (!aEvent.metaKey)
+              return;
+
+            var offset = 1;
+            switch (aEvent.charCode) {
+              case '}'.charCodeAt(0):
+                offset = -1;
+              case '{'.charCodeAt(0):
+                if (window.getComputedStyle(this, null).direction == "ltr")
+                  offset *= -1;
+                this.tabContainer.advanceSelectedTab(offset, true);
+                aEvent.stopPropagation();
+                aEvent.preventDefault();
+            }
+          }
+          else {
+            if (aEvent.ctrlKey && !aEvent.shiftKey && !aEvent.metaKey &&
+                aEvent.keyCode == KeyEvent.DOM_VK_F4 &&
+                this.getStripVisibility()) {
+              this.removeCurrentTab();
+              aEvent.stopPropagation();
+              aEvent.preventDefault();
+            }
+          }
+        }.bind(this)
       })]]>
       </field>
       <field name="arrowKeysShouldWrap">
@@ -2688,11 +2711,14 @@
 
       <constructor>
         <![CDATA[
+          document.addEventListener("keypress", this._keyEventHandler, false);
+          this.arrowKeysShouldWrap = /Mac/.test(navigator.platform);
+          // Bail out early if we are in tabmail. See Bug 521803.
+          if (!this.mPanelContainer)
+            return;
+
           this.mCurrentBrowser = this.mPanelContainer.firstChild.firstChild;
           this.mCurrentTab = this.tabContainer.firstChild;
-          document.addEventListener("keypress", this._keyEventHandler, false);
-          this.mTabBox.handleCtrlTab = !/Mac/.test(navigator.platform);
-          this.arrowKeysShouldWrap = /Mac/.test(navigator.platform);
 
           var uniqueId = "panel" + this.nextTabNumber++;
           this.mPanelContainer.childNodes[0].id = uniqueId;
@@ -2746,6 +2772,11 @@
 
       <destructor>
         <![CDATA[
+          document.removeEventListener("keypress", this._keyEventHandler, false);
+          // Bail out early if we are in tabmail. See Bug 521803.
+          if (!this.mPanelContainer)
+            return;
+
           for (var i = 0; i < this.mTabListeners.length; ++i) {
             this.browsers[i].webProgress.removeProgressListener(this.mTabFilters[i]);
             this.mTabFilters[i].removeProgressListener(this.mTabListeners[i]);
@@ -2754,8 +2785,6 @@
             // eventListeners are removed from the browsers in display order of the browsers
             this.browsers[i].removeEventListener("DOMTitleChanged", this.onTitleChanged, true);
           }
-          document.removeEventListener("keypress", this._keyEventHandler, false);
-
           var os = Components.classes["@mozilla.org/observer-service;1"]
                              .getService(Components.interfaces.nsIObserverService);
           os.removeObserver(this, "browser:purge-session-history");
