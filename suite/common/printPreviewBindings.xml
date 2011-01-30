@@ -21,7 +21,7 @@
    -
    - Contributor(s):
    -  Samir Gehani <sgehani@netscape.com> (Original Author)
-   -  Rod Spears <rods@netscape.com> 
+   -  Rod Spears <rods@netscape.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -43,7 +43,7 @@
    xmlns="http://www.mozilla.org/xbl"
    xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <binding id="printpreviewtoolbar" 
+  <binding id="printpreviewtoolbar"
            extends="chrome://global/content/bindings/toolbar.xml#toolbar">
     <resources>
       <stylesheet src="chrome://global/skin/printPreview.css"/>
@@ -51,7 +51,7 @@
 
     <content>
       <xul:button label="&print.label;" accesskey="&print.accesskey;"
-        oncommand="PrintUtils.print();"/>
+        oncommand="PrintUtils.print();" icon="print"/>
 
       <xul:button label="&pageSetup.label;" accesskey="&pageSetup.accesskey;"
         oncommand="this.parentNode.doPageSetup();"/>
@@ -59,19 +59,19 @@
       <xul:vbox align="center" pack="center">
         <xul:label value="&page.label;" accesskey="&page.accesskey;" control="pageNumber"/>
       </xul:vbox>
-      <xul:toolbarbutton class="toolbarbutton-icon home-arrow"
+      <xul:toolbarbutton class="home-arrow tabbable"
         oncommand="parentNode.navigate(0, 0, 'home');" tooltiptext="&homearrow.tooltip;"/>
-      <xul:toolbarbutton class="toolbarbutton-icon left-arrow" 
+      <xul:toolbarbutton class="previous-arrow tabbable"
         oncommand="parentNode.navigate(-1, 0, 0);" tooltiptext="&leftarrow.tooltip;"/>
       <xul:hbox align="center" pack="center">
-        <xul:textbox id="pageNumber" size="3" value="1" lastvalid="1"
-          onchange="navigate(0, this.value, 0);"/>
+        <xul:textbox id="pageNumber" size="3" value="1" min="1" type="number"
+          hidespinbuttons="true" onchange="navigate(0, this.valueNumber, 0);"/>
         <xul:label value="&of.label;"/>
         <xul:label value="1"/>
       </xul:hbox>
-      <xul:toolbarbutton class="toolbarbutton-icon right-arrow" 
+      <xul:toolbarbutton class="next-arrow tabbable"
         oncommand="parentNode.navigate(1, 0, 0);" tooltiptext="&rightarrow.tooltip;"/>
-      <xul:toolbarbutton class="toolbarbutton-icon end-arrow"
+      <xul:toolbarbutton class="end-arrow tabbable"
         oncommand="parentNode.navigate(0, 0, 'end');" tooltiptext="&endarrow.tooltip;"/>
 
       <xul:toolbarseparator class="toolbarseparator-primary"/>
@@ -96,7 +96,7 @@
             <xul:menuitem value="1.75" label="&p175.label;"/>
             <xul:menuitem value="2" label="&p200.label;"/>
             <xul:menuseparator/>
-            <xul:menuitem flex="1" value="ShrinkToFit" 
+            <xul:menuitem flex="1" value="ShrinkToFit"
               label="&ShrinkToFit.label;"/>
             <xul:menuitem value="Custom" label="&Custom.label;"/>
           </xul:menupopup>
@@ -107,24 +107,21 @@
       <xul:hbox align="center" pack="center">
         <xul:toolbarbutton label="&portrait.label;" checked="true"
           accesskey="&portrait.accesskey;"
-          type="radio" group="orient" class="toolbar-portrait-page"
+          type="radio" group="orient" class="toolbar-portrait-page tabbable"
           oncommand="parentNode.parentNode.orient('portrait');"/>
         <xul:toolbarbutton label="&landscape.label;"
           accesskey="&landscape.accesskey;"
-          type="radio" group="orient" class="toolbar-landscape-page"
+          type="radio" group="orient" class="toolbar-landscape-page tabbable"
           oncommand="parentNode.parentNode.orient('landscape');"/>
       </xul:hbox>
 
       <xul:toolbarseparator class="toolbarseparator-primary"/>
       <xul:button label="&close.label;" accesskey="&close.accesskey;"
-        oncommand="PrintUtils.exitPrintPreview();"/>
+        oncommand="PrintUtils.exitPrintPreview();" icon="close"/>
       <xul:data value="&customPrompt.title;"/>
     </content>
 
     <implementation>
-      <field name="mDebug">
-        false
-      </field>
       <field name="mPrintButton">
         document.getAnonymousNodes(this)[0]
       </field>
@@ -156,21 +153,19 @@
       </field>
       <field name="mWebProgress">
       </field>
-     
+
       <constructor>
       <![CDATA[
-        this._debug("constructor");
-
-        var print = PrintUtils.getWebBrowserPrint();
+        var print = PrintUtils.getPrintPreview();
         this.mTotalPages.value = print.printPreviewNumPages;
+        this.mPageTextBox.max = print.printPreviewNumPages;
 
         this.updateToolbar();
 
         // Hide the ``Print...'' button when the underlying gfx code does not
         // support multiple devicecontext to be used concurrently
-        // (e.g. printing and printpreview at the same time; required as 
-        // legacy support for unices.'s PostScript module (Xprint
-        // on unices. does not have problems with that))
+        // (e.g. printing and printpreview at the same time; required as
+        // legacy support for unices.'s PostScript module
         // XXX the scaling widgets, and the orientation widgets on unices.
         var canPrint = true;
         try
@@ -178,11 +173,11 @@
           var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
           canPrint = prefs.getBoolPref("print.whileInPrintPreview");
           if (!canPrint)
-          {           
-            // Ask the printerfeatures database if this printer device 
+          {
+            // Ask the printerfeatures database if this printer device
             // supports multiple device instances which can be used
             // concurrently
-            var smdci = prefs.getBoolPref("print.tmp.printerfeatures." + 
+            var smdci = prefs.getBoolPref("print.tmp.printerfeatures." +
                                           print.currentPrintSettings.printerName +
                                           ".can_use_multiple_devicecontexts_concurrently");
 
@@ -236,12 +231,7 @@
         <parameter name="aHomeOrEnd"/>
         <body>
         <![CDATA[
-          this._debug("navigate: " + aDirection + " " + aPageNum + 
-                      " " + aHomeOrEnd);
-
-          var print = PrintUtils.getWebBrowserPrint();
-          var validInput = false;
-          var total;
+          var print = PrintUtils.getPrintPreview();
 
           // we use only one of aHomeOrEnd, aDirection, or aPageNum
           if (aHomeOrEnd)
@@ -250,57 +240,27 @@
             if (aHomeOrEnd == "home")
             {
               homeOrEnd = print.PRINTPREVIEW_HOME;
-              this.mPageTextBox.value = 1;  
+              this.mPageTextBox.value = 1;
             }
             else
             {
               homeOrEnd = print.PRINTPREVIEW_END;
               this.mPageTextBox.value = print.printPreviewNumPages;
             }
-            
+
             print.printPreviewNavigate(homeOrEnd, 0);
-            validInput = true;
           }
           else if (aDirection)
           {
-            var textBoxStr = this.mPageTextBox.value;
-            var newPageNum = parseInt(textBoxStr) + aDirection;
-            total = print.printPreviewNumPages;
-
-            // bounds check potentially user-entered number
-            if (newPageNum > 0 && newPageNum <= total)
-            {
-              this.mPageTextBox.value = newPageNum;
-              print.printPreviewNavigate(
-                print.PRINTPREVIEW_GOTO_PAGENUM, newPageNum);
-              validInput = true;
-            }
-          }
-          else 
-          {
-            total = print.printPreviewNumPages;
-
-            // bounds check potentially user-entered number
-            if (aPageNum > 0 && aPageNum <= total)
-            {
-              print.printPreviewNavigate(
-                print.PRINTPREVIEW_GOTO_PAGENUM, aPageNum);
-              validInput = true;
-            }
-          }
-
-          if (validInput)          
-          {
-            // store the valid page number for future use to replace 
-            // the textbox value if erroneous input made it in
-            this.mPageTextBox.setAttribute(
-              "lastvalid", this.mPageTextBox.value);
+            this.mPageTextBox.valueNumber += aDirection;
+            print.printPreviewNavigate(
+              print.PRINTPREVIEW_GOTO_PAGENUM,
+              this.mPageTextBox.valueNumber);
           }
           else
-          { 
-            // restore last known valid value in place of erroneous input
-            this.mPageTextBox.value = 
-              this.mPageTextBox.getAttribute("lastvalid");
+          {
+            print.printPreviewNavigate(
+              print.PRINTPREVIEW_GOTO_PAGENUM, aPageNum);
           }
         ]]>
         </body>
@@ -317,7 +277,6 @@
           var confirmed = promptService.prompt(window, this.mCustomTitle,
                                                this.mScaleLabel.value, result,
                                                null, {value:value});
-          this._debug("confirmed: " + confirmed);
           if (!confirmed || !result.value || result.value == "" || result.value == value) {
             return(-1);
           }
@@ -349,8 +308,6 @@
         <parameter name="aValue"/>
         <body>
         <![CDATA[
-          this._debug("scale: " + aValue);
-
           var settings = PrintUtils.getPrintSettings();
           if (aValue == "ShrinkToFit") {
             if (!settings.shrinkToFit) {
@@ -363,7 +320,6 @@
 
           if (aValue == "Custom") {
             aValue = this.promptForScaleValue(settings.scaling * 100.0);
-            this._debug("promptForScaleValue "+aValue);
             if (aValue >= 10) {
               aValue /= 100;
             } else {
@@ -375,7 +331,7 @@
           this.setScaleCombobox(aValue);
           this.mScaleCombobox.setAttribute('lastValidInx', this.mScaleCombobox.selectedIndex);
 
-          if (settings.scaling != aValue)
+          if (settings.scaling != aValue || settings.shrinkToFit)
           {
             settings.shrinkToFit = false;
             settings.scaling = aValue;
@@ -390,8 +346,6 @@
         <parameter name="aOrientation"/>
         <body>
         <![CDATA[
-          this._debug("orient: " + aOrientation);
-
           const kIPrintSettings = Components.interfaces.nsIPrintSettings;
           var orientValue = (aOrientation == "portrait") ? kIPrintSettings.kPortraitOrientation :
                                                            kIPrintSettings.kLandscapeOrientation;
@@ -409,7 +363,7 @@
       <method name="updateToolbar">
         <body>
         <![CDATA[
-          var print = PrintUtils.getWebBrowserPrint();
+          var print = PrintUtils.getPrintPreview();
           var settings = PrintUtils.getPrintSettings();
 
           var isPortrait = settings.orientation == Components.interfaces.nsIPrintSettings.kPortraitOrientation;
@@ -418,13 +372,13 @@
           this.mLandscapeButton.checked = !isPortrait;
 
           if (settings.shrinkToFit) {
-            this._debug("setting ShrinkToFit");
             this.mScaleCombobox.value = "ShrinkToFit";
           } else {
             this.setScaleCombobox(settings.scaling);
           }
 
           this.mTotalPages.value = print.printPreviewNumPages;
+          this.mPageTextBox.max = print.printPreviewNumPages;
           this.mPageTextBox.value = 1;
         ]]>
         </body>
@@ -438,16 +392,6 @@
                                        .getService(Components.interfaces.nsIPrintSettingsService);
           printService.savePrintSettingsToPrefs(settings, true, flags);
         ]]></body>
-      </method>
-
-      <method name="_debug">
-        <parameter name="aMsg"/>
-        <body>
-        <![CDATA[
-          if (this.mDebug)
-            dump("\t *** printPreviewBindings: " + aMsg + "\n");
-        ]]>
-        </body>
       </method>
     </implementation>
   </binding>

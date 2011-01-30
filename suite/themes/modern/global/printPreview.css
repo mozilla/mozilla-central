@@ -41,19 +41,23 @@
 
 /* ..... page navigation ..... */
 
-.home-arrow {
+.home-arrow,
+.end-arrow:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://global/skin/arrow/arrow-lft-sharp-end.gif");
 }
 
-.end-arrow {
+.end-arrow,
+.home-arrow:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://global/skin/arrow/arrow-rit-sharp-end.gif");
 }
 
-.left-arrow {
+.previous-arrow,
+.next-arrow:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://global/skin/arrow/arrow-lft-sharp.gif");
 }
 
-.right-arrow {
+.next-arrow,
+.previous-arrow:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://global/skin/arrow/arrow-rit-sharp.gif");
 }
 
