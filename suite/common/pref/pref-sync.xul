@@ -132,7 +132,7 @@
                         <button label="&changePassword.label;"
                                 accesskey="&changePassword.accesskey;"
                                 oncommand="gSyncUtils.changePassword(); return false;"
-                                id="changePasswordButton"/>
+                                id="changeSyncPasswordButton"/>
                         <button label="&mySyncKey.label;"
                                 accesskey="&mySyncKey.accesskey;"
                                 oncommand="gSyncUtils.resetPassphrase(); return false;"
