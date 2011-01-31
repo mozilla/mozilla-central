@@ -916,8 +916,10 @@ calMgrCalendarObserver.prototype = {
                                         "cache.enabled",
                                         "suppressAlarms",
                                         "calendar-main-in-composite",
-                                        "calendar-main-default"];
-                    for each ( prop in propsToCopy ) {
+                                        "calendar-main-default",
+                                        "readOnly",
+                                        "imip.identity.key"];
+                    for each (let prop in propsToCopy ) {
                       newCal.setProperty(prop,
                                          aCalendar.getProperty(prop));
                     }
