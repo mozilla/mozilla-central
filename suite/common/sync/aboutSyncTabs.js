@@ -209,7 +209,8 @@ let RemoteTabViewer = {
       let showFor = el.getAttribute("showFor");
       if (showFor)
         el.hidden = showFor != mode && showFor != "all";
-
+      else // menuseparator
+        el.hidden = mode == "all";
       el = el.nextSibling;
     }
   },
