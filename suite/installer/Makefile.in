@@ -146,6 +146,7 @@ endif
 
 NON_OMNIJAR_FILES = \
 	defaults/messenger/mailViews.dat \
+	defaults/profile/localstore.rdf \
 	defaults/profile/panels.rdf \
 	$(NULL)
 

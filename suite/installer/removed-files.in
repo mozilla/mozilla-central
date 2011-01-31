@@ -499,7 +499,6 @@ xpicleanup@BIN_SUFFIX@
   components/mail.xpt
   components/components.manifest
   defaults/profile/bookmarks.html
-  defaults/profile/localstore.rdf
   defaults/profile/mimeTypes.rdf
   defaults/profile/chrome
   defaults/profile/chrome/userChrome-example.css

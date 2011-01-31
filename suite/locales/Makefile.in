@@ -89,6 +89,7 @@ PREF_JS_EXPORTS = $(LOCALE_SRCDIR)/suite-l10n.js
 
 NON_OMNIJAR_FILES = \
 	defaults/messenger/mailViews.dat \
+	defaults/profile/localstore.rdf \
 	defaults/profile/panels.rdf \
 	$(NULL)
 
