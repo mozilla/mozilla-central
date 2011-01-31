@@ -3911,7 +3911,8 @@ nsImapMailFolder::ReplayOfflineMoveCopy(nsMsgKey *aMsgKeys, PRUint32 aNumKeys,
 NS_IMETHODIMP nsImapMailFolder::AddMoveResultPseudoKey(nsMsgKey aMsgKey)
 {
   nsCOMPtr<nsIMsgDBHdr> pseudoHdr;
-  mDatabase->GetMsgHdrForKey(aMsgKey, getter_AddRefs(pseudoHdr));
+  nsresult rv = mDatabase->GetMsgHdrForKey(aMsgKey, getter_AddRefs(pseudoHdr));
+  NS_ENSURE_SUCCESS(rv, rv);
   nsCString messageId;
   pseudoHdr->GetMessageId(getter_Copies(messageId));
   // err on the side of caution and ignore messages w/o messageid.
