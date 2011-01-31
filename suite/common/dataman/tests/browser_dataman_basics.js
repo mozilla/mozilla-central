@@ -618,6 +618,24 @@ function test_idn(aWin) {
   // Add IDN cookie.
   gLocSvc.cookie.add(testDomain, "", "name0", "value0",
                      false, false, true, parseInt(Date.now() / 1000) + 600);
+
+  aWin.document.getElementById("domainSearch").value = "xn--";
+  aWin.document.getElementById("domainSearch").doCommand();
+  is(aWin.gDomains.tree.view.rowCount, 1,
+     "Search for 'xn--' returns one result");
+  is(aWin.gDomains.displayedDomains.map(function(aDom) { return aDom.title; })
+                                   .join(","),
+     "xn--exmple-cua.test", "In xn-- search, only the non-decodable domain is listed");
+  aWin.document.getElementById("domainSearch").value = idnDomain.charAt(3);
+  aWin.document.getElementById("domainSearch").doCommand();
+  is(aWin.gDomains.tree.view.rowCount, 1,
+     "IDN search returns a result");
+  is(aWin.gDomains.displayedDomains.map(function(aDom) { return aDom.title; })
+                                   .join(","),
+     testDomain, "In IDN search, the correct domain is listed");
+  aWin.document.getElementById("domainSearch").value = "";
+  aWin.document.getElementById("domainSearch").doCommand();
+
   aWin.gDomains.tree.view.selection.select(12);
   is(aWin.gDomains.selectedDomain.title, testDomain,
      "For IDN tests, correct domain is selected");

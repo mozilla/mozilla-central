@@ -675,7 +675,8 @@ var gDomains = {
     var lcSearch = aSearchString.toLocaleLowerCase();
     var sType = aType || this.selectfield.value;
     for (let domain in this.domainObjects) {
-      if (domain.toLocaleLowerCase().indexOf(lcSearch) != -1 &&
+      if (this.domainObjects[domain].displayTitle
+              .toLocaleLowerCase().indexOf(lcSearch) != -1 &&
           (sType == "all" || this.domainObjects[domain]["has" + sType]))
         this.displayedDomains.push(this.domainObjects[domain]);
     }
