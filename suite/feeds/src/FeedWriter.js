@@ -1028,10 +1028,6 @@ FeedWriter.prototype = {
 
     Components.utils.evalInSandbox(codeStr, this._contentSandbox);
 
-    var historySvc = Components.classes["@mozilla.org/browser/nav-history-service;1"]
-                               .getService(Components.interfaces.nsINavHistoryService);
-    historySvc.addObserver(this, false);
-
     // List of web handlers
     var wccr = Components.classes["@mozilla.org/embeddor.implemented/web-content-handler-registrar;1"]
                          .getService(Components.interfaces.nsIWebContentConverterService);
@@ -1048,13 +1044,7 @@ FeedWriter.prototype = {
         codeStr = "handlersMenuPopup.appendChild(menuItem);";
         Components.utils.evalInSandbox(codeStr, this._contentSandbox);
 
-        let uri = makeURI(handlers[i].uri);
-        if (!this._setFaviconForWebReader(uri, menuItem)) {
-          if (uri && /^https?/.test(uri.scheme)) {
-            let iconURL = makeURI(uri.resolve("/favicon.ico"));
-            this._faviconService.setAndLoadFaviconForPage(uri, iconURL, true);
-          }
-        }
+        this._setFaviconForWebReader(handlers[i].uri, menuItem);
       }
       this._contentSandbox.menuItem = null;
     }
@@ -1229,10 +1219,6 @@ FeedWriter.prototype = {
     this.__bundle = null;
     this._feedURI = null;
     this.__contentSandbox = null;
-
-    var historySvc = Components.classes["@mozilla.org/browser/nav-history-service;1"]
-                               .getService(Components.interfaces.nsINavHistoryService);
-    historySvc.removeObserver(this);
   },
 
   _removeFeedFromCache: function removeFeedFromCache() {
@@ -1359,67 +1345,39 @@ FeedWriter.prototype = {
   },
 
   /**
-   * Sets the icon for the given web-reader item in the readers menu
-   * if the favicon-service has the necessary icon stored.
-   * @param aURI
-   *        the reader URI.
+   * Sets the icon for the given web-reader item in the readers menu.
+   * The icon is fetched and stored through the favicon service.
+   *
+   * @param aReaderUrl
+   *        the reader url.
    * @param aMenuItem
    *        the reader item in the readers menulist.
-   * @return true if the icon was set, false otherwise.
+   *
+   * @note For privacy reasons we cannot set the image attribute directly
+   *       to the icon url.  See Bug 358878 for details.
    */
-  _setFaviconForWebReader: function setFaviconForWebReader(aURI, aMenuItem) {
-    var faviconsSvc = this._faviconService;
-    var faviconURI = null;
-    try {
-      faviconURI = faviconsSvc.getFaviconForPage(aURI);
+  _setFaviconForWebReader: function setFaviconForWebReader(aReaderUrl, aMenuItem) {
+    let readerURI = makeURI(aReaderUrl);
+    if (!/^https?/.test(readerURI.scheme)) {
+      // Don't try to get a favicon for non http(s) URIs.
+      return;
     }
-    catch(ex) {
-    }
-
-    if (faviconURI) {
-      var dataURL = faviconsSvc.getFaviconDataAsDataURL(faviconURI);
-      if (dataURL) {
-        this._contentSandbox.menuItem = aMenuItem;
-        this._contentSandbox.dataURL = dataURL;
-        var codeStr = "menuItem.setAttribute('image', dataURL);";
-        Components.utils.evalInSandbox(codeStr, this._contentSandbox);
-        this._contentSandbox.menuItem = null;
-        this._contentSandbox.dataURL = null;
-
-        return true;
-      }
-    }
-
-    return false;
+    let faviconURI = makeURI(readerURI.resolve("/favicon.ico"));
+    let self = this;
+    this._faviconService.setAndLoadFaviconForPage(readerURI, faviconURI, false,
+      function(aURI, aDataLen, aData, aMimeType) {
+        if (aDataLen > 0) {
+          let dataURL = "data:" + aMimeType + ";base64," +
+                        btoa(String.fromCharCode.apply(null, aData));
+          self._contentSandbox.menuItem = aMenuItem;
+          self._contentSandbox.dataURL = dataURL;
+          var codeStr = "menuItem.setAttribute('image', dataURL);";
+          Components.utils.evalInSandbox(codeStr, self._contentSandbox);
+          self._contentSandbox.menuItem = null;
+          self._contentSandbox.dataURL = null;
+        }
+      });
   },
-
-   // nsINavHistoryService
-   onPageChanged: function onPageChanged(aURI, aWhat, aValue) {
-     // see init()
-     aURI = new XPCNativeWrapper(aURI);
-
-     if (aWhat == Components.interfaces.nsINavHistoryObserver.ATTRIBUTE_FAVICON) {
-       // Go through the readers menu and look for the corresponding
-       // reader menu-item for the page if any.
-       var spec = aURI.spec;
-       var possibleHandlers = this._handlersMenuList.firstChild.childNodes;
-       for (let i=0; i < possibleHandlers.length ; i++) {
-         if (possibleHandlers[i].getAttribute("webhandlerurl") == spec) {
-           this._setFaviconForWebReader(aURI, possibleHandlers[i]);
-           return;
-         }
-       }
-     }
-   },
-
-   onBeginUpdateBatch: function() { },
-   onEndUpdateBatch: function() { },
-   onVisit: function() { },
-   onTitleChanged: function() { },
-   onBeforeDeleteURI: function() { },
-   onDeleteURI: function() { },
-   onClearHistory: function() { },
-   onDeleteVisits: function() { },
 
   // nsIClassInfo
   getInterfaces: function getInterfaces(countRef) {
