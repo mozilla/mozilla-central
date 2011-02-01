@@ -79,6 +79,7 @@ function installInto(module) {
   module.wait_for_content_tab_load = wait_for_content_tab_load;
   module.assert_content_tab_has_url = assert_content_tab_has_url;
   module.content_tab_e = content_tab_e;
+  module.content_tab_eid = content_tab_eid;
   module.get_element_display = get_element_display;
   module.assert_element_hidden = assert_element_hidden;
   module.assert_element_visible = assert_element_visible;
@@ -207,10 +208,18 @@ function assert_content_tab_has_url(aTab, aURL) {
 }
 
 /**
- * Get the element with the given ID from the content tab's displayed page.
+ * Gets the element with the given ID from the content tab's displayed page.
  */
 function content_tab_e(aTab, aId) {
   return aTab.browser.contentDocument.getElementById(aId);
+}
+
+/**
+ * Gets the element with the given ID from the content tab's displayed page,
+ * wrapped in an elib.Elem.
+ */
+function content_tab_eid(aTab, aId) {
+  return new elib.Elem(content_tab_e(aTab, aId));
 }
 
 /**

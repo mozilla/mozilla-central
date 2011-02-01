@@ -72,6 +72,7 @@ function installInto(module) {
   module.open_compose_with_forward_as_attachments = open_compose_with_forward_as_attachments;
   module.open_compose_with_element_click = open_compose_with_element_click;
   module.close_compose_window = close_compose_window;
+  module.wait_for_compose_window = wait_for_compose_window;
   module.add_attachment = add_attachment;
   module.delete_attachment = delete_attachment;
 }

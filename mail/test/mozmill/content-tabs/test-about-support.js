@@ -38,7 +38,8 @@
 var MODULE_NAME = 'test-about-support';
 
 var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['folder-display-helpers', 'content-tab-helpers'];
+var MODULE_REQUIRES = ['folder-display-helpers', 'content-tab-helpers',
+                       'compose-helpers', 'window-helpers'];
 
 var controller = {};
 Components.utils.import('resource://mozmill/modules/controller.js', controller);
@@ -50,6 +51,10 @@ function setupModule(module) {
   fdh.installInto(module);
   let cth = collector.getModule("content-tab-helpers");
   cth.installInto(module);
+  let ch = collector.getModule("compose-helpers");
+  ch.installInto(module);
+  let wh = collector.getModule("window-helpers");
+  wh.installInto(module);
 }
 
 // After every test we want to close the about:support tab so that failures
@@ -92,6 +97,19 @@ function open_about_support() {
     mark_failure(["Timeout waiting for about:support's gExtensions to populate."]);
   }
   return tab;
+}
+
+/**
+ * Opens a compose window containing the troubleshooting information.
+ *
+ * @param aTab The about:support tab.
+ */
+function open_send_via_email(aTab) {
+  let button = content_tab_eid(aTab, "button-send-via-email");
+  plan_for_new_window("msgcompose");
+  mc.click(button);
+  let cwc = wait_for_compose_window();
+  return cwc;
 }
 
 
@@ -264,5 +282,77 @@ function test_copy_to_clipboard_private() {
     if (text.indexOf(warningText) == -1)
       mark_failure(["Unable to find warning text in flavor \"" + flavor + "\""]);
   }
+  close_tab(tab);
+}
+
+/**
+ * Test opening the compose window with public data.
+ */
+function test_send_via_email_public() {
+  let tab = open_about_support();
+  let cwc = open_send_via_email(tab);
+
+  let contentFrame = cwc.e("content-frame");
+  let text = contentFrame.contentDocument.body.innerHTML;
+
+  for (let [, str] in Iterator(ABOUT_SUPPORT_STRINGS)) {
+    if (text.indexOf(str) == -1)
+      mark_failure(["Unable to find \"" + str + "\" in compose window"]);
+  }
+
+  for (let [, str] in Iterator(ABOUT_SUPPORT_ERROR_STRINGS)) {
+    if (text.indexOf(str) != -1)
+      mark_failure(["Found \"" + str + "\" in compose window"]);
+  }
+
+  // Check that private data (profile directory) isn't in the output.
+  let profD = Services.dirsvc.get("ProfD", Ci.nsIFile).path;
+  if (text.indexOf(profD) != -1)
+    mark_failure(["Found profile directory in compose window"]);
+
+  close_compose_window(cwc);
+  close_tab(tab);
+}
+
+/**
+ * Test opening the compose window with private data.
+ */
+function test_send_via_email_private() {
+  let bundle = Services.strings.createBundle(
+    "chrome://messenger/locale/aboutSupportMail.properties");
+  let warningText = bundle.GetStringFromName("warningText");
+
+  let tab = open_about_support();
+
+  // Display private data.
+  let privateElem = content_tab_e(tab, "profile-dir-box");
+  content_tab_e(tab, "check-show-private-data").click();
+  wait_for_element_display_value(tab, privateElem, "inline");
+
+  let cwc = open_send_via_email(tab);
+
+  let contentFrame = cwc.e("content-frame");
+  let text = contentFrame.contentDocument.body.innerHTML;
+
+  for (let [, str] in Iterator(ABOUT_SUPPORT_STRINGS)) {
+    if (text.indexOf(str) == -1)
+      mark_failure(["Unable to find \"" + str + "\" in compose window"]);
+  }
+
+  for (let [, str] in Iterator(ABOUT_SUPPORT_ERROR_STRINGS)) {
+    if (text.indexOf(str) != -1)
+      mark_failure(["Found \"" + str + "\" in compose window"]);
+  }
+
+  // Check that private data (profile directory) is in the output.
+  let profD = Services.dirsvc.get("ProfD", Ci.nsIFile).path;
+  if (text.indexOf(profD) == -1)
+    mark_failure(["Unable to find profile directory in compose window"]);
+
+  // Check that the warning text is in the output.
+  if (text.indexOf(warningText) == -1)
+    mark_failure(["Unable to find warning text in compose window"]);
+
+  close_compose_window(cwc);
   close_tab(tab);
 }
