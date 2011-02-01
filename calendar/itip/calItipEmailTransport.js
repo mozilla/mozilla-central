@@ -234,7 +234,7 @@ calItipEmailTransport.prototype = {
                 // To somehow have a last resort before sending spam, the user can choose to send the mail.
                 let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                               .getService(Components.interfaces.nsIPromptService);
-                let prefCompatMode = getPrefSafe("calendar.itip.compatSendMode", 0);
+                let prefCompatMode = cal.getPrefSafe("calendar.itip.compatSendMode", 0);
                 let inoutCheck = { value: (prefCompatMode == 1) };
                 if (!promptService.confirmCheck(null,
                                                 cal.calGetString("lightning", "imipSendMail.title", null, "lightning"),

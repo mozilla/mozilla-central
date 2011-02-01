@@ -141,6 +141,346 @@ cal.itip = {
     },
 
     /**
+     * Checks if the given calendar is a scheduling calendar. This means it
+     * needs an organizer id and an itip transport. It should also be writable.
+     *
+     * @param calendar    The calendar to check
+     * @return            True, if its a scheduling calendar.
+     */
+    isSchedulingCalendar: function isSchedulingCalendar(calendar) {
+        return (cal.isCalendarWritable(calendar) &&
+                calendar.getProperty("organizerId") &&
+                calendar.getProperty("itip.transport"));
+    },
+
+    /**
+     * Scope: iTIP message receiver
+     *
+     * Given an nsIMsgDBHdr and an imipMethod, set up the given itip item.
+     *
+     * @param itipItem    The item to set up
+     * @param imipMethod  The received imip method
+     * @param aMsgHdr     Information about the received email
+     */
+    initItemFromMsgData: function initItemFromMsgData(itipItem, imipMethod, aMsgHdr) {
+        // Get the recipient identity and save it with the itip item.
+        itipItem.identity = cal.itip.getMessageRecipient(aMsgHdr);
+
+        // We are only called upon receipt of an invite, so ensure that isSend
+        // is false.
+        itipItem.isSend = false;
+
+        // XXX Get these from preferences
+        itipItem.autoResponse = Components.interfaces.calIItipItem.USER;
+
+        if (imipMethod && imipMethod.length != 0 && imipMethod.toLowerCase() != "nomethod") {
+            itipItem.receivedMethod = imipMethod.toUpperCase();
+        } else { // There is no METHOD in the content-type header (spec violation).
+                 // Fall back to using the one from the itipItem's ICS.
+            imipMethod = itipItem.receivedMethod;
+        }
+        cal.LOG("iTIP method: " + imipMethod);
+
+        let writableCalendars = cal.getCalendarManager().getCalendars({}).filter(cal.itip.isSchedulingCalendar);
+        if (writableCalendars.length > 0) {
+            let compCal = Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]
+                                    .createInstance(Components.interfaces.calICompositeCalendar);
+            writableCalendars.forEach(compCal.addCalendar, compCal);
+            itipItem.targetCalendar = compCal;
+        }
+
+    },
+
+    /**
+     * Scope: iTIP message receiver
+     *
+     * Gets the suggested text to be shown when an imip item has been processed.
+     * This text is ready localized and can be displayed to the user.
+     *
+     * @param aStatus         The status of the processing (i.e NS_OK, an error code)
+     * @param aOperationType  An operation type from calIOperationListener
+     * @return                The suggested text.
+     */
+    getCompleteText: function getCompleteText(aStatus, aOperationType) {
+        function _gs(strName, param) {
+            return cal.calGetString("lightning", strName, param, "lightning");
+        }
+
+        const cIOL = Components.interfaces.calIOperationListener;
+        if (Components.isSuccessCode(aStatus)) {
+            switch (aOperationType) {
+                case cIOL.ADD: return _gs("imipAddedItemToCal");
+                case cIOL.MODIFY: return _gs("imipUpdatedItem");
+                case cIOL.DELETE: return _gs("imipCanceledItem");
+            }
+        } else {
+            return _gs("imipBarProcessingFailed", [aStatus.toString(16)]);
+        }
+    },
+
+
+    /**
+     * Scope: iTIP message receiver
+     *
+     * Gets a text describing the given itip method. The text is of the form
+     * "This Message contains a ... ".
+     *
+     * @param method      The method to describe.
+     * @return            The localized text about the method.
+     */
+    getMethodText: function getMethodtext(method) {
+        function _gs(strName) {
+            return cal.calGetString("lightning", strName, null, "lightning");
+        }
+
+        switch (method) {
+            case "REFRESH": return _gs("imipBarRefreshText");
+            case "REQUEST": return _gs("imipBarRequestText");
+            case "PUBLISH": return _gs("imipBarPublishText");
+            case "CANCEL": return _gs("imipBarCancelText");
+            case "REPLY": return _gs("imipBarReplyText");
+            default:
+                cal.ERROR("Unknown iTIP method: " + method);
+                return _gs("imipBarUnsupportedText");
+        }
+    },
+
+    /**
+     * Scope: iTIP message receiver
+     *
+     * Gets localized texts about the message state. This returns a JS object
+     * with the following structure:
+     *
+     * {
+     *    label: "This is a desciptive text about the itip item",
+     *    button1: {
+     *      label: "What to show on the first button, i.e 'Decline'" +
+     *             "This can be null if the button is not to be shown"
+     *      actionMethod: "The method this triggers, i.e DECLINED",
+     *    },
+     *    // Same structure for button2/3
+     *    button2: { ... }
+     *    button3: { ... }
+     * }
+     *
+     * @see processItipItem   This takes the same parameters as its optionFunc.
+     * @param itipItem        The itipItem to query.
+     * @param rc              The result of retrieving the item
+     * @param actionFunc      The action function.
+     */
+    getOptionsText: function getOptionsText(itipItem, rc, actionFunc) {
+        function _gs(strName) {
+            return cal.calGetString("lightning", strName, null, "lightning");
+        }
+        let imipLabel = null;
+        if (itipItem.receivedMethod) {
+            imipLabel = cal.itip.getMethodText(itipItem.receivedMethod);
+        }
+        let data = { label: imipLabel };
+        for each (let btn in ["button1", "button2", "button3"]) {
+            data[btn] = { label: null, actionMethod: "" };
+        }
+
+
+        if (Components.isSuccessCode(rc) && !actionFunc) {
+            // This case, they clicked on an old message that has already been
+            // added/updated, we want to tell them that.
+            data.label = _gs("imipBarAlreadyProcessedText");
+        } else if (Components.isSuccessCode(rc)) {
+
+            cal.LOG("iTIP options on: " + actionFunc.method);
+            switch (actionFunc.method) {
+                case "REPLY":
+                    // fall-thru intended
+                case "PUBLISH:UPDATE":
+                case "REQUEST:UPDATE-MINOR":
+                    data.label = _gs("imipBarUpdateText");
+                    data.button1.label = _gs("imipUpdate.label");
+                    break;
+                case "PUBLISH":
+                    data.button1.label = _gs("imipAddToCalendar.label");
+                    break;
+                case "REQUEST:UPDATE":
+                    data.label = _gs("imipBarUpdateText");
+                    // fall-thru intended
+                case "REQUEST": {
+                    data.button1.label = _gs("imipAcceptInvitation.label");
+                    data.button1.actionMethod = "ACCEPTED";
+                    data.button2.label = _gs("imipDeclineInvitation.label");
+                    data.button2.actionMethod = "DECLINED";
+                    data.button3.label = _gs("imipAcceptTentativeInvitation.label");
+                    data.button3.actionMethod = "TENTATIVE";
+                    break;
+                }
+                case "CANCEL": {
+                    data.button1.label = _gs("imipCancelInvitation.label");
+                    break;
+                }
+                case "REFRESH": {
+                    data.button1.label = _gs("imipSend.label");
+                    break;
+                }
+                default:
+                    data.label = _gs("imipBarUnsupportedText");
+                    break;
+            }
+        } else {
+            data.label = _gs("imipBarUnsupportedText");
+        }
+
+        return data;
+    },
+
+
+    /**
+     * Scope: iTIP message receiver
+     *
+     * Retrieves the intended recipient for this message.
+     *
+     * @param aMsgHdr     The message to check.
+     * @return            The email of the intended recipient.
+     */
+    getMessageRecipient: function getMessageRecipient(aMsgHdr) {
+        if (!aMsgHdr) {
+            return null;
+        }
+
+        let identities;
+        let actMgr = cal.getAccountManager();
+        if (aMsgHdr.accountKey) {
+            // First, check if the message has an account key. If so, we can use the
+            // account identities to find the correct recipient
+            identities = actMgr.getAccount(aMsgHdr.accountKey).identities;
+        } else {
+            // Without an account key, we have to revert back to using the server
+            identities = actMgr.GetIdentitiesForServer(aMsgHdr.folder.server);
+        }
+
+        let emailMap = {};
+        if (identities.Count() == 0) {
+            // If we were not able to retrieve identities above, then we have no
+            // choice but to revert to the default identity
+            let identity = actMgr.defaultAccount.defaultIdentity;
+            if (!identity) {
+                // If there isn't a default identity (i.e Local Folders is your
+                // default identity), then go ahead and use the first available
+                // identity.
+                let allIdentities = actMgr.allIdentities;
+                if (allIdentities.Count() > 0) {
+                    identity = allIdentities.GetElementAt(0)
+                                            .QueryInterface(Components.interfaces.nsIMsgIdentity);
+                } else {
+                    // If there are no identities at all, we cannot get a recipient.
+                    return null;
+                }
+            }
+            emailMap[identity.email.toLowerCase()] = true;
+        } else {
+            // Build a map of usable email addresses
+            for (let i = 0; i < identities.Count(); i++) {
+                let identity = identities.GetElementAt(i)
+                                         .QueryInterface(Components.interfaces.nsIMsgIdentity);
+                emailMap[identity.email.toLowerCase()] = true;
+            }
+        }
+
+        let hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
+                                  .getService(Components.interfaces.nsIMsgHeaderParser);
+        let emails = {};
+
+        // First check the recipient list
+        hdrParser.parseHeadersWithArray(aMsgHdr.recipients, emails, {}, {});
+        for each (let recipient in emails.value) {
+            if (recipient.toLowerCase() in emailMap) {
+                // Return the first found recipient
+                return recipient;
+            }
+        }
+
+        // Maybe we are in the CC list?
+        hdrParser.parseHeadersWithArray(aMsgHdr.ccList, emails, {}, {});
+        for each (let recipient in emails.value) {
+            if (recipient.toLowerCase() in emailMap) {
+                // Return the first found recipient
+                return recipient;
+            }
+        }
+
+        // Hrmpf. Looks like delegation or maybe Bcc.
+        return null;
+    },
+
+
+    /**
+     * Scope: iTIP message receiver
+     *
+     * Prompt for the target calendar, if needed for the given method. This
+     * calendar will be set on the passed itip item.
+     *
+     * @param aMethod       The method to check.
+     * @param aItipItem     The itip item to set the target calendar on.
+     * @param aWindow       The window to open the dialog on.
+     */
+    promptCalendar: function promptCalendar(aMethod, aItipItem, aWindow) {
+        let needsCalendar = false;
+        switch (aMethod) {
+            // methods that don't require the calendar chooser:
+            case "REFRESH":
+            case "REQUEST:UPDATE":
+            case "REQUEST:UPDATE-MINOR":
+            case "PUBLISH:UPDATE":
+            case "REPLY":
+            case "CANCEL":
+                needsCalendar = false;
+                break;
+            default: 
+                needsCalendar = true;
+                break;
+        }
+
+        if (needsCalendar) {
+            let targetCalendar = null;
+            let calendars = cal.getCalendarManager().getCalendars({}).filter(cal.itip.isSchedulingCalendar);
+
+            if (aItipItem.receivedMethod == "REQUEST") {
+                // try to further limit down the list to those calendars that
+                // are configured to a matching attendee;
+                let item = aItipItem.getItemList({})[0];
+                let matchingCals = calendars.filter(
+                    function(calendar) {
+                        return (cal.getInvitedAttendee(item, calendar) != null);
+                    });
+                // if there's none, we will show the whole list of calendars:
+                if (matchingCals.length > 0) {
+                    calendars = matchingCals;
+                }
+            }
+
+            if (calendars.length == 0) {
+                let msg = cal.calGetString("lightning", "imipNoCalendarAvailable", null, "lightning");
+                aWindow.alert(msg);
+            }
+            else if (calendars.length == 1) {
+                // There's only one calendar, so it's silly to ask what calendar
+                // the user wants to import into.
+                targetCalendar = calendars[0];
+            } else {
+                // Ask what calendar to import into
+                let args = {};
+                args.calendars = calendars;
+                args.onOk = function selectCalendar(aCal) { targetCalendar = aCal; };
+                args.promptText = calGetString("calendar", "importPrompt");
+                aWindow.openDialog("chrome://calendar/content/chooseCalendarDialog.xul",
+                                   "_blank", "chrome,titlebar,modal,resizable", args);
+            }
+
+            if (targetCalendar) {
+              aItipItem.targetCalendar = targetCalendar;
+            }
+        }
+    },
+
+    /**
      * Scope: iTIP message receiver
      *
      * Checks the passed iTIP item and calls the passed function with options offered.

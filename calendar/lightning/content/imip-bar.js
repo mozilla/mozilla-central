@@ -46,86 +46,57 @@ Components.utils.import("resource://calendar/modules/calItipUtils.jsm");
  * This bar lives inside the message window.
  * Its lifetime is the lifetime of the main thunderbird message window.
  */
+var ltnImipBar = {
 
-function ltnGetMsgRecipient() {
-    let msgHdr = gMessageDisplay.displayedMessage;
-    if (!msgHdr) {
-        return null;
-    }
+    actionFunc: null,
+    itipItem: null,
 
-    var identities;
-    if (msgHdr.accountKey) {
-        // First, check if the message has an account key. If so, we can use the
-        // account identities to find the correct recipient
-        identities = getAccountManager().getAccount(msgHdr.accountKey).identities;
-    } else {
-        // Without an account key, we have to revert back to using the server
-        identities = getAccountManager().GetIdentitiesForServer(msgHdr.folder.server);
-    }
+    /**
+     * Thunderbird Message listener interface, hide the bar before we begin
+     */
+    onStartHeaders: function onImipStartHeaders() {
+      ltnImipBar.hideBar();
+    },
 
-    var emailMap = {};
-    if (identities.Count() == 0) {
-        // If we were not able to retrieve identities above, then we have no
-        // choice but to revert to the default identity
-        var identity = getAccountManager().defaultAccount.defaultIdentity;
-        if (!identity) {
-            // If there isn't a default identity (i.e Local Folders is your
-            // default identity), then go ahead and use the first available
-            // identity.
-            var allIdentities = getAccountManager().allIdentities;
-            if (allIdentities.Count() > 0) {
-                identity = allIdentities.GetElementAt(0)
-                                        .QueryInterface(Components.interfaces.nsIMsgIdentity);
-            } else {
-                // If there are no identities at all, we cannot get a recipient.
-                return null;
-            }
-        }
-        emailMap[identity.email.toLowerCase()] = true;
-    } else {
-        // Build a map of usable email addresses
-        for (var i = 0; i < identities.Count(); i++) {
-            var identity = identities.GetElementAt(i)
-                                     .QueryInterface(Components.interfaces.nsIMsgIdentity);
-            emailMap[identity.email.toLowerCase()] = true;
-        }
-    }
+    /**
+     * Thunderbird Message listener interface
+     */
+    onEndHeaders: function onImipEndHeaders() {
 
+    },
 
-    var hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                              .getService(Components.interfaces.nsIMsgHeaderParser);
-    var emails = {};
+    /**
+     * Load Handler called to initialize the imip bar
+     */
+    load: function ltnImipOnLoad() {
+        // Add a listener to gMessageListeners defined in msgHdrViewOverlay.js
+        gMessageListeners.push(ltnImipBar);
 
-    // First check the recipient list
-    hdrParser.parseHeadersWithArray(msgHdr.recipients, emails, {}, {});
-    for each (var recipient in emails.value) {
-        if (emailMap[recipient.toLowerCase()]) {
-            // Return the first found recipient
-            return recipient;
-        }
-    }
+        // We need to extend the HideMessageHeaderPane function to also hide the
+        // message header pane. Otherwise, the imip bar will still be shown when
+        // changing folders.
+        ltnImipBar.tbHideMessageHeaderPane = HideMessageHeaderPane;
+        HideMessageHeaderPane = function ltnHideMessageHeaderPane() {
+            ltnImipBar.hideBar();
+            ltnImipBar.tbHideMessageHeaderPane.apply(null, arguments);
+        };
 
-    // Maybe we are in the CC list?
-    hdrParser.parseHeadersWithArray(msgHdr.ccList, emails, {}, {});
-    for each (var recipient in emails.value) {
-        if (emailMap[recipient.toLowerCase()]) {
-            // Return the first found recipient
-            return recipient;
-        }
-    }
+        // Set up our observers
+        Services.obs.addObserver(ltnImipBar, "onItipItemCreation", false);
+    },
 
-    // Hrmpf. Looks like delegation or maybe Bcc.
-    return null;
-}
+    /**
+     * Unload handler to clean up after the imip bar
+     */
+    unload: function ltnImipOnUnload() {
+        removeEventListener("messagepane-loaded", ltnImipBar.load, true);
+        removeEventListener("messagepane-unloaded", ltnImipBar.unload, true);
 
-function ltnIsSchedulingCalendar(cal) {
-    return (isCalendarWritable(cal) &&
-            cal.getProperty("organizerId") &&
-            cal.getProperty("itip.transport"));
-}
+        ltnImipBar.itipItem = null;
+        Services.obs.removeObserver(ltnImipBar, "onItipItemCreation");
+    },
 
-const ltnOnItipItem = {
-    observe: function ltnOnItipItem_observe(subject, topic, state) {
+    observe: function ltnImipBar_observe(subject, topic, state) {
         if (topic == "onItipItemCreation") {
             let itipItem = null;
             try {
@@ -140,296 +111,96 @@ const ltnOnItipItem = {
 
                 // XXX TODO: Only swallow the errors we need to. Throw all others.
             }
-            if (!itipItem) {
+            if (!itipItem || !gMessageDisplay.displayedMessage) {
                 return;
             }
 
-            // Get the recipient identity and save it with the itip item.
-            itipItem.identity = ltnGetMsgRecipient();
-
-            // We are only called upon receipt of an invite, so ensure that isSend
-            // is false.
-            itipItem.isSend = false;
-
-            // XXX Get these from preferences
-            itipItem.autoResponse = Components.interfaces.calIItipItem.USER;
-
             let imipMethod = gMessageDisplay.displayedMessage.getStringProperty("imip_method");
-            if (imipMethod && imipMethod.length != 0 && imipMethod.toLowerCase() != "nomethod") {
-                itipItem.receivedMethod = imipMethod.toUpperCase();
-            } else { // There is no METHOD in the content-type header (spec violation).
-                     // Fall back to using the one from the itipItem's ICS.
-                imipMethod = itipItem.receivedMethod;
-            }
-            cal.LOG("iTIP method: " + imipMethod);
+            cal.itip.initItemFromMsgData(itipItem, imipMethod, gMessageDisplay.displayedMessage);
 
-            let writableCalendars = getCalendarManager().getCalendars({}).filter(ltnIsSchedulingCalendar);
-            if (writableCalendars.length > 0) {
-                let compCal = Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]
-                                        .createInstance(Components.interfaces.calICompositeCalendar);
-                writableCalendars.forEach(compCal.addCalendar, compCal);
-                itipItem.targetCalendar = compCal;
+            let imipBar = document.getElementById("imip-bar");
+            imipBar.setAttribute("collapsed", "false");
+            imipBar.setAttribute("label",  cal.itip.getMethodText(itipItem.receivedMethod));
 
-                let imipBar = document.getElementById("imip-bar");
-                imipBar.setAttribute("collapsed", "false");
-                switch (itipItem.receivedMethod) {
-                    case "REFRESH":
-                        imipBar.setAttribute("label", ltnGetString("lightning", "imipBarRefreshText"));
-                        break;
-                    case "REQUEST":
-                        imipBar.setAttribute("label", ltnGetString("lightning", "imipBarRequestText"));
-                        break;
-                    case "PUBLISH":
-                        imipBar.setAttribute("label", ltnGetString("lightning", "imipBarPublishText"));
-                        break;
-                    case "CANCEL":
-                        imipBar.setAttribute("label", ltnGetString("lightning", "imipBarCancelText"));
-                        break;
-                    case "REPLY":
-                        imipBar.setAttribute("label", ltnGetString("lightning", "imipBarReplyText"));
-                        break;
-                    default:
-                        // Bug xxxx TBD: Something went wrong or we found a message we don't
-                        // support yet. We can show a "This method is not supported in this
-                        // version" or simply hide the iMIP bar at this point
-                        imipBar.setAttribute("label", ltnGetString("lightning", "imipBarUnsupportedText"));
-                        cal.ERROR("Unknown iTIP method: " + itipItem.receivedMethod);
-                        return;
-                }
-                cal.itip.processItipItem(itipItem, ltnItipOptions);
+            cal.itip.processItipItem(itipItem, ltnImipBar.setupOptions);
+        }
+    },
+
+    /**
+     * Hide the imip bar and reset the itip item.
+     */
+    hideBar: function ltnHideImipBar() {
+        document.getElementById("imip-bar").collapsed = true;
+        hideElement("imip-button1");
+        hideElement("imip-button2");
+        hideElement("imip-button3");
+        // Clear our iMIP/iTIP stuff so it doesn't contain stale information.
+        ltnImipBar.itipItem = null;
+    },
+
+    setupOptions: function setupOptions(itipItem, rc, actionFunc) {
+        let imipBar =  document.getElementById("imip-bar");
+        let data = cal.itip.getOptionsText(itipItem, rc, actionFunc);
+
+        if (Components.isSuccessCode(rc)) {
+            ltnImipBar.itipItem = itipItem;
+            ltnImipBar.actionFunc = actionFunc;
+        }
+
+        imipBar.setAttribute("label", data.label);
+        for each (let button in ["button1", "button2", "button3"]) {
+            let buttonElement = document.getElementById("imip-" + button);
+            if (data[button].label) {
+                buttonElement.setAttribute("label", data[button].label);
+                buttonElement.setAttribute("oncommand",
+                                           "ltnImipBar.executeAction('" + data[button].actionMethod + "')");
+
+                showElement(buttonElement);
             }
         }
+    },
+
+    executeAction: function ltnExecAction(partStat) {
+        cal.itip.promptCalendar(ltnImipBar.actionFunc.method, ltnImipBar.itipItem, window);
+
+        // hide the buttons now, to disable pressing them twice...
+        hideElement("imip-button1");
+        hideElement("imip-button2");
+        hideElement("imip-button3");
+
+        let opListener = {
+            onOperationComplete: function ltnItipActionListener_onOperationComplete(aCalendar,
+                                                                                    aStatus,
+                                                                                    aOperationType,
+                                                                                    aId,
+                                                                                    aDetail) {
+                // For now, we just state the status for the user something very simple
+                let imipBar = document.getElementById("imip-bar");
+                let label = cal.itip.getCompleteText(aStatus, aOperationType);
+                imipBar.setAttribute("label", label);
+
+                if (!Components.isSuccessCode(aStatus)) {
+                  showError(label);
+                }
+            },
+            onGetResult: function ltnItipActionListener_onGetResult(aCalendar,
+                                                                    aStatus,
+                                                                    aItemType,
+                                                                    aDetail,
+                                                                    aCount,
+                                                                    aItems) {
+            }
+        };
+
+        try {
+            ltnImipBar.actionFunc(opListener, partStat);
+        } catch (exc) {
+            Components.utils.reportError(exc);
+        }
+
+        return true;
     }
 };
 
-/**
- * Hide the imip bar and reset the itip item.
- */
-function ltnHideImipBar() {
-    document.getElementById("imip-bar").collapsed = true;
-    hideElement("imip-button1");
-    hideElement("imip-button2");
-    hideElement("imip-button3");
-    // Clear our iMIP/iTIP stuff so it doesn't contain stale information.
-    gItipItem = null;
-}
-
-/**
- * Load Handler called to initialize the imip bar
- */
-function ltnImipOnLoad() {
-    // Add a listener to gMessageListeners defined in msgHdrViewOverlay.js
-    let listener = {
-        onStartHeaders: function onImipStartHeaders() {
-            // A new message is starting. Hiding the bar resets all imip data.
-            ltnHideImipBar();
-        },
-        onEndHeaders: function onImipEndHeaders() {
-        },
-    };
-    gMessageListeners.push(listener);
-
-    // We need to extend the HideMessageHeaderPane function to also hide the
-    // message header pane. Otherwise, the imip bar will still be shown when
-    // changing folders.
-    ltnImipOnLoad.tbHideMessageHeaderPane = HideMessageHeaderPane;
-    HideMessageHeaderPane = function ltnHideMessageHeaderPane() {
-        ltnHideImipBar();
-        ltnImipOnLoad.tbHideMessageHeaderPane.apply(null, arguments);
-    };
-
-    // Set up our observers
-    cal.getObserverService().addObserver(ltnOnItipItem, "onItipItemCreation", false);
-}
-
-/**
- * Unload handler to clean up after the imip bar
- */
-function ltnImipOnUnload() {
-    removeEventListener("messagepane-loaded", ltnImipOnLoad, true);
-    removeEventListener("messagepane-unloaded", ltnImipOnUnload, true);
-
-    gItipItem = null;
-    cal.getObserverService().removeObserver(ltnOnItipItem, "onItipItemCreation");
-}
-
-addEventListener("messagepane-loaded", ltnImipOnLoad, true);
-addEventListener("messagepane-unloaded", ltnImipOnUnload, true);
-
-var gItipItem = null;
-var gActionFunc = null;
-
-function ltnExecAction(partStat) {
-    switch (gActionFunc.method) {
-        // methods that don't require the calendar chooser:
-        case "REFRESH":
-        case "REQUEST:UPDATE":
-        case "REQUEST:UPDATE-MINOR":
-        case "PUBLISH:UPDATE":
-        case "REPLY":
-        case "CANCEL":
-            break;
-        default: {
-            let cal = ltnGetTargetCalendar(gItipItem);
-            if (!cal) {
-                return true; // cancelled
-            }
-            gItipItem.targetCalendar = cal;
-            break;
-        }
-    }
-
-    // hide the buttons now, to disable pressing them twice...
-    hideElement("imip-button1");
-    hideElement("imip-button2");
-    hideElement("imip-button3");
-
-    let opListener = {
-        onOperationComplete: function ltnItipActionListener_onOperationComplete(aCalendar,
-                                                                                aStatus,
-                                                                                aOperationType,
-                                                                                aId,
-                                                                                aDetail) {
-            // For now, we just state the status for the user something very simple
-            let imipBar = document.getElementById("imip-bar");
-            if (Components.isSuccessCode(aStatus)) {
-                switch (aOperationType) {
-                    case Components.interfaces.calIOperationListener.ADD:
-                        imipBar.setAttribute("label", ltnGetString("lightning", "imipAddedItemToCal"));
-                        break;
-                    case Components.interfaces.calIOperationListener.MODIFY:
-                        imipBar.setAttribute("label", ltnGetString("lightning", "imipUpdatedItem"));
-                        break;
-                    case Components.interfaces.calIOperationListener.DELETE:
-                        imipBar.setAttribute("label", ltnGetString("lightning", "imipCanceledItem"));
-                        break;
-                }
-            } else {
-                let msg = ltnGetString("lightning", "imipBarProcessingFailed", [aStatus.toString(16)]);
-                imipBar.setAttribute("label", msg);
-                showError(msg);
-            }
-        },
-        onGetResult: function ltnItipActionListener_onGetResult(aCalendar,
-                                                                aStatus,
-                                                                aItemType,
-                                                                aDetail,
-                                                                aCount,
-                                                                aItems) {
-        }
-    };
-
-    try {
-        gActionFunc(opListener, partStat);
-    } catch (exc) {
-        Components.utils.reportError(exc);
-    }
-
-    return true;
-}
-
-function ltnItipOptions(itipItem, rc, actionFunc) {
-    var imipBar = document.getElementById("imip-bar");
-    if (Components.isSuccessCode(rc)) {
-        if (!actionFunc) {
-            // This case, they clicked on an old message that has already been
-            // added/updated, we want to tell them that.
-            imipBar.setAttribute("label", ltnGetString("lightning", "imipBarAlreadyProcessedText"));
-            return;
-        }
-
-        gItipItem = itipItem;
-        gActionFunc = actionFunc;
-
-        let button1 = document.getElementById("imip-button1");
-        let button2 = document.getElementById("imip-button2");
-        let button3 = document.getElementById("imip-button3");
-        cal.LOG("iTIP options on: " + actionFunc.method);
-        switch (actionFunc.method) {
-            case "REPLY":
-                // fall-thru intended
-            case "PUBLISH:UPDATE":
-            case "REQUEST:UPDATE-MINOR":
-                imipBar.setAttribute("label", ltnGetString("lightning", "imipBarUpdateText"));
-                button1.setAttribute("label", ltnGetString("lightning", "imipUpdate.label"));
-                button1.setAttribute("oncommand", "return ltnExecAction();");
-                showElement(button1);
-                break;
-            case "PUBLISH":
-                button1.setAttribute("label", ltnGetString("lightning", "imipAddToCalendar.label"));
-                button1.setAttribute("oncommand", "return ltnExecAction();");
-                showElement(button1);
-                break;
-            case "REQUEST:UPDATE":
-                imipBar.setAttribute("label", ltnGetString("lightning", "imipBarUpdateText"));
-                // fall-thru intended
-            case "REQUEST": {
-                button1.setAttribute("label", ltnGetString("lightning", "imipAcceptInvitation.label"));
-                button1.setAttribute("oncommand", "return ltnExecAction('ACCEPTED');");
-                button2.setAttribute("label", ltnGetString("lightning", "imipDeclineInvitation.label"));
-                button2.setAttribute("oncommand", "return ltnExecAction('DECLINED');");
-                button3.setAttribute("label", ltnGetString("lightning", "imipAcceptTentativeInvitation.label"));
-                button3.setAttribute("oncommand", "return ltnExecAction('TENTATIVE');");
-                showElement(button1);
-                showElement(button2);
-                showElement(button3);
-                break;
-            }
-            case "CANCEL": {
-                button1.setAttribute("label", ltnGetString("lightning", "imipCancelInvitation.label"));
-                button1.setAttribute("oncommand", "return ltnExecAction();");
-                showElement(button1);
-                break;
-            }
-            case "REFRESH": {
-                button1.setAttribute("label", ltnGetString("lightning", "imipSend.label"));
-                button1.setAttribute("oncommand", "return ltnExecAction();");
-                showElement(button1);
-                break;
-            }
-            default:
-                imipBar.setAttribute("label", ltnGetString("lightning", "imipBarUnsupportedText"));
-                break;
-        }
-    } else {
-        imipBar.setAttribute("label", ltnGetString("lightning", "imipBarUnsupportedText"));
-    }
-}
-
-function ltnGetTargetCalendar(itipItem) {
-    let calendarToReturn = null;
-    let calendars = getCalendarManager().getCalendars({}).filter(ltnIsSchedulingCalendar);
-
-    if (itipItem.receivedMethod == "REQUEST") {
-        // try to further limit down the list to those calendars that are configured to a matching attendee;
-        let item = itipItem.getItemList({})[0];
-        let matchingCals = calendars.filter(
-            function(calendar) {
-                return (cal.getInvitedAttendee(item, calendar) != null);
-            });
-        // if there's none, we will show the whole list of calendars:
-        if (matchingCals.length > 0) {
-            calendars = matchingCals;
-        }
-    }
-
-    if (calendars.length == 0) {
-        var stringBundle = getLightningStringBundle();
-        window.alert(stringBundle.GetStringFromName("imipNoCalendarAvailable"));
-    }
-    else if (calendars.length == 1) {
-        // There's only one calendar, so it's silly to ask what calendar
-        // the user wants to import into.
-        calendarToReturn = calendars[0];
-    } else {
-        // Ask what calendar to import into
-        var args = {};
-        args.calendars = calendars;
-        args.onOk = function selectCalendar(aCal) { calendarToReturn = aCal; };
-        args.promptText = calGetString("calendar", "importPrompt");
-        openDialog("chrome://calendar/content/chooseCalendarDialog.xul",
-                   "_blank", "chrome,titlebar,modal,resizable", args);
-    }
-
-    return calendarToReturn;
-}
+addEventListener("messagepane-loaded", ltnImipBar.load, true);
+addEventListener("messagepane-unloaded", ltnImipBar.unload, true);
