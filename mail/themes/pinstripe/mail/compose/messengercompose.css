@@ -356,6 +356,10 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
   height: 7px;
 }
 
+#attachmentBucketSize {
+  color: #888a85;
+}
+
 /* ::::: attachment reminder ::::: */
 
 #attachmentNotificationBox > notification .messageImage {

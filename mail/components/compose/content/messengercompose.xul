@@ -717,8 +717,11 @@
         </vbox>
         <splitter id="attachmentbucket-sizer" collapsed="true" collapse="after"/>
         <vbox id="attachments-box" collapsed="true">
-          <label id="attachmentBucketText" value="&attachments.label;" crop="right"
-                 accesskey="&attachments.accesskey;" control="attachmentBucket"/>
+          <hbox>
+            <label id="attachmentBucketCount" control="attachmentBucket"
+                   crop="right" accesskey="&attachments.accesskey;"/>
+            <label id="attachmentBucketSize"/>
+          </hbox>
           <listbox seltype="multiple" id="attachmentBucket" flex="1" rows="4"
                    tabindex="0"
                    context="msgComposeAttachmentContext"

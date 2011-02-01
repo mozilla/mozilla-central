@@ -49,6 +49,7 @@ var messenger;
 var folder;
 var epsilon;
 var isWindows;
+var filePrefix;
 
 const rawAttachment =
   "Can't make the frug contest, Helen; stomach's upset. I'll fix you, " +
@@ -87,6 +88,7 @@ function setupModule(module) {
    * forwarded message data here, the bonus byte(s) appear twice.
    */
   epsilon = isWindows ? 4 : 2;
+  filePrefix = isWindows ? 'file:///C:/' : 'file:///';
 
   // create some messages that have various types of attachments
   let messages = [
@@ -110,10 +112,12 @@ function setupModule(module) {
 /**
  * Make sure that the attachment's size is what we expect
  * @param controller the controller for the compose window
+ * @param index the attachment to examine, as an index into the listbox
  * @param expectedSize the expected size of the attachment, in bytes
  */
-function check_attachment_size(controller, expectedSize) {
-  let node = controller.e('attachmentBucket', {tagName: 'listitem'});
+function check_attachment_size(controller, index, expectedSize) {
+  let bucket = controller.e('attachmentBucket');
+  let node = bucket.getElementsByTagName('listitem')[index];
 
   // First, let's check that the 'attachmentSize' attribute is correct
   let size = node.attachment.size;
@@ -132,9 +136,11 @@ function check_attachment_size(controller, expectedSize) {
 /**
  * Make sure that the attachment's size is not displayed
  * @param controller the controller for the compose window
+ * @param index the attachment to examine, as an index into the listbox
  */
-function check_no_attachment_size(controller) {
-  let node = controller.e('attachmentBucket', {tagName: 'listitem'});
+function check_no_attachment_size(controller, index) {
+  let bucket = controller.e('attachmentBucket');
+  let node = bucket.getElementsByTagName('listitem')[index];
 
   if (node.attachment.size != -1)
     throw new Error('attachment.size attribute should be -1!');
@@ -143,29 +149,78 @@ function check_no_attachment_size(controller) {
     throw new Error('Attachment size should not be displayed!');
 }
 
+/**
+ * Make sure that the total size of all attachments is what we expect.
+ * @param controller the controller for the compose window
+ * @param count the expected number of attachments
+ */
+function check_total_attachment_size(controller, count) {
+  let bucket = controller.e("attachmentBucket");
+  let nodes = bucket.getElementsByTagName("listitem");
+  let sizeNode = controller.e("attachmentBucketSize");
+
+  if (nodes.length != count)
+    throw new Error("Saw "+nodes.length+" attachments, but expected "+count);
+
+  let size = 0;
+  for (let i = 0; i < nodes.length; i++) {
+    let currSize = nodes[i].attachment.size;
+    if (currSize != -1)
+      size += currSize;
+  }
+
+  // Next, make sure that the formatted size in the label is correct
+  let formattedSize = sizeNode.getAttribute("value");
+  let expectedFormattedSize = messenger.formatFileSize(size);
+  if (formattedSize != expectedFormattedSize)
+    throw new Error("Formatted attachment size ("+formattedSize+") does not " +
+                    "match expected value ("+expectedFormattedSize+")");
+}
+
 function test_file_attachment() {
   let cwc = open_compose_new_mail();
-  let attachment = Cc["@mozilla.org/messengercompose/attachment;1"]
-                     .createInstance(Ci.nsIMsgAttachment);
 
-  if (isWindows)
-    attachment.url = "file:///C:/some/file/here.txt";
-  else
-    attachment.url = "file:///some/file/here.txt";
+  let url = filePrefix + "some/file/here.txt";
+  let size = 1234;
 
-  attachment.size = 1234;
-  add_attachment(cwc, attachment);
-  check_attachment_size(cwc, attachment.size);
+  add_attachment(cwc, url, size);
+  check_attachment_size(cwc, 0, size);
 }
 
 function test_webpage_attachment() {
   let cwc = open_compose_new_mail();
-  let attachment = Cc["@mozilla.org/messengercompose/attachment;1"]
-                     .createInstance(Ci.nsIMsgAttachment);
-  attachment.url = "http://www.mozillamessaging.com/";
 
-  add_attachment(cwc, attachment);
-  check_no_attachment_size(cwc, attachment);
+  add_attachment(cwc, "http://www.mozillamessaging.com/");
+  check_no_attachment_size(cwc, 0);
+}
+
+function test_multiple_attachments() {
+  let cwc = open_compose_new_mail();
+
+  let files = [{name: "foo.txt", size: 1234},
+               {name: "bar.txt", size: 5678},
+               {name: "baz.txt", size: 9012}];
+  for (let i = 0; i < files.length; i++) {
+    add_attachment(cwc, filePrefix+files[i].name, files[i].size);
+    check_attachment_size(cwc, i, files[i].size);
+  }
+
+  check_total_attachment_size(cwc, files.length);
+}
+
+function test_delete_attachments() {
+  let cwc = open_compose_new_mail();
+
+  let files = [{name: "foo.txt", size: 1234},
+               {name: "bar.txt", size: 5678},
+               {name: "baz.txt", size: 9012}];
+  for (let i = 0; i < files.length; i++) {
+    add_attachment(cwc, filePrefix+files[i].name, files[i].size);
+    check_attachment_size(cwc, i, files[i].size);
+  }
+
+  delete_attachment(cwc, 0);
+  check_total_attachment_size(cwc, files.length-1);
 }
 
 function test_forward_raw_attachment() {
@@ -173,7 +228,7 @@ function test_forward_raw_attachment() {
   let curMessage = select_click_row(0);
 
   let cwc = open_compose_with_forward();
-  check_attachment_size(cwc, rawAttachment.length);
+  check_attachment_size(cwc, 0, rawAttachment.length);
 }
 
 function test_forward_b64_attachment() {
@@ -181,7 +236,7 @@ function test_forward_b64_attachment() {
   let curMessage = select_click_row(1);
 
   let cwc = open_compose_with_forward();
-  check_attachment_size(cwc, b64Size);
+  check_attachment_size(cwc, 0, b64Size);
 }
 
 // XXX: Test attached emails and files pulled from other emails (this probably

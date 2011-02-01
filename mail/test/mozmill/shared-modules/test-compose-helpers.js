@@ -73,6 +73,7 @@ function installInto(module) {
   module.open_compose_with_element_click = open_compose_with_element_click;
   module.close_compose_window = close_compose_window;
   module.add_attachment = add_attachment;
+  module.delete_attachment = delete_attachment;
 }
 
 /**
@@ -245,9 +246,29 @@ function wait_for_compose_window(aController) {
 /**
  * Add an attachment to the compose window
  * @param aComposeWindow the composition window in question
- * @param aAttachment the nsIMsgAttachment object containing the attachment's
- *        info
+ * @param aUrl the URL for this attachment (either a file URL or a web URL)
+ * @param aSize (optional) the file size of this attachment, in bytes
  */
-function add_attachment(aComposeWindow, aAttachment) {
-  aComposeWindow.window.AddUrlAttachment(aAttachment);
+function add_attachment(aComposeWindow, aUrl, aSize) {
+  let attachment = Cc["@mozilla.org/messengercompose/attachment;1"]
+                     .createInstance(Ci.nsIMsgAttachment);
+
+  attachment.url = aUrl;
+  if(aSize)
+    attachment.size = aSize;
+
+  aComposeWindow.window.AddUrlAttachment(attachment);
+}
+
+/**
+ * Delete an attachment from the compose window
+ * @param aComposeWindow the composition window in question
+ * @param aIndex the index of the attachment in the attachment pane
+ */
+function delete_attachment(aComposeWindow, aIndex) {
+  let bucket = aComposeWindow.e('attachmentBucket');
+  let node = bucket.getElementsByTagName('listitem')[aIndex];
+
+  aComposeWindow.click(new elib.Elem(node));
+  aComposeWindow.window.RemoveSelectedAttachment();
 }
