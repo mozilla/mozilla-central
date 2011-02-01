@@ -1686,9 +1686,13 @@ nsMsgComposeService::Handle(nsICommandLine* aCmdLine)
   if (count > found + 1) {
     aCmdLine->GetArgument(found + 1, uristr);
     if (StringBeginsWith(uristr, NS_LITERAL_STRING("mailto:"))  ||
+        StringBeginsWith(uristr, NS_LITERAL_STRING("preselectid=")) ||
         StringBeginsWith(uristr, NS_LITERAL_STRING("to="))  ||
         StringBeginsWith(uristr, NS_LITERAL_STRING("cc="))  ||
+        StringBeginsWith(uristr, NS_LITERAL_STRING("bcc=")) ||
+        StringBeginsWith(uristr, NS_LITERAL_STRING("newsgroups=")) ||
         StringBeginsWith(uristr, NS_LITERAL_STRING("subject=")) ||
+        StringBeginsWith(uristr, NS_LITERAL_STRING("format=")) ||
         StringBeginsWith(uristr, NS_LITERAL_STRING("body="))  ||
         StringBeginsWith(uristr, NS_LITERAL_STRING("attachment="))) {
       composeShouldHandle = PR_TRUE; // the -url argument looks like mailto
