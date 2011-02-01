@@ -39,8 +39,6 @@
  * Test the about:support module.
  */
 
-Components.utils.import("resource:///modules/aboutSupport.js");
-
 /**
  * Tests the getFileSystemType function. This is more a check to make sure the
  * function returns something meaningful and doesn't throw an exception, since
@@ -53,7 +51,7 @@ function test_get_file_system_type() {
     // Mac should return null
     do_check_eq(fsType, null);
   else
-    // Windows and Linux should return a string
+    // Windows should return a string
     do_check_true(["local", "network", "unknown"].indexOf(fsType) != -1);
 }
 
@@ -62,6 +60,11 @@ var tests = [
 ];
 
 function run_test() {
+  // Only run the tests on Windows and Mac for now.
+  if (!("@mozilla.org/windows-registry-key;1" in Cc || "nsILocalFileMac" in Ci))
+    return;
+
+  Components.utils.import("resource:///modules/aboutSupport.js");
   for (let [, test] in Iterator(tests))
     test();
 }
