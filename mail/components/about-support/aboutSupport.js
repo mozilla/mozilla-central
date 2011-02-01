@@ -139,7 +139,7 @@ var AboutSupport = {
       }
       let idA = parseInt(regexA[1]);
       let idB = parseInt(regexB[1]);
-      return idB - idA;
+      return idA - idB;
     }
 
     // Sort accountDetails by account ID.
