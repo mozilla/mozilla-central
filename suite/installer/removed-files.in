@@ -654,7 +654,6 @@ xpicleanup@BIN_SUFFIX@
   modules/XPCOMUtils.jsm
   modules/XPIProvider.jsm
   greprefs.js
-  res
   res/contenteditable.css
   res/designmode.css
   res/EditorOverride.css
