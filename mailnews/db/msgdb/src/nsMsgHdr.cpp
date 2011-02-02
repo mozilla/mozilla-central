@@ -1033,6 +1033,8 @@ PRBool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
       NS_ERROR("Thread is parent of itself, please fix!");
       nsCOMPtr<nsIMsgThread> thread;
       (void) m_mdb->GetThreadContainingMsgHdr(this, getter_AddRefs(thread));
+      if (!thread)
+        return PR_FALSE;
       ReparentInThread(thread);
       // Something's wrong, but the problem happened some time ago, so erroring
       // out now is probably not a good idea. Ergo, we'll pretend to be OK, show

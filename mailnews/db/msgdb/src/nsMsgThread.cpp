@@ -965,10 +965,11 @@ NS_IMETHODIMP nsMsgThread::GetRootHdr(PRInt32 *resultIndex, nsIMsgDBHdr **result
   NS_ENSURE_ARG_POINTER(result);
 
   *result = nsnull;
+  nsresult rv = NS_OK;
 
   if (m_threadRootKey != nsMsgKey_None)
   {
-    nsresult rv = GetChildHdrForKey(m_threadRootKey, result, resultIndex);
+    rv = GetChildHdrForKey(m_threadRootKey, result, resultIndex);
     if (NS_SUCCEEDED(rv) && *result)
     {
       // check that we're really the root key.
@@ -1011,15 +1012,22 @@ NS_IMETHODIMP nsMsgThread::GetRootHdr(PRInt32 *resultIndex, nsIMsgDBHdr **result
         }
       }
     }
-    if (*result)
-      return NS_OK;
+  }
+  if (!*result)
+  {
     // if we can't get the thread root key, we'll just get the first hdr.
     // there's a bug where sometimes we weren't resetting the thread root key
     // when removing the thread root key.
+    if (resultIndex)
+      *resultIndex = 0;
+    rv = GetChildHdrAt(0, result);
   }
-  if (resultIndex)
-    *resultIndex = 0;
-  return GetChildHdrAt(0, result);
+  // Check that the thread id of the message is this thread.
+  nsMsgKey threadId = nsMsgKey_None;
+  (void)(*result)->GetThreadId(&threadId);
+  if (threadId != m_threadKey)
+    (*result)->SetThreadId(m_threadKey);
+  return rv;
 }
 
 nsresult nsMsgThread::ChangeChildCount(PRInt32 delta)
