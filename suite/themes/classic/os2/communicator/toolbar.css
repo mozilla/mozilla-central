@@ -50,6 +50,11 @@
   border: 0;
 }
 
+toolbaritem > menubar,
+toolbar > menubar {
+  border-bottom: 0px none;
+}
+
 /* ::::: toolbargrippy ::::: */
 
 toolbargrippy {
@@ -94,4 +99,16 @@ toolbargrippy[tbgrippy-collapsed="true"] > .toolbargrippy-texture {
 
 .collapsed-tray-spacer {
   /*border-bottom: 1px solid ThreeDShadow;*/
+}
+
+/* ::::: solid background status bar panel ::::: */
+
+.statusbarpanel-backgroundbox {
+  -moz-box-align: stretch;
+  padding: 0px;
+}
+
+.statusbarpanel-backgroundbox > .statusbarpanel-contentbox {
+  padding: 0px 1px;
+  -moz-box-align: center;
 }
