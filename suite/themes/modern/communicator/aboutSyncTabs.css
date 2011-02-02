@@ -1,25 +1,12 @@
-#tabs-display,
 #tabsList {
-  background-color: transparent;
-  -moz-appearance: none;
-  margin: 0;
-}
-
-#tabsList {
-  width: 100%;
-}
-
-#tabs-display {
-  background: #fff url(chrome://communicator/skin/sync/sync-bg.png) repeat-x center -80px;
+  background: #FFFFFF url(chrome://communicator/skin/sync/sync-bg.png) repeat-x center -80px;
 }
 
 #headers {
   background: url(chrome://communicator/skin/sync/sync-32.png) no-repeat;
-  margin-top: 4px;
   width: 45em;
   height: 32px;
-  -moz-margin-start: 2em;
-  -moz-margin-end: 2em;
+  margin: 4px 2em 0px;
 }
 
 #tabsListHeading {
@@ -32,11 +19,6 @@ richlistitem {
   -moz-margin-end: 2em;
 }
 
-richlistitem[selected="true"],
-richlistitem:focus {
-  outline-style: none;
-}
-
 richlistitem[type="tab"] {
   min-height: 3em;
   border: #999999 1px solid !important;
@@ -44,7 +26,7 @@ richlistitem[type="tab"] {
   margin-bottom: 4px;
   -moz-margin-start: 4em;
   -moz-border-radius: 6px;
-  background-color: menu;
+  background-color: #DDE3EB;
   width: 44em;
   opacity: 0.9;
   -moz-box-shadow:
@@ -54,7 +36,7 @@ richlistitem[type="tab"] {
 }
 
 richlistitem[type="tab"][selected="true"] {
-  background-color: -moz-MenuHover;
+  background-color: #424F63;
 }
 
 richlistitem[type="client"] {
@@ -77,18 +59,16 @@ richlistitem.desktop[type="client"] {
 
 .title,
 .clientName {
-  color: #000000;
   font-size: 1.1em;
 }
 
-.title[selected="true"],
-.url[selected="true"] {
-  color: inherit;
+.url {
+  color: blue;
+  font-size: 0.95em;
 }
 
-.url {
-  color: -moz-nativehyperlinktext;
-  font-size: 0.95em;
+.url[selected="true"] {
+  color: inherit;
 }
 
 .tabIcon {

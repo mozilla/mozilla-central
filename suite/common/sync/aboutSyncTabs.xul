@@ -84,8 +84,12 @@
                 showFor="all"/>
     </menupopup>
   </popupset>
-  <richlistbox context="tabListContext" id="tabsList" seltype="multiple"
-               align="center" flex="1"
+  <richlistbox id="tabsList"
+               context="tabListContext" 
+               seltype="multiple"
+               class="plain"
+               align="center"
+               flex="1"
                onclick="RemoteTabViewer.handleClick(event);"
                oncontextmenu="RemoteTabViewer.adjustContextMenu(event);">
     <hbox id="headers" align="center">
