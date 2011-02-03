@@ -51,6 +51,11 @@
   <prefpane id="security_pane" label="&pref.security.title;"
             script="chrome://communicator/content/tasksOverlay.js chrome://communicator/content/pref/pref-security.js">
     <preferences id="security_preferences">
+      <!-- Do Not Track -->
+      <preference id="privacy.donottrackheader.enabled"
+                  name="privacy.donottrackheader.enabled"
+                  type="bool"/>
+
       <!-- Clear Private Data -->
       <preference id="privacy.sanitize.sanitizeOnShutdown"
                   name="privacy.sanitize.sanitizeOnShutdown"
@@ -88,6 +93,19 @@
                   name="privacy.item.sessions"
                   type="bool"/>
     </preferences>
+
+    <!-- Do Not Track -->
+    <groupbox id="doNotTrackGroup">
+      <caption label="&tracking.label;"/>
+
+      <hbox id="doNotTrackBox" align="center">
+        <checkbox id="privacyDoNotTrackPrefs"
+                  flex="1"
+                  label="&doNotTrack.label;"
+                  accesskey="&doNotTrack.accesskey;"
+                  preference="privacy.donottrackheader.enabled"/>
+      </hbox>
+    </groupbox>
 
     <!-- Private Data -->
     <groupbox id="privateDataGroup">
