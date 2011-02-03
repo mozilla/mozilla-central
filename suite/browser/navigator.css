@@ -79,6 +79,7 @@ panel[for="urlbar"] {
 #notification-popup-box[anchorid="notification-popup-box"] > #default-notification-icon,
 #notification-popup-box[anchorid="geo-notification-icon"] > #geo-notification-icon,
 #notification-popup-box[anchorid="addons-notification-icon"] > #addons-notification-icon,
+#notification-popup-box[anchorid="indexedDB-notification-icon"] > #indexedDB-notification-icon,
 #notification-popup-box[anchorid="password-notification-icon"] > #password-notification-icon {
   display: -moz-box;
 }

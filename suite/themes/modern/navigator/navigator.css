@@ -547,6 +547,14 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
   height: 32px;
 }
 
+.popup-notification-icon[popupid="indexedDB-permissions-prompt"],
+.popup-notification-icon[popupid="indexedDB-quota-prompt"] {
+  list-style-image: url("chrome://global/skin/icons/alert-question.gif");
+  width: 46px;
+  height: 36px;
+}
+
+.popup-notification-icon[popupid="password-change"],
 .popup-notification-icon[popupid="password-save"] {
   list-style-image: url("chrome://mozapps/skin/passwordmgr/key-64.png");
 }
@@ -574,6 +582,12 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
 
 #addons-notification-icon {
   list-style-image: url("chrome://mozapps/skin/extensions/extensionGeneric-16.png");
+  width: 16px;
+  height: 16px;
+}
+
+#indexedDB-notification-icon {
+  list-style-image: url("chrome://global/skin/icons/question-16.png");
   width: 16px;
   height: 16px;
 }

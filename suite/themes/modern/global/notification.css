@@ -68,6 +68,10 @@ notification[type="critical"] {
 
 /* Popup notifications */
 
+popupnotification {
+  background-color: #C7D0D9;
+}
+
 .popup-notification-description {
   max-width: 248px;
   margin-top: 4px !important;

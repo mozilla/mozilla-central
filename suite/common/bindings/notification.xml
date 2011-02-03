@@ -160,14 +160,14 @@
                 var requestor = aSubject.QueryInterface(Components.interfaces.nsIInterfaceRequestor);
                 var contentWindow = requestor.getInterface(Components.interfaces.nsIDOMWindow);
                 if (contentWindow.top == browser.contentWindow)
-                  this.promptIndexedDB(requestor, contentWindow, "usage", aData);
+                  this.promptIndexedDB(requestor, contentWindow, "quota", aData);
                 break;
 
               case "indexedDB-quota-cancel":
                 var requestor = aSubject.QueryInterface(Components.interfaces.nsIInterfaceRequestor);
                 var contentWindow = requestor.getInterface(Components.interfaces.nsIDOMWindow);
                 if (contentWindow.top == browser.contentWindow)
-                  this.cancelIndexedDB(requestor, contentWindow, "usage", aData);
+                  this.cancelIndexedDB(requestor, contentWindow, "quota", aData);
                 break;
 
               case "addon-install-blocked":
@@ -538,7 +538,7 @@
                                  nsIPermissionManager.DENY_ACTION);
               }
             }];
-            var box = this.appendNotification(message, aTopic, null,
+            var box = this.appendNotification(message, "indexedDB-" + aTopic + "-prompt", null,
                                               this.PRIOITY_INFO_HIGH, buttons);
             box.timeout = setTimeout(function() {
               observer.observe(null, "indexedDB-" + aTopic + "-response",
@@ -557,7 +557,7 @@
         <parameter name="aData"/>
         <body>
           <![CDATA[
-            var popupNotification = this.getNotificationWithValue(aTopic);
+            var popupNotification = this.getNotificationWithValue("indexedDB-" + aTopic + "-prompt");
             if (popupNotification) {
               clearTimeout(popupNotification.timeout);
               this.removeNotification(popupNotification);
@@ -1101,6 +1101,83 @@
                                     "geolocation", message,
                                     "geo-notification-icon", mainAction,
                                     secondaryActions);
+          ]]>
+        </body>
+      </method>
+
+      <method name="promptIndexedDB">
+        <parameter name="aRequestor"/>
+        <parameter name="aWindow"/>
+        <parameter name="aTopic"/>
+        <parameter name="aData"/>
+        <body>
+          <![CDATA[
+            var host = aWindow.document.documentURIObject.asciiHost;
+            var message = this._stringBundle.formatStringFromName("offlineApps." + aTopic, [host, aData], 2);
+            var observer = aRequestor.getInterface(Components.interfaces.nsIObserver);
+            var nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+            var mainAction = {
+              label: this._stringBundle.GetStringFromName("offlineApps.allow"),
+              accessKey: this._stringBundle.GetStringFromName("offlineApps.allow.accesskey"),
+              callback: function allowIndexedDB() {
+                clearTimeout(notification.timeout);
+                observer.observe(null, "indexedDB-" + aTopic + "-response",
+                                 nsIPermissionManager.ALLOW_ACTION);
+              }
+            };
+            var secondaryActions = [{
+              label: this._stringBundle.GetStringFromName("offlineApps.deny"),
+              accessKey: this._stringBundle.GetStringFromName("offlineApps.deny.accesskey"),
+              callback: function denyIndexedDB() {
+                clearTimeout(notification.timeout);
+                observer.observe(null, "indexedDB-" + aTopic + "-response",
+                                 nsIPermissionManager.DENY_ACTION);
+              }
+            }];
+            function notificationTimedOut() {
+              observer.observe(null, "indexedDB-" + aTopic + "-response",
+                               nsIPermissionManager.UNKNOWN_ACTION);
+              notification.remove();
+            }
+            var options = {
+              eventCallback: function(state) {
+                if (notification) {
+                  // Always clear the timeout up front. If the doorhanger was
+                  // temporarily dismissed, we'll set a new 30 second timeout
+                  // to automatically cancel the request. If the doorhanger
+                  // gets redisplayed we don't want it to time out unless it
+                  // gets dismissed again. And if the doorhanger gets removed
+                  // then we aren't interested in it any more.
+                  clearTimeout(timeout);
+                  if (state == "dismissed")
+                    timeout = setTimeout(notificationTimedOut, 30000);
+                }
+              }
+            };
+            var notification =
+                PopupNotifications.show(this.activeBrowser,
+                                        "indexedDB-" + aTopic + "-prompt",
+                                        message, "indexedDB-notification-icon",
+                                        mainAction, secondaryActions, options);
+            var timeout = setTimeout(notificationTimedOut, 300000); // 5 minutes
+          ]]>
+        </body>
+      </method>
+
+      <method name="cancelIndexedDB">
+        <parameter name="aRequestor"/>
+        <parameter name="aWindow"/>
+        <parameter name="aTopic"/>
+        <parameter name="aData"/>
+        <body>
+          <![CDATA[
+            var popupNotification = PopupNotifications.getNotification("indexedDB-" + aTopic + "-prompt", this.activeBrowser);
+            if (popupNotification)
+              popupNotification.remove(); // eventCallback clears the timeout
+
+            var observer = aRequestor.getInterface(Components.interfaces.nsIObserver);
+            observer.observe(null, "indexedDB-" + aTopic + "-response",
+                             nsIPermissionManager.UNKNOWN_ACTION);
           ]]>
         </body>
       </method>
