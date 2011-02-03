@@ -611,6 +611,10 @@ pref("browser.link.open_newwindow.restriction", 0);
 
 pref("browser.tabs.loadDivertedInBackground", false);
 
+// Browser icon prefs
+pref("browser.chrome.site_icons", true);
+pref("browser.chrome.favicons", true);
+
 // Disable places by default as we don't want to store global history
 // Below we define reasonable defaults as copied from Firefox so that we have
 // something sensible should an extension wish to enable this.

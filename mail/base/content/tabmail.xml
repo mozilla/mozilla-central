@@ -87,6 +87,9 @@
     -   a tab index, tab info object, or tab node (tabmail-tab bound
     -   element.)  You can also just poke at tabmail.tabContainer and its
     -   selectedIndex and selectedItem properties.
+    - * setTabIcon(aTabNodeorInfo, aIcon): Sets the tab icon to the specified
+    -   url or removes the icon if no url is specified. Note that this may
+    -   overrride css provided images.
     - Less-friendly consumer methods:
     - * removeCurrentTab(): Close the current tab.
     - * removeTabByNode(aTabElement): Close the tab whose tabmail-tab bound
@@ -850,6 +853,25 @@
           return null;
         ]]></body>
       </method>
+      <!-- getBrowserForDocument is used to find the browser for a specific
+           document that's been loaded -->
+      <method name="getBrowserForDocument">
+        <parameter name="aDocument"/>
+        <body><![CDATA[
+          for (let i = 0; i < this.tabInfo.length; ++i) {
+            let browserFunc = this.tabInfo[i].mode.getBrowser ||
+                              this.tabInfo[i].mode.tabType.getBrowser;
+            if (browserFunc) {
+              var possBrowser = browserFunc.call(this.tabInfo[i].mode.tabType,
+                                                 this.tabInfo[i]);
+              if (possBrowser &&
+                  possBrowser.contentWindow == aDocument)
+                return this.tabInfo[i];
+            }
+          }
+          return null;
+        ]]></body>
+      </method>
       <method name="removeCurrentTab">
         <body><![CDATA[
           this.removeTabByNode(
@@ -959,6 +981,29 @@
               // Update the window title if we're the displayed tab.
               if (iTab == this.tabContainer.selectedIndex)
                 this.setDocumentTitle(tab);
+            }
+          ]]>
+        </body>
+      </method>
+      <!--
+        - Sets the tab icon to the specified url, or removes the icon if no
+        - url is specified. Note that this may override css provided images.
+        -->
+      <method name="setTabIcon">
+        <parameter name="aTabNodeOrInfo"/>
+        <parameter name="aIcon"/>
+        <body>
+          <![CDATA[
+            let [iTab, tab, tabNode] =
+              this._getTabContextForTabbyThing(aTabNodeOrInfo, true);
+
+            if (tab) {
+              let tabNode = this.tabContainer.childNodes[iTab];
+
+              if (aIcon)
+                tabNode.setAttribute("image", aIcon);
+              else
+                tabNode.removeAttribute("image");
             }
           ]]>
         </body>
@@ -1204,6 +1249,7 @@
       <xul:hbox class="tab-image-left" xbl:inherits="selected"/>
       <xul:hbox class="tab-image-middle box-inherit" align="center"
                 xbl:inherits="dir,pack,orient,selected" flex="1">
+        <xul:image class="tab-throbber" xbl:inherits="busy,thinking"/>
         <xul:image class="tab-icon-image" xbl:inherits="validate,src=image"/>
         <xul:label class="tab-text"
                   xbl:inherits="value=label,accesskey,crop,disabled"

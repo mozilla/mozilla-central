@@ -47,10 +47,13 @@ var mozmill = {};
 Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
 var elementslib = {};
 Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
+Components.utils.import('resource://gre/modules/Services.jsm');
 
 // RELATIVE_ROOT messes with the collector, so we have to bring the path back
 // so we get the right path for the resources.
-var url = collector.addHttpResource('../content-tabs/html', 'content-tabs');
+// Note: this one adds to '' as we need to make sure that favicon.ico is in the
+// root directory.
+var url = collector.addHttpResource('../content-tabs/html', '');
 var whatsUrl = url + "whatsnew.html";
 
 var setupModule = function (module) {
@@ -61,18 +64,16 @@ var setupModule = function (module) {
 };
 
 function test_content_tab_open() {
-  let preCount = mc.tabmail.tabContainer.childNodes.length;
-
   // Set the pref so that what's new opens a local url
-  Components.classes["@mozilla.org/preferences-service;1"]
-            .getService(Components.interfaces.nsIPrefBranch)
-            .setCharPref("mailnews.start_page.override_url",
-                         whatsUrl);
+  Services.prefs.setCharPref("mailnews.start_page.override_url", whatsUrl);
 
   let tab = open_content_tab_with_click(mc.menus.helpMenu.whatsNew);
 
   assert_tab_has_title(tab, "What's New Content Test");
   assert_content_tab_has_url(tab, whatsUrl);
+  // Check the location of the what's new image, this is via the link element
+  // and therefore should be set and not favicon.png.
+  assert_content_tab_has_favicon(tab, url + "whatsnew.png");
 
   // Check that window.content is set up correctly wrt content-primary and
   // content-targetable.
@@ -95,8 +96,22 @@ function test_content_tab_open_same() {
     throw new Error("window.content is not set to the url loaded, incorrect type=\"...\"?");
 }
 
+function test_content_tab_default_favicon() {
+  const whatsUrl1 = url + "whatsnew1.html";
+
+  // Set the pref so that what's new opens a local url
+  Services.prefs.setCharPref("mailnews.start_page.override_url", whatsUrl1);
+
+  let tab = open_content_tab_with_click(mc.menus.helpMenu.whatsNew);
+
+  assert_tab_has_title(tab, "What's New Content Test 1");
+  assert_content_tab_has_url(tab, whatsUrl1);
+  // Check the location of the favicon, this should be the site favicon in this
+  // test.
+  assert_content_tab_has_favicon(tab, url + "favicon.ico");
+}
+
 // XXX todo
-// - Open second tab
 // - test find bar
 // - window.close within tab
 // - zoom?

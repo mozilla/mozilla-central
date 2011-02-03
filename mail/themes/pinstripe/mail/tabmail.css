@@ -51,7 +51,8 @@
   background-color: -moz-mac-chrome-inactive;
 }
 
-.tab-icon-image {
+.tab-icon-image,
+.tab-throbber {
   width: 16px;
   height: 16px;
   margin-top: 2px;
@@ -61,11 +62,7 @@
   list-style-image: url("chrome://global/skin/tree/item.png");
 }
 
-.tabmail-tab[busy] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
-}
-
-.tabmail-tab[thinking] {
+.tab-throbber {
   list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
 }
 

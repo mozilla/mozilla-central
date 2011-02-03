@@ -73,17 +73,28 @@ tabProgressListener.prototype =
   },
   onLocationChange: function tPL_onLocationChange(aWebProgress, aRequest,
                                                   aLocationURI) {
-    var location = aLocationURI ? aLocationURI.spec : "";
-
-    // Set the reload command only if this is a report that is coming in about
-    // the top-level content location change.
+    // onLocationChange is called for both the top-level content
+    // and the subframes.
     if (aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
-      // Although we're unlikely to be loading about:blank, we'll check it
-      // anyway just in case. The second condition is for new tabs, otherwise
-      // the reload function is enabled until tab is refreshed.
-      this.mTab.reloadEnabled =
-        !((location == "about:blank" && !this.mBrowser.contentWindow.opener) ||
-          location == "");
+      // Don't clear the favicon if this onLocationChange was triggered
+      // by a pushState or a replaceState. See bug 550565.
+      if (aWebProgress.isLoadingDocument &&
+          !(this.mBrowser.docShell.loadType &
+            Components.interfaces.nsIDocShell.LOAD_CMD_PUSHSTATE))
+        this.mBrowser.mIconURL = null;
+
+      var location = aLocationURI ? aLocationURI.spec : "";
+
+      // Set the reload command only if this is a report that is coming in about
+      // the top-level content location change.
+      if (aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
+        // Although we're unlikely to be loading about:blank, we'll check it
+        // anyway just in case. The second condition is for new tabs, otherwise
+        // the reload function is enabled until tab is refreshed.
+        this.mTab.reloadEnabled =
+          !((location == "about:blank" && !this.mBrowser.contentWindow.opener) ||
+            location == "");
+      }
     }
   },
   onStateChange: function tPL_onStateChange(aWebProgress, aRequest, aStateFlags,
@@ -127,6 +138,12 @@ tabProgressListener.prototype =
       // Set our unit testing variables accordingly
       this.mTab.pageLoading = false;
       this.mTab.pageLoaded = true;
+
+      // If we've finished loading, and we've not had an icon loaded from a
+      // link element, then we try using the default icon for the site.
+      if (aWebProgress.DOMWindow == this.mBrowser.contentWindow &&
+        !this.mBrowser.mIconURL)
+        specialTabs.useDefaultIcon(this.mTab);
     }
   },
   onStatusChange: function tPL_onStatusChange(aWebProgress, aRequest, aStatus,
@@ -143,6 +160,91 @@ tabProgressListener.prototype =
                                          Components.interfaces.nsISupportsWeakReference])
 };
 
+const DOMLinkHandler = {
+  handleEvent: function (event) {
+    switch (event.type) {
+    case "DOMLinkAdded":
+      this.onLinkAdded(event);
+      break;
+    }
+  },
+  onLinkAdded: function (event) {
+    let link = event.originalTarget;
+    let rel = link.rel && link.rel.toLowerCase();
+    if (!link || !link.ownerDocument || !rel || !link.href)
+      return;
+
+    if (rel.split(/\s+/).indexOf("icon") != -1) {
+      if (!Services.prefs.getBoolPref("browser.chrome.site_icons"))
+        return;
+
+      let targetDoc = link.ownerDocument;
+      let uri = makeURI(link.href, targetDoc.characterSet);
+
+      // Is this a failed icon?
+      if (specialTabs.mFaviconService.isFailedFavicon(uri))
+        return;
+
+      // Verify that the load of this icon is legal.
+      // Some error or special pages can load their favicon.
+      // To be on the safe side, only allow chrome:// favicons.
+      let isAllowedPage = [
+        /^about:neterror\?/,
+        /^about:blocked\?/,
+        /^about:certerror\?/,
+        /^about:home$/
+      ].some(function (re) { re.test(targetDoc.documentURI); });
+
+      if (!isAllowedPage || !uri.schemeIs("chrome")) {
+        // Be extra paraniod and just make sure we're not going to load
+        // something we shouldn't. Firefox does this, so we're doing the same.
+        let ssm = Components.classes["@mozilla.org/scriptsecuritymanager;1"]
+          .getService(Components.interfaces.nsIScriptSecurityManager);
+
+          try {
+            ssm.checkLoadURIWithPrincipal(targetDoc.nodePrincipal, uri,
+                                          Components.interfaces.nsIScriptSecurityManager.DISALLOW_SCRIPT);
+          }
+          catch (ex) {
+            return;
+          }
+      }
+
+      const nsIContentPolicy = Components.interfaces.nsIContentPolicy;
+
+      try {
+        var contentPolicy = Components.classes["@mozilla.org/layout/content-policy;1"]
+          .getService(nsIContentPolicy);
+      }
+      catch (e) {
+        // Refuse to load if we can't do a security check.
+        return;
+      }
+
+      // Security says okay, now ask content policy. This is probably trying to
+      // ensure that the image loaded always obeys the content policy. There
+      // may have been a chance that it was cached and we're trying to load it
+      // direct from the cache and not the normal route.
+      if (contentPolicy.shouldLoad(nsIContentPolicy.TYPE_IMAGE,
+                                   uri, targetDoc.documentURIObject,
+                                   link, link.type, null) !=
+                                   nsIContentPolicy.ACCEPT)
+        return;
+
+      let tab = document.getElementById("tabmail")
+                        .getBrowserForDocument(targetDoc.defaultView);
+
+      // If we don't have a browser/tab, then don't load the icon.
+      if (!tab)
+        return;
+
+      // Just set the url on the browser and we'll display the actual icon
+      // when we finish loading the page.
+      specialTabs.setTabIcon(tab, link.href);
+    }
+  }
+};
+
 var specialTabs = {
   _kAboutRightsVersion: 1,
   get _protocolSvc() {
@@ -150,6 +252,13 @@ var specialTabs = {
     return this._protocolSvc =
       Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
                 .getService(Components.interfaces.nsIExternalProtocolService);
+  },
+
+  get mFaviconService() {
+    delete this.mFaviconService;
+    return this.mFaviconService =
+      Components.classes["@mozilla.org/browser/favicon-service;1"]
+                .getService(Components.interfaces.nsIFaviconService);
   },
 
   // This will open any special tabs if necessary on startup.
@@ -273,6 +382,12 @@ var specialTabs = {
                                 aArgs.clickHandler :
                                 "specialTabs.defaultClickHandler(event);");
 
+      // Set this attribute so that when favicons fail to load, we remove the
+      // image attribute and just show the default tab icon.
+      aTab.tabNode.setAttribute("onerror", "this.removeAttribute('image');");
+
+      aTab.browser.addEventListener("DOMLinkAdded", DOMLinkHandler, false);
+
       // Now initialise the find bar.
       aTab.findbar = aTab.panel.getElementsByTagName("findbar")[0];
       aTab.findbar.setAttribute("browserid",
@@ -312,6 +427,7 @@ var specialTabs = {
                                        aTab.titleListener, true);
       aTab.browser.removeEventListener("DOMWindowClose",
                                        aTab.closeListener, true);
+      aTab.browser.removeEventListener("DOMLinkAdded", DOMLinkHandler, false);
       aTab.browser.webProgress.removeProgressListener(aTab.filter);
       aTab.filter.removeProgressListener(aTab.progressListener);
       aTab.browser.destroy();
@@ -1028,5 +1144,71 @@ var specialTabs = {
         break;
       }
     }
+  },
+
+  /**
+   * Determine if we should load fav icons or not.
+   *
+   * @param aURI  An nsIURI containing the current url.
+   */
+  _shouldLoadFavIcon: function shouldLoadFavIcon(aURI) {
+    return (aURI &&
+            Application.prefs.getValue("browser.chrome.site_icons", false) &&
+            Application.prefs.getValue("browser.chrome.favicons", false) &&
+            ("schemeIs" in aURI) &&
+            (aURI.schemeIs("http") || aURI.schemeIs("https")));
+  },
+
+  /**
+   * Tries to use the default favicon for a webpage for the specified tab.
+   * If the web page is just an image, then we'll use the image itself it it
+   * isn't too big.
+   * Otherwise we'll use the site's favicon.ico if prefs allow us to.
+   */
+  useDefaultIcon: function useDefaultIcon(aTab) {
+    let tabmail = document.getElementById('tabmail');
+    var docURIObject = aTab.browser.contentDocument.documentURIObject;
+    var icon = null;
+    if (aTab.browser.contentDocument instanceof ImageDocument) {
+      if (Services.prefs.getBoolPref("browser.chrome.site_icons")) {
+        let sz = Services.prefs.getIntPref("browser.chrome.image_icons.max_size");
+        try {
+          let req = aTab.browser.contentDocument.imageRequest;
+          if (req && req.image && req.image.width <= sz &&
+              req.image.height <= sz)
+            icon = aTab.browser.currentURI.spec;
+        }
+        catch (e) { }
+      }
+    }
+    // Use documentURIObject in the check for shouldLoadFavIcon so that we do
+    // the right thing with about:-style error pages.
+    else if (this._shouldLoadFavIcon(docURIObject)) {
+      let url = docURIObject.prePath + "/favicon.ico";
+
+      if (!specialTabs.mFaviconService.isFailedFavicon(makeURI(url)))
+        icon = url;
+    }
+
+    specialTabs.setTabIcon(aTab, icon);
+  },
+
+  /**
+   * This sets the specified tab to load and display the given icon for the
+   * page shown in the browser. It is assumed that the preferences have already
+   * been checked before calling this function apprioriately.
+   *
+   * @param aTab  The tab to set the icon for.
+   * @param aIcon A string based URL of the icon to try and load.
+   */
+  setTabIcon: function(aTab, aIcon) {
+    if (aIcon && this.mFaviconService)
+      this.mFaviconService.setAndLoadFaviconForPage(aTab.browser.currentURI,
+                                                    makeURI(aIcon), false);
+
+    // Save this off so we know about it later,
+    aTab.browser.mIconURL = aIcon;
+    // and display the new icon.
+    document.getElementById("tabmail").setTabIcon(aTab, aIcon);
   }
 };

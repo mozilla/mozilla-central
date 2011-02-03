@@ -78,6 +78,7 @@ function installInto(module) {
   module.plan_for_content_tab_load = plan_for_content_tab_load;
   module.wait_for_content_tab_load = wait_for_content_tab_load;
   module.assert_content_tab_has_url = assert_content_tab_has_url;
+  module.assert_content_tab_has_favicon = assert_content_tab_has_favicon;
   module.content_tab_e = content_tab_e;
   module.content_tab_eid = content_tab_eid;
   module.get_element_display = get_element_display;
@@ -212,6 +213,15 @@ function assert_content_tab_has_url(aTab, aURL) {
  */
 function content_tab_e(aTab, aId) {
   return aTab.browser.contentDocument.getElementById(aId);
+}
+
+/**
+ * Assert that the given content tab has the given URL loaded as a favicon.
+ */
+function assert_content_tab_has_favicon(aTab, aURL) {
+  if (aTab.browser.mIconURL != aURL)
+    mark_failure(["The tab", aTab, "should have a favicon with URL", aURL,
+                  "but instead has", aTab.browser.mIconURL]);
 }
 
 /**

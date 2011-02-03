@@ -69,8 +69,7 @@
   -moz-padding-start: 1px;
 }
 
-.tabmail-tab[busy],
-.tabmail-tab[thinking] {
+.tab-throbber {
   list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
   -moz-image-region: auto !important;
 }
@@ -181,7 +180,8 @@
   padding-top: 1px;
 }
 
-.tab-icon-image {
+.tab-icon-image,
+.tab-throbber {
   margin-top: 1px;
   -moz-margin-end: 3px;
   width: 16px;

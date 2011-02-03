@@ -126,7 +126,8 @@ tabpanels {
   opacity: .85;
 }
 
-.tab-icon-image {
+.tab-icon-image,
+.tab-throbber {
   width: 16px;
   height: 16px;
   -moz-margin-end: 3px;
@@ -137,12 +138,7 @@ tabpanels {
   -moz-image-region: rect(0px, 16px, 16px, 0px);
 }
 
-.tabmail-tab[busy] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
-  -moz-image-region: auto !important;
-}
-
-.tabmail-tab[thinking] {
+.tab-throbber {
   list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
   -moz-image-region: auto !important;
 }
