@@ -41,7 +41,7 @@
 **
 **	---------------
 **
-**		Head file for Apple Decode/Encode enssential codes.
+**		Head file for Apple Decode/Encode essential codes.
 **
 **
 */
@@ -52,9 +52,9 @@
 /*
 ** applefile definitions used 
 */
-#if defined(XP_MACOSX)
-#pragma options align=mac68k
-#endif /* XP_MACOSX */
+#if PRAGMA_STRUCT_ALIGN
+  #pragma options align=mac68k
+#endif
 
 #define APPLESINGLE_MAGIC	0x00051600L
 #define APPLEDOUBLE_MAGIC 	0x00051607L
@@ -131,8 +131,8 @@ int  ap_decode_process_data(  appledouble_decode_object* p_ap_decode_obj, PRBool
 
 PR_END_EXTERN_C
  
-#if defined(XP_MACOSX)
-#pragma options align=reset
-#endif /* XP_MACOSX */
+#if PRAGMA_STRUCT_ALIGN
+  #pragma options align=reset
+#endif
 
 #endif /* ad_codes_h */
