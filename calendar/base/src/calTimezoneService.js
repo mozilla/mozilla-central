@@ -162,7 +162,7 @@ calTimezoneService.prototype = {
 
     // nsIStartupService
     startup: function startup(aCompleteListener) {
-        this.initialize(aCompleteListener);
+        this.ensureInitialized(aCompleteListener);
     },
 
     shutdown: function shutdown(aCompleteListener) {
@@ -178,118 +178,101 @@ calTimezoneService.prototype = {
         aCompleteListener.onResult(null, Components.results.NS_OK);
     },
 
-    ensureInitialized: function() {
+    ensureInitialized: function(aCompleteListener) {
         if (!this.mSelectByTzid) {
-            cal.ERROR("Calling Timezone Service before its initialized!\nStack: " + cal.STACK(10));
-            throw Components.results.NS_ERROR_NOT_INITIALIZED;
+            this.initialize(aCompleteListener);
         }
     },
 
     _initDB: function _initDB(sqlTzFile) {
         try {
-            sqlTzFile.append("timezones.sqlite");
             cal.LOG("[calTimezoneService] using " + sqlTzFile.path);
             let dbService = Components.classes["@mozilla.org/storage/service;1"]
                                       .getService(Components.interfaces.mozIStorageService);
             this.mDb = dbService.openDatabase(sqlTzFile);
-            this.mSelectByTzid = this.createStatement("SELECT * FROM tz_data WHERE tzid = :tzid LIMIT 1");
+            if (this.mDb) {
+                this.mSelectByTzid = this.createStatement("SELECT * FROM tz_data WHERE tzid = :tzid LIMIT 1");
 
-            let selectVersion = this.createStatement("SELECT version FROM tz_version LIMIT 1");
-            try {
-                if (selectVersion.step()) {
-                    this.mVersion = selectVersion.row.version;
+                let selectVersion = this.createStatement("SELECT version FROM tz_version LIMIT 1");
+                try {
+                    if (selectVersion.step()) {
+                        this.mVersion = selectVersion.row.version;
+                    }
+                } finally {
+                    selectVersion.reset();
                 }
-            } finally {
-                selectVersion.reset();
+                cal.LOG("[calTimezoneService] timezones version: " + this.mVersion);
+                return true;
             }
-            cal.LOG("[calTimezoneService] timezones version: " + this.mVersion);
-
         } catch (exc) {
-            let msg = cal.calGetString("calendar", "missingCalendarTimezonesError");
-            cal.ERROR(msg);
-            showError(msg);
+            cal.ERROR("Error setting up timezone database: "  + exc);
         }
+        return false;
     },
 
     initialize: function calTimezoneService_initialize(aCompleteListener) {
-        // This function contains a lot of async calls. Please make sure you
-        // return this function in each control path.
-        function done() {
-            aCompleteListener.onResult(null, Components.results.NS_OK);
-        }
-
         // Helper function to convert an nsIURI to a nsIFile
-        function toFile(uri) {
+        function toFile(uriSpec) {
+            let uri = cal.makeURL(uriSpec);
+
             if (uri.schemeIs("file")) {
                 let handler = cal.getIOService().getProtocolHandler("file")
                                  .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
                 return handler.getFileFromURLSpec(uri.spec);
+            } else if (uri.schemeIs("resource")) {
+                let handler = cal.getIOService().getProtocolHandler("resource")
+                                 .QueryInterface(Components.interfaces.nsIResProtocolHandler);
+                let newUriSpec;
+                try { 
+                    newUriSpec = handler.resolveURI(uri);
+                } catch (e) {
+                    // Possibly the resource location is not registered, return
+                    // null to indicate error
+                    return null;
+                }
+
+                // Otherwise let this function convert the new uri spec to a file
+                return toFile(newUriSpec);
             } else {
-                cal.ERROR("Unknown timezones.sqlite location: " + uri.spec);
+                cal.ERROR("Unknown timezones.sqlite location: " + uriSpec);
             }
             return null;
         }
 
         let self = this;
-        const kCalendarTimezonesXpiId = "calendar-timezones@mozilla.org";
-        AddonManager.getAddonByID(kCalendarTimezonesXpiId, function getTimezoneExt(aAddon) {
-            if (aAddon) {
-                // The addon was found, extract the timezone stuff
-                let sqlTzFile = toFile(aAddon.getResourceURI(''));
-                let bundleURL = "chrome://calendar-timezones/locale/timezones.properties";
-
-                self._initDB(sqlTzFile);
-                g_stringBundle = cal.calGetStringBundle(bundleURL);
-                return done();
-            } else {
-                // No addon found. Possibly we have the timezone data
-                // bundled.
-                if (cal.isSunbird()) {
-                    // Sunbird doesn't bundle the timezone extension
-                    let msg = cal.calGetString("calendar", "missingCalendarTimezonesError");
-                    cal.ERROR(msg);
-                    showError(msg);
-                    return done();
-                } else {
-                    const kLightningXpiId = "{e2fda1a4-762b-4020-b5ad-a41df1933103}";
-                    AddonManager.getAddonByID(kLightningXpiId, function getLightningExt(aAddon) {
-                        let bundleURL;
-                        let sqlTzFile;
-                        if (aAddon) {
-                            sqlTzFile = toFile(aAddon.getResourceURI(''));
-                            bundleURL = "chrome://lightning/locale/timezones.properties";
-                        } else {
-                            // No Lightning? Possibly we're running a unit test.
-                            let dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
-                                                   .getService(Components.interfaces.nsIProperties);
-                            sqlTzFile = dirSvc.get("CurProcD", Components.interfaces.nsILocalFile);
-                            sqlTzFile.append("extensions");
-                            sqlTzFile.append(kCalendarTimezonesXpiId);
-                            cal.WARN("### USING " + sqlTzFile.path);
-                            self._initDB(sqlTzFile);
-
-                            let bundleFile = sqlTzFile.clone();
-                            bundleFile.append("chrome");
-                            bundleFile.append("calendar-timezones-en-US.jar");
-
-                            bundleURL = "jar:" + getIOService().newFileURI(bundleFile).spec + "!/locale/en-US/timezones.properties";
-                        }
-
-                        self._initDB(sqlTzFile);
-                        g_stringBundle = cal.calGetStringBundle(bundleURL);
-                        return done();
-                    });
-
-                    // Async calls made, no further action
-                    return null;
-                }
+        function tryTzUri(uriSpec) {
+            let canInit = false;
+            let sqlTzFile = toFile(uriSpec);
+            if (sqlTzFile) {
+                canInit = self._initDB(sqlTzFile);
             }
 
-            // If this line is reached, then you've forgotten to return
-            // somewhere above. Please check!
-            cal.ERROR("Missing return statements in calTimezoneService.js!");
-            return null;
-        });
+            return canInit;
+        }
+            
+        // First, lets try getting the file from our timezone extension
+        let canInit = tryTzUri("resource://calendar-timezones/timezones.sqlite");
+        let bundleURL = "chrome://calendar-timezones/locale/timezones.properties";
+                               
+        if (!canInit) {
+            // If that fails, we might have the file bundled
+            canInit = tryTzUri("resource://calendar/timezones.sqlite");
+            bundleURL = "chrome://calendar/locale/timezones.properties"
+        }
+
+        if (canInit) {
+            // Seems like a success, make the bundle url global
+            g_stringBundle = cal.calGetStringBundle(bundleURL);
+        } else {
+            // Otherwise, we have to give up. Show an error and fail hard!
+            let msg = cal.calGetString("calendar", "missingCalendarTimezonesError");
+            cal.ERROR(msg);
+            showError(msg);
+        }
+
+        if (aCompleteListener) {
+            aCompleteListener.onResult(null, Components.results.NS_OK);
+        }
     },
 
     // calITimezoneProvider:

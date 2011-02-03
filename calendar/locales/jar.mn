@@ -20,6 +20,7 @@ calendar-@AB_CD@.jar:
     locale/@AB_CD@/calendar/migration.dtd                  (%chrome/calendar/migration.dtd)
     locale/@AB_CD@/calendar/migration.properties           (%chrome/calendar/migration.properties)
     locale/@AB_CD@/calendar/provider-uninstall.dtd         (%chrome/calendar/provider-uninstall.dtd)
+    locale/@AB_CD@/calendar/timezones.properties           (%chrome/calendar/timezones.properties)
     locale/@AB_CD@/calendar/wcap.properties                (%chrome/calendar/providers/wcap/wcap.properties)
     locale/@AB_CD@/calendar/preferences/advanced.dtd       (%chrome/calendar/preferences/advanced.dtd)
     locale/@AB_CD@/calendar/preferences/alarms.dtd         (%chrome/calendar/preferences/alarms.dtd)

@@ -72,6 +72,7 @@
      </em:targetApplication>
 
     <em:name>Timezone Definitions for Mozilla Calendar</em:name>
+    <em:unpack>true</em:unpack>
     <em:description>Timezone definitions required by Sunbird and Lightning</em:description>
     <em:creator>Mozilla Calendar Project</em:creator>
     <em:iconURL>chrome://calendar-timezones/skin/addon-icon32.png</em:iconURL>
