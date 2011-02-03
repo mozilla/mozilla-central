@@ -12,9 +12,6 @@
  for the specific language governing rights and limitations under the
  License.
 
- The Original Code is Mozilla Communicator client code, released
- March 31, 1998.
-
  The Original Code is SeaMonkey preferences code.
 
  The Initial Developer of the Original Code is the SeaMonkey project.
@@ -51,11 +48,16 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <prefpane id="links_pane"
-            label="&linksHeader.label;">
+            label="&linksHeader.label;"
+            script="chrome://communicator/content/pref/pref-links.js">
 
     <preferences id="links_preferences">
       <preference id="browser.link.open_newwindow"
                   name="browser.link.open_newwindow"
+                  type="int"
+                  onchange="ToggleRestrictionGroup(this.value);"/>
+      <preference id="browser.link.open_newwindow.restriction"
+                  name="browser.link.open_newwindow.restriction"
                   type="int"/>
       <preference id="browser.link.open_external"
                   name="browser.link.open_external"
@@ -66,6 +68,7 @@
       <caption label="&newWindow.label;"/>
       <description>&newWindowDescription.label;</description>
       <radiogroup id="newWindowGroup"
+                  class="indent"
                   preference="browser.link.open_newwindow">
         <radio value="1"
                label="&openCurrent.label;"
@@ -77,12 +80,28 @@
                label="&openWindow.label;"
                accesskey="&newWindowGroupWindow.accesskey;"/>
       </radiogroup>
+      <separator class="thin"/>
+      <description>&newWindowRestriction.label;</description>
+      <radiogroup id="restrictionGroup"
+                  class="indent"
+                  preference="browser.link.open_newwindow.restriction">
+        <radio value="0"
+               label="&divertAll.label;"
+               accesskey="&divertAll.accesskey;"/>
+        <radio value="2"
+               label="&divertNoFeatures.label;"
+               accesskey="&divertNoFeatures.accesskey;"/>
+        <radio value="1"
+               label="&dontDivert.label;"
+               accesskey="&dontDivert.accesskey;"/>
+      </radiogroup>
     </groupbox>
 
     <groupbox>
       <caption label="&external.label;"/>
       <description>&externalDescription.label;</description>
       <radiogroup id="externalGroup"
+                  class="indent"
                   preference="browser.link.open_external">
         <radio value="1"
                label="&openCurrent.label;"
