@@ -447,9 +447,7 @@ NS_IMETHODIMP nsPop3IncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
     }
   }
   else
-    rv = pop3Service->CheckForNewMail(nsnull, urlListener, inbox, this, nsnull);
-    // it's important to pass in null for the msg window if we are performing biff
-        // this makes sure that we don't show any kind of UI during biff.
+    rv = pop3Service->CheckForNewMail(aMsgWindow, urlListener, inbox, this, nsnull);
   return NS_OK;
 }
 
