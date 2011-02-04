@@ -746,6 +746,7 @@ pref("services.sync.prefs.sync.lightweightThemes.usedThemes", true);
 pref("services.sync.prefs.sync.network.cookie.cookieBehavior", true);
 pref("services.sync.prefs.sync.network.cookie.lifetimePolicy", true);
 pref("services.sync.prefs.sync.permissions.default.image", true);
+pref("services.sync.prefs.sync.privacy.donottrackheader.enabled", true);
 pref("services.sync.prefs.sync.privacy.item.cache", true);
 pref("services.sync.prefs.sync.privacy.item.cookies", true);
 pref("services.sync.prefs.sync.privacy.item.downloads", true);
