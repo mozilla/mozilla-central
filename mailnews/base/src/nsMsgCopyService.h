@@ -45,6 +45,7 @@
 #include "nsIMsgHdr.h"
 #include "nsIMsgWindow.h"
 #include "nsIMutableArray.h"
+#include "nsVoidArray.h"
 
 typedef enum _nsCopyRequestType
 {

@@ -35,8 +35,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsEncryptedSMIMEURIsService.h"
-#include "nsStringGlue.h"
-
 
 NS_IMPL_ISUPPORTS1(nsEncryptedSMIMEURIsService, nsIEncryptedSMIMEURIsService)
 
@@ -51,7 +49,7 @@ nsEncryptedSMIMEURIsService::~nsEncryptedSMIMEURIsService()
 NS_IMETHODIMP nsEncryptedSMIMEURIsService::RememberEncrypted(const nsACString & uri)
 {
   // Assuming duplicates are allowed.
-  mEncryptedURIs.AppendCString(nsCString(uri));
+  mEncryptedURIs.AppendElement(uri);
   return NS_OK;
 }
 
@@ -59,12 +57,12 @@ NS_IMETHODIMP nsEncryptedSMIMEURIsService::ForgetEncrypted(const nsACString & ur
 {
   // Assuming, this will only remove one copy of the string, if the array
   // contains multiple copies of the same string.
-  mEncryptedURIs.RemoveCString(nsCString(uri));
+  mEncryptedURIs.RemoveElement(uri);
   return NS_OK;
 }
 
 NS_IMETHODIMP nsEncryptedSMIMEURIsService::IsEncrypted(const nsACString & uri, PRBool *_retval)
 {
-  *_retval = (mEncryptedURIs.IndexOf(nsCString(uri)) != -1);
+  *_retval = (mEncryptedURIs.IndexOf(uri) != -1);
   return NS_OK;
 }

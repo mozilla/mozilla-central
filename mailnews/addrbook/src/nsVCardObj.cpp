@@ -83,8 +83,8 @@ DFARS 252.227-7013 or 48 CFR 52.227-19, as applicable.
 #include "nsVCardObj.h"
 #include "prmem.h"
 #include "plstr.h"
-#include "msgCore.h"
 #include "prprf.h"
+#include "nsStringGlue.h"
 
 /* debugging utilities */
 #define DBG_(x)

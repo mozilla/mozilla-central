@@ -43,7 +43,7 @@
 #include "nsIPrefBranch.h"
 #include "msgCore.h"
 #include "nsCOMPtr.h"
-
+#include "nsStringGlue.h"
 
 class NS_MSG_BASE nsMsgIdentity : public nsIMsgIdentity
 {

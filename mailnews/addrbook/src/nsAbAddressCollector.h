@@ -44,6 +44,7 @@
 #include "nsIAbDirectory.h"
 #include "nsIAbCard.h"
 #include "nsIObserver.h"
+#include "nsStringGlue.h"
 
 class nsIPrefBranch;
 

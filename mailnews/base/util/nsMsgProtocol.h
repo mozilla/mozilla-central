@@ -53,6 +53,7 @@
 #include "nsITransport.h"
 #include "nsIAsyncOutputStream.h"
 #include "nsIAuthModule.h"
+#include "nsStringGlue.h"
 
 class nsIMsgWindow;
 

@@ -157,15 +157,6 @@ nsPop3Sink::GetMailAccountURL(char* *urlString)
   return NS_OK;
 }
 
-struct partialRecord
-{
-  partialRecord();
-  ~partialRecord();
-
-  nsCOMPtr<nsIMsgDBHdr> m_msgDBHdr;
-  nsCString m_uidl;
-};
-
 partialRecord::partialRecord() :
   m_msgDBHdr(nsnull)
 {
@@ -248,14 +239,14 @@ nsPop3Sink::FindPartialMessages(nsILocalFile *folderFile)
 void
 nsPop3Sink::CheckPartialMessages(nsIPop3Protocol *protocol)
 {
-  PRUint32 count = m_partialMsgsArray.Count();
+  PRUint32 count = m_partialMsgsArray.Length();
   PRBool deleted = PR_FALSE;
 
   for (PRUint32 i = 0; i < count; i++)
   {
     partialRecord *partialMsg;
     PRBool found = PR_TRUE;
-    partialMsg = static_cast<partialRecord *>(m_partialMsgsArray.ElementAt(i));
+    partialMsg = m_partialMsgsArray.ElementAt(i);
     protocol->CheckMessage(partialMsg->m_uidl.get(), &found);
     if (!found && partialMsg->m_msgDBHdr)
     {

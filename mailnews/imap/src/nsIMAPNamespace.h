@@ -38,6 +38,8 @@
 #ifndef _nsIMAPNamespace_H_
 #define _nsIMAPNamespace_H_
 
+#include "nsVoidArray.h"
+
 class nsIMAPNamespace
 {
   

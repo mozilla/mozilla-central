@@ -44,7 +44,6 @@
 #include "nscore.h"
 #include "plstr.h"
 #include "nsCRTGlue.h"
-#include "nsVoidArray.h"
 
 class nsIMsgDBHdr;
 class nsIMsgFolder;

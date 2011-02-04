@@ -50,6 +50,15 @@
 class nsParseNewMailState;
 class nsIMsgFolder;
 
+struct partialRecord
+{
+  partialRecord();
+  ~partialRecord();
+
+  nsCOMPtr<nsIMsgDBHdr> m_msgDBHdr;
+  nsCString m_uidl;
+};
+
 class nsPop3Sink : public nsIPop3Sink
 {
 public:
@@ -95,7 +104,7 @@ protected:
     nsCString m_baseMessageUri;
     nsCString m_origMessageUri;
     nsCString m_accountKey;
-    nsVoidArray m_partialMsgsArray;
+    nsTArray<partialRecord*> m_partialMsgsArray;
 };
 
 #endif

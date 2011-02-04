@@ -45,6 +45,7 @@ nsIMAPBodyShell and associated classes
 #include "nsImapCore.h"
 #include "nsStringGlue.h"
 #include "nsClassHashtable.h"
+#include "nsVoidArray.h"
 
 class nsImapProtocol;
 

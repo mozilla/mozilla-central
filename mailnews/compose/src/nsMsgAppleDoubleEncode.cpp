@@ -48,7 +48,7 @@
 */
 #include "nsID.h"
 #include "nscore.h"
-#include "msgCore.h"
+#include "nsStringGlue.h"
 #include "nsMsgAppleDouble.h"
 #include "nsMsgAppleCodes.h"
 #include "nsMsgCompUtils.h"

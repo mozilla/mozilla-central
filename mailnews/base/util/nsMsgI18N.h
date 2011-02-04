@@ -40,6 +40,7 @@
 
 #include "nscore.h"
 #include "msgCore.h"
+#include "nsStringGlue.h"
 class nsILocalFile;
 
 /**

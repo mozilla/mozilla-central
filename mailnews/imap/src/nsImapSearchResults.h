@@ -38,6 +38,7 @@
 #ifndef nsImapSearchResults_h___
 #define nsImapSearchResults_h___
 
+#include "nsVoidArray.h"
 
 class nsImapSearchResultSequence : public nsVoidArray
 {

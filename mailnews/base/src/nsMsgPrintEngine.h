@@ -43,7 +43,6 @@
 #include "nsCOMPtr.h"
 
 #include "nsIDocShell.h"
-#include "nsVoidArray.h"
 #include "nsIDocShell.h"
 #include "nsIMsgPrintEngine.h"
 #include "nsIStreamListener.h"
@@ -101,7 +100,7 @@ protected:
   nsCOMPtr<nsIDOMWindowInternal>      mWindow;
   nsCOMPtr<nsIDOMWindowInternal>      mParentWindow;
   PRInt32                     mURICount;
-  nsStringArray               mURIArray;
+  nsTArray<nsString>          mURIArray;
   PRInt32                     mCurrentlyPrintingURI;
 
   nsCOMPtr<nsIContentViewer>  mContentViewer;

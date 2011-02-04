@@ -38,7 +38,8 @@
 #define _nsEncryptedSMIMEURIsService_H_
 
 #include "nsIEncryptedSMIMEURIsSrvc.h"
-#include "nsVoidArray.h"
+#include "nsTArray.h"
+#include "nsStringGlue.h"
 
 class nsEncryptedSMIMEURIsService : public nsIEncryptedSMIMEURIsService
 {
@@ -50,7 +51,7 @@ public:
   virtual ~nsEncryptedSMIMEURIsService();
 
 protected:
-  nsCStringArray mEncryptedURIs;
+  nsTArray<nsCString> mEncryptedURIs;
 };
 
 #endif

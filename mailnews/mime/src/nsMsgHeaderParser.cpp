@@ -43,6 +43,7 @@
 #include "prmem.h"
 #include <ctype.h>
 #include "nsAlgorithm.h"
+#include "nsStringGlue.h"
 
 nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar ** aOutgoingEmailAddress, PRUnichar ** aOutgoingName,
                           PRUnichar ** aOutgoingFullName, nsIMsgHeaderParser *aParser);

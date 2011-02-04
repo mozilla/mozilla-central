@@ -48,7 +48,7 @@
  */
 
 #include "nscore.h"
-#include "msgCore.h"
+#include "nsStringGlue.h"
 #include "nsMimeTypes.h"
 #include "prprf.h"
 #include "nsServiceManagerUtils.h"
