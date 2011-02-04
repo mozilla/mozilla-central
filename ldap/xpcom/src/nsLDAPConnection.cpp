@@ -963,7 +963,8 @@ nsLDAPConnection::OnLookupComplete(nsICancelable *aRequest,
         // if we've come this far, DNS is working properly).
         //
         mConnectionHandle = ldap_init(mResolvedIP.get(),
-                                      mPort == -1 ? LDAP_PORT : mPort);
+                                      mPort == -1 ?
+                                      (mSSL ? LDAPS_PORT : LDAP_PORT) : mPort);
         // Check that we got a proper connection, and if so, setup the
         // threading functions for this connection.
         //
