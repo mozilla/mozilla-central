@@ -132,46 +132,6 @@ function test_add_tag_with_really_long_label() {
   mc.keypress(mc.eid("expandedHeadersNameColumn"), "1", {});
 }
 
-function test_more_button_with_many_recipients()
-{
-  // Start on the interesting message.
-  let curMessage = select_click_row(0);
-
-  // make sure it loads
-  wait_for_message_display_completion(mc);
-  assert_selected_and_displayed(mc, curMessage);
-
-  // Check the mode of the header.
-  let headerBox = mc.eid("expandedHeaderView");
-  let previousHeaderMode = headerBox.node.getAttribute("show_header_mode");
-
-  // Click the "more" button.
-  let moreIndicator = mc.eid("expandedccBox");
-  moreIndicator = mc.window.document.getAnonymousElementByAttribute(
-                    moreIndicator.node, "anonid", "more");
-  moreIndicator = new elementslib.Elem(moreIndicator);
-  mc.click(moreIndicator);
-
-  // Check the new mode of the header.
-  if (headerBox.node.getAttribute("show_header_mode") != "all")
-    throw new Error("Header Mode didn't change to 'all'!  " + "old=" +
-                    previousHeaderMode + ", new=" +
-                    headerBox.node.getAttribute("show_header_mode"));
-
-  // Switch to the boring message, to force the more button to collapse.
-  let curMessage = select_click_row(1);
-
-  // make sure it loads
-  wait_for_message_display_completion(mc);
-  assert_selected_and_displayed(mc, curMessage);
-
-  // Check the even newer mode of the header.
-  if (headerBox.node.getAttribute("show_header_mode") != previousHeaderMode)
-    throw new Error("Header Mode changed from " + previousHeaderMode +
-                    " to " + headerBox.node.getAttribute("show_header_mode") +
-                    " and didn't change back.");
-}
-
 /**
  * @param headerName used for pretty-printing in exceptions
  * @param headerValueElement code to be eval()ed returning the DOM element
@@ -271,7 +231,7 @@ let gAccRetrieval = Cc["@mozilla.org/accessibleRetrieval;1"].
  *                              for details.
  */
 function verify_header_a11y(aHeaderInfo) {
-
+  // XXX Don't use eval here.
   let headerValueElement = eval(aHeaderInfo.headerValueElement);
 
   let headerAccessible = gAccRetrieval.getAccessibleFor(headerValueElement);
@@ -281,6 +241,7 @@ function verify_header_a11y(aHeaderInfo) {
                     aHeaderInfo.expectedRole);
   }
 
+  // XXX Don't use eval here.
   let expectedName = eval(aHeaderInfo.expectedName);
   if (headerAccessible.name != expectedName) {
     throw new Error("headerAccessible.name for " + aHeaderInfo.headerName +
@@ -291,6 +252,13 @@ function verify_header_a11y(aHeaderInfo) {
 
 /**
  * Test the accessibility attributes of the various message headers.
+ *
+ * XXX This test used to be after test_more_button_with_many_recipients,
+ * however, there were some accessibility changes that it didn't seem to play
+ * nicely with, and the toggling of the "more" button on the cc field was
+ * causing this test to fail on the cc element. Tests with accessibilty
+ * hardware/software showed that the code was working fine. Therefore the test
+ * may be suspect.
  */
 function test_a11y_attrs() {
   // skip this test on platforms that don't support accessibility
@@ -307,6 +275,46 @@ function test_a11y_attrs() {
   assert_selected_and_displayed(mc, curMessage);
 
   headersToTest.forEach(verify_header_a11y);
+}
+
+function test_more_button_with_many_recipients()
+{
+  // Start on the interesting message.
+  let curMessage = select_click_row(0);
+
+  // make sure it loads
+  wait_for_message_display_completion(mc);
+  assert_selected_and_displayed(mc, curMessage);
+
+  // Check the mode of the header.
+  let headerBox = mc.eid("expandedHeaderView");
+  let previousHeaderMode = headerBox.node.getAttribute("show_header_mode");
+
+  // Click the "more" button.
+  let moreIndicator = mc.eid("expandedccBox");
+  moreIndicator = mc.window.document.getAnonymousElementByAttribute(
+                    moreIndicator.node, "anonid", "more");
+  moreIndicator = new elementslib.Elem(moreIndicator);
+  mc.click(moreIndicator);
+
+  // Check the new mode of the header.
+  if (headerBox.node.getAttribute("show_header_mode") != "all")
+    throw new Error("Header Mode didn't change to 'all'!  " + "old=" +
+                    previousHeaderMode + ", new=" +
+                    headerBox.node.getAttribute("show_header_mode"));
+
+  // Switch to the boring message, to force the more button to collapse.
+  curMessage = select_click_row(1);
+
+  // make sure it loads
+  wait_for_message_display_completion(mc);
+  assert_selected_and_displayed(mc, curMessage);
+
+  // Check the even newer mode of the header.
+  if (headerBox.node.getAttribute("show_header_mode") != previousHeaderMode)
+    throw new Error("Header Mode changed from " + previousHeaderMode +
+                    " to " + headerBox.node.getAttribute("show_header_mode") +
+                    " and didn't change back.");
 }
 
 /**
