@@ -328,7 +328,6 @@ pref("view_source.syntax_highlight", false);
 /////////////////////////////////////////////////////////////////
 // Generic browser related prefs. 
 /////////////////////////////////////////////////////////////////
-pref("browser.cache.memory.capacity",       4096);
 pref("browser.send_pings", false);
 pref("browser.chrome.toolbar_tips",         true);
 pref("browser.xul.error_pages.enabled", true);
