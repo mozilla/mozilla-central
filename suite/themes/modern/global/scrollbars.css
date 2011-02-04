@@ -47,13 +47,13 @@
 scrollbar {
   -moz-binding: url("chrome://global/content/bindings/scrollbar.xml#scrollbar");
   cursor: default;
-  min-width: 15px;
-  min-height: 15px;
 }
 
 /* ::::: slider ::::: */
 
 slider {
+  min-width: 15px;
+  min-height: 15px;
   background: url("chrome://global/skin/scrollbar/slider-hrz.gif") repeat-x;
 }
 
