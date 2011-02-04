@@ -514,7 +514,7 @@ MimeMessage_close_headers (MimeObject *obj)
   {
     PRUint32 flags = 0;
     char dummy = 0;
-    if (sscanf(xmoz, " %lx %c", &flags, &dummy) == 1 &&
+    if (sscanf(xmoz, " %x %c", &flags, &dummy) == 1 &&
       flags & nsMsgMessageFlags::Partial)
     {
       obj->options->html_closure = obj;
