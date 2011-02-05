@@ -214,17 +214,20 @@ calDateTimeFormatter.prototype = {
             if (sameDay) {
                 return this.formatDateLong(aStartDate);
             } else {
-                let startMonthName = this.monthName(aStartDate.month);
                 let startDay = aStartDate.day;
                 let startYear = aStartDate.year;
-                let endMonthName = this.monthName(endDate.month);
                 let endDay = endDate.day;
                 let endYear = endDate.year;
                 if (aStartDate.year != endDate.year) {
+                    let startMonthName = cal.formatMonth(aStartDate.month + 1, "calendar", "dayIntervalBetweenYears");
+                    let endMonthName = cal.formatMonth(aEndDate.month + 1, "calendar", "dayIntervalBetweenYears");
                     return calGetString("calendar", "dayIntervalBetweenYears", [startMonthName, startDay, startYear, endMonthName, endDay, endYear]);
                 } else if (aStartDate.month != endDate.month) {
+                    let startMonthName = cal.formatMonth(aStartDate.month + 1, "calendar", "dayIntervalBetweenMonths");
+                    let endMonthName = cal.formatMonth(aEndDate.month + 1, "calendar", "dayIntervalBetweenMonths");
                     return calGetString("calendar", "dayIntervalBetweenMonths", [startMonthName, startDay, endMonthName, endDay, endYear]);
                 } else {
+                    let startMonthName = cal.formatMonth(aStartDate.month + 1, "calendar", "dayIntervalInMonth");
                     return calGetString("calendar", "dayIntervalInMonth", [startMonthName, startDay, endDay, endYear]);
                 }
             }
@@ -283,7 +286,7 @@ calDateTimeFormatter.prototype = {
         return this.mDateStringBundle.GetStringFromName("month." + oneBasedMonthIndex + ".Mmm" );
     },
 
-    dayName: function monthName(aDayIndex) {
+    dayName: function dayName(aDayIndex) {
         let oneBasedDayIndex = aDayIndex + 1;
         return this.mDateStringBundle.GetStringFromName("day." + oneBasedDayIndex + ".name" );
     },

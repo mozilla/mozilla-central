@@ -379,6 +379,24 @@ let cal = {
     },
 
     /**
+     * Gets the month name string in the right form depending on a base string.
+     *
+     * @param aMonthNum     The month numer to get, 1-based.
+     * @param aBundleName   The Bundle to get the string from
+     * @param aStringBase   The base string name, .monthFormat will be appended
+     */
+    formatMonth: function formatMonth(aMonthNum, aBundleName, aStringBase) {
+        let monthForm = cal.calGetString(aBundleName, aStringBase + ".monthFormat") || "nominative";
+
+        if (monthForm == "nominative") {
+            // Fall back to the default name format
+            monthForm = "name";
+        }
+
+        return cal.calGetString("dateFormat", "month." + aMonthNum + "." + monthForm);
+    },
+
+    /**
      * moves an item to another startDate
      *
      * @param aOldItem             The Item to be modified
