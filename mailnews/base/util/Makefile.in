@@ -106,6 +106,7 @@ EXTRA_JS_MODULES = \
 		IOUtils.js \
 		mailnewsMigrator.js \
 		dictUtils.js \
+		mailServices.js \
 		$(NULL)
 
 ifndef MOZ_STATIC_MAIL_BUILD

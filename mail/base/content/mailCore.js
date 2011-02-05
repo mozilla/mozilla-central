@@ -43,6 +43,8 @@
  * Before adding to this file, ask yourself, is this a JS routine that is going to be used by all of the main mail windows?
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 var gCustomizeSheet = false;
 
 function overlayRestoreDefaultSet() {
