@@ -720,20 +720,21 @@ nsContextMenu.prototype = {
   // Open linked-to URL in a new window.
   openLink: function() {
     // Determine linked-to URL.
-    openNewWindowWith(this.linkURL, this.target.ownerDocument);
+    return openNewWindowWith(this.linkURL, this.target.ownerDocument);
   },
 
   // Open linked-to URL in a new tab.
-  openLinkInTab: function(aReverseBackgroundPref ) {
+  openLinkInTab: function(aEvent) {
     // Determine linked-to URL.
-    openNewTabWith(this.linkURL, this.target.ownerDocument, aReverseBackgroundPref);
+    return openNewTabWith(this.linkURL, this.target.ownerDocument, null,
+                          aEvent);
   },
 
   // Open frame in a new tab.
-  openFrameInTab: function(aReverseBackgroundPref) {
+  openFrameInTab: function(aEvent) {
     // Determine linked-to URL.
-    openNewTabWith(this.target.ownerDocument.location.href,
-                   this.target.ownerDocument, aReverseBackgroundPref);
+    return openNewTabWith(this.target.ownerDocument.location.href,
+                          this.target.ownerDocument, null, aEvent);
   },
 
   // Reload clicked-in frame.
@@ -743,7 +744,8 @@ nsContextMenu.prototype = {
 
   // Open clicked-in frame in its own window.
   openFrame: function() {
-    openNewWindowWith( this.target.ownerDocument.location.href );
+    return openNewWindowWith(this.target.ownerDocument.location.href,
+                             this.target.ownerDocument);
   },
 
   // Open clicked-in frame in the same window

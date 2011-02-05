@@ -141,7 +141,7 @@
   {
     // should we open it in a new tab?
     if (pref && pref.getBoolPref("browser.tabs.opentabfor.middleclick")) {
-      openNewTabWith(href, doc, event.shiftKey);
+      openNewTabWith(href, doc, null, event);
       event.stopPropagation();
       return true;
     }

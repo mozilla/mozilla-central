@@ -555,7 +555,7 @@
     <menuitem id="context-openlinkintab"
               label="&openLinkCmdInTab.label;"
               accesskey="&openLinkCmdInTab.accesskey;"
-              oncommand="gContextMenu.openLinkInTab(event.shiftKey);"/>
+              oncommand="gContextMenu.openLinkInTab(event);"/>
     <menuseparator id="mailContext-sep-link"/>
     <menuitem id="context-selectall"
               label="&selectAllCmd.label;"

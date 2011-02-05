@@ -880,23 +880,65 @@ function openAsExternal(aURL)
   openNewTabWindowOrExistingWith(loadType, aURL, null, loadInBackground);
 }
 
-function openNewWindowWith(aURL, aDoc)
+/**
+ * openNewTabWith: opens a new tab with the given URL.
+ * openNewWindowWith: opens a new window with the given URL.
+ *
+ * @param aURL
+ *        The URL to open (as a string).
+ * @param aDocument
+ *        The document from which the URL came, or null. This is used to set
+ *        the referrer header and to do a security check of whether the
+ *        document is allowed to reference the URL. If null, there will be no
+ *        referrer header and no security check.
+ * @param aPostData
+ *        Form POST data, or null.
+ * @param aEvent
+ *        The triggering event (for the purpose of determining whether to open
+ *        in the background), or null.
+ *        Legacy callers may use a boolean (aReverseBackgroundPref) here to
+ *        reverse the background behaviour.
+ * @param aAllowThirdPartyFixup
+ *        If true, then we allow the URL text to be sent to third party
+ *        services (e.g., Google's I Feel Lucky) for interpretation. This
+ *        parameter may be undefined in which case it is treated as false.
+ * @param [optional] aReferrer
+ *        If aDocument is null, then this will be used as the referrer.
+ *        There will be no security check.
+ */
+function openNewWindowWith(aURL, aDoc, aPostData, aAllowThirdPartyFixup,
+                           aReferrer)
 {
-  openNewTabWindowOrExistingWith(kNewWindow, aURL, aDoc, false);
+  return openNewTabWindowOrExistingWith(kNewWindow, aURL, aDoc, false,
+                                        aPostData, aAllowThirdPartyFixup,
+                                        aReferrer);
 }
 
-function openNewTabWith(aURL, aDoc, aReverseBackgroundPref)
+function openNewTabWith(aURL, aDoc, aPostData, aEvent,
+                        aAllowThirdPartyFixup, aReferrer)
 {
-  var loadInBackground = false;
-  if (pref) {
-    loadInBackground = Services.prefs.getBoolPref("browser.tabs.loadInBackground");
-    if (aReverseBackgroundPref)
+  var loadInBackground = Services.prefs.getBoolPref("browser.tabs.loadInBackground");
+  if (arguments.length == 3 && typeof aPostData == "boolean")
+  {
+    // Handle legacy boolean parameter.
+    if (aPostData)
+    {
       loadInBackground = !loadInBackground;
+    }
+    aPostData = null;
   }
-  openNewTabWindowOrExistingWith(kNewTab, aURL, aDoc, loadInBackground);
+  else if (aEvent && aEvent.shiftKey)
+  {
+    loadInBackground = !loadInBackground;
+  }
+  return openNewTabWindowOrExistingWith(kNewTab, aURL, aDoc, loadInBackground,
+                                        aPostData, aAllowThirdPartyFixup,
+                                        aReferrer);
 }
 
-function openNewTabWindowOrExistingWith(aType, aURL, aDoc, aLoadInBackground)
+function openNewTabWindowOrExistingWith(aType, aURL, aDoc, aLoadInBackground,
+                                        aPostData, aAllowThirdPartyFixup,
+                                        aReferrer)
 {
   // Make sure we are allowed to open this url
   if (aDoc)
@@ -904,7 +946,7 @@ function openNewTabWindowOrExistingWith(aType, aURL, aDoc, aLoadInBackground)
                      Components.interfaces.nsIScriptSecurityManager.STANDARD);
 
   // get referrer, if as external should be null
-  var referrer = aDoc ? aDoc.documentURIObject : null;
+  var referrerURI = aDoc ? aDoc.documentURIObject : aReferrer;
 
   var browserWin;
   // if we're not opening a new window, try and find existing window
@@ -925,9 +967,9 @@ function openNewTabWindowOrExistingWith(aType, aURL, aDoc, aLoadInBackground)
     var charsetArg = null;
     if (originCharset)
       charsetArg = "charset=" + originCharset;
-    window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no",
-                      aURL, charsetArg, referrer);
-    return;
+    return window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no",
+                             aURL, charsetArg, referrerURI, aPostData,
+                             aAllowThirdPartyFixup);
   }
 
   // Get the existing browser object
@@ -935,19 +977,22 @@ function openNewTabWindowOrExistingWith(aType, aURL, aDoc, aLoadInBackground)
 
   // Open link in an existing window.
   if (aType == kExistingWindow) {
-    browser.loadURI(aURL);
+    browserWin.loadURI(aURL, referrerURI, aPostData, aAllowThirdPartyFixup);
     browserWin.content.focus();
-    return;
+    return browserWin;
   }
 
   // open link in new tab
-  browser.loadOneTab(aURL, {
-    referrerURI: referrer,
-    charset: originCharset,
-    inBackground: aLoadInBackground
-  });
+  var tab = browser.loadOneTab(aURL, {
+              referrerURI: referrerURI,
+              charset: originCharset,
+              postData: aPostData,
+              inBackground: aLoadInBackground,
+              allowThirdPartyFixup: aAllowThirdPartyFixup
+            });
   if (!aLoadInBackground)
     browserWin.content.focus();
+  return tab;
 }
 
 /**
