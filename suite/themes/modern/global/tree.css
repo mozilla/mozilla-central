@@ -313,11 +313,11 @@ treechildren::-moz-tree-column(insertafter) {
 }
 
 .treecol-sortdirection[sortDirection="ascending"] {
-  list-style-image: url("chrome://global/skin/tree/sort-asc.gif");
+  list-style-image: url("chrome://global-platform/skin/tree/sort-asc.gif");
 }
 
 .treecol-sortdirection[sortDirection="descending"] {
-  list-style-image: url("chrome://global/skin/tree/sort-dsc.gif");
+  list-style-image: url("chrome://global-platform/skin/tree/sort-dsc.gif");
 }
 
 /* ::::: column picker :::::  */

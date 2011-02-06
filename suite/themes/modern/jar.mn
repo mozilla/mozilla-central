@@ -2,6 +2,7 @@ modern.jar:
 % skin communicator modern/1.0 %skin/modern/communicator/
 % skin editor modern/1.0 %skin/modern/editor/
 % skin global modern/1.0 %skin/modern/global/
+% skin global-platform modern/1.0 %skin/modern/global/
 % skin help modern/1.0 %skin/modern/help/
 % skin messenger modern/1.0 %skin/modern/messenger/
 % skin mozapps modern/1.0 %skin/modern/mozapps/
@@ -345,8 +346,12 @@ modern.jar:
   skin/modern/global/toolbar/spring.png                            (global/toolbar/spring.png)
   skin/modern/global/tree/checkbox.gif                             (global/tree/checkbox.gif)
   skin/modern/global/tree/checkbox-checked.gif                     (global/tree/checkbox-checked.gif)
-  skin/modern/global/tree/sort-asc.gif                             (global/tree/sort-asc.gif)
-  skin/modern/global/tree/sort-dsc.gif                             (global/tree/sort-dsc.gif)
+  skin/modern/global/mac/tree/sort-asc.gif                         (global/tree/sort-dsc.gif)
+  skin/modern/global/mac/tree/sort-dsc.gif                         (global/tree/sort-asc.gif)
+  skin/modern/global/unix/tree/sort-asc.gif                        (global/tree/sort-asc.gif)
+  skin/modern/global/unix/tree/sort-dsc.gif                        (global/tree/sort-dsc.gif)
+  skin/modern/global/win/tree/sort-asc.gif                         (global/tree/sort-dsc.gif)
+  skin/modern/global/win/tree/sort-dsc.gif                         (global/tree/sort-asc.gif)
   skin/modern/global/tree/twisty-clsd.gif                          (global/tree/twisty-clsd.gif)
   skin/modern/global/tree/twisty-open.gif                          (global/tree/twisty-open.gif)
   skin/modern/global/tree/columnpicker.gif                         (global/tree/columnpicker.gif)
