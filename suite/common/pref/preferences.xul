@@ -110,7 +110,6 @@
                 prefpane="navigator_pane"
                 helpTopic="navigator_pref_navigator"
                 url="chrome://communicator/content/pref/pref-navigator.xul">
-
         <treechildren id="navigatorChildren">
           <treeitem id="historyItem"
                     label="&history.label;"
@@ -158,11 +157,12 @@
         </treechildren>
       </treeitem>
 
-      <!-- Security and Privacy items -->
+      <!-- Privacy & Security items -->
       <treeitem container="true"
                 id="securityItem"
                 prefpane="security_pane"
                 label="&security.label;"
+                helpTopic="sec_gen"
                 url="chrome://communicator/content/pref/pref-security.xul">
         <treechildren id="securityChildren">
           <treeitem id="cookiesItem"
