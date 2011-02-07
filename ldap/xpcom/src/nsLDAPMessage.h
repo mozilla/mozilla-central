@@ -1,5 +1,5 @@
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * 
+ *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -56,12 +56,9 @@ class nsLDAPMessage : public nsILDAPMessage
 {
     friend class nsLDAPOperation;
     friend class nsLDAPConnection;
-    friend class nsLDAPConnectionLoop;
-    friend PRBool CheckLDAPOperationResult(nsHashKey *aKey,
-                                           void *aData,
-                                           void* aClosure);
+    friend class nsLDAPConnectionRunnable;
 
-  public:       
+  public:
 
     NS_DECL_ISUPPORTS
     NS_DECL_NSILDAPMESSAGE
@@ -72,22 +69,22 @@ class nsLDAPMessage : public nsILDAPMessage
     virtual ~nsLDAPMessage();
 
   protected:
-    nsresult IterateAttrErrHandler(PRInt32 aLderrno, PRUint32 *aAttrCount, 
+    nsresult IterateAttrErrHandler(PRInt32 aLderrno, PRUint32 *aAttrCount,
                             char** *aAttributes, BerElement *position);
-    nsresult IterateAttributes(PRUint32 *aAttrCount, char** *aAttributes, 
+    nsresult IterateAttributes(PRUint32 *aAttrCount, char** *aAttributes,
                               PRBool getP);
-    nsresult Init(nsILDAPConnection *aConnection, 
+    nsresult Init(nsILDAPConnection *aConnection,
                   LDAPMessage *aMsgHandle);
     LDAPMessage *mMsgHandle; // the message we're wrapping
     nsCOMPtr<nsILDAPOperation> mOperation;  // operation this msg relates to
 
     LDAP *mConnectionHandle; // cached connection this op is on
 
-    // since we're caching the connection handle (above), we need to 
+    // since we're caching the connection handle (above), we need to
     // hold an owning ref to the relevant nsLDAPConnection object as long
     // as we're around
     //
-    nsCOMPtr<nsILDAPConnection> mConnection; 
+    nsCOMPtr<nsILDAPConnection> mConnection;
 
     // the next five member vars are returned by ldap_parse_result()
     //

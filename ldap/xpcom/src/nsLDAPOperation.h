@@ -48,6 +48,7 @@
 #include "nsILDAPMessageListener.h"
 #include "nsString.h"
 #include "nsIMutableArray.h"
+#include "nsLDAPConnection.h"
 
 // 97a479d0-9a44-47c6-a17a-87f9b00294bb
 #define NS_LDAPOPERATION_CID \
@@ -121,7 +122,7 @@ class nsLDAPOperation : public nsILDAPOperation
 
     nsCOMPtr<nsILDAPMessageListener> mMessageListener; // results go here
     nsCOMPtr<nsISupports> mClosure;  // private parameter (anything caller desires)
-    nsCOMPtr<nsILDAPConnection> mConnection; // connection this op is on
+    nsRefPtr<nsLDAPConnection> mConnection; // connection this op is on
 
     LDAP *mConnectionHandle; // cache connection handle
     nsCString mSavePassword;

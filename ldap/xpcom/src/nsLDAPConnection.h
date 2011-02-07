@@ -1,5 +1,5 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * 
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+ *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -48,13 +48,16 @@
 #include "nsIRunnable.h"
 #include "nsCOMPtr.h"
 #include "nsILDAPMessageListener.h"
-#include "nsHashtable.h"
+#include "nsInterfaceHashtable.h"
 #include "nspr.h"
 #include "nsWeakReference.h"
 #include "nsWeakPtr.h"
 #include "nsIDNSListener.h"
 #include "nsICancelable.h"
 #include "nsIRequest.h"
+#include "nsCOMArray.h"
+#include "nsIObserver.h"
+#include "nsAutoPtr.h"
 
 // 0d871e30-1dd2-11b2-8ea9-831778c78e93
 //
@@ -62,24 +65,21 @@
 { 0x0d871e30, 0x1dd2, 0x11b2, \
  { 0x8e, 0xa9, 0x83, 0x17, 0x78, 0xc7, 0x8e, 0x93 }}
 
-class nsLDAPConnectionLoop;
-
 class nsLDAPConnection : public nsILDAPConnection,
                          public nsSupportsWeakReference,
-                         public nsIDNSListener
+                         public nsIDNSListener,
+                         public nsIObserver
 
 {
     friend class nsLDAPOperation;
     friend class nsLDAPMessage;
-    friend class nsLDAPConnectionLoop;
-    friend PRBool CheckLDAPOperationResult(nsHashKey *aKey,
-                                           void *aData,
-                                           void* aClosure);
+    friend class nsLDAPConnectionRunnable;
 
   public:
     NS_DECL_ISUPPORTS
     NS_DECL_NSILDAPCONNECTION
     NS_DECL_NSIDNSLISTENER
+    NS_DECL_NSIOBSERVER
 
     // constructor & destructor
     //
@@ -87,13 +87,14 @@ class nsLDAPConnection : public nsILDAPConnection,
     virtual ~nsLDAPConnection();
 
   protected:
-    // invoke the callback associated with a given message, and possibly 
+    // invoke the callback associated with a given message, and possibly
     // delete it from the connection queue
     //
-    nsresult InvokeMessageCallback(LDAPMessage *aMsgHandle, 
+    nsresult InvokeMessageCallback(LDAPMessage *aMsgHandle,
                                    nsILDAPMessage *aMsg,
+                                   PRInt32 aOperation,
                                    PRBool aRemoveOpFromConnQ);
-    /** 
+    /**
      * Add an nsILDAPOperation to the list of operations pending on
      * this connection.  This is mainly intended for use by the
      * nsLDAPOperation code.  Used so that the thread waiting on messages
@@ -105,7 +106,7 @@ class nsLDAPConnection : public nsILDAPConnection,
      *                                      unique to this connection
      * @exception NS_ERROR_OUT_OF_MEMORY    out of memory
      */
-    nsresult AddPendingOperation(nsILDAPOperation *aOperation);
+  nsresult AddPendingOperation(PRUint32 aOperationID, nsILDAPOperation *aOperation);
 
     /**
      * Remove an nsILDAPOperation from the list of operations pending on this
@@ -114,17 +115,16 @@ class nsLDAPConnection : public nsILDAPConnection,
      * @param aOperation        operation to add
      * @exception NS_ERROR_INVALID_POINTER  aOperation was NULL
      * @exception NS_ERROR_OUT_OF_MEMORY    out of memory
-     * @exception NS_ERROR_FAILURE          could not delete the operation 
+     * @exception NS_ERROR_FAILURE          could not delete the operation
      */
-    nsresult RemovePendingOperation(nsILDAPOperation *aOperation);
+    nsresult RemovePendingOperation(PRUint32 aOperationID);
 
     void Close();                       // close the connection
     LDAP *mConnectionHandle;            // the LDAP C SDK's connection object
     nsCString mBindName;                // who to bind as
     nsCOMPtr<nsIThread> mThread;        // thread which marshals results
 
-    nsSupportsHashtable *mPendingOperations; // keep these around for callbacks
-    nsLDAPConnectionLoop *mRunnable;    // nsIRunnable object
+    nsInterfaceHashtableMT<nsUint32HashKey, nsILDAPOperation> mPendingOperations;
 
     PRInt32 mPort;                      // The LDAP port we're binding to
     PRBool mSSL;                        // the options
@@ -137,30 +137,22 @@ class nsLDAPConnection : public nsILDAPConnection,
     nsCOMPtr<nsISupports> mClosure;     // private parameter (anything caller desires)
 };
 
-// This class implements the nsIRunnable interface, in this case just a
-// Run() method. This is to be used within the nsLDAPConnection only, when
-// creating a new thread.
-//
-class nsLDAPConnectionLoop : public nsIRunnable
+class nsLDAPConnectionRunnable : public nsIRunnable
 {
-    friend class nsLDAPConnection;
-    friend class nsLDAPMessage;
+  friend class nsLDAPConnection;
+  friend class nsLDAPMessage;
 
-  public:
-    NS_DECL_ISUPPORTS
-    NS_DECL_NSIRUNNABLE
+public:
+  nsLDAPConnectionRunnable(PRInt32 aOperationID,
+                           nsILDAPOperation *aOperation,
+                           nsLDAPConnection *aConnection);
+  virtual ~nsLDAPConnectionRunnable();
 
-    // constructor & destructor
-    //
-    nsLDAPConnectionLoop();
-    virtual ~nsLDAPConnectionLoop();
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIRUNNABLE
 
-    NS_IMETHOD Init();
-
-    nsWeakPtr mWeakConn;        // the connection object, a weak reference
-    nsLDAPConnection *mRawConn; // raw version of the connection object ptr
-    PRLock *mLock;              // Lock mechanism, since weak references
-                                // aren't thread safe
+  PRInt32 mOperationID;
+  nsRefPtr<nsLDAPConnection> mConnection;
 };
 
-#endif // _nsLDAPConnection_h_ 
+#endif // _nsLDAPConnection_h_

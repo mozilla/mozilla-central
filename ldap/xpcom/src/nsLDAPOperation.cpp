@@ -1,5 +1,5 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
- * 
+ *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -41,7 +41,6 @@
 #include "nsLDAPInternal.h"
 #include "nsLDAPOperation.h"
 #include "nsLDAPBERValue.h"
-#include "nsLDAPConnection.h"
 #include "nsILDAPMessage.h"
 #include "nsILDAPModification.h"
 #include "nsIComponentManager.h"
@@ -114,10 +113,10 @@ NS_INTERFACE_MAP_END_THREADSAFE
 NS_IMPL_CI_INTERFACE_GETTER1(nsLDAPOperation, nsILDAPOperation)
 
 /**
- * Initializes this operation.  Must be called prior to use. 
+ * Initializes this operation.  Must be called prior to use.
  *
  * @param aConnection connection this operation should use
- * @param aMessageListener where are the results are called back to. 
+ * @param aMessageListener where are the results are called back to.
  */
 NS_IMETHODIMP
 nsLDAPOperation::Init(nsILDAPConnection *aConnection,
@@ -135,14 +134,14 @@ nsLDAPOperation::Init(nsILDAPConnection *aConnection,
 
     // set the member vars
     //
-    mConnection = aConnection;
+    mConnection = static_cast<nsLDAPConnection*>(aConnection);
     mMessageListener = aMessageListener;
     mClosure = aClosure;
 
     // cache the connection handle
     //
-    mConnectionHandle = 
-        static_cast<nsLDAPConnection *>(aConnection)->mConnectionHandle;
+    mConnectionHandle =
+        mConnection->mConnectionHandle;
 
     return NS_OK;
 }
@@ -199,8 +198,8 @@ nsLDAPOperation::GetMessageListener(nsILDAPMessageListener **aMessageListener)
 }
 
 NS_IMETHODIMP
-nsLDAPOperation::SaslBind(const nsACString &service, 
-                          const nsACString &mechanism, 
+nsLDAPOperation::SaslBind(const nsACString &service,
+                          const nsACString &mechanism,
                           nsIAuthModule *authModule)
 {
   nsresult rv;
@@ -215,11 +214,11 @@ nsLDAPOperation::SaslBind(const nsACString &service,
   NS_ENSURE_SUCCESS(rv, rv);
 
   creds.bv_val = NULL;
-  mAuthModule->Init(PromiseFlatCString(service).get(), 
-                    nsIAuthModule::REQ_DEFAULT, nsnull, 
+  mAuthModule->Init(PromiseFlatCString(service).get(),
+                    nsIAuthModule::REQ_DEFAULT, nsnull,
                     NS_ConvertUTF8toUTF16(bindName).get(), nsnull);
 
-  rv = mAuthModule->GetNextToken(nsnull, 0, (void **)&creds.bv_val, 
+  rv = mAuthModule->GetNextToken(nsnull, 0, (void **)&creds.bv_val,
                                  &credlen);
   if (NS_FAILED(rv) || !creds.bv_val)
     return rv;
@@ -232,12 +231,10 @@ nsLDAPOperation::SaslBind(const nsACString &service,
 
   if (lderrno != LDAP_SUCCESS)
     return TranslateLDAPErrorToNSError(lderrno);
-  
+
   // make sure the connection knows where to call back once the messages
   // for this operation start coming in
-  rv = static_cast<nsLDAPConnection *>
-       (static_cast<nsILDAPConnection *>(mConnection.get()))
-       ->AddPendingOperation(this);
+  rv = mConnection->AddPendingOperation(mMsgID, this);
 
   if (NS_FAILED(rv))
     (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
@@ -254,9 +251,7 @@ nsLDAPOperation::SaslStep(const char *token, PRUint32 tokenLen)
   struct berval serverCreds;
   unsigned int credlen;
 
-  rv = static_cast<nsLDAPConnection *>
-       (static_cast<nsILDAPConnection *>(mConnection.get()))
-       ->RemovePendingOperation(this);
+  rv = mConnection->RemovePendingOperation(mMsgID);
   NS_ENSURE_SUCCESS(rv, rv);
 
   serverCreds.bv_val = (char *) token;
@@ -265,14 +260,14 @@ nsLDAPOperation::SaslStep(const char *token, PRUint32 tokenLen)
   rv = mConnection->GetBindName(bindName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = mAuthModule->GetNextToken(serverCreds.bv_val, serverCreds.bv_len, 
+  rv = mAuthModule->GetNextToken(serverCreds.bv_val, serverCreds.bv_len,
                                  (void **) &clientCreds.bv_val, &credlen);
   NS_ENSURE_SUCCESS(rv, rv);
 
   clientCreds.bv_len = credlen;
 
-  const int lderrno = ldap_sasl_bind(mConnectionHandle, bindName.get(), 
-                                     mMechanism.get(), &clientCreds, NULL, 
+  const int lderrno = ldap_sasl_bind(mConnectionHandle, bindName.get(),
+                                     mMechanism.get(), &clientCreds, NULL,
                                      NULL, &mMsgID);
 
   nsMemory::Free(clientCreds.bv_val);
@@ -282,10 +277,8 @@ nsLDAPOperation::SaslStep(const char *token, PRUint32 tokenLen)
 
   // make sure the connection knows where to call back once the messages
   // for this operation start coming in
-  rv = static_cast<nsLDAPConnection *>
-       (static_cast<nsILDAPConnection *>(mConnection.get()))
-       ->AddPendingOperation(this);
-  if (NS_FAILED(rv)) 
+  rv = mConnection->AddPendingOperation(mMsgID, this);
+  if (NS_FAILED(rv))
     (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
 
   return rv;
@@ -302,7 +295,7 @@ nsLDAPOperation::SimpleBind(const nsACString& passwd)
     PRBool originalMsgID = mMsgID;
     // Ugly hack alert:
     // the first time we get called with a passwd, remember it.
-    // Then, if we get called again w/o a password, use the 
+    // Then, if we get called again w/o a password, use the
     // saved one. Getting called again means we're trying to
     // fall back to VERSION2.
     // Since LDAP operations are thrown away when done, it won't stay
@@ -316,14 +309,14 @@ nsLDAPOperation::SimpleBind(const nsACString& passwd)
     if (NS_FAILED(rv))
         return rv;
 
-    PR_LOG(gLDAPLogModule, PR_LOG_DEBUG, 
+    PR_LOG(gLDAPLogModule, PR_LOG_DEBUG,
            ("nsLDAPOperation::SimpleBind(): called; bindName = '%s'; ",
             bindName.get()));
 
     // If this is a second try at binding, remove the operation from pending ops
     // because msg id has changed...
     if (originalMsgID)
-      static_cast<nsLDAPConnection *>(static_cast<nsILDAPConnection *>(mConnection.get()))->RemovePendingOperation(this);
+      mConnection->RemovePendingOperation(originalMsgID);
 
     mMsgID = ldap_simple_bind(mConnectionHandle, bindName.get(),
                               PromiseFlatCString(mSavePassword).get());
@@ -332,16 +325,16 @@ nsLDAPOperation::SimpleBind(const nsACString& passwd)
       // XXX Should NS_ERROR_LDAP_SERVER_DOWN cause a rebind here?
       return TranslateLDAPErrorToNSError(ldap_get_lderrno(mConnectionHandle,
                                                           0, 0));
-    } 
-  
+    }
+
     // make sure the connection knows where to call back once the messages
     // for this operation start coming in
-    rv = static_cast<nsLDAPConnection *>(static_cast<nsILDAPConnection *>(mConnection.get()))->AddPendingOperation(this);
+    rv = mConnection->AddPendingOperation(mMsgID, this);
     switch (rv) {
     case NS_OK:
         break;
 
-        // note that the return value of ldap_abandon_ext() is ignored, as 
+        // note that the return value of ldap_abandon_ext() is ignored, as
         // there's nothing useful to do with it
 
     case NS_ERROR_OUT_OF_MEMORY:
@@ -381,7 +374,7 @@ convertControlArray(nsIArray *aXpcomArray, LDAPControl ***aArray)
     // +1 is to account for the final null terminator.  PR_Calloc is
     // is used so that ldap_controls_free will work anywhere during the
     // iteration
-    LDAPControl **controls = 
+    LDAPControl **controls =
         static_cast<LDAPControl **>
                    (PR_Calloc(length+1, sizeof(LDAPControl)));
 
@@ -434,10 +427,10 @@ convertControlArray(nsIArray *aXpcomArray, LDAPControl ***aArray)
 }
 
 NS_IMETHODIMP
-nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope, 
-                           const nsACString& aFilter, 
+nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
+                           const nsACString& aFilter,
                            PRUint32 aAttrCount, const char **aAttributes,
-                           PRIntervalTime aTimeOut, PRInt32 aSizeLimit) 
+                           PRIntervalTime aTimeOut, PRInt32 aSizeLimit)
 {
     if (!mMessageListener) {
         NS_ERROR("nsLDAPOperation::SearchExt(): mMessageListener not set");
@@ -445,9 +438,9 @@ nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
     }
 
     // XXX add control logging
-    PR_LOG(gLDAPLogModule, PR_LOG_DEBUG, 
+    PR_LOG(gLDAPLogModule, PR_LOG_DEBUG,
            ("nsLDAPOperation::SearchExt(): called with aBaseDn = '%s'; "
-            "aFilter = '%s', aAttrCounts = %u, aSizeLimit = %d", 
+            "aFilter = '%s', aAttrCounts = %u, aSizeLimit = %d",
             PromiseFlatCString(aBaseDn).get(),
             PromiseFlatCString(aFilter).get(),
             aAttrCount, aSizeLimit));
@@ -501,14 +494,14 @@ nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
     }
 
     // XXX deal with timeout here
-    int retVal = ldap_search_ext(mConnectionHandle, 
+    int retVal = ldap_search_ext(mConnectionHandle,
                                  PromiseFlatCString(aBaseDn).get(),
-                                 aScope, PromiseFlatCString(aFilter).get(), 
+                                 aScope, PromiseFlatCString(aFilter).get(),
                                  attrs, 0, serverctls, clientctls, 0,
                                  aSizeLimit, &mMsgID);
 
     // clean up
-    ldap_controls_free(serverctls);        
+    ldap_controls_free(serverctls);
     ldap_controls_free(clientctls);
     if (attrs) {
         nsMemory::Free(attrs);
@@ -520,14 +513,14 @@ nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
     // make sure the connection knows where to call back once the messages
     // for this operation start coming in
     //
-    rv = static_cast<nsLDAPConnection *>(static_cast<nsILDAPConnection *>(mConnection.get()))->AddPendingOperation(this);
+    rv = mConnection->AddPendingOperation(mMsgID, this);
     if (NS_FAILED(rv)) {
         switch (rv) {
-        case NS_ERROR_OUT_OF_MEMORY: 
+        case NS_ERROR_OUT_OF_MEMORY:
             (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
             return NS_ERROR_OUT_OF_MEMORY;
 
-        default: 
+        default:
             (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
             NS_ERROR("nsLDAPOperation::SearchExt(): unexpected error in "
                      "mConnection->AddPendingOperation");
@@ -546,7 +539,7 @@ nsLDAPOperation::GetMessageID(PRInt32 *aMsgID)
     }
 
     *aMsgID = mMsgID;
-   
+
     return NS_OK;
 }
 
@@ -576,21 +569,21 @@ nsLDAPOperation::AbandonExt()
 
     // try to remove it from the pendingOperations queue, if it's there.
     // even if something goes wrong here, the abandon() has already succeeded
-    // succeeded (and there's nothing else the caller can reasonably do), 
+    // succeeded (and there's nothing else the caller can reasonably do),
     // so we only pay attention to this in debug builds.
     //
-    // check mConnection in case we're getting bit by 
-    // http://bugzilla.mozilla.org/show_bug.cgi?id=239729, wherein we 
+    // check mConnection in case we're getting bit by
+    // http://bugzilla.mozilla.org/show_bug.cgi?id=239729, wherein we
     // theorize that ::Clearing the operation is nulling out the mConnection
     // from another thread.
     if (mConnection)
     {
-      rv = static_cast<nsLDAPConnection *>(static_cast<nsILDAPConnection *>(mConnection.get()))->RemovePendingOperation(this);
+      rv = mConnection->RemovePendingOperation(mMsgID);
 
       if (NS_FAILED(rv)) {
-          // XXXdmose should we keep AbandonExt from happening on multiple 
-          // threads at the same time?  that's when this condition is most 
-          // likely to occur.  i _think_ the LDAP C SDK is ok with this; need 
+          // XXXdmose should we keep AbandonExt from happening on multiple
+          // threads at the same time?  that's when this condition is most
+          // likely to occur.  i _think_ the LDAP C SDK is ok with this; need
           // to verify.
           //
           NS_WARNING("nsLDAPOperation::AbandonExt: "
@@ -731,8 +724,7 @@ nsLDAPOperation::AddExt(const nsACString& aBaseDn,
 
   // make sure the connection knows where to call back once the messages
   // for this operation start coming in
-  rv = static_cast<nsLDAPConnection *>(static_cast<nsILDAPConnection *>
-                              (mConnection.get()))->AddPendingOperation(this);
+  rv = mConnection->AddPendingOperation(mMsgID, this);
 
   if (NS_FAILED(rv)) {
     (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
@@ -782,9 +774,7 @@ nsLDAPOperation::DeleteExt(const nsACString& aBaseDn)
 
   // make sure the connection knows where to call back once the messages
   // for this operation start coming in
-  rv = static_cast<nsLDAPConnection *>
-                  (static_cast<nsILDAPConnection *>
-                              (mConnection.get()))->AddPendingOperation(this);
+  rv = mConnection->AddPendingOperation(mMsgID, this);
 
   if (NS_FAILED(rv)) {
     (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
@@ -831,12 +821,12 @@ nsLDAPOperation::ModifyExt(const char *base,
       nsCOMPtr<nsILDAPModification> modif(do_QueryElementAt(mods, index, &rv));
       if (NS_FAILED(rv))
         break;
-      
+
       PRInt32 operation;
       nsresult rv = modif->GetOperation(&operation);
       if (NS_FAILED(rv))
         break;
-      
+
       attrs[index]->mod_op = operation | LDAP_MOD_BVALUES;
 
       rv = modif->GetType(type);
@@ -897,9 +887,7 @@ nsLDAPOperation::ModifyExt(const nsACString& aBaseDn,
 
   // make sure the connection knows where to call back once the messages
   // for this operation start coming in
-  rv = static_cast<nsLDAPConnection *>
-                  (static_cast<nsILDAPConnection *>
-                              (mConnection.get()))->AddPendingOperation(this);
+  rv = mConnection->AddPendingOperation(mMsgID, this);
 
   if (NS_FAILED(rv)) {
     (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
@@ -962,9 +950,7 @@ nsLDAPOperation::Rename(const nsACString& aBaseDn,
 
   // make sure the connection knows where to call back once the messages
   // for this operation start coming in
-  rv = static_cast<nsLDAPConnection *>
-                  (static_cast<nsILDAPConnection *>
-                              (mConnection.get()))->AddPendingOperation(this);
+  rv = mConnection->AddPendingOperation(mMsgID, this);
 
   if (NS_FAILED(rv)) {
     (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
@@ -1002,7 +988,7 @@ nsLDAPOperation::CopyValues(nsILDAPModification* aMod, berval*** aBValues)
 
     berval* bval = new berval;
     if (NS_FAILED(rv) || !bval) {
-      for (PRUint32 counter = 0; 
+      for (PRUint32 counter = 0;
            counter < valueIndex && counter < valuesCount;
            ++counter)
         delete (*aBValues)[valueIndex];
