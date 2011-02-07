@@ -316,8 +316,7 @@
            oncommand="goDoCommand('cmd_selectAll')"
            disabled="true"/>
   <command id="cmd_switchTextDirection"
-           oncommand="goDoCommand('cmd_switchTextDirection');"
-           disabled="true"/>
+           oncommand="goDoCommand('cmd_switchTextDirection');"/>
   <command id="cmd_findTypeText" 
            oncommand="findTextAsYouType();"/>
   <command id="cmd_findTypeLinks" 
