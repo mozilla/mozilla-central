@@ -703,6 +703,8 @@ function goUpdateGlobalEditMenuItems()
   goUpdateCommand('cmd_paste');
   goUpdateCommand('cmd_selectAll');
   goUpdateCommand('cmd_delete');
+  if (gShowBiDi)
+    goUpdateCommand('cmd_switchTextDirection');
 }
 
 // update menu items that rely on the current selection
