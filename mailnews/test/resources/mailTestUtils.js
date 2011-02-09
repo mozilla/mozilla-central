@@ -47,14 +47,21 @@ Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource:///modules/IOUtils.js");
 // JS ctypes, needed for a few native functions
 Components.utils.import("resource://gre/modules/ctypes.jsm");
+// MailServices
+Components.utils.import("resource:///modules/mailServices.js");
 
 // Local Mail Folders. Requires prior setup of profile directory
 
 var gLocalIncomingServer;
 var gLocalInboxFolder;
+var _localAccountInitialized = false;
 
 function loadLocalMailAccount()
 {
+  // This function is idempotent
+  if (_localAccountInitialized)
+    return;
+  
   var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
                   .getService(Ci.nsIMsgAccountManager);
   acctMgr.createLocalMailAccount();
@@ -71,6 +78,44 @@ function loadLocalMailAccount()
 
   // Force an initialization of the Inbox folder database.
   var folderName = gLocalInboxFolder.prettiestName;
+
+  _localAccountInitialized = true;
+}
+
+/**
+ * Create an nsIMsgIncomingServer and an nsIMsgAccount to go with it.
+ *
+ * @param aType The type of the server (pop3, imap etc).
+ * @param aPort The port the server is on.
+ * @param aUsername The username for the server.
+ * @param aPassword The password for the server.
+ * @returns The newly-created nsIMsgIncomingServer.
+ */
+function create_incoming_server(aType, aPort, aUsername, aPassword) {
+  let server = MailServices.accounts.createIncomingServer(aUsername, "localhost",
+                                                          aType);
+  server.port = aPort;
+  if (aUsername != null)
+    server.username = aUsername;
+  if (aPassword != null)
+    server.password = aPassword;
+
+  server.valid = false;
+
+  let account = MailServices.accounts.createAccount();
+  account.incomingServer = server;
+  if (aType == "pop3") {
+    // Several tests expect that mail is deferred to the local folders account,
+    // so do that.
+    loadLocalMailAccount();
+    let localAccount = MailServices.accounts.FindAccountForServer(
+      gLocalIncomingServer);
+    server.QueryInterface(Ci.nsIPop3IncomingServer);
+    server.deferredToAccount = localAccount.key;
+  }
+  server.valid = true;
+
+  return server;
 }
 
 /**
@@ -500,6 +545,17 @@ function updateFolderAndNotify(aFolder, aCallback, aCallbackThis,
 
   if (!aSomeoneElseWillTriggerTheUpdate)
     aFolder.updateFolder(null);
+}
+
+/**
+ * For when you want to compare elements non-strictly.
+ */
+function non_strict_index_of(aArray, aElem) {
+  for (let [i, elem] in Iterator(aArray)) {
+    if (elem == aElem)
+      return i;
+  }
+  return -1;
 }
 
 } // gMailTestUtils_js__

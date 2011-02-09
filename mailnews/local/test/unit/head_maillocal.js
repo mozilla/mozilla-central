@@ -24,16 +24,8 @@ function setupServerDaemon(debugOption) {
 
 function createPop3ServerAndLocalFolders() {
   loadLocalMailAccount();
-
-  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-
-  var incoming = acctMgr.createIncomingServer("fred", "localhost", "pop3");
-
-  incoming.port = POP3_PORT;
-  incoming.password = "wilma";
-
-  return incoming;
+  let server = create_incoming_server("pop3", POP3_PORT, "fred", "wilma");
+  return server;
 }
 
 function do_check_transaction(real, expected) {

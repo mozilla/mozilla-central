@@ -4,6 +4,7 @@ load("../../../fakeserver/nntpd.js");
 
 // Generic mailnews resource scripts
 load("../../../resources/mailDirService.js");
+load("../../../resources/mailTestUtils.js");
 
 const kSimpleNewsArticle =
   "From: John Doe <john.doe@example.com>\n"+
@@ -94,17 +95,7 @@ function subscribeServer(incomingServer) {
 function setupLocalServer(port) {
   if (_server != null)
     return _server;
-  var acctmgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-
-  var server = acctmgr.createIncomingServer(null, "localhost", "nntp");
-  server.port = port;
-  server.valid = false;
-
-  var account = acctmgr.createAccount();
-  account.incomingServer = server;
-  server.valid = true;
-
+  let server = create_incoming_server("nntp", port, null, null);
   subscribeServer(server);
 
   _server = server;

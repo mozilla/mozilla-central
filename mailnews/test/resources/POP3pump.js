@@ -27,6 +27,9 @@ if (typeof AuthPLAIN == 'undefined')
 if (typeof pop3Daemon == 'undefined')
   load(gDEPTH + "mailnews/fakeserver/pop3d.js");
 
+// Add mailTestUtils for create_incoming_server
+load(gDEPTH + "mailnews/resources/mailTestUtils.js");
+
 function POP3Pump()
 {
   // public attributes
@@ -91,16 +94,9 @@ POP3Pump.prototype._createPop3ServerAndLocalFolders =
     loadLocalMailAccount();
 
   if (!this.fakeServer)
-  {
-    let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                    .getService(Ci.nsIMsgAccountManager);
+    this.fakeServer = create_incoming_server("pop3", this.kPOP3_PORT,
+                                             "fred", "wilma");
 
-    let incoming = acctMgr.createIncomingServer("fred", "localhost", "pop3");
-
-    incoming.port = this.kPOP3_PORT;
-    incoming.password = "wilma";
-    this.fakeServer = incoming;
-  }
   return this.fakeServer;
 };
 

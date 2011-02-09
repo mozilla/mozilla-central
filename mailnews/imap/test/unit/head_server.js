@@ -33,19 +33,7 @@ function makeServer(daemon, infoString) {
 }
 
 function createLocalIMAPServer() {
-  var acctmgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-
-  var server = acctmgr.createIncomingServer("user", "localhost", "imap");
-  server.port = IMAP_PORT;
-  server.username = "user";
-  server.password = "password";
-  server.valid = false;
-
-  var account = acctmgr.createAccount();
-  account.incomingServer = server;
-  server.valid = true;
-
+  let server = create_incoming_server("imap", IMAP_PORT, "user", "password");
   server.QueryInterface(Ci.nsIImapIncomingServer);
   return server;
 }

@@ -61,6 +61,9 @@ if (typeof AuthPLAIN == "undefined")
 if (typeof imapDaemon == "undefined")
   load(gDEPTH + "mailnews/fakeserver/imapd.js");
 
+// Add mailTestUtils for create_incoming_server
+load(gDEPTH + "mailnews/resources/mailTestUtils.js");
+
 // define globals
 var gIMAPDaemon;         // the imap fake server daemon
 var gIMAPServer;         // the imap fake server
@@ -95,19 +98,7 @@ function setupIMAPPump()
   }
 
   function createLocalIMAPServer() {
-    var acctmgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                    .getService(Ci.nsIMsgAccountManager);
-
-    var server = acctmgr.createIncomingServer("user", "localhost", "imap");
-    server.port = IMAP_PORT;
-    server.username = "user";
-    server.password = "password";
-    server.valid = false;
-
-    var account = acctmgr.createAccount();
-    account.incomingServer = server;
-    server.valid = true;
-
+    let server = create_incoming_server("imap", IMAP_PORT, "user", "password");
     server.QueryInterface(Ci.nsIImapIncomingServer);
     return server;
   }
