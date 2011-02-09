@@ -81,8 +81,17 @@ repack-clobber-all:
 
 # This target should not be called directly
 repack-clobber: repack-clobber-all
-	rm $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/lightning-en-US.jar
-	rm $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/calendar-en-US.jar
+	echo FORMAT IS: $(MOZ_CHROME_FILE_FORMAT)
+ifeq ($(MOZ_CHROME_FILE_FORMAT),flat)
+	rm -rf $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/lightning-en-US/
+	rm -rf $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/calendar-en-US/
+else ifeq ($(MOZ_CHROME_FILE_FORMAT),jar)
+	rm -rf $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/lightning-en-US.jar
+	rm -rf $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/calendar-en-US.jar
+else
+	@echo "ERROR: Unhandled chrome file format: $(MOZ_CHROME_FILE_FORMAT)"
+	@exit 1
+endif
 
 # Repack the existing lightning to contain all locales in lightning-all.xpi
 repack-l10n-all: AB_CD=all
