@@ -335,12 +335,8 @@ var PlacesCommandHook = {
     if (aBrowser.contentWindow == window.content) {
       let ubIcons = aBrowser.ownerDocument.getElementById("urlbar-icons");
       if (ubIcons) {
-        // Make sure the bookmark properties dialog hangs toward the middle of
-        // the location bar in RTL builds
-        let position = (getComputedStyle(gNavToolbox, "").direction == "rtl") ?
-          'bottomcenter topleft' : 'bottomcenter topright';
         if (aShowEditUI)
-          StarUI.showEditBookmarkPopup(itemId, ubIcons, position);
+          StarUI.showEditBookmarkPopup(itemId, ubIcons, "bottomcenter topright");
         return;
       }
     }
