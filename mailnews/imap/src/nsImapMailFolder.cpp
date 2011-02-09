@@ -139,8 +139,6 @@ static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kParseMailMsgStateCID, NS_PARSEMAILMSGSTATE_CID);
 static NS_DEFINE_CID(kCImapHostSessionList, NS_IIMAPHOSTSESSIONLIST_CID);
 
-nsIAtom* nsImapMailFolder::mImapHdrDownloadedAtom = nsnull;
-
 extern PRLogModuleInfo *gAutoSyncLog;
 extern PRLogModuleInfo* IMAP;
 
@@ -216,7 +214,6 @@ nsresult RecursiveCopy(nsIFile* srcDir, nsIFile* destDir)
 
 nsImapMailFolder::nsImapMailFolder() :
     m_initialized(PR_FALSE),m_haveDiscoveredAllFolders(PR_FALSE),
-    m_haveReadNameFromDB(PR_FALSE),
     m_curMsgUid(0), m_nextMessageByteLength(0),
     m_urlRunning(PR_FALSE),
     m_verifiedAsOnlineFolder(PR_FALSE),
@@ -239,16 +236,10 @@ nsImapMailFolder::nsImapMailFolder() :
 {
   MOZ_COUNT_CTOR(nsImapMailFolder); // double count these for now.
 
-  if (mImapHdrDownloadedAtom == nsnull)
-    mImapHdrDownloadedAtom = MsgNewAtom("ImapHdrDownloaded");
-  m_appendMsgMonitor = nsnull;  // since we're not using this (yet?) make it null.
-  // if we do start using it, it should be created lazily
-
   m_thread = do_GetCurrentThread();
   m_moveCoalescer = nsnull;
   m_boxFlags = 0;
   m_uidValidity = kUidUnknown;
-  m_highestModSeq = 0;
   m_numServerRecentMessages = 0;
   m_numServerUnseenMessages = 0;
   m_numServerTotalMessages = 0;
@@ -264,12 +255,7 @@ nsImapMailFolder::nsImapMailFolder() :
 nsImapMailFolder::~nsImapMailFolder()
 {
   MOZ_COUNT_DTOR(nsImapMailFolder);
-  if (m_appendMsgMonitor)
-      PR_DestroyMonitor(m_appendMsgMonitor);
 
-  // I think our destructor gets called before the base class...
-  if (mInstanceCount == 1)
-    NS_IF_RELEASE(mImapHdrDownloadedAtom);
   NS_IF_RELEASE(m_moveCoalescer);
   delete m_folderACL;
     

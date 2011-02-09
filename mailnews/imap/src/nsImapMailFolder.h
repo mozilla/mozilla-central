@@ -456,7 +456,6 @@ protected:
 
   PRBool m_initialized;
   PRBool m_haveDiscoveredAllFolders;
-  PRBool m_haveReadNameFromDB;
   nsCOMPtr<nsIMsgParseMailMsgState> m_msgParser;
   nsCOMPtr<nsIMsgFilterList> m_filterList;
   nsCOMPtr<nsIMsgFilterPlugin> m_filterPlugin;  // XXX should be a list
@@ -470,8 +469,6 @@ protected:
   nsCOMPtr<nsIMsgFolder> mSpamFolder;
   nsMsgKey m_curMsgUid;
   PRUint32 m_uidValidity;
-  // used for condstore support;
-  PRUint64 m_highestModSeq;
 
   // These three vars are used to store counts from STATUS or SELECT command
   // They include deleted messages, so they can differ from the generic
@@ -490,7 +487,6 @@ protected:
   // *** jt - undo move/copy trasaction support
   nsRefPtr<nsMsgTxn> m_pendingUndoTxn;
   nsCOMPtr<nsImapMailCopyState> m_copyState;
-  PRMonitor *m_appendMsgMonitor;
   char m_hierarchyDelimiter;
   PRInt32 m_boxFlags;
   nsCString m_onlineFolderName;
@@ -517,8 +513,6 @@ protected:
   nsMsgIMAPFolderACL *m_folderACL;
   PRUint32     m_aclFlags;
   PRUint32     m_supportedUserFlags;
-
-  static nsIAtom* mImapHdrDownloadedAtom;
 
   // offline imap support
   PRBool m_downloadingFolderForOfflineUse;
