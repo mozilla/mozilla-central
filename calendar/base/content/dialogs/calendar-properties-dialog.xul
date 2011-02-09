@@ -105,6 +105,22 @@
         <!-- XXX Make location field readonly until Bug 315307 is fixed -->
         <textbox id="calendar-uri" readonly="true" disable-with-calendar="true"/>
       </row>
+      <row id="calendar-refreshInterval-row" align="center">
+        <label value="&calendarproperties.refreshInterval.label;"
+               disable-with-calendar="true"
+               control="calendar-refreshInterval-textbox"/>
+        <menulist id="calendar-refreshInterval-menulist"
+                  disable-with-calendar="true"
+                  label="&calendarproperties.refreshInterval.label;">
+          <menupopup id="calendar-refreshInterval-menupopup">
+            <!-- This will be filled programatically to reduce the number of needed strings -->
+            <menuseparator id="calendar-refreshInterval-manual-separator"/>
+            <menuitem id="calendar-refreshInterval-manual"
+                      value="0"
+                      label="&calendarproperties.refreshInterval.manual.label;"/>
+          </menupopup>
+        </menulist>
+      </row>
       <row id="calendar-readOnly-row"
            align="center">
         <spacer/>

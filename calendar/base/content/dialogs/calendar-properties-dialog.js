@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
 
 /**
  * The calendar to modify, is retrieved from window.arguments[0].calendar
@@ -59,8 +60,10 @@ function onLoad() {
     document.getElementById("calendar-uri").value = gCalendar.uri.spec;
     document.getElementById("read-only").checked = gCalendar.readOnly;
 
+    // Set up refresh interval
+    initRefreshInterval();
 
-    // set up the cache field
+    // Set up the cache field
     var cacheBox = document.getElementById("cache");
     var canCache = (gCalendar.getProperty("cache.supported") !== false);
     if (!canCache) {
@@ -115,6 +118,12 @@ function onAcceptDialog() {
     // Save supressAlarms
     gCalendar.setProperty("suppressAlarms", !document.getElementById("fire-alarms").checked);
 
+    // Save refresh interval
+    if (gCalendar.canRefresh) {
+        let value = getElementValue("calendar-refreshInterval-menulist");
+        gCalendar.setProperty("refreshInterval", value);
+    }
+
     // Save cache options
     gCalendar.setProperty("cache.enabled", document.getElementById("cache").checked);
 
@@ -148,4 +157,49 @@ function unsubscribeCalendar() {
 
     calmgr.unregisterCalendar(gCalendar);
     window.close();
+}
+
+function initRefreshInterval() {
+    setBooleanAttribute("calendar-refreshInterval-row", "hidden", !gCalendar.canRefresh);
+
+    if (gCalendar.canRefresh) {
+        function createMenuItem(minutes) {
+            let menuitem = createXULElement("menuitem");
+            menuitem.setAttribute("value", minutes);
+
+            let everyMinuteString = cal.calGetString("calendar", "calendarPropertiesEveryMinute");
+            let label = PluralForm.get(minutes, everyMinuteString).replace("#1", minutes);
+            menuitem.setAttribute("label", label);
+
+            return menuitem;
+        }
+
+        let refreshInterval = gCalendar.getProperty("refreshInterval");
+        if (refreshInterval === null) refreshInterval = 30;
+
+        let foundValue = false;
+        let separator = document.getElementById("calendar-refreshInterval-manual-separator");
+        let menulist = document.getElementById("calendar-refreshInterval-menulist");
+        for each (let min in [1, 5, 15, 30, 60]) {
+            let menuitem = createMenuItem(min);
+
+            separator.parentNode.insertBefore(menuitem, separator);
+            if (refreshInterval == min) {
+                menulist.selectedItem = menuitem;
+                foundValue = true;
+            }
+        }
+
+        if (refreshInterval == 0) {
+            setBooleanAttribute("calendar-refreshInterval-manual", "checked", true);
+            foundValue = true;
+        }
+
+        if (!foundValue) {
+          // Special menuitem in case the user changed the value in the config editor.
+          let menuitem = createMenuItem(refreshInterval);
+          separator.parentNode.insertBefore(menuitem, separator.nextSibling);
+          menulist.selectedItem = menuitem;
+        }
+    }
 }

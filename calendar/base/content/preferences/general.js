@@ -61,16 +61,5 @@ var gCalendarGeneralPane = {
 
         // deselect and reselect to update visible item title
         updateSelectedLabel("dateformat");
-    },
-
-    /**
-     * Update disabled state of the controls that depend on the
-     * calendar.autorefresh.enabled preference.
-     */
-    autoRefreshPrefChanged: function gCGP_autoRefreshPrefChanged() {
-        var autoRefreshPref =
-            document.getElementById("calendar.autorefresh.enabled").value;
-        document.getElementById("calendar.autorefresh.timeout").disabled = 
-            !autoRefreshPref;
     }
 };

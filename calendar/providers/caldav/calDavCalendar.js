@@ -429,8 +429,6 @@ calDavCalendar.prototype = {
                 break;
             case "organizerCN":
                 return null; // xxx todo
-            case "cache.updateTimer":
-                return getPrefSafe("calendar.autorefresh.timeout");
             case "itip.transport":
                 if (this.hasAutoScheduling || this.hasScheduling) {
                     return this.QueryInterface(Components.interfaces.calIItipTransport);

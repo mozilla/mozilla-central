@@ -70,13 +70,6 @@
             <preference id="calendar.alarms.defaultsnoozelength"
                         name="calendar.alarms.defaultsnoozelength"
                         type="int"/>
-            <preference id="calendar.autorefresh.enabled"
-                        name="calendar.autorefresh.enabled"
-                        type="bool"
-                        onchange="gCalendarGeneralPane.autoRefreshPrefChanged();"/>
-            <preference id="calendar.autorefresh.timeout"
-                        name="calendar.autorefresh.timeout"
-                        type="int"/>
         </preferences>
 
         <groupbox>
@@ -125,23 +118,5 @@
             </hbox>
 
         </groupbox>
-
-        <groupbox>
-            <caption label="&pref.refreshbox.label;"/>
-            <hbox align="center">
-                <checkbox id="autorefreshenabled"
-                          label="&pref.autorefresh.label;"
-                          preference="calendar.autorefresh.enabled"
-                          accesskey="&pref.autorefresh.accesskey;"/>
-                <textbox id="refreshtimeout"
-                         preference="calendar.autorefresh.timeout"
-                         type="number"
-                         min="1"
-                         max="0x7FFFF"
-                         size="3"/>
-                <label value="&calendar.global.units.minutes;"/>
-            </hbox>
-        </groupbox>
-
     </vbox>
 </overlay>
