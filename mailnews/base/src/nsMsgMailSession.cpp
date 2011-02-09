@@ -729,7 +729,7 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
       // If the attempted quit was a restart, be sure to restart the app once
       // the tasks have been run. This is usually the case when addons or
       // updates are going to be installed.
-      if (nsDependentString(aData).EqualsLiteral("restart"))
+      if (aData && nsDependentString(aData).EqualsLiteral("restart"))
         mQuitMode |= nsIAppStartup::eRestart;
     }
 
