@@ -469,7 +469,7 @@ cal.itip = {
                 let args = {};
                 args.calendars = calendars;
                 args.onOk = function selectCalendar(aCal) { targetCalendar = aCal; };
-                args.promptText = calGetString("calendar", "importPrompt");
+                args.promptText = cal.calGetString("calendar", "importPrompt");
                 aWindow.openDialog("chrome://calendar/content/chooseCalendarDialog.xul",
                                    "_blank", "chrome,titlebar,modal,resizable", args);
             }
