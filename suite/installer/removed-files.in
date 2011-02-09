@@ -500,7 +500,7 @@ xpicleanup@BIN_SUFFIX@
   components/components.manifest
   defaults/profile/bookmarks.html
   defaults/profile/mimeTypes.rdf
-  defaults/profile/chrome
+  defaults/profile/chrome/
   defaults/profile/chrome/userChrome-example.css
   defaults/profile/chrome/userContent-example.css
   defaults/pref/suite-l10n.js
@@ -509,55 +509,55 @@ xpicleanup@BIN_SUFFIX@
   defaults/pref/mailnews.js
   defaults/pref/mdn.js
   defaults/pref/smime.js
-  defaults/autoconfig
+  defaults/autoconfig/
   defaults/autoconfig/platform.js
   defaults/autoconfig/prefcalls.js
-  extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}
-  extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome
+  extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/
+  extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/
   extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/chatzilla.jar
-  extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons
-  extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default
+  extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/
+  extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default/
   extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default/chatzilla-window.xpm
   extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default/chatzilla-window16.xpm
   extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default/chatzilla-window.ico
   extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome.manifest
-  extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/components
+  extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/components/
   extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/components/chatzilla-service.js
   extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/install.rdf
-  extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}
+  extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/
   extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/icon.png
   extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/install.rdf
   extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/preview.png
-  extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}
-  extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/chrome
+  extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/
+  extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/chrome/
   extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/chrome/venkman.jar
   extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/chrome.manifest
-  extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/components
+  extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/components/
   extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/components/venkman-service.js
   extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/install.rdf
-  extensions/debugQA@mozilla.org
+  extensions/debugQA@mozilla.org/
   extensions/debugQA@mozilla.org/install.rdf
   extensions/debugQA@mozilla.org/chrome.manifest
-  extensions/debugQA@mozilla.org/chrome
+  extensions/debugQA@mozilla.org/chrome/
   extensions/debugQA@mozilla.org/chrome/debugqa.jar
-  extensions/inspector@mozilla.org
+  extensions/inspector@mozilla.org/
   extensions/inspector@mozilla.org/install.rdf
   extensions/inspector@mozilla.org/chrome.manifest
-  extensions/inspector@mozilla.org/chrome
+  extensions/inspector@mozilla.org/chrome/
   extensions/inspector@mozilla.org/chrome/inspector.jar
-  extensions/inspector@mozilla.org/platform
-  extensions/inspector@mozilla.org/platform/Linux
-  extensions/inspector@mozilla.org/platform/Linux/chrome
-  extensions/inspector@mozilla.org/platform/Linux/chrome/icons
-  extensions/inspector@mozilla.org/platform/Linux/chrome/icons/default
+  extensions/inspector@mozilla.org/platform/
+  extensions/inspector@mozilla.org/platform/Linux/
+  extensions/inspector@mozilla.org/platform/Linux/chrome/
+  extensions/inspector@mozilla.org/platform/Linux/chrome/icons/
+  extensions/inspector@mozilla.org/platform/Linux/chrome/icons/default/
   extensions/inspector@mozilla.org/platform/Linux/chrome/icons/default/winInspectorMain16.xpm
   extensions/inspector@mozilla.org/platform/Linux/chrome/icons/default/winInspectorMain.xpm
   extensions/inspector@mozilla.org/platform/OS2/chrome/icons/default/winInspectorMain.ico
   extensions/inspector@mozilla.org/platform/WINNT/chrome/icons/default/winInspectorMain.ico
-  extensions/inspector@mozilla.org/components
+  extensions/inspector@mozilla.org/components/
   extensions/inspector@mozilla.org/components/inspector-cmdline.js
-  extensions/inspector@mozilla.org/defaults
-  extensions/inspector@mozilla.org/defaults/preferences
+  extensions/inspector@mozilla.org/defaults/
+  extensions/inspector@mozilla.org/defaults/preferences/
   extensions/inspector@mozilla.org/defaults/preferences/inspector.js
   extensions/langpack-@AB_CD@@chatzilla.mozilla.org/chrome/venkman.jar
   extensions/langpack-@AB_CD@@chatzilla.mozilla.org/chrome.manifest
@@ -567,14 +567,14 @@ xpicleanup@BIN_SUFFIX@
   extensions/langpack-@AB_CD@@venkman.mozilla.org/chrome.manifest
   extensions/langpack-@AB_CD@@venkman.mozilla.org/install.js
   extensions/langpack-@AB_CD@@venkman.mozilla.org/install.rdf
-  extensions/modern@themes.mozilla.org
-  extensions/modern@themes.mozilla.org/chrome
+  extensions/modern@themes.mozilla.org/
+  extensions/modern@themes.mozilla.org/chrome/
   extensions/modern@themes.mozilla.org/chrome/modern.jar
   extensions/modern@themes.mozilla.org/chrome.manifest
   extensions/modern@themes.mozilla.org/icon.png
   extensions/modern@themes.mozilla.org/install.rdf
   extensions/modern@themes.mozilla.org/preview.png
-  modules
+  modules/
   modules/AddonLogging.jsm
   modules/AddonManager.jsm
   modules/AddonRepository.jsm
@@ -594,7 +594,7 @@ xpicleanup@BIN_SUFFIX@
   modules/FileUtils.jsm
   modules/folderUtils.jsm
   modules/Geometry.jsm
-  modules/gloda
+  modules/gloda/
   modules/gloda/mimeTypeCategories.js
   modules/gloda/log4moz.js
   modules/gloda/gloda.js
@@ -679,7 +679,7 @@ xpicleanup@BIN_SUFFIX@
   res/table-remove-row-active.gif
   res/table-remove-row-hover.gif
   res/table-remove-row.gif
-  res/fonts
+  res/fonts/
   res/fonts/mathfont.properties
   res/fonts/mathfontStandardSymbolsL.properties
   res/fonts/mathfontSTIXNonUnicode.properties
@@ -689,12 +689,12 @@ xpicleanup@BIN_SUFFIX@
     res/fonts/mathfontSymbol.properties
   #endif
   res/fonts/mathfontUnicode.properties
-  res/dtd
+  res/dtd/
   res/dtd/mathml.dtd
   res/dtd/xhtml11.dtd
-  res/html
+  res/html/
   res/html/folder.png
-  res/entityTables
+  res/entityTables/
   res/entityTables/html40Latin1.properties
   res/entityTables/html40Special.properties
   res/entityTables/html40Symbols.properties
