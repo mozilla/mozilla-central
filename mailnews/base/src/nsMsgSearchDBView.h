@@ -155,15 +155,15 @@ protected:
   // the corresponding nsMsgXFViewThread object. If we're 
   // doing subject threading, we would throw subjects
   // into the same table.
-  nsInterfaceHashtable <nsStringHashKey, nsIMsgThread> m_threadsTable;
+  nsInterfaceHashtable <nsCStringHashKey, nsIMsgThread> m_threadsTable;
 
   // map message-ids to msg hdrs in the view, used for threading.
-  nsInterfaceHashtable <nsStringHashKey, nsIMsgDBHdr> m_hdrsTable;
+  nsInterfaceHashtable <nsCStringHashKey, nsIMsgDBHdr> m_hdrsTable;
 
-  PR_STATIC_CALLBACK(PLDHashOperator) ThreadTableCloner(const nsAString &aKey, 
+  PR_STATIC_CALLBACK(PLDHashOperator) ThreadTableCloner(const nsACString &aKey, 
                                                         nsIMsgThread* aThread, 
                                                         void* aArg);
-  PR_STATIC_CALLBACK(PLDHashOperator) MsgHdrTableCloner(const nsAString &aKey, 
+  PR_STATIC_CALLBACK(PLDHashOperator) MsgHdrTableCloner(const nsACString &aKey, 
                                                         nsIMsgDBHdr* aMsgHdr, 
                                                         void* aArg);
   virtual nsMsgGroupThread *CreateGroupThread(nsIMsgDatabase *db);

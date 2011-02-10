@@ -111,7 +111,7 @@ NS_IMETHODIMP nsMsgSearchDBView::Open(nsIMsgFolder *folder,
 
 
 PLDHashOperator
-nsMsgSearchDBView::ThreadTableCloner(const nsAString &aKey, nsIMsgThread* aThread, void* aArg)
+nsMsgSearchDBView::ThreadTableCloner(const nsACString &aKey, nsIMsgThread* aThread, void* aArg)
 {
   nsMsgSearchDBView* view = static_cast<nsMsgSearchDBView*>(aArg);
   nsresult rv = view->m_threadsTable.Put(aKey, aThread);
@@ -119,7 +119,7 @@ nsMsgSearchDBView::ThreadTableCloner(const nsAString &aKey, nsIMsgThread* aThrea
 }
 
 PLDHashOperator
-nsMsgSearchDBView::MsgHdrTableCloner(const nsAString &aKey, nsIMsgDBHdr* aMsgHdr, void* aArg)
+nsMsgSearchDBView::MsgHdrTableCloner(const nsACString &aKey, nsIMsgDBHdr* aMsgHdr, void* aArg)
 {
   nsMsgSearchDBView* view = static_cast<nsMsgSearchDBView*>(aArg);
   nsresult rv = view->m_hdrsTable.Put(aKey, aMsgHdr);
@@ -1276,12 +1276,10 @@ nsresult nsMsgSearchDBView::GetXFThreadFromMsgHdr(nsIMsgDBHdr *msgHdr,
                                                   nsIMsgThread **pThread,
                                                   PRBool *foundByMessageId)
 {
-  nsAutoString hashKey;
   nsCAutoString messageId;
   msgHdr->GetMessageId(getter_Copies(messageId));
-  CopyASCIItoUTF16(messageId, hashKey);
   *pThread = nsnull;
-  m_threadsTable.Get(hashKey, pThread);
+  m_threadsTable.Get(messageId, pThread);
   // The caller may want to know if we found the thread by the msgHdr's
   // messageId
   if (foundByMessageId)
@@ -1298,8 +1296,7 @@ nsresult nsMsgSearchDBView::GetXFThreadFromMsgHdr(nsIMsgDBHdr *msgHdr,
       if (reference.IsEmpty())
         break;
 
-      CopyASCIItoUTF16(reference, hashKey);
-      m_threadsTable.Get(hashKey, pThread);
+      m_threadsTable.Get(reference, pThread);
     }
   }
   // if we're threading by subject, and we couldn't find the thread by ref,
@@ -1309,40 +1306,33 @@ nsresult nsMsgSearchDBView::GetXFThreadFromMsgHdr(nsIMsgDBHdr *msgHdr,
     nsCString subject;
     msgHdr->GetSubject(getter_Copies(subject));
     // this is the raw rfc822 subject header, so this is OK
-    CopyASCIItoUTF16(subject, hashKey);
-    m_threadsTable.Get(hashKey, pThread);
+    m_threadsTable.Get(subject, pThread);
   }
   return (*pThread) ? NS_OK : NS_ERROR_FAILURE;
 }
 
 nsresult nsMsgSearchDBView::GetMsgHdrFromHash(nsCString &reference, nsIMsgDBHdr **hdr)
 {
-  nsString hashKey;
-  CopyASCIItoUTF16(reference, hashKey);
-  return m_hdrsTable.Get(hashKey, hdr);
+  return m_hdrsTable.Get(reference, hdr);
 }
 
 nsresult nsMsgSearchDBView::GetThreadFromHash(nsCString &reference, 
                                               nsIMsgThread **thread)
 {
-  nsString hashKey;
-  CopyASCIItoUTF16(reference, hashKey);
-  return m_threadsTable.Get(hashKey, thread);
+  return m_threadsTable.Get(reference, thread);
 }
 
 nsresult nsMsgSearchDBView::AddRefToHash(nsCString &reference, 
                                          nsIMsgThread *thread)
 {
-  nsString hashKey;
-  CopyASCIItoUTF16(reference, hashKey);
   // Check if this reference is already is associated with a thread;
   // If so, don't overwrite that association.
   nsCOMPtr<nsIMsgThread> oldThread;
-  m_threadsTable.Get(hashKey, getter_AddRefs(oldThread));
+  m_threadsTable.Get(reference, getter_AddRefs(oldThread));
   if (oldThread)
     return NS_OK;
 
-  return m_threadsTable.Put(hashKey, thread);
+  return m_threadsTable.Put(reference, thread);
 }
 
 nsresult nsMsgSearchDBView::AddMsgToHashTables(nsIMsgDBHdr *msgHdr,
@@ -1366,9 +1356,7 @@ nsresult nsMsgSearchDBView::AddMsgToHashTables(nsIMsgDBHdr *msgHdr,
 
   nsCString messageId;
   msgHdr->GetMessageId(getter_Copies(messageId));
-  nsString hashKey;
-  CopyASCIItoUTF16(messageId, hashKey);
-  m_hdrsTable.Put(hashKey, msgHdr);
+  m_hdrsTable.Put(messageId, msgHdr);
   if (!gReferenceOnlyThreading)
   {
     nsCString subject;
@@ -1381,9 +1369,7 @@ nsresult nsMsgSearchDBView::AddMsgToHashTables(nsIMsgDBHdr *msgHdr,
 
 nsresult nsMsgSearchDBView::RemoveRefFromHash(nsCString &reference)
 {
-  nsString hashKey;
-  CopyASCIItoUTF16(reference, hashKey);
-  m_threadsTable.Remove(hashKey);
+  m_threadsTable.Remove(reference);
   return NS_OK;
 }
 
@@ -1407,9 +1393,7 @@ nsresult nsMsgSearchDBView::RemoveMsgFromHashTables(nsIMsgDBHdr *msgHdr)
   }
   nsCString messageId;
   msgHdr->GetMessageId(getter_Copies(messageId));
-  nsString hashKey;
-  CopyASCIItoUTF16(messageId, hashKey);
-  m_hdrsTable.Remove(hashKey);
+  m_hdrsTable.Remove(messageId);
   RemoveRefFromHash(messageId);
   if (!gReferenceOnlyThreading)
   {
