@@ -45,7 +45,6 @@
 #include "nsIMsgHdr.h"
 #include "nsIMsgWindow.h"
 #include "nsIMutableArray.h"
-#include "nsVoidArray.h"
 
 typedef enum _nsCopyRequestType
 {
@@ -95,7 +94,7 @@ public:
     PRUint32 m_newMsgFlags;
     nsCString m_newMsgKeywords;
     nsString m_dstFolderName;      // used for copy folder.
-    nsVoidArray m_copySourceArray; // array of nsCopySource
+    nsTArray<nsCopySource*> m_copySourceArray; // array of nsCopySource
 };
 
 class nsMsgCopyService : public nsIMsgCopyService
@@ -116,7 +115,7 @@ private:
     nsCopyRequest* FindRequest(nsISupports* aSupport, nsIMsgFolder* dstFolder);
     nsresult QueueRequest(nsCopyRequest* aRequest, PRBool *aCopyImmediately);
 
-    nsVoidArray m_copyRequests;
+    nsTArray<nsCopyRequest*> m_copyRequests;
 };
 
 
