@@ -134,8 +134,7 @@ tabpanels {
 }
 
 .tabmail-tab {
-  list-style-image: url("chrome://global/skin/icons/folder-item.png");
-  -moz-image-region: rect(0px, 16px, 16px, 0px);
+  list-style-image: url("moz-icon://stock/gtk-file?size=menu");
 }
 
 .tab-throbber {
@@ -213,8 +212,7 @@ tabpanels {
 
 /* All tabs menupopup */
 .alltabs-item {
-  list-style-image: url("chrome://global/skin/icons/folder-item.png");
-  -moz-image-region: rect(0px, 16px, 16px, 0px);
+  list-style-image: url("moz-icon://stock/gtk-file?size=menu");
 }
 
 .alltabs-item[selected="true"] {
