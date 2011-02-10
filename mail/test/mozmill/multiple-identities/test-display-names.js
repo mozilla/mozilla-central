@@ -65,22 +65,31 @@ function setupModule(module) {
               .getService(Ci.nsIMsgAccountManager);
   localAccount = acctMgr.FindAccountForServer(acctMgr.localFoldersServer);
 
-  // Delete all accounts except for Local Folders (so we only have 1 identity)
-  for (let i=0; i<acctMgr.accounts.Count(); i++) {
+  // We need to make sure we have only one identity:
+  // 1) Delete all accounts except for Local Folders
+  for (let i = acctMgr.accounts.Count()-1; i >= 0; i--) {
     let account = acctMgr.accounts.QueryElementAt(i, Ci.nsIMsgAccount);
     if (account != localAccount)
       acctMgr.removeAccount(account);
   }
 
-  folder = create_folder("MessageWindowB");
-  decoyFolder = create_folder("MessageWindowC");
+  // 2) Delete all identities except for one
+  for (let i = localAccount.identities.Count()-1; i >= 0; i--) {
+    let identity = localAccount.identities.QueryElementAt(i, Ci.nsIMsgIdentity);
+    if (identity.email != myEmail)
+      localAccount.removeIdentity(identity);
+  }
+
+  // 3) Create a second identity and hold onto it for later
+  secondIdentity = acctMgr.createIdentity();
+  secondIdentity.email = "nobody@nowhere.com";
+
+  folder = create_folder("DisplayNamesA");
+  decoyFolder = create_folder("DisplayNamesB");
 
   add_message_to_folder(folder, create_message({to: [["", myEmail]] }));
   add_message_to_folder(folder, create_message({from: ["", friendEmail] }));
   add_message_to_folder(folder, create_message({from: [friendName, friendEmail] }));
-
-  secondIdentity = acctMgr.createIdentity();
-  secondIdentity.email = "nobody@nowhere.com";
 
   let abManager = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
   // Ensure all the directories are initialised.
@@ -96,12 +105,16 @@ function setupModule(module) {
 function ensure_single_identity() {
   if (localAccount.identities.Count() > 1)
     localAccount.removeIdentity(secondIdentity);
+  assert_true(acctMgr.allIdentities.Count() == 1,
+              "Expected 1 identity, but got " + acctMgr.allIdentities.Count() +
+              " identities");
 }
 
 function ensure_multiple_identities() {
-  if (localAccount.identities.Count() == 1) {
+  if (localAccount.identities.Count() == 1)
     localAccount.addIdentity(secondIdentity);
-  }
+  assert_true(acctMgr.allIdentities.Count() > 1,
+              "Expected multiple identities, but got only one identity")
 }
 
 function help_test_display_name(message, field, expectedValue) {
@@ -119,8 +132,8 @@ function help_test_display_name(message, field, expectedValue) {
     throw new Error("got '"+value+"' but expected '"+expectedValue+"'");
 }
 
-// XXX disabled due to failing on Windows.
-/*
+
+
 function test_single_identity() {
   ensure_no_card_exists(myEmail);
   ensure_single_identity();
@@ -139,7 +152,7 @@ function test_single_identity_in_abook_no_pdn() {
   help_test_display_name(0, "to", headertoFieldYou);
 }
 
-*/
+
 
 function test_multiple_identities() {
   ensure_no_card_exists(myEmail);
