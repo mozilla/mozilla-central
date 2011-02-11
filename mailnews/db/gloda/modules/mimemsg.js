@@ -426,7 +426,8 @@ MimeMessage.prototype = {
    *  content-type (ex: image/jpeg) displayed.  "Filler" classes simply have
    *  their class displayed.
    */
-  prettyString: function MimeMessage_prettyString(aVerbose, aIndent) {
+  prettyString: function MimeMessage_prettyString(aVerbose, aIndent,
+                                                  aDumpBody) {
     if (aIndent === undefined)
       aIndent = "";
     let nextIndent = aIndent + "  ";
@@ -437,8 +438,8 @@ MimeMessage.prototype = {
 
     for (let iPart = 0; iPart < this.parts.length; iPart++) {
       let part = this.parts[iPart];
-      s += "\n" + nextIndent + (iPart+1) + " " + part.prettyString(aVerbose,
-                                                                   nextIndent);
+      s += "\n" + nextIndent + (iPart+1) + " " +
+        part.prettyString(aVerbose, nextIndent, aDumpBody);
     }
 
     return s;
@@ -489,6 +490,10 @@ MimeContainer.prototype = {
           return part.body;
         if (part.contentType == "text/html")
           htmlPart = part;
+        // text/enriched gets transformed into HTML, use it if we don't already
+        //  have an HTML part.
+        else if (!htmlPart && part.contentType == "text/enriched")
+	  htmlPart = part;
       }
       // convert the HTML part if we have one
       if (htmlPart)
@@ -497,7 +502,8 @@ MimeContainer.prototype = {
     // if it's not alternative, recurse/aggregate using MimeMessage logic
     return MimeMessage.prototype.coerceBodyToPlaintext.call(this, aMsgFolder);
   },
-  prettyString: function MimeContainer_prettyString(aVerbose, aIndent) {
+  prettyString: function MimeContainer_prettyString(aVerbose, aIndent,
+                                                    aDumpBody) {
     let nextIndent = aIndent + "  ";
 
     let s = "Container: " + this.contentType;
@@ -506,8 +512,8 @@ MimeContainer.prototype = {
 
     for (let iPart = 0; iPart < this.parts.length; iPart++) {
       let part = this.parts[iPart];
-      s += "\n" + nextIndent + (iPart+1) + " " + part.prettyString(aVerbose,
-                                                                   nextIndent);
+      s += "\n" + nextIndent + (iPart+1) + " " +
+        part.prettyString(aVerbose, nextIndent, aDumpBody);
     }
 
     return s;
@@ -551,12 +557,15 @@ MimeBody.prototype = {
       function MimeBody_coerceBodyToPlaintext(aMsgFolder) {
     if (this.contentType == "text/plain")
       return this.body;
-    if (this.contentType == "text/html")
+    // text/enriched gets transformed into HTML by libmime
+    if (this.contentType == "text/html" ||
+        this.contentType == "text/enriched")
       return aMsgFolder.convertMsgSnippetToPlainText(this.body);
     return "";
   },
-  prettyString: function MimeBody_prettyString(aVerbose, aIndent) {
-    let s = "Body: " + this.contentType + " (" + this.body.length + " bytes)";
+  prettyString: function MimeBody_prettyString(aVerbose, aIndent, aDumpBody) {
+    let s = "Body: " + this.contentType + " (" + this.body.length + " bytes" +
+      (aDumpBody ? (": '" + this.body + "'") : "") + ")";
     if (aVerbose)
       s += this._prettyHeaderString(aIndent + "  ");
     return s;
@@ -590,7 +599,8 @@ MimeUnknown.prototype = {
   get allUserAttachments() {
     return []; // we are a leaf
   },
-  prettyString: function MimeUnknown_prettyString(aVerbose, aIndent) {
+  prettyString: function MimeUnknown_prettyString(aVerbose, aIndent,
+                                                  aDumpBody) {
     let s = "Unknown: " + this.contentType;
     if (aVerbose)
       s += this._prettyHeaderString(aIndent + "  ");
@@ -663,7 +673,8 @@ MimeMessageAttachment.prototype = {
   get allUserAttachments() {
     return [this];
   },
-  prettyString: function MimeMessageAttachment_prettyString(aVerbose, aIndent) {
+  prettyString: function MimeMessageAttachment_prettyString(aVerbose, aIndent,
+                                                            aDumpBody) {
     let s = "Attachment: " + this.name + ", " + this.contentType;
     if (aVerbose)
       s += this._prettyHeaderString(aIndent + "  ");

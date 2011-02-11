@@ -155,7 +155,8 @@ MimeMessageEmitter.prototype = {
   _beginPayload: function mime_emitter__beginPayload(aContentType) {
     let contentTypeNoParams = this._stripParams(aContentType).toLowerCase();
     if (contentTypeNoParams == "text/plain" ||
-        contentTypeNoParams == "text/html") {
+        contentTypeNoParams == "text/html" ||
+        contentTypeNoParams == "text/enriched") {
       this._curPart = new this._mimeMsg.MimeBody(contentTypeNoParams);
       this._writeBody = true;
     }

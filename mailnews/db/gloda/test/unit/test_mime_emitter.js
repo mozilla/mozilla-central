@@ -73,6 +73,12 @@ var partHtml = new SyntheticPartLeaf(
     contentType: "text/html"
   }
 );
+var partEnriched = new SyntheticPartLeaf(
+  "<bold><italic>I am not a popular format! sad woo :(</italic></bold>",
+  {
+    contentType: "text/enriched"
+  }
+);
 var partAlternative = new SyntheticPartMultiAlternative([partText, partHtml]);
 var partMailingListFooter = new SyntheticPartLeaf("I am an annoying footer!");
 
@@ -117,6 +123,11 @@ var messageInfos = [
   {
     name: 'text/html',
     bodyPart: partHtml,
+  },
+  // -- simply ugly
+  {
+    name: 'text/enriched',
+    bodyPart: partEnriched,
   },
   // -- simple w/attachment
   {
@@ -252,6 +263,12 @@ var messageInfos = [
     name: 'multipart/parallel',
     bodyPart: new SyntheticPartMultiParallel([partText, partTachImage]),
   },
+  // --- previous bugs
+  // -- bug 495057, text/enriched was being dumb
+  {
+    name: 'text/enriched inside related',
+    bodyPart: new SyntheticPartMultiRelated([partEnriched]),
+  },
   // -- empty sections
   // This was a crasher because the empty part made us try and close the
   //  child preceding the empty part a second time.  The nested multipart led
@@ -288,6 +305,24 @@ function test_stream_message(info) {
 
 var deathToNewlineTypeThings = /[\r\n]+/g;
 
+/**
+ * Applies any transformations to the synthetic body part that we would expect
+ *  to happen to a message during its libmime journey.  It may be better to
+ *  just put the expected translations in the synthetic body part instead of
+ *  trying to make this method do anything complex.
+ */
+function synTransformBody(aSynBodyPart) {
+  let text = aSynBodyPart.body.trim();
+  // this transforms things into HTML apparently...
+  if (aSynBodyPart._contentType == "text/enriched") {
+    // Our job here is just to transform just enough for our example above.
+    // We also could have provided a manual translation on the body part.
+    text = text.replace("bold", "B", "g")
+               .replace("italic", "I", "g") + "\n<BR>";
+  }
+  return text;
+}
+
 function verify_body_part_equivalence(aSynBodyPart, aMimePart) {
   // the content-type devoid of parameters should match
   do_check_eq(aSynBodyPart._contentType, aMimePart.contentType);
@@ -304,7 +339,8 @@ function verify_body_part_equivalence(aSynBodyPart, aMimePart) {
   // XXX body part checking will get brittle if we ever actually encode things!
   if (aSynBodyPart.body && !aSynBodyPart._filename &&
       aSynBodyPart._contentType.indexOf("text/") == 0)
-    do_check_eq(aSynBodyPart.body.trim(), aMimePart.body.trim());
+    do_check_eq(synTransformBody(aSynBodyPart),
+                aMimePart.body.trim().replace("\r", "", "g"));
   if (aSynBodyPart.parts) {
     let iPart;
     let realPartOffsetCompensator = 0;
@@ -348,14 +384,16 @@ function verify_stream_message(aInfo, aSynMsg, aMsgHdr, aMimeMsg) {
     dump("Something was wrong with the MIME rep!\n!!!!!!!!\n");
     dump("Synthetic looks like:\n  " + aSynMsg.prettyString() +
          "\n\n");
-    dump("MIME looks like:  \n" + aMimeMsg.prettyString(true, "  ") + "\n\n");
+    dump("MIME looks like:  \n" + aMimeMsg.prettyString(true, "  ", true) +
+         "\n\n");
     do_throw(ex);
   }
 
   dump("Everything is just fine.\n");
   dump("Synthetic looks like:\n  " + aSynMsg.prettyString() +
        "\n\n");
-  dump("MIME looks like:\n  " + aMimeMsg.prettyString(true, "  ") + "\n\n");
+  dump("MIME looks like:\n  " + aMimeMsg.prettyString(true, "  ", false) +
+       "\n\n");
 
   async_driver();
 }
