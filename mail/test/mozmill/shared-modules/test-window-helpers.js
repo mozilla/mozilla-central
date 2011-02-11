@@ -235,37 +235,24 @@ var WindowWatcher = {
    * This is the nsITimer notification we receive...
    */
   notify: function WindowWatcher_notify() {
-dump("Timer check!\n");
     if (this.monitorizeOpen()) {
       // okay, the window is opened, and we should be in its event loop now.
-dump("  THIS IS IT!\n");
       let xulWindow = this.waitingList[this.waitingForOpen];
-dump(" xul window: " + xulWindow + "\n");
       let domWindow = xulWindow.docShell.QueryInterface(Ci.nsIInterfaceRequestor)
                                         .getInterface(Ci.nsIDOMWindowInternal);
-dump(" dom window: " + domWindow + "\n");
       let troller = new controller.MozMillController(domWindow);
       augment_controller(troller, this.waitingForOpen);
 
-dump(" cleanup!\n");
       delete this.waitingList[this.waitingForOpen];
       this._timer.cancel();
-dump("canceled!\n");
 
       // now we are waiting for it to close...
       this.waitingForClose = this.waitingForOpen;
       this.waitingForOpen = null;
 
       try {
-        dump("::: calling\n");
-        try {
-          let runner = new frame.Runner(collector);
-          runner.wrapper(this.subTestFunc, troller);
-        }
-        catch (ex) {
-          dump("problem running: " + ex.fileName + ":" + ex.lineNumber + ": " + ex + "\n");
-        }
-        dump("::: called\n");
+        let runner = new frame.Runner(collector);
+        runner.wrapper(this.subTestFunc, troller);
       }
       finally {
         this.subTestFunc = null;
@@ -280,7 +267,6 @@ dump("canceled!\n");
     //  so we can always just use this set of timeouts/intervals.
     this._timerRuntimeSoFar += WINDOW_OPEN_CHECK_INTERVAL_MS;
     if (this._timerRuntimeSoFar >= WINDOW_OPEN_TIMEOUT_MS) {
-      dump("!!! TIMEOUT WHILE WAITING FOR MODAL DIALOG !!!\n");
       this._timer.cancel();
       throw new Error("Timeout while waiting for modal dialog.\n");
     }
@@ -395,40 +381,33 @@ dump("canceled!\n");
    *     Check the waitingList structure for that.
    */
   consider: function (aXULWindow) {
-dump("### considering: " + aXULWindow + "\n");
     let docshell = aXULWindow.docShell;
     // we need the docshell to exist...
     if (!docshell)
       return false;
-dump("### has docshell\n");
+
     // we can't know if it's the right document until it's not busy
     if (docshell.busyFlags)
       return false;
-dump("### not busy\n");
+
     // it also needs to have content loaded (it starts out not busy with no
     //  content viewer.)
     if (docshell.contentViewer == null)
       return false;
-dump("### has contentViewer\n");
+
     // now we're cooking! let's get the document...
     let outerDoc = docshell.contentViewer.DOMDocument;
     // and make sure it's not blank.  that's also an intermediate state.
     if (outerDoc.location.href == "about:blank")
       return false;
-dump("has href: " + outerDoc.location.href + "\n");
+
     // finally, we can now have a windowtype!
     let windowType = outerDoc.documentElement.getAttribute("windowtype") ||
                      outerDoc.documentElement.getAttribute("id");
-dump("has windowtype: " + windowType + "\n");
-dump("this: " + this + "\n");
-dump("waitingList: " + this.waitingList + "\n");
+
     // stash the window if we were watching for it
     if (windowType in this.waitingList) {
-      dump("It's there! setting...\n");
       this.waitingList[windowType] = aXULWindow;
-    }
-    else {
-      dump("Saw Window Type '" + windowType + "' but don't care.\n");
     }
 
     return true;
@@ -439,7 +418,6 @@ dump("waitingList: " + this.waitingList + "\n");
    *  so things like their windowtype are immediately available.
    */
   onCloseWindow: function WindowWatcher_onCloseWindow(aXULWindow) {
-    dump("!!! CLOSE EVENT: " + aXULWindow + "\n");
     let domWindow = aXULWindow.docShell.QueryInterface(Ci.nsIInterfaceRequestor)
                                        .getInterface(Ci.nsIDOMWindowInternal);
     let windowType =
@@ -449,7 +427,6 @@ dump("waitingList: " + this.waitingList + "\n");
     //  happen for us.  This is most pragmatic.
     if (this.waitingList[windowType] !== null)
       this.waitingList[windowType] = null;
-    dump("close end proc\n");
   },
 };
 
