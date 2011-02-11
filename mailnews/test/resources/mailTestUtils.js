@@ -47,6 +47,8 @@ Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource:///modules/IOUtils.js");
 // JS ctypes, needed for a few native functions
 Components.utils.import("resource://gre/modules/ctypes.jsm");
+// Services
+Components.utils.import("resource://gre/modules/Services.jsm");
 // MailServices
 Components.utils.import("resource:///modules/mailServices.js");
 
@@ -115,6 +117,22 @@ function create_incoming_server(aType, aPort, aUsername, aPassword) {
   }
   server.valid = true;
 
+  return server;
+}
+
+/**
+ * Create an outgoing nsISmtpServer with the given parameters.
+ *
+ * @param aPort The port the server is on.
+ * @param aUsername The username for the server
+ * @param aPassword The password for the server
+ * @returns The newly-created nsISmtpServer.
+ */
+function create_outgoing_server(aPort, aUsername, aPassword) {
+  let server = MailServices.smtp.createSmtpServer();
+  server.hostname = "localhost";
+  server.port = aPort;
+  server.authMethod = Ci.nsMsgAuthMethod.none;
   return server;
 }
 

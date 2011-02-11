@@ -21,25 +21,13 @@ function setupServerDaemon(handler) {
 }
 
 function getBasicSmtpServer() {
-  var smtpService = Cc["@mozilla.org/messengercompose/smtp;1"]
-                      .getService(Ci.nsISmtpService);
-
-  // Create an smtp server and fill in the details.
-  var smtpServer = smtpService.createSmtpServer();
-
-  smtpServer.hostname = "localhost";
-  smtpServer.port = SMTP_PORT;
-  // Set the authentication method to "none"
-  smtpServer.authMethod = 1;
+  let server = create_outgoing_server(SMTP_PORT, "user", "password");
 
   // Override the default greeting so we get something predicitable
   // in the ELHO message
-  var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-    .getService(Components.interfaces.nsIPrefBranch);
+  Services.prefs.setCharPref("mail.smtpserver.default.hello_argument", "test");
 
-  prefSvc.setCharPref("mail.smtpserver.default.hello_argument", "test");
-
-  return smtpServer;
+  return server;
 }
 
 function getSmtpIdentity(senderName, smtpServer) {
