@@ -52,6 +52,7 @@ function check_services() {
   check_service("pop3", Ci.nsIPop3Service);
   check_service("imap", Ci.nsIImapService);
   check_service("nntp", Ci.nsINntpService);
+  check_service("smtp", Ci.nsISmtpService);
   check_service("compose", Ci.nsIMsgComposeService);
   check_service("ab", Ci.nsIAbManager);
   check_service("copy", Ci.nsIMsgCopyService);

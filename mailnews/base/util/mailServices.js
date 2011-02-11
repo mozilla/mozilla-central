@@ -61,6 +61,10 @@ XPCOMUtils.defineLazyServiceGetter(MailServices, "nntp",
                                    "@mozilla.org/messenger/nntpservice;1",
                                    "nsINntpService");
 
+XPCOMUtils.defineLazyServiceGetter(MailServices, "smtp",
+                                   "@mozilla.org/messengercompose/smtp;1",
+                                   "nsISmtpService");
+
 XPCOMUtils.defineLazyServiceGetter(MailServices, "compose",
                                    "@mozilla.org/messengercompose;1",
                                    "nsIMsgComposeService");
