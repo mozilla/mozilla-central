@@ -38,6 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource:///modules/MailUtils.js");
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
 
 var gCurrentFolder;
 
@@ -237,15 +238,17 @@ SearchFolderDisplayWidget.prototype = {
   },
 
   updateStatusResultText: function() {
-    let statusMsg, rowCount = this.view.dbView.rowCount;
-    // if there are no hits, it means no matches were found in the search.
-    if (rowCount == 0)
-      statusMsg = gSearchBundle.getString("searchFailureMessage");
-    else if (rowCount == 1)
-      statusMsg = gSearchBundle.getString("searchSuccessMessage");
-    else
-      statusMsg = gSearchBundle.getFormattedString("searchSuccessMessages",
-                                                   [rowCount]);
+    let rowCount = this.view.dbView.rowCount;
+    let statusMsg;
+
+    if (rowCount == 0) {
+      statusMsg = gSearchBundle.getString("noMatchesFound");
+    }
+    else {
+      statusMsg = PluralForm.get(rowCount,
+                                 gSearchBundle.getString("matchesFound"));
+      statusMsg = statusMsg.replace("#1", rowCount);
+    }
 
     gStatusFeedback.showStatusString(statusMsg);
   },
