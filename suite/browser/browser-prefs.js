@@ -332,6 +332,8 @@ pref("offline.startup_state",            0);
 pref("offline.send.unsent_messages",            0);
 pref("offline.download.download_messages",  0);
 
+pref("browser.offline-apps.notify", true);
+
 pref("browser.formfill.expire_days",        180);
 
 pref("mailnews.ui.deleteMarksRead", true);

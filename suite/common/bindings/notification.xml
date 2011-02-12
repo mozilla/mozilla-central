@@ -194,6 +194,31 @@
                   this.addonInstallFailed(installInfo);
                 break;
 
+              case "dom-storage-warn-quota-exceeded":
+                this.checkUsage(aSubject.document.documentURIObject);
+                break;
+
+              case "offline-cache-update-completed":
+                var doc = browser.contentDocument;
+                if (!doc.documentElement)
+                  break;
+
+                var manifest = doc.documentElement.getAttribute("manifest");
+                if (!manifest)
+                  break;
+
+                try {
+                  var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                                            .getService(Components.interfaces.nsIIOService);
+                  var manifestURI = ioService.newURI(manifest, doc.characterSet, doc.documentURIObject);
+                  var cacheUpdate = aSubject.QueryInterface(Components.interfaces.nsIOfflineCacheUpdate);
+                  if (manifestURI.equals(cacheUpdate.manifestURI))
+                    this.checkUsage(manifestURI);
+                } catch (e) {
+                  alert(e);
+                }
+                break;
+
               case "nsPref:changed":
                 if (aData == "privacy.popups.showBrowserMessage") {
                   if (this._prefs.getBoolPref(aData))
@@ -360,6 +385,109 @@
             pm.add(uri, "popup", nsIPermissionManager.ALLOW_ACTION);
 
             this.removeCurrentNotification();
+          ]]>
+        </body>
+      </method>
+
+      <method name="offlineAppRequested">
+        <parameter name="aDocument"/>
+        <body>
+          <![CDATA[
+            var documentURI = aDocument.documentURIObject;
+            const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+            var pm = Components.classes["@mozilla.org/permissionmanager;1"]
+                               .getService(nsIPermissionManager);
+
+            if (pm.testExactPermission(documentURI, "offline-app") !=
+                nsIPermissionManager.UNKNOWN_ACTION)
+              return;
+
+            var host = documentURI.asciiHost;
+            var notificationName = "offline-app-requested-" + host;
+            var notification = this.getNotificationWithValue(notificationName);
+            if (notification)
+              notification.documents.push(aDocument);
+            else {
+              var buttons = [{
+                label: this._stringBundle.GetStringFromName("offlineApps.allow"),
+                accessKey: this._stringBundle.GetStringFromName("offlineApps.allow.accesskey"),
+                callback: function() {
+                  pm.add(documentURI, "offline-app", nsIPermissionManager.ALLOW_ACTION);
+                  var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                                            .getService(Components.interfaces.nsIIOService);
+                  var updateService = Components.classes["@mozilla.org/offlinecacheupdate-service;1"]
+                                                .getService(Components.interfaces.nsIOfflineCacheUpdateService);
+                  notification.documents.forEach(function(aDocument) {
+                    if (!aDocument.documentElement)
+                      return;
+                    var manifest = aDocument.documentElement.getAttribute("manifest");
+                    if (!manifest)
+                      return;
+
+                    try {
+                      var manifestURI = ioService.newURI(manifest, aDocument.characterSet, aDocument.documentURIObject);
+                      updateService.scheduleUpdate(manifestURI, aDocument.documentURIObject, window);
+                    } catch (e) {
+                    }
+                  });
+                }
+              }, {
+                label: this._stringBundle.GetStringFromName("offlineApps.deny"),
+                accessKey: this._stringBundle.GetStringFromName("offlineApps.deny.accesskey"),
+                callback: function() {
+                  pm.add(documentURI, "offline-app", nsIPermissionManager.DENY_ACTION);
+                }
+              }, {
+                label: this._stringBundle.GetStringFromName("offlineApps.later"),
+                accessKey: this._stringBundle.GetStringFromName("offlineApps.later.accesskey"),
+                callback: function() { /* no-op */ }
+              }];
+
+              var messageString = this._stringBundle.formatStringFromName("offlineApps.permissions", [host], 1);
+              var priority = this.PRIORITY_INFO_LOW;
+              notification = this.appendNotification(messageString, notificationName,
+                                                     null, priority, buttons);
+              notification.documents = [aDocument];
+            }
+          ]]>
+        </body>
+      </method>
+
+      <method name="checkUsage">
+        <parameter name="aURI"/>
+        <body>
+          <![CDATA[
+            const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+            var pm = Components.classes["@mozilla.org/permissionmanager;1"]
+                               .getService(nsIPermissionManager);
+            if (pm.testExactPermission(aURI, "offline-app") ==
+                Components.interfaces.nsIOfflineCacheUpdateService.ALLOW_NO_WARN)
+              return;
+
+            var host = aURI.asciiHost;
+            var usage = Components.classes["@mozilla.org/dom/storagemanager;1"]
+                                  .getService(Components.interfaces.nsIDOMStorageManager)
+                                  .getUsage(host);
+
+            var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                                      .getService(Components.interfaces.nsIIOService);
+            var cacheService = Components.classes["@mozilla.org/network/application-cache-service;1"]
+                                         .getService(Components.interfaces.nsIApplicationCacheService);
+            cacheService.getGroups().forEach(function(aGroup) {
+              var uri = ioService.newURI(aGroup, null, null);
+              if (uri.asciiHost == host)
+                usage += cacheService.getActiveCache(aGroup).usage;
+            });
+            var warnQuota = this._prefs.getIntPref("offline-apps.quota.warn");
+            if (usage < warnQuota * 1024)
+              return;
+
+            var message = this._stringBundle.formatStringFromName("offlineApps.quota", [host, warnQuota / 1024], 2);
+              var priority = this.PRIORITY_WARNING_MEDIUM;
+            this.appendNotification(message, "offline-app-usage", null,
+                                    priority, null);
+            pm.add(aURI, "offline-app",
+                   Components.interfaces.nsIOfflineCacheUpdateService.ALLOW_NO_WARN);
           ]]>
         </body>
       </method>
@@ -751,6 +879,8 @@
           os.addObserver(this, "addon-install-complete", false);
           os.addObserver(this, "addon-install-disabled", false);
           os.addObserver(this, "addon-install-failed", false);
+          os.addObserver(this, "dom-storage-warn-quota-exceeded", false);
+          os.addObserver(this, "offline-cache-update-completed", false);
           os.addObserver(this, "perm-changed", false);
 
           this._prefs.addObserver("plugins.hide_infobar_for_missing_plugin", this, false);
@@ -806,6 +936,12 @@
             } catch (ex) {}
             try {
               os.removeObserver(this, "addon-install-failed");
+            } catch (ex) {}
+            try {
+              os.removeObserver(this, "dom-storage-warn-quota-exceeded");
+            } catch (ex) {}
+            try {
+              os.removeObserver(this, "offline-cache-update-completed");
             } catch (ex) {}
             try {
               os.removeObserver(this, "perm-changed");
@@ -1040,6 +1176,21 @@
 
           // reload the browser to make the new plugin show.
           this.activeBrowser.reload();
+        ]]>
+      </handler>
+
+      <handler event="MozApplicationManifest">
+        <![CDATA[
+          if (!this._prefs.getBoolPref("browser.offline-apps.notify"))
+            return;
+
+          try {
+            if (this._prefs.getBoolPref("offline-apps.allow_by_default"))
+              return;
+          } catch (e) {
+          }
+
+          this.offlineAppRequested(event.originalTarget);
         ]]>
       </handler>
     </handlers>
