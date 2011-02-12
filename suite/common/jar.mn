@@ -193,6 +193,8 @@ comm.jar:
    content/communicator/pref/pref-cookies.xul                       (pref/pref-cookies.xul)
    content/communicator/pref/pref-download.js                       (pref/pref-download.js)
    content/communicator/pref/pref-download.xul                      (pref/pref-download.xul)
+   content/communicator/pref/pref-findasyoutype.js                  (pref/pref-findasyoutype.js)
+   content/communicator/pref/pref-findasyoutype.xul                 (pref/pref-findasyoutype.xul)
    content/communicator/pref/pref-fonts.js                          (pref/pref-fonts.js)
    content/communicator/pref/pref-fonts.xul                         (pref/pref-fonts.xul)
    content/communicator/pref/pref-history.js                        (pref/pref-history.js)

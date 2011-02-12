@@ -158,6 +158,7 @@
   locale/@AB_CD@/communicator/pref/pref-content.dtd                         (%chrome/common/pref/pref-content.dtd)
   locale/@AB_CD@/communicator/pref/pref-cookies.dtd                         (%chrome/common/pref/pref-cookies.dtd)
   locale/@AB_CD@/communicator/pref/pref-download.dtd                        (%chrome/common/pref/pref-download.dtd)
+  locale/@AB_CD@/communicator/pref/pref-findasyoutype.dtd                   (%chrome/common/pref/pref-findasyoutype.dtd)
   locale/@AB_CD@/communicator/pref/pref-fonts.dtd                           (%chrome/common/pref/pref-fonts.dtd)
   locale/@AB_CD@/communicator/pref/pref-history.dtd                         (%chrome/common/pref/pref-history.dtd)
   locale/@AB_CD@/communicator/pref/pref-http.dtd                            (%chrome/common/pref/pref-http.dtd)

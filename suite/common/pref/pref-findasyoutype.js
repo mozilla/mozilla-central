@@ -23,6 +23,7 @@
  *                 Asaf Romano
  *                 Ian Neal
  *                 Manuel Reimer <Manuel.Reimer@gmx.de>
+ *                 Edmund Wong <ewong@pw-wspx.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,38 +39,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const kTabToLinks = 4;
-const kTabToForms = 2;
-const kTabToTextboxes = 1;
-
 function Startup()
 {
-  if (/Mac/.test(navigator.platform))
-    document.getElementById("tabNavigationPrefs").setAttribute("hidden", true);
+  var prefAutostart = document.getElementById("accessibility.typeaheadfind.autostart");
+  SetLinksOnlyEnabled(prefAutostart.value);
 }
 
-function ReadTabNav(aField)
+function SetLinksOnlyEnabled(aEnable)
 {
-  var curval = document.getElementById("accessibility.tabfocus").value;
-  // Return the right bit based on the id of "aField"
-  if (aField.id == "tabNavigationLinks")
-    return (curval & kTabToLinks) != 0;
-
-  return (curval & kTabToForms) != 0;
-}
-
-function WriteTabNav(aField)
-{
-  var curval = document.getElementById("accessibility.tabfocus").value;
-  // Textboxes are always part of the tab order
-  curval |= kTabToTextboxes;
-  // Select the bit, we have to change, based on the id of "aField"
-  var bit = kTabToForms;
-  if (aField.id == "tabNavigationLinks")
-    bit = kTabToLinks;
-
-  if (aField.checked)
-    return curval | bit;
-
-  return curval & ~bit;
+  EnableElementById("findAsYouTypeAutoWhat", aEnable, false);
 }

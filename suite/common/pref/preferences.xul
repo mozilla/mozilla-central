@@ -233,6 +233,11 @@
                     prefpane="keynav_pane"
                     helpTopic="advanced_pref_keyboard_nav"
                     url="chrome://communicator/content/pref/pref-keynav.xul"/>
+          <treeitem id="findasyoutypeItem"
+                    label="&findAsYouType.label;"
+                    prefpane="findasyoutype_pane"
+                    helpTopic="advanced_pref_find_as_you_type"
+                    url="chrome://communicator/content/pref/pref-findasyoutype.xul"/>
           <treeitem id="cacheItem"
                     label="&cache.label;"
                     prefpane="cache_pane"
