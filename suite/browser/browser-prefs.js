@@ -416,6 +416,11 @@ pref("browser.sessionstore.max_tabs_undo", 10);
 // how many windows can be reopened (per session) - on non-OS X platforms this
 // pref may be ignored when dealing with pop-up windows to ensure proper startup
 pref("browser.sessionstore.max_windows_undo", 3);
+// The number of tabs that can restore concurrently:
+// < 0 = All tabs can restore at the same time
+//   0 = Only the selected tab in each window will load.
+//   N = N tabs should restore at the same time
+pref("browser.sessionstore.max_concurrent_tabs", 3);
 
 pref("shell.checkDefaultClient", true);
 // We want to check if we are the default client for browser and mail. See 
