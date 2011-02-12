@@ -1821,27 +1821,13 @@ NS_IMETHODIMP nsMsgDBView::GetColumnHandler(const nsAString& aColID, nsIMsgCusto
 
 NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue)
 {
-  nsresult rv = NS_OK;
+  const PRUnichar* colID;
+  aCol->GetIdConst(&colID);
 
   if (!IsValidIndex(aRow))
     return NS_MSG_INVALID_DBVIEW_INDEX;
 
-  nsCOMPtr <nsIMsgDBHdr> msgHdr;
-  rv = GetMsgHdrForViewIndex(aRow, getter_AddRefs(msgHdr));
-
-  if (NS_FAILED(rv) || !msgHdr)
-  {
-    ClearHdrCache();
-    return NS_MSG_INVALID_DBVIEW_INDEX;
-  }
-
   aValue.Truncate();
-  // XXX fix me by making Fetch* take an nsAString& parameter
-  nsString valueText;
-  nsCOMPtr <nsIMsgThread> thread;
-
-  const PRUnichar* colID;
-  aCol->GetIdConst(&colID);
 
   //attempt to retreive a custom column handler. If it exists call it and return
   nsIMsgCustomColumnHandler* colHandler = GetColumnHandler(colID);
@@ -1852,16 +1838,34 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
     return NS_OK;
   }
 
-  switch (colID[0])
+  return CellTextForColumn(aRow, colID, aValue);
+}
+
+NS_IMETHODIMP nsMsgDBView::CellTextForColumn(PRInt32 aRow,
+                                             const PRUnichar *aColumnName,
+                                             nsAString &aValue)
+{
+  nsCOMPtr<nsIMsgDBHdr> msgHdr;
+  nsresult rv = GetMsgHdrForViewIndex(aRow, getter_AddRefs(msgHdr));
+
+  if (NS_FAILED(rv) || !msgHdr)
+  {
+    ClearHdrCache();
+    return NS_MSG_INVALID_DBVIEW_INDEX;
+  }
+
+  nsCOMPtr<nsIMsgThread> thread;
+
+  switch (aColumnName[0])
   {
   case 's':
-    if (colID[1] == 'u') // subject
+    if (aColumnName[1] == 'u') // subject
       rv = FetchSubject(msgHdr, m_flags[aRow], aValue);
-    else if (colID[1] == 'e') // sender
+    else if (aColumnName[1] == 'e') // sender
       rv = FetchAuthor(msgHdr, aValue);
-    else if (colID[1] == 'i') // size
+    else if (aColumnName[1] == 'i') // size
       rv = FetchSize(msgHdr, aValue);
-    else if (colID[1] == 't') // status
+    else if (aColumnName[1] == 't') // status
     {
       PRUint32 flags;
       msgHdr->GetFlags(&flags);
@@ -1869,9 +1873,9 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
     }
     break;
   case 'r':
-    if (colID[3] == 'i') // recipient
+    if (aColumnName[3] == 'i') // recipient
       rv = FetchRecipients(msgHdr, aValue);
-    else if (colID[3] == 'e') // received
+    else if (aColumnName[3] == 'e') // received
       rv = FetchDate(msgHdr, aValue, PR_TRUE);
     break;
   case 'd':  // date
@@ -1881,12 +1885,12 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
     rv = FetchPriority(msgHdr, aValue);
     break;
   case 'a': // account
-    if (colID[1] == 'c') // account
+    if (aColumnName[1] == 'c') // account
       rv = FetchAccount(msgHdr, aValue);
     break;
   case 't':
     // total msgs in thread column
-    if (colID[1] == 'o' && (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
+    if (aColumnName[1] == 'o' && (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
     {
       if (m_flags[aRow] & MSG_VIEW_FLAG_ISTHREAD)
       {
@@ -1901,14 +1905,14 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
         }
       }
     }
-    else if (colID[1] == 'a') // tags
+    else if (aColumnName[1] == 'a') // tags
     {
       rv = FetchTags(msgHdr, aValue);
     }
     break;
   case 'u':
     // unread msgs in thread col
-    if (colID[6] == 'C' && (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
+    if (aColumnName[6] == 'C' && (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
     {
       if (m_flags[aRow] & MSG_VIEW_FLAG_ISTHREAD)
       {

@@ -93,12 +93,6 @@ function make_and_add_message(aMessageArgs) {
 var WHITESPACE = "                                              ";
 /**
  * Print out the current db view as best we can.
- *
- * Because nsITreeColumns are hard (impossible?) to create in an xpcshell test
- *  and GetCellText requires a real one (because it uses GetIdConst which is not
- *  scriptable), we can't actually get at the column text.  So we approximate
- *  it.  (The right thing to do is modify nsMsgDBView and children to provide a
- *  more testable way to get at the data.)
  */
 function dump_view_contents() {
   dump("********* Current View State\n");
@@ -106,17 +100,15 @@ function dump_view_contents() {
     let level = gTreeView.getLevel(iViewIndex);
     let viewFlags = gDBView.viewFlags;
     let flags = gDBView.getFlagsAt(iViewIndex);
-    let msgHdr = gDBView.getMsgHdrAt(iViewIndex);
 
     let s = WHITESPACE.substr(0, level * 2);
     if (gTreeView.isContainer(iViewIndex))
       s += gTreeView.isContainerOpen(iViewIndex) ? "- " : "+ ";
     else
       s += ". ";
-    //s += gTreeView.getCellText(iViewIndex, )
     if (flags & MSG_VIEW_FLAG_DUMMY)
       s += "dummy: ";
-    s += msgHdr.mime2DecodedSubject;
+    s += gDBView.cellTextForColumn(iViewIndex, "subject")
 
     dump(s + "\n");
   }

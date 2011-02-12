@@ -354,7 +354,7 @@ function dump_view_contents(aViewWrapper) {
     //s += treeView.getCellText(iViewIndex, )
     if (flags & MSG_VIEW_FLAG_DUMMY)
       s += "dummy: ";
-    s += msgHdr.mime2DecodedSubject;
+    s += dbView.cellTextForColumn(iViewIndex, "subject");
     s += " [" + msgHdr.folder.prettyName + "," + msgHdr.messageKey + "]";
 
     dump(s + "\n");
