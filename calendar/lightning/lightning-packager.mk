@@ -42,6 +42,9 @@ ifndef EN_US_BINARY_URL
 EN_US_BINARY_URL = $(error You must set EN_US_BINARY_URL)
 endif
 
+# Target Directory used for the l10n files
+L10N_TARGET = $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)
+
 $(DIST)/xpi-stage:
 	mkdir -p $@
 
@@ -65,7 +68,7 @@ unpack: $(ZIP_IN)
 # Call this target to upload the localized lightning package.
 l10n-upload-%: AB_CD=$*
 l10n-upload-%:
-	$(PYTHON) $(MOZILLA_SRCDIR)/build/upload.py --base-path $(DIST)/xpi-stage/  "$(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD).xpi"
+	$(PYTHON) $(MOZILLA_SRCDIR)/build/upload.py --base-path $(DIST)/xpi-stage/  "$(L10N_TARGET).xpi"
 
 # Call this target to trigger repackaging lightning for a specific language
 # Usage: make AB_CD=<language> repack-l10n
@@ -76,18 +79,19 @@ repack-l10n: recreate-platformini repack-clobber libs-$(AB_CD) repack-process-ex
 # This target should not be called directly
 repack-clobber-all:
 	@echo "Repackaging $(XPI_NAME) locale for Language $(AB_CD)"
-	rm -rf $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)
-	cp -R $(DIST)/xpi-stage/$(XPI_NAME) $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)
+	$(RM) -rf $(L10N_TARGET)
+	cp -R $(DIST)/xpi-stage/$(XPI_NAME) $(L10N_TARGET)
 
 # This target should not be called directly
 repack-clobber: repack-clobber-all
-	echo FORMAT IS: $(MOZ_CHROME_FILE_FORMAT)
+	grep -v 'locale \w\+ en-US' $(L10N_TARGET)/chrome.manifest > $(L10N_TARGET)/chrome.manifest~ && \
+	  mv $(L10N_TARGET)/chrome.manifest~ $(L10N_TARGET)/chrome.manifest
 ifeq ($(MOZ_CHROME_FILE_FORMAT),flat)
-	rm -rf $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/lightning-en-US/
-	rm -rf $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/calendar-en-US/
+	$(RM) -rf $(L10N_TARGET)/chrome/lightning-en-US/
+	$(RM) -rf $(L10N_TARGET)/chrome/calendar-en-US/
 else ifeq ($(MOZ_CHROME_FILE_FORMAT),jar)
-	rm -rf $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/lightning-en-US.jar
-	rm -rf $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/calendar-en-US.jar
+	$(RM) -rf $(L10N_TARGET)/chrome/lightning-en-US.jar
+	$(RM) -rf $(L10N_TARGET)/chrome/calendar-en-US.jar
 else
 	@echo "ERROR: Unhandled chrome file format: $(MOZ_CHROME_FILE_FORMAT)"
 	@exit 1
