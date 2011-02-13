@@ -491,3 +491,44 @@ function updateUndoRedoMenu() {
     goUpdateCommand("cmd_undo");
     goUpdateCommand("cmd_redo");
 }
+
+function setContextPartstat(value, scope, items) {
+    startBatchTransaction();
+    try {
+        for each (let oldItem in items) {
+            if (scope == "all-occurrences") {
+                oldItem = oldItem.parentItem;
+            }
+            let attendee = null;
+            if (cal.isInvitation(oldItem)) {
+                // Check for the invited attendee first, this is more important
+                attendee = cal.getInvitedAttendee(oldItem);
+            } else if (oldItem.organizer && oldItem.getAttendees({}).length) {
+                // Now check the organizer. This should be done last.
+                let calOrgId = oldItem.calendar.getProperty("organizerId");
+                if (calOrgId == oldItem.organizer.id) {
+                    attendee = oldItem.organizer;
+                }
+            }
+
+            if (attendee) {
+                let newItem = oldItem.clone();
+                let newAttendee = attendee.clone();
+
+                newAttendee.participationStatus = value;
+                if (newAttendee.isOrganizer) {
+                    newItem.organizer = newAttendee;
+                } else {
+                    newItem.removeAttendee(attendee);
+                    newItem.addAttendee(newAttendee);
+                }
+
+                doTransaction('modify', newItem, newItem.calendar, oldItem, null);
+            }
+        }
+    } catch (e) {
+        cal.ERROR("Error settinge partstat: " + e);
+    } finally {
+        endBatchTransaction();
+    }
+}

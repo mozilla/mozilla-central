@@ -128,6 +128,8 @@
     <!-- These commands are enabled when in calendar or task mode, respectively -->
     <command id="calendar_mode_calendar"/>
     <command id="calendar_mode_task"/>
+
+    <command id="calendar_attendance_command"/>
   </commandset>
 
   <keyset id="calendar-keys">
@@ -240,6 +242,62 @@
       <menuitem id="calendar-item-context-menu-delete-menuitem"
                 key="calendar-delete-item-key"
                 observes="calendar_delete_event_command"/>
+      <menu id="calendar-item-context-menu-attendance-menu"
+            label="&calendar.context.attendance.menu.label;"
+            accesskey="&calendar.context.attendance.menu.accesskey;"
+            oncommand="setContextPartstat(event.target.value, event.target.getAttribute('scope'), currentView().getSelectedItems({}))"
+            observes="calendar_attendance_command">
+        <menupopup id="calendar-item-context-menu-attendance-menupopup">
+          <label id="calendar-item-context-attendance-thisoccurrence-label"
+                 class="calendar-context-heading-label"
+                 scope="all-occurrences"
+                 value="&calendar.context.attendance.occurrence.label;"/>
+          <menuitem id="calendar-item-context-menu-attend-accept-menuitem"
+                    type="radio"
+                    scope="this-occurrence"
+                    name="calendar-item-context-attendance"
+                    label="&read.only.accept.label;" value="ACCEPTED"/>
+          <menuitem id="calendar-item-context-menu-attend-tentative-menuitem"
+                    type="radio"
+                    scope="this-occurrence"
+                    name="calendar-item-context-attendance"
+                    label="&read.only.tentative.label;" value="TENTATIVE"/>
+          <menuitem id="calendar-item-context-menu-attend-declined-menuitem"
+                    type="radio"
+                    scope="this-occurrence"
+                    name="calendar-item-context-attendance"
+                    label="&read.only.decline.label;" value="DECLINED"/>
+          <menuitem id="calendar-item-context-menu-attend-needsaction-menuitem"
+                    type="radio"
+                    scope="this-occurrence"
+                    name="calendar-item-context-attendance"
+                    label="&read.only.needs.action.label;" value="NEEDS-ACTION"/>
+          <label id="calendar-item-context-attendance-alloccurrence-label"
+                 class="calendar-context-heading-label"
+                 scope="all-occurrences"
+                 value="&calendar.context.attendance.all.label;"/>
+          <menuitem id="calendar-item-context-menu-attend-accept-all-menuitem"
+                    type="radio"
+                    scope="all-occurrences"
+                    name="calendar-item-context-attendance-all"
+                    label="&read.only.accept.label;" value="ACCEPTED"/>
+          <menuitem id="calendar-item-context-menu-attend-tentative-all-menuitem"
+                    type="radio"
+                    scope="all-occurrences"
+                    name="calendar-item-context-attendance-all"
+                    label="&read.only.tentative.label;" value="TENTATIVE"/>
+          <menuitem id="calendar-item-context-menu-attend-declined-all-menuitem"
+                    type="radio"
+                    scope="all-occurrences"
+                    name="calendar-item-context-attendance-all"
+                    label="&read.only.decline.label;" value="DECLINED"/>
+          <menuitem id="calendar-item-context-menu-attend-needsaction-all-menuitem"
+                    type="radio"
+                    scope="all-occurrences"
+                    name="calendar-item-context-attendance-all"
+                    label="&read.only.needs.action.label;" value="NEEDS-ACTION"/>
+        </menupopup>
+      </menu>
     </menupopup>
 
     <!-- CALENDAR VIEW CONTEXT MENU -->

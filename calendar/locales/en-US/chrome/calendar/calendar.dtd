@@ -203,6 +203,10 @@
 <!ENTITY calendar.context.pasteevent.accesskey        "P">
 <!ENTITY calendar.context.button.label                "Today Pane" >
 <!ENTITY calendar.context.button.accesskey            "T" >
+<!ENTITY calendar.context.attendance.menu.label       "Attendance" >
+<!ENTITY calendar.context.attendance.menu.accesskey   "d" >
+<!ENTITY calendar.context.attendance.occurrence.label "This Occurrence" >
+<!ENTITY calendar.context.attendance.all.label        "All Occurrences" >
 
 <!-- Task Context Menu -->
 <!ENTITY calendar.context.progress.label              "Progress">

@@ -1142,7 +1142,9 @@
     <handlers>
       <handler event="select"><![CDATA[
         this.mTreeView.onSelect(event);
-        calendarController.onSelectionChanged({detail:this.selectedTasks});
+        if (calendarController.todo_tasktree_focused) {
+          calendarController.onSelectionChanged({detail:this.selectedTasks});
+        }
       ]]></handler>
       <handler event="dblclick" button="0"><![CDATA[
         this.mTreeView.onDoubleClick(event);

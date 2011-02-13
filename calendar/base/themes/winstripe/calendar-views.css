@@ -650,6 +650,14 @@ description.tooltipBody {
     display: none;
 }
 
+#calendar-item-context-menu-attendance-menu[itemType="single"] > menupopup > *[scope="all-occurrences"] {
+    display: none;
+}
+
+.calendar-context-heading-label {
+    font-weight: bold;
+}
+
 calendar-event-box,
 calendar-editable-item,
 calendar-month-day-box-item {
