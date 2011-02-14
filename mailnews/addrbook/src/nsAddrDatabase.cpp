@@ -68,6 +68,8 @@
 #include "nsIVariant.h"
 #include "nsCOMArray.h"
 #include "nsArrayEnumerator.h"
+#include "nsIPrefService.h"
+#include "nsIPrefBranch.h"
 
 #define ID_PAB_TABLE            1
 #define ID_DELETEDCARDS_TABLE           2
@@ -242,6 +244,15 @@ NS_IMETHODIMP nsAddrDatabase::NotifyCardAttribChange(PRUint32 abCode)
 
 NS_IMETHODIMP nsAddrDatabase::NotifyCardEntryChange(PRUint32 aAbCode, nsIAbCard *aCard, nsIAbDirectory *aParent)
 {
+  PRInt32 currentDisplayNameVersion = 0;
+
+  //Update "mail.displayname.version" prefernce
+  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
+
+  prefs->GetIntPref("mail.displayname.version",&currentDisplayNameVersion);
+
+  prefs->SetIntPref("mail.displayname.version",++currentDisplayNameVersion);
+
   NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(m_ChangeListeners, nsIAddrDBListener,
                                      OnCardEntryChange, (aAbCode, aCard, aParent));
   return NS_OK;

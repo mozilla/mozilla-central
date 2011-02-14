@@ -290,6 +290,20 @@ const MailPrefObserver = {
     {
       if (prefName == "mail.pane_config.dynamic")
         UpdateMailPaneConfig(true);
+      else if (prefName == "mail.showCondensedAddresses")
+      {
+        var currentDisplayNameVersion;
+        var threadTree = document.getElementById("threadTree");
+
+        currentDisplayNameVersion =
+            gPrefBranch.getIntPref("mail.displayname.version");
+
+        gPrefBranch.setIntPref("mail.displayname.version",
+                               ++currentDisplayNameVersion);
+
+        //refresh the thread pane
+        threadTree.treeBoxObject.invalid();
+      }
     }
   }
 };
@@ -332,6 +346,8 @@ function OnLoadMessenger()
 
   gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
   gPrefBranch.addObserver("mail.pane_config.dynamic", MailPrefObserver, false);
+  gPrefBranch.addObserver("mail.showCondensedAddresses", MailPrefObserver,
+                          false);
 
   MailOfflineMgr.init();
   CreateMailWindowGlobals();
@@ -548,6 +564,7 @@ function OnUnloadMessenger()
   accountManager.removeIncomingServerListener(gThreePaneIncomingServerListener);
   gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
   gPrefBranch.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
+  gPrefBranch.removeObserver("mail.showCondensedAddresses", MailPrefObserver);
 
   sessionStoreManager.unloadingWindow(window);
 
