@@ -2206,7 +2206,10 @@ calDavCalendar.prototype = {
         return uriComponents.join("/");
     },
     isInbox: function caldav_isInbox(aString) {
-        return ((this.hasScheduling || this.hasAutoScheduling) && this.mInboxUrl &&
+        // Note: If you change this, make sure it really returns a boolean
+        // value and not null!
+        return ((this.hasScheduling || this.hasAutoScheduling) &&
+                (this.mInboxUrl != null) &&
                 aString.indexOf(this.mInboxUrl.spec) == 0);
     },
 
