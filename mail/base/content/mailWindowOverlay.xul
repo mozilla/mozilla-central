@@ -612,14 +612,14 @@
               accesskey="&contextOpenConversation.accesskey;"
               oncommand="gConversationOpener.openConversationForMessages(gFolderDisplay.selectedMessages);"/>
     <menuseparator id="mailContext-sep-open2"/>
-    <menuitem id="mailContext-replySender"
-              label="&contextReplySender.label;"
-              accesskey="&contextReplySender.accesskey;"
-              oncommand="MsgReplySender(event);"/>
     <menuitem id="mailContext-replyNewsgroup"
               label="&contextReplyNewsgroup.label;"
               accesskey="&contextReplyNewsgroup.accesskey;"
               oncommand="MsgReplyGroup(event);"/>
+    <menuitem id="mailContext-replySender"
+              label="&contextReplySender.label;"
+              accesskey="&contextReplySender.accesskey;"
+              oncommand="MsgReplySender(event);"/>
     <menuitem id="mailContext-replyAll"
               label="&contextReplyAll.label;"
               accesskey="&contextReplyAll.accesskey;"
@@ -1375,13 +1375,13 @@
                       accesskey="&replyMsgCmd.accesskey;"
                       key="key_reply"
                       command="cmd_reply"/>
-            <menuitem id="replySenderMainMenu" label="&replySenderCmd.label;"
-                      accesskey="&replySenderCmd.accesskey;"
-                      command="cmd_replySender"/>
             <menuitem id="replyNewsgroupMainMenu" label="&replyNewsgroupCmd.label;"
                       accesskey="&replyNewsgroupCmd.accesskey;"
                       key="key_reply"
                       command="cmd_replyGroup"/>
+            <menuitem id="replySenderMainMenu" label="&replySenderCmd.label;"
+                      accesskey="&replySenderCmd.accesskey;"
+                      command="cmd_replySender"/>
             <menuitem id="menu_replyToAll" label="&replyToAllMsgCmd.label;"
                       accesskey="&replyToAllMsgCmd.accesskey;"
                       key="key_replyall"
