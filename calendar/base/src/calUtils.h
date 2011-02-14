@@ -47,7 +47,6 @@
 #endif
 
 #include "nsAutoPtr.h"
-#include "nsVoidArray.h"
 #include "nsIStringEnumerator.h"
 
 #include "calITimezone.h"
@@ -89,16 +88,6 @@ inline nsCOMPtr<calIICSService> getICSService() {
 inline nsCOMPtr<calITimezoneService> getTimezoneService() {
     return do_GetService(CAL_TIMEZONESERVICE_CONTRACTID);
 }
-
-/**
- * Creates a UTF8 string enumerator.
- *
- * @param takeOverArray      a nsCStringArray that is taken over by the resulting
- *                           string enumerator object (nsAutoPtr passes over ownership)
- * @param ppRet              returned enumerator object
- */
-nsresult createUTF8StringEnumerator(nsAutoPtr<nsCStringArray> & takeOverArray,
-                                    nsIUTF8StringEnumerator ** ppRet);
 
 /**
  * Logs an error.

@@ -45,51 +45,6 @@ extern "C" {
 
 namespace cal {
 
-class UTF8StringEnumerator : public nsIUTF8StringEnumerator,
-                             public XpcomBase
-{
-public:
-    NS_DECL_ISUPPORTS
-    NS_DECL_NSIUTF8STRINGENUMERATOR
-
-    explicit UTF8StringEnumerator(nsAutoPtr<nsCStringArray> & takeOverArray)
-        : mArray(takeOverArray), mPos(0) {}
-private:
-    nsAutoPtr<nsCStringArray> const mArray;
-    PRInt32 mPos;
-};
-
-NS_IMPL_ISUPPORTS1(UTF8StringEnumerator, nsIUTF8StringEnumerator)
-
-NS_IMETHODIMP UTF8StringEnumerator::HasMore(PRBool *_retval)
-{
-    NS_ENSURE_ARG_POINTER(_retval);
-    *_retval = (mPos < mArray->Count());
-    return NS_OK;
-}
-
-NS_IMETHODIMP UTF8StringEnumerator::GetNext(nsACString & _retval)
-{
-    if (mPos < mArray->Count()) {
-        mArray->CStringAt(mPos, _retval);
-        ++mPos;
-        return NS_OK;
-    } else {
-        return NS_ERROR_UNEXPECTED;
-    }
-}
-
-nsresult createUTF8StringEnumerator(nsAutoPtr<nsCStringArray> & takeOverArray,
-                                    nsIUTF8StringEnumerator ** ppRet)
-{
-    NS_ENSURE_ARG_POINTER(takeOverArray.get());
-    NS_ENSURE_ARG_POINTER(ppRet);
-    *ppRet = new UTF8StringEnumerator(takeOverArray);
-    CAL_ENSURE_MEMORY(*ppRet);
-    NS_ADDREF(*ppRet);
-    return NS_OK;
-}
-
 nsresult logError(PRUnichar const* msg) {
     nsresult rc;
     nsCOMPtr<nsIScriptError> const scriptError(do_CreateInstance("@mozilla.org/scripterror;1", &rc));
