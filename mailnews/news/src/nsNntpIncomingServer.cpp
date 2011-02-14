@@ -69,7 +69,7 @@
 #include "nsMsgUtils.h"
 
 #define INVALID_VERSION         0
-#define VALID_VERSION           1
+#define VALID_VERSION           2
 #define NEW_NEWS_DIR_NAME       "News"
 #define PREF_MAIL_NEWSRC_ROOT   "mail.newsrc_root"
 #define PREF_MAIL_NEWSRC_ROOT_REL "mail.newsrc_root-rel"
@@ -811,9 +811,8 @@ writeGroupToHostInfoFile(nsCString &aElement, void *aData)
         return PR_FALSE;
     }
     PRUint32 bytesWritten;
-    // XXX todo ",,1,0,0" is a temporary hack, fix it
     stream->Write(aElement.get(), aElement.Length(), &bytesWritten);
-    stream->Write(",,1,0,0"MSG_LINEBREAK, 7 + MSG_LINEBREAK_LEN, &bytesWritten);
+    stream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &bytesWritten);
     return PR_TRUE;
 }
 
@@ -1262,6 +1261,8 @@ nsNntpIncomingServer::HandleLine(const char* line, PRUint32 line_size)
   // ###TODO - make this truly const, maybe pass in an nsCString &
 
   if (mHasSeenBeginGroups) {
+    // v1 hostinfo files had additional data fields delimited by commas.
+    // with v2 hostinfo files, the additional data fields are removed.
     char *commaPos = (char *) PL_strchr(line,',');
     if (commaPos) *commaPos = 0;
 
