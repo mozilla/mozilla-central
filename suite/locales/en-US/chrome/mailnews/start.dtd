@@ -49,7 +49,7 @@ client, supporting advanced junk mail detection and other useful features.">
 <!ENTITY feat_filters.label "Message Filters">
 <!ENTITY feat_htmlmsg.label "HTML message support">
 <!ENTITY feat_abook.label "Address Book">
-<!ENTITY feat_labels.label "Customizable Labels and Mail Views">
+<!ENTITY feat_labels.label "Customizable Tags and Mail Views">
 <!ENTITY feat_integration.label
 "Tight integration with the &brandShortName; application suite">
 <!ENTITY dict.title "Dictionaries">

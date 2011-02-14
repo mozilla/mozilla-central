@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Robert Kaiser <KaiRo@KaiRo.at>
+ *   Karsten Düsterloh <mnyromyr@tprac.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,19 +43,19 @@
 body {
   margin: 0;
   padding: 0;
+  background: url("chrome://branding/content/messenger-start-bg.png") no-repeat fixed center 3em;
+  background-size: auto 85%;
 }
 
 h1 {
-  background-color: -moz-Dialog;
-  color: -moz-DialogText;
-  border-bottom: 1px solid ThreeDShadow;
+  background: url("chrome://branding/content/messenger-start-hdr.png") repeat-x bottom;
+  border-bottom: 2px solid #26269A;
   font-size: 1.5em;
-  font-weight: normal;
   padding: 0.25em 0.67em; /* 0.67*1.5=1, so fit with 1em below */
   margin: 0;
 }
 
-div#main {
+#main {
   margin: 0 1em;
 }
 
@@ -65,7 +66,6 @@ p {
 h2 {
   font-size: 1.2em;
   font-weight: bold;
-  margin: 0.5em 0;
 }
 
 ul {
