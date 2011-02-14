@@ -508,7 +508,7 @@
                     onnewtab="BrowserOpenTab();"
                     onnewtabclick="checkForMiddleClick(this, event);"
                     autocompletepopup="PopupAutoComplete"
-                    onbookmarkgroup="addGroupmarkAs();"
+                    onbookmarkgroup="gBookmarkAllTabsHandler.doCommand();"
                     onclick="return contentAreaClick(event);"
                     oncommand="BrowserOnCommand(event);"/>
         <!-- The oncommand listener above lets us fix bugs like 401575 which
