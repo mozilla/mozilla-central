@@ -384,6 +384,13 @@ nsMsgStatusFeedback.prototype =
       this.ensureStatusFields();
       this.statusTextFld.label = link;
     },
+
+  // Called before links are navigated to to allow us to retarget them if needed.
+  onBeforeLinkTraversal: function(aOriginalTarget, aLinkURI, aLinkNode, aIsAppTab)
+  {
+    return aOriginalTarget;
+  },
+
   QueryInterface : function(iid)
     {
       if (iid.equals(Components.interfaces.nsIMsgStatusFeedback) ||
