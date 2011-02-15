@@ -2155,7 +2155,7 @@ nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const n
   rv = serverFolder->GetSubFolders(getter_AddRefs(subFolders));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsStringArray groupList;
+  nsTArray<nsString> groupList;
   nsString folderName;
 
   // Prepare the group list
@@ -2170,34 +2170,30 @@ nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const n
 
     rv = newsgroupFolder->GetName(folderName);
     NS_ENSURE_SUCCESS(rv,rv);
-    groupList.AppendString(folderName);
+    groupList.AppendElement(folderName);
   }
 
   // If nothing subscribed then we're done.
-  if (groupList.Count() == 0)
+  if (groupList.Length() == 0)
     return NS_OK;
 
   // Now unsubscribe & subscribe.
-  int i, cnt=groupList.Count();
-  nsAutoString groupStr;
+  PRUint32 i;
+  PRUint32 cnt = groupList.Length();
   nsCAutoString cname;
-  for (i=0; i<cnt; i++)
+  for (i = 0; i < cnt; i++)
   {
     // unsubscribe.
-    groupList.StringAt(i, groupStr);
-    rv = Unsubscribe(groupStr.get());
+    rv = Unsubscribe(groupList[i].get());
     NS_ENSURE_SUCCESS(rv,rv);
   }
 
-  for (i=0; i<cnt; i++)
+  for (i = 0; i < cnt; i++)
   {
     // subscribe.
-    groupList.StringAt(i, groupStr);
-    rv = SubscribeToNewsgroup(NS_ConvertUTF16toUTF8(groupStr));
+    rv = SubscribeToNewsgroup(NS_ConvertUTF16toUTF8(groupList[i]));
     NS_ENSURE_SUCCESS(rv,rv);
   }
-
-  groupList.Clear();
 
   // Force updating the rc file.
   return CommitSubscribeChanges();
