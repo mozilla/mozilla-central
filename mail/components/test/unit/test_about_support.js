@@ -39,8 +39,6 @@
  * Test the about:support module.
  */
 
-Components.utils.import("resource:///modules/aboutSupport.js");
-
 let gAccountList = [{
   type: "pop3",
   port: 1234,
@@ -214,6 +212,12 @@ var tests = [
 ];
 
 function run_test() {
+  // Only run the tests on Windows and Mac for now.
+  if (!("@mozilla.org/windows-registry-key;1" in Cc || "nsILocalFileMac" in Ci))
+    return;
+
+  Components.utils.import("resource:///modules/aboutSupport.js");
+
   setup_accounts();
 
   for (let [, test] in Iterator(tests))
