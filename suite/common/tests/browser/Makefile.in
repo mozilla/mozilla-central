@@ -45,6 +45,7 @@ include $(DEPTH)/config/autoconf.mk
 include $(topsrcdir)/config/rules.mk
 
 _BROWSER_FILES = \
+	head.js \
 	browser_339445.js \
 	browser_339445_sample.html \
 	browser_345898.js \
@@ -92,6 +93,7 @@ _BROWSER_FILES = \
 	browser_528776.js \
 	browser_586068-cascaded_restore.js \
 	browser_607016.js \
+	browser_615394-SSWindowState_events.js \
 	browser_isempty.js \
 	browser_markPageAsFollowedLink.js \
 	framedPage.html \

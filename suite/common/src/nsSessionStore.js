@@ -967,6 +967,7 @@ SessionStoreService.prototype = {
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
     var window = aTab.ownerDocument.defaultView;
+    this._sendWindowStateEvent(window, "Busy");
     this.restoreHistoryPrecursor(window, [aTab], [tabState], 0, 0, 0);
   },
 
@@ -978,6 +979,7 @@ SessionStoreService.prototype = {
     var tabState = this._collectTabData(aTab, true);
     var sourceWindow = aTab.ownerDocument.defaultView;
     this._updateTextAndScrollDataForTab(sourceWindow, aTab.linkedBrowser, tabState, true);
+    this._sendWindowStateEvent(aWindow, "Busy");
     tabState.index += aDelta;
 
     if (aWindow) {
@@ -1033,6 +1035,7 @@ SessionStoreService.prototype = {
       this._windows[aWindow.__SSi]._closedTabs.splice(aIndex, 1);
     var browser = aWindow.getBrowser();
     var index = browser.savedBrowsers.indexOf(closedTab);
+    this._sendWindowStateEvent(aWindow, "Busy");
     if (index != -1)
       // SeaMonkey has its own undoclosetab functionality
       return browser.restoreTab(index);
@@ -2070,6 +2073,10 @@ SessionStoreService.prototype = {
       return;
     }
 
+    // We're not returning from this before we end up calling restoreHistoryPrecursor
+    // for this window, so make sure we send the SSWindowStateBusy event.
+    this._sendWindowStateEvent(aWindow, "Busy");
+
     if (root._closedWindows)
       this._closedWindows = root._closedWindows;
 
@@ -2350,6 +2357,9 @@ SessionStoreService.prototype = {
       aTabData.shift();
     }
     if (aTabs.length == 0) {
+      // At this point we're essentially ready for consumers to read/write data
+      // via the sessionstore API so we'll send the SSWindowStateReady event.
+      this._sendWindowStateEvent(aWindow, "Ready");
       return; // no more tabs to restore
     }
 
@@ -3392,6 +3402,17 @@ SessionStoreService.prototype = {
         this._browserSetState = false;
       }
     }
+  },
+
+  /**
+   * Dispatch an SSWindowState_____ event for the given window.
+   * @param aWindow the window
+   * @param aType the type of event, SSWindowState will be prepended to this string
+   */
+  _sendWindowStateEvent: function sss_sendWindowStateEvent(aWindow, aType) {
+    let event = aWindow.document.createEvent("Events");
+    event.initEvent("SSWindowState" + aType, true, false);
+    aWindow.dispatchEvent(event);
   },
 
   /**
