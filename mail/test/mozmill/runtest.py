@@ -179,7 +179,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         # Do not enable gloda
         'mailnews.database.global.indexer.enabled': False,
         # Do not allow fonts to be upgraded
-        'mail.font.windows.version': 1
+        'mail.font.windows.version': 2
         }
 
     def create_new_profile(self, binary):
