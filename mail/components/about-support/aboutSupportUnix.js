@@ -48,23 +48,30 @@ const G_FILE_ATTRIBUTE_FILESYSTEM_TYPE = "filesystem::type";
 
 const kNetworkFilesystems = ["afs", "cifs", "nfs", "smb"];
 
-// GC is responsible for closing these libraries
-var glib = ctypes.open("libglib-2.0.so");
-var gobject = ctypes.open("libgobject-2.0.so");
+// These libraries might not be available on all systems.
+var gLibsExist = false;
+try {
+  // GC is responsible for closing these libraries if they exist.
+  var glib = ctypes.open("libglib-2.0.so.0");
+  var gobject = ctypes.open("libgobject-2.0.so.0");
+  var gio = ctypes.open("libgio-2.0.so.0");
+  gLibsExist = true;
+} catch (ex) {}
 
-var g_free = glib.declare(
-  "g_free",
-  ctypes.default_abi,
-  ctypes.void_t,
-  ctypes.voidptr_t
-);
-
-var g_object_unref = gobject.declare(
-  "g_object_unref",
-  ctypes.default_abi,
-  ctypes.void_t,
-  ctypes.voidptr_t
-);
+if (gLibsExist) {
+  var g_free = glib.declare(
+    "g_free",
+    ctypes.default_abi,
+    ctypes.void_t,
+    ctypes.voidptr_t
+  );
+  var g_object_unref = gobject.declare(
+    "g_object_unref",
+    ctypes.default_abi,
+    ctypes.void_t,
+    ctypes.voidptr_t
+  );
+}
 
 var AboutSupportPlatform = {
   /**
@@ -72,7 +79,10 @@ var AboutSupportPlatform = {
    * string. Possible values are "network", "local", "unknown" and null.
    */
   getFileSystemType: function ASPUnix_getFileSystemType(aFile) {
-    let gio = ctypes.open("libgio-2.0.so");
+    // Check if the libs exist.
+    if (!gLibsExist)
+      return "unknown";
+
     try {
       // Given a UTF-8 string, converts it to the current Glib locale.
       let g_filename_from_utf8 = glib.declare(
@@ -142,7 +152,6 @@ var AboutSupportPlatform = {
         g_object_unref(glibFile);
       if (glibFileInfo && !glibFileInfo.isNull())
         g_object_unref(glibFileInfo);
-      gio.close();
     }
   },
 };
