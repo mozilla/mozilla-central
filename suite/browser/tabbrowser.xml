@@ -1448,6 +1448,19 @@
             n.setAttribute("class", "browser-notificationbox");
             n.setAttribute("popupnotification", this.getAttribute("popupnotification"));
             n.appendChild(b);
+
+            var uniqueId = "panel" + this.nextTabNumber++;
+            n.id = uniqueId;
+            t.linkedPanel = uniqueId;
+            t.linkedBrowser = b;
+            if (t.previousSibling.selected)
+              t.setAttribute("afterselected", true);
+
+            // NB: this appendChild call causes us to run constructors for the
+            // browser element, which fires off a bunch of notifications. Some
+            // of those notifications can cause code to run that inspects our
+            // state, so it is important that the tab element is fully
+            // initialized by this point.
             this.mPanelContainer.appendChild(n);
 
             b.addEventListener("DOMTitleChanged", this.onTitleChanged, true);
@@ -1465,13 +1478,6 @@
             b.webProgress.addProgressListener(filter, Components.interfaces.nsIWebProgress.NOTIFY_ALL);
             this.mTabListeners[position] = tabListener;
             this.mTabFilters[position] = filter;
-
-            var uniqueId = "panel" + this.nextTabNumber++;
-            n.id = uniqueId;
-            t.linkedPanel = uniqueId;
-            t.linkedBrowser = b;
-            if (t.previousSibling.selected)
-              t.setAttribute("afterselected", true);
 
             if (!blank) {
               // Stop the existing about:blank load.  Otherwise, if aURI
