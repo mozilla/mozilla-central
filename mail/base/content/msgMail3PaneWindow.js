@@ -504,6 +504,7 @@ function LoadPostAccountWizard()
   //  gFolderDisplay.ensureRowIsVisible use settimeout itself to defer that
   //  calculation, but that was ugly.  Also, in theory we will open the window
   //  faster if we let the event loop start doing things sooner.
+
   if (startMsgHdr)
     window.setTimeout(loadStartMsgHdr, 0, startMsgHdr);
   else
@@ -608,25 +609,84 @@ function getWindowStateForSessionPersistence()
  * @return true if the restoration was successful, false otherwise.
  */
 function atStartupRestoreTabs(aDontRestoreFirstTab) {
+
   let state = sessionStoreManager.loadingWindow(window);
+
   if (state) {
     let tabsState = state.tabs;
     let tabmail = document.getElementById("tabmail");
     tabmail.restoreTabs(tabsState, aDontRestoreFirstTab);
-    return true;
   }
 
-  return false;
+  // it's now safe to load extra Tabs.
+  setTimeout(loadExtraTabs, 0);
+
+  return state ? true : false;
 }
 
+/**
+ * Loads and restores tabs upon opening a window by evaluating window.arguments[1].
+ *
+ * The type of the object is specified by it's action property. It can be
+ * either "restore" or "open". "restore" invokes tabmail.restoreTab() for each
+ * item in the tabs array. While "open" invokes tabmail.openTab() for each item.
+ *
+ * In case a tab can't be restored it will fail silently
+ *
+ * the object need at least the following properties:
+ *
+ * {
+ *   action = "restore" | "open"
+ *   tabs = [];
+ * }
+ *
+ */
 function loadExtraTabs()
 {
-  if ("arguments" in window && window.arguments.length >= 2) {
-    if (window.arguments[1] && (typeof window.arguments[1] == "object") &&
-        ("tabType" in window.arguments[1])) {
-      document.getElementById('tabmail').openTab(window.arguments[1].tabType, window.arguments[1].tabParams);
-    }
+
+  if (!("arguments" in window) || window.arguments.length < 2)
+    return;
+
+  let tab = window.arguments[1];
+  if ((!tab) || (typeof tab != "object"))
+    return;
+
+  let tabmail =  document.getElementById("tabmail");
+
+  // we got no action, so suppose its "legacy" code
+  if (!("action" in tab)) {
+
+    if ("tabType" in tab)
+      tabmail.openTab(tab.tabType, tab.tabParams);
+
+    return;
   }
+
+  if (!("tabs" in tab))
+    return;
+
+  // this is used if a tab is detached to a new window.
+  if (tab.action == "restore") {
+
+    for (let i = 0; i < tab.tabs.length; i++)
+      tabmail.restoreTab(tab.tabs[i]);
+
+    // we currently do not support opening in background or opening a
+    // special position. So select the last tab opened.
+    tabmail.switchToTab(tabmail.tabInfo[tabmail.tabInfo.length-1])
+
+    return;
+  }
+
+  if (tab.action == "open") {
+
+    for (let i = 0; i < tab.tabs.length; i++)
+      if("tabType" in tabs.tab[i])
+        tabmail.openTab(tabs.tab[i].tabType,tabs.tab[i].tabParams);
+
+    return;
+  }
+
 }
 
 /**
@@ -637,8 +697,6 @@ function loadExtraTabs()
  */
 function loadStartMsgHdr(aStartMsgHdr)
 {
-  setTimeout(loadExtraTabs, 0);
-
   // We'll just clobber the default tab
   atStartupRestoreTabs(true);
 
@@ -647,7 +705,6 @@ function loadStartMsgHdr(aStartMsgHdr)
 
 function loadStartFolder(initialUri)
 {
-  setTimeout(loadExtraTabs, 0);
     var defaultServer = null;
     var startFolder;
     var isLoginAtStartUpEnabled = false;

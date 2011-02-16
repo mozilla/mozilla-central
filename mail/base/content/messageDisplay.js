@@ -533,7 +533,7 @@ MessageTabDisplayWidget.prototype = {
       if (!this.closing) {
         this.closing = true;
         document.getElementById('tabmail').closeTab(
-            this.folderDisplay._tabInfo);
+            this.folderDisplay._tabInfo, true);
       }
       return true;
     }
@@ -555,7 +555,8 @@ MessageTabDisplayWidget.prototype = {
   onMessagesRemoved: function MessageTabDisplayWidget_onMessagesRemoved() {
     if (this.folderDisplay.treeSelection.count == 0 &&
         pref.getBoolPref("mail.close_message_window.on_delete")) {
-      document.getElementById("tabmail").closeTab(this.folderDisplay._tabInfo);
+      document.getElementById("tabmail").closeTab(this.folderDisplay._tabInfo,
+                                                  true);
       return true;
     }
   },
@@ -567,7 +568,8 @@ MessageTabDisplayWidget.prototype = {
   clearDisplay: function MessageTabDisplayWidget_clearDisplay() {
     if (!this.closing) {
       this.closing = true;
-      document.getElementById('tabmail').closeTab(this.folderDisplay._tabInfo);
+      document.getElementById('tabmail').closeTab(this.folderDisplay._tabInfo,
+                                                  true);
     }
   }
 };
