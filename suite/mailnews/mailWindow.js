@@ -40,11 +40,6 @@
  * ***** END LICENSE BLOCK ***** */
 
  //This file stores variables common to mail windows
-var messengerContractID        = "@mozilla.org/messenger;1";
-var statusFeedbackContractID   = "@mozilla.org/messenger/statusfeedback;1";
-var secureUIContractID         = "@mozilla.org/secure_browser_ui;1";
-var msgWindowContractID      = "@mozilla.org/messenger/msgwindow;1";
-
 var messenger;
 var statusFeedback;
 var msgWindow;
@@ -59,10 +54,6 @@ var mailSession;
 
 var gMessengerBundle;
 var gBrandBundle;
-
-var datasourceContractIDPrefix = "@mozilla.org/rdf/datasource;1?name=";
-var accountManagerDSContractID = datasourceContractIDPrefix + "msgaccountmanager";
-var folderDSContractID         = datasourceContractIDPrefix + "mailnewsfolders";
 
 var accountManagerDataSource;
 var folderDataSource;
@@ -105,16 +96,11 @@ function OnMailWindowUnload()
   msgWindow.closeWindow();
 }
 
-function CreateMessenger()
-{
-  messenger = Components.classes[messengerContractID].createInstance();
-  messenger = messenger.QueryInterface(Components.interfaces.nsIMessenger);
-}
-
 function CreateMailWindowGlobals()
 {
   // get the messenger instance
-  CreateMessenger();
+  messenger = Components.classes["@mozilla.org/messenger;1"]
+                        .createInstance(Components.interfaces.nsIMessenger);
   // force pref service initialization
   GetPrefService();
   //Create windows status feedback
@@ -128,48 +114,25 @@ function CreateMailWindowGlobals()
         .getInterface(Components.interfaces.nsIXULWindow)
         .XULBrowserWindow = window.MsgStatusFeedback;
 
-  statusFeedback = Components.classes[statusFeedbackContractID].createInstance();
-  statusFeedback = statusFeedback.QueryInterface(Components.interfaces.nsIMsgStatusFeedback);
+  statusFeedback = Components.classes["@mozilla.org/messenger/statusfeedback;1"]
+                             .createInstance(Components.interfaces.nsIMsgStatusFeedback);
   statusFeedback.setWrappedStatusFeedback(window.MsgStatusFeedback);
-
-  /*
-    not in use unless we want the lock button back
-
-  // try to create and register ourselves with a security icon...
-  var securityIcon = document.getElementById("security-button");
-  if (securityIcon) {
-    // if the client isn't built with psm enabled then we won't have a secure UI to monitor the lock icon
-    // so be sure to wrap this in a try / catch clause...
-    try {
-      var secureUI;
-      // we may not have a secure UI if psm isn't installed!
-      if (secureUIContractID in Components.classes) {
-        secureUI = Components.classes[secureUIContractID].createInstance();
-        if (secureUI) {
-          secureUI = secureUI.QueryInterface(Components.interfaces.nsISecureBrowserUI);
-          secureUI.init(content, securityIcon);
-        }
-      }
-    }
-    catch (ex) {}
-  }
-  */
 
   window.MsgWindowCommands = new nsMsgWindowCommands();
 
   //Create message window object
-  msgWindow = Components.classes[msgWindowContractID].createInstance();
-  msgWindow = msgWindow.QueryInterface(Components.interfaces.nsIMsgWindow);
+  msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
+                        .createInstance(Components.interfaces.nsIMsgWindow);
 
-  msgComposeService = Components.classes['@mozilla.org/messengercompose;1'].getService();
-  msgComposeService = msgComposeService.QueryInterface(Components.interfaces.nsIMsgComposeService);
+  msgComposeService = Components.classes['@mozilla.org/messengercompose;1']
+                                .getService(Components.interfaces.nsIMsgComposeService);
 
   mailSession = Components.classes["@mozilla.org/messenger/services/session;1"].getService(Components.interfaces.nsIMsgMailSession);
 
   accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
 
-  RDF = Components.classes['@mozilla.org/rdf/rdf-service;1'].getService();
-  RDF = RDF.QueryInterface(Components.interfaces.nsIRDFService);
+  RDF = Components.classes['@mozilla.org/rdf/rdf-service;1']
+                  .getService(Components.interfaces.nsIRDFService);
 
   msgComposeType = Components.interfaces.nsIMsgCompType;
   msgComposeFormat = Components.interfaces.nsIMsgCompFormat;
@@ -178,8 +141,13 @@ function CreateMailWindowGlobals()
   gBrandBundle = document.getElementById("bundle_brand");
 
   //Create datasources
-  accountManagerDataSource = Components.classes[accountManagerDSContractID].getService();
-  folderDataSource         = Components.classes[folderDSContractID].getService();
+  var prefix = "@mozilla.org/rdf/datasource;1?name=";
+  var accountManagerDSCID = prefix + "msgaccountmanager";
+  var folderDSCID         = prefix + "mailnewsfolders";
+  var nsIRDFDataSource = Components.interfaces.nsIRDFDataSource;
+
+  accountManagerDataSource = Components.classes[accountManagerDSCID].getService(nsIRDFDataSource);
+  folderDataSource         = Components.classes[folderDSCID].getService(nsIRDFDataSource);
 
   msgWindow.notificationCallbacks = new nsMsgBadCertHandler();
 }
@@ -314,9 +282,6 @@ function messagePaneOnClick(event)
 
 function AddDataSources()
 {
-  accountManagerDataSource = accountManagerDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
-  folderDataSource = folderDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
-
   SetupMoveCopyMenus('moveMenu', accountManagerDataSource, folderDataSource);
   SetupMoveCopyMenus('copyMenu', accountManagerDataSource, folderDataSource);
   SetupMoveCopyMenus('button-file', accountManagerDataSource, folderDataSource);

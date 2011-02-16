@@ -1027,12 +1027,10 @@ function OnLoadFolderPane()
     folderUnreadCol.addEventListener("DOMAttrModified", OnFolderUnreadColAttrModified, false);
 
     //Add folderDataSource and accountManagerDataSource to folderPane
-    accountManagerDataSource = accountManagerDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
-    folderDataSource = folderDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
     var database = GetFolderDatasource();
-
     database.AddDataSource(accountManagerDataSource);
     database.AddDataSource(folderDataSource);
+
     var folderTree = GetFolderTree();
     folderTree.setAttribute("ref", "msgaccounts:/");
 
