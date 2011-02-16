@@ -310,7 +310,8 @@ function test7()
     checkPopupMessage(doc);
 
     // Create a new tab and move to it.
-    gBrowser.selectedTab  = gBrowser.addTab("about:blank", {skipAnimation: true});
+    // Ftr, SeaMonkey doesn't support animation (yet).
+    gBrowser.selectedTab  = gBrowser.addTab("about:blank");
 
     executeSoon(function() {
       checkPopupHide();

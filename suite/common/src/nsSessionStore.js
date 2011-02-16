@@ -2117,7 +2117,8 @@ SessionStoreService.prototype = {
     for (var t = 0; t < newTabCount; t++) {
       tabs.push(t < openTabCount ?
                 tabbrowser.tabs[t] :
-                tabbrowser.addTab("about:blank", {skipAnimation: true}));
+                // Ftr, SeaMonkey doesn't support animation (yet).
+                tabbrowser.addTab("about:blank"));
       // when resuming at startup: add additionally requested pages to the end
       if (!aOverwriteTabs && root._firstTabs) {
         tabbrowser.moveTabTo(tabs[t], t);
