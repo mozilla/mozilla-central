@@ -194,6 +194,12 @@
                   this.addonInstallFailed(installInfo);
                 break;
 
+              case "addon-install-started":
+                var installInfo = aSubject.QueryInterface(Components.interfaces.amIWebInstallInfo);
+                if (installInfo.originatingWindow.top == browser.contentWindow)
+                  this.addonInstallStarted(installInfo);
+                break;
+
               case "dom-storage-warn-quota-exceeded":
                 this.checkUsage(aSubject.document.documentURIObject);
                 break;
@@ -733,6 +739,44 @@
         </body>
       </method>
 
+      <method name="addonInstallCancelled">
+        <parameter name="installInfo"/>
+        <parameter name="sourceURI"/>
+        <body>
+          <![CDATA[
+            var tmp = {};
+            Components.utils.import("resource://gre/modules/PluralForm.jsm", tmp);
+            var notificationName = "addon-install-cancelled";
+            var messageString = this._stringBundle.GetStringFromName("addonDownloadCancelled");
+            messageString = tmp.PluralForm.get(installInfo.installs.length, messageString);
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName("addonDownloadRestartButton"),
+              accessKey: this._stringBundle.GetStringFromName("addonDownloadRestartButton.accesskey"),
+              popup: null,
+              callback: function() {
+                var weblistener = Components.classes["@mozilla.org/addons/web-install-listener;1"]
+                                            .getService(Components.interfaces.amIWebInstallListener);
+                if (weblistener.onWebInstallRequested(installInfo.originatingWindow, sourceURI,
+                                                      installInfo.installs, installInfo.installs.length)) {
+                  installs.forEach(function(aInstall) {
+                    aInstall.install();
+                  });
+                }
+              }
+            }];
+            var priority = this.PRIORITY_INFO_MEDIUM;
+            var iconURL = "chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png";
+            this.appendNotification(messageString, notificationName,
+                                    iconURL, priority, buttons);
+
+            installInfo.installs.every(function(aInstall) {
+              aInstall.cancel();
+            });
+            return true; // the downloading notification closed automatically
+          ]]>
+        </body>
+      </method>
+
       <method name="addonInstallComplete">
         <parameter name="installInfo"/>
         <body>
@@ -868,6 +912,40 @@
         </body>
       </method>
 
+      <method name="addonInstallStarted">
+        <parameter name="installInfo"/>
+        <body>
+          <![CDATA[
+            var tmp = {};
+            Components.utils.import("resource://gre/modules/AddonManager.jsm", tmp);
+            if (installInfo.installs.every(function(aInstall) {
+                  return aInstall.state == tmp.AddonManager.STATE_DOWNLOADED;
+                }))
+              return;
+
+            var sourceURI = installInfo.originatingWindow.document.documentURIObject;
+            Components.utils.import("resource://gre/modules/PluralForm.jsm", tmp);
+            var notificationName = "addon-progress";
+            var messageString = this._stringBundle.GetStringFromName("addonDownloading");
+            messageString = tmp.PluralForm.get(installInfo.installs.length, messageString);
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName("addonDownloadCancelButton"),
+              accessKey: this._stringBundle.GetStringFromName("addonDownloadCancelButton.accesskey"),
+              popup: null,
+              callback: this.addonInstallCancelled.bind(this, installInfo, sourceURI)
+            }];
+            var priority = this.PRIORITY_INFO_MEDIUM;
+            var iconURL = "chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png";
+            var box = this.appendNotification(messageString, notificationName,
+                                              iconURL, priority, buttons);
+            box.installInfo = installInfo;
+            installInfo.installs.forEach(function(aInstall) {
+              aInstall.addListener(box);
+            });
+          ]]>
+        </body>
+      </method>
+
       <constructor>
         <![CDATA[
           var os = Components.classes["@mozilla.org/observer-service;1"]
@@ -879,6 +957,7 @@
           os.addObserver(this, "addon-install-complete", false);
           os.addObserver(this, "addon-install-disabled", false);
           os.addObserver(this, "addon-install-failed", false);
+          os.addObserver(this, "addon-install-started", false);
           os.addObserver(this, "dom-storage-warn-quota-exceeded", false);
           os.addObserver(this, "offline-cache-update-completed", false);
           os.addObserver(this, "perm-changed", false);
@@ -936,6 +1015,9 @@
             } catch (ex) {}
             try {
               os.removeObserver(this, "addon-install-failed");
+            } catch (ex) {}
+            try {
+              os.removeObserver(this, "addon-install-started");
             } catch (ex) {}
             try {
               os.removeObserver(this, "dom-storage-warn-quota-exceeded");
@@ -1510,6 +1592,119 @@
     </implementation>
   </binding>
 
+  <binding id="addon-progress-notification"
+           extends="chrome://global/content/bindings/notification.xml#notification">
+    <content>
+      <xul:hbox class="notification-inner outset" flex="1" xbl:inherits="type">
+        <xul:hbox anonid="details" align="center" flex="1"
+                  oncommand="this.parentNode.parentNode._doButtonCommand(event);">
+          <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
+          <xul:description anonid="messageText" class="messageText" xbl:inherits="xbl:text=label"/>
+          <xul:progressmeter mode="undetermined" xbl:inherits="mode,value=progress"/>
+          <xul:label xbl:inherits="value=status"/>
+          <xul:spacer flex="1"/>
+          <children/>
+        </xul:hbox>
+        <xul:toolbarbutton ondblclick="event.stopPropagation();"
+                           class="messageCloseButton tabbable"
+                           xbl:inherits="hidden=hideclose"
+                           tooltiptext="&closeNotification.tooltip;"
+                           oncommand="document.getBindingParent(this).close();"/>
+      </xul:hbox>
+    </content>
+
+    <implementation>
+      <destructor>
+        <![CDATA[
+          this.installInfo.installs.forEach(function(aInstall) {
+            aInstall.removeListener(this);
+          });
+        ]]>
+      </destructor>
+
+      <method name="updateProgress">
+        <body>
+          <![CDATA[
+            var count = 0;
+            var progress = 0;
+            var max = 0;
+
+            var tmp = {};
+            Components.utils.import("resource://gre/modules/AddonManager.jsm", tmp);
+            this.installInfo.installs.forEach(function(aInstall) {
+              if (aInstall.maxProgress < 0)
+                max = -1;
+              else if (max >= 0)
+                max += aInstall.maxProgress;
+              progress += aInstall.progress;
+              if (aInstall.state < tmp.AddonManager.STATE_DOWNLOADED)
+                count++;
+            });
+
+            if (max < 0)
+              this.setAttribute("mode", "undetermined");
+            else {
+              this.setAttribute("mode", "determined");
+              this.setAttribute("progress", progress * 100 / max);
+            }
+
+            var now = Date.now();
+            if (!this.startTime) {
+              this.startTime = now;
+              this.lastUpdate = now - 750;
+              this.lastSeconds = null;
+            }
+
+            if (progress == max || now - this.lastUpdate >= 750) {
+              this.lastUpdate = now;
+              var elapsed = (now - this.startTime) / 1000;
+              var rate = elapsed && progress / elapsed;
+              Components.utils.import("resource://gre/modules/DownloadUtils.jsm", tmp);
+              var status;
+              [status, this.lastSeconds] = tmp.DownloadUtils.getDownloadStatus(progress, max, rate, this.lastSeconds);
+              this.setAttribute("status", status);
+            }
+
+            if (!count)
+              this.close();
+          ]]>
+        </body>
+      </method>
+
+      <method name="onDownloadProgress">
+        <body>
+          <![CDATA[
+            this.updateProgress();
+          ]]>
+        </body>
+      </method>
+
+      <method name="onDownloadFailed">
+        <body>
+          <![CDATA[
+            this.updateProgress();
+          ]]>
+        </body>
+      </method>
+
+      <method name="onDownloadCancelled">
+        <body>
+          <![CDATA[
+            this.updateProgress();
+          ]]>
+        </body>
+      </method>
+
+      <method name="onDownloadEnded">
+        <body>
+          <![CDATA[
+            this.updateProgress();
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
   <binding id="sidebar-notification"
            extends="chrome://global/content/bindings/notification.xml#notification">
     <content>
@@ -1527,6 +1722,29 @@
                              oncommand="document.getBindingParent(this).close();"/>
         </xul:hbox>
         <xul:description anonid="messageText" class="messageText" flex="1" xbl:inherits="xbl:text=label"/>
+      </xul:vbox>
+    </content>
+  </binding>
+
+  <binding id="sidebar-addon-progress-notification"
+           extends="chrome://communicator/content/bindings/notification.xml#addon-progress-notification">
+    <content>
+      <xul:vbox class="notification-inner outset" flex="1" xbl:inherits="type">
+        <xul:hbox align="center">
+          <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
+          <xul:arrowscrollbox orient="horizontal" flex="1" pack="end"
+                              oncommand="document.getBindingParent(this)._doButtonCommand(event);">
+            <children/>
+          </xul:arrowscrollbox>
+          <xul:toolbarbutton ondblclick="event.stopPropagation();"
+                             class="messageCloseButton tabbable"
+                             xbl:inherits="hidden=hideclose"
+                             tooltiptext="&closeNotification.tooltip;"
+                             oncommand="document.getBindingParent(this).close();"/>
+        </xul:hbox>
+        <xul:description anonid="messageText" class="messageText" flex="1" xbl:inherits="xbl:text=label"/>
+        <xul:progressmeter mode="undetermined" xbl:inherits="mode,value=progress"/>
+        <xul:label xbl:inherits="value=status"/>
       </xul:vbox>
     </content>
   </binding>

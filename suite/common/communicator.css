@@ -55,6 +55,10 @@ toolbar[printpreview="true"] {
   -moz-binding: url("chrome://communicator/content/bindings/notification.xml#popup-notification");
 }
 
+notification[value="addon-progress"] {
+  -moz-binding: url("chrome://communicator/content/bindings/notification.xml#addon-progress-notification");
+}
+
 /* ::::: toolbaritem ::::: */
 toolbaritem {
   -moz-binding: url("chrome://global/content/bindings/general.xml#basecontrol");
