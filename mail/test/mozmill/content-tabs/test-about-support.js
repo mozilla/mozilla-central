@@ -137,6 +137,22 @@ function test_display_about_support() {
   close_tab(tab);
 }
 
+/**
+ * Test that our accounts are displayed in order.
+ */
+function test_accounts_in_order() {
+  let tab = open_about_support();
+  // This is a really simple test and by no means comprehensive -- test that
+  // "account1" appears before "account2" in the HTML content.
+  assert_content_tab_text_present(tab, "account1");
+  assert_content_tab_text_present(tab, "account2");
+  let html = tab.browser.contentDocument.documentElement.innerHTML;
+  if (html.indexOf("account1") > html.indexOf("account2")) {
+    mark_failure(["account1 found after account2 in the HTML page"]);
+  }
+  close_tab(tab);
+}
+
 const UNIQUE_ID = "3a9e1694-7115-4237-8b1e-1cabe6e35073";
 
 /**

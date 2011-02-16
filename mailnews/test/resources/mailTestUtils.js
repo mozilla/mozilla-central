@@ -55,6 +55,7 @@ Components.utils.import("resource:///modules/mailServices.js");
 // Local Mail Folders. Requires prior setup of profile directory
 
 var gLocalIncomingServer;
+var gLocalMsgAccount;
 var gLocalInboxFolder;
 var _localAccountInitialized = false;
 
@@ -64,11 +65,11 @@ function loadLocalMailAccount()
   if (_localAccountInitialized)
     return;
   
-  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-  acctMgr.createLocalMailAccount();
+  MailServices.accounts.createLocalMailAccount();
 
-  gLocalIncomingServer = acctMgr.localFoldersServer;
+  gLocalIncomingServer = MailServices.accounts.localFoldersServer;
+  gLocalMsgAccount = MailServices.accounts.FindAccountForServer(
+    gLocalIncomingServer);
 
   var rootFolder = gLocalIncomingServer.rootMsgFolder;
 
@@ -110,10 +111,8 @@ function create_incoming_server(aType, aPort, aUsername, aPassword) {
     // Several tests expect that mail is deferred to the local folders account,
     // so do that.
     loadLocalMailAccount();
-    let localAccount = MailServices.accounts.FindAccountForServer(
-      gLocalIncomingServer);
     server.QueryInterface(Ci.nsIPop3IncomingServer);
-    server.deferredToAccount = localAccount.key;
+    server.deferredToAccount = gLocalMsgAccount.key;
   }
   server.valid = true;
 
@@ -134,6 +133,26 @@ function create_outgoing_server(aPort, aUsername, aPassword) {
   server.port = aPort;
   server.authMethod = Ci.nsMsgAuthMethod.none;
   return server;
+}
+
+/**
+ * Associate the given outgoing server with the given incoming server's account.
+ *
+ * @param aIncoming The incoming server (nsIMsgIncomingServer) or account
+ *                  (nsIMsgAccount) to associate.
+ * @param aOutgoingServer The outgoing server (nsISmtpServer) to associate.
+ * @param aSetAsDefault Whether to set the outgoing server as the default for
+ *                      the incoming server's account.
+ */
+function associate_servers(aIncoming, aOutgoingServer, aSetAsDefault) {
+  let identity = MailServices.accounts.createIdentity();
+  identity.smtpServerKey = aOutgoingServer.key;
+
+  if (aIncoming instanceof Ci.nsIMsgIncomingServer)
+    aIncoming = MailServices.accounts.FindAccountForServer(aIncoming);
+  aIncoming.addIdentity(identity);
+  if (aSetAsDefault)
+    aIncoming.defaultIdentity = identity;
 }
 
 /**
