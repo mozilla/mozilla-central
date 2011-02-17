@@ -60,9 +60,7 @@ function nsContextMenu(aXulMenu) {
   this.linkURI        = null;
   this.linkProtocol   = null;
   this.mediaURL       = "";
-  this.inFrame        = false;
   this.isContentSelected = false;
-  this.inDirList      = false;
   this.shouldDisplay  = true;
 
   // Message Related Items
@@ -160,8 +158,10 @@ nsContextMenu.prototype = {
     this.showItem("mailContext-reload", notOnSpecialItem);
 
     let loadedProtocol = "";
-    if (content.document && content.document.location)
-      loadedProtocol = content.document.location.protocol;
+    if (this.target &&
+        this.target.ownerDocument.defaultView.top.location)
+      loadedProtocol = this.target.ownerDocument.defaultView.top
+                           .location.protocol;
 
     // Only show open in browser if we're not on a special item and we're not
     // on an about: or chrome: protocol - for these protocols the browser is
@@ -319,7 +319,7 @@ nsContextMenu.prototype = {
         }
         let popup = document.getAnonymousElementByAttribute(treeColPicker, "anonid", "popup");
         treeColPicker.buildPopup(popup);
-        popup.openPopup(aNode, "before_start", 0, 0, true)
+        popup.openPopup(aNode, "before_start", 0, 0, true);
         this.shouldDisplay = false;
       }
       return;
@@ -337,7 +337,6 @@ nsContextMenu.prototype = {
     this.linkURI        = null;
     this.linkProtocol   = null;
     this.onMathML       = false;
-    this.inFrame        = false;
 
     this.target = aNode;
 
@@ -368,36 +367,6 @@ nsContextMenu.prototype = {
         this.onPlayableMedia = true;
         this.mediaURL = this.target.currentSrc || this.target.src;
       // Browser supports background images here but we don't need to.
-      } else if ("HTTPIndex" in content &&
-                 content.HTTPIndex instanceof Components.interfaces.nsIHTTPIndex) {
-        this.inDirList = true;
-        // Bubble outward till we get to an element with URL attribute
-        // (which should be the href).
-        var root = this.target;
-        while (root && !this.link) {
-          if (root.tagName == "tree") {
-            // Hit root of tree; must have clicked in empty space;
-            // thus, no link.
-            break;
-          }
-          if (root.getAttribute("URL")) {
-            // Build pseudo link object so link-related functions work.
-            this.onLink = true;
-            this.link = { href : root.getAttribute("URL"),
-                          getAttribute: function (aAttr) {
-                            if (aAttr == "title") {
-                              return root.firstChild.firstChild
-                                         .getAttribute("label");
-                            }
-                            return "";
-                          }
-                        };
-            // If element is a directory, then you can't save it.
-            this.onSaveableLink = root.getAttribute("container") != "true";
-          } else {
-            root = root.parentNode;
-          }
-        }
       }
     }
 
@@ -455,11 +424,6 @@ nsContextMenu.prototype = {
          this.target.parentNode.namespaceURI == NS_MathML) ||
         (this.target.namespaceURI == NS_MathML))
       this.onMathML = true;
-
-    // See if the user clicked in a frame.
-    if (this.target.ownerDocument != window.content.document) {
-      this.inFrame = true;
-    }
   },
 
   setMessageTargets: function CM_setMessageTargets(aNode) {
@@ -846,7 +810,8 @@ nsContextMenu.prototype = {
   openInBrowser: function CM_openInBrowser() {
     let uri = Components.classes["@mozilla.org/network/io-service;1"]
                         .getService(Components.interfaces.nsIIOService)
-                        .newURI(content.document.location, null, null);
+                        .newURI(this.target.ownerDocument.defaultView.
+                                top.location.href, null, null);
 
     Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
               .getService(Components.interfaces.nsIExternalProtocolService)
