@@ -118,12 +118,37 @@ var Sanitizer = {
     }
   },
 
+  // clear plugin data
+  _clearPluginData: function(aFlagName) {
+    // change this to nsIPluginHost after 2.0
+    const nsIPluginHost = Components.interfaces.nsIPluginHost_MOZILLA_2_0_BRANCH;
+    var ph = Components.classes["@mozilla.org/plugin/host;1"]
+                       .getService(nsIPluginHost);
+    // delete this after 2.0
+    ph.QueryInterface(Components.interfaces.nsIPluginHost);
+
+    if (!(aFlagName in nsIPluginHost))
+      return;
+
+    var flag = nsIPluginHost[aFlagName];
+    var tags = ph.getPluginTags();
+    for (var i = 0; i < tags.length; i++) {
+      try {
+        ph.clearSiteData(tags[i], null, flag, -1);
+      } catch (ex) {
+        // Ignore errors from the plugin
+      }
+    }
+  },
+
   items: {
     cache: {
       clear: function() {
         var cacheService = Components.classes["@mozilla.org/network/cache-service;1"]
                                      .getService(Components.interfaces.nsICacheService);
         cacheService.evictEntries(Components.interfaces.nsICache.STORE_ANYWHERE);
+
+        Sanitizer._clearPluginData("FLAG_CLEAR_CACHE");
       },
 
       canClear: true
@@ -151,6 +176,8 @@ var Sanitizer = {
         var cookieMgr = Components.classes["@mozilla.org/cookiemanager;1"]
                                   .getService(Components.interfaces.nsICookieManager);
         cookieMgr.removeAll();
+
+        Sanitizer._clearPluginData("FLAG_CLEAR_ALL");
 
         // clear any network geolocation provider sessions
         var psvc = Components.classes["@mozilla.org/preferences-service;1"]
