@@ -554,6 +554,10 @@ function test_group_dummies_under_mutation_by_date() {
   assert_view_index_is_not_dummy(1);
   assert_view_message_at_indices(smsg, 0, 1);
 
+  // we used to display total in tag column - make sure we don't do that.
+  if (gDBView.cellTextForColumn(0, "tags") != "")
+    view_throw("tag column shouldn't display total count in group view");
+
   // - move the messages to the trash
   yield async_trash_messages(synSet);
 

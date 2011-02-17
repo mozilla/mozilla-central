@@ -70,7 +70,8 @@ public:
   NS_IMETHOD LoadMessageByViewIndex(nsMsgViewIndex aViewIndex);
   NS_IMETHOD GetCellProperties(PRInt32 aRow, nsITreeColumn *aCol, nsISupportsArray *aProperties);
   NS_IMETHOD GetRowProperties(PRInt32 aRow, nsISupportsArray *aProperties);
-  NS_IMETHOD GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue);
+  NS_IMETHOD CellTextForColumn(PRInt32 aRow, const PRUnichar *aColumnName,
+                               nsAString &aValue);
   NS_IMETHOD GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread);
 
 protected:

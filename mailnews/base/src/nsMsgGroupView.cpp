@@ -769,14 +769,13 @@ NS_IMETHODIMP nsMsgGroupView::GetCellProperties(PRInt32 aRow, nsITreeColumn *aCo
   return nsMsgDBView::GetCellProperties(aRow, aCol, aProperties);
 }
 
-NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue)
-{
+NS_IMETHODIMP nsMsgGroupView::CellTextForColumn(PRInt32 aRow,
+                                                const PRUnichar *aColumnName,
+                                                nsAString &aValue) {
   if (!IsValidIndex(aRow))
     return NS_MSG_INVALID_DBVIEW_INDEX;
 
-  const PRUnichar* colID;
-  aCol->GetIdConst(&colID);
-  if (m_flags[aRow] & MSG_VIEW_FLAG_DUMMY && colID[0] != 'u')
+  if (m_flags[aRow] & MSG_VIEW_FLAG_DUMMY && aColumnName[0] != 'u')
   {
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
     nsresult rv = GetMsgHdrForViewIndex(aRow, getter_AddRefs(msgHdr));
@@ -788,7 +787,7 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
     nsCOMPtr<nsIMsgThread> msgThread;
     m_groupsTable.Get(hashKey, getter_AddRefs(msgThread));
     nsMsgGroupThread * groupThread = static_cast<nsMsgGroupThread *>(msgThread.get());
-    if (colID[0] == 's'  && colID[1] == 'u' )
+    if (aColumnName[0] == 's'  && aColumnName[1] == 'u' )
     {
       PRUint32 flags;
       PRBool rcvDate = PR_FALSE;
@@ -925,7 +924,7 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
         aValue.Append(NS_LITERAL_STRING(")"));
       }
     }
-    else if (colID[0] == 't')
+    else if (aColumnName[0] == 't' && aColumnName[1] == 'o')
     {
       nsAutoString formattedCountString;
       PRUint32 numChildren = (groupThread) ? groupThread->NumRealChildren() : 0;
@@ -934,7 +933,7 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
     }
     return NS_OK;
   }
-  return nsMsgDBView::GetCellText(aRow, aCol, aValue);
+  return nsMsgDBView::CellTextForColumn(aRow, aColumnName, aValue);
 }
 
 NS_IMETHODIMP nsMsgGroupView::LoadMessageByViewIndex(nsMsgViewIndex aViewIndex)
