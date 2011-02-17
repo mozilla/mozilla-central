@@ -188,7 +188,7 @@ function check_attachments(aMimeMsg, epsilon) {
   if (aMimeMsg == null)
     do_throw("We really should have gotten a result!");
 
-  dump(aMimeMsg.prettyString()+"\n");
+  // dump(aMimeMsg.prettyString()+"\n");
 
   /* It is hard to get a byte count that's perfectly accurate. When composing
    * the message, the MIME structure goes like this (for an encoded attachment):
@@ -245,7 +245,7 @@ function test_message_attachments(info) {
   yield add_sets_to_folder(gInbox, [synSet]);
 
   let msgHdr = synSet.getMsgHdr(0);
-  dump(synMsg.toMboxString()+"\n");
+  // dump(synMsg.toMboxString()+"\n");
 
   MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
     try {
@@ -258,10 +258,105 @@ function test_message_attachments(info) {
   yield false;
 }
 
+var bogusMessage = msgGen.makeMessage({ body: { body: originalText } });
+bogusMessage._contentType = "woooooo"; // Breaking abstraction boundaries. Bad.
+
+var bogusMessageInfos = [
+  // This message has a malformed part as an attachment, so it will end up as a
+  // MimeUnknown part. However, because that part precisely happens to be an
+  // attachment, it will have its size counted, so we do a specific count to
+  // make sure the size matches.
+  {
+    name: 'MimeUnknown attachment (actually, a message)',
+    bodyPart: new SyntheticPartMultiMixed([
+      partHtml,
+      bogusMessage,
+    ]),
+    epsilon: 4,
+    checkSize: true,
+  },
+  // In this case, the wooooo part is not an attachment, so its bytes won't be
+  // counted (size will end up being 0 bytes). We don't check the size, but
+  // check_bogus_parts makes sure we're able to come up with a resulting size
+  // for the MimeMessage.
+  //
+  // In that very case, since message M is an attachment, libmime will count M's
+  // bytes, and we could have MimeMessages prefer the size libmime tells them
+  // (when they have it), rather than recursively computing their sizes. I'm not
+  // sure changing jsmimeemitter.js is worth the trouble just for buggy
+  // messages...
+  {
+    name: '.eml attachment with inner MimeUnknown',
+    bodyPart: new SyntheticPartMultiMixed([
+      partHtml,
+      msgGen.makeMessage({ // <--- M
+        bodyPart: 
+        new SyntheticPartMultiMixed([
+          new SyntheticPartMultiRelated([
+            partHtml,
+            new SyntheticPartLeaf(htmlText, { contentType: "woooooo" }),
+          ]),
+        ]),
+      }),
+    ]),
+    epsilon: 4,
+    checkSize: false,
+  },
+];
+
+function check_bogus_parts(aMimeMsg, { epsilon, checkSize }) {
+  if (aMimeMsg == null)
+    do_throw("We really should have gotten a result!");
+
+  // First make sure the size is computed properly
+  let x = parseInt(aMimeMsg.size);
+  do_check_false(isNaN(x));
+
+  // dump(aMimeMsg.prettyString()+"\n");
+
+  if (checkSize) {
+    let partSize = 0;
+    // The attachment, although a MimeUnknown part, is actually plain/text that
+    // contains the whole attached message, including headers. Count them.
+    for each (let [k, v] in Iterator(bogusMessage.headers))
+      partSize += (k + ": " + v + "\n").length;
+    // That's the newline between the headers and the message body.
+    partSize += "\n".length;
+    // That's the message body.
+    partSize += originalText.length;
+    // That's the total length that's to be returned by the MimeMessage abstraction.
+    let totalSize = htmlText.length + partSize;
+    dump(totalSize+" vs "+aMimeMsg.size+"\n");
+    do_check_true(Math.abs(aMimeMsg.size - totalSize) <= epsilon);
+  }
+
+  async_driver();
+}
+
+function test_bogus_messages(info) {
+  let synMsg = gMessageGenerator.makeMessage(info);
+  let synSet = new SyntheticMessageSet([synMsg]);
+  yield add_sets_to_folder(gInbox, [synSet]);
+
+  let msgHdr = synSet.getMsgHdr(0);
+  // dump(synMsg.toMboxString());
+
+  MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
+    try {
+      check_bogus_parts(aMimeMsg, info);
+    } catch (e) {
+      do_throw(e);
+    }
+  });
+
+  yield false;
+}
+
 /* ===== Driver ===== */
 
 var tests = [
   parameterizeTest(test_message_attachments, messageInfos),
+  parameterizeTest(test_bogus_messages, bogusMessageInfos),
 ];
 
 var gInbox;

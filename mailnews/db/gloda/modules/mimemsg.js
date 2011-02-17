@@ -432,7 +432,7 @@ MimeMessage.prototype = {
       aIndent = "";
     let nextIndent = aIndent + "  ";
 
-    let s = "Message: " + this.headers.subject;
+    let s = "Message (" + this.size + " bytes): " + this.headers.subject;
     if (aVerbose)
       s += this._prettyHeaderString(nextIndent);
 
@@ -506,7 +506,7 @@ MimeContainer.prototype = {
                                                     aDumpBody) {
     let nextIndent = aIndent + "  ";
 
-    let s = "Container: " + this.contentType;
+    let s = "Container (" + this.size + " bytes): " + this.contentType;
     if (aVerbose)
       s += this._prettyHeaderString(nextIndent);
 
@@ -589,6 +589,10 @@ function MimeUnknown(aContentType) {
   this.partName = null;
   this.contentType = aContentType;
   this.headers = {};
+  // Looks like libmime does not always intepret us as an attachment, which
+  //  means we'll have to have a default size. Returning undefined would cause
+  //  the recursive size computations to fail.
+  this.size = 0;
 }
 
 MimeUnknown.prototype = {
@@ -601,7 +605,7 @@ MimeUnknown.prototype = {
   },
   prettyString: function MimeUnknown_prettyString(aVerbose, aIndent,
                                                   aDumpBody) {
-    let s = "Unknown: " + this.contentType;
+    let s = "Unknown: " + this.contentType + " (" + this.size + " bytes)";
     if (aVerbose)
       s += this._prettyHeaderString(aIndent + "  ");
     return s;
@@ -675,9 +679,13 @@ MimeMessageAttachment.prototype = {
   },
   prettyString: function MimeMessageAttachment_prettyString(aVerbose, aIndent,
                                                             aDumpBody) {
-    let s = "Attachment: " + this.name + ", " + this.contentType;
+    let s = "Attachment (" + this.size+" bytes): "
+      + this.name + ", " + this.contentType;
     if (aVerbose)
       s += this._prettyHeaderString(aIndent + "  ");
     return s;
+  },
+  toString: function MimeMessageAttachment_toString() {
+    return this.prettyString(false, "");
   },
 };
