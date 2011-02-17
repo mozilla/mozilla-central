@@ -1925,7 +1925,7 @@ NS_IMETHODIMP nsMsgDBView::AddColumnHandler(const nsAString& column, nsIMsgCusto
   //does not exist
   if (index == -1)
   {
-    m_customColumnHandlerIDs.AppendString(strColID);
+    m_customColumnHandlerIDs.AppendElement(strColID);
     m_customColumnHandlers.AppendObject(handler);
   }
   else
@@ -1957,7 +1957,7 @@ NS_IMETHODIMP nsMsgDBView::RemoveColumnHandler(const nsAString& aColID)
 
   if (index != -1)
   {
-    m_customColumnHandlerIDs.RemoveStringAt(index);
+    m_customColumnHandlerIDs.RemoveElementAt(index);
     m_customColumnHandlers.RemoveObjectAt(index);
     // Check if the column name matches any of the columns in
     // m_sortColumns, and if so, clear m_sortColumns[i].mColHandler

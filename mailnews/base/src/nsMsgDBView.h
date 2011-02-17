@@ -508,7 +508,7 @@ protected:
   
   //these hold pointers (and IDs) for the nsIMsgCustomColumnHandler object that constitutes the custom column handler
   nsCOMArray <nsIMsgCustomColumnHandler> m_customColumnHandlers;
-  nsStringArray m_customColumnHandlerIDs;
+  nsTArray<nsString> m_customColumnHandlerIDs;
   
   nsIMsgCustomColumnHandler* GetColumnHandler(const PRUnichar*);
   nsIMsgCustomColumnHandler* GetCurColumnHandlerFromDBInfo();
