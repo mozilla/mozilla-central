@@ -272,7 +272,7 @@ var bogusMessageInfos = [
       partHtml,
       bogusMessage,
     ]),
-    epsilon: 4,
+    epsilon: 6,
     checkSize: true,
   },
   // In this case, the wooooo part is not an attachment, so its bytes won't be
@@ -299,7 +299,7 @@ var bogusMessageInfos = [
         ]),
       }),
     ]),
-    epsilon: 4,
+    epsilon: 6,
     checkSize: false,
   },
 ];
@@ -312,6 +312,8 @@ function check_bogus_parts(aMimeMsg, { epsilon, checkSize }) {
   let x = parseInt(aMimeMsg.size);
   do_check_false(isNaN(x));
 
+  let sep = ("@mozilla.org/windows-registry-key;1" in Cc) ? "\r\n" : "\n";
+
   // dump(aMimeMsg.prettyString()+"\n");
 
   if (checkSize) {
@@ -319,9 +321,9 @@ function check_bogus_parts(aMimeMsg, { epsilon, checkSize }) {
     // The attachment, although a MimeUnknown part, is actually plain/text that
     // contains the whole attached message, including headers. Count them.
     for each (let [k, v] in Iterator(bogusMessage.headers))
-      partSize += (k + ": " + v + "\n").length;
+      partSize += (k + ": " + v + sep).length;
     // That's the newline between the headers and the message body.
-    partSize += "\n".length;
+    partSize += sep.length;
     // That's the message body.
     partSize += originalText.length;
     // That's the total length that's to be returned by the MimeMessage abstraction.
