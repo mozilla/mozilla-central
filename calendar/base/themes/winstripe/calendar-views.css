@@ -690,9 +690,14 @@ calendar-event-box[status="CANCELLED"] .calendar-color-box {
 
 /* Navigation controls for the views */
 #calendar-nav-control {
-    background-color: white;
+    background-color: #E8E8E8;
     border: solid ThreeDShadow;
     border-width: 1px 0 0 1px;
+}
+
+#today-view-button {
+    padding-bottom: 2px;
+    margin-botom: 0;
 }
 
 #view-deck {
@@ -701,26 +706,23 @@ calendar-event-box[status="CANCELLED"] .calendar-color-box {
     border-width: 0 0 0 1px;
 }
 
-.view-scrollbarspacer {
-    border-bottom: 1px solid #D2D2D2;
-    margin-bottom: 4px;
-}
-
 .tabs-left,
 .tabs-right {
     border-bottom: 2px solid #D2D2D2;
 }
 
+#view-tabs {
+    padding-right: 4px;
+}
+
 tab[calview] {
     -moz-appearance: none;
     background-image: url("chrome://calendar/skin/calendar-day-label-back-vertical.png");
-    background-color: #F2F2F2;
+    background-color: #CCCCCC;
     color: #2E4E73;
-    border-bottom: 1px solid #D2D2D2;
+    border-bottom: 1px solid #BDBDBD;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;  
-    -moz-border-right-colors: #D2D2D2 transparent;
-    -moz-border-left-colors: transparent #D2D2D2;  
     font-size: 14px;
     margin-top: 0px;
     -moz-user-focus: normal;  
@@ -731,6 +733,7 @@ tab[calview][selected="true"]:hover {
     background-color: #FFFFFF;
     margin-bottom: 0px;
     border-bottom: none;
+    padding-bottom: 1px;
 }
 
 tab[calview]:hover {
@@ -762,10 +765,7 @@ tab[calview] > .tab-middle {
 .navigation-bottombox {
     min-height: 4px;
     max-height: 4px;
-}
-
-.navigation-bottombox[type="end"] {
-    border-right: 1px solid #D2D2D2;
+    background-color: white;
 }
 
 .view-navigation-button {
@@ -781,13 +781,14 @@ tab[calview] > .tab-middle {
 .today-navigation-button {
     -moz-user-focus: normal;
     -moz-appearance: toolbarbutton;
-    margin-top: 3px;
+    margin-top: 0;
     -moz-margin-start: 2px;
     -moz-margin-end: 2px;
     margin-bottom: 0px;
     padding: 3px;
     padding-bottom: 5px;
     color: #2E4E73;
+    font-size: 14px;
 }
 
 .view-navigation-button > .toolbarbutton-text {
