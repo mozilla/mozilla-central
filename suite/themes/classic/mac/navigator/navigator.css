@@ -524,7 +524,7 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
 #PersonalToolbar {
   -moz-appearance: none;
   background-color: #d5d5d5;
-  background-image: url("chrome://communicator/skin/toolbar-gradient22.png");
+  background-image: url("chrome://communicator/skin/toolbar/toolbar-gradient22.png");
   background-repeat: repeat-x;
   border-bottom: 1px solid rgb(159, 159, 159);
 }
