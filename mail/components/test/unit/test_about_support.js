@@ -212,9 +212,11 @@ var tests = [
 ];
 
 function run_test() {
-  // Only run the tests on Windows and Mac for now.
-  if (!("@mozilla.org/windows-registry-key;1" in Cc || "nsILocalFileMac" in Ci))
-    return;
+  if ("@mozilla.org/gnome-gconf-service;1" in Cc) {
+    // The GNOME GConf service needs to be initialized, otherwise we get
+    // assertions about g_type_init not being called.
+    Cc["@mozilla.org/gnome-gconf-service;1"].getService();
+  }
 
   Components.utils.import("resource:///modules/aboutSupport.js");
 
