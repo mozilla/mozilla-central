@@ -50,12 +50,10 @@ else
 
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
 var gMessengerBundle = Services.strings.createBundle(
   "chrome://messenger/locale/messenger.properties");
-
-var gSMTPService = Cc["@mozilla.org/messengercompose/smtp;1"]
-                     .getService(Ci.nsISmtpService);
 
 var gSocketTypes = {};
 for (let [str, index] in Iterator(Ci.nsMsgSocketType))
@@ -93,7 +91,7 @@ var AboutSupport = {
     for each (let identity in fixIterator(identities, Ci.nsIMsgIdentity)) {
       let isDefault = identity == defaultIdentity;
       let smtpServer = {};
-      gSMTPService.GetSmtpServerByIdentity(identity, smtpServer);
+      MailServices.smtp.GetSmtpServerByIdentity(identity, smtpServer);
       smtpDetails.push({name: smtpServer.value.displayname,
                         authMethod: smtpServer.value.authMethod,
                         socketType: smtpServer.value.socketType,
@@ -108,9 +106,7 @@ var AboutSupport = {
    */
   getAccountDetails: function AboutSupport_getAccountDetails() {
     let accountDetails = [];
-    let accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
-                           .getService(Ci.nsIMsgAccountManager);
-    let accounts = accountManager.accounts;
+    let accounts = MailServices.accounts.accounts;
 
     for (let account in fixIterator(accounts, Ci.nsIMsgAccount)) {
       let server = account.incomingServer;

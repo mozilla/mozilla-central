@@ -115,9 +115,7 @@ function sendViaEmail() {
   params.composeFields = fields;
 
   // Our params are set up. Now open a compose window.
-  let composeService = Cc["@mozilla.org/messengercompose;1"]
-                         .getService(Ci.nsIMsgComposeService);
-  composeService.OpenComposeWindowWithParams(null, params);
+  MailServices.compose.OpenComposeWindowWithParams(null, params);
 }
 
 function createCleanedUpContents(aHidePrivateData) {
