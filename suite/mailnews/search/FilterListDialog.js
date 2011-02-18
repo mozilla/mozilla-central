@@ -522,6 +522,8 @@ function moveCurrentFilter(motion)
       gFilterTree.view.selection.select(gFilterTree.currentIndex - 1);
     else
       gFilterTree.view.selection.select(gFilterTree.currentIndex + 1);
+
+    gFilterTree.treeBoxObject.ensureRowIsVisible(gFilterTree.currentIndex);
 }
 
 function updateButtons()
