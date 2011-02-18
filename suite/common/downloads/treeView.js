@@ -342,6 +342,7 @@ DownloadTreeView.prototype = {
           break;
         default:
           dl.isActive = 0;
+          gDMUI.getAttention();
           break;
       }
       // We should eventually know the referrer at some point

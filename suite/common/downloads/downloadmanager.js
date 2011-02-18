@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
+Components.utils.import("resource:///modules/DownloadTaskbarIntegration.jsm");
 
 const nsIDownloadManager = Components.interfaces.nsIDownloadManager;
 
@@ -51,6 +52,8 @@ var gDownloadListener;
 var gSearchBox;
 var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
                              .getService(Components.interfaces.nsIPrefBranch);
+var gDMUI = Components.classes["@mozilla.org/download-manager-ui;1"]
+                      .getService(Components.interfaces.nsIDownloadManagerUI);
 
 function dmStartup()
 {
@@ -87,6 +90,8 @@ function dmStartup()
 
   if (gDownloadTree.view.rowCount > 0)
     gDownloadTree.view.selection.select(0);
+
+  DownloadTaskbarIntegration.onDownloadWindowLoad(window);
 }
 
 function dmShutdown()
