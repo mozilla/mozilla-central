@@ -130,7 +130,6 @@
 
 <broadcasterset id="abBroadcasters">
   <!-- Edit Menu -->
-  <broadcaster id="broadcaster-throbber" busy="false"/>
   <broadcaster id="Communicator:WorkMode"/>
 </broadcasterset>
 
@@ -478,9 +477,7 @@
       <button id="navigator-throbber"
               oncommand="goClickThrobber('addressbook.throbber.url', event)"
               onclick="checkForMiddleClick(this, event);"
-              tooltiptext="&throbber.tooltip;">
-        <observes element="broadcaster_throbber" attribute="busy"/>
-      </button>
+              tooltiptext="&throbber.tooltip;"/>
     </toolbaritem>
   </toolbar>
   <toolbarpalette id="AbToolbarPalette"/>
