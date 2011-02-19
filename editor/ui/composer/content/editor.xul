@@ -114,7 +114,6 @@
   <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltipEditor(this);"/>
 
   <broadcaster id="args" value="about:blank"/>
-  <broadcaster id="canPrint"/>
   
   <!-- Interim hack to transition from nsIXULWindowCallbacks/ShowWindowWithArgs
   <broadcaster id="dialog.start" ready="false"/>

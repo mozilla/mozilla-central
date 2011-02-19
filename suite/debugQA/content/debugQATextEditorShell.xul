@@ -88,7 +88,6 @@
   </commands>
 
   <broadcaster id="args" value="chrome://debugqa/content/EditorInitPagePlain.html"/>
-  <broadcaster id="canPrint"/>
 
 <!-- Interim hack to transition from nsIXULWindowCallbacks/ShowWindowWithArgs
   <broadcaster id="dialog.start" ready="false"/>
