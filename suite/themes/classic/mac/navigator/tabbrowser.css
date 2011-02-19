@@ -193,15 +193,16 @@ tabpanels {
 .tabs-closebutton {
   margin: 3px;
   padding: 1px;
-  list-style-image: url("chrome://global/skin/icons/closetab.png");
+  list-style-image: url("chrome://global/skin/icons/close.png");
+  -moz-image-region: rect(0, 16px, 16px, 0);
 }
 
 .tabs-closebutton:hover {
-  list-style-image: url("chrome://global/skin/icons/closetab-hover.png");
+  -moz-image-region: rect(0, 32px, 16px, 16px);
 }
 
 .tabs-closebutton:active:hover {
-  list-style-image: url("chrome://global/skin/icons/closetab-active.png");
+  -moz-image-region: rect(0, 48px, 16px, 32px);
 }
 
 .tabs-newbutton {
