@@ -25,6 +25,7 @@
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Markus Adrario <Mozilla@Adrario.de>
  *   Gianfranco Balza <bv1578@gmail.com>
+ *   Matthew Mecca <matthew.mecca@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -449,8 +450,8 @@ function loadDialog(item) {
     }
 
     updateAttendees();
-    updateRepeat();
-    updateReminder();
+    updateRepeat(true);
+    updateReminder(true);
 
     gShowTimeAs = item.getProperty("TRANSP");
     updateShowTimeAs();
@@ -847,9 +848,12 @@ function loadRepeat(item) {
 
 /**
  * Update reminder related elements on the dialog.
+ *
+ * @param aSuppressDialogs     If true, controls are updated without prompting
+ *                               for changes with the custom dialog
  */
-function updateReminder() {
-    commonUpdateReminder();
+function updateReminder(aSuppressDialogs) {
+    commonUpdateReminder(aSuppressDialogs);
     updateAccept();
 }
 
@@ -1971,11 +1975,10 @@ function updateCalendar() {
             disableElementWithLock("todo-has-entrydate", "permanent-lock");
         }
 
-        // update datetime pickers
-        updateDueDate();
-        updateEntryDate();
-
-        // update datetime pickers
+        // update datetime pickers, disable checkboxes if dates are required by
+        // recurrence or reminders.
+        updateRepeat(true);
+        updateReminder(true);
         updateAllDay();
     }
 
@@ -2014,8 +2017,11 @@ function editRepeat() {
  * depending on the repeat setting of an item. This functionality is used
  * after the dialog has been loaded as well as if the repeat pattern has
  * been changed.
+ *
+ * @param aSuppressDialogs     If true, controls are updated without prompting
+ *                               for changes with the recurrence dialog
  */
-function updateRepeat() {
+function updateRepeat(aSuppressDialogs) {
     var repeatMenu = document.getElementById("item-repeat");
     var repeatItem = repeatMenu.selectedItem;
     var repeatValue = repeatItem.getAttribute("value");
@@ -2056,9 +2062,9 @@ function updateRepeat() {
         var recurrenceInfo = window.recurrenceInfo;
 
         // now bring up the recurrence dialog.
-        // don't pop up the dialog if this happens during
-        // initialization of the dialog.
-        if (repeatMenu.hasAttribute("last-value")) {
+        // don't pop up the dialog if aSuppressDialogs was specified or if
+        // called during initialization of the dialog.
+        if (!aSuppressDialogs && repeatMenu.hasAttribute("last-value")) {
             editRepeat();
         }
 
