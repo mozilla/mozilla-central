@@ -684,11 +684,21 @@ function UpdateMailPaneConfig() {
   }
 }
 
-const MailPaneConfigObserver = {
+const MailPrefObserver = {
   observe: function observe(subject, topic, prefName) {
-    // verify that we're changing the mail pane config pref
-    if (topic == "nsPref:changed")
-      UpdateMailPaneConfig();
+    if (topic == "nsPref:changed") {
+      if (prefName == "mail.pane_config.dynamic") {
+        UpdateMailPaneConfig();
+      } else if (prefName == "mail.showCondensedAddresses") {
+        let currentDisplayNameVersion =
+              pref.getIntPref("mail.displayname.version");
+        pref.setIntPref("mail.displayname.version",
+                        ++currentDisplayNameVersion);
+
+        // Refresh the thread pane.
+        GetThreadTree().treeBoxObject.invalid();
+      }
+    }
   }
 };
 
@@ -697,7 +707,8 @@ function OnLoadMessenger()
 {
   AddMailOfflineObserver();
   CreateMailWindowGlobals();
-  pref.addObserver("mail.pane_config.dynamic", MailPaneConfigObserver, false);
+  pref.addObserver("mail.pane_config.dynamic", MailPrefObserver, false);
+  pref.addObserver("mail.showCondensedAddresses", MailPrefObserver, false);
   UpdateMailPaneConfig();
   Create3PaneGlobals();
   verifyAccounts(null, false);
@@ -807,7 +818,8 @@ function HandleAppCommandEvent(evt)
 
 function OnUnloadMessenger()
 {
-  pref.removeObserver("mail.pane_config.dynamic", MailPaneConfigObserver, false);
+  pref.removeObserver("mail.pane_config.dynamic", MailPrefObserver, false);
+  pref.removeObserver("mail.showCondensedAddresses", MailPrefObserver, false);
   window.removeEventListener("AppCommand", HandleAppCommandEvent, true);
 
   OnLeavingFolder(gMsgFolderSelected);  // mark all read in current folder
