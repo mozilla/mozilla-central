@@ -1504,34 +1504,35 @@ nsresult OutlookCardForURI(const nsACString &aUri, nsIAbCard **newCard)
   nsMapiEntry mapiData;
   mapiData.Assign(entry);
 
-  nsStringArray unichars;
+  nsString unichars[index_LastProp];
+
   if (mapiAddBook->GetPropertiesUString(mapiData, OutlookCardMAPIProps,
                                         index_LastProp, unichars))
   {
-    card->SetFirstName(*unichars[index_FirstName]);
-    card->SetLastName(*unichars[index_LastName]);
-    card->SetDisplayName(*unichars[index_DisplayName]);
-    card->SetPrimaryEmail(*unichars[index_EmailAddress]);
-    card->SetPropertyAsAString(kNicknameProperty, *unichars[index_NickName]);
-    card->SetPropertyAsAString(kWorkPhoneProperty, *unichars[index_WorkPhoneNumber]);
-    card->SetPropertyAsAString(kHomePhoneProperty, *unichars[index_HomePhoneNumber]);
-    card->SetPropertyAsAString(kFaxProperty, *unichars[index_WorkFaxNumber]);
-    card->SetPropertyAsAString(kPagerProperty, *unichars[index_PagerNumber]);
-    card->SetPropertyAsAString(kCellularProperty, *unichars[index_MobileNumber]);
-    card->SetPropertyAsAString(kHomeCityProperty, *unichars[index_HomeCity]);
-    card->SetPropertyAsAString(kHomeStateProperty, *unichars[index_HomeState]);
-    card->SetPropertyAsAString(kHomeZipCodeProperty, *unichars[index_HomeZip]);
-    card->SetPropertyAsAString(kHomeCountryProperty, *unichars[index_HomeCountry]);
-    card->SetPropertyAsAString(kWorkCityProperty, *unichars[index_WorkCity]);
-    card->SetPropertyAsAString(kWorkStateProperty, *unichars[index_WorkState]);
-    card->SetPropertyAsAString(kWorkZipCodeProperty, *unichars[index_WorkZip]);
-    card->SetPropertyAsAString(kWorkCountryProperty, *unichars[index_WorkCountry]);
-    card->SetPropertyAsAString(kJobTitleProperty, *unichars[index_JobTitle]);
-    card->SetPropertyAsAString(kDepartmentProperty, *unichars[index_Department]);
-    card->SetPropertyAsAString(kCompanyProperty, *unichars[index_Company]);
-    card->SetPropertyAsAString(kWorkWebPageProperty, *unichars[index_WorkWebPage]);
-    card->SetPropertyAsAString(kHomeWebPageProperty, *unichars[index_HomeWebPage]);
-    card->SetPropertyAsAString(kNotesProperty, *unichars[index_Comments]);
+    card->SetFirstName(unichars[index_FirstName]);
+    card->SetLastName(unichars[index_LastName]);
+    card->SetDisplayName(unichars[index_DisplayName]);
+    card->SetPrimaryEmail(unichars[index_EmailAddress]);
+    card->SetPropertyAsAString(kNicknameProperty, unichars[index_NickName]);
+    card->SetPropertyAsAString(kWorkPhoneProperty, unichars[index_WorkPhoneNumber]);
+    card->SetPropertyAsAString(kHomePhoneProperty, unichars[index_HomePhoneNumber]);
+    card->SetPropertyAsAString(kFaxProperty, unichars[index_WorkFaxNumber]);
+    card->SetPropertyAsAString(kPagerProperty, unichars[index_PagerNumber]);
+    card->SetPropertyAsAString(kCellularProperty, unichars[index_MobileNumber]);
+    card->SetPropertyAsAString(kHomeCityProperty, unichars[index_HomeCity]);
+    card->SetPropertyAsAString(kHomeStateProperty, unichars[index_HomeState]);
+    card->SetPropertyAsAString(kHomeZipCodeProperty, unichars[index_HomeZip]);
+    card->SetPropertyAsAString(kHomeCountryProperty, unichars[index_HomeCountry]);
+    card->SetPropertyAsAString(kWorkCityProperty, unichars[index_WorkCity]);
+    card->SetPropertyAsAString(kWorkStateProperty, unichars[index_WorkState]);
+    card->SetPropertyAsAString(kWorkZipCodeProperty, unichars[index_WorkZip]);
+    card->SetPropertyAsAString(kWorkCountryProperty, unichars[index_WorkCountry]);
+    card->SetPropertyAsAString(kJobTitleProperty, unichars[index_JobTitle]);
+    card->SetPropertyAsAString(kDepartmentProperty, unichars[index_Department]);
+    card->SetPropertyAsAString(kCompanyProperty, unichars[index_Company]);
+    card->SetPropertyAsAString(kWorkWebPageProperty, unichars[index_WorkWebPage]);
+    card->SetPropertyAsAString(kHomeWebPageProperty, unichars[index_HomeWebPage]);
+    card->SetPropertyAsAString(kNotesProperty, unichars[index_Comments]);
   }
 
   ULONG cardType = 0;

@@ -42,7 +42,6 @@
 #include <mapix.h>
 
 #include "nsStringGlue.h"
-#include "nsVoidArray.h"
  
 struct nsMapiEntry
 {
@@ -94,7 +93,7 @@ public:
     BOOL GetPropertyUString(const nsMapiEntry& aObject, ULONG aPropertyTag, nsString& aValue) ;
     // Get multiple string MAPI properties in one call.
     BOOL GetPropertiesUString(const nsMapiEntry& aObject, const ULONG *aPropertiesTag, 
-                              ULONG aNbProperties, nsStringArray& aValues) ;
+                              ULONG aNbProperties, nsString *aValues);
     // Get the value of a MAPI property of type SYSTIME
     BOOL GetPropertyDate(const nsMapiEntry& aObject, ULONG aPropertyTag, 
                          WORD& aYear, WORD& aMonth, WORD& aDay) ;

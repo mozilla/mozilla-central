@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -407,36 +407,30 @@ BOOL nsAbWinHelper::GetPropertyUString(const nsMapiEntry& aObject, ULONG aProper
 }
 
 BOOL nsAbWinHelper::GetPropertiesUString(const nsMapiEntry& aObject, const ULONG *aPropertyTags,
-                                         ULONG aNbProperties, nsStringArray& aNames)
+                                         ULONG aNbProperties, nsString *aNames)
 {
-    aNames.Clear() ;
-    LPSPropValue values = NULL ;
-    ULONG valueCount = 0 ;
+  LPSPropValue values = NULL;
+  ULONG valueCount = 0;
 
-    if (!GetMAPIProperties(aObject, aPropertyTags, aNbProperties, values, valueCount)) { 
-        return FALSE ; 
-    }
-    if (valueCount == aNbProperties && values != NULL) {
-        ULONG i = 0 ;
+  if (!GetMAPIProperties(aObject, aPropertyTags, aNbProperties, values,
+                         valueCount))
+    return FALSE;
 
-        for (i = 0 ; i < valueCount ; ++ i) {
-            if (PROP_ID(values [i].ulPropTag) == PROP_ID(aPropertyTags [i])) {
-                if (PROP_TYPE(values [i].ulPropTag) == PT_STRING8)
-                    aNames.AppendString(NS_ConvertASCIItoUTF16(values [i].Value.lpszA));
-                else if (PROP_TYPE(values [i].ulPropTag) == PT_UNICODE) {
-                    aNames.AppendString(nsAutoString (values [i].Value.lpszW)) ;
-                }
-                else {
-                    aNames.AppendString(nsAutoString((const PRUnichar *) "")) ;
-                }
-            }
-            else {
-                aNames.AppendString(nsAutoString((const PRUnichar *) "")) ;
-            }
-        }
-        FreeBuffer(values) ;
+  if (valueCount == aNbProperties && values != NULL)
+  {
+    for (ULONG i = 0 ; i < valueCount ; ++ i)
+    {
+      if (PROP_ID(values[i].ulPropTag) == PROP_ID(aPropertyTags[i]))
+      {
+        if (PROP_TYPE(values[i].ulPropTag) == PT_STRING8)
+          CopyASCIItoUTF16(values[i].Value.lpszA, aNames[i]);
+        else if (PROP_TYPE(values[i].ulPropTag) == PT_UNICODE)
+          aNames[i] = values[i].Value.lpszW;
+      }
     }
-    return TRUE ;
+    FreeBuffer(values);
+  }
+  return TRUE;
 }
 
 BOOL nsAbWinHelper::GetPropertyDate(const nsMapiEntry& aObject, ULONG aPropertyTag, 
