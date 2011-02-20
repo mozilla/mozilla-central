@@ -189,32 +189,16 @@
 <!ENTITY calendar.context.newevent.accesskey          "N">
 <!ENTITY calendar.context.newtodo.label               "New Task…">
 <!ENTITY calendar.context.newtodo.accesskey           "k">
-<!ENTITY calendar.context.modifytask.label            "Edit Task…">
-<!ENTITY calendar.context.modifytask.accesskey        "E">
-<!ENTITY calendar.context.modifyitem.label            "Edit Item…">
-<!ENTITY calendar.context.modifyitem.accesskey        "E">
 <!ENTITY calendar.context.deletetask.label            "Delete Task">
 <!ENTITY calendar.context.deletetask.accesskey        "l">
-<!ENTITY calendar.context.deleteitem.label            "Delete">
-<!ENTITY calendar.context.deleteitem.accesskey        "l">
 <!ENTITY calendar.context.deleteevent.label           "Delete Event">
 <!ENTITY calendar.context.deleteevent.accesskey       "l">
-<!ENTITY calendar.context.deletethisevent.label       "This Event">
-<!ENTITY calendar.context.deletethisevent.accesskey   "T">
-<!ENTITY calendar.context.deletecompleteseries.label  "Complete Series">
-<!ENTITY calendar.context.deletecompleteseries.accesskey   "S">
-<!ENTITY calendar.context.deletefutureevents.label     "All Future Events">
-<!ENTITY calendar.context.deletefutureevents.accesskey "F">
-<!ENTITY calendar.context.deletefuturetasks.label     "All Future Tasks">
-<!ENTITY calendar.context.deletefuturetasks.accesskey "F">
 <!ENTITY calendar.context.cutevent.label              "Cut">
 <!ENTITY calendar.context.cutevent.accesskey          "t">
 <!ENTITY calendar.context.copyevent.label             "Copy">
 <!ENTITY calendar.context.copyevent.accesskey         "C">
 <!ENTITY calendar.context.pasteevent.label            "Paste">
 <!ENTITY calendar.context.pasteevent.accesskey        "P">
-<!ENTITY calendar.context.selectall.label             "Select All">
-<!ENTITY calendar.context.selectall.accesskey         "A">
 <!ENTITY calendar.context.button.label                "Today Pane" >
 <!ENTITY calendar.context.button.accesskey            "T" >
 
