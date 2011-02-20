@@ -41,9 +41,10 @@
 <!DOCTYPE dialog SYSTEM "chrome://calendar/locale/calendar-occurrence-prompt.dtd">
 
 <dialog id="calendar-occurrence-prompt"
-        buttons="cancel"
+        buttons="accept,cancel"
         windowtype="Calendar:OccurrencePrompt"
         ondialogcancel="return exitOccurrenceDialog(0)"
+        ondialogaccept="exitOccurrenceDialog(1)"
         onload="onLoad()"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:xhtml2="http://www.w3.org/TR/xhtml2"
@@ -96,6 +97,7 @@
   <vbox id="accept-buttons-box" flex="1" pack="center">
     <button id="accept-occurrence-button"
             default="true"
+            dlgtype="accept"
             class="occurrence-accept-buttons"
             accesskey="&buttons.occurrence.accesskey;"
             oncommand="exitOccurrenceDialog(1)"
