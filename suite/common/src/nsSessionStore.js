@@ -317,10 +317,8 @@ SessionStoreService.prototype = {
       catch (ex) { debug("The session file is invalid: " + ex); }
     }
 
-    // remove the session data files if crash recovery is disabled
-    if (!this._resume_from_crash)
-      this._clearDisk();
-    else { // create a backup if the session data file exists
+    if (this._resume_from_crash) {
+      // create a backup if the session data file exists
       try {
         if (this._sessionFileBackup.exists())
           this._sessionFileBackup.remove(false);
@@ -562,7 +560,7 @@ SessionStoreService.prototype = {
 
     // and create its data object
     this._windows[aWindow.__SSi] = { tabs: [], selected: 0, _closedTabs: [] };
-    if (aWindow.__SS_restoreID)
+    if (!this._isWindowLoaded(aWindow))
       this._windows[aWindow.__SSi]._restoring = true;
     if (!aWindow.toolbar.visible)
       this._windows[aWindow.__SSi].isPopup = true;
@@ -578,7 +576,7 @@ SessionStoreService.prototype = {
         this._initialState._firstTabs = true;
         this._restoreCount = this._initialState.windows ? this._initialState.windows.length : 0;
         this.restoreWindow(aWindow, this._initialState,
-                           this._isCmdLineEmpty(aWindow, this._initialState));
+                           this._isCmdLineEmpty(aWindow));
         delete this._initialState;
 
         // _loadState changed from "stopped" to "running"
@@ -599,22 +597,64 @@ SessionStoreService.prototype = {
       this.restoreWindow(aWindow, this._statesToRestore[aWindow.__SS_restoreID], true, followUp);
     }
     else if (this._restoreLastWindow && aWindow.toolbar.visible &&
-             this._closedWindows.length && this._doResumeSession()) {
+             this._closedWindows.length) {
       // default to the most-recently closed window
       // don't use popup windows
-      let state = null;
-      this._closedWindows = this._closedWindows.filter(function(aWinState) {
-        if (!state && !aWinState.isPopup) {
-          state = aWinState;
-          return false;
+      let closedWindowState = null;
+      let closedWindowIndex;
+      for (let i = 0; i < this._closedWindows.length; i++) {
+        // Take the first non-popup, point our object at it, and break out.
+        if (!this._closedWindows[i].isPopup) {
+          closedWindowState = this._closedWindows[i];
+          closedWindowIndex = i;
+          break;
         }
-        return true;
-      });
-      if (state) {
-        delete state.hidden;
-        state = { windows: [state] };
-        this._restoreCount = 1;
-        this.restoreWindow(aWindow, state, this._isCmdLineEmpty(aWindow));
+      }
+
+      if (closedWindowState) {
+        let newWindowState;
+#ifndef XP_MACOSX
+        if (!this._doResumeSession()) {
+#endif
+          // We want to split the window up into pinned tabs and unpinned tabs.
+          // Pinned tabs should be restored. If there are any remaining tabs,
+          // they should be added back to _closedWindows.
+          // We'll cheat a little bit and reuse _prepDataForDeferredRestore
+          // even though it wasn't built exactly for this.
+          let [appTabsState, normalTabsState] =
+            this._prepDataForDeferredRestore(JSON.stringify({ windows: [closedWindowState] }));
+
+          // These are our pinned tabs, which we should restore
+          if (appTabsState.windows.length) {
+            newWindowState = appTabsState.windows[0];
+            delete newWindowState.__lastSessionWindowID;
+          }
+
+          // In case there were no unpinned tabs, remove the window from _closedWindows
+          if (!normalTabsState.windows.length) {
+            this._closedWindows.splice(closedWindowIndex, 1);
+          }
+          // Or update _closedWindows with the modified state
+          else {
+            delete normalTabsState.windows[0].__lastSessionWindowID;
+            this._closedWindows[closedWindowIndex] = normalTabsState.windows[0];
+          }
+#ifndef XP_MACOSX
+        }
+        else {
+          // If we're just restoring the window, make sure it gets removed from
+          // _closedWindows.
+          this._closedWindows.splice(closedWindowIndex, 1);
+          newWindowState = closedWindowState;
+          delete newWindowState.hidden;
+        }
+#endif
+        if (newWindowState) {
+          // Ensure that the window state isn't hidden
+          this._restoreCount = 1;
+          let state = { windows: [newWindowState] };
+          this.restoreWindow(aWindow, state, this._isCmdLineEmpty(aWindow));
+        }
       }
       // we actually restored the session just now.
       this._prefBranch.setBoolPref("sessionstore.resume_session_once", false);

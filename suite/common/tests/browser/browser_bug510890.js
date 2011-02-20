@@ -35,8 +35,22 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+function browserWindowsCount() {
+  let count = 0;
+  let e = Services.wm.getEnumerator("navigator:browser");
+  while (e.hasMoreElements()) {
+    if (!e.getNext().closed)
+      ++count;
+  }
+  return count;
+}
+
 function test() {
   /** Test for Bug 510890 **/
+  // This test takes quite some time, and timeouts frequently, so we require
+  // more time to run.
+  // See Bug 518970.
+  requestLongerTimeout(2);
   
   // test setup
   let ss = Components.classes["@mozilla.org/suite/sessionstore;1"].getService(Components.interfaces.nsISessionStore);
@@ -51,65 +65,69 @@ function test() {
   
   
     // make sure that the next closed window will increase getClosedWindowCount
-    let max_windows_undo = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch)
-                                     .getIntPref("browser.sessionstore.max_windows_undo");
-    Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch)
-              .setIntPref("browser.sessionstore.max_windows_undo", max_windows_undo + 1);
+    let max_windows_undo = Services.prefs.getIntPref("browser.sessionstore.max_windows_undo");
+    Services.prefs.setIntPref("browser.sessionstore.max_windows_undo", max_windows_undo + 1);
     let closedWindowCount = ss.getClosedWindowCount();
   
-    let newWin = openDialog(location, "_blank", "chrome,all,dialog=no", testURL);
+    let newWin = openDialog(location, "", "chrome,all,dialog=no", testURL);
     newWin.addEventListener("load", function(aEvent) {
-      newWin.getBrowser().addEventListener("pageshow", function(aEvent) {
-        newWin.getBrowser().removeEventListener("pageshow", arguments.callee, false);
+      newWin.getBrowser().selectedBrowser.addEventListener("load", function(aEvent) {
+        newWin.getBrowser().selectedBrowser.removeEventListener("load", arguments.callee, false);
 
         executeSoon(function() {
-          newWin.getBrowser().addTab();
-
-          // mark the window with some unique data to be restored later on
-          ss.setWindowValue(newWin, uniqueKey, uniqueValue);
-          let textbox = newWin.content.document.getElementById("textbox");
-          textbox.value = uniqueText;
-
-          newWin.close();
-
-          is(ss.getClosedWindowCount(), closedWindowCount + 1,
-             "The closed window was added to Recently Closed Windows");
-          let data = JSON.parse(ss.getClosedWindowData())[0];
-          ok(data.title == testURL && data.toSource().indexOf(uniqueText) > -1,
-             "The closed window data was stored correctly");
-
-          // reopen the closed window and ensure its integrity
-          let newWin2 = ss.undoCloseWindow(0);
-
-          ok(newWin2 instanceof ChromeWindow,
-             "undoCloseWindow actually returned a window");
-          is(ss.getClosedWindowCount(), closedWindowCount,
-             "The reopened window was removed from Recently Closed Windows");
-
-          newWin2.addEventListener("load", function(aEvent) {
-            newWin2.getBrowser().addEventListener("SSTabRestored", function(aEvent) {
-              newWin2.getBrowser().removeEventListener("SSTabRestored", arguments.callee, true);
-
-              is(newWin2.getBrowser().tabContainer.childNodes.length, 2,
-                 "The window correctly restored 2 tabs");
-              is(newWin2.getBrowser().selectedBrowser.currentURI.spec, testURL,
-                 "The window correctly restored the URL");
-
-              let textbox = newWin2.content.document.getElementById("textbox");
-              is(textbox.value, uniqueText,
-                 "The window correctly restored the form");
-              is(ss.getWindowValue(newWin2, uniqueKey), uniqueValue,
-                 "The window correctly restored the data associated with it");
-
-              // clean up
-              newWin2.close();
-              Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch)
-                        .clearUserPref("browser.sessionstore.max_windows_undo");
-              executeSoon(callback);
-            }, true);
-          }, false);
+          newWin.getBrowser().addTab().linkedBrowser.stop();
+          executeSoon(function() {
+            // mark the window with some unique data to be restored later on
+            ss.setWindowValue(newWin, uniqueKey, uniqueValue);
+            let textbox = newWin.content.document.getElementById("textbox");
+            textbox.value = uniqueText;
+  
+            newWin.close();
+  
+            is(ss.getClosedWindowCount(), closedWindowCount + 1,
+               "The closed window was added to Recently Closed Windows");
+            let data = JSON.parse(ss.getClosedWindowData())[0];
+            ok(data.title == testURL && JSON.stringify(data).indexOf(uniqueText) > -1,
+               "The closed window data was stored correctly");
+  
+            // reopen the closed window and ensure its integrity
+            let newWin2 = ss.undoCloseWindow(0);
+  
+            ok(newWin2 instanceof ChromeWindow,
+               "undoCloseWindow actually returned a window");
+            is(ss.getClosedWindowCount(), closedWindowCount,
+               "The reopened window was removed from Recently Closed Windows");
+  
+            // SSTabRestored will fire more than once, so we need to make sure we count them
+            let restoredTabs = 0;
+            let expectedTabs = data.tabs.length;
+            newWin2.addEventListener("load", function(aEvent) {
+              newWin2.getBrowser().tabContainer.addEventListener("SSTabRestored", function(aEvent) {
+                if (++restoredTabs < expectedTabs)
+                  return;
+                newWin2.getBrowser().tabContainer.removeEventListener("SSTabRestored", arguments.callee, true);
+  
+                is(newWin2.getBrowser().tabs.length, 2,
+                   "The window correctly restored 2 tabs");
+                is(newWin2.getBrowser().currentURI.spec, testURL,
+                   "The window correctly restored the URL");
+  
+                let textbox = newWin2.content.document.getElementById("textbox");
+                is(textbox.value, uniqueText,
+                   "The window correctly restored the form");
+                is(ss.getWindowValue(newWin2, uniqueKey), uniqueValue,
+                   "The window correctly restored the data associated with it");
+  
+                // clean up
+                newWin2.close();
+                if (Services.prefs.prefHasUserValue("browser.sessionstore.max_windows_undo"))
+                  Services.prefs.clearUserPref("browser.sessionstore.max_windows_undo");
+                executeSoon(callback);
+              }, true);
+            }, false);
+          });
         });
-      }, false);
+      }, true);
     }, false);
   }
   
