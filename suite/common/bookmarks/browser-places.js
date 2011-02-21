@@ -748,7 +748,12 @@ var PlacesStarButton = {
     this._ignoreClicks = true;
 
     PlacesUtils.asyncGetBookmarkIds(this._uri, function (aItemIds) {
-      this._itemIds = aItemIds;
+      // It's possible that onItemAdded gets called before the async statement
+      // calls back.  For such an edge case, retain all unique entries from both
+      // arrays.
+      this._itemIds = this._itemIds.filter(
+        function (id) aItemIds.indexOf(id) == -1
+      ).concat(aItemIds);
       this._updateStateInternal();
 
       // Start observing bookmarks if needed.
