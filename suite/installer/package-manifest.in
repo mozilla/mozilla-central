@@ -260,9 +260,6 @@
 @BINPATH@/components/startupcache.xpt
 @BINPATH@/components/storage.xpt
 @BINPATH@/components/@DLL_PREFIX@suite@DLL_SUFFIX@
-#ifdef XP_WIN32
-@BINPATH@/components/suitebrowser.xpt
-#endif
 @BINPATH@/components/SuiteBrowser.manifest
 @BINPATH@/components/suitecommon.xpt
 @BINPATH@/components/SuiteCommon.manifest
