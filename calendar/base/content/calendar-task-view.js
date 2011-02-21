@@ -60,6 +60,9 @@ var taskDetailsView = {
         var item = document.getElementById("calendar-task-tree").currentTask;
         if (displayElement("calendar-task-details-container", item != null) &&
             displayElement("calendar-task-view-splitter", item != null)) {
+
+            this._initializeToolbar();
+
             displayElement("calendar-task-details-title-row", true);
             document.getElementById("calendar-task-details-title").value =
                 (item.title ? item.title.replace(/\n/g, ' ') : "");
@@ -172,7 +175,45 @@ var taskDetailsView = {
                 }
             }
         }
-    }
+    },
+
+    /**
+     * Initialize the task actions toolbar by setting default mode, icon size,
+     * etc. if necessary and hooking up events for the customization dialog.
+     */
+    _initializeToolbar: function tDV_initializeToolbar() {
+        var toolbox = document.getElementById("task-actions-toolbox");
+        toolbox.customizeDone = function(aEvent) {
+            MailToolboxCustomizeDone(aEvent, "CustomizeTaskActionsToolbar");
+        };
+
+        var toolbarset = document.getElementById('customToolbars');
+        toolbox.toolbarset = toolbarset;
+
+        // Check whether we did an upgrade to a customizable header pane.
+        // If yes, set the header pane toolbar mode to icons besides text
+        var toolbar = document.getElementById("task-actions-toolbar");
+        if (toolbox && toolbar) {
+            if (!toolbox.getAttribute("mode")) {
+
+                /* set toolbox attributes to default values */
+                var mode = toolbox.getAttribute("defaultmode");
+                var align = toolbox.getAttribute("defaultlabelalign");
+                var iconsize = toolbox.getAttribute("defaulticonsize");
+                toolbox.setAttribute("mode", mode);
+                toolbox.setAttribute("labelalign", align);
+                toolbox.setAttribute("iconsize", iconsize);
+                toolbox.ownerDocument.persist(toolbox.id, "mode");
+                toolbox.ownerDocument.persist(toolbox.id, "iconsize");
+                toolbox.ownerDocument.persist(toolbox.id, "labelalign");
+
+                /* set toolbar attributes to default values */
+                iconsize = toolbar.getAttribute("defaulticonsize");
+                toolbar.setAttribute("iconsize", iconsize);
+                toolbar.ownerDocument.persist(toolbar.id, "iconsize");
+            }
+        }
+    },
 };
 
 

@@ -136,8 +136,67 @@
     margin-bottom: 3px;
 }
 
+/* ::::: task actions toolbar ::::: */
+
+#task-actions-toolbox {
+    -moz-padding-end: 6px;
+    padding-top: 3px;
+}
+
+#task-actions-toolbar {
+    -moz-appearance: none;
+    -moz-box-pack: end;
+    min-width: 50px !important;
+    min-height: 14px !important;
+}
+
+#task-actions-toolbar toolbarpaletteitem toolbarseparator,
+#task-actions-toolbar toolbarseparator {
+    height: 26px;
+}
+
+#task-actions-toolbar toolbarspacer {
+    height: 20px;
+}
+
+window[toolboxId="task-actions-toolbox"] #wrapper-spring {
+    display: none;
+}
+
+window[toolboxId="task-actions-toolbox"] #smallicons,
+window[toolboxId="task-actions-toolbox"] button[icon="add"] {
+    display: none;
+}
+
+window[toolboxId="task-actions-toolbox"] #modelist menuitem:first-child {
+    display: none;
+}
+
+#task-actions-toolbox[doCustomization] {
+    background: grey;
+}
+
+#task-actions-toolbox[doCustomization] #task-actions-toolbar {
+    min-width: 100px;
+    min-height: 10px;
+}
+
+#task-actions-category {
+    list-style-image: url(chrome://calendar/skin/toolbar-small.png);
+    -moz-image-region: rect(72px, 544px, 88px, 528px);
+}
+
+#task-actions-markcompleted {
+    list-style-image: url(chrome://calendar/skin/toolbar-small.png);
+    -moz-image-region: rect(72px, 568px, 88px, 552px);
+}
+
+#task-actions-priority {
+    list-style-image: url(chrome://calendar/skin/toolbar-small.png);
+    -moz-image-region: rect(72px, 592px, 88px, 576px);
+}
+
 #calendar-delete-task-button {
-    -moz-box-orient: vertical;
     list-style-image: url(chrome://messenger/skin/icons/folder-trash.png);
 }
 

@@ -2,6 +2,7 @@
 calendar.jar:
 % content calendar %content/calendar/
 % style chrome://calendar/content/calendar-event-dialog.xul chrome://global/skin/toolbar.css
+% style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar-task-view.css
     content/calendar/agenda-listbox.js                     (content/agenda-listbox.js)
     content/calendar/agenda-listbox.xml                    (content/agenda-listbox.xml)
     content/calendar/calendar-bindings.css                 (content/calendar-bindings.css)

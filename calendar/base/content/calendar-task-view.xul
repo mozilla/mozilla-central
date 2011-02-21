@@ -46,6 +46,7 @@
 <!DOCTYPE overlay [
   <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd1;
   <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd" > %dtd2;
+  <!ENTITY % dtd3 SYSTEM "chrome://calendar/locale/menuOverlay.dtd" > %dtd3;
 ]>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -77,7 +78,7 @@
                             persist="visible-columns ordinals widths sort-active sort-direction height"
                             context="taskitem-context-menu"/>
         <splitter id="calendar-task-view-splitter" collapse="none" persist="state"/>
-        <vbox id="calendar-task-details-container" class="main-header-area" flex="1">
+        <vbox id="calendar-task-details-container" class="main-header-area" flex="1" context="task-actions-toolbar-context-menu">
           <hbox id="calendar-task-details">
             <grid id="calendar-task-details-grid" flex="1">
               <columns id="calendar-task-details-columns">
@@ -149,39 +150,60 @@
               </rows>
             </grid>
             <hbox id="other-actions-box" align="top">
-              <button id="task-actions-category"
-                      type="menu"
-                      label="&calendar.unifinder.tree.categories.label;"
-                      tooltiptext="&calendar.task.category.button.tooltip;"
-                      command="calendar_task_category_command"
-                      observes="calendar_task_category_command"
-                      class="msgHeaderView-button">
-                <menupopup id="task-actions-category-menupopup"
-                           onpopupshowing="addCategoryNames(event)"/>
-              </button>
-              <button id="task-actions-markcompleted"
-                      type="menu-button"
-                      label="&calendar.context.markcompleted.label;"
-                      tooltiptext="&calendar.task.complete.button.tooltip;"
-                      command="calendar_toggle_completed_command"
-                      observes="calendar_toggle_completed_command"
-                      class="msgHeaderView-button">
-                <menupopup id="task-actions-markcompleted-menupopup" type="task-progress"/>
-              </button>
-              <button id="task-actions-priority"
-                      type="menu"
-                      label="&calendar.context.priority.label;"
-                      tooltiptext="&calendar.task.priority.button.tooltip;"
-                      command="calendar_general-priority_command"
-                      observes="calendar_general-priority_command"
-                      class="msgHeaderView-button">
-                <menupopup id="task-actions-priority-menupopup" type="task-priority"/>
-              </button>
-              <button id="calendar-delete-task-button"
-                      class="msgHeaderView-button"
-                      aria-label="&calendar.context.deletetask.label;"
-                      tooltiptext="&calendar.context.deletetask.label;"
-                      observes="calendar_delete_todo_command"/>
+              <menupopup id="task-actions-toolbar-context-menu">
+                <menuitem id="CustomizeTaskActionsToolbar"
+                          oncommand="CustomizeMailToolbar('task-actions-toolbox', 'CustomizeTaskActionsToolbar')"
+                          label="&calendar.menu.customize.label;"
+                          accesskey="&calendar.menu.customize.accesskey;"/>
+              </menupopup>
+
+              <toolbox id="task-actions-toolbox"
+                       defaulticonsize="small"
+                       minwidth="50px"
+                       defaultlabelalign="end"
+                       defaultmode="full">
+                <toolbarpalette id="task-actions-toolbar-palette">
+                  <toolbarbutton id="task-actions-category"
+                                 type="menu"
+                                 label="&calendar.unifinder.tree.categories.label;"
+                                 tooltiptext="&calendar.task.category.button.tooltip;"
+                                 command="calendar_task_category_command"
+                                 observes="calendar_task_category_command"
+                                 class="toolbarbutton-1 msgHeaderView-button">
+                    <menupopup id="task-actions-category-menupopup"
+                               onpopupshowing="addCategoryNames(event)"/>
+                  </toolbarbutton>
+                  <toolbarbutton id="task-actions-markcompleted"
+                                 type="menu-button"
+                                 label="&calendar.context.markcompleted.label;"
+                                 tooltiptext="&calendar.task.complete.button.tooltip;"
+                                 command="calendar_toggle_completed_command"
+                                 observes="calendar_toggle_completed_command"
+                                 class="toolbarbutton-1 msgHeaderView-button">
+                    <menupopup id="task-actions-markcompleted-menupopup" type="task-progress"/>
+                  </toolbarbutton>
+                  <toolbarbutton id="task-actions-priority"
+                                 type="menu"
+                                 label="&calendar.context.priority.label;"
+                                 tooltiptext="&calendar.task.priority.button.tooltip;"
+                                 command="calendar_general-priority_command"
+                                 observes="calendar_general-priority_command"
+                                 class="toolbarbutton-1 msgHeaderView-button">
+                    <menupopup id="task-actions-priority-menupopup" type="task-priority"/>
+                  </toolbarbutton>
+                  <toolbarbutton id="calendar-delete-task-button"
+                                 class="toolbarbutton-1 msgHeaderView-button"
+                                 label="&calendar.taskview.delete.label;"
+                                 tooltiptext="&calendar.context.deletetask.label;"
+                                 observes="calendar_delete_todo_command"/>
+                </toolbarpalette>
+
+                <toolbar id="task-actions-toolbar" align="start"
+                         customizable="true" mode="full"
+                         defaulticonsize="small" defaultmode="full"
+                         context="task-actions-toolbar-context-menu"
+                         defaultset="task-actions-category,task-actions-markcompleted,task-actions-priority,calendar-delete-task-button"/>
+              </toolbox>
             </hbox>
           </hbox>
           <textbox id="calendar-task-details-description" multiline="true" flex="1"/>
