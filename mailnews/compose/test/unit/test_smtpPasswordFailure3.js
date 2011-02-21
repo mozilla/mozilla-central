@@ -124,8 +124,6 @@ function run_test() {
   smtpServer.socketType = Ci.nsMsgSocketType.plain;
   smtpServer.username = kUsername;
 
-  dump("Send\n");
-
   do_test_pending();
 
   smtpService.sendMailMessage(testFile, kTo, identity,
@@ -133,12 +131,6 @@ function run_test() {
                               false, {}, {});
 
   server.performTest();
-
-  dump("End Send\n");
-
-  // server drops connection, so we need to chain aynchronously
-  // from confirmPromptEx.
-  do_check_eq(attempt, 0);
 }
 
 var URLListener = {
