@@ -34,44 +34,41 @@
  *
  * ***** END LICENSE BLOCK ***** */
  
+var calUtils = require("../shared-modules/calendar-utils");
+var modalDialog = require("../shared-modules/modal-dialog");
+
 const sleep = 500;
 var calendar = "Mozmill";
 var hour = 8;
 
-var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['CalendarUtils', 'ModalDialogAPI'];
-
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
-  CalendarUtils.createCalendar(calendar);
+  calUtils.createCalendar(controller, calendar);
 }
 
 var testLastDayOfMonthRecursion = function () {
   var eventPath = '/{"tooltip":"itemTooltip","calendar":"' + calendar.toLowerCase() + '"}';
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
-  controller.sleep(sleep);
-  
-  CalendarUtils.switchToView("day", controller);
-  CalendarUtils.goToDate(2008, 1, 31, controller); // start with a leap year
+  calUtils.switchToView(controller, "day");
+  calUtils.goToDate(controller, 2008, 1, 31); // start with a leap year
   
   // create monthly recurring event
   controller.doubleClick(new elementslib.Lookup(controller.window.document,
-    CalendarUtils.getEventBoxPath("day", CalendarUtils.CANVAS_BOX, undefined, 1, hour,
-      controller)));
-  controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+    calUtils.getEventBoxPath(controller, "day", calUtils.CANVAS_BOX, undefined, 1, hour)), 1, 1);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
   let event = new mozmill.controller.MozMillController(mozmill.utils
     .getWindows("Calendar:EventDialog")[0]);
-  event.sleep(sleep);
   
-  let md = new ModalDialogAPI.modalDialog(setRecurrence);
-  md.start();
+  let md = new modalDialog.modalDialog(event.window);
+  md.start(setRecurrence);
+  event.waitForElement(new elementslib.ID(event.window.document, "item-repeat"));
   event.select(new elementslib.ID(event.window.document, "item-repeat"), undefined, undefined,
     "custom");
   
   event.click(new elementslib.ID(event.window.document, "button-save"));
-  controller.sleep(sleep);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length == 0});
   
-  //                        date     correct row in month view      
+  //                        date     correct row in month view
   let checkingData = [[2008,  1, 31, 5],
                       [2008,  2, 29, 5],
                       [2008,  3, 31, 6],
@@ -91,44 +88,45 @@ var testLastDayOfMonthRecursion = function () {
   
   // check all dates
   for(let i = 0; i < checkingData.length; i++){
-    CalendarUtils.goToDate(checkingData[i][0], checkingData[i][1], checkingData[i][2], controller);
+    calUtils.goToDate(controller, checkingData[i][0], checkingData[i][1], checkingData[i][2]);
     
     // day view
-    CalendarUtils.switchToView("day", controller);
-    box = CalendarUtils.getEventBoxPath("day", CalendarUtils.EVENT_BOX, undefined, 1, hour,
-      controller) + eventPath;
-    controller.assertNode(new elementslib.Lookup(controller.window.document, box));
+    calUtils.switchToView(controller, "day");
+    box = calUtils.getEventBoxPath(controller, "day", calUtils.EVENT_BOX, undefined, 1, hour)
+      + eventPath;
+    controller.waitForElement(new elementslib.Lookup(controller.window.document, box));
     
     // week view
-    CalendarUtils.switchToView("week", controller);
+    calUtils.switchToView(controller, "week");
     let date = new Date(checkingData[i][0], checkingData[i][1] - 1, checkingData[i][2]);
     let column = date.getDay() + 1;
-    box = CalendarUtils.getEventBoxPath("week", CalendarUtils.EVENT_BOX, undefined, column, hour,
-      controller) + eventPath;
-    controller.assertNode(new elementslib.Lookup(controller.window.document, box));
+    box = calUtils.getEventBoxPath(controller, "week", calUtils.EVENT_BOX, undefined, column, hour)
+      + eventPath;
+    controller.waitForElement(new elementslib.Lookup(controller.window.document, box));
     
     // multiweek view
-    CalendarUtils.switchToView("multiweek", controller);
-    box = CalendarUtils.getEventBoxPath("multiweek", CalendarUtils.EVENT_BOX, 1, column, undefined,
-      controller) + eventPath;
+    calUtils.switchToView(controller, "multiweek");
+    box = calUtils.getEventBoxPath(controller, "multiweek", calUtils.EVENT_BOX, 1, column, undefined)
+      + eventPath;
     controller.assertNode(new elementslib.Lookup(controller.window.document, box));
     
     // month view
-    CalendarUtils.switchToView("month", controller);
-    box = CalendarUtils.getEventBoxPath("month", CalendarUtils.EVENT_BOX, checkingData[i][3],
-      column, undefined, controller) + eventPath;
+    calUtils.switchToView(controller, "month");
+    box = calUtils.getEventBoxPath(controller, "month", calUtils.EVENT_BOX, checkingData[i][3],
+      column, undefined) + eventPath;
     controller.assertNode(new elementslib.Lookup(controller.window.document, box));
   }
   
   // delete event
-  CalendarUtils.goToDate(checkingData[0][0], checkingData[0][1], checkingData[0][2], controller);
-  CalendarUtils.switchToView("day", controller);
-  box = CalendarUtils.getEventBoxPath("day", CalendarUtils.EVENT_BOX,
-    undefined, 1, hour, controller) + eventPath;
-  CalendarUtils.handleParentDeletion(false);
-  controller.click(new elementslib.Lookup(controller.window.document, box));
+  calUtils.goToDate(controller, checkingData[0][0], checkingData[0][1], checkingData[0][2]);
+  calUtils.switchToView(controller, "day");
+  box = calUtils.getEventBoxPath(controller, "day", calUtils.EVENT_BOX,
+    undefined, 1, hour) + eventPath;
+  calUtils.handleParentDeletion(controller, false);
+  controller.waitThenClick(new elementslib.Lookup(controller.window.document, box));
   controller.keypress(new elementslib.ID(controller.window.document, "day-view"),
     "VK_DELETE", {});
+  controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document, box));
 }
 
 function setRecurrence(recurrence){
@@ -154,5 +152,5 @@ function setRecurrence(recurrence){
 }
 
 var teardownTest = function(module) {
-  CalendarUtils.deleteCalendars(calendar);
+  calUtils.deleteCalendars(controller, calendar);
 }

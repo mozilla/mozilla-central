@@ -34,17 +34,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var calUtils = require("../shared-modules/calendar-utils");
+
 const sleep = 500;
 var calendar = "Mozmill";
 var startYear = 1950;
 var epoch = 1970;
 
-var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['CalendarUtils'];
-
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
-  CalendarUtils.createCalendar(calendar);
+  calUtils.createCalendar(controller, calendar);
 }
 
 var testAnnualRecursion = function () {
@@ -53,14 +52,13 @@ var testAnnualRecursion = function () {
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
   controller.sleep(sleep);
   
-  CalendarUtils.switchToView("day", controller);
-  CalendarUtils.goToDate(startYear, 1, 1, controller);
+  calUtils.switchToView(controller, "day");
+  calUtils.goToDate(controller, startYear, 1, 1);
   
   // create yearly recurring all-day event
   controller.doubleClick(new elementslib.Lookup(controller.window.document,
-    CalendarUtils.getEventBoxPath("day", CalendarUtils.ALLDAY, undefined, 1, undefined,
-    controller)));
-  controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+    calUtils.getEventBoxPath(controller, "day", calUtils.ALLDAY, undefined, 1, undefined)));
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
   let event = new mozmill.controller.MozMillController(mozmill.utils
                  .getWindows("Calendar:EventDialog")[0]);
   event.sleep(sleep);
@@ -72,46 +70,47 @@ var testAnnualRecursion = function () {
   let checkYears = [startYear, startYear + 1, epoch - 1, epoch, epoch + 1];
   let box = "";
   for(let i = 0; i < checkYears.length; i++){
-    CalendarUtils.goToDate(checkYears[i], 1, 1, controller);
+    calUtils.goToDate(controller, checkYears[i], 1, 1);
     let date = new Date(checkYears[i], 0, 1);
     let column = date.getDay() + 1;
     
     // day view
-    CalendarUtils.switchToView("day", controller);
-    box = CalendarUtils.getEventBoxPath("day", CalendarUtils.ALLDAY, undefined, 1, undefined,
-      controller) + eventPath;
+    calUtils.switchToView(controller, "day");
+    box = calUtils.getEventBoxPath(controller, "day", calUtils.ALLDAY, undefined, 1, undefined)
+      + eventPath;
     controller.assertNode(new elementslib.Lookup(controller.window.document, box));
     
     // week view
-    CalendarUtils.switchToView("week", controller);
-    box = CalendarUtils.getEventBoxPath("week", CalendarUtils.ALLDAY, undefined, column, undefined,
-      controller) + eventPath;
+    calUtils.switchToView(controller, "week");
+    box = calUtils.getEventBoxPath(controller, "week", calUtils.ALLDAY, undefined, column, undefined)
+      + eventPath;
     controller.assertNode(new elementslib.Lookup(controller.window.document, box));
     
     // multiweek view
-    CalendarUtils.switchToView("multiweek", controller);
-    box = CalendarUtils.getEventBoxPath("multiweek", CalendarUtils.ALLDAY, 1, column, undefined,
-      controller) + eventPath;
+    calUtils.switchToView(controller, "multiweek");
+    box = calUtils.getEventBoxPath(controller, "multiweek", calUtils.ALLDAY, 1, column, undefined)
+      + eventPath;
     controller.assertNode(new elementslib.Lookup(controller.window.document, box));
     
     // month view
-    CalendarUtils.switchToView("month", controller);
-    box = CalendarUtils.getEventBoxPath("month", CalendarUtils.ALLDAY, 1, column, undefined,
-      controller) + eventPath;
+    calUtils.switchToView(controller, "month");
+    box = calUtils.getEventBoxPath(controller, "month", calUtils.ALLDAY, 1, column, undefined)
+      + eventPath;
     controller.assertNode(new elementslib.Lookup(controller.window.document, box));
   }
   
   // delete event
-  CalendarUtils.goToDate(checkYears[0], 1, 1, controller);
-  CalendarUtils.switchToView("day", controller);
-  box = CalendarUtils.getEventBoxPath("day", CalendarUtils.ALLDAY, undefined, 1, undefined,
-    controller) + eventPath;
-  CalendarUtils.handleParentDeletion(false);
+  calUtils.goToDate(controller, checkYears[0], 1, 1);
+  calUtils.switchToView(controller, "day");
+  box = calUtils.getEventBoxPath(controller, "day", calUtils.ALLDAY, undefined, 1, undefined)
+    + eventPath;
+  calUtils.handleParentDeletion(controller, false);
   controller.click(new elementslib.Lookup(controller.window.document, box));
   controller.keypress(new elementslib.ID(controller.window.document, "day-view"),
     "VK_DELETE", {});
+  controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document, box));
 }
 
 var teardownTest = function(module) {
-  CalendarUtils.deleteCalendars(calendar);
+  calUtils.deleteCalendars(controller, calendar);
 }

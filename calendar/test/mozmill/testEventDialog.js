@@ -34,8 +34,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var RELATIVE_ROOT = './shared-modules';
-var MODULE_REQUIRES = ['ModalDialogAPI', 'UtilsAPI', 'CalendarUtils'];
+var calUtils = require("./shared-modules/calendar-utils");
+var modalDialog = require("./shared-modules/modal-dialog");
+var utils = require("./shared-modules/utils");
 
 var sleep = 500;
 var calendar = "Mozmill";
@@ -44,10 +45,11 @@ var location = "Location";
 var desc = "Event Decription";
 var attendee = "foo@bar.com";
 var url = "http://mozilla.org";
+var tmp;
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
-  CalendarUtils.createCalendar(calendar);
+  calUtils.createCalendar(controller, calendar);
 }
 
 var testEventDialog = function () {
@@ -75,26 +77,23 @@ var testEventDialog = function () {
   controller.waitThenClick(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
     + 'anon({"anonid":"years-popup"})/[0]/{"value":"2009"}'));
-  controller.sleep(sleep);
   
   // pick month
-  controller.click(new elementslib.Lookup(controller.window.document, miniMonth
+  controller.waitThenClick(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"monthheader"})'));
   controller.waitThenClick(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
     + 'anon({"anonid":"months-popup"})/[0]/{"index":"0"}'));
-  controller.sleep(sleep);
 
   // pick day
-  controller.click(new elementslib.Lookup(controller.window.document, miniMonth
+  controller.waitThenClick(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-calendar"})/[1]/{"value":"1"}'));
   controller.sleep(sleep);
   
   // create new event
-  controller.click(new elementslib.Elem(controller.menus.menu_File.menu_New.ltnNewEvent));
-  controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+  controller.mainMenu.click("#ltnNewEvent");
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
   let event = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:EventDialog")[0]);
-  event.sleep(sleep);
   
   // check that the start time is correct
   // next full hour except last hour hour of the day
@@ -102,12 +101,13 @@ var testEventDialog = function () {
   let startHour = (hour == 23)? hour : (hour + 1) % 24;
   let startTime = startHour + ':00';
   let endTime = ((startHour + 1) % 24) + ':00';
-  event.assertValue(new elementslib.Lookup(event.window.document, eventDialog
+  let startTimeInput = new elementslib.Lookup(event.window.document, eventDialog
     + 'id("event-grid-startdate-row")/id("event-grid-startdate-picker-box")/'
     + 'id("event-starttime")/anon({"anonid":"hbox"})/anon({"anonid":"time-picker"})/'
     + 'anon({"class":"timepicker-box-class"})/anon({"class":"timepicker-text-class"})/'
-    + 'anon({"flex":"1"})/anon({"anonid":"input"})'),
-    startTime);
+    + 'anon({"flex":"1"})/anon({"anonid":"input"})');
+  event.waitForElement(startTimeInput);
+  event.assertValue(startTimeInput, startTime);
   
   // check selected calendar
   event.assertNode(new elementslib.Lookup(event.window.document, eventDialog
@@ -128,11 +128,9 @@ var testEventDialog = function () {
     desc);
   
   // set category
-  let categories = UtilsAPI.getProperty("chrome://calendar/locale/categories.properties", "categories2");
+  let categories = utils.getProperty("chrome://calendar/locale/categories.properties", "categories2");
   let category = categories.split(',')[4]; // pick 4th value in a comma-separated list
-  event.click(new elementslib.Lookup(event.window.document, eventDialog
-    + 'id("event-grid-category-color-row")/id("event-grid-category-box")/'
-    + 'id("item-categories")/[0]/{"label":"' + category + '"}'));
+  event.select(new elementslib.ID(event.window.document, "item-categories"), null, category);
 
   // repeat daily
   event.click(new elementslib.ID(event.window.document, "repeat-daily-menuitem"));
@@ -141,11 +139,11 @@ var testEventDialog = function () {
   event.click(new elementslib.ID(event.window.document, "reminder-5minutes-menuitem"));
   
   // add an attendee and verify added
-  let md = new ModalDialogAPI.modalDialog(handleAttendees);
-  md.start();
+  let md = new modalDialog.modalDialog(event.window);
+  md.start(handleAttendees);
   event.click(new elementslib.ID(event.window.document, "button-attendees"));
-  /*event.assertValue(new elementslib.ID(event.window.document, "attendee-list"),
-    attendee);*/
+  event.assertValue(new elementslib.ID(event.window.document, "attendee-list"),
+    attendee);
   
   // make it private and verify icon visible
   event.click(new elementslib.ID(event.window.document, "button-privacy"));
@@ -154,23 +152,22 @@ var testEventDialog = function () {
   event.assertJS(event.window.getComputedStyle(icon.getNode(), null).getPropertyValue("visibility") == "visible");
   
   // add attachment and verify added
-  CalendarUtils.handleAddingAttachment(url);
+  calUtils.handleAddingAttachment(event, url);
   event.click(new elementslib.ID(event.window.document, "button-url"));
   event.assertNode(new elementslib.Lookup(event.window.document, eventDialog
     + 'id("event-grid-attachment-row")/id("attachment-link")/{"label":"mozilla.org"}'));
   
   // save
-  CalendarUtils.acceptSendingNotificationMail();
+  calUtils.acceptSendingNotificationMail(event);
   event.click(new elementslib.ID(event.window.document, "button-save"));
-  controller.sleep(sleep);
   
   // catch and dismiss alarm
-  controller.waitForEval('utils.getWindows("Calendar:AlarmWindow").length > 0', sleep);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:AlarmWindow").length > 0}, sleep);
   let alarm = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:AlarmWindow")[0]);
   // dismiss all button, label in .dtd file, bug #504635
   alarm.waitThenClick(new elementslib.Lookup(alarm.window.document, '/id("calendar-alarm-dialog")/'
     + 'id("alarm-actionbar")/[1]'));
-  controller.waitForEval('utils.getWindows("Calendar:AlarmWindow").length == 0', sleep);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:AlarmWindow").length == 0}, sleep);
   
   // verify event and alarm icon visible every day of the month and check tooltip
   // 1st January is Thursday so there's three days to check in the first row
@@ -202,14 +199,12 @@ var testEventDialog = function () {
   }
   
   // delete and verify deleted 2nd Jan
-  CalendarUtils.handleOccurrenceDeletion();
+  calUtils.handleOccurrenceDeletion(controller);
   controller.click(new elementslib.Lookup(controller.window.document, 
     eventBox.replace("rowNumber", "0").replace("columnNumber", "5")));
   controller.keypress(new elementslib.ID(controller.window.document, "month-view"),
     "VK_DELETE", {});
-  controller.sleep;
-  
-  controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document, 
+  controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document, 
     eventBox.replace("rowNumber", "0").replace("columnNumber", "5")));
   
   // verify all others still exist
@@ -224,15 +219,14 @@ var testEventDialog = function () {
           eventBox.replace("rowNumber", row).replace("columnNumber", col)));
   
   // delete series by deleting 3rd January and confirming to delete all
-  CalendarUtils.handleParentDeletion();
+  calUtils.handleParentDeletion(controller);
   controller.click(new elementslib.Lookup(controller.window.document, 
     eventBox.replace("rowNumber", "0").replace("columnNumber", "6")));
   controller.keypress(new elementslib.ID(controller.window.document, "month-view"),
     "VK_DELETE", {});
-  controller.sleep(sleep);
   
   // verify all deleted
-  controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document, 
+  controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document, 
     eventBox.replace("rowNumber", "0").replace("columnNumber", "4")));
   controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document, 
     eventBox.replace("rowNumber", "0").replace("columnNumber", "5")));
@@ -246,11 +240,13 @@ var testEventDialog = function () {
 }
 
 function handleAttendees(attendees){
-  attendees.sleep(sleep);
-  /*let input = new elementslib.Lookup(attendees.window.document, 
-    '/id("calendar-event-dialog-attendees-v2")/[5]/[0]/id("attendees-list")/anon({"anonid":"listbox"})/[1]/'
-    + '[1]/anon({"anonid":"input"})/{"class":"textbox-input-box"}/[0]');
-  attendees.type(input, attendee);*/
+  let input = new elementslib.Lookup(attendees.window.document,
+    '/id("calendar-event-dialog-attendees-v2")/[6]/[0]/id("attendees-list")/'
+    + 'anon({"anonid":"listbox"})/[1]/[1]/anon({"anonid":"input"})/'
+    + 'anon({"class":"autocomplete-textbox-container"})/'
+    + '{"class":"textbox-input-box"}/anon({"anonid":"input"})');
+  attendees.waitForElement(input);
+  attendees.type(input, attendee);
   attendees.click(new elementslib.Lookup(attendees.window.document, 
     '/id("calendar-event-dialog-attendees-v2")/anon({"anonid":"buttons"})/{"dlgtype":"accept"}'));
 }
@@ -285,5 +281,5 @@ function checkTooltip(monthView, row, col, date, startTime, endTime){
 }
 
 var teardownTest = function(module) {
-  CalendarUtils.deleteCalendars(calendar);
+  calUtils.deleteCalendars(controller, calendar);
 }

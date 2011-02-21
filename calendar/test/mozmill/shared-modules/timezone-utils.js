@@ -34,19 +34,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
  
-const MODULE_NAME = 'TimezoneUtils';
-const sleep = 500;
+var calUtils = require("calendar-utils");
+var prefs = require("prefs");
 
-const RELATIVE_ROOT = '.';
-const MODULE_REQUIRES = ['CalendarUtils', 'PrefsAPI'];
+const sleep = 500;
 
 function switchAppTimezone(timezone) {
   // change directly as Mac has different Lookup & XPath than Windows & Linux, bug 536605
-  let api = collector.getModule('PrefsAPI');
-  api.preferences.setPref("calendar.timezone.local", timezone);
+  prefs.preferences.setPref("calendar.timezone.local", timezone);
 }
 
-function verify(dates, timezones, times, controller) {
+function verify(controller, dates, timezones, times) {
   let dayView = '/id("messengerWindow")/id("tabmail-container")/id("tabmail")/'
     + 'id("tabpanelcontainer")/id("calendarTabPanel")/id("calendarContent")/'
     + 'id("calendarDisplayDeck")/id("calendar-view-box")/id("view-deck")/id("day-view")';
@@ -64,8 +62,7 @@ function verify(dates, timezones, times, controller) {
      on screen and it can be compared against the position of the event.       ----------------
   */
   for (let date = 0; date < dates.length; date++) {
-    let utils = collector.getModule('CalendarUtils');
-    utils.goToDate(dates[date][0], dates[date][1], dates[date][2], controller);
+    calUtils.goToDate(controller, dates[date][0], dates[date][1], dates[date][2]);
     
     // find event with timezone tz
     for (let tz = 0; tz < timezones.length; tz++) {
@@ -90,17 +87,17 @@ function verify(dates, timezones, times, controller) {
       
       // following day
       if(day != undefined && day == 1) {
-        utils.forward(1);
+        calUtils.forward(controller, 1);
         stackNode = (new elementslib.Lookup(controller.window.document, dayStack)).getNode();
       }
       
       // previous day
       if(day != undefined && day == -1) {
-        utils.back(1);
+        calUtils.back(controller, 1);
         stackNode = (new elementslib.Lookup(controller.window.document, dayStack)).getNode();
       }
       
-      utils.findEventsInNode(stackNode, eventNodes);
+      calUtils.findEventsInNode(stackNode, eventNodes);
       
       for each (node in eventNodes) {
         if (Math.abs(timeY - node.boxObject.y) < allowedDifference &&
@@ -111,13 +108,17 @@ function verify(dates, timezones, times, controller) {
       }
       
       if(day != undefined && day == 1) {
-        utils.back(1);
+        calUtils.back(controller, 1);
       }
       
       if(day != undefined && day == -1) {
-        utils.forward(1);
+        calUtils.forward(controller, 1);
       }
       controller.assertJS(found == true);
     }
   }
 }
+
+// Export of functions
+exports.switchAppTimezone = switchAppTimezone;
+exports.verify = verify;

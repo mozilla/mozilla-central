@@ -33,8 +33,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var RELATIVE_ROOT = './shared-modules';
-var MODULE_REQUIRES = ['CalendarUtils', 'ModalDialogAPI'];
+var calUtils = require("./shared-modules/calendar-utils");
+var modalDialog = require("./shared-modules/modal-dialog");
 
 var sleep = 500;
 
@@ -50,10 +50,9 @@ var testSmokeTest = function () {
 
   // open calendar view
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
-  controller.sleep(sleep);
   
   // check for minimonth
-  controller.assertNode(new elementslib.ID(controller.window.document, "calMinimonth"));
+  controller.waitForElement(new elementslib.ID(controller.window.document, "calMinimonth"));
   // every month has a first
   controller.assertNode(new elementslib.Lookup(controller.window.document, path
     + 'id("ltnSidebar")/id("minimonth-pane")/{"align":"center"}/id("calMinimonthBox")/'
@@ -83,9 +82,8 @@ var testSmokeTest = function () {
     
   // open tasks view
   controller.click(new elementslib.ID(controller.window.document, "task-tab-button"));
-  controller.sleep(sleep);
   // should be possible to filter today's tasks
-  controller.assertNode(new elementslib.ID(controller.window.document, "opt_today_filter"));
+  controller.waitForElement(new elementslib.ID(controller.window.document, "opt_today_filter"));
   // check for task add button
   controller.assertNode(new elementslib.ID(controller.window.document, "calendar-add-task-button"));
   // check for filtered tasks list
@@ -94,15 +92,15 @@ var testSmokeTest = function () {
     + 'anon({"anonid":"calendar-task-tree"})/{"tooltip":"taskTreeTooltip"}'));
   
   // create test calendar
-  let md = new ModalDialogAPI.modalDialog(handleDialog);
-  md.start();
+  var md = new modalDialog.modalDialog(controller.window);
+  md.start(handleDialog);
   let calendarList = new elementslib.Lookup(controller.window.document, path 
     + '/id("ltnSidebar")/id("calendar-panel")/id("calendar-list-pane")/id("calendar-listtree-pane")/'
     + 'id("calendar-list-tree-widget")/anon({"anonid":"tree"})/anon({"anonid":"treechildren"})');
   controller.doubleClick(calendarList, 0, calendarList.getNode().boxObject.height); // bottom left
 }
 
-function handleDialog(controller) { 
+var handleDialog = function(controller) {
   let wizardPath = '/id("calendar-wizard")/anon({"anonid":"Buttons"})/'
     + 'anon({"class":"wizard-buttons-box-1"})/{"class":"wizard-buttons-box-2"}/'
     + 'anon({"anonid":"WizardButtonDeck"})/';
@@ -112,25 +110,23 @@ function handleDialog(controller) {
     + '[1]/{"dlgtype":"next"}'));
   controller.click(new elementslib.Lookup(controller.window.document, wizardPath
     + '[1]/{"dlgtype":"next"}'));
-  controller.sleep(sleep);
   
   // set calendar name
-  controller.type(new elementslib.Lookup(controller.window.document, '/id("calendar-wizard")/'
+  let calendarNameTextBox = new elementslib.Lookup(controller.window.document, '/id("calendar-wizard")/'
     + '{"pageid":"customizePage"}/[1]/id("customize-rows")/id("customize-name-row")/'
-    + 'id("calendar-name")/anon({"class":"textbox-input-box"})/anon({"anonid":"input"})'), 
-    "Mozmill");
-  controller.sleep(sleep);
+    + 'id("calendar-name")/anon({"class":"textbox-input-box"})/anon({"anonid":"input"})');
+  controller.waitForElement(calendarNameTextBox);
+  controller.type(calendarNameTextBox, "Mozmill");
   
   // click next
-  controller.click(new elementslib.Lookup(controller.window.document, wizardPath
+  controller.waitThenClick(new elementslib.Lookup(controller.window.document, wizardPath
     + '[1]/{"dlgtype":"next"}'));
-  controller.sleep(sleep);
   
   // click finish
-  controller.click(new elementslib.Lookup(controller.window.document, wizardPath
+  controller.waitThenClick(new elementslib.Lookup(controller.window.document, wizardPath
     + '/[0]/{"dlgtype":"finish"}'));
 }
 
 var teardownTest = function(module) {
-  CalendarUtils.deleteCalendars("Mozmill");
+  calUtils.deleteCalendars(controller, "Mozmill");
 }

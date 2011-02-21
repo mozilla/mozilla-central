@@ -35,8 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-var RELATIVE_ROOT = './shared-modules';
-var MODULE_REQUIRES = ['CalendarUtils'];
+var calUtils = require("./shared-modules/calendar-utils");
 
 var sleep = 500;
 var calendar = "Mozmill";
@@ -46,7 +45,7 @@ var desc = "Month View Event Description";
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
-  CalendarUtils.createCalendar(calendar);
+  calUtils.createCalendar(controller, calendar);
 }
 
 var testMonthView = function () {
@@ -75,26 +74,23 @@ var testMonthView = function () {
   controller.click(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
     + 'anon({"anonid":"years-popup"})/[0]/{"value":"2009"}'));
-  controller.sleep(sleep);
   
   // pick month
-  controller.click(new elementslib.Lookup(controller.window.document, miniMonth
+  controller.waitThenClick(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"monthheader"})'));
   controller.click(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
     + 'anon({"anonid":"months-popup"})/[0]/{"index":"0"}'));
-  controller.sleep(sleep);
 
   // pick day
-  controller.click(new elementslib.Lookup(controller.window.document, miniMonth
+  controller.waitThenClick(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-calendar"})/[1]/{"value":"1"}'));
-  controller.sleep(sleep);
   
   // verify date
   let day = new elementslib.Lookup(controller.window.document, monthView
     + 'anon({"anonid":"mainbox"})/anon({"anonid":"monthgrid"})/anon({"anonid":"monthgridrows"})/'
     + '[0]/{"selected":"true"}');
-  controller.assertJS(day.getNode().mDate.icalString == "20090101");
+  controller.waitFor(function() {return day.getNode().mDate.icalString == "20090101"});
 
   // create event
   // Thursday of 2009-01-01 should be the selected box in the first row with default settings
@@ -102,20 +98,20 @@ var testMonthView = function () {
   controller.doubleClick(new elementslib.Lookup(controller.window.document, monthView
     + 'anon({"anonid":"mainbox"})/anon({"anonid":"monthgrid"})/anon({"anonid":"monthgridrows"})/'
     + '[0]/{"selected":"true"}/anon({"anonid":"day-items"})'));
-  controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
   let event = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:EventDialog")[0]);
-  event.sleep(sleep);
   
   // check that the start time is correct
   // next full hour except last hour hour of the day
   let nextHour = (hour == 23)? hour : (hour + 1) % 24;
   let startTime = nextHour + ':00'; // next full hour
-  event.assertValue(new elementslib.Lookup(event.window.document, eventDialog
+  let startTimeInput = new elementslib.Lookup(event.window.document, eventDialog
     + 'id("event-grid-startdate-row")/id("event-grid-startdate-picker-box")/'
     + 'id("event-starttime")/anon({"anonid":"hbox"})/anon({"anonid":"time-picker"})/'
     + 'anon({"class":"timepicker-box-class"})/anon({"class":"timepicker-text-class"})/'
-    + 'anon({"flex":"1"})/anon({"anonid":"input"})'),
-    startTime);
+    + 'anon({"flex":"1"})/anon({"anonid":"input"})');
+  event.waitForElement(startTimeInput);
+  event.assertValue(startTimeInput, startTime);
   let date = dateService.FormatDate("", dateService.dateFormatShort,
     2009, 1, 1);
   event.assertValue(new elementslib.Lookup(event.window.document, eventDialog
@@ -142,35 +138,34 @@ var testMonthView = function () {
   
   // save
   event.click(new elementslib.ID(event.window.document, "button-save"));
-  controller.sleep(sleep);
   
   // if it was created successfully, it can be opened
+  controller.waitForElement(new elementslib.Lookup(controller.window.document, eventBox));
   controller.doubleClick(new elementslib.Lookup(controller.window.document, eventBox));
-  controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
   event = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:EventDialog")[0]);
-  event.sleep(sleep);
   
   // change title and save changes
-  event.type(new elementslib.Lookup(event.window.document, eventDialog
+  let titleTextBox = new elementslib.Lookup(event.window.document, eventDialog
     + 'id("event-grid-title-row")/id("item-title")/anon({"class":"textbox-input-box"})/'
-    + 'anon({"anonid":"input"})'),
-    title2);
+    + 'anon({"anonid":"input"})');
+  event.waitForElement(titleTextBox);
+  event.type(titleTextBox, title2);
   event.click(new elementslib.ID(event.window.document, "button-save"));
-  controller.sleep(sleep);
   
   // check if name was saved
-  controller.assertValue(new elementslib.Lookup(controller.window.document, eventBox
-    + '/{"flex":"1"}/anon({"anonid":"event-name"})'),
-    title2);
+  let eventName = new elementslib.Lookup(controller.window.document, eventBox
+    + '/{"flex":"1"}/anon({"anonid":"event-name"})');
+  controller.waitForElement(eventName);
+  controller.assertValue(eventName, title2);
   
   // delete event
   controller.click(new elementslib.Lookup(controller.window.document, eventBox));
   controller.keypress(new elementslib.ID(controller.window.document, "month-view"),
     "VK_DELETE", {});
-  controller.sleep(sleep);
-  controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document, eventBox));
+  controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document, eventBox));
 }
 
 var teardownTest = function(module) {
-  CalendarUtils.deleteCalendars(calendar);
+  calUtils.deleteCalendars(controller, calendar);
 }

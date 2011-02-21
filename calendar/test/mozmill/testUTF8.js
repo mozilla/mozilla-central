@@ -34,16 +34,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var RELATIVE_ROOT = './shared-modules';
-var MODULE_REQUIRES = ['CalendarUtils', 'PrefsAPI'];
+var calUtils = require("./shared-modules/calendar-utils");
+var prefs = require("./shared-modules/prefs");
 
 var sleep = 500;
 var UTF8string = "õäöü";
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
-  CalendarUtils.createCalendar(UTF8string);
-  PrefsAPI.preferences.setPref("calendar.categories.names", UTF8string);
+  calUtils.createCalendar(controller, UTF8string);
+  prefs.preferences.setPref("calendar.categories.names", UTF8string);
 }
 
 /***
@@ -54,21 +54,20 @@ var testUTF8 = function () {
   let eventDialog = '/id("calendar-event-dialog")/id("event-grid")/id("event-grid-rows")/';
   
   controller.click(new elementslib.ID(controller.window.document,"calendar-tab-button"));
-  controller.sleep(sleep);
-  CalendarUtils.switchToView("day", controller);
+  calUtils.switchToView(controller, "day");
   
   // create new event
   controller.doubleClick(new elementslib.Lookup(controller.window.document,
-      CalendarUtils.getEventBoxPath("day", CalendarUtils.CANVAS_BOX, undefined, 1, 8, controller)));
-  controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+    calUtils.getEventBoxPath(controller, "day", calUtils.CANVAS_BOX, undefined, 1, 8)));
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
   let event = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:EventDialog")[0]);
-  event.sleep(sleep);
   
   // fill in name, location, description
-  event.type(new elementslib.Lookup(event.window.document, eventDialog
+  let titleTextBox = new elementslib.Lookup(event.window.document, eventDialog
     + 'id("event-grid-title-row")/id("item-title")/anon({"class":"textbox-input-box"})/'
-    + 'anon({"anonid":"input"})'),
-    UTF8string);
+    + 'anon({"anonid":"input"})');
+  event.waitForElement(titleTextBox);
+  event.type(titleTextBox, UTF8string);
   event.type(new elementslib.Lookup(event.window.document, eventDialog
     + 'id("event-grid-location-row")/id("item-location")/anon({"class":"textbox-input-box"})/'
     + 'anon({"anonid":"input"})'),
@@ -84,22 +83,22 @@ var testUTF8 = function () {
   
   // save
   event.click(new elementslib.ID(event.window.document, "button-save"));
-  controller.sleep(sleep);
   
   // open
-  controller.doubleClick(new elementslib.Lookup(controller.window.document,
-      CalendarUtils.getEventBoxPath("day", CalendarUtils.EVENT_BOX, undefined, 1, 8, controller)
-      + '/{"tooltip":"itemTooltip","calendar":"' + UTF8string.toLowerCase() + '"}'));
-  controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+  let eventBox = new elementslib.Lookup(controller.window.document,
+    calUtils.getEventBoxPath(controller, "day", calUtils.EVENT_BOX, undefined, 1, 8)
+    + '/{"tooltip":"itemTooltip","calendar":"' + UTF8string.toLowerCase() + '"}');
+  controller.waitForElement(eventBox);
+  controller.doubleClick(eventBox);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
   event = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:EventDialog")[0]);
-  // wait for input elements' values to be populated
-  event.sleep(sleep);
   
   // check values
-  event.assertValue(new elementslib.Lookup(event.window.document, eventDialog
+  titleTextBox = new elementslib.Lookup(event.window.document, eventDialog
     + 'id("event-grid-title-row")/id("item-title")/anon({"class":"textbox-input-box"})/'
-    + 'anon({"anonid":"input"})'),
-    UTF8string);
+    + 'anon({"anonid":"input"})');
+  event.waitForElement(titleTextBox);
+  event.assertValue(titleTextBox, UTF8string);
   event.assertValue(new elementslib.Lookup(event.window.document, eventDialog
     + 'id("event-grid-location-row")/id("item-location")/anon({"class":"textbox-input-box"})/'
     + 'anon({"anonid":"input"})'),
@@ -116,6 +115,6 @@ var testUTF8 = function () {
 }
 
 var teardownTest = function(module) {
-  CalendarUtils.deleteCalendars(UTF8string);
-  PrefsAPI.preferences.clearUserPref("calendar.categories.names");
+  calUtils.deleteCalendars(controller, UTF8string);
+  prefs.preferences.clearUserPref("calendar.categories.names");
 }

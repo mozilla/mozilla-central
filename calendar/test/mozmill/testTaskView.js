@@ -34,8 +34,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var RELATIVE_ROOT = './shared-modules';
-var MODULE_REQUIRES = ['CalendarUtils', 'UtilsAPI'];
+var calUtils = require("./shared-modules/calendar-utils");
+var utils = require("./shared-modules/utils");
 
 var sleep = 500;
 var calendar = "Mozmill";
@@ -45,7 +45,7 @@ var percentComplete = "50";
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
-  CalendarUtils.createCalendar(calendar);
+  calUtils.createCalendar(controller, calendar);
 }
 
 // mozmill doesn't support trees yet, therefore completed checkbox and line-through style are not
@@ -89,11 +89,11 @@ var testTaskView = function () {
     + 'anon({"anonid":"input"})'),
     "VK_RETURN",
     {});
-  controller.sleep(sleep);
   
   // verify added
-  let countAfter = taskTreeNode.mTaskArray.length;
-  controller.assertJS(countBefore + 1 == countAfter);
+  let countAfter;
+  controller.waitFor(function() {countAfter = taskTreeNode.mTaskArray.length;
+                                 return countBefore + 1 == countAfter});
   
   // last added task is automatically selected so verify detail window data
   controller.assertValue(new elementslib.ID(controller.window.document,
@@ -104,12 +104,11 @@ var testTaskView = function () {
   // doubleclick on completion checkbox is ignored as opening action, so don't click at immediate
   // left where the checkbox is located
   controller.doubleClick(new elementslib.Lookup(controller.window.document, treeChildren), 50, 0);
-  controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
   let task = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:EventDialog")[0]);
-  task.sleep(sleep);
   
   // verify calendar
-  task.assertNode(new elementslib.Lookup(task.window.document, taskDialog
+  task.waitForElement(new elementslib.Lookup(task.window.document, taskDialog
     + 'id("event-grid-category-color-row")/id("event-grid-category-box")/id("item-calendar")/[0]/'
     + '{"selected":"true","label":"' + calendar + '"}'))
   
@@ -135,14 +134,14 @@ var testTaskView = function () {
   
   // save
   task.click(new elementslib.ID(task.window.document, "button-save"));
-  controller.sleep(sleep);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length == 0});
   
   // verify description and status in details pane
   controller.assertValue(new elementslib.Lookup(controller.window.document, taskView
     + '{"flex":"1"}/id("calendar-task-details-container")/id("calendar-task-details-description")/'
     + 'anon({"class":"textbox-input-box"})/anon({"anonid":"input"})'),
     description);
-  let status = UtilsAPI.getProperty("chrome://calendar/locale/calendar.properties",
+  let status = utils.getProperty("chrome://calendar/locale/calendar.properties",
     "taskDetailsStatusNeedsAction");
   controller.assertValue(new elementslib.ID(controller.window.document, "calendar-task-details-status"),
     status);
@@ -153,20 +152,22 @@ var testTaskView = function () {
   controller.click(new elementslib.ID(controller.window.document, "priority-1-menuitem"));
   controller.sleep(sleep);
   let priorityNode = new elementslib.ID(controller.window.document, "calendar-task-details-priority-high");
-  controller.assertPropertyNotExist(priorityNode, "hidden");
+  controller.assertNotDOMProperty(priorityNode, "hidden");
   
   // verify that tooltip shows status, priority and percent complete
   let toolTipNode = new elementslib.Lookup(controller.window.document, toolTip).getNode();
   toolTipNode.ownerDocument.defaultView.showToolTip(toolTipNode, taskTreeNode.getTaskAtRow(0));
   
   let toolTipName = new elementslib.Lookup(controller.window.document, toolTipGrid + '[1]/[0]/[1]');
-  let toolTipPriority = new elementslib.Lookup(controller.window.document, toolTipGrid + '[1]/[1]/[1]');
-  let toolTipStatus = new elementslib.Lookup(controller.window.document, toolTipGrid + '[1]/[2]/[1]');
-  let toolTipComplete = new elementslib.Lookup(controller.window.document, toolTipGrid + '[1]/[3]/[1]');
-  let priority = UtilsAPI.getProperty("chrome://calendar/locale/calendar.properties",
+  let toolTipCalendar = new elementslib.Lookup(controller.window.document, toolTipGrid + '[1]/[1]/[1]');
+  let toolTipPriority = new elementslib.Lookup(controller.window.document, toolTipGrid + '[1]/[2]/[1]');
+  let toolTipStatus = new elementslib.Lookup(controller.window.document, toolTipGrid + '[1]/[3]/[1]');
+  let toolTipComplete = new elementslib.Lookup(controller.window.document, toolTipGrid + '[1]/[4]/[1]');
+  let priority = utils.getProperty("chrome://calendar/locale/calendar.properties",
     "highPriority");
   
   controller.assertJS(toolTipName.getNode().textContent == title);
+  controller.assertJS(toolTipCalendar.getNode().textContent == calendar);
   controller.assertJS(toolTipPriority.getNode().textContent == priority);
   controller.assertJS(toolTipStatus.getNode().textContent.toLowerCase() == status.toLowerCase());
   controller.assertJS(toolTipComplete.getNode().textContent == percentComplete + '%');
@@ -177,7 +178,7 @@ var testTaskView = function () {
     + 'id("other-actions-box")/id("task-actions-markcompleted")/anon({"anonid":"button"})'));
   controller.sleep(sleep);
   
-  status = UtilsAPI.getProperty("chrome://calendar/locale/calendar.properties",
+  status = utils.getProperty("chrome://calendar/locale/calendar.properties",
     "taskDetailsStatusCompleted");
   toolTipNode.ownerDocument.defaultView.showToolTip(toolTipNode, taskTreeNode.getTaskAtRow(0));
   controller.assertJS(toolTipStatus.getNode().textContent.toLowerCase() == status.toLowerCase());
@@ -190,5 +191,5 @@ var testTaskView = function () {
 }
 
 var teardownTest = function(module) {
-  CalendarUtils.deleteCalendars(calendar);
+  calUtils.deleteCalendars(controller, calendar);
 }

@@ -33,7 +33,11 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
+var calUtils = require("../shared-modules/calendar-utils");
+var modalDialog = require("../shared-modules/modal-dialog");
+var timezoneUtils = require("../shared-modules/timezone-utils");
+
 const sleep = 500;
 var calendar = "Mozmill";
 var timezones = ["America/St_Johns", "America/Caracas", "America/Phoenix", "America/Los_Angeles",
@@ -41,28 +45,22 @@ var timezones = ["America/St_Johns", "America/Caracas", "America/Phoenix", "Amer
 var times = [[4, 30], [4, 30], [3, 0], [3, 0], [9, 0], [14, 0], [19, 45], [1, 30]];
 var gTimezone;
 
-var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['CalendarUtils', 'ModalDialogAPI', 'TimezoneUtils'];
-
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
 }
 
 var testTimezones2_CreateEvents = function () {
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
-  controller.sleep(sleep);
-  
-  CalendarUtils.switchToView("day", controller);
-  CalendarUtils.goToDate(2009, 1, 1, controller);
+  calUtils.switchToView(controller, "day");
+  calUtils.goToDate(controller, 2009, 1, 1);
   
   // create daily recurring events in all timezones
   let time = new Date();
   for (let i = 0; i < timezones.length; i++) {
     controller.doubleClick(new elementslib.Lookup(controller.window.document,
-      CalendarUtils.getEventBoxPath("day", CalendarUtils.CANVAS_BOX, undefined, 1, i + 8, controller)));
-    controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+      calUtils.getEventBoxPath(controller, "day", calUtils.CANVAS_BOX, undefined, 1, i + 8)), 1, 1);
+    controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
     let event = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:EventDialog")[0]);
-    event.sleep(sleep);
     
     time.setHours(times[i][0]);
     time.setMinutes(times[i][1]);
@@ -71,16 +69,16 @@ var testTimezones2_CreateEvents = function () {
     setTimezone(event, timezones[i]);
     
     // set title and repeat
-    CalendarUtils.setData({title:timezones[i], repeat:"weekly", starttime:time}, event);
+    calUtils.setData(event, {title:timezones[i], repeat:"weekly", starttime:time});
 
     // save
     event.click(new elementslib.ID(event.window.document, "button-save"));
-    controller.sleep(sleep);
+    controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length == 0});
   }
 }
 
 var teardownTest = function(module) {
-  TimezoneUtils.switchAppTimezone(timezones[0], controller);
+  timezoneUtils.switchAppTimezone(timezones[0]);
 }
 
 function setTimezone(event, timezone) {
@@ -88,11 +86,12 @@ function setTimezone(event, timezone) {
   
   // for some reason setting checked is needed, no other menuitem with checkbox needs it
   let menuitem = new elementslib.ID(event.window.document, "options-timezone-menuitem");
+  event.waitForElement(menuitem);
   menuitem.getNode().setAttribute("checked", "true");
   event.click(menuitem);
   
-  let modal = new ModalDialogAPI.modalDialog(eventCallback);
-  modal.start();
+  let modal = new modalDialog.modalDialog(event.window);
+  modal.start(eventCallback);
   event.waitForElement(new elementslib.ID(event.window.document, "timezone-starttime"));
   event.click(new elementslib.ID(event.window.document, "timezone-starttime"));
 }

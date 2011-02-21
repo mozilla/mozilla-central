@@ -34,15 +34,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var RELATIVE_ROOT = './shared-modules';
-var MODULE_REQUIRES = ['CalendarUtils'];
+var calUtils = require("./shared-modules/calendar-utils");
 
 var sleep = 500;
 var calendar = "Mozmill";
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
-  CalendarUtils.createCalendar(calendar);
+  calUtils.createCalendar(controller, calendar);
 }
 
 var testTodayPane = function () {
@@ -62,10 +61,9 @@ var testTodayPane = function () {
   // open calendar view
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
   controller.waitThenClick(new elementslib.ID(controller.window.document, "calendar-day-view-button"));
-  controller.sleep(sleep);
   
   // go to today and verify date
-  controller.click(new elementslib.Lookup(controller.window.document, miniMonth
+  controller.waitThenClick(new elementslib.Lookup(controller.window.document, miniMonth
     + '{"align":"center"}/id("calMinimonthBox")/id("calMinimonth")/'
     + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"today-button"})'));
   let dayNode = (new elementslib.Lookup(controller.window.document, dayPath)).getNode();
@@ -84,14 +82,14 @@ var testTodayPane = function () {
   controller.doubleClick(new elementslib.Lookup(controller.window.document, dayView
     + 'anon({"anonid":"mainbox"})/anon({"anonid":"scrollbox"})/anon({"anonid":"daybox"})/'
     + '{"class":"calendar-event-column-even"}/anon({"anonid":"boxstack"})/'
-    + 'anon({"anonid":"bgbox"})/[' + startHour + ']'));
-  controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+    + 'anon({"anonid":"bgbox"})/[' + startHour + ']'), 1, 1);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
   let event = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:EventDialog")[0]);
-  event.sleep(sleep);
-  
+    
+  event.waitForElement(new elementslib.Lookup(event.window.document, eventName));
   event.type(new elementslib.Lookup(event.window.document, eventName),"Today's Event");
   event.click(new elementslib.ID(event.window.document, "button-save"));
-  controller.sleep(sleep);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length == 0});
   
   // reset view
   view.scrollToMinute(60 * 8);
@@ -101,14 +99,14 @@ var testTodayPane = function () {
   controller.doubleClick(new elementslib.Lookup(controller.window.document, dayView
     + 'anon({"anonid":"mainbox"})/anon({"anonid":"scrollbox"})/anon({"anonid":"daybox"})/'
     + '{"class":"calendar-event-column-even"}/anon({"anonid":"boxstack"})/'
-    + 'anon({"anonid":"bgbox"})/[9]'));
-  controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+    + 'anon({"anonid":"bgbox"})/[9]'), 1, 1);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
   event = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:EventDialog")[0]);
-  event.sleep(sleep);
   
+  event.waitForElement(new elementslib.Lookup(event.window.document, eventName));
   event.type(new elementslib.Lookup(event.window.document, eventName),"Tomorrow's Event");
   event.click(new elementslib.ID(event.window.document, "button-save"));
-  controller.sleep(sleep);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length == 0});
   
   // go 5 days forward and add an event
   for(let i = 0; i < 5; i++)
@@ -118,14 +116,14 @@ var testTodayPane = function () {
   controller.doubleClick(new elementslib.Lookup(controller.window.document, dayView
     + 'anon({"anonid":"mainbox"})/anon({"anonid":"scrollbox"})/anon({"anonid":"daybox"})/'
     + '{"class":"calendar-event-column-even"}/anon({"anonid":"boxstack"})/'
-    + 'anon({"anonid":"bgbox"})/[9]'));
-  controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+    + 'anon({"anonid":"bgbox"})/[9]'), 1, 1);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
   event = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:EventDialog")[0]);
-  event.sleep(sleep);
   
+  event.waitForElement(new elementslib.Lookup(event.window.document, eventName));
   event.type(new elementslib.Lookup(event.window.document, eventName),"Future's Event");
   event.click(new elementslib.ID(event.window.document, "button-save"));
-  controller.sleep(sleep);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length == 0});
   
   // go to mail tab
   controller.click(new elementslib.Lookup(controller.window.document, '/id("messengerWindow")/'
@@ -135,7 +133,7 @@ var testTodayPane = function () {
   controller.sleep(sleep);
   
   // verify today pane open
-  controller.assertPropertyNotExist(new elementslib.Lookup(controller.window.document,
+  controller.assertNotDOMProperty(new elementslib.Lookup(controller.window.document,
     '/id("messengerWindow")/id("tabmail-container")/id("today-pane-panel")'), "collapsed");
   
   // verify today pane's date
@@ -177,8 +175,7 @@ var testTodayPane = function () {
   controller.keypress(new elementslib.ID(controller.window.document, "agenda-listbox"),
     "VK_DELETE",
     {});
-  controller.sleep(sleep);
-  controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document,
+  controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document,
     '/id("messengerWindow")/id("tabmail-container")/id("today-pane-panel")/[1]/id("agenda-panel")/'
     + '{"flex":"1"}/id("agenda-listbox")/[5]'));
     
@@ -188,8 +185,7 @@ var testTodayPane = function () {
   controller.keypress(new elementslib.ID(controller.window.document, "agenda-listbox"),
     "VK_DELETE",
     {});
-  controller.sleep(sleep);
-  controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document,
+  controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document,
     '/id("messengerWindow")/id("tabmail-container")/id("today-pane-panel")/[1]/id("agenda-panel")/'
     + '{"flex":"1"}/id("agenda-listbox")/[4]'));
   
@@ -199,8 +195,7 @@ var testTodayPane = function () {
   controller.keypress(new elementslib.ID(controller.window.document, "agenda-listbox"),
     "VK_DELETE",
     {});
-  controller.sleep(sleep);
-  controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document,
+  controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document,
     '/id("messengerWindow")/id("tabmail-container")/id("today-pane-panel")/[1]/id("agenda-panel")/'
     + '{"flex":"1"}/id("agenda-listbox")/[3]'));
     
@@ -211,7 +206,7 @@ var testTodayPane = function () {
   
   // reset today pane
   controller.click(new elementslib.ID(controller.window.document, "calendar-status-todaypane-button"));
-  controller.assertPropertyNotExist(new elementslib.Lookup(controller.window.document,
+  controller.assertNotDOMProperty(new elementslib.Lookup(controller.window.document,
     '/id("messengerWindow")/id("tabmail-container")/id("today-pane-panel")'), "collapsed");
   controller.click(new elementslib.Lookup(controller.window.document, '/id("messengerWindow")/'
     + 'id("tabmail-container")/id("today-pane-panel")/[1]/id("agenda-panel")/[3]/'
@@ -246,5 +241,5 @@ var getIsoDate = function() {
 }
 
 var teardownTest = function(module) {
-  CalendarUtils.deleteCalendars(calendar);
+  calUtils.deleteCalendars(controller, calendar);
 }

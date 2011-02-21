@@ -33,17 +33,17 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
- var calendar = "Mozmill";
 
-var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['CalendarUtils', 'TimezoneUtils'];
+var calUtils = require("../shared-modules/calendar-utils");
+var timezoneUtils = require("../shared-modules/timezone-utils");
+
+var calendar = "Mozmill";
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
-  CalendarUtils.createCalendar(calendar);
+  calUtils.createCalendar(controller, calendar);
 }
 
 var testTimezones1_SetGMT = function () {
-  TimezoneUtils.switchAppTimezone("Europe/London", controller);
+  timezoneUtils.switchAppTimezone("Europe/London");
 }

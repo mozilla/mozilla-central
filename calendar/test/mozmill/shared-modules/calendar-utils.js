@@ -34,10 +34,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const MODULE_NAME = 'CalendarUtils';
-
-const RELATIVE_ROOT = '.';
-const MODULE_REQUIRES = ['ModalDialogAPI', 'UtilsAPI'];
+var modalDialog = require("modal-dialog");
+var utils = require("utils");
 
 const sleep = 500;
 const EVENT_BOX = 0; // Use when you need an event box
@@ -46,24 +44,25 @@ const ALLDAY = 2; // Use when you need an allday canvas or event box
 
 /**
  *  Accept to send notification email with event to attendees
+ *  @param controller - Mozmill window controller
  */
-function acceptSendingNotificationMail(){
-  let api = collector.getModule('ModalDialogAPI');
-  let md = new api.modalDialog(
+function acceptSendingNotificationMail(controller){
+  let md = new modalDialog.modalDialog(controller.window);
+  md.start(
     function(dialog){
       dialog.waitThenClick(new elementslib.Lookup(dialog.window.document, '/id("commonDialog")/'
         + 'anon({"anonid":"buttons"})/{"dlgtype":"accept"}'));
     }
   );
-  md.start();
 }
 
 /**
  *  Add an attachment with url
+ *  @param controller - Mozmill window controller
  */
-function handleAddingAttachment(url){
-  let api = collector.getModule('ModalDialogAPI');
-  let md = new api.modalDialog(
+function handleAddingAttachment(controller, url){
+  let md = new modalDialog.modalDialog(controller.window);
+  md.start(
     function(attachment){
       let input = new elementslib.ID(attachment.window.document, 'loginTextbox');
       attachment.waitForElement(input);
@@ -72,90 +71,111 @@ function handleAddingAttachment(url){
         + 'anon({"anonid":"buttons"})/{"dlgtype":"accept"}'));
     }
   );
-  md.start();
 }
 
 /**
  *  Choose to delete just one occurrence of a repeating event
- *  @attendees whether there are attendees that can be notified or not
+ *  @param controller - Mozmill window controller
+ *  @param attendees - whether there are attendees that can be notified or not
  */
-function handleOccurrenceDeletion(attendees){
-  let api = collector.getModule('ModalDialogAPI');
-  let md = new api.modalDialog(
+function handleOccurrenceDeletion(controller, attendees){
+  let md = new modalDialog.modalDialog(controller.window);
+  md.start(
     function(dialog){
       if(attendees)
         acceptSendingNotificationMail();
       dialog.waitThenClick(new elementslib.ID(dialog.window.document, "accept-occurrence-button"));
     }
   );
-  md.start();
 }
 
 /**
  *  Choose to delete all occurrences of a repeating event
- *  @attendees whether there are attendees that can be notified or not
+ *  @param controller - Mozmill window controller
+ *  @param attendees - whether there are attendees that can be notified or not
  */
-function handleParentDeletion(attendees){
-  let api = collector.getModule('ModalDialogAPI');
-  let md = new api.modalDialog(
+function handleParentDeletion(controller, attendees){
+  let md = new modalDialog.modalDialog(controller.window);
+  md.start(
     function(dialog){
       if(attendees)
         acceptSendingNotificationMail();
       dialog.waitThenClick(new elementslib.ID(dialog.window.document, "accept-parent-button"));
     }
   );
-  md.start();
 }
 
 /**
  *  Choose to modify just one occurrence of a repeating event
- *  @attendees whether there are attendees that can be notified or not
+ *  @param controller - Mozmill window controller
+ *  @param attendees - whether there are attendees that can be notified or not
  */
-function handleOccurrenceModification(attendees){
-  handleOccurrenceDeletion(attendees);
+function handleOccurrenceModification(controller, attendees){
+  handleOccurrenceDeletion(controller, attendees);
 }
 
 /**
  *  Choose to modify all occurrences of a repeating event
- *  @attendees whether there are attendees that can be notified or not
+ *  @param controller - Mozmill window controller
+ *  @param attendees - whether there are attendees that can be notified or not
  */
-function handleParentModification(attendees){
-  handleParentDeletion(attendees);
+function handleParentModification(controller, attendees){
+  handleParentDeletion(controller, attendees);
 }
 
 /**
  *  Switch to a view
+ *  @param controller - Mozmill window controller
  *  @param view - day, week, multiweek or month
  */
-function switchToView(view, controller){
+function switchToView(controller, view){
   switch(view){
     case "week":
-      controller.click(new elementslib.ID(controller.window.document,
+      controller.waitThenClick(new elementslib.ID(controller.window.document,
         "calendar-week-view-button"));
+      controller.waitFor(function() {
+        let button = (new elementslib.ID(controller.window.document,
+        "calendar-week-view-button"));
+        return button.getNode().selected == true;
+      });
       break;
     case "multiweek":
       controller.waitThenClick(new elementslib.ID(controller.window.document,
         "calendar-multiweek-view-button"));
+      controller.waitFor(function() {
+        let button = (new elementslib.ID(controller.window.document,
+        "calendar-multiweek-view-button"));
+        return button.getNode().selected == true;
+      });
       break;
     case "month":
       controller.waitThenClick(new elementslib.ID(controller.window.document,
         "calendar-month-view-button"));
+      controller.waitFor(function() {
+        let button = (new elementslib.ID(controller.window.document,
+        "calendar-month-view-button"));
+        return button.getNode().selected == true;
+      });
       break;
     default:
       controller.waitThenClick(new elementslib.ID(controller.window.document,
         "calendar-day-view-button"));
+      controller.waitFor(function() {
+        let button = (new elementslib.ID(controller.window.document,
+        "calendar-day-view-button"));
+        return button.getNode().selected == true;
+      });
   }
-  controller.sleep(500);
 }
 
 /**
  *  Go to a specific date using minimonth
+ *  @param controller - main window controller
  *  @param year - four-digit year
  *  @param month - 1-based index of a month
  *  @param day - 1-based index of a day
- *  @param controller - main window controller
  */
-function goToDate(year, month, day, controller){
+function goToDate(controller, year, month, day){
   let miniMonth = '/id("messengerWindow")/id("tabmail-container")/id("tabmail")/'
     + 'id("tabpanelcontainer")/id("calendarTabPanel")/id("calendarContent")/id("ltnSidebar")/'
     + 'id("minimonth-pane")/{"align":"center"}/id("calMinimonthBox")/id("calMinimonth")/';
@@ -198,8 +218,7 @@ function goToDate(year, month, day, controller){
     controller.click(new elementslib.Lookup(controller.window.document, miniMonth
       + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"monthheader"})/[' + activeMonth
       + ']'));
-    controller.sleep(500);
-    controller.click(new elementslib.Lookup(controller.window.document, miniMonth
+    controller.waitThenClick(new elementslib.Lookup(controller.window.document, miniMonth
       + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
       + 'anon({"anonid":"months-popup"})/[0]/{"index":"' + (month - 1) + '"}'));
     controller.sleep(500);
@@ -214,20 +233,19 @@ function goToDate(year, month, day, controller){
   // pick day
   controller.click(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-calendar"})/[' + (dateRow + 1) + ']/[' + dateColumn + ']'));
-  controller.sleep(1000);
-
+  controller.sleep(500);
 }
 
 /**
+ *  @param controller - main window controller
  *  @param view - day, week, multiweek or month
  *  @param option - bg for creating event, fg for checking
  *  @param row - only used in multiweek and month view, 1-based index of a row
  *  @param column - 1-based index of a column
  *  @param hour - index of hour box
- *  @param controller - main window controller
  *  @returns path string
  */
-function getEventBoxPath(view, option, row, column, hour, controller){
+function getEventBoxPath(controller, view, option, row, column, hour){
   let viewDeck = '/id("messengerWindow")/id("tabmail-container")/id("tabmail")/'
     + 'id("tabpanelcontainer")/id("calendarTabPanel")/id("calendarContent")/'
     + 'id("calendarDisplayDeck")/id("calendar-view-box")/id("view-deck")';
@@ -280,9 +298,10 @@ function getEventBoxPath(view, option, row, column, hour, controller){
 }
 
 /**
+ * @param controller - Mozmill window controller
  * @param n - how many times next button in view is clicked
  */
-function forward(n){
+function forward(controller, n){
   for(let i = 0; i < n; i++){
     controller.click(new elementslib.ID(controller.window.document, "next-view-button"));
     controller.sleep(100);
@@ -290,9 +309,10 @@ function forward(n){
 }
 
 /**
+ * @param controller - Mozmill window controller
  * @param n - how many times previous button in view is clicked
  */
-function back(n){
+function back(controller, n){
   for(let i = 0; i < n; i++){
     controller.click(new elementslib.ID(controller.window.document, "previous-view-button"));
     controller.sleep(100);
@@ -301,9 +321,10 @@ function back(n){
 
 /**
  * Deletes all calendars with given name
+ * @param controller - Mozmill window controller
  * @param name - calendar name
  */
-function deleteCalendars(name){
+function deleteCalendars(controller, name){
   let defaultView = (new elementslib.ID(controller.window.document, "messengerWindow"))
                     .getNode().ownerDocument.defaultView;
   let manager = defaultView.getCalendarManager();
@@ -318,9 +339,10 @@ function deleteCalendars(name){
 
 /**
  * Creates local calendar with given name and select it in calendars list
+ * @param controller - Mozmill window controller
  * @param name - calendar name
  */
-function createCalendar(name){
+function createCalendar(controller, name){
   let defaultView = (new elementslib.ID(controller.window.document, "messengerWindow"))
                     .getNode().ownerDocument.defaultView;
   let manager = defaultView.getCalendarManager();
@@ -360,6 +382,7 @@ function findEventsInNode(node, eventNodes) {
 
 /**
  *  Helper function to enter event/task dialog data
+ *  @param controller - event/task controller
  *  @param data - dataset object
  *                  title - event/task title
  *                  location - event/task location
@@ -383,9 +406,8 @@ function findEventsInNode(node, eventNodes) {
  *                  freebusy - free/busy
  *                  attachment.add - url to add
  *                  attachment.remove - label of url to remove (without http://)
- *  @param controller - event/task controller
  */
-function setData(data, controller) {
+function setData(controller, data) {
   let eventDialog = '/id("calendar-event-dialog")/id("event-grid")/id("event-grid-rows")/';
   let taskDialog = '/id("calendar-task-dialog")/id("event-grid")/id("event-grid-rows")/';
   let dialog;
@@ -430,8 +452,7 @@ function setData(data, controller) {
     + 'anon({"anonid":"input"})');
   let dateService = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
                               .getService(Components.interfaces.nsIScriptableDateFormat);
-  let utilsapi = collector.getModule('UtilsAPI');
-  let mac = utilsapi.appInfo.os.toLowerCase().indexOf("darwin") != -1;
+  let mac = utils.appInfo.os.toLowerCase().indexOf("darwin") != -1;
   // wait for input elements' values to be populated
   controller.sleep(sleep);
   
@@ -483,8 +504,7 @@ function setData(data, controller) {
   
   // timezone
   if (data.timezone != undefined) {
-    let menuitem = new elementslib.Elem(controller.menus["options-menu"]
-                                                        ["options-timezone-menuitem"]);
+    let menuitem = new elementslib.ID(controller.window.document, "options-timezone-menuitem");
     menuitem.getNode().setAttribute("checked", data.timezone);
     controller.click(menuitem);
   }
@@ -575,24 +595,18 @@ function setData(data, controller) {
   
   // priority
   if (data.priority != undefined) {
-    controller.click(new elementslib.Elem(controller
-      .menus["options-menu"]["options-priority-menu"]["options-priority-" + data.priority
-      + "-label"]));
+    controller.mainMenu.click("#options-priority-" + data.priority + "-label");
   }
   
   // privacy
   if (data.privacy != undefined) {
-    controller.click(new elementslib.Elem(controller
-      .menus["options-menu"]["options-privacy-menu"]["options-privacy-" + data.privacy
-      + "-menuitem"]));
+    controller.mainMenu.click("#options-privacy-" + data.privacy + "-menuitem");
   }
   
   // status
   if (data.status != undefined) {
     if (isEvent) {
-      controller.click(new elementslib.Elem(controller
-        .menus["options-menu"]["options-status-menu"]["options-status-" + data.status
-        + "-menuitem"]));
+      controller.mainMenu.click("#options-status-" + data.status + "-menuitem");
     } else {
       controller.select(new elementslib.ID(controller.window.document, "todo-status"), undefined,
         undefined, data.status.toUpperCase());
@@ -627,15 +641,13 @@ function setData(data, controller) {
   
   // free/busy
   if (data.freebusy != undefined) {
-    controller.click(new elementslib.Elem(controller
-      .menus["options-menu"]["options-freebusy-menu"]["options-freebusy-" + data.freebusy
-      + "-menuitem"]));
+    controller.mainMenu.click("#options-freebusy-" + data.freebusy + "-menuitem");
   }
   
   // attachment
   if (data.attachment != undefined) {
     if (data.attachment.add != undefined) {
-      handleAddingAttachment(data.attachment.add);
+      handleAddingAttachment(controller, data.attachment.add);
       controller.click(new elementslib.ID(controller.window.document, "button-url"));
     }
     if (data.attachment.delete != undefined) {
@@ -649,3 +661,25 @@ function setData(data, controller) {
   
   controller.sleep(sleep);
 }
+
+// Export of constants
+exports.ALLDAY = ALLDAY;
+exports.CANVAS_BOX = CANVAS_BOX;
+exports.EVENT_BOX = EVENT_BOX;
+
+// Export of functions
+exports.acceptSendingNotificationMail = acceptSendingNotificationMail;
+exports.back = back;
+exports.createCalendar = createCalendar;
+exports.deleteCalendars = deleteCalendars;
+exports.findEventsInNode = findEventsInNode;
+exports.forward = forward;
+exports.getEventBoxPath = getEventBoxPath;
+exports.goToDate = goToDate;
+exports.handleAddingAttachment = handleAddingAttachment;
+exports.handleOccurrenceDeletion = handleOccurrenceDeletion;
+exports.handleOccurrenceModification = handleOccurrenceModification;
+exports.handleParentDeletion = handleParentDeletion;
+exports.handleParentModification = handleParentModification;
+exports.setData = setData;
+exports.switchToView = switchToView;

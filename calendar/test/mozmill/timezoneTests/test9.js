@@ -33,7 +33,10 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
+var calUtils = require("../shared-modules/calendar-utils");
+var timezoneUtils = require("../shared-modules/timezone-utils");
+
 const sleep = 500;
 var calendar = "Mozmill";
 var dates = [[2009,  1,  1], [2009,  4,  2], [2009,  4, 16], [2009,  4, 30],
@@ -51,9 +54,6 @@ var times = [[[13, 45], [14, 45], [15, 45], [16, 45], [17, 45], [18, 45], [19, 4
              [[12, 45], [14, 45], [15, 45], [15, 45], [17, 45], [18, 45], [19, 45], [20, 45]],
              [[13, 45], [14, 45], [15, 45], [16, 45], [17, 45], [18, 45], [19, 45], [20, 45]]]
 
-var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['CalendarUtils', 'TimezoneUtils'];
-
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
 }
@@ -62,14 +62,12 @@ var testTimezones9_checkKathmandu = function () {
   let eventPath = '/{"tooltip":"itemTooltip","calendar":"' + calendar.toLowerCase() + '"}';
   
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
-  controller.sleep(sleep);
+  calUtils.switchToView(controller, "day");
+  calUtils.goToDate(controller, 2009, 1, 1);
   
-  CalendarUtils.switchToView("day", controller);
-  CalendarUtils.goToDate(2009, 1, 1, controller);
-  
-  TimezoneUtils.verify(dates, timezones, times, controller);
+  timezoneUtils.verify(controller, dates, timezones, times);
 }
 
 var teardownTest = function(module) {
-  TimezoneUtils.switchAppTimezone(timezones[7], controller);
+  timezoneUtils.switchAppTimezone(timezones[7]);
 }

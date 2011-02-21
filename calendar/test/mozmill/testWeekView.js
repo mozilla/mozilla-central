@@ -34,8 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var RELATIVE_ROOT = './shared-modules';
-var MODULE_REQUIRES = ['CalendarUtils'];
+var calUtils = require("./shared-modules/calendar-utils");
 
 var sleep = 500;
 var calendar = "Mozmill";
@@ -45,7 +44,7 @@ var desc = "Week View Event Description";
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
-  CalendarUtils.createCalendar(calendar);
+  calUtils.createCalendar(controller, calendar);
 }
 
 var testWeekView = function () {
@@ -73,43 +72,40 @@ var testWeekView = function () {
   controller.click(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
     + 'anon({"anonid":"years-popup"})/[0]/{"value":"2009"}'));
-  controller.sleep(sleep);
   
   // pick month
-  controller.click(new elementslib.Lookup(controller.window.document, miniMonth
+  controller.waitThenClick(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"monthheader"})'));
   controller.click(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
     + 'anon({"anonid":"months-popup"})/[0]/{"index":"0"}'));
-  controller.sleep(sleep);
 
   // pick day
-  controller.click(new elementslib.Lookup(controller.window.document, miniMonth
+  controller.waitThenClick(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-calendar"})/[1]/{"value":"1"}'));
-  controller.sleep(sleep);
   
   // verify date
   let day = new elementslib.Lookup(controller.window.document, weekView
     + 'anon({"anonid":"mainbox"})/anon({"anonid":"labelbox"})/anon({"anonid":"labeldaybox"})/'
     + '{"selected":"true"}');
-  controller.assertJS(day.getNode().mDate.icalString == "20090101");
+  controller.waitFor(function() {return day.getNode().mDate.icalString == "20090101"});
 
   // create event at 8 AM
   // Thursday of 2009-01-01 is 4th with default settings
   controller.doubleClick(new elementslib.Lookup(controller.window.document, weekView
     + 'anon({"anonid":"mainbox"})/anon({"anonid":"scrollbox"})/anon({"anonid":"daybox"})/'
-    + '[4]/anon({"anonid":"boxstack"})/anon({"anonid":"bgbox"})/[8]'));
-  controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+    + '[4]/anon({"anonid":"boxstack"})/anon({"anonid":"bgbox"})/[8]'), 1, 1);
+  controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
   let event = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:EventDialog")[0]);
-  event.sleep(sleep);
   
   // check that the start time is correct
-  event.assertValue(new elementslib.Lookup(event.window.document, eventDialog
+  let startTimeInput = new elementslib.Lookup(event.window.document, eventDialog
     + 'id("event-grid-startdate-row")/id("event-grid-startdate-picker-box")/'
     + 'id("event-starttime")/anon({"anonid":"hbox"})/anon({"anonid":"time-picker"})/'
     + 'anon({"class":"timepicker-box-class"})/anon({"class":"timepicker-text-class"})/'
-    + 'anon({"flex":"1"})/anon({"anonid":"input"})'),
-    '8:00');
+    + 'anon({"flex":"1"})/anon({"anonid":"input"})');
+  event.waitForElement(startTimeInput);
+  event.assertValue(startTimeInput, '8:00');
   let date = dateService.FormatDate("", dateService.dateFormatShort,
     2009, 1, 1);
   event.assertValue(new elementslib.Lookup(event.window.document, eventDialog
@@ -129,45 +125,40 @@ var testWeekView = function () {
     + 'id("event-grid-description-row")/id("item-description")/'
     + 'anon({"class":"textbox-input-box"})/anon({"anonid":"input"})'),
     desc);
-  event.click(new elementslib.ID(event.window.document, "item-calendar"));
-  event.click(new elementslib.Lookup(event.window.document, eventDialog
-    + 'id("event-grid-category-color-row")/id("event-grid-category-box")/id("item-calendar")/'
-    + '[0]/{"label":"' + calendar + '"}'));
-  event.sleep(sleep);
+  event.select(new elementslib.ID(event.window.document, "item-calendar"), null, calendar);
   
   // save
   event.click(new elementslib.ID(event.window.document, "button-save"));
-  controller.sleep(sleep);
   
   // if it was created successfully, it can be opened
+  controller.waitForElement(new elementslib.Lookup(controller.window.document, eventBox));
   controller.doubleClick(new elementslib.Lookup(controller.window.document, eventBox));
-  controller.waitForEval('utils.getWindows("Calendar:EventDialog").length > 0', sleep);
+  controller.waitFor(function () {return utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
   event = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:EventDialog")[0]);
-  event.sleep(sleep);
   
   // change title and save changes
-  event.type(new elementslib.Lookup(event.window.document, eventDialog
+  let titleTextBox = new elementslib.Lookup(event.window.document, eventDialog
     + 'id("event-grid-title-row")/id("item-title")/anon({"class":"textbox-input-box"})/'
-    + 'anon({"anonid":"input"})'),
-    title2);
+    + 'anon({"anonid":"input"})');
+  event.waitForElement(titleTextBox);
+  event.type(titleTextBox, title2);
   event.click(new elementslib.ID(event.window.document, "button-save"));
-  controller.sleep(sleep);
   
   // check if name was saved
-  controller.assertProperty(new elementslib.Lookup(controller.window.document, eventBox
+  let eventName = new elementslib.Lookup(controller.window.document, eventBox
     + '/anon({"flex":"1"})/anon({"anonid":"event-container"})/{"class":"calendar-event-selection"}/'
     + 'anon({"anonid":"eventbox"})/{"class":"calendar-event-details"}/'
-    + 'anon({"anonid":"event-name"})'),
-    "textContent", title2);
+    + 'anon({"anonid":"event-name"})');
+  controller.waitForElement(eventName);
+  controller.assertJSProperty(eventName, "textContent", title2);
   
   // delete event
   controller.click(new elementslib.Lookup(controller.window.document, eventBox));
   controller.keypress(new elementslib.ID(controller.window.document, "week-view"),
     "VK_DELETE", {});
-  controller.sleep(sleep);
-  controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document, eventBox));
+  controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document, eventBox));
 }
 
 var teardownTest = function(module) {
-  CalendarUtils.deleteCalendars(calendar);
+  calUtils.deleteCalendars(controller, calendar);
 }
