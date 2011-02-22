@@ -5,7 +5,7 @@
 	 xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <!-- Mac-specific key bindings -->
-<keyset id="editorKeySet">
+<keyset id="globalKeySet">
 
 <!-- Mac bindings for home and end -->
 <key id="macHomekb" keycode="VK_HOME"   
