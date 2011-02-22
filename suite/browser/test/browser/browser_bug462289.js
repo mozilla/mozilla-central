@@ -6,68 +6,79 @@ function focus_in_navbar()
   while (parent && parent.id != "nav-bar")
     parent = parent.parentNode;
 
-  return (parent != null);
+  return parent != null;
 }
 
 function test()
 {
   waitForExplicitFinish();
 
-  tab1 = gBrowser.addTab();
-  tab2 = gBrowser.addTab();
+  // Ftr, SeaMonkey doesn't support animation (yet).
+  tab1 = gBrowser.addTab("about:blank");
+  tab2 = gBrowser.addTab("about:blank");
 
-  EventUtils.synthesizeMouse(tab1, 9, 9, {});
-  setTimeout(step2, 0);
+  EventUtils.synthesizeMouseAtCenter(tab1, {});
+  // Here and after, don't use a delay of '0': give a little more time to be sure UI has fully updated.
+  setTimeout(step2, 25);
 }
 
 function step2()
 {
-  is(gBrowser.selectedTab, tab1, "mouse on tab selects tab");
-  isnot(document.activeElement, tab1, "mouse on tab not activeElement");
+  is(gBrowser.selectedTab, tab1, "1st click on tab1 selects tab");
+  isnot(document.activeElement, tab1, "1st click on tab1 does not activate tab");
 
-  EventUtils.synthesizeMouse(tab1, 9, 9, {});
-  setTimeout(step3, 0);
+  EventUtils.synthesizeMouseAtCenter(tab1, {});
+  setTimeout(step3, 25);
 }
 
 function step3()
 {
-  isnot(document.activeElement, tab1, "mouse on tab again activeElement");
+  is(gBrowser.selectedTab, tab1, "2nd click on selected tab1 keeps tab selected");
+  // SeaMonkey differs from Firefox.
+  is(document.activeElement, tab1, "2nd click on selected tab1 activates tab");
 
+  // Ftr, SeaMonkey doesn't support tabsontop (yet).
+  ok(true, "focusing URLBar then sending Tab(s) until out of nav-bar.");
   document.getElementById("urlbar").focus();
   while (focus_in_navbar())
     EventUtils.synthesizeKey("VK_TAB", { });
+  is(gBrowser.selectedTab, tab1, "tab key to selected tab1 keeps tab selected");
+  is(document.activeElement, tab1, "tab key to selected tab1 activates tab");
 
-  is(document.activeElement, tab1, "tab key to tab activeElement");
-
-  EventUtils.synthesizeMouse(tab1, 9, 9, {});
-  setTimeout(step4, 0);
+  EventUtils.synthesizeMouseAtCenter(tab1, {});
+  setTimeout(step4, 25);
 }
 
 function step4()
 {
-  is(document.activeElement, tab1, "mouse on tab while focused still activeElement");
+  is(gBrowser.selectedTab, tab1, "3rd click on activated tab1 keeps tab selected");
+  is(document.activeElement, tab1, "3rd click on activated tab1 keeps tab activated");
 
-  EventUtils.synthesizeMouse(tab2, 9, 9, {});
-  setTimeout(step5, 0);
+  EventUtils.synthesizeMouseAtCenter(tab2, {});
+  setTimeout(step5, 25);
 }
 
 function step5()
 {
   // The tabbox selects a tab within a setTimeout in a bubbling mousedown event
   // listener, and focuses the current tab if another tab previously had focus.
-  is(document.activeElement, tab2, "mouse on another tab while focused still activeElement");
+  is(gBrowser.selectedTab, tab2, "click on tab2 while tab1 is activated selects tab");
+  is(document.activeElement, tab2, "click on tab2 while tab1 is activated activates tab");
 
+  ok(true, "focusing content then sending middle-button mousedown to tab2.");
   content.focus();
-  EventUtils.synthesizeMouse(tab2, 9, 30, {button: 1, type: "mousedown"});
-  setTimeout(step6, 0);
+  EventUtils.synthesizeMouseAtCenter(tab2, {button: 1, type: "mousedown"});
+  setTimeout(step6, 25);
 }
 
 function step6()
 {
-  isnot(document.activeElement, tab2, "tab not focused via middle click");
+  is(gBrowser.selectedTab, tab2, "middle-button mousedown on selected tab2 keeps tab selected");
+  // SeaMonkey differs from Firefox.
+  is(document.activeElement, tab2, "middle-button mousedown on selected tab2 activates tab");
 
-  gBrowser.removeTab(tab1);
   gBrowser.removeTab(tab2);
+  gBrowser.removeTab(tab1);
 
   finish();
 }
