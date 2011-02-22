@@ -313,6 +313,9 @@ Section "Uninstall"
     StrCpy $0 "Software\Microsoft\MediaPlayer\ShimInclusionList\${FileMainEXE}"
     DeleteRegKey HKLM "$0"
     DeleteRegKey HKCU "$0"
+    StrCpy $0 "Software\Microsoft\MediaPlayer\ShimInclusionList\plugin-container.exe"
+    DeleteRegKey HKLM "$0"
+    DeleteRegKey HKCU "$0"
   ${Else}
     ReadRegStr $R1 HKLM "$0" ""
     ${un.RemoveQuotesFromPath} "$R1" $R1
