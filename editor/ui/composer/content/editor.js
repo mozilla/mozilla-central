@@ -98,6 +98,9 @@ const kUseCssPref         = "editor.use_css";
 const kCRInParagraphsPref = "editor.CR_creates_new_p";
 
 function ShowHideToolbarSeparators(toolbar) {
+  // Make sure the toolbar actually exists.
+  if (!toolbar)
+    return;
   var childNodes = toolbar.childNodes;
   var separator = null;
   var hideSeparator = true;

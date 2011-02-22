@@ -67,6 +67,9 @@
         title=""
         titlemodifier="&textEditorWindow.titlemodifier;"
         titlemenuseparator="&editorWindow.titlemodifiermenuseparator;"
+        toggletoolbar="true"
+        lightweightthemes="true"
+        lightweightthemesfooter="status-bar"
         windowtype="composer:text"
         width="640" height="480"
         screenX="10" screenY="10"
@@ -85,6 +88,7 @@
     <commandset id="composerEditMenuItems"/>
     <commandset id="composerSaveMenuItems"/>
     <commandset id="composerMenuItems"/>
+    <commandset id="tasksCommands"/>
   </commands>
 
   <broadcaster id="args" value="chrome://debugqa/content/EditorInitPagePlain.html"/>
@@ -100,29 +104,44 @@
   </broadcasterset>
 
   <!-- keys are appended from the overlay -->
-  <keyset id="keyset"/>
+  <keyset id="editorKeys">
+    <keyset id="tasksKeys"/>
+    <key id="showHideSidebar"/>
+  </keyset>
 
   <toolbox id="EditorToolbox">
     <menubar id="main-menubar" class="chromeclass-menubar">
       <menu id="fileMenu"/>
       <menu id="editMenu"/>
 
-      <menu label="&viewMenu.label;" accesskey="&viewMenu.accesskey;">
+      <menu id="viewMenu"
+            label="&viewMenu.label;"
+            accesskey="&viewMenu.accesskey;">
         <!-- id pulls in "Show Sidebar" item from sidebarOverlay -->
         <menupopup id="menu_View_Popup">
-          <menu id="viewToolbar"/>
-          <menuseparator/>
-          <menu id = "composerCharsetMenu" />
+          <menu id="menu_Toolbars">
+            <menupopup id="view_toolbars_popup">
+              <menuitem id="viewComposerToolbar"
+                        type="checkbox"
+                        label="&compositionToolbarCmd.label;"
+                        accesskey="&compositionToolbarCmd.accesskey;"
+                        command="cmd_viewCompToolbar"/>
+              <menuitem id="menu_showTaskbar"/>
+            </menupopup>
+          </menu>
+          <menuseparator id="viewSep1"/>
+          <menu id="composerCharsetMenu"/>
         </menupopup>
       </menu>
 
       <menu id="insertMenuPlainText"/>
 
-      <!-- tasks menu filled from tasksOverlay -->
-      <menu accesskey="t" id="tasksMenu"/>
+      <!-- tasks and window menus filled from tasksOverlay -->
+      <menu id="tasksMenu"/>
+      <menu id="windowMenu"/>
 
       <!-- help menu filled from globalOverlay -->
-      <menu accesskey="h" id="menu_Help"/>
+      <menu id="menu_Help"/>
 
       <spacer flex="1"/>
     </menubar>
@@ -146,22 +165,27 @@
     <vbox id="sidebar-box" class="chromeclass-extrachrome" hidden="true"/>
     <splitter id="sidebar-splitter" class="chromeclass-extrachrome" hidden="true"/>
     <vbox id="appcontent" flex="1">
-
       <editor editortype="text" type="content-primary" id="content-frame" src="about:blank" flex="1"/>
-
-      <statusbar id="status-bar">
-        <statusbarpanel class="statusbarpanel-iconic" id="offline-status"/>
-        <statusbarpanel class="statusbarpanel-progress">
-          <progressmeter class="progressmeter-statusbar" id="statusbar-icon" mode="normal" value="0">
-              <observes element="Editor:Throbber" attribute="busy"/>
-          </progressmeter>
-        </statusbarpanel>
-        <statusbarpanel id="statusText" label="&statusText.label;" flex="1" crop="right"/>
-      </statusbar>
-
     </vbox> <!-- appcontent -->
   </hbox><!-- sidebar-parent -->
 
-  <hbox id="taskbar" class="toolbox-bottom"/>
-
+  <statusbar id="status-bar"
+             class="chromeclass-status">
+    <statusbarpanel id="component-bar"/>
+    <statusbarpanel id="statusText"
+                    label="&statusText.label;"
+                    flex="1"
+                    crop="right"/>
+    <statusbarpanel id="statusbar-progresspanel"
+                    class="statusbarpanel-progress"
+                    collapsed="true">
+      <progressmeter id="statusbar-icon"
+                     class="progressmeter-statusbar"
+                     mode="normal"
+                     value="0">
+        <observes element="Editor:Throbber" attribute="busy"/>
+      </progressmeter>
+    </statusbarpanel>
+    <statusbarpanel id="offline-status" class="statusbarpanel-iconic"/>
+  </statusbar>
 </window>
