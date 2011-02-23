@@ -86,22 +86,24 @@
               var date = this.mItem[calGetStartDateProp(this.mItem)];
               //this.mItem.startDate || this.mItem.entryDate;
               if (date) {
+                  let label;
                   if (isToDo(this.mItem)) {
-                      var label = calGetString("calendar", "taskDetailsStartDate");
+                      label = this.getAttribute("taskStartLabel");
                   } else {
-                      var label = calGetString("calendar", "eventDetailsStartDate");
+                      label = this.getAttribute("eventStartLabel");
                   }
-                  headerLabel.value = label + " ";
+                  headerLabel.value = label;
               }
           } else {
               var date = this.mItem[calGetEndDateProp(this.mItem)];
               if (date) {
-                  if (isToDo(this.mItem)) {                  
-                      var label = calGetString("calendar", "taskDetailsEndDate");
+                  let label;
+                  if (isToDo(this.mItem)) {
+                          label = this.getAttribute("taskDueLabel");
                   } else {
-                      var label = calGetString("calendar", "eventDetailsEndDate");
+                      label = this.getAttribute("eventEndLabel");
                   }
-                  headerLabel.value = label + " ";
+                  headerLabel.value = label;
               }
           }
           var hideLabels = (date == null);

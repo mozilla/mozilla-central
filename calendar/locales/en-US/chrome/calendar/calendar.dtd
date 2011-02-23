@@ -172,6 +172,8 @@
 <!ENTITY calendar.task-details.category.label        "category">
 <!ENTITY calendar.task-details.repeat.label          "repeat">
 <!ENTITY calendar.task-details.attachments.label     "attachments">
+<!ENTITY calendar.task-details.start.label           "start date">
+<!ENTITY calendar.task-details.due.label             "due date">
 
 <!ENTITY calendar.task.category.button.tooltip  "Categorize tasks">
 <!ENTITY calendar.task.complete.button.tooltip  "Mark selected tasks completed">

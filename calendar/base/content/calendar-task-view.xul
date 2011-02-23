@@ -137,8 +137,16 @@
                   <label id="calendar-task-details-category"
                          class="task-details-value"/>
                 </row>
-                <row class="item-date-row" id="task-start-row" mode="start" align="end"/>
-                <row class="item-date-row" id="task-due-row" mode="end" align="end"/>
+                <row class="item-date-row"
+                     id="task-start-row"
+                     mode="start"
+                     taskStartLabel="&calendar.task-details.start.label;"
+                     align="end"/>
+                <row class="item-date-row"
+                     id="task-due-row"
+                     mode="end"
+                     taskDueLabel="&calendar.task-details.due.label;"
+                     align="end"/>
                 <row id="calendar-task-details-repeat-row"
                      align="top"
                      hidden="true">

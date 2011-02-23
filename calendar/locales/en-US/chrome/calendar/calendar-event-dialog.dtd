@@ -378,6 +378,10 @@
 <!-- Read-Only dialog -->
 <!ENTITY read.only.general.label         "General">
 <!ENTITY read.only.title.label           "Title:">
+<!ENTITY read.only.event.start.label     "Start Date:">
+<!ENTITY read.only.task.start.label      "Start Date:">
+<!ENTITY read.only.event.end.label       "End Date:">
+<!ENTITY read.only.task.due.label        "Due Date:">
 <!ENTITY read.only.repeat.label          "Repeat:">
 <!ENTITY read.only.location.label        "Location:">
 <!ENTITY read.only.category.label        "Category:">

@@ -95,8 +95,18 @@
             <label value="&read.only.title.label;" class="headline"/>
             <label id="item-title"/>
           </row>
-          <row class="item-date-row" id="item-start-row" mode="start" align="start"/>
-          <row class="item-date-row" id="item-end-row" mode="end" align="start"/>
+          <row class="item-date-row"
+               id="item-start-row"
+               mode="start"
+               taskStartLabel="&read.only.task.start.label;"
+               eventStartLabel="&read.only.event.start.label;"
+               align="start"/>
+          <row class="item-date-row"
+               id="item-end-row"
+               mode="end"
+               taskDueLabel="&read.only.task.due.label;"
+               eventEndLabel="&read.only.event.end.label;"
+               align="start"/>
           <row id="repeat-row" align="top" hidden="true">
             <label value="&read.only.repeat.label;" class="headline"/>
             <box id="repeat-details" orient="vertical">
