@@ -214,8 +214,17 @@ const gFormSubmitObserver = {
       gFormSubmitObserver.panel.hidePopup();
     };
     function inputHandler(e) {
-      if (e.originalTarget.validity.valid)
+      if (e.originalTarget.validity.valid) {
         gFormSubmitObserver.panel.hidePopup();
+      } else {
+        // If the element is now invalid for a new reason, we should update the
+        // error message.
+        if (gFormSubmitObserver.panel.firstChild.textContent !=
+              e.originalTarget.validationMessage) {
+          gFormSubmitObserver.panel.firstChild.textContent =
+            e.originalTarget.validationMessage;
+        }
+      }
     };
     element.addEventListener("input", inputHandler, false);
     element.addEventListener("blur", blurHandler, false);
