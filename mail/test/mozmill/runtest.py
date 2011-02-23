@@ -282,7 +282,6 @@ class ThunderTestCLI(mozmill.CLI):
     profile_class = ThunderTestProfile
     runner_class = ThunderTestRunner
     parser_options = copy.copy(mozmill.CLI.parser_options)
-    parser_options[('-m', '--bloat-tests')] = {"default":None, "dest":"created_profile", "help":"Log file name."}
     parser_options[('--symbols-path',)] = {"default": None, "dest": "symbols",
                                            "help": "The path to the symbol files from build_symbols"}
 
