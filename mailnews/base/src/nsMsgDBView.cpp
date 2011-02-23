@@ -442,20 +442,17 @@ static nsresult GetDisplayNameInAddressBook(const nsACString& emailAddress,
 static void GetCachedName(const nsCString& unparsedString,
                           PRInt32 displayVersion, nsACString& cachedName)
 {
-  PRInt32 err;
+  nsresult err;
 
   //get verion #
   PRInt32 cachedVersion = unparsedString.ToInteger(&err,10);
   if (cachedVersion != displayVersion)
     return;
-  //get cached name
-  nsACString::const_iterator begin,middle,end;
-  unparsedString.BeginReading(begin);
-  unparsedString.EndReading(end);
-  middle = end;
 
-  if (FindInReadable(NS_LITERAL_CSTRING("|"),begin,middle))
-    cachedName = Substring(middle,end);
+  //get cached name
+  PRInt32 pos = unparsedString.FindChar('|');
+  if (pos != kNotFound)
+    cachedName = Substring(unparsedString, pos + 1);
 }
 
 static void UpdateCachedName(nsIMsgDBHdr *aHdr, const char *header_field,
