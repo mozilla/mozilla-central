@@ -922,7 +922,8 @@ treechildren::-moz-tree-image(remote-err) {
 
 /* ::::: address book sidebar ::::: */
 .ab-closebutton {
-  list-style-image: url("chrome://global/skin/icons/closetab.png") !important;
+  list-style-image: url("chrome://global/skin/icons/close.png") !important;
+  -moz-image-region: rect(0, 16px, 16px, 0);
 }
 
 .ab-closebutton > .toolbarbutton-text {
