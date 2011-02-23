@@ -39,6 +39,9 @@ var Ci = Components.interfaces;
 var Cc = Components.classes;
 var Cu = Components.utils;
 
+var elib = {};
+Cu.import('resource://mozmill/modules/elementslib.js', elib);
+
 var MODULE_NAME = 'test-attachment';
 
 var RELATIVE_ROOT = '../shared-modules';
@@ -185,6 +188,7 @@ function test_file_attachment() {
 
   add_attachment(cwc, url, size);
   check_attachment_size(cwc, 0, size);
+  check_total_attachment_size(cwc, 1);
 }
 
 function test_webpage_attachment() {
@@ -192,6 +196,7 @@ function test_webpage_attachment() {
 
   add_attachment(cwc, "http://www.mozillamessaging.com/");
   check_no_attachment_size(cwc, 0);
+  check_total_attachment_size(cwc, 1);
 }
 
 function test_multiple_attachments() {
@@ -221,6 +226,31 @@ function test_delete_attachments() {
 
   delete_attachment(cwc, 0);
   check_total_attachment_size(cwc, files.length-1);
+}
+
+function subtest_rename_attachment(cwc) {
+  cwc.e("loginTextbox").value = "renamed.txt";
+  cwc.window.document.documentElement.getButton('accept').doCommand();
+}
+
+function test_rename_attachment() {
+  let cwc = open_compose_new_mail();
+
+  let url = filePrefix + "some/file/here.txt";
+  let size = 1234;
+
+  add_attachment(cwc, url, size);
+
+  // Now, rename the attachment.
+  let bucket = cwc.e("attachmentBucket");
+  let node = bucket.getElementsByTagName("listitem")[0];
+  cwc.click(new elib.Elem(node));
+  plan_for_modal_dialog("commonDialog", subtest_rename_attachment);
+  cwc.window.RenameSelectedAttachment();
+  wait_for_modal_dialog("commonDialog");
+
+  check_attachment_size(cwc, 0, size);
+  check_total_attachment_size(cwc, 1);
 }
 
 function test_forward_raw_attachment() {

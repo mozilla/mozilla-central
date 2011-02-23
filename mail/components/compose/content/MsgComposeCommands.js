@@ -3081,7 +3081,11 @@ function RenameSelectedAttachment()
     if (modifiedAttachmentName == "")
       return; // name was not filled, bail out
 
-    item.label = modifiedAttachmentName;
+    var nameAndSize = modifiedAttachmentName;
+    if (item.attachment.size != -1)
+      nameAndSize += " ("+gMessenger.formatFileSize(item.attachment.size)+")";
+
+    item.label = nameAndSize;
     item.attachment.name = modifiedAttachmentName;
     gContentChanged = true;
   }
