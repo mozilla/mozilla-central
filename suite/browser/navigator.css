@@ -84,6 +84,10 @@ panel[for="urlbar"] {
   display: -moz-box;
 }
 
+#addon-install-started-notification {
+  -moz-binding: url("chrome://communicator/content/bindings/notification.xml#addon-progress-popup-notification");
+}
+
 #toolbar-menubar[autohide="true"][inactive="true"]
 {
   min-height: 0px !important;

@@ -785,7 +785,7 @@
             Components.utils.import("resource://gre/modules/AddonManager.jsm", tmp);
             Components.utils.import("resource://gre/modules/PluralForm.jsm", tmp);
 
-            var notificationName = "addon-installed"
+            var notificationName = "addon-install-complete"
             var addonNotification = this.getNotificationWithValue(notificationName);
             if (addonNotification)
               this.removeNotification(addonNotification);
@@ -868,7 +868,7 @@
         <parameter name="installInfo"/>
         <body>
           <![CDATA[
-            var notificationName = "addon-error";
+            var notificationName = "addon-install-failed";
             if (!this.getNotificationWithValue(notificationName)) {
               var host;
               try {
@@ -925,7 +925,7 @@
 
             var sourceURI = installInfo.originatingWindow.document.documentURIObject;
             Components.utils.import("resource://gre/modules/PluralForm.jsm", tmp);
-            var notificationName = "addon-progress";
+            var notificationName = "addon-install-started";
             var messageString = this._stringBundle.GetStringFromName("addonDownloading");
             messageString = tmp.PluralForm.get(installInfo.installs.length, messageString);
             var buttons = [{
@@ -1450,6 +1450,41 @@
         </body>
       </method>
 
+      <method name="addonInstallCancelled">
+        <parameter name="installInfo"/>
+        <parameter name="sourceURI"/>
+        <body>
+          <![CDATA[
+            var tmp = {};
+            Components.utils.import("resource://gre/modules/PluralForm.jsm", tmp);
+            var messageString = this._stringBundle.GetStringFromName("addonDownloadCancelled");
+            messageString = tmp.PluralForm.get(installInfo.installs.length, messageString);
+            var action = {
+              label: this._stringBundle.GetStringFromName("addonDownloadRestartButton"),
+              accessKey: this._stringBundle.GetStringFromName("addonDownloadRestartButton.accesskey"),
+              popup: null,
+              callback: function() {
+                var weblistener = Components.classes["@mozilla.org/addons/web-install-listener;1"]
+                                            .getService(Components.interfaces.amIWebInstallListener);
+                if (weblistener.onWebInstallRequested(installInfo.originatingWindow, sourceURI,
+                                                      installInfo.installs, installInfo.installs.length)) {
+                  installs.forEach(function(aInstall) {
+                    aInstall.install();
+                  });
+                }
+              }
+            };
+            PopupNotifications.show(this.activeBrowser,
+                                    "addon-install-cancelled", messageString,
+                                    "addons-notification-icon", action);
+
+            installInfo.installs.every(function(aInstall) {
+              aInstall.cancel();
+            });
+          ]]>
+        </body>
+      </method>
+
       <method name="addonInstallComplete">
         <parameter name="installInfo"/>
         <body>
@@ -1589,6 +1624,37 @@
         </body>
       </method>
 
+      <method name="addonInstallStarted">
+        <parameter name="installInfo"/>
+        <body>
+          <![CDATA[
+            var tmp = {};
+            Components.utils.import("resource://gre/modules/AddonManager.jsm", tmp);
+            if (installInfo.installs.every(function(aInstall) {
+                  return aInstall.state == tmp.AddonManager.STATE_DOWNLOADED;
+                }))
+              return;
+
+            var sourceURI = installInfo.originatingWindow.document.documentURIObject;
+            Components.utils.import("resource://gre/modules/PluralForm.jsm", tmp);
+            var messageString = this._stringBundle.GetStringFromName("addonDownloading");
+            messageString = tmp.PluralForm.get(installInfo.installs.length, messageString);
+            var action = {
+              label: this._stringBundle.GetStringFromName("addonDownloadCancelButton"),
+              accessKey: this._stringBundle.GetStringFromName("addonDownloadCancelButton.accesskey"),
+              callback: this.addonInstallCancelled.bind(this, installInfo, sourceURI)
+            };
+            var options = {
+              installInfo: installInfo
+            };
+            PopupNotifications.show(this.activeBrowser,
+                                    "addon-install-started", messageString,
+                                    "addons-notification-icon", action,
+                                    null, options);
+          ]]>
+        </body>
+      </method>
+
     </implementation>
   </binding>
 
@@ -1601,8 +1667,7 @@
           <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
           <xul:description anonid="messageText" class="messageText" xbl:inherits="xbl:text=label"/>
           <xul:progressmeter mode="undetermined" xbl:inherits="mode,value=progress"/>
-          <xul:label xbl:inherits="value=status"/>
-          <xul:spacer flex="1"/>
+          <xul:label flex="1" xbl:inherits="value=status"/>
           <children/>
         </xul:hbox>
         <xul:toolbarbutton ondblclick="event.stopPropagation();"
@@ -1618,7 +1683,7 @@
         <![CDATA[
           this.installInfo.installs.forEach(function(aInstall) {
             aInstall.removeListener(this);
-          });
+          }, this);
         ]]>
       </destructor>
 
@@ -1747,5 +1812,139 @@
         <xul:label xbl:inherits="value=status"/>
       </xul:vbox>
     </content>
+  </binding>
+
+  <binding id="addon-progress-popup-notification" extends="chrome://global/content/bindings/notification.xml#popup-notification">
+    <content align="start">
+      <xul:image class="popup-notification-icon" xbl:inherits="popupid"/>
+      <xul:vbox flex="1">
+        <xul:description class="popup-notification-description"
+                         xbl:inherits="xbl:text=label"/>
+        <xul:hbox class="popup-notification-button-container" align="center">
+          <xul:progressmeter mode="undetermined"
+                             xbl:inherits="mode,value=progress"/>
+          <xul:spacer flex="1"/>
+          <xul:button anonid="button"
+                      class="popup-notification-menubutton"
+                      type="menu-button"
+                      xbl:inherits="oncommand=buttoncommand,label=buttonlabel,accesskey=buttonaccesskey">
+            <xul:menupopup anonid="menupopup"
+                           xbl:inherits="oncommand=menucommand">
+              <children/>
+              <xul:menuitem class="menuitem-iconic popup-notification-closeitem"
+                            label="&closeNotificationItem.label;"
+                            xbl:inherits="oncommand=closeitemcommand"/>
+            </xul:menupopup>
+          </xul:button>
+        </xul:hbox>
+        <xul:label xbl:inherits="value=status"/>
+      </xul:vbox>
+      <xul:vbox pack="start">
+        <xul:toolbarbutton anonid="closebutton"
+                           class="messageCloseButton popup-notification-closebutton"
+                           xbl:inherits="oncommand=closebuttoncommand"
+                           tooltiptext="&closeNotification.tooltip;"/>
+      </xul:vbox>
+    </content>
+
+    <implementation>
+      <constructor>
+        <![CDATA[
+          this.installInfo = this.notification.options.installInfo;
+          this.installInfo.installs.forEach(function(aInstall) {
+            aInstall.addListener(this);
+          }, this);
+        ]]>
+      </constructor>
+
+      <destructor>
+        <![CDATA[
+          this.installInfo.installs.forEach(function(aInstall) {
+            aInstall.removeListener(this);
+          }, this);
+        ]]>
+      </destructor>
+
+      <method name="updateProgress">
+        <body>
+          <![CDATA[
+            var count = 0;
+            var progress = 0;
+            var max = 0;
+
+            var tmp = {};
+            Components.utils.import("resource://gre/modules/AddonManager.jsm", tmp);
+            this.installInfo.installs.forEach(function(aInstall) {
+              if (aInstall.maxProgress < 0)
+                max = -1;
+              else if (max >= 0)
+                max += aInstall.maxProgress;
+              progress += aInstall.progress;
+              if (aInstall.state < tmp.AddonManager.STATE_DOWNLOADED)
+                count++;
+            });
+
+            if (max < 0)
+              this.setAttribute("mode", "undetermined");
+            else {
+              this.setAttribute("mode", "determined");
+              this.setAttribute("progress", progress * 100 / max);
+            }
+
+            var now = Date.now();
+            if (!this.startTime) {
+              this.startTime = now;
+              this.lastUpdate = now - 750;
+              this.lastSeconds = null;
+            }
+
+            if (progress == max || now - this.lastUpdate >= 750) {
+              this.lastUpdate = now;
+              var elapsed = (now - this.startTime) / 1000;
+              var rate = elapsed && progress / elapsed;
+              Components.utils.import("resource://gre/modules/DownloadUtils.jsm", tmp);
+              var status;
+              [status, this.lastSeconds] = tmp.DownloadUtils.getDownloadStatus(progress, max, rate, this.lastSeconds);
+              this.setAttribute("status", status);
+            }
+
+            if (!count)
+              PopupNotifications.remove(this.notification);
+          ]]>
+        </body>
+      </method>
+
+      <method name="onDownloadProgress">
+        <body>
+          <![CDATA[
+            this.updateProgress();
+          ]]>
+        </body>
+      </method>
+
+      <method name="onDownloadFailed">
+        <body>
+          <![CDATA[
+            this.updateProgress();
+          ]]>
+        </body>
+      </method>
+
+      <method name="onDownloadCancelled">
+        <body>
+          <![CDATA[
+            this.updateProgress();
+          ]]>
+        </body>
+      </method>
+
+      <method name="onDownloadEnded">
+        <body>
+          <![CDATA[
+            this.updateProgress();
+          ]]>
+        </body>
+      </method>
+    </implementation>
   </binding>
 </bindings>
