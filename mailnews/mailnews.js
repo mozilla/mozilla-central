@@ -228,8 +228,10 @@ pref("mailnews.reply_quoting_selection.multi_word",    true);
 
 pref("mail.operate_on_msgs_in_collapsed_threads", false);
 pref("mail.warn_on_collapsed_thread_operation", true);
-
-pref("mail.purge_threshhold",              100);
+#ifdef MOZ_SUITE
+pref("mail.purge_threshhold",              20480);
+#endif
+pref("mail.purge_threshhold_mb", 20);
 pref("mail.prompt_purge_threshhold",       false);
 pref("mail.purge.ask",                     true);
 

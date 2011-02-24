@@ -109,7 +109,7 @@
                   name="mail.close_message_window.on_delete" type="bool"/>
       <!-- Network tab -->
       <preference id="mail.prompt_purge_threshhold"          name="mail.prompt_purge_threshhold"    type="bool"/>
-      <preference id="mail.purge_threshhold"                 name="mail.purge_threshhold"    type="int"/>
+      <preference id="mail.purge_threshhold_mb"              name="mail.purge_threshhold_mb"  type="int"/>
       <preference id="browser.cache.disk.capacity"
                   name="browser.cache.disk.capacity" type="int"/>
       <!-- Update tab -->
@@ -323,11 +323,11 @@
             <hbox align="center">
                 <checkbox id="offlineCompactFolder" label="&offlineCompact.label;" accesskey="&offlineCompact.accesskey;"
                           preference="mail.prompt_purge_threshhold"/>
-                <textbox id="offlineCompactFolderMin" size="5" value="100"
-                         type="number" max="2097151" increment="10"
-                         preference="mail.purge_threshhold"
-                         aria-labelledby="offlineCompactFolder offlineCompactFolderMin compactFolderKB"/>
-                <label id="compactFolderKB" value="&kb.label;"/>
+                <textbox id="offlineCompactFolderMin" size="5" value="20"
+                         type="number" min="1" max="2048" increment="10"
+                         preference="mail.purge_threshhold_mb"
+                         aria-labelledby="offlineCompactFolder offlineCompactFolderMin compactFolderMB"/>
+                <label id="compactFolderMB" value="&mb.label;"/>
             </hbox>
           </groupbox>
         </tabpanel>
