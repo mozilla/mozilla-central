@@ -1391,7 +1391,7 @@ var LightWeightThemeWebInstaller = {
       label: text("manageButton"),
       accessKey: text("manageButton.accesskey"),
       callback: function () {
-        openAddonsMgr("themes");
+        openAddonsMgr("addons://list/theme");
       }
     }];
 

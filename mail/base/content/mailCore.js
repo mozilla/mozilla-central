@@ -386,9 +386,47 @@ function openOptionsDialog(aPaneID, aTabID)
     openDialog("chrome://messenger/content/preferences/preferences.xul","Preferences", features, aPaneID, aTabID);
 }
 
-function openAddonsMgr(aPane)
+function openAddonsMgr(aView)
 {
+  if (aView) {
+    let emWindow;
+    let browserWindow;
+
+    function receivePong(aSubject, aTopic, aData) {
+      let browserWin = aSubject.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+        .getInterface(Components.interfaces.nsIWebNavigation)
+        .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+        .rootTreeItem
+        .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+        .getInterface(Components.interfaces.nsIDOMWindow);
+      if (!emWindow || browserWin == window /* favor the current window */) {
+        emWindow = aSubject;
+        browserWindow = browserWin;
+      }
+    }
+    Services.obs.addObserver(receivePong, "EM-pong", false);
+    Services.obs.notifyObservers(null, "EM-ping", "");
+    Services.obs.removeObserver(receivePong, "EM-pong");
+
+    if (emWindow) {
+      emWindow.loadView(aView);
+      let tabmail = browserWindow.document.getElementById("tabmail");
+      tabmail.switchToTab(tabmail.getBrowserForDocument(emWindow));
+      emWindow.focus();
+      return;
+    }
+  }
+
   openContentTab("about:addons", "addons.mozilla.org");
+
+  if (aView) {
+    // This must be a new load, else the ping/pong would have
+    // found the window above.
+    Services.obs.addObserver(function (aSubject, aTopic, aData) {
+        Services.obs.removeObserver(arguments.callee, aTopic);
+        aSubject.loadView(aView);
+      }, "EM-loaded", false);
+  }
 }
 
 function openActivityMgr()
