@@ -52,7 +52,7 @@
  * they can only be of a limited subset of ASCII (see RFC 2251).
  */
 
-[scriptable, uuid(1018ee06-f708-4bd7-b7df-11285332a404)]
+[scriptable, uuid(acc5cd8f-95a4-454b-acc4-4646b9424ef2)]
 interface nsILDAPURL : nsIURI {
     /**
      * Initialize an LDAP URL
@@ -92,23 +92,10 @@ interface nsILDAPURL : nsIURI {
     attribute AUTF8String dn;
 
     /**
-     * Return all LDAP attributes currently set. The empty array indicates
-     * that all attributes are requested.
-     *
-     * @exception NS_ERROR_NULL_POINTER     NULL pointer to GET method
-     * @exception NS_ERROR_OUT_OF_MEMORY	Ran out of memory
+     * The attributes to get for this URL, in comma-separated format. If the
+     * list is empty, all attributes are requested.
      */
-    void getAttributes(out unsigned long aCount, 
-                       [retval, array, size_is(aCount)] out string aAttrs);
-
-    /**
-     * Set the array of attributes, dropping whatever was there before.
-     *
-     * @param aAttrs                        An array of LDAP attributes
-     * @exception NS_ERROR_OUT_OF_MEMORY	Ran out of memory
-     */
-    void setAttributes(in unsigned long aCount,
-                       [array, size_is(aCount)] in string aAttrs);
+    attribute ACString attributes;
 
     /**
      * Add one attribute to the array of attributes to request. If the
@@ -116,7 +103,7 @@ interface nsILDAPURL : nsIURI {
      *
      * @param aAttribute          An LDAP attribute (e.g. "cn")
      */
-    void addAttribute(in string aAttribute);
+    void addAttribute(in ACString aAttribute);
 
     /**
      * Remove one attribute from the array of attributes to request. If
@@ -125,7 +112,7 @@ interface nsILDAPURL : nsIURI {
      * @param aAttribute                    An LDAP attribute (e.g. "cn")
      * @exception NS_ERROR_OUT_OF_MEMORY	Ran out of memory
      */
-    void removeAttribute(in string aAttribute);
+    void removeAttribute(in ACString aAttribute);
 
     /**
      * Test if an attribute is in our list of attributes already
@@ -134,7 +121,7 @@ interface nsILDAPURL : nsIURI {
      * @return boolean                      Truth value
      * @exception NS_ERROR_NULL_POINTER     NULL pointer to GET method
      */
-    boolean hasAttribute(in string aAttribute);
+    boolean hasAttribute(in ACString aAttribute);
 
     /**
      * The scope of the search.  defaults to SCOPE_BASE. 

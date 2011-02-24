@@ -247,9 +247,8 @@ nsresult nsAbLDAPProcessReplicationData::DoTask()
   if (NS_FAILED(rv))
     return rv;
 
-  CharPtrArrayGuard attributes;
-  rv = mDirectoryUrl->GetAttributes(attributes.GetSizeAddr(),
-                                    attributes.GetArrayAddr());
+  nsCAutoString attributes;
+  rv = mDirectoryUrl->GetAttributes(attributes);
   if (NS_FAILED(rv))
     return rv;
 
@@ -259,9 +258,7 @@ nsresult nsAbLDAPProcessReplicationData::DoTask()
     mListener->OnStateChange(nsnull, nsnull,
                              nsIWebProgressListener::STATE_START, PR_TRUE);
 
-  return mOperation->SearchExt(dn, scope, urlFilter,
-                               attributes.GetSize(), attributes.GetArray(),
-                               0, 0);
+  return mOperation->SearchExt(dn, scope, urlFilter, attributes, 0, 0);
 }
 
 void nsAbLDAPProcessReplicationData::InitFailed(PRBool aCancelled)

@@ -46,7 +46,7 @@ interface nsILDAPMessage;
  * An interface to allow different users of nsILDAPAutoCompleteSession to 
  * format each nsILDAPMessage into an nsIAutoCompleteItem as it sees fit.
  */
-[scriptable, uuid(cbec617c-22d2-4286-8308-0ef8bf57c0ce)]
+[scriptable, uuid(450cb44e-1752-49d0-890a-f895f8163cc3)]
 interface nsILDAPAutoCompFormatter : nsISupports {
     
     /**
@@ -73,11 +73,9 @@ interface nsILDAPAutoCompFormatter : nsISupports {
      * attribute should be re-set to the same object to force a new
      * getAttributes() call.
      * 
-     * @param aCount    number of attributes in the array
-     * @param aAttrs    list of LDAP attributes to request
+     * @return  A comma-separated list of attributes.
      */
-    void getAttributes(out unsigned long aCount, 
-                       [retval, array, size_is(aCount)] out string aAttrs);
+    readonly attribute ACString attributes;
 
     /** 
      * This method formats an error condition into an nsIAutoCompleteItem

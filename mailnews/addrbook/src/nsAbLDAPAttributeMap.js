@@ -123,7 +123,7 @@ nsAbLDAPAttributeMap.prototype = {
     return this.mAttrMap[aAttribute];
   },
 
-  getAllCardAttributes: function getAllCardAttributes(aCount) {
+  getAllCardAttributes: function getAllCardAttributes() {
     var attrs = [];
     for each (var attrArray in this.mPropertyMap) {
       attrs = attrs.concat(attrArray);
@@ -133,12 +133,11 @@ nsAbLDAPAttributeMap.prototype = {
       throw Components.results.NS_ERROR_FAILURE;
     }
 
-    aCount.value = attrs.length;
-    return attrs;
+    return attrs.join(",");
   },
-  
+
   getAllCardProperties: function getAllCardProperties(aCount) {
-    
+
     var props = [];
     for (var prop in this.mPropertyMap) {
       props.push(prop);
@@ -190,7 +189,7 @@ nsAbLDAPAttributeMap.prototype = {
 
         // find the first attr that exists in this message
         if (msgAttrs.indexOf(attr) != -1) {
-          
+
           try {
             var values = aMessage.getValues(attr, {});
             // strip out the optional label from the labeledURI
@@ -218,7 +217,7 @@ nsAbLDAPAttributeMap.prototype = {
   },
 
   checkState: function checkState() {
-    
+
     var attrsSeen = [];
 
     for each (var attrArray in this.mPropertyMap) {
@@ -254,7 +253,7 @@ nsAbLDAPAttributeMapService.prototype = {
 
   classID: NS_ABLDAPATTRIBUTEMAPSERVICE_CID,
 
-  mAttrMaps: {}, 
+  mAttrMaps: {},
 
   getMapForPrefBranch: function getMapForPrefBranch(aPrefBranchName) {
 

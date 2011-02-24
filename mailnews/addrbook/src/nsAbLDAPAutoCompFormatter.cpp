@@ -357,12 +357,8 @@ nsAbLDAPAutoCompFormatter::FormatException(PRInt32 aState,
 }
 
 NS_IMETHODIMP
-nsAbLDAPAutoCompFormatter::GetAttributes(PRUint32 *aCount, char ** *aAttrs)
+nsAbLDAPAutoCompFormatter::GetAttributes(nsACString &aResult)
 {
-    if (!aCount || !aAttrs) {
-        return NS_ERROR_INVALID_POINTER;
-    }
-
     nsCStringArray mSearchAttrs;
     nsresult rv = ProcessFormat(mNameFormat, 0, 0, &mSearchAttrs);
     if (NS_FAILED(rv)) {
@@ -393,37 +389,17 @@ nsAbLDAPAutoCompFormatter::GetAttributes(PRUint32 *aCount, char ** *aAttrs)
         return NS_ERROR_NOT_INITIALIZED;
     }
 
-    // build up the raw XPCOM array to return
-    //
-    PRUint32 rawSearchAttrsSize = 0;        // grown as XPCOM array is built
-    char **rawSearchAttrs = 
-        static_cast<char **>(nsMemory::Alloc(count * sizeof(char *)));
-    if (!rawSearchAttrs) {
-        NS_ERROR("nsAbLDAPAutoCompFormatter::GetAttributes(): out of "
-		 "memory");
-        return NS_ERROR_OUT_OF_MEMORY;
-    }
+    aResult = *mSearchAttrs.CStringAt(0);
 
-    // Loop through the string array, and build up the C-array.
-    //
-    while (rawSearchAttrsSize < count) {
-        if (!(rawSearchAttrs[rawSearchAttrsSize] = 
-              ToNewCString(*(mSearchAttrs.CStringAt(rawSearchAttrsSize))))) {
-            NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(rawSearchAttrsSize, 
-                                                  rawSearchAttrs);
-            NS_ERROR("nsAbLDAPAutoCompFormatter::GetAttributes(): out "
-		     "of memory");
-            return NS_ERROR_OUT_OF_MEMORY;
-        }
-        rawSearchAttrsSize++;
+    for (PRUint32 i = 1; i < count; i++)
+    {
+      aResult.Append(',');
+      aResult.Append(*mSearchAttrs.CStringAt(i));
     }
-
-    *aCount = rawSearchAttrsSize;
-    *aAttrs = rawSearchAttrs;
 
     return NS_OK;
-
 }
+
 // parse and process a formatting attribute.  If aStringArray is
 // non-NULL, return a list of the attributes from mNameFormat in
 // aStringArray.  Otherwise, generate an autocomplete value from the

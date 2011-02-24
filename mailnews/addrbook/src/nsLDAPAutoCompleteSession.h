@@ -93,8 +93,7 @@ protected:
     PRInt32 mMaxHits;                       // return at most this many entries
     PRUint32 mMinStringLength;              // strings < this size are ignored
     PRUint32 mCjkMinStringLength;           // ignore CJK strings < this size
-    char **mSearchAttrs;        // outputFormat search attrs for SearchExt call
-    PRUint32 mSearchAttrsSize;              // size of above array
+    nsCString mSearchAttrs;     // outputFormat search attrs for SearchExt call
     PRUint32 mVersion;                      // version of LDAP to use
 
     // used to format the ldap message into an nsIAutoCompleteItem

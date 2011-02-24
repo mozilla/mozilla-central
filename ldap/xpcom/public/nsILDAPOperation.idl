@@ -56,7 +56,7 @@ interface nsIArray;
 
 typedef PRUint32 PRIntervalTime;
 
-[scriptable, uuid(40cc61c6-539b-4157-b0f0-ed81ecd29b8e)]
+[scriptable, uuid(4dfb1b19-fc8f-4525-92e7-f97b78a9747a)]
 interface nsILDAPOperation : nsISupports
 {
     /**
@@ -267,8 +267,8 @@ interface nsILDAPOperation : nsISupports
      * @param aBaseDn           Base DN to search
      * @param aScope            One of SCOPE_{BASE,ONELEVEL,SUBTREE}
      * @param aFilter           Search filter
-     * @param aAttrCount        Number of attributes we request (0 for all)
-     * @param aAttributes       Array of strings, holding the attrs we need
+     * @param aAttributes       Comma separated list of values, holding the
+     *                          attributes we need
      * @param aTimeOut          How long to wait
      * @param aSizeLimit        Maximum number of entries to return.
      *
@@ -286,8 +286,7 @@ interface nsILDAPOperation : nsISupports
      * @exception NS_ERROR_UNEXPECTED
      */
     void searchExt(in AUTF8String aBaseDn, in PRInt32 aScope,
-                   in AUTF8String aFilter, in unsigned long aAttrCount,
-                   [array, size_is(aAttrCount)] in string aAttributes,
+                   in AUTF8String aFilter, in ACString aAttributes,
                    in PRIntervalTime aTimeOut, in PRInt32 aSizeLimit);
 
     /**  

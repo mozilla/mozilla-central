@@ -267,9 +267,8 @@ nsresult nsAbQueryLDAPMessageListener::DoTask()
   rv = mSearchUrl->GetFilter(filter);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  CharPtrArrayGuard attributes;
-  rv = mSearchUrl->GetAttributes(attributes.GetSizeAddr(),
-                                 attributes.GetArrayAddr());
+  nsCAutoString attributes;
+  rv = mSearchUrl->GetAttributes(attributes);
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = mOperation->SetServerControls(mServerSearchControls);
@@ -278,8 +277,7 @@ nsresult nsAbQueryLDAPMessageListener::DoTask()
   rv = mOperation->SetClientControls(mClientSearchControls);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return mOperation->SearchExt(dn, scope, filter, attributes.GetSize(),
-                               attributes.GetArray(), mTimeOut,
+  return mOperation->SearchExt(dn, scope, filter, attributes, mTimeOut,
                                mResultLimit);
 }
 
@@ -458,21 +456,17 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Require all attributes that are mapped to card properties
-  PRUint32 returnAttrsCount;
-  char** returnAttrsArray;
-  rv = map->GetAllCardAttributes(&returnAttrsCount, &returnAttrsArray);
+  nsCAutoString returnAttributes;
+  rv = map->GetAllCardAttributes(returnAttributes);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = url->SetAttributes(returnAttrsCount,
-                          const_cast<const char**>(returnAttrsArray));
-  // First free the array
-  NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(returnAttrsCount, returnAttrsArray);
+  rv = url->SetAttributes(returnAttributes);
   // Now do the error check
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Also require the objectClass attribute, it is used by
   // nsAbLDAPCard::SetMetaProperties
-  rv = url->AddAttribute("objectClass");
+  rv = url->AddAttribute(NS_LITERAL_CSTRING("objectClass"));
 
   // Get the filter
   nsCOMPtr<nsISupports> supportsExpression;

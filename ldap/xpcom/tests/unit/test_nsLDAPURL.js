@@ -196,79 +196,80 @@ function run_test() {
 
   // Test Attributes
 
-  var attrs = url.getAttributes({});
-
-  do_check_eq(attrs.length, 0);
+  do_check_eq(url.attributes.length, 0);
 
   // Nothing should happend if the attribute doesn't exist
   url.removeAttribute("abc");
 
-  attrs = url.getAttributes({});
-  do_check_eq(attrs.length, 0);
+  do_check_eq(url.attributes.length, 0);
   do_check_eq(url.spec, "ldap://localhost" + portAdpt + "/dc=short??one?(objectclass=*)");
 
   url.addAttribute("dn");
   do_check_eq(url.spec, "ldap://localhost" + portAdpt + "/dc=short?dn?one?(objectclass=*)");
 
-  attrs = url.getAttributes({});
-  do_check_eq(attrs.length, 1);
-  do_check_eq(attrs[0], "dn");
+  do_check_eq(url.attributes, "dn");
 
   url.removeAttribute("dn");
 
-  attrs = url.getAttributes({});
-  do_check_eq(attrs.length, 0);
+  do_check_eq(url.attributes.length, 0);
   do_check_eq(url.spec, "ldap://localhost" + portAdpt + "/dc=short??one?(objectclass=*)");
 
-  var newAttrs = [ "abc", "def", "ghi", "jkl" ];
-
-  url.setAttributes(newAttrs.length, newAttrs);
+  var newAttrs = "abc,def,ghi,jkl";
+  url.attributes = newAttrs;
 
   var i;
 
-  attrs = url.getAttributes({});
-  do_check_eq(attrs.length, newAttrs.length);
-  for (i = 0; i < newAttrs.length; ++i)
-    do_check_eq(attrs[i], newAttrs[i]);
+  do_check_eq(url.attributes, newAttrs);
+  do_check_eq(url.spec,
+              "ldap://localhost" + portAdpt + "/dc=short?" +
+              newAttrs + "?one?(objectclass=*)");
 
-  do_check_eq(url.spec, "ldap://localhost" + portAdpt + "/dc=short?abc,def,ghi,jkl?one?(objectclass=*)");
+  // Try adding an existing attribute - should do nothing
+  url.addAttribute("def");
+  do_check_eq(url.attributes, newAttrs);
+
+  //  url.addAttribute("jk");
 
   do_check_true(url.hasAttribute("jkl"));
   do_check_true(url.hasAttribute("def"));
   do_check_true(url.hasAttribute("ABC"));
   do_check_false(url.hasAttribute("cde"));
   do_check_false(url.hasAttribute("3446"));
+  do_check_false(url.hasAttribute("kl"));
+  do_check_false(url.hasAttribute("jk"));
+
+  // Sub-string of an attribute, so this shouldn't change anything.
+  url.removeAttribute("kl");
+  url.removeAttribute("jk");
+  url.removeAttribute("ef");
+  do_check_eq(url.attributes, newAttrs);
 
   url.removeAttribute("abc");
+  newAttrs = newAttrs.substring(4);
 
-  attrs = url.getAttributes({});
-  do_check_eq(attrs.length, newAttrs.length - 1);
-  for (i = 0; i < newAttrs.length - 1; ++i)
-    do_check_eq(attrs[i], newAttrs[i + 1]);
-
-  do_check_eq(url.spec, "ldap://localhost" + portAdpt + "/dc=short?def,ghi,jkl?one?(objectclass=*)");
+  do_check_eq(url.attributes, newAttrs);
+  do_check_eq(url.spec,
+              "ldap://localhost" + portAdpt + "/dc=short?" +
+              newAttrs + "?one?(objectclass=*)");
 
   // This shouldn't fail, just clear the list
-  url.setAttributes(0, []);
+  url.attributes = "";
 
-  attrs = url.getAttributes({});
-  do_check_eq(attrs.length, 0);
+  do_check_eq(url.attributes.length, 0);
   do_check_eq(url.spec, "ldap://localhost" + portAdpt + "/dc=short??one?(objectclass=*)");
 
   // Set attributes via the url spec
 
-  url.spec = "ldap://localhost/dc=short?abc,def,ghi,jkl?one?(objectclass=*)";
+  newAttrs = "abc,def,ghi,jkl";
+  url.spec = "ldap://localhost/dc=short?" + newAttrs + "?one?(objectclass=*)";
 
-  attrs = url.getAttributes({});
-  do_check_eq(attrs.length, newAttrs.length);
-  for (i = 0; i < newAttrs.length; ++i)
-    do_check_eq(attrs[i], newAttrs[i]);
-
-  do_check_eq(url.spec, "ldap://localhost/dc=short?abc,def,ghi,jkl?one?(objectclass=*)");
+  do_check_eq(url.attributes, newAttrs);
+  do_check_eq(url.spec,
+              "ldap://localhost/dc=short?" + newAttrs + "?one?(objectclass=*)");
 
   url.spec = "ldap://localhost/dc=short??one?(objectclass=*)";
 
-  attrs = url.getAttributes({});
+  attrs = url.attributes;
   do_check_eq(attrs.length, 0);
   do_check_eq(url.spec, "ldap://localhost/dc=short??one?(objectclass=*)");
 

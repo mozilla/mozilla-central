@@ -39,13 +39,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsLDAPURL.h"
-#include "nsReadableUtils.h"
 #include "netCore.h"
 #include "plstr.h"
 #include "nsCOMPtr.h"
 #include "nsNetCID.h"
 #include "nsComponentManagerUtils.h"
 #include "nsIStandardURL.h"
+#include "nsMsgUtils.h"
 
 // The two schemes we support, LDAP and LDAPS
 //
@@ -100,23 +100,17 @@ nsLDAPURL::GetPathInternal(nsCString &aPath)
   if (!mDN.IsEmpty())
     aPath.Append(mDN);
 
-  PRUint32 count = mAttributes.Count();
-  if (count)
-  {
+  if (!mAttributes.IsEmpty())
     aPath.Append('?');
-    PRUint32 index = 0;
 
-    while (index < count)
-    {
-      aPath.Append(*(mAttributes.CStringAt(index++)));
-      if (index < count)
-        aPath.Append(',');
-    }
-  }
+  // If mAttributes isn't empty, cut off the internally stored commas at start
+  // and end, and append to the path.
+  if (!mAttributes.IsEmpty())
+    aPath.Append(Substring(mAttributes, 1, mAttributes.Length() - 2));
 
   if (mScope || !mFilter.IsEmpty())
   {
-    aPath.Append((count ? "?" : "??"));
+    aPath.Append((mAttributes.IsEmpty() ? "??" : "?"));
     if (mScope)
     {
       if (mScope == SCOPE_ONELEVEL)
@@ -135,10 +129,8 @@ nsLDAPURL::GetPathInternal(nsCString &aPath)
 nsresult
 nsLDAPURL::SetPathInternal(const nsCString &aPath)
 {
-  PRUint32 rv, count;
+  PRUint32 rv;
   LDAPURLDesc *desc;
-  nsCString str;
-  char **attributes;
 
   // This is from the LDAP C-SDK, which currently doesn't
   // support everything from RFC 2255... :(
@@ -152,24 +144,9 @@ nsLDAPURL::SetPathInternal(const nsCString &aPath)
     mScope = desc->lud_scope;
     mFilter = desc->lud_filter;
     mOptions = desc->lud_options;
-
-    // Set the attributes array, need to count it first.
-    //
-    count = 0;
-    attributes = desc->lud_attrs;
-    while (attributes && *attributes++)
-      count++;
-
-    if (count) {
-      rv = SetAttributes(count, const_cast<const char **>(desc->lud_attrs));
-      // This error could only be out-of-memory, so pass it up
-      //
-      if (NS_FAILED(rv)) {
-        return rv;
-      }
-    } else {
-      mAttributes.Clear();
-    }
+    rv = SetAttributeArray(desc->lud_attrs);
+    if (NS_FAILED(rv))
+      return rv;
 
     ldap_free_urldesc(desc);
     return NS_OK;
@@ -492,65 +469,42 @@ NS_IMETHODIMP nsLDAPURL::SetDn(const nsACString& aDn)
   return mBaseURL->SetPath(newPath);
 }
 
-// void getAttributes (out unsigned long aCount, 
-//                     [array, size_is (aCount), retval] out string aAttrs);
-//
-NS_IMETHODIMP nsLDAPURL::GetAttributes(PRUint32 *aCount, char ***_retval)
+NS_IMETHODIMP nsLDAPURL::GetAttributes(nsACString &aAttributes)
 {
-    NS_ENSURE_ARG_POINTER(aCount);
-    NS_ENSURE_ARG_POINTER(_retval);
-
-    PRUint32 index = 0;
-    PRUint32 count;
-    char **cArray = nsnull;
-
-    if (!_retval) {
-        NS_ERROR("nsLDAPURL::GetAttributes: null pointer ");
-        return NS_ERROR_NULL_POINTER;
-    }
-
-    count = mAttributes.Count();
-    if (count > 0) {
-        cArray = static_cast<char **>(nsMemory::Alloc(count * sizeof(char *)));
-        if (!cArray) {
-            NS_ERROR("nsLDAPURL::GetAttributes: out of memory ");
-            return NS_ERROR_OUT_OF_MEMORY;
-        }
-
-        // Loop through the string array, and build up the C-array.
-        //
-        while (index < count) {
-            if (!(cArray[index] = ToNewCString(*(mAttributes.CStringAt(index))))) {
-                NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(index, cArray);
-                NS_ERROR("nsLDAPURL::GetAttributes: out of memory ");
-                return NS_ERROR_OUT_OF_MEMORY;
-            }
-            index++;
-        }
-    }
-    *aCount = count;
-    *_retval = cArray;
-
-    return NS_OK;
-}
-// void setAttributes (in unsigned long aCount,
-//                     [array, size_is (aCount)] in string aAttrs); */
-NS_IMETHODIMP nsLDAPURL::SetAttributes(PRUint32 count, const char **aAttrs)
-{
-  if (!mBaseURL)
-    return NS_ERROR_NOT_INITIALIZED;
-
-  if (count)
-    NS_ENSURE_ARG_POINTER(aAttrs);
-
-  mAttributes.Clear();
-  for (PRUint32 i = 0; i < count; ++i)
+  if (mAttributes.IsEmpty())
   {
-    if (!mAttributes.AppendCString(nsDependentCString(aAttrs[i])))
-    {
-      NS_ERROR("nsLDAPURL::SetAttributes: out of memory ");
-      return NS_ERROR_OUT_OF_MEMORY;
-    }
+    aAttributes.Truncate();
+    return NS_OK;
+  }
+
+  NS_ASSERTION(mAttributes[0] == ',' &&
+               mAttributes[mAttributes.Length() - 1] == ',',
+               "mAttributes does not begin and end with a comma");
+
+  // We store the string internally with comma before and after, so strip
+  // them off here.
+  aAttributes = Substring(mAttributes, 1, mAttributes.Length() - 2);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsLDAPURL::SetAttributes(const nsACString &aAttributes)
+{
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  if (aAttributes.IsEmpty())
+    mAttributes.Truncate();
+  else
+  {
+    // We need to make sure we start off the string with a comma.
+    if (aAttributes[0] != ',')
+      mAttributes = ',';
+
+    mAttributes.Append(aAttributes);
+
+    // Also end with a comma if appropriate.
+    if (mAttributes[mAttributes.Length() - 1] != ',')
+      mAttributes.Append(',');
   }
 
   // Now get the current path
@@ -561,21 +515,82 @@ NS_IMETHODIMP nsLDAPURL::SetAttributes(PRUint32 count, const char **aAttrs)
   return mBaseURL->SetPath(newPath);
 }
 
-NS_IMETHODIMP nsLDAPURL::AddAttribute(const char *aAttribute)
+nsresult nsLDAPURL::SetAttributeArray(char** aAttributes)
+{
+  mAttributes.Truncate();
+
+  while (aAttributes && *aAttributes)
+  {
+    // Always start with a comma as that's what we store internally.
+    mAttributes.Append(',');
+    mAttributes.Append(*aAttributes);
+    ++aAttributes;
+  }
+
+  // Add a comma on the end if we have something.
+  if (!mAttributes.IsEmpty())
+    mAttributes.Append(',');
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsLDAPURL::AddAttribute(const nsACString &aAttribute)
 {
   if (!mBaseURL)
     return NS_ERROR_NOT_INITIALIZED;
 
-  NS_ENSURE_ARG_POINTER(aAttribute);
+  if (mAttributes.IsEmpty())
+  {
+    mAttributes = ',';
+    mAttributes.Append(aAttribute);
+    mAttributes.Append(',');
+  }
+  else
+  {
+    // Wrap the attribute in commas, so that we can do an exact match.
+    nsCAutoString findAttribute(',');
+    findAttribute.Append(aAttribute);
+    findAttribute.Append(',');
 
-  nsDependentCString str(aAttribute);
+    // Check to see if the attribute is already stored. If it is, then also
+    // check to see if it is the last attribute in the string, or if the next
+    // character is a comma, this means we won't match substrings.
+    PRInt32 pos = mAttributes.Find(findAttribute, CaseInsensitiveCompare);
+    if (pos != -1)
+      return NS_OK;
 
-  if (mAttributes.IndexOfIgnoreCase(str) >= 0)
+    mAttributes.Append(Substring(findAttribute, 1));
+  }
+
+  // Now get the current path
+  nsCString newPath;
+  GetPathInternal(newPath);
+
+  // and update the base url
+  return mBaseURL->SetPath(newPath);
+}
+
+NS_IMETHODIMP nsLDAPURL::RemoveAttribute(const nsACString &aAttribute)
+{
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  if (mAttributes.IsEmpty())
     return NS_OK;
 
-  if (!mAttributes.AppendCString(str)) {
-    NS_ERROR("nsLDAPURL::AddAttribute: out of memory ");
-    return NS_ERROR_OUT_OF_MEMORY;
+  nsCAutoString findAttribute(',');
+  findAttribute.Append(aAttribute);
+  findAttribute.Append(',');
+
+  if (mAttributes.Equals(findAttribute, nsCaseInsensitiveCStringComparator()))
+    mAttributes.Truncate();
+  else
+  {
+    PRInt32 pos = mAttributes.Find(findAttribute, CaseInsensitiveCompare);
+    if (pos == -1)
+      return NS_OK;
+
+    mAttributes.Cut(pos, findAttribute.Length() - 1);
   }
 
   // Now get the current path
@@ -586,28 +601,16 @@ NS_IMETHODIMP nsLDAPURL::AddAttribute(const char *aAttribute)
   return mBaseURL->SetPath(newPath);
 }
 
-NS_IMETHODIMP nsLDAPURL::RemoveAttribute(const char *aAttribute)
+NS_IMETHODIMP nsLDAPURL::HasAttribute(const nsACString &aAttribute,
+                                      PRBool *_retval)
 {
-  if (!mBaseURL)
-    return NS_ERROR_NOT_INITIALIZED;
-
-  NS_ENSURE_ARG_POINTER(aAttribute);
-  mAttributes.RemoveCString(nsDependentCString(aAttribute));
-
-  // Now get the current path
-  nsCString newPath;
-  GetPathInternal(newPath);
-
-  // and update the base url
-  return mBaseURL->SetPath(newPath);
-}
-
-NS_IMETHODIMP nsLDAPURL::HasAttribute(const char *aAttribute, PRBool *_retval)
-{
-  NS_ENSURE_ARG_POINTER(aAttribute);
   NS_ENSURE_ARG_POINTER(_retval);
 
-  *_retval = mAttributes.IndexOfIgnoreCase(nsDependentCString(aAttribute)) >= 0;
+  nsCAutoString findAttribute(',');
+  findAttribute.Append(aAttribute);
+  findAttribute.Append(',');
+
+  *_retval = mAttributes.Find(findAttribute, CaseInsensitiveCompare) != -1;
   return NS_OK;
 }
 

@@ -39,8 +39,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ldap.h"
-#include "nsString.h"
-#include "nsVoidArray.h"
+#include "nsStringGlue.h"
 #include "nsILDAPURL.h"
 #include "nsCOMPtr.h"
 
@@ -78,11 +77,12 @@ protected:
 
   void GetPathInternal(nsCString &aPath);
   nsresult SetPathInternal(const nsCString &aPath);
+  nsresult SetAttributeArray(char** aAttributes);
 
   nsCString mDN;                // Base Distinguished Name (Base DN)
   PRInt32 mScope;               // Search scope (base, one or sub)
   nsCString mFilter;            // LDAP search filter
   PRUint32 mOptions;            // Options
-  nsCStringArray mAttributes;  // List of attributes
+  nsCString mAttributes;
   nsCOMPtr<nsIURI> mBaseURL;
 };

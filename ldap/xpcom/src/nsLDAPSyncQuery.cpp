@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -54,7 +54,7 @@ NS_IMPL_THREADSAFE_ISUPPORTS2(nsLDAPSyncQuery, nsILDAPSyncQuery, nsILDAPMessageL
 //
 nsLDAPSyncQuery::nsLDAPSyncQuery() :
     mFinished(PR_FALSE), // This is a control variable for event loop
-    mAttrCount(0), mAttrs(0), mProtocolVersion(nsILDAPConnection::VERSION3)
+    mProtocolVersion(nsILDAPConnection::VERSION3)
 {
 }
 
@@ -206,41 +206,47 @@ nsLDAPSyncQuery::OnLDAPBind(nsILDAPMessage *aMessage)
 nsresult
 nsLDAPSyncQuery::OnLDAPSearchEntry(nsILDAPMessage *aMessage)
 {
-    nsresult rv;       
+  PRUint32 attrCount;
+  char** attributes;
+  nsresult rv = aMessage->GetAttributes(&attrCount, &attributes);
+  if (NS_FAILED(rv))
+  {
+    NS_WARNING("nsLDAPSyncQuery:OnLDAPSearchEntry(): "
+               "aMessage->GetAttributes() failed");
+    FinishLDAPQuery();
+    return rv;
+  }
 
-    // Attributes are retrieved in StartLDAPSearch
-    // iterate through them
-    //
-    for (PRUint32 i = 0; i < mAttrCount; i++) {
+  // Iterate through the attributes received in this message
+  for (PRUint32 i = 0; i < attrCount; i++)
+  {
+    PRUnichar **vals;
+    PRUint32 valueCount;
 
-        PRUnichar **vals;
-        PRUint32 valueCount;
-
-        // get the values of this attribute
-        // XXX better failure handling
-        //
-        rv = aMessage->GetValues(mAttrs[i], &valueCount, &vals);
-        if (NS_FAILED(rv)) {
-            NS_WARNING("nsLDAPSyncQuery:OnLDAPSearchEntry(): "
-                       "aMessage->GetValues() failed\n");
-            FinishLDAPQuery();
-            return rv;;
-        }
-
-        // store  all values of this attribute in the mResults.
-        //
-        for (PRUint32 j = 0; j < valueCount; j++) {
-            mResults.Append(PRUnichar('\n'));
-            mResults.AppendASCII(mAttrs[i]);
-            mResults.Append(PRUnichar('='));
-            mResults.Append(vals[j]);
-        }
-        
-        NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(valueCount, vals);
-
+    // Get the values of this attribute.
+    // XXX better failure handling
+    rv = aMessage->GetValues(attributes[i], &valueCount, &vals);
+    if (NS_FAILED(rv))
+    {
+      NS_WARNING("nsLDAPSyncQuery:OnLDAPSearchEntry(): "
+                 "aMessage->GetValues() failed\n");
+      FinishLDAPQuery();
+      break;
     }
 
-    return NS_OK;
+    // Store all values of this attribute in the mResults.
+    for (PRUint32 j = 0; j < valueCount; j++) {
+      mResults.Append(PRUnichar('\n'));
+      mResults.AppendASCII(attributes[i]);
+      mResults.Append(PRUnichar('='));
+      mResults.Append(vals[j]);
+    }
+
+    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(valueCount, vals);
+  }
+  NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(attrCount, attributes);
+
+  return rv;
 }
 
 
@@ -251,12 +257,6 @@ nsLDAPSyncQuery::OnLDAPSearchResult(nsILDAPMessage *aMessage)
     // Release the control variable for the eventloop and other members
     // 
     FinishLDAPQuery();
-    
-    // Release memory allocated for mAttrs
-    
-    if (mAttrCount > 0)
-        NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(mAttrCount, mAttrs);
-
     return NS_OK;
 }
 
@@ -330,18 +330,15 @@ nsLDAPSyncQuery::StartLDAPSearch()
         return NS_ERROR_UNEXPECTED;
     }
 
-    
-    rv = mServerURL->GetAttributes(&mAttrCount, &mAttrs);
+    nsCAutoString attributes;
+    rv = mServerURL->GetAttributes(attributes);
     if (NS_FAILED(rv)) {
         FinishLDAPQuery();
         return NS_ERROR_UNEXPECTED;
     }
 
-
     // time to kick off the search.
-    //
-    rv = mOperation->SearchExt(dn, scope, urlFilter, mAttrCount,
-                               const_cast<const char **>(mAttrs), 0, 0);
+    rv = mOperation->SearchExt(dn, scope, urlFilter, attributes, 0, 0);
 
     if (NS_FAILED(rv)) {
         FinishLDAPQuery();

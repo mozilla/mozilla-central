@@ -429,7 +429,7 @@ convertControlArray(nsIArray *aXpcomArray, LDAPControl ***aArray)
 NS_IMETHODIMP
 nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
                            const nsACString& aFilter,
-                           PRUint32 aAttrCount, const char **aAttributes,
+                           const nsACString &aAttributes,
                            PRIntervalTime aTimeOut, PRInt32 aSizeLimit)
 {
     if (!mMessageListener) {
@@ -440,26 +440,10 @@ nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
     // XXX add control logging
     PR_LOG(gLDAPLogModule, PR_LOG_DEBUG,
            ("nsLDAPOperation::SearchExt(): called with aBaseDn = '%s'; "
-            "aFilter = '%s', aAttrCounts = %u, aSizeLimit = %d",
+            "aFilter = '%s'; aAttributes = %s; aSizeLimit = %d",
             PromiseFlatCString(aBaseDn).get(),
             PromiseFlatCString(aFilter).get(),
-            aAttrCount, aSizeLimit));
-
-    char **attrs = 0;
-
-    // Convert our XPCOM style C-Array to one that the C-SDK will like, i.e.
-    // add a last NULL element.
-    //
-    if (aAttrCount && aAttributes) {
-        attrs = static_cast<char **>
-                           (nsMemory::Alloc((aAttrCount + 1) * sizeof(char *)));
-        if (!attrs) {
-            NS_ERROR("nsLDAPOperation::SearchExt: out of memory ");
-            return NS_ERROR_OUT_OF_MEMORY;
-        }
-        memcpy(attrs, aAttributes, aAttrCount * sizeof(char *));
-        attrs[aAttrCount] = 0;
-    }
+            PromiseFlatCString(aAttributes).get(), aSizeLimit));
 
     LDAPControl **serverctls = 0;
     nsresult rv;
@@ -469,14 +453,9 @@ nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
             PR_LOG(gLDAPLogModule, PR_LOG_ERROR,
                    ("nsLDAPOperation::SearchExt(): error converting server "
                     "control array: %x", rv));
-
-            if (attrs) {
-                nsMemory::Free(attrs);
-            }
             return rv;
         }
     }
-
 
     LDAPControl **clientctls = 0;
     if (mClientControls) {
@@ -485,12 +464,27 @@ nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
             PR_LOG(gLDAPLogModule, PR_LOG_ERROR,
                    ("nsLDAPOperation::SearchExt(): error converting client "
                     "control array: %x", rv));
-            if (attrs) {
-                nsMemory::Free(attrs);
-            }
             ldap_controls_free(serverctls);
             return rv;
         }
+    }
+
+    // Convert our comma separated string to one that the C-SDK will like, i.e.
+    // convert to a char array and add a last NULL element.
+    nsTArray<nsCString> attrArray;
+    ParseString(aAttributes, ',', attrArray);
+    char **attrs = nsnull;
+    PRUint32 origLength = attrArray.Length();
+    if (origLength)
+    {
+      attrs = static_cast<char **> (NS_Alloc((origLength + 1) * sizeof(char *)));
+      if (!attrs)
+        return NS_ERROR_OUT_OF_MEMORY;
+
+      for (PRUint32 i = 0; i < origLength; ++i)
+        attrs[i] = ToNewCString(attrArray[i]);
+
+      attrs[origLength] = 0;
     }
 
     // XXX deal with timeout here
@@ -503,9 +497,8 @@ nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
     // clean up
     ldap_controls_free(serverctls);
     ldap_controls_free(clientctls);
-    if (attrs) {
-        nsMemory::Free(attrs);
-    }
+    // The last entry is null, so no need to free that.
+    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(origLength, attrs);
 
     rv = TranslateLDAPErrorToNSError(retVal);
     NS_ENSURE_SUCCESS(rv, rv);

@@ -70,8 +70,6 @@ class nsLDAPSyncQuery : public nsILDAPSyncQuery,
     nsCOMPtr<nsILDAPOperation> mOperation;   // current ldap op
     nsCOMPtr<nsILDAPURL> mServerURL;         // LDAP URL
     PRBool mFinished;                        // control variable for eventQ
-    PRUint32 mAttrCount;                     // No. of attrbiutes
-    char **mAttrs;                           // Attributes to search
     nsString mResults;                       // values to return
     PRUint32 mProtocolVersion;               // LDAP version to use
 

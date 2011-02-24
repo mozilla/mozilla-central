@@ -74,15 +74,12 @@ nsLDAPAutoCompleteSession::nsLDAPAutoCompleteSession() :
     mState(UNBOUND), 
     mFilterTemplate("(|(cn=%v1*%v2-*)(mail=%v1*%v2-*)(sn=%v1*%v2-*))"),
     mMaxHits(100), mMinStringLength(2), mCjkMinStringLength(0), 
-    mSearchAttrs(0), mSearchAttrsSize(0), mVersion(nsILDAPConnection::VERSION3)
+    mVersion(nsILDAPConnection::VERSION3)
 {
 }
 
 nsLDAPAutoCompleteSession::~nsLDAPAutoCompleteSession()
 {
-    if (mSearchAttrs) {
-        NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(mSearchAttrsSize, mSearchAttrs);
-    }
     NS_IF_RELEASE(mConnection);
 }
 
@@ -757,9 +754,8 @@ nsLDAPAutoCompleteSession::DoTask()
     //
     // XXXdmose what about timeouts? 
     //
-    rv = mOperation->SearchExt(dn, scope, searchFilter, mSearchAttrsSize,
-                               const_cast<const char **>(mSearchAttrs),
-                               0, mMaxHits);
+    rv = mOperation->SearchExt(dn, scope, searchFilter, mSearchAttrs, 0,
+                               mMaxHits);
     if (NS_FAILED(rv)) {
         switch(rv) {
 
@@ -1216,14 +1212,8 @@ nsLDAPAutoCompleteSession::SetFormatter(nsILDAPAutoCompFormatter* aFormatter)
 
     mFormatter = aFormatter;
 
-    // Ensure any old data is freed if necessary.
-    if (mSearchAttrs) {
-        NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(mSearchAttrsSize, mSearchAttrs);
-        mSearchAttrs = nsnull;
-    }
-
     // Get and cache the attributes that will be used to do lookups.
-    nsresult rv = mFormatter->GetAttributes(&mSearchAttrsSize, &mSearchAttrs);
+    nsresult rv = mFormatter->GetAttributes(mSearchAttrs);
     if (NS_FAILED(rv)) {
         NS_ERROR("nsLDAPAutoCompleteSession::SetFormatter(): "
                  " mFormatter->GetAttributes failed");
