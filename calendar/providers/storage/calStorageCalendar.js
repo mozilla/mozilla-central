@@ -1803,6 +1803,8 @@ calStorageCalendar.prototype = {
             var ownTz = cal.getTimezoneService().getTimezone(tz.tzid);
             if (ownTz) { // if we know that TZID, we use it
                 params[entryname + "_tz"] = ownTz.tzid;
+            } else if (!tz.icalComponent) { // timezone component missing
+                params[entryname + "_tz"] = "floating";
             } else { // foreign one
                 params[entryname + "_tz"] = tz.icalComponent.serializeToICS();
             }

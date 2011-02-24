@@ -1763,30 +1763,34 @@ function makePrettyName(aUri){
  */
 function addAttachment(attachment) {
     if (!attachment ||
-        !attachment.uri ||
-        attachment.uri.spec in gAttachMap) {
+        !attachment.hashId ||
+        attachment.hashId in gAttachMap) {
         return;
     }
 
-    var documentLink = document.getElementById("attachment-link");
-    var item = documentLink.appendChild(createXULElement("listitem"));
+    // We currently only support uri attachments
+    if (attachment.uri) {
+        let documentLink = document.getElementById("attachment-link");
+        let item = documentLink.appendChild(createXULElement("listitem"));
 
-    // Set listitem attributes
-    item.setAttribute("label", makePrettyName(attachment.uri));
-    item.setAttribute("crop", "end");
-    item.setAttribute("class", "listitem-iconic");
-    if (attachment.uri.schemeIs("file")) {
-        item.setAttribute("image", "moz-icon://" + attachment.uri);
-    } else {
-        item.setAttribute("image", "moz-icon://dummy.html");
+        // Set listitem attributes
+        item.setAttribute("label", makePrettyName(attachment.uri));
+        item.setAttribute("crop", "end");
+        item.setAttribute("class", "listitem-iconic");
+        if (attachment.uri.schemeIs("file")) {
+            item.setAttribute("image", "moz-icon://" + attachment.uri);
+        } else {
+            item.setAttribute("image", "moz-icon://dummy.html");
+        }
+
+        // full attachment object is stored here
+        item.attachment = attachment;
+
+        // Update the number of rows and save our attachment globally
+        documentLink.rows = documentLink.getRowCount();
     }
 
-    // full attachment object is stored here
-    item.attachment = attachment;
-
-    // Update the number of rows and save our attachment globally
-    documentLink.rows = documentLink.getRowCount();
-    gAttachMap[attachment.uri.spec] = attachment;
+    gAttachMap[attachment.hashId] = attachment;
     updateAttachment();
 }
 
@@ -1797,7 +1801,7 @@ function addAttachment(attachment) {
  */
 function deleteAttachment() {
     var documentLink = document.getElementById("attachment-link");
-    delete gAttachMap[documentLink.selectedItem.attachment.uri.spec];
+    delete gAttachMap[documentLink.selectedItem.attachment.hashId];
     documentLink.removeItemAt(documentLink.selectedIndex);
     updateAttachment();
 }

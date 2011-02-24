@@ -270,8 +270,6 @@ calAlarmService.prototype = {
             return;
         }
 
-        cal.LOG("[calAlarmService] starting...");
-
         let observerSvc = Components.classes["@mozilla.org/observer-service;1"]
                           .getService
                           (Components.interfaces.nsIObserverService);
@@ -416,8 +414,6 @@ calAlarmService.prototype = {
             if (snoozeDate && !(snoozeDate instanceof Components.interfaces.calIDateTime)) {
                 snoozeDate = cal.createDateTime(snoozeDate);
             }
-            cal.LOG("[calAlarmService] considering alarm for item: " + aItem.title +
-                " alarm time: " + alarmDate + " snooze time: " + snoozeDate);
 
             // If the alarm was snoozed, the snooze time is more important.
             alarmDate = snoozeDate || alarmDate;
@@ -428,11 +424,8 @@ calAlarmService.prototype = {
                 now.timezone = floating();
             }
 
-            cal.LOG("[calAlarmService] now is " + now);
             if (alarmDate.compare(now) >= 0) {
                 // We assume that future alarms haven't been acknowledged
-                cal.LOG("[calAlarmService] alarm is in the future.");
-
                 // Delay is in msec, so don't forget to multiply
                 let timeout = alarmDate.subtractDate(now).inSeconds * 1000;
 
@@ -440,7 +433,6 @@ calAlarmService.prototype = {
                 // our range.
                 let timeUntilRefresh = this.mRangeEnd.subtractDate(now).inSeconds * 1000;
                 if (timeUntilRefresh < timeout) {
-                    cal.LOG("[calAlarmService] alarm is too late.");
                     continue;
                 }
 
@@ -448,16 +440,12 @@ calAlarmService.prototype = {
             } else if (showMissed) {
                 // This alarm is in the past.  See if it has been previously ack'd.
                 let lastAck = aItem.alarmLastAck || aItem.parentItem.alarmLastAck;
-                cal.LOG("[calAlarmService] last ack was: " + lastAck);
-
                 if (lastAck && lastAck.compare(alarmDate) >= 0) {
                     // The alarm was previously dismissed or snoozed, no further
                     // action required.
-                    cal.LOG("[calAlarmService] " + aItem.title + " - alarm previously ackd.");
                     continue;
                 } else {
                     // The alarm was not snoozed or dismissed, fire it now.
-                    cal.LOG("[calAlarmService] alarm is in the past and unack'd, firing now!");
                     this.alarmFired(aItem, alarm);
                 }
             }

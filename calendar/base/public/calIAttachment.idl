@@ -42,13 +42,23 @@ interface nsIURI;
 interface calIIcalProperty;
 interface calIItemBase;
 
-[scriptable,uuid(2cfca4c4-539e-11de-a70d-831556d89593)]
+[scriptable,uuid(327a73e3-ba20-4dfc-92b9-80446b7d0d1b)]
 interface calIAttachment : nsISupports
 {
+    /**
+     * The hash id is used to identify this attachment and compare it to others.
+     */
+    readonly attribute AUTF8String hashId;
+
     /**
      * An nsIURI object that points to the file (local or remote)
      */
     attribute nsIURI uri;
+
+    /**
+     * Raw attachment data, in case its not an uri
+     */
+    attribute AUTF8String rawData;
 
     /**
      * The type of file that this attachment refers to
@@ -69,8 +79,8 @@ interface calIAttachment : nsISupports
     /**
      * For accessing additional parameters, such as x-params.
      */
-    AUTF8String getParamater(in AString name);
-    void setParamater(in AString name, in AUTF8String value);
+    AUTF8String getParameter(in AString name);
+    void setParameter(in AString name, in AUTF8String value);
     void deleteParameter(in AString name);
 
     /**

@@ -105,6 +105,13 @@ calIcalProperty::GetValue(nsACString &str)
         icalstr = icalvalue_get_text(value);
     } else if (valuekind == ICAL_X_VALUE) {
         icalstr = icalvalue_get_x(value);
+    } else if (valuekind == ICAL_ATTACH_VALUE) {
+        icalattach *attach = icalvalue_get_attach(value);
+        if (icalattach_get_is_url(attach)) {
+            icalstr = icalattach_get_url(attach);
+        } else {
+            icalstr = (const char *)icalattach_get_data(attach);
+        }
     } else {
         icalstr = icalproperty_get_value_as_string(mProperty);
     }
@@ -139,6 +146,10 @@ calIcalProperty::SetValue(const nsACString &str)
     } else if (kind == ICAL_X_VALUE) {
         icalvalue *v = icalvalue_new_x(PromiseFlatCString(str).get());
         icalproperty_set_value(mProperty, v);
+    } else if (kind == ICAL_ATTACH_VALUE) {
+        const char *strdata = PromiseFlatCString(str).get();
+        icalattach *v = icalattach_new_from_data(strdata, NULL, NULL);
+        icalproperty_set_attach(mProperty, v);
     } else {
         icalproperty_set_value_from_string(mProperty,
                                            PromiseFlatCString(str).get(),

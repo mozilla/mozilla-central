@@ -601,8 +601,9 @@ calItemBase.prototype = {
     addAttachment: function cIB_addAttachment(attachment) {
         this.modify();
         this.mAttachments = this.getAttachments({});
-        this.mAttachments.push(attachment);
-        // XXX ensure that the attachment isn't already there?
+        if (!this.mAttachments.some(function(x) x.hashId == attachment.hashId)) {
+            this.mAttachments.push(attachment);
+        }
     },
 
     // void removeAllAttachments();

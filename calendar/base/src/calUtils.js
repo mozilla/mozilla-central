@@ -1663,7 +1663,7 @@ calPropertyBag.prototype = {
     mData: null,
 
     setProperty: function cpb_setProperty(aName, aValue) {
-        this.mData[aName] = aValue;
+        return (this.mData[aName] = aValue);
     },
     getProperty_: function cpb_getProperty(aName) {
         // avoid strict undefined property warning
