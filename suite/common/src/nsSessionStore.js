@@ -1019,10 +1019,11 @@ SessionStoreService.prototype = {
     var tabState = this._collectTabData(aTab, true);
     var sourceWindow = aTab.ownerDocument.defaultView;
     this._updateTextAndScrollDataForTab(sourceWindow, aTab.linkedBrowser, tabState, true);
-    this._sendWindowStateEvent(aWindow, "Busy");
     tabState.index += aDelta;
+    tabState.index = Math.max(1, Math.min(tabState.index, tabState.entries.length));
 
     if (aWindow) {
+      this._sendWindowStateEvent(aWindow, "Busy");
       var newTab = aWindow.getBrowser()
                           .addTab(null, { relatedToCurrent: aRelated });
       this.restoreHistoryPrecursor(aWindow, [newTab], [tabState], 0, 0, 0);

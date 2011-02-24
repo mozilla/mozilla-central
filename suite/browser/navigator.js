@@ -884,16 +884,11 @@ function OpenSessionHistoryIn(aWhere, aDelta, aTab)
  *                focus the new tab
  *  "window"      new window
  *
- * historyIndex is a history index to set the page to when the new tab is
- * created and loaded, it can for example be used to go back one page for the
- * duplicated tab.
+ * delta is the offset to the history entry that you want to load.
  */
-function duplicateTabIn(aTab, aWhere, aHistoryIndex)
+function duplicateTabIn(aTab, aWhere, aDelta)
 {
-  aTab = aTab || getBrowser().selectedTab;
-  var currentIndex = aTab.linkedBrowser.sessionHistory.index;
-  var delta = aHistoryIndex == null ? 0 : aHistoryIndex - currentIndex;
-  OpenSessionHistoryIn(aWhere, delta, aTab)
+  OpenSessionHistoryIn(aWhere, aDelta, aTab)
 }
 
 function gotoHistoryIndex(aEvent)
