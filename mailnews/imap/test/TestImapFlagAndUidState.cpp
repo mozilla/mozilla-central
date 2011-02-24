@@ -155,6 +155,61 @@ int main(int argc, char** argv)
     printf("TEST-UNEXPECTED-FAIL | %s | %s\n", __FILE__, error);
     return 1;
   }
+  // Reset all
+  flagState->Reset();
+  // This tests generating a uid string from a non-sequential set of
+  // messages where the first message is not in the flag state, but the
+  // missing message from the sequence is in the set. I.e., we're
+  // generating a uid string from 69,71, but only 70 and 71 are in
+  // the flag state.
+  struct msgState msgState3[] = {
+    {10, kImapMsgSeenFlag, 0},
+    {69, kImapMsgSeenFlag, 1},
+    {70, kImapMsgSeenFlag, 2},
+    {71, kImapMsgSeenFlag, 3}};
+
+  flagState->SetPartialUIDFetch(PR_FALSE);
+  numMsgs = sizeof(msgState3) / sizeof(msgState3[0]);
+  for (PRInt32 i = 0; i < numMsgs; i++)
+    flagState->AddUidFlagPair(msgState3[i].uid, msgState3[i].flag,
+                              msgState3[i].index);
+  flagState->ExpungeByIndex(2);
+  nsCString uidString;
+  PRUint32 msgUids[] = {69,71};
+  PRUint32 msgCount = 2;
+  AllocateImapUidString(&msgUids[0], msgCount, flagState, uidString);
+  if (!uidString.EqualsLiteral("71"))
+  {
+    printf("TEST-UNEXPECTED-FAIL | uid String is %s, not 71 | %s\n", uidString.get(), __FILE__);
+    return -1;
+  }
+  // Reset all
+  flagState->Reset();
+  // This tests the middle message missing from the flag state.
+  struct msgState msgState4[] = {
+    {10, kImapMsgSeenFlag, 0},
+    {69, kImapMsgSeenFlag, 1},
+    {70, kImapMsgSeenFlag, 2},
+    {71, kImapMsgSeenFlag, 3},
+    {73, kImapMsgSeenFlag, 4}};
+
+  flagState->SetPartialUIDFetch(PR_FALSE);
+  numMsgs = sizeof(msgState4) / sizeof(msgState4[0]);
+  for (PRInt32 i = 0; i < numMsgs; i++)
+    flagState->AddUidFlagPair(msgState4[i].uid, msgState4[i].flag,
+                              msgState4[i].index);
+  flagState->ExpungeByIndex(4);
+  PRUint32 msgUids2[] = {69,71,73};
+  msgCount = 3;
+  nsCString uidString2;
+
+  AllocateImapUidString(&msgUids2[0], msgCount, flagState, uidString2);
+  if (!uidString2.EqualsLiteral("69,73"))
+  {
+    printf("TEST-UNEXPECTED-FAIL | uid String is %s, not 71 | %s\n", uidString.get(), __FILE__);
+    return -1;
+  }
+
   printf("TEST-PASS | %s | all tests passed\n", __FILE__);
   return 0;
 }

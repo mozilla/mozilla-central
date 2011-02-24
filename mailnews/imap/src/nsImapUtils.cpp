@@ -293,7 +293,8 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount,
   if (flagState && flagState->GetPartialUIDFetch())
     flagState = nsnull;
 
-  for (PRUint32 keyIndex=0; keyIndex < total; keyIndex++)
+  
+  for (PRUint32 keyIndex = 0; keyIndex < total; keyIndex++)
   {
     PRUint32 curKey = msgUids[keyIndex];
     PRUint32 nextKey = (keyIndex + 1 < total) ? msgUids[keyIndex + 1] : 0xFFFFFFFF;
@@ -316,7 +317,15 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount,
         {
           PRBool foundIt;
           flagState->GetMessageFlagsFromUID(curSequenceEnd, &foundIt, &curFlagStateIndex);
-          NS_ASSERTION(foundIt, "flag state missing key");
+          if (!foundIt)
+          {
+            NS_WARNING("flag state missing key");
+            // The start of this sequence is missing from flag state, so move
+            // on to the next key.
+            curFlagStateIndex = -1;
+            curSequenceEnd = startSequence = nextKey;
+            continue;
+          }
         }
         curFlagStateIndex++;
         PRUint32 nextUidInFlagState;
