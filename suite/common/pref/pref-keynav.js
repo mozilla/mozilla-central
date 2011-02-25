@@ -46,6 +46,8 @@ function Startup()
 {
   if (/Mac/.test(navigator.platform))
     document.getElementById("tabNavigationPrefs").setAttribute("hidden", true);
+
+  UpdateBrowseWithCaretItems();
 }
 
 function ReadTabNav(aField)
@@ -72,4 +74,11 @@ function WriteTabNav(aField)
     return curval | bit;
 
   return curval & ~bit;
+}
+
+function UpdateBrowseWithCaretItems()
+{
+  document.getElementById("browseWithCaretWarn").disabled =
+    !document.getElementById("accessibility.browsewithcaret_shortcut.enabled").value ||
+    document.getElementById("accessibility.browsewithcaret").locked;
 }

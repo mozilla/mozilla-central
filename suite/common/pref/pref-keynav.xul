@@ -50,6 +50,16 @@
       <preference id="accessibility.tabfocus"
                   name="accessibility.tabfocus"
                   type="int"/>
+      <preference id="accessibility.browsewithcaret"
+                  name="accessibility.browsewithcaret"
+                  type="bool"/>
+      <preference id="accessibility.browsewithcaret_shortcut.enabled"
+                  name="accessibility.browsewithcaret_shortcut.enabled"
+                  type="bool"
+                  onchange="UpdateBrowseWithCaretItems();"/>
+      <preference id="accessibility.warn_on_browsewithcaret"
+                  name="accessibility.warn_on_browsewithcaret"
+                  type="bool"/>
     </preferences>
 
     <groupbox id="tabNavigationPrefs"
@@ -70,6 +80,25 @@
                 onsyncfrompreference="return document.getElementById('keynav_pane').ReadTabNav(this);"
                 onsynctopreference="return document.getElementById('keynav_pane').WriteTabNav(this);"/>
       <description>&tabNavigationTextboxes.label;</description>
+    </groupbox>
+
+    <groupbox id="browseWithCaretPrefs"
+              align="start">
+      <caption label="&accessibilityBrowseWithCaret.label;"/>
+      <description>&browseWithCaretDesc.label;</description>
+      <checkbox id="browseWithCaretUse"
+                label="&browseWithCaretUse.label;"
+                accesskey="&browseWithCaretUse.accesskey;"
+                preference="accessibility.browsewithcaret"/>
+      <checkbox id="browseWithCaretShortCut"
+                label="&browseWithCaretShortCut.label;"
+                accesskey="&browseWithCaretShortCut.accesskey;"
+                preference="accessibility.browsewithcaret_shortcut.enabled"/>
+      <checkbox id="browseWithCaretWarn"
+                class="indent"
+                label="&browseWithCaretWarn.label;"
+                accesskey="&browseWithCaretWarn.accesskey;"
+                preference="accessibility.warn_on_browsewithcaret"/>
     </groupbox>
 
   </prefpane>
