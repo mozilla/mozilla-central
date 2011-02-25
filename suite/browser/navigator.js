@@ -888,7 +888,7 @@ function OpenSessionHistoryIn(aWhere, aDelta, aTab)
  */
 function duplicateTabIn(aTab, aWhere, aDelta)
 {
-  OpenSessionHistoryIn(aWhere, aDelta, aTab)
+  OpenSessionHistoryIn(aWhere, aDelta, aTab);
 }
 
 function gotoHistoryIndex(aEvent)
