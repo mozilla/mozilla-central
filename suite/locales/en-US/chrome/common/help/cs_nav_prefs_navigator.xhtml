@@ -511,16 +511,34 @@
 
 <ul>
   <li><strong>Link open behavior</strong>: If a webpage is designed so that
-    certain links open in a new window by default (either through the target
-    attribute in HTML or through embedded JavaScript), you may want to
-    override this:
+    certain links open in a new window by default, you may want to override
+    this. You can define the behavior separately for links with a target
+    attribute and windows opened using JavaScript:
     <ul>
-      <li><strong>The current tab/window</strong>: Open the linked page in the
-        current tab of the active window.</li>
-      <li><strong>A new tab in the current window</strong>: Open the linked
-        page in a new tab instead of a new window.</li>
-      <li><strong>A new window</strong>: Open the linked page in a new window.
-        (This is the default and does not override the webpage design.)</li>
+      <li><strong>Open links meant to open a new window in</strong>:
+        <ul>
+          <li><strong>The current tab/window</strong>: Open the linked page in
+            the current tab of the active window.</li>
+          <li><strong>A new tab in the current window</strong>: Open the linked
+            page in a new tab instead of a new window.</li>
+          <li><strong>A new window</strong>: Open the linked page in a new
+            window. (This does not override the webpage design and disables
+            the below options for pages opened from scripts.)</li>
+        </ul>
+      </li>
+      <li><strong>When scripts want to open a new window</strong>:
+        <ul>
+          <li><strong>Always divert windows into tabs</strong>: Open the page to
+            be loaded in a tab according to the above settings.</li>
+          <li><strong>Don&apos;t divert custom windows into tabs</strong>: Open
+            the page to be loaded in a popup window if the script explicitly
+            specifies features of the new window (such as size or position),
+            else open the page in a tab according to the above settings.</li>
+          <li><strong>Always open new windows</strong>: Open the page to be
+            loaded in a new window. (This does not override the webpage
+            design.)</li>
+        </ul>
+      </li>
     </ul>
   </li>
   <li><strong>Links from other applications</strong>: If &brandShortName; is
@@ -532,8 +550,8 @@
         current tab of the active window.</li>
       <li><strong>A new tab in the current window</strong>: Open the linked
         page in a new tab instead of a new window.</li>
-      <li><strong>A new window</strong>: Open the linked page in a new window.
-        (This is the default.)</li>
+      <li><strong>A new window</strong>: Open the linked page in a new
+        window.</li>
     </ul>
   </li>
 </ul>
