@@ -387,47 +387,47 @@
 /* ..... insert menu ..... */
 
 #InsertPopup > menuitem {
-  list-style-image: url("chrome://editor/skin/icons/btn1.gif");
+  list-style-image: url("chrome://editor/skin/icons/editoricons-small.png");
 }
 
 #InsertLinkItem {
-  -moz-image-region: rect(16px 16px 32px 0);
+  -moz-image-region: rect(60px 19px 79px 0);
 }
 
 #InsertLinkItem:hover {
-  -moz-image-region: rect(16px 32px 32px 16px);
+  -moz-image-region: rect(60px 39px 79px 20px);
 }
 
 #InsertAnchorItem {
-  -moz-image-region: rect(128px 16px 144px 0);
+  -moz-image-region: rect(0 19px 19px 0);
 }
 
 #InsertAnchorItem:hover {
-  -moz-image-region: rect(128px 32px 144px 16px);
+  -moz-image-region: rect(0 39px 19px 20px);
 }
 
 #InsertImageItem {
-  -moz-image-region: rect(144px 16px 160px 0);
+  -moz-image-region: rect(40px 19px 59px 0);
 }
 
 #InsertImageItem:hover {
-  -moz-image-region: rect(144px 32px 160px 16px);
+  -moz-image-region: rect(40px 39px 59px 20px);
 }
 
 #InsertHRuleItem {
-  -moz-image-region: rect(32px 16px 48px 0);
+  -moz-image-region: rect(20px 19px 39px 0);
 }
 
 #InsertHRuleItem:hover {
-  -moz-image-region: rect(32px 32px 48px 16px);
+  -moz-image-region: rect(20px 39px 39px 20px);
 }
 
 #InsertTableItem {
-  -moz-image-region: rect(112px 16px 128px 0);
+  -moz-image-region: rect(180px 19px 199px 0);
 }
 
 #InsertTableItem:hover {
-  -moz-image-region: rect(112px 32px 128px 16px);
+  -moz-image-region: rect(180px 39px 199px 20px);
 }
 
 /* ..... smiley menu ..... */

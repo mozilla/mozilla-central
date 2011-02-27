@@ -361,78 +361,42 @@
   -moz-image-region: rect(146px 16px 162px 0px);
 }
 
-#AlignLeftItem:hover {
-  -moz-image-region: rect(146px 32px 162px 16px);
-}
-
 #AlignCenterItem {
   -moz-image-region: rect(48px 16px 64px 0px);
-}
-
-#AlignCenterItem:hover {
-  -moz-image-region: rect(48px 32px 64px 16px);
 }
 
 #AlignRightItem {
   -moz-image-region: rect(162px 16px 178px 0px);
 }
 
-#AlignRightItem:hover {
-  -moz-image-region: rect(162px 32px 178px 16px);
-}
-
 #AlignJustifyItem {
   -moz-image-region: rect(130px 16px 146px 0px);
-}
-
-#AlignJustifyItem:hover {
-  -moz-image-region: rect(130px 32px 146px 16px);
 }
 
 /* ..... insert menu ..... */
 
 #InsertPopup > menuitem {
-  list-style-image: url("chrome://editor/skin/icons/btn1.gif");
+  list-style-image: url("chrome://editor/skin/icons/editoricons-small.png");
 }
 
 #InsertLinkItem {
-  -moz-image-region: rect(16px 16px 32px 0);
-}
-
-#InsertLinkItem:hover {
-  -moz-image-region: rect(16px 32px 32px 16px);
+  -moz-image-region: rect(60px 19px 79px 0);
 }
 
 #InsertAnchorItem {
-  -moz-image-region: rect(128px 16px 144px 0);
-}
-
-#InsertAnchorItem:hover {
-  -moz-image-region: rect(128px 32px 144px 16px);
+  -moz-image-region: rect(0 19px 19px 0);
 }
 
 #InsertImageItem {
-  -moz-image-region: rect(144px 16px 160px 0);
-}
-
-#InsertImageItem:hover {
-  -moz-image-region: rect(144px 32px 160px 16px);
+  -moz-image-region: rect(40px 19px 59px 0);
 }
 
 #InsertHRuleItem {
-  -moz-image-region: rect(32px 16px 48px 0);
-}
-
-#InsertHRuleItem:hover {
-  -moz-image-region: rect(32px 32px 48px 16px);
+  -moz-image-region: rect(20px 19px 39px 0);
 }
 
 #InsertTableItem {
-  -moz-image-region: rect(112px 16px 128px 0);
-}
-
-#InsertTableItem:hover {
-  -moz-image-region: rect(112px 32px 128px 16px);
+  -moz-image-region: rect(180px 19px 199px 0);
 }
 
 /* ..... smiley menu ..... */
