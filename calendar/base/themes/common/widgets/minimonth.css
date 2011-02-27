@@ -88,6 +88,7 @@ minimonth {
 
 .minimonth-nav-btns {
   padding: 0px;
+  min-width: 20px;
   list-style-image: url("chrome://calendar/skin/widgets/nav-buttons.png");
   -moz-user-focus: normal;
 }
