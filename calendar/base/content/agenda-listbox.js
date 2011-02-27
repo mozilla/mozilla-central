@@ -603,25 +603,21 @@ function createNewEvent(aEvent) {
 }
 
 /**
- * Rebuilds the agenda popup menu from the agenda-menu-box, disabling items if a
- * period was selected.
+ * Sets up the context menu for the agenda listbox
  *
- * XXX Why is this needed?
- *
+ * @param popup         The <menupopup> element to set up.
  */
-agendaListbox.buildAgendaPopupMenu =
-function enableAgendaPopupMenu() {
-    var listItem = this.agendaListboxControl.selectedItem;
-    var enabled = this.isEventListItem(listItem);
-    var popup = document.getElementById("agenda-menu");
-    while (popup.hasChildNodes()) {
-        popup.removeChild(popup.firstChild);
-    }
-    var menuitems = document.getElementById("agenda-menu-box").childNodes;
-    for (var i= 0; i < menuitems.length; i++) {
+agendaListbox.setupContextMenu =
+function setupContextMenu(popup) {
+    let listItem = this.agendaListboxControl.selectedItem;
+    let enabled = this.isEventListItem(listItem);
+    let menuitems = popup.childNodes;
+    for (let i = 0; i < menuitems.length; i++) {
         setBooleanAttribute(menuitems[i], "disabled", !enabled);
-        popup.appendChild(menuitems[i].cloneNode(true));
     }
+
+    let menu = document.getElementById("calendar-today-pane-menu-attendance-menu");
+    setupAttendanceMenu(menu, agendaListbox.getSelectedItems({}));
 }
 
 

@@ -690,3 +690,46 @@ function updateSelectedLabel(aElement) {
     aElement.selectedIndex = -1;
     aElement.selectedIndex = selectedIndex;
 }
+
+/**
+ * Sets up the attendance context menu, based on the given items
+ *
+ * @param aMenu     The DOM Node of the menupopup to set up
+ * @param aItems    The array of items to consider
+ */
+function setupAttendanceMenu(aMenu, aItems) {
+    let allSingle = aItems.every(function(x) !x.recurrenceId);
+    setElementValue(aMenu, allSingle ? "single" : "recurring", "itemType");
+
+    // Set up the attendance menu
+    function getInvStat(item) {
+        let attendee = null;
+        if (cal.isInvitation(item)) {
+            attendee = cal.getInvitedAttendee(item);
+        } else if (item.organizer) {
+            let calOrgId = item.calendar.getProperty("organizerId");
+            if (calOrgId == item.organizer.id && item.getAttendees({}).length) {
+                attendee = item.organizer;
+            }
+        }
+        return attendee && attendee.participationStatus;
+    }
+
+    let firstStatusOccurrences = aItems.length && getInvStat(aItems[0]);
+    let firstStatusParents = aItems.length && getInvStat(aItems[0].parentItem);
+    let sameStatusOccurrences = aItems.every(function (x) getInvStat(x) == firstStatusOccurrences);
+    let sameStatusParents = aItems.every(function (x) getInvStat(x.parentItem) == firstStatusParents)
+
+    let occurrenceChildren = aMenu.getElementsByAttribute("value", firstStatusOccurrences);
+    let parentsChildren = aMenu.getElementsByAttribute("value", firstStatusParents);
+
+    if (sameStatusOccurrences && occurrenceChildren[0]) {
+        occurrenceChildren[0].setAttribute("checked", "true");
+    }
+
+    if (sameStatusParents && parentsChildren[1]) {
+        parentsChildren[1].setAttribute("checked", "true");
+    }
+
+    return true;
+}

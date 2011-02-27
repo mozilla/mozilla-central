@@ -650,7 +650,7 @@ description.tooltipBody {
     display: none;
 }
 
-#calendar-item-context-menu-attendance-menu[itemType="single"] > menupopup > *[scope="all-occurrences"] {
+.attendance-menu[itemType="single"] > menupopup > *[scope="all-occurrences"] {
     display: none;
 }
 

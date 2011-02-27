@@ -58,15 +58,13 @@
     </implementation>
     <handlers>
       <handler event="click" phase="capturing"><![CDATA[
-        // We only care about button 0 (left click) events
-        if (event.button == 0) { 
-            if (event.detail == 1) {
-                agendaListbox.onSelect(this);
-            } else {
-                document.getElementById('agenda_edit_event_command').doCommand();
-                event.stopPropagation();
-                event.preventDefault();
-            }
+        if (event.detail == 1) {
+            agendaListbox.onSelect(this);
+        } else if (event.button == 0) {
+            // We only care about button 0 doubleclick events
+            document.getElementById('agenda_edit_event_command').doCommand();
+            event.stopPropagation();
+            event.preventDefault();
         }
       ]]></handler>
       <handler event="mouseover"><![CDATA[

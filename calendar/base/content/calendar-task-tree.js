@@ -98,6 +98,7 @@ function addCategoryNames(aEvent) {
 function changeContextMenuForTask(aEvent) {
     let idnode = document.popupNode.id;
     let sunbird = cal.isSunbird();
+    let items = getSelectedTasks(aEvent);
     document.getElementById("task-context-menu-new").hidden =
         (idnode == "unifinder-todo-tree" && !sunbird);
     document.getElementById("task-context-menu-modify").hidden =
@@ -106,7 +107,7 @@ function changeContextMenuForTask(aEvent) {
         (idnode == "calendar-task-tree" || sunbird);
     document.getElementById("task-context-menu-modify-todaypane").hidden =
         (idnode == "calendar-task-tree" || sunbird);
-    let tasksSelected = (getSelectedTasks(aEvent).length > 0);
+    let tasksSelected = (items.length > 0);
     applyAttributeToMenuChildren(aEvent.target, "disabled", (!tasksSelected));
     if (calendarController.isCommandEnabled("calendar_new_todo_command") &&
         calendarController.isCommandEnabled("calendar_new_todo_todaypane_command")) {
@@ -118,6 +119,9 @@ function changeContextMenuForTask(aEvent) {
     }
 
     changeMenuForTask(aEvent);
+
+    let menu = document.getElementById("task-context-menu-attendance-menu");
+    setupAttendanceMenu(menu, items);
 }
 
 /**

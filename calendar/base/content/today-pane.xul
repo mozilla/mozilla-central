@@ -46,6 +46,7 @@
     <!ENTITY % dtd3 SYSTEM "chrome://messenger/locale/messenger.dtd" > %dtd3;
     <!ENTITY % dtd4 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd4;
     <!ENTITY % dtd5 SYSTEM "chrome://global/locale/global.dtd" > %dtd5;
+    <!ENTITY % dtd6 SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd"> %dtd6;
 ]>
 
 <?xml-stylesheet href="chrome://calendar/skin/today-pane.css" type="text/css"?>
@@ -200,32 +201,6 @@
                   <observes element="calendar_new_event_command" attribute="disabled"/>
                 </toolbarbutton>
              </hbox>
-             <menupopup id="agenda-menu" onpopupshowing="if (event.target == event.currentTarget) { agendaListbox.buildAgendaPopupMenu(this) }"/>
-             <vbox id="agenda-menu-box" hidden="true">
-               <menuitem label="&calendar.context.modifyorviewitem.label;"
-                         accesskey="&calendar.context.modifyorviewitem.accesskey;"
-                         observes="agenda_edit_event_command"/>
-               <menu id="agenda-context-menu-convert-menu"
-                     label="&calendar.context.convertmenu.label;"
-                     accesskey="&calendar.context.convertmenu.accesskey.calendar;">
-                 <menupopup id="agenda-context-menu-convert-menupopup">
-                   <menuitem id="agenda-context-menu-convert-message-menuitem"
-                             label="&calendar.context.convertmenu.message.label;"
-                             accesskey="&calendar.context.convertmenu.message.accesskey;"
-                             oncommand="calendarMailButtonDNDObserver.onDropItems(agendaListbox.getSelectedItems())"/>
-                   <menuitem id="agenda-context-menu-convert-task-menuitem"
-                             class="event-only"
-                             label="&calendar.context.convertmenu.task.label;"
-                             accesskey="&calendar.context.convertmenu.task.accesskey;"
-                             oncommand="calendarTaskButtonDNDObserver.onDropItems(agendaListbox.getSelectedItems())"/>
-                 </menupopup>
-               </menu>
-               <menuseparator id="calendar-today-pane-menuseparator-before-delete"/>
-               <menuitem label="&calendar.context.deleteevent.label;"
-                         accesskey="&calendar.context.deleteevent.accesskey;"
-                         key="calendar-delete-item-key"
-                         observes="agenda_delete_event_command"/>
-             </vbox>
              <vbox id="richlistitem-container" hidden="true">
                 <agenda-checkbox-richlist-item id="today-header-hidden"
                                                title="&calendar.today.button.label;"
@@ -239,15 +214,98 @@
                                                title="&calendar.soon.button.label;"
                                                checked="false"
                                                persist="checked"/>
-             </vbox>
-             <richlistbox id="agenda-listbox" flex="1" context="agenda-menu"
+              </vbox>
+              <richlistbox id="agenda-listbox" flex="1" context="_child"
                            onblur="agendaListbox.onBlur();"
                            onfocus="agendaListbox.onFocus();"
                            onkeypress="agendaListbox.onKeyPress(event);"
                            ondblclick="agendaListbox.createNewEvent(event);"
                            ondraggesture="nsDragAndDrop.startDrag(event, calendarCalendarButtonDNDObserver);"
                            ondragover="nsDragAndDrop.dragOver(event, calendarCalendarButtonDNDObserver);"
-                           ondragdrop="nsDragAndDrop.drop(event, calendarCalendarButtonDNDObserver);"/>
+                           ondragdrop="nsDragAndDrop.drop(event, calendarCalendarButtonDNDObserver);">
+                <menupopup id="agenda-menupopup" onpopupshowing="return agendaListbox.setupContextMenu(event.target)">
+                  <menuitem label="&calendar.context.modifyorviewitem.label;"
+                           accesskey="&calendar.context.modifyorviewitem.accesskey;"
+                           observes="agenda_edit_event_command"/>
+                  <menu id="agenda-context-menu-convert-menu"
+                       label="&calendar.context.convertmenu.label;"
+                       accesskey="&calendar.context.convertmenu.accesskey.calendar;">
+                   <menupopup id="agenda-context-menu-convert-menupopup">
+                     <menuitem id="agenda-context-menu-convert-message-menuitem"
+                               label="&calendar.context.convertmenu.message.label;"
+                               accesskey="&calendar.context.convertmenu.message.accesskey;"
+                               oncommand="calendarMailButtonDNDObserver.onDropItems(agendaListbox.getSelectedItems())"/>
+                     <menuitem id="agenda-context-menu-convert-task-menuitem"
+                               class="event-only"
+                               label="&calendar.context.convertmenu.task.label;"
+                               accesskey="&calendar.context.convertmenu.task.accesskey;"
+                               oncommand="calendarTaskButtonDNDObserver.onDropItems(agendaListbox.getSelectedItems())"/>
+                   </menupopup>
+                  </menu>
+                  <menuseparator id="calendar-today-pane-menuseparator-before-delete"/>
+                  <menuitem label="&calendar.context.deleteevent.label;"
+                           accesskey="&calendar.context.deleteevent.accesskey;"
+                           key="calendar-delete-item-key"
+                           observes="agenda_delete_event_command"/>
+                  <menu id="calendar-today-pane-menu-attendance-menu"
+                       class="attendance-menu"
+                       label="&calendar.context.attendance.menu.label;"
+                       accesskey="&calendar.context.attendance.menu.accesskey;"
+                       oncommand="setContextPartstat(event.target.value, event.target.getAttribute('scope'), agendaListbox.getSelectedItems({}))"
+                       observes="calendar_attendance_command">
+                   <menupopup id="calendar-today-pane-menu-attendance-menupopup">
+                     <label id="calendar-today-pane-attendance-thisoccurrence-label"
+                            class="calendar-context-heading-label"
+                            scope="all-occurrences"
+                            value="&calendar.context.attendance.occurrence.label;"/>
+                     <menuitem id="calendar-today-pane-menu-attend-accept-menuitem"
+                               type="radio"
+                               scope="this-occurrence"
+                               name="calendar-today-pane-attendance"
+                               label="&read.only.accept.label;" value="ACCEPTED"/>
+                     <menuitem id="calendar-today-pane-menu-attend-tentative-menuitem"
+                               type="radio"
+                               scope="this-occurrence"
+                               name="calendar-today-pane-attendance"
+                               label="&read.only.tentative.label;" value="TENTATIVE"/>
+                     <menuitem id="calendar-today-pane-menu-attend-declined-menuitem"
+                               type="radio"
+                               scope="this-occurrence"
+                               name="calendar-today-pane-attendance"
+                               label="&read.only.decline.label;" value="DECLINED"/>
+                     <menuitem id="calendar-today-pane-menu-attend-needsaction-menuitem"
+                               type="radio"
+                               scope="this-occurrence"
+                               name="calendar-today-pane-attendance"
+                               label="&read.only.needs.action.label;" value="NEEDS-ACTION"/>
+                     <label id="calendar-today-pane-attendance-alloccurrence-label"
+                            class="calendar-context-heading-label"
+                            scope="all-occurrences"
+                            value="&calendar.context.attendance.all.label;"/>
+                     <menuitem id="calendar-today-pane-menu-attend-accept-all-menuitem"
+                               type="radio"
+                               scope="all-occurrences"
+                               name="calendar-today-pane-attendance-all"
+                               label="&read.only.accept.label;" value="ACCEPTED"/>
+                     <menuitem id="calendar-today-pane-menu-attend-tentative-all-menuitem"
+                               type="radio"
+                               scope="all-occurrences"
+                               name="calendar-today-pane-attendance-all"
+                               label="&read.only.tentative.label;" value="TENTATIVE"/>
+                     <menuitem id="calendar-today-pane-menu-attend-declined-all-menuitem"
+                               type="radio"
+                               scope="all-occurrences"
+                               name="calendar-today-pane-attendance-all"
+                               label="&read.only.decline.label;" value="DECLINED"/>
+                     <menuitem id="calendar-today-pane-menu-attend-needsaction-all-menuitem"
+                               type="radio"
+                               scope="all-occurrences"
+                               name="calendar-today-pane-attendance-all"
+                               label="&read.only.needs.action.label;" value="NEEDS-ACTION"/>
+                   </menupopup>
+                  </menu>
+                </menupopup>
+              </richlistbox>
             </vbox>
         </modevbox>
         <splitter id="today-pane-splitter" persist="hidden"/>

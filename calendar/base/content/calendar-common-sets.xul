@@ -243,6 +243,7 @@
                 key="calendar-delete-item-key"
                 observes="calendar_delete_event_command"/>
       <menu id="calendar-item-context-menu-attendance-menu"
+            class="attendance-menu"
             label="&calendar.context.attendance.menu.label;"
             accesskey="&calendar.context.attendance.menu.accesskey;"
             oncommand="setContextPartstat(event.target.value, event.target.getAttribute('scope'), currentView().getSelectedItems({}))"
@@ -425,6 +426,63 @@
                 label="&calendar.context.deletetask.label;"
                 accesskey="&calendar.context.deletetask.accesskey;"
                 observes="calendar_delete_todo_command"/>
+      <menu id="task-context-menu-attendance-menu"
+            class="attendance-menu"
+            label="&calendar.context.attendance.menu.label;"
+            accesskey="&calendar.context.attendance.menu.accesskey;"
+            oncommand="setContextPartstat(event.target.value, event.target.getAttribute('scope'), getSelectedTasks())"
+            observes="calendar_attendance_command">
+        <menupopup id="task-context-menu-attendance-menupopup">
+          <label id="task-context-attendance-thisoccurrence-label"
+                 class="calendar-context-heading-label"
+                 scope="all-occurrences"
+                 value="&calendar.context.attendance.occurrence.label;"/>
+          <menuitem id="task-context-menu-attend-accept-menuitem"
+                    type="radio"
+                    scope="this-occurrence"
+                    name="task-context-attendance"
+                    label="&read.only.accept.label;" value="ACCEPTED"/>
+          <menuitem id="task-context-menu-attend-tentative-menuitem"
+                    type="radio"
+                    scope="this-occurrence"
+                    name="task-context-attendance"
+                    label="&read.only.tentative.label;" value="TENTATIVE"/>
+          <menuitem id="task-context-menu-attend-declined-menuitem"
+                    type="radio"
+                    scope="this-occurrence"
+                    name="task-context-attendance"
+                    label="&read.only.decline.label;" value="DECLINED"/>
+          <menuitem id="task-context-menu-attend-needsaction-menuitem"
+                    type="radio"
+                    scope="this-occurrence"
+                    name="task-context-attendance"
+                    label="&read.only.needs.action.label;" value="NEEDS-ACTION"/>
+          <label id="task-context-attendance-alloccurrence-label"
+                 class="calendar-context-heading-label"
+                 scope="all-occurrences"
+                 value="&calendar.context.attendance.all.label;"/>
+          <menuitem id="task-context-menu-attend-accept-all-menuitem"
+                    type="radio"
+                    scope="all-occurrences"
+                    name="task-context-attendance-all"
+                    label="&read.only.accept.label;" value="ACCEPTED"/>
+          <menuitem id="task-context-menu-attend-tentative-all-menuitem"
+                    type="radio"
+                    scope="all-occurrences"
+                    name="task-context-attendance-all"
+                    label="&read.only.tentative.label;" value="TENTATIVE"/>
+          <menuitem id="task-context-menu-attend-declined-all-menuitem"
+                    type="radio"
+                    scope="all-occurrences"
+                    name="task-context-attendance-all"
+                    label="&read.only.decline.label;" value="DECLINED"/>
+          <menuitem id="task-context-menu-attend-needsaction-all-menuitem"
+                    type="radio"
+                    scope="all-occurrences"
+                    name="task-context-attendance-all"
+                    label="&read.only.needs.action.label;" value="NEEDS-ACTION"/>
+        </menupopup>
+      </menu>
     </menupopup>
   </popupset>
 </overlay>

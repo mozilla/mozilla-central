@@ -527,7 +527,7 @@ function setContextPartstat(value, scope, items) {
             }
         }
     } catch (e) {
-        cal.ERROR("Error settinge partstat: " + e);
+        cal.ERROR("Error setting partstat: " + e);
     } finally {
         endBatchTransaction();
     }
