@@ -120,9 +120,15 @@ var homeButtonObserver = {
 
   onDragOver: function (aEvent, aFlavour, aDragSession)
     {
+      const nsIDragService = Components.interfaces.nsIDragService;
+      if (aEvent.target == aDragSession.dataTransfer.mozSourceNode)
+        {
+          aDragSession.dragAction = nsIDragService.DRAGDROP_ACTION_NONE;
+          return;
+        }
       var statusTextFld = document.getElementById("statusbar-display");
       statusTextFld.label = gNavigatorBundle.getString("droponhomebutton");
-      aDragSession.dragAction = Components.interfaces.nsIDragService.DRAGDROP_ACTION_LINK;
+      aDragSession.dragAction = nsIDragService.DRAGDROP_ACTION_LINK;
     },
 
   onDragExit: function (aEvent, aDragSession)
