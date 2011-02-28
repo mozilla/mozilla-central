@@ -794,7 +794,7 @@ var PlacesStarButton = {
   onItemAdded:
   function PSB_onItemAdded(aItemId, aFolder, aIndex, aItemType, aURI)
   {
-    if (aURI.equals(this._uri)) {
+    if (aURI && aURI.equals(this._uri)) {
       // If a new bookmark has been added to the tracked uri, register it.
       if (this._itemIds.indexOf(aItemId) == -1) {
         this._itemIds.push(aItemId);
