@@ -449,7 +449,7 @@
 <!ENTITY alignLeftButton.tooltip "Align text along left margin">
 <!ENTITY alignCenterButton.tooltip "Align text centered">
 <!ENTITY alignRightButton.tooltip "Align text along right margin">
-<!ENTITY alignjustifyButton.tooltip "Align text along left and right margins">
+<!ENTITY alignJustifyButton.tooltip "Align text along left and right margins">
 
 <!-- Display Mode toolbar and View menu items -->
 <!ENTITY NormalModeTab.label "Normal">

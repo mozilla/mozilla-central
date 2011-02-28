@@ -227,8 +227,8 @@
            grippytooltiptext="&formatToolbar.tooltip;"
            nowindowdrag="true">
     <!-- from editorOverlay -->
-    <menulist id="ParagraphSelect"/>
-    <stack id="ColorButtons"/>
+    <toolbaritem id="paragraph-select-container"/>
+    <toolbaritem id="color-buttons-container"/>
     <toolbarbutton id="HighlightColorButton"/>
 
     <toolbarseparator class="toolbarseparator-standard"/>

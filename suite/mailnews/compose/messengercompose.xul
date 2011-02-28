@@ -634,10 +634,10 @@
              persist="collapsed"
              grippytooltiptext="&formatToolbar.tooltip;"
              nowindowdrag="true">
-      <menulist id="ParagraphSelect"/>
-      <menulist id="FontFaceSelect"/>
-      <stack id="ColorButtons"
-             disableoncustomize="true"/>
+      <toolbaritem id="paragraph-select-container"/>
+      <toolbaritem id="font-face-select-container"/>
+      <toolbaritem id="color-buttons-container"
+                   disableoncustomize="true"/>
       <toolbarbutton id="DecreaseFontSizeButton"/>
       <toolbarbutton id="IncreaseFontSizeButton"/>
       <toolbarseparator class="toolbarseparator-standard"/>

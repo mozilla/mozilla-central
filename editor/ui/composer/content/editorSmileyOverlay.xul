@@ -40,9 +40,11 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <!-- smiley menu -->
-  <toolbarbutton type="menu" id="smileButtonMenu"
-                 observes="cmd_smiley"
-                 tooltiptext="&SmileButton.tooltip;">
+  <toolbarbutton id="smileButtonMenu"
+                 class="formatting-button"
+                 tooltiptext="&SmileButton.tooltip;"
+                 type="menu"
+                 observes="cmd_smiley">
     <menupopup id="smilyPopup">
       <menuitem class="smiley insert-smile menuitem-iconic"       label="&smiley1Cmd.label;" 
                 oncommand="doStatefulCommand('cmd_smiley', ':-)'  )"  
