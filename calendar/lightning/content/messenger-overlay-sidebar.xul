@@ -510,7 +510,6 @@
     <vbox id="calendarTabPanel">
       <hbox id="calendarContent" flex="1">
         <vbox id="ltnSidebar"
-              minwidth="100"
               width="200"
               persist="collapsed width">
           <modevbox id="minimonth-pane" mode="calendar,task" broadcaster="modeBroadcaster" refcontrol="calendar_toggle_minimonthpane_command">
@@ -520,7 +519,7 @@
               </hbox>
             </vbox>
           </modevbox>
-          <separator/>
+          <separator id="minimonth-splitter" minwidth="100"/>
           <vbox id="calendar-panel" flex="1">
             <modevbox id="task-filter-pane" mode="task" broadcaster="modeBroadcaster" refcontrol="calendar_toggle_filter_command">
               <treenode-checkbox id="task-tree-filter-header"
