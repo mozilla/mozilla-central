@@ -139,7 +139,3 @@
 #syncDesc {
   padding: 0 12em;
 }
-
-#connectThrobber {
-  list-style-image: url("chrome://communicator/skin/icons/loading.gif");
-}

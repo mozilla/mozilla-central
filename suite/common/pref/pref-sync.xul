@@ -85,78 +85,60 @@
         <vbox id="hasAccount">
           <groupbox>
             <caption label="&accountGroupboxCaption.label;"/>
-            <grid>
-              <rows>
-                <row align="center">
-                  <label value="&currentAccount.label;" control="currentAccount"/>
-                  <textbox id="currentAccount" readonly="true">
-                    <image/>
-                  </textbox>
-                  <hbox align="center">
-                    <button id="connectButton" oncommand="gSyncPane.handleConnectCommand();"/>
-                    <image id="connectThrobber"
-                           hidden="true"/>
-                  </hbox>
-                </row>
-                <row id="loginFeedbackRow" hidden="true">
-                  <spacer/>
-                  <vbox>
-                    <label id="loginError" value=""/>
-                    <hbox>
-                      <button label="&updatePass.label;"
-                              accesskey="&updatePass.accesskey;"
-                              oncommand="gSyncPane.updatePass(); return false;"
-                              id="updatePassButton"/>
-                      <button label="&resetPass.label;"
-                              accesskey="&resetPass.accesskey;"
-                              oncommand="gSyncPane.resetPass(); return false;"
-                              id="resetPassButton"/>
-                    </hbox>
-                  </vbox>
-                  <spacer/>
-                </row>
-                <label value="&manageAccount.label;"/>
-                <vbox class="indent">
-                  <grid flex="1">
-                    <columns>
-                      <column/>
-                      <column/>
-                      <column/>
-                    </columns>
-                    <rows>
-                      <row>
-                        <button label="&viewQuota.label;"
-                                accesskey="&viewQuota.accesskey;"
-                                oncommand="gSyncPane.openQuotaDialog(); return false;"
-                                id="viewQuotaButton"/>
-                        <button label="&changePassword.label;"
-                                accesskey="&changePassword.accesskey;"
-                                oncommand="gSyncUtils.changePassword(); return false;"
-                                id="changeSyncPasswordButton"/>
-                        <button label="&mySyncKey.label;"
-                                accesskey="&mySyncKey.accesskey;"
-                                oncommand="gSyncUtils.resetPassphrase(); return false;"
-                                id="mySyncKeyButton"/>
-                      </row>
-                      <row>
-                        <button label="&resetSync.label;"
-                                accesskey="&resetSync.accesskey;"
-                                oncommand="gSyncPane.resetSync(); return false;"
-                                id="resetSyncButton"/>
-                        <button label="&stopUsingAccount.label;"
-                                accesskey="&stopUsingAccount.accesskey;"
-                                oncommand="gSyncPane.startOver(true); return false;"
-                                id="stopUsingAccountButton"/>
-                        <spacer/>
-                      </row>
-                    </rows>
-                  </grid>
-                </vbox>
-              </rows>
-            </grid>
+            <hbox align="center">
+              <label value="&accountName.label;" control="accountName"/>
+              <textbox id="accountName" flex="1" readonly="true"/>
+              <button type="menu"
+                      label="&manageAccount.label;"
+                      accesskey="&manageAccount.accesskey;">
+                <menupopup>
+                  <menuitem label="&viewQuota.label;"
+                            accesskey="&viewQuota.accesskey;"
+                            oncommand="gSyncPane.openQuotaDialog();"/>
+                  <menuseparator/>
+                  <menuitem label="&changePassword.label;"
+                            accesskey="&changePassword.accesskey;"
+                            oncommand="gSyncUtils.changePassword();"/>
+                  <menuitem label="&mySyncKey.label;"
+                            accesskey="&mySyncKey.accesskey;"
+                            oncommand="gSyncUtils.resetPassphrase();"/>
+                  <menuseparator/>
+                  <menuitem label="&resetSync.label;"
+                            accesskey="&resetSync.accesskey;"
+                            oncommand="gSyncPane.resetSync();"/>
+                  <menuitem label="&stopUsingAccount.label;"
+                            accesskey="&stopUsingAccount.accesskey;"
+                            oncommand="gSyncPane.startOver(true);"/>
+                </menupopup>
+              </button>
+            </hbox>
+            <vbox>
+              <label value="&syncMy2.label;"/>
+              <listbox id="syncEnginesList" flex="1">
+                <listitem type="checkbox"
+                          label="&engine.bookmarks.label;"
+                          accesskey="&engine.bookmarks.accesskey;"
+                          preference="engine.bookmarks"/>
+                <listitem type="checkbox"
+                          label="&engine.history.label;"
+                          accesskey="&engine.history.accesskey;"
+                          preference="engine.history"/>
+                <listitem type="checkbox"
+                          label="&engine.passwords.label;"
+                          accesskey="&engine.passwords.accesskey;"
+                          preference="engine.passwords"/>
+                <listitem type="checkbox"
+                          label="&engine.prefs.label;"
+                          accesskey="&engine.prefs.accesskey;"
+                          preference="engine.prefs"/>
+                <listitem type="checkbox"
+                          label="&engine.tabs.label;"
+                          accesskey="&engine.tabs.accesskey;"
+                          preference="engine.tabs"/>
+              </listbox>
+            </vbox>
           </groupbox>
           <groupbox>
-            <caption label="&syncPrefsCaption.label;"/>
             <grid>
               <columns>
                 <column/>
@@ -170,29 +152,8 @@
                   <textbox id="syncComputerName"
                            onchange="gSyncUtils.changeName(this);"/>
                 </row>
-                <row>
-                  <label value="&syncMy.label;"/>
-                  <vbox>
-                    <checkbox label="&engine.bookmarks.label;"
-                              accesskey="&engine.bookmarks.accesskey;"
-                              preference="engine.bookmarks"/>
-                    <checkbox label="&engine.history.label;"
-                              accesskey="&engine.history.accesskey;"
-                              preference="engine.history"/>
-                    <checkbox label="&engine.passwords.label;"
-                              accesskey="&engine.passwords.accesskey;"
-                              preference="engine.passwords"/>
-                    <checkbox label="&engine.prefs.label;"
-                              accesskey="&engine.prefs.accesskey;"
-                              preference="engine.prefs"/>
-                    <checkbox label="&engine.tabs.label;"
-                              accesskey="&engine.tabs.accesskey;"
-                              preference="engine.tabs"/>
-                  </vbox>
-                </row>
               </rows>
             </grid>
-            <separator/>
           </groupbox>
           <hbox id="tosPP" pack="center">
             <label class="text-link"
@@ -202,6 +163,23 @@
                    onclick="event.stopPropagation(); gSyncUtils.openPrivacyPolicy();"
                    value="&prefs.ppLink.label;"/>
           </hbox>
+        </vbox>
+        <vbox id="needsUpdate" align="center" pack="center">
+          <hbox>
+            <label id="loginError" value=""/>
+            <button label="&updatePass.label;"
+                    accesskey="&updatePass.accesskey;"
+                    oncommand="gSyncPane.updatePass(); return false;"
+                    id="updatePassButton"/>
+            <button label="&resetPass.label;"
+                    accesskey="&resetPass.accesskey;"
+                    oncommand="gSyncPane.resetPass(); return false;"
+                    id="resetPassButton"/>
+          </hbox>
+          <button label="&stopUsingAccount.label;"
+                  accesskey="&stopUsingAccount.accesskey;"
+                  oncommand="gSyncPane.startOver(true); return false;"
+                  id="stopUsingAccountButton"/>
         </vbox>
       </deck>
   </prefpane>

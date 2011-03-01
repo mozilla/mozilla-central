@@ -5,16 +5,17 @@
 
 <!-- The page shown when logged in... -->
 <!ENTITY accountGroupboxCaption.label "&syncBrand.fullName.label; Account">
-<!ENTITY currentAccount.label         "Current Account:">
+<!ENTITY accountName.label            "Account Name:">
 
 <!-- Login error feedback -->
 <!ENTITY updatePass.label             "Update">
 <!ENTITY updatePass.accesskey         "U">
 <!ENTITY resetPass.label              "Reset">
-<!ENTITY resetPass.accesskey          "s">
+<!ENTITY resetPass.accesskey          "R">
 
 <!-- Manage Account -->
 <!ENTITY manageAccount.label          "Manage Account">
+<!ENTITY manageAccount.accesskey      "A">
 <!ENTITY viewQuota.label              "View Quota">
 <!ENTITY viewQuota.accesskey          "V">
 <!ENTITY changePassword.label         "Change Password">
@@ -24,14 +25,13 @@
 <!ENTITY resetSync.label              "Reset Sync">
 <!ENTITY resetSync.accesskey          "e">
 <!ENTITY stopUsingAccount.label       "Stop Using This Account">
-<!ENTITY stopUsingAccount.accesskey   "A">
+<!ENTITY stopUsingAccount.accesskey   "S">
 
 <!-- Sync Settings -->
-<!ENTITY syncPrefsCaption.label       "Browser Sync">
 <!ENTITY syncComputerName.label       "Computer Name:">
 <!ENTITY syncComputerName.accesskey   "N">
 
-<!ENTITY syncMy.label               "Sync My">
+<!ENTITY syncMy2.label              "Sync My:">
 <!ENTITY engine.bookmarks.label     "Bookmarks">
 <!ENTITY engine.bookmarks.accesskey "B">
 <!ENTITY engine.tabs.label          "Tabs">

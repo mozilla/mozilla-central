@@ -42,6 +42,7 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 
 const PAGE_NO_ACCOUNT = 0;
 const PAGE_HAS_ACCOUNT = 1;
+const PAGE_NEEDS_UPDATE = 2;
 
 let gSyncPane = {
   _stringBundle: null,
@@ -58,53 +59,32 @@ let gSyncPane = {
     return Weave.Svc.Prefs.isSet("serverURL");
   },
 
-  onLoginStart: function () {
-    if (this.page == PAGE_NO_ACCOUNT)
-      return;
-
-    document.getElementById("loginFeedbackRow").hidden = true;
-    document.getElementById("connectThrobber").hidden = false;
-  },
-
-  onLoginError: function () {
-    if (this.page == PAGE_NO_ACCOUNT)
-      return;
-
-    document.getElementById("connectThrobber").hidden = true;
-    document.getElementById("loginFeedbackRow").hidden = false;
+  needsUpdate: function () {
+    this.page = PAGE_NEEDS_UPDATE;
     let label = document.getElementById("loginError");
     label.value = Weave.Utils.getErrorString(Weave.Status.login);
     label.className = "error";
   },
 
-  onLoginFinish: function () {
-    document.getElementById("connectThrobber").hidden = true;
-    this.updateWeavePrefs();
-  },
-
   init: function () {
-    let obs = [
-      ["weave:service:login:start",   "onLoginStart"],
-      ["weave:service:login:error",   "onLoginError"],
-      ["weave:service:login:finish",  "onLoginFinish"],
-      ["weave:service:start-over",    "updateWeavePrefs"],
-      ["weave:service:setup-complete","updateWeavePrefs"],
-      ["weave:service:logout:finish", "updateWeavePrefs"]];
+    let topics = [
+      "weave:service:login:error",
+      "weave:service:login:finish",
+      "weave:service:start-over",
+      "weave:service:setup-complete",
+      "weave:service:logout:finish"];
 
     // Add the observers now and remove them on unload
-    let self = this;
-    let addRem = function(add) {
-      obs.forEach(function([topic, func]) {
-        //XXXzpao This should use Services.obs.* but Weave's Obs does nice handling
-        //        of `this`. Fix in a followup. (bug 583347)
-        if (add)
-          Weave.Svc.Obs.add(topic, self[func], self);
-        else
-          Weave.Svc.Obs.remove(topic, self[func], self);
-      });
-    };
-    addRem(true);
-    window.addEventListener("unload", function() addRem(false), false);
+    //XXXzpao This should use Services.obs.* but Weave's Obs does nice handling
+    //        of `this`. Fix in a followup. (bug 583347)
+    topics.forEach(function(topic) {
+      Weave.Svc.Obs.add(topic, this.updateWeavePrefs, this);
+    }, this);
+    window.addEventListener("unload", function() {
+      topics.forEach(function (topic) {
+        Weave.Svc.Obs.remove(topic, this.updateWeavePrefs, this);
+      }, gSyncPane);
+    }, false);
 
     this._stringBundle =
       Services.strings.createBundle("chrome://communicator/locale/pref/prefutilities.properties");
@@ -113,28 +93,17 @@ let gSyncPane = {
 
   updateWeavePrefs: function () {
     if (Weave.Status.service == Weave.CLIENT_NOT_CONFIGURED ||
-        Weave.Svc.Prefs.get("firstSync", "") == "notReady")
+        Weave.Svc.Prefs.get("firstSync", "") == "notReady") {
       this.page = PAGE_NO_ACCOUNT;
-    else {
+    } else if (Weave.Status.login == Weave.LOGIN_FAILED_INVALID_PASSPHRASE ||
+               Weave.Status.login == Weave.LOGIN_FAILED_LOGIN_REJECTED) {
+      this.needsUpdate();
+    } else {
       this.page = PAGE_HAS_ACCOUNT;
-      document.getElementById("currentAccount").value = Weave.Service.account;
+      document.getElementById("accountName").value = Weave.Service.account;
       document.getElementById("syncComputerName").value = Weave.Clients.localName;
-      if (Weave.Status.service == Weave.LOGIN_FAILED)
-        this.onLoginError();
-      this.updateConnectButton();
       document.getElementById("tosPP").hidden = this._usingCustomServer;
     }
-  },
-
-  updateConnectButton: function () {
-    let prefix = Weave.Service.isLoggedIn ? "dis" : "";
-    let button = document.getElementById("connectButton");
-    button.label = this._stringBundle.GetStringFromName(prefix + "connect.label");
-    button.accessKey = this._stringBundle.GetStringFromName(prefix + "connect.accesskey");
-  },
-
-  handleConnectCommand: function () {
-    Weave.Service.isLoggedIn ? Weave.Service.logout() : Weave.Service.login();
   },
 
   startOver: function (showDialog) {
