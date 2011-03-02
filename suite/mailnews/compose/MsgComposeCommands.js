@@ -423,10 +423,6 @@ var defaultController =
       case "cmd_account":
       case "cmd_preferences":
 
-      //View Menu
-      case "cmd_showComposeToolbar":
-      case "cmd_showFormatToolbar":
-
       //Options Menu
       case "cmd_selectAddress":
       case "cmd_outputFormat":
@@ -475,12 +471,6 @@ var defaultController =
       case "cmd_account":
       case "cmd_preferences":
         return true;
-
-      //View Menu
-      case "cmd_showComposeToolbar":
-        return true;
-      case "cmd_showFormatToolbar":
-        return composeHTML;
 
       //Options Menu
       case "cmd_selectAddress":
@@ -533,10 +523,6 @@ var defaultController =
       case "cmd_openAttachment"     : if (MessageGetNumSelectedAttachments() == 1) OpenSelectedAttachment();   break;
       case "cmd_account"            : MsgAccountManager(null); break;
       case "cmd_preferences"        : DoCommandPreferences(); break;
-
-      //View Menu
-      case "cmd_showComposeToolbar" : goToggleToolbar('composeToolbar', 'menu_showComposeToolbar'); break;
-      case "cmd_showFormatToolbar"  : goToggleToolbar('FormatToolbar', 'menu_showFormatToolbar');   break;
 
       //Options Menu
       case "cmd_selectAddress"      : if (defaultController.isCommandEnabled(command)) SelectAddress();         break;

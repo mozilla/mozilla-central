@@ -25,6 +25,7 @@
    -   Ben Goodger
    -   Michael Lowe
    -   Sammy Ford
+   -   Ian Neal
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -95,12 +96,7 @@
   <menupopup id="sidebarPopup"/>
   <menupopup id="popupNotificationMenu"/>
 
-  <commandset id="tasksCommands">
-    <commandset id="globalEditMenuItems"/>
-    <commandset id="selectEditMenuItems"/>
-    <commandset id="undoEditMenuItems"/>
-    <commandset id="clipboardEditMenuItems"/>
-    
+  <commandset id="editorCommands">
     <commandset id="commonEditorMenuItems"/>
     <commandset id="composerMenuItems"/>
     <commandset id="composerEditMenuItems"/>
@@ -108,20 +104,23 @@
     <commandset id="composerStyleMenuItems"/>
     <commandset id="composerTableMenuItems"/>
     <commandset id="composerListMenuItems"/>
-    <command id="toggleSidebar"/>
+    <commandset id="tasksCommands"/>
+    <!-- view menu -->
+    <command id="cmd_viewEditModeToolbar"
+             oncommand="goToggleToolbar('EditModeToolbar','cmd_viewEditModeToolbar');"
+             checked="true"/>
   </commandset>
 
   <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltipEditor(this);"/>
 
-  <broadcaster id="args" value="about:blank"/>
-  
   <!-- Interim hack to transition from nsIXULWindowCallbacks/ShowWindowWithArgs
   <broadcaster id="dialog.start" ready="false"/>
   <observes element="dialog.start" attribute="ready" onbroadcast="EditorStartup('html')"/>
 -->
-  <broadcasterset id="broadcasterset">
+  <broadcasterset id="editorBroadcasters">
     <broadcaster id="Editor:Throbber" busy="false"/>
     <broadcaster id="Communicator:WorkMode"/>
+    <broadcaster id="args" value="about:blank"/>
   </broadcasterset>
 
   <!-- keys are appended from the overlay -->

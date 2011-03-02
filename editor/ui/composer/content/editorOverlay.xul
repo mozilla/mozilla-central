@@ -295,17 +295,21 @@
     <command id="cmd_editTable"           oncommand="goDoCommand('cmd_editTable')"/>
   </commandset>
 
-  <broadcasterset id="broadcasterset">
-    <!-- Broadcasters/commands with no other home -->
-    <!-- view menu -->
+  <commandset id="editorCommands">
+    <commandset id="globalEditMenuItems"/>
+    <commandset id="selectEditMenuItems"/>
+    <commandset id="undoEditMenuItems"/>
+    <commandset id="clipboardEditMenuItems"/>
+    <command id="toggleSidebar"/>
+    <!-- file menu -->
     <command id="cmd_newNavigator"/>
     <command id="cmd_newEditor"/>
     <command id="cmd_newEditorTemplate"/>
     <command id="cmd_newEditorDraft"/>
+    <!-- view menu -->
     <command id="cmd_viewCompToolbar"     oncommand="goToggleToolbar('EditToolbar','cmd_viewCompToolbar');"         checked="true"/>
     <command id="cmd_viewFormatToolbar"   oncommand="goToggleToolbar('FormatToolbar','cmd_viewFormatToolbar');"     checked="true"/>
-    <command id="cmd_viewEditModeToolbar" oncommand="goToggleToolbar('EditModeToolbar','cmd_viewEditModeToolbar');" checked="true"/>
-  </broadcasterset>
+  </commandset>
 
   <!-- File  menu items -->
   <!-- Note: globalOverlay.xul uses menu_newEditor, but we want different menu item text

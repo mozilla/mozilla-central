@@ -23,6 +23,7 @@
    -
    - Contributor(s):
    -   Ryan Cassin (rcassin@supernova.org)
+   -   Ian Neal (iann_bugzilla@blueyonder.co.uk)
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -79,19 +80,13 @@
   <script type="application/javascript" src="chrome://editor/content/ComposerCommands.js"/>
   <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 
-  <commands id="commands">
-    <commandset id="globalEditMenuItems"/>
-    <commandset id="selectEditMenuItems"/>
-    <commandset id="undoEditMenuItems"/>
-    <commandset id="clipboardEditMenuItems"/>
+  <commandset id="editorCommands">
     <commandset id="commonEditorMenuItems"/>
     <commandset id="composerEditMenuItems"/>
     <commandset id="composerSaveMenuItems"/>
     <commandset id="composerMenuItems"/>
     <commandset id="tasksCommands"/>
-  </commands>
-
-  <broadcaster id="args" value="chrome://debugqa/content/EditorInitPagePlain.html"/>
+  </commandset>
 
 <!-- Interim hack to transition from nsIXULWindowCallbacks/ShowWindowWithArgs
   <broadcaster id="dialog.start" ready="false"/>
@@ -99,8 +94,10 @@
  -->
 
   <!-- broadcaster nodes are appended here from the overlays -->
-  <broadcasterset id="broadcasterset">
+  <broadcasterset id="editorBroadcasters">
     <broadcaster id="Editor:Throbber" busy="false"/>
+    <broadcaster id="args"
+                 value="chrome://debugqa/content/EditorInitPagePlain.html"/>
   </broadcasterset>
 
   <!-- keys are appended from the overlay -->
@@ -147,7 +144,10 @@
     </menubar>
 
      <!-- toolbar filled out from editorOverlay -->
-    <toolbar class="toolbar-primary" id="EditToolbar" persist="collapsed">
+    <toolbar id="EditToolbar"
+             class="chromeclass-toolbar toolbar-primary"
+             persist="collapsed"
+             grippytooltiptext="&compositionToolbar.tooltip;">
       <toolbarbutton id="newButton"/>
       <toolbarbutton id="openButton"/>
       <toolbarbutton id="saveButton"/>
