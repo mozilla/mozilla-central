@@ -45,6 +45,7 @@ const ELLIPSIS = Services.prefs.getComplexValue("intl.ellipsis",
 // entries are *prefixes*: for example, "accessibility." applies to all prefs
 // under the "accessibility.*" branch.
 const PREFS_WHITELIST = [
+  // core prefs
   "accessibility.",
   "browser.fixup.",
   "browser.history_expire_",
@@ -59,19 +60,23 @@ const PREFS_WHITELIST = [
   "extensions.lastAppVersion",
   "font.",
   "general.useragent.",
-  "gfx.color_management.mode",
+  "gfx.",
+  "html5.",
+  "mozilla.widget.render-mode",
+  "layers.",
   "javascript.",
   "keyword.",
   "layout.css.dpi",
-  "mail.openMessageBehavior.",
-  "mail.spotlight.",
-  "mail.winsearch.",
-  "mailnews.database.",
   "network.",
   "places.",
   "print.",
   "privacy.",
-  "security."
+  "security.",
+  // mail-specific prefs
+  "mail.openMessageBehavior.",
+  "mail.spotlight.",
+  "mail.winsearch.",
+  "mailnews.database.",
 ];
 
 // The blacklist, unlike the whitelist, is a list of regular expressions.
