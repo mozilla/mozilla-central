@@ -54,6 +54,7 @@
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIWebProgressListener.h"
 #include "nsIMsgCompose.h"
+#include "nsIDocShell.h"
 
 /* DBFCFDF0-4489-4faa-8122-190FD1EFA16C */
 #define NS_MSGCONTENTPOLICY_CID \
@@ -107,8 +108,8 @@ protected:
                                      nsIDocShell **aDocShell);
   nsresult GetOriginatingURIForContext(nsISupports *aRequestingContext,
                                        nsIURI **aURI);
-  nsresult DisableJSOnMailNewsUrlDocshells(nsIURI *aContentLocation,
-                                           nsISupports *aRequestingContext);
+  nsresult SetDisableItemsOnMailNewsUrlDocshells(nsIURI *aContentLocation,
+                                                 nsISupports *aRequestingContext);
 };
 
 #endif // _nsMsgContentPolicy_H_

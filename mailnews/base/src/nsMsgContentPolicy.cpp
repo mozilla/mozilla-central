@@ -38,41 +38,28 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMsgContentPolicy.h"
-#include "nsIServiceManager.h"
-#include "nsIDocShellTreeItem.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch2.h"
-#include "nsIURI.h"
-#include "nsIInterfaceRequestorUtils.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsIAbManager.h"
 #include "nsIAbDirectory.h"
 #include "nsIAbCard.h"
 #include "nsIMsgWindow.h"
 #include "nsIMimeMiscStatus.h"
-#include "nsIMsgMessageService.h"
 #include "nsIMsgHdr.h"
 #include "nsNetUtil.h"
-
 #include "nsIMsgComposeService.h"
 #include "nsMsgCompCID.h"
-
-// needed by the content load policy manager
-#include "nsIExternalProtocolService.h"
-#include "nsCExternalHandlerService.h"
-
-// needed for mailnews content load policy manager
-#include "nsIDocShell.h"
+#include "nsIDocShellTreeItem.h"
 #include "nsIWebNavigation.h"
 #include "nsContentPolicyUtils.h"
 #include "nsIDOMHTMLImageElement.h"
-#include "nsILoadContext.h"
 #include "nsIFrameLoader.h"
 #include "nsIWebProgress.h"
 #include "nsMsgUtils.h"
 
 static const char kBlockRemoteImages[] = "mailnews.message_display.disable_remote_image";
-static const char kAllowPlugins[] = "mailnews.message_display.allow.plugins";
+static const char kAllowPlugins[] = "mailnews.message_display.allow_plugins";
 static const char kTrustedDomains[] =  "mail.trusteddomains";
 
 // Per message headder flags to keep track of whether the user is allowing remote
@@ -251,13 +238,7 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
 #endif
 
   switch(aContentType) {
-
-  case nsIContentPolicy::TYPE_OBJECT:
-    // only allow the plugin to load if the allow plugins pref has been set
-    if (!mAllowPlugins)
-      *aDecision = nsIContentPolicy::REJECT_TYPE;
-    return NS_OK;
-
+    // Plugins (nsIContentPolicy::TYPE_OBJECT) are blocked on document load.
   case nsIContentPolicy::TYPE_DOCUMENT:
     // At this point, we have no intention of supporting a different JS
     // setting on a subdocument, so we don't worry about TYPE_SUBDOCUMENT here.
@@ -270,10 +251,11 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
     // sorry, because OnLocationChange isn't guaranteed to necessarily be called
     // soon enough to disable it in time (though bz says it _should_ be called 
     // soon enough "in all sane cases").
-    rv = DisableJSOnMailNewsUrlDocshells(aContentLocation, aRequestingContext);
-
+    rv = SetDisableItemsOnMailNewsUrlDocshells(aContentLocation,
+                                               aRequestingContext);
     // if something went wrong during the tweaking, reject this content
     if (NS_FAILED(rv)) {
+      NS_WARNING("Failed to set disable items on docShells");
       *aDecision = nsIContentPolicy::REJECT_TYPE;
       return NS_OK;
     }
@@ -652,7 +634,7 @@ already_AddRefed<nsIMsgCompose> nsMsgContentPolicy::GetMsgComposeForContext(nsIS
   return msgCompose;
 }
 
-nsresult nsMsgContentPolicy::DisableJSOnMailNewsUrlDocshells(
+nsresult nsMsgContentPolicy::SetDisableItemsOnMailNewsUrlDocshells(
   nsIURI *aContentLocation, nsISupports *aRequestingContext)
 {
   // XXX if this class changes so that this method can be called from
@@ -686,11 +668,11 @@ nsresult nsMsgContentPolicy::DisableJSOnMailNewsUrlDocshells(
   NS_ENSURE_SUCCESS(rv, rv);
   NS_ENSURE_TRUE(frameLoader, NS_ERROR_INVALID_POINTER);
   
-  nsCOMPtr<nsIDocShell> shell;
-  rv = frameLoader->GetDocShell(getter_AddRefs(shell));
+  nsCOMPtr<nsIDocShell> docShell;
+  rv = frameLoader->GetDocShell(getter_AddRefs(docShell));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIDocShellTreeItem> docshellTreeItem(do_QueryInterface(shell, &rv));
+  nsCOMPtr<nsIDocShellTreeItem> docshellTreeItem(do_QueryInterface(docShell, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // what sort of docshell is this?
@@ -703,7 +685,15 @@ nsresult nsMsgContentPolicy::DisableJSOnMailNewsUrlDocshells(
     return NS_OK;
   }
 
-  return shell->SetAllowJavascript(PR_FALSE);
+  // For messages, we must always disable javascript...
+  rv = docShell->SetAllowJavascript(PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // ...and we allow plugins according to the mail specific preference.
+  rv = docShell->SetAllowPlugins(mAllowPlugins);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return NS_OK;
 }
 
 /**
@@ -787,6 +777,8 @@ NS_IMETHODIMP nsMsgContentPolicy::Observe(nsISupports *aSubject, const char *aTo
 
     if (pref.Equals(kBlockRemoteImages))
       prefBranchInt->GetBoolPref(kBlockRemoteImages, &mBlockRemoteImages);
+    if (pref.Equals(kAllowPlugins))
+      prefBranchInt->GetBoolPref(kAllowPlugins, &mAllowPlugins);
   }
 
   return NS_OK;
@@ -842,9 +834,29 @@ nsMsgContentPolicy::OnLocationChange(nsIWebProgress *aWebProgress,
   }
 #endif
   
-  // If this is a mailnews url, turn off JavaScript, otherwise turn it on
   nsCOMPtr<nsIMsgMessageUrl> messageUrl = do_QueryInterface(aLocation, &rv);
-  return docShell->SetAllowJavascript(NS_FAILED(rv));
+
+  if (NS_SUCCEEDED(rv)) {
+    // Disable javascript on message URLs.
+    rv = docShell->SetAllowJavascript(PR_FALSE);
+    NS_ASSERTION(NS_SUCCEEDED(rv),
+                 "Failed to set javascript disabled on docShell");
+    // Also disable plugins if the preference requires it.
+    rv = docShell->SetAllowPlugins(mAllowPlugins);
+    NS_ASSERTION(NS_SUCCEEDED(rv),
+                 "Failed to set plugins disabled on docShell");
+  }
+  else {
+    // Disable javascript and plugins are allowed on non-message URLs.
+    rv = docShell->SetAllowJavascript(PR_TRUE);
+    NS_ASSERTION(NS_SUCCEEDED(rv),
+                 "Failed to set javascript allowed on docShell");
+    rv = docShell->SetAllowPlugins(PR_TRUE);
+    NS_ASSERTION(NS_SUCCEEDED(rv),
+                 "Failed to set plugins allowed on docShell");
+  }
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP

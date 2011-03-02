@@ -46,12 +46,11 @@
 #include "nsIDocShell.h"
 #include "nsIStringBundle.h"
 #include "nsILocalFile.h"
-#include "nsIObserver.h"
 #include "nsWeakReference.h"
 #include "nsIDOMWindow.h"
 #include "nsVoidArray.h"
 
-class nsMessenger : public nsIMessenger, public nsIObserver, public nsSupportsWeakReference, public nsIFolderListener
+class nsMessenger : public nsIMessenger, public nsSupportsWeakReference, public nsIFolderListener
 {
 
 public:
@@ -60,7 +59,6 @@ public:
 
   NS_DECL_ISUPPORTS  
   NS_DECL_NSIMESSENGER
-  NS_DECL_NSIOBSERVER
   NS_DECL_NSIFOLDERLISTENER
 
   nsresult Alert(const char * stringName);
@@ -104,8 +102,6 @@ private:
                          nsILocalFile **aSaveAsFile);
 
   nsresult GetSaveToDir(nsILocalFile **aSaveToDir);
-
-  nsresult SetDisplayProperties();
 
   nsString mId;
   nsCOMPtr<nsITransactionManager> mTxnMgr;

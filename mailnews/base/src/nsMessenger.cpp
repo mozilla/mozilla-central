@@ -143,10 +143,7 @@ static NS_DEFINE_CID(kMsgSendLaterCID, NS_MSGSENDLATER_CID);
 
 #define FOUR_K 4096
 #define MESSENGER_SAVE_DIR_PREF_NAME "messenger.save.dir"
-#define MAILNEWS_ALLOW_PLUGINS_PREF_NAME "mailnews.message_display.allow.plugins"
-
 #define MIMETYPE_DELETED    "text/x-moz-deleted"
-
 #define ATTACHMENT_PERMISSION 00664
 
 //
@@ -306,19 +303,14 @@ nsMessenger::nsMessenger()
 
 nsMessenger::~nsMessenger()
 {
-  // Release search context.
-  mSearchContext = nsnull;
 }
 
 
-NS_IMPL_ISUPPORTS4(nsMessenger, nsIMessenger, nsIObserver, nsISupportsWeakReference, nsIFolderListener)
+NS_IMPL_ISUPPORTS3(nsMessenger, nsIMessenger, nsISupportsWeakReference, nsIFolderListener)
 
 NS_IMETHODIMP nsMessenger::SetWindow(nsIDOMWindowInternal *aWin, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
-
-  nsCOMPtr<nsIPrefBranch2> pbi = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgMailSession> mailSession =
     do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
@@ -354,12 +346,7 @@ NS_IMETHODIMP nsMessenger::SetWindow(nsIDOMWindowInternal *aWin, nsIMsgWindow *a
         mCurrentDisplayCharset = ""; // Important! Clear out mCurrentDisplayCharset so we reset a default charset on mDocshell the next time we try to load something into it.
 
         if (aMsgWindow)
-        {
           aMsgWindow->GetTransactionManager(getter_AddRefs(mTxnMgr));
-          // Add pref observer
-          pbi->AddObserver(MAILNEWS_ALLOW_PLUGINS_PREF_NAME, this, PR_TRUE);
-          SetDisplayProperties();
-        }
       }
     }
 
@@ -371,11 +358,6 @@ NS_IMETHODIMP nsMessenger::SetWindow(nsIDOMWindowInternal *aWin, nsIMsgWindow *a
   } // if aWin
   else
   {
-    // it isn't an error to pass in null for aWin, in fact it means we are shutting
-    // down and we should start cleaning things up...
-    // Remove pref observer
-    pbi->RemoveObserver(MAILNEWS_ALLOW_PLUGINS_PREF_NAME, this);
-
     // Remove the folder listener if we added it, i.e. if mWindow is non-null
     if (mWindow)
     {
@@ -407,38 +389,6 @@ NS_IMETHODIMP nsMessenger::SetDisplayCharset(const nsACString& aCharset)
 
       mCurrentDisplayCharset = aCharset;
     }
-  }
-
-  return NS_OK;
-}
-
-nsresult
-nsMessenger::SetDisplayProperties()
-{
-  // For now, the only property we will set is allowPlugins but we might do more in the future...
-
-  nsresult rv;
-
-  if (!mDocShell)
-    return NS_ERROR_FAILURE;
-
-  PRBool allowPlugins = PR_FALSE;
-
-  nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-  if (NS_SUCCEEDED(rv))
-    prefBranch->GetBoolPref(MAILNEWS_ALLOW_PLUGINS_PREF_NAME, &allowPlugins);
-
-  return mDocShell->SetAllowPlugins(allowPlugins);
-}
-
-NS_IMETHODIMP
-nsMessenger::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *aData)
-{
-  if (!strcmp(aTopic, NS_PREFBRANCH_PREFCHANGE_TOPIC_ID))
-  {
-    nsDependentString prefName(aData);
-    if (prefName.EqualsLiteral(MAILNEWS_ALLOW_PLUGINS_PREF_NAME))
-      SetDisplayProperties();
   }
 
   return NS_OK;
