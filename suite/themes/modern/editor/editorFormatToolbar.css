@@ -57,7 +57,7 @@
 
 /* ::::: formatting buttons ::::: */
 
-#FormatToolbar > toolbarbutton {
+toolbarbutton.formatting-button {
   border: none !important;
   list-style-image: url("chrome://editor/skin/icons/btn2.gif");
   background-color: transparent !important;
@@ -591,15 +591,18 @@
   -moz-image-region: rect(389px 88px 406px 66px) !important;
 }
 
-#FormatToolbar > #increaseZIndexButton {
+#increaseZIndexButton {
   list-style-image: url("chrome://editor/content/images/bringtofront.gif");
 }
-#FormatToolbar > #increaseZIndexButton[disabled="true"] {
+
+#increaseZIndexButton[disabled="true"] {
   list-style-image: url("chrome://editor/content/images/bringtofront-disabled.gif");
 }
-#FormatToolbar > #decreaseZIndexButton {
+
+#decreaseZIndexButton {
   list-style-image: url("chrome://editor/content/images/sendtoback.gif");
 }
-#FormatToolbar > #decreaseZIndexButton[disabled="true"] {
+
+#decreaseZIndexButton[disabled="true"] {
   list-style-image: url("chrome://editor/content/images/sendtoback-disabled.gif");
 }

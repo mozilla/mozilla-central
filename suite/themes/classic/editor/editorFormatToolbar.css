@@ -40,16 +40,13 @@
 
 /* ::::: formatting buttons ::::: */
 
-#FormatToolbar > toolbarbutton {
-  min-width: 32px;
-}
- 
 #FormatToolbar > toolbarbutton > .toolbarbutton-text {
   display: none;
 }
 
-#FormatToolbar > toolbarbutton {
+toolbarbutton.formatting-button {
   list-style-image: url("chrome://editor/skin/icons/btn2.gif");
+  min-width: 32px;
 }
 
 #DecreaseFontSizeButton {
@@ -550,7 +547,7 @@
 }
 
 
-#absolutePositionButton{
+#absolutePositionButton {
   -moz-image-region: rect(273px 16px 289px 0px);
 }
 
@@ -566,7 +563,6 @@
   -moz-image-region: rect(273px 64px 289px 48px) ! important;
 }
 
-
 #absolutePositionButton[checked="true"]{
   -moz-image-region: rect(289px 16px 305px 0px);
 }
@@ -579,16 +575,18 @@
   -moz-image-region: rect(289px 48px 305px 32px);
 }
 
-
-#FormatToolbar > #increaseZIndexButton {
+#increaseZIndexButton {
   list-style-image: url("chrome://editor/content/images/bringtofront.gif");
 }
-#FormatToolbar > #increaseZIndexButton[disabled="true"] {
+
+#increaseZIndexButton[disabled="true"] {
   list-style-image: url("chrome://editor/content/images/bringtofront-disabled.gif");
 }
-#FormatToolbar > #decreaseZIndexButton {
+
+#decreaseZIndexButton {
   list-style-image: url("chrome://editor/content/images/sendtoback.gif");
 }
-#FormatToolbar > #decreaseZIndexButton[disabled="true"] {
+
+#decreaseZIndexButton[disabled="true"] {
   list-style-image: url("chrome://editor/content/images/sendtoback-disabled.gif");
 }
