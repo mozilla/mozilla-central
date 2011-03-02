@@ -419,8 +419,8 @@ var gEditorDocumentObserver =
 
           // Call EditorSetDefaultPrefsAndDoctype first so it gets the default author before initing toolbars
           editor.enableUndo(false);
-          editor.documentCharacterSet = prefCharsetString;
           EditorSetDefaultPrefsAndDoctype();
+          editor.resetModificationCount();
           editor.enableUndo(true);
 
           // We may load a text document into an html editor,
@@ -2465,7 +2465,7 @@ function EditorSetDefaultPrefsAndDoctype()
     }
     catch (ex) {}
     if ( prefCharsetString && prefCharsetString != 0)
-      editor.resetModificationCount();
+      editor.documentCharacterSet = prefCharsetString;
 
     var node = 0;
     var listlength = nodelist.length;
