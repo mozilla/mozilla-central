@@ -418,7 +418,10 @@ var gEditorDocumentObserver =
           setTimeout(SetFocusOnStartup, 0);
 
           // Call EditorSetDefaultPrefsAndDoctype first so it gets the default author before initing toolbars
+          editor.enableUndo(false);
+          editor.documentCharacterSet = prefCharsetString;
           EditorSetDefaultPrefsAndDoctype();
+          editor.enableUndo(true);
 
           // We may load a text document into an html editor,
           //   so be sure editortype is set correctly
@@ -2462,12 +2465,7 @@ function EditorSetDefaultPrefsAndDoctype()
     }
     catch (ex) {}
     if ( prefCharsetString && prefCharsetString != 0)
-    {
-      editor.enableUndo(false);
-      editor.documentCharacterSet = prefCharsetString;
       editor.resetModificationCount();
-      editor.enableUndo(true);
-    }
 
     var node = 0;
     var listlength = nodelist.length;
