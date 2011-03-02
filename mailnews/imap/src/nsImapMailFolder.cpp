@@ -4978,7 +4978,7 @@ nsImapMailFolder::GetMessageSizeFromDB(const char * id, PRUint32 *size)
   (void) GetDatabase();
   if (id && mDatabase)
   {
-    PRUint32 key = atoi(id);
+    PRUint32 key = strtoul(id, nsnull, 10);
     nsCOMPtr<nsIMsgDBHdr> mailHdr;
     rv = mDatabase->GetMsgHdrForKey(key, getter_AddRefs(mailHdr));
     if (NS_SUCCEEDED(rv) && mailHdr)
@@ -8199,6 +8199,9 @@ nsImapMailFolder::CopyFileToOfflineStore(nsILocalFile *srcFile)
           PRBool needMoreData = PR_FALSE;
           char * newLine = nsnull;
           PRUint32 numBytesInLine = 0;
+          const char *envelope = "From "CRLF;
+          offlineStore->Write(envelope, strlen(envelope), &bytesWritten);
+          fileSize += bytesWritten;
           do
           {
             newLine = inputStreamBuffer->ReadNextLine(inputStream, numBytesInLine, needMoreData);

@@ -9214,7 +9214,7 @@ PRBool nsImapMockChannel::ReadFromLocalCache()
     {
       // we want to create a file channel and read the msg from there.
       nsCOMPtr<nsIInputStream> fileStream;
-      nsMsgKey msgKey = atoi(messageIdString.get());
+      nsMsgKey msgKey = strtoul(messageIdString.get(), nsnull, 10);
       PRUint32 size;
       PRUint64 offset;
       rv = folder->GetOfflineFileStream(msgKey, &offset, &size, getter_AddRefs(fileStream));

@@ -126,8 +126,7 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, PRUint32 *
     else
       keyStr = Substring(uriStr, keySeparator + 1);
 
-    nsresult errorCode;
-    *key = keyStr.ToInteger(&errorCode, 10);
+    *key = strtoul(PromiseFlatCString(keyStr).get(), nsnull, 10);
 
     if (part && keyEndSeparator != -1)
     {
