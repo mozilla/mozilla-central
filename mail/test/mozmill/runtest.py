@@ -126,8 +126,30 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'ldap_2.servers.oe.position': 0,
         # disable the first use junk dialog
         'mailnews.ui.junk.firstuse': False,
-        # other unknown voodoo
-        # -- dummied up local accounts to stop the account wizard
+        # set the relative dirs properly
+        'mail.root.none-rel' :  "[ProfD]Mail",
+        'mail.root.pop3-rel' :  "[ProfD]Mail",
+        # Do not allow check new mail to be set
+        'mail.startup.enabledMailCheckOnce' :  True,
+        # Disable compatibility checking
+        'extensions.checkCompatibility.3.3a': False,
+        # In case a developer is working on a laptop without a network
+        # connection, don't detect offline mode; hence we'll still startup
+        # online which is what mozmill currently requires. It'll also protect us
+        # from any random network failures.
+        'offline.autoDetect': False,
+        # Don't load what's new or the remote start page - keep everything local
+        # under our control.
+        'mailnews.start_page_override.mstone' :  "ignore",
+        'mailnews.start_page.url': "about:blank",
+        # Do not enable gloda
+        'mailnews.database.global.indexer.enabled': False,
+        # Do not allow fonts to be upgraded
+        'mail.font.windows.version': 2
+        }
+
+    # Dummied up local accounts to stop the account wizard
+    account_preferences = {
         'mail.account.account1.server' :  "server1",
         'mail.account.account2.identities' :  "id1,id2",
         'mail.account.account2.server' :  "server2",
@@ -146,8 +168,6 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mail.identity.id2.smtpServer' : "smtp1",
         'mail.identity.id2.useremail' : "tinderboxpushlog@invalid.com",
         'mail.identity.id2.valid' : True,
-        'mail.root.none-rel' :  "[ProfD]Mail",
-        'mail.root.pop3-rel' :  "[ProfD]Mail",
         'mail.server.server1.directory-rel' :  "[ProfD]Mail/Local Folders",
         'mail.server.server1.hostname' :  "Local Folders",
         'mail.server.server1.name' :  "Local Folders",
@@ -165,22 +185,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mail.smtpserver.smtp1.hostname' :  "tinderbox",
         'mail.smtpserver.smtp1.username' :  "tinderbox",
         'mail.smtpservers' :  "smtp1",
-        'mail.startup.enabledMailCheckOnce' :  True,
-        'extensions.checkCompatibility.3.3a': False,
-        # In case a developer is working on a laptop without a network
-        # connection, don't detect offline mode; hence we'll still startup
-        # online which is what mozmill currently requires. It'll also protect us
-        # from any random network failures.
-        'offline.autoDetect': False,
-        # Don't load what's new or the remote start page - keep everything local
-        # under our control.
-        'mailnews.start_page_override.mstone' :  "ignore",
-        'mailnews.start_page.url': "about:blank",
-        # Do not enable gloda
-        'mailnews.database.global.indexer.enabled': False,
-        # Do not allow fonts to be upgraded
-        'mail.font.windows.version': 2
-        }
+    }
 
     def create_new_profile(self, binary):
         '''
@@ -193,11 +198,16 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
             shutil.rmtree(PROFILE_DIR, onerror=rmtree_onerror)
         os.makedirs(PROFILE_DIR)
 
-        # If there's a wrapper, call it
         if wrapper is not None and hasattr(wrapper, "on_profile_created"):
             # It's a little dangerous to allow on_profile_created access to the
             # profile object, because it isn't fully initalized yet
             wrapper.on_profile_created(PROFILE_DIR)
+
+        if (wrapper is not None and hasattr(wrapper, "NO_ACCOUNTS")
+            and wrapper.NO_ACCOUNTS):
+            pass
+        else:
+            self.preferences.update(self.account_preferences)
 
         return PROFILE_DIR
 
