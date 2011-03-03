@@ -912,7 +912,7 @@
                 tooltiptext="&alignRightButton.tooltip;"   />
       <menuitem id="AlignJustifyItem" class="menuitem-iconic" label="&alignJustify.label;"
                 oncommand="doStatefulCommand('cmd_align', 'justify')"
-                tooltiptext="&alignjustifyButton.tooltip;" />
+                tooltiptext="&alignJustifyButton.tooltip;" />
     </menupopup>
   </toolbarbutton>
 
