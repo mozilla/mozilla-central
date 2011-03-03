@@ -116,6 +116,8 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'extensions.update.notifyUser' : False,
         # do not ask about being the default mail client
         'mail.shell.checkDefaultClient': False,
+        # do not tell us about the greatness that is mozilla (about:rights)
+        'mail.rights.override': True,
         # disable non-gloda indexing daemons
         'mail.winsearch.enable': False,
         'mail.winsearch.firstRunDone': True,
