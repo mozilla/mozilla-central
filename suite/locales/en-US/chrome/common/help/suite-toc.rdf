@@ -803,6 +803,7 @@
       <rdf:Seq>
         <rdf:li><rdf:Description ID="advanced_pref_scripts" nc:name="Scripts &amp; Plugins" nc:link="cs_nav_prefs_advanced.xhtml#scripts_and_plugins"/> </rdf:li>
         <rdf:li><rdf:Description ID="advanced_pref_keyboard_nav" nc:name="Keyboard Navigation" nc:link="cs_nav_prefs_advanced.xhtml#keyboard_navigation"/> </rdf:li>
+        <rdf:li><rdf:Description ID="advanced_pref_find_as_you_type" nc:name="Find As You Type" nc:link="cs_nav_prefs_advanced.xhtml#fayt"/> </rdf:li>
         <rdf:li><rdf:Description ID="advanced_pref_cache" nc:name="Cache" nc:link="cs_nav_prefs_advanced.xhtml#cache"/> </rdf:li>
         <rdf:li><rdf:Description ID="advanced_pref_proxies" nc:name="Proxies" nc:link="cs_nav_prefs_advanced.xhtml#proxies"/> </rdf:li>
         <rdf:li><rdf:Description ID="advanced_http_networking" nc:name="HTTP Networking" nc:link="cs_nav_prefs_advanced.xhtml#http_networking"/> </rdf:li>

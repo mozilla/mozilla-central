@@ -304,6 +304,11 @@
          nc:link="nav_help.xhtml#changing_cache_settings"/>
      </rdf:li>
      <rdf:li>
+       <rdf:Description ID="caret_browsing"
+         nc:name="caret browsing"
+         nc:link="cs_nav_prefs_advanced.xhtml#keyboard_navigation"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="Certificates"
          nc:name="Certificates"
          nc:link="using_certs_help.xhtml#using_certificates"/>
@@ -322,7 +327,8 @@
        <rdf:Description ID="cookies"
          nc:name="cookies"
          nc:link="using_priv_help.xhtml#using_the_cookie_manager"/>
-     </rdf:li><rdf:li>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="copy web pages"
          nc:name="copy"
          nc:link="nav_help.xhtml#copying_saving_and_printing_pages"/>
@@ -739,12 +745,12 @@
      <rdf:li>
        <rdf:Description ID="Find_Links_As_You_Type"
          nc:name="Find Links As You Type"
-         nc:link="cs_nav_prefs_advanced.xhtml#keyboard_navigation"/>
+         nc:link="cs_nav_prefs_advanced.xhtml#fayt"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Find_Text_As_You_Type"
          nc:name="Find Text As You Type"
-         nc:link="cs_nav_prefs_advanced.xhtml#keyboard_navigation"/>
+         nc:link="cs_nav_prefs_advanced.xhtml#fayt"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="FIPS_mode"

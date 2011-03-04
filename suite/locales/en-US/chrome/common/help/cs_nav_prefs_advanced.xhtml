@@ -30,6 +30,7 @@
     <li><a href="#advanced">Advanced</a></li>
     <li><a href="#scripts_and_plugins">Scripts &amp; Plugins</a></li>
     <li><a href="#keyboard_navigation">Keyboard Navigation</a></li>
+    <li><a href="#fayt">Find As You Type</a></li>
     <li><a href="#cache">Cache</a></li>
     <li><a href="#proxies">Proxies</a></li>
     <li><a href="#http_networking">HTTP Networking</a></li>
@@ -147,16 +148,55 @@
 </ol>
 
 <p>The Keyboard Navigation preferences panel allows you to control how you use
-  the keyboard to <span class="noMac">navigate and </span>search for text in
-  web pages:</p>
+  the keyboard to navigate in web pages:</p>
 
 <ul>
-  <li class="noMac"><strong>Links</strong>: If checked, pressing <kbd>Tab</kbd>
-    or <kbd>Shift</kbd>+<kbd>Tab</kbd> moves between links.</li>
-  <li class="noMac"><strong>Buttons, radio buttons, check boxes, and selection
-    lists</strong>: If checked, pressing <kbd>Tab</kbd> or
-    <kbd>Shift</kbd>+<kbd>Tab</kbd> moves between buttons, radio buttons, check
-    boxes, and selection lists.</li>
+  <li class="noMac"><strong>Tab Key Navigation</strong>: Select which elements
+    should be taken into account when using the Tab key on a page:
+    <ul>
+      <li><strong>Links</strong>: If checked, pressing <kbd>Tab</kbd> or
+        <kbd>Shift</kbd>+<kbd>Tab</kbd> moves between links.</li>
+      <li><strong>Buttons, radio buttons, checkboxes, and selection
+        lists</strong>: If checked, pressing <kbd>Tab</kbd> or
+        <kbd>Shift</kbd>+<kbd>Tab</kbd> moves between buttons, radio buttons,
+        check boxes, and selection lists.</li>
+    </ul>
+  </li>
+  <li><strong>Browse With Caret</strong>: Select if and how <a
+    href="glossary.xhtml#caret_browsing">caret browsing</a> should be used:
+    <ul>
+      <li><strong>Use caret browsing</strong>: If checked, caret browsing will
+        be enabled by default when you load a web page.</li>
+      <li><strong>Use the F7 shortcut to toggle caret browsing</strong>: If
+        checked, the F7 shortcut will toggle caret browsing on or off. Otherwise
+        &brandShortName; will not use the shortcut and the below option will
+        have no effect.</li>
+      <li><strong>Warn me before turning on caret browsing</strong>: If checked,
+        &brandShortName; will issue a warning dialog if the caret browsing mode
+        is about to be entered, allowing you to choose whether to proceed or
+        not. (There is no warning when leaving caret browsing mode.)</li>
+    </ul>
+  </li>
+</ul>
+
+<p>[<a href="#advanced_preferences">Return to beginning of section</a>]</p>
+
+<h2 id="fayt">Advanced Preferences - Find As You Type</h2>
+
+<p>This section describes how to use the Find As You Type references
+  panel. If you&apos;re not already viewing it, follow these steps:</p>
+
+<ol>
+  <li>Open the <span class="mac">&brandShortName;</span>
+    <span class="noMac">Edit</span> menu and choose Preferences.</li>
+  <li>Under the Advanced category, click Find As You Type. (If no
+    subcategories are visible, double-click Advanced to expand the list.)</li>
+</ol>
+
+<p>The Find As You Type preferences panel allows you to control how you use
+  the keyboard to search for text in web pages:</p>
+
+<ul>
   <li><strong>Find automatically when typing within a web page</strong>: If
     checked, typing text in a web page automatically activates Find As You Type
     and locates the text you typed (if it exists in the page). Choose whether
@@ -167,8 +207,14 @@
     checked, Find As You Type plays a sound when the typed text isn&apos;t
     found in the web page.</li>
   <li><strong>Clear the current search after a few seconds of
-    inactivity</strong>: If checked, cancels the search after a few seconds of
-    keyboard inactivity.</li>
+    inactivity</strong>: If checked, the search will be cancelled after a few
+    seconds of keyboard inactivity.</li>
+  <li><strong>Show the find toolbar during find as you type</strong>: If
+    checked, the find toolbar will open when Find As You Type is activated and
+    what you type will be entered into the toolbar search field. If unchecked,
+    the find toolbar will not be opened and the search string will be displayed
+    in the status bar. Note that international text entry will not work in this
+    mode.</li>
 </ul>
 
 <p>[<a href="#advanced_preferences">Return to beginning of section</a>]</p>
