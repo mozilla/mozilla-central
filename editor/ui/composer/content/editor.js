@@ -203,22 +203,6 @@ nsPrefListener.prototype =
   }
 }
 
-function AfterHighlightColorChange()
-{
-  if (!IsHTMLEditor())
-    return;
-
-  var button = document.getElementById("cmd_highlight");
-  if (button) {
-    var mixedObj = {};
-    try {
-      var state = GetCurrentEditor().getHighlightColorState(mixedObj);
-      button.setAttribute("state", state);
-      onHighlightColorChange();
-    } catch (e) {}
-  }      
-}
-
 function EditorOnLoad()
 {
     // See if argument was passed.
