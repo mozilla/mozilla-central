@@ -297,10 +297,6 @@
       <xul:tabbox anonid="tabbox" flex="1" eventnode="document" xbl:inherits="handleCtrlPageUpDown"
                   onselect="if (!('updateCurrentTab' in this.parentNode) || event.target.localName != 'tabs')
                             return; this.parentNode.updateCurrentTab();">
-        <xul:hbox align="start">
-          <xul:image class="tab-drop-indicator" anonid="tab-drop-indicator" collapsed="true"/>
-        </xul:hbox>        
-        
         <xul:hbox class="tabmail-strip" collapsed="false" tooltip="_child" context="_child"
                   anonid="strip">
           <xul:tooltip onpopupshowing="return CreateToolbarTooltip(document, event);"/>
@@ -1599,6 +1595,9 @@
         </xul:vbox>
         <xul:vbox>
           <xul:hbox>
+            <xul:hbox align="start">
+              <xul:image class="tab-drop-indicator" anonid="tab-drop-indicator" collapsed="true"/>
+            </xul:hbox>
             <xul:stack>
               <xul:spacer class="tabs-left"/>
             </xul:stack>
@@ -1742,7 +1741,7 @@
       
       <field name="_tabDropIndicator">
         document.getAnonymousElementByAttribute(
-            this.parentNode.parentNode.parentNode, 
+            this,
             "anonid", "tab-drop-indicator");
       </field>
       
@@ -2182,7 +2181,6 @@
  
         ind.style.MozTransform = "translate(" + Math.round(newMargin) + "px)";
         ind.style.MozMarginStart = (-ind.clientWidth) + "px";
-        ind.style.marginTop = (-ind.clientHeight) + "px";
       ]]></handler>
       <handler event="drop"><![CDATA[
         let dt = event.dataTransfer;

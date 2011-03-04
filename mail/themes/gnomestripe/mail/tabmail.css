@@ -160,6 +160,12 @@ tabpanels {
   border: 1px dotted -moz-DialogText;
 }
 
+/* Tab drag and drop */
+.tab-drop-indicator {
+  list-style-image: url(chrome://messenger/skin/icons/tabDragIndicator.png);
+  margin-top: -11px;
+}
+
 /* In-tab close button */
 .tab-close-button > .toolbarbutton-icon {
   /* XXX Buttons have padding in widget/ that we don't want here but can't

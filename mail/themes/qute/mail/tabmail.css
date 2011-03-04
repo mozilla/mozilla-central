@@ -220,27 +220,10 @@ tabpanels {
   border: 1px dotted -moz-DialogText;
 }
 
-/**
- * Tab Drag and Drop
- */
-
-.tab-drop-indicator-bar {
-    visibility: hidden;
-    height: 9px;
-    margin-top: -9px;
-    position: relative;
-}
-
+/* Tab DnD indicator */
 .tab-drop-indicator {
-    height: 9px;
-   width: 9px;
-    margin-bottom: -5px;
-    position: relative;
-    background: url('chrome://messenger/skin/icons/tabDragIndicator.png') 50% 50% no-repeat;
-}
-
-.tab-drop-indicator-bar[dragging="true"] {
-    visibility: visible;
+  list-style-image: url(chrome://messenger/skin/icons/tabDragIndicator.png);
+  margin-top: -11px;
 }
 
 /**
