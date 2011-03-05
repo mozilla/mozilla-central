@@ -176,14 +176,25 @@ var goButtonObserver = {
   onDrop: function (aEvent, aXferData, aDragSession)
     {
       var xferData = aXferData.data.split("\n");
-      var uri = xferData[0] ? xferData[0] : xferData[1];
-      if (uri)
-        {
-          // Perform a security check before loading the URI
-          nsDragAndDrop.dragDropSecurityCheck(aEvent, aDragSession, uri);
+      var draggedText = xferData[0] || xferData[1];
+      try {
+        nsDragAndDrop.dragDropSecurityCheck(aEvent, aDragSession, draggedText);
 
-          loadURI(uri);
+        var uri;
+        try {
+          uri = makeURI(draggedText);
+        } catch (ex) { }
+        if (uri) {
+          // we have a valid url, so do a security check for javascript.
+          const nsIScriptSecMan = Components.interfaces.nsIScriptSecurityManager;
+          urlSecurityCheck(uri, content.document.nodePrincipal,
+                           nsIScriptSecMan.DISALLOW_SCRIPT_OR_DATA);
         }
+
+        var postData = {};
+        var url = getShortcutOrURI(draggedText, postData);
+        loadURI(url, null, postData.value, true);
+      } catch (ex) { }
     },
   getSupportedFlavours: function ()
     {
