@@ -118,52 +118,52 @@
 
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, completed),
 .calendar-task-tree-col-completed {
-    list-style-image: url(chrome://calendar/skin/unifinder-images.png);
-    -moz-image-region: rect(0 26px 13px 13px);
+    list-style-image: url(chrome://calendar/skin/checkbox-images.png);
+    -moz-image-region: rect(0 32px 16px 16px);
 }
 
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, duetoday),
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, overdue),
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, future),
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, inprogress) {
-    list-style-image: url(chrome://calendar/skin/unifinder-images.png);
-    -moz-image-region: rect(0 13px 13px 0);
+    list-style-image: url(chrome://calendar/skin/checkbox-images.png);
+    -moz-image-region: rect(0 16px 16px 0);
 }
 
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, repeating) {
-    list-style-image: url(chrome://calendar/skin/unifinder-images.png);
-    -moz-image-region: rect(0 39px 13px 26px);
+    list-style-image: url(chrome://calendar/skin/checkbox-images.png);
+    -moz-image-region: rect(0 48px 16px 32px);
 }
 
 .calendar-task-tree-col-priority {
-    list-style-image: url(chrome://calendar/skin/unifinder-images.png);
-    -moz-image-region: rect(0 65px 13px 52px);
+    list-style-image: url(chrome://calendar/skin/task-images.png);
+    -moz-image-region: rect(0 13px 13px 0);
 }
 
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-priority, mediumpriority),
 .todo-due-image-class {
-    list-style-image: url(chrome://calendar/skin/unifinder-images.png);
-    -moz-image-region: rect(0 65px 13px 52px);
+    list-style-image: url(chrome://calendar/skin/task-images.png);
+    -moz-image-region: rect(0 13px 13px 0);
 }
 
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-priority, highpriority),
 .todo-due-image-class[highpriority="true"] {
-    list-style-image: url(chrome://calendar/skin/unifinder-images.png);
-    -moz-image-region: rect(0 104px 13px 91px);
+    list-style-image: url(chrome://calendar/skin/task-images.png);
+    -moz-image-region: rect(0 52px 13px 39px);
 }
 
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-priority, lowpriority),
 .todo-due-image-class[lowpriority="true"] {
-    list-style-image: url(chrome://calendar/skin/unifinder-images.png);
-    -moz-image-region: rect(0 78px 13px 65px);
+    list-style-image: url(chrome://calendar/skin/task-images.png);
+    -moz-image-region: rect(0 26px 13px 13px);
 }
 
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-priority, selected, highpriority) {
-    list-style-image: url(chrome://calendar/skin/unifinder-images.png);
-    -moz-image-region: rect(0 117px 13px 104px);
+    list-style-image: url(chrome://calendar/skin/task-images.png);
+    -moz-image-region: rect(0 65px 13px 52px);
 }
 
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-priority, selected, lowpriority) {
-    list-style-image: url(chrome://calendar/skin/unifinder-images.png);
-    -moz-image-region: rect(0 91px 13px 78px);
+    list-style-image: url(chrome://calendar/skin/task-images.png);
+    -moz-image-region: rect(0 39px 13px 26px);
 }

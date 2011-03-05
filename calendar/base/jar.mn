@@ -127,7 +127,7 @@ calendar.jar:
     skin/calendar/event-grippy-top.png                     (themes/common/images/event-grippy-top.png)
     skin/calendar/gradient-overlay.png                     (themes/common/images/gradient-overlay.png)
     skin/calendar/mini-day-background.png                  (themes/common/images/mini-day-background.png)
-    skin/calendar/unifinder-images.png                     (themes/common/images/unifinder-images.png)
+    skin/calendar/task-images.png                          (themes/common/images/task-images.png)
     skin/calendar/timezone_map.png                         (themes/common/images/timezone_map.png)
     skin/calendar/timezones.png                            (themes/common/images/timezones.png)
     skin/calendar/widgets/minimonth.css                    (themes/common/widgets/minimonth.css)
@@ -148,8 +148,12 @@ calendar.jar:
     skin/calendar/calendar-task-view.css                   (themes/@THEME@/calendar-task-view.css)
     skin/calendar/calendar-unifinder.css                   (themes/@THEME@/calendar-unifinder.css)
     skin/calendar/calendar-views.css                       (themes/@THEME@/calendar-views.css)
+    skin/calendar/checkbox-images.png                      (themes/@THEME@/images/checkbox-images.png)
     skin/calendar/ok-cancel.png                            (themes/@THEME@/images/ok-cancel.png)
     skin/calendar/today-pane.css                           (themes/@THEME@/today-pane.css)
     skin/calendar/toolbar-large.png                        (themes/@THEME@/images/toolbar-large.png)
     skin/calendar/toolbar-small.png                        (themes/@THEME@/images/toolbar-small.png)
     skin/calendar/widgets/calendar-widgets.css             (themes/@THEME@/widgets/calendar-widgets.css)
+#ifdef XP_MACOSX
+    skin/calendar/sidebar-item.png                         (themes/@THEME@/images/sidebar-item.png)
+#endif

@@ -164,7 +164,7 @@
               resizebefore="closest"
               resizeafter="farthest"
               persist="state"
-              class="chromeclass-extrachrome sidebar-splitter"
+              class="chromeclass-extrachrome sidebar-splitter calendar-splitter"
               orient="vertical"
               onmouseup="setTimeout(refreshEventTree, 10);"/>
   </vbox>

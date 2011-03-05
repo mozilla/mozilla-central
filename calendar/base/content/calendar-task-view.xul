@@ -77,7 +77,7 @@
                             visible-columns="completed priority title startdate duedate"
                             persist="visible-columns ordinals widths sort-active sort-direction height"
                             context="taskitem-context-menu"/>
-        <splitter id="calendar-task-view-splitter" collapse="none" persist="state"/>
+        <splitter id="calendar-task-view-splitter" collapse="none" persist="state" class="calendar-splitter"/>
         <vbox id="calendar-task-details-container" class="main-header-area" flex="1" context="task-actions-toolbar-context-menu">
           <hbox id="calendar-task-details">
             <grid id="calendar-task-details-grid" flex="1">

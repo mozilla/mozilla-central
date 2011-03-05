@@ -564,7 +564,10 @@
           </vbox>
         </vbox>
 
-        <splitter id="calsidebar_splitter" collapse="before" persist="state"/>
+        <splitter id="calsidebar_splitter"
+                  collapse="before"
+                  persist="state"
+                  class="calendar-sidebar-splitter"/>
 
         <deck id="calendarDisplayDeck" flex="1">
           <!-- vbox "calendar-view-box will be overlayed..." -->
@@ -579,6 +582,7 @@
               collapse="after"
               resizebefore="closest"
               state="collapsed"
+              class="calendar-sidebar-splitter"
               oncommand="TodayPane.storeWidthAndState();">
       <grippy/>
     </splitter>

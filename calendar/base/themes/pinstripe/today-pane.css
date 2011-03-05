@@ -51,7 +51,6 @@
 #today-pane-panel {
   background-color: -moz-Dialog;
   color: -moz-DialogText;
-  border-left: 1px solid ThreeDShadow;
 }
 
 #today-pane-panel:-moz-lwtheme {
@@ -172,15 +171,16 @@
 }
 
 .today-closebutton {
-  list-style-image: url("chrome://global/skin/icons/closetab.png") !important;
+  list-style-image: url("chrome://global/skin/icons/close-sidebar.png") !important;
+  -moz-image-region: rect(0, 16px, 16px, 0);
 }
 
 .today-closebutton:hover {
-  list-style-image: url("chrome://global/skin/icons/closetab-hover.png") !important;
+  -moz-image-region: rect(0, 32px, 16px, 16px);
 }
 
 .today-closebutton:hover:active {
-  list-style-image: url("chrome://global/skin/icons/closetab-active.png") !important;
+  -moz-image-region: rect(0, 48px, 16px, 32px);
 }
 
 .today-closebutton > .toolbarbutton-text {
@@ -190,6 +190,8 @@
 #agenda-toolbar {
   border: none;
   padding: 1px;
+  background-color: -moz-dialog;
+  color: -moz-dialogtext;
 }
 
 #todaypane-new-event-button {

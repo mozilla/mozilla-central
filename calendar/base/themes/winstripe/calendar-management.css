@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 calendar-list-tree > tree > treechildren::-moz-tree-image(checkbox-treecol) {
-    list-style-image: url(chrome://calendar/skin/unifinder-images.png);
+    list-style-image: url(chrome://calendar/skin/checkbox-images.png);
     -moz-image-region: rect(0 13px 13px 0);
 }
 
