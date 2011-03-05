@@ -111,7 +111,12 @@ calEvent.prototype = {
     },
 
     get duration() {
-        return this.endDate.subtractDate(this.startDate);
+        if (this.endDate && this.startDate) {
+            return this.endDate.subtractDate(this.startDate);
+        } else {
+            // Return a null-duration if we don't have an end date
+            return cal.createDuration();
+        }
     },
 
     get recurrenceStartDate() {
@@ -214,7 +219,7 @@ calEvent.prototype = {
         var endDate = this.mEndDate;
         if (endDate === undefined) {
             endDate = this.getProperty("DTEND");
-            if (!endDate) {
+            if (!endDate && this.startDate) {
                 endDate = this.startDate.clone();
                 var dur = this.getProperty("DURATION");
                 if (dur) {
