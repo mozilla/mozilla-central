@@ -304,6 +304,6 @@ treechildren::-moz-tree-image(remote-err) {
 
 #MsgHeadersToolbar textbox:-moz-lwtheme,
 #MsgHeadersToolbar menulist:-moz-lwtheme,
-#FormatToolbar menulist:-moz-lwtheme {
+.formatting-button > menulist:-moz-lwtheme {
   opacity: 1;
 }
