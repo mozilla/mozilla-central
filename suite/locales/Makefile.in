@@ -44,26 +44,28 @@ include $(DEPTH)/config/autoconf.mk
 
 include $(topsrcdir)/config/config.mk
 
+_ABS_SRCDIR := $(call core_abspath,$(topsrcdir))
+
 vpath %.xml @srcdir@/en-US/searchplugins
 vpath %.xml $(LOCALE_SRCDIR)/searchplugins
 
 ifdef LOCALE_MERGEDIR
-vpath crashreporter%.ini $(LOCALE_MERGEDIR)/browser/crashreporter
+LOCALE_SEARCH_DIRS += $(LOCALE_MERGEDIR)/suite
 endif
-vpath crashreporter%.ini $(LOCALE_SRCDIR)/crashreporter
+LOCALE_SEARCH_DIRS += $(LOCALE_SRCDIR)
 ifdef LOCALE_MERGEDIR
-vpath crashreporter%.ini @srcdir@/en-US/crashreporter
+LOCALE_SEARCH_DIRS += @srcdir@/en-US
 endif
 
-run_for_effects := $(shell if test ! -d $(DIST); then $(NSINSTALL) -D $(DIST); fi; if test ! -d $(DIST)/branding; then $(NSINSTALL) -D $(DIST)/branding; fi)
-_ABS_DIST := $(call core_abspath,$(DIST))
-_ABS_SRCDIR := $(call core_abspath,$(topsrcdir))
+find_locale_file = $(firstword $(foreach dir, $(LOCALE_SEARCH_DIRS), \
+                      $(wildcard $(dir)/$(1))))
 
 SUBMAKEFILES += \
 	$(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/Makefile \
 	$(NULL)
 
-AB = $(firstword $(subst -, ,$(AB_CD)))
+# This makefile uses variable overrides from the libs-% target to
+# build non-default locales to non-default dist/ locations. Be aware!
 
 PWD := $(CURDIR)
 
@@ -75,17 +77,31 @@ ZIP_IN ?= $(_ABS_DIST)/$(PACKAGE)
 WIN32_INSTALLER_IN ?= $(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe
 RETRIEVE_WINDOWS_INSTALLER = 1
 
+MOZ_LANGPACK_EID=langpack-$(AB_CD)@seamonkey.mozilla.org
+
 DEFINES += \
-	-DAB_CD=$(AB_CD) \
 	-DMOZ_PSM=$(MOZ_PSM) \
-	-DMOZ_LANGPACK_EID=langpack-$(AB_CD)@seamonkey.mozilla.org \
-	-DMOZ_APP_VERSION=$(MOZ_APP_VERSION) \
-	-DLOCALE_SRCDIR=$(call core_abspath,$(LOCALE_SRCDIR)) \
-	-DPKG_BASENAME="$(PKG_BASENAME)" \
-	-DPKG_INST_BASENAME="$(PKG_INST_BASENAME)" \
 	$(NULL)
 
-PREF_JS_EXPORTS = $(LOCALE_SRCDIR)/suite-l10n.js
+PREF_JS_EXPORTS = $(call find_locale_file,suite-l10n.js)
+
+ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
+MOZ_PKG_MAC_DSSTORE=$(_ABS_DIST)/branding/dsstore
+MOZ_PKG_MAC_BACKGROUND=$(_ABS_DIST)/branding/background.png
+MOZ_PKG_MAC_ICON=$(_ABS_DIST)/branding/disk.icns
+MOZ_PKG_MAC_EXTRA=--format UDBZ \
+                  --symlink "/Applications: " \
+                  --copy "$(LOCALE_SRCDIR)/installer/mac/README.txt"
+endif
+
+ifeq (WINNT,$(OS_ARCH))
+UNINSTALLER_PACKAGE_HOOK = $(RM) -r $(STAGEDIST)/uninstall; \
+	$(NSINSTALL) -D $(STAGEDIST)/uninstall; \
+	cp ../installer/windows/l10ngen/helper.exe $(STAGEDIST)/uninstall; \
+	$(RM) $(_ABS_DIST)/l10n-stage/setup.exe; \
+	cp ../installer/windows/l10ngen/setup.exe $(_ABS_DIST)/l10n-stage; \
+	$(NULL)
+endif
 
 NON_OMNIJAR_FILES = \
 	defaults/messenger/mailViews.dat \
@@ -94,6 +110,13 @@ NON_OMNIJAR_FILES = \
 	$(NULL)
 
 include $(topsrcdir)/config/rules.mk
+
+include $(topsrcdir)/mozilla/toolkit/locales/l10n.mk
+
+$(STAGEDIST): $(DIST)/branding
+
+$(DIST)/branding:
+	$(NSINSTALL) -D $@
 
 ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 README_FILES = \
@@ -132,39 +155,33 @@ endif
 
 NO_JA_JP_MAC_AB_CD := $(if $(filter ja-JP-mac, $(AB_CD)),ja,$(AB_CD))
 
-BOOKMARKS_INC = $(firstword $(wildcard $(LOCALE_SRCDIR)/profile/bookmarks.inc) \
-                            @srcdir@/en-US/profile/bookmarks.inc )
-BOOKMARKS_EXTRA = $(firstword $(wildcard $(LOCALE_SRCDIR)/profile/bookmarks.extra) \
-                              @srcdir@/en-US/profile/bookmarks.extra )
+BOOKMARKS_INC_FILE = $(call find_locale_file,profile/bookmarks.inc)
+BOOKMARKS_XTRA_FILE = $(call find_locale_file,profile/bookmarks.extra)
 
-%/defaults/profile/bookmarks.html: generic/profile/bookmarks.html.in
-	$(NSINSTALL) -D $(dir $@)
+# the #include in the .in file requires all to be in the same dir, sadly.
+%/defaults/profile/bookmarks.html: $(BOOKMARKS_INC_FILE) $(BOOKMARKS_XTRA_FILE) generic/profile/bookmarks.html.in 
+	$(SYSINSTALL) -D $(dir $@)
 	$(RM) -rf profile/*bookmarks*
 	$(NSINSTALL) -D profile
-	# the #include in the .in file requires all to be in the same dir
-	cp $^ $(BOOKMARKS_INC) $(BOOKMARKS_EXTRA) profile/
+	cp $^ profile/
 	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py \
 	  -DAB_CD=$(NO_JA_JP_MAC_AB_CD) \
 	  profile/bookmarks.html.in \
 	  > $@
 
-PANELS_EXTRA = $(firstword $(wildcard $(LOCALE_SRCDIR)/profile/panels.extra) \
-                           @srcdir@/en-US/profile/panels.extra )
+PANELS_XTRA_FILE = $(call find_locale_file,profile/panels.extra)
 
-%/defaults/profile/panels.rdf: generic/profile/panels.rdf.in
-	$(NSINSTALL) -D $(dir $@)
+# the #include in the .in file requires all to be in the same dir, sadly.
+%/defaults/profile/panels.rdf: $(PANELS_XTRA_FILE) generic/profile/panels.rdf.in
+	$(SYSINSTALL) -D $(dir $@)
 	$(RM) -rf profile/panels*
 	$(NSINSTALL) -D profile
-	# the #include in the .in file requires all to be in the same dir
-	cp $^ $(PANELS_EXTRA) profile/
-	sed -n 's/.*<RDF:Description about="\(.*\)">.*/        <RDF:li resource="\1"\/>/p' profile/panels.extra > profile/panels-urn.inc
-	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py profile/panels.rdf.in > $@
-
-SEARCH_PLUGINS = $(shell cat \
-   $(firstword $(wildcard $(LOCALE_SRCDIR)/searchplugins/list.txt) \
-               @srcdir@/en-US/searchplugins/list.txt ) )
-
-GARBAGE_DIRS += profile
+	cp $^ profile/
+	sed \
+	  -n 's/.*<RDF:Description about="\(.*\)">.*/        <RDF:li resource="\1"\/>/p' \
+	  profile/panels.extra > profile/panels-urn.inc
+	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py \
+	  profile/panels.rdf.in > $@
 
 libs:: $(FINAL_TARGET)/defaults/profile/bookmarks.html ;
 libs:: $(FINAL_TARGET)/defaults/profile/panels.rdf ;
@@ -184,14 +201,16 @@ install:: $(addprefix generic/profile/,$(PROFILE_FILES))
 install:: $(addprefix $(LOCALE_SRCDIR)/profile/chrome/,$(PROFILE_CHROME))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/defaults/profile/chrome
 
+SEARCH_PLUGINS = $(shell cat $(LOCALE_SRCDIR)/searchplugins/list.txt)
+
 libs:: $(addsuffix .xml,$(SEARCH_PLUGINS))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/searchplugins
 
 install:: $(addsuffix .xml,$(SEARCH_PLUGINS))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/searchplugins
 
+# Extend l10n.mk clobber-% target for our localised extensions
 clobber-%:
-	$(RM) -rf $(DIST)/xpi-stage/locale-$*
 	$(RM) -rf $(DIST)/xpi-stage/chatzilla-$* $(DIST)/xpi-stage/chatzilla-*.$*.xpi
 	$(RM) -rf $(DIST)/xpi-stage/venkman-$* $(DIST)/xpi-stage/venkman-*.$*.xpi
 
@@ -200,26 +219,14 @@ libs-%:
 	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$* BOTH_MANIFESTS=1
 	@$(MAKE) -C ../../mozilla/services/sync/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) -C ../../editor/ui/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
-	if test -d ../../mozilla/extensions/irc; then \
+	@if test -d ../../mozilla/extensions/irc; then \
 	  $(MAKE) -C ../../mozilla/extensions/irc/locales libs-$*; \
 	fi
-	if test -d ../../mozilla/extensions/venkman; then \
+	@if test -d ../../mozilla/extensions/venkman; then \
 	  $(MAKE) -C ../../mozilla/extensions/venkman/locales libs-$*; \
 	fi
 	@$(MAKE) -C ../../mozilla/extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref BOTH_MANIFESTS=1
-
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
-MOZ_PKG_MAC_DSSTORE=$(_ABS_DIST)/branding/dsstore
-MOZ_PKG_MAC_BACKGROUND=$(_ABS_DIST)/branding/background.png
-MOZ_PKG_MAC_ICON=$(_ABS_DIST)/branding/disk.icns
-MOZ_PKG_MAC_EXTRA=--format UDBZ \
-                  --symlink "/Applications: " \
-                  --copy "$(LOCALE_SRCDIR)/installer/mac/README.txt"
-endif
-
-PACKAGER_NO_LIBS = 1
-include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
 
 repackage-win32-installer: WIN32_INSTALLER_OUT="$(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe"
 repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
@@ -249,25 +256,6 @@ else
 STAGEDIST = $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_DIR)
 endif
 
-$(STAGEDIST): AB_CD:=en-US
-$(STAGEDIST): UNPACKAGE=$(ZIP_IN)
-$(STAGEDIST): $(ZIP_IN)
-# only mac needs to remove the parent of STAGEDIST...
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-	if test -d $(DIST)/l10n-stage; then \
-	  $(RM) -r -v $(DIST)/l10n-stage; \
-	fi
-else
-# ... and windows doesn't like removing STAGEDIST itself, remove all children
-	if test -d $(DIST)/l10n-stage; then \
-	  find $(STAGEDIST) -maxdepth 1 -print0 | xargs -0 $(RM) -r ; \
-	fi
-endif
-	$(NSINSTALL) -D $(DIST)/l10n-stage
-	cd $(DIST)/l10n-stage && \
-	  $(UNMAKE_PACKAGE)
-	make clobber-zip AB_CD=en-US
-
 clobber-zip:
 	$(RM) $(STAGEDIST)/chrome/$(AB_CD).jar \
 	  $(STAGEDIST)/chrome/$(AB_CD).manifest \
@@ -278,24 +266,9 @@ clobber-zip:
 	  $(STAGEDIST)/chrome/$(AB_CD) \
 	  $(STAGEDIST)/extensions/langpack-$(AB_CD)@*
 
-unpack: $(STAGEDIST)
-	@echo done unpacking
+repackage-zip: repackage-extensions
 
-repackage-zip: ZIP_OUT?=$(_ABS_DIST)/$(PACKAGE)
-repackage-zip: UNPACKAGE="$(ZIP_IN)"
-repackage-zip:
-ifeq (WINNT,$(OS_ARCH))
-	$(RM) -r $(STAGEDIST)/uninstall
-	$(NSINSTALL) -D $(STAGEDIST)/uninstall
-	cp ../installer/windows/l10ngen/helper.exe $(STAGEDIST)/uninstall
-	$(RM) $(_ABS_DIST)/l10n-stage/setup.exe
-	cp ../installer/windows/l10ngen/setup.exe $(_ABS_DIST)/l10n-stage
-endif
-# copy xpi-stage over, but not install.rdf and chrome.manifest,
-# those are just for language packs
-	cd $(DIST)/xpi-stage/locale-$(AB_CD) && \
-	  tar --exclude=install.rdf --exclude=chrome.manifest $(TAR_CREATE_FLAGS) - * | ( cd $(STAGEDIST) && tar -xf - )
-	mv $(STAGEDIST)/chrome/$(AB_CD).manifest $(STAGEDIST)/chrome/localized.manifest
+repackage-extensions: $(STAGEDIST)
 	if test -d ../../mozilla/extensions/irc; then \
 	  $(MAKE) -C ../../mozilla/extensions/irc/locales repackage-zip-$(AB_CD) STAGEDIST=$(STAGEDIST); \
 	fi
@@ -305,45 +278,9 @@ endif
 ifdef MOZ_OMNIJAR
 	$(MAKE) -C ../app pack-ext AB_CD=$(AB_CD) STAGEDIST=$(STAGEDIST);
 endif
-ifneq (en,$(AB))
-ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
-	mv $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/en.lproj $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/$(AB).lproj
-endif
-endif
-	$(NSINSTALL) -D $(DIST)/l10n-stage/$(PKG_PATH)
-	cd $(DIST)/l10n-stage; \
-	  $(MAKE_PACKAGE)
-ifdef MOZ_MAKE_COMPLETE_MAR
-	$(MAKE) -C $(MOZDEPTH)/tools/update-packaging full-update AB_CD=$(AB_CD) \
-	  MOZ_PKG_PRETTYNAMES=$(MOZ_PKG_PRETTYNAMES) \
-	  PACKAGE_BASE_DIR="$(_ABS_DIST)/l10n-stage" \
-	  DIST="$(_ABS_DIST)"
-endif
-# packaging done, undo l10n stuff
-ifneq (en,$(AB))
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-	mv $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/$(AB).lproj $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/en.lproj
-endif
-endif
-ifdef MOZ_OMNIJAR
-	@(cd $(STAGEDIST) && $(UNPACK_OMNIJAR))
-endif
-	$(MAKE) clobber-zip AB_CD=$(AB_CD)
-	$(NSINSTALL) -D $(DIST)/$(PKG_PATH)
-	mv -f "$(DIST)/l10n-stage/$(PACKAGE)" "$(ZIP_OUT)"
 
 repackage-zip-%: $(ZIP_IN) $(STAGEDIST) libs-%
 	@$(MAKE) repackage-zip AB_CD=$* ZIP_IN=$(ZIP_IN)
-
-langpack-%: LANGPACK_FILE=$(_ABS_DIST)/$(PKG_LANGPACK_PATH)$(PKG_LANGPACK_BASENAME).xpi
-langpack-%: AB_CD=$*
-langpack-%: XPI_NAME=locale-$*
-langpack-%: libs-%
-	@echo "Making langpack $(LANGPACK_FILE)"
-	@$(NSINSTALL) -D $(DIST)/$(PKG_LANGPACK_PATH)
-	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) -I$(call EXPAND_MOZLOCALE_SRCDIR,toolkit/locales)/defines.inc -I$(LOCALE_SRCDIR)/defines.inc $(srcdir)/generic/install.rdf > $(FINAL_TARGET)/install.rdf
-	cd $(DIST)/xpi-stage/locale-$(AB_CD) && \
-	  $(ZIP) -r9D $(LANGPACK_FILE) install.rdf chrome chrome.manifest -x chrome/$(AB_CD).manifest
 
 langpack: langpack-$(AB_CD)
 
@@ -370,28 +307,8 @@ endif
 endif
 
 ifdef MOZ_CRASHREPORTER
-libs:: crashreporter-override.ini
+libs:: $(call find_locale_file,crashreporter/crashreporter-override.ini)
 	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)
-endif
-
-# This variable is to allow the wget-en-US target to know which ftp server to download from
-ifndef EN_US_BINARY_URL 
-EN_US_BINARY_URL = $(error You must set EN_US_BINARY_URL)
-endif
-
-# This make target allows us to wget the latest en-US binary from a specified website
-# The make installers-% target needs the en-US binary in dist/
-# and for the windows repackages we need the .installer.exe in dist/sea
-wget-en-US:
-ifndef WGET
-	$(error Wget not installed)
-endif
-	(cd $(_ABS_DIST) && $(WGET) -nv -N  $(EN_US_BINARY_URL)/$(PACKAGE))
-	@echo "Downloaded $(EN_US_BINARY_URL)/$(PACKAGE) to $(_ABS_DIST)/$(PACKAGE)"
-ifeq ($(OS_ARCH), WINNT)
-	$(NSINSTALL) -D $(_ABS_DIST)/$(PKG_INST_PATH)
-	(cd $(_ABS_DIST)/$(PKG_INST_PATH) && $(WGET) -nv -N "$(EN_US_BINARY_URL)/$(PKG_PATH)$(PKG_INST_BASENAME).exe")
-	@echo "Downloaded $(EN_US_BINARY_URL)/$(PKG_PATH)$(PKG_INST_BASENAME).exe to $(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe"
 endif
 
 ident:
@@ -405,55 +322,11 @@ ident:
 	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py \
 	    $(STAGEDIST)/application.ini App BuildID
 
-#These make targets call prepare-repackages by setting different UPLOAD_DIR
-prepare-upload-latest-%:
-	@$(MAKE) prepare-repackages-$* UPLOAD_DIR=$(DIST)/upload/latest
-
-prepare-upload-dated-%:
-	@$(MAKE) prepare-repackages-$* UPLOAD_DIR=$(DIST)/upload/`date "+%Y-%m-%d-%H"`-$(MOZ_PKG_APPNAME)$(MOZ_APP_VERSION)-l10n
-
-# This target will generate a UPLOAD_DIR folder with
-# l10n repackages in the way that we offer l10n nightlies
-#  1) the package/binary
-#  2) the langpack xpi
-#  3) the installer (on windows)
-# To set the paths those packages should end up, override the following vars:
-# PKG_PATH, PKG_LANGPACK_PATH, PKG_INST_PATH
-prepare-repackages-%: AB_CD=$*
-prepare-repackages-%:
-ifndef UPLOAD_DIR
-	$(error UPLOAD_DIR not defined)
-endif
-	$(NSINSTALL) -D $(UPLOAD_DIR)
-	$(NSINSTALL) -D $(UPLOAD_DIR)/$(PKG_LANGPACK_PATH)
-# Move the langpack
-	mv $(DIST)/$(PKG_LANGPACK_PATH)$(PKG_LANGPACK_BASENAME).xpi \
-	   $(UPLOAD_DIR)/$(PKG_LANGPACK_PATH)$(PKG_LANGPACK_BASENAME).xpi
-# Move the repackage
-	mv "$(DIST)/$(PACKAGE)" \
-	   "$(UPLOAD_DIR)/$(PACKAGE)"
-# Move the windows installer
-ifeq (WINNT, $(OS_ARCH))
-	mv "$(DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe" \
-	   "$(UPLOAD_DIR)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe"
-endif
-# Set the permissions that the folders will have in ftp once uploaded
-	chmod -vR 775 $(UPLOAD_DIR)
-
-generate-snippet-%:
-	$(PYTHON) $(MOZILLA_SRCDIR)/tools/update-packaging/generatesnippet.py \
-	    --mar-path=$(_ABS_DIST)/update \
-	    --application-ini-file=$(STAGEDIST)/application.ini \
-	    --locale=$* \
-	    --product=$(MOZ_PKG_APPNAME) \
-	    --platform=$(MOZ_PKG_PLATFORM) \
-	    --download-base-URL=$(DOWNLOAD_BASE_URL) \
-	    --branch=$(FILE_BRANCH) \
-	    --verbose
-
 merge-%:
 ifdef LOCALE_MERGEDIR
 	$(RM) -rf $(LOCALE_MERGEDIR)
 	MACOSX_DEPLOYMENT_TARGET= compare-locales -m $(LOCALE_MERGEDIR) $(srcdir)/l10n.ini $(L10NBASEDIR) $*
 endif
 	@echo
+
+.PHONY: repackage-extensions
