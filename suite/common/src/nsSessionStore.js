@@ -3629,7 +3629,7 @@ SessionStoreService.prototype = {
     // Initialize the file output stream.
     var ostream = Components.classes["@mozilla.org/network/safe-file-output-stream;1"]
                             .createInstance(Components.interfaces.nsIFileOutputStream);
-    ostream.init(aFile, 0x02 | 0x08 | 0x20, 0600, 0);
+    ostream.init(aFile, 0x02 | 0x08 | 0x20, 0600, ostream.DEFER_OPEN);
 
     // Obtain a converter to convert our data to a UTF-8 encoded input stream.
     var converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
