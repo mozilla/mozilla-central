@@ -120,9 +120,9 @@ PROFILE_CHROME = userChrome-example.css userContent-example.css
 
 libs:: $(addprefix $(LOCALE_SRCDIR)/,$(README_FILES))
 ifeq ($(OS_ARCH),WINNT)
-	for file in $^; do \
 	$(EXIT_ON_ERROR) \
-	$(PERL) -pe 's/(?<!\r)\n/\r\n/g;' < $$file > $(FINAL_TARGET)/`basename $$file`; \
+	for file in $^; do \
+	  $(PERL) -pe 's/(?<!\r)\n/\r\n/g;' < $$file > $(FINAL_TARGET)/`basename $$file`; \
 	done
 else
 ifneq ($(OS_ARCH),OS2)
