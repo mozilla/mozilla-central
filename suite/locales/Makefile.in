@@ -112,8 +112,8 @@ endif
 endif
 
 PROFILE_FILES = \
-	mimeTypes.rdf \
 	localstore.rdf \
+	mimeTypes.rdf \
 	$(NULL)
 
 PROFILE_CHROME = userChrome-example.css userContent-example.css
@@ -272,7 +272,7 @@ clobber-zip:
 	$(RM) $(STAGEDIST)/chrome/$(AB_CD).jar \
 	  $(STAGEDIST)/chrome/$(AB_CD).manifest \
 	  $(STAGEDIST)/defaults/pref/suite-l10n.js
-	$(RM) -r $(STAGEDIST)/searchplugins \
+	$(RM) -rf $(STAGEDIST)/searchplugins \
 	  $(STAGEDIST)/dictionaries \
 	  $(STAGEDIST)/defaults/profile \
 	  $(STAGEDIST)/chrome/$(AB_CD) \
