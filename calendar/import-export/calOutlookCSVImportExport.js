@@ -543,7 +543,7 @@ calOutlookCSVExporter.prototype = {
             line.push(alarmDate ? localeEn.valueTrue : localeEn.valueFalse);
             line.push(alarmDate ? dateString(alarmDate) : "");
             line.push(alarmDate ? timeString(alarmDate) : "");
-            line.push(txtString(categoriesArrayToString(item.getCategories({})))); // xxx todo: what's the correct way to encode ',' in csv?, how are multi-values expressed?
+            line.push(txtString(cal.categoriesArrayToString(item.getCategories({})))); // xxx todo: what's the correct way to encode ',' in csv?, how are multi-values expressed?
             line.push(txtString(item.getProperty("DESCRIPTION")));
             line.push(txtString(item.getProperty("LOCATION")));
             line.push((item.privacy=="PRIVATE") ? localeEn.valueTrue : localeEn.valueFalse);
