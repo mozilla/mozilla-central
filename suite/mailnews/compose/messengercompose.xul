@@ -157,6 +157,8 @@
   <broadcaster id="args" value="editorType=default"/>
 </broadcasterset>
 
+<broadcasterset id="mainBroadcasterSet"/>
+
 <keyset id="tasksKeys">
   <!-- File Menu -->
   <key id="key_close"/>

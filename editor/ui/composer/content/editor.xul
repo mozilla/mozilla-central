@@ -123,6 +123,8 @@
     <broadcaster id="args" value="about:blank"/>
   </broadcasterset>
 
+  <broadcasterset id="mainBroadcasterSet"/>
+
   <!-- keys are appended from the overlay -->
   <keyset id="editorKeys">
     <keyset id="tasksKeys"/>
