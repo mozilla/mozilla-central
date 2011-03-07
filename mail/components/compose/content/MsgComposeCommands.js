@@ -419,7 +419,6 @@ var defaultController =
       case "cmd_account":
 
       //View Menu
-      case "cmd_showComposeToolbar":
       case "cmd_showFormatToolbar":
 
       //Options Menu
@@ -485,8 +484,6 @@ var defaultController =
       case "cmd_account":
 
       //View Menu
-      case "cmd_showComposeToolbar":
-        return true;
       case "cmd_showFormatToolbar":
         return composeHTML;
 
@@ -540,7 +537,6 @@ var defaultController =
       case "cmd_account"            : MsgAccountManager(null); break;
 
       //View Menu
-      case "cmd_showComposeToolbar" : goToggleToolbar('composeToolbar2', 'menu_showComposeToolbar'); break;
       case "cmd_showFormatToolbar"  : goToggleToolbar('FormatToolbar', 'menu_showFormatToolbar');   break;
 
       //Options Menu

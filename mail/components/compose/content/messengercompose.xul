@@ -158,7 +158,6 @@
   <command id="cmd_account" oncommand="goDoCommand('cmd_account')"/>
 
   <!-- View Menu -->
-  <command id="cmd_showComposeToolbar" oncommand="goDoCommand('cmd_showComposeToolbar')"/>
   <command id="cmd_showFormatToolbar" oncommand="goDoCommand('cmd_showFormatToolbar')"/>
 
   <!-- Options Menu -->
