@@ -116,25 +116,6 @@
     color: HighlightText;
 }
 
-.calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, completed),
-.calendar-task-tree-col-completed {
-    list-style-image: url(chrome://calendar/skin/checkbox-images.png);
-    -moz-image-region: rect(0 32px 16px 16px);
-}
-
-.calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, duetoday),
-.calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, overdue),
-.calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, future),
-.calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, inprogress) {
-    list-style-image: url(chrome://calendar/skin/checkbox-images.png);
-    -moz-image-region: rect(0 16px 16px 0);
-}
-
-.calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, repeating) {
-    list-style-image: url(chrome://calendar/skin/checkbox-images.png);
-    -moz-image-region: rect(0 48px 16px 32px);
-}
-
 .calendar-task-tree-col-priority {
     list-style-image: url(chrome://calendar/skin/task-images.png);
     -moz-image-region: rect(0 13px 13px 0);
