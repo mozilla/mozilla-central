@@ -441,7 +441,7 @@
   <label id="editMessageDescription" control="editMessageButton"
          value="&editMessageDescription.label;"/>
   <button id="editMessageButton" label="&editMessageButton.label;"
-          oncommand="MsgComposeDraftMessage()" class="msgHeaderView-button"/>
+          oncommand="MsgComposeDraftMessage()"/>
 </hbox>
 
 <!-- the message pane consists of 4 'boxes'. Box #4 is the attachment box which
