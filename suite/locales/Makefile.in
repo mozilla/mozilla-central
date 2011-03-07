@@ -200,7 +200,7 @@ install:: $(addprefix generic/profile/,$(PROFILE_FILES))
 install:: $(addprefix $(LOCALE_SRCDIR)/profile/chrome/,$(PROFILE_CHROME))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/defaults/profile/chrome
 
-SEARCH_PLUGINS = $(cat $(call find_locale_file,searchplugins/list.txt))
+SEARCH_PLUGINS = $(shell cat $(call find_locale_file,searchplugins/list.txt))
 
 libs:: $(addsuffix .xml,$(SEARCH_PLUGINS))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/searchplugins
