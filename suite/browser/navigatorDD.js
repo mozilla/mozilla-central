@@ -177,24 +177,22 @@ var goButtonObserver = {
     {
       var xferData = aXferData.data.split("\n");
       var draggedText = xferData[0] || xferData[1];
+      nsDragAndDrop.dragDropSecurityCheck(aEvent, aDragSession, draggedText);
+
+      var uri;
       try {
-        nsDragAndDrop.dragDropSecurityCheck(aEvent, aDragSession, draggedText);
-
-        var uri;
-        try {
-          uri = makeURI(draggedText);
-        } catch (ex) { }
-        if (uri) {
-          // we have a valid url, so do a security check for javascript.
-          const nsIScriptSecMan = Components.interfaces.nsIScriptSecurityManager;
-          urlSecurityCheck(uri, content.document.nodePrincipal,
-                           nsIScriptSecMan.DISALLOW_SCRIPT_OR_DATA);
-        }
-
-        var postData = {};
-        var url = getShortcutOrURI(draggedText, postData);
-        loadURI(url, null, postData.value, true);
+        uri = makeURI(draggedText);
       } catch (ex) { }
+      if (uri) {
+        // we have a valid url, so do a security check for javascript.
+        const nsIScriptSecMan = Components.interfaces.nsIScriptSecurityManager;
+        urlSecurityCheck(uri, content.document.nodePrincipal,
+                         nsIScriptSecMan.DISALLOW_SCRIPT_OR_DATA);
+      }
+
+      var postData = {};
+      var url = getShortcutOrURI(draggedText, postData);
+      loadURI(url, null, postData.value, true);
     },
   getSupportedFlavours: function ()
     {
