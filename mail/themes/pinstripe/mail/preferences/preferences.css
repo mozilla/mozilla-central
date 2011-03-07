@@ -71,48 +71,24 @@ radio[pane=paneGeneral] {
   -moz-image-region: rect(0px, 32px, 32px, 0px)
 }
 
-radio[pane=paneGeneral]:active {
-  -moz-image-region: rect(32px, 32px, 64px, 0px)
-}
-
 radio[pane=paneDisplay] {
   -moz-image-region: rect(0px, 64px, 32px, 32px)
-}
-
-radio[pane=paneDisplay]:active {
-  -moz-image-region: rect(32px, 64px, 64px, 32px)
 }
 
 radio[pane=paneCompose] {
   -moz-image-region: rect(0px, 96px, 32px, 64px)
 }
 
-radio[pane=paneCompose]:active {
-  -moz-image-region: rect(32px, 96px, 64px, 64px)
-}
-
 radio[pane=paneSecurity] {
   -moz-image-region: rect(0px 128px 32px 96px);
-}
-
-radio[pane=paneSecurity]:active {
-  -moz-image-region: rect(32px 128px 64px 96px);
 }
 
 radio[pane=paneApplications] {
   -moz-image-region: rect(0px 160px 32px 128px);
 }
 
-radio[pane=paneApplications]:active {
-  -moz-image-region: rect(32px 160px 64px 128px);
-}
-
 radio[pane=paneAdvanced] {
   -moz-image-region: rect(0px, 256px, 32px, 224px)
-}
-
-radio[pane=paneAdvanced]:active {
-  -moz-image-region: rect(32px, 256px, 64px, 224px)
 }
 
 /* Attachments Pane */
