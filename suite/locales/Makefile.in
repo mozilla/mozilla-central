@@ -89,8 +89,7 @@ ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
 MOZ_PKG_MAC_DSSTORE=$(_ABS_DIST)/branding/dsstore
 MOZ_PKG_MAC_BACKGROUND=$(_ABS_DIST)/branding/background.png
 MOZ_PKG_MAC_ICON=$(_ABS_DIST)/branding/disk.icns
-MOZ_PKG_MAC_EXTRA=--format UDBZ \
-                  --symlink "/Applications: " \
+MOZ_PKG_MAC_EXTRA=--symlink "/Applications:/ " \
                   --copy "$(LOCALE_SRCDIR)/installer/mac/README.txt"
 endif
 
@@ -201,7 +200,7 @@ install:: $(addprefix generic/profile/,$(PROFILE_FILES))
 install:: $(addprefix $(LOCALE_SRCDIR)/profile/chrome/,$(PROFILE_CHROME))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/defaults/profile/chrome
 
-SEARCH_PLUGINS = $(shell cat $(LOCALE_SRCDIR)/searchplugins/list.txt)
+SEARCH_PLUGINS = $(call find_locale_file,searchplugins/list.txt)
 
 libs:: $(addsuffix .xml,$(SEARCH_PLUGINS))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/searchplugins
