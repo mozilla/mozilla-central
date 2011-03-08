@@ -77,7 +77,10 @@ function open_advanced_settings(aCallback, aController) {
     aController = mc;
 
   wh.plan_for_modal_dialog("mailnews:accountmanager", aCallback);
-  aController.click(new elib.Elem(mc.menus.tasksMenu.menu_accountmgr));
+  if (mc.isLinux)
+    aController.click(new elib.Elem(mc.menus.menu_Edit.menu_accountmgr));
+  else
+    aController.click(new elib.Elem(mc.menus.tasksMenu.menu_accountmgr));
   return wh.wait_for_modal_dialog("mailnews:accountmanager");
 }
 
@@ -88,7 +91,8 @@ function open_advanced_settings(aCallback, aController) {
  */
 function open_advanced_settings_from_account_wizard(aCallback, aController) {
   wh.plan_for_modal_dialog("mailnews:accountmanager", aCallback);
-  aController.e("advanced_settings").click();
+  aController.e("manual-edit_button").click();
+  aController.e("advanced-setup_button").click();
   return wh.wait_for_modal_dialog("mailnews:accountmanager");
 }
 

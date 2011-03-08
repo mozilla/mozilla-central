@@ -10,42 +10,46 @@
 <!ENTITY password.accesskey              "P">
 <!ENTITY password.placeholder            "Password">
 <!ENTITY password.text                   "Optional, will only be used to validate the username">
+<!ENTITY rememberPassword.label          "Remember password">
+<!ENTITY rememberPassword.accesskey      "m">
 
-<!ENTITY accountInformation.label        "Account Information">
-<!ENTITY username2.label                 "Username:">
+<!ENTITY imapLong.label                  "IMAP (remote folders)">
+<!ENTITY pop3Long.label                  "POP3 (keep mail on your computer)">
+
 <!ENTITY incoming.label                  "Incoming:">
 <!ENTITY outgoing.label                  "Outgoing:">
+<!ENTITY username.label                  "Username:">
+<!ENTITY hostname.label                  "Server hostname">
+<!ENTITY port.label                      "Port">
+<!ENTITY ssl.label                       "SSL">
+<!ENTITY auth.label                      "Authentication">
+<!ENTITY imap.label                      "IMAP">
+<!ENTITY pop3.label                       "POP3">
+<!ENTITY smtp.label                      "SMTP">
+<!ENTITY autodetect.label                "Autodetect">
+<!-- LOCALIZATION NOTE(noEncryption.label): Neither SSL/TLS nor STARTTLS.
+     Transmission of emails in cleartext over the Internet. -->
 <!ENTITY noEncryption.label              "None">
 <!ENTITY starttls.label                  "STARTTLS">
 <!ENTITY sslTls.label                    "SSL/TLS">
 
-<!ENTITY imap.label                      "IMAP">
-<!ENTITY pop.label                       "POP">
-<!ENTITY smtp.label                      "SMTP">
-<!ENTITY imap.description                "IMAP - Access folders and messages from multiple computers">
-<!ENTITY pop.description                 "POP - Download all messages onto this computer, folders are local only">
-<!ENTITY recommended-appendix.label      "(recommended)">
-
-<!ENTITY manualSetup.label               "Manual Setup…">
-<!ENTITY manualSetup.accesskey           "S">
+<!ENTITY advancedSetup.label             "Advanced config">
+<!ENTITY advancedSetup.accesskey         "A">
 <!ENTITY cancel.label                    "Cancel">
 <!ENTITY cancel.accesskey                "a">
 <!ENTITY continue.label                  "Continue">
 <!ENTITY continue.accesskey              "C">
-<!ENTITY startOver.label                 "Start over">
-<!ENTITY startOver.accesskey             "o">
 <!ENTITY stop.label                      "Stop">
 <!ENTITY stop.accesskey                  "S">
-<!-- LOCALIZATION NOTE (retest.label): This is the text that is
-     displayed on the button which will re-guess the account configuration,
-     taking into account the settings the user has changed. -->
-<!ENTITY retest.label                    "Re-test Configuration">
-<!ENTITY retest.accesskey                "R">
-<!ENTITY edit.label                      "Edit">
-<!ENTITY edit.accesskey                  "E">
+<!-- LOCALIZATION NOTE (half-manual-test.label): This is the text that is
+     displayed on the button in manual edit mode which will re-guess
+     the account configuration, taking into account the settings that
+     the user has manually changed. -->
+<!ENTITY half-manual-test.label          "Re-test">
+<!ENTITY half-manual-test.accesskey      "t">
+<!ENTITY manual-edit.label               "Manual config">
+<!ENTITY manual-edit.accesskey           "M">
 
-<!ENTITY rememberPassword.label          "Remember password">
-<!ENTITY rememberPassword.accesskey      "m">
 
 <!ENTITY warning.label                   "Warning!">
 <!ENTITY incomingSettings.label          "Incoming settings:">

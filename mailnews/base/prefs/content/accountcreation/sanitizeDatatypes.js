@@ -52,11 +52,11 @@ var sanitize =
 {
   integer : function(unchecked)
   {
-    if (typeof(unchecked) == "number")
+    if (typeof(unchecked) == "number" && !isNaN(unchecked))
       return unchecked;
 
     var r = parseInt(unchecked);
-    if (r == NaN)
+    if (isNaN(r))
       throw new MalformedException("no_number.error", unchecked);
 
     return r;
@@ -190,7 +190,6 @@ var sanitize =
     var e = new MalformedException("allowed_value.error", unchecked);
     if (typeof(defaultValue) == "undefined")
       throw e;
-    logException(e);
     return defaultValue;
   },
 
@@ -222,7 +221,6 @@ var sanitize =
     var e = new MalformedException("allowed_value.error", unchecked);
     if (typeof(defaultValue) == "undefined")
       throw e;
-    logException(e);
     return defaultValue;
   }
 };

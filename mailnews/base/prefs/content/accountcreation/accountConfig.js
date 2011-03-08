@@ -47,7 +47,8 @@
  * new object and returns that, and the caller can copy these
  * values into the object used by the UI.
  *
- * See also <https://wiki.mozilla.org/Thunderbird:Autoconfiguration:ConfigFileFormat>
+ * See also
+ * <https://wiki.mozilla.org/Thunderbird:Autoconfiguration:ConfigFileFormat>
  * for values stored.
  */
 
@@ -69,22 +70,28 @@ function AccountConfig()
 };
 AccountConfig.prototype =
 {
-  incoming : null, // see |createNewIncoming()|
-  outgoing : null, // see |createNewOutgoing()|
+  // @see createNewIncoming()
+  incoming : null,
+  // @see createNewOutgoing()
+  outgoing : null,
   /**
-   * {Array of |incoming|/|createNewIncoming|}
    * Other servers which can be used instead of |incoming|,
    * in order of decreasing preference.
    * (|incoming| itself should not be included here.)
+   * { Array of incoming/createNewIncoming() }
    */
   incomingAlternatives : null,
   outgoingAlternatives : null,
-  id : null, // just an internal string to refer to this. Do not show to user.
-  source : 0, // who created the config. kSource*
+  // just an internal string to refer to this. Do not show to user.
+  id : null,
+  // who created the config.
+  // { one of kSource* }
+  source : 0,
   displayName : null,
-  // Array of Objects with properties varname (value without %), displayName, exampleValue
+  // { Array of { varname (value without %), displayName, exampleValue } }
   inputFields : null,
-  // Array of Strings - email address domains for which this config is applicable
+  // email address domains for which this config is applicable
+  // { Array of Strings }
   domains : null,
 
   /**
@@ -93,12 +100,15 @@ AccountConfig.prototype =
   createNewIncoming : function()
   {
     return {
-      type : null, // string-enum: "pop3", "imap", "nntp"
+      // { String-enum: "pop3", "imap", "nntp" }
+      type : null,
       hostname : null,
-      port : null, // Integer
-      username : null, // String. May be a placeholder (starts and ends with %).
+      // { Integer }
+      port : null,
+      // May be a placeholder (starts and ends with %). { String }
+      username : null,
       password : null,
-      // enum: 1 = plain, 2 = SSL/TLS, 3 = STARTTLS always, 0 = not inited
+      // { enum: 1 = plain, 2 = SSL/TLS, 3 = STARTTLS always, 0 = not inited }
       // ('TLS when available' is insecure and not supported here)
       socketType : 0,
       /**
@@ -116,16 +126,18 @@ AccountConfig.prototype =
        */
       auth : 0,
       /**
-       * {Array of Ci.nsMsgAuthMethod} (same as .auth)
        * Other auth methods that we think the server supports.
        * They are ordered by descreasing preference.
        * (|auth| itself is not included in |authAlternatives|)
+       * {Array of Ci.nsMsgAuthMethod} (same as .auth)
        */
       authAlternatives : null,
-      checkInterval : 10, // Integer, in minutes
+      // in minutes { Integer }
+      checkInterval : 10,
       loginAtStartup : true,
       // POP3 only:
-      useGlobalInbox : false, // boolean. Not yet implemented.
+      // Not yet implemented. { Boolean }
+      useGlobalInbox : false,
       leaveMessagesOnServer : true,
       daysToLeaveMessagesOnServer : 14,
       deleteByAgeFromServer : true,
@@ -149,10 +161,11 @@ AccountConfig.prototype =
       badCert : false, // see incoming
       auth : 0, // see incoming
       authAlternatives : null, // see incoming
-      addThisServer : true, // if we already have an SMTP server, add this or not.
+      addThisServer : true, // if we already have an SMTP server, add this
       // if we already have an SMTP server, use it.
       useGlobalPreferredServer : false,
-      // we should reuse an already configured SMTP server. This is nsISmtpServer.key.
+      // we should reuse an already configured SMTP server.
+      // nsISmtpServer.key
       existingServerKey : null,
       // user display value for existingServerKey
       existingServerLabel : null,
@@ -197,7 +210,7 @@ AccountConfig.kSourceGuess = 3; // guessConfig()
  * Some fields on the account config accept placeholders (when coming from XML).
  *
  * These are the predefined ones
- * * %EMAILADDRESS% (full email address of the user, usually entered by the user)
+ * * %EMAILADDRESS% (full email address of the user, usually entered by user)
  * * %EMAILLOCALPART% (email address, part before @)
  * * %EMAILDOMAIN% (email address, part after @)
  * * %REALNAME%
@@ -250,14 +263,14 @@ function replaceVariables(account, realname, emailfull, password)
   account.outgoing.username = _replaceVariable(account.outgoing.username,
                                                otherVariables);
   account.incoming.hostname =
-    _replaceVariable(account.incoming.hostname, otherVariables);
+      _replaceVariable(account.incoming.hostname, otherVariables);
   if (account.outgoing.hostname) // will be null if user picked existing server.
     account.outgoing.hostname =
-      _replaceVariable(account.outgoing.hostname, otherVariables);
+        _replaceVariable(account.outgoing.hostname, otherVariables);
   account.identity.realname =
-    _replaceVariable(account.identity.realname, otherVariables);
+      _replaceVariable(account.identity.realname, otherVariables);
   account.identity.emailAddress =
-    _replaceVariable(account.identity.emailAddress, otherVariables);
+      _replaceVariable(account.identity.emailAddress, otherVariables);
   account.displayName = _replaceVariable(account.displayName, otherVariables);
 }
 

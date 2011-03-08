@@ -350,7 +350,7 @@ function msgNewMailAccount(msgWindow, okCallback, extraData)
     existingWindow.focus();
   else
     window.openDialog("chrome://messenger/content/accountcreation/emailWizard.xul",
-                      "AccountSetup", "chrome,titlebar,centerscreen",
+                      "AccountSetup", "chrome,titlebar,modal,centerscreen",
                       {msgWindow:msgWindow,
                        okCallback:okCallback,
                        extraData:extraData});

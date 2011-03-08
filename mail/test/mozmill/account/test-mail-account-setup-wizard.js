@@ -123,9 +123,9 @@ function test_mail_account_setup() {
   let config = null;
 
   // XXX: This should probably use a notification, once we fix bug 561143.
-  awc.waitForEval("subject._currentConfigFilledIn != null", 8000, 600,
+  awc.waitForEval("subject._currentConfig != null", 8000, 600,
                   awc.window.gEmailConfigWizard);
-  config = awc.window.gEmailConfigWizard._currentConfigFilledIn;
+  config = awc.window.gEmailConfigWizard.getConcreteConfig();
 
   // Open the advanced settings (Account Manager) to create the account
   // immediately.  We use an invalid email/password so the setup will fail
@@ -148,7 +148,7 @@ function subtest_verify_account(amc) {
       actual: incoming.username, expected: user.email.split("@")[0]
     },
     "outgoing server username": {
-      actual: outgoing.username, expected: user.email
+      actual: outgoing.username, expected: user.email.split("@")[0]
     },
     "incoming server hostname": {
       // Note: N in the hostName is uppercase
@@ -191,7 +191,7 @@ function test_bad_password_uses_old_settings() {
     pref.setCharPref(pref_name, url);
 
     // Force .com MIME-Type to text/xml
-   collector.httpd.registerContentType("com", "text/xml");
+    collector.httpd.registerContentType("com", "text/xml");
 
     mc.sleep(0);
     awc = open_mail_account_setup_wizard();
@@ -209,19 +209,20 @@ function test_bad_password_uses_old_settings() {
 
     let config = null;
 
-    awc.waitForEval("subject.disabled == false", 8000, 600,
-                    awc.e("create_button"));
+    awc.waitForEval("subject.disabled == false && subject.hidden == false",
+                    8000, 600, awc.e("create_button"));
     awc.e("create_button").click();
 
     awc.waitForEval("subject.disabled == false", 8000, 600,
                     awc.e("create_button"));
     awc.e("create_button").click();
+    awc.e("manual-edit_button").click();
 
     // Make sure all the values are the same as in the user object.
     awc.sleep(1000);
-    assert_equals(awc.e("outgoing_server").value, user.outgoingHost,
+    assert_equals(awc.e("outgoing_hostname").value, user.outgoingHost,
                   "Outgoing server changed!");
-    assert_equals(awc.e("incoming_server").value, user.incomingHost,
+    assert_equals(awc.e("incoming_hostname").value, user.incomingHost,
                   "incoming server changed!");
   }
   finally {
@@ -254,42 +255,28 @@ function remember_password_test(aPrefValue) {
   awc = open_mail_account_setup_wizard();
 
   try {
-  let password = new elementslib.ID(awc.window.document, "password");
-  let rememberPassword =
-      new elementslib.ID(awc.window.document, "remember_password");
+    let password = new elementslib.ID(awc.window.document, "password");
+    let rememberPassword =
+        new elementslib.ID(awc.window.document, "remember_password");
 
-  // password field is empty and the checkbox is disabled initially
-  // -> uncheck checkbox
+    // type something in the password field
+    awc.e("password").focus();
+    input_value(awc, "testing");
 
-  awc.assertProperty(rememberPassword, "disabled", true);
-  awc.assertNotChecked(rememberPassword);
+    awc.assertProperty(rememberPassword, "disabled", !aPrefValue);
+    if (aPrefValue) {
+      awc.assertChecked(rememberPassword);
+    }
+    else {
+      awc.assertNotChecked(rememberPassword);
+    }
 
-  // type something in the password field
-  awc.e("password").focus();
-  input_value(awc, "testing");
+    // empty the password field
+    awc.keypress(password, 'a', {accelKey: true});
+    awc.keypress(password, 'VK_DELETE', {});
 
-  awc.assertProperty(rememberPassword, "disabled", !aPrefValue);
-  if (aPrefValue) {
-    // password field is not empty any more
-    // -> enable and check checkbox
-    awc.assertChecked(rememberPassword);
-  }
-  else {
-    // password field is not empty any more, but aPrefValue is false
-    // -> disable and uncheck checkbox
-    awc.assertNotChecked(rememberPassword);
-  }
-
-  // empty the password field
-  awc.keypress(password, 'a', {accelKey: true});
-  awc.keypress(password, 'VK_DELETE', {});
-
-  // password field is empty -> disable and uncheck checkbox
-  awc.assertProperty(rememberPassword, "disabled", true);
-  awc.assertNotChecked(rememberPassword);
-
-  // restore the saved signon.rememberSignons value
-  pref.setBoolPref("signon.rememberSignons", rememberSignons_pref_save);
+    // restore the saved signon.rememberSignons value
+    pref.setBoolPref("signon.rememberSignons", rememberSignons_pref_save);
   }
   finally {
     // close the wizard

@@ -81,16 +81,6 @@ var outgoingDone = false;
  *   because we have not found anything or
  *   because there was an error (e.g. no network connection).
  *   The ex.message will contain a user-presentable message.
- * @param incomingErrorCallback {function(ex, config {AccountConfig})}
- *   Like errorCallback, just that we do have a config for the
- *   outgoing server, just not for the incoming server.
- *   This is not terribly useful, because we may have guessed
- *   the MX server (SMTP server for incoming mail from other SMTP servers),
- *   not the outbound SMTP for users.
- *   Showing MX will highly mislead users, so better to treat that as total error.
- * @param outgoingErrorCallback {function(ex, config {AccountConfig})}
- *   Like errorCallback, just that we do have a config for the
- *   incoming server, just not for the outgoing server.
  * @param resultConfig {AccountConfig} (optional)
  *   A config which may be partially filled in. If so, it will be used as base
  *   for the guess.
@@ -99,22 +89,17 @@ var outgoingDone = false;
  * @result {Abortable} Allows you to cancel the guess
  */
 function guessConfig(domain, progressCallback, successCallback, errorCallback,
-                     incomingErrorCallback, outgoingErrorCallback,
                      resultConfig, which)
 {
   assert(typeof(progressCallback) == "function", "need progressCallback");
   assert(typeof(successCallback) == "function", "need successCallback");
   assert(typeof(errorCallback) == "function", "need errorCallback");
-  assert(typeof(incomingErrorCallback) == "function",
-    "need incomingErrorCallback");
-  assert(typeof(outgoingErrorCallback) == "function",
-    "need outgoingErrorCallback");
   if (!resultConfig)
     resultConfig = new AccountConfig();
   resultConfig.source = AccountConfig.kSourceGuess;
 
-  var outgoingHostDetector = null;
   var incomingHostDetector = null;
+  var outgoingHostDetector = null;
   var incomingEx = null; // if incoming had error, store ex here
   var outgoingEx = null; // if incoming had error, store ex here
   var incomingDone = (which == "outgoing");
@@ -132,22 +117,38 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
     resultConfig = config;
   };
 
+  var errorInCallback = function(e)
+  {
+    // The caller's errorCallback threw.
+    // hopefully shouldn't happen for users.
+    alertPrompt("Error in errorCallback for guessConfig()", e);
+  };
+
   var checkDone = function()
   {
-    if (outgoingEx)
-      outgoingErrorCallback(outgoingEx, resultConfig);
-
     if (incomingEx)
-      incomingErrorCallback(incomingEx, resultConfig);
-
-    if (incomingEx && outgoingEx)
     {
-      errorCallback(incomingEx, resultConfig);
+      try {
+        errorCallback(incomingEx, resultConfig);
+      } catch (e) { errorInCallback(e); }
       return;
     }
-    if ((incomingDone || incomingEx) && (outgoingDone || outgoingEx))
+    if (outgoingEx)
     {
-      successCallback(resultConfig);
+      try {
+        errorCallback(outgoingEx, resultConfig);
+      } catch (e) { errorInCallback(e); }
+      return;
+    }
+    if (incomingDone && outgoingDone)
+    {
+      try {
+        successCallback(resultConfig);
+      } catch (e) {
+        try {
+          errorCallback(e);
+        } catch (e) { errorInCallback(e); }
+      }
       return;
     }
   };
@@ -155,8 +156,8 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
   var outgoingSuccess = function(thisTry)
   {
     assert(thisTry.protocol == SMTP, "I only know SMTP for outgoing");
-    // Ensure there are no previously saved outgoing errors if we've got success
-    // here.
+    // Ensure there are no previously saved outgoing errors, if we've got
+    // success here.
     outgoingEx = null;
     resultConfig.outgoing.type = "smtp";
     resultConfig.outgoing.hostname = thisTry.hostname;
@@ -177,16 +178,10 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
     checkDone();
   };
 
-  var outgoingError = function(ex)
-  {
-    outgoingEx = ex;
-    checkDone();
-  };
-
   var incomingSuccess = function(thisTry)
   {
-    // Ensure there are no previously saved incoming errors if we've got success
-    // here.
+    // Ensure there are no previously saved incoming errors, if we've got
+    // success here.
     incomingEx = null;
     resultConfig.incoming.type = protocolToString(thisTry.protocol);
     resultConfig.incoming.hostname = thisTry.hostname;
@@ -208,24 +203,35 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
   {
     incomingEx = ex;
     checkDone();
+    incomingHostDetector.cancel(new CancelOthersException());
+    outgoingHostDetector.cancel(new CancelOthersException());
   };
 
-  let incomingHostDetector = null;
-  let outgoingHostDetector = null;
+  var outgoingError = function(ex)
+  {
+    outgoingEx = ex;
+    checkDone();
+    incomingHostDetector.cancel(new CancelOthersException());
+    outgoingHostDetector.cancel(new CancelOthersException());
+  };
+
   incomingHostDetector = new IncomingHostDetector(progress, incomingSuccess,
                                                   incomingError);
   outgoingHostDetector = new OutgoingHostDetector(progress, outgoingSuccess,
                                                   outgoingError);
   if (which == "incoming" || which == "both")
   {
-    incomingHostDetector.start(domain, !!resultConfig.incoming.hostname,
-        resultConfig.incoming.type, resultConfig.incoming.port,
-        resultConfig.incoming.socketType);
+    incomingHostDetector.start(resultConfig.incoming.hostname ?
+            resultConfig.incoming.hostname : domain,
+        !!resultConfig.incoming.hostname, resultConfig.incoming.type,
+        resultConfig.incoming.port, resultConfig.incoming.socketType);
   }
   if (which == "outgoing" || which == "both")
   {
-    outgoingHostDetector.start(domain, !!resultConfig.outgoing.hostname,
-        "smtp", resultConfig.outgoing.port, resultConfig.outgoing.socketType);
+    outgoingHostDetector.start(resultConfig.outgoing.hostname ?
+            resultConfig.outgoing.hostname : domain,
+        !!resultConfig.outgoing.hostname, "smtp",
+        resultConfig.outgoing.port, resultConfig.outgoing.socketType);
   }
 
   return new GuessAbortable(incomingHostDetector, outgoingHostDetector,
@@ -242,70 +248,11 @@ function GuessAbortable(incomingHostDetector, outgoingHostDetector,
 }
 GuessAbortable.prototype =
 {
-  cancel : function(which)
+  cancel : function(ex)
   {
-    switch (which)
-    {
-      case "incoming":
-      default:
-        if (this._incomingHostDetector)
-          this._incomingHostDetector.cancel();
-      case "outgoing":
-        if (which != "incoming")
-        {
-          if (this._outgoingHostDetector)
-            this._outgoingHostDetector.cancel();
-          outgoingDone = true;
-        }
-    }
+    this._incomingHostDetector.cancel(ex);
+    this._outgoingHostDetector.cancel(ex);
   },
-
-  /**
-   * Start a detection that has been cancel()ed before,
-   * possibly with other parameters.
-   *
-   * This is basically an alternative to calling guessConfig() again.
-   * TODO deprecate in favor of that?
-   *
-   * @param domain {String} @see HostDetector.start()
-   * @param config {AccountConfig} @see guessConfig() resultConfig
-   * @param which {String-enum} @see guessConfig() which
-   * @param type {String-enum} @see HostDetector.start()
-   * @param port {Integer} @see HostDetector.start()
-   * @param socketType {Integer-enum} @see HostDetector.start()
-   */
-  restart : function(domain, config, which, type, port, socketType)
-  {
-    // Calling code may have changed config (e.g., user may have changed
-    // username) so put new values in resultConfig.
-    this._updateConfig(config);
-    var incomingHostIsPrecise = !!config.incoming.hostname;
-    var outgoingHostIsPrecise = !!config.outgoing.hostname;
-    switch (which)
-    {
-      case "incoming":
-        assert(this._incomingHostDetector, "need this._incomingHostDetector");
-        this._incomingHostDetector.cancel();
-        this._incomingHostDetector.start(domain, incomingHostIsPrecise,
-                                         type, port, socketType);
-        break;
-      case "outgoing":
-        assert(this._outgoingHostDetector, "need this._outgoingHostDetector");
-        this._outgoingHostDetector.cancel();
-        this._outgoingHostDetector.start(domain, outgoingHostIsPrecise,
-                                         "smtp", port, socketType);
-        break;
-      default: // both
-        assert(this._incomingHostDetector, "need this._incomingHostDetector");
-        assert(this._outgoingHostDetector, "need this._outgoingHostDetector");
-        this._incomingHostDetector.cancel();
-        this._incomingHostDetector.start(domain, incomingHostIsPrecise,
-                                         type, port, socketType);
-        this._outgoingHostDetector.cancel();
-        this._outgoingHostDetector.start(domain, outgoingHostIsPrecise,
-                                         "smtp", port, socketType);
-    }
-  }
 }
 extend(GuessAbortable, Abortable);
 
@@ -361,6 +308,18 @@ HostTry.prototype =
 };
 
 /**
+ * When the success or errorCallbacks are called to abort the other requests
+ * which happened in parallel, this ex is used as param for cancel(), so that
+ * the cancel doesn't trigger another callback.
+ */
+function CancelOthersException()
+{
+  CancelledException.call(this, "we're done, cancelling the other probes");
+}
+CancelOthersException.prototype = {}
+extend(CancelOthersException, CancelledException);
+
+/**
  * @param successCallback {function(result {HostTry})}
  *    Called when the config is OK
  * @param errorCallback {function(ex)} Called when we could not find a config
@@ -372,7 +331,6 @@ function HostDetector(progressCallback, successCallback, errorCallback)
   this.mSuccessCallback = successCallback;
   this.mProgressCallback = progressCallback;
   this.mErrorCallback = errorCallback;
-  this._done = false;
   this._cancel = false;
   // {Array of {HostTry}}, ordered by decreasing preference
   this._hostsToTry = new Array();
@@ -394,14 +352,14 @@ HostDetector.prototype =
     {
       let thisTry = this._hostsToTry[i]; // {HostTry}
       if (thisTry.abortable)
-        thisTry.abortable.cancel();
+        thisTry.abortable.cancel(ex);
       thisTry.status = kFailed; // or don't set? Maybe we want to continue.
     }
+    if (ex instanceof CancelOthersException)
+      return;
     if (!ex)
-      ex = new UserCancelledException(); // TODO use CanceledException, after it was added to util.js (not fetchhttp.js) in bug 534588 or bug 549045.
-    if (!this._done) // success also calls cancel() - skip this in this case
-      this.mErrorCallback(ex);
-    this._done = true;
+      ex = new CancelledException();
+    this.mErrorCallback(ex);
   },
 
   /**
@@ -585,17 +543,15 @@ HostDetector.prototype =
           successfulTry.authMethods.join(",") + "] ssl " + successfulTry.ssl +
           (successfulTry.selfSignedCert ? " (selfSignedCert)" : ""));
       this.mSuccessCallback(successfulTry);
-      this._done = true;
-      this.cancel();
+      this.cancel(new CancelOthersException());
     }
     else if (!unfinishedBusiness) // all failed
     {
       this._log.info("ran out of options");
-      var errorMsg =
-        getStringBundle("chrome://messenger/locale/accountCreationModel.properties")
-        .GetStringFromName("cannot_find_server.error");
+      var errorMsg = getStringBundle(
+          "chrome://messenger/locale/accountCreationModel.properties")
+          .GetStringFromName("cannot_find_server.error");
       this.mErrorCallback(new Exception(errorMsg));
-      this._done = true;
       // no need to cancel, all failed
     }
     // else let ongoing calls continue
@@ -935,7 +891,7 @@ SSLErrorHandler.prototype =
 {
   processCertError : function(socketInfo, status, targetSite)
   {
-    this._log.warn("Got Cert error for "+ targetSite);
+    this._log.error("Got Cert error for "+ targetSite);
 
     if (!status)
       return true;
@@ -1142,7 +1098,7 @@ function SocketAbortable(transport)
 }
 SocketAbortable.prototype =
 {
-  cancel : function()
+  cancel : function(ex)
   {
     try {
       this._transport.close(Components.results.NS_ERROR_ABORT);

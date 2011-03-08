@@ -16,8 +16,8 @@
  *
  * The Initial Developer of the Original Code is
  * David Ascher <davida@mozilla.com> and
- * Ben Bucksch <mozilla bucksch.org>
- * Portions created by the Initial Developer are Copyright (C) 2008-2009
+ * Ben Bucksch <ben.bucksch beonex.com>
+ * Portions created by the Initial Developer are Copyright (C) 2008-2011
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -66,23 +66,87 @@ var domainRE = /^((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$|(\[?
 const kHighestPort = 65535;
 
 Cu.import("resource:///modules/gloda/log4moz.js");
-
-let gSmtpManager = Cc["@mozilla.org/messengercompose/smtp;1"]
-                   .getService(Ci.nsISmtpService);
-let gAccountMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
 let gEmailWizardLogger = Log4Moz.getConfiguredLogger("mail.wizard");
-let gStringsBundle;
-let gBrandBundle;
+
+var gStringsBundle;
+var gMessengerBundle;
+var gBrandShortName;
+
+/*********************
+TODO for bug 549045
+- autodetect protocol
+Polish
+- reformat code style to match
+<https://developer.mozilla.org/En/Mozilla_Coding_Style_Guide#Control_Structures>
+- bold status
+- remove status when user edited in manual edit
+- add and adapt test from bug 534588
+Bugs
+- SSL cert errors
+  - invalid cert (hostname mismatch) doesn't trigger warning dialog as it should
+  - accept self-signed cert (e.g. imap.mail.ru) doesn't work
+    (works without my patch),
+    verifyConfig.js line 124 has no inServer, for whatever reason,
+    although I didn't change verifyConfig.js at all
+    (the change you see in that file is irrelevant: that was an attempt to fix
+    the bug and clean up the code).
+- Set radio IMAP vs. POP3, see TODO in code
+Things to test (works for me):
+- state transitions, buttons enable, status msgs
+  - stop button
+    - showes up again after stopping detection and restarting it
+    - when stopping [retest]: buttons proper?
+  - enter nonsense domain. guess fails, (so automatically) manual,
+    change domain to real one (not in DB), guess succeeds.
+    former bug: goes to manual first shortly, then to result
+**********************/
+
+// To debug, set mail.wizard.logging.dump (or .console)="All" and kDebug = true
+
+function e(elementID)
+{
+  return document.getElementById(elementID);
+};
 
 function _hide(id)
 {
-  document.getElementById(id).hidden = true;
+  e(id).hidden = true;
 }
+
 function _show(id)
 {
-  document.getElementById(id).hidden = false;
+  e(id).hidden = false;
 }
+
+function _enable(id)
+{
+  e(id).disabled = false;
+}
+
+function _disable(id)
+{
+  e(id).disabled = true;
+}
+
+function setText(id, value)
+{
+  var element = e(id);
+  assert(element, "setText() on non-existant element ID");
+
+  if (element.localName == "textbox" || element.localName == "label") {
+    element.value = value;
+  } else if (element.localName == "description") {
+    element.textContent = value;
+  } else {
+    throw new NotReached("XUL element type not supported");
+  }
+}
+
+function setLabelFromStringBundle(elementID, stringName)
+{
+  e(elementID).label = gMessengerBundle.getString(stringName);
+};
+
 function EmailConfigWizard()
 {
   this._init();
@@ -92,714 +156,1313 @@ EmailConfigWizard.prototype =
   _init : function EmailConfigWizard__init()
   {
     gEmailWizardLogger.info("Initializing setup wizard");
-    this._probeAbortable = null;
+    this._abortable = null;
   },
 
   onLoad : function()
   {
+    /**
+     * this._currentConfig is the config we got either from the XML file or
+     * from guessing or from the user. Unless it's from the user, it contains
+     * placeholders like %EMAILLOCALPART% in username and other fields.
+     *
+     * The config here must retain these placeholders, to be able to
+     * adapt when the user enters a different realname, or password or
+     * email local part. (A change of the domain name will trigger a new
+     * detection anyways.)
+     * That means, before you actually use the config (e.g. to create an
+     * account or to show it to the user), you need to run replaceVariables().
+     */
+    this._currentConfig = null;
     this._domain = "";
     this._email = "";
     this._realname = "";
     this._password = "";
-    this._verifiedConfig = false;
-    this._userChangedIncomingServer = false;
-    this._userChangedIncomingProtocol = false;
-    this._userChangedIncomingPort = false;
-    this._userChangedIncomingSocketType = false;
-    this._userChangedOutgoingPort = false;
-    this._userChangedOutgoingSocketType = false;
-    this._userChangedPassword = false;
-
-    this._incomingWarning = 'cleartext';
-    this._outgoingWarning = 'cleartext';
-    this._userPickedOutgoingServer = false;
     this._okCallback = null;
 
     if (window.arguments && window.arguments[0]) {
-      if (window.arguments[0].msgWindow)
+      if (window.arguments[0].msgWindow) {
         this._parentMsgWindow = window.arguments[0].msgWindow;
-      if (window.arguments[0].okCallback)
+      }
+      if (window.arguments[0].okCallback) {
         this._okCallback = window.arguments[0].okCallback;
+      }
     }
 
-    gStringsBundle = document.getElementById("strings");
-    gBrandBundle = document.getElementById("bundle_brand");
+    gStringsBundle = e("strings");
+    gMessengerBundle = e("bundle_messenger");
+    gBrandShortName = e("bundle_brand").getString("brandShortName");
+
+    setLabelFromStringBundle("in-authMethod-password-cleartext",
+        "authPasswordCleartextViaSSL"); // will warn about insecure later
+    setLabelFromStringBundle("in-authMethod-password-encrypted",
+        "authPasswordEncrypted");
+    setLabelFromStringBundle("in-authMethod-kerberos", "authKerberos");
+    setLabelFromStringBundle("in-authMethod-ntlm", "authNTLM");
+    setLabelFromStringBundle("out-authMethod-no", "authNo");
+    setLabelFromStringBundle("out-authMethod-password-cleartext",
+        "authPasswordCleartextViaSSL"); // will warn about insecure later
+    setLabelFromStringBundle("out-authMethod-password-encrypted",
+        "authPasswordEncrypted");
+    setLabelFromStringBundle("out-authMethod-kerberos", "authKerberos");
+    setLabelFromStringBundle("out-authMethod-ntlm", "authNTLM");
+
+    e("incoming_port").value = gStringsBundle.getString("port_auto");
+    this.fillPortDropdown("smtp");
 
     // Populate SMTP server dropdown with already configured SMTP servers from
     // other accounts.
-    let gSmtpManager = Cc["@mozilla.org/messengercompose/smtp;1"]
-                       .getService(Ci.nsISmtpService);
-    this._smtpServers = gSmtpManager.smtpServers;
-    var menupopup = document.getElementById("smtp_menupopup");
-    this._smtpServerCount = 0;
-    while (this._smtpServers.hasMoreElements())
-    {
-      var server = this._smtpServers.getNext().QueryInterface(Ci.nsISmtpServer);
-      this._smtpServerCount++;
-      var menuitem = document.createElement("menuitem");
-      var label = server.displayname;
-      if (server.key == gSmtpManager.defaultServer.key)
+    var menulist = e("outgoing_hostname");
+    var smtpManager = Cc["@mozilla.org/messengercompose/smtp;1"]
+        .getService(Ci.nsISmtpService);
+    var smtpServers = smtpManager.smtpServers;
+    while (smtpServers.hasMoreElements()) {
+      let server = smtpServers.getNext().QueryInterface(Ci.nsISmtpServer);
+      let label = server.displayname;
+      let key = server.key;
+      if (smtpManager.defaultServer &&
+          smtpManager.defaultServer.key == key) {
         label += " " + gStringsBundle.getString("default_server_tag");
-
-      menuitem.setAttribute("label", label);
-      menuitem.setAttribute("value", server.key);
-      menuitem.hostname = server.hostname;
-      menupopup.appendChild(menuitem);
+      }
+      let menuitem = menulist.appendItem(label, key, ""); // label,value,descr
+      menuitem.serverKey = key;
     }
-    var menulist = document.getElementById("outgoing_server");
-    menulist.addEventListener("command",
-      function(event) { gEmailConfigWizard.userChangedOutgoing(event); }, true);
+    // Add the entry for the new host to the menulist
+    let menuitem = menulist.insertItemAt(0, "", "-new-"); // pos,label,value
+    menuitem.serverKey = null;
 
-    // Store the size of the bottom half of the window in the fullspacer
-    // element, so that we don't resize wildly when we show and hide it.
-    window.sizeToContent();
-    document.getElementById("settingsbox").hidden = true;
-    document.getElementById("fullspacer").width = document.width;
-    window.sizeToContent();
-  },
-
-  /* Correct the behavior of remember_password checkbox in case we change
-   * signon.rememberSignons = true and come back
-   */
-  onFocus: function() {
-    let passwordElt = document.getElementById("password");
-    let rememberPasswordElt = document.getElementById("remember_password");
-    let rememberSignons_pref =
-      Application.prefs.getValue("signon.rememberSignons", true);
-
-    rememberPasswordElt.disabled = !rememberSignons_pref ||
-                                  passwordElt.value.length < 1;
-    rememberPasswordElt.checked = rememberSignons_pref &&
-                                  !this._userChangedPassword &&
-                                  passwordElt.value.length >= 1;
-  },
-
-  /* When the next button is clicked we've moved from the initial account
-   * information stage to using that information to configure account details.
-   */
-  onNext : function()
-  {
-    // change the inputs to a flat look
-    this._accountInfoInputs(true);
-
-    this._email = document.getElementById("email").value;
-    this._realname = document.getElementById("realname").value;
-    this._password = document.getElementById("password").value;
-
-    this.showConfigDetails();
-
-    this._domain = this._email.split("@")[1].toLowerCase();
-    this.findConfig(this._domain, this._email);
-
-    // swap out buttons
-    _hide("next_button");
-    _show("back_button");
-    _show("stop_button");
-    _hide("edit_button");
-    _hide("go_button");
-
-    window.sizeToContent();
-  },
-
-  /* The back button can be clicked at anytime and should stop all probing of
-   * account details.  This allows the person to return to their account
-   * information details in case anything was incorrect.
-   *
-   * Any account details that were manually entered should be remembered even
-   * when this back button is clicked
-   */
-  onBack : function()
-  {
-    this._disableConfigDetails(true);
-    _hide("popimap_radio_area");
-    this.hideConfigDetails();
-    this.clearConfigDetails();
-
-    // change the inputs back to regular
-    this._accountInfoInputs(false);
-
-    // swap buttons back
-    _show("next_button");
-    _hide("back_button");
-    document.getElementById("advanced_settings").disabled = true;
-    _hide("advanced_settings");
-    window.sizeToContent();
-  },
-
-  /* Helper method that enables or disabled all the account information inputs
-   */
-  _accountInfoInputs : function(disabled)
-  {
-    let ids = ["realname", "email", "password", "remember_password"];
-    if (disabled && document.getElementById("password").getAttribute("empty")) {
-      document.getElementById("password").value = " ";
-      document.getElementById("password").setAttribute("empty", true);
-      document.getElementById("remember_password").checked = false;
+    // admin-locked prefs hurray
+    if (!Application.prefs.getValue("signon.rememberSignons", true)) {
+      let rememberPasswordE = e("remember_password");
+      rememberPasswordE.checked = false;
+      rememberPasswordE.disabled = true;
     }
 
-    for ( let i = 0; i < ids.length; i++ )
-      document.getElementById(ids[i]).disabled = disabled;
+    // First, unhide the main window areas, and store the width,
+    // so that we don't resize wildly when we unhide areas.
+    // switchToMode() will then hide the unneeded parts again.
+    // We will add some leeway of 10px, in case some of the <description>s wrap,
+    // e.g. outgoing username != incoming username.
+    _show("status_area");
+    _show("result_area");
+    _hide("manual-edit_area");
+    window.sizeToContent();
+    e("mastervbox").setAttribute("style",
+        "min-width: " + document.width + "px; " +
+        "min-height: " + (document.height + 10) + "px;");
 
-    if (!disabled &&
-        document.getElementById("password").getAttribute("empty")) {
-      document.getElementById("password").value = "";
-      document.getElementById("password").setAttribute("empty", true);
-      document.getElementById("remember_password").checked = false;
-    }
+    this.switchToMode("start");
+    e("realname").focus();
   },
 
-  userChangedOutgoing : function(event)
+  /**
+   * Changes the window configuration to the different modes we have.
+   * Shows/hides various window parts and buttons.
+   * @param modename {String-enum}
+   *    "start" : Just the realname, email address, password fields
+   *    "find-config" : detection step, adds the progress message/spinner
+   *    "result" : We found a config and display it to the user.
+   *       The user may create the account.
+   *    "manual-edit" : The user wants (or needs) to manually enter their
+   *       the server hostname and other settings. We'll use them as provided.
+   * Additionally, there are the following sub-modes which can be entered after
+   * you entered the main mode:
+   *    "manual-edit-have-hostname" : user entered a hostname for both servers
+   *        that we can use
+   *    "manual-edit-testing" : User pressed the [Re-test] button and
+   *         we're currently detecting the "Auto" values
+   *    "manual-edit-complete" : user entered (or we tested) all necessary
+   *         values, and we're ready to create to account
+   * Currently, this doesn't cover the warning dialogs etc.. It may later.
+   */
+  switchToMode : function(modename)
   {
-    let menulist = document.getElementById("outgoing_server");
-
-    let selectedIndex = menulist.getIndexOfItem(event.target);
-
-    if (selectedIndex != -1) {
-      document.getElementById("outgoing_port").value =
-        this._currentConfig.outgoing.port;
-      document.getElementById("outgoing_security").value =
-        this._currentConfig.outgoing.socketType;
-    }
-
-    if (selectedIndex == -1 || selectedIndex == 0) {
-      this._outgoingState = '';
-      this._userPickedOutgoingServer = false;
-      _show('outgoing_protocol');
-      _show('outgoing_port');
-      _show('outgoing_security');
-      menulist.setAttribute("editable", true);
+    if (modename == this._currentModename) {
       return;
     }
-    menulist.setAttribute("editable", false);
-    this._outgoingState = 'done';
-    this._outgoingWarning = '';
+    this._currentModename = modename;
+    gEmailWizardLogger.info("switching to UI mode " + modename)
 
-    if (this._probeAbortable)
-      this._probeAbortable.cancel('outgoing');
+    //_show("initialSettings"); always visible
+    //_show("cancel_button"); always visible
+    if (modename == "start") {
+      _hide("status_area");
+      _hide("result_area");
+      _hide("manual-edit_area");
 
-    // Re-set the outgoing port and security.
-    this._userPickedOutgoingServer = true;
-    _hide('outgoing_protocol');
-    _hide('outgoing_port');
-    _hide('outgoing_security');
+      _show("next_button");
+      _disable("next_button"); // will be enabled by code
+      _hide("half-manual-test_button");
+      _hide("create_button");
+      _hide("stop_button");
+      _hide("manual-edit_button");
+      _hide("advanced-setup_button");
+    } else if (modename == "find-config") {
+      _show("status_area");
+      _hide("result_area");
+      _hide("manual-edit_area");
 
-    if (this._incomingState == 'done')
-      this.foundConfig(this.getUserConfig());
+      _show("next_button");
+      _disable("next_button");
+      _hide("half-manual-test_button");
+      _hide("create_button");
+      _show("stop_button");
+      this.onStop = this.onStopFindConfig;
+      _show("manual-edit_button");
+      _hide("advanced-setup_button");
+    } else if (modename == "result") {
+      _show("status_area");
+      _show("result_area");
+      _hide("manual-edit_area");
+
+      _hide("next_button");
+      _hide("half-manual-test_button");
+      _show("create_button");
+      _enable("create_button");
+      _hide("stop_button");
+      _show("manual-edit_button");
+      _hide("advanced-setup_button");
+    } else if (modename == "manual-edit") {
+      _show("status_area");
+      _hide("result_area");
+      _show("manual-edit_area");
+
+      _hide("next_button");
+      _show("half-manual-test_button");
+      _disable("half-manual-test_button");
+      _show("create_button");
+      _disable("create_button");
+      _hide("stop_button");
+      _hide("manual-edit_button");
+      _show("advanced-setup_button");
+      _disable("advanced-setup_button");
+    } else if (modename == "manual-edit-have-hostname") {
+      _show("status_area");
+      _hide("result_area");
+      _show("manual-edit_area");
+      _hide("manual-edit_button");
+      _hide("next_button");
+      _show("create_button");
+
+      _show("half-manual-test_button");
+      _enable("half-manual-test_button");
+      _disable("create_button");
+      _hide("stop_button");
+      _show("advanced-setup_button");
+      _disable("advanced-setup_button");
+    } else if (modename == "manual-edit-testing") {
+      _show("status_area");
+      _hide("result_area");
+      _show("manual-edit_area");
+      _hide("manual-edit_button");
+      _hide("next_button");
+      _show("create_button");
+
+      _show("half-manual-test_button");
+      _disable("half-manual-test_button");
+      _disable("create_button");
+      _show("stop_button");
+      this.onStop = this.onStopHalfManualTesting;
+      _show("advanced-setup_button");
+      _disable("advanced-setup_button");
+    } else if (modename == "manual-edit-complete") {
+      _show("status_area");
+      _hide("result_area");
+      _show("manual-edit_area");
+      _hide("manual-edit_button");
+      _hide("next_button");
+      _show("create_button");
+
+      _show("half-manual-test_button");
+      _enable("half-manual-test_button");
+      _enable("create_button");
+      _hide("stop_button");
+      _show("advanced-setup_button");
+      _enable("advanced-setup_button");
+    } else {
+      throw new NotReached("unknown mode");
+    }
+    window.sizeToContent();
   },
 
-  /* This does very little other than to check that a name was entered at all
-   * Since this is such an insignificant test we should be using a very light
-   * or even jovial warning.
+  /**
+   * Start from beginning with possibly new email address.
    */
-  validateRealname : function()
+  onStartOver : function()
   {
-    let realname = document.getElementById("realname");
-    if (realname.value.length > 0) {
-      this.clearError("nameerror");
-      _show("nametext");
-      realname.removeAttribute("error");
+    if (this._abortable) {
+      this.onStop();
     }
-    else {
-      _hide("nametext");
-      this.setError("nameerror", "please_enter_name");
-      realname.setAttribute("error", "true");
-    }
+    this.switchToMode("start");
+  },
+
+  getConcreteConfig : function()
+  {
+    var result = this._currentConfig.copy();
+    replaceVariables(result, this._realname, this._email, this._password);
+    result.rememberPassword = e("remember_password").checked &&
+                              !!this._password;
+    return result;
   },
 
   /*
    * This checks if the email address is at least possibly valid, meaning it
    * has an '@' before the last char.
    */
-  emailAddrValidish : function()
+  validateEmailMinimally : function(emailAddr)
   {
-    let emailAddr = document.getElementById('email').value;
     let atPos = emailAddr.lastIndexOf("@");
-    return  atPos > 0 && atPos + 1 < emailAddr.length;
+    return atPos > 0 && atPos + 1 < emailAddr.length;
   },
 
   /*
-   * onEmailInput and onRealnameInput are called onInput, and just handle
-   * hiding/showing the next button based on whether there's a semi-reasonable
-   * e-mail address and nonblank realname to start with.
+   * This checks if the email address is syntactically valid,
+   * as far as we can determine. We try hard to make full checks.
+   *
+   * OTOH, we have a very small chance of false negatives,
+   * because the RFC822 address spec is insanely complicated,
+   * but rarely needed, so when this here fails, we show an error message,
+   * but don't stop the user from continuing.
+   * In contrast, if validateEmailMinimally() fails, we stop the user.
    */
-  onEmailInput : function()
+  validateEmail : function(emailAddr)
   {
-    if (document.getElementById("realname").value.length > 0 &&
-        this.emailAddrValidish())
-      document.getElementById("next_button").disabled = false;
-    else
-      document.getElementById("next_button").disabled = true;
-   },
+    return emailRE.test(emailAddr);
+  },
 
-  onRealnameInput : function()
-  {
-    if (document.getElementById('realname').value.length > 0 &&
-        this.emailAddrValidish())
-      document.getElementById("next_button").disabled = false;
-    else
-      document.getElementById("next_button").disabled = true;
-   },
-
-  /* This check is done on blur and is only done as an informative warning
-   * we don't want to block the person if they've entered and email that
-   * doesn't conform to our regex
+  /**
+   * onInputEmail and onInputRealname are called on input = keypresses, and
+   * enable/disable the next button based on whether there's a semi-proper
+   * e-mail address and non-blank realname to start with.
+   *
+   * A change to the email address also automatically restarts the
+   * whole process.
    */
-  validateEmail : function()
+  onInputEmail : function()
   {
-    let email = document.getElementById("email");
-    if (email.value.length <= 0)
+    this._email = e("email").value;
+    this.onStartOver();
+    this.checkStartDone();
+  },
+  onInputRealname : function()
+  {
+    this._realname = e("realname").value;
+    this.checkStartDone();
+  },
+
+  onInputPassword : function()
+  {
+    this._password = e("password").value;
+  },
+
+  /**
+   * This does very little other than to check that a name was entered at all
+   * Since this is such an insignificant test we should be using a very light
+   * or even jovial warning.
+   */
+  onBlurRealname : function()
+  {
+    let realnameEl = e("realname");
+    if (this._realname) {
+      this.clearError("nameerror");
+      _show("nametext");
+      realnameEl.removeAttribute("error");
+    // bug 638790: don't show realname error until user enter an email address
+    } else if (this.validateEmailMinimally(this._email)) {
+      _hide("nametext");
+      this.setError("nameerror", "please_enter_name");
+      realnameEl.setAttribute("error", "true");
+    }
+  },
+
+  /**
+   * This check is only done as an informative warning.
+   * We don't want to block the person, if they've entered an email address
+   * that doesn't conform to our regex.
+   */
+  onBlurEmail : function()
+  {
+    if (!this._email) {
       return;
-
-    if (emailRE.test(email.value)) {
+    }
+    var emailEl = e("email");
+    if (this.validateEmail(this._email)) {
       this.clearError("emailerror");
-      email.removeAttribute("error");
-    }
-    else {
+      emailEl.removeAttribute("error");
+      this.onBlurRealname();
+    } else {
       this.setError("emailerror", "double_check_email");
-      email.setAttribute("error", "true");
+      emailEl.setAttribute("error", "true");
     }
   },
 
-  // We use this to  prevent probing from forgetting the user's choice.
-  setSecurity : function(eltId)
-  {
-    switch (eltId) {
-      case 'incoming_security':
-        this._userChangedIncomingSocketType = true;
-        this._incomingState = "";
-        break;
-      case 'outgoing_security':
-        this._userChangedOutgoingSocketType = true;
-        this._outgoingState = "";
-        break;
-    }
-  },
-
-  setIncomingServer : function()
-  {
-    this._userChangedIncomingServer = true;
-    this._incomingState = "";
-  },
-
-  // The IMAP vs. POP dropdown (not radio), settable during manual edit.
-  // In the normal result screen, it's not editable and people use the
-  // radios instead.
-  setIncomingProtocol : function()
-  {
-    this._userChangedIncomingProtocol = true;
-    this._incomingState = "";
-  },
-
-  // IMAP vs. POP3 radio (not *dropdown*) changed
-  setIncomingProtocolRadio : function()
-  {
-    let newTypeSelected = document.getElementById("popimap_radiogroup")
-                                  .selectedItem.value;
-    var config = this._currentConfig;
-    // this is also called when we set the fields programmatically
-    if (newTypeSelected == config.incoming.type ||
-        !config.incomingAlternatives || !config.incomingAlternatives.length)
-      return;
-    let alternates = config.incomingAlternatives.filter(function(c) {
-      return c.type != config.incoming.type;
-    });
-    if (alternates.length == 0)
-      return;
-
-    // re-add current incoming server to alternatives
-    config.incomingAlternatives.unshift(config.incoming);
-    // find alternative config which matches newly selected protocol
-    for each (let alt in config.incomingAlternatives) {
-      if (alt.type == newTypeSelected) {
-        config.incoming = alt;
-        break;
-      }
-    }
-    this.foundConfig(config);
-  },
-
-  setPort : function(eltId)
-  {
-    switch (eltId) {
-      case 'incoming_port':
-        this._userChangedIncomingPort = true;
-        this._incomingState = "";
-        break;
-      case 'outgoing_port':
-        this._userChangedOutgoingPort = true;
-        this._outgoingState = "";
-        break;
-    }
-  },
-
-  oninputPassword : function()
-  {
-    let passwordElt = document.getElementById("password");
-    let rememberPasswordElt = document.getElementById("remember_password");
-    let rememberSignons_pref =
-        Application.prefs.getValue("signon.rememberSignons", true);
-
-    rememberPasswordElt.disabled = !rememberSignons_pref ||
-                                   passwordElt.value.length < 1;
-    rememberPasswordElt.checked = rememberSignons_pref &&
-                                  !this._userChangedPassword &&
-                                  passwordElt.value.length >= 1;
-  },
-
-  /* If the user just tabbed through the password input without entering
+  /**
+   * If the user just tabbed through the password input without entering
    * anything, set the type back to text so we don't wind up showing the
    * emptytext as bullet characters.
    */
-  onblurPassword : function()
+  onBlurPassword : function()
   {
-    let passwordElt = document.getElementById("password");
-    let rememberPasswordElt = document.getElementById("remember_password");
-    let rememberSignons_pref =
-        Application.prefs.getValue("signon.rememberSignons", true);
-
-    if (passwordElt.value.length < 1) {
-      rememberPasswordElt.disabled = true;
-      passwordElt.type = "text";
+    if (!this._password) {
+      e("password").type = "text";
     }
-    else if (rememberSignons_pref)
-      rememberPasswordElt.disabled = false;
   },
 
+  /**
+   * @see onBlurPassword()
+   */
+  onFocusPassword : function()
+  {
+    e("password").type = "password";
+  },
+
+  /**
+   * Check whether the user entered the minimum of information
+   * needed to leave the "start" mode (entering of name, email, pw)
+   * and is allowed to proceed to detection step.
+   */
+  checkStartDone : function()
+  {
+    if (this.validateEmailMinimally(this._email) &&
+        this._realname) {
+      this._domain = this._email.split("@")[1].toLowerCase();
+      _enable("next_button");
+    } else {
+      _disable("next_button");
+    }
+  },
+
+  /**
+   * When the [Continue] button is clicked, we move from the initial account
+   * information stage to using that information to configure account details.
+   */
+  onNext : function()
+  {
+    this.findConfig(this._domain, this._email);
+  },
+
+
+  /////////////////////////////////////////////////////////////////
+  // Detection step
+
+  /**
+   * Try to find an account configuration for this email address.
+   * This is the function which runs the autoconfig.
+   */
   findConfig : function(domain, email)
   {
     gEmailWizardLogger.info("findConfig()");
-    if (this._probeAbortable)
-    {
-      gEmailWizardLogger.info("aborting existing config search");
-      this._probeAbortable.cancel();
+    if (this._abortable) {
+      this.onStop();
     }
-    this.startSpinner("all", "looking_up_settings_disk");
-    var me = this;
-    this._probeAbortable = fetchConfigFromDisk(domain,
+    this.switchToMode("find-config");
+    this.startSpinner("looking_up_settings_disk");
+    var self = this;
+    this._abortable = fetchConfigFromDisk(domain,
       function(config) // success
       {
-        me.foundConfig(config);
-        me.stopSpinner("found_settings_disk");
-        me._probeAbortable = null;
+        self._abortable = null;
+        self.foundConfig(config);
+        self.stopSpinner("found_settings_disk");
       },
       function(e) // fetchConfigFromDisk failed
       {
+        if (e instanceof CancelledException) {
+          return;
+        }
         gEmailWizardLogger.info("fetchConfigFromDisk failed: " + e);
-        me.startSpinner("all", "looking_up_settings_isp");
-        me._probeAbortable = fetchConfigFromISP(domain, email,
+        self.startSpinner("looking_up_settings_isp");
+        self._abortable = fetchConfigFromISP(domain, email,
           function(config) // success
           {
-            me.foundConfig(config);
-            me.stopSpinner("found_settings_isp");
-            me.showEditButton();
-            me._probeAbortable = null;
+            self._abortable = null;
+            self.foundConfig(config);
+            self.stopSpinner("found_settings_isp");
           },
           function(e) // fetchConfigFromISP failed
           {
+            if (e instanceof CancelledException) {
+              return;
+            }
             gEmailWizardLogger.info("fetchConfigFromISP failed: " + e);
-            me.startSpinner("all", "looking_up_settings_db");
-            me._probeAbortable = fetchConfigFromDB(domain,
+            logException(e);
+            self.startSpinner("looking_up_settings_db");
+            self._abortable = fetchConfigFromDB(domain,
               function(config) // success
               {
-                me.foundConfig(config);
-                me.stopSpinner("found_settings_db");
-                me.showEditButton();
-                me._probeAbortable = null;
+                self._abortable = null;
+                self.foundConfig(config);
+                self.stopSpinner("found_settings_db");
               },
               function(e) // fetchConfigFromDB failed
               {
+                if (e instanceof CancelledException) {
+                  return;
+                }
+                logException(e);
                 gEmailWizardLogger.info("fetchConfigFromDB failed: " + e);
-                me.startSpinner("all", "looking_up_settings_db");
-                me._probeAbortable = fetchConfigForMX(domain,
-                  function(config) // success
-                  {
-                    me.foundConfig(config);
-                    me.stopSpinner("found_settings_db");
-                    me.showEditButton();
-                    me._probeAbortable = null;
-                  },
-                  function(e) // fetchConfigForMX failed
-                  {
-                    gEmailWizardLogger.info("fetchConfigForMX failed: " + e);
-                    var initialConfig = new AccountConfig();
-                    me._prefillConfig(initialConfig);
-                    me.startSpinner("all", "looking_up_settings_guess")
-                    me._guessConfig(domain, initialConfig, "both");
-                  });
+                var initialConfig = new AccountConfig();
+                self._prefillConfig(initialConfig);
+                self._guessConfig(domain, initialConfig);
               });
           });
       });
   },
 
-  _guessConfig : function(domain, initialConfig, which)
+  /**
+   * Just a continuation of findConfig()
+   */
+  _guessConfig : function(domain, initialConfig)
   {
-    let me = this;
-    // guessConfig takes several callback functions, which we define inline.
-    me._probeAbortable = guessConfig(domain,
-          function(type, hostname, port, ssl, done, config) // progress
-          {
-            gEmailWizardLogger.info("progress callback host " + hostname +
-                                    " port " +  port + " type " + type);
-            if (type == "imap" || type == "pop3")
-            {
-              config.incoming.type = type;
-              config.incoming.hostname = hostname;
-              config.incoming.port = port;
-              config.incoming.socketType = ssl;
-              config.incoming._inprogress = !done; // XXX not nice to change the AccountConfig object
-            }
-            else if (type == "smtp" && !me._userPickedOutgoingServer)
-            {
-              config.outgoing.hostname = hostname;
-              config.outgoing.port = port;
-              config.outgoing.socketType = ssl;
-              config.outgoing._inprogress = !done;
-            }
-            me.updateConfig(config);
-          },
-          function(config) // success
-          {
-            me.foundConfig(config);
-            gEmailWizardLogger.info("in success, incomingState = " +
-                                    me._incomingState + " outgoingState = " +
-                                    me._outgoingState);
-            if (me._incomingState == 'done' && me._outgoingState == 'done')
-            {
-              me.stopSpinner("found_settings_guess");
-              _hide("stop_button");
-              _show("edit_button");
-            }
-            else if (me._incomingState == 'done' && me._outgoingState != 'probing')
-            {
-              if (me._outgoingState == "failed")
-                me.stopSpinner("failed_to_find_settings");
-              else
-                me.stopSpinner("found_settings_guess");
-              me.editConfigDetails();
-            }
-            else if (me._outgoingState == 'done' && me._incomingState != 'probing')
-            {
-              if (me._incomingState == "failed")
-                me.stopSpinner("failed_to_find_settings");
-              else
-                me.stopSpinner("found_settings_guess");
-              me.editConfigDetails();
-            }
-            if (me._outgoingState != 'probing' &&
-                me._incomingState != 'probing')
-              me._probeAbortable = null;
-
-          },
-          function(e, config) // guessconfig failed
-          {
-            gEmailWizardLogger.info("guessConfig failed: " + e);
-            me.updateConfig(config);
-            me.stopSpinner("failed_to_find_settings");
-            me._probeAbortable = null;
-            me.editConfigDetails();
-          },
-          function(e, config) // guessconfig failed for incoming
-          {
-            gEmailWizardLogger.info("guessConfig failed for incoming: " + e);
-            me._setIconAndTooltip("incoming", "failed", "");
-            me._incomingState = "failed";
-            config.incoming.hostname = -1;
-            me.updateConfig(config);
-          },
-          function(e, config) // guessconfig failed for outgoing
-          {
-            gEmailWizardLogger.info("guessConfig failed for outgoing: " + e);
-            me._setIconAndTooltip("outgoing", "failed", "");
-            me._outgoingState = "failed";
-            if (!me._userPickedOutgoingServer)
-              config.outgoing.hostname = -1;
-
-            me.updateConfig(config);
-          },
-    initialConfig, which);
+    this.startSpinner("looking_up_settings_guess")
+    var self = this;
+    self._abortable = guessConfig(domain,
+      function(type, hostname, port, ssl, done, config) // progress
+      {
+        gEmailWizardLogger.info("progress callback host " + hostname +
+                                " port " +  port + " type " + type);
+      },
+      function(config) // success
+      {
+        self._abortable = null;
+        self.foundConfig(config);
+        self.stopSpinner("found_settings_guess");
+      },
+      function(e, config) // guessconfig failed
+      {
+        if (e instanceof CancelledException) {
+          return;
+        }
+        self._abortable = null;
+        gEmailWizardLogger.info("guessConfig failed: " + e);
+        self.showErrorStatus("failed_to_find_settings");
+        self.editConfigDetails();
+      },
+      initialConfig, "both");
   },
 
+  /**
+   * When findConfig() was successful, it calls this.
+   * This displays the config to the user.
+   */
   foundConfig : function(config)
   {
     gEmailWizardLogger.info("foundConfig()");
-    assert(config instanceof AccountConfig, "BUG: Arg 'config' needs to be an AccountConfig object");
+    assert(config instanceof AccountConfig,
+        "BUG: Arg 'config' needs to be an AccountConfig object");
 
-    if (!config)
-      config = new AccountConfig();
-
-    this._currentConfig = config;
     this._haveValidConfigForDomain = this._email.split("@")[1];;
 
-    if (!this._realname || !this._email)
+    if (!this._realname || !this._email) {
       return;
-
+    }
     return this._foundConfig2(config);
   },
+
   // Continuation of foundConfig2() after custom fields.
   _foundConfig2 : function(config)
   {
-    this._currentConfigFilledIn = config.copy();
-    _show("advanced_settings");
-    document.getElementById("advanced_settings").disabled = false;
-    replaceVariables(this._currentConfigFilledIn, this._realname, this._email,
-                     this._password);
-
-    this.updateConfig(this._currentConfigFilledIn);
-
-    document.getElementById('create_button').disabled = false;
-    document.getElementById('create_button').hidden = false;
+    this.displayConfigResult(config);
   },
 
-  /*
-   * Returns either the nsISmtpServer.key for an existing account that matches
-   * our discovered hostname + port + username, or false if no match is found.
+  /**
+   * [Stop] button click handler.
+   * This allows the user to abort any longer operation, esp. network activity.
+   * We currently have 3 such cases here:
+   * 1. findConfig(), i.e. fetch config from DB, guessConfig etc.
+   * 2. onHalfManualTest(), i.e. the [Retest] button in manual config.
+   * 3. verifyConfig() - We can't stop this yet, so irrelevant here currently.
+   * Given that these need slightly different actions, this function will be set
+   * to a function (i.e. overwritten) by whoever enables the stop button.
+   *
+   * We also call this from the code when the user started a different action
+   * without explicitly clicking [Stop] for the old one first.
    */
-  keyForExistingOutgoingAccount : function()
+  onStop : function()
   {
-    var smtpServers = gSmtpManager.smtpServers;
-    while (smtpServers.hasMoreElements())
+    throw new NotReached("onStop should be overridden by now");
+  },
+  _onStopCommon : function()
+  {
+    if (!this._abortable) {
+      throw new NotReached("onStop called although there's nothing to stop");
+    }
+    gEmailWizardLogger.info("onStop cancelled _abortable");
+    this._abortable.cancel(new UserCancelledException());
+    this._abortable = null;
+    this.stopSpinner();
+  },
+  onStopFindConfig : function()
+  {
+    this._onStopCommon();
+    this.switchToMode("start");
+    this.checkStartDone();
+  },
+  onStopHalfManualTesting : function()
+  {
+    this._onStopCommon();
+    this.validateManualEditComplete();
+  },
+
+
+
+  ///////////////////////////////////////////////////////////////////
+  // status area
+
+  startSpinner : function(actionStrName)
+  {
+    e("status_area").setAttribute("status", "loading");
+    gEmailWizardLogger.warn("spinner start " + actionStrName);
+    this._showStatusTitle(actionStrName);
+  },
+
+  stopSpinner : function(actionStrName)
+  {
+    e("status_area").setAttribute("status", "result");
+    _hide("stop_button");
+    this._showStatusTitle(actionStrName);
+    gEmailWizardLogger.warn("all spinner stop " + actionStrName);
+  },
+
+  showErrorStatus : function(actionStrName)
+  {
+    e("status_area").setAttribute("status", "error");
+    gEmailWizardLogger.warn("status error " + actionStrName);
+    this._showStatusTitle(actionStrName);
+  },
+
+  _showStatusTitle : function(msgName)
+  {
+    let msg = " "; // assure height. Do via min-height in CSS, for 2 lines?
+    try {
+      if (msgName) {
+        msg = gStringsBundle.getFormattedString(msgName, [gBrandShortName]);
+      }
+    } catch(ex) {
+      gEmailWizardLogger.error("missing string for " + msgName);
+      msg = msgName + " (missing string in translation!)";
+    }
+
+    e("status_msg").textContent = msg;
+    gEmailWizardLogger.info("status msg: " + msg);
+  },
+
+
+
+  /////////////////////////////////////////////////////////////////
+  // Result area
+
+  /**
+   * Displays a (probed) config to the user,
+   * in the result config details area.
+   *
+   * @param config {AccountConfig} The config to present to user
+   */
+  displayConfigResult : function(config)
+  {
+    assert(config instanceof AccountConfig);
+    this._currentConfig = config;
+    var configFilledIn = this.getConcreteConfig();
+
+    var unknownString = gStringsBundle.getString("resultUnknown");
+
+    function _makeHostDisplayString(server, stringName)
     {
-      let existingServer = smtpServers.getNext().QueryInterface(Components.interfaces.nsISmtpServer);
-      if (existingServer.hostname == this._currentConfigFilledIn.outgoing.hostname &&
-          existingServer.port == this._currentConfigFilledIn.outgoing.port &&
-          existingServer.username == this._currentConfigFilledIn.outgoing.username)
-        return existingServer.key;
+      let type = gStringsBundle.getString(sanitize.translate(server.type,
+          { imap : "resultIMAP", pop3 : "resultPOP3", smtp : "resultSMTP" }),
+          unknownString);
+      let host = server.hostname +
+          (isStandardPort(server.port) ? "" : ":" + server.port);
+      let ssl = gStringsBundle.getString(sanitize.translate(server.socketType,
+          { 1 : "resultNoEncryption", 2 : "resultSSL", 3 : "resultSTARTTLS" }),
+          unknownString);
+      let certStatus = gStringsBundle.getString(server.badCert ?
+          "resultSSLCertWeak" : "resultSSLCertOK");
+      return gStringsBundle.getFormattedString(stringName,
+          [ type, host, ssl, certStatus ]);
+    };
+
+    var incomingResult = unknownString;
+    if (configFilledIn.incoming.hostname) {
+      incomingResult = _makeHostDisplayString(configFilledIn.incoming,
+          "resultIncoming");
+    }
+
+    var outgoingResult = unknownString;
+    if (!config.outgoing.existingServerKey) {
+      if (configFilledIn.outgoing.hostname) {
+        outgoingResult = _makeHostDisplayString(configFilledIn.outgoing,
+            "resultOutgoing");
+      }
+    } else {
+      outgoingResult = gStringsBundle.getString("resultOutgoingExisting");
+    }
+
+    var usernameResult;
+    if (configFilledIn.incoming.username == configFilledIn.outgoing.username) {
+      usernameResult = gStringsBundle.getFormattedString("resultUsernameBoth",
+            [ configFilledIn.incoming.username || unknownString ]);
+    } else {
+      usernameResult = gStringsBundle.getFormattedString(
+            "resultUsernameDifferent",
+            [ configFilledIn.incoming.username || unknownString,
+              configFilledIn.outgoing.username || unknownString ]);
+    }
+
+    setText("result-incoming", incomingResult);
+    setText("result-outgoing", outgoingResult);
+    setText("result-username", usernameResult);
+
+    gEmailWizardLogger.info(debugObject(config, "config"));
+    // IMAP / POP dropdown
+    var lookForAltType =
+        configFilledIn.incoming.type == "imap" ? "pop3" : "imap";
+    var alternative = null;
+    for (let i = 0; i < configFilledIn.incomingAlternatives.length; i++) {
+      let alt = configFilledIn.incomingAlternatives[i];
+      if (alt.type == lookForAltType) {
+        alternative = alt;
+        break;
+      }
+    }
+    if (alternative) {
+      _show("result_imappop");
+      // TODO breaks, no idea why
+      //e("result_imappop").value =
+      //    configFilledIn.incoming.type == "imap" ? 1 : 2;
+      e("result_select_" + alternative.type).configIncoming = alternative;
+      e("result_select_" + configFilledIn.incoming.type).configIncoming =
+                                                configFilledIn.incoming;
+    } else {
+      _hide("result_imappop");
+    }
+
+    this.switchToMode("result");
+  },
+
+  onResultIMAPOrPOP3 : function()
+  {
+    var config = this._currentConfig;
+    if (!config) { // <radiogroup>.onselect is also called on window open
+      return;
+    }
+    var radiogroup = e("result_imappop");
+    // add current server as best alternative to start of array
+    config.incomingAlternatives.unshift(config.incoming);
+    // use selected server (stored as special property on the <radio> node)
+    config.incoming = radiogroup.selectedItem.configIncoming;
+    // remove newly selected server from list of alternatives
+    config.incomingAlternatives = config.incomingAlternatives.filter(
+        function(e) { return e != config.incoming; }); // TODO doesn't work
+    this.displayConfigResult(config);
+  },
+
+
+
+  /////////////////////////////////////////////////////////////////
+  // Manual Edit area
+
+  /**
+   * Gets the values from the user in the manual edit area.
+   *
+   * Realname and password are not part of that area and still
+   * placeholders, but hostname and username are concrete and
+   * no placeholders anymore.
+   */
+  getUserConfig : function()
+  {
+    var config = this.getConcreteConfig();
+    if (!config) {
+      config = new AccountConfig();
+    }
+    config.source = AccountConfig.kSourceUser;
+
+    // Incoming server
+    try {
+      var inHostnameField = e("incoming_hostname");
+      config.incoming.hostname = sanitize.hostname(inHostnameField.value);
+      inHostnameField.value = config.incoming.hostname;
+    } catch (e) { gEmailWizardLogger.warn(e); }
+    try {
+      config.incoming.port = sanitize.integerRange(e("incoming_port").value,
+                                                   1, kHighestPort);
+    } catch (e) {
+      config.incoming.port = undefined; // incl. default "Auto"
+    }
+    config.incoming.type = sanitize.translate(e("incoming_protocol").value,
+        { 1: "imap", 2 : "pop3", 0 : null });
+    config.incoming.socketType = parseInt(e("incoming_ssl").value);
+    config.incoming.auth = parseInt(e("incoming_authMethod").value);
+    config.incoming.username = e("incoming_username").value;
+
+    // Outgoing server
+
+    // Did the user select one of the already configured SMTP servers from the
+    // drop-down list? If so, use it.
+    var outHostnameCombo = e("outgoing_hostname");
+    var outMenuitem = outHostnameCombo.selectedItem;
+    if (outMenuitem && outMenuitem.serverKey) {
+      config.outgoing.existingServerKey = outMenuitem.serverKey;
+      config.outgoing.existingServerLabel = outMenuitem.label;
+      config.outgoing.addThisServer = false;
+      config.outgoing.useGlobalPreferredServer = false;
+    } else {
+      config.outgoing.existingServerKey = null;
+      config.outgoing.addThisServer = true;
+      config.outgoing.useGlobalPreferredServer = false;
+
+      try {
+        config.outgoing.hostname = sanitize.hostname(
+              outHostnameCombo.inputField.value);
+        outHostnameCombo.inputField.value = config.outgoing.hostname;
+      } catch (e) { gEmailWizardLogger.warn(e); }
+      try {
+        config.outgoing.port = sanitize.integerRange(e("outgoing_port").value,
+              1, kHighestPort);
+      } catch (e) {
+        config.outgoing.port = undefined; // incl. default "Auto"
+      }
+      config.outgoing.socketType = e("outgoing_ssl").value;
+      config.outgoing.auth = e("outgoing_authMethod").value;
+      config.outgoing.username = config.incoming.username;
+    }
+
+    return config;
+  },
+
+  /**
+   * [Manual Config] button click handler. This turns the config details area
+   * into an editable form and makes the (Go) button appear. The edit button
+   * should only be available after the config probing is completely finished,
+   * replacing what was the (Stop) button.
+   */
+  onManualEdit : function()
+  {
+    if (this._abortable) {
+      this.onStop();
+    }
+    this.editConfigDetails();
+  },
+
+  /**
+   * Setting the config details form so it can be edited. We also disable
+   * (and hide) the create button during this time because we don't know what
+   * might have changed. The function called from the button that restarts
+   * the config check should be enabling the config button as needed.
+   */
+  editConfigDetails : function()
+  {
+    gEmailWizardLogger.info("manual edit");
+
+    if (!this._currentConfig) {
+      this._currentConfig = new AccountConfig();
+      this._currentConfig.incoming.type = "imap";
+      this._currentConfig.incoming.username = "%EMAILLOCALPART%";
+      this._currentConfig.outgoing.username = "%EMAILLOCALPART%";
+      this._currentConfig.incoming.hostname = ".%EMAILDOMAIN%";
+      this._currentConfig.outgoing.hostname = ".%EMAILDOMAIN%";
+    }
+    // Although we go manual, and we need to display the concrete username,
+    // however the realname and password is not part of manual config and
+    // must stay a placeholder in _currentConfig. @see getUserConfig()
+
+    this._fillManualEditFields(this.getConcreteConfig());
+
+    // _fillManualEditFields() indirectly calls validateManualEditComplete(),
+    // but it's important to not forget it in case the code is rewritten,
+    // so calling it explicitly again. Doesn't do harm, speed is irrelevant.
+    this.validateManualEditComplete();
+  },
+
+  /**
+   * Fills the manual edit textfields with the provided config.
+   * @param config {AccountConfig} The config to present to user
+   */
+  _fillManualEditFields : function(config)
+  {
+    assert(config instanceof AccountConfig);
+
+    // incoming server
+    e("incoming_protocol").value = sanitize.translate(config.incoming.type,
+                                                { "imap" : 1, "pop3" : 2 }, 1);
+    e("incoming_hostname").value = config.incoming.hostname;
+    e("incoming_ssl").value = sanitize.enum(config.incoming.socketType,
+                                            [ 0, 1, 2, 3 ], 0);
+    e("incoming_authMethod").value = sanitize.enum(config.incoming.auth,
+                                                   [ 0, 3, 4, 5, 6 ], 0);
+    e("incoming_username").value = config.incoming.username;
+    if (config.incoming.port) {
+      e("incoming_port").value = config.incoming.port;
+    } else {
+      this.adjustIncomingPortToSSLAndProtocol(config);
+    }
+    this.fillPortDropdown(config.incoming.type);
+
+    // outgoing server
+    e("outgoing_hostname").value = config.outgoing.hostname;
+    e("outgoing_ssl").value = sanitize.enum(config.outgoing.socketType,
+                                            [ 0, 1, 2, 3 ], 0);
+    e("outgoing_authMethod").value = sanitize.enum(config.outgoing.auth,
+                                                   [ 0, 1, 3, 4, 5, 6 ], 0);
+    if (config.outgoing.port) {
+      e("outgoing_port").value = config.outgoing.port;
+    } else {
+      this.adjustOutgoingPortToSSLAndProtocol(config);
+    }
+    // populate fields even if existingServerKey, in case user changes back
+
+    if (config.outgoing.existingServerKey) {
+      let menulist = e("outgoing_hostname");
+      // We can't use menulist.value = config.outgoing.existingServerKey
+      // because would overwrite the text field, so have to do it manually:
+      for each (let menuitem in e("outgoing_hostname_popup").childNodes) {
+        if (menuitem.serverKey == config.outgoing.existingServerKey) {
+          menulist.selectedItem = menuitem;
+          break;
+        }
+      }
+    }
+    this.onChangedOutgoingDropdown(); // show/hide outgoing port, SSL, ...
+  },
+
+  /**
+   * Automatically fill port field in manual edit,
+   * unless user entered a non-standard port.
+   * @param config {AccountConfig}
+   */
+  adjustIncomingPortToSSLAndProtocol : function(config)
+  {
+    var autoPort = gStringsBundle.getString("port_auto");
+    var incoming = config.incoming;
+    // we could use getHostEntry() here, but that API is bad, so don't bother
+    var newInPort = undefined;
+    if (!incoming.port || isStandardPort(incoming.port)) {
+      if (incoming.type == "imap") {
+        if (incoming.socketType == 1 || incoming.socketType == 3) {
+          newInPort = 143;
+        } else if (incoming.socketType == 2) { // Normal SSL
+          newInPort = 993;
+        } else { // auto
+          newInPort = autoPort;
+        }
+      } else if (incoming.type == "pop3") {
+        if (incoming.socketType == 1 || incoming.socketType == 3) {
+          newInPort = 110;
+        } else if (incoming.socketType == 2) { // Normal SSLs
+          newInPort = 995;
+        } else { // auto
+          newInPort = autoPort;
+        }
+      }
+    }
+    if (newInPort != undefined) {
+      e("incoming_port").value = newInPort;
+      e("incoming_authMethod").value = 0; // auto
+    }
+  },
+
+  /**
+   * @see adjustIncomingPortToSSLAndProtocol()
+   */
+  adjustOutgoingPortToSSLAndProtocol : function(config)
+  {
+    var autoPort = gStringsBundle.getString("port_auto");
+    var outgoing = config.outgoing;
+    var newOutPort = undefined;
+    if (!outgoing.port || isStandardPort(outgoing.port)) {
+      if (outgoing.socketType == 1 || outgoing.socketType == 3) {
+        // standard port is 587 *or* 25, so set to auto
+        // unless user or config already entered one of these two ports.
+        if (outgoing.port != 25 && outgoing.port != 587) {
+          newOutPort = autoPort;
+        }
+      } else if (outgoing.socketType == 2) { // Normal SSL
+        newOutPort = 465;
+      } else { // auto
+        newOutPort = autoPort;
+      }
+    }
+    if (newOutPort != undefined) {
+      e("outgoing_port").value = newOutPort;
+      e("outgoing_authMethod").value = 0; // auto
+    }
+  },
+
+  /**
+   * If the user changed the port manually, adjust the SSL value,
+   * (only) if the new port is impossible with the old SSL value.
+   * @param config {AccountConfig}
+   */
+  adjustIncomingSSLToPort : function(config)
+  {
+    var incoming = config.incoming;
+    var newInSocketType = undefined;
+    if (!incoming.port || // auto
+        !isStandardPort(incoming.port)) {
+      return;
+    }
+    if (incoming.type == "imap") {
+      // normal SSL impossible
+      if (incoming.port == 143 && incoming.socketType == 2) {
+        newInSocketType = 0; // auto
+      // must be normal SSL
+      } else if (incoming.port == 993 && incoming.socketType != 2) {
+        newInSocketType = 2;
+      }
+    } else if (incoming.type == "pop3") {
+      // normal SSL impossible
+      if (incoming.port == 110 && incoming.socketType == 2) {
+        newInSocketType = 0; // auto
+      // must be normal SSL
+      } else if (incoming.port == 995 && incoming.socketType != 2) {
+        newInSocketType = 2;
+      }
+    }
+    if (newInSocketType != undefined) {
+      e("incoming_ssl").value = newInSocketType;
+      e("incoming_authMethod").value = 0; // auto
+    }
+  },
+
+  /**
+   * @see adjustIncomingSSLToPort()
+   */
+  adjustOutgoingSSLToPort : function(config)
+  {
+    var outgoing = config.outgoing;
+    var newOutSocketType = undefined;
+    if (!outgoing.port || // auto
+        !isStandardPort(outgoing.port)) {
+      return;
+    }
+    // normal SSL impossible
+    if ((outgoing.port == 587 || outgoing.port == 25) &&
+        outgoing.socketType == 2) {
+      newOutSocketType = 0; // auto
+    // must be normal SSL
+    } else if (outgoing.port == 465 && outgoing.socketType != 2) {
+      newOutSocketType = 2;
+    }
+    if (newOutSocketType != undefined) {
+      e("outgoing_ssl").value = newOutSocketType;
+      e("outgoing_authMethod").value = 0; // auto
+    }
+  },
+
+  /**
+   * Sets the prefilled values of the port fields.
+   * Filled statically with the standard ports for the given protocol,
+   * plus "Auto".
+   */
+  fillPortDropdown : function(protocolType)
+  {
+    var menu = e(protocolType == "smtp" ? "outgoing_port" : "incoming_port");
+
+    // menulist.removeAllItems() is nice, but nicely clears the user value, too
+    var popup = menu.menupopup;
+    while (popup.hasChildNodes())
+      popup.removeChild(popup.firstChild);
+
+    // add standard ports
+    var autoPort = gStringsBundle.getString("port_auto");
+    menu.appendItem(autoPort, autoPort, ""); // label,value,descr
+    for each (let port in getStandardPorts(protocolType)) {
+      menu.appendItem(port, port, ""); // label,value,descr
+    }
+  },
+
+  onChangedProtocolIncoming : function()
+  {
+    var config = this.getUserConfig();
+    this.adjustIncomingPortToSSLAndProtocol(config);
+    this.fillPortDropdown(config.incoming.type);
+    this.onChangedManualEdit();
+  },
+  onChangedPortIncoming : function()
+  {
+    gEmailWizardLogger.info("incoming port changed");
+    this.adjustIncomingSSLToPort(this.getUserConfig());
+    this.onChangedManualEdit();
+  },
+  onChangedPortOutgoing : function()
+  {
+    gEmailWizardLogger.info("outgoing port changed");
+    this.adjustOutgoingSSLToPort(this.getUserConfig());
+    this.onChangedManualEdit();
+  },
+  onChangedSSLIncoming : function()
+  {
+    this.adjustIncomingPortToSSLAndProtocol(this.getUserConfig());
+    this.onChangedManualEdit();
+  },
+  onChangedSSLOutgoing : function()
+  {
+    this.adjustOutgoingPortToSSLAndProtocol(this.getUserConfig());
+    this.onChangedManualEdit();
+  },
+  onChangedAuth : function()
+  {
+    this.onChangedManualEdit();
+  },
+  onInputUsername : function()
+  {
+    this.onChangedManualEdit();
+  },
+  onInputHostname : function()
+  {
+    this.onChangedManualEdit();
+  },
+
+  /**
+   * Sets the label of the first entry of the dropdown which represents
+   * the new outgoing server.
+   */
+  onOpenOutgoingDropdown : function()
+  {
+    var menulist = e("outgoing_hostname");
+    var menuitem = menulist.getItemAtIndex(0);
+    assert(!menuitem.serverKey, "I wanted the special item for the new host");
+    menuitem.label = menulist.inputField.value;
+  },
+
+  /**
+   * User selected an existing SMTP server (or deselected it).
+   * This changes only the UI. The values are read in getUserConfig().
+   */
+  onChangedOutgoingDropdown : function()
+  {
+    var menulist = e("outgoing_hostname");
+    var menuitem = menulist.selectedItem;
+    if (menuitem && menuitem.serverKey) {
+      // an existing server has been selected from the dropdown
+      menulist.setAttribute("editable", false);
+      _hide("outgoing_port");
+      _hide("outgoing_ssl");
+      _hide("outgoing_authMethod");
+    } else {
+      // new server, with hostname, port etc.
+      menulist.setAttribute("editable", true);
+      _show("outgoing_port");
+      _show("outgoing_ssl");
+      _show("outgoing_authMethod");
+    }
+
+    this.onChangedManualEdit();
+  },
+
+  onChangedManualEdit : function()
+  {
+    if (this._abortable) {
+      this.onStop();
+    }
+    this.validateManualEditComplete();
+  },
+
+  /**
+   * This enables the buttons which allow the user to proceed
+   * once he has entered enough information.
+   *
+   * We can easily and faily surely autodetect everything apart from the
+   * hostname (and username). So, once the user has entered
+   * proper hostnames, change to "manual-edit-have-hostname" mode
+   * which allows to press [Re-test], which starts the detection
+   * of the other values.
+   * Once the user has entered (or we detected) all values, he may
+   * do [Create Account] (tests login and if successful creates the account)
+   * or [Advanced Setup] (goes to Account Manager). Esp. in the latter case,
+   * we will not second-guess his setup and just to as told, so here we make
+   * sure that he at least entered all values.
+   */
+  validateManualEditComplete : function()
+  {
+    // getUserConfig() is expensive, but still OK, not a problem
+    var manualConfig = this.getUserConfig();
+    this._currentConfig = manualConfig;
+    if (manualConfig.isComplete()) {
+      this.switchToMode("manual-edit-complete");
+    } else if (!!manualConfig.incoming.hostname &&
+               !!manualConfig.outgoing.hostname) {
+      this.switchToMode("manual-edit-have-hostname");
+    } else {
+      this.switchToMode("manual-edit");
+    }
+  },
+
+  /**
+   * [Advanced Setup...] button click handler
+   * Only active in manual edit mode, and goes straight into
+   * Account Settings (pref UI) dialog. Requires a backend account,
+   * which requires proper hostname, port and protocol.
+   */
+  onAdvancedSetup : function()
+  {
+    assert(this._currentConfig instanceof AccountConfig);
+    var configFilledIn = this.getConcreteConfig();
+
+    if (checkIncomingServerAlreadyExists(configFilledIn)) {
+      alertPrompt(gStringsBundle.getString("error_creating_account"),
+                  gStringsBundle.getString("incoming_server_exists"));
+      return;
+    }
+
+    gEmailWizardLogger.info("creating account in backend");
+    var newAccount = createAccountInBackend(configFilledIn);
+
+    var windowManager = Cc["@mozilla.org/appshell/window-mediator;1"]
+        .getService(Ci.nsIWindowMediator);
+    var existingAccountManager = windowManager
+        .getMostRecentWindow("mailnews:accountmanager");
+    if (existingAccountManager) {
+      existingAccountManager.focus();
+    } else {
+      window.openDialog("chrome://messenger/content/AccountManager.xul",
+                        "AccountManager", "chrome,centerscreen,modal,titlebar",
+                        { server: newAccount.incomingServer,
+                          selectPage: "am-server.xul" });
+    }
+    window.close();
+  },
+
+  /**
+   * [Re-test] button click handler.
+   * Restarts the config guessing process after a person editing the server
+   * fields.
+   * It's called "half-manual", because we take the user-entered values
+   * as given and will not second-guess them, to respect the user wishes.
+   * (Yes, Sir! Will do as told!)
+   * The values that the user left empty or on "Auto" will be guessed/probed
+   * here. We will also check that the user-provided values work.
+   */
+  onHalfManualTest : function()
+  {
+    var newConfig = this.getUserConfig();
+    gEmailWizardLogger.info(debugObject(newConfig, "manualConfigToTest"));
+    this.startSpinner("looking_up_settings_halfmanual");
+    this.switchToMode("manual-edit-testing");
+    // if (this._userPickedOutgoingServer) TODO
+    var self = this;
+    this._abortable = guessConfig(this._domain,
+      function(type, hostname, port, ssl, done, config) // progress
+      {
+        gEmailWizardLogger.info("progress callback host " + hostname +
+                                " port " +  port + " type " + type);
+      },
+      function(config) // success
+      {
+        self._abortable = null;
+        self._fillManualEditFields(config);
+        self.switchToMode("manual-edit-complete");
+        self.stopSpinner("found_settings_halfmanual");
+      },
+      function(e, config) // guessconfig failed
+      {
+        if (e instanceof CancelledException) {
+          return;
+        }
+        self._abortable = null;
+        gEmailWizardLogger.info("guessConfig failed: " + e);
+        self.showErrorStatus("failed_to_find_settings");
+        self.switchToMode("manual-edit-have-hostname");
+      },
+      newConfig,
+      newConfig.outgoing.existingServerKey ? "incoming" : "both");
+  },
+
+
+
+  /////////////////////////////////////////////////////////////////
+  // UI helper functions
+
+  _prefillConfig : function(initialConfig)
+  {
+    var emailsplit = this._email.split("@");
+    assert(emailsplit.length > 1);
+    var emaillocal = sanitize.nonemptystring(emailsplit[0]);
+    initialConfig.incoming.username = emaillocal;
+    initialConfig.outgoing.username = emaillocal;
+    return initialConfig;
+  },
+
+  clearError : function(which)
+  {
+    _hide(which);
+    _hide(which + "icon");
+    e(which).textContent = "";
+  },
+
+  setError : function(which, msg_name)
+  {
+    try {
+      _show(which);
+      _show(which + "icon");
+      e(which).textContent = gStringsBundle.getString(msg_name);
+    } catch (ex) { alertPrompt("missing error string", msg_name); }
+  },
+
+
+
+  /////////////////////////////////////////////////////////////////
+  // Finish & dialog close functions
+
+  onKeyDown : function(event)
+  {
+    let key = event.keyCode;
+    if (key == 27) { // Escape key
+      this.onCancel();
+      return true;
+    }
+    if (key == 13) { // OK key
+      let buttons = [
+        { id: "next_button", action: makeCallback(this, this.onNext) },
+        { id: "create_button", action: makeCallback(this, this.onCreate) },
+        { id: "half-manual-test_button",
+          action: makeCallback(this, this.onHalfManualTest) },
+      ];
+      for each (let button in buttons) {
+        button.e = e(button.id);
+        if (button.e.hidden || button.e.disabled) {
+          continue;
+        }
+        button.action();
+        return true;
+      }
     }
     return false;
   },
 
-  checkIncomingAccountIsNew : function()
+  onCancel : function()
   {
-    let incoming = this._currentConfigFilledIn.incoming;
-    let isNew = gAccountMgr.findRealServer(incoming.username,
-                                          incoming.hostname,
-                                          sanitize.enum(incoming.type,
-                                                        ["pop3", "imap", "nntp"]),
-                                          incoming.port) == null;
+    window.close();
+    // The window onclose handler will call onWizardShutdown for us.
+  },
 
-    // if username does not have an '@', also check the e-mail
-    // address form of the name.
-    if (isNew && incoming.username.indexOf("@") < 0) {
-      return gAccountMgr.findRealServer(this._email,
-                                        incoming.hostname,
-                                        sanitize.enum(incoming.type,
-                                                      ["pop3", "imap", "nntp"]),
-                                        incoming.port) == null;
+  onWizardShutdown : function()
+  {
+    if (this._abortable) {
+      this._abortable.cancel(new UserCancelledException());
     }
-    return isNew;
-  },
 
-  toggleDetails : function (id)
-  {
-    let tech = document.getElementById(id+"_technical");
-    let details = document.getElementById(id+"_details");
-    if (details.getAttribute("collapsed")) {
-      tech.setAttribute("expanded", true);
-      details.removeAttribute("collapsed");
+    if (this._okCallback) {
+      this._okCallback();
     }
-    else {
-      details.setAttribute("collapsed", true);
-      tech.removeAttribute("expanded");
-    }
+    gEmailWizardLogger.info("Shutting down email config dialog");
   },
 
-  toggleAcknowledgeWarning : function()
-  {
-    this._warningAcknowledged =
-      document.getElementById('acknowledge_warning').checked;
-    this.checkEnableIKnow();
-  },
 
-  checkEnableIKnow: function()
-  {
-    if ((!this._incomingWarning && !this._outgoingWarning) ||
-        this._warningAcknowledged)
-      document.getElementById('iknow').disabled = false;
-    else
-      document.getElementById('iknow').disabled = true;
-  },
-
-  onOK : function()
+  onCreate : function()
   {
     try {
+      gEmailWizardLogger.info("Create button clicked");
 
-      gEmailWizardLogger.info("OK/Create button clicked");
-
-      this._password = document.getElementById("password").value;
-      replaceVariables(this._currentConfigFilledIn, this._realname, this._email,
-                       this._password);
-      this.updateConfig(this._currentConfigFilledIn);
-
-      // we can't check if the account already exists here, because
-      // we created it to test the password already.
-      if (this._outgoingWarning || this._incomingWarning)
-      {
-        _hide('mastervbox');
-        _show('warningbox');
-
-        let incomingwarningstring;
-        let outgoingwarningstring;
-        let incoming_details;
-        let outgoing_details;
-        let incoming = this._currentConfigFilledIn.incoming;
-        let outgoing = this._currentConfigFilledIn.outgoing;
-        var brandShortName = gBrandBundle.getString("brandShortName");
-        switch (this._incomingWarning)
+      var configFilledIn = this.getConcreteConfig();
+      var self = this;
+      // If the dialog is not needed, it will go straight to OK callback
+      gSecurityWarningDialog.open(this._currentConfig, configFilledIn, true,
+        function() // on OK
         {
-          case 'cleartext':
-            incomingwarningstring = gStringsBundle.getFormattedString(
-              "cleartext_warning", [incoming.hostname]);
-            incoming_details = gStringsBundle.getString("cleartext_details");
-            setText('warning_incoming', incomingwarningstring);
-            setText('incoming_details', incoming_details);
-            _show('incoming_box');
-            _show('acknowledge_warning');
-            break;
-          case 'selfsigned':
-            incomingwarningstring = gStringsBundle.getFormattedString(
-              "selfsigned_warning", [incoming.hostname]);
-            incoming_details = gStringsBundle.getString("selfsigned_details");
-            setText('warning_incoming', incomingwarningstring);
-            setText('incoming_details', incoming_details);
-            _show('incoming_box');
-            _show('acknowledge_warning');
-            break;
-          case '':
-            _hide('incoming_box');
-            _hide('acknowledge_warning');
-        }
-        switch (this._outgoingWarning)
-        {
-          case 'cleartext':
-            outgoingwarningstring = gStringsBundle.getFormattedString(
-              "cleartext_warning", [outgoing.hostname]);
-            outgoing_details = gStringsBundle.getString("cleartext_details");
-            setText('warning_outgoing', outgoingwarningstring);
-            setText('outgoing_details', outgoing_details);
-            _show('outgoing_box');
-            _show('acknowledge_warning');
-            break;
-          case 'selfsigned':
-            outgoingwarningstring = gStringsBundle.getFormattedString(
-              "selfsigned_warning", [outgoing.hostname]);
-            outgoing_details = gStringsBundle.getString("selfsigned_details");
-            setText('warning_outgoing', outgoingwarningstring);
-            setText('outgoing_details', outgoing_details);
-            _show('outgoing_box');
-            _show('acknowledge_warning');
-            break;
-          case '':
-            _hide('outgoing_box');
-            if (this._incomingWarning == '')
-              _hide('acknowledge_warning');
-        }
-        window.sizeToContent();
-      }
-      else
-      {
-        // no certificate or cleartext issues
-        this.validateAndFinish();
-      }
+          self.validateAndFinish(configFilledIn);
+        },
+        function() {}); // on cancel, do nothing
     } catch (ex) {
       gEmailWizardLogger.error("Error creating account.  ex=" + ex +
                                ", stack=" + ex.stack);
@@ -807,785 +1470,379 @@ EmailConfigWizard.prototype =
     }
   },
 
-  getMeOutOfHere : function()
-  {
-    // If we're going backwards, we should reset the acknowledge_warning.
-    document.getElementById('acknowledge_warning').checked = false;
-    this.toggleAcknowledgeWarning();
-    document.getElementById("incoming_technical").removeAttribute("expanded");;
-    document.getElementById("incoming_details").setAttribute("collapsed", true);;
-    document.getElementById("outgoing_technical").removeAttribute("expanded");;
-    document.getElementById("outgoing_details").setAttribute("collapsed", true);;
-    _hide('warningbox');
-    _show('mastervbox');
-    window.sizeToContent();
-  },
-
+  // called by onCreate()
   validateAndFinish : function()
   {
-    // if we're coming from the cert warning dialog
-    _show('mastervbox');
-    _hide('warningbox');
-    window.sizeToContent();
+    var configFilledIn = this.getConcreteConfig();
 
-    if (!this.checkIncomingAccountIsNew())
-    {
+    if (checkIncomingServerAlreadyExists(configFilledIn)) {
       alertPrompt(gStringsBundle.getString("error_creating_account"),
                   gStringsBundle.getString("incoming_server_exists"));
       return;
     }
 
-    // No need to check if we aren't adding it.
-    if (this._currentConfigFilledIn.outgoing.addThisServer)
-    {
-      let existingKey = this.keyForExistingOutgoingAccount();
-      if (existingKey)
-      {
-        this._currentConfigFilledIn.outgoing.addThisServer = false;
-        this._currentConfigFilledIn.outgoing.existingServerKey = existingKey;
+    if (configFilledIn.outgoing.addThisServer) {
+      let existingServer = checkOutgoingServerAlreadyExists(configFilledIn);
+      if (existingServer) {
+        configFilledIn.outgoing.addThisServer = false;
+        configFilledIn.outgoing.existingServerKey = existingServer.key;
       }
     }
 
-    document.getElementById('create_button').disabled = true;
-    var me = this;
-    if (!this._verifiedConfig)
-      this.verifyConfig(function(successfulConfig) // success
-                        {
-                          // the auth might have changed, so we
-                          // should back-port it to the current config.
-                          me._currentConfigFilledIn.incoming.auth =
-                              successfulConfig.incoming.auth;
-                          me._currentConfigFilledIn.outgoing.auth =
-                              successfulConfig.outgoing.auth;
-                          me.finish();
-                        },
-                        function(e) // failure
-                        {
-                          // Enable the username and password fields, and
-                          // the create button to re-check.
-                          document.getElementById("create_button").disabled = false;
-                          document.getElementById("username").disabled = false;
-                          document.getElementById("password").disabled = false;
-                        });
-    else
-      this.finish();
-  },
-
-  verifyConfig : function(successCallback, errorCallback)
-  {
-    var me = this;
-    gEmailWizardLogger.info("Verifying config.");
-    this.startSpinner("username", "checking_password");
-
+    // TODO use a UI mode (switchToMode()) for verfication, too.
+    // But we need to go back to the previous mode, because we might be in
+    // "result" or "manual-edit-complete" mode.
+    _disable("create_button");
+    _disable("half-manual-test_button");
+    _disable("advanced-setup_button");
+    // no stop button: backend has no ability to stop :-(
+    var self = this;
+    this.startSpinner("checking_password");
     // logic function defined in verifyConfig.js
     verifyConfig(
-      this._currentConfigFilledIn,
+      configFilledIn,
       // guess login config?
-      this._currentConfigFilledIn.source != AccountConfig.kSourceXML,
+      configFilledIn.source != AccountConfig.kSourceXML,
+      // TODO Instead, the following line would be correct, but I cannot use it,
+      // because some other code doesn't adhere to the expectations/specs.
+      // Find out what it was and fix it.
+      //concreteConfig.source == AccountConfig.kSourceGuess,
       this._parentMsgWindow,
-      function(successfulServer) // success
+      function(successfulConfig) // success
       {
-        me._verifiedConfig = true;
-        if (me._currentConfigFilledIn.incoming.password)
-          me.stopSpinner("password_ok");
-        if (successCallback)
-          successCallback(successfulServer);
+        self.stopSpinner(successfulConfig.incoming.password ?
+                         "password_ok" : null);
+
+        // the auth might have changed, so we
+        // should back-port it to the current config.
+        self._currentConfig.incoming.auth = successfulConfig.incoming.auth;
+        self._currentConfig.outgoing.auth = successfulConfig.outgoing.auth;
+        self.finish();
       },
       function(e) // failed
       {
-        me.stopSpinner("config_unverifiable");
-        me._updateSpinner("username", true);
-        me.setError('passworderror', 'user_pass_invalid');
-        if (errorCallback)
-          errorCallback(e);
+        self.showErrorStatus("config_unverifiable");
+        // TODO bug 555448: wrong error msg, there may be a 1000 other
+        // reasons why this failed, and this is misleading users.
+        self.setError("passworderror", "user_pass_invalid");
+        // TODO use switchToMode(), see above
+        // give user something to proceed after fixing
+        _enable("create_button");
+        // hidden in non-manual mode, so it's fine to enable
+        _enable("half-manual-test_button");
+        _enable("advanced-setup_button");
       });
   },
 
   finish : function()
   {
     gEmailWizardLogger.info("creating account in backend");
-    this._currentConfigFilledIn.rememberPassword =
-      document.getElementById("remember_password").checked;
-    createAccountInBackend(this._currentConfigFilledIn);
+    createAccountInBackend(this.getConcreteConfig());
     window.close();
   },
-
-  advancedSettings : function()
-  {
-    let shouldEraseConfig = !this._currentConfigFilledIn;
-    let config = this.getUserConfig();
-    this._currentConfigFilledIn = config.copy();
-
-    // call this to set the password
-    replaceVariables(config, this._realname, this._email, this._password);
-
-    if (!this.checkIncomingAccountIsNew()) {
-      alertPrompt(gStringsBundle.getString("error_creating_account"),
-                  gStringsBundle.getString("incoming_server_exists"));
-      if (shouldEraseConfig)
-        this._currentConfigFilledIn = null;
-      return;
-    }
-
-    gEmailWizardLogger.info("creating account in backend");
-    config.rememberPassword =
-      document.getElementById("remember_password").checked;
-    var newAccount = createAccountInBackend(config);
-    var windowManager =
-      Components.classes['@mozilla.org/appshell/window-mediator;1']
-                .getService(Components.interfaces.nsIWindowMediator);
-
-    var existingAccountManager =
-      windowManager.getMostRecentWindow("mailnews:accountmanager");
-
-    if (existingAccountManager)
-      existingAccountManager.focus();
-    else
-      window.openDialog("chrome://messenger/content/AccountManager.xul",
-                        "AccountManager", "chrome,centerscreen,modal,titlebar",
-                        { server: newAccount.incomingServer,
-                          selectPage: 'am-server.xul' });
-    window.close();
-  },
-  /**
-   * Gets the values that the user edited in the right of the dialog.
-   */
-  getUserConfig : function()
-  {
-    var config = this._currentConfig;
-    if (!config)
-      config = new AccountConfig();
-
-    config.source = AccountConfig.kSourceGuess;
-
-    // Did the user select one of the already configured SMTP servers from the
-    // drop-down list? If so, use it.
-    if (this._userPickedOutgoingServer)
-    {
-      config.outgoing.addThisServer = false;
-      config.outgoing.existingServerKey =
-        document.getElementById("outgoing_server").selectedItem.value;
-      config.outgoing.existingServerLabel =
-        document.getElementById("outgoing_server").selectedItem.label;
-    }
-    else
-    {
-      if (!config.outgoing.username)
-        config.outgoing.username = document.getElementById("username").value;
-      config.outgoing.hostname =
-        sanitize.hostname(document.getElementById("outgoing_server").value);
-      document.getElementById("outgoing_server").value =
-        config.outgoing.hostname;
-      config.outgoing.port =
-        sanitize.integerRange(document.getElementById("outgoing_port").value, 1,
-                              kHighestPort);
-      config.outgoing.socketType =
-        parseInt(document.getElementById("outgoing_security").value);
-    }
-    config.incoming.username = document.getElementById("username").value;
-    config.incoming.hostname =
-      sanitize.hostname(document.getElementById("incoming_server").value);
-    document.getElementById("incoming_server").value = config.incoming.hostname;
-    config.incoming.port =
-      sanitize.integerRange(document.getElementById("incoming_port").value, 1,
-                            kHighestPort);
-    config.incoming.type =
-      document.getElementById("incoming_protocol").value == 1 ? "imap" : "pop3";
-    // type is a string, "imap" or "pop3", protocol is a protocol type.
-    config.incoming.protocol = sanitize.translate(config.incoming.type, { "imap" : 0, "pop3" : 1});
-    config.incoming.socketType =
-      parseInt(document.getElementById("incoming_security").value);
-
-    return config;
-  },
-
-  _setIncomingStatus : function(state, details)
-  {
-    if (!details)
-      details = "";
-
-    switch (state)
-    {
-      case 'strong':
-        this._incomingState = 'done';
-        this._incomingWarning = '';
-        // fall through
-      case 'weak':
-        this._incomingWarning = details;
-        this._warningAcknowledged = false;
-        break;
-      default:
-        this._incomingState = state;
-    }
-    // since we look for SSL/TLS first, if we get 'weak', we're
-    // stuck with it, and might as well admit we're done.
-    if (state == 'weak')
-      this._incomingState = 'done';
-
-    this._setIconAndTooltip('incoming', state, details);
-  },
-
-  _setOutgoingStatus: function(state, details)
-  {
-    if (!details)
-      details = '';
-
-    if (this._userPickedOutgoingServer)
-      return;
-
-    switch (state)
-    {
-      case 'strong':
-        this._outgoingState = 'done';
-        this._outgoingWarning = '';
-        // fall through
-      case 'weak':
-        this._outgoingWarning = details;
-        this._warningAcknowledged = false;
-        break
-      default:
-        this._outgoingState = state;
-    }
-    // since we look for SSL/TLS first, if we get 'weak', we're
-    // stuck with it, and might as well admit we're done.
-    if (state == 'weak')
-      this._outgoingState = 'done';
-
-    this._setIconAndTooltip('outgoing', state, details);
-  },
-
-  _setIconAndTooltip : function(id, state, details)
-  {
-    gEmailWizardLogger.warn(id + " setting icon and tooltip " +
-                            state + ":" + details);
-    let icon = document.getElementById(id + "_status");
-    icon.setAttribute("state", state);
-    switch (state)
-    {
-      case "weak":
-        icon.setAttribute("tooltip", "insecureserver-" + details);
-        icon.setAttribute("popup", "insecureserver-" + details + "-panel");
-        this._updateSpinner(id, true);
-        break;
-      case "hidden":
-        icon.removeAttribute("tooltip");
-        icon.removeAttribute("popup");
-        this._updateSpinner(id, false);
-        break;
-      case "strong":
-        icon.setAttribute("tooltip", "secureservertooltip");
-        icon.setAttribute("popup", "secureserver-panel");
-        this._updateSpinner(id, true);
-        break;
-      case "failed":
-        icon.removeAttribute("tooltip");
-        icon.removeAttribute("popup");
-        this._updateSpinner(id, true);
-        break;
-    }
-  },
-
-  showConfigDetails : function()
-  {
-    // show the config details area
-    _show("settingsbox");
-    // also show the create button because it's outside of the area
-    _show("create_button");
-  },
-
-  hideConfigDetails : function()
-  {
-    _hide("settingsbox");
-    document.getElementById("create_button").disabled = true;
-    _hide("create_button");
-  },
-
-  /* Clears out the config details information, this is really only meant to be
-   * called from the (Back) button.
-   * XXX This can destroy user input where it might not be necessary
-   */
-  clearConfigDetails : function()
-  {
-    for (let i = 0; i < this._configDetailTextInputs.length; i++ )
-    {
-      document.getElementById(this._configDetailTextInputs[i]).value = "";
-    }
-
-    this._setIncomingStatus('hidden');
-    this._setOutgoingStatus('hidden');
-  },
-
-  /* Setting the config details form so it can be edited.  We also disable
-   * (and hide) the create button during this time because we don't know what
-   * might have changed.  The function called from the button that restarts
-   * the config check should be enabling the config button as needed.
-   */
-  editConfigDetails : function()
-  {
-    gEmailWizardLogger.info("onEdit");
-    // Add the custom entry to the menulist, if it's not already there.
-    let menulist = document.getElementById("outgoing_server");
-    if (this._smtpServerCount == menulist.itemCount) {
-      var hostname = document.getElementById("outgoing_server").value;
-      let menuitem = menulist.insertItemAt(0, hostname, hostname);
-      menuitem.hostname = hostname;
-    }
-    this._currentConfig.incomingAlternatives = [];
-    this._currentConfig.outgoingAlternatives = [];
-
-    this._disableConfigDetails(false);
-    _hide("popimap_radio_area");
-    this._setIncomingStatus("failed");
-    this._setOutgoingStatus("failed");
-    document.getElementById("advanced_settings").disabled = false;
-    document.getElementById("create_button").disabled = true;
-    _hide("stop_button");
-    _hide("edit_button");
-    _show("go_button");
-  },
-
-  /* This _doesn't_ set create back to enabled, that needs to be done in a
-   * config check.  Only showing the button.
-   * XXX However it seems that a disabled button can still receive click
-   *     events so this needs to be looked into further.
-   */
-  goWithConfigDetails : function()
-  {
-    this._disableConfigDetails(true);
-    _show("create_button");
-  },
-
-  // IDs of <textbox> inputs that can have a .value attr set
-  _configDetailTextInputs : ["username", "incoming_server",
-                             "incoming_port", "incoming_protocol",
-                             "outgoing_port"],
-
-  // IDs of the <menulist> elements that don't accept a .value attr but can
-  // be disabled
-  _configDetailMenulists : ["remember_password", "incoming_security",
-                            "outgoing_server", "outgoing_security"],
-
-  /* Helper function to loop through all config details form elements and
-   * enable or disable each
-   */
-  _disableConfigDetails : function(disabled)
-  {
-    let formElements =
-      this._configDetailTextInputs.concat(this._configDetailMenulists)
-                                  .concat("password");
-    for (let i = 0; i < formElements.length; i++)
-    {
-      document.getElementById(formElements[i]).disabled = disabled;
-    }
-  },
-
-  /**
-   * Updates a (probed) config to the user,
-   * in the config details area
-   *
-   * @param config {AccountConfig} The config to present to user
-   */
-  updateConfig : function(config)
-  {
-    _show("advanced_settings");
-    this._currentConfig = config;
-    // if we have a username, set it.
-    if (config.incoming.username)
-    {
-      document.getElementById("username").value = config.incoming.username;
-    }
-    else
-    {
-      // XXX needs more thought
-    }
-
-    // incoming server
-    if (config.incoming.hostname && config.incoming.hostname != -1)
-    {
-      /* -1 failure needs to be handled in the context of the failure
-        * at this point all we know is there is no hostname, but not why
-        * the error handling behaviour needs to be done above
-        */
-      document.getElementById("incoming_server").value =
-        config.incoming.hostname;
-      document.getElementById("incoming_port").value = config.incoming.port;
-      document.getElementById("incoming_security").value =
-        config.incoming.socketType;
-      document.getElementById("incoming_protocol").value =
-        sanitize.translate(config.incoming.type, { "imap" : 1, "pop3" : 2});
-      document.getElementById("popimap_radiogroup").value =
-        config.incoming.type;
-
-      // en/disable IMAP vs. POP radiogroup
-      let haveOther = false;
-      if (config.incomingAlternatives && config.incomingAlternatives.length)
-      {
-        let alternates = config.incomingAlternatives.filter(function(c) {
-          return c.type != config.incoming.type;
-        });
-        haveOther = alternates.length > 0;
-      }
-      let popImapRadiogroup = document.getElementById("popimap_radio_area");
-      let wasHidden = popImapRadiogroup.hidden;
-      popImapRadiogroup.hidden = !haveOther;
-      // Hide "(recommended)" behind IMAP, if POP3 was first choice from XML,
-      // and not just selected by user later.
-      if (!config._imapRecommendedToggled)
-        document.getElementById("imap_recommended").hidden =
-            config.incoming.type == "pop3";
-      config._imapRecommendedToggled = true;
-      if (wasHidden == haveOther) // hidden changed, so resize
-        window.sizeToContent();
-
-      if (config.incoming._inprogress)
-      {
-        this._setIncomingStatus('probing');
-      }
-      else
-      {
-        // We got an incoming server, so we can enable the advanced settings.
-        document.getElementById("advanced_settings").disabled = false;
-        switch (config.incoming.socketType)
-        {
-          case 2: // SSL / TLS
-          case 3: // STARTTLS
-            if (config.incoming.badCert)
-            {
-              this._setIncomingStatus('weak', 'selfsigned');
-              var params = { exceptionAdded : false };
-              params.prefetchCert = true;
-              params.location = config.incoming.targetSite;
-              window.openDialog('chrome://pippki/content/exceptionDialog.xul',
-                                '','chrome,centerscreen,modal', params);
-              config.incoming.badCert = false;
-            }
-            else
-            {
-              this._setIncomingStatus('strong');
-            }
-            break;
-          case 1: // plain
-            this._setIncomingStatus('weak', 'cleartext');
-            break;
-          default:
-            throw new NotReached("sslType " + config.incoming.socketType + " unknown");
-        }
-      }
-    }
-
-    // outgoing server
-    if (config.outgoing.hostname && config.outgoing.hostname != -1)
-    {
-      /* -1 failure needs to be handled in the context of the failure
-       * at this point all we know is there is no hostname, but not why.
-       * The error handling behaviour needs to be done elsewhere
-       */
-      if (!gEmailConfigWizard._userPickedOutgoingServer)
-      {
-        document.getElementById("outgoing_server").value =
-          config.outgoing.hostname;
-        document.getElementById("outgoing_port").value = config.outgoing.port;
-        document.getElementById("outgoing_security").value =
-          config.outgoing.socketType;
-        _show("outgoing_port");
-        _show("outgoing_security");
-        if (config.outgoing._inprogress) {
-          this._setOutgoingStatus('probing');
-        }
-        else
-        {
-          switch (config.outgoing.socketType)
-          {
-            case 2: // SSL / TLS
-            case 3: // STARTTLS
-              if (config.outgoing.badCert)
-                this._setOutgoingStatus('weak', 'selfsigned');
-              else
-                this._setOutgoingStatus('strong');
-              break;
-            case 1: // plain
-              this._setOutgoingStatus('weak', 'cleartext');
-              break;
-            default:
-              throw new NotReached("sslType " + config.incoming.socketType + " unknown");
-          }
-        }
-      }
-      else
-      {
-        config.outgoing.addThisServer = false;
-        config.outgoing.useGlobalPreferredServer = true;
-      }
-    }
-  },
-
-  /* (Edit) button click handler.  This turns the config details area into an
-   * editable form and makes the (Go) button appear.  The edit button should
-   * only be available after the config probing is completely finished,
-   * replacing what was the (Stop) button.
-   */
-  onEdit : function()
-  {
-    this.editConfigDetails();
-  },
-
-  // short hand so I didn't have to insert the swap functions in various places
-  showEditButton : function() { _show("edit_button"); _hide("stop_button"); },
-
-  /* (Stop) button click handler.  This should stop short any probing or config
-   * guessing progress and changing the config details area into manual edit
-   * mode.  This button should only be available during probing, after which it
-   * is replaced by the (Edit) button.
-   */
-  onStop : function()
-  {
-    if (!this._probeAbortable)
-    {
-      gEmailWizardLogger.info("onStop without a _probeAbortable to cancel");
-    }
-    else
-    {
-      this._probeAbortable.cancel();
-      gEmailWizardLogger.info("onStop cancelled _probeAbortable");
-    }
-    this.stopSpinner('manually_edit_config');
-    this.editConfigDetails();
-  },
-
-  /* (Go) button click handler.  Restarts the config guessing process after a
-   * person possibly editing the fields.  The go button replaces either the
-   * (Stop) or (Edit) button after they have been clicked.
-   */
-  onGo : function()
-  {
-    // swap out go for stop button
-    _hide("go_button");
-    // the stop is naturally not hidden so has no place in the code where it is
-    // told to be shown
-    _show("stop_button");
-    this._password = document.getElementById("password").value;
-    this.goWithConfigDetails();
-    var newConfig = this.getUserConfig();
-    if (this._incomingState != "done") {
-      newConfig.incoming._inprogress = true;
-      gEmailConfigWizard._startProbingIncoming(newConfig);
-    }
-    if (!this._userPickedOutgoingServer && this._outgoingState != "done") {
-      newConfig.outgoing._inprogress = true;
-      gEmailConfigWizard._startProbingOutgoing(newConfig);
-    }
-  },
-
-  onCancel : function()
-  {
-    // The window onclose handler will call onWizardShutdown for us.
-    window.close();
-  },
-
-  // UI helper functions
-
-  startSpinner: function(which, actionStrName)
-  {
-    this._showStatusTitle(false, actionStrName);
-    if (which == "all") {
-      this._setIconAndTooltip("incoming", "hidden", "");
-      this._setIconAndTooltip("outgoing", "hidden", "");
-    }
-    else
-      this._setIconAndTooltip(which, "hidden", "");
-    gEmailWizardLogger.warn(which + "spinner start " + actionStrName);
-  },
-
-  stopSpinner: function(actionStrName)
-  {
-    this._showStatusTitle(true, actionStrName);
-    this._updateSpinner("incoming", true);
-    this._updateSpinner("outgoing", true);
-    gEmailWizardLogger.warn("all spinner stop " + actionStrName);
-  },
-
-  _updateSpinner: function(which, stop)
-  {
-    document.getElementById(which + "_spinner").hidden = stop;
-  },
-
-  _showStatusTitle: function(success, msgName)
-  {
-    let brandShortName = document.getElementById("bundle_brand")
-                                 .getString("brandShortName");
-    let msg;
-    try {
-      msg = msgName
-            ? gStringsBundle.getFormattedString(msgName, [brandShortName])
-            : "";
-    } catch(ex) {
-      gEmailWizardLogger.error("missing string for " + msgName);
-      logException(new Exception("missing string for name: " + msgName));
-    }
-
-    let title = document.getElementById("config_status_title");
-    title.hidden = false;
-    title.textContent = msg;
-    gEmailWizardLogger.info("show status title " + (success ? "success" : "failure") +
-                            ", msg: " + msg);
-  },
-
-  _prefillConfig: function(initialConfig)
-  {
-    var emailsplit = this._email.split("@");
-    if (emailsplit.length != 2)
-      throw new Exception(gStringsBundle.getString("double_check_email"));
-
-    var emaillocal = sanitize.nonemptystring(emailsplit[0]);
-    initialConfig.incoming.username = emaillocal;
-    initialConfig.outgoing.username = emaillocal;
-    initialConfig.outgoing.protocol = 'smtp';
-    return initialConfig;
-  },
-
-  _startProbingIncoming : function(config)
-  {
-    gEmailWizardLogger.info("_startProbingIncoming: " + config.incoming.hostname +
-                            " probe = " + this._probeAbortable);
-    this.startSpinner("incoming", "looking_up_settings_guess");
-
-    config.incoming._inprogress = true;
-    // User entered hostname, we may want to probe port and protocol and socketType
-    if (!this._userChangedIncomingProtocol)
-      config.incoming.protocol = undefined;
-    if (!this._userChangedIncomingPort)
-      config.incoming.port = undefined;
-    if (!this._userChangedIncomingSocketType)
-      config.incoming.socketType = undefined;
-    if (!this._userChangedIncomingServer)
-      config.incoming.hostname = undefined;
-
-    let domain = this._domain;
-    if (config.incoming.hostname)
-      domain = config.incoming.hostname;
-
-    if (this._probeAbortable)
-    {
-      gEmailWizardLogger.info("restarting probe: " + domain);
-      this._probeAbortable.restart(domain, config, "incoming",
-                                   config.incoming.type,
-                                   config.incoming.port,
-                                   config.incoming.socketType);
-    }
-    else
-    {
-      this._guessConfig(domain, config, "incoming");
-    }
-  },
-
-  _startProbingOutgoing : function(config)
-  {
-    gEmailWizardLogger.info("_startProbingOutgoing: " + config.outgoing.hostname +
-                            " probe = " + this._probeAbortable);
-    this.startSpinner("outgoing", "looking_up_settings_guess");
-
-    config.outgoing._inprogress = true;
-    // User entered hostname, we want to probe port and protocol and socketType
-    if (!this._userChangedOutgoingPort)
-      config.outgoing.port = undefined;
-    if (!this._userChangedOutgoingSocketType)
-      config.outgoing.socketType = undefined;
-
-    if (this._probeAbortable)
-    {
-      gEmailWizardLogger.info("restarting probe: " + config.outgoing.hostname);
-      this._probeAbortable.restart(config.outgoing.hostname, config, "outgoing",
-                                   "smtp", config.outgoing.port,
-                                   config.outgoing.socketType);
-    }
-    else
-    {
-      this._guessConfig(config.outgoing.hostname, config, "outgoing");
-    }
-  },
-
-  clearError: function(which) {
-    _hide(which);
-    _hide(which+"icon");
-    document.getElementById(which).textContent = "";
-  },
-
-  setError: function(which, msg_name) {
-    try {
-      _show(which);
-      _show(which+"icon");
-      document.getElementById(which).textContent =
-        gStringsBundle.getString(msg_name);
-    }
-    catch(ex) {
-      alertPrompt("missing error string", msg_name);
-    }
-  },
-
-  onKeyDown : function(event)
-  {
-    let key = event.keyCode;
-    if (key == 27) {
-      this.onCancel();
-      return true;
-    }
-    if (key == 13 && !document.getElementById("go_button").hidden
-                  && !document.getElementById("go_button").disabled) {
-      this.onGo();
-      return true;
-    }
-    if (key == 13 && !document.getElementById("create_button").hidden
-                  && !document.getElementById("create_button").disabled) {
-      this.onOK();
-      return true;
-    }
-    if (key == 13 && !document.getElementById("next_button").hidden
-                  && !document.getElementById("next_button").disabled) {
-      this.onNext();
-      return true;
-    }
-    return false;
-  },
-
-  onWizardShutdown: function EmailConfigWizard_onWizardshutdown() {
-    if (this._probeAbortable)
-      this._probeAbortable.cancel();
-
-    if (this._okCallback)
-      this._okCallback();
-    gEmailWizardLogger.info("Shutting down email config dialog");
-  }
 };
 
 var gEmailConfigWizard = new EmailConfigWizard();
 gEmailWizardLogger.info("email account setup dialog");
 
-function sslLabel(val)
+
+function serverMatches(a, b)
 {
-  switch (val)
+  return a.type == b.type &&
+         a.hostname == b.hostname &&
+         a.port == b.port &&
+         a.socketType == b.socketType &&
+         a.auth == b.auth;
+}
+
+var _gStandardPorts = {};
+_gStandardPorts["imap"] = [ 143, 993 ];
+_gStandardPorts["pop3"] = [ 110, 995 ];
+_gStandardPorts["smtp"] = [ 587, 25, 465 ]; // order matters
+var _gAllStandardPorts = _gStandardPorts["smtp"]
+    .concat(_gStandardPorts["imap"]).concat(_gStandardPorts["pop3"]);
+
+function isStandardPort(port)
+{
+  return _gAllStandardPorts.indexOf(port) != -1;
+}
+
+function getStandardPorts(protocolType)
+{
+  return _gStandardPorts[protocolType];
+}
+
+
+/**
+ * Warning dialog, warning user about lack of, or inappropriate, encryption.
+ *
+ * This is effectively a separate dialog, but implemented as part of
+ * this dialog. It works by hiding the main dialog part and unhiding
+ * the this part, and vice versa, and resizing the dialog.
+ */
+function SecurityWarningDialog()
+{
+  this._acknowledged = new Array();
+}
+SecurityWarningDialog.prototype =
+{
+  /**
+   * {Array of {(incoming or outgoing) server part of {AccountConfig}}
+   * A list of the servers for which we already showed this dialog and the
+   * user approved the configs. For those, we won't show the warning again.
+   * (Make sure to store a copy in case the underlying object is changed.)
+   */
+  _acknowledged : null,
+
+  /**
+   * Checks whether we need to warn about this config.
+   *
+   * We (currently) warn if
+   * - the mail travels unsecured (no SSL/STARTTLS)
+   * - the SSL certificate is not proper
+   * - (We don't warn about unencrypted passwords specifically,
+   *   because they'd be encrypted with SSL and without SSL, we'd
+   *   warn anyways.)
+   *
+   * We may not warn despite these conditions if we had shown the
+   * warning for that server before and the user acknowledged it.
+   * (Given that this dialog object is static/global and persistent,
+   * we can store that approval state here in this object.)
+   *
+   * @param configSchema @see open()
+   * @param configFilledIn @see open()
+   * @returns {Boolean}   true when the dialog should be shown
+   *      (call open()). if false, the dialog can and should be skipped.
+   */
+  needed : function(configSchema, configFilledIn)
   {
-    case 1:
-      return gStringsBundle.getString("no_encryption");
-    case 2:
-      return gStringsBundle.getString("ssl_tls");
-    case 3:
-      return gStringsBundle.getString("starttls");;
-    default:
-      throw new NotReached("Unknown SSL type");
-  }
+    assert(configSchema instanceof AccountConfig);
+    assert(configFilledIn instanceof AccountConfig);
+    assert(configSchema.isComplete());
+    assert(configFilledIn.isComplete());
+
+    var incomingOK = configFilledIn.incoming.socketType > 1 &&
+        !configFilledIn.incoming.badCert;
+    var outgoingOK = configFilledIn.outgoing.socketType > 1 &&
+        !configFilledIn.outgoing.badCert;
+
+    if (!incomingOK) {
+      incomingOK = this._acknowledged.some(
+          function(ackServer) {
+            return serverMatches(ackServer, configFilledIn.incoming);
+          });
+    }
+    if (!outgoingOK) {
+      outgoingOK = this._acknowledged.some(
+          function(ackServer) {
+            return serverMatches(ackServer, configFilledIn.outgoing);
+          });
+    }
+    return !incomingOK || !outgoingOK;
+  },
+
+  /**
+   * Opens the dialog, fills it with values, and shows it to the user.
+   *
+   * The function is async: it returns immediately, and when the user clicks
+   * OK or Cancel, the callbacks are called. There the callers proceed as
+   * appropriate.
+   *
+   * @param configSchema   The config, with placeholders not replaced yet.
+   *      This object may be modified to store the user's confirmations, but
+   *      currently that's not the case.
+   * @param configFilledIn   The concrete config with placeholders replaced.
+   * @param onlyIfNeeded {Boolean}   If there is nothing to warn about,
+   *     call okCallback() immediately (and sync).
+   * @param okCallback {function(config {AccountConfig})}
+   *      Called when the user clicked OK and approved the config including
+   *      the warnings. |config| is without placeholders replaced.
+   * @param cancalCallback {function()}
+   *      Called when the user decided to heed the warnings and not approve.
+   */
+  open : function(configSchema, configFilledIn, onlyIfNeeded,
+                  okCallback, cancelCallback)
+  {
+    assert(typeof(okCallback) == "function");
+    assert(typeof(cancelCallback) == "function");
+    // needed() also checks the parameters
+    var needed = this.needed(configSchema, configFilledIn);
+    if (!needed && onlyIfNeeded) {
+      okCallback();
+      return;
+    }
+    assert(needed, "security dialog opened needlessly");
+    this._currentConfigFilledIn = configFilledIn;
+    this._okCallback = okCallback;
+    this._cancelCallback = cancelCallback;
+    var incoming = configFilledIn.incoming;
+    var outgoing = configFilledIn.outgoing;
+
+    _hide("mastervbox");
+    _show("warningbox");
+    // reset dialog, in case we've shown it before
+    e("acknowledge_warning").checked = false;
+    _disable("iknow");
+    e("incoming_technical").removeAttribute("expanded");
+    e("incoming_details").setAttribute("collapsed", true);
+    e("outgoing_technical").removeAttribute("expanded");
+    e("outgoing_details").setAttribute("collapsed", true);
+
+    if (incoming.socketType == 1) {
+      setText("warning_incoming", gStringsBundle.getFormattedString(
+          "cleartext_warning", [incoming.hostname]));
+      setText("incoming_details", gStringsBundle.getString(
+          "cleartext_details"));
+      _show("incoming_box");
+      _show("acknowledge_warning");
+    } else if (incoming.badCert) {
+      setText("warning_incoming", gStringsBundle.getFormattedString(
+          "selfsigned_warning", [incoming.hostname]));
+      setText("incoming_details", gStringsBundle.getString(
+          "selfsigned_details"));
+      _show("incoming_box");
+      _show("acknowledge_warning");
+    } else {
+      _hide("incoming_box");
+      _hide("acknowledge_warning");
+    }
+
+    if (outgoing.socketType == 1) {
+      setText("warning_outgoing", gStringsBundle.getFormattedString(
+          "cleartext_warning", [outgoing.hostname]));
+      setText("outgoing_details", gStringsBundle.getString(
+          "cleartext_details"));
+      _show("outgoing_box");
+      _show("acknowledge_warning");
+    } else if (outgoing.badCert) {
+      setText("warning_outgoing", gStringsBundle.getFormattedString(
+          "selfsigned_warning", [outgoing.hostname]));
+      setText("outgoing_details", gStringsBundle.getString(
+          "selfsigned_details"));
+      _show("outgoing_box");
+      _show("acknowledge_warning");
+    } else {
+      _hide("outgoing_box");
+    }
+    window.sizeToContent();
+  },
+
+  toggleDetails : function (id)
+  {
+    let details = e(id + "_details");
+    let tech = e(id + "_technical");
+    if (details.getAttribute("collapsed")) {
+      details.removeAttribute("collapsed");
+      tech.setAttribute("expanded", true);
+    } else {
+      details.setAttribute("collapsed", true);
+      tech.removeAttribute("expanded");
+    }
+  },
+
+  /**
+   * user checked checkbox that he understood it and wishes
+   * to ignore the warning.
+   */
+  toggleAcknowledge : function()
+  {
+    if (e("acknowledge_warning").checked) {
+      _enable("iknow");
+    } else {
+      _disable("iknow");
+    }
+  },
+
+  /**
+   * [Cancel] button pressed. Get me out of here!
+   */
+  onCancel : function()
+  {
+    _hide("warningbox");
+    _show("mastervbox");
+    window.sizeToContent();
+
+    this._cancelCallback();
+  },
+
+  /**
+   * [OK] button pressed.
+   * Implies that the user toggled the acknowledge checkbox,
+   * i.e. approved the config and ignored the warnings,
+   * otherwise the button would have been disabled.
+   */
+  onOK : function()
+  {
+    assert(e("acknowledge_warning").checked);
+
+    var overrideOK = this.showCertOverrideDialog(this._currentConfigFilledIn);
+    if (!overrideOK) {
+      this.onCancel();
+      return;
+    }
+
+    // need filled in, in case hostname is placeholder
+    var storeConfig = this._currentConfigFilledIn.copy();
+    this._acknowledged.push(storeConfig.incoming);
+    this._acknowledged.push(storeConfig.outgoing);
+
+    _show("mastervbox");
+    _hide("warningbox");
+    window.sizeToContent();
+
+    this._okCallback();
+  },
+
+  /**
+   * Shows a(nother) dialog which allows the user to see and override
+   * (manually accept) a bad certificate. It also optionally adds it
+   * permanently to the "good certs" store of NSS in the profile.
+   * Only shows the dialog, if there are bad certs. Otherwise, it's a no-op.
+   *
+   * The dialog is the standard PSM cert override dialog.
+   *
+   * @param config {AccountConfig} concrete
+   * @returns true, if all certs are fine or the user accepted them.
+   *     false, if the user cancelled.
+   *
+   * static function
+   * sync function: blocks until the dialog is closed.
+   */
+  showCertOverrideDialog : function(config)
+  {
+    if (config.incoming.socketType > 1 && // SSL or STARTTLS
+        config.incoming.badCert) {
+      var params = {
+        exceptionAdded : false,
+        prefetchCert : true,
+        location : config.incoming.targetSite,
+      };
+      window.openDialog("chrome://pippki/content/exceptionDialog.xul",
+                        "","chrome,centerscreen,modal", params);
+      if (params.exceptionAdded) { // set by dialog
+        config.incoming.badCert = false;
+      } else {
+        return false;
+      }
+    }
+    if (!config.outgoing.existingServerKey) {
+      if (config.outgoing.socketType > 1 && // SSL or STARTTLS
+          config.outgoing.badCert) {
+        var params = {
+          exceptionAdded : false,
+          prefetchCert : true,
+          location : config.outgoing.targetSite,
+        };
+        window.openDialog("chrome://pippki/content/exceptionDialog.xul",
+                          "","chrome,centerscreen,modal", params);
+        if (params.exceptionAdded) { // set by dialog
+          config.outgoing.badCert = false;
+        } else {
+          return false;
+        }
+      }
+    }
+    return true;
+  },
 }
-
-
-function setText(id, value)
-{
-  var element = document.getElementById(id);
-  if (!element)
-    return;
-
-  if (element.localName == "textbox" || element.localName == "label")
-    element.value = value;
-  else if (element.localName == "description")
-    element.textContent = value;
-  else
-    throw new NotReached("XUL element type not supported");
-}
+var gSecurityWarningDialog = new SecurityWarningDialog();

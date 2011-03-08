@@ -22,7 +22,7 @@
   margin-top: 3px;
 }
 
-.initialDesc {
+.initialDesc, .columnHeader {
   margin-top: 2px;
   color: GrayText;
 }
@@ -227,6 +227,30 @@ menulist[disabled="true"] {
   color: -moz-DialogText;
 }
 
+
+/* status area */
+
+#status_area[status=loading] #status_msg {
+  font-weight: bold;
+}
+
+#status_area[status=error] #status_msg {
+  font-weight: bold;
+}
+
+#status_area[status=error] #status_img_before {
+  background: url("chrome://global/skin/icons/warning-16.png") no-repeat;
+  width: 16px;
+  height: 16px;
+}
+
+#status_area[status=loading] #status_img_after {
+  background: url("chrome://global/skin/icons/loading_16.png") no-repeat;
+  width: 16px;
+  height: 16px;
+}
+
+
 .menulist-dropmarker[disabled="true"] {
   visibility: hidden;
 }
@@ -237,4 +261,25 @@ textbox.port[disabled="true"] {
 
 #incoming_protocol[disabled="true"] {
   padding-left: 6px;
+}
+
+#initialSettings, #status_area {
+  margin-bottom: 1em;
+}
+#result_area, #result_imappop {
+  margin-bottom: 1.5em;
+}
+#manual-edit_area {
+  margin-bottom: 2em;
+}
+
+#status_msg {
+  min-height: 2em;
+}
+
+#incoming_hostname {
+  width: 15em;
+}
+#incoming_username {
+  width: 10em;
 }

@@ -37,17 +37,15 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * Takes an AccountConfig JS object and creates that account in the
+ * Takes an |AccountConfig| JS object and creates that account in the
  * Thunderbird backend (which also writes it to prefs).
  *
  * @param config {AccountConfig} The account to create
  *
- * @ret - the account created.
+ * @return - the account created.
  */
 function createAccountInBackend(config)
 {
-  const Cc = Components.classes;
-  const Ci = Components.interfaces;
   var accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
                        .getService(Ci.nsIMsgAccountManager);
   var smtpManager = Cc["@mozilla.org/messengercompose/smtp;1"]
@@ -201,7 +199,8 @@ function createAccountInBackend(config)
 
 function setFolders(identity, server)
 {
-  // TODO: support for local folders for global inbox (or use smart search folder instead)
+  // TODO: support for local folders for global inbox (or use smart search
+  // folder instead)
 
   var baseURI = server.serverURI + "/";
 
@@ -243,8 +242,71 @@ function rememberPassword(server, password)
   }
 }
 
-// Check if there already is a "Local Folders". If not, create it. This routine
-//  is copied from AccountWizard.js with minor updates.
+/**
+ * Check whether the user's setup already has an incoming server
+ * which matches (hostname, port, username) the primary one
+ * in the config.
+ * (We also check the email address as username.)
+ *
+ * @param config {AccountConfig} filled in (no placeholders)
+ * @return {nsIMsgIncomingServer} If it already exists, the server
+ *     object is returned.
+ *     If it's a new server, |null| is returned.
+ */
+function checkIncomingServerAlreadyExists(config)
+{
+  assert(config instanceof AccountConfig);
+  var accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
+                       .getService(Ci.nsIMsgAccountManager);
+  var incoming = config.incoming;
+  var existing = accountManager.findRealServer(incoming.username,
+        incoming.hostname,
+        sanitize.enum(incoming.type, ["pop3", "imap", "nntp"]),
+        incoming.port);
+
+  // if username does not have an '@', also check the e-mail
+  // address form of the name.
+  if (!existing && incoming.username.indexOf("@") == -1)
+    existing = accountManager.findRealServer(config.identity.emailAddress,
+          incoming.hostname,
+          sanitize.enum(incoming.type, ["pop3", "imap", "nntp"]),
+          incoming.port);
+  return existing;
+};
+
+/**
+ * Check whether the user's setup already has an outgoing server
+ * which matches (hostname, port, username) the primary one
+ * in the config.
+ *
+ * @param config {AccountConfig} filled in (no placeholders)
+ * @return {nsISmtpServer} If it already exists, the server
+ *     object is returned.
+ *     If it's a new server, |null| is returned.
+ */
+function checkOutgoingServerAlreadyExists(config)
+{
+  assert(config instanceof AccountConfig);
+  var smtpManager = Cc["@mozilla.org/messengercompose/smtp;1"]
+                    .getService(Ci.nsISmtpService);
+  var smtpServers = smtpManager.smtpServers;
+  while (smtpServers.hasMoreElements())
+  {
+    let existingServer = smtpServers.getNext()
+        .QueryInterface(Ci.nsISmtpServer);
+    // TODO check username with full email address, too, like for incoming
+    if (existingServer.hostname == config.outgoing.hostname &&
+        existingServer.port == config.outgoing.port &&
+        existingServer.username == config.outgoing.username)
+      return existingServer;
+  }
+  return null;
+};
+
+/**
+ * Check if there already is a "Local Folders". If not, create it.
+ * Copied from AccountWizard.js with minor updates.
+ */
 function verifyLocalFoldersAccount(am) 
 {
   let localMailServer;
@@ -264,10 +326,10 @@ function verifyLocalFoldersAccount(am)
         localMailServer = am.localFoldersServer;
       }
       catch (ex) {
-        dump("error!  we should have found the local mail server after we created it.\n");
+        ddump("Error! we should have found the local mail server " +
+              "after we created it.");
       }
     }
   }
-  catch (ex) {dump("Error in verifyLocalFoldersAccount " + ex + "\n");  }
-
+  catch (ex) { ddump("Error in verifyLocalFoldersAccount " + ex); }
 }

@@ -41,6 +41,10 @@
  * This checks a given config, by trying a real connection and login,
  * with username and password.
  *
+ * TODO
+ * - give specific errors, bug 555448
+ * - return a working |Abortable| to allow cancel
+ *
  * @param accountConfig {AccountConfig} The guessed account config.
  *    username, password, realname, emailaddress etc. are not filled out,
  *    but placeholders to be filled out via replaceVariables().
@@ -60,11 +64,12 @@
  */
 function verifyConfig(config, alter, msgWindow, successCallback, errorCallback)
 {
-  ddumpObject(config, "config", 3);
-  assert(config instanceof AccountConfig, "BUG: Arg 'config' needs to be an AccountConfig object");
-  assert(typeof(alter) == "boolean", "BUG: Bad arg 'alter'");
-  assert(typeof(successCallback) == "function", "BUG: 'successCallback' is not a function");
-  assert(typeof(errorCallback) == "function", "BUG: 'errorCallback' is not a function");
+  ddump(debugObject(config, "config", 3));
+  assert(config instanceof AccountConfig,
+         "BUG: Arg 'config' needs to be an AccountConfig object");
+  assert(typeof(alter) == "boolean");
+  assert(typeof(successCallback) == "function");
+  assert(typeof(errorCallback) == "function");
 
   var accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
                        .getService(Ci.nsIMsgAccountManager);
@@ -81,7 +86,7 @@ function verifyConfig(config, alter, msgWindow, successCallback, errorCallback)
     accountManager.createIncomingServer(config.incoming.username,
                                         config.incoming.hostname,
                                         sanitize.enum(config.incoming.type,
-                                                      ["pop3", "imap", "nntp"]));
+                                                    ["pop3", "imap", "nntp"]));
   inServer.port = config.incoming.port;
   inServer.password = config.incoming.password;
   if (config.incoming.socketType == 1) // plain
@@ -165,7 +170,7 @@ urlListener.prototype =
 
   OnStopRunningUrl: function(aUrl, aExitCode)
   {
-    this._log.info("Finished testing " + aUrl + " resulted in " + aExitCode);
+    this._log.info("Finished verifyConfig resulted in " + aExitCode);
     if (Components.isSuccessCode(aExitCode))
     {
       this._cleanup();
@@ -175,8 +180,9 @@ urlListener.prototype =
     else if (!this.mAlter)
     {
       this._cleanup();
-      var stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
-      var errorMsg = stringBundle.GetStringFromName("cannot_login.error");
+      var errorMsg = getStringBundle(
+          "chrome://messenger/locale/accountCreationModel.properties")
+          .GetStringFromName("cannot_login.error");
       this.mErrorCallback(new Exception(errorMsg));
     }
     // Try other variations, unless there's a cert error, in which
@@ -229,14 +235,14 @@ urlListener.prototype =
     this._log.info("  Using SSL: " +
         (this.mServer.socketType == Ci.nsMsgSocketType.SSL ||
          this.mServer.socketType == Ci.nsMsgSocketType.alwaysSTARTTLS));
-    this._log.info("  auth alternatives = " +
-        this.mConfig.incoming.authAlternatives.join(","));
     if (this.mConfig.incoming.authAlternatives &&
         this.mConfig.incoming.authAlternatives.length)
         // We may be dropping back to insecure auth methods here,
         // which is not good. But then again, we already warned the user,
         // if it is a config without SSL.
     {
+      this._log.info("  auth alternatives = " +
+          this.mConfig.incoming.authAlternatives.join(","));
       this._log.info("  Decreasing auth.");
       this._log.info("  Have password: " +
                      (this.mServer.password ? "true" : "false"));
@@ -261,22 +267,24 @@ urlListener.prototype =
     // Tried all variations we can. Give up.
     this._log.info("Giving up.");
     this._cleanup();
-    let stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
-    let errorMsg = stringBundle.GetStringFromName("cannot_login.error");
+    let errorMsg = getStringBundle(
+        "chrome://messenger/locale/accountCreationModel.properties")
+        .GetStringFromName("cannot_login.error");
     this.mErrorCallback(new Exception(errorMsg));
     return;
   },
 
   _cleanup : function()
   {
-    // Avoid pref pollution, clear out server prefs.
-    if (this.mServer) {
-      Cc["@mozilla.org/messenger/account-manager;1"]
-      .getService(Ci.nsIMsgAccountManager)
-      .removeIncomingServer(this.mServer, true);
-
-      this.mServer = null;
-    }
+    try {
+      // Avoid pref pollution, clear out server prefs.
+      if (this.mServer) {
+        Cc["@mozilla.org/messenger/account-manager;1"]
+          .getService(Ci.nsIMsgAccountManager)
+          .removeIncomingServer(this.mServer, true);
+        this.mServer = null;
+      }
+    } catch (e) { this._log.error(e); }
   },
 
   // Suppress any certificate errors
@@ -286,28 +294,36 @@ urlListener.prototype =
 
     this.mCertError = true;
     this._log.error("cert error");
-    setTimeout(this.informUserOfCertError, 0, socketInfo, targetSite, this);
+    var me = this;
+    setTimeout(function () {
+      try {
+        me.informUserOfCertError(socketInfo, targetSite);
+      } catch (e)  { logException(e); }
+    }, 0);
     return true;
   },
 
-  informUserOfCertError : function(socketInfo, targetSite, self) {
-    let params = { exceptionAdded : false };
-    params.prefetchCert = true;
-    params.location = targetSite;
+  informUserOfCertError : function(socketInfo, targetSite) {
+    var params = {
+      exceptionAdded : false,
+      prefetchCert : true,
+      location : targetSite,
+    };
     window.openDialog("chrome://pippki/content/exceptionDialog.xul",
                       "","chrome,centerscreen,modal", params);
-    self._log.info("cert exception dialog closed");
-    self._log.info("cert exceptionAdded = " + params.exceptionAdded);
+    this._log.info("cert exception dialog closed");
+    this._log.info("cert exceptionAdded = " + params.exceptionAdded);
     if (!params.exceptionAdded) {
-      self._cleanup();
-      let stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
-      let errorMsg = stringBundle.GetStringFromName("cannot_login.error");
-      self.mErrorCallback(new Exception(errorMsg));
+      this._cleanup();
+      let errorMsg = getStringBundle(
+          "chrome://messenger/locale/accountCreationModel.properties")
+          .GetStringFromName("cannot_login.error");
+      this.mErrorCallback(new Exception(errorMsg));
     }
     else {
       // Retry the logon now that we've added the cert exception.
-      verifyLogon(self.mConfig, self.mServer, self.mAlter, self.mMsgWindow,
-                  self.mSuccessCallback, self.mErrorCallback);
+      verifyLogon(this.mConfig, this.mServer, this.mAlter, this.mMsgWindow,
+                  this.mSuccessCallback, this.mErrorCallback);
     }
   },
 

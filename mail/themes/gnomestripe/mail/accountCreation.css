@@ -24,7 +24,7 @@
   -moz-padding-start: 3px;
 }
 
-.initialDesc {
+.initialDesc, .columnHeader {
   margin-top: 2px;
   color: GrayText;
 }
@@ -45,13 +45,8 @@ menulist[disabled="true"] > .menulist-dropmarker {
   padding: 6px;
 }
 
-#config_status_title {
-  font-weight: bold;
-}
-
 window {
   -moz-appearance: none;
-  background-color: #fff;
 }
 
 vbox.icon {
@@ -230,6 +225,34 @@ menulist[disabled="true"] {
   color: -moz-DialogText;
 }
 
+
+/* status area */
+
+#status_area {
+  -moz-box-pack: center;
+}
+
+#status_area[status=loading] #status_msg {
+  font-weight: bold;
+}
+
+#status_area[status=error] #status_msg {
+  font-weight: bold;
+}
+
+#status_area[status=error] #status_img_before {
+  background: url("moz-icon://stock/gtk-dialog-warning?size=menu") no-repeat;
+  width: 16px;
+  height: 16px;
+}
+
+#status_area[status=loading] #status_img_after {
+  background: url("chrome://global/skin/icons/loading_16.png") no-repeat;
+  width: 16px;
+  height: 16px;
+}
+
+
 /* Missing:
  * .menulist-dropmarker[disabled="true"]
  */
@@ -240,4 +263,25 @@ textbox.port[disabled="true"] {
 
 #incoming_protocol[disabled="true"] {
   padding-left: 5px;
+}
+
+#initialSettings, #status_area {
+  margin-bottom: 1em;
+}
+#result_area, #result_imappop {
+  margin-bottom: 1.5em;
+}
+#manual-edit_area {
+  margin-bottom: 2em;
+}
+
+#status_msg {
+  min-height: 2em;
+}
+
+#incoming_hostname {
+  width: 15em;
+}
+#incoming_username {
+  width: 10em;
 }

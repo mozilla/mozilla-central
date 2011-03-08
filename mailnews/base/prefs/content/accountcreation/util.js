@@ -60,7 +60,16 @@ function extend(child, supertype)
 function assert(test, errorMsg)
 {
   if (!test)
-    throw new NotReached(errorMsg);
+    throw new NotReached(errorMsg ? errorMsg :
+          "Programming bug. Assertion failed, see log.");
+}
+
+function makeCallback(obj, func)
+{
+  return function()
+  {
+    return func.apply(obj, arguments);
+  }
 }
 
 
@@ -165,7 +174,8 @@ function getStringBundle(bundleURI)
            .getService(Ci.nsIStringBundleService)
            .createBundle(bundleURI);
   } catch (e) {
-    throw new Exception("Failed to get stringbundle URI <" + bundleURI + ">. Error: " + e);
+    throw new Exception("Failed to get stringbundle URI <" + bundleURI +
+                        ">. Error: " + e);
   }
 }
 
@@ -196,6 +206,7 @@ Exception.prototype =
 function NotReached(msg)
 {
   Exception.call(this, msg);
+  logException(this);
 }
 extend(NotReached, Exception);
 
@@ -252,7 +263,8 @@ IntervalAbortable.prototype =
 extend(IntervalAbortable, Abortable);
 
 
-// Allows you to make several network calls, but return only one Abortable object.
+// Allows you to make several network calls, but return
+// only one Abortable object.
 function SuccessiveAbortable()
 {
   this._current = null;
@@ -311,13 +323,15 @@ function ddump(text)
   if (kDebug)
     dump(text + "\n");
 }
-function ddumpObject(obj, name, maxDepth, curDepth)
+
+function debugObject(obj, name, maxDepth, curDepth)
 {
   if (curDepth == undefined)
     curDepth = 0;
   if (maxDepth != undefined && curDepth > maxDepth)
-    return;
+    return "";
 
+  var result = "";
   var i = 0;
   for (let prop in obj)
   {
@@ -326,27 +340,29 @@ function ddumpObject(obj, name, maxDepth, curDepth)
       if (typeof(obj[prop]) == "object")
       {
         if (obj[prop] && obj[prop].length != undefined)
-          ddump(name + "." + prop + "=[probably array, length " +
-                obj[prop].length + "]");
+          result += name + "." + prop + "=[probably array, length " +
+                obj[prop].length + "]\n";
         else
-          ddump(name + "." + prop + "=[" + typeof(obj[prop]) + "]");
-        ddumpObject(obj[prop], name + "." + prop, maxDepth, curDepth+1);
+          result += name + "." + prop + "=[" + typeof(obj[prop]) + "]\n";
+        result += debugObject(obj[prop], name + "." + prop,
+                              maxDepth, curDepth + 1);
       }
       else if (typeof(obj[prop]) == "function")
-        ddump(name + "." + prop + "=[function]");
+        result += name + "." + prop + "=[function]\n";
       else
-        ddump(name + "." + prop + "=" + obj[prop]);
+        result += name + "." + prop + "=" + obj[prop] + "\n";
     } catch (e) {
-      ddump(name + "." + prop + "-> Exception(" + e + ")");
+      result += name + "." + prop + "-> Exception(" + e + ")\n";
     }
   }
   if (!i)
-    ddump(name + " is empty");
+    result += name + " is empty\n";
+  return result;
 }
 
 function alertPrompt(alertTitle, alertMsg)
 {
-  Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                    .getService(Components.interfaces.nsIPromptService)
-                    .alert(window, alertTitle, alertMsg);
+  Cc["@mozilla.org/embedcomp/prompt-service;1"]
+      .getService(Ci.nsIPromptService)
+      .alert(window, alertTitle, alertMsg);
 }

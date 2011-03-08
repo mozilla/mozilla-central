@@ -108,9 +108,11 @@ function readFromXML(clientConfigXML)
         try {
           iO.auth = sanitize.translate(iXauth,
               { "password-cleartext" : Ci.nsMsgAuthMethod.passwordCleartext,
-                "plain" : Ci.nsMsgAuthMethod.passwordCleartext, // @deprecated, remove
+                // @deprecated TODO remove
+                "plain" : Ci.nsMsgAuthMethod.passwordCleartext,
                 "password-encrypted" : Ci.nsMsgAuthMethod.passwordEncrypted,
-                "secure" : Ci.nsMsgAuthMethod.passwordEncrypted, // @deprecated, remove
+                // @deprecated TODO remove
+                "secure" : Ci.nsMsgAuthMethod.passwordEncrypted,
                 "GSSAPI" : Ci.nsMsgAuthMethod.GSSAPI,
                 "NTLM" : Ci.nsMsgAuthMethod.NTLM });
           break; // take first that we support
@@ -179,15 +181,21 @@ function readFromXML(clientConfigXML)
       {
         try {
           oO.auth = sanitize.translate(oXauth,
-              { "none" : Ci.nsMsgAuthMethod.none, // open relay
-                "client-IP-address" : Ci.nsMsgAuthMethod.none, // inside ISP or corp network
-                "smtp-after-pop" : Ci.nsMsgAuthMethod.none, // hope for the best
+              { // open relay
+                "none" : Ci.nsMsgAuthMethod.none,
+                // inside ISP or corp network
+                "client-IP-address" : Ci.nsMsgAuthMethod.none,
+                // hope for the best
+                "smtp-after-pop" : Ci.nsMsgAuthMethod.none,
                 "password-cleartext" : Ci.nsMsgAuthMethod.passwordCleartext,
-                "plain" : Ci.nsMsgAuthMethod.passwordCleartext, // @deprecated, remove
+                // @deprecated TODO remove
+                "plain" : Ci.nsMsgAuthMethod.passwordCleartext,
                 "password-encrypted" : Ci.nsMsgAuthMethod.passwordEncrypted,
-                "secure" : Ci.nsMsgAuthMethod.passwordEncrypted, // @deprecated, remove
+                // @deprecated TODO remove
+                "secure" : Ci.nsMsgAuthMethod.passwordEncrypted,
                 "GSSAPI" : Ci.nsMsgAuthMethod.GSSAPI,
-                "NTLM" : Ci.nsMsgAuthMethod.NTLM });
+                "NTLM" : Ci.nsMsgAuthMethod.NTLM,
+              });
           break; // take first that we support
         } catch (e) { exception = e; }
       }

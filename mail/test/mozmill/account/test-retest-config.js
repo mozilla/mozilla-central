@@ -38,7 +38,7 @@
 var MODULE_NAME = "test-retest-config";
 
 var RELATIVE_ROOT = "../shared-modules";
-var MODULE_REQUIRES = ["window-helpers"];
+var MODULE_REQUIRES = ["window-helpers", "folder-display-helpers"];
 
 var mozmill = {};
 Components.utils.import("resource://mozmill/modules/mozmill.js", mozmill);
@@ -47,16 +47,18 @@ Components.utils.import("resource://mozmill/modules/controller.js", controller);
 var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
 
-var wh, mc, awc, account, incoming, outgoing;
+var wh, awc, account, incoming, outgoing;
 
 var user = {
   name: "test",
-  email: "test@yahoo.com"
+  email: "test@yahoo.com",
+  altEmail: "test2@yahoo.com",
 };
 
 function setupModule(module) {
+  let fdh = collector.getModule("folder-display-helpers");
+  fdh.installInto(module);
   wh = collector.getModule("window-helpers");
-  mc = wh.wait_for_existing_window("mail:3pane");
   wh.installInto(module);
 }
 
@@ -91,37 +93,40 @@ function test_re_test_config() {
   awc.e("next_button").click();
 
   // Wait for 'edit' button to be enabled
-  awc.waitForEval("subject.hidden == false", 100000, 600,
-                  awc.e("edit_button"));
+  awc.waitForEval("subject.disabled == false && subject.hidden == false",
+                  8000, 600, awc.e("create_button"));
 
-  awc.e("edit_button").click();
-
-  awc.waitForEval("subject.hidden == false", 20000, 600,
-                  awc.e("go_button"));
+  awc.e("manual-edit_button").click();
+  mc.sleep(0);
 
   // Click "re-test" button
-  awc.e("go_button").click();
+  awc.e("half-manual-test_button").click();
 
-  awc.waitForEval("subject.hidden == false", 20000, 600,
-                  awc.e("stop_button"));
+  awc.waitForEval("subject.disabled == false", 20000, 600,
+                  awc.e("half-manual-test_button"));
 
-  // Click 'start over' button
-  awc.e("back_button").click();
+  // There used to be a "start over" button (line commented out below). Now just
+  // changing the value of the email field does the trick. Line left out for
+  // posterity.
+  //   awc.e("back_button").click();
+  awc.e("realname").focus();
+  awc.keypress(null, "VK_TAB", {});
+  input_value(user.altEmail);
+  awc.keypress(null, "VK_TAB", {});
 
+  // Wait for the "continue" button to be back, which means we're back to the
+  // original state.
   awc.waitForEval("subject.hidden == false", 20000, 600,
                   awc.e("next_button"));
 
   awc.e("next_button").click();
 
-  var incoming_server = awc.e("incoming_server");
-
-  var wizard_window = awc.e("autoconfigWizard");
-
-  var right = incoming_server.boxObject.y+incoming_server.boxObject.height;
-  var bottom = incoming_server.boxObject.x+incoming_server.boxObject.width;
-
-  if (right > wizard_window.boxObject.height ||
-      bottom > wizard_window.boxObject.width)
-    throw new Error("The start over button didn't collapse the window.");
+  // Previously, we'd switched to the manual editing state. Now we've started
+  // over, we should make sure the information is presented back in its original
+  // "automatic" mode.
+  assert_true(!awc.e("manual-edit_button").hidden,
+    "We're not back to the original state!");  
+  assert_true(awc.e("advanced-setup_button").hidden,
+    "We're not back to the original state!");  
 }
 

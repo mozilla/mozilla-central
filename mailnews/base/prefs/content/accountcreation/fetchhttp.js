@@ -183,8 +183,9 @@ FetchHTTP.prototype =
       catch (e)
       {
         success = false;
-        let stringBundle = getStringBundle("chrome://messenger/locale/accountCreationUtil.properties");
-        errorStr = stringBundle.GetStringFromName("bad_response_content.error");
+        errorStr = getStringBundle(
+                   "chrome://messenger/locale/accountCreationUtil.properties")
+                   .GetStringFromName("bad_response_content.error");
         errorCode = -4;
       }
     }
@@ -198,35 +199,52 @@ FetchHTTP.prototype =
       } catch (e) {
         // If we can't resolve the hostname in DNS etc., .statusText throws
         errorCode = -2;
-        let stringBundle = getStringBundle("chrome://messenger/locale/accountCreationUtil.properties")
-        errorStr = stringBundle.GetStringFromName("cannot_contact_server.error");
+        errorStr = getStringBundle(
+                   "chrome://messenger/locale/accountCreationUtil.properties")
+                   .GetStringFromName("cannot_contact_server.error");
         ddump(errorStr);
       }
     }
 
     // Callbacks
     if (success)
-      this._successCallback(this.result);
+    {
+      try {
+        this._successCallback(this.result);
+      } catch (e) {
+        logException(e);
+        this._error(e);
+      }
+    }
     else if (exStored)
-      this._errorCallback(exStored);
+      this._error(exStored);
     else
-      this._errorCallback(new ServerException(errorStr, errorCode, this._url));
+      this._error(new ServerException(errorStr, errorCode, this._url));
 
     if (this._finishedCallback)
-      this._finishedCallback(this);
+    {
+      try {
+        this._finishedCallback(this);
+      } catch (e) {
+        logException(e);
+        this._error(e);
+      }
+    }
 
     } catch (e) {
-      // error in callback or our fetchhttp._response() code
-      try
-      {
-        ddump("Error in errorCallback or _response(): " + e);
-        this._errorCallback(e);
-      } catch (e) {
-        //ddump("Error in errorCallback: " + e);
-        // XXX TODO FIXME BOGUS
-        alert(e); // error in errorCallback, too!
-        throw(e); // to error console
-      }
+      // error in our fetchhttp._response() code
+      logException(e);
+      this._error(e);
+    }
+  },
+  _error : function(e)
+  {
+    try {
+      this._errorCallback(e);
+    } catch (e) {
+      // error in errorCallback, too!
+      logException(e);
+      alertPrompt("Error in errorCallback for fetchhttp", e);
     }
   },
   /**
@@ -254,18 +272,28 @@ FetchHTTP.prototype =
 }
 extend(FetchHTTP, Abortable);
 
+
+function CancelledException(msg)
+{
+  Exception.call(this, msg);
+}
+CancelledException.prototype =
+{
+}
+extend(CancelledException, Exception);
+
 function UserCancelledException(msg)
 {
   // The user knows they cancelled so I don't see a need
   // for a message to that effect.
   if (!msg)
-    msg = "";
-  Exception.call(this, msg);
+    msg = "User cancelled";
+  CancelledException.call(this, msg);
 }
 UserCancelledException.prototype =
 {
 }
-extend(UserCancelledException, Exception);
+extend(UserCancelledException, CancelledException);
 
 function ServerException(msg, code, uri)
 {
