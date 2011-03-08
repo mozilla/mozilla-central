@@ -61,6 +61,8 @@
   %msgViewPickerDTD;
   <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
   %brandDTD;
+  <!ENTITY % textcontextDTD SYSTEM "chrome://global/locale/textcontext.dtd">
+  %textcontextDTD;
 ]>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -797,6 +799,38 @@
               label="&reportPhishingURL.label;"
               accesskey="&reportPhishingURL.accesskey;"
               oncommand="gPhishingDetector.reportPhishingURL(gContextMenu.linkURL);"/>
+
+    <!-- Spellchecking menu items -->
+    <menuseparator id="mailContext-spell-suggestions-separator"/>
+    <menuitem id="mailContext-spell-no-suggestions"
+              disabled="true"
+              label="&spellNoSuggestions.label;"/>
+    <menuitem id="mailContext-spell-add-to-dictionary"
+              label="&spellAddToDictionary.label;"
+              accesskey="&spellAddToDictionary.accesskey;"
+              oncommand="gSpellChecker.addToDictionary();"/>
+    <menuseparator id="mailContext-spell-separator"/>
+    <menuitem id="mailContext-spell-check-enabled"
+              label="&spellCheckEnable.label;"
+              type="checkbox"
+              accesskey="&spellCheckEnable.accesskey;"
+              oncommand="gSpellChecker.toggleEnabled();"/>
+    <menuitem id="mailContext-spell-add-dictionaries-main"
+              label="&spellAddDictionaries.label;"
+              accesskey="&spellAddDictionaries.accesskey;"
+              oncommand="gContextMenu.addDictionaries();"/>
+    <menu id="mailContext-spell-dictionaries"
+          label="&spellDictionaries.label;"
+          accesskey="&spellDictionaries.accesskey;">
+        <menupopup id="mailContext-spell-dictionaries-menu">
+            <menuseparator id="mailContext-spell-language-separator"/>
+            <menuitem id="mailContext-spell-add-dictionaries"
+                      label="&spellAddDictionaries.label;"
+                      accesskey="&spellAddDictionaries.accesskey;"
+                      oncommand="gContextMenu.addDictionaries();"/>
+        </menupopup>
+    </menu>
+
   </menupopup>
 
   <menupopup id="folderPaneContext"

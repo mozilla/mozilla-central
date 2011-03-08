@@ -40,6 +40,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
+var gSpellChecker = new InlineSpellChecker();
+
+function getDictionaryURL() {
+  let formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                  .getService(Components.interfaces.nsIURLFormatter);
+  return formatter.formatURLPref("spellchecker.dictionaries.download.url");
+}
+
 function nsContextMenu(aXulMenu) {
   this.target         = null;
   this.menu           = null;
@@ -95,7 +104,52 @@ nsContextMenu.prototype = {
     this.initMediaPlayerItems();
     this.initBrowserItems();
     this.initMessageItems();
+    this.initSpellingItems();
     this.initSeparators();
+  },
+  addDictionaries: function CM_addDictionaries() {
+    openURL(getDictionaryURL());
+  },
+  initSpellingItems: function CM_initSpellingItems() {
+    let canSpell = gSpellChecker.canSpellCheck;
+    let onMisspelling = gSpellChecker.overMisspelling;
+    this.showItem("mailContext-spell-check-enabled", canSpell);
+    this.showItem("mailContext-spell-separator", canSpell || this.onEditableArea);
+    if (canSpell) {
+      document.getElementById("mailContext-spell-check-enabled")
+              .setAttribute("checked", gSpellChecker.enabled);
+    }
+
+    this.showItem("mailContext-spell-add-to-dictionary", onMisspelling);
+
+    // suggestion list
+    this.showItem("mailContext-spell-suggestions-separator", onMisspelling);
+    if (onMisspelling) {
+      let addMenuItem =
+        document.getElementById("mailContext-spell-add-to-dictionary");
+      let suggestionCount =
+        gSpellChecker.addSuggestionsToMenu(addMenuItem.parentNode,
+                                           addMenuItem, 5);
+      this.showItem("mailContext-spell-no-suggestions", suggestionCount == 0);
+    } else {
+      this.showItem("mailContext-spell-no-suggestions", false);
+    }
+
+    // dictionary list
+    this.showItem("mailContext-spell-dictionaries", gSpellChecker.enabled);
+    if (canSpell) {
+      let dictMenu = document.getElementById("mailContext-spell-dictionaries-menu");
+      let dictSep = document.getElementById("mailContext-spell-language-separator");
+      gSpellChecker.addDictionaryListToMenu(dictMenu, dictSep);
+      this.showItem("mailContext-spell-add-dictionaries-main", false);
+    } else if (this.onEditableArea) {
+      // when there is no spellchecker but we might be able to spellcheck
+      // add the add to dictionaries item. This will ensure that people
+      // with no dictionaries will be able to download them
+      this.showItem("mailContext-spell-add-dictionaries-main", true);
+    } else {
+      this.showItem("mailContext-spell-add-dictionaries-main", false);
+    }
   },
   initSaveItems : function CM_initSaveItems() {
     this.showItem("mailContext-savelink", this.onSaveableLink);
@@ -291,7 +345,8 @@ nsContextMenu.prototype = {
       "mailContext-sep-afterTagAddNew", "mailContext-sep-afterTagRemoveAll",
       "mailContext-sep-afterMarkAllRead", "mailContext-sep-afterMarkFlagged",
       "mailContext-sep-afterMarkMenu", "mailContext-sep-edit",
-      "mailContext-sep-copy", "mailContext-sep-reportPhishing"
+      "mailContext-sep-copy", "mailContext-sep-reportPhishing",
+      "mailContext-spell-suggestions-separator", "mailContext-spell-separator",
     ];
     mailContextSeparators.forEach(this.hideIfAppropriate, this);
 
@@ -303,6 +358,18 @@ nsContextMenu.prototype = {
    * its ancestors.
    */
   setTarget : function CM_setTarget(aNode) {
+    // Clear any old spellchecking items from the menu, this used to
+    // be in the menu hiding code but wasn't getting called in all
+    // situations. Here, we can ensure it gets cleaned up any time the
+    // menu is shown. Note: must be before uninit because that clears the
+    // internal vars
+    // We also need to do that before we possibly bail because we just clicked
+    // on some XUL node. Otherwise, dictionary choices just accumulate until we
+    // right-click on some HTML element again.
+    gSpellChecker.clearSuggestionsFromMenu();
+    gSpellChecker.clearDictionaryListFromMenu();
+    gSpellChecker.uninit();
+
     const xulNS =
       "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
     if (aNode.namespaceURI == xulNS) {
@@ -356,6 +423,11 @@ nsContextMenu.prototype = {
         this.onTextInput = this.isTargetATextBox(this.target);
       } else if (this.target instanceof HTMLTextAreaElement) {
         this.onTextInput = true;
+        if (!this.target.readOnly) {
+          this.onEditableArea = true;
+          gSpellChecker.init(this.target.QueryInterface(Components.interfaces.nsIDOMNSEditableElement).editor);
+          gSpellChecker.initFromEvent(document.popupRangeParent, document.popupRangeOffset);
+        }
       } else if (this.target instanceof HTMLCanvasElement) {
         this.onCanvas = true;
       } else if (this.target instanceof HTMLVideoElement) {

@@ -650,6 +650,10 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!-- Thread Pane Context Menu -->
 <!ENTITY contextOpenNewWindow.label "Open Message in New Window">
 <!ENTITY contextOpenNewWindow.accesskey "W">
+<!-- The key potentially conflicts with cutCmd.accessKey which is defined in
+     textcontext.dtd from toolkit. Right now, both menu items can't be visible
+     at the same time, but should someone enable copy/paste of message, this key
+     would probably need to be changed. -->
 <!ENTITY contextOpenNewTab.label "Open Message in New Tab">
 <!ENTITY contextOpenNewTab.accesskey "T">
 <!ENTITY contextOpenConversation.label "Open Message in Conversation">
@@ -812,19 +816,15 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY reportPhishingURL.label "Report Email Scam">
 <!ENTITY reportPhishingURL.accesskey "o">
 
+<!-- Spell checker context menu items -->
+<!ENTITY spellAddDictionaries.label "Add Dictionaries…">
+<!ENTITY spellAddDictionaries.accesskey "A">
+
 <!-- Content Pane Context Menu -->
 <!ENTITY saveLinkAsCmd.label "Save Link As…">
 <!ENTITY saveLinkAsCmd.accesskey "k">
 <!ENTITY saveImageAsCmd.label "Save Image As…">
 <!ENTITY saveImageAsCmd.accesskey "v">
-<!ENTITY cutCmd.label "Cut">
-<!ENTITY cutCmd.accesskey "u">
-<!ENTITY copyCmd.label "Copy">
-<!ENTITY copyCmd.accesskey "C">
-<!ENTITY pasteCmd.label "Paste">
-<!ENTITY pasteCmd.accesskey "P">
-<!ENTITY selectAllCmd.label "Select All">
-<!ENTITY selectAllCmd.accesskey "A">
 <!ENTITY copyLinkCmd.label "Copy Link Location">
 <!ENTITY copyLinkCmd.accesskey "C">
 <!ENTITY copyImageAllCmd.label "Copy Image">

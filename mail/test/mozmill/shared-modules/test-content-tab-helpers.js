@@ -81,10 +81,10 @@ function installInto(module) {
   module.assert_content_tab_has_favicon = assert_content_tab_has_favicon;
   module.content_tab_e = content_tab_e;
   module.content_tab_eid = content_tab_eid;
-  module.get_element_display = get_element_display;
-  module.assert_element_hidden = assert_element_hidden;
-  module.assert_element_visible = assert_element_visible;
-  module.wait_for_element_display_value = wait_for_element_display_value;
+  module.get_content_tab_element_display = get_content_tab_element_display;
+  module.assert_content_tab_element_hidden = assert_content_tab_element_hidden;
+  module.assert_content_tab_element_visible = assert_content_tab_element_visible;
+  module.wait_for_content_tab_element_display_value = wait_for_content_tab_element_display_value;
   module.assert_content_tab_text_present = assert_content_tab_text_present;
   module.assert_content_tab_text_absent = assert_content_tab_text_absent;
 }
@@ -235,7 +235,7 @@ function content_tab_eid(aTab, aId) {
 /**
  * Returns the current "display" style property of an element.
  */
-function get_element_display(aTab, aElem) {
+function get_content_tab_element_display(aTab, aElem) {
   let style = aTab.browser.contentWindow.getComputedStyle(aElem);
   return style.getPropertyValue("display");
 }
@@ -243,8 +243,8 @@ function get_element_display(aTab, aElem) {
 /**
  * Asserts that the given element is hidden from view on the page.
  */
-function assert_element_hidden(aTab, aElem) {
-  let display = get_element_display(aTab, aElem);
+function assert_content_tab_element_hidden(aTab, aElem) {
+  let display = get_content_tab_element_display(aTab, aElem);
   if (display != "none") {
     mark_failure(["Element", aElem, "should be hidden but has display", display,
                   "instead"]);
@@ -254,8 +254,8 @@ function assert_element_hidden(aTab, aElem) {
 /**
  * Asserts that the given element is visible on the page.
  */
-function assert_element_visible(aTab, aElem) {
-  let display = get_element_display(aTab, aElem);
+function assert_content_tab_element_visible(aTab, aElem) {
+  let display = get_content_tab_element_display(aTab, aElem);
   if (display != "inline") {
     mark_failure(["Element", aElem, "should be visible but has display", display,
                   "instead"]);
@@ -265,9 +265,9 @@ function assert_element_visible(aTab, aElem) {
 /**
  * Waits for the element's display property to be the given value.
  */
-function wait_for_element_display_value(aTab, aElem, aValue) {
+function wait_for_content_tab_element_display_value(aTab, aElem, aValue) {
   function isValue() {
-    return get_element_display(aTab, aElem) == aValue;
+    return get_content_tab_element_display(aTab, aElem) == aValue;
   }
   if (!controller.waitForEval("subject()", NORMAL_TIMEOUT, FAST_INTERVAL,
                               isValue)) {

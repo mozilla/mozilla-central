@@ -59,6 +59,8 @@
 %messengerDTD;
 <!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
 %customizeToolbarDTD;
+<!ENTITY % textcontextDTD SYSTEM "chrome://global/locale/textcontext.dtd">
+%textcontextDTD;
 ]>
 
 <!--

@@ -215,13 +215,13 @@ function test_private_data() {
   let publicElem = content_tab_e(tab, "profile-dir-button-box");
   assert_true(!checkbox.checked,
               "Private data checkbox shouldn't be checked by default");
-  assert_element_visible(tab, publicElem);
-  assert_element_hidden(tab, privateElem);
+  assert_content_tab_element_visible(tab, publicElem);
+  assert_content_tab_element_hidden(tab, privateElem);
 
   // Now check the checkbox and see what happens
   checkbox.click();
-  wait_for_element_display_value(tab, publicElem, "none");
-  wait_for_element_display_value(tab, privateElem, "inline");
+  wait_for_content_tab_element_display_value(tab, publicElem, "none");
+  wait_for_content_tab_element_display_value(tab, privateElem, "inline");
   close_tab(tab);
 }
 
@@ -269,7 +269,7 @@ function test_copy_to_clipboard_private() {
   // Display private data.
   let privateElem = content_tab_e(tab, "profile-dir-box");
   content_tab_e(tab, "check-show-private-data").click();
-  wait_for_element_display_value(tab, privateElem, "inline");
+  wait_for_content_tab_element_display_value(tab, privateElem, "inline");
 
   // To avoid destroying the current contents of the clipboard, instead of
   // actually copying to it, we just retrieve what would have been copied to it
@@ -343,7 +343,7 @@ function test_send_via_email_private() {
   // Display private data.
   let privateElem = content_tab_e(tab, "profile-dir-box");
   content_tab_e(tab, "check-show-private-data").click();
-  wait_for_element_display_value(tab, privateElem, "inline");
+  wait_for_content_tab_element_display_value(tab, privateElem, "inline");
 
   let cwc = open_send_via_email(tab);
 
