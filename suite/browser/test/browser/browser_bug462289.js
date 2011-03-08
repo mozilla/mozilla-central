@@ -1,3 +1,7 @@
+// Wanted delay (in ms) to let UI fully update.
+// 100: hopefully enough (on slow test environments).
+var gDelay = 100;
+
 var tab1, tab2;
 
 function focus_in_navbar()
@@ -18,8 +22,7 @@ function test()
   tab2 = gBrowser.addTab("about:blank");
 
   EventUtils.synthesizeMouseAtCenter(tab1, {});
-  // Here and after, don't use a delay of '0': give a little more time to be sure UI has fully updated.
-  setTimeout(step2, 25);
+  setTimeout(step2, gDelay);
 }
 
 function step2()
@@ -28,7 +31,7 @@ function step2()
   isnot(document.activeElement, tab1, "1st click on tab1 does not activate tab");
 
   EventUtils.synthesizeMouseAtCenter(tab1, {});
-  setTimeout(step3, 25);
+  setTimeout(step3, gDelay);
 }
 
 function step3()
@@ -46,7 +49,7 @@ function step3()
   is(document.activeElement, tab1, "tab key to selected tab1 activates tab");
 
   EventUtils.synthesizeMouseAtCenter(tab1, {});
-  setTimeout(step4, 25);
+  setTimeout(step4, gDelay);
 }
 
 function step4()
@@ -55,7 +58,7 @@ function step4()
   is(document.activeElement, tab1, "3rd click on activated tab1 keeps tab activated");
 
   EventUtils.synthesizeMouseAtCenter(tab2, {});
-  setTimeout(step5, 25);
+  setTimeout(step5, gDelay);
 }
 
 function step5()
@@ -68,7 +71,7 @@ function step5()
   ok(true, "focusing content then sending middle-button mousedown to tab2.");
   content.focus();
   EventUtils.synthesizeMouseAtCenter(tab2, {button: 1, type: "mousedown"});
-  setTimeout(step6, 25);
+  setTimeout(step6, gDelay);
 }
 
 function step6()
