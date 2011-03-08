@@ -48,7 +48,7 @@ Components.utils.import("resource://mozmill/modules/controller.js", controller);
 var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
 
-var wh, awc, account, incoming, outgoing;
+var wh, account, incoming, outgoing;
 
 var user = {
   name: "Yamato Nadeshiko",
@@ -70,10 +70,10 @@ function setupModule(module) {
 }
 
 // Select File > New > Mail Account to open the Mail Account Setup Wizard
-function open_mail_account_setup_wizard() {
-  wh.plan_for_new_window("mail:autoconfig");
+function open_mail_account_setup_wizard(k) {
+  wh.plan_for_modal_dialog("mail:autoconfig", k);
   mc.click(new elib.Elem(mc.menus.menu_File.menu_New.newMailAccountMenuItem));
-  return wh.wait_for_new_window("mail:autoconfig");
+  return wh.wait_for_modal_dialog("mail:autoconfig");
 }
 
 // Remove an account on the Account Manager
@@ -107,33 +107,33 @@ function test_mail_account_setup() {
   // Force .com MIME-Type to text/xml
   collector.httpd.registerContentType("com", "text/xml");
 
-  awc = open_mail_account_setup_wizard();
+  open_mail_account_setup_wizard(function (awc) {
+    // Input user's account information
+    awc.e("realname").focus();
+    input_value(awc, user.name);
+    awc.keypress(null, "VK_TAB", {});
+    input_value(awc, user.email);
+    awc.keypress(null, "VK_TAB", {});
+    input_value(awc, user.password);
 
-  // Input user's account information
-  awc.e("realname").focus();
-  input_value(awc, user.name);
-  awc.keypress(null, "VK_TAB", {});
-  input_value(awc, user.email);
-  awc.keypress(null, "VK_TAB", {});
-  input_value(awc, user.password);
+    // Load the autoconfig file from http://localhost:433**/autoconfig/example.com
+    awc.e("next_button").click();
 
-  // Load the autoconfig file from http://localhost:433**/autoconfig/example.com
-  awc.e("next_button").click();
+    let config = null;
 
-  let config = null;
+    // XXX: This should probably use a notification, once we fix bug 561143.
+    awc.waitForEval("subject._currentConfig != null", 8000, 600,
+                    awc.window.gEmailConfigWizard);
+    config = awc.window.gEmailConfigWizard.getConcreteConfig();
 
-  // XXX: This should probably use a notification, once we fix bug 561143.
-  awc.waitForEval("subject._currentConfig != null", 8000, 600,
-                  awc.window.gEmailConfigWizard);
-  config = awc.window.gEmailConfigWizard.getConcreteConfig();
+    // Open the advanced settings (Account Manager) to create the account
+    // immediately.  We use an invalid email/password so the setup will fail
+    // anyway.
+    open_advanced_settings_from_account_wizard(subtest_verify_account, awc);
 
-  // Open the advanced settings (Account Manager) to create the account
-  // immediately.  We use an invalid email/password so the setup will fail
-  // anyway.
-  open_advanced_settings_from_account_wizard(subtest_verify_account, awc);
-
-  // Clean up
-  pref.clearUserPref(pref_name);
+    // Clean up
+    pref.clearUserPref(pref_name);
+  });
 }
 
 function subtest_verify_account(amc) {
@@ -187,49 +187,48 @@ function test_bad_password_uses_old_settings() {
   let pref = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
   let pref_name = "mailnews.auto_config_url";
   let url = collector.addHttpResource("../account/xml", "autoconfig");
-  try {
-    pref.setCharPref(pref_name, url);
+  pref.setCharPref(pref_name, url);
 
-    // Force .com MIME-Type to text/xml
-    collector.httpd.registerContentType("com", "text/xml");
+  // Force .com MIME-Type to text/xml
+  collector.httpd.registerContentType("com", "text/xml");
 
-    mc.sleep(0);
-    awc = open_mail_account_setup_wizard();
+  mc.sleep(0);
+  open_mail_account_setup_wizard(function (awc) {
+    try {
+      // Input user's account information
+      awc.e("realname").focus();
+      input_value(awc, user.name);
+      awc.keypress(null, "VK_TAB", {});
+      input_value(awc, user.email);
+      awc.keypress(null, "VK_TAB", {});
+      input_value(awc, user.password);
 
-    // Input user's account information
-    awc.e("realname").focus();
-    input_value(awc, user.name);
-    awc.keypress(null, "VK_TAB", {});
-    input_value(awc, user.email);
-    awc.keypress(null, "VK_TAB", {});
-    input_value(awc, user.password);
+      // Load the autoconfig file from http://localhost:433**/autoconfig/example.com
+      awc.e("next_button").click();
 
-    // Load the autoconfig file from http://localhost:433**/autoconfig/example.com
-    awc.e("next_button").click();
+      let config = null;
 
-    let config = null;
+      awc.waitForEval("subject.disabled == false && subject.hidden == false",
+                      8000, 600, awc.e("create_button"));
+      awc.e("create_button").click();
 
-    awc.waitForEval("subject.disabled == false && subject.hidden == false",
-                    8000, 600, awc.e("create_button"));
-    awc.e("create_button").click();
+      awc.waitForEval("subject.disabled == false", 8000, 600,
+                      awc.e("create_button"));
+      awc.e("create_button").click();
+      awc.e("manual-edit_button").click();
 
-    awc.waitForEval("subject.disabled == false", 8000, 600,
-                    awc.e("create_button"));
-    awc.e("create_button").click();
-    awc.e("manual-edit_button").click();
-
-    // Make sure all the values are the same as in the user object.
-    awc.sleep(1000);
-    assert_equals(awc.e("outgoing_hostname").value, user.outgoingHost,
-                  "Outgoing server changed!");
-    assert_equals(awc.e("incoming_hostname").value, user.incomingHost,
-                  "incoming server changed!");
-  }
-  finally {
-    // Clean up
-    pref.clearUserPref(pref_name);
-    awc.e("cancel_button").click();
-  }
+      // Make sure all the values are the same as in the user object.
+      awc.sleep(1000);
+      assert_equals(awc.e("outgoing_hostname").value, user.outgoingHost,
+                    "Outgoing server changed!");
+      assert_equals(awc.e("incoming_hostname").value, user.incomingHost,
+                    "incoming server changed!");
+    } finally {
+      // Clean up
+      pref.clearUserPref(pref_name);
+      awc.e("cancel_button").click();
+    }
+  });
 }
 
 function test_remember_password() {
@@ -252,34 +251,33 @@ function remember_password_test(aPrefValue) {
 
   // without this, it breaks the test, don't know why
   mc.sleep(0);
-  awc = open_mail_account_setup_wizard();
+  open_mail_account_setup_wizard(function (awc) {
+    try {
+      let password = new elementslib.ID(awc.window.document, "password");
+      let rememberPassword =
+          new elementslib.ID(awc.window.document, "remember_password");
 
-  try {
-    let password = new elementslib.ID(awc.window.document, "password");
-    let rememberPassword =
-        new elementslib.ID(awc.window.document, "remember_password");
+      // type something in the password field
+      awc.e("password").focus();
+      input_value(awc, "testing");
 
-    // type something in the password field
-    awc.e("password").focus();
-    input_value(awc, "testing");
+      awc.assertProperty(rememberPassword, "disabled", !aPrefValue);
+      if (aPrefValue) {
+        awc.assertChecked(rememberPassword);
+      }
+      else {
+        awc.assertNotChecked(rememberPassword);
+      }
 
-    awc.assertProperty(rememberPassword, "disabled", !aPrefValue);
-    if (aPrefValue) {
-      awc.assertChecked(rememberPassword);
+      // empty the password field
+      awc.keypress(password, 'a', {accelKey: true});
+      awc.keypress(password, 'VK_DELETE', {});
+
+      // restore the saved signon.rememberSignons value
+      pref.setBoolPref("signon.rememberSignons", rememberSignons_pref_save);
+    } finally {
+      // close the wizard
+      awc.e("cancel_button").click();
     }
-    else {
-      awc.assertNotChecked(rememberPassword);
-    }
-
-    // empty the password field
-    awc.keypress(password, 'a', {accelKey: true});
-    awc.keypress(password, 'VK_DELETE', {});
-
-    // restore the saved signon.rememberSignons value
-    pref.setBoolPref("signon.rememberSignons", rememberSignons_pref_save);
-  }
-  finally {
-    // close the wizard
-    awc.e("cancel_button").click();
-  }
+  });
 }

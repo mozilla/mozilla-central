@@ -276,14 +276,14 @@ var WindowWatcher = {
    * Symmetry for planForModalDialog; conceptually provides the waiting.  In
    *  reality, all we do is potentially soak up the event loop a little to
    */
-  waitForModalDialog: function WindowWatcher_waitForModalDialog(aWindowType) {
+  waitForModalDialog: function WindowWatcher_waitForModalDialog(aWindowType, aTimeout) {
     // did the window already come and go?
     if (this.subTestFunc == null)
       return;
     // spin the event loop until we the window has come and gone.
     if (!controller.waitForEval(
            'subject.waitingForOpen == null && subject.monitorizeClose()',
-            WINDOW_OPEN_TIMEOUT_MS, WINDOW_OPEN_CHECK_INTERVAL_MS, this))
+            aTimeout || WINDOW_OPEN_TIMEOUT_MS, WINDOW_OPEN_CHECK_INTERVAL_MS, this))
       throw new Error("Timeout waiting for modal dialog to open.");
     this.waitingForClose = null;
   },
@@ -500,8 +500,14 @@ function plan_for_modal_dialog(aWindowType, aSubTestFunction) {
   WindowWatcher.ensureInited();
   WindowWatcher.planForModalDialog(aWindowType, aSubTestFunction);
 }
-function wait_for_modal_dialog(aWindowType) {
-  WindowWatcher.waitForModalDialog(aWindowType);
+/**
+ * In case the dialog might be stuck for a long time, you can pass an optional
+ *  timeout.
+ *
+ * @param aTimeout Your custom timeout (default is WINDOW_OPEN_TIMEOUT_MS)
+ */
+function wait_for_modal_dialog(aWindowType, aTimeout) {
+  WindowWatcher.waitForModalDialog(aWindowType, aTimeout);
 }
 
 /**

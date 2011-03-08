@@ -47,7 +47,7 @@ Components.utils.import("resource://mozmill/modules/controller.js", controller);
 var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
 
-var wh, awc, account, incoming, outgoing;
+var wh, account, incoming, outgoing;
 
 var user = {
   name: "test",
@@ -60,73 +60,63 @@ function setupModule(module) {
   fdh.installInto(module);
   wh = collector.getModule("window-helpers");
   wh.installInto(module);
+  var kh = collector.getModule("keyboard-helpers");
+  kh.installInto(module);
 }
 
 // Select File > New > Mail Account to open the Mail Account Setup Wizard
-function open_mail_account_setup_wizard() {
-  wh.plan_for_new_window("mail:autoconfig");
+function open_mail_account_setup_wizard(k) {
+  wh.plan_for_modal_dialog("mail:autoconfig", k);
   mc.click(new elib.Elem(mc.menus.menu_File.menu_New.newMailAccountMenuItem));
-  return wh.wait_for_new_window("mail:autoconfig");
-}
-
-function teardownTest() {
-  wh.close_window(awc);
-}
-
-// Emulate manual input
-function input_value(str) {
-  for (let i = 0; i < str.length; i++)
-    awc.keypress(null, str.charAt(i), {});
+  return wh.wait_for_modal_dialog("mail:autoconfig", 30000);
 }
 
 function test_re_test_config() {
+  open_mail_account_setup_wizard(function (awc) {
+    // Input user's account information
+    awc.e("realname").focus();
+    input_value(awc, user.name);
+    awc.keypress(null, "VK_TAB", {});
+    input_value(awc, user.email);
 
-  awc = open_mail_account_setup_wizard();
+    // Click "continue" button
+    awc.e("next_button").click();
 
-  // Input user's account information
-  awc.e("realname").focus();
-  input_value(user.name);
-  awc.keypress(null, "VK_TAB", {});
-  input_value(user.email);
+    // Wait for 'edit' button to be enabled
+    awc.waitForEval("subject.disabled == false && subject.hidden == false",
+                    8000, 600, awc.e("create_button"));
 
-  // Click "continue" button
-  awc.e("next_button").click();
+    awc.e("manual-edit_button").click();
 
-  // Wait for 'edit' button to be enabled
-  awc.waitForEval("subject.disabled == false && subject.hidden == false",
-                  8000, 600, awc.e("create_button"));
+    // Click "re-test" button
+    awc.e("half-manual-test_button").click();
 
-  awc.e("manual-edit_button").click();
-  mc.sleep(0);
+    awc.waitForEval("subject.disabled == false", 20000, 600,
+                    awc.e("half-manual-test_button"));
 
-  // Click "re-test" button
-  awc.e("half-manual-test_button").click();
+    // There used to be a "start over" button (line commented out below). Now just
+    // changing the value of the email field does the trick.
+    awc.e("realname").focus();
+    awc.keypress(null, "VK_TAB", {});
+    input_value(awc, user.altEmail);
+    awc.keypress(null, "VK_TAB", {});
 
-  awc.waitForEval("subject.disabled == false", 20000, 600,
-                  awc.e("half-manual-test_button"));
+    // Wait for the "continue" button to be back, which means we're back to the
+    // original state.
+    awc.waitForEval("subject.hidden == false", 20000, 600,
+                    awc.e("next_button"));
 
-  // There used to be a "start over" button (line commented out below). Now just
-  // changing the value of the email field does the trick. Line left out for
-  // posterity.
-  //   awc.e("back_button").click();
-  awc.e("realname").focus();
-  awc.keypress(null, "VK_TAB", {});
-  input_value(user.altEmail);
-  awc.keypress(null, "VK_TAB", {});
+    awc.e("next_button").click();
 
-  // Wait for the "continue" button to be back, which means we're back to the
-  // original state.
-  awc.waitForEval("subject.hidden == false", 20000, 600,
-                  awc.e("next_button"));
+    // Previously, we'd switched to the manual editing state. Now we've started
+    // over, we should make sure the information is presented back in its original
+    // "automatic" mode.
+    assert_true(!awc.e("manual-edit_button").hidden,
+      "We're not back to the original state!");
+    assert_true(awc.e("advanced-setup_button").hidden,
+      "We're not back to the original state!");
 
-  awc.e("next_button").click();
-
-  // Previously, we'd switched to the manual editing state. Now we've started
-  // over, we should make sure the information is presented back in its original
-  // "automatic" mode.
-  assert_true(!awc.e("manual-edit_button").hidden,
-    "We're not back to the original state!");  
-  assert_true(awc.e("advanced-setup_button").hidden,
-    "We're not back to the original state!");  
+    wh.close_window(awc);
+  });
 }
 
