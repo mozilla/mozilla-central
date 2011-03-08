@@ -424,12 +424,26 @@ SessionStoreService.prototype = {
       this._restoreLastWindow = true;
       break;
     case "quit-application":
-      if (aData == "restart" && !this._isSwitchingProfile())
+      if (aData == "restart" && !this._isSwitchingProfile()) {
         this._prefBranch.setBoolPref("sessionstore.resume_session_once", true);
+        // The browser:purge-session-history notification fires after the
+        // quit-application notification so unregister the
+        // browser:purge-session-history notification to prevent clearing
+        // session data on disk on a restart.  It is also unnecessary to
+        // perform any other sanitization processing on a restart as the
+        // browser is about to exit anyway.
+        Services.obs.removeObserver(this, "browser:purge-session-history");
+      }
       this._loadState = STATE_QUITTING; // just to be sure
       this._uninit();
       break;
     case "browser:purge-session-history": // catch sanitization
+      this._clearDisk();
+      // If the browser is shutting down, simply return after clearing the
+      // session data on disk as this notification fires after the
+      // quit-application notification so the browser is about to exit.
+      if (this._loadState == STATE_QUITTING)
+        return;
       let openWindows = {};
       this._forEachBrowserWindow(function(aWindow) {
         Array.forEach(aWindow.getBrowser().tabs, function(aTab) {
@@ -448,7 +462,6 @@ SessionStoreService.prototype = {
       }
       // also clear all data about closed windows
       this._closedWindows = [];
-      this._clearDisk();
       // give the tabbrowsers a chance to clear their histories first
       var win = this._getMostRecentBrowserWindow();
       if (win)
