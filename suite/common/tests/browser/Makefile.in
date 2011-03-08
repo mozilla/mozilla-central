@@ -92,6 +92,13 @@ _BROWSER_FILES = \
 	browser_526613.js \
 	browser_528776.js \
 	browser_586068-cascaded_restore.js \
+	browser_597315.js \
+	browser_597315_index.html \
+	browser_597315_a.html \
+	browser_597315_b.html \
+	browser_597315_c.html \
+	browser_597315_c1.html \
+	browser_597315_c2.html \
 	browser_607016.js \
 	browser_615394-SSWindowState_events.js \
 	browser_isempty.js \

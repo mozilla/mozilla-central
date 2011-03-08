@@ -1453,6 +1453,7 @@ SessionStoreService.prototype = {
       entry.cacheKey = cacheKey.data;
     }
     entry.ID = aEntry.ID;
+    entry.docshellID = aEntry.docshellID;
 
     if (aEntry.referrerURI)
       entry.referrer = aEntry.referrerURI.spec;
@@ -2532,7 +2533,15 @@ SessionStoreService.prototype = {
 
       didStartLoad = true;
       try {
-        browser.webNavigation.gotoIndex(activeIndex);
+        // In order to work around certain issues in session history, we need to
+        // force session history to update its internal index and call reload
+        // instead of gotoIndex. c.f. bug 597315
+        var sessionHistory = browser.webNavigation.sessionHistory;
+        // delete this after 2.0
+        sessionHistory.QueryInterface(Components.interfaces.nsISHistory_2_0_BRANCH);
+
+        sessionHistory.getEntryAtIndex(activeIndex, true);
+        sessionHistory.reloadCurrentEntry();
       }
       catch (ex) {
         // ignore page load errors
@@ -2646,6 +2655,9 @@ SessionStoreService.prototype = {
       }
       shEntry.ID = id;
     }
+
+    if (aEntry.docshellID)
+      shEntry.docshellID = aEntry.docshellID;
 
     if (aEntry.stateData) {
       shEntry.stateData = aEntry.stateData;
