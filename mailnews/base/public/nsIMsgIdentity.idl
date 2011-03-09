@@ -45,7 +45,7 @@
  * Each identity is identified by a key, which is the <id> string in
  * the identity preferences, such as in mail.identity.<id>.replyTo.
  */
-[scriptable, uuid(5e68bec0-aa51-11df-94e2-0800200c9a66)]
+[scriptable, uuid(98897ee8-42ac-11e0-94df-080027eef196)]
 interface nsIMsgIdentity : nsISupports {
   /**
    * Internal preferences ID.
@@ -188,6 +188,7 @@ interface nsIMsgIdentity : nsISupports {
   attribute ACString stationeryFolder;
   /** @} */
 
+  attribute boolean archiveEnabled;
   /**
    * @{
    * This attribute and constants control the granularity of sub-folders of the

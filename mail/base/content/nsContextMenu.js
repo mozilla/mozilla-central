@@ -283,8 +283,10 @@ nsContextMenu.prototype = {
     let msgModifyItems = this.numSelectedMessages > 0 && !this.hideMailItems &&
       !this.onPlayableMedia &&
       !(this.numSelectedMessages == 1 && gMessageDisplay.isDummy);
+    let canArchive = CanArchiveMsg();
 
-    this.showItem("mailContext-archive", canMove && msgModifyItems);
+    this.showItem("mailContext-archive", canMove && msgModifyItems &&
+                                         canArchive);
 
     // Set up the move menu. We can't move from newsgroups.
     this.showItem("mailContext-moveMenu",

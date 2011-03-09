@@ -353,6 +353,7 @@ pref("mail.identity.default.fcc_folder", "mailbox://nobody@Local%20Folders/Sent"
 pref("mail.identity.default.fcc_reply_follows_parent", false);
 pref("mail.identity.default.autocompleteToMyDomain", false);
 
+pref("mail.identity.default.archive_enabled", true);
 // archive into 0: single folder, 1: yearly folder, 2: year/year-month folder
 pref("mail.identity.default.archive_granularity", 1);
 pref("mail.identity.default.archive_keep_folder_structure", false);

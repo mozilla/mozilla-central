@@ -1534,7 +1534,17 @@ nsMsgAccountManager::SetSpecialFolders()
         {
           rv = folder->GetParent(getter_AddRefs(parent));
           if (NS_SUCCEEDED(rv) && parent)
-            rv = folder->SetFlag(nsMsgFolderFlags::Archive);
+          {
+            PRBool archiveEnabled;
+            thisIdentity->GetArchiveEnabled(&archiveEnabled);
+            if (archiveEnabled)
+              rv = folder->SetFlag(nsMsgFolderFlags::Archive);
+            else
+            {
+              printf("Clearing archive flag\n");
+              rv = folder->ClearFlag(nsMsgFolderFlags::Archive);
+            }
+          }
         }
       }
       thisIdentity->GetStationeryFolder(folderUri);

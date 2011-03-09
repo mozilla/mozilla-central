@@ -1476,12 +1476,17 @@ NS_IMETHODIMP nsImapIncomingServer::DiscoveryDone()
         identity->SetDraftFolder(existingUri);
         identity->SetDraftsFolderPickerMode(NS_LITERAL_CSTRING("1"));
       }
-      identity->GetArchiveFolder(folderUri);
-      if (CheckSpecialFolder(rdf, folderUri, nsMsgFolderFlags::Archive,
-                             existingUri))
+      PRBool archiveEnabled;
+      identity->GetArchiveEnabled(&archiveEnabled);
+      if (archiveEnabled)
       {
-        identity->SetArchiveFolder(existingUri);
-        identity->SetArchivesFolderPickerMode(NS_LITERAL_CSTRING("1"));
+        identity->GetArchiveFolder(folderUri);
+        if (CheckSpecialFolder(rdf, folderUri, nsMsgFolderFlags::Archive,
+                               existingUri))
+        {
+          identity->SetArchiveFolder(existingUri);
+          identity->SetArchivesFolderPickerMode(NS_LITERAL_CSTRING("1"));
+        }
       }
       identity->GetStationeryFolder(folderUri);
       nsCOMPtr<nsIRDFResource> res;

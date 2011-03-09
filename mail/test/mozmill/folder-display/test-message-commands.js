@@ -89,7 +89,6 @@ function check_read_status(messages, read) {
  * @param canMarkRead true if the mark read item should be enabled
  * @param canMarkUnread true if the mark unread item should be enabled
  */
-
 function check_read_menuitems(index, canMarkRead, canMarkUnread) {
   right_click_on_row(index);
   mc.click_menus_in_sequence(mc.e("mailContext"), [{id: "mailContext-mark"}]);
@@ -108,6 +107,12 @@ function check_read_menuitems(index, canMarkRead, canMarkUnread) {
   assert_true(unreadEnabled == canMarkUnread,
               "Mark unread menu item " + (canMarkUnread ? "dis" : "en") +
               "abled when it shouldn't be!");
+}
+
+function enable_archiving(enabled) {
+  Cc["@mozilla.org/preferences-service;1"]
+   .getService(Ci.nsIPrefService).getBranch(null)
+   .setBoolPref("mail.identity.default.archive_enabled", enabled);
 }
 
 // XXX Disabled due to issues with running these tests on tinderbox
@@ -265,6 +270,7 @@ function yearly_archive(keep_structure) {
 }
 
 function test_monthly_archive() {
+  enable_archiving(true);
   monthly_archive(false);
 }
 
@@ -313,6 +319,7 @@ function monthly_archive(keep_structure) {
 }
 
 function test_folder_structure_archiving() {
+  enable_archiving(true);
   Cc["@mozilla.org/preferences-service;1"]
    .getService(Ci.nsIPrefService).getBranch(null)
    .setBoolPref("mail.identity.default.archive_keep_folder_structure", true);
@@ -321,6 +328,7 @@ function test_folder_structure_archiving() {
 }
 
 function test_selection_after_archive() {
+  enable_archiving(true);
   be_in_folder(archiveSrcFolder);
   let identity = acctMgr.getFirstIdentityForServer(mc.folderDisplay.view.dbView
                                                    .getMsgHdrAt(0).folder.server);
@@ -333,4 +341,29 @@ function test_selection_after_archive() {
   select_control_click_row(2);
   archive_selected_messages();
   assert_selected_and_displayed(hdrToSelect);
+}
+
+function test_disabled_archive() {
+  enable_archiving(false);
+  be_in_folder(archiveSrcFolder);
+
+  // test single message
+  let current = select_click_row(0);
+  mc.keypress(null, "a", {});
+  assert_selected_and_displayed(current);
+
+  assert_true(mc.e("hdrArchiveButton").disabled,
+              "Archive button should be disabled when archiving is disabled!");
+
+  // test message summaries
+  select_click_row(0);
+  current = select_shift_click_row(2);
+  mc.keypress(null, "a", {});
+  assert_selected_and_displayed(current);
+
+  let htmlframe = mc.e("multimessage");
+  let archiveBtn = htmlframe.contentDocument.getElementById("archive");
+  assert_true(archiveBtn.collapsed,
+              "Multi-message archive button should be disabled when " +
+              "archiving is disabled!");
 }

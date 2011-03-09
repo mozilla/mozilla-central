@@ -262,6 +262,10 @@ MultiMessageSummary.prototype = {
 
     heading.textContent = messagesTitle;
 
+    // enable/disable the archive button as appropriate
+    let archiveBtn = htmlpane.contentDocument.getElementById('archive');
+    archiveBtn.collapsed = !CanArchiveMsg();
+
     // clear the messages list
     let messagesElt = htmlpane.contentDocument.getElementById('messagelist');
     while (messagesElt.firstChild)
@@ -551,6 +555,10 @@ ThreadSummary.prototype = {
     let heading = htmlpane.contentDocument.getElementById('heading');
     heading.setAttribute("class", "heading");
     heading.textContent = subject;
+
+    // enable/disable the archive button as appropriate
+    let archiveBtn = htmlpane.contentDocument.getElementById('archive');
+    archiveBtn.collapsed = !CanArchiveMsg();
 
     let messagesElt = htmlpane.contentDocument.getElementById('messagelist');
     while (messagesElt.firstChild)
