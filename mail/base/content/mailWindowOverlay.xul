@@ -546,6 +546,17 @@
   <menupopup id="mailContext"
              onpopupshowing="return fillMailContextMenu(event);"
              onpopuphiding="mailContextOnPopupHiding(event);">
+
+    <!-- Spellchecking suggestions -->
+    <menuitem id="mailContext-spell-no-suggestions"
+              disabled="true"
+              label="&spellNoSuggestions.label;"/>
+    <menuitem id="mailContext-spell-add-to-dictionary"
+              label="&spellAddToDictionary.label;"
+              accesskey="&spellAddToDictionary.accesskey;"
+              oncommand="gSpellChecker.addToDictionary();"/>
+    <menuseparator id="mailContext-spell-suggestions-separator"/>
+
     <menuitem id="mailContext-openInBrowser"
               label="&openInBrowser.label;"
               accesskey="&openInBrowser.accesskey;"
@@ -568,10 +579,7 @@
               label="&undoDefaultCmd.label;"
               accesskey="&undoDefaultCmd.accesskey;"
               command="cmd_undo"/>
-    <menuitem id="mailContext-selectall"
-              label="&selectAllCmd.label;"
-              accesskey="&selectAllCmd.accesskey;"
-              command="cmd_selectAll"/>
+    <menuseparator id="mailContext-sep-undo"/>
     <menuitem id="mailContext-cut"
               label="&cutCmd.label;"
               accesskey="&cutCmd.accesskey;"
@@ -584,6 +592,35 @@
               label="&pasteCmd.label;"
               accesskey="&pasteCmd.accesskey;"
               command="cmd_paste"/>
+    <menuseparator id="mailContext-sep-clipboard"/>
+    <menuitem id="mailContext-selectall"
+              label="&selectAllCmd.label;"
+              accesskey="&selectAllCmd.accesskey;"
+              command="cmd_selectAll"/>
+
+    <!-- Spellchecking general menu items (enable, add dictionaries...) -->
+    <menuseparator id="mailContext-spell-separator"/>
+    <menuitem id="mailContext-spell-check-enabled"
+              label="&spellCheckEnable.label;"
+              type="checkbox"
+              accesskey="&spellCheckEnable.accesskey;"
+              oncommand="gSpellChecker.toggleEnabled();"/>
+    <menuitem id="mailContext-spell-add-dictionaries-main"
+              label="&spellAddDictionaries.label;"
+              accesskey="&spellAddDictionaries.accesskey;"
+              oncommand="gContextMenu.addDictionaries();"/>
+    <menu id="mailContext-spell-dictionaries"
+          label="&spellDictionaries.label;"
+          accesskey="&spellDictionaries.accesskey;">
+        <menupopup id="mailContext-spell-dictionaries-menu">
+            <menuseparator id="mailContext-spell-language-separator"/>
+            <menuitem id="mailContext-spell-add-dictionaries"
+                      label="&spellAddDictionaries.label;"
+                      accesskey="&spellAddDictionaries.accesskey;"
+                      oncommand="gContextMenu.addDictionaries();"/>
+        </menupopup>
+    </menu>
+
     <menuseparator id="mailContext-sep-open"/>
     <menuitem id="mailContext-media-play"
               label="&contextPlay.label;"
@@ -799,37 +836,6 @@
               label="&reportPhishingURL.label;"
               accesskey="&reportPhishingURL.accesskey;"
               oncommand="gPhishingDetector.reportPhishingURL(gContextMenu.linkURL);"/>
-
-    <!-- Spellchecking menu items -->
-    <menuseparator id="mailContext-spell-suggestions-separator"/>
-    <menuitem id="mailContext-spell-no-suggestions"
-              disabled="true"
-              label="&spellNoSuggestions.label;"/>
-    <menuitem id="mailContext-spell-add-to-dictionary"
-              label="&spellAddToDictionary.label;"
-              accesskey="&spellAddToDictionary.accesskey;"
-              oncommand="gSpellChecker.addToDictionary();"/>
-    <menuseparator id="mailContext-spell-separator"/>
-    <menuitem id="mailContext-spell-check-enabled"
-              label="&spellCheckEnable.label;"
-              type="checkbox"
-              accesskey="&spellCheckEnable.accesskey;"
-              oncommand="gSpellChecker.toggleEnabled();"/>
-    <menuitem id="mailContext-spell-add-dictionaries-main"
-              label="&spellAddDictionaries.label;"
-              accesskey="&spellAddDictionaries.accesskey;"
-              oncommand="gContextMenu.addDictionaries();"/>
-    <menu id="mailContext-spell-dictionaries"
-          label="&spellDictionaries.label;"
-          accesskey="&spellDictionaries.accesskey;">
-        <menupopup id="mailContext-spell-dictionaries-menu">
-            <menuseparator id="mailContext-spell-language-separator"/>
-            <menuitem id="mailContext-spell-add-dictionaries"
-                      label="&spellAddDictionaries.label;"
-                      accesskey="&spellAddDictionaries.accesskey;"
-                      oncommand="gContextMenu.addDictionaries();"/>
-        </menupopup>
-    </menu>
 
   </menupopup>
 

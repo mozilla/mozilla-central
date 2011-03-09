@@ -348,6 +348,7 @@ nsContextMenu.prototype = {
       "mailContext-sep-afterMarkAllRead", "mailContext-sep-afterMarkFlagged",
       "mailContext-sep-afterMarkMenu", "mailContext-sep-edit",
       "mailContext-sep-copy", "mailContext-sep-reportPhishing",
+      "mailContext-sep-undo", "mailContext-sep-clipboard",
       "mailContext-spell-suggestions-separator", "mailContext-spell-separator",
     ];
     mailContextSeparators.forEach(this.hideIfAppropriate, this);
