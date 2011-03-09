@@ -105,6 +105,10 @@ endif
 
 NON_OMNIJAR_FILES = defaults/messenger/mailViews.dat
 
+ifndef LIBXUL_SDK
+INSTALL_SDK = 1
+endif
+
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
 
 ifeq (Darwin, $(OS_ARCH))
