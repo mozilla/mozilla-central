@@ -40,9 +40,6 @@
 @BINPATH@/@DLL_PREFIX@nspr4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plc4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plds4@DLL_SUFFIX@
-#ifdef MOZ_IPC
-@BINPATH@/mozilla-runtime@BIN_SUFFIX@
-#endif
 #ifndef MOZ_STATIC_JS
 @BINPATH@/@DLL_PREFIX@mozjs@DLL_SUFFIX@
 #endif
@@ -72,6 +69,13 @@
 @BINPATH@/XUL
 #else
 @BINPATH@/@DLL_PREFIX@xul@DLL_SUFFIX@
+#endif
+#ifdef MOZ_IPC
+#ifdef XP_MACOSX
+@BINPATH@/@MOZ_CHILD_PROCESS_NAME@.app/
+#else
+@BINPATH@/@MOZ_CHILD_PROCESS_NAME@
+#endif
 #endif
 
 ; Modules
@@ -131,6 +135,9 @@
 ; interfaces.manifest doesn't get packaged because it is dynamically
 ; re-created at packaging time when linking the xpts that will actually
 ; go into the package, so the test related interfaces aren't included.
+#ifdef MOZ_IPC
+@BINPATH@/components/jetpack.xpt
+#endif
 @BINPATH@/components/mime.xpt
 @BINPATH@/components/steel.xpt
 @BINPATH@/components/msgAsyncPrompter.js
@@ -146,6 +153,10 @@
 @BINPATH@/components/impComm4xMail.xpt
 @BINPATH@/components/mailview.xpt
 @BINPATH@/components/mailprofilemigration.xpt
+#ifdef MOZ_IPC
+@BINPATH@/components/messageWakeupService.js
+@BINPATH@/components/messageWakeupService.manifest
+#endif
 @BINPATH@/components/nsActivity.js
 @BINPATH@/components/nsActivityManager.js
 @BINPATH@/components/nsActivityManagerUI.js

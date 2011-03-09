@@ -216,9 +216,7 @@ license.html
 LICENSE.txt
 modules/JSON.jsm
 modules/quickSearchManager.js
-#ifndef MOZ_IPC
-  mozilla-runtime@BIN_SUFFIX@
-#endif
+mozilla-runtime@BIN_SUFFIX@
 #ifdef XP_MACOSX
   ../Plug-Ins/PrintPDE.plugin/Contents/Info.plist
   ../Plug-Ins/PrintPDE.plugin/Contents/MacOS/PrintPDE
