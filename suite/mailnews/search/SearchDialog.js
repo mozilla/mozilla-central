@@ -318,6 +318,7 @@ function initializeSearchWindowWidgets()
     msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
                           .createInstance(nsIMsgWindow);
     msgWindow.domWindow = window;
+    msgWindow.rootDocShell.allowAuth = true;
     msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
     msgWindow.statusFeedback = gStatusFeedback;
 
