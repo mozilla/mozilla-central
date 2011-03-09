@@ -417,7 +417,7 @@ function openAddonsMgr(aView)
     }
   }
 
-  openContentTab("about:addons", "addons.mozilla.org");
+  openContentTab("about:addons", "tab", "addons.mozilla.org");
 
   if (aView) {
     // This must be a new load, else the ping/pong would have

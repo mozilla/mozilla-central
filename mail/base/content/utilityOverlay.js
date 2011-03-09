@@ -318,31 +318,47 @@ function openWhatsNew()
   openContentTab(startpage);
 }
 
-function openContentTab(url, handlerRegExp)
+/**
+ * Open the specified URL as a content tab (or window)
+ *
+ * @param url the location to open
+ * @param where 'tab' to open in a new tab (default) or 'window' to open in a
+ *        new window
+ * @param handlerRegExp a regular expression (as a string) to use for the
+ *        siteClickHandler for determining whether a link should be opened in
+ *        Thunderbird or passed to the system
+ */
+function openContentTab(url, where, handlerRegExp)
 {
-  let tabmail = document.getElementById("tabmail");
-  if (!tabmail) {
-    // Try opening new tabs in an existing 3pane window
-    let mail3PaneWindow = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                                    .getService(Components.interfaces.nsIWindowMediator)
-                                    .getMostRecentWindow("mail:3pane");
-    if (mail3PaneWindow) {
-      tabmail = mail3PaneWindow.document.getElementById("tabmail");
-      mail3PaneWindow.focus();
-    }
-  }
-
   let clickHandler = null;
   if (handlerRegExp)
     clickHandler = "specialTabs.siteClickHandler(event, new RegExp(\"" + handlerRegExp + "\"));";
 
-  if (tabmail)
-    tabmail.openTab("contentTab", {contentPage: url, clickHandler: clickHandler});
-  else
-    window.openDialog("chrome://messenger/content/", "_blank",
-                      "chrome,dialog=no,all", null,
-                      { tabType: "contentTab",
-                        tabParams: {contentPage: url, clickHandler: clickHandler} });
+  if (where != "window") {
+    let tabmail = document.getElementById("tabmail");
+    if (!tabmail) {
+      // Try opening new tabs in an existing 3pane window
+      let mail3PaneWindow = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                                      .getService(Components.interfaces.nsIWindowMediator)
+                                      .getMostRecentWindow("mail:3pane");
+      if (mail3PaneWindow) {
+        tabmail = mail3PaneWindow.document.getElementById("tabmail");
+        mail3PaneWindow.focus();
+      }
+    }
+
+    if (tabmail) {
+      tabmail.openTab("contentTab", {contentPage: url, clickHandler: clickHandler});
+      return;
+    }
+  }
+
+  // Either we explicitly wanted to open in a new window, or we fell through to
+  // here because there's no 3pane.
+  window.openDialog("chrome://messenger/content/", "_blank",
+                    "chrome,dialog=no,all", null,
+                    { tabType: "contentTab",
+                      tabParams: {contentPage: url, clickHandler: clickHandler} });
 }
 
 /**
