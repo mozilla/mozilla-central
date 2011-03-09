@@ -327,6 +327,7 @@ var progressListener = {
     {
       if (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_START)
       {
+        document.getElementById('navigator-throbber').setAttribute("busy", "true");
         document.getElementById('compose-progressmeter').setAttribute( "mode", "undetermined" );
         document.getElementById("statusbar-progresspanel").collapsed = false;
       }
@@ -334,6 +335,7 @@ var progressListener = {
       if (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_STOP)
       {
         gSendOrSaveOperationInProgress = false;
+        document.getElementById('navigator-throbber').removeAttribute("busy");
         document.getElementById('compose-progressmeter').setAttribute( "mode", "normal" );
         document.getElementById('compose-progressmeter').setAttribute( "value", 0 );
         document.getElementById("statusbar-progresspanel").collapsed = true;
