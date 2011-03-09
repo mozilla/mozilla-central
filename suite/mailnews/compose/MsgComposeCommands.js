@@ -77,6 +77,8 @@ var sDictCount = 0;
 */
 var msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
                           .createInstance(Components.interfaces.nsIMsgWindow);
+var gMessenger = Components.classes["@mozilla.org/messenger;1"]
+                           .createInstance(Components.interfaces.nsIMessenger);
 
 /**
  * Global variables, need to be re-initialized every time mostly because we need to release them when the window close
@@ -2584,6 +2586,7 @@ function AttachFiles(attachments)
     if (!DuplicateFileCheck(currentAttachment)) {
       var attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"].createInstance(Components.interfaces.nsIMsgAttachment);
       attachment.url = currentAttachment;
+      attachment.size = currentFile.fileSize;
       AddAttachment(attachment);
       gContentChanged = true;
     }
@@ -2614,7 +2617,10 @@ function AddAttachment(attachment)
         attachment.name = sComposeMsgsBundle.getString("partAttachmentSafeName");
     }
 
-    item.setAttribute("label", attachment.name);    //use for display only
+    var nameAndSize = attachment.name;
+    if (attachment.size != -1)
+      nameAndSize += " (" + gMessenger.formatFileSize(attachment.size) + ")";
+    item.setAttribute("label", nameAndSize);    //use for display only
     item.attachment = attachment;   //full attachment object stored here
     try {
       item.setAttribute("tooltiptext", decodeURI(attachment.url));
@@ -2623,6 +2629,7 @@ function AddAttachment(attachment)
     }
     item.setAttribute("class", "listitem-iconic");
     item.setAttribute("image", "moz-icon:" + attachment.url);
+    item.setAttribute("crop", "center");
     bucket.appendChild(item);
   }
 }
@@ -2735,7 +2742,10 @@ function RenameSelectedAttachment()
     if (modifiedAttachmentName == "")
       return; // name was not filled, bail out
 
-    item.label = modifiedAttachmentName;
+    var nameAndSize = modifiedAttachmentName;
+    if (item.attachment.size != -1)
+      nameAndSize += " (" + gMessenger.formatFileSize(item.attachment.size) + ")";
+    item.label = nameAndSize;
     item.attachment.name = modifiedAttachmentName;
     gContentChanged = true;
   }
@@ -2766,8 +2776,7 @@ function OpenSelectedAttachment()
     if (messagePrefix.test(attachmentUrl))
     {
       // we must be dealing with a forwarded attachment, treat this specially
-      var messenger = Components.classes["@mozilla.org/messenger;1"].createInstance(Components.interfaces.nsIMessenger);
-      var msgHdr = messenger.msgHdrFromURI(attachmentUrl);
+      var msgHdr = gMessenger.msgHdrFromURI(attachmentUrl);
       if (msgHdr)
       {
         var folderUri = msgHdr.folder.folderURL;
@@ -3069,9 +3078,10 @@ var attachmentBucketObserver = {
 
       for (let i = 0; i < dataListLength; i++)
       {
-        var item = dataList[i].first;
-        var prettyName;
-        var rawData = item.data;
+        let item = dataList[i].first;
+        let prettyName;
+        let size = NaN;
+        let rawData = item.data;
 
         if (item.flavour.contentType == "text/x-moz-url" ||
             item.flavour.contentType == "text/x-moz-message" ||
@@ -3079,20 +3089,26 @@ var attachmentBucketObserver = {
         {
           if (item.flavour.contentType == "application/x-moz-file")
           {
-            var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+            let ioService = Components.classes["@mozilla.org/network/io-service;1"]
                             .getService(Components.interfaces.nsIIOService);
-            var fileHandler = ioService.getProtocolHandler("file")
+            let fileHandler = ioService.getProtocolHandler("file")
                               .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+            size = rawData.fileSize;
             rawData = fileHandler.getURLSpecFromFile(rawData);
+          }
+          else if (item.flavour.contentType == "text/x-moz-message")
+          {
+            size = gMessenger.messageServiceFromURI(rawData)
+                             .messageURIToMsgHdr(rawData).messageSize;
           }
           else
           {
-            var separator = rawData.indexOf("\n");
-            if (separator != -1)
-            {
-              prettyName = rawData.substr(separator+1);
-              rawData = rawData.substr(0,separator);
-            }
+            let pieces = rawData.split("\n");
+            rawData = pieces[0];
+            if (pieces.length > 1)
+              prettyName = pieces[1];
+            if (pieces.length > 2)
+              size = Number(pieces[2]);
           }
 
           if (DuplicateFileCheck(rawData))
@@ -3101,7 +3117,7 @@ var attachmentBucketObserver = {
           }
           else
           {
-            var isValid = true;
+            let isValid = true;
             if (item.flavour.contentType == "text/x-moz-url") {
               // if this is a url (or selected text)
               // see if it's a valid url by checking
@@ -3111,7 +3127,7 @@ var attachmentBucketObserver = {
               // also skip mailto:, since it doesn't make sense
               // to attach and send mailto urls
               try {
-                var scheme = gIOService.extractScheme(rawData);
+                let scheme = gIOService.extractScheme(rawData);
                 // don't attach mailto: urls
                 if (scheme == "mailto")
                   isValid = false;
@@ -3126,6 +3142,8 @@ var attachmentBucketObserver = {
                            .createInstance(Components.interfaces.nsIMsgAttachment);
               attachment.url = rawData;
               attachment.name = prettyName;
+              if (!isNaN(size))
+                attachment.size = size;
               AddAttachment(attachment);
             }
           }
