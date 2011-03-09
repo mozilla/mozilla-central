@@ -61,79 +61,35 @@
 }
 
 #linktoolbar > .bookmark-item:not([disabled="true"]):hover:active,
-#linktoolbar > .bookmark-item[container="true"]:not([disabled="true"]):hover:active {
+#linktoolbar > .bookmark-item[open] {
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
 }
 
-/**
- * Link toolbar items
- **/
-
-#link-top
-{
-  list-style-image    : url("chrome://navigator/skin/btn1/top.gif");
+#link-top {
+  list-style-image: url("chrome://navigator/skin/btn1/top.gif");
 }
 
-#link-top:not([disabled="true"]):hover:active
-{
-  list-style-image    : url("chrome://navigator/skin/btn1/top-hover.gif");
+#link-up {
+  list-style-image: url("chrome://navigator/skin/btn1/up.gif");
 }
 
-#link-up
-{
-  list-style-image    : url("chrome://navigator/skin/btn1/up.gif");
+#link-first {
+  list-style-image: url("chrome://navigator/skin/btn1/first.gif");
 }
 
-#link-up:not([disabled="true"]):hover:active
-{
-  list-style-image    : url("chrome://navigator/skin/btn1/up-hover.gif");
+#link-prev {
+  list-style-image: url("chrome://navigator/skin/btn1/previous.gif");
 }
 
-#link-first
-{
-  list-style-image    : url("chrome://navigator/skin/btn1/first.gif");
+#link-next {
+  list-style-image: url("chrome://navigator/skin/btn1/next.gif");
 }
 
-#link-first:not([disabled="true"]):hover:active
-{
-  list-style-image    : url("chrome://navigator/skin/btn1/first-hover.gif");
-}
-
-#link-prev
-{
-  list-style-image    : url("chrome://navigator/skin/btn1/previous.gif");
-}
-
-#link-prev:not([disabled="true"]):hover:active
-{
-  list-style-image    : url("chrome://navigator/skin/btn1/previous-hover.gif");
-}
-
-#link-next
-{
-  list-style-image    : url("chrome://navigator/skin/btn1/next.gif");
-}
-
-#link-next:not([disabled="true"]):hover:active
-{
-  list-style-image    : url("chrome://navigator/skin/btn1/next-hover.gif");
-}
-
-#link-last
-{
-  list-style-image    : url("chrome://navigator/skin/btn1/last.gif");
-}
-
-#link-last:not([disabled="true"]):hover:active
-{
-  list-style-image    : url("chrome://navigator/skin/btn1/last-hover.gif");
+#link-last {
+  list-style-image: url("chrome://navigator/skin/btn1/last.gif");
 }
 
 #link-feed {
   list-style-image: url("chrome://navigator/skin/btn1/feeds.png") !important;
   -moz-image-region: rect(0px 32px 16px 16px);
-}
-
-#link-feed[open="true"] {
-  -moz-image-region: rect(48px 32px 64px 16px);
 }

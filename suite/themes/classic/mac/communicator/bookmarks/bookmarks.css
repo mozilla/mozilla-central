@@ -84,11 +84,6 @@ treechildren::-moz-tree-image(title, container, livemark) {
   list-style-image: url("chrome://communicator/skin/bookmarks/livemark-folder.png");
 }
 
-#PlacesToolbarItems > .bookmark-item[container][livemark]:hover:active,
-#PlacesToolbarItems > .bookmark-item[container][livemark][open="true"] {
-  list-style-image: url("chrome://communicator/skin/bookmarks/livemark-folder-active.png");
-}
-
 .bookmark-item[container][livemark] .bookmark-item,
 treechildren::-moz-tree-image(title, livemarkItem) {
   list-style-image: url("chrome://communicator/skin/bookmarks/livemark-item.png");
@@ -118,11 +113,6 @@ treechildren::-moz-tree-image(container, OrganizerQuery_UnfiledBookmarks) {
 .bookmark-item[query],
 treechildren::-moz-tree-image(title, query) {
   list-style-image: url("chrome://communicator/skin/bookmarks/query.png");
-}
-
-#PlacesToolbarItems > .bookmark-item[query]:hover:active,
-#PlacesToolbarItems > .bookmark-item[query][open="true"] {
-  list-style-image: url("chrome://communicator/skin/bookmarks/query-active.png");
 }
 
 .bookmark-item[query][tagContainer],

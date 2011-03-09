@@ -51,40 +51,23 @@ toolbarbutton.bookmark-item {
   max-width: 13em;
 }
 
-toolbarbutton.bookmark-item[container="true"][open="true"]:not([disabled="true"]) {
-  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-folder-active.png");
-}
-
-toolbarbutton.bookmark-item[disabled="true"] > .toolbarbutton-icon ,
-toolbarbutton.bookmark-item[disabled="true"][container="true"] > .toolbarbutton-icon  {
-  opacity: 0.5 !important;
-}
-
 .bookmark-item > .toolbarbutton-icon {
+  background-image: url("chrome://global/skin/filters.svg"); /* Preload filter */
   width: 16px;
   height: 16px;
 }
 
+.bookmark-item:not([disabled="true"]):hover:active > .toolbarbutton-icon,
+.bookmark-item[open] > .toolbarbutton-icon {
+  filter: url("chrome://global/skin/filters.svg#iconPressed");
+}
+
+toolbarbutton.bookmark-item[disabled="true"] > .toolbarbutton-icon {
+  opacity: 0.5 !important;
+}
+
 .bookmark-item > .toolbarbutton-menu-dropmarker {
   display: none;
-}
-
-/* ..... drag and drop styles ..... */
-
-toolbarbutton.bookmark-item[dragover-left="true"] {
-  -moz-border-left-colors: ThreeDDarkShadow;
-}
-
-toolbarbutton.bookmark-item[dragover-right="true"] {
-  -moz-border-right-colors: ThreeDDarkShadow;
-}
-
-toolbarbutton.bookmark-item[dragover-top="true"] {
-  -moz-appearance: none;
-  -moz-border-top-colors: ThreeDDarkShadow;
-  -moz-border-right-colors: ThreeDDarkShadow;
-  -moz-border-bottom-colors: ThreeDDarkShadow;
-  -moz-border-left-colors: ThreeDDarkShadow;
 }
 
 /* ::::: bookmark menus ::::: */
@@ -103,17 +86,26 @@ toolbarbutton.bookmark-item[dragover-top="true"] {
 
 /* ..... drag and drop styles ..... */
 
-menu.bookmark-item[dragover-top="true"],
-menuitem.bookmark-item[dragover-top="true"] {
-  border-top: 1px solid ThreeDDarkShadow !important;
-} 
-
-menu.bookmark-item[dragover-bottom="true"],
-menuitem.bookmark-item[dragover-bottom="true"] {
-  border-bottom: 1px solid ThreeDDarkShadow !important;
+#PlacesToolbarDropIndicator {
+  list-style-image: url("chrome://communicator/skin/bookmarks/toolbarDropMarker.png");
 }
 
-menu.bookmark-item[dragover="true"] {
+.bookmark-item[dragover-into="true"] {
   background: Highlight !important;
   color: HighlightText !important;
+}
+
+/* rules for menupopup drop indicators */
+.menupopup-drop-indicator-bar {
+  position: relative;
+  /* these two margins must together compensate the indicator's height */
+  margin-top: -1px;
+  margin-bottom: -1px;
+}
+
+.menupopup-drop-indicator {
+  list-style-image: none;
+  height: 2px;
+  -moz-margin-end: -4em;
+  background-color: Highlight;
 }
