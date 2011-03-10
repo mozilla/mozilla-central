@@ -421,6 +421,7 @@ var DefaultController =
       case "cmd_goStartPage":
         return pref.getBoolPref("mailnews.start_page.enabled") && !IsMessagePaneCollapsed();
       case "cmd_markAllRead":
+        return IsFolderSelected() && gDBView && gDBView.msgFolder.getNumUnread(false) > 0;
       case "cmd_markReadByDate":
         return IsFolderSelected();
       case "cmd_find":
