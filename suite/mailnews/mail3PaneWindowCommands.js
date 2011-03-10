@@ -439,7 +439,7 @@ var DefaultController =
         if (GetNumSelectedMessages() <= 0) return false;
       case "cmd_expandAllThreads":
       case "cmd_collapseAllThreads":
-        return (gDBView.viewFlags & nsMsgViewFlagsType.kThreadedDisplay);
+        return gDBView && (gDBView.viewFlags & nsMsgViewFlagsType.kThreadedDisplay);
         break;
       case "cmd_nextFlaggedMsg":
       case "cmd_previousFlaggedMsg":
