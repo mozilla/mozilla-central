@@ -656,6 +656,7 @@ IMAP_RFC3501_handler.prototype = {
   kPassword : "password",
   kAuthSchemes : [], // Added by RFC2195 extension. Test may modify as needed.
   kCapabilities : [/*"LOGINDISABLED", "STARTTLS",*/], // Test may modify as needed.
+  kUidCommands : ["FETCH", "STORE", "SEARCH", "COPY"],
 
   resetTest : function() {
     this._state = IMAP_STATE_NOT_AUTHED;
@@ -761,6 +762,10 @@ IMAP_RFC3501_handler.prototype = {
       try {
         // Format the arguments nicely
         args = this._treatArgs(args, command);
+
+      // UID command by itself is not useful for PerformTest
+      if (command == "UID")
+        this._lastCommand += " " + args[0];
 
         // Finally, run the thing
         var response = this[command](args);
@@ -1291,8 +1296,9 @@ IMAP_RFC3501_handler.prototype = {
   },
   UID : function (args) {
     var name = args.shift();
-    if (["FETCH", "STORE", "SEARCH", "COPY"].indexOf(name) == -1)
+    if (this.kUidCommands.indexOf(name) == -1)
       return "BAD illegal command " + name;
+
     args = this._treatArgs(args, name);
     return this[name](args, true);
   },
@@ -1581,6 +1587,8 @@ IMAP_RFC3501_handler.prototype = {
 // original state of the handler. Semantics apply as for the base itself.     //
 ////////////////////////////////////////////////////////////////////////////////
 
+// Note that UIDPLUS (RFC4315) should be mixed in last (or at least after the
+// MOVE extension) because it changes behavior of that extension.
 var configurations = {
   Cyrus: ["RFC2342", "RFC2195"],
   UW: ["RFC2342", "RFC2195"],
@@ -1588,6 +1596,7 @@ var configurations = {
   Zimbra: ["RFC2342", "RFC2195"],
   Exchange: ["RFC2342", "RFC2195"],
   LEMONADE: ["RFC2342", "RFC2195"],
+  CUSTOM1: ["RFCMOVE", "RFC4315"],
 };
 
 function mixinExtension(handler, extension) {
@@ -1647,12 +1656,49 @@ var IMAP_RFC2342_extension = {
   _enabledCommands : { 1 : ["NAMESPACE"], 2 : ["NAMESPACE"] }
 };
 
+// Proposed MOVE extension (imapPump requires the string "RFC").
+var IMAP_RFCMOVE_extension = {
+  MOVE: function (args, uid) {
+    let messages = this._parseSequenceSet(args[0], uid);
+
+    let dest = this._daemon.getMailbox(args[1]);
+    if (!dest)
+      return "NO [TRYCREATE] what mailbox?";
+
+    for each (var message in messages) {
+      let newMessage = new imapMessage(message._URI, dest.uidnext++,
+                                       message.flags);
+      newMessage.recent = false;
+      dest.addMessage(newMessage);
+    }
+    let mailbox = this._selectedMailbox;
+    let response = "";
+    for (let i = messages.length - 1; i >= 0; i--) {
+      let msgIndex = mailbox._messages.indexOf(messages[i]);
+      if (msgIndex != -1) {
+        response += "* " + (msgIndex + 1) + " EXPUNGE\0";
+        mailbox._messages.splice(msgIndex, 1);
+      }
+    }
+    if (response.length > 0)
+      delete mailbox.__highestuid;
+
+    return response + "OK MOVE completed";
+  },
+  kCapabilities: ["MOVE"],
+  kUidCommands: ["MOVE"],
+  _argFormat: { MOVE: ["number", "mailbox"] },
+  // Enabled in SELECTED state
+  _enabledCommands: { 2: ["MOVE"] }
+};
+
 // RFC 4315: UIDPLUS
 var IMAP_RFC4315_extension = {
   preload: function (toBeThis) {
     toBeThis._preRFC4315UID = toBeThis.UID;
     toBeThis._preRFC4315APPEND = toBeThis.APPEND;
     toBeThis._preRFC4315COPY = toBeThis.COPY;
+    toBeThis._preRFC4315MOVE = toBeThis.MOVE;
   },
   UID: function (args) {
     // XXX: UID EXPUNGE is not supported.
@@ -1672,6 +1718,18 @@ var IMAP_RFC4315_extension = {
     if (mailbox)
       var first = mailbox.uidnext;
     let response = this._preRFC4315COPY(args);
+    if (response.indexOf("OK") == 0) {
+      let last = mailbox.uidnext - 1;
+      response = "OK [COPYUID " + first + ":" + last + "]" +
+                  response.substring(2);
+    }
+    return response;
+  },
+  MOVE: function (args) {
+    let mailbox = this._daemon.getMailbox(args[1]);
+    if (mailbox)
+      var first = mailbox.uidnext;
+    let response = this._preRFC4315MOVE(args);
     if (response.indexOf("OK") == 0) {
       let last = mailbox.uidnext - 1;
       response = "OK [COPYUID " + first + ":" + last + "]" +

@@ -71,7 +71,7 @@ var gIMAPIncomingServer; // nsIMsgIncomingServer for the imap server
 var gIMAPInbox;          // nsIMsgFolder/nsIMsgImapMailFolder for imap inbox
 var gIMAPMailbox;        // imap fake server mailbox
 
-function setupIMAPPump()
+function setupIMAPPump(extensions)
 {
 
   // These are copied from imap's head_server.js to here so we can run
@@ -106,7 +106,7 @@ function setupIMAPPump()
   // end copy from head_server.js
 
   gIMAPDaemon = new imapDaemon();
-  gIMAPServer = makeServer(gIMAPDaemon, "");
+  gIMAPServer = makeServer(gIMAPDaemon, extensions);
 
   gIMAPIncomingServer = createLocalIMAPServer();
 

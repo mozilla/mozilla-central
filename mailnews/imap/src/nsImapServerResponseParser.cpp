@@ -2266,6 +2266,10 @@ void nsImapServerResponseParser::capability_data()
         fCapabilityFlag |= kHasXListCapability;
       else if (token.Equals("COMPRESS=DEFLATE", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasCompressDeflateCapability;
+      else if (token.Equals("MOVE", nsCaseInsensitiveCStringComparator()))
+        fCapabilityFlag |= kHasMoveCapability;
+      else if (token.Equals("HIGHESTMODSEQ", nsCaseInsensitiveCStringComparator()))
+        fCapabilityFlag |= kHasHighestModSeqCapability;
     }
   } while (fNextToken && endToken < 0 && !fAtEndOfLine && ContinueParse());
 
