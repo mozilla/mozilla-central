@@ -1,0 +1,13 @@
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+.searchbar-textbox {
+  -moz-binding: url("chrome://communicator/content/search/search.xml#searchbar-textbox");
+}
+
+.searchbar-engine-button {
+  -moz-user-focus: none;
+}
+
+.autocomplete-history-dropmarker {
+  display: none;
+}

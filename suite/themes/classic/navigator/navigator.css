@@ -476,6 +476,10 @@ panel[nomatch="true"] > .autocomplete-search-box {
   -moz-margin-end: 4px;
 }
 
+.autocomplete-treebody::-moz-tree-cell-text(treecolAutoCompleteComment) {
+  color: GrayText;
+}
+
 /* ::::: go and searchbuttons ::::: */
 
 #search-button, 
@@ -505,6 +509,18 @@ panel[nomatch="true"] > .autocomplete-search-box {
 toolbar[mode="text"] #search-button > .button-box > .button-icon,
 toolbar[mode="icons"] #search-button > .button-box > .button-text {
   display: none;
+}
+
+/* ::::: search bar ::::: */
+
+.autocomplete-treebody::-moz-tree-cell-text(suggesthint, treecolAutoCompleteComment),
+.autocomplete-treebody::-moz-tree-cell-text(suggestfirst, treecolAutoCompleteComment) {
+  color: GrayText;
+  font-size: smaller;
+}
+
+.autocomplete-treebody::-moz-tree-cell(suggesthint) {
+  border-top: 1px solid GrayText;
 }
 
 /* ::::: sidebar splitter ::::: */

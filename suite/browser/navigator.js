@@ -1079,16 +1079,45 @@ var gBookmarkAllTabsHandler = {
 
 const BrowserSearch = {
   addEngine: function(engine, targetDoc) {
-    Services.console.logStringMessage("BrowserSearch.addEngine will be implemented in bug 401417.");
-  },
+    if (!this.searchBar)
+      return;
 
-  /**
-   * Update the browser UI to show whether or not additional engines are
-   * available when a page is loaded or the user switches tabs to a page that
-   * has search engines.
-   */
-  updateSearchButton: function() {
-    Services.console.logStringMessage("BrowserSearch.updateSearchButton will be implemented in bug 401417.");
+    var browser = getBrowser().getBrowserForDocument(targetDoc);
+    // ignore search engines from subframes (see bug 479408)
+    if (!browser)
+      return;
+
+    // Check to see whether we've already added an engine with this title
+    if (browser.engines) {
+      if (browser.engines.some(function (e) e.title == engine.title))
+        return;
+    }
+
+    // Append the URI and an appropriate title to the browser data.
+    // Use documentURIObject in the check for shouldLoadFavIcon so that we
+    // do the right thing with about:-style error pages.  Bug 453442
+    var iconURL = null;
+    if (getBrowser().shouldLoadFavIcon(targetDoc.documentURIObject))
+      iconURL = getBrowser().buildFavIconString(targetDoc.documentURIObject);
+
+    var hidden = false;
+    // If this engine (identified by title) is already in the list, add it
+    // to the list of hidden engines rather than to the main list.
+    // XXX This will need to be changed when engines are identified by URL;
+    // see bug 335102.
+    if (Services.search.getEngineByName(engine.title))
+      hidden = true;
+
+    var engines = (hidden ? browser.hiddenEngines : browser.engines) || [];
+
+    engines.push({ uri: engine.href,
+                   title: engine.title,
+                   icon: iconURL });
+
+    if (hidden)
+      browser.hiddenEngines = engines;
+    else
+      browser.engines = engines;
   },
 
   /**
@@ -1123,10 +1152,10 @@ const BrowserSearch = {
     }
 
     if (isElementVisible(this.searchBar)) {
-      searchBar.select();
-      searchBar.focus();
+      this.searchBar.select();
+      this.searchBar.focus();
     } else if (isElementVisible(this.searchSidebar)) {
-      searchSidebar.focus();
+      this.searchSidebar.focus();
     } else {
       loadURI(Services.search.defaultEngine.searchForm);
       window.content.focus();
@@ -1195,6 +1224,13 @@ const BrowserSearch = {
    */
   get searchSidebar() {
     return document.getElementById("urn:sidebar:panel:search");
+  },
+
+  loadAddEngines: function BrowserSearch_loadAddEngines() {
+    var newWindowPref = Services.prefs.getIntPref("browser.link.open_newwindow");
+    var where = newWindowPref == 3 ? "tabfocused" : "window";
+    var searchEnginesURL = Services.urlFormatter.formatURLPref("browser.search.searchEnginesURL");
+    openUILinkIn(searchEnginesURL, where);
   },
 
   /**

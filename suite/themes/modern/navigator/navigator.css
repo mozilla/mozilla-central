@@ -671,6 +671,10 @@ panel[nomatch="true"] > .autocomplete-search-box {
   list-style-image: url("chrome://navigator/skin/toolbar/ubhist-arrow-act.gif");
 }
 
+.autocomplete-treebody::-moz-tree-cell-text(treecolAutoCompleteComment) {
+  color: #999999;
+}
+
 /* ::::: go and searchbuttons ::::: */
 
 #go-button,
@@ -686,6 +690,18 @@ panel[nomatch="true"] > .autocomplete-search-box {
 
 #search-button {
   list-style-image: url("chrome://global/skin/icons/search.gif");
+}
+
+/* ::::: search bar ::::: */
+
+.autocomplete-treebody::-moz-tree-cell-text(suggesthint, treecolAutoCompleteComment),
+.autocomplete-treebody::-moz-tree-cell-text(suggestfirst, treecolAutoCompleteComment) {
+  color: #999999;
+  font-size: smaller;
+}
+
+.autocomplete-treebody::-moz-tree-cell(suggesthint) {
+  border-top: 1px solid #999999;
 }
 
 /* ::::: navigator throbber ::::: */

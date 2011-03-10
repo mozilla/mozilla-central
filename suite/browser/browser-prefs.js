@@ -137,6 +137,9 @@ pref("browser.search.update.log", false);
 // Check whether we need to perform engine updates every 6 hours
 pref("browser.search.update.interval", 21600);
 
+// enable search suggestions by default
+pref("browser.search.suggest.enabled", true);
+
 // Smart Browsing prefs
 pref("keyword.enabled", true);
 // Override the default keyword.URL. Empty value means

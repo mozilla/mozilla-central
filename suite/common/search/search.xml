@@ -1,0 +1,747 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is mozilla.org browser.
+   -
+   - The Initial Developer of the Original Code is
+   - Joe Hewitt.
+   - Portions created by the Initial Developer are Copyright (C) 2003
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Pierre Chanial (v2) <p_ch@verizon.net>
+   -   Gavin Sharp (v3) <gavin@gavinsharp.com>
+   -   Ben Goodger <beng@google.com>
+   -   Pamela Greene <pamg.bugs@gmail.com>
+   -   Michael Ventnor <m.ventnor@gmail.com>
+   -   Ehsan Akhgari <ehsan.akhgari@gmail.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE bindings [
+<!ENTITY % searchBarDTD SYSTEM "chrome://communicator/locale/search/searchbar.dtd">
+%searchBarDTD;
+<!ENTITY % navigatorDTD SYSTEM "chrome://navigator/locale/navigator.dtd">
+%navigatorDTD;
+]>
+
+<bindings id="SearchBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="searchbar">
+    <resources>
+      <stylesheet src="chrome://communicator/content/search/searchbarBindings.css"/>
+      <stylesheet src="chrome://communicator/skin/search/searchbar.css"/>
+    </resources>
+    <content>
+      <xul:stringbundle src="chrome://communicator/locale/search/search.properties"
+                        anonid="searchbar-stringbundle"/>
+
+      <xul:textbox class="searchbar-textbox"
+                   anonid="searchbar-textbox"
+                   type="autocomplete"
+                   flex="1"
+                   autocompletepopup="PopupAutoComplete"
+                   autocompletesearch="search-autocomplete"
+                   autocompletesearchparam="searchbar-history"
+                   timeout="250"
+                   maxrows="10"
+                   completeselectedindex="true"
+                   showcommentcolumn="true"
+                   tabscrolling="true"
+                   xbl:inherits="disabled,disableautocomplete,searchengine,src,newlines">
+        <xul:box>
+          <xul:button class="plain searchbar-engine-button"
+                      type="menu"
+                      anonid="searchbar-engine-button">
+            <xul:image class="searchbar-engine-image" xbl:inherits="src"/>
+            <xul:image class="searchbar-dropmarker-image"/>
+            <xul:menupopup class="searchbar-popup"
+                           anonid="searchbar-popup">
+              <xul:menuseparator/>
+              <xul:menuitem class="open-engine-manager"
+                            anonid="open-engine-manager"
+                            label="&cmd_engineManager.label;"
+                            oncommand="openManager(event);"/>
+            </xul:menupopup>
+          </xul:button>
+        </xul:box>
+        <xul:hbox class="search-go-container">
+          <xul:image class="search-go-button"
+                     anonid="search-go-button"
+                     onclick="handleSearchCommand(event);"
+                     tooltiptext="&searchEndCap.label;"/>
+        </xul:hbox>
+      </xul:textbox>
+    </content>
+
+    <implementation implements="nsIObserver">
+      <constructor><![CDATA[
+        if (this.parentNode.parentNode.localName == "toolbarpaletteitem")
+          return;
+        setTimeout(function (a) { a.init(); }, 0, this);
+      ]]></constructor>
+
+      <method name="init">
+        <body><![CDATA[
+          // Make sure we rebuild the popup in onpopupshowing
+          this._needToBuildPopup = true;
+
+          // Refresh the display (updating icon, etc)
+          this.updateDisplay();
+
+          var os =
+               Components.classes["@mozilla.org/observer-service;1"]
+                         .getService(Components.interfaces.nsIObserverService);
+          os.addObserver(this, "browser-search-engine-modified", false);
+
+          this._addedObserver = true;
+        ]]></body>
+      </method>
+
+      <destructor><![CDATA[
+        if (this._addedObserver) {
+          var os = Components.classes["@mozilla.org/observer-service;1"]
+                             .getService(Components.interfaces.nsIObserverService);
+          os.removeObserver(this, "browser-search-engine-modified");
+        }
+
+        // Make sure to break the cycle from _texbox to us. Otherwise we leak
+        // the world. But make sure it's actually pointing to us.
+        if (this._textbox.mController.input == this)
+          this._textbox.mController.input = null;
+      ]]></destructor>
+
+      <field name="_stringBundle">document.getAnonymousElementByAttribute(this,
+          "anonid", "searchbar-stringbundle");</field>
+      <field name="_textbox">document.getAnonymousElementByAttribute(this,
+          "anonid", "searchbar-textbox");</field>
+      <field name="_popup">document.getAnonymousElementByAttribute(this,
+          "anonid", "searchbar-popup");</field>
+      <field name="searchButton">document.getAnonymousElementByAttribute(this,
+          "anonid", "searchbar-engine-button");</field>
+      <field name="_searchService">
+        Components.classes["@mozilla.org/browser/search-service;1"]
+                  .getService(Components.interfaces.nsIBrowserSearchService);
+      </field>
+      <field name="_engines">null</field>
+
+      <property name="engines" readonly="true">
+        <getter><![CDATA[
+          if (!this._engines)
+            this._engines = this.searchService.getVisibleEngines();
+          return this._engines;
+        ]]></getter>
+      </property>
+
+      <property name="currentEngine"
+                onset="this.searchService.currentEngine = val; return val;">
+        <getter><![CDATA[
+          var currentEngine = this.searchService.currentEngine;
+          // Return a dummy engine if there is no currentEngine
+          return currentEngine || {name: "", uri: null};
+        ]]></getter>
+      </property>
+
+      <!-- textbox is used by sanitize.js to clear the undo history when
+           clearing form information. -->
+      <property name="textbox" readonly="true"
+                onget="return this._textbox;"/>
+
+      <property name="searchService" readonly="true"
+                onget="return this._searchService;"/>
+
+      <property name="value" onget="return this._textbox.value;"
+                             onset="return this._textbox.value = val;"/>
+
+      <method name="focus">
+        <body><![CDATA[
+          this._textbox.focus();
+        ]]></body>
+      </method>
+
+      <method name="select">
+        <body><![CDATA[
+          this._textbox.select();
+        ]]></body>
+      </method>
+
+      <method name="observe">
+        <parameter name="aEngine"/>
+        <parameter name="aTopic"/>
+        <parameter name="aVerb"/>
+        <body><![CDATA[
+          if (aTopic == "browser-search-engine-modified") {
+            switch (aVerb) {
+            case "engine-removed":
+              this.offerNewEngine(aEngine);
+              break;
+            case "engine-added":
+              this.hideNewEngine(aEngine);
+              break;
+            case "engine-current":
+              // The current engine was changed.  Rebuilding the menu appears to
+              // confuse its idea of whether it should be open when it's just
+              // been clicked, so we force it to close now.
+              this._popup.hidePopup();
+              break;
+            case "engine-changed":
+              // An engine was removed (or hidden) or added, or an icon was
+              // changed.  Do nothing special.
+            }
+
+            // Make sure the engine list is refetched next time it's needed
+            this._engines = null;
+
+            // Rebuild the popup and update the display after any modification.
+            this.rebuildPopup();
+            this.updateDisplay();
+          }
+        ]]></body>
+      </method>
+
+      <!-- There are two seaprate lists of search engines, whose uses intersect
+      in this file.  The search service (nsIBrowserSearchService and
+      nsSearchService.js) maintains a list of Engine objects which is used to
+      populate the searchbox list of available engines and to perform queries.
+      That list is accessed here via this.SearchService, and it's that sort of
+      Engine that is passed to this binding's observer as aEngine.
+
+      In addition, browser.js fills two lists of autodetected search engines
+      (browser.engines and browser.hiddenEngines) as properties of
+      mCurrentBrowser.  Those lists contain unnamed JS objects of the form
+      { uri:, title:, icon: }, and that's what the searchbar uses to determine
+      whether to show any "Add <EngineName>" menu items in the drop-down.
+
+      The two types of engines are currently related by their identifying
+      titles (the Engine object's 'name'), although that may change; see bug
+      335102.  -->
+
+      <!-- If the engine that was just removed from the searchbox list was
+      autodetected on this page, move it to each browser's active list so it
+      will be offered to be added again. -->
+      <method name="offerNewEngine">
+        <parameter name="aEngine"/>
+        <body><![CDATA[
+          var allbrowsers = getBrowser().mPanelContainer.childNodes;
+          for (var tab = 0; tab < allbrowsers.length; tab++) {
+            var browser = getBrowser().getBrowserAtIndex(tab);
+            if (browser.hiddenEngines) {
+              // XXX This will need to be changed when engines are identified by
+              // URL rather than title; see bug 335102.
+              var removeTitle = aEngine.wrappedJSObject.name;
+              for (var i = 0; i < browser.hiddenEngines.length; i++) {
+                if (browser.hiddenEngines[i].title == removeTitle) {
+                  if (!browser.engines)
+                    browser.engines = [];
+                  browser.engines.push(browser.hiddenEngines[i]);
+                  browser.hiddenEngines.splice(i, 1);
+                  break;
+                }
+              }
+            }
+          }
+        ]]></body>
+      </method>
+
+      <!-- If the engine that was just added to the searchbox list was
+      autodetected on this page, move it to each browser's hidden list so it is
+      no longer offered to be added. -->
+      <method name="hideNewEngine">
+        <parameter name="aEngine"/>
+        <body><![CDATA[
+          var allbrowsers = getBrowser().mPanelContainer.childNodes;
+          for (var tab = 0; tab < allbrowsers.length; tab++) {
+            var browser = getBrowser().getBrowserAtIndex(tab);
+            if (browser.engines) {
+              // XXX This will need to be changed when engines are identified by
+              // URL rather than title; see bug 335102.
+              var removeTitle = aEngine.wrappedJSObject.name;
+              for (var i = 0; i < browser.engines.length; i++) {
+                if (browser.engines[i].title == removeTitle) {
+                  if (!browser.hiddenEngines)
+                    browser.hiddenEngines = [];
+                  browser.hiddenEngines.push(browser.engines[i]);
+                  browser.engines.splice(i, 1);
+                  break;
+                }
+              }
+            }
+          }
+        ]]></body>
+      </method>
+
+      <method name="updateDisplay">
+        <body><![CDATA[
+          var uri = this.currentEngine.iconURI;
+          this.setAttribute("src", uri ? uri.spec : "");
+
+          var name = this.currentEngine.name;
+          var text = this._stringBundle.getFormattedString("searchtip", [name]);
+          this._textbox.placeholder = name;
+          this._textbox.tooltipText = text;
+        ]]></body>
+      </method>
+
+      <!-- Rebuilds the dynamic portion of the popup menu (i.e., the menu items
+           for new search engines that can be added to the available list).  This
+           is called each time the popup is shown.
+      -->
+      <method name="rebuildPopupDynamic">
+        <body><![CDATA[
+          // We might not have added the main popup items yet, do that first
+          // if needed.
+          if (this._needToBuildPopup)
+            this.rebuildPopup();
+
+          var popup = this._popup;
+          // Clear any addengine menuitems, including addengine-item entries and
+          // the addengine-separator.  Work backward to avoid invalidating the
+          // indexes as items are removed.
+          var items = popup.childNodes;
+          for (var i = items.length - 1; i >= 0; i--) {
+            if (items[i].classList.contains("addengine-item") ||
+                items[i].classList.contains("addengine-separator"))
+              popup.removeChild(items[i]);
+          }
+
+          var addengines = getBrowser().mCurrentBrowser.engines;
+          if (addengines && addengines.length > 0) {
+            const kXULNS =
+               "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+
+            // Find the (first) separator in the remaining menu, or the first item
+            // if no separators are present.
+            var insertLocation = popup.firstChild;
+            while (insertLocation.nextSibling &&
+                   insertLocation.localName != "menuseparator") {
+              insertLocation = insertLocation.nextSibling;
+            }
+            if (insertLocation.localName != "menuseparator")
+              insertLocation = popup.firstChild;
+
+            var separator = document.createElementNS(kXULNS, "menuseparator");
+            separator.setAttribute("class", "addengine-separator");
+            popup.insertBefore(separator, insertLocation);
+
+            // Insert the "add this engine" items.
+            for (var i = 0; i < addengines.length; i++) {
+              var menuitem = document.createElement("menuitem");
+              var engineInfo = addengines[i];
+              var labelStr =
+                  this._stringBundle.getFormattedString("cmd_addFoundEngine",
+                                                        [engineInfo.title]);
+              menuitem = document.createElementNS(kXULNS, "menuitem");
+              menuitem.setAttribute("class", "menuitem-iconic addengine-item");
+              menuitem.setAttribute("label", labelStr);
+              menuitem.setAttribute("tooltiptext", engineInfo.uri);
+              menuitem.setAttribute("uri", engineInfo.uri);
+              if (engineInfo.icon)
+                menuitem.setAttribute("src", engineInfo.icon);
+              menuitem.setAttribute("title", engineInfo.title);
+              popup.insertBefore(menuitem, insertLocation);
+            }
+          }
+        ]]></body>
+      </method>
+
+      <!-- Rebuilds the list of visible search engines in the menu.  Does not remove
+           or update any dynamic entries (i.e., "Add this engine" items) nor the
+           Manage Engines item.  This is called by the observer when the list of
+           visible engines, or the currently selected engine, has changed.
+      -->
+      <method name="rebuildPopup">
+        <body><![CDATA[
+          var popup = this._popup;
+
+          // Clear the popup, down to the first separator
+          while (popup.firstChild && popup.firstChild.localName != "menuseparator")
+            popup.removeChild(popup.firstChild);
+
+          const kXULNS =
+               "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+
+          var engines = this.engines;
+          for (var i = engines.length - 1; i >= 0; --i) {
+            var menuitem = document.createElementNS(kXULNS, "menuitem");
+            var name = engines[i].name;
+            menuitem.setAttribute("label", name);
+            menuitem.setAttribute("id", name);
+            menuitem.setAttribute("class", "menuitem-iconic searchbar-engine-menuitem menuitem-with-favicon");
+            // Since this menu is rebuilt by the observer method whenever a new
+            // engine is selected, the "selected" attribute does not need to be
+            // explicitly cleared anywhere.
+            if (engines[i] == this.currentEngine)
+              menuitem.setAttribute("selected", "true");
+            var tooltip = this._stringBundle.getFormattedString("searchtip", [name]);
+            menuitem.setAttribute("tooltiptext", tooltip);
+            if (engines[i].iconURI)
+              menuitem.setAttribute("src", engines[i].iconURI.spec);
+            popup.insertBefore(menuitem, popup.firstChild);
+            menuitem.engine = engines[i];
+          }
+
+          this._needToBuildPopup = false;
+        ]]></body>
+      </method>
+
+      <method name="openManager">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+          var wm =
+                Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                          .getService(Components.interfaces.nsIWindowMediator);
+
+          var window = wm.getMostRecentWindow("Browser:SearchManager");
+          if (window)
+            window.focus()
+          else {
+            setTimeout(function () {
+              openDialog("chrome://communicator/content/search/engineManager.xul",
+                         "_blank", "chrome,dialog,modal,centerscreen,resizable");
+            }, 0);
+          }
+        ]]></body>
+      </method>
+
+      <method name="selectEngine">
+        <parameter name="aEvent"/>
+        <parameter name="isNextEngine"/>
+        <body><![CDATA[
+          // Find the new index
+          var newIndex = this.engines.indexOf(this.currentEngine);
+          newIndex += isNextEngine ? 1 : -1;
+
+          if (newIndex >= 0 && newIndex < this.engines.length)
+            this.currentEngine = this.engines[newIndex];
+
+          aEvent.preventDefault();
+          aEvent.stopPropagation();
+        ]]></body>
+      </method>
+
+      <method name="handleSearchCommand">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+          var textBox = this._textbox;
+          var textValue = textBox.value;
+
+          var where = "current";
+          if (aEvent && aEvent.originalTarget.getAttribute("anonid") == "search-go-button") {
+            if (aEvent.button == 2)
+              return;
+            where = whereToOpenLink(aEvent, false, true);
+          }
+          else {
+            var newTabPref = textBox._prefBranch.getBoolPref("browser.search.openintab");
+            if ((aEvent && aEvent.altKey) ^ newTabPref)
+              where = "tabfocused";
+          }
+
+          // Save the current value in the form history
+          if (textValue) {
+            textBox._formHistSvc.addEntry(textBox.getAttribute("autocompletesearchparam"),
+                                          textValue);
+          }
+
+          this.doSearch(textValue, where);
+        ]]></body>
+      </method>
+
+      <method name="doSearch">
+        <parameter name="aData"/>
+        <parameter name="aWhere"/>
+        <body><![CDATA[
+          // null parameter below specifies HTML response for search
+          var submission = this.currentEngine.getSubmission(aData);
+          openUILinkIn(submission.uri.spec, aWhere, null, submission.postData);
+        ]]></body>
+      </method>
+    </implementation>
+
+    <handlers>
+      <handler event="command"><![CDATA[
+        const target = event.originalTarget;
+        if (target.classList.contains("addengine-item")) {
+          var searchService =
+            Components.classes["@mozilla.org/browser/search-service;1"]
+                      .getService(Components.interfaces.nsIBrowserSearchService);
+          // We only detect OpenSearch files
+          var type = Components.interfaces.nsISearchEngine.DATA_XML;
+          searchService.addEngine(target.getAttribute("uri"), type,
+                                  target.getAttribute("src"), false);
+        }
+        else if (target.engine)
+          this.currentEngine = target.engine;
+        else
+          return;
+
+        this.focus();
+        this.select();
+      ]]></handler>
+
+      <handler event="popupshowing" action="this.rebuildPopupDynamic();"/>
+
+      <handler event="DOMMouseScroll"
+               phase="capturing"
+#ifdef XP_MACOSX
+               action="if (event.metaKey) this.selectEngine(event, (event.detail > 0));"/>
+#else
+               action="if (event.ctrlKey) this.selectEngine(event, (event.detail > 0));"/>
+#endif
+    </handlers>
+  </binding>
+
+  <binding id="searchbar-textbox"
+      extends="chrome://global/content/bindings/autocomplete.xml#autocomplete">
+    <implementation implements="nsIObserver">
+      <constructor><![CDATA[
+        if (document.getBindingParent(this).parentNode.parentNode.localName ==
+            "toolbarpaletteitem")
+          return;
+        setTimeout(function(a) { a.initialize(); }, 0, this);
+      ]]></constructor>
+
+      <destructor><![CDATA[
+          this._prefBranch.removeObserver("browser.search.suggest.enabled", this);
+
+        // Because XBL and the customize toolbar code interacts poorly,
+        // there may not be anything to remove here
+        try {
+          this.controllers.removeController(this.searchbarController);
+        } catch (ex) { }
+      ]]></destructor>
+
+      <field name="_stringBundle">document.getBindingParent(this)._stringBundle</field>
+      <field name="_formHistSvc">
+        Components.classes["@mozilla.org/satchel/form-history;1"]
+                  .getService(Components.interfaces.nsIFormHistory2)
+      </field>
+      <field name="_prefBranch">
+        Components.classes["@mozilla.org/preferences-service;1"]
+                  .getService(Components.interfaces.nsIPrefBranch2)
+      </field>
+      <field name="_suggestMenuItem"/>
+      <field name="_suggestEnabled">
+        this._prefBranch.getBoolPref("browser.search.suggest.enabled")
+      </field>
+
+      <method name="initialize">
+        <body><![CDATA[
+          const kXULNS =
+            "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+
+          if (this._prefBranch.getBoolPref("browser.urlbar.clickSelectsAll"))
+            this.setAttribute("clickSelectsAll", true);
+
+          // Add items to context menu and attach controller to handle them
+          var textBox = document.getAnonymousElementByAttribute(this,
+                                                "anonid", "textbox-input-box");
+          var cxmenu = document.getAnonymousElementByAttribute(textBox,
+                                            "anonid", "input-box-contextmenu");
+          var pasteAndSearch;
+          cxmenu.addEventListener("popupshowing", function() {
+            if (!pasteAndSearch)
+              return;
+            var controller = document.commandDispatcher.getControllerForCommand("cmd_paste");
+            var enabled = controller.isCommandEnabled("cmd_paste");
+            if (enabled)
+              pasteAndSearch.removeAttribute("disabled");
+            else
+              pasteAndSearch.setAttribute("disabled", "true");
+          }, false);
+
+          var element, label, akey;
+
+          element = document.createElementNS(kXULNS, "menuseparator");
+          cxmenu.appendChild(element);
+          var insertLocation = cxmenu.firstChild;
+          while (insertLocation.nextSibling &&
+                 insertLocation.getAttribute("cmd") != "cmd_paste")
+            insertLocation = insertLocation.nextSibling;
+          if (insertLocation) {
+            element = document.createElementNS(kXULNS, "menuitem");
+            label = this._stringBundle.getString("cmd_pasteAndSearch");
+            element.setAttribute("label", label);
+            element.setAttribute("anonid", "paste-and-search");
+            element.setAttribute("oncommand",
+                "BrowserSearch.searchBar.select(); goDoCommand('cmd_paste'); BrowserSearch.searchBar.handleSearchCommand();");
+            cxmenu.insertBefore(element, insertLocation.nextSibling);
+            pasteAndSearch = element;
+          }
+
+          element = document.createElementNS(kXULNS, "menuitem");
+          label = this._stringBundle.getString("cmd_clearHistory");
+          akey = this._stringBundle.getString("cmd_clearHistory_accesskey");
+          element.setAttribute("label", label);
+          element.setAttribute("accesskey", akey);
+          element.setAttribute("cmd", "cmd_clearhistory");
+
+          cxmenu.appendChild(element);
+
+          element = document.createElementNS(kXULNS, "menuitem");
+          label = this._stringBundle.getString("cmd_showSuggestions");
+          akey = this._stringBundle.getString("cmd_showSuggestions_accesskey");
+          element.setAttribute("anonid", "toggle-suggest-item");
+          element.setAttribute("label", label);
+          element.setAttribute("accesskey", akey);
+          element.setAttribute("cmd", "cmd_togglesuggest");
+          element.setAttribute("type", "checkbox");
+          element.setAttribute("checked", this._suggestEnabled);
+          element.setAttribute("autocheck", "false");
+
+          this._suggestMenuItem = element;
+          cxmenu.appendChild(element);
+
+          this.controllers.appendController(this.searchbarController);
+
+          // Add observer for suggest preference
+          this._prefBranch.addObserver("browser.search.suggest.enabled", this, false);
+        ]]></body>
+      </method>
+
+      <method name="observe">
+        <parameter name="aSubject"/>
+        <parameter name="aTopic"/>
+        <parameter name="aData"/>
+        <body><![CDATA[
+          if (aTopic == "nsPref:changed") {
+            this._suggestEnabled =
+              this._prefBranch.getBoolPref("browser.search.suggest.enabled");
+            this._suggestMenuItem.setAttribute("checked", this._suggestEnabled);
+          }
+        ]]></body>
+      </method>
+
+      <method name="openSearch">
+        <body>
+          <![CDATA[
+            // Don't open search popup if history popup is open
+            if (!this.popupOpen) {
+              document.getBindingParent(this).searchButton.open = true;
+              return false;
+            }
+            return true;
+          ]]>
+        </body>
+      </method>
+
+      <!-- override |onTextEntered| in autocomplete.xml -->
+      <method name="onTextEntered">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+          var evt = aEvent || this.mEnterEvent;
+          document.getBindingParent(this).handleSearchCommand(evt);
+          this.mEnterEvent = null;
+        ]]></body>
+      </method>
+
+      <!-- nsIController -->
+      <field name="searchbarController" readonly="true"><![CDATA[({
+        _self: this,
+        supportsCommand: function(aCommand) {
+          return aCommand == "cmd_clearhistory" ||
+                 aCommand == "cmd_togglesuggest";
+        },
+
+        isCommandEnabled: function(aCommand) {
+          if (aCommand == "cmd_clearhistory") {
+            var param = this._self.getAttribute("autocompletesearchparam");
+            return this._self._formHistSvc.nameExists(param);
+          }
+          return true;
+        },
+
+        doCommand: function (aCommand) {
+          switch (aCommand) {
+            case "cmd_clearhistory":
+              var param = this._self.getAttribute("autocompletesearchparam");
+              this._self._formHistSvc.removeEntriesForName(param);
+              this._self.value = "";
+              break;
+            case "cmd_togglesuggest":
+              // The pref observer will update _suggestEnabled and the menu
+              // checkmark.
+              this._self._prefBranch.setBoolPref("browser.search.suggest.enabled",
+                                                 !this._self._suggestEnabled);
+              break;
+            default:
+              // do nothing with unrecognized command
+          }
+        }
+      })]]></field>
+    </implementation>
+
+    <handlers>
+      <handler event="keypress" keycode="VK_UP" modifiers="accel"
+               phase="capturing"
+               action="document.getBindingParent(this).selectEngine(event, false);"/>
+
+      <handler event="keypress" keycode="VK_DOWN" modifiers="accel"
+               phase="capturing"
+               action="document.getBindingParent(this).selectEngine(event, true);"/>
+
+      <handler event="keypress" keycode="VK_DOWN" modifiers="alt"
+               phase="capturing"
+               action="return this.openSearch();"/>
+
+      <handler event="keypress" keycode="VK_UP" modifiers="alt"
+               phase="capturing"
+               action="return this.openSearch();"/>
+
+#ifndef XP_MACOSX
+      <handler event="keypress" keycode="VK_F4"
+               phase="capturing"
+               action="return this.openSearch();"/>
+#endif
+
+      <handler event="dragover">
+      <![CDATA[
+        var types = event.dataTransfer.types;
+        if (types.contains("text/plain") || types.contains("text/x-moz-text-internal"))
+          event.preventDefault();
+      ]]>
+      </handler>
+
+      <handler event="drop">
+      <![CDATA[
+        var dataTransfer = event.dataTransfer;
+        var data = dataTransfer.getData("text/plain");
+        if (!data)
+          data = dataTransfer.getData("text/x-moz-text-internal");
+        if (data) {
+          event.preventDefault();
+          this.value = data;
+          this.onTextEntered(event);
+        }
+      ]]>
+      </handler>
+
+    </handlers>
+  </binding>
+</bindings>
