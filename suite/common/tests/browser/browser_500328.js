@@ -44,12 +44,12 @@ function checkState(tab) {
 
   let popStateCount = 0;
 
-  tab.linkedBrowser.addEventListener("popstate", function(aEvent) {
+  let handler = function(aEvent) {
     let contentWindow = tab.linkedBrowser.contentWindow;
     if (popStateCount == 0) {
       popStateCount++;
-      ok(aEvent.state, "Event should have a state property.");
-      is(JSON.stringify(aEvent.state), JSON.stringify({obj1:1}),
+      //ok(aEvent.state, "Event should have a state property.");
+      is(JSON.stringify(tab.linkedBrowser.contentWindow.history.state), JSON.stringify({obj1:1}),
          "first popstate object.");
 
       // Add a node with id "new-elem" to the document.
@@ -77,11 +77,15 @@ function checkState(tab) {
       ok(!doc.getElementById("new-elem"), "new-elem should be removed.");
 
       // Clean up after ourselves and finish the test.
-      tab.linkedBrowser.removeEventListener("popstate", arguments.callee, false);
+      tab.linkedBrowser.removeEventListener("popstate", arguments.callee, true);
+      tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
       getBrowser().removeTab(tab);
       finish();
     }
-  }, true);
+  };
+
+  tab.linkedBrowser.addEventListener("load", handler, true);
+  tab.linkedBrowser.addEventListener("popstate", handler, true);
 
   tab.linkedBrowser.contentWindow.history.back();
 }
@@ -116,7 +120,7 @@ function test() {
       let contentWindow = tab.linkedBrowser.contentWindow;
       let history = contentWindow.history;
       history.pushState({obj1:1}, "title-obj1");
-      history.pushState({obj2:2}, "title-obj2", "page2");
+      history.pushState({obj2:2}, "title-obj2", "?foo");
       history.replaceState({obj3:3}, "title-obj3");
 
       let state = ss.getTabState(tab);
