@@ -145,6 +145,7 @@ function test_open_single_search_result_in_tab() {
   let preCount = mc.tabmail.tabContainer.childNodes.length;
 
   // Select one message
+  swc.e("threadTree").focus();
   let msgHdr = select_click_row(1, swc);
   // Open the selected message
   open_selected_message(swc);
@@ -173,6 +174,7 @@ function test_open_multiple_search_results_in_new_tabs() {
   let preCount = mc.tabmail.tabContainer.childNodes.length;
 
   // Select a bunch of messages
+  swc.e("threadTree").focus();
   select_click_row(1, swc);
   let selectedMessages = select_shift_click_row(NUM_MESSAGES_TO_OPEN, swc);
   // Open them
@@ -209,6 +211,7 @@ function test_open_search_result_in_new_window() {
   set_open_message_behavior("NEW_WINDOW");
 
   // Select a message
+  swc.e("threadTree").focus();
   let msgHdr = select_click_row(1, swc);
 
   plan_for_new_window("mail:messageWindow");
@@ -231,6 +234,7 @@ function test_open_search_result_in_existing_window() {
   set_open_message_behavior("EXISTING_WINDOW");
 
   // Open up a window
+  swc.e("threadTree").focus();
   select_click_row(1, swc);
   plan_for_new_window("mail:messageWindow");
   open_selected_message(swc);

@@ -125,6 +125,14 @@ function close_migration_assistant(fc) {
  */
 function get_subpage(fc) {
   let contentWindow = fc.e("contentFrame").contentWindow;
+  // XXX this is not my fault, but I'm not going to fix it.  just make it less
+  // broken:
+
+  // Lie to mozmill to convince it to not explode because these frames never
+  // get a documentLoaded attribute.
+  contentWindow.documentLoaded = true;
+  // And sleep so the page has a chance to load
+  controller.sleep(1000);
   let aController = new controller.MozMillController(contentWindow);
   return wh.augment_controller(aController);
 }

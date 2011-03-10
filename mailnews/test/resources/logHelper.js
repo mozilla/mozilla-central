@@ -300,7 +300,8 @@ function __simple_obj_copy(aObj, aDepthAllowed) {
     else if (!aDepthAllowed) {
       oot[key] = "truncated, string rep: " + value.toString();
     }
-    // array?  we don't count that as depth for now.
+    // array?  (not directly counted, but we will terminate because the
+    //  child copying occurs using nextDepth...)
     else if (Array.isArray(value)) {
       oot[key] = [__value_copy(v, nextDepth) for each
                    ([, v] in Iterator(value))];
@@ -345,6 +346,11 @@ function _normalize_for_json(aObj, aDepthAllowed, aJsonMeNotNeeded) {
   else if (aObj == null)
     return aObj;
 
+  // recursively transform arrays outright
+  if (Array.isArray(aObj))
+      return [__value_copy(v, aDepthAllowed - 1) for each
+              ([, v] in Iterator(aObj))];
+
   // === Mail Specific ===
   // (but common and few enough to not split out)
   if (aObj instanceof Ci.nsIMsgFolder) {
@@ -387,11 +393,20 @@ function _normalize_for_json(aObj, aDepthAllowed, aJsonMeNotNeeded) {
     if (aObj instanceof Ci.nsIDOMElement)
       name += "#" + aObj.getAttribute("id");
 
+    let nodeAttrs = aObj.attributes, objAttrs = {};
+    for (let iAttr = 0; iAttr < nodeAttrs.length; iAttr++) {
+      objAttrs[nodeAttrs[iAttr].name] = nodeAttrs[iAttr].value;
+    }
+
+    let bounds = aObj.getBoundingClientRect();
     return {
       type: "domNode",
       name: name,
       value: aObj.nodeValue,
       namespace: aObj.namespaceURI,
+      boundingClientRect: {left: bounds.left, top: bounds.top,
+                           width: bounds.width, height: bounds.height},
+      attrs: objAttrs,
     };
   }
   // Although straight JS exceptions should serialize pretty well, we can
@@ -501,7 +516,8 @@ _MarkAction.prototype = {
 function mark_action(aWho, aWhat, aArgs) {
   let logger = Log4Moz.repository.getLogger("test." + aWho);
 
-  aArgs = [_normalize_for_json(arg) for each ([, arg] in Iterator(aArgs))];
+  aArgs = [_normalize_for_json(arg, undefined, true) for each
+           ([, arg] in Iterator(aArgs))];
   logger.info(_testLoggerActiveContext, new _MarkAction(aWho, aWhat, aArgs));
 }
 

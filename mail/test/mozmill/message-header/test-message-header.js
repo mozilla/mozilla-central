@@ -334,13 +334,13 @@ function test_add_contact_from_context_menu() {
   // Click the Add to Address Book context menu entry.
   mc.click(mc.eid("addToAddressBookItem"));
   // (for reasons unknown, the pop-up does not close itself)
-  close_popup();
+  close_popup(mc, mc.eid("emailAddressPopup"));
 
   // Now click the contact again, the context menu should now show the
   // Edit Contact menu instead.
   mc.click(mc.aid("expandedfromBox", {tagName: "mail-emailaddress"}));
   // (for reasons unknown, the pop-up does not close itself)
-  close_popup();
+  close_popup(mc, mc.eid("emailAddressPopup"));
 
   addToAddressBookItem = mc.window.document.getElementById("addToAddressBookItem");
   if (!addToAddressBookItem.hidden)

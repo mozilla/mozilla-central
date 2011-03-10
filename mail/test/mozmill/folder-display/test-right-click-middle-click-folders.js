@@ -83,7 +83,7 @@ function test_right_click_folder_with_nothing_selected() {
   // The displayed folder shouldn't change
   assert_folder_displayed(folderA);
 
-  close_popup();
+  close_popup(mc, mc.eid("folderPaneContext"));
   assert_no_folders_selected();
 }
 
@@ -98,7 +98,7 @@ function test_right_click_folder_with_one_thing_selected() {
   assert_folder_selected(folderA);
   assert_folder_displayed(folderB);
 
-  close_popup();
+  close_popup(mc, mc.eid("folderPaneContext"));
   assert_folder_selected_and_displayed(folderB);
 }
 
@@ -114,7 +114,7 @@ function test_right_click_folder_with_many_things_selected() {
   assert_folder_selected(folderC);
   assert_folder_displayed(folderA);
 
-  close_popup();
+  close_popup(mc, mc.eid("folderPaneContext"));
   assert_folders_selected_and_displayed(folderA, folderB);
 }
 
@@ -128,7 +128,7 @@ function test_right_click_folder_on_existing_single_selection() {
   right_click_on_folder(folderA);
   assert_folders_selected_and_displayed(folderA);
 
-  close_popup();
+  close_popup(mc, mc.eid("folderPaneContext"));
   assert_folders_selected_and_displayed(folderA);
 }
 
@@ -143,7 +143,7 @@ function test_right_click_folder_on_existing_multi_selection() {
   right_click_on_folder(folderC);
   assert_folders_selected_and_displayed(folderB, folderC);
 
-  close_popup();
+  close_popup(mc, mc.eid("folderPaneContext"));
   assert_folders_selected_and_displayed(folderB, folderC);
 }
 

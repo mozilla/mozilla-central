@@ -97,7 +97,7 @@ function open_search_window_from_context_menu(aFolder) {
   mc.folderTreeController.searchMessages();
   let swc = windowHelper.wait_for_new_window("mailnews:search");
 
-  folderDisplayHelper.close_popup();
+  folderDisplayHelper.close_popup(mc, mc.eid("folderPaneContext"));
 
   return swc;
 }

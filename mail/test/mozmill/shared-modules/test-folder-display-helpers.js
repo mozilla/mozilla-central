@@ -51,6 +51,8 @@ Cu.import('resource://mozmill/modules/frame.js', frame);
 var os = {};
 Cu.import('resource://mozmill/stdlib/os.js', os);
 
+Cu.import("resource:///modules/gloda/log4moz.js");
+
 const MODULE_NAME = 'folder-display-helpers';
 
 const RELATIVE_ROOT = '../shared-modules';
@@ -145,26 +147,76 @@ function setupModule() {
     gDEPTH: "../../",
   };
 
+  // -- logging
+
   // The xpcshell test resources assume they are loaded into a single global
   //  namespace, so we need to help them out to maintain their delusion.
   load_via_src_path('logHelper.js', testHelperModule);
   mark_action = testHelperModule.mark_action;
   mark_failure = testHelperModule.mark_failure;
 
-  // Hook-up logHelper to the mozmill event system...
+  // Remove the dump appender that got appended; it just adds noise.
+  testHelperModule._testLogger._appenders.splice(
+    testHelperModule._testLogger._appenders.length - 1, 1);
+
+  // Add a bucketing appender to the root.
+  let rootLogger = Log4Moz.repository.rootLogger;
+  let bucketAppender = new Log4Moz.TimeAwareMemoryBucketAppender();
+  bucketAppender.level = Log4Moz.Level.All;
+  rootLogger.addAppender(bucketAppender);
+
+  // Indicate to any fancy helpers (just folderEventLogHelper right now) that
+  //  we want them to log extra stuff.
+  testHelperModule._logHelperInterestedListeners = true;
+
+  // - Hook-up logHelper to the mozmill event system...
   let curTestFile = null;
+  // Listen for setTest so we can change buckets and generate logHelper test
+  //  begin/end notifications.
   frame.events.addListener("setTest", function(obj) {
+      // ignore setupModule and teardownModule
+      if (obj.name == "setupModule" ||
+          obj.name == "teardownModule")
+        return;
       if (obj.filename != curTestFile) {
+        testHelperModule.mark_test_end();  
+        bucketAppender.newBucket();
         testHelperModule.mark_test_start(obj.filename);
         curTestFile = obj.filename;
       }
+      else {
+        testHelperModule.mark_test_end(1);
+        bucketAppender.newBucket();
+      }
       testHelperModule.mark_sub_test_start(obj.name);
     });
+  // Listen for the fail event so that we can annotate the failure object
+  //  with additional metadata.  This works out because we are directly handed
+  //  a reference to the object that will be provided to the jsbridge and we
+  //  can mutate it.  (The jsbridge is a global listener and so is guaranteed
+  //  to be invoked after our specific named listener.)
   frame.events.addListener("fail", function(obj) {
+      // generate the failure notification now so it shows up in the event log
+      //  bucket for presentation purposes.
       testHelperModule._xpcshellLogger.info(
         testHelperModule._testLoggerActiveContext,
         new testHelperModule._Failure(obj.exception.message, obj.exception));
+
+      try {
+        obj.failureContext = {
+          preEvents: bucketAppender.getPreviousBucketEvents(10000),
+          events: bucketAppender.getBucketEvents(),
+          windows: windowHelper.captureWindowStatesForErrorReporting(
+                     testHelperModule._normalize_for_json),
+        };
+      }
+      catch(ex) {
+        dump("!!!!!!!!EX: " + ex);
+        mark_action("fdh", "fail fail marking!", [ex]);
+      }
     });
+
+  // -- the rest of the asyncTestUtils framework (but not actually async)
 
   load_via_src_path('asyncTestUtils.js', testHelperModule);
   load_via_src_path('messageGenerator.js', testHelperModule);
@@ -195,6 +247,15 @@ function setupModule() {
   windowHelper = collector.getModule('window-helpers');
   mc = windowHelper.wait_for_existing_window("mail:3pane");
   windowHelper.augment_controller(mc);
+
+  // Tell window-helper about the true mark_action function in order to try
+  // and further complicate this horrid seven-dimensional rats' nest.
+  windowHelper.hereIsMarkAction(mark_action,
+                                testHelperModule._normalize_for_json);
+
+  mark_action("fdh", "startup completed",
+              [(mc.window.msgWindow != null) ? "3pane looks initialized"
+               : "3pane does not appear to have fully loaded yet!"]);
 
   setupAccountStuff();
 }
@@ -289,8 +350,13 @@ function teardownImporter(customTeardown) {
     let enumerator = windowMediator.getEnumerator(null);
     while (enumerator.hasMoreElements()) {
       let win = enumerator.getNext();
-      if (win != mc.window)
+      if (win != mc.window) {
+        mark_action("fdh", "teardown",
+                    ["cleanup closing non-mc window", win.toString(),
+                     "window type",
+                     windowHelper.getWindowTypeForXulWindow(win)]);
         win.close();
+      }
     }
 
     // At this point we should have exactly one window open.
@@ -298,12 +364,17 @@ function teardownImporter(customTeardown) {
     mc.tabmail.closeOtherTabs(mc.tabmail.tabInfo[0]);
 
     // - Set the mode to All Folders.
-    if (mc.folderTreeView.mode != "all")
+    if (mc.folderTreeView.mode != "all") {
+      mark_action("fdh", "teardown",
+                  ["resetting folderTreeView mode", mc.folderTreeView.mode]);
       mc.folderTreeView.mode = "all";
+    }
 
     // - Make sure the message pane is visible.
-    if (mc.window.IsMessagePaneCollapsed())
+    if (mc.window.IsMessagePaneCollapsed()) {
+      mark_action("fdh", "teardown", ["toggling message pane on again"]);
       mc.window.MsgToggleMessagePane();
+    }
   };
   // Another internal mozmill thing, again figured out too early for it to have
   // a chance.
@@ -448,10 +519,10 @@ function open_folder_in_new_tab(aFolder) {
  *     |mc| if omitted.
  */
 function open_selected_messages(aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   // Focus the thread tree
-  aController.threadTree.focus();
+  focus_thread_tree();
   mark_action("fdh", "open_selected_messages",
               mc.folderDisplay.selectedMessages);
   // Open whatever's selected
@@ -728,7 +799,7 @@ function close_message_window(aController) {
  */
 function select_none(aController) {
   mark_action("fdh", "select_none", []);
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   wait_for_message_display_completion();
   aController.dbView.selection.clearSelection();
@@ -752,7 +823,7 @@ function select_none(aController) {
  *     or a SyntheticMessageSet (we only care about the first message in it).
  */
 function _normalize_view_index(aViewIndex, aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   // SyntheticMessageSet special-case
   if (typeof(aViewIndex) != "number") {
@@ -781,7 +852,7 @@ function _normalize_view_index(aViewIndex, aController) {
  * @return The message header selected.
  */
 function select_click_row(aViewIndex, aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   let hasMessageDisplay = "messageDisplay" in aController;
   if (hasMessageDisplay)
@@ -856,7 +927,7 @@ function select_control_click_row(aViewIndex) {
  * @return The message headers for all messages that are now selected.
  */
 function select_shift_click_row(aViewIndex, aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   let hasMessageDisplay = "messageDisplay" in aController;
   if (hasMessageDisplay)
@@ -899,12 +970,22 @@ function _row_click_helper(aTree, aViewIndex, aButton) {
   }
   let tx = aTree.boxObject.x;
   let ty = aTree.boxObject.y;
+  // Generate a mouse-down for all click types; the transient selection
+  // logic happens on mousedown which our tests assume is happening.  (If you
+  // are using a keybinding to trigger the event, that will not happen, but
+  // we don't test that.)
   EventUtils.synthesizeMouse(aTree, x + rowX - tx, y + rowY - ty,
                              {type: "mousedown", button: aButton}, mc.window);
+
+  // For right-clicks, the platform code generates a "contextmenu" event
+  // when it sees the mouse press/down event. We are not synthesizing a platform
+  // level event (though it is in our power; we just historically have not),
+  // so we need to be the people to create the context menu.
   if (aButton == 2)
     EventUtils.synthesizeMouse(aTree, x + rowX - tx, y + rowY - ty,
                                {type: "contextmenu", button: aButton},
                                mc.window);
+
   EventUtils.synthesizeMouse(aTree, x + rowX - tx, y + rowY - ty,
                              {type: "mouseup", button: aButton}, mc.window);
 }
@@ -961,7 +1042,7 @@ function assert_row_visible(aViewIndex) {
  *     |mc| if omitted.
  */
 function assert_folder_mode(aMode, aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   let actualMode = aController.folderTreeView.mode;
   if (actualMode != aMode)
@@ -993,7 +1074,7 @@ function assert_folder_child_in_view(aChild, aParent) {
  * @returns The index of the folder, if it is visible.
  */
 function assert_folder_visible(aFolder, aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   let folderIndex = aController.folderTreeView.getIndexOfFolder(aFolder);
   if (folderIndex == null)
@@ -1179,20 +1260,38 @@ function delete_via_popup() {
               ["selected messages:", mc.folderDisplay.selectedMessages]);
   mc.click(mc.eid("mailContext-delete"));
   // for reasons unknown, the pop-up does not close itself?
-  close_popup();
+  close_popup(mc, mc.eid("mailContext"));
   wait_for_folder_events();
+}
+
+function wait_for_popup_to_open(popupElem) {
+  mark_action("fdh", "wait_for_popup_to_open", [popupElem]);
+  mc.waitForEval("subject.state == 'open'", 1000, 50, popupElem);
 }
 
 /**
  * Close the open pop-up.
  */
-function close_popup(aController) {
-  if (aController === undefined)
+function close_popup(aController, eid) {
+  if (aController == null)
     aController = mc;
-  mark_action("fdh", "close_popup", []);
-  aController.keypress(aController.eid("mailContext"), "VK_ESCAPE", {});
-  // drain event queue
-  aController.sleep(0);
+  let elem = eid.getNode();
+  // if it was already closing, just leave
+  if (elem.state == "closed") {
+    mark_action("fdh", "close_popup", ["popup suspiciously already closed!",
+                                       elem]);
+    return;
+  }
+  mark_action("fdh", "close_popup", [elem]);
+  // if it's in the process of closing, don't push escape
+  if (elem.state == "hiding")
+    mark_action("fdh", "close_popup",
+                ["popup suspiciously already closing..."]);
+  else // actually push escape because it's not closing/closed
+    aController.keypress(eid, "VK_ESCAPE", {});
+   if (!controller.waitForEval("subject.state == 'closed'", 1000, 50,
+                               elem))
+     throw new Error("Popup did not close!");
 }
 
 /**
@@ -1203,7 +1302,7 @@ function close_popup(aController) {
  *     |mc| if omitted.
  */
 function press_delete(aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   // if something is loading, make sure it finishes loading...
   wait_for_message_display_completion(aController);
@@ -1211,7 +1310,9 @@ function press_delete(aController) {
                                  "DeleteOrMoveMsgFailed");
   mark_action("fdh", "press_delete",
               ["selected messages:",
-               aController.folderDisplay.selectedMessages]);
+               aController.folderDisplay.selectedMessages,
+               "currently focused element:",
+               aController.focusedElement]);
   aController.keypress(aController == mc ? mc.eThreadTree : null,
                        "VK_DELETE", {});
   wait_for_folder_events();
@@ -1224,11 +1325,17 @@ function press_delete(aController) {
  *     |mc| if omitted.
  */
 function archive_selected_messages(aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   let expectedCount = aController.dbView.rowCount - aController.dbView.numSelected;
   // XXX We seem to sometimes have focus issues on trunk; this works around it.
   focus_thread_tree();
+
+  mark_action("fdh", "archive_selected_messages",
+              ["selected messages:",
+               aController.folderDisplay.selectedMessages,
+               "currently focused element:",
+               aController.focusedElement]);
   aController.keypress(null, "a", {});
 
   // Wait for the view rowCount to decrease by the number of selected messages.
@@ -1241,7 +1348,6 @@ function archive_selected_messages(aController) {
   // The above may return immediately, meaning the event queue might not get a
   //  chance.  give it a chance now.
   aController.sleep(0);
-
 }
 
 /**
@@ -1253,14 +1359,16 @@ function archive_selected_messages(aController) {
  *     |mc| if omitted.
  */
 function press_enter(aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   // if something is loading, make sure it finishes loading...
   if ("messageDisplay" in aController)
     wait_for_message_display_completion(aController);
   mark_action("fdh", "press_enter",
               ["selected messages:",
-               aController.folderDisplay.selectedMessages]);
+               aController.folderDisplay.selectedMessages,
+               "currently focused element:",
+               aController.focusedElement]);
   aController.keypress(aController == mc ? mc.eThreadTree : null,
                        "VK_RETURN", {});
   // The caller's going to have to wait for message display completion
@@ -1275,7 +1383,7 @@ function press_enter(aController) {
  *  helper methods in this file.
  */
 function wait_for_all_messages_to_load(aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   if (!controller.waitForEval('subject.allMessagesLoaded', NORMAL_TIMEOUT,
                               FAST_INTERVAL, aController.folderDisplay))
@@ -1297,8 +1405,9 @@ function wait_for_all_messages_to_load(aController) {
  *     the tab to switch to should be passed in.
  */
 function plan_for_message_display(aControllerOrTab) {
-  if (aControllerOrTab === undefined)
+  if (aControllerOrTab == null)
     aControllerOrTab = mc;
+  mark_action("fdh", "plan_for_message_display", []);
   // We're relying on duck typing here -- both controllers and tabs expose their
   // message displays as the property |messageDisplay|.
   aControllerOrTab.messageDisplay.messageLoaded = false;
@@ -1341,8 +1450,9 @@ function plan_for_message_display(aControllerOrTab) {
  *     return immediately.
  */
 function wait_for_message_display_completion(aController, aLoadDemanded) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
+  mark_action("fdh", "wait_for_message_display_completion", []);
   let contentPane = aController.contentPane;
   let oldHref = null;
 
@@ -1385,6 +1495,7 @@ function wait_for_message_display_completion(aController, aLoadDemanded) {
   // the above may return immediately, meaning the event queue might not get a
   //  chance.  give it a chance now.
   aController.sleep(0);
+  mark_action("fdh", "/wait_for_message_display_completion", []);
 }
 
 /**
@@ -1395,8 +1506,9 @@ function wait_for_message_display_completion(aController, aLoadDemanded) {
  * @param aController optional controller, defaulting to |mc|.
  */
 function wait_for_blank_content_pane(aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
+  mark_action("fdh", "wait_for_blank_content_pane", []);
 
   let isBlankChecker = function() {
     return aController.window.content.location.href == "about:blank";
@@ -1408,6 +1520,7 @@ function wait_for_blank_content_pane(aController) {
   // the above may return immediately, meaning the event queue might not get a
   //  chance.  give it a chance now.
   aController.sleep(0);
+  mark_action("fdh", "/wait_for_blank_content_pane", []);
 }
 
 
@@ -1483,7 +1596,7 @@ function wait_for_folder_events() {
  *     property from.  If omitted, we use mc.
  */
 function assert_messages_in_view(aSynSets, aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   testHelperModule.verify_messages_in_view(aSynSets,
                                            aController.folderDisplay.view);
@@ -1494,7 +1607,7 @@ function assert_messages_in_view(aSynSets, aController) {
  * @param aMessages Either a single nsIMsgDBHdr or a list of them.
  */
 function assert_messages_not_in_view(aMessages, aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   if (aMessages instanceof Ci.nsIMsgDBHdr)
     aMessages = [aMessages];
@@ -2108,7 +2221,7 @@ function assert_multimessage_pane_focused() {
 
 
 function _normalize_folder_view_index(aViewIndex, aController) {
-  if (aController === undefined)
+  if (aController == null)
     aController = mc;
   if (aViewIndex < 0)
     return aController.folderTreeView.QueryInterface(Ci.nsITreeView).rowCount +

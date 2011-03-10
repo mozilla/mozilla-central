@@ -91,19 +91,20 @@ function test_spellcheck_in_content_tabs() {
   let tabmail = mc.tabmail;
   let w = tabmail.selectedTab.browser.contentWindow;
   let textarea = w.document.getElementsByTagName("textarea")[0];
+  let eidMailContext = mc.eid("mailContext");
 
   // Test a few random items
   mc.rightClick(new elementslib.Elem(textarea));
   assert_element_visible("mailContext-spell-dictionaries");
   assert_element_visible("mailContext-spell-check-enabled");
   assert_element_not_visible("mailContext-replySender"); // we're in a content tab!
-  close_popup();
+  close_popup(mc, eidMailContext);
 
   // Different test
   mc.rightClick(new elementslib.Elem(w.document.body.firstElementChild));
   assert_element_not_visible("mailContext-spell-dictionaries");
   assert_element_not_visible("mailContext-spell-check-enabled");
-  close_popup();
+  close_popup(mc, eidMailContext);
 
   // Right-click on "zombocom" and add to dictionary
   EventUtils.synthesizeMouse(textarea, 5, 5,
@@ -111,14 +112,14 @@ function test_spellcheck_in_content_tabs() {
   let suggestions = mc.window.document.getElementsByClassName("spell-suggestion");
   assert_true(suggestions.length > 0, "What, is zombocom a registered word now?");
   mc.click(mc.eid("mailContext-spell-add-to-dictionary"));
-  close_popup();
+  close_popup(mc, eidMailContext);
 
   // Now check we don't have any suggestionss
   EventUtils.synthesizeMouse(textarea, 5, 5,
                              {type: "contextmenu", button: 2}, w);
   let suggestions = mc.window.document.getElementsByClassName("spell-suggestion");
   assert_true(suggestions.length == 0, "But I just taught you this word!");
-  close_popup();
+  close_popup(mc, eidMailContext);
 }
 
 function test_content_tab_open_same() {

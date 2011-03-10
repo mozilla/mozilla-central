@@ -77,7 +77,9 @@ function test_switch_to_test_mode() {
  * that the mode displayed in the new window is the custom mode.
  */
 function test_open_new_window_with_custom_mode() {
-  be_in_folder(folder);
+  // Our selection may get lost while changing modes, and be_in_folder is
+  // not sufficient to ensure actual selection.
+  mc.folderTreeView.selectFolder(folder);
 
   plan_for_new_window("mail:3pane");
   mc.window.MsgOpenNewWindowForFolder(null, -1);

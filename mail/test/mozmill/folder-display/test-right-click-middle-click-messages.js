@@ -35,6 +35,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var elib = {};
+Cu.import('resource://mozmill/modules/elementslib.js', elib);
+
 /*
  * Test the many horrors involving right-clicks, middle clicks, and selections.
  */
@@ -83,10 +86,13 @@ function test_right_click_with_nothing_selected() {
   assert_nothing_selected();
 
   right_click_on_row(1);
+  // Check that the popup opens.
+  wait_for_popup_to_open(mc.e("mailContext"));
+
   assert_selected(1);
   assert_displayed();
 
-  close_popup();
+  close_popup(mc, mc.eid("mailContext"));
   assert_nothing_selected();
 }
 
@@ -95,10 +101,6 @@ function test_right_click_with_nothing_selected() {
  */
 function test_right_click_column_header_shows_col_picker() {
   be_in_folder(folder);
-
-  // Right click the subject columen header (must use 10 10 offset to make it work!)
-  // This should show the column picker popup.
-  mc.rightClick(mc.eid("subjectCol"), 10, 10);
 
   // The treecolpicker element itself doesn't have an id, so we have to walk
   // down from the parent to find it.
@@ -110,10 +112,14 @@ function test_right_click_column_header_shows_col_picker() {
   let popup = mc.window.document.getAnonymousElementByAttribute(
                 treeColPicker, "anonid", "popup");
 
+  // Right click the subject column header
+  // This should show the column picker popup.
+  mc.rightClick(mc.eid("subjectCol"));
+
   // Check that the popup opens.
-  mc.waitForEval("subject.state == 'open'", 1000, 100, popup);
+  wait_for_popup_to_open(popup);
   // Hide it again, we just wanted to know it was gonna be shown.
-  popup.hidePopup();
+  close_popup(mc, new elib.Elem(popup));
 }
 
 /**
@@ -129,7 +135,7 @@ function test_right_click_with_one_thing_selected() {
   assert_selected(1);
   assert_displayed(0);
 
-  close_popup();
+  close_popup(mc, mc.eid("mailContext"));
   assert_selected_and_displayed(0);
 }
 
@@ -147,7 +153,7 @@ function test_right_click_with_many_things_selected() {
   assert_selected(6);
   assert_displayed([0, 5]);
 
-  close_popup();
+  close_popup(mc, mc.eid("mailContext"));
   assert_selected_and_displayed([0, 5]);
 }
 
@@ -163,7 +169,7 @@ function test_right_click_on_existing_single_selection() {
   right_click_on_row(3);
   assert_selected_and_displayed(3);
 
-  close_popup();
+  close_popup(mc, mc.eid("mailContext"));
   assert_selected_and_displayed(3);
 }
 
@@ -180,7 +186,7 @@ function test_right_click_on_existing_multi_selection() {
   right_click_on_row(5);
   assert_selected_and_displayed([3, 6]);
 
-  close_popup();
+  close_popup(mc, mc.eid("mailContext"));
   assert_selected_and_displayed([3, 6]);
 }
 

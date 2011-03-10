@@ -77,10 +77,7 @@ function open_advanced_settings(aCallback, aController) {
     aController = mc;
 
   wh.plan_for_modal_dialog("mailnews:accountmanager", aCallback);
-  if (mozmill.isLinux)
-    aController.click(new elib.Elem(mc.menus.menu_Edit.menu_accountmgr));
-  else
-    aController.click(new elib.Elem(mc.menus.tasksMenu.menu_accountmgr));
+  aController.click(mc.eid("menu_accountmgr"));
   return wh.wait_for_modal_dialog("mailnews:accountmanager");
 }
 

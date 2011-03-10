@@ -91,14 +91,11 @@ function check_read_status(messages, read) {
  */
 function check_read_menuitems(index, canMarkRead, canMarkUnread) {
   right_click_on_row(index);
+  wait_for_popup_to_open(mc.e("mailContext"));
   mc.click_menus_in_sequence(mc.e("mailContext"), [{id: "mailContext-mark"}]);
 
   let readEnabled = !mc.e("mailContext-markRead").disabled;
   let unreadEnabled = !mc.e("mailContext-markUnread").disabled;
-
-  // Close both the mark submenu and the main context menu
-  close_popup();
-  close_popup();
 
   assert_true(readEnabled == canMarkRead,
               "Mark read menu item " + (canMarkRead ? "dis" : "en") +

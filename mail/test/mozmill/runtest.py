@@ -310,7 +310,8 @@ class ThunderTestCLI(mozmill.CLI):
 
         self.mozmill = self.mozmill_class(runner_class=self.runner_class,
                                           profile_class=self.profile_class,
-                                          jsbridge_port=int(self.options.port))
+                                          jsbridge_port=int(self.options.port),
+                                          jsbridge_timeout=300)
 
         self.mozmill.add_global_listener(mozmill.LoggerListener())
 
@@ -340,11 +341,6 @@ TEST_RESULTS = []
 # Versions of MozMill prior to 1.5 did not output test-pass /
 # TEST-UNEXPECTED-FAIL. Since 1.5 happened this gets output, so we only want
 # a summary at the end to make it easy for developers.
-# override mozmill's default logging case, which I hate.
-def logFailure(obj):
-    if isinstance(obj, basestring):
-        obj = json.loads(obj)
-    FAILURE_LIST.append(obj)
 def logEndTest(obj):
     # If we've got a string here, we know we're later than 1.5, and we can just
     # display a summary at the end as 1.5 will do TEST-UNEXPECTED-FAIL for us.
@@ -352,8 +348,19 @@ def logEndTest(obj):
         obj = json.loads(obj)
         obj['summary'] = True
     TEST_RESULTS.append(obj)
-#mozmill.LoggerListener.cases['mozmill.fail'] = logFailure
 mozmill.LoggerListener.cases['mozmill.endTest'] = logEndTest
+
+# We now send extended meta-data about failures.  We do not want the entire
+# message dumped with this extra data, so clobber the default mozmill.fail
+# with one that wraps it and only tells it the exception message rather than
+# the whole JSON blob.
+ORIGINAL_FAILURE_LOGGER = mozmill.LoggerListener.cases['mozmill.fail']
+def logFailure(obj):
+    if isinstance(obj, basestring):
+        obj = json.loads(obj)
+    ORIGINAL_FAILURE_LOGGER(obj["exception"]["message"])
+mozmill.LoggerListener.cases['mozmill.fail'] = logFailure
+
 
 def prettifyFilename(path):
     lslash = path.rfind('/')
@@ -393,7 +400,8 @@ def prettyPrintException(e):
 # Tests that are useless and shouldn't be printed if successful
 TEST_BLACKLIST = ["setupModule", "setupTest", "teardownTest", "teardownModule"]
 
-import pprint
+import pprint, atexit
+@atexit.register
 def prettyPrintResults():
     for result in TEST_RESULTS:
         #pprint.pprint(result)
@@ -409,8 +417,16 @@ def prettyPrintResults():
             if 'exception' in failure:
                 prettyPrintException(failure['exception'])
 
-import atexit
-atexit.register(prettyPrintResults)
+@atexit.register
+def dumpRichResults():
+    print '##### MOZMILL-RICH-FAILURES-BEGIN #####'
+    for result in TEST_RESULTS:
+        if len(result['fails']) > 0:
+            for failure in result['fails']:
+                failure['fileName'] = prettifyFilename(result['filename'])
+                failure['testName'] = result['name']
+                print json.dumps(failure)
+    print '##### MOZMILL-RICH-FAILURES-END #####'
 
 def checkCrashesAtExit():
     if checkForCrashes(os.path.join(PROFILE_DIR, 'minidumps'), SYMBOLS_PATH,

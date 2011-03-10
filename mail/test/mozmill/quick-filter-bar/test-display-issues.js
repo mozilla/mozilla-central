@@ -60,6 +60,27 @@ function setupModule(module) {
   be_in_folder(folder);
 }
 
+function resize_to(width, height) {
+  mark_action("test", "resize_to", [width, "x", height]);
+  mc.window.resizeTo(width, height);
+  // Give the event loop a spin in order to let the reality of an asynchronously
+  //  interacting window manager have its impact.  This still may not be
+  //  sufficient.
+  mc.sleep(0);
+  mc.waitForEval("subject.outerWidth == " + width + " && " +
+                 " subject.outerHeight == " + height,
+                 1000, 50, mc.window);
+}
+
+function collapse_folder_pane(shouldBeCollapsed) {
+  mark_action("test", "collapse_folder_pane",
+              [shouldBeCollapsed]);
+  mc.e("folderpane_splitter").setAttribute("state",
+                                           shouldBeCollapsed ? "collapsed"
+                                                             : "open");
+}
+
+
 /**
  * When the window gets too narrow the collapsible button labels need to get
  *  gone.  Then they need to come back when we get large enough again.
@@ -70,72 +91,70 @@ function setupModule(module) {
 function test_buttons_collapse_and_expand() {
   assert_quick_filter_bar_visible(true); // precondition
 
-  try {
-    let qfbCollapsy = mc.e("quick-filter-bar-collapsible-buttons");
-    let qfbExemplarButton = mc.e("qfb-unread"); // (arbitrary labeled button)
-    let qfbExemplarLabel = mc.window
-                             .document.getAnonymousNodes(qfbExemplarButton)[1];
+  let qfbCollapsy = mc.e("quick-filter-bar-collapsible-buttons");
+  let qfbExemplarButton = mc.e("qfb-unread"); // (arbitrary labeled button)
+  let qfbExemplarLabel = mc.window
+                           .document.getAnonymousNodes(qfbExemplarButton)[1];
 
-    function logState(aWhen) {
-      dump("\n\n*********** " + aWhen + "\n");
-      dump("Current window location: " + mc.window.screenX + ", " +
-           mc.window.screenY + "\n");
-      dump("Current window dimensions: " + mc.window.outerWidth + ", " +
-           mc.window.outerHeight + "\n");
-      dump("Collapsy bar width: " + qfbCollapsy.clientWidth + "\n");
-      dump("***********\n\n");
-    }
-
-    function assertCollapsed() {
-      // The bar should be shrunken and the button should be the same size as its
-      // image!
-      if (qfbCollapsy.getAttribute("shrink") != "true")
-        throw new Error("The collapsy bar should be shrunk!");
-      if (qfbExemplarLabel.clientWidth != 0)
-        throw new Error("The exemplar label should be collapsed!");
-    }
-    function assertExpanded() {
-      // The bar should not be shrunken and the button should be smaller than its
-      // label!
-      if (qfbCollapsy.hasAttribute("shrink"))
-        throw new Error("The collapsy bar should not be shrunk!");
-      if (qfbExemplarLabel.clientWidth == 0)
-        throw new Error("The exemplar label should not be collapsed!");
-    }
-
-    logState("entry");
-
-    // -- GIANT!
-    mc.window.resizeTo(1200, 600);
-    // Right, so resizeTo caps us at the display size limit, so we may end up
-    // smaller than we want.  So let's turn off the folder pane too.
-    mc.e("folderpane_splitter").setAttribute("state", "collapsed");
-    // spin the event loop once
-    mc.sleep(0);
-    logState("giant");
-    assertExpanded();
-
-    // -- tiny.
-    mc.e("folderpane_splitter").setAttribute("state", "open");
-    mc.window.resizeTo(600, 600);
-    // spin the event loop once
-    mc.sleep(0);
-    logState("tiny");
-    assertCollapsed();
-
-    // -- GIANT again!
-    mc.window.resizeTo(1200, 600);
-    mc.e("folderpane_splitter").setAttribute("state", "collapsed");
-    // spin the event loop once
-    mc.sleep(0);
-    logState("giant again!");
-    assertExpanded();
+  function logState(aWhen) {
+    mark_action("test", "log_window_state",
+                [aWhen,
+                 "location:", mc.window.screenX, mc.window.screenY,
+                 "dims:", mc.window.outerWidth, mc.window.outerHeight,
+                 "Collapsy bar width:", qfbCollapsy.clientWidth,
+                 "shrunk?", qfbCollapsy.getAttribute("shrink")]);
   }
-  finally {
-    // restore window to nominal dimensions; saving was not working out
-    //  See also: message-header/test-message-header.js if we change the
-    //            default window size.
-    mc.window.resizeTo(1024, 768);
-    mc.e("folderpane_splitter").setAttribute("state", "open");
+
+  function assertCollapsed() {
+    // The bar should be shrunken and the button should be the same size as its
+    // image!
+    if (qfbCollapsy.getAttribute("shrink") != "true")
+      throw new Error("The collapsy bar should be shrunk!");
+    if (qfbExemplarLabel.clientWidth != 0)
+      throw new Error("The exemplar label should be collapsed!");
   }
+  function assertExpanded() {
+    // The bar should not be shrunken and the button should be smaller than its
+    // label!
+    if (qfbCollapsy.hasAttribute("shrink"))
+      throw new Error("The collapsy bar should not be shrunk!");
+    if (qfbExemplarLabel.clientWidth == 0)
+      throw new Error("The exemplar label should not be collapsed!");
+  }
+
+  logState("entry");
+
+  // -- GIANT!
+  resize_to(1200, 600);
+  // Right, so resizeTo caps us at the display size limit, so we may end up
+  // smaller than we want.  So let's turn off the folder pane too.
+  collapse_folder_pane(true);
+  // spin the event loop once
+  mc.sleep(0);
+  logState("giant");
+  assertExpanded();
+
+  // -- tiny.
+  collapse_folder_pane(false);
+  resize_to(600, 600);
+  // spin the event loop once
+  mc.sleep(0);
+  logState("tiny");
+  assertCollapsed();
+
+  // -- GIANT again!
+  resize_to(1200, 600);
+  collapse_folder_pane(true);
+  // spin the event loop once
+  mc.sleep(0);
+  logState("giant again!");
+  assertExpanded();
+}
+
+function teardownModule() {
+  // restore window to nominal dimensions; saving was not working out
+  //  See also: message-header/test-message-header.js if we change the
+  //            default window size.
+  resize_to(1024, 768);
+  collapse_folder_pane(false);
 }

@@ -55,7 +55,7 @@ function setupModule(module) {
 }
 
 /**
- * Add some messages to a folder, delete the first one, and create a saved 
+ * Add some messages to a folder, delete the first one, and create a saved
  * search over the inbox and the folder. Then, compact folders.
  */
 function test_setup_virtual_folder_and_compact() {

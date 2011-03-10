@@ -368,8 +368,10 @@ function invoke_column_picker_option(aActions) {
   let colPickerPopup = mc.window.document.getAnonymousElementByAttribute(
                          colPicker, "anonid", "popup");
 
-  mc.click(new elib.Elem(colPicker), 10, 10);
+  mc.click(new elib.Elem(colPicker));
+  wait_for_popup_to_open(colPickerPopup);
   mc.click_menus_in_sequence(colPickerPopup, aActions);
+  close_popup(mc, new elib.Elem(colPickerPopup));
 }
 
 

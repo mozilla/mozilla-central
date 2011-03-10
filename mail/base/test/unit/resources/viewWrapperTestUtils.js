@@ -445,7 +445,8 @@ function verify_messages_in_view(aSynSets, aViewWrapper) {
       dump_message_header(msgHdr);
       dump("View State:\n");
       dump_view_state(aViewWrapper);
-      do_throw("view contains header that should not be present!");
+      mark_failure(["view contains header that should not be present!",
+                    msgHdr]);
     }
   }
 
@@ -458,7 +459,8 @@ function verify_messages_in_view(aSynSets, aViewWrapper) {
       dump_message_header(msgHdr);
       dump("View State:\n");
       dump_view_state(aViewWrapper);
-      do_throw("view does not contain a header that should be present!");
+      mark_failure(["view does not contain a header that should be present!",
+                    msgHdr]);
     }
   }
 }

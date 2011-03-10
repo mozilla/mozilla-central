@@ -450,6 +450,11 @@ function make_virtual_folder(aFolders, aSearchDef, aBooleanAnd, aName) {
   let mis = _messageInjectionSetup;
   let name = aName ? aName : "virt" + mis._nextUniqueFolderId++;
 
+  mark_action("messageInjection", "make_virtual_folder",
+              ["creating folder named", name,
+               "from folders", aFolders, "anding?", aBooleanAnd,
+               "using search def", aSearchDef]);
+
   let terms = [];
   let termCreator = Components.classes["@mozilla.org/messenger/searchSession;1"]
                               .createInstance(Ci.nsIMsgSearchSession);

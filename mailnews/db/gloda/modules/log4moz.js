@@ -192,6 +192,7 @@ let Log4Moz = {
   get Appender() { return Appender; },
   get DumpAppender() { return DumpAppender; },
   get ConsoleAppender() { return ConsoleAppender; },
+  get TimeAwareMemoryBucketAppender() { return TimeAwareMemoryBucketAppender; },
   get FileAppender() { return FileAppender; },
   get SocketAppender() { return SocketAppender; },
   get RotatingFileAppender() { return RotatingFileAppender; },
@@ -238,7 +239,7 @@ let Log4Moz = {
 };
 
 function LoggerContext() {
-  this._started = this.lastStateChange = Date.now();
+  this._started = this._lastStateChange = Date.now();
   this._state = "started";
 }
 LoggerContext.prototype = {
@@ -530,6 +531,12 @@ JSONFormatter.prototype = {
   __proto__: Formatter.prototype,
 
   format: function JF_format(message) {
+    // XXX I did all kinds of questionable things in here; they should be
+    //  resolved...
+    // 1) JSON does not walk the __proto__ chain; there is no need to clobber
+    //   it.
+    // 2) Our net mutation is sorta redundant messageObjects alongside
+    //   msgObjects, although we only serialize one.
     let origMessageObjects = message.messageObjects;
     message.messageObjects = [];
     let reProto = [];
@@ -599,6 +606,65 @@ DumpAppender.prototype = {
   doAppend: function DApp_doAppend(message) {
     dump(message);
   }
+};
+
+/**
+ * An in-memory appender that always logs to its in-memory bucket and associates
+ * each message with a timestamp.  Whoever creates us is responsible for causing
+ * us to switch to a new bucket using whatever criteria is appropriate.
+ *
+ * This is intended to be used roughly like an in-memory circular buffer.  The
+ * expectation is that we are being used for unit tests and that each unit test
+ * function will get its own bucket.  In the event that a test fails we would
+ * be asked for the contents of the current bucket and some portion of the
+ * previous bucket using up to some duration.
+ */
+function TimeAwareMemoryBucketAppender() {
+  this._name = "TimeAwareMemoryBucketAppender";
+  this._level = Log4Moz.Level.All;
+
+  this._lastBucket = null;
+  // to minimize object construction, even indices are timestamps, odd indices
+  //  are the message objects.
+  this._curBucket = [];
+  this._curBucketStartedAt = Date.now();
+}
+TimeAwareMemoryBucketAppender.prototype = {
+  get level() { return this._level; },
+  set level(level) { this._level = level; },
+
+  append: function TAMBA_append(message) {
+    if (this._level <= message.level)
+      this._curBucket.push(message);
+  },
+
+  newBucket: function() {
+    this._lastBucket = this._curBucket;
+    this._curBucketStartedAt = Date.now();
+    this._curBucket = [];
+  },
+
+  getPreviousBucketEvents: function(aNumMS) {
+    let lastBucket = this._lastBucket;
+    if (lastBucket == null || !lastBucket.length)
+      return [];
+    let timeBound = this._curBucketStartedAt - aNumMS;
+    // seek backwards through the list...
+    let i;
+    for (i = lastBucket.length - 1; i >= 0; i --) {
+      if (lastBucket[i].time < timeBound)
+        break;
+    }
+    return lastBucket.slice(i+1);
+  },
+
+  getBucketEvents: function() {
+    return this._curBucket.concat();
+  },
+
+  toString: function() {
+    return "[TimeAwareMemoryBucketAppender]";
+  },
 };
 
 /*
