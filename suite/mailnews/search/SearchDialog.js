@@ -624,11 +624,13 @@ function SetNextMessageAfterDelete()
 
 function HandleDeleteOrMoveMessageFailed(folder)
 {
+  gSearchView.onDeleteCompleted(false);
   gNextMessageViewIndexAfterDelete = -2;
 }
 
 function HandleDeleteOrMoveMessageCompleted(folder)
 {
+  gSearchView.onDeleteCompleted(true);
   var treeView = gSearchView.QueryInterface(Components.interfaces.nsITreeView);
   var treeSelection = treeView.selection;
   var viewSize = treeView.rowCount;
