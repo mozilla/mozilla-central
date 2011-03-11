@@ -46,6 +46,8 @@
   so app windows that require those must include editorNavigatorOverlay.xul
 */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gShowBiDi = false;
 
 function getBrowserURL() {
@@ -375,4 +377,14 @@ function openFeatureConfigurator(aIsUpgrade) {
                     "_blank", options,
                     // Below are window.arguments for featureConfigurator.js
                     window, aIsUpgrade);
+}
+
+/**
+ * Open the dictionary list in a new content tab, if possible in an available
+ * mail:3pane window, otherwise by opening a new mail:3pane.
+ */
+function openDictionaryList() {
+  let dictUrl = Services.urlFormatter
+    .formatURLPref("spellchecker.dictionaries.download.url");
+  openContentTab(dictUrl, 'tab', "^https://addons.mozilla.org/");
 }

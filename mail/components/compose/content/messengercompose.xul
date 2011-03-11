@@ -49,14 +49,16 @@
 <?xul-overlay href="chrome://messenger/content/baseMenuOverlay.xul"?>
 
 <!DOCTYPE window [
-<!ENTITY % messengercomposeDTD SYSTEM "chrome://messenger/locale/messengercompose/messengercompose.dtd" >
-%messengercomposeDTD;
-<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
-%brandDTD;
-<!ENTITY % charsetDTD SYSTEM "chrome://global/locale/charsetOverlay.dtd" >
-%charsetDTD;
-<!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
-%customizeToolbarDTD;
+  <!ENTITY % messengercomposeDTD SYSTEM "chrome://messenger/locale/messengercompose/messengercompose.dtd" >
+  %messengercomposeDTD;
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
+  %brandDTD;
+  <!ENTITY % charsetDTD SYSTEM "chrome://global/locale/charsetOverlay.dtd" >
+  %charsetDTD;
+  <!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
+  %customizeToolbarDTD;
+  <!ENTITY % textcontextDTD SYSTEM "chrome://global/locale/textcontext.dtd">
+  %textcontextDTD;
 ]>
 
 <window id="msgcomposeWindow"
@@ -82,7 +84,6 @@
 <script type="application/javascript" src="chrome://messenger/content/accountUtils.js"/>
 <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
 <script type="application/javascript" src="chrome://messenger/content/mailCore.js"/>
-<script type="application/javascript" src="chrome://global/content/inlineSpellCheckUI.js"/>
 <script type="application/javascript" src="chrome://editor/content/editor.js"/>
 <script type="application/javascript" src="chrome://messenger/content/messengercompose/MsgComposeCommands.js"/>
 
@@ -94,6 +95,7 @@
 <script type="application/javascript" src="chrome://messenger/content/messengercompose/addressingWidgetOverlay.js"/>
 <script type="application/javascript" src="chrome://global/content/charsetOverlay.js"/>
 <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
+<script type="application/javascript" src="chrome://global/content/contentAreaUtils.js"/>
 <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
 
 <commandset id="composeCommands">
@@ -266,12 +268,13 @@
 <menupopup id="msgComposeContext"
            onpopupshowing="if (event.target != this) return true; openEditorContextMenu(this);">
 
-  <menuitem id="spellCheckNoSuggestions" label="&spellCheckNoSuggestions.label;" disabled="true"/>
-  <menuseparator id="spellCheckAddSep"/>
-  <menuitem id="spellCheckAddToDictionary" label="&spellCheckAddToDictionary.label;" accesskey="&spellCheckAddToDictionary.accesskey;"
-            oncommand="InlineSpellCheckerUI.addToDictionary();"/>  
+  <!-- Spellchecking menu items -->
+  <menuitem id="spellCheckNoSuggestions" label="&spellNoSuggestions.label;" disabled="true"/>
+  <menuseparator id="spellCheckAddSep" />
+  <menuitem id="spellCheckAddToDictionary" label="&spellAddToDictionary.label;" accesskey="&spellAddToDictionary.accesskey;"
+            oncommand="gSpellChecker.addToDictionary();"/>
   <menuitem id="spellCheckIgnoreWord" label="&spellCheckIgnoreWord.label;" accesskey="&spellCheckIgnoreWord.accesskey;"
-            oncommand="InlineSpellCheckerUI.ignoreWord();"/>  
+            oncommand="gSpellChecker.ignoreWord();"/>
   <menuseparator id="spellCheckSuggestionsSeparator"/>
 
   <menuitem label="&undo.label;" accesskey="&undo.accesskey;" command="cmd_undo"/>
@@ -283,6 +286,30 @@
   <menuitem label="&delete.label;" accesskey="&delete.accesskey;" command="cmd_delete"/>
   <menuseparator/>
   <menuitem label="&selectAll.label;" accesskey="&selectAll.accesskey;" command="cmd_selectAll"/>
+
+  <!-- Spellchecking general menu items (enable, add dictionaries...) -->
+  <menuseparator id="spellCheckSeparator"/>
+  <menuitem id="spellCheckEnable"
+            label="&spellCheckEnable.label;"
+            type="checkbox"
+            accesskey="&spellCheckEnable.accesskey;"
+            oncommand="enableInlineSpellCheck(!gSpellChecker.enabled);"/>
+  <menuitem id="spellCheckAddDictionariesMain"
+            label="&spellAddDictionaries.label;"
+            accesskey="&spellAddDictionaries.accesskey;"
+            oncommand="openDictionaryList();"/>
+  <menu id="spellCheckDictionaries"
+        label="&spellDictionaries.label;"
+        accesskey="&spellDictionaries.accesskey;">
+    <menupopup id="spellCheckDictionariesMenu">
+      <menuseparator id="spellCheckLanguageSeparator"/>
+      <menuitem id="spellCheckAddDictionaries"
+                label="&spellAddDictionaries.label;"
+                accesskey="&spellAddDictionaries.accesskey;"
+                oncommand="openDictionaryList();"/>
+    </menupopup>
+  </menu>
+
 </menupopup>
 
 <menupopup id="msgComposeAttachmentContext" onpopupshowing="updateEditItems();">
@@ -453,7 +480,8 @@
           <menuitem label="&checkSpellingCmd2.label;" id="menu_checkspelling" accesskey="&checkSpellingCmd2.accesskey;" key="key_checkspelling" command="cmd_spelling"/>
           <menuitem label="&enableInlineSpellChecker.label;" id="menu_inlineSpellCheck" 
                            accesskey="&enableInlineSpellChecker.accesskey;" checked="false"
-                           type="checkbox" oncommand="enableInlineSpellCheck(!InlineSpellCheckerUI.enabled);"/>
+                           type="checkbox"
+                           oncommand="enableInlineSpellCheck(!gSpellChecker.enabled);"/>
           <menuitem label="&quoteCmd.label;" accesskey="&quoteCmd.accesskey;" command="cmd_quoteMessage"/>
           <menuseparator/>
           <menuitem id="returnReceiptMenu" type="checkbox" label="&returnReceiptMenu.label;" accesskey="&returnReceiptMenu.accesskey;" checked="false" oncommand="ToggleReturnReceipt(event.target)"/>

@@ -45,6 +45,7 @@ Components.utils.import("resource:///modules/attachmentChecker.js");
 
 Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource:///modules/errUtils.js");
+Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
 
 /**
  * interfaces
@@ -70,6 +71,8 @@ var msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
 
 var gMessenger = Components.classes["@mozilla.org/messenger;1"]
                            .createInstance(Components.interfaces.nsIMessenger)
+
+var gSpellChecker = new InlineSpellChecker();
 
 /**
  * Global variables, need to be re-initialized every time mostly because we need to release them when the window close
@@ -241,10 +244,11 @@ var gComposeRecyclingListener = {
       document.getElementById("customizeToolbarSheetIFrame")
               .contentWindow.finishToolbarCustomization();
 
-    // Stop InlineSpellCheckerUI so personal dictionary is saved
+    // Stop gSpellChecker so personal dictionary is saved
     enableInlineSpellCheck(false);
     // clear any suggestions in the context menu
-    InlineSpellCheckerUI.clearSuggestionsFromMenu();
+    gSpellChecker.clearSuggestionsFromMenu();
+    gSpellChecker.clearDictionaryListFromMenu();
 
     //Reset editor
     EditorResetFontAndColorAttributes();
@@ -659,16 +663,26 @@ function updateComposeItems()
 
 function openEditorContextMenu(popup)
 {
-  InlineSpellCheckerUI.clearSuggestionsFromMenu();
-  InlineSpellCheckerUI.initFromEvent(document.popupRangeParent, document.popupRangeOffset);
-  var onMisspelling = InlineSpellCheckerUI.overMisspelling;
+  gSpellChecker.clearSuggestionsFromMenu();
+  gSpellChecker.initFromEvent(document.popupRangeParent, document.popupRangeOffset);
+  var onMisspelling = gSpellChecker.overMisspelling;
   document.getElementById('spellCheckSuggestionsSeparator').hidden = !onMisspelling;
   document.getElementById('spellCheckAddToDictionary').hidden = !onMisspelling;
   document.getElementById('spellCheckIgnoreWord').hidden = !onMisspelling;
   var separator = document.getElementById('spellCheckAddSep');
   separator.hidden = !onMisspelling;
   document.getElementById('spellCheckNoSuggestions').hidden = !onMisspelling ||
-      InlineSpellCheckerUI.addSuggestionsToMenu(popup, separator, 5);
+      gSpellChecker.addSuggestionsToMenu(popup, separator, 5);
+
+  // We ought to do that, otherwise changing dictionaries will have no effect!
+  // InlineSpellChecker only registers callbacks for entries that are not the
+  // current dictionary, so if we changed dictionaries in the meanwhile, we must
+  // rebuild the list so that the right callbacks are registered in the Language
+  // menu.
+  gSpellChecker.clearDictionaryListFromMenu();
+  let dictMenu = document.getElementById("spellCheckDictionariesMenu");
+  let dictSep = document.getElementById("spellCheckLanguageSeparator");
+  gSpellChecker.addDictionaryListToMenu(dictMenu, dictSep);
 
   updateEditItems();
 }
@@ -1550,8 +1564,6 @@ function ComposeStartup(recycled, aParams)
             .setAttribute('checked', gMsgCompose.compFields.DSN);
     document.getElementById("cmd_attachVCard")
             .setAttribute('checked', gMsgCompose.compFields.attachVCard);
-    document.getElementById("menu_inlineSpellCheck")
-            .setAttribute('checked', getPref("mail.spellcheck.inline"));
 
     // If recycle, editor is already created
     if (!recycled)
@@ -1784,7 +1796,7 @@ function ComposeUnload()
 {
   UnloadCommandUpdateHandlers();
 
-  // Stop InlineSpellCheckerUI so personal dictionary is saved
+  // Stop gSpellChecker so personal dictionary is saved
   enableInlineSpellCheck(false);
 
   EditorCleanup();
@@ -2347,7 +2359,7 @@ function OutputFormatMenuSelect(target)
 // walk through the recipients list and add them to the inline spell checker ignore list
 function addRecipientsToIgnoreList(aAddressesToAdd)
 {
-  if (InlineSpellCheckerUI.enabled)
+  if (gSpellChecker.enabled)
   {
     // break the list of potentially many recipients back into individual names
     var hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
@@ -2372,7 +2384,7 @@ function addRecipientsToIgnoreList(aAddressesToAdd)
       }
     }
 
-    InlineSpellCheckerUI.mInlineSpellChecker.ignoreWords(tokenizedNames, tokenizedNames.length);
+    gSpellChecker.mInlineSpellChecker.ignoreWords(tokenizedNames, tokenizedNames.length);
   }
 }
 
@@ -2492,8 +2504,8 @@ function ChangeLanguage(event)
     branch.setComplexValue("spellchecker.dictionary", nsISupportsString, str);
 
     // now check the document over again with the new dictionary
-    if (InlineSpellCheckerUI.enabled)
-      InlineSpellCheckerUI.mInlineSpellChecker.spellCheckRange(null);
+    if (gSpellChecker.enabled)
+      gSpellChecker.mInlineSpellChecker.spellCheckRange(null);
   }
   event.stopPropagation();
 }
@@ -3902,16 +3914,41 @@ function InitEditor()
   editor.addOverrideStyleSheet("chrome://messenger/content/composerOverlay.css");
   gMsgCompose.initEditor(editor, window.content);
 
-  InlineSpellCheckerUI.init(editor);
+  // We always go through this function everytime we init an editor, be it a
+  // recycled editor, or a fresh one. First step is making sure we can spell
+  // check.
+  gSpellChecker.init(editor);
+  document.getElementById('menu_inlineSpellCheck')
+          .setAttribute('disabled', !gSpellChecker.canSpellCheck);
+  document.getElementById('spellCheckEnable')
+          .setAttribute('disabled', !gSpellChecker.canSpellCheck);
+  // If canSpellCheck = false, then hidden = false, i.e. show it so that we can
+  // still add dictionaries. Else, hide that.
+  document.getElementById('spellCheckAddDictionariesMain')
+          .setAttribute('hidden', gSpellChecker.canSpellCheck);
+  // Then, we enable related UI entries.
   enableInlineSpellCheck(getPref("mail.spellcheck.inline"));
-  document.getElementById('menu_inlineSpellCheck').setAttribute('disabled', !InlineSpellCheckerUI.canSpellCheck);
+  let dictMenu = document.getElementById("spellCheckDictionariesMenu");
+  let dictSep = document.getElementById("spellCheckLanguageSeparator");
+  gSpellChecker.addDictionaryListToMenu(dictMenu, dictSep);
+
   editor.addEditorObserver(gAttachmentNotifier);
 }
 
+// This function modifies gSpellChecker and updates the UI accordingly. It's
+// called either at startup (see InitEditor above), or when the user clicks on
+// one of the two menu items that allow them to toggle the spellcheck feature
+// (either context menu or Options menu).
 function enableInlineSpellCheck(aEnableInlineSpellCheck)
 {
-  InlineSpellCheckerUI.enabled = aEnableInlineSpellCheck;
+  gSpellChecker.enabled = aEnableInlineSpellCheck;
   document.getElementById('msgSubject').setAttribute('spellcheck', aEnableInlineSpellCheck);
+  document.getElementById("menu_inlineSpellCheck")
+          .setAttribute('checked', aEnableInlineSpellCheck);
+  document.getElementById("spellCheckEnable")
+          .setAttribute('checked', aEnableInlineSpellCheck);
+  document.getElementById('spellCheckDictionaries')
+          .setAttribute('hidden', !aEnableInlineSpellCheck);
 }
 
 function getMailToolbox()
