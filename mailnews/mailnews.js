@@ -232,7 +232,7 @@ pref("mail.warn_on_collapsed_thread_operation", true);
 pref("mail.purge_threshhold",              20480);
 #endif
 pref("mail.purge_threshhold_mb", 20);
-pref("mail.prompt_purge_threshhold",       false);
+pref("mail.prompt_purge_threshhold",       true);
 pref("mail.purge.ask",                     true);
 
 pref("mailnews.offline_sync_mail",         false);
