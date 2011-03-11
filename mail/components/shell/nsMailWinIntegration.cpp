@@ -221,32 +221,39 @@ nsWindowsShellService::SetDefaultClient(PRBool aForAllUsers, PRUint16 aApps)
   rv = appHelper->GetPath(appHelperPath);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  nsAutoString params;
   if (aForAllUsers)
   {
-    appHelperPath.AppendLiteral(" /SetAsDefaultAppGlobal");
+    params.AppendLiteral(" /SetAsDefaultAppGlobal");
   }
   else
   {
-    appHelperPath.AppendLiteral(" /SetAsDefaultAppUser");
+    params.AppendLiteral(" /SetAsDefaultAppUser");
     if (aApps & nsIShellService::MAIL)
-      appHelperPath.AppendLiteral(" Mail");
+      params.AppendLiteral(" Mail");
 
     if (aApps & nsIShellService::NEWS)
-      appHelperPath.AppendLiteral(" News");
+      params.AppendLiteral(" News");
   }
 
-  STARTUPINFOW si = {sizeof(si), 0};
-  PROCESS_INFORMATION pi = {0};
+  SHELLEXECUTEINFOW executeInfo = {0};
 
-  BOOL ok = CreateProcessW(NULL, (LPWSTR)appHelperPath.get(), NULL, NULL,
-                           FALSE, 0, NULL, NULL, &si, &pi);
+  executeInfo.cbSize = sizeof(SHELLEXECUTEINFOW);
+  executeInfo.hwnd = NULL;
+  executeInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+  executeInfo.lpDirectory = NULL;
+  executeInfo.lpFile = appHelperPath.get();
+  executeInfo.lpParameters = params.get();
+  executeInfo.nShow = SW_SHOWNORMAL;
 
-  if (!ok)
-    return NS_ERROR_FAILURE;
+  if (ShellExecuteExW(&executeInfo))
+    // Block until the program exits
+    WaitForSingleObject(executeInfo.hProcess, INFINITE);
+  else
+    return NS_ERROR_ABORT;
 
-  CloseHandle(pi.hProcess);
-  CloseHandle(pi.hThread);
-
+  // We're going to ignore errors here since there's nothing we can do about
+  // them, and helper.exe seems to return non-zero ret on success.
   return NS_OK;
 }
 
