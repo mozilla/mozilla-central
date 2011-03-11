@@ -354,7 +354,21 @@ var specialTabs = {
       }
       return -1;
     },
-    openTab: function onTabOpened(aTab, aArgs) {
+    /**
+     * This is the internal function used by content tabs to open a new tab. To
+     * open a contentTab, use specialTabs.openTab("contentTab", aArgs)
+     *
+     * @param aArgs The options that content tabs accept.
+     * @param aArgs.contentPage A string that holds the URL that is to be opened
+     * @param aArgs.clickHandler The click handler for that content tab. See the
+     *  "Content Tabs" article on MDC.
+     * @param aArgs.onLoad A function that takes an Event and a DOMNode. It is
+     *  called when the content page is done loading. The first argument is the
+     *  load event, and the second argument is the xul:browser that holds the
+     *  contentPage. You can access the inner tab's window object by accessing
+     *  the second parameter's contentWindow property.
+     */
+    openTab: function contentTab_onTabOpened(aTab, aArgs) {
       if (!"contentPage" in aArgs)
         throw("contentPage must be specified");
 
@@ -399,6 +413,11 @@ var specialTabs = {
       // Now set up the listeners.
       this._setUpTitleListener(aTab);
       this._setUpCloseWindowListener(aTab);
+      if ("onLoad" in aArgs) {
+        aTab.browser.addEventListener("load", function _contentTab_onLoad (event) {
+          aArgs.onLoad(event, aTab.browser);
+        }, true);
+      }
 
       // Create a filter and hook it up to our browser
       let filter = Components.classes["@mozilla.org/appshell/component/browser-status-filter;1"]
@@ -797,7 +816,21 @@ var specialTabs = {
       }
       return -1;
     },
-    openTab: function onTabOpened(aTab, aArgs) {
+    /**
+     * This is the internal function used by chrome tabs to open a new tab. To
+     * open a chromeTab, use specialTabs.openTab("chromeTab", aArgs)
+     *
+     * @param aArgs The options that chrome tabs accept.
+     * @param aArgs.chromePage A string that holds the URL that is to be opened
+     * @param aArgs.clickHandler The click handler for that chrome tab. See the
+     *  "Content Tabs" article on MDC.
+     * @param aArgs.onLoad A function that takes an Event and a DOMNode. It is
+     *  called when the chrome page is done loading. The first argument is the
+     *  load event, and the second argument is the xul:browser that holds the
+     *  chromePage. You can access the inner tab's window object by accessing
+     *  the second parameter's chromeWindow property.
+     */
+    openTab: function chromeTab_onTabOpened(aTab, aArgs) {
       if (!"chromePage" in aArgs)
         throw("chromePage must be specified");
 
@@ -829,6 +862,11 @@ var specialTabs = {
       // Now set up the listeners.
       this._setUpTitleListener(aTab);
       this._setUpCloseWindowListener(aTab);
+      if ("onLoad" in aArgs) {
+        aTab.browser.addEventListener("load", function _chromeTab_onLoad (event) {
+          aArgs.onLoad(event, aTab.browser);
+        }, true);
+      }
 
       // Now start loading the content.
       aTab.title = this.loadingTabString;
