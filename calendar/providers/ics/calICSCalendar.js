@@ -176,13 +176,13 @@ calICSCalendar.prototype = {
         this.processQueue();
     },
 
-    prepareChannel: function calICSCalendar_prepareChannel(aChannel) {
+    prepareChannel: function calICSCalendar_prepareChannel(aChannel, aForceRefresh) {
         aChannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
         aChannel.notificationCallbacks = this;
 
         // Allow the hook to do its work, like a performing a quick check to
         // see if the remote file really changed. Might save a lot of time
-        this.mHooks.onBeforeGet(aChannel);
+        this.mHooks.onBeforeGet(aChannel, aForceRefresh);
     },
 
     createMemoryCalendar: function calICSCalendar_createMemoryCalendar() {
@@ -203,7 +203,7 @@ calICSCalendar.prototype = {
         prbForce.data = aForce;
 
         var channel = cal.getIOService().newChannelFromURI(this.mUri);
-        this.prepareChannel(channel);
+        this.prepareChannel(channel, aForce);
 
         var streamLoader = Components.classes["@mozilla.org/network/stream-loader;1"]
                                      .createInstance(Components.interfaces.nsIStreamLoader);
@@ -222,7 +222,7 @@ calICSCalendar.prototype = {
 
     // nsIChannelEventSink implementation
     asyncOnChannelRedirect: function(aOldChannel, aNewChannel, aFlags, aCallback) {
-        this.prepareChannel(aNewChannel);
+        this.prepareChannel(aNewChannel, true);
         aCallback.onRedirectVerifyCallback(Components.results.NS_OK);
     },
 
@@ -233,18 +233,19 @@ calICSCalendar.prototype = {
     {
         let forceRefresh = ctxt.QueryInterface(Components.interfaces.nsISupportsPRBool).data;
 
+        // Allow the hook to get needed data (like an etag) of the channel
+        let cont = this.mHooks.onAfterGet(forceRefresh);
+        if (!cont) {
+            // no need to process further, we can use the previous data
+            this.unlock();
+            return;
+        }
+
          // Clear any existing events if there was no result
         if (!resultLength) {
             this.createMemoryCalendar();
             this.mMemoryCalendar.addObserver(this.mObserver);
             this.mObserver.onLoad(this);
-            this.unlock();
-            return;
-        }
-
-        // Allow the hook to get needed data (like an etag) of the channel
-        var cont = this.mHooks.onAfterGet(forceRefresh);
-        if (!cont) {
             this.unlock();
             return;
         }
@@ -440,7 +441,7 @@ calICSCalendar.prototype = {
             ctxt.mObserver.onError(this.superCalendar, calIErrors.MODIFICATION_FAILED, "");
 
             // the PUT has failed, refresh, and signal error to all modifying operations:
-            this.refresh();
+            this.forceRefresh();
             ctxt.unlock(calIErrors.MODIFICATION_FAILED);
             appStartup.exitLastWindowClosingSurvivalArea();
             return;
@@ -870,7 +871,7 @@ function dummyHooks() {
 }
 
 dummyHooks.prototype = {
-    onBeforeGet: function(aChannel) {
+    onBeforeGet: function(aChannel, aForceRefresh) {
         return true;
     },
     
@@ -899,9 +900,9 @@ function httpHooks() {
 }
 
 httpHooks.prototype = {
-    onBeforeGet: function(aChannel) {
+    onBeforeGet: function(aChannel, aForceRefresh) {
         this.mChannel = aChannel;
-        if (this.mEtag) {
+        if (this.mEtag && !aForceRefresh) {
             var httpchannel = aChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
             // Somehow the webdav header 'If' doesn't work on apache when
             // passing in a Not, so use the http version here.
@@ -916,7 +917,7 @@ httpHooks.prototype = {
 
         // 304: Not Modified
         // Can use the old data, so tell the caller that it can skip parsing.
-        if (httpchannel.responseStatus == 304 && !aForceRefresh) {
+        if (httpchannel.responseStatus == 304) {
             return false;
         }
 
@@ -1025,7 +1026,7 @@ function fileHooks() {
 }
 
 fileHooks.prototype = {
-    onBeforeGet: function fH_onBeforeGet(aChannel) {
+    onBeforeGet: function fH_onBeforeGet(aChannel, aForceRefresh) {
         this.mChannel = aChannel;
         let fileChannel = this.mChannel.QueryInterface(Components.interfaces.nsIFileChannel);
         return true;
