@@ -153,10 +153,31 @@
         </menupopup>
       </menu>
       <menuseparator id="viewSep1"/>
-      <menuitem id="viewNormalMode" checked="true"/>
-      <menuitem id="viewAllTagsMode"/>
-      <menuitem id="viewSourceMode"/>
-      <menuitem id="viewPreviewMode"/>
+      <menuitem id="viewNormalMode"
+                type="radio"
+                group="mode"
+                checked="true"
+                label="&NormalMode.label;"
+                accesskey="&NormalMode.accesskey;"
+                command="cmd_NormalMode"/>
+      <menuitem id="viewAllTagsMode"
+                type="radio"
+                group="mode"
+                label="&AllTagsMode.label;"
+                accesskey="&AllTagsMode.accesskey;"
+                command="cmd_AllTagsMode"/>
+      <menuitem id="viewSourceMode"
+                type="radio"
+                group="mode"
+                label="&HTMLSourceMode.label;"
+                accesskey="&HTMLSourceMode.accesskey;"
+                command="cmd_HTMLSourceMode"/>
+      <menuitem id="viewPreviewMode"
+                type="radio"
+                group="mode"
+                label="&PreviewMode.label;"
+                accesskey="&PreviewMode.accesskey;"
+                command="cmd_PreviewMode"/>
       <menuseparator id="viewSep2"/>
       <menu id = "composerCharsetMenu" />
     </menupopup>
@@ -295,13 +316,35 @@
       </vbox>
     </deck>
 
-    <hbox id="EditModeToolbar" align="center" hidden="false" persist="collapsed">
-      <tabs id="EditModeTabs" class="tabs-bottom" flex="1">
-        <tab id="NormalModeButton"/>
-        <tab id="TagModeButton"/>
-        <tab id="SourceModeButton"/>
-        <tab id="PreviewModeButton"/>
-    </tabs>
+    <!-- Edit Mode toolbar -->
+    <hbox id="EditModeToolbar"
+          persist="collapsed">
+      <tabs id="EditModeTabs"
+            class="tabs-bottom"
+            flex="1"
+            onselect="this.selectedItem.doCommand();">
+        <tab id="NormalModeButton"
+             class="tab-bottom edit-mode"
+             label="&NormalModeTab.label;"
+             tooltiptext="&NormalMode.tooltip;"
+             command="cmd_NormalMode"/>
+        <tab id="TagModeButton"
+             class="tab-bottom edit-mode"
+             label="&AllTagsModeTab.label;"
+             tooltiptext="&AllTagsMode.tooltip;"
+             command="cmd_AllTagsMode"/>
+        <tab id="SourceModeButton"
+             class="tab-bottom edit-mode"
+             label="&HTMLSourceModeTab.label;"
+             tooltiptext="&HTMLSourceMode.tooltip;"
+             dir="&HTMLSourceModeTab.dir;"
+             command="cmd_HTMLSourceMode"/>
+        <tab id="PreviewModeButton"
+             class="tab-bottom edit-mode"
+             label="&PreviewModeTab.label;"
+             tooltiptext="&PreviewMode.tooltip;"
+             command="cmd_PreviewMode"/>
+      </tabs>
     </hbox>
 
   </vbox> <!-- appcontent -->

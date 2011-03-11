@@ -151,10 +151,6 @@
     <command id="cmd_insertHTMLWithDialog" oncommand="goDoCommand('cmd_insertHTMLWithDialog')"  label="&insertHTMLCmd.label;"/>
     <command id="cmd_insertBreak"      oncommand="goDoCommand('cmd_insertBreak')"/>
     <command id="cmd_insertBreakAll"   oncommand="goDoCommand('cmd_insertBreakAll')"/>
-    <command id="cmd_NormalMode"       oncommand="goDoCommand('cmd_NormalMode')"     label="&NormalMode.label;"/>
-    <command id="cmd_AllTagsMode"      oncommand="goDoCommand('cmd_AllTagsMode')"    label="&AllTagsMode.label;"/>
-    <command id="cmd_HTMLSourceMode"   oncommand="goDoCommand('cmd_HTMLSourceMode')"/>
-    <command id="cmd_PreviewMode"      oncommand="goDoCommand('cmd_PreviewMode')"    label="&PreviewMode.label;"/>
 
     <!-- only used in context popup menu -->
     <command id="cmd_editLink"         oncommand="goDoCommand('cmd_editLink')"/>
@@ -441,28 +437,6 @@
       <!-- Note: other Edit items (menu_validate, menu_publishSettings) are inserted from composerOverlay.xul -->
     </menupopup>
   </menu>
-
-  <menuitem id="viewNormalMode"
-            type="radio"
-            group="mode"
-            accesskey="&NormalMode.accesskey;"
-            observes="cmd_NormalMode"/>
-  <menuitem id="viewAllTagsMode"
-            type="radio"
-            group="mode"
-            accesskey="&AllTagsMode.accesskey;"
-            observes="cmd_AllTagsMode"/>
-  <menuitem id="viewSourceMode"
-            type="radio"
-            group="mode"
-            label="&HTMLSourceMode.label;"
-            accesskey="&HTMLSourceMode.accesskey;"
-            observes="cmd_HTMLSourceMode"/>
-  <menuitem id="viewPreviewMode"
-            type="radio"
-            group="mode"
-            accesskey="&PreviewMode.accesskey;"
-            observes="cmd_PreviewMode"/>
 
   <menupopup id = "composerCharsetMenuPopup"  onpopupshowing="updateCharsetPopupMenu(this)" />
 
@@ -1385,17 +1359,6 @@
                  class="formatting-button"
                  tooltiptext="&layerBringToFront.tooltip;"
                  observes="cmd_increaseZIndex"/>
-
-  <!-- Edit Mode toolbar -->
-  <tabs id="EditModeTabs" onselect="this.selectedItem.doCommand()"/>
-  <tab id="NormalModeButton"   class="tab-bottom edit-mode _plain" type="text" selected="1" label="&NormalModeTab.label;"  oncommand="goDoCommand('cmd_NormalMode');"
-          tooltiptext="&NormalMode.tooltip;"/>
-  <tab id="TagModeButton"      class="tab-bottom edit-mode _plain" type="text" selected="0" label="&AllTagsMode.label;"    oncommand="goDoCommand('cmd_AllTagsMode');"
-          tooltiptext="&AllTagsMode.tooltip;"/>
-  <tab id="SourceModeButton"   class="tab-bottom edit-mode _plain" type="text" selected="0" label="&SourceMode.label;"     oncommand="goDoCommand('cmd_HTMLSourceMode');"
-          tooltiptext="&HTMLSourceMode.tooltip;" dir="&SourceTabDirection;"/>
-  <tab id="PreviewModeButton"  class="tab-bottom edit-mode _plain" type="text" selected="0" label="&PreviewMode.label;"    oncommand="goDoCommand('cmd_PreviewMode');"
-          tooltiptext="&PreviewMode.tooltip;"/>
 
   <!-- Paste as quotation is used by mail compose,
        but in composer it has to go in the debug menu

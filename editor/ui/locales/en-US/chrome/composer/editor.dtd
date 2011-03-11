@@ -58,3 +58,27 @@
 <!-- Format menu items -->
 <!ENTITY formatMenu.label "Format">
 <!ENTITY formatMenu.accesskey "o">
+
+<!-- Display Mode toolbar and View menu items -->
+<!ENTITY NormalModeTab.label "Normal">
+<!ENTITY NormalMode.label "Normal Edit Mode">
+<!ENTITY NormalMode.accesskey "N">
+<!ENTITY NormalMode.tooltip "Show table borders and named anchors">
+<!ENTITY AllTagsModeTab.label "HTML Tags">
+<!ENTITY AllTagsMode.label "HTML Tags">
+<!ENTITY AllTagsMode.accesskey "a">
+<!ENTITY AllTagsMode.tooltip "Display icons for all HTML tags">
+<!-- LOCALIZATION NOTE: (HTMLSourceModeTab.dir, HTMLSourceModeTab.label)
+     Do NOT translate text for 'HTMLSourceModeTab.dir', use latin "ltr" if
+     you want the <html> image to left of the 'HTMLSourceModeTab.label' text,
+     or use latin "rtl" if you want this image to the right of text. You do
+     not need to include HTML in the label 'HTMLSourceModeTab.label' -->
+<!ENTITY HTMLSourceModeTab.dir "ltr">
+<!ENTITY HTMLSourceModeTab.label "Source">
+<!ENTITY HTMLSourceMode.label "HTML Source">
+<!ENTITY HTMLSourceMode.accesskey "H">
+<!ENTITY HTMLSourceMode.tooltip "Edit HTML source">
+<!ENTITY PreviewModeTab.label "Preview">
+<!ENTITY PreviewMode.label "Preview">
+<!ENTITY PreviewMode.accesskey "P">
+<!ENTITY PreviewMode.tooltip "Display as WYSIWYG (as in the browser)">
