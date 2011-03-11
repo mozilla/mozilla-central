@@ -1629,6 +1629,10 @@ if (!SB_DEBUG) {
 
 function SidebarBroadcastersToRDF()
 {
+  // Only the broadcasters in browser are synced to panels.rdf
+  if (sidebarObj.component != "navigator:browser")
+    return;
+
   // Translation rules to translate between new broadcaster id and old RDF id.
   const TRANSLATE = {viewBookmarksSidebar:   "bookmarks",
                      viewHistorySidebar:     "history",
