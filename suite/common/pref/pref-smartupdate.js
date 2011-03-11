@@ -22,6 +22,7 @@
  *
  * Contributor(s):
  *   Mark Banner <bugzilla@standard8.plus.com>
+ *   Edmund Wong <ewong@pw-wspx.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -63,34 +64,27 @@ function Startup()
  *   possibly with a warning if incompatible extensions are installed (see
  *   app.update.mode); false if the user should be asked what he wants to do
  *   when an update is available
- * app.update.mode
- * - an integer:
- *   mode:  Minor Releases:                       Major Releases:
- *   0      download and install, never prompt    always prompt
- *
- *   1,2    download and install,                 always prompt
- *          no prompt if no incompatible add-ons
- *
- * The app.update.mode preference is converted into a true/false value for
- * use in determining whether the "Warn me if this will disable extensions
- * or themes" checkbox is checked. Unlike other toolkit applications we
- * don't care about supporting legacy mode 2.
- *
- * app.update.mode    Checkbox State    Meaning
- * 0                  Unchecked         Warn if the update is major
- * 1,2                Checked           Warn if there are incompatibilities
- *                                      or the update is major
  */
 function UpdateAddonsItems()
 {
-  document.getElementById("extensionsUpdatesEnabled").disabled =
-    !document.getElementById("xpinstall.enabled").value ||
+  var addOnsCheck = !document.getElementById("xpinstall.enabled").value;
+
+  document.getElementById("addOnsUpdatesEnabled").disabled =
+    addOnsCheck ||
     document.getElementById("extensions.update.enabled").locked;
 
-  document.getElementById("extensionsUpdateFrequency").disabled =
+  document.getElementById("addOnsUpdateFrequency").disabled =
     !document.getElementById("xpinstall.enabled").value ||
     !document.getElementById("extensions.update.enabled").value ||
     document.getElementById("extensions.update.interval").locked;
+
+  document.getElementById("allowedSitesButton").disabled =
+    addOnsCheck;
+
+  document.getElementById("addOnsModeAutoEnabled").disabled =
+    addOnsCheck ||
+    !document.getElementById("extensions.update.enabled").value ||
+    document.getElementById("extensions.update.enabled").locked;
 }
 
 function UpdateAppItems()
@@ -103,6 +97,11 @@ function UpdateAppItems()
   document.getElementById("appUpdateFrequency").disabled =
     !enabledPref.value || !gCanCheckForUpdates ||
     document.getElementById("app.update.interval").locked;
+
+  document.getElementById("appModeAutoEnabled").disabled =
+    !enabledPref.value || !gCanCheckForUpdates ||
+    document.getElementById("app.update.mode").locked;
+
   UpdateAutoItems();
 }
 
@@ -112,21 +111,8 @@ function UpdateAppItems()
  */
 function UpdateAutoItems()
 {
-  var disabled = !gCanCheckForUpdates||
-                 !document.getElementById("app.update.enabled").value ||
-                 document.getElementById("app.update.auto").locked;
-  document.getElementById("updateModeLabel").disabled = disabled;
-  document.getElementById("updateMode").disabled = disabled;
-  UpdateModeItems();
-}
-
-/**
- * Enables/disables the "warn if incompatible extensions/themes exist" UI
- * based on the values and "locked" states of various preferences.
- */
-function UpdateModeItems()
-{
-  document.getElementById("warnIncompatible").disabled =
+  document.getElementById("appWarnIncompatible").disabled =
+    !gCanCheckForUpdates ||
     !document.getElementById("app.update.enabled").value ||
     !document.getElementById("app.update.auto").value ||
     document.getElementById("app.update.mode").locked;

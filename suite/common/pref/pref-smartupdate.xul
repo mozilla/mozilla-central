@@ -22,6 +22,7 @@
 
  Contributor(s):
    Mark Banner <bugzilla@standard8.plus.com>
+   Edmund Wong <ewong@pw-wspx.org>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -63,7 +64,9 @@
       <preference id="extensions.update.interval"
                   name="extensions.update.interval"
                   type="int"/>
-
+      <preference id="extensions.update.autoUpdateDefault"
+                  name="extensions.update.autoUpdateDefault"
+                  type="bool"/>
       <preference id="app.update.enabled"
                   name="app.update.enabled"
                   type="bool"
@@ -71,11 +74,10 @@
       <preference id="app.update.auto"
                   name="app.update.auto"
                   type="bool"
-                  onchange="UpdateAutoItems();"/>
+                  onchange="UpdateAppItems();"/>
       <preference id="app.update.mode"
                   name="app.update.mode"
-                  type="int"
-                  onchange="UpdateModeItems();"/>
+                  type="int"/>
       <preference id="app.update.interval"
                   name="app.update.interval"
                   type="int"/>
@@ -85,91 +87,92 @@
     </preferences>
 
     <groupbox>
-      <caption label="&smartTitle.label;"/>
-      <hbox align="center">
-        <checkbox id="XPInstallEnabled" label="&enableSU.label;" flex="1"
-                  accesskey="&enableSU.accesskey;" preference="xpinstall.enabled"/>
-        <button id="allowedSitesButton"
-                label="&viewPermissions.label;"
-                accesskey="&viewPermissions.accesskey;"
-                oncommand="toDataManager('|permissions');"/>
-      </hbox>
+      <caption label="&addOnsTitle.label;"/>
+        <hbox align="center">
+          <checkbox id="XPInstallEnabled"
+                    label="&addOnsAllow.label;"
+                    flex="1"
+                    accesskey="&addOnsAllow.accesskey;"
+                    preference="xpinstall.enabled"/>
+          <button id="allowedSitesButton"
+                  label="&allowedWebsites.label;"
+                  accesskey="&allowedWebsites.accesskey;"
+                  oncommand="toDataManager('|permissions');"/>
+        </hbox>
+        <hbox class="indent">
+           <checkbox id="addOnsUpdatesEnabled"
+                     label="&autoAddOnsUpdates.label;"
+                     accesskey="&autoAddOnsUpdates.accesskey;"
+                     preference="extensions.update.enabled"/>
+           <radiogroup id="addOnsUpdateFrequency"
+                       orient="horizontal"
+                       preference="extensions.update.interval">
+             <radio id="addOnsFreqDaily"
+                    label="&daily.label;"
+                    accesskey="&addOnsDaily.accesskey;"
+                    value="86400"/>
+             <radio id="addOnsFreqWeekly"
+                    label="&weekly.label;"
+                    accesskey="&addOnsWeekly.accesskey;"
+                    value="604800"/>
+           </radiogroup>
+        </hbox>
+        <hbox class="indent">
+          <checkbox id="addOnsModeAutoEnabled"
+                    class="indent"
+                    label="&addOnsModeAutomatic.label;"
+                    flex="1"
+                    accesskey="&addOnsModeAutomatic.accesskey;"
+                    preference="extensions.update.autoUpdateDefault"/>
+        </hbox>
+        <hbox pack="end">
+          <button id="startAddonManager"
+                  oncommand="toEM('addons://list/extensions');"
+                  label="&addonManagerButton.label;"
+                  accesskey="&addonManagerButton.accesskey;"/>
+        </hbox>
     </groupbox>
 
     <groupbox>
-      <caption label="&verifyUpdates.caption;"/>
-      <description>&autoUpdates.label;</description>
-      <grid>
-        <columns>
-          <column/>
-          <column/>
-        </columns>
-
-        <rows>
-          <row>
-            <checkbox id="appUpdatesEnabled" label="&appUpdates.label;"
-                      accesskey="&appUpdates.accesskey;"
-                      preference="app.update.enabled"/>
-            <radiogroup id="appUpdateFrequency" orient="horizontal" 
-                        preference="app.update.interval">
-              <radio id="appFreqDaily" label="&daily.label;"
-                     accesskey="&appDaily.accesskey;" value="86400"/>
-              <radio id="appFreqWeekly" label="&weekly.label;"
-                     accesskey="&appWeekly.accesskey;" value="604800"/>
-            </radiogroup>
-          </row>
-          <row>
-            <checkbox id="extensionsUpdatesEnabled"
-                      label="&extensionsUpdates.label;"
-                      accesskey="&extensionsUpdates.accesskey;"
-                      preference="extensions.update.enabled"/>
-            <radiogroup id="extensionsUpdateFrequency" orient="horizontal" 
-                        preference="extensions.update.interval">
-              <radio id="extensionsFreqDaily" label="&daily.label;"
-                     accesskey="&extensionsDaily.accesskey;" value="86400"/>
-              <radio id="extensionsFreqWeekly" label="&weekly.label;"
-                     accesskey="&extensionsWeekly.accesskey;" value="604800"/>
-            </radiogroup>
-          </row>
-        </rows>
-      </grid>
-      <vbox align="end">
-        <button id="startAddonManager"
-                oncommand="toEM('addons://list/extensions');"
-                label="&addonManagerButton.label;"
-                accesskey="&addonManagerButton.accesskey;"/>
-      </vbox>
-    </groupbox>
-
-    <groupbox>
-      <caption id="updateModeLabel"
-               label="&whenUpdatesFound.label;"
-               control="updateMode"/>
-      <radiogroup id="updateMode"
-                  preference="app.update.auto">
-        <radio id="updateModeAsk"
-               label="&askMe.label;"
-               accesskey="&askMe.accesskey;"
-               value="false"/>
-        <radio id="updateModeAutomatic"
-               label="&modeAutomatic.label;"
-               accesskey="&modeAutomatic.accesskey;"
-               value="true"/>
-        <checkbox id="warnIncompatible"
-                  class="indent"
-                  label="&modeAutoAddonWarn.label;"
-                  accesskey="&modeAutoAddonWarn.accesskey;"
-                  preference="app.update.mode"
-                  onsynctopreference="return this.checked ? 1 : 0;"/>
-      </radiogroup>
-
-      <hbox pack="end">
-        <button id="showUpdateHistory"
-                label="&updateHistory.label;"
-                accesskey="&updateHistory.accesskey;"
-                preference="app.update.disable_button.showUpdateHistory"
-                oncommand="ShowUpdateHistory();"/>
-      </hbox>
+      <caption label="&appUpdates.caption;"/>
+         <hbox>
+           <checkbox id="appUpdatesEnabled"
+                     label="&autoAppUpdates.label;"
+                     accesskey="&autoAppUpdates.accesskey;"
+                     preference="app.update.enabled"/>
+           <radiogroup id="appUpdateFrequency"
+                       orient="horizontal"
+                       preference="app.update.interval">
+             <radio id="appFreqDaily"
+                    label="&daily.label;"
+                    accesskey="&appDaily.accesskey;"
+                    value="86400"/>
+             <radio id="appFreqWeekly"
+                    label="&weekly.label;"
+                    accesskey="&appWeekly.accesskey;"
+                    value="604800"/>
+           </radiogroup>
+        </hbox>
+        <vbox class="indent">
+          <checkbox id="appModeAutoEnabled"
+                    label="&appModeAutomatic.label;"
+                    flex="1"
+                    accesskey="&appModeAutomatic.accesskey;"
+                    preference="app.update.auto"/>
+          <checkbox id="appWarnIncompatible"
+                    class="indent"
+                    label="&appModeAutoAddonWarn.label;"
+                    accesskey="&appModeAutoAddonWarn.accesskey;"
+                    preference="app.update.mode"
+                    onsynctopreference="return this.checked ? 1 : 0;"/>
+        </vbox> 
+        <hbox pack="end">
+          <button id="showUpdateHistory"
+                  label="&updateHistory.label;"
+                  accesskey="&updateHistory.accesskey;"
+                  preference="app.update.disable_button.showUpdateHistory"
+                  oncommand="ShowUpdateHistory();"/>
+        </hbox>
     </groupbox>
   </prefpane>
 </overlay>
