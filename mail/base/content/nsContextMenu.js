@@ -41,13 +41,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
-var gSpellChecker = new InlineSpellChecker();
+Components.utils.import("resource:///modules/MailUtils.js");
 
-function getDictionaryURL() {
-  let formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                  .getService(Components.interfaces.nsIURLFormatter);
-  return formatter.formatURLPref("spellchecker.dictionaries.download.url");
-}
+var gSpellChecker = new InlineSpellChecker();
 
 function nsContextMenu(aXulMenu) {
   this.target         = null;
@@ -108,7 +104,7 @@ nsContextMenu.prototype = {
     this.initSeparators();
   },
   addDictionaries: function CM_addDictionaries() {
-    openURL(getDictionaryURL());
+    openDictionaryList();
   },
   initSpellingItems: function CM_initSpellingItems() {
     let canSpell = gSpellChecker.canSpellCheck;
