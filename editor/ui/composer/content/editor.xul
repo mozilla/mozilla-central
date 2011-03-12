@@ -99,6 +99,19 @@
   <commandset id="editorCommands">
     <commandset id="commonEditorMenuItems"/>
     <commandset id="composerMenuItems"/>
+    <commandset id="composerModeMenuItems"
+                commandupdater="true"
+                events="create, mode_switch"
+                oncommandupdate="goUpdateComposerMenuItems(this);">
+      <command id="cmd_NormalMode"
+               oncommand="goDoCommand('cmd_NormalMode');"/>
+      <command id="cmd_AllTagsMode"
+               oncommand="goDoCommand('cmd_AllTagsMode');"/>
+      <command id="cmd_HTMLSourceMode"
+               oncommand="goDoCommand('cmd_HTMLSourceMode');"/>
+      <command id="cmd_PreviewMode"
+               oncommand="goDoCommand('cmd_PreviewMode');"/>
+    </commandset>
     <commandset id="composerEditMenuItems"/>
     <commandset id="composerSaveMenuItems"/>    
     <commandset id="composerStyleMenuItems"/>
