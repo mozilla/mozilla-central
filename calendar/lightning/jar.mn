@@ -19,6 +19,7 @@ lightning.jar:
 % overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://calendar/content/calendar-unifinder-todo.xul
 % overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://calendar/content/calendar-task-view.xul
 % overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://calendar/content/today-pane.xul
+% overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://lightning/content/suite-overlay-sidebar.xul application={92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
 % overlay chrome://lightning/content/lightning-standalone.xul chrome://lightning/content/messenger-overlay-sidebar.xul
 % overlay chrome://calendar/content/calendarCreation.xul chrome://lightning/content/lightning-calendar-creation.xul
 % overlay chrome://calendar/content/calendar-properties-dialog.xul chrome://lightning/content/lightning-calendar-properties.xul
@@ -43,6 +44,7 @@ lightning.jar:
     content/lightning/messenger-overlay-preferences.xul    (content/messenger-overlay-preferences.xul)
 *   content/lightning/messenger-overlay-toolbar.xul        (content/messenger-overlay-toolbar.xul)
     content/lightning/suite-overlay-preferences.xul        (content/suite-overlay-preferences.xul)
+    content/lightning/suite-overlay-sidebar.xul            (content/suite-overlay-sidebar.xul)
 % skin lightning classic/1.0 %skin/lightning/
 % style chrome://global/content/customizeToolbar.xul chrome://lightning/skin/lightning-toolbar.css
     skin/lightning/accountCentral.css                      (themes/@THEME@/accountCentral.css)
