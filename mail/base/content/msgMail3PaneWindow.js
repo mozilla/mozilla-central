@@ -51,6 +51,7 @@ Components.utils.import("resource:///modules/errUtils.js");
 Components.utils.import("resource:///modules/IOUtils.js");
 Components.utils.import("resource:///modules/mailnewsMigrator.js");
 Components.utils.import("resource:///modules/sessionStoreManager.js");
+Components.utils.import("resource:///modules/mailInstrumentation.js");
 
 /* This is where functions related to the 3 pane window are kept */
 
@@ -353,6 +354,11 @@ function OnLoadMessenger()
   CreateMailWindowGlobals();
   GetMessagePane().collapsed = true;
 
+  // This needs to be before we throw up the account wizard on first run.
+  try {
+    mailInstrumentationManager.init();
+  } catch(ex) {logException(ex);}
+
   // - initialize tabmail system
   // Do this before LoadPostAccountWizard since that code selects the first
   //  folder for display, and we want gFolderDisplay setup and ready to handle
@@ -450,6 +456,8 @@ function LoadPostAccountWizard()
   function completeStartup() {
     // Check whether we need to show the default client dialog
     // First, check the shell service
+    let obs = Components.classes["@mozilla.org/observer-service;1"]
+                        .getService(Components.interfaces.nsIObserverService);
     var nsIShellService = Components.interfaces.nsIShellService;
     if (nsIShellService) {
       var shellService;
@@ -473,14 +481,16 @@ function LoadPostAccountWizard()
       if ((shellService && defaultAccount && shellService.shouldCheckDefaultClient
            && !shellService.isDefaultClient(true, nsIShellService.MAIL)) ||
         (SearchIntegration && !SearchIntegration.osVersionTooLow &&
-         !SearchIntegration.osComponentsNotRunning && !SearchIntegration.firstRunDone))
+         !SearchIntegration.osComponentsNotRunning && !SearchIntegration.firstRunDone)) {
         window.openDialog("chrome://messenger/content/systemIntegrationDialog.xul",
                           "SystemIntegration", "modal,centerscreen,chrome,resizable=no");
+        // On windows, there seems to be a delay between setting TB as the
+        // default client, and the isDefaultClient check succeeding.
+        if (shellService.isDefaultClient(true, nsIShellService.MAIL))
+          obs.notifyObservers(window, "mail:setAsDefault", null);
+      }
     }
-
     // All core modal dialogs are done, the user can now interact with the 3-pane window
-    var obs = Components.classes["@mozilla.org/observer-service;1"]
-                        .getService(Components.interfaces.nsIObserverService);
     obs.notifyObservers(window, "mail-startup-done", null);
   }
 
@@ -568,6 +578,8 @@ function OnUnloadMessenger()
   gPrefBranch.removeObserver("mail.showCondensedAddresses", MailPrefObserver);
 
   sessionStoreManager.unloadingWindow(window);
+
+  mailInstrumentationManager.uninit();
 
   let tabmail = document.getElementById("tabmail");
   tabmail._teardown();

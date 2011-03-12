@@ -321,6 +321,22 @@ var stateListener = {
   }
 };
 
+var gSendListener = {
+  // nsIMsgSendListener
+  onStartSending: function (aMsgID, aMsgSize) {},
+  onProgress: function (aMsgID, aProgress, aProgressMax) {},
+  onStatus: function (aMsgID, aMsg) {},
+  onStopSending: function (aMsgID, aStatus, aMsg, aReturnFile) {
+    if (Components.isSuccessCode(aStatus)) {
+      Components.classes["@mozilla.org/observer-service;1"]
+      .getService(Components.interfaces.nsIObserverService)
+      .notifyObservers(null, "mail:composeSendSucceeded", null);
+    }
+  },
+  onGetDraftFolderURI: function (aFolderURI) {},
+  onSendNotPerformed: function (aMsgID, aStatus) {},
+};
+
 // all progress notifications are done through the nsIWebProgressListener implementation...
 var progressListener = {
     onStateChange: function(aWebProgress, aRequest, aStateFlags, aStatus)
@@ -1556,7 +1572,7 @@ function ComposeStartup(recycled, aParams)
   {
     // set the close listener
     gMsgCompose.recyclingListener = gComposeRecyclingListener;
-
+    gMsgCompose.addMsgSendListener(gSendListener);
     //Lets the compose object knows that we are dealing with a recycled window
     gMsgCompose.recycledWindow = recycled;
 
@@ -1803,6 +1819,8 @@ function ComposeUnload()
 
   EditorCleanup();
 
+  if (gMsgCompose)
+    gMsgCompose.removeMsgSendListener(gSendListener);
   RemoveMessageComposeOfflineObserver();
   RemoveDirectoryServerObserver(null);
   if (gCurrentIdentity)
