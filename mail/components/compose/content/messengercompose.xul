@@ -843,7 +843,9 @@
 
   <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="statusText" flex="1"/>
-    <statusbarpanel class="statusbarpanel-progress" id="statusbar-progresspanel">
+    <statusbarpanel id="statusbar-progresspanel"
+                    class="statusbarpanel-progress"
+                    collapsed="true">
       <progressmeter id="compose-progressmeter" class="progressmeter-statusbar" mode="normal" value="0"/>
     </statusbarpanel>
   </statusbar>
