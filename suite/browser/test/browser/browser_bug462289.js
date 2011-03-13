@@ -1,6 +1,6 @@
 // Wanted delay (in ms) to let UI fully update.
-// 250: hopefully enough (on slow test environments).
-var gDelay = 250;
+// 375: hopefully enough (on slow test environments).
+var gDelay = 375;
 
 var tab1, tab2;
 
