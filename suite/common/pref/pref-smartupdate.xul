@@ -67,6 +67,9 @@
       <preference id="extensions.update.autoUpdateDefault"
                   name="extensions.update.autoUpdateDefault"
                   type="bool"/>
+      <preference id="extensions.getAddons.cache.enabled"
+                  name="extensions.getAddons.cache.enabled"
+                  type="bool"/>
       <preference id="app.update.enabled"
                   name="app.update.enabled"
                   type="bool"
@@ -94,10 +97,10 @@
                     flex="1"
                     accesskey="&addOnsAllow.accesskey;"
                     preference="xpinstall.enabled"/>
-          <button id="allowedSitesButton"
-                  label="&allowedWebsites.label;"
-                  accesskey="&allowedWebsites.accesskey;"
-                  oncommand="toDataManager('|permissions');"/>
+          <label id="allowedSitesLink"
+                 class="text-link"
+                 value="&allowedSitesLink.label;"
+                 onclick="toDataManager('|permissions');"/>
         </hbox>
         <hbox class="indent">
            <checkbox id="addOnsUpdatesEnabled"
@@ -125,11 +128,16 @@
                     accesskey="&addOnsModeAutomatic.accesskey;"
                     preference="extensions.update.autoUpdateDefault"/>
         </hbox>
-        <hbox pack="end">
-          <button id="startAddonManager"
-                  oncommand="toEM('addons://list/extensions');"
-                  label="&addonManagerButton.label;"
-                  accesskey="&addonManagerButton.accesskey;"/>
+        <hbox align="center">
+          <checkbox id="enablePersonalized"
+                    flex="1"
+                    label="&enablePersonalized.label;"
+                    accesskey="&enablePersonalized.accesskey;"
+                    preference="extensions.getAddons.cache.enabled"/>
+          <label id="addonManagerLink"
+                 class="text-link"
+                 onclick="toEM('addons://list/extension');"
+                 value="&addonManagerLink.label;"/>
         </hbox>
     </groupbox>
 
@@ -168,8 +176,8 @@
         </vbox> 
         <hbox pack="end">
           <button id="showUpdateHistory"
-                  label="&updateHistory.label;"
-                  accesskey="&updateHistory.accesskey;"
+                  label="&updateHistoryButton.label;"
+                  accesskey="&updateHistoryButton.accesskey;"
                   preference="app.update.disable_button.showUpdateHistory"
                   oncommand="ShowUpdateHistory();"/>
         </hbox>

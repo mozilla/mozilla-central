@@ -78,7 +78,7 @@ function UpdateAddonsItems()
     !document.getElementById("extensions.update.enabled").value ||
     document.getElementById("extensions.update.interval").locked;
 
-  document.getElementById("allowedSitesButton").disabled =
+  document.getElementById("allowedSitesLink").disabled =
     addOnsCheck;
 
   document.getElementById("addOnsModeAutoEnabled").disabled =
