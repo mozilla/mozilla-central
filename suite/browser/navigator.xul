@@ -302,7 +302,7 @@
         <textbox id="urlbar" class="chromeclass-location uri-element" flex="1"
                  type="autocomplete" autocompletesearch="history file"
                  timeout="50" maxrows="6"
-                 disablehistory="false" accesskey="&locationBar.accesskey;"
+                 enablehistory="true" accesskey="&locationBar.accesskey;"
                  defaultSearchEngine="true" tabscrolling="true"
                  showcommentcolumn="true"
                  inputtooltiptext="&locationBar.tooltip;"

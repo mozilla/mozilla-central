@@ -148,6 +148,10 @@ findbar {
   -moz-binding: url("chrome://communicator/content/bindings/general.xml#statusbarpanel-backgroundbox");
 }
 
+textbox[enablehistory="true"] > .autocomplete-history-dropmarker {
+  display: -moz-box;
+}
+
 /******* lightweight themes *******/
 window[lwtheme="true"] {
   background-repeat: no-repeat;

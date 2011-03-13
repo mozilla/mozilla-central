@@ -319,17 +319,8 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   min-width: 0px;
 }
 
-#urlbar {
-  border: 3px solid;
-  -moz-border-top-colors: transparent ThreeDShadow ThreeDDarkShadow;
-  -moz-border-right-colors: transparent ThreeDHighlight ThreeDDarkShadow;
-  -moz-border-bottom-colors: transparent ThreeDHighlight ThreeDDarkShadow;
-  -moz-border-left-colors: transparent ThreeDShadow ThreeDDarkShadow;
-}
-
-#urlbar[level="high"] > .autocomplete-textbox-container,
-#urlbar[level="low"] > .autocomplete-textbox-container {
-  -moz-appearance: none;
+.urlbar-security-level[level="high"],
+.urlbar-security-level[level="low"] {
   background-color: InfoBackground;
   color: InfoText;
 }

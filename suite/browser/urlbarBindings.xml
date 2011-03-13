@@ -7,10 +7,40 @@
 
 <bindings id="urlbarBindings"
           xmlns="http://www.mozilla.org/xbl"
+          xmlns:html="http://www.w3.org/1999/xhtml"
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
           xmlns:xbl="http://www.mozilla.org/xbl">
 
   <binding id="urlbar" extends="chrome://global/content/autocomplete.xml#autocomplete">
+    <content sizetopopup="pref">
+      <xul:hbox class="autocomplete-textbox-container" flex="1">
+        <xul:hbox class="urlbar-security-level" flex="1" align="center" xbl:inherits="level">
+          <children includes="image|deck|stack|box">
+            <xul:image class="autocomplete-icon" allowevents="true"/>
+          </children>
+
+          <xul:hbox class="textbox-input-box" flex="1" xbl:inherits="context,tooltiptext=inputtooltiptext">
+            <children/>
+            <html:input anonid="input" class="autocomplete-textbox textbox-input"
+                        flex="1" allowevents="true"
+                        xbl:inherits="tooltiptext=inputtooltiptext,onfocus,onblur,value,type,maxlength,disabled,size,readonly,placeholder,tabindex,accesskey,mozactionhint,userAction"/>
+          </xul:hbox>
+          <children includes="hbox"/>
+        </xul:hbox>
+      </xul:hbox>
+
+      <xul:dropmarker class="autocomplete-history-dropmarker" allowevents="true"
+                      xbl:inherits="open" anonid="historydropmarker"/>
+
+      <xul:popupset>
+        <xul:panel type="autocomplete" anonid="popup"
+                   ignorekeys="true" noautofocus="true" level="top"
+                   xbl:inherits="for=id,nomatch"/>
+      </xul:popupset>
+
+      <children includes="menupopup"/>
+    </content>
+
     <implementation>
       <constructor><![CDATA[
         var pbi = this.mPrefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
