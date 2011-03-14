@@ -827,7 +827,7 @@ var MessageWindowController =
                gFolderDisplay.getCommandStatus(nsMsgViewCommandType.runJunkControls);
       case "cmd_archive":
       case "button_archive":
-        return CanArchiveMsg();
+        return gFolderDisplay.canArchiveSelectedMessages;
       case "cmd_reply":
       case "button_reply":
       case "cmd_replyall":

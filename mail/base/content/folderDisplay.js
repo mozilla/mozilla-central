@@ -2026,6 +2026,23 @@ FolderDisplayWidget.prototype = {
   },
 
   /**
+   * @return true if all the selected messages can be archived, false otherwise.
+   */
+  get canArchiveSelectedMessages() {
+    if (!this.view.dbView)
+      return false;
+
+    if (this.selectedCount == 0)
+      return false;
+    if (!this.displayedFolder || this.displayedFolder.isSpecialFolder(
+          Components.interfaces.nsMsgFolderFlags.Archive, true))
+      return false;
+    return this.selectedMessages.every(function(msg) {
+        return getIdentityForHeader(msg).archiveEnabled;
+      });
+  },
+
+  /**
    * @return true if all the selected messages can be deleted from their
    * folders, false otherwise.
    */

@@ -279,7 +279,7 @@ nsContextMenu.prototype = {
     let msgModifyItems = this.numSelectedMessages > 0 && !this.hideMailItems &&
       !this.onPlayableMedia &&
       !(this.numSelectedMessages == 1 && gMessageDisplay.isDummy);
-    let canArchive = CanArchiveMsg();
+    let canArchive = gFolderDisplay.canArchiveSelectedMessages;
 
     this.showItem("mailContext-archive", canMove && msgModifyItems &&
                                          canArchive);

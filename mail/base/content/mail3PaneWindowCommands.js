@@ -378,7 +378,7 @@ var DefaultController =
       case "cmd_file":
       case "cmd_archive":
       case "button_archive":
-        return CanArchiveMsg();
+        return gFolderDisplay.canArchiveSelectedMessages;
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.junk);

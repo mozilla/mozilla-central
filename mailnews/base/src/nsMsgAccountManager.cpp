@@ -1540,10 +1540,7 @@ nsMsgAccountManager::SetSpecialFolders()
             if (archiveEnabled)
               rv = folder->SetFlag(nsMsgFolderFlags::Archive);
             else
-            {
-              printf("Clearing archive flag\n");
               rv = folder->ClearFlag(nsMsgFolderFlags::Archive);
-            }
           }
         }
       }

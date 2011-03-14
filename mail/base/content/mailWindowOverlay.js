@@ -1529,25 +1529,6 @@ BatchMessageMover.prototype = {
 }
 
 /**
- * Checks if the selected messages can be archived. This depends on what folder
- * they're in and whether archiving is enabled for that identity.
- *
- * @return true if all selected messages can be archived, false otherwise
- */
-function CanArchiveMsg()
-{
-  if (gFolderDisplay.selectedCount == 0)
-    return false;
-  if (!gFolderDisplay.displayedFolder ||
-      gFolderDisplay.displayedFolder.isSpecialFolder(
-        Components.interfaces.nsMsgFolderFlags.Archive, true))
-    return false;
-  return gFolderDisplay.selectedMessages.every(function(msg) {
-      return getIdentityForHeader(msg).archiveEnabled;
-    });
-}
-
-/**
  * Archives the selected messages
  *
  * @param event the event that caused us to call this function
