@@ -105,6 +105,19 @@ var gFolderDisplay =
     return messageArray.length ? messageArray : null;
   },
 
+  get canArchiveSelectedMessages()
+  {
+    if (!gDBView)
+      return false;
+    var selectedMessages = this.selectedMessages;
+    if (selectedMessages.length == 0)
+      return false;
+    if (!this.displayedFolder || this.displayedFolder.isSpecialFolder(
+          Components.interfaces.nsMsgFolderFlags.Archive, true))
+      return false;
+    return selectedMessages.every(function(aMsg) GetIdentityForHeader(aMsg).archiveEnabled);
+  },
+
   get displayedFolder()
   {
     return gMsgFolderSelected;

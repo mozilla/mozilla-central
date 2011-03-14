@@ -351,18 +351,7 @@ var DefaultController =
       case "cmd_file":
         return GetNumSelectedMessages() > 0;
       case "cmd_archive":
-        let selectedMessages = gFolderDisplay.selectedMessages;
-        if (selectedMessages.length == 0)
-          return false;
-        // If the server of the first message's folder is configured to keep
-        // the folder structure on archiving, check that we're not in the Archive
-        // folder or below it. Otherwise allow re-archiving, e.g. in case the
-        // user switched from monthly to yearly archiving.
-        if (selectedMessages[0].folder && selectedMessages[0].folder.server &&
-            selectedMessages[0].folder.server.archiveKeepFolderStructure)
-          return gFolderDisplay.displayedFolder && !gFolderDisplay.displayedFolder
-            .isSpecialFolder(Components.interfaces.nsMsgFolderFlags.Archive, true);
-        return true;
+        return gFolderDisplay.canArchiveSelectedMessages;
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
         if (gDBView)
