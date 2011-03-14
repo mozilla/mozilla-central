@@ -211,6 +211,7 @@ var DefaultController =
       case "cmd_search":
       case "button_mark":
       case "cmd_tag":
+      case "cmd_toggleRead":
       case "cmd_markAsRead":
       case "cmd_markAsUnread":
       case "cmd_markAllRead":
@@ -401,6 +402,7 @@ var DefaultController =
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.deleteJunk);
       case "button_mark":
       case "cmd_tag":
+      case "cmd_toggleRead":
       case "cmd_markThreadAsRead":
         return GetNumSelectedMessages() > 0;
       case "cmd_markAsRead":
@@ -780,6 +782,7 @@ var DefaultController =
         MsgSearchMessages();
         return;
       case "button_mark":
+      case "cmd_toggleRead":
         MsgMarkMsgAsRead();
         return;
       case "cmd_markAsRead":

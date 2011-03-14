@@ -86,6 +86,7 @@ function check_read_status(messages, read) {
 
 /**
  * Ensures that the mark read/unread menu items are enabled/disabled properly
+ * @param index the row in the thread pane of the message to query
  * @param canMarkRead true if the mark read item should be enabled
  * @param canMarkUnread true if the mark unread item should be enabled
  */
@@ -112,14 +113,20 @@ function enable_archiving(enabled) {
    .setBoolPref("mail.identity.default.archive_enabled", enabled);
 }
 
-// XXX Disabled due to issues with running these tests on tinderbox
-/*
+function mark_read_via_menu(index, read) {
+  let menuItem = read ? "mailContext-markRead" : "mailContext-markUnread";
+  right_click_on_row(index);
+  mc.click_menus_in_sequence(mc.e("mailContext"), [{id: "mailContext-mark"},
+                                                   {id: menuItem}]);
+  close_popup(mc, mc.eid("mailContext"));
+}
+
 function test_mark_one_read() {
   be_in_folder(unreadFolder);
   let curMessage = select_click_row(0);
 
   curMessage.markRead(false);
-  mc.keypress(null, "m", {});
+  mark_read_via_menu(0, true);
   check_read_status([curMessage], true);
 }
 
@@ -128,7 +135,7 @@ function test_mark_one_unread() {
   let curMessage = select_click_row(0);
 
   curMessage.markRead(true);
-  mc.keypress(null, "m", {shiftKey: true});
+  mark_read_via_menu(0, false);
   check_read_status([curMessage], false);
 }
 
@@ -139,7 +146,7 @@ function test_mark_n_read() {
 
   for (let i = 0; i < curMessages.length; i++)
     curMessages[i].markRead(false);
-  mc.keypress(null, "m", {});
+  mark_read_via_menu(0, true);
   check_read_status(curMessages, true);
 }
 
@@ -150,7 +157,7 @@ function test_mark_n_unread() {
 
   for (let i = 0; i < curMessages.length; i++)
     curMessages[i].markRead(true);
-  mc.keypress(null, "m", {shiftKey: true});
+  mark_read_via_menu(0, false);
   check_read_status(curMessages, false);
 }
 
@@ -161,12 +168,12 @@ function test_mark_n_read_mixed() {
 
   curMessages[0].markRead(true);
   curMessages[1].markRead(false);
-  mc.keypress(null, "m", {});
+  mark_read_via_menu(0, true);
   check_read_status(curMessages, true);
 
   curMessages[0].markRead(false);
   curMessages[1].markRead(true);
-  mc.keypress(null, "m", {});
+  mark_read_via_menu(0, true);
   check_read_status(curMessages, true);
 
 }
@@ -178,15 +185,48 @@ function test_mark_n_unread_mixed() {
 
   curMessages[0].markRead(false);
   curMessages[1].markRead(true);
-  mc.keypress(null, "m", {shiftKey: true});
+  mark_read_via_menu(0, false);
   check_read_status(curMessages, false);
 
   curMessages[0].markRead(true);
   curMessages[1].markRead(false);
-  mc.keypress(null, "m", {shiftKey: true});
+  mark_read_via_menu(0, false);
   check_read_status(curMessages, false);
 }
-*/
+
+function test_toggle_read() {
+  be_in_folder(unreadFolder);
+  let curMessage = select_click_row(0);
+
+  curMessage.markRead(false);
+  mc.keypress(null, "m", {});
+  check_read_status([curMessage], true);
+}
+
+function test_toggle_unread() {
+  be_in_folder(unreadFolder);
+  let curMessage = select_click_row(0);
+
+  curMessage.markRead(true);
+  mc.keypress(null, "m", {});
+  check_read_status([curMessage], false);
+}
+
+function test_toggle_mixed() {
+  be_in_folder(unreadFolder);
+  select_click_row(0);
+  let curMessages = select_shift_click_row(1);
+
+  curMessages[0].markRead(false);
+  curMessages[1].markRead(true);
+  mc.keypress(null, "m", {});
+  check_read_status(curMessages, true);
+
+  curMessages[0].markRead(true);
+  curMessages[1].markRead(false);
+  mc.keypress(null, "m", {});
+  check_read_status(curMessages, false);
+}
 
 function test_mark_menu_read() {
   be_in_folder(unreadFolder);
