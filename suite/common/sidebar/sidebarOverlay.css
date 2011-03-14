@@ -105,3 +105,7 @@ sidebarheader[type="splitter"] {
 .sidebar-notificationbox > notification {
   -moz-binding: url(chrome://communicator/content/bindings/notification.xml#sidebar-notification);
 }
+
+.sidebar-notificationbox > notification[value="addon-progress"] {
+  -moz-binding: url(chrome://communicator/content/bindings/notification.xml#sidebar-addon-progress-notification);
+}
