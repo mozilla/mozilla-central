@@ -1928,14 +1928,6 @@ nsMsgDBFolder::GetPurgeThreshold(PRInt32 *aThreshold)
   nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv) && prefBranch)
   {
-#ifdef MOZ_SUITE
-    rv = prefBranch->GetIntPref(PREF_MAIL_PURGE_THRESHOLD, aThreshold);
-    if (NS_FAILED(rv))
-    {
-      *aThreshold = 0;
-      return NS_OK;
-    }
-#else
     PRInt32 thresholdMB = 20;
     PRBool thresholdMigrated = PR_FALSE;
     prefBranch->GetIntPref(PREF_MAIL_PURGE_THRESHOLD_MB, &thresholdMB);
@@ -1952,7 +1944,6 @@ nsMsgDBFolder::GetPurgeThreshold(PRInt32 *aThreshold)
       prefBranch->SetBoolPref(PREF_MAIL_PURGE_MIGRATED, PR_TRUE);
     }
     *aThreshold = thresholdMB * 1024;
-#endif
   }
   return rv;
 }

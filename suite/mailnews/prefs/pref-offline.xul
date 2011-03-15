@@ -67,8 +67,8 @@
                   name="mail.prompt_purge_threshhold"
                   type="bool"
                   onchange="EnableMailPurgeThreshhold(this.value);"/>
-      <preference id="mail.purge_threshhold"
-                  name="mail.purge_threshhold"
+      <preference id="mail.purge_threshhold_mb"
+                  name="mail.purge_threshhold_mb"
                   type="int"/>
     </preferences>
 
@@ -137,16 +137,21 @@
     <groupbox>
       <caption label="&Diskspace;"/>
       <hbox align="center">
-        <checkbox id="offlineCompactFolder" label="&offlineCompact.label;" accesskey="&offlineCompact.accesskey;"
-          preference="mail.prompt_purge_threshhold"
-          aria-labelledby="offlineCompactFolder offlineCompactFolderMin kbLabel"/>
+        <checkbox id="offlineCompactFolder"
+                  label="&offlineCompact.label;"
+                  accesskey="&offlineCompact.accesskey;"
+                  preference="mail.prompt_purge_threshhold"
+                  aria-labelledby="offlineCompactFolder offlineCompactFolderMin kbLabel"/>
         <textbox id="offlineCompactFolderMin"
                  type="number"
                  size="5"
-                 value="100"
-                 preference="mail.purge_threshhold"
+                 min="1"
+                 max="2048"
+                 increment="10"
+                 value="20"
+                 preference="mail.purge_threshhold_mb"
                  aria-labelledby="offlineCompactFolder offlineCompactFolderMin kbLabel"/>
-        <label id="kbLabel" value="&kb.label;"/>
+        <label id="offlineCompactFolderMB" value="&mb.label;"/>
       </hbox>
     </groupbox>
   </prefpane>
