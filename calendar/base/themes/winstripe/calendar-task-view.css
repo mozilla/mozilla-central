@@ -192,18 +192,18 @@ window[toolboxId="task-actions-toolbox"] #modelist menuitem:first-child {
 }
 
 #task-actions-category {
-    list-style-image: url(chrome://calendar/skin/toolbar-small.png);
-    -moz-image-region: rect(0px, 368px, 16px, 352px);
+    list-style-image: url(chrome://calendar/skin/tasks-actions.png);
+    -moz-image-region: rect(0px, 16px, 16px, 0px);
 }
 
 #task-actions-markcompleted {
-    list-style-image: url(chrome://calendar/skin/toolbar-small.png);
-    -moz-image-region: rect(0px, 384px, 16px, 368px);
+    list-style-image: url(chrome://calendar/skin/tasks-actions.png);
+    -moz-image-region: rect(0px, 32px, 16px, 16px);
 }
 
 #task-actions-priority {
-    list-style-image: url(chrome://calendar/skin/toolbar-small.png);
-    -moz-image-region: rect(0px, 400px, 16px, 384px);
+    list-style-image: url(chrome://calendar/skin/tasks-actions.png);
+    -moz-image-region: rect(0px, 48px, 16px, 32px);
 }
 
 #calendar-delete-task-button {
