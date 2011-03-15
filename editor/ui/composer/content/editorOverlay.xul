@@ -472,7 +472,7 @@
                 key="inserthtmlkb"/>
       <menuitem id="insertChars"
                 accesskey="&insertCharsCmd.accesskey;"
-                observes="cmd_insertChars"/>
+                command="cmd_insertChars"/>
       <menu id="insertTOC" label="&tocMenu.label;" accesskey="&tocMenu.accesskey;">
         <menupopup id="insertTOCPopup" onpopupshowing="InitTOCMenu()">
           <menuitem id="insertTOCMenuitem"
@@ -491,17 +491,6 @@
       </menu>
       <menuseparator id="insertMenuSeparator"/>
       <menuitem id="insertBreakAll" accesskey="&insertBreakAllCmd.accesskey;"   observes="cmd_insertBreakAll"   label="&insertBreakAllCmd.label;"/>
-    </menupopup>
-  </menu>
-
-  <!-- Insert menu for PlainText editor -->
-  <menu id="insertMenuPlainText"
-        label="&insertMenu.label;"
-        accesskey="&insertMenu.accesskey;">
-    <menupopup id="insertMenuPlainTextPopup">
-      <menuitem id="insertPlainTextChars"
-                accesskey="&insertCharsCmd.accesskey;"
-                observes="cmd_insertChars"/>
     </menupopup>
   </menu>
 
