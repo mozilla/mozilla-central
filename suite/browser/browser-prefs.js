@@ -546,20 +546,22 @@ pref("extensions.blocklist.interval", 86400);
 pref("extensions.blocklist.url", "https://addons.mozilla.org/blocklist/3/%APP_ID%/%APP_VERSION%/%PRODUCT%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/%PING_COUNT%/%TOTAL_PING_COUNT%/%DAYS_SINCE_LAST_PING%/");
 pref("extensions.blocklist.detailsURL", "https://www.mozilla.com/%LOCALE%/blocklist/");
 
-// Symmetric (can be overridden by individual extensions) update preferences.
+// Update preferences for installed Extensions and Themes.
+// Symmetric (can be overridden by individual extensions),
 // e.g.
 //  extensions.{GUID}.update.enabled
 //  extensions.{GUID}.update.url
 //  extensions.{GUID}.update.interval
+//  extensions.{GUID}.update.autoUpdateDefault
 //  .. etc ..
 //
 pref("extensions.update.enabled", true);
 pref("extensions.update.url", "https://versioncheck.addons.mozilla.org/update/VersionCheck.php?reqVersion=%REQ_VERSION%&id=%ITEM_ID%&version=%ITEM_VERSION%&maxAppVersion=%ITEM_MAXAPPVERSION%&status=%ITEM_STATUS%&appID=%APP_ID%&appVersion=%APP_VERSION%&appOS=%APP_OS%&appABI=%APP_ABI%&locale=%APP_LOCALE%&currentAppVersion=%CURRENT_APP_VERSION%&updateType=%UPDATE_TYPE%");
-pref("extensions.update.interval", 86400);  // Check for updates to Extensions and 
-                                            // Themes every day
+pref("extensions.update.interval", 86400);         // Check daily for updates to add-ons
+pref("extensions.update.autoUpdateDefault", true); // Download and install automatically
 
 // Preferences for AMO integration
-pref("extensions.getAddons.cache.enabled", true);
+pref("extensions.getAddons.cache.enabled", true);  // also toggles personalized recommendations
 pref("extensions.getAddons.maxResults", 15);
 pref("extensions.getAddons.get.url", "https://services.addons.mozilla.org/%LOCALE%/%APP%/api/%API_VERSION%/search/guid:%IDS%?src=seamonkey&appOS=%OS%&appVersion=%VERSION%&tMain=%TIME_MAIN%&tFirstPaint=%TIME_FIRST_PAINT%&tSessionRestored=%TIME_SESSION_RESTORED%");
 pref("extensions.getAddons.search.browseURL", "https://addons.mozilla.org/%LOCALE%/%APP%/search?q=%TERMS%");
