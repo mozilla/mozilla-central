@@ -471,14 +471,14 @@
               label="&folderContextGetMessages.label;"
               accesskey="&folderContextGetMessages.accesskey;"
               oncommand="MsgGetMessage();"/>
-    <menuitem id="folderPaneContext-openNewWindow"
-              label="&folderContextOpenNewWindow.label;"
-              accesskey="&folderContextOpenNewWindow.accesskey;"
-              oncommand="MsgOpenNewWindowForFolder(null,-1);"/>
     <menuitem id="folderPaneContext-openNewTab"
               label="&folderContextOpenNewTab.label;"
               accesskey="&folderContextOpenNewTab.accesskey;"
               oncommand="MsgOpenNewTabForFolder();"/>
+    <menuitem id="folderPaneContext-openNewWindow"
+              label="&folderContextOpenNewWindow.label;"
+              accesskey="&folderContextOpenNewWindow.accesskey;"
+              oncommand="MsgOpenNewWindowForFolder(null,-1);"/>
     <menuitem id="folderPaneContext-searchMessages"
               label="&folderContextSearchMessages.label;"
               accesskey="&folderContextSearchMessages.accesskey;"
@@ -548,14 +548,14 @@
          onpopupshowing="return event.target != this ||
                                 FillMailContextMenu(this);"
          onpopuphiding="if (event.target == this) MailContextOnPopupHiding();">
-    <menuitem id="context-openlink"
-              label="&openLinkCmd.label;"
-              accesskey="&openLinkCmd.accesskey;"
-              oncommand="gContextMenu.openLink();"/>
     <menuitem id="context-openlinkintab"
               label="&openLinkCmdInTab.label;"
               accesskey="&openLinkCmdInTab.accesskey;"
               oncommand="gContextMenu.openLinkInTab(event);"/>
+    <menuitem id="context-openlink"
+              label="&openLinkCmd.label;"
+              accesskey="&openLinkCmd.accesskey;"
+              oncommand="gContextMenu.openLink();"/>
     <menuseparator id="mailContext-sep-link"/>
     <menuitem id="context-selectall"
               label="&selectAllCmd.label;"
@@ -567,14 +567,14 @@
               command="cmd_copy"/>
     <menuitem id="context-searchselect"
               oncommand="MsgBrowserSearch(gContextMenu.searchSelected());"/>
-    <menuitem id="mailContext-openNewWindow"
-              label="&contextOpenNewWindow.label;"
-              accesskey="&contextOpenNewWindow.accesskey;"
-              oncommand="MsgOpenNewWindowForMessage();"/>
     <menuitem id="mailContext-openNewTab"
               label="&contextOpenNewTab.label;"
               accesskey="&contextOpenNewTab.accesskey;"
               oncommand="MsgOpenNewTabForMessage();"/>
+    <menuitem id="mailContext-openNewWindow"
+              label="&contextOpenNewWindow.label;"
+              accesskey="&contextOpenNewWindow.accesskey;"
+              oncommand="MsgOpenNewWindowForMessage();"/>
     <menuseparator id="mailContext-sep-open"/>
     <menuitem id="mailContext-replySender"
               label="&contextReplySender.label;"
