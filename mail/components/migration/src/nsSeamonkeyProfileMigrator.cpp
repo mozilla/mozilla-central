@@ -313,15 +313,6 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromSeamonkeyRegistry()
                                     mProfileLocations);
 }
 
-#define F(a) nsSeamonkeyProfileMigrator::a
-
-#define MAKEPREFTRANSFORM(pref, newpref, getmethod, setmethod) \
-  { pref, newpref, F(Get##getmethod), F(Set##setmethod), PR_FALSE, { -1 } }
-
-#define MAKESAMETYPEPREFTRANSFORM(pref, method) \
-  { pref, 0, F(Get##method), F(Set##method), PR_FALSE, { -1 } }
-
-
 static
 nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
 
@@ -392,54 +383,47 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const nsAString& aSourcePrefFil
   for (transform = gTransforms; transform < end; ++transform)
     transform->prefGetterFunc(transform, branch);
 
+  static const char* branchNames[] =
+  {
+    // Keep the three below first, or change the indexes below
+    "mail.identity.",
+    "mail.server.",
+    "ldap_2.",
+    "mail.account.",
+    "mail.smtpserver.",
+    "mailnews.labels.",
+    "mailnews.tags."
+  };
+
   // read in the various pref branch trees for accounts, identities, servers, etc.
+  PBStructArray branches[NS_ARRAY_LENGTH(branchNames)];
+  PRUint32 i;
+  for (i = 0; i < NS_ARRAY_LENGTH(branchNames); ++i)
+    ReadBranch(branchNames[i], psvc, branches[i]);
 
-  nsVoidArray* accounts = new nsVoidArray();
-  nsVoidArray* identities = new nsVoidArray();
-  nsVoidArray* servers = new nsVoidArray();
-  nsVoidArray* smtpservers = new nsVoidArray();
-  nsVoidArray* ldapservers = new nsVoidArray();
-  nsVoidArray* labelPrefs = new nsVoidArray();
+  // The signature file prefs may be paths to files in the seamonkey profile
+  // path so we need to copy them over and fix these paths up before we write
+  // them out to the new prefs.js.
+  CopySignatureFiles(branches[0], psvc);
 
-  if (!accounts || !identities || !servers || !smtpservers || !ldapservers)
-    return NS_ERROR_OUT_OF_MEMORY;
+  // Certain mail prefs may actually be absolute paths instead of profile
+  // relative paths we need to fix these paths up before we write them out to
+  // the new prefs.js
+  CopyMailFolders(branches[1], psvc);
 
-  ReadBranch("mail.account.", psvc, accounts);
-  ReadBranch("mail.identity.", psvc, identities);
-  ReadBranch("mail.server.", psvc, servers);
-  ReadBranch("mail.smtpserver.", psvc, smtpservers);
-  ReadBranch("ldap_2.servers.", psvc, ldapservers);
-  ReadBranch("mailnews.labels.", psvc, labelPrefs);
-
-  // the signature file prefs may be paths to files in the seamonkey profile path
-  // so we need to copy them over and fix these paths up before we write them out to the new prefs.js
-  CopySignatureFiles(identities, psvc);
-
-  // certain mail prefs may actually be absolute paths instead of profile relative paths
-  // we need to fix these paths up before we write them out to the new prefs.js
-  CopyMailFolders(servers, psvc);
-
-  CopyAddressBookDirectories(ldapservers, psvc);
+  CopyAddressBookDirectories(branches[2], psvc);
 
   // Now that we have all the pref data in memory, load the target pref file,
-  // and write it back out
+  // and write it back out.
   psvc->ResetPrefs();
+
+  // XXX Re-order this?
+
   for (transform = gTransforms; transform < end; ++transform)
     transform->prefSetterFunc(transform, branch);
 
-  WriteBranch("mail.account.", psvc, accounts);
-  WriteBranch("mail.identity.", psvc, identities);
-  WriteBranch("mail.server.", psvc, servers);
-  WriteBranch("mail.smtpserver.", psvc, smtpservers);
-  WriteBranch("ldap_2.servers.", psvc, ldapservers);
-  WriteBranch("mailnews.labels.", psvc, labelPrefs);
-
-  delete accounts;
-  delete identities;
-  delete servers;
-  delete smtpservers;
-  delete ldapservers;
-  delete labelPrefs;
+  for (i = 0; i < NS_ARRAY_LENGTH(branchNames); i++)
+    WriteBranch(branchNames[i], psvc, branches[i]);
 
   nsCOMPtr<nsIFile> targetPrefsFile;
   mTargetProfile->Clone(getter_AddRefs(targetPrefsFile));
@@ -449,7 +433,9 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const nsAString& aSourcePrefFil
   return NS_OK;
 }
 
-nsresult nsSeamonkeyProfileMigrator::CopyAddressBookDirectories(nsVoidArray* aLdapServers, nsIPrefService* aPrefService)
+nsresult
+nsSeamonkeyProfileMigrator::CopyAddressBookDirectories(PBStructArray &aLdapServers,
+                                                       nsIPrefService* aPrefService)
 {
   // each server has a pref ending with .filename. The value of that pref points to a profile which we
   // need to migrate.
@@ -457,18 +443,17 @@ nsresult nsSeamonkeyProfileMigrator::CopyAddressBookDirectories(nsVoidArray* aLd
   index.AppendInt(nsIMailProfileMigrator::ADDRESSBOOK_DATA);
   NOTIFY_OBSERVERS(MIGRATION_ITEMBEFOREMIGRATE, index.get());
 
-  PRUint32 count = aLdapServers->Count();
+  PRUint32 count = aLdapServers.Length();
   for (PRUint32 i = 0; i < count; ++i)
   {
-    PrefBranchStruct* pref = (PrefBranchStruct*) aLdapServers->ElementAt(i);
-    nsDependentCString prefName (pref->prefName);
+    PrefBranchStruct* pref = aLdapServers.ElementAt(i);
+    nsDependentCString prefName(pref->prefName);
 
     if (StringEndsWith(prefName, nsDependentCString(".filename")))
     {
-      // should we be assuming utf-8 or ascii here?
-      CopyFile(NS_ConvertUTF8toUTF16(pref->stringValue), NS_ConvertUTF8toUTF16(pref->stringValue));
+      NS_ConvertUTF8toUTF16 fileName(pref->stringValue);
+      CopyFile(fileName, fileName);
     }
-
     // we don't need to do anything to the fileName pref itself
   }
 
@@ -478,15 +463,17 @@ nsresult nsSeamonkeyProfileMigrator::CopyAddressBookDirectories(nsVoidArray* aLd
 }
 
 
-nsresult nsSeamonkeyProfileMigrator::CopySignatureFiles(nsVoidArray* aIdentities, nsIPrefService* aPrefService)
+nsresult
+nsSeamonkeyProfileMigrator::CopySignatureFiles(PBStructArray &aIdentities,
+                                               nsIPrefService* aPrefService)
 {
   nsresult rv = NS_OK;
 
-  PRUint32 count = aIdentities->Count();
+  PRUint32 count = aIdentities.Length();
   for (PRUint32 i = 0; i < count; ++i)
   {
-    PrefBranchStruct* pref = (PrefBranchStruct*)aIdentities->ElementAt(i);
-    nsDependentCString prefName (pref->prefName);
+    PrefBranchStruct* pref = aIdentities.ElementAt(i);
+    nsDependentCString prefName(pref->prefName);
 
     // a partial fix for bug #255043
     // if the user's signature file from seamonkey lives in the
@@ -497,7 +484,8 @@ nsresult nsSeamonkeyProfileMigrator::CopySignatureFiles(nsVoidArray* aIdentities
     if (StringEndsWith(prefName, nsDependentCString(".sig_file")))
     {
       // turn the pref into a nsILocalFile
-      nsCOMPtr<nsILocalFile> srcSigFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
+      nsCOMPtr<nsILocalFile> srcSigFile =
+        do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
       srcSigFile->SetPersistentDescriptor(nsDependentCString(pref->stringValue));
 
       nsCOMPtr<nsIFile> targetSigFile;
@@ -526,7 +514,9 @@ nsresult nsSeamonkeyProfileMigrator::CopySignatureFiles(nsVoidArray* aIdentities
   return NS_OK;
 }
 
-nsresult nsSeamonkeyProfileMigrator::CopyMailFolders(nsVoidArray* aMailServers, nsIPrefService* aPrefService)
+nsresult
+nsSeamonkeyProfileMigrator::CopyMailFolders(PBStructArray &aMailServers,
+                                            nsIPrefService* aPrefService)
 {
   // Each server has a .directory pref which points to the location of the mail data
   // for that server. We need to do two things for that case...
@@ -535,11 +525,11 @@ nsresult nsSeamonkeyProfileMigrator::CopyMailFolders(nsVoidArray* aMailServers, 
 
   nsresult rv = NS_OK;
 
-  PRUint32 count = aMailServers->Count();
+  PRUint32 count = aMailServers.Length();
   for (PRUint32 i = 0; i < count; ++i)
   {
-    PrefBranchStruct* pref = (PrefBranchStruct*)aMailServers->ElementAt(i);
-    nsDependentCString prefName (pref->prefName);
+    PrefBranchStruct* pref = aMailServers.ElementAt(i);
+    nsDependentCString prefName(pref->prefName);
 
     if (StringEndsWith(prefName, NS_LITERAL_CSTRING(".directory-rel"))) {
       // When the directories are modified below, we may change the .directory
@@ -550,7 +540,7 @@ nsresult nsSeamonkeyProfileMigrator::CopyMailFolders(nsVoidArray* aMailServers, 
       if (pref->type == nsIPrefBranch::PREF_STRING)
         NS_Free(pref->stringValue);
 
-      aMailServers->RemoveElementAt(i);
+      aMailServers.RemoveElementAt(i);
       // Now decrease i and count to match the removed element
       --i;
       --count;
@@ -673,8 +663,10 @@ nsSeamonkeyProfileMigrator::CopyPreferences(PRBool aReplace)
   return rv;
 }
 
-void nsSeamonkeyProfileMigrator::ReadBranch(const char * branchName, nsIPrefService* aPrefService,
-                                            nsVoidArray* aPrefs)
+void
+nsSeamonkeyProfileMigrator::ReadBranch(const char *branchName,
+                                       nsIPrefService* aPrefService,
+                                       PBStructArray &aPrefs)
 {
   // Enumerate the branch
   nsCOMPtr<nsIPrefBranch> branch;
@@ -683,7 +675,8 @@ void nsSeamonkeyProfileMigrator::ReadBranch(const char * branchName, nsIPrefServ
   PRUint32 count;
   char** prefs = nsnull;
   nsresult rv = branch->GetChildList("", &count, &prefs);
-  if (NS_FAILED(rv)) return;
+  if (NS_FAILED(rv))
+    return;
 
   for (PRUint32 i = 0; i < count; ++i) {
     // Save each pref's value into an array
@@ -703,26 +696,21 @@ void nsSeamonkeyProfileMigrator::ReadBranch(const char * branchName, nsIPrefServ
     case nsIPrefBranch::PREF_INT:
       rv = branch->GetIntPref(currPref, &pref->intValue);
       break;
-    case nsIPrefBranch::PREF_INVALID:
-      {
-        nsCOMPtr<nsIPrefLocalizedString> str;
-        rv = branch->GetComplexValue(currPref,
-                                    NS_GET_IID(nsIPrefLocalizedString),
-                                    getter_AddRefs(str));
-        if (NS_SUCCEEDED(rv) && str)
-          str->ToString(&pref->wstringValue);
-      }
+    default:
+      NS_WARNING("Invalid Pref Type in "
+                 "nsNetscapeProfileMigratorBase::ReadBranch\n");
       break;
     }
 
     if (NS_SUCCEEDED(rv))
-      aPrefs->AppendElement((void*)pref);
+      aPrefs.AppendElement(pref);
   }
 }
 
 void
-nsSeamonkeyProfileMigrator::WriteBranch(const char * branchName, nsIPrefService* aPrefService,
-                                        nsVoidArray* aPrefs)
+nsSeamonkeyProfileMigrator::WriteBranch(const char *branchName,
+                                        nsIPrefService* aPrefService,
+                                        PBStructArray &aPrefs)
 {
   nsresult rv;
 
@@ -730,9 +718,9 @@ nsSeamonkeyProfileMigrator::WriteBranch(const char * branchName, nsIPrefService*
   nsCOMPtr<nsIPrefBranch> branch;
   aPrefService->GetBranch(branchName, getter_AddRefs(branch));
 
-  PRUint32 count = aPrefs->Count();
+  PRUint32 count = aPrefs.Length();
   for (PRUint32 i = 0; i < count; ++i) {
-    PrefBranchStruct* pref = (PrefBranchStruct*)aPrefs->ElementAt(i);
+    PrefBranchStruct* pref = aPrefs.ElementAt(i);
     switch (pref->type) {
     case nsIPrefBranch::PREF_STRING:
       rv = branch->SetCharPref(pref->prefName, pref->stringValue);
@@ -745,14 +733,9 @@ nsSeamonkeyProfileMigrator::WriteBranch(const char * branchName, nsIPrefService*
     case nsIPrefBranch::PREF_INT:
       rv = branch->SetIntPref(pref->prefName, pref->intValue);
       break;
-    case nsIPrefBranch::PREF_INVALID:
-      nsCOMPtr<nsIPrefLocalizedString> pls(do_CreateInstance("@mozilla.org/pref-localizedstring;1"));
-      pls->SetData(pref->wstringValue);
-      rv = branch->SetComplexValue(pref->prefName,
-                                   NS_GET_IID(nsIPrefLocalizedString),
-                                   pls);
-      NS_Free(pref->wstringValue);
-      pref->wstringValue = nsnull;
+    default:
+      NS_WARNING("Invalid Pref Type in "
+                 "nsNetscapeProfileMigratorBase::WriteBranch\n");
       break;
     }
     NS_Free(pref->prefName);
@@ -760,7 +743,7 @@ nsSeamonkeyProfileMigrator::WriteBranch(const char * branchName, nsIPrefService*
     delete pref;
     pref = nsnull;
   }
-  aPrefs->Clear();
+  aPrefs.Clear();
 }
 
 nsresult nsSeamonkeyProfileMigrator::DummyCopyRoutine(PRBool aReplace)
