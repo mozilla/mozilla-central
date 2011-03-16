@@ -111,6 +111,8 @@
                oncommand="goDoCommand('cmd_HTMLSourceMode');"/>
       <command id="cmd_PreviewMode"
                oncommand="goDoCommand('cmd_PreviewMode');"/>
+      <command id="cmd_updateStructToolbar"
+               oncommand="goDoCommand('cmd_updateStructToolbar');"/>
     </commandset>
     <commandset id="composerEditMenuItems"/>
     <commandset id="composerSaveMenuItems"/>    

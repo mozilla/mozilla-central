@@ -81,30 +81,3 @@
   border-left: 1px solid ThreeDDarkShadow;
   border-right: 1px solid ThreeDLightShadow;
 }
-
-/* ::::: struct toolbar ::::: */
-
-#structToolbar {
-  min-width: 1px;
-  overflow: -moz-hidden-unscrollable;
-}
-
-#structSpacer {
-  margin: 2px 0px;
-}
-
-.struct-button {
-  padding: 2px;
-}
-
-.struct-button[checked="true"] {
-  font-weight: bold;
-}
-
-.struct-textbox {
-  -moz-appearance: none !important;
-  padding: 0px !important;
-  margin: 0px !important;
-  border: none !important;
-}
-
