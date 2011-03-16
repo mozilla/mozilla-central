@@ -179,7 +179,7 @@ function setupModule() {
           obj.name == "teardownModule")
         return;
       if (obj.filename != curTestFile) {
-        testHelperModule.mark_test_end();  
+        testHelperModule.mark_test_end();
         bucketAppender.newBucket();
         testHelperModule.mark_test_start(obj.filename);
         curTestFile = obj.filename;
@@ -1452,7 +1452,7 @@ function plan_for_message_display(aControllerOrTab) {
 function wait_for_message_display_completion(aController, aLoadDemanded) {
   if (aController == null)
     aController = mc;
-  mark_action("fdh", "wait_for_message_display_completion", []);
+  mark_action("fdhb", "wait_for_message_display_completion", []);
   let contentPane = aController.contentPane;
   let oldHref = null;
 
@@ -1495,7 +1495,7 @@ function wait_for_message_display_completion(aController, aLoadDemanded) {
   // the above may return immediately, meaning the event queue might not get a
   //  chance.  give it a chance now.
   aController.sleep(0);
-  mark_action("fdh", "/wait_for_message_display_completion", []);
+  mark_action("fdhb", "/wait_for_message_display_completion", []);
 }
 
 /**

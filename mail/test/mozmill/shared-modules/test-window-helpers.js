@@ -132,7 +132,7 @@ function installInto(module) {
  * Return the "windowtype" or "id" for the given xul window if it is available.
  * If not, return null.
  */
-function getWindowTypeForXulWindow(aXULWindow) {
+function getWindowTypeForXulWindow(aXULWindow, aBusyOk) {
   // Sometimes we are given HTML windows, for which the logic below will
   //  bail.  So we use a fast-path here that should work for HTML and should
   //  maybe also work with XUL.  I'm not going to go into it...
@@ -147,7 +147,7 @@ function getWindowTypeForXulWindow(aXULWindow) {
     return null;
 
   // we can't know if it's the right document until it's not busy
-  if (docshell.busyFlags)
+  if (!aBusyOk && docshell.busyFlags)
     return null;
 
   // it also needs to have content loaded (it starts out not busy with no
@@ -165,6 +165,43 @@ function getWindowTypeForXulWindow(aXULWindow) {
   let windowType = outerDoc.documentElement.getAttribute("windowtype") ||
                    outerDoc.documentElement.getAttribute("id");
   return windowType;
+}
+
+/**
+ * Return the unique id we annotated onto this XUL window during
+ *  augment_controller.
+ */
+function getUniqueIdForXulWindow(aXULWindow) {
+  // html case
+  if (aXULWindow.document &&
+      aXULWindow.document.documentElement) {
+    if (!(UNIQUE_WINDOW_ID_ATTR in aXULWindow.document.defaultView))
+      return "no attr html";
+    return aXULWindow.document.defaultView[UNIQUE_WINDOW_ID_ATTR];
+  }
+
+  // XUL case
+  let docshell = aXULWindow.docShell;
+  // we need the docshell to exist...
+  if (!docshell)
+    return "no docshell";
+
+  // it also needs to have content loaded (it starts out not busy with no
+  //  content viewer.)
+  if (docshell.contentViewer == null)
+    return "no contentViewer";
+
+  // now we're cooking! let's get the document...
+  let outerDoc = docshell.contentViewer.DOMDocument;
+  // and make sure it's not blank.  that's also an intermediate state.
+  if (outerDoc.location.href == "about:blank")
+    return "about:blank";
+
+  // finally, we can now have a windowtype!
+  let win = outerDoc.defaultView;
+  if (UNIQUE_WINDOW_ID_ATTR in win)
+    return win[UNIQUE_WINDOW_ID_ATTR];
+  return "no attr xul";
 }
 
 var WindowWatcher = {
@@ -378,7 +415,8 @@ var WindowWatcher = {
   onWindowTitleChange: function WindowWatcher_onWindowTitleChange(
       aXULWindow, aNewTitle) {
     mark_action("winhelp", "onWindowTitleChange",
-                [aXULWindow.toString(), getWindowTypeForXulWindow(aXULWindow),
+                [getWindowTypeForXulWindow(aXULWindow, true) +
+                   " (" + getUniqueIdForXulWindow(aXULWindow) + ")",
                  "changed title to", aNewTitle]);
   },
 
@@ -427,11 +465,19 @@ var WindowWatcher = {
    *  add it to our monitoring list.
    */
   onOpenWindow: function WindowWatcher_onOpenWindow(aXULWindow) {
+    // note: we would love to add our window activation/deactivation listeners
+    //  and poke our unique id, but there is no contentViewer at this point
+    //  and so there's no place to poke our unique id.  (aXULWindow does not
+    //  let us put expandos on; it's an XPCWrappedNative and explodes.)
+    // There may be nuances about outer window/inner window that make it
+    //  feasible, but I have forgotten any such nuances I once knew.
+
     // It would be great to be able to indicate if the window is modal or not,
     //  but nothing is really jumping out at me to enable that...
     mark_action("winhelp", "onOpenWindow",
-                [aXULWindow.toString(),
-                 "window type", getWindowTypeForXulWindow(aXULWindow)]);
+                [getWindowTypeForXulWindow(aXULWindow, true) +
+                   " (" + getUniqueIdForXulWindow(aXULWindow) + ")",
+                   "active?", focusManager.focusedWindow == aXULWindow]);
     if (!this.consider(aXULWindow))
       this.monitorWindowLoad(aXULWindow);
   },
@@ -468,7 +514,8 @@ var WindowWatcher = {
       domWindow.document.documentElement.getAttribute("windowtype") ||
       domWindow.document.documentElement.getAttribute("id");
     mark_action("winhelp", "onCloseWindow",
-                [aXULWindow.toString(), "window type", windowType]);
+                [getWindowTypeForXulWindow(aXULWindow, true) +
+                   " (" + getUniqueIdForXulWindow(aXULWindow) + ")"]);
     // XXX because of how we dance with things, equivalence is not gonna
     //  happen for us.  This is most pragmatic.
     if (this.waitingList[windowType] !== null)
@@ -533,7 +580,7 @@ function wait_for_new_window(aWindowType) {
   //  (which is arguably not a great idea), so it's important that we denote
   //  when we're actually leaving this function in case something crazy
   //  happens.
-  mark_action("fdh", "/wait_for_new_window", [aWindowType]);
+  mark_action("fdhb", "/wait_for_new_window", [aWindowType]);
   return c;
 }
 
@@ -565,7 +612,7 @@ function plan_for_modal_dialog(aWindowType, aSubTestFunction) {
 function wait_for_modal_dialog(aWindowType, aTimeout) {
   mark_action("fdh", "wait_for_modal_dialog", [aWindowType, aTimeout]);
   WindowWatcher.waitForModalDialog(aWindowType, aTimeout);
-  mark_action("fdh", "/wait_for_modal_dialog", [aWindowType, aTimeout]);
+  mark_action("fdhb", "/wait_for_modal_dialog", [aWindowType, aTimeout]);
 }
 
 /**
@@ -578,7 +625,7 @@ function wait_for_modal_dialog(aWindowType, aTimeout) {
  */
 function plan_for_window_close(aController) {
   mark_action("fdh", "plan_for_window_close",
-              [getWindowTypeForXulWindow(aController.window)]);
+              [getWindowTypeForXulWindow(aController.window, true)]);
   WindowWatcher.ensureInited();
   WindowWatcher.planForWindowClose(aController.window);
 }
@@ -1136,8 +1183,37 @@ function _augment_helper(aController, aAugmentDef) {
 
 var INPUT_PEEK_EVENTS = ["click", "keypress"];
 
+var UNIQUE_WINDOW_ID_ATTR = "__winHelper_uniqueId";
+
+var DOM_KEYCODE_TO_NAME = {};
+function populateDomKeycodeMap() {
+  let nsIDOMKeyEvent = Ci.nsIDOMKeyEvent;
+  let re_dom_vk = /^DOM_VK_/;
+
+  for (let key in nsIDOMKeyEvent) {
+    
+    if (re_dom_vk.test(key)) {
+      let val = nsIDOMKeyEvent[key];
+      DOM_KEYCODE_TO_NAME[val] = key;
+    }
+  }
+}
+populateDomKeycodeMap();
+
+/**
+ * Given an event, provide a uniquely identifying string that usefully
+ *  identifies the window.  We do this by getting the windowtype (an ad hoc
+ *  attribute on the document element) if available, or the id on the document
+ *  element if there was no windowtype.  (Experience has shown these to be
+ *  always present).  Additionally, we annotated a unique counter value onto
+ *  the window at augmentation time, and so we tack that on to be able to
+ *  tell the difference between otherwise similar windows.
+ */
 function getWindowDescribeyFromEvent(event) {
-  var win = event.target.ownerDocument.defaultView;
+  var target = event.target;
+  // assume it's a window if there's no ownerDocument attribute
+  var win = ("ownerDocument" in target) ? target.ownerDocument.defaultView
+                                        : target;
   var owningWin =
     win.QueryInterface(Ci.nsIInterfaceRequestor)
        .getInterface(Ci.nsIWebNavigation)
@@ -1146,8 +1222,16 @@ function getWindowDescribeyFromEvent(event) {
        .QueryInterface(Ci.nsIInterfaceRequestor)
        .getInterface(Ci.nsIDOMWindow);
   var docElem = owningWin.document.documentElement;
-  return docElem.getAttribute("windowtype") ||
-         docElem.getAttribute("id");
+  return (docElem.getAttribute("windowtype") ||
+          docElem.getAttribute("id") || "mysterious") +
+         " (" + (UNIQUE_WINDOW_ID_ATTR in win ? win[UNIQUE_WINDOW_ID_ATTR] :
+                 "n/a") + ")";
+}
+
+function __peek_activate_handler(event) {
+  mark_action("winhelp", event.type,
+              [getWindowDescribeyFromEvent(event)]);
+  return true;
 }
 
 function __peek_click_handler(event) {
@@ -1160,7 +1244,7 @@ function __peek_click_handler(event) {
 }
 
 function __bubbled_click_handler(event) {
-  mark_action("winhelp", "bubbled " + event.type,
+  mark_action("winhelpb", "bubbled " + event.type,
               ["mouse button", event.button,
                "target:", normalize_for_json(event.target),
                "in", getWindowDescribeyFromEvent(event),
@@ -1168,9 +1252,41 @@ function __bubbled_click_handler(event) {
   return true;
 }
 
+function describeKeyEvent(event) {
+  let s;
+  if (event.keyCode) {
+    s = DOM_KEYCODE_TO_NAME[event.keyCode];
+  }
+  else if (event.charCode) {
+    s = "'" + String.fromCharCode(event.charCode) + "'";
+  }
+  else {
+    s = "no keyCode/charCode?";
+  }
+
+  if (event.shiftKey)
+    s = "shift-" + s;
+  if (event.ctrlKey)
+    s = "ctrl-"; + s
+  if (event.altKey)
+    s = "alt-" + s;
+  if (event.metaKey)
+    s = "meta-" + s;
+
+  return s;
+}
+
 function __peek_keypress_handler(event) {
   mark_action("winhelp", event.type,
-              ["keycode", event.keyCode, "char", event.charCode,
+              [describeKeyEvent(event),
+               "target:", normalize_for_json(event.target),
+               "in", getWindowDescribeyFromEvent(event)]);
+  return true;
+}
+
+function __bubbled_keypress_handler(event) {
+  mark_action("winhelpb", "bubbled " + event.type,
+              [describeKeyEvent(event),
                "target:", normalize_for_json(event.target),
                "in", getWindowDescribeyFromEvent(event)]);
   return true;
@@ -1209,6 +1325,7 @@ function __popup_hidden(event) {
   return true;
 }
 
+var gNextOneUpUniqueID = 0;
 
 /**
  * controller.js in mozmill actually has its own extension mechanism,
@@ -1225,22 +1342,36 @@ function augment_controller(aController, aWindowType) {
   if (PerWindowTypeAugmentations[aWindowType])
     _augment_helper(aController, PerWindowTypeAugmentations[aWindowType]);
 
-  // for debugging purposes, add our listener that sneaks a peek at clicks and
-  //  key events
+  // Add a bunch of listeners to generate mark_action events to provide
+  //  context for what is actually going on.
   try {
     let doc = aController.window.document;
 
+    aController.window[UNIQUE_WINDOW_ID_ATTR] = gNextOneUpUniqueID++;
+
+    // - window activation / deactivation
+    aController.window.addEventListener("activate", __peek_activate_handler,
+                                        true);
+    aController.window.addEventListener("deactivate", __peek_activate_handler,
+                                        true);
+
+    // - capturing listeners
+    // (so we can see the start of the event)
     doc.addEventListener("mousedown", __peek_click_handler, true);
     doc.addEventListener("click", __peek_click_handler, true);
     doc.addEventListener("contextmenu", __peek_click_handler, true);
     doc.addEventListener("mouseup", __peek_click_handler, true);
 
+    doc.addEventListener("keypress", __peek_keypress_handler, true);
+
+    // - bubbling listeners
+    // (so we can see if the event got killed / eaten)
     doc.addEventListener("mousedown", __bubbled_click_handler, false);
     doc.addEventListener("click", __bubbled_click_handler, false);
     doc.addEventListener("contextmenu", __bubbled_click_handler, false);
     doc.addEventListener("mouseup", __bubbled_click_handler, false);
 
-    doc.addEventListener("keypress", __peek_keypress_handler, true);
+    doc.addEventListener("keypress", __bubbled_keypress_handler, false);
 
     // - also, add pop-up shown/hidden events....
     // We need to add these directly to the popups themselves in order to
