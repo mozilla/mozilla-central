@@ -97,10 +97,6 @@
     <command id="Map:SelectAll" label="&selectallCmd.label;" oncommand="selectAll()"/>
   </commandset>
 
-  <!-- Interim hack to transition from nsIXULWindowCallbacks/ShowWindowWithArgs -->
-  <broadcaster id="dialog.start" ready="false"/>
-  <observes element="dialog.start" attribute="ready" onchange="EditorStartup('html')"/>
- 
 <toolbox class="toolbox-top" id="ImageMapToolbox">    
 <menubar persist="collapsed">
   <!-- File menu -->
