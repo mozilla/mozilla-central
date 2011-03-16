@@ -81,8 +81,6 @@
           commandupdater="true"
           events="create"
           oncommandupdate="goUpdateComposerMenuItems(this)">
-    <command id="cmd_open"                                          oncommand="goDoCommand('cmd_open')"/>
-    <command id="cmd_openRemote"   label="&openRemoteCmd.label;"    oncommand="goDoCommand('cmd_openRemote')"/>
     <command id="cmd_printSetup"   oncommand="goDoCommand('cmd_printSetup')"/>
     <command id="cmd_print"                                         oncommand="goDoCommand('cmd_print')"/>
     <command id="cmd_quit"         oncommand="goDoCommand('cmd_quit')"/>
@@ -95,7 +93,6 @@
   >
     <!-- format menu -->
     <command id="cmd_listProperties"  oncommand="goDoCommand('cmd_listProperties')"/>
-    <command id="cmd_pageProperties"  oncommand="goDoCommand('cmd_pageProperties')"/>
     <command id="cmd_colorProperties" oncommand="goDoCommand('cmd_colorProperties')"/>
 
     <command id="cmd_link"             oncommand="goDoCommand('cmd_link')"/>
@@ -125,24 +122,6 @@
     <!-- dummy command used just to disable things in non-HTML modes -->
     <command id="cmd_renderedHTMLEnabler"/>
   </commandset>
-  
-  <commandset id="composerSaveMenuItems"
-          commandupdater="true"
-          events="create, save"
-          oncommandupdate="goUpdateComposerMenuItems(this)"
-  >
-    <command id="cmd_save"           label="&saveCmd.label;"           oncommand="goDoCommand('cmd_save')"/>
-    <command id="cmd_saveAs"         label="&saveAsCmd.label;"         oncommand="goDoCommand('cmd_saveAs')"/>
-    <command id="cmd_exportToText"   label="&exportToTextCmd.label;"   oncommand="goDoCommand('cmd_exportToText')"/>
-    <command id="cmd_saveAndChangeEncoding"  label="&saveAsChangeEncodingCmd.label;"  oncommand="goDoCommand('cmd_saveAndChangeEncoding')"/>
-    <command id="cmd_publish"        label="&publishCmd.label;"        oncommand="goDoCommand('cmd_publish')"/>
-    <command id="cmd_publishAs"      label="&publishAsCmd.label;"      oncommand="goDoCommand('cmd_publishAs')"/>
-    <command id="cmd_revert"         label="&fileRevert.label;"        oncommand="goDoCommand('cmd_revert')"/>
-    <command id="cmd_preview"                                          oncommand="goDoCommand('cmd_preview')"/>
-    <command id="cmd_editSendPage"   label="&sendPageCmd.label;"
-                                     accesskey="&sendPageCmd.accesskey;"  oncommand="goDoCommand('cmd_editSendPage')"/>
-  </commandset>
-
 
   <!-- edit menu commands. These get updated by code in globalOverlay.js -->
   <commandset id="composerEditMenuItems"
@@ -157,12 +136,7 @@
     <command id="cmd_findNext"      oncommand="goDoCommand('cmd_findNext')"     label="&findAgainCmd.label;"/>
     <command id="cmd_findPrev"      oncommand="goDoCommand('cmd_findPrev')"     label="&findPrevCmd.label;"/>
     <command id="cmd_spelling"      oncommand="goDoCommand('cmd_spelling')"/>
-    <command id="cmd_validate"      label="&validateCmd.label;" accesskey="&validateCmd.accesskey;" 
-                                    oncommand="goDoCommand('cmd_validate')"/>
-    <command id="cmd_checkLinks"    oncommand="goDoCommand('cmd_checkLinks')"/>
     <command id="cmd_pasteQuote"    oncommand="goDoCommand('cmd_pasteQuote')" label="&pasteAsQuotationCmd.label;"/>
-    <command id="cmd_publishSettings" label="&publishSettings.label;" accesskey="&publishSettings.accesskey;" 
-                                    oncommand="goDoCommand('cmd_publishSettings')"/>
   </commandset>
 
   <!-- style related commands that update on creation, and on selection change -->
@@ -265,19 +239,6 @@
     <command id="cmd_TableOrCellColor"    oncommand="goDoCommand('cmd_TableOrCellColor')"/>
     <command id="cmd_editTable"           oncommand="goDoCommand('cmd_editTable')"/>
   </commandset>
-
-  <broadcasterset id="broadcasterset">
-    <!-- Broadcasters/commands with no other home -->
-    <!-- view menu -->
-    <command id="cmd_newNavigator"/>
-    <command id="cmd_newEditor"/>
-    <command id="cmd_newEditorTemplate"/>
-    <command id="cmd_newEditorDraft"/>
-
-    <command id="cmd_viewCompToolbar"     oncommand="goToggleToolbar('EditToolbar','cmd_viewCompToolbar');"         checked="true"/>
-    <command id="cmd_viewFormatToolbar"   oncommand="goToggleToolbar('FormatToolbar','cmd_viewFormatToolbar');"     checked="true"/>
-    <command id="cmd_viewEditModeToolbar" oncommand="goToggleToolbar('EditModeToolbar','cmd_viewEditModeToolbar');" checked="true"/>
-  </broadcasterset>
 
   <!-- Insert menu -->
   <menu id="insertMenu" label="&insertMenu.label;" accesskey="&insertMenu.accesskey;">
@@ -751,18 +712,10 @@
     <!-- Merge property items here -->
   </menupopup>
 
-  <menuitem id="snapToGrid" label="&grid.label;" accesskey="&grid.accesskey;"
-            oncommand="goDoCommand('cmd_grid')"   observes="cmd_renderedHTMLEnabler"/>
-
-  <!-- Next 3 are items to append at the bottom of the formatMenuPopup -->
+  <!-- Next 2 are items to append at the bottom of the formatMenuPopup -->
   <!-- label and accesskey filled in during menu creation -->
   <menuitem id="objectProperties"   oncommand="goDoCommand('cmd_objectProperties')"   observes="cmd_renderedHTMLEnabler"/>
   <!-- Dont use 'observes', must call command correctly -->
-  <menuitem id="pageProperties"
-            label="&pageProperties.label;"
-            accesskey="&pageProperties.accesskey;"
-            oncommand="goDoCommand('cmd_pageProperties')"
-            observes="cmd_renderedHTMLEnabler"/>
   <menuitem id="colorsAndBackground"
             label="&colorsAndBackground.label;"
             accesskey="&colorsAndBackground.accesskey;"
@@ -926,65 +879,6 @@
     </menupopup>
   </toolbarbutton>
 
-  <!-- Editor toolbar items -->
-  <!-- note that we override the submenu item label "Blank Window" with "New" used for the menu -->
-  <toolbarbutton id="newButton" class="toolbarbutton-1"
-                 label="&newMenu.label;" command="cmd_newEditor"
-                 tooltiptext="&newToolbarCmd.tooltip;"/>
-  <toolbarbutton id="openButton" class="toolbarbutton-1"
-                 label="&openToolbarCmd.label;" observes="cmd_open"
-                 tooltiptext="&openToolbarCmd.tooltip;"/>
-  <toolbarbutton id="saveButton" class="toolbarbutton-1" observes="cmd_save"
-                 tooltiptext="&saveToolbarCmd.tooltip;"/>
-  <toolbarbutton id="publishButton" class="toolbarbutton-1"
-                 observes="cmd_publish"
-                 tooltiptext="&publishToolbarCmd.tooltip;"/>
-  <toolbarbutton id="previewButton" class="toolbarbutton-1"
-                 label="&previewToolbarCmd.label;" observes="cmd_preview"
-                 tooltiptext="&previewToolbarCmd.tooltip;"/>
-  <toolbarbutton id="cutButton" class="toolbarbutton-1"
-                 label="&cutCmd.label;" command="cmd_cut"
-                 tooltiptext="&cutCmd.label;"/>
-  <toolbarbutton id="copyButton" class="toolbarbutton-1"
-                 label="&copyCmd.label;" command="cmd_copy"
-                 tooltiptext="&copyCmd.label;"/>
-  <toolbarbutton id="pasteButton" class="toolbarbutton-1"
-                 label="&pasteCmd.label;" command="cmd_paste"
-                 tooltiptext="&pasteCmd.label;"/>
-
-  <toolbarbutton id="printButton" type="menu-button" class="toolbarbutton-1"
-                 label="&printToolbarCmd.label;"
-                 tooltiptext="&printToolbarCmd.tooltip;"
-                 oncommand="if (event.target==this) goDoCommand('cmd_print');">
-    <menupopup id="printMenu">
-      <menuitem id="printMenuItemToolbar" accesskey="&printCmd.accesskey;" label="&printCmd.label;" default="true"
-                oncommand="goDoCommand('cmd_print');"/>
-      <!-- 'printSetupToolbar' is merged in here from platformGlobalOverlay.xul -->
-    </menupopup>
-  </toolbarbutton>
-    
-  <toolbarbutton id="findButton" class="toolbarbutton-1"
-                 label="&findToolbarCmd.label;" observes="cmd_find"
-                 tooltiptext="&findToolbarCmd.tooltip;"/>
-  <toolbarbutton id="spellingButton" class="toolbarbutton-1" disabled="true"
-                 label="&spellToolbarCmd.label;" observes="cmd_spelling"
-                 tooltiptext="&spellToolbarCmd.tooltip;"/>
-  <toolbarbutton id="imageButton" class="toolbarbutton-1"
-                 label="&imageToolbarCmd.label;" observes="cmd_image"
-                 tooltiptext="&imageToolbarCmd.tooltip;"/>
-  <toolbarbutton id="hlineButton" class="toolbarbutton-1"
-                 label="&hruleToolbarCmd.label;" observes="cmd_hline"
-                 tooltiptext="&hruleToolbarCmd.tooltip;"/>
-  <toolbarbutton id="tableButton" class="toolbarbutton-1"
-                 label="&tableToolbarCmd.label;" observes="cmd_table"
-                 tooltiptext="&tableToolbarCmd.tooltip;"/>
-  <toolbarbutton id="linkButton" class="toolbarbutton-1"
-                 label="&linkToolbarCmd.label;" observes="cmd_link"
-                 tooltiptext="&linkToolbarCmd.tooltip;"/>
-  <toolbarbutton id="namedAnchorButton" class="toolbarbutton-1"
-                 label="&anchorToolbarCmd.label;" observes="cmd_anchor"
-                 tooltiptext="&anchorToolbarCmd.tooltip;"/>
-
   <!-- Formatting toolbar items. "value" are HTML tagnames, don't translate -->
   <menulist class="toolbar-focustarget" id="ParagraphSelect" observes="cmd_renderedHTMLEnabler"
             tooltiptext="&ParagraphSelect.tooltip;" crop="right">
@@ -1118,9 +1012,6 @@
   <toolbarbutton id="increaseZIndexButton" observes="cmd_increaseZIndex"
                  tooltiptext="&layerBringToFront.tooltip;"/>
 
-  <!-- Paste as quotation is used by mail compose,
-       but in composer it has to go in the debug menu
-   -->
   <menuitem id="menu_pasteQuote" accesskey="&pasteAsQuotationCmd.accesskey;"
             command="cmd_pasteQuote" key="pastequotationkb"/>
 
