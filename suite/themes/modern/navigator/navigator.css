@@ -508,6 +508,7 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
 
 /* ::::: urlbar - the url textbox ::::: */
 
+.searchbar-textbox,
 #urlbar {
   margin-top: 2px;
   margin-bottom: 2px;

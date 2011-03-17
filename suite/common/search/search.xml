@@ -74,13 +74,12 @@
                    completeselectedindex="true"
                    showcommentcolumn="true"
                    tabscrolling="true"
-                   xbl:inherits="disabled,disableautocomplete,searchengine,src,newlines">
+                   xbl:inherits="disabled">
         <xul:box>
-          <xul:button class="plain searchbar-engine-button"
-                      type="menu"
-                      anonid="searchbar-engine-button">
-            <xul:image class="searchbar-engine-image" xbl:inherits="src"/>
-            <xul:image class="searchbar-dropmarker-image"/>
+          <xul:toolbarbutton class="plain searchbar-engine-button"
+                             type="menu"
+                             anonid="searchbar-engine-button"
+                             xbl:inherits="image">
             <xul:menupopup class="searchbar-popup"
                            anonid="searchbar-popup">
               <xul:menuseparator/>
@@ -89,7 +88,7 @@
                             label="&cmd_engineManager.label;"
                             oncommand="openManager(event);"/>
             </xul:menupopup>
-          </xul:button>
+          </xul:toolbarbutton>
         </xul:box>
         <xul:hbox class="search-go-container">
           <xul:image class="search-go-button"
@@ -299,7 +298,7 @@
       <method name="updateDisplay">
         <body><![CDATA[
           var uri = this.currentEngine.iconURI;
-          this.setAttribute("src", uri ? uri.spec : "");
+          this.setAttribute("image", uri ? uri.spec : "");
 
           var name = this.currentEngine.name;
           var text = this._stringBundle.getFormattedString("searchtip", [name]);
@@ -362,7 +361,7 @@
               menuitem.setAttribute("tooltiptext", engineInfo.uri);
               menuitem.setAttribute("uri", engineInfo.uri);
               if (engineInfo.icon)
-                menuitem.setAttribute("src", engineInfo.icon);
+                menuitem.setAttribute("image", engineInfo.icon);
               menuitem.setAttribute("title", engineInfo.title);
               popup.insertBefore(menuitem, insertLocation);
             }
@@ -401,7 +400,7 @@
             var tooltip = this._stringBundle.getFormattedString("searchtip", [name]);
             menuitem.setAttribute("tooltiptext", tooltip);
             if (engines[i].iconURI)
-              menuitem.setAttribute("src", engines[i].iconURI.spec);
+              menuitem.setAttribute("image", engines[i].iconURI.spec);
             popup.insertBefore(menuitem, popup.firstChild);
             menuitem.engine = engines[i];
           }
@@ -494,7 +493,7 @@
           // We only detect OpenSearch files
           var type = Components.interfaces.nsISearchEngine.DATA_XML;
           searchService.addEngine(target.getAttribute("uri"), type,
-                                  target.getAttribute("src"), false);
+                                  target.getAttribute("image"), false);
         }
         else if (target.engine)
           this.currentEngine = target.engine;

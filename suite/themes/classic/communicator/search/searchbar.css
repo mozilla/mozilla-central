@@ -3,32 +3,23 @@
   min-width: 6em;
 }
 
-.textbox-input-box {
-  margin: 0;
-}
-
 /* ::::: searchbar-engine-button ::::: */
 
-.searchbar-engine-image {
+.toolbarbutton-icon {
+  margin: 3px;
   height: 16px;
   width: 16px;
   list-style-image: url("chrome://global/skin/icons/folder-item.png");
   -moz-image-region: rect(0px, 16px, 16px, 0px);
-  -moz-margin-start: 2px;
 }
 
-.searchbar-engine-button {
-  min-width: 0;
-  -moz-padding-end: 2px;
-  background-color: transparent;
-}
-
-.searchbar-dropmarker-image {
+.toolbarbutton-menu-dropmarker {
+  -moz-appearance: none !important;
   list-style-image: url("chrome://communicator/skin/search/mainwindow-dropdown-arrow.png");
   -moz-image-region: rect(0, 13px, 11px, 0);
 }
 
-.searchbar-engine-button[open="true"] > .searchbar-dropmarker-image {
+.searchbar-engine-button[open="true"] > .toolbarbutton-menu-dropmarker {
   -moz-image-region: rect(0, 26px, 11px, 13px);
 }
 
@@ -40,15 +31,13 @@
 }
 
 .search-go-button {
-  padding: 1px;
-  -moz-padding-end: 2px;
+  padding: 3px;
   list-style-image: url("chrome://global/skin/icons/Search-glass.png");
   -moz-image-region: rect(0px 16px 16px 0px);
 }
 
 .search-go-button:-moz-system-metric(touch-enabled) {
-  -moz-padding-start: 5px;
-  -moz-padding-end: 3px;
+  padding: 3px 5px;
 }
 
 .search-go-button:-moz-locale-dir(rtl) {

@@ -415,7 +415,7 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
 
 #page-proxy-deck {
   cursor: -moz-grab;
-  margin: 2px 3px;
+  margin: 3px;
 }
 
 #page-proxy-button {
