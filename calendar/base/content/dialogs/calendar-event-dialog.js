@@ -600,9 +600,9 @@ function dateTimeControls2State(aStartDatepicker) {
                 getElementValue(endWidgetId),
                 (menuItem.getAttribute('checked') == 'true' || allDay) ? timezone : kDefaultTimezone);
             gEndTime.isDate = allDay;
-            if (keepAttribute) {
-                // Keepduration button links the the Start date to the End date
-                // -> change the Start date in order to keep the duration.
+            if (keepAttribute && gItemDuration) {
+                // Keepduration-button links the the Start to the End date. We
+                // have to change the Start date in order to keep the duration.
                 let fduration = gItemDuration.clone();
                 fduration.isNegative = true;
                 gStartTime = gEndTime.clone();
