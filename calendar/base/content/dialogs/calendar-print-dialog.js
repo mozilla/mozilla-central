@@ -33,6 +33,7 @@
  *   Diego Mira David <diegomd86@gmail.com>
  *   Eduardo Teruo Katayama <eduardo@ime.usp.br>
  *   Glaucus Augustus Grecco Cardoso <glaucus@ime.usp.br>
+ *   Francisco Jose Mulero <fjmulero@gmv.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -253,7 +254,29 @@ function refreshHtml(finishFunc) {
 function printAndClose() {
     refreshHtml(
         function finish() {
-            PrintUtils.print();
+            var webBrowserPrint = PrintUtils.getWebBrowserPrint();
+            var printSettings = PrintUtils.getPrintSettings();
+
+            // Evicts "about:blank" header
+            printSettings.docURL = " ";
+
+            // Start the printing, this is just what PrintUtils does, but we
+            // apply our own settings.
+            try {
+                webBrowserPrint.print(printSettings, null);
+                if (gPrintSettingsAreGlobal && gSavePrintSettings) {
+                    var PSSVC = Components.classes["@mozilla.org/gfx/printsettings-service;1"]
+                                          .getService(Components.interfaces.nsIPrintSettingsService);
+                    PSSVC.savePrintSettingsToPrefs(printSettings, true,
+                                                        printSettings.kInitSaveAll);
+                    PSSVC.savePrintSettingsToPrefs(printSettings, false,
+                                                   printSettings.kInitSavePrinterName);
+                }
+            } catch (e if e instanceof Components.results.NS_ERROR_ABORT) {
+                // Pressing cancel is expressed as an NS_ERROR_ABORT return value,
+                // causing an exception to be thrown which we catch here.
+            }
+
             let closeDialog = true;
 #ifdef XP_UNIX
 #ifndef XP_MACOSX
