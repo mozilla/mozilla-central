@@ -172,7 +172,7 @@ function test_selection_stabilization_logic() {
   // make sure the
 
   // this will not summarize!
-  select_shift_click_row(2);
+  select_shift_click_row(2, mc, true);
   // verify that our summary is still just 0 and 1.
   assert_messages_summarized(mc, messages);
 

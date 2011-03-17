@@ -1046,6 +1046,23 @@ var PerWindowTypeAugmentations = {
         onConstructor: "FolderDisplayWidget",
         reportAs: "FDW_doCommandWithFolder",
       },
+      // MessageDisplayWidget annotation
+      {
+        method: "onLoadStarted",
+        onConstructor: "MessageDisplayWidget",
+        doBefore: function() {
+          mark_action("winhelp", "MD_onLoadStarted",
+                      ["singleMessageDisplay?", this.singleMessageDisplay]);
+        }
+      },
+      {
+        method: "onLoadCompleted",
+        onConstructor: "MessageDisplayWidget",
+        doBefore: function() {
+          mark_action("winhelp", "MD_onLoadCompleted",
+                      ["singleMessageDisplay?", this.singleMessageDisplay]);
+        }
+      },
     ],
   },
 

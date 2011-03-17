@@ -549,10 +549,12 @@ function open_selected_message_in_new_tab(aBackground) {
   // save the current tab as the 'other' tab
   otherTab = mc.tabmail.currentTabInfo;
 
+  // We won't trigger a new message load if we're in the background.
+  if (!aBackground)
+    plan_for_message_display(mc);
   mc.tabmail.openTab("message", {msgHdr: mc.folderDisplay.selectedMessage,
       viewWrapperToClone: mc.folderDisplay.view,
       background: aBackground});
-  // We won't trigger a new message load if we're in the background
   wait_for_message_display_completion(mc, !aBackground);
 
   // check that the tab count increased
@@ -881,6 +883,8 @@ function toggle_thread_row(aViewIndex) {
   wait_for_message_display_completion();
   aViewIndex = _normalize_view_index(aViewIndex);
   mark_action("fdh", "toggle_thread_row", [aViewIndex]);
+  if (mc.messageDisplay.visible)
+    plan_for_message_display(mc);
   mc.dbView.toggleOpenState(aViewIndex);
   wait_for_message_display_completion(mc, mc.messageDisplay.visible);
 }
@@ -898,6 +902,8 @@ function toggle_thread_row(aViewIndex) {
  */
 function select_control_click_row(aViewIndex) {
   wait_for_message_display_completion();
+  if (mc.messageDisplay.visible)
+    plan_for_message_display(mc);
   aViewIndex = _normalize_view_index(aViewIndex);
   // Control-clicking augments the selection and moves the current index.  It
   //  also clears the shift pivot, but that's fine as it falls back to the
@@ -910,7 +916,7 @@ function select_control_click_row(aViewIndex) {
                "selected messages:", mc.folderDisplay.selectedMessages]);
   // give the event queue a chance to drain...
   controller.sleep(0);
-  wait_for_message_display_completion();
+  wait_for_message_display_completion(mc, mc.messageDisplay.visible);
   return mc.dbView.getMsgHdrAt(aViewIndex);
 }
 
@@ -926,7 +932,7 @@ function select_control_click_row(aViewIndex) {
  *
  * @return The message headers for all messages that are now selected.
  */
-function select_shift_click_row(aViewIndex, aController) {
+function select_shift_click_row(aViewIndex, aController, aDoNotRequireLoad) {
   if (aController == null)
     aController = mc;
   let hasMessageDisplay = "messageDisplay" in aController;
@@ -934,6 +940,9 @@ function select_shift_click_row(aViewIndex, aController) {
     wait_for_message_display_completion(aController);
   aViewIndex = _normalize_view_index(aViewIndex, aController);
 
+  if (hasMessageDisplay && !aDoNotRequireLoad &&
+      aController.messageDisplay.visible)
+    plan_for_message_display(aController);
   // Passing -1 as the start range checks the shift-pivot, which should be -1,
   //  so it should fall over to the current index, which is what we want.  It
   //  will then set the shift-pivot to the previously-current-index and update
@@ -945,8 +954,9 @@ function select_shift_click_row(aViewIndex, aController) {
                "selected messages:", mc.folderDisplay.selectedMessages]);
   // give the event queue a chance to drain...
   controller.sleep(0);
-  if (hasMessageDisplay)
-    wait_for_message_display_completion(aController);
+  if (hasMessageDisplay && !aDoNotRequireLoad)
+    wait_for_message_display_completion(aController,
+                                        aController.messageDisplay.visible);
   return aController.folderDisplay.selectedMessages;
 }
 
@@ -1452,9 +1462,13 @@ function plan_for_message_display(aControllerOrTab) {
 function wait_for_message_display_completion(aController, aLoadDemanded) {
   if (aController == null)
     aController = mc;
-  mark_action("fdhb", "wait_for_message_display_completion", []);
+  mark_action("fdhb", "wait_for_message_display_completion",
+              ["load demanded?", Boolean(aLoadDemanded)]);
   let contentPane = aController.contentPane;
   let oldHref = null;
+
+  // count checks so we can know whether we waited; >1 implies waited
+  let checkCount = 0;
 
   // There are a couple possible states the universe can be in:
   // 1) No message load happened or is going to happen.
@@ -1467,6 +1481,7 @@ function wait_for_message_display_completion(aController, aLoadDemanded) {
   //  We rely on MessageDisplayWidget.messageLoaded to differentiate this case
   //  for us.
   let isLoadedChecker = function() {
+    checkCount++;
     // If a load is demanded, first require that MessageDisplayWidget think
     //  that the message is loaded.  Because the notification that sets the flag
     //  happens when the message reader code gets told about the last attachment,
@@ -1495,7 +1510,8 @@ function wait_for_message_display_completion(aController, aLoadDemanded) {
   // the above may return immediately, meaning the event queue might not get a
   //  chance.  give it a chance now.
   aController.sleep(0);
-  mark_action("fdhb", "/wait_for_message_display_completion", []);
+  mark_action("fdhb", "/wait_for_message_display_completion",
+              ["waited?", checkCount > 1]);
 }
 
 /**
