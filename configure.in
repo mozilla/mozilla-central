@@ -5306,9 +5306,9 @@ MOZ_D3DCOMPILER_CAB=
 MOZ_D3DX9_DLL=
 MOZ_D3DCOMPILER_DLL=
 case "$target_os" in
-    *msvc*|*mks*|*cygwin*|*mingw*)
-        MOZ_ANGLE=1
-        ;;
+*mingw*)
+    MOZ_ANGLE=1
+    ;;
 esac
 
 # The DirectX SDK libraries are split into x86 and x64 sub-directories
