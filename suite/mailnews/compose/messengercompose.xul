@@ -139,11 +139,6 @@
   <command id="cmd_openAttachment" oncommand="goDoCommand('cmd_openAttachment')"/>
   <command id="cmd_account" oncommand="goDoCommand('cmd_account')"/>
 
-  <!-- View Menu -->
-  <command id="cmd_viewComposeToolbar"
-           oncommand="goToggleToolbar('composeToolbar', 'cmd_viewComposeToolbar');"
-           checked="true"/>
-
   <!-- Options Menu -->
   <command id="cmd_selectAddress" oncommand="goDoCommand('cmd_selectAddress')"/>
   <command id="cmd_outputFormat" oncommand="OutputFormatMenuSelect(event.target)"/>
@@ -416,12 +411,9 @@
           <menu id="menu_View">
             <menupopup id="menu_View_Popup">
               <menu id="menu_Toolbars">
-                <menupopup id="view_toolbars_popup">
-                  <menuitem id="menu_showComposeToolbar"
-                            type="checkbox"
-                            label="&showComposeToolbarCmd.label;"
-                            accesskey="&showComposeToolbarCmd.accesskey;"
-                            command="cmd_viewComposeToolbar"/>
+                <menupopup id="view_toolbars_popup"
+                           onpopupshowing="onViewToolbarsPopupShowing(event)"
+                           oncommand="onViewToolbarCommand(event);">
                   <menuitem id="menu_showFormatToolbar"
                             type="checkbox"
                             label="&showFormatToolbarCmd.label;"
@@ -580,7 +572,6 @@
              accesskey="&showComposeToolbarCmd.accesskey;"
              customizable="true"
              defaultset="button-send,separator,button-address,button-attach,spellingButton,button-security,separator,button-save,spring,throbber-box"
-             togglemenuitem="cmd_viewComposeToolbar"
              context="toolbar-context-menu">
     </toolbar>
 

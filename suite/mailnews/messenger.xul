@@ -168,7 +168,6 @@
              defaulticonsize="small"
              defaultlabelalign="end"
              defaultset="mailviews-container,spring,search-container,button-search-container"
-             togglemenuitem="menu_showSearchToolbar"
              context="toolbar-context-menu"/>
   </toolbox>
 

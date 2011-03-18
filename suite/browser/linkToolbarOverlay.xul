@@ -65,10 +65,11 @@
   </stringbundleset>
 
   <menupopup id="view_toolbars_popup">
-    <menu label="&linkToolbar.label;" position="3"
+    <menu label="&linkToolbar.label;"
           accesskey="&linkToolbar.accesskey;"
-          oncommand="linkToolbarUI.toggleLinkToolbar(event.target)"
-          onpopupshowing="linkToolbarUI.initLinkbarVisibilityMenu()">
+          insertbefore="menuitem_showhide_tabbar"
+          onpopupshowing="linkToolbarUI.initLinkbarVisibilityMenu();"
+          oncommand="linkToolbarUI.toggleLinkToolbar(event.target);">
       <menupopup>
         <menuitem label="&linkToolbarAlways.label;"
                   accesskey="&linkToolbarAlways.accesskey;"

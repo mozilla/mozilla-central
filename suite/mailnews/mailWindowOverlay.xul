@@ -1152,20 +1152,9 @@
   <menu id="menu_View">
     <menupopup id="menu_View_Popup" onpopupshowing="view_init()">
       <menu id="menu_Toolbars">
-        <menupopup id="view_toolbars_popup">
-          <menuitem id="menu_showMessengerToolbar"
-                    type="checkbox"
-                    checked="true"
-                    label="&showMessengerToolbarCmd.label;"
-                    accesskey="&showMessengerToolbarCmd.accesskey;"
-                    oncommand="goToggleToolbar('msgToolbar', 'menu_showMessengerToolbar');"/>
-          <menuitem id="menu_showSearchToolbar"
-                    type="checkbox"
-                    checked="true"
-                    label="&showSearchToolbarCmd.label;"
-                    accesskey="&showSearchToolbarCmd.accesskey;"
-                    observes="mailHideMenus"
-                    oncommand="goToggleToolbar('searchToolbar', 'menu_showSearchToolbar');"/>
+        <menupopup id="view_toolbars_popup"
+                   onpopupshowing="onViewToolbarsPopupShowing(event)"
+                   oncommand="onViewToolbarCommand(event);">
           <menuitem id="menu_showTaskbar"/>
         </menupopup>
       </menu>
@@ -1937,7 +1926,6 @@
            accesskey="&showMessengerToolbarCmd.accesskey;"
            customizable="true"
            defaultset="button-getmsg,button-newmsg,separator,button-reply,button-replyall,button-forward,separator,button-goback,button-goforward,button-next,button-junk,button-delete,button-mark,spring,throbber-box"
-           togglemenuitem="menu_showMessengerToolbar"
            context="toolbar-context-menu">
   </toolbar>
   <toolbarset id="customToolbars" context="toolbar-context-menu"/>

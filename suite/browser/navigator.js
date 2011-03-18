@@ -2378,8 +2378,9 @@ function updateComponentBarBroadcaster()
   }
 }
 
-function updateToolbarStates(toolbarMenuElt)
+function updateToolbarStates(aEvent)
 {
+  onViewToolbarsPopupShowing(aEvent);
   updateComponentBarBroadcaster();
 
   const tabbarMenuItem = document.getElementById("menuitem_showhide_tabbar");

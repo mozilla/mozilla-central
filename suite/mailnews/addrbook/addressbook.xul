@@ -289,12 +289,9 @@
         <menu id="menu_View">
             <menupopup id="menu_View_Popup">
                 <menu id="menu_Toolbars">
-                    <menupopup id="view_toolbars_popup">
-                        <menuitem id="menu_showAbToolbar"
-                                  label="&showAbToolbarCmd.label;"
-                                  accesskey="&showAbToolbarCmd.accesskey;"
-                                  oncommand="goToggleToolbar('ab-bar2', 'menu_showAbToolbar')"
-                                  checked="true" type="checkbox"/>
+                    <menupopup id="view_toolbars_popup"
+                               onpopupshowing="onViewToolbarsPopupShowing(event)"
+                               oncommand="onViewToolbarCommand(event);">
                         <menuitem id="menu_showTaskbar"/>
                         <menuseparator/>
                         <menuitem id="menu_showCardPane"
@@ -420,7 +417,6 @@
            toolbarname="&showAbToolbarCmd.label;"
            accesskey="&showAbToolbarCmd.accesskey;"
            defaultset="button-newcard,button-newlist,separator,button-editcard,button-newmessage,button-newim,button-abdelete,spring,searchBox,throbber-box"
-           togglemenuitem="menu_showAbToolbar"
            context="toolbar-context-menu">
     <toolbarbutton id="button-newcard"
                    class="toolbarbutton-1"

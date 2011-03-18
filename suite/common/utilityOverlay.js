@@ -318,36 +318,50 @@ function goCustomizeToolbar(toolbox)
   }
 }
 
-function onViewToolbarsPopupShowing(aEvent)
+function onViewToolbarsPopupShowing(aEvent, aInsertPoint)
 {
   var popup = aEvent.target;
+  if (popup != aEvent.currentTarget)
+    return;
 
   // Empty the menu
   var deadItems = popup.getElementsByAttribute("toolbarid", "*");
   for (let i = deadItems.length - 1; i >= 0; --i)
     popup.removeChild(deadItems[i]);
 
-  var firstMenuItem = popup.firstChild;
+  var firstMenuItem = aInsertPoint || popup.firstChild;
 
-  var toolbar = document.popupNode;
+  var toolbar = document.popupNode || popup;
   while (toolbar.localName != "toolbar")
     toolbar = toolbar.parentNode;
-  var toolbox = toolbar.parentNode;
+  var toolbox = toolbar.toolbox;
 
-  var toolbars = toolbox.getElementsByAttribute("toolbarname", "*");
-  for (let i = 0; i < toolbars.length; ++i) {
-    let bar = toolbars[i];
+  var toolbars = Array.slice(toolbox.getElementsByAttribute("toolbarname", "*"));
+  toolbars = toolbars.concat(toolbox.externalToolbars);
+
+  toolbars.forEach(function(bar) {
     let menuItem = document.createElement("menuitem");
+    menuItem.setAttribute("id", "toggle_" + bar.id);
     menuItem.setAttribute("toolbarid", bar.id);
     menuItem.setAttribute("type", "checkbox");
     menuItem.setAttribute("label", bar.getAttribute("toolbarname"));
     menuItem.setAttribute("accesskey", bar.getAttribute("accesskey"));
     menuItem.setAttribute("checked", !bar.hidden);
     popup.insertBefore(menuItem, firstMenuItem);
-  }
+  });
+}
+
+function onToolbarModePopupShowing(aEvent)
+{
+  var popup = aEvent.target;
+
+  var toolbar = document.popupNode;
+  while (toolbar.localName != "toolbar")
+    toolbar = toolbar.parentNode;
+  var toolbox = toolbar.toolbox;
 
   var mode = toolbar.getAttribute("mode") || "full";
-  var modePopup = document.getElementById("toolbarmodePopup");
+  var modePopup = document.getElementById("toolbarModePopup");
   var radio = modePopup.getElementsByAttribute("value", mode);
   radio[0].setAttribute("checked", "true");
 
@@ -389,8 +403,8 @@ function onViewToolbarsPopupShowing(aEvent)
 function onViewToolbarCommand(aEvent)
 {
   var toolbar = aEvent.originalTarget.getAttribute("toolbarid");
-  var menuitem = document.getElementById(toolbar).getAttribute("togglemenuitem");
-  goToggleToolbar(toolbar, menuitem);
+  if (toolbar)
+    goToggleToolbar(toolbar);
 }
 
 function goSetToolbarState(aEvent)

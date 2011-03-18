@@ -81,8 +81,8 @@
     <menu id="toolbarmode-context-menu"
           label="&customizeToolbar.toolbarmode.label;"
           accesskey="&customizeToolbar.toolbarmode.accesskey;">
-      <menupopup id="toolbarmodePopup"
-                 onpopupshowing="event.stopPropagation();"
+      <menupopup id="toolbarModePopup"
+                 onpopupshowing="onToolbarModePopupShowing(event);"
                  oncommand="goSetToolbarState(event);">
         <menuitem type="radio" name="mode" value="icons"
                   label="&customizeToolbar.icons.label;"

@@ -201,7 +201,6 @@
              grippytooltiptext="&navigationToolbar.tooltip;"
              fullscreentoolbar="true" customizable="true"
              toolbarname="&navbarCmd.label;" accesskey="&navbarCmd.accesskey;"
-             togglemenuitem="cmd_viewnavbar"
              defaultset="back-button,forward-button,reload-button,stop-button,nav-bar-inner,search-button-container,print-button,throbber-box,window-controls"
              context="toolbar-context-menu">
 
@@ -229,7 +228,6 @@
              grippytooltiptext="&personalToolbar.tooltip;"
              toolbarname="&personalbarCmd.label;"
              nowindowdrag="true"
-             togglemenuitem="cmd_viewpersonaltoolbar"
              customizable="true"
              defaultset="home-button,separator,bookmarks-button,personal-bookmarks"
              mode="full"
