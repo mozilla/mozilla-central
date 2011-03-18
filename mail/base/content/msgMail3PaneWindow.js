@@ -579,8 +579,6 @@ function OnUnloadMessenger()
 
   sessionStoreManager.unloadingWindow(window);
 
-  mailInstrumentationManager.uninit();
-
   let tabmail = document.getElementById("tabmail");
   tabmail._teardown();
 
@@ -596,6 +594,9 @@ function OnUnloadMessenger()
   UnloadPanes();
 
   OnMailWindowUnload();
+  try {
+    mailInstrumentationManager.uninit();
+  } catch (ex) {logException(ex);}
 }
 
 /**

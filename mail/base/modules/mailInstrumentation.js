@@ -52,6 +52,8 @@ var gMFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
                      .getService(nsIMFNService);
 
 Cu.import("resource:///modules/IOUtils.js");
+Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource:///modules/mailServices.js");
 
 var gPrefBranch = Cc["@mozilla.org/preferences-service;1"]
                      .getService(Ci.nsIPrefService).getBranch(null);
@@ -72,6 +74,9 @@ var mailInstrumentationManager =
   // if true, need to remove ourselves as a folder notification listener
   _mfnListener: false,
 
+  // if true, we need to remove our observers in uninit.
+  _observersRegistered: false,
+
   observe: function (aSubject, aTopic, aState) {
     if (aTopic == "mail:composeSendSucceeded")
       mailInstrumentationManager.addEvent("msgSent", true);
@@ -89,18 +94,14 @@ var mailInstrumentationManager =
     // check if there are at least two accounts - one is local folders account
     if (gPrefBranch.getCharPref("mail.accountmanager.accounts").indexOf(',') > 0) {
       mailInstrumentationManager.addEvent("accountAdded", true);
-      let prefs= Cc["@mozilla.org/preferences-service;1"]
-                   .getService(Ci.nsIPrefBranch2);
-      prefs.removeObserver("mail.accountmanager.accounts",
+      this._removeObserver("mail.accountmanager.accounts",
                            this._accountsChanged);
 
     }
   },
   _smtpServerAdded: function() {
     mailInstrumentationManager.addEvent("smtpServerAdded", true);
-    let prefs= Cc["@mozilla.org/preferences-service;1"]
-                 .getService(Ci.nsIPrefBranch2);
-    prefs.removeObserver("mail.smtpservers", _smtpServerAdded);
+    this._removeObserver("mail.smtpservers", _smtpServerAdded);
   },
   _userOptedIn: function() {
     try {
@@ -203,6 +204,19 @@ var mailInstrumentationManager =
     gPrefBranch.setCharPref("mail.instrumentation.lastNotificationSent",
                             this._lastStateString);
   },
+  // keeps track of whether or not we've removed the observer for a given
+  // pref name.
+  _prefsObserved : {},
+  _addObserver : function(pref, observer) {
+    Services.prefs.addObserver(pref, observer, false);
+    this._prefsObserved[pref] = true;
+  },
+  _removeObserver : function(pref, observer) {
+    if (this._prefsObserved[pref]) {
+      Services.prefs.removeObserver(pref, observer);
+      this._prefsObserved[pref] = false;
+    }
+  },
 /* ........ Public API ................*/
   /**
    * This is called to initialize the instrumentation.
@@ -222,28 +236,27 @@ var mailInstrumentationManager =
               .getService(Ci.nsIObserverService);
     os.addObserver(this, "mail:composeSendSucceeded", false);
     os.addObserver(this, "mail:setAsDefault", false);
-    let prefs= Cc["@mozilla.org/preferences-service;1"]
-                 .getService(Ci.nsIPrefBranch2);
-    prefs.addObserver("mail.accountmanager.accounts",
-                         this._accountsChanged, false);
-    prefs.addObserver("mail.instrumentation.userOptedIn",
-                         this._userOptedIn, false);
-    prefs.addObserver("mail.smtpservers", this._smtpServerAdded, false);
+    this._addObserver("mail.accountmanager.accounts", this._accountsChanged);
+    this._addObserver("mail.instrumentation.userOptedIn", this._userOptedIn);
+    this._addObserver("mail.smtpservers", this._smtpServerAdded);
     gMFNService.addListener(this, nsIMFNService.msgAdded);
+    this._observersRegistered = true;
     this._mfnListener = true;
   },
   uninit: function() {
+    if (!this._observersRegistered)
+      return;
     let os = Cc["@mozilla.org/observer-service;1"]
               .getService(Ci.nsIObserverService);
     os.removeObserver(this, "mail:composeSendSucceeded");
     os.removeObserver(this, "mail:setAsDefault");
     if (this._mfnListener)
       gMFNService.removeListener(this);
-    let prefs= Cc["@mozilla.org/preferences-service;1"]
-                 .getService(Ci.nsIPrefBranch2);
-    prefs.removeObserver("mail.accountmanager.accounts", this);
-    prefs.removeObserver("mail.instrumentation.userOptedIn", this);
-    prefs.removeObserver("mail.smtpservers", this);
+    this._removeObserver("mail.accountmanager.accounts",
+                         this._accountsChanged);
+    this._removeObserver("mail.instrumentation.userOptedIn",
+                         this._userOptedIn);
+    this._removeObserver("mail.smtpservers", this._smtpServerAdded);
   },
   /**
    * This adds an event to the current state, if it doesn't exist.
