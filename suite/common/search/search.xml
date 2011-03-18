@@ -42,10 +42,12 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE bindings [
-<!ENTITY % searchBarDTD SYSTEM "chrome://communicator/locale/search/searchbar.dtd">
-%searchBarDTD;
-<!ENTITY % navigatorDTD SYSTEM "chrome://navigator/locale/navigator.dtd">
-%navigatorDTD;
+  <!ENTITY % searchBarDTD SYSTEM "chrome://communicator/locale/search/searchbar.dtd">
+  %searchBarDTD;
+  <!ENTITY % textcontextDTD SYSTEM "chrome://communicator/locale/utilityOverlay.dtd">
+  %textcontextDTD;
+  <!ENTITY % navigatorDTD SYSTEM "chrome://navigator/locale/navigator.dtd">
+  %navigatorDTD;
 ]>
 
 <bindings id="SearchBindings"
@@ -506,13 +508,11 @@
 
       <handler event="popupshowing" action="this.rebuildPopupDynamic();"/>
 
-      <handler event="DOMMouseScroll"
-               phase="capturing"
-#ifdef XP_MACOSX
-               action="if (event.metaKey) this.selectEngine(event, (event.detail > 0));"/>
-#else
-               action="if (event.ctrlKey) this.selectEngine(event, (event.detail > 0));"/>
-#endif
+      <handler event="DOMMouseScroll" phase="capturing"><![CDATA[
+        var key = /Mac/.test(navigator.platform) ? event.metaKey : event.ctrlKey;
+        if (key)
+          this.selectEngine(event, event.detail > 0);
+      ]]></handler>
     </handlers>
   </binding>
 
@@ -545,7 +545,8 @@
         Components.classes["@mozilla.org/preferences-service;1"]
                   .getService(Components.interfaces.nsIPrefBranch2)
       </field>
-      <field name="_suggestMenuItem"/>
+      <field name="_inputBox">document.getAnonymousElementByAttribute(this,
+          "anonid", "textbox-input-box");</field>
       <field name="_suggestEnabled">
         this._prefBranch.getBoolPref("browser.search.suggest.enabled")
       </field>
@@ -559,68 +560,12 @@
             this.setAttribute("clickSelectsAll", true);
 
           // Add items to context menu and attach controller to handle them
-          var textBox = document.getAnonymousElementByAttribute(this,
-                                                "anonid", "textbox-input-box");
-          var cxmenu = document.getAnonymousElementByAttribute(textBox,
-                                            "anonid", "input-box-contextmenu");
-          var pasteAndSearch;
-          cxmenu.addEventListener("popupshowing", function() {
-            if (!pasteAndSearch)
-              return;
-            var controller = document.commandDispatcher.getControllerForCommand("cmd_paste");
-            var enabled = controller.isCommandEnabled("cmd_paste");
-            if (enabled)
-              pasteAndSearch.removeAttribute("disabled");
-            else
-              pasteAndSearch.setAttribute("disabled", "true");
-          }, false);
-
-          var element, label, akey;
-
-          element = document.createElementNS(kXULNS, "menuseparator");
-          cxmenu.appendChild(element);
-          var insertLocation = cxmenu.firstChild;
-          while (insertLocation.nextSibling &&
-                 insertLocation.getAttribute("cmd") != "cmd_paste")
-            insertLocation = insertLocation.nextSibling;
-          if (insertLocation) {
-            element = document.createElementNS(kXULNS, "menuitem");
-            label = this._stringBundle.getString("cmd_pasteAndSearch");
-            element.setAttribute("label", label);
-            element.setAttribute("anonid", "paste-and-search");
-            element.setAttribute("oncommand",
-                "BrowserSearch.searchBar.select(); goDoCommand('cmd_paste'); BrowserSearch.searchBar.handleSearchCommand();");
-            cxmenu.insertBefore(element, insertLocation.nextSibling);
-            pasteAndSearch = element;
-          }
-
-          element = document.createElementNS(kXULNS, "menuitem");
-          label = this._stringBundle.getString("cmd_clearHistory");
-          akey = this._stringBundle.getString("cmd_clearHistory_accesskey");
-          element.setAttribute("label", label);
-          element.setAttribute("accesskey", akey);
-          element.setAttribute("cmd", "cmd_clearhistory");
-
-          cxmenu.appendChild(element);
-
-          element = document.createElementNS(kXULNS, "menuitem");
-          label = this._stringBundle.getString("cmd_showSuggestions");
-          akey = this._stringBundle.getString("cmd_showSuggestions_accesskey");
-          element.setAttribute("anonid", "toggle-suggest-item");
-          element.setAttribute("label", label);
-          element.setAttribute("accesskey", akey);
-          element.setAttribute("cmd", "cmd_togglesuggest");
-          element.setAttribute("type", "checkbox");
-          element.setAttribute("checked", this._suggestEnabled);
-          element.setAttribute("autocheck", "false");
-
-          this._suggestMenuItem = element;
-          cxmenu.appendChild(element);
-
           this.controllers.appendController(this.searchbarController);
 
           // Add observer for suggest preference
           this._prefBranch.addObserver("browser.search.suggest.enabled", this, false);
+
+          this._inputBox.setAttribute("suggestchecked", this._suggestEnabled);
         ]]></body>
       </method>
 
@@ -632,7 +577,7 @@
           if (aTopic == "nsPref:changed") {
             this._suggestEnabled =
               this._prefBranch.getBoolPref("browser.search.suggest.enabled");
-            this._suggestMenuItem.setAttribute("checked", this._suggestEnabled);
+            this._inputBox.setAttribute("suggestchecked", this._suggestEnabled);
           }
         ]]></body>
       </method>
@@ -662,37 +607,52 @@
 
       <!-- nsIController -->
       <field name="searchbarController" readonly="true"><![CDATA[({
-        _self: this,
         supportsCommand: function(aCommand) {
-          return aCommand == "cmd_clearhistory" ||
-                 aCommand == "cmd_togglesuggest";
+          switch (aCommand) {
+            case "cmd_pasteAndSearch":
+            case "cmd_clearhistory":
+            case "cmd_togglesuggest":
+              return true;
+          }
+          return false;
         },
 
         isCommandEnabled: function(aCommand) {
-          if (aCommand == "cmd_clearhistory") {
-            var param = this._self.getAttribute("autocompletesearchparam");
-            return this._self._formHistSvc.nameExists(param);
+          switch (aCommand) {
+            case "cmd_pasteAndSearch":
+              return document.commandDispatcher
+                             .getControllerForCommand("cmd_paste")
+                             .isCommandEnabled("cmd_paste");
+            case "cmd_clearhistory":
+              return this._formHistSvc.nameExists(this.searchParam);
+            case "cmd_togglesuggest":
+              return true;
           }
-          return true;
-        },
+          return false;
+        }.bind(this),
 
         doCommand: function (aCommand) {
           switch (aCommand) {
+            case "cmd_pasteAndSearch":
+              this.select();
+              goDoCommand("cmd_paste");
+              this.onTextEntered();
+              break;
             case "cmd_clearhistory":
-              var param = this._self.getAttribute("autocompletesearchparam");
-              this._self._formHistSvc.removeEntriesForName(param);
-              this._self.value = "";
+              var param = this.getAttribute("autocompletesearchparam");
+              this._formHistSvc.removeEntriesForName(param);
+              this.value = "";
               break;
             case "cmd_togglesuggest":
               // The pref observer will update _suggestEnabled and the menu
               // checkmark.
-              this._self._prefBranch.setBoolPref("browser.search.suggest.enabled",
-                                                 !this._self._suggestEnabled);
+              this._prefBranch.setBoolPref("browser.search.suggest.enabled",
+                                           !this._suggestEnabled);
               break;
             default:
               // do nothing with unrecognized command
           }
-        }
+        }.bind(this)
       })]]></field>
     </implementation>
 
@@ -713,11 +673,9 @@
                phase="capturing"
                action="return this.openSearch();"/>
 
-#ifndef XP_MACOSX
-      <handler event="keypress" keycode="VK_F4"
-               phase="capturing"
-               action="return this.openSearch();"/>
-#endif
+      <handler event="keypress" keycode="VK_F4" phase="capturing"><![CDATA[
+        return /Mac/.test(navigator.platform) || this.openSearch();
+      ]]></handler>
 
       <handler event="dragover">
       <![CDATA[
@@ -742,5 +700,36 @@
       </handler>
 
     </handlers>
+  </binding>
+
+  <binding id="input-box-search" extends="chrome://global/content/bindings/textbox.xml#input-box">
+    <content context="_child">
+      <children/>
+      <xul:menupopup anonid="input-box-contextmenu"
+                     class="textbox-contextmenu"
+                     onpopupshowing="if (document.commandDispatcher.focusedElement != this.parentNode.firstChild)
+                                       this.parentNode.firstChild.focus();
+                                     this.parentNode._doPopupItemEnabling(this);"
+                     oncommand="var cmd = event.originalTarget.getAttribute('cmd'); if (cmd) { this.parentNode.doCommand(cmd); event.stopPropagation(); }">
+        <xul:menuitem label="&undoCmd.label;" accesskey="&undoCmd.accesskey;" cmd="cmd_undo"/>
+        <xul:menuseparator/>
+        <xul:menuitem label="&cutCmd.label;" accesskey="&cutCmd.accesskey;" cmd="cmd_cut"/>
+        <xul:menuitem label="&copyCmd.label;" accesskey="&copyCmd.accesskey;" cmd="cmd_copy"/>
+        <xul:menuitem label="&pasteCmd.label;" accesskey="&pasteCmd.accesskey;" cmd="cmd_paste"/>
+        <xul:menuitem label="&pasteSearchCmd.label;" accesskey="&pasteSearchCmd.accesskey;" cmd="cmd_pasteAndSearch"/>
+        <xul:menuitem label="&deleteCmd.label;" accesskey="&deleteCmd.accesskey;" cmd="cmd_delete"/>
+        <xul:menuseparator/>
+        <xul:menuitem label="&selectAllCmd.label;" accesskey="&selectAllCmd.accesskey;" cmd="cmd_selectAll"/>
+        <xul:menuseparator/>
+        <xul:menuitem label="&clearHistoryCmd.label;" accesskey="&clearHistoryCmd.accesskey;" cmd="cmd_clearhistory"/>
+        <xul:menuitem label="&showSuggestionsCmd.label;"
+                      accesskey="&showSuggestionsCmd.accesskey;"
+                      anonid="toggle-suggest-item"
+                      type="checkbox"
+                      autocheck="false"
+                      xbl:inherits="checked=suggestchecked"
+                      cmd="cmd_togglesuggest"/>
+      </xul:menupopup>
+    </content>
   </binding>
 </bindings>

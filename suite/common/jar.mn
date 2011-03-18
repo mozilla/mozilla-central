@@ -238,7 +238,7 @@ comm.jar:
    content/communicator/profile/profileSelection.xul                (profile/profileSelection.xul)
    content/communicator/search/engineManager.js                     (search/engineManager.js)
    content/communicator/search/engineManager.xul                    (search/engineManager.xul)
-*  content/communicator/search/search.xml                           (search/search.xml)
+   content/communicator/search/search.xml                           (search/search.xml)
    content/communicator/search/searchbarBindings.css                (search/searchbarBindings.css)
    content/communicator/search/search-panel.js                      (search/search-panel.js)
    content/communicator/search/search-panel.xul                     (search/search-panel.xul)
