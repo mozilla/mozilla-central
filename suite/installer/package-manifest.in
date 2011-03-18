@@ -65,6 +65,13 @@
 @BINPATH@/@MOZ_CHILD_PROCESS_NAME@
 #endif
 #endif
+; ANGLE GLES-on-D3D rendering library
+#ifdef MOZ_ANGLE
+@BINPATH@/libEGL.dll
+@BINPATH@/libGLESv2.dll
+@BINPATH@/@MOZ_D3DX9_DLL@
+@BINPATH@/@MOZ_D3DCOMPILER_DLL@
+#endif
 #ifdef WINCE
 @BINPATH@/mozce_shunt.dll
 #elifdef XP_WIN32
