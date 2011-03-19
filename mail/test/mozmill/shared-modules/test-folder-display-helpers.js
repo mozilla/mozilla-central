@@ -250,7 +250,7 @@ function setupModule() {
 
   // Tell window-helper about the true mark_action function in order to try
   // and further complicate this horrid seven-dimensional rats' nest.
-  windowHelper.hereIsMarkAction(mark_action,
+  windowHelper.hereIsMarkAction(mark_action, mark_failure,
                                 testHelperModule._normalize_for_json);
 
   mark_action("fdh", "startup completed",

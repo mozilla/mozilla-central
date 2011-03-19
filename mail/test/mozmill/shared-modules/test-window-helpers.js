@@ -97,14 +97,17 @@ const hiddenWindow = Cc["@mozilla.org/appshell/appShellService;1"]
 
 // Have a dummy mark_action function in case test-folder-display-helpers does
 // not provide us with one.
-var mark_action = function() {};
-var normalize_for_json = function() {};
+var mark_action = function dummy_mark_action() {};
+var mark_failure = function dummy_mark_failure() {};
+var normalize_for_json = function dummy_normalize_for_json() {};
 /**
  * This is used by test-folder-display-helpers to provide us with a reference
  * to logHelper's mark_action because of ugliness in the module system.
  */
-function hereIsMarkAction(mark_action_impl, normalize_for_json_impl) {
+function hereIsMarkAction(mark_action_impl, mark_failure_impl,
+                          normalize_for_json_impl) {
   mark_action = mark_action_impl;
+  mark_failure = mark_failure_impl;
   normalize_for_json = normalize_for_json_impl;
 }
 
@@ -1010,6 +1013,12 @@ var PerWindowTypeAugmentations = {
      *  mark_action data about the call.
      */         
     debugTrace: [
+      // wrap 3pane unload function to notice when it explodes
+      {
+        method: "OnUnloadMessenger",
+        onGlobal: true,
+        reportAs: "OnUnloadMessenger",
+      },
       // goDoCommand command gobbling notification
       {
         method: "goDoCommand",
@@ -1186,7 +1195,14 @@ function _augment_helper(aController, aAugmentDef) {
         traceFunc = function() {
           mark_action("winhelp", reportAs,
                       Array.prototype.slice.call(arguments));
-          return origFunc.apply(this, arguments);
+          try {
+            return origFunc.apply(this, arguments);
+          }
+          catch(ex) {
+            mark_failure(["exception in", reportAs, "ex:", ex]);
+            // re-throw it; someone might care!
+            throw ex;
+          }
         }
       }
       baseObj[traceDef.method] = traceFunc;
