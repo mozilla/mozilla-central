@@ -99,5 +99,13 @@
     <driverVersion>8.17.12.5896</driverVersion>
     <driverVersionComparator>LESS_THAN_OR_EQUAL</driverVersionComparator>
   </gfxBlacklistEntry>
+  <gfxBlacklistEntry>
+    <os>WINNT 5.1</os>
+    <vendor>0x10de</vendor>
+    <feature>DIRECT3D_9_LAYERS</feature>
+    <featureStatus>BLOCKED_DRIVER_VERSION</featureStatus>
+    <driverVersion>7.0.0.0</driverVersion>
+    <driverVersionComparator>GREATER_THAN_OR_EQUAL</driverVersionComparator>
+  </gfxBlacklistEntry>
 </gfxItems>
 </blocklist>
