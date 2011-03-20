@@ -703,6 +703,54 @@ function InitMessageTags(menuPopup)
   }
 }
 
+function InitRecentlyClosedTabsPopup(menuPopup)
+{
+  let tabs = document.getElementById("tabmail").recentlyClosedTabs;
+
+  // show Popup only when there are restorable tabs.
+  if( !tabs.length )
+    return false;
+
+  // Clear the list before rebulding it.     
+  while (menuPopup.childNodes.length > 0)
+    menuPopup.removeChild(menuPopup.firstChild);
+    
+  // Rebuild the recently closed tab list
+  for (let i = 0; i < tabs.length; i++ ) {
+    
+    let menuItem = document.createElement("menuitem");
+    menuItem.setAttribute("label",tabs[i].title);    
+    menuItem.setAttribute('oncommand',
+        'document.getElementById("tabmail").undoCloseTab('+i+');');
+     
+    if (i==0)
+      menuItem.setAttribute('key',"key_undoCloseTab");
+     
+    menuPopup.appendChild(menuItem);
+  }
+  
+  // "Restore All Tabs" with only one entry does not make sense 
+  if (tabs.length <= 1)
+    return;
+  
+  menuPopup.appendChild(document.createElement("menuseparator"));
+  
+  let menuItem = document.createElement("menuitem");
+  menuItem.setAttribute("label",gMessengerBundle.getString("restoreAllTabs"));
+  menuItem.setAttribute("oncommand","goRestoreAllTabs();");
+  menuPopup.appendChild(menuItem);
+}
+
+function goRestoreAllTabs()
+{
+  let tabmail = document.getElementById("tabmail");
+  
+  let len = tabmail.recentlyClosedTabs.length;
+  
+  while(len--)
+    document.getElementById("tabmail").undoCloseTab();
+}
+
 function backToolbarMenu_init(menuPopup)
 {
   populateHistoryMenu(menuPopup, true);

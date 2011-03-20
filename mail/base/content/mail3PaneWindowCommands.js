@@ -174,6 +174,7 @@ var DefaultController =
       case "cmd_goForward":
       case "cmd_goBack":
       case "cmd_goStartPage":
+      case "cmd_undoCloseTab":
       case "cmd_viewClassicMailLayout":
       case "cmd_viewWideMailLayout":
       case "cmd_viewVerticalMailLayout":
@@ -428,6 +429,8 @@ var DefaultController =
       case "cmd_goStartPage":
         return document.getElementById("tabmail").selectedTab.mode.name == "folder" &&
                !IsMessagePaneCollapsed();
+      case "cmd_undoCloseTab":
+        return (document.getElementById("tabmail").recentlyClosedTabs.length > 0);               
       case "cmd_markAllRead":
       case "cmd_markReadByDate":
         return IsFolderSelected();
@@ -683,6 +686,9 @@ var DefaultController =
       case "cmd_goStartPage":
         HideMessageHeaderPane();
         loadStartPage(true);
+        break;
+      case "cmd_undoCloseTab":
+        document.getElementById("tabmail").undoCloseTab();
         break;
       case "cmd_viewClassicMailLayout":
       case "cmd_viewWideMailLayout":

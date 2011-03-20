@@ -319,10 +319,11 @@
                                                  
             <xul:menuseparator />
             
-            <xul:menuitem label="&undoCloseTabCmd.label;"
-                          accesskey="&undoCloseTabCmd.accesskey;"
-                          anonid="undoCloseTab"
-                          oncommand="document.getElementById('tabmail').undoCloseTab();"/>
+            <xul:menu label="&recentlyClosedTabsCmd.label;"
+                      accesskey="&recentlyClosedTabsCmd.accesskey;"
+                      anonid="recentlyClosedTabs" >
+              <xul:menupopup onpopupshowing="return InitRecentlyClosedTabsPopup(this);" />
+            </xul:menu>
                                                                          
             <xul:menuitem label="&closeTabCmd2.label;" 
                           accesskey="&closeTabCmd2.accesskey;"
@@ -349,7 +350,6 @@
       <constructor>
         window.controllers.insertControllerAt(0, this);
         this._restoringTabState = null;
-        this._tabUndo = [];
       </constructor>
       <destructor>
         window.controllers.removeController(this);
@@ -387,6 +387,9 @@
       <field name="tabMonitors" readonly="true">
         new Array()
       </field>
+      <field name="recentlyClosedTabs" readonly="true">
+        new Array();
+      </field>      
       <method name="registerTabType">
         <parameter name="aTabType"/>
         <body><![CDATA[
@@ -673,8 +676,17 @@
         ]]></body>
       </method>
       <method name="undoCloseTab">
+        <parameter name="aIdx"/>
         <body><![CDATA[
-          let history = this._tabUndo.pop();
+            
+          if (!this.recentlyClosedTabs.length)
+            return;
+        
+          if (aIdx >= this.recentlyClosedTabs.length)
+            aIdx = this.recentlyClosedTabs.length-1;
+
+          // splice always returns an array 
+          let history = (this.recentlyClosedTabs.splice(aIdx,1))[0];
           
           if (!history.tab)
             return;
@@ -711,11 +723,12 @@
               let session = this.persistTab(tab);
 
               if (session) {
-                this._tabUndo.push(
-                    { tab: JSON.stringify(session), idx: iTab } );
+              
+                this.recentlyClosedTabs.unshift(
+                  { tab: JSON.stringify(session), idx: iTab, title: tab.title });
 
-                if (this._tabUndo.length > 10)
-                  this._tabUndo.shift();    
+                if (this.recentlyClosedTabs.length > 10)
+                  this.recentlyClosedTabs.pop();    
               }
             }
             
@@ -1327,9 +1340,9 @@
 
             // If the tab history is empty, disable "Undo Close Tab"
             document
-              .getAnonymousElementByAttribute(this, "anonid", "undoCloseTab")
+              .getAnonymousElementByAttribute(this, "anonid", "recentlyClosedTabs")
               .setAttribute("disabled",
-                  (this._tabUndo.length) ? "false" : "true");
+                  (this.recentlyClosedTabs.length) ? "false" : "true");
                           
             return true;
           ]]>
