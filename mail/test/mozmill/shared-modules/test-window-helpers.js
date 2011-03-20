@@ -1266,6 +1266,85 @@ function populateDomKeycodeMap() {
 populateDomKeycodeMap();
 
 /**
+ * Given something you would find on event.target (should be a DOM node /
+ *  DOM window), attempt to describe the hierarchy of that thing all the way
+ *  to the outermost enclosing window.  This is intended to solve the probem
+ *  where our event target can be the "Window" of an iframe, which is not
+ *  very enlightening.  We really want to know the frameElement and what
+ *  window it lives in.
+ *
+ * This implementation uses nsIDocShellTreeItem stuff and "frameElement" because
+ *  "frameElement" intentionally returns null when crossing from content space
+ *  to chrome space, and this will happen for many of Thunderbird's iframes.
+ *  In the event we hit this transition case, we traverse up to the parent
+ *  and attempt to reverse the mapping by finding all the browser/iframe nodes
+ *  and then checking their contentWindows against our desired content window.
+ *
+ * @returns a list suitable for concatenating with another list to be passed
+ *   to mark_action.
+ */
+function describeEventElementInHierarchy(elem) {
+  let arr = [], win;
+  // DOM element.
+  if ("ownerDocument" in elem) {
+    arr.push(normalize_for_json(elem));
+    win = elem.ownerDocument.defaultView;
+  }
+  // should already be a window
+  else {
+    win = elem;
+  }
+  let treeItem = win.QueryInterface(Ci.nsIInterfaceRequestor)
+                  .getInterface(Ci.nsIWebNavigation)
+                  .QueryInterface(Ci.nsIDocShellTreeItem);
+  while (treeItem) {
+    win = treeItem.QueryInterface(Ci.nsIInterfaceRequestor)
+                  .getInterface(Ci.nsIDOMWindowInternal);
+    // capture the window itself
+    arr.push("in");
+    arr.push(normalize_for_json(win));
+
+    let parentTreeItem = treeItem.parent;
+    // same-type frame element? (easy case)
+    if (win.frameElement) {
+      arr.push("frame:");
+      arr.push(normalize_for_json(win.frameElement));
+    }
+    else if (parentTreeItem) {
+      let parentWin = parentTreeItem.QueryInterface(Ci.nsIInterfaceRequestor)
+                        .getInterface(Ci.nsIDOMWindowInternal);
+      let frame = _findFrameElementForWindowInWindow(win, parentWin);
+      arr.push("frame:");
+      arr.push(normalize_for_json(frame));
+    }
+    treeItem = parentTreeItem;
+  }
+
+  return arr;
+}
+
+/**
+ * Helper for `describeEventElementInHierarchy` that checks all the
+ *  browsers/iframes in `parentWin` for the one that has `win` as its
+ *  contentWindow.
+ */
+function _findFrameElementForWindowInWindow(win, parentWin) {
+  let elems = parentWin.document.getElementsByTagName("iframe"), i;
+  for (i = 0; i < elems.length; i++) {
+    // (Must not use === because XPConnect uses wrapper identicality when
+    //  we do that.)
+    if (elems[i].contentWindow == win)
+      return elems[i];
+  }
+  elems = parentWin.document.getElementsByTagName("browser");
+  for (i = 0; i < elems.length; i++) {
+    if (elems[i].contentWindow == win)
+      return elems[i];
+  }
+  return null;
+}
+
+/**
  * Given an event, provide a uniquely identifying string that usefully
  *  identifies the window.  We do this by getting the windowtype (an ad hoc
  *  attribute on the document element) if available, or the id on the document
@@ -1289,13 +1368,20 @@ function getWindowDescribeyFromEvent(event) {
   var docElem = owningWin.document.documentElement;
   return (docElem.getAttribute("windowtype") ||
           docElem.getAttribute("id") || "mysterious") +
-         " (" + (UNIQUE_WINDOW_ID_ATTR in win ? win[UNIQUE_WINDOW_ID_ATTR] :
-                 "n/a") + ")";
+         " (" + (UNIQUE_WINDOW_ID_ATTR in owningWin ?
+                   owningWin[UNIQUE_WINDOW_ID_ATTR] :
+                   "n/a") + ")";
 }
 
 function __peek_activate_handler(event) {
   mark_action("winhelp", event.type,
               [getWindowDescribeyFromEvent(event)]);
+  return true;
+}
+
+function __peek_focus_handler(event) {
+  mark_action("winhelp", event.type,
+              describeEventElementInHierarchy(event.target));
   return true;
 }
 
@@ -1428,6 +1514,9 @@ function augment_controller(aController, aWindowType) {
     doc.addEventListener("mouseup", __peek_click_handler, true);
 
     doc.addEventListener("keypress", __peek_keypress_handler, true);
+
+    doc.addEventListener("focus", __peek_focus_handler, true);
+    doc.addEventListener("blur", __peek_focus_handler, true);
 
     // - bubbling listeners
     // (so we can see if the event got killed / eaten)

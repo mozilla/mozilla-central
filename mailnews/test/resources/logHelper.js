@@ -409,6 +409,27 @@ function _normalize_for_json(aObj, aDepthAllowed, aJsonMeNotNeeded) {
       attrs: objAttrs,
     };
   }
+  else if (aObj instanceof Ci.nsIDOMWindowInternal) {
+    let winId, title;
+    if (aObj.document && aObj.document.documentElement) {
+      title = aObj.document.title;
+      winId = aObj.document.documentElement.getAttribute("windowtype") ||
+              aObj.document.documentElement.getAttribute("id") ||
+              "unnamed";
+    }
+    else {
+      winId = "n/a";
+      title = "no document";
+    }
+    return {
+      type: "domWindow",
+      id: winId,
+      title: title,
+      location: "" + aObj.location,
+      coords: {x: aObj.screenX, y: aObj.screenY},
+      dims: {width: aObj.outerWidth, height: aObj.outerHeight},
+    };
+  }
   // Although straight JS exceptions should serialize pretty well, we can
   //  improve things by making "stack" more friendly.
   else if (aObj instanceof Error) {
