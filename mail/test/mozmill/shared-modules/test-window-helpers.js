@@ -903,7 +903,39 @@ var AugmentEverybodyWith = {
                                     curPopup))
           throw new Error("Popup did not close!");
       }
-    }
+    },
+
+    /**
+     * mark_action helper method that produces something that can be concat()ed
+     *  onto a list being passed to mark_action in order to describe the focus
+     *  state of the window.  For now this will be a variable-length list but
+     *  could be changed to a single object in the future.
+     */
+    describeFocus: function() {
+      let arr = [
+        "in window:",
+        getWindowTypeForXulWindow(this.window) + " (" +
+          getUniqueIdForXulWindow(this.window) + ")"];
+      let focusedWinOut = {}, focusedElement, curWindow = this.window;
+      // Use the focus manager to walk down through focused sub-frames so
+      //  in the event that there is no focused element but there is a focused
+      //  sub-frame, we can know that.
+      for (;;) {
+        focusedElement = focusManager.getFocusedElementForWindow(curWindow,
+                                                                 false,
+                                                                 focusedWinOut);
+        arr.push("focused kid:");
+        arr.push(focusedElement);
+
+        if (focusedElement && ("contentWindow" in focusedElement)) {
+          curWindow = focusedElement.contentWindow;
+          continue;
+        }
+        break;
+      }
+
+      return arr;
+    },
   },
   getters: {
     focusedElement: function() {

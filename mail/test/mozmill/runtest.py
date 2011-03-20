@@ -362,12 +362,9 @@ def logFailure(obj):
 mozmill.LoggerListener.cases['mozmill.fail'] = logFailure
 
 
-def prettifyFilename(path):
-    lslash = path.rfind('/')
-    if lslash != -1:
-        return path[lslash+1:]
-    else:
-        return path
+def prettifyFilename(path, tail_segs_desired=1):
+    parts = path.split('/')
+    return '/'.join(parts[-tail_segs_desired:])
 
 def prettyPrintException(e):
     print '  EXCEPTION:', e.get('message', 'no message!')
@@ -423,7 +420,7 @@ def dumpRichResults():
     for result in TEST_RESULTS:
         if len(result['fails']) > 0:
             for failure in result['fails']:
-                failure['fileName'] = prettifyFilename(result['filename'])
+                failure['fileName'] = prettifyFilename(result['filename'], 2)
                 failure['testName'] = result['name']
                 print json.dumps(failure)
     print '##### MOZMILL-RICH-FAILURES-END #####'

@@ -1320,9 +1320,8 @@ function press_delete(aController) {
                                  "DeleteOrMoveMsgFailed");
   mark_action("fdh", "press_delete",
               ["selected messages:",
-               aController.folderDisplay.selectedMessages,
-               "currently focused element:",
-               aController.focusedElement]);
+               aController.folderDisplay.selectedMessages].concat(
+                 aController.describeFocus()));
   aController.keypress(aController == mc ? mc.eThreadTree : null,
                        "VK_DELETE", {});
   wait_for_folder_events();
@@ -1343,9 +1342,8 @@ function archive_selected_messages(aController) {
 
   mark_action("fdh", "archive_selected_messages",
               ["selected messages:",
-               aController.folderDisplay.selectedMessages,
-               "currently focused element:",
-               aController.focusedElement]);
+               aController.folderDisplay.selectedMessages].concat(
+                 aController.describeFocus()));
   aController.keypress(null, "a", {});
 
   // Wait for the view rowCount to decrease by the number of selected messages.
@@ -1376,9 +1374,8 @@ function press_enter(aController) {
     wait_for_message_display_completion(aController);
   mark_action("fdh", "press_enter",
               ["selected messages:",
-               aController.folderDisplay.selectedMessages,
-               "currently focused element:",
-               aController.focusedElement]);
+               aController.folderDisplay.selectedMessages].concat(
+                 aController.describeFocus()));
   aController.keypress(aController == mc ? mc.eThreadTree : null,
                        "VK_RETURN", {});
   // The caller's going to have to wait for message display completion
