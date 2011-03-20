@@ -1,8 +1,21 @@
+#ifdef XP_UNIX
+#ifndef XP_MACOSX
+#define UNIX_BUT_NOT_MAC
+#endif
+#endif
 .autoreg
 chrome/app-chrome.manifest
 chrome/chatzilla.jar
 chrome/debugqa.jar
 chrome/debugqa.manifest
+chrome/classic.manifest
+chrome/comm.manifest
+chrome/@AB_CD@.manifest
+chrome/gloda.manifest
+chrome/messenger.manifest
+chrome/newsblog.manifest
+chrome/pippki.manifest
+chrome/toolkit.manifest
 chrome/icons/default/abcardWindow.xpm
 chrome/icons/default/abcardWindow16.xpm
 chrome/icons/default/ablistWindow.xpm
@@ -125,6 +138,14 @@ components/@DLL_PREFIX@xpconnect@DLL_SUFFIX@
 components/@DLL_PREFIX@xpinstall@DLL_SUFFIX@
 #endif
 components/xpti.dat
+components/nsAboutAbout.js
+components/nsAddonRepository.js
+#ifdef XP_WIN
+components/nsIQTScriptablePlugin.xpt
+#endif
+#ifdef UNIX_BUT_NOT_MAC
+components/nsFilePicker.js
+#endif
 #ifndef MOZ_CRASHREPORTER
 #ifdef XP_MACOSX
 crashreporter.app/
@@ -151,6 +172,9 @@ extensions/p@m/defaults/preferences/palmsync.js
 extensions/p@m/install.rdf
 extensions/p@m/mozABConduit.dll
 #endif
+extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/components/components.list
+extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/components/components.list
+extensions/inspector@mozilla.org/components/components.list
 #ifdef UNIX_BUT_NOT_MAC
 @DLL_PREFIX@gfxpsshar@DLL_SUFFIX@
 #endif
@@ -176,7 +200,9 @@ LICENSE
 #ifdef XP_MACOSX
 libwidget.rsrc
 #endif
+modules/HUDService.jsm
 modules/JSON.jsm
+modules/autoconfigUtils.jsm
 modules/dbViewWrapper.js
 modules/mailViewManager.js
 modules/quickSearchManager.js
@@ -228,27 +254,50 @@ msvcr90.dll
 #endif
 @DLL_PREFIX@mozlcms@DLL_SUFFIX@
 #ifdef XP_MACOSX
-../Plug-Ins/PrintPDE.plugin/Contents/Info.plist
-../Plug-Ins/PrintPDE.plugin/Contents/MacOS/PrintPDE
-../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/Localizable.strings
-../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/classes.nib
-../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/info.nib
-../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/objects.xib
+  ../Plug-Ins/PrintPDE.plugin/Contents/Info.plist
+  ../Plug-Ins/PrintPDE.plugin/Contents/MacOS/PrintPDE
+  ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/
+  ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/Localizable.strings
+  ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/
+  ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/classes.nib
+  ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/info.nib
+  ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/objects.xib
+  ../Resources/seamonkey-bin.rsrc
+  components/mozldap.xpt
+  components/pipboot.xpt
+  components/pipnss.xpt
+  components/pippki.xpt
+  plugins/Default Plugin.plugin/Contents/Info.plist
+  plugins/Default Plugin.plugin/Contents/MacOS/Default Plugin
+  plugins/Default Plugin.plugin/Contents/PkgInfo
+  plugins/Default Plugin.plugin/Contents/Resources/Default Plugin.rsrc
+  plugins/Default Plugin.plugin/Contents/Resources/English.lproj/InfoPlist.strings
+  plugins/DefaultPlugin.plugin/Contents/Info.plist
+  plugins/DefaultPlugin.plugin/Contents/MacOS/DefaultPlugin
+  plugins/DefaultPlugin.plugin/Contents/Resources/English.lproj/InfoPlist.strings
+  plugins/DefaultPlugin.plugin/Contents/Resources/plugin.png
+  plugins/JavaEmbeddingPlugin.bundle/Contents/Info.plist
+  plugins/JavaEmbeddingPlugin.bundle/Contents/MacOS/JavaEmbeddingPlugin
+  plugins/JavaEmbeddingPlugin.bundle/Contents/MacOS/JavaEmbeddingPlugin.policy
+  plugins/JavaEmbeddingPlugin.bundle/Contents/PkgInfo
+  plugins/JavaEmbeddingPlugin.bundle/Contents/Resources/English.lproj/InfoPlist.strings
+  plugins/JavaEmbeddingPlugin.bundle/Contents/Resources/Java/JavaEmbeddingPlugin.jar
+  plugins/MRJPlugin.plugin/Contents/Info.plist
+  plugins/MRJPlugin.plugin/Contents/MacOS/MRJPlugin
+  plugins/MRJPlugin.plugin/Contents/MacOS/MRJPlugin.jar
+  plugins/MRJPlugin.plugin/Contents/MacOS/MRJPlugin.policy
+  plugins/MRJPlugin.plugin/Contents/MacOS/MRJPlugin.properties
+  plugins/MRJPlugin.plugin/Contents/PkgInfo
+  plugins/MRJPlugin.plugin/Contents/Resources/English.lproj/InfoPlist.strings
+  plugins/MRJPlugin.plugin/Contents/Resources/MRJPlugin.rsrc
+  regxpcom
+  run-mozilla.sh
+  updater.app/Contents/MacOS/updater.ini
 #endif
 #ifdef XP_OS2
 plugins/npnulos2.dll
 #elifdef XP_WIN
 plugins/npnul32.dll
-#elifdef XP_MACOSX
-plugins/DefaultPlugin.plugin/
-plugins/DefaultPlugin.plugin/Contents/
-plugins/DefaultPlugin.plugin/Contents/Info.plist
-plugins/DefaultPlugin.plugin/Contents/MacOS/
-plugins/DefaultPlugin.plugin/Contents/MacOS/DefaultPlugin
-plugins/DefaultPlugin.plugin/Contents/Resources/
-plugins/DefaultPlugin.plugin/Contents/Resources/English.lproj/
-plugins/DefaultPlugin.plugin/Contents/Resources/English.lproj/InfoPlist.strings
-plugins/DefaultPlugin.plugin/Contents/Resources/plugin.png
 #elifdef XP_UNIX
 plugins/libnullplugin.so
 #endif
