@@ -120,7 +120,11 @@
                     calview="month"
                     observes="calendar_month-view_command"/>
              </tabs>
-           <box class="navigation-bottombox" type="end"/>
+           <box class="navigation-bottombox"/>
+         </vbox>
+         <vbox>
+           <vbox flex="1" class="navigation-spacer-box"/>
+           <hbox class="navigation-bottombox"/>
          </vbox>
        </hbox>
        <deck flex="1"

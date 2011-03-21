@@ -701,11 +701,7 @@ calendar-event-box[status="CANCELLED"] .calendar-color-box {
     background-color: #E8E8E8;
     border: solid ThreeDShadow;
     border-width: 1px 0 0 1px;
-}
-
-#today-view-button {
-    padding-bottom: 2px;
-    margin-botom: 0;
+    padding-top: 1px;
 }
 
 #view-deck {
@@ -716,11 +712,7 @@ calendar-event-box[status="CANCELLED"] .calendar-color-box {
 
 .tabs-left,
 .tabs-right {
-    border-bottom: 2px solid #D2D2D2;
-}
-
-#view-tabs {
-    padding-right: 4px;
+    border-bottom: 1px solid #D2D2D2;
 }
 
 tab[calview] {
@@ -728,9 +720,11 @@ tab[calview] {
     background-image: url("chrome://calendar/skin/calendar-day-label-back-vertical.png");
     background-color: #CCCCCC;
     color: #2E4E73;
-    border-bottom: 1px solid #BDBDBD;
+    border: 1px solid #BDBDBD;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;  
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
     font-size: 14px;
     margin-top: 0px;
     -moz-user-focus: normal;  
@@ -741,7 +735,6 @@ tab[calview][selected="true"]:hover {
     background-color: #FFFFFF;
     margin-bottom: 0px;
     border-bottom: none;
-    padding-bottom: 1px;
 }
 
 tab[calview]:hover {
@@ -756,7 +749,6 @@ tab[calview] > .tab-middle {
     font-weight: normal;
     font-size: 14px;
     color: #2E4E73;
-    margin-bottom: -1px;
 }
 
 .view-header[type="end"] {
@@ -770,41 +762,38 @@ tab[calview] > .tab-middle {
     border-bottom: 1px solid #D2D2D2;
     padding-bottom: 1px;
 }
+
 .navigation-bottombox {
     min-height: 4px;
     max-height: 4px;
     background-color: white;
 }
 
+.navigation-spacer-box {
+    min-width: 4px;
+    border-bottom: 1px solid #D2D2D2;
+}
+
 .view-navigation-button {
     -moz-user-focus: normal;
     -moz-appearance: toolbarbutton;
-    margin-top: 3px;
+    min-width: 22px;
     -moz-margin-start: 2px;
     -moz-margin-end: 2px;
-    margin-bottom: 0px;
-    padding: 4px;
 }
 
 .today-navigation-button {
     -moz-user-focus: normal;
     -moz-appearance: toolbarbutton;
-    margin-top: 0;
     -moz-margin-start: 2px;
     -moz-margin-end: 2px;
-    margin-bottom: 0px;
-    padding: 3px;
-    padding-bottom: 5px;
+    padding-top: 0px !important; /* a workaround to center the label vertically on Windows */
     color: #2E4E73;
     font-size: 14px;
 }
 
 .view-navigation-button > .toolbarbutton-text {
     display: none;
-}
-
-.view-navigation-button > .toolbarbutton-icon {
-    margin: 1px;
 }
 
 .today-navigation-button > .toolbarbutton-icon {
