@@ -12,7 +12,6 @@ comm.jar:
       content/editor/editorUtilities.js                        (composer/content/editorUtilities.js) 
       content/editor/ComposerCommands.js                       (composer/content/ComposerCommands.js) 
       content/editor/EditorContent.css                         (composer/content/EditorContent.css)  
-      content/editor/editorOverlay.js                          (composer/content/editorOverlay.js) 
       content/editor/editorSmileyOverlay.xul                   (composer/content/editorSmileyOverlay.xul) 
       content/editor/editorNavigatorOverlay.xul                (composer/content/editorNavigatorOverlay.xul) 
       content/editor/editorMailOverlay.xul                     (composer/content/editorMailOverlay.xul) 
