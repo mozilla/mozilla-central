@@ -6,9 +6,19 @@ var gIMAPInbox, gIMAPFolder1, gIMAPFolder2;
 var gFolder2Mailbox;
 
 load("../../../resources/messageGenerator.js");
+// async support
+load("../../../resources/logHelper.js");
+load("../../../resources/mailTestUtils.js");
+load("../../../resources/asyncTestUtils.js");
 
 const nsIIOService = Cc["@mozilla.org/network/io-service;1"]
                      .getService(Ci.nsIIOService);
+
+var tests = [
+  checkStatSelect,
+  checkStatNoSelect,
+  endTest
+];
 
 function run_test() {
   var daemon = new imapDaemon();
@@ -59,7 +69,11 @@ function run_test() {
   gFolder2 = rootFolder.getChildNamed("folder 2");
   gFolder1.setFlag(Ci.nsMsgFolderFlags.CheckNew);
   gFolder2.setFlag(Ci.nsMsgFolderFlags.CheckNew);
-  do_test_pending();
+  //start first test
+  async_run_tests(tests);
+}
+
+function checkStatSelect() {
   // imap fake server's resetTest resets the authentication state - charming.
   // So poke the _test member directly.
   gServer._test = true;
@@ -72,10 +86,10 @@ function run_test() {
   gServer._test = true;
   gIMAPInbox.updateFolder(null);
   gServer.performTest("NOOP");
-  do_timeout_function(0, testCheckStatError);
+  yield true;
 }
 
-function testCheckStatError() {
+function checkStatNoSelect() {
   // folder 2 should have been stat'd, but not folder 1. All we can really check
   // is that folder 2 was stat'd and that its unread msg count is 1
   do_check_eq(gFolder2.getNumUnread(false), 1);
@@ -85,11 +99,13 @@ function testCheckStatError() {
   // we've cleared the ImapNoselect flag, so we will attempt to STAT folder 1,
   // which will fail. So we verify that we go on and STAT folder 2, and that
   // it picks up the message we added to it above.
+  let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
+    getService(Ci.nsIMsgMailSession);
+  mailSession.AddFolderListener(gFolderListener,
+                                Ci.nsIFolderListener.boolPropertyChanged);
   gIMAPInbox.getNewMessages(null, null);
-  gServer.performTest("STATUS");
-  gServer._test = true;
-  gServer.performTest("STATUS");
-  do_timeout_function(0, endTest);
+  // Wait for the folder listener to get told about new messages.
+  yield false;
 }
 
 function addMessageToFolder(mbox) {
@@ -114,6 +130,13 @@ function endTest()
   gImapServer.closeCachedConnections();
   gServer.performTest();
   gServer.stop();
-
-  do_test_finished();
+  yield true;
 }
+
+var gFolderListener = {
+  OnItemBoolPropertyChanged : function(aItem, aProperty, aOldValue, aNewValue) {
+    // This means that the STAT on "folder 2" has finished.
+    if (aProperty == "NewMessages" && aNewValue == true)
+      async_driver();
+  }
+};
