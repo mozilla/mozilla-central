@@ -63,7 +63,8 @@ MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\).*/
 if test "$MOZILLA_BRANCH_VERSION" = "2.0"; then
   MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version-20.txt
   # Use unofficial branding for the 2.0 branch
-  MOZ_BRANDING_DIRECTORY=mail/branding/unofficial
+  # XXX Use the nightly branding until we actually branch.
+  MOZ_BRANDING_DIRECTORY=mail/branding/nightly
 else
   MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt
   MOZ_BRANDING_DIRECTORY=mail/branding/nightly
