@@ -137,8 +137,7 @@
       </field>
       <field name="mPrefs" readonly="true">
         Components.classes['@mozilla.org/preferences-service;1']
-                  .getService(Components.interfaces.nsIPrefService)
-                  .getBranch(null);
+                  .getService(Components.interfaces.nsIPrefBranch2);
       </field>
       <field name="mURIFixup" readonly="true">
         Components.classes["@mozilla.org/docshell/urifixup;1"]
@@ -2676,14 +2675,26 @@
       <method name="observe">
         <parameter name="aSubject"/>
         <parameter name="aTopic"/>
-        <parameter name="aState"/>
+        <parameter name="aData"/>
         <body>
           <![CDATA[
-            if (aTopic != "browser:purge-session-history")
-              return;
+            var maxUndoDepth = 0;
+            switch (aTopic) {
+              case "browser:purge-session-history":
+                break;
+
+              case "nsPref:changed":
+                if (aData == "browser.tabs.max_tabs_undo") {
+                  maxUndoDepth = Math.max(0, this.mPrefs.getIntPref(aData));
+                  break;
+                }
+
+              default:
+                return;
+            }
 
             // Wipe out savedBrowsers since history is gone
-            while (this.savedBrowsers.length) {
+            while (this.savedBrowsers.length > maxUndoDepth) {
               var tabData = this.savedBrowsers.pop();
               var deadBrowser = tabData._browser;
               delete tabData._tab;
@@ -2773,6 +2784,7 @@
           var os = Components.classes["@mozilla.org/observer-service;1"]
                              .getService(Components.interfaces.nsIObserverService);
           os.addObserver(this, "browser:purge-session-history", false);
+          this.mPrefs.addObserver("browser.tabs.max_tabs_undo", this, false);
         ]]>
       </constructor>
 
@@ -2794,6 +2806,7 @@
           var os = Components.classes["@mozilla.org/observer-service;1"]
                              .getService(Components.interfaces.nsIObserverService);
           os.removeObserver(this, "browser:purge-session-history");
+          this.mPrefs.removeObserver("browser.tabs.max_tabs_undo", this);
           this.savedBrowsers.forEach(function(aTabData) {
             delete aTabData._tab;
             delete aTabData._browser;
