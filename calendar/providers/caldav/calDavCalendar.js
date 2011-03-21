@@ -2117,7 +2117,7 @@ calDavCalendar.prototype = {
                             if (fbType) {
                                 fbType = fbTypeMap[fbType];
                             } else {
-                                fbType = calIFreeBusyInterval.UNKNOWN;
+                                fbType = calIFreeBusyInterval.BUSY;
                             }
                             let parts = fbProp.value.split("/");
                             let begin = cal.createDateTime(parts[0]);
