@@ -1709,7 +1709,8 @@ var IMAP_RFC4315_extension = {
     if (response.indexOf("OK") == 0) {
       let mailbox = this._daemon.getMailbox(args[0]);
       let uid = mailbox.uidnext - 1;
-      response = "OK [APPENDUID " + uid + "]" + response.substring(2);
+      response = "OK [APPENDUID " + mailbox.uidvalidity + " " + uid + "]" +
+                   response.substring(2);
     }
     return response;
   },
@@ -1720,8 +1721,9 @@ var IMAP_RFC4315_extension = {
     let response = this._preRFC4315COPY(args);
     if (response.indexOf("OK") == 0) {
       let last = mailbox.uidnext - 1;
-      response = "OK [COPYUID " + first + ":" + last + "]" +
-                  response.substring(2);
+      response = "OK [COPYUID " + this._selectedMailbox.uidvalidity +
+                   " " + args[0] + " " + first + ":" + last + "]" +
+                   response.substring(2);
     }
     return response;
   },
@@ -1730,10 +1732,13 @@ var IMAP_RFC4315_extension = {
     if (mailbox)
       var first = mailbox.uidnext;
     let response = this._preRFC4315MOVE(args);
-    if (response.indexOf("OK") == 0) {
+    if (response.indexOf("OK MOVE") != -1) {
       let last = mailbox.uidnext - 1;
-      response = "OK [COPYUID " + first + ":" + last + "]" +
-                  response.substring(2);
+      response =
+        response.replace("OK MOVE",
+                         "OK [COPYUID " + this._selectedMailbox.uidvalidity +
+                            " " + args[0] + " " + first + ":" + last + "]",
+                         "");
     }
     return response;
   },
