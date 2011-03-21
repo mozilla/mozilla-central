@@ -113,25 +113,6 @@
         <image id="statusIcon" class="statusIcon"/>
         <label id="status" class="status" value=" "/>
       </hbox>
-
-      <vbox id="passphraseStrengthRow" hidden="true" pack="end">
-        <hbox>
-          <label id="passphraseStrengthLabel"
-                 control="passphraseStrength"
-                 value="&syncKeyStrength.label;"/>
-          <progressmeter id="passphraseStrength"
-                         aria-labelledby="passphraseStrengthLabel"
-                         max="128"
-                         value="0"
-                         flex="1"/>
-        </hbox>
-        <hbox pack="end">
-          <label class="text-link inline-link"
-                 onclick="event.stopPropagation();
-                          gSyncUtils.openSyncKeyHelp();"
-                 value="&syncKeyHelp.label;"/>
-        </hbox>
-      </vbox>
     </vbox>
 
     <hbox id="passphraseBackupButtons" pack="center">
