@@ -52,6 +52,7 @@
 
 <?xml-stylesheet href="chrome://lightning/skin/lightning.css" type="text/css"?>
 <?xml-stylesheet href="chrome://lightning/skin/lightning-toolbar.css" type="text/css"?>
+<?xml-stylesheet href="chrome://lightning-aero/skin/lightning-aero.css" type="text/css"?>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
