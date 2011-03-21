@@ -1590,9 +1590,21 @@
       </method>
 
       <method name="removeCurrentTab">
+        <parameter name="aParams"/>
         <body>
           <![CDATA[
-            return this.removeTab(this.mCurrentTab);
+            return this.removeTab(this.mCurrentTab, aParams);
+          ]]>
+        </body>
+      </method>
+
+      <method name="isBrowserEmpty">
+        <parameter name="aBrowser"/>
+        <body>
+          <![CDATA[
+            return aBrowser.sessionHistory.count < 2 &&
+                   aBrowser.currentURI.spec == "about:blank" &&
+                   !aBrowser.contentDocument.body.hasChildNodes();
           ]]>
         </body>
       </method>
@@ -1661,13 +1673,13 @@
             if (savedData.pos < position)
               this.moveTabTo(position, savedData.pos);
 
-            if (this.tabs.length == 2 &&
-                !this.tabs[0].linkedBrowser.webNavigation.sessionHistory.count)
-              this.removeTab(this.tabs[0]); // only one tab => selected anyway
+            if (this.tabs.length == 2 && this.isBrowserEmpty(this))
+              this.removeCurrentTab({ disableUndo: true });
             else {
               this.selectedTab = t;
               this.mStrip.collapsed = false;
             }
+
             return t;
           ]]>
         </body>
@@ -1675,13 +1687,20 @@
 
       <method name="removeTab">
         <parameter name="aTab"/>
-        <parameter name="aDisableUndo"/>
+        <parameter name="aParams"/>
         <body>
           <![CDATA[
             this.mLastRelatedIndex = 0;
 
             if (aTab.localName != "tab")
               aTab = this.mCurrentTab;
+
+            if (!aParams) {
+              aParams = {
+                animate: false,
+                disableUndo: false
+              };
+            }
 
             var oldBrowser = aTab.linkedBrowser;
 
@@ -1694,8 +1713,8 @@
             // Dispatch a notification.
             // We dispatch it before any teardown so that event listeners can
             // inspect the tab that's about to close.
-            var event = document.createEvent('Events');
-            event.initEvent("TabClose", true, false);
+            var event = document.createEvent('UIEvents');
+            event.initUIEvent("TabClose", true, false, window, !!aParams.disableUndo);
             aTab.dispatchEvent(event);
             var tabData = aTab.tabData || {};
             tabData.pos = this.getTabIndex(aTab);
@@ -1779,7 +1798,7 @@
             var inOnLoad = oldBrowser.docShell.isExecutingOnLoadHandler;
             var isPopup = oldBrowser.contentWindow.opener &&
                           !this.mPrefs.getBoolPref("browser.tabs.cache_popups");
-            if (maxUndoDepth <= 0 || oldSH.count == 0 || aDisableUndo || inOnLoad || isPopup) {
+            if (maxUndoDepth <= 0 || aParams.disableUndo || inOnLoad || isPopup || this.isBrowserEmpty(oldBrowser)) {
               // Undo is disabled/tab is blank.  Kill the browser for real.
               // Because of the way XBL works (fields just set JS
               // properties on the element) and the code we have in place
@@ -2425,7 +2444,7 @@
                 sessionHistory : firstTab.linkedBrowser.sessionHistory
               }
               oldBrowserGroup.push(browserData);
-              this.removeTab(firstTab, true);
+              this.removeTab(firstTab, { disableUndo: true });
             }
           }
           return oldBrowserGroup;

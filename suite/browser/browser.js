@@ -203,7 +203,7 @@ var PrintPreviewListener = {
     this._tabBeforePrintPreview = null;
     gInPrintPreviewMode = false;
     toggleAffectedChrome(false);
-    getBrowser().removeTab(this._printPreviewTab, true);
+    getBrowser().removeTab(this._printPreviewTab, { disableUndo: true });
     this._printPreviewTab = null;
   }
 };

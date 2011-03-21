@@ -82,7 +82,6 @@ function test() {
   requestLongerTimeout(2);
   Services.prefs.setIntPref("browser.tabs.max_tabs_undo", 0);
   runNextTest();
-  Services.prefs.clearUserPref("browser.tabs.max_tabs_undo");
 }
 
 
@@ -112,6 +111,7 @@ function runNextTest() {
     waitForBrowserState(testState, currentTest);
   }
   else {
+    Services.prefs.clearUserPref("browser.tabs.max_tabs_undo");
     ss.setBrowserState(stateBackup);
     finish();
   }
@@ -207,14 +207,12 @@ function test_undoCloseTab() {
 
   function onSSWindowStateBusy(aEvent) {
     busyEventCount++;
-    dump("onSSWindowStateBusy\n")
   }
 
   // undoCloseTab is "synchronous" in tab creation. Since restoreHistory is called
   // via setTimeout, reopenedTab will be assigned before the SSWindowStateReady event
   function onSSWindowStateReady(aEvent) {
     readyEventCount++;
-    dump("onSSWindowStateReady");
     is(ss.getTabValue(reopenedTab, "foo"), "bar");
     ss.setTabValue(reopenedTab, "baz", "qux");
   }
@@ -236,7 +234,7 @@ function test_undoCloseTab() {
   window.addEventListener("SSWindowStateReady", onSSWindowStateReady, false);
   getBrowser().tabContainer.addEventListener("SSTabRestored", onSSTabRestored, false);
 
-  getBrowser().removeTab(tab, true);
+  getBrowser().removeTab(tab);
   reopenedTab = ss.undoCloseTab(window, 0);
 }
 
