@@ -52,14 +52,24 @@ MOZ_SAFE_BROWSING=1
 MOZ_MORK=1
 MOZ_IPC=
 MOZ_STATIC_BUILD_UNSUPPORTED=1
-
-MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt
-MOZ_BRANDING_DIRECTORY=mail/branding/nightly
-
-MOZ_APP_VERSION=`cat $MOZ_APP_VERSION_TXT`
-
-THUNDERBIRD_VERSION=$MOZ_APP_VERSION
-MOZ_OFFICIAL_BRANDING_DIRECTORY=other-licenses/branding/thunderbird
 MOZ_APP_COMPONENT_LIBS="mail msgsmime import xpautocomplete mailcomps $LDAP_COMPONENT"
 MOZ_APP_EXTRA_LIBS="$LDAP_LIBS"
 MOZ_APP_COMPONENT_INCLUDE=nsMailComponents.h
+
+# Needed for the mozilla-central build side of the system.
+# Can be dropped when we branch MOZILLA_2_0_BRANCH
+MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\).*/\1/;'`
+
+if test "$MOZILLA_BRANCH_VERSION" = "2.0"; then
+  MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version-20.txt
+  # Use unofficial branding for the 2.0 branch
+  MOZ_BRANDING_DIRECTORY=mail/branding/unofficial
+else
+  MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt
+  MOZ_BRANDING_DIRECTORY=mail/branding/nightly
+fi
+
+MOZ_APP_VERSION=`cat $MOZ_APP_VERSION_TXT`
+THUNDERBIRD_VERSION=$MOZ_APP_VERSION
+
+MOZ_OFFICIAL_BRANDING_DIRECTORY=other-licenses/branding/thunderbird

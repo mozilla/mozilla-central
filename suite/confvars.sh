@@ -46,8 +46,6 @@ MOZ_STATIC_MAIL_BUILD=1
 MOZ_CHROME_FILE_FORMAT=omni
 MOZ_COMPOSER=1
 MOZ_SUITE=1
-MOZ_APP_VERSION=`cat ${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt`
-SEAMONKEY_VERSION=$MOZ_APP_VERSION
 MOZ_BRANDING_DIRECTORY=suite/branding/nightly
 MOZ_OFFICIAL_BRANDING_DIRECTORY=suite/branding/nightly
 MOZ_EXTENSIONS_DEFAULT=" venkman inspector irc gnomevfs"
@@ -60,3 +58,15 @@ MOZ_APP_EXTRA_LIBS="$LDAP_LIBS"
 MOZ_APP_COMPONENT_INCLUDE=nsSuiteComponents.h
 MOZ_SERVICES_SYNC=1
 
+# Needed for the mozilla-central build side of the system.
+# Can be dropped when we branch MOZILLA_2_0_BRANCH
+MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\).*/\1/;'`
+
+if test "$MOZILLA_BRANCH_VERSION" = "2.0"; then
+  MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version-20.txt
+else
+  MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt
+fi
+
+MOZ_APP_VERSION=`cat $MOZ_APP_VERSION_TXT`
+SEAMONKEY_VERSION=$MOZ_APP_VERSION

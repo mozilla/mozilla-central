@@ -82,6 +82,21 @@ dnl export this, so the var is set for mozilla/configure
 MOZCONFIG=`$_AUTOCONF_TOOLS_DIR/mozconfig-find $topsrcdir`
 export MOZCONFIG
 
+dnl Get mozilla version from central milestone file
+MOZILLA_VERSION=`$PERL $MOZILLA_SRCDIR/config/milestone.pl -topsrcdir $MOZILLA_SRCDIR`
+
+changequote(,)
+MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\).*/\1/;'`
+changequote([,])
+
+dnl Set the Gecko 2.0 branch version.
+MOZILLA_2_0_BRANCH=
+if test "$MOZILLA_BRANCH_VERSION" = "2.0"; then
+    MOZILLA_2_0_BRANCH=1
+    AC_DEFINE(MOZILLA_2_0_BRANCH)
+fi
+AC_SUBST(MOZILLA_2_0_BRANCH)
+
 MOZ_DEB_TIMESTAMP=`date +"%a, %d  %b %Y %T %z"   2>&1` 
 AC_SUBST(MOZ_DEB_TIMESTAMP)
 
