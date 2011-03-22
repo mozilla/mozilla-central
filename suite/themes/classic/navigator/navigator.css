@@ -689,20 +689,20 @@ toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
 
 /* ::::: feeds ::::: */
 
-#feedsMenu {
-  list-style-image: url("chrome://navigator/skin/btn1/feeds.png") !important;
+.feedsMenu {
+  list-style-image: url("chrome://navigator/skin/btn1/feeds.png");
   -moz-image-region: rect(0px 16px 16px 0px);
 }
 
-#feedsMenu[_moz-menuactive="true"] {
+.feedsMenu[_moz-menuactive="true"] {
   -moz-image-region: rect(16px 16px 32px 0px);
 }
 
-#feedsMenu[disabled="true"] {
+.feedsMenu[disabled="true"] {
   -moz-image-region: rect(32px 16px 48px 0px);
 }
 
-#feedsMenu[open="true"] {
+.feedsMenu[open="true"] {
   -moz-image-region: rect(48px 16px 64px 0px);
 }
 

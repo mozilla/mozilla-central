@@ -980,8 +980,8 @@ toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
 
 /* ::::: feeds ::::: */
 
-#feedsMenu {
-  list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png") !important;
+.feedsMenu {
+  list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png");
 }
 
 #feedsButton {

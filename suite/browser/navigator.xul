@@ -426,7 +426,7 @@
           <menuitem command="Browser:BookmarkAllTabs"/>
           <menuitem command="Browser:ManageBookmark"/>
           <menuseparator/>
-          <menu class="menu-iconic" disabled="true"
+          <menu class="menu-iconic feedsMenu" command="feedsMenu"
                 label="&feedsMenu.label;" accesskey="&feedsMenu.accesskey;">
             <menupopup onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
                        oncommand="subscribeToFeed(event.target.statusText, event);"

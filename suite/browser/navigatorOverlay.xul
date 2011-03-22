@@ -201,6 +201,7 @@
     <command id="Browser:ManageBookmark"
              label="&manBookmarksCmd.label;" accesskey="&manBookmarksCmd.accesskey;"
              oncommand="PlacesCommandHook.showBookmarksManager('AllBookmarks');"/>
+    <command id="feedsMenu" disabled="true"/>
 
     <!-- Go Menu -->  
     <command id="Browser:Home"    oncommand="BrowserHome(event);"/>
@@ -455,7 +456,7 @@
                   command="Browser:ManageBookmark"
                   key="manBookmarkKb"/>
         <menuseparator id="organizeBookmarksSeparator"/>
-        <menu id="feedsMenu" class="menu-iconic" disabled="true"
+        <menu class="menu-iconic feedsMenu" command="feedsMenu"
               label="&feedsMenu.label;" accesskey="&feedsMenu.accesskey;">
           <menupopup onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
                      oncommand="subscribeToFeed(event.target.statusText, event);"
