@@ -53,6 +53,9 @@
       <preference id="browser.search.openintab"
                   name="browser.search.openintab"
                   type="bool"/>
+      <preference id="browser.search.opentabforcontextsearch"
+                  name="browser.search.opentabforcontextsearch"
+                  type="bool"/>
       <preference id="browser.search.opensidebarsearchpanel"
                   name="browser.search.opensidebarsearchpanel"
                   type="bool"/>
@@ -76,6 +79,10 @@
                 label="&openInTab.label;"
                 accesskey="&openInTab.accesskey;"
                 preference="browser.search.openintab"/>
+      <checkbox id="openContextSearchTab"
+                label="&openContextSearchTab.label;"
+                accesskey="&openContextSearchTab.accesskey;"
+                preference="browser.search.opentabforcontextsearch"/>
       <checkbox id="openSidebarPanel"
                 label="&openSidebarSearchPanel.label;"
                 accesskey="&openSidebarSearchPanel.accesskey;"

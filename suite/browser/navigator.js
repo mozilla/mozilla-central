@@ -1166,14 +1166,18 @@ const BrowserSearch = {
    * Loads a search results page, given a set of search terms. Uses the current
    * engine if the search bar is visible, or the default engine otherwise.
    *
-   * @param searchText
+   * @param aSearchText
    *        The search terms to use for the search.
    *
-   * @param useNewTab
-   *        Boolean indicating whether or not the search should load in a new
-   *        tab.
+   * @param [optional] aNewWindowOrTab
+   *        A boolean if set causes the search to load in a new window or tab
+   *        (depending on "browser.search.openintab"). Otherwise the search
+   *        loads in the current tab.
+   *
+   * @param [optional] aEvent
+   *        The event object passed from the caller.
    */
-  loadSearch: function BrowserSearch_search(searchText, useNewTab) {
+  loadSearch: function BrowserSearch_search(aSearchText, aNewWindowOrTab, aEvent) {
     var engine;
 
     // If the search bar is visible, use the current engine, otherwise, fall
@@ -1184,20 +1188,23 @@ const BrowserSearch = {
     else
       engine = Services.search.defaultEngine;
 
-    var submission = engine.getSubmission(searchText); // HTML response
+    var submission = engine.getSubmission(aSearchText); // HTML response
 
     // getSubmission can return null if the engine doesn't have a URL
     // with a text/html response type.  This is unlikely (since
     // SearchService._addEngineToStore() should fail for such an engine),
     // but let's be on the safe side.
+    // If you change the code here, remember to make the corresponding
+    // changes in suite/mailnews/mailWindowOverlay.js->MsgOpenSearch
     if (!submission)
       return;
 
-    if (useNewTab) {
-      gBrowser.loadOneTab(submission.uri.spec,
-                          { postData: submission.postData,
-                            relatedToCurrent: true,
-                            inBackground: false });
+    if (aNewWindowOrTab) {
+      let newTabPref = Services.prefs.getBoolPref("browser.search.opentabforcontextsearch");
+      let where = newTabPref ? aEvent && aEvent.shiftKey ? "tabshifted" : "tab" : "window";
+      openUILinkIn(submission.uri.spec, where, null, submission.postData);
+      if (where == "window")
+        return;
     } else {
       loadURI(submission.uri.spec, null, submission.postData, false);
       window.content.focus();

@@ -14,5 +14,7 @@
 
 <!ENTITY openInTab.label                  "Open new tabs for sidebar search results">
 <!ENTITY openInTab.accesskey              "n">
+<!ENTITY openContextSearchTab.label       "Open a tab instead of a window for a context menu web search">
+<!ENTITY openContextSearchTab.accesskey   "t">
 <!ENTITY openSidebarSearchPanel.label     "Open the Search tab in the sidebar when a search is invoked">
 <!ENTITY openSidebarSearchPanel.accesskey "O">

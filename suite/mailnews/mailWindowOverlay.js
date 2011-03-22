@@ -1772,27 +1772,17 @@ function MsgOpenSelectedMessageInExistingWindow()
     return false;
 }
 
-function MsgBrowserSearch(aSearchStr)
+function MsgOpenSearch(aSearchStr, aEvent)
 {
-  var topWindow = getTopWin();
-  if (topWindow)
-  {
-    topWindow.BrowserSearch.loadSearch(aSearchStr, true);
-    topWindow.focus();
-  }
-  else
-  {
-    // open the requested window, but block it until it's fully loaded
-    function NewSearchWindowLoaded()
-    {
-      topWindow.setTimeout(topWindow.BrowserSearch.loadSearch, 0, aSearchStr, false);
-      // make sure that this handler is called only once
-      topWindow.removeEventListener("load", NewSearchWindowLoaded, false);
-    }
-    // open a new window to load the search in and remember it until it's fully loaded
-    topWindow = window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no");
-    topWindow.addEventListener("load", NewSearchWindowLoaded, false);
-  }
+  // If you change /suite/navigator/navigator.js->BrowserSearch::loadSearch()
+  // make sure you make corresponding changes here.
+  var submission = Services.search.defaultEngine.getSubmission(aSearchStr);
+  if (!submission)
+    return;
+
+  var newTabPref = Services.prefs.getBoolPref("browser.search.opentabforcontextsearch");
+  var where = newTabPref ? aEvent && aEvent.shiftKey ? "tabshifted" : "tab" : "window";
+  openUILinkIn(submission.uri.spec, where, null, submission.postData);
 }
 
 function MsgOpenNewWindowForMessage(messageUri, folderUri)

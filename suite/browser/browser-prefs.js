@@ -128,6 +128,9 @@ pref("browser.search.openintab", false);
 // Invoking a search reveals the sidebar panel.
 pref("browser.search.opensidebarsearchpanel", false);
 
+// Open context search results in either a new window or tab.
+pref("browser.search.opentabforcontextsearch", false);
+
 // Send ping to the server to update.
 pref("browser.search.update", true);
 
