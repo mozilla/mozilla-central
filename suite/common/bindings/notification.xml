@@ -328,6 +328,57 @@
         </body>
       </method>
 
+      <method name="pluginUnavailable">
+        <parameter name="aEvent"/>
+        <parameter name="aNotification"/>
+        <parameter name="aMessage"/>
+        <parameter name="aButtons"/>
+        <parameter name="aPref"/>
+        <body>
+          <![CDATA
+            // Since we are expecting also untrusted events, make sure
+            // that the target is a plugin.
+            if (!(aEvent.target instanceof Components.interfaces.nsIObjectLoadingContent))
+              return;
+
+            if (this._prefs.getBoolPref(aPref || "plugins.hide_infobar_for_missing_plugin"))
+              return;
+
+            // Save information on the plugin to give to the plugin finder.
+            var pluginInfo = this.getPluginInfo(aEvent.target);
+            this.missingPlugins[pluginInfo.mimetype] = pluginInfo;
+
+            var notification;
+            var notifications = [
+              "blocked-plugins",
+              "missing-plugins",
+              "carbon-failure-plugins",
+              "outdated-plugins",
+            ];
+
+            // Remove lower priority notifications.
+            for (var i = 0; notifications[i] != aNotification; i++) {
+              notification = this.getNotificationWithValue(notifications[i]);
+              if (notification)
+                notification.close();
+            }
+
+            // Skip if an equal or higher priority notification exists.
+            while (i < notifications.length) {
+              notification = this.getNotificationWithValue(notifications[i++]);
+              if (notification)
+                return;
+            }
+
+            // Now we can display our notification.
+            const priority = this.PRIORITY_WARNING_MEDIUM;
+            const iconURL = "chrome://mozapps/skin/plugins/pluginGeneric.png";
+            this.appendNotification(aMessage, aNotification,
+                                    iconURL, priority, aButtons);
+          ]]>
+        </body>
+      </method>
+
       <method name="openURLPref">
         <parameter name="aPref"/>
         <body>
@@ -1157,70 +1208,32 @@
 
       <handler event="PluginNotFound">
         <![CDATA[
-          // Since we are expecting also untrusted events, make sure
-          // that the target is a plugin
-          if (!(event.target instanceof Components.interfaces.nsIObjectLoadingContent))
-            return;
-
           // For broken non-object plugin tags, register a click handler so
           // that the user can click the plugin replacement to get the new
           // plugin. Object tags can, and often do, deal with that themselves,
           // so don't stomp on the page developers toes.
-
-          if (!(event.target instanceof HTMLObjectElement))
+          if (event.target instanceof Components.interfaces.nsIObjectLoadingContent &&
+              !(event.target instanceof HTMLObjectElement))
             event.target.addEventListener("click", this, true);
 
-          if (this._prefs.getBoolPref("plugins.hide_infobar_for_missing_plugin"))
-            return;
+          var messageString = this._stringBundle.GetStringFromName("missingpluginsMessage.title");
+          var buttons = [{
+            label: this._stringBundle.GetStringFromName("missingpluginsMessage.button.label"),
+            accessKey: this._stringBundle.GetStringFromName("missingpluginsMessage.button.accesskey"),
+            popup: null,
+            callback: function openPluginInstallerWizard() {
+              window.openDialog("chrome://mozapps/content/plugins/pluginInstallerWizard.xul",
+                                "", "chrome,resizable=yes",
+                                {plugins: this.missingPlugins, browser: this.activeBrowser});
+            }.bind(this)
+          }];
 
-          var pluginInfo = this.getPluginInfo(event.target);
-
-          this.missingPlugins[pluginInfo.mimetype] = pluginInfo;
-
-          if (!this.getNotificationWithValue("missing-plugins")) {
-            var blockedNotification = this.getNotificationWithValue("blocked-plugins");
-            if (blockedNotification)
-              blockedNotification.close();
-
-            var self = this;
-            var messageString = this._stringBundle.GetStringFromName("missingpluginsMessage.title");
-            var buttons = [{
-              label: this._stringBundle.GetStringFromName("missingpluginsMessage.button.label"),
-              accessKey: this._stringBundle.GetStringFromName("missingpluginsMessage.button.accesskey"),
-              popup: null,
-              callback: function openPluginInstallerWizard() {
-                window.openDialog("chrome://mozapps/content/plugins/pluginInstallerWizard.xul",
-                                  "", "chrome,resizable=yes",
-                                  {plugins: self.missingPlugins, browser: self.activeBrowser});
-              }
-            }];
-
-            const priority = this.PRIORITY_WARNING_MEDIUM;
-            const iconURL = "chrome://mozapps/skin/plugins/pluginGeneric.png";
-            this.appendNotification(messageString, "missing-plugins",
-                                    iconURL, priority, buttons);
-          }
+          this.pluginUnavailable(event, "missing-plugins", messageString, buttons);
         ]]>
       </handler>
 
       <handler event="PluginBlocklisted">
         <![CDATA[
-          // Since we are expecting also untrusted events, make sure
-          // that the target is a plugin
-          if (!(event.target instanceof Components.interfaces.nsIObjectLoadingContent))
-            return;
-
-          if (this._prefs.getBoolPref("plugins.hide_infobar_for_missing_plugin"))
-            return;
-
-          var pluginInfo = this.getPluginInfo(event.target);
-          this.missingPlugins[pluginInfo.mimetype] = pluginInfo;
-
-          if (this.getNotificationWithValue("missing-plugins") ||
-              this.getNotificationWithValue("blocked-plugins"))
-            return;
-
-          var self = this;
           var messageString = this._stringBundle.GetStringFromName("blockedpluginsMessage.title");
           var buttons = [{
             label: this._stringBundle.GetStringFromName("blockedpluginsMessage.infoButton.label"),
@@ -1234,14 +1247,11 @@
             callback: function openPluginInstallerWizard() {
               window.openDialog("chrome://mozapps/content/plugins/pluginInstallerWizard.xul",
                                 "", "chrome,resizable=yes",
-                                {plugins: self.missingPlugins, browser: self.activeBrowser});
-            }
+                                {plugins: this.missingPlugins, browser: this.activeBrowser});
+            }.bind(this)
           }];
 
-          const priority = this.PRIORITY_WARNING_MEDIUM;
-          const iconURL = "chrome://mozapps/skin/plugins/pluginGeneric.png";
-          this.appendNotification(messageString, "blocked-plugins",
-                                  iconURL, priority, buttons);
+          this.pluginUnavailable(event, "blocked-plugins", messageString, buttons);
         ]]>
       </handler>
 
