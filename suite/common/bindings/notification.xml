@@ -320,6 +320,47 @@
         </body>
       </method>
 
+      <method name="openURLPref">
+        <parameter name="aPref"/>
+        <body>
+          <![CDATA[
+            var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                                      .getService(Components.interfaces.nsIURLFormatter);
+            var url = formatter.formatURLPref(aPref);
+            var nsIBrowserDOMWindow = Components.interfaces.nsIBrowserDOMWindow;
+
+            var browserWin;
+            var whereToOpen = this._prefs.getIntPref("browser.link.open_external");
+
+            if (whereToOpen != nsIBrowserDOMWindow.OPEN_NEWWINDOW) {
+              var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1']
+                                            .getService(Components.interfaces.nsIWindowMediator);
+              browserWin = windowManager.getMostRecentWindow("navigator:browser");
+            }
+
+            if (!browserWin) {
+              var browserURL = "chrome://navigator/content/navigator.xul";
+              try {
+                browserURL = this._prefs.getCharPref("browser.chromeURL");
+              } catch (ex) {}
+
+              window.openDialog(browserURL, "_blank", "chrome,all,dialog=no", url);
+            } else {
+              if (whereToOpen == nsIBrowserDOMWindow.OPEN_CURRENTWINDOW)
+                browserWin.loadURI(url);
+              else {
+                // new tab
+                var browser = browserWin.getBrowser();
+                var newTab = browser.addTab(url);
+                browser.selectedTab = newTab;
+              }
+              browserWin.content.focus();
+            }
+            return true;
+          ]]>
+        </body>
+      </method>
+
       <method name="handleEvent">
         <parameter name="aEvent"/>
         <body>
@@ -1177,43 +1218,7 @@
             label: this._stringBundle.GetStringFromName("blockedpluginsMessage.infoButton.label"),
             accessKey: this._stringBundle.GetStringFromName("blockedpluginsMessage.infoButton.accesskey"),
             popup: null,
-            callback: function getBlocklistInfo() {
-              var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                                        .getService(Components.interfaces.nsIURLFormatter);
-              var url = formatter.formatURLPref("extensions.blocklist.detailsURL");
-
-              const kExistingWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_CURRENTWINDOW;
-              const kNewWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWWINDOW;
-
-              var browserWin;
-              var whereToOpen = self._prefs.getIntPref("browser.link.open_external");
-
-              if (whereToOpen != kNewWindow) {
-                var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1']
-                                              .getService(Components.interfaces.nsIWindowMediator);
-                browserWin = windowManager.getMostRecentWindow("navigator:browser");
-              }
-
-              if (!browserWin) {
-                var browserURL = "chrome://navigator/content/navigator.xul";
-                try {
-                  browserURL = self._prefs.getCharPref("browser.chromeURL");
-                } catch (ex) {}
-
-                window.openDialog(browserURL, "_blank", "chrome,all,dialog=no", url);
-              } else {
-                if (whereToOpen == kExistingWindow)
-                  browserWin.loadURI(url);
-                else {
-                  // new tab
-                  var browser = browserWin.getBrowser();
-                  var newTab = browser.addTab(url);
-                  browser.selectedTab = newTab;
-                }
-                browserWin.content.focus();
-              }
-              return true;
-            }
+            callback: this.openURLPref.bind(this, "extensions.blocklist.detailsURL")
           }, {
             label: this._stringBundle.GetStringFromName("blockedpluginsMessage.searchButton.label"),
             accessKey: this._stringBundle.GetStringFromName("blockedpluginsMessage.searchButton.accesskey"),
