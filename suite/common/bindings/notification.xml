@@ -126,6 +126,14 @@
                                           this.PRIORITY_INFO_MEDIUM,
                                           buttons);
               }
+              // In the case of a meta refresh, the location has already
+              // changed. But in the case of an HTTP header refresh, the
+              // location changes synchronously after this call returns.
+              // Set the persistence to 1 temporarily to stop this from
+              // immediately clobbering the location bar (bug 516441),
+              // but set the persistence back to 0 as soon as possible.
+              setTimeout(function() { notification.persistence = 0; }, 0);
+              notification.persistence = 1;
               notification.webProgress = aWebProgress;
               notification.uri = aURI;
               notification.delay = aDelay;
