@@ -35,7 +35,7 @@ tabbrowser {
   -moz-binding: url("chrome://navigator/content/urlbarBindings.xml#urlbar");
 }
 
-#urlbar > .autocomplete-textbox-container > .textbox-input-box {
+.paste-and-go {
   -moz-binding: url("chrome://navigator/content/urlbarBindings.xml#input-box-paste");
 }
 

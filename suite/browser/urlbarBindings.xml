@@ -19,7 +19,7 @@
             <xul:image class="autocomplete-icon" allowevents="true"/>
           </children>
 
-          <xul:hbox class="textbox-input-box" flex="1" xbl:inherits="context,tooltiptext=inputtooltiptext">
+          <xul:hbox class="textbox-input-box paste-and-go" flex="1" xbl:inherits="context,tooltiptext=inputtooltiptext">
             <children/>
             <html:input anonid="input" class="autocomplete-textbox textbox-input"
                         flex="1" allowevents="true"
