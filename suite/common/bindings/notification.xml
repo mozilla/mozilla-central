@@ -86,7 +86,7 @@
               this.removeTransientNotifications();
             }
           ]]>
-        </body>  
+        </body>
       </method>
 
       <method name="onRefreshAttempted">
@@ -335,7 +335,7 @@
         <parameter name="aButtons"/>
         <parameter name="aPref"/>
         <body>
-          <![CDATA
+          <![CDATA[
             // Since we are expecting also untrusted events, make sure
             // that the target is a plugin.
             if (!(aEvent.target instanceof Components.interfaces.nsIObjectLoadingContent))
