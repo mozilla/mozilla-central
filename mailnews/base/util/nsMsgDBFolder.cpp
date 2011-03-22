@@ -113,6 +113,8 @@ static PRTime gtimeOfLastPurgeCheck;    //variable to know when to check for pur
 #define PREF_MAIL_PURGE_ASK "mail.purge.ask"
 #define PREF_MAIL_WARN_FILTER_CHANGED "mail.warn_filter_changed"
 
+const char *kUseServerRetentionProp = "useServerRetention";
+
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 static NS_DEFINE_CID(kParserCID, NS_PARSER_CID);
@@ -1489,37 +1491,84 @@ NS_IMETHODIMP
 nsMsgDBFolder::GetRetentionSettings(nsIMsgRetentionSettings **settings)
 {
   NS_ENSURE_ARG_POINTER(settings);
+  *settings = nsnull;
   nsresult rv = NS_OK;
+  PRBool useServerDefaults = PR_FALSE;
   if (!m_retentionSettings)
   {
-    GetDatabase();
-    if (mDatabase)
+    nsCString useServerRetention;
+    GetStringProperty(kUseServerRetentionProp, useServerRetention);
+    if (useServerRetention.EqualsLiteral("1"))
     {
-      // get the settings from the db - if the settings from the db say the folder
-      // is not overriding the incoming server settings, get the settings from the
-      // server.
-      rv = mDatabase->GetMsgRetentionSettings(getter_AddRefs(m_retentionSettings));
-      if (NS_SUCCEEDED(rv) && m_retentionSettings)
+      nsCOMPtr <nsIMsgIncomingServer> incomingServer;
+      rv = GetServer(getter_AddRefs(incomingServer));
+      if (NS_SUCCEEDED(rv) && incomingServer)
       {
-        PRBool useServerDefaults;
-        m_retentionSettings->GetUseServerDefaults(&useServerDefaults);
-        if (useServerDefaults)
-        {
-          nsCOMPtr <nsIMsgIncomingServer> incomingServer;
-          rv = GetServer(getter_AddRefs(incomingServer));
-          if (NS_SUCCEEDED(rv) && incomingServer)
-            incomingServer->GetRetentionSettings(getter_AddRefs(m_retentionSettings));
-        }
+        rv = incomingServer->GetRetentionSettings(settings);
+        useServerDefaults = PR_TRUE;
       }
     }
+    else
+    {
+      GetDatabase();
+      if (mDatabase)
+      {
+        // get the settings from the db - if the settings from the db say the folder
+        // is not overriding the incoming server settings, get the settings from the
+        // server.
+        rv = mDatabase->GetMsgRetentionSettings(settings);
+        if (NS_SUCCEEDED(rv) && *settings)
+        {
+          (*settings)->GetUseServerDefaults(&useServerDefaults);
+          if (useServerDefaults)
+          {
+            nsCOMPtr <nsIMsgIncomingServer> incomingServer;
+            rv = GetServer(getter_AddRefs(incomingServer));
+            NS_IF_RELEASE(*settings);
+            if (NS_SUCCEEDED(rv) && incomingServer)
+              incomingServer->GetRetentionSettings(settings);
+          }
+          if (useServerRetention.EqualsLiteral("1") != useServerDefaults)
+          {
+            if (useServerDefaults)
+              useServerRetention.AssignLiteral("1");
+            else
+              useServerRetention.AssignLiteral("0");
+            SetStringProperty(kUseServerRetentionProp, useServerRetention);
+          }
+        }
+      }
+      else
+        return NS_ERROR_FAILURE;
+    }
+    // Only cache the retention settings if we've overridden the server
+    // settings (otherwise, we won't notice changes to the server settings).
+    if (!useServerDefaults)
+      m_retentionSettings = *settings;
   }
-  NS_IF_ADDREF(*settings = m_retentionSettings);
+  else
+    NS_IF_ADDREF(*settings = m_retentionSettings);
+
   return rv;
 }
 
 NS_IMETHODIMP nsMsgDBFolder::SetRetentionSettings(nsIMsgRetentionSettings *settings)
 {
-  m_retentionSettings = settings;
+  PRBool useServerDefaults;
+  nsCString useServerRetention;
+
+  settings->GetUseServerDefaults(&useServerDefaults);
+  if (useServerDefaults)
+  {
+    useServerRetention.AssignLiteral("1");
+    m_retentionSettings = nsnull;
+  }
+  else
+  {
+    useServerRetention.AssignLiteral("0");
+    m_retentionSettings = settings;
+  }
+  SetStringProperty(kUseServerRetentionProp, useServerRetention);
   GetDatabase();
   if (mDatabase)
     mDatabase->SetMsgRetentionSettings(settings);
@@ -4719,26 +4768,31 @@ nsresult nsMsgDBFolder::ApplyRetentionSettings(PRBool deleteViaFolder)
 {
   if (mFlags & nsMsgFolderFlags::Virtual) // ignore virtual folders.
     return NS_OK;
-  nsresult rv;
-  PRBool weOpenedDB = PR_FALSE;
-  if (!mDatabase)
+  PRBool weOpenedDB = !mDatabase;
+  nsCOMPtr<nsIMsgRetentionSettings> retentionSettings;
+  nsresult rv = GetRetentionSettings(getter_AddRefs(retentionSettings));
+  if (NS_SUCCEEDED(rv))
   {
-    rv = GetDatabase();
-    NS_ENSURE_SUCCESS(rv, rv);
-    weOpenedDB = PR_TRUE;
+    nsMsgRetainByPreference retainByPreference =
+      nsIMsgRetentionSettings::nsMsgRetainAll;
+    PRBool keepUnreadMessagesOnly = PR_FALSE;
+
+    retentionSettings->GetRetainByPreference(&retainByPreference);
+    retentionSettings->GetKeepUnreadMessagesOnly(&keepUnreadMessagesOnly);
+    if (keepUnreadMessagesOnly ||
+        retainByPreference != nsIMsgRetentionSettings::nsMsgRetainAll)
+    {
+      rv = GetDatabase();
+      NS_ENSURE_SUCCESS(rv, rv);
+      if (mDatabase)
+        rv = mDatabase->ApplyRetentionSettings(retentionSettings, deleteViaFolder);
+    }
   }
-  if (mDatabase)
-  {
-    nsCOMPtr<nsIMsgRetentionSettings> retentionSettings;
-    rv = GetRetentionSettings(getter_AddRefs(retentionSettings));
-    if (NS_SUCCEEDED(rv))
-       rv = mDatabase->ApplyRetentionSettings(retentionSettings, deleteViaFolder);
-    // we don't want applying retention settings to keep the db open, because
-    // if we try to purge a bunch of folders, that will leave the dbs all open.
-    // So if we opened the db, close it.
-    if (weOpenedDB)
-      CloseDBIfFolderNotOpen();
-  }
+  // we don't want applying retention settings to keep the db open, because
+  // if we try to purge a bunch of folders, that will leave the dbs all open.
+  // So if we opened the db, close it.
+  if (weOpenedDB)
+    CloseDBIfFolderNotOpen();
   return rv;
 }
 
