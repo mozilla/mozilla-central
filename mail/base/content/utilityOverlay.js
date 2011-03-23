@@ -382,9 +382,12 @@ function openFeatureConfigurator(aIsUpgrade) {
 /**
  * Open the dictionary list in a new content tab, if possible in an available
  * mail:3pane window, otherwise by opening a new mail:3pane.
+ *
+ * @param where the context to open the dictionary list in (e.g. 'tab',
+ *        'window'). See openContentTab for more details.
  */
-function openDictionaryList() {
+function openDictionaryList(where) {
   let dictUrl = Services.urlFormatter
     .formatURLPref("spellchecker.dictionaries.download.url");
-  openContentTab(dictUrl, 'tab', "^https://addons.mozilla.org/");
+  openContentTab(dictUrl, where, "^https://addons.mozilla.org/");
 }

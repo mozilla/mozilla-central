@@ -49,20 +49,10 @@ var gComposePane = {
 
     this.populateFonts();
 
-    document.getElementById('downloadDictionaries').setAttribute('getDictionariesURL', this.getDictionaryURL());
-
     var preference = document.getElementById("mail.preferences.compose.selectedTabIndex");
     if (preference.value)
       document.getElementById("composePrefs").selectedIndex = preference.value;
     this.mInitialized = true;
-  },
-
-  getDictionaryURL: function()
-  {
-    var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                    .getService(Components.interfaces.nsIURLFormatter);
-
-    return formatter.formatURLPref("spellchecker.dictionaries.download.url");
   },
 
   tabSelectionChanged: function ()
