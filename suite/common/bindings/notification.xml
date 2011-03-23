@@ -1206,6 +1206,21 @@
         ]]>
       </handler>
 
+      <handler event="PluginOutdated">
+        <![CDATA[
+          var message = this._stringBundle.GetStringFromName("outdatedpluginsMessage.title");
+          var buttons = [{
+            label: this._stringBundle.GetStringFromName("outdatedpluginsMessage.button.label"),
+            accessKey: this._stringBundle.GetStringFromName("outdatedpluginsMessage.button.accesskey"),
+            popup: null,
+            callback: this.openURLPref.bind(this, "plugins.update.url")
+          }];
+
+          this.pluginUnavailable(event, "outdated-plugins", message, buttons,
+                                 "plugins.hide_infobar_for_outdated_plugin");
+        ]]>
+      </handler>
+
       <handler event="PluginNotFound">
         <![CDATA[
           // For broken non-object plugin tags, register a click handler so
