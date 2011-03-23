@@ -261,6 +261,9 @@ SuiteGlue.prototype = {
   // Browser startup complete. All initial windows have opened.
   _onBrowserStartup: function(aWindow)
   {
+    if (Services.prefs.getBoolPref("plugins.update.notifyUser"))
+      this._showPluginUpdatePage(aWindow);
+
     var notifyBox = aWindow.getBrowser().getNotificationBox();
 
     // Show about:rights notification, if needed.
@@ -452,6 +455,16 @@ SuiteGlue.prototype = {
         this._sound.beep();
       }
     }
+  },
+
+  _showPluginUpdatePage: function(aWindow) {
+    Services.prefs.setBoolPref("plugins.update.notifyUser", false);
+
+    var url = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                        .getService(Components.interfaces.nsIURLFormatter)
+                        .formatURLPref("plugins.update.url");
+
+    aWindow.getBrowser().addTab(url, { focusNewTab: true });
   },
 
   /*
