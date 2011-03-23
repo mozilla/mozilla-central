@@ -7,8 +7,10 @@
 <!ENTITY helpMenuWin.accesskey "H">
 <!ENTITY helpTroubleshootingInfo.label     "Troubleshooting Information">
 <!ENTITY helpTroubleshootingInfo.accesskey "T">
-<!ENTITY releaseCmd.label "Release Notes">
-<!ENTITY releaseCmd.accesskey "R">
+<!ENTITY helpSafeMode.label     "Restart with Add-ons Disabled…">
+<!ENTITY helpSafeMode.accesskey "R">
+<!ENTITY releaseCmd2.label "Release Notes">
+<!ENTITY releaseCmd2.accesskey "N">
 <!ENTITY whatsNewCmd.label "What's New">
 <!ENTITY whatsNewCmd.accesskey "W">
 <!ENTITY featureConfiguratorCmd.label "Migration Assistant">

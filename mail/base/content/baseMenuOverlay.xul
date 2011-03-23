@@ -70,8 +70,12 @@
                 oncommand="openSupportURL();"
                 key="key_openHelp"/>
 #endif
+
+      <menuitem id="helpSafeMode"
+                label="&helpSafeMode.label;" accesskey="&helpSafeMode.accesskey;"
+                oncommand="safeModeRestart();"/>
       <menuitem id="releaseNotes"
-                label="&releaseCmd.label;" accesskey="&releaseCmd.accesskey;"
+                label="&releaseCmd2.label;" accesskey="&releaseCmd2.accesskey;"
                 oncommand="openFormattedURL('app.releaseNotesURL');"/>
       <menuitem id="whatsNew"
                 label="&whatsNewCmd.label;" accesskey="&whatsNewCmd.accesskey;"

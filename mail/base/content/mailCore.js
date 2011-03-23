@@ -508,6 +508,34 @@ function openFormattedURL(aPrefName)
   protocolSvc.loadURI(uri);
 }
 
+/**
+ * Prompt the user to restart the browser in safe mode.
+ */
+function safeModeRestart()
+{
+  // prompt the user to confirm
+  let bundle = Services.strings.createBundle(
+    "chrome://messenger/locale/messenger.properties");
+  let promptTitle = bundle.GetStringFromName("safeModeRestartPromptTitle");
+  let promptMessage = bundle.GetStringFromName("safeModeRestartPromptMessage");
+  let restartText = bundle.GetStringFromName("safeModeRestartButton");
+  let buttonFlags = (Services.prompt.BUTTON_POS_0 *
+                     Services.prompt.BUTTON_TITLE_IS_STRING) +
+                    (Services.prompt.BUTTON_POS_1 *
+                     Services.prompt.BUTTON_TITLE_CANCEL) +
+                    Services.prompt.BUTTON_POS_0_DEFAULT;
+
+  let rv = Services.prompt.confirmEx(window, promptTitle, promptMessage,
+                                     buttonFlags, restartText, null, null,
+                                     null, {});
+  if (rv == 0) {
+    let environment = Components.classes["@mozilla.org/process/environment;1"]
+                                .getService(Components.interfaces.nsIEnvironment);
+    environment.set("MOZ_SAFE_MODE_RESTART", "1");
+    Application.restart();
+  }
+}
+
 #ifndef XP_WIN
 #define BROKEN_WM_Z_ORDER
 #endif
