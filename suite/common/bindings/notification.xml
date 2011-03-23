@@ -243,13 +243,26 @@
                     this.removeNotification(popupNotification);
                 }
 
+                if (aData == "plugins.hide_infobar_for_outdated_plugin") {
+                  if (!this._prefs.getBoolPref(aData))
+                    return;
+
+                  var outdatedNotification = this.getNotificationWithValue("outdated-plugins");
+                  if (outdatedNotification)
+                    this.removeNotification(outdatedNotification);
+                }
+
                 if (aData == "plugins.hide_infobar_for_missing_plugin") {
                   if (!this._prefs.getBoolPref(aData))
                     return;
 
-                  var pluginNotification = this.getNotificationWithValue("missing-plugins");
-                  if (pluginNotification)
-                    this.removeNotification(pluginNotification);
+                  var missingNotification = this.getNotificationWithValue("missing-plugins");
+                  if (missingNotification)
+                    this.removeNotification(missingNotification);
+
+                  var blockedNotification = this.getNotificationWithValue("blocked-plugins");
+                  if (blockedNotification)
+                    this.removeNotification(blockedNotification);
                 }
 
                 if (aData == "dom.disable_open_during_load") {
@@ -1062,6 +1075,7 @@
           os.addObserver(this, "offline-cache-update-completed", false);
           os.addObserver(this, "perm-changed", false);
 
+          this._prefs.addObserver("plugins.hide_infobar_for_outdated_plugin", this, false);
           this._prefs.addObserver("plugins.hide_infobar_for_missing_plugin", this, false);
           this._prefs.addObserver("privacy.popups.showBrowserMessage", this, false);
           this._prefs.addObserver("dom.disable_open_during_load", this, false);
@@ -1129,6 +1143,9 @@
               os.removeObserver(this, "perm-changed");
             } catch (ex) {}
 
+            try {
+              this._prefs.removeObserver("plugins.hide_infobar_for_outdated_plugin", this);
+            } catch (ex) {}
             try {
               this._prefs.removeObserver("plugins.hide_infobar_for_missing_plugin", this);
             } catch (ex) {}
