@@ -4,6 +4,7 @@ messenger.jar:
 % override chrome://messagebody/skin/messageBody.css chrome://messenger/skin/messageBody.css
 % overlay chrome://global/content/viewSource.xul chrome://messenger/content/viewSourceOverlay.xul
 % overlay chrome://global/content/config.xul chrome://messenger/content/configEditorOverlay.xul
+% overlay chrome://editor/content/EdSpellCheck.xul chrome://messenger/content/EdSpellCheckOverlay.xul
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/content/messenger.css
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/addressbook/addressbook.css
@@ -87,6 +88,8 @@ messenger.jar:
     content/messenger/newTagDialog.js               (content/newTagDialog.js)
 *   content/messenger/viewSourceOverlay.xul         (content/viewSourceOverlay.xul)
 *   content/messenger/configEditorOverlay.xul       (content/configEditorOverlay.xul)
+    content/messenger/EdSpellCheckOverlay.xul       (content/EdSpellCheckOverlay.xul)
+    content/messenger/EdSpellCheckOverlay.js        (content/EdSpellCheckOverlay.js)
     content/messenger/composerOverlay.css           (content/composerOverlay.css)
     content/messenger/threadPane.js                 (content/threadPane.js)
     content/messenger/threadPaneColumnPicker.xml    (content/threadPaneColumnPicker.xml)
