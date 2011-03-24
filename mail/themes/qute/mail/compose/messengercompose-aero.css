@@ -242,6 +242,41 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   text-align: start;
 }
 
+@media all and (-moz-windows-compositor) {
+  #msgcomposeWindow {
+    -moz-appearance: -moz-win-borderless-glass;
+    background: transparent;
+  }
+
+  #compose-toolbox:not(:-moz-lwtheme),
+  #compose-toolbox > #composeToolbar2,
+  #compose-toolbox > toolbar {
+    background: transparent !important;
+    border-style: none;
+  }
+
+  #compose-toolbox:not(:-moz-lwtheme) {
+    color: black;
+    text-shadow: 0 0 .7em white, 0 0 .7em white, 0 1px 0 rgba(255, 255, 255, .4);
+  }
+
+  #headers-box,
+  #MsgHeadersToolbar {
+    -moz-appearance: none;
+    border-radius: 3.5px 3.5px 0 0;
+  }
+
+  #menubar-items:not(:-moz-lwtheme):not(:-moz-window-inactive) {
+    background-color: rgba(255, 255, 255, .3);
+    border-radius: 4px;
+  }
+
+  .toolbarbutton-menubutton-button[disabled="true"],
+  .toolbarbutton-menubutton-dropmarker[disabled="true"] {
+    opacity: 1 !important;
+  }
+}
+
 #button-send {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
   -moz-image-region: rect(0px 18px 18px 0px);

@@ -315,7 +315,7 @@ classic.jar:
   skin/classic/aero/messenger/starred48.png                        (mail/starred48.png)
   skin/classic/aero/messenger/contactStarred.png                   (mail/contactStarred.png)
   skin/classic/aero/messenger/starContact.png                      (mail/starContact.png)
-  skin/classic/aero/messenger/activity/activity.css                   (mail/activity/activity.css)
+* skin/classic/aero/messenger/activity/activity.css                   (mail/activity/activity-aero.css)
   skin/classic/aero/messenger/activity/buttons.png                    (mail/activity/buttons.png)
   skin/classic/aero/messenger/activity/defaultProcessIcon.png         (mail/activity/defaultProcessIcon-aero.png)
   skin/classic/aero/messenger/activity/defaultEventIcon.png           (mail/activity/defaultEventIcon.png)

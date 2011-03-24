@@ -219,7 +219,7 @@ toolbar[iconsize="small"] .toolbarbutton-1 > .toolbarbutton-icon {
     #button-goforward, #button-compact, #button-archive,
     #hdrReplyButton, #hdrReplyToSenderButton, #hdrReplyAllButton,
     #hdrReplyListButton, #hdrForwardButton, #hdrTrashButton, #hdrJunkButton
-	) .toolbarbutton-icon {
+    ) .toolbarbutton-icon {
   margin: 0 !important;
   width: auto !important;
   height: auto !important;
@@ -244,6 +244,46 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 
 toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu");
+}
+
+@media all and (-moz-windows-compositor) {
+  #messengerWindow,
+  tabpanels#tabpanelcontainer,
+  #mailContent {
+    -moz-appearance: -moz-win-borderless-glass;
+    background: transparent;
+  }
+
+  #mailContent:not(:-moz-lwtheme) {
+    border-top: 1px solid ThreeDShadow;
+  }
+
+  #mail-toolbox:not(:-moz-lwtheme),
+  #mail-toolbox > toolbar {
+    background: transparent !important;
+    border-style: none;
+  }
+
+  #mail-toolbox:not(:-moz-lwtheme) {
+    color: black;
+    text-shadow: 0 0 .7em white, 0 0 .7em white, 0 1px 0 rgba(255, 255, 255, .4);
+  }
+
+  #menubar-items:not(:-moz-lwtheme):not(:-moz-window-inactive) {
+    background-color: rgba(255, 255, 255, .3);
+    border-radius: 4px;
+  }
+
+  .toolbarbutton-menubutton-button[disabled="true"],
+  .toolbarbutton-menubutton-dropmarker[disabled="true"] {
+    opacity: 1 !important;
+  }
+}
+
+@media not all and (-moz-windows-compositor) {
+  #print-preview-toolbar:not(:-moz-lwtheme) {
+    -moz-appearance: -moz-win-browsertabbar-toolbox;
+  }
 }
 
 #button-getmsg {

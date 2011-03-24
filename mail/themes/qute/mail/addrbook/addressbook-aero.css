@@ -236,6 +236,36 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   text-align: start;
 }
 
+@media all and (-moz-windows-compositor) {
+  #addressbookWindow,
+  #abContent {
+    -moz-appearance: -moz-win-borderless-glass;
+    background: transparent;
+  }
+
+  #ab-toolbox:not(:-moz-lwtheme),
+  #ab-toolbox > #ab-bar2,
+  #ab-toolbox > toolbar {
+    background: transparent;
+    border-style: none;
+  }
+
+  #ab-toolbox:not(:-moz-lwtheme) {
+    color: black;
+    text-shadow: 0 0 .7em white, 0 0 .7em white, 0 1px 0 rgba(255, 255, 255, .4);
+  }
+
+  #menubar-items:not(:-moz-lwtheme):not(:-moz-window-inactive) {
+    background-color: rgba(255, 255, 255, .3);
+    border-radius: 4px;
+  }
+
+  .toolbarbutton-menubutton-button[disabled="true"],
+  .toolbarbutton-menubutton-dropmarker[disabled="true"] {
+    opacity: 1 !important;
+  }
+}
+
 #button-newcard {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
   -moz-image-region: rect(0px 18px 18px 0px);
@@ -284,6 +314,21 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 @media all and (-moz-windows-default-theme) {
   #peopleSearchInput {
     border-color: rgba(0, 0, 0, .25) rgba(0, 0, 0, .32) rgba(0, 0, 0, .37);
+  }
+}
+
+@media all and (-moz-windows-compositor) {
+  #peopleSearchInput {
+    background-color: rgba(255, 255, 255, .725);
+    color: black;
+  }
+
+  #peopleSearchInput:hover {
+    background-color: rgba(255, 255, 255, .898);
+  }
+
+  #peopleSearchInput[focused="true"] {
+    background-color: white;
   }
 }
 

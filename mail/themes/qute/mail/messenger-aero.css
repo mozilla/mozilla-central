@@ -15,6 +15,10 @@
   -moz-appearance: none;
 }
 
+#tabmail-buttons > toolbarbutton {
+  margin-top: 3px;
+}
+
 @media all and (-moz-windows-default-theme) {
   #searchInput {
     border-color: rgba(0, 0, 0, .25) rgba(0, 0, 0, .32) rgba(0, 0, 0, .37);
@@ -63,5 +67,26 @@
   listitem[selected="true"][current="true"],
   treechildren::-moz-tree-cell-text(selected, focus) {
     color: -moz-DialogText;
+  }
+}
+
+@media all and (-moz-windows-compositor) {
+  #unifinder-searchBox,
+  #task-addition-box {
+    border-top: none;
+    background-color: -moz-dialog;
+  }
+
+  #searchInput {
+    background-color: rgba(255, 255, 255, .725);
+    color: black;
+  }
+
+  #searchInput:hover {
+    background-color: rgba(255, 255, 255, .898);
+  }
+
+  #searchInput[focused="true"] {
+    background-color: white;
   }
 }
