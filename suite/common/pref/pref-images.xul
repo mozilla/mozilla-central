@@ -66,12 +66,12 @@
 
       <radiogroup id="networkImageBehaviour"
                   preference="permissions.default.image">
-        <radio value="2" label="&disableImages.label;"
-               accesskey="&disableImages.accesskey;"/>
-        <radio value="3" label="&accOrgImagesRadio.label;"
-               accesskey="&accOrgImagesRadio.accesskey;"/>
-        <radio value="1" label="&accAllImagesRadio.label;"
-               accesskey="&accAllImagesRadio.accesskey;"/>
+        <radio value="2" label="&loadNoImagesRadio.label;"
+               accesskey="&loadNoImagesRadio.accesskey;"/>
+        <radio value="3" label="&loadOrgImagesRadio.label;"
+               accesskey="&loadOrgImagesRadio.accesskey;"/>
+        <radio value="1" label="&loadAllImagesRadio.label;"
+               accesskey="&loadAllImagesRadio.accesskey;"/>
       </radiogroup>
 
       <hbox pack="end">
