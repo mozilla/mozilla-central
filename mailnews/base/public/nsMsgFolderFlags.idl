@@ -38,7 +38,7 @@
 typedef unsigned long nsMsgFolderFlagType;
 
 /// Flags about a folder or a newsgroup.
-[scriptable,uuid(e587ba31-3235-4133-ac5a-c1c1f4a5c981)]
+[scriptable,uuid(fbe7cba8-3141-4c44-9660-99af6b53f27e)]
 interface nsMsgFolderFlags {
   /**
    * @name Folder Type Flags
@@ -100,8 +100,8 @@ interface nsMsgFolderFlags {
   const nsMsgFolderFlagType ImapBox         = 0x00002000;
   /// Whether this is an archive folder
   const nsMsgFolderFlagType Archive         = 0x00004000;
-  /// This is a virtual newsgroup
-  const nsMsgFolderFlagType ProfileGroup    = 0x00008000;
+  /// This used to be used for virtual newsgroups
+  const nsMsgFolderFlagType Unused1         = 0x00008000;
   /// Used to be for categories
   const nsMsgFolderFlagType Unused4         = 0x00010000;
   /// This folder got new msgs
@@ -134,5 +134,8 @@ interface nsMsgFolderFlags {
   const nsMsgFolderFlagType Junk            = 0x40000000;
   /// This folder is in favorites view
   const nsMsgFolderFlagType Favorite        = 0x80000000;
+  /// Special-use folders
+  const nsMsgFolderFlagType SpecialUse = Inbox|Drafts|Trash|SentMail|
+                                         Templates|Junk|Archive|Queue;
   /** @} */
 };

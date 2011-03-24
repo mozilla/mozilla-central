@@ -1470,7 +1470,7 @@ let gFolderTreeView = {
                     nsMsgFolderFlags.Templates |
                     nsMsgFolderFlags.Junk |
                     nsMsgFolderFlags.Archive,
-      
+
       /**
        * support for addons to add special folder types, this must be called
        * prior to onload.
@@ -1727,6 +1727,12 @@ let gFolderTreeView = {
   _addChildToView: function ftl_addChildToView(aParent, aParentIndex, aNewChild) {
     // If the parent is open, add the new child into the folder pane.
     // Otherwise, just invalidate the parent row.
+    if (!aParent.open) {
+      // Special case adding a special folder when the parent is collapsed.
+      // Expand the parent so the user can see the special child.
+      if (aNewChild._folder.flags & nsMsgFolderFlags.SpecialUse)
+        this._toggleRow(aParentIndex, false);
+    }
     if (aParent.open) {
       let newChildIndex;
       let newChildNum = aParent._children.indexOf(aNewChild);
