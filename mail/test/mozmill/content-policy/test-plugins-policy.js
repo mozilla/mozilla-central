@@ -142,7 +142,7 @@ function addMsgToFolderAndCheckContent(loadAllowed) {
   // XXX It appears the assert_selected_and_displayed doesn't actually wait
   // long enough for plugin load. However, I also can't find a way to wait for
   // long enough in all situations, so this will have to do for now.
-  mc.sleep(500);
+  mc.sleep(1000);
 
   // Now check that the content hasn't been loaded
   if (isPluginLoaded(mozmill.getMail3PaneController().window
@@ -164,7 +164,7 @@ function checkStandaloneMessageWindow(loadAllowed) {
   // XXX It appears the wait_for_message_display_completion doesn't actually
   // wait long enough for plugin load. However, I also can't find a way to wait
   // for long enough in all situations, so this will have to do for now.
-  mc.sleep(500);
+  mc.sleep(1000);
 
   if (isPluginLoaded(msgc.window.content.document) != loadAllowed)
     throw new Error(loadAllowed ?
