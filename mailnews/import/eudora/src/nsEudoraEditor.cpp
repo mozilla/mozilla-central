@@ -101,8 +101,13 @@ NS_IMETHODIMP nsEudoraEditor::GetSelection(nsISelection * *aSelection)
 }
 
 
+#ifdef MOZILLA_2_0_BRANCH
 // [noscript] void init (in nsIDOMDocument doc, in nsIPresShellPtr shell, in nsIContentPtr aRoot, in nsISelectionController aSelCon, in unsigned long aFlags)
 NS_IMETHODIMP nsEudoraEditor::Init(nsIDOMDocument *doc, nsIPresShell * shell, nsIContent * aRoot, nsISelectionController *aSelCon, PRUint32 aFlags)
+#else
+// [noscript] void init (in nsIDOMDocument doc, in nsIContentPtr aRoot, in nsISelectionController aSelCon, in unsigned long aFlags)
+NS_IMETHODIMP nsEudoraEditor::Init(nsIDOMDocument *doc, nsIContent * aRoot, nsISelectionController *aSelCon, PRUint32 aFlags)
+#endif
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
