@@ -441,7 +441,7 @@ let QuickFilterManager = {
    */
   killFilter: function MFM_killFilter(aName) {
     let filterDef = this.filterDefsByName[aName];
-    this.filterDefs.splice(this.filterDefs.indexOf(aName), 1);
+    this.filterDefs.splice(this.filterDefs.indexOf(filterDef), 1);
     delete this.filterDefsByName[aName];
   },
 
