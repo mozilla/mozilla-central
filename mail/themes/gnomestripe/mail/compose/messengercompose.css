@@ -322,6 +322,15 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/abcard.png");
 }
 
+.aw-menulist {
+  -moz-appearance: button;
+  margin: 1px;
+}
+
+.aw-menulist > .menulist-label-box {
+  margin: -4px 1px;
+}
+
 .aw-menulist > dropmarker {
   height: 11px; 
 }
