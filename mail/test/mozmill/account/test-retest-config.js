@@ -47,12 +47,17 @@ Components.utils.import("resource://mozmill/modules/controller.js", controller);
 var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var wh, account, incoming, outgoing;
+
+var url = collector.addHttpResource('../account/html', 'accountconfig');
+collector.httpd.registerContentType("invalid", "text/xml");
 
 var user = {
   name: "test",
-  email: "test@yahoo.com",
-  altEmail: "test2@yahoo.com",
+  email: "test@momo.invalid",
+  altEmail: "test2@momo.invalid"
 };
 
 function setupModule(module) {
@@ -62,6 +67,8 @@ function setupModule(module) {
   wh.installInto(module);
   var kh = collector.getModule("keyboard-helpers");
   kh.installInto(module);
+  Services.prefs.setCharPref("mail.wizard.logging.dump", "All");
+  Services.prefs.setCharPref("mailnews.auto_config_url", url);
 }
 
 // Select File > New > Mail Account to open the Mail Account Setup Wizard
