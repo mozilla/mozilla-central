@@ -335,38 +335,26 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
 
 .hdrReplyToSenderButton {
   /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/symbolic-reply.png");
-}
-
-toolbar[iconsize="small"] .hdrReplyToSenderButton {
-  list-style-image: url("chrome://messenger/skin/icons/symbolic-reply.png");
+  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
+  -moz-image-region: rect(0px, 16px, 16px, 0px);
 }
  
 .hdrReplyButton {
   /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/symbolic-reply.png");
-}
-
-toolbar[iconsize="small"] .hdrReplyButton {
-  list-style-image: url("chrome://messenger/skin/icons/symbolic-reply.png");
+  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
+  -moz-image-region: rect(0px, 16px, 16px, 0px);
 }
  
 .hdrReplyListButton {
   /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/symbolic-replylist.png");
-}
-
-toolbar[iconsize="small"] .hdrReplyListButton {
-  list-style-image: url("chrome://messenger/skin/icons/symbolic-replylist.png");
+  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
+  -moz-image-region: rect(0px, 48px, 16px, 32px);
 }
 
 .hdrReplyAllButton {
   /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/symbolic-replyall.png");
-}
-
-toolbar[iconsize="small"] .hdrReplyAllButton {
-  list-style-image: url("chrome://messenger/skin/icons/symbolic-replyall.png");
+  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
+  -moz-image-region: rect(0px, 32px, 16px, 16px);
 }
 
 .hdrReplyButton > .toolbarbutton-menubutton-button {
@@ -385,27 +373,21 @@ toolbar[iconsize="small"] .hdrReplyAllButton {
 /* The default toolbarbutton CSS makes the dropmarker really tiny in icon mode;
  * make the click target easier to hit.
  */
- .hdrReplyButton > .toolbarbutton-menubutton-dropmarker {
+.hdrReplyButton > .toolbarbutton-menubutton-dropmarker {
   -moz-margin-start: 3px;
   -moz-margin-end: 4px;
 }
 
 .hdrForwardButton {
   /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/symbolic-forward.png");
-}
-
-toolbar[iconsize="small"] .hdrForwardButton {
-  list-style-image: url("chrome://messenger/skin/icons/symbolic-forward.png");
+  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
+  -moz-image-region: rect(0px, 64px, 16px, 48px);
 }
 
 .hdrArchiveButton {
   /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/folder-archive.png");
-}
-
-toolbar[iconsize="small"] .hdrArchiveButton {
-  list-style-image: url("chrome://messenger/skin/icons/folder-archive.png");
+  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
+  -moz-image-region: rect(0px, 112px, 16px, 96px);
 }
 
 .junkButton[disabled="true"] {
@@ -415,23 +397,16 @@ toolbar[iconsize="small"] .hdrArchiveButton {
 
 .hdrJunkButton {
   /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
-}
-
-toolbar[iconsize="small"] .hdrJunkButton {
-  list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
+  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
+  -moz-image-region: rect(0px, 96px, 16px, 80px);
 }
 
 .hdrTrashButton {
   /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/folder-trash.png");
+  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
+  -moz-image-region: rect(0px, 80px, 16px, 64px);
 }
 
-toolbar[iconsize="small"] .hdrTrashButton {
-  list-style-image: url("chrome://messenger/skin/icons/folder-trash.png");
-}
-
-/* XXX taken from gnomestripe, has to be checked */
 #header-view-toolbar toolbarpaletteitem toolbarseparator,
 #header-view-toolbar toolbarseparator {
   height: 26px;
