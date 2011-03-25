@@ -53,7 +53,6 @@ comm.jar:
    content/communicator/aboutSessionRestore.xhtml
    content/communicator/askViewZoom.xul
    content/communicator/askViewZoom.js
-   content/communicator/browserBindings.xul
    content/communicator/certError.css
    content/communicator/certError.xhtml
    content/communicator/certError.xml
@@ -63,7 +62,6 @@ comm.jar:
    content/communicator/contentAreaContextOverlay.xul
    content/communicator/defaultClientDialog.js
    content/communicator/defaultClientDialog.xul
-   content/communicator/editorBindings.xul
    content/communicator/findUtils.js
    content/communicator/fullscreen-video.xhtml
    content/communicator/helpEditorOverlay.xul
@@ -88,22 +86,14 @@ comm.jar:
    content/communicator/viewZoomOverlay.xul
    content/communicator/viewZoomOverlay.js
 #ifdef XP_MACOSX
-   content/communicator/platformBrowserBindings.xul                 (mac/platformBrowserBindings.xul)
-   content/communicator/platformEditorBindings.xul                  (mac/platformEditorBindings.xul)
    content/communicator/platformCommunicatorOverlay.xul             (mac/platformCommunicatorOverlay.xul)
 #else
 #ifdef XP_WIN32
-   content/communicator/platformBrowserBindings.xul                 (win/platformBrowserBindings.xul)
-   content/communicator/platformEditorBindings.xul                  (win/platformEditorBindings.xul)
 *  content/communicator/platformCommunicatorOverlay.xul             (win/platformCommunicatorOverlay.xul)
 #else
 #ifdef XP_OS2
-   content/communicator/platformBrowserBindings.xul                 (win/platformBrowserBindings.xul)
-   content/communicator/platformEditorBindings.xul                  (win/platformEditorBindings.xul)
 *  content/communicator/platformCommunicatorOverlay.xul             (win/platformCommunicatorOverlay.xul)
 #else
-   content/communicator/platformBrowserBindings.xul                 (unix/platformBrowserBindings.xul)
-   content/communicator/platformEditorBindings.xul                  (unix/platformEditorBindings.xul)
    content/communicator/platformCommunicatorOverlay.xul             (unix/platformCommunicatorOverlay.xul)
 #endif
 #endif
