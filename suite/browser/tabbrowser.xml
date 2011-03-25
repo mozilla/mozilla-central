@@ -1915,7 +1915,6 @@
 
       <method name="addProgressListener">
         <parameter name="aListener"/>
-        <parameter name="aMask"/>
         <body>
           <![CDATA[
             if (!aListener)

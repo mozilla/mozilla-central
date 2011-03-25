@@ -607,7 +607,7 @@ function Startup()
   }
 
   // hook up UI through progress listener
-  getBrowser().addProgressListener(window.XULBrowserWindow, Components.interfaces.nsIWebProgress.NOTIFY_ALL);
+  getBrowser().addProgressListener(window.XULBrowserWindow);
   // hook up drag'n'drop
   getBrowser().droppedLinkHandler = handleDroppedLink;
 
