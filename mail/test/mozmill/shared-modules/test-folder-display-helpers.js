@@ -971,8 +971,10 @@ function _row_click_helper(aTree, aViewIndex, aButton) {
   let children = mc.e(aTree.id, {tagName: "treechildren"});
   let x = children.boxObject.x;
   let y = children.boxObject.y;
-  let rowX = 10;
-  let rowY = treeBox.rowHeight * (aViewIndex - treeBox.getFirstVisibleRow());
+  // Click in the middle
+  let rowX = children.boxObject.width / 2;
+  let rowY = treeBox.rowHeight * (aViewIndex - treeBox.getFirstVisibleRow()) +
+    treeBox.rowHeight / 2;
   if (treeBox.getRowAt(x + rowX, y + rowY) != aViewIndex) {
     throw new Error("Thought we would find row " + aViewIndex + " at " +
                     rowX + "," + rowY + " but we found " +
