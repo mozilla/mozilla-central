@@ -63,7 +63,6 @@ function registerFolderEventLogHelper() {
         Ci.nsIMsgFolderNotificationService.msgsDeleted |
         Ci.nsIMsgFolderNotificationService.msgsMoveCopyCompleted |
         Ci.nsIMsgFolderNotificationService.msgKeyChanged |
-        Ci.nsIMsgFolderNotificationService.folderAdded |
         Ci.nsIMsgFolderNotificationService.folderDeleted |
         Ci.nsIMsgFolderNotificationService.folderMoveCopyCompleted |
         Ci.nsIMsgFolderNotificationService.folderRenamed |

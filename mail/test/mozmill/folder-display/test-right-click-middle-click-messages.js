@@ -231,6 +231,7 @@ function _middle_click_with_one_thing_selected_helper(aBackground) {
   assert_selected_and_displayed(0);
 
   let folderTab = mc.tabmail.currentTabInfo;
+  focus_thread_tree();
   let [tabMessage, curMessage] = middle_click_on_row(1);
   if (aBackground) {
     // Make sure we haven't switched to the new tab.
@@ -262,6 +263,7 @@ function _middle_click_with_many_things_selected_helper(aBackground) {
   assert_selected_and_displayed([0, 5]);
 
   let folderTab = mc.tabmail.currentTabInfo;
+  focus_thread_tree();
   let [tabMessage, curMessage] = middle_click_on_row(1);
   if (aBackground) {
     // Make sure we haven't switched to the new tab.
@@ -291,6 +293,7 @@ function _middle_click_on_existing_single_selection_helper(aBackground) {
   assert_selected_and_displayed(3);
 
   let folderTab = mc.tabmail.currentTabInfo;
+  focus_thread_tree();
   let [tabMessage, curMessage] = middle_click_on_row(3);
   if (aBackground) {
     // Make sure we haven't switched to the new tab.
@@ -321,6 +324,7 @@ function _middle_click_on_existing_multi_selection_helper(aBackground) {
   assert_selected_and_displayed([3, 6]);
 
   let folderTab = mc.tabmail.currentTabInfo;
+  focus_thread_tree();
   let [tabMessage, curMessage] = middle_click_on_row(5);
   if (aBackground) {
     // Make sure we haven't switched to the new tab.

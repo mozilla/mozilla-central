@@ -1386,25 +1386,8 @@ function __peek_focus_handler(event) {
 }
 
 function __peek_click_handler(event) {
-  var s;
-  if (event.button === 0)
-    s = "left";
-  else if (event.button === 1)
-    s = "middle";
-  else if (event.button === 2)
-    s = "right";
-  else
-    s = "" + event.button;
-  if (event.shiftKey)
-    s = "shift-" + s;
-  if (event.ctrlKey)
-    s = "ctrl-"; + s
-  if (event.altKey)
-    s = "alt-" + s;
-  if (event.metaKey)
-    s = "meta-" + s;
   mark_action("winhelp", event.type,
-              ["mouse button", s,
+              ["mouse button", event.button,
                "target:", normalize_for_json(event.target),
                "in", getWindowDescribeyFromEvent(event),
                "original target:", normalize_for_json(event.originalTarget)]);

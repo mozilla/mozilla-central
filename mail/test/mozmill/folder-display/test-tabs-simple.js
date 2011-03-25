@@ -20,7 +20,6 @@
  *
  * Contributor(s):
  *   Andrew Sutherland <asutherland@asutherland.org>
- *   Siddharth Agarwal <sid.bugzilla@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,11 +37,7 @@
 
 /*
  * Test that opening new folder and message tabs has the expected result and
- * that closing them doesn't break anything.  sid0 added checks for focus
- * transitions at one point; I (asuth) am changing our test infrastructure to
- * cause more realistic focus changes so those changes now look sillier
- * because in many cases we are explicitly setting focus back after the thread
- * tree gains focus.
+ *  that closing them doesn't break anything.
  */
 var MODULE_NAME = 'test-tabs-simple';
 
@@ -90,6 +85,7 @@ function test_open_folder_b_in_tab() {
   wait_for_blank_content_pane();
   assert_messages_in_view(setB);
   assert_nothing_selected();
+  // Thread tree here
   focus_thread_tree();
 }
 
@@ -108,10 +104,7 @@ function test_switch_to_tab_folder_a() {
  *  the displayed message is the right one.
  */
 function test_open_message_a_in_tab() {
-  // (this focuses the thread tree for tabFolderA...)
   messageA = select_click_row(0);
-  // (...refocus the folder tree for our sticky check below)
-  focus_folder_tree();
   tabMessageA = open_selected_message_in_new_tab();
   assert_selected_and_displayed(messageA);
   assert_message_pane_focused();
@@ -125,6 +118,8 @@ function test_switch_to_tab_folder_b() {
   assert_messages_in_view(setB);
   assert_nothing_selected();
   assert_thread_tree_focused();
+  // Let's focus the message pane now
+  focus_message_pane();
 }
 
 /**
@@ -133,8 +128,6 @@ function test_switch_to_tab_folder_b() {
  */
 function test_open_message_b_in_tab() {
   messageB = select_click_row(0);
-  // Let's focus the message pane now
-  focus_message_pane();
   tabMessageB = open_selected_message_in_new_tab();
   assert_selected_and_displayed(messageB);
   assert_message_pane_focused();
@@ -173,8 +166,6 @@ function test_tabs_are_still_happy() {
   switch_tab(tabFolderA);
   assert_messages_in_view(setA);
   assert_selected_and_displayed(messageA);
-  // focus restoration uses setTimeout(0) and so we need to give it a chance
-  mc.sleep(0);
   assert_folder_tree_focused();
 }
 
