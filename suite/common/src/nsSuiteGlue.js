@@ -270,6 +270,14 @@ SuiteGlue.prototype = {
     if (this._shouldShowRights())
       this._showRightsNotification(notifyBox);
 
+    if ("@mozilla.org/windows-taskbar;1" in Components.classes &&
+        Components.classes["@mozilla.org/windows-taskbar;1"]
+                  .getService(Components.interfaces.nsIWinTaskbar).available) {
+      let temp = {};
+      Components.utils.import("resource:///modules/WindowsJumpLists.jsm", temp);
+      temp.WinTaskbarJumpList.startup();
+    }
+
     // Load the "more info" page for a locked places.sqlite
     // This property is set earlier by places-database-locked topic.
     if (this._isPlacesDatabaseLocked)

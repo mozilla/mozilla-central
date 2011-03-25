@@ -594,6 +594,17 @@ pref("custtoolbar.personal_toolbar_folder", "");
 // Use a popup window for the customize toolbar UI
 pref("toolbar.customization.usesheet", false);
 
+#ifdef XP_WIN
+#ifndef WINCE
+pref("browser.taskbar.lists.enabled", true);
+pref("browser.taskbar.lists.frequent.enabled", true);
+pref("browser.taskbar.lists.recent.enabled", false);
+pref("browser.taskbar.lists.maxListItemCount", 7);
+pref("browser.taskbar.lists.tasks.enabled", true);
+pref("browser.taskbar.lists.refreshInSeconds", 30);
+#endif
+#endif
+
 pref("sidebar.customize.all_panels.url", "http://sidebar-rdf.netscape.com/%LOCALE%/sidebar-rdf/%SIDEBAR_VERSION%/all-panels.rdf");
 pref("sidebar.customize.directory.url", "http://dmoz.org/Netscape/Sidebar/");
 pref("sidebar.customize.more_panels.url", "http://dmoz.org/Netscape/Sidebar/");

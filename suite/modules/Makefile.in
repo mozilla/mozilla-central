@@ -53,4 +53,11 @@ EXTRA_JS_MODULES = \
   DownloadTaskbarIntegration.jsm \
   $(NULL)
 
+ifeq ($(OS_ARCH),WINNT)
+EXTRA_JS_MODULES += \
+  WindowsJumpLists.jsm \
+  $(NULL)
+endif
+
+
 include $(topsrcdir)/config/rules.mk

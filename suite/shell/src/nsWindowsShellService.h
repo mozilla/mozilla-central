@@ -40,6 +40,7 @@
 #include "nscore.h"
 #include "nsShellService.h"
 #include "nsStringGlue.h"
+#include "nsIWindowsShellService.h"
 
 #include <windows.h>
 
@@ -54,7 +55,7 @@ typedef struct {
   PRInt32 flags;
 } SETTING;
 
-class nsWindowsShellService : public nsIShellService
+class nsWindowsShellService : public nsIWindowsShellService
 {
 public:
   nsWindowsShellService() : mCheckedThisSessionClient(PR_FALSE) {};
@@ -63,6 +64,7 @@ public:
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSISHELLSERVICE
+  NS_DECL_NSIWINDOWSSHELLSERVICE
 
 protected:
   PRBool IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultClient);

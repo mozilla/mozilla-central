@@ -216,6 +216,9 @@ Section "Uninstall"
   ${un.RegCleanUninstall}
   ${un.DeleteShortcuts}
 
+  ; Unregister resources associated with Win7 taskbar jump lists.
+  ApplicationID::UninstallJumpLists "${AppUserModelID}"
+
   ClearErrors
   WriteRegStr HKLM "Software\Mozilla" "${BrandShortName}InstallerTest" "Write Test"
   ${If} ${Errors}
