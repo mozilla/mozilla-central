@@ -233,6 +233,139 @@ function test_restore_single_3pane_persistence_again() {
   test_restore_single_3pane_persistence();
 }
 
+function test_message_pane_height_persistence() {
+  be_in_folder(folderA);
+  assert_message_pane_visible();
+  assert_pane_layout(kClassicMailLayout);
+
+  // Get the state object. This assumes there is one and only one
+  // 3pane window.
+  let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"].
+                      getService(Ci.nsIWindowWatcher);
+  let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"].
+                       getService(Ci.nsIWindowMediator);
+  let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+
+  let oldHeight = mc.e("messagepaneboxwrapper").clientHeight;
+  let minHeight = Math.floor(mc.e("messagepaneboxwrapper").getAttribute("minheight"));
+  let newHeight = Math.floor((minHeight + oldHeight) / 2);
+
+  if (oldHeight == newHeight)
+    throw new Error("To really perform a test the new message pane height should be "
+                    + "should be different from the old one but they are the same: "
+                    + newHeight);
+
+  mc.e("messagepaneboxwrapper").setAttribute("height", newHeight);
+
+  // Make sure we have a different window open, so that we don't start shutting
+  // down just because the last window was closed.
+  let abwc = openAddressBook(windowWatcher);
+
+  // The 3pane window is closed.
+  mail3PaneWindow.close();
+
+  mc = open3PaneWindow(windowWatcher);
+  be_in_folder(folderA);
+  assert_message_pane_visible();
+
+  let actualHeight = mc.e("messagepaneboxwrapper").clientHeight;
+  if (newHeight != actualHeight)
+    throw new Error("The message pane height should be " + newHeight +
+                    ", but is actually " + actualHeight);
+
+  // The old height is restored.
+  mc.e("messagepaneboxwrapper").setAttribute("height", oldHeight);
+
+  // The 3pane window is closed.
+  mail3PaneWindow.close();
+
+  mc = open3PaneWindow(windowWatcher);
+  be_in_folder(folderA);
+  assert_message_pane_visible();
+
+  let actualHeight = mc.e("messagepaneboxwrapper").clientHeight;
+  if (oldHeight != actualHeight)
+    throw new Error("The message pane height should be " + oldHeight +
+                    ", but is actually " + actualHeight);
+
+  // We don't need the address book window any more.
+  plan_for_window_close(abwc);
+  abwc.window.close();
+  wait_for_window_close();
+}
+
+function test_message_pane_width_persistence() {
+  be_in_folder(folderA);
+  assert_message_pane_visible();
+
+  // At the beginning we are in classic layout.  We will switch to
+  // vertical layout to test the width, and then back to classic layout.
+  assert_pane_layout(kClassicMailLayout);
+  set_pane_layout(kVerticalMailLayout);
+  assert_pane_layout(kVerticalMailLayout);
+
+  // Get the state object. This assumes there is one and only one
+  // 3pane window.
+  let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"].
+                      getService(Ci.nsIWindowWatcher);
+  let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"].
+                       getService(Ci.nsIWindowMediator);
+  let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+
+  let oldWidth = mc.e("messagepaneboxwrapper").clientWidth;
+  let minWidth = Math.floor(mc.e("messagepaneboxwrapper").getAttribute("minwidth"));
+  let newWidth = Math.floor((minWidth + oldWidth) / 2);
+
+  if (newWidth == oldWidth)
+    throw new Error("To really perform a test the new message pane width should be "
+                    + "should be different from the old one but they are the same: "
+                    + newWidth);
+
+  mc.e("messagepaneboxwrapper").setAttribute("width", newWidth);
+
+  // Make sure we have a different window open, so that we don't start shutting
+  // down just because the last window was closed
+  let abwc = openAddressBook(windowWatcher);
+
+  // The 3pane window is closed.
+  mail3PaneWindow.close();
+
+  mc = open3PaneWindow(windowWatcher);
+  be_in_folder(folderA);
+  assert_message_pane_visible();
+  assert_pane_layout(kVerticalMailLayout);
+
+  let actualWidth = mc.e("messagepaneboxwrapper").clientWidth;
+  if (newWidth != actualWidth)
+    throw new Error("The message pane width should be " + newWidth +
+                    ", but is actually " + actualWidth);
+
+  // The old width is restored.
+  mc.e("messagepaneboxwrapper").setAttribute("width", oldWidth);
+
+  // The 3pane window is closed.
+  mail3PaneWindow.close();
+
+  mc = open3PaneWindow(windowWatcher);
+  be_in_folder(folderA);
+  assert_message_pane_visible();
+  assert_pane_layout(kVerticalMailLayout);
+
+  let actualWidth = mc.e("messagepaneboxwrapper").clientWidth;
+  if (oldWidth != actualWidth)
+    throw new Error("The message pane width should be " + oldWidth +
+                    ", but is actually " + actualWidth);
+
+  // The layout is reset to classical mail layout.
+  set_pane_layout(kClassicMailLayout);
+  assert_pane_layout(kClassicMailLayout);
+
+  // We don't need the address book window any more.
+  plan_for_window_close(abwc);
+  abwc.window.close();
+  wait_for_window_close();
+}
+
 function test_multiple_3pane_periodic_session_persistence() {
   // open a few more 3pane windows
   let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"].
