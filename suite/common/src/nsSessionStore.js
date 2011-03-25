@@ -2286,7 +2286,7 @@ SessionStoreService.prototype = {
     
     // make sure that the selected tab won't be closed in order to
     // prevent unnecessary flickering
-    if (aOverwriteTabs && tabbrowser.tabs.selectedIndex >= newTabCount)
+    if (aOverwriteTabs && tabbrowser.tabContainer.selectedIndex >= newTabCount)
       tabbrowser.moveTabTo(tabbrowser.selectedTab, newTabCount - 1);
 
     for (var t = 0; t < newTabCount; t++) {
