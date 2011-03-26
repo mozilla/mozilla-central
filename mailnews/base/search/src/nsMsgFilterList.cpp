@@ -559,7 +559,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
         m_curFilter->SetUnparseable(PR_TRUE);
       break;
     case nsIMsgFilterList::attribVersion:
-      m_fileVersion = value.ToInteger(&intToStringResult, 10);
+      m_fileVersion = value.ToInteger(&intToStringResult);
       if (NS_FAILED(intToStringResult))
       {
         attrib = nsIMsgFilterList::attribNone;
@@ -632,7 +632,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
       {
         // Older versions of filters didn't have the ability to turn on/off the
         // manual filter context, so default manual to be on in that case
-        PRInt32 filterType = value.ToInteger(&intToStringResult, 10);
+        PRInt32 filterType = value.ToInteger(&intToStringResult);
         if (m_fileVersion < kManualContextVersion)
           filterType |= nsMsgFilterType::Manual;
         m_curFilter->SetType((nsMsgFilterTypeType) filterType);
@@ -678,7 +678,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
         {
           // upgrade label to corresponding tag/keyword
           nsresult res;
-          PRInt32 labelInt = value.ToInteger(&res, 10);
+          PRInt32 labelInt = value.ToInteger(&res);
           if (NS_SUCCEEDED(res))
           {
             nsCAutoString keyword("$label");
@@ -690,7 +690,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
         else if (type == nsMsgFilterAction::JunkScore)
         {
           nsresult res;
-          PRInt32 junkScore = value.ToInteger(&res, 10);
+          PRInt32 junkScore = value.ToInteger(&res);
           if (NS_SUCCEEDED(res))
             currentFilterAction->SetJunkScore(junkScore);
         }

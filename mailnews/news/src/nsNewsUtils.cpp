@@ -64,7 +64,7 @@ nsParseNewsMessageURI(const char* uri, nsCString& folderURI, PRUint32 *key)
     else
       keyStr = Substring(uriStr, keySeparator + 1);
     nsresult errorCode;
-    *key = keyStr.ToInteger(&errorCode, 10);
+    *key = keyStr.ToInteger(&errorCode);
 
     return errorCode;
   }

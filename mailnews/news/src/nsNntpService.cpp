@@ -596,7 +596,7 @@ nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder **
       keyStr = Substring(newsUrl, keyPos + kNewsURIKeyQueryLen);
       // get message key
       nsMsgKey key = nsMsgKey_None;
-      key = keyStr.ToInteger(&rv, 10);
+      key = keyStr.ToInteger(&rv);
       NS_ENSURE_SUCCESS(rv,rv);
 
       // get userPass

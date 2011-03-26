@@ -3033,7 +3033,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
         {
           buffer.Cut(0, 8);
           nsresult irv;
-          version = buffer.ToInteger(&irv, 10);
+          version = buffer.ToInteger(&irv);
           continue;
         }
         if (Substring(buffer, 0, 4).Equals("uri="))

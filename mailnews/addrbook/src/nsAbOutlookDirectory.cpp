@@ -1301,7 +1301,7 @@ static void UnicodeToWord(const PRUnichar *aUnicode, WORD& aWord)
     PRInt32 errorCode = 0 ;
     nsAutoString unichar (aUnicode) ;
 
-    aWord = static_cast<WORD>(unichar.ToInteger(&errorCode, 10));
+    aWord = static_cast<WORD>(unichar.ToInteger(&errorCode));
     if (errorCode != 0) {
         PRINTF(("Error conversion string %S: %08x.\n", unichar.get(), errorCode)) ;
     }

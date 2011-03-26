@@ -3811,7 +3811,7 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBo
           {
             nsCAutoString srcStr(str+1);
             nsresult err;
-            nsMsgKey messageID = srcStr.ToInteger(&err, 10);
+            nsMsgKey messageID = srcStr.ToInteger(&err);
             if (messageID != nsMsgKey_None)
             {
               rv = imapFolder->StoreImapFlags(kImapMsgDeletedFlag, PR_TRUE,

@@ -311,11 +311,6 @@ NS_MSG_BASE PRUint64 ParseUint64Str(const char *str);
  */
 #define CaseInsensitiveCompare PR_TRUE
 /**
- * The internal API expects a PRInt32 error pointer, although the error is
- * always NS_ERROR_ILLEGAL_VALUE. Make it accept an nsresult.
- */
-#define ToInteger(prv, radix) ToInteger(reinterpret_cast<PRInt32*>(prv), radix)
-/**
  * The following methods are not exposed to the external API, but when we're
  * using the internal API we can simply redirect the calls appropriately.
  */

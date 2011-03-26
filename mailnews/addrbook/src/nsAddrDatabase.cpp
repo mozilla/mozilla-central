@@ -1278,7 +1278,7 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewCardAndAddToDB(nsIAbCard *aNewCard, PRBoo
 
   mdbOid rowId;
   rowId.mOid_Scope = m_CardRowScopeToken;
-  rowId.mOid_Id = id.ToInteger(&rv, 10);
+  rowId.mOid_Id = id.ToInteger(&rv);
   if (NS_SUCCEEDED(rv))
   {
     // Mork is being very naughty here. If the table does not have the oid, we

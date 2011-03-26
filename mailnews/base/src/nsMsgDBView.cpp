@@ -445,7 +445,7 @@ static void GetCachedName(const nsCString& unparsedString,
   nsresult err;
 
   //get verion #
-  PRInt32 cachedVersion = unparsedString.ToInteger(&err,10);
+  PRInt32 cachedVersion = unparsedString.ToInteger(&err);
   if (cachedVersion != displayVersion)
     return;
 
@@ -1497,7 +1497,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(PRInt32 aRow, nsITreeColumn *col, n
   nsCString junkScoreStr;
   msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
   if (!junkScoreStr.IsEmpty()) {
-    properties->AppendElement(junkScoreStr.ToInteger(&rv, 10) == nsIJunkMailPlugin::IS_SPAM_SCORE ?
+    properties->AppendElement(junkScoreStr.ToInteger(&rv) == nsIJunkMailPlugin::IS_SPAM_SCORE ?
                               kJunkMsgAtom : kNotJunkMsgAtom);
     NS_ASSERTION(NS_SUCCEEDED(rv), "Converting junkScore to integer failed.");
   }
@@ -1846,7 +1846,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsASt
         // Only need to assing a real value for junk, it's empty already
         // as it should be for non-junk.
         if (!junkScoreStr.IsEmpty() &&
-            (junkScoreStr.ToInteger(&rv, 10) == nsIJunkMailPlugin::IS_SPAM_SCORE))
+            (junkScoreStr.ToInteger(&rv) == nsIJunkMailPlugin::IS_SPAM_SCORE))
           aValue.AssignLiteral("messageJunk");
 
         NS_ASSERTION(NS_SUCCEEDED(rv), "Converting junkScore to integer failed.");
@@ -2233,7 +2233,7 @@ NS_IMETHODIMP nsMsgDBView::CycleCell(PRInt32 row, nsITreeColumn* col)
       {
         nsCString junkScoreStr;
         rv = msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
-        if (junkScoreStr.IsEmpty() || (junkScoreStr.ToInteger(&rv, 10) == nsIJunkMailPlugin::IS_HAM_SCORE))
+        if (junkScoreStr.IsEmpty() || (junkScoreStr.ToInteger(&rv) == nsIJunkMailPlugin::IS_HAM_SCORE))
           ApplyCommandToIndices(nsMsgViewCommandType::junk, (nsMsgViewIndex *) &row, 1);
         else
           ApplyCommandToIndices(nsMsgViewCommandType::unjunk, (nsMsgViewIndex *) &row, 1);
@@ -3364,7 +3364,7 @@ nsresult nsMsgDBView::SetMsgHdrJunkStatus(nsIJunkMailPlugin *aJunkPlugin,
         // otherwise, pass the actual user classification
         if (junkScoreStr.IsEmpty())
           oldUserClassification = nsIJunkMailPlugin::UNCLASSIFIED;
-        else if (junkScoreStr.ToInteger(&rv, 10) == nsIJunkMailPlugin::IS_SPAM_SCORE)
+        else if (junkScoreStr.ToInteger(&rv) == nsIJunkMailPlugin::IS_SPAM_SCORE)
           oldUserClassification = nsIJunkMailPlugin::JUNK;
         else
           oldUserClassification = nsIJunkMailPlugin::GOOD;

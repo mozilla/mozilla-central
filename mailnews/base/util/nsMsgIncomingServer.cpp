@@ -1184,7 +1184,7 @@ nsMsgIncomingServer::InternalSetHostName(const nsACString& aHostname, const char
     nsCAutoString portString(Substring(hostname, colonPos));
     hostname.SetLength(colonPos);
     nsresult err;
-    PRInt32 port = portString.ToInteger(&err, 10);
+    PRInt32 port = portString.ToInteger(&err);
     if (NS_SUCCEEDED(err))
       SetPort(port);
   }
