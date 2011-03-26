@@ -1296,7 +1296,7 @@
             callback: callback
           }];
 
-          this.pluginUnavailable(event, "carbon-failure-plugins", message, buttons, pref);
+          this.pluginUnavailable(event, notification, message, buttons, pref);
         ]]>
       </handler>
 
