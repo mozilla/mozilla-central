@@ -691,6 +691,7 @@ pref("pfs.datasource.url", "https://pfs.mozilla.org/plugins/PluginFinderService.
 pref("plugins.update.url", "http://www.mozilla.com/%LOCALE%/plugincheck/");
 pref("plugins.update.notifyUser", false);
 pref("plugins.hide_infobar_for_outdated_plugin", false);
+pref("plugins.hide_infobar_for_carbon_failure_plugin", false);
 pref("plugins.hide_infobar_for_missing_plugin", false);
 
 #ifdef XP_MACOSX

@@ -252,6 +252,15 @@
                     this.removeNotification(outdatedNotification);
                 }
 
+                if (aData == "plugins.hide_infobar_for_carbon_failure_plugin") {
+                  if (!this._prefs.getBoolPref(aData))
+                    return;
+
+                  var carbonfailureNotification = this.getNotificationWithValue("carbon-failure-plugins");
+                  if (carbonfailureNotification)
+                    this.removeNotification(carbonfailureNotification);
+                }
+
                 if (aData == "plugins.hide_infobar_for_missing_plugin") {
                   if (!this._prefs.getBoolPref(aData))
                     return;
@@ -1079,6 +1088,7 @@
           os.addObserver(this, "perm-changed", false);
 
           this._prefs.addObserver("plugins.hide_infobar_for_outdated_plugin", this, false);
+          this._prefs.addObserver("plugins.hide_infobar_for_carbon_failure_plugin", this, false);
           this._prefs.addObserver("plugins.hide_infobar_for_missing_plugin", this, false);
           this._prefs.addObserver("privacy.popups.showBrowserMessage", this, false);
           this._prefs.addObserver("dom.disable_open_during_load", this, false);
@@ -1148,6 +1158,9 @@
 
             try {
               this._prefs.removeObserver("plugins.hide_infobar_for_outdated_plugin", this);
+            } catch (ex) {}
+            try {
+              this._prefs.removeObserver("plugins.hide_infobar_for_carbon_failure_plugin", this);
             } catch (ex) {}
             try {
               this._prefs.removeObserver("plugins.hide_infobar_for_missing_plugin", this);
@@ -1238,6 +1251,52 @@
 
           this.pluginUnavailable(event, "outdated-plugins", message, buttons,
                                  "plugins.hide_infobar_for_outdated_plugin");
+        ]]>
+      </handler>
+
+      <handler event="npapi-carbon-event-model-failure">
+        <![CDATA[
+          function callback() {
+            // Notify all windows that an application quit has been requested.
+            var cancelQuit = Components.classes["@mozilla.org/supports-PRBool;1"]
+                                       .createInstance(Components.interfaces.nsISupportsPRBool);
+            var os = Components.classes["@mozilla.org/observer-service;1"]
+                               .getService(Components.interfaces.nsIObserverService);
+            os.notifyObservers(cancelQuit, "quit-application-requested", null);
+
+            // Something aborted the quit process.
+            if (cancelQuit.data)
+              return;
+
+            var nsIAppStartup = Components.interfaces.nsIAppStartup;
+            Components.classes["@mozilla.org/toolkit/app-startup;1"]
+                      .getService(nsIAppStartup)
+                      .quit(nsIAppStartup.eAttemptQuit |
+                            nsIAppStartup.eRestart |
+                            nsIAppStartup.eRestarti386);
+          }
+
+          var notification = "carbon-failure-plugins";
+          var pref = "plugins.hide_infobar_for_carbon_failure_plugin";
+          if ("@mozilla.org/xpcom/mac-utils;1" in Components.classes &&
+              !Components.classes["@mozilla.org/xpcom/mac-utils;1"]
+                         .getService(Components.interfaces.nsIMacUtils)
+                         .isUniversalBinary) {
+            pref = null;
+            notification = "missing-plugins";
+            callback = this.openURLPref.bind(this, "plugins.update.url");
+          }
+
+          var prefix = notification.replace(/-/g, "");
+          var message = this._stringBundle.GetStringFromName(prefix + "Message.title");
+          var buttons = [{
+            label: this._stringBundle.GetStringFromName(prefix + "Message.button.label"),
+            accessKey: this._stringBundle.GetStringFromName(prefix + "Message.button.accesskey"),
+            popup: null,
+            callback: callback
+          }];
+
+          this.pluginUnavailable(event, "carbon-failure-plugins", message, buttons, pref);
         ]]>
       </handler>
 
