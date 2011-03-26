@@ -437,6 +437,9 @@
         <parameter name="aEvent"/>
         <body>
           <![CDATA[
+            if (aEvent.type == "keypress" && aEvent.keyCode != KeyEvent.DOM_VK_RETURN)
+              return;
+
             var missingPlugins = {};
             var pluginInfo = this.getPluginInfo(aEvent.target);
             missingPlugins[pluginInfo.mimetype] = pluginInfo;
@@ -1245,8 +1248,10 @@
           // plugin. Object tags can, and often do, deal with that themselves,
           // so don't stomp on the page developers toes.
           if (event.target instanceof Components.interfaces.nsIObjectLoadingContent &&
-              !(event.target instanceof HTMLObjectElement))
+              !(event.target instanceof HTMLObjectElement)) {
             event.target.addEventListener("click", this, true);
+            event.target.addEventListener("keypress", this, true);
+          }
 
           var messageString = this._stringBundle.GetStringFromName("missingpluginsMessage.title");
           var buttons = [{
