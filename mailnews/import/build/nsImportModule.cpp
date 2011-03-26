@@ -137,9 +137,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsComm4xProfile)
 // eudora import factories
 ////////////////////////////////////////////////////////////////////////////////
 #if defined(XP_WIN) || defined(XP_MACOSX)
-#ifndef __LP64__
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsEudoraImport)
-#endif
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -166,9 +164,7 @@ static const mozilla::Module::CategoryEntry kMailNewsImportCategories[] = {
   { "mailnewsimport", "{0eb034a3-964a-4e2f-92eb-cc55d9ae9dd2}", NS_IMPORT_ADDRESS_STR },
   { "mailnewsimport", "{647cc990-2bdb-11d6-92a0-0010a4b26cda}", kComm4xMailSupportsString},
 #if defined(XP_WIN) || defined(XP_MACOSX)
-#ifndef  __LP64__
   { "mailnewsimport", "{c8448da0-8f83-11d3-a206-00a0cc26da63}", kEudoraSupportsString },
-#endif
 #endif
 #ifdef XP_WIN
   { "mailnewsimport", "{42bc82bc-8e9f-4597-8b6e-e529daaf3af1}", kWMSupportsString },
@@ -190,9 +186,7 @@ const mozilla::Module::CIDEntry kMailNewsImportCIDs[] = {
   { &kNS_COMM4XMAILIMPL_CID, false, NULL, ImportComm4xMailImplConstructor },
   { &kNS_ICOMM4XPROFILE_CID, false, NULL, nsComm4xProfileConstructor },
 #if defined(XP_WIN) || defined(XP_MACOSX)
-#ifndef  __LP64__
   { &kNS_EUDORAIMPORT_CID, false, NULL, nsEudoraImportConstructor },
-#endif
 #endif
 #if defined(XP_MACOSX)
   { &kNS_APPLEMAILIMPORT_CID, false, NULL, nsAppleMailImportModuleConstructor },
@@ -216,9 +210,7 @@ const mozilla::Module::ContractIDEntry kMailNewsImportContracts[] = {
   { NS_COMM4XMAILIMPL_CONTRACTID, &kNS_COMM4XMAILIMPL_CID },
   { NS_ICOMM4XPROFILE_CONTRACTID, &kNS_ICOMM4XPROFILE_CID },
 #if defined(XP_WIN) || defined(XP_MACOSX)
-#ifndef __LP64__
   { "@mozilla.org/import/import-eudora;1", &kNS_EUDORAIMPORT_CID },
-#endif
 #endif
 #if defined(XP_MACOSX)
   { "@mozilla.org/import/import-applemail;1", &kNS_APPLEMAILIMPORT_CID },
@@ -237,9 +229,7 @@ const mozilla::Module::ContractIDEntry kMailNewsImportContracts[] = {
 static void importModuleDtor()
 {
 #if defined(XP_WIN) || defined(XP_MACOSX)
-#ifndef __LP64__
     nsEudoraStringBundle::Cleanup();
-#endif
 #endif
 
 #ifdef XP_WIN

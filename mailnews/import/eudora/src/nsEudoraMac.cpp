@@ -24,6 +24,7 @@
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Jeff Beckley <beckley@qualcomm.com>
  *   Steve Dorner <sdorner@qualcomm.com>
+ *   Ben Frisch <bfrisch@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -62,8 +63,6 @@
 #include "EudoraDebugLog.h"
 
 #include "nsILocalFileMac.h"
-
-#include <Carbon/Carbon.h>
 
 static NS_DEFINE_IID(kISupportsIID,      NS_ISUPPORTS_IID);
 
@@ -430,17 +429,17 @@ nsresult nsEudoraMac::FoundMailFolder( nsILocalFile *mailFolder, const char *pNa
 
 PRBool nsEudoraMac::CreateTocFromResource( nsIFile *pMail, nsIFile **pToc)
 {
-  short resFile = -1;
+  ResFileRefNum resFile = -1;
 
   {
     nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(pMail);
 
-    FSSpec fsSpec;
-    nsresult rv = macFile->GetFSSpec(&fsSpec);
+    FSRef fsRef;
+    nsresult rv = macFile->GetFSRef(&fsRef);
     if (NS_FAILED(rv))
       return PR_FALSE;
 
-    resFile = FSpOpenResFile( &fsSpec, fsRdPerm);
+    resFile = FSOpenResFile( &fsRef, fsRdPerm);
   }
 
   if (resFile == -1)
@@ -538,6 +537,33 @@ nsresult nsEudoraMac::FindTOCFile( nsIFile *pMailFile, nsIFile **ppTOCFile, PRBo
   return( NS_ERROR_FAILURE);
 }
 
+// GetIndString isn't supported on 64-bit Mac OS X
+// This code is emulation for GetIndString.
+static StringPtr GetStringFromHandle(Handle aResource,
+                                     ResourceIndex aId)
+{
+  if (!aResource)
+    return nsnull;
+
+  PRUint8 *data = *(PRUint8**)aResource;
+  PRUint16 count = *(PRUint16*)data;
+#if defined(IS_LITTLE_ENDIAN)
+  count = count << 8 | count >> 8;
+#endif
+
+  // First 2 bytes are the count of string that this resource has.
+  if (count < aId)
+    return nsnull;
+
+  // skip count
+  data += 2;
+
+  // looking for data.  data is in order
+  while (--aId > 0)
+    data = data + (*(PRUint8*)data) + 1;
+
+  return data;
+}
 
 // Strings returned:
 //  1 - smtp server
@@ -567,48 +593,44 @@ PRBool nsEudoraMac::GetSettingsFromResource( nsIFile *pSettings, short resId, ns
   nsresult rv;
   *pIMAP = PR_FALSE;
   // Get settings from the resources...
-  short resFile = -1;
+  ResFileRefNum resFile = -1;
   {
     nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(pSettings, &rv);
     if (NS_FAILED(rv))
       return PR_FALSE;
 
-    FSSpec fsSpec;
-    rv = macFile->GetFSSpec(&fsSpec);
+    FSRef fsRef;
+    rv = macFile->GetFSRef(&fsRef);
     if (NS_FAILED(rv))
       return PR_FALSE;
 
-    resFile = FSpOpenResFile( &fsSpec, fsRdPerm);
+    resFile = FSOpenResFile( &fsRef, fsRdPerm);
   }
   if (resFile == -1)
     return( PR_FALSE);
+
+  UseResFile(resFile);
 
   // smtp server, STR# 1000, 4
   Handle  resH = Get1Resource( 'STR#', resId /* 1000 */);
   int    idx;
   if (resH)
   {
-    ReleaseResource( resH);
     StringPtr  pStr[5];
     StringPtr   theStr;
-    short    i;
-    for (i = 0; i < 5; i++)
-    {
-      pStr[i] = (StringPtr) new PRUint8[256];
-      (pStr[i])[0] = 0;
-    }
-    GetIndString( pStr[0], resId /* 1000 */, kSmtpServerID);
-    GetIndString( pStr[1], resId, kEmailAddressID); // user name@pop server
-    GetIndString( pStr[2], resId, kReturnAddressID);
-    GetIndString( pStr[3], resId, kFullNameID);
-    GetIndString( pStr[4], resId, kLeaveMailOnServerID);
-    CloseResFile( resFile);
+
+    // Cannot use GetIndString due to 64-bit support
+    pStr[0] = GetStringFromHandle(resH, kSmtpServerID);
+    pStr[1] = GetStringFromHandle(resH, kEmailAddressID);
+    pStr[2] = GetStringFromHandle(resH, kReturnAddressID);
+    pStr[3] = GetStringFromHandle(resH, kFullNameID);
+    pStr[4] = GetStringFromHandle(resH, kLeaveMailOnServerID);
 
     theStr = pStr[0];
-    if (*theStr)
+    if (theStr && *theStr)
       pStrs[0]->Append( (const char *) (theStr + 1), *theStr);
     theStr = pStr[1];
-    if (*theStr)
+    if (theStr && *theStr)
     {
       idx = 1;
       while (idx <= *theStr)
@@ -633,21 +655,22 @@ PRBool nsEudoraMac::GetSettingsFromResource( nsIFile *pSettings, short resId, ns
         pStrs[2]->Append( (const char *) (theStr + idx + 1), *(theStr + idx));
     }
     theStr = pStr[2];
-    if ( *theStr)
+    if (theStr && *theStr)
       pStrs[3]->Append( (const char *) (theStr + 1), *theStr);
     theStr = pStr[3];
-    if ( *theStr)
+    if (theStr && *theStr)
       pStrs[4]->Append( (const char *) (theStr + 1), *theStr);
     theStr = pStr[4];
-    if ( *theStr)
+    if (theStr && *theStr)
     {
       if (theStr[1] == 'y')
         *(pStrs[5]) = "Y";
       else
         *(pStrs[5]) = "N";
     }
-    for (i = 0; i < 5; i++)
-      delete pStr[i];
+
+    ReleaseResource(resH);
+    CloseResFile( resFile);
 
     return( PR_TRUE);
   }
@@ -1005,8 +1028,8 @@ nsresult nsEudoraMac::GetAttachmentInfo( const char *pFileName, nsIFile *pFile, 
   IMPORT_LOG3( "\tAttachment type: %s, creator: %s, fileNum: %ld\n", typeStr.get(), creatStr.get(), fNum);
   IMPORT_LOG1( "\tAttachment file name: %s\n", str.get());
 #endif
-  FSSpec  spec;
-  memset( &spec, 0, sizeof( spec));
+  FSRef  fsRef;
+  memset( &fsRef, 0, sizeof( fsRef));
   {
     nsresult rv;
     nsCOMPtr <nsILocalFile> pLocalFile = do_QueryInterface(pFile, &rv);
@@ -1027,15 +1050,15 @@ nsresult nsEudoraMac::GetAttachmentInfo( const char *pFileName, nsIFile *pFile, 
       return rv;
     }
 
-    rv = macFile->GetFSSpec(&spec);
+    rv = macFile->GetFSRef(&fsRef);
     if (NS_FAILED(rv))
     {
-      IMPORT_LOG0("\tfailed to get FSSpec\n");
+      IMPORT_LOG0("\tfailed to get FSRef\n");
       return rv;
     }
   }
 
-  if (HasResourceFork(&spec))
+  if (HasResourceFork(&fsRef))
     mimeType = "application/applefile";
   else
     mimeType = "application/octet-stream";
@@ -1045,16 +1068,13 @@ nsresult nsEudoraMac::GetAttachmentInfo( const char *pFileName, nsIFile *pFile, 
   return( NS_OK);
 }
 
-PRBool nsEudoraMac::HasResourceFork(FSSpec *fsSpec)
+PRBool nsEudoraMac::HasResourceFork(FSRef *fsRef)
 {
-  FSRef fsRef;
-  if (::FSpMakeFSRef(fsSpec, &fsRef) == noErr)
-  {
-    FSCatalogInfo catalogInfo;
-    OSErr err = ::FSGetCatalogInfo(&fsRef, kFSCatInfoRsrcSizes, &catalogInfo, nsnull, nsnull, nsnull);
-    return (err == noErr && catalogInfo.rsrcLogicalSize != 0);
-  }
-  return PR_FALSE;
+  FSCatalogInfo catalogInfo;
+  OSErr err = FSGetCatalogInfo(fsRef,
+                               kFSCatInfoDataSizes + kFSCatInfoRsrcSizes,
+                               &catalogInfo, nsnull, nsnull, nsnull);
+  return (err == noErr && catalogInfo.rsrcLogicalSize != 0);
 }
 
 

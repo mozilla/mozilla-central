@@ -47,6 +47,8 @@
 #include "nsEudoraMailbox.h"
 #include "nsEudoraAddress.h"
 
+#include <CoreServices/CoreServices.h>
+
 class nsIImportService;
 class nsIMsgAccountManager;
 class nsIMsgAccount;
@@ -107,7 +109,7 @@ private:
 private:
   PRUint32 m_depth;
   nsCOMPtr <nsILocalFile> m_mailImportLocation;
-  PRBool HasResourceFork(FSSpec *fsSpec);
+  PRBool HasResourceFork(FSRef *fsRef);
 };
 
 
