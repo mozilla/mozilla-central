@@ -704,7 +704,7 @@ let mailTabType = {
     document.getElementById("totalMessageCount").hidden = !aLegalStates.thread;
 
     // -- message pane
-    document.getElementById("messagepaneboxwrapper").collapsed =
+    document.getElementById("messagepanebox").collapsed =
       !aLegalStates.message || !aVisibleStates.message;
 
     // we are responsible for updating the keybinding; view_init takes care of

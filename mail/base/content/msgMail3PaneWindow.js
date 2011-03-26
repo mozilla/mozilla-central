@@ -69,9 +69,6 @@ const kNumFolderViews = 4; // total number of folder views
 /** widget with id=messagepanebox, initialized by GetMessagePane() */
 var gMessagePane;
 
-/** widget with id=messagepaneboxwrapper, initialized by GetMessagePaneWrapper() */
-var gMessagePaneWrapper;
-
 var gThreadAndMessagePaneSplitter = null;
 /**
  * Tracks whether the right mouse button changed the selection or not.  If the
@@ -205,8 +202,8 @@ function UpdateMailPaneConfig(aMsgWindowInitialized) {
   var desiredId = dynamicIds[layoutView];
   document.getElementById("mailContent")
           .setAttribute("layout", layouts[layoutView]);
-  var messagePaneBoxWrapper = GetMessagePaneWrapper();
-  if (messagePaneBoxWrapper.parentNode.id != desiredId) {
+  var messagePane = GetMessagePane();
+  if (messagePane.parentNode.id != desiredId) {
     ClearAttachmentList();
     var hdrToolbox = document.getElementById("header-view-toolbox");
     var hdrToolbar = document.getElementById("header-view-toolbar");
@@ -234,12 +231,12 @@ function UpdateMailPaneConfig(aMsgWindowInitialized) {
     }
 
     // See Bug 381992. The ctor for the browser element will fire again when we
-    // re-insert the messagePaneBoxWrapper back into the document.  But the dtor
+    // re-insert the messagePaneBox back into the document.  But the dtor
     // doesn't fire when the element is removed from the document.  Manually
     // call destroy here to avoid a nasty leak.
     document.getElementById("messagepane").destroy();
     desiredParent.appendChild(messagePaneSplitter);
-    desiredParent.appendChild(messagePaneBoxWrapper);
+    desiredParent.appendChild(messagePane);
     hdrToolbox.palette  = cloneToolboxPalette;
     hdrToolbox.toolbarset = cloneToolbarset;
     hdrToolbar = document.getElementById("header-view-toolbar");
@@ -355,7 +352,7 @@ function OnLoadMessenger()
 
   MailOfflineMgr.init();
   CreateMailWindowGlobals();
-  GetMessagePaneWrapper().collapsed = true;
+  GetMessagePane().collapsed = true;
 
   // This needs to be before we throw up the account wizard on first run.
   try {
@@ -930,13 +927,6 @@ function GetMessagePane()
   if (!gMessagePane)
     gMessagePane = document.getElementById("messagepanebox");
   return gMessagePane;
-}
-
-function GetMessagePaneWrapper()
-{
-  if (!gMessagePaneWrapper)
-    gMessagePaneWrapper = document.getElementById("messagepaneboxwrapper");
-  return gMessagePaneWrapper;
 }
 
 function GetMessagePaneFrame()
