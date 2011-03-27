@@ -144,11 +144,11 @@
                 filepickertitle="&selectSound.title;"
                 filepickerfilter="&selectSound.filter;"
                 oncommand="SelectSound();"/>
-        <button id="previewSound"
-                label="&previewSound.label;"
-                accesskey="&previewSound.accesskey;"
+        <button id="playSoundButton"
+                label="&playSoundButton.label;"
+                accesskey="&playSoundButton.accesskey;"
                 preference="pref.advanced.popups.disable_button.preview_sound"
-                oncommand="PreviewSound();"/>
+                oncommand="PlaySound();"/>
       </hbox>
       <hbox>
         <checkbox id="displayIcon"

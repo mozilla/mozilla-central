@@ -130,10 +130,10 @@
                   oncommand="SelectSound();">
             <observes element="mailnewsSoundFileUrl" attribute="disabled"/>
           </button>
-          <button id="preview"
-                  label="&preview.label;"
-                  accesskey="&preview.accesskey;"
-                  oncommand="PreviewSound();">
+          <button id="playButton"
+                  label="&playButton.label;"
+                  accesskey="&playButton.accesskey;"
+                  oncommand="PlaySound();">
             <observes element="mailnewsSoundFileUrl" attribute="disabled"/>
           </button>
         </hbox>

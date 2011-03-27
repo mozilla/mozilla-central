@@ -199,7 +199,7 @@ function IndexToFolder(aIndex)
 function SetSoundEnabled(aEnable)
 {
   EnableElementById("downloadSndURL", aEnable, false);
-  document.getElementById("downloadSndPreview").disabled = !aEnable;
+  document.getElementById("downloadSndPlay").disabled = !aEnable;
 }
 
 function BrowseSound()
@@ -226,7 +226,7 @@ function BrowseSound()
     pref.value = fp.fileURL.spec;
 }
 
-function PreviewSound()
+function PlaySound()
 {
   var pref = document.getElementById("browser.download.finished_sound_url");
   var sound = Components.classes["@mozilla.org/sound;1"]

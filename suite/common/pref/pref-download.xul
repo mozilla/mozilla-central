@@ -172,10 +172,10 @@
                   oncommand="BrowseSound();">
             <observes element="downloadSndURL" attribute="disabled"/>
           </button>
-          <button id="downloadSndPreview"
-                  label="&preview.label;"
-                  accesskey="&preview.accesskey;"
-                  oncommand="PreviewSound();"/>
+          <button id="downloadSndPlay"
+                  label="&playButton.label;"
+                  accesskey="&playButton.accesskey;"
+                  oncommand="PlaySound();"/>
         </hbox>
       </hbox>
     </groupbox>

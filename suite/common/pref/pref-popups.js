@@ -173,7 +173,7 @@ function SelectSound()
     gSoundUrlPref.value = filepicker.fileURL.spec;
 }
 
-function PreviewSound()
+function PlaySound()
 {
   var soundUrl = gSoundUrlPref.value;
   var sound = Components.classes["@mozilla.org/sound;1"]

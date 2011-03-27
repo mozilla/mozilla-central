@@ -106,7 +106,7 @@ function ReadSoundLocation(aElement)
     aElement.file = gFileHandler.getFileFromURLSpec(aElement.value);
 }
 
-function PreviewSound()
+function PlaySound()
 {
   if (!gSound)
     gSound = Components.classes["@mozilla.org/sound;1"]
