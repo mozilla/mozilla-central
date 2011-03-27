@@ -1,0 +1,65 @@
+.searchbar-textbox {
+  width: 6em;
+  min-width: 6em;
+  -moz-appearance: none;
+  border-radius: 10000px;
+  background-clip: padding-box;
+  padding: 0;
+  margin: 0 4px;
+  border: 1px solid;
+  border-color: rgb(132, 132, 132) rgba(132, 132, 132, 0.6) rgba(132, 132, 132, 0.2);
+  box-shadow: 0 1px rgb(212, 212, 212) inset,
+              0 -1px rgb(253, 253, 253) inset,
+              1px 0 rgb(247, 247, 247) inset,
+              -1px 0 rgb(247, 247, 247) inset;
+}
+
+.searchbar-textbox[focused="true"] {
+  box-shadow: 0 0 1px -moz-mac-focusring inset,
+              0 0 4px 1px -moz-mac-focusring,
+              0 0 1.5px 1px -moz-mac-focusring;
+}
+
+.textbox-input-box {
+  margin: 0;
+  padding: 3px 0 2px;
+  height: 20px;
+}
+
+/* ::::: searchbar-engine-button ::::: */
+
+.toolbarbutton-icon {
+  height: 16px;
+  width: 16px;
+  list-style-image: url("chrome://mozapps/skin/places/defaultFavicon.png");
+}
+
+.searchbar-engine-button {
+  -moz-padding-start: 6px !important; /* Need !important because of class="plain". */
+  min-width: 0;
+}
+
+.toolbarbutton-text {
+  display: none;
+}
+
+.toolbarbutton-menu-dropmarker {
+  list-style-image: url("chrome://communicator/skin/search/searchbar-dropmarker.png");
+  -moz-margin-end: 4px;
+}
+
+.searchbar-popup {
+  margin-top: 4px;
+  -moz-margin-start: 3px;
+}
+
+/* ::::: search-go-button ::::: */
+
+.search-go-container {
+  -moz-box-align: center;
+  -moz-padding-end: 6px;
+}
+
+.search-go-button {
+  list-style-image: url("chrome://communicator/skin/search/searchbar-search.png");
+}
