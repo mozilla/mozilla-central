@@ -152,13 +152,18 @@ html[dir="rtl"] #disk-space-used {
 #addon-install-button {
 }
 
-#installing {
+#spinner {
+  display: none;
+  vertical-align: middle;
+  -moz-margin-end: 1em;
+}
+
+#downloading {
   display: none;
 }
 
-#installing .spinner {
-  vertical-align: middle;
-  -moz-margin-end: 1em;
+#installing {
+  display: none;
 }
 
 #installed {
@@ -166,6 +171,10 @@ html[dir="rtl"] #disk-space-used {
 }
 
 #alreadyInstalled {
+  display: none;
+}
+
+#failure {
   display: none;
 }
 

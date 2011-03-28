@@ -1065,7 +1065,7 @@ var specialTabs = {
             }
           }];
         }
-        if (!notificationBox.getNotificationWithValue(notificationID)) {
+        if (notificationBox && !notificationBox.getNotificationWithValue(notificationID)) {
           notificationBox.appendNotification(messageString, notificationID,
                                              iconURL,
                                              notificationBox.PRIORITY_CRITICAL_HIGH,
@@ -1086,7 +1086,7 @@ var specialTabs = {
           }
         }];
 
-        if (!notificationBox.getNotificationWithValue(notificationName)) {
+        if (notificationBox && !notificationBox.getNotificationWithValue(notificationName)) {
             notificationBox.appendNotification(messageString, notificationName,
                                                iconURL,
                                                notificationBox.PRIORITY_MEDIUM_HIGH,
@@ -1118,7 +1118,7 @@ var specialTabs = {
           messageString = messageString.replace("#3", brandShortName);
           messageString = messageString.replace("#4", Services.appinfo.version);
 
-          if (!notificationBox.getNotificationWithValue(notificationID)) {
+          if (notificationBox && !notificationBox.getNotificationWithValue(notificationID)) {
             notificationBox.appendNotification(messageString,
                                                notificationID,
                                                iconURL,
@@ -1174,11 +1174,12 @@ var specialTabs = {
         messageString = messageString.replace("#2", installInfo.installs.length);
         messageString = messageString.replace("#3", brandShortName);
 
-        notificationBox.appendNotification(messageString,
-                                           notificationID,
-                                           iconURL,
-                                           notificationBox.PRIORITY_INFO_MEDIUM,
-                                           buttons);
+        if (notificationBox)
+          notificationBox.appendNotification(messageString,
+                                             notificationID,
+                                             iconURL,
+                                             notificationBox.PRIORITY_INFO_MEDIUM,
+                                             buttons);
         break;
       }
     }

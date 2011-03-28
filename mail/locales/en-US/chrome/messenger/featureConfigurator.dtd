@@ -20,11 +20,17 @@
 
 <!ENTITY featureConfigurator.toolbarBenefits.para "Message actions such as reply and forward have moved from the toolbar and onto the message header itself. This ties the action buttons directly to the message, which leaves more room in the toolbar for the richer search textbox, as well as add-ons.">
 
+<!-- LOCALIZATION NOTE (featureConfigurator.addOn.downloading): The text to display while downloading the addon. -->
+<!ENTITY featureConfigurator.addOn.downloading "Downloading…">
+
 <!-- LOCALIZATION NOTE (featureConfigurator.addOn.installing): The text to display while installing the addon. -->
 <!ENTITY featureConfigurator.addOn.installing "Installing…">
 
 <!-- LOCALIZATION NOTE (featureConfigurator.addOn.installed): The text to display after the user installs the addon from the configurator. -->
 <!ENTITY featureConfigurator.addOn.installed "Installed">
+
+<!-- LOCALIZATION NOTE (featureConfigurator.addOn.failure): The text to display when there is a problem installing the addon. -->
+<!ENTITY featureConfigurator.addOn.failure "There was a problem installing this extension!">
 
 <!-- LOCALIZATION NOTE (featureConfigurator.addOn.alreadyInstalled): The label to display when the addon is already installed. -->
 <!ENTITY featureConfigurator.addOn.alreadyInstalled "This extension is already installed.">

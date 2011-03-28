@@ -71,7 +71,9 @@
       src="chrome://messenger/content/jquery-ui.js"></script>
   <title>&featureConfigurator.title;</title>
 </head>
-<body onload="folderPaneConfigurator.onLoad()" dir="&locale.dir;">
+<body onload="folderPaneConfigurator.onLoad()"
+      onunload="folderPaneConfigurator.onUnload()"
+      dir="&locale.dir;">
   <table>
     <tbody>
       <tr>
@@ -86,8 +88,11 @@
                      id="addon-install-button"
                      value="&featureConfigurator.folderColumns.install;"
                      onclick="folderPaneConfigurator.install();" />
-              <span id="installing"><img class="spinner" src="chrome://global/skin/icons/loading_16.png"/>&featureConfigurator.addOn.installing;</span>
+              <img id="spinner" src="chrome://global/skin/icons/loading_16.png"/>
+              <span id="downloading">&featureConfigurator.addOn.downloading;</span>
+              <span id="installing">&featureConfigurator.addOn.installing;</span>
               <span id="installed">&featureConfigurator.addOn.installed;</span>
+              <span id="failure">&featureConfigurator.addOn.failure;</span>
               <span id="alreadyInstalled">&featureConfigurator.addOn.alreadyInstalled;</span>
             </div>
           </form>

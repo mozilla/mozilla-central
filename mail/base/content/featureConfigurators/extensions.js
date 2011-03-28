@@ -39,6 +39,10 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
+Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://gre/modules/AddonManager.jsm");
+Cu.import("resource:///modules/errUtils.js");
+
 var extensionConfigurator = {
   /**
    * Figure out what we want to display on the extension page.
@@ -47,33 +51,87 @@ var extensionConfigurator = {
    */
   onLoad: function ex_onLoad() {
     this.subpageData = parent.gSubpageData;
+    Services.obs.addObserver(this.onInstallFailed, "addon-install-failed",
+                             false);
+
     try {
       if (this.shouldShowStrongMessage()) {
         // Show the more blatant warning.
         $("#weak").hide();
         $("#strong").show();
       }
-      var Application = Cc["@mozilla.org/steel/application;1"]
-                          .getService(Ci.steelIApplication);
-      if (Application.extensions.has(this.extensionId)) {
-        $("#addon-install-button").hide();
-        $("#alreadyInstalled").show();
-      }
+
+      // Check if this addon is installed (or will be installed when
+      // Thunderbird is restarted).
+      let self = this;
+      AddonManager.getAllAddons(function(extensions) {
+        if (extensions.some(function(e) e.id == self.extensionId))
+          self.onAlreadyInstalled();
+      });
+      AddonManager.getAllInstalls(function(extensions) {
+        if (extensions.some(function(e) e.addon.id == self.extensionId))
+          self.onAlreadyInstalled();
+      });
     } catch (e) {
       logException(e);
     }
+  },
+
+  onUnload: function ex_onUnload() {
+    Services.obs.removeObserver(this.onInstallFailed, "addon-install-failed");
+  },
+
+  /**
+   * This addon has already been installed, so hide the install button.
+   */
+  onAlreadyInstalled: function ex_onAlreadyInstalled() {
+    $("#addon-install-button").hide();
+    $("#alreadyInstalled").show();
+  },
+
+  /**
+   * Installation of the addon failed for some reason, so update the UI to
+   * indicate this.
+   */
+  onInstallFailed: function ex_onInstallFailed() {
+    $("#addon-install-button").hide();
+    $("#spinner").hide();
+    $("#downloading").hide();
+    $("#installing").hide();
+    $("#failure").show();
   },
 
   /**
    * Install an extension for our subclass.
    */
   install: function ex_install() {
-    location.href = this.extensionUrl;
-    $("#addon-install-button").hide();
-    $("#installing").fadeIn();
-    // XXX: possibly load the extension inside another iframe, and possibly
-    //      hook into the extension manager to get to know when the
-    //      extension's been installed.
+    AddonManager.getInstallForURL(this.extensionUrl, function(aInstall) {
+      aInstall.addListener({
+        onDownloadStarted: function(aInstall) {
+          $("#addon-install-button").hide();
+          $("#spinner").fadeIn();
+          $("#downloading").fadeIn();
+        },
+        onDownloadCancelled: function(aInstall) {
+          $("#spinner").hide();
+          $("#downloading").hide();
+          $("#addon-install-button").show();
+        },
+        onInstallStarted: function(aInstall) {
+          $("#downloading").hide();
+          $("#installing").fadeIn();
+        },
+        onInstallEnded: function(aInstall, aAddon) {
+          $("#spinner").hide();
+          $("#installing").hide();
+          $("#installed").show();
+        },
+      });
+
+      AddonManager.installAddonsFromWebpage("application/x-xpinstall",
+                                            window, null, [aInstall]);
+    }, "application/x-xpinstall");
+
   },
 
 };
