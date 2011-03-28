@@ -565,7 +565,8 @@ var nsSaveCommand =
     var editor = GetCurrentEditor();
     if (editor)
     {
-      FinishHTMLSource();
+      if (IsHTMLEditor())
+        FinishHTMLSource();
       result = SaveDocument(IsUrlAboutBlank(GetDocumentUrl()), false, editor.contentsMIMEType);
       window.content.focus();
     }
@@ -585,15 +586,16 @@ var nsSaveAsCommand =
 
   doCommand: function(aCommand)
   {
+    var result = false;
     var editor = GetCurrentEditor();
     if (editor)
     {
-      FinishHTMLSource();
-      var result = SaveDocument(true, false, editor.contentsMIMEType);
+      if (IsHTMLEditor)
+        FinishHTMLSource();
+      result = SaveDocument(true, false, editor.contentsMIMEType);
       window.content.focus();
-      return result;
     }
-    return false;
+    return result;
   }
 }
 
@@ -832,9 +834,9 @@ function PromptForSaveLocation(aDoSaveAsText, aEditorType, aMIMEType, aDocumentU
   // determine prompt string based on type of saving we'll do
   var promptString;
   if (aDoSaveAsText || aEditorType == "text")
-    promptString = GetString("ExportToText");
+    promptString = GetString("SaveTextAs");
   else
-    promptString = GetString("SaveDocumentAs")
+    promptString = GetString("SaveDocumentAs");
 
   fp.init(window, promptString, nsIFilePicker.modeSave);
 
