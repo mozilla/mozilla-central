@@ -258,6 +258,9 @@ function setupModule() {
                : "3pane does not appear to have fully loaded yet!"]);
 
   setupAccountStuff();
+  // Adding a local inbox expands the local folders server, which the
+  // mozmill tests don't expect, so collapse it.
+  mc.folderTreeView.toggleOpenState(1);
 }
 
 /**
