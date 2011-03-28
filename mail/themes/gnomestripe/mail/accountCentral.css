@@ -44,7 +44,8 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 #acctCentralGrid {
-  background-color: #FFFFFF;
+  background-color: -moz-Field;
+  color: -moz-FieldText;
 }
 
 separator {
@@ -64,13 +65,11 @@ separator.thin {
   -moz-padding-end: 0px;
   font-size: 180%;
   font-weight: bold;
-  color: #000000;
 }
 
 .acctCentralRow {
   -moz-margin-start: 10px;
   font-size: 125%;
-  color: Highlight;
 }
 
 .row-iconic-icon {
@@ -79,18 +78,23 @@ separator.thin {
 }
 
 .acctCentralRowTitleBox {
-  background-color: -moz-Dialog;
-  -moz-appearance: toolbox;
+  background-color: ButtonFace;
+  border: 1px solid ThreeDDarkShadow;
+  margin: 15px 6px 0px;
+  border-radius: 3px;
+  color: -moz-DialogText;
+  padding-top: 2px;
+  padding-bottom: 0;
+  -moz-padding-start: 8px;
+  -moz-padding-end: 4px;
   font-size: 150%;
   font-weight: bold;
-  color: #000000;
 }
 
 /* ::::: links ::::: */
 
 .acctCentralLinkText {
   cursor: pointer;
-  color: #212731;
   -moz-padding-start: 45px;
   margin-top: .55em;
   margin-bottom: .55em;
@@ -98,11 +102,11 @@ separator.thin {
 }
 
 .acctCentralLinkText:hover {
-  color: #39598E;
+  color: -moz-nativehyperlinktext;
 }
 
-.acctCentralLinkText:hover:active {
-  color: #000000;
+.acctCentralLinkText:active {
+  color: -moz-activehyperlinktext;
 }
 
 #ReadMessages label {
