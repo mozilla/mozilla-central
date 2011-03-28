@@ -1725,8 +1725,6 @@ let gFolderTreeView = {
    * This updates the rowmap and invalidates the right row(s) in the tree
    */
   _addChildToView: function ftl_addChildToView(aParent, aParentIndex, aNewChild) {
-    // If the parent is open, add the new child into the folder pane.
-    // Otherwise, just invalidate the parent row.
     if (aParent.open) {
       let newChildIndex;
       let newChildNum = aParent._children.indexOf(aNewChild);
@@ -1838,6 +1836,20 @@ let gFolderTreeView = {
       newChild._level = parent._level + 1;
       newChild._parent = parent;
       sortFolderItems(parent._children);
+    }
+    // If the parent is open, add the new child into the folder pane.
+    // Otherwise, just invalidate the parent row. Note that this code doesn't
+    // get called for the smart folder case.
+    if (!parent.open) {
+      // Special case adding a special folder when the parent is collapsed.
+      // Expand the parent so the user can see the special child.
+      // Expanding the parent is sufficient to add the folder to the view,
+      // because either we knew about it, or we will have added a child item
+      // for it above.
+      if (newChild._folder.flags & nsMsgFolderFlags.SpecialUse) {
+        this._toggleRow(parentIndex, false);
+        return;
+      }
     }
     this._addChildToView(parent, parentIndex, newChild);
   },

@@ -48,6 +48,8 @@ var MODULE_REQUIRES = ['folder-display-helpers'];
 
 var folderA, folderB;
 
+Cu.import("resource:///modules/MailServices.js");
+
 function setupModule(module) {
   let fdh = collector.getModule('folder-display-helpers');
   fdh.installInto(module);
@@ -67,11 +69,31 @@ function test_all_folders_toggle_folder_open_state() {
   let accounts = 2;
   assert_folder_tree_view_row_count(accounts);
 
+  let inbox = trash = outbox = archives = folderPaneA = 1;
+  // Create archives folder - this is ugly, but essentially the same as
+  // what mailWindowOverlay.js does. We can't use the built-in helper
+  // method to create the folder because we need the archive flag to get
+  // set before the folder added notification is sent out, which means
+  // creating the folder object via RDF, setting the flag, and then
+  // creating the storage, which sends the notification.
+  let pop3Server = MailServices.accounts
+                    .FindServer("tinderbox", "tinderbox", "pop3");
+  let rdfService = Cc['@mozilla.org/rdf/rdf-service;1']
+                     .getService(Ci.nsIRDFService);
+  folder = rdfService.GetResource(pop3Server.rootFolder.URI + "/Archives").
+           QueryInterface(Ci.nsIMsgFolder);
+  folder.setFlag(Ci.nsMsgFolderFlags.Archive);
+  folder.createStorageIfMissing(null);
+  // After creating Archives, account should have expanded
+  // so that we should have 5 rows visible
+  assert_folder_tree_view_row_count(accounts + inbox + trash +
+                                    archives);
+  // close the tinderbox server.
+  mc.folderTreeView.toggleOpenState(0)
   folderA = create_folder("FolderPaneA");
   be_in_folder(folderA);
 
   // After creating our first folder we should have 6 rows visible
-  let inbox = trash = outbox = folderPaneA = 1;
   assert_folder_tree_view_row_count(accounts + inbox + trash + outbox +
                                     folderPaneA);
 
