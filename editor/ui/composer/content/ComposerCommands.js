@@ -590,7 +590,7 @@ var nsSaveAsCommand =
     var editor = GetCurrentEditor();
     if (editor)
     {
-      if (IsHTMLEditor)
+      if (IsHTMLEditor())
         FinishHTMLSource();
       result = SaveDocument(true, false, editor.contentsMIMEType);
       window.content.focus();
