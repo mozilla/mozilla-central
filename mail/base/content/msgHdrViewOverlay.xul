@@ -80,28 +80,28 @@
   <menuitem id="context-saveAttachment" label="&saveAsAttachmentCmd.label;" accesskey="&saveAsAttachmentCmd.accesskey;"
             oncommand="HandleSelectedAttachments('saveAs');"/>
   <menuseparator id="context-menu-separator"/>
-  <menuitem id="context-detachAttachment" label="&detachAttachmentCmd.label;" 
+  <menuitem id="context-detachAttachment" label="&detachAttachmentCmd.label;" accesskey="&detachAttachmentCmd.accesskey;"
             oncommand="HandleSelectedAttachments('detach');"/>
-  <menuitem id="context-deleteAttachment" label="&deleteAttachmentCmd.label;" 
+  <menuitem id="context-deleteAttachment" label="&deleteAttachmentCmd.label;" accesskey="&deleteAttachmentCmd.accesskey;"
             oncommand="HandleSelectedAttachments('delete');"/>
-  <menuitem id="context-saveAllAttachments" oncommand="HandleAllAttachments('save');" 
+  <menuitem id="context-saveAllAttachments" oncommand="HandleAllAttachments('save');"
     label="&saveAllAttachmentsCmd.label;" accesskey="&saveAllAttachmentsCmd.accesskey;"/>
-  <menuitem id="context-detachAllAttachments" oncommand="HandleAllAttachments('detach');" 
+  <menuitem id="context-detachAllAttachments" oncommand="HandleAllAttachments('detach');"
     label="&detachAllAttachmentsCmd.label;"/>
-  <menuitem id="context-deleteAllAttachments" oncommand="HandleAllAttachments('delete');" 
+  <menuitem id="context-deleteAllAttachments" oncommand="HandleAllAttachments('delete');"
     label="&deleteAllAttachmentsCmd.label;"/>
 </menupopup>
 
 <menupopup id="attachmentMenuList">
   <menuseparator/>
-  <menuitem id="file-openAllAttachments" label="&openAllAttachmentsCmd.label;" 
+  <menuitem id="file-openAllAttachments" label="&openAllAttachmentsCmd.label;"
             accesskey="&openAllAttachmentsCmd.accesskey;"
             oncommand="HandleAllAttachments('open');" />
-  <menuitem id="file-saveAllAttachments" label="&saveAllAttachmentsCmd.label;" 
+  <menuitem id="file-saveAllAttachments" label="&saveAllAttachmentsCmd.label;"
     accesskey="&saveAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('save');"/>
-  <menuitem id="file-detachAllAttachments" label="&detachAllAttachmentsCmd.label;" 
+  <menuitem id="file-detachAllAttachments" label="&detachAllAttachmentsCmd.label;"
     accesskey="&detachAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('detach');" />
-  <menuitem id="file-deleteAllAttachments" label="&deleteAllAttachmentsCmd.label;" 
+  <menuitem id="file-deleteAllAttachments" label="&deleteAllAttachmentsCmd.label;"
     accesskey="&deleteAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('delete');" />
 </menupopup>
 
@@ -112,28 +112,37 @@
             accesskey="&customizeToolbar.accesskey;"/>
 </menupopup>
 
+<menupopup id="attachment-toolbar-context-menu">
+  <menuitem id="CustomizeAttachmentToolbar"
+            oncommand="CustomizeMailToolbar('attachment-view-toolbox', 'CustomizeAttachmentToolbar')"
+            label="&customizeToolbar.label;"
+            accesskey="&customizeToolbar.accesskey;"/>
+</menupopup>
+
 <menupopup id="copyUrlPopup" popupanchor="bottomleft">
   <menuitem label="&copyLinkCmd.label;" accesskey="&copyLinkCmd.accesskey;" oncommand="CopyWebsiteAddress(document.popupNode)"/>
 </menupopup>
 
 <hbox id="msgHeaderView" collapsed="true" class="main-header-area">
-  <deck id="msgHeaderViewDeck" selectedIndex="0" 
+  <deck id="msgHeaderViewDeck" selectedIndex="0"
         persist="selectedIndex" flex="1"
         context="header-toolbar-context-menu">
-  
+
     <!-- the message pane consists of 3 'boxes'. Box #2 is the expanded headers view (the default view) -->
     <vbox id="expandedHeaderView" flex="1">
 
       <!-- a convenience box for ease of extension overlaying -->
-      <vbox id="expandedHeadersBox" flex="1"> 
+      <vbox id="expandedHeadersBox" flex="1">
 
         <html:div id="expandedHeadersTopBox" flex="1">
 
           <toolbox id="header-view-toolbox"
+                   class="inline-toolbox"
                    defaulticonsize="small"
                    minwidth="50px"
                    defaultlabelalign="end"
-                   defaultmode="full">
+                   defaultmode="full"
+                   inlinetoolbox="true">
             <toolbarpalette id="header-view-toolbar-palette">
               <!-- XXXdmose need to move these commands to a controller, either
                    on the header view, the message pane, or the default
@@ -245,8 +254,9 @@
               </toolbaritem>
             </toolbarpalette>
 
-            <toolbar id="header-view-toolbar" align="start" customizable="true"
-                     mode="full" context="header-toolbar-context-menu"
+            <toolbar id="header-view-toolbar" class="inline-toolbar" align="start"
+                     customizable="true" mode="full"
+                     context="header-toolbar-context-menu"
                      defaulticonsize="small" defaultmode="full"
                      defaultset="hdrReplyToSenderButton,hdrSmartReplyButton,hdrForwardButton,hdrArchiveButton,hdrJunkButton,hdrTrashButton"/>
           </toolbox>
@@ -446,12 +456,88 @@
 
 <!-- the message pane consists of 4 'boxes'. Box #4 is the attachment box which
      can be toggled into a slim or an expanded view -->
-<hbox id="attachmentView" collapsed="true">
-  <description selectable="true" id="attachmentList" flex="1"
-               seltype="multiple" disableKeyNavigation="true"
-               onclick="attachmentListClick(event);" ondraggesture="nsDragAndDrop.startDrag(event,attachmentAreaDNDObserver);"
-               ondragover="nsDragAndDrop.dragOver(event, attachmentAreaDNDObserver);" context="attachmentListContext">
-  </description>
-</hbox>
+<vbox id="attachmentView" collapsed="true">
+  <hbox align="center" context="attachment-toolbar-context-menu" width="200">
+    <button type="checkbox" id="attachmentToggle" oncommand="toggleAttachmentList();"/>
+    <image id="attachmentIcon"/>
+    <label id="attachmentCount" crop="center" flex="1"/>
+    <label id="attachmentSize"/>
+    <!-- Use a very large flex value here so that attachmentCount doesn't take
+         up more space than necessary, but still crops itself if there's not
+         enough space. -->
+    <spacer flex="9999"/>
+
+    <toolbox id="attachment-view-toolbox"
+             class="inline-toolbox"
+             defaulticonsize="small"
+             minwidth="50px"
+             defaultlabelalign="end"
+             defaultmode="full"
+             inlinetoolbox="true">
+      <toolbarpalette id="attachment-view-toolbar-palette">
+        <toolbaritem id="attachmentSaveAll">
+          <toolbarbutton type="menu-button" id="attachmentSaveAllSingle"
+                         class="toolbarbutton-1 msgHeaderView-button"
+                         label="&saveAttachmentButton.label;"
+                         tooltiptext="&saveAttachmentButton.tooltip;"
+                         oncommand="HandleAllAttachments('saveAs'); RestoreFocusAfterHdrButton();"
+                         hidden="true">
+            <menupopup onpopupshowing="onShowSaveAttachmentMenuSingle();">
+              <menuitem id="button-openAttachment"
+                        oncommand="HandleAllAttachments('open'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        label="&openAttachmentMenuItem.label;"
+                        accesskey="&openAttachmentMenuItem.accesskey;"/>
+              <menuitem id="button-saveAttachment"
+                        oncommand="HandleAllAttachments('saveAs'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        label="&saveAsAttachmentMenuItem.label;"
+                        accesskey="&saveAsAttachmentMenuItem.accesskey;"/>
+              <menuitem id="button-detachAttachment"
+                        oncommand="HandleAllAttachments('detach'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        label="&detachAttachmentMenuItem.label;"
+                        accesskey="&detachAttachmentMenuItem.accesskey;"/>
+              <menuitem id="button-deleteAttachment"
+                        oncommand="HandleAllAttachments('delete'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        label="&deleteAttachmentMenuItem.label;"
+                        accesskey="&deleteAttachmentMenuItem.accesskey;"/>
+            </menupopup>
+          </toolbarbutton>
+          <toolbarbutton type="menu-button" id="attachmentSaveAllMultiple"
+                         class="toolbarbutton-1 msgHeaderView-button"
+                         label="&saveAllAttachmentsButton.label;"
+                         tooltiptext="&saveAllAttachmentsButton.tooltip;"
+                         oncommand="HandleAllAttachments('save'); RestoreFocusAfterHdrButton();"
+                         hidden="true">
+            <menupopup onpopupshowing="onShowSaveAttachmentMenuMultiple();">
+              <menuitem id="button-saveAllAttachments"
+                        oncommand="HandleAllAttachments('save'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        label="&saveAllAttachmentsMenuItem.label;"
+                        accesskey="&saveAllAttachmentsMenuItem.accesskey;"/>
+              <menuitem id="button-detachAllAttachments"
+                        oncommand="HandleAllAttachments('detach'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        label="&detachAllAttachmentsMenuItem.label;"
+                        accesskey="&detachAllAttachmentsMenuItem.accesskey;"/>
+              <menuitem id="button-deleteAllAttachments"
+                        oncommand="HandleAllAttachments('delete'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        label="&deleteAllAttachmentsMenuItem.label;"
+                        accesskey="&deleteAllAttachmentsMenuItem.accesskey;"/>
+            </menupopup>
+          </toolbarbutton>
+        </toolbaritem>
+      </toolbarpalette>
+      <toolbar id="attachment-view-toolbar" class="inline-toolbar" align="start"
+               customizable="true" mode="full"
+               context="attachment-toolbar-context-menu"
+               defaulticonsize="small" defaultmode="full"
+               defaultset="attachmentSaveAll"/>
+    </toolbox>
+  </hbox>
+  <box id="attachmentListWrapper" flex="1" collapsed="true">
+    <description selectable="true" id="attachmentList" flex="1"
+                 seltype="multiple"
+                 onclick="attachmentListClick(event);" ondraggesture="nsDragAndDrop.startDrag(event,attachmentAreaDNDObserver);"
+                 ondragover="nsDragAndDrop.dragOver(event, attachmentAreaDNDObserver);" context="attachmentListContext">
+    </description>
+  </box>
+</vbox>
 
 </overlay>

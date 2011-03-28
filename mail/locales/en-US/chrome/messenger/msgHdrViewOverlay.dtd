@@ -99,12 +99,15 @@
 <!ENTITY otherActionsPrint.label "print…">
 <!ENTITY otherActionsPrint.accesskey "p">
 
+<!-- Attachment context menu items -->
 <!ENTITY openAttachmentCmd.label    "Open">
 <!ENTITY openAttachmentCmd.accesskey    "O">
 <!ENTITY saveAsAttachmentCmd.label    "Save As…">
 <!ENTITY saveAsAttachmentCmd.accesskey    "A">
 <!ENTITY detachAttachmentCmd.label    "Detach…">
+<!ENTITY detachAttachmentCmd.accesskey    "T">
 <!ENTITY deleteAttachmentCmd.label    "Delete">
+<!ENTITY deleteAttachmentCmd.accesskey    "L">
 <!ENTITY openAllAttachmentsCmd.label    "Open All…">
 <!ENTITY openAllAttachmentsCmd.accesskey    "O">
 <!ENTITY saveAllAttachmentsCmd.label    "Save All…">
@@ -113,6 +116,26 @@
 <!ENTITY detachAllAttachmentsCmd.accesskey    "D">
 <!ENTITY deleteAllAttachmentsCmd.label    "Delete All…">
 <!ENTITY deleteAllAttachmentsCmd.accesskey    "E">
+
+<!-- Attachment toolbar items -->
+<!ENTITY saveAttachmentButton.label       "save">
+<!ENTITY saveAttachmentButton.tooltip     "save the attached file">
+<!ENTITY saveAllAttachmentsButton.label   "save all">
+<!ENTITY saveAllAttachmentsButton.tooltip "save all the attached files">
+<!ENTITY openAttachmentMenuItem.label     "open">
+<!ENTITY openAttachmentMenuItem.accesskey    "o">
+<!ENTITY saveAsAttachmentMenuItem.label    "save as…">
+<!ENTITY saveAsAttachmentMenuItem.accesskey    "s">
+<!ENTITY detachAttachmentMenuItem.label    "detach…">
+<!ENTITY detachAttachmentMenuItem.accesskey    "d">
+<!ENTITY deleteAttachmentMenuItem.label    "delete">
+<!ENTITY deleteAttachmentMenuItem.accesskey    "e">
+<!ENTITY saveAllAttachmentsMenuItem.label    "save all…">
+<!ENTITY saveAllAttachmentsMenuItem.accesskey    "s">
+<!ENTITY detachAllAttachmentsMenuItem.label    "detach all…">
+<!ENTITY detachAllAttachmentsMenuItem.accesskey    "d">
+<!ENTITY deleteAllAttachmentsMenuItem.label    "delete all…">
+<!ENTITY deleteAllAttachmentsMenuItem.accesskey    "e">
 
 <!ENTITY copyLinkCmd.label        "Copy Link Location">
 <!ENTITY copyLinkCmd.accesskey    "C">

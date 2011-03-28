@@ -452,6 +452,7 @@ classic.jar:
   skin/classic/aero/messenger/icons/xp-pin-grey.png                (mail/icons/xp-pin-grey.png)
   skin/classic/aero/messenger/icons/xp-pin-red.png                 (mail/icons/xp-pin-red.png)
   skin/classic/aero/messenger/tagbg.png                            (mail/tagbg.png)
+  skin/classic/aero/messenger/icons/download.png                   (mail/icons/download.png)
 % skin messenger-newsblog classic/1.0 %skin/classic/aero/messenger-newsblog/ os=WINNT osversion>=6
   skin/classic/aero/messenger-newsblog/feed-subscriptions.css      (mail/newsblog/feed-subscriptions.css)
   skin/classic/aero/messenger-newsblog/icons/rss-feed.png          (mail/newsblog/rss-feed-aero.png)

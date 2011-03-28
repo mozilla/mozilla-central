@@ -85,13 +85,12 @@ html|div#expandedHeadersTopBox {
 
 /* ::::: expanded header pane ::::: */
 
-#header-view-toolbox {
+.inline-toolbox {
   -moz-appearance: none;
   -moz-padding-end: 6px;
-  padding-top: 3px;
 }
 
-#header-view-toolbar {
+.inline-toolbar {
   -moz-appearance: none;
   min-height: 0;
   padding: 0;
@@ -108,80 +107,90 @@ html|div#expandedHeadersTopBox {
 
 /* ::::: edit message bar ::::: */
 
-#editMessageBox
-{
+#editMessageBox {
   min-width: 1px;
   border-bottom-left-radius: 0.2em;
   border-bottom-right-radius: 0.2em;
 }
 
-#editMessageDescription
-{
+#editMessageDescription {
   font-style: italic;
   font-weight: bolder;
 }
 
 /* ::::: attachment view ::::: */
 
-#attachmentList
-{
+#attachmentList {
   margin: 0px;
   background-color: -moz-Field;
   color: -moz-FieldText;
 }
 
+#attachmentToggle {
+  -moz-appearance: treetwisty;
+}
+
+#attachmentToggle[checked="true"] {
+  -moz-appearance: treetwistyopen;
+}
+
+#attachmentIcon {
+  list-style-image: url("chrome://messenger/skin/icons/filterbar.png");
+  -moz-image-region: rect(0px, 80px, 16px, 64px);
+  -moz-margin-start: 5px;
+}
+
+#attachmentCount {
+  -moz-margin-start: 0;
+}
+
+#attachmentSize {
+  color: #888a85; /* the same color as .headerName */
+}
+
+#attachmentSaveAllSingle,
+#attachmentSaveAllMultiple {
+  list-style-image: url("moz-icon://stock/gtk-save?size=menu");
+}
+
 /* XXX: Move all of the description attributes to the toolkit */
 
-description[selectable="true"]
-{
+description[selectable="true"] {
   margin: 1px 5px 4px;
 }
 
-descriptionitem
-{
+descriptionitem {
   border: 1px solid transparent;
   margin: 1px;
 }
 
-description[selectable="true"]:focus > descriptionitem[selected="true"][current="true"] 
-{
+description[selectable="true"]:focus > descriptionitem[current="true"]  {
   border: 1px dotted #F5DB95;
 }
 
-descriptionitem[selected="true"] 
-{
+descriptionitem[selected="true"] {
   background-color: -moz-Dialog;
   color: -moz-DialogText;
 }
 
-description[selectable="true"]:focus > descriptionitem[selected="true"] 
-{
+description[selectable="true"]:focus > descriptionitem[selected="true"] {
   background-color: Highlight;
   color: HighlightText;
 }
 
-.attachmentBox 
-{
+.attachmentBox {
   width: 15em;
 }
 
-#attachmentView[largeView="true"] .attachmentBox
-{
+#attachmentList[largeView="true"] .attachmentBox {
   -moz-box-orient: vertical;
 }
 
-#attachmentView
-{
+#attachmentView {
   border-top: 1px solid ThreeDShadow;
-  min-height: 30px;
 }
 
-#attachmentView[largeView="true"]
-{
-  min-height: 55px;
-}
-
-#attachmentView[attachmentOverflow="true"] {
+#attachmentListWrapper[attachmentOverflow="true"] {
   overflow: auto;
 }
 
@@ -213,6 +222,30 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .msgHeaderView-button[disabled="true"] {
   display: none;
+}
+
+.msgHeaderView-button[type="menu-button"] {
+  /* important required to override -moz-appearance from msgHdrView-button */
+  -moz-appearance: dualbutton !important;
+}
+
+.msgHeaderView-button[type="menu-button"] > .toolbarbutton-menubutton-button {
+  -moz-appearance: button;
+  min-width: 1em;
+  min-height: 1ex;
+  margin: 0;
+  /* important required to override messenger.css rule */
+  padding: 0 !important;
+}
+
+.msgHeaderView-button[type="menu-button"] > .toolbarbutton-menubutton-dropmarker {
+  -moz-margin-start: 2px;
+  -moz-margin-end: 2px;
+}
+
+.msgHeaderView-button[type="menu-button"] > .toolbarbutton-menubutton-dropmarker[open="true"] {
+  margin-top: 0px;
+  -moz-margin-end: 2px;
 }
 
 /* toolbar[mode="text"] is necessary so that we end up with more specificity
@@ -253,15 +286,11 @@ toolbar[iconsize="small"] .hdrReplyToSenderButton {
 }
 
 .hdrReplyButton {
-  /* important required to override -moz-appearance from msgHdrView-button */
-  -moz-appearance: dualbutton !important;
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 96px 24px 72px);
 }
 
 toolbar[iconsize="small"] .hdrReplyButton {
-  /* important required to override -moz-appearance from msgHdrView-button */
-  -moz-appearance: dualbutton !important;
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 64px 16px 48px);
 }
@@ -284,25 +313,6 @@ toolbar[iconsize="small"] .hdrReplyAllButton {
 toolbar[iconsize="small"] .hdrReplyListButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 96px 16px 80px);
-}
-
-.hdrReplyButton > .toolbarbutton-menubutton-button {
-  -moz-appearance: button;
-  min-width: 1em;
-  min-height: 1ex;
-  margin: 0;
-  /* important required to override messenger.css rule */
-  padding: 0 !important;
-}
-
-.hdrReplyButton > .toolbarbutton-menubutton-dropmarker {
-  -moz-margin-start: 2px;
-  -moz-margin-end: 2px;
-}
-
-.hdrReplyButton > .toolbarbutton-menubutton-dropmarker[open="true"] {
-  margin-top: 0px;
-  -moz-margin-end: 2px;
 }
 
 .hdrForwardButton {
@@ -348,29 +358,29 @@ toolbar[iconsize="small"] .hdrTrashButton {
   list-style-image: url("moz-icon://stock/gtk-delete?size=menu");
 }
 
-#header-view-toolbar toolbarpaletteitem toolbarseparator,
-#header-view-toolbar toolbarseparator {
+.inline-toolbar toolbarpaletteitem toolbarseparator,
+.inline-toolbar toolbarseparator {
   height: 26px;
 }
 
-#header-view-toolbar toolbarspacer {
+.inline-toolbar toolbarspacer {
   height: 20px;
 }
 
-window[toolboxId="header-view-toolbox"] #wrapper-spring {
+window[inlinetoolbox] #wrapper-spring {
   display: none;
 }
 
-#header-view-toolbox[doCustomization] {
+.inline-toolbox[doCustomization] {
   background: grey;
 }
 
-#header-view-toolbox[doCustomization] #header-view-toolbar {
+.inline-toolbox[doCustomization] .inline-toolbar {
   min-width: 100px;
   min-height: 10px;
 }
 
-#header-view-toolbar {
+.inline-toolbar {
   -moz-box-pack: end;
 }
 
@@ -655,12 +665,12 @@ mail-newsgroups-headerfield {
   -moz-box-align: baseline;
 }
 
-window[toolboxId="header-view-toolbox"] #smallicons,
-window[toolboxId="header-view-toolbox"] button[icon="add"] {
+window[inlinetoolbox] #smallicons,
+window[inlinetoolbox] button[icon="add"] {
   display: none;
 }
 
-window[toolboxId="header-view-toolbox"] #modelist menuitem:first-child {
+window[inlinetoolbox] #modelist menuitem:first-child {
   display: none;
 }
 
@@ -682,6 +692,7 @@ mail-headerfield > .headerValue {
 
 #header-view-toolbox {
   float: right;
+  padding-top: 3px;
 }
 
 #header-view-toolbox:-moz-locale-dir(rtl) {

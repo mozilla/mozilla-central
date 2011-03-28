@@ -85,14 +85,13 @@ html|div#expandedHeadersTopBox {
 
 /* ::::: expanded header pane ::::: */
 
-#header-view-toolbox {
+.inline-toolbox {
   border-top-width: 0;
   -moz-appearance: none;
-  padding-top: 3px;
 }
 
 /* toolbars are optimized to look like OS-provided widgets; override this */
-#header-view-toolbar {
+.inline-toolbar {
   -moz-appearance: none;
   padding: 0;
   border-bottom-width: 0;
@@ -109,80 +108,90 @@ html|div#expandedHeadersTopBox {
 
 /* ::::: edit message bar ::::: */
 
-#editMessageBox
-{
+#editMessageBox {
   min-width: 1px;
   border-bottom-left-radius: 0.2em;
   border-bottom-right-radius: 0.2em;
 }
 
-#editMessageDescription
-{
+#editMessageDescription {
   font-style: italic;
   font-weight: bolder;
 }
 
 /* ::::: attachment view ::::: */
 
-#attachmentList
-{
+#attachmentList {
   margin: 0px;
   background-color: -moz-Field;
   color: -moz-FieldText;
 }
 
+#attachmentToggle {
+  -moz-appearance: treetwisty;
+}
+
+#attachmentToggle[checked="true"] {
+  -moz-appearance: treetwistyopen;
+}
+
+#attachmentIcon {
+  list-style-image: url("chrome://messenger/skin/icons/attachment-col.png");
+  -moz-margin-start: 5px;
+}
+
+#attachmentCount {
+  -moz-margin-start: 0;
+}
+
+#attachmentSize {
+  color: #888a85; /* the same color as .headerName */
+}
+
+#attachmentSaveAllSingle,
+#attachmentSaveAllMultiple {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 192px 16px 176px);
+}
+
 /* XXX: Move all of the description attributes to the toolkit */
 
-description[selectable="true"]
-{
+description[selectable="true"] {
   margin: 1px 5px 4px;
 }
 
-descriptionitem
-{
+descriptionitem {
   border: 1px solid transparent;
   margin: 1px;
 }
 
-description[selectable="true"]:focus > descriptionitem[selected="true"][current="true"]
-{
+description[selectable="true"]:focus > descriptionitem[current="true"] {
   border: 1px dotted #F5DB95;
 }
 
-descriptionitem[selected="true"]
-{
+descriptionitem[selected="true"] {
   background-color: -moz-Dialog;
   color: -moz-DialogText;
 }
 
-description[selectable="true"]:focus > descriptionitem[selected="true"]
-{
+description[selectable="true"]:focus > descriptionitem[selected="true"] {
   background-color: Highlight;
   color: HighlightText;
 }
 
-.attachmentBox
-{
+.attachmentBox {
   width: 15em;
 }
 
-#attachmentView[largeView="true"] .attachmentBox
-{
+#attachmentView[largeView="true"] .attachmentBox {
   -moz-box-orient: vertical;
 }
 
-#attachmentView
-{
+#attachmentView {
   border-top: 1px solid ThreeDShadow;
-  min-height: 30px;
 }
 
-#attachmentView[largeView="true"]
-{
-  min-height: 55px;
-}
-
-#attachmentView[attachmentOverflow="true"] {
+#attachmentListWrapper[attachmentOverflow="true"] {
   overflow: auto;
 }
 
@@ -228,6 +237,27 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   display: none;
 }
 
+.msgHeaderView-button[type="menu-button"] {
+  /* important required to override -moz-appearance from msgHdrView-button */
+  -moz-appearance: dualbutton !important;
+  -moz-margin-end: 0 !important;
+
+  /* Need to override both rules from messenger.css and msgHeaderView-button */
+  padding: 0 !important;
+}
+
+.msgHeaderView-button[type="menu-button"] > .toolbarbutton-menubutton-button {
+  -moz-appearance: button;
+  min-width: 1em;
+  min-height: 1ex;
+  margin: 0px;
+  /* important required to override messenger.css rules */
+  -moz-padding-start: 4px !important;
+  -moz-padding-end: 3px !important;
+  padding-top: 3px !important;
+  padding-bottom: 2px !important;
+}
+
 /* toolbar[mode="text"] is necessary so that we end up with more specificity
  * than the !important rule in toolkit's toolbar.css.
  */
@@ -268,14 +298,8 @@ toolbar[iconsize="small"] .hdrReplyToSenderButton {
 }
 
 .hdrReplyButton {
-  /* important required to override -moz-appearance from msgHdrView-button */
-  -moz-appearance: dualbutton !important;
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 96px 24px 72px);
-  -moz-margin-end: 0 !important;
-  
-  /* Need to override both rules from messenger.css and msgHeaderView-button */
-  padding: 0 !important;
 }
 
 toolbar[iconsize="small"] .hdrReplyButton {
@@ -307,18 +331,6 @@ toolbar[iconsize="small"] .hdrReplyAllButton {
 toolbar[iconsize="small"] .hdrReplyListButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 112px 16px 96px);
-}
-
-.hdrReplyButton > .toolbarbutton-menubutton-button {
-  -moz-appearance: button;
-  min-width: 1em;
-  min-height: 1ex;
-  margin: 0px;
-  /* important required to override messenger.css rules */
-  -moz-padding-start: 4px !important;
-  -moz-padding-end: 3px !important;
-  padding-top: 3px !important;
-  padding-bottom: 2px !important;
 }
 
 .hdrForwardButton {
@@ -366,38 +378,38 @@ toolbar[iconsize="small"] .hdrTrashButton {
   -moz-image-region: rect(0px 128px 16px 112px);
 }
 
-#header-view-toolbar toolbarpaletteitem toolbarseparator,
-#header-view-toolbar toolbarseparator {
+.inline-toolbar toolbarpaletteitem toolbarseparator,
+.inline-toolbar toolbarseparator {
   height: 30px;
   -moz-margin-start: 1px; /* make it symetrical */
 }
 
-#header-view-toolbar toolbarspacer {
+.inline-toolbar toolbarspacer {
   height: 24px;
 }
 
-#header-view-toolbar {
+.inline-toolbar {
   -moz-box-pack: end;
 }
 
-window[toolboxId="header-view-toolbox"] #smallicons,
-window[toolboxId="header-view-toolbox"] button[icon="add"] {
+window[inlinetoolbox] #smallicons,
+window[inlinetoolbox] button[icon="add"] {
   display: none;
 }
 
-window[toolboxId="header-view-toolbox"] #modelist menuitem:first-child {
+window[inlinetoolbox] #modelist menuitem:first-child {
   display: none;
 }
 
-window[toolboxId="header-view-toolbox"] #wrapper-spring {
+window[inlinetoolbox] #wrapper-spring {
   display: none;
 }
 
-#header-view-toolbox[doCustomization] {
+.inline-toolbox[doCustomization] {
   background: grey;
 }
 
-#header-view-toolbox[doCustomization] #header-view-toolbar {
+.inline-toolbox[doCustomization] #attachment-view-toolbar {
   min-width: 100px;
   min-height: 10px;
 }
@@ -700,6 +712,7 @@ mail-headerfield > .headerValue {
 
 #header-view-toolbox {
   float: right;
+  padding-top: 3px;
 }
 
 #header-view-toolbox:-moz-locale-dir(rtl) {

@@ -155,6 +155,7 @@
 
   <menupopup id="attachmentListContext"/>
   <menupopup id="header-toolbar-context-menu"/>
+  <menupopup id="attachment-toolbar-context-menu"/>
   <menupopup id="copyUrlPopup"/>
   <menupopup id="toolbar-context-menu"/>
 
@@ -180,7 +181,7 @@
              onresize="return messagePaneOnResize(event);" autofind="false"
              src="about:blank" onclick="return contentAreaClick(event);" />
     <splitter id="attachment-splitter" collapse="after" resizebefore="closest" resizeafter="closest" collapsed="true"/>
-    <hbox id="attachmentView"/>
+    <vbox id="attachmentView"/>
     <findbar id="FindToolbar" browserid="messagepane"/>
   </vbox>
   <panel id="customizeToolbarSheetPopup" noautohide="true">

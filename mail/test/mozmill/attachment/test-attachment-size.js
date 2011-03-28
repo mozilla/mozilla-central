@@ -19,7 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Jim Porter <jvporter@wisc.edu>
+ *   Jim Porter <squibblyflabbetydoo@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -65,7 +65,74 @@ const imageSize = 188;
 const detachedName = './attachment.txt';
 const missingName = './nonexistent.txt';
 const deletedName = 'deleted.txt';
-var detachedSize;
+
+// create some messages that have various types of attachments
+var messages = [
+  { name: 'text_attachment',
+    attachments: [{ body: textAttachment,
+                    filename: 'ubik.txt',
+                    format: '' }],
+    attachmentSizes: [textAttachment.length],
+  },
+  { name: 'binary_attachment',
+    attachments: [{ body: binaryAttachment,
+                    contentType: 'application/x-ubik',
+                    filename: 'ubik',
+                    format: '' }],
+    attachmentSizes: [binaryAttachment.length],
+  },
+  { name: 'image_attachment',
+    attachments: [{ body: imageAttachment,
+                    contentType: 'image/png',
+                    filename: 'lines.png',
+                    encoding: 'base64',
+                    format: '' }],
+    attachmentSizes: [imageSize],
+  },
+  { name: 'detached_attachment',
+    bodyPart: null,
+    attachmentSizes: [null],
+  },
+  { name: 'detached_attachment_with_missing_file',
+    bodyPart: null,
+    attachmentSizes: [null],
+  },
+  { name: 'deleted_attachment',
+    bodyPart: null,
+    attachmentSizes: [null],
+  },
+  { name: 'multiple_attachments',
+    attachments: [{ body: textAttachment,
+                    filename: 'ubik.txt',
+                    format: '' },
+                  { body: binaryAttachment,
+                    contentType: 'application/x-ubik',
+                    filename: 'ubik',
+                    format: '' }],
+    attachmentSizes: [textAttachment.length, binaryAttachment.length],
+  },
+  { name: 'multiple_attachments_one_detached',
+    bodyPart: null,
+    attachments: [{ body: textAttachment,
+                    filename: 'ubik.txt',
+                    format: '' }],
+    attachmentSizes: [null, textAttachment.length],
+  },
+  { name: 'multiple_attachments_one_detached_with_missing_file',
+    bodyPart: null,
+    attachments: [{ body: textAttachment,
+                    filename: 'ubik.txt',
+                    format: '' }],
+    attachmentSizes: [null, textAttachment.length],
+  },
+  { name: 'multiple_attachments_one_deleted',
+    bodyPart: null,
+    attachments: [{ body: textAttachment,
+                    filename: 'ubik.txt',
+                    format: '' }],
+    attachmentSizes: [null, binaryAttachment.length],
+  },
+];
 
 function setupModule(module) {
   let fdh = collector.getModule('folder-display-helpers');
@@ -85,55 +152,45 @@ function setupModule(module) {
    */
   epsilon = ('@mozilla.org/windows-registry-key;1' in Components.classes) ? 2 : 1;
 
-  folder = create_folder('AttachmentSizeA');
-
   // set up our detached/deleted attachments
-  let thisFilePath = os.getFileForPath(__file__);
+  var thisFilePath = os.getFileForPath(__file__);
 
-  let detachedFile = os.getFileForPath(os.abspath(detachedName, thisFilePath));
-  let detached = {
-    body: 'Here is a file',
-    attachments: [ createDeletedAttachment(detachedFile, 'text/plain', true)] };
-  detachedSize = detachedFile.fileSize;
+  var detachedFile = os.getFileForPath(os.abspath(detachedName, thisFilePath));
+  var detached = createBodyPart(
+    'Here is a file',
+    [createDeletedAttachment(detachedFile, 'text/plain', true)]
+  );
 
-  let missingFile = os.getFileForPath(os.abspath(missingName, thisFilePath));
-  let missing = {
-    body: 'Here is a file (but you deleted the external file, you silly oaf!)',
-    attachments: [ createDeletedAttachment(missingFile, 'text/plain', true)] };
+  var missingFile = os.getFileForPath(os.abspath(missingName, thisFilePath));
+  var missing = createBodyPart(
+    'Here is a file (but you deleted the external file, you silly oaf!)',
+     [createDeletedAttachment(missingFile, 'text/plain', true)]
+  );
 
-  let deleted = {
-    body: 'Here is a file that you deleted',
-    attachments: [ createDeletedAttachment(deletedName, 'text/plain')] };
+  var deleted = createBodyPart(
+    'Here is a file that you deleted',
+    [ createDeletedAttachment(deletedName, 'text/plain')]
+  );
 
-  // create some messages that have various types of attachments
-  let messages = [
-    // text attachment
-    { attachments: [{ body: textAttachment,
-                      filename: 'ubik.txt',
-                      format: '' }]},
-    // binary attachment
-    { attachments: [{ body: binaryAttachment,
-                      contentType: 'application/x-ubik',
-                      filename: 'ubik',
-                      format: '' }]},
-    // (inline) image attachment
-    { attachments: [{ body: imageAttachment,
-                      contentType: 'image/png',
-                      filename: 'lines.png',
-                      encoding: 'base64',
-                      format: '' }]},
-    // detached attachment
-    { bodyPart: createBodyPart(detached.body,
-                               detached.attachments) },
-    // detached attachment with missing file
-    { bodyPart: createBodyPart(missing.body,
-                               missing.attachments) },
-    // deleted attachment
-    { bodyPart: createBodyPart(deleted.body,
-                               deleted.attachments) },
-    ];
+  folder = create_folder('AttachmentSizeA');
+  for (let i = 0; i < messages.length; i++) {
+    // First, add any missing info to the message object.
+    switch(messages[i].name) {
+      case 'detached_attachment':
+      case 'multiple_attachments_one_detached':
+        messages[i].bodyPart = detached;
+        messages[i].attachmentSizes[0] = detachedFile.fileSize;
+        break;
+      case 'detached_attachment_with_missing_file':
+      case 'multiple_attachments_one_detached_with_missing_file':
+        messages[i].bodyPart = missing;
+        break;
+      case 'deleted_attachment':
+      case 'multiple_attachments_one_deleted':
+        messages[i].bodyPart = deleted;
+        break;
+    }
 
-  for (let i=0; i<messages.length; i++) {
     add_message_to_folder(folder, create_message(messages[i]));
   }
 }
@@ -151,7 +208,7 @@ function createBodyPart(body, attachments, boundary)
     boundary = '------------CHOPCHOP';
 
   return {
-    contentTypeHeaderValue: 
+    contentTypeHeaderValue:
       'multipart/mixed;\r\n boundary="' + boundary + '"',
     toMessageString: function() {
       let str = 'This is a multi-part message in MIME format.\r\n' +
@@ -210,10 +267,12 @@ function createDeletedAttachment(file, type) {
 
 /**
  * Make sure that the attachment's size is what we expect
+ * @param index the attachment's index, starting at 0
  * @param expectedSize the expected size of the attachment, in bytes
  */
-function check_attachment_size(expectedSize) {
-  let node = mc.e('attachmentList', {tagName: 'descriptionitem'});
+function check_attachment_size(index, expectedSize) {
+  let list = mc.e('attachmentList');
+  let node = list.getElementsByTagName('descriptionitem')[index];
 
   // First, let's check that the 'attachmentSize' attribute is correct
   let size = parseInt(node.getAttribute('attachmentSize'));
@@ -231,9 +290,11 @@ function check_attachment_size(expectedSize) {
 
 /**
  * Make sure that the attachment's size is not displayed
+ * @param index the attachment's index, starting at 0
  */
-function check_no_attachment_size() {
-  let node = mc.e('attachmentList', {tagName: 'descriptionitem'});
+function check_no_attachment_size(index) {
+  let list = mc.e('attachmentList');
+  let node = list.getElementsByTagName('descriptionitem')[index];
 
   if (node.getAttribute('attachmentSize') != '')
     throw new Error('attachmentSize attribute of deleted attachment should ' +
@@ -243,44 +304,56 @@ function check_no_attachment_size() {
     throw new Error('Attachment size should not be displayed!');
 }
 
-function test_text_attachment() {
-  be_in_folder(folder);
-  let curMessage = select_click_row(0);
+/**
+ * Make sure that the total size of all attachments is what we expect.
+ * @param count the expected number of attachments
+ */
+function check_total_attachment_size(count) {
+  let list = mc.e('attachmentList');
+  let nodes = list.getElementsByTagName('descriptionitem');
+  let sizeNode = mc.e('attachmentSize');
 
-  check_attachment_size(textAttachment.length);
+  if (nodes.length != count)
+    throw new Error('Saw '+nodes.length+' attachments, but expected '+count);
+
+  let size = 0;
+  for (let i = 0; i < nodes.length; i++) {
+    let currSize = parseInt(nodes[i].getAttribute("attachmentSize"));
+    if (currSize)
+      size += currSize;
+  }
+
+  // Next, make sure that the formatted size in the label is correct
+  let formattedSize = sizeNode.getAttribute('value');
+  let expectedFormattedSize = messenger.formatFileSize(size);
+  if (formattedSize != expectedFormattedSize)
+    throw new Error('Formatted attachment size ('+formattedSize+') does not ' +
+                    'match expected value ('+expectedFormattedSize+')');
 }
 
-function test_binary_attachment() {
+/**
+ * Make sure that the individual and total attachment sizes for this message
+ * are as expected
+ * @param index the index of the message to check in the thread pane
+ */
+function help_test_attachment_size(index) {
   be_in_folder(folder);
-  let curMessage = select_click_row(1);
+  let curMessage = select_click_row(index);
 
-  check_attachment_size(binaryAttachment.length);
+  let expectedSizes = messages[index].attachmentSizes;
+  for (let i = 0; i < expectedSizes.length; i++) {
+    if(expectedSizes[i] == null)
+      check_no_attachment_size(i);
+    else
+      check_attachment_size(i, expectedSizes[i]);
+  }
+  check_total_attachment_size(expectedSizes.length);
 }
 
-function test_image_attachment() {
-  be_in_folder(folder);
-  let curMessage = select_click_row(2);
-
-  check_attachment_size(imageSize);
-}
-
-function test_detached_attachment() {
-  be_in_folder(folder);
-  let curMessage = select_click_row(3);
-
-  check_attachment_size(detachedSize);
-}
-
-function test_detached_attachment_with_no_external_file() {
-  be_in_folder(folder);
-  let curMessage = select_click_row(4);
-
-  check_no_attachment_size();
-}
-
-function test_deleted_attachment() {
-  be_in_folder(folder);
-  let curMessage = select_click_row(5);
-
-  check_no_attachment_size();
+// Generate a test for each message in |messages|.
+for each (let [i, message] in Iterator(messages)) {
+  let index = i; // make a copy to avoid passing a reference to i
+  this["test_" + message.name] = function() {
+    help_test_attachment_size(index);
+  };
 }

@@ -275,24 +275,39 @@ function OnLoadMsgHeaderPane()
   var headerViewElement = document.getElementById("msgHeaderView");
   headerViewElement.dispatchEvent(event);
 
-  var toolbox = document.getElementById("header-view-toolbox");
+  initInlineToolbox("header-view-toolbox", "header-view-toolbar",
+                    "CustomizeHeaderToolbar");
+  initInlineToolbox("attachment-view-toolbox", "attachment-view-toolbar",
+                    "CustomizeAttachmentToolbar");
+}
+
+/**
+ * Initialize an inline toolbox and its toolbar to have the appropriate
+ * attributes necessary for customization and persistence.
+ *
+ * @param toolboxId the id for the toolbox to initialize
+ * @param toolbarId the id for the toolbar to initialize
+ * @param popupId the id for the menupopup to initialize
+ */
+function initInlineToolbox(toolboxId, toolbarId, popupId) {
+  let toolbox = document.getElementById(toolboxId);
   toolbox.customizeDone = function(aEvent) {
-    MailToolboxCustomizeDone(aEvent, "CustomizeHeaderToolbar");
+    MailToolboxCustomizeDone(aEvent, popupId);
   };
 
-  var toolbarset = document.getElementById('customToolbars');
+  let toolbarset = document.getElementById("customToolbars");
   toolbox.toolbarset = toolbarset;
 
   // Check whether we did an upgrade to a customizable header pane.
   // If yes, set the header pane toolbar mode to icons besides text
-  var toolbar = document.getElementById("header-view-toolbar");
+  let toolbar = document.getElementById(toolbarId);
   if (toolbox && toolbar) {
     if (!toolbox.getAttribute("mode")) {
 
       /* set toolbox attributes to default values */
-      var mode = toolbox.getAttribute("defaultmode");
-      var align = toolbox.getAttribute("defaultlabelalign");
-      var iconsize = toolbox.getAttribute("defaulticonsize");
+      let mode = toolbox.getAttribute("defaultmode");
+      let align = toolbox.getAttribute("defaultlabelalign");
+      let iconsize = toolbox.getAttribute("defaulticonsize");
       toolbox.setAttribute("mode", mode);
       toolbox.setAttribute("labelalign", align);
       toolbox.setAttribute("iconsize", iconsize);
@@ -1774,6 +1789,47 @@ function onShowAttachmentContextMenu()
   }
 }
 
+/**
+ * Enable/disable menu items as appropriate for the single-attachment save all
+ * toolbar button.
+ */
+function onShowSaveAttachmentMenuSingle()
+{
+  let openItem   = document.getElementById('button-openAttachment');
+  let saveItem   = document.getElementById('button-saveAttachment');
+  let detachItem = document.getElementById('button-detachAttachment');
+  let deleteItem = document.getElementById('button-deleteAttachment');
+
+  let detached = currentAttachments[0].isExternalAttachment;
+  let deleted  = currentAttachments[0].contentType == 'text/x-moz-deleted';
+  let canDetach = CanDetachAttachments() && !deleted && !detached;
+
+  openItem.setAttribute('disabled', deleted);
+  saveItem.setAttribute('disabled', deleted);
+  detachItem.setAttribute('disabled', !canDetach);
+  deleteItem.setAttribute('disabled', !canDetach);
+}
+
+/**
+ * Enable/disable menu items as appropriate for the multiple-attachment save all
+ * toolbar button.
+ */
+function onShowSaveAttachmentMenuMultiple()
+{
+  let saveAllItem   = document.getElementById('button-saveAllAttachments');
+  let detachAllItem = document.getElementById('button-detachAllAttachments');
+  let deleteAllItem = document.getElementById('button-deleteAllAttachments');
+
+  let anyDetached = currentAttachments.some(function(i) i.isExternalAttachment);
+  let anyDeleted  = currentAttachments.some(function(i) i.contentType ==
+                                            'text/x-moz-deleted');
+  let canDetach = CanDetachAttachments() && !anyDeleted && !anyDetached;
+
+  saveAllItem.setAttribute('disabled', anyDeleted);
+  detachAllItem.setAttribute('disabled', !canDetach);
+  deleteAllItem.setAttribute('disabled', !canDetach);
+}
+
 function MessageIdClick(node, event)
 {
   if (event.button == 0)
@@ -1824,72 +1880,129 @@ function createAttachmentDisplayName(aAttachment)
 function displayAttachmentsForExpandedView()
 {
   var numAttachments = currentAttachments.length;
-  var expandedAttachmentBox = document.getElementById('attachmentView');
+  var totalSize = 0;
+  var attachmentView = document.getElementById('attachmentView');
   var attachmentSplitter = document.getElementById('attachment-splitter');
 
   if (numAttachments <= 0)
   {
-    expandedAttachmentBox.collapsed = true;
+    attachmentView.collapsed = true;
     attachmentSplitter.collapsed = true;
   }
   else if (!gBuildAttachmentsForCurrentMsg)
   {
-    // IMPORTANT: make sure we uncollapse the attachment box BEFORE we start adding
-    // our attachments to the view. Otherwise, layout doesn't calculate the correct height for
-    // the attachment view and we end up with a box that is too tall.
-    expandedAttachmentBox.collapsed = false;
-    attachmentSplitter.collapsed = false;
+    attachmentView.collapsed = false;
+
+    var attachmentList = document.getElementById('attachmentList');
 
     var showLargeAttView = Components.classes["@mozilla.org/preferences-service;1"]
                              .getService(Components.interfaces.nsIPrefBranch2)
                              .getBoolPref("mailnews.attachments.display.largeView")
-    if (showLargeAttView)
-      expandedAttachmentBox.setAttribute("largeView", "true");
+    attachmentList.setAttribute("largeView", showLargeAttView);
 
-    // Remove height attribute, or the attachments box could be drawn badly:
-    expandedAttachmentBox.removeAttribute("height");
+    toggleAttachmentList(false);
 
-    var attachmentList = document.getElementById('attachmentList');
     for each (let [, attachment] in Iterator(currentAttachments))
     {
       // Create a new attachment widget
       var displayName = createAttachmentDisplayName(attachment);
       var nameAndSize = displayName;
-      if (attachment.size != null)
+      if (attachment.size != null) {
         nameAndSize += " ("+messenger.formatFileSize(attachment.size)+")";
-      var attachmentView = attachmentList.appendItem(nameAndSize);
+        totalSize += attachment.size;
+      }
+      var item = attachmentList.appendItem(nameAndSize);
 
-      attachmentView.setAttribute("class", "descriptionitem-iconic");
+      item.setAttribute("class", "descriptionitem-iconic");
 
-      if (showLargeAttView)
-        attachmentView.setAttribute("largeView", "true");
+      setApplicationIconForAttachment(attachment, item, showLargeAttView);
+      item.setAttribute("tooltiptext", attachment.displayName);
+      item.setAttribute("context", "attachmentListContext");
 
-      setApplicationIconForAttachment(attachment, attachmentView, showLargeAttView);
-      attachmentView.setAttribute("tooltiptext", attachment.displayName);
-      attachmentView.setAttribute("context", "attachmentListContext");
+      item.attachment = cloneAttachment(attachment);
+      item.setAttribute("attachmentUrl", attachment.url);
+      item.setAttribute("attachmentContentType", attachment.contentType);
+      item.setAttribute("attachmentUri", attachment.uri);
+      item.setAttribute("attachmentSize", attachment.size);
 
-      attachmentView.attachment = cloneAttachment(attachment);
-      attachmentView.setAttribute("attachmentUrl", attachment.url);
-      attachmentView.setAttribute("attachmentContentType", attachment.contentType);
-      attachmentView.setAttribute("attachmentUri", attachment.uri);
-      attachmentView.setAttribute("attachmentSize", attachment.size);
-
-      var item = attachmentList.appendChild(attachmentView);
+      attachmentList.appendChild(item);
     } // for each attachment
-    gBuildAttachmentsForCurrentMsg = true;
 
-    // Switch overflow off (via css attribute selector) temporarily to get the preferred window height:
-    var attachmentContainer = document.getElementById('attachmentView');
-    attachmentContainer.setAttribute("attachmentOverflow", "false");
-    var attachmentHeight = expandedAttachmentBox.boxObject.height;
-    attachmentContainer.setAttribute("attachmentOverflow", "true");
+    var words = gMessengerBundle.getString("attachmentCount");
+    var count = PluralForm.get(currentAttachments.length, words)
+                          .replace("#1", currentAttachments.length);
+
+    // Show the appropriate toolbar button and label based on the number of
+    // attachments.
+    if (numAttachments == 1)
+    {
+      var countAndName = gMessengerBundle.getFormattedString(
+        "attachmentCountAndName", [count, createAttachmentDisplayName(
+            currentAttachments[0])]);
+
+      document.getElementById("attachmentSaveAllSingle").hidden = false;
+      document.getElementById("attachmentSaveAllMultiple").hidden = true;
+      document.getElementById("attachmentCount").setAttribute("value", countAndName);
+    }
+    else
+    {
+      document.getElementById("attachmentSaveAllSingle").hidden = true;
+      document.getElementById("attachmentSaveAllMultiple").hidden = false;
+      document.getElementById("attachmentCount").setAttribute("value", count);
+    }
+
+    document.getElementById("attachmentSize").setAttribute(
+      "value", messenger.formatFileSize(totalSize));
+
+    gBuildAttachmentsForCurrentMsg = true;
+  }
+}
+
+/**
+ * Expand/collapse the attachment list. When expanding it, automatically resize
+ * it to an appropriate height (1/4 the message pane or smaller).
+ *
+ * @param expanded True if the attachment list should be expanded, false
+ *                 otherwise. If not specified, expand/collapse based on the
+ *                 state of |attachmentToggle|.
+ */
+function toggleAttachmentList(expanded)
+{
+  var attachmentToggle      = document.getElementById("attachmentToggle");
+  var attachmentView        = document.getElementById("attachmentView");
+  var attachmentSplitter    = document.getElementById("attachment-splitter");
+  var attachmentListWrapper = document.getElementById("attachmentListWrapper");
+
+  if (expanded === undefined)
+    expanded = attachmentToggle.checked;
+  else
+    attachmentToggle.checked = expanded;
+
+  if (expanded) {
+    attachmentListWrapper.collapsed = false;
+    attachmentSplitter.collapsed = false;
+
+    var attachmentHeight = attachmentView.boxObject.height;
 
     // If the attachments box takes up too much of the message pane, downsize:
-    var maxAttachmentHeight = document.getElementById('messagepanebox').boxObject.height / 4;
-    if (attachmentHeight > maxAttachmentHeight)
-      attachmentHeight = maxAttachmentHeight;
-    expandedAttachmentBox.setAttribute("height", attachmentHeight);
- }
+    var maxAttachmentHeight = document.getElementById("messagepanebox")
+                                      .boxObject.height / 4;
+
+    attachmentListWrapper.setAttribute("attachmentOverflow", "true");
+    attachmentView.setAttribute("height", Math.min(attachmentHeight,
+                                                   maxAttachmentHeight));
+    attachmentView.setAttribute("maxheight", attachmentHeight);
+  }
+  else {
+    attachmentListWrapper.collapsed = true;
+    attachmentSplitter.collapsed = true;
+    attachmentView.removeAttribute("height");
+    attachmentView.removeAttribute("maxheight");
+
+    // Switch overflow off so that when we expand again we can get the
+    // preferred size. (Doing this when expanding hits a race condition.)
+    attachmentListWrapper.setAttribute("attachmentOverflow", "false");
+  }
 }
 
 /**
@@ -2302,4 +2415,3 @@ ConversationOpener.prototype = {
 }
 
 var gConversationOpener = new ConversationOpener();
-

@@ -165,6 +165,7 @@
 <menupopup id="folderPaneContext"/>
 <menupopup id="attachmentListContext"/>
 <menupopup id="header-toolbar-context-menu"/>
+<menupopup id="attachment-toolbar-context-menu"/>
 <menupopup id="copyUrlPopup"/>
 <menupopup id="toolbar-context-menu"/>
 
@@ -451,7 +452,7 @@
                     <splitter id="attachment-splitter" collapse="after"
                               resizebefore="closest" resizeafter="closest"
                               collapsed="true"/>
-                    <hbox id="attachmentView"/>
+                    <vbox id="attachmentView"/>
                     <findbar id="FindToolbar" browserid="messagepane"/>
                   </vbox>
                 </vbox>
