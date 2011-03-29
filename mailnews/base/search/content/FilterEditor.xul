@@ -49,7 +49,7 @@
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
   title="&window.title;"
-  style="width: 52em; height: 34em;"
+  style="&filterEditorDialog.dimensions;"
   windowtype="mailnews:filtereditor"
   persist="width height screenX screenY"
   buttons="accept,cancel"
@@ -101,9 +101,9 @@
         </menupopup>
       </menulist>
     </hbox>
-    <hbox flex="1">
-      <vbox id="searchTermListBox" flex="1"/>
-    </hbox>
+
+    <vbox id="searchTermListBox" flex="1"/>
+
   </vbox>
 
   <separator/>

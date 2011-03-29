@@ -58,7 +58,7 @@
     
     <hbox flex="1">
       <hbox id="searchterms"/>
-      <listbox flex="1" id="searchTermList">
+      <listbox flex="1" id="searchTermList" rows="4">
         <listcols>
           <listcol flex="&searchTermListAttributesFlexValue;"/>
           <listcol flex="&searchTermListOperatorsFlexValue;"/>
