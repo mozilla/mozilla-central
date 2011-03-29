@@ -153,23 +153,42 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
     }
   };
 
-  var outgoingSuccess = function(thisTry)
+  var logger = Log4Moz.getConfiguredLogger("mail.wizard");
+  var HostTryToAccountServer = function(thisTry, server)
+  {
+    server.type = protocolToString(thisTry.protocol);
+    server.hostname = thisTry.hostname;
+    server.port = thisTry.port;
+    server.socketType = sslConvertToSocketType(thisTry.ssl);
+    server.auth = chooseBestAuthMethod(thisTry.authMethods);
+    server.authAlternatives = thisTry.authMethods;
+    // TODO
+    // cert is also bad when targetSite is set. (Same below for incoming.)
+    // Fix SSLErrorHandler and security warning dialog in emailWizard.js.
+    server.badCert = thisTry.selfSignedCert;
+    server.targetSite = thisTry.targetSite;
+    logger.info("CHOOSING " + server.type + " "+ server.hostname + ":" +
+          server.port + ", auth method " + server.auth + " " +
+          server.authAlternatives.join(",") + ", SSL " + server.socketType +
+          (server.badCert ? " (bad cert!)" : ""));
+  };
+
+  var outgoingSuccess = function(thisTry, alternativeTries)
   {
     assert(thisTry.protocol == SMTP, "I only know SMTP for outgoing");
     // Ensure there are no previously saved outgoing errors, if we've got
     // success here.
     outgoingEx = null;
-    resultConfig.outgoing.type = "smtp";
-    resultConfig.outgoing.hostname = thisTry.hostname;
-    resultConfig.outgoing.port = thisTry.port;
-    resultConfig.outgoing.socketType = sslConvertToSocketType(thisTry.ssl);
-    resultConfig.outgoing.auth = chooseBestAuthMethod(thisTry.authMethods);
-    resultConfig.outgoing.authAlternatives = thisTry.authMethods;
-    // TODO
-    // cert is also bad when targetSite is set. (Same below for incoming.)
-    // Fix SSLErrorHandler and security warning dialog in emailWizard.js.
-    resultConfig.outgoing.badCert = thisTry.selfSignedCert;
-    resultConfig.outgoing.targetSite = thisTry.targetSite;
+    HostTryToAccountServer(thisTry, resultConfig.outgoing);
+
+    for each (let alternativeTry in alternativeTries)
+    {
+      // resultConfig.createNewOutgoing(); misses username etc., so copy
+      let altServer = deepCopy(resultConfig.outgoing);
+      HostTryToAccountServer(alternativeTry, altServer);
+      assert(resultConfig.outgoingAlternatives);
+      resultConfig.outgoingAlternatives.push(altServer);
+    }
 
     progressCallback(resultConfig.outgoing.type,
         resultConfig.outgoing.hostname, resultConfig.outgoing.port,
@@ -178,19 +197,21 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
     checkDone();
   };
 
-  var incomingSuccess = function(thisTry)
+  var incomingSuccess = function(thisTry, alternativeTries)
   {
     // Ensure there are no previously saved incoming errors, if we've got
     // success here.
     incomingEx = null;
-    resultConfig.incoming.type = protocolToString(thisTry.protocol);
-    resultConfig.incoming.hostname = thisTry.hostname;
-    resultConfig.incoming.port = thisTry.port;
-    resultConfig.incoming.socketType = sslConvertToSocketType(thisTry.ssl);
-    resultConfig.incoming.auth = chooseBestAuthMethod(thisTry.authMethods);
-    resultConfig.incoming.authAlternatives = thisTry.authMethods;
-    resultConfig.incoming.badCert = thisTry.selfSignedCert;
-    resultConfig.incoming.targetSite = thisTry.targetSite;
+    HostTryToAccountServer(thisTry, resultConfig.incoming);
+
+    for each (let alternativeTry in alternativeTries)
+    {
+      // resultConfig.createNewIncoming(); misses username etc., so copy
+      let altServer = deepCopy(resultConfig.incoming);
+      HostTryToAccountServer(alternativeTry, altServer);
+      assert(resultConfig.incomingAlternatives);
+      resultConfig.incomingAlternatives.push(altServer);
+    }
 
     progressCallback(resultConfig.incoming.type,
         resultConfig.incoming.hostname, resultConfig.incoming.port,
@@ -320,8 +341,11 @@ CancelOthersException.prototype = {}
 extend(CancelOthersException, CancelledException);
 
 /**
- * @param successCallback {function(result {HostTry})}
+ * @param successCallback {function(result {HostTry}, alts {Array of HostTry})}
  *    Called when the config is OK
+ *    |result| is the most preferred server.
+ *    |alts| currently exists only for |IncomingHostDetector| and contains
+ *    some servers of the other type (POP3 instead of IMAP), if available.
  * @param errorCallback {function(ex)} Called when we could not find a config
  * @param progressCallback { function(server {HostTry}) } Called when we tried
  *    (will try?) a new hostname and port
@@ -520,7 +544,7 @@ HostDetector.prototype =
   _checkFinished : function()
   {
     var successfulTry = null;
-    var successfulTryNonSSL = null;
+    var successfulTryAlternative = null; // POP3
     var unfinishedBusiness = false;
     // this._hostsToTry is ordered by decreasing preference
     for (let i = 0; i < this._hostsToTry.length; i++)
@@ -531,18 +555,23 @@ HostDetector.prototype =
       // thisTry is good, and all higher preference tries failed, so use this
       else if (thisTry.status == kSuccess && !unfinishedBusiness)
       {
-        successfulTry = thisTry;
-        break;
+        if (!successfulTry)
+        {
+          successfulTry = thisTry;
+          if (successfulTry.protocol == SMTP)
+            break;
+        }
+        else if (successfulTry.protocol != thisTry.protocol)
+        {
+          successfulTryAlternative = thisTry;
+          break;
+        }
       }
     }
-    if (successfulTry)
+    if (successfulTry && (successfulTryAlternative || !unfinishedBusiness))
     {
-      this._log.info("CHOOSING " + successfulTry.hostname + ":" +
-          successfulTry.port + " " +
-          protocolToString(successfulTry.protocol) + " auth methods [" +
-          successfulTry.authMethods.join(",") + "] ssl " + successfulTry.ssl +
-          (successfulTry.selfSignedCert ? " (selfSignedCert)" : ""));
-      this.mSuccessCallback(successfulTry);
+      this.mSuccessCallback(successfulTry,
+          successfulTryAlternative ? [ successfulTryAlternative ] : []);
       this.cancel(new CancelOthersException());
     }
     else if (!unfinishedBusiness) // all failed
