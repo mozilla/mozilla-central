@@ -54,6 +54,19 @@
 <!-- New Account Page 3: Captcha -->
 <!ENTITY setup.captchaPage2.title.label     "Please Confirm You're Not a Robot">
 
+<!-- Existing Account Page 1: Add Device (incl. Add a Device dialog strings) -->
+<!ENTITY addDevice.title.label              "Add a Device">
+<!ENTITY addDevice.showMeHow.label          "Show me how.">
+<!ENTITY addDevice.dontHaveDevice.label     "I don't have the device with me">
+<!ENTITY addDevice.setup.description.label  "To activate, go to &syncBrand.shortName.label; Preferences/Options on your other device and select &#x0022;Add a Device&#x0022;.">
+<!ENTITY addDevice.setup.enterCode.label    "Then, enter this code:">
+<!ENTITY addDevice.dialog.description.label "To activate your new device, go to &syncBrand.shortName.label; Preferences/Options on the device and select &#x0022;Connect.&#x0022;">
+<!ENTITY addDevice.dialog.enterCode.label   "Enter the code that the device provides:">
+<!ENTITY addDevice.dialog.tryAgain.label    "Please try again.">
+<!ENTITY addDevice.dialog.successful.label  "The device has been successfully added. The initial synchronization can take several minutes and will finish in the background.">
+<!ENTITY addDevice.dialog.syncKey.label     "To activate your device you will need to enter your Sync Key. Please print or save this key and take it with you.">
+<!ENTITY addDevice.dialog.connected.label   "Device Connected">
+
 <!-- Existing Account Page 1: Login -->
 <!ENTITY setup.existingAccount.title.label "Enter Account Information">
 <!ENTITY resetPassword.label          "Reset Password">

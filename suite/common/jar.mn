@@ -247,6 +247,8 @@ comm.jar:
    content/communicator/aboutSyncTabs.js                            (sync/aboutSyncTabs.js)
    content/communicator/aboutSyncTabs.css                           (sync/aboutSyncTabs.css)
    content/communicator/aboutSyncTabs-bindings.xml                  (sync/aboutSyncTabs-bindings.xml)
+   content/communicator/sync/syncAddDevice.xul                      (sync/syncAddDevice.xul)
+   content/communicator/sync/syncAddDevice.js                       (sync/syncAddDevice.js)
    content/communicator/sync/syncSetup.xul                          (sync/syncSetup.xul)
    content/communicator/sync/syncSetup.js                           (sync/syncSetup.js)
    content/communicator/sync/syncGenericChange.xul                  (sync/syncGenericChange.xul)
