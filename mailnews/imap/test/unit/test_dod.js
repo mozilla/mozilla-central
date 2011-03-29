@@ -6,45 +6,54 @@
  * Prepend to the filename 'bodystructure' and save in the database
  * See current test files for examples.
  */
-var gServer, gIMAPIncomingServer;
+ 
+ // async support
+load("../../../resources/logHelper.js");
+load("../../../resources/mailTestUtils.js");
+load("../../../resources/asyncTestUtils.js");
+
+var gServer, gIMAPIncomingServer, gIMAPDaemon;
+var gThreadManager = Cc["@mozilla.org/thread-manager;1"].getService();
+
+const ioS = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
+
+var tests = [
+  streamMessages,
+  endTest
+];
 
 function run_test()
 {
-  let IMAPDaemon = new imapDaemon();
-  const ioS = Cc["@mozilla.org/network/io-service;1"]
-                .getService(Ci.nsIIOService);
-
+  gIMAPDaemon = new imapDaemon();
   // pref tuning: one connection only, turn off notifications
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefBranch);
-  prefBranch.setIntPref( "mail.server.server1.max_cached_connections", 1);
-  prefBranch.setBoolPref("mail.biff.play_sound", false);
-  prefBranch.setBoolPref("mail.biff.show_alert", false);
-  prefBranch.setBoolPref("mail.biff.show_tray_icon",    false);
-  prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
+  Services.prefs.setIntPref( "mail.server.server1.max_cached_connections", 1);
+  Services.prefs.setBoolPref("mail.biff.play_sound", false);
+  Services.prefs.setBoolPref("mail.biff.show_alert", false);
+  Services.prefs.setBoolPref("mail.biff.show_tray_icon",    false);
+  Services.prefs.setBoolPref("mail.biff.animate_dock_icon", false);
 
   // Force bodypart fetching as best as we can.
   // It would be adviseable to enable log and check to be sure body[] is not
   // being fetched in lieu of parts. There may be conditions that bypass
   // bodypart fetch.
-  prefBranch.setBoolPref("mail.inline_attachments",     false);
-  prefBranch.setIntPref ("browser.cache.disk.capacity",              0);
-  prefBranch.setIntPref ("mail.imap.mime_parts_on_demand_threshold", 1);
-  prefBranch.setIntPref ("mailnews.display.disallow_mime_handlers",  0);
-  prefBranch.setBoolPref("mail.server.default.fetch_by_chunks",  false);
-  prefBranch.setBoolPref("mail.server.server1.autosync_offline_stores", false);
+  Services.prefs.setBoolPref("mail.inline_attachments",     false);
+  Services.prefs.setIntPref ("browser.cache.disk.capacity",              0);
+  Services.prefs.setIntPref ("mail.imap.mime_parts_on_demand_threshold", 1);
+  Services.prefs.setIntPref ("mailnews.display.disallow_mime_handlers",  0);
+  Services.prefs.setBoolPref("mail.server.default.fetch_by_chunks",  false);
+  Services.prefs.setBoolPref("mail.server.server1.autosync_offline_stores", false);
 
-  gServer = makeServer(IMAPDaemon, "");
+  gServer = makeServer(gIMAPDaemon, "");
   gIMAPIncomingServer = createLocalIMAPServer();
-  let inbox = IMAPDaemon.getMailbox("INBOX");
+
+  //start first test
+  async_run_tests(tests);
+}
+
+function streamMessages() {
+  let inbox = gIMAPDaemon.getMailbox("INBOX");
   let imapS = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
                 .getService(Ci.nsIMsgMessageService);
-
-  do_test_pending();
-  do_timeout(10000, function() {
-    do_throw('Tests did not complete within 10 seconds. ABORTING.');
-  });
-
   let fileNames = [];
   let msgFiles = do_get_file("../../../data/").directoryEntries;
   while (msgFiles.hasMoreElements()) {
@@ -61,8 +70,8 @@ function run_test()
   for (let cnt = 2 ; cnt > 0 ; cnt--, isPlain = false) {
     // adjust these for 'view body as' setting
     // 0 orig html 3 sanitized 1 plain text
-    prefBranch.setIntPref ("mailnews.display.html_as", isPlain ? 1 : 0);
-    prefBranch.setBoolPref("mailnews.display.prefer_plaintext", isPlain);
+    Services.prefs.setIntPref ("mailnews.display.html_as", isPlain ? 1 : 0);
+    Services.prefs.setBoolPref("mailnews.display.prefer_plaintext", isPlain);
     let markerRe;
     if (isPlain)
       markerRe = /thisplaintextneedstodisplaytopasstest/;
@@ -74,15 +83,9 @@ function run_test()
       imapS.GetUrlForUri("imap-message://user@localhost/INBOX#" + i,uri,null);
       uri.value.spec += "?header=quotebody";
       let channel = ioS.newChannelFromURI(uri.value);
-      let inStream = channel.open();
-      let scriptableInStream = Cc["@mozilla.org/scriptableinputstream;1"]
-                 .createInstance(Ci.nsIScriptableInputStream);
-      scriptableInStream.init(inStream);
-      let availableCount;
-      let buf = "";
-      while ((availableCount = scriptableInStream.available())) {
-        buf += scriptableInStream.read(availableCount);
-      }
+      channel.asyncOpen(gStreamListener, null);
+      yield false;
+      let buf = gStreamListener._data;
       dump("##########\nTesting--->" + fileNames[i-1] +
            "; 'prefer plain text': " + isPlain + "\n" +
            buf + "\n" +
@@ -94,15 +97,35 @@ function run_test()
       catch(e){}
     }
   }
-  do_timeout_function(700, endTest);
+  yield true;
 }
 
-function endTest()
-{
+gStreamListener = {
+  QueryInterface : XPCOMUtils.generateQI([Ci.nsIStreamListener]),
+  _stream : null,
+  _data : null,
+  onStartRequest : function (aRequest, aContext) {
+    this._data = "";
+    this._stream = null;
+  },
+  onStopRequest : function (aRequest, aContext, aStatusCode) {
+    async_driver();
+  },
+  onDataAvailable : function (aRequest, aContext, aInputStream, aOff, aCount) {
+    if (this._stream == null) {
+      this._stream = Cc["@mozilla.org/scriptableinputstream;1"].createInstance(Ci.nsIScriptableInputStream);
+      this._stream.init(aInputStream);
+    }
+    this._data += this._stream.read(aCount);
+  },
+};
+
+function endTest() {
   gIMAPIncomingServer.closeCachedConnections();
   gServer.stop();
   let thread = gThreadManager.currentThread;
   while (thread.hasPendingEvents())
     thread.processNextEvent(true);
-  do_test_finished();
+  yield true;
 }
+
