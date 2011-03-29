@@ -48,8 +48,6 @@ var MODULE_REQUIRES = ['folder-display-helpers'];
 
 var folderA, folderB;
 
-Cu.import("resource:///modules/MailServices.js");
-
 function setupModule(module) {
   let fdh = collector.getModule('folder-display-helpers');
   fdh.installInto(module);
@@ -76,8 +74,9 @@ function test_all_folders_toggle_folder_open_state() {
   // set before the folder added notification is sent out, which means
   // creating the folder object via RDF, setting the flag, and then
   // creating the storage, which sends the notification.
-  let pop3Server = MailServices.accounts
-                    .FindServer("tinderbox", "tinderbox", "pop3");
+  let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                          .getService(Components.interfaces.nsIMsgAccountManager);
+  let pop3Server = acctMgr.FindServer("tinderbox", "tinderbox", "pop3");
   let rdfService = Cc['@mozilla.org/rdf/rdf-service;1']
                      .getService(Ci.nsIRDFService);
   folder = rdfService.GetResource(pop3Server.rootFolder.URI + "/Archives").
