@@ -1036,7 +1036,7 @@ public:
 
     void Init(nsMsgAsyncWriteProtocol *aProtInstance, nsIInputStream *aInputStream)
     {
-      mMsgProtocol = aProtInstance;
+      mMsgProtocol = do_GetWeakReference(static_cast<nsIStreamListener*> (aProtInstance));
       mInStream = aInputStream;
     }
 
@@ -1057,10 +1057,16 @@ public:
         rv = mInStream->Available(&avail);
         if (NS_FAILED(rv)) return rv;
 
+        nsMsgAsyncWriteProtocol *protInst = nsnull;
+        nsCOMPtr<nsIStreamListener> callback = do_QueryReferent(mMsgProtocol);
+        if (!callback)
+          return NS_ERROR_FAILURE;
+        protInst = static_cast<nsMsgAsyncWriteProtocol *>(callback.get());
+
         if (avail == 0)
         {
           // ok, stop writing...
-          mMsgProtocol->mSuspendedWrite = PR_TRUE;
+          protInst->mSuspendedWrite = PR_TRUE;
           return NS_OK;
         }
 
@@ -1068,14 +1074,14 @@ public:
         rv = aOutStream->WriteFrom(mInStream, NS_MIN(avail, 4096U), &bytesWritten);
         // if were full at the time, the input stream may be backed up and we need to read any remains from the last ODA call
         // before we'll get more ODA calls
-        if (mMsgProtocol->mSuspendedRead)
-          mMsgProtocol->UnblockPostReader();
+        if (protInst->mSuspendedRead)
+          protInst->UnblockPostReader();
 
-        mMsgProtocol->UpdateProgress(bytesWritten);
+        protInst->UpdateProgress(bytesWritten);
 
         // try to write again...
         if (NS_SUCCEEDED(rv))
-          rv = aOutStream->AsyncWait(this, 0, 0, mMsgProtocol->mProviderThread);
+          rv = aOutStream->AsyncWait(this, 0, 0, protInst->mProviderThread);
 
         NS_ASSERTION(NS_SUCCEEDED(rv) || rv == NS_BINDING_ABORTED, "unexpected error writing stream");
         return NS_OK;
@@ -1083,7 +1089,7 @@ public:
 
 
 protected:
-  nsMsgAsyncWriteProtocol * mMsgProtocol;
+  nsCOMPtr<nsIWeakReference> mMsgProtocol;
   nsCOMPtr<nsIInputStream>  mInStream;
 };
 
@@ -1106,7 +1112,7 @@ public:
   void CloseSocket() { mProtInstance = nsnull; }
 protected:
   nsCOMPtr<nsIOutputStream> mOutStream;
-  nsMsgAsyncWriteProtocol * mProtInstance;
+  nsCOMPtr<nsIWeakReference> mProtInstance;
 };
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgFilePostHelper)
@@ -1121,7 +1127,7 @@ nsresult nsMsgFilePostHelper::Init(nsIOutputStream * aOutStream, nsMsgAsyncWrite
 {
   nsresult rv = NS_OK;
   mOutStream = aOutStream;
-  mProtInstance = aProtInstance; // mscott work out ref counting issue
+  mProtInstance = do_GetWeakReference(static_cast<nsIStreamListener*> (aProtInstance));
 
   nsCOMPtr<nsIInputStream> stream;
   rv = NS_NewLocalFileInputStream(getter_AddRefs(stream), aFileToPost);
@@ -1145,36 +1151,45 @@ NS_IMETHODIMP nsMsgFilePostHelper::OnStartRequest(nsIRequest * aChannel, nsISupp
 
 NS_IMETHODIMP nsMsgFilePostHelper::OnStopRequest(nsIRequest * aChannel, nsISupports *ctxt, nsresult aStatus)
 {
-  if (!mProtInstance) return NS_OK;
+  nsMsgAsyncWriteProtocol *protInst = nsnull;
+  nsCOMPtr<nsIStreamListener> callback = do_QueryReferent(mProtInstance);
+  if (!callback)
+    return NS_OK;
+  protInst = static_cast<nsMsgAsyncWriteProtocol *>(callback.get());
 
   if (!mSuspendedPostFileRead)
-    mProtInstance->PostDataFinished();
+    protInst->PostDataFinished();
 
   mSuspendedPostFileRead = PR_FALSE;
-  mProtInstance->mFilePostHelper = nsnull;
+  protInst->mFilePostHelper = nsnull;
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgFilePostHelper::OnDataAvailable(nsIRequest * /* aChannel */, nsISupports *ctxt, nsIInputStream *inStr, PRUint32 sourceOffset, PRUint32 count)
 {
-  if (!mProtInstance) return NS_OK;
+  nsMsgAsyncWriteProtocol *protInst = nsnull;
+  nsCOMPtr<nsIStreamListener> callback = do_QueryReferent(mProtInstance);
+  if (!callback)
+    return NS_OK;
+
+  protInst = static_cast<nsMsgAsyncWriteProtocol *>(callback.get());
 
   if (mSuspendedPostFileRead)
   {
-    mProtInstance->UpdateSuspendedReadBytes(count, mProtInstance->mInsertPeriodRequired);
+    protInst->UpdateSuspendedReadBytes(count, protInst->mInsertPeriodRequired);
     return NS_OK;
   }
 
-  mProtInstance->ProcessIncomingPostData(inStr, count);
+  protInst->ProcessIncomingPostData(inStr, count);
 
-  if (mProtInstance->mSuspendedWrite)
+  if (protInst->mSuspendedWrite)
   {
     // if we got here then we had suspended the write 'cause we didn't have anymore
     // data to write (i.e. the pipe went empty). So resume the channel to kick
     // things off again.
-    mProtInstance->mSuspendedWrite = PR_FALSE;
-    mProtInstance->mAsyncOutStream->AsyncWait(mProtInstance->mProvider, 0, 0,
-                                              mProtInstance->mProviderThread);
+    protInst->mSuspendedWrite = PR_FALSE;
+    protInst->mAsyncOutStream->AsyncWait(protInst->mProvider, 0, 0,
+                                         protInst->mProviderThread);
   }
 
   return NS_OK;
@@ -1184,6 +1199,7 @@ NS_IMPL_ADDREF_INHERITED(nsMsgAsyncWriteProtocol, nsMsgProtocol)
 NS_IMPL_RELEASE_INHERITED(nsMsgAsyncWriteProtocol, nsMsgProtocol)
 
 NS_INTERFACE_MAP_BEGIN(nsMsgAsyncWriteProtocol)
+  NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
 NS_INTERFACE_MAP_END_INHERITING(nsMsgProtocol)
 
 nsMsgAsyncWriteProtocol::nsMsgAsyncWriteProtocol(nsIURI * aURL) : nsMsgProtocol(aURL)

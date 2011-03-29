@@ -54,6 +54,7 @@
 #include "nsIAsyncOutputStream.h"
 #include "nsIAuthModule.h"
 #include "nsStringGlue.h"
+#include "nsWeakReference.h"
 
 class nsIMsgWindow;
 
@@ -207,6 +208,7 @@ protected:
 // and news want to leverage aysnc write. We don't want everyone who inherits from nsMsgProtocol to have to
 // pick up the extra overhead.
 class NS_MSG_BASE nsMsgAsyncWriteProtocol : public nsMsgProtocol
+                                          , public nsSupportsWeakReference
 {
 public:
   NS_DECL_ISUPPORTS_INHERITED
