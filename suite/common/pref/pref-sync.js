@@ -161,6 +161,8 @@ let gSyncPane = {
   },
 
   openAddDevice: function () {
+    if (!Weave.Utils.ensureMPUnlocked())
+      return;
     let win = Services.wm.getMostRecentWindow("Sync:AddDevice");
     if (win)
       win.focus();
