@@ -258,9 +258,13 @@ function setupModule() {
                : "3pane does not appear to have fully loaded yet!"]);
 
   setupAccountStuff();
-  // Adding a local inbox expands the local folders server, which the
-  // mozmill tests don't expect, so collapse it.
-  mc.folderTreeView.toggleOpenState(1);
+  // This will throw if we've not got the main window set up yet e.g. the
+  // account wizard is open on an initial startup type test.
+  try {
+    mc.folderTreeView.toggleOpenState(1);
+  }
+  catch (ex) {
+  }
 }
 
 /**
