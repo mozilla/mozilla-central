@@ -723,7 +723,7 @@ Pop3StatesEnum nsPop3Protocol::GetNextPasswordObtainState()
     break;
   default:
     // Should never get here.
-    NS_NOTREACHED("Invalid next_state in SetNextPasswordObtainState");
+    NS_NOTREACHED("Invalid next_state in GetNextPasswordObtainState");
   }
   return POP3_ERROR_DONE;
 }
@@ -4076,20 +4076,25 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
         NS_ASSERTION (!TestFlag(POP3_PASSWORD_FAILED), "POP3_PASSWORD_FAILED set when del_started");
         m_nsIPop3Sink->AbortMailDelivery(this);
       }
+      { // this brace is to avoid compiler error about vars in switch case.
+        nsCOMPtr<nsIMsgWindow> msgWindow;
 
-      if (TestFlag(POP3_PASSWORD_FAILED))
-      {
-      /* We got here because the password was wrong, so go
-        read a new one and re-open the connection. */
-        m_pop3ConData->next_state = POP3_READ_PASSWORD;
-        m_pop3ConData->command_succeeded = PR_TRUE;
-        status = 0;
-        break;
+        if (mailnewsurl)
+          mailnewsurl->GetMsgWindow(getter_AddRefs(msgWindow));
+        // no msgWindow means no re-prompt, so treat as error.
+        if (TestFlag(POP3_PASSWORD_FAILED) && msgWindow)
+        {
+        /* We got here because the password was wrong, so go
+          read a new one and re-open the connection. */
+          m_pop3ConData->next_state = POP3_READ_PASSWORD;
+          m_pop3ConData->command_succeeded = PR_TRUE;
+          status = 0;
+          break;
+        }
+        else
+          /* Else we got a "real" error, so finish up. */
+          m_pop3ConData->next_state = POP3_FREE;
       }
-      else
-        /* Else we got a "real" error, so finish up. */
-        m_pop3ConData->next_state = POP3_FREE;
-
       m_pop3ConData->urlStatus = NS_ERROR_FAILURE;
       urlStatusSet = PR_TRUE;
       m_pop3ConData->pause_for_read = PR_FALSE;

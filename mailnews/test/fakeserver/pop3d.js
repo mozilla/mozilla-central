@@ -91,10 +91,13 @@ const kStateTransaction = 3; // Authenticated, can fetch and delete mail
 
 /**
  * This handler implements the bare minimum required by RFC 1939.
+ * If dropOnAuthFailure is set, the server will drop the connection
+ * on authentication errors, to simulate servers that do the same.
  */
 function POP3_RFC1939_handler(daemon) {
   this._daemon = daemon;
   this.closing = false;
+  this.dropOnAuthFailure = false;
   this.resetTest();
 }
 POP3_RFC1939_handler.prototype = {
@@ -126,6 +129,8 @@ POP3_RFC1939_handler.prototype = {
     }
 
     this._state = kStateAuthNeeded;
+    if (this.dropOnAuthFailure)
+      this.closing = true;
     return "-ERR invalid password";
   },
   STAT: function (args) {
@@ -316,6 +321,8 @@ POP3_RFC5034_handler.prototype = {
       return "+OK Hello friend! Friends give friends good advice: Next time, use CRAM-MD5";
     }
     else {
+      if (this.dropOnAuthFailure)
+        this.closing = true;
       return "-ERR Wrong username or password, crook!";
     }
   },
@@ -339,6 +346,8 @@ POP3_RFC5034_handler.prototype = {
       return "+OK Hello friend!";
     }
     else {
+      if (this.dropOnAuthFailure)
+        this.closing = true;
       return "-ERR Wrong username or password, crook!";
     }
   },
@@ -362,6 +371,8 @@ POP3_RFC5034_handler.prototype = {
   },
   authLOGINBadUsername : function (line)
   {
+    if (this.dropOnAuthFailure)
+      this.closing = true;
     return "-ERR Wrong username or password, crook!";
   },
   authLOGINPassword : function (line)
@@ -372,6 +383,8 @@ POP3_RFC5034_handler.prototype = {
       return "+OK Hello friend! Where did you pull out this old auth scheme?";
     }
     else {
+      if (this.dropOnAuthFailure)
+        this.closing = true;
       return "-ERR Wrong username or password, crook!";
     }
   },
