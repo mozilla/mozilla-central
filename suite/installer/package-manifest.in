@@ -759,7 +759,7 @@ bin/libfreebl_32int64_3.so
 
 [chatzilla]
 #ifdef MOZ_OMNIJAR
-@BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi
+@BINPATH@/distribution/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi
 #else
 @BINPATH@/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/chatzilla@JAREXT@
 #ifdef MOZ_GTK2
@@ -775,7 +775,7 @@ bin/libfreebl_32int64_3.so
 #endif
 #ifdef LOCALE_BUILD
 #ifdef MOZ_OMNIJAR
-@BINPATH@/extensions/langpack-@AB_CD@@chatzilla.mozilla.org.xpi
+@BINPATH@/distribution/extensions/langpack-@AB_CD@@chatzilla.mozilla.org.xpi
 #else
 @BINPATH@/extensions/langpack-@AB_CD@@chatzilla.mozilla.org/chrome/chatzilla@JAREXT@
 @BINPATH@/extensions/langpack-@AB_CD@@chatzilla.mozilla.org/chrome.manifest
@@ -786,7 +786,7 @@ bin/libfreebl_32int64_3.so
 
 [venkman]
 #ifdef MOZ_OMNIJAR
-@BINPATH@/extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi
+@BINPATH@/distribution/extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi
 #else
 @BINPATH@/extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/chrome/venkman@JAREXT@
 @BINPATH@/extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/chrome.manifest
@@ -796,7 +796,7 @@ bin/libfreebl_32int64_3.so
 #endif
 #ifdef LOCALE_BUILD
 #ifdef MOZ_OMNIJAR
-@BINPATH@/extensions/langpack-@AB_CD@@venkman.mozilla.org.xpi
+@BINPATH@/distribution/extensions/langpack-@AB_CD@@venkman.mozilla.org.xpi
 #else
 @BINPATH@/extensions/langpack-@AB_CD@@venkman.mozilla.org/chrome/venkman@JAREXT@
 @BINPATH@/extensions/langpack-@AB_CD@@venkman.mozilla.org/chrome.manifest
@@ -807,7 +807,7 @@ bin/libfreebl_32int64_3.so
 
 [inspector]
 #ifdef MOZ_OMNIJAR
-@BINPATH@/extensions/inspector@mozilla.org.xpi
+@BINPATH@/distribution/extensions/inspector@mozilla.org.xpi
 #else
 @BINPATH@/extensions/inspector@mozilla.org/install.rdf
 @BINPATH@/extensions/inspector@mozilla.org/chrome.manifest
@@ -827,7 +827,7 @@ bin/libfreebl_32int64_3.so
 
 [debugqa]
 #ifdef MOZ_OMNIJAR
-@BINPATH@/extensions/debugQA@mozilla.org.xpi
+@BINPATH@/distribution/extensions/debugQA@mozilla.org.xpi
 #else
 @BINPATH@/extensions/debugQA@mozilla.org/install.rdf
 @BINPATH@/extensions/debugQA@mozilla.org/chrome.manifest

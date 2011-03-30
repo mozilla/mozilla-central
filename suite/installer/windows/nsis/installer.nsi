@@ -225,13 +225,15 @@ Section "-InstallStartCleanup"
     ; If ChatZilla is installed and this install includes ChatZilla remove it
     ; from the installation directory. This will remove it if the user
     ; deselected ChatZilla on the components page.
-    ${If} ${FileExists} "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi"
+    ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi"
+      ${DeleteFile} "$INSTDIR\distribution\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi"
       ${DeleteFile} "$INSTDIR\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi"
       ${If} ${FileExists} "$INSTDIR\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
         RmDir /r "$INSTDIR\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
       ${EndIf}
     ${EndIf}
-    ${If} ${FileExists} "$EXEDIR\optional\extensions\langpack-${AB_CD}@chatzilla.mozilla.org.xpi"
+    ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\langpack-${AB_CD}@chatzilla.mozilla.org.xpi"
+      ${DeleteFile} "$INSTDIR\distribution\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi"
       ${DeleteFile} "$INSTDIR\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi"
       ${If} ${FileExists} "$INSTDIR\extensions\langpack-${AB_CD}@chatzilla.mozilla.org"
         RmDir /r "$INSTDIR\extensions\langpack-${AB_CD}@chatzilla.mozilla.org"
@@ -241,7 +243,8 @@ Section "-InstallStartCleanup"
     ; If DOMi is installed and this install includes DOMi remove it from
     ; the installation directory. This will remove it if the user deselected
     ; DOMi on the components page.
-    ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org.xpi"
+    ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\inspector@mozilla.org.xpi"
+      ${DeleteFile} "$INSTDIR\distribution\extensions\inspector@mozilla.org.xpi"
       ${DeleteFile} "$INSTDIR\extensions\inspector@mozilla.org.xpi"
       ${If} ${FileExists} "$INSTDIR\extensions\inspector@mozilla.org"
         RmDir /r "$INSTDIR\extensions\inspector@mozilla.org"
@@ -251,23 +254,26 @@ Section "-InstallStartCleanup"
     ; If DebugQA is installed and this install includes DebugQA remove it
     ; from the installation directory. This will remove it if the user
     ; deselected DebugQA on the components page.
-    ${If} ${FileExists} "$EXEDIR\optional\extensions\debugQA@mozilla.org.xpi"
+    ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\debugQA@mozilla.org.xpi"
+      ${DeleteFile} "$INSTDIR\distribution\extensions\debugQA@mozilla.org.xpi"
       ${DeleteFile} "$INSTDIR\extensions\debugQA@mozilla.org.xpi"
       ${If} ${FileExists} "$INSTDIR\extensions\debugQA@mozilla.org"
         RmDir /r "$INSTDIR\extensions\debugQA@mozilla.org"
       ${EndIf}
     ${EndIf}
-    
+
     ; If Venkman is installed and this install includes Venkman remove it
     ; from the installation directory. This will remove it if the user
     ; deselected Venkman on the components page.
-    ${If} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi"
+    ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi"
+      ${DeleteFile} "$INSTDIR\distribution\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi"
       ${DeleteFile} "$INSTDIR\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi"
       ${If} ${FileExists} "$INSTDIR\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
         RmDir /r "$INSTDIR\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
       ${EndIf}
     ${EndIf}
-    ${If} ${FileExists} "$EXEDIR\optional\extensions\langpack-${AB_CD}@venkman.mozilla.org.xpi"
+    ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\langpack-${AB_CD}@venkman.mozilla.org.xpi"
+      ${DeleteFile} "$INSTDIR\distribution\extensions\langpack-${AB_CD}@venkman.mozilla.org.xpi"
       ${DeleteFile} "$INSTDIR\extensions\langpack-${AB_CD}@venkman.mozilla.org.xpi"
       ${If} ${FileExists} "$INSTDIR\extensions\langpack-${AB_CD}@venkman.mozilla.org"
         RmDir /r "$INSTDIR\extensions\langpack-${AB_CD}@venkman.mozilla.org"
@@ -495,7 +501,7 @@ Section "-Application" APP_IDX
 SectionEnd
 
 Section /o "IRC Client" CZ_IDX 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi"
+  ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi"
     SetDetailsPrint both 
     DetailPrint $(STATUS_INSTALL_OPTIONAL)
     SetDetailsPrint none
@@ -504,49 +510,53 @@ Section /o "IRC Client" CZ_IDX
     ${RemoveDir} "$INSTDIR\extensions\langpack-${AB_CD}@chatzilla.mozilla.org"
     ${DeleteFile} "$INSTDIR\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi"
     ${DeleteFile} "$INSTDIR\extensions\langpack-${AB_CD}@chatzilla.mozilla.org.xpi"
+    ${DeleteFile} "$INSTDIR\distribution\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi"
+    ${DeleteFile} "$INSTDIR\distribution\extensions\langpack-${AB_CD}@chatzilla.mozilla.org.xpi"
     ClearErrors
     ${LogHeader} "Installing IRC Client"
-    CopyFiles /SILENT "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi" \
-                      "$INSTDIR\extensions\"
-    ${If} ${FileExists} "$EXEDIR\optional\extensions\langpack-${AB_CD}@chatzilla.mozilla.org.xpi"
-      CopyFiles /SILENT "$EXEDIR\optional\extensions\langpack-${AB_CD}@chatzilla.mozilla.org.xpi" \
-                        "$INSTDIR\extensions\"
+    CopyFiles /SILENT "$EXEDIR\optional\distribution\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi" \
+                      "$INSTDIR\distribution\extensions\"
+    ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\langpack-${AB_CD}@chatzilla.mozilla.org.xpi"
+      CopyFiles /SILENT "$EXEDIR\optional\distribution\extensions\langpack-${AB_CD}@chatzilla.mozilla.org.xpi" \
+                        "$INSTDIR\distribution\extensions\"
     ${EndIf}
   ${EndIf}
 SectionEnd
 
 Section /o "Developer Tools" DOMI_IDX 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org.xpi"
+  ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\inspector@mozilla.org.xpi"
     SetDetailsPrint both 
     DetailPrint $(STATUS_INSTALL_OPTIONAL)
     SetDetailsPrint none
 
     ${RemoveDir} "$INSTDIR\extensions\inspector@mozilla.org"
     ${DeleteFile} "$INSTDIR\extensions\inspector@mozilla.org.xpi"
+    ${DeleteFile} "$INSTDIR\distribution\extensions\inspector@mozilla.org.xpi"
     ClearErrors
     ${LogHeader} "Installing Developer Tools"
-    CopyFiles /SILENT "$EXEDIR\optional\extensions\inspector@mozilla.org.xpi" \
-                      "$INSTDIR\extensions\"
+    CopyFiles /SILENT "$EXEDIR\optional\distribution\extensions\inspector@mozilla.org.xpi" \
+                      "$INSTDIR\distribution\extensions\"
   ${EndIf} 
 SectionEnd
 
 Section /o "Debug and QA Tools" DEBUG_IDX 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\debugQA@mozilla.org.xpi"
+  ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\debugQA@mozilla.org.xpi"
     SetDetailsPrint both 
     DetailPrint $(STATUS_INSTALL_OPTIONAL)
     SetDetailsPrint none
 
     ${RemoveDir} "$INSTDIR\extensions\debugQA@mozilla.org"
     ${DeleteFile} "$INSTDIR\extensions\debugQA@mozilla.org.xpi"
+    ${DeleteFile} "$INSTDIR\distribution\extensions\debugQA@mozilla.org.xpi"
     ClearErrors
     ${LogHeader} "Installing Debug and QA Tools"
-    CopyFiles /SILENT "$EXEDIR\optional\extensions\debugQA@mozilla.org.xpi" \
-                      "$INSTDIR\extensions\"
+    CopyFiles /SILENT "$EXEDIR\optional\distribution\extensions\debugQA@mozilla.org.xpi" \
+                      "$INSTDIR\distribution\extensions\"
   ${EndIf}
 SectionEnd
 
 Section /o "JavaScript Debugger" VENKMAN_IDX 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi"
+  ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi"
     SetDetailsPrint both 
     DetailPrint $(STATUS_INSTALL_OPTIONAL)
     SetDetailsPrint none
@@ -555,13 +565,15 @@ Section /o "JavaScript Debugger" VENKMAN_IDX
     ${RemoveDir} "$INSTDIR\extensions\langpack-${AB_CD}@venkman.mozilla.org"
     ${DeleteFile} "$INSTDIR\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi"
     ${DeleteFile} "$INSTDIR\extensions\langpack-${AB_CD}@venkman.mozilla.org.xpi"
+    ${DeleteFile} "$INSTDIR\distribution\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi"
+    ${DeleteFile} "$INSTDIR\distribution\extensions\langpack-${AB_CD}@venkman.mozilla.org.xpi"
     ClearErrors
     ${LogHeader} "Installing JavaScript Debugger"
-    CopyFiles /SILENT "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi" \
-                      "$INSTDIR\extensions\"
-    ${If} ${FileExists} "$EXEDIR\optional\extensions\langpack-${AB_CD}@venkman.mozilla.org.xpi"
-      CopyFiles /SILENT "$EXEDIR\optional\extensions\langpack-${AB_CD}@venkman.mozilla.org.xpi" \
-                        "$INSTDIR\extensions\"
+    CopyFiles /SILENT "$EXEDIR\optional\distribution\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi" \
+                      "$INSTDIR\distribution\extensions\"
+    ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\langpack-${AB_CD}@venkman.mozilla.org.xpi"
+      CopyFiles /SILENT "$EXEDIR\optional\distribution\extensions\langpack-${AB_CD}@venkman.mozilla.org.xpi" \
+                        "$INSTDIR\distribution\extensions\"
     ${EndIf}
   ${EndIf}
 SectionEnd
@@ -729,8 +741,8 @@ Function leaveComponents
   ; If ChatZilla doesn't exist then DOMi will be Field 2 (when ChatZilla and DOMi
   ; don't exist, debugQA will be Field 2).
   StrCpy $R1 2
-  
- ${If} ${FileExists} "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi"
+
+ ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi"
     ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
     ; State will be 1 for checked and 0 for unchecked so we can use that to set
     ; the section flags for installation.
@@ -740,7 +752,7 @@ Function leaveComponents
     SectionSetFlags ${CZ_IDX} 0 ; Disable install for chatzilla
   ${EndIf}
 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org.xpi"
+  ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\inspector@mozilla.org.xpi"
     ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
     ; State will be 1 for checked and 0 for unchecked so we can use that to set
     ; the section flags for installation.
@@ -750,7 +762,7 @@ Function leaveComponents
     SectionSetFlags ${DOMI_IDX} 0 ; Disable install for DOMi
   ${EndIf}
 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\debugQA@mozilla.org.xpi"
+  ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\debugQA@mozilla.org.xpi"
     ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
     ; State will be 1 for checked and 0 for unchecked so we can use that to set
     ; the section flags for installation.
@@ -760,7 +772,7 @@ Function leaveComponents
     SectionSetFlags ${DEBUG_IDX} 0 ; Disable install for debugQA
   ${EndIf}
 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi"
+  ${If} ${FileExists} "$EXEDIR\optional\distribution\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi"
     ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
     ; State will be 1 for checked and 0 for unchecked so we can use that to set
     ; the section flags for installation.

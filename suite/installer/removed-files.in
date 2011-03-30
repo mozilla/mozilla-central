@@ -603,6 +603,7 @@ xpicleanup@BIN_SUFFIX@
   extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/components/
   extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/components/chatzilla-service.js
   extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/install.rdf
+  extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi
   extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/
   extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/icon.png
   extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/install.rdf
@@ -614,11 +615,13 @@ xpicleanup@BIN_SUFFIX@
   extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/components/
   extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/components/venkman-service.js
   extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/install.rdf
+  extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}.xpi
   extensions/debugQA@mozilla.org/
   extensions/debugQA@mozilla.org/install.rdf
   extensions/debugQA@mozilla.org/chrome.manifest
   extensions/debugQA@mozilla.org/chrome/
   extensions/debugQA@mozilla.org/chrome/debugqa.jar
+  extensions/debugQA@mozilla.org.xpi
   extensions/inspector@mozilla.org/
   extensions/inspector@mozilla.org/install.rdf
   extensions/inspector@mozilla.org/chrome.manifest
@@ -638,14 +641,17 @@ xpicleanup@BIN_SUFFIX@
   extensions/inspector@mozilla.org/defaults/
   extensions/inspector@mozilla.org/defaults/preferences/
   extensions/inspector@mozilla.org/defaults/preferences/inspector.js
+  extensions/inspector@mozilla.org.xpi
   extensions/langpack-@AB_CD@@chatzilla.mozilla.org/chrome/venkman.jar
   extensions/langpack-@AB_CD@@chatzilla.mozilla.org/chrome.manifest
   extensions/langpack-@AB_CD@@chatzilla.mozilla.org/install.js
   extensions/langpack-@AB_CD@@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-@AB_CD@@chatzilla.mozilla.org.xpi
   extensions/langpack-@AB_CD@@venkman.mozilla.org/chrome/venkman.jar
   extensions/langpack-@AB_CD@@venkman.mozilla.org/chrome.manifest
   extensions/langpack-@AB_CD@@venkman.mozilla.org/install.js
   extensions/langpack-@AB_CD@@venkman.mozilla.org/install.rdf
+  extensions/langpack-@AB_CD@@venkman.mozilla.org.xpi
   extensions/modern@themes.mozilla.org/
   extensions/modern@themes.mozilla.org/chrome/
   extensions/modern@themes.mozilla.org/chrome/modern.jar
