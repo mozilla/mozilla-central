@@ -114,6 +114,8 @@ messenger.jar:
     content/messenger/quickFilterBar.js             (content/quickFilterBar.js)
     content/messenger/quickFilterBar.css            (content/quickFilterBar.css)
     content/messenger/downloadsOverlay.xul          (content/downloadsOverlay.xul)
+*   content/messenger/safeMode.xul                  (content/safeMode.xul)
+    content/messenger/safeMode.js                   (content/safeMode.js)
 # the following files are mail-specific overrides
 *+  content/messenger/license.html                  (/mozilla/toolkit/content/license.html)
 % override chrome://global/content/license.html chrome://messenger/content/license.html

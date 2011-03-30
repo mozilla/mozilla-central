@@ -12,3 +12,7 @@ category command-line-validator b-default @mozilla.org/mail/clh;1
 component {1c73f03a-b817-4640-b984-18c3478a9ae3} mailContentHandler.js
 contract @mozilla.org/uriloader/content-handler;1?type=text/html {1c73f03a-b817-4640-b984-18c3478a9ae3}
 contract @mozilla.org/uriloader/content-handler;1?type=text/plain {1c73f03a-b817-4640-b984-18c3478a9ae3}
+
+component {eb239c82-fac9-431e-98d7-11cacd0f71b8} mailGlue.js
+contract @mozilla.org/mail/mailglue;1 {eb239c82-fac9-431e-98d7-11cacd0f71b8}
+category app-startup MailGlue service,@mozilla.org/mail/mailglue;1
