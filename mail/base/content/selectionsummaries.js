@@ -86,7 +86,7 @@ function _mm_addClass(node, classname) {
   if (node.hasAttribute('class'))
     classes = node.getAttribute('class').split(' ');
 
-  for each (klass in classes) {
+  for each (let [, klass] in Iterator(classes)) {
     if (klass == classname) // already have it
       return;
   }
@@ -367,7 +367,7 @@ MultiMessageSummary.prototype = {
       while (tagsNode.firstChild)
         tagsNode.removeChild(tagsNode.firstChild);
       this._addTagNodes(msgs, tagsNode);
-      for each (msgHdr in msgs) {
+      for (let [, msgHdr] in Iterator(msgs)) {
         this._msgNodes[msgHdr.messageKey + msgHdr.folder.URI] = msgNode;
       }
       messagesElt.appendChild(msgNode);
