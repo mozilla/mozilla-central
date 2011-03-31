@@ -1051,20 +1051,14 @@ var gBookmarkAllTabsHandler = {
     this._command = document.getElementById("Browser:BookmarkAllTabs");
     gBrowser.tabContainer.addEventListener("TabOpen", this, true);
     gBrowser.tabContainer.addEventListener("TabClose", this, true);
-    this._updateCommandState();
   },
 
   _updateCommandState: function BATH__updateCommandState(aTabClose) {
-    var numTabs = gBrowser.browsers.length;
-
-    // The TabClose event is fired before the tab is removed from the DOM
-    if (aTabClose)
-      numTabs--;
-
-    if (numTabs > 1)
-      this._command.removeAttribute("disabled");
-    else
-      this._command.setAttribute("disabled", "true");
+    // The TabClose event is fired before the tab is removed from the DOM.
+    // So the only interesting cases are when the number of tabs has just
+    // increased to 2, or is just about to decrease from 2.
+    if (getBrowser().tabs.length == 2)
+      this._command.setAttribute("disabled", aTabClose);
   },
 
   doCommand: function BATH_doCommand() {

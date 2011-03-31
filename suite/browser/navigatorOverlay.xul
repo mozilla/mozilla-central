@@ -114,10 +114,9 @@
     <key keycode="VK_BACK" command="cmd_handleShiftBackspace" modifiers="shift"/>
 
     <!-- Bookmarks Menu -->
-    <key id="addBookmarkKb" key="&addCurPageAsCmd.commandkey;" command="Browser:AddBookmark" modifiers="accel,alt"/>
+    <key id="addBookmarkKb" key="&addCurPageAsCmd.commandkey;" command="Browser:AddBookmark" modifiers="accel,shift"/>
     <key id="addBookmarkAsKb" key="&addCurPageAsCmd.commandkey;" command="Browser:AddBookmarkAs" modifiers="accel"/>
     <key id="manBookmarkKb" key="&manBookmarksCmd.commandkey;" command="Browser:ManageBookmark" modifiers="accel"/>
-    <key id="bookmarkAllTabsKb" key="&addCurPageAsCmd.commandkey;" command="Browser:BookmarkAllTabs" modifiers="accel,shift"/>
 
     <!-- Tools Menu -->
     <key id="searchInternetKb" key="&searchInternet.commandKey;" modifiers="accel,shift" command="Browser:SearchInternet"/>
@@ -450,8 +449,7 @@
                   command="Browser:AddBookmarkAs"
                   key="addBookmarkAsKb"/>
         <menuitem id="menu_bookmarkAllTabs"
-                  command="Browser:BookmarkAllTabs"
-                  key="bookmarkAllTabsKb"/>
+                  command="Browser:BookmarkAllTabs"/>
         <menuitem id="menu_bookmarkManager"
                   command="Browser:ManageBookmark"
                   key="manBookmarkKb"/>
