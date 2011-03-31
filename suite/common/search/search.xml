@@ -150,6 +150,7 @@
         Components.classes["@mozilla.org/browser/search-service;1"]
                   .getService(Components.interfaces.nsIBrowserSearchService);
       </field>
+      <field name="_addedObserver">false</field>
       <field name="_engines">null</field>
 
       <property name="engines" readonly="true">
