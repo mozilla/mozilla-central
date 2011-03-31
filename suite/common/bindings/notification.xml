@@ -31,8 +31,15 @@
 
       <field name="_prefs" readonly="true">
         <![CDATA[
-          Components.classes['@mozilla.org/preferences-service;1']
+          Components.classes["@mozilla.org/preferences-service;1"]
                     .getService(Components.interfaces.nsIPrefBranch2);
+        ]]>
+      </field>
+
+      <field name="_urlFormatter" readonly="true">
+        <![CDATA[
+          Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                    .getService(Components.interfaces.nsIURLFormatter);
         ]]>
       </field>
 
@@ -78,6 +85,7 @@
             if (aWebProgress.DOMWindow == this.activeBrowser.contentWindow &&
                 (aWebProgress.isLoadingDocument || errorPage)) {
               this.missingPlugins = {};
+              this.crashNotified = false;
               if (this.popupCount) {
                 this.popupCount = 0;
                 this.notifyPopupCountChanged();
@@ -316,6 +324,12 @@
 
       <field name="missingPlugins">{}</field>
 
+      <field name="CrashSubmit">null</field>
+
+      <field name="crashReportHelpURL">null</field>
+
+      <field name="crashNotified">false</field>
+
       <method name="getPluginInfo">
         <parameter name="pluginElement"/>
         <body>
@@ -405,9 +419,7 @@
         <parameter name="aPref"/>
         <body>
           <![CDATA[
-            var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                                      .getService(Components.interfaces.nsIURLFormatter);
-            var url = formatter.formatURLPref(aPref);
+            var url = this._urlFormatter.formatURLPref(aPref);
             var nsIBrowserDOMWindow = Components.interfaces.nsIBrowserDOMWindow;
 
             var browserWin;
@@ -438,6 +450,158 @@
               browserWin.content.focus();
             }
             return true;
+          ]]>
+        </body>
+      </method>
+
+      <method name="makeNicePluginName">
+        <parameter name="aName"/>
+        <parameter name="aFilename"/>
+        <body>
+          <![CDATA[
+            if (aName == "Shockwave Flash")
+              return "Adobe Flash";
+
+            // Clean up the plugin name by stripping off any trailing version numbers
+            // or "plugin". EG, "Foo Bar Plugin 1.23_02" --> "Foo Bar"
+            var newName = aName.replace(/\bplug-?in\b/i, "").replace(/[\s\d\.\-\_\(\)]+$/, "");
+            return newName;
+          ]]>
+        </body>
+      </method>
+
+      <method name="isTooSmall">
+        <parameter name="aPlugin"/>
+        <parameter name="aOverlay"/>
+        <body>
+          <![CDATA[
+            // Is the <object>'s size too small to hold what we want to show?
+            var pluginRect = aPlugin.getBoundingClientRect();
+            // XXX bug 446693. The text-shadow on the submitted-report text at
+            //     the bottom causes scrollHeight to be larger than it should be.
+            return (aOverlay.scrollWidth > pluginRect.width) ||
+                   (aOverlay.scrollHeight - 5 > pluginRect.height);
+          ]]>
+        </body>
+      </method>
+
+      <method name="addLinkClickCallback">
+        <parameter name="linkNode"/>
+        <parameter name="callback"/>
+        <body>
+          <![CDATA[
+            // XXX just doing (callback)(arg) was giving a same-origin error. bug?
+            let callbackArgs = Array.slice(arguments, 2);
+            linkNode.addEventListener("click",
+                                      function(aEvent) {
+                                        if (!aEvent.isTrusted)
+                                          return;
+                                        aEvent.preventDefault();
+                                        if (callbackArgs.length == 0)
+                                          callbackArgs = [ aEvent ];
+                                        callback.apply(this, callbackArgs);
+                                      }.bind(this),
+                                      true);
+
+            linkNode.addEventListener("keydown",
+                                      function(aEvent) {
+                                        if (!aEvent.isTrusted)
+                                          return;
+                                        if (aEvent.keyCode == aEvent.DOM_VK_RETURN)
+                                          return;
+                                        aEvent.preventDefault();
+                                        if (callbackArgs.length == 0)
+                                          callbackArgs = [ aEvent ];
+                                        callback.apply(this, callbackArgs);
+                                      }.bind(this),
+                                      true);
+                  ]]>
+        </body>
+      </method>
+
+      <!-- Callback for user clicking "submit a report" link -->
+      <method name="submitReport">
+        <parameter name="pluginDumpID"/>
+        <parameter name="browserDumpID"/>
+        <body>
+          <![CDATA[
+            // The crash reporter wants a DOM element it can append an IFRAME to,
+            // which it uses to submit a form. Let's just give it this.activeBrowser.
+            this.CrashSubmit.submit(pluginDumpID, this.activeBrowser, null, null);
+            if (browserDumpID)
+              this.CrashSubmit.submit(browserDumpID, this.activeBrowser, null, null);
+          ]]>
+        </body>
+      </method>
+
+      <!-- Callback for user clicking a "reload page" link -->
+      <method name="reloadPage">
+        <body>
+          <![CDATA[
+            this.activeBrowser.reload();
+          ]]>
+        </body>
+      </method>
+
+      <!-- Callback for user clicking the help icon -->
+      <method name="openHelpPage">
+        <body>
+          <![CDATA[
+            //XXX Ratty need in app help here.
+            openHelp("plugin-crashed", "chrome://communicator/locale/help/suitehelp.rdf");
+          ]]>
+        </body>
+      </method>
+
+      <method name="showPluginCrashedNotification">
+        <parameter name="pluginDumpID"/>
+        <parameter name="browserDumpID"/>
+        <parameter name="messageString"/>
+        <body>
+          <![CDATA[
+            // If there's already an existing notification bar, don't do anything.
+            var notification = this.getNotificationWithValue("plugin-crashed");
+            if (notification)
+              return;
+
+            // Configure the notification bar
+            var priority = this.PRIORITY_WARNING_MEDIUM;
+            var iconURL = "chrome://mozapps/skin/plugins/notifyPluginCrashed.png";
+            var reloadLabel = this._stringBundle.GetStringFromName("crashedpluginsMessage.reloadButton.label");
+            var reloadKey   = this._stringBundle.GetStringFromName("crashedpluginsMessage.reloadButton.accesskey");
+            var submitLabel = this._stringBundle.GetStringFromName("crashedpluginsMessage.submitButton.label");
+            var submitKey   = this._stringBundle.GetStringFromName("crashedpluginsMessage.submitButton.accesskey");
+
+            var buttons = [{
+              label: reloadLabel,
+              accessKey: reloadKey,
+              popup: null,
+              callback: this.reloadPage.bind(this)
+            }];
+
+            if (this.CrashSubmit && pluginDumpID) {
+              let submitButton = {
+                label: submitLabel,
+                accessKey: submitKey,
+                popup: null,
+                callback: this.submitReport.bind(this, pluginDumpID, browserDumpID)
+              };
+              buttons.push(submitButton);
+            }
+
+            var notification = this.appendNotification(messageString, "plugin-crashed",
+                                                       iconURL, priority, buttons);
+
+            // Add the "learn more" link.
+            // XXXRatty We have a 404 at http://www.seamonkey-project.org/doc/plugin-crashed
+            // Or should we link to our in app help?
+            var XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+            var link = notification.ownerDocument.createElementNS(XULNS, "label");
+            link.className = "text-link";
+            link.setAttribute("value", this._stringBundle.GetStringFromName("crashedpluginsMessage.learnMore"));
+            link.setAttribute("href", this.crashReportHelpURL);
+            var description = notification.ownerDocument.getAnonymousElementByAttribute(notification, "anonid", "messageText");
+            description.appendChild(link);
           ]]>
         </body>
       </method>
@@ -734,7 +898,7 @@
             var box = this.appendNotification(message, type, image,
                                               this.PRIORITY_INFO_HIGH, buttons);
             // Create the checkbox on a timeout to allow the XBL to bind first.
-            setTimeout(function(stringBundle) {
+            setTimeout(function(stringBundle, formatter) {
               if (site) {
                 box.checkbox = document.createElement("checkbox");
                 box.checkbox.className = "rememberChoice";
@@ -745,12 +909,10 @@
               link.className = "text-link";
               link.setAttribute("value", stringBundle.GetStringFromName(type + ".learnMore"));
 
-              var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                                        .getService(Components.interfaces.nsIURLFormatter);
-              link.href = formatter.formatURLPref("browser.geolocation.warning.infoURL");
+              link.setAttribute("href", formatter.formatURLPref("browser.geolocation.warning.infoURL"));
 
               document.getAnonymousElementByAttribute(box, "anonid", "messageText").appendChild(link);
-            }, 0, this._stringBundle);
+            }, 0, this._stringBundle, this._urlFormatter);
 
             // Create a dummy checkbox so file requests don't try to remember.
             box.checkbox = { checked: false };
@@ -1094,6 +1256,13 @@
           this._prefs.addObserver("dom.disable_open_during_load", this, false);
 
           this.addProgressListener();
+
+          if ("nsICrashReporter" in Components.interfaces) {
+            Components.utils.import("resource://gre/modules/CrashSubmit.jsm", this);
+
+            var url = this._urlFormatter.formatURLPref("app.support.baseURL");
+            this.crashReportHelpURL = url + "plugin-crashed";
+          }
         ]]>
       </constructor>
 
@@ -1235,6 +1404,137 @@
                                       "chrome://navigator/skin/icons/popup-blocked.png",
                                       priority, buttons);
             }
+          }
+        ]]>
+      </handler>
+
+      <handler event="PluginCrashed">
+        <![CDATA[
+          var plugin = event.target;
+          // Since we are expecting also untrusted events, make sure
+          // that the target is a plugin
+          if (!(plugin instanceof Components.interfaces.nsIObjectLoadingContent))
+            return;
+
+          if (!(event instanceof Components.interfaces.nsIDOMDataContainerEvent))
+            return;
+
+          var submittedReport = event.getData("submittedCrashReport");
+          var doPrompt        = true; // XXX followup for .getData("doPrompt");
+          var submitReports   = true; // XXX followup for .getData("submitReports");
+          var pluginName      = event.getData("pluginName");
+          var pluginFilename  = event.getData("pluginFilename");
+          var pluginDumpID    = event.getData("pluginDumpID");
+          var browserDumpID   = event.getData("browserDumpID");
+
+          // Remap the plugin name to a more user-presentable form.
+          pluginName = this.makeNicePluginName(pluginName, pluginFilename);
+
+          // Force a style flush, so that we ensure our binding is attached.
+          plugin.clientTop;
+
+          // Configure the crashed-plugin placeholder.
+          var doc = plugin.ownerDocument;
+          var overlay = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
+
+          // The binding has role="link" here, since missing/disabled/blocked
+          // plugin UI has a onclick handler on the whole thing. This isn't needed
+          // for the plugin-crashed UI, because we use actual HTML links in the text.
+          overlay.removeAttribute("role");
+
+          var status;
+          var statusDiv = doc.getAnonymousElementByAttribute(plugin, "class", "submitStatus");
+
+          if (this.CrashSubmit) {
+            // Determine which message to show regarding crash reports.
+            if (submittedReport) { // submitReports && !doPrompt, handled in observer
+              status = "submitted";
+            }
+            else if (!submitReports && !doPrompt) {
+              status = "noSubmit";
+            }
+            else { // doPrompt
+              status = "please";
+              // XXX can we make the link target actually be blank?
+              let pleaseLink = doc.getAnonymousElementByAttribute(
+                                    plugin, "class", "pleaseSubmitLink");
+              this.addLinkClickCallback(pleaseLink, this.submitReport,
+                                        pluginDumpID, browserDumpID);
+            }
+
+            // If we're showing the link to manually trigger report submission, we'll
+            // want to be able to update all the instances of the UI for this crash to
+            // show an updated message when a report is submitted.
+            if (doPrompt) {
+              let observer = {
+                QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIObserver,
+                                                       Components.interfaces.nsISupportsWeakReference]),
+                observe: function(subject, topic, data) {
+                  let propertyBag = subject;
+                  if (!(propertyBag instanceof Components.interfaces.nsIPropertyBag2))
+                    return;
+                  // Ignore notifications for other crashes.
+                  if (propertyBag.get("minidumpID") != pluginDumpID)
+                    return;
+                  statusDiv.setAttribute("status", data);
+                },
+
+                handleEvent : function(event) {
+                  // Not expected to be called, just here for the closure.
+                }
+              }
+
+              // Use a weak reference, so we don't have to remove it...
+              Components.classes["@mozilla.org/observer-service;1"]
+                        .getService(Components.interfaces.nsIObserverService)
+                        .addObserver(observer, "crash-report-status", true);
+              // ...alas, now we need something to hold a strong reference to prevent
+              // it from being GC. But I don't want to manually manage the reference's
+              // lifetime (which should be no greater than the page).
+              // Clever solution? Use a closure with an event listener on the statusDiv.
+              // When it goes away, so do the listener references and the closure.
+              statusDiv.addEventListener("mozCleverClosureHack", observer, false);
+            }
+          }
+
+          // If we don't have a minidumpID, we can't (or didn't) submit anything.
+          // This can happen if the plugin is killed from the task manager.
+          if (!pluginDumpID) {
+            status = "noReport";
+          }
+
+          statusDiv.setAttribute("status", status);
+
+          var bottomLinks = doc.getAnonymousElementByAttribute(plugin, "class", "msg msgBottomLinks");
+          bottomLinks.style.display = "block";
+          var helpIcon = doc.getAnonymousElementByAttribute(plugin, "class", "helpIcon");
+          this.addLinkClickCallback(helpIcon, this.openHelpPage);
+
+          var messageString = this._stringBundle.formatStringFromName("crashedpluginsMessage.title", [pluginName], 1);
+          var crashText = doc.getAnonymousElementByAttribute(plugin, "class", "msg msgCrashed");
+          crashText.textContent = messageString;
+
+          var link = doc.getAnonymousElementByAttribute(plugin, "class", "reloadLink");
+          this.addLinkClickCallback(link, this.reloadPage);
+
+          // Is the <object>'s size too small to hold what we want to show?
+          if (this.isTooSmall(plugin, overlay)) {
+            // Hide the overlay's contents. Use visibility style, so that it
+            // doesn't collapse down to 0x0.
+            overlay.style.visibility = "hidden";
+            // If another plugin on the page was large enough to show our UI, we
+            // don't want to show a notification bar.
+            if (!this.crashNotified)
+              this.showPluginCrashedNotification(pluginDumpID, browserDumpID, messageString);
+          }
+          else {
+            // If a previous plugin on the page was too small and resulted in
+            // adding a notification bar, then remove it because this plugin
+            // instance it big enough to serve as in-content notification.
+            var notification = this.getNotificationWithValue("plugin-crashed");
+            if (notification)
+              this.removeNotification(notification, true);
+            this.crashNotified = true;
           }
         ]]>
       </handler>
