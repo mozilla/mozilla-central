@@ -642,6 +642,30 @@ function goReleaseNotes()
   catch (ex) { dump(ex); }
 }
 
+// Prompt user to restart the browser in safe mode 
+function safeModeRestart()
+{
+  // prompt the user to confirm 
+  var promptTitle = gUtilityBundle.getString("safeModeRestartPromptTitle");
+  var promptMessage = gUtilityBundle.getString("safeModeRestartPromptMessage");
+  var restartText = gUtilityBundle.getString("safeModeRestartButton");
+  var buttonFlags = (Services.prompt.BUTTON_POS_0 *
+                     Services.prompt.BUTTON_TITLE_IS_STRING) +
+                    (Services.prompt.BUTTON_POS_1 *
+                     Services.prompt.BUTTON_TITLE_CANCEL) +
+                    Services.prompt.BUTTON_POS_0_DEFAULT;
+
+  var rv = Services.prompt.confirmEx(window, promptTitle, promptMessage,
+                                     buttonFlags, restartText, null, null,
+                                     null, {});
+  if (rv == 0) {
+    Components.classes["@mozilla.org/process/environment;1"]
+              .getService(Components.interfaces.nsIEnvironment)
+              .set("MOZ_SAFE_MODE_RESTART", "1");
+    Application.restart();
+  }
+}
+
 function checkForUpdates()
 {
   var um = Components.classes["@mozilla.org/updates/update-manager;1"]

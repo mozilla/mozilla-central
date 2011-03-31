@@ -72,10 +72,12 @@
 
 <!ENTITY helpTroubleshootingInfo.label      "Troubleshooting Information">
 <!ENTITY helpTroubleshootingInfo.accesskey  "T">
-<!ENTITY releaseCmd.label				"Release Notes">
-<!ENTITY releaseCmd.accesskey                   "N">
-<!ENTITY updateCmd.label                        "Check for Updates…">
-<!ENTITY updateCmd.accesskey                    "C">
+<!ENTITY releaseCmd.label                   "Release Notes">
+<!ENTITY releaseCmd.accesskey               "N">
+<!ENTITY helpSafeMode.label                 "Restart with Add-ons Disabled">
+<!ENTITY helpSafeMode.accesskey             "R">
+<!ENTITY updateCmd.label                    "Check for Updates…">
+<!ENTITY updateCmd.accesskey                "C">
 <!ENTITY aboutCmd.label					"About &brandShortName;">
 <!ENTITY aboutCmd.accesskey				"A">
 <!ENTITY aboutCommPluginsCmd.label			"About Plugins">

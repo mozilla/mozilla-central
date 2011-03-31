@@ -360,10 +360,14 @@
                 accesskey="&helpTroubleshootingInfo.accesskey;"
                 label="&helpTroubleshootingInfo.label;"
                 oncommand="goTroubleshootingPage();"/>
-      <menuitem accesskey="&releaseCmd.accesskey;"
+      <menuitem id="releaseUrl"
+                accesskey="&releaseCmd.accesskey;"
                 label="&releaseCmd.label;"
-                id="releaseUrl"
                 oncommand="goReleaseNotes();"/>
+      <menuitem id="helpSafeMode"
+                accesskey="&helpSafeMode.accesskey;"
+                label="&helpSafeMode.label;"
+                oncommand="safeModeRestart();"/>
 
       <menuseparator id="updateSeparator"/>
 
