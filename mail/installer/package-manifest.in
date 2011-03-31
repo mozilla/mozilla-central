@@ -215,6 +215,7 @@
 #endif
 @BINPATH@/components/mailComponents.manifest
 @BINPATH@/components/mailContentHandler.js
+@BINPATH@/components/mailGlue.js
 @BINPATH@/components/nsMailDefaultHandler.js
 #ifndef XP_OS2
 @BINPATH@/components/nsSetDefaultMail.js
