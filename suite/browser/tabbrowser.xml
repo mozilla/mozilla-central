@@ -1709,19 +1709,6 @@
               return;
 
             // We're committed to closing the tab now.
-            // Dispatch a notification.
-            // We dispatch it before any teardown so that event listeners can
-            // inspect the tab that's about to close.
-            var event = document.createEvent('UIEvents');
-            event.initUIEvent("TabClose", true, false, window, !!aParams.disableUndo);
-            aTab.dispatchEvent(event);
-            var tabData = aTab.tabData || {};
-            tabData.pos = this.getTabIndex(aTab);
-            tabData.panel = oldBrowser.parentNode.id;
-            tabData.title = oldBrowser.contentDocument.title ||
-                            this.getTitleForURI(oldBrowser.currentURI) ||
-                            this.mStringBundle.getString("tabs.untitled");
-
             var l = this.tabs.length;
             switch (l) {
               case 1:
@@ -1734,6 +1721,19 @@
                 if (this.mPrefs.getBoolPref("browser.tabs.autoHide"))
                   this.mStrip.collapsed = true;
             }
+
+            // Dispatch a notification.
+            // We dispatch it before any teardown so that event listeners can
+            // inspect the tab that's about to close.
+            var event = document.createEvent('UIEvents');
+            event.initUIEvent("TabClose", true, false, window, !!aParams.disableUndo);
+            aTab.dispatchEvent(event);
+            var tabData = aTab.tabData || {};
+            tabData.pos = this.getTabIndex(aTab);
+            tabData.panel = oldBrowser.parentNode.id;
+            tabData.title = oldBrowser.contentDocument.title ||
+                            this.getTitleForURI(oldBrowser.currentURI) ||
+                            this.mStringBundle.getString("tabs.untitled");
 
             var index = this.getTabIndex(aTab);
 
