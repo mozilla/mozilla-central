@@ -1067,6 +1067,8 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::OnStopCopy(nsresult aStatus)
 PRBool nsMsgFilterAfterTheFact::ContinueExecutionPrompt()
 {
   PRBool returnVal = PR_FALSE;
+  if (!m_curFilter)
+    return returnVal;
   nsresult rv;
   nsCOMPtr <nsIStringBundle> bundle;
   nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
