@@ -154,9 +154,7 @@ calendar.jar:
     skin/calendar/today-pane.css                           (themes/@THEME@/today-pane.css)
     skin/calendar/toolbar-large.png                        (themes/@THEME@/images/toolbar-large.png)
     skin/calendar/toolbar-small.png                        (themes/@THEME@/images/toolbar-small.png)
-    skin/calendar/tasks-actions.png						   (themes/@THEME@/images/tasks-actions.png)
     skin/calendar/widgets/calendar-widgets.css             (themes/@THEME@/widgets/calendar-widgets.css)
-
 #ifdef XP_MACOSX
     skin/calendar/sidebar-item.png                         (themes/@THEME@/images/sidebar-item.png)
 #endif
