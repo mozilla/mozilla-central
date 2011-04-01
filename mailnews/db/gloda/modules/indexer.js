@@ -1344,6 +1344,8 @@ var GlodaIndexer = {
 
     // -- Blow away the stack with cleanup.
     let workerDef = this._curIndexingJob._workerDef;
+    if (this._unitTestSuperVerbose)
+      this._log.debug("Killing job of type: " + this._curIndexingJob.jobType);
     if (this._unitTestHookCleanup)
       this._unitTestHookCleanup(workerDef.cleanup ? true : false,
                                 "no exception, this was killActiveJob",
@@ -1374,6 +1376,8 @@ var GlodaIndexer = {
       // If the filter says to, splice the job out of existence (and make sure
       //  to fixup iJob to compensate.)
       if (aFilterElimFunc(job)) {
+        if (this._unitTestSuperVerbose)
+          this._log.debug("Purging job of type: " + job.jobType);
         this._indexQueue.splice(iJob--, 1);
         let workerDef = this._indexerWorkerDefs[job.jobType];
         if (workerDef.jobCanceled)

@@ -144,6 +144,10 @@ function test_sweep_performs_compaction() {
   yield async_move_messages(moveSet, otherFolder);
   yield wait_for_gloda_indexer([moveSet]);
 
+  // Disable event-driven indexing so there is no way the compaction job can
+  //  get worked.
+  configure_gloda_indexing({event: false});
+
   // compact
   let msgFolder = get_real_injection_folder(folder);
   mark_action("actual", "triggering compaction",
@@ -152,16 +156,15 @@ function test_sweep_performs_compaction() {
   msgFolder.compact(asyncUrlListener, null);
   yield false;
 
-  // The gloda compaction job should not have started yet.  Kill it!  Kill them
-  //  all!
+  // Erase the compaction job.
   GlodaIndexer.purgeJobsUsingFilter(function() true);
-  GlodaIndexer.killActiveJob();
 
   // Make sure the folder is marked compacted...
   let glodaFolder = Gloda.getFolderForFolder(msgFolder);
   do_check_true(glodaFolder.compacted);
 
-  // Firing up an indexing pass
+  // Re-enable indexing and fire up an indexing pass
+  configure_gloda_indexing({event: true});
   GlodaMsgIndexer.indexingSweepNeeded = true;
   yield wait_for_gloda_indexer();
 
@@ -186,6 +189,9 @@ function test_moves_and_deletions_on_compacted_folder_edge_case() {
   yield async_move_messages(compactMoveSet, otherFolder);
   yield wait_for_gloda_indexer([compactMoveSet]);
 
+  // Disable indexing because we don't want to process the compaction.
+  configure_gloda_indexing({event: false});
+
   // compact
   let msgFolder = get_real_injection_folder(folder);
   mark_action("actual", "triggering compaction",
@@ -194,14 +200,11 @@ function test_moves_and_deletions_on_compacted_folder_edge_case() {
   msgFolder.compact(asyncUrlListener, null);
   yield false;
 
-  // The gloda compaction job should not have started yet.  Kill it!  Kill them
-  //  all!
-  mark_action("actual", "killing all indexing jobs", []);
+  // Erase the compaction job.
   GlodaIndexer.purgeJobsUsingFilter(function() true);
-  GlodaIndexer.killActiveJob();
 
   // - Delete
-  // Becaus of the compaction, the PendingCommitTracker forgot that the message
+  // Because of the compaction, the PendingCommitTracker forgot that the message
   //  we are deleting got indexed; we will receive no event.
   yield async_delete_messages(delSet);
 
@@ -209,13 +212,15 @@ function test_moves_and_deletions_on_compacted_folder_edge_case() {
   // Same deal on the move, except that it will try and trigger event-based
   //  indexing in the target folder...
   yield async_move_messages(moveSet, otherFolder);
-  // Kill the event-based indexing of the target; we want the indexing sweep
+  // Kill the event-based indexing job of the target; we want the indexing sweep
   //  to see it as a move.
   mark_action("actual", "killing all indexing jobs", []);
   GlodaIndexer.purgeJobsUsingFilter(function() true);
-  GlodaIndexer.killActiveJob();
 
   // - Indexing pass
+  // Reenable indexing so we can do a sweep.
+  configure_gloda_indexing({event: true});
+
   // This will trigger compaction (per the previous unit test) which should mark
   //  moveSet and delSet as deleted.  Then it should happen in to the next
   //  folder and add moveSet again...
