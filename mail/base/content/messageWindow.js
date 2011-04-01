@@ -731,7 +731,6 @@ var MessageWindowController =
       case "cmd_viewPageSource":
       case "cmd_getMsgsForAuthAccounts":
       case "button_file":
-      case "cmd_file":
       case "cmd_nextMsg":
       case "button_next":
       case "button_previous":
@@ -867,7 +866,6 @@ var MessageWindowController =
         return CanMarkMsgAsRead(false);
       case "cmd_markAsFlagged":
       case "button_file":
-      case "cmd_file":
         return ( gFolderDisplay.selectedMessage != null);
       case "cmd_printSetup":
         return true;
