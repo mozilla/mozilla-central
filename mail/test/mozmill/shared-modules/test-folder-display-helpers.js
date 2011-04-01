@@ -156,8 +156,9 @@ function setupModule() {
   mark_failure = testHelperModule.mark_failure;
 
   // Remove the dump appender that got appended; it just adds noise.
-  testHelperModule._testLogger._appenders.splice(
-    testHelperModule._testLogger._appenders.length - 1, 1);
+  testHelperModule._testLogger.removeAppender(
+    testHelperModule._testLogger.ownAppenders[
+      testHelperModule._testLogger.ownAppenders.length - 1]);
 
   // Add a bucketing appender to the root.
   let rootLogger = Log4Moz.repository.rootLogger;
