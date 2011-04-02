@@ -554,7 +554,8 @@ var PlacesOrganizer = {
     if (aNode.itemId != -1 &&
         ((PlacesUtils.nodeIsFolder(aNode) &&
           !PlacesUtils.nodeIsLivemarkContainer(aNode)) ||
-         PlacesUtils.nodeIsLivemarkItem(aNode))) {
+         PlacesUtils.nodeIsLivemarkItem(aNode) ||
+         PlacesUtils.nodeIsQuery(aNode))) {
       if (infoBox.getAttribute("minimal") == "true")
         infoBox.setAttribute("wasminimal", "true");
       infoBox.removeAttribute("minimal");
