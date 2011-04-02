@@ -643,12 +643,13 @@ function goReleaseNotes()
 }
 
 // Prompt user to restart the browser in safe mode 
-function safeModeRestart()
+function safeModeRestart(checkboxText)
 {
   // prompt the user to confirm 
   var promptTitle = gUtilityBundle.getString("safeModeRestartPromptTitle");
   var promptMessage = gUtilityBundle.getString("safeModeRestartPromptMessage");
   var restartText = gUtilityBundle.getString("safeModeRestartButton");
+  var checkbox = { value: true };
   var buttonFlags = (Services.prompt.BUTTON_POS_0 *
                      Services.prompt.BUTTON_TITLE_IS_STRING) +
                     (Services.prompt.BUTTON_POS_1 *
@@ -657,11 +658,12 @@ function safeModeRestart()
 
   var rv = Services.prompt.confirmEx(window, promptTitle, promptMessage,
                                      buttonFlags, restartText, null, null,
-                                     null, {});
+                                     checkboxText, checkbox);
   if (rv == 0) {
-    Components.classes["@mozilla.org/process/environment;1"]
-              .getService(Components.interfaces.nsIEnvironment)
-              .set("MOZ_SAFE_MODE_RESTART", "1");
+    if (checkbox.value)
+      Components.classes["@mozilla.org/process/environment;1"]
+                .getService(Components.interfaces.nsIEnvironment)
+                .set("MOZ_SAFE_MODE_RESTART", "1");
     Application.restart();
   }
 }
