@@ -23,6 +23,7 @@
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
+ *   Matthew Mecca <matthew.mecca@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -79,17 +80,19 @@ function calAlarmService() {
             }
         },
 
-        onAddItem: function(aItem) {
-            let occs = [];
-            if (aItem.recurrenceInfo) {
+        getOccurrencesInRange: function(aItem) {
+            if (aItem && aItem.recurrenceInfo) {
                 let start = this.alarmService.mRangeEnd.clone();
                 // We search 1 month in each direction for alarms.  Therefore,
                 // we need to go back 2 months from the end to get this right.
                 start.month -= 2;
-                occs = aItem.recurrenceInfo.getOccurrences(start, this.alarmService.mRangeEnd, 0, {});
+                return aItem.recurrenceInfo.getOccurrences(start, this.alarmService.mRangeEnd, 0, {});
             } else {
-                occs = [aItem];
+                return [aItem];
             }
+        },
+        onAddItem: function(aItem) {
+            let occs = this.getOccurrencesInRange(aItem);
 
             // Add an alarm for each occurrence
             occs.forEach(this.alarmService.addAlarmsForItem,
@@ -105,7 +108,11 @@ function calAlarmService() {
             this.onAddItem(aNewItem);
         },
         onDeleteItem: function(aDeletedItem) {
-            this.alarmService.removeAlarmsForItem(aDeletedItem);
+            let occs = this.getOccurrencesInRange(aDeletedItem);
+
+            // Remove alarm for each occurrence
+            occs.forEach(this.alarmService.removeAlarmsForItem,
+                         this.alarmService);
         },
         onError: function(aCalendar, aErrNo, aMessage) {},
         onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
@@ -459,7 +466,7 @@ calAlarmService.prototype = {
 
     removeAlarmsForItem: function cAS_removeAlarmsForItem(aItem) {
         // make sure already fired alarms are purged out of the alarm window:
-        this.mObservers.notify("onRemoveAlarmsByItem", [aItem]);
+        this.mObservers.notify("onRemoveAlarmsByItem", [aItem.parentItem]);
         // Purge alarms specifically for this item (i.e exception)
         for each (let alarm in aItem.getAlarms({})) {
             this.removeTimer(aItem, alarm);
