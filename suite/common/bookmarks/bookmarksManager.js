@@ -539,7 +539,7 @@ var PlacesOrganizer = {
      * of livemark-children are not likely to fill the infoBox anyway,
      * thus we remove the "More/Less" button and show all details.
      *
-     * the wasminimal attribute here is used to persist the "more/less"
+     * the wasminimal attribute here is used to persist the "more/fewer"
      * state in a bookmark->folder->bookmark scenario.
      */
     var infoBox = document.getElementById("infoBox");
@@ -736,8 +736,8 @@ var PlacesOrganizer = {
 
     if (infoBox.getAttribute("minimal") == "true") {
       infoBox.removeAttribute("minimal");
-      infoBoxExpanderLabel.value = infoBoxExpanderLabel.getAttribute("lesslabel");
-      infoBoxExpanderLabel.accessKey = infoBoxExpanderLabel.getAttribute("lessaccesskey");
+      infoBoxExpanderLabel.value = infoBoxExpanderLabel.getAttribute("fewerlabel");
+      infoBoxExpanderLabel.accessKey = infoBoxExpanderLabel.getAttribute("feweraccesskey");
       infoBoxExpander.className = "expander-up";
       additionalInfoBroadcaster.removeAttribute("hidden");
     }

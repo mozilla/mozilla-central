@@ -11,7 +11,7 @@
 <!ENTITY editBookmarkOverlay.foldersExpanderDown.tooltip     "Show all the bookmarks folders">
 <!ENTITY editBookmarkOverlay.expanderUp.tooltip              "Hide">
 <!ENTITY editBookmarkOverlay.tags.label                      "Tags:">
-<!ENTITY editBookmarkOverlay.tags.accesskey                  "T">
+<!ENTITY editBookmarkOverlay.tags.accesskey                  "a">
 <!ENTITY editBookmarkOverlay.tagsEmptyDesc.label             "Separate tags with commas">
 <!ENTITY editBookmarkOverlay.description.label               "Description:">
 <!ENTITY editBookmarkOverlay.description.accesskey           "D">
@@ -19,7 +19,7 @@
 <!ENTITY editBookmarkOverlay.keyword.accesskey               "K">
 <!ENTITY editBookmarkOverlay.tagsExpanderDown.tooltip        "Show all tags">
 <!ENTITY editBookmarkOverlay.loadInSidebar.label             "Load this bookmark in the sidebar">
-<!ENTITY editBookmarkOverlay.loadInSidebar.accesskey         "h">
+<!ENTITY editBookmarkOverlay.loadInSidebar.accesskey         "o">
 <!ENTITY editBookmarkOverlay.choose.label                    "Choose…">
 <!ENTITY editBookmarkOverlay.newFolderButton.label           "New Folder">
 <!ENTITY editBookmarkOverlay.newFolderButton.accesskey       "o">

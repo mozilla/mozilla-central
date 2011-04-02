@@ -444,8 +444,8 @@
                     observes="paneElementsBroadcaster"/>
 
             <label id="infoBoxExpanderLabel"
-                    lesslabel="&detailsPane.less.label;"
-                    lessaccesskey="&detailsPane.less.accesskey;"
+                    fewerlabel="&detailsPane.fewer.label;"
+                    feweraccesskey="&detailsPane.fewer.accesskey;"
                     morelabel="&detailsPane.more.label;"
                     moreaccesskey="&detailsPane.more.accesskey;"
                     value="&detailsPane.more.label;"

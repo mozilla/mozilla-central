@@ -88,9 +88,9 @@
 
 <!ENTITY search.in.label                           "Search in:">
 <!ENTITY search.scopeFolder.label                  "Selected Folder">
-<!ENTITY search.scopeFolder.accesskey              "r">
+<!ENTITY search.scopeFolder.accesskey              "m">
 <!ENTITY search.scopeBookmarks.label               "Bookmarks">
-<!ENTITY search.scopeBookmarks.accesskey           "k">
+<!ENTITY search.scopeBookmarks.accesskey           "B">
 <!ENTITY saveSearch.label                          "Save">
 <!ENTITY saveSearch.accesskey                      "S">
 
@@ -100,9 +100,9 @@
 <!ENTITY forwardButton.tooltip  "Go forward">
 
 <!ENTITY detailsPane.more.label "More">
-<!ENTITY detailsPane.more.accesskey "e">
-<!ENTITY detailsPane.less.label "Less">
-<!ENTITY detailsPane.less.accesskey "e">
+<!ENTITY detailsPane.more.accesskey "r">
+<!ENTITY detailsPane.fewer.label "Fewer">
+<!ENTITY detailsPane.fewer.accesskey "r">
 <!ENTITY detailsPane.selectAnItemText.description "Select an item to view and edit its properties">
 
 <!ENTITY editBookmark.done.label "Done">
