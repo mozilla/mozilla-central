@@ -440,6 +440,7 @@
 
             <button type="image" id="infoBoxExpander"
                     class="expander-down"
+                    accesskey="&detailsPane.more.accesskey;"
                     oncommand="PlacesOrganizer.toggleAdditionalInfoFields();"
                     observes="paneElementsBroadcaster"/>
 
@@ -449,7 +450,6 @@
                     morelabel="&detailsPane.more.label;"
                     moreaccesskey="&detailsPane.more.accesskey;"
                     value="&detailsPane.more.label;"
-                    accesskey="&detailsPane.more.accesskey;"
                     control="infoBoxExpander"/>
 
           </hbox>
