@@ -643,12 +643,13 @@ function goReleaseNotes()
 }
 
 // Prompt user to restart the browser in safe mode 
-function safeModeRestart(checkboxText)
+function safeModeRestart()
 {
   // prompt the user to confirm 
   var promptTitle = gUtilityBundle.getString("safeModeRestartPromptTitle");
   var promptMessage = gUtilityBundle.getString("safeModeRestartPromptMessage");
   var restartText = gUtilityBundle.getString("safeModeRestartButton");
+  var checkboxText = gUtilityBundle.getString("safeModeRestartCheckbox");
   var checkbox = { value: true };
   var buttonFlags = (Services.prompt.BUTTON_POS_0 *
                      Services.prompt.BUTTON_TITLE_IS_STRING) +

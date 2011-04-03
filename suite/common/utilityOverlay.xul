@@ -367,7 +367,7 @@
       <menuitem id="helpSafeMode"
                 accesskey="&helpSafeMode.accesskey;"
                 label="&helpSafeMode.label;"
-                oncommand="safeModeRestart(this.getAttribute('label'));"/>
+                oncommand="safeModeRestart();"/>
 
       <menuseparator id="updateSeparator"/>
 
