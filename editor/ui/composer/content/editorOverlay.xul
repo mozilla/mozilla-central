@@ -129,7 +129,6 @@
           oncommandupdate="goUpdateComposerMenuItems(this)">
     <!-- format menu -->
     <command id="cmd_listProperties"  oncommand="goDoCommand('cmd_listProperties')"/>
-    <command id="cmd_pageProperties"  oncommand="goDoCommand('cmd_pageProperties')"/>
     <command id="cmd_colorProperties" oncommand="goDoCommand('cmd_colorProperties')"/>
 
     <command id="cmd_link"             oncommand="goDoCommand('cmd_link')"/>
@@ -197,7 +196,8 @@
     <command id="cmd_validate"      label="&validateCmd.label;" accesskey="&validateCmd.accesskey;" oncommand="goDoCommand('cmd_validate')"/>
     <command id="cmd_checkLinks"    oncommand="goDoCommand('cmd_checkLinks')"/>
     <command id="cmd_pasteQuote"    oncommand="goDoCommand('cmd_pasteQuote')" label="&pasteAsQuotationCmd.label;"/>
-    <command id="cmd_publishSettings" label="&publishSettings.label;" accesskey="&publishSettings.accesskey;" oncommand="goDoCommand('cmd_publishSettings')"/>
+    <command id="cmd_publishSettings"
+             oncommand="goDoCommand('cmd_publishSettings');"/>
   </commandset>
 
   <!-- style related commands that update on creation, and on selection change -->
@@ -432,8 +432,11 @@
                 accesskey="&enableInlineSpellChecker.accesskey;"
                 oncommand="InlineSpellCheckerUI.enabled = !InlineSpellCheckerUI.enabled"/>
       <menuseparator id="menu_prefsSep"/>
+      <menuitem id="menu_publishSettings"
+                label="&publishSettings.label;"
+                accesskey="&publishSettings.accesskey;"
+                command="cmd_publishSettings"/>
       <menuitem id="menu_preferences"     observes="cmd_preferences"/>
-      <!-- Note: other Edit items (menu_validate, menu_publishSettings) are inserted from composerOverlay.xul -->
     </menupopup>
   </menu>
 
@@ -902,18 +905,10 @@
     <!-- Merge property items here -->
   </menupopup>
 
-  <menuitem id="snapToGrid" label="&grid.label;" accesskey="&grid.accesskey;"
-            oncommand="goDoCommand('cmd_grid')"   observes="cmd_renderedHTMLEnabler"/>
-
-  <!-- Next 3 are items to append at the bottom of the formatMenuPopup -->
+  <!-- Next 2 are items to append at the bottom of the formatMenuPopup -->
   <!-- label and accesskey filled in during menu creation -->
   <menuitem id="objectProperties"   oncommand="goDoCommand('cmd_objectProperties')"   observes="cmd_renderedHTMLEnabler"/>
   <!-- Don't use 'observes', must call command correctly -->
-  <menuitem id="pageProperties"
-            label="&pageProperties.label;"
-            accesskey="&pageProperties.accesskey;"
-            oncommand="goDoCommand('cmd_pageProperties')"
-            observes="cmd_renderedHTMLEnabler"/>
   <menuitem id="colorsAndBackground"
             label="&colorsAndBackground.label;"
             accesskey="&colorsAndBackground.accesskey;"

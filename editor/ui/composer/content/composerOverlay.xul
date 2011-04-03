@@ -40,9 +40,4 @@
 <overlay id="composerOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <!-- Items in the Edit menu used only by Composer app -->
-  <menupopup id="edEditMenuPopup">
-    <menuitem id="menu_publishSettings" insertafter="menu_prefsSep"  observes="cmd_publishSettings"/>
-  </menupopup>
-
 </overlay>    

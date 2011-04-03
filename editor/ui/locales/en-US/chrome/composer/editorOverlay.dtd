@@ -332,11 +332,6 @@
 <!ENTITY decreaseIndent.accesskey "D">
 <!ENTITY decreaseIndent.key "[">
 
-<!ENTITY grid.label "Positioning grid">
-<!ENTITY grid.accesskey "t">
-
-<!ENTITY pageProperties.label "Page Title and Properties…">
-<!ENTITY pageProperties.accesskey "g">
 <!ENTITY colorsAndBackground.label "Page Colors and Background…">
 <!ENTITY colorsAndBackground.accesskey "u">
 

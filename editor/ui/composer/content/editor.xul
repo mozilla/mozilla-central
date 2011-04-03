@@ -99,10 +99,14 @@
   <commandset id="editorCommands">
     <commandset id="commonEditorMenuItems"/>
     <commandset id="composerMenuItems"/>
-    <commandset id="composerModeMenuItems"
+    <commandset id="composerOnlyMenuItems"
                 commandupdater="true"
                 events="create, mode_switch"
                 oncommandupdate="goUpdateComposerMenuItems(this);">
+      <!-- format menu -->
+      <command id="cmd_pageProperties"
+               oncommand="goDoCommand('cmd_pageProperties');"/>
+      <!-- toolbars -->
       <command id="cmd_NormalMode"
                oncommand="goDoCommand('cmd_NormalMode');"/>
       <command id="cmd_AllTagsMode"
@@ -198,11 +202,20 @@
 
     <menu id="formatMenu" label="&formatMenu.label;" accesskey="&formatMenu.accesskey;">
       <menupopup id="formatMenuPopup">
-        <menuitem id="snapToGrid"/>
+        <menuitem id="snapToGrid"
+                  label="&grid.label;"
+                  accesskey="&grid.accesskey;"
+                  oncommand="goDoCommand('cmd_grid')"
+                  observes="cmd_renderedHTMLEnabler"/>
         <menuseparator/>
         <menuitem id="objectProperties"/>
         <menuitem id="colorsAndBackground"/>
-        <menuitem id="pageProperties"/>
+        <!-- Don't use 'observes', must call command correctly -->
+        <menuitem id="pageProperties"
+                  label="&pageProperties.label;"
+                  accesskey="&pageProperties.accesskey;"
+                  oncommand="goDoCommand('cmd_pageProperties')"
+                  observes="cmd_renderedHTMLEnabler"/>
       </menupopup>
     </menu>
 
