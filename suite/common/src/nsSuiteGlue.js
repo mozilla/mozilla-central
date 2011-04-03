@@ -108,6 +108,9 @@ SuiteGlue.prototype = {
       case "xpcom-shutdown":
         this._dispose();
         break;
+      case "profile-after-change":
+        this._onProfileAfterChange();
+        break;
       case "final-ui-startup":
         this._onProfileStartup();
         this._promptForMasterPassword();
@@ -191,6 +194,7 @@ SuiteGlue.prototype = {
   {
     // observer registration
     Services.obs.addObserver(this, "xpcom-shutdown", false);
+    Services.obs.addObserver(this, "profile-after-change", false);
     Services.obs.addObserver(this, "final-ui-startup", false);
     Services.obs.addObserver(this, "sessionstore-windows-restored", false);
     Services.obs.addObserver(this, "browser:purge-session-history", false);
@@ -220,6 +224,7 @@ SuiteGlue.prototype = {
   {
     // observer removal
     Services.obs.removeObserver(this, "xpcom-shutdown");
+    Services.obs.removeObserver(this, "profile-after-change");
     Services.obs.removeObserver(this, "final-ui-startup");
     Services.obs.removeObserver(this, "sessionstore-windows-restored");
     Services.obs.removeObserver(this, "browser:purge-session-history");
@@ -240,6 +245,16 @@ SuiteGlue.prototype = {
       Services.obs.removeObserver(this, "places-shutdown");
   },
 
+  // profile is available
+  _onProfileAfterChange: function()
+  {
+    // check if we're in safe mode
+    if (Services.appinfo.inSafeMode) {
+      Services.ww.openWindow(null, "chrome://communicator/content/safeMode.xul", 
+                             "_blank", "chrome,centerscreen,modal,resizable=no", null);
+    }
+  },
+  
   // profile startup handler (contains profile initialization routines)
   _onProfileStartup: function()
   {

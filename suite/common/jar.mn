@@ -76,6 +76,8 @@ comm.jar:
    content/communicator/openLocation.xul
    content/communicator/passwordManager.xul
    content/communicator/printPreviewBindings.xml
+   content/communicator/safeMode.js
+   content/communicator/safeMode.xul
    content/communicator/sanitize.xul
    content/communicator/tasksOverlay.js
    content/communicator/tasksOverlay.xul
