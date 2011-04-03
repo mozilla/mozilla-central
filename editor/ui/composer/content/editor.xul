@@ -106,6 +106,9 @@
       <!-- format menu -->
       <command id="cmd_pageProperties"
                oncommand="goDoCommand('cmd_pageProperties');"/>
+      <!-- tools menu -->
+      <command id="cmd_validate"
+               oncommand="goDoCommand('cmd_validate');"/>
       <!-- toolbars -->
       <command id="cmd_NormalMode"
                oncommand="goDoCommand('cmd_NormalMode');"/>
@@ -224,7 +227,10 @@
     <!-- tasks menu filled from tasksOverlay -->
     <menu id="tasksMenu">
       <menupopup id="taskPopup">
-        <menuitem id="menu_validate" observes="cmd_validate"/>
+        <menuitem id="menu_validate"
+                  label="&validateCmd.label;"
+                  accesskey="&validateCmd.accesskey;"
+                  command="cmd_validate"/>
         <menuseparator id="sep_validate"/>
       </menupopup>
     </menu>

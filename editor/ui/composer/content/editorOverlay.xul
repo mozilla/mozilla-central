@@ -193,7 +193,6 @@
     <command id="cmd_findNext"      oncommand="goDoCommand('cmd_findNext')"     label="&findAgainCmd.label;"/>
     <command id="cmd_findPrev"      oncommand="goDoCommand('cmd_findPrev')"     label="&findPrevCmd.label;"/>
     <command id="cmd_spelling"      oncommand="goDoCommand('cmd_spelling')"/>
-    <command id="cmd_validate"      label="&validateCmd.label;" accesskey="&validateCmd.accesskey;" oncommand="goDoCommand('cmd_validate')"/>
     <command id="cmd_checkLinks"    oncommand="goDoCommand('cmd_checkLinks')"/>
     <command id="cmd_pasteQuote"    oncommand="goDoCommand('cmd_pasteQuote')" label="&pasteAsQuotationCmd.label;"/>
     <command id="cmd_publishSettings"

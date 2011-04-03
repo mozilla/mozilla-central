@@ -63,6 +63,10 @@
 <!ENTITY pageProperties.label "Page Title and Properties…">
 <!ENTITY pageProperties.accesskey "g">
 
+<!-- Tools menu items -->
+<!ENTITY validateCmd.label "Validate HTML">
+<!ENTITY validateCmd.accesskey "V">
+
 <!-- Display Mode toolbar and View menu items -->
 <!ENTITY NormalModeTab.label "Normal">
 <!ENTITY NormalMode.label "Normal Edit Mode">
