@@ -6,8 +6,6 @@
 <overlay id="editorMailOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/javascript" src="editorApplicationOverlay.js"/>
-
   <!-- navigator specific commands -->
   <commandset id="tasksCommands">
     <!-- XXX insert commands here -->

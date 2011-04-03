@@ -337,7 +337,8 @@
             accesskey="&fileRecentMenu.accesskey;"
             onpopupshowing="BuildRecentPagesMenu();">
         <menupopup id="menupopup_RecentFiles"
-                   oncommand="editPage(event.target.getAttribute('value'), window, false);"/>
+                   oncommand="editPage(event.target.getAttribute('value'),
+                                       event.target.getAttribute('fileType'));"/>
           <!-- menuitems appended at runtime -->
       </menu>
       <menuitem id="menu_close"

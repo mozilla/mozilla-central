@@ -85,8 +85,11 @@ function getContentFrameURI(aFocusedWindow)
 // Any non-editor window wanting to create an editor with a URL
 //   should use this instead of "window.openDialog..."
 //  We must always find an existing window with requested URL
-function editPage(url)
+function editPage(url, aFileType)
 {
+  // aFileType is optional and needs to default to html.
+  aFileType = aFileType || "html";
+
   // Always strip off "view-source:" and #anchors
   url = url.replace(/^view-source:/, "").replace(/#.*/, "");
 
@@ -104,7 +107,7 @@ function editPage(url)
 
     var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
     var windowManagerInterface = windowManager.QueryInterface( Components.interfaces.nsIWindowMediator);
-    var enumerator = windowManagerInterface.getEnumerator( "composer:html" );
+    var enumerator = windowManagerInterface.getEnumerator("composer:" + aFileType);
     var emptyWindow;
     while ( enumerator.hasMoreElements() )
     {
@@ -127,7 +130,7 @@ function editPage(url)
     if (emptyWindow)
     {
       // we have an empty window we can use
-      if (emptyWindow.IsInHTMLSourceMode())
+      if (aFileType == "html" && emptyWindow.IsInHTMLSourceMode())
         emptyWindow.SetEditMode(emptyWindow.PreviousNonSourceDisplayMode);
       emptyWindow.EditorLoadUrl(url);
       emptyWindow.focus();
@@ -135,8 +138,11 @@ function editPage(url)
       return;
     }
 
-    // Create new Composer window
-    openDialog("chrome://editor/content", "_blank", "chrome,all,dialog=no", url, charsetArg);
+    // Create new Composer / Text Editor window.
+    if (aFileType == "text" && ("EditorNewPlaintext" in window))
+      EditorNewPlaintext(url, charsetArg);
+    else
+      NewEditorWindow(url, charsetArg);
 
   } catch(e) {}
 }
@@ -163,6 +169,21 @@ function CheckOpenWindowForURIMatch(uri, win)
   } catch (e) {}
   
   return false;
+}
+
+function toEditor()
+{
+  if (!CycleWindow("composer:html"))
+    NewEditorWindow();
+}
+
+function NewEditorWindow(aUrl, aCharsetArg)
+{
+  window.openDialog("chrome://editor/content",
+                    "_blank",
+                    "chrome,all,dialog=no",
+                    aUrl || "about:blank",
+                    aCharsetArg);
 }
 
 function NewEditorFromTemplate()

@@ -85,7 +85,6 @@
   <script type="application/javascript" src="chrome://editor/content/editor.js"/>
   <script type="application/javascript" src="chrome://editor/content/EditorContextMenu.js"/>
   <script type="application/javascript" src="chrome://editor/content/StructBarContextMenu.js"/>
-  <script type="application/javascript" src="chrome://editor/content/editorApplicationOverlay.js"/>
   <script type="application/javascript" src="chrome://editor/content/publishprefs.js"/>
   <script type="application/javascript" src="chrome://communicator/content/contentAreaDD.js"/>
   <script type="application/javascript" src="chrome://communicator/content/contentAreaClick.js"/>

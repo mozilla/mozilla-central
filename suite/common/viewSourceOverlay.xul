@@ -57,8 +57,6 @@
   <script type="application/javascript"
           src="chrome://communicator/content/viewSourceOverlay.js"/>
   <script type="application/javascript"
-          src="chrome://editor/content/editorApplicationOverlay.js"/>
-  <script type="application/javascript"
           src="chrome://communicator/content/findUtils.js"/>
 
   <window id="viewSource">
