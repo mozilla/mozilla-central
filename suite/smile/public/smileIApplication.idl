@@ -44,18 +44,227 @@ interface nsIVariant;
 interface nsIURI;
 interface nsIDOMHTMLDocument;
 
+interface smileIBookmarkFolder;
 interface smileIBrowserTab;
+
+/**
+ * Interface representing a collection of annotations associated
+ * with a bookmark or bookmark folder.
+ */
+[scriptable, uuid(335c9292-91a1-4ca0-ad0b-07d5f63ed6cd)]
+interface smileIAnnotations : nsISupports
+{
+  /**
+   * Array of the annotation names associated with the owning item
+   */
+  readonly attribute nsIVariant names;
+
+  /**
+   * Determines if an annotation exists with the given name.
+   * @param   aName
+   *          The name of the annotation
+   * @returns true if an annotation exists with the given name,
+   *          false otherwise.
+   */
+  boolean has(in AString aName);
+
+  /**
+   * Gets the value of an annotation with the given name.
+   * @param   aName
+   *          The name of the annotation
+   * @returns A variant containing the value of the annotation. Supports
+   *          string, boolean and number.
+   */
+  nsIVariant get(in AString aName);
+
+  /**
+   * Sets the value of an annotation with the given name.
+   * @param   aName
+   *          The name of the annotation
+   * @param   aValue
+   *          The new value of the annotation. Supports string, boolean
+   *          and number
+   * @param   aExpiration
+   *          The expiration policy for the annotation.
+   *          See nsIAnnotationService.
+   */
+  void set(in AString aName, in nsIVariant aValue, in PRInt32 aExpiration);
+
+  /**
+   * Removes the named annotation from the owner item.
+   * @param   aName
+   *          The name of annotation.
+   */
+  void remove(in AString aName);
+};
+
+
+/**
+ * Interface representing a bookmark item.
+ */
+[scriptable, uuid(a27f8945-9333-45d3-8ee1-24cbcb3366f9)]
+interface smileIBookmark : nsISupports
+{
+  /**
+   * The id of the bookmark.
+   */
+  readonly attribute long long id;
+
+  /**
+   * The title of the bookmark.
+   */
+  attribute AString title;
+
+  /**
+   * The uri of the bookmark.
+   */
+  attribute nsIURI uri;
+
+  /**
+   * The description of the bookmark.
+   */
+  attribute AString description;
+
+  /**
+   * The keyword associated with the bookmark.
+   */
+  attribute AString keyword;
+
+  /**
+   * The type of the bookmark.
+   * values: "bookmark", "separator"
+   */
+  readonly attribute AString type;
+
+  /**
+   * The parent folder of the bookmark.
+   */
+  attribute smileIBookmarkFolder parent;
+
+  /**
+   * The annotations object for the bookmark.
+   */
+  readonly attribute smileIAnnotations annotations;
+
+  /**
+   * The events object for the bookmark.
+   * supports: "remove", "change", "visit", "move"
+   */
+  readonly attribute extIEvents events;
+
+  /**
+   * Removes the item from the parent folder. Used to
+   * delete a bookmark or separator
+   */
+  void remove();
+};
+
+
+/**
+ * Interface representing a bookmark folder. Folders
+ * can hold bookmarks, separators and other folders.
+ */
+[scriptable, uuid(03227226-d6eb-4654-9578-710c2222eb81)]
+interface smileIBookmarkFolder : nsISupports
+{
+  /**
+   * The id of the folder.
+   */
+  readonly attribute long long id;
+
+  /**
+   * The title of the folder.
+   */
+  attribute AString title;
+
+  /**
+   * The description of the folder.
+   */
+  attribute AString description;
+
+  /**
+   * The type of the folder.
+   * values: "folder"
+   */
+  readonly attribute AString type;
+
+  /**
+   * The parent folder of the folder.
+   */
+  attribute smileIBookmarkFolder parent;
+
+  /**
+   * The annotations object for the folder.
+   */
+  readonly attribute smileIAnnotations annotations;
+
+  /**
+   * The events object for the folder.
+   * supports: "add", "addchild", "remove", "removechild", "change", "move"
+   */
+  readonly attribute extIEvents events;
+
+  /**
+   * Array of all bookmarks, separators and folders contained
+   * in this folder.
+   */
+  readonly attribute nsIVariant children;
+
+  /**
+   * Adds a new child bookmark to this folder.
+   * @param   aTitle
+   *          The title of bookmark.
+   * @param   aURI
+   *          The uri of bookmark.
+   */
+  smileIBookmark addBookmark(in AString aTitle, in nsIURI aURI);
+
+  /**
+   * Adds a new child separator to this folder.
+   */
+  smileIBookmark addSeparator();
+
+  /**
+   * Adds a new child folder to this folder.
+   * @param   aTitle
+   *          The title of folder.
+   */
+  smileIBookmarkFolder addFolder(in AString aTitle);
+
+  /**
+   * Removes the folder from the parent folder.
+   */
+  void remove();
+};
 
 /**
  * Interface representing a container for bookmark roots. Roots
  * are the top level parents for the various types of bookmarks in the system.
- * Empty as it is only used as the return type for Application.bookmarks. It
- * will be supported once the Places bookmarks API is supported in SeaMonkey.
  */
 [scriptable, uuid(1102eec4-f66b-4082-abad-c967ad7d5f76)]
 interface smileIBookmarkRoots : nsISupports
 {
+  /**
+   * The folder for the 'bookmarks menu' root.
+   */
+  readonly attribute smileIBookmarkFolder menu;
+
+  /**
+   * The folder for the 'personal toolbar' root.
+   */
+  readonly attribute smileIBookmarkFolder toolbar;
+
+  /**
+   * The folder for the 'tags' root.
+   */
+  readonly attribute smileIBookmarkFolder tags;
+
+  /**
+   * The folder for the 'unfiled bookmarks' root.
+   */
+  readonly attribute smileIBookmarkFolder unfiled;
 };
+
 
 /**
  * Interface representing a browser window.
@@ -153,9 +362,15 @@ interface smileIBrowserTab : nsISupports
 /**
  * Interface for managing and accessing the applications systems
  */
-[scriptable, uuid(c9ba8f65-c936-4ac6-a859-8936832b0c12)]
+[scriptable, uuid(bedc9ea5-5673-44c7-a0af-49f1d37a2ca1)]
 interface smileIApplication : extIApplication
 {
+  /**
+   * The root bookmarks object for the application.
+   * Contains all the bookmark roots in the system.
+   */
+  readonly attribute smileIBookmarkRoots bookmarks;
+
   /**
    * An array of browser windows within the application.
    */

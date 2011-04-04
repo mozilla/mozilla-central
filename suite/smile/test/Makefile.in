@@ -51,6 +51,7 @@ _BROWSER_FILES = \
 	browser_ApplicationPrefs.js \
 	browser_ApplicationQuitting.js \
 	browser_ApplicationStorage.js \
+	browser_Bookmarks.js \
 	browser_Browser.js \
 	ContentA.html \
 	ContentB.html \

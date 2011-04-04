@@ -126,8 +126,7 @@ function Window(aWindow) {
   this._watch("TabClose");
   this._watch("TabSelect");
 
-  var self = this;
-  gShutdown.push(function() { self._shutdown(); });
+  gShutdown.push(this._shutdown.bind(this));
 }
 
 Window.prototype = {
@@ -140,9 +139,8 @@ Window.prototype = {
    * are actually dispatched to tabs, so we capture them.
    */
   _watch : function win_watch(aType) {
-    var self = this;
-    this._tabbrowser.addEventListener(aType,
-      this._cleanup[aType] = function(e){ self._event(e); },
+    this._tabbrowser.tabContainer.addEventListener(aType,
+      this._cleanup[aType] = this._event.bind(this),
       true);
   },
 
@@ -171,7 +169,7 @@ Window.prototype = {
 
   _shutdown : function win_shutdown() {
     for (var type in this._cleanup)
-      this._tabbrowser.removeEventListener(type, this._cleanup[type], true);
+      this._tabbrowser.tabContainer.removeEventListener(type, this._cleanup[type], true);
     this._cleanup = null;
 
     this._window = null;
@@ -195,8 +193,7 @@ function BrowserTab(aSMILEWindow, aTab) {
 
   this._watch("load");
 
-  var self = this;
-  gShutdown.push(function() { self._shutdown(); });
+  gShutdown.push(this._shutdown.bind(this));
 }
 
 BrowserTab.prototype = {
@@ -229,9 +226,8 @@ BrowserTab.prototype = {
    * Helper used to setup event handlers on the XBL element
    */
   _watch : function bt_watch(aType) {
-    var self = this;
     this._browser.addEventListener(aType,
-      this._cleanup[aType] = function(e){ self._event(e); },
+      this._cleanup[aType] = this._event.bind(this),
       true);
   },
 
@@ -288,6 +284,371 @@ BrowserTab.prototype = {
 
 
 //=================================================
+// Annotations implementation
+function Annotations(aId) {
+  this._id = aId;
+}
+
+Annotations.prototype = {
+  get names() {
+    return Utilities.annotations.getItemAnnotationNames(this._id);
+  },
+
+  has : function ann_has(aName) {
+    return Utilities.annotations.itemHasAnnotation(this._id, aName);
+  },
+
+  get : function(aName) {
+    if (this.has(aName))
+      return Utilities.annotations.getItemAnnotation(this._id, aName);
+    return null;
+  },
+
+  set : function(aName, aValue, aExpiration) {
+    Utilities.annotations.setItemAnnotation(this._id, aName, aValue, 0, aExpiration);
+  },
+
+  remove : function ann_remove(aName) {
+    if (aName)
+      Utilities.annotations.removeItemAnnotation(this._id, aName);
+  },
+
+  QueryInterface : XPCOMUtils.generateQI([Components.interfaces.smileIAnnotations])
+};
+
+
+//=================================================
+// Bookmark implementation
+function Bookmark(aId, aParent, aType) {
+  this._id = aId;
+  this._parent = aParent;
+  this._type = aType || "bookmark";
+  this._annotations = new Annotations(this._id);
+  this._events = new Events();
+
+  Utilities.bookmarks.addObserver(this, false);
+
+  gShutdown.push(this._shutdown.bind(this));
+}
+
+Bookmark.prototype = {
+  _shutdown : function bm_shutdown() {
+    this._annotations = null;
+    this._events = null;
+
+    Utilities.bookmarks.removeObserver(this);
+  },
+
+  get id() {
+    return this._id;
+  },
+
+  get title() {
+    return Utilities.bookmarks.getItemTitle(this._id);
+  },
+
+  set title(aTitle) {
+    Utilities.bookmarks.setItemTitle(this._id, aTitle);
+  },
+
+  get uri() {
+    return Utilities.bookmarks.getBookmarkURI(this._id);
+  },
+
+  set uri(aURI) {
+    return Utilities.bookmarks.changeBookmarkURI(this._id, aURI);
+  },
+
+  get description() {
+    return this._annotations.get("bookmarkProperties/description");
+  },
+
+  set description(aDesc) {
+    this._annotations.set("bookmarkProperties/description", aDesc, Components.interfaces.nsIAnnotationService.EXPIRE_NEVER);
+  },
+
+  get keyword() {
+    return Utilities.bookmarks.getKeywordForBookmark(this._id);
+  },
+
+  set keyword(aKeyword) {
+    Utilities.bookmarks.setKeywordForBookmark(this._id, aKeyword);
+  },
+
+  get type() {
+    return this._type;
+  },
+
+  get parent() {
+    return this._parent;
+  },
+
+  set parent(aFolder) {
+    Utilities.bookmarks.moveItem(this._id, aFolder.id, Utilities.bookmarks.DEFAULT_INDEX);
+    // this._parent is updated in onItemMoved
+  },
+
+  get annotations() {
+    return this._annotations;
+  },
+
+  get events() {
+    return this._events;
+  },
+
+  remove : function bm_remove() {
+    Utilities.bookmarks.removeItem(this._id);
+  },
+
+  // observer
+  onBeginUpdateBatch : function bm_obub() {
+  },
+
+  onEndUpdateBatch : function bm_oeub() {
+  },
+
+  onItemAdded : function bm_oia(aId, aFolder, aIndex, aItemType, aURI) {
+    // bookmark object doesn't exist at this point
+  },
+
+  onBeforeItemRemoved : function bm_obir(aId) {
+  },
+
+  onItemRemoved : function bm_oir(aId, aFolder, aIndex) {
+    if (this._id == aId)
+      this._events.dispatch("remove", aId);
+  },
+
+  onItemChanged : function bm_oic(aId, aProperty, aIsAnnotationProperty, aValue) {
+    if (this._id == aId)
+      this._events.dispatch("change", aProperty);
+  },
+
+  onItemVisited: function bm_oiv(aId, aVisitID, aTime) {
+  },
+
+  onItemMoved: function bm_oim(aId, aOldParent, aOldIndex, aNewParent, aNewIndex) {
+    if (this._id == aId) {
+      this._parent = new BookmarkFolder(aNewParent, Utilities.bookmarks.getFolderIdForItem(aNewParent));
+      this._events.dispatch("move", aId);
+    }
+  },
+
+  QueryInterface : XPCOMUtils.generateQI([Components.interfaces.smileIBookmark, Components.interfaces.nsINavBookmarkObserver])
+};
+
+
+//=================================================
+// BookmarkFolder implementation
+function BookmarkFolder(aId, aParent) {
+  this._id = aId;
+  this._parent = aParent;
+  this._annotations = new Annotations(this._id);
+  this._events = new Events();
+
+  Utilities.bookmarks.addObserver(this, false);
+
+  gShutdown.push(this._shutdown.bind(this));
+}
+
+BookmarkFolder.prototype = {
+  _shutdown : function bmf_shutdown() {
+    this._annotations = null;
+    this._events = null;
+
+    Utilities.bookmarks.removeObserver(this);
+  },
+
+  get id() {
+    return this._id;
+  },
+
+  get title() {
+    return Utilities.bookmarks.getItemTitle(this._id);
+  },
+
+  set title(aTitle) {
+    Utilities.bookmarks.setItemTitle(this._id, aTitle);
+  },
+
+  get description() {
+    return this._annotations.get("bookmarkProperties/description");
+  },
+
+  set description(aDesc) {
+    this._annotations.set("bookmarkProperties/description", aDesc, Components.interfaces.nsIAnnotationService.EXPIRE_NEVER);
+  },
+
+  get type() {
+    return "folder";
+  },
+
+  get parent() {
+    return this._parent;
+  },
+
+  set parent(aFolder) {
+    Utilities.bookmarks.moveItem(this._id, aFolder.id, Utilities.bookmarks.DEFAULT_INDEX);
+    // this._parent is updated in onItemMoved
+  },
+
+  get annotations() {
+    return this._annotations;
+  },
+
+  get events() {
+    return this._events;
+  },
+
+  get children() {
+    var items = [];
+
+    var options = Utilities.history.getNewQueryOptions();
+    var query = Utilities.history.getNewQuery();
+    query.setFolders([this._id], 1);
+    var result = Utilities.history.executeQuery(query, options);
+    var rootNode = result.root;
+    rootNode.containerOpen = true;
+    var cc = rootNode.childCount;
+    for (var i = 0; i < cc; ++i) {
+      var node = rootNode.getChild(i);
+      if (node.type == node.RESULT_TYPE_FOLDER) {
+        var folder = new BookmarkFolder(node.itemId, this._id);
+        items.push(folder);
+      }
+      else if (node.type == node.RESULT_TYPE_SEPARATOR) {
+        var separator = new Bookmark(node.itemId, this._id, "separator");
+        items.push(separator);
+      }
+      else {
+        var bookmark = new Bookmark(node.itemId, this._id, "bookmark");
+        items.push(bookmark);
+      }
+    }
+    rootNode.containerOpen = false;
+
+    return items;
+  },
+
+  addBookmark : function bmf_addbm(aTitle, aUri) {
+    var newBookmarkID = Utilities.bookmarks.insertBookmark(this._id, aUri, Utilities.bookmarks.DEFAULT_INDEX, aTitle);
+    var newBookmark = new Bookmark(newBookmarkID, this, "bookmark");
+    return newBookmark;
+  },
+
+  addSeparator : function bmf_addsep() {
+    var newBookmarkID = Utilities.bookmarks.insertSeparator(this._id, Utilities.bookmarks.DEFAULT_INDEX);
+    var newBookmark = new Bookmark(newBookmarkID, this, "separator");
+    return newBookmark;
+  },
+
+  addFolder : function bmf_addfolder(aTitle) {
+    var newFolderID = Utilities.bookmarks.createFolder(this._id, aTitle, Utilities.bookmarks.DEFAULT_INDEX);
+    var newFolder = new BookmarkFolder(newFolderID, this);
+    return newFolder;
+  },
+
+  remove : function bmf_remove() {
+    Utilities.bookmarks.removeItem(this._id);
+  },
+
+  // observer
+  onBeginUpdateBatch : function bmf_obub() {
+  },
+
+  onEndUpdateBatch : function bmf_oeub() {
+  },
+
+  onItemAdded : function bmf_oia(aId, aFolder, aIndex, aItemType, aURI) {
+    // handle root folder events
+    if (!this._parent)
+      this._events.dispatch("add", aId);
+
+    // handle this folder events
+    if (this._id == aFolder)
+      this._events.dispatch("addchild", aId);
+  },
+
+  onBeforeItemRemoved : function bmf_oir(aId) {
+  },
+
+  onItemRemoved : function bmf_oir(aId, aFolder, aIndex) {
+    // handle root folder events
+    if (!this._parent || this._id == aId)
+      this._events.dispatch("remove", aId);
+
+    // handle this folder events
+    if (this._id == aFolder)
+      this._events.dispatch("removechild", aId);
+  },
+
+  onItemChanged : function bmf_oic(aId, aProperty, aIsAnnotationProperty, aValue) {
+    // handle root folder and this folder events
+    if (!this._parent || this._id == aId)
+      this._events.dispatch("change", aProperty);
+  },
+
+  onItemVisited: function bmf_oiv(aId, aVisitID, aTime) {
+  },
+
+  onItemMoved: function bmf_oim(aId, aOldParent, aOldIndex, aNewParent, aNewIndex) {
+    // handle this folder event, root folder cannot be moved
+    if (this._id == aId) {
+      this._parent = new BookmarkFolder(aNewParent, Utilities.bookmarks.getFolderIdForItem(aNewParent));
+      this._events.dispatch("move", aId);
+    }
+  },
+
+  QueryInterface : XPCOMUtils.generateQI([Components.interfaces.smileIBookmarkFolder, Components.interfaces.nsINavBookmarkObserver])
+};
+
+//=================================================
+// BookmarkRoots implementation
+function BookmarkRoots() {
+  gShutdown.push(this._shutdown.bind(this));
+}
+
+BookmarkRoots.prototype = {
+  _shutdown : function bmr_shutdown() {
+    this._menu = null;
+    this._toolbar = null;
+    this._tags = null;
+    this._unfiled = null;
+  },
+
+  get menu() {
+    if (!this._menu)
+      this._menu = new BookmarkFolder(Utilities.bookmarks.bookmarksMenuFolder, null);
+
+    return this._menu;
+  },
+
+  get toolbar() {
+    if (!this._toolbar)
+      this._toolbar = new BookmarkFolder(Utilities.bookmarks.toolbarFolder, null);
+
+    return this._toolbar;
+  },
+
+  get tags() {
+    if (!this._tags)
+      this._tags = new BookmarkFolder(Utilities.bookmarks.tagsFolder, null);
+
+    return this._tags;
+  },
+
+  get unfiled() {
+    if (!this._unfiled)
+      this._unfiled = new BookmarkFolder(Utilities.bookmarks.unfiledBookmarksFolder, null);
+
+    return this._unfiled;
+  },
+
+  QueryInterface : XPCOMUtils.generateQI([Components.interfaces.smileIBookmarkRoots])
+};
+
+
+//=================================================
 // Factory - Treat Application as a singleton
 // XXX This is required, because we're registered for the 'JavaScript global
 // privileged property' category, whose handler always calls createInstance.
@@ -305,7 +666,6 @@ var ApplicationFactory = {
     return gSingleton.QueryInterface(aIID);
   }
 };
-
 
 
 //=================================================
@@ -345,20 +705,19 @@ Application.prototype = {
     // Call the extApplication version of this function first
     this.__proto__.__proto__.observe.call(this, aSubject, aTopic, aData);
     if (aTopic == "xpcom-shutdown") {
+      this._obs.removeObserver(this, "xpcom-shutdown");
       this._bookmarks = null;
       Utilities.free();
     }
   },
 
-  /*
-   Uncomment once Places Bookmarks migration is complete.
-   get bookmarks() {
-
-     if (this._bookmarks == null)
-      this._bookmarks = new BookmarkRoots();
+  _bookmarks : null,
+  get bookmarks() {
+    if (this._bookmarks == null)
+     this._bookmarks = new BookmarkRoots();
 
     return this._bookmarks;
-  },*/
+  },
 
   get windows() {
     var win = [];
