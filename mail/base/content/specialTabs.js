@@ -857,6 +857,13 @@ var specialTabs = {
                                 aArgs.clickHandler :
                                 "specialTabs.defaultClickHandler(event);");
 
+      // Set this attribute so that when favicons fail to load, we remove the
+      // image attribute and just show the default tab icon.
+      aTab.tabNode.setAttribute("onerror", "this.removeAttribute('image');");
+
+      aTab.browser.addEventListener("DOMLinkAdded", DOMLinkHandler, false);
+
+
       aTab.browser.setAttribute("id", "chromeTabBrowser" + this.lastBrowserId);
 
       // Now set up the listeners.
@@ -879,6 +886,7 @@ var specialTabs = {
                                        aTab.titleListener, true);
       aTab.browser.removeEventListener("DOMWindowClose",
                                        aTab.closeListener, true);
+      aTab.browser.removeEventListener("DOMLinkAdded", DOMLinkHandler, false);
       aTab.browser.destroy();
     },
     saveTabState: function onSaveTabState(aTab) {
