@@ -2,3 +2,11 @@
   width: 33em;
   height: 25em;
 }
+
+#treeCaption {
+  height: 4em;
+}
+
+.captionWarning {
+  font-weight: bold;
+}

@@ -239,6 +239,7 @@ treecolpicker {
   background-color: #C7D0D9;
   color: #000000;
   padding: 0px 4px;
+  min-width: 19px;
 }
 
 .treecol-image {
