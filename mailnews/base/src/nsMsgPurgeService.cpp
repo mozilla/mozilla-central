@@ -182,7 +182,7 @@ nsresult nsMsgPurgeService::PerformPurge()
     nsCOMPtr<nsIMsgFolder> folderToPurge;
     PRIntervalTime startTime = PR_IntervalNow();
     PRInt32 purgeIntervalToUse;
-    nsTime oldestPurgeTime = 0; // we're going to pick the least-recently purged folder
+    PRTime oldestPurgeTime = 0; // we're going to pick the least-recently purged folder
 
     // apply retention settings to folders that haven't had retention settings
     // applied in mMinDelayBetweenPurges minutes (default 8 hours)
@@ -222,7 +222,7 @@ nsresult nsMsgPurgeService::PerformPurge()
               (void) childFolder->GetFlags(&folderFlags);
               if (folderFlags & nsMsgFolderFlags::Virtual)
                 continue;
-              nsTime curFolderLastPurgeTime=0;
+              PRTime curFolderLastPurgeTime = 0;
               nsCString curFolderLastPurgeTimeString, curFolderUri;
               rv = childFolder->GetStringProperty("LastPurgeTime", curFolderLastPurgeTimeString);
               if (NS_FAILED(rv))
@@ -241,11 +241,10 @@ nsresult nsMsgPurgeService::PerformPurge()
               // check if this folder is due to purge
               // has to have been purged at least mMinDelayBetweenPurges minutes ago
               // we don't want to purge the folders all the time - once a day is good enough
-              nsInt64 minDelayBetweenPurges(mMinDelayBetweenPurges);
-              nsInt64 microSecondsPerMinute(60000000);
-              nsTime nextPurgeTime = curFolderLastPurgeTime + (minDelayBetweenPurges * microSecondsPerMinute);
-              nsTime currentTime; // nsTime defaults to PR_Now
-              if (nextPurgeTime < currentTime)
+              PRInt64 minDelayBetweenPurges(mMinDelayBetweenPurges);
+              PRInt64 microSecondsPerMinute(60000000);
+              PRTime nextPurgeTime = curFolderLastPurgeTime + (minDelayBetweenPurges * microSecondsPerMinute);
+              if (nextPurgeTime < PR_Now())
               {
                 PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("purging %s", curFolderUri.get()));
                 childFolder->ApplyRetentionSettings();
@@ -315,7 +314,7 @@ nsresult nsMsgPurgeService::PerformPurge()
         if (!junkFolder)
           continue;
 
-        nsTime curJunkFolderLastPurgeTime=0;
+        PRTime curJunkFolderLastPurgeTime = 0;
         nsCString curJunkFolderLastPurgeTimeString;
         rv = junkFolder->GetStringProperty("curJunkFolderLastPurgeTime", curJunkFolderLastPurgeTimeString);
         if (NS_FAILED(rv))
@@ -333,9 +332,8 @@ nsresult nsMsgPurgeService::PerformPurge()
         // check if this account is due to purge
         // has to have been purged at least mMinDelayBetweenPurges minutes ago
         // we don't want to purge the folders all the time
-        nsTime nextPurgeTime = curJunkFolderLastPurgeTime + nsInt64(mMinDelayBetweenPurges * 60000000 /* convert mMinDelayBetweenPurges to into microseconds */);
-        nsTime currentTime;
-        if (nextPurgeTime < currentTime)
+        PRTime nextPurgeTime = curJunkFolderLastPurgeTime + mMinDelayBetweenPurges * 60000000 /* convert mMinDelayBetweenPurges to into microseconds */;
+        if (nextPurgeTime < PR_Now())
         {
           PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] last purge greater than min delay", serverIndex));
 
@@ -363,14 +361,14 @@ nsresult nsMsgPurgeService::PerformPurge()
             PRInt32 purgeInterval;
             spamSettings->GetPurgeInterval(&purgeInterval);
 
-            if ((oldestPurgeTime == nsInt64(0)) || (curJunkFolderLastPurgeTime < oldestPurgeTime))
+            if ((oldestPurgeTime == 0) || (curJunkFolderLastPurgeTime < oldestPurgeTime))
             {
               PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] purging! searching for messages older than %d days", serverIndex, purgeInterval));
               oldestPurgeTime = curJunkFolderLastPurgeTime;
               purgeIntervalToUse = purgeInterval;
               folderToPurge = junkFolder;
               // if we've never purged this folder, do it...
-              if (curJunkFolderLastPurgeTime == nsInt64(0))
+              if (curJunkFolderLastPurgeTime == 0)
                 break;
             }
           }

@@ -118,8 +118,7 @@ NS_IMETHODIMP nsMsgMailboxParser::OnDataAvailable(nsIRequest *request, nsISuppor
 
 NS_IMETHODIMP nsMsgMailboxParser::OnStartRequest(nsIRequest *request, nsISupports *ctxt)
 {
-    nsTime currentTime;
-    m_startTime = currentTime;
+    m_startTime = PR_Now();
 
 
     // extract the appropriate event sinks from the url and initialize them in our protocol data

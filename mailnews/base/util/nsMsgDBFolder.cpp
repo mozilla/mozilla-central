@@ -72,7 +72,6 @@
 #include "nsIRDFService.h"
 #include "nsTextFormatter.h"
 #include "nsMsgDBCID.h"
-#include "nsInt64.h"
 #include "nsReadLine.h"
 #include "nsParserCIID.h"
 #include "nsIParser.h"

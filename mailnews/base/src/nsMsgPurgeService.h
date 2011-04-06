@@ -45,7 +45,6 @@
 #include "nsIMsgSearchSession.h"
 #include "nsITimer.h"
 #include "nsVoidArray.h"
-#include "nsTime.h"
 #include "nsCOMPtr.h"
 #include "nsIMsgSearchNotify.h"
 #include "nsIMsgFolder.h"

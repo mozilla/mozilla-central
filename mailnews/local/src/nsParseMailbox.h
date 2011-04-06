@@ -49,7 +49,6 @@
 #include "nsIMsgStatusFeedback.h"
 #include "nsCOMPtr.h"
 #include "nsCOMArray.h"
-#include "nsTime.h"
 #include "nsIDBChangeListener.h"
 #include "nsIWeakReference.h"
 #include "nsIWeakReferenceUtils.h"
@@ -219,7 +218,7 @@ protected:
   PRUint32        m_graph_progress_total;
   PRUint32        m_graph_progress_received;
   PRBool          m_parsingDone;
-  nsTime          m_startTime;
+  PRTime          m_startTime;
 private:
   // the following flag is used to determine when a url is currently being run. It is cleared on calls
   // to ::StopBinding and it is set whenever we call Load on a url

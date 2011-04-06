@@ -52,7 +52,6 @@
 #include "nsITimer.h"
 #include "nsCOMPtr.h"
 #include "nsStringGlue.h"
-#include "nsInt64.h"
 #include "nsISupportsArray.h"
 #include "nsIObserver.h"
 

@@ -58,7 +58,6 @@
 #include "nsIMdbFactoryFactory.h"
 #include "prlog.h"
 #include "prprf.h"
-#include "nsTime.h"
 #include "nsMsgDBCID.h"
 #include "nsILocale.h"
 #include "nsLocaleCID.h"
@@ -2643,9 +2642,6 @@ NS_IMETHODIMP nsMsgDatabase::MarkReadByDate (PRTime startDate, PRTime endDate, n
   if (NS_FAILED(rv))
     return rv;
 
-  nsTime t_startDate(startDate);
-  nsTime t_endDate(endDate);
-
   PRBool hasMore = PR_FALSE;
 
   while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && hasMore)
@@ -2656,9 +2652,8 @@ NS_IMETHODIMP nsMsgDatabase::MarkReadByDate (PRTime startDate, PRTime endDate, n
 
     PRTime headerDate;
     (void)pHeader->GetDate(&headerDate);
-    nsTime t_headerDate(headerDate);
 
-    if (t_headerDate > t_startDate && t_headerDate <= t_endDate)
+    if (headerDate > startDate && headerDate <= endDate)
     {
       PRBool isRead;
       nsMsgKey key;

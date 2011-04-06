@@ -44,7 +44,6 @@
 #include "nsISupportsPrimitives.h"
 #include "nsIComponentManager.h"
 #include "nsNetError.h"
-#include "nsInt64.h"
 #include "nsIWindowWatcher.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
@@ -282,8 +281,8 @@ NS_IMETHODIMP nsMsgProgress::OnProgress(nsIRequest *request, nsISupports* ctxt,
 {
   // XXX: What should the nsIWebProgress be?
   // XXX: This truncates 64-bit to 32-bit
-  return OnProgressChange(nsnull, request, nsUint64(aProgress), nsUint64(aProgressMax),
-                          nsUint64(aProgress) /* current total progress */, nsUint64(aProgressMax) /* max total progress */);
+  return OnProgressChange(nsnull, request, PRInt32(aProgress), PRInt32(aProgressMax),
+                          PRInt32(aProgress) /* current total progress */, PRInt32(aProgressMax) /* max total progress */);
 }
 
 NS_IMETHODIMP nsMsgProgress::OnStatus(nsIRequest *request, nsISupports* ctxt,

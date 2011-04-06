@@ -299,8 +299,8 @@ nsresult nsMsgProtocol::OpenFileSocket(nsIURI * aURL, PRUint32 aStartPosition, P
       do_GetService(NS_STREAMTRANSPORTSERVICE_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
 
-  rv = sts->CreateInputTransport(stream, nsInt64(aStartPosition),
-                                 nsInt64(aReadCount), PR_TRUE,
+  rv = sts->CreateInputTransport(stream, PRInt64(aStartPosition),
+                                 PRInt64(aReadCount), PR_TRUE,
                                  getter_AddRefs(m_transport));
 
   m_socketIsOpen = PR_FALSE;

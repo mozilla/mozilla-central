@@ -109,7 +109,6 @@
 #include "nsIMimeHeaders.h"
 #include "nsIMsgMdnGenerator.h"
 #include "nsISpamSettings.h"
-#include "nsInt64.h"
 #include <time.h>
 #include "nsIMsgMailNewsUrl.h"
 #include "nsEmbedCID.h"

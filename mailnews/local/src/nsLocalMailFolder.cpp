@@ -3928,9 +3928,8 @@ nsMsgLocalMailFolder::WarnIfLocalFileTooBig(nsIMsgWindow *aWindow, PRBool *aTooB
   rv = filePath->GetFileSize(&sizeOnDisk);
   if (NS_SUCCEEDED(rv))
   {
-    const nsInt64 kMaxFolderSize = 0xFFF00000;
-    nsInt64 folderSize(sizeOnDisk);
-    if (folderSize > kMaxFolderSize)
+    const PRInt64 kMaxFolderSize = 0xFFF00000;
+    if (sizeOnDisk > kMaxFolderSize)
     {
       ThrowAlertMsg("mailboxTooLarge", aWindow);
       *aTooBig = PR_TRUE;

@@ -42,14 +42,13 @@
 #include "nsIMsgBiffManager.h"
 #include "nsITimer.h"
 #include "nsTArray.h"
-#include "nsTime.h"
 #include "nsCOMPtr.h"
 #include "nsIIncomingServerListener.h"
 #include "nsWeakReference.h"
 
 typedef struct {
 	nsCOMPtr<nsIMsgIncomingServer> server;
-	nsTime nextBiffTime;
+	PRTime nextBiffTime;
 } nsBiffEntry;
 
 
@@ -70,7 +69,7 @@ public:
 
 protected:
 	PRInt32 FindServer(nsIMsgIncomingServer *server);
-	nsresult SetNextBiffTime(nsBiffEntry &biffEntry, const nsTime currentTime);
+	nsresult SetNextBiffTime(nsBiffEntry &biffEntry, PRTime currentTime);
 	nsresult SetupNextBiff();
 	nsresult AddBiffEntry(nsBiffEntry &biffEntry);
 

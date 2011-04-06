@@ -58,7 +58,6 @@
 #include "nsMsgI18N.h"
 #include "nsIMimeConverter.h"
 #include "nsMsgMimeCID.h"
-#include "nsTime.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
 #include "nsIMsgFilterPlugin.h"
@@ -881,7 +880,6 @@ NS_IMETHODIMP nsMsgSearchTerm::MatchUint32HdrProperty(nsIMsgDBHdr *aHdr, PRBool 
 
   PRUint32 dbHdrValue;
   aHdr->GetUint32Property(m_hdrProperty.get(), &dbHdrValue);
-  nsresult rv = NS_OK;
 
   PRBool result = PR_FALSE;
   switch (m_operator)
@@ -1239,19 +1237,18 @@ nsresult nsMsgSearchTerm::MatchDate (PRTime dateToMatch, PRBool *pResult)
 
   nsresult err = NS_OK;
   PRBool result = PR_FALSE;
-  nsTime t_date(dateToMatch);
 
   switch (m_operator)
   {
   case nsMsgSearchOp::IsBefore:
-    if (t_date < nsTime(m_value.u.date))
+    if (dateToMatch < m_value.u.date)
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::IsAfter:
     {
-      nsTime adjustedDate = nsTime(m_value.u.date);
+      PRTime adjustedDate = m_value.u.date;
       adjustedDate += 60*60*24; // we want to be greater than the next day....
-      if (t_date > adjustedDate)
+      if (dateToMatch > adjustedDate)
         result = PR_TRUE;
     }
     break;

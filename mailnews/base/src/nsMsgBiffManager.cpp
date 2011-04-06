@@ -147,8 +147,7 @@ NS_IMETHODIMP nsMsgBiffManager::AddServerBiff(nsIMsgIncomingServer *server)
     {
       nsBiffEntry biffEntry;
       biffEntry.server = server;
-      nsTime currentTime;
-      rv = SetNextBiffTime(biffEntry, currentTime);
+      rv = SetNextBiffTime(biffEntry, PR_Now());
       if (NS_FAILED(rv))
         return rv;
 
@@ -229,7 +228,7 @@ nsresult nsMsgBiffManager::AddBiffEntry(nsBiffEntry &biffEntry)
   return NS_OK;
 }
 
-nsresult nsMsgBiffManager::SetNextBiffTime(nsBiffEntry &biffEntry, const nsTime currentTime)
+nsresult nsMsgBiffManager::SetNextBiffTime(nsBiffEntry &biffEntry, PRTime currentTime)
 {
   nsIMsgIncomingServer *server = biffEntry.server;
   if (!server)
@@ -241,7 +240,7 @@ nsresult nsMsgBiffManager::SetNextBiffTime(nsBiffEntry &biffEntry, const nsTime 
 
   // Add biffInterval, converted in microseconds, to current time.
   // Force 64-bit multiplication.
-  nsTime chosenTimeInterval = biffInterval * 60000000LL;
+  PRTime chosenTimeInterval = biffInterval * 60000000LL;
   biffEntry.nextBiffTime = currentTime + chosenTimeInterval;
 
   // Check if we should jitter.
@@ -272,9 +271,9 @@ nsresult nsMsgBiffManager::SetupNextBiff()
   {
     // Get the next biff entry
     const nsBiffEntry &biffEntry = mBiffArray[0];
-    nsTime currentTime;
-    nsInt64 biffDelay;
-    nsInt64 ms(1000);
+    PRTime currentTime = PR_Now();
+    PRInt64 biffDelay;
+    PRInt64 ms(1000);
 
     if (currentTime > biffEntry.nextBiffTime)
     {
@@ -287,7 +286,7 @@ nsresult nsMsgBiffManager::SetupNextBiff()
       biffDelay = biffEntry.nextBiffTime - currentTime;
 
     // Convert biffDelay into milliseconds
-    nsInt64 timeInMS = biffDelay / ms;
+    PRInt64 timeInMS = biffDelay / ms;
     PRUint32 timeInMSUint32 = (PRUint32)timeInMS;
 
     // Can't currently reset a timer when it's in the process of
@@ -307,7 +306,7 @@ nsresult nsMsgBiffManager::SetupNextBiff()
 //This is the function that does a biff on all of the servers whose time it is to biff.
 nsresult nsMsgBiffManager::PerformBiff()
 {
-  nsTime currentTime;
+  PRTime currentTime = PR_Now();
   nsCOMArray<nsIMsgFolder> targetFolders;
   PR_LOG(MsgBiffLogModule, PR_LOG_ALWAYS, ("performing biffs\n"));
 

@@ -100,7 +100,6 @@
 #include "nsIAutoSyncManager.h"
 #include "nsThreadUtils.h"
 #include "nsNetUtil.h"
-#include "nsInt64.h"
 #include "nsMsgMessageFlags.h"
 
 #define PREF_MAIL_ROOT_IMAP "mail.root.imap"            // old - for backward compatibility only

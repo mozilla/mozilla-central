@@ -51,7 +51,6 @@
 #include "nsNNTPProtocol.h"
 #include "nsIDirectoryService.h"
 #include "nsMailDirServiceDefs.h"
-#include "nsInt64.h"
 #include "nsMsgUtils.h"
 #include "nsIPrompt.h"
 #include "nsIStringBundle.h"
@@ -280,7 +279,7 @@ nsNntpIncomingServer::GetNewsrcRootPath(nsILocalFile **aNewsrcRootPath)
 
 nsresult nsNntpIncomingServer::SetupNewsrcSaveTimer()
 {
-  nsInt64 ms(300000);   // hard code, 5 minutes.
+  PRInt64 ms(300000);   // hard code, 5 minutes.
   //Convert biffDelay into milliseconds
   PRUint32 timeInMSUint32 = (PRUint32)ms;
   //Can't currently reset a timer when it's in the process of

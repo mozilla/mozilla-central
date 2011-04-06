@@ -107,8 +107,8 @@ nsresult nsMailboxProtocol::OpenMultipleMsgTransport(PRUint32 offset, PRInt32 si
   NS_ENSURE_SUCCESS(rv, rv);
 
   // XXX 64-bit
-  rv = serv->CreateInputTransport(m_multipleMsgMoveCopyStream, nsInt64(offset),
-                                  nsInt64(size), PR_FALSE,
+  rv = serv->CreateInputTransport(m_multipleMsgMoveCopyStream, PRInt64(offset),
+                                  PRInt64(size), PR_FALSE,
                                   getter_AddRefs(m_transport));
 
   return rv;

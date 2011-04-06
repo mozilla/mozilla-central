@@ -5145,8 +5145,8 @@ void nsNNTPProtocol::SetProgressBarPercent(PRUint32 aProgress, PRUint32 aProgres
 {
   // XXX 64-bit
   if (mProgressEventSink)
-    mProgressEventSink->OnProgress(this, m_channelContext, nsUint64(aProgress),
-                                   nsUint64(aProgressMax));
+    mProgressEventSink->OnProgress(this, m_channelContext, PRUint64(aProgress),
+                                   PRUint64(aProgressMax));
 }
 
 nsresult

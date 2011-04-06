@@ -61,7 +61,6 @@
 #include "nsIMsgAccount.h"
 #include "nsLocalMailFolder.h"
 #include "nsIMailboxUrl.h"
-#include "nsInt64.h"
 #include "nsIPrompt.h"
 #include "nsLocalStrings.h"
 #include "nsINetUtil.h"

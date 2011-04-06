@@ -47,7 +47,6 @@
 #include "nsITimer.h"
 #include "nsCOMPtr.h"
 #include "nsStringGlue.h"
-#include "nsInt64.h"
 #include "nsIObserver.h"
 #include "nsIAlertsService.h"
 

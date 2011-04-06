@@ -47,7 +47,6 @@
 #include "nsIDocShellTreeItem.h"
 #include "nsIChannel.h"
 #include "prinrval.h"
-#include "nsInt64.h"
 #include "nsITimelineService.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIMimeMiscStatus.h"
@@ -307,8 +306,8 @@ NS_IMETHODIMP nsMsgStatusFeedback::OnProgress(nsIRequest *request, nsISupports* 
 {
   // XXX: What should the nsIWebProgress be?
   // XXX: this truncates 64-bit to 32-bit
-  return OnProgressChange(nsnull, request, nsUint64(aProgress), nsUint64(aProgressMax), 
-                          nsUint64(aProgress) /* current total progress */, nsUint64(aProgressMax) /* max total progress */);
+  return OnProgressChange(nsnull, request, PRInt32(aProgress), PRInt32(aProgressMax), 
+                          PRInt32(aProgress) /* current total progress */, PRInt32(aProgressMax) /* max total progress */);
 }
 
 NS_IMETHODIMP nsMsgStatusFeedback::OnStatus(nsIRequest *request, nsISupports* ctxt, 

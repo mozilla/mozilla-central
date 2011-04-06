@@ -694,7 +694,7 @@ void nsPop3Protocol::UpdateProgressPercent (PRUint32 totalDone, PRUint32 total)
 {
   // XXX 64-bit
   if (mProgressEventSink)
-    mProgressEventSink->OnProgress(this, m_channelContext, nsUint64(totalDone), nsUint64(total));
+    mProgressEventSink->OnProgress(this, m_channelContext, PRUint64(totalDone), PRUint64(total));
 }
 
 // note:  SetUsername() expects an unescaped string
