@@ -91,11 +91,12 @@ gTests.push({
        "Correctly selected recently bookmarked node.");
     PO._places.selectNode(childNode);
     checkInfoBoxSelected(PO);
-    ok(!infoBoxExpanderWrapper.hidden,
-       "Expander button is not hidden for recently bookmarked node.");
+    ok(infoBoxExpanderWrapper.hidden,
+       "Expander button is hidden for recently bookmarked node.");
     checkAddInfoFieldsNotCollapsed(PO);
 
     // open first bookmark
+    PO._content.focus();
     var view = PO._content.treeBoxObject.view;
     ok(view.rowCount > 0, "Bookmark item exists.");
     view.selection.select(0);
