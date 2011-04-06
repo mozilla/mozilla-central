@@ -43,6 +43,7 @@
 #include "nsIMutableArray.h"
 #include "nsString.h"
 #include "nsCOMPtr.h"
+#include "mozilla/Mutex.h"
 
 // 5b0f4d00-062e-11d6-a7f2-fc943c3c039c
 //
@@ -67,7 +68,7 @@ private:
   PRInt32 mOperation;
   nsCString mType;
   nsCOMPtr<nsIMutableArray> mValues;
-  PRLock* mValuesLock;
+  mozilla::Mutex mValuesLock;
 };
 
 #endif // _nsLDAPModification_h_

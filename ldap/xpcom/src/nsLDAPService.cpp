@@ -47,9 +47,10 @@
 #include "nsIServiceManager.h"
 #include "nsIConsoleService.h"
 #include "nsILDAPURL.h"
-#include "nsAutoLock.h"
 #include "nsCRT.h"
 #include "nsILDAPErrors.h"
+
+using namespace mozilla;
 
 // Constants for CIDs used here.
 //
@@ -227,7 +228,7 @@ NS_IMPL_THREADSAFE_ISUPPORTS2(nsLDAPService,
 // constructor
 //
 nsLDAPService::nsLDAPService()
-    : mLock(0),
+    : mLock("nsLDAPService.mLock"),
       mServers(0),
       mConnections(0)
 {
@@ -246,25 +247,12 @@ nsLDAPService::~nsLDAPService()
     if (mConnections) {
         delete mConnections;
     }
-
-    // Delete the lock object
-    if (mLock) {
-        PR_DestroyLock(mLock);
-    }
 }
 
 // Initializer, create some internal hash tables etc.
 //
 nsresult nsLDAPService::Init()
 {
-    if (!mLock) {
-        mLock = PR_NewLock();
-        if (!mLock) {
-            NS_ERROR("nsLDAPService::Init: out of memory ");
-            return NS_ERROR_OUT_OF_MEMORY;
-        }
-    }
-
     if (!mServers) {
         mServers = new nsHashtable(16, PR_FALSE);
         if (!mServers) {
@@ -336,7 +324,7 @@ NS_IMETHODIMP nsLDAPService::AddServer(nsILDAPServer *aServer)
     //
     {
         nsStringKey hashKey(key);
-        nsAutoLock lock(mLock);
+        MutexAutoLock lock(mLock);
 
         if (mServers->Exists(&hashKey)) {
             // Collision detected, lets just throw away this service entry
@@ -357,7 +345,7 @@ NS_IMETHODIMP nsLDAPService::DeleteServer(const PRUnichar *aKey)
 {
     nsLDAPServiceEntry *entry;
     nsStringKey hashKey(aKey, -1, nsStringKey::NEVER_OWN);
-    nsAutoLock lock(mLock);
+    MutexAutoLock lock(mLock);
         
     // We should probably rename the key for this entry now that it's
     // "deleted", so that we can add in a new one with the same ID.
@@ -384,7 +372,7 @@ NS_IMETHODIMP nsLDAPService::GetServer(const PRUnichar *aKey,
 {
     nsLDAPServiceEntry *entry;
     nsStringKey hashKey(aKey, -1, nsStringKey::NEVER_OWN);
-    nsAutoLock lock(mLock);
+    MutexAutoLock lock(mLock);
 
     if (!_retval) {
         NS_ERROR("nsLDAPService::GetServer: null pointer ");
@@ -422,7 +410,7 @@ NS_IMETHODIMP nsLDAPService::RequestConnection(const PRUnichar *aKey,
     // Try to find a possibly cached connection and LDAP message.
     //
     {
-        nsAutoLock lock(mLock);
+        MutexAutoLock lock(mLock);
 
         entry = static_cast<nsLDAPServiceEntry *>(mServers->Get(&hashKey));
         if (!entry) {
@@ -455,7 +443,7 @@ NS_IMETHODIMP nsLDAPService::RequestConnection(const PRUnichar *aKey,
     // until we get the LDAP message back.
     //
     {
-        nsAutoLock lock(mLock);
+        MutexAutoLock lock(mLock);
             
         entry = static_cast<nsLDAPServiceEntry *>(mServers->Get(&hashKey));
         if (!entry ||
@@ -474,7 +462,7 @@ NS_IMETHODIMP nsLDAPService::GetConnection(const PRUnichar *aKey,
 {
     nsLDAPServiceEntry *entry;
     nsStringKey hashKey(aKey, -1, nsStringKey::NEVER_OWN);
-    nsAutoLock lock(mLock);
+    MutexAutoLock lock(mLock);
 
     if (!_retval) {
         NS_ERROR("nsLDAPService::GetConnection: null pointer ");
@@ -500,7 +488,7 @@ NS_IMETHODIMP nsLDAPService::ReleaseConnection(const PRUnichar *aKey)
 {
     nsLDAPServiceEntry *entry;
     nsStringKey hashKey(aKey, -1, nsStringKey::NEVER_OWN);
-    nsAutoLock lock(mLock);
+    MutexAutoLock lock(mLock);
 
     entry = static_cast<nsLDAPServiceEntry *>(mServers->Get(&hashKey));
     if (!entry) {
@@ -533,7 +521,7 @@ NS_IMETHODIMP nsLDAPService::ReconnectConnection(const PRUnichar *aKey,
     }
 
     {
-        nsAutoLock lock(mLock);
+        MutexAutoLock lock(mLock);
         
         entry = static_cast<nsLDAPServiceEntry *>(mServers->Get(&hashKey));
         if (!entry) {
@@ -568,7 +556,7 @@ NS_IMETHODIMP nsLDAPService::ReconnectConnection(const PRUnichar *aKey,
     }
 
     {
-        nsAutoLock lock(mLock);
+        MutexAutoLock lock(mLock);
         
         if (!entry->PushListener(static_cast<nsILDAPMessageListener *>
                                             (aListener))) {
@@ -635,7 +623,7 @@ nsLDAPService::OnLDAPMessage(nsILDAPMessage *aMessage)
             nsLDAPServiceEntry *entry;
             nsVoidKey connKey(static_cast<nsILDAPConnection *>
                                          (connection));
-            nsAutoLock lock(mLock);
+            MutexAutoLock lock(mLock);
 
             entry = static_cast<nsLDAPServiceEntry *>
                                (mConnections->Get(&connKey));
@@ -658,9 +646,8 @@ nsLDAPService::OnLDAPMessage(nsILDAPMessage *aMessage)
             // since it's likely to call back into us again.
             //
             while (listener = entry->PopListener()) {
-                lock.unlock();
+                MutexAutoUnlock unlock(mLock);
                 listener->OnLDAPMessage(aMessage);
-                lock.lock();
             }
         }
         break;
@@ -773,7 +760,7 @@ nsLDAPService::EstablishConnection(nsLDAPServiceEntry *aEntry,
     // the stack of pending requests.
     //
     {
-        nsAutoLock lock(mLock);
+        MutexAutoLock lock(mLock);
 
         conn2 = aEntry->GetConnection();
         message = aEntry->GetMessage();
@@ -789,7 +776,7 @@ nsLDAPService::EstablishConnection(nsLDAPServiceEntry *aEntry,
         }
 
         {
-            nsAutoLock lock(mLock);
+            MutexAutoLock lock(mLock);
 
             if (!aEntry->PushListener(static_cast<nsILDAPMessageListener *>
                                                  (aListener))) {
@@ -806,7 +793,7 @@ nsLDAPService::EstablishConnection(nsLDAPServiceEntry *aEntry,
     //
     {
         nsVoidKey connKey(static_cast<nsILDAPConnection *>(conn));
-        nsAutoLock lock(mLock);
+        MutexAutoLock lock(mLock);
 
         aEntry->SetConnection(conn);
         mConnections->Put(&connKey, aEntry);

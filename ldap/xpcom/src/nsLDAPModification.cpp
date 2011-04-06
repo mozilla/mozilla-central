@@ -38,16 +38,18 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsLDAPModification.h"
-#include "nsAutoLock.h"
 #include "nsILDAPBERValue.h"
 #include "nsISimpleEnumerator.h"
 #include "nsServiceManagerUtils.h"
+
+using namespace mozilla;
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsLDAPModification, nsILDAPModification)
 
 // constructor
 //
-nsLDAPModification::nsLDAPModification() : mValuesLock(nsnull)
+nsLDAPModification::nsLDAPModification()
+    : mValuesLock("nsLDAPModification.mValuesLock")
 {
 }
 
@@ -55,22 +57,11 @@ nsLDAPModification::nsLDAPModification() : mValuesLock(nsnull)
 //
 nsLDAPModification::~nsLDAPModification()
 {
-  if (mValuesLock) {
-    PR_DestroyLock(mValuesLock);
-  }
 }
 
 nsresult
 nsLDAPModification::Init()
 {
-  if (!mValuesLock) {
-    mValuesLock = PR_NewLock();
-    if (!mValuesLock) {
-      NS_ERROR("nsLDAPModification::Init: out of memory");
-      return NS_ERROR_OUT_OF_MEMORY;
-    }
-  }
-
   return NS_OK;
 }
 
@@ -108,7 +99,7 @@ nsLDAPModification::GetValues(nsIArray** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
-  nsAutoLock lock(mValuesLock);
+  MutexAutoLock lock(mValuesLock);
 
   if (!mValues)
     return NS_ERROR_NOT_INITIALIZED;
@@ -123,7 +114,7 @@ nsLDAPModification::SetValues(nsIArray* aValues)
 {
   NS_ENSURE_ARG_POINTER(aValues);
 
-  nsAutoLock lock(mValuesLock);
+  MutexAutoLock lock(mValuesLock);
   nsresult rv;
 
   if (!mValues)
@@ -167,7 +158,7 @@ nsLDAPModification::SetUpModification(PRInt32 aOperation,
   // to avoid deadlocks due to holding the same lock twice.
   nsresult rv = SetValues(aValues);
 
-  nsAutoLock lock(mValuesLock);
+  MutexAutoLock lock(mValuesLock);
 
   mOperation = aOperation;
   mType.Assign(aType);
@@ -182,7 +173,7 @@ nsLDAPModification::SetUpModificationOneValue(PRInt32 aOperation,
 {
   NS_ENSURE_ARG_POINTER(aValue);
 
-  nsAutoLock lock(mValuesLock);
+  MutexAutoLock lock(mValuesLock);
 
   mOperation = aOperation;
   mType.Assign(aType);

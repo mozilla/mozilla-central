@@ -48,7 +48,7 @@
 #include "nsILDAPServer.h"
 #include "nsILDAPConnection.h"
 #include "nsILDAPMessage.h"
-
+#include "mozilla/Mutex.h"
 
 // 6a89ae33-7a90-430d-888c-0dede53a951a 
 //
@@ -142,7 +142,7 @@ class nsLDAPService : public nsILDAPService, public nsILDAPMessageListener
                          nsReadingIterator<char> aIterEnd);
                    
     
-    PRLock *mLock;              // Lock mechanism
+    mozilla::Mutex mLock;       // Lock mechanism
     nsHashtable *mServers;      // Hash table holding server entries
     nsHashtable *mConnections;  // Hash table holding "reverse"
                                 // lookups from connection to server
