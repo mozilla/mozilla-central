@@ -377,7 +377,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
     m_fetchMsgListMonitor("imapFetchMsgList"),
     m_fetchBodyListMonitor("imapFetchBodyList"),
     m_passwordReadyMonitor("imapPasswordReady"),
-     m_parser(*this)
+    m_parser(*this)
 {
   m_urlInProgress = PR_FALSE;
   m_idle = PR_FALSE;
@@ -8186,8 +8186,8 @@ nsImapProtocol::OnPromptAuthAvailable()
   NS_ENSURE_SUCCESS(rv, rv);
   m_passwordStatus = imapServer->GetPassword(m_password);
   // Notify the imap thread that we have a password.
-  MonitorAutoEnter mon(m_passwordReadyMonitor);
-  mon.Notify();
+  MonitorAutoEnter passwordMon(m_passwordReadyMonitor);
+  passwordMon.Notify();
   return m_passwordStatus;
 }
 
@@ -8196,8 +8196,8 @@ nsImapProtocol::OnPromptCanceled()
 {
   // A prompt was cancelled, so notify the imap thread.
   m_passwordStatus = NS_MSG_PASSWORD_PROMPT_CANCELLED;
-  MonitorAutoEnter mon(m_passwordReadyMonitor);
-  mon.Notify();
+  MonitorAutoEnter passwordMon(m_passwordReadyMonitor);
+  passwordMon.Notify();
   return NS_OK;
 }
 
