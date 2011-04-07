@@ -57,6 +57,7 @@
 #include "nsIFrameLoader.h"
 #include "nsIWebProgress.h"
 #include "nsMsgUtils.h"
+#include "nsThreadUtils.h"
 
 static const char kBlockRemoteImages[] = "mailnews.message_display.disable_remote_image";
 static const char kAllowPlugins[] = "mailnews.message_display.allow_plugins";
@@ -490,6 +491,30 @@ nsMsgContentPolicy::ShouldAcceptRemoteContentForMsgHdr(nsIMsgDBHdr *aMsgHdr,
   return result;
 }
 
+class RemoteContentNotifierEvent : public nsRunnable
+{
+public:
+  RemoteContentNotifierEvent(nsIMsgWindow *aMsgWindow, nsIMsgDBHdr *aMsgHdr)
+    : mMsgWindow(aMsgWindow), mMsgHdr(aMsgHdr)
+  {}
+
+  NS_IMETHOD Run()
+  {
+    if (mMsgWindow)
+    {
+      nsCOMPtr<nsIMsgHeaderSink> msgHdrSink;
+      (void)mMsgWindow->GetMsgHeaderSink(getter_AddRefs(msgHdrSink));
+      if (msgHdrSink)
+        msgHdrSink->OnMsgHasRemoteContent(mMsgHdr);
+    }
+    return NS_OK;
+  }
+
+private:
+  nsCOMPtr<nsIMsgWindow> mMsgWindow;
+  nsCOMPtr<nsIMsgDBHdr> mMsgHdr;
+};
+
 /** 
  * This function is used to determine if we allow content for a remote message.
  * If we reject loading remote content, then we'll inform the message window
@@ -543,10 +568,12 @@ nsMsgContentPolicy::ShouldAcceptContentForPotentialMsg(nsIURI *aOriginatorLocati
     (void)mailnewsUrl->GetMsgWindow(getter_AddRefs(msgWindow)); 
     if (msgWindow)
     {
-      nsCOMPtr<nsIMsgHeaderSink> msgHdrSink;
-      (void)msgWindow->GetMsgHeaderSink(getter_AddRefs(msgHdrSink));
-      if (msgHdrSink)
-        msgHdrSink->OnMsgHasRemoteContent(msgHdr);
+      nsCOMPtr<nsIRunnable> event = new RemoteContentNotifierEvent(msgWindow,
+                                                                   msgHdr);
+      // Post this as an event because it can cause dom mutations, and we
+      // get called at a bad time to be causing dom mutations.
+      if (event)
+        NS_DispatchToCurrentThread(event);
     }
   }
 }
