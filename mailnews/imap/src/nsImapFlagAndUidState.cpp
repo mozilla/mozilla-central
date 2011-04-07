@@ -42,9 +42,10 @@
 #include "nsImapFlagAndUidState.h"
 #include "prcmon.h"
 #include "nspr.h"
-#include "nsAutoLock.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsImapFlagAndUidState, nsIImapFlagAndUidState)
+
+using namespace mozilla;
 
 NS_IMETHODIMP nsImapFlagAndUidState::GetNumberOfMessages(PRInt32 *result)
 {
@@ -110,7 +111,8 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetPartialUIDFetch(PRBool *aPartialUIDFetch
 
 nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages)
   : fUids(numberOfMessages),
-    fFlags(numberOfMessages)
+    fFlags(numberOfMessages),
+    mLock("nsImapFlagAndUidState.mLock")
 {
   fSupportedUserFlags = 0;
   fNumberDeleted = 0;
@@ -275,7 +277,7 @@ imapMessageFlagsType nsImapFlagAndUidState::GetMessageFlagsFromUID(PRUint32 uid,
 
 NS_IMETHODIMP nsImapFlagAndUidState::AddUidCustomFlagPair(PRUint32 uid, const char *customFlag)
 {
-  nsAutoCMonitor mon(this);
+  MutexAutoLock mon(mLock);
   if (!m_customFlagsHash.IsInitialized())
     return NS_ERROR_OUT_OF_MEMORY;
   char *ourCustomFlags;
@@ -314,7 +316,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidCustomFlagPair(PRUint32 uid, const ch
 
 NS_IMETHODIMP nsImapFlagAndUidState::GetCustomFlags(PRUint32 uid, char **customFlags)
 {
-  nsAutoCMonitor mon(this);
+  MutexAutoLock mon(mLock);
   if (m_customFlagsHash.IsInitialized())
   {
     char *value = nsnull;
@@ -331,7 +333,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetCustomFlags(PRUint32 uid, char **customF
 
 NS_IMETHODIMP nsImapFlagAndUidState::ClearCustomFlags(PRUint32 uid)
 {
-  nsAutoCMonitor mon(this);
+  MutexAutoLock mon(mLock);
   m_customFlagsHash.Remove(uid);
   return NS_OK;
 }

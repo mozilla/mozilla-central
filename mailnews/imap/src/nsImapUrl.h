@@ -49,6 +49,7 @@
 
 #include "nsWeakPtr.h"
 #include "nsIFile.h"
+#include "mozilla/Mutex.h"
 
 class nsImapUrl : public nsIImapUrl, public nsMsgMailNewsUrl, public nsIMsgMessageUrl, public nsIMsgI18NUrl
 {
@@ -155,6 +156,7 @@ protected:
 
   nsCString mURI; // the RDF URI associated with this url.
   nsCString mCharsetOverride; // used by nsIMsgI18NUrl...
+  mozilla::Mutex mLock;
 };
 
 #endif /* nsImapUrl_h___ */

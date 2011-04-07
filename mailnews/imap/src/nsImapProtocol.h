@@ -88,6 +88,7 @@
 #include "nsAutoPtr.h"
 #include "nsIMsgFolder.h"
 #include "nsIMsgAsyncPrompter.h"
+#include "mozilla/Monitor.h"
 
 class nsIMAPMessagePartIDArray;
 class nsIMsgIncomingServer;
@@ -376,16 +377,16 @@ private:
   nsCOMPtr<nsIEventTarget> m_sinkEventTarget;
   nsCOMPtr<nsIThread>      m_iThread;
   PRThread     *m_thread;
-  PRMonitor    *m_dataAvailableMonitor;   // used to notify the arrival of data from the server
-  PRMonitor    *m_urlReadyToRunMonitor;   // used to notify the arrival of a new url to be processed
-  PRMonitor    *m_pseudoInterruptMonitor;
-  PRMonitor    *m_dataMemberMonitor;
-  PRMonitor    *m_threadDeathMonitor;
-  PRMonitor    *m_waitForBodyIdsMonitor;
-  PRMonitor    *m_fetchMsgListMonitor;
-  PRMonitor   *m_fetchBodyListMonitor;
-  PRMonitor   *m_passwordReadyMonitor;
-
+  mozilla::Monitor m_dataAvailableMonitor;   // used to notify the arrival of data from the server
+  mozilla::Monitor m_urlReadyToRunMonitor;   // used to notify the arrival of a new url to be processed
+  mozilla::Monitor m_pseudoInterruptMonitor;
+  mozilla::Monitor m_dataMemberMonitor;
+  mozilla::Monitor m_threadDeathMonitor;
+  mozilla::Monitor m_waitForBodyIdsMonitor;
+  mozilla::Monitor m_fetchMsgListMonitor;
+  mozilla::Monitor m_fetchBodyListMonitor;
+  mozilla::Monitor m_passwordReadyMonitor;
+  mozilla::Mutex mLock;
   // If we get an async password prompt, this is where the UI thread
   // stores the password, before notifying the imap thread of the password
   // via the m_passwordReadyMonitor.
@@ -412,7 +413,6 @@ private:
 
   PRBool GetDeleteIsMoveToTrash();
   PRBool GetShowDeletedMessages();
-  PRMonitor *GetDataMemberMonitor();
   nsCString m_currentCommand;
   nsImapServerResponseParser m_parser;
   nsImapServerResponseParser& GetServerStateParser() { return m_parser; }

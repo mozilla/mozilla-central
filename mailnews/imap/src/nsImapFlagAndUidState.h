@@ -41,6 +41,7 @@
 #include "MailNewsTypes.h"
 #include "nsTArray.h"
 #include "nsIImapFlagAndUidState.h"
+#include "mozilla/Mutex.h"
 
 const PRInt32 kImapFlagAndUidStateSize =	100;
 
@@ -67,14 +68,16 @@ public:
     PRUint16     GetSupportedUserFlags() { return fSupportedUserFlags; }
 
 private:
-    
+
   static PLDHashOperator FreeCustomFlags(const PRUint32 &aKey, char *aData, void *closure);
     nsTArray<nsMsgKey>      fUids;
     nsTArray<imapMessageFlagsType> fFlags;
-    nsDataHashtable<nsUint32HashKey, char *> m_customFlagsHash;	// Hash table, mapping uids to extra flags
+    // Hash table, mapping uids to extra flags
+    nsDataHashtable<nsUint32HashKey, char *> m_customFlagsHash;
     PRUint16                fSupportedUserFlags;
     PRInt32                 fNumberDeleted;
     PRBool                  fPartialUIDFetch;
+    mozilla::Mutex mLock;
 };
 
 

@@ -70,7 +70,6 @@
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIImapService.h"
 #include "nsMsgI18N.h"
-#include "nsAutoLock.h"
 #include "nsIImapMockChannel.h"
 // for the memory cache...
 #include "nsICacheEntryDescriptor.h"
@@ -85,6 +84,8 @@
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsCRTGlue.h"
+
+using namespace mozilla;
 
 #define PREF_TRASH_FOLDER_NAME "trash_folder_name"
 #define DEFAULT_TRASH_FOLDER_NAME "Trash"
@@ -105,6 +106,7 @@ NS_INTERFACE_MAP_BEGIN(nsImapIncomingServer)
 NS_INTERFACE_MAP_END_INHERITING(nsMsgIncomingServer)
 
 nsImapIncomingServer::nsImapIncomingServer()
+  : mLock("nsImapIncomingServer.mLock")
 {
   m_capability = kCapabilityUndefined;
   mDoingSubscribeDialog = PR_FALSE;
@@ -505,7 +507,7 @@ nsImapIncomingServer::LoadNextQueuedUrl(nsIImapProtocol *aProtocol, PRBool *aRes
   PRBool keepGoing = PR_TRUE;
   nsCOMPtr <nsIImapProtocol>  protocolInstance ;
 
-  nsAutoCMonitor mon(this);
+  MutexAutoLock mon(mLock);
   PRInt32 cnt = m_urlQueue.Count();
 
   while (cnt > 0 && !urlRun && keepGoing)
@@ -568,7 +570,7 @@ nsImapIncomingServer::AbortQueuedUrls()
 {
   nsresult rv = NS_OK;
 
-  nsAutoCMonitor mon(this);
+  MutexAutoLock mon(mLock);
   PRInt32 cnt = m_urlQueue.Count();
 
   while (cnt > 0)
@@ -638,7 +640,6 @@ NS_IMETHODIMP
 nsImapIncomingServer::RemoveConnection(nsIImapProtocol* aImapConnection)
 {
   PR_CEnterMonitor(this);
-
   if (aImapConnection)
     m_connectionCache.RemoveObject(aImapConnection);
 

@@ -52,7 +52,6 @@
 #include "nsIImapIncomingServer.h"
 #include "nsMsgBaseCID.h"
 #include "nsImapUtils.h"
-#include "nsAutoLock.h"
 #include "nsIMAPNamespace.h"
 #include "nsICacheEntryDescriptor.h"
 #include "nsISupportsObsolete.h"
@@ -66,9 +65,11 @@
 #include "nsAlgorithm.h"
 #include "nsServiceManagerUtils.h"
 
+using namespace mozilla;
+
 static NS_DEFINE_CID(kCImapHostSessionListCID, NS_IIMAPHOSTSESSIONLIST_CID);
 
-nsImapUrl::nsImapUrl()
+nsImapUrl::nsImapUrl() : mLock("nsImapUrl.mLock")
 {
   m_listOfMessageIds = nsnull;
   m_sourceCanonicalFolderPathSubString = nsnull;
@@ -286,7 +287,7 @@ NS_IMETHODIMP nsImapUrl::CreateSearchCriteriaString(char ** aResult)
 // this method gets called from the UI thread and the imap thread
 NS_IMETHODIMP nsImapUrl::GetListOfMessageIds(nsACString &aResult)
 {
-  nsAutoCMonitor mon(this);
+  MutexAutoLock mon(mLock);
   if (!m_listOfMessageIds)
     return  NS_ERROR_NULL_POINTER;
 
@@ -1047,7 +1048,7 @@ NS_IMETHODIMP  nsImapUrl::CreateServerSourceFolderPathString(char **result)
 NS_IMETHODIMP nsImapUrl::CreateCanonicalSourceFolderPathString(char **result)
 {
   NS_ENSURE_ARG_POINTER(result);
-  nsAutoCMonitor mon(this);
+  MutexAutoLock  mon(mLock);
   *result = strdup(m_sourceCanonicalFolderPathSubString ? m_sourceCanonicalFolderPathSubString : "");
   return (*result) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
@@ -1056,7 +1057,7 @@ NS_IMETHODIMP nsImapUrl::CreateCanonicalSourceFolderPathString(char **result)
 NS_IMETHODIMP nsImapUrl::CreateServerDestinationFolderPathString(char **result)
 {
   NS_ENSURE_ARG_POINTER(result);
-  nsAutoCMonitor mon(this);
+  MutexAutoLock mon(mLock);
   nsresult rv = AllocateServerPath(m_destinationCanonicalFolderPathSubString,
                                    kOnlineHierarchySeparatorUnknown,
                                    result);
@@ -1140,7 +1141,7 @@ NS_IMETHODIMP nsImapUrl::GetMimePartSelectorDetected(PRBool *mimePartSelectorDet
 // this method is only called from the UI thread.
 NS_IMETHODIMP nsImapUrl::SetCopyState(nsISupports* copyState)
 {
-  nsAutoCMonitor mon(this);
+  MutexAutoLock  mon(mLock);
   m_copyState = copyState;
   return NS_OK;
 }
@@ -1150,7 +1151,7 @@ NS_IMETHODIMP nsImapUrl::SetCopyState(nsISupports* copyState)
 NS_IMETHODIMP nsImapUrl::GetCopyState(nsISupports** copyState)
 {
   NS_ENSURE_ARG_POINTER(copyState);
-  nsAutoCMonitor mon(this);
+  MutexAutoLock mon(mLock);
   *copyState = m_copyState;
   NS_IF_ADDREF(*copyState);
 
@@ -1161,7 +1162,7 @@ NS_IMETHODIMP
 nsImapUrl::SetMsgFile(nsIFile* aFile)
 {
   nsresult rv = NS_OK;
-  nsAutoCMonitor mon(this);
+  MutexAutoLock mon(mLock);
   m_file = aFile;
   return rv;
 }
@@ -1171,7 +1172,7 @@ nsImapUrl::GetMsgFile(nsIFile** aFile)
 {
   NS_ENSURE_ARG_POINTER(aFile);
 
-  nsAutoCMonitor mon(this);
+  MutexAutoLock mon(mLock);
   NS_IF_ADDREF(*aFile = m_file);
   return NS_OK;
 }

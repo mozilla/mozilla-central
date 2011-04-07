@@ -48,6 +48,7 @@
 #include "nsIUrlListener.h"
 #include "nsIMsgImapMailFolder.h"
 #include "nsCOMArray.h"
+#include "mozilla/Mutex.h"
 
 class nsIEventTarget;
 class nsIRDFService;
@@ -145,6 +146,7 @@ private:
   PRPackedBool      mDoingLsub;
   PRPackedBool      m_shuttingDown;
 
+  mozilla::Mutex mLock;
   // subscribe dialog stuff
   nsresult AddFolderToSubscribeDialog(const char *parentUri, const char *uri,const char *folderName);
   nsCOMPtr <nsISubscribableServer> mInner;
