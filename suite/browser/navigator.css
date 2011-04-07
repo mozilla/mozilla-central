@@ -96,6 +96,10 @@ searchbar {
   display: -moz-box;
 }
 
+#geolocation-notification {
+  -moz-binding: url("chrome://communicator/content/bindings/notification.xml#geolocation-popup-notification");
+}
+
 #addon-install-started-notification {
   -moz-binding: url("chrome://communicator/content/bindings/notification.xml#addon-progress-popup-notification");
 }

@@ -1749,10 +1749,15 @@
               secondaryActions.length = 1;
             }
 
+            var options = {
+              value: this._stringBundle.GetStringFromName(type + ".learnMore"),
+              href: this._urlFormatter.formatURLPref("browser." + type + ".warning.infoURL")
+            };
+
             PopupNotifications.show(this.activeBrowser,
                                     "geolocation", message,
                                     "geo-notification-icon", mainAction,
-                                    secondaryActions);
+                                    secondaryActions, options);
           ]]>
         </body>
       </method>
@@ -2231,6 +2236,48 @@
         <xul:label xbl:inherits="value=status"/>
       </xul:vbox>
     </content>
+  </binding>
+
+  <binding id="geolocation-popup-notification" extends="chrome://global/content/bindings/notification.xml#popup-notification">
+    <content align="start">
+      <xul:image class="popup-notification-icon" xbl:inherits="popupid"/>
+      <xul:vbox flex="1">
+        <xul:description class="popup-notification-description"
+                         xbl:inherits="xbl:text=label"/>
+        <xul:hbox class="popup-notification-button-container" align="center">
+          <xul:label class="text-link" xbl:inherits="value,href"/>
+          <xul:spacer flex="1"/>
+          <xul:button anonid="button"
+                      class="popup-notification-menubutton"
+                      type="menu-button"
+                      xbl:inherits="oncommand=buttoncommand,label=buttonlabel,accesskey=buttonaccesskey">
+            <xul:menupopup anonid="menupopup"
+                           xbl:inherits="oncommand=menucommand">
+              <children/>
+              <xul:menuitem class="menuitem-iconic popup-notification-closeitem"
+                            label="&closeNotificationItem.label;"
+                            xbl:inherits="oncommand=closeitemcommand"/>
+            </xul:menupopup>
+          </xul:button>
+        </xul:hbox>
+        <xul:label xbl:inherits="value=status"/>
+      </xul:vbox>
+      <xul:vbox pack="start">
+        <xul:toolbarbutton anonid="closebutton"
+                           class="messageCloseButton popup-notification-closebutton"
+                           xbl:inherits="oncommand=closebuttoncommand"
+                           tooltiptext="&closeNotification.tooltip;"/>
+      </xul:vbox>
+    </content>
+
+    <implementation>
+      <constructor>
+        <![CDATA[
+          this.setAttribute("value", this.notification.options.value);
+          this.setAttribute("href", this.notification.options.href);
+        ]]>
+      </constructor>
+    </implementation>
   </binding>
 
   <binding id="addon-progress-popup-notification" extends="chrome://global/content/bindings/notification.xml#popup-notification">
