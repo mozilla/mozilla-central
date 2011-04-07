@@ -36,7 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsWabAddressBook.h"
-#include "nsAutoLock.h"
 #include "prlog.h"
 
 #ifdef PR_LOGGING
@@ -45,6 +44,8 @@ static PRLogModuleInfo* gWabAddressBookLog
 #endif
 
 #define PRINTF(args) PR_LOG(gWabAddressBookLog, PR_LOG_DEBUG, args)
+
+using namespace mozilla;
 
 HMODULE nsWabAddressBook::mLibrary = NULL ;
 PRInt32 nsWabAddressBook::mLibUsage = 0 ;
@@ -102,7 +103,7 @@ nsWabAddressBook::nsWabAddressBook(void)
 
 nsWabAddressBook::~nsWabAddressBook(void)
 {
-    nsAutoLock guard(mMutex) ;
+    MutexAutoLock guard(mMutex) ;
     FreeWabLibrary() ;
     MOZ_COUNT_DTOR(nsWabAddressBook) ;
 }
@@ -110,7 +111,7 @@ nsWabAddressBook::~nsWabAddressBook(void)
 BOOL nsWabAddressBook::Initialize(void)
 {
     if (mAddressBook) { return TRUE ; }
-    nsAutoLock guard(mMutex) ;
+    MutexAutoLock guard(mMutex) ;
 
     if (!LoadWabLibrary()) {
         PRINTF(("Cannot load library.\n")) ;

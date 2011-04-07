@@ -49,6 +49,7 @@
 #include "nsIAbLDAPDirectory.h"
 #include "nsIMutableArray.h"
 #include "nsInterfaceHashtable.h"
+#include "mozilla/Mutex.h"
 
 class nsAbLDAPDirectory :
   public nsAbDirectoryRDFResource,    // nsIRDFResource
@@ -100,7 +101,7 @@ protected:
 
   nsInterfaceHashtable<nsISupportsHashKey, nsIAbCard> mCache;
 
-  PRLock* mLock;
+  mozilla::Mutex mLock;
   nsCOMPtr<nsIAbDirectoryQuery> mDirectoryQuery;
   nsCOMPtr<nsIMutableArray> mSearchServerControls;
   nsCOMPtr<nsIMutableArray> mSearchClientControls;

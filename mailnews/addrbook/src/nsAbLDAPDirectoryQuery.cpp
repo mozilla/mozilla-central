@@ -51,7 +51,6 @@
 #include "nsAbUtils.h"
 #include "nsAbBaseCID.h"
 #include "nsStringGlue.h"
-#include "nsAutoLock.h"
 #include "nsIProxyObjectManager.h"
 #include "prprf.h"
 #include "nsServiceManagerUtils.h"
@@ -60,6 +59,8 @@
 #include "nsAbLDAPDirectory.h"
 #include "nsAbLDAPListenerBase.h"
 #include "nsXPCOMCIDInternal.h"
+
+using namespace mozilla;
 
 // nsAbLDAPListenerBase inherits nsILDAPMessageListener
 class nsAbQueryLDAPMessageListener : public nsAbLDAPListenerBase
@@ -149,7 +150,7 @@ nsresult nsAbQueryLDAPMessageListener::Cancel ()
     nsresult rv = Initiate();
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsAutoLock lock(mLock);
+    MutexAutoLock lock(mLock);
 
     if (mFinished || mCanceled)
         return NS_OK;
@@ -174,7 +175,7 @@ NS_IMETHODIMP nsAbQueryLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMessa
 
   // Enter lock
   {
-    nsAutoLock lock (mLock);
+    MutexAutoLock lock (mLock);
 
     if (mFinished)
       return NS_OK;

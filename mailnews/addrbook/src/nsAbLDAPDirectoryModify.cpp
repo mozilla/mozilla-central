@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsAbLDAPDirectoryModify.h"
-#include "nsAutoLock.h"
 #include "nsILDAPMessage.h"
 #include "nsILDAPConnection.h"
 #include "nsILDAPErrors.h"
@@ -51,6 +50,8 @@
 #include "nsXPCOMCIDInternal.h"
 
 #include <stdio.h>
+
+using namespace mozilla;
 
 class nsAbModifyLDAPMessageListener : public nsAbLDAPListenerBase
 {
@@ -137,7 +138,7 @@ nsresult nsAbModifyLDAPMessageListener::Cancel ()
   nsresult rv = Initiate();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsAutoLock lock(mLock);
+  MutexAutoLock lock(mLock);
 
   if (mFinished || mCanceled)
     return NS_OK;
@@ -160,7 +161,7 @@ NS_IMETHODIMP nsAbModifyLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMess
 
   // Enter lock
   {
-    nsAutoLock lock (mLock);
+    MutexAutoLock lock (mLock);
 
     if (mFinished)
       return NS_OK;

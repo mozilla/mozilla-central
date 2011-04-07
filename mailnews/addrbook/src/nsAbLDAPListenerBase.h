@@ -47,6 +47,7 @@
 #include "nsILDAPConnection.h"
 #include "nsILDAPOperation.h"
 #include "nsStringGlue.h"
+#include "mozilla/Mutex.h"
 
 class nsAbLDAPListenerBase : public nsILDAPMessageListener
 {
@@ -81,7 +82,7 @@ protected:
   PRBool mBound;
   PRBool mInitialized;
 
-  PRLock* mLock;
+  mozilla::Mutex mLock;
 };
 
 #endif

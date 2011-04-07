@@ -264,14 +264,17 @@ void nsMapiEntryArray::CleanUp(void)
     }
 }
 
+using namespace mozilla;
+
 PRUint32 nsAbWinHelper::mEntryCounter = 0 ;
+Mutex nsAbWinHelper::mMutex("nsAbWinHelper.mMutex");
+
 // There seems to be a deadlock/auto-destruction issue
 // in MAPI when multiple threads perform init/release 
 // operations at the same time. So I've put a mutex
 // around both the initialize process and the destruction
 // one. I just hope the rest of the calls don't need the 
 // same protection (MAPI is supposed to be thread-safe).
-PRLock *nsAbWinHelper::mMutex = PR_NewLock() ;
 
 nsAbWinHelper::nsAbWinHelper(void)
 : mAddressBook(NULL), mLastError(S_OK)

@@ -36,7 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsMapiAddressBook.h"
-#include "nsAutoLock.h"
 
 #include "prlog.h"
 
@@ -47,6 +46,7 @@ static PRLogModuleInfo* gMapiAddressBookLog
 
 #define PRINTF(args) PR_LOG(gMapiAddressBookLog, PR_LOG_DEBUG, args)
 
+using namespace mozilla;
 
 HMODULE nsMapiAddressBook::mLibrary = NULL ;
 PRInt32 nsMapiAddressBook::mLibUsage = 0 ;
@@ -145,7 +145,7 @@ nsMapiAddressBook::nsMapiAddressBook(void)
 
 nsMapiAddressBook::~nsMapiAddressBook(void)
 {
-    nsAutoLock guard(mMutex) ;
+    MutexAutoLock guard(mMutex) ;
 
     FreeMapiLibrary() ;
     MOZ_COUNT_DTOR(nsMapiAddressBook) ;
@@ -154,7 +154,7 @@ nsMapiAddressBook::~nsMapiAddressBook(void)
 BOOL nsMapiAddressBook::Initialize(void)
 {
     if (mAddressBook) { return TRUE ; }
-    nsAutoLock guard(mMutex) ;
+    MutexAutoLock guard(mMutex) ;
 
     if (!LoadMapiLibrary()) {
         PRINTF(("Cannot load library.\n")) ;

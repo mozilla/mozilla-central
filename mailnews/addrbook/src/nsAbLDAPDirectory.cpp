@@ -49,7 +49,6 @@
 #include "nsIAbManager.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
-#include "nsAutoLock.h"
 #include "nsNetCID.h"
 #include "nsIIOService.h"
 #include "nsCOMArray.h"
@@ -74,19 +73,19 @@
 
 #define kDefaultMaxHits 100
 
+using namespace mozilla;
+
 nsAbLDAPDirectory::nsAbLDAPDirectory() :
   nsAbDirectoryRDFResource(),
   mPerformingQuery(PR_FALSE),
   mContext(0),
-  mLock(0)
+  mLock("nsAbLDAPDirectory.mLock")
 {
   mCache.Init();
 }
 
 nsAbLDAPDirectory::~nsAbLDAPDirectory()
 {
-  if (mLock)
-    PR_DestroyLock (mLock);
 }
 
 NS_IMPL_ISUPPORTS_INHERITED3(nsAbLDAPDirectory, nsAbDirectoryRDFResource,
@@ -119,10 +118,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::Init(const char* aURI)
 
 nsresult nsAbLDAPDirectory::Initiate()
 {
-  if (!mLock)
-    mLock = PR_NewLock();
-
-  return mLock ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  return NS_OK;
 }
 
 /* 
@@ -210,7 +206,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::HasCard(nsIAbCard* card, PRBool* hasCard)
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Enter lock
-  nsAutoLock lock (mLock);
+  MutexAutoLock lock (mLock);
 
   *hasCard = mCache.Get(card, nsnull);
   if (!*hasCard && mPerformingQuery)
@@ -364,7 +360,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::StartSearch ()
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Enter lock
-    nsAutoLock lock(mLock);
+    MutexAutoLock lock(mLock);
     mPerformingQuery = PR_TRUE;
     mCache.Clear();
 
@@ -378,7 +374,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::StopSearch ()
 
   // Enter lock
   {
-    nsAutoLock lockGuard(mLock);
+    MutexAutoLock lockGuard(mLock);
     if (!mPerformingQuery)
       return NS_OK;
     mPerformingQuery = PR_FALSE;
@@ -401,7 +397,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::OnSearchFinished(PRInt32 aResult, const nsAStri
   nsresult rv = Initiate();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsAutoLock lock(mLock);
+  MutexAutoLock lock(mLock);
   mPerformingQuery = PR_FALSE;
 
   return NS_OK;
@@ -414,7 +410,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::OnSearchFoundCard(nsIAbCard* card)
 
   // Enter lock
   {
-    nsAutoLock lock(mLock);
+    MutexAutoLock lock(mLock);
     mCache.Put(card, card);
   }
   // Exit lock

@@ -43,7 +43,6 @@
 #include "nsAbLDAPChangeLogQuery.h"
 #include "nsAbLDAPReplicationService.h"
 #include "nsAbLDAPChangeLogData.h"
-#include "nsAutoLock.h"
 #include "nsAbUtils.h"
 #include "prprf.h"
 #include "nsDirPrefs.h"

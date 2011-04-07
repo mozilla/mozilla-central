@@ -42,6 +42,7 @@
 #include <mapix.h>
 
 #include "nsStringGlue.h"
+#include "mozilla/Mutex.h"
  
 struct nsMapiEntry
 {
@@ -129,7 +130,7 @@ protected:
     HRESULT mLastError ;
     LPADRBOOK mAddressBook ;
     static PRUint32 mEntryCounter ;
-    static PRLock *mMutex ;
+    static mozilla::Mutex mMutex ;
 
     // Retrieve the contents of a container, with an optional restriction
     BOOL GetContents(const nsMapiEntry& aParent, LPSRestriction aRestriction, 

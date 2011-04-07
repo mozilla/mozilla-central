@@ -44,6 +44,7 @@
 #include "nsCOMArray.h"
 #include "nsStringGlue.h"
 #include "nsCycleCollectionParticipant.h"
+#include "mozilla/Mutex.h"
 
 /**
  * The addressbook data source.
@@ -90,7 +91,7 @@ protected:
 private:
   nsCOMArray<nsIRDFObserver> mObservers;
   nsCOMArray<nsIRDFObserver> mProxyObservers;
-  PRLock* mLock;
+  mozilla::Mutex mLock;
 };
 
 #endif

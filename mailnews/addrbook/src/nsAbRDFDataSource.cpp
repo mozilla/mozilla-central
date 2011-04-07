@@ -50,11 +50,12 @@
 #include "nsIProxyObjectManager.h"
 
 #include "nsCOMPtr.h"
-#include "nsAutoLock.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsThreadUtils.h"
 #include "nsXPCOMCIDInternal.h"
+
+using namespace mozilla;
 
 // this is used for notification of observers using nsVoidArray
 typedef struct _nsAbRDFNotification {
@@ -183,15 +184,9 @@ nsresult nsAbRDFDataSource::NotifyObservers(nsIRDFResource *subject,
   NS_ASSERTION(!(change && assert),
                  "Can't change and assert at the same time!\n");
 
-  if(!mLock)
-  {
-    NS_ERROR("Error in AutoLock resource in nsAbRDFDataSource::NotifyObservers()");
-    return NS_ERROR_OUT_OF_MEMORY;
-  }
-
   nsresult rv;
 
-  nsAutoLock lockGuard (mLock);
+  MutexAutoLock lockGuard (mLock);
 
   /*
    * TODO
@@ -251,15 +246,12 @@ nsresult nsAbRDFDataSource::NotifyPropertyChanged(nsIRDFResource *resource,
 
 
 nsAbRDFDataSource::nsAbRDFDataSource():
-  mLock(nsnull)
+  mLock("nsAbRDFDataSource.mLock")
 {
-  mLock = PR_NewLock ();
 }
 
 nsAbRDFDataSource::~nsAbRDFDataSource (void)
 {
-  if(mLock)
-    PR_DestroyLock (mLock);
 }
 
 NS_IMPL_CYCLE_COLLECTION_CLASS(nsAbRDFDataSource)
@@ -365,14 +357,8 @@ NS_IMETHODIMP nsAbRDFDataSource::HasAssertion(nsIRDFResource* source,
 
 NS_IMETHODIMP nsAbRDFDataSource::AddObserver(nsIRDFObserver* observer)
 {
-  if(!mLock)
-  {
-    NS_ERROR("Error in AutoLock resource in nsAbRDFDataSource::AddObservers()");
-    return NS_ERROR_OUT_OF_MEMORY;
-  }
-
   // Lock the whole method
-  nsAutoLock lockGuard (mLock);
+  MutexAutoLock lockGuard (mLock);
 
   // Do not add if already present
   if (mObservers.IndexOf(observer) >= 0)
@@ -384,14 +370,8 @@ NS_IMETHODIMP nsAbRDFDataSource::AddObserver(nsIRDFObserver* observer)
 
 NS_IMETHODIMP nsAbRDFDataSource::RemoveObserver(nsIRDFObserver* observer)
 {
-  if(!mLock)
-  {
-    NS_ERROR("Error in AutoLock resource in nsAbRDFDataSource::RemoveObservers()");
-    return NS_ERROR_OUT_OF_MEMORY;
-  }
-
   // Lock the whole method
-  nsAutoLock lockGuard (mLock);
+  MutexAutoLock lockGuard (mLock);
   PRInt32 index = mObservers.IndexOf(observer);
   if (index >= 0)
   {
