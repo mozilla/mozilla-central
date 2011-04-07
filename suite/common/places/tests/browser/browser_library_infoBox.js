@@ -91,6 +91,7 @@ gTests.push({
        "Correctly selected recently bookmarked node.");
     PO._places.selectNode(childNode);
     checkInfoBoxSelected(PO);
+    // Note: SeaMonkey differs from Firefox UI in this case.
     ok(infoBoxExpanderWrapper.hidden,
        "Expander button is hidden for recently bookmarked node.");
     checkAddInfoFieldsNotCollapsed(PO);
