@@ -1499,6 +1499,19 @@
               catch (ex) { }
             }
 
+            // Check if we're opening a tab related to the current tab and
+            // move it to after the current tab.
+            // aReferrerURI is null or undefined if the tab is opened from
+            // an external application or bookmark, i.e. somewhere other
+            // than the current tab.
+            if ((aRelatedToCurrent || aReferrerURI) &&
+                this.mPrefs.getBoolPref("browser.tabs.insertRelatedAfterCurrent")) {
+              var lastRelatedIndex = this.mLastRelatedIndex ||
+                                     this.tabContainer.selectedIndex;
+              this.moveTabTo(t, ++lastRelatedIndex);
+              this.mLastRelatedIndex = lastRelatedIndex;
+            }
+
             if (aFocusNewTab) {
               var parentTab = this.selectedTab;
               this.selectedTab = t;
@@ -1513,24 +1526,11 @@
               // won't be called.  Explicitly clear the previous tab.
               this.mPreviousTab = null;
             }
+            this.tabContainer._handleNewTab(t);
 
             var evt = document.createEvent("Events");
             evt.initEvent("TabOpen", true, false);
             t.dispatchEvent(evt);
-
-            // Check if we're opening a tab related to the current tab and
-            // move it to after the current tab.
-            // aReferrerURI is null or undefined if the tab is opened from
-            // an external application or bookmark, i.e. somewhere other
-            // than the current tab.
-            if ((aRelatedToCurrent || aReferrerURI) &&
-                this.mPrefs.getBoolPref("browser.tabs.insertRelatedAfterCurrent")) {
-              var lastRelatedIndex = this.mLastRelatedIndex ||
-                                     this.tabContainer.selectedIndex;
-              this.moveTabTo(t, ++lastRelatedIndex);
-              this.mLastRelatedIndex = lastRelatedIndex;
-            }
-            this.tabContainer._handleNewTab(t);
 
             return t;
           ]]>
