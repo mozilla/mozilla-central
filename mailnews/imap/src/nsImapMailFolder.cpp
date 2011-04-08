@@ -5359,7 +5359,8 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
                     txnMgr->DoTransaction(m_copyState->m_undoMsgTxn);
                 }
                 (void) OnCopyCompleted(m_copyState->m_srcSupport, aExitCode);
-                if (folderOpen)
+                if (folderOpen ||
+                    imapAction == nsIImapUrl::nsImapAppendDraftFromFile)
                 {
                   UpdateFolderWithListener(msgWindow, m_urlListener);
                   m_urlListener = saveUrlListener;
