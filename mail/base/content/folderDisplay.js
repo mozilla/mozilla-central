@@ -85,7 +85,7 @@ let FolderDisplayListenerManager = {
    * Unregister a previously registered event listener.
    */
   unregisterListener: function FDLM_unregisterListener(aListener) {
-    let idx = this._listeners.indexOf(idx);
+    let idx = this._listeners.indexOf(aListener);
     if (idx >= 0) {
       this._listeners.splice(idx, 1);
     }
