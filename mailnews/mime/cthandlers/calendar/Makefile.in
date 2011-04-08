@@ -52,13 +52,9 @@ LIBRARY_NAME	= calendar
 EXPORT_LIBRARY = 1
 IS_COMPONENT	= 1
 MODULE_NAME	= nsCalendarModule
-
 else
 LIBRARY_NAME = calendar_s
 endif
-
-META_COMPONENT = mail
-
 
 ifeq ($(OS_ARCH),WINNT)
 MAPFILE		= calendar.map

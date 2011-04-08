@@ -44,7 +44,6 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= bayesflt
 LIBRARY_NAME	= bayesflt
-META_COMPONENT = mail
 EXPORT_LIBRARY = 1
 IS_COMPONENT	= 1
 MODULE_NAME	= nsBayesianFilterModule

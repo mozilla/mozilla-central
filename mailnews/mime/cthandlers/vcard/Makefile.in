@@ -52,13 +52,9 @@ LIBRARY_NAME	= vcard
 EXPORT_LIBRARY = 1
 IS_COMPONENT	= 1
 MODULE_NAME	= nsVCardModule
-
 else
 LIBRARY_NAME = vcard_s
 endif
-
-META_COMPONENT = mail
-
 
 ifeq ($(OS_ARCH),WINNT)
 MAPFILE		= vcard.map

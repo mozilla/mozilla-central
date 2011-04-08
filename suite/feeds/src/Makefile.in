@@ -43,7 +43,6 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE = suitefeeds
 LIBRARY_NAME = suitefeeds_s
-META_COMPONENT  = suite
 FORCE_STATIC_LIB = 1
 FORCE_USE_PIC = 1
 
