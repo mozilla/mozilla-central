@@ -78,7 +78,7 @@ var GlodaSearchBoxTabMonitor = {
 
   onTabOpened: function GSBTM_onTabOpened(aTab, aFirstTab, aOldTab) {
     aTab._ext.glodaSearchBox = {
-      value: "",
+      value: (aTab.mode.name === "glodaFacet") ? aTab.searchString : "",
     };
   },
 
