@@ -763,9 +763,10 @@
     <!-- These toolbar items get filled out from the editorOverlay -->
     <toolbar class="chromeclass-toolbar" id="FormatToolbar" persist="collapsed"
              customizable="true" nowindowdrag="true">
-      <menulist id="ParagraphSelect"/>
-      <menulist id="FontFaceSelect"/>
-      <stack id="ColorButtons"/>
+      <toolbaritem id="paragraph-select-container"/>
+      <toolbaritem id="font-face-select-container"/>
+      <toolbaritem id="color-buttons-container"
+                   disableoncustomize="true"/>
       <toolbarbutton id="DecreaseFontSizeButton"/>
       <toolbarbutton id="IncreaseFontSizeButton"/>
       <toolbarseparator class="toolbarseparator-standard"/>
@@ -780,9 +781,12 @@
       <toolbarseparator class="toolbarseparator-standard"/>
       <toolbarbutton id="AlignPopupButton"/>
       <toolbarbutton id="InsertPopupButton"/>
-      <toolbarbutton type="menu" id="smileButtonMenu" padwithspace="true"
-                     observes="cmd_smiley"
-                     tooltiptext="&SmileButton.tooltip;">
+      <toolbarbutton id="smileButtonMenu"
+                     class="formatting-button"
+                     tooltiptext="&SmileButton.tooltip;"
+                     padwithspace="true"
+                     type="menu"
+                     observes="cmd_smiley">
         <menupopup id="smilyPopup">
           <menuitem id="smileySmile" class="menuitem-iconic" label="&smiley1Cmd.label;" 
                     oncommand="doStatefulCommand('cmd_smiley', ':-)'  )"/>

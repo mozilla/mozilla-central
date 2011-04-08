@@ -419,7 +419,7 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 
 /* ::::: format toolbar ::::: */
 
-#FormatToolbar > toolbarbutton {
+toolbarbutton.formatting-button {
   list-style-image: url("chrome://messenger/skin/messengercompose/format-buttons.png");
 }
  

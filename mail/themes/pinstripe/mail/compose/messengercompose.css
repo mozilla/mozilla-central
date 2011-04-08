@@ -497,7 +497,7 @@ treechildren::-moz-tree-image(remote-err) {
   padding-top: 2px;
 }
 
-#FormatToolbar > toolbarbutton {
+toolbarbutton.formatting-button {
   height: 26px;
   padding: 3px 0px 2px;
   margin: 0px;
@@ -578,16 +578,16 @@ treechildren::-moz-tree-image(remote-err) {
   background: url("chrome://messenger/skin/messengercompose/right-button-disabled.png") no-repeat;
 }
 
-#FormatToolbar > toolbarbutton > .toolbarbutton-menu-dropmarker {
+toolbarbutton.formatting-button > .toolbarbutton-menu-dropmarker {
   margin: 0px;
   padding: 0px;
 }
 
-#FormatToolbar > toolbarbutton > .toolbarbutton-menubutton-icon {
+toolbarbutton.formatting-button > .toolbarbutton-menubutton-icon {
   -moz-padding-start: 2px;
 }
 
-#FormatToolbar > toolbarbutton > .toolbarbutton-menubutton-dropmarker {
+toolbarbutton.formatting-button > .toolbarbutton-menubutton-dropmarker {
   margin: 0px;
   padding: 0px;
 }

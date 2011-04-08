@@ -441,7 +441,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 
 /* ::::: format toolbar ::::: */
 
-#FormatToolbar > toolbarbutton {
+toolbarbutton.formatting-button {
   list-style-image: url("chrome://messenger/skin/messengercompose/format-buttons.png");
 }
 

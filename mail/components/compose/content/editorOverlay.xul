@@ -837,9 +837,11 @@
     </menupopup>
   </menu>
 
-  <!-- this is only used in messengercompose.xul -->
-  <toolbarbutton type="menu" id="AlignPopupButton" observes="cmd_align"
-              tooltiptext="&AlignPopupButton.tooltip;">
+  <toolbarbutton id="AlignPopupButton"
+                 class="formatting-button"
+                 tooltiptext="&AlignPopupButton.tooltip;"
+                 type="menu"
+                 observes="cmd_align">
     <menupopup id="AlignPopup">
       <menuitem id="AlignLeftItem" class="menuitem-iconic" label="&alignLeft.label;"
                 oncommand="doStatefulCommand('cmd_align', 'left')"
@@ -857,8 +859,11 @@
   </toolbarbutton>
 
   <!-- InsertPopupButton is used by messengercompose.xul -->
-  <toolbarbutton type="menu" id="InsertPopupButton" observes="cmd_renderedHTMLEnabler"
-                 tooltiptext="&InsertPopupButton.tooltip;">
+  <toolbarbutton id="InsertPopupButton"
+                 class="formatting-button"
+                 tooltiptext="&InsertPopupButton.tooltip;"
+                 type="menu"
+                 observes="cmd_renderedHTMLEnabler">
     <menupopup id="InsertPopup">
       <menuitem id="InsertLinkItem" class="menuitem-iconic" observes="cmd_link"
                 oncommand="goDoCommand('cmd_link')" label="&linkToolbarCmd.label;"
@@ -879,8 +884,14 @@
   </toolbarbutton>
 
   <!-- Formatting toolbar items. "value" are HTML tagnames, don't translate -->
-  <menulist class="toolbar-focustarget" id="ParagraphSelect" observes="cmd_renderedHTMLEnabler"
-            tooltiptext="&ParagraphSelect.tooltip;" crop="right">
+<toolbaritem id="paragraph-select-container"
+             class="formatting-button"
+             tooltiptext="&ParagraphSelect.tooltip;"
+             observes="cmd_renderedHTMLEnabler">
+  <menulist id="ParagraphSelect"
+            class="toolbar-focustarget"
+            crop="right">
+    <observes element="paragraph-select-container" attribute="disabled"/>
     <observes element="cmd_paragraphState" attribute="state" onbroadcast="onParagraphFormatChange(this.parentNode, 'cmd_paragraphState')"/>
     <menupopup id="ParagraphPopup" oncommand="doStatefulCommand('cmd_paragraphState', event.target.value)">
       <menuitem id="toolbarmenu_bodyText" label="&bodyTextCmd.label;" value=""/>
@@ -895,10 +906,17 @@
       <menuitem id="toolbarmenu_pre" label="&paragraphPreformatCmd.label;"  value="pre"/>
     </menupopup>
   </menulist>
+</toolbaritem>
 
   <!-- "value" are HTML tagnames, don't translate -->
-  <menulist class="toolbar-focustarget" id="FontFaceSelect" observes="cmd_renderedHTMLEnabler"
-    tooltiptext="&FontFaceSelect.tooltip;" crop="right">
+<toolbaritem id="font-face-select-container"
+             class="formatting-button"
+             tooltiptext="&FontFaceSelect.tooltip;"
+             observes="cmd_renderedHTMLEnabler">
+  <menulist id="FontFaceSelect"
+            class="toolbar-focustarget"
+            crop="right">
+    <observes element="font-face-select-container" attribute="disabled"/>
     <observes element="cmd_fontFace" attribute="state" onbroadcast="onFontFaceChange(this.parentNode, 'cmd_fontFace')"/>
     <menupopup id="FontFacePopup" oncommand="doStatefulCommand('cmd_fontFace', event.target.value)">
       <menuitem id="toolbarmenu_fontVarWidth" label="&fontVarWidth.label;" value=""/>
@@ -913,8 +931,16 @@
       <menuseparator id="toolbarmenuAfterFontFaceCourierSeparator"/>
     </menupopup>
   </menulist>
+</toolbaritem>
 
-  <menulist class="toolbar-focustarget" id="FontSizeSelect" oncommand="EditorSelectFontSize()"  tooltiptext="&FontSizeSelect.tooltip;" crop="right">
+<toolbaritem id="font-size-select-container"
+             class="formatting-button"
+             tooltiptext="&FontSizeSelect.tooltip;">
+  <menulist id="FontSizeSelect"
+            class="toolbar-focustarget"
+            crop="right"
+            oncommand="EditorSelectFontSize();">
+    <observes element="font-size-select-container" attribute="disabled"/>
     <observes element="cmd_fontSize" attribute="state" onbroadcast="onFontSizeChange(this.parentNode, 'cmd_fontSize')"/>
     <menupopup id="FontSizePopup">
       <menuitem id="toobarmenu_fontSize_xx-small" label="&size-xx-smallCmd.label;"/>
@@ -926,7 +952,10 @@
       <menuitem id="toobarmenu_fontSize_xx-large" label="&size-xx-largeCmd.label;"/>
     </menupopup>
   </menulist>
+</toolbaritem>
 
+<toolbaritem id="color-buttons-container"
+             class="formatting-button">
   <stack id="ColorButtons" align="center">
     <observes element="cmd_fontColor"       attribute="state" onbroadcast="onFontColorChange()"/>
     <observes element="cmd_backgroundColor" attribute="state" onbroadcast="onBackgroundColorChange()"/>
@@ -937,79 +966,134 @@
           onclick="EditorSelectColor('Text', event);"
           tooltiptext="&TextColorButton.tooltip;"/>
   </stack>
+</toolbaritem>
   <toolbarbutton id="HighlightColorButton"
-          tooltiptext="&HighlightColorButton.tooltip;" command="cmd_highlight">
+                 class="formatting-button"
+                 tooltiptext="&HighlightColorButton.tooltip;"
+                 command="cmd_highlight">
     <observes element="cmd_highlight" attribute="state" onbroadcast="onHighlightColorChange()"/>
     <observes element="cmd_highlight" attribute="collapsed"/>
   </toolbarbutton>
 
-<!-- A BUG IN CSS/BOXES MAKES THIS ASSERT WHEN CLASS= IS PRESENT AND WE TRY TO COLLAPSE THE TOOLBOX -->
-  <toolbarbutton id="DecreaseFontSizeButton" observes="cmd_decreaseFont"
-          tooltiptext="&decreaseFontSizeToolbarCmd.tooltip;"/>
-  <toolbarbutton id="IncreaseFontSizeButton" observes="cmd_increaseFont"
-          tooltiptext="&increaseFontSizeToolbarCmd.tooltip;"/>
-
-  <toolbarbutton id="boldButton" type="checkbox" autoCheck="false" observes="cmd_bold"
-          tooltiptext="&boldToolbarCmd.tooltip;">
+  <toolbarbutton id="DecreaseFontSizeButton"
+                 class="formatting-button"
+                 tooltiptext="&decreaseFontSizeToolbarCmd.tooltip;"
+                 observes="cmd_decreaseFont"/>
+  <toolbarbutton id="IncreaseFontSizeButton"
+                 class="formatting-button"
+                 tooltiptext="&increaseFontSizeToolbarCmd.tooltip;"
+                 observes="cmd_increaseFont"/>
+  <toolbarbutton id="boldButton"
+                 class="formatting-button"
+                 tooltiptext="&boldToolbarCmd.tooltip;"
+                 type="checkbox"
+                 autoCheck="false"
+                 observes="cmd_bold">
     <observes element="cmd_bold" type="checkbox" attribute="state" onbroadcast="onButtonUpdate(this.parentNode, 'cmd_bold')"/>
   </toolbarbutton>
-  <toolbarbutton id="italicButton" type="checkbox" autoCheck="false" observes="cmd_italic"
-          tooltiptext="&italicToolbarCmd.tooltip;">
+  <toolbarbutton id="italicButton"
+                 class="formatting-button"
+                 tooltiptext="&italicToolbarCmd.tooltip;"
+                 type="checkbox"
+                 autoCheck="false"
+                 observes="cmd_italic">
     <observes element="cmd_italic" attribute="state" onbroadcast="onButtonUpdate(this.parentNode, 'cmd_italic')"/>
   </toolbarbutton>
-  <toolbarbutton id="underlineButton" type="checkbox" autoCheck="false" observes="cmd_underline"
-          tooltiptext="&underlineToolbarCmd.tooltip;">
+  <toolbarbutton id="underlineButton"
+                 class="formatting-button"
+                 tooltiptext="&underlineToolbarCmd.tooltip;"
+                 type="checkbox"
+                 autoCheck="false"
+                 observes="cmd_underline">
     <observes element="cmd_underline" attribute="state" onbroadcast="onButtonUpdate(this.parentNode, 'cmd_underline')"/>
   </toolbarbutton>
 
-  <toolbarbutton id="ulButton" type="radio" group="lists" autoCheck="false" observes="cmd_ul"
-          tooltiptext="&bulletListToolbarCmd.tooltip;">
+  <toolbarbutton id="ulButton"
+                 class="formatting-button"
+                 tooltiptext="&bulletListToolbarCmd.tooltip;"
+                 type="radio"
+                 group="lists"
+                 autoCheck="false"
+                 observes="cmd_ul">
       <observes element="cmd_ul" attribute="state" onbroadcast="onButtonUpdate(this.parentNode, 'cmd_ul')"/>
   </toolbarbutton>
 
-  <toolbarbutton id="olButton" type="radio" group="lists" autoCheck="false" observes="cmd_ol"
-          tooltiptext="&numberListToolbarCmd.tooltip;">
+  <toolbarbutton id="olButton"
+                 class="formatting-button"
+                 tooltiptext="&numberListToolbarCmd.tooltip;"
+                 type="radio"
+                 group="lists"
+                 autoCheck="false"
+                 observes="cmd_ol">
       <observes element="cmd_ol" attribute="state" onbroadcast="onButtonUpdate(this.parentNode, 'cmd_ol')"/>
   </toolbarbutton>
 
-  <toolbarbutton id="outdentButton" observes="cmd_outdent"
-          tooltiptext="&outdentToolbarCmd.tooltip;"/>
-  <toolbarbutton id="indentButton" observes="cmd_indent"
-          tooltiptext="&indentToolbarCmd.tooltip;"/>
+  <toolbarbutton id="outdentButton"
+                 class="formatting-button"
+                 tooltiptext="&outdentToolbarCmd.tooltip;"
+                 observes="cmd_outdent"/>
+  <toolbarbutton id="indentButton"
+                 class="formatting-button"
+                 tooltiptext="&indentToolbarCmd.tooltip;"
+                 observes="cmd_indent"/>
 
   <!-- alignment buttons -->
-  <toolbarbutton id="align-left-button" type="radio" group="align" autoCheck="false"
-                 oncommand="doStatefulCommand('cmd_align', 'left')"
-                 tooltiptext="&alignLeft.tooltip;" >
+  <toolbarbutton id="align-left-button"
+                 class="formatting-button"
+                 tooltiptext="&alignLeftButton.tooltip;"
+                 type="radio"
+                 group="align"
+                 autoCheck="false"
+                 oncommand="doStatefulCommand('cmd_align', 'left')">
     <observes element="cmd_align" attribute="state" 
               onbroadcast="onStateButtonUpdate(this.parentNode, 'cmd_align', 'left')" />
   </toolbarbutton>
-  <toolbarbutton id="align-center-button" type="radio" group="align" autoCheck="false"
-                 oncommand="doStatefulCommand('cmd_align', 'center')"
-                 tooltiptext="&alignCenter.tooltip;" >
+  <toolbarbutton id="align-center-button"
+                 class="formatting-button"
+                 tooltiptext="&alignCenterButton.tooltip;"
+                 type="radio"
+                 group="align"
+                 autoCheck="false"
+                 oncommand="doStatefulCommand('cmd_align', 'center')">
     <observes element="cmd_align" attribute="state" 
               onbroadcast="onStateButtonUpdate(this.parentNode, 'cmd_align', 'center')"/>
   </toolbarbutton>
-  <toolbarbutton id="align-right-button" type="radio" group="align" autoCheck="false"
-                 oncommand="doStatefulCommand('cmd_align', 'right')"
-                 tooltiptext="&alignRight.tooltip;" >
+  <toolbarbutton id="align-right-button"
+                 class="formatting-button"
+                 tooltiptext="&alignRightButton.tooltip;"
+                 type="radio"
+                 group="align"
+                 autoCheck="false"
+                 oncommand="doStatefulCommand('cmd_align', 'right')">
     <observes element="cmd_align" attribute="state"
               onbroadcast="onStateButtonUpdate(this.parentNode, 'cmd_align', 'right')"/>
   </toolbarbutton>
-  <toolbarbutton id="align-justify-button" type="radio" group="align" autoCheck="false"
-                 oncommand="doStatefulCommand('cmd_align', 'justify')"
-                 tooltiptext="&alignJustify.tooltip;" >
+  <toolbarbutton id="align-justify-button"
+                 class="formatting-button"
+                 tooltiptext="&alignJustifyButton.tooltip;"
+                 type="radio"
+                 group="align"
+                 autoCheck="false"
+                 oncommand="doStatefulCommand('cmd_align', 'justify')">
     <observes element="cmd_align" attribute="state"
               onbroadcast="onStateButtonUpdate(this.parentNode, 'cmd_align', 'justify')"/>
   </toolbarbutton>
 
-  <toolbarbutton id="absolutePositionButton" type="checkbox" tooltiptext="&layer.tooltip;" observes="cmd_absPos">
+  <toolbarbutton id="absolutePositionButton"
+                 class="formatting-button"
+                 tooltiptext="&layer.tooltip;"
+                 type="checkbox"
+                 observes="cmd_absPos">
     <observes element="cmd_absPos" attribute="state" onbroadcast="onStateButtonUpdate(this.parentNode, 'cmd_absPos', 'absolute')"/>
   </toolbarbutton>
-  <toolbarbutton id="decreaseZIndexButton" observes="cmd_decreaseZIndex"
-                 tooltiptext="&layerSendToBack.tooltip;"/>
-  <toolbarbutton id="increaseZIndexButton" observes="cmd_increaseZIndex"
-                 tooltiptext="&layerBringToFront.tooltip;"/>
+  <toolbarbutton id="decreaseZIndexButton"
+                 class="formatting-button"
+                 tooltiptext="&layerSendToBack.tooltip;"
+                 observes="cmd_decreaseZIndex"/>
+  <toolbarbutton id="increaseZIndexButton"
+                 class="formatting-button"
+                 tooltiptext="&layerBringToFront.tooltip;"
+                 observes="cmd_increaseZIndex"/>
 
   <menuitem id="menu_pasteQuote" accesskey="&pasteAsQuotationCmd.accesskey;"
             command="cmd_pasteQuote" key="pastequotationkb"/>
