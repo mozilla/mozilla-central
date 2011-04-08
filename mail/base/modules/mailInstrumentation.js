@@ -55,9 +55,6 @@ Cu.import("resource:///modules/IOUtils.js");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource:///modules/mailServices.js");
 
-var gPrefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefService).getBranch(null);
-
 /* :::::::: The Module ::::::::::::::: */
 
 var mailInstrumentationManager =
@@ -92,7 +89,7 @@ var mailInstrumentationManager =
 
   _accountsChanged: function() {
     // check if there are at least two accounts - one is local folders account
-    if (gPrefBranch.getCharPref("mail.accountmanager.accounts").indexOf(',') > 0) {
+    if (Services.prefs.getCharPref("mail.accountmanager.accounts").indexOf(',') > 0) {
       mailInstrumentationManager.addEvent("accountAdded", true);
       this._removeObserver("mail.accountmanager.accounts",
                            this._accountsChanged);
@@ -105,7 +102,7 @@ var mailInstrumentationManager =
   },
   _userOptedIn: function() {
     try {
-      if (gPrefBranch.getBoolPref("mail.instrumentation.userOptedIn"))
+      if (Services.prefs.getBoolPref("mail.instrumentation.userOptedIn"))
         mailInstrumentationManager._postStateObject();
     } catch (ex) {logException(ex);}
   },
@@ -115,7 +112,7 @@ var mailInstrumentationManager =
    * _init and a unit test.
    */
   _loadState: function minst_loadState() {
-    let data = gPrefBranch.getCharPref("mail.instrumentation.lastNotificationSent");
+    let data = Services.prefs.getCharPref("mail.instrumentation.lastNotificationSent");
     if (data) {
       try {
         // parse the session state into JS objects
@@ -134,9 +131,7 @@ var mailInstrumentationManager =
     // wrap the whole thing.
     try {
       if (!this._currentState.userEmailHash.length) {
-        let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                        .getService(Ci.nsIMsgAccountManager);
-        let email = acctMgr.defaultAccount.defaultIdentity.email;
+        let email = MailServices.accounts.defaultAccount.defaultIdentity.email;
         this._currentState.userEmailHash = this._hashEmailAddress(email);
       }
       let data = JSON.stringify(this._currentState);
@@ -146,7 +141,7 @@ var mailInstrumentationManager =
         return;
 
       this._lastStateString = data;
-      let userOptedIn = gPrefBranch.getBoolPref("mail.instrumentation.userOptedIn");
+      let userOptedIn = Services.prefs.getBoolPref("mail.instrumentation.userOptedIn");
       if (userOptedIn)
         this._postData();
     } catch (ex) {logException(ex);}
@@ -188,7 +183,7 @@ var mailInstrumentationManager =
   _postData: function minst_postData() {
     let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
-    let url = gPrefBranch.getCharPref("mail.instrumentation.postUrl");
+    let url = Services.prefs.getCharPref("mail.instrumentation.postUrl");
     if (!url.length)
       return;
     let dataToPost = this._lastStateString;
@@ -201,8 +196,8 @@ var mailInstrumentationManager =
     logException(e);
   },
   _onLoad: function minst_onLoad() {
-    gPrefBranch.setCharPref("mail.instrumentation.lastNotificationSent",
-                            this._lastStateString);
+    Services.prefs.setCharPref("mail.instrumentation.lastNotificationSent",
+                               this._lastStateString);
   },
   // keeps track of whether or not we've removed the observer for a given
   // pref name.
@@ -224,21 +219,19 @@ var mailInstrumentationManager =
   init: function minst_init() {
     // If we're done with instrumentation, or this is not a first run,
     // we should just return immediately.
-    if (!gPrefBranch.getBoolPref("mail.instrumentation.askUser"))
+    if (!Services.prefs.getBoolPref("mail.instrumentation.askUser"))
       return;
-    let am = Cc["@mozilla.org/messenger/account-manager;1"]
-               .getService(Ci.nsIMsgAccountManager);
-    if (am.accounts.Count() > 0)
+    if (MailServices.accounts.accounts.Count() > 0)
       return;
 
     this._loadState();
-    let os = Cc["@mozilla.org/observer-service;1"]
-              .getService(Ci.nsIObserverService);
-    os.addObserver(this, "mail:composeSendSucceeded", false);
-    os.addObserver(this, "mail:setAsDefault", false);
-    this._addObserver("mail.accountmanager.accounts", this._accountsChanged);
-    this._addObserver("mail.instrumentation.userOptedIn", this._userOptedIn);
-    this._addObserver("mail.smtpservers", this._smtpServerAdded);
+    Services.obs.addObserver(this, "mail:composeSendSucceeded", false);
+    Services.obs.addObserver(this, "mail:setAsDefault", false);
+    Services.prefs.addObserver("mail.accountmanager.accounts",
+                               this._accountsChanged, false);
+    Services.prefs.addObserver("mail.instrumentation.userOptedIn",
+                               this._userOptedIn, false);
+    Services.prefs.addObserver("mail.smtpservers", this._smtpServerAdded, false);
     gMFNService.addListener(this, nsIMFNService.msgAdded);
     this._observersRegistered = true;
     this._mfnListener = true;
@@ -248,15 +241,13 @@ var mailInstrumentationManager =
       return;
     let os = Cc["@mozilla.org/observer-service;1"]
               .getService(Ci.nsIObserverService);
-    os.removeObserver(this, "mail:composeSendSucceeded");
-    os.removeObserver(this, "mail:setAsDefault");
+    Services.obs.removeObserver(this, "mail:composeSendSucceeded");
+    Services.obs.removeObserver(this, "mail:setAsDefault");
     if (this._mfnListener)
       gMFNService.removeListener(this);
-    this._removeObserver("mail.accountmanager.accounts",
-                         this._accountsChanged);
-    this._removeObserver("mail.instrumentation.userOptedIn",
-                         this._userOptedIn);
-    this._removeObserver("mail.smtpservers", this._smtpServerAdded);
+    Services.prefs.removeObserver("mail.accountmanager.accounts", this);
+    Services.prefs.removeObserver("mail.instrumentation.userOptedIn", this);
+    Services.prefs.removeObserver("mail.smtpservers", this);
   },
   /**
    * This adds an event to the current state, if it doesn't exist.
