@@ -51,10 +51,10 @@ found at the preceding URL along with the releases themselves.
 
 ==========================================================================
 
-*Windows
+* Windows
 
-   - Windows 2000, XP or Vista
-   - Intel Pentium class processor (500 MHz or faster recommended)
+   - Windows 2000, XP, Server 2003, Vista or 7
+   - Intel Pentium class processor or better (500 MHz or faster recommended)
    - 128 MB RAM
    - 50 MB free hard disk space
 

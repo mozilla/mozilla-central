@@ -53,12 +53,11 @@ found at the preceding URL along with the releases themselves.
 
 * Linux
 
-   - The following library versions (or compatible) are required:
-     glibc 2.3.2, X.org 1.x, GTK 2.x, fontconfig, pango 1.10, libstdc++ 6.
+   - The following minimum library versions (or compatible) are required:
+     GTK+ 2.10, GLib 2.12, Pango 1.14, X.Org 1.0.
      Red Hat Enterprise Linux 5, Fedora Core 6, ubuntu 6.10 ("Edgy"),
-     Debian "Lenny" (testing), and openSUSE 10.2 (or later) installations
-     should work.
-   - Intel Pentium class processor (500 MHz or faster recommended)
+     Debian "Lenny", and openSUSE 10.2 (or later) installations should work.
+   - Intel Pentium class processor or better (500 MHz or faster recommended)
    - 128 MB RAM
    - 50 MB free hard disk space
 
