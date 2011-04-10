@@ -99,21 +99,23 @@
     
     <!-- label and accesskey set at runtime from strings -->
     <menuitem id="removeStylesMenuitem_cm"
-              observes="cmd_removeStyles"/>
+              command="cmd_removeStyles"/>
     <menuitem id="createLink_cm"
               label="&createLinkCmd.label;"
               accesskey="&createLinkCmd.accesskey;"
               command="cmd_link"/>
     <!-- label and accesskey set at runtime from strings -->
-    <menuitem id="removeLinksMenuitem_cm" observes="cmd_removeLinks"/>
+    <menuitem id="removeLinksMenuitem_cm"
+              command="cmd_removeLinks"/>
     <menuitem id="removeNamedAnchorsMenuitem_cm"
               label="&formatRemoveNamedAnchors.label;"
               accesskey="&formatRemoveNamedAnchors.accesskey;"
-              observes="cmd_removeNamedAnchors"/>
+              command="cmd_removeNamedAnchors"/>
     <menuseparator id="styles-separator"/>
 
     <!-- label and accesskey are set in InitObjectProperties -->
-    <menuitem id="objectProperties_cm" observes="cmd_objectProperties"/>
+    <menuitem id="objectProperties_cm"
+              command="cmd_objectProperties"/>
     <menuitem id="editLink_cm"
               label="&editLinkCmd.label;"
               accesskey="&editLinkCmd.accesskey;"
@@ -125,28 +127,28 @@
       <menupopup>
         <menuitem label="&insertTableCmd.label;"
                   accesskey="&insertTableCmd.accesskey;"
-                  observes="cmd_InsertTable"/>
+                  command="cmd_InsertTable"/>
         <menuseparator/>
         <menuitem label="&tableRowAbove.label;"
                   accesskey="&tableRowAbove.accesskey;"
-                  observes="cmd_InsertRowAbove"/>
+                  command="cmd_InsertRowAbove"/>
         <menuitem label="&tableRowBelow.label;"
                   accesskey="&tableRowBelow.accesskey;"
-                  observes="cmd_InsertRowBelow"/>
+                  command="cmd_InsertRowBelow"/>
         <menuseparator/>
         <menuitem label="&tableColumnBefore.label;"
                   accesskey="&tableColumnBefore.accesskey;"
-                  observes="cmd_InsertColumnBefore"/>
+                  command="cmd_InsertColumnBefore"/>
         <menuitem label="&tableColumnAfter.label;"
                   accesskey="&tableColumnAfter.accesskey;"
-                  observes="cmd_InsertColumnAfter"/>
+                  command="cmd_InsertColumnAfter"/>
         <menuseparator/>
         <menuitem label="&tableCellBefore.label;"
                   accesskey="&tableCellBefore.accesskey;"
-                  observes="cmd_InsertCellBefore"/>
+                  command="cmd_InsertCellBefore"/>
         <menuitem label="&tableCellAfter.label;"
                   accesskey="&tableCellAfter.accesskey;"
-                  observes="cmd_InsertCellAfter"/>
+                  command="cmd_InsertCellAfter"/>
       </menupopup>
     </menu>
     <menu id="tableSelectMenu_cm" label="&tableSelectMenu2.label;" accesskey="&tableSelectMenu2.accesskey;">
@@ -154,23 +156,23 @@
         <menuitem id="menu_SelectTable_cm"
                   label="&tableTable.label;"
                   accesskey="&tableTable.accesskey;"
-                  observes="cmd_SelectTable"/>
+                  command="cmd_SelectTable"/>
         <menuitem id="menu_SelectRow_cm"
                   label="&tableRow.label;"
                   accesskey="&tableRow.accesskey;"
-                  observes="cmd_SelectRow"/>
+                  command="cmd_SelectRow"/>
         <menuitem id="menu_SelectColumn_cm"
                   label="&tableColumn.label;"
                   accesskey="&tableColumn.accesskey;"
-                  observes="cmd_SelectColumn"/>
+                  command="cmd_SelectColumn"/>
         <menuitem id="menu_SelectCell_cm"
                   label="&tableCell.label;"
                   accesskey="&tableCell.accesskey;"
-                  observes="cmd_SelectCell"/>
+                  command="cmd_SelectCell"/>
         <menuitem id="menu_SelectAllCells_cm"
                   label="&tableAllCells.label;"
                   accesskey="&tableAllCells.accesskey;"
-                  observes="cmd_SelectAllCells"/>
+                  command="cmd_SelectAllCells"/>
       </menupopup>
     </menu>
     <menu id="tableDeleteMenu_cm" label="&tableDeleteMenu2.label;" accesskey="&tableDeleteMenu2.accesskey;">
@@ -178,38 +180,38 @@
         <menuitem id="menu_DeleteTable_cm"
                   label="&tableTable.label;"
                   accesskey="&tableTable.accesskey;"
-                  observes="cmd_DeleteTable"/>
+                  command="cmd_DeleteTable"/>
         <menuitem id="menu_DeleteRow_cm"
                   label="&tableRows.label;"
                   accesskey="&tableRow.accesskey;"
-                  observes="cmd_DeleteRow"/>
+                  command="cmd_DeleteRow"/>
         <menuitem id="menu_DeleteColumn_cm"
                   label="&tableColumns.label;"
                   accesskey="&tableColumn.accesskey;"
-                  observes="cmd_DeleteColumn"/>
+                  command="cmd_DeleteColumn"/>
         <menuitem id="menu_DeleteCell_cm"
                   label="&tableCells.label;"
                   accesskey="&tableCell.accesskey;"
-                  observes="cmd_DeleteCell"/>
+                  command="cmd_DeleteCell"/>
         <menuitem id="menu_DeleteCellContents_cm"
                   label="&tableCellContents.label;"
                   accesskey="&tableCellContents.accesskey;"
-                  observes="cmd_DeleteCellContents"/>
+                  command="cmd_DeleteCellContents"/>
       </menupopup>
     </menu>
     <!-- menu label is set in InitTableMenu -->
     <menuitem id="joinTableCells_cm"
               label="&tableJoinCells.label;"
               accesskey="&tableJoinCells.accesskey;"
-              observes="cmd_JoinTableCells"/>
+              command="cmd_JoinTableCells"/>
     <menuitem id="splitTableCell_cm"
               label="&tableSplitCell.label;"
               accesskey="&tableSplitCell.accesskey;"
-              observes="cmd_SplitTableCell"/>
+              command="cmd_SplitTableCell"/>
     <menuitem id="tableOrCellColor_cm"
               label="&tableOrCellColor.label;"
               accesskey="&tableOrCellColor.accesskey;"
-              observes="cmd_TableOrCellColor"/>
+              command="cmd_TableOrCellColor"/>
  </menupopup>
 
  <menupopup id="editorSourceContext">
