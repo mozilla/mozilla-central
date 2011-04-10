@@ -39,6 +39,7 @@
 const nsISupports             = Components.interfaces.nsISupports;
 const nsIBrowserDOMWindow     = Components.interfaces.nsIBrowserDOMWindow;
 const nsIBrowserHistory       = Components.interfaces.nsIBrowserHistory;
+const nsIBrowserSearchService = Components.interfaces.nsIBrowserSearchService;
 const nsIChannel              = Components.interfaces.nsIChannel;
 const nsICommandLine          = Components.interfaces.nsICommandLine;
 const nsICommandLineHandler   = Components.interfaces.nsICommandLineHandler;
@@ -247,6 +248,33 @@ function handURIToExistingBrowser(uri, location, features)
     openWindow(null, getBrowserURL(), features, uri.spec);
 }
 
+function doSearch(aSearchTerm, aFeatures) {
+  var ss = Components.classes["@mozilla.org/browser/search-service;1"]
+                     .getService(nsIBrowserSearchService);
+
+  var submission = ss.defaultEngine.getSubmission(aSearchTerm);
+  
+  // fill our nsIMutableArray with uri-as-wstring, null, null, postData
+  var sa = Components.classes["@mozilla.org/array;1"]
+                     .createInstance(Components.interfaces.nsIMutableArray);
+  
+  var uristring = Components.classes["@mozilla.org/supports-string;1"]
+                            .createInstance(nsISupportsString);
+  uristring.data = submission.uri.spec;
+
+  sa.appendElement(uristring, false);
+  sa.appendElement(null, false);
+  sa.appendElement(null, false);
+  sa.appendElement(submission.postData, false);
+
+  // XXXbsmedberg: use handURIToExistingBrowser to obey tabbed-browsing
+  // preferences, but need nsIBrowserDOMWindow extensions
+  var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                         .getService(nsIWindowWatcher);
+
+  return wwatch.openWindow(null, getBrowserURL(), "_blank", aFeatures, sa);
+}
+
 var nsBrowserContentHandler = {
   get wrappedJSObject() {
     return this;
@@ -440,6 +468,12 @@ var nsBrowserContentHandler = {
     } catch (e) {
     }
 
+    var searchParam = cmdLine.handleFlagWithParam("search", false);
+    if (searchParam) {
+      doSearch(searchParam, features);
+      cmdLine.preventDefault = true;
+    }
+
     if (cmdLine.handleFlag("preferences", false)) {
       openPreferences();
       cmdLine.preventDefault = true;
@@ -537,8 +571,12 @@ var nsBrowserContentHandler = {
   },
 
   helpInfo: "  -browser <url>     Open a browser window.\n" +
+            "  -new-window <url>  Open <url> in a new browser window.\n" +
+            "  -new-tab <url>     Open <url> in a new browser tab.\n" +
             "  -url <url>         Open the specified url.\n" +
-            "  -chrome <url>      Open the specified chrome.\n",
+            "  -chrome <url>      Open the specified chrome.\n" +
+            "  -search <term>     Search <term> with your default search engine.\n" +
+            "  -preferences       Open Preferences dialog.\n",
 
   /* nsICommandLine */
   length: 1,
