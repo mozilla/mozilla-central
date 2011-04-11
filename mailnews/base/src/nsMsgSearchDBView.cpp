@@ -574,7 +574,7 @@ void nsMsgSearchDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   PRBool updatesSuppressed = mSuppressChangeNotification;
   // Turn off tree notifications so that we don't reload the current message.
   if (!updatesSuppressed)
-    DisableChangeUpdates();
+    SetSuppressChangeNotifications(PR_TRUE);
 
   nsCOMPtr<nsIMsgDBHdr> threadHdr;
   GetMsgHdrForViewIndex(threadIndex, getter_AddRefs(threadHdr));
@@ -649,7 +649,7 @@ void nsMsgSearchDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
     RestoreSelection(preservedKey, preservedSelection);
 
   if (!updatesSuppressed)
-    EnableChangeUpdates();
+    SetSuppressChangeNotifications(PR_FALSE);
   nsMsgViewIndex lowIndex = threadIndex < newIndex ? threadIndex : newIndex;
   nsMsgViewIndex highIndex = lowIndex == threadIndex ? newIndex : threadIndex;
   NoteChange(lowIndex, highIndex - lowIndex + childCount + 1,

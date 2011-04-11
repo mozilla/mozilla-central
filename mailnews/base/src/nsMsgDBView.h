@@ -336,8 +336,6 @@ protected:
   PRUint32 GetSize(void) {return(m_keys.Length());}
 
   // notification api's
-  void  EnableChangeUpdates();
-  void  DisableChangeUpdates();
   void  NoteChange(nsMsgViewIndex firstlineChanged, PRInt32 numChanged,
                     nsMsgViewNotificationCodeValue changeType);
   void  NoteStartChange(nsMsgViewIndex firstlineChanged, PRInt32 numChanged,

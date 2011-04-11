@@ -2640,7 +2640,13 @@ NS_IMETHODIMP nsMsgDBView::DoCommand(nsMsgViewCommandTypeValue command)
     break;
   case nsMsgViewCommandType::markAllRead:
     if (m_folder)
+    {
+      SetSuppressChangeNotifications(PR_TRUE);
       rv = m_folder->MarkAllMessagesRead(msgWindow);
+      SetSuppressChangeNotifications(PR_FALSE);
+      if (mTree)
+        mTree->Invalidate();
+    }
     break;
   case nsMsgViewCommandType::toggleThreadWatched:
     rv = ToggleWatched(indices,  numIndices);
@@ -5977,15 +5983,19 @@ void nsMsgDBView::ClearHdrCache()
   m_cachedMsgKey = nsMsgKey_None;
 }
 
-void nsMsgDBView::EnableChangeUpdates()
+NS_IMETHODIMP nsMsgDBView::SetSuppressChangeNotifications(PRBool aSuppressChangeNotifications)
 {
-  mSuppressChangeNotification = PR_FALSE;
+  mSuppressChangeNotification = aSuppressChangeNotifications;
+  return NS_OK;
 }
 
-void nsMsgDBView::DisableChangeUpdates()
+NS_IMETHODIMP nsMsgDBView::GetSuppressChangeNotifications(PRBool * aSuppressChangeNotifications)
 {
-  mSuppressChangeNotification = PR_TRUE;
+  NS_ENSURE_ARG_POINTER(aSuppressChangeNotifications);
+  *aSuppressChangeNotifications = mSuppressChangeNotification;
+  return NS_OK;
 }
+
 
 void nsMsgDBView::NoteChange(nsMsgViewIndex firstLineChanged, PRInt32 numChanged,
                              nsMsgViewNotificationCodeValue changeType)

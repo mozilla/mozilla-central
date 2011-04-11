@@ -195,7 +195,7 @@ nsresult nsMsgThreadedDBView::SortThreads(nsMsgViewSortTypeValue sortType, nsMsg
   m_sortType = nsMsgViewSortType::byNone; // sort from scratch
   nsMsgDBView::Sort(sortType, sortOrder);
   m_viewFlags |= nsMsgViewFlagsType::kThreadedDisplay;
-  DisableChangeUpdates();
+  SetSuppressChangeNotifications(PR_TRUE);
   // Loop through the original array, for each thread that's expanded, find it in the new array
   // and expand the thread. We have to update MSG_VIEW_FLAG_HAS_CHILDREN because
   // we may be going from a flat sort, which doesn't maintain that flag,
@@ -230,7 +230,7 @@ nsresult nsMsgThreadedDBView::SortThreads(nsMsgViewSortTypeValue sortType, nsMsg
       }
     }
   }
-  EnableChangeUpdates();
+  SetSuppressChangeNotifications(PR_FALSE);
 
   return NS_OK;
 }
@@ -764,7 +764,7 @@ void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   // and where it ended up.
   PRBool changesDisabled = mSuppressChangeNotification;
   if (!changesDisabled)
-    DisableChangeUpdates();
+    SetSuppressChangeNotifications(PR_TRUE);
 
   nsCOMPtr <nsIMsgDBHdr> threadHdr;
 
@@ -835,7 +835,7 @@ void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
     RestoreSelection(preservedKey, preservedSelection);
 
   if (!changesDisabled)
-    EnableChangeUpdates();
+    SetSuppressChangeNotifications(PR_FALSE);
   nsMsgViewIndex lowIndex = threadIndex < newIndex ? threadIndex : newIndex;
   nsMsgViewIndex highIndex = lowIndex == threadIndex ? newIndex : threadIndex;
   NoteChange(lowIndex, highIndex - lowIndex + childCount + 1,

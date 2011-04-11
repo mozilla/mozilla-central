@@ -246,7 +246,7 @@ interface nsMsgNavigationType
 };
 
 
-[scriptable, uuid(da89fc17-92b0-43db-9df1-cbd112fdfea8)]
+[scriptable, uuid(cc1fb1d8-b033-478f-be73-982aff2248ef)]
 interface nsIMsgDBView : nsISupports
 {
   void open(in nsIMsgFolder folder, in nsMsgViewSortTypeValue sortType, in nsMsgViewSortOrderValue sortOrder, in nsMsgViewFlagsTypeValue viewFlags, out long count);
@@ -386,6 +386,13 @@ interface nsIMsgDBView : nsISupports
 
   // we'll suppress command updating during folder loading
   attribute boolean suppressCommandUpdating;
+
+  /**
+   * Suppress change notifications. This is faster than Begin/EndUpdateBatch
+   * on the tree, but less safe in that you're responsible for row invalidation
+   * and row count changes.
+   */
+  attribute boolean suppressChangeNotifications;
 
   //to notify tree that rows are going away
   void onDeleteCompleted(in boolean succeeded);

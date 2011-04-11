@@ -550,9 +550,9 @@ nsresult nsMsgGroupView::RebuildView(nsMsgViewFlagsTypeValue newFlags)
     // this needs to happen after we remove all the keys, since RowCountChanged() will call our GetRowCount()
     if (mTree)
       mTree->RowCountChanged(0, -oldSize);
-    DisableChangeUpdates();
+    SetSuppressChangeNotifications(PR_TRUE);
     nsresult rv = OpenWithHdrs(headers, m_sortType, m_sortOrder, newFlags, &count);
-    EnableChangeUpdates();
+    SetSuppressChangeNotifications(PR_FALSE);
     if (mTree)
       mTree->RowCountChanged(0, GetSize());
 
