@@ -1881,6 +1881,8 @@ DBViewWrapper.prototype = {
    * - Mark all messages read in the folder _if so configured_.
    */
   onLeavingFolder: function DBViewWrapper_onLeavingFolder() {
+    // Suppress useless InvalidateRange calls to the tree by the dbView.
+    this.dbView.suppressChangeNotifications = true;
     this.displayedFolder.clearNewMessages();
     this.displayedFolder.hasNewMessages = false;
     try {
