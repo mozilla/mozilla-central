@@ -1068,12 +1068,12 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetPrefix(nsAString & aPrefix)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-
+#ifdef MOZILLA_2_0_BRANCH
 NS_IMETHODIMP nsEudoraHTMLImageElement::SetPrefix(const nsAString & aPrefix)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
-
+#endif
 
 // readonly attribute DOMString localName
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetLocalName(nsAString & aLocalName)
