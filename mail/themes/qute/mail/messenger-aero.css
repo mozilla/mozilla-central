@@ -4,6 +4,10 @@
   -moz-appearance: none;
 }
 
+.toolbarbutton-1[checked="true"] {
+  padding: 1px 5px !important;
+}
+
 #searchInput {
   background-clip: padding-box;
   border: 1px solid ThreeDDarkShadow;
