@@ -625,6 +625,13 @@ NS_IMETHODIMP nsEudoraEditor::DebugUnitTests(PRInt32 *outNumTests, PRInt32 *outN
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+#ifndef MOZILLA_2_0_BRANCH
+//  readonly attribute boolean transactionManager
+NS_IMETHODIMP nsEudoraEditor::GetLastKeypressEventTrusted(PRBool *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+#endif
 
 // void pasteAsQuotation (in long aSelectionType)
 NS_IMETHODIMP nsEudoraEditor::PasteAsQuotation(PRInt32 aSelectionType)
@@ -1265,6 +1272,32 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::SetClassName(const nsAString & aClassNam
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+#ifndef MOZILLA_2_0_BRANCH
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetAccessKey(nsAString &aAccessKey)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetAccessKey(const nsAString &aAccessKey)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::Blur()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::Focus()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::Click()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+#endif
 
 // attribute DOMString name
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetName(nsAString & aName)
