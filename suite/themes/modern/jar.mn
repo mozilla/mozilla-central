@@ -180,6 +180,8 @@ modern.jar:
   skin/modern/editor/icons/progress-failed.gif                     (editor/icons/progress-failed.gif)
   skin/modern/global/globalBindings.xml                            (global/globalBindings.xml)
   skin/modern/global/about.css                                     (global/about.css)
+  skin/modern/global/aboutCache.css                                (global/aboutCache.css)
+  skin/modern/global/aboutCacheEntry.css                           (global/aboutCacheEntry.css)
   skin/modern/global/aboutMemory.css                               (global/aboutMemory.css)
   skin/modern/global/aboutSupport.css                              (global/aboutSupport.css)
   skin/modern/global/appPicker.css                                 (global/appPicker.css)
