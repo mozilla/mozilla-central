@@ -1882,7 +1882,8 @@ DBViewWrapper.prototype = {
    */
   onLeavingFolder: function DBViewWrapper_onLeavingFolder() {
     // Suppress useless InvalidateRange calls to the tree by the dbView.
-    this.dbView.suppressChangeNotifications = true;
+    if (this.dbView)
+      this.dbView.suppressChangeNotifications = true;
     this.displayedFolder.clearNewMessages();
     this.displayedFolder.hasNewMessages = false;
     try {
