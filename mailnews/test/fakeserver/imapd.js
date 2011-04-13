@@ -1878,7 +1878,7 @@ createBodyPart.prototype = {
   init : function() {
     this.BndryAttrRE.lastIndex = 0;
     for each (let x in this._pn) {
-      var bndryAttrArray = this.BndryAttrRE(this._msg);
+      var bndryAttrArray = this.BndryAttrRE.exec(this._msg);
 
       if (!bndryAttrArray)  // FIXME--must have done a BODY[0] of a non-multipart
         return;             // message. This may not be possible but let it be
@@ -1891,20 +1891,20 @@ createBodyPart.prototype = {
       var bndryTag = Array.map("--" + bndryAttrArray[1],
                                function(a) {
                                  return '\\x' + parseInt(a.charCodeAt(0),10)
-                                                          .toString(16)})
+                                                          .toString(16);})
                           .join('');// now have a pattern like '\xnn\xnn\xnn\xnn'
                                     // to allow boundaries with '+' and other
                                     // regex metacharacters
       var bndryRE = new RegExp(bndryTag + "([\\s\\S]*?)\\r\\n", "gm");
       while (x > 0) {
-        bndryRE(this._msg); //need a check for null maybe. nah.
+        bndryRE.exec(this._msg); //need a check for null maybe. nah.
         --x;
       }
     }
     this.index = bndryRE.lastIndex; // start of mime
-    var mimeArrayRE = /[\s\S]*?\r\n\r\n/g
+    var mimeArrayRE = /[\s\S]*?\r\n\r\n/g;
     mimeArrayRE.lastIndex = this.index;
-    var mimeArray = mimeArrayRE(this._msg);
+    var mimeArray = mimeArrayRE.exec(this._msg);
     this.mime = mimeArray[0];
     this.mime = this.mime.replace(/\r\n\s+/g," ");
     var textRE;
@@ -1917,7 +1917,7 @@ createBodyPart.prototype = {
       textRE = new RegExp("([\\s\\S]*?)\\r\\n" + bndryTag , "mg");
 
     textRE.lastIndex = mimeArrayRE.lastIndex;
-    this.bodyText= textRE(this._msg)[1];
+    this.bodyText = textRE.exec(this._msg)[1];
   }
 }
 
@@ -1938,18 +1938,18 @@ function bodystructure(msg) {
     if (!aStr || aStr == "")
       return;
 
-    var mime = MimeRE(aStr); // mime[1] is mime string
+    var mime = MimeRE.exec(aStr); // mime[1] is mime string
     var contentType = [];
     var contentTransferEncoding;
     if (mime[1]){
-      mime[1] = mime[1].replace(/\r\n\s*/g," ") // folding
+      mime[1] = mime[1].replace(/\r\n\s*/g," "); // folding
 
       // save mime info
       // contentType[1] is type and contentType[2] is subtype
-      contentType = /content-type:[^\S]*([^\/]*)\/([^\/;\s]*)/im(mime[1]);
+      contentType = /content-type:[^\S]*([^\/]*)\/([^\/;\s]*)/im.exec(mime[1]);
       contentType[1] = contentType[1].toUpperCase();
       contentType[2] = contentType[2].toUpperCase();
-      contentTransferEncoding = /Content-Transfer-Encoding:[^\S]*([^;\s]*)/im(mime[1]);
+      contentTransferEncoding = /Content-Transfer-Encoding:[^\S]*([^;\s]*)/im.exec(mime[1]);
       contentTransferEncoding = contentTransferEncoding ?
                                 contentTransferEncoding[1].toUpperCase() :
                                 "7BIT";
@@ -1963,23 +1963,23 @@ function bodystructure(msg) {
 
       // get boundary. Local scope lastIndex
       BndryAttrRE.lastIndex = 0;
-      var bndryAttrArray = BndryAttrRE(mime[1]);
+      var bndryAttrArray = BndryAttrRE.exec(mime[1]);
       var bndryTag = Array.map("--" + bndryAttrArray[1],
                            function(a) {
-                             return '\\x' + parseInt(a.charCodeAt(0),10).toString(16)})
+                             return '\\x' + parseInt(a.charCodeAt(0),10).toString(16);})
                           .join('');
       var bndryRE = new RegExp(bndryTag + "(..)?", "gm");
 
       // goto boundary
       bndryRE.lastIndex = MimeRE.lastIndex;
       // find boundary tag and check if terminated)
-      isTerm = bndryRE(aStr)[1] == "--";
+      isTerm = bndryRE.exec(aStr)[1] == "--";
 
       // loop to get all parts
       while(MimeRE.lastIndex > 0 && !isTerm) {
         MimeRE.lastIndex = bndryRE.lastIndex;
-        filterBodyStructure(aStr, bndryTag)
-        isTerm = bndryRE(aStr)[1] == "--";
+        filterBodyStructure(aStr, bndryTag);
+        isTerm = bndryRE.exec(aStr)[1] == "--";
       }
 
       // write mime info
@@ -1987,7 +1987,7 @@ function bodystructure(msg) {
     } else {
       var tmpRE = new RegExp("([\\s\\S]*?)\\r\\n" + aBndryTag, "gm");
       tmpRE.lastIndex = MimeRE.lastIndex;
-      var tmpArr = tmpRE(aStr);
+      var tmpArr = tmpRE.exec(aStr);
       var lines = 0;
       var len;
       if (tmpArr) {
