@@ -2,6 +2,7 @@ comm.jar:
 % content communicator %content/communicator/ contentaccessible=yes
 % override chrome://global/content/license.html chrome://communicator/content/license.html
 % override chrome://mozapps/content/profile/profileSelection.xul chrome://communicator/content/profile/profileSelection.xul
+% override chrome://mozapps/skin/places/defaultFavicon.png chrome://communicator/skin/bookmarks/bookmark-item.png
 % overlay chrome://communicator/content/contentAreaContextOverlay.xul chrome://communicator/content/permissions/imageContextOverlay.xul
 % overlay chrome://navigator/content/navigatorOverlay.xul chrome://communicator/content/permissions/permissionsNavigatorOverlay.xul
 % overlay chrome://global/content/console.xul chrome://communicator/content/consoleOverlay.xul

@@ -33,6 +33,7 @@ modern.jar:
   skin/modern/communicator/bookmarks/bookmark-folder-open.gif      (communicator/bookmarks/bookmark-folder-open.gif)
   skin/modern/communicator/bookmarks/bookmark-item-dis.gif         (communicator/bookmarks/bookmark-item-dis.gif)
   skin/modern/communicator/bookmarks/bookmark-item.gif             (communicator/bookmarks/bookmark-item.gif)
+  skin/modern/communicator/bookmarks/bookmark-item.png             (communicator/bookmarks/bookmark-item.png)
   skin/modern/communicator/bookmarks/bookmarks.css                 (communicator/bookmarks/bookmarks.css)
   skin/modern/communicator/bookmarks/bookmarksManager.css          (communicator/bookmarks/bookmarksManager.css)
   skin/modern/communicator/bookmarks/bookmarksMenu.png             (communicator/bookmarks/bookmarksMenu.png)
