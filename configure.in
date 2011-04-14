@@ -855,10 +855,21 @@ fi
 AC_PROG_CPP
 AC_PROG_CXXCPP
 
+MAIL_COMPONENT="mail msgsmime import"
+export MAIL_COMPONENT
+MAIL_MODULE="MODULE(nsMailModule) MODULE(nsMsgSMIMEModule) MODULE(nsImportServiceModule)"
+export MAIL_MODULE
+
 if test -n "$_WIN32_MSVC"; then
     SKIP_PATH_CHECKS=1
     SKIP_COMPILER_CHECKS=1
     SKIP_LIBRARY_CHECKS=1
+
+    // Since we're using MSVC, we'll be building MAPI
+    MAIL_COMPONENT="$MAIL_COMPONENT msgMapi"
+    export MAIL_COMPONENT
+    MAIL_MODULE="$MAIL_MODULE MODULE(msgMapiModule)"
+    export MAIL_MODULE
 fi
 
 fi # COMPILE_ENVIRONMENT
@@ -6866,6 +6877,13 @@ if test "$MOZ_DEBUG" -o "$NS_TRACE_MALLOC"; then
     MOZ_COMPONENTS_VERSION_SCRIPT_LDFLAGS=
 fi
 
+if test -z "$MOZ_MAIL_NEWS"; then
+    MAIL_COMPONENT=
+    export MAIL_COMPONENT
+    MAIL_MODULE=
+    export MAIL_MODULE
+fi
+
 if test "$MOZ_LDAP_XPCOM"; then
     LDAP_CFLAGS='-I${DIST}/public/ldap'
     if test "$OS_ARCH" = "WINNT"; then
@@ -6886,6 +6904,8 @@ if test "$MOZ_LDAP_XPCOM"; then
     export LDAP_LIBS
     LDAP_COMPONENT=mozldap
     export LDAP_COMPONENT
+    LDAP_MODULE="MODULE(nsLDAPProtocolModule)"
+    export LDAP_MODULE
 fi
 
 

@@ -40,10 +40,6 @@ ifndef COMM_BUILD # Mozilla Makefile
 ifdef MOZ_ENABLE_LIBXUL
 SUBDIR=/..
 include $(topsrcdir)/../bridge/bridge.mk
-
-APP_LIBXUL_DIRS += \
-	$(DEPTH)/../suite/components \
-	$(NULL)
 endif
 
 ifndef LIBXUL_SDK
