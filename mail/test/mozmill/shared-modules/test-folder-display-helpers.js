@@ -511,7 +511,8 @@ function open_folder_in_new_tab(aFolder) {
   otherTab = mc.tabmail.currentTabInfo;
   mc.tabmail.openTab("folder", {folder: aFolder});
   mark_action("fdh", "open_folder_in_new_tab",
-              ["folder", aFolder, "tab info", mc.tabmail.currentTabInfo]);
+              ["folder", aFolder,
+               "tab info", _jsonize_tabmail_tab(mc.tabmail.currentTabInfo)]);
   wait_for_all_messages_to_load();
   return mc.tabmail.currentTabInfo;
 }
@@ -575,7 +576,8 @@ function open_selected_message_in_new_tab(aBackground) {
   mark_action("fdh", "open_selected_message_in_new_tab",
               ["message", mc.folderDisplay.selectedMessage,
                "background?", Boolean(aBackground),
-               "new tab", newTab, "current tab", mc.tabmail.currentTabInfo]);
+               "new tab", _jsonize_tabmail_tab(newTab),
+               "current tab", _jsonize_tabmail_tab(mc.tabmail.currentTabInfo)]);
   return newTab;
 }
 
@@ -627,6 +629,18 @@ function display_message_in_folder_tab(aMsgHdr, aExpectNew3Pane) {
   return currentTab;
 }
 
+function _jsonize_tabmail_tab(tab) {
+  return {
+    type: "tabmail-tab",
+    modeName: tab.mode.name,
+    typeName: tab.mode.tabType.name,
+    title: tab.title,
+    busy: tab.busy,
+    canClose: tab.canClose,
+    _focusedElement: tab._focusedElement,
+  };
+}
+
 /**
  * Switch to another folder or message tab.  If no tab is specified, we switch
  *  to the 'other' tab.  That is the last tab we used, most likely the tab that
@@ -648,7 +662,9 @@ function switch_tab(aNewTab) {
   let targetTab = (aNewTab != null) ? aNewTab : otherTab;
   // now the current tab will be the 'other' tab after we switch
   otherTab = mc.tabmail.currentTabInfo;
-  mark_action("fdh", "switch_tab", ["old tab", otherTab, "new tab", targetTab]);
+  mark_action("fdh", "switch_tab",
+              ["old tab", _jsonize_tabmail_tab(otherTab),
+               "new tab", _jsonize_tabmail_tab(targetTab)]);
 
   // If the target tab's folder display has a something selected and its message
   // pane is visible, plan for a message display.
@@ -675,7 +691,7 @@ function assert_selected_tab(aTab) {
   if (mc.tabmail.currentTabInfo != aTab)
     mark_failure(["The currently selected tab should be", aTab,
         "(index: " + mc.tabmail.tabInfo.indexOf(aTab) + ") but is",
-        mc.tabmail.currentTabInfo,
+        _jsonize_tabmail_tab(mc.tabmail.currentTabInfo),
         "(index: " + mc.tabmail.tabInfo.indexOf(mc.tabmail.currentTabInfo) +
         ") tabs:", mc.tabmail.tabInfo,
         ]);
@@ -689,7 +705,7 @@ function assert_selected_tab(aTab) {
 function assert_not_selected_tab(aTab) {
   if (mc.tabmail.currentTabInfo == aTab)
     mark_failure(["The currently selected tab should not be", aTab,
-                  "but is. Tabs:", mc.tabmail.tabInfo]);
+                  "but is. Tabs:", _jsonize_tabmail_tab(mc.tabmail.tabInfo)]);
 }
 
 /**
@@ -805,13 +821,15 @@ function close_message_window(aController) {
 }
 
 /**
- * Clear the selection.  I'm not sure how we're pretending we did that.
+ * Clear the selection.  I'm not sure how we're pretending we did that, but
+ *  we explicitly focus the thread tree as a side-effect.
  */
 function select_none(aController) {
   mark_action("fdh", "select_none", []);
   if (aController == null)
     aController = mc;
   wait_for_message_display_completion();
+  focus_thread_tree();
   aController.dbView.selection.clearSelection();
   // Because the selection event may not be generated immediately, we need to
   //  spin until the message display thinks it is not displaying a message,
@@ -868,14 +886,19 @@ function select_click_row(aViewIndex, aController) {
   if (hasMessageDisplay)
     wait_for_message_display_completion(aController);
   aViewIndex = _normalize_view_index(aViewIndex, aController);
-
   mark_action("fdh", "select_click_row", [aViewIndex]);
 
-  // this should set the current index as well as setting the selection.
-  aController.dbView.selection.select(aViewIndex);
+  var willDisplayMessage = hasMessageDisplay &&
+    aController.messageDisplay.visible &&
+    aController.dbView.selection.currentIndex !== aViewIndex;
+
+  if (willDisplayMessage)
+    plan_for_message_display(aController);
+  _row_click_helper(aController, aController.threadTree, aViewIndex, 0);
   if (hasMessageDisplay)
-    wait_for_message_display_completion(aController,
-                                        aController.messageDisplay.visible);
+    wait_for_message_display_completion(aController, willDisplayMessage);
+
+  mark_action("fdh", "/select_click_row", [mc.folderDisplay.selectedMessages]);
   return aController.dbView.getMsgHdrAt(aViewIndex);
 }
 
@@ -893,8 +916,9 @@ function toggle_thread_row(aViewIndex) {
   mark_action("fdh", "toggle_thread_row", [aViewIndex]);
   if (mc.messageDisplay.visible)
     plan_for_message_display(mc);
-  mc.dbView.toggleOpenState(aViewIndex);
+  _row_click_helper(mc, mc.threadTree, aViewIndex, 0, "toggle");
   wait_for_message_display_completion(mc, mc.messageDisplay.visible);
+  mark_action("fdhb", "/toggle_thread_row", [aViewIndex]);
 }
 
 
@@ -913,18 +937,15 @@ function select_control_click_row(aViewIndex) {
   if (mc.messageDisplay.visible)
     plan_for_message_display(mc);
   aViewIndex = _normalize_view_index(aViewIndex);
-  // Control-clicking augments the selection and moves the current index.  It
-  //  also clears the shift pivot, but that's fine as it falls back to the
-  //  current index if there is no shift pivot, which works for duplicating
-  //  actual behavior.
-  mc.dbView.selection.rangedSelect(aViewIndex, aViewIndex, true);
-  mc.dbView.selection.currentIndex = aViewIndex;
   mark_action("fdh", "select_control_click_row",
-              ["index", aViewIndex,
-               "selected messages:", mc.folderDisplay.selectedMessages]);
+              ["index", aViewIndex]);
+  // note: control key on win/linux === meta on mac === accel on mozilla
+  _row_click_helper(mc, mc.threadTree, aViewIndex, 0, "accel");
   // give the event queue a chance to drain...
   controller.sleep(0);
   wait_for_message_display_completion(mc, mc.messageDisplay.visible);
+  mark_action("fdh", "/select_control_click_row",
+              ["selected messages:", mc.folderDisplay.selectedMessages]);
   return mc.dbView.getMsgHdrAt(aViewIndex);
 }
 
@@ -947,40 +968,49 @@ function select_shift_click_row(aViewIndex, aController, aDoNotRequireLoad) {
   if (hasMessageDisplay)
     wait_for_message_display_completion(aController);
   aViewIndex = _normalize_view_index(aViewIndex, aController);
+  mark_action("fdh", "select_shift_click_row",
+              ["index", aViewIndex]);
 
   if (hasMessageDisplay && !aDoNotRequireLoad &&
       aController.messageDisplay.visible)
     plan_for_message_display(aController);
-  // Passing -1 as the start range checks the shift-pivot, which should be -1,
-  //  so it should fall over to the current index, which is what we want.  It
-  //  will then set the shift-pivot to the previously-current-index and update
-  //  the current index to be what we shift-clicked on.  All matches user
-  //  interaction.
-  aController.dbView.selection.rangedSelect(-1, aViewIndex, false);
-  mark_action("fdh", "select_shift_click_row",
-              ["index", aViewIndex,
-               "selected messages:", mc.folderDisplay.selectedMessages]);
+  _row_click_helper(aController, aController.threadTree, aViewIndex, 0,
+                    "shift");
   // give the event queue a chance to drain...
   controller.sleep(0);
   if (hasMessageDisplay && !aDoNotRequireLoad)
     wait_for_message_display_completion(aController,
                                         aController.messageDisplay.visible);
+  mark_action("fdh", "/select_shift_click_row",
+              ["selected messages:",
+               aController.folderDisplay.selectedMessages]);
   return aController.folderDisplay.selectedMessages;
 }
 
 /**
  * Helper function to click on a row with a given button.
  */
-function _row_click_helper(aTree, aViewIndex, aButton) {
+function _row_click_helper(aController, aTree, aViewIndex, aButton, aExtra) {
   let treeBox = aTree.treeBoxObject;
   // very important, gotta be able to see the row
   treeBox.ensureRowIsVisible(aViewIndex);
-  // now figure out the coords
-  let children = mc.e(aTree.id, {tagName: "treechildren"});
-  let x = children.boxObject.x;
-  let y = children.boxObject.y;
-  // Click in the middle
+  // coordinates of the upper left of the entire tree widget (headers included)
+  let tx = aTree.boxObject.x, ty = aTree.boxObject.y;
+  // coordinates of the row display region of the tree (below the headers)
+  let children = aController.e(aTree.id, {tagName: "treechildren"});
+  let x = children.boxObject.x, y = children.boxObject.y;
+  // Click in the middle of the row by default
   let rowX = children.boxObject.width / 2;
+  // For the thread tree, Position our click on the subject column (which cannot
+  // be hidden), and far enough in that we are in no danger of clicking the
+  // expand toggler unless that is explicitly requested.
+  if (aTree.id == "threadTree") {
+    let subjectCol = aController.e("subjectCol");
+    rowX = subjectCol.boxObject.x - tx + 8;
+    // click on the toggle if so requested
+    if (aExtra !== "toggle")
+      rowX += 32;
+  }
   let rowY = treeBox.rowHeight * (aViewIndex - treeBox.getFirstVisibleRow()) +
     treeBox.rowHeight / 2;
   if (treeBox.getRowAt(x + rowX, y + rowY) != aViewIndex) {
@@ -988,14 +1018,15 @@ function _row_click_helper(aTree, aViewIndex, aButton) {
                     rowX + "," + rowY + " but we found " +
                     treeBox.getRowAt(rowX, rowY));
   }
-  let tx = aTree.boxObject.x;
-  let ty = aTree.boxObject.y;
   // Generate a mouse-down for all click types; the transient selection
   // logic happens on mousedown which our tests assume is happening.  (If you
   // are using a keybinding to trigger the event, that will not happen, but
   // we don't test that.)
   EventUtils.synthesizeMouse(aTree, x + rowX - tx, y + rowY - ty,
-                             {type: "mousedown", button: aButton}, mc.window);
+                             {type: "mousedown", button: aButton,
+                              shiftKey: aExtra === "shift",
+                              accelKey: aExtra === "accel"},
+                             aController.window);
 
   // For right-clicks, the platform code generates a "contextmenu" event
   // when it sees the mouse press/down event. We are not synthesizing a platform
@@ -1004,10 +1035,13 @@ function _row_click_helper(aTree, aViewIndex, aButton) {
   if (aButton == 2)
     EventUtils.synthesizeMouse(aTree, x + rowX - tx, y + rowY - ty,
                                {type: "contextmenu", button: aButton},
-                               mc.window);
+                               aController.window);
 
   EventUtils.synthesizeMouse(aTree, x + rowX - tx, y + rowY - ty,
-                             {type: "mouseup", button: aButton}, mc.window);
+                             {type: "mouseup", button: aButton,
+                              shiftKey: aExtra == "shift",
+                              accelKey: aExtra === "accel"},
+                             aController.window);
 }
 
 /**
@@ -1022,7 +1056,8 @@ function right_click_on_row(aViewIndex) {
   let msgHdr = mc.dbView.getMsgHdrAt(aViewIndex);
   mark_action("fdh", "right_click_on_row",
               ["index", aViewIndex, "message header", msgHdr]);
-  _row_click_helper(mc.threadTree, aViewIndex, 2);
+  _row_click_helper(mc, mc.threadTree, aViewIndex, 2);
+  mark_action("fdh", "/right_click_on_row", []);
   return msgHdr;
 }
 
@@ -1036,8 +1071,9 @@ function middle_click_on_row(aViewIndex) {
   let msgHdr = mc.dbView.getMsgHdrAt(aViewIndex);
   mark_action("fdh", "middle_click_on_row",
               ["index", aViewIndex, "message header", msgHdr]);
-  _row_click_helper(mc.threadTree, aViewIndex, 1);
+  _row_click_helper(mc, mc.threadTree, aViewIndex, 1);
   // We append new tabs at the end, so return the last tab
+  mark_action("fdh", "/middle_click_on_row", []);
   return [mc.tabmail.tabInfo[mc.tabmail.tabContainer.childNodes.length - 1],
           msgHdr];
 }
@@ -1235,7 +1271,7 @@ function right_click_on_folder(aFolder) {
   // Figure out the view index
   let viewIndex = mc.folderTreeView.getIndexOfFolder(aFolder);
   mark_action("fdh", "right_click_on_folder", [aFolder]);
-  _row_click_helper(mc.folderTree, viewIndex, 2);
+  _row_click_helper(mc, mc.folderTree, viewIndex, 2);
   return viewIndex;
 }
 
@@ -1250,7 +1286,7 @@ function middle_click_on_folder(aFolder) {
   // Figure out the view index
   let viewIndex = mc.folderTreeView.getIndexOfFolder(aFolder);
   mark_action("fdh", "middle_click_on_folder", [aFolder]);
-  _row_click_helper(mc.folderTree, viewIndex, 1);
+  _row_click_helper(mc, mc.folderTree, viewIndex, 1);
   // We append new tabs at the end, so return the last tab
   return [mc.tabmail.tabInfo[mc.tabmail.tabContainer.childNodes.length - 1],
           viewIndex];
@@ -1338,7 +1374,11 @@ function press_delete(aController) {
 }
 
 /**
- * Archive the selected messages, and wait for it to complete.
+ * Archive the selected messages, and wait for it to complete.  Archiving
+ *  plans and waits for message display if the display is visible because
+ *  successful archiving will by definition change the currently displayed
+ *  set of messages (unless you are looking at a virtual folder that includes
+ *  the archive folder.)
  *
  * @param aController The controller in whose context to do this, defaults to
  *     |mc| if omitted.
@@ -1346,14 +1386,16 @@ function press_delete(aController) {
 function archive_selected_messages(aController) {
   if (aController == null)
     aController = mc;
-  let expectedCount = aController.dbView.rowCount - aController.dbView.numSelected;
-  // XXX We seem to sometimes have focus issues on trunk; this works around it.
-  focus_thread_tree();
+  // How many messages do we expect to remain after the archival?
+  let expectedCount = aController.dbView.rowCount -
+                      aController.dbView.numSelected;
 
   mark_action("fdh", "archive_selected_messages",
               ["selected messages:",
                aController.folderDisplay.selectedMessages].concat(
                  aController.describeFocus()));
+  if (expectedCount && aController.messageDisplay.visible)
+    plan_for_message_display(aController);
   aController.keypress(null, "a", {});
 
   // Wait for the view rowCount to decrease by the number of selected messages.
@@ -1363,6 +1405,8 @@ function archive_selected_messages(aController) {
   controller.waitForEval('subject()',
                          NORMAL_TIMEOUT,
                          FAST_INTERVAL, messagesDeletedFromView);
+  wait_for_message_display_completion(
+    aController, expectedCount && aController.messageDisplay.visible);
   // The above may return immediately, meaning the event queue might not get a
   //  chance.  give it a chance now.
   aController.sleep(0);
@@ -1424,7 +1468,7 @@ function wait_for_all_messages_to_load(aController) {
 function plan_for_message_display(aControllerOrTab) {
   if (aControllerOrTab == null)
     aControllerOrTab = mc;
-  mark_action("fdh", "plan_for_message_display", []);
+  mark_action("fdhb", "plan_for_message_display", []);
   // We're relying on duck typing here -- both controllers and tabs expose their
   // message displays as the property |messageDisplay|.
   aControllerOrTab.messageDisplay.messageLoaded = false;
@@ -2137,6 +2181,7 @@ var RECOGNIZED_ELEMENTS = ["folderTree", "threadTree"];
  * Focus an element.
  */
 function _focus_element(aElement) {
+  mark_action("fdh", "_focus_element", [aElement]);
   // We're assuming that all elements we'd like to focus are in the main window
   mc.window.focus();
   mc.e(aElement).focus();

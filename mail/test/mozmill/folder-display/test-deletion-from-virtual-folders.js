@@ -178,11 +178,6 @@ function test_open_first_message_in_virtual_folder() {
  * (advancing to the next message).
  */
 function test_delete_from_virtual_folder_in_folder_tab() {
-  // XXX We need to do this to get the test working on trunk. If we don't have
-  // this, the deletes never happen, probably because we don't receive the delete
-  // keypress event.
-  focus_thread_tree();
-
   // - plan to end up on the guy who is currently at index 1
   curMessage = mc.dbView.getMsgHdrAt(1);
   // while we're at it, figure out who is at 2 for the next step
@@ -273,11 +268,6 @@ function test_open_first_message_in_smart_inbox() {
  * (advancing to the next message).
  */
 function test_delete_from_smart_inbox_in_folder_tab() {
-  // XXX We need to do this to get the test working on trunk. If we don't have
-  // this, the deletes never happen, probably because we don't receive the delete
-  // keypress event.
-  focus_thread_tree();
-
   // - plan to end up on the guy who is currently at index 1
   curMessage = mc.dbView.getMsgHdrAt(1);
   // while we're at it, figure out who is at 2 for the next step
