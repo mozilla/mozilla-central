@@ -365,6 +365,11 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   list-style-image: url("chrome://mozapps/skin/passwordmgr/key-64.png");
 }
 
+.addon-progress-description {
+  width: 350px;
+  max-width: 350px;
+}
+
 /* Notification icon box */
 #notification-popup-box {
   margin: 0 3px;
