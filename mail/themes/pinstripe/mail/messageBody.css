@@ -208,22 +208,31 @@ body[selected="false"] {
   font-family: Arial, sans-serif;
 }
 
-div.mimeAttachmentWrap {
+.mimeAttachmentWrap {
   padding: 0 1em;
 }
 
-table.mimeAttachmentTable {
+.mimeAttachmentTable {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
-table.mimeAttachmentTable tr + tr > td {
+.mimeAttachmentTable tr + tr > td {
   border-top: 1px solid GrayText;
 }
 
 .mimeAttachmentFile {
+  word-wrap: break-word;
 }
 
 .mimeAttachmentSize {
+  vertical-align: top;
+  width: 10ch;
   text-align: right;
+}
+
+.mimeAttachmentFile,
+.mimeAttachmentSize {
+  padding: 0.25em 0;
 }
