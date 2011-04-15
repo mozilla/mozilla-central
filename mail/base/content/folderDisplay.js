@@ -2034,12 +2034,9 @@ FolderDisplayWidget.prototype = {
 
     if (this.selectedCount == 0)
       return false;
-    if (!this.displayedFolder || this.displayedFolder.isSpecialFolder(
-          Components.interfaces.nsMsgFolderFlags.Archive, true))
-      return false;
     return this.selectedMessages.every(function(msg) {
-        return getIdentityForHeader(msg).archiveEnabled;
-      });
+      return getIdentityForHeader(msg).archiveEnabled;
+    });
   },
 
   /**
