@@ -1987,6 +1987,34 @@ nsresult nsImapProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
   return NS_OK;
 }
 
+class UrlListenerNotifierEvent : public nsRunnable
+{
+public:
+  UrlListenerNotifierEvent(nsIMsgMailNewsUrl *aUrl, nsIImapProtocol *aProtocol)
+    : mUrl(aUrl), mProtocol(aProtocol)
+  {}
+
+  NS_IMETHOD Run()
+  {
+    if (mUrl)
+    {
+      nsCOMPtr<nsIMsgFolder> folder;
+      mUrl->GetFolder(getter_AddRefs(folder));
+      NS_ENSURE_TRUE(folder, NS_OK);
+      nsCOMPtr<nsIImapMailFolderSink> folderSink(do_QueryInterface(folder));
+      // This causes the url listener to get OnStart and Stop notifications.
+      folderSink->SetUrlState(mProtocol, mUrl, PR_TRUE, NS_OK);
+      folderSink->SetUrlState(mProtocol, mUrl, PR_FALSE, NS_OK);
+    }
+    return NS_OK;
+  }
+
+private:
+  nsCOMPtr<nsIMsgMailNewsUrl> mUrl;
+  nsCOMPtr<nsIImapProtocol> mProtocol;
+};
+
+
 PRBool nsImapProtocol::TryToRunUrlLocally(nsIURI *aURL, nsISupports *aConsumer)
 {
   nsresult rv;
@@ -2011,10 +2039,12 @@ PRBool nsImapProtocol::TryToRunUrlLocally(nsIURI *aURL, nsISupports *aConsumer)
     // need to notify the url listener.
     if (useLocalCache && action == nsIImapUrl::nsImapMsgDownloadForOffline)
     {
-      nsCOMPtr<nsIImapMailFolderSink> folderSink(do_QueryInterface(folder));
-      // This causes the url listener to get OnStart and Stop notifications.
-      folderSink->SetUrlState(this, mailnewsUrl, PR_TRUE, NS_OK);
-      folderSink->SetUrlState(this, mailnewsUrl, PR_FALSE, NS_OK);
+      nsCOMPtr<nsIRunnable> event = new UrlListenerNotifierEvent(mailnewsUrl,
+                                                                 this);
+      // Post this as an event because it can lead to re-entrant calls to
+      // LoadNextQueuedUrl if the listener runs a new url.
+      if (event)
+        NS_DispatchToCurrentThread(event);
       return PR_TRUE;
     }
   }
