@@ -47,7 +47,6 @@ add_makefiles "
   suite/common/public/Makefile
   suite/common/src/Makefile
   suite/common/tests/Makefile
-  suite/components/Makefile
   suite/feeds/public/Makefile
   suite/feeds/src/Makefile
   suite/installer/Makefile
