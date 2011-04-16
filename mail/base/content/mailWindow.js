@@ -215,6 +215,11 @@ nsMsgStatusFeedback.prototype =
     this._statusText.label = link;
   },
 
+  // Called before links are navigated to to allow us to retarget them if needed.
+  onBeforeLinkTraversal: function(originalTarget, linkURI, linkNode, isAppTab) {
+    return originalTarget;
+  },
+
   QueryInterface: function(iid) {
     if (iid.equals(Components.interfaces.nsIMsgStatusFeedback) ||
         iid.equals(Components.interfaces.nsIXULBrowserWindow) ||
