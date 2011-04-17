@@ -289,11 +289,6 @@ case "$target" in
                         The path to the Windows CE SDK],
     WINCE_SDK_DIR=$withval)
 
-    MOZ_ARG_WITH_STRING(ogles-sdk,
-    [  --with-ogles-sdk=OGLES_SDK_DIR
-                        The path to the OGLES SDK],
-    OGLES_SDK_DIR=$withval)
-
     AC_DEFINE(WINCE)
 
     export WINCE=1
@@ -307,7 +302,7 @@ case "$target" in
 
     _pwd=`pwd -W`/mozilla
     _topsrcdirwin=`cd \`dirname $0\`; pwd -W`/mozilla
-    make OGLES_SDK_DIR="$OGLES_SDK_DIR" WINCE_SDK_DIR="$WINCE_SDK_DIR" \
+    make WINCE_SDK_DIR="$WINCE_SDK_DIR" \
          TOPSRCDIR="$_topsrcdirwin" OBJDIR="$_pwd" target="$target" \
          -C $srcdir/mozilla/build/wince/tools
 
