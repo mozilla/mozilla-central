@@ -629,7 +629,6 @@ var MessageWindowController =
       case "cmd_markReadByDate":
       case "cmd_markAsFlagged":
       case "button_file":
-      case "cmd_file":
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
       case "cmd_recalculateJunkScore":
@@ -758,7 +757,6 @@ var MessageWindowController =
         return true;
 			case "cmd_markAsFlagged":
       case "button_file":
-			case "cmd_file":
         return (gCurrentMessageUri != null);
       case "cmd_markAsShowRemote":
         return (GetNumSelectedMessages() > 0 && checkMsgHdrPropertyIsNot("remoteContentPolicy", kAllowRemoteContent));

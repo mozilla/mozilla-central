@@ -229,7 +229,6 @@ var DefaultController =
       case "cmd_runJunkControls":
       case "cmd_deleteJunk":
       case "button_file":
-			case "cmd_file":
 			case "cmd_emptyTrash":
 			case "cmd_compactFolder":
   	  case "cmd_settingsOffline":
@@ -348,7 +347,6 @@ var DefaultController =
         return true;
       case "cmd_markAsFlagged":
       case "button_file":
-      case "cmd_file":
         return GetNumSelectedMessages() > 0;
       case "cmd_archive":
         return gFolderDisplay.canArchiveSelectedMessages;
