@@ -162,8 +162,13 @@
          - Our listener to let us know when folders change/appear/disappear so
          - we can know to rebuild ourselves.
         -->
-      <field name="_listener"><![CDATA[({
+      <field name="_listener">
+          <![CDATA[({
         _menu: this,
+        _clearMenu: function(aMenu) {
+          if (aMenu._teardown)
+            aMenu._teardown();
+        },
         OnItemAdded: function act_add(aRDFParentItem, aItem) {
           if (!(aItem instanceof Components.interfaces.nsIMsgFolder))
             return;
@@ -193,37 +198,40 @@
         OnItemPropertyChanged: function(aItem, aProperty, aOld, aNew) {},
         OnItemIntPropertyChanged: function(aItem, aProperty, aOld, aNew) {
           var child = this._getChildForItem(aItem);
-          if (child) {
-            child._folder = aItem;
-            this._menu._setCssSelectors(child, child._folder);
-          }
+          if (child)
+            this._menu._setCssSelectors(child._folder, child);
         },
         OnItemBoolPropertyChanged: function(aItem, aProperty, aOld, aNew) {
           var child = this._getChildForItem(aItem);
-          if (child) {
-            child._folder = aItem;
-            this._menu._setCssSelectors(child, child._folder);
-          }
+          if (child)
+            this._menu._setCssSelectors(child._folder, child);
         },
         OnItemUnicharPropertyChanged: function(aItem, aProperty, aOld, aNew) {
           var child = this._getChildForItem(aItem);
-          if (child) {
-            child._folder = aItem;
-            this._menu._setCssSelectors(child, child._folder);
-          }
+          if (child)
+            this._menu._setCssSelectors(child._folder, child);
         },
         OnItemPropertyFlagChanged: function(aItem, aProperty, aOld, aNew) {},
         OnItemEvent: function(aFolder, aEvent) {
-          var child = this._getChildForItem(aFolder);
-          if (child) {
-            // Special casing folder renames here, since they require more work
-            // since sort-order may have changed
-            if (aEvent.toString() == "RenameCompleted") {
-              this._menu._teardown();
-              this._menu._ensureInitialized();
+          if (aEvent.toString() == "MRMTimeChanged") {
+            if (this._menu.getAttribute("showRecent") != "true" ||
+                !this._menu.firstChild || !this._menu.firstChild.firstChild)
               return;
-            }
+            // if this folder is already in the recent menu, return.
+            if (this._getChildForItem(aFolder,
+                                      this._menu.firstChild.firstChild))
+              return;
           }
+          // Special casing folder renames here, since they require more work
+          // since sort-order may have changed.
+          else if (aEvent.toString() == "RenameCompleted") {
+            if (!this._getChildForItem(aFolder))
+              return;
+          }
+          else
+            return;
+          // folder renamed, or new recent folder, so rebuild.
+          setTimeout(this._clearMenu, 0, this._menu);
         },
 
         /**
@@ -231,17 +239,19 @@
          * particular nsIMsgFolder
          *
          * @param aItem  the nsIMsgFolder to check
+         * @param aMenu (optional) menu to look in, defaults to this._menu.
          * @returns      null if no child for that folder exists, otherwise the
          *              menuitem for that child
          */
-        _getChildForItem: function act__itemIsChild(aItem) {
-          if (!this._menu || !this._menu._initialized)
+        _getChildForItem: function act__itemIsChild(aItem, aMenu) {
+          aMenu = aMenu || this._menu;
+          if (!aMenu || !aMenu.childNodes)
             return null;
 
            if (!(aItem instanceof Components.interfaces.nsIMsgFolder))
              return null;
-           for (var i = 0; i < this._menu.childNodes; i++) {
-             var folder = this._menu.childNodes[i]._folder;
+           for (var i = 0; i < aMenu.childNodes.length; i++) {
+             var folder = aMenu.childNodes[i]._folder;
              if (folder && folder.URI == aItem.URI)
                return aItem;
            }
@@ -407,7 +417,6 @@
             sep.setAttribute("generated", "true");
             this.appendChild(sep);
           }
-
           // Some menus want a "Recent" option, but that should only be on our
           // top-level menu
           if (!this._parentFolder && this.getAttribute("showRecent") == "true")
@@ -541,12 +550,12 @@
          - allow for easy access.
         -->
       <method name="_buildRecentMenu">
-        <body><![CDATA[
+        <body>
+            <![CDATA[
           const Cc = Components.classes;
           const Ci = Components.interfaces;
-          // Iterate through all folders in all accounts, and check MRU_Time,
+          // Iterate through all folders in all accounts, and check MRM_Time,
           // then take the most current 15.
-
           /**
            * This function will iterate through any existing sub-folders and
            * (1) check if they're recent and (2) recursively call this function
@@ -583,7 +592,7 @@
 
             var time = 0;
             try {
-              time = aFolder.getStringProperty("MRUTime");
+              time = aFolder.getStringProperty("MRMTime");
             } catch(ex) {}
             if (time <= oldestTime)
               return;
@@ -591,7 +600,7 @@
             if (recentFolders.length == menu._MAXRECENT) {
               recentFolders.sort(sorter);
               recentFolders.pop();
-              oldestTime = recentFolders[recentFolders.length-1].getStringProperty("MRUTime");
+              oldestTime = recentFolders[recentFolders.length-1].getStringProperty("MRMTime");
             }
             recentFolders.push(aFolder);
           }
@@ -608,7 +617,7 @@
           }
 
           function sorter(a, b) {
-             return a.getStringProperty("MRUTime") < b.getStringProperty("MRUTime");
+             return a.getStringProperty("MRMTime") < b.getStringProperty("MRMTime");
           }
           recentFolders.sort(sorter);
 
@@ -624,7 +633,6 @@
                 dupeNames.push(recentFolders[i].prettyName);
             }
           }
-
           // Now create the Recent folder and its children
           var menu = document.createElement("menu");
           menu.setAttribute("label", this.getAttribute("recentLabel"));

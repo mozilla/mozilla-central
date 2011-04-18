@@ -7392,8 +7392,7 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
                                PRBool isFolder, //isFolder for future use when we do cross-server folder move/copy
                                PRBool allowUndo)
 {
-  if (!(mFlags & (nsMsgFolderFlags::Trash|nsMsgFolderFlags::Junk)))
-    SetMRUTime();
+  UpdateTimestamps(allowUndo);
 
   nsresult rv;
   nsCOMPtr <nsIMsgIncomingServer> srcServer;

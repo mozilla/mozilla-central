@@ -66,7 +66,10 @@ class nsIMsgFolder;
  * These are folder property strings, which are used in several places.
 
  */
+// Most recently used (opened, moved to, got new messages)
 #define MRU_TIME_PROPERTY "MRUTime"
+// Most recently moved to, for recent folders list in move menu
+#define MRM_TIME_PROPERTY "MRMTime"
 
 /* NS_ERROR_MODULE_MAILNEWS is defined in mozilla/xpcom/public/nsError.h */
 

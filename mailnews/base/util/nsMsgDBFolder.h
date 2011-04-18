@@ -174,8 +174,10 @@ protected:
 
   virtual nsresult SpamFilterClassifyMessage(const char *aURI, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
   virtual nsresult SpamFilterClassifyMessages(const char **aURIArray, PRUint32 aURICount, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
+  // Helper function for Move code to call to update the MRU and MRM time.
+  void    UpdateTimestamps(PRBool allowUndo);
   void    SetMRUTime();
-
+  void    SetMRMTime();
   /**
    * Clear all processing flags, presumably because message keys are no longer
    * valid.

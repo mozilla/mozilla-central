@@ -1698,9 +1698,7 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
     return OnCopyCompleted(srcSupport, PR_FALSE);
   }
 
-  if (!(mFlags & (nsMsgFolderFlags::Trash|nsMsgFolderFlags::Junk)))
-    SetMRUTime();
-
+  UpdateTimestamps(allowUndo);
   nsCString protocolType;
   rv = srcFolder->GetURI(protocolType);
   protocolType.SetLength(protocolType.FindChar(':'));

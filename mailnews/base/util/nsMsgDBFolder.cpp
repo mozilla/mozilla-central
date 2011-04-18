@@ -5719,6 +5719,25 @@ nsresult nsMsgDBFolder::GetMsgPreviewTextFromStream(nsIMsgDBHdr *msgHdr, nsIInpu
   return rv;
 }
 
+void nsMsgDBFolder::UpdateTimestamps(PRBool allowUndo)
+{
+  if (!(mFlags & (nsMsgFolderFlags::Trash|nsMsgFolderFlags::Junk)))
+  {
+    SetMRUTime();
+    if (allowUndo) // This is a proxy for a user-initiated act.
+    {
+      PRBool isArchive;
+      IsSpecialFolder(nsMsgFolderFlags::Archive, PR_TRUE, &isArchive);
+      if (!isArchive)
+      {
+        SetMRMTime();
+        nsCOMPtr<nsIAtom> MRMTimeChangedAtom = MsgGetAtom("MRMTimeChanged");
+        NotifyFolderEvent(MRMTimeChangedAtom);
+      }
+    }
+  }
+}
+
 void nsMsgDBFolder::SetMRUTime()
 {
   PRUint32 seconds;
@@ -5726,6 +5745,15 @@ void nsMsgDBFolder::SetMRUTime()
   nsCAutoString nowStr;
   nowStr.AppendInt(seconds);
   SetStringProperty(MRU_TIME_PROPERTY, nowStr);
+}
+
+void nsMsgDBFolder::SetMRMTime()
+{
+  PRUint32 seconds;
+  PRTime2Seconds(PR_Now(), &seconds);
+  nsCAutoString nowStr;
+  nowStr.AppendInt(seconds);
+  SetStringProperty(MRM_TIME_PROPERTY, nowStr);
 }
 
 NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsIArray *aMessages, const nsACString& aKeywords)
