@@ -58,14 +58,14 @@ var gFinishedRunningURL = -1;
 
 // tests
 
-const gTests = [
+const quarantineTests = [
   createSubfolder,
   getLocalMessages,
   updateSubfolderAndTest,
   get2Messages,
   updateSubfolderAndTest2,
   endTest
-]
+];
 
 function createSubfolder()
 {
@@ -228,7 +228,7 @@ function run_test()
   MFNService.addListener(mfnListener, flags);
 
   //start first test
-  async_run_tests(gTests);
+  async_run_tests(quarantineTests);
 }
 
 // helper functions
