@@ -79,8 +79,9 @@ nsAbMDBDirectory::~nsAbMDBDirectory(void)
   }
 }
 
-NS_IMPL_ISUPPORTS_INHERITED5(nsAbMDBDirectory, nsAbDirectoryRDFResource,
-                             nsIAbDirectory, nsIAbDirSearchListener,
+NS_IMPL_ISUPPORTS_INHERITED6(nsAbMDBDirectory, nsAbDirectoryRDFResource,
+                             nsIAbDirectory, nsISupportsWeakReference,
+                             nsIAbDirSearchListener,
                              nsIAbMDBDirectory,
                              nsIAbDirectorySearch,
                              nsIAddrDBListener)

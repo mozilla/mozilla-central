@@ -54,12 +54,14 @@
 #include "nsStringGlue.h"
 #include "nsIPrefBranch.h"
 #include "nsIMutableArray.h"
+#include "nsWeakReference.h"
 
  /* 
   * Address Book Directory
   */ 
 
-class nsAbDirProperty: public nsIAbDirectory
+class nsAbDirProperty: public nsIAbDirectory,
+                       public nsSupportsWeakReference
 {
 public: 
 	nsAbDirProperty(void);

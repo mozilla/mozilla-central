@@ -88,9 +88,9 @@ nsAbLDAPDirectory::~nsAbLDAPDirectory()
 {
 }
 
-NS_IMPL_ISUPPORTS_INHERITED3(nsAbLDAPDirectory, nsAbDirectoryRDFResource,
-                             nsIAbDirectory, nsIAbDirSearchListener,
-                             nsIAbLDAPDirectory)
+NS_IMPL_ISUPPORTS_INHERITED4(nsAbLDAPDirectory, nsAbDirectoryRDFResource,
+                             nsIAbDirectory, nsISupportsWeakReference,
+                             nsIAbDirSearchListener, nsIAbLDAPDirectory)
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetPropertiesChromeURI(nsACString &aResult)
 {
@@ -289,8 +289,8 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetLDAPURL(nsILDAPURL *aUrl)
     nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    // We inherit from nsAbDirProperty, so this static cast should be safe.
-    abManager->NotifyItemPropertyChanged(static_cast<nsAbDirProperty*>(this),
+    // We inherit from nsIAbDirectory, so this static cast should be safe.
+    abManager->NotifyItemPropertyChanged(static_cast<nsIAbDirectory*>(this),
       "IsSecure",
       (newIsNotSecure ? NS_LITERAL_STRING("true") : NS_LITERAL_STRING("false")).get(),
       (newIsNotSecure ? NS_LITERAL_STRING("false") : NS_LITERAL_STRING("true")).get());

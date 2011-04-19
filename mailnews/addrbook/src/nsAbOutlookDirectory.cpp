@@ -85,8 +85,9 @@ nsAbOutlookDirectory::~nsAbOutlookDirectory(void)
 }
 
 NS_IMPL_ISUPPORTS_INHERITED4(nsAbOutlookDirectory, nsAbDirectoryRDFResource, 
-                             nsIAbDirectory, nsIAbDirectoryQuery,
-                             nsIAbDirectorySearch, nsIAbDirSearchListener)
+                             nsIAbDirectory, nsISupportsWeakReference,
+                             nsIAbDirectoryQuery, nsIAbDirectorySearch,
+                             nsIAbDirSearchListener)
 
 // nsIRDFResource method
 NS_IMETHODIMP nsAbOutlookDirectory::Init(const char *aUri)

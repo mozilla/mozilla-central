@@ -75,7 +75,8 @@ nsAbDirProperty::~nsAbDirProperty(void)
 #endif
 }
 
-NS_IMPL_ISUPPORTS3(nsAbDirProperty, nsIAbDirectory, nsIAbCollection, nsIAbItem)
+NS_IMPL_ISUPPORTS4(nsAbDirProperty, nsIAbDirectory, nsISupportsWeakReference,
+                   nsIAbCollection, nsIAbItem)
 
 NS_IMETHODIMP nsAbDirProperty::GetUuid(nsACString &uuid)
 {
@@ -160,7 +161,9 @@ NS_IMETHODIMP nsAbDirProperty::SetDirName(const nsAString &aDirName)
   nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
 
   if (NS_SUCCEEDED(rv))
-    abManager->NotifyItemPropertyChanged(this, "DirName", oldDirName.get(),
+    // We inherit from nsIAbDirectory, so this static cast should be safe.
+    abManager->NotifyItemPropertyChanged(static_cast<nsIAbDirectory*>(this),
+                                         "DirName", oldDirName.get(),
                                          nsString(aDirName).get());
 
   return NS_OK;

@@ -47,6 +47,7 @@
 #include "nsCOMPtr.h"
 #include "nsTObserverArray.h"
 #include "nsIEnumerator.h"
+#include "nsWeakPtr.h"
 
 typedef enum
 {
@@ -457,7 +458,7 @@ protected:
   mdb_token      m_LowerListNameColumnToken;
 
   PRUint32      m_LastRecordKey;
-  nsIAbDirectory*    m_dbDirectory;
+  nsWeakPtr m_dbDirectory;
   nsCOMPtr<nsIMdbFactory> mMdbFactory;
 
 private:

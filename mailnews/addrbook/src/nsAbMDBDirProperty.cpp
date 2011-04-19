@@ -62,7 +62,9 @@ nsAbMDBDirProperty::~nsAbMDBDirProperty(void)
 }
 
 
-NS_IMPL_ISUPPORTS_INHERITED1(nsAbMDBDirProperty, nsAbDirProperty, nsIAbMDBDirectory)
+NS_IMPL_ISUPPORTS_INHERITED3(nsAbMDBDirProperty, nsAbDirProperty,
+                             nsIAbDirectory,
+                             nsISupportsWeakReference, nsIAbMDBDirectory)
 
 ////////////////////////////////////////////////////////////////////////////////
 
