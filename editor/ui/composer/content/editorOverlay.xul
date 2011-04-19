@@ -240,14 +240,10 @@
           oncommandupdate="goUpdateComposerMenuItems(this)">
     <command id="cmd_save"           label="&saveCmd.label;"           oncommand="goDoCommand('cmd_save')"/>
     <command id="cmd_saveAs"         label="&saveAsCmd.label;"         oncommand="goDoCommand('cmd_saveAs')"/>
-    <command id="cmd_exportToText"   label="&exportToTextCmd.label;"   oncommand="goDoCommand('cmd_exportToText')"/>
     <command id="cmd_saveAndChangeEncoding"  label="&saveAsChangeEncodingCmd.label;"  oncommand="goDoCommand('cmd_saveAndChangeEncoding')"/>
     <command id="cmd_publish"        label="&publishCmd.label;"        oncommand="goDoCommand('cmd_publish')"/>
     <command id="cmd_publishAs"      label="&publishAsCmd.label;"      oncommand="goDoCommand('cmd_publishAs')"/>
     <command id="cmd_revert"         label="&fileRevert.label;"        oncommand="goDoCommand('cmd_revert')"/>
-    <command id="cmd_preview"                                          oncommand="goDoCommand('cmd_preview')"/>
-    <command id="cmd_editSendPage"   label="&sendPageCmd.label;"
-                                     accesskey="&sendPageCmd.accesskey;"  oncommand="goDoCommand('cmd_editSendPage')"/>
   </commandset>
 
   <!-- edit menu commands. These get updated by code in globalOverlay.js -->
@@ -446,15 +442,7 @@
                 accesskey="&fileRevert.accesskey;"
                 command="cmd_revert"/>
       <menuseparator id="fileMenuAfterFileRevertSeparator"/>
-      <menuitem id="fileExportToText"
-                accesskey="&exportToTextCmd.accesskey;"
-                command="cmd_exportToText"/>
-      <menuitem id="previewInBrowser"
-                label="&previewCmd.label;"
-                accesskey="&previewCmd.accesskey;"
-                command="cmd_preview"/>
-      <!-- menuitem id="menu_SendPage" is merged here from mailEditorOverlay.xul,
-           where "position" is assumed to be just after 'previewInBrowser'  -->
+      <!-- menuitems are merged in here from composerOverlay.xul -->
       <menuitem id="printSetupMenuItem"
                 label="&printSetupCmd.label;"
                 accesskey="&printSetupCmd.accesskey;"
@@ -1187,11 +1175,6 @@
                  class="toolbarbutton-1"
                  command="cmd_publish"
                  tooltiptext="&publishToolbarCmd.tooltip;"/>
-  <toolbarbutton id="previewButton"
-                 class="toolbarbutton-1"
-                 label="&previewToolbarCmd.label;"
-                 command="cmd_preview"
-                 tooltiptext="&previewToolbarCmd.tooltip;"/>
   <toolbarbutton id="cutButton" class="toolbarbutton-1"
                  label="&cutCmd.label;" command="cmd_cut"
                  tooltiptext="&cutCmd.label;"/>

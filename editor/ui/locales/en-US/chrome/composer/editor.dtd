@@ -44,6 +44,16 @@
 
 <!-- Toolbar-only items -->
 <!ENTITY compositionToolbar.tooltip "Composition Toolbar">
+<!ENTITY previewToolbarCmd.label "Browse">
+<!ENTITY previewToolbarCmd.tooltip "Load this page in the browser">
+
+<!-- File menu items -->
+<!ENTITY exportToTextCmd.label "Export to Text…">
+<!ENTITY exportToTextCmd.accesskey "T">
+<!ENTITY previewCmd.label "Browse Page">
+<!ENTITY previewCmd.accesskey "w">
+<!ENTITY sendPageCmd.label "Send Page…">
+<!ENTITY sendPageCmd.accesskey "d">
 
 <!-- View menu items -->
 <!ENTITY viewMenu.label "View">

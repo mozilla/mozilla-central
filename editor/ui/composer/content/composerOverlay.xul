@@ -37,7 +37,26 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
+<!DOCTYPE overlay [
+<!ENTITY % editorDTD SYSTEM "chrome://editor/locale/editor.dtd">
+%editorDTD;
+]>
+
 <overlay id="composerOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-</overlay>    
+  <!-- Items in the File menu used only by Composer app -->
+  <menupopup id="menu_FilePopup">
+    <menuitem id="fileExportToText"
+              insertafter="fileMenuAfterFileRevertSeparator"
+              command="cmd_exportToText"/>
+    <menuitem id="previewInBrowser"
+              label="&previewCmd.label;"
+              accesskey="&previewCmd.accesskey;"
+              insertafter="fileExportToText"
+              command="cmd_preview"/>
+    <!-- menuitem id="menu_SendPage" is merged here from mailEditorOverlay.xul,
+         where "position" is assumed to be just after 'previewInBrowser' -->
+  </menupopup>
+
+</overlay>

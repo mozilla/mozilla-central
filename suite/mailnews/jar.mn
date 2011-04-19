@@ -13,7 +13,7 @@ messenger.jar:
 % overlay chrome://messenger/content/messengercompose/messengercompose.xul     chrome://messenger/content/mailMessengerComposeOverlay.xul
 % overlay chrome://messenger/content/addressbook/addressbook.xul               chrome://messenger/content/mailABOverlay.xul
 % overlay chrome://messenger/content/addressbook/abSelectAddressesDialog.xul   chrome://messenger/content/mailOverlay.xul
-% overlay chrome://editor/content/editor.xul                                   chrome://messenger/content/mailEditorOverlay.xul
+% overlay chrome://editor/content/composerOverlay.xul                          chrome://messenger/content/mailEditorOverlay.xul
 % overlay chrome://editor/content/EdImageOverlay.xul                           chrome://messenger/content/messengercompose/mailComposeEditorOverlay.xul
 % overlay chrome://editor/content/EdLinkProps.xul                              chrome://messenger/content/messengercompose/mailComposeEditorOverlay.xul
     content/messenger/msgViewPickerOverlay.js

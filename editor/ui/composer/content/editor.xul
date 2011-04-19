@@ -102,6 +102,17 @@
                 commandupdater="true"
                 events="create, mode_switch"
                 oncommandupdate="goUpdateComposerMenuItems(this);">
+      <!-- file menu -->
+      <command id="cmd_exportToText"
+               label="&exportToTextCmd.label;"
+               accesskey="&exportToTextCmd.accesskey;"
+               oncommand="goDoCommand('cmd_exportToText');"/>
+      <command id="cmd_preview"
+               oncommand="goDoCommand('cmd_preview');"/>
+      <command id="cmd_editSendPage"
+               label="&sendPageCmd.label;"
+               accesskey="&sendPageCmd.accesskey;"
+               oncommand="goDoCommand('cmd_editSendPage');"/>
       <!-- format menu -->
       <command id="cmd_pageProperties"
                oncommand="goDoCommand('cmd_pageProperties');"/>
@@ -242,7 +253,7 @@
     <spacer flex="1"/>
   </menubar>
 
-  <!-- toolbar filled out from editorOverlay -->
+  <!-- toolbar mostly filled out from editorOverlay -->
   <!-- add  class="standard" for dark blue background (icons need rework first) -->
   <toolbar class="chromeclass-toolbar toolbar-primary" id="EditToolbar" persist="collapsed" 
            grippytooltiptext="&compositionToolbar.tooltip;">
@@ -250,7 +261,11 @@
     <toolbarbutton id="openButton"/>
     <toolbarbutton id="saveButton"/>
     <toolbarbutton id="publishButton"/>
-    <toolbarbutton id="previewButton"/>
+    <toolbarbutton id="previewButton"
+                   class="toolbarbutton-1"
+                   label="&previewToolbarCmd.label;"
+                   command="cmd_preview"
+                   tooltiptext="&previewToolbarCmd.tooltip;"/>
     <toolbarbutton id="cutButton"/>
     <toolbarbutton id="copyButton"/>
     <toolbarbutton id="pasteButton"/>
