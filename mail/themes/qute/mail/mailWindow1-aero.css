@@ -146,3 +146,19 @@ padding: 4px 0px;
     border-left: none;
   }
 }
+
+@media all and (-moz-windows-compositor) {
+  #messengerWindow[sizemode=normal] tabpanels#tabpanelcontainer {
+    border: 1px solid rgba(10%, 10%, 10%, .4);
+    border-top: none;
+  }
+
+  #messengerWindow[sizemode=normal] statusbar {
+    -moz-appearance: none;
+    margin-top: -1px;
+    border: 1px solid rgba(10%, 10%, 10%, .4);
+    border-top-color: threedshadow;
+    border-radius: 1px 1px 0 0;
+    background-clip: padding-box;
+  }
+}
