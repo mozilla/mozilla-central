@@ -30,6 +30,7 @@ ErrorAccordingToNSPR()
 nsMsgFileStream::nsMsgFileStream() 
 {
   mFileDesc = nsnull;
+  mSeekedToEnd = PR_FALSE;
 }
 
 nsMsgFileStream::~nsMsgFileStream()
@@ -50,11 +51,17 @@ nsMsgFileStream::Seek(PRInt32 whence, PRInt64 offset)
 {
   if (mFileDesc == nsnull)
     return NS_BASE_STREAM_CLOSED;
-  
+
+  PRBool seekingToEnd = whence == PR_SEEK_END && offset == 0;
+  if (seekingToEnd && mSeekedToEnd)
+    return NS_OK;
+
   PRInt64 cnt = PR_Seek64(mFileDesc, offset, (PRSeekWhence)whence);
   if (cnt == PRInt64(-1)) {
     return ErrorAccordingToNSPR();
   }
+
+  mSeekedToEnd = seekingToEnd;
   return NS_OK;
 }
 

@@ -11,15 +11,15 @@ public:
   ~nsMsgFileStream();
 
   NS_DECL_ISUPPORTS
-    
+
   NS_IMETHOD Available(PRUint32 *_retval); 
   NS_IMETHOD Read(char * aBuf, PRUint32 aCount, PRUint32 *_retval); 
   NS_IMETHOD ReadSegments(nsWriteSegmentFun aWriter, void * aClosure, PRUint32 aCount, PRUint32 *_retval);
   NS_DECL_NSIOUTPUTSTREAM
   NS_DECL_NSISEEKABLESTREAM
-    
+
   nsresult InitWithFile(nsILocalFile *localFile);
 protected:
   PRFileDesc *mFileDesc;
+  PRBool mSeekedToEnd;
 };
-
