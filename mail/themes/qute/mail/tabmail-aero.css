@@ -201,6 +201,8 @@
   }
 
   .tabs-bottom:not(:-moz-lwtheme) {
+    margin-right: -3px;
+    margin-left: -3px;
     border-bottom: 1px solid ThreeDDarkShadow;
   }
 }
