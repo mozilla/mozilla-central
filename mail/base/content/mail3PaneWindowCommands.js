@@ -376,6 +376,7 @@ var DefaultController =
         return true;
       case "cmd_markAsFlagged":
       case "button_file":
+	return GetNumSelectedMessages() > 0;
       case "cmd_archive":
       case "button_archive":
         return gFolderDisplay.canArchiveSelectedMessages;
