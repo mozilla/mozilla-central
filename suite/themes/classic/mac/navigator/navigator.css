@@ -989,6 +989,10 @@ toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
   list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png");
 }
 
+#BMB_feedsMenu[disabled="true"] {
+  list-style-image: url("chrome://communicator/skin/icons/feedIcon16-disabled.png");
+}
+
 #feedsButton {
   list-style-image: url("chrome://navigator/skin/btn1/feeds.png");
   -moz-image-region: rect(0px 32px 16px 16px);
