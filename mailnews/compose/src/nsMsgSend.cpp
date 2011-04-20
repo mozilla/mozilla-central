@@ -1170,6 +1170,7 @@ nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
   }
 
   ma->PickEncoding (mCompFields->GetCharacterSet(), this);
+  ma->PickCharset();
 
   part = new nsMsgSendPart(this);
   if (!part)
