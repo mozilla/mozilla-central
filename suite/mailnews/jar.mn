@@ -56,6 +56,7 @@ messenger.jar:
     content/messenger/mailMessengerComposeOverlay.xul
     content/messenger/phishingDetector.js
     content/messenger/mailOverlay.xul
+    content/messenger/mailOverlay.js
     content/messenger/mail-offline.js
     content/messenger/mailContextMenus.js
     content/messenger/msgFolderPickerOverlay.xul
