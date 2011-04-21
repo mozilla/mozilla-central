@@ -101,13 +101,8 @@ NS_IMETHODIMP nsEudoraEditor::GetSelection(nsISelection * *aSelection)
 }
 
 
-#ifdef MOZILLA_2_0_BRANCH
-// [noscript] void init (in nsIDOMDocument doc, in nsIPresShellPtr shell, in nsIContentPtr aRoot, in nsISelectionController aSelCon, in unsigned long aFlags)
-NS_IMETHODIMP nsEudoraEditor::Init(nsIDOMDocument *doc, nsIPresShell * shell, nsIContent * aRoot, nsISelectionController *aSelCon, PRUint32 aFlags)
-#else
 // [noscript] void init (in nsIDOMDocument doc, in nsIContentPtr aRoot, in nsISelectionController aSelCon, in unsigned long aFlags)
 NS_IMETHODIMP nsEudoraEditor::Init(nsIDOMDocument *doc, nsIContent * aRoot, nsISelectionController *aSelCon, PRUint32 aFlags)
-#endif
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -625,13 +620,11 @@ NS_IMETHODIMP nsEudoraEditor::DebugUnitTests(PRInt32 *outNumTests, PRInt32 *outN
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-#ifndef MOZILLA_2_0_BRANCH
 //  readonly attribute boolean transactionManager
 NS_IMETHODIMP nsEudoraEditor::GetLastKeypressEventTrusted(PRBool *aResult)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
-#endif
 
 // void pasteAsQuotation (in long aSelectionType)
 NS_IMETHODIMP nsEudoraEditor::PasteAsQuotation(PRInt32 aSelectionType)
@@ -1075,13 +1068,6 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetPrefix(nsAString & aPrefix)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-#ifdef MOZILLA_2_0_BRANCH
-NS_IMETHODIMP nsEudoraHTMLImageElement::SetPrefix(const nsAString & aPrefix)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-#endif
-
 // readonly attribute DOMString localName
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetLocalName(nsAString & aLocalName)
 {
@@ -1272,7 +1258,6 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::SetClassName(const nsAString & aClassNam
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-#ifndef MOZILLA_2_0_BRANCH
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetAccessKey(nsAString &aAccessKey)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
@@ -1297,7 +1282,6 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::Click()
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
-#endif
 
 // attribute DOMString name
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetName(nsAString & aName)
