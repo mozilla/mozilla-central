@@ -62,10 +62,6 @@ endif
 endif
 endif
 
-ifdef MOZ_ENABLE_LIBXUL
-EXPORTS = nsMailComponents.h
-endif
-
 CPPSRCS = nsMailComps.cpp \
           $(NULL)
 

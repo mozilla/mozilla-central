@@ -51,9 +51,9 @@ MOZ_COMPOSER=1
 MOZ_SAFE_BROWSING=1
 MOZ_MORK=1
 MOZ_STATIC_BUILD_UNSUPPORTED=1
-MOZ_APP_COMPONENT_LIBS="mail msgsmime import xpautocomplete mailcomps $LDAP_COMPONENT"
+MOZ_APP_COMPONENT_LIBS="xpautocomplete mailcomps $MAIL_COMPONENT $LDAP_COMPONENT"
+MOZ_APP_COMPONENT_MODULES="MODULE(xpAutoComplete) MODULE(nsMailCompsModule) $MAIL_MODULE $LDAP_MODULE"
 MOZ_APP_EXTRA_LIBS="$LDAP_LIBS"
-MOZ_APP_COMPONENT_INCLUDE=nsMailComponents.h
 
 # Needed for the mozilla-central build side of the system.
 # Can be dropped/altered when we sort out our equivalent of
