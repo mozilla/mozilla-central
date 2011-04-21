@@ -36,9 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var gUseExternalMailto =
-    Services.io.getProtocolHandler("mailto")
-                instanceof Components.interfaces.nsIExternalProtocolHandler;
+var gUseExternalMailto;
 
 // attachment: 0 - link
 //             1 - page
@@ -202,6 +200,8 @@ function hideMenuitems() {
 }
 
 function initOverlay(aEvent) {
+  gUseExternalMailto = Services.io.getProtocolHandler("mailto") instanceof
+                         Components.interfaces.nsIExternalProtocolHandler;
   initMailContextMenuPopupListener(aEvent);
   hideMenuitems();
 }
