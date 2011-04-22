@@ -1479,7 +1479,12 @@ IMAP_RFC3501_handler.prototype = {
       data +=  bodyPart.bodyText;
       break;
     case "HEADER": // I believe this specifies mime for an RFC822 message only
-      data += bodyPart.mime + "\r\n\r\n";
+      for each (let line in lines) {
+        // End of headers
+        if (line == '')
+          break;
+        data += line + "\r\n";
+      }
       break;
     case "MIME":
       data += bodyPart.mime + "\r\n\r\n";
