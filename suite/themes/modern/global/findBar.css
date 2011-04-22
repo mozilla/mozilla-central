@@ -81,13 +81,12 @@ findbar {
   list-style-image: url("chrome://global/skin/icons/notfound.png");
 }
 
-.findbar-textbox {
-  -moz-binding: url("chrome://global/content/bindings/findbar.xml#findbar-textbox");
-}
-
-
 .findbar-textbox[status="notfound"] {
   background-color: #FFCCCC;
+}
+
+.findbar-textbox[flash="true"] {
+  background-color: #FFFF00;
 }
 
 .find-status-icon[status="wrapped"] {

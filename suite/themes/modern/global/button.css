@@ -144,9 +144,7 @@ button[default="true"]:focus {
 /* ::::: menu/menu-button buttons ::::: */
 
 button[type="menu-button"] {
-  -moz-box-align: center;
-  -moz-box-pack: center;
-  border: none !important;
+  border: none;
   background: transparent !important;
 }
 
@@ -157,10 +155,8 @@ button[type="menu-button"] {
 .button-menu-dropmarker,
 .button-menubutton-dropmarker {
   margin: 1px;
-  background-color: transparent !important;
-  border: none !important;
-  min-width:9px;
-  min-height:5px;
+  background-color: transparent;
+  border: none;
 }
   
 .button-menubutton-dropmarker[open="true"] {

@@ -318,6 +318,10 @@ label[disabled="true"] {
   color: #8C99AB;
 }
 
+.tooltip-label {
+  margin: 0px;
+}
+
 .header {
   font-weight: bold;
 }

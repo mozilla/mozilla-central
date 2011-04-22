@@ -190,7 +190,7 @@ menulist[focused="true"] {
   margin-bottom: 0px !important;
   -moz-margin-start: 0px !important;
   -moz-margin-end: 3px !important;
-  text-align: right;
+  text-align: end;
 }  
 
 .menulist-compact > .menulist-dropmarker {

@@ -49,7 +49,7 @@ textbox[type="autocomplete"] {
 }
 
 textbox[nomatch="true"][highlightnonmatches="true"] {
-  color: red;
+  color: #F00;
 }
 
 .textbox-input-box {
@@ -112,4 +112,9 @@ panel[type="autocomplete"] {
 
 .autocomplete-treebody::-moz-tree-cell-text(selected) {
   color: #FFFFFF !important;
+}
+
+.autocomplete-treebody::-moz-tree-image(treecolAutoCompleteValue) {
+  max-width: 16px;
+  height: 16px;
 }
