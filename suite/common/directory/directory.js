@@ -299,7 +299,7 @@ function BeginDragTree (event)
 
 function scrollDown()
 {
-  window.frames[0].scrollTo(0, window.frames[0].document.height);
+  window.frames[0].scrollTo(0, window.frames[0].document.body.clientHeight);
 }
 
 function OnFTPControlLog(server, msg)
