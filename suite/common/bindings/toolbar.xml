@@ -265,16 +265,22 @@
   <binding id="grippytoolbar-drag"
            extends="chrome://communicator/content/bindings/toolbar.xml#grippytoolbar">
     <implementation>
+      <field name="_dragBindingAlive">true</field>
       <constructor>
         <![CDATA[
-          try {
-            Components.utils.import("resource://gre/modules/WindowDraggingUtils.jsm");
-            let draggableThis = new WindowDraggingElement(this, window);
-            draggableThis.mouseDownCheck = function(e) {
-            // Don't move while customizing or while in full screen mode.
-              return !(this.parentNode.customizing || window.fullScreen);
-            }
-          } catch (e) {}
+          if (!this._draggableStarted) {
+            this._draggableStarted = true;
+            try {
+              let tmp = {};
+              Components.utils.import("resource://gre/modules/WindowDraggingUtils.jsm", tmp);
+              let draggableThis = new tmp.WindowDraggingElement(this, window);
+              draggableThis.mouseDownCheck = function(e) {
+                // Don't move while customizing.
+                return this._dragBindingAlive &&
+                       this.getAttribute("customizing") != "true";
+              }
+            } catch (e) {}
+          }
         ]]>
       </constructor>
     </implementation>
@@ -283,16 +289,22 @@
   <binding id="grippytoolbar-primary-drag"
            extends="chrome://communicator/content/bindings/toolbar.xml#grippytoolbar-primary">
     <implementation>
+    <field name="_dragBindingAlive">true</field>
       <constructor>
         <![CDATA[
-          try {
-            Components.utils.import("resource://gre/modules/WindowDraggingUtils.jsm");
-            let draggableThis = new WindowDraggingElement(this, window);
-            draggableThis.mouseDownCheck = function(e) {
-            // Don't move while customizing or while in full screen mode.
-              return !(this.parentNode.customizing || window.fullScreen);
-            }
-          } catch (e) {}
+          if (!this._draggableStarted) {
+            this._draggableStarted = true;
+            try {
+              let tmp = {};
+              Components.utils.import("resource://gre/modules/WindowDraggingUtils.jsm", tmp);
+              let draggableThis = new tmp.WindowDraggingElement(this, window);
+              draggableThis.mouseDownCheck = function(e) {
+                // Don't move while customizing.
+                return this._dragBindingAlive &&
+                       this.getAttribute("customizing") != "true";
+              }
+            } catch (e) {}
+          }
         ]]>
       </constructor>
     </implementation>
