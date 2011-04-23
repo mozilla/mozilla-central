@@ -76,6 +76,7 @@
 @BINPATH@/mozce_shunt.dll
 #elifdef XP_WIN32
 #ifndef MOZ_MEMORY
+#ifndef MOZ_DEBUG
 #if _MSC_VER == 1400
 @BINPATH@/Microsoft.VC80.CRT.manifest
 @BINPATH@/msvcm80.dll
@@ -89,6 +90,7 @@
 #elif _MSC_VER == 1600
 @BINPATH@/msvcp100.dll
 @BINPATH@/msvcr100.dll
+#endif
 #endif
 #else
 @BINPATH@/mozcrt19.dll
