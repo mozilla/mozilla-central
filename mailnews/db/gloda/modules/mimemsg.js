@@ -190,6 +190,10 @@ let gMessenger = Cc["@mozilla.org/messenger;1"].
  *     situtations where we have erroneously multi-megabyte messages.  This
  *     also likely reduces the impact of legitimately ridiculously large
  *     messages.
+ * @param [aOptions.partsOnDemand] If this is a message stored on an IMAP
+ *     server, and for whatever reason, it isn't available locally, then setting
+ *     this option to true will make sure that attachments aren't downloaded.
+ *     This makes sure the message is available quickly.
  */
 function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback,
                              aAllowDownload, aOptions) {
@@ -201,6 +205,9 @@ function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback,
   let msgService = gMessenger.messageServiceFromURI(msgURI);
 
   MsgHdrToMimeMessage.OPTION_TUNNEL = aOptions;
+  let partsOnDemandStr = (aOptions && aOptions.partsOnDemand)
+    ? "&fetchCompleteMessage=false"
+    : "";
 
   // if we're already streaming this msg, just add the callback
   // to the listener.
@@ -221,7 +228,7 @@ function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback,
       dumbUrlListener, // nsIUrlListener
       true, // have them create the converter
       // additional uri payload, note that "header=" is prepended automatically
-      "filter&emitter=js",
+      "filter&emitter=js"+partsOnDemandStr,
       requireOffline);
   } catch (ex) {
     // If streamMessage throws an exception, we should make sure to clear the

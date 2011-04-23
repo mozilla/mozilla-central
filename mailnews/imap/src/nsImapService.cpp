@@ -1183,8 +1183,15 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
       nsCOMPtr<nsIMsgMailNewsUrl> msgurl (do_QueryInterface(imapUrl));
       nsCOMPtr<nsIURI> url(do_QueryInterface(imapUrl));
 
+      // This option is used by the JS Mime Emitter, in case we want a cheap
+      // streaming, for example, if we just want a quick look at some header,
+      // without having to download all the attachments...
+      nsCAutoString additionalHeader(aAdditionalHeader);
+      PRInt32 fetchOnDemand = additionalHeader.Find("&fetchCompleteMessage=false");
+      imapUrl->SetFetchPartsOnDemand(fetchOnDemand != kNotFound);
+
       // We need to add the fetch command here for the cache lookup to behave correctly
-      rv = AddImapFetchToUrl(url, folder, msgKey, aAdditionalHeader);
+      rv = AddImapFetchToUrl(url, folder, msgKey, additionalHeader);
       NS_ENSURE_SUCCESS(rv, rv);
 
       nsCOMPtr<nsIMsgIncomingServer> aMsgIncomingServer;
@@ -1213,7 +1220,6 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
         }
       }
 
-      imapUrl->SetFetchPartsOnDemand(PR_FALSE);
       msgurl->SetAddToMemoryCache(PR_TRUE);
 
       PRBool shouldStoreMsgOffline = PR_FALSE;

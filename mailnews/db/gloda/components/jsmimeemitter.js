@@ -104,7 +104,7 @@ const deathToNewlines = /\n/g;
 MimeMessageEmitter.prototype = {
   classID: Components.ID("{8cddbbbc-7ced-46b0-a936-8cddd1928c24}"),
 
-  _partRE: new RegExp("^[^?]+\\?(?:[^&]+&)*part=([^&]+)(?:&[^&]+)*$"),
+  _partRE: new RegExp("^[^?]+\\?(?:/;section=\\d+\\?)?(?:[^&]+&)*part=([^&]+)(?:&[^&]+)*$"),
 
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMimeEmitter]),
 
@@ -345,7 +345,7 @@ MimeMessageEmitter.prototype = {
     this._state = kStateInAttachment;
 
     // we need to strip our magic flags from the URL
-    aUrl = aUrl.replace("header=filter&emitter=js&", "");
+    aUrl = aUrl.replace(/header=filter&emitter=js(&fetchCompleteMessage=false)?&?/, "");
     // the url should contain a part= piece that tells us the part name, which
     // we then use to figure out where to place that part if it's a real
     // attachment.
