@@ -17,7 +17,7 @@
   <key id="key_navigator"    key="&navigatorCmd.commandkey;"   command="Tasks:Navigator" modifiers="accel"/>
   <key id="key_downloadManager" key="&downloadManagerCmd.commandkey;"
        command="downloadmgr" modifiers="accel"/>
-  <key id="key_addonsManager" key="&addonsManagerCmd.commandkey;"
+  <key id="key_addOnsManager" key="&addOnsManagerCmd.commandkey;"
        command="addonsmgr" modifiers="accel,shift"/>
   <key id="key_errorConsole" key="&errorConsoleCmd.commandkey;"
        command="Tasks:ErrorConsole" modifiers="accel,shift"/>
@@ -55,9 +55,9 @@
           <menuitem id="downloadmgr" label="&downloadManagerCmd.label;"
                     accesskey="&downloadManagerCmd.accesskey;"
                     key="key_downloadManager" oncommand="toDownloadManager();"/>
-          <menuitem id="addonsmgr" label="&addonsManagerCmd.label;"
-                    accesskey="&addonsManagerCmd.accesskey;"
-                    key="key_addonsManager" oncommand="toEM();"/>
+          <menuitem id="addonsmgr" label="&addOnsManagerCmd.label;"
+                    accesskey="&addOnsManagerCmd.accesskey;"
+                    key="key_addOnsManager" oncommand="toEM();"/>
           <!-- only one of sync-setup or sync-syncnowitem will be showing at once -->
           <menuitem id="sync-setup"
                     label="&syncSetup.label;"
