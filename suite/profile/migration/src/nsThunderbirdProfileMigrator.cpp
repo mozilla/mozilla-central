@@ -87,11 +87,13 @@ nsThunderbirdProfileMigrator::Migrate(PRUint16 aItems,
 
   if (!mTargetProfile) {
     GetProfilePath(aStartup, getter_AddRefs(mTargetProfile));
-    if (!mTargetProfile) return NS_ERROR_FAILURE;
+    if (!mTargetProfile)
+      return NS_ERROR_FILE_NOT_FOUND;
   }
   if (!mSourceProfile) {
     GetSourceProfile(aProfile);
-    if (!mSourceProfile) return NS_ERROR_FAILURE;
+    if (!mSourceProfile)
+      return NS_ERROR_FILE_NOT_FOUND;
   }
 
   NOTIFY_OBSERVERS(MIGRATION_STARTED, nsnull);
@@ -266,7 +268,7 @@ nsThunderbirdProfileMigrator::FillProfileDataFromRegistry()
   thunderbirdData->Append(NS_LITERAL_STRING("Thunderbird"));
 #else
   // On other OS just abort
-  return NS_ERROR_FAILURE;
+  return NS_ERROR_FILE_NOT_FOUND;
 #endif
 
   // Try profiles.ini first

@@ -88,12 +88,13 @@ nsSeamonkeyProfileMigrator::Migrate(PRUint16 aItems,
 
   if (!mTargetProfile) {
     GetProfilePath(aStartup, getter_AddRefs(mTargetProfile));
-    if (!mTargetProfile) return NS_ERROR_FAILURE;
+    if (!mTargetProfile)
+      return NS_ERROR_FILE_NOT_FOUND;
   }
   if (!mSourceProfile) {
     GetSourceProfile(aProfile);
     if (!mSourceProfile)
-      return NS_ERROR_FAILURE;
+      return NS_ERROR_FILE_NOT_FOUND;
   }
 
   NOTIFY_OBSERVERS(MIGRATION_STARTED, nsnull);

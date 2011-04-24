@@ -74,7 +74,7 @@ regerr2nsresult(REGERR errCode)
     case REGERR_MEMORY:
       return NS_ERROR_OUT_OF_MEMORY;
   }
-  return NS_ERROR_FAILURE;
+  return NS_ERROR_FILE_NOT_FOUND;
 }
 
 NS_IMPL_ISUPPORTS2(nsNetscapeProfileMigratorBase, nsISuiteProfileMigrator,
@@ -751,7 +751,7 @@ nsNetscapeProfileMigratorBase::GetFileValue(nsIPrefBranch* aPrefBranch, const ch
   if (NS_SUCCEEDED(rv)) {
     // The pref has the format: [ProfD]a/b/c
     if (!StringBeginsWith(prefValue, NS_LITERAL_CSTRING("[ProfD]")))
-      return NS_ERROR_FAILURE;
+      return NS_ERROR_FILE_NOT_FOUND;
 
     rv = NS_NewNativeLocalFile(EmptyCString(), PR_TRUE, getter_AddRefs(theFile));
     if (NS_FAILED(rv))
