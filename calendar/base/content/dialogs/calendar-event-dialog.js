@@ -1381,11 +1381,15 @@ function rotatePrivacy() {
  * This function sets the privacy of an item to the value specified by
  * the attribute "privacy" of the UI-element "target".
  *
- * @param target    the calling UI-element
+ * @param target    the calling UI-element;
+ * @param event     the UI-element selection event (only for the popup menu
+ *                  event-privacy-menupopup in the Privacy toolbar button).
  */
 function editPrivacy(target, event) {
     gPrivacy = target.getAttribute("privacy");
-    event.stopPropagation();
+    if (event) {
+        event.stopPropagation();
+    }
     updatePrivacy();
 }
 
