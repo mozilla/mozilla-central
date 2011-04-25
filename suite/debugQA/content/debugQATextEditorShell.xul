@@ -110,9 +110,7 @@
       <menu id="fileMenu"/>
       <menu id="editMenu"/>
 
-      <menu id="viewMenu"
-            label="&viewMenu.label;"
-            accesskey="&viewMenu.accesskey;">
+      <menu id="menu_View">
         <!-- id pulls in "Show Sidebar" item from sidebarOverlay -->
         <menupopup id="menu_View_Popup">
           <menu id="menu_Toolbars">

@@ -312,7 +312,7 @@
       </menupopup>
     </menu>
 
-    <menu id="menu_View" accesskey="&viewMenu.accesskey;" label="&viewMenu.label;">
+    <menu id="menu_View">
       <menupopup id="menu_View_Popup">
         <menu label="&toolbarsCmd.label;" accesskey="&toolbarsCmd.accesskey;" id="menu_Toolbars">
           <menupopup id="view_toolbars_popup"

@@ -56,8 +56,6 @@
 <!ENTITY sendPageCmd.accesskey "d">
 
 <!-- View menu items -->
-<!ENTITY viewMenu.label "View">
-<!ENTITY viewMenu.accesskey "V">
 <!ENTITY compositionToolbarCmd.label "Composition Toolbar">
 <!ENTITY compositionToolbarCmd.accesskey "C">
 <!ENTITY formattingToolbarCmd.label "Format Toolbar">
