@@ -1,0 +1,7 @@
+Date: Mon, 10 Jan 2011 12:00:00 -0500
+From: phisher@evil.com
+To: user@example.com
+Subject: Please click on this link!
+Content-Type: text/html
+
+<a href="http://www.evil.com/google">http://www.google.com</a>

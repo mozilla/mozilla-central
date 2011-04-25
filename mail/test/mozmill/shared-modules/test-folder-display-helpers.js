@@ -629,6 +629,30 @@ function display_message_in_folder_tab(aMsgHdr, aExpectNew3Pane) {
   return currentTab;
 }
 
+/**
+ * Create a new window displaying a message loaded from a file.  We do not
+ * return until the message has finished loading.
+ *
+ * @param file an nsIFile for the message
+ * @return The MozmillController-wrapped new window.
+ */
+function open_message_from_file(file) {
+  mark_action("fdh", "open_message_from_file", ["file", file.nativePath]);
+
+  let ios = Components.classes["@mozilla.org/network/io-service;1"]
+                      .getService(Components.interfaces.nsIIOService);
+  let fileURL = ios.newFileURI(file)
+                   .QueryInterface(Components.interfaces.nsIFileURL);
+  fileURL.query = "type=application/x-message-display";
+
+  windowHelper.plan_for_new_window("mail:messageWindow");
+  mc.window.openDialog("chrome://messenger/content/messageWindow.xul", "_blank",
+                       "all,chrome,dialog=no,status,toolbar", fileURL);
+  let msgc = windowHelper.wait_for_new_window("mail:messageWindow");
+  wait_for_message_display_completion(msgc, true);
+  return msgc;
+}
+
 function _jsonize_tabmail_tab(tab) {
   return {
     type: "tabmail-tab",

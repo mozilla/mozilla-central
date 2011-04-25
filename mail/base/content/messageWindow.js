@@ -675,7 +675,12 @@ function GetNumSelectedMessages()
 
 function ReloadMessage()
 {
-  gFolderDisplay.view.dbView.reloadMessage();
+  // If the current message was loaded from a file or attachment, so the dbView
+  // can't handle reloading it. Let's do it ourselves, instead.
+  if (window.arguments[0] instanceof Components.interfaces.nsIURI)
+    gMessageDisplay.displayExternalMessage(window.arguments[0].spec);
+  else
+    gFolderDisplay.view.dbView.reloadMessage();
 }
 
 function MsgDeleteMessageFromMessageWindow(reallyDelete, fromToolbar)
