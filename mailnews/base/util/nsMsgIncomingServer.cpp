@@ -475,6 +475,8 @@ nsMsgIncomingServer::GetFileValue(const char* aRelPrefName,
   if (relFilePref) {
     rv = relFilePref->GetFile(aLocalFile);
     NS_ASSERTION(*aLocalFile, "An nsIRelativeFilePref has no file.");
+    if (NS_SUCCEEDED(rv))
+      (*aLocalFile)->Normalize();
   } else {
     rv = mPrefBranch->GetComplexValue(aAbsPrefName,
                                       NS_GET_IID(nsILocalFile),

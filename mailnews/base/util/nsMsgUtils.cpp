@@ -1193,7 +1193,7 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
         relFilePref->GetFile(getter_AddRefs(localFile));
         NS_ASSERTION(localFile, "An nsIRelativeFilePref has no file.");
         if (localFile)
-            gotRelPref = PR_TRUE;
+          gotRelPref = PR_TRUE;
     }
 
     // If not, get the old absolute
@@ -1211,6 +1211,7 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
     }
 
     if (localFile) {
+        localFile->Normalize();
         *aFile = localFile;
         NS_ADDREF(*aFile);
         return NS_OK;
