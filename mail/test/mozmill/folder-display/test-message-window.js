@@ -46,6 +46,7 @@ var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
 var folder;
+var curMessage;
 
 function setupModule(module) {
   let fdh = collector.getModule('folder-display-helpers');
@@ -70,11 +71,23 @@ function test_open_message_window() {
   be_in_folder(folder);
 
   // select the first message
-  let curMessage = select_click_row(0);
+  curMessage = select_click_row(0);
 
   // display it
   msgc = open_selected_message_in_new_window();
   assert_selected_and_displayed(msgc, curMessage);
+}
+
+/**
+ * Use the "m" keyboard accelerator to mark a message as read or unread.
+ */
+function test_toggle_read() {
+  curMessage.markRead(false);
+  msgc.keypress(null, "m", {});
+  assert_true(curMessage.isRead, "Message should have been marked read!");
+
+  msgc.keypress(null, "m", {});
+  assert_true(!curMessage.isRead, "Message should have been marked unread!");
 }
 
 /**

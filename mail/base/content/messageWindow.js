@@ -715,6 +715,7 @@ var MessageWindowController =
       case "cmd_shiftDelete":
       case "cmd_tag":
       case "button_mark":
+      case "cmd_toggleRead":
       case "cmd_markAsRead":
       case "cmd_markAsUnread":
       case "cmd_markAllRead":
@@ -864,6 +865,7 @@ var MessageWindowController =
       case "cmd_viewAllHeader":
       case "cmd_viewNormalHeader":
       case "cmd_stop":
+      case "cmd_toggleRead":
         return true;
       case "cmd_markAsRead":
         return CanMarkMsgAsRead(true);
@@ -1054,6 +1056,9 @@ var MessageWindowController =
         MsgSearchMessages();
         break;
       case "button_mark":
+        MsgMarkMsgAsRead();
+        return;
+      case "cmd_toggleRead":
         MsgMarkMsgAsRead();
         return;
       case "cmd_markAsRead":
