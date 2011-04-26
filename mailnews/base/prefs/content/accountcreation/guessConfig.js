@@ -37,8 +37,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var gOverrideService = Cc["@mozilla.org/security/certoverride;1"]
-                       .getService(Ci.nsICertOverrideService);
 Cu.import("resource:///modules/gloda/log4moz.js");
 
 const TIMEOUT = 10; // in seconds
@@ -494,15 +492,15 @@ HostDetector.prototype =
    */
   _processResult : function(thisTry, wiredata)
   {
-    if (thisTry._gotCertError == gOverrideService.ERROR_MISMATCH)
+    if (thisTry._gotCertError == Ci.nsICertOverrideService.ERROR_MISMATCH)
     {
       thisTry._gotCertError = false;
       thisTry.status = kFailed;
       return;
     }
 
-    if (thisTry._gotCertError == gOverrideService.ERROR_UNTRUSTED ||
-        thisTry._gotCertError == gOverrideService.ERROR_TIME)
+    if (thisTry._gotCertError == Ci.nsICertOverrideService.ERROR_UNTRUSTED ||
+        thisTry._gotCertError == Ci.nsICertOverrideService.ERROR_TIME)
     {
       this._log.info("TRYING AGAIN, hopefully with exception recorded");
       thisTry._gotCertError = false;
@@ -532,7 +530,9 @@ HostDetector.prototype =
       // the callback will put up the cert exception dialog, so
       // clear the override here.
       this._log.info("clearing validity override for " + thisTry.hostname);
-      gOverrideService.clearValidityOverride(thisTry.hostname, thisTry.port);
+      Cc["@mozilla.org/security/certoverride;1"]
+        .getService(Ci.nsICertOverrideService)
+        .clearValidityOverride(thisTry.hostname, thisTry.port);
     }
     this._log.info("success with " + thisTry.hostname + ":" +
         thisTry.port + " " + protocolToString(thisTry.protocol) +
@@ -933,8 +933,8 @@ SSLErrorHandler.prototype =
     let port = parts[1];
 
     if (status.isDomainMismatch) {
-      this._try._gotCertError = gOverrideService.ERROR_MISMATCH;
-      flags |= gOverrideService.ERROR_MISMATCH;
+      this._try._gotCertError = Ci.nsICertOverrideService.ERROR_MISMATCH;
+      flags |= Ci.nsICertOverrideService.ERROR_MISMATCH;
 
       // If it was just a domain mismatch error
       // TODO "just"??? disabling it for now
@@ -961,12 +961,12 @@ SSLErrorHandler.prototype =
     }
 
     if (status.isUntrusted) {
-      this._try._gotCertError = gOverrideService.ERROR_UNTRUSTED;
-      flags |= gOverrideService.ERROR_UNTRUSTED;
+      this._try._gotCertError = Ci.nsICertOverrideService.ERROR_UNTRUSTED;
+      flags |= Ci.nsICertOverrideService.ERROR_UNTRUSTED;
     }
     if (status.isNotValidAtThisTime) {
-      this._try._gotCertError = gOverrideService.ERROR_TIME;
-      flags |= gOverrideService.ERROR_TIME;
+      this._try._gotCertError = Ci.nsICertOverrideService.ERROR_TIME;
+      flags |= Ci.nsICertOverrideService.ERROR_TIME;
     }
 
     // If domain mismatch, then we shouldn't accept, and instead try the domain
@@ -977,7 +977,9 @@ SSLErrorHandler.prototype =
 
     this._try.targetSite = targetSite;
     this._try._certOverrideProcessed = false;
-    gOverrideService.rememberValidityOverride(host, port, cert, flags,
+    Cc["@mozilla.org/security/certoverride;1"]
+      .getService(Ci.nsICertOverrideService)
+      .rememberValidityOverride(host, port, cert, flags,
         false); // last bit is temporary -- should it be true? XXX
     this._log.warn("!! Overrode bad cert temporarily " + host + " " + port +
                    "flags = " + flags + "\n");
