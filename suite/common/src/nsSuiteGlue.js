@@ -131,6 +131,7 @@ SuiteGlue.prototype = {
         if (this._saveSession) {
           this._setPrefToSaveSession();
         }
+        Sanitizer.checkSettings();
         break;
       case "browser-lastwindow-close-requested":
         // The application is not actually quitting, but the last full browser
@@ -261,7 +262,8 @@ SuiteGlue.prototype = {
     this._updatePrefs();
     migrateMailnews(); // mailnewsMigrator.js
 
-    Sanitizer.checkAndSanitize();
+    Sanitizer.checkSettings();
+    Sanitizer.doPendingSanitize();
 
     if (Services.prefs.prefHasUserValue("privacy.sanitize.didShutdownSanitize")) {
       Services.prefs.clearUserPref("privacy.sanitize.didShutdownSanitize");
@@ -307,7 +309,8 @@ SuiteGlue.prototype = {
   _onProfileShutdown: function()
   {
     this._shutdownPlaces();
-    Sanitizer.checkAndSanitize();
+    if (!Sanitizer.doPendingSanitize())
+      Services.prefs.setBoolPref("privacy.sanitize.didShutdownSanitize", true);
   },
 
   _promptForMasterPassword: function()

@@ -54,11 +54,28 @@ var Sanitizer = {
    * Deletes privacy sensitive data in a batch, optionally showing the 
    * sanitize UI, according to user preferences
    *
-   * @returns  null if everything's fine (no error or displayed UI,  which
-   *           should handle errors);
+   * @returns  null if everything's fine
    *           an object in the form { itemName: error, ... } on (partial) failure
    */
   sanitize: function(aParentWindow) {
+    this.readSettings(aParentWindow);
+    return this.doPendingSanitize();
+  },
+
+  clearSettings: function() {
+    for (var itemName in this.items)
+      this.items[itemName].willClear = false;
+  },
+
+  readSettings: function(aParentWindow) {
+    var itemPrefs = Components.classes["@mozilla.org/preferences-service;1"]
+                              .getService(Components.interfaces.nsIPrefService)
+                              .getBranch("privacy.item.");
+    for (var itemName in this.items) {
+      var item = this.items[itemName];
+      if ("clear" in item)
+        item.willClear = itemPrefs.getBoolPref(itemName);
+    }
     if (this._prefs.getBoolPref("promptOnSanitize")) {
       var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                          .getService(Components.interfaces.nsIWindowWatcher);
@@ -69,17 +86,15 @@ var Sanitizer = {
 #endif
                     "chrome://communicator/content/sanitize.xul", "Sanitize",
                     "chrome,titlebar,centerscreen,dialog,modal", null);
-      return null;
     }
+  },
 
+  doPendingSanitize: function() {
     // do the actual sanitizing
-    var itemPrefs = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefService)
-                              .getBranch("privacy.item.");
     var errors = null;
     for (var itemName in this.items) {
       var item = this.items[itemName];
-      if ("clear" in item && item.canClear && itemPrefs.getBoolPref(itemName)) {
+      if ("clear" in item && item.willClear && item.canClear) {
         // Some of these clear() may raise exceptions (see bug #265028)
         // to sanitize as much as possible, we catch and store them,
         // rather than fail fast.
@@ -104,18 +119,21 @@ var Sanitizer = {
       this.items[aItemName].clear();
   },
 
+  setClearItem: function(aItemName, aWillClear) {
+    this.items[aItemName].willClear = aWillClear;
+  },
+
+  willClearItem: function(aItemName) this.items[aItemName].willClear,
+
   canClearItem: function(aItemName) this.items[aItemName].canClear,
 
-  getNameFromPreference: function(aName) aName.substr("privacy.item.".length),
-
   // this is called on startup and shutdown, to perform pending sanitizations
-  checkAndSanitize: function() {
+  checkSettings: function() {
     if (this._prefs.getBoolPref("sanitizeOnShutdown") &&
-        !this._prefs.prefHasUserValue("didShutdownSanitize")) {
-      // this is a shutdown or a startup after an unclean exit
-      if (!this.sanitize(null))
-        this._prefs.setBoolPref("didShutdownSanitize", true);
-    }
+        !this._prefs.prefHasUserValue("didShutdownSanitize"))
+      this.readSettings();
+    else
+      this.clearSettings();
   },
 
   // clear plugin data

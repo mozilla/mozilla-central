@@ -49,112 +49,79 @@
   %sanitizeDTD;
 ]>
 
-<prefwindow id="SanitizeDialog" type="child"
-            xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-            dlgbuttons="accept,cancel"
-            title="&sanitizeDialog.title;"
-            ondialogaccept="sanitize();"
-            buttonlabelaccept="&sanitizeButton.label;">
+<dialog id="SanitizeDialog"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        dlgbuttons="accept,cancel"
+        title="&sanitizeDialog.title;"
+        onload="onLoad();"
+        ondialogcancel="Sanitizer.clearSettings();"
+        buttonlabelaccept="&sanitizeButton.label;">
 
-  <prefpane id="SanitizeDialogPane" onpaneload="init();">
-    <script type="application/javascript">
-    <![CDATA[
-      Components.utils.import("resource:///modules/Sanitizer.jsm");
+  <script type="application/javascript">
+  <![CDATA[
+    Components.utils.import("resource:///modules/Sanitizer.jsm");
 
-      function init()
-      {
-        var sanitizePreferences = document.getElementById("sanitizePreferences");
-        for (var i = 0; i < sanitizePreferences.childNodes.length; ++i) {
-          var preference = sanitizePreferences.childNodes[i];
-          var name = Sanitizer.getNameFromPreference(preference.name);
-          if (!Sanitizer.canClearItem(name)) 
-            preference.disabled = true;
+    function onLoad()
+    {
+      var sanitizePreferences = document.getElementById("sanitizePreferences");
+      for (var i = 0; i < sanitizePreferences.childNodes.length; ++i) {
+        var preference = sanitizePreferences.childNodes[i];
+        var name = preference.getAttribute("name");
+        preference.checked = Sanitizer.willClearItem(name);
+        if (!Sanitizer.canClearItem(name))
+          preference.disabled = true;
+      }
+    }
+
+    function onCommand(aEvent)
+    {
+      var item = aEvent.target.getAttribute("name");
+      Sanitizer.setClearItem(item, aEvent.target.checked);
+
+      var preferences = document.getElementById("sanitizePreferences");
+      var found = false;
+      for (var i = 0; i < preferences.childNodes.length; ++i) {
+        var preference = preferences.childNodes[i];
+        if (preference.checked && !preference.disabled) {
+          found = true;
+          break;
         }
       }
+      document.documentElement.getButton("accept").disabled = !found;
+    }
+  ]]>
+  </script>
 
-      function sanitize()
-      {
-        var sanitizePreferences = document.getElementById("sanitizePreferences");
-        for (var i = 0; i < sanitizePreferences.childNodes.length; ++i) {
-          var preference = sanitizePreferences.childNodes[i];
-          if (preference.value) {
-            var name = Sanitizer.getNameFromPreference(preference.name);
-            try {
-              Sanitizer.clearItem(name);
-            } catch(er) {
-              dump(er + " sanitizing " + name);
-              // TODO: give user feedback about partially failed sanitization
-            }
-          }
-        }
-      }
+  <description>&sanitizeItems.label;</description>
 
-      function onReadGeneric()
-      {
-        var preferences = document.getElementById("sanitizePreferences");
-        var found = false;
-        for (var i = 0; i < preferences.childNodes.length; ++i) {
-          var preference = preferences.childNodes[i];
-          if (preference.value && !preference.disabled) {
-            found = true;
-            break;
-          }
-        }
-        document.documentElement.getButton("accept").disabled = !found;
-      }
-    ]]>
-    </script>
-
-    <preferences id="sanitizePreferences">
-      <preference id="privacy.item.history" name="privacy.item.history"
-                  type="bool" readonly="true" onchange="onReadGeneric();"/>
-      <preference id="privacy.item.urlbar" name="privacy.item.urlbar"
-                  type="bool" readonly="true" onchange="onReadGeneric();"/>
-      <preference id="privacy.item.formdata" name="privacy.item.formdata"
-                  type="bool" readonly="true" onchange="onReadGeneric();"/>
-      <preference id="privacy.item.passwords" name="privacy.item.passwords"
-                  type="bool" readonly="true" onchange="onReadGeneric();"/>
-      <preference id="privacy.item.downloads" name="privacy.item.downloads"
-                  type="bool" readonly="true" onchange="onReadGeneric();"/>
-      <preference id="privacy.item.cookies" name="privacy.item.cookies"
-                  type="bool" readonly="true" onchange="onReadGeneric();"/>
-      <preference id="privacy.item.cache" name="privacy.item.cache"
-                  type="bool" readonly="true" onchange="onReadGeneric();"/>
-      <preference id="privacy.item.offlineApps" name="privacy.item.offlineApps"
-                  type="bool" readonly="true" onchange="onReadGeneric();"/>
-      <preference id="privacy.item.sessions" name="privacy.item.sessions"
-                  type="bool" readonly="true" onchange="onReadGeneric();"/>
-    </preferences>
-
-    <description>&sanitizeItems.label;</description>
-
+  <vbox id="sanitizePreferences" align="start" oncommand="onCommand(event);">
     <checkbox label="&itemHistory.label;"
               accesskey="&itemHistory.accesskey;"
-              preference="privacy.item.history"/>
+              name="history"/>
     <checkbox label="&itemUrlBar.label;"
               accesskey="&itemUrlBar.accesskey;"
-              preference="privacy.item.urlbar"/>
+              name="urlbar"/>
     <checkbox label="&itemDownloads.label;"
               accesskey="&itemDownloads.accesskey;"
-              preference="privacy.item.downloads"/>
+              name="downloads"/>
     <checkbox label="&itemFormSearchHistory.label;"
               accesskey="&itemFormSearchHistory.accesskey;"
-              preference="privacy.item.formdata"/>
+              name="formdata"/>
     <checkbox label="&itemCache.label;"
               accesskey="&itemCache.accesskey;"
-              preference="privacy.item.cache"/>
+              name="cache"/>
     <checkbox label="&itemCookies.label;"
               accesskey="&itemCookies.accesskey;"
-              preference="privacy.item.cookies"/>
+              name="cookies"/>
     <checkbox label="&itemOfflineApps.label;"
               accesskey="&itemOfflineApps.accesskey;"
-              preference="privacy.item.offlineApps"/>
+              name="offlineApps"/>
     <checkbox label="&itemPasswords.label;"
               accesskey="&itemPasswords.accesskey;"
-              preference="privacy.item.passwords"/>
+              name="passwords"/>
     <checkbox label="&itemSessions.label;"
               accesskey="&itemSessions.accesskey;"
-              preference="privacy.item.sessions"/>
+              name="sessions"/>
 
-  </prefpane>
-</prefwindow>
+  </vbox>
+</dialog>
