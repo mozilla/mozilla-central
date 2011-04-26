@@ -88,3 +88,6 @@ treechildren::-moz-tree-cell-text(isDefaultServer-true) {
   background-color: transparent;
 }
 
+#archiveTree > treechildren {
+  background-color: -moz-Field;
+}

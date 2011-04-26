@@ -572,6 +572,11 @@ nsMsgIdentity::Copy(nsIMsgIdentity *identity)
     COPY_IDENTITY_BOOL_VALUE(identity,GetFccReplyFollowsParent,
                              SetFccReplyFollowsParent)
     COPY_IDENTITY_STR_VALUE(identity,GetStationeryFolder,SetStationeryFolder)
+    COPY_IDENTITY_BOOL_VALUE(identity,GetArchiveEnabled,SetArchiveEnabled)
+    COPY_IDENTITY_INT_VALUE(identity,GetArchiveGranularity,
+                            SetArchiveGranularity)
+    COPY_IDENTITY_BOOL_VALUE(identity,GetArchiveKeepFolderStructure,
+                             SetArchiveKeepFolderStructure)
     COPY_IDENTITY_BOOL_VALUE(identity,GetAttachSignature,SetAttachSignature)
     COPY_IDENTITY_FILE_VALUE(identity,GetSignature,SetSignature)
     COPY_IDENTITY_WSTR_VALUE(identity,GetHtmlSigText,SetHtmlSigText)

@@ -108,6 +108,8 @@ function initCopiesAndFolder(identity)
   document.getElementById('identity.doFcc').checked = copiesAndFoldersIdentity.doFcc;
   document.getElementById('identity.fccReplyFollowsParent').checked = copiesAndFoldersIdentity.fccReplyFollowsParent;
   document.getElementById('identity.showSaveMsgDlg').checked = copiesAndFoldersIdentity.showSaveMsgDlg;
+  document.getElementById('identity.archiveEnabled').checked = copiesAndFoldersIdentity.archiveEnabled;
+
   onInitCopiesAndFolders(); // am-copies.js method
 }
 

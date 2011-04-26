@@ -60,45 +60,8 @@ const PORT_NUMBERS_TO_TEST =
 
 var gTestNumber;
 
-/**
- * Click the specified tree cell
- *
- * @param {MozMillController} controller
- *        MozMillController of the browser window to operate on
- * @param {tree} tree
- *        Tree to operate on
- * @param {number } rowIndex
- *        Index of the row
- * @param {number} columnIndex
- *        Index of the column
- * @param {object} eventDetails
- *        Details about the mouse event
- */
-function clickTreeCell(controller, tree, rowIndex, columnIndex, eventDetails)
-{
-  var selection = tree.view.selection;
-  selection.select(rowIndex);
-  tree.treeBoxObject.ensureRowIsVisible(rowIndex);
-
-  // get cell coordinates
-  var x = {}, y = {}, width = {}, height = {};
-  var column = tree.columns[columnIndex];
-  tree.treeBoxObject.getCoordsForCellItem(rowIndex, column, "text",
-                                           x, y, width, height);
-
-  controller.sleep(0);
-  EventUtils.synthesizeMouse(tree.body, x.value + 4, y.value + 4,
-                             eventDetails, tree.ownerDocument.defaultView);
-  controller.sleep(0);
-}
-
 function subtest_check_set_port_number(amc, aDontSet) {
-  amc.waitForEval("subject.currentAccount != null", 6000, 600, amc.window);
-
-  clickTreeCell(amc, amc.window.document.getElementById("accounttree"),
-                1, 0, {});
-
-  amc.waitForEval("subject.pendingAccount == null", 6000, 600, amc.window);
+  click_account_tree_row(amc, 1);
 
   let iframe = amc.window.document.getElementById("contentFrame");
   let portElem = iframe.contentDocument.getElementById("server.port");

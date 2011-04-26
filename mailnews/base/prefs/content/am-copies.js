@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -91,6 +91,7 @@ function onInitCopiesAndFolders()
     setupCcTextbox();
     setupBccTextbox();
     setupFccItems();
+    setupArchiveItems();
 
     SetSpecialFolderNamesWithDelims();
 }
@@ -437,4 +438,47 @@ function SetRadioButtons(selectPickerId, unselectPickerId)
 {
     var activeRadioElem = document.getElementById(selectPickerId);
     activeRadioElem.radioGroup.selectedItem = activeRadioElem;
+}
+
+/**
+ * Enable or disable (as appropriate) the controls for setting archive options
+ */
+function setupArchiveItems() {
+  var broadcaster = document.getElementById("broadcaster_archiveEnabled");
+
+  var checked = document.getElementById("identity.archiveEnabled").checked;
+  if (checked) {
+    broadcaster.removeAttribute("disabled");
+    switch (gArchivesRadioElemChoice) {
+      case "0":
+        if (!gArchivesRadioElemChoiceLocked)
+          SetPickerEnabling("msgArchivesAccountPicker", "msgArchivesFolderPicker");
+        SetRadioButtons("archive_selectAccount", "archive_selectFolder");
+        break;
+
+      case "1":
+        if (!gArchivesRadioElemChoiceLocked)
+          SetPickerEnabling("msgArchivesFolderPicker", "msgArchivesAccountPicker");
+        SetRadioButtons("archive_selectFolder", "archive_selectAccount");
+        break;
+
+      default:
+        dump("Error in setting Archive elements.\n");
+        break;
+    }
+  }
+  else
+    broadcaster.setAttribute("disabled", "true");
+}
+
+/**
+ * Open a dialog to edit the folder hierarchy used when archiving messages.
+ */
+function ChangeArchiveHierarchy() {
+  let identity = parent.gIdentity || parent.getCurrentAccount().defaultIdentity;
+
+  top.window.openDialog("chrome://messenger/content/am-archiveoptions.xul",
+                        "", "centerscreen,chrome,modal,titlebar,resizable=yes",
+                        identity);
+  return true;
 }

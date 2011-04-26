@@ -80,3 +80,7 @@ button:not(.spinbuttons-button):not(.dialog-button) {
 page > description {
      margin: 4px 4px 8px;
 }
+
+#archiveTree > treechildren {
+  background-color: #FFFFFF;
+}

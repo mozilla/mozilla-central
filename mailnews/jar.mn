@@ -43,6 +43,8 @@ messenger.jar:
 *   content/messenger/am-identity-edit.js                                      (base/prefs/content/am-identity-edit.js)
     content/messenger/am-identity-edit.xul                                     (base/prefs/content/am-identity-edit.xul)
     content/messenger/am-copiesOverlay.xul                                     (base/prefs/content/am-copiesOverlay.xul)
+    content/messenger/am-archiveoptions.xul                                    (base/prefs/content/am-archiveoptions.xul)
+    content/messenger/am-archiveoptions.js                                     (base/prefs/content/am-archiveoptions.js)
 *   content/messenger/AccountWizard.xul                                        (base/prefs/content/AccountWizard.xul)
     content/messenger/AccountWizard.js                                         (base/prefs/content/AccountWizard.js)
     content/messenger/aw-accounttype.js                                        (base/prefs/content/aw-accounttype.js)
