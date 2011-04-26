@@ -933,6 +933,7 @@ function IsMessageDisplayedInMessagePane()
 
 function MsgDeleteFolder()
 {
+    const NS_MSG_ERROR_COPY_FOLDER_ABORTED = 0x8055001a;
     var folderTree = GetFolderTree();
     var selectedFolders = GetSelectedMsgFolders();
     var prompt = Services.prompt;
@@ -987,7 +988,12 @@ function MsgDeleteFolder()
                 var array = Components.classes["@mozilla.org/array;1"]
                                       .createInstance(Components.interfaces.nsIMutableArray);
                 array.appendElement(selectedFolder, false);
-                selectedFolder.parent.deleteSubFolders(array, msgWindow);
+                try
+                {
+                    selectedFolder.parent.deleteSubFolders(array, msgWindow);
+                }
+                // Ignore known errors from canceled warning dialogs.
+                catch (ex if (ex.result == NS_MSG_ERROR_COPY_FOLDER_ABORTED)) {}
             }
         }
     }
