@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 /**
  * This file implements the authentication mechanisms
+ * - AUTH LOGIN
  * - AUTH PLAIN
  * - AUTH CRAM-MD5
  * for all the server implementations, i.e. in a generic way.

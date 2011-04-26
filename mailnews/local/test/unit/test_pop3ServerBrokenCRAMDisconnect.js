@@ -17,8 +17,6 @@
  * - We should reopen the connection, remember which auth scheme failed
  *    and start with the next in list, not trying the broken one again.
  *    We currently neither retry nor remember.
- * - OnStopRunningUrl() returns success although the server closed the connection
- *    and it's clearly not successful.
  * - incomingServer thinks it is still running/busy although the connection is
  *    clearly done and over.
  *
@@ -42,6 +40,7 @@ var urlListener =
   },
   OnStopRunningUrl: function (url, result) {
     try {
+      // We should be getting an error here, because we couldn't log in.
       do_check_eq(result, Cr.NS_ERROR_FAILURE);
 
       var transaction = server.playTransaction();
