@@ -39,8 +39,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-
 // Controller object for folder pane
 var FolderPaneController =
 {
@@ -937,6 +935,7 @@ function MsgDeleteFolder()
 {
     var folderTree = GetFolderTree();
     var selectedFolders = GetSelectedMsgFolders();
+    var prompt = Services.prompt;
     for (var i = 0; i < selectedFolders.length; i++)
     {
         var selectedFolder = selectedFolders[i];
@@ -946,6 +945,14 @@ function MsgDeleteFolder()
             var folder = selectedFolder.QueryInterface(Components.interfaces.nsIMsgFolder);
             if (folder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
             {
+                var confirmation = gMessengerBundle.getString("confirmSavedSearchDeleteMessage");
+                var title = gMessengerBundle.getString("confirmSavedSearchDeleteTitle");
+                var buttonTitle = gMessengerBundle.getString("confirmSavedSearchDeleteButton");
+                var buttonFlags = prompt.BUTTON_TITLE_IS_STRING * prompt.BUTTON_POS_0 +
+                                  prompt.BUTTON_TITLE_CANCEL * prompt.BUTTON_POS_1;
+                if (prompt.confirmEx(window, title, confirmation, buttonFlags, buttonTitle,
+                                     "", "", "", {}) != 0) /* the yes button is in position 0 */
+                    continue;
                 if (gCurrentVirtualFolderUri == selectedFolder.URI)
                   gCurrentVirtualFolderUri = null;
                 var array = Components.classes["@mozilla.org/array;1"]
@@ -966,7 +973,7 @@ function MsgDeleteFolder()
                 var errorMessage = gMessengerBundle.getFormattedString("specialFolderDeletionErr",
                                                     [specialFolder]);
                 var specialFolderDeletionErrTitle = gMessengerBundle.getString("specialFolderDeletionErrTitle");
-                promptService.alert(window, specialFolderDeletionErrTitle, errorMessage);
+                prompt.alert(window, specialFolderDeletionErrTitle, errorMessage);
                 continue;
             }   
             else if (isNewsURI(selectedFolder.URI))
