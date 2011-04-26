@@ -353,6 +353,9 @@ public:
   nsresult SetSupportedUserFlags(PRUint32 userFlags);
   nsresult GetSupportedUserFlags(PRUint32 *userFlags);
 
+  // Find the start of a range of msgKeys that can hold srcCount headers.
+  nsresult FindOpenRange(nsMsgKey &fakeBase, PRUint32 srcCount);
+
 protected:
   // Helper methods
 

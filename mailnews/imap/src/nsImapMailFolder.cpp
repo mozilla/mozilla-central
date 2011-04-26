@@ -6960,6 +6960,26 @@ nsresult nsImapMailFolder::CopyOfflineMsgBody(nsIMsgFolder *srcFolder,
   return rv;
 }
 
+nsresult nsImapMailFolder::FindOpenRange(nsMsgKey &fakeBase, PRUint32 srcCount)
+{
+  nsMsgKey newBase = fakeBase - 1;
+  PRUint32 freeCount = 0;
+  while (freeCount != srcCount && newBase > 0)
+  {
+    PRBool containsKey;
+    if (NS_SUCCEEDED(mDatabase->ContainsKey(newBase, &containsKey))
+        && !containsKey)
+      freeCount++;
+    else
+      freeCount = 0;
+    newBase--;
+  }
+  if (!newBase)
+    return NS_ERROR_FAILURE;
+  fakeBase = newBase;
+  return NS_OK;
+}
+
 // this imap folder is the destination of an offline move/copy.
 // We are either offline, or doing a pseudo-offline delete (where we do an offline
 // delete, load the next message, then playback the offline delete).
@@ -7018,6 +7038,14 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
       nsMsgKey highWaterMark = nsMsgKey_None;
       folderInfo->GetHighWater(&highWaterMark);
       fakeBase += highWaterMark;
+      nsMsgKey fakeTop = fakeBase + srcCount;
+      // Check that we have enough room for the fake headers. If fakeTop
+      // is <= highWaterMark, we've overflowed.
+      if (fakeTop <= highWaterMark || fakeTop == nsMsgKey_None)
+      {
+        rv = FindOpenRange(fakeBase, srcCount);
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
       // N.B. We must not return out of the for loop - we need the matching 
       // end notifications to be sent.
       // We don't need to acquire the semaphor since this is synchronous
@@ -7304,7 +7332,7 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, PRBool aIsMove)
 
   // these properties are set as integers below, so don't set them again
   // in the iteration through the properties
-  dontPreserveEx.AppendLiteral("offlineMsgSize msgOffset flags priority ");
+  dontPreserveEx.AppendLiteral("offlineMsgSize msgOffset flags priority pseudoHdr ");
 
   // these fields are either copied separately when the server does not support
   // custom IMAP flags, or managed directly through the flags

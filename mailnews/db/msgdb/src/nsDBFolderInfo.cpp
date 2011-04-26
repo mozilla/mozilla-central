@@ -486,6 +486,36 @@ NS_IMETHODIMP nsDBFolderInfo::SetFolderDate(PRUint32 folderDate)
 
 NS_IMETHODIMP nsDBFolderInfo::GetHighWater(nsMsgKey *result)
 {
+  // Sanity check highwater - if it gets too big, other code
+  // can fail. Look through last 100 messages to recalculate
+  // the highwater mark.
+  *result = m_highWaterMessageKey;
+  if (m_highWaterMessageKey > 0xFFFFFF00 && m_mdb)
+  {
+    nsCOMPtr <nsISimpleEnumerator> hdrs;
+    nsresult rv = m_mdb->ReverseEnumerateMessages(getter_AddRefs(hdrs));
+    if (NS_FAILED(rv))
+      return rv;
+    PRBool hasMore = PR_FALSE;
+    nsCOMPtr<nsIMsgDBHdr> pHeader;
+    nsMsgKey recalculatedHighWater = 1;
+    PRInt32 i = 0;
+    while(i++ < 100 && NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore))
+              && hasMore)
+    {
+      (void) hdrs->GetNext(getter_AddRefs(pHeader));
+      if (pHeader)
+      {
+        nsMsgKey msgKey;
+        pHeader->GetMessageKey(&msgKey);
+        if (msgKey > recalculatedHighWater)
+          recalculatedHighWater = msgKey;
+      }
+    }
+    NS_ASSERTION(m_highWaterMessageKey >= recalculatedHighWater,
+                 "highwater incorrect");
+    m_highWaterMessageKey = recalculatedHighWater;
+  }
   *result = m_highWaterMessageKey;
   return NS_OK;
 }
