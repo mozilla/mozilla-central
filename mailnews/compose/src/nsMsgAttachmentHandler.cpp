@@ -1133,20 +1133,21 @@ nsMsgAttachmentHandler::LoadDataFromFile(nsILocalFile *file, nsString &sigData, 
 nsresult
 nsMsgAttachmentHandler::Abort()
 {
+  nsCOMPtr<nsIRequest> saveRequest;
+  saveRequest.swap(mRequest);
   NS_ASSERTION(m_mime_delivery_state != nsnull, "not-null m_mime_delivery_state");
 
   if (m_done)
     return NS_OK;
 
-  if (mRequest)
-    return mRequest->Cancel(NS_ERROR_ABORT);
+  if (saveRequest)
+    return saveRequest->Cancel(NS_ERROR_ABORT);
   else
     if (m_mime_delivery_state)
     {
       m_mime_delivery_state->SetStatus(NS_ERROR_ABORT);
       m_mime_delivery_state->NotifyListenerOnStopSending(nsnull, NS_ERROR_ABORT, 0, nsnull);
     }
-
   return NS_OK;
 
 }

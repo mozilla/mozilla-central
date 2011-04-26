@@ -131,7 +131,7 @@ public:
   nsCOMPtr <nsIURI> mURL;
   nsCOMPtr <nsILocalFile>        mTmpFile;         // The temp file to which we save it 
   nsCOMPtr<nsIOutputStream>  mOutFile;          
-  nsIRequest            *mRequest;          // The live request used while fetching an attachment
+  nsCOMPtr<nsIRequest> mRequest; // The live request used while fetching an attachment
   nsMsgCompFields       *mCompFields;       // Message composition fields for the sender
   PRBool                m_bogus_attachment; // This is to catch problem children...
   
