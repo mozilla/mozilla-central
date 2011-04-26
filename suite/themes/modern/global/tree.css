@@ -196,11 +196,11 @@ treechildren::-moz-tree-drop-feedback {
 }
 
 /* ::::: tree checkbox ::::: */
-                                                                                
+
 treechildren::-moz-tree-checkbox {
   list-style-image: url("chrome://global/skin/tree/checkbox.gif");
 }
-                                                                                
+
 treechildren::-moz-tree-checkbox(checked) {
   list-style-image: url("chrome://global/skin/tree/checkbox-checked.gif");
 }
@@ -291,20 +291,22 @@ treecol[dragging="true"] {
   color: #FFFFFF !important;
 }
 
-treecol[insertafter="true"] {
+treecol[insertafter="true"]:-moz-locale-dir(ltr),
+treecol[insertbefore="true"]:-moz-locale-dir(rtl) {
   -moz-border-right-colors: #000000 #666666;
 }
 
-treecol[insertbefore="true"] {
+treecol[insertafter="true"]:-moz-locale-dir(rtl),
+treecol[insertbefore="true"]:-moz-locale-dir(ltr) {
   -moz-border-left-colors: #000000 #666666;
 }
 
 treechildren::-moz-tree-column(insertbefore) {
-  border-left: 1px solid #AAAAAA;
+  -moz-border-start: 1px solid #AAAAAA;
 }
 
 treechildren::-moz-tree-column(insertafter) {
-  border-right: 1px solid #AAAAAA;
+  -moz-border-end: 1px solid #AAAAAA;
 }
 
 /* ::::: sort direction indicator :::::  */

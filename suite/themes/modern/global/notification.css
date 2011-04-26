@@ -76,3 +76,7 @@ popupnotification {
   max-width: 248px;
   margin-top: 4px !important;
 }
+
+.popup-notification-closeitem {
+  list-style-image: url("chrome://global/skin/icons/closebox.gif");
+}

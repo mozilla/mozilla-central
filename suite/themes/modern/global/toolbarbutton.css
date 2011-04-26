@@ -51,9 +51,9 @@ toolbarbutton {
   font: message-box;
 }
 
-.toolbarbutton-icon {
+.toolbarbutton-icon[label]:not([label=""]),
+.toolbarbutton-icon[type="menu"] {
   -moz-margin-end: 2px;
-  list-style-image: inherit;
 }
 
 .toolbarbutton-text {
@@ -92,7 +92,7 @@ toolbarbutton[disabled="true"] {
 }
 
 /* ..... checked state ..... */
-  
+
 toolbarbutton[checked="true"] {
   border-top-color: #454C55 !important;
   border-right-color: #7D848D !important;

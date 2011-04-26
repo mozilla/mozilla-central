@@ -118,6 +118,10 @@ button {
   font-family: Helvetica, Arial, sans-serif;
 }
 
+.positionLabel {
+  display: none;
+}
+
 .scrubber .scale-slider {
   /* abs(margin-top) + margin-bottom + bar height == timeThumb height */
   margin-top: -9px;

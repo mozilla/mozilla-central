@@ -68,8 +68,13 @@
   font-weight: bold;
 }
 
-.alertTextBox {
+.alertBox[orient="horizontal"] > .alertTextBox {
   margin: 4px 6px 0;
+}
+
+.alertBox[orient="vertical"] > .alertTextBox {
+  margin: 0 4px 6px;
+  -moz-box-align: center;
 }
 
 .alertText {
