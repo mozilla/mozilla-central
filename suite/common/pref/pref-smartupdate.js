@@ -42,12 +42,22 @@ var gCanCheckForUpdates;
 
 function Startup()
 {
-  var aus = Components.classes["@mozilla.org/updates/update-service;1"]
-                      .getService(Components.interfaces.nsIApplicationUpdateService);
-  gCanCheckForUpdates = aus.canCheckForUpdates;
+  var hasUpdater = "nsIApplicationUpdateService" in Components.interfaces;
 
-  UpdateAddonsItems();
-  UpdateAppItems();
+  if (hasUpdater)
+  {
+    var aus = Components.classes["@mozilla.org/updates/update-service;1"]
+                        .getService(Components.interfaces.nsIApplicationUpdateService);
+    gCanCheckForUpdates = aus.canCheckForUpdates;
+
+    UpdateAddonsItems();
+    UpdateAppItems();
+  }
+  else
+  {
+    var appGroupBox = document.getElementById("appUpdatesGroupBox");
+    appGroupBox.hidden = true;
+  }
 }
 
 /*

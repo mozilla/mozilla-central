@@ -141,7 +141,7 @@
         </hbox>
     </groupbox>
 
-    <groupbox>
+    <groupbox id="appUpdatesGroupBox">
       <caption label="&appUpdates.caption;"/>
          <hbox>
            <checkbox id="appUpdatesEnabled"

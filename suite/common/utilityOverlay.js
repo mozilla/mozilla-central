@@ -687,6 +687,18 @@ function checkForUpdates()
 
 function updateCheckUpdatesItem()
 {
+  var hasUpdater = "nsIApplicationUpdateService" in Components.interfaces;
+  var checkForUpdates = document.getElementById("checkForUpdates");
+
+  if (!hasUpdater)
+  {
+    var updateSeparator = document.getElementById("updateSeparator");
+
+    checkForUpdates.hidden = true;
+    updateSeparator.hidden = true;
+    return;
+  }
+
   var updates = Components.classes["@mozilla.org/updates/update-service;1"]
                           .getService(Components.interfaces.nsIApplicationUpdateService);
   var um = Components.classes["@mozilla.org/updates/update-manager;1"]
@@ -694,9 +706,9 @@ function updateCheckUpdatesItem()
 
   // Disable the UI if the update enabled pref has been locked by the
   // administrator or if we cannot update for some other reason.
-  var checkForUpdates = document.getElementById("checkForUpdates");
   var canCheckForUpdates = updates.canCheckForUpdates;
   checkForUpdates.setAttribute("disabled", !canCheckForUpdates);
+
   if (!canCheckForUpdates)
     return;
 
