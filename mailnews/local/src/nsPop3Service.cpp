@@ -281,12 +281,6 @@ nsresult nsPop3Service::RunPopUrl(nsIMsgIncomingServer * aServer, nsIURI * aUrlT
       if (protocol)
       {
         NS_ADDREF(protocol);
-        rv = protocol->Initialize(aUrlToRun);
-        if(NS_FAILED(rv))
-        {
-          NS_RELEASE(protocol);
-          return rv;
-        }
         // the protocol stores the unescaped username, so there is no need to escape it.
         protocol->SetUsername(userName.get());
         rv = protocol->LoadUrl(aUrlToRun);

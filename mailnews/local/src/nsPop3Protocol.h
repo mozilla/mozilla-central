@@ -295,6 +295,7 @@ public:
 
   nsresult Initialize(nsIURI * aURL);
   virtual nsresult LoadUrl(nsIURI *aURL, nsISupports * aConsumer = nsnull);
+  void Cleanup();
 
   const char* GetUsername() { return m_username.get(); }
   void SetUsername(const char* name);
@@ -358,6 +359,7 @@ private:
   PRBool m_tlsEnabled;
   PRInt32 m_socketType;
   PRBool m_password_already_sent;
+  PRBool m_needToRerunUrl;
 
   void SetCapFlag(PRUint32 flag);
   void ClearCapFlag(PRUint32 flag);
@@ -426,6 +428,7 @@ private:
   PRInt32 CommitState(PRBool remove_last_entry);
 
   Pop3StatesEnum GetNextPasswordObtainState();
+  nsresult RerunUrl();
 };
 
 #endif /* nsPop3Protocol_h__ */

@@ -488,8 +488,7 @@ nsPop3Protocol::nsPop3Protocol(nsIURI* aURL)
   m_totalDownloadSize(0),
   m_totalBytesReceived(0),
   m_lineStreamBuffer(nsnull),
-  m_pop3ConData(nsnull),
-  m_password_already_sent(PR_FALSE)
+  m_pop3ConData(nsnull)
 {
 }
 
@@ -512,7 +511,9 @@ nsresult nsPop3Protocol::Initialize(nsIURI * aURL)
   m_socketType = nsMsgSocketType::trySTARTTLS;
   m_prefAuthMethods = POP3_AUTH_MECH_UNDEFINED;
   m_failedAuthMethods = 0;
+  m_password_already_sent = PR_FALSE;
   m_currentAuthMethod = POP3_AUTH_MECH_UNDEFINED;
+  m_needToRerunUrl = PR_FALSE;
 
   if (aURL)
   {
@@ -606,8 +607,16 @@ nsresult nsPop3Protocol::Initialize(nsIURI * aURL)
 
 nsPop3Protocol::~nsPop3Protocol()
 {
+  Cleanup();
+}
+
+void nsPop3Protocol::Cleanup()
+{
   if (m_pop3ConData->newuidl)
+  {
     PL_HashTableDestroy(m_pop3ConData->newuidl);
+    m_pop3ConData->newuidl = nsnull;
+  }
 
   net_pop3_free_state(m_pop3ConData->uidlinfo);
 
@@ -616,6 +625,7 @@ nsPop3Protocol::~nsPop3Protocol()
   PR_Free(m_pop3ConData);
 
   delete m_lineStreamBuffer;
+  m_lineStreamBuffer = nsnull;
 }
 
 void nsPop3Protocol::SetCapFlag(PRUint32 flag)
@@ -706,21 +716,27 @@ void nsPop3Protocol::SetUsername(const char* name)
       m_username = name;
 }
 
+nsresult nsPop3Protocol::RerunUrl()
+{
+  nsCOMPtr<nsIURI> url = do_QueryInterface(m_url);
+  ClearFlag(POP3_PASSWORD_FAILED);
+  m_pop3Server->SetRunningProtocol(nsnull);
+  Cleanup();
+  return LoadUrl(url, nsnull);
+}
+
 Pop3StatesEnum nsPop3Protocol::GetNextPasswordObtainState()
 {
   switch (m_pop3ConData->next_state)
   {
   case POP3_OBTAIN_PASSWORD_EARLY:
     return POP3_FINISH_OBTAIN_PASSWORD_EARLY;
-    break;
   case POP3_SEND_USERNAME:
   case POP3_OBTAIN_PASSWORD_BEFORE_USERNAME:
     return POP3_FINISH_OBTAIN_PASSWORD_BEFORE_USERNAME;
-    break;
   case POP3_SEND_PASSWORD:
   case POP3_OBTAIN_PASSWORD_BEFORE_PASSWORD:
     return POP3_FINISH_OBTAIN_PASSWORD_BEFORE_PASSWORD;
-    break;
   default:
     // Should never get here.
     NS_NOTREACHED("Invalid next_state in GetNextPasswordObtainState");
@@ -827,7 +843,7 @@ NS_IMETHODIMP nsPop3Protocol::OnPromptStart(PRBool *aResult)
         if (buttonPressed == 1) // Cancel button
         {
           PR_LOG(POP3LOGMODULE, PR_LOG_WARN, ("cancel button pressed"));
-          // About quickly and stop trying for now.
+          // Abort quickly and stop trying for now.
 
           // If we haven't actually connected yet (i.e. we're doing an early
           // attempt to get the username/password but we've previously failed
@@ -864,6 +880,8 @@ NS_IMETHODIMP nsPop3Protocol::OnPromptStart(PRBool *aResult)
           ResetAuthMethods();
           // ... apart from GSSAPI, which doesn't care about passwords
           MarkAuthMethodAsFailed(POP3_HAS_AUTH_GSSAPI);
+          if (m_needToRerunUrl)
+            return RerunUrl();
         }
         else if (buttonPressed == 0) // "Retry" button
         {
@@ -871,6 +889,9 @@ NS_IMETHODIMP nsPop3Protocol::OnPromptStart(PRBool *aResult)
           // try all methods again, including GSSAPI
           ResetAuthMethods();
           ClearFlag(POP3_PASSWORD_FAILED|POP3_AUTH_FAILURE);
+
+          if (m_needToRerunUrl)
+            return RerunUrl();
 
           // It is a bit strange that we're going onto the next state that 
           // would essentially send the password. However in resetting the
@@ -952,23 +973,24 @@ NS_IMETHODIMP nsPop3Protocol::OnTransportStatus(nsITransport *aTransport, nsresu
 // stop binding is a "notification" informing us that the stream associated with aURL is going away.
 NS_IMETHODIMP nsPop3Protocol::OnStopRequest(nsIRequest *aRequest, nsISupports * aContext, nsresult aStatus)
 {
-  PRBool socketWasOpen = m_socketIsOpen;
-  nsresult rv = nsMsgProtocol::OnStopRequest(aRequest, aContext, aStatus);
   // If the server dropped the connection, m_socketIsOpen will be true, before
   // we call nsMsgProtocol::OnStopRequest. The call will force a close socket,
   // but we still want to go through the state machine one more time to cleanup
   // the protocol object.
-  if (socketWasOpen)
+  if (m_socketIsOpen)
   {
-    // We give up, so don't ask for password again.
-    // The following line must be removed, if, in the future, we want to
-    // continue trying to log in (with other auth methods or other password)
-    // after auth failure in form of connection drop by server (instead of -ERR).
-    ClearFlag(POP3_PASSWORD_FAILED|POP3_AUTH_FAILURE);
-
+    // We can't call nsMsgProtocol::OnStopRequest because it calls SetUrlState,
+    // which notifies the URLListeners, but we need to do a bit of cleanup
+    // before running the url again.
+    CloseSocket();
+    if (m_loadGroup)
+      m_loadGroup->RemoveRequest(static_cast<nsIRequest *>(this), nsnull, aStatus);
     m_pop3ConData->next_state = POP3_ERROR_DONE;
     ProcessProtocolState(nsnull, nsnull, 0, 0);
+    return NS_OK;
   }
+  nsresult rv = nsMsgProtocol::OnStopRequest(aRequest, aContext, aStatus);
+
   // turn off the server busy flag on stop request - we know we're done, right?
   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_pop3Server);
   if (server)
@@ -1005,8 +1027,8 @@ NS_IMETHODIMP nsPop3Protocol::Cancel(nsresult status)  // handle stop button
 
 nsresult nsPop3Protocol::LoadUrl(nsIURI* aURL, nsISupports * /* aConsumer */)
 {
-  nsresult rv = 0;
-
+  nsresult rv = Initialize(aURL);
+  NS_ENSURE_SUCCESS(rv, rv);
   if (aURL)
     m_url = do_QueryInterface(aURL);
   else
@@ -4084,8 +4106,14 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
         // no msgWindow means no re-prompt, so treat as error.
         if (TestFlag(POP3_PASSWORD_FAILED) && msgWindow)
         {
-        /* We got here because the password was wrong, so go
-          read a new one and re-open the connection. */
+          // We get here because the password was wrong.
+          if (!m_socketIsOpen && mailnewsurl)
+          {
+            // The server dropped the connection, so we're going
+            // to re-run the url.
+            m_needToRerunUrl = PR_TRUE;
+            return NS_OK;
+          }
           m_pop3ConData->next_state = POP3_READ_PASSWORD;
           m_pop3ConData->command_succeeded = PR_TRUE;
           status = 0;
