@@ -2918,13 +2918,17 @@ function AddUrlAttachment(attachment)
     attachment.name = gComposeBundle.getString("partAttachmentSafeName");
 
   var bucket = document.getElementById("attachmentBucket");
-  var nameAndSize = attachment.name;
+  var item;
   if (attachment.size != -1)
   {
-    nameAndSize += " ("+gMessenger.formatFileSize(attachment.size)+")";
+    var size = gMessenger.formatFileSize(attachment.size);
+    var nameAndSize = gComposeBundle.getFormattedString(
+      "attachmentNameAndSize", [attachment.name, size]);
+    item = bucket.appendItem(nameAndSize, "");
     gAttachmentsSize += attachment.size;
   }
-  var item = bucket.appendItem(nameAndSize, "");
+  else
+    item = bucket.appendItem(attachment.name, "");
 
   item.attachment = attachment; // Full attachment object stored here.
   try {
@@ -3111,9 +3115,14 @@ function RenameSelectedAttachment()
 
     var nameAndSize = modifiedAttachmentName;
     if (item.attachment.size != -1)
-      nameAndSize += " ("+gMessenger.formatFileSize(item.attachment.size)+")";
+    {
+      var size = gMessenger.formatFileSize(item.attachment.size);
+      item.label = gComposeBundle.getFormattedString(
+          "attachmentNameAndSize", [modifiedAttachmentName, size]);
+    }
+    else
+      item.label = modifiedAttachmentName;
 
-    item.label = nameAndSize;
     item.attachment.name = modifiedAttachmentName;
     gContentChanged = true;
   }

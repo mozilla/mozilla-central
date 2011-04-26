@@ -1906,12 +1906,16 @@ function displayAttachmentsForExpandedView()
     {
       // Create a new attachment widget
       var displayName = createAttachmentDisplayName(attachment);
-      var nameAndSize = displayName;
+      var item;
       if (attachment.size != null) {
-        nameAndSize += " ("+messenger.formatFileSize(attachment.size)+")";
+        var size = messenger.formatFileSize(attachment.size);
+        var nameAndSize = gMessengerBundle.getFormattedString(
+          "attachmentNameAndSize", [displayName, size]);
+        item = attachmentList.appendItem(nameAndSize);
         totalSize += attachment.size;
       }
-      var item = attachmentList.appendItem(nameAndSize);
+      else
+        item = attachmentList.appendItem(displayName);
 
       item.setAttribute("class", "descriptionitem-iconic");
 
