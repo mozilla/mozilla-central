@@ -557,7 +557,7 @@ FeedWriter.prototype = {
     var url = makeURI(aURL);
 
     if ((url instanceof Components.interfaces.nsIURL) && url.fileName)
-      return decodeURIComponent(url.fileName);
+      return decodeURI(url.fileName);
     return aURL;
   },
 
