@@ -979,6 +979,19 @@ NS_IMETHODIMP nsPop3Protocol::OnStopRequest(nsIRequest *aRequest, nsISupports * 
   // the protocol object.
   if (m_socketIsOpen)
   {
+    // Check if the connection was dropped before getting back an auth error.
+    // If we got the auth error, the next state would be
+    // POP3_OBTAIN_PASSWORD_EARLY.
+    if (m_pop3ConData->next_state_after_response == POP3_NEXT_AUTH_STEP &&
+        m_pop3ConData->next_state != POP3_OBTAIN_PASSWORD_EARLY)
+    {
+      PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("dropped connection before auth error"));
+      SetFlag(POP3_AUTH_FAILURE);
+      m_pop3ConData->command_succeeded = PR_FALSE;
+      m_needToRerunUrl = PR_TRUE;
+      m_pop3ConData->next_state = POP3_NEXT_AUTH_STEP;
+      ProcessProtocolState(nsnull, nsnull, 0, 0);
+    }
     // We can't call nsMsgProtocol::OnStopRequest because it calls SetUrlState,
     // which notifies the URLListeners, but we need to do a bit of cleanup
     // before running the url again.
@@ -4111,6 +4124,7 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
           {
             // The server dropped the connection, so we're going
             // to re-run the url.
+            PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("need to rerun url because connection dropped during auth"));
             m_needToRerunUrl = PR_TRUE;
             return NS_OK;
           }
