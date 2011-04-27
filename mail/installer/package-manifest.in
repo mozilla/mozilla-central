@@ -314,6 +314,9 @@
 @BINPATH@/components/phishing.manifest
 @BINPATH@/components/nsPhishingProtectionApplication.js
 @BINPATH@/components/nsUrlClassifierListManager.js
+#ifndef MOZILLA_5_0_BRANCH
+@BINPATH@/components/nsUrlClassifierHashCompleter.js
+#endif
 @BINPATH@/components/nsUrlClassifierLib.js
 @BINPATH@/components/nsURLClassifier.manifest
 @BINPATH@/components/url-classifier.xpt
