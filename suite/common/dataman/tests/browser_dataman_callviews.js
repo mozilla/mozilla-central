@@ -13,6 +13,10 @@ var gLocSvc = {
 };
 
 const DATAMAN_LOADED = "dataman-loaded";
+
+// See browser_dataman_basics.js.
+const kPreexistingDomains = 10;
+
 var testIndex = 0;
 
 function test() {
@@ -144,7 +148,7 @@ function test_load_datatype(aWin) {
 function test_switch_datatype(aWin) {
   is(aWin.gDomains.selectfield.value, "Permissions",
     "Step " + testIndex + ": The correct menulist item is selected");
-  is(aWin.gDomains.tree.view.rowCount, 12,
+  is(aWin.gDomains.tree.view.rowCount, kPreexistingDomains + 3,
     "Step " + testIndex + ": The correct number of domains is listed");
   is(aWin.gDomains.tree.view.selection.count, 1,
     "Step " + testIndex + ": One domain is selected");
