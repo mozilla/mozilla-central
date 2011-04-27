@@ -113,9 +113,13 @@ function SetNewsFolderColumns()
 
   if (gDBView.usingLines) {
      sizeColumn.setAttribute("label",gMessengerBundle.getString("linesColumnHeader"));
+     sizeColumn.setAttribute("tooltiptext",
+                             gMessengerBundle.getString("linesColumnTooltip"));
   }
   else {
      sizeColumn.setAttribute("label", gMessengerBundle.getString("sizeColumnHeader"));
+     sizeColumn.setAttribute("tooltiptext",
+                             gMessengerBundle.getString("sizeColumnTooltip"));
   }
 }
 
