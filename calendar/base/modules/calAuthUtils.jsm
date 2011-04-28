@@ -319,37 +319,32 @@ cal.auth.Prompt.prototype = {
                                       aLevel,     // PRUint32
                                       aAuthInfo   // nsIAuthInformation
                                 ) {
-        let hostRealm = {};
-        hostRealm.prePath = aChannel.URI.prePath;
-        hostRealm.realm = aAuthInfo.realm;
-        let port = aChannel.URI.port;
-        if (port == -1) {
-            let handler = cal.getIOService().getProtocolHandler(aChannel.URI.scheme)
-                                            .QueryInterface(Components.interfaces.nsIProtocolHandler);
-            port = handler.defaultPort;
-        }
-        hostRealm.passwordRealm = aChannel.URI.host + ":" + port + " (" + aAuthInfo.realm + ")";
+        var self = this;
+        let promptlistener = {
 
-        let pw = this.getPasswordInfo(hostRealm);
-        aAuthInfo.username = pw.username;
-        if (pw && pw.found) {
-            aAuthInfo.password = pw.password;
-            // We cannot call the callback directly here so call it from a timer
-            let timerCallback = {
-                notify: function(timer) {
-                    aCallback.onAuthAvailable(aContext, aAuthInfo);
+            onPromptStart: function() {
+                res=self.promptAuth(aChannel, aLevel, aAuthInfo);
+
+                if (res) {
+                    this.onPromptAuthAvailable();
+                    return true;
                 }
-            };
-            let timer = Components.classes["@mozilla.org/timer;1"]
-                        .createInstance(Components.interfaces.nsITimer);
-            timer.initWithCallback(timerCallback,
-                                   0,
-                                   Components.interfaces.nsITimer.TYPE_ONE_SHOT);
-        } else {
-            let prompter2 = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                                      .getService(Components.interfaces.nsIPromptFactory)
-                                      .getPrompt(null, Components.interfaces.nsIAuthPrompt2);
-            prompter2.asyncPromptAuth(aChannel, aCallback, aContext, aLevel, aAuthInfo);
-        }
+
+                this.onPromptCanceled();
+                return false;
+            },
+
+            onPromptAuthAvailable : function() {
+                aCallback.onAuthAvailable(aContext, aAuthInfo);
+            },
+
+            onPromptCanceled : function() {
+                aCallback.onAuthCancelled(aContext, true);
+            }
+        };
+
+        var asyncprompter = Components.classes["@mozilla.org/messenger/msgAsyncPrompter;1"]
+                                      .getService(Components.interfaces.nsIMsgAsyncPrompter);
+        asyncprompter.queueAsyncAuthPrompt(aChannel.URI.spec, false, promptlistener);
     }
 };
