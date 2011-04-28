@@ -57,6 +57,7 @@ nsMsgXFVirtualFolderDBView::nsMsgXFVirtualFolderDBView()
   mSuppressMsgDisplay = PR_FALSE;
   m_doingSearch = PR_FALSE;
   m_doingQuickSearch = PR_FALSE;
+  m_totalMessagesInView = 0;
 }
 
 nsMsgXFVirtualFolderDBView::~nsMsgXFVirtualFolderDBView()
@@ -313,6 +314,7 @@ nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *aFol
       AddHdrFromFolder(aMsgHdr, aFolder);
   }
   m_hdrHits.AppendObject(aMsgHdr);
+  m_totalMessagesInView++;
 
   return NS_OK;
 }
@@ -341,7 +343,6 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
   // folder - easier than trying to keep the count up to date in the face of
   // search hits coming in while the user is reading/deleting messages.
   PRUint32 numUnread = 0;
-  PRUint32 numTotal = 0;
   for (PRUint32 i = 0; i < m_flags.Length(); i++)
     if (m_flags[i] & nsMsgMessageFlags::Elided)
     {
@@ -349,21 +350,18 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
       GetThreadContainingIndex(i, getter_AddRefs(thread));
       if (thread)
       {
-        PRUint32 totalInThread, unreadInThread;
+        PRUint32 unreadInThread;
         thread->GetNumUnreadChildren(&unreadInThread);
-        thread->GetNumChildren(&totalInThread);
-        numTotal += totalInThread;
         numUnread += unreadInThread;
       }
     }
     else
     {
-      numTotal++;
       if (!(m_flags[i] & nsMsgMessageFlags::Read))
         numUnread++;
     }
   dbFolderInfo->SetNumUnreadMessages(numUnread);
-  dbFolderInfo->SetNumMessages(numTotal);
+  dbFolderInfo->SetNumMessages(m_totalMessagesInView);
   m_viewFolder->UpdateSummaryTotals(true); // force update from db.
   virtDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
   if (!m_sortValid && m_sortType != nsMsgViewSortType::byThread && 
@@ -385,6 +383,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
 
   RemovePendingDBListeners();
   m_doingSearch = PR_TRUE;
+  m_totalMessagesInView = 0;
   m_folders.Clear();
   m_keys.Clear();
   m_levels.Clear();
@@ -400,7 +399,9 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
   // For each hit in a new folder, we'll then clean up the stale hits from the previous folder(s).
 
   PRInt32 scopeCount;
-  nsCOMPtr <nsIMsgSearchSession> searchSession = do_QueryReferent(m_searchSession);
+  nsCOMPtr<nsIMsgSearchSession> searchSession = do_QueryReferent(m_searchSession);
+  if (!searchSession)
+    return NS_OK; // just ignore
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID);
   searchSession->CountSearchScopes(&scopeCount);
 

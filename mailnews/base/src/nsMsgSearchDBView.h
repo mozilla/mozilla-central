@@ -159,6 +159,7 @@ protected:
 
   // map message-ids to msg hdrs in the view, used for threading.
   nsInterfaceHashtable <nsCStringHashKey, nsIMsgDBHdr> m_hdrsTable;
+  PRUint32 m_totalMessagesInView;
 
   PR_STATIC_CALLBACK(PLDHashOperator) ThreadTableCloner(const nsACString &aKey, 
                                                         nsIMsgThread* aThread, 

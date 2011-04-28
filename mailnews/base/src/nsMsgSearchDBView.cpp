@@ -67,6 +67,7 @@ nsMsgSearchDBView::nsMsgSearchDBView()
   mSuppressMsgDisplay = PR_TRUE;
   m_threadsTable.Init();
   m_hdrsTable.Init();
+  m_totalMessagesInView = 0;
   m_nextThreadId = 1;
 }
 
@@ -706,6 +707,7 @@ nsMsgSearchDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *folder)
       m_dbToUseList.AppendObject(dbToUse);
     }
   }
+  m_totalMessagesInView++;
   if (m_sortValid)
     return InsertHdrFromFolder(aMsgHdr, folder);
   else
@@ -741,6 +743,7 @@ nsMsgSearchDBView::OnNewSearch()
   m_keys.Clear();
   m_levels.Clear();
   m_flags.Clear();
+  m_totalMessagesInView = 0;
 
   // needs to happen after we remove the keys, since RowCountChanged() will call our GetRowCount()
   if (mTree) 
@@ -1476,7 +1479,7 @@ nsMsgSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr,
 NS_IMETHODIMP nsMsgSearchDBView::GetNumMsgsInView(PRInt32 *aNumMsgs)
 {
   NS_ENSURE_ARG_POINTER(aNumMsgs);
-  *aNumMsgs = m_hdrsTable.Count();
+  *aNumMsgs = m_totalMessagesInView;
   return NS_OK;
 }
 

@@ -245,7 +245,7 @@ function setup_view(aViewType, aViewFlags, aTestFolder) {
   dump("  View Out Count: " + outCount.value + "\n");
 
   // we need to cram messages into the search via nsIMsgSearchNotify interface
-  if (aViewType == "search" || aViewType == "quicksearch") {
+  if (aViewType == "search" || aViewType == "quicksearch" || aViewType == "xfvf") {
     let searchNotify = gDBView.QueryInterface(
       Components.interfaces.nsIMsgSearchNotify);
     searchNotify.onNewSearch();
@@ -266,6 +266,11 @@ function setup_view(aViewType, aViewFlags, aTestFolder) {
   gDBView.curCustomColumn = "authorFirstLetterCol";
 
   gTreeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
+
+  // Bug 574799
+  if (gDBView.numMsgsInView != aTestFolder.getTotalMessages(false))
+    do_throw("numMsgsInView is " + gDBView.numMsgsInView + " but should be " +
+               aTestFolder.getTotalMessages(false) + "\n");
 }
 
 /**
@@ -593,6 +598,7 @@ var view_types = [
   ["quicksearch", ViewFlags.kThreadedDisplay],
   ["search", ViewFlags.kThreadedDisplay],
   ["search", ViewFlags.kGroupBySort],
+  ["xfvf", ViewFlags.kNone],
    // group does unspeakable things to gTestFolder, so put it last.
   ["group", ViewFlags.kGroupBySort]
 ];
