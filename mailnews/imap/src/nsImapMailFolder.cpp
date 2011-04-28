@@ -2725,10 +2725,10 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
 
   m_uidValidity = folderValidity;
 
-  if ((imapUIDValidity != folderValidity) /* && // if UIDVALIDITY Changed
-    !NET_IsOffline() */)
+  if (imapUIDValidity != folderValidity)
   {
-    NS_ASSERTION(!imapUIDValidity, "non-zero uid validity seems to have changed, blowing away db");
+    NS_ASSERTION(imapUIDValidity == kUidUnknown,
+                 "uid validity seems to have changed, blowing away db");
     nsCOMPtr<nsILocalFile> pathFile;
     rv = GetFilePath(getter_AddRefs(pathFile));
     if (NS_FAILED(rv)) return rv;

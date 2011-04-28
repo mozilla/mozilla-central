@@ -1771,8 +1771,7 @@ function MsgSaveAsFile()
 function MsgSaveAsTemplate()
 {
   if (GetNumSelectedMessages() == 1)
-    SaveAsTemplate(gFolderDisplay.selectedMessageUris[0],
-                   gFolderDisplay.displayedFolder);
+    SaveAsTemplate(gFolderDisplay.selectedMessageUris[0]);
 }
 
 function CreateToolbarTooltip(document, event)

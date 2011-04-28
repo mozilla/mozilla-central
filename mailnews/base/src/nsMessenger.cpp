@@ -1064,15 +1064,13 @@ nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile,
         saveAsFileType = EML_FILE_TYPE;
     } 
 
-    // XXX todo
-    // document the ownership model of saveListener
-    saveListener = new nsSaveMsgListener(saveAsFile, this, nsnull);
+    // After saveListener goes out of scope, the listener will be owned by
+    // whoever the listener is registered with, usually a URL.
+    nsRefPtr<nsSaveMsgListener> saveListener = new nsSaveMsgListener(saveAsFile, this, nsnull);
     if (!saveListener) {
       rv = NS_ERROR_OUT_OF_MEMORY;
       goto done;
     }
-    NS_ADDREF(saveListener);
-
     rv = saveListener->QueryInterface(NS_GET_IID(nsIUrlListener), getter_AddRefs(urlListener));
     if (NS_FAILED(rv))
       goto done;
@@ -1154,14 +1152,13 @@ nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile,
     rv = tmpFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
     if (NS_FAILED(rv)) goto done;
 
-    // XXX todo
-    // document the ownership model of saveListener
+    // The saveListener is owned by whoever we ultimately register the
+    // listener with, generally a URL.
     saveListener = new nsSaveMsgListener(tmpFile, this, nsnull);
     if (!saveListener) {
       rv = NS_ERROR_OUT_OF_MEMORY;
       goto done;
     }
-    NS_ADDREF(saveListener);
 
     if (aIdentity)
       rv = aIdentity->GetStationeryFolder(saveListener->m_templateUri);
@@ -1186,8 +1183,6 @@ nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile,
 done:
   if (NS_FAILED(rv))
   {
-    // XXX todo
-    // document the ownership model of saveListener
     NS_IF_RELEASE(saveListener);
     Alert("saveMessageFailed");
   }
@@ -1675,40 +1670,36 @@ NS_IMETHODIMP
 nsSaveMsgListener::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
 {
   nsresult rv = exitCode;
-  PRBool killSelf = PR_TRUE;
   mUrlHasStopped = PR_TRUE;
 
-  if (m_outputStream)
+  // ** save as template goes here
+  if (!m_templateUri.IsEmpty()) 
   {
-    if (mRequestHasStopped || !m_templateUri.IsEmpty())
-    {
-      m_outputStream->Close();
-      m_outputStream = nsnull;
-    }
+    nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
     if (NS_FAILED(rv)) goto done;
-    
-    // ** save as template goes here
-    if (!m_templateUri.IsEmpty()) 
+    nsCOMPtr<nsIRDFResource> res;
+    rv = rdf->GetResource(m_templateUri, getter_AddRefs(res));
+    if (NS_FAILED(rv)) goto done;
+    nsCOMPtr<nsIMsgFolder> templateFolder;
+    templateFolder = do_QueryInterface(res, &rv);
+    if (NS_FAILED(rv)) goto done;
+    nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID);
+    if (copyService)
     {
-      nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
-      if (NS_FAILED(rv)) goto done;
-      nsCOMPtr<nsIRDFResource> res;
-      rv = rdf->GetResource(m_templateUri, getter_AddRefs(res));
-      if (NS_FAILED(rv)) goto done;
-      nsCOMPtr<nsIMsgFolder> templateFolder;
-      templateFolder = do_QueryInterface(res, &rv);
-      if (NS_FAILED(rv)) goto done;
-      nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID);
-      if (copyService)
-      {
-        nsCOMPtr <nsIFile> clone;
-        m_file->Clone(getter_AddRefs(clone));
-        rv = copyService->CopyFileMessage(clone, templateFolder, nsnull,
-                                          PR_TRUE, nsMsgMessageFlags::Read,
-                                          EmptyCString(), this, nsnull);
-      }
-      killSelf = PR_FALSE;
+      nsCOMPtr<nsIFile> clone;
+      m_file->Clone(getter_AddRefs(clone));
+      rv = copyService->CopyFileMessage(clone, templateFolder, nsnull,
+                                        PR_TRUE, nsMsgMessageFlags::Read,
+                                        EmptyCString(), this, nsnull);
+      // Clear this so we don't end up in a loop if OnStopRunningUrl gets
+      // called again.
+      m_templateUri.Truncate();
     }
+  }
+  else if (m_outputStream && mRequestHasStopped)
+  {
+    m_outputStream->Close();
+    m_outputStream = nsnull;
   }
 
 done:
@@ -1757,7 +1748,6 @@ nsSaveMsgListener::OnStopCopy(nsresult aStatus)
 {
   if (m_file)
     m_file->Remove(PR_FALSE);
-  Release(); // all done kill ourself
   return aStatus;
 }
 
@@ -1973,7 +1963,7 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
       nsIWebProgressListener::STATE_IS_NETWORK, NS_OK);
     mTransfer = nsnull; // break any circular dependencies between the progress dialog and use
   }
-  
+
   if (mUrlHasStopped && mListener)
     mListener->OnStopRunningUrl(mListenerUri, rv);
 

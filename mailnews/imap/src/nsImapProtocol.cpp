@@ -2438,7 +2438,8 @@ void nsImapProtocol::ProcessSelectedStateURL()
         // error on the side of caution, if the fe event fails to set uidStruct->returnValidity, then assume that UIDVALIDITY
         // did not roll.  This is a common case event for attachments that are fetched within a browser context.
         if (!DeathSignalReceived())
-          uidValidityOk = (uidValidity == kUidUnknown) || (uidValidity == GetServerStateParser().FolderUID());
+          uidValidityOk = uidValidity == kUidUnknown ||
+                          uidValidity == GetServerStateParser().FolderUID();
       }
 
     }

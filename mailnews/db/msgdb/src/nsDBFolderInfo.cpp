@@ -49,6 +49,7 @@
 #include "nsIMsgDBView.h"
 #include "nsISupportsObsolete.h"
 #include "nsServiceManagerUtils.h"
+#include "nsImapCore.h"
 
 static const char *kDBFolderInfoScope = "ns:msg:db:row:scope:dbfolderinfo:all";
 static const char *kDBFolderInfoTableKind = "ns:msg:db:table:kind:dbfolderinfo";
@@ -186,7 +187,7 @@ nsDBFolderInfo::nsDBFolderInfo(nsMsgDatabase *mdb)
   m_numUnreadMessages = 0;
   m_numMessages = 0;
   // IMAP only
-  m_ImapUidValidity = 0;
+  m_ImapUidValidity = kUidUnknown;
   m_totalPendingMessages =0;
   m_unreadPendingMessages = 0;
 
@@ -404,7 +405,7 @@ nsresult nsDBFolderInfo::LoadMemberVariables()
   GetInt32PropertyWithToken(m_flagsColumnToken, m_flags);
   GetUint64PropertyWithToken(m_folderSizeColumnToken, &m_folderSize);
   GetInt32PropertyWithToken(m_folderDateColumnToken, (PRInt32 &) m_folderDate);
-  GetInt32PropertyWithToken(m_imapUidValidityColumnToken, m_ImapUidValidity);
+  GetInt32PropertyWithToken(m_imapUidValidityColumnToken, m_ImapUidValidity, kUidUnknown);
   GetInt32PropertyWithToken(m_expiredMarkColumnToken, (PRInt32 &) m_expiredMark);
   GetInt32PropertyWithToken(m_expungedBytesColumnToken, (PRInt32 &) m_expungedBytes);
   GetInt32PropertyWithToken(m_highWaterMessageKeyColumnToken, (PRInt32 &) m_highWaterMessageKey);
