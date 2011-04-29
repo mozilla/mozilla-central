@@ -301,6 +301,7 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
   nsCOMPtr<nsILocalFile> path;
 
   m_folder->GetFilePath(getter_AddRefs(path));
+  nsCOMPtr <nsIInputStream> inboxInputStream;
 
   nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if (pPrefBranch)
@@ -327,11 +328,16 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
       rv = MsgGetFileStream(m_tmpDownloadFile, getter_AddRefs(m_outFileStream));
       NS_ENSURE_SUCCESS(rv, rv);
     }
+    nsCOMPtr<nsIOutputStream> inboxOutputStream;
+    rv = MsgGetFileStream(path, getter_AddRefs(inboxOutputStream));
+    NS_ENSURE_SUCCESS(rv, rv);
+    inboxInputStream = do_QueryInterface(inboxOutputStream);
   }
   else
   {
     rv = MsgGetFileStream(path, getter_AddRefs(m_outFileStream));
     NS_ENSURE_SUCCESS(rv, rv);
+    inboxInputStream = do_QueryInterface(m_outFileStream);
   }
   // The following (!m_outFileStream etc) was added to make sure that we don't write somewhere
   // where for some reason or another we can't write to and lose the messages
@@ -353,9 +359,8 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
   rv = GetServerFolder(getter_AddRefs(serverFolder));
   if (NS_FAILED(rv)) return rv;
 
-  nsCOMPtr <nsIInputStream> inboxInputStream = do_QueryInterface(m_outFileStream);
-  rv = m_newMailParser->Init(serverFolder, m_folder, (m_downloadingToTempFile) ? m_tmpDownloadFile : path,
-                            inboxInputStream, aMsgWindow);
+  rv = m_newMailParser->Init(serverFolder, m_folder,
+                             inboxInputStream, aMsgWindow);
   // If we failed to initialize the parser, then just don't use it!!!
   // We can still continue without one.
 

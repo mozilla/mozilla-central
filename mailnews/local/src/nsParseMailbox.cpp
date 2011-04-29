@@ -1695,11 +1695,13 @@ nsParseNewMailState::nsParseNewMailState()
 NS_IMPL_ISUPPORTS_INHERITED1(nsParseNewMailState, nsMsgMailboxParser, nsIMsgFilterHitNotify)
 
 nsresult
-nsParseNewMailState::Init(nsIMsgFolder *serverFolder, nsIMsgFolder *downloadFolder, nsILocalFile *folder,
+nsParseNewMailState::Init(nsIMsgFolder *serverFolder, nsIMsgFolder *downloadFolder,
                           nsIInputStream *inboxFileStream, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
   PRInt64 folderSize;
+  nsCOMPtr<nsILocalFile> folder;
+  downloadFolder->GetFilePath(getter_AddRefs(folder));
   folder->GetFileSize(&folderSize);
   m_position = folderSize;
   m_rootFolder = serverFolder;

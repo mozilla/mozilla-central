@@ -3886,7 +3886,7 @@ nsMsgLocalMailFolder::AddMessageBatch(PRUint32 aMessageCount,
 
   nsCOMPtr <nsIInputStream> inputStream = do_QueryInterface(outFileStream);
   rv = newMailParser->Init(rootFolder, this,
-                           path, inputStream, nsnull);
+                           inputStream, nsnull);
   // nsMailDatabase needs the stream so it can update the status flags during
   // the OnStopRequest logic.
   newMailParser->SetDBFolderStream(outFileStream);
