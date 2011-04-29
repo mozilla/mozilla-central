@@ -155,7 +155,7 @@
   border-right: none;
 }
 
-#messagepanebox[focusring="true"] > #messagepane {
+#messagepanebox[focusring="true"] > #messagepanewrapper > #messagepane {
   border-color: #000000;
 }
 

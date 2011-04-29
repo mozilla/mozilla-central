@@ -156,7 +156,7 @@
   border-right: none;
 }
 
-#messagepanebox[focusring="true"] > #messagepane {
+#messagepanebox[focusring="true"] > #messagepanewrapper > #messagepane {
   border-color: -moz-mac-focusring;
 }
 
