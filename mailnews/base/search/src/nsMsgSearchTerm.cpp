@@ -792,25 +792,57 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
 
   bodyHandler->SetStripHeaders (PR_FALSE);
 
-
+  nsCString headerFullValue; // contains matched header value accumulated over multiple lines.
   nsCAutoString buf;
   nsCAutoString curMsgHeader;
   PRBool searchingHeaders = PR_TRUE;
-  while (searchingHeaders && (bodyHandler->GetNextLine(buf) >=0))
+
+  // We will allow accumulation of received headers;
+  PRBool isReceivedHeader = m_arbitraryHeader.EqualsLiteral("received");
+  
+  while (searchingHeaders)
   {
+    if (bodyHandler->GetNextLine(buf) < 0 || EMPTY_MESSAGE_LINE(buf))
+      searchingHeaders = PR_FALSE;
+    PRBool isContinuationHeader = searchingHeaders ? NS_IsAsciiWhitespace(buf.CharAt(0))
+                                                   : PR_FALSE;
+
+    // We try to match the header from the last time through the loop, which should now
+    //  have accumulated over possible multiple lines. For all headers except received,
+    //  we process a single accumulation, but process accumulated received at the end.
+    if (!searchingHeaders || (!isContinuationHeader &&
+         (!headerFullValue.IsEmpty() && !isReceivedHeader)))
+    {
+      // Make sure buf has info besides just the header.
+      // Otherwise, it's either an empty header, or header not found.
+      if (!headerFullValue.IsEmpty())
+      {
+        PRBool stringMatches;
+        // match value with the other info.
+        err = MatchRfc2047String(headerFullValue.get(), charset, charsetOverride, &stringMatches);
+        if (matchExpected == stringMatches) // if we found a match
+        {
+          searchingHeaders = PR_FALSE;   // then stop examining the headers
+          result = stringMatches;
+        }
+      }
+      break;
+    }
+
     char * buf_end = (char *) (buf.get() + buf.Length());
     int headerLength = m_arbitraryHeader.Length();
-    PRBool isContinuationHeader = NS_IsAsciiWhitespace(buf.CharAt(0));
-    // this handles wrapped header lines, which start with whitespace.
+
     // If the line starts with whitespace, then we use the current header.
     if (!isContinuationHeader)
     {
+      // here we start a new header
       PRUint32 colonPos = buf.FindChar(':');
       curMsgHeader = StringHead(buf, colonPos);
     }
 
     if (curMsgHeader.Equals(m_arbitraryHeader, nsCaseInsensitiveCStringComparator()))
     {
+      // process the value
       // value occurs after the header name or whitespace continuation char.
       const char * headerValue = buf.get() + (isContinuationHeader ? 1 : headerLength);
       if (headerValue < buf_end && headerValue[0] == ':')  // + 1 to account for the colon which is MANDATORY
@@ -828,22 +860,12 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
         end--;      // move back and examine the previous character....
       }
 
-      // Make sure buf has info besides just the header.
-      // Otherwise, it's just an empty header.
-      if (headerValue < buf_end && *headerValue)
-      {
-        PRBool stringMatches;
-        // match value with the other info.
-        err = MatchRfc2047String(headerValue, charset, charsetOverride, &stringMatches);
-        if (matchExpected == stringMatches) // if we found a match
-        {
-          searchingHeaders = PR_FALSE;   // then stop examining the headers
-          result = stringMatches;
-        }
-      }
+      // any continuation whitespace is converted to a single space. This includes both a continuation line, or a
+      //  second value of the same header (eg the received header)
+      if (!headerFullValue.IsEmpty())
+        headerFullValue.AppendLiteral(" ");
+      headerFullValue.Append(nsDependentCString(headerValue));
     }
-    if (EMPTY_MESSAGE_LINE(buf))
-      searchingHeaders = PR_FALSE;
   }
   delete bodyHandler;
   *pResult = result;

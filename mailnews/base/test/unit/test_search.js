@@ -67,6 +67,7 @@ const news = nsMsgSearchScope.news; // control entry not enabled
 
 const OtherHeader = nsMsgSearchAttrib.OtherHeader;
 const From = nsMsgSearchAttrib.Sender;
+const Subject = nsMsgSearchAttrib.Subject;
 
 var Tests =
 [
@@ -135,6 +136,106 @@ var Tests =
     testAttribute: OtherHeader,
     op: Contains,
     count: 0},
+
+  // test accumulation of received header
+  // only in first received
+  { testString: "caspiaco",
+    testAttribute: OtherHeader,
+    op: Contains,
+    customHeader: "Received",
+    count: 1},
+  // only in second
+  { testString: "webapp01.sj.mozilla.com",
+    testAttribute: OtherHeader,
+    op: Contains,
+    customHeader: "received",
+    count: 1},
+  // in neither
+  { testString: "not there",
+    testAttribute: OtherHeader,
+    op: Contains,
+    customHeader: "received",
+    count: 0},
+
+  // test multiple line arbitrary headers
+  // in the first line
+  { testString: "SpamAssassin 3.2.3",
+    testAttribute: OtherHeader,
+    op: Contains,
+    customHeader: "X-Spam-Checker-Version",
+    count: 1},
+  // in the second line
+  { testString: "host29.example.com",
+    testAttribute: OtherHeader,
+    op: Contains,
+    customHeader: "X-Spam-Checker-Version",
+    count: 1},
+  // spans two lines with space
+   { testString: "on host29.example.com",
+     testAttribute: OtherHeader,
+     op: Contains,
+     customHeader: "X-Spam-Checker-Version",
+     count: 1},
+
+  // subject spanning several lines
+  // on the first line
+   { testString: "A filter will",
+     testAttribute: Subject,
+     op: Contains,
+     count: 1},
+   { testString: "I do not exist",
+     testAttribute: Subject,
+     op: Contains,
+     count: 0},
+  // on the second line
+   { testString: "this message",
+     testAttribute: Subject,
+     op: Contains,
+     count: 1},
+  // spanning second and third line
+   { testString: "over many",
+     testAttribute: Subject,
+     op: Contains,
+     count: 1},
+
+  // tests of custom headers db values
+    { testString: "a one line header",
+      dbHeader: "oneliner"},
+    { testString: "a two line header",
+      dbHeader: "twoliner"},
+    { testString: "a three line header with lotsa space and tabs",
+      dbHeader: "threeliner"},
+    { testString: "I have no space",
+      dbHeader: "nospace"},
+    { testString: "too much space",
+      dbHeader: "withspace"},
+
+  // tests of custom db headers in a search
+    { testString: "one line",
+      testAttribute: OtherHeader,
+      op: Contains,
+      customHeader: "oneliner",
+      count: 1},
+    { testString: "two line header",
+      testAttribute: OtherHeader,
+      op: Contains,
+      customHeader: "twoliner",
+      count: 1},
+    { testString: "three line header with lotsa",
+      testAttribute: OtherHeader,
+      op: Contains,
+      customHeader: "threeliner",
+      count: 1},
+    { testString: "I have no space",
+      testAttribute: OtherHeader,
+      op: Contains,
+      customHeader: "nospace",
+      count: 1},
+    { testString: "too much space",
+      testAttribute: OtherHeader,
+      op: Contains,
+      customHeader: "withspace",
+      count: 1},
 ];
 
 function run_test()
@@ -150,11 +251,15 @@ function run_test()
     OnStopCopy: function(aStatus) { testSearch();}
   };
 
+  // set value of headers we want parsed into the db
+  let prefs = Cc["@mozilla.org/preferences-service;1"]
+                .getService(Ci.nsIPrefBranch);
+  prefs.setCharPref("mailnews.customDBHeaders", "oneLiner twoLiner threeLiner noSpace withSpace");
   // Get a message into the local filestore. function testSearch() continues
   // the testing after the copy.
-  var bugmail1 = do_get_file("../../../data/bugmail1");
+  var bugmail12 = do_get_file("../../../data/bugmail12");
   do_test_pending();
-  copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
+  copyService.CopyFileMessage(bugmail12, gLocalInboxFolder, null, false, 0,
                               "", copyListener, null);
 }
 
@@ -163,8 +268,17 @@ var testObject;
 function testSearch()
 {
   var test = Tests.shift();
-  if (test)
+  if (test && test.dbHeader)
   {
+    //  test of a custom db header
+    dump("testing dbHeader " + test.dbHeader + "\n");
+    customValue = firstMsgHdr(gLocalInboxFolder).getProperty(test.dbHeader);
+    do_check_eq(customValue, test.testString);
+    do_timeout(0, testSearch);
+  }
+  else if (test)
+  {
+    dump("testing for string '" + test.testString + "'\n");
     testObject = new TestSearch(gLocalInboxFolder,
                          test.testString,
                          test.testAttribute,
@@ -172,7 +286,7 @@ function testSearch()
                          test.count,
                          testSearch,
                          null,
-                         "X-Bugzilla-Watch-Reason");
+                         test.customHeader ? test.customHeader : "X-Bugzilla-Watch-Reason");
   }
   else
   {
@@ -181,3 +295,10 @@ function testSearch()
   }
 }
 
+// get the first message header found in a folder
+function firstMsgHdr(folder) {
+  let enumerator = folder.msgDatabase.EnumerateMessages();
+  if (enumerator.hasMoreElements())
+    return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+  return null;
+}

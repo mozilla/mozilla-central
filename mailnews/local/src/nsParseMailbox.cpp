@@ -957,8 +957,6 @@ int nsParseMailMessageState::ParseHeaders ()
       break;
 
     end = colon;
-    while (end > buf && (*end == ' ' || *end == '\t'))
-      end--;
 
     switch (buf [0])
     {
@@ -1068,45 +1066,61 @@ int nsParseMailMessageState::ParseHeaders ()
     }
 
     buf = colon + 1;
+    // eliminate trailing blanks after the colon
     while (*buf == ' ' || *buf == '\t')
       buf++;
 
     value = buf;
     if (header)
       header->value = value;
-    else
-    {
-    }
+
+    PRUint32 writeOffset = 0; // number of characters replaced with a folded space
 
 SEARCH_NEWLINE:
+    // move past any non terminating characters, rewriting them if folding white space
+    // exists
     while (*buf != 0 && *buf != '\r' && *buf != '\n')
+    {
+      if (writeOffset)
+        *(buf - writeOffset) = *buf;
+      buf++;
+    }
+
+    /* If "\r\n " or "\r\n\t" is next, that doesn't terminate the header. */
+    if ((buf + 2 < buf_end && (buf[0] == '\r' && buf[1] == '\n') &&
+                              (buf[2] == ' ' || buf[2] == '\t')) ||
+    /* If "\r " or "\r\t" or "\n " or "\n\t" is next, that doesn't terminate
+       the header either. */
+        (buf + 1 < buf_end && (buf[0] == '\r' || buf[0] == '\n') &&
+                              (buf[1] == ' ' || buf[1] == '\t')))
+    {
+      // locate the proper location for a folded space by eliminating any
+      // leading spaces before the end-of-line character
+      char* foldedSpace = buf;
+      while (*(foldedSpace - 1) == ' ' || *(foldedSpace - 1) == '\t')
+        foldedSpace--;
+
+      // put a single folded space character
+      *(foldedSpace - writeOffset) = ' ';
+      writeOffset += (buf - foldedSpace);
       buf++;
 
-    if (buf+1 >= buf_end)
-      ;
-    /* If "\r\n " or "\r\n\t" is next, that doesn't terminate the header. */
-    else if (buf+2 < buf_end &&
-         (buf[0] == '\r'  && buf[1] == '\n') &&
-                           (buf[2] == ' ' || buf[2] == '\t'))
-    {
-      buf += 3;
-      goto SEARCH_NEWLINE;
-    }
-    /* If "\r " or "\r\t" or "\n " or "\n\t" is next, that doesn't terminate
-    the header either. */
-    else if ((buf[0] == '\r'  || buf[0] == '\n') &&
-         (buf[1] == ' ' || buf[1] == '\t'))
-    {
-      buf += 2;
+      // eliminate any additional white space
+      while (buf < buf_end &&
+              (*buf == '\n' || *buf == '\r' || *buf == ' ' || *buf == '\t'))
+      {
+        *buf++;
+        writeOffset++;
+      }
       goto SEARCH_NEWLINE;
     }
 
     if (header)
-      header->length = buf - header->value;
+      header->length = buf - header->value - writeOffset;
 
     if (*buf == '\r' || *buf == '\n')
     {
-      char *last = buf;
+      char *last = buf - writeOffset;
       if (*buf == '\r' && buf[1] == '\n')
         buf++;
       buf++;
@@ -1116,9 +1130,6 @@ SEARCH_NEWLINE:
     if (header)
     {
       /* More const short-circuitry... */
-      /* strip leading whitespace */
-      while (IS_SPACE (*header->value))
-        header->value++, header->length--;
       /* strip trailing whitespace */
       while (header->length > 0 &&
         IS_SPACE (header->value [header->length - 1]))
