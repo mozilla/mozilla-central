@@ -62,6 +62,8 @@ var setupModule = function (module) {
   cth.installInto(module);
   let dh = collector.getModule('dom-helpers');
   dh.installInto(module);
+  let wh = collector.getModule('window-helpers');
+  wh.installInto(module);
 };
 
 function test_content_tab_open() {
@@ -150,6 +152,20 @@ function test_content_tab_default_favicon() {
   // Check the location of the favicon, this should be the site favicon in this
   // test.
   assert_content_tab_has_favicon(tab, url + "favicon.ico");
+}
+
+function test_content_tab_onbeforeunload() {
+  let count = mc.tabmail.tabContainer.childNodes.length;
+  let tab = mc.tabmail.tabInfo[count-1];
+  tab.browser.contentWindow.addEventListener("beforeunload", function (event) {
+    event.returnValue = "Green llama in your car";
+  }, false);
+
+  plan_for_modal_dialog("commonDialog", function (controller) {
+    controller.window.document.documentElement.getButton("accept").doCommand();
+  });
+  mc.tabmail.closeTab(tab);
+  wait_for_modal_dialog();
 }
 
 // XXX todo

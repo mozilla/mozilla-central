@@ -441,6 +441,14 @@ var specialTabs = {
 
       this.lastBrowserId++;
     },
+    tryCloseTab: function onTryCloseTab(aTab) {
+      let docShell = aTab.browser.docShell;
+      // If we have a docshell, a contentViewer, and it forbids us from closing
+      // the tab, then we return false, which means, we can't close the tab. All
+      // other cases return true.
+      return !(docShell && docShell.contentViewer
+        && !docShell.contentViewer.permitUnload());
+    },
     closeTab: function onTabClosed(aTab) {
       aTab.browser.removeEventListener("DOMTitleChanged",
                                        aTab.titleListener, true);
@@ -880,6 +888,14 @@ var specialTabs = {
       aTab.browser.loadURI(aArgs.chromePage);
 
       this.lastBrowserId++;
+    },
+    tryCloseTab: function onTryCloseTab(aTab) {
+      let docShell = aTab.browser.docShell;
+      // If we have a docshell, a contentViewer, and it forbids us from closing
+      // the tab, then we return false, which means, we can't close the tab. All
+      // other cases return true.
+      return !(docShell && docShell.contentViewer
+        && !docShell.contentViewer.permitUnload());
     },
     closeTab: function onTabClosed(aTab) {
       aTab.browser.removeEventListener("DOMTitleChanged",

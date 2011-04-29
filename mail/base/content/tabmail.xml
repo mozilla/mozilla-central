@@ -713,6 +713,15 @@
             if (!tab.canClose)
               return;
 
+            // Give the tab type a chance to make its own decisions about
+            // whether its tabs can be closed or not. For instance, contentTabs
+            // and chromeTabs run onbeforeunload event handlers that may
+            // exercise their right to prompt the user for confirmation before
+            // closing.
+            let tryCloseFunc = tab.mode.tryCloseTab || tab.mode.tabType.tryCloseTab;
+            if (tryCloseFunc && !tryCloseFunc.call(tab.mode.tabType, tab))
+              return;
+
             for each (let [i, tabMonitor] in Iterator(this.tabMonitors)) {
               if ("onTabClosing" in tabMonitor)
                 tabMonitor.onTabClosing(tab);
