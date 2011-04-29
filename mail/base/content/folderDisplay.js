@@ -71,10 +71,10 @@ let FolderDisplayListenerManager = {
    * - onActiveCreatedView.  onCreatedView deferred to when the tab is actually
    *   made active.
    *
-   * - onActiveAllMessagesLoaded.  onAllMessagesLoaded deferred to when the
+   * - onActiveMessagesLoaded.  onMessagesLoaded deferred to when the
    *   tab is actually made active.  Use this if the actions you need to take
    *   are based on the folder display actually being visible, such as updating
-   *   some UI widget, etc.
+   *   some UI widget, etc. Not all messages may have been loaded, but some.
    *
    */
   registerListener: function FDLM_registerListener(aListener) {
@@ -165,7 +165,7 @@ function FolderDisplayWidget(aTabInfo, aMessageDisplayWidget) {
 
   /**
    * Flag to expose whether all messages are loaded or not.  Set by
-   *  onAllMessagesLoaded.
+   *  onMessagesLoaded() when aAll is true.
    */
   this._allMessagesLoaded = false;
 
@@ -185,7 +185,7 @@ function FolderDisplayWidget(aTabInfo, aMessageDisplayWidget) {
 
   /**
    * Used by pushNavigation to queue a navigation request for when we enter the
-   *  next folder; onAllMessagesLoaded is the one that processes it.
+   *  next folder; onMessagesLoaded(true) is the one that processes it.
    */
   this._pendingNavigation = null;
 
@@ -873,7 +873,7 @@ FolderDisplayWidget.prototype = {
    */
   onCreatedView: function FolderDisplayWidget_onCreatedView() {
     // All of our messages are not displayed if the view was just created.  We
-    //  will get an onAllMessagesLoaded nearly immediately if this is a local
+    //  will get an onMessagesLoaded(true) nearly immediately if this is a local
     //  folder where view creation is synonymous with having all messages.
     this._allMessagesLoaded = false;
     this.messageDisplay.onCreatedView();
@@ -1025,24 +1025,24 @@ FolderDisplayWidget.prototype = {
   },
 
   /**
-   * Things to do once all the messages that should show up in a folder have
-   *  shown up.  For a real folder, this happens when the folder is entered.
-   *  For a virtual folder, this happens when the search completes.
+   * Things to do once some or all the messages that should show up in a folder
+   *  have shown up.  For a real folder, this happens when the folder is
+   *  entered. For a virtual folder, this happens when the search completes.
    *
    * What we do:
    * - Any scrolling required!
    */
-  onAllMessagesLoaded: function FolderDisplayWidget_onAllMessagesLoaded() {
-    this._allMessagesLoaded = true;
+  onMessagesLoaded: function FolderDisplayWidget_onMessagesLoaded(aAll) {
+    this._allMessagesLoaded = aAll;
 
-    FolderDisplayListenerManager._fireListeners("onAllMessagesLoaded",
-                                                [this]);
+    FolderDisplayListenerManager._fireListeners("onMessagesLoaded",
+                                                [this, aAll]);
 
-    this._notifyWhenActive(this._activeAllMessagesLoaded);
+    this._notifyWhenActive(this._activeMessagesLoaded);
   },
-  _activeAllMessagesLoaded:
-      function FolderDisplayWidget__activeAllMessagesLoaded() {
-    FolderDisplayListenerManager._fireListeners("onActiveAllMessagesLoaded",
+  _activeMessagesLoaded:
+      function FolderDisplayWidget__activeMessagesLoaded() {
+    FolderDisplayListenerManager._fireListeners("onActiveMessagesLoaded",
                                                 [this]);
 
     // - if a selectMessage's coming up, get out of here
@@ -1059,6 +1059,7 @@ FolderDisplayWidget.prototype = {
     }
 
     // - pending navigation from pushNavigation (probably spacebar triggered)
+    // Need to have all messages loaded first.
     if (this._pendingNavigation) {
       // Move it to a local and clear the state in case something bad happens.
       //  (We don't want to swallow the exception.)

@@ -122,8 +122,10 @@ var gMockViewWrapperListener = {
   threadPaneCommandUpdater: gFakeCommandUpdater,
   // event handlers
   allMessagesLoadedEventCount: 0,
-  onAllMessagesLoaded: function() {
-    dump("ALL LOADED\n");
+  onMessagesLoaded: function(aAll) {
+    dump(aAll ? "ALL LOADED\n" : "SOME LOADED\n");
+    if (!aAll)
+      return;
     this.allMessagesLoadedEventCount++;
     if (this.pendingLoad) {
       this.pendingLoad = false;
@@ -230,7 +232,7 @@ function clone_view_wrapper(aViewWrapper) {
 
 /**
  * Open a folder for view display.  This is an async operation, relying on the
- *  onAllMessagesLoaded notification to get he test going again.
+ *  onMessagesLoaded(true) notification to get he test going again.
  */
 function async_view_open(aViewWrapper, aFolder) {
   aViewWrapper.listener.pendingLoad = true;
