@@ -86,10 +86,6 @@ function nsContextMenu(aXulMenu, aBrowser) {
 
 // Prototype for nsContextMenu "class."
 nsContextMenu.prototype = {
-  // onDestroy is a no-op at this point.
-  onDestroy: function() {
-  },
-
   // Initialize context menu.
   initMenu: function(aPopup, aBrowser) {
     this.menu = aPopup;
@@ -829,7 +825,7 @@ nsContextMenu.prototype = {
     this.target.pause();
 
     openDialog("chrome://communicator/content/fullscreen-video.xhtml",
-               "", "chrome,dialog=no", this.target, isPaused);
+               "", "chrome,centerscreen,dialog=no", this.target, isPaused);
   },
 
   // Change current window to the URL of the background image.
