@@ -94,7 +94,7 @@ html|div#expandedHeadersTopBox {
 .inline-toolbar {
   -moz-appearance: none;
   padding: 0;
-  border-bottom-width: 0;
+  border-bottom-width: 0 !important;
 }
 
 /* We use pixels here because the height of the button is in pixels. */
@@ -128,11 +128,23 @@ html|div#expandedHeadersTopBox {
 }
 
 #attachmentToggle {
-  -moz-appearance: treetwisty;
+  /* Override button appearance */
+  -moz-appearance: none;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  background-color: transparent;
+
+  list-style-image: url("chrome://global/skin/tree/twisty-clsd.png");
 }
 
 #attachmentToggle[checked="true"] {
-  -moz-appearance: treetwistyopen;
+  list-style-image: url("chrome://global/skin/tree/twisty-open.png");
+}
+
+#attachmentToggle > .button-box {
+  /* Make sure the focus ring is hidden */
+  border: none;
 }
 
 #attachmentIcon {
@@ -141,11 +153,15 @@ html|div#expandedHeadersTopBox {
 }
 
 #attachmentCount {
-  -moz-margin-start: 0;
+  -moz-margin-start: 2px;
 }
 
 #attachmentSize {
   color: #888a85; /* the same color as .headerName */
+}
+
+#attachment-view-toolbox {
+  background-color: transparent;
 }
 
 #attachmentSaveAllSingle,

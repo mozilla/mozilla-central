@@ -141,7 +141,7 @@ html|div#expandedHeadersTopBox {
 }
 
 #attachmentCount {
-  -moz-margin-start: 0;
+  -moz-margin-start: 2px;
 }
 
 #attachmentSize {
