@@ -338,15 +338,28 @@ function saveFilter()
     // We don't need to check validity of matchAll terms
     if (obj.matchAll)
       continue;
+
+    // the term might be an offscreen one that we haven't initialized yet
+    let searchTerm = obj.searchTerm;
+    if (!searchTerm && !gSearchTerms[index].initialized)
+      continue;
+
     if (isNaN(obj.searchattribute.value)) // is this a custom term?
     {
       let filterService = Components.classes["@mozilla.org/messenger/services/filters;1"]
           .getService(Components.interfaces.nsIMsgFilterService);
       let customTerm = filterService.getCustomTerm(obj.searchattribute.value);
       if (!customTerm)
+      { 
         allValid = false;
+        Components.utils.reportError("filter not saved because custom term not found");
+      }
       else
+      {
         allValid = customTerm.getAvailable(obj.searchScope, obj.searchattribute.value);
+        if (!allValid)
+          Components.utils.reportError("filter not saved because custom search term not available");
+      }
     }
 
     else {
@@ -356,7 +369,10 @@ function saveFilter()
       if (!obj.searchattribute
             .validityTable
             .getAvailable(attribValue, obj.searchoperator.value))
+      {
         allValid = false;
+        Components.utils.reportError("filter not saved because standard search term not available");
+      }
     }
   }
 
