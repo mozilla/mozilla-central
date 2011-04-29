@@ -2680,10 +2680,6 @@ PRBool nsMsgDBView::ServerSupportsFilterAfterTheFact()
   if (!m_folder)  // cross folder virtual folders might not have a folder set.
     return PR_FALSE;
 
-  // can't manually run news filters yet
-  if (mIsNews)
-    return PR_FALSE;
-
   nsCOMPtr <nsIMsgIncomingServer> server;
   nsresult rv = m_folder->GetServer(getter_AddRefs(server));
   if (NS_FAILED(rv))
