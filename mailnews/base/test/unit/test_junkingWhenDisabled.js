@@ -169,9 +169,6 @@ function run_test() {
   //  to make sure that the junk move happens anyway.
   gLocalInboxFolder.server.spamSettings.level = 0;
 
-  // Spam settings needs to know the server to create the junk folder, and move to it
-  gLocalInboxFolder.server.spamSettings.actionTargetAccount = gLocalInboxFolder.server.serverURI;
-
   do_test_pending();
 
   // Add folder listeners that will capture async events

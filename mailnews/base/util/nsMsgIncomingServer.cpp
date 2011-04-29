@@ -2060,6 +2060,14 @@ nsMsgIncomingServer::GetSpamSettings(nsISpamSettings **aSpamSettings)
 {
   NS_ENSURE_ARG_POINTER(aSpamSettings);
 
+  nsCAutoString spamActionTargetAccount;
+  GetCharValue("spamActionTargetAccount", spamActionTargetAccount);
+  if (spamActionTargetAccount.IsEmpty())
+  {
+    GetServerURI(spamActionTargetAccount);
+    SetCharValue("spamActionTargetAccount", spamActionTargetAccount);
+  }
+
   if (!mSpamSettings) {
     nsresult rv;
     mSpamSettings = do_CreateInstance(NS_SPAMSETTINGS_CONTRACTID, &rv);
