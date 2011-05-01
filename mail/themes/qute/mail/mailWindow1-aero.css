@@ -22,9 +22,10 @@
 #folderpane_splitter:-moz-locale-dir(rtl),
 #threadpane-splitter:not([orient="vertical"]):-moz-locale-dir(rtl) {
   border-right: 1px solid #A9B7C9;
+  border-left: none;
 }
 
-#folderpane_splitter[state="collapsed"]:hover {
+#folderpane_splitter[state="collapsed"]:hover:-moz-locale-dir(ltr) {
   border-left: 4px solid highlight;
 }
 
