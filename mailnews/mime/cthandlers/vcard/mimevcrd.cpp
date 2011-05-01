@@ -68,7 +68,6 @@ typedef struct
 
 #define kNumAttributes 12
 
-#define     VCARD_URL     "chrome://messenger/locale/vcard.properties"
 #define     MSGVCARDSERVICE_CONTRACT_ID "@mozilla.org/addressbook/msgvcardservice;1"
 
 /* This is the object definition. Note: we will set the superclass
