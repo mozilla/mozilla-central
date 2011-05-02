@@ -55,15 +55,17 @@
   background-color: transparent;
 }
 
-toolbar:not(:-moz-lwtheme) {
+toolbar:not(:-moz-lwtheme),
+#FormatToolbar-box:not(:-moz-lwtheme) {
   -moz-appearance: none;
   border: none;
   background-color: -moz-Dialog;
 }
 
 @media all and (-moz-windows-default-theme) {
-  toolbar:not(:-moz-lwtheme) {
-    background-color: rgb(227, 237, 246);
+  toolbar:not(:-moz-lwtheme),
+  #FormatToolbar-box:not(:-moz-lwtheme) {
+    background-color: rgb(207, 219, 236);
   }
 }
 
@@ -86,7 +88,8 @@ toolbar:not(:-moz-lwtheme) {
 
 .toolbarbutton-menubutton-button,
 .toolbarbutton-menubutton-dropmarker,
-.toolbarbutton-1 {
+.toolbarbutton-1,
+#headers-box menulist {
   -moz-appearance: none;
   padding: 1px 5px !important;
   background: rgba(151, 152, 153, .05)
@@ -160,6 +163,10 @@ toolbar[iconsize="small"][mode="icons"] toolbarbutton[type="menu-button"] {
   opacity: .8;
 }
 
+#headers-box menulist[disabled="true"] {
+  opacity: .6;
+}
+
 .toolbarbutton-menubutton-button[disabled="true"] > .toolbarbutton-icon,
 .toolbarbutton-1[disabled="true"] > .toolbarbutton-icon {
   opacity: .5;
@@ -168,7 +175,8 @@ toolbar[iconsize="small"][mode="icons"] toolbarbutton[type="menu-button"] {
 .toolbarbutton-menubutton-button:not([disabled="true"]):not(:active):hover,
 toolbarbutton[type="menu-button"]:not([open="true"]):not(:active):hover >
                   .toolbarbutton-menubutton-dropmarker:not([disabled="true"]),
-.toolbarbutton-1:not([disabled="true"]):not([checked="true"]):not(:active):hover {
+.toolbarbutton-1:not([disabled="true"]):not([checked="true"]):not(:active):hover,
+#headers-box menulist:not([disabled="true"]):not([open="true"]):hover {
   background-color: hsla(190, 60%, 70%, .5);
   border-color: hsla(190, 50%, 65%, .8) hsla(190, 50%, 50%, .8)
                 hsla(190, 50%, 40%, .8);
@@ -188,7 +196,8 @@ toolbarbutton[type="menu-button"][open="true"] >
                                           .toolbarbutton-menubutton-dropmarker,
 .toolbarbutton-1:not([disabled="true"]):hover:active,
 .toolbarbutton-1[checked="true"],
-.toolbarbutton-1[open="true"] {
+.toolbarbutton-1[open="true"],
+#headers-box menulist[open="true"] {
   background-color: transparent;
   border-color: rgba(0, 0, 0, .65) rgba(0, 0, 0, .55) rgba(0, 0, 0, .5);
   box-shadow: 0 0 9px rgba(0, 0, 0, .4) inset,
@@ -264,6 +273,9 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   #MsgHeadersToolbar {
     -moz-appearance: none;
     border-radius: 3.5px 3.5px 0 0;
+    background-color: rgb(207, 219, 236);
+    background-image: -moz-linear-gradient(rgba(255, 255, 255, .5) 10px,
+                      rgba(255, 255, 255, 0));
   }
 
   #menubar-items:not(:-moz-lwtheme):not(:-moz-window-inactive) {
@@ -392,18 +404,21 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 
 #addressingWidget {
   -moz-user-focus: none;
+  -moz-appearance: none;
   width: 0;
+  border: none;
+  background-color: transparent;
 }
 
-#typecol-addressingWidget {
-  min-width: 9em;
-  border-right: 1px solid #CACAFF;
+#textcol-addressingWidget {
+  border: 1px solid threedshadow;
+  background-color: -moz-field;
 }
 
-.addressingWidgetItem,
-.dummy-row {
+#addressingWidget > .addressingWidgetItem,
+#addressingWidget > .dummy-row {
   border: none !important;
-  background-color: inherit !important;
+  background: none !important;
   color: inherit !important;
 }
 
@@ -412,13 +427,9 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   padding: 0px;
 }
 
-.addressingWidgetCell:first-child {
-  border-top: none;
-}
-
+.addressingWidgetCell:first-child,
 .dummy-row-cell:first-child {
-  border-top: none;
-  border-bottom: 1px solid #CACAFF;
+  border-bottom-color: transparent;
 }
 
 .person-icon {
@@ -427,16 +438,18 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 }
 
 .aw-menulist {
-  -moz-appearance: menulist;
   margin: 1px;
+  -moz-margin-end: 7px;
 }
 
 .aw-menulist > .menulist-label-box {
   margin: -1px 1px;
 }
 
-.aw-menulist > dropmarker {
-  height: 11px;
+.menulist-dropmarker {
+  -moz-appearance: none;
+  border:none;
+  background-color: transparent;
 }
 
 /* ::::: format toolbar ::::: */

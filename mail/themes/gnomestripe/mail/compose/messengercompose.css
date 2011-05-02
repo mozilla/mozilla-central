@@ -262,8 +262,7 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 
 /* XXX I should really have a selector rule here to select just .listcell-icon objects underneath the attachmentList listbox */
 
-.listcell-icon
-{
+.listcell-icon {
   -moz-margin-start: 2px;
   margin-top: 2px;
 }
@@ -288,18 +287,21 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
   
 #addressingWidget {
   -moz-user-focus: none;
+  -moz-appearance: none;
   width: 0;
-}  
+  border: none;
+  background-color: transparent;
+}
 
-#typecol-addressingWidget {
-  min-width: 9em;
-  border-right: 1px solid #CACAFF;
+#textcol-addressingWidget {
+  border: 1px solid threedshadow;
+  background-color: -moz-field;
 }
 
 .addressingWidgetItem,
 .dummy-row {
   border: none !important;
-  background-color: inherit !important;
+  background-color: transparent !important;
   color: inherit !important;
 }
 
@@ -308,13 +310,9 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
   padding: 0px;
 }
 
-.addressingWidgetCell:first-child {
-  border-top: none;
-}
-
+.addressingWidgetCell:first-child,
 .dummy-row-cell:first-child {
-  border-top: none;
-  border-bottom: 1px solid #CACAFF;
+  border-bottom-color: transparent;
 }
 
 .person-icon {
@@ -324,11 +322,11 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 
 .aw-menulist {
   -moz-appearance: button;
-  margin: 1px;
+  -moz-margin-end: 7px;
 }
 
 .aw-menulist > .menulist-label-box {
-  margin: -4px 1px;
+  margin: -3px 1px;
 }
 
 .aw-menulist > dropmarker {
@@ -340,6 +338,14 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 }
 
 /* ::::: format toolbar ::::: */
+
+#FormatToolbar-box{
+  -moz-appearance: toolbar;
+}
+
+#FormatToolbar {
+  -moz-appearance: none;
+}
 
 toolbarbutton.formatting-button {
   list-style-image: url("chrome://messenger/skin/messengercompose/format-buttons.png");

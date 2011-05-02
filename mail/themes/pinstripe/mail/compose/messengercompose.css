@@ -383,8 +383,7 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 
 /* XXX I should really have a selector rule here to select just .listcell-icon objects underneath the attachmentList listbox */
 
-.listcell-icon
-{
+.listcell-icon {
   -moz-margin-start: 2px;
   margin-top: 2px;
 }
@@ -394,6 +393,7 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 }
 
 #msgSubject {
+  -moz-margin-start: 1px;
   -moz-margin-end: 1px;
 }
 
@@ -435,12 +435,16 @@ treechildren::-moz-tree-image(remote-err) {
 
 #addressingWidget {
   -moz-user-focus: none;
+  -moz-appearance: none;
   width: 0;
   margin: 5px 0px;
+  border: none;
+  background-color: transparent;
 }
 
-#typecol-addressingWidget {
-  min-width: 9em;
+#textcol-addressingWidget {
+  border: 1px solid threedshadow;
+  background-color: -moz-field;
 }
 
 .addressingWidgetItem,
@@ -455,14 +459,9 @@ treechildren::-moz-tree-image(remote-err) {
   padding: 0px;
 }
 
-.addressingWidgetCell:first-child {
-  border-top: none;
-}
-
+.addressingWidgetCell:first-child,
 .dummy-row-cell:first-child {
-  border-top: none;
-  border-bottom: 1px solid #DCDCDC;
-  border-right: 1px solid #DCDCDC;
+  border-bottom-color: transparent;
 }
 
 .person-icon {
@@ -471,12 +470,8 @@ treechildren::-moz-tree-image(remote-err) {
 }
 
 .aw-menulist {
-  -moz-appearance: none;
-  border: none;
-  list-style-image: url("chrome://global/skin/arrow/arrow-dn.png");
-  background-color: #FFFFFF;
-  border-right: 1px solid #DCDCDC;
-  -moz-padding-start: 5px;
+  -moz-appearance: menulist;
+  -moz-margin-end: 5px;
 }
 
 .aw-menulist > .menulist-label {
@@ -494,6 +489,7 @@ treechildren::-moz-tree-image(remote-err) {
 #FormatToolbar {
   border-bottom: none;
   background-image: none;
+  -moz-margin-start: 5px;
   padding-top: 2px;
 }
 

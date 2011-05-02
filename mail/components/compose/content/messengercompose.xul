@@ -682,7 +682,7 @@
     <splitter id="sidebar-splitter" hidden="true"/>
 
     <vbox flex="1">  
-    <toolbox id="headers-box" class="toolbox-top" mode="icons"> 
+    <toolbox id="headers-box" class="toolbox-top" mode="icons">
     <toolbar id="MsgHeadersToolbar" persist="collapsed" flex="1"
              customizable="true" nowindowdrag="true"
              ondragover="nsDragAndDrop.dragOver(event, envelopeDragObserver);"
@@ -690,8 +690,10 @@
              ondragexit="nsDragAndDrop.dragExit(event, envelopeDragObserver);">
       <hbox id="msgheaderstoolbar-box" flex="1">
         <vbox flex="1" id="addresses-box">
-          <hbox align="center">
-            <label value="&fromAddr.label;" accesskey="&fromAddr.accesskey;" control="msgIdentity"/>
+          <hbox id="top-gradient-box">
+            <hbox align="center" pack="end" style="&headersSpace.style;">
+              <label value="&fromAddr.label;" accesskey="&fromAddr.accesskey;" control="msgIdentity"/>
+            </hbox>
             <menulist id="msgIdentity" type="description" flex="1" oncommand="LoadIdentity(false);">
               <menupopup id="msgIdentityPopup"/>
             </menulist>
@@ -700,7 +702,7 @@
                    onkeydown="awKeyDown(event, this)"
                    onclick="awClickEmptySpace(event.originalTarget, true)">
             <listcols>
-              <listcol id="typecol-addressingWidget"/>
+              <listcol id="typecol-addressingWidget" style="&headersSpace.style;"/>
               <listcol id="textcol-addressingWidget" flex="1"/>
             </listcols>
             <listitem class="addressingWidgetItem" allowevents="true">
@@ -736,8 +738,10 @@
               </listcell>
             </listitem>
           </listbox>
-          <hbox align="center">
-            <label value="&subject.label;" accesskey="&subject.accesskey;" control="msgSubject"/>
+          <hbox id="subject-box">
+            <hbox align="center" pack="end" style="&headersSpace.style;">
+              <label value="&subject.label;" accesskey="&subject.accesskey;" control="msgSubject"/>
+            </hbox>
             <textbox id="msgSubject" flex="1" class="toolbar" disableonsend="true" spellcheck="true"
                      oninput="gContentChanged=true;SetComposeWindowTitle();"
                      onkeypress="subjectKeyPress(event);" />
@@ -761,69 +765,72 @@
     </toolbar>   
 
     <!-- These toolbar items get filled out from the editorOverlay -->
-    <toolbar class="chromeclass-toolbar" id="FormatToolbar" persist="collapsed"
-             customizable="true" nowindowdrag="true">
-      <toolbaritem id="paragraph-select-container"/>
-      <toolbaritem id="font-face-select-container"/>
-      <toolbaritem id="color-buttons-container"
-                   disableoncustomize="true"/>
-      <toolbarbutton id="DecreaseFontSizeButton"/>
-      <toolbarbutton id="IncreaseFontSizeButton"/>
-      <toolbarseparator class="toolbarseparator-standard"/>
-      <toolbarbutton id="boldButton"/>
-      <toolbarbutton id="italicButton"/>
-      <toolbarbutton id="underlineButton"/>
-      <toolbarseparator class="toolbarseparator-standard"/>
-      <toolbarbutton id="ulButton"/>
-      <toolbarbutton id="olButton"/>
-      <toolbarbutton id="outdentButton"/>
-      <toolbarbutton id="indentButton"/>
-      <toolbarseparator class="toolbarseparator-standard"/>
-      <toolbarbutton id="AlignPopupButton"/>
-      <toolbarbutton id="InsertPopupButton"/>
-      <toolbarbutton id="smileButtonMenu"
-                     class="formatting-button"
-                     tooltiptext="&SmileButton.tooltip;"
-                     padwithspace="true"
-                     type="menu"
-                     observes="cmd_smiley">
-        <menupopup id="smilyPopup">
-          <menuitem id="smileySmile" class="menuitem-iconic" label="&smiley1Cmd.label;" 
-                    oncommand="doStatefulCommand('cmd_smiley', ':-)'  )"/>
-          <menuitem id="smileyFrown" class="menuitem-iconic" label="&smiley2Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', ':-('  )"/>                                              
-          <menuitem id="smileyWink" class="menuitem-iconic" label="&smiley3Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', ';-)'  )"/>                       
-          <menuitem id="smileyTongue" class="menuitem-iconic" label="&smiley4Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', ':-P'  )"/>
-          <menuitem id="smileyLaughing" class="menuitem-iconic" label="&smiley5Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', ':-D'  )"/>
-          <menuitem id="smileyEmbarassed" class="menuitem-iconic" label="&smiley6Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', ':-['  )"/>
-          <menuitem id="smileyUndecided" class="menuitem-iconic" label="&smiley7Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', ':-\\' )"/>
-          <menuitem id="smileySurprise" class="menuitem-iconic" label="&smiley8Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', '=-O' )"/>           
-          <menuitem id="smileyKiss" class="menuitem-iconic" label="&smiley9Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', ':-*' )"/>           
-          <menuitem id="smileyYell" class="menuitem-iconic" label="&smiley10Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', '>:o' )"/>           
-          <menuitem id="smileyCool" class="menuitem-iconic" label="&smiley11Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', '8-)' )"/>           
-          <menuitem id="smileyMoney" class="menuitem-iconic" label="&smiley12Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', ':-$' )"/>           
-          <menuitem id="smileyFoot" class="menuitem-iconic" label="&smiley13Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', ':-!' )"/>           
-          <menuitem id="smileyInnocent" class="menuitem-iconic" label="&smiley14Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', 'O:-)' )"/>           
-          <menuitem id="smileyCry" class="menuitem-iconic" label="&smiley15Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', ':\'(' )"/>
-          <menuitem id="smileySealed" class="menuitem-iconic" label="&smiley16Cmd.label;"
-                    oncommand="doStatefulCommand('cmd_smiley', ':-X' )"/>           
-        </menupopup>
-      </toolbarbutton>
-      <spacer flex="1"/>
-    </toolbar>
+    <hbox id="FormatToolbar-box">
+      <hbox style="&headersSpace.style;"/>
+      <toolbar class="chromeclass-toolbar" id="FormatToolbar" persist="collapsed"
+               customizable="true" nowindowdrag="true">
+        <toolbaritem id="paragraph-select-container"/>
+        <toolbaritem id="font-face-select-container"/>
+        <toolbaritem id="color-buttons-container"
+                     disableoncustomize="true"/>
+        <toolbarbutton id="DecreaseFontSizeButton"/>
+        <toolbarbutton id="IncreaseFontSizeButton"/>
+        <toolbarseparator class="toolbarseparator-standard"/>
+        <toolbarbutton id="boldButton"/>
+        <toolbarbutton id="italicButton"/>
+        <toolbarbutton id="underlineButton"/>
+        <toolbarseparator class="toolbarseparator-standard"/>
+        <toolbarbutton id="ulButton"/>
+        <toolbarbutton id="olButton"/>
+        <toolbarbutton id="outdentButton"/>
+        <toolbarbutton id="indentButton"/>
+        <toolbarseparator class="toolbarseparator-standard"/>
+        <toolbarbutton id="AlignPopupButton"/>
+        <toolbarbutton id="InsertPopupButton"/>
+        <toolbarbutton id="smileButtonMenu"
+                       class="formatting-button"
+                       tooltiptext="&SmileButton.tooltip;"
+                       padwithspace="true"
+                       type="menu"
+                       observes="cmd_smiley">
+          <menupopup id="smilyPopup">
+            <menuitem id="smileySmile" class="menuitem-iconic" label="&smiley1Cmd.label;" 
+                      oncommand="doStatefulCommand('cmd_smiley', ':-)'  )"/>
+            <menuitem id="smileyFrown" class="menuitem-iconic" label="&smiley2Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', ':-('  )"/>
+            <menuitem id="smileyWink" class="menuitem-iconic" label="&smiley3Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', ';-)'  )"/>
+            <menuitem id="smileyTongue" class="menuitem-iconic" label="&smiley4Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', ':-P'  )"/>
+            <menuitem id="smileyLaughing" class="menuitem-iconic" label="&smiley5Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', ':-D'  )"/>
+            <menuitem id="smileyEmbarassed" class="menuitem-iconic" label="&smiley6Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', ':-['  )"/>
+            <menuitem id="smileyUndecided" class="menuitem-iconic" label="&smiley7Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', ':-\\' )"/>
+            <menuitem id="smileySurprise" class="menuitem-iconic" label="&smiley8Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', '=-O' )"/>
+            <menuitem id="smileyKiss" class="menuitem-iconic" label="&smiley9Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', ':-*' )"/>
+            <menuitem id="smileyYell" class="menuitem-iconic" label="&smiley10Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', '>:o' )"/>
+            <menuitem id="smileyCool" class="menuitem-iconic" label="&smiley11Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', '8-)' )"/>
+            <menuitem id="smileyMoney" class="menuitem-iconic" label="&smiley12Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', ':-$' )"/>
+            <menuitem id="smileyFoot" class="menuitem-iconic" label="&smiley13Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', ':-!' )"/>
+            <menuitem id="smileyInnocent" class="menuitem-iconic" label="&smiley14Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', 'O:-)' )"/>
+            <menuitem id="smileyCry" class="menuitem-iconic" label="&smiley15Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', ':\'(' )"/>
+            <menuitem id="smileySealed" class="menuitem-iconic" label="&smiley16Cmd.label;"
+                      oncommand="doStatefulCommand('cmd_smiley', ':-X' )"/>
+          </menupopup>
+        </toolbarbutton>
+        <spacer flex="1"/>
+      </toolbar>
+    </hbox>
   </toolbox>
 
   <splitter id="compose-toolbar-sizer" onmousedown="awSizerListen()"/>
