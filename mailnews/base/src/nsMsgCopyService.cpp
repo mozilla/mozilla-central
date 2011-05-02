@@ -198,7 +198,7 @@ void nsMsgCopyService::LogCopyRequest(const char *logMsg, nsCopyRequest* aReques
     aRequest->m_copySourceArray[0]->m_messageArray->GetLength(&numMsgs);
   PR_LOG(gCopyServiceLog, PR_LOG_ALWAYS,
          ("request %lx %s - src %s dest %s numItems %d type=%d",
-         (PRUint32) aRequest, logMsg, srcFolderUri.get(),
+         aRequest, logMsg, srcFolderUri.get(),
          destFolderUri.get(), numMsgs, aRequest->m_requestType));
 }
 
