@@ -147,6 +147,9 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mailnews.start_page.url': "about:blank",
         # Do not enable gloda
         'mailnews.database.global.indexer.enabled': False,
+        # But do have gloda log if it does anything.  (When disabled, queries
+        # are still serviced; they just should not result in any matches.)
+        'mailnews.database.global.logging.upstream': True,
         # Do not allow fonts to be upgraded
         'mail.font.windows.version': 2
         }

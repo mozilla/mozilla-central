@@ -186,6 +186,8 @@ var Gloda = {
 
     let enableConsoleLogging = false;
     let enableDumpLogging = false;
+    // should we assume there is someone else consuming our log4moz stream?
+    let enableUpstreamLogging = false;
     let considerNetLogging = false;
 
     let glodaLog = Log4Moz.repository.getLogger("gloda");
@@ -198,6 +200,7 @@ var Gloda = {
       let branch = prefService.getBranch("mailnews.database.global.logging.");
       enableConsoleLogging = branch.getBoolPref("console");
       enableDumpLogging = branch.getBoolPref("dump");
+      enableUpstreamLogging = branch.getBoolPref("upstream");
       considerNetLogging = branch.getBoolPref("net");
     } catch (ex) {}
 
@@ -212,6 +215,10 @@ var Gloda = {
       dapp.level = Log4Moz.Level.All;
       glodaLog.level = Log4Moz.Level.All;
       glodaLog.addAppender(dapp);
+    }
+
+    if (enableUpstreamLogging) {
+      glodaLog.level = Log4Moz.Level.All;
     }
 
     if (considerNetLogging) {
