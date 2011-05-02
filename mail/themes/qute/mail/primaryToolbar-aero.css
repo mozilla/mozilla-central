@@ -247,8 +247,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 }
 
 @media all and (-moz-windows-compositor) {
-  #messengerWindow,
-  tabpanels#tabpanelcontainer {
+  #messengerWindow {
     -moz-appearance: -moz-win-borderless-glass;
     background: transparent;
   }

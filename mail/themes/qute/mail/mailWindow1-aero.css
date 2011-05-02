@@ -152,6 +152,7 @@ padding: 4px 0px;
   #messengerWindow[sizemode=normal] tabpanels#tabpanelcontainer {
     border: 1px solid rgba(10%, 10%, 10%, .4);
     border-top: none;
+    background-clip: padding-box;
   }
 
   #messengerWindow[sizemode=normal] statusbar {
