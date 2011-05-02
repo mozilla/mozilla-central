@@ -36,6 +36,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifdef MOZ_LOGGING
+#define FORCE_PR_LOG /* Allow logging in the release build */
+#endif
 #include "nsMsgCopyService.h"
 #include "nsCOMArray.h"
 #include "nspr.h"
@@ -47,6 +50,8 @@
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "nsMsgUtils.h"
+
+static PRLogModuleInfo *gCopyServiceLog;
 
 // ******************** nsCopySource ******************
 //
@@ -156,6 +161,7 @@ nsCopyRequest::AddNewCopySource(nsIMsgFolder* srcFolder)
 
 nsMsgCopyService::nsMsgCopyService()
 {
+  gCopyServiceLog = PR_NewLogModule("MsgCopyService");
 }
 
 nsMsgCopyService::~nsMsgCopyService()
@@ -166,12 +172,45 @@ nsMsgCopyService::~nsMsgCopyService()
     ClearRequest(m_copyRequests.ElementAt(i), NS_ERROR_FAILURE);
 }
 
+void nsMsgCopyService::LogCopyCompletion(nsISupports *aSrc, nsIMsgFolder *aDest)
+{
+  nsCString srcFolderUri, destFolderUri;
+  nsCOMPtr<nsIMsgFolder> srcFolder(do_QueryInterface(aSrc));
+  if (srcFolder)
+    srcFolder->GetURI(srcFolderUri);
+  aDest->GetURI(destFolderUri);
+  PR_LOG(gCopyServiceLog, PR_LOG_ALWAYS,
+         ("NotifyCompletion - src %s dest %s\n",
+          srcFolderUri.get(), destFolderUri.get()));
+}
+
+void nsMsgCopyService::LogCopyRequest(const char *logMsg, nsCopyRequest* aRequest)
+{
+  nsCString srcFolderUri, destFolderUri;
+  nsCOMPtr<nsIMsgFolder> srcFolder(do_QueryInterface(aRequest->m_srcSupport));
+  if (srcFolder)
+    srcFolder->GetURI(srcFolderUri);
+  aRequest->m_dstFolder->GetURI(destFolderUri);
+  PRUint32 numMsgs = 0;
+  if (aRequest->m_requestType == nsCopyMessagesType &&
+      aRequest->m_copySourceArray.Length() > 0 &&
+      aRequest->m_copySourceArray[0]->m_messageArray)
+    aRequest->m_copySourceArray[0]->m_messageArray->GetLength(&numMsgs);
+  PR_LOG(gCopyServiceLog, PR_LOG_ALWAYS,
+         ("request %lx %s - src %s dest %s numItems %d type=%d",
+         (PRUint32) aRequest, logMsg, srcFolderUri.get(),
+         destFolderUri.get(), numMsgs, aRequest->m_requestType));
+}
 
 nsresult
 nsMsgCopyService::ClearRequest(nsCopyRequest* aRequest, nsresult rv)
 {
   if (aRequest)
   {
+    if (PR_LOG_TEST(gCopyServiceLog, PR_LOG_ALWAYS))
+      LogCopyRequest(NS_SUCCEEDED(rv) ? "Clearing OK request" 
+                                      : "Clearing failed request", aRequest);
+
     // Send notifications to nsIMsgFolderListeners
     if (NS_SUCCEEDED(rv) && aRequest->m_requestType == nsCopyFoldersType)
     {
@@ -249,7 +288,11 @@ nsMsgCopyService::DoCopy(nsCopyRequest* aRequest)
   PRBool copyImmediately;
   QueueRequest(aRequest, &copyImmediately);
   m_copyRequests.AppendElement(aRequest);
-  if (copyImmediately) // if there wasn't another request for this dest folder then we can copy immediately
+  if (PR_LOG_TEST(gCopyServiceLog, PR_LOG_ALWAYS))
+    LogCopyRequest(copyImmediately ? "DoCopy" : "QueueRequest", aRequest);
+
+  // if no active request for this dest folder then we can copy immediately
+  if (copyImmediately)
     return DoNextCopy();
 
   return NS_OK;
@@ -432,6 +475,8 @@ nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
   NS_ENSURE_ARG_POINTER(messages);
   NS_ENSURE_ARG_POINTER(dstFolder);
 
+  PR_LOG(gCopyServiceLog, PR_LOG_DEBUG, ("CopyMessages"));
+
   if (srcFolder == dstFolder)
   {
     NS_ERROR("src and dest folders for msg copy can't be the same");
@@ -464,6 +509,9 @@ nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
     goto done;
 
   messages->GetLength(&cnt);
+
+  if (PR_LOG_TEST(gCopyServiceLog, PR_LOG_ALWAYS))
+    LogCopyRequest("CopyMessages request", copyRequest);
 
   // duplicate the message array so we could sort the messages by it's
   // folder easily
@@ -631,6 +679,8 @@ nsMsgCopyService::NotifyCompletion(nsISupports* aSupport,
                                    nsIMsgFolder* dstFolder,
                                    nsresult result)
 {
+  if (PR_LOG_TEST(gCopyServiceLog, PR_LOG_ALWAYS))
+    LogCopyCompletion(aSupport, dstFolder);
   nsCopyRequest* copyRequest = nsnull;
   PRUint32 numOrigRequests = m_copyRequests.Length();
   do

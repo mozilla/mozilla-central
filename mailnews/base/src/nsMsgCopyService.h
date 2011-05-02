@@ -100,22 +100,24 @@ public:
 class nsMsgCopyService : public nsIMsgCopyService
 {
 public:
-	nsMsgCopyService();
-	virtual ~nsMsgCopyService();
-	
-	NS_DECL_ISUPPORTS 
+  nsMsgCopyService();
+  virtual ~nsMsgCopyService();
 
-	NS_DECL_NSIMSGCOPYSERVICE
+  NS_DECL_ISUPPORTS 
+
+  NS_DECL_NSIMSGCOPYSERVICE
 
 private:
 
-    nsresult ClearRequest(nsCopyRequest* aRequest, nsresult rv);
-    nsresult DoCopy(nsCopyRequest* aRequest);
-    nsresult DoNextCopy();
-    nsCopyRequest* FindRequest(nsISupports* aSupport, nsIMsgFolder* dstFolder);
-    nsresult QueueRequest(nsCopyRequest* aRequest, PRBool *aCopyImmediately);
+  nsresult ClearRequest(nsCopyRequest* aRequest, nsresult rv);
+  nsresult DoCopy(nsCopyRequest* aRequest);
+  nsresult DoNextCopy();
+  nsCopyRequest* FindRequest(nsISupports* aSupport, nsIMsgFolder* dstFolder);
+  nsresult QueueRequest(nsCopyRequest* aRequest, PRBool *aCopyImmediately);
+  void LogCopyCompletion(nsISupports *aSrc, nsIMsgFolder *aDest);
+  void LogCopyRequest(const char *logMsg, nsCopyRequest* aRequest);
 
-    nsTArray<nsCopyRequest*> m_copyRequests;
+  nsTArray<nsCopyRequest*> m_copyRequests;
 };
 
 
