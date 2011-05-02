@@ -408,7 +408,8 @@
             }
 
             // Hide any extra nodes but keep them around for later.
-            for (let j = i*2 - 1; j < aAddressesNode.childNodes.length; j++) {
+            cached = aAddressesNode.childNodes.length;
+            for (let j = Math.max(i*2 - 1, 0); j < cached; j++) {
               aAddressesNode.childNodes[j].hidden = true;
             }
 
