@@ -4687,6 +4687,19 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
 {
   PRInt32 status = 0;
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
+  if (!mailnewsurl || !m_nntpServer)
+  {
+    // In these cases, we are going to return since our data is effectively
+    // invalid. However, nsInputStream would really rather that we at least read
+    // some of our input data (even if not all of it). Therefore, we'll read a
+    // little bit.
+    char buffer[128];
+    PRUint32 readData = 0;
+    inputStream->Read(buffer, 127, &readData);
+    buffer[readData] = '\0';
+    PR_LOG(NNTP, PR_LOG_DEBUG, ("(%p) Ignoring data: %s", this, buffer));
+  }
+
   if (!mailnewsurl)
     return NS_OK; // probably no data available - it's OK.
 
