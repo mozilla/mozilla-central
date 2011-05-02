@@ -1104,6 +1104,25 @@ var PerWindowTypeAugmentations = {
                       ["singleMessageDisplay?", this.singleMessageDisplay]);
         }
       },
+      // Message summarization annotations
+      {
+        method: "summarize",
+        onConstructor: "MultiMessageSummary",
+        reportAs: "MD_MultiMessageSummary_summarize",
+        showArgs: false,
+      },
+      {
+        method: "onQueryCompleted",
+        onConstructor: "MultiMessageSummary",
+        reportAs: "MD_*Summary_onQueryCompleted",
+        showArgs: false,
+      },
+      {
+        method: "summarize",
+        onConstructor: "ThreadSummary",
+        reportAs: "MD_ThreadSummary_summarize",
+        showArgs: false,
+      },
     ],
   },
 
@@ -1212,6 +1231,7 @@ function _augment_helper(aController, aAugmentDef) {
         continue;
       let origFunc = baseObj[traceDef.method];
       let reportAs = traceDef.reportAs; // latch
+      let showArgs = ("showArgs" in traceDef) ? traceDef.showArgs : true;
       baseObj[wrappedName] = origFunc;
 
       // - create the trace func based on the definition and apply
@@ -1226,7 +1246,7 @@ function _augment_helper(aController, aAugmentDef) {
       else {
         traceFunc = function() {
           mark_action("winhelp", reportAs,
-                      Array.prototype.slice.call(arguments));
+                      showArgs ? Array.prototype.slice.call(arguments) : []);
           try {
             return origFunc.apply(this, arguments);
           }
