@@ -41,14 +41,20 @@
  * Params @see fetchConfigFromISP()
  */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 function fetchConfigFromDisk(domain, successCallback, errorCallback)
 {
   return new TimeoutAbortable(runAsync(function()
   {
     try {
       // <TB installdir>/isp/example.com.xml
-      var uri = "resource:///isp/" + sanitize.hostname(domain) + ".xml";
-      var contents = readURLasUTF8(makeNSIURI(uri));
+      var configLocation = Services.dirsvc.get("CurProcD", Ci.nsIFile);
+      configLocation.append("isp");
+      configLocation.append(sanitize.hostname(domain) + ".xml");
+
+      var contents =
+        readURLasUTF8(Services.io.newFileURI(configLocation));
        // Bug 336551 trips over <?xml ... >
       contents = contents.replace(/<\?xml[^>]*\?>/, "");
       successCallback(readFromXML(new XML(contents)));
@@ -136,7 +142,7 @@ function fetchConfigFromDB(domain, successCallback, errorCallback)
   let pref = Cc["@mozilla.org/preferences-service;1"]
              .getService(Ci.nsIPrefBranch);
   let url = pref.getCharPref("mailnews.auto_config_url");
-  let domain = sanitize.hostname(domain);
+  domain = sanitize.hostname(domain);
 
   // If we don't specify a place to put the domain, put it at the end.
   if (url.indexOf("{{domain}}") == -1)
@@ -182,7 +188,7 @@ function fetchConfigFromDB(domain, successCallback, errorCallback)
  */
 function fetchConfigForMX(domain, successCallback, errorCallback)
 {
-  var domain = sanitize.hostname(domain);
+  domain = sanitize.hostname(domain);
 
   var sucAbortable = new SuccessiveAbortable();
   var time = Date.now();
@@ -230,7 +236,7 @@ function fetchConfigForMX(domain, successCallback, errorCallback)
  */
 function getMX(domain, successCallback, errorCallback)
 {
-  let domain = sanitize.hostname(domain);
+  domain = sanitize.hostname(domain);
 
   let pref = Cc["@mozilla.org/preferences-service;1"]
                .getService(Ci.nsIPrefBranch);
