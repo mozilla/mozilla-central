@@ -60,6 +60,10 @@ function setupModule(module) {
   be_in_folder(folder);
 }
 
+function wait_for_resize(width) {
+  mc.waitForEval("subject.outerWidth == " + width, 1000, 50, mc.window);
+}
+
 function resize_to(width, height) {
   mark_action("test", "resize_to", [width, "x", height]);
   mc.window.resizeTo(width, height);
@@ -67,9 +71,7 @@ function resize_to(width, height) {
   //  interacting window manager have its impact.  This still may not be
   //  sufficient.
   mc.sleep(0);
-  mc.waitForEval("subject.outerWidth == " + width + " && " +
-                 " subject.outerHeight == " + height,
-                 1000, 50, mc.window);
+  wait_for_resize(width);
 }
 
 function collapse_folder_pane(shouldBeCollapsed) {
@@ -105,7 +107,11 @@ function test_buttons_collapse_and_expand() {
                  "shrunk?", qfbCollapsy.getAttribute("shrink")]);
   }
 
-  function assertCollapsed() {
+  function assertCollapsed(width) {
+    // It's possible the window hasn't actually resized yet, so double-check and
+    // spin if needed.
+    wait_for_resize(width);
+
     // The bar should be shrunken and the button should be the same size as its
     // image!
     if (qfbCollapsy.getAttribute("shrink") != "true")
@@ -113,7 +119,11 @@ function test_buttons_collapse_and_expand() {
     if (qfbExemplarLabel.clientWidth != 0)
       throw new Error("The exemplar label should be collapsed!");
   }
-  function assertExpanded() {
+  function assertExpanded(width) {
+    // It's possible the window hasn't actually resized yet, so double-check and
+    // spin if needed.
+    wait_for_resize(width);
+
     // The bar should not be shrunken and the button should be smaller than its
     // label!
     if (qfbCollapsy.hasAttribute("shrink"))
@@ -132,7 +142,7 @@ function test_buttons_collapse_and_expand() {
   // spin the event loop once
   mc.sleep(0);
   logState("giant");
-  assertExpanded();
+  assertExpanded(1200);
 
   // -- tiny.
   collapse_folder_pane(false);
@@ -140,7 +150,7 @@ function test_buttons_collapse_and_expand() {
   // spin the event loop once
   mc.sleep(0);
   logState("tiny");
-  assertCollapsed();
+  assertCollapsed(600);
 
   // -- GIANT again!
   resize_to(1200, 600);
@@ -148,7 +158,7 @@ function test_buttons_collapse_and_expand() {
   // spin the event loop once
   mc.sleep(0);
   logState("giant again!");
-  assertExpanded();
+  assertExpanded(1200);
 }
 
 function teardownModule() {
