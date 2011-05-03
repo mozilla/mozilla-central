@@ -458,7 +458,7 @@ pref("app.update.auto", true);
 // 1                  download no prompt  download no prompt if no incompatibilities
 // 2                  download no prompt  prompt
 //
-// See chart in nsUpdateService.js.in for more details
+// See chart in nsUpdateService.js for more details
 //
 pref("app.update.mode", 1);
 
@@ -479,6 +479,11 @@ pref("app.update.url.details", "chrome://communicator-region/locale/region.prope
  
 // Enables some extra Application Update Logging (can reduce performance)
 pref("app.update.log", false);
+
+// The number of general background check failures to allow before notifying the
+// user of the failure. User initiated update checks always notify the user of
+// the failure.
+pref("app.update.backgroundMaxErrors", 10);
 
 // When |app.update.cert.requireBuiltIn| is true or not specified the
 // final certificate and all certificates the connection is redirected to before
@@ -518,9 +523,9 @@ pref("app.update.interval", 86400);
 // Interval: Time before prompting the user again to restart to install the
 //           latest download (in seconds) default=1 day
 pref("app.update.nagTimer.restart", 86400);
-// Interval: When all registered timers should be checked (in milliseconds)
-//           default=10 minutes
-pref("app.update.timer", 600000);
+// The minimum delay in seconds for the timer to fire.
+// default=2 minutes
+pref("app.update.timerMinimumDelay", 120);
 // Give the user x seconds to react before showing the big UI. default=12 hrs
 pref("app.update.promptWaitTime", 43200);
 // Show the Update Checking/Ready UI when the user was idle for x seconds
