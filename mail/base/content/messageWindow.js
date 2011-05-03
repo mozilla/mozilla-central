@@ -184,12 +184,6 @@ StandaloneFolderDisplayWidget.prototype = {
 function StandaloneMessageDisplayWidget() {
   MessageDisplayWidget.call(this);
   /**
-   * Indicate whether the message being displayed is a 'dummy' because it is
-   *  backed not by an nsIMsgDBHdr but instead by a file on disk or an
-   *  attachment on some mail message.
-   */
-  this.isDummy = false;
-  /**
    * When displaying a dummy message, this is the URI of the message that we are
    *  displaying.  If we are not displaying a dummy message, this is null.
    */

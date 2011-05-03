@@ -113,6 +113,13 @@ MessageDisplayWidget.prototype = {
    * The currently displayed message's nsIMsgDBHdr.  null if there's no message.
    */
   displayedMessage: null,
+
+  /**
+   * Indicate whether the message being displayed is a 'dummy' because it is
+   *  backed not by an nsIMsgDBHdr but instead by a file on disk or an
+   *  attachment on some mail message.
+   */
+  isDummy: false,
   //@}
 
   /**

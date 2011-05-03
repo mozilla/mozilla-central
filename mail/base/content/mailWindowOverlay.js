@@ -392,7 +392,7 @@ function InitMessageMenu()
     openRssMenu.hidden = true;
 
   // Disable mark menu when we're not in a folder.
-  document.getElementById("markMenu").disabled = !messageStoredInternally;
+  document.getElementById("markMenu").disabled = gMessageDisplay.isDummy;
 
   document.commandDispatcher.updateCommands('create-menu-message');
 }
@@ -1094,6 +1094,8 @@ function SelectedMessagesAreJunk()
 function SelectedMessagesAreRead()
 {
   let messages = gFolderDisplay.selectedMessages;
+  if (messages.length == 0)
+    return undefined;
   if (messages.every(function(msg) { return msg.isRead; }))
     return true;
   if (messages.every(function(msg) { return !msg.isRead; }))
@@ -1966,12 +1968,13 @@ function UpdateJunkButton()
 /**
  * Checks if the selected messages can be marked as read or unread
  *
- * @param read true if trying to mark messages as read, false otherwise
+ * @param markingRead true if trying to mark messages as read, false otherwise
  * @return true if the chosen operation can be performed
  */
-function CanMarkMsgAsRead(read)
+function CanMarkMsgAsRead(markingRead)
 {
-  return SelectedMessagesAreRead() != read;
+  return gFolderDisplay.selectedMessages.length > 0 &&
+         SelectedMessagesAreRead() != markingRead;
 }
 
 /**
