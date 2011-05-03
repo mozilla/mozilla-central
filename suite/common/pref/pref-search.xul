@@ -71,6 +71,11 @@
         <menulist id="engineList"
                   preference="browser.search.defaultenginename"/>
       </hbox>
+      <hbox pack="end">
+        <button id="managerButton"
+                label="&engineManager.label;"
+                oncommand="OpenManager();"/>
+      </hbox>
     </groupbox>
 
     <groupbox>

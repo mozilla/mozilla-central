@@ -108,8 +108,15 @@ var gEngineManagerDialog = {
 
   loadAddEngines: function engineManager_loadAddEngines() {
     this.onOK();
-    window.opener.BrowserSearch.loadAddEngines();
-    window.close();
+    var win = window.opener;
+    // No browser window found as opener, look for one.
+    if (!win || !win.BrowserSearch)
+      win = Services.wm.getMostRecentWindow("navigator:browser");
+    // If a browser is open, use it, else don't do anything.
+    if (win && win.BrowserSearch) {
+      win.BrowserSearch.loadAddEngines();
+      window.close();
+    }
   },
 
   remove: function engineManager_remove() {

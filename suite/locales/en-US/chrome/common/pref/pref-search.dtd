@@ -7,7 +7,6 @@
 <!ENTITY defaultSearchEngine.label        "Search using:">
 <!ENTITY defaultSearchEngine.accesskey    "S">
 
-<!-- Will be used by bug 595246 -->
 <!ENTITY engineManager.label              "Manage Search Engines…">
 
 <!ENTITY searchResults.label              "Search Results">

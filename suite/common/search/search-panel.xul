@@ -59,4 +59,7 @@
       <button id="searchButton" label="&search.button.label;"
               oncommand="doSearch();"/>
     </hbox>
+    <button id="managerButton"
+            label="&search.engineManager.label;"
+            oncommand="OpenManager();"/>
 </page>
