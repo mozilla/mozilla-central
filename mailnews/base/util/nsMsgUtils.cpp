@@ -367,6 +367,20 @@ MsgFindCharInSet(const nsString &aString,
 #endif
 }
 
+static PRBool ConvertibleToNative(const nsAutoString& str)
+{
+    nsCAutoString native;
+    nsAutoString roundTripped;
+#ifdef MOZILLA_INTERNAL_API
+    NS_CopyUnicodeToNative(str, native);
+    NS_CopyNativeToUnicode(native, roundTripped);
+#else
+    nsMsgI18NConvertFromUnicode(nsMsgI18NFileSystemCharset(), str, native);
+    nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(), native, roundTripped);
+#endif
+    return str.Equals(roundTripped);
+}
+
 #if defined(XP_UNIX) || defined(XP_BEOS)
   const static PRUint32 MAX_LEN = 55;
 #elif defined(XP_WIN32)
@@ -458,8 +472,7 @@ nsresult NS_MsgHashIfNecessary(nsAutoString &name)
   PRInt32 keptLength = -1;
   if (illegalCharacterIndex != -1)
     keptLength = illegalCharacterIndex;
-  /* Can be converted from utf8 to utf16 and back to utf8 (convertibleToNative): */
-  else if (!name.Equals(NS_ConvertUTF8toUTF16(NS_ConvertUTF16toUTF8(name))))
+  else if (!ConvertibleToNative(name))
     keptLength = 0;
   else if (name.Length() > MAX_LEN) {
     keptLength = MAX_LEN-8;
@@ -600,9 +613,7 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
 #ifdef MOZILLA_INTERNAL_API
   return NS_CopyUnicodeToNative(path, aPathCString);
 #else
-  NS_ERROR("NS_CopyUnicodeToNative not implemented in frozen linkage.");
-  LossyCopyUTF16toASCII(path, aPathCString);
-  return NS_OK;
+  return nsMsgI18NConvertFromUnicode(nsMsgI18NFileSystemCharset(), path, aPathCString);
 #endif
 }
 
