@@ -2408,6 +2408,10 @@ var GlodaMsgIndexer = {
         let val = null, newKey = aNewMsgHdr.messageKey;
         let [glodaId, glodaDirty] =
           PendingCommitTracker.getGlodaState(aNewMsgHdr);
+        // If we haven't indexed this message yet, take no action, and leave it
+        // up to msgsClassified to take proper action.
+        if (glodaId < GLODA_FIRST_VALID_MESSAGE_ID)
+          return;
         // take no action on filthy messages,
         // generate an entry if dirty or the keys don't match.
         if ((glodaDirty !== GlodaMsgIndexer.kMessageFilthy) &&
