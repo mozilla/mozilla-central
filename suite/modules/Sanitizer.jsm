@@ -138,12 +138,9 @@ var Sanitizer = {
 
   // clear plugin data
   _clearPluginData: function(aFlagName) {
-    // change this to nsIPluginHost after 2.0
-    const nsIPluginHost = Components.interfaces.nsIPluginHost_MOZILLA_2_0_BRANCH;
+    const nsIPluginHost = Components.interfaces.nsIPluginHost;
     var ph = Components.classes["@mozilla.org/plugin/host;1"]
                        .getService(nsIPluginHost);
-    // delete this after 2.0
-    ph.QueryInterface(Components.interfaces.nsIPluginHost);
 
     if (!(aFlagName in nsIPluginHost))
       return;
