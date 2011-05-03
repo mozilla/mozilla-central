@@ -1999,9 +1999,9 @@ nsMsgDBFolder::GetPurgeThreshold(PRInt32 *aThreshold)
 NS_IMETHODIMP //called on the folder that is renamed or about to be deleted
 nsMsgDBFolder::MatchOrChangeFilterDestination(nsIMsgFolder *newFolder, PRBool caseInsensitive, PRBool *found)
 {
-  nsresult rv = NS_OK;
+  NS_ENSURE_ARG_POINTER(found);
   nsCString oldUri;
-  rv = GetURI(oldUri);
+  nsresult rv = GetURI(oldUri);
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCString newUri;
@@ -2035,7 +2035,7 @@ nsMsgDBFolder::MatchOrChangeFilterDestination(nsIMsgFolder *newFolder, PRBool ca
         if (NS_SUCCEEDED(rv) && filterList)
         {
           rv = filterList->MatchOrChangeFilterTarget(oldUri, newUri, caseInsensitive, found);
-          if (NS_SUCCEEDED(rv) && found && newFolder && !newUri.IsEmpty())
+          if (NS_SUCCEEDED(rv) && *found && newFolder && !newUri.IsEmpty())
             rv = filterList->SaveToDefaultFile();
         }
         // update the editable filterlist to match the new folder name
@@ -2043,7 +2043,7 @@ nsMsgDBFolder::MatchOrChangeFilterDestination(nsIMsgFolder *newFolder, PRBool ca
         if (NS_SUCCEEDED(rv) && filterList)
         {
           rv = filterList->MatchOrChangeFilterTarget(oldUri, newUri, caseInsensitive, found);
-          if (NS_SUCCEEDED(rv) && found && newFolder && !newUri.IsEmpty())
+          if (NS_SUCCEEDED(rv) && *found && newFolder && !newUri.IsEmpty())
             rv = filterList->SaveToDefaultFile();
         }
       }

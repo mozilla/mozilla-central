@@ -1098,12 +1098,14 @@ nsMsgFilterList::GetVersion(PRInt16 *aResult)
 
 NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFolderUri, const nsACString &newFolderUri, PRBool caseInsensitive, PRBool *found)
 {
+  NS_ENSURE_ARG_POINTER(found);
   nsresult rv = NS_OK;
   PRUint32 numFilters;
   rv = m_filters->Count(&numFilters);
   NS_ENSURE_SUCCESS(rv,rv);
   nsCOMPtr <nsIMsgFilter> filter;
   nsCString folderUri;
+  *found = PR_FALSE;
   for (PRUint32 index = 0; index < numFilters; index++)
   {
     filter = do_QueryElementAt(m_filters, index, &rv);
@@ -1136,7 +1138,7 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFo
               if (!newFolderUri.IsEmpty())  //if we just want to match the uri's, newFolderUri will be null
                 rv = filterAction->SetTargetFolderUri(newFolderUri);
               NS_ENSURE_SUCCESS(rv,rv);
-              *found =PR_TRUE;
+              *found = PR_TRUE;
             }
           }
           else
@@ -1146,7 +1148,7 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFo
               if (!newFolderUri.IsEmpty()) //if we just want to match the uri's, newFolderUri will be null
                 rv = filterAction->SetTargetFolderUri(newFolderUri);
               NS_ENSURE_SUCCESS(rv,rv);
-              *found =PR_TRUE;
+              *found = PR_TRUE;
             }
           }
         break;  //we allow only one move action per filter
