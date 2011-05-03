@@ -885,6 +885,10 @@ nsresult SetJunk(nsIMsgSearchValidityTable* aTable)
   aTable->SetEnabled(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Is, 1);
   aTable->SetAvailable(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Isnt, 1);
   aTable->SetEnabled(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Isnt, 1);
+  aTable->SetAvailable(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::IsEmpty, 1);
+  aTable->SetEnabled(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::IsEmpty, 1);
+  aTable->SetAvailable(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::IsntEmpty, 1);
+  aTable->SetEnabled(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::IsntEmpty, 1);
 
   aTable->SetAvailable(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsGreaterThan, 1);
   aTable->SetEnabled(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsGreaterThan, 1);

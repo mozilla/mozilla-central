@@ -49,11 +49,14 @@ const IsGreaterThan = nsMsgSearchOp.IsGreaterThan;
 const IsLessThan = nsMsgSearchOp.IsLessThan;
 const Is = nsMsgSearchOp.Is;
 const Isnt = nsMsgSearchOp.Isnt;
+const IsEmpty = nsMsgSearchOp.IsEmpty;
+const IsntEmpty = nsMsgSearchOp.IsntEmpty;
 
 const offlineMail = nsMsgSearchScope.offlineMail;
 
 const JunkScoreOrigin = nsMsgSearchAttrib.JunkScoreOrigin;
 const JunkPercent = nsMsgSearchAttrib.JunkPercent;
+const JunkStatus = nsMsgSearchAttrib.JunkStatus;
 
 const fileName = "../../../data/bugmail1";
 
@@ -73,6 +76,45 @@ const fileName = "../../../data/bugmail1";
 
 var Tests = 
 [
+  // test empty junk status
+  { junkScore: false,
+    testValue: 90,
+    attrib: JunkStatus,
+    op: IsEmpty,
+    count: 1},
+  { junkScore: false,
+    testValue: 90,
+    attrib: JunkStatus,
+    op: IsntEmpty,
+    count: 0},
+  { junkScore: "0",
+    junkScoreOrigin: "plugin",
+    junkPercent: "10",
+    testValue: 90,
+    attrib: JunkStatus,
+    op: IsntEmpty,
+    count: 1},
+  { junkScore: "0",
+    junkScoreOrigin: "plugin",
+    junkPercent: "10",
+    testValue: 90,
+    attrib: JunkStatus,
+    op: IsEmpty,
+    count: 0},
+  { junkScore: "100",
+    junkScoreOrigin: "plugin",
+    junkPercent: "10",
+    testValue: 90,
+    attrib: JunkStatus,
+    op: IsntEmpty,
+    count: 1},
+  { junkScore: "100",
+    junkScoreOrigin: "plugin",
+    junkPercent: "10",
+    testValue: 90,
+    attrib: JunkStatus,
+    op: IsEmpty,
+    count: 0},
   // Use junkpercent from database
   { junkScore: "0",
     junkScoreOrigin: "plugin",
@@ -243,9 +285,12 @@ function testJunkSearch()
   var test = Tests.shift();
   if (test)
   {
-    hdr.setStringProperty("junkpercent", test.junkPercent);
-    hdr.setStringProperty("junkscoreorigin", test.junkScoreOrigin);
-    hdr.setStringProperty("junkscore", test.junkScore);
+    if (test.junkScore)
+    {
+      hdr.setStringProperty("junkpercent", test.junkPercent);
+      hdr.setStringProperty("junkscoreorigin", test.junkScoreOrigin);
+      hdr.setStringProperty("junkscore", test.junkScore);
+    }
 
     testObject = new TestSearch(gLocalInboxFolder,
                          test.testValue,

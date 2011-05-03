@@ -1399,6 +1399,17 @@ nsresult nsMsgSearchTerm::MatchJunkStatus(const char *aJunkScore, PRBool *pResul
 {
   NS_ENSURE_ARG_POINTER(pResult);
 
+  if (m_operator == nsMsgSearchOp::IsEmpty)
+  {
+    *pResult = !(aJunkScore && *aJunkScore);
+    return NS_OK;
+  }
+  else if (m_operator == nsMsgSearchOp::IsntEmpty)
+  {
+    *pResult = (aJunkScore && *aJunkScore);
+    return NS_OK;
+  }
+
   nsMsgJunkStatus junkStatus;
   if (aJunkScore && *aJunkScore) {
       junkStatus = (atoi(aJunkScore) == nsIJunkMailPlugin::IS_SPAM_SCORE) ?

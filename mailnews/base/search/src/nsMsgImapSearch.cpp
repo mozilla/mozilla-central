@@ -313,6 +313,10 @@ nsMsgSearchValidityManager::InitOfflineMailTable()
   m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Is, 1);
   m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Isnt, 1);
   m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Isnt, 1);
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::IsEmpty, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::IsEmpty, 1);
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::IsntEmpty, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::IsntEmpty, 1);
   
   m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsGreaterThan, 1);
   m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsGreaterThan, 1);
@@ -921,6 +925,10 @@ nsMsgSearchValidityManager::InitOnlineManualFilterTable()
   m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Is, 1);
   m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Isnt, 1);
   m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::IsEmpty, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::IsEmpty, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::IsntEmpty, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::IsntEmpty, 1);
 
   m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsGreaterThan, 1);
   m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsGreaterThan, 1);
