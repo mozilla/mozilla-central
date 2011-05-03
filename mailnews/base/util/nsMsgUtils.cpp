@@ -367,14 +367,17 @@ MsgFindCharInSet(const nsString &aString,
 #endif
 }
 
-// XXX : this may have other clients, in which case we'd better move it to
-//       xpcom/io/nsNativeCharsetUtils with nsAString in place of nsAutoString
 static PRBool ConvertibleToNative(const nsAutoString& str)
 {
     nsCAutoString native;
     nsAutoString roundTripped;
+#ifdef MOZILLA_INTERNAL_API
     NS_CopyUnicodeToNative(str, native);
     NS_CopyNativeToUnicode(native, roundTripped);
+#else
+    nsMsgI18NConvertFromUnicode(nsMsgI18NFileSystemCharset(), str, native);
+    nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(), native, roundTripped);
+#endif
     return str.Equals(roundTripped);
 }
 
@@ -610,9 +613,7 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
 #ifdef MOZILLA_INTERNAL_API
   return NS_CopyUnicodeToNative(path, aPathCString);
 #else
-  NS_ERROR("NS_CopyUnicodeToNative not implemented in frozen linkage.");
-  LossyCopyUTF16toASCII(path, aPathCString);
-  return NS_OK;
+  return nsMsgI18NConvertFromUnicode(nsMsgI18NFileSystemCharset(), path, aPathCString);
 #endif
 }
 
