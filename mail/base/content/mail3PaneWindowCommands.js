@@ -431,6 +431,8 @@ var DefaultController =
       case "cmd_undoCloseTab":
         return (document.getElementById("tabmail").recentlyClosedTabs.length > 0);               
       case "cmd_markAllRead":
+        return IsFolderSelected() && gDBView &&
+               gDBView.msgFolder.getNumUnread(false) > 0;
       case "cmd_markReadByDate":
         return IsFolderSelected();
       case "cmd_find":

@@ -113,9 +113,15 @@ function enable_archiving(enabled) {
    .setBoolPref("mail.identity.default.archive_enabled", enabled);
 }
 
+/**
+ * Mark a message read or unread via the context menu
+ * @param index the row in the thread pane of the message to mark read/unread
+ * @param read true the message should be marked read, false otherwise
+ */
 function mark_read_via_menu(index, read) {
   let menuItem = read ? "mailContext-markRead" : "mailContext-markUnread";
   right_click_on_row(index);
+  wait_for_popup_to_open(mc.e("mailContext"));
   mc.click_menus_in_sequence(mc.e("mailContext"), [{id: "mailContext-mark"},
                                                    {id: menuItem}]);
   close_popup(mc, mc.eid("mailContext"));
@@ -253,6 +259,29 @@ function test_mark_menu_mixed() {
   curMessages[1].markRead(true);
 
   check_read_menuitems(0, true, true);
+}
+
+function test_mark_all_read() {
+  be_in_folder(unreadFolder);
+  let curMessage = select_click_row(0);
+  curMessage.markRead(false);
+
+  // Make sure we can mark all read with >0 messages unread.
+  right_click_on_row(0);
+  wait_for_popup_to_open(mc.e("mailContext"));
+  mc.click_menus_in_sequence(mc.e("mailContext"), [{id: "mailContext-mark"},
+                                                   {id: "mailContext-markAllRead"}]);
+  close_popup(mc, mc.eid("mailContext"));
+
+  assert_true(curMessage.isRead, "Message should have been marked read!");
+
+  // Make sure we can't mark all read, now that all messages are already read.
+  right_click_on_row(0);
+  wait_for_popup_to_open(mc.e("mailContext"));
+  mc.click_menus_in_sequence(mc.e("mailContext"), [{id: "mailContext-mark"}]);
+
+  let allReadDisabled = mc.e("mailContext-markAllRead").disabled;
+  assert_true(allReadDisabled, "Mark All Read menu item should be disabled!");
 }
 
 function test_yearly_archive() {
