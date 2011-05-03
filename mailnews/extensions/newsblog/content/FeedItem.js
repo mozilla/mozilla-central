@@ -328,10 +328,9 @@ FeedItem.prototype =
 
     // the subject may contain HTML entities.
     // Convert these to their unencoded state. i.e. &amp; becomes '&'
-    title = title.replace(/&lt;/g, '<');
-    title = title.replace(/&gt;/g, '>');
-    title = title.replace(/&quot;/g, '"');
-    title = title.replace(/&amp;/g, '&');
+    title = Components.classes["@mozilla.org/feed-unescapehtml;1"]
+                      .getService(Components.interfaces.nsIScriptableUnescapeHTML)
+                      .unescape(title);
 
     // Compress white space in the subject to make it look better.
     title = title.replace(/[\t\r\n]+/g, " ");
