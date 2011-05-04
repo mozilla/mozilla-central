@@ -321,8 +321,6 @@ nsNNTPProtocol::nsNNTPProtocol(nsIURI * aURL, nsIMsgWindow *aMsgWindow)
 
   m_key = nsMsgKey_None;
 
-  m_searchData = nsnull;
-
   mBytesReceived = 0;
   mBytesReceivedSinceLastStatusUpdate = 0;
   m_startTime = PR_Now();
@@ -1042,12 +1040,11 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
     m_typeWanted = SEARCH_WANTED;
 
     // Get the search data
-    nsCString commandSpecificData, unescapedCommandSpecificData;
+    nsCString commandSpecificData;
     nsCOMPtr<nsIURL> url = do_QueryInterface(m_runningURL);
     rv = url->GetQuery(commandSpecificData);
     NS_ENSURE_SUCCESS(rv, rv);
-    MsgUnescapeString(commandSpecificData, 0, unescapedCommandSpecificData);
-    m_searchData = ToNewCString(unescapedCommandSpecificData);
+    MsgUnescapeString(commandSpecificData, 0, m_searchData);
 
     rv = m_nntpServer->FindGroup(group, getter_AddRefs(m_newsFolder));
     if (!m_newsFolder)
@@ -1201,7 +1198,7 @@ FAIL:
     else if (m_typeWanted == GROUP_WANTED)
       NS_ASSERTION(m_newsFolder, "GROUP_WANTED needs m_newsFolder");
     else if (m_typeWanted == SEARCH_WANTED)
-      NS_ASSERTION(m_searchData, "SEARCH_WANTED needs m_searchData");
+      NS_ASSERTION(!m_searchData.IsEmpty(), "SEARCH_WANTED needs m_searchData");
     else if (m_typeWanted == IDS_WANTED)
       NS_ASSERTION(m_newsFolder, "IDS_WANTED needs m_newsFolder");
 
@@ -1931,49 +1928,24 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommand(nsIURI * url)
   else if (m_typeWanted == SEARCH_WANTED)
   {
     nsresult rv;
-    PRBool searchable=PR_FALSE;
-    if (!m_nntpServer) {
-      NNTP_LOG_NOTE("m_nntpServer is null, panic!");
-      return -1;
-    }
-    rv = m_nntpServer->QueryExtension("SEARCH", &searchable);
-    if (NS_SUCCEEDED(rv) && searchable)
-    {
-      /* use the SEARCH extension */
-      char *slash = PL_strchr (m_searchData, '/');
-      if (slash)
-      {
-        char *allocatedCommand = MSG_UnEscapeSearchUrl (slash + 1);
-        if (allocatedCommand)
-        {
-          NS_MsgSACopy (&command, allocatedCommand);
-          PR_Free(allocatedCommand);
-        }
-      }
-      m_nextState = NNTP_RESPONSE;
-      m_nextStateAfterResponse = NNTP_SEARCH_RESPONSE;
-    }
-    else
-    {
-            PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) doing GROUP for XPAT", this));
-            nsCString group_name;
+    PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) doing GROUP for XPAT", this));
+    nsCString group_name;
 
-            /* for XPAT, we have to GROUP into the group before searching */
-            if (!m_newsFolder) {
-                NNTP_LOG_NOTE("m_newsFolder is null, panic!");
-                return -1;
-            }
-            rv = m_newsFolder->GetRawName(group_name);
-            if (NS_FAILED(rv)) return -1;
-
-            NS_MsgSACopy(&command, "GROUP ");
-            NS_MsgSACat (&command, group_name.get());
-
-            // force a GROUP next time
-            m_currentGroup.Truncate();
-            m_nextState = NNTP_RESPONSE;
-            m_nextStateAfterResponse = NNTP_XPAT_SEND;
+    /* for XPAT, we have to GROUP into the group before searching */
+    if (!m_newsFolder) {
+        NNTP_LOG_NOTE("m_newsFolder is null, panic!");
+        return -1;
     }
+    rv = m_newsFolder->GetRawName(group_name);
+    if (NS_FAILED(rv)) return -1;
+
+    NS_MsgSACopy(&command, "GROUP ");
+    NS_MsgSACat (&command, group_name.get());
+
+    // force a GROUP next time
+    m_currentGroup.Truncate();
+    m_nextState = NNTP_RESPONSE;
+    m_nextStateAfterResponse = NNTP_XPAT_SEND;
   }
   else if (m_typeWanted == IDS_WANTED)
   {
@@ -3988,16 +3960,16 @@ FAIL:
 PRInt32 nsNNTPProtocol::XPATSend()
 {
   int status = 0;
-  char *thisTerm = NULL;
+  PRInt32 slash = m_searchData.FindChar('/');
 
-  if (m_searchData &&
-    (thisTerm = PL_strchr(m_searchData, '/')) != NULL) {
+  if (slash >= 0)
+  {
     /* extract the XPAT encoding for one query term */
     /* char *next_search = NULL; */
     char *command = NULL;
     char *unescapedCommand = NULL;
     char *endOfTerm = NULL;
-    NS_MsgSACopy (&command, ++thisTerm);
+    NS_MsgSACopy (&command, m_searchData.get() + slash + 1);
     endOfTerm = PL_strchr(command, '/');
     if (endOfTerm)
       *endOfTerm = '\0';
@@ -4071,12 +4043,12 @@ PRInt32 nsNNTPProtocol::XPATResponse(nsIInputStream * inputStream, PRUint32 leng
     else
     {
       /* set up the next term for next time around */
-      char *nextTerm = PL_strchr(m_searchData, '/');
+      PRInt32 slash = m_searchData.FindChar('/');
 
-      if (nextTerm)
-        m_searchData = ++nextTerm;
+      if (slash >= 0)
+        m_searchData.Cut(0, slash + 1);
       else
-        m_searchData = nsnull;
+        m_searchData.Truncate();
 
       m_nextState = NNTP_XPAT_SEND;
       ClearFlag(NNTP_PAUSE_FOR_READ);

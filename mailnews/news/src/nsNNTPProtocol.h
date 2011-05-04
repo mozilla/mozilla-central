@@ -253,7 +253,7 @@ private:
   // Per news article state information. (article number, author, subject, id, etc
   nsCString m_messageID;
   PRInt32   m_articleNumber;   /* current article number */
-  char   *m_searchData;
+  nsCString m_searchData;
 
   PRInt32   m_originalContentLength; /* the content length at the time of calling graph progress */
 

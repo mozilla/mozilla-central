@@ -191,6 +191,7 @@ function run_test() {
   localserver = setupLocalServer(NNTP_PORT);
   server = new nsMailServer(new NNTP_RFC2980_handler(daemon));
   server.start(NNTP_PORT);
+  server.setDebugLevel(fsDebugAll);
 
   // Set up an identity for posting
   var acctmgr = Cc["@mozilla.org/messenger/account-manager;1"]
