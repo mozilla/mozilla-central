@@ -63,9 +63,25 @@
     background-image: -moz-linear-gradient(rgba(255,255,255,.85), rgba(255,255,255,.6)) !important;
   }
 
+  tree[disabled="true"] > treechildren::-moz-tree-row {
+    background: none !important;
+    -moz-border-top-colors: transparent !important;
+    -moz-border-right-colors: transparent !important;
+    -moz-border-left-colors: transparent !important;
+    -moz-border-bottom-colors: transparent !important;
+  }
+
+  tree[disabled="true"] > treechildren::-moz-tree-twisty(open) {
+    list-style-image: url("chrome://global/skin/tree/twisty-open.png");
+  }
+
+  tree[disabled="true"] > treechildren:-moz-locale-dir(rtl)::-moz-tree-twisty(open) {
+    list-style-image: url("chrome://global/skin/tree/twisty-open-rtl.png");
+  }
+
   treechildren::-moz-tree-cell-text {
     border-color: transparent;
-	background-color: transparent;
+    background-color: transparent;
   }
 
   listitem[selected="true"][current="true"],
