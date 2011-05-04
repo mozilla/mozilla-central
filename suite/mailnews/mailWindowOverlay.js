@@ -1627,10 +1627,8 @@ function MsgSaveAsFile()
 
 function MsgSaveAsTemplate()
 {
-    var folder = GetLoadedMsgFolder();
-    if (GetNumSelectedMessages() == 1) {
-        SaveAsTemplate(GetFirstSelectedMessage(), folder);
-    }
+  if (GetNumSelectedMessages() == 1)
+    SaveAsTemplate(GetFirstSelectedMessage());
 }
 
 const nsIFilePicker = Components.interfaces.nsIFilePicker;

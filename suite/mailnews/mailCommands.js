@@ -388,10 +388,37 @@ function SaveAsFile(aUris)
     messenger.saveMessages(num, fileNames, aUris);
 }
 
-function SaveAsTemplate(uri, folder)
+function saveAsUrlListener(aUri, aIdentity)
 {
-  if (uri) {
-    var identity = getIdentityForServer(folder.server);
+  this.uri = aUri;
+  this.identity = aIdentity;
+}
+
+saveAsUrlListener.prototype = {
+  OnStartRunningUrl: function(aUrl)
+  {
+  },
+  OnStopRunningUrl: function(aUrl, aExitCode)
+  {
+    messenger.saveAs(this.uri, false, this.identity, null);
+  }
+};
+
+function SaveAsTemplate(uri)
+{
+  if (uri)
+  {
+    var hdr = messenger.msgHdrFromURI(uri);
+    var identity = GetIdentityForHeader(hdr, Components.interfaces.nsIMsgCompType.Template);
+    var templates = MailUtils.getFolderForURI(identity.stationeryFolder, false);
+    if (!templates.parent)
+    {
+      templates.setFlag(Components.interfaces.nsMsgFolderFlags.Templates);
+      let isImap = templates.server.type == "imap";
+      templates.createStorageIfMissing(new saveAsUrlListener(uri, identity));
+      if (isImap)
+        return;
+    }
     messenger.saveAs(uri, false, identity, null);
   }
 }
