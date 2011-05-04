@@ -1009,6 +1009,14 @@
         ]]></body>
       </method>
 
+      <method name="selectAll">
+        <body><![CDATA[
+          if (this.mTreeView.selection) {
+            this.mTreeView.selection.selectAll();
+          }
+        ]]></body>
+      </method>
+
       <!-- Called by event observers to update the display -->
       <method name="refresh">
         <parameter name="aFilter"/>

@@ -105,7 +105,9 @@ var calendarController = {
         "calendar_in_foreground": true,
         "calendar_in_background": true,
         "calendar_mode_calendar": true,
-        "calendar_mode_task": true
+        "calendar_mode_task": true,
+
+        "cmd_selectAll": true
     },
 
     updateCommands: function cC_updateCommands() {
@@ -215,6 +217,14 @@ var calendarController = {
 
             case "calendar_mode_task":
                 return this.isInMode("task");
+
+            case "cmd_selectAll":
+                if (this.todo_tasktree_focused || this.isInMode("calendar")) {
+                    return true;
+                } else if (this.defaultController.supportsCommand(aCommand)) {
+                    return this.defaultController.isCommandEnabled(aCommand);
+                }
+                break;
 
             default:
                 if (this.defaultController && !this.isCalendarInForeground()) {
@@ -398,6 +408,17 @@ var calendarController = {
                 break;
             case "calendar_attendance_command":
                 // This command is actually handled inline, since it takes a value
+                break;
+
+            case "cmd_selectAll":
+                if (!this.todo_tasktree_focused &&
+                    this.defaultController && !this.isCalendarInForeground()) {
+                    // Unless a task tree is focused, make the default controller
+                    // take care.
+                    this.defaultController.doCommand(aCommand);
+                } else {
+                    selectAllItems();
+                }
                 break;
 
             default:
@@ -637,7 +658,6 @@ var calendarController2 = {
         "cmd_undo": true,
         "cmd_redo": true,
         "cmd_print": true,
-        "cmd_selectAll": true,
         "cmd_pageSetup": true,
 
         "cmd_printpreview": true,
@@ -705,9 +725,6 @@ var calendarController2 = {
                 break;
             case "cmd_redo":
                 redo();
-                break;
-            case "cmd_selectAll":
-                selectAllEvents();
                 break;
             case "cmd_pageSetup":
                 PrintUtils.showPageSetup();
@@ -865,5 +882,16 @@ function minimonthPick(aNewDate) {
       // update date filter for task tree
       let tree = document.getElementById(cal.isSunbird() ? "unifinder-todo-tree" : "calendar-task-tree");
       tree.updateFilter();
+  }
+}
+
+/**
+ * Selects all items, based on which mode we are currently in and what task tree is focused
+ */
+function selectAllItems() {
+  if (calendarController.todo_tasktree_focused) {
+    getTaskTree().selectAll();
+  } else if (calendarController.isInMode("calendar")) {
+    selectAllEvents();
   }
 }
