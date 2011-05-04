@@ -45,8 +45,6 @@
 #include "nsAbUtils.h"
 #include "nsAbLDAPReplicationQuery.h"
 #include "nsProxiedService.h"
-#include "nsIRDFService.h"
-#include "nsIRDFResource.h"
 #include "nsILDAPErrors.h"
 #include "nsComponentManagerUtils.h"
 #include "nsXPCOMCIDInternal.h"

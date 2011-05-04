@@ -42,7 +42,6 @@ interface nsIDOMWindow;
 interface nsIAbDirectory;
 interface nsIAbCard;
 interface nsIAbDirectoryProperties;
-interface nsIRDFDataSource;
 interface nsILocalFile;
 interface nsISimpleEnumerator;
 

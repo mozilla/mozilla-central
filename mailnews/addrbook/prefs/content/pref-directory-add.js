@@ -1,4 +1,6 @@
 /* -*- Mode: Java; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+Components.utils.import("resource:///modules/mailServices.js");
+
 var gPrefInt = null;
 var gCurrentDirectory = null;
 var gReplicationBundle = null;
@@ -294,9 +296,6 @@ function hasCharacters(number)
 
 function onAccept()
 {
-  var addressbook = Components.classes["@mozilla.org/abmanager;1"]
-                              .getService(Components.interfaces.nsIAbManager);
-
   try {
     var pref_string_content = "";
     var pref_string_title = "";
@@ -348,19 +347,16 @@ function onAccept()
       }
       else { // adding a new directory
         window.opener.gNewServerString =
-          addressbook.newAddressBook(description, ldapUrl.spec, kLDAPDirectory);
+          MailServices.ab.newAddressBook(description, ldapUrl.spec, kLDAPDirectory);
       }
-
-      // the rdf service
-      var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                          .getService(Components.interfaces.nsIRDFService);
 
       // XXX This is really annoying - both new/modify Address Book don't
       // give us back the new directory we just created - so go find it from
       // rdf so we can set a few final things up on it.
-      var theDirectory = RDF.GetResource("moz-abldapdirectory://" +
-                                         window.opener.gNewServerString)
-        .QueryInterface(Components.interfaces.nsIAbLDAPDirectory);
+      var targetURI = "moz-abldapdirectory://" + window.opener.gNewServerString;
+      var theDirectory =
+          MailServices.ab.getDirectory(targetURI)
+          .QueryInterface(Components.interfaces.nsIAbLDAPDirectory);
 
       theDirectory.maxHits = results;
       theDirectory.authDn = document.getElementById("login").value;

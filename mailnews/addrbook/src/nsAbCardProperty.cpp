@@ -46,9 +46,6 @@
 #include "plbase64.h"
 #include "nsIStringBundle.h"
 #include "plstr.h"
-#include "nsIRDFResource.h"
-#include "nsIRDFService.h"
-#include "nsRDFCID.h"
 #include "nsMsgUtils.h"
 #include "nsINetUtil.h"
 #include "nsComponentManagerUtils.h"
@@ -826,15 +823,12 @@ nsresult nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
     xmlStr.Append(headingAddresses);
     xmlStr.AppendLiteral("</sectiontitle>");
 
-    nsCOMPtr<nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
+    nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr <nsIRDFResource> resource;
-    rv = rdfService->GetResource(m_MailListURI, getter_AddRefs(resource));
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    nsCOMPtr <nsIAbDirectory> mailList = do_QueryInterface(resource, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
+    nsCOMPtr <nsIAbDirectory> mailList = nsnull;
+    rv = abManager->GetDirectory(m_MailListURI, getter_AddRefs(mailList));
+    NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIMutableArray> addresses;
     rv = mailList->GetAddressLists(getter_AddRefs(addresses));

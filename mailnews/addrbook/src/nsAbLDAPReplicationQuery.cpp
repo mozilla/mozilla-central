@@ -48,7 +48,6 @@
 #include "nsAbUtils.h"
 #include "nsDirPrefs.h"
 #include "prmem.h"
-#include "nsIRDFService.h"
 #include "nsXPCOMCIDInternal.h"
 #include "nsComponentManagerUtils.h"
 

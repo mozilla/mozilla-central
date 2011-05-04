@@ -42,7 +42,6 @@
 #include "nsAbUtils.h"
 #include "nsAbBooleanExpression.h"
 #include "nsArrayUtils.h"
-#include "nsIRDFResource.h"
 #include "nsComponentManagerUtils.h"
 #include "nsStringGlue.h"
 #include "nsUnicharUtils.h"

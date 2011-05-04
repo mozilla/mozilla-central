@@ -74,16 +74,16 @@ nsAbLDAPDirFactory::GetDirectories(const nsAString &aDirName,
   if (Substring(aURI, 0, 5).EqualsLiteral("ldap:") ||
       Substring(aURI, 0, 6).EqualsLiteral("ldaps:")) {
     /*
-     * if the URI starts with ldap: or ldaps:
+     * If the URI starts with ldap: or ldaps:
      * then this directory is an LDAP directory.
      *
-     * we don't want to use the ldap:// or ldaps:// URI 
-     * as the RDF resource URI because the ldap:// or ldaps:// URI 
+     * We don't want to use the ldap:// or ldaps:// URI 
+     * as the URI because the ldap:// or ldaps:// URI 
      * will contain the hostname, basedn, port, etc.
      * so if those attributes changed, we'll run into the
      * the same problem that we hit with changing username / hostname
-     * for mail servers.  to solve this problem, we add an extra
-     * level of indirection.  the RDF resource URI that we generate
+     * for mail servers.  To solve this problem, we add an extra
+     * level of indirection.  The URI that we generate
      * (the bridge URI) will be moz-abldapdirectory://<prefName>
      * and when we need the hostname, basedn, port, etc,
      * we'll use the <prefName> to get the necessary prefs.
@@ -103,11 +103,12 @@ nsAbLDAPDirFactory::GetDirectories(const nsAString &aDirName,
 }
 
 /* void deleteDirectory (in nsIAbDirectory directory); */
-NS_IMETHODIMP nsAbLDAPDirFactory::DeleteDirectory(nsIAbDirectory *directory)
+NS_IMETHODIMP
+nsAbLDAPDirFactory::DeleteDirectory(nsIAbDirectory *directory)
 {
-    // No actual deletion - as the LDAP Address Book is not physically
-    // created in the corresponding CreateDirectory() unlike the Personal
-    // Address Books. But we still need to return NS_OK from here.
-    return NS_OK;
+  // No actual deletion - as the LDAP Address Book is not physically
+  // created in the corresponding CreateDirectory() unlike the Personal
+  // Address Books. But we still need to return NS_OK from here.
+  return NS_OK;
 }
 

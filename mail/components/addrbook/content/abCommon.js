@@ -40,13 +40,14 @@
 #
 # ***** END LICENSE BLOCK *****
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 var dirTree = 0;
 var abList = 0;
 var gAbResultsTree = null;
 var gAbView = null;
 var gAddressBookBundle;
 
-var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
 var gPrefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
 var gHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
 
@@ -268,9 +269,7 @@ function AbDeleteDirectory(aURI)
     gPrefs.setCharPref("mail.collect_addressbook", kPersonalAddressbookURI);
   }
 
-  Components.classes["@mozilla.org/abmanager;1"]
-            .getService(Components.interfaces.nsIAbManager)
-            .deleteAddressBook(aURI);
+  MailServices.ab.deleteAddressBook(aURI);
 }
 
 function GetParentRow(aTree, aRow)
@@ -585,7 +584,7 @@ function GenerateAddressFromCard(card)
 
 function GetDirectoryFromURI(uri)
 {
-  return rdf.GetResource(uri).QueryInterface(Components.interfaces.nsIAbDirectory);
+  return MailServices.ab.getDirectory(uri);
 }
 
 // returns null if abURI is not a mailing list URI
