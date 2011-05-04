@@ -161,6 +161,13 @@ toolbox {
   list-style-image: url("chrome://communicator/skin/sync/sync-32.png");
 }
 
+#sync-button > .toolbarbutton-icon {
+  margin-top: 5px;
+  margin-bottom: 4px;
+  -moz-margin-start: 5px;
+  -moz-margin-end: 7px;
+}
+
 #sync-button[status=active] {
   list-style-image: url("chrome://communicator/skin/sync/sync-32-throbber.png");
 }
@@ -278,6 +285,14 @@ toolbar[iconsize="small"] > #home-button[disabled="true"] {
 toolbar[iconsize="small"] > toolbarpaletteitem > #sync-button,
 toolbar[iconsize="small"] > #sync-button {
   list-style-image: url("chrome://communicator/skin/sync/sync-16.png");
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #sync-button > .toolbarbutton-icon,
+toolbar[iconsize="small"] > #sync-button > .toolbarbutton-icon {
+  margin-top: 2px;
+  margin-bottom: 3px;
+  -moz-margin-start: 3px;
+  -moz-margin-end: 5px;
 }
 
 toolbar[iconsize="small"] > toolbarpaletteitem > #sync-button[status=active],
