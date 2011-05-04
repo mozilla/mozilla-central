@@ -1940,6 +1940,8 @@
     <image id="phishingBarImage"/>
     <vbox flex="1">
       <description flex="1" class="msgNotificationBarText">&phishingBarMessage2.label;</description>
+      <label id="disablePhishingWarning" class="msgNotificaton-smallText text-link"
+             value="&disablePhishingWarning1.label;" onclick="DisablePhishingWarning();"/>
       <label id="reportPhishingError" value="&reportPhishingError1.label;" class="msgNotificaton-smallText text-link" collapsed="true"/>
     </vbox>
     <button label="&removePhishingBarButton1.label;" oncommand="IgnorePhishingWarning();"/>

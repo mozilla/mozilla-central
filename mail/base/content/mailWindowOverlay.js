@@ -2770,6 +2770,15 @@ function IgnorePhishingWarning()
   setMsgHdrPropertyAndReload("notAPhishMessage", 1);
 }
 
+/**
+ *  Allow disabling the scam feature for all messages until lists are in place.
+ */
+function DisablePhishingWarning()
+{
+  Application.prefs.setValue("mail.phishing.detection.enabled", false);
+  ReloadMessage();
+}
+
 function setMsgHdrPropertyAndReload(aProperty, aValue)
 {
   // we want to get the msg hdr for the currently selected message
