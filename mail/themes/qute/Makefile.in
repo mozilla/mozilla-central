@@ -49,6 +49,7 @@ CLASSIC_EXTENSION_DIR = {972ce4c6-7e08-4474-a285-3208198ce6fd}
 FILES := \
   mail/icon.png \
   mail/preview.png \
+  mail/chrome.manifest \
   $(NULL)
 
 libs:: $(FILES)
