@@ -434,7 +434,9 @@ FeedEnclosure.prototype =
   {
     return '\n' +
                   ENCLOSURE_BOUNDARY_PREFIX + aBoundaryID + '\n' +
-                  'Content-Type: ' + this.mContentType + '; name="' + this.mFileName + '"\n' +
+                  'Content-Type: ' + this.mContentType +
+                                 '; name="' + this.mFileName +
+                                 (this.mLength ? '"; size=' + this.mLength : '"') + '\n' +
                   'X-Mozilla-External-Attachment-URL: ' + this.mURL + '\n' +
                   'Content-Disposition: attachment; filename="' + this.mFileName + '"\n\n' +
                   'This MIME attachment is stored separately from the message.\n' +
