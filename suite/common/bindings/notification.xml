@@ -326,8 +326,6 @@
 
       <field name="CrashSubmit">null</field>
 
-      <field name="crashReportHelpURL">null</field>
-
       <field name="crashNotified">false</field>
 
       <method name="getPluginInfo">
@@ -593,13 +591,11 @@
                                                        iconURL, priority, buttons);
 
             // Add the "learn more" link.
-            // XXXRatty We have a 404 at http://www.seamonkey-project.org/doc/plugin-crashed
-            // Or should we link to our in app help?
             var XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
             var link = notification.ownerDocument.createElementNS(XULNS, "label");
             link.className = "text-link";
             link.setAttribute("value", this._stringBundle.GetStringFromName("crashedpluginsMessage.learnMore"));
-            link.setAttribute("href", this.crashReportHelpURL);
+            this.addLinkClickCallback(link, this.openHelpPage);
             var description = notification.ownerDocument.getAnonymousElementByAttribute(notification, "anonid", "messageText");
             description.appendChild(link);
           ]]>
@@ -1257,12 +1253,8 @@
 
           this.addProgressListener();
 
-          if ("nsICrashReporter" in Components.interfaces) {
+          if ("nsICrashReporter" in Components.interfaces)
             Components.utils.import("resource://gre/modules/CrashSubmit.jsm", this);
-
-            var url = this._urlFormatter.formatURLPref("app.support.baseURL");
-            this.crashReportHelpURL = url + "plugin-crashed";
-          }
         ]]>
       </constructor>
 
