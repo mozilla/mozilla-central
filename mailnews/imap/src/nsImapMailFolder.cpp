@@ -8256,6 +8256,11 @@ nsImapMailFolder::CopyFileToOfflineStore(nsILocalFile *srcFile)
               SetFlag(nsMsgFolderFlags::OfflineEvents);
               messages->AppendElement(fakeHdr, PR_FALSE);
               SetPendingAttributes(messages, PR_FALSE);
+              // Gloda needs this notification to index the fake message.
+              nsCOMPtr<nsIMsgFolderNotificationService>
+                notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+              if (notifier)
+                notifier->NotifyMsgsClassified(messages, PR_FALSE, PR_FALSE);
             }
           }
           inputStream->Close();
