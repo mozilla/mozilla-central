@@ -188,9 +188,6 @@ static void GetTopmostMsgWindowCharacterSet(nsCString& charset, PRBool* charsetO
 
 nsMsgCompose::nsMsgCompose()
 {
-#if defined(DEBUG_ducarroz)
-  printf("CREATE nsMsgCompose: %x\n", this);
-#endif
 
   mQuotingToFollow = PR_FALSE;
   mInsertingQuotedContent = PR_FALSE;
@@ -217,10 +214,6 @@ nsMsgCompose::nsMsgCompose()
 
 nsMsgCompose::~nsMsgCompose()
 {
-#if defined(DEBUG_ducarroz)
-  printf("DISPOSE nsMsgCompose: %x\n", this);
-#endif
-
   NS_IF_RELEASE(m_compFields);
   NS_IF_RELEASE(mQuoteStreamListener);
 }
@@ -940,8 +933,6 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
                                 const char *accountKey, PRBool entityConversionDone)
 {
   nsresult rv = NS_OK;
-
-  printf("deliver mode: %d\n", deliverMode);
 
   // clear saved message id if sending, so we don't send out the same message-id.
   if (deliverMode == nsIMsgCompDeliverMode::Now ||
@@ -1779,10 +1770,6 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
     charset = mailCharset;
     charsetOverride = mCharsetOverride;
   }
-#ifdef DEBUG_jungshik
-  printf ("charset=%s\n", charset.get());
-  printf ("charsetOverride=%d\n", charsetOverride);
-#endif
 
   // although the charset in which to _send_ the message might change,
   // the original message will be parsed for quoting using the charset it is
@@ -3441,17 +3428,11 @@ NS_INTERFACE_MAP_END
 
 nsMsgComposeSendListener::nsMsgComposeSendListener(void)
 {
-#if defined(DEBUG_ducarroz)
-  printf("CREATE nsMsgComposeSendListener: %x\n", this);
-#endif
   mDeliverMode = 0;
 }
 
 nsMsgComposeSendListener::~nsMsgComposeSendListener(void)
 {
-#if defined(DEBUG_ducarroz)
-  printf("DISPOSE nsMsgComposeSendListener: %x\n", this);
-#endif
 }
 
 NS_IMETHODIMP nsMsgComposeSendListener::SetMsgCompose(nsIMsgCompose *obj)
