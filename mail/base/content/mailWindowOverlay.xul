@@ -1966,9 +1966,13 @@
 
   <hbox id="mdnBar" class="msgNotificationBar" align="center">
     <image id="mdnBarImage"/>
-    <description flex="1" class="msgNotificationBarText">&mdnBarMessage.label;</description>
-    <button label="&mdnBarIgnoreButton.label;" oncommand="IgnoreMDNResponse();"/>
-    <button label="&mdnBarSendButton.label;" oncommand="SendMDNResponse();"/>
+    <description id="mdnBarMessage" class="msgNotificationBarText" flex="1"/>
+    <button label="&mdnBarIgnoreButton2.label;"
+            accesskey="&mdnBarIgnoreButton2.accesskey;"
+            oncommand="IgnoreMDNResponse();"/>
+    <button label="&mdnBarSendButton2.label;"
+            accesskey="&mdnBarSendButton2.accesskey;"
+            oncommand="SendMDNResponse();"/>
   </hbox>
 
 </deck>

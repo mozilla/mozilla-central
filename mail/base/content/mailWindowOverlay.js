@@ -2640,10 +2640,37 @@ var gMessageNotificationBar =
     this.updateMsgNotificationBar(kMsgNotificationPhishingBar, true);
   },
 
-  setMDNMsg: function(aMdnGenerator, aMsgHeader)
+  setMDNMsg: function(aMdnGenerator, aMsgHeader, aMimeHdr)
   {
     this.mdnGenerator = aMdnGenerator;
     this.msgHeader = aMsgHeader;
+    let mdnHdr = aMimeHdr.extractHeader("Disposition-Notification-To", false);
+    let fromHdr = aMimeHdr.extractHeader("From", false);
+
+    let headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
+                                 .getService(Components.interfaces.nsIMsgHeaderParser);
+    let mdnAddr = headerParser.extractHeaderAddressMailboxes(mdnHdr);
+    let fromAddr = headerParser.extractHeaderAddressMailboxes(fromHdr);
+
+    let authorName = headerParser.extractHeaderAddressName(
+                       aMsgHeader.mime2DecodedAuthor) || aMsgHeader.author;
+
+    let mdnBarMsg = document.getElementById("mdnBarMessage");
+    if (mdnBarMsg.firstChild) // might have to remove old text first
+     mdnBarMsg.removeChild(mdnBarMsg.firstChild);
+
+    // If the return receipt doesn't go to the sender address, note that in the
+    // notification.
+    if (mdnAddr != fromAddr)
+    {
+      mdnBarMsg.appendChild(document.createTextNode(gMessengerBundle.
+        getFormattedString("mdnBarMessageAddressDiffers", [authorName, mdnAddr])));
+    }
+    else
+    {
+      mdnBarMsg.appendChild(document.createTextNode(gMessengerBundle.
+        getFormattedString("mdnBarMessageNormal", [authorName])));
+    }
     this.updateMsgNotificationBar(kMsgNotificationMDN, true);
   },
 
@@ -2667,7 +2694,7 @@ var gMessageNotificationBar =
   },
 
   /**
-   * @param aFlag (kMsgNotificationPhishingBar, kMsgNotificationJunkBar, kMsgNotificationRemoteImages
+   * @param aFlag one of the |mBarFlagValues| values
    * @return true if aFlag is currently set for the loaded message
    */
   isFlagSet: function(aFlag)
@@ -2972,7 +2999,7 @@ function HandleMDNResponse(aUrl)
   let askUser = mdnGenerator.process(MDN_DISPOSE_TYPE_DISPLAYED, msgWindow, msgFolder,
                                      msgHdr.messageKey, mimeHdr, false);
   if (askUser)
-    gMessageNotificationBar.setMDNMsg(mdnGenerator, msgHdr);
+    gMessageNotificationBar.setMDNMsg(mdnGenerator, msgHdr, mimeHdr);
 }
 
 function SendMDNResponse()
