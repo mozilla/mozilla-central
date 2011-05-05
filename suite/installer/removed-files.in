@@ -10,7 +10,35 @@ chrome/debugqa.jar
 chrome/debugqa.manifest
 chrome/classic.manifest
 chrome/comm.manifest
-chrome/@AB_CD@.manifest
+chrome/be.manifest
+chrome/ca.manifest
+chrome/cs.manifest
+chrome/de.manifest
+chrome/en-GB.manifest
+chrome/en-US.manifest
+chrome/es-AR.manifest
+chrome/es-ES.manifest
+chrome/fi.manifest
+chrome/fr.manifest
+chrome/gl.manifest
+chrome/hu.manifest
+chrome/it.manifest
+chrome/ja.manifest
+chrome/ja-JP-mac.manifest
+chrome/ka.manifest
+chrome/lt.manifest
+chrome/nb-NO.manifest
+chrome/nl.manifest
+chrome/pl.manifest
+chrome/pt-BR.manifest
+chrome/pt-PT.manifest
+chrome/ro.manifest
+chrome/ru.manifest
+chrome/sv-SE.manifest
+chrome/si.manifest
+chrome/sk.manifest
+chrome/tr.manifest
+chrome/zh-CN.manifest
 chrome/gloda.manifest
 chrome/messenger.manifest
 chrome/newsblog.manifest
@@ -479,7 +507,35 @@ xpicleanup@BIN_SUFFIX@
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 
 #ifdef MOZ_OMNIJAR
-  chrome/@AB_CD@.jar
+  chrome/be.jar
+  chrome/ca.jar
+  chrome/cs.jar
+  chrome/de.jar
+  chrome/en-GB.jar
+  chrome/en-US.jar
+  chrome/es-AR.jar
+  chrome/es-ES.jar
+  chrome/fi.jar
+  chrome/fr.jar
+  chrome/gl.jar
+  chrome/hu.jar
+  chrome/it.jar
+  chrome/ja.jar
+  chrome/ja-JP-mac.jar
+  chrome/ka.jar
+  chrome/lt.jar
+  chrome/nb-NO.jar
+  chrome/nl.jar
+  chrome/pl.jar
+  chrome/pt-BR.jar
+  chrome/pt-PT.jar
+  chrome/ro.jar
+  chrome/ru.jar
+  chrome/si.jar
+  chrome/sk.jar
+  chrome/sv-SE.jar
+  chrome/tr.jar
+  chrome/zh-CN.jar
   chrome/comm.jar
   chrome/toolkit.jar
   chrome/classic.jar
@@ -642,16 +698,135 @@ xpicleanup@BIN_SUFFIX@
   extensions/inspector@mozilla.org/defaults/preferences/
   extensions/inspector@mozilla.org/defaults/preferences/inspector.js
   extensions/inspector@mozilla.org.xpi
-  extensions/langpack-@AB_CD@@chatzilla.mozilla.org/chrome/venkman.jar
-  extensions/langpack-@AB_CD@@chatzilla.mozilla.org/chrome.manifest
-  extensions/langpack-@AB_CD@@chatzilla.mozilla.org/install.js
-  extensions/langpack-@AB_CD@@chatzilla.mozilla.org/install.rdf
-  extensions/langpack-@AB_CD@@chatzilla.mozilla.org.xpi
-  extensions/langpack-@AB_CD@@venkman.mozilla.org/chrome/venkman.jar
-  extensions/langpack-@AB_CD@@venkman.mozilla.org/chrome.manifest
-  extensions/langpack-@AB_CD@@venkman.mozilla.org/install.js
-  extensions/langpack-@AB_CD@@venkman.mozilla.org/install.rdf
-  extensions/langpack-@AB_CD@@venkman.mozilla.org.xpi
+  extensions/langpack-ca@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-ca@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-ca@chatzilla.mozilla.org/install.js
+  extensions/langpack-ca@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-ca@chatzilla.mozilla.org.xpi
+  extensions/langpack-cs@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-cs@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-cs@chatzilla.mozilla.org/install.js
+  extensions/langpack-cs@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-cs@chatzilla.mozilla.org.xpi
+  extensions/langpack-de@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-de@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-de@chatzilla.mozilla.org/install.js
+  extensions/langpack-de@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-de@chatzilla.mozilla.org.xpi
+  extensions/langpack-es-ES@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-es-ES@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-es-ES@chatzilla.mozilla.org/install.js
+  extensions/langpack-es-ES@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-es-ES@chatzilla.mozilla.org.xpi
+  extensions/langpack-fi@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-fi@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-fi@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-fi@chatzilla.mozilla.org/install.js
+  extensions/langpack-fi@chatzilla.mozilla.org.xpi
+  extensions/langpack-fr@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-fr@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-fr@chatzilla.mozilla.org/install.js
+  extensions/langpack-fr@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-fr@chatzilla.mozilla.org.xpi
+  extensions/langpack-it@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-it@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-it@chatzilla.mozilla.org/install.js
+  extensions/langpack-it@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-it@chatzilla.mozilla.org.xpi
+  extensions/langpack-ja@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-ja@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-ja@chatzilla.mozilla.org/install.js
+  extensions/langpack-ja@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-ja@chatzilla.mozilla.org.xpi
+  extensions/langpack-ja-JP-mac@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-ja-JP-mac@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-ja-JP-mac@chatzilla.mozilla.org/install.js
+  extensions/langpack-ja-JP-mac@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-ja-JP-mac@chatzilla.mozilla.org.xpi
+  extensions/langpack-nb-NO@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-nb-NO@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-nb-NO@chatzilla.mozilla.org/install.js
+  extensions/langpack-nb-NO@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-nb-NO@chatzilla.mozilla.org.xpi
+  extensions/langpack-pl@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-pl@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-pl@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-pl@chatzilla.mozilla.org/install.js
+  extensions/langpack-pl@chatzilla.mozilla.org.xpi
+  extensions/langpack-pt-BR@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-pt-BR@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-pt-BR@chatzilla.mozilla.org/install.js
+  extensions/langpack-pt-BR@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-pt-BR@chatzilla.mozilla.org.xpi
+  extensions/langpack-pt-PT@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-pt-PT@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-pt-PT@chatzilla.mozilla.org/install.js
+  extensions/langpack-pt-PT@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-pt-PT@chatzilla.mozilla.org.xpi
+  extensions/langpack-ru@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-ru@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-ru@chatzilla.mozilla.org/install.js
+  extensions/langpack-ru@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-ru@chatzilla.mozilla.org.xpi
+  extensions/langpack-si@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-si@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-si@chatzilla.mozilla.org/install.js
+  extensions/langpack-si@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-si@chatzilla.mozilla.org.xpi
+  extensions/langpack-sk@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-sk@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-sk@chatzilla.mozilla.org/install.js
+  extensions/langpack-sk@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-sk@chatzilla.mozilla.org.xpi
+  extensions/langpack-sv-SE@chatzilla.mozilla.org/chrome/chatzilla.jar
+  extensions/langpack-sv-SE@chatzilla.mozilla.org/chrome.manifest
+  extensions/langpack-sv-SE@chatzilla.mozilla.org/install.js
+  extensions/langpack-sv-SE@chatzilla.mozilla.org/install.rdf
+  extensions/langpack-sv-SE@chatzilla.mozilla.org.xpi
+  extensions/langpack-ca@venkman.mozilla.org/chrome/venkman.jar
+  extensions/langpack-ca@venkman.mozilla.org/chrome.manifest
+  extensions/langpack-ca@venkman.mozilla.org/install.rdf
+  extensions/langpack-ca@venkman.mozilla.org.xpi
+  extensions/langpack-de@venkman.mozilla.org/chrome/venkman.jar
+  extensions/langpack-de@venkman.mozilla.org/chrome.manifest
+  extensions/langpack-de@venkman.mozilla.org/install.rdf
+  extensions/langpack-de@venkman.mozilla.org.xpi
+  extensions/langpack-es-ES@venkman.mozilla.org/chrome/venkman.jar
+  extensions/langpack-es-ES@venkman.mozilla.org/chrome.manifest
+  extensions/langpack-es-ES@venkman.mozilla.org/install.rdf
+  extensions/langpack-es-ES@venkman.mozilla.org.xpi
+  extensions/langpack-fr@venkman.mozilla.org/chrome/venkman.jar
+  extensions/langpack-fr@venkman.mozilla.org/chrome.manifest
+  extensions/langpack-fr@venkman.mozilla.org/install.rdf
+  extensions/langpack-fr@venkman.mozilla.org.xpi
+  extensions/langpack-it@venkman.mozilla.org/chrome/venkman.jar
+  extensions/langpack-it@venkman.mozilla.org/chrome.manifest
+  extensions/langpack-it@venkman.mozilla.org/install.rdf
+  extensions/langpack-it@venkman.mozilla.org.xpi
+  extensions/langpack-ja@venkman.mozilla.org/chrome/venkman.jar
+  extensions/langpack-ja@venkman.mozilla.org/chrome.manifest
+  extensions/langpack-ja@venkman.mozilla.org/install.rdf
+  extensions/langpack-ja@venkman.mozilla.org.xpi
+  extensions/langpack-ja-JP-mac@venkman.mozilla.org/chrome/venkman.jar
+  extensions/langpack-ja-JP-mac@venkman.mozilla.org/chrome.manifest
+  extensions/langpack-ja-JP-mac@venkman.mozilla.org/install.rdf
+  extensions/langpack-ja-JP-mac@venkman.mozilla.org.xpi
+  extensions/langpack-nb-NO@venkman.mozilla.org/chrome/venkman.jar
+  extensions/langpack-nb-NO@venkman.mozilla.org/chrome.manifest
+  extensions/langpack-nb-NO@venkman.mozilla.org/install.rdf
+  extensions/langpack-nb-NO@venkman.mozilla.org.xpi
+  extensions/langpack-pl@venkman.mozilla.org/chrome/venkman.jar
+  extensions/langpack-pl@venkman.mozilla.org/chrome.manifest
+  extensions/langpack-pl@venkman.mozilla.org/install.rdf
+  extensions/langpack-pl@venkman.mozilla.org.xpi
+  extensions/langpack-ru@venkman.mozilla.org/chrome/venkman.jar
+  extensions/langpack-ru@venkman.mozilla.org/chrome.manifest
+  extensions/langpack-ru@venkman.mozilla.org/install.rdf
+  extensions/langpack-ru@venkman.mozilla.org.xpi
+  extensions/langpack-sv-SE@venkman.mozilla.org/chrome/venkman.jar
+  extensions/langpack-sv-SE@venkman.mozilla.org/chrome.manifest
+  extensions/langpack-sv-SE@venkman.mozilla.org/install.rdf
+  extensions/langpack-sv-SE@venkman.mozilla.org.xpi
   extensions/modern@themes.mozilla.org/
   extensions/modern@themes.mozilla.org/chrome/
   extensions/modern@themes.mozilla.org/chrome/modern.jar
