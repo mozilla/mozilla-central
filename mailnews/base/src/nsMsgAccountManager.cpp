@@ -120,6 +120,9 @@ static NS_DEFINE_CID(kMsgFolderCacheCID, NS_MSGFOLDERCACHE_CID);
 
 const char *kSearchFolderUriProp = "searchFolderUri";
 
+PRBool nsMsgAccountManager::m_haveShutdown = PR_FALSE;
+PRBool nsMsgAccountManager::m_shutdownInProgress = PR_FALSE;
+
 // use this to search for all servers with the given hostname/iid and
 // put them in "servers"
 struct findServerEntry {
@@ -177,8 +180,6 @@ nsMsgAccountManager::nsMsgAccountManager() :
   m_accountsLoaded(PR_FALSE),
   m_emptyTrashInProgress(PR_FALSE),
   m_cleanupInboxInProgress(PR_FALSE),
-  m_haveShutdown(PR_FALSE),
-  m_shutdownInProgress(PR_FALSE),
   m_userAuthenticated(PR_FALSE),
   m_loadingVirtualFolders(PR_FALSE),
   m_virtualFoldersLoaded(PR_FALSE)

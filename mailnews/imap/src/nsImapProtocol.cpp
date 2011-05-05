@@ -62,6 +62,7 @@
 #include "nsIMAPHostSessionList.h"
 #include "nsIMAPBodyShell.h"
 #include "nsImapMailFolder.h"
+#include "nsIMsgAccountManager.h"
 #include "nsImapServerResponseParser.h"
 #include "nspr.h"
 #include "plbase64.h"
@@ -2084,7 +2085,7 @@ PRBool nsImapProtocol::TryToRunUrlLocally(nsIURI *aURL, nsISupports *aConsumer)
 // attempt to load a url....
 NS_IMETHODIMP nsImapProtocol::LoadImapUrl(nsIURI * aURL, nsISupports * aConsumer)
 {
-  nsresult rv = NS_OK;
+  nsresult rv;
   if (aURL)
   {
 #ifdef DEBUG_bienvenu
@@ -2107,6 +2108,17 @@ NS_IMETHODIMP nsImapProtocol::LoadImapUrl(nsIURI * aURL, nsISupports * aConsumer
     {
       nsImapAction imapAction;
       m_runningUrl->GetImapAction(&imapAction);
+      // if we're shutting down, and not running the kinds of urls we run at
+      // shutdown, then this should fail because running urls during
+      // shutdown will very likely fail and potentially hang.
+      nsCOMPtr<nsIMsgAccountManager> accountMgr = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+      PRBool shuttingDown = PR_FALSE;
+      (void) accountMgr->GetShutdownInProgress(&shuttingDown);
+      if (shuttingDown && imapAction != nsIImapUrl::nsImapExpungeFolder &&
+          imapAction != nsIImapUrl::nsImapDeleteAllMsgs &&
+          imapAction != nsIImapUrl::nsImapDeleteFolder)
+        return NS_ERROR_FAILURE;
 
       // if we're running a select or delete all, do a noop first.
       // this should really be in the connection cache code when we know
