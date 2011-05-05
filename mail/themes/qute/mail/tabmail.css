@@ -157,14 +157,16 @@
 .tabmail-tab:-moz-lwtheme-brighttext,
 .tabmail-arrowscrollbox > .scrollbutton-up:-moz-lwtheme-brighttext,
 .tabmail-arrowscrollbox > .scrollbutton-down:-moz-lwtheme-brighttext,
-.tabs-alltabs-button:-moz-lwtheme-brighttext {
+.tabs-alltabs-button:-moz-lwtheme-brighttext,
+.tabs-closebutton:-moz-lwtheme-brighttext {
   background-color: rgba(0,0,0,.5);
 }
 
 .tabmail-tab:-moz-lwtheme-darktext,
 .tabmail-arrowscrollbox > .scrollbutton-up:-moz-lwtheme-darktext,
 .tabmail-arrowscrollbox > .scrollbutton-down:-moz-lwtheme-darktext,
-.tabs-alltabs-button:-moz-lwtheme-darktext {
+.tabs-alltabs-button:-moz-lwtheme-darktext,
+.tabs-closebutton:-moz-lwtheme-darktext {
   background-color: rgba(255,255,255,.5);
 }
 
@@ -227,14 +229,24 @@ tabpanels {
 }
 
 /**
- * In-tab close button
+ * close buttons
  */
+
+.tabs-closebutton-box {
+  margin-top: 2px;
+  margin-bottom: 4px;
+  height: 23px !important;
+  -moz-border-start: 1px solid ThreeDShadow;
+  background: url("chrome://messenger/skin/icons/tab-middle-bkgnd.png") repeat-x -moz-dialog;
+}
+
 .tab-close-button > .toolbarbutton-icon {
   -moz-margin-end: 0px !important;
   margin-top: 1px;
 }
 
-.tab-close-button {
+.tab-close-button,
+.tabs-closebutton {
   -moz-appearance: none;
   -moz-image-region: rect(0, 64px, 16px, 48px);
   height: 24px;
@@ -242,6 +254,10 @@ tabpanels {
   padding: 0px;
   cursor: default;
   list-style-image: url("chrome://global/skin/icons/close.png");
+}
+
+.tabs-closebutton {
+  padding: 0 2px;
 }
 
 .tabmail-tab:not([selected="true"]) > .tab-close-button {
@@ -254,12 +270,14 @@ tabpanels {
 }
 
 .tab-close-button:hover,
+.tabs-closebutton:hover,
 .tabmail-tab[selected="true"] > .tab-close-button:hover {
   -moz-image-region: rect(0, 32px, 16px, 16px);
   opacity: 1.0;
 }
 
 .tab-close-button:hover:active,
+.tabs-closebutton:hover:active,
 .tabmail-tab[selected="true"] > .tab-close-button:hover:active {
   -moz-image-region: rect(0, 48px, 16px, 32px);
   opacity: 1.0;
@@ -282,7 +300,8 @@ tabpanels {
   -moz-user-focus: normal;
 }
 
-.tab-close-button:focus {
+.tab-close-button:focus,
+.tabs-closebutton:focus {
   outline: none !important;
 }
 

@@ -239,14 +239,15 @@ tabpanels {
 }
 
 /**
-* In-tab close button
+* close buttons
 */
 .tab-close-button > .toolbarbutton-icon {
   -moz-margin-end: 0px !important;
   margin-top: 1px;
 }
 
-.tab-close-button {
+.tab-close-button,
+.tabs-closebutton {
   -moz-appearance: none;
   -moz-image-region: rect(0, 64px, 16px, 48px);
   height: 24px;
@@ -254,6 +255,10 @@ tabpanels {
   padding: 0px;
   cursor: default;
   list-style-image: url("chrome://global/skin/icons/close.png");
+}
+
+.tabs-closebutton {
+  padding: 0 2px;
 }
 
 .tabmail-tab:not([selected="true"]) > .tab-close-button {
@@ -266,12 +271,14 @@ tabpanels {
 }
 
 .tab-close-button:hover,
+.tabs-closebutton:hover,
 .tabmail-tab[selected="true"] > .tab-close-button:hover {
   -moz-image-region: rect(0, 32px, 16px, 16px);
   opacity: 1.0;
 }
 
 .tab-close-button:hover:active,
+.tabs-closebutton:hover:active,
 .tabmail-tab[selected="true"] > .tab-close-button:hover:active {
   -moz-image-region: rect(0, 48px, 16px, 32px);
   opacity: 1.0;
