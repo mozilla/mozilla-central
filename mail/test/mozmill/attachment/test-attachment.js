@@ -97,13 +97,6 @@ var setupModule = function (module) {
                       filename: 'ubik.xxyyzz',
                       format: '' }],
     },
-    // cert attachment (make sure Mime doesn't swallow this, which
-    // test_attachment_view_expanded does for us.
-    { attachments: [{ body: binaryAttachment,
-                      contentType: 'application/pkcs7-mime',
-                      filename: 'cert.p7m',
-                      format: '' }],
-    },
   ];
 
   for (let i = 0; i < messages.length; i++)

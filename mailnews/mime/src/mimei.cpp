@@ -765,8 +765,7 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
           if (name) {
             char *suf = PL_strrchr(name, '.');
             if (suf &&
-                (!PL_strcasecmp(suf, ".p7c") || !PL_strcasecmp(suf, ".p7z") ||
-                 !PL_strcasecmp(suf, ".p7m")))
+                (!PL_strcasecmp(suf, ".p7c") || !PL_strcasecmp(suf, ".p7z")))
               clazz = (MimeObjectClass *)&mimeExternalObjectClass;
           }
           PR_Free(name);
