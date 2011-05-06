@@ -502,6 +502,10 @@ panel[nomatch="true"] > .autocomplete-search-box {
   -moz-image-region: rect(0 53px 17px 36px);
 }
 
+#search-button > .button-box > .button-icon {
+  display: -moz-box;
+}
+
 toolbar[mode="text"] #search-button > .button-box > .button-icon,
 toolbar[mode="icons"] #search-button > .button-box > .button-text {
   display: none;
