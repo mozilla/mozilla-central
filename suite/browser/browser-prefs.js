@@ -700,6 +700,11 @@ pref("plugins.hide_infobar_for_outdated_plugin", false);
 pref("plugins.hide_infobar_for_carbon_failure_plugin", false);
 pref("plugins.hide_infobar_for_missing_plugin", false);
 
+#ifndef XP_MACOSX
+// Restore the spinner that was removed in bug 481359
+pref("ui.use_activity_cursor", true);
+#endif
+
 #ifdef XP_MACOSX
 // determines the behavior upon starting a download.
 //  0 - open the download manager
