@@ -98,7 +98,7 @@ function installInto(module) {
 function ensure_card_exists(emailAddress, displayName, preferDisplayName)
 {
   ensure_no_card_exists(emailAddress);
-  let card = create_card(emailAddress, displayName, preferDisplayName);
+  let card = create_contact(emailAddress, displayName, preferDisplayName);
   collectedAddresses.addCard(card);
 }
 
