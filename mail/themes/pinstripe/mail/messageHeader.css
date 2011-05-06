@@ -176,6 +176,12 @@ html|div#expandedHeadersTopBox {
   list-style-image: url("chrome://messenger/skin/icons/download.png");
 }
 
+#attachmentSaveAllSingle > .toolbarbutton-menubutton-button,
+#attachmentSaveAllMultiple > .toolbarbutton-menubutton-button {
+  /* Make sure that the icon is vertically centered */
+  padding-bottom: 0px !important;
+}
+
 /* XXX: Move all of the description attributes to the toolkit */
 
 description {
