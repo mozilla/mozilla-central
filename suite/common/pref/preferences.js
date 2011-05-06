@@ -39,31 +39,6 @@
 // The content of this file is loaded into the scope of the
 // prefwindow and will be available to all prefpanes!
 
-Components.utils.import("resource://gre/modules/Services.jsm");
-
-function Startup()
-{
-  var profileSrvc = Components.classes["@mozilla.org/toolkit/profile-service;1"]
-                              .getService(Components.interfaces.nsIToolkitProfileService);
-  var profiles = profileSrvc.profiles;
-  var profileName = null;
-  var compTarget = Services.dirsvc.get("ProfD", Components.interfaces.nsIFile);
-
-  while (profiles.hasMoreElements()) {
-    var profile = profiles.getNext()
-                          .QueryInterface(Components.interfaces.nsIToolkitProfile);
-    if (profile.rootDir.equals(compTarget)) {
-      profileName = profile.name;
-      break;
-    }
-  }
-
-  if (profileName)
-    document.title = document.getElementById("bundle_prefutilities")
-                             .getFormattedString("preferencesAccount",
-                                                 [profileName]);
-}
-
 function EnableElementById(aElementId, aEnable, aFocus)
 {
   EnableElement(document.getElementById(aElementId), aEnable, aFocus);
