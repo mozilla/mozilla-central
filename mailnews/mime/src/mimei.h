@@ -274,12 +274,14 @@ extern MimeObjectClass *mime_find_class (const char *content_type,
                      MimeDisplayOptions *opts,
                      PRBool exact_match_p);
 
-/* Given a content-type string, creates and returns an appropriate subclass
-   of MimeObject.  The headers (from which the content-type was presumably
-   extracted) are copied.
+/** Given a content-type string, creates and returns an appropriate subclass
+ * of MimeObject.  The headers (from which the content-type was presumably
+ * extracted) are copied. forceInline is set to true when the caller wants
+ * the function to ignore opts->show_attachment_inline_p and force inline
+ * display, e.g., mimemalt wants the body part to be shown inline.
  */
 extern MimeObject *mime_create (const char *content_type, MimeHeaders *hdrs,
-                MimeDisplayOptions *opts);
+                MimeDisplayOptions *opts, PRBool forceInline = PR_FALSE);
 
 
 /* Querying the type hierarchy */

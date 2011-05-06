@@ -826,7 +826,7 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
 
 MimeObject *
 mime_create (const char *content_type, MimeHeaders *hdrs,
-       MimeDisplayOptions *opts)
+       MimeDisplayOptions *opts, PRBool forceInline /* = PR_FALSE */)
 {
   /* If there is no Content-Disposition header, or if the Content-Disposition
    is ``inline'', then we display the part inline (and let mime_find_class()
@@ -938,7 +938,7 @@ mime_create (const char *content_type, MimeHeaders *hdrs,
 
   /* If the option `Show Attachments Inline' is off, now would be the time to change our mind... */
   /* Also, if we're doing a reply (i.e. quoting the body), then treat that according to preference. */
-  if (opts && (!opts->show_attachment_inline_p ||
+  if (opts && ((!opts->show_attachment_inline_p && !forceInline) ||
                (!opts->quote_attachment_inline_p &&
                 (opts->format_out == nsMimeOutput::nsMimeMessageQuoting ||
                  opts->format_out == nsMimeOutput::nsMimeMessageBodyQuoting))))
@@ -946,9 +946,22 @@ mime_create (const char *content_type, MimeHeaders *hdrs,
     if (mime_subclass_p(clazz, (MimeObjectClass *)&mimeInlineTextClass))
     {
       /* It's a text type.  Write it only if it's the *first* part
-         that we're writing*/
+         that we're writing, and then only if it has no "filename"
+         specified (the assumption here being, if it has a filename,
+         it wasn't simply typed into the text field -- it was actually
+         an attached document.) */
       if (opts->state && opts->state->first_part_written_p)
         clazz = (MimeObjectClass *)&mimeExternalObjectClass;
+      else
+      {
+        /* If there's a name, then write this as an attachment. */
+        char *name = (hdrs ? MimeHeaders_get_name(hdrs, opts) : nsnull);
+        if (name)
+        {
+          clazz = (MimeObjectClass *)&mimeExternalObjectClass;
+          PR_Free(name);
+        }
+      }
     }
     else
       if (mime_subclass_p(clazz,(MimeObjectClass *)&mimeContainerClass) &&

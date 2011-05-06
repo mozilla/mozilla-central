@@ -469,13 +469,14 @@ MimeMultipartAlternative_display_cached_part(MimeObject *obj,
         : 0);
   const char *dct = (((MimeMultipartClass *) obj->clazz)->default_part_type);
   MimeObject *body;
-  const char *uct = (ct && *ct) ? ct : (dct ? dct: TEXT_PLAIN);
-  
-  /* Don't pass in NULL as the content-type (this means that the
-   auto-uudecode-hack won't ever be done for subparts of a
-   multipart, but only for untyped children of message/rfc822.
+  /** Don't pass in NULL as the content-type (this means that the
+   * auto-uudecode-hack won't ever be done for subparts of a
+   * multipart, but only for untyped children of message/rfc822.
    */
-  body = mime_create(uct, hdrs, obj->options);
+  const char *uct = (ct && *ct) ? ct : (dct ? dct: TEXT_PLAIN);
+
+  // We always want to display the cached part inline.
+  body = mime_create(uct, hdrs, obj->options, PR_TRUE);
   PR_FREEIF(ct);
   if (!body) return MIME_OUT_OF_MEMORY;
   body->output_p = do_display;
