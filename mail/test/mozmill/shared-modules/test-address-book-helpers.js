@@ -41,14 +41,23 @@ var Cu = Components.utils;
 
 const MODULE_NAME = "address-book-helpers";
 const RELATIVE_ROOT = "../shared-modules";
+const MODULE_REQUIRES = ['window-helpers'];
+
+const ABMDB_PREFIX = "moz-abmdbdirectory://";
+const ABLDAP_PREFIX = "moz-abldapdirectory://";
+
+Cu.import("resource:///modules/mailServices.js");
+Cu.import("resource:///modules/Services.jsm");
 
 var collectedAddresses;
 
+var abController;
+
 function setupModule() {
-  let abManager = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
   // Ensure all the directories are initialised.
-  abManager.directories;
-  collectedAddresses = abManager.getDirectory("moz-abmdbdirectory://history.mab");
+  MailServices.ab.directories;
+  collectedAddresses = MailServices.ab
+                       .getDirectory("moz-abmdbdirectory://history.mab");
 }
 
 function installInto(module) {
@@ -57,6 +66,26 @@ function installInto(module) {
   // Now copy helper functions
   module.ensure_card_exists = ensure_card_exists;
   module.ensure_no_card_exists = ensure_no_card_exists;
+  module.open_address_book_window = open_address_book_window;
+  module.create_mork_address_book = create_mork_address_book;
+  module.create_ldap_address_book = create_ldap_address_book;
+  module.create_contact = create_contact;
+  module.create_mailing_list = create_mailing_list;
+  module.load_contacts_into_address_book = load_contacts_into_address_book;
+  module.load_contacts_into_mailing_list = load_contacts_into_mailing_list;
+  module.get_address_book_tree_view_index = get_address_book_tree_view_index;
+  module.set_address_books_collapsed = set_address_books_collapsed;
+  module.set_address_books_expanded = set_address_books_expanded;
+  // set_address_book_collapsed and set_address_book_expanded use
+  // the same code as set_address_books_expanded/collapsed, so I just
+  // alias them here.
+  module.set_address_book_collapsed = set_address_books_collapsed;
+  module.set_address_book_expanded = set_address_books_expanded;
+
+  module.is_address_book_collapsed = is_address_book_collapsed;
+  module.is_address_book_collapsible = is_address_book_collapsible;
+  module.get_name_of_address_book_element_at = get_name_of_address_book_element_at;
+  module.select_address_book = select_address_book;
 }
 
 /**
@@ -66,14 +95,10 @@ function installInto(module) {
  * @param preferDisplayName |true| if the card display name should override the
  *                          header display name
  */
-function ensure_card_exists(emailAddress, displayName, preferDisplayName) {
+function ensure_card_exists(emailAddress, displayName, preferDisplayName)
+{
   ensure_no_card_exists(emailAddress);
-  let card = Cc["@mozilla.org/addressbook/cardproperty;1"]
-               .createInstance(Ci.nsIAbCard);
-
-  card.primaryEmail = emailAddress;
-  card.displayName = displayName;
-  card.setProperty("PreferDisplayName", preferDisplayName ? true : false);
+  let card = create_card(emailAddress, displayName, preferDisplayName);
   collectedAddresses.addCard(card);
 }
 
@@ -83,8 +108,7 @@ function ensure_card_exists(emailAddress, displayName, preferDisplayName) {
  */
 function ensure_no_card_exists(emailAddress)
 {
-  var books = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager)
-                .directories;
+  var books = MailServices.ab.directories;
 
   while (books.hasMoreElements()) {
     var ab = books.getNext().QueryInterface(Ci.nsIAbDirectory);
@@ -101,3 +125,211 @@ function ensure_no_card_exists(emailAddress)
   }
 }
 
+/**
+ * Opens the address book interface
+ * @returns a controller for the address book
+ */
+function open_address_book_window()
+{
+  abController = mozmill.getAddrbkController();
+  return abController;
+}
+
+/**
+ * Creates and returns a Mork-backed address book.
+ * @param aName the name for the address book
+ * @returns the nsIAbDirectory address book
+ */
+function create_mork_address_book(aName)
+{
+  let abPrefString = MailServices.ab.newAddressBook(aName, "", 2);
+  let abURI = Services.prefs.getCharPref(abPrefString + ".filename");
+  return MailServices.ab.getDirectory(ABMDB_PREFIX + abURI);
+}
+
+/**
+ * Creates and returns an LDAP-backed address book.
+ * This function will automatically fill in a dummy
+ * LDAP URI if no URI is supplied.
+ * @param aName the name for the address book
+ * @param aURI an optional URI for the address book
+ * @returns the nsIAbDirectory address book
+ */
+function create_ldap_address_book(aName, aURI)
+{
+  if (!aURI)
+    aURI = "ldap://dummyldap/??sub?(objectclass=*)";
+  let abPrefString = MailServices.ab.newAddressBook(aName, aURI, 0);
+  return MailServices.ab.getDirectory(ABLDAP_PREFIX + abPrefString);
+}
+
+/**
+ * Creates and returns an address book contact
+ * @param aEmailAddress the e-mail address for this contact
+ * @param aDisplayName the display name for the contact
+ * @param aPreferDisplayName set to true if the card display name should
+ *                           override the header display name
+ */
+function create_contact(aEmailAddress, aDisplayName, aPreferDisplayName)
+{
+  let card = Cc["@mozilla.org/addressbook/cardproperty;1"]
+               .createInstance(Ci.nsIAbCard);
+  card.primaryEmail = aEmailAddress;
+  card.displayName = aDisplayName;
+  card.setProperty("PreferDisplayName", aPreferDisplayName ? true : false);
+  return card;
+}
+
+/* Creates and returns a mailing list
+ * @param aMailingListName the display name for the new mailing list
+ */
+function create_mailing_list(aMailingListName)
+{
+  var mailList = Cc["@mozilla.org/addressbook/directoryproperty;1"]
+                   .createInstance(Ci.nsIAbDirectory);
+  mailList.isMailList = true;
+  mailList.dirName = aMailingListName;
+  return mailList;
+}
+
+/* Given some address book, adds a collection of contacts to that
+ * address book.
+ * @param aAddressBook an address book to add the contacts to
+ * @param aContacts a collection of contacts, where each contact has
+ *                  members "email" and "displayName"
+ *
+ *                  Example:
+ *                  [{email: 'test@test.com', displayName: 'Sammy Jenkis'}]
+ */
+function load_contacts_into_address_book(aAddressBook, aContacts)
+{
+  for each (contact_info in aContacts) {
+    let contact = create_contact(contact_info.email,
+                                 contact_info.displayName, true);
+    aAddressBook.addCard(contact);
+  }
+}
+
+/* Given some mailing list, adds a collection of contacts to that
+ * mailing list.
+ * @param aMailingList a mailing list to add the contacts to
+ * @param aContacts a collection of contacts, where each contact has
+ *                  members "email" and "displayName"
+ *
+ *                  Example:
+ *                  [{email: 'test@test.com', displayName: 'Sammy Jenkis'}]
+ */
+function load_contacts_into_mailing_list(aMailingList, aContacts)
+{
+  for each (contact_info in aContacts) {
+    let contact = create_contact(contact_info.email,
+                                 contact_info.displayName, true);
+    aMailingList.addressLists.appendElement(contact, false);
+  }
+}
+
+/* Given some address book, return the row index for that address book
+ * in the tree view.  Throws an error if it cannot find the address book.
+ * @param aAddrBook an address book to search for
+ * @return the row index for that address book
+ */
+function get_address_book_tree_view_index(aAddrBook)
+{
+  let addrBooks = abController.window.gDirectoryTreeView._rowMap;
+  for (let i = 0; i < addrBooks.length; i++) {
+    if (addrBooks[i]._directory == aAddrBook) {
+      return i;
+    }
+  }
+  throw Error("Could not find the index for the address book named "
+              + aAddrbook.dirName);
+}
+
+/* Determines whether or not an address book is collapsed in
+ * the tree view.
+ * @param aAddrBook the address book to check
+ * @return true if the address book is collapsed, otherwise false
+ */
+function is_address_book_collapsed(aAddrbook)
+{
+  let aIndex = get_address_book_tree_view_index(aAddrbook);
+  return !abController.window.gDirectoryTreeView.isContainerOpen(aIndex);
+}
+
+/* Determines whether or not an address book is collapsible in
+ * the tree view.
+ * @param aAddrBook the address book to check
+ * @return true if the address book is collapsible, otherwise false
+ */
+function is_address_book_collapsible(aAddrbook)
+{
+  let aIndex = get_address_book_tree_view_index(aAddrbook);
+  return !abController.window.gDirectoryTreeView.isContainerEmpty(aIndex);
+}
+
+/* Sets one or more address books to the expanded state in the
+ * tree view.  If any of the address books cannot be expanded,
+ * an error is thrown.
+ * @param aAddrBooks either a lone address book, or an array of
+ *        address books
+ */
+function set_address_books_expanded(aAddrBooks)
+{
+  if (!Array.isArray(aAddrBooks))
+    aAddrBooks = [aAddrBooks];
+
+  for (let i = 0; i < aAddrBooks.length; i++)
+  {
+    let addrBook = aAddrBooks[i];
+    if (!is_address_book_collapsible(addrBook))
+      throw Error("Address book called " + addrBook.dirName
+                  + " cannot be expanded.");
+    if (is_address_book_collapsed(addrBook)) {
+      let aIndex = get_address_book_tree_view_index(addrBook);
+      abController.window.gDirectoryTreeView.toggleOpenState(aIndex);
+    }
+  }
+}
+
+/* Sets one or more address books to the collapsed state in the
+ * tree view.  If any of the address books cannot be collapsed,
+ * an error is thrown.
+ * @param aAddrBooks either a lone address book, or an array of
+ *        address books
+ */
+function set_address_books_collapsed(aAddrBooks)
+{
+  if (!Array.isArray(aAddrBooks))
+    aAddrBooks = [aAddrBooks];
+
+  for (let i = 0; i < aAddrBooks.length; i++)
+  {
+    let addrBook = aAddrBooks[i]
+    if (!is_address_book_collapsible(addrBook))
+      throw Error("Address book called " + addrBook.dirName
+                  + " cannot be collapsed.");
+    if (!is_address_book_collapsed(addrBook)) {
+      let aIndex = get_address_book_tree_view_index(addrBook);
+      abController.window.gDirectoryTreeView.toggleOpenState(aIndex);
+    }
+  }
+}
+
+/* Returns the displayed name of an address book in the tree view
+ * at a particular row index.
+ * @param aIndex the row index of the target address book
+ * @return the displayed name of the address book
+ */
+function get_name_of_address_book_element_at(aIndex)
+{
+  return abController.window.gDirectoryTreeView.getCellText(aIndex, 0);
+}
+
+/* Selects a given address book in the tree view.
+ * @param aAddrBook an address book to select
+ */
+function select_address_book(aAddrBook)
+{
+  let aIndex = get_address_book_tree_view_index(aAddrBook);
+  abController.window.gDirectoryTreeView.selection.select(aIndex);
+}

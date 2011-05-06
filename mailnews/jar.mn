@@ -97,6 +97,7 @@ messenger.jar:
     content/messenger/junkCommands.js                                          (base/content/junkCommands.js)
     content/messenger/junkLog.xul                                              (base/content/junkLog.xul)
     content/messenger/junkLog.js                                               (base/content/junkLog.js)
+    content/messenger/jsTreeView.js                                            (base/content/jsTreeView.js)
     content/messenger/searchTermOverlay.js                                     (base/search/content/searchTermOverlay.js)
     content/messenger/searchTermOverlay.xul                                    (base/search/content/searchTermOverlay.xul)
     content/messenger/CustomHeaders.xul                                        (base/search/content/CustomHeaders.xul)

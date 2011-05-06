@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Mark Banner <mark@standard8.demon.co.uk>
+ *   Mike Conley <mconley@mozillamessaging.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -88,7 +89,8 @@ var abResultsPaneObserver = {
 };
 
 
-var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].getService().QueryInterface(Components.interfaces.nsIDragService);
+var dragService = Components.classes["@mozilla.org/widget/dragservice;1"]
+                            .getService().QueryInterface(Components.interfaces.nsIDragService);
 
 var abDirTreeObserver = {
   /**
@@ -121,8 +123,7 @@ var abDirTreeObserver = {
     if (orientation != Components.interfaces.nsITreeView.DROP_ON)
       return false;
 
-    var targetResource = dirTree.builderView.getResourceAtIndex(index);
-    var targetURI = targetResource.Value;
+    var targetURI = gDirectoryTreeView.getDirectoryAtIndex(index).URI;
 
     var srcURI = GetSelectedDirectory();
 
@@ -223,18 +224,16 @@ var abDirTreeObserver = {
    * tree view calls canDrop just before calling onDrop.
    *
    */
-  onDrop: function(row, orientation)
+  onDrop: function(index, orientation)
   {
     var dragSession = dragService.getCurrentSession();
     if (!dragSession)
       return;
-      
+
     var trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
     trans.addDataFlavor("moz/abcard");
 
-    var targetResource = dirTree.builderView.getResourceAtIndex(row);
-
-    var targetURI = targetResource.Value;
+    var targetURI = gDirectoryTreeView.getDirectoryAtIndex(index).URI;
     var srcURI = GetSelectedDirectory();
 
     for (var i = 0; i < dragSession.numDropItems; i++) {
@@ -244,7 +243,7 @@ var abDirTreeObserver = {
       var len = new Object();
       try {
         trans.getAnyTransferData(flavor, dataObj, len);
-        dataObj = 
+        dataObj =
           dataObj.value.QueryInterface(Components.interfaces.nsISupportsString);
       }
       catch (ex) {

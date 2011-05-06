@@ -9,3 +9,4 @@ messenger.jar:
 *   content/messenger/addressbook/abMailListDialog.xul          (content/abMailListDialog.xul)
 *   content/messenger/addressbook/abContactsPanel.xul           (content/abContactsPanel.xul)
 *   content/messenger/addressbook/abContactsPanel.js            (content/abContactsPanel.js)
+    content/messenger/addressbook/abTrees.js                    (content/abTrees.js)

@@ -71,6 +71,8 @@
     <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
   </stringbundleset>
 
+<script type="application/javascript" src="chrome://messenger/content/jsTreeView.js"/>
+<script type="application/javascript" src="chrome://messenger/content/addressbook/abTrees.js"/>
 <script type="application/javascript" src="chrome://messenger/content/accountUtils.js"/>
 <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
 <script type="application/javascript" src="chrome://messenger/content/mailCore.js"/>
@@ -610,56 +612,18 @@
 
       <!-- FIX ME - remove document.commandDispatcher.updateCommands() when tree selection calls this automatically -->
       <tree id="dirTree" class="abDirectory plain" seltype="single" minwidth="150" flex="1" persist="width"
-            datasources="rdf:addressdirectory" ref="moz-abdirectory://"
-            flags="dont-build-content"
             hidecolumnpicker="true"
             context="dirTreeContext"
             onselect="DirPaneSelectionChange(); document.commandDispatcher.updateCommands('addrbook-select');"
             ondblclick="DirPaneDoubleClick(event);"
+            onclick="DirPaneClick(event);"
             onblur="goOnEvent(this,'blur')">
- 
-        <treecols>
-          <treecol id="DirCol" flex="1" primary="true" 
-                   crop="center" persist="width" ignoreincolumnpicker="true" hideheader="true"
-                   sort="?DirTreeNameSort" sortActive="true" sortDirection="ascending"/>
-        </treecols>
-     
-        <template>
-          <rule>
-            <conditions>
-              <content uri="?container"/> 
-              <member container="?container" child="?member"/>
-            </conditions>
- 
-            <bindings>
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#DirName"
-                       object="?DirName"/>
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#DirTreeNameSort"
-                       object="?DirTreeNameSort"/>
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#IsMailList"
-                       object="?IsMailList"/>
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#IsRemote"
-                       object="?IsRemote"/>
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#IsSecure"
-                       object="?IsSecure"/>
-            </bindings>
 
-            <action>
-              <treechildren>
-                <treeitem uri="?member" persist="sortDirection sortColumn open">
-                  <treerow>
-                    <treecell label="?DirName" properties="IsMailList-?IsMailList IsRemote-?IsRemote IsSecure-?IsSecure"/>
-                  </treerow>
-                </treeitem>
-              </treechildren>
-            </action>
-          </rule>
-        </template>
+        <treecols>
+          <treecol id="DirCol" flex="1" primary="true" hideheader="true"
+                   crop="center" persist="width" ignoreincolumnpicker="true"/>
+        </treecols>
+        <treechildren/>
       </tree>
     </vbox>
 

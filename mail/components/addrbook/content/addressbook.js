@@ -25,6 +25,7 @@
 # Contributor(s):
 #   Seth Spitzer <sspitzer@netscape.com>
 #   Mark Banner <mark@standard8.demon.co.uk>
+#   Joey Minta <jminta@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,16 +43,17 @@
 
 // Ensure the activity modules are loaded for this window.
 Components.utils.import("resource:///modules/activity/activityModules.js");
+Components.utils.import("resource:///modules/mailServices.js");
 
 const nsIAbListener = Components.interfaces.nsIAbListener;
 const kPrefMailAddrBookLastNameFirst = "mail.addr_book.lastnamefirst";
+const kPersistCollapseMapStorage = "directoryTree.json";
 
 var cvPrefs = 0;
 var gSearchTimer = null;
 var gStatusText = null;
 var gQueryURIFormat = null;
 var gSearchInput;
-var gDirTree;
 var gCardViewBox;
 var gCardViewBoxEmail1;
 var gPreviousDirTreeIndex = -1;
@@ -86,7 +88,7 @@ var gAddressBookAbListener = {
         // Don't reselect if we already have a valid selection, this may be
         // the case if items are being removed via other methods, e.g. sidebar,
         // LDAP preference pane etc.
-        if (dirTree.currentIndex == -1) {
+        if (gDirTree.currentIndex == -1) {
           var directory = item.QueryInterface(Components.interfaces.nsIAbDirectory);
 
           // If we are a mail list, move the selection up the list before
@@ -99,7 +101,7 @@ var gAddressBookAbListener = {
             --gPreviousDirTreeIndex;
 
           // Now get the parent of the row.
-          var newRow = dirTree.view.getParentIndex(gPreviousDirTreeIndex);
+          var newRow = gDirTree.view.getParentIndex(gPreviousDirTreeIndex);
 
           // if we have no parent (i.e. we are an address book), use the
           // previous index.
@@ -107,11 +109,11 @@ var gAddressBookAbListener = {
             newRow = gPreviousDirTreeIndex;
 
           // Fall back to the first adddress book if we're not in a valid range
-          if (newRow >= dirTree.view.rowCount)
+          if (newRow >= gDirTree.view.rowCount)
             newRow = 0;
 
           // Now select the new item.
-          dirTree.view.selection.select(newRow);
+          gDirTree.view.selection.select(newRow);
         }
       }
     }
@@ -125,9 +127,12 @@ var gAddressBookAbListener = {
 
 function OnUnloadAddressBook()
 {
-  Components.classes["@mozilla.org/abmanager;1"]
-            .getService(Components.interfaces.nsIAbManager)
-            .removeAddressBookListener(gAddressBookAbListener);
+  MailServices.ab.removeAddressBookListener(gAddressBookAbListener);
+  MailServices.ab.removeAddressBookListener(gDirectoryTreeView);
+
+  // Shutdown the tree view - this will also save the open/collapsed
+  // state of the tree view to a JSON file.
+  gDirectoryTreeView.shutdown(kPersistCollapseMapStorage);
 
   Components.classes["@mozilla.org/messenger/services/session;1"]
             .getService(Components.interfaces.nsIMsgMailSession)
@@ -188,8 +193,11 @@ function delayedOnLoadAddressBook()
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadCardView();
 
-  //workaround - add setTimeout to make sure dynamic overlays get loaded first
-  setTimeout('OnLoadDirTree()', 0);
+  // Initialize the Address Book tree view
+  gDirectoryTreeView.init(gDirTree,
+                          kPersistCollapseMapStorage);
+
+  SelectFirstAddressBook();
 
   // if the pref is locked disable the menuitem New->LDAP directory
   if (gPrefs.prefIsLocked("ldap_2.disable_button_add"))
@@ -200,15 +208,13 @@ function delayedOnLoadAddressBook()
   // directory item is/are removed. In the case of directory items, we are
   // only really interested in mailing list changes and not cards but we have
   // to have both.
-  Components.classes["@mozilla.org/abmanager;1"]
-            .getService(Components.interfaces.nsIAbManager)
-            .addAddressBookListener(gAddressBookAbListener,
-                                    nsIAbListener.directoryRemoved |
-                                    nsIAbListener.directoryItemRemoved);
+  MailServices.ab.addAddressBookListener(gAddressBookAbListener,
+                                   nsIAbListener.directoryRemoved |
+                                   nsIAbListener.directoryItemRemoved);
+  MailServices.ab.addAddressBookListener(gDirectoryTreeView, nsIAbListener.all);
 
-  var dirTree = GetDirTree();
-  dirTree.addEventListener("click",DirPaneClick,true);
-  dirTree.controllers.appendController(DirPaneController);
+
+  gDirTree.controllers.appendController(DirPaneController);
 
   // initialize the customizeDone method on the customizeable toolbar
   var toolbox = document.getElementById("ab-toolbox");
@@ -228,12 +234,6 @@ function delayedOnLoadAddressBook()
             .AddMsgWindow(msgWindow);
 }
 
-function OnLoadDirTree() {
-  var treeBuilder = dirTree.builder.QueryInterface(Components.interfaces.nsIXULTreeBuilder);
-  treeBuilder.addObserver(abDirTreeObserver);
-
-  SelectFirstAddressBook();
-}
 
 function GetCurrentPrefs()
 {
@@ -435,9 +435,7 @@ function AbExport()
     if (!selectedABURI) return;
 
     var directory = GetDirectoryFromURI(selectedABURI);
-    Components.classes["@mozilla.org/abmanager;1"]
-              .getService(Components.interfaces.nsIAbManager)
-              .exportAddressBook(window, directory);
+    MailServices.ab.exportAddressBook(window, directory);
   }
   catch (ex) {
     var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
@@ -740,13 +738,10 @@ function AbOSXAddressBookExists()
 
 function AbShowHideOSXAddressBook()
 {
-  var abMgr = Components.classes["@mozilla.org/abmanager;1"] 
-                        .getService(Components.interfaces.nsIAbManager);
-
   if (AbOSXAddressBookExists())
-    abMgr.deleteAddressBook(kOSXDirectoryURI);
+    MailServices.ab.deleteAddressBook(kOSXDirectoryURI);
   else {
-    abMgr.newAddressBook(
+    MailServices.ab.newAddressBook(
       gAddressBookBundle.getString(kOSXPrefBase + ".description"),
       kOSXDirectoryURI, 3, kOSXPrefBase);
   }
