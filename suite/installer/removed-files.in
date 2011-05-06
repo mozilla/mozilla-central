@@ -661,6 +661,7 @@ xpicleanup@BIN_SUFFIX@
   extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/install.rdf
   extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi
   extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/
+  extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/chrome.manifest
   extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/icon.png
   extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/install.rdf
   extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/preview.png
