@@ -34,17 +34,38 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#icon {
+  list-style-image: url("chrome://mozapps/skin/extensions/extensionGeneric.png");
+  max-width: 48px;
+  max-height: 48px;
+  -moz-margin-end: 6px;
+}
+
+#eula-dialog[addontype="theme"] #icon {
+  list-style-image: url("chrome://mozapps/skin/extensions/themeGeneric.png");
+}
+
+#eula-dialog[addontype="locale"] #icon {
+  list-style-image: url("chrome://mozapps/skin/extensions/localeGeneric.png");
+}
+
+#eula-dialog[addontype="plugin"] #icon {
+  list-style-image: url("chrome://mozapps/skin/plugins/pluginGeneric.png");
+}
+
+#heading-container {
+  -moz-box-align: center;
+}
+
 #heading {
   font-size: 120%;
 }
 
 #eula {
-  font-family: monospace;
+  -moz-appearance: none;
   color: #000000;
   background-color: #FFFFFF;
-  margin-top: 1em;
-  margin-bottom: 1em;
+  margin: 1em;
   border: 1px solid;
   border-colors: #6E7378 #EEF0F3 #EEF0F3 #6E7378;
 }
-
