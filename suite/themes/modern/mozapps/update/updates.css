@@ -37,48 +37,22 @@
 /**
  * General
  */
-.heed {
-  font-weight: bold;
+wizardpage {
+  height: 360px;
+  width: 700px;
 }
 
-.wizard-button > .button-box {
-  padding-left: 15px !important;
-  padding-right: 15px !important;
+#updates, .wizard-page-box {
+  margin: 0;
+  padding: 0;
 }
 
-
-link {
-  color: #0000FF;
-  border: 1px solid transparent;
-  margin: 1px 5px 4px;
-  text-decoration: underline !important;
+.update-header {
+  padding: 0px 10px;
 }
 
-link > label {
-  margin: 0px;
-  padding: 1px;
-  text-decoration: underline !important;
-}
-
-link:hover:active {
-  color: #FF0000;
-}
-
-link:focus {
-  border: 1px dotted #000000;
-}
-
-remotecontent {
-  margin-top: 1px;
-  margin-bottom: 2px;
-  -moz-margin-start: 6px;
-  -moz-margin-end: 5px;
-  padding-bottom: 1px;
-  border: 2px solid;
-  -moz-border-top-colors: #BEC3D3 #5D616E;
-  -moz-border-right-colors: #F8FAFE #5D616E;
-  -moz-border-bottom-colors: #F8FAFE #5D616E;
-  -moz-border-left-colors: #BEC3D3 #5D616E;
+.update-content {
+  padding: 10px;
 }
 
 /**
@@ -87,12 +61,15 @@ remotecontent {
 .loadingBox {
   padding: 3px 5px;
 }
+
 .remoteLoadingThrobber {
   margin-top: 3px;
 }
+
 .remoteLoadingThrobber[state="loading"] {
   list-style-image: url("chrome://communicator/skin/icons/loading.gif");
 }
+
 .remoteLoadingThrobber[state="error"] {
   list-style-image: url("chrome://global/skin/icons/notfound.png");
 }
@@ -100,57 +77,37 @@ remotecontent {
 /**
  * Update Found Page
  */
-#moreDetails {
-  margin-top: 1px;
-  margin-bottom: 4px;
-  -moz-margin-start: 3px;
-  -moz-margin-end: 5px;
+.wizard-buttons-separator {
+  margin-top: 0 !important;
 }
 
-#updateForMoreInfo {
-  margin-left: 5px;
-}
-
+/* Update Found Basic Page */
 #updateName, #updateFinishedName {
   font-weight: bold;
   font-size: 120%;
 }
 
-#alertImage {
-  list-style-image: url("chrome://global/skin/icons/Warning.png");
-  margin-right: 5px;
-}
-
-#incompatibleWarning {
-  background-color: #FFFFE0;
-  color: #000000;
+/* License Page */
+#licenseContent {
+  margin: 2px 4px;
   border: 2px solid;
   -moz-border-top-colors: #BEC3D3 #5D616E;
   -moz-border-right-colors: #F8FAFE #5D616E;
   -moz-border-bottom-colors: #F8FAFE #5D616E;
   -moz-border-left-colors: #BEC3D3 #5D616E;
-  padding: 3px;
-  margin: 1px 5px 4px;
+  background-color: #FFFFFF;
+  color: #000000;
 }
 
 /**
  * Downloading Page
  */
-#downloadStatusTop, #downloadStatusLine {
+#downloadStatusLine {
   -moz-box-align: center;
 }
 
 #downloadStatus {
   height: 3em !important;
-}
-
-#downloadThrobber {
-  -moz-margin-start: 5px;
-  list-style-image: url("chrome://communicator/skin/brand/throbber16-single.png");
-}
-
-#downloadThrobber[state="loading"] {
-  list-style-image: url("chrome://communicator/skin/brand/throbber16-anim.png");
 }
 
 #downloadStatusProgress {
@@ -234,10 +191,6 @@ update {
   -moz-box-align: end;
 }
 
-.update-details-link {
-  margin: 0;
-}
-
 .update-type {
   font-weight: bold;
   color: #990000;
@@ -255,10 +208,4 @@ update {
 
 #historyItems > scrollbox {
   margin-bottom: 1px;
-}
-
-.updatePrefsInfo {
-  font-size: 83.3333%;
-  -moz-margin-start: 27px;
-  margin-bottom: 10px;
 }
