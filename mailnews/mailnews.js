@@ -204,6 +204,7 @@ pref("mail.dsn.ret_full_on", true);                    // DSN request is sent wi
 pref("news.show_size_in_lines",             true);
 pref("news.update_unread_on_expand",        true);
 pref("news.get_messages_on_select",         true);
+pref("news.allow_delete_with_no_undo",      false);
 
 pref("mailnews.wraplength",                 72);
 pref("mail.compose.wrap_to_window_width",   false);

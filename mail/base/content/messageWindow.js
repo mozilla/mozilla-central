@@ -809,12 +809,9 @@ var MessageWindowController =
         // fall through
       case "button_delete":
         UpdateDeleteToolbarButton();
-        // fall through
+        return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.deleteMsg);
       case "cmd_shiftDelete":
-        return gFolderDisplay.selectedMessage &&
-               gFolderDisplay.displayedFolder &&
-               (gFolderDisplay.displayedFolder.canDeleteMessages ||
-                gFolderDisplay.view.isNewsFolder);
+        return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.deleteNoTrash);
       case "button_junk":
         UpdateJunkToolbarButton();
         // fall through

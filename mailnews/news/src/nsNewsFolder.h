@@ -97,6 +97,7 @@ public:
   NS_IMETHOD GetCanCreateSubfolders(PRBool *aResult);
   NS_IMETHOD GetCanRename(PRBool *aResult);
   NS_IMETHOD GetCanCompact(PRBool *aResult);
+  NS_IMETHOD GetCanDeleteMessages(PRBool *aResult);
   NS_IMETHOD OnReadChanged(nsIDBChangeListener * aInstigator);
 
   NS_IMETHOD DownloadMessagesForOffline(nsIArray *messages, nsIMsgWindow *window);
