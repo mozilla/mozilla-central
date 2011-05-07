@@ -467,8 +467,10 @@ MimeMultipart_create_child(MimeObject *obj)
    auto-uudecode-hack won't ever be done for subparts of a
    multipart, but only for untyped children of message/rfc822.
    */
+  obj->options->state->multParent = PR_TRUE;
   body = mime_create(((ct && *ct) ? ct : (dct ? dct: TEXT_PLAIN)),
            mult->hdrs, obj->options);
+  obj->options->state->multParent = PR_FALSE;
   PR_FREEIF(ct);
   if (!body) return MIME_OUT_OF_MEMORY;
   status = ((MimeContainerClass *) obj->clazz)->add_child(obj, body);

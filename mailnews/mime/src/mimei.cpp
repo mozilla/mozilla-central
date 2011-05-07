@@ -751,10 +751,12 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
         /* by default, assume that it is an encrypted message */
         clazz = (MimeObjectClass *)&mimeEncryptedCMSClass;
 
+        if (opts->state->multParent)
+          clazz = (MimeObjectClass *)&mimeExternalObjectClass;
         /* if the smime-type parameter says that it's a certs-only or
            compressed file, then show it as an attachment, however
            (MimeEncryptedCMS doesn't handle these correctly) */
-        if (st &&
+        else if (st &&
             (!PL_strcasecmp(st, "certs-only") ||
              !PL_strcasecmp(st, "compressed-data")))
           clazz = (MimeObjectClass *)&mimeExternalObjectClass;
