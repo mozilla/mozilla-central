@@ -84,6 +84,10 @@
           src="chrome://messenger/content/messengerdnd.js"/>
   <script type="application/javascript"
           src="chrome://messenger/content/tabmail.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/folderDisplay.js"/>
+  <script type="application/javascript"
+          src="chrome://global/content/contentAreaUtils.js"/>
 
   <commands id="commands">
     <commandset id="mailSearchItems"

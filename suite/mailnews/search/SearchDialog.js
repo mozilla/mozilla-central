@@ -38,9 +38,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 var searchSessionContractID = "@mozilla.org/messenger/searchSession;1";
-var gSearchView;
+var gDBView;
 var gSearchSession;
-var gCurrentFolder;
+var gMsgFolderSelected;
 
 var nsIMsgFolder = Components.interfaces.nsIMsgFolder;
 var nsIMsgWindow = Components.interfaces.nsIMsgWindow;
@@ -193,7 +193,7 @@ var gSearchNotificationListener =
         gSearchStopButton.setAttribute("label", gSearchBundle.getString("labelForSearchButton"));
         gSearchStopButton.setAttribute("accesskey", gSearchBundle.getString("labelForSearchButton.accesskey"));
         gStatusFeedback._stopMeteors();
-        SetAdvancedSearchStatusText(gSearchView.QueryInterface(Components.interfaces.nsITreeView).rowCount);
+        SetAdvancedSearchStatusText(gDBView.QueryInterface(Components.interfaces.nsITreeView).rowCount);
     },
 
     onNewSearch: function()
@@ -297,9 +297,10 @@ function searchOnUnload()
               .getService(Components.interfaces.nsIMsgMailSession)
               .RemoveFolderListener(gFolderListener);
 	
-    if (gSearchView) {
-	gSearchView.close();
-	gSearchView = null;
+    if (gDBView)
+    {
+        gDBView.close();
+        gDBView = null;
     }
 
     top.controllers.removeController(nsSearchResultsController);
@@ -360,17 +361,17 @@ function updateSearchFolderPicker(folderURI)
     SetFolderPicker(folderURI, gFolderPicker.id);
 
     // use the URI to get the real folder
-    gCurrentFolder = GetMsgFolderFromUri(folderURI);
+    gMsgFolderSelected = GetMsgFolderFromUri(folderURI);
 
     var searchLocalSystem = document.getElementById("checkSearchLocalSystem");
     if (searchLocalSystem)
-        searchLocalSystem.disabled = gCurrentFolder.server.searchScope == nsMsgSearchScope.offlineMail;
-    setSearchScope(GetScopeForFolder(gCurrentFolder));
+        searchLocalSystem.disabled = gMsgFolderSelected.server.searchScope == nsMsgSearchScope.offlineMail;
+    setSearchScope(GetScopeForFolder(gMsgFolderSelected));
 }
 
 function updateSearchLocalSystem()
 {
-  setSearchScope(GetScopeForFolder(gCurrentFolder));
+  setSearchScope(GetScopeForFolder(gMsgFolderSelected));
 }
 
 function UpdateAfterCustomHeaderChange()
@@ -403,7 +404,7 @@ function onSearch()
 {
     // set the view.  do this on every search, to
     // allow the tree to reset itself
-    var treeView = gSearchView.QueryInterface(Components.interfaces.nsITreeView);
+    var treeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
     if (treeView)
     {
       var tree = GetThreadTree();
@@ -412,14 +413,14 @@ function onSearch()
 
     gSearchSession.clearScopes();
     // tell the search session what the new scope is
-    if (!gCurrentFolder.isServer && !gCurrentFolder.noSelect)
-        gSearchSession.addScopeTerm(GetScopeForFolder(gCurrentFolder),
-                                    gCurrentFolder);
+    if (!gMsgFolderSelected.isServer && !gMsgFolderSelected.noSelect)
+        gSearchSession.addScopeTerm(GetScopeForFolder(gMsgFolderSelected),
+                                    gMsgFolderSelected);
 
     var searchSubfolders = document.getElementById("checkSearchSubFolders").checked;
-    if (gCurrentFolder && (searchSubfolders || gCurrentFolder.isServer || gCurrentFolder.noSelect))
+    if (gMsgFolderSelected && (searchSubfolders || gMsgFolderSelected.isServer || gMsgFolderSelected.noSelect))
     {
-        AddSubFolders(gCurrentFolder);
+        AddSubFolders(gMsgFolderSelected);
     }
     // reflect the search widgets back into the search session
     saveSearchTerms(gSearchSession.searchTerms, gSearchSession);
@@ -541,12 +542,13 @@ nsMsgSearchCommandUpdater.prototype =
 }
 
 function setupDatasource() {
-    gSearchView = Components.classes["@mozilla.org/messenger/msgdbview;1?type=search"].createInstance(Components.interfaces.nsIMsgDBView);
+    gDBView = Components.classes["@mozilla.org/messenger/msgdbview;1?type=search"]
+                        .createInstance(Components.interfaces.nsIMsgDBView);
     var count = new Object;
     var cmdupdator = new nsMsgSearchCommandUpdater();
 
-    gSearchView.init(messenger, msgWindow, cmdupdator);
-    gSearchView.open(null, nsMsgViewSortType.byId, nsMsgViewSortOrder.ascending, nsMsgViewFlagsType.kNone, count);
+    gDBView.init(messenger, msgWindow, cmdupdator);
+    gDBView.open(null, nsMsgViewSortType.byId, nsMsgViewSortOrder.ascending, nsMsgViewFlagsType.kNone, count);
 
     // the thread pane needs to use the search datasource (to get the
     // actual list of messages) and the message datasource (to get any
@@ -560,7 +562,7 @@ function setupDatasource() {
               .AddFolderListener(gFolderListener, notifyFlags);
 
     // the datasource is a listener on the search results
-    gViewSearchListener = gSearchView.QueryInterface(Components.interfaces.nsIMsgSearchNotify);
+    gViewSearchListener = gDBView.QueryInterface(Components.interfaces.nsIMsgSearchNotify);
     gSearchSession.registerListener(gViewSearchListener);
 }
 
@@ -599,7 +601,7 @@ function onSearchButton(event)
 function GetNumSelectedMessages()
 {
    try {
-       return gSearchView.numSelected;
+       return gDBView.numSelected;
    }
    catch (ex) {
        return 0;
@@ -608,30 +610,30 @@ function GetNumSelectedMessages()
 
 function GetDBView()
 {
-    return gSearchView;
+    return gDBView;
 }
 
 function MsgDeleteSelectedMessages(aCommandType)
 {
     SetNextMessageAfterDelete();
-    gSearchView.doCommand(aCommandType);
+    gDBView.doCommand(aCommandType);
 }
 
 function SetNextMessageAfterDelete()
 {
-  gNextMessageViewIndexAfterDelete = gSearchView.msgToSelectAfterDelete;
+  gNextMessageViewIndexAfterDelete = gDBView.msgToSelectAfterDelete;
 }
 
 function HandleDeleteOrMoveMessageFailed(folder)
 {
-  gSearchView.onDeleteCompleted(false);
+  gDBView.onDeleteCompleted(false);
   gNextMessageViewIndexAfterDelete = -2;
 }
 
 function HandleDeleteOrMoveMessageCompleted(folder)
 {
-  gSearchView.onDeleteCompleted(true);
-  var treeView = gSearchView.QueryInterface(Components.interfaces.nsITreeView);
+  gDBView.onDeleteCompleted(true);
+  var treeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
   var treeSelection = treeView.selection;
   var viewSize = treeView.rowCount;
 
@@ -740,7 +742,7 @@ function MoveMessageInSearch(destFolder)
         var destMsgFolder = GetMsgFolderFromUri(destUri).QueryInterface(Components.interfaces.nsIMsgFolder);
 
         SetNextMessageAfterDelete();
-        gSearchView.doCommandWithFolder(nsMsgViewCommandType.moveMessages, destMsgFolder);
+        gDBView.doCommandWithFolder(nsMsgViewCommandType.moveMessages, destMsgFolder);
     }
     catch (ex) {
         dump("MsgMoveMessage failed: " + ex + "\n");
@@ -749,14 +751,8 @@ function MoveMessageInSearch(destFolder)
 
 function GoToFolder()
 {
-  var hdr = gSearchView.hdrForFirstSelectedMessage;
+  var hdr = gDBView.hdrForFirstSelectedMessage;
   MsgOpenNewWindowForFolder(hdr.folder.URI, hdr.messageKey);
-}
-
-function BeginDragThreadPane(event)
-{
-    // no search pane dnd yet
-    return false;
 }
 
 function saveAsVirtualFolder()
@@ -764,9 +760,9 @@ function saveAsVirtualFolder()
   let searchFolderURIs = window.arguments[0].folder.URI;
 
   var searchSubfolders = document.getElementById("checkSearchSubFolders").checked;
-  if (gCurrentFolder && (searchSubfolders || gCurrentFolder.isServer || gCurrentFolder.noSelect))
+  if (gMsgFolderSelected && (searchSubfolders || gMsgFolderSelected.isServer || gMsgFolderSelected.noSelect))
   {
-    var subFolderURIs = AddSubFoldersToURI(gCurrentFolder);
+    var subFolderURIs = AddSubFoldersToURI(gMsgFolderSelected);
     if (subFolderURIs.length > 0)
       searchFolderURIs += '|' + subFolderURIs;
   }
