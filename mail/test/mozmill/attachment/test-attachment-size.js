@@ -316,16 +316,29 @@ function check_total_attachment_size(count) {
   if (nodes.length != count)
     throw new Error('Saw '+nodes.length+' attachments, but expected '+count);
 
+  let unknownSize = false;
   let size = 0;
   for (let i = 0; i < nodes.length; i++) {
     let currSize = parseInt(nodes[i].getAttribute("attachmentSize"));
-    if (currSize)
+    if (isNaN(currSize))
+      unknownSize = true;
+    else
       size += currSize;
   }
 
   // Next, make sure that the formatted size in the label is correct
   let formattedSize = sizeNode.getAttribute('value');
   let expectedFormattedSize = messenger.formatFileSize(size);
+  let messengerBundle = mc.window.document.getElementById('bundle_messenger');
+
+  if (unknownSize) {
+    if (size == 0)
+      expectedFormattedSize = messengerBundle.getString(
+        'attachmentSizeUnknown');
+    else
+      expectedFormattedSize = messengerBundle.getFormattedString(
+        "attachmentSizeAtLeast", [expectedFormattedSize]);
+  }
   if (formattedSize != expectedFormattedSize)
     throw new Error('Formatted attachment size ('+formattedSize+') does not ' +
                     'match expected value ('+expectedFormattedSize+')');
@@ -342,8 +355,10 @@ function help_test_attachment_size(index) {
 
   let expectedSizes = messages[index].attachmentSizes;
   for (let i = 0; i < expectedSizes.length; i++) {
-    if(expectedSizes[i] == null)
+    if(expectedSizes[i] == null) {
+      unknownSize = true;
       check_no_attachment_size(i);
+    }
     else
       check_attachment_size(i, expectedSizes[i]);
   }

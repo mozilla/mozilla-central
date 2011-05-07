@@ -1902,6 +1902,7 @@ function displayAttachmentsForExpandedView()
 
     toggleAttachmentList(false);
 
+    var unknownSize = false;
     for each (let [, attachment] in Iterator(currentAttachments))
     {
       // Create a new attachment widget
@@ -1914,8 +1915,10 @@ function displayAttachmentsForExpandedView()
         item = attachmentList.appendItem(nameAndSize);
         totalSize += attachment.size;
       }
-      else
+      else {
+        unknownSize = true;
         item = attachmentList.appendItem(displayName);
+      }
 
       item.setAttribute("class", "descriptionitem-iconic");
 
@@ -1955,8 +1958,15 @@ function displayAttachmentsForExpandedView()
       document.getElementById("attachmentCount").setAttribute("value", count);
     }
 
-    document.getElementById("attachmentSize").setAttribute(
-      "value", messenger.formatFileSize(totalSize));
+    let sizeStr = messenger.formatFileSize(totalSize);
+    if (unknownSize) {
+      if (totalSize == 0)
+        sizeStr = gMessengerBundle.getString("attachmentSizeUnknown");
+      else
+        sizeStr = gMessengerBundle.getFormattedString("attachmentSizeAtLeast",
+                                                      [sizeStr]);
+    }
+    document.getElementById("attachmentSize").setAttribute("value", sizeStr);
 
     gBuildAttachmentsForCurrentMsg = true;
   }
