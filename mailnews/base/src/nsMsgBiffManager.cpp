@@ -48,6 +48,7 @@
 #include "nspr.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
+#include "nsIObserverService.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "nsMsgUtils.h"
@@ -58,12 +59,14 @@ static NS_DEFINE_CID(kStatusBarBiffManagerCID, NS_STATUSBARBIFFMANAGER_CID);
 
 static PRLogModuleInfo *MsgBiffLogModule = nsnull;
 
-NS_IMPL_ISUPPORTS3(nsMsgBiffManager, nsIMsgBiffManager, nsIIncomingServerListener, nsISupportsWeakReference)
+NS_IMPL_ISUPPORTS4(nsMsgBiffManager, nsIMsgBiffManager,
+                   nsIIncomingServerListener, nsIObserver,
+                   nsISupportsWeakReference)
 
 void OnBiffTimer(nsITimer *timer, void *aBiffManager)
 {
   nsMsgBiffManager *biffManager = (nsMsgBiffManager*)aBiffManager;
-  biffManager->PerformBiff();		
+  biffManager->PerformBiff();
 }
 
 nsMsgBiffManager::nsMsgBiffManager()
@@ -79,6 +82,15 @@ nsMsgBiffManager::~nsMsgBiffManager()
 
   if (!mHaveShutdown)
     Shutdown();
+
+  nsresult rv;
+  nsCOMPtr<nsIObserverService> observerService =
+       do_GetService("@mozilla.org/observer-service;1", &rv);
+  if (NS_SUCCEEDED(rv))
+  {
+    observerService->RemoveObserver(this, "wake_notification");
+    observerService->RemoveObserver(this, "sleep_notification");
+  }
 }
 
 NS_IMETHODIMP nsMsgBiffManager::Init()
@@ -108,6 +120,13 @@ NS_IMETHODIMP nsMsgBiffManager::Init()
   if (!MsgBiffLogModule)
     MsgBiffLogModule = PR_NewLogModule("MsgBiff");
 
+  nsCOMPtr<nsIObserverService> observerService =
+           do_GetService("@mozilla.org/observer-service;1", &rv);
+  if (NS_SUCCEEDED(rv))
+  {
+    observerService->AddObserver(this, "sleep_notification", PR_TRUE);
+    observerService->AddObserver(this, "wake_notification", PR_TRUE);
+  }
   return NS_OK;
 }
 
@@ -127,6 +146,23 @@ NS_IMETHODIMP nsMsgBiffManager::Shutdown()
 
   mHaveShutdown = PR_TRUE;
   mInited = PR_FALSE;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgBiffManager::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *someData)
+{
+  if (!strcmp(aTopic, "sleep_notification") && mBiffTimer)
+  {
+    mBiffTimer->Cancel();
+    mBiffTimer = nsnull;
+  }
+  else if (!strcmp(aTopic, "wake_notification"))
+  {
+    // wait 10 seconds after waking up to start biffing again.
+    mBiffTimer = do_CreateInstance("@mozilla.org/timer;1");
+    mBiffTimer->InitWithFuncCallback(OnBiffTimer, (void*)this, 10000,
+                                     nsITimer::TYPE_ONE_SHOT);
+  }
   return NS_OK;
 }
 
@@ -166,7 +202,7 @@ NS_IMETHODIMP nsMsgBiffManager::RemoveServerBiff(nsIMsgIncomingServer *server)
 
   // Should probably reset biff time if this was the server that gets biffed
   // next.
-	return NS_OK;
+  return NS_OK;
 }
 
 

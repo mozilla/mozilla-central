@@ -202,6 +202,7 @@ nsMsgAccountManager::~nsMsgAccountManager()
       observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
       observerService->RemoveObserver(this, "quit-application-granted");
       observerService->RemoveObserver(this, ABOUT_TO_GO_OFFLINE_TOPIC);
+      observerService->RemoveObserver(this, "sleep_notification");
     }
   }
 }
@@ -226,6 +227,7 @@ nsresult nsMsgAccountManager::Init()
     observerService->AddObserver(this, "quit-application-granted" , PR_TRUE);
     observerService->AddObserver(this, ABOUT_TO_GO_OFFLINE_TOPIC, PR_TRUE);
     observerService->AddObserver(this, "profile-before-change", PR_TRUE);
+    observerService->AddObserver(this, "sleep_notification", PR_TRUE);
   }
 
   return NS_OK;
@@ -321,6 +323,8 @@ NS_IMETHODIMP nsMsgAccountManager::Observe(nsISupports *aSubject, const char *aT
     }
     return NS_OK;
   }
+  if (!strcmp(aTopic, "sleep_notification"))
+    return CloseCachedConnections();
 
   if (!strcmp(aTopic, "profile-before-change"))
   {

@@ -45,33 +45,36 @@
 #include "nsCOMPtr.h"
 #include "nsIIncomingServerListener.h"
 #include "nsWeakReference.h"
+#include "nsIObserver.h"
 
 typedef struct {
-	nsCOMPtr<nsIMsgIncomingServer> server;
-	PRTime nextBiffTime;
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  PRTime nextBiffTime;
 } nsBiffEntry;
 
 
 class nsMsgBiffManager
-	: public nsIMsgBiffManager,
-		public nsIIncomingServerListener,
-		public nsSupportsWeakReference
+  : public nsIMsgBiffManager,
+    public nsIIncomingServerListener,
+    public nsIObserver,
+    public nsSupportsWeakReference
 {
 public:
-	nsMsgBiffManager(); 
-	virtual ~nsMsgBiffManager();
+  nsMsgBiffManager(); 
+  virtual ~nsMsgBiffManager();
 
-	NS_DECL_ISUPPORTS
-	NS_DECL_NSIMSGBIFFMANAGER
-	NS_DECL_NSIINCOMINGSERVERLISTENER
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIMSGBIFFMANAGER
+  NS_DECL_NSIINCOMINGSERVERLISTENER
+  NS_DECL_NSIOBSERVER
 
-	nsresult PerformBiff();
+  nsresult PerformBiff();
 
 protected:
-	PRInt32 FindServer(nsIMsgIncomingServer *server);
-	nsresult SetNextBiffTime(nsBiffEntry &biffEntry, PRTime currentTime);
-	nsresult SetupNextBiff();
-	nsresult AddBiffEntry(nsBiffEntry &biffEntry);
+  PRInt32 FindServer(nsIMsgIncomingServer *server);
+  nsresult SetNextBiffTime(nsBiffEntry &biffEntry, PRTime currentTime);
+  nsresult SetupNextBiff();
+  nsresult AddBiffEntry(nsBiffEntry &biffEntry);
 
 protected:
   nsCOMPtr<nsITimer> mBiffTimer;
