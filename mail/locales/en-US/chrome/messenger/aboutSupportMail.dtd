@@ -7,6 +7,7 @@
 <!ENTITY aboutSupport.accountsName "Name">
 <!ENTITY aboutSupport.accountsIncomingServer "Incoming server">
 <!ENTITY aboutSupport.accountsOutgoingServers "Outgoing servers">
+<!ENTITY aboutSupport.accountsServerName "Name">
 <!ENTITY aboutSupport.accountsConnSecurity "Connection security">
 <!ENTITY aboutSupport.accountsAuthMethod "Authentication method">
 <!ENTITY aboutSupport.accountsDefault "Default?">
