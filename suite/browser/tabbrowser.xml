@@ -2990,6 +2990,8 @@
       <constructor>
         <![CDATA[
           var tab = this.firstChild;
+          // set the tabstrip's minWidth too, otherwise it immediately overflows
+          this.mTabstrip.style.minWidth =
           tab.style.minWidth = this.mPrefs.getIntPref("browser.tabs.tabMinWidth") + "px";
           tab.style.maxWidth = this.mPrefs.getIntPref("browser.tabs.tabMaxWidth") + "px";
           window.addEventListener("resize", this, false);
