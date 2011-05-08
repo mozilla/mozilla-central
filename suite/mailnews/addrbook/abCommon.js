@@ -41,8 +41,8 @@
 
 Components.utils.import("resource:///modules/mailServices.js");
 
-var dirTree = 0;
-var abList = 0;
+var gDirTree = 0;
+var abList = null;
 var gAbResultsTree = null;
 var gAbView = null;
 var gAddressBookBundle;
@@ -82,7 +82,7 @@ var DirPaneController =
 
     switch (command) {
       case "cmd_selectAll":
-        // the dirTree pane
+        // the gDirTree pane
         // only handles single selection
         // so we forward select all to the results pane
         // but if there is no gAbView
@@ -148,7 +148,7 @@ var DirPaneController =
         break;
       case "cmd_delete":
       case "button_delete":
-        if (dirTree)
+        if (gDirTree)
           AbDeleteSelectedDirectory();
         break;
       case "button_edit":
@@ -195,7 +195,7 @@ function AbNewAddressBook()
 
 function AbEditSelectedDirectory()
 {
-  if (dirTree.view.selection.count == 1) {
+  if (gDirectoryTreeView.selection.count == 1) {
     var selecteduri = GetSelectedDirectory();
     var directory = GetDirectoryFromURI(selecteduri);
     if (directory.isMailList) {
@@ -269,7 +269,7 @@ function AbDeleteDirectory(aURI)
 
 function InitCommonJS()
 {
-  dirTree = document.getElementById("dirTree");
+  gDirTree = document.getElementById("dirTree");
   abList = document.getElementById("addressbookList");
   gAddressBookBundle = document.getElementById("bundle_addressBook");
 }
@@ -400,9 +400,8 @@ function GetSelectedAddressesFromDirTree()
 {
   var addresses = "";
 
-  if (dirTree.currentIndex >= 0) {
-    var selectedResource = dirTree.builderView.getResourceAtIndex(dirTree.currentIndex);
-    var directory = GetDirectoryFromURI(selectedResource.Value);
+  if (gDirTree.currentIndex >= 0) {
+    var directory = gDirectoryTreeView.getDirectoryAtIndex(gDirTree.currentIndex);
     if (directory.isMailList) {
       var listCardsCount = directory.addressLists.length;
       var cards = new Array(listCardsCount);
@@ -442,7 +441,7 @@ function GetAddressesForCards(cards)
 
 function SelectFirstAddressBook()
 {
-  dirTree.view.selection.select(0);
+  gDirectoryTreeView.selection.select(0);
 
   ChangeDirectoryByURI(GetSelectedDirectory());
   gAbResultsTree.focus();
@@ -476,20 +475,22 @@ function DirPaneDoubleClick(event)
   if (event.button != 0)
     return;
 
-  var row = dirTree.treeBoxObject.getRowAt(event.clientX, event.clientY);
-  if (row == -1 || row > dirTree.view.rowCount-1) {
+  var row = gDirTree.treeBoxObject.getRowAt(event.clientX, event.clientY);
+  if (row == -1 || row >= gDirectoryTreeView.rowCount) {
     // double clicking on a non valid row should not open the dir properties dialog
     return;
   }
 
-  if (dirTree && dirTree.view.selection && dirTree.view.selection.count == 1)
+  if (gDirectoryTreeView.selection &&
+      gDirectoryTreeView.selection.count == 1)
     AbEditSelectedDirectory();
 }
 
 function DirPaneSelectionChange()
 {
-  if (dirTree && dirTree.view.selection && dirTree.view.selection.count == 1) {
-    gPreviousDirTreeIndex = dirTree.currentIndex;
+  if (gDirectoryTreeView.selection &&
+      gDirectoryTreeView.selection.count == 1) {
+    gPreviousDirTreeIndex = gDirTree.currentIndex;
     ChangeDirectoryByURI(GetSelectedDirectory());
   }
 }
@@ -618,19 +619,18 @@ function GetParentDirectoryFromMailingListURI(abURI)
 function DirPaneHasFocus()
 {
   // Returns true if directory pane has the focus. Returns false, otherwise.
-  return (top.document.commandDispatcher.focusedElement == dirTree)
+  return top.document.commandDispatcher.focusedElement == gDirTree;
 }
 
 function GetSelectedDirectory()
 {
   if (abList)
     return abList.value;
-  else {
-    if (dirTree.currentIndex < 0)
-      return null;
-    var selected = dirTree.builderView.getResourceAtIndex(dirTree.currentIndex)
-    return selected.Value;
-  }
+
+  if (gDirTree.currentIndex < 0)
+    return null;
+
+  return gDirectoryTreeView.getDirectoryAtIndex(gDirTree.currentIndex).URI;
 }
 
 /**
