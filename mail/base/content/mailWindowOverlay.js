@@ -1437,8 +1437,15 @@ BatchMessageMover.prototype = {
         if (isImap)
           return;
       }
-      if (!archiveFolder.canCreateSubfolders)
-        granularity = Components.interfaces.nsIMsgIdentity.singleArchiveFolder;
+
+      let forceSingle = !archiveFolder.canCreateSubfolders;
+      if (!forceSingle && isImap)
+        forceSingle = archiveFolder.server.QueryInterface(
+          Components.interfaces.nsIImapIncomingServer).isGMailServer;
+      if (forceSingle)
+         granularity = Components.interfaces.nsIMsgIncomingServer
+                                 .singleArchiveFolder;
+
       if (granularity >= Components.interfaces.nsIMsgIdentity.perYearArchiveFolders)
       {
         archiveFolderUri += "/" + msgYear;

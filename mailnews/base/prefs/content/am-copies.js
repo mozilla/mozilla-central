@@ -41,11 +41,13 @@ var gFccRadioElemChoiceLocked, gDraftsRadioElemChoiceLocked, gArchivesRadioElemC
 var gDefaultPickerMode = "1";
 
 var gFccFolderWithDelim, gDraftsFolderWithDelim, gArchivesFolderWithDelim, gTemplatesFolderWithDelim;
+var gAccount;
 var gCurrentServerId;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
 
 function onPreInit(account, accountValues)
 {
+  gAccount = account;
   var type = parent.getAccountValue(account, accountValues, "server", "type", null, false);
   hideShowControls(type);
 }
@@ -469,6 +471,13 @@ function setupArchiveItems() {
   }
   else
     broadcaster.setAttribute("disabled", "true");
+
+  let account = gAccount || parent.gAccount;
+  if (account.incomingServer.type == "imap" &&
+      account.incomingServer.QueryInterface(
+        Components.interfaces.nsIImapIncomingServer).isGMailServer) {
+    document.getElementById("archiveHierarchyButton").hidden = true;
+  }
 }
 
 /**
