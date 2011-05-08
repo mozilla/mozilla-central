@@ -578,6 +578,11 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
             NS_GetURLSpecFromFile(pFile, pURL);
             attachment->SetUrl(pURL);
 
+            // set the file size
+            PRInt64 fileSize;
+            pFile->GetFileSize(&fileSize);
+            attachment->SetSize(fileSize);
+
             // add the attachment
             rv = aCompFields->AddAttachment (attachment);
             if (NS_FAILED(rv))
