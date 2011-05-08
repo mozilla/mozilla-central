@@ -109,9 +109,6 @@ pref("mailnews.headers.showSender", false);
 // We will still always regenerate .msf files if the file size changes.
 pref("mail.db_timestamp_leeway", 4000);
 
-// check all folders for new mail
-pref("mail.check_all_imap_folders_for_new", false);
-
 pref("mail.imap.chunk_size",                65536);
 pref("mail.imap.min_chunk_size_threshold",  98304);
 pref("mail.imap.chunk_fast",                2);
@@ -465,6 +462,7 @@ pref("mail.server.default.serverFilterName", "SpamAssassin");
 pref("mail.server.default.serverFilterTrustFlags", 1); // 1 == trust positives, 2 == trust negatives, 3 == trust both
 pref("mail.server.default.purgeSpam", false);
 pref("mail.server.default.purgeSpamInterval", 14); // 14 days
+pref("mail.server.default.check_all_folders_for_new", false);
 // should we inhibit whitelisting of the email addresses for a server's identities?
 pref("mail.server.default.inhibitWhiteListingIdentityUser", true);
 // should we inhibit whitelisting of the domain for a server's identities?

@@ -2571,6 +2571,32 @@ nsImapMailFolder::DeleteSubFolders(nsIArray* folders, nsIMsgWindow *msgWindow)
   return confirmed && deleteNoTrash ? nsMsgDBFolder::DeleteSubFolders(foldersRemaining, msgWindow) : rv;
 }
 
+// FIXME: helper function to know whether we should check all IMAP folders
+// for new mail; this is necessary because of a legacy hidden preference
+// mail.check_all_imap_folders_for_new (now replaced by per-server preference
+// mail.server.%serverkey%.check_all_folders_for_new), still present in some
+// profiles.
+/*static*/
+PRBool nsImapMailFolder::ShouldCheckAllFolders(nsIImapIncomingServer *imapServer)
+{
+  // Check legacy global preference to see if we should check all folders for
+  // new messages, or just the inbox and marked ones.
+  PRBool checkAllFolders = PR_FALSE;
+  nsresult rv;
+  nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  // This pref might not exist, which is OK.
+  (void) prefBranch->GetBoolPref("mail.check_all_imap_folders_for_new", &checkAllFolders);
+
+  if (checkAllFolders)
+    return PR_TRUE;
+
+  // If the legacy preference doesn't exist or has its default value (False),
+  // the true preference is read.
+  imapServer->GetCheckAllFoldersForNew(&checkAllFolders);
+  return checkAllFolders;
+}
+
 // Called by Biff, or when user presses GetMsg button.
 NS_IMETHODIMP nsImapMailFolder::GetNewMessages(nsIMsgWindow *aWindow, nsIUrlListener *aListener)
 {
@@ -2585,15 +2611,11 @@ NS_IMETHODIMP nsImapMailFolder::GetNewMessages(nsIMsgWindow *aWindow, nsIUrlList
     nsCOMPtr<nsIMsgIncomingServer> incomingServer = do_QueryInterface(imapServer, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     incomingServer->GetPerformingBiff(&performingBiff);
-
-    // Check preferences to see if we should check all folders for new
-    // messages, or just the inbox and marked ones
-    PRBool checkAllFolders = PR_FALSE;
-    nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-    // This pref might not exist, which is OK. We'll only check inbox and marked ones
-    rv = prefBranch->GetBoolPref("mail.check_all_imap_folders_for_new", &checkAllFolders);
     m_urlListener = aListener;
+
+    // See if we should check all folders for new messages, or just the inbox
+    // and marked ones
+    PRBool checkAllFolders = ShouldCheckAllFolders(imapServer);
 
     // Get new messages for inbox
     nsCOMPtr<nsIMsgFolder> inbox;
@@ -2657,14 +2679,12 @@ nsresult nsImapMailFolder::GetBodysToDownload(nsTArray<nsMsgKey> *keysOfMessages
 
 NS_IMETHODIMP nsImapMailFolder::OnNewIdleMessages()
 {
-  PRBool checkAllFolders = PR_FALSE;
-
   nsresult rv;
-  nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+  nsCOMPtr<nsIImapIncomingServer> imapServer;
+  rv = GetImapIncomingServer(getter_AddRefs(imapServer));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // This pref might not exist, which is OK.
-  (void) prefBranch->GetBoolPref("mail.check_all_imap_folders_for_new", &checkAllFolders);
+  PRBool checkAllFolders = ShouldCheckAllFolders(imapServer);
 
   // only trigger biff if we're checking all new folders for new messages, or this particular folder,
   // but excluding trash,junk, sent, and no select folders, by default.

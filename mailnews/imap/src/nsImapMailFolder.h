@@ -393,6 +393,7 @@ protected:
   nsresult GetFolder(const nsACString& name, nsIMsgFolder **pFolder);
   nsresult GetTrashFolder(nsIMsgFolder **pTrashFolder);
   PRBool TrashOrDescendentOfTrash(nsIMsgFolder* folder);
+  static PRBool ShouldCheckAllFolders(nsIImapIncomingServer *imapServer);
   nsresult GetServerKey(nsACString& serverKey);
   nsresult DisplayStatusMsg(nsIImapUrl *aImapUrl, const nsAString& msg);
 

@@ -55,7 +55,7 @@ interface nsMsgImapDeleteModels
   const long DeleteNoTrash = 2; /* delete is shift delete - don't create or use trash */
 };
 
-[scriptable, uuid(8974f1f2-7efc-44c4-a785-d5a3d1832f6e)]
+[scriptable, uuid(46af9df7-c77a-4107-9ef5-83e3afd418b8)]
 interface nsIImapIncomingServer : nsISupports {
 
   attribute long maximumConnectionsNumber;
@@ -78,6 +78,7 @@ interface nsIImapIncomingServer : nsISupports {
   attribute boolean mimePartsOnDemand;
   attribute boolean isAOLServer;
   attribute boolean useIdle;
+  attribute boolean checkAllFoldersForNew;
 
   /// Is this a GMail Server?
   attribute boolean isGMailServer;

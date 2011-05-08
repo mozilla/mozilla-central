@@ -318,6 +318,9 @@ NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, AutoSyncOfflineStores,
 NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, UseIdle,
                         "use_idle")
 
+NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, CheckAllFoldersForNew,
+                        "check_all_folders_for_new")
+
 NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, UseCondStore,
                         "use_condstore")
 
