@@ -1916,7 +1916,8 @@ function displayAttachmentsForExpandedView()
         totalSize += attachment.size;
       }
       else {
-        unknownSize = true;
+        if (attachment.contentType != "text/x-moz-deleted")
+          unknownSize = true;
         item = attachmentList.appendItem(displayName);
       }
 
