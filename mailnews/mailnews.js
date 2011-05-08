@@ -420,7 +420,8 @@ pref("mail.server.default.deferred_to_account", "");
 pref("mail.server.default.delete_model", 1);
 pref("mail.server.default.fetch_by_chunks", true);
 pref("mail.server.default.mime_parts_on_demand", true);
-
+// Send IMAP RFC 2971 ID Info to server
+pref("mail.server.default.send_client_info", true);
 pref("mail.server.default.always_authenticate", false);
 pref("mail.server.default.singleSignon", true);
 pref("mail.server.default.max_articles", 500);

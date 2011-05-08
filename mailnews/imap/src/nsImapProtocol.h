@@ -520,6 +520,7 @@ private:
 
   // All of these methods actually issue protocol
   void Capability(); // query host for capabilities.
+  void ID(); // send RFC 2971 app info to server
   void EnableCondStore(); 
   void StartCompressDeflate();
   nsresult BeginCompressing();
@@ -636,6 +637,7 @@ private:
   PRInt32 m_chunkAddSize;
   PRInt32 m_chunkStartSize;
   PRBool  m_fetchByChunks;
+  PRBool  m_sendID;
   PRInt32 m_curFetchSize;
   PRBool  m_ignoreExpunges;
   PRInt32 m_prefAuthMethods; // set of capability flags (in nsImapCore.h) for auth methods

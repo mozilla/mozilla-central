@@ -93,6 +93,8 @@
 #include "nsCOMPtr.h"
 #include "nsMimeTypes.h"
 #include "nsIInterfaceRequestor.h"
+#include "nsXPCOMCIDInternal.h"
+#include "nsIXULAppInfo.h"
 
 PRLogModuleInfo *IMAP;
 
@@ -336,6 +338,10 @@ static const PRInt32 kAutoExpungeOnThreshold = 2;
 static PRInt32 gExpungeOption = kAutoExpungeDeleteModel;
 static PRInt32 gExpungeThreshold = 20;
 
+const PRInt32 kAppBufSize = 100;
+// can't use static nsCString because it shows up as a leak.
+static char gAppName[kAppBufSize];
+static char gAppVersion[kAppBufSize];
 
 nsresult nsImapProtocol::GlobalInitialization(nsIPrefBranch *aPrefBranch)
 {
@@ -364,6 +370,16 @@ nsresult nsImapProtocol::GlobalInitialization(nsIPrefBranch *aPrefBranch)
     aPrefBranch->GetIntPref("mail.imap.expunge_threshold_number",
                             &gExpungeThreshold);
     aPrefBranch->GetIntPref("mailnews.tcptimeout", &gResponseTimeout);
+    nsCOMPtr<nsIXULAppInfo> appInfo(do_GetService(XULAPPINFO_SERVICE_CONTRACTID));
+
+    if (appInfo)
+    {
+      nsCString appName, appVersion;
+      appInfo->GetName(appName);
+      appInfo->GetVersion(appVersion);
+      PL_strncpyz(gAppName, appName.get(), kAppBufSize);
+      PL_strncpyz(gAppVersion, appVersion.get(), kAppBufSize);
+    }
     return NS_OK;
 }
 
@@ -444,6 +460,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_chunkAddSize = 0;
   m_chunkStartSize = 0;
   m_fetchByChunks = PR_TRUE;
+  m_sendID = PR_TRUE;
   m_chunkSize = 0;
   m_chunkThreshold = 0;
   m_fromHeaderSeen = PR_FALSE;
@@ -788,8 +805,8 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
       (void) imapServer->GetUseIdle(&m_useIdle);
     else
       m_useIdle = PR_FALSE;
-    if (imapServer)
-      imapServer->GetFetchByChunks(&m_fetchByChunks);
+    imapServer->GetFetchByChunks(&m_fetchByChunks);
+    imapServer->GetSendID(&m_sendID);
 
     nsAutoString trashFolderName;
     if (NS_SUCCEEDED(imapServer->GetTrashFolderName(trashFolderName)))
@@ -5394,6 +5411,23 @@ void nsImapProtocol::Capability()
     }
 }
 
+void nsImapProtocol::ID()
+{
+  if (!gAppName[0])
+    return;
+  IncrementCommandTagNumber();
+  nsCString command(GetServerCommandTag());
+  command.Append(" ID (\"name\" \"");
+  command.Append(gAppName);
+  command.Append("\" \"version\" \"");
+  command.Append(gAppVersion);
+  command.Append("\")"CRLF);
+
+  nsresult rv = SendData(command.get());
+  if (NS_SUCCEEDED(rv))
+    ParseIMAPandCheckForNewMail();
+}
+
 void nsImapProtocol::EnableCondStore()
 {
   IncrementCommandTagNumber();
@@ -7980,6 +8014,13 @@ void nsImapProtocol::ProcessAfterAuthenticated()
   if ((GetServerStateParser().GetCapabilityFlag() & kHasEnableCapability) &&
        UseCondStore())
     EnableCondStore();
+  if ((GetServerStateParser().GetCapabilityFlag() & kHasIDCapability) &&
+       m_sendID)
+  {
+    ID();
+    if (m_imapServerSink && !GetServerStateParser().GetServerID().IsEmpty())
+      m_imapServerSink->SetServerID(GetServerStateParser().GetServerID());
+  }
 }
 
 void nsImapProtocol::SetupMessageFlagsString(nsCString& flagString,

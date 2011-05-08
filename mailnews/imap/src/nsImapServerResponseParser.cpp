@@ -753,6 +753,9 @@ void nsImapServerResponseParser::response_data()
       else
         SetSyntaxError(PR_TRUE);
       break;
+    case 'I':
+      id_data();
+      break;
     default:
       if (IsNumericString(fNextToken))
         numeric_mailbox_data();
@@ -2240,8 +2243,8 @@ void nsImapServerResponseParser::capability_data()
         fCapabilityFlag |= kNoHierarchyRename;
       else if (token.Equals("NAMESPACE", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kNamespaceCapability;
-      else if (token.Equals("MAILBOXDATA", nsCaseInsensitiveCStringComparator()))
-        fCapabilityFlag |= kMailboxDataCapability;
+      else if (token.Equals("ID", nsCaseInsensitiveCStringComparator()))
+        fCapabilityFlag |= kHasIDCapability;
       else if (token.Equals("ACL", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kACLCapability;
       else if (token.Equals("XSERVERINFO", nsCaseInsensitiveCStringComparator()))
@@ -3015,6 +3018,16 @@ void nsImapServerResponseParser::quota_data()
   }
   else
     SetSyntaxError(PR_TRUE);
+}
+
+void nsImapServerResponseParser::id_data()
+{
+  AdvanceToNextToken();
+  if (!PL_strcasecmp(fNextToken, "NIL"))
+    AdvanceToNextToken();
+  else
+    fServerIdResponse.Adopt(CreateParenGroup());
+  skip_to_CRLF();
 }
 
 PRBool nsImapServerResponseParser::GetFillingInShell()

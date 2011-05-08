@@ -55,7 +55,7 @@ interface nsMsgImapDeleteModels
   const long DeleteNoTrash = 2; /* delete is shift delete - don't create or use trash */
 };
 
-[scriptable, uuid(46af9df7-c77a-4107-9ef5-83e3afd418b8)]
+[scriptable, uuid(d4f8f5c7-d413-4c11-b886-abed7f7265a6)]
 interface nsIImapIncomingServer : nsISupports {
 
   attribute long maximumConnectionsNumber;
@@ -63,6 +63,8 @@ interface nsIImapIncomingServer : nsISupports {
   attribute ACString adminUrl;
   attribute ACString serverDirectory;
   attribute long capabilityPref;
+  /// RFC 2971 ID response stored as a pref
+  attribute ACString serverIDPref;
   attribute boolean cleanupInboxOnExit;
   attribute nsMsgImapDeleteModel deleteModel;
   attribute boolean dualUseFolders;
@@ -76,6 +78,7 @@ interface nsIImapIncomingServer : nsISupports {
   attribute ACString manageMailAccountUrl;
   attribute boolean fetchByChunks;
   attribute boolean mimePartsOnDemand;
+  attribute boolean sendID;
   attribute boolean isAOLServer;
   attribute boolean useIdle;
   attribute boolean checkAllFoldersForNew;

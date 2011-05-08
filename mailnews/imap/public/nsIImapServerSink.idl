@@ -48,7 +48,7 @@ interface nsIImapMockChannel;
  * nsIImapServerSink is designed to be used as a proxy to the application's UI
  * thread from the running IMAP threads.
  */
-[scriptable, uuid(1c90d58b-a41b-480d-983f-9d8e83efed0a)]
+[scriptable, uuid(596cbacd-53d2-468e-9ea3-fe2512cb3997)]
 interface nsIImapServerSink : nsISupports {
   /**
    * Check if the given folder path is a possible IMAP mailbox.
@@ -73,6 +73,8 @@ interface nsIImapServerSink : nsISupports {
   boolean folderVerifiedOnline(in ACString folderName);
 
   void setCapability(in unsigned long capability);
+  /// RFC 2971 ID server response
+  void setServerID(in ACString aServerID);
   boolean loadNextQueuedUrl(in nsIImapProtocol protocol);
 
   /**

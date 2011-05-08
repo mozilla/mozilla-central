@@ -376,6 +376,9 @@ NS_IMPL_SERVERPREF_INT(nsImapIncomingServer, TimeOutLimits,
 NS_IMPL_SERVERPREF_INT(nsImapIncomingServer, CapabilityPref,
                        "capability")
 
+NS_IMPL_SERVERPREF_STR(nsImapIncomingServer, ServerIDPref,
+                       "serverIDResponse")
+
 NS_IMPL_SERVERPREF_STR(nsImapIncomingServer, PersonalNamespace,
                        "namespace.personal")
 
@@ -390,6 +393,9 @@ NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, FetchByChunks,
 
 NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, MimePartsOnDemand,
                        "mime_parts_on_demand")
+
+NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, SendID,
+                       "send_client_info")
 
 NS_IMETHODIMP
 nsImapIncomingServer::GetIsAOLServer(PRBool *aBool)
@@ -2165,11 +2171,16 @@ nsImapIncomingServer::PromptPassword(nsIMsgWindow *aMsgWindow,
 }
 
 // for the nsIImapServerSink interface
-NS_IMETHODIMP  nsImapIncomingServer::SetCapability(PRUint32 capability)
+NS_IMETHODIMP nsImapIncomingServer::SetCapability(PRUint32 capability)
 {
   m_capability = capability;
   SetCapabilityPref(capability);
   return NS_OK;
+}
+
+NS_IMETHODIMP nsImapIncomingServer::SetServerID(const nsACString &aServerID)
+{
+  return SetServerIDPref(aServerID);
 }
 
 NS_IMETHODIMP  nsImapIncomingServer::CommitNamespaces()

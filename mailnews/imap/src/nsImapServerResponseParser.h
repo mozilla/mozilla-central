@@ -137,7 +137,7 @@ public:
   nsCString& GetManageListsUrl() { return fManageListsUrl; }
   nsCString& GetManageFiltersUrl() {return fManageFiltersUrl;}
   const char *GetManageFolderUrl() {return fFolderAdminUrl;}
-
+  nsCString &GetServerID() {return fServerIdResponse;}
 
   // Call this when adding a pipelined command to the session
   void IncrementNumberOfTaggedResponsesExpected(const char *newExpectedTag);
@@ -180,6 +180,7 @@ protected:
   virtual void    response_tagged();
   virtual void    response_fatal();
   virtual void    resp_cond_bye();
+  virtual void    id_data();
   virtual void    mailbox_data();
   virtual void    numeric_mailbox_data();
   virtual void    capability_data();
@@ -278,6 +279,7 @@ private:
   nsCString     fManageListsUrl;
   nsCString    fManageFiltersUrl;
   char          *fFolderAdminUrl;
+  nsCString    fServerIdResponse; // RFC 
 
   PRInt32 fFetchResponseIndex;
 

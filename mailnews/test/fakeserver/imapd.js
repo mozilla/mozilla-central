@@ -45,6 +45,7 @@ function imapDaemon(flags, syncFunc) {
   this._flags = flags;
 
   this.namespaces = [];
+  this.idResponse = "NIL";
   this.root = new imapMailbox("", null, {type : IMAP_NAMESPACE_PERSONAL});
   this.uidvalidity = Math.round(Date.now()/1000);
   this.inbox = new imapMailbox("INBOX", null, this.uidvalidity++);
@@ -1602,6 +1603,7 @@ var configurations = {
   Exchange: ["RFC2342", "RFC2195"],
   LEMONADE: ["RFC2342", "RFC2195"],
   CUSTOM1: ["RFCMOVE", "RFC4315"],
+  GMail: ["RFC2197", "RFC4315"]
 };
 
 function mixinExtension(handler, extension) {
@@ -1695,6 +1697,28 @@ var IMAP_RFCMOVE_extension = {
   _argFormat: { MOVE: ["number", "mailbox"] },
   // Enabled in SELECTED state
   _enabledCommands: { 2: ["MOVE"] }
+};
+
+// RFC 2197: ID
+var IMAP_RFC2197_extension = {
+  ID: function (args) {
+    let clientID = "(";
+    for each (let i in args)
+      clientID += "\"" + i + "\"";
+
+    clientID += ")";
+    let clientStrings = clientID.split(",");
+    clientID = "";
+    for each (let i in clientStrings)
+      clientID += "\"" + i + "\" "
+    clientID = clientID.slice(1, clientID.length - 3);
+    clientID += ")";
+    this._daemon.clientID = clientID;
+    return "* ID " + this._daemon.idResponse + "\0OK Success";
+  },
+  kCapabilities: ["ID"],
+  _argFormat: { ID: ["(string)"] },
+  _enabledCommands : { 1 : ["ID"], 2 : ["ID"] }
 };
 
 // RFC 4315: UIDPLUS
