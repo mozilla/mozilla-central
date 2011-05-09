@@ -378,22 +378,13 @@
   </commandset>
 
   <!-- File  menu items -->
-  <!-- Note: globalOverlay.xul uses menu_newEditor, but we want different menu item text
-             so we use our own id, label, and accesskey but connect to the same global key and broadcaster node
-   -->
   <menu id="fileMenu" label="&fileMenu.label;" accesskey="&fileMenu.accesskey;">
     <menupopup id="menu_FilePopup" onpopupshowing="EditorInitFileMenu();">
       <menu id="menu_New">
         <menupopup id="menu_NewPopup">
-          <menuitem id="menu_newBlankPage"
-                    label="&newBlankPageCmd.label;"
-                    accesskey="&newBlankPageCmd.accesskey;"
-                    key="key_newBlankPage"
-                    command="cmd_newEditor"/>
+          <menuitem id="menu_newEditor"/>
           <menuseparator id="composerBeginGlobalNewItems"/>
-          <!-- From globalOverlay.xul -->
-          <menuitem id="menu_newNavigator"
-                    command="cmd_newNavigator"/>
+          <menuitem id="menu_newNavigator"/>
         </menupopup>
       </menu>
       <menuitem id="menu_openRemote"
@@ -1159,8 +1150,10 @@
 
   <!-- Editor toolbar items -->
   <!-- note that we override the submenu item label "Blank Window" with "New" used for the menu -->
-  <toolbarbutton id="newButton" class="toolbarbutton-1"
-                 label="&newMenu.label;" command="cmd_newEditor"
+  <toolbarbutton id="newButton"
+                 class="toolbarbutton-1"
+                 label="&newToolbarCmd.label;"
+                 command="cmd_newEditor"
                  tooltiptext="&newToolbarCmd.tooltip;"/>
   <toolbarbutton id="openButton"
                  class="toolbarbutton-1"

@@ -45,9 +45,6 @@
 <!-- File menu items -->
 <!ENTITY fileMenu.label "File">
 <!ENTITY fileMenu.accesskey "F">
-<!ENTITY newBlankPageCmd.label "Composer Page">
-<!ENTITY newBlankPageCmd.accesskey "P" >
-<!ENTITY newMenu.label "New">
 <!ENTITY openFileCmd.label "Open File…">
 <!ENTITY openFileCmd.accesskey "O">
 <!ENTITY openFileCmd.key "O">
@@ -393,6 +390,7 @@
 <!-- Toolbar-only items -->
 <!ENTITY menuBar.tooltip "Menu Bar">
 <!ENTITY formatToolbar.tooltip "Formatting Toolbar">
+<!ENTITY newToolbarCmd.label "New">
 <!ENTITY newToolbarCmd.tooltip "Create a new Composer page">
 <!ENTITY openToolbarCmd.label "Open">
 <!ENTITY openToolbarCmd.tooltip "Open a local file">
