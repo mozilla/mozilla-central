@@ -442,6 +442,10 @@ treechildren::-moz-tree-image(remote-err) {
   background-color: transparent;
 }
 
+#addressingWidget listboxbody {
+  margin: 1px 0;
+}
+
 #textcol-addressingWidget {
   border: 1px solid threedshadow;
   background-color: -moz-field;
@@ -477,11 +481,6 @@ treechildren::-moz-tree-image(remote-err) {
 .aw-menulist > .menulist-label {
   font: icon;
   -moz-margin-end: 3px;
-}
-
-.aw-menulist:focus {
-  outline: 2px solid -moz-mac-focusring;
-  outline-offset: -2px;
 }
 
 /* ::::: format toolbar ::::: */

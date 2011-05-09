@@ -379,6 +379,10 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
   background-color: transparent;
 }
 
+#addressingWidget listboxbody {
+  margin: 1px 0;
+}
+
 #textcol-addressingWidget {
   border: 1px solid threedshadow;
   background-color: -moz-field;
@@ -387,6 +391,7 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 .addressingWidgetItem,
 .dummy-row {
   background-color: transparent !important;
+  border-width: 0;
   color: inherit !important;
 }
 
@@ -409,6 +414,10 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
   -moz-appearance: menulist;
   margin: 1px;
   -moz-margin-end: 7px;
+}
+
+.aw-menulist > .menulist-label-box {
+  margin: 0;
 }
 
 .aw-menulist > dropmarker {

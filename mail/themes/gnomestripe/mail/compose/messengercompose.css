@@ -293,6 +293,10 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
   background-color: transparent;
 }
 
+#addressingWidget listboxbody {
+  margin: 1px 0;
+}
+
 #textcol-addressingWidget {
   border: 1px solid threedshadow;
   background-color: -moz-field;

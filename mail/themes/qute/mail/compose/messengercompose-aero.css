@@ -410,6 +410,10 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   background-color: transparent;
 }
 
+#addressingWidget listboxbody {
+  margin: 1px 0;
+}
+
 #textcol-addressingWidget {
   border: 1px solid threedshadow;
   background-color: -moz-field;
@@ -437,9 +441,10 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/abcard.png");
 }
 
-.aw-menulist {
+#addressingWidget .addressingWidgetCell > .aw-menulist {
   margin: 1px;
   -moz-margin-end: 7px;
+  padding: 2px 4px !important;
 }
 
 .aw-menulist > .menulist-label-box {
