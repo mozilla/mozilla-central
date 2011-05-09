@@ -157,7 +157,7 @@
                                   <treerow>
                                     <treecell label="?LeafName"
                                               properties="ServerType-?ServerType Subscribable-?Subscribable"/>
-                                    <treecell properties="Subscribed-?Subscribed Subscribable-?Subscribable"/>
+                                    <treecell value="?Subscribed" properties="Subscribed-?Subscribed Subscribable-?Subscribable"/>
                                   </treerow>
                                 </treeitem>
                               </treechildren>
@@ -169,7 +169,7 @@
                         <treecol id="nameColumn" primary="true"
                                  sort="?LeafName" flex="10" hideheader="true"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="subscribedColumn"  
+                        <treecol id="subscribedColumn" type="checkbox"
                                  sort="?Subscribed" flex="1" hideheader="true"/>
                       </treecols>
                     </tree>
