@@ -24,6 +24,8 @@
  *   William A. ("PowerGUI") Law <law@netscape.com>
  *   Blake Ross <blakeross@telocity.com>
  *   Gervase Markham <gerv@gerv.net>
+ *   Kathleen Brade <brade@pearlcrescent.com>
+ *   Mark Smith <mcs@pearlcrescent.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -972,8 +974,11 @@ nsContextMenu.prototype = {
     channel.notificationCallbacks = new Callbacks();
     channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE |
                          Components.interfaces.nsIChannel.LOAD_CALL_CONTENT_SNIFFERS;
-    if (channel instanceof Components.interfaces.nsIHttpChannel)
+    if (channel instanceof Components.interfaces.nsIHttpChannel) {
       channel.referrer = doc.documentURIObject;
+      if (channel instanceof Components.interfaces.nsIHttpChannelInternal)
+        channel.forceAllowThirdPartyCookie = true;
+    }
 
     // fallback to the old way if we don't see the headers quickly
     var timeToWait = Components.classes["@mozilla.org/preferences-service;1"]
