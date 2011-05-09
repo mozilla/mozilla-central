@@ -325,9 +325,6 @@ nsMsgComposeAndSend::nsMsgComposeAndSend() :
 
 nsMsgComposeAndSend::~nsMsgComposeAndSend()
 {
-#ifdef NS_DEBUG
-  printf("\nTHE DESTRUCTOR FOR nsMsgComposeAndSend() WAS CALLED\n");
-#endif
   PR_Free(m_attachment1_type);
   PR_Free(m_attachment1_encoding);
   PR_Free(m_attachment1_body);
@@ -2154,19 +2151,9 @@ nsMsgComposeAndSend::CountCompFieldAttachments()
       // Check to see if this is a file URL, if so, don't retrieve
       // like a remote URL...
         if (nsMsgIsLocalFile(url.get()))
-      {
-        mCompFieldLocalAttachments++;
-#if defined(DEBUG_ducarroz)
-          printf("Counting LOCAL attachment %d: %s\n", mCompFieldLocalAttachments, url.get());
-#endif
-      }
+          mCompFieldLocalAttachments++;
       else    // This is a remote URL...
-      {
         mCompFieldRemoteAttachments++;
-#if defined(DEBUG_ducarroz)
-          printf("Counting REMOTE attachment %d: %s\n", mCompFieldRemoteAttachments, url.get());
-#endif
-      }
     }
     }
   }
@@ -2210,9 +2197,6 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
         // Just look for local file:// attachments and do the right thing.
         if (nsMsgIsLocalFile(url.get()))
         {
-  #if defined(DEBUG_ducarroz)
-          printf("Adding LOCAL attachment %d: %s\n", newLoc, url.get());
-  #endif
           //
           // Now we have to setup the m_attachments entry for the file://
           // URL that is passed in...
@@ -2389,9 +2373,6 @@ nsMsgComposeAndSend::AddCompFieldRemoteAttachments(PRUint32   aStartLocation,
         // the right thing.
         if (! nsMsgIsLocalFile(url.get()))
         {
-#if defined(DEBUG_ducarroz)
-          printf("Adding REMOTE attachment %d: %s\n", newLoc, url.get());
-#endif
           PRBool isAMessageAttachment = !PL_strncasecmp(url.get(), "mailbox-message://", 18) ||
               !PL_strncasecmp(url.get(), "imap-message://", 15) ||
               !PL_strncasecmp(url.get(), "news-message://", 15);
@@ -3883,9 +3864,6 @@ nsMsgComposeAndSend::DoDeliveryExitProcessing(nsIURI * aUri, nsresult aExitCode,
   // the user and exit.
   if (NS_FAILED(aExitCode))
   {
-#ifdef NS_DEBUG
-  printf("\nMessage Delivery Failed!\n");
-#endif
 
     nsString eMsg;
     if (aExitCode == NS_ERROR_SMTP_SEND_FAILED_UNKNOWN_SERVER ||
@@ -3910,10 +3888,6 @@ nsMsgComposeAndSend::DoDeliveryExitProcessing(nsIURI * aUri, nsresult aExitCode,
     NotifyListenerOnStopSending(nsnull, aExitCode, nsnull, nsnull);
     return;
   }
-#ifdef NS_DEBUG
-  else
-    printf("\nMessage Delivery SUCCEEDED!\n");
-#endif
 
   if (aCheckForMail)
   {
@@ -3948,20 +3922,7 @@ nsMsgComposeAndSend::DoDeliveryExitProcessing(nsIURI * aUri, nsresult aExitCode,
   // way until later...
   //
 
-  nsresult retCode = DoFcc();
-  if (NS_FAILED(retCode))
-  {
-#ifdef NS_DEBUG
-  printf("\nDoDeliveryExitProcessing(): DoFcc() call Failed!\n");
-#endif
-    return;
-  }
-  else
-  {
-    // Either we started the copy...cleanup happens later...or cleanup will
-    // be take care of by a listener...
-    return;
-  }
+  DoFcc();
 }
 
 NS_IMETHODIMP
@@ -4018,9 +3979,6 @@ nsMsgComposeAndSend::DoFcc()
   const char* fcc = mCompFields->GetFcc();
   if (!fcc || !*fcc || !CanSaveMessagesToFolder(fcc))
   {
-#ifdef NS_DEBUG
-    printf("\nCopy operation disabled by user!\n");
-#endif
 
     // It is the caller's responsibility to say we've stopped sending, so just
     // let the listeners know we're not doing a copy.

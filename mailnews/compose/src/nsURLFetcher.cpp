@@ -77,10 +77,6 @@ NS_IMPL_ISUPPORTS7(nsURLFetcher,
  */
 nsURLFetcher::nsURLFetcher()
 {
-#if defined(DEBUG_ducarroz)
-  printf("CREATE nsURLFetcher: %x\n", this);
-#endif
-
   // Init member variables...
   mTotalWritten = 0;
   mBuffer = nsnull;
@@ -95,9 +91,6 @@ nsURLFetcher::nsURLFetcher()
 
 nsURLFetcher::~nsURLFetcher()
 {
-#if defined(DEBUG_ducarroz)
-  printf("DISPOSE nsURLFetcher: %x\n", this);
-#endif
   mStillRunning = PR_FALSE;
   
   PR_FREEIF(mBuffer);
@@ -281,9 +274,6 @@ nsURLFetcher::OnStartRequest(nsIRequest *request, nsISupports *ctxt)
 NS_IMETHODIMP
 nsURLFetcher::OnStopRequest(nsIRequest *request, nsISupports * ctxt, nsresult aStatus)
 {
-#if defined(DEBUG_ducarroz)
-  printf("nsURLFetcher::OnStopRequest()\n");
-#endif
 
   nsresult rv = NS_OK;
 
@@ -456,16 +446,10 @@ NS_IMPL_ISUPPORTS2(nsURLFetcherStreamConsumer, nsIStreamListener, nsIRequestObse
 nsURLFetcherStreamConsumer::nsURLFetcherStreamConsumer(nsURLFetcher* urlFetcher) :
   mURLFetcher(urlFetcher)
 {
-#if defined(DEBUG_ducarroz)
-  printf("CREATE nsURLFetcherStreamConsumer: %x\n", this);
-#endif
 }
 
 nsURLFetcherStreamConsumer::~nsURLFetcherStreamConsumer()
 {
-#if defined(DEBUG_ducarroz)
-  printf("DISPOSE nsURLFetcherStreamConsumer: %x\n", this);
-#endif
 }
 
 /** nsIRequestObserver methods **/

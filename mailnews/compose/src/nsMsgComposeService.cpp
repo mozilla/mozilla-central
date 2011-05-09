@@ -115,9 +115,6 @@
 static NS_DEFINE_CID(kParserCID, NS_PARSER_CID);
 // </for>
 
-#ifdef NS_DEBUG
-static PRBool _just_to_be_sure_we_create_only_one_compose_service_ = PR_FALSE;
-#endif
 
 #define DEFAULT_CHROME  "chrome://messenger/content/messengercompose/messengercompose.xul"
 
@@ -156,10 +153,6 @@ static PRUint32 GetMessageSizeFromURI(const char * originalMsgURI)
 
 nsMsgComposeService::nsMsgComposeService()
 {
-#ifdef NS_DEBUG
-  NS_ASSERTION(!_just_to_be_sure_we_create_only_one_compose_service_, "You cannot create several message compose service!");
-  _just_to_be_sure_we_create_only_one_compose_service_ = PR_TRUE;
-#endif
 
 // Defaulting the value of mLogComposePerformance to FALSE to prevent logging.
   mLogComposePerformance = PR_FALSE;
@@ -849,9 +842,6 @@ NS_IMETHODIMP nsMsgComposeService::TimeStamp(const char * label, PRBool resetTim
   PRIntervalTime totalTime = PR_IntervalToMilliseconds(now - mStartTime);
   PRIntervalTime deltaTime = PR_IntervalToMilliseconds(now - mPreviousTime);
 
-#if defined(DEBUG_ducarroz)
-  printf("XXX Time Stamp: [%5d][%5d] - %s\n", totalTime, deltaTime, label);
-#endif
   PR_LOG(MsgComposeLogModule, PR_LOG_ALWAYS, ("[%3.2f][%3.2f] - %s\n",
 ((double)totalTime/1000.0) + 0.005, ((double)deltaTime/1000.0) + 0.005, label));
 
