@@ -264,6 +264,23 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   .toolbarbutton-menubutton-dropmarker[disabled="true"] {
     opacity: 1 !important;
   }
+
+  #addressbookWindow[sizemode=normal] #abContent {
+    -moz-appearance: none;
+    border: 1px solid rgba(10%, 10%, 10%, .4);
+    border-top: none;
+    background-color: transparent;
+    background-clip: padding-box;
+  }
+
+  #addressbookWindow[sizemode=normal] statusbar {
+    -moz-appearance: none;
+    margin-top: -1px;
+    border: 1px solid rgba(10%, 10%, 10%, .4);
+    border-top-color: threedshadow;
+    border-radius: 1px 1px 0 0;
+    background-clip: padding-box;
+  }
 }
 
 #button-newcard {
@@ -329,6 +346,17 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 
   #peopleSearchInput[focused="true"] {
     background-color: white;
+  }
+}
+
+/* ::::: address book sidebar ::::: */
+
+@media all and (-moz-windows-default-theme) {
+  sidebarheader {
+    -moz-appearance: none;
+    background-color: #F8F8F8;
+    border-top: 0;
+    border-bottom: 1px solid #A9B1B8;
   }
 }
 
