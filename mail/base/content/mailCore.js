@@ -43,6 +43,7 @@
  * Before adding to this file, ask yourself, is this a JS routine that is going to be used by all of the main mail windows?
  */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 
 var gCustomizeSheet = false;
@@ -465,21 +466,21 @@ function SetBusyCursor(window, enable)
 
 function openAboutDialog()
 {
-#ifdef XP_MACOSX
-  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                     .getService(Components.interfaces.nsIWindowMediator);
-  var win = wm.getMostRecentWindow("Mail:About");
-  if (win)  // If we have an open about dialog, just focus it.
+  let enumerator = Services.wm.getEnumerator("Mail:About");
+  while (enumerator.hasMoreElements()) {
+    // Only open one about window
+    let win = enumerator.getNext();
     win.focus();
-  else {
-    // Define minimizable=no although it does nothing on OS X
-    // (see Bug 287162); remove this comment once Bug 287162 is fixed...
-    window.open("chrome://messenger/content/aboutDialog.xul", "About",
-                "chrome, resizable=no, minimizable=no");
+    return;
   }
+
+#ifdef XP_MACOSX
+  var features = "chrome,resizable=no,minimizable=no";
 #else
-  window.openDialog("chrome://messenger/content/aboutDialog.xul", "About", "centerscreen,chrome,resizable=no");
+  // XXX Should have dependent as well?
+  var features = "chrome,centerscreen,resizable=no";
 #endif
+  window.openDialog("chrome://messenger/content/aboutDialog.xul", "About", features);
 }
 
 /**

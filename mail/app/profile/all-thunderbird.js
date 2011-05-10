@@ -98,8 +98,8 @@ pref("app.update.silent", false);
 pref("app.update.url", "https://aus2.mozillamessaging.com/update/3/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/update.xml");
 
 // URL user can browse to manually if for some reason all update installation
-// attempts fail.  TODO: Change this URL
-pref("app.update.url.manual", "http://www.mozillamessaging.com/%LOCALE%/%APP%/");
+// attempts fail.
+pref("app.update.url.manual", "http://www.getthunderbird.com");
 // A default value for the "More information about this update" link
 // supplied in the "An update is available" page of the update wizard. 
 pref("app.update.url.details", "http://www.mozillamessaging.com/%LOCALE%/%APP%/releases/");

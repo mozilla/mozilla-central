@@ -5,7 +5,6 @@
 % locale messenger @AB_CD@ %locale/@AB_CD@/messenger/
 % override chrome://mozapps/locale/downloads/settingsChange.dtd chrome://messenger/locale/downloads/settingsChange.dtd
 % override chrome://global/locale/netError.dtd chrome://messenger/locale/netError.dtd
-  locale/@AB_CD@/messenger/credits.dtd                                  (%chrome/messenger/credits.dtd)
   locale/@AB_CD@/messenger/aboutDialog.dtd                              (%chrome/messenger/aboutDialog.dtd)
   locale/@AB_CD@/messenger/aboutRights.dtd                              (%chrome/messenger/aboutRights.dtd)
   locale/@AB_CD@/messenger/aboutRights.properties                       (%chrome/messenger/aboutRights.properties)

@@ -1,76 +1,104 @@
 #aboutDialog {
-  padding-top: 0;
-  -moz-padding-end: 0;
-  padding-bottom: 10px;
-  -moz-padding-start: 0;
-  width: 298px;
+  width: 620px;
 }
 
-#modes {
-  min-height: 380px;
-}
-
-#clientBox {
-  /* XXX Add a min-width almost equal to chrome://branding/content/about.png's
-   * width, to maintain the dialog layout, and not have white lines down the
-   * side.
-   */
-  min-width: 298px;
-  background-color: #FFFFFF;
-  background-image: url("about:logo");
+#rightBox {
+  background-image: url("chrome://branding/content/about-wordmark.png");
   background-repeat: no-repeat;
-  padding-top: 216px;
-  color: #000000;
+  /* padding-top creates room for the wordmark */
+  padding-top: 38px;
+  margin-top:20px;
 }
 
-#userAgent {
+#rightBox:-moz-locale-dir(rtl) {
+  background-position: 100% 0;
+}
+
+#bottomBox {
+  padding: 15px 10px 0;
+}
+
+#version {
   margin-top: 10px;
-  -moz-margin-end: 15px;
-  margin-bottom: 0;
-  -moz-margin-start: 15px;
-  background-color: #FFFFFF;
-  color: #000000;
-  padding-top: 1px;
-  -moz-padding-end: 1px;
-  padding-bottom: 1px;
-  -moz-padding-start: 3px;
-  -moz-appearance: none;
-  overflow: hidden;
-  border: 0;
+  -moz-margin-start: 0;
 }
 
-#versionField {
-  -moz-appearance: none;
+#distribution,
+#distributionId {
   font-weight: bold;
-  color: #909090;
-  margin-top: -5px;
-  -moz-margin-end: 0;
-  margin-bottom: 10px;
-  -moz-margin-start: 19px;
-}
-
-#copyright {
+  display: none;
   margin-top: 0;
-  -moz-margin-end: 19px;
-  margin-bottom: 3px;
-  -moz-margin-start: 19px;
+  margin-bottom: 0;
 }
 
-#groove {
-  margin-top: 0px;
+.text-blurb {
+  margin-bottom: 10px;
+  -moz-margin-start: 0;
+  -moz-padding-start: 0;
 }
 
-#creditsIframe {
-   cursor: default;
-   -moz-user-select: none;
-   border: 0;
+#updateButton,
+#updateDeck > hbox > label {
+  -moz-margin-start: 0;
+  -moz-padding-start: 0;
 }
 
-button[dlgtype="extra2"], #aboutMenu {
-  -moz-margin-start: 13px;
-}
- 
-button[dlgtype="accept"] {
-  -moz-margin-end: 13px;
+#updateDeck > hbox > label:not([class="text-link"]) {
+  font-style:italic;
 }
 
+.update-throbber {
+  width: 16px;
+  min-height: 16px;
+  -moz-margin-end: 3px;
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
+}
+
+.trademark-label,
+.text-link,
+.text-link:focus {
+  margin: 0px;
+  padding: 0px;
+}
+
+.bottom-link,
+.bottom-link:focus {
+  text-align: center;
+  margin: 0 40px;
+}
+
+#currentChannel {
+  margin: 0;
+  padding: 0;
+  font-weight: bold;
+}
+
+#channelSelector {
+  margin-top: 10px;
+}
+
+#channelSelectorStart {
+  -moz-margin-start: 0;
+}
+
+#channelMenulist {
+  margin: 0;
+}
+
+.channel-description {
+  margin: 10px 0;
+}
+
+#detailsBox,
+#channelSelector,
+.channel-description {
+  -moz-transition: opacity 250ms;
+}
+
+#contentDeck:not([selectedIndex="0"]) > #detailsBox,
+#contentDeck:not([selectedIndex="1"]) > #channelSelector,
+#channelDescriptionDeck:not([selectedIndex="0"]) > #releaseDescription,
+#channelDescriptionDeck:not([selectedIndex="1"]) > #betaDescription,
+#channelDescriptionDeck:not([selectedIndex="2"]) > #auroraDescription {
+  opacity: 0;
+}

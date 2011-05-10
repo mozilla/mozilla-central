@@ -1,7 +1,10 @@
 messenger.jar:
 % content branding %content/branding/
-  content/branding/about-credits.png                (content/about-credits.png)
+  content/branding/about-background.png             (content/about-background.png)
+  content/branding/about-logo.png                   (content/about-logo.png)
+  content/branding/about-wordmark.png               (content/about-wordmark.png)
   content/branding/about.png                        (content/about.png)
   content/branding/icon48.png                       (content/icon48.png)
   content/branding/icon64.png                       (content/icon64.png)
   content/branding/featureConfigurator.jpg          (content/featureConfigurator.jpg)
+* content/branding/aboutDialog.css                  (content/aboutDialog.css)

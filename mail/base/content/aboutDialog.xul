@@ -13,7 +13,7 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is Mozilla Thunderbird about dialog.
+# The Original Code is Mozilla Firebird about dialog.
 #
 # The Initial Developer of the Original Code is
 # Blake Ross (blaker@netscape.com).
@@ -21,6 +21,9 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Ehsan Akhgari <ehsan.akhgari@gmail.com>
+#   Margaret Leibovic <margaret.leibovic@gmail.com>
+#   Robert Strong <robert.bugzilla@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,8 +39,9 @@
 #
 # ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://global/skin/" type="text/css"?> 
-<?xml-stylesheet href="chrome://messenger/content/aboutDialog.css" type="text/css"?> 
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/content/aboutDialog.css" type="text/css"?>
+<?xml-stylesheet href="chrome://branding/content/aboutDialog.css" type="text/css"?>
 
 <!DOCTYPE window [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
@@ -46,65 +50,100 @@
 %aboutDialogDTD;
 ]>
 
-<dialog xmlns:html="http://www.w3.org/1999/xhtml"
+<window xmlns:html="http://www.w3.org/1999/xhtml"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        id="aboutDialog" windowtype="Mail:About"
+        id="aboutDialog"
+        windowtype="Mail:About"
+        onload="init(event);"
+#ifdef MOZ_UPDATER
+        onunload="onUnload(event);"
+#endif
 #ifdef XP_MACOSX
-        buttons="extra2" align="end"
+        inwindowmenu="false"
 #else
-        buttons="accept,extra2"
+        title="&aboutDialog.title;"
 #endif
-        onload="onLoad();" onunload="onUnload(event);"
-        title="&aboutDialog.title;">
+        >
 
-    <script type="application/javascript"
-            src="chrome://messenger/content/aboutDialog.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/aboutDialog.js"/>
+  <!-- This one is for openContentTab -->
+  <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
+  <!-- This one is for openURL -->
+  <script type="application/javascript" src="chrome://global/content/contentAreaUtils.js"/>
 
-    <deck id="modes" flex="1">
-      <vbox flex="1" id="clientBox">
-#expand <label id="versionField" value="&aboutVersion; __MOZ_APP_VERSION__"/>
-        <description id="copyright">&logoTrademark;</description>
-        <textbox id="userAgent" multiline="true" readonly="true" flex="1"/>
-      </vbox>
+  <vbox id="aboutDialogContainer">
+    <hbox id="clientBox">
+      <vbox id="leftBox" flex="1"/>
+      <vbox id="rightBox" flex="1">
+#expand <label id="version" value="__MOZ_APP_VERSION__"/>
+        <label id="distribution" class="text-blurb"/>
+        <label id="distributionId" class="text-blurb"/>
 
-      <vbox flex="1" id="creditsBox">
-        <iframe id="creditsIframe" flex="1"/>
-      </vbox>
-    </deck>
-    <separator class="groove" id="groove"/>
-    <hbox>
-      <!-- dialog.xml has these buttons as extra 2 then accept on all platforms.
-           So we'll just insert our menu in-between. -->
-      <button dlgtype="extra2" class="dialog-button"
-              label="&aboutButton.label;" accesskey="&aboutButton.accesskey;"
-              hidden="true" oncommand="switchPage(event);"/>
-      <button id="aboutMenu" type="menu" label="&aboutMenu.label;"
-              accesskey="&aboutMenu.accesskey;" class="dialog-button"
-              oncommand="event.preventDefault();">
-        <menupopup id="aboutRightsMenu">
-          <menuitem label="&aboutCredits.label;"
-                    accesskey="&aboutCredits.accesskey;"
-                    oncommand="switchPage(event);"/>
-          <menuitem label="&aboutRights.label;"
-                    accesskey="&aboutRights.accesskey;"
-                    oncommand="loadAbout('rights');"/>
-          <menuitem label="&aboutContributors.label;"
-                    accesskey="&aboutContributors.accesskey;"
-                    oncommand="loadAbout('credits');"/>
-          <menuitem label="&aboutLicense.label;"
-                    accesskey="&aboutLicense.accesskey;"
-                    oncommand="loadAbout('license');"/>
-        </menupopup>
-      </button>
-#ifndef XP_MACOSX
-      <spacer flex="1"/>
-      <button dlgtype="accept" class="dialog-button"/>
+        <!-- Make sure the selectedIndex attribute is always set so that the CSS
+             selectors for transitions work -->        
+        <deck id="contentDeck" selectedIndex="0">
+          <vbox id="detailsBox">
+            <vbox id="updateBox">
+#ifdef MOZ_UPDATER
+              <deck id="updateDeck" orient="vertical">
+                <hbox id="updateButtonBox" align="center">
+                  <button id="updateButton" align="start"
+                          oncommand="gAppUpdater.buttonOnCommand();"/>
+                  <spacer flex="1"/>
+                </hbox>
+                <hbox id="checkingForUpdates" align="center">
+                  <image class="update-throbber"/><label>&update.checkingForUpdates;</label>
+                </hbox>
+                <hbox id="checkingAddonCompat" align="center">
+                  <image class="update-throbber"/><label>&update.checkingAddonCompat;</label>
+                </hbox>
+                <hbox id="downloading" align="center">
+                  <image class="update-throbber"/><label>&update.downloading.start;</label><label id="downloadStatus"/><label>&update.downloading.end;</label>
+                </hbox>
+                <hbox id="downloadFailed" align="center">
+                  <label>&update.failed.start;</label><label id="failedLink" class="text-link">&update.failed.linkText;</label><label>&update.failed.end;</label>
+                </hbox>
+                <hbox id="adminDisabled" align="center">
+                  <label>&update.adminDisabled;</label>
+                </hbox>
+                <hbox id="noUpdatesFound" align="center">
+                  <label>&update.noUpdatesFound;</label>
+                </hbox>
+                <hbox id="manualUpdate" align="center">
+                  <label>&update.manual.start;</label><label id="manualLink"
+                    class="text-link">&update.manual.linkText;</label><label>&update.manual.end;</label>
+                </hbox>
+              </deck>
 #endif
+            </vbox>
+
+            <description class="text-blurb">
+              &community.start2;<label class="text-link" onclick="openURL('http://www.mozilla.org/');" oncommand="openUILink(this.getAttribute('href'), event);">&community.mozillaLink;</label>&community.middle2;<label class="text-link" onclick="openContentTab('about:credits');">&community.creditsLink;</label>&community.end2;
+            </description>
+            <description class="text-blurb">
+              &contribute.start;<label class="text-link" onclick="openURL('http://www.mozilla.org/contribute/');">&contribute.getInvolvedLink;</label>&contribute.end;
+            </description>
+          </vbox>
+       </deck>
+      </vbox>
     </hbox>
+    <vbox id="bottomBox">
+      <hbox pack="center">
+        <label class="text-link bottom-link" onclick="openContentTab('about:license');">&bottomLinks.license;</label>
+        <label class="text-link bottom-link" onclick="openContentTab('about:rights');">&bottomLinks.rights;</label>
+        <label hidden="true" class="text-link bottom-link" onclick="openURL('http://www.mozilla.com/legal/privacy/');">&bottomLinks.privacy;</label>
+      </hbox>
+      <description id="trademark">
+        <label class="trademark-label">&trademarkInfo.part1;</label>
+     </description>
+    </vbox>
+  </vbox>
+  
+  <keyset id="mainKeyset">
+    <key keycode="VK_ESCAPE" oncommand="window.close();"/>
 #ifdef XP_MACOSX
-    <keyset id="mainKeyset">
-      <key id="key_close" modifiers="accel" key="&cmdCloseMac.commandKey;"
-           oncommand="window.close();"/>
-    </keyset>
+    <key id="key_close" modifiers="accel" key="&cmdCloseMac.commandKey;"
+         oncommand="window.close();"/>
 #endif
-</dialog>
+  </keyset>
+</window>
