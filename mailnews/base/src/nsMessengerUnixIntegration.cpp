@@ -68,17 +68,30 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsISupportsPrimitives.h"
+#include "nsIMsgDatabase.h"
+#include "nsIMsgHdr.h"
+#include "nsIMsgHeaderParser.h"
+#include "nsAutoPtr.h"
+#include "prmem.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "nsIWeakReferenceUtils.h"
 
 #include "nsNativeCharsetUtils.h"
-#include "nsToolkitCompsCID.h" 
+#include "nsToolkitCompsCID.h"
 #include "nsMsgUtils.h"
+#include "msgCore.h"
+#include "nsCOMArray.h"
+#include "nsIMutableArray.h"
 
 #define ALERT_CHROME_URL "chrome://messenger/content/newmailalert.xul"
 #define NEW_MAIL_ALERT_ICON "chrome://messenger/skin/icons/new-mail-alert.png"
 #define SHOW_ALERT_PREF "mail.biff.show_alert"
+#define SHOW_ALERT_PREVIEW_LENGTH "mail.biff.alert.preview_length"
+#define SHOW_ALERT_PREVIEW_LENGTH_DEFAULT 40
+#define SHOW_ALERT_PREVIEW "mail.biff.alert.show_preview"
+#define SHOW_ALERT_SENDER  "mail.biff.alert.show_sender"
+#define SHOW_ALERT_SUBJECT "mail.biff.alert.show_subject"
 
 static void openMailWindow(const nsACString& aFolderUri)
 {
@@ -98,7 +111,7 @@ static void openMailWindow(const nsACString& aFolderUri)
       if (windowCommands)
         windowCommands->SelectFolder(aFolderUri);
     }
-    
+
     nsCOMPtr<nsIDOMWindowInternal> domWindow;
     topMostMsgWindow->GetDomWindow(getter_AddRefs(domWindow));
     domWindow->Focus();
@@ -120,11 +133,14 @@ static void openMailWindow(const nsACString& aFolderUri)
 nsMessengerUnixIntegration::nsMessengerUnixIntegration()
 {
   mBiffStateAtom = MsgGetAtom("BiffState");
+  mNewMailReceivedAtom = MsgGetAtom("NewMailReceived");
   mAlertInProgress = PR_FALSE;
+  mLastMRUTimes.Init();
   NS_NewISupportsArray(getter_AddRefs(mFoldersWithNewMail));
 }
 
-NS_IMPL_ISUPPORTS3(nsMessengerUnixIntegration, nsIFolderListener, nsIObserver, nsIMessengerOSIntegration)
+NS_IMPL_ISUPPORTS4(nsMessengerUnixIntegration, nsIFolderListener, nsIObserver,
+                   nsIMessengerOSIntegration, nsIUrlListener)
 
 nsresult
 nsMessengerUnixIntegration::Init()
@@ -166,31 +182,192 @@ nsresult nsMessengerUnixIntegration::GetStringBundle(nsIStringBundle **aBundle)
   return rv;
 }
 
+#ifdef MOZ_THUNDERBIRD
+PRBool
+nsMessengerUnixIntegration::BuildNotificationTitle(nsIMsgFolder *aFolder, nsIStringBundle *aBundle, nsString &aTitle)
+{
+  nsString accountName;
+  aFolder->GetPrettiestName(accountName);
+
+  PRInt32 numNewMessages = 0;
+  aFolder->GetNumNewMessages(PR_TRUE, &numNewMessages);
+
+  if (!numNewMessages)
+    return PR_FALSE;
+
+  nsAutoString numNewMsgsText;
+  numNewMsgsText.AppendInt(numNewMessages);
+
+  const PRUnichar *formatStrings[] =
+  {
+    accountName.get(), numNewMsgsText.get()
+  };
+
+  aBundle->FormatStringFromName(numNewMessages == 1 ?
+                                  NS_LITERAL_STRING("newMailNotification_message").get() :
+                                  NS_LITERAL_STRING("newMailNotification_messages").get(),
+                                formatStrings, 2, getter_Copies(aTitle));
+  return PR_TRUE;
+}
+
+/* This comparator lets us sort an nsCOMArray of nsIMsgDBHdr's by
+ * their dateInSeconds attributes in ascending order.
+ */
+static int
+nsMsgDbHdrTimestampComparator(nsIMsgDBHdr *aElement1,
+                              nsIMsgDBHdr *aElement2,
+                              void *aData)
+{
+  PRUint32 aElement1Timestamp;
+  nsresult rv = aElement1->GetDateInSeconds(&aElement1Timestamp);
+  if (NS_FAILED(rv))
+    return 0;
+
+  PRUint32 aElement2Timestamp;
+  rv = aElement2->GetDateInSeconds(&aElement2Timestamp);
+  if (NS_FAILED(rv))
+    return 0;
+
+  return aElement1Timestamp - aElement2Timestamp;
+}
+
+
+PRBool
+nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
+                                                  nsIStringBundle *aBundle,
+                                                  nsString &aBody)
+{
+  nsAutoString alertBody;
+
+  PRBool showPreview = PR_TRUE;
+  PRBool showSubject = PR_TRUE;
+  PRBool showSender = PR_TRUE;
+  PRInt32 previewLength = SHOW_ALERT_PREVIEW_LENGTH_DEFAULT;
+
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
+  if (!prefBranch)
+    return PR_FALSE;
+
+  prefBranch->GetBoolPref(SHOW_ALERT_PREVIEW, &showPreview);
+  prefBranch->GetBoolPref(SHOW_ALERT_SENDER, &showSender);
+  prefBranch->GetBoolPref(SHOW_ALERT_SUBJECT, &showSubject);
+  prefBranch->GetIntPref(SHOW_ALERT_PREVIEW_LENGTH, &previewLength);
+
+  nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
+  if (!parser)
+    return PR_FALSE;
+
+  nsCString utf8previewString;
+  if (showPreview &&
+      NS_FAILED(aHdr->GetStringProperty("preview", getter_Copies(utf8previewString))))
+    return PR_FALSE;
+
+  // need listener that mailbox is remote such as IMAP
+  // to generate preview message
+  nsString previewString;
+  CopyUTF8toUTF16(utf8previewString, previewString);
+
+  nsString subject;
+  if (showSubject && NS_FAILED(aHdr->GetMime2DecodedSubject(subject)))
+    return PR_FALSE;
+
+  nsString author;
+  if (showSender)
+  {
+    if (NS_FAILED(aHdr->GetMime2DecodedAuthor(author)))
+      return PR_FALSE;
+
+    PRUnichar **emails;
+    PRUnichar **names;
+    PRUnichar **fullnames;
+    PRUint32 num;
+    if (NS_FAILED(parser->ParseHeadersWithArray(author.get(),
+            &emails,
+            &names,
+            &fullnames, &num)))
+      return PR_FALSE;
+
+    author.Assign(names[0] ? names[0] : emails[0]);
+
+    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(num, emails);
+    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(num, names);
+    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(num, fullnames);
+  }
+
+  if (showSubject && showSender)
+  {
+    nsString msgTitle;
+    const PRUnichar *formatStrings[] =
+    {
+      subject.get(), author.get()
+    };
+    aBundle->FormatStringFromName(NS_LITERAL_STRING("newMailNotification_messagetitle").get(),
+        formatStrings, 2, getter_Copies(msgTitle));
+    alertBody.Append(msgTitle);
+  }
+  else if (showSubject)
+    alertBody.Append(subject);
+  else if (showSender)
+    alertBody.Append(author);
+
+  if (showPreview && (showSubject || showSender))
+  {
+    alertBody.AppendLiteral("\n");
+  }
+
+  if (showPreview)
+    alertBody.Append(StringHead(previewString, previewLength));
+
+  if (alertBody.IsEmpty())
+    return PR_FALSE;
+
+  aBody.Assign(alertBody);
+  return PR_TRUE;
+}
+#endif
+
 nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText, const nsACString& aFolderURI)
 {
   nsresult rv;
-  
   // if we are already in the process of showing an alert, don't try to show another....
-  if (mAlertInProgress) 
-    return NS_OK; 
+  if (mAlertInProgress)
+    return NS_OK;
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-
   PRBool showAlert = PR_TRUE;
   prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
-  
+
   if (showAlert)
   {
+#ifdef MOZ_THUNDERBIRD
+    nsCOMPtr<nsIAlertsService> alertsService(do_GetService(NS_SYSTEMALERTSERVICE_CONTRACTID, &rv));
+    if (NS_SUCCEEDED(rv)) {
+      mAlertInProgress = PR_TRUE;
+      rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(NEW_MAIL_ALERT_ICON),
+                                                aAlertTitle,
+                                                aAlertText,
+                                                PR_FALSE,
+                                                NS_ConvertASCIItoUTF16(aFolderURI),
+                                                this,
+                                                EmptyString());
+      if (NS_SUCCEEDED(rv))
+        return rv;
+    }
+    AlertFinished();
+    ShowNewAlertNotification(PR_FALSE);
+
+#else
     nsCOMPtr<nsIAlertsService> alertsService (do_GetService(NS_ALERTSERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv))
     {
       rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(NEW_MAIL_ALERT_ICON), aAlertTitle,
-                                                aAlertText, PR_TRUE, 
+                                                aAlertText, PR_TRUE,
                                                 NS_ConvertASCIItoUTF16(aFolderURI), this,
-                                                EmptyString()); 
+                                                EmptyString());
       mAlertInProgress = PR_TRUE;
     }
+#endif
   }
 
   if (!showAlert || NS_FAILED(rv)) // go straight to showing the system tray icon.
@@ -198,6 +375,71 @@ nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTit
 
   return rv;
 }
+
+#ifdef MOZ_THUNDERBIRD
+// Opening Thunderbird's new mail alert notification window for not supporting libnotify
+// aUserInitiated --> true if we are opening the alert notification in response to a user action
+//                    like clicking on the biff icon
+nsresult nsMessengerUnixIntegration::ShowNewAlertNotification(PRBool aUserInitiated)
+{
+
+  nsresult rv;
+
+  // if we are already in the process of showing an alert, don't try to show another....
+  if (mAlertInProgress)
+    return NS_OK;
+
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool showAlert = PR_TRUE;
+  prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
+
+  if (showAlert)
+  {
+    nsCOMPtr<nsIMutableArray> argsArray = do_CreateInstance(NS_ARRAY_CONTRACTID);
+    if (!argsArray)
+      return NS_ERROR_FAILURE;
+
+    // pass in the array of folders with unread messages
+    nsCOMPtr<nsISupportsInterfacePointer> ifptr = do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    ifptr->SetData(mFoldersWithNewMail);
+    ifptr->SetDataIID(&NS_GET_IID(nsISupportsArray));
+    argsArray->AppendElement(ifptr, PR_FALSE);
+
+    // pass in the observer
+    ifptr = do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIMessengerOSIntegration*>(this));
+    ifptr->SetData(supports);
+    ifptr->SetDataIID(&NS_GET_IID(nsIObserver));
+    argsArray->AppendElement(ifptr, PR_FALSE);
+
+    // pass in the animation flag
+    nsCOMPtr<nsISupportsPRBool> scriptableUserInitiated (do_CreateInstance(NS_SUPPORTS_PRBOOL_CONTRACTID, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    scriptableUserInitiated->SetData(aUserInitiated);
+    argsArray->AppendElement(scriptableUserInitiated, PR_FALSE);
+
+    nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
+    nsCOMPtr<nsIDOMWindow> newWindow;
+
+    rv = wwatch->OpenWindow(0, ALERT_CHROME_URL, "_blank",
+                            "chrome,dialog=yes,titlebar=no,popup=yes", argsArray,
+                            getter_AddRefs(newWindow));
+
+    mAlertInProgress = PR_TRUE;
+  }
+
+  // if the user has turned off the mail alert, or openWindow generated an error,
+  // then go straight to the system tray.
+  if (!showAlert || NS_FAILED(rv))
+    AlertFinished();
+
+  return rv;
+}
+#endif
 
 nsresult nsMessengerUnixIntegration::AlertFinished()
 {
@@ -218,7 +460,6 @@ nsMessengerUnixIntegration::Observe(nsISupports* aSubject, const char* aTopic, c
 {
   if (strcmp(aTopic, "alertfinished") == 0)
     return AlertFinished();
-
   if (strcmp(aTopic, "alertclickcallback") == 0)
     return AlertClicked();
 
@@ -227,28 +468,145 @@ nsMessengerUnixIntegration::Observe(nsISupports* aSubject, const char* aTopic, c
 
 void nsMessengerUnixIntegration::FillToolTipInfo()
 {
-  nsCOMPtr<nsIWeakReference> weakReference = do_QueryElementAt(mFoldersWithNewMail, 0);
-  nsCOMPtr<nsIMsgFolder> folder = do_QueryReferent(weakReference);
-  if (folder)
+  nsresult rv;
+  nsCString folderUri;
+  GetFirstFolderWithNewMail(folderUri);
+
+  PRUint32 count = 0;
+  if (NS_FAILED(mFoldersWithNewMail->Count(&count)))
+    return;
+
+  nsCOMPtr<nsIWeakReference> weakReference;
+  nsCOMPtr<nsIMsgFolder> folder = nsnull;
+  nsCOMPtr<nsIMsgFolder> folderWithNewMail = nsnull;
+
+  PRUint32 i;
+  for (i = 0; i < count && !folderWithNewMail; i++)
   {
+    weakReference = do_QueryElementAt(mFoldersWithNewMail, i);
+    folder = do_QueryReferent(weakReference);
+    folder->GetChildWithURI(folderUri, PR_TRUE, PR_TRUE,
+                            getter_AddRefs(folderWithNewMail));
+  }
+
+  if (folder && folderWithNewMail)
+  {
+#ifdef MOZ_THUNDERBIRD
+    nsCOMPtr<nsIStringBundle> bundle;
+    GetStringBundle(getter_AddRefs(bundle));
+
+    if (!bundle)
+      return;
+
+    // Create the notification title
+    nsString alertTitle;
+    if (NS_FAILED(BuildNotificationTitle(folder, bundle, alertTitle)))
+      return;
+
+    // Let's get the new mail for this folder
+    nsCOMPtr<nsIMsgDatabase> db;
+    if (NS_FAILED(folderWithNewMail->GetMsgDatabase(getter_AddRefs(db))))
+      return;
+
+    PRUint32 numNewKeys = 0;
+    PRUint32 *newMessageKeys;
+    db->GetNewList(&numNewKeys, &newMessageKeys);
+
+    // If we had new messages, we *should* have new keys, but we'll
+    // check just in case.
+    if (numNewKeys <= 0) {
+      NS_Free(newMessageKeys);
+      return;
+    }
+
+    // Find the rootFolder that folder belongs to, and find out
+    // what MRUTime it maps to.  Assign this to lastMRUTime.
+    PRUint32 lastMRUTime = 0;
+    if (NS_FAILED(GetMRUTimestampForFolder(folder, &lastMRUTime)))
+      lastMRUTime = 0;
+
+    // Next, add the new message headers to an nsCOMArray.  We
+    // only add message headers that are newer than lastMRUTime.
+    nsCOMArray<nsIMsgDBHdr> newMsgHdrs;
+    for (int i = 0; i < numNewKeys; ++i) {
+      nsCOMPtr<nsIMsgDBHdr> hdr;
+      if (NS_FAILED(db->GetMsgHdrForKey(newMessageKeys[i], getter_AddRefs(hdr))))
+        continue;
+
+      PRUint32 dateInSeconds = 0;
+      hdr->GetDateInSeconds(&dateInSeconds);
+
+      if (dateInSeconds > lastMRUTime)
+        newMsgHdrs.AppendObject(hdr);
+    }
+
+    // If we didn't happen to add any message headers, free
+    // up newMessageKeys and bail out.
+    if (!newMsgHdrs.Count())
+    {
+      NS_Free(newMessageKeys);
+      return;
+    }
+
+    // Sort the message headers by dateInSeconds, in ascending
+    // order
+    newMsgHdrs.Sort(nsMsgDbHdrTimestampComparator, nsnull);
+
+    PRBool asyncResult = PR_FALSE;
+    rv = folderWithNewMail->FetchMsgPreviewText(newMessageKeys,
+                                                numNewKeys,
+                                                PR_FALSE, this,
+                                                &asyncResult);
+
+    // At this point, we don't need newMessageKeys any more,
+    // so let's free it.
+    NS_Free(newMessageKeys);
+
+    // If we're still waiting on getting the message previews,
+    // bail early.  We'll come back later when the async operation
+    // finishes.
+    if (NS_FAILED(rv) || asyncResult)
+      return;
+
+    nsString alertBody;
+
+    // Build the body text of the notification.
+    if (NS_FAILED(BuildNotificationBody(newMsgHdrs[0], bundle, alertBody)))
+      return;
+
+    // Show the notification
+    ShowAlertMessage(alertTitle, alertBody, EmptyCString());
+
+    // Find the last, and therefore newest message header
+    // in our nsCOMArray
+    nsCOMPtr<nsIMsgDBHdr> lastMsgHdr = newMsgHdrs[newMsgHdrs.Count() - 1];
+
+    PRUint32 dateInSeconds = 0;
+    if (NS_FAILED(lastMsgHdr->GetDateInSeconds(&dateInSeconds)))
+      return;
+
+    // Write the newest message timestamp to the appropriate
+    // mapping in our hashtable of MRUTime's.
+    PutMRUTimestampForFolder(folder, dateInSeconds);
+#else
     nsString accountName;
     folder->GetPrettiestName(accountName);
 
-    nsCOMPtr<nsIStringBundle> bundle; 
+    nsCOMPtr<nsIStringBundle> bundle;
     GetStringBundle(getter_AddRefs(bundle));
     if (bundle)
-    { 
-      PRInt32 numNewMessages = 0;   
+    {
+      PRInt32 numNewMessages = 0;
       folder->GetNumNewMessages(PR_TRUE, &numNewMessages);
-      nsAutoString numNewMsgsText;     
+      nsAutoString numNewMsgsText;
       numNewMsgsText.AppendInt(numNewMessages);
 
       const PRUnichar *formatStrings[] =
       {
-        numNewMsgsText.get(),       
+        numNewMsgsText.get(),
       };
-     
-      nsString finalText; 
+
+      nsString finalText;
       if (numNewMessages == 1)
         bundle->FormatStringFromName(NS_LITERAL_STRING("biffNotification_message").get(), formatStrings, 1, getter_Copies(finalText));
       else
@@ -256,6 +614,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
 
       ShowAlertMessage(accountName, finalText, EmptyCString());
     } // if we got a bundle
+#endif
   } // if we got a folder
 }
 
@@ -264,11 +623,10 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
 nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFolderURI)
 {
   nsresult rv;
-  NS_ENSURE_TRUE(mFoldersWithNewMail, NS_ERROR_FAILURE); 
+  NS_ENSURE_TRUE(mFoldersWithNewMail, NS_ERROR_FAILURE);
 
   nsCOMPtr<nsIMsgFolder> folder;
   nsCOMPtr<nsIWeakReference> weakReference;
-  PRInt32 numNewMessages = 0;
 
   PRUint32 count = 0;
   mFoldersWithNewMail->Count(&count);
@@ -276,47 +634,65 @@ nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFold
   if (!count)  // kick out if we don't have any folders with new mail
     return NS_OK;
 
-  weakReference = do_QueryElementAt(mFoldersWithNewMail, 0);
-  folder = do_QueryReferent(weakReference);
-  
-  if (folder)
+  PRUint32 i;
+  for(i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgFolder> msgFolder;
+    weakReference = do_QueryElementAt(mFoldersWithNewMail, i);
+    folder = do_QueryReferent(weakReference);
+
+    // We only want to find folders which haven't been notified
+    // yet.  This is specific to Thunderbird.  In Seamonkey, we
+    // just return 0, and we don't care about timestamps anymore.
+    PRUint32 lastMRUTime = 0;
+    rv = GetMRUTimestampForFolder(folder, &lastMRUTime);
+    if (NS_FAILED(rv))
+      lastMRUTime = 0;
+
+    if (!folder)
+      continue;
     // enumerate over the folders under this root folder till we find one with new mail....
+    nsCOMPtr<nsIMsgFolder> msgFolder;
     nsCOMPtr<nsISupportsArray> allFolders;
     NS_NewISupportsArray(getter_AddRefs(allFolders));
     rv = folder->ListDescendents(allFolders);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIEnumerator> enumerator;
-    allFolders->Enumerate(getter_AddRefs(enumerator));
-    if (enumerator)
+    PRUint32 subfolderCount = 0;
+    allFolders->Count(&subfolderCount);
+    PRUint32 j;
+    for (j = 0; j < subfolderCount; j++)
     {
-      nsCOMPtr<nsISupports> supports;
-      nsresult more = enumerator->First();
-      while (NS_SUCCEEDED(more))
+      nsCOMPtr<nsIMsgFolder> msgFolder = do_QueryElementAt(allFolders, j);
+
+      if (!msgFolder)
+        continue;
+
+      nsCString folderURI;
+      msgFolder->GetURI(folderURI);
+      PRBool hasNew = PR_FALSE;
+      rv = msgFolder->GetHasNewMessages(&hasNew);
+
+      if (NS_FAILED(rv))
+        continue;
+
+      // Grab the MRUTime property from the folder
+      nsCString dateStr;
+      msgFolder->GetStringProperty(MRU_TIME_PROPERTY, dateStr);
+      PRUint32 MRUTime = (PRUint32) dateStr.ToInteger(&rv, 10);
+      if (NS_FAILED(rv))
+        MRUTime = 0;
+
+      if (hasNew && MRUTime > lastMRUTime)
       {
-        rv = enumerator->CurrentItem(getter_AddRefs(supports));
-        if (supports)
-        {
-          msgFolder = do_QueryInterface(supports, &rv);
-          if (msgFolder)
-          {
-            numNewMessages = 0;   
-            msgFolder->GetNumNewMessages(PR_FALSE, &numNewMessages);
-            if (numNewMessages)
-              break; // kick out of the while loop
-            more = enumerator->Next();
-          }
-        } // if we have a folder
-      }  // if we have more potential folders to enumerate
-    }  // if enumerator
-    
-    if (msgFolder)
-      msgFolder->GetURI(aFolderURI);
+        rv = msgFolder->GetURI(aFolderURI);
+        NS_ENSURE_SUCCESS(rv, rv);
+        return NS_OK;
+      }
+    }  // if we have more potential folders to enumerate
   }
 
-  return NS_OK;
+  // If we got here, then something when pretty wrong.
+  return NS_ERROR_FAILURE;
 }
 
 NS_IMETHODIMP
@@ -349,14 +725,14 @@ nsMessengerUnixIntegration::OnItemEvent(nsIMsgFolder *, nsIAtom *)
 NS_IMETHODIMP
 nsMessengerUnixIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty, PRInt32 aOldValue, PRInt32 aNewValue)
 {
-  // if we got new mail show a icon in the system tray
+  nsCString atomName;
+  // if we got new mail show an icon in the system tray
   if (mBiffStateAtom == aProperty && mFoldersWithNewMail)
   {
-
     nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(aItem);
     PRInt32 indexInNewArray = mFoldersWithNewMail->IndexOf(weakFolder);
 
-    if (aNewValue == nsIMsgFolder::nsMsgBiffState_NewMail) 
+    if (aNewValue == nsIMsgFolder::nsMsgBiffState_NewMail)
     {
       // only show a system tray icon iff we are performing biff
       // (as opposed to the user getting new mail)
@@ -365,19 +741,77 @@ nsMessengerUnixIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAto
       aItem->GetServer(getter_AddRefs(server));
       if (server)
         server->GetPerformingBiff(&performingBiff);
-      if (!performingBiff) 
+      if (!performingBiff)
         return NS_OK; // kick out right now...
 
       if (indexInNewArray == -1)
         mFoldersWithNewMail->AppendElement(weakFolder);
       // now regenerate the tooltip
-      FillToolTipInfo();    
+      FillToolTipInfo();
     }
     else if (aNewValue == nsIMsgFolder::nsMsgBiffState_NoMail)
     {
-      if (indexInNewArray != -1)
+      if (indexInNewArray != -1) {
         mFoldersWithNewMail->RemoveElementAt(indexInNewArray);
+      }
     }
   } // if the biff property changed
+  else if (mNewMailReceivedAtom == aProperty)
+  {
+    FillToolTipInfo();
+  }
+
   return NS_OK;
 }
+
+NS_IMETHODIMP
+nsMessengerUnixIntegration::OnStartRunningUrl(nsIURI *aUrl)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMessengerUnixIntegration::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
+{
+#ifdef MOZ_THUNDERBIRD
+  if (NS_SUCCEEDED(aExitCode))
+    // preview fetch is done.
+    FillToolTipInfo();
+#endif
+  return NS_OK;
+}
+
+nsresult
+nsMessengerUnixIntegration::GetMRUTimestampForFolder(nsIMsgFolder *aFolder,
+                                                     PRUint32 *aLastMRUTime)
+{
+  nsCOMPtr<nsIMsgFolder> rootFolder = nsnull;
+  nsresult rv = aFolder->GetRootFolder(getter_AddRefs(rootFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCString rootFolderURI;
+  rootFolder->GetURI(rootFolderURI);
+  if (!mLastMRUTimes.Get(rootFolderURI, aLastMRUTime))
+    aLastMRUTime = 0;
+
+  return NS_OK;
+}
+
+#ifdef MOZ_THUNDERBIRD
+nsresult
+nsMessengerUnixIntegration::PutMRUTimestampForFolder(nsIMsgFolder *aFolder,
+                                                     PRUint32 aLastMRUTime)
+{
+  nsresult rv;
+  nsCOMPtr<nsIMsgFolder> rootFolder = nsnull;
+  rv = aFolder->GetRootFolder(getter_AddRefs(rootFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCString rootFolderURI;
+  rootFolder->GetURI(rootFolderURI);
+  mLastMRUTimes.Put(rootFolderURI, aLastMRUTime);
+
+  return NS_OK;
+}
+#endif
+

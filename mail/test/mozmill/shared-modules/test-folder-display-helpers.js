@@ -2761,3 +2761,9 @@ function assert_true(aBeTrue, aWhy) {
   if (!aBeTrue)
     throw new Error(aWhy);
 }
+
+// something less sucky than do_check_false
+function assert_false(aBeTrue, aWhy) {
+  if (aBeTrue)
+    throw new Error(aWhy);
+}

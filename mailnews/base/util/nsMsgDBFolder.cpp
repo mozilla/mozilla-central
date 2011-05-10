@@ -4585,6 +4585,8 @@ NS_IMETHODIMP nsMsgDBFolder::SetBiffState(PRUint32 aBiffState)
   }
   else if (aBiffState == oldBiffState && aBiffState == nsMsgBiffState_NewMail)
   {
+    // The folder has been updated, so update the MRUTime
+    SetMRUTime();
     // biff is already set, but notify that there is additional new mail for the folder
     NotifyIntPropertyChanged(kNewMailReceivedAtom, 0, mNumNewBiffMessages);
   }

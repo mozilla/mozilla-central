@@ -183,6 +183,7 @@ pref("mail.spellcheck.inline", true);
 pref("mail.biff.alert.show_preview", true);
 pref("mail.biff.alert.show_subject", true);
 pref("mail.biff.alert.show_sender",  true);
+pref("mail.biff.alert.preview_length", 40);
 
 pref("mail.folder.views.version", 0);
 

@@ -76,7 +76,7 @@ function prefillAlertInfo()
   // generate an account label string based on the root folder
   var label = document.getElementById('alertTitle');
   var totalNumNewMessages = rootFolder.getNumNewMessages(true);
-  label.value = document.getElementById('bundle_messenger').getFormattedString(totalNumNewMessages == 1 ? "newBiffNotification_message" : "newBiffNotification_messages", 
+  label.value = document.getElementById('bundle_messenger').getFormattedString(totalNumNewMessages == 1 ? "newMailNotification_message" : "newMailNotification_messages", 
                                                                                      [rootFolder.prettiestName, totalNumNewMessages]);
 
   // this is really the root folder and we have to walk through the list to find the real folder that has new mail in it...:(

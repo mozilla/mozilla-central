@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Andrew Sutherland <asutherland@asutherland.org>
+ *   Mike Conley <mconley@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -718,6 +719,7 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
       let messageStrings = [synMsg.toMboxString() for each
                             ([, synMsg] in Iterator(folderBatch.messages))];
       folder.addMessageBatch(messageStrings.length, messageStrings);
+
       for each (let [, synMsg] in Iterator(folderBatch.messages)) {
         // if we need to mark the message as junk grab the header and do so
         // (The message set can mark the whole set as junk, but not just
@@ -734,8 +736,17 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
           msgHdr.markRead(true);
         }
       }
+      if (folderBatch.messages.length)
+      {
+        let lastMRUTime = Math.floor(Number(folderBatch.messages[0].date)
+                                     / 1000);
+        folder.setStringProperty("MRUTime", lastMRUTime);
+      }
       folder.gettingNewMessages = false;
       folder.hasNewMessages = true;
+      folder.setNumNewMessages(folder.getNumNewMessages(false)
+                               + messageStrings.length);
+      folder.biffState = Ci.nsIMsgFolder.nsMsgBiffState_NewMail;
     }
 
     // make sure that junk filtering gets a turn
