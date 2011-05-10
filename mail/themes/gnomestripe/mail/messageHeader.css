@@ -141,10 +141,34 @@ html|div#expandedHeadersTopBox {
 }
 
 #attachmentCount {
+  margin: 0;
   -moz-margin-start: 2px;
+  -moz-margin-end: 1px;
+}
+
+#attachmentName {
+  -moz-user-focus: normal;
+  margin: 0;
+  -moz-margin-end: -3px;
+  padding: 1px 2px;
+  border-radius: 2px;
+  border: 1px dotted transparent;
+}
+
+#attachmentName:hover,
+#attachmentName[selected="true"] {
+  cursor: pointer;
+  color: HighlightText;
+  background-color: Highlight;
+}
+
+#attachmentName:focus {
+  border-color: Highlight;
 }
 
 #attachmentSize {
+  margin: 0;
+  -moz-margin-start: 8px;
   color: #888a85; /* the same color as .headerName */
 }
 

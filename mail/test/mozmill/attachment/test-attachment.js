@@ -133,21 +133,42 @@ function test_attachment_view_expanded() {
   }
 }
 
+function test_attachment_name_click() {
+  be_in_folder(folder);
+
+  select_click_row(1);
+  assert_selected_and_displayed(1);
+
+  // Ensure the context menu appears when right-clicking the attachment name
+  mc.rightClick(mc.eid("attachmentName"));
+  assert_equals(mc.e("attachmentListContext").state, "open");
+  close_popup(mc, mc.eid("attachmentListContext"));
+}
+
 function test_attachment_list_expansion() {
   be_in_folder(folder);
 
   select_click_row(1);
+  assert_selected_and_displayed(1);
 
   assert_true(mc.e("attachmentListWrapper").collapsed,
               "Attachment list should start out collapsed!");
 
   mc.click(mc.eid("attachmentToggle"));
   assert_true(!mc.e("attachmentListWrapper").collapsed,
-              "Attachment list should be expanded after toggling!");
+              "Attachment list should be expanded after clicking twisty!");
 
   mc.click(mc.eid("attachmentToggle"));
   assert_true(mc.e("attachmentListWrapper").collapsed,
-              "Attachment list should be collapsed after toggling again!");
+              "Attachment list should be collapsed after clicking twisty again!");
+
+  mc.click(mc.eid("attachmentBar"));
+  assert_true(!mc.e("attachmentListWrapper").collapsed,
+              "Attachment list should be expanded after clicking bar!");
+
+  mc.click(mc.eid("attachmentBar"));
+  assert_true(mc.e("attachmentListWrapper").collapsed,
+              "Attachment list should be collapsed after clicking bar again!");
 }
 
 function test_selected_attachments_are_cleared() {

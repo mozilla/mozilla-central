@@ -3637,6 +3637,16 @@ var envelopeDragObserver = {
     }
 };
 
+var attachmentBucketDNDObserver = {
+  onDragStart: function (aEvent, aAttachmentData, aDragAction)
+  {
+    var target = aEvent.target;
+
+    if (target.localName == "listitem")
+      aAttachmentData.data = CreateAttachmentTransferData(target.attachment);
+  }
+};
+
 function DisplaySaveFolderDlg(folderURI)
 {
   try

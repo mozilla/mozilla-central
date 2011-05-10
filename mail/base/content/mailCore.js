@@ -578,47 +578,43 @@ function getMostRecentMailWindow() {
   return win;
 }
 
-var attachmentAreaDNDObserver = {
-  onDragStart: function (aEvent, aAttachmentData, aDragAction)
+/**
+ * Create a TransferData object for a message attachment, either from the
+ * message reader or the composer.
+ *
+ * @param aAttachment the attachment object
+ * @return the TransferData
+ */
+function CreateAttachmentTransferData(aAttachment)
+{
+  if (aAttachment.contentType == "text/x-moz-deleted")
+    return;
+
+  var name = aAttachment.name || aAttachment.displayName;
+
+  var data = new TransferData();
+  if (aAttachment.url && name)
   {
-    var target = aEvent.target;
+    // Only add type/filename info for non-file URLs that don't already
+    // have it.
+    if (/(^file:|&filename=)/.test(aAttachment.url))
+      var info = aAttachment.url;
+    else
+      var info = aAttachment.url + "&type=" + aAttachment.contentType +
+                 "&filename=" + encodeURIComponent(name);
 
-    // The message reader will hold an attachment in a descriptionitem, while
-    // the compose window holds it in a listitem.
-    if (target.localName == "descriptionitem" ||
-        target.localName == "listitem")
-    {
-      var attachment = target.attachment;
-      if (attachment.contentType == "text/x-moz-deleted")
-        return;
-
-      var name = attachment.name || attachment.displayName;
-
-      var data = new TransferData();
-      if (attachment.url && name)
-      {
-        // Only add type/filename info for non-file URLs that don't already
-        // have it.
-        if (/(^file:|&filename=)/.test(attachment.url))
-          var info = attachment.url;
-        else
-          var info = attachment.url + "&type=" + attachment.contentType +
-                     "&filename=" + encodeURIComponent(name);
-
-        data.addDataForFlavour("text/x-moz-url",
-                               info + "\n" + name + "\n" + attachment.size);
-        data.addDataForFlavour("text/x-moz-url-data", attachment.url);
-        data.addDataForFlavour("text/x-moz-url-desc", name);
-        data.addDataForFlavour("application/x-moz-file-promise-url",
-                               attachment.url);
-        data.addDataForFlavour("application/x-moz-file-promise",
-                               new nsFlavorDataProvider(), 0,
-                               Components.interfaces.nsISupports);
-      }
-      aAttachmentData.data = data;
-    }
+    data.addDataForFlavour("text/x-moz-url",
+                           info + "\n" + name + "\n" + aAttachment.size);
+    data.addDataForFlavour("text/x-moz-url-data", aAttachment.url);
+    data.addDataForFlavour("text/x-moz-url-desc", name);
+    data.addDataForFlavour("application/x-moz-file-promise-url",
+                           aAttachment.url);
+    data.addDataForFlavour("application/x-moz-file-promise",
+                           new nsFlavorDataProvider(), 0,
+                           Components.interfaces.nsISupports);
   }
-};
+  return data;
+}
 
 function nsFlavorDataProvider()
 {

@@ -74,16 +74,18 @@
                        CopyMessageId(messageId);"/>
 </menupopup>
 
-<menupopup id="attachmentListContext" onpopupshowing="return onShowAttachmentContextMenu();">
+<menupopup id="attachmentListContext"
+           onpopupshowing="return onShowAttachmentContextMenu();"
+           onpopuphiding="return onHideAttachmentContextMenu();">
   <menuitem id="context-openAttachment" label="&openAttachmentCmd.label;" accesskey="&openAttachmentCmd.accesskey;"
-            oncommand="HandleSelectedAttachments('open');"/>
+            oncommand="HandleMultipleAttachments(this.parentNode.attachments, 'open');"/>
   <menuitem id="context-saveAttachment" label="&saveAsAttachmentCmd.label;" accesskey="&saveAsAttachmentCmd.accesskey;"
-            oncommand="HandleSelectedAttachments('saveAs');"/>
+            oncommand="HandleMultipleAttachments(this.parentNode.attachments, 'saveAs');"/>
   <menuseparator id="context-menu-separator"/>
   <menuitem id="context-detachAttachment" label="&detachAttachmentCmd.label;" accesskey="&detachAttachmentCmd.accesskey;"
-            oncommand="HandleSelectedAttachments('detach');"/>
+            oncommand="HandleMultipleAttachments(this.parentNode.attachments, 'detach');"/>
   <menuitem id="context-deleteAttachment" label="&deleteAttachmentCmd.label;" accesskey="&deleteAttachmentCmd.accesskey;"
-            oncommand="HandleSelectedAttachments('delete');"/>
+            oncommand="HandleMultipleAttachments(this.parentNode.attachments, 'delete');"/>
   <menuitem id="context-saveAllAttachments" oncommand="HandleAllAttachments('save');"
     label="&saveAllAttachmentsCmd.label;" accesskey="&saveAllAttachmentsCmd.accesskey;"/>
   <menuitem id="context-detachAllAttachments" oncommand="HandleAllAttachments('detach');"
@@ -457,10 +459,17 @@
 <!-- the message pane consists of 4 'boxes'. Box #4 is the attachment box which
      can be toggled into a slim or an expanded view -->
 <vbox id="attachmentView" collapsed="true">
-  <hbox align="center" context="attachment-toolbar-context-menu" width="200">
-    <button type="checkbox" id="attachmentToggle" oncommand="toggleAttachmentList();"/>
+  <hbox align="center" id="attachmentBar"
+        context="attachment-toolbar-context-menu"
+        onclick="if (event.button == 0 &amp;&amp; event.originalTarget.id == 'attachmentBar') toggleAttachmentList();">
+    <button type="checkbox" id="attachmentToggle"
+            oncommand="toggleAttachmentList(this.checked);"/>
     <image id="attachmentIcon"/>
-    <label id="attachmentCount" crop="center" flex="1"/>
+    <label id="attachmentCount"/>
+    <label id="attachmentName" crop="center" flex="1"
+           context="attachmentListContext"
+           onclick="if (event.button == 0) { HandleAllAttachments('open'); RestoreFocusAfterHdrButton(); }"
+           ondraggesture="nsDragAndDrop.startDrag(event,attachmentNameDNDObserver);"/>
     <label id="attachmentSize"/>
     <!-- Use a very large flex value here so that attachmentCount doesn't take
          up more space than necessary, but still crops itself if there's not
@@ -533,9 +542,10 @@
   </hbox>
   <box id="attachmentListWrapper" flex="1" collapsed="true">
     <description selectable="true" id="attachmentList" flex="1"
-                 seltype="multiple"
-                 onclick="attachmentListClick(event);" ondraggesture="nsDragAndDrop.startDrag(event,attachmentAreaDNDObserver);"
-                 ondragover="nsDragAndDrop.dragOver(event, attachmentAreaDNDObserver);" context="attachmentListContext">
+                 seltype="multiple" context="attachmentListContext"
+                 onclick="attachmentListClick(event);"
+                 ondraggesture="nsDragAndDrop.startDrag(event,attachmentListDNDObserver);"
+                 ondragover="nsDragAndDrop.dragOver(event, attachmentListDNDObserver);">
     </description>
   </box>
 </vbox>
