@@ -473,14 +473,26 @@ treechildren::-moz-tree-image(remote-err) {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/abcard.png");
 }
 
+.aw-menulist:-moz-locale-dir(ltr),
+.aw-menulist > .menulist-label-box:-moz-locale-dir(rtl) {
+  direction: rtl; 
+}
+
+.aw-menulist:-moz-locale-dir(rtl),
+.aw-menulist > .menulist-label-box:-moz-locale-dir(ltr) {
+  direction: ltr;
+}
+
 .aw-menulist {
   -moz-appearance: menulist;
-  -moz-margin-end: 5px;
+  -moz-margin-start: 5px;
 }
 
 .aw-menulist > .menulist-label {
   font: icon;
-  -moz-margin-end: 3px;
+  margin: 0 1px !important;
+  font-size: 10px;
+  text-align: start;
 }
 
 /* ::::: format toolbar ::::: */
