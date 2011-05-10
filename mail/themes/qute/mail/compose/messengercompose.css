@@ -411,21 +411,40 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 }
 
 .aw-menulist {
+  -moz-binding: url("chrome://global/content/bindings/menulist.xml#menulist");
   -moz-appearance: menulist;
-  margin: 1px;
-  -moz-margin-end: 7px;
+  -moz-box-align: stretch;
+  margin: 1px 0;
+  -moz-margin-start: 7px;
+  list-style-image: none;
 }
 
 .aw-menulist > .menulist-label-box {
   margin: 0;
 }
 
-.aw-menulist > dropmarker {
-  height: 11px; 
+/* set the dropmarker at the beginning of the aw-menulist */
+.aw-menulist:-moz-locale-dir(ltr),
+.aw-menulist > .menulist-label-box:-moz-locale-dir(rtl) {
+  direction: rtl; 
+}
+
+.aw-menulist:-moz-locale-dir(rtl),
+.aw-menulist > .menulist-label-box:-moz-locale-dir(ltr) {
+  direction: ltr; 
+}
+
+.aw-menulist > .menulist-label-box > .menulist-icon {
+  -moz-margin-start: 0;
+}
+
+.aw-menulist > .menulist-label-box > .menulist-label {
+  margin: 0 1px !important;
 }
 
 #MsgHeadersToolbar {
   min-height: 132px;
+  border-bottom-width: 0;
 }
 
 /* ::::: format toolbar ::::: */
