@@ -338,12 +338,6 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   text-align: center;
 }
 
-/* ..... update notifications ..... */
-
-#checkForUpdates[loading="true"] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.png");
-}
-
 #threadTree > treechildren::-moz-tree-row(odd) {
   background-color: -moz-oddtreerow;
 }

@@ -22,6 +22,5 @@
 <!ENTITY openHelpMac2.commandkey   "?">
 <!ENTITY openHelpMac2.modifiers    "accel">
 
-<!ENTITY updateCmd.label "Check for Updates…">
 <!ENTITY aboutMenuCmd.label "About &brandShortName;">
 <!ENTITY aboutMenuCmd.accesskey "A">

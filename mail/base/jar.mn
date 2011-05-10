@@ -122,7 +122,7 @@ comm.jar:
 % content communicator %content/communicator/
 *  content/communicator/contentAreaClick.js         (content/contentAreaClick.js)
 *  content/communicator/utilityOverlay.xul          (content/utilityOverlay.xul)
-*  content/communicator/utilityOverlay.js           (content/utilityOverlay.js)
+   content/communicator/utilityOverlay.js           (content/utilityOverlay.js)
 
 toolkit.jar:
 % overlay chrome://global/content/customizeToolbar.xul chrome://messenger/content/customizeToolbarOverlay.xul
