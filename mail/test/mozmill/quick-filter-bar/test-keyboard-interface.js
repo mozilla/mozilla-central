@@ -36,9 +36,9 @@
 
 /*
  * Tests keyboard stuff that doesn't fall under some other test's heading.
- * Namely, control-f toggling the bar into existence happens in
- * test-toggle-bar.js, but we test that repeatedly hitting control-f toggles
- * between our search text box and the find-in-message text box.
+ * Namely, control-shift-k toggling the bar into existence happens in
+ * test-toggle-bar.js, but we test that repeatedly hitting control-shift-k
+ * selects the text entered in the quick filter bar.
  */
 
 var MODULE_NAME = 'test-keyboard-interface';
@@ -154,33 +154,43 @@ function test_escape_does_not_reach_us_from_gloda_search() {
 }
 
 /**
- * Control-f jumps to the quickfilter text box when not in it.  when in it, it
- * allows the normal find-in-message command to execute, which should jump it
- * to the find-in-message textbox thing.
+ * Control-shift-k expands the quick filter bar when it's collapsed. When
+ * already expanded, it focuses the text box and selects its text.
  */
-function test_control_f_toggles_between_textboxes() {
+function test_control_shift_k_shows_quick_filter_bar() {
   let dispatcha = mc.window.document.commandDispatcher;
+  let qfbTextbox = mc.e("qfb-qs-textbox");
 
   // focus explicitly on the thread pane so we know where the focus is.
   mc.e("threadTree").focus();
   // select a message so we can find in message
   select_click_row(0);
 
-  // hit control-f to get in the quick filter box
-  mc.keypress(null, "f", {accelKey: true});
-  if (dispatcha.focusedElement != mc.e("qfb-qs-textbox").inputField)
-    throw new Error("control-f did not focus quick filter textbox");
+  // hit control-shift-k to get in the quick filter box
+  mc.keypress(null, "k", {accelKey: true, shiftKey: true});
+  if (dispatcha.focusedElement != qfbTextbox.inputField)
+    throw new Error("control-shift-k did not focus quick filter textbox");
 
-  // hit control-f to get in the find-in-message box
-  mc.keypress(null, "f", {accelKey: true});
-  if (dispatcha.focusedElement != mc.e("FindToolbar")._findField.inputField)
-    throw new Error("control-f did not focus toolbar textbox. focused elem: " +
-                    dispatcha.focusedElement + " expected elem: " +
-                    mc.e("FindToolbar")._findField.inputField + " last dude: " +
-                    mc.e("qfb-qs-textbox").inputField);
+  set_filter_text("search string");
 
-  // secret bonus test!  hit escape and make sure it only closes the
-  //  find-in-message bar.
+  // hit control-shift-k to select the text in the quick filter box
+  mc.keypress(null, "k", {accelKey: true, shiftKey: true});
+  if (dispatcha.focusedElement != qfbTextbox.inputField)
+    throw new Error("second control-shift-k did not keep focus on filter " +
+                    "textbox");
+  if (qfbTextbox.selectionStart != 0 ||
+      qfbTextbox.selectionEnd != qfbTextbox.textLength)
+    throw new Error("second control-shift-k did not select text in filter " +
+                    "textbox");
+
+  // hit escape and make sure the text is cleared, but the quick filter bar is
+  // still open.
   mc.keypress(null, "VK_ESCAPE", {});
   assert_quick_filter_bar_visible(true);
+  assert_filter_text("");
+
+  // hit escape one more time and make sure we finally collapsed the quick
+  // filter bar.
+  mc.keypress(null, "VK_ESCAPE", {});
+  assert_quick_filter_bar_visible(false);
 }

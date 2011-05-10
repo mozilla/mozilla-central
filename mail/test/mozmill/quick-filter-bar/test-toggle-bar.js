@@ -82,7 +82,7 @@ function test_direct_toggle() {
   assert_quick_filter_bar_visible(true);
 }
 
-function test_control_f_triggers_display() {
+function test_control_shift_k_triggers_display() {
   // hide it
   toggle_quick_filter_bar();
   assert_quick_filter_bar_visible(false);
@@ -90,8 +90,8 @@ function test_control_f_triggers_display() {
   // focus explicitly on the thread pane so we know where the focus is.
   mc.e("threadTree").focus();
 
-  // hit control-f
-  mc.keypress(null, "f", {accelKey: true});
+  // hit control-shift-k
+  mc.keypress(null, "k", {accelKey: true, shiftKey: true});
 
   // now we should be visible again!
   assert_quick_filter_bar_visible(true);

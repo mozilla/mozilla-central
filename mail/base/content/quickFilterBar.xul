@@ -44,9 +44,15 @@
   <keyset id="mailKeys">
     <key id="key_qfb_escape" keycode="VK_ESCAPE"
          command="cmd_popQuickFilterBarStack"/>
+    <key id="key_qfb_show" key="&quickFilterBar.show.key2;"
+         modifiers="accel,shift"
+         command="cmd_showQuickFilterBar"/>
   </keyset>
 
   <commandset id="mailViewMenuItems">
+    <command id="cmd_showQuickFilterBar"
+             oncommand="goDoCommand('cmd_showQuickFilterBar');"
+             />
     <command id="cmd_toggleQuickFilterBar"
              oncommand="goDoCommand('cmd_toggleQuickFilterBar');"
              />
@@ -63,7 +69,6 @@
               accesskey="&quickFilterBar.toggleBarVisibility.menu.accesskey;"
               command="cmd_toggleQuickFilterBar"
               observes="qfb-show-filter-bar"
-              key="key_find"
               />
   </menupopup>
 

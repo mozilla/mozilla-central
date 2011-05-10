@@ -467,7 +467,7 @@ let QuickFilterBarMuxer = {
       return null;
 
     if (aCommand == "cmd_popQuickFilterBarStack" ||
-        aCommand == "cmd_find" ||
+        aCommand == "cmd_showQuickFilterBar" ||
         aCommand == "cmd_toggleQuickFilterBar")
       return true;
     else
@@ -479,7 +479,7 @@ let QuickFilterBarMuxer = {
       return null;
 
     if (aCommand == "cmd_popQuickFilterBarStack" ||
-        aCommand == "cmd_find" ||
+        aCommand == "cmd_showQuickFilterBar" ||
         aCommand == "cmd_toggleQuickFilterBar")
       return true;
     else
@@ -494,15 +494,14 @@ let QuickFilterBarMuxer = {
       QuickFilterBarMuxer.cmdEscapeFilterStack();
       return true;
     }
-    else if (aCommand == "cmd_find") {
+    else if (aCommand == "cmd_showQuickFilterBar") {
       let textWidget = document.getElementById(
                          QuickFilterManager.textBoxDomId);
-      // if it's not already focused, then focus/select it
-      if (document.commandDispatcher.focusedElement != textWidget.inputField) {
+
+      if (this.activeFilterer.visible == false)
         QuickFilterBarMuxer._showFilterBar(true);
-        textWidget.select();
-        return true;
-      }
+      textWidget.select();
+      return true;
     }
     else if (aCommand == "cmd_toggleQuickFilterBar") {
       this._showFilterBar(!this.activeFilterer.visible);
@@ -596,6 +595,8 @@ let QuickFilterBarMuxer = {
     if (!aShow) {
       this.activeFilterer.clear();
       this.updateSearch();
+      let threadPane = document.getElementById("threadTree");
+      threadPane.focus();
     }
     this.reflectFiltererState(this.activeFilterer,
                               this.tabmail.currentTabInfo.folderDisplay);
