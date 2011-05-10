@@ -38,6 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Cu.import("resource:///modules/gloda/log4moz.js");
+Cu.import("resource://gre/modules/Services.jsm");
 
 const TIMEOUT = 10; // in seconds
 
@@ -102,7 +103,33 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
   var outgoingEx = null; // if incoming had error, store ex here
   var incomingDone = (which == "outgoing");
   var outgoingDone = (which == "incoming");
-
+  // If we're offline, we're going to pick the most common settings.
+  // (Not the "best" settings, but common).
+  if (Services.io.offline)
+  {
+    resultConfig.source = AccountConfig.kSourceUser;
+    resultConfig.incoming.hostname = "mail." + domain;
+    resultConfig.incoming.username = resultConfig.identity.emailAddress;
+    resultConfig.outgoing.username = resultConfig.identity.emailAddress;
+    resultConfig.incoming.type = "imap";
+    resultConfig.incoming.port = 143;
+    resultConfig.incoming.socketType = 3; // starttls
+    resultConfig.incoming.auth = Ci.nsMsgAuthMethod.passwordCleartext;
+    resultConfig.outgoing.hostname = "smtp." + domain;
+    resultConfig.outgoing.socketType = 1;
+    resultConfig.outgoing.port = 587;
+    resultConfig.outgoing.auth = Ci.nsMsgAuthMethod.passwordCleartext;
+    resultConfig.incomingAlternatives.push({
+      hostname: "mail." + domain,
+      username: resultConfig.identity.emailAddress,
+      type: "pop3",
+      port: 110,
+      socketType: 3,
+      auth: Ci.nsMsgAuthMethod.passwordCleartext
+    });
+    successCallback(resultConfig);
+    return;
+  }
   var progress = function(thisTry)
   {
     progressCallback(protocolToString(thisTry.protocol), thisTry.hostname,

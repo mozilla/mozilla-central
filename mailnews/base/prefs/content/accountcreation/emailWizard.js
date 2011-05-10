@@ -36,6 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 /**
  * This is the dialog opened by menu File | New account | Mail... .
  *
@@ -382,6 +384,17 @@ EmailConfigWizard.prototype =
     } else {
       throw new NotReached("unknown mode");
     }
+    // If we're offline, we're going to disable the create button, but enable
+    // the advanced config button if we have a current config.
+    if (Services.io.offline) {
+      if (this._currentConfig != null) {
+        _show("advanced-setup_button");
+        _enable("advanced-setup_button");
+        _hide("half-manual-test_button");
+        _hide("create_button");
+        _hide("manual-edit_button");
+      }
+    }
     window.sizeToContent();
   },
 
@@ -626,7 +639,9 @@ EmailConfigWizard.prototype =
       {
         self._abortable = null;
         self.foundConfig(config);
-        self.stopSpinner("found_settings_guess");
+        self.stopSpinner(Services.io.offline ?
+                         "guessed_settings_offline" : "found_settings_guess");
+        window.sizeToContent();
       },
       function(e, config) // guessconfig failed
       {
