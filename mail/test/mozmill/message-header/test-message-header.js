@@ -318,6 +318,156 @@ function test_more_button_with_many_recipients()
 }
 
 /**
+ * Test that we can open up the inline contact editor when we
+ * click on the star.
+ */
+function test_clicking_star_opens_inline_contact_editor()
+{
+  // Make sure we're in the right folder
+  be_in_folder(folder);
+
+  // Add a new message
+  let msg = create_message();
+  add_message_to_folder(folder, msg);
+
+  // Open the latest message
+  let curMessage = select_click_row(-1);
+  // Make sure the star is clicked, and we add the
+  // new contact to our address book
+  let toDescription = mc.a('expandedtoBox', {class: "headerValue"});
+
+  // Ensure that the inline contact editing panel is not open
+  let contactPanel = mc.eid('editContactPanel').getNode();
+  assert_not_equals(contactPanel.state, "open");
+  subtest_more_widget_star_click(toDescription);
+
+  // Ok, if we're here, then the star has been clicked, and
+  // the contact has been added to our AB.
+  let addrs = toDescription.getElementsByTagName('mail-emailaddress');
+  let lastAddr = addrs[addrs.length-1];
+
+  // Click on the star, and ensure that the inline contact
+  // editing panel opens
+  mc.click(mc.aid(lastAddr, {class: 'emailStar'}));
+  assert_equals(contactPanel.state, "open");
+  contactPanel.hidePopup();
+}
+
+/**
+ * Test that if a contact belongs to a mailing list within their
+ * address book, then the inline contact editor will not allow
+ * the user to change what address book the contact belongs to.
+ * The editor should also show a message to explain why the
+ * contact cannot be moved.
+ */
+function test_address_book_switch_disabled_on_contact_in_mailing_list()
+{
+  const MAILING_LIST_DIRNAME = "Some Mailing List";
+  const ADDRESS_BOOK_NAME = "Some Address Book";
+  // Add a new message
+  let msg = create_message();
+  add_message_to_folder(folder, msg);
+
+  // Make sure we're in the right folder
+  be_in_folder(folder);
+
+  // Open the latest message
+  let curMessage = select_click_row(-1);
+
+  // Make sure the star is clicked, and we add the
+  // new contact to our address book
+  let toDescription = mc.a('expandedtoBox', {class: "headerValue"});
+
+  // Ensure that the inline contact editing panel is not open
+  let contactPanel = mc.eid('editContactPanel').getNode();
+  assert_not_equals(contactPanel.state, "open");
+
+  subtest_more_widget_star_click(toDescription);
+
+  // Ok, if we're here, then the star has been clicked, and
+  // the contact has been added to our AB.
+  let addrs = toDescription.getElementsByTagName('mail-emailaddress');
+  let lastAddr = addrs[addrs.length-1];
+
+  // Click on the star, and ensure that the inline contact
+  // editing panel opens
+  mc.click(mc.aid(lastAddr, {class: 'emailStar'}));
+  assert_equals(contactPanel.state, "open");
+
+  let abDrop = mc.eid('editContactAddressBookList').getNode();
+  let warningMsg = mc.eid('contactMoveDisabledText').getNode();
+
+  // Ensure that the address book dropdown is not disabled
+  assert_true(!abDrop.disabled);
+  // We should not be displaying any warning
+  assert_true(warningMsg.collapsed);
+
+  // Now close the popup
+  contactPanel.hidePopup();
+
+  // For the contact that was added, create a mailing list in the
+  // address book it resides in, and then add that contact to the
+  // mailing list
+  addrs = toDescription.getElementsByTagName('mail-emailaddress');
+  let targetAddr = addrs[addrs.length-1].getAttribute("emailAddress");
+
+  let cards = get_cards_in_all_address_books_for_email(targetAddr);
+
+  // There should be only one copy of this email address
+  // in the address books.
+  assert_equals(cards.length, 1);
+  let card = cards[0];
+
+  // Remove the card from any of the address books
+  ensure_no_card_exists(targetAddr);
+
+  // Add the card to a new address book, and insert it
+  // into a mailing list under that address book
+  let ab = create_mork_address_book(ADDRESS_BOOK_NAME);
+  ab.dropCard(card, false);
+  let ml = create_mailing_list(MAILING_LIST_DIRNAME);
+  ab.addMailList(ml);
+
+  // Now we have to retrieve the mailing list from
+  // the address book, in order for us to add and
+  // delete cards from it.
+  ml = get_mailing_list_from_address_book(ab, MAILING_LIST_DIRNAME);
+
+  ml.addressLists.appendElement(card, false);
+
+  // Re-open the inline contact editing panel
+  mc.click(mc.aid(lastAddr, {class: 'emailStar'}));
+  assert_equals(contactPanel.state, "open");
+
+  // The dropdown should be disabled now
+  assert_true(abDrop.disabled);
+  // We should be displaying a warning
+  assert_true(!warningMsg.collapsed);
+
+  contactPanel.hidePopup();
+
+  // And if we remove the contact from the mailing list, the
+  // warning should be gone and the address book switching
+  // menu re-enabled.
+
+  let cardArray = Cc["@mozilla.org/array;1"]
+                  .createInstance(Ci.nsIMutableArray);
+  cardArray.appendElement(card, false);
+  ml.deleteCards(cardArray);
+
+  // Re-open the inline contact editing panel
+  mc.click(mc.aid(lastAddr, {class: 'emailStar'}));
+  assert_equals(contactPanel.state, "open");
+
+  // Ensure that the address book dropdown is not disabled
+  assert_true(!abDrop.disabled);
+  // We should not be displaying any warning
+  assert_true(warningMsg.collapsed);
+
+  contactPanel.hidePopup();
+}
+
+/**
  * Test that clicking the adding an address node adds it to the address book.
  */
 function test_add_contact_from_context_menu() {
@@ -731,3 +881,4 @@ function test_get_msg_button_customize_header_toolbar(){
                     originalServerCount);
   }
 }
+

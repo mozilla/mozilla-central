@@ -71,8 +71,12 @@ function installInto(module) {
   module.create_ldap_address_book = create_ldap_address_book;
   module.create_contact = create_contact;
   module.create_mailing_list = create_mailing_list;
+  module.get_mailing_list_from_address_book =
+      get_mailing_list_from_address_book;
   module.load_contacts_into_address_book = load_contacts_into_address_book;
   module.load_contacts_into_mailing_list = load_contacts_into_mailing_list;
+  module.get_cards_in_all_address_books_for_email =
+      get_cards_in_all_address_books_for_email;
   module.get_address_book_tree_view_index = get_address_book_tree_view_index;
   module.set_address_books_collapsed = set_address_books_collapsed;
   module.set_address_books_expanded = set_address_books_expanded;
@@ -81,7 +85,6 @@ function installInto(module) {
   // alias them here.
   module.set_address_book_collapsed = set_address_books_collapsed;
   module.set_address_book_expanded = set_address_books_expanded;
-
   module.is_address_book_collapsed = is_address_book_collapsed;
   module.is_address_book_collapsible = is_address_book_collapsible;
   module.get_name_of_address_book_element_at = get_name_of_address_book_element_at;
@@ -123,6 +126,26 @@ function ensure_no_card_exists(emailAddress)
     }
     catch (ex) { }
   }
+}
+
+/**
+ * Return all address book cards for a particular email address
+ * @param aEmailAddress the address to search for
+ */
+function get_cards_in_all_address_books_for_email(aEmailAddress)
+{
+  var books = MailServices.ab.directories;
+  var result = [];
+
+  while (books.hasMoreElements()) {
+    var ab = books.getNext().QueryInterface(Ci.nsIAbDirectory);
+    var card = ab.cardForEmailAddress(aEmailAddress);
+    if (card) {
+      result.push(card);
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -190,6 +213,24 @@ function create_mailing_list(aMailingListName)
   mailList.isMailList = true;
   mailList.dirName = aMailingListName;
   return mailList;
+}
+
+/* Finds and returns a mailing list with a given dirName within a
+ * given address book.
+ * @param aAddressBook the address book to search
+ * @param aDirName the dirName of the mailing list
+ */
+function get_mailing_list_from_address_book(aAddressBook, aDirName)
+{
+  let mailingLists = aAddressBook.childNodes;
+  while (mailingLists.hasMoreElements())
+  {
+    let item = mailingLists.getNext();
+    let list = item.QueryInterface(Ci.nsIAbDirectory);
+    if (list && list.dirName == aDirName)
+      return list;
+  }
+  throw Error("Could not find a mailing list with dirName " + aDirName);
 }
 
 /* Given some address book, adds a collection of contacts to that

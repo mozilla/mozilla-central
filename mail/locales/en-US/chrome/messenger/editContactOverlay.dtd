@@ -15,3 +15,5 @@
 
 <!ENTITY editContactPanelDone.label "Done">
 <!ENTITY editContactPanelDone.accesskey "D">
+
+<!ENTITY contactMoveDisabledWarning.description "You can't change the address book because the contact is in a mailing list.">

@@ -75,6 +75,7 @@
         <rows>
           <row align="center" id="editContactNameRow">
             <label value="&editContactName.label;"
+                   class="editContactPanel_rowLabel"
                    accesskey="&editContactName.accesskey;"
                    control="editContactName"/>
             <textbox id="editContactName" class="editContactTextbox"
@@ -82,6 +83,7 @@
           </row>
           <row align="center" id="editContactEmailRow">
             <label value="&editContactEmail.label;"
+                   class="editContactPanel_rowLabel"
                    accesskey="&editContactEmail.accesskey;"
                    control="editContactEmail"/>
             <textbox id="editContactEmail" readonly="true"
@@ -90,6 +92,7 @@
           </row>
           <row align="center" id="editContactABRow">
             <label id="editContactAddressBook"
+                   class="editContactPanel_rowLabel"
                    value="&editContactAddressBook.label;"
                    accesskey="&editContactAddressBook.accesskey;"
                    control="editContactAddressBookList"/>
@@ -98,38 +101,45 @@
                          class="addrbooksPopup"/>
             </menulist>
           </row>
+          <row>
+            <hbox/>
+            <description id="contactMoveDisabledText"
+                         collapsed="true">&contactMoveDisabledWarning.description;</description>
+          </row>
         </rows>
       </grid>
     </vbox>
 
-    <hbox flex="1" id="editContactPanelBottomButtons">
-      <button id="editContactPanelEditDetailsButton"
-              oncommand="editContactInlineUI.editDetails();"
-              onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
-      <spacer flex="1"/>
+    <vbox>
+      <hbox flex="1" id="editContactPanelBottomButtons">
+        <button id="editContactPanelEditDetailsButton"
+                oncommand="editContactInlineUI.editDetails();"
+                onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+        <spacer flex="1"/>
 #ifndef XP_UNIX
-      <button id="editContactPanelDoneButton"
-              label="&editContactPanelDone.label;"
-              accesskey="&editContactPanelDone.accesskey;" default="true"
-              oncommand="editContactInlineUI.saveChanges();"
-              onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
-      <button id="editContactPanelCancelButton"
-              label="&editContactPanelCancel.label;"
-              accesskey="&editContactPanelCancel.accesskey;"
-              oncommand="editContactInlineUI.panel.hidePopup();"
-              onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+        <button id="editContactPanelDoneButton"
+                label="&editContactPanelDone.label;"
+                accesskey="&editContactPanelDone.accesskey;" default="true"
+                oncommand="editContactInlineUI.saveChanges();"
+                onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+        <button id="editContactPanelCancelButton"
+                label="&editContactPanelCancel.label;"
+                accesskey="&editContactPanelCancel.accesskey;"
+                oncommand="editContactInlineUI.panel.hidePopup();"
+                onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
 #else
-      <button id="editContactPanelCancelButton"
-              label="&editContactPanelCancel.label;"
-              accesskey="&editContactPanelCancel.accesskey;"
-              oncommand="editContactInlineUI.panel.hidePopup();"
-              onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
-      <button id="editContactPanelDoneButton"
-              label="&editContactPanelDone.label;"
-              accesskey="&editContactPanelDone.accesskey;" default="true"
-              oncommand="editContactInlineUI.saveChanges();"
-              onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+        <button id="editContactPanelCancelButton"
+                label="&editContactPanelCancel.label;"
+                accesskey="&editContactPanelCancel.accesskey;"
+                oncommand="editContactInlineUI.panel.hidePopup();"
+                onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+        <button id="editContactPanelDoneButton"
+                label="&editContactPanelDone.label;"
+                accesskey="&editContactPanelDone.accesskey;" default="true"
+                oncommand="editContactInlineUI.saveChanges();"
+                onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
 #endif
-    </hbox>
+      </hbox>
+    </vbox>
   </panel>
 </overlay>

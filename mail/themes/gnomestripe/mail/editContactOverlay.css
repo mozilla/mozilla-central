@@ -38,6 +38,10 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 @namespace html url("http://www.w3.org/1999/xhtml");
 
+.editContactPanel_rowLabel {
+  text-align: end;
+}
+
 #editContactPanel {
   -moz-appearance: menupopup;
   color: MenuText;
@@ -63,9 +67,12 @@
   min-width: 20em;
 }
 
-.editContactTextbox[readonly="true"] {
-  -moz-appearance: none;
-  margin: 4px 7px;
-  border: none;
-  background-color: inherit;
+#contactMoveDisabledText {
+  margin-top: 8px;
+  margin-bottom: 5px;
+  width: 20em;
+}
+
+#editContactAddressBookList[disabled="true"] {
+  color: GrayText !important;
 }

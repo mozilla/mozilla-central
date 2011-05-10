@@ -38,6 +38,10 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 @namespace html url("http://www.w3.org/1999/xhtml");
 
+.editContactPanel_rowLabel {
+  text-align: end;
+}
+
 #editContactPanel {
   -moz-appearance: none;
   background-color: rgba(68,68,68,0.9);
@@ -137,6 +141,7 @@
 
 .editContactTextbox[focused="true"] {
   outline: 2px solid -moz-mac-focusring;
+  padding: 1px;
   outline-offset: -1px;
   -moz-outline-radius: 1px;
   background-color: #eeeeee;
@@ -170,6 +175,10 @@
   -moz-outline-radius: 5px;
 }
 
+#editContactAddressBookList[disabled="true"] {
+  color: GrayText !important;
+}
+
 #editContactAddressBookList > .menulist-dropmarker {
   -moz-appearance: none;
   display: -moz-box;
@@ -181,4 +190,9 @@
 
 #editContactAddressBookList > .menulist-dropmarker > .dropmarker-icon {
   list-style-image: url("chrome://messenger/skin/hud-style-dropmarker-double-arrows.png");
+}
+
+#contactMoveDisabledText {
+  margin-left: 8px;
+  width: 20em;
 }

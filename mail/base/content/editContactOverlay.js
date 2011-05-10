@@ -66,6 +66,8 @@ var editContactInlineUI = {
         elt.removeAttribute("disabled");
       elt.removeAttribute("wasDisabled");
     }
+    document.getElementById("editContactAddressBookList").disabled = false;
+    document.getElementById("contactMoveDisabledText").collapsed = true;
   },
 
   onPopupHidden: function (aEvent) {
@@ -121,7 +123,6 @@ var editContactInlineUI = {
 
   _doShowEditContactPanel: function (aAnchorElement, aPosition) {
     this._blockCommands(); // un-done in the popuphiding handler.
-
     var bundle = document.getElementById("bundle_editContact");
 
     // Is this address book writeable?
@@ -163,8 +164,34 @@ var editContactInlineUI = {
 
     document.getElementById("editContactAddressBookList").value =
       this._cardDetails.book.URI;
-    document.getElementById("editContactAddressBookList").disabled =
-      !this._writeable;
+
+    // Is this card contained within mailing lists?
+    let inMailList = false;
+    if (this._cardDetails.book.supportsMailingLists) {
+      // We only have to look in one book here, because cards currently have
+      // to be in the address book they belong to.
+      let mailingLists = this._cardDetails.book.childNodes;
+      while (mailingLists.hasMoreElements() && !inMailList) {
+        let list = mailingLists.getNext();
+        if (!(list instanceof Components.interfaces.nsIAbDirectory) ||
+            !list.isMailList)
+          continue;
+
+        for (let card in fixIterator(list.addressLists.enumerate())) {
+          if (card instanceof Components.interfaces.nsIAbCard &&
+              card.primaryEmail == this._cardDetails.card.primaryEmail) {
+            inMailList = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!this._writeable || inMailList)
+      document.getElementById("editContactAddressBookList").disabled = true;
+
+    if (inMailList)
+      document.getElementById("contactMoveDisabledText").collapsed = false;
 
     this.panel.popupBoxObject
         .setConsumeRollupEvent(Components.interfaces
