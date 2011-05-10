@@ -77,34 +77,60 @@
 <menupopup id="attachmentListContext"
            onpopupshowing="return onShowAttachmentContextMenu();"
            onpopuphiding="return onHideAttachmentContextMenu();">
-  <menuitem id="context-openAttachment" label="&openAttachmentCmd.label;" accesskey="&openAttachmentCmd.accesskey;"
+  <menuitem id="context-openAttachment"
+            label="&openAttachmentCmd.label;"
+            accesskey="&openAttachmentCmd.accesskey;"
             oncommand="HandleMultipleAttachments(this.parentNode.attachments, 'open');"/>
-  <menuitem id="context-saveAttachment" label="&saveAsAttachmentCmd.label;" accesskey="&saveAsAttachmentCmd.accesskey;"
+  <menuitem id="context-saveAttachment"
+            label="&saveAsAttachmentCmd.label;"
+            accesskey="&saveAsAttachmentCmd.accesskey;"
             oncommand="HandleMultipleAttachments(this.parentNode.attachments, 'saveAs');"/>
   <menuseparator id="context-menu-separator"/>
-  <menuitem id="context-detachAttachment" label="&detachAttachmentCmd.label;" accesskey="&detachAttachmentCmd.accesskey;"
+  <menuitem id="context-detachAttachment"
+            label="&detachAttachmentCmd.label;"
+            accesskey="&detachAttachmentCmd.accesskey;"
             oncommand="HandleMultipleAttachments(this.parentNode.attachments, 'detach');"/>
-  <menuitem id="context-deleteAttachment" label="&deleteAttachmentCmd.label;" accesskey="&deleteAttachmentCmd.accesskey;"
+  <menuitem id="context-deleteAttachment"
+            label="&deleteAttachmentCmd.label;"
+            accesskey="&deleteAttachmentCmd.accesskey;"
             oncommand="HandleMultipleAttachments(this.parentNode.attachments, 'delete');"/>
-  <menuitem id="context-saveAllAttachments" oncommand="HandleAllAttachments('save');"
-    label="&saveAllAttachmentsCmd.label;" accesskey="&saveAllAttachmentsCmd.accesskey;"/>
-  <menuitem id="context-detachAllAttachments" oncommand="HandleAllAttachments('detach');"
-    label="&detachAllAttachmentsCmd.label;"/>
-  <menuitem id="context-deleteAllAttachments" oncommand="HandleAllAttachments('delete');"
-    label="&deleteAllAttachmentsCmd.label;"/>
-</menupopup>
-
-<menupopup id="attachmentMenuList">
-  <menuseparator/>
-  <menuitem id="file-openAllAttachments" label="&openAllAttachmentsCmd.label;"
+  <menuitem id="context-openAllAttachments"
+            label="&openAllAttachmentsCmd.label;"
             accesskey="&openAllAttachmentsCmd.accesskey;"
-            oncommand="HandleAllAttachments('open');" />
-  <menuitem id="file-saveAllAttachments" label="&saveAllAttachmentsCmd.label;"
-    accesskey="&saveAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('save');"/>
-  <menuitem id="file-detachAllAttachments" label="&detachAllAttachmentsCmd.label;"
-    accesskey="&detachAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('detach');" />
-  <menuitem id="file-deleteAllAttachments" label="&deleteAllAttachmentsCmd.label;"
-    accesskey="&deleteAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('delete');" />
+            oncommand="HandleAllAttachments('open');"/>
+  <menuitem id="context-saveAllAttachments"
+            label="&saveAllAttachmentsCmd.label;"
+            accesskey="&saveAllAttachmentsCmd.accesskey;"
+            oncommand="HandleAllAttachments('save');"/>
+  <menuseparator id="context-menu-separator-all"/>
+  <menuitem id="context-detachAllAttachments"
+            label="&detachAllAttachmentsCmd.label;"
+            accesskey="&detachAllAttachmentsCmd.accesskey;"
+            oncommand="HandleAllAttachments('detach');"/>
+  <menuitem id="context-deleteAllAttachments"
+            label="&deleteAllAttachmentsCmd.label;"
+            accesskey="&deleteAllAttachmentsCmd.accesskey;"
+            oncommand="HandleAllAttachments('delete');"/>
+ </menupopup>
+ 
+ <menupopup id="attachmentMenuList">
+   <menuseparator/>
+   <menuitem id="file-openAllAttachments"
+             label="&openAllAttachmentsCmd.label;"
+             accesskey="&openAllAttachmentsCmd.accesskey;"
+             oncommand="HandleAllAttachments('open');" />
+   <menuitem id="file-saveAllAttachments"
+             label="&saveAllAttachmentsCmd.label;"
+             accesskey="&saveAllAttachmentsCmd.accesskey;"
+             oncommand="HandleAllAttachments('save');"/>
+   <menuitem id="file-detachAllAttachments"
+             label="&detachAllAttachmentsCmd.label;"
+             accesskey="&detachAllAttachmentsCmd.accesskey;"
+             oncommand="HandleAllAttachments('detach');" />
+   <menuitem id="file-deleteAllAttachments"
+             label="&deleteAllAttachmentsCmd.label;"
+             accesskey="&deleteAllAttachmentsCmd.accesskey;"
+             oncommand="HandleAllAttachments('delete');" />
 </menupopup>
 
 <menupopup id="header-toolbar-context-menu">
@@ -500,6 +526,7 @@
                         oncommand="HandleAllAttachments('saveAs'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&saveAsAttachmentMenuItem.label;"
                         accesskey="&saveAsAttachmentMenuItem.accesskey;"/>
+              <menuseparator id="button-menu-separator"/>
               <menuitem id="button-detachAttachment"
                         oncommand="HandleAllAttachments('detach'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&detachAttachmentMenuItem.label;"
@@ -517,10 +544,15 @@
                          oncommand="HandleAllAttachments('save'); RestoreFocusAfterHdrButton();"
                          hidden="true">
             <menupopup onpopupshowing="onShowSaveAttachmentMenuMultiple();">
+              <menuitem id="button-openAllAttachments"
+                        oncommand="HandleAllAttachments('open'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        label="&openAllAttachmentsMenuItem.label;"
+                        accesskey="&openAllAttachmentsMenuItem.accesskey;"/>
               <menuitem id="button-saveAllAttachments"
                         oncommand="HandleAllAttachments('save'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&saveAllAttachmentsMenuItem.label;"
                         accesskey="&saveAllAttachmentsMenuItem.accesskey;"/>
+              <menuseparator id="button-menu-separator-all"/>
               <menuitem id="button-detachAllAttachments"
                         oncommand="HandleAllAttachments('detach'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&detachAllAttachmentsMenuItem.label;"

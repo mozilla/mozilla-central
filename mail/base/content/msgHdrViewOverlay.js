@@ -1734,12 +1734,16 @@ function onShowAttachmentContextMenu()
   var attachmentList = document.getElementById('attachmentList');
   var attachmentName = document.getElementById('attachmentName');
   var contextMenu = document.getElementById('attachmentListContext');
+
   var openMenu = document.getElementById('context-openAttachment');
   var saveMenu = document.getElementById('context-saveAttachment');
+  var menuSeparator = document.getElementById('context-menu-separator');
   var detachMenu = document.getElementById('context-detachAttachment');
   var deleteMenu = document.getElementById('context-deleteAttachment');
-  var menuSeparator = document.getElementById('context-menu-separator');
+
+  var openAllMenu = document.getElementById('context-openAllAttachments');
   var saveAllMenu = document.getElementById('context-saveAllAttachments');
+  var menuSeparatorAll = document.getElementById('context-menu-separator-all');
   var detachAllMenu = document.getElementById('context-detachAllAttachments');
   var deleteAllMenu = document.getElementById('context-deleteAllAttachments');
 
@@ -1781,10 +1785,12 @@ function onShowAttachmentContextMenu()
 
   openMenu.setAttribute('hidden', selectNone);
   saveMenu.setAttribute('hidden', selectNone);
+  menuSeparator.setAttribute('hidden', selectNone);
   detachMenu.setAttribute('hidden', selectNone);
   deleteMenu.setAttribute('hidden', selectNone);
-  menuSeparator.setAttribute('hidden', selectNone);
+  openAllMenu.setAttribute('hidden', !selectNone);
   saveAllMenu.setAttribute('hidden', !selectNone);
+  menuSeparatorAll.setAttribute('hidden', !selectNone);
   detachAllMenu.setAttribute('hidden', !selectNone);
   deleteAllMenu.setAttribute('hidden', !selectNone);
 
