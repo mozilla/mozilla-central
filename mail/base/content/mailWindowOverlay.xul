@@ -38,6 +38,12 @@
 #
 # ***** END LICENSE BLOCK *****
 
+#ifdef XP_UNIX
+#ifndef XP_MACOSX
+#define XP_GNOME 1
+#endif
+#endif
+
 <?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
 <?xml-stylesheet href="chrome://communicator/skin/tasksOverlay.css" type="text/css"?>
 
@@ -427,16 +433,16 @@
   <key id="key_print" key="&printCmd.key;"                           oncommand="goDoCommand('cmd_print')" modifiers="accel"/>
   <key id="key_saveAsFile" key="&saveAsFileCmd.key;"                 oncommand="goDoCommand('cmd_saveAsFile')" modifiers="accel"/>
   <key id="key_viewPageSource" key="&pageSourceCmd.key;"             oncommand="goDoCommand('cmd_viewPageSource')" modifiers="accel"/>
-  <key id="key_getNewMessages" key="&getNewMsgCmd.key;"              oncommand="goDoCommand('cmd_getNewMessages')" modifiers="accel"/>
-#ifdef XP_WIN
-  <key id="key_getNewMessages2" keycode="VK_F5" oncommand="goDoCommand('cmd_getNewMessages')"/>
-#elifdef XP_UNIX
-  <key id="key_getNewMessages2" keycode="VK_F9" oncommand="goDoCommand('cmd_getNewMessages')"/>
+  <key id="key_getNewMessages" keycode="VK_F5"
+       oncommand="goDoCommand('cmd_getNewMessages');"/>
+  <key id="key_getAllNewMessages" keycode="VK_F5" modifiers="shift"
+       oncommand="goDoCommand('cmd_getMsgsForAuthAccounts');"/>
+#ifdef XP_GNOME
+  <key id="key_getNewMessages2" keycode="VK_F9"
+       oncommand="goDoCommand('cmd_getNewMessages');"/>
+  <key id="key_getAllNewMessages2" keycode="VK_F9" modifiers="shift"
+       oncommand="goDoCommand('cmd_getMsgsForAuthAccounts');"/>
 #endif
-  <key id="key_getAllNewMessages"
-       key="&getAllNewMsgCmd.key;"
-       oncommand="goDoCommand('cmd_getMsgsForAuthAccounts');"
-       modifiers="accel, shift"/>
   <key id="key_find" key="&findCmd.key;"  oncommand="goDoCommand('cmd_find')" modifiers="accel"/>
   <key id="key_findAgain" key="&findAgainCmd.key;"   oncommand="goDoCommand('cmd_findAgain')" modifiers="accel"/>
   <key id="key_findPrev"  key="&findPrevCmd.key;"    oncommand="goDoCommand('cmd_findPrevious')"  modifiers="accel, shift"/>
@@ -506,12 +512,6 @@
        key="&savedFiles.key;"
        modifiers="accel"
        oncommand="openSavedFilesWnd();"/>
-
-#ifdef XP_UNIX
-#ifndef XP_MACOSX
-#define XP_GNOME 1
-#endif
-#endif
 
 #ifdef XP_GNOME
 #define NUM_SELECT_TAB_MODIFIER alt
