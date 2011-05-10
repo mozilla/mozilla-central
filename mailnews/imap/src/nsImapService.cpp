@@ -567,11 +567,12 @@ NS_IMETHODIMP nsImapService::DisplayMessage(const char *aMessageURI,
       PRBool forcePeek = PR_FALSE;
       if (NS_SUCCEEDED(rv) && prefBranch)
       {
+        PRInt32 dontMarkAsReadPos = uriStr.Find("&markRead=false");
         PRBool markReadAuto = PR_TRUE;
         prefBranch->GetBoolPref("mailnews.mark_message_read.auto", &markReadAuto);
         PRBool markReadDelay = PR_FALSE;
         prefBranch->GetBoolPref("mailnews.mark_message_read.delay", &markReadDelay);
-        forcePeek = (!markReadAuto || markReadDelay);
+        forcePeek = (!markReadAuto || markReadDelay || (dontMarkAsReadPos != kNotFound));
       }
 
       rv = FetchMessage(imapUrl, forcePeek ? nsIImapUrl::nsImapMsgFetchPeek : nsIImapUrl::nsImapMsgFetch, 
