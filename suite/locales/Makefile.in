@@ -263,7 +263,8 @@ clobber-zip:
 	  $(STAGEDIST)/dictionaries \
 	  $(STAGEDIST)/defaults/profile \
 	  $(STAGEDIST)/chrome/$(AB_CD) \
-	  $(STAGEDIST)/extensions/langpack-$(AB_CD)@*
+	  $(STAGEDIST)/extensions/langpack-$(AB_CD)@* \
+	  $(STAGEDIST)/distribution/extensions/langpack-$(AB_CD)@* \
 
 repackage-zip: repackage-extensions
 
