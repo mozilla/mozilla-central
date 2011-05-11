@@ -54,49 +54,21 @@
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function nsContextMenu(aXulMenu, aBrowser) {
-  this.target            = null;
-  this.browser           = null;
-  this.menu              = null;
-  this.popupURL          = null;
-  this.onTextInput       = false;
-  this.onKeywordField    = false;
-  this.onImage           = false;
-  this.onLoadedImage     = false;
-  this.onCanvas          = false;
-  this.onVideo           = false;
-  this.onAudio           = false;
-  this.onLink            = false;
-  this.onMailtoLink      = false;
-  this.onSaveableLink    = false;
-  this.onMetaDataItem    = false;
-  this.onMathML          = false;
-  this.link              = false;
-  this.linkURL           = "";
-  this.linkURI           = null;
-  this.linkProtocol      = null;
-  this.inFrame           = false;
-  this.hasBGImage        = false;
-  this.isTextSelected    = false;
-  this.isContentSelected = false;
-  this.inDirList         = false;
-  this.shouldDisplay     = true;
-  this.autoDownload      = false;
-
-  // Initialize new menu.
-  this.initMenu(aXulMenu, aBrowser);
+  this.shouldDisplay = true;
+  this.initMenu(aBrowser);
 }
 
 // Prototype for nsContextMenu "class."
 nsContextMenu.prototype = {
-  // Initialize context menu.
-  initMenu: function(aPopup, aBrowser) {
-    this.menu = aPopup;
-    this.browser = aBrowser;
-
+  initMenu: function(aBrowser) {
     // Get contextual info.
     this.setTarget(document.popupNode, document.popupRangeParent,
                    document.popupRangeOffset);
 
+    if (!this.shouldDisplay)
+      return;
+
+    this.browser = aBrowser;
     this.isTextSelected = this.isTextSelection();
     this.isContentSelected = this.isContentSelection();
 
@@ -289,10 +261,9 @@ nsContextMenu.prototype = {
     // suggestion list
     this.showItem("spell-add-separator", onMisspelling);
     this.showItem("spell-suggestions-separator", onMisspelling);
-    var menu = document.getElementById("contentAreaContextMenu");
-    if (onMisspelling && menu) {
+    if (onMisspelling) {
       var suggestionsSeparator = document.getElementById("spell-add-separator");
-      var numsug = InlineSpellCheckerUI.addSuggestionsToMenu(menu, suggestionsSeparator, 5);
+      var numsug = InlineSpellCheckerUI.addSuggestionsToMenu(suggestionsSeparator.parentNode, suggestionsSeparator, 5);
       this.showItem("spell-no-suggestions", numsug == 0);
     } else {
       this.showItem("spell-no-suggestions", false);
@@ -397,7 +368,8 @@ nsContextMenu.prototype = {
   // Set various context menu attributes based on the state of the world.
   setTarget: function(aNode, aRangeParent, aRangeOffset) {
     const xulNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-    if (aNode.namespaceURI == xulNS) {
+    if (aNode.namespaceURI == xulNS ||
+        this.isTargetAFormControl(aNode)) {
       this.shouldDisplay = false;
       return;
     }
@@ -414,6 +386,10 @@ nsContextMenu.prototype = {
     this.onKeywordField        = false;
     this.mediaURL              = "";
     this.onLink                = false;
+    this.onMailtoLink          = false;
+    this.onSaveableLink        = false;
+    this.inDirList             = false;
+    this.link                  = null;
     this.linkURL               = "";
     this.linkURI               = null;
     this.linkProtocol          = "";
@@ -629,6 +605,7 @@ nsContextMenu.prototype = {
   },
 
   initPopupURL: function() {
+    this.popupURL = null;
     // quick check: if no opener, it can't be a popup
     if (!window.content.opener)
       return;
@@ -1286,6 +1263,7 @@ nsContextMenu.prototype = {
   },
 
   // Returns true if aNode is a form control (except text boxes and images).
+  // This is used to disable the context menu for form controls.
   isTargetAFormControl: function(aNode) {
     if (aNode instanceof HTMLInputElement)
       return (!aNode.mozIsTextField(false) && aNode.type != "image");
