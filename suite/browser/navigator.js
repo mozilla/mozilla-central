@@ -2760,110 +2760,34 @@ var LightWeightThemeWebInstaller = {
       return;
     }
 
-    var allowButtonText =
-      gNavigatorBundle.getString("lwthemeInstallRequest.allowButton");
-    var allowButtonAccesskey =
-      gNavigatorBundle.getString("lwthemeInstallRequest.allowButton.accesskey");
-    var message =
-      gNavigatorBundle.getFormattedString("lwthemeInstallRequest.message",
-                                          [node.ownerDocument.location.host]);
-    var buttons = [{
-      label: allowButtonText,
-      accessKey: allowButtonAccesskey,
-      callback: function () {
-        return LightWeightThemeWebInstaller._install(data);
-      }
-    }];
-
     this._removePreviousNotifications();
-
-    var notificationBox = gBrowser.getNotificationBox();
-    var notificationBar =
-      notificationBox.appendNotification(message, "lwtheme-install-request", "",
-                                         notificationBox.PRIORITY_INFO_MEDIUM,
-                                         buttons);
-    notificationBar.persistence = 1;
+    getBrowser().getNotificationBox().lwthemeInstallRequest(
+        node.ownerDocument.location.host,
+        this._install.bind(this, data));
   },
 
   _install: function (newTheme) {
+    this._removePreviousNotifications();
+
     var previousTheme = this._manager.currentTheme;
     this._manager.currentTheme = newTheme;
     if (this._manager.currentTheme &&
         this._manager.currentTheme.id == newTheme.id)
-      this._postInstallNotification(newTheme, previousTheme);
+      getBrowser().getNotificationBox().lwthemeInstallNotification(function() {
+        LightWeightThemeWebInstaller._manager.forgetUsedTheme(newTheme.id);
+        LightWeightThemeWebInstaller._manager.currentTheme = previousTheme;
+      });
     else
-      this._postRestartNotification(newTheme);
+      getBrowser().getNotificationBox().lwthemeNeedsRestart(newTheme.name);
 
-    // Posting the notification destroys the permission notification,
+    // We've already destroyed the permission notification,
     // so tell the former that it's closed already.
     return true;
   },
 
-  _postInstallNotification: function (newTheme, previousTheme) {
-    function text(id) {
-      return gNavigatorBundle.getString("lwthemePostInstallNotification." + id);
-    }
-
-    var buttons = [{
-      label: text("undoButton"),
-      accessKey: text("undoButton.accesskey"),
-      callback: function () {
-        LightWeightThemeWebInstaller._manager.forgetUsedTheme(newTheme.id);
-        LightWeightThemeWebInstaller._manager.currentTheme = previousTheme;
-      }
-    }, {
-      label: text("manageButton"),
-      accessKey: text("manageButton.accesskey"),
-      callback: function () {
-        toEM("addons://list/theme");
-      }
-    }];
-
-    this._removePreviousNotifications();
-
-    var notificationBox = gBrowser.getNotificationBox();
-    var notificationBar =
-      notificationBox.appendNotification(text("message"),
-                                         "lwtheme-install-notification", "",
-                                         notificationBox.PRIORITY_INFO_MEDIUM,
-                                         buttons);
-    notificationBar.persistence = 1;
-    notificationBar.timeout = Date.now() + 20000; // 20 seconds
-  },
-
-  _postRestartNotification: function (newTheme) {
-    var message = gNavigatorBundle.getFormattedString("lwthemeNeedsRestart.message",
-                                                      [newTheme.name]);
-
-    var buttons = [{
-      label: gNavigatorBundle.getString("lwthemeNeedsRestart.restartButton"),
-      accessKey: gNavigatorBundle.getString("lwthemeNeedsRestart.restartButton.accesskey"),
-      callback: function () {
-        Application.restart();
-      }
-    }];
-
-    this._removePreviousNotifications();
-
-    var notificationBox = gBrowser.getNotificationBox();
-    var notificationBar =
-      notificationBox.appendNotification(message,
-                                         "lwtheme-install-notification", "",
-                                         notificationBox.PRIORITY_INFO_MEDIUM,
-                                         buttons);
-    notificationBar.persistence = 1;
-    notificationBar.timeout = Date.now() + 20000; // 20 seconds
-  },
-
   _removePreviousNotifications: function () {
-    var box = gBrowser.getNotificationBox();
-
-    ["lwtheme-install-request",
-     "lwtheme-install-notification"].forEach(function (value) {
-        var notification = box.getNotificationWithValue(value);
-        if (notification)
-          box.removeNotification(notification);
-      });
+    getBrowser().getNotificationBox().removeNotifications(
+        ["lwtheme-install-request", "lwtheme-install-notification"]);
   },
 
   _previewWindow: null,

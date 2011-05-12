@@ -855,6 +855,89 @@
         </body>
       </method>
 
+      <method name="removeNotifications">
+        <parameter name="aNotifications"/>
+        <body>
+          <![CDATA[
+            aNotifications.forEach(function(value) {
+              var box = this.getNotificationWithValue(value);
+              if (box)
+                this.removeNotification(box);
+            }, this);
+          ]]>
+        </body>
+      </method>
+
+      <method name="lwthemeInstallRequest">
+        <parameter name="aHost"/>
+        <parameter name="aCallback"/>
+        <body>
+          <![CDATA[
+            var message = this._stringBundle.formatStringFromName("lwthemeInstallRequest.message", [aHost], 1);
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName("lwthemeInstallRequest.allowButton"),
+              accessKey: this._stringBundle.GetStringFromName("lwthemeInstallRequest.allowButton.accesskey"),
+              popup: null,
+              callback: aCallback
+            }];
+            var box = this.appendNotification(message,
+                                              "lwtheme-install-request", null,
+                                              this.PRIORITY_INFO_MEDIUM,
+                                              buttons);
+            box.persistence = 1;
+          ]]>
+        </body>
+      </method>
+
+      <method name="lwthemeInstallNotification">
+        <parameter name="aCallback"/>
+        <body>
+          <![CDATA[
+            var message = this._stringBundle.GetStringFromName("lwthemeInstallNotification.message");
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName("lwthemeInstallNotification.undoButton"),
+              accessKey: this._stringBundle.GetStringFromName("lwthemeInstallNotification.undoButton.accesskey"),
+              callback: aCallback
+            }, {
+              label: this._stringBundle.GetStringFromName("lwthemeInstallNotification.manageButton"),
+              accessKey: this._stringBundle.GetStringFromName("lwthemeInstallNotification.manageButton.accesskey"),
+              callback: function() {
+                window.toEM("addons://list/theme");
+              }
+            }];
+            var box = this.appendNotification(message,
+                                              "lwtheme-install-notification",
+                                              null, this.PRIORITY_INFO_MEDIUM,
+                                              buttons);
+            box.persistence = 1;
+            box.timeout = Date.now() + 20000; // 20 seconds
+          ]]>
+        </body>
+      </method>
+
+      <method name="lwthemeNeedsRestart">
+        <parameter name="aNewThemeName"/>
+        <body>
+          <![CDATA[
+            var message = this._stringBundle.formatStringFromName("lwthemeNeedsRestart.message", [aNewThemeName], 1);
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName("lwthemeNeedsRestart.restartButton"),
+              accessKey: this._stringBundle.GetStringFromName("lwthemeNeedsRestart.restartButton.accesskey"),
+              popup: null,
+              callback: function() {
+                Application.restart();
+              }
+            }];
+            var box = this.appendNotification(message,
+                                              "lwtheme-install-notification",
+                                               null,this.PRIORITY_INFO_MEDIUM,
+                                              buttons);
+            box.persistence = 1;
+            box.timeout = Date.now() + 20000; // 20 seconds
+          ]]>
+        </body>
+      </method>
+
       <method name="showGeolocationPrompt">
         <parameter name="file"/>
         <parameter name="site"/>
@@ -1692,6 +1775,88 @@
   <binding id="popup-notification"
            extends="chrome://communicator/content/bindings/notification.xml#browser-notificationbox">
     <implementation>
+      <method name="removeNotifications">
+        <parameter name="aNotifications"/>
+        <body>
+          <![CDATA[
+            aNotifications.forEach(function(value) {
+              var notification = PopupNotifications.getNotification(value);
+              if (notification)
+                PopupNotifications.remove(notification);
+            });
+          ]]>
+        </body>
+      </method>
+
+      <method name="lwthemeInstallRequest">
+        <parameter name="aHost"/>
+        <parameter name="aCallback"/>
+        <body>
+          <![CDATA[
+            var message = this._stringBundle.formatStringFromName("lwthemeInstallRequest.message", [aHost], 1);
+            var action = {
+              label: this._stringBundle.GetStringFromName("lwthemeInstallRequest.allowButton"),
+              accessKey: this._stringBundle.GetStringFromName("lwthemeInstallRequest.allowButton.accesskey"),
+              callback: aCallback
+            };
+            PopupNotifications.show(this.activeBrowser,
+                                    "lwtheme-install-request", message,
+                                    "addons-notification-icon", action);
+          ]]>
+        </body>
+      </method>
+
+      <method name="lwthemeInstallNotification">
+        <parameter name="aCallback"/>
+        <body>
+          <![CDATA[
+            var message = this._stringBundle.GetStringFromName("lwthemeInstallNotification.message");
+            var mainAction = {
+              label: this._stringBundle.GetStringFromName("lwthemeInstallNotification.undoButton"),
+              accessKey: this._stringBundle.GetStringFromName("lwthemeInstallNotification.undoButton.accesskey"),
+              callback: aCallback
+            };
+            var secondaryActions = [{
+              label: this._stringBundle.GetStringFromName("lwthemeInstallNotification.manageButton"),
+              accessKey: this._stringBundle.GetStringFromName("lwthemeInstallNotification.manageButton.accesskey"),
+              callback: function() {
+                window.toEM("addons://list/theme");
+              }
+            }];
+            var options = {
+              timeout: Date.now() + 20000 // 20 seconds
+            };
+            PopupNotifications.show(this.activeBrowser,
+                                    "lwtheme-install-notification", message,
+                                    "addons-notification-icon", mainAction,
+                                    secondaryActions, options);
+          ]]>
+        </body>
+      </method>
+
+      <method name="lwthemeNeedsRestart">
+        <parameter name="aNewThemeName"/>
+        <body>
+          <![CDATA[
+            var message = this._stringBundle.formatStringFromName("lwthemeNeedsRestart.message", [aNewThemeName], 1);
+            var action = {
+              label: this._stringBundle.GetStringFromName("lwthemeNeedsRestart.restartButton"),
+              accessKey: this._stringBundle.GetStringFromName("lwthemeNeedsRestart.restartButton.accesskey"),
+              callback: function() {
+                Application.restart();
+              }
+            };
+            var options = {
+              timeout: Date.now() + 20000 // 20 seconds
+            };
+            PopupNotifications.show(this.activeBrowser,
+                                    "lwtheme-install-notification", message,
+                                    "addons-notification-icon", action, null,
+                                    options);
+          ]]>
+        </body>
+      </method>
+
       <method name="showGeolocationPrompt">
         <parameter name="file"/>
         <parameter name="site"/>

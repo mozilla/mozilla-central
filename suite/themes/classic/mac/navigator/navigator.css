@@ -316,7 +316,9 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
 .popup-notification-icon[popupid="addon-install-started"],
 .popup-notification-icon[popupid="addon-install-cancelled"],
 .popup-notification-icon[popupid="addon-install-failed"],
-.popup-notification-icon[popupid="addon-install-complete"] {
+.popup-notification-icon[popupid="addon-install-complete"],
+.popup-notification-icon[popupid="lwtheme-install-request"],
+.popup-notification-icon[popupid="lwtheme-install-notification"] {
   list-style-image: url("chrome://mozapps/skin/extensions/extensionGeneric.png");
   width: 32px;
   height: 32px;
