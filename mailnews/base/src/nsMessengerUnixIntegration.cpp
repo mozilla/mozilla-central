@@ -136,6 +136,7 @@ nsMessengerUnixIntegration::nsMessengerUnixIntegration()
   mNewMailReceivedAtom = MsgGetAtom("NewMailReceived");
   mAlertInProgress = PR_FALSE;
   mLastMRUTimes.Init();
+  mFetchingPreview = PR_FALSE;
   NS_NewISupportsArray(getter_AddRefs(mFoldersWithNewMail));
 }
 
@@ -257,6 +258,32 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
   if (!parser)
     return PR_FALSE;
 
+  PRUint32 messageKey;
+  if (NS_FAILED(aHdr->GetMessageKey(&messageKey)))
+    return PR_FALSE;
+
+  PRBool asyncResult = PR_FALSE;
+
+  if (!mFetchingPreview) {
+    nsCOMPtr<nsIMsgFolder> parentFolder;
+    aHdr->GetFolder(getter_AddRefs(parentFolder));
+
+    if (!parentFolder)
+      return PR_FALSE;
+
+    nsresult rv = parentFolder->FetchMsgPreviewText(&messageKey, 1,
+                                                    PR_FALSE, this,
+                                                    &asyncResult);
+    mFetchingPreview = asyncResult;
+    // If we're still waiting on getting the message previews,
+    // bail early.  We'll come back later when the async operation
+    // finishes.
+    if (NS_FAILED(rv) || asyncResult)
+      return PR_FALSE;
+
+  }
+  mFetchingPreview = PR_FALSE;
+
   nsCString utf8previewString;
   if (showPreview &&
       NS_FAILED(aHdr->GetStringProperty("preview", getter_Copies(utf8previewString))))
@@ -282,16 +309,19 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
     PRUnichar **fullnames;
     PRUint32 num;
     if (NS_FAILED(parser->ParseHeadersWithArray(author.get(),
-            &emails,
-            &names,
-            &fullnames, &num)))
+                  &emails,
+                  &names,
+                  &fullnames, &num)))
       return PR_FALSE;
 
-    author.Assign(names[0] ? names[0] : emails[0]);
+    if (num > 0)
+    {
+      author.Assign(names[0] ? names[0] : emails[0]);
 
-    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(num, emails);
-    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(num, names);
-    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(num, fullnames);
+      NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(num, emails);
+      NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(num, names);
+      NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(num, fullnames);
+    }
   }
 
   if (showSubject && showSender)
@@ -500,7 +530,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
 
     // Create the notification title
     nsString alertTitle;
-    if (NS_FAILED(BuildNotificationTitle(folder, bundle, alertTitle)))
+    if (!BuildNotificationTitle(folder, bundle, alertTitle))
       return;
 
     // Let's get the new mail for this folder
@@ -528,7 +558,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
     // Next, add the new message headers to an nsCOMArray.  We
     // only add message headers that are newer than lastMRUTime.
     nsCOMArray<nsIMsgDBHdr> newMsgHdrs;
-    for (int i = 0; i < numNewKeys; ++i) {
+    for (unsigned int i = 0; i < numNewKeys; ++i) {
       nsCOMPtr<nsIMsgDBHdr> hdr;
       if (NS_FAILED(db->GetMsgHdrForKey(newMessageKeys[i], getter_AddRefs(hdr))))
         continue;
@@ -538,40 +568,25 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
 
       if (dateInSeconds > lastMRUTime)
         newMsgHdrs.AppendObject(hdr);
+
     }
-
-    // If we didn't happen to add any message headers, free
-    // up newMessageKeys and bail out.
-    if (!newMsgHdrs.Count())
-    {
-      NS_Free(newMessageKeys);
-      return;
-    }
-
-    // Sort the message headers by dateInSeconds, in ascending
-    // order
-    newMsgHdrs.Sort(nsMsgDbHdrTimestampComparator, nsnull);
-
-    PRBool asyncResult = PR_FALSE;
-    rv = folderWithNewMail->FetchMsgPreviewText(newMessageKeys,
-                                                numNewKeys,
-                                                PR_FALSE, this,
-                                                &asyncResult);
 
     // At this point, we don't need newMessageKeys any more,
     // so let's free it.
     NS_Free(newMessageKeys);
 
-    // If we're still waiting on getting the message previews,
-    // bail early.  We'll come back later when the async operation
-    // finishes.
-    if (NS_FAILED(rv) || asyncResult)
+    // If we didn't happen to add any message headers, bail out
+    if (!newMsgHdrs.Count())
       return;
+
+    // Sort the message headers by dateInSeconds, in ascending
+    // order
+    newMsgHdrs.Sort(nsMsgDbHdrTimestampComparator, nsnull);
 
     nsString alertBody;
 
     // Build the body text of the notification.
-    if (NS_FAILED(BuildNotificationBody(newMsgHdrs[0], bundle, alertBody)))
+    if (!BuildNotificationBody(newMsgHdrs[0], bundle, alertBody))
       return;
 
     // Show the notification

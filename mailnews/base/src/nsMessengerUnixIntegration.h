@@ -92,6 +92,7 @@ private:
   nsCOMPtr<nsIAtom> mNewMailReceivedAtom;
   PRBool mAlertInProgress;
   nsDataHashtable<nsCStringHashKey, PRUint32> mLastMRUTimes; // We keep track of the last time we did a new mail notification for each account
+  PRBool mFetchingPreview;
 };
 
 #endif // __nsMessengerUnixIntegration_h
