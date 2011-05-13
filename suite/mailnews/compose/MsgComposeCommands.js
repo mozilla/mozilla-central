@@ -628,20 +628,22 @@ function updateComposeItems()
 
 function openEditorContextMenu(popup)
 {
-  // if we have a mispelled word, show spellchecker context
-  // menuitems as well as the usual context menu
-  InlineSpellCheckerUI.clearSuggestionsFromMenu();
-  InlineSpellCheckerUI.initFromEvent(document.popupRangeParent, document.popupRangeOffset);
-  var onMisspelling = InlineSpellCheckerUI.overMisspelling;
-  document.getElementById('spellCheckSuggestionsSeparator').hidden = !onMisspelling;
-  document.getElementById('spellCheckAddToDictionary').hidden = !onMisspelling;
-  document.getElementById('spellCheckIgnoreWord').hidden = !onMisspelling;
-  var separator = document.getElementById('spellCheckAddSep');
-  separator.hidden = !onMisspelling;
-  document.getElementById('spellCheckNoSuggestions').hidden = !onMisspelling ||
-      InlineSpellCheckerUI.addSuggestionsToMenu(popup, separator, 5);
-
-  updateEditItems();
+  gContextMenu = new nsContextMenu(popup);
+  if (gContextMenu.shouldDisplay)
+  {
+    // If message body context menu then focused element should be content.
+    var showPasteExtra =
+        top.document.commandDispatcher.focusedWindow == content;
+    gContextMenu.showItem("context-pasteNoFormatting", showPasteExtra);
+    gContextMenu.showItem("context-pasteQuote", showPasteExtra);
+    if (showPasteExtra)
+    {
+      goUpdateCommand("cmd_pasteNoFormatting");
+      goUpdateCommand("cmd_pasteQuote");
+    }
+    return true;
+  }
+  return false;
 }
 
 function updateEditItems()

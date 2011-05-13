@@ -47,8 +47,9 @@
 
 <?xul-overlay href="chrome://global/content/charsetOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/tasksOverlay.xul"?>
-<?xul-overlay href="chrome://communicator/content/contentAreaContextOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/sidebar/sidebarOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/contentAreaContextOverlay.xul"?>
+<?xul-overlay href="chrome://messenger/content/messengercompose/msgComposeContextOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/messengercompose/addressingWidgetOverlay.xul"?>
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
@@ -190,53 +191,13 @@
 </keyset>
 <keyset id="editorKeys"/>
 
+  <popupset id="contentAreaContextSet"/>
+
   <popupset id="msgComposePopupSet">
     <menupopup id="sidebarPopup"/>
     <menupopup id="popupNotificationMenu"/>
     <menupopup id="toolbar-context-menu"/>
     <panel id="customizeToolbarSheetPopup"/>
-
-    <menupopup id="msgComposeContext"
-               onpopupshowing="openEditorContextMenu(this);">
-      <menuitem id="spellCheckNoSuggestions"
-                label="&spellCheckNoSuggestions.label;"
-                disabled="true"/>
-      <menuseparator id="spellCheckAddSep"/>
-      <menuitem id="spellCheckAddToDictionary"
-                label="&spellCheckAddToDictionary.label;"
-                accesskey="&spellCheckAddToDictionary.accesskey;"
-                oncommand="InlineSpellCheckerUI.addToDictionary();"/>
-      <menuitem id="spellCheckIgnoreWord"
-                label="&spellCheckIgnoreWord.label;"
-                accesskey="&spellCheckIgnoreWord.accesskey;"
-                oncommand="InlineSpellCheckerUI.ignoreWord()"/>
-      <menuseparator id="spellCheckSuggestionsSeparator"/>
-
-      <menuitem label="&undo.label;"
-                accesskey="&undo.accesskey;"
-                command="cmd_undo"/>
-      <menuseparator/>
-      <menuitem label="&cut.label;"
-                accesskey="&cut.accesskey;"
-                command="cmd_cut"/>
-      <menuitem label="&copy.label;"
-                accesskey="&copy.accesskey;"
-                command="cmd_copy"/>
-      <menuitem label="&paste.label;"
-                accesskey="&paste.accesskey;"
-                command="cmd_paste"/>
-      <menuitem command="cmd_pasteNoFormatting"/>
-      <menuitem label="&pasteQuote.label;"
-                accesskey="&pasteQuote.accesskey;"
-                command="cmd_pasteQuote"/>
-      <menuitem label="&delete.label;"
-                accesskey="&delete.accesskey;"
-                command="cmd_delete"/>
-      <menuseparator/>
-      <menuitem label="&selectAll.label;"
-                accesskey="&selectAll.accesskey;"
-                command="cmd_selectAll"/>
-    </menupopup>
 
     <menupopup id="msgComposeAttachmentContext"
                onpopupshowing="updateEditItems();">
@@ -754,7 +715,7 @@
   <!-- The mail message body frame -->
   <vbox id="appcontent" flex="1">
     <editor type="content-primary" id="content-frame" src="about:blank" name="browser.message.body" flex="1"
-            context="msgComposeContext"/>
+            context="contentAreaContextMenu"/>
   </vbox>
 </hbox>
 
