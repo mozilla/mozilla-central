@@ -412,6 +412,9 @@ function runTest(testNum) {
                           "context-viewbgimage",  false,
                           "context-selectall",    true,
                           "---",                  null,
+                          "context-viewsource",   true,
+                          "context-viewinfo",     true,
+                          "---",                  null,
                           "frame",                null,
                               ["context-showonlythisframe", true,
                                "context-openframeintab",    true,
@@ -424,10 +427,7 @@ function runTest(testNum) {
                                "context-sendframe",         true,
                                "---",                       null,
                                "context-viewframesource",   true,
-                               "context-viewframeinfo",     true], null,
-                          "---",                  null,
-                          "context-viewsource",   true,
-                          "context-viewinfo",     true]);
+                               "context-viewframeinfo",     true], null]);
         closeContextMenu();
         openContextMenuFor(textarea); // Invoke context menu for next test.
         break;
