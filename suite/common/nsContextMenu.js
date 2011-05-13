@@ -55,12 +55,12 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function nsContextMenu(aXulMenu, aBrowser) {
   this.shouldDisplay = true;
-  this.initMenu(aBrowser);
+  this.initMenu();
 }
 
 // Prototype for nsContextMenu "class."
 nsContextMenu.prototype = {
-  initMenu: function(aBrowser) {
+  initMenu: function() {
     // Get contextual info.
     this.setTarget(document.popupNode, document.popupRangeParent,
                    document.popupRangeOffset);
@@ -68,7 +68,6 @@ nsContextMenu.prototype = {
     if (!this.shouldDisplay)
       return;
 
-    this.browser = aBrowser;
     this.isTextSelected = this.isTextSelection();
     this.isContentSelected = this.isContentSelection();
 
@@ -419,10 +418,12 @@ nsContextMenu.prototype = {
     // if the document is editable, show context menu like in text inputs
     var win = this.target.ownerDocument.defaultView;
     if (win) {
-      var editingSession = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-                              .getInterface(Components.interfaces.nsIWebNavigation)
-                              .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-                              .getInterface(Components.interfaces.nsIEditingSession);
+      var webNav = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                      .getInterface(Components.interfaces.nsIWebNavigation);
+      this.browser = webNav.QueryInterface(Components.interfaces.nsIDocShell)
+                           .chromeEventHandler;
+      var editingSession = webNav.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                                 .getInterface(Components.interfaces.nsIEditingSession);
       if (editingSession.windowIsEditable(win) && this.isTargetEditable()) {
         this.onTextInput           = true;
         this.possibleSpellChecking = true;
