@@ -528,44 +528,30 @@ GenericProtocolHandler.prototype = {
   },
 
   newURI: function newURI(spec, originalCharset, baseURI) {
-    // See bug 408599 - feed URIs can be either standard URLs of the form
-    // feed://example.com, in which case the real protocol is http, or nested
-    // URIs of the form feed:realscheme:. When realscheme is either http or
-    // https, we deal with the way that creates a standard URL with the
-    // realscheme as the host by unmangling in newChannel; for others, we fail
-    // rather than let it wind up loading something like www.realscheme.com//foo
+    // Feed URIs can be either nested URIs of the form feed:realURI (in which
+    // case we create a nested URI for the realURI) or feed://example.com, in
+    // which case we create a nested URI for the real protocol which is http.
 
-    const feedSlashes = "feed://";
-    const feedHttpSlashes = "feed:http://";
-    const feedHttpsSlashes = "feed:https://";
-
-    if (spec.substr(0, feedSlashes.length) != feedSlashes &&
-        spec.substr(0, feedHttpSlashes.length) != feedHttpSlashes &&
-        spec.substr(0, feedHttpsSlashes.length) != feedHttpsSlashes)
+    spec = spec.replace(/^\s+|[\r\n\t]+|\s+$/g, "");
+    if (!/^feed:/.test(spec))
       throw Components.results.NS_ERROR_MALFORMED_URI;
 
-    var uri = Components.classes["@mozilla.org/network/standard-url;1"]
-                        .createInstance(Components.interfaces.nsIStandardURL);
-    uri.init(Components.interfaces.nsIStandardURL.URLTYPE_STANDARD, 80, spec,
-             originalCharset, baseURI);
+    var prefix = /^feed:\/\//.test(spec) ? "http:" : "";
+    var inner = this._ioSvc.newURI(spec.replace("feed:", prefix),
+                                   originalCharset, baseURI);
+    var uri = Components.classes["@mozilla.org/network/util;1"]
+                        .getService(Components.interfaces.nsINetUtil)
+                        .newSimpleNestedURI(inner);
+    uri.spec = inner.spec.replace(prefix, "feed:");
     return uri;
   },
 
   newChannel: function newChannel(aUri) {
-    // feed: URIs either start feed://, in which case the real scheme is http:
-    // or feed:http(s)://, (which by now we've changed to feed://realscheme//)
-    var feedSpec = aUri.spec;
-    const httpChunk = /^feed:\/\/(https?)/;
-    if (httpChunk.test(feedSpec))
-      feedSpec = feedSpec.replace(httpChunk, "$1:");
-    else
-      feedSpec = feedSpec.replace(/^feed/, "http");
-
-    var uri = this._ioSvc.newURI(feedSpec, aUri.originCharset, null);
-    var channel = this._ioSvc.newChannelFromURI(uri, null)
-                       .QueryInterface(Components.interfaces.nsIHttpChannel);
-    // Set this so we know this is supposed to be a feed
-    channel.setRequestHeader("X-Moz-Is-Feed", "1", false);
+    var uri = aUri.QueryInterface(Components.interfaces.nsINestedURI).innerURI;
+    var channel = this._ioSvc.newChannelFromURI(uri);
+    if (channel instanceof Components.interfaces.nsIHttpChannel)
+      // Set this so we know this is supposed to be a feed
+      channel.setRequestHeader("X-Moz-Is-Feed", "1", false);
     channel.originalURI = aUri;
     return channel;
   },
