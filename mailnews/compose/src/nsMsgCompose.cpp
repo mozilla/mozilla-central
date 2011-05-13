@@ -3076,12 +3076,7 @@ nsMsgCompose::QuoteMessage(const char *msgURI)
                                     mHtmlToQuote);
 
   if (!mQuoteStreamListener)
-  {
-#ifdef NS_DEBUG
-    printf("Failed to create mQuoteStreamListener\n");
-#endif
     return NS_ERROR_FAILURE;
-  }
   NS_ADDREF(mQuoteStreamListener);
 
   mQuoteStreamListener->SetComposeObj(this);
@@ -3120,12 +3115,7 @@ nsMsgCompose::QuoteOriginalMessage(const char *originalMsgURI, PRInt32 what) // 
                                     mQuoteCharset.get(), mCharsetOverride, PR_TRUE, mHtmlToQuote);
 
   if (!mQuoteStreamListener)
-  {
-#ifdef NS_DEBUG
-    printf("Failed to create mQuoteStreamListener\n");
-#endif
     return NS_ERROR_FAILURE;
-  }
   NS_ADDREF(mQuoteStreamListener);
 
   mQuoteStreamListener->SetComposeObj(this);
@@ -3509,9 +3499,6 @@ nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aS
 
     if (NS_SUCCEEDED(aStatus))
     {
-#ifdef NS_DEBUG
-      printf("nsMsgComposeSendListener: Success on the message send operation!\n");
-#endif
       nsCOMPtr<nsIMsgCompFields> compFields;
       msgCompose->GetCompFields(getter_AddRefs(compFields));
 
@@ -3565,9 +3552,6 @@ nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aS
     }
     else
     {
-#ifdef NS_DEBUG
-      printf("nsMsgComposeSendListener: the message send operation failed!\n");
-#endif
       msgCompose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeProcessDone, aStatus);
       if (progress)
       {
@@ -3600,19 +3584,12 @@ nsMsgComposeSendListener::OnGetDraftFolderURI(const char *aFolderURI)
 nsresult
 nsMsgComposeSendListener::OnStartCopy()
 {
-#ifdef NS_DEBUG
-  printf("nsMsgComposeSendListener::OnStartCopy()\n");
-#endif
-
   return NS_OK;
 }
 
 nsresult
 nsMsgComposeSendListener::OnProgress(PRUint32 aProgress, PRUint32 aProgressMax)
 {
-#ifdef NS_DEBUG
-  printf("nsMsgComposeSendListener::OnProgress() - COPY\n");
-#endif
   return NS_OK;
 }
 
@@ -3647,9 +3624,6 @@ nsMsgComposeSendListener::OnStopCopy(nsresult aStatus)
 
     if (NS_SUCCEEDED(aStatus))
     {
-#ifdef NS_DEBUG
-      printf("nsMsgComposeSendListener: Success on the message copy operation!\n");
-#endif
       // We should only close the window if we are done. Things like templates
       // and drafts aren't done so their windows should stay open
       if (mDeliverMode == nsIMsgSend::nsMsgSaveAsDraft ||
@@ -3672,10 +3646,6 @@ nsMsgComposeSendListener::OnStopCopy(nsresult aStatus)
         msgCompose->CloseWindow(PR_TRUE);
       }
     }
-#ifdef NS_DEBUG
-    else
-      printf("nsMsgComposeSendListener: the message copy operation failed!\n");
-#endif
   }
 
   return rv;
