@@ -66,6 +66,7 @@ function subtest_check_set_port_number(amc, aDontSet) {
   let iframe = amc.window.document.getElementById("contentFrame");
   let portElem = iframe.contentDocument.getElementById("server.port");
   portElem.focus();
+  portElem.selectionStart = portElem.selectionEnd = portElem.value.length;
 
   if (portElem.value != PORT_NUMBERS_TO_TEST[gTestNumber - 1])
     throw new Error("Port Value is not " +
