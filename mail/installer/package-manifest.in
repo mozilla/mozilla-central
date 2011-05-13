@@ -428,6 +428,8 @@
 @BINPATH@/components/nsSearchSuggestions.js
 @BINPATH@/components/nsTaggingService.js
 @BINPATH@/components/PlacesCategoriesStarter.js
+@BINPATH@/components/TelemetryPing.js
+@BINPATH@/components/TelemetryPing.manifest
 @BINPATH@/components/toolkitplaces.manifest
 @BINPATH@/components/toolkitsearch.manifest
 #ifdef XP_MACOSX
