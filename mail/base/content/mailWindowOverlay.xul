@@ -45,7 +45,6 @@
 #endif
 
 <?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
-<?xml-stylesheet href="chrome://communicator/skin/tasksOverlay.css" type="text/css"?>
 
 <!-- Overlaying utilityOverlay.xul here is a temporary band-aid for a
      hard-to-reproduce problem where File, Edit, and View menus disappear on
