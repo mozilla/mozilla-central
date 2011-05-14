@@ -555,14 +555,8 @@
               accesskey="&openLinkCmd.accesskey;"
               oncommand="gContextMenu.openLink();"/>
     <menuseparator id="mailContext-sep-link"/>
-    <menuitem id="context-selectall"
-              label="&selectAllCmd.label;"
-              accesskey="&selectAllCmd.accesskey;"
-              command="cmd_selectAll"/>
-    <menuitem id="context-copy"
-              label="&copyCmd.label;"
-              accesskey="&copyCmd.accesskey;"
-              command="cmd_copy"/>
+    <menuitem id="context-selectall"/>
+    <menuitem id="context-copy"/>
     <menuitem id="context-searchselect"
               oncommand="MsgOpenSearch(gContextMenu.searchSelected(), event);"/>
     <menuitem id="mailContext-openNewTab"
@@ -1101,7 +1095,7 @@
       <menu id="menu_select" label="&selectMenu.label;"
             accesskey="&selectMenu.accesskey;">
         <menupopup id="menu_SelectPopup">
-          <menuitem id="menu_SelectAll"
+          <menuitem id="menu_mailSelectAll"
                     label="&all.label;"
                     accesskey="&all.accesskey;" key="key_selectAll"
                     command="cmd_selectAll"/>

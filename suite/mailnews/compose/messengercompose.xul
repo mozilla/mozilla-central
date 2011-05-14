@@ -204,14 +204,12 @@
       <menuitem label="&openAttachment.label;"
                 accesskey="&openAttachment.accesskey;"
                 command="cmd_openAttachment"/>
-      <menuitem label="&delete.label;"
-                accesskey="&delete.accesskey;"
+      <menuitem accesskey="&deleteAttachment.accesskey;"
                 command="cmd_delete"/>
       <menuitem label="&renameAttachment.label;"
                 accesskey="&renameAttachment.accesskey;"
                 command="cmd_renameAttachment"/>
-      <menuitem label="&selectAll.label;"
-                accesskey="&selectAll.accesskey;"
+      <menuitem accesskey="&selectAllAttachments.accesskey;"
                 command="cmd_selectAll"/>
       <menuseparator/>
       <menuitem label="&attachFile.label;"

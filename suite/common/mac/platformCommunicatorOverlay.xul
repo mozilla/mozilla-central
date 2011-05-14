@@ -42,7 +42,6 @@
   <command id="cmd_quit" oncommand="goQuitApplication()"/>
 
   <!-- Edit Menu -->
-  <menuitem id="menu_redo" label="&redoCmd.label;" key="key_redo" command="cmd_redo"/>
   <key id="key_redo"   key="&redoCmd.key;" command="cmd_redo" modifiers="shift, accel"/>
   <!-- Select All Key -->
   <key id="key_selectAll" key="&selectAllCmd.key;" modifiers="accel"/>

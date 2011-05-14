@@ -27,7 +27,6 @@
 <!ENTITY printSetupCmd.label            "Page Setup…">
 <!ENTITY printSetupCmd.accesskey        "u">
 
-<!ENTITY redoCmd.label                  "Redo">  
 <!ENTITY redoCmd.key                    "Z">  
 
 <!ENTITY historyCmd.key                 "H">  

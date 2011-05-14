@@ -145,25 +145,15 @@
 <!ENTITY spellCheckIgnoreWord.accesskey "I">
 <!ENTITY spellCheckAddToDictionary.label "Add to Dictionary">
 <!ENTITY spellCheckAddToDictionary.accesskey "n">
-<!ENTITY undo.label "Undo">
-<!ENTITY undo.accesskey "U">
-<!ENTITY cut.label "Cut">
-<!ENTITY cut.accesskey "t">
-<!ENTITY copy.label "Copy">
-<!ENTITY copy.accesskey "C">
-<!ENTITY paste.label "Paste">
-<!ENTITY paste.accesskey "P">
 <!ENTITY pasteQuote.label "Paste As Quotation">
 <!ENTITY pasteQuote.accesskey "Q">
 
 <!ENTITY openAttachment.label "Open">
 <!ENTITY openAttachment.accesskey "O">
-<!ENTITY delete.label "Delete">
-<!ENTITY delete.accesskey "D">
 <!ENTITY renameAttachment.label "Rename…">
 <!ENTITY renameAttachment.accesskey "R">
-<!ENTITY selectAll.label "Select All">
-<!ENTITY selectAll.accesskey "A">
+<!ENTITY deleteAttachment.accesskey "D">
+<!ENTITY selectAllAttachments.accesskey "A">
 <!ENTITY attachFile.label "Attach File(s)…">
 <!ENTITY attachFile.accesskey "F">
 <!ENTITY attachPage.label "Attach Web Page…">
