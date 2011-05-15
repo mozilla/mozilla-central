@@ -49,7 +49,7 @@
     <preferences id="search_preferences">
       <preference id="browser.search.defaultenginename"
                   name="browser.search.defaultenginename"
-                  type="string"/>
+                  type="wstring"/>
       <preference id="browser.search.openintab"
                   name="browser.search.openintab"
                   type="bool"/>

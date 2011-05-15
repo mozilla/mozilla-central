@@ -49,8 +49,6 @@ function Startup() {
     menuitem.setAttribute("class", "menuitem-iconic");
     if (engines[i].iconURI)
       menuitem.setAttribute("image", engines[i].iconURI.spec);
-    menulist.menupopup.appendChild(menuitem);
     menuitem.engine = engines[i];
   }
-  menulist.value = Services.search.defaultEngine.name;
 }
