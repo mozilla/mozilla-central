@@ -408,8 +408,10 @@
 #endif
 @BINPATH@/components/nsUpdateTimerManager.js
 @BINPATH@/components/nsUpdateTimerManager.manifest
+#ifdef MOZ_URL_CLASSIFIER
 #ifndef MOZILLA_5_0_BRANCH
 @BINPATH@/components/nsUrlClassifierHashCompleter.js
+#endif
 #endif
 @BINPATH@/components/nsURLFormatter.js
 @BINPATH@/components/nsURLFormatter.manifest
