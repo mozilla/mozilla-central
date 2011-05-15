@@ -54,12 +54,3 @@ function Startup() {
   }
   menulist.value = Services.search.defaultEngine.name;
 }
-
-function OpenManager() {
-  var window = Services.wm.getMostRecentWindow("Browser:SearchManager");
-  if (window)
-    window.focus();
-  else
-    openDialog("chrome://communicator/content/search/engineManager.xul",
-               "_blank", "chrome,dialog,modal,centerscreen,resizable");
-}

@@ -61,5 +61,5 @@
     </hbox>
     <button id="managerButton"
             label="&search.engineManager.label;"
-            oncommand="OpenManager();"/>
+            oncommand="window.top.OpenSearchEngineManager();"/>
 </page>

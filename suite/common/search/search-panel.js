@@ -81,15 +81,6 @@ function doSearch() {
   openUILinkIn(submission.uri.spec, where, null, submission.postData);
 }
 
-function OpenManager() {
-  var window = Services.wm.getMostRecentWindow("Browser:SearchManager");
-  if (window)
-    window.focus();
-  else
-    openDialog("chrome://communicator/content/search/engineManager.xul",
-               "_blank", "chrome,dialog,modal,centerscreen,resizable");
-}
-
 var engineObserver = {
   observe: function(aEngine, aTopic, aVerb) {
     if (aTopic == SEARCH_ENGINE_TOPIC) {

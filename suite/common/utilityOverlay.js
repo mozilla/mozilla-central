@@ -1530,6 +1530,26 @@ function subscribeToFeedMiddleClick(href, event) {
   }
 }
 
+function OpenSearchEngineManager() {
+  var window = Services.wm.getMostRecentWindow("Browser:SearchManager");
+  if (window)
+    window.focus();
+  else {
+    var arg = { value: false };
+    openDialog("chrome://communicator/content/search/engineManager.xul",
+               "_blank", "chrome,dialog,modal,centerscreen,resizable", arg);
+    if (arg.value)
+      loadAddSearchEngines();
+  }
+}
+
+function loadAddSearchEngines() {
+  var newWindowPref = Services.prefs.getIntPref("browser.link.open_newwindow");
+  var where = newWindowPref == kNewTab ? "tabfocused" : "window";
+  var searchEnginesURL = Services.urlFormatter.formatURLPref("browser.search.searchEnginesURL");
+  openUILinkIn(searchEnginesURL, where);
+}
+
 function FillInHTMLTooltip(tipElement)
 {
   if (tipElement.namespaceURI == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul")

@@ -1228,10 +1228,7 @@ const BrowserSearch = {
   },
 
   loadAddEngines: function BrowserSearch_loadAddEngines() {
-    var newWindowPref = Services.prefs.getIntPref("browser.link.open_newwindow");
-    var where = newWindowPref == 3 ? "tabfocused" : "window";
-    var searchEnginesURL = Services.urlFormatter.formatURLPref("browser.search.searchEnginesURL");
-    openUILinkIn(searchEnginesURL, where);
+    loadAddSearchEngines(); // for compatibility
   },
 
   /**

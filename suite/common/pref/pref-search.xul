@@ -74,7 +74,7 @@
       <hbox pack="end">
         <button id="managerButton"
                 label="&engineManager.label;"
-                oncommand="OpenManager();"/>
+                oncommand="OpenSearchEngineManager();"/>
       </hbox>
     </groupbox>
 
