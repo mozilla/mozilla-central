@@ -5426,13 +5426,6 @@ if test -n "$MOZ_CRASHREPORTER"; then
 fi
 
 dnl ========================================================
-dnl SVG
-dnl ========================================================
-MOZ_ARG_DISABLE_BOOL(svg,
-[  --disable-svg            Disable SVG support (NB: unsupported option in comm-central)],
-    AC_MSG_ERROR([comm-central does not support disabling SVG.]))
-
-dnl ========================================================
 dnl SMIL
 dnl ========================================================
 MOZ_SMIL=1
