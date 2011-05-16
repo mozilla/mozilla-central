@@ -63,6 +63,7 @@
 #else
         title="&aboutDialog.title;"
 #endif
+        aria-describedby="version distribution distributionId"
         >
 
   <script type="application/javascript" src="chrome://messenger/content/aboutDialog.js"/>
@@ -82,7 +83,7 @@
         <!-- Make sure the selectedIndex attribute is always set so that the CSS
              selectors for transitions work -->        
         <deck id="contentDeck" selectedIndex="0">
-          <vbox id="detailsBox">
+          <vbox id="detailsBox" aria-describedby="communityDesc contributeDesc">
             <vbox id="updateBox">
 #ifdef MOZ_UPDATER
               <deck id="updateDeck" orient="vertical">
@@ -117,10 +118,10 @@
 #endif
             </vbox>
 
-            <description class="text-blurb">
+            <description class="text-blurb" id="communityDesc">
               &community.start2;<label class="text-link" onclick="openURL('http://www.mozilla.org/');" oncommand="openUILink(this.getAttribute('href'), event);">&community.mozillaLink;</label>&community.middle2;<label class="text-link" onclick="openContentTab('about:credits');">&community.creditsLink;</label>&community.end2;
             </description>
-            <description class="text-blurb">
+            <description class="text-blurb" id="contributeDesc">
               &contribute.start;<label class="text-link" onclick="openURL('http://www.mozilla.org/contribute/');">&contribute.getInvolvedLink;</label>&contribute.end;
             </description>
           </vbox>
