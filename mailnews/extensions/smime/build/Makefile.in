@@ -53,12 +53,6 @@ endif
 LIBXUL_LIBRARY = 1
 
 
-ifndef MOZ_STATIC_MAIL_BUILD
-
-EXTRA_DSO_LIBS = msgbaseutil
-
-endif
-
 CPPSRCS		= nsMsgSMIMEFactory.cpp
 
 LOCAL_INCLUDES += -I$(srcdir)/../src
@@ -66,10 +60,6 @@ LOCAL_INCLUDES += -I$(srcdir)/../src
 SHARED_LIBRARY_LIBS = \
 		../src/$(LIB_PREFIX)msgsmime_s.$(LIB_SUFFIX) \
 		$(NULL)
-
-ifndef MOZ_STATIC_MAIL_BUILD
-SHARED_LIBRARY_LIBS + = ../../../base/util/$(LIB_PREFIX)msgbsutl_s.$(LIB_SUFFIX)
-endif
 
 ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS = \

@@ -206,7 +206,7 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 #define MSG_LINEBREAK_LEN 1
 #endif
 
-#if defined(MOZ_STATIC_MAIL_BUILD) || defined(MOZ_ENABLE_LIBXUL)
+#if defined(MOZ_ENABLE_LIBXUL)
 #define NS_MSG_BASE
 #define NS_MSG_BASE_STATIC_MEMBER_(type) type
 #else
@@ -219,7 +219,7 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 #define NS_MSG_BASE_STATIC_MEMBER_(type) NS_IMPORT_STATIC_MEMBER_(type)
 #endif
 
-#endif // MOZ_STATIC_MAIL_BUILD
+#endif // MOZ_ENABLE_LIBXUL
 
 #endif // msgCore_h__
 

@@ -73,13 +73,9 @@ endif
 ifdef MOZ_ENABLE_LIBXUL
 LIBS += $(XPCOM_LIBS)
 else
-ifdef MOZ_STATIC_MAIL_BUILD
 LIBS +=   \
     ../../base/util/$(LIB_PREFIX)msgbsutl_s.$(LIB_SUFFIX) \
     $(NULL)
-else
-LIBS +=   $(call EXPAND_LIBNAME_PATH,msgbaseutil,../../base/util)
-endif
 endif
 
 LIBS +=   \

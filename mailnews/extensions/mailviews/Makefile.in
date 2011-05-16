@@ -46,8 +46,4 @@ MODULE		= mailview
 
 PARALLEL_DIRS	= public src content
 
-ifndef MOZ_STATIC_MAIL_BUILD
-DIRS = build
-endif
-
 include $(topsrcdir)/config/rules.mk

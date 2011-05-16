@@ -46,13 +46,7 @@ ifdef MOZ_PSM
 BUILD_SMIME=1
 endif
 
-ifdef MOZ_STATIC_MAIL_BUILD
 PARALLEL_DIRS += glue vcard
-else
-# In a shared build, vcard depends on glue, so we must force that to be built
-# first.
-DIRS += glue vcard
-endif
 
 ifndef BUILD_SMIME
 # smimestub always depends on glue, so always build that afterwards

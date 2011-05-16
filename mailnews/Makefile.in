@@ -70,11 +70,7 @@ PARALLEL_DIRS += mapi/mapiDLL mapi/mapihook
 endif
 endif
 
-ifdef MOZ_STATIC_MAIL_BUILD
 DIRS += build
-else
-DIRS += base/build
-endif
 
 PREF_JS_EXPORTS = $(srcdir)/mailnews.js
 

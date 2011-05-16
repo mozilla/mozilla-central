@@ -43,14 +43,7 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= msgbaseutil
-
-ifndef MOZ_STATIC_MAIL_BUILD
-LIBRARY_NAME	= msgbaseutil
-EXPORT_LIBRARY = 1
-SHORT_LIBNAME	= msgbsutl
-else
 LIBRARY_NAME	= msgbsutl_s
-endif
 ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
@@ -106,33 +99,8 @@ EXTRA_JS_MODULES = \
 		mailServices.js \
 		$(NULL)
 
-ifndef MOZ_STATIC_MAIL_BUILD
-
-ifdef MOZILLA_INTERNAL_API
-EXTRA_DSO_LDOPTS = \
-	$(LIBS_DIR) \
-	$(MOZDEPTH)/rdf/util/src/internal/$(LIB_PREFIX)rdfutil_s.$(LIB_SUFFIX) \
-	$(MOZ_UNICHARUTIL_LIBS) \
-	$(MOZ_COMPONENT_LIBS) \
-	$(ZLIB_LIBS) \
-	$(NULL)
-else
-EXTRA_DSO_LDOPTS = \
-	$(LIBS_DIR) \
-	$(ZLIB_LIBS) \
-	$(XPCOM_GLUE_LDOPTS) \
-	$(call EXPAND_LIBNAME_PATH,unicharutil_external_s,$(LIBXUL_DIST)/lib) \
-	$(MOZDEPTH)/rdf/util/src/$(LIB_PREFIX)rdfutil_external_s.$(LIB_SUFFIX) \
-	$(NSPR_LIBS) \
-	$(NULL)
-endif
-
-else
-
 # we don't want the shared lib, but we want to force the creation of a static lib.
 FORCE_STATIC_LIB = 1
-
-endif
 
 DEFINES		+= -D_IMPL_NS_MSG_BASE
 

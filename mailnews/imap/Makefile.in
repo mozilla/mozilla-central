@@ -46,10 +46,6 @@ MODULE		= msgimap
 
 PARALLEL_DIRS	= public src
 
-ifndef MOZ_STATIC_MAIL_BUILD
-DIRS = build
-endif
-
 ifdef ENABLE_TESTS
 TOOL_DIRS += test
 endif

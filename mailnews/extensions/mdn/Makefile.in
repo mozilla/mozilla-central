@@ -46,10 +46,6 @@ MODULE		= msgmdn
 
 DIRS		= src
 
-ifndef MOZ_STATIC_MAIL_BUILD
-DIRS += build
-endif
-
 ifdef ENABLE_TESTS
 DIRS += test
 endif
