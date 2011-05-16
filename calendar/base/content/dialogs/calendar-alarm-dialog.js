@@ -21,6 +21,7 @@
  *   Stuart Parmenter <stuart.parmenter@oracle.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Roman Kaeppeler <rkaeppeler@web.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -207,6 +208,27 @@ function setupTitle() {
 }
 
 /**
+ * Comparison function for the start date of a calendar item and
+ * the start date of a calendar-alarm-widget.
+ *
+ * @param aItem                 A calendar item for the comparison of the start date property
+ * @param calAlarmWidget        A calendar-alarm-widget for the start date comparison with the given calendar item
+ * @return                      1 - if the calendar item starts before the calendar-alarm-widget
+ *                             -1 - if the calendar-alarm-widget starts before the calendar item
+ *                              0 - otherwise
+ */
+function widgetAlarmComptor(aItem, calAlarmWidget) {
+
+    if (aItem == null || calAlarmWidget == null || calAlarmWidget.item == null) return -1;
+
+    // Get the dates to compare
+    let aDate = aItem[calGetStartDateProp(aItem)];
+    let bDate = calAlarmWidget.item[calGetStartDateProp(calAlarmWidget.item)];
+
+    return aDate.compare(bDate);
+}
+
+/**
  * Add an alarm widget for the passed alarm and item.
  *
  * @param aItem       The calendar item to add a widget for.
@@ -215,7 +237,9 @@ function setupTitle() {
 function addWidgetFor(aItem, aAlarm) {
     let widget = document.createElement("calendar-alarm-widget");
     let alarmRichlist = document.getElementById("alarm-richlist");
-    alarmRichlist.appendChild(widget);
+
+    // Add widgets sorted by start date ascending
+    binaryInsertNode(alarmRichlist, widget, aItem, widgetAlarmComptor, false);
 
     widget.item = aItem;
     widget.alarm = aAlarm;
@@ -225,10 +249,10 @@ function addWidgetFor(aItem, aAlarm) {
 
     setupTitle();
 
-    if (alarmRichlist.selectedIndex < 0) {
-        // Set the selected element if there is none yet. Since the onselect
-        // event causes scrolling, we don't want to process the event when
-        // adding widgets.
+    if (!alarmRichlist.userSelectedWidget) {
+        // Always select first widget of the list.
+        // Since the onselect event causes scrolling,
+        // we don't want to process the event when adding widgets.
         alarmRichlist.suppressOnSelect = true;
         alarmRichlist.selectedIndex = 0;
         alarmRichlist.suppressOnSelect = false;
@@ -292,5 +316,6 @@ function onSelectAlarm(event) {
     let richList = document.getElementById("alarm-richlist")
     if (richList == event.target) {
         richList.ensureElementIsVisible(richList.getSelectedItem(0));
+        richList.userSelectedWidget = true;
     }
 }

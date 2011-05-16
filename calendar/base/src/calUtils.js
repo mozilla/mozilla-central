@@ -22,6 +22,7 @@
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Berend Cornelius <berend.cornelius@sun.com>
+ *   Roman Kaeppeler <rkaeppeler@web.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1810,6 +1811,37 @@ function binarySearch(itemArray, newItem, comptor) {
         }
     }
     return binarySearchInternal(0, itemArray.length - 1);
+}
+
+/**
+ * Insert a new node underneath the given parentNode, using binary search. See binarySearch
+ * for a note on how the comptor works.
+ *
+ * @param parentNode           The parent node underneath the new node should be inserted.
+ * @param inserNode            The node to insert
+ * @param aItem                The calendar item to add a widget for.
+ * @param comptor              A comparison function that can compare two nodes.
+ * @param discardDuplicates    Use the comptor function to check if the item in
+ *                               question is already in the array. If so, the
+ *                               new item is not inserted.
+ */
+function binaryInsertNode(parentNode, insertNode, aItem, comptor, discardDuplicates) {
+
+    // Get the index of the node before which the inserNode will be inserted
+    var newIndex = binarySearch(parentNode.childNodes, aItem, comptor);
+
+    if (newIndex < 0) {
+        parentNode.appendChild(insertNode);
+        newIndex = 0;
+    } else if (!discardDuplicates ||
+        comptor(parentNode.childNodes[Math.min(newIndex, parentNode.childNodes.length - 1)], insertNode) >= 0) {
+
+        // Only add the node if duplicates should not be discarded, or if
+        // they should and the childNode[newIndex] == node.
+        let node = parentNode.childNodes[newIndex];
+        parentNode.insertBefore(insertNode, node);
+    }
+    return newIndex;
 }
 
 /**
