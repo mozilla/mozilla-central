@@ -187,7 +187,7 @@
       <hbox align="center">
         <checkbox wsm_persist="true" id="identity.archiveEnabled"
                   label="&keepArchives.label;"
-                  accesskey="&fccMailFolder.accesskey;"
+                  accesskey="&keepArchives.accesskey;"
                   prefattribute="value"
                   prefstring="mail.identity.%identitykey%.archive_enabled"
                   oncommand="setupArchiveItems();"/>
