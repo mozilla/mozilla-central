@@ -87,7 +87,14 @@ BOOL CMimeTypes::GetMimeTypeFromReg( const nsCString& ext, LPBYTE *ppBytes)
   return( result);
 }
 
-PRUint8 * CMimeTypes::GetMimeType( nsCString& theExt)
+PRUint8 * CMimeTypes::GetMimeType(const nsString& theExt)
+{
+  nsCString ext;
+  LossyCopyUTF16toASCII(theExt, ext);
+  return GetMimeType(ext);
+}
+
+PRUint8 * CMimeTypes::GetMimeType(const nsCString& theExt)
 {
   nsCString  ext = theExt;
   if (ext.Length()) {

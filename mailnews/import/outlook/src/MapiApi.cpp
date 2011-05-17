@@ -38,6 +38,9 @@
 #include "MapiDbgLog.h"
 #include "MapiApi.h"
 
+#include <sstream>
+#include "rtfMailDecoder.h"
+
 #include "prprf.h"
 #include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
@@ -68,63 +71,177 @@ LPMAPIFREEBUFFER    gpMapiFreeBuffer = NULL;
 LPMAPILOGONEX      gpMapiLogonEx = NULL;
 LPOPENSTREAMONFILE    gpMapiOpenStreamOnFile = NULL;
 
-BOOL CMapiApi::LoadMapiEntryPoints( void)
-{
-  if (!(gpMapiUninitialize = (LPMAPIUNINITIALIZE) GetProcAddress( m_hMapi32, "MAPIUninitialize")))
-    return( FALSE);
-  if (!(gpMapiInitialize = (LPMAPIINITIALIZE) GetProcAddress( m_hMapi32, "MAPIInitialize")))
-    return( FALSE);
-  if (!(gpMapiAllocateBuffer = (LPMAPIALLOCATEBUFFER) GetProcAddress( m_hMapi32, "MAPIAllocateBuffer")))
-    return( FALSE);
-  if (!(gpMapiFreeBuffer = (LPMAPIFREEBUFFER) GetProcAddress( m_hMapi32, "MAPIFreeBuffer")))
-    return( FALSE);
-  if (!(gpMapiLogonEx = (LPMAPILOGONEX) GetProcAddress( m_hMapi32, "MAPILogonEx")))
-    return( FALSE);
-  if (!(gpMapiOpenStreamOnFile = (LPOPENSTREAMONFILE) GetProcAddress( m_hMapi32, "OpenStreamOnFile")))
-    return( FALSE);
+typedef HRESULT (STDMETHODCALLTYPE WRAPCOMPRESSEDRTFSTREAM) (
+  LPSTREAM lpCompressedRTFStream, ULONG ulFlags, LPSTREAM FAR *lpUncompressedRTFStream);
+typedef WRAPCOMPRESSEDRTFSTREAM *LPWRAPCOMPRESSEDRTFSTREAM;
+LPWRAPCOMPRESSEDRTFSTREAM gpWrapCompressedRTFStream = NULL;
 
-  return( TRUE);
+// WrapCompressedRTFStreamEx related stuff - see http://support.microsoft.com/kb/839560
+typedef struct {
+  ULONG       size;
+  ULONG       ulFlags;
+  ULONG       ulInCodePage;
+  ULONG       ulOutCodePage;
+} RTF_WCSINFO;
+typedef struct {
+  ULONG       size;
+  ULONG       ulStreamFlags;
+} RTF_WCSRETINFO;
+
+typedef HRESULT (STDMETHODCALLTYPE WRAPCOMPRESSEDRTFSTREAMEX) (
+  LPSTREAM lpCompressedRTFStream, CONST RTF_WCSINFO * pWCSInfo,
+  LPSTREAM * lppUncompressedRTFStream, RTF_WCSRETINFO * pRetInfo);
+typedef WRAPCOMPRESSEDRTFSTREAMEX *LPWRAPCOMPRESSEDRTFSTREAMEX;
+LPWRAPCOMPRESSEDRTFSTREAMEX gpWrapCompressedRTFStreamEx = NULL;
+
+BOOL CMapiApi::LoadMapiEntryPoints(void)
+{
+  if (!(gpMapiUninitialize = (LPMAPIUNINITIALIZE) GetProcAddress(
+      m_hMapi32, "MAPIUninitialize")))
+    return FALSE;
+  if (!(gpMapiInitialize = (LPMAPIINITIALIZE) GetProcAddress(
+      m_hMapi32, "MAPIInitialize")))
+    return FALSE;
+  if (!(gpMapiAllocateBuffer = (LPMAPIALLOCATEBUFFER) GetProcAddress(
+      m_hMapi32, "MAPIAllocateBuffer")))
+    return FALSE;
+  if (!(gpMapiFreeBuffer = (LPMAPIFREEBUFFER) GetProcAddress(
+      m_hMapi32, "MAPIFreeBuffer")))
+    return FALSE;
+  if (!(gpMapiLogonEx = (LPMAPILOGONEX) GetProcAddress(m_hMapi32,
+                                                       "MAPILogonEx")))
+    return FALSE;
+  if (!(gpMapiOpenStreamOnFile = (LPOPENSTREAMONFILE) GetProcAddress(
+      m_hMapi32, "OpenStreamOnFile")))
+    return FALSE;
+
+  // Available from the Outlook 2002 post-SP3 hotfix (http://support.microsoft.com/kb/883924/)
+  // Exported by msmapi32.dll; so it's unavailable to us using mapi32.dll
+  gpWrapCompressedRTFStreamEx = (LPWRAPCOMPRESSEDRTFSTREAMEX) GetProcAddress(
+    m_hMapi32, "WrapCompressedRTFStreamEx");
+  // Available always
+  gpWrapCompressedRTFStream = (LPWRAPCOMPRESSEDRTFSTREAM) GetProcAddress(
+    m_hMapi32, "WrapCompressedRTFStream");
+
+  return TRUE;
 }
 
-void CMapiApi::MAPIUninitialize( void)
+// Gets the PR_RTF_COMPRESSED tag property
+// Codepage is used only if the WrapCompressedRTFStreamEx is available
+BOOL CMapiApi::GetRTFPropertyDecodedAsUTF16( LPMAPIPROP pProp, nsString& val,
+                                            unsigned long& nativeBodyType,
+                                            unsigned long codepage)
+{
+  if (!m_hMapi32 || !(gpWrapCompressedRTFStreamEx || gpWrapCompressedRTFStream))
+    return FALSE; // Fallback to the default processing
+
+  LPSTREAM icstream = 0; // for the compressed stream
+  LPSTREAM iunstream = 0; // for the uncompressed stream
+  HRESULT hr = pProp->OpenProperty(PR_RTF_COMPRESSED,
+                                   &IID_IStream, STGM_READ | STGM_DIRECT,
+                                   0, (LPUNKNOWN *)&icstream);
+  if (HR_FAILED(hr))
+    return FALSE;
+
+  if (gpWrapCompressedRTFStreamEx) { // Impossible - we use mapi32.dll!
+    RTF_WCSINFO     wcsinfo = {0};
+    RTF_WCSRETINFO  retinfo = {0};
+
+    retinfo.size = sizeof(RTF_WCSRETINFO);
+
+    wcsinfo.size = sizeof(RTF_WCSINFO);
+    wcsinfo.ulFlags = MAPI_NATIVE_BODY;
+    wcsinfo.ulInCodePage = codepage;
+    wcsinfo.ulOutCodePage = CP_UTF8;
+
+    if(HR_SUCCEEDED(hr = gpWrapCompressedRTFStreamEx(icstream, &wcsinfo,
+                                                     &iunstream, &retinfo)))
+      nativeBodyType = retinfo.ulStreamFlags;
+  }
+  else { // mapi32.dll
+    gpWrapCompressedRTFStream(icstream,0,&iunstream);
+  }
+  icstream->Release();
+
+  if(iunstream) { // Succeeded
+    std::string streamData;
+    // Stream.Stat doesn't work for this stream!
+    bool done = false;
+    while (!done) {
+      // I think 10K is a good guess to minimize the number of reads while keeping memory usage low
+      const int bufsize = 10240; 
+      char buf[bufsize];
+      ULONG read;
+      hr = iunstream->Read(buf, bufsize, &read);
+      done = (read < bufsize) || (hr != S_OK);
+      if (read)
+        streamData.append(buf, read);
+    }
+    iunstream->Release();
+    // if rtf -> convert to plain text.
+    if (!gpWrapCompressedRTFStreamEx ||
+        (nativeBodyType==MAPI_NATIVE_BODY_TYPE_RTF)) {
+      std::stringstream s(streamData);
+      CRTFMailDecoder decoder;
+      DecodeRTF(s, decoder);
+      if (decoder.mode() == CRTFMailDecoder::mHTML)
+        nativeBodyType = MAPI_NATIVE_BODY_TYPE_HTML;
+      else if (decoder.mode() == CRTFMailDecoder::mText)
+        nativeBodyType = MAPI_NATIVE_BODY_TYPE_PLAINTEXT;
+      else
+        nativeBodyType = MAPI_NATIVE_BODY_TYPE_RTF;
+      val.Assign(decoder.text(), decoder.textSize());
+    }
+    else { // WrapCompressedRTFStreamEx available and original type is not rtf
+      CopyUTF8toUTF16(streamData.c_str(), val);
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+void CMapiApi::MAPIUninitialize(void)
 {
   if (m_hMapi32 && gpMapiUninitialize)
     (*gpMapiUninitialize)();
 }
 
-HRESULT CMapiApi::MAPIInitialize( LPVOID lpInit)
+HRESULT CMapiApi::MAPIInitialize(LPVOID lpInit)
 {
-  if (m_hMapi32 && gpMapiInitialize)
-    return( (*gpMapiInitialize)( lpInit));
-  return( MAPI_E_NOT_INITIALIZED);
+  return (m_hMapi32 && gpMapiInitialize) ? (*gpMapiInitialize)( lpInit) :
+          MAPI_E_NOT_INITIALIZED;
 }
 
-SCODE CMapiApi::MAPIAllocateBuffer( ULONG cbSize, LPVOID FAR * lppBuffer)
+SCODE CMapiApi::MAPIAllocateBuffer(ULONG cbSize, LPVOID FAR * lppBuffer)
 {
-  if (m_hMapi32 && gpMapiAllocateBuffer)
-    return( (*gpMapiAllocateBuffer)( cbSize, lppBuffer));
-  return( MAPI_E_NOT_INITIALIZED);
+  return (m_hMapi32 && gpMapiAllocateBuffer) ?
+          (*gpMapiAllocateBuffer)(cbSize, lppBuffer) : MAPI_E_NOT_INITIALIZED;
 }
 
-ULONG CMapiApi::MAPIFreeBuffer( LPVOID lpBuff)
+ULONG CMapiApi::MAPIFreeBuffer(LPVOID lpBuff)
 {
-  if (m_hMapi32 && gpMapiFreeBuffer)
-    return( (*gpMapiFreeBuffer)( lpBuff));
-  return( MAPI_E_NOT_INITIALIZED);
+  return (m_hMapi32 && gpMapiFreeBuffer) ? (*gpMapiFreeBuffer)(lpBuff) :
+          MAPI_E_NOT_INITIALIZED;
 }
 
-HRESULT CMapiApi::MAPILogonEx( ULONG ulUIParam, LPTSTR lpszProfileName, LPTSTR lpszPassword, FLAGS flFlags, LPMAPISESSION FAR * lppSession)
+HRESULT CMapiApi::MAPILogonEx(ULONG ulUIParam, LPTSTR lpszProfileName,
+                              LPTSTR lpszPassword, FLAGS flFlags,
+                              LPMAPISESSION FAR * lppSession)
 {
-  if (m_hMapi32 && gpMapiLogonEx)
-    return( (*gpMapiLogonEx)( ulUIParam, lpszProfileName, lpszPassword, flFlags, lppSession));
-  return( MAPI_E_NOT_INITIALIZED);
+  return (m_hMapi32 && gpMapiLogonEx) ?
+    (*gpMapiLogonEx)(ulUIParam, lpszProfileName, lpszPassword, flFlags, lppSession) :
+     MAPI_E_NOT_INITIALIZED;
 }
 
-HRESULT CMapiApi::OpenStreamOnFile( LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, LPTSTR lpszFileName, LPTSTR lpszPrefix, LPSTREAM FAR * lppStream)
+HRESULT CMapiApi::OpenStreamOnFile(LPALLOCATEBUFFER lpAllocateBuffer,
+                                   LPFREEBUFFER lpFreeBuffer, ULONG ulFlags,
+                                   LPTSTR lpszFileName, LPTSTR lpszPrefix,
+                                   LPSTREAM FAR * lppStream)
 {
-  if (m_hMapi32 && gpMapiOpenStreamOnFile)
-    return( (*gpMapiOpenStreamOnFile)( lpAllocateBuffer, lpFreeBuffer, ulFlags, lpszFileName, lpszPrefix, lppStream));
-  return( MAPI_E_NOT_INITIALIZED);
+  return (m_hMapi32 && gpMapiOpenStreamOnFile) ?
+    (*gpMapiOpenStreamOnFile)(lpAllocateBuffer, lpFreeBuffer, ulFlags,
+                              lpszFileName, lpszPrefix, lppStream) :
+    MAPI_E_NOT_INITIALIZED;
 }
 
 void CMapiApi::FreeProws( LPSRowSet prows)
@@ -133,31 +250,31 @@ void CMapiApi::FreeProws( LPSRowSet prows)
   if (!prows)
     return;
   for (irow = 0; irow < prows->cRows; ++irow)
-    MAPIFreeBuffer( prows->aRow[irow].lpProps);
-  MAPIFreeBuffer( prows);
+    MAPIFreeBuffer(prows->aRow[irow].lpProps);
+  MAPIFreeBuffer(prows);
 }
 
 BOOL CMapiApi::LoadMapi( void)
 {
   if (m_hMapi32)
-    return( TRUE);
+    return TRUE;
 
   HINSTANCE  hInst = ::LoadLibrary( "MAPI32.DLL");
   if (!hInst)
-    return( FALSE);
+    return FALSE;
   FARPROC pProc = GetProcAddress( hInst, "MAPIGetNetscapeVersion");
   if (pProc) {
     ::FreeLibrary( hInst);
     hInst = ::LoadLibrary( "MAPI32BAK.DLL");
     if (!hInst)
-      return( FALSE);
+      return FALSE;
   }
 
   m_hMapi32 = hInst;
-  return( LoadMapiEntryPoints());
+  return LoadMapiEntryPoints();
 }
 
-void CMapiApi::UnloadMapi( void)
+void CMapiApi::UnloadMapi(void)
 {
   if (m_hMapi32)
     ::FreeLibrary( m_hMapi32);
@@ -1108,7 +1225,8 @@ BOOL CMapiApi::IsLargeProperty( LPSPropValue pVal)
   return( FALSE);
 }
 
-BOOL CMapiApi::GetLargeStringProperty( LPMAPIPROP pProp, ULONG tag, nsCString& val)
+// The output buffer (result) must be freed with operator delete[]
+BOOL CMapiApi::GetLargeProperty( LPMAPIPROP pProp, ULONG tag, void** result)
 {
   LPSTREAM  lpStream;
   HRESULT    hr = pProp->OpenProperty( tag, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpStream);
@@ -1122,20 +1240,19 @@ BOOL CMapiApi::GetLargeStringProperty( LPMAPIPROP pProp, ULONG tag, nsCString& v
   else {
     if (!st.cbSize.QuadPart)
       st.cbSize.QuadPart = 1;
-    char *pVal = new char[ (int) st.cbSize.QuadPart + 1];
-    // val.SetCapacity( (int) st.cbSize.QuadPart);
+    char *pVal = new char[ (int) st.cbSize.QuadPart + 2];
     if (pVal) {
       ULONG  sz;
-      hr = lpStream->Read( pVal, (ULONG) st.cbSize.QuadPart, &sz);
-      if (HR_FAILED( hr)) {
+      hr = lpStream->Read(pVal, (ULONG) st.cbSize.QuadPart, &sz);
+      if (HR_FAILED(hr)) {
         bResult = FALSE;
-        *pVal = 0;
-        sz = 0;
+        delete[] pVal;
       }
-      else
-        pVal[(int) st.cbSize.QuadPart] = 0;
-      val = pVal;
-      delete [] pVal;
+      else {
+         // Just in case it's a UTF16 string
+        pVal[(int) st.cbSize.QuadPart] = pVal[(int) st.cbSize.QuadPart+1] = 0;
+        *result = pVal;
+      }
     }
     else
       bResult = FALSE;
@@ -1146,21 +1263,37 @@ BOOL CMapiApi::GetLargeStringProperty( LPMAPIPROP pProp, ULONG tag, nsCString& v
   return( bResult);
 }
 
-BOOL CMapiApi::GetLargeStringProperty( LPMAPIPROP pProp, ULONG tag, nsString& val)
+BOOL CMapiApi::GetLargeStringProperty( LPMAPIPROP pProp, ULONG tag, nsCString& val)
 {
-  nsCString  result;
-  if (GetLargeStringProperty( pProp, tag, result)) {
-    CStrToUnicode( result.get(), val);
-    return( TRUE);
-  }
+  void* result;
+  if (!GetLargeProperty(pProp, tag, &result))
+    return FALSE;
+  if (PROP_TYPE(tag) == PT_UNICODE) // unicode string
+    LossyCopyUTF16toASCII(static_cast<wchar_t*>(result), val);
+  else // either PT_STRING8 or some other binary - use as is
+    val.Assign(static_cast<char*>(result));
+  delete[] result;
+  return TRUE;
+}
 
-  return( FALSE);
+BOOL CMapiApi::GetLargeStringProperty(LPMAPIPROP pProp, ULONG tag, nsString& val)
+{
+  void* result;
+  if (!GetLargeProperty(pProp, tag, &result))
+    return FALSE;
+  if (PROP_TYPE(tag) == PT_UNICODE) // We already get the unicode string
+    val.Assign(static_cast<wchar_t*>(result));
+  else // either PT_STRING8 or some other binary
+    CStrToUnicode(static_cast<char*>(result), val);
+  delete[] result;
+  return TRUE;
 }
 // If the value is a string, get it...
-BOOL CMapiApi::GetEntryIdFromProp( LPSPropValue pVal, ULONG& cbEntryId, LPENTRYID& lpEntryId, BOOL delVal)
+BOOL CMapiApi::GetEntryIdFromProp(LPSPropValue pVal, ULONG& cbEntryId,
+                                  LPENTRYID& lpEntryId, BOOL delVal)
 {
   if (!pVal)
-    return( FALSE);
+    return FALSE;
 
   BOOL bResult = TRUE;
     switch( PROP_TYPE( pVal->ulPropTag)) {
@@ -1179,7 +1312,7 @@ BOOL CMapiApi::GetEntryIdFromProp( LPSPropValue pVal, ULONG& cbEntryId, LPENTRYI
   if (pVal && delVal)
     MAPIFreeBuffer( pVal);
 
-  return( bResult);
+  return bResult;
 }
 
 BOOL CMapiApi::GetStringFromProp( LPSPropValue pVal, nsCString& val, BOOL delVal)

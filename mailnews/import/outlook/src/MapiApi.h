@@ -54,6 +54,31 @@
 // defines _MAPIUTIL_H_
 #define _MAPIUTIL_H
 
+#ifndef PR_INTERNET_CPID
+#define PR_INTERNET_CPID (PROP_TAG(PT_LONG,0x3FDE))
+#endif
+#ifndef MAPI_NATIVE_BODY
+#define MAPI_NATIVE_BODY (0x00010000)
+#endif
+#ifndef MAPI_NATIVE_BODY_TYPE_RTF
+#define MAPI_NATIVE_BODY_TYPE_RTF (0x00000001)
+#endif
+#ifndef MAPI_NATIVE_BODY_TYPE_HTML
+#define MAPI_NATIVE_BODY_TYPE_HTML (0x00000002)
+#endif
+#ifndef MAPI_NATIVE_BODY_TYPE_PLAINTEXT
+#define MAPI_NATIVE_BODY_TYPE_PLAINTEXT (0x00000004)
+#endif
+#ifndef PR_BODY_HTML_A
+#define PR_BODY_HTML_A (PROP_TAG(PT_STRING8,0x1013))
+#endif
+#ifndef PR_BODY_HTML_W
+#define PR_BODY_HTML_W (PROP_TAG(PT_UNICODE,0x1013))
+#endif
+#ifndef PR_BODY_HTML
+#define PR_BODY_HTML (PROP_TAG(PT_TSTRING,0x1013))
+#endif
+
 class CMapiFolderList;
 class CMsgStore;
 class CMapiFolder;
@@ -105,20 +130,26 @@ public:
   BOOL  OpenStore( ULONG cbEid, LPENTRYID lpEid, LPMDB *ppMdb);
 
   // Iteration
-  BOOL  IterateStores( CMapiFolderList& list);
-  BOOL  IterateContents( CMapiContentIter *pIter, LPMAPIFOLDER pFolder, ULONG flags = 0);
-  BOOL  IterateHierarchy( CMapiHierarchyIter *pIter, LPMAPIFOLDER pFolder, ULONG flags = 0);
+  BOOL  IterateStores(CMapiFolderList& list);
+  BOOL  IterateContents(CMapiContentIter *pIter, LPMAPIFOLDER pFolder, ULONG flags = 0);
+  BOOL  IterateHierarchy(CMapiHierarchyIter *pIter, LPMAPIFOLDER pFolder, ULONG flags = 0);
 
   // Properties
-  static LPSPropValue  GetMapiProperty( LPMAPIPROP pProp, ULONG tag);
-  static BOOL      GetEntryIdFromProp( LPSPropValue pVal, ULONG& cbEntryId, LPENTRYID& lpEntryId, BOOL delVal = TRUE);
-  static BOOL      GetStringFromProp( LPSPropValue pVal, nsCString& val, BOOL delVal = TRUE);
-  static BOOL      GetStringFromProp( LPSPropValue pVal, nsString& val, BOOL delVal = TRUE);
-  static LONG      GetLongFromProp( LPSPropValue pVal, BOOL delVal = TRUE);
-  static BOOL      GetLargeStringProperty( LPMAPIPROP pProp, ULONG tag, nsCString& val);
-  static BOOL      GetLargeStringProperty( LPMAPIPROP pProp, ULONG tag, nsString& val);
-  static BOOL      IsLargeProperty( LPSPropValue pVal);
+  static LPSPropValue  GetMapiProperty(LPMAPIPROP pProp, ULONG tag);
+  // If delVal is true, functions will call CMapiApi::MAPIFreeBuffer on pVal.
+  static BOOL      GetEntryIdFromProp(LPSPropValue pVal, ULONG& cbEntryId,
+                                      LPENTRYID& lpEntryId, BOOL delVal = TRUE);
+  static BOOL      GetStringFromProp(LPSPropValue pVal, nsCString& val, BOOL delVal = TRUE);
+  static BOOL      GetStringFromProp(LPSPropValue pVal, nsString& val, BOOL delVal = TRUE);
+  static LONG      GetLongFromProp(LPSPropValue pVal, BOOL delVal = TRUE);
+  static BOOL      GetLargeStringProperty(LPMAPIPROP pProp, ULONG tag, nsCString& val);
+  static BOOL      GetLargeStringProperty(LPMAPIPROP pProp, ULONG tag, nsString& val);
+  static BOOL      IsLargeProperty(LPSPropValue pVal);
   static ULONG    GetEmailPropertyTag(LPMAPIPROP lpProp, LONG nameID);
+
+  static BOOL GetRTFPropertyDecodedAsUTF16(LPMAPIPROP pProp, nsString& val,
+                                           unsigned long& nativeBodyType,
+                                           unsigned long codepage = 0);
 
   // Debugging & reporting stuff
   static void      ListProperties( LPMAPIPROP lpProp, BOOL getValues = TRUE);
@@ -153,9 +184,9 @@ private:
   static HRESULT      m_lastError;
   static PRUnichar *    m_pUniBuff;
   static int        m_uniBuffLen;
+
+  static BOOL      GetLargeProperty(LPMAPIPROP pProp, ULONG tag, void** result);
 };
-
-
 
 class CMapiFolder {
 public:

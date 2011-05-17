@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -12,18 +11,18 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is mozilla.org code
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
+ * Mike Kaganski <mikekaganski@gmail.com>.
+ * Portions created by the Initial Developer are Copyright (C) 2010
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either of the GNU General Public License Version 2 or later (the "GPL"),
- * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
  * under the terms of either the GPL or the LGPL, and not to allow others to
@@ -35,29 +34,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef MapiMimeTypes_h___
-#define MapiMimeTypes_h___
+#include <istream>
 
-#include <windows.h>
-
-#define kMaxMimeTypeSize  256
-
-class CMimeTypes {
-public:
-
-static PRUint8 *  GetMimeType(const nsCString& theExt);
-static PRUint8 *  GetMimeType(const nsString& theExt);
-
-protected:
-  // Registry stuff
-static BOOL  GetKey( HKEY root, LPCTSTR pName, PHKEY pKey);
-static BOOL  GetValueBytes( HKEY rootKey, LPCTSTR pValName, LPBYTE *ppBytes);
-static void  ReleaseValueBytes( LPBYTE pBytes);
-static BOOL  GetMimeTypeFromReg( const nsCString& ext, LPBYTE *ppBytes);
-
-
-static PRUint8          m_mimeBuffer[kMaxMimeTypeSize];
+template <size_t len>
+inline bool eq(const char* str1, const char (&str2)[len])
+{
+  return ::strncmp(str1, str2, len) == 0;
 };
 
-#endif /* MapiMimeTypes_h__ */
+class CRTFDecoder {
+public:
+  virtual void BeginGroup() = 0;
+  virtual void EndGroup() = 0;
+  virtual void Keyword(const char* name, const int* Val) = 0;
+  virtual void PCDATA(const wchar_t* data, size_t cch) = 0;
+  virtual void BDATA(const char* data, size_t sz) = 0;
+};
 
+void DecodeRTF(std::istream& rtf, CRTFDecoder& decoder);

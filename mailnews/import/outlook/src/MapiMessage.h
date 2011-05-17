@@ -41,12 +41,231 @@
 #include "nsString.h"
 #include "nsILocalFile.h"
 #include "MapiApi.h"
+#include "nsIMsgSend.h"
 
+#include "nsProxiedService.h"
+
+#include <vector>
+
+#ifndef PR_LAST_VERB_EXECUTED
+#define PR_LAST_VERB_EXECUTED PROP_TAG( PT_LONG, 0x1081)
+#endif
+
+#define EXCHIVERB_REPLYTOSENDER (102)
+#define EXCHIVERB_REPLYTOALL    (103)
+#define EXCHIVERB_FORWARD       (104)
+
+#ifndef PR_ATTACH_CONTENT_ID
+#define PR_ATTACH_CONTENT_ID PROP_TAG( PT_TSTRING,	0x3712)
+#endif
+#ifndef PR_ATTACH_CONTENT_ID_W
+#define PR_ATTACH_CONTENT_ID_W PROP_TAG( PT_UNICODE,	0x3712)
+#endif
+#ifndef PR_ATTACH_CONTENT_ID_A
+#define PR_ATTACH_CONTENT_ID_A PROP_TAG( PT_STRING8,	0x3712)
+#endif
+
+#ifndef PR_ATTACH_FLAGS
+#define PR_ATTACH_FLAGS PROP_TAG(PT_LONG,	0x3714)
+#endif
+
+#ifndef ATT_INVISIBLE_IN_HTML
+#define ATT_INVISIBLE_IN_HTML (0x1)
+#endif
+#ifndef ATT_INVISIBLE_IN_RTF
+#define ATT_INVISIBLE_IN_RTF  (0x2)
+#endif
+#ifndef ATT_MHTML_REF
+#define ATT_MHTML_REF         (0x4)
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
+
+class CMapiMessageHeaders {
+public:
+  // Special headers that MUST appear at most once (see RFC822)
+  enum SpecialHeader { hdrNone=-1, hdrFirst = 0, // utility values
+                       hdrDate=hdrFirst,
+                       hdrFrom,
+                       hdrSender,
+                       hdrReplyTo,
+                       hdrTo,
+                       hdrCc,
+                       hdrBcc,
+                       hdrMessageID,
+                       hdrSubject,
+                       hdrMimeVersion,
+                       hdrContentType,
+                       hdrContentTransferEncoding,
+                       hdrMax // utility value
+                     };
+
+  CMapiMessageHeaders(const wchar_t* headers = 0) { Assign(headers); }
+  CMapiMessageHeaders(const char* headers)
+  {
+    nsString uniHeaders;
+    CopyASCIItoUTF16(headers, uniHeaders);
+    Assign(uniHeaders.get());
+  }
+  ~CMapiMessageHeaders();
+  void Assign(const wchar_t* headers);
+
+  inline bool IsEmpty() const { return m_headerFields.empty(); }
+  // if no such header exists then 0 is returned, else the first value returned
+  const wchar_t* Value(const wchar_t* name) const;
+  // if no such header exists then 0 is returned
+  const wchar_t* Value(SpecialHeader special) const;
+
+  void UnfoldValue(const wchar_t* name, nsString& dest) const;
+  void UnfoldValue(SpecialHeader special, nsString& dest) const;
+
+  // TODO: if replace is set, then all headers with this name will be removed
+  //  and one with this value will be added, otherwise a new header is added
+  // (Unnecessary for now)
+  int SetValue(const wchar_t* name, const wchar_t* value, bool replace = true);
+  int SetValue(SpecialHeader special, const wchar_t* value);
+
+  nsresult ToStream(nsIOutputStream *pDst) const;
+private:
+  class CHeaderField {
+  public:
+    CHeaderField(const wchar_t* begin, int len);
+    CHeaderField(const wchar_t* name, const wchar_t* body);
+    ~CHeaderField();
+    inline bool Valid() const { return m_fname; }
+    inline const wchar_t* fname() const { return m_fname; }
+    inline const wchar_t* fbody() const { return m_fbody; }
+    void set_fbody(const wchar_t* txt);
+
+    static void UnfoldFoldedSpaces(const wchar_t* body, nsString& dest);
+  private:
+    wchar_t* m_fname;
+    wchar_t* m_fbody;
+  }; //class HeaderField
+
+  class write_to_stream {
+  public:
+    write_to_stream(nsIOutputStream *pDst) : m_pDst(pDst), m_rv(NS_OK) {}
+    void operator () (const CHeaderField* f);
+    inline operator nsresult() const { return m_rv; }
+  private:
+    nsIOutputStream *m_pDst;
+    nsresult m_rv;
+  };
+
+  // Search helper
+  class fname_equals {
+  public:
+    fname_equals(const wchar_t* search) : m_search(search) {}
+    inline bool operator () (const CHeaderField* f) const { return wcsicmp(f->fname(), m_search) == 0; }
+  private:
+    const wchar_t* m_search;
+  }; // class fname_equals
+
+  // The common array of special headers' names
+  static const wchar_t* Specials[hdrMax];
+  
+  std::vector<CHeaderField*> m_headerFields;
+  CHeaderField* m_SpecialHeaders[hdrMax]; // Pointers into the m_headerFields
+
+  void ClearHeaderFields();
+  void Add(CHeaderField* f);
+  SpecialHeader CheckSpecialHeader(const wchar_t* fname) const;
+  const CHeaderField* CFind(const wchar_t* name) const;
+  inline CHeaderField* Find(const wchar_t* name) { return const_cast<CHeaderField*>(CFind(name)); }
+
+}; // class CMapiMessageHeaders
+
+//////////////////////////////////////////////////////
 
 class CMapiMessage {
 public:
   CMapiMessage( LPMESSAGE  lpMsg);
   ~CMapiMessage();
+
+  // Attachments
+  // Ordinary (not embedded) attachments; result MUST be disposed of with DisposeAttachments()
+  nsMsgAttachedFile* GetAttachments();
+  static void DisposeAttachments(nsMsgAttachedFile* att) { delete[] att; }
+  // Embedded attachments
+  size_t EmbeddedAttachmentsCount() const { return m_embattachments.size(); }
+  bool GetEmbeddedAttachmentInfo(unsigned int i, nsIURI **uri, const char **cid,
+                                 const char **name) const;
+  // We don't check MSGFLAG_HASATTACH, since it returns true even if there are
+  // only embedded attachmentsin the message. TB only counts the ordinary
+  // attachments when shows the message status, so here we check only for the
+  // ordinary attachments.
+  inline bool HasAttach() const { return !m_stdattachments.empty(); }
+
+  // Retrieve info for message
+  inline bool BodyIsHtml( void) const { return( m_bodyIsHtml);}
+  const char *GetFromLine(int& len) const {
+    if (m_fromLine.IsEmpty())
+      return NULL; 
+    else {
+      len = m_fromLine.Length();
+      return( m_fromLine.get());}
+  }
+  inline CMapiMessageHeaders *GetHeaders() { return &m_headers; }
+  inline const wchar_t *GetBody( void) const { return( m_body.get()); }
+  inline size_t GetBodyLen( void) const { return( m_body.Length()); }
+  void GetBody(nsCString& dest) const;
+  inline const char *GetBodyCharset( void) const { return( m_mimeCharset.get());}
+  inline bool IsRead() const { return m_msgFlags & MSGFLAG_READ; }
+  inline bool IsReplied() const {
+    return (m_msgLastVerb == EXCHIVERB_REPLYTOSENDER) ||
+           (m_msgLastVerb == EXCHIVERB_REPLYTOALL); }
+  inline bool IsForvarded() const {
+    return m_msgLastVerb == EXCHIVERB_FORWARD; }
+
+  bool    IsMultipart( void) const;
+  bool    HasContentHeader( void) const {
+    return( !m_mimeContentType.IsEmpty());}
+  bool    HasMimeVersion( void) const {
+    return m_headers.Value(CMapiMessageHeaders::hdrMimeVersion); }
+  const char *GetMimeContent( void) const { return( m_mimeContentType.get());}
+  PRInt32     GetMimeContentLen( void) const { return( m_mimeContentType.Length());}
+  const char *GetMimeBoundary( void) const { return( m_mimeBoundary.get());}
+
+   // The only required part of a message is its header
+  inline bool ValidState() const { return !m_headers.IsEmpty(); }
+  inline bool FullMessageDownloaded() const { return !m_dldStateHeadersOnly; }
+
+private:
+  struct attach_data {
+    nsCOMPtr<nsIURI> orig_url;
+    nsCOMPtr<nsILocalFile> tmp_file;
+    char *type;
+    char *encoding;
+    char *real_name;
+    char *cid;
+    bool delete_file;
+    attach_data() : type(0), encoding(0), real_name(0), cid(0), delete_file(false) {}
+  };
+
+  static const nsCString    m_whitespace;
+
+  LPMESSAGE    m_lpMsg;
+
+  bool         m_dldStateHeadersOnly; // if the message has not been downloaded yet
+  CMapiMessageHeaders     m_headers;
+  nsCString    m_fromLine; // utf-8
+  nsCString    m_mimeContentType; // utf-8
+  nsCString    m_mimeBoundary; // utf-8
+  nsCString    m_mimeCharset; // utf-8
+
+  std::vector<attach_data*> m_stdattachments;
+  std::vector<attach_data*> m_embattachments; // Embedded
+
+  nsString     m_body; // to be converted from UTF-16 using m_mimeCharset
+  bool         m_bodyIsHtml;
+
+  PRUint32 m_msgFlags;
+  PRUint32 m_msgLastVerb;
+  
+  nsIIOService *      m_pIOService;
+
+  void    GetDownloadState();
 
   // Headers - fetch will get PR_TRANSPORT_MESSAGE_HEADERS
   // or if they do not exist will build a header from
@@ -54,85 +273,32 @@ public:
   //  PR_SUBJECT
   //  PR_MESSAGE_RECIPIENTS
   // and PR_CREATION_TIME if needed?
-  BOOL    FetchHeaders( void);
+  bool    FetchHeaders( void);
+  bool    FetchBody( void);
+  void    FetchFlags( void);
 
-  // Do the headers need a From separator line.
-  // TRUE if a From line needs to precede the headers, FALSE
-  // if the headers already include a from line
-  BOOL    NeedsFromLine( void);
+  static bool GetTmpFile(/*out*/ nsILocalFile **aResult);
+  static bool CopyMsgAttachToFile(LPATTACH lpAttach, /*out*/ nsILocalFile **tmp_file);
+  static bool CopyBinAttachToFile( LPATTACH lpAttach, nsILocalFile **tmp_file);
 
-  // Fetch the
-  BOOL    FetchBody( void);
+  static void ClearAttachment(attach_data* data);
+  void    ClearAttachments();
+  bool    AddAttachment(DWORD aNum);
+  bool    IterateAttachTable(LPMAPITABLE tbl);
+  bool    GetURL(nsIFile *aFile, nsIURI **url);
+  void    ProcessAttachments();
 
-  // Attachments
-  int      CountAttachments( void);
-  BOOL    GetAttachmentInfo( int idx);
+  bool    EnsureHeader(CMapiMessageHeaders::SpecialHeader special, ULONG mapiTag);
+  bool    EnsureDate();
 
-  // Retrieve info for message
-  BOOL    BodyIsHtml( void) { return( m_bodyIsHtml);}
-  const char *GetFromLine( int& len) { if (m_fromLine.IsEmpty()) return( NULL); else { len = m_fromLine.Length(); return( m_fromLine.get());}}
-  const char *GetHeaders( int& len) { if (m_headers.IsEmpty()) return( NULL); else { len = m_headers.Length(); return( m_headers.get());}}
-  const char *GetBody( int& len) { if (m_body.IsEmpty()) return( NULL); else { len = m_body.Length(); return( m_body.get());}}
-  const char *GetBody( void) { return( m_body.get());}
-  const char *GetHeaders( void) { return( m_headers.get());}
-  PRInt32    GetBodyLen( void) { return( m_body.Length());}
-  PRInt32    GetHeaderLen( void) { return( m_headers.Length());}
-
-
-  BOOL    IsMultipart( void);
-  BOOL    HasContentHeader( void) { return( !m_mimeContentType.IsEmpty());}
-  BOOL    HasMimeVersion( void) { return( m_bMimeVersion);}
-  const char *GetMimeContent( void) { return( m_mimeContentType.get());}
-  PRInt32     GetMimeContentLen( void) { return( m_mimeContentType.Length());}
-  const char *GetMimeBoundary( void) { return( m_mimeBoundary.get());}
-  void    GenerateBoundary( void);
-
-  BOOL    GetAttachFileLoc( nsIFile *pLoc);
-
-  const char *GetMimeType( void) { return( m_attachMimeType.get());}
-  const char *GetFileName( void) { return( m_attachFileName.get());}
-
-protected:
-  BOOL    IterateAttachTable( void);
-  void    ClearTempAttachFile( void);
-  BOOL    CopyBinAttachToFile( LPATTACH lpAttach);
-
-  void    ProcessHeaderLine( nsCString& line);
-  void    ProcessHeaders( void);
-  void    FormatDateTime( SYSTEMTIME & tm, nsCString& s, BOOL includeTZ = TRUE);
-  void    BuildHeaders( void);
+  void    ProcessContentType();
+  bool    CheckBodyInCharsetRange(const char* charset);
+  void    FormatDateTime( SYSTEMTIME & tm, nsString& s, bool includeTZ = true);
   void    BuildFromLine( void);
-  void    AddSubject( nsCString& str);
-  void    AddFrom( nsCString& str);
-  BOOL    AddHeader( nsCString& str, ULONG tag, const char *pPrefix);
-  void    AddDate( nsCString& str);
 
-  BOOL    IsSpace( char c) { return( m_whitespace.FindChar( c) != -1);}
-
-private:
-  LPMESSAGE    m_lpMsg;
-  LPMAPITABLE    m_pAttachTable;
-  nsCString    m_headers;
-  nsCString    m_fromLine;
-  nsCString    m_body;
-  nsCString    m_mimeContentType;
-  nsCString    m_mimeBoundary;
-  nsCString    m_mimeCharset;
-  BOOL      m_bMimeVersion;
-  BOOL      m_bMimeEncoding;
-  nsTArray<DWORD>  m_attachNums;
-  nsCString    m_attachMimeType;
-  nsCString    m_attachPath;
-  nsCString    m_attachFileName;
-  BOOL      m_ownsAttachFile;
-  BOOL      m_bodyIsHtml;
-  BOOL      m_bHasSubject;
-  BOOL      m_bHasFrom;
-  BOOL      m_bHasDate;
-  nsCString    m_whitespace;
+  inline static bool IsSpace( char c) { return( m_whitespace.FindChar( c) != -1);}
+  inline static bool IsSpace( wchar_t c) { 
+    return ((c & 0xFF) == c) && IsSpace(static_cast<char>(c)); } // Avoid false detections
 };
-
-
-
 
 #endif /* MapiMessage_h__ */

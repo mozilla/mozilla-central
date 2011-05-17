@@ -45,6 +45,7 @@
 #include "nsIFile.h"
 #include "MapiApi.h"
 #include "MapiMessage.h"
+#include "nsIAddrDatabase.h"
 
 class nsIAddrDatabase;
 class nsIImportFieldMap;
@@ -57,21 +58,11 @@ public:
   nsresult GetMailFolders( nsISupportsArray **pArray);
   nsresult GetAddressBooks( nsISupportsArray **pArray);
   nsresult ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRInt32 index, const PRUnichar *pName, nsIFile *pDest, PRInt32 *pMsgCount);
+  static nsresult ImportMessage( LPMESSAGE lpMsg, nsIOutputStream *destOutputStream, nsMsgDeliverMode mode);
   nsresult ImportAddresses( PRUint32 *pCount, PRUint32 *pTotal, const PRUnichar *pName, PRUint32 id, nsIAddrDatabase *pDb, nsString& errors);
-  
-  
 private:
   void  OpenMessageStore( CMapiFolder *pNextFolder);
-  BOOL  WriteData( nsIOutputStream *pDest, const char *pData, PRInt32 len);
-  BOOL  WriteMessage( nsIOutputStream *pDest, CMapiMessage *pMsg, int& attachCount, BOOL *pTerminate);
-  BOOL  WriteStr( nsIOutputStream *pDest, const char *pStr);
-  BOOL  WriteMimeMsgHeader( nsIOutputStream *pDest, CMapiMessage *pMsg);
-  BOOL  WriteMimeBoundary( nsIOutputStream *pDest, CMapiMessage *pMsg, BOOL terminate);
-  
-  nsresult  DeleteFile( nsIFile *pSpec);
-  void      EmptyAttachments( void);
-  void      BuildAttachments( CMapiMessage& msg, int count);
-  void      DumpAttachments( void);
+  static BOOL  WriteData( nsIOutputStream *pDest, const char *pData, PRInt32 len);
   
   PRBool    IsAddressBookNameUnique( nsString& name, nsString& list);
   void      MakeAddressBookNameUnique( nsString& name, nsString& list);
@@ -79,7 +70,6 @@ private:
   void      SplitString( nsString& val1, nsString& val2);
   PRBool    BuildCard( const PRUnichar *pName, nsIAddrDatabase *pDb, nsIMdbRow *newRow, LPMAPIPROP pUser, nsIImportFieldMap *pFieldMap);
   nsresult  CreateList( const PRUnichar * pName, nsIAddrDatabase *pDb, LPMAPIPROP pUserList, nsIImportFieldMap *pFieldMap);
-  void SetDefaultContentType(CMapiMessage &msg, nsCString &cType);
   
 private:
   PRBool            m_gotFolders;
@@ -90,7 +80,6 @@ private:
   CMapiFolderList   m_addressList;
   CMapiFolderList   m_storeList;
   LPMDB             m_lpMdb;
-  nsVoidArray       m_attachments;
 };
 
 #endif /* nsOutlookMail_h___ */

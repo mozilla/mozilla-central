@@ -59,6 +59,9 @@ CPPSRCS		= \
 		MapiMessage.cpp			\
 		MapiMimeTypes.cpp		\
 		nsOutlookCompose.cpp		\
+		rtfDecoder.cpp		\
+		rtfMailDecoder.cpp		\
+		nsOutlookEditor.cpp		\
 		$(NULL)
 
 # we don't want the shared lib, but we want to force the creation of a static lib.
