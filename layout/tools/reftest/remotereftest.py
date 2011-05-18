@@ -101,6 +101,12 @@ class RemoteOptions(ReftestOptions):
                     type = "string", dest = "remoteLogFile",
                     help = "Name of log file on the device relative to device root.  PLEASE USE ONLY A FILENAME.")
         defaults["remoteLogFile"] = None
+
+        self.add_option("--pidfile", action = "store",
+                    type = "string", dest = "pidFile",
+                    help = "name of the pidfile to generate")
+        defaults["pidFile"] = ""
+
         defaults["localLogName"] = None
 
         self.set_defaults(**defaults)
@@ -153,6 +159,11 @@ class RemoteOptions(ReftestOptions):
 
         options.logFile = options.remoteLogFile
 
+        if (options.pidFile != ""):
+            f = open(options.pidFile, 'w')
+            f.write("%s" % os.getpid())
+            f.close()
+
         # TODO: Copied from main, but I think these are no longer used in a post xulrunner world
         #options.xrePath = options.remoteTestRoot + self._automation._product + '/xulrunner'
         #options.utilityPath = options.testRoot + self._automation._product + '/bin'
@@ -173,6 +184,7 @@ class ReftestServer:
         self.webServer = options.remoteWebServer
         self.httpPort = options.httpPort
         self.scriptDir = scriptDir
+        self.pidFile = options.pidFile
         self.shutdownURL = "http://%(server)s:%(port)s/server/shutdown" % { "server" : self.webServer, "port" : self.httpPort }
 
     def start(self):
@@ -198,6 +210,11 @@ class ReftestServer:
             print "Error starting server."
             sys.exit(2)
         self._automation.log.info("INFO | remotereftests.py | Server pid: %d", pid)
+
+        if (self.pidFile != ""):
+            f = open(self.pidFile + ".xpcshell.pid", 'w')
+            f.write("%s" % pid)
+            f.close()
 
     def ensureReady(self, timeout):
         assert timeout >= 0
@@ -238,6 +255,7 @@ class RemoteReftest(RefTest):
         self.remoteTestRoot = options.remoteTestRoot
         self.remoteLogFile = options.remoteLogFile
         self.localLogName = options.localLogName
+        self.pidFile = options.pidFile
         if self.automation.IS_DEBUG_BUILD:
             self.SERVER_STARTUP_TIMEOUT = 180
         else:
@@ -336,6 +354,12 @@ class RemoteReftest(RefTest):
         self._devicemanager.removeDir(self.remoteProfile)
         self._devicemanager.removeDir(self.remoteTestRoot)
         RefTest.cleanup(self, profileDir)
+        if (self.pidFile != ""):
+            try:
+                os.remove(self.pidFile)
+                os.remove(self.pidFile + ".xpcshell.pid")
+            except:
+                print "Warning: cleaning up pidfile '%s' was unsuccessful from the test harness" % self.pidFile
 
 def main():
     dm_none = DeviceManager(None, None)
