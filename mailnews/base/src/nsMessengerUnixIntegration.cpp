@@ -136,7 +136,6 @@ nsMessengerUnixIntegration::nsMessengerUnixIntegration()
   mNewMailReceivedAtom = MsgGetAtom("NewMailReceived");
   mAlertInProgress = PR_FALSE;
   mLastMRUTimes.Init();
-  mFetchingPreview = PR_FALSE;
   NS_NewISupportsArray(getter_AddRefs(mFoldersWithNewMail));
 }
 
@@ -258,31 +257,44 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
   if (!parser)
     return PR_FALSE;
 
+  nsCOMPtr<nsIMsgFolder> folder;
+  aHdr->GetFolder(getter_AddRefs(folder));
+
+  if (!folder)
+    return PR_FALSE;
+
+  nsCString msgURI;
+  folder->GetUriForMsg(aHdr, msgURI);
+
+  PRBool localOnly;
+
+  PRUint32 msgURIIndex = mFetchingURIs.IndexOf(msgURI);
+  if (msgURIIndex == -1)
+  {
+    localOnly = PR_FALSE;
+    mFetchingURIs.AppendElement(msgURI);
+  } 
+  else
+    localOnly = PR_TRUE;
+
   PRUint32 messageKey;
   if (NS_FAILED(aHdr->GetMessageKey(&messageKey)))
     return PR_FALSE;
 
   PRBool asyncResult = PR_FALSE;
+  nsresult rv = folder->FetchMsgPreviewText(&messageKey, 1,
+                                            localOnly, this,
+                                            &asyncResult);
+  // If we're still waiting on getting the message previews,
+  // bail early.  We'll come back later when the async operation
+  // finishes.
+  if (NS_FAILED(rv) || asyncResult)
+    return PR_FALSE;
 
-  if (!mFetchingPreview) {
-    nsCOMPtr<nsIMsgFolder> parentFolder;
-    aHdr->GetFolder(getter_AddRefs(parentFolder));
-
-    if (!parentFolder)
-      return PR_FALSE;
-
-    nsresult rv = parentFolder->FetchMsgPreviewText(&messageKey, 1,
-                                                    PR_FALSE, this,
-                                                    &asyncResult);
-    mFetchingPreview = asyncResult;
-    // If we're still waiting on getting the message previews,
-    // bail early.  We'll come back later when the async operation
-    // finishes.
-    if (NS_FAILED(rv) || asyncResult)
-      return PR_FALSE;
-
-  }
-  mFetchingPreview = PR_FALSE;
+  // If we got here, that means that we've retrieved the message preview,
+  // so we can stop tracking it with our mFetchingURIs array.
+  if (msgURIIndex != -1)
+    mFetchingURIs.RemoveElementAt(msgURIIndex);
 
   nsCString utf8previewString;
   if (showPreview &&
