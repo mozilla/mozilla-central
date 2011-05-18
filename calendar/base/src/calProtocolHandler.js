@@ -68,7 +68,7 @@ calProtocolHandler.prototype = {
     getHelperForLanguage: function cP_getHelperForLanguage(aLang) {
         return null;
     },
-    classDescription: "Describes a VALARM",
+    classDescription: "Calendar webcal(s) protocal handler",
     /* classID/contractID is filled in at the end of this file */
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
     flags: 0,

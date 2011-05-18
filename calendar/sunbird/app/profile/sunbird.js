@@ -213,7 +213,7 @@ pref("extensions.blocklist.detailsURL", "http://%LOCALE%.www.mozilla.com/%LOCALE
 
 pref("general.useragent.locale", "@AB_CD@");
 pref("general.skins.selectedSkin", "classic/1.0");
-pref("general.useragent.extra.sunbird", "@APP_UA_NAME@/@APP_VERSION@");
+pref("calendar.useragent.extra", "@APP_UA_NAME@/@APP_VERSION@");
 
 // Scripts & Windows prefs
 pref("dom.disable_open_during_load",        true);

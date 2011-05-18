@@ -190,6 +190,8 @@ calCalendarManager.prototype = {
         this.mReadonlyCalendarCount = 0;
         this.mCalendarCount = 0;
 
+        Services.obs.addObserver(this, "http-on-modify-request", false);
+
         aCompleteListener.onResult(null, Components.results.NS_OK);
     },
 
@@ -202,6 +204,7 @@ calCalendarManager.prototype = {
 
         Services.obs.removeObserver(this, "profile-after-change");
         Services.obs.removeObserver(this, "profile-before-change");
+        Services.obs.removeObserver(this, "http-on-modify-request");
         AddonManager.removeAddonListener(gCalendarManagerAddonListener);
 
         aCompleteListener.onResult(null, Components.results.NS_OK);
@@ -256,6 +259,26 @@ calCalendarManager.prototype = {
                     if (calendar instanceof calCachedCalendar) {
                         calendar.onOfflineStatusChanged(aData == "offline");
                     }
+                }
+                break;
+            case "http-on-modify-request":
+                // Unfortunately, the ability to do this with a general pref has
+                // been removed. Calendar servers might still want to know what
+                // client is used for access, so add our UA String to each
+                // request.
+                let httpChannel = aSubject.QueryInterface(Components.interfaces.nsIHttpChannel);
+                try {
+                    // NOTE: For some reason, this observer call doesn't have
+                    // the "cal" namespace defined
+                    let ua = httpChannel.getRequestHeader("User-Agent");
+                    let calUAString = getPrefSafe("calendar.useragent.extra");
+                    if (calUAString && ua.indexOf(calUAString) < 0) {
+                        // Merge in the header value
+                        httpChannel.setRequestHeader("User-Agent", calUAString, true);
+                    }
+                } catch (e if e.result == Components.results.NS_ERROR_NOT_AVAILABLE) {
+                    // We swallow this error since it means the User Agent
+                    // header is not set. We don't want to force it to be set.
                 }
                 break;
         }

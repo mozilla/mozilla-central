@@ -141,4 +141,4 @@ pref("mousewheel.withshiftkey.action", 0);
 pref("calendar.threading.disabled", false);
 
 // Set up user agent
-#expand pref("general.useragent.extra.lightning","Lightning/__LIGHTNING_VERSION__");
+#expand pref("calendar.useragent.extra", "Lightning/__LIGHTNING_VERSION__");
