@@ -88,7 +88,7 @@ const gTestArray =
     let folders = new Array;
     folders.push(gNotEmptyLocal4.QueryInterface(Ci.nsIMsgFolder));
     let array = toXPCOMArray(folders, Ci.nsIMutableArray);
-    gServer._handler.commandToFail = "APPEND";
+    gIMAPDaemon.commandToFail = "APPEND";
     // we expect NS_MSG_ERROR_IMAP_COMMAND_FAILED;
     CopyListener._expectedStatus = 0x80550021;
     gCopyService.CopyFolders(array, gIMAPInbox, false, CopyListener, null);

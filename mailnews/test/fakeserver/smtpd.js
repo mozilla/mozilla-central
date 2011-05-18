@@ -85,7 +85,7 @@ SMTP_RFC2821_handler.prototype = {
     if (this._state == kStateAuthNeeded)
       return "530 5.7.0 Authentication required";
     this.expectingData = true;
-    this.post = "";
+    this._daemon.post = "";
     return "354 ok\n";
   },
   RSET: function (args) {
@@ -238,7 +238,7 @@ SMTP_RFC2821_handler.prototype = {
       if (line.charAt(0) == '.')
         line = line.substring(1);
       // This uses CR LF to match with the specification
-      this.post += line + '\r\n';
+      this._daemon.post += line + '\r\n';
     }
     return undefined;
   },

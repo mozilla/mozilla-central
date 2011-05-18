@@ -111,7 +111,7 @@ var tests = [
 let gTargetFolder;
 function createTargetFolder()
 {
-  gIMAPServer._handler.copySleep = 5000;
+  gIMAPDaemon.copySleep = 5000;
   gIMAPIncomingServer.rootFolder.createSubfolder("targetFolder", null);
   yield false; 
   gTargetFolder = gIMAPIncomingServer.rootFolder.getChildNamed("targetFolder");

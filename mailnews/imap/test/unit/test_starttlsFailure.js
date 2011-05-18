@@ -43,8 +43,7 @@ function alert(aDialogTitle, aText) {
 function run_test() {
   // set up IMAP fakeserver and incoming server
   gIMAPDaemon = new imapDaemon();
-  gIMAPServer = makeServer(gIMAPDaemon, "");
-  gIMAPServer._handler.dropOnStartTLS = true;
+  gIMAPServer = makeServer(gIMAPDaemon, "", {dropOnStartTLS: true});
   gIMAPIncomingServer = createLocalIMAPServer();
   gIMAPIncomingServer.socketType = Ci.nsMsgSocketType.alwaysSTARTTLS;
 

@@ -58,7 +58,7 @@ msll.prototype = {
                             "DATA"]);
 
       // Compare data file to what the server received
-      do_check_eq(originalData, server._handler.post);
+      do_check_eq(originalData, server._daemon.post);
 
       // Now wait till the copy is finished for the sent message
       do_test_pending();

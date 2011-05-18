@@ -22,9 +22,7 @@ function run_test() {
   // Copy the file to the profile directory for a PAB
   signons.copyTo(gProfileDir, "signons.txt");
 
-  var handler = new NNTP_RFC4643_extension(daemon);
-
-  var server = new nsMailServer(handler);
+  var server = makeServer(NNTP_RFC4643_extension, daemon);
   server.start(NNTP_PORT);
 
   try {

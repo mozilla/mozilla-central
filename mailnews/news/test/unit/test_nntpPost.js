@@ -12,7 +12,7 @@ function run_test() {
   localserver.realHostName = localserver.hostName;
   localserver.hostName = "news.example.com";
 
-  var server = new nsMailServer(new NNTP_RFC977_handler(daemon));
+  var server = makeServer(NNTP_RFC977_handler, daemon);
   server.start(NNTP_PORT);
 
   try {

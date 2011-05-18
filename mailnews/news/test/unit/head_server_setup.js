@@ -68,6 +68,13 @@ function setupNNTPDaemon() {
   return daemon;
 }
 
+function makeServer(handler, daemon) {
+  function createHandler(d) {
+    return new handler(d);
+  }
+  return new nsMailServer(createHandler, daemon);
+}
+
 // Enable strict threading
 var prefs = Cc["@mozilla.org/preferences-service;1"]
               .getService(Ci.nsIPrefBranch);

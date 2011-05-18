@@ -6,7 +6,7 @@
  */
 
 var server;
-var handler;
+var kAuthSchemes;
 var smtpServer;
 var smtpService;
 var testFile;
@@ -69,7 +69,7 @@ function nextTest() {
 
 
   // Adapt to curTest
-  handler.kAuthSchemes = curTest.serverAuthMethods;
+  kAuthSchemes = curTest.serverAuthMethods;
   smtpServer.authMethod = curTest.clientAuthMethod;
 
   // Run test
@@ -87,19 +87,23 @@ function run_test() {
   // Handle the server in a try/catch/finally loop so that we always will stop
   // the server if something fails.
   try {
-    handler = new SMTP_RFC2821_handler(new smtpDaemon());
-    server = new nsMailServer(handler);
-    handler.kUsername = kUsername;
-    handler.kPassword = kPassword;
-    handler.kAuthRequired = true;
+    function createHandler(d) {
+      var handler = new SMTP_RFC2821_handler(d);
+      handler.kUsername = kUsername;
+      handler.kPassword = kPassword;
+      handler.kAuthRequired = true;
+      handler.kAuthSchemes = kAuthSchemes;
+      return handler;
+    }
+    server = setupServerDaemon(createHandler);
     dump("AUTH PLAIN = " + AUTHPLAIN + "\n");
     server.start(SMTP_PORT);
 
     loadLocalMailAccount();
     smtpServer = getBasicSmtpServer();
     smtpServer.socketType = Ci.nsMsgSocketType.plain;
-    smtpServer.username = handler.kUsername;
-    smtpServer.password = handler.kPassword;
+    smtpServer.username = kUsername;
+    smtpServer.password = kPassword;
     identity = getSmtpIdentity(kSender, smtpServer);
     smtpService = Cc["@mozilla.org/messengercompose/smtp;1"]
                         .getService(Ci.nsISmtpService);

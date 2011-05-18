@@ -80,11 +80,13 @@ POP3Pump.prototype._urlListener =
 POP3Pump.prototype._setupServerDaemon = function _setupServerDaemon(aDebugOption)
 {
   this._daemon = new pop3Daemon();
-  var handler = new POP3_RFC1939_handler(this._daemon);
-  this._server = new nsMailServer(handler);
+  function createHandler(d) {
+    return new POP3_RFC1939_handler(d);
+  }
+  this._server = new nsMailServer(createHandler, this._daemon);
   if (aDebugOption)
     this._server.setDebugLevel(aDebugOption);
-  return [this._daemon, this._server, handler];
+  return [this._daemon, this._server];
 };
 
 POP3Pump.prototype._createPop3ServerAndLocalFolders =

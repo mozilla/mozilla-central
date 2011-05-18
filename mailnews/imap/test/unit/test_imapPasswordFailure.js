@@ -92,12 +92,13 @@ function run_test() {
 
   let daemon = new imapDaemon();
   daemon.createMailbox("Subscribed", {subscribed : true});
-  server = makeServer(daemon, "");
+  server = makeServer(daemon, "", {
+    // Make username of server match the singons.txt file
+    // (pw there is intentionally invalid)
+    kUsername: kUserName,
+    kPassword: kValidPassword});
   server.setDebugLevel(fsDebugAll);
 
-  // Make username of server match the singons.txt file (pw there is intentionally invalid)
-  server._handler.kUsername = kUserName;
-  server._handler.kPassword = kValidPassword;
 
   incomingServer = createLocalIMAPServer();
 

@@ -15,8 +15,8 @@ const SMTP_PORT = 1024+120;
 // Setup the daemon and server
 function setupServerDaemon(handler) {
   if (!handler)
-    handler = new SMTP_RFC2821_handler(new smtpDaemon());
-  var server = new nsMailServer(handler);
+    handler = function (d) { return new SMTP_RFC2821_handler(d); }
+  var server = new nsMailServer(handler, new smtpDaemon());
   return server;
 }
 

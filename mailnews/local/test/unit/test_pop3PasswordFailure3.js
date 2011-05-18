@@ -211,13 +211,16 @@ function run_test()
 
   // Set up the Server
   daemon = new pop3Daemon();
-  var handler = new POP3_RFC5034_handler(daemon);
-  server = new nsMailServer(handler);
-  handler.dropOnAuthFailure = true;
+  function createHandler(d) {
+    var handler = new POP3_RFC5034_handler(d);
+    handler.dropOnAuthFailure = true;
+    // Set the server expected username & password to what we have in signons.txt
+    handler.kUsername = kUserName;
+    handler.kPassword = kValidPassword;
+    return handler;
+  }
+  server = new nsMailServer(createHandler, daemon);
 
-  // Set the server expected username & password to what we have in signons.txt
-  handler.kUsername = kUserName;
-  handler.kPassword = kValidPassword;
 
   // Set up the basic accounts and folders.
   // We would use createPop3ServerAndLocalFolders() however we want to have

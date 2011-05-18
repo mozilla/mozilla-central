@@ -86,14 +86,9 @@ function nextTest() {
 
     // (re)create fake server
     var daemon = new imapDaemon();
-    var server = makeServer(daemon, "");
+    var server = makeServer(daemon, "",
+      {kAuthSchemes: thisTest.serverAuthMethods});
     server.setDebugLevel(fsDebugAll);
-    var handler = server._handler;
-    //handler.kUsername = kUsername;
-    //handler.kPassword = kPassword;
-    //daemon.createMailbox("somemailbox");
-
-    handler.kAuthSchemes = thisTest.serverAuthMethods;
 
     // If Mailnews ever caches server capabilities, delete and re-create the incomingServer here
     var incomingServer = createLocalIMAPServer();

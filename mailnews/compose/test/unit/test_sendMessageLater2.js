@@ -56,7 +56,7 @@ msll.prototype = {
                           "DATA"]);
 
     // Compare data file to what the server received
-    do_check_eq(gMsgFileData[gMsgOrder[aCurrentMessage - 1]], server._handler.post);
+    do_check_eq(gMsgFileData[gMsgOrder[aCurrentMessage - 1]], server._daemon.post);
   },
 
   // nsIMsgSendLaterListener

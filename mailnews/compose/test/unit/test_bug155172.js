@@ -32,14 +32,17 @@ const kPassword2 = "smtptest";
 function run_test() {
   registerAlertTestUtils();
 
-  var handler = new SMTP_RFC2821_handler(new smtpDaemon());
-  // Username needs to match signons.txt
-  handler.kUsername = kUsername;
-  handler.kPassword = kPassword1;
-  handler.kAuthRequired = true;
-  handler.kAuthSchemes = [ "PLAIN", "LOGIN" ]; // make match expected transaction below
+  function createHandler(d) {
+    var handler = new SMTP_RFC2821_handler(d);
+    // Username needs to match signons.txt
+    handler.kUsername = kUsername;
+    handler.kPassword = kPassword1;
+    handler.kAuthRequired = true;
+    handler.kAuthSchemes = [ "PLAIN", "LOGIN" ]; // make match expected transaction below
+    return handler;
+  }
 
-  server = setupServerDaemon(handler);
+  server = setupServerDaemon(createHandler);
   server.setDebugLevel(fsDebugAll);
 
   // Passwords File (generated from Mozilla 1.8 branch).

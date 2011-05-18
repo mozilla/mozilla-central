@@ -4,7 +4,7 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function run_test() {
   var daemon = setupNNTPDaemon();
-  var server = new nsMailServer(new NNTP_RFC2980_handler(daemon));
+  var server = makeServer(NNTP_RFC2980_handler, daemon);
   server.start(NNTP_PORT);
 
   // Correct URI?

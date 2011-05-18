@@ -29,9 +29,7 @@ var test = null;
 
 function testRFC977() {
   type = "RFC 977";
-  var handler = new NNTP_RFC977_handler(daemon);
-
-  var server = new nsMailServer(handler);
+  var server = makeServer(NNTP_RFC977_handler, daemon);
   server.start(NNTP_PORT);
 
   try {
@@ -97,8 +95,7 @@ function testRFC977() {
 }
 
 function testConnectionLimit() {
-  var handler = new NNTP_RFC977_handler(daemon);
-  var server = new nsMailServer(handler);
+  var server = makeServer(NNTP_RFC977_handler, daemon);
   server.start(NNTP_PORT);
 
   var prefix = "news://localhost:"+NNTP_PORT+"/";
@@ -122,8 +119,7 @@ function testConnectionLimit() {
 function testReentrantClose() {
   // What we are testing is that a CloseConnection that spins the event loop
   // does not cause a crash.
-  var handler = new NNTP_RFC977_handler(daemon);
-  var server = new nsMailServer(handler);
+  var server = makeServer(NNTP_RFC977_handler, daemon);
   server.start(NNTP_PORT);
 
   var listener = {
@@ -155,8 +151,36 @@ function testReentrantClose() {
   listener = url = null;
 }
 
+function testManyConnections() {
+  // Start up 2 connections at once and make sure that they don't conflict
+  var server = makeServer(NNTP_RFC2980_handler, daemon);
+  setupLocalServer(NNTP_PORT);
+  server.start(NNTP_PORT);
+  _server.maximumConnectionsNumber = 3;
+  var listener = {
+    ran: 0,
+    OnStartRunningUrl: function (url) {},
+    OnStopRunningUrl: function (url, rv) {
+      if (--(this.ran) == 0)
+        _server.closeCachedConnections();
+    }
+  };
+  let groups = _server.rootFolder.subFolders;
+  while (groups.hasMoreElements()) {
+    groups.getNext().QueryInterface(Ci.nsIMsgFolder).getNewMessages(null,
+      listener);
+    listener.ran++;
+  }
+  server.performTest();
+  // The last one that is processed is test.filter, so make sure that
+  // test.subscribed.simple is not retrieving the data meant for test.filter
+  let folder = _server.rootFolder.getChildNamed("test.subscribe.simple")
+  do_check_eq(folder.getTotalMessages(false), 1);
+}
+
 function run_test() {
   testRFC977();
   testConnectionLimit();
   testReentrantClose();
+  testManyConnections();
 }

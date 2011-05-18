@@ -77,12 +77,15 @@ function confirmEx(aDialogTitle, aText, aButtonFlags, aButton0Title,
 }
 
 function run_test() {
-  var handler = new SMTP_RFC2821_handler(new smtpDaemon());
-  server = new nsMailServer(handler);
-  // Username needs to match signons.txt
-  handler.kUsername = kUsername;
-  handler.kPassword = kValidPassword;
-  handler.kAuthRequired = true;
+  function createHandler(d) {
+    var handler = new SMTP_RFC2821_handler(d);
+    // Username needs to match signons.txt
+    handler.kUsername = kUsername;
+    handler.kPassword = kValidPassword;
+    handler.kAuthRequired = true;
+    return handler;
+  }
+  server = setupServerDaemon(createHandler);
 
   // Passwords File (generated from Mozilla 1.8 branch).
   var signons = do_get_file("../../../data/signons-mailnews1.8.txt");

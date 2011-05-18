@@ -81,13 +81,16 @@ function run_test()
   prefSvc.setBoolPref("mail.biff.animate_dock_icon", false);
   // Set up the Server
   daemon = new pop3Daemon();
-  var handler = new POP3_RFC1939_handler(daemon);
-  server = new nsMailServer(handler);
+  function createHandler(d) {
+    var handler = new POP3_RFC1939_handler(d);
+    // Set the server expected username & password to what we have in signons.txt
+    handler.kUsername = kUserName;
+    handler.kPassword = kValidPassword;
+    handler.dropOnAuthFailure = true;
+    return handler;
+  }
+  server = new nsMailServer(createHandler, daemon);
 
-  // Set the server expected username & password to what we have in signons.txt
-  handler.kUsername = kUserName;
-  handler.kPassword = kValidPassword;
-  handler.dropOnAuthFailure = true;
   // Set up the basic accounts and folders.
   // We would use createPop3ServerAndLocalFolders() however we want to have
   // a different username and NO password for this test (as we expect to load

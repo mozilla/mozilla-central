@@ -25,7 +25,6 @@
 
 var server;
 var daemon;
-var handler;
 var incomingServer;
 var pop3Service;
 const test = "Server which advertises CRAM-MD5, but closes the connection when it's tried";
@@ -99,8 +98,10 @@ function run_test() {
     prefSvc.setBoolPref("mail.biff.animate_dock_icon", false);
 
     daemon = new pop3Daemon();
-    handler = new CRAMFail_handler(daemon);
-    server = new nsMailServer(handler);
+    function createHandler(d) {
+      return new CRAMFail_handler(d);
+    }
+    server = new nsMailServer(createHandler, daemon);
     server.start(POP3_PORT);
 
     incomingServer = createPop3ServerAndLocalFolders();

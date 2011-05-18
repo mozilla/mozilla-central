@@ -22,7 +22,7 @@ function run_test() {
   createFilter(filters, "subject", "Odd", "read");
   localserver.setFilterList(filters);
 
-  let server = new nsMailServer(new NNTP_RFC2980_handler(daemon));
+  let server = makeServer(NNTP_RFC2980_handler, daemon);
   server.start(NNTP_PORT);
 
   // This is a bit hackish, but we don't have any really functional callbacks

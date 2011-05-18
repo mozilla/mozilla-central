@@ -30,8 +30,8 @@ var attribResults = {
   "6.odd@regular.invalid" : ["isRead", true],
   "7@regular.invalid" : ["isRead", true]
 };
-function testAttrib(handler, localserver) {
-  var server = new nsMailServer(handler);
+function testAttrib(handler, daemon, localserver) {
+  var server = makeServer(handler, daemon);
   server.start(NNTP_PORT);
 
   // Get the folder and force filters to run
@@ -85,8 +85,8 @@ var actionResults = {
     return header.getStringProperty("keywords") == "tag";
   }
 };
-function testAction(handler, localserver) {
-  var server = new nsMailServer(handler);
+function testAction(handler, daemon, localserver) {
+  var server = makeServer(handler, daemon);
   server.start(NNTP_PORT);
 
   // Get the folder and force filters to run
@@ -140,8 +140,7 @@ function run_test() {
   localserver.setFilterList(serverFilters);
 
   handlers.forEach( function (handler) {
-    var handlerObj = new handler(daemon);
-    testAttrib(handlerObj, localserver);
+    testAttrib(handler, daemon, localserver);
   });
 
   // Now we test folder-filters... and actions
@@ -165,7 +164,6 @@ function run_test() {
   folder.setFilterList(folderFilters);
 
   handlers.forEach( function (handler) {
-    var handlerObj = new handler(daemon);
-    testAction(handlerObj, localserver);
+    testAction(handler, daemon, localserver);
   });
 }

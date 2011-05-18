@@ -189,7 +189,7 @@ function test_forwardInline() {
 function run_test() {
   daemon = setupNNTPDaemon();
   localserver = setupLocalServer(NNTP_PORT);
-  server = new nsMailServer(new NNTP_RFC2980_handler(daemon));
+  server = makeServer(NNTP_RFC2980_handler, daemon);
   server.start(NNTP_PORT);
   server.setDebugLevel(fsDebugAll);
 

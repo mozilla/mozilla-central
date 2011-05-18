@@ -58,7 +58,7 @@ msll.prototype = {
                             "DATA"]);
 
       // Compare data file to what the server received
-      do_check_eq(originalData, server._handler.post);
+      do_check_eq(originalData, server._daemon.post);
 
       // check there's still one message left in the folder
       do_check_eq(gMsgSendLater.getUnsentMessagesFolder(null)

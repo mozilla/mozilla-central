@@ -22,9 +22,8 @@ function run_test() {
   return;
 
   type = "RFC 977";
-  var handler = new NNTP_RFC977_handler(daemon);
   localserver = setupLocalServer(NNTP_PORT);
-  server = new nsMailServer(handler);
+  server = makeServer(NNTP_RFC977_handler, daemon);
   server.start(NNTP_PORT);
 
   try {

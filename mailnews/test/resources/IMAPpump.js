@@ -83,16 +83,19 @@ function setupIMAPPump(extensions)
     if (infoString in configurations)
       return makeServer(daemon, configurations[infoString].join(","));
 
-    var handler = new IMAP_RFC3501_handler(daemon);
-    if (!infoString)
-      infoString = "RFC2195";
+    function createHandler(d) {
+      var handler = new IMAP_RFC3501_handler(d);
+      if (!infoString)
+        infoString = "RFC2195";
 
-    var parts = infoString.split(/ *, */);
-    for each (var part in parts) {
-      if (part.substring(0, 3) == "RFC")
-        mixinExtension(handler, eval("IMAP_" + part + "_extension"));
+      var parts = infoString.split(/ *, */);
+      for each (var part in parts) {
+        if (part.substring(0, 3) == "RFC")
+          mixinExtension(handler, eval("IMAP_" + part + "_extension"));
+      }
+      return handler;
     }
-    var server = new nsMailServer(handler);
+    var server = new nsMailServer(createHandler, daemon);
     server.start(IMAP_PORT);
     return server;
   }
