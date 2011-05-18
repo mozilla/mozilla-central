@@ -334,6 +334,11 @@
           var inputValue = aAttendee.commonName;
           var regexp = new RegExp("^mailto:(.*)", "i");
           if (inputValue && this.mHeaderParser) {
+              // Make the commonName appear in quotes if it
+              // contains a comma or semicolon.
+              if (inputValue.search(/[,;]/) != -1) {
+                  inputValue = '"' + inputValue + '"';
+              }
               var email = aAttendee.id;
               if (email && email.length) {
                   if (regexp.test(email)) {

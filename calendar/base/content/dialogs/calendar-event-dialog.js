@@ -2829,7 +2829,8 @@ function updateAttendees() {
         for (var i = 0; i < numAttendees; i++) {
             var attendee = window.attendees[i];
             if (attendee.commonName && attendee.commonName.length) {
-                attendeeNames += attendee.commonName;
+                attendeeNames += (attendee.commonName.search(/[,;]/) != -1) ? '"' + attendee.commonName + '"'
+                                                                            : attendee.commonName;
             } else if (attendee.id && attendee.id.length) {
                 var email = attendee.id;
                 if (regexp.test(email)) {
