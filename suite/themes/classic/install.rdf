@@ -7,7 +7,7 @@
 
   <Description about="urn:mozilla:install-manifest">
     <em:id>{972ce4c6-7e08-4474-a285-3208198ce6fd}</em:id>
-    <em:version>1.0</em:version>
+    <em:version>@SEAMONKEY_VERSION@</em:version>
     <em:type>4</em:type>
 
     <!-- Target Application this theme can install into,

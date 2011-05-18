@@ -7,7 +7,7 @@
 
   <Description about="urn:mozilla:install-manifest">
     <em:id>modern@themes.mozilla.org</em:id>
-    <em:version>1.0</em:version>
+    <em:version>@SEAMONKEY_VERSION@</em:version>
 
     <!-- Target Application this theme can install into,
         with minimum and maximum supported versions. -->
