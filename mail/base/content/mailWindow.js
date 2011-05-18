@@ -705,9 +705,15 @@ nsBrowserAccess.prototype = {
     let loadInBackground =
       Application.prefs.getValue("browser.tabs.loadDivertedInBackground", false);
 
-    let newTab = win.document.getElementById("tabmail")
-                    .openTab("contentTab", {contentPage: "about:blank",
-                                            background: loadInBackground});
+    let tabmail = win.document.getElementById("tabmail");
+    let clickHandler = null;
+    let browser = tabmail.getBrowserForDocument(content);
+    if (browser)
+      clickHandler = browser.clickHandler;
+
+    let newTab = tabmail.openTab("contentTab", {contentPage: "about:blank",
+                                                background: loadInBackground,
+                                                clickHandler: clickHandler});
 
     newWindow = newTab.browser.docShell
                       .QueryInterface(Components.interfaces.nsIInterfaceRequestor)

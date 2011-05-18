@@ -391,10 +391,10 @@ var specialTabs = {
 
       aTab.browser.setAttribute("id", "contentTabBrowser" + this.lastBrowserId);
 
-      aTab.browser.setAttribute("onclick",
-                                "clickHandler" in aArgs && aArgs.clickHandler ?
-                                aArgs.clickHandler :
-                                "specialTabs.defaultClickHandler(event);");
+      aTab.clickHandler = "clickHandler" in aArgs && aArgs.clickHandler ?
+                          aArgs.clickHandler :
+                          "specialTabs.defaultClickHandler(event);";
+      aTab.browser.setAttribute("onclick", aTab.clickHandler);
 
       // Set this attribute so that when favicons fail to load, we remove the
       // image attribute and just show the default tab icon.
@@ -469,7 +469,7 @@ var specialTabs = {
       if (aTab.browser.currentURI.spec == "about:blank")
         return null;
 
-      let onClick = aTab.browser.getAttribute("onclick");
+      let onClick = aTab.clickHandler;
 
       return {
         tabURI: aTab.browser.currentURI.spec,
