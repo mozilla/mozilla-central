@@ -444,16 +444,9 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 
 #MsgHeadersToolbar {
   min-height: 132px;
-  border-bottom-width: 0;
 }
 
 /* ::::: format toolbar ::::: */
-
-#FormatToolbar {
-  -moz-appearance: none;
-  border-top: none;
-  border-bottom: none;
-}
 
 toolbarbutton.formatting-button {
   list-style-image: url("chrome://messenger/skin/messengercompose/format-buttons.png");

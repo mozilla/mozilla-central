@@ -55,16 +55,14 @@
   background-color: transparent;
 }
 
-toolbar:not(:-moz-lwtheme),
-#FormatToolbar-box:not(:-moz-lwtheme) {
+toolbar:not(:-moz-lwtheme) {
   -moz-appearance: none;
   border: none;
   background-color: -moz-Dialog;
 }
 
 @media all and (-moz-windows-default-theme) {
-  toolbar:not(:-moz-lwtheme),
-  #FormatToolbar-box:not(:-moz-lwtheme) {
+  toolbar:not(:-moz-lwtheme) {
     background-color: rgb(207, 219, 236);
   }
 }
@@ -458,6 +456,10 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 }
 
 /* ::::: format toolbar ::::: */
+
+#FormatToolbar {
+  padding-top: 3px;
+}
 
 toolbarbutton.formatting-button {
   list-style-image: url("chrome://messenger/skin/messengercompose/format-buttons.png");
