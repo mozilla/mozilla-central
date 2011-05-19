@@ -1607,7 +1607,7 @@ NS_IMETHODIMP nsMsgDBView::IsContainer(PRInt32 index, PRBool *_retval)
   if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
   {
     PRUint32 flags = m_flags[index];
-    *_retval = (flags & MSG_VIEW_FLAG_HASCHILDREN);
+    *_retval = !!(flags & MSG_VIEW_FLAG_HASCHILDREN);
   }
   else
     *_retval = PR_FALSE;
