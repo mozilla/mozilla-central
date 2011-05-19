@@ -38,6 +38,7 @@
 
 #include "nsMailGNOMEIntegration.h"
 #include "nsIGConfService.h"
+#include "nsIGIOService.h"
 #include "nsCOMPtr.h"
 #include "nsIServiceManager.h"
 #include "prenv.h"
@@ -50,6 +51,7 @@
 #include "nsDirectoryServiceUtils.h"
 #include "nsEmbedCID.h"
 #include "nsMemory.h"
+#include "nsIStringBundle.h"
 
 #include <glib.h>
 #include <limits.h>
@@ -82,8 +84,9 @@ nsMailGNOMEIntegration::Init()
   // GConf _must_ be available, or we do not allow CreateInstance to succeed.
 
   nsCOMPtr<nsIGConfService> gconf = do_GetService(NS_GCONFSERVICE_CONTRACTID);
+  nsCOMPtr<nsIGIOService> giovfs = do_GetService(NS_GIOSERVICE_CONTRACTID);
 
-  if (!gconf)
+  if (!gconf && !giovfs)
     return NS_ERROR_NOT_AVAILABLE;
 
   // Check G_BROKEN_FILENAMES.  If it's set, then filenames in glib use
@@ -122,8 +125,8 @@ nsMailGNOMEIntegration::GetAppPathFromLauncher()
     gchar *fullpath = g_find_program_in_path(tmp);
     if (fullpath && mAppPath.Equals(fullpath)) {
       mAppIsInPath = PR_TRUE;
-      g_free(fullpath);
     }
+    g_free(fullpath);
   } else {
     tmp = g_find_program_in_path(launcher);
     if (!tmp)
@@ -215,33 +218,54 @@ nsMailGNOMEIntegration::KeyMatchesAppName(const char *aKeyValue) const
 }
 
 PRBool
+nsMailGNOMEIntegration::CheckHandlerMatchesAppName(const nsACString &handler) const
+{
+  gint argc;
+  gchar **argv;
+  nsCAutoString command(handler);
+
+  if (g_shell_parse_argv(command.get(), &argc, &argv, NULL)) {
+    command.Assign(argv[0]);
+    g_strfreev(argv);
+  } else {
+    return PR_FALSE;
+  }
+
+  return KeyMatchesAppName(command.get());
+}
+
+PRBool
 nsMailGNOMEIntegration::checkDefault(const char* const *aProtocols, unsigned int aLength)
 {
   nsCOMPtr<nsIGConfService> gconf = do_GetService(NS_GCONFSERVICE_CONTRACTID);
+  nsCOMPtr<nsIGIOService> giovfs = do_GetService(NS_GIOSERVICE_CONTRACTID);
 
   PRBool enabled;
   nsCAutoString handler;
+  nsresult rv;
 
   for (unsigned int i = 0; i < aLength; ++i) {
-    handler.Truncate();
-    nsresult rv = gconf->GetAppForProtocol(nsDependentCString(aProtocols[i]),
-                                           &enabled, handler);
-    if (NS_SUCCEEDED(rv))
-    {
-      // The string will be something of the form: [/path/to/]app "%s"
-      // We want to remove all of the parameters and get just the binary name.
-
-      gint argc;
-      gchar **argv;
-
-      if (g_shell_parse_argv(handler.get(), &argc, &argv, NULL) && argc > 0) {
-        handler.Assign(argv[0]);
-        g_strfreev(argv);
-      } else 
+    if (gconf) {
+      handler.Truncate();
+      rv = gconf->GetAppForProtocol(nsDependentCString(aProtocols[i]),
+                                    &enabled, handler);
+      if (NS_SUCCEEDED(rv) && (!CheckHandlerMatchesAppName(handler) || !enabled)) {
         return PR_FALSE;
+      }
+    }
 
-      if (!KeyMatchesAppName(handler.get()) || !enabled)
-        return PR_FALSE; // the handler is disabled or set to another app
+    if (giovfs) {
+      handler.Truncate();
+      nsCOMPtr<nsIGIOMimeApp> app;
+      rv = giovfs->GetAppForURIScheme(nsDependentCString(aProtocols[i]),
+                                      getter_AddRefs(app));
+      if (NS_FAILED(rv) || !app) {
+        return PR_FALSE;
+      }
+      rv = app->GetCommand(handler);
+      if (NS_SUCCEEDED(rv) && !CheckHandlerMatchesAppName(handler)) {
+        return PR_FALSE;
+      }
     }
   }
 
@@ -254,6 +278,7 @@ nsMailGNOMEIntegration::MakeDefault(const char* const *aProtocols,
 {
   nsCAutoString appKeyValue;
   nsCOMPtr<nsIGConfService> gconf = do_GetService(NS_GCONFSERVICE_CONTRACTID);
+  nsCOMPtr<nsIGIOService> giovfs = do_GetService(NS_GIOSERVICE_CONTRACTID);
   if(mAppIsInPath) {
     // mAppPath is in the users path, so use only the basename as the launcher
     gchar *tmp = g_path_get_basename(mAppPath.get());
@@ -265,10 +290,39 @@ nsMailGNOMEIntegration::MakeDefault(const char* const *aProtocols,
 
   appKeyValue.AppendLiteral(" %s");
 
-  for (unsigned int i = 0; i < aLength; ++i) {
-    nsresult rv = gconf->SetAppForProtocol(nsDependentCString(aProtocols[i]),
-                                           appKeyValue);
+  nsresult rv;
+  if (gconf) {
+    for (unsigned int i = 0; i < aLength; ++i) {
+      rv = gconf->SetAppForProtocol(nsDependentCString(aProtocols[i]),
+                                    appKeyValue);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+  }
+
+  if (giovfs) {
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIStringBundle> brandBundle;
+    rv = bundleService->CreateBundle(BRAND_PROPERTIES, getter_AddRefs(brandBundle));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsString brandShortName;
+    brandBundle->GetStringFromName(NS_LITERAL_STRING("brandShortName").get(),
+                                   getter_Copies(brandShortName));
+
+    // use brandShortName as the application id.
+    NS_ConvertUTF16toUTF8 id(brandShortName);
+
+    nsCOMPtr<nsIGIOMimeApp> app;
+    rv = giovfs->CreateAppFromCommand(mAppPath, id, getter_AddRefs(app));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    for (unsigned int i = 0; i < aLength; ++i) {
+      rv = app->SetAsDefaultForURIScheme(nsDependentCString(aProtocols[i]));
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
   }
 
   return NS_OK;
