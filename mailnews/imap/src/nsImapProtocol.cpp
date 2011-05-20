@@ -1259,7 +1259,7 @@ nsImapProtocol::TellThreadToDie()
   {
     PRBool isAlive = PR_FALSE;
     if (m_transport)
-      rv = m_transport->IsAlive(&isAlive);
+      rv = m_transport->IsAlive(PR_FALSE, &isAlive);
 
     if (TestFlag(IMAP_CONNECTION_IS_OPEN) && m_idle && isAlive)
       EndIdle(PR_FALSE);
@@ -2220,7 +2220,7 @@ NS_IMETHODIMP nsImapProtocol::CanHandleUrl(nsIImapUrl * aImapUrl,
   else if (m_currentServerCommandTagNumber != 0)
   {
     PRBool isAlive;
-    rv = m_transport->IsAlive(&isAlive);
+    rv = m_transport->IsAlive(PR_FALSE, &isAlive);
     // if the transport is not alive, and we've ever sent a command with this connection, kill it.
     // otherwise, we've probably just not finished setting it so don't kill it!
     if (NS_FAILED(rv) || !isAlive)
