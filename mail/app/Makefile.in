@@ -341,6 +341,13 @@ libs:: $(srcdir)/profile/prefs.js
 libs:: blocklist.xml
 	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin
 
+# XXX This is a hack to ensure that we get the right xpcshell.ini for our tests.
+# mozilla-central does this in testing/xpcshell-tests which means that it is very
+# hard for anyone to specify anything else.
+libs::
+	$(INSTALL) $(topsrcdir)/mail/test/xpcshell.ini $(MOZDEPTH)/_tests/xpcshell
+	cp $(topsrcdir)/mail/test/xpcshell.ini $(MOZDEPTH)/_tests/xpcshell/all-test-dirs.list
+
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 
 AB := $(firstword $(subst -, ,$(AB_CD)))
