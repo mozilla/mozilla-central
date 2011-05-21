@@ -60,7 +60,7 @@ interface nsImapContentModifiedTypes
   const long IMAP_CONTENT_FORCE_CONTENT_NOT_MODIFIED = 3;
 } ;
 
-[scriptable, uuid(efd92a5f-a4fe-4093-ac9c-d23fae3950cd)]
+[scriptable, uuid(fe2a8f9e-2886-4146-9896-27fff660c69f)]
 interface nsIImapUrl : nsISupports
 {
   ///////////////////////////////////////////////////////////////////////////////
@@ -129,6 +129,14 @@ interface nsIImapUrl : nsISupports
 
   /// Server disconnected first time so we're retrying.
   attribute boolean rerunningUrl;
+
+  /**
+   * Do we have more headers to download? This is set when we decide to
+   * download newest headers first, followed by older headers in a subsequent
+   * run of the url, which allows other urls to run against the folder in the
+   * meantime.
+   */
+  attribute boolean moreHeadersToDownload;
 
   /**
    * @{

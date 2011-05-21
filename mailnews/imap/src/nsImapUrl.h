@@ -128,6 +128,7 @@ protected:
   PRPackedBool m_storeOfflineOnFallback;
   PRPackedBool m_localFetchOnly;
   PRPackedBool m_rerunningUrl; // first attempt running this failed with connection error; retrying
+  PRPackedBool m_moreHeadersToDownload;
   nsImapContentModifiedType  m_contentModified;
 
   PRInt32    m_extraStatus;

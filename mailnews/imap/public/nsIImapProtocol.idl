@@ -48,7 +48,7 @@ interface nsIMsgFolder;
 interface nsIImapHostSessionList;
 interface nsIMsgWindow;
 
-[scriptable, uuid(49816377-9319-48f8-8c90-7efadff8e628)]
+[scriptable, uuid(1c3bbfa9-69f7-4716-8986-2dba10cefb09)]
 interface nsIImapProtocol : nsISupports {
   void LoadImapUrl(in nsIURI aUrl, in nsISupports aConsumer);
 
@@ -76,7 +76,6 @@ interface nsIImapProtocol : nsISupports {
   void Initialize(in nsIImapHostSessionList aHostSessionList, in nsIImapIncomingServer aServer,
                   in nsIEventTarget aSinkEventTarget);
 
-  void NotifyHdrsToDownload(out unsigned long keys, in unsigned long keyCount);
   void NotifyBodysToDownload(out unsigned long keys, in unsigned long count);
   // methods to get data from the imap parser flag state.
   void GetFlagsForUID(in unsigned long uid, out boolean foundIt, out unsigned short flags, out string customFlags);

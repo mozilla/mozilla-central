@@ -364,9 +364,7 @@ protected:
     &keysToFetch, PRUint32 &numNewUnread, nsIImapFlagAndUidState *flagState);
   void FindKeysToDelete(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey>
     &keysToFetch, nsIImapFlagAndUidState *flagState, PRUint32 boxFlags);
-  void PrepareToAddHeadersToMailDB(nsIImapProtocol* aProtocol, const
-    nsTArray<nsMsgKey> &keysToFetch,
-    nsIMailboxSpec *boxSpec);
+  void PrepareToAddHeadersToMailDB(nsIImapProtocol* aProtocol);
   void TweakHeaderFlags(nsIImapProtocol* aProtocol, nsIMsgDBHdr *tweakMe);
 
   nsresult SyncFlags(nsIImapFlagAndUidState *flagState);
@@ -450,12 +448,11 @@ protected:
   PRBool ShowPreviewText();
 
   // Pseudo-Offline operation playback timer
-  static 
-  void PlaybackTimerCallback(nsITimer *aTimer, void *aClosure);
-  
+  static void PlaybackTimerCallback(nsITimer *aTimer, void *aClosure);
+
   nsresult CreatePlaybackTimer();
-  
-  // Allocate and initialize associated auto-sync state object 
+
+  // Allocate and initialize associated auto-sync state object.
   void InitAutoSyncState();
 
   PRBool m_initialized;
@@ -477,7 +474,7 @@ protected:
   // These three vars are used to store counts from STATUS or SELECT command
   // They include deleted messages, so they can differ from the generic
   // folder total and unread counts.
-  PRInt32 m_numServerRecentMessages; 
+  PRInt32 m_numServerRecentMessages;
   PRInt32 m_numServerUnseenMessages;
   PRInt32 m_numServerTotalMessages;
   // if server supports UIDNEXT, we store it here.
@@ -488,7 +485,7 @@ protected:
   nsCOMPtr<nsIUrlListener> m_urlListener;
   PRBool m_urlRunning;
 
-  // *** jt - undo move/copy trasaction support
+  // undo move/copy transaction support
   nsRefPtr<nsMsgTxn> m_pendingUndoTxn;
   nsCOMPtr<nsImapMailCopyState> m_copyState;
   char m_hierarchyDelimiter;
@@ -522,7 +519,7 @@ protected:
   PRBool m_downloadingFolderForOfflineUse;
   PRBool m_filterListRequiresBody;
 
-  // auto-sync (preemptive download) support
+  // auto-sync (automatic message download) support
   nsRefPtr<nsAutoSyncState> m_autoSyncStateObj;
 
   // Quota support
@@ -537,5 +534,9 @@ protected:
   // hash table of mapping between messageids and message keys
   // for pseudo hdrs.
   nsDataHashtable<nsCStringHashKey, nsMsgKey> m_pseudoHdrs;
+
+  nsTArray<nsMsgKey> m_keysToFetch;
+  PRUint32 m_totalKeysToFetch;
+
 };
 #endif

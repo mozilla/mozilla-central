@@ -2711,7 +2711,6 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
   NS_ENSURE_SUCCESS(rv, rv);
   nsTArray<nsMsgKey> existingKeys;
   nsTArray<nsMsgKey> keysToDelete;
-  nsTArray<nsMsgKey> keysToFetch;
   PRUint32 numNewUnread;
   nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
   PRInt32 imapUIDValidity = 0;
@@ -2827,7 +2826,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
     if (flagState)
     {
       nsTArray<nsMsgKey> no_existingKeys;
-      FindKeysToAdd(no_existingKeys, keysToFetch, numNewUnread, flagState);
+      FindKeysToAdd(no_existingKeys, m_keysToFetch, numNewUnread, flagState);
     }
     if (NS_FAILED(rv))
       pathFile->Remove(PR_FALSE);
@@ -2842,8 +2841,9 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
     FindKeysToDelete(existingKeys, keysToDelete, flagState, boxFlags);
     // if this is the result of an expunge then don't grab headers
     if (!(boxFlags & kJustExpunged))
-      FindKeysToAdd(existingKeys, keysToFetch, numNewUnread, flagState);
+      FindKeysToAdd(existingKeys, m_keysToFetch, numNewUnread, flagState);
   }
+  m_totalKeysToFetch = m_keysToFetch.Length();
   if (!keysToDelete.IsEmpty() && mDatabase)
   {
     nsCOMPtr<nsIMutableArray> hdrsToDelete(do_CreateInstance(NS_ARRAY_CONTRACTID));
@@ -2882,16 +2882,13 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
      SetNumNewMessages(numNewUnread);
   }
   SyncFlags(flagState);
-  if (mDatabase && mNumUnreadMessages + keysToFetch.Length() > numUnreadFromServer)
+  if (mDatabase && mNumUnreadMessages + m_keysToFetch.Length() > numUnreadFromServer)
     mDatabase->SyncCounts();
 
-  if (!keysToFetch.IsEmpty())
-    PrepareToAddHeadersToMailDB(aProtocol, keysToFetch, aSpec);
+  if (!m_keysToFetch.IsEmpty() && aProtocol)
+    PrepareToAddHeadersToMailDB(aProtocol);
   else
   {
-    // let the imap libnet module know that we don't need headers
-    if (aProtocol)
-      aProtocol->NotifyHdrsToDownload(nsnull, 0);
     PRBool gettingNewMessages;
     GetGettingNewMessages(&gettingNewMessages);
     if (gettingNewMessages)
@@ -4352,25 +4349,63 @@ void nsImapMailFolder::FindKeysToAdd(const nsTArray<nsMsgKey> &existingKeys, nsT
   }
 }
 
-void nsImapMailFolder::PrepareToAddHeadersToMailDB(nsIImapProtocol* aProtocol, const nsTArray<nsMsgKey> &keysToFetch,
-                                                nsIMailboxSpec *boxSpec)
+NS_IMETHODIMP nsImapMailFolder::GetMsgHdrsToDownload(PRBool *aMoreToDownload,
+                                                     PRInt32 *aTotalCount,
+                                                     PRUint32 *aLength,
+                                                     nsMsgKey **aKeys)
 {
-  PRUint32 *theKeys = (PRUint32 *) PR_Malloc( keysToFetch.Length() * sizeof(PRUint32) );
-  if (theKeys)
+  NS_ENSURE_ARG_POINTER(aMoreToDownload);
+  NS_ENSURE_ARG_POINTER(aTotalCount);
+  NS_ENSURE_ARG_POINTER(aLength);
+  NS_ENSURE_ARG_POINTER(aKeys);
+
+  *aMoreToDownload = PR_FALSE;
+  *aTotalCount = m_totalKeysToFetch;
+  if (m_keysToFetch.IsEmpty())
   {
-    PRUint32 total = keysToFetch.Length();
-    for (PRUint32 keyIndex=0; keyIndex < total; keyIndex++)
-      theKeys[keyIndex] = keysToFetch[keyIndex];
-    // tell the imap thread which hdrs to download
-    if (aProtocol)
-    {
-      aProtocol->NotifyHdrsToDownload(theKeys, total /*keysToFetch.Length() */);
-      // now, tell it we don't need any bodies.
-      aProtocol->NotifyBodysToDownload(nsnull, 0);
-    }
+    *aLength = 0;
+    return NS_OK;
   }
-  else if (aProtocol)
-    aProtocol->NotifyHdrsToDownload(nsnull, 0);
+
+  // if folder isn't open in a window, no reason to limit the number of headers
+  // we download.
+  nsCOMPtr<nsIMsgMailSession> session = do_GetService(NS_MSGMAILSESSION_CONTRACTID);
+  PRBool folderOpen = PR_FALSE;
+  if (session)
+    session->IsFolderOpenInWindow(this, &folderOpen);
+
+  PRInt32 hdrChunkSize = 200;
+  if (folderOpen)
+  {
+    nsresult rv;
+    nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    if (prefBranch)
+      prefBranch->GetIntPref("mail.imap.hdr_chunk_size", &hdrChunkSize);
+  }
+  PRInt32 numKeysToFetch = m_keysToFetch.Length();
+  PRInt32 startIndex = 0;
+  if (folderOpen && hdrChunkSize > 0 && m_keysToFetch.Length() > hdrChunkSize)
+  {
+    numKeysToFetch = hdrChunkSize;
+    *aMoreToDownload = PR_TRUE;
+    startIndex = m_keysToFetch.Length() - hdrChunkSize;
+  }
+  *aKeys = (nsMsgKey *) nsMemory::Clone(&m_keysToFetch[startIndex],
+                                       numKeysToFetch * sizeof(nsMsgKey));
+  NS_ENSURE_TRUE(*aKeys, NS_ERROR_OUT_OF_MEMORY);
+  // Remove these for the incremental header download case, so that
+  // we know we don't have to download them again.
+  m_keysToFetch.RemoveElementsAt(startIndex, numKeysToFetch);
+  *aLength = numKeysToFetch;
+
+  return NS_OK;
+}
+
+void nsImapMailFolder::PrepareToAddHeadersToMailDB(nsIImapProtocol* aProtocol)
+{
+  // now, tell it we don't need any bodies.
+  aProtocol->NotifyBodysToDownload(nsnull, 0);
 }
 
 void nsImapMailFolder::TweakHeaderFlags(nsIImapProtocol* aProtocol, nsIMsgDBHdr *tweakMe)
@@ -6758,6 +6793,7 @@ NS_IMETHODIMP
 nsImapMailFolder::SetUrlState(nsIImapProtocol* aProtocol,
                               nsIMsgMailNewsUrl* aUrl,
                               PRBool isRunning,
+                              PRBool aSuspend,
                               nsresult statusCode)
 {
   if (!isRunning)
@@ -6787,7 +6823,7 @@ nsImapMailFolder::SetUrlState(nsIImapProtocol* aProtocol,
         m_pendingOfflineMoves.Clear();
     }
   }
-  if (aUrl)
+  if (aUrl && !aSuspend)
       return aUrl->SetUrlState(isRunning, statusCode);
   return statusCode;
 }

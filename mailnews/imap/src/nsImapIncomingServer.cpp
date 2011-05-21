@@ -466,6 +466,18 @@ nsImapIncomingServer::PrepareToRetryUrl(nsIImapUrl *aImapUrl, nsIImapMockChannel
 }
 
 NS_IMETHODIMP
+nsImapIncomingServer::SuspendUrl(nsIImapUrl *aImapUrl)
+{
+  NS_ENSURE_ARG_POINTER(aImapUrl);
+  nsImapProtocol::LogImapUrl("suspending url", aImapUrl);
+  PR_CEnterMonitor(this);
+  m_urlQueue.AppendObject(aImapUrl);
+  m_urlConsumers.AppendElement(nsnull);
+  PR_CExitMonitor(this);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsImapIncomingServer::RetryUrl(nsIImapUrl *aImapUrl, nsIImapMockChannel *aChannel)
 {
   nsresult rv;

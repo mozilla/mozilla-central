@@ -394,7 +394,6 @@ private:
   ReentrantMonitor m_dataMemberMonitor;
   ReentrantMonitor m_threadDeathMonitor;
   ReentrantMonitor m_waitForBodyIdsMonitor;
-  ReentrantMonitor m_fetchMsgListMonitor;
   ReentrantMonitor m_fetchBodyListMonitor;
   ReentrantMonitor m_passwordReadyMonitor;
   mozilla::Mutex mLock;
@@ -439,11 +438,9 @@ private:
   PRBool  CheckNewMail();
 
   // folder opening and listing header functions
-  void UpdatedMailboxSpec(nsImapMailboxSpec *aSpec);
   void FolderHeaderDump(PRUint32 *msgUids, PRUint32 msgCount);
   void FolderMsgDump(PRUint32 *msgUids, PRUint32 msgCount, nsIMAPeFetchFields fields);
   void FolderMsgDumpLoop(PRUint32 *msgUids, PRUint32 msgCount, nsIMAPeFetchFields fields);
-  void WaitForPotentialListOfMsgsToFetch(PRUint32 **msgIdList, PRUint32 &msgCount);
   void WaitForPotentialListOfBodysToFetch(PRUint32 **msgIdList, PRUint32 &msgCount);
   void HeaderFetchCompleted();
   void UploadMessageFromFile(nsIFile* file, const char* mailboxName, PRTime date,
@@ -455,10 +452,7 @@ private:
     imapMessageFlagsType flags,
     PRUint16 userFlags);
 
-  // header listing data
-  PRBool    m_fetchMsgListIsNew;
-  PRUint32  m_fetchCount;
-  PRUint32  *m_fetchMsgIdList;
+  // body fetching listing data
   PRBool    m_fetchBodyListIsNew;
   PRUint32  m_fetchBodyCount;
   PRUint32  *m_fetchBodyIdList;
@@ -776,12 +770,12 @@ class nsIMAPMailboxInfo
 public:
   nsIMAPMailboxInfo(const nsACString &aName, char aDelimiter);
   virtual ~nsIMAPMailboxInfo();
-  
+
   void   SetChildrenListed(PRBool childrenListed);
   PRBool GetChildrenListed();
   const  nsACString& GetMailboxName();
   char   GetDelimiter();
-  
+
 protected:
   nsCString mMailboxName;
   PRBool   mChildrenListed;
