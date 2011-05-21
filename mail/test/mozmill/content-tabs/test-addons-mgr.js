@@ -54,7 +54,7 @@ function test_open_addons_with_url() {
   let tab = mc.tabmail.currentTabInfo;
   wait_for_content_tab_load(tab);
   assert_content_tab_has_url(tab, 'about:addons');
-  assert_true(content_tab_e(tab, 'category-themes').selected,
+  assert_true(content_tab_e(tab, 'category-theme').selected,
               "Themes category should be selected!");
 
   mc.tabmail.switchToTab(0); // switch to 3pane
@@ -65,6 +65,6 @@ function test_open_addons_with_url() {
   tab = mc.tabmail.currentTabInfo;
   wait_for_content_tab_load(tab);
   assert_content_tab_has_url(tab, 'about:addons');
-  assert_true(content_tab_e(tab, 'category-plugins').selected,
+  assert_true(content_tab_e(tab, 'category-plugin').selected,
               "Plugins category should be selected!");
 }
