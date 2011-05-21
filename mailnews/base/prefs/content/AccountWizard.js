@@ -347,6 +347,7 @@ function PageDataToAccountData(pageData, accountData)
     var identity = accountData.identity;
     var server = accountData.incomingServer;
     var smtp = accountData.smtp;
+    var pop3 = accountData.pop3;
 
     if (pageData.identity.email)
         identity.email = pageData.identity.email.value;
@@ -362,9 +363,9 @@ function PageDataToAccountData(pageData, accountData)
         var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
         var localFoldersServer = accountManager.localFoldersServer;
         var localFoldersAccount = accountManager.FindAccountForServer(localFoldersServer);
-        accountData.pop3.deferredToAccount = localFoldersAccount.key;
-        accountData.pop3.deferGetNewMail = true;
-        server["ServerType-pop3"] = accountData.pop3;
+        pop3.deferredToAccount = localFoldersAccount.key;
+        pop3.deferGetNewMail = true;
+        server["ServerType-pop3"] = pop3;
       }
       catch (ex) {dump ("exception setting up deferred account" + ex);}
     }
@@ -390,6 +391,13 @@ function PageDataToAccountData(pageData, accountData)
         }
         if (pageData.identity && pageData.identity.smtpServerKey)
             identity.smtpServerKey = pageData.identity.smtpServerKey.value;
+
+        if (pageData.server.leaveMessagesOnServer &&
+            pageData.server.leaveMessagesOnServer.value)
+        {
+            pop3.leaveMessagesOnServer = pageData.server.leaveMessagesOnServer.value;
+            server["ServerType-pop3"] = pop3;
+        }
     }
 
     if (pageData.accname) {

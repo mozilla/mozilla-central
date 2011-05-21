@@ -119,7 +119,7 @@ function serverPageInit() {
   {
     var newsServer = document.getElementById("newsServer");
     var pageData = parent.GetPageData();
-    try 
+    try
     {
       newsServer.value = pageData.newsserver.hostname.value;
     }
@@ -169,8 +169,11 @@ function serverPageInit() {
                "imap" : "pop3");
       serverTypeRadioGroup.selectedItem = serverTypeRadioItem;      // Set pop3 server type as default selection
     }
+    var leaveMessages = document.getElementById("leaveMessagesOnServer");
+    var deferStorage = document.getElementById("deferStorage");
     setServerType();
-    setDeferStorage(); // set the initial value correctly
+    setServerPrefs(leaveMessages);
+    setServerPrefs(deferStorage);
   }
   else if (isOtherAccount) {
     document.getElementById("incomingServerSeparator").hidden = true;
@@ -249,16 +252,14 @@ function setServerType()
   var pageData = parent.GetPageData();
   var serverType = document.getElementById("servertype").value;
   var deferStorageBox = document.getElementById("deferStorageBox");
+  var leaveMessages = document.getElementById("leaveMsgsOnSrvrBox");
   deferStorageBox.hidden = serverType == "imap";
+  leaveMessages.hidden = serverType == "imap";
   document.getElementById("incomingServerSeparator").hidden = false;
   setPageData(pageData, "server", "servertype", serverType);
 }
 
-function setDeferStorage()
+function setServerPrefs(aThis)
 {
-  var pageData = parent.GetPageData();
-  var deferStorage = (document.getElementById("deferStorage")).checked;
-  setPageData(pageData, "server", "deferStorage", deferStorage);
+  setPageData(parent.GetPageData(), "server", aThis.id, aThis.checked);
 }
-
-

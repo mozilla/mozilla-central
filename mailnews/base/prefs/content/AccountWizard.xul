@@ -167,14 +167,25 @@
                    accesskey="&incomingServerLabel.accesskey;" control="incomingServer"/>
             <textbox wsm_persist="true" id="incomingServer" flex="1" class="uri-element" oninput="serverPageValidate();"/>
           </hbox>
+          <hbox id="leaveMsgsOnSrvrBox" class="indent">
+            <checkbox id="leaveMessagesOnServer"
+                      label="&leaveMsgsOnSrvr.label;"
+                      accesskey="&leaveMsgsOnSrvr.accesskey;"
+                      wsm_persist="true"
+                      oncommand="setServerPrefs(this);"
+                      checked="true"/>
+          </hbox>
         </vbox>
         <separator class="groove" id="incomingServerSeparator"/>
         <vbox id="deferStorageBox">
             <description> &deferStorageDesc.label;</description>
             <hbox>
-              <checkbox id="deferStorage" label="&deferStorage.label;"
-                        accesskey="&deferStorage.accesskey;" checked="true"
-                        wsm_persist="true" oncommand="setDeferStorage();"/>
+              <checkbox id="deferStorage"
+                        label="&deferStorage.label;"
+                        accesskey="&deferStorage.accesskey;"
+                        checked="true"
+                        wsm_persist="true"
+                        oncommand="setServerPrefs(this);"/>
             </hbox>
           <separator/>
         </vbox>
