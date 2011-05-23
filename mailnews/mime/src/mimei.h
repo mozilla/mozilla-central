@@ -378,7 +378,7 @@ public:
   MimeParseStateObject()
       {root = 0; separator_queued_p = PR_FALSE; separator_suppressed_p = PR_FALSE;
         first_part_written_p = PR_FALSE; post_header_html_run_p = PR_FALSE; first_data_written_p = PR_FALSE;
-        decrypted_p = PR_FALSE; strippingPart = PR_FALSE; multParent = PR_FALSE;
+        decrypted_p = PR_FALSE; strippingPart = PR_FALSE;
       }
   MimeObject *root;        /* The outermost parser object. */
 
@@ -406,7 +406,6 @@ public:
                         will be set to indicate whether any
                         dexlateion did in fact occur.
                       */
-  PRBool multParent; // When creating a mime object, is our parent multipart?
   nsTArray<nsCString> partsToStrip; /* if we're stripping parts, what parts to strip */
   nsTArray<nsCString> detachToFiles; /* if we're detaching parts, where each part was detached to */
   PRBool strippingPart;
