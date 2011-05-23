@@ -114,6 +114,9 @@ public:
     PRBool m_eatLF;
     PRBool m_newMsgFlags; // only used if there's no m_message
     nsCString m_newMsgKeywords; // ditto 
+    // If the server supports UIDPLUS, this is the UID for the append,
+    // if we're doing an append.
+    nsMsgKey m_appendUID;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsImapMailCopyState, NS_IMAPMAILCOPYSTATE_IID)
@@ -377,7 +380,7 @@ protected:
   nsresult  NormalEndHeaderParseStream(nsIImapProtocol *aProtocol, nsIImapUrl *imapUrl);
 
   void EndOfflineDownload();
-  nsresult CopyFileToOfflineStore(nsILocalFile *srcFile);
+  nsresult CopyFileToOfflineStore(nsILocalFile *srcFile, nsMsgKey msgKey);
 
   nsresult MarkMessagesImapDeleted(nsTArray<nsMsgKey> *keyArray, PRBool deleted, nsIMsgDatabase *db);
 
@@ -487,7 +490,7 @@ protected:
 
   // undo move/copy transaction support
   nsRefPtr<nsMsgTxn> m_pendingUndoTxn;
-  nsCOMPtr<nsImapMailCopyState> m_copyState;
+  nsRefPtr<nsImapMailCopyState> m_copyState;
   char m_hierarchyDelimiter;
   PRInt32 m_boxFlags;
   nsCString m_onlineFolderName;

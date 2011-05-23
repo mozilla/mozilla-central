@@ -3302,10 +3302,8 @@ NS_IMETHODIMP nsImapMailFolder::CopyDataToOutputStreamForAppend(nsIInputStream *
   PRUint32 readCount;
   PRUint32 writeCount;
   if (!m_copyState)
-  {
-    nsImapMailCopyState* copyState = new nsImapMailCopyState();
-    m_copyState = do_QueryInterface(copyState);
-  }
+    m_copyState = new nsImapMailCopyState();
+
   if ( aLength + m_copyState->m_leftOver > m_copyState->m_dataBufferSize )
   {
     m_copyState->m_dataBuffer = (char *) PR_REALLOC(m_copyState->m_dataBuffer, aLength + m_copyState->m_leftOver+ 1);
@@ -5742,7 +5740,10 @@ nsImapMailFolder::SetAppendMsgUid(nsMsgKey aKey,
     }
     else if (mailCopyState->m_listener) // CopyFileMessage();
                                         // Draft/Template goes here
+    {
+      mailCopyState->m_appendUID = aKey;
       mailCopyState->m_listener->SetMessageKey(aKey);
+    }
   }
   return NS_OK;
 }
@@ -8125,7 +8126,7 @@ nsImapMailCopyState::nsImapMailCopyState() :
     m_isCrossServerOp(PR_FALSE), m_curIndex(0),
     m_totalCount(0), m_streamCopy(PR_FALSE), m_dataBuffer(nsnull),
     m_dataBufferSize(0), m_leftOver(0), m_allowUndo(PR_FALSE),
-    m_eatLF(PR_FALSE), m_newMsgFlags(0)
+    m_eatLF(PR_FALSE), m_newMsgFlags(0), m_appendUID(nsMsgKey_None)
 {
 }
 
@@ -8164,8 +8165,7 @@ nsImapMailFolder::InitCopyState(nsISupports* srcSupport,
   NS_ENSURE_TRUE(!m_copyState, NS_ERROR_FAILURE);
   nsresult rv;
 
-  nsImapMailCopyState* copyState = new nsImapMailCopyState();
-  m_copyState = do_QueryInterface(copyState);
+  m_copyState = new nsImapMailCopyState();
   NS_ENSURE_TRUE(m_copyState,NS_ERROR_OUT_OF_MEMORY);
 
   m_copyState->m_isCrossServerOp = acrossServers;
@@ -8225,19 +8225,19 @@ nsImapMailFolder::InitCopyState(nsISupports* srcSupport,
 }
 
 nsresult
-nsImapMailFolder::CopyFileToOfflineStore(nsILocalFile *srcFile)
+nsImapMailFolder::CopyFileToOfflineStore(nsILocalFile *srcFile, nsMsgKey msgKey)
 {
   nsCOMPtr<nsIMsgDatabase> db;
   nsresult rv = GetMsgDatabase(getter_AddRefs(db));
 
   if (mDatabase)
   {
-    nsMsgKey fakeKey;
-    mDatabase->GetNextFakeOfflineMsgKey(&fakeKey);
+    if (msgKey == nsMsgKey_None)
+      mDatabase->GetNextFakeOfflineMsgKey(&msgKey);
     nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
 
     nsCOMPtr<nsIMsgOfflineImapOperation> op;
-    rv = mDatabase->GetOfflineOpForKey(fakeKey, PR_TRUE, getter_AddRefs(op));
+    rv = mDatabase->GetOfflineOpForKey(msgKey, PR_TRUE, getter_AddRefs(op));
     if (NS_SUCCEEDED(rv) && op)
     {
       nsCString destFolderUri;
@@ -8278,7 +8278,7 @@ nsImapMailFolder::CopyFileToOfflineStore(nsILocalFile *srcFile)
           rv = NS_OK;
           msgParser->SetState(nsIMsgParseMailMsgState::ParseHeadersState);
           // set the env pos to fake key so the msg hdr will have that for a key
-          msgParser->SetEnvelopePos(fakeKey);
+          msgParser->SetEnvelopePos(msgKey);
           PRBool needMoreData = PR_FALSE;
           char * newLine = nsnull;
           PRUint32 numBytesInLine = 0;
@@ -8338,7 +8338,7 @@ nsImapMailFolder::OnCopyCompleted(nsISupports *srcSupport, nsresult rv)
   {
     nsCOMPtr<nsILocalFile> srcFile(do_QueryInterface(srcSupport));
     if (srcFile && (mFlags & nsMsgFolderFlags::Offline) && !WeAreOffline())
-      (void) CopyFileToOfflineStore(srcFile);
+      (void) CopyFileToOfflineStore(srcFile, m_copyState->m_appendUID);
   }
   m_copyState = nsnull;
   nsresult result;
