@@ -475,8 +475,6 @@ calMemoryCalendar.prototype = {
             if (aCount && itemsFound.length >= aCount) {
                 break;
             }
-
-            cal.processPendingEvent();
         }
 
         aListener.onGetResult (this.superCalendar,

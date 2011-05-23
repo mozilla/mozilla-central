@@ -170,8 +170,6 @@ calIcsParser.prototype = {
                 }
             }
             calComp = rootComp.getNextSubcomponent("VCALENDAR");
-
-            cal.processPendingEvent();
         }
 
         // tag "exceptions", i.e. items with rid:
@@ -198,8 +196,6 @@ calIcsParser.prototype = {
             }
 
             parent.recurrenceInfo.modifyException(item, true);
-
-            cal.processPendingEvent();
         }
 
         for (let e in tzErrors) { // if any error has occurred
