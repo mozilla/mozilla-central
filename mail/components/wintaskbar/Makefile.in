@@ -45,7 +45,7 @@ include $(DEPTH)/config/autoconf.mk
 MODULE = wintaskbar
 
 EXTRA_JS_MODULES = \
-	WindowsJumpLists.jsm \
+	windowsJumpLists.js \
 	$(NULL)
 
 include $(topsrcdir)/config/rules.mk

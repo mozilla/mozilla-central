@@ -74,7 +74,7 @@ function _getString(aName) {
  * Task list
  */
 let gTasks = [
-  // Compose new message
+  // Write new message
   {
     get title()       _getString("taskbar.tasks.composeMessage.label"),
     get description() _getString("taskbar.tasks.composeMessage.description"),
