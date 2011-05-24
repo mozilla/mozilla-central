@@ -302,20 +302,23 @@ function AbDelete()
 
   var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
   // If at least one mailing list is selected then prompt users for deletion.
-  if (types != kCardsOnly)
-  {
-    var confirmDeleteMessage;
-    if (types == kListsAndCards)
-      confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteListsAndContacts");
-    else if (types == kMultipleListsOnly)
-      confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteMailingLists");
+
+  var confirmDeleteMessage;
+  if (types == kListsAndCards)
+    confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteListsAndContacts");
+  else if (types == kMultipleListsOnly)
+    confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteMailingLists");
+  else if (types == kSingleListOnly)
+    confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteMailingList");
+  else if (types == kCardsOnly && gAbView && gAbView.selection) {
+    if (gAbView.selection.count < 2)
+      confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteContact");
     else
-      confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteMailingList");
-    if (!promptService.confirm(window, null, confirmDeleteMessage))
-      return;
+      confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteContacts");
   }
 
-  gAbView.deleteSelectedCards();
+  if (confirmDeleteMessage && promptService.confirm(window, null, confirmDeleteMessage))
+    gAbView.deleteSelectedCards();
 }
 
 function AbNewCard()

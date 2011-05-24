@@ -89,6 +89,11 @@ function installInto(module) {
   module.is_address_book_collapsible = is_address_book_collapsible;
   module.get_name_of_address_book_element_at = get_name_of_address_book_element_at;
   module.select_address_book = select_address_book;
+  module.get_contact_ab_view_index = get_contact_ab_view_index;
+  // select_contact is aliased for select_contacts, since they
+  // share the same code.
+  module.select_contact = select_contacts;
+  module.select_contacts = select_contacts;
 }
 
 /**
@@ -236,8 +241,9 @@ function get_mailing_list_from_address_book(aAddressBook, aDirName)
 /* Given some address book, adds a collection of contacts to that
  * address book.
  * @param aAddressBook an address book to add the contacts to
- * @param aContacts a collection of contacts, where each contact has
- *                  members "email" and "displayName"
+ * @param aContacts a collection of nsIAbCards, or contacts,
+ *                  where each contact has members "email"
+ *                  and "displayName"
  *
  *                  Example:
  *                  [{email: 'test@test.com', displayName: 'Sammy Jenkis'}]
@@ -245,8 +251,14 @@ function get_mailing_list_from_address_book(aAddressBook, aDirName)
 function load_contacts_into_address_book(aAddressBook, aContacts)
 {
   for each (contact_info in aContacts) {
-    let contact = create_contact(contact_info.email,
+    let contact;
+
+    if (contact_info instanceof Ci.nsIAbCard)
+      contact = contact_info.QueryInterface(Ci.nsIAbCard);
+    else
+      contact = create_contact(contact_info.email,
                                  contact_info.displayName, true);
+
     aAddressBook.addCard(contact);
   }
 }
@@ -269,21 +281,41 @@ function load_contacts_into_mailing_list(aMailingList, aContacts)
   }
 }
 
-/* Given some address book, return the row index for that address book
- * in the tree view.  Throws an error if it cannot find the address book.
- * @param aAddrBook an address book to search for
+/* given some address book, return the row index for that address book
+ * in the tree view.  throws an error if it cannot find the address book.
+ * @param aaddrbook an address book to search for
  * @return the row index for that address book
  */
-function get_address_book_tree_view_index(aAddrBook)
+function get_address_book_tree_view_index(aaddrbook)
 {
-  let addrBooks = abController.window.gDirectoryTreeView._rowMap;
-  for (let i = 0; i < addrBooks.length; i++) {
-    if (addrBooks[i]._directory == aAddrBook) {
+  let addrbooks = abController.window.gDirectoryTreeView._rowMap;
+  for (let i = 0; i < addrbooks.length; i++) {
+    if (addrbooks[i]._directory == aaddrbook) {
       return i;
     }
   }
-  throw Error("Could not find the index for the address book named "
-              + aAddrbook.dirName);
+  throw error("could not find the index for the address book named "
+              + aaddrbook.dirname);
+}
+
+/* Given some contact, return the row index for that contact in the
+ * address book view.  Assumes that the address book that the contact
+ * belongs to is currently selected.  Throws an error if it cannot
+ * find the contact.
+ * @param aContact a contact to search for
+ * @return the row index for that contact
+ */
+function get_contact_ab_view_index(aContact)
+{
+  let contacts = abController.window.gAbView;
+  for (let i = 0; i < contacts.rowCount; i++) {
+    let contact = contacts.getCardFromRow(i);
+    if (contact.localId == aContact.localId &&
+        !contact.isMailList)
+      return i;
+  }
+  throw Error("Could not find the index for the contact named "
+              + aContact.displayName);
 }
 
 /* Determines whether or not an address book is collapsed in
@@ -374,3 +406,21 @@ function select_address_book(aAddrBook)
   let aIndex = get_address_book_tree_view_index(aAddrBook);
   abController.window.gDirectoryTreeView.selection.select(aIndex);
 }
+
+/* Selects one or more contacts in an address book, assuming that
+ * the address book is already selected.  Pass a single nsIAbCard
+ * to select one contact, or an array of nsIAbCards to select
+ * multiple.
+ */
+function select_contacts(aContacts)
+{
+  if (!Array.isArray(aContacts))
+    aContacts = [aContacts];
+
+  abController.window.gAbView.selection.clearSelection();
+  for (let i = 0; i < aContacts.length; i++) {
+    let aIndex = get_contact_ab_view_index(aContacts[i]);
+    abController.window.gAbView.selection.toggleSelect(aIndex);
+  }
+}
+

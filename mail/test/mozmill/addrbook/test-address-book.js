@@ -44,10 +44,49 @@ var MODULE_NAME = 'test-address-book';
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['address-book-helpers', 'folder-display-helpers'];
 
-let abController = null;
+const kPromptServiceUUID = "{6cc9c9fe-bc0b-432b-a410-253ef8bcc699}";
 
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource:///modules/Services.jsm");
+
+let abController = null;
 var addrBook1, addrBook2, addrBook3, addrBook4;
 var mListA, mListB, mListC, mListD, mListE;
+
+var gMockPromptService = {
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIPromptService]),
+  _will_return: null,
+  _did_confirm: false,
+  _confirm_msg: null,
+
+  confirm: function(aParent, aDialogTitle, aText) {
+    this._did_confirm = true;
+    this._confirm_msg = aText;
+    return this._will_return;
+  },
+
+  _return: function(aReturn) {
+    this._will_return = aReturn;
+  },
+
+  _reset: function() {
+    this._will_return = null;
+    this._did_confirm = false;
+    this._confirm_msg = null;
+  },
+};
+
+var gMockPromptServiceFactory = {
+  createInstance: function(aOuter, aIID) {
+    if (aOuter != null)
+      throw Cr.NS_ERROR_NO_AGGREGATION;
+
+    if (!aIID.equals(Ci.nsIPromptService))
+      throw Cr.NS_ERROR_NO_INTERFACE;
+
+    return gMockPromptService;
+  }
+};
 
 function setupModule(module)
 {
@@ -154,3 +193,130 @@ function test_persist_collapsed_and_expanded_states()
   assert_true(is_address_book_collapsed(addrBook3));
 }
 
+/* Test that if we try to delete a contact, that we are given
+ * a confirm prompt.
+ */
+function test_deleting_contact_causes_confirm_prompt()
+{
+  // Register the Mock Prompt Service
+
+  Components.manager.QueryInterface(Ci.nsIComponentRegistrar)
+            .registerFactory(Components.ID(kPromptServiceUUID),
+                             "Mock Prompt Service",
+                             "@mozilla.org/embedcomp/prompt-service;1",
+                             gMockPromptServiceFactory);
+
+  // Create a contact that we'll try to delete
+  let contact1 = create_contact("test@nobody.com", "Sammy Jenkis", true);
+  let toDelete = [contact1];
+
+  let bundle = Services.strings
+                       .createBundle("chrome://messenger/locale/addressbook/addressBook.properties")
+  let confirmSingle = bundle.GetStringFromName("confirmDeleteContact");
+  // Add some contacts to the address book
+  load_contacts_into_address_book(addrBook1, toDelete);
+  select_address_book(addrBook1);
+
+  let totalEntries = abController.window.gAbView.rowCount;
+
+  // Set the mock prompt to return false, so that the
+  // contact should not be deleted.
+  gMockPromptService._return(false);
+
+  // Now attempt to delete the contact
+  select_contact(toDelete);
+  abController.keypress(null, "VK_DELETE", {});
+
+  // Was a confirm displayed?
+  assert_true(gMockPromptService._did_confirm);
+  // Was the right message displayed?
+  assert_equals(gMockPromptService._confirm_msg, confirmSingle);
+  // The contact should not have been deleted.
+  assert_equals(abController.window.gAbView.rowCount, totalEntries);
+
+  gMockPromptService._reset();
+
+  // Now we'll return true on confirm so that
+  // the contact is deleted.
+  gMockPromptService._return(true);
+  select_contact(toDelete);
+  abController.keypress(null, "VK_DELETE", {});
+
+  // Was a confirm displayed?
+  assert_true(gMockPromptService._did_confirm);
+  // Was the right message displayed?
+  assert_equals(gMockPromptService._confirm_msg, confirmSingle);
+  // The contact should have been deleted.
+  assert_equals(abController.window.gAbView.rowCount,
+                totalEntries - toDelete.length);
+
+  Components.manager.QueryInterface(Ci.nsIComponentRegistrar)
+            .unregisterFactory(Components.ID(kPromptServiceUUID),
+                               gMockPromptServiceFactory);
+}
+
+/* Test that if we try to delete multiple contacts, that we are give
+ * a confirm prompt.
+ */
+function test_deleting_contacts_causes_confirm_prompt()
+{
+  // Register the Mock Prompt Service
+
+  Components.manager.QueryInterface(Ci.nsIComponentRegistrar)
+            .registerFactory(Components.ID(kPromptServiceUUID),
+                             "Mock Prompt Service",
+                             "@mozilla.org/embedcomp/prompt-service;1",
+                             gMockPromptServiceFactory);
+
+  // Create some contacts that we'll try to delete.
+  let contact2 = create_contact("test2@nobody.com", "Leonard Shelby", true);
+  let contact3 = create_contact("test3@nobody.com", "John Edward Gammell", true);
+  let contact4 = create_contact("test4@nobody.com", "Natalie", true);
+
+  let toDelete = [contact2, contact3, contact4];
+
+  let bundle = Services.strings
+                       .createBundle("chrome://messenger/locale/addressbook/addressBook.properties")
+  let confirmMultiple = bundle.GetStringFromName("confirmDeleteContacts");
+
+  // Add some contacts to the address book
+  load_contacts_into_address_book(addrBook1, toDelete);
+  select_address_book(addrBook1);
+
+  let totalEntries = abController.window.gAbView.rowCount;
+
+  // Set the mock prompt to return false, so that the
+  // contact should not be deleted.
+  gMockPromptService._return(false);
+
+  // Now attempt to delete the contact
+  select_contacts(toDelete);
+  abController.keypress(null, "VK_DELETE", {});
+
+  // Was a confirm displayed?
+  assert_true(gMockPromptService._did_confirm);
+  // Was the right message displayed?
+  assert_equals(gMockPromptService._confirm_msg, confirmMultiple);
+  // The contact should not have been deleted.
+  assert_equals(abController.window.gAbView.rowCount, totalEntries);
+
+  gMockPromptService._reset();
+
+  // Now we'll return true on confirm so that
+  // the contact is deleted.
+  gMockPromptService._return(true);
+  select_contacts(toDelete);
+  abController.keypress(null, "VK_DELETE", {});
+
+  // Was a confirm displayed?
+  assert_true(gMockPromptService._did_confirm);
+  // Was the right message displayed?
+  assert_equals(gMockPromptService._confirm_msg, confirmMultiple);
+  // The contact should have been deleted.
+  assert_equals(abController.window.gAbView.rowCount,
+                totalEntries - toDelete.length);
+
+  Components.manager.QueryInterface(Ci.nsIComponentRegistrar)
+            .unregisterFactory(Components.ID(kPromptServiceUUID),
+                               gMockPromptServiceFactory);
+}
