@@ -249,6 +249,10 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   text-align: start;
 }
 
+#headers-box {
+  border-top-width: 0;
+}
+
 @media all and (-moz-windows-compositor) {
   #msgcomposeWindow {
     -moz-appearance: -moz-win-borderless-glass;
@@ -276,6 +280,16 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
                       rgba(255, 255, 255, 0));
   }
 
+  #sidebar-splitter:not([hidden="true"]) + vbox >
+      #headers-box:-moz-locale-dir(ltr) {
+    border-top-left-radius: 0;
+  }
+
+  #sidebar-splitter:not([hidden="true"]) + vbox >
+      #headers-box:-moz-locale-dir(rtl) {
+    border-top-right-radius: 0;
+  }
+
   #menubar-items:not(:-moz-lwtheme):not(:-moz-window-inactive) {
     background-color: rgba(255, 255, 255, .3);
     border-radius: 4px;
@@ -284,6 +298,22 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   .toolbarbutton-menubutton-button[disabled="true"],
   .toolbarbutton-menubutton-dropmarker[disabled="true"] {
     opacity: 1 !important;
+  }
+
+  #msgcomposeWindow[sizemode=normal] #compose-toolbox + hbox {
+    border: 1px solid rgba(10%, 10%, 10%, .4);
+    border-top: none;
+    border-radius: 3.5px 3.5px 0 0;
+    background-clip: padding-box;
+  }
+
+  #msgcomposeWindow[sizemode=normal] statusbar {
+    -moz-appearance: none;
+    margin-top: -1px;
+    border: 1px solid rgba(10%, 10%, 10%, .4);
+    border-top-color: threedshadow;
+    border-radius: 1px 1px 0 0;
+    background-clip: padding-box;
   }
 }
 
@@ -338,13 +368,19 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 
 #appcontent {
   border-top: 1px solid ThreeDShadow;
-  border-left: 1px solid ThreeDShadow;
-  border-right: 1px solid ThreeDHighlight;
 }
 
 #attachmentbucket-sizer {
-  border-top: none;
-  border-bottom: none;
+  position: relative;
+  z-index: 10;
+  min-width: 0;
+  width: 5px;
+  -moz-margin-end: -4px;
+  -moz-border-end-width: 0;
+  -moz-border-start: 2px solid ThreeDShadow;
+  -moz-border-left-colors: none;
+  -moz-border-right-colors: none; /* for rtl -moz-border-start */
+  background-color: transparent;
 }
 
 /* ::::: attachment reminder ::::: */
@@ -377,10 +413,14 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 }
 
 #compose-toolbar-sizer {
-  border-top-width: 1px;
-  border-left: none;
-  border-right: none;
-  -moz-border-top-colors: ThreeDHighlight;
+  position: relative;
+  z-index: 10;
+  min-height: 0;
+  height: 5px;
+  margin-top: -5px;
+  border-top-width: 0;
+  border-bottom-width: 0;
+  background-color: transparent;
 }
 
 #msgSubject {
@@ -713,11 +753,31 @@ toolbarbutton.formatting-button {
 }
 
 /* ::::: address book sidebar ::::: */
+
+@media all and (-moz-windows-default-theme) {
+  sidebarheader {
+    -moz-appearance: none;
+    background-color: #F8F8F8;
+    border-top: 0;
+    border-bottom: 1px solid #A9B1B8;
+  }
+}
+
+@media all and (-moz-windows-compositor) {
+  sidebarheader:-moz-locale-dir(ltr) {
+    border-top-left-radius: 3.5px;
+  }
+
+  sidebarheader:-moz-locale-dir(rtl) {
+    border-top-right-radius: 3.5px;
+  }
+}
+
 .ab-closebutton {
-  list-style-image: url("chrome://messenger/skin/icons/close-button.png");
-  -moz-image-region: rect(0 16px 16px 0);
+  list-style-image: url("chrome://global/skin/icons/close.png");
+  -moz-image-region: rect(0 64px 16px 48px);
   -moz-appearance: none;
-  border: none !important;
+  border: none;
   padding: 2px;
 }
 
@@ -734,5 +794,16 @@ toolbarbutton.formatting-button {
 }
 
 #sidebar {
-  background-color: Window;
+  background-color: -moz-Dialog;
+}
+
+#sidebar-splitter {
+  -moz-border-end: none;
+  -moz-border-start: 1px solid #A9B7C9;
+  min-width: 0;
+  width: 5px;
+  background-color: transparent;
+  -moz-margin-end: -5px;
+  position: relative;
+  z-index: 10;
 }

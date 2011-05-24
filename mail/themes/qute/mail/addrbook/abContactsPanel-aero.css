@@ -1,0 +1,105 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is abContactsPanel-aero.css.
+ *
+ * The Initial Developer of the Original Code is
+ * the Mozilla Foundation.
+ * Portions created by the Initial Developer are Copyright (C) 2011
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ * Richard Marti <richard.marti@gmail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+%include abContactsPanel.css
+
+@media all and (-moz-windows-default-theme) {
+  #abContactsPanel {
+    -moz-appearance: none;
+    background-color: rgb(207, 219, 236);
+  }
+}
+
+@media all and (-moz-windows-compositor) {
+  #abContactsPanel {
+    background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5) 10px,
+                        rgba(255, 255, 255, 0));
+  }
+}
+
+#abResultsTree {
+  -moz-border-end: none;
+  border-bottom: 1px solid #A9B1B8;
+}
+
+button,
+#addressbookList {
+  -moz-appearance: none;
+  padding: 1px 5px !important;
+  background: rgba(151, 152, 153, .05)
+              -moz-linear-gradient(rgba(251, 252, 253, .95),
+                rgba(246, 247, 248, .47) 49%, rgba(231, 232, 233, .45) 51%,
+                rgba(225,226,229,.3));
+  border-radius: 4.5px;
+  border: 1px solid;
+  border-color: rgba(0,0,0,.12) rgba(0,0,0,.19) rgba(0,0,0,.38);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .3) inset,
+              0 0 0 2px rgba(255, 255, 255, .1) inset,
+              0 1px 0 rgba(0, 0, 0, .15);
+  color: black;
+  text-shadow: 0 0 3px white;
+}
+
+button:hover,
+#addressbookList:not([open="true"]):hover {
+  background-color: hsla(190, 60%, 70%, .5);
+  border-color: hsla(190, 50%, 65%, .8) hsla(190, 50%, 50%, .8)
+                hsla(190, 50%, 40%, .8);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.3) inset,
+              0 0 0 2px rgba(255,255,255,.1) inset,
+              0 1px 0 rgba(0,0,0,.1),
+              0 0 5px hsl(190,90%,80%);
+  -moz-transition: background-color .4s ease-in,
+                   border-color .3s ease-in,
+                   box-shadow .3s ease-in;
+}
+
+button:hover:active,
+#addressbookList[open="true"] {
+  background-color: transparent;
+  border-color: rgba(0, 0, 0, .65) rgba(0, 0, 0, .55) rgba(0, 0, 0, .5);
+  box-shadow: 0 0 9px rgba(0, 0, 0, .4) inset,
+              0 0 3px rgba(0, 0, 0, .4) inset,
+              0 1px 0 rgba(255, 255, 255, .4);
+  text-shadow: none;
+}
+
+.menulist-dropmarker {
+  -moz-appearance: none;
+  border:none;
+  background-color: transparent;
+}
