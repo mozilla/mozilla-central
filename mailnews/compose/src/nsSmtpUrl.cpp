@@ -665,8 +665,27 @@ NS_IMETHODIMP nsMailtoUrl::Resolve(const nsACString &relativePath, nsACString &r
 	return m_baseURL->Resolve(relativePath, result);
 }
 
+NS_IMETHODIMP nsMailtoUrl::SetRef(const nsACString &aRef)
+{
+  return m_baseURL->SetRef(aRef);
+}
 
+NS_IMETHODIMP
+nsMailtoUrl::GetRef(nsACString &result)
+{
+  return m_baseURL->GetRef(result);
+}
 
+NS_IMETHODIMP nsMailtoUrl::EqualsExceptRef(nsIURI *other, PRBool *result)
+{
+  return m_baseURL->EqualsExceptRef(other, result);
+}
+
+NS_IMETHODIMP
+nsMailtoUrl::CloneIgnoringRef(nsIURI** result)
+{
+  return m_baseURL->CloneIgnoringRef(result);
+}
 
 /////////////////////////////////////////////////////////////////////////////////////
 // smtp url definition

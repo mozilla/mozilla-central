@@ -300,6 +300,13 @@ endif
 libs:: blocklist.xml
 	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin
 
+# XXX This is a hack to ensure that we get the right xpcshell.ini for our tests.
+# mozilla-central does this in testing/xpcshell-tests which means that it is
+# very hard for anyone to specify anything else.
+libs::
+	$(INSTALL) $(topsrcdir)/suite/test/xpcshell.ini $(MOZDEPTH)/_tests/xpcshell
+	cp $(topsrcdir)/suite/test/xpcshell.ini $(MOZDEPTH)/_tests/xpcshell/all-test-dirs.list
+
 ifdef MOZ_OMNIJAR
 # Make extensions end up as XPIs instead of flat chrome when doing omni.jar.
 # APP_EXTENSIONS exist only bundled with the application,

@@ -48,7 +48,7 @@ interface nsIImapMockChannel;
  * nsIImapServerSink is designed to be used as a proxy to the application's UI
  * thread from the running IMAP threads.
  */
-[scriptable, uuid(596cbacd-53d2-468e-9ea3-fe2512cb3997)]
+[scriptable, uuid(24136ca7-0000-4731-8d5f-fc0908aa7c75)]
 interface nsIImapServerSink : nsISupports {
   /**
    * Check if the given folder path is a possible IMAP mailbox.
@@ -84,6 +84,15 @@ interface nsIImapServerSink : nsISupports {
    *         to the channel should only happen on the ui thread.
    */
   nsIImapMockChannel prepareToRetryUrl(in nsIImapUrl imapUrl);
+
+  /**
+   * Suspend the url. This puts it at the end of the queue. If the queue is
+   * empty, the url will get resumed immediately. Currently, the plan is
+   * do this when we have to download a lot of headers in chunks, though we
+   * could find other uses for it.
+   * @param imapUrl url to suspend
+   */
+  void suspendUrl(in nsIImapUrl aImapUrl);
 
   /**
    * Retry the given URL.

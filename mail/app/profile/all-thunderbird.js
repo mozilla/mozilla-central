@@ -683,3 +683,9 @@ pref("dom.ipc.plugins.enabled", true);
 #else
 pref("dom.ipc.plugins.enabled", false);
 #endif
+
+// Windows taskbar support
+#ifdef XP_WIN
+pref("mail.taskbar.lists.enabled", true);
+pref("mail.taskbar.lists.tasks.enabled", true);
+#endif

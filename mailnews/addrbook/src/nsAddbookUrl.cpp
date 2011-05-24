@@ -217,6 +217,29 @@ NS_IMETHODIMP nsAddbookUrl::Resolve(const nsACString &relativePath, nsACString &
 	return m_baseURL->Resolve(relativePath, result);
 }
 
+NS_IMETHODIMP
+nsAddbookUrl::GetRef(nsACString &result)
+{
+  return m_baseURL->GetRef(result);
+}
+
+NS_IMETHODIMP
+nsAddbookUrl::SetRef(const nsACString &aRef)
+{
+  return m_baseURL->SetRef(aRef);
+}
+
+NS_IMETHODIMP nsAddbookUrl::EqualsExceptRef(nsIURI *other, PRBool *result)
+{
+  return m_baseURL->EqualsExceptRef(other, result);
+}
+
+NS_IMETHODIMP
+nsAddbookUrl::CloneIgnoringRef(nsIURI** result)
+{
+  return m_baseURL->CloneIgnoringRef(result);
+}
+
 //
 // Specific nsAddbookUrl operations
 //

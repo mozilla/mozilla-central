@@ -67,7 +67,6 @@ nsMsgMailNewsUrl::nsMsgMailNewsUrl()
   m_msgIsInLocalCache = PR_FALSE;
   m_suppressErrorMsgs = PR_FALSE;
   mMaxProgress = -1;
-  
   m_baseURL = do_CreateInstance(NS_STANDARDURL_CONTRACTID);
 }
 
@@ -515,6 +514,24 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetBaseURI(nsIURI **aBaseURI)
 }
 
 NS_IMETHODIMP nsMsgMailNewsUrl::Equals(nsIURI *other, PRBool *_retval)
+{
+  return EqualsInternal(other, eIgnoreRef, _retval);
+}
+
+NS_IMETHODIMP nsMsgMailNewsUrl::EqualsExceptRef(nsIURI *other, PRBool *result)
+{
+  return EqualsInternal(other, eIgnoreRef, result);
+}
+
+NS_IMETHODIMP
+nsMsgMailNewsUrl::CloneIgnoringRef(nsIURI** result)
+{
+  return m_baseURL->CloneIgnoringRef(result);
+}
+
+nsresult nsMsgMailNewsUrl::EqualsInternal(nsIURI *other,
+                                          RefHandlingEnum refHandlingMode,
+                                          PRBool *_retval)
 {
   nsCOMPtr <nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(other);
   // we really want to compare the base uris to each other, not our base URI

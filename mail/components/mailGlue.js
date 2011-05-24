@@ -58,12 +58,14 @@ MailGlue.prototype = {
   _init: function MailGlue__init() {
     Services.obs.addObserver(this, "xpcom-shutdown", false);
     Services.obs.addObserver(this, "final-ui-startup", false);
+    Services.obs.addObserver(this, "mail-startup-done", false);
   },
 
   // cleanup (called at shutdown)
   _dispose: function MailGlue__dispose() {
     Services.obs.removeObserver(this, "xpcom-shutdown");
     Services.obs.removeObserver(this, "final-ui-startup");
+    Services.obs.removeObserver(this, "mail-startup-done");
   },
 
   // nsIObserver implementation
@@ -75,6 +77,9 @@ MailGlue.prototype = {
     case "final-ui-startup":
       this._onProfileStartup();
       break;
+    case "mail-startup-done":
+      this._onMailStartupDone();
+      break;
     }
   },
 
@@ -83,6 +88,16 @@ MailGlue.prototype = {
     if (Services.appinfo.inSafeMode) {
       Services.ww.openWindow(null, "chrome://messenger/content/safeMode.xul", 
                              "_blank", "chrome,centerscreen,modal,resizable=no", null);
+    }
+  },
+
+  _onMailStartupDone: function MailGlue__onMailStartupDone() {
+    // On Windows 7 and above, initialize the jump list module.
+    const WINTASKBAR_CONTRACTID = "@mozilla.org/windows-taskbar;1";
+    if (WINTASKBAR_CONTRACTID in Cc &&
+        Cc[WINTASKBAR_CONTRACTID].getService(Ci.nsIWinTaskbar).available) {
+      Cu.import("resource:///modules/windowsJumpLists.js");
+      WinTaskbarJumpList.startup();
     }
   },
 

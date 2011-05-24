@@ -997,7 +997,7 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
   rv = CopyNextMessage(done);
   if (done)
   {
-    m_db->Commit(nsMsgDBCommitType::kLargeCommit);
+    m_db->Commit(nsMsgDBCommitType::kCompressCommit);
     msgHdr = nsnull;
     newMsgHdr = nsnull;
     // no more to copy finish it up

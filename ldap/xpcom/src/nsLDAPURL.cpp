@@ -684,3 +684,25 @@ NS_IMETHODIMP nsLDAPURL::SetOptions(PRUint32 aOptions)
 
   return SetScheme(LDAP_SCHEME);
 }
+
+NS_IMETHODIMP nsLDAPURL::SetRef(const nsACString &aRef)
+{
+  return mBaseURL->SetRef(aRef);
+}
+
+NS_IMETHODIMP
+nsLDAPURL::GetRef(nsACString &result)
+{
+  return mBaseURL->GetRef(result);
+}
+
+NS_IMETHODIMP nsLDAPURL::EqualsExceptRef(nsIURI *other, PRBool *result)
+{
+  return mBaseURL->EqualsExceptRef(other, result);
+}
+
+NS_IMETHODIMP
+nsLDAPURL::CloneIgnoringRef(nsIURI** result)
+{
+  return mBaseURL->CloneIgnoringRef(result);
+}

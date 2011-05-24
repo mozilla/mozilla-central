@@ -90,7 +90,6 @@ let cal = {
 
     /**
      * Schedules execution of the passed function to the current thread's queue.
-     * Do this to work around re-entrancy problems w.r.t. processPendingEvent(), e.g. on chrome startup.
      */
     postPone: function cal_postPone(func) {
         if (this.threadingEnabled) {
@@ -99,14 +98,6 @@ let cal = {
         } else {
             func();
         }
-    },
-
-    /**
-     * Call this function regularly to process a pending event, e.g. UI.
-     */
-    processPendingEvent: function cal_processPendingEvent() {
-        let thread = cal.getThreadManager().currentThread;
-        thread.processNextEvent(false /* don't wait */);
     },
 
     get threadingEnabled() {

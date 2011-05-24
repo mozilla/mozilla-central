@@ -86,6 +86,7 @@ nsImapUrl::nsImapUrl() : mLock("nsImapUrl.mLock")
   m_storeOfflineOnFallback = PR_FALSE;
   m_localFetchOnly = PR_FALSE;
   m_rerunningUrl = PR_FALSE;
+  m_moreHeadersToDownload = PR_FALSE;
   m_externalLinkUrl = PR_TRUE; // we'll start this at true, and set it false in nsImapService::CreateStartOfImapUrl
   m_contentModified = IMAP_CONTENT_NOT_MODIFIED;
   m_validUrl = PR_TRUE;  // assume the best.
@@ -1257,6 +1258,7 @@ NS_IMPL_GETSET(nsImapUrl, LocalFetchOnly, PRBool, m_localFetchOnly)
 NS_IMPL_GETSET(nsImapUrl, ExternalLinkUrl, PRBool, m_externalLinkUrl)
 NS_IMPL_GETSET(nsImapUrl, RerunningUrl, PRBool, m_rerunningUrl)
 NS_IMPL_GETSET(nsImapUrl, ValidUrl, PRBool, m_validUrl)
+NS_IMPL_GETSET(nsImapUrl, MoreHeadersToDownload, PRBool, m_moreHeadersToDownload)
 
 NS_IMETHODIMP nsImapUrl::SetMsgLoadingFromCache(PRBool loadingFromCache)
 {

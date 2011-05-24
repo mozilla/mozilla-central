@@ -64,7 +64,7 @@ interface ImapOnlineCopyStateType
    const long kFailedMove = 9;
 };
 
-[scriptable, uuid(531d4a3a-4921-4b7d-a46d-c66be8bec781)]
+[scriptable, uuid(e16c3399-285a-4e1b-8940-c3352200aa9c)]
 interface nsIImapMailFolderSink : nsISupports {
   attribute boolean folderNeedsACLListed;
   attribute boolean folderNeedsSubscribing;
@@ -87,14 +87,25 @@ interface nsIImapMailFolderSink : nsISupports {
   void setFolderQuotaData(in ACString aFolderQuotaRoot, in unsigned long aFolderQuotaUsedKB, 
                           in unsigned long aFolderQuotaMaxKB);
 
+  /// Should we download all the rfc822 headers of messages, instead of subset.
   readonly attribute boolean shouldDownloadAllHeaders;
   string GetOnlineDelimiter();
   void OnNewIdleMessages();
   // Tell mail master about the newly selected mailbox
   void UpdateImapMailboxInfo(in nsIImapProtocol aProtocol,
-                                   in nsIMailboxSpec aSpec);
+                             in nsIMailboxSpec aSpec);
   void UpdateImapMailboxStatus(in nsIImapProtocol aProtocol,
-                                     in nsIMailboxSpec aSpec);
+                               in nsIMailboxSpec aSpec);
+  /**
+   * Used when downloading headers in chunks.
+   * @param aSpec Mailbox spec of folder we're downloading headers for.
+   * @returns true if more to download, false otherwise.
+   * @returns total count of headers to download (across all chunks)
+   * @returns an array of msg keys to download, array size is this chunk's size
+   */
+  void getMsgHdrsToDownload(out boolean aMore, out long aTotalCount,
+                            out unsigned long aCount,
+                            [retval, array, size_is(aCount)] out nsMsgKey aKeys);
   void parseMsgHdrs(in nsIImapProtocol aProtocol, in nsIImapHeaderXferInfo aHdrXferInfo);
   void AbortHeaderParseStream(in nsIImapProtocol aProtocol) ;
   
@@ -106,7 +117,9 @@ interface nsIImapMailFolderSink : nsISupports {
 
   void copyNextStreamMessage(in boolean copySucceeded, in nsISupports copyState);
   void closeMockChannel(in nsIImapMockChannel aChannel);
-  void setUrlState(in nsIImapProtocol aProtocol, in nsIMsgMailNewsUrl aUrl, in boolean isRunning, in nsresult status);
+  void setUrlState(in nsIImapProtocol aProtocol, in nsIMsgMailNewsUrl aUrl,
+                   in boolean isRunning, in boolean aSuspend,
+                   in nsresult status);
   void releaseUrlCacheEntry(in nsIMsgMailNewsUrl aUrl);
 
   void headerFetchCompleted(in nsIImapProtocol aProtocol);
