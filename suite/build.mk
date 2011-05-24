@@ -37,10 +37,8 @@
 
 ifndef COMM_BUILD # Mozilla Makefile
 
-ifdef MOZ_ENABLE_LIBXUL
 SUBDIR=/..
 include $(topsrcdir)/../bridge/bridge.mk
-endif
 
 ifndef LIBXUL_SDK
 include $(topsrcdir)/toolkit/toolkit-tiers.mk
@@ -55,13 +53,6 @@ endif
 tier_app_dirs += services
 
 else # toplevel Makefile
-
-ifndef MOZ_ENABLE_LIBXUL
-SUBDIR=
-include $(topsrcdir)/bridge/bridge.mk
-tier_app_staticdirs += $(APP_LIBXUL_STATICDIRS)
-tier_app_dirs += $(APP_LIBXUL_DIRS)
-endif
 
 TIERS += app
 

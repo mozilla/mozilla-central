@@ -44,21 +44,6 @@ relativesrcdir = mailnews/mime/test
 
 include $(DEPTH)/config/autoconf.mk
 
-ifndef MOZ_ENABLE_LIBXUL
-ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
-MOZILLA_INTERNAL_API = 1
-endif
-
-CPP_UNIT_TESTS = \
-		TestMimeCrash.cpp \
-		$(NULL)
-
-LIBS += \
-	$(XPCOM_LIBS) \
-	$(NSPR_LIBS) \
-	$(NULL)
-endif
-
 XPCSHELL_TESTS = unit
 
 include $(topsrcdir)/config/rules.mk

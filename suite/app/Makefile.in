@@ -103,12 +103,7 @@ TK_LIBS := -framework SystemConfiguration $(TK_LIBS)
 endif
 endif
 
-ifdef MOZ_ENABLE_LIBXUL
 APP_XPCOM_LIBS = $(XPCOM_GLUE_LDOPTS)
-else
-MOZILLA_INTERNAL_API = 1
-APP_XPCOM_LIBS = $(XPCOM_LIBS)
-endif
 
 LIBS += \
 	$(STATIC_COMPONENTS_LINKER_PATH) \
@@ -135,12 +130,6 @@ endif
 
 ifdef MOZ_ENABLE_DBUS
 LIBS += $(MOZ_DBUS_GLIB_LIBS)
-endif
-
-ifndef MOZ_ENABLE_LIBXUL
-ifdef MOZ_NATIVE_HUNSPELL
-LIBS += $(MOZ_HUNSPELL_LIBS)
-endif
 endif
 
 ifndef MOZ_WINCONSOLE

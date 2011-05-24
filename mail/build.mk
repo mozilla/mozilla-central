@@ -37,13 +37,11 @@
 
 ifndef COMM_BUILD # Mozilla Makefile
 
-ifdef MOZ_ENABLE_LIBXUL
 SUBDIR=/..
 include $(topsrcdir)/../bridge/bridge.mk
 # For libxul builds this gets linked into libxul. For non-libxul
 # builds, the build of components is controlled in mail/Makefile.in
 APP_LIBXUL_DIRS += $(DEPTH)/../mail/components
-endif
 
 ifndef LIBXUL_SDK
 include $(topsrcdir)/toolkit/toolkit-tiers.mk
@@ -56,13 +54,6 @@ tier_app_dirs += extensions
 endif
 
 else # toplevel Makefile
-
-ifndef MOZ_ENABLE_LIBXUL
-SUBDIR =
-include $(topsrcdir)/bridge/bridge.mk
-tier_app_staticdirs += $(APP_LIBXUL_STATICDIRS)
-tier_app_dirs += $(APP_LIBXUL_DIRS)
-endif
 
 TIERS += app
 

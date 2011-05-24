@@ -42,12 +42,6 @@ VPATH		= @srcdir@
 
 include $(topsrcdir)/config/config.mk
 
-# For non-libxul builds this gets linked into its own library. For libxul
-# builds, the build of components is controlled in mail/build.mk
-ifndef MOZ_ENABLE_LIBXUL
-DIRS += components
-endif
-
 # app is always last as it packages up the built files on mac
 DIRS += base locales extensions steel themes jquery app
 
