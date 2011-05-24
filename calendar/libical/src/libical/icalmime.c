@@ -53,7 +53,7 @@ struct text_part
 	size_t buf_size;
 };
 
-void* icalmime_text_new_part()
+void* icalmime_text_new_part(void)
 {
 
 #define BUF_SIZE 2048
@@ -125,7 +125,7 @@ void icalmime_text_free_part(void *part)
 
 /* Ignore Attachments for now */
 
-void* icalmime_attachment_new_part()
+void* icalmime_attachment_new_part(void)
 {
     return 0;
 }
@@ -345,7 +345,8 @@ line between the header and the previous boundary\?";
 
 	} else if (parts[i].level < last_level){
 
-	    parent = icalcomponent_get_parent(parent);
+	    if (parent) 
+	        parent = icalcomponent_get_parent(parent);
 	    icalcomponent_add_component(parent,comp);
 
 	    last_level = parts[i].level;
@@ -399,6 +400,7 @@ int icalmime_test(char* (*get_string)(char *s, size_t size, void *d),
     sspm_write_mime(parts,NUM_PARTS,&out,"To: bob@bob.org");
 
     printf("%s\n",out);
+    free(out);
 
     return 0;
 

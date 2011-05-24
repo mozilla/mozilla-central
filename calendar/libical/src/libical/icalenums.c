@@ -35,10 +35,14 @@
 #include <stdio.h> /* For stderr */
 #include <string.h> /* For strncmp */
 #include <assert.h>
-#ifdef WIN32
-#define snprintf _snprintf
-#endif
 #include "icalmemory.h"
+
+#ifdef WIN32
+#ifndef HAVE_SNPRINTF
+#include "vsnprintf.h"
+#endif
+#endif
+
 
 /*** @brief Allowed request status values
  */

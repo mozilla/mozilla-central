@@ -136,6 +136,7 @@ icalvalue* icalvalue_new_clone(const icalvalue* old) {
 		new->data.v_string=icalmemory_strdup(old->data.v_string);
 
 		if ( new->data.v_string == 0 ) {
+                    icalvalue_free(new);
 		    return 0;
 		}		    
 
@@ -148,6 +149,7 @@ icalvalue* icalvalue_new_clone(const icalvalue* old) {
 		new->data.v_recur = malloc(sizeof(struct icalrecurrencetype));
 
 		if(new->data.v_recur == 0){
+                    icalvalue_free(new);
 		    return 0;
 		}
 
@@ -163,6 +165,7 @@ icalvalue* icalvalue_new_clone(const icalvalue* old) {
 		new->x_value=icalmemory_strdup(old->x_value);
 
 		if (new->x_value == 0) {
+                    icalvalue_free(new);
 		    return 0;
 		}
 	    }
@@ -262,72 +265,6 @@ static char* icalmemory_strdup_and_dequote(const char* str)
     return out;
 }
 
- /* 
-  * Returns a quoted copy of a string
- */
-
-static char* icalmemory_strdup_and_quote(const char* unquoted_str)
-{
-    char *str;
-    char *str_p;
-    const char *p;
-    size_t buf_sz;
-
-    buf_sz = strlen(unquoted_str)+1;
-
-    str_p = str = (char*)icalmemory_new_buffer(buf_sz);
-
-    if (str_p == 0){
-      return 0;
-    }
-
-    for(p=unquoted_str; *p!=0; p++){
-
-	switch(*p){
-	    case '\n': {
-		icalmemory_append_string(&str,&str_p,&buf_sz,"\\n");
-		break;
-	    }
-
-	    case '\t': {
-		icalmemory_append_string(&str,&str_p,&buf_sz,"\\t");
-		break;
-	    }
-	    case '\r': {
-		icalmemory_append_string(&str,&str_p,&buf_sz,"\\r");
-		break;
-	    }
-	    case '\b': {
-		icalmemory_append_string(&str,&str_p,&buf_sz,"\\b");
-		break;
-	    }
-	    case '\f': {
-		icalmemory_append_string(&str,&str_p,&buf_sz,"\\f");
-		break;
-	    }
-
-	    case ';':
-	    case ',':
-	    case '"':
-	    case '\\':{
-		icalmemory_append_char(&str,&str_p,&buf_sz,'\\');
-		icalmemory_append_char(&str,&str_p,&buf_sz,*p);
-		break;
-	    }
-
-	    default: {
-		icalmemory_append_char(&str,&str_p,&buf_sz,*p);
-	    }
-	}
-    }
-    /* Assume the last character is not a '\0' and add one. We could
-       check *str_p != 0, but that would be an uninitialized memory
-       read. */
-
-
-    icalmemory_append_char(&str,&str_p,&buf_sz,'\0');
-    return str;
-}    
 /*
  * FIXME
  *
@@ -363,9 +300,9 @@ icalvalue* icalvalue_new_enum(icalvalue_kind kind, int x_type, const char* str)
  * If you want a code that that does the same job with a decimal separator
  * dependant on the current locale, then use strtof() from libc.
  */
-int simple_str_to_float(const char* from,
-                        float *result,
-                        char** to)
+int simple_str_to_double(const char* from,
+                         double *result,
+                         char** to)
 {
 #define TMP_NUM_SIZE 100
     char *start=NULL, *end=NULL, *cur=(char*)from ;
@@ -454,7 +391,7 @@ icalvalue* icalvalue_new_from_string_with_error(icalvalue_kind kind,const char* 
     case ICAL_BINARY_VALUE:
     {
         icalattach *attach;
-        attach = icalattach_new_from_data ((unsigned char*)str, 0, 0);
+        attach = icalattach_new_from_data (str, 0, 0);
         if ( !attach )
           break;
         value = icalvalue_new_attach (attach);
@@ -561,7 +498,7 @@ icalvalue* icalvalue_new_from_string_with_error(icalvalue_kind kind,const char* 
         char *cur=NULL ;
         struct icalgeotype geo = {0.0, 0.0};
   
-        if (simple_str_to_float (str, &geo.lat, &cur)) {
+        if (simple_str_to_double (str, &geo.lat, &cur)) {
             goto geo_parsing_error ;
         }
   
@@ -584,7 +521,7 @@ icalvalue* icalvalue_new_from_string_with_error(icalvalue_kind kind,const char* 
             ++cur ;
         }
 
-        if (simple_str_to_float (cur, &geo.lon, &cur)) {
+        if (simple_str_to_double (cur, &geo.lon, &cur)) {
             goto geo_parsing_error ;
         }
         value = icalvalue_new_geo (geo) ;
@@ -772,6 +709,7 @@ icalvalue_free (icalvalue* v)
 	case ICAL_TEXT_VALUE:
 	case ICAL_CALADDRESS_VALUE:
 	case ICAL_URI_VALUE:
+	case ICAL_STRING_VALUE:
 	case ICAL_QUERY_VALUE:
 	{
 	    if (v->data.v_string != 0) { 
@@ -832,9 +770,10 @@ static char* icalvalue_binary_as_ical_string_r(const icalvalue* value) {
     
 static char* icalvalue_int_as_ical_string_r(const icalvalue* value) {
     int data;
-    char* str = (char*)icalmemory_new_buffer(MAX_INT_DIGITS); 
+    char* str;
 
     icalerror_check_arg_rz( (value!=0),"value");
+    str = (char*)icalmemory_new_buffer(MAX_INT_DIGITS); 
 
     data = icalvalue_get_integer(value);
 	
@@ -848,10 +787,11 @@ static char* icalvalue_utcoffset_as_ical_string_r(const icalvalue* value)
 {    
     int data,h,m,s;
     char sign;
-    char* str = (char*)icalmemory_new_buffer(9);
+    char* str;
 
     icalerror_check_arg_rz( (value!=0),"value");
 
+    str = (char*)icalmemory_new_buffer(9);
     data = icalvalue_get_utcoffset(value);
 
     if (abs(data) == data){
@@ -900,16 +840,66 @@ static char* icalvalue_recur_as_ical_string_r(const icalvalue* value)
  */
 
 static char* icalvalue_text_as_ical_string_r(const icalvalue* value) {
-    return icalmemory_strdup_and_quote(value->data.v_string);
+    char *str;
+    char *str_p;
+    const char *p;
+    size_t buf_sz;
 
-}
+    buf_sz = strlen(value->data.v_string)+1;
+
+    str_p = str = (char*)icalmemory_new_buffer(buf_sz);
+
+    if (str_p == 0){
+      return 0;
+    }
+
+    for(p=value->data.v_string; *p!=0; p++){
+
+	switch(*p){
+	    case '\n': {
+		icalmemory_append_string(&str,&str_p,&buf_sz,"\\n");
+		break;
+	    }
+
+	    case '\t': {
+		icalmemory_append_string(&str,&str_p,&buf_sz,"\\t");
+		break;
+	    }
+	    case '\r': {
+		icalmemory_append_string(&str,&str_p,&buf_sz,"\\r");
+		break;
+	    }
+	    case '\b': {
+		icalmemory_append_string(&str,&str_p,&buf_sz,"\\b");
+		break;
+	    }
+	    case '\f': {
+		icalmemory_append_string(&str,&str_p,&buf_sz,"\\f");
+		break;
+	    }
+
+	    case ';':
+	    case ',':
+	    case '"':
+	    case '\\':{
+		icalmemory_append_char(&str,&str_p,&buf_sz,'\\');
+		icalmemory_append_char(&str,&str_p,&buf_sz,*p);
+		break;
+	    }
+
+	    default: {
+		icalmemory_append_char(&str,&str_p,&buf_sz,*p);
+	    }
+	}
+    }
+
+    /* Assume the last character is not a '\0' and add one. We could
+       check *str_p != 0, but that would be an uninitialized memory
+       read. */
 
 
-static char* icalvalue_text_as_ical_string(const icalvalue* value) {
-	char *buf;
-	buf = icalvalue_text_as_ical_string_r(value);
-	icalmemory_add_tmp_buffer(buf);
-	return buf;
+    icalmemory_append_char(&str,&str_p,&buf_sz,'\0');
+    return str;
 }
 
 
@@ -956,24 +946,29 @@ static char* icalvalue_duration_as_ical_string_r(const icalvalue* value) {
 void print_time_to_string(char* str, const struct icaltimetype *data)
 {
     char temp[20];
+    str[0] = '\0';
 
-    if (icaltime_is_utc(*data)){
-    snprintf(temp,sizeof(temp),"%02d%02d%02dZ",data->hour,data->minute,data->second);
-    } else {
-    snprintf(temp,sizeof(temp),"%02d%02d%02d",data->hour,data->minute,data->second);
-    }   
-
-    strcat(str,temp);
+    if (data != 0) {
+        if (icaltime_is_utc(*data)){
+            snprintf(temp,sizeof(temp),"%02d%02d%02dZ",data->hour,data->minute,data->second);
+            strncat(str,temp,7);
+        } else {
+            snprintf(temp,sizeof(temp),"%02d%02d%02d",data->hour,data->minute,data->second);
+            strncat(str,temp,6);
+        }   
+    }
 }
 
  
 void print_date_to_string(char* str,  const struct icaltimetype *data)
 {
     char temp[20];
+    str[0] = '\0';
 
-    snprintf(temp,sizeof(temp),"%04d%02d%02d",data->year,data->month,data->day);
-
-    strcat(str,temp);
+    if (data != 0) {
+        snprintf(temp,sizeof(temp),"%04d%02d%02d",data->year,data->month,data->day);
+        strncat(str,temp,8);
+    }
 }
 
 static char* icalvalue_date_as_ical_string_r(const icalvalue* value) {
@@ -985,7 +980,7 @@ static char* icalvalue_date_as_ical_string_r(const icalvalue* value) {
 
     str = (char*)icalmemory_new_buffer(9);
  
-    str[0] = 0;
+    str[0] = '\0';
     print_date_to_string(str,&data);
    
     return str;
@@ -993,10 +988,17 @@ static char* icalvalue_date_as_ical_string_r(const icalvalue* value) {
 
 void print_datetime_to_string(char* str,  const struct icaltimetype *data)
 {
-    print_date_to_string(str,data);
-    if ( !data->is_date ) {
-        strcat(str,"T");
-        print_time_to_string(str,data);
+    char temp[20];
+    str[0] = '\0';
+
+    if (data != 0) {
+        print_date_to_string(str,data);
+        if ( !data->is_date ) {
+            strncat(str,"T",19);
+            temp[0] = '\0';
+            print_time_to_string(temp,data);
+            strncat(str,temp,19);
+        }
     }
 }
 
@@ -1021,7 +1023,6 @@ static char* icalvalue_datetime_as_ical_string_r(const icalvalue* value) {
     str = (char*)icalmemory_new_buffer(20);
  
     str[0] = 0;
-
     print_datetime_to_string(str,&data);
    
     return str;
@@ -1183,7 +1184,7 @@ icalvalue_as_ical_string_r(const icalvalue* value)
         
     case ICAL_X_VALUE: 
 	if (value->x_value != 0)
-            return icalmemory_strdup_and_quote(value->x_value);
+            return icalmemory_strdup(value->x_value);
 
     /* FALLTHRU */
 

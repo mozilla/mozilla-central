@@ -174,13 +174,16 @@ icalproperty* icalproperty_new_from_string(const char* str)
 {
 
     size_t buf_size = 1024;
-    char* buf = icalmemory_new_buffer(buf_size);
-    char* buf_ptr = buf;  
+    char* buf;
+    char* buf_ptr;
     icalproperty *prop;
     icalcomponent *comp;
     int errors  = 0;
 
     icalerror_check_arg_rz( (str!=0),"str");
+
+    buf = icalmemory_new_buffer(buf_size);
+    buf_ptr = buf;
 
     /* Is this a HACK or a crafty reuse of code? */
 
@@ -193,6 +196,7 @@ icalproperty* icalproperty_new_from_string(const char* str)
 
     if(comp == 0){
         icalerror_set_errno(ICAL_PARSE_ERROR);
+        free(buf);
         return 0;
     }
 
@@ -273,6 +277,16 @@ get_next_line_start (char *line_start, int chars_left)
         return line_start + chars_left;
     } 
 
+    /* Now we jump to the last possible character of the line, and step back
+       trying to find a ';' ':' or ' '. If we find one, we return the character
+       after it. */
+    pos = line_start + MAX_LINE_LEN - 2;
+    while (pos > line_start) {
+        if (*pos == ';' || *pos == ':' || *pos == ' ') {
+	    return pos + 1;
+	}
+	pos--;
+    }
     /* Now try to split on a UTF-8 boundary defined as a 7-bit
        value or as a byte with the two high-most bits set:
        11xxxxxx.  See http://czyborra.com/utf/ */
@@ -307,7 +321,7 @@ static char*
 fold_property_line (char *text)
 {
     size_t buf_size;
-    char *buf, *buf_ptr, *line_start, *next_line_start, *out_buf;
+    char *buf, *buf_ptr, *line_start, *next_line_start;
     int len, chars_left, first_line;
     char ch;
 
@@ -422,8 +436,8 @@ icalproperty_as_ical_string_r(icalproperty* prop)
 
     const char* property_name = 0; 
     size_t buf_size = 1024;
-    char* buf = icalmemory_new_buffer(buf_size);
-    char* buf_ptr = buf;
+    char* buf;
+    char* buf_ptr;
     icalvalue* value;
     char *out_buf;
     const char* kind_string = 0;
@@ -432,6 +446,8 @@ icalproperty_as_ical_string_r(icalproperty* prop)
     
     icalerror_check_arg_rz( (prop!=0),"prop");
 
+    buf = icalmemory_new_buffer(buf_size);
+    buf_ptr = buf;
 
     /* Append property name */
 
@@ -489,8 +505,10 @@ icalproperty_as_ical_string_r(icalproperty* prop)
 
     if (value != 0){
 	char *str = icalvalue_as_ical_string_r(value);
-	icalerror_assert((str !=0),"Could not get string representation of a value");
-	icalmemory_append_string(&buf, &buf_ptr, &buf_size, str);
+	if (str != 0)
+	    icalmemory_append_string(&buf, &buf_ptr, &buf_size, str);
+	else
+	    icalmemory_append_string(&buf, &buf_ptr, &buf_size,"ERROR: No Value"); 
 	free(str);
     } else {
 	icalmemory_append_string(&buf, &buf_ptr, &buf_size,"ERROR: No Value"); 
@@ -553,11 +571,15 @@ icalproperty_set_parameter (icalproperty* prop,icalparameter* parameter)
     icalerror_check_arg_rv( (parameter!=0),"parameter");
 
     kind = icalparameter_isa(parameter);
-    if (kind != ICAL_X_PARAMETER)
-      icalproperty_remove_parameter_by_kind(prop,kind);
-    else
+    if (kind == ICAL_X_PARAMETER) {
       icalproperty_remove_parameter_by_name(prop, 
 					    icalparameter_get_xname(parameter));
+    } else if (kind == ICAL_IANA_PARAMETER) {
+      icalproperty_remove_parameter_by_name(prop, 
+					    icalparameter_get_iana_name(parameter));
+    }
+    else
+      icalproperty_remove_parameter_by_kind(prop,kind);
 
     icalproperty_add_parameter(prop,parameter);
 }
@@ -587,8 +609,10 @@ void icalproperty_set_parameter_from_string(icalproperty* prop,
         return;
     }
 
-    if(kind == ICAL_X_PARAMETER){
-	icalparameter_set_xname(param, name);
+    if (kind == ICAL_X_PARAMETER) {
+        icalparameter_set_xname(param, name);
+    } else if (kind == ICAL_IANA_PARAMETER) {
+        icalparameter_set_iana_name(param, name);
     }
 
     icalproperty_set_parameter(prop,param);
@@ -628,13 +652,19 @@ char* icalproperty_get_parameter_as_string_r(icalproperty* prop,
     for(param = icalproperty_get_first_parameter(prop,kind); 
 	    param != 0; 
 	    param = icalproperty_get_next_parameter(prop,kind)) {
-	    if (kind != ICAL_X_PARAMETER) {
-		    break;
-	    }
 
-	    if (strcmp(icalparameter_get_xname(param),name)==0) {
+	    if (kind == ICAL_X_PARAMETER) {
+            if (strcmp(icalparameter_get_xname(param),name)==0) {
+                break;
+            }		
+        } else if (kind == ICAL_IANA_PARAMETER) {
+            if (strcmp(icalparameter_get_iana_name(param),name)==0) {
+                break;
+            }		
+	    } else {
 		    break;
-	    }		
+        }
+
     }
 
     if (param == 0){
@@ -747,6 +777,8 @@ icalproperty_remove_parameter_by_name(icalproperty* prop, const char *name)
 
 	if (icalparameter_isa(param) == ICAL_X_PARAMETER)
 	  kind_string = icalparameter_get_xname(param);
+    else if (icalparameter_isa(param) == ICAL_IANA_PARAMETER)
+	  kind_string = icalparameter_get_iana_name(param);
 	else
 	  kind_string = icalparameter_kind_to_string(icalparameter_isa(param));
 
@@ -781,21 +813,15 @@ icalproperty_remove_parameter_by_ref(icalproperty* prop, icalparameter* paramete
     icalerror_check_arg_rv((parameter!=0),"parameter");
 
     kind = icalparameter_isa(parameter);
-    name = icalparameter_get_xname(parameter);
 
-    /*
-     * FIXME If it's an X- parameter, also compare the names. It would be nice
-     * to have a better abstraction like icalparameter_equals()
-     */
-    for(p=pvl_head(prop->parameters);p != 0; p = pvl_next(p)){
-	icalparameter* p_param = (icalparameter *)pvl_data (p);
-	if (icalparameter_isa(p_param) == kind &&
-	    (kind != ICAL_X_PARAMETER ||
-	    !strcmp(icalparameter_get_xname(p_param), name))) {
+    for (p=pvl_head(prop->parameters);p != 0; p = pvl_next(p)) {
+        icalparameter* p_param = (icalparameter *)pvl_data (p);
+
+        if (icalparameter_has_same_name(parameter, p_param)) {
             pvl_remove (prop->parameters, p);
             icalparameter_free(p_param);
             break;
-	} 
+        }
     }   
 }
 
@@ -910,6 +936,7 @@ void icalproperty_set_value_from_string(icalproperty* prop,const char* str,
         return;
     }
 
+    icalerror_clear_errno();
     nval = icalvalue_new_from_string(kind, str);
 
     if(nval == 0){
@@ -989,10 +1016,13 @@ char* icalproperty_get_property_name_r(const icalproperty* prop)
 
     const char* property_name = 0;
     size_t buf_size = 256;
-    char* buf = icalmemory_new_buffer(buf_size);
-    char* buf_ptr = buf;  
+    char* buf;
+    char* buf_ptr;
 
     icalerror_check_arg_rz( (prop!=0),"prop");
+
+    buf = icalmemory_new_buffer(buf_size);
+    buf_ptr = buf;
  
     if (prop->kind == ICAL_X_PROPERTY && prop->x_name != 0){
         property_name = prop->x_name;
@@ -1002,6 +1032,7 @@ char* icalproperty_get_property_name_r(const icalproperty* prop)
  
     if (property_name == 0 ) {
         icalerror_set_errno(ICAL_MALFORMEDDATA_ERROR);
+	icalmemory_free_buffer(buf);
         return 0;
 
     } else {

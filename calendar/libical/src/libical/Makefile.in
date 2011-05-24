@@ -108,31 +108,32 @@ ICALSCRIPTS = $(srcdir)/../../scripts
 # is required to make the combined header ical.h properly
 COMBINEDHEADERS =                        \
         $(srcdir)/../../config.h         \
-	$(srcdir)/icalversion.h          \
-	$(srcdir)/icaltime.h             \
-	$(srcdir)/icalduration.h         \
-	$(srcdir)/icalperiod.h           \
-	$(srcdir)/icalenums.h            \
-	$(srcdir)/icaltypes.h            \
-	$(srcdir)/icalrecur.h            \
-	$(srcdir)/icalattach.h           \
-	icalderivedvalue.h               \
-	icalderivedparameter.h           \
-	$(srcdir)/icalvalue.h            \
-	$(srcdir)/icalparameter.h        \
-	icalderivedproperty.h            \
-	$(srcdir)/icalproperty.h         \
-	$(srcdir)/pvl.h                  \
-	$(srcdir)/icalarray.h            \
-	$(srcdir)/icalcomponent.h        \
-	$(srcdir)/icaltimezone.h         \
-	$(srcdir)/icalparser.h           \
-	$(srcdir)/icalmemory.h           \
-	$(srcdir)/icalerror.h            \
-	$(srcdir)/icalrestriction.h      \
-	$(srcdir)/sspm.h                 \
-	$(srcdir)/icalmime.h             \
-	$(srcdir)/icallangbind.h        
+   $(srcdir)/icalversion.h               \
+   $(srcdir)/icaltime.h                  \
+   $(srcdir)/icalduration.h              \
+   $(srcdir)/icalperiod.h                \
+   $(srcdir)/icalenums.h                 \
+   $(srcdir)/icaltypes.h                 \
+   $(srcdir)/icalrecur.h                 \
+   $(srcdir)/icalattach.h                \
+   icalderivedvalue.h                    \
+   icalderivedparameter.h                \
+   $(srcdir)/icalvalue.h                 \
+   $(srcdir)/icalparameter.h             \
+   icalderivedproperty.h                 \
+   $(srcdir)/icalproperty.h              \
+   $(srcdir)/pvl.h                       \
+   $(srcdir)/icalarray.h                 \
+   $(srcdir)/icalcomponent.h             \
+   $(srcdir)/icaltimezone.h              \
+   $(srcdir)/icalparser.h                \
+   $(srcdir)/icalmemory.h                \
+   $(srcdir)/icalerror.h                 \
+   $(srcdir)/icalrestriction.h           \
+   $(srcdir)/sspm.h                      \
+   $(srcdir)/icalmime.h                  \
+   $(srcdir)/icallangbind.h              \
+   $(NULL)
 
 BUILT_COMBINEDHEADERS = 	\
 	icalderivedparameter.h	\

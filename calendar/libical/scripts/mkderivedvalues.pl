@@ -184,8 +184,9 @@ foreach $value  (keys %h) {
     
     print "\n\n\
 icalvalue* icalvalue_new_${lc} ($type v){\
-   struct icalvalue_impl* impl = icalvalue_new_impl(ICAL_${uc}_VALUE);\
+   struct icalvalue_impl* impl;\
    $pointer_check\
+   impl = icalvalue_new_impl(ICAL_${uc}_VALUE);\
    icalvalue_set_${lc}((icalvalue*)impl,v);\
    return (icalvalue*)impl;\
 }\

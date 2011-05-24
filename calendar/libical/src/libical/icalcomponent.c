@@ -46,9 +46,12 @@
 #include <stdio.h> /* for fprintf */
 #include <string.h> /* for strdup */
 #include <limits.h> /* for INT_MAX */
+
 #ifdef WIN32
-#define snprintf _snprintf
-#define strncasecmp strnicmp
+#define strncasecmp      strnicmp
+#ifndef HAVE_SNPRINTF
+#include "vsnprintf.h"
+#endif
 #endif
 
 struct icalcomponent_impl 
@@ -94,6 +97,8 @@ static int icalcomponent_compare_vtimezones (icalcomponent	*vtimezone1,
 					     icalcomponent	*vtimezone2);
 static int icalcomponent_compare_timezone_fn	(const void	*elem1,
 						 const void	*elem2);
+static struct icaltimetype
+icalcomponent_get_datetime(icalcomponent *comp, icalproperty *prop);
 
 
 void icalcomponent_add_children(icalcomponent *impl, va_list args)
@@ -316,9 +321,6 @@ icalcomponent_as_ical_string_r (icalcomponent* impl)
 
    const char* kind_string;
 
-   buf = icalmemory_new_buffer(buf_size);
-   buf_ptr = buf; 
-
    icalerror_check_arg_rz( (impl!=0), "component");
    icalerror_check_arg_rz( (kind!=ICAL_NO_COMPONENT), "component kind is ICAL_NO_COMPONENT");
    
@@ -329,6 +331,9 @@ icalcomponent_as_ical_string_r (icalcomponent* impl)
    }
 
    icalerror_check_arg_rz( (kind_string!=0),"Unknown kind of component");
+
+   buf = icalmemory_new_buffer(buf_size);
+   buf_ptr = buf; 
 
    icalmemory_append_string(&buf, &buf_ptr, &buf_size, "BEGIN:");
    icalmemory_append_string(&buf, &buf_ptr, &buf_size, kind_string);
@@ -394,7 +399,6 @@ icalcomponent_isa (const icalcomponent* component)
    {
        return component->kind;
    }
-
    return ICAL_NO_COMPONENT;
 }
 
@@ -851,21 +855,23 @@ int icalproperty_recurrence_is_excluded(icalcomponent *comp,
 				       struct icaltimetype *dtstart,
 				       struct icaltimetype *recurtime) {
   icalproperty *exdate, *exrule;
-  pvl_elem property_iterator = comp->property_iterator;
+  pvl_elem property_iterator;
 
   if (comp == NULL || 
       dtstart == NULL || 
       recurtime == NULL ||
       icaltime_is_null_time(*recurtime))
     /* BAD DATA */
-    return 1;	
+    return 1;
+    
+  property_iterator = comp->property_iterator;
 
   /** first test against the exdate values **/
   for (exdate = icalcomponent_get_first_property(comp,ICAL_EXDATE_PROPERTY);
        exdate != NULL;
        exdate = icalcomponent_get_next_property(comp,ICAL_EXDATE_PROPERTY)) {
 	 
-    struct icaltimetype exdatetime = icalproperty_get_exdate(exdate);
+    struct icaltimetype exdatetime = icalcomponent_get_datetime(comp, exdate);
 
     if (icaltime_compare(*recurtime, exdatetime) == 0) {
       /** MATCHED **/
@@ -884,7 +890,7 @@ int icalproperty_recurrence_is_excluded(icalcomponent *comp,
     icalrecur_iterator *exrule_itr  = icalrecur_iterator_new(recur, *dtstart);
     struct icaltimetype exrule_time;
 
-    while (1) {
+    while (exrule_itr) {
       int result;
       exrule_time = icalrecur_iterator_next(exrule_itr);
 
@@ -1046,11 +1052,13 @@ void icalcomponent_foreach_recurrence(icalcomponent* comp,
 
     struct icalrecurrencetype recur = icalproperty_get_rrule(rrule);
     icalrecur_iterator *rrule_itr  = icalrecur_iterator_new(recur, dtstart);
-    struct icaltimetype rrule_time = icalrecur_iterator_next(rrule_itr);
+    struct icaltimetype rrule_time;
+    if(rrule_itr)  
+        rrule_time = icalrecur_iterator_next(rrule_itr);
     /** note that icalrecur_iterator_next always returns dtstart
 	the first time.. **/
 
-    while (1) {
+    while (rrule_itr) {
       rrule_time = icalrecur_iterator_next(rrule_itr);
 
       if (icaltime_is_null_time(rrule_time)) 
@@ -2031,51 +2039,51 @@ enum icalproperty_status icalcomponent_get_status(icalcomponent* comp){
     return icalproperty_get_status(prop);
 }
 
-icalcomponent* icalcomponent_new_vcalendar()
+icalcomponent* icalcomponent_new_vcalendar(void)
 {
     return icalcomponent_new(ICAL_VCALENDAR_COMPONENT);
 }
-icalcomponent* icalcomponent_new_vevent()
+icalcomponent* icalcomponent_new_vevent(void)
 {
     return icalcomponent_new(ICAL_VEVENT_COMPONENT);
 }
-icalcomponent* icalcomponent_new_vtodo()
+icalcomponent* icalcomponent_new_vtodo(void)
 {
     return icalcomponent_new(ICAL_VTODO_COMPONENT);
 }
-icalcomponent* icalcomponent_new_vjournal()
+icalcomponent* icalcomponent_new_vjournal(void)
 {
     return icalcomponent_new(ICAL_VJOURNAL_COMPONENT);
 }
-icalcomponent* icalcomponent_new_valarm()
+icalcomponent* icalcomponent_new_valarm(void)
 {
     return icalcomponent_new(ICAL_VALARM_COMPONENT);
 }
-icalcomponent* icalcomponent_new_vfreebusy()
+icalcomponent* icalcomponent_new_vfreebusy(void)
 {
     return icalcomponent_new(ICAL_VFREEBUSY_COMPONENT);
 }
-icalcomponent* icalcomponent_new_vtimezone()
+icalcomponent* icalcomponent_new_vtimezone(void)
 {
     return icalcomponent_new(ICAL_VTIMEZONE_COMPONENT);
 }
-icalcomponent* icalcomponent_new_xstandard()
+icalcomponent* icalcomponent_new_xstandard(void)
 {
     return icalcomponent_new(ICAL_XSTANDARD_COMPONENT);
 }
-icalcomponent* icalcomponent_new_xdaylight()
+icalcomponent* icalcomponent_new_xdaylight(void)
 {
     return icalcomponent_new(ICAL_XDAYLIGHT_COMPONENT);
 }
-icalcomponent* icalcomponent_new_vagenda()
+icalcomponent* icalcomponent_new_vagenda(void)
 {
     return icalcomponent_new(ICAL_VAGENDA_COMPONENT);
 }
-icalcomponent* icalcomponent_new_vquery()
+icalcomponent* icalcomponent_new_vquery(void)
 {
     return icalcomponent_new(ICAL_VQUERY_COMPONENT);
 }
-icalcomponent* icalcomponent_new_vreply()
+icalcomponent* icalcomponent_new_vreply(void)
 {
     return icalcomponent_new(ICAL_VREPLY_COMPONENT);
 }
@@ -2126,9 +2134,8 @@ void icalcomponent_merge_component(icalcomponent* comp,
     for (i = 0; i < tzids_to_rename->num_elements; i++) {
       free (icalarray_element_at (tzids_to_rename, i));
     }
-    icalarray_free (tzids_to_rename);
   }
-
+  icalarray_free (tzids_to_rename);
   /* Now move all the components from comp_to_merge to comp, excluding
      VTIMEZONE components. */
   subcomp = icalcomponent_get_first_component (comp_to_merge,
@@ -2249,11 +2256,17 @@ icalcomponent_handle_conflicting_vtimezones (icalcomponent *comp,
 	/* The VTIMEZONEs match, so we can use the existing VTIMEZONE. But
 	   we have to rename TZIDs to this TZID. */
 	tzid_copy = strdup (tzid);
+        if(!tzid_copy) {
+          icalerror_set_errno(ICAL_NEWFAILED_ERROR);
+          return;
+        }
 	existing_tzid_copy = strdup (existing_tzid);
-	if (!tzid_copy || !existing_tzid_copy) {
+        if (!existing_tzid_copy) {
 	  icalerror_set_errno(ICAL_NEWFAILED_ERROR);
+          free(tzid_copy);
 	} else {
 	  icalarray_append (tzids_to_rename, tzid_copy);
+	  free(tzid_copy);
 	  icalarray_append (tzids_to_rename, existing_tzid_copy);
 	}
 	return;
@@ -2272,10 +2285,16 @@ icalcomponent_handle_conflicting_vtimezones (icalcomponent *comp,
   /* We didn't find a VTIMEZONE that matched, so we have to rename the TZID,
      using the maximum numerical suffix found + 1. */
   tzid_copy = strdup (tzid);
+  if(!tzid_copy) {
+    icalerror_set_errno(ICAL_NEWFAILED_ERROR);
+    return;
+  }
+
   snprintf (suffix_buf, sizeof(suffix_buf), "%i", max_suffix + 1);
   new_tzid = malloc (tzid_len + strlen (suffix_buf) + 1);
-  if (!new_tzid || !tzid_copy) {
+  if (!new_tzid) {
     icalerror_set_errno(ICAL_NEWFAILED_ERROR);
+    free(tzid_copy);
     return;
   }
 
@@ -2283,6 +2302,8 @@ icalcomponent_handle_conflicting_vtimezones (icalcomponent *comp,
   strcpy (new_tzid + tzid_len, suffix_buf);
   icalarray_append (tzids_to_rename, tzid_copy);
   icalarray_append (tzids_to_rename, new_tzid);
+  free(tzid_copy);
+  free(new_tzid);
 }
 
 
@@ -2404,13 +2425,15 @@ icaltimezone* icalcomponent_get_timezone(icalcomponent* comp, const char *tzid)
 	middle = (lower + upper) >> 1;
 	zone = icalarray_element_at (comp->timezones, middle);
 	zone_tzid = icaltimezone_get_tzid (zone);
-	cmp = strcmp (tzid, zone_tzid);
-	if (cmp == 0)
-	    return zone;
-	else if (cmp < 0)
-	    upper = middle;
-	else
-	    lower = middle + 1;
+	if (zone_tzid != NULL) {
+		cmp = strcmp (tzid, zone_tzid);
+		if (cmp == 0)
+			return zone;
+		else if (cmp < 0)
+			upper = middle;
+		else
+			lower = middle + 1;
+	}
     }
 
     return NULL;
@@ -2573,9 +2596,7 @@ struct icaltimetype icalcomponent_get_due(icalcomponent* comp)
     icalproperty *dur_prop
         = icalcomponent_get_first_property(inner, ICAL_DURATION_PROPERTY);
 
-    if( due_prop == 0 && dur_prop == 0){
-        return icaltime_null_time();
-    } else if ( due_prop != 0) {
+    if ( due_prop != 0) {
         return icalproperty_get_due(due_prop);
     } else if ( dur_prop != 0) {
 
@@ -2588,13 +2609,8 @@ struct icaltimetype icalcomponent_get_due(icalcomponent* comp)
 
         return due;
 
-    } else {
-        /* Error, both duration and due have been specified */
-        icalerror_set_errno(ICAL_MALFORMEDDATA_ERROR);
-        return icaltime_null_time();
-
     }
-
+    return icaltime_null_time();
 }
 
 /** @brief Set the due date of a VTODO task.
@@ -2636,8 +2652,5 @@ void icalcomponent_set_due(icalcomponent* comp, struct icaltimetype v)
 
         icalproperty_set_duration(dur_prop,dur);
 
-    } else {
-        /* Error, both duration and due have been specified */
-        icalerror_set_errno(ICAL_MALFORMEDDATA_ERROR);
     }
 }

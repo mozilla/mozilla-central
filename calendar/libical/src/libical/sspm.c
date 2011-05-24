@@ -181,7 +181,8 @@ char* sspm_get_parameter(const char* line, const char* parameter)
     if(s != 0){
 	strncpy(name,p,(size_t)s-(size_t)p);
     } else {
-	strcpy(name,p);
+	strncpy(name,p,sizeof(name)-1);
+	name[sizeof(name)-1]='\0';
     }
 
     /* Strip off trailing quote, if it exists */
@@ -252,7 +253,7 @@ static const char *mime_headers[] = {
 };
 
 
-void* sspm_default_new_part()
+void* sspm_default_new_part(void)
 {
     return 0;
 }
@@ -472,6 +473,7 @@ enum sspm_minor_type sspm_find_minor_content_type(char* type)
     char *p = strchr(ltype,'/');
 
     if (p==0){
+        free(ltype);
 	return SSPM_UNKNOWN_MINOR_TYPE; 
     }
 
