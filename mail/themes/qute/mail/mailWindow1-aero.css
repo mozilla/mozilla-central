@@ -109,7 +109,6 @@ treechildren::-moz-tree-image(junkStatusCol) {
 #viewPickerPopup menuitem, #viewPickerPopup menu {
   -moz-appearance: none;
   color: -moz-FieldText;
-  background-color: menuitem;
 }
 
 #viewPickerPopup menuitem[_moz-menuactive="true"], #viewPickerPopup menu[_moz-menuactive="true"] {
@@ -128,7 +127,6 @@ treechildren::-moz-tree-image(junkStatusCol) {
 #folderLocationPopup menuitem[_moz-menuactive="true"], #folderLocationPopup menu[_moz-menuactive="true"] {
   -moz-appearance: none !important;
   color: HighlightText;
-  background-color: menuitem;
 }
 
 #folderLocationPopup menuitem:first-child {
