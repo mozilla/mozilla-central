@@ -38,9 +38,7 @@
 #include "icalmemory.h"
 
 #ifdef WIN32
-#ifndef HAVE_SNPRINTF
-#include "vsnprintf.h"
-#endif
+#define snprintf _snprintf
 #endif
 
 

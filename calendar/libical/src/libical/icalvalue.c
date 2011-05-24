@@ -265,6 +265,73 @@ static char* icalmemory_strdup_and_dequote(const char* str)
     return out;
 }
 
+ /* 
+  * Returns a quoted copy of a string
+ */
+
+static char* icalmemory_strdup_and_quote(const char* unquoted_str)
+{
+    char *str;
+    char *str_p;
+    const char *p;
+    size_t buf_sz;
+
+    buf_sz = strlen(unquoted_str)+1;
+
+    str_p = str = (char*)icalmemory_new_buffer(buf_sz);
+
+    if (str_p == 0){
+      return 0;
+    }
+
+    for(p=unquoted_str; *p!=0; p++){
+
+	switch(*p){
+	    case '\n': {
+		icalmemory_append_string(&str,&str_p,&buf_sz,"\\n");
+		break;
+	    }
+
+	    case '\t': {
+		icalmemory_append_string(&str,&str_p,&buf_sz,"\\t");
+		break;
+	    }
+	    case '\r': {
+		icalmemory_append_string(&str,&str_p,&buf_sz,"\\r");
+		break;
+	    }
+	    case '\b': {
+		icalmemory_append_string(&str,&str_p,&buf_sz,"\\b");
+		break;
+	    }
+	    case '\f': {
+		icalmemory_append_string(&str,&str_p,&buf_sz,"\\f");
+		break;
+	    }
+
+	    case ';':
+	    case ',':
+	    case '"':
+	    case '\\':{
+		icalmemory_append_char(&str,&str_p,&buf_sz,'\\');
+		icalmemory_append_char(&str,&str_p,&buf_sz,*p);
+		break;
+	    }
+
+	    default: {
+		icalmemory_append_char(&str,&str_p,&buf_sz,*p);
+	    }
+	}
+    }
+    /* Assume the last character is not a '\0' and add one. We could
+       check *str_p != 0, but that would be an uninitialized memory
+       read. */
+
+
+    icalmemory_append_char(&str,&str_p,&buf_sz,'\0');
+    return str;
+}    
+
 /*
  * FIXME
  *
@@ -840,66 +907,7 @@ static char* icalvalue_recur_as_ical_string_r(const icalvalue* value)
  */
 
 static char* icalvalue_text_as_ical_string_r(const icalvalue* value) {
-    char *str;
-    char *str_p;
-    const char *p;
-    size_t buf_sz;
-
-    buf_sz = strlen(value->data.v_string)+1;
-
-    str_p = str = (char*)icalmemory_new_buffer(buf_sz);
-
-    if (str_p == 0){
-      return 0;
-    }
-
-    for(p=value->data.v_string; *p!=0; p++){
-
-	switch(*p){
-	    case '\n': {
-		icalmemory_append_string(&str,&str_p,&buf_sz,"\\n");
-		break;
-	    }
-
-	    case '\t': {
-		icalmemory_append_string(&str,&str_p,&buf_sz,"\\t");
-		break;
-	    }
-	    case '\r': {
-		icalmemory_append_string(&str,&str_p,&buf_sz,"\\r");
-		break;
-	    }
-	    case '\b': {
-		icalmemory_append_string(&str,&str_p,&buf_sz,"\\b");
-		break;
-	    }
-	    case '\f': {
-		icalmemory_append_string(&str,&str_p,&buf_sz,"\\f");
-		break;
-	    }
-
-	    case ';':
-	    case ',':
-	    case '"':
-	    case '\\':{
-		icalmemory_append_char(&str,&str_p,&buf_sz,'\\');
-		icalmemory_append_char(&str,&str_p,&buf_sz,*p);
-		break;
-	    }
-
-	    default: {
-		icalmemory_append_char(&str,&str_p,&buf_sz,*p);
-	    }
-	}
-    }
-
-    /* Assume the last character is not a '\0' and add one. We could
-       check *str_p != 0, but that would be an uninitialized memory
-       read. */
-
-
-    icalmemory_append_char(&str,&str_p,&buf_sz,'\0');
-    return str;
+    return icalmemory_strdup_and_quote(value->data.v_string);
 }
 
 
@@ -1184,7 +1192,7 @@ icalvalue_as_ical_string_r(const icalvalue* value)
         
     case ICAL_X_VALUE: 
 	if (value->x_value != 0)
-            return icalmemory_strdup(value->x_value);
+            return icalmemory_strdup_and_quote(value->x_value);
 
     /* FALLTHRU */
 

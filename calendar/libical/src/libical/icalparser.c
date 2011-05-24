@@ -742,7 +742,11 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 			 ICAL_XLICERRORTYPE_COMPONENTPARSEERROR);
         }
 
-	c  =  icalcomponent_new(comp_kind);
+	if (comp_kind != ICAL_X_COMPONENT) {
+	    c  =  icalcomponent_new(comp_kind);
+	} else {
+	    c  =  icalcomponent_new_x(str);
+	}
 
 	if (c == 0){
 	    c = icalcomponent_new(ICAL_XLICINVALID_COMPONENT);
@@ -1084,29 +1088,12 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 		
 	    /* Don't add properties without value */
 	    if (value == 0){
-		char temp[200]; /* HACK */
-
-		icalproperty_kind prop_kind = icalproperty_isa(prop);
 		icalcomponent* tail = pvl_data(pvl_tail(parser->components));
 
-		snprintf(temp,sizeof(temp),"Can't parse as %s value in %s property. Removing entire property",
-			icalvalue_kind_to_string(value_kind),
-			icalproperty_kind_to_string(prop_kind));
-
-		insert_error(tail, str, temp,
-			     ICAL_XLICERRORTYPE_VALUEPARSEERROR);
-
-		/* Remove the troublesome property */
+		/* Remove the empty property */
 		icalcomponent_remove_property(tail,prop);
 		icalproperty_free(prop);
-		prop = 0;
-		tail = 0;
-		parser->state = ICALPARSER_ERROR;
-	
-		icalmemory_free_buffer(str);
-		str = NULL;
-		return 0;
-		    
+		prop = NULL;
 	    } else {
 		vcount++;
 		icalproperty_set_value(prop, value);

@@ -41,7 +41,9 @@
 #include "icalparser.h"
 #include "icaltimezone.h"
 #include "icaltimezoneimpl.h"
+#ifndef NO_ZONES_TAB
 #include "icaltz-util.h"
+#endif
 
 #include <sys/stat.h>
 
@@ -59,11 +61,8 @@
 // MSVC lacks the POSIX macro S_ISDIR, however it's a trivial one:
 #ifndef S_ISDIR
 #define S_ISDIR(m) (((m) & _S_IFMT) == _S_IFDIR)
-#ifndef HAVE_SNPRINTF
-#include "vsnprintf.h"
 #endif
-#endif
-
+#define snprintf _snprintf
 #define strcasecmp      stricmp
 #endif
 
@@ -112,10 +111,10 @@ struct _icaltimezonechange {
 
 
 /** An array of icaltimezones for the builtin timezones. */
-static icalarray *builtin_timezones = NULL;
+static icalarray *s_builtin_timezones = NULL;
 
-/** This is the special UTC timezone, which isn't in builtin_timezones. */
-static icaltimezone utc_timezone = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+/** This is the special UTC timezone, which isn't in s_builtin_timezones. */
+static icaltimezone utc_timezone = { (char *) "UTC", NULL, NULL, 0.0, 0.0, NULL, NULL, 0, NULL };
 
 static char* zone_files_directory = NULL;
 
@@ -153,8 +152,6 @@ static void  icaltimezone_load_builtin_timezone	(icaltimezone *zone);
 static void  icaltimezone_ensure_coverage	(icaltimezone *zone,
 						 int		 end_year);
 
-
-static void  icaltimezone_init_builtin_timezones(void);
 
 static void  icaltimezone_parse_zone_tab	(void);
 
@@ -1314,18 +1311,20 @@ icaltimezone_array_free			(icalarray	*timezones)
 icalarray*
 icaltimezone_get_builtin_timezones	(void)
 {
-    if (!builtin_timezones)
-	icaltimezone_init_builtin_timezones ();
-
-    return builtin_timezones;
+#ifndef NO_ZONES_TAB
+    if (!s_builtin_timezones) {
+	icaltimezone_parse_zone_tab ();
+    }
+#endif
+    return s_builtin_timezones;
 }
 
 /** Release builtin timezone memory */
 void
 icaltimezone_free_builtin_timezones(void)
 {
-	icaltimezone_array_free(builtin_timezones);
-	builtin_timezones = 0;
+	icaltimezone_array_free(s_builtin_timezones);
+	s_builtin_timezones = 0;
 }
 
 
@@ -1335,17 +1334,20 @@ icaltimezone_get_builtin_timezone	(const char *location)
 {
     icalcomponent *comp;
     icaltimezone *zone;
-    int lower;
+    unsigned int lower;
     const char *zone_location;
+    icalarray * builtin_timezones;
 
     if (!location || !location[0])
 	return NULL;
 
-    if (!builtin_timezones)
-	icaltimezone_init_builtin_timezones ();
-
     if (!strcmp (location, "UTC"))
 	return &utc_timezone;
+
+    builtin_timezones = icaltimezone_get_builtin_timezones();
+    if (!builtin_timezones) {
+	return NULL;
+    }
     
 #if 0
     /* Do a simple binary search. */
@@ -1374,7 +1376,7 @@ icaltimezone_get_builtin_timezone	(const char *location)
 	if (strcmp (location, zone_location) == 0)
 		return zone;
     }
-
+#ifndef NO_ZONES_TAB
     /* Check whether file exists, but is not mentioned in zone.tab.
        It means it's a deprecated timezone, but still available. */
     comp = icaltzutil_fetch_timezone (location);
@@ -1388,6 +1390,7 @@ icaltimezone_get_builtin_timezone	(const char *location)
 	    icalcomponent_free (comp);
 	}
     }
+#endif
 
     return NULL;
 }
@@ -1435,14 +1438,18 @@ icaltimezone_get_builtin_timezone_from_offset	(int offset, const char *tzname)
     icaltimezone *zone=NULL;
     int count, i;
     
-    if (!builtin_timezones)
-	icaltimezone_init_builtin_timezones ();
+    icalarray * builtin_timezones;
 
     if (offset==0)
 	return &utc_timezone;
 
     if (!tzname)
 	return NULL;
+
+    builtin_timezones = icaltimezone_get_builtin_timezones();
+    if (!builtin_timezones) {
+	return NULL;
+    }
 
     count = builtin_timezones->num_elements;
 
@@ -1511,25 +1518,10 @@ icaltimezone_get_builtin_timezone_from_tzid (const char *tzid)
 icaltimezone*
 icaltimezone_get_utc_timezone		(void)
 {
-    if (!builtin_timezones)
-	icaltimezone_init_builtin_timezones ();
-
     return &utc_timezone;
 }
 
 
-
-/** This initializes the builtin timezone data, i.e. the
-   builtin_timezones array and the special UTC timezone. It should be
-   called before any code that uses the timezone functions. */
-static void
-icaltimezone_init_builtin_timezones	(void)
-{
-    /* Initialize the special UTC timezone. */
-    utc_timezone.tzid = (char *)"UTC";
-
-    icaltimezone_parse_zone_tab ();
-}
 
 static int
 parse_coord			(char		*coord,
@@ -1623,6 +1615,7 @@ fetch_lat_long_from_string  (const char *str, int *latitude_degrees, int *latitu
 static void
 icaltimezone_parse_zone_tab		(void)
 {
+#ifndef NO_ZONES_TAB
     char *filename;
     FILE *fp;
     char buf[1024];  /* Used to store each line of zones.tab as it is read. */
@@ -1632,10 +1625,10 @@ icaltimezone_parse_zone_tab		(void)
     int longitude_degrees = 0, longitude_minutes = 0, longitude_seconds = 0;
     icaltimezone zone;
 
-    icalerror_assert (builtin_timezones == NULL,
+    icalerror_assert (s_builtin_timezones == NULL,
 		      "Parsing zones.tab file multiple times");
 
-    builtin_timezones = icalarray_new (sizeof (icaltimezone), 32);
+    s_builtin_timezones = icalarray_new (sizeof (icaltimezone), 32);
 
 #ifndef USE_BUILTIN_TZDATA
     filename_len = strlen ((char *) icaltzutil_get_zone_directory()) + strlen (ZONES_TAB_SYSTEM_FILENAME)
@@ -1710,7 +1703,7 @@ icaltimezone_parse_zone_tab		(void)
 		- (double) longitude_minutes / 60
 		- (double) longitude_seconds / 3600;
 
-	icalarray_append (builtin_timezones, &zone);
+	icalarray_append (s_builtin_timezones, &zone);
 
 #if 0
 	printf ("Found zone: %s %f %f\n",
@@ -1719,17 +1712,17 @@ icaltimezone_parse_zone_tab		(void)
     }
 
     fclose (fp);
+#endif /* NO_ZONES_TAB */
 }
 
 void
 icaltimezone_release_zone_tab		(void)
 {
-    int i;
-    icalarray *mybuiltin_timezones = builtin_timezones;
-
-    if (builtin_timezones == NULL)
+    unsigned int i;
+    icalarray *mybuiltin_timezones = s_builtin_timezones;
+    if (s_builtin_timezones == NULL)
 	return;
-    builtin_timezones = NULL;
+    s_builtin_timezones = NULL;
     for (i = 0; i < mybuiltin_timezones->num_elements; i++)
 	free ( ((icaltimezone*)icalarray_element_at(mybuiltin_timezones, i))->location);
     icalarray_free (mybuiltin_timezones);
@@ -1739,6 +1732,7 @@ icaltimezone_release_zone_tab		(void)
 static void
 icaltimezone_load_builtin_timezone	(icaltimezone *zone)
 {
+#ifndef NO_ZONES_TAB
     icalcomponent *subcomp;
 
 	    /* If the location isn't set, it isn't a builtin timezone. */
@@ -1802,7 +1796,7 @@ icaltimezone_load_builtin_timezone	(icaltimezone *zone)
     icalcomponent_free(comp);
     }
 #endif    
-
+#endif /* NO_ZONES_TAB */
 }
 
 
