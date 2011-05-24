@@ -353,7 +353,7 @@ toolbar[iconsize="small"] #button-next {
 }
 
 toolbar[iconsize="small"] #button-next[disabled] {
-  -moz-image-region: rect(16px 160px 32px 144px);
+  -moz-image-region: rect(16px 160px 32px 144px) !important;
 } 
 
 toolbar[iconsize="small"] #button-next:-moz-locale-dir(rtl) {
@@ -362,7 +362,7 @@ toolbar[iconsize="small"] #button-next:-moz-locale-dir(rtl) {
 }
 
 toolbar[iconsize="small"] #button-next:-moz-locale-dir(rtl)[disabled] {
-  -moz-image-region: rect(16px 176px 32px 160px);
+  -moz-image-region: rect(16px 176px 32px 160px) !important;
 } 
 
 toolbar[iconsize="small"] #button-previous {
@@ -371,7 +371,7 @@ toolbar[iconsize="small"] #button-previous {
 }
 
 toolbar[iconsize="small"] #button-previous[disabled] {
-  -moz-image-region: rect(16px 176px 32px 160px);
+  -moz-image-region: rect(16px 176px 32px 160px) !important;
 } 
 
 toolbar[iconsize="small"] #button-previous:-moz-locale-dir(rtl) {
@@ -380,7 +380,7 @@ toolbar[iconsize="small"] #button-previous:-moz-locale-dir(rtl) {
 }
 
 toolbar[iconsize="small"] #button-previous:-moz-locale-dir(rtl)[disabled] {
-  -moz-image-region: rect(16px 160px 32px 144px);
+  -moz-image-region: rect(16px 160px 32px 144px) !important;
 }
 
 toolbar[iconsize="small"] #button-tag {
