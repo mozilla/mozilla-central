@@ -134,8 +134,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         # Do not allow check new mail to be set
         'mail.startup.enabledMailCheckOnce' :  True,
         # Disable compatibility checking
-        'extensions.checkCompatibility.3.3a': False,
-        'extensions.checkCompatibility.3.4a': False,
+        'extensions.checkCompatibility.nightly': False,
         # In case a developer is working on a laptop without a network
         # connection, don't detect offline mode; hence we'll still startup
         # online which is what mozmill currently requires. It'll also protect us
