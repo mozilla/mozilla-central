@@ -72,9 +72,12 @@ var mfnListener =
       let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
       let msgURI = gIMAPInbox.getUriForMsg(aMsg);
       do_check_eq(aMsg.messageKey, 8);
-      let msgServ = messenger.messageServiceFromURI(msgURI);
-      msgServ.streamMessage(msgURI, gStreamListener, null, null, false, "", false);
-      this._msgStreamed = true;
+      try {
+        let msgServ = messenger.messageServiceFromURI(msgURI);
+        msgServ.streamMessage(msgURI, gStreamListener, null, null, false, "", false);
+        this._msgStreamed = true;
+      }
+      catch (ex) {dump(ex);}
     }
   }
 };
