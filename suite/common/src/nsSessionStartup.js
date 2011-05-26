@@ -140,7 +140,7 @@ SessionStartup.prototype = {
 
     if (this.doRestore()) {
       // wait for the first browser window to open
-      Services.obs.addObserver(this, "browser:purge-session-history", true);
+      Services.obs.addObserver(this, "sessionstore-windows-restored", true);
     }
   },
 
@@ -162,6 +162,14 @@ SessionStartup.prototype = {
       // no reason for initializing at this point (cf. bug 409115)
       Services.obs.removeObserver(this, "final-ui-startup");
       Services.obs.removeObserver(this, "quit-application");
+      break;
+    case "sessionstore-windows-restored":
+      Services.obs.removeObserver(this, "sessionstore-windows-restored");
+      // We only want to start listening for the purge notification after we've
+      // sessionstore has finished its initial startup. That way we won't observe
+      // the purge notification & clear the old session before sessionstore loads
+      // it (in the case of a crash).
+      Services.obs.addObserver(this, "browser:purge-session-history", true);
       break;
     case "browser:purge-session-history":
       // reset all state on sanitization
