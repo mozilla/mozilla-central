@@ -77,7 +77,7 @@ var mfnListener =
         msgServ.streamMessage(msgURI, gStreamListener, null, null, false, "", false);
         this._msgStreamed = true;
       }
-      catch (ex) {dump(ex);}
+      catch (ex) {do_throw(ex);}
     }
   }
 };
