@@ -270,7 +270,7 @@ SessionStoreService.prototype = {
     var ss = Components.classes["@mozilla.org/suite/sessionstartup;1"]
                        .getService(Components.interfaces.nsISessionStartup);
     try {
-      if (ss._sessionType != Components.interfaces.nsISessionStartup.NO_SESSION)
+      if (ss.sessionType != Components.interfaces.nsISessionStartup.NO_SESSION)
         iniString = ss.state;
     }
     catch(ex) { dump(ex + "\n"); } // no state to restore, which is ok
