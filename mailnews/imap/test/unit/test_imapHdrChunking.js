@@ -51,6 +51,8 @@ Components.utils.import("resource:///modules/mailServices.js");
 // IMAP pump
 load("../../../resources/IMAPpump.js");
 
+setupIMAPPump();
+
 // Dummy message window so we can say the inbox is open in a window.
 var dummyMsgWindow =
 {
@@ -156,13 +158,11 @@ function endTest() {
 function run_test()
 {
   // XXX Disable on windows for now as it is failing there.
-//  if ("@mozilla.org/windows-registry-key;1" in Cc) {
-//    dump("Disabled on windows due to permanent failures\n");
-    // disable everywhere
+  if ("@mozilla.org/windows-registry-key;1" in Cc) {
+    dump("Disabled on windows due to permanent failures\n");
+    endTest();
     return;
-//  }
-
-  setupIMAPPump();
+  }
 
   // We need to register the dummyMsgWindow so that we'll think the
   // Inbox is open in a folder and fetch headers in chunks.
