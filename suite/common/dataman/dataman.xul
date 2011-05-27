@@ -301,6 +301,7 @@
             <checkbox id="cookieBlockOnRemove"
                       label="&cookies.blockOnRemove.label;"
                       accesskey="&cookies.blockOnRemove.accesskey;"
+                      flex="1"
                       persist="checked"/>
           </hbox>
         </vbox>
