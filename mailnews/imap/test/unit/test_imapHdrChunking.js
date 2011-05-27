@@ -156,10 +156,11 @@ function endTest() {
 function run_test()
 {
   // XXX Disable on windows for now as it is failing there.
-  if ("@mozilla.org/windows-registry-key;1" in Cc) {
-    dump("Disabled on windows due to permanent failures\n");
+//  if ("@mozilla.org/windows-registry-key;1" in Cc) {
+//    dump("Disabled on windows due to permanent failures\n");
+    // disable everywhere
     return;
-  }
+//  }
 
   setupIMAPPump();
 
