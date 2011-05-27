@@ -513,11 +513,10 @@
 
       <handler event="popupshowing" action="this.rebuildPopupDynamic();"/>
 
-      <handler event="DOMMouseScroll" phase="capturing"><![CDATA[
-        var key = /Mac/.test(navigator.platform) ? event.metaKey : event.ctrlKey;
-        if (key)
-          this.selectEngine(event, event.detail > 0);
-      ]]></handler>
+      <handler event="DOMMouseScroll"
+               phase="capturing"
+               modifiers="accel"
+               action="this.selectEngine(event, (event.detail > 0));"/>
     </handlers>
   </binding>
 
