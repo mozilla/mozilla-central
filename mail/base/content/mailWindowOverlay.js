@@ -2293,8 +2293,10 @@ function SpaceHit(event)
   // when the element is going to do something else.
   let focusedElement = document.commandDispatcher.focusedElement;
 
-  if (contentWindow.top == window) {
-    contentWindow = content;
+  if (!gMessageDisplay.singleMessageDisplay) {
+    contentWindow = document.getElementById("multimessage").contentWindow;
+  } else if (contentWindow.top == window) {
+    contentWindow = window.content;
     if (focusedElement && focusedElement.id == "otherActionsButton")
       return;
   }
@@ -2304,7 +2306,7 @@ function SpaceHit(event)
   var rssiframe = contentWindow.document.getElementById('_mailrssiframe');
   // If we are displaying an RSS article, we really want to scroll
   // the nested iframe.
-  if (contentWindow == content && rssiframe)
+  if (contentWindow == window.content && rssiframe)
     contentWindow = rssiframe.contentWindow;
 
   if (event && event.shiftKey) {
