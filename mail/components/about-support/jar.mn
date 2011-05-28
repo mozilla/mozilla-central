@@ -6,7 +6,7 @@ messenger.jar:
     content/messenger/about-support/accounts.js                (content/accounts.js)
     content/messenger/about-support/extensions.js              (content/extensions.js)
     content/messenger/about-support/prefs.js                   (content/prefs.js)
-    content/messenger/about-support/gfx.js                     (content/gfx.js)
+*   content/messenger/about-support/gfx.js                     (content/gfx.js)
     content/messenger/about-support/export.js                  (content/export.js)
 *   content/messenger/about-support/aboutSupport.xhtml         (content/aboutSupport.xhtml)
     content/messenger/about-support/overlay.js                 (content/overlay.js)
