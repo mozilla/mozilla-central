@@ -1349,18 +1349,6 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetNaturalHeight(PRInt32 *aResult)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-// readonly attribute long x
-NS_IMETHODIMP nsEudoraHTMLImageElement::GetX(PRInt32 *aResult)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-// readonly attribute long y
-NS_IMETHODIMP nsEudoraHTMLImageElement::GetY(PRInt32 *aResult)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
 // attribute DOMString border
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetBorder(nsAString & aBorder)
 {
