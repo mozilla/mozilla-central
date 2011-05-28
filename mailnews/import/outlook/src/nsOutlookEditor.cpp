@@ -1014,17 +1014,6 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::GetNaturalHeight(PRInt32 *aResult)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-// readonly attribute long x
-NS_IMETHODIMP nsOutlookHTMLImageElement::GetX(PRInt32 *aResult)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-// readonly attribute long y
-NS_IMETHODIMP nsOutlookHTMLImageElement::GetY(PRInt32 *aResult)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 // attribute DOMString border
 NS_IMETHODIMP nsOutlookHTMLImageElement::GetBorder(nsAString & aBorder)
 {
