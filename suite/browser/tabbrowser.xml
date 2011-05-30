@@ -458,6 +458,14 @@
                                                       aCurTotalProgress, aMaxTotalProgress]);
             },
 
+            onProgressChange64: function (aWebProgress, aRequest,
+                                          aCurSelfProgress, aMaxSelfProgress,
+                                          aCurTotalProgress, aMaxTotalProgress) {
+              return this.onProgressChange(aWebProgress, aRequest,
+                aCurSelfProgress, aMaxSelfProgress, aCurTotalProgress,
+                aMaxTotalProgress);
+            },
+
             onStateChange: function (aWebProgress, aRequest, aStateFlags, aStatus) {
               if (!aRequest)
                 return;
