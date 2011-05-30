@@ -114,7 +114,6 @@ components/nsExtensionManager.js
 components/nsInterfaceInfoToIDL.js
 components/nsKillAll.js
 components/nsLDAPPrefsService.js
-components/nsMicrosummaryService.js
 components/nsPlacesDBFlush.js
 #ifdef XP_WIN
 components/nsPostUpdateWin.js
