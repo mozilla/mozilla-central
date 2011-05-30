@@ -585,6 +585,7 @@ xpicleanup@BIN_SUFFIX@
   components/nsLoginInfo.js
   components/nsLoginManager.js
   components/nsLoginManagerPrompter.js
+  components/nsMicrosummaryService.js
   components/nsPlacesAutoComplete.js
   components/nsPlacesDBFlush.js
   components/nsPlacesExpiration.js
