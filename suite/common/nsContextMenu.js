@@ -367,11 +367,6 @@ nsContextMenu.prototype = {
   // Set various context menu attributes based on the state of the world.
   setTarget: function(aNode, aRangeParent, aRangeOffset) {
     const xulNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-    if (aNode.namespaceURI == xulNS ||
-        this.isTargetAFormControl(aNode)) {
-      this.shouldDisplay = false;
-      return;
-    }
 
     // Initialize contextual info.
     this.onImage               = false;
@@ -396,14 +391,14 @@ nsContextMenu.prototype = {
     this.inFrame               = false;
     this.hasBGImage            = false;
     this.bgImageURL            = "";
+    this.popupURL              = null;
+    this.autoDownload          = false;
+    this.isTextSelected        = false;
+    this.isContentSelected     = false;
     this.possibleSpellChecking = false;
 
     // Remember the node that was clicked.
     this.target = aNode;
-
-    this.autoDownload = Components.classes["@mozilla.org/preferences-service;1"]
-                                  .getService(Components.interfaces.nsIPrefBranch)
-                                  .getBoolPref("browser.download.useDownloadDir");
 
     // Clear any old spellchecking items from the menu, this used to
     // be in the menu hiding code but wasn't getting called in all
@@ -414,6 +409,15 @@ nsContextMenu.prototype = {
     InlineSpellCheckerUI.clearDictionaryListFromMenu();
 
     InlineSpellCheckerUI.uninit();
+
+    if (aNode.namespaceURI == xulNS || this.isTargetAFormControl(aNode)) {
+      this.shouldDisplay = false;
+      return;
+    }
+
+    this.autoDownload = Components.classes["@mozilla.org/preferences-service;1"]
+                                  .getService(Components.interfaces.nsIPrefBranch)
+                                  .getBoolPref("browser.download.useDownloadDir");
 
     // if the document is editable, show context menu like in text inputs
     var win = this.target.ownerDocument.defaultView;
@@ -606,7 +610,6 @@ nsContextMenu.prototype = {
   },
 
   initPopupURL: function() {
-    this.popupURL = null;
     // quick check: if no opener, it can't be a popup
     if (!window.content.opener)
       return;

@@ -117,6 +117,8 @@ function FillMailContextMenu(aTarget)
 {
   var inThreadPane = InThreadPane();
   gContextMenu = new nsContextMenu(aTarget, getBrowser());
+  // Need to call nsContextMenu's initItems to hide what is not used.
+  gContextMenu.initItems();
   var numSelected = GetNumSelectedMessages();
   var oneOrMore = (numSelected > 0);
   var single = (numSelected == 1);
