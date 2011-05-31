@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ****** */
 
 // Dependencies:
-// gPrefBranch, gBrandBundle, gMessengerBundle should already be defined
+// gPrefBranch should already be defined
 // gatherTextUnder from utilityOverlay.js
 
 const kPhishingNotSuspicious = 0;
@@ -483,9 +483,11 @@ var gPhishingDetector = {
       var unobscuredHostNameValue = this.hostNameIsIPAddress(hrefURL.host)
         || hrefURL.host;
 
-      var brandShortName = gBrandBundle.getString("brandShortName");
-      var titleMsg = gMessengerBundle.getString("confirmPhishingTitle");
-      var dialogMsg = gMessengerBundle.getFormattedString("confirmPhishingUrl", 
+      var brandShortName = document.getElementById("bundle_brand")
+                                   .getString("brandShortName");
+      var bundle = document.getElementById("bundle_messenger");
+      var titleMsg = bundle.getString("confirmPhishingTitle");
+      var dialogMsg = bundle.getFormattedString("confirmPhishingUrl", 
                         [brandShortName, unobscuredHostNameValue], 2);
 
       const nsIPS = Components.interfaces.nsIPromptService;

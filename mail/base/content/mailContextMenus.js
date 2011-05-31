@@ -39,8 +39,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-//NOTE: gMessengerBundle must be defined and set or this Overlay won't work
-
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 
 const mailtolength = 7;
@@ -207,9 +205,10 @@ function OpenMessageForMessageId(messageId)
   else
   {
     var messageIdStr = "<" + messageId + ">";
-    var errorTitle   = gMessengerBundle.getString("errorOpenMessageForMessageIdTitle");
-    var errorMessage = gMessengerBundle.getFormattedString("errorOpenMessageForMessageIdMessage",
-                                                           [messageIdStr]);
+    var bundle = document.getElementById("bundle_messenger");
+    var errorTitle = bundle.getString("errorOpenMessageForMessageIdTitle");
+    var errorMessage = bundle.getFormattedString("errorOpenMessageForMessageIdMessage",
+                                                 [messageIdStr]);
     var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                   .getService(Components.interfaces.nsIPromptService);
 
@@ -328,6 +327,7 @@ function folderPaneOnPopupHiding()
 
 function fillFolderPaneContextMenu()
 {
+  var bundle = document.getElementById("bundle_messenger");
   var folders = gFolderTreeView.getSelectedFolders();
   if (!folders.length)
     return false;
@@ -416,9 +416,11 @@ function fillFolderPaneContextMenu()
     if (showNewFolderItem)
     {
       if (folders[0].isServer || specialFolder == "Inbox")
-        SetMenuItemLabel("folderPaneContext-new", gMessengerBundle.getString("newFolder"));
+        SetMenuItemLabel("folderPaneContext-new",
+                         bundle.getString("newFolder"));
       else
-        SetMenuItemLabel("folderPaneContext-new", gMessengerBundle.getString("newSubfolder"));
+        SetMenuItemLabel("folderPaneContext-new",
+                         bundle.getString("newSubfolder"));
     }
   }
   else {
@@ -504,13 +506,15 @@ function fillFolderPaneContextMenu()
   // --- Set up the mark newsgroup/s read menu item.
   ShowMenuItem("folderPaneContext-markNewsgroupAllRead", haveOnlyNewsgroups);
   SetMenuItemLabel("folderPaneContext-markNewsgroupAllRead",
-                   PluralForm.get(numSelected, gMessengerBundle.getString("markNewsgroupRead")));
+                   PluralForm.get(numSelected,
+                                  bundle.getString("markNewsgroupRead")));
 
   // --- Set up the mark folder/s read menu item.
   ShowMenuItem("folderPaneContext-markMailFolderAllRead",
                haveOnlyMailFolders && !haveAnyVirtualFolders);
   SetMenuItemLabel("folderPaneContext-markMailFolderAllRead",
-                  PluralForm.get(numSelected, gMessengerBundle.getString("markFolderRead")));
+                   PluralForm.get(numSelected,
+                                  bundle.getString("markFolderRead")));
 
   // Set up the search menu item.
   ShowMenuItem("folderPaneContext-searchMessages",

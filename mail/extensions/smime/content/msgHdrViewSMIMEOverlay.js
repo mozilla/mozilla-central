@@ -45,7 +45,6 @@ var gEncryptedURIService = null;
 var gMyLastEncryptedURI = null;
 
 var gSMIMEBundle = null;
-//var gBrandBundle; -- defined in mailWindow.js
 
 // manipulates some globals from msgReadSMIMEOverlay.js
 
@@ -131,7 +130,8 @@ var smimeHeaderSink =
     case nsICMSMessageErrors.ENCRYPT_INCOMPLETE:
       break;
     default:
-      var brand = gBrandBundle.getString("brandShortName");
+      var brand = document.getElementById("bundle_brand")
+                          .getString("brandShortName");
       var title = gSMIMEBundle.getString("CantDecryptTitle").replace(/%brand%/g,brand);
       var body = gSMIMEBundle.getString("CantDecryptBody").replace(/%brand%/g,brand);
 

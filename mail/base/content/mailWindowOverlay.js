@@ -79,7 +79,6 @@ const kMsgNotificationMDN = 4;
 Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource:///modules/MailConsts.js");
 
-var gMessengerBundle;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"]
                             .getService(Components.interfaces.nsIPrefService)
                             .getBranch(null);
@@ -110,9 +109,6 @@ function menu_new_init()
   if (!folder)
     return;
 
-  if (!gMessengerBundle)
-    gMessengerBundle = document.getElementById("bundle_messenger");
-
   if (gPrefBranch.prefIsLocked("mail.disable_new_account_addition"))
     document.getElementById("newAccountMenuItem").setAttribute("disabled", "true");
 
@@ -125,9 +121,12 @@ function menu_new_init()
 
   EnableMenuItem("menu_newFolder", folder.server.type != "imap" || MailOfflineMgr.isOnline());
   if (showNew)
+  {
+    var bundle = document.getElementById("bundle_messenger");
     // Change "New Folder..." menu according to the context.
-    SetMenuItemLabel("menu_newFolder", gMessengerBundle.getString(
+    SetMenuItemLabel("menu_newFolder", bundle.getString(
       (folder.isServer || isInbox) ? "newFolderMenuItem" : "newSubfolderMenuItem"));
+  }
 }
 
 function goUpdateMailMenuItems(commandset)
@@ -182,9 +181,6 @@ function InitGoMessagesMenu()
 function view_init()
 {
   var isFeed = gFolderDisplay.selectedMessageIsFeed;
-
-  if (!gMessengerBundle)
-    gMessengerBundle = document.getElementById("bundle_messenger");
 
   let accountCentralDisplayed = gFolderDisplay.isAccountCentralDisplayed;
   var messagePaneMenuItem = document.getElementById("menu_showMessage");
@@ -411,10 +407,12 @@ function initMoveToFolderAgainMenu(aMenuItem)
   if (lastFolderURI)
   {
     var destMsgFolder = GetMsgFolderFromUri(lastFolderURI);
-    aMenuItem.label = gMessengerBundle.getFormattedString(isMove ?
-      "moveToFolderAgain" : "copyToFolderAgain", [destMsgFolder.prettyName], 1);
-    aMenuItem.accesskey = gMessengerBundle.getString(isMove ?
-      "moveToFolderAgainAccessKey" : "copyToFolderAgainAccessKey");
+    var bundle = document.getElementById("bundle_messenger");
+    var stringName = isMove ? "moveToFolderAgain" : "copyToFolderAgain";
+    aMenuItem.label = bundle.getFormattedString(stringName,
+                                                [destMsgFolder.prettyName], 1);
+    // This gives us moveToFolderAgainAccessKey and copyToFolderAgainAccessKey.
+    aMenuItem.accesskey = bundle.getString(stringName + "AccessKey");
   }
 }
 
@@ -659,9 +657,10 @@ function SetMessageTagLabel(menuitem, index, name)
   var accesskey = shortcutkey ? shortcutkey.getAttribute("key") : "";
   if (accesskey)
     menuitem.setAttribute("accesskey", accesskey);
-  var label = gMessengerBundle.getFormattedString("mailnews.tags.format",
-                                                  [accesskey, name]);
-  menuitem.setAttribute("label", label);
+    var label = document.getElementById("bundle_messenger")
+                        .getFormattedString("mailnews.tags.format",
+                                            [accesskey, name]);
+    menuitem.setAttribute("label", label);
 }
 
 function InitMessageTags(menuPopup)
@@ -676,7 +675,8 @@ function InitMessageTags(menuPopup)
     menuPopup.removeChild(menuPopup.lastChild);
 
   // create label and accesskey for the static remove item
-  var tagRemoveLabel = gMessengerBundle.getString("mailnews.tags.remove");
+  var tagRemoveLabel = document.getElementById("bundle_messenger")
+                               .getString("mailnews.tags.remove");
   SetMessageTagLabel(menuPopup.lastChild.previousSibling, 0, tagRemoveLabel);
 
   // now rebuild the list
@@ -736,7 +736,8 @@ function InitRecentlyClosedTabsPopup(menuPopup)
   menuPopup.appendChild(document.createElement("menuseparator"));
   
   let menuItem = document.createElement("menuitem");
-  menuItem.setAttribute("label",gMessengerBundle.getString("restoreAllTabs"));
+  menuItem.label = document.getElementById("bundle_messenger")
+                           .getString("restoreAllTabs");
   menuItem.setAttribute("oncommand","goRestoreAllTabs();");
   menuPopup.appendChild(menuItem);
 }
@@ -1734,14 +1735,11 @@ function MsgSubscribe()
  */
 function ConfirmUnsubscribe(folders)
 {
-  if (!gMessengerBundle)
-    gMessengerBundle = document.getElementById("bundle_messenger");
-
-  var titleMsg = gMessengerBundle.getString("confirmUnsubscribeTitle");
+  var bundle = document.getElementById("bundle_messenger");
+  var titleMsg = bundle.getString("confirmUnsubscribeTitle");
   var dialogMsg = (folders.length == 1) ?
-    gMessengerBundle.getFormattedString("confirmUnsubscribeText",
-                                        [folders[0].name], 1) :
-    gMessengerBundle.getString("confirmUnsubscribeManyText");
+    bundle.getFormattedString("confirmUnsubscribeText", [folders[0].name], 1) :
+    bundle.getString("confirmUnsubscribeManyText");
 
   var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                 .getService(Components.interfaces.nsIPromptService);
@@ -1861,11 +1859,9 @@ function MsgOpenFromFile()
   var fp = Components.classes["@mozilla.org/filepicker;1"]
                      .createInstance(nsIFilePicker);
 
-  var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].getService();
-  strBundleService = strBundleService.QueryInterface(Components.interfaces.nsIStringBundleService);
-  var extbundle = strBundleService.createBundle("chrome://messenger/locale/messenger.properties");
-  var filterLabel = extbundle.GetStringFromName("EMLFiles");
-  var windowTitle = extbundle.GetStringFromName("OpenEMLFiles");
+  var bundle = document.getElementById("bundle_messenger");
+  var filterLabel = bundle.getString("EMLFiles");
+  var windowTitle = bundle.getString("OpenEMLFiles");
 
   fp.init(window, windowTitle, nsIFilePicker.modeOpen);
   fp.appendFilter(filterLabel, "*.eml");
@@ -2257,9 +2253,9 @@ function IsGetNextNMessagesEnabled()
   var menuItem = document.getElementById("menu_getnextnmsg");
   if (folder && !folder.isServer &&
       folder.server instanceof Components.interfaces.nsINntpIncomingServer) {
-    var menuLabel = gMessengerBundle.getFormattedString("getNextNMessages",
-                                                        [folder.server.maxArticles]);
-    menuItem.setAttribute("label", menuLabel);
+    menuitem.label = document.getElementById("bundle_messenger")
+                             .getFormattedString("getNextNMessages",
+                                                 [folder.server.maxArticles]);
     menuItem.removeAttribute("hidden");
     return true;
   }
@@ -2638,9 +2634,10 @@ var gMessageNotificationBar =
     var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
                                  .getService(Components.interfaces.nsIMsgHeaderParser);
     var emailAddress = headerParser.extractHeaderAddressMailboxes(aMsgHdr.author);
-    document.getElementById('allowRemoteContentForAuthorDesc').value =
-      gMessengerBundle.getFormattedString('alwaysLoadRemoteContentForSender2',
-                         [emailAddress ? emailAddress : aMsgHdr.author]);
+    var desc = document.getElementById("bundle_messenger")
+                       .getFormattedString("alwaysLoadRemoteContentForSender2",
+                                           [emailAddress ? emailAddress : aMsgHdr.author]);
+    document.getElementById("allowRemoteContentForAuthorDesc").value = desc;
     this.updateMsgNotificationBar(kMsgNotificationRemoteImages, true);
   },
 
@@ -2668,18 +2665,16 @@ var gMessageNotificationBar =
     if (mdnBarMsg.firstChild) // might have to remove old text first
      mdnBarMsg.removeChild(mdnBarMsg.firstChild);
 
+    var bundle = document.getElementById("bundle_messenger");
+    var barMsg;
     // If the return receipt doesn't go to the sender address, note that in the
     // notification.
     if (mdnAddr != fromAddr)
-    {
-      mdnBarMsg.appendChild(document.createTextNode(gMessengerBundle.
-        getFormattedString("mdnBarMessageAddressDiffers", [authorName, mdnAddr])));
-    }
+      barMsg = bundle.getFormattedString("mdnBarMessageAddressDiffers",
+                                         [authorName, mdnAddr]);
     else
-    {
-      mdnBarMsg.appendChild(document.createTextNode(gMessengerBundle.
-        getFormattedString("mdnBarMessageNormal", [authorName])));
-    }
+      barMsg = bundle.getFormattedString("mdnBarMessageNormal", [authorName]);
+    mdnBarMsg.appendChild(document.createTextNode(barMsg));
     this.updateMsgNotificationBar(kMsgNotificationMDN, true);
   },
 

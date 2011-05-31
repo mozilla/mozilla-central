@@ -38,8 +38,6 @@
 
 /*  This file contains the js functions necessary to implement view navigation within the 3 pane. */
 
-//NOTE: gMessengerBundle must be defined and set or this Overlay won't work
-
 function GetSubFoldersInFolderPaneOrder(folder)
 {
   var subFolders = folder.subFolders;
@@ -229,8 +227,9 @@ function CrossFolderNavigation(type)
     {
       if (nextMode == 1)
       {
-        let promptText = gMessengerBundle.getFormattedString("advanceNextPrompt",
-                                                             [folder.name], 1);
+        let promptText = document.getElementById("bundle_messenger")
+                                 .getFormattedString("advanceNextPrompt",
+                                                     [folder.name], 1);
         let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                       .getService(Components.interfaces.nsIPromptService);
         if (promptService.confirmEx(window, null, promptText,
