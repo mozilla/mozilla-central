@@ -730,17 +730,18 @@ NS_IMETHODIMP nsIMAPHostSessionList::AddShellToCacheForHost(const char *serverKe
 }
 
 NS_IMETHODIMP nsIMAPHostSessionList::FindShellInCacheForHost(const char *serverKey, const char *mailboxName, const char *UID,
-                                                             IMAP_ContentModifiedType modType, nsIMAPBodyShell	**shell)
+                                                             IMAP_ContentModifiedType modType, nsIMAPBodyShell **shell)
 {
-	nsCString uidString(UID);
+  nsCString uidString(UID);
 
-	PR_EnterMonitor(gCachedHostInfoMonitor);
-	nsIMAPHostInfo *host = FindHost(serverKey);
-	if (host)
-		if (host->fShellCache)
-			*shell = host->fShellCache->FindShellForUID(uidString, mailboxName, modType);
-	PR_ExitMonitor(gCachedHostInfoMonitor);
-	return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
+  PR_EnterMonitor(gCachedHostInfoMonitor);
+  nsIMAPHostInfo *host = FindHost(serverKey);
+  if (host && host->fShellCache)
+    NS_IF_ADDREF(*shell = host->fShellCache->FindShellForUID(uidString,
+                                                             mailboxName,
+                                                             modType));
+  PR_ExitMonitor(gCachedHostInfoMonitor);
+  return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
 }
 
 NS_IMETHODIMP 

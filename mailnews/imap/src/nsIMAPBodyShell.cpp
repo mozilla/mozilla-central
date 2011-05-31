@@ -47,7 +47,7 @@
 #include "nsServiceManagerUtils.h"
 
 // need to talk to Rich about this...
-#define	IMAP_EXTERNAL_CONTENT_HEADER "X-Mozilla-IMAP-Part"
+#define IMAP_EXTERNAL_CONTENT_HEADER "X-Mozilla-IMAP-Part"
 
 // imapbody.cpp
 // Implementation of the nsIMAPBodyShell and associated classes
@@ -70,7 +70,11 @@
 
 ///////////// nsIMAPBodyShell ////////////////////////////////////
 
-nsIMAPBodyShell::nsIMAPBodyShell(nsImapProtocol *protocolConnection, nsIMAPBodypartMessage *message, PRUint32 UID, const char *folderName)
+NS_IMPL_THREADSAFE_ISUPPORTS0(nsIMAPBodyShell)
+
+nsIMAPBodyShell::nsIMAPBodyShell(nsImapProtocol *protocolConnection,
+                                 nsIMAPBodypartMessage *message, PRUint32 UID,
+                                 const char *folderName)
 {
   m_isValid = PR_FALSE;
   m_isBeingGenerated = PR_FALSE;
@@ -111,11 +115,8 @@ nsIMAPBodyShell::~nsIMAPBodyShell()
 
 void nsIMAPBodyShell::SetIsValid(PRBool valid)
 {
-  //	if (!valid)
-  //		PR_LOG(IMAP, out, ("BODYSHELL: Shell is invalid."));
   m_isValid = valid;
 }
-
 
 PRBool nsIMAPBodyShell::GetShowAttachmentsInline()
 {
@@ -1252,17 +1253,15 @@ nsIMAPBodyShellCache::~nsIMAPBodyShellCache()
 // least recently used one will be in slot 0.
 PRBool nsIMAPBodyShellCache::EjectEntry()
 {
-	if (m_shellList->Count() < 1)
-		return PR_FALSE;
+  if (m_shellList->Count() < 1)
+    return PR_FALSE;
 
+  nsIMAPBodyShell *removedShell = (nsIMAPBodyShell *) (m_shellList->ElementAt(0));
 
+  m_shellList->RemoveElementAt(0);
+  m_shellHash.Remove(removedShell->GetUID());
 
-	nsIMAPBodyShell *removedShell = (nsIMAPBodyShell *) (m_shellList->ElementAt(0));
-
-	m_shellList->RemoveElementAt(0);
-	m_shellHash.Remove(removedShell->GetUID());
-
-	return PR_TRUE;
+  return PR_TRUE;
 }
 
 void nsIMAPBodyShellCache::Clear()
@@ -1270,53 +1269,49 @@ void nsIMAPBodyShellCache::Clear()
   while (EjectEntry()) ;
 }
 
-PRBool	nsIMAPBodyShellCache::AddShellToCache(nsIMAPBodyShell *shell)
+PRBool nsIMAPBodyShellCache::AddShellToCache(nsIMAPBodyShell *shell)
 {
-	// If it's already in the cache, then just return.
-	// This has the side-effect of re-ordering the LRU list
-	// to put this at the top, which is good, because it's what we want.
-	if (FindShellForUID(shell->GetUID(), shell->GetFolderName(), shell->GetContentModified()))
-		return PR_TRUE;
+  // If it's already in the cache, then just return.
+  // This has the side-effect of re-ordering the LRU list
+  // to put this at the top, which is good, because it's what we want.
+  if (FindShellForUID(shell->GetUID(), shell->GetFolderName(), shell->GetContentModified()))
+    return PR_TRUE;
 
-	// OK, so it's not in the cache currently.
+  // OK, so it's not in the cache currently.
 
-	// First, for safety sake, remove any entry with the given UID,
-	// just in case we have a collision between two messages in different
-	// folders with the same UID.
-	nsIMAPBodyShell *foundShell = nsnull;
-        m_shellHash.Get(shell->GetUID(), &foundShell);
-	if (foundShell)
-	{
-		m_shellHash.Remove(foundShell->GetUID());
-		m_shellList->RemoveElement(foundShell);
-	}
+  // First, for safety sake, remove any entry with the given UID,
+  // just in case we have a collision between two messages in different
+  // folders with the same UID.
+  nsRefPtr<nsIMAPBodyShell> foundShell;
+  m_shellHash.Get(shell->GetUID(), getter_AddRefs(foundShell));
+  if (foundShell)
+  {
+    m_shellHash.Remove(foundShell->GetUID());
+    m_shellList->RemoveElement(foundShell);
+  }
 
-	// Add the new one to the cache
-	m_shellList->AppendElement(shell);
-	
-	m_shellHash.Put(shell->GetUID(), shell);
-	shell->SetIsCached(PR_TRUE);
+  // Add the new one to the cache
+  m_shellList->AppendElement(shell);
 
-	// while we're not over our size limit, eject entries
-	PRBool rv = PR_TRUE;
-	while (GetSize() > GetMaxSize())
-	{
-		rv = EjectEntry();
-	}
+  m_shellHash.Put(shell->GetUID(), shell);
+  shell->SetIsCached(PR_TRUE);
 
-	return rv;
+  // while we're not over our size limit, eject entries
+  PRBool rv = PR_TRUE;
+  while (GetSize() > GetMaxSize())
+    rv = EjectEntry();
+
+  return rv;
 
 }
 
 nsIMAPBodyShell *nsIMAPBodyShellCache::FindShellForUID(nsCString &UID, const char *mailboxName,
                                                        IMAP_ContentModifiedType modType)
 {
-	nsIMAPBodyShell *foundShell = nsnull;
-        m_shellHash.Get(UID, &foundShell);
-
-	if (!foundShell)
-		return nsnull;
-
+  nsRefPtr<nsIMAPBodyShell> foundShell;
+  m_shellHash.Get(UID, getter_AddRefs(foundShell));
+  if (!foundShell)
+    return nsnull;
   // Make sure the content-modified types are compatible.
   // This allows us to work seamlessly while people switch between
   // View Attachments Inline and View Attachments As Links.
@@ -1325,27 +1320,17 @@ nsIMAPBodyShell *nsIMAPBodyShellCache::FindShellForUID(nsCString &UID, const cha
   if (modType != foundShell->GetContentModified())
     return nsnull;
 
-	// mailbox names must match also.
-	if (PL_strcmp(mailboxName, foundShell->GetFolderName()))
-		return nsnull;
+  // mailbox names must match also.
+  if (PL_strcmp(mailboxName, foundShell->GetFolderName()))
+    return nsnull;
 
-	// adjust the LRU stuff
-	m_shellList->RemoveElement(foundShell);	// oh well, I suppose this defeats the performance gain of the hash if it actually is found
-	m_shellList->AppendElement(foundShell);		// Adds to end
-	
-	return foundShell;
+  // adjust the LRU stuff. This defeats the performance gain of the hash if
+  // it actually is found since this is linear.
+  m_shellList->RemoveElement(foundShell);
+  m_shellList->AppendElement(foundShell);// Adds to end
+
+  return foundShell;
 }
-
-nsIMAPBodyShell *nsIMAPBodyShellCache::FindShellForUID(PRUint32 UID, const char *mailboxName,
-                                                       IMAP_ContentModifiedType modType)
-{
-	nsCString uidString;
-	
-	uidString.AppendInt(UID);
-	nsIMAPBodyShell *rv = FindShellForUID(uidString, mailboxName, modType);
-	return rv;
-}
-
 
 ///////////// nsIMAPMessagePartID ////////////////////////////////////
 

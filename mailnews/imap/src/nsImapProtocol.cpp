@@ -433,6 +433,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
                             getter_Copies(customDBHeaders));
 
     ParseString(customDBHeaders, ' ', mCustomDBHeaders);
+    prefBranch->GetBoolPref("mailnews.display.prefer_plaintext", &m_preferPlainText);
   }
 
     // ***** Thread support *****
@@ -2583,9 +2584,10 @@ void nsImapProtocol::ProcessSelectedStateURL()
                   IMAP_CONTENT_MODIFIED_VIEW_INLINE :
                   IMAP_CONTENT_MODIFIED_VIEW_AS_LINKS ;
 
-                nsIMAPBodyShell *foundShell = nsnull;
+                nsRefPtr<nsIMAPBodyShell> foundShell;
                 res = m_hostSessionList->FindShellInCacheForHost(GetImapServerKey(),
-                  GetServerStateParser().GetSelectedMailboxName(), messageIdString.get(), modType, &foundShell);
+                  GetServerStateParser().GetSelectedMailboxName(),
+                  messageIdString.get(), modType, getter_AddRefs(foundShell));
                 if (!foundShell)
                 {
                   // The shell wasn't in the cache.  Deal with this case later.
@@ -2640,7 +2642,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
 
                 // Before fetching the bodystructure, let's check our body shell cache to see if
                 // we already have it around.
-                nsIMAPBodyShell *foundShell = NULL;
+                nsRefPtr<nsIMAPBodyShell> foundShell;
                 IMAP_ContentModifiedType modType = GetShowAttachmentsInline() ?
                   IMAP_CONTENT_MODIFIED_VIEW_INLINE :
                   IMAP_CONTENT_MODIFIED_VIEW_AS_LINKS ;
@@ -2662,7 +2664,8 @@ void nsImapProtocol::ProcessSelectedStateURL()
                 if (bMessageIdsAreUids)
                 {
                   res = m_hostSessionList->FindShellInCacheForHost(GetImapServerKey(),
-                    GetServerStateParser().GetSelectedMailboxName(), messageIdString.get(), modType, &foundShell);
+                    GetServerStateParser().GetSelectedMailboxName(),
+                    messageIdString.get(), modType, getter_AddRefs(foundShell));
                   if (foundShell)
                   {
                     Log("SHELL",NULL,"Loading message, using cached shell.");
@@ -2702,7 +2705,6 @@ void nsImapProtocol::ProcessSelectedStateURL()
                 m_flagState->SetMessageFlags(index, flags);
               }
             }
-
           }
         }
         break;

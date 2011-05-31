@@ -76,7 +76,6 @@ nsImapServerResponseParser::nsImapServerResponseParser(nsImapProtocol &imapProto
     fSelectedMailboxName(nsnull),
     fIMAPstate(kNonAuthenticated),
     fLastChunk(PR_FALSE),
-    m_shell(nsnull),
     fServerConnection(imapProtocolConnection),
     fHostSessionList(nsnull)
 {
@@ -471,12 +470,10 @@ void nsImapServerResponseParser::ProcessOkCommand(const char *commandToken)
         || fServerConnection.DeathSignalReceived())
       {
         // we were pseudointerrupted or interrupted
+        // if it's not in the cache, then we were (pseudo)interrupted while generating
+        // for the first time. Release it.
         if (!m_shell->IsShellCached())
-        {
-          // if it's not in the cache, then we were (pseudo)interrupted while generating
-          // for the first time.  Delete it.
-          delete m_shell;
-        }
+          m_shell = nsnull;
         navCon->PseudoInterrupt(PR_FALSE);
       }
       else if (m_shell->GetIsValid())
@@ -491,12 +488,6 @@ void nsImapServerResponseParser::ProcessOkCommand(const char *commandToken)
             serverKey, m_shell);
         }
       }
-      else
-      {
-        // The shell isn't valid, so we don't cache it.
-        // Therefore, we have to destroy it here.
-        delete m_shell;
-      }
       m_shell = nsnull;
     }
   }
@@ -508,20 +499,14 @@ void nsImapServerResponseParser::ProcessBadCommand(const char *commandToken)
     !PL_strcasecmp(commandToken, "AUTHENTICATE"))
     fIMAPstate = kNonAuthenticated;
   else if (!PL_strcasecmp(commandToken, "LOGOUT"))
-    fIMAPstate = kNonAuthenticated;	// ??
+    fIMAPstate = kNonAuthenticated; // ??
   else if (!PL_strcasecmp(commandToken, "SELECT") ||
     !PL_strcasecmp(commandToken, "EXAMINE"))
-    fIMAPstate = kAuthenticated;	// nothing selected
+    fIMAPstate = kAuthenticated; // nothing selected
   else if (!PL_strcasecmp(commandToken, "CLOSE"))
-    fIMAPstate = kAuthenticated;	// nothing selected
-  if (GetFillingInShell())
-  {
-    if (!m_shell->IsBeingGenerated())
-    {
-      delete m_shell;
-      m_shell = nsnull;
-    }
-  }
+    fIMAPstate = kAuthenticated; // nothing selected
+  if (GetFillingInShell() && !m_shell->IsBeingGenerated())
+    m_shell = nsnull;
 }
 
 

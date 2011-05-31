@@ -44,7 +44,7 @@ nsIMAPBodyShell and associated classes
 
 #include "nsImapCore.h"
 #include "nsStringGlue.h"
-#include "nsClassHashtable.h"
+#include "nsRefPtrHashtable.h"
 #include "nsVoidArray.h"
 
 class nsImapProtocol;
@@ -233,41 +233,52 @@ class nsIMAPMessagePartIDArray;
 // display.  The MIME Shell has selected (inline) parts filled in, and leaves all others
 // for on-demand retrieval through explicit part fetches.
 
-class nsIMAPBodyShell
+class nsIMAPBodyShell : public nsISupports
 {
 public:
-    nsIMAPBodyShell(nsImapProtocol *protocolConnection, nsIMAPBodypartMessage *message, PRUint32 UID, const char *folderName);
-	virtual ~nsIMAPBodyShell();
-	void	SetConnection(nsImapProtocol *con) { m_protocolConnection = con; }	// To be used after a shell is uncached
-	virtual PRBool GetIsValid() { return m_isValid; }
-	virtual void	SetIsValid(PRBool valid);
+  NS_DECL_ISUPPORTS
+  nsIMAPBodyShell(nsImapProtocol *protocolConnection,
+                  nsIMAPBodypartMessage *message, PRUint32 UID,
+                  const char *folderName);
+  virtual ~nsIMAPBodyShell();
+  // To be used after a shell is uncached
+  void SetConnection(nsImapProtocol *con) { m_protocolConnection = con; }
+  virtual PRBool GetIsValid() { return m_isValid; }
+  virtual void SetIsValid(PRBool valid);
 
-	// Prefetch
-	void	AddPrefetchToQueue(nsIMAPeFetchFields, const char *partNum);	// Adds a message body part to the queue to be prefetched
-									// in a single, pipelined command
-	void	FlushPrefetchQueue();	// Runs a single pipelined command which fetches all of the
-									// elements in the prefetch queue
-	void	AdoptMessageHeaders(char *headers, const char *partNum);	// Fills in buffer (and adopts storage) for header object
-																		// partNum specifies the message part number to which the
-																		// headers correspond.  NULL indicates the top-level message
-	void	AdoptMimeHeader(const char *partNum, char *mimeHeader);	// Fills in buffer (and adopts storage) for MIME headers in appropriate object.
-																		// If object can't be found, sets isValid to PR_FALSE.
+  // Prefetch
+  // Adds a message body part to the queue to be prefetched
+  // in a single, pipelined command
+  void AddPrefetchToQueue(nsIMAPeFetchFields, const char *partNum);
+  // Runs a single pipelined command which fetches all of the
+  // elements in the prefetch queue
+  void FlushPrefetchQueue();
+  // Fills in buffer (and adopts storage) for header object
+  // partNum specifies the message part number to which the
+  // headers correspond.  NULL indicates the top-level message
+  void AdoptMessageHeaders(char *headers, const char *partNum);
+  // Fills in buffer (and adopts storage) for MIME headers in appropriate object.
+  // If object can't be found, sets isValid to PR_FALSE.
+  void AdoptMimeHeader(const char *partNum, char *mimeHeader);
 
-	// Generation
-	virtual PRInt32 Generate(char *partNum);	// Streams out an HTML representation of this IMAP message, going along and
-									// fetching parts it thinks it needs, and leaving empty shells for the parts
-									// it doesn't.
-									// Returns number of bytes generated, or -1 if invalid.
-									// If partNum is not NULL, then this works to generates a MIME part that hasn't been downloaded yet
-									// and leaves out all other parts.  By default, to generate a normal message, partNum should be NULL.
+  // Generation
+  // Streams out an HTML representation of this IMAP message, going along and
+  // fetching parts it thinks it needs, and leaving empty shells for the parts
+  // it doesn't.
+  // Returns number of bytes generated, or -1 if invalid.
+  // If partNum is not NULL, then this works to generates a MIME part that hasn't been downloaded yet
+  // and leaves out all other parts.  By default, to generate a normal message, partNum should be NULL.
+  virtual PRInt32 Generate(char *partNum);
 
-  virtual PRBool GetShowAttachmentsInline();  // Returns TRUE if the user has the pref "Show Attachments Inline" set.
-                                              // Returns FALSE if the setting is "Show Attachments as Links"
-  PRBool	PreflightCheckAllInline();		  // Returns PR_TRUE if all parts are inline, PR_FALSE otherwise.  Does not generate anything.
+  // Returns TRUE if the user has the pref "Show Attachments Inline" set.
+  // Returns FALSE if the setting is "Show Attachments as Links"
+  virtual PRBool GetShowAttachmentsInline();
+  // Returns PR_TRUE if all parts are inline, PR_FALSE otherwise. Does not generate anything.
+  PRBool PreflightCheckAllInline();
 
   // Helpers
   nsImapProtocol *GetConnection() { return m_protocolConnection; }
-  PRBool	GetPseudoInterrupted();
+  PRBool GetPseudoInterrupted();
   PRBool DeathSignalReceived();
   nsCString &GetUID() { return m_UID; }
   const char *GetFolderName() { return m_folderName; }
@@ -282,9 +293,9 @@ public:
   void SetContentModified(IMAP_ContentModifiedType modType) { m_contentModified = modType; }
 protected:
 
-  nsIMAPBodypartMessage	*m_message;
+  nsIMAPBodypartMessage *m_message;
 
-  nsIMAPMessagePartIDArray        *m_prefetchQueue;	// array of pipelined part prefetches.  Ok, so it's not really a queue.
+  nsIMAPMessagePartIDArray        *m_prefetchQueue; // array of pipelined part prefetches.  Ok, so it's not really a queue.
 
   PRBool                          m_isValid;
   nsImapProtocol                  *m_protocolConnection;  // Connection, for filling in parts
@@ -297,8 +308,9 @@ protected:
   PRBool                          m_cached;                 // Whether or not this shell is cached
   PRBool                          m_generatingWholeMessage; // whether or not we are generating the whole (non-MPOD) message
                                                           // Set to PR_FALSE if we are generating by parts
-  IMAP_ContentModifiedType        m_contentModified;	// under what conditions the content has been modified.
-                                                        // Either IMAP_CONTENT_MODIFIED_VIEW_INLINE or IMAP_CONTENT_MODIFIED_VIEW_AS_LINKS
+  // under what conditions the content has been modified.
+  // Either IMAP_CONTENT_MODIFIED_VIEW_INLINE or IMAP_CONTENT_MODIFIED_VIEW_AS_LINKS
+  IMAP_ContentModifiedType        m_contentModified; 
 };
 
 
@@ -315,34 +327,30 @@ protected:
 
 class nsIMAPBodyShellCache
 {
-
 public:
-	static nsIMAPBodyShellCache	*Create();
-	virtual ~nsIMAPBodyShellCache();
+  static nsIMAPBodyShellCache *Create();
+  virtual ~nsIMAPBodyShellCache();
 
-	PRBool			AddShellToCache(nsIMAPBodyShell *shell);		// Adds shell to cache, possibly ejecting
-																// another entry based on scheme in EjectEntry().
-	nsIMAPBodyShell	*FindShellForUID(nsCString &UID, const char *mailboxName, IMAP_ContentModifiedType modType);	// Looks up a shell in the cache given the message's UID.
-	nsIMAPBodyShell	*FindShellForUID(PRUint32 UID, const char *mailboxName, IMAP_ContentModifiedType modType);	// Looks up a shell in the cache given the message's UID.
-															// Returns the shell if found, NULL if not found.
+  // Adds shell to cache, possibly ejecting
+  // another entry based on scheme in EjectEntry().
+  PRBool AddShellToCache(nsIMAPBodyShell *shell);
+  // Looks up a shell in the cache given the message's UID.
+  nsIMAPBodyShell *FindShellForUID(nsCString &UID, const char *mailboxName,
+                                   IMAP_ContentModifiedType modType);
   void Clear();
 
 protected:
-	nsIMAPBodyShellCache();
-	PRBool	EjectEntry();	// Chooses an entry to eject;  deletes that entry;  and ejects it from the cache,
-							// clearing up a new space.  Returns PR_TRUE if it found an entry to eject, PR_FALSE otherwise.
-	PRUint32	GetSize() { return m_shellList->Count(); }
-	PRUint32	GetMaxSize() { return 20; }
-
-
-protected:
-	nsVoidArray		*m_shellList;	// For maintenance
-	nsClassHashtable <nsCStringHashKey, nsIMAPBodyShell> m_shellHash;	// For quick lookup based on UID
-
+  nsIMAPBodyShellCache();
+  // Chooses an entry to eject;  deletes that entry;  and ejects it from the
+  // cache, clearing up a new space.  Returns PR_TRUE if it found an entry
+  // to eject, PR_FALSE otherwise.
+  PRBool EjectEntry();
+  PRUint32 GetSize() { return m_shellList->Count(); }
+  PRUint32 GetMaxSize() { return 20; }
+  nsVoidArray *m_shellList; // For maintenance
+  // For quick lookup based on UID
+  nsRefPtrHashtableMT <nsCStringHashKey, nsIMAPBodyShell> m_shellHash;
 };
-
-
-
 
 // MessagePartID and MessagePartIDArray are used for pipelining prefetches.
 
