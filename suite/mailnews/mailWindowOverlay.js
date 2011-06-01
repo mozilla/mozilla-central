@@ -1637,11 +1637,8 @@ function MsgOpenFromFile()
 {
    var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 
-   var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].getService();
-   strBundleService = strBundleService.QueryInterface(Components.interfaces.nsIStringBundleService);
-   var extbundle = strBundleService.createBundle("chrome://messenger/locale/messenger.properties");
-   var filterLabel = extbundle.GetStringFromName("EMLFiles");
-   var windowTitle = extbundle.GetStringFromName("OpenEMLFiles");
+  var filterLabel = gMessengerBundle.getString("EMLFiles");
+  var windowTitle = gMessengerBundle.getString("OpenEMLFiles");
 
    fp.init(window, windowTitle, nsIFilePicker.modeOpen);
    fp.appendFilter(filterLabel, "*.eml; *.msg");
