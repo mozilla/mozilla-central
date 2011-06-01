@@ -51,6 +51,9 @@ var msgWindow;
 var msgComposeService;
 var accountManager;
 
+var gMessengerBundle;
+var gBrandBundle;
+
 var gContextMenu;
 var gMailWindowLog = Log4Moz.getConfiguredLogger("mailWindow", Log4Moz.Level.Debug, Log4Moz.Level.Debug, Log4Moz.Level.Debug);
 
@@ -127,6 +130,9 @@ function CreateMailWindowGlobals()
                                 .getService(Components.interfaces.nsIMsgComposeService);
 
   accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
+
+  gMessengerBundle = document.getElementById("bundle_messenger");
+  gBrandBundle = document.getElementById("bundle_brand");
 
   msgWindow.notificationCallbacks = new BadCertHandler();
 }

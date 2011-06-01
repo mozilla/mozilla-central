@@ -38,6 +38,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var gMessengerBundle = document.getElementById("bundle_messenger");
+
 // Controller object for folder pane
 var FolderPaneController =
 {

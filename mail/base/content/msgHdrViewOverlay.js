@@ -60,6 +60,7 @@ var gDummyHeaderIdIndex = 0;
 var gBuildAttachmentsForCurrentMsg = false;
 var gBuildAttachmentPopupForCurrentMsg = true;
 var gBuiltExpandedView = false;
+var gMessengerBundle;
 var gHeadersShowReferences = false;
 // Show the friendly display names for people I know, instead of the name + email address.
 var gShowCondensedEmailAddresses;
@@ -1187,14 +1188,15 @@ function FormatDisplayName(aEmailAddress, aHeaderDisplayName, aContext, aCard)
 
   // If this address is one of the user's identities...
   if (aEmailAddress == identity.email) {
-    var brand = document.getElementById("bundle_messenger");
+
     // ...pick a localized version of the word "You" appropriate to this
     // specific header; fall back to the version used by the "to" header
     // if nothing else is available.
     try {
-      displayName = bundle.getString("header" + aContext + "FieldYou");
+      displayName = gMessengerBundle.getString("header" + aContext +
+                                               "FieldYou");
     } catch (ex) {
-      displayName = bundle.getString("headertoFieldYou");
+      displayName = gMessengerBundle.getString("headertoFieldYou");
     }
 
     // Make sure we have an unambiguous name if there are multiple identities
@@ -1685,9 +1687,7 @@ function openAttachment(aAttachment)
     return;
 
   if (attachmentIsEmpty(aAttachment)) {
-    var prompt = document.getElementById("bundle_messenger")
-                         .getString("emptyAttachment");
-    msgWindow.promptDialog.alert(null, prompt);
+    msgWindow.promptDialog.alert(null, gMessengerBundle.getString('emptyAttachment'));
   } else {
     messenger.openAttachment(aAttachment.contentType,
                              aAttachment.url,
@@ -1915,7 +1915,6 @@ function createAttachmentDisplayName(aAttachment)
 
 function displayAttachmentsForExpandedView()
 {
-  var bundle = document.getElementById("bundle_messenger");
   var numAttachments = currentAttachments.length;
   var totalSize = 0;
   var attachmentView = document.getElementById('attachmentView');
@@ -1947,8 +1946,8 @@ function displayAttachmentsForExpandedView()
       var item;
       if (attachment.size != null) {
         var size = messenger.formatFileSize(attachment.size);
-        var nameAndSize = bundle.getFormattedString("attachmentNameAndSize",
-                                                    [displayName, size]);
+        var nameAndSize = gMessengerBundle.getFormattedString(
+          "attachmentNameAndSize", [displayName, size]);
         item = attachmentList.appendItem(nameAndSize);
         totalSize += attachment.size;
       }
@@ -1982,7 +1981,7 @@ function displayAttachmentsForExpandedView()
     let attachmentSize  = document.getElementById("attachmentSize");
 
     if (numAttachments == 1) {
-      let count = bundle.getString("attachmentCountSingle");
+      let count = gMessengerBundle.getString("attachmentCountSingle");
       let name = createAttachmentDisplayName(currentAttachments[0]);
 
       saveAllSingle.hidden = false;
@@ -1992,7 +1991,7 @@ function displayAttachmentsForExpandedView()
       attachmentName.setAttribute("value", name);
     }
     else {
-      let words = bundle.getString("attachmentCount");
+      let words = gMessengerBundle.getString("attachmentCount");
       let count = PluralForm.get(currentAttachments.length, words)
                             .replace("#1", currentAttachments.length);
 
@@ -2005,10 +2004,10 @@ function displayAttachmentsForExpandedView()
     let sizeStr = messenger.formatFileSize(totalSize);
     if (unknownSize) {
       if (totalSize == 0)
-        sizeStr = bundle.getString("attachmentSizeUnknown");
+        sizeStr = gMessengerBundle.getString("attachmentSizeUnknown");
       else
-        sizeStr = bundle.getFormattedString("attachmentSizeAtLeast",
-                                            [sizeStr]);
+        sizeStr = gMessengerBundle.getFormattedString("attachmentSizeAtLeast",
+                                                      [sizeStr]);
     }
     attachmentSize.setAttribute("value", sizeStr);
 
@@ -2133,6 +2132,9 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
     var item = document.createElement('menu');
     if ( item )
     {
+      if (!gMessengerBundle)
+        gMessengerBundle = document.getElementById("bundle_messenger");
+
       // insert the item just before the separator...the separator is the 2nd to last element in the popup.
       item.setAttribute('class', 'menu-iconic');
       setApplicationIconForAttachment(attachment,item, false);
@@ -2144,10 +2146,11 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
         indexOfSeparator++;
 
       var displayName = createAttachmentDisplayName(attachment);
-      item.label = document.getElementById("bundle_messenger")
-                           .getFormattedString("attachmentDisplayNameFormat",
-                                               [attachmentIndex, displayName]);
+      var formattedDisplayNameString = gMessengerBundle.getFormattedString("attachmentDisplayNameFormat",
+                                       [attachmentIndex, displayName]);
+
       item.setAttribute("crop", "center");
+      item.setAttribute('label', formattedDisplayNameString);
       item.setAttribute('accesskey', attachmentIndex);
 
       // each attachment in the list gets its own menupopup with options for saving, deleting, detaching, etc.
@@ -2164,7 +2167,7 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
       menuitementry.setAttribute('oncommand', 'openAttachment(this.attachment)');
 
       function getString(aName) {
-        return document.getElementById("bundle_messenger").getString(aName);
+        return gMessengerBundle.getString(aName);
       }
 
       var canDetach = CanDetachAttachments() && !attachment.isExternalAttachment;

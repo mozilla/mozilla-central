@@ -52,6 +52,7 @@ var nsIMsgWindow = Components.interfaces.nsIMsgWindow;
 var gFolderPicker;
 var gStatusFeedback;
 var gTimelineEnabled = false;
+var gMessengerBundle = null;
 var RDF;
 var gSearchBundle;
 
@@ -264,6 +265,7 @@ function searchOnLoad()
   gSearchBundle = document.getElementById("bundle_search");
   gSearchStopButton.setAttribute("label", gSearchBundle.getString("labelForSearchButton"));
   gSearchStopButton.setAttribute("accesskey", gSearchBundle.getString("labelForSearchButton.accesskey"));
+  gMessengerBundle = document.getElementById("bundle_messenger");
 
   gMessageDisplay = new NeverVisisbleMessageDisplayWidget();
   gFolderDisplay = new SearchFolderDisplayWidget(gMessageDisplay);

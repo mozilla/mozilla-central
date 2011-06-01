@@ -46,6 +46,9 @@
 
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
+//NOTE: gMessengerBundle and gBrandBundle must be defined and set
+//      for this Overlay to work properly
+
 function UpdateMailToolbar(caller)
 {
   // If we have a transient selection, we shouldn't update the toolbar. We'll
@@ -107,17 +110,16 @@ function SwitchView(command)
 function SetNewsFolderColumns()
 {
   var sizeColumn = document.getElementById("sizeCol");
-  var bundle = document.getElementById("bundle_messenger");
 
   if (gDBView.usingLines) {
-     sizeColumn.setAttribute("label", bundle.getString("linesColumnHeader"));
+     sizeColumn.setAttribute("label",gMessengerBundle.getString("linesColumnHeader"));
      sizeColumn.setAttribute("tooltiptext",
-                             bundle.getString("linesColumnTooltip"));
+                             gMessengerBundle.getString("linesColumnTooltip"));
   }
   else {
-     sizeColumn.setAttribute("label", bundle.getString("sizeColumnHeader"));
+     sizeColumn.setAttribute("label", gMessengerBundle.getString("sizeColumnHeader"));
      sizeColumn.setAttribute("tooltiptext",
-                             bundle.getString("sizeColumnTooltip"));
+                             gMessengerBundle.getString("sizeColumnTooltip"));
   }
 }
 
@@ -143,14 +145,15 @@ function UpdateStatusMessageCounts(folder)
   if (folder && !folder.isServer && unreadElement && totalElement)
   {
     var numSelected = GetNumSelectedMessages();
-    var bundle = document.getElementById("bundle_messenger");
 
     var numUnread = (numSelected > 1) ?
-            bundle.getFormattedString("selectedMsgStatus", [numSelected]) :
-            bundle.getFormattedString("unreadMsgStatus",
-                                      [folder.getNumUnread(false)]);
-    var numTotal = bundle.getFormattedString("totalMsgStatus",
-                                             [folder.getTotalMessages(false)]);
+            gMessengerBundle.getFormattedString("selectedMsgStatus",
+                                                [numSelected]) :
+            gMessengerBundle.getFormattedString("unreadMsgStatus",
+                                                [ folder.getNumUnread(false)]);
+    var numTotal =
+            gMessengerBundle.getFormattedString("totalMsgStatus",
+                                                [folder.getTotalMessages(false)]);
 
     unreadElement.setAttribute("label", numUnread);
     totalElement.setAttribute("label", numTotal);
@@ -204,10 +207,9 @@ function UpdateStatusQuota(folder)
       gQuotaUICache.meter.setAttribute("value", percent);
            // do not use value property, because that is imprecise (3%)
            // for optimization that we don't need here
-      var bundle = document.getElementById("bundle_messenger");
-      var label = bundle.getFormattedString("percent", [percent]);
-      var tooltip = bundle.getFormattedString("quotaTooltip",
-                                              [used.value, max.value]);
+      var label = gMessengerBundle.getFormattedString("percent", [percent]);
+      var tooltip = gMessengerBundle.getFormattedString("quotaTooltip",
+           [used.value, max.value]);
       gQuotaUICache.label.value = label;
       gQuotaUICache.label.tooltipText = tooltip;
       if (percent < gQuotaUICache.warningTreshold)
@@ -390,3 +392,6 @@ function Redo()
 {
     messenger.redo(msgWindow);
 }
+
+var gMessengerBundle = null;
+
