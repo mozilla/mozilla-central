@@ -403,11 +403,11 @@ DownloadTreeView.prototype = {
       "FROM moz_downloads " +
       "ORDER BY isActive ASC, endTime ASC, startTime ASC, id DESC");
 
-    this._statement.bindInt32Parameter(0, nsIDownloadManager.DOWNLOAD_NOTSTARTED);
-    this._statement.bindInt32Parameter(1, nsIDownloadManager.DOWNLOAD_DOWNLOADING);
-    this._statement.bindInt32Parameter(2, nsIDownloadManager.DOWNLOAD_PAUSED);
-    this._statement.bindInt32Parameter(3, nsIDownloadManager.DOWNLOAD_QUEUED);
-    this._statement.bindInt32Parameter(4, nsIDownloadManager.DOWNLOAD_SCANNING);
+    this._statement.bindByIndex(0, nsIDownloadManager.DOWNLOAD_NOTSTARTED);
+    this._statement.bindByIndex(1, nsIDownloadManager.DOWNLOAD_DOWNLOADING);
+    this._statement.bindByIndex(2, nsIDownloadManager.DOWNLOAD_PAUSED);
+    this._statement.bindByIndex(3, nsIDownloadManager.DOWNLOAD_QUEUED);
+    this._statement.bindByIndex(4, nsIDownloadManager.DOWNLOAD_SCANNING);
 
     while (this._statement.executeStep()) {
       // Try to get the attribute values from the statement

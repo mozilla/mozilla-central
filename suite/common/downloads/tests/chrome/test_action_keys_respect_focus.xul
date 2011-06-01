@@ -226,10 +226,10 @@ function test()
 
   try {
     for each (let site in ["delete.me", "i.live"]) {
-      stmt.bindStringParameter(0, "Finished Download");
-      stmt.bindStringParameter(1, filePath);
-      stmt.bindStringParameter(2, "http://" + site + "/file");
-      stmt.bindInt32Parameter(3, dm.DOWNLOAD_FINISHED);
+      stmt.bindByIndex(0, "Finished Download");
+      stmt.bindByIndex(1, filePath);
+      stmt.bindByIndex(2, "http://" + site + "/file");
+      stmt.bindByIndex(3, dm.DOWNLOAD_FINISHED);
 
       // Add it!
       stmt.execute();

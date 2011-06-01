@@ -290,14 +290,14 @@
     // its current position. It is then reinserted at the top of the list.
     var statement = connection.createStatement(
         "DELETE FROM urlbarhistory WHERE LOWER(url) = LOWER(?1)");
-    statement.bindStringParameter(0, aUrlToAdd);
+    statement.bindByIndex(0, aUrlToAdd);
     statement.execute();
     statement.finalize();
 
     // Put the value as it was typed by the user in to urlbar history
     statement = connection.createStatement(
         "INSERT INTO urlbarhistory (url) VALUES (?1)");
-    statement.bindStringParameter(0, aUrlToAdd);
+    statement.bindByIndex(0, aUrlToAdd);
     statement.execute();
     statement.finalize();
 
