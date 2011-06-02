@@ -134,7 +134,7 @@ function test_attachment_name_click() {
 
   // Ensure the context menu appears when right-clicking the attachment name
   mc.rightClick(mc.eid("attachmentName"));
-  assert_equals(mc.e("attachmentListContext").state, "open");
+  wait_for_popup_to_open(mc.e("attachmentListContext"));
   close_popup(mc, mc.eid("attachmentListContext"));
 }
 

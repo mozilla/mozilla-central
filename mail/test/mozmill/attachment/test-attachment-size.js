@@ -38,7 +38,8 @@
 var MODULE_NAME = 'test-attachment-size';
 
 var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
+var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers',
+                       'attachment-helpers'];
 
 var folder;
 var messenger;
@@ -151,6 +152,8 @@ function setupModule(module) {
   fdh.installInto(module);
   let wh = collector.getModule('window-helpers');
   wh.installInto(module);
+  let ah = collector.getModule('attachment-helpers');
+  ah.installInto(module);
 
   messenger = Components.classes['@mozilla.org/messenger;1']
                         .createInstance(Components.interfaces.nsIMessenger);
@@ -168,20 +171,20 @@ function setupModule(module) {
   var thisFilePath = os.getFileForPath(__file__);
 
   var detachedFile = os.getFileForPath(os.abspath(detachedName, thisFilePath));
-  var detached = createBodyPart(
+  var detached = create_body_part(
     'Here is a file',
-    [createDeletedAttachment(detachedFile, 'text/plain', true)]
+    [create_detached_attachment(detachedFile, 'text/plain')]
   );
 
   var missingFile = os.getFileForPath(os.abspath(missingName, thisFilePath));
-  var missing = createBodyPart(
+  var missing = create_body_part(
     'Here is a file (but you deleted the external file, you silly oaf!)',
-     [createDeletedAttachment(missingFile, 'text/plain', true)]
+    [create_detached_attachment(missingFile, 'text/plain')]
   );
 
-  var deleted = createBodyPart(
+  var deleted = create_body_part(
     'Here is a file that you deleted',
-    [ createDeletedAttachment(deletedName, 'text/plain')]
+    [create_deleted_attachment(deletedName, 'text/plain')]
   );
 
   folder = create_folder('AttachmentSizeA');
@@ -206,76 +209,6 @@ function setupModule(module) {
 
     add_message_to_folder(folder, create_message(messages[i]));
   }
-}
-
-/**
- * Create a body part with attachments for the message generator
- * @param body the text of the main body of the message
- * @param attachments an array of attachment objects (as strings)
- * @param boundary an optional string defining the boundary of the parts
- * @return an object suitable for passing as the |bodyPart| for create_message
- */
-function createBodyPart(body, attachments, boundary)
-{
-  if (!boundary)
-    boundary = '------------CHOPCHOP';
-
-  return {
-    contentTypeHeaderValue:
-      'multipart/mixed;\r\n boundary="' + boundary + '"',
-    toMessageString: function() {
-      let str = 'This is a multi-part message in MIME format.\r\n' +
-                '--' + boundary + '\r\n' +
-                'Content-Type: text/plain; charset=ISO-8859-1; format=flowed\r\n' +
-                'Content-Transfer-Encoding: 7bit\r\n\r\n' + body + '\r\n\r\n';
-      for (let i = 0; i < attachments.length; i++) {
-        str += '--' + boundary + '\r\n' +
-               attachments[i] + '\r\n';
-      }
-      str += '--' + boundary + '--';
-      return str;
-    }
-  };
-}
-
-/**
- * Create the raw data for a deleted/detached attachment
- * @param file the filename (for deleted attachments) or an nsIFile (for
- *        detached attachments)
- * @param type the content type
- * @return a string representing the attachment
- */
-function createDeletedAttachment(file, type) {
-  let str = '';
-
-  if (typeof file == 'string') {
-    str += 'Content-Type: text/x-moz-deleted; name="Deleted: ' + file + '"\r\n' +
-           'Content-Transfer-Encoding: 8bit\r\n' +
-           'Content-Disposition: inline; filename="Deleted: ' + file + '"\r\n' +
-           'X-Mozilla-Altered: AttachmentDeleted; date="Wed Oct 06 17:28:24 2010"\r\n\r\n';
-  }
-  else {
-    let fileHandler = Components.classes["@mozilla.org/network/io-service;1"]
-                                .getService(Components.interfaces.nsIIOService)
-                                .getProtocolHandler("file")
-                                .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
-    let url = fileHandler.getURLSpecFromFile(file);
-    let filename = file.leafName;
-
-    str += 'Content-Type: text/plain;\r\n name="' + filename + '"\r\n' +
-           'Content-Disposition: attachment; filename="' + filename + '"\r\n' +
-           'X-Mozilla-External-Attachment-URL: ' + url + '\r\n' +
-           'X-Mozilla-Altered: AttachmentDetached; date="Wed Oct 06 17:28:24 2010"\r\n\r\n';
-  }
-
-  str += 'You deleted an attachment from this message. The original MIME headers for the attachment were:\r\n' +
-         'Content-Type: ' + type + ';\r\n' +
-         ' name="' + file + '"\r\n' +
-         'Content-Transfer-Encoding: 7bit\r\n' +
-         'Content-Disposition: attachment;\r\n' +
-         ' filename="' + file + '"\r\n\r\n';
-
-  return str;
 }
 
 /**

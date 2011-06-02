@@ -379,10 +379,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"] {
   background: none;
 }
 
-.msgHeaderView-button[disabled="true"] {
-  display: none;
-}
-
 toolbar[mode="text"] .msgHeaderView-button .toolbarbutton-text {
   margin: 0;
   padding: 0;

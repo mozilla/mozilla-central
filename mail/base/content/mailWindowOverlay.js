@@ -1968,7 +1968,7 @@ function UpdateJunkButton()
   if (!gFolderDisplay.getCommandStatus(nsMsgViewCommandType.junk))
     hideJunk = true;
   if (document.getElementById('hdrJunkButton')) {
-    document.getElementById('hdrJunkButton').disabled = hideJunk;
+    document.getElementById('hdrJunkButton').hidden = hideJunk;
   }
 }
 

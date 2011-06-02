@@ -517,7 +517,8 @@
                          tooltiptext="&saveAttachmentButton.tooltip;"
                          oncommand="HandleAllAttachments('saveAs'); RestoreFocusAfterHdrButton();"
                          hidden="true">
-            <menupopup onpopupshowing="onShowSaveAttachmentMenuSingle();">
+            <menupopup id="attachmentSaveAllSingleMenu"
+                       onpopupshowing="onShowSaveAttachmentMenuSingle();">
               <menuitem id="button-openAttachment"
                         oncommand="HandleAllAttachments('open'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&openAttachmentMenuItem.label;"
@@ -543,7 +544,8 @@
                          tooltiptext="&saveAllAttachmentsButton.tooltip;"
                          oncommand="HandleAllAttachments('save'); RestoreFocusAfterHdrButton();"
                          hidden="true">
-            <menupopup onpopupshowing="onShowSaveAttachmentMenuMultiple();">
+            <menupopup id="attachmentSaveAllMultipleMenu"
+                       onpopupshowing="onShowSaveAttachmentMenuMultiple();">
               <menuitem id="button-openAllAttachments"
                         oncommand="HandleAllAttachments('open'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&openAllAttachmentsMenuItem.label;"

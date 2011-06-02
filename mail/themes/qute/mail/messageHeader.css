@@ -273,10 +273,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"] {
   min-height: 16px;
 }
 
-.msgHeaderView-button[disabled="true"] {
-  display: none;
-}
-
 .msgHeaderView-button[type="menu-button"] {
   /* important required to override -moz-appearance from msgHdrView-button */
   -moz-appearance: dualbutton !important;
