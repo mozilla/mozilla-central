@@ -596,8 +596,9 @@ var messageHeaderSink = {
         }
       }
 
-      currentAttachments.push (new createNewAttachmentInfo(contentType, url, displayName,
-                                                           uri, isExternalAttachment, size));
+      currentAttachments.push(new AttachmentInfo(contentType, url, displayName,
+                                                 uri, isExternalAttachment,
+                                                 size));
       // If we have an attachment, set the nsMsgMessageFlags.Attachment flag
       // on the hdr to cause the "message with attachment" icon to show up
       // in the thread pane.
@@ -618,7 +619,7 @@ var messageHeaderSink = {
     {
       let last = currentAttachments[currentAttachments.length-1];
       if (field == "X-Mozilla-PartSize" && !last.isExternalAttachment &&
-          last.contentType != "text/x-moz-deleted") {
+          !last.isDeleted) {
         let size = parseInt(value);
 
         // libmime returns -1 if it never managed to figure out the size.
@@ -1614,95 +1615,118 @@ function CopyNewsgroupURL(newsgroupNode)
  *
  * @param contentType The attachment's mimetype
  * @param url The URL for the attachment
- * @param displayName The name to be displayed for this attachment (usually the
+ * @param name The name to be displayed for this attachment (usually the
           filename)
  * @param uri The URI for the message containing the attachment
  * @param isExternalAttachment True if the attachment has been detached
  * @param size The size in bytes of the attachment
  */
-function createNewAttachmentInfo(contentType, url, displayName, uri,
-                                 isExternalAttachment, size)
+function AttachmentInfo(contentType, url, name, uri,
+                        isExternalAttachment, size)
 {
   this.contentType = contentType;
   this.url = url;
-  this.displayName = displayName;
+  this.name = name;
   this.uri = uri;
   this.isExternalAttachment = isExternalAttachment;
   this.size = size;
 }
 
-function saveAttachment(aAttachment)
-{
-  messenger.saveAttachment(aAttachment.contentType,
-                           aAttachment.url,
-                           encodeURIComponent(aAttachment.displayName),
-                           aAttachment.uri, aAttachment.isExternalAttachment);
-}
+AttachmentInfo.prototype = {
+  /**
+   * Save this attachment to a file.
+   */
+  save: function AttachmentInfo_save()
+  {
+    messenger.saveAttachment(this.contentType, this.url,
+                             encodeURIComponent(this.name),
+                             this.uri, this.isExternalAttachment);
+  },
 
-/**
- * This method checks whether the passed attachment is empty or not.
- *
- * @param aAttachment The attachment to check.
- * @return @c true if the attachment is empty, @c false otherwise.
- */
-function attachmentIsEmpty(aAttachment)
-{
-  let io = Components.classes["@mozilla.org/network/io-service;1"]
-                     .getService(Components.interfaces.nsIIOService);
+  /**
+   * Open this attachment.
+   */
+  open: function AttachmentInfo_open()
+  {
+    if (this.isDeleted)
+      return;
 
-  // create an input stream on the attachment url
-  let url = io.newURI(aAttachment.url, null, null);
-  let stream = io.newChannelFromURI(url).open();
-
-  let inputStream = Components.classes["@mozilla.org/binaryinputstream;1"]
-                              .createInstance(Components.interfaces.nsIBinaryInputStream);
-  inputStream.setInputStream(stream);
-
-  let bytesAvailable = 0;
-
-  if (inputStream.isNonBlocking()) {
-    // if the stream does not block test on two conditions:
-    //   - attachment is empty     -> 0 bytes will be returned on readBytes()
-    //   - attachment is not empty -> NS_BASE_STREAM_WOULD_BLOCK exception is thrown
-    let chunk = null;
-
-    try {
-      chunk = inputStream.readBytes(1);
-    } catch (ex if ex.result == Components.results.NS_BASE_STREAM_WOULD_BLOCK) {
-      bytesAvailable = 1;
+    if (this.isEmpty) {
+      msgWindow.promptDialog.alert(null, gMessengerBundle.getString(
+        "emptyAttachment"));
     }
-    if (chunk)
-      bytesAvailable = chunk.length;
-  } else {
-    // if the stream blocks, we can rely on available() to return the correct number
-    bytesAvailable = inputStream.available();
-  }
+    else {
+      messenger.openAttachment(this.contentType, this.url,
+                               encodeURIComponent(this.name),
+                               this.uri, this.isExternalAttachment);
+    }
+  },
 
-  return (bytesAvailable == 0);
-}
+  /**
+   * Detach this attachment from the message.
+   *
+   * @param aSaveFirst true if the attachment should be saved before detaching,
+   *                   false otherwise
+   */
+  detach: function AttachmentInfo_detach(aSaveFirst)
+  {
+    messenger.detachAttachment(this.contentType, this.url,
+                               encodeURIComponent(this.name),
+                               this.uri, aSaveFirst);
+  },
 
-function openAttachment(aAttachment)
-{
-  if (aAttachment.contentType == "text/x-moz-deleted")
-    return;
+  /**
+   * This method checks whether the attachment has been deleted or not.
+   *
+   * @return true if the attachment has been deleted, false otherwise
+   */
+  get isDeleted()
+  {
+    return this.contentType == "text/x-moz-deleted";
+  },
 
-  if (attachmentIsEmpty(aAttachment)) {
-    msgWindow.promptDialog.alert(null, gMessengerBundle.getString('emptyAttachment'));
-  } else {
-    messenger.openAttachment(aAttachment.contentType,
-                             aAttachment.url,
-                             encodeURIComponent(aAttachment.displayName),
-                             aAttachment.uri, aAttachment.isExternalAttachment);
-  }
-}
+  /**
+   * This method checks whether the attachment is empty or not.
+   *
+   * @return true if the attachment is empty, false otherwise
+   */
+  get isEmpty()
+  {
+    // Create an input stream on the attachment url.
+    let url = Services.io.newURI(this.url, null, null);
+    let stream = Services.io.newChannelFromURI(url).open();
 
-function detachAttachment(aAttachment, aSaveFirst)
-{
-  messenger.detachAttachment(aAttachment.contentType,
-                           aAttachment.url,
-                           encodeURIComponent(aAttachment.displayName),
-                           aAttachment.uri, aSaveFirst);
-}
+    let inputStream = Components.classes["@mozilla.org/binaryinputstream;1"]
+                                .createInstance(Components.interfaces.nsIBinaryInputStream);
+    inputStream.setInputStream(stream);
+
+    let bytesAvailable = 0;
+
+    if (inputStream.isNonBlocking()) {
+      // If the stream does not block, test on two conditions:
+      //   - attachment is empty     -> 0 bytes will be returned on readBytes()
+      //   - attachment is not empty -> NS_BASE_STREAM_WOULD_BLOCK exception is
+      //                                thrown
+      let chunk = null;
+
+      try {
+        chunk = inputStream.readBytes(1);
+      } catch (ex if ex.result == Components.results
+                                            .NS_BASE_STREAM_WOULD_BLOCK) {
+        bytesAvailable = 1;
+      }
+      if (chunk)
+        bytesAvailable = chunk.length;
+    }
+    else {
+      // If the stream blocks, we can rely on available() to return the correct
+      // number.
+      bytesAvailable = inputStream.available();
+    }
+
+    return (bytesAvailable == 0);
+  },
+};
 
 /**
  * Return true if possible attachments in the currently loaded message can be
@@ -1768,8 +1792,7 @@ function onShowAttachmentContextMenu()
 
   // Check if one or more of the selected attachments are deleted.
   for (var i = 0; i < selectedAttachments.length && !deletedAmongSelected; i++)
-    deletedAmongSelected =
-      (selectedAttachments[i].contentType == 'text/x-moz-deleted');
+    deletedAmongSelected = selectedAttachments[i].isDeleted;
 
   // Check if one or more of the selected attachments are detached.
   for (var i = 0; i < selectedAttachments.length && !detachedAmongSelected; i++)
@@ -1777,7 +1800,7 @@ function onShowAttachmentContextMenu()
 
   // Check if any attachments are deleted.
   for (var i = 0; i < currentAttachments.length && !anyDeleted; i++)
-    anyDeleted = (currentAttachments[i].contentType == 'text/x-moz-deleted');
+    anyDeleted = currentAttachments[i].isDeleted;
 
   // Check if any attachments are detached.
   for (var i = 0; i < currentAttachments.length && !anyDetached; i++)
@@ -1837,7 +1860,7 @@ function onShowSaveAttachmentMenuSingle()
   let deleteItem = document.getElementById('button-deleteAttachment');
 
   let detached = currentAttachments[0].isExternalAttachment;
-  let deleted  = currentAttachments[0].contentType == 'text/x-moz-deleted';
+  let deleted  = currentAttachments[0].isDeleted;
   let canDetach = CanDetachAttachments() && !deleted && !detached;
 
   openItem.setAttribute('disabled', deleted);
@@ -1857,8 +1880,7 @@ function onShowSaveAttachmentMenuMultiple()
   let deleteAllItem = document.getElementById('button-deleteAllAttachments');
 
   let anyDetached = currentAttachments.some(function(i) i.isExternalAttachment);
-  let anyDeleted  = currentAttachments.some(function(i) i.contentType ==
-                                            'text/x-moz-deleted');
+  let anyDeleted  = currentAttachments.some(function(i) i.isDeleted);
   let canDetach = CanDetachAttachments() && !anyDeleted && !anyDetached;
 
   saveAllItem.setAttribute('disabled', anyDeleted);
@@ -1887,20 +1909,8 @@ function attachmentListClick(event)
   {
     var target = event.target;
     if (target.localName == "descriptionitem")
-      openAttachment(target.attachment);
+      target.attachment.open();
   }
-}
-
-function cloneAttachment(aAttachment)
-{
-  var obj = new Object();
-  obj.contentType = aAttachment.contentType;
-  obj.url = aAttachment.url;
-  obj.displayName = aAttachment.displayName;
-  obj.uri = aAttachment.uri;
-  obj.isExternalAttachment = aAttachment.isExternalAttachment;
-  obj.size = aAttachment.size;
-  return obj;
 }
 
 function createAttachmentDisplayName(aAttachment)
@@ -1910,7 +1920,7 @@ function createAttachmentDisplayName(aAttachment)
   // and whitespace from filename extensions). Leading and internal
   // whitespace will be taken care of by the crop="center" attribute.
   // We must not change the actual filename, though.
-  return aAttachment.displayName.trimRight();
+  return aAttachment.name.trimRight();
 }
 
 function displayAttachmentsForExpandedView()
@@ -1952,7 +1962,7 @@ function displayAttachmentsForExpandedView()
         totalSize += attachment.size;
       }
       else {
-        if (attachment.contentType != "text/x-moz-deleted")
+        if (!attachment.isDeleted)
           unknownSize = true;
         item = attachmentList.appendItem(displayName);
       }
@@ -1960,10 +1970,10 @@ function displayAttachmentsForExpandedView()
       item.setAttribute("class", "descriptionitem-iconic");
 
       setApplicationIconForAttachment(attachment, item, showLargeAttView);
-      item.setAttribute("tooltiptext", attachment.displayName);
+      item.setAttribute("tooltiptext", attachment.name);
       item.setAttribute("context", "attachmentListContext");
 
-      item.attachment = cloneAttachment(attachment);
+      item.attachment = attachment;
       item.setAttribute("attachmentUrl", attachment.url);
       item.setAttribute("attachmentContentType", attachment.contentType);
       item.setAttribute("attachmentUri", attachment.uri);
@@ -2069,7 +2079,7 @@ function toggleAttachmentList(expanded)
 function setApplicationIconForAttachment(attachment, listitem, largeView)
 {
   // Show a nice icon next to it the attachment.
-  if (attachment.contentType == "text/x-moz-deleted")
+  if (attachment.isDeleted)
   {
     let fn = largeView ? "attachment-deleted-large.png" : "attachment-deleted.png";
     listitem.setAttribute("image", "chrome://messenger/skin/icons/"+fn);
@@ -2077,7 +2087,7 @@ function setApplicationIconForAttachment(attachment, listitem, largeView)
   else
   {
     let iconSize = largeView ? 32 : 16;
-    listitem.setAttribute("image", "moz-icon://" + attachment.displayName + "?size=" +
+    listitem.setAttribute("image", "moz-icon://" + attachment.name + "?size=" +
                                    iconSize + "&contentType=" + attachment.contentType);
   }
 }
@@ -2100,8 +2110,7 @@ function FillAttachmentListPopup(popup)
   {
     addAttachmentToPopup(popup, attachment, attachmentIndex);
     if (canDetachOrDeleteAll &&
-        (attachment.isExternalAttachment ||
-         attachment.contentType == 'text/x-moz-deleted'))
+        (attachment.isExternalAttachment || attachment.isDeleted))
       canDetachOrDeleteAll = false;
   }
 
@@ -2163,8 +2172,8 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
       item = popup.insertBefore(item, popup.childNodes[indexOfSeparator]);
 
       var menuitementry = document.createElement('menuitem');
-      menuitementry.attachment = cloneAttachment(attachment);
-      menuitementry.setAttribute('oncommand', 'openAttachment(this.attachment)');
+      menuitementry.attachment = attachment;
+      menuitementry.setAttribute('oncommand', 'this.attachment.open();');
 
       function getString(aName) {
         return gMessengerBundle.getString(aName);
@@ -2174,18 +2183,18 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
       menuitementry.setAttribute('label', getString("openLabel"));
       menuitementry.setAttribute('accesskey', getString("openLabelAccesskey"));
       menuitementry = openpopup.appendChild(menuitementry);
-      if (attachment.contentType == 'text/x-moz-deleted')
+      if (attachment.isDeleted)
         menuitementry.setAttribute('disabled', true);
 
       var menuseparator = document.createElement('menuseparator');
       openpopup.appendChild(menuseparator);
 
       menuitementry = document.createElement('menuitem');
-      menuitementry.attachment = cloneAttachment(attachment);
-      menuitementry.setAttribute('oncommand', 'saveAttachment(this.attachment)');
+      menuitementry.attachment = attachment;
+      menuitementry.setAttribute('oncommand', 'this.attachment.save();');
       menuitementry.setAttribute('label', getString("saveLabel"));
       menuitementry.setAttribute('accesskey', getString("saveLabelAccesskey"));
-      if (attachment.contentType == 'text/x-moz-deleted')
+      if (attachment.isDeleted)
         menuitementry.setAttribute('disabled', true);
       menuitementry = openpopup.appendChild(menuitementry);
 
@@ -2193,20 +2202,20 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
       openpopup.appendChild(menuseparator);
 
       menuitementry = document.createElement('menuitem');
-      menuitementry.attachment = cloneAttachment(attachment);
-      menuitementry.setAttribute('oncommand', 'detachAttachment(this.attachment, true)');
+      menuitementry.attachment = attachment;
+      menuitementry.setAttribute('oncommand', 'this.attachment.detach(true);');
       menuitementry.setAttribute('label', getString("detachLabel"));
       menuitementry.setAttribute('accesskey', getString("detachLabelAccesskey"));
-      if (attachment.contentType == 'text/x-moz-deleted' || !canDetach)
+      if (attachment.isDeleted || !canDetach)
         menuitementry.setAttribute('disabled', true);
       menuitementry = openpopup.appendChild(menuitementry);
 
       menuitementry = document.createElement('menuitem');
-      menuitementry.attachment = cloneAttachment(attachment);
-      menuitementry.setAttribute('oncommand', 'detachAttachment(this.attachment, false)');
+      menuitementry.attachment = attachment;
+      menuitementry.setAttribute('oncommand', 'this.attachment.detach(false);');
       menuitementry.setAttribute('label', getString("deleteLabel"));
       menuitementry.setAttribute('accesskey', getString("deleteLabelAccesskey"));
-      if (attachment.contentType == 'text/x-moz-deleted' || !canDetach)
+      if (attachment.isDeleted || !canDetach)
         menuitementry.setAttribute('disabled', true);
       menuitementry = openpopup.appendChild(menuitementry);
     }  // if we created a menu item for this attachment...
@@ -2245,11 +2254,11 @@ function HandleMultipleAttachments(attachments, action)
    {
      // exclude all attachments already deleted
      var attachment = attachments[index];
-     if ( attachment.contentType != 'text/x-moz-deleted' )
+     if ( attachment.isDeleted )
      {
        attachmentContentTypeArray[actionIndex] = attachment.contentType;
        attachmentUrlArray[actionIndex] = attachment.url;
-       attachmentDisplayNameArray[actionIndex] = encodeURI(attachment.displayName);
+       attachmentDisplayNameArray[actionIndex] = encodeURI(attachment.name);
        attachmentMessageUriArray[actionIndex] = attachment.uri;
        ++actionIndex;
      }
@@ -2281,9 +2290,11 @@ function HandleMultipleAttachments(attachments, action)
      // first attempt (error about the xul cache being empty). For now, work around this
      // by doing the first helper app dialog right away, then waiting a bit before we
      // launch the rest.
-     var actionFunction = (action == 'open') ? openAttachment : saveAttachment;
-     if ( action == 'detach' )
-       actionFunction = function (aAttachment) { detachAttachment(aAttachment, true); }
+     var actionFunction = null;
+     if (action == 'open')
+       actionFunction = function(aAttachment) { aAttachment.open(); };
+     else
+       actionFunction = function(aAttachment) { aAttachment.save(); };
        // Detaching a multiple selection of attachments is so far not supported.
        // Therefore this code should only be reached if attachments.length == 1.
        // Note hat detaching multiple attachments one-by-one in the below loop does not work
