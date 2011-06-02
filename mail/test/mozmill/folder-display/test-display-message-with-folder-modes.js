@@ -127,6 +127,10 @@ function test_display_message_with_folder_present_in_current_folder_mode() {
   assert_folder_mode("favorite");
   assert_folder_selected_and_displayed(folder);
   assert_selected_and_displayed(msgHdr);
+
+  // Now unset the flags so that we don't affect later tests.
+  folder.flags &= ~Ci.nsMsgFolderFlags.Favorite;
+  dummyFolder.flags &= ~Ci.nsMsgFolderFlags.Favorite;
 }
 
 /**
