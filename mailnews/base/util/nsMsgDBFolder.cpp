@@ -4290,12 +4290,12 @@ NS_IMETHODIMP nsMsgDBFolder::OnFlagChange(PRUint32 flag)
     if (flag & nsMsgFolderFlags::Offline)
     {
       PRBool newValue = mFlags & nsMsgFolderFlags::Offline;
-      rv = NotifyBoolPropertyChanged(kSynchronizeAtom, !newValue, newValue);
+      rv = NotifyBoolPropertyChanged(kSynchronizeAtom, !newValue, !!newValue);
     }
     else if (flag & nsMsgFolderFlags::Elided)
     {
       PRBool newValue = mFlags & nsMsgFolderFlags::Elided;
-      rv = NotifyBoolPropertyChanged(kOpenAtom, newValue, !newValue);
+      rv = NotifyBoolPropertyChanged(kOpenAtom, !!newValue, !newValue);
     }
   }
   return rv;
