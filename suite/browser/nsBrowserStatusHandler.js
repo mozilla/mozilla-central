@@ -212,7 +212,7 @@ nsBrowserStatusHandler.prototype =
       // attrs on XUL elements. -- hyatt
       var percentage = (aCurTotalProgress * 100) / aMaxTotalProgress;
       this.statusMeter.value = percentage;
-    } 
+    }
   },
 
   onStateChange : function(aWebProgress, aRequest, aStateFlags, aStatus)
@@ -230,10 +230,12 @@ nsBrowserStatusHandler.prototype =
           aRequest && aWebProgress.DOMWindow == content)
         this.startDocumentLoad(aRequest);
 
-      // Show the progress meter
-      this.statusPanel.collapsed = false;
-      // Turn the throbber on.
-      this.throbberElement.setAttribute("busy", "true");
+      if (!(aStateFlags & nsIWebProgressListener.STATE_RESTORING)) {
+        // Show the progress meter
+        this.statusPanel.collapsed = false;
+        // Turn the throbber on.
+        this.throbberElement.setAttribute("busy", "true");
+      }
 
       // XXX: These need to be based on window activity...
       this.stopButton.disabled = false;

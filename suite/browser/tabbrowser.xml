@@ -488,7 +488,7 @@
                 if (aWebProgress.DOMWindow == this.mBrowser.contentWindow)
                   this.mBrowser.userTypedClear += 2;
 
-                if (!this.mBlank) {
+                if (!this.mBlank && !(aStateFlags & nsIWebProgressListener.STATE_RESTORING)) {
                   this.mTab.removeAttribute("progress");
                   this.mTab.setAttribute("busy", "true");
                   this.mTab.label = this.mTabBrowser.mStringBundle.getString("tabs.loading");
