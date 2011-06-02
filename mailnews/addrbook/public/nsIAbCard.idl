@@ -102,7 +102,7 @@ interface nsIAbPreferMailFormat {
  * The contract id for the standard implementation is
  * <tt>\@mozilla.org/addressbook/cardproperty;1</tt>.
  */
-[scriptable, uuid(21c4308b-e1e2-4ab2-abdc-e1f4431c7055)]
+[scriptable, uuid(5d6712d1-995c-42f4-91d7-e5539203af80)]
 interface nsIAbCard : nsIAbItem {
   /**
    * The UUID for the nsIAbDirectory containing this card.
@@ -164,55 +164,56 @@ interface nsIAbCard : nsIAbItem {
   nsIVariant getProperty(in AUTF8String name, in nsIVariant defaultValue);
   /**
    * @{
-   * Returns a property for the given name.
+   * Returns a property for the given name.  Javascript callers should NOT use these,
+   * but use getProperty instead. XPConnect will do the type conversion automagically.
    *
    * These functions convert values in the same manner as the default
    * implementation of nsIVariant. Of particular note is that boolean variables
    * are converted to integers as in C/C++ (true is a non-zero value), so that
    * false will be converted to a string of "0" and not "false."
    *
-   * These functions are marked [noscript] since xpconnect performs automatic
-   * type conversion on nsIVariants such that they are not needed for scripts,
-   * only for C++ callers.
    *
    * @param name             The case-sensitive name of the property to get.
    * @exception NS_ERROR_NOT_AVAILABLE if the named property does not exist.
    * @exception NS_ERROR_CANNOT_CONVERT_DATA if the property cannot be converted
    *                                         to the desired type.
    */
-  [noscript] AString getPropertyAsAString(in string name);
-  [noscript] AUTF8String getPropertyAsAUTF8String(in string name);
-  [noscript] PRUint32 getPropertyAsUint32(in string name);
-  [noscript] boolean getPropertyAsBool(in string name);
+  AString getPropertyAsAString(in string name);
+  AUTF8String getPropertyAsAUTF8String(in string name);
+  unsigned long getPropertyAsUint32(in string name);
+  boolean getPropertyAsBool(in string name);
+
   /** @} */
 
   /**
-   * @{
    * Assigns the given to value to the property of the given name.
    *
    * Should the property exist, its value will be overwritten. An
    * implementation may impose additional semantic constraints for certain
    * properties. However, such constraints might not be checked by this method.
    *
-   * These functions convert values in the same manner as the default
-   * implementation of nsIVariant.
-   * 
    * @warning A value MUST be convertible to a string; if this convention is not
    * followed, consumers of cards may fail unpredictably or return incorrect
    * results.
-   *
-   * The non-variant functions are marked [noscript] since xpconnect uses
-   * magic with nsIVariant such that the other functions are not needed,
-   * although C++ does need them.
    *
    * @param name             The case-sensitive name of the property to set.
    * @param value            The new value of the property.
    */
   void setProperty(in AUTF8String name, in nsIVariant value);
-  [noscript] void setPropertyAsAString(in string name, in AString value);
-  [noscript] void setPropertyAsAUTF8String(in string name, in AUTF8String value);
-  [noscript] void setPropertyAsUint32(in string name, in PRUint32 value);
-  [noscript] void setPropertyAsBool(in string name, in boolean value);
+
+  /**
+   * @{
+   * Sets a property for the given name.  Javascript callers should NOT use these,
+   * but use setProperty instead. XPConnect will do the type conversion automagically.
+   *
+   * These functions convert values in the same manner as the default
+   * implementation of nsIVariant.
+   */
+  void setPropertyAsAString(in string name, in AString value);
+  void setPropertyAsAUTF8String(in string name, in AUTF8String value);
+  void setPropertyAsUint32(in string name, in unsigned long value);
+  void setPropertyAsBool(in string name, in boolean value);
+
   /** @} */
 
   /**
