@@ -1323,6 +1323,7 @@ let gFolderTreeView = {
 
       generateMap: function ftv_favorite_generateMap(ftv) {
         let faves = [];
+        let uniqueNames = [];
         for each (let folder in ftv._enumerateFolders) {
           if (folder.flags & nsMsgFolderFlags.Favorite)
             faves.push(new ftvItem(folder));
@@ -1330,10 +1331,15 @@ let gFolderTreeView = {
 
         // There are no children in this view!
         // And we want to display the account name to distinguish folders w/
-        // the same name.
+        // the same name. (only for folders with duplicated names)
         for each (let folder in faves) {
           folder.__defineGetter__("children", function() []);
-          folder.addServerName = true;
+          if (isNaN(uniqueNames[folder.text]))
+            uniqueNames[folder.text] = 0;
+          uniqueNames[folder.text]++;
+        }
+        for each (let folder in faves) {
+          folder.addServerName = (uniqueNames[folder.text] > 1) ? true : false;
         }
         sortFolderItems(faves);
         return faves;

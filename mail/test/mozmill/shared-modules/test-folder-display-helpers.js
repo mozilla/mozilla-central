@@ -2472,6 +2472,14 @@ function assert_folder_tree_view_row_count(aCount) {
 }
 
 /**
+ * Assert that the displayed text of the folder at index n equals to str.
+ */
+function assert_folder_at_index_as(n, str) {
+  let folderN = mc.window.gFolderTreeView.getFTVItemForIndex(n);
+  assert_equals(folderN.text, str)
+}
+
+/**
  * Since indexOf does strict equality checking, we need this.
  */
 function _non_strict_index_of(aArray, aSearchElement) {
