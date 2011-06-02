@@ -2133,25 +2133,10 @@
               return true;
             }
 
-            var displayTooltip = false;
-            if (gFolderTreeView.mode == "favorite") {
-              let label = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "label");
-              let midPath = "";
-              let midFolder = aFolder.parent;
-              while (aFolder.server.rootFolder != midFolder) {
-                midPath = midFolder.name + " - " + midPath;
-                midFolder = midFolder.parent;
-              }
-              label.setAttribute("value", aFolder.server.prettyName + " - " + midPath + aFolder.name);
-              document.getAnonymousNodes(this)[0].appendChild(label);
-              displayTooltip = true;
-            }
-
             // skip servers, Trash and Junk folders
-            if (gFolderTreeView.mode != "favorite" &&
-                (!aFolder || aFolder.isServer ||
-                 aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Junk) ||
-                 aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash)))
+            if (!aFolder || aFolder.isServer ||
+                aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Junk) ||
+                aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash))
               return false;
             var pref = Components.classes["@mozilla.org/preferences-service;1"]
                                  .getService(Components.interfaces.nsIPrefBranch);
@@ -2175,6 +2160,7 @@
             }
             else
               folderArray[0] = aFolder;
+            var foundNewMsg = false;
             for (var folderIndex = 0; folderIndex < folderArray.length; folderIndex++)
             {
               aFolder = folderArray[folderIndex];
@@ -2213,7 +2199,7 @@
               var unicodeConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
                                     .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
               unicodeConverter.charset = "UTF-8";
-              displayTooltip = true;
+              foundNewMsg = true;
 
               var index = 0;
               var hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
@@ -2253,7 +2239,7 @@
               if (document.getAnonymousNodes(this)[0].childNodes.length >= this.mMaxMsgHdrsInPopup)
                 return true;
             }
-            return displayTooltip;
+            return foundNewMsg;
           ]]>
         </body>
       </method>
