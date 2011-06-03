@@ -1837,6 +1837,8 @@ SEAMONKEY_VERSION=`cat $topsrcdir/suite/config/version.txt`
 AC_DEFINE_UNQUOTED(MOZILLA_VERSION,"$MOZILLA_VERSION")
 AC_DEFINE_UNQUOTED(MOZILLA_VERSION_U,$MOZILLA_VERSION)
 
+MOZ_DOING_LTO(lto_is_enabled)
+
 dnl ========================================================
 dnl System overrides of the defaults for target
 dnl ========================================================
@@ -1952,9 +1954,11 @@ ld.])
     # builds.
     MOZ_DEBUG_LDFLAGS="$MOZ_DEBUG_LDFLAGS -framework ExceptionHandling"
 
+    if test "x$lto_is_enabled" = "xyes"; then
+        echo "Skipping -dead_strip because lto is enabled."
     dnl DTrace and -dead_strip don't interact well. See bug 403132.
     dnl ===================================================================
-    if test "x$enable_dtrace" = "xyes"; then
+    elif test "x$enable_dtrace" = "xyes"; then
         echo "Skipping -dead_strip because DTrace is enabled. See bug 403132."
     else
         dnl check for the presence of the -dead_strip linker flag
