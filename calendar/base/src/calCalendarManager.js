@@ -273,8 +273,11 @@ calCalendarManager.prototype = {
                     let ua = httpChannel.getRequestHeader("User-Agent");
                     let calUAString = getPrefSafe("calendar.useragent.extra");
                     if (calUAString && ua.indexOf(calUAString) < 0) {
-                        // Merge in the header value
-                        httpChannel.setRequestHeader("User-Agent", calUAString, true);
+                        // User-Agent is not a mergeable header. We need to
+                        // merge the user agent ourselves.
+                        httpChannel.setRequestHeader("User-Agent",
+                                                     ua + " " + calUAString,
+                                                     false);
                     }
                 } catch (e if e.result == Components.results.NS_ERROR_NOT_AVAILABLE) {
                     // We swallow this error since it means the User Agent
