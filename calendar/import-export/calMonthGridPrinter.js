@@ -300,7 +300,7 @@ calMonthPrinter.prototype = {
                                 <td valign='top' align='left'>{dt.day}</td>
                             </tr>
             innerTable.appendChild(dateLabel);
-            let defaultTimezone = calendarDefaultTimezone();
+            let defaultTimezone = cal.calendarDefaultTimezone();
             for each (let item in sortedList) {
                 let sDate = item.startDate || item.entryDate || item.dueDate;
                 let eDate = item.endDate || item.dueDate || item.entryDate;
@@ -324,7 +324,7 @@ calMonthPrinter.prototype = {
                     break;
                 }
 
-                let time = (!s.isDate ? cal.getDateFormatter().formatTime(sDate) : "");
+                let time = (!sDate.isDate ? cal.getDateFormatter().formatTime(sDate) : "");
                 let calColor = item.calendar.getProperty('color') || "#A8C2E1";
                 let pb2 = Components.classes["@mozilla.org/preferences-service;1"]
                                     .getService(Components.interfaces.nsIPrefBranch2);
@@ -338,14 +338,12 @@ calMonthPrinter.prototype = {
 
                 let style = 'font-size: 11px; text-align: left;';
                 style += ' background-color: ' + calColor + ';';
-                style += ' color: ' + getContrastingTextColor(calColor);
+                style += ' color: ' + cal.getContrastingTextColor(calColor);
                 if (catColor) {
                     style += ' border: solid ' + catColor + ' 2px;';
                 }
-                let item = <tr>
-                               <td valign='top' style={style}>{time} {item.title}</td>
-                           </tr>;
-                innerTable.appendChild(item);
+                let tableRow = <tr><td valign='top' style={style}>{time} {item.title}</td></tr>;
+                innerTable.appendChild(tableRow);
             }
             day.appendChild(innerTable);
             weekRow.appendChild(day);

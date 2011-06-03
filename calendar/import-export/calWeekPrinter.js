@@ -125,12 +125,12 @@ calWeekPrinter.prototype = {
         // get the day's items using getDayTd().
         let start = aStart || sortedList[0].startDate || sortedList[0].entryDate ||
                     sortList[0].dueDate;
-        ASSERT(start, "can't find a good starting date to print");
+        cal.ASSERT(start, "can't find a good starting date to print");
 
         let lastItem = sortedList[sortedList.length-1];
         let end = aEnd || lastItem.startDate || lastItem.entryDate ||
                    lastItem.dueDate;
-        ASSERT(end, "can't find a good ending date to print");
+        cal.ASSERT(end, "can't find a good ending date to print");
 
         let dt = start.startOfWeek;
         let startOfWeek = cal.getPrefSafe("calendar.week.start", 0);
@@ -274,14 +274,12 @@ calWeekPrinter.prototype = {
             }
 
             let style = 'font-size: 11px; background-color: ' + calColor + ';';
-            style += ' color: ' + getContrastingTextColor(calColor);
+            style += ' color: ' + cal.getContrastingTextColor(calColor);
             if (catColor) {
                 style += ' border: solid ' + catColor + ' 2px;';
             }
-            let item = <tr>
-                           <td valign='top' align='left' style={style}>{time} {item.title}</td>
-                       </tr>;
-            innerTable.appendChild(item);
+            let tableRow = <tr><td valign='top' align='left' style={style}>{time} {item.title}</td></tr>;
+            innerTable.appendChild(tableRow);
         }
         innerTable.appendChild(<p> </p>);
         mainTd.appendChild(innerTable);
