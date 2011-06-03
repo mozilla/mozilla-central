@@ -257,7 +257,6 @@ endif
 # Determine if module being compiled is destined 
 # to be merged into libxul
 
-ifdef MOZ_ENABLE_LIBXUL
 ifdef LIBXUL_LIBRARY
 ifdef IS_COMPONENT
 ifdef MODULE_NAME
@@ -269,7 +268,6 @@ endif
 FORCE_STATIC_LIB=1
 _ENABLE_PIC=1
 SHORT_LIBNAME=
-endif
 endif
 
 # If we are building this component into an extension/xulapp, it cannot be
@@ -353,7 +351,6 @@ endif
 
 # Force XPCOM/widget/gfx methods to be _declspec(dllexport) when we're
 # building libxul libraries
-ifdef MOZ_ENABLE_LIBXUL
 ifdef LIBXUL_LIBRARY
 DEFINES += \
 		-D_IMPL_NS_COM \
@@ -368,7 +365,6 @@ DEFINES += \
 
 ifndef MOZ_NATIVE_ZLIB
 DEFINES += -DZLIB_INTERNAL
-endif
 endif
 endif
 

@@ -293,9 +293,7 @@ ifeq ($(OS_ARCH),OS2)
 DEF_FILE		:= $(SHARED_LIBRARY:.dll=.def)
 endif
 
-ifdef MOZ_ENABLE_LIBXUL
 EMBED_MANIFEST_AT=2
-endif
 
 endif # MKSHLIB
 endif # FORCE_SHARED_LIB && !BUILD_STATIC_LIBS

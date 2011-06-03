@@ -59,13 +59,7 @@ ifndef MOZILLA_INTERNAL_API
 LIBS += $(XPCOM_GLUE_LDOPTS)
 endif
 
-ifdef MOZ_ENABLE_LIBXUL
 LIBS += $(XPCOM_LIBS)
-else
-LIBS +=   \
-    ../../base/util/$(LIB_PREFIX)msgbsutl_s.$(LIB_SUFFIX) \
-    $(NULL)
-endif
 
 LIBS +=   \
   $(XPCOM_LIBS) \
