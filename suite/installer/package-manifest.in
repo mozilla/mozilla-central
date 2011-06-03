@@ -56,12 +56,10 @@
 #else
 @BINPATH@/@DLL_PREFIX@xul@DLL_SUFFIX@
 #endif
-#ifdef MOZ_IPC
 #ifdef XP_MACOSX
 @BINPATH@/@MOZ_CHILD_PROCESS_NAME@.app/
 #else
 @BINPATH@/@MOZ_CHILD_PROCESS_NAME@
-#endif
 #endif
 ; ANGLE GLES-on-D3D rendering library
 #ifdef MOZ_ANGLE
@@ -326,10 +324,8 @@
 @BINPATH@/components/jsconsole-clhandler.js
 @BINPATH@/components/jsconsole-clhandler.manifest
 ; This is not used yet, so don't package it at all
-;#ifdef MOZ_IPC
 ;@BINPATH@/components/messageWakeupService.js
 ;@BINPATH@/components/messageWakeupService.manifest
-;#endif
 @BINPATH@/components/NetworkGeolocationProvider.js
 @BINPATH@/components/NetworkGeolocationProvider.manifest
 @BINPATH@/components/nsAbout.js
