@@ -811,7 +811,6 @@ div.loading, div.empty {
 }
 
 span.loading, span.empty {
-  padding: 1em;
   color: ButtonText;
   background-color: ButtonFace;
   border: 1px outset ThreeDShadow;
