@@ -76,6 +76,7 @@
 #include "nsIURI.h"
 #include "nsNetCID.h"
 #include "nsIMsgWindow.h"
+#include "nsIMimeMiscStatus.h"
 #include "nsMsgUtils.h"
 #include "nsIChannel.h"
 #include "nsICacheEntryDescriptor.h"
@@ -764,6 +765,25 @@ SetMailCharacterSetToMsgWindow(MimeObject *obj, const char *aCharacterSet)
   }
 
   return rv;
+}
+
+static void ResetMsgHeaderSinkProps(nsIURI *uri)
+{
+  nsCOMPtr<nsIMsgMailNewsUrl> msgurl(do_QueryInterface(uri));
+  if (!msgurl)
+    return;
+
+  nsCOMPtr<nsIMsgWindow> msgWindow;
+  msgurl->GetMsgWindow(getter_AddRefs(msgWindow));
+  if (!msgWindow)
+    return;
+
+  nsCOMPtr<nsIMsgHeaderSink> msgHeaderSink;
+  msgWindow->GetMsgHeaderSink(getter_AddRefs(msgHeaderSink));
+  if (!msgHeaderSink)
+    return;
+
+  msgHeaderSink->ResetProperties();
 }
 
 static char *
@@ -1668,7 +1688,7 @@ mime_bridge_create_display_stream(
 
   msd->options->output_fn             = mime_output_fn;
 
-  msd->options->whattodo         = whattodo;
+  msd->options->whattodo              = whattodo;
   msd->options->charset_conversion_fn = mime_convert_charset;
   msd->options->rfc1522_conversion_p  = PR_TRUE;
   msd->options->file_type_fn          = mime_file_type;
@@ -1709,6 +1729,8 @@ mime_bridge_create_display_stream(
     PR_Free(obj);
     return 0;
   }
+
+  ResetMsgHeaderSinkProps(uri);
 
   memset (stream, 0, sizeof (*stream));
   stream->name           = "MIME Conversion Stream";

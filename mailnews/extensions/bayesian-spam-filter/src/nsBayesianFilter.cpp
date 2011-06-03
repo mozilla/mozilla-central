@@ -1091,6 +1091,11 @@ NS_IMETHODIMP TokenStreamListener::GetDummyMsgHeader(nsIMsgDBHdr **aMsgDBHdr)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP TokenStreamListener::ResetProperties()
+{
+  return NS_OK;
+}
+
 NS_IMETHODIMP TokenStreamListener::GetProperties(nsIWritablePropertyBag2 * *aProperties)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
