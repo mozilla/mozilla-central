@@ -25,13 +25,6 @@ endif
 endif
 
 # We need to link the windows shell service into seamonkey.exe.
-# DEFINES needs to be set before config.mk is included,
-# because app-config.mk is loaded after config.mk reads DEFINES.
-ifdef BUILD_STATIC_LIBS
-BUILD_STATIC_SHELL = 1
-DEFINES += -DBUILD_STATIC_SHELL=1
-endif
-
 ifdef CPPSRCS
 LIBRARY_NAME = shellservice_s
 ifdef BUILD_STATIC_SHELL

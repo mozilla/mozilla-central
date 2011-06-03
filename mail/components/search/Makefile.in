@@ -69,12 +69,8 @@ ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
 MODULE = mailwinsearch
 LIBRARY_NAME = winsearch_s
 MODULE_NAME = nsMailWinSearchHelperModule
-ifdef BUILD_STATIC_LIBS
-MOZILLA_INTERNAL_API = 1
-else
 ifneq ($(MOZ_WIDGET_TOOLKIT), gtk2)
 MOZILLA_INTERNAL_API = 1
-endif
 endif
 
 

@@ -95,26 +95,14 @@ LOCAL_INCLUDES += \
   -I$(MOZILLA_SRCDIR)/xpcom/base \
   $(NULL)
 
-ifdef BUILD_STATIC_LIBS
-ifdef _MSC_VER
-STATIC_COMPONENTS_LINKER_PATH = -LIBPATH:$(MOZDEPTH)/staticlib
-else
-STATIC_COMPONENTS_LINKER_PATH = -L$(MOZDEPTH)/staticlib
-endif
-LIBS += $(MOZDEPTH)/toolkit/xre/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX)
-else
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 LIBS += $(DIST)/bin/XUL
 else
 EXTRA_DSO_LIBS += xul
 endif
-endif
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 TK_LIBS := -framework Cocoa $(TK_LIBS)
-ifdef BUILD_STATIC_LIBS
-TK_LIBS := -framework SystemConfiguration $(TK_LIBS)
-endif
 endif
 
 APP_XPCOM_LIBS = $(XPCOM_GLUE_LDOPTS)
@@ -125,18 +113,6 @@ LIBS += \
 	$(APP_XPCOM_LIBS) \
 	$(NSPR_LIBS) \
 	$(NULL)
-
-ifdef BUILD_STATIC_LIBS
-LIBS += \
-	$(MOZ_JS_LIBS) \
-	$(TK_LIBS) \
-	$(NULL)
-
-# Add explicit X11 dependency when building against X11 toolkits
-ifneq (,$(filter gtk gtk2 xlib,$(MOZ_WIDGET_TOOLKIT)))
-LIBS += $(XLDFLAGS) $(XLIBS)
-endif
-endif
 
 ifdef MOZ_JPROF
 LIBS += -ljprof
@@ -166,27 +142,6 @@ ifdef _MSC_VER
 WIN32_EXE_LDFLAGS += -ENTRY:wmainCRTStartup
 endif
 
-ifdef BUILD_STATIC_LIBS
-include $(topsrcdir)/config/static-config.mk
-
-EXTRA_DEPS	+= \
-	$(STATIC_EXTRA_DEPS) \
-	$(NULL)
-DEFINES		+= $(STATIC_DEFINES)
-CPPSRCS		+= $(STATIC_CPPSRCS)
-EXTRA_DSO_LIBS	+= $(STATIC_EXTRA_DSO_LIBS)
-EXTRA_LIBS	+= \
-	$(STATIC_EXTRA_LIBS) \
-	$(MOZ_HARFBUZZ_LIBS) \
-	$(NULL)
-
-# OpenGL is required by (mozilla/)content/canvas: see (mozilla/)layout/build/Makefile.in.
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-OS_LIBS += -framework OpenGL
-endif
-
-endif # BUILD_STATIC_LIBS
-
 ifeq ($(OS_ARCH),WINNT)
 OS_LIBS += $(call EXPAND_LIBNAME,comctl32 comdlg32 uuid shell32 ole32 oleaut32 version winspool)
 OS_LIBS += $(call EXPAND_LIBNAME,usp10 msimg32)
@@ -196,24 +151,11 @@ RCFLAGS += -DMOZ_THUNDERBIRD -I$(srcdir)
 else
 RCFLAGS += -DMOZ_THUNDERBIRD --include-dir $(srcdir)
 endif
-ifdef BUILD_STATIC_LIBS
-RCFLAGS += -DMOZ_STATIC_BUILD
-OS_LIBS += $(call EXPAND_LIBNAME,shlwapi)
-endif
-endif
-
-ifeq ($(OS_ARCH),BeOS)
-ifdef BUILD_STATIC_LIBS
-OS_LIBS += -ltracker -lgame
-endif
 endif
 
 ifeq ($(OS_ARCH),OS2)
 RESFILE=splashos2.res
 RCFLAGS += -DMOZ_THUNDERBIRD
-ifdef BUILD_STATIC_LIBS
-RCFLAGS += -DMOZ_STATIC_BUILD -i $(DIST)/include
-endif
 ifdef DEBUG
 RCFLAGS += -DDEBUG
 endif
@@ -228,19 +170,10 @@ ifdef MOZILLA_OFFICIAL
 DEFINES += -DMOZILLA_OFFICIAL
 endif
 
-ifdef BUILD_STATIC_LIBS
-include $(topsrcdir)/config/static-rules.mk
-
-DEFINES	+= -DIMPL_XREAPI
-endif
-
 APP_UA_NAME = $(shell echo $(MOZ_APP_DISPLAYNAME) | sed -e's/[^A-Za-z]//g')
 DEFINES += -DAPP_VERSION="$(MOZ_APP_VERSION)" -DAPP_UA_NAME="$(APP_UA_NAME)"
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-ifdef BUILD_STATIC_LIBS
-LIBS	+= -lcups
-endif
 LIBS	+= -framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework Carbon
 endif
 
@@ -257,12 +190,6 @@ ifeq ($(OS_ARCH),WINNT)
 #
 ifndef GNU_CC
 LDFLAGS += /HEAP:0x40000
-endif
-endif
-
-ifeq ($(OS_ARCH),AIX)
-ifdef BUILD_STATIC_LIBS
-LDFLAGS += -bbigtoc
 endif
 endif
 

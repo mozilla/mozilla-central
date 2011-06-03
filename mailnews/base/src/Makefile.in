@@ -101,10 +101,6 @@ CMMSRCS = nsMessengerOSXIntegration.mm
 endif
 
 ifeq ($(OS_ARCH),WINNT)
-ifdef BUILD_STATIC_LIBS
-DEFINES	+= -DMOZ_STATIC_BUILD
-endif
-
 CPPSRCS		+= nsMessengerWinIntegration.cpp 
 endif
 
