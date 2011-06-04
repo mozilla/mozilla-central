@@ -236,6 +236,7 @@ let gMessageHeaderSink = {
   securityInfo: null,
   mDummyMsgHeader: null,
   properties: null,
+  resetProperties: function () {}
 };
 
 let msgWindow = Cc["@mozilla.org/messenger/msgwindow;1"]
