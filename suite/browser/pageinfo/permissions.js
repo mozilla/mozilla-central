@@ -35,38 +35,36 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const ALLOW = nsIPermissionManager.ALLOW_ACTION;   // 1
-const BLOCK = nsIPermissionManager.DENY_ACTION;    // 2
+const ALLOW = Services.perms.ALLOW_ACTION;         // 1
+const BLOCK = Services.perms.DENY_ACTION;          // 2
 const SESSION = nsICookiePermission.ACCESS_SESSION;// 8
 var gPermURI;
-var gPrefs = Components.classes[PREFERENCES_CONTRACTID]
-                       .getService(Components.interfaces.nsIPrefBranch2);
 
 var gPermObj = {
   image: function getImageDefaultPermission()
   {
-    if (gPrefs.getIntPref("permissions.default.image") == 2)
+    if (Services.prefs.getIntPref("permissions.default.image") == 2)
       return BLOCK;
     return ALLOW;
   },
   cookie: function getCookieDefaultPermission()
   {
-    if (gPrefs.getIntPref("network.cookie.cookieBehavior") == 2)
+    if (Services.prefs.getIntPref("network.cookie.cookieBehavior") == 2)
       return BLOCK;
 
-    if (gPrefs.getIntPref("network.cookie.lifetimePolicy") == 2)
+    if (Services.prefs.getIntPref("network.cookie.lifetimePolicy") == 2)
       return SESSION;
     return ALLOW;
   },
   popup: function getPopupDefaultPermission()
   {
-    if (gPrefs.getBoolPref("dom.disable_open_during_load"))
+    if (Services.prefs.getBoolPref("dom.disable_open_during_load"))
       return BLOCK;
     return ALLOW;
   },
   install: function getInstallDefaultPermission()
   {
-    if (gPrefs.getBoolPref("xpinstall.whitelist.required"))
+    if (Services.prefs.getBoolPref("xpinstall.whitelist.required"))
       return BLOCK;
     return ALLOW;
   },
@@ -100,9 +98,7 @@ function onLoadPermission()
   if (/^https?/.test(gPermURI.scheme)) {
     var hostText = document.getElementById("hostText");
     hostText.value = gPermURI.host;
-    Components.classes["@mozilla.org/observer-service;1"]
-              .getService(Components.interfaces.nsIObserverService)
-              .addObserver(permissionObserver, "perm-changed", false);
+    Services.obs.addObserver(permissionObserver, "perm-changed", false);
   }
   for (var i in gPermObj)
     initRow(i);
@@ -111,17 +107,12 @@ function onLoadPermission()
 function onUnloadPermission()
 {
   if (/^https?/.test(gPermURI.scheme)) {
-    Components.classes["@mozilla.org/observer-service;1"]
-              .getService(Components.interfaces.nsIObserverService)
-              .removeObserver(permissionObserver, "perm-changed");
+    Services.obs.removeObserver(permissionObserver, "perm-changed");
   }
 }
 
 function initRow(aPartId)
 {
-  var permissionManager = Components.classes[PERMISSION_CONTRACTID]
-                                    .getService(nsIPermissionManager);
-
   var checkbox = document.getElementById(aPartId + "Def");
   var command  = document.getElementById("cmd_" + aPartId + "Toggle");
   if (!/^https?/.test(gPermURI.scheme)) {
@@ -132,7 +123,7 @@ function initRow(aPartId)
     return;
   }
   checkbox.removeAttribute("disabled");
-  var perm = permissionManager.testPermission(gPermURI, aPartId);
+  var perm = Services.perms.testPermission(gPermURI, aPartId);
   if (perm) {
     checkbox.checked = false;
     command.removeAttribute("disabled");
@@ -147,13 +138,10 @@ function initRow(aPartId)
 
 function onCheckboxClick(aPartId)
 {
-  var permissionManager = Components.classes[PERMISSION_CONTRACTID]
-                                    .getService(nsIPermissionManager);
-
   var command  = document.getElementById("cmd_" + aPartId + "Toggle");
   var checkbox = document.getElementById(aPartId + "Def");
   if (checkbox.checked) {
-    permissionManager.remove(gPermURI.host, aPartId);
+    Services.perms.remove(gPermURI.host, aPartId);
     command.setAttribute("disabled", "true");
     var perm = gPermObj[aPartId]();
     setRadioState(aPartId, perm);
@@ -166,13 +154,10 @@ function onCheckboxClick(aPartId)
 
 function onRadioClick(aPartId)
 {
-  var permissionManager = Components.classes[PERMISSION_CONTRACTID]
-                                    .getService(nsIPermissionManager);
-
   var radioGroup = document.getElementById(aPartId + "RadioGroup");
   var id = radioGroup.selectedItem.id;
   var permission = id.split('-')[1];
-  permissionManager.add(gPermURI, aPartId, permission);
+  Services.perms.add(gPermURI, aPartId, permission);
 }
 
 function setRadioState(aPartId, aValue)

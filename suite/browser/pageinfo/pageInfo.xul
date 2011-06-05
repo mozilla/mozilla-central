@@ -298,7 +298,9 @@
           </grid>
           <hbox align="end">
             <vbox>
-              <checkbox id="blockImage" hidden="true" oncommand="onBlockImage()"
+              <checkbox id="blockImage"
+                        hidden="true"
+                        oncommand="onBlockImage(this.checked);"
                         accesskey="&mediaBlockImage.accesskey;"/>
               <label control="thepreviewimage" value="&mediaPreview;" class="header"/>
             </vbox>

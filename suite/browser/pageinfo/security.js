@@ -299,13 +299,7 @@ function hostHasCookies(hostName) {
   if (!hostName)
     return false;
 
-  try {
-    var cookieManager = Components.classes["@mozilla.org/cookiemanager;1"]
-                                  .getService(Components.interfaces.nsICookieManager2);
-  }
-  catch (ex) { return false; }
-
-  return cookieManager.countCookiesFromHost(hostName) > 0;
+  return Services.cookies.countCookiesFromHost(hostName) > 0;
 }
 
 /**
@@ -316,13 +310,7 @@ function realmHasPasswords(location) {
   if (!location) 
     return false;
   
-  try {
-    var passwordManager = Components.classes["@mozilla.org/login-manager;1"]
-                                    .getService(Components.interfaces.nsILoginManager);
-  }
-  catch (ex) { return false; }
-
-  return passwordManager.countLogins(makeURI(location).prePath, "", "") > 0;
+  return Services.logins.countLogins(makeURI(location).prePath, "", "") > 0;
 }
 
 /**

@@ -194,8 +194,6 @@ const DRAGSERVICE_CONTRACTID    = "@mozilla.org/widget/dragservice;1";
 const TRANSFERABLE_CONTRACTID   = "@mozilla.org/widget/transferable;1";
 const ARRAY_CONTRACTID          = "@mozilla.org/supports-array;1";
 const STRING_CONTRACTID         = "@mozilla.org/supports-string;1";
-const PERMISSION_CONTRACTID     = "@mozilla.org/permissionmanager;1";
-const PREFERENCES_CONTRACTID    = "@mozilla.org/preferences-service;1";
 
 // a number of services I'll need later
 // the cache services
@@ -208,7 +206,6 @@ var ftpCacheSession = cacheService.createSession("FTP", 0, true);
 ftpCacheSession.doomEntriesIfExpired = false;
 
 const nsICookiePermission  = Components.interfaces.nsICookiePermission;
-const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
 
 const nsICertificateDialogs = Components.interfaces.nsICertificateDialogs;
 const CERTIFICATEDIALOGS_CONTRACTID = "@mozilla.org/nsCertificateDialogs;1"
@@ -322,9 +319,7 @@ function onLoadPageInfo()
   /* Select the requested tab, if the name is specified */
   var initialTab = (args && args.initialTab) || "generalTab";
   showTab(initialTab);
-  Components.classes["@mozilla.org/observer-service;1"]
-            .getService(Components.interfaces.nsIObserverService)
-            .notifyObservers(window, "page-info-dialog-loaded", null);
+  Services.obs.notifyObservers(window, "page-info-dialog-loaded", null);
 }
 
 function loadPageInfo()
@@ -353,9 +348,7 @@ function resetPageInfo(args)
   /* Reset Media tab */
   // Remove the observer, only if there is at least 1 image.
   if (gImageView.data.length != 0) {
-    Components.classes["@mozilla.org/observer-service;1"]
-              .getService(Components.interfaces.nsIObserverService)
-              .removeObserver(imagePermissionObserver, "perm-changed");
+    Services.obs.removeObserver(imagePermissionObserver, "perm-changed");
   }
 
   /* Reset tree views */
@@ -384,18 +377,14 @@ function resetPageInfo(args)
 
   if (args && args.initialTab)
     showTab(args.initialTab);
-  Components.classes["@mozilla.org/observer-service;1"]
-            .getService(Components.interfaces.nsIObserverService)
-            .notifyObservers(window, "page-info-dialog-reset", null);
+  Services.obs.notifyObservers(window, "page-info-dialog-reset", null);
 }
 
 function onUnloadPageInfo()
 {
   // Remove the observer, only if there is at least 1 image.
   if (gImageView.data.length != 0) {
-    Components.classes["@mozilla.org/observer-service;1"]
-              .getService(Components.interfaces.nsIObserverService)
-              .removeObserver(imagePermissionObserver, "perm-changed");
+    Services.obs.removeObserver(imagePermissionObserver, "perm-changed");
   }
 
   /* Call registered overlay unload functions */
@@ -591,9 +580,7 @@ function addImage(url, type, alt, elem, isBg)
 
     // Add the observer, only once.
     if (gImageView.data.length == 1) {
-      Components.classes["@mozilla.org/observer-service;1"]
-                .getService(Components.interfaces.nsIObserverService)
-                .addObserver(imagePermissionObserver, "perm-changed", false);
+      Services.obs.addObserver(imagePermissionObserver, "perm-changed", false);
     }
   }
   else {
@@ -662,12 +649,10 @@ function grabAll(elem)
     addImage(elem.src, gStrings.mediaEmbed, "", elem, false);
   else if (elem.hasAttributeNS(XLinkNS, "href"))
   {
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
     url = elem.getAttributeNS(XLinkNS, "href");
     try {
-      var baseURI = ioService.newURI(elem.baseURI, elem.ownerDocument.characterSet, null);
-      url = ioService.newURI(url, elem.ownerDocument.characterSet, baseURI).spec;
+      var baseURI = Services.io.newURI(elem.baseURI, elem.ownerDocument.characterSet, null);
+      url = Services.io.newURI(url, elem.ownerDocument.characterSet, baseURI).spec;
     } catch (e) {}
     // SVG images without an xlink:href attribute are ignored
     if (elem instanceof SVGImageElement)
@@ -819,10 +804,8 @@ function selectSaveFolder()
   var titleText = gBundle.getString("mediaSelectFolder");
   fp.init(window, titleText, nsIFilePicker.modeGetFolder);
   try {
-    var prefs = Components.classes[PREFERENCES_CONTRACTID]
-                          .getService(Components.interfaces.nsIPrefBranch2);
-
-    var initialDir = prefs.getComplexValue("browser.download.dir", nsILocalFile);
+    var initialDir = Services.prefs.getComplexValue("browser.download.dir",
+                                                    nsILocalFile);
     if (initialDir)
       fp.displayDirectory = initialDir;
   }
@@ -890,17 +873,13 @@ function saveMedia()
   }
 }
 
-function onBlockImage()
+function onBlockImage(aChecked)
 {
-  var permissionManager = Components.classes[PERMISSION_CONTRACTID]
-                                    .getService(nsIPermissionManager);
-
-  var checkbox = document.getElementById("blockImage");
   var uri = makeURI(document.getElementById("imageurltext").value);
-  if (checkbox.checked)
-    permissionManager.add(uri, "image", nsIPermissionManager.DENY_ACTION);
+  if (aChecked)
+    Services.perms.add(uri, "image", Services.perms.DENY_ACTION);
   else
-    permissionManager.remove(uri.host, "image");
+    Services.perms.remove(uri.host, "image");
 }
 
 function onImageSelect()
@@ -1142,13 +1121,8 @@ function makePreview(row)
 
 function makeBlockImage(url)
 {
-  var permissionManager = Components.classes[PERMISSION_CONTRACTID]
-                                    .getService(nsIPermissionManager);
-  var prefs = Components.classes[PREFERENCES_CONTRACTID]
-                        .getService(Components.interfaces.nsIPrefBranch2);
-
   var checkbox = document.getElementById("blockImage");
-  var imagePref = prefs.getIntPref("permissions.default.image");
+  var imagePref = Services.prefs.getIntPref("permissions.default.image");
   if (!(/^https?:/.test(url)) || imagePref == 2)
     // We can't block the images from this host because either is is not
     // for http(s) or we don't load images at all
@@ -1158,8 +1132,8 @@ function makeBlockImage(url)
     if (uri.host) {
       checkbox.hidden = false;
       checkbox.label = gBundle.getFormattedString("mediaBlockImage", [uri.host]);
-      var perm = permissionManager.testPermission(uri, "image");
-      checkbox.checked = perm == nsIPermissionManager.DENY_ACTION;
+      var perm = Services.perms.testPermission(uri, "image");
+      checkbox.checked = perm == Services.perms.DENY_ACTION;
     }
     else
       checkbox.hidden = true;
