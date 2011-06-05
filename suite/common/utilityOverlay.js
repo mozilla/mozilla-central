@@ -67,7 +67,6 @@ const kProxyManual = ["network.proxy.ftp",
 const kExistingWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_CURRENTWINDOW;
 const kNewWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWWINDOW;
 const kNewTab = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWTAB;
-const nsIPrefLocalizedString = Components.interfaces.nsIPrefLocalizedString;
 var TAB_DROP_TYPE = "application/x-moz-tabbrowser-tab";
 var gShowBiDi = false;
 var gUtilityBundle = null;
@@ -183,6 +182,17 @@ function GetStringPref(name)
                Components.interfaces.nsISupportsString).data;
   } catch (e) {}
   return "";
+}
+
+function GetLocalizedStringPref(aPrefName, aDefaultValue)
+{
+  try {
+    return Services.prefs.getComplexValue(aPrefName,
+               Components.interfaces.nsIPrefLocalizedString).data;
+  } catch (e) {
+    Components.utils.reportError("Couldn't get " + aPrefName + " pref: " + e);
+  }
+  return aDefaultValue;
 }
 
 function setOfflineUI(offline)
@@ -539,13 +549,7 @@ function toolboxCustomizeChange(toolbox, event)
 
 function goClickThrobber(urlPref, aEvent)
 {
-  var url;
-  try {
-    url = Services.prefs.getComplexValue(urlPref, nsIPrefLocalizedString).data;
-  }
-  catch(e) {
-    url = null;
-  }
+  var url = GetLocalizedStringPref(urlPref);
 
   if (url) {
     var where = whereToOpenLink(aEvent, false, true, true);
@@ -1089,14 +1093,8 @@ function BrowserOnCommand(event)
     }
     else if (ot.getAttribute('anonid') == 'getMeOutOfHereButton') {
       // Redirect them to a known-functioning page, default start page
-      var url = "about:blank";
-      try {
-        url = Services.prefs.getComplexValue("browser.startup.homepage",
-                                             nsIPrefLocalizedString).data;
-      } catch(e) {
-        Components.utils.reportError("Couldn't get homepage pref: " + e);
-      }
-      content.location = url;
+      content.location = GetLocalizedStringPref("browser.startup.homepage",
+                                                "about:blank");
     }
   }
 }
