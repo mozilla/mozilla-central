@@ -64,7 +64,7 @@ var taskDetailsView = {
             this._initializeToolbar();
 
             displayElement("calendar-task-details-title-row", true);
-            document.getElementById("calendar-task-details-title").value =
+            document.getElementById("calendar-task-details-title").textContent =
                 (item.title ? item.title.replace(/\n/g, ' ') : "");
 
             var organizer = item.organizer;
@@ -84,15 +84,16 @@ var taskDetailsView = {
                     document.getElementById("calendar-task-details-organizer").value = name;
                 }
             }
+
             var priority = 0;
             if (item.calendar.getProperty("capabilities.priority.supported") != false) {
                 priority = parseInt(item.priority);
             }
-            if (displayElement("calendar-task-details-priority-row", priority > 0)) {
-                displayElement("calendar-task-details-priority-low", (priority >= 6 && priority <= 9));
-                displayElement("calendar-task-details-priority-normal", priority == 5);
-                displayElement("calendar-task-details-priority-high", (priority >= 1 && priority <= 4));
-            }
+            displayElement("calendar-task-details-priority-label", (priority > 0));
+            displayElement("calendar-task-details-priority-low", (priority >= 6 && priority <= 9));
+            displayElement("calendar-task-details-priority-normal", priority == 5);
+            displayElement("calendar-task-details-priority-high", (priority >= 1 && priority <= 4));
+
             var status = item.getProperty("STATUS");
             if (displayElement("calendar-task-details-status-row", status && status.length > 0)) {
                 var statusDetails = document.getElementById("calendar-task-details-status");

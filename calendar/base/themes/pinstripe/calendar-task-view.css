@@ -46,13 +46,15 @@
 
 #calendar-header-name-column,
 #calendar-task-details-attachment-row > hbox {
-    width: 7em;
+    -moz-padding-start: 0.1em;
 }
 
 #calendar-task-details-grid,
 #other-actions-box {
-    padding: 0.5em;
+    padding: 0.1em;
     -moz-padding-start: 0;
+    -moz-padding-end: 0;
+    padding-bottom: 0.2em;
 }
 
 #calendar-task-details {
@@ -139,8 +141,7 @@
 /* ::::: task actions toolbar ::::: */
 
 #task-actions-toolbox {
-    -moz-padding-end: 6px;
-    padding-top: 3px;
+    border: none;
 }
 
 #task-actions-toolbar {
@@ -148,6 +149,7 @@
     -moz-box-pack: end;
     min-width: 50px !important;
     min-height: 14px !important;
+    border: none;
 }
 
 #task-actions-toolbar toolbarpaletteitem toolbarseparator,
