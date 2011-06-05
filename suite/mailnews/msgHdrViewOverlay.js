@@ -607,6 +607,11 @@ var messageHeaderSink = {
         this.mProperties = Components.classes["@mozilla.org/hash-property-bag;1"].
           createInstance(Components.interfaces.nsIWritablePropertyBag2);
       return this.mProperties;
+    },
+
+    resetProperties: function()
+    {
+      this.mProperties = null;
     }
 };
 
