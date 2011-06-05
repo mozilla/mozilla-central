@@ -472,11 +472,12 @@ function openAboutDialog()
     return;
   }
 
-#ifdef XP_MACOSX
+#ifdef XP_WIN
+  var features = "chrome,centerscreen,dependent";
+#elifdef XP_MACOSX
   var features = "chrome,resizable=no,minimizable=no";
 #else
-  // XXX Should have dependent as well?
-  var features = "chrome,centerscreen,resizable=no";
+  var features = "chrome,centerscreen,dependent,dialog=no";
 #endif
   window.openDialog("chrome://messenger/content/aboutDialog.xul", "About", features);
 }
