@@ -95,6 +95,8 @@ function setupModule(module) {
 
   // create some messages that have various types of attachments
   let messages = [
+    // no attachment
+    {},
     // raw attachment
     { attachments: [{ body: rawAttachment,
                       filename: 'ubik.txt',
@@ -189,6 +191,8 @@ function test_file_attachment() {
   add_attachment(cwc, url, size);
   check_attachment_size(cwc, 0, size);
   check_total_attachment_size(cwc, 1);
+
+  close_compose_window(cwc);
 }
 
 function test_webpage_attachment() {
@@ -197,6 +201,8 @@ function test_webpage_attachment() {
   add_attachment(cwc, "http://www.mozillamessaging.com/");
   check_no_attachment_size(cwc, 0);
   check_total_attachment_size(cwc, 1);
+
+  close_compose_window(cwc);
 }
 
 function test_multiple_attachments() {
@@ -211,6 +217,7 @@ function test_multiple_attachments() {
   }
 
   check_total_attachment_size(cwc, files.length);
+  close_compose_window(cwc);
 }
 
 function test_delete_attachments() {
@@ -226,6 +233,8 @@ function test_delete_attachments() {
 
   delete_attachment(cwc, 0);
   check_total_attachment_size(cwc, files.length-1);
+
+  close_compose_window(cwc);
 }
 
 function subtest_rename_attachment(cwc) {
@@ -251,23 +260,53 @@ function test_rename_attachment() {
 
   check_attachment_size(cwc, 0, size);
   check_total_attachment_size(cwc, 1);
+
+  close_compose_window(cwc);
 }
 
 function test_forward_raw_attachment() {
   be_in_folder(folder);
-  let curMessage = select_click_row(0);
+  let curMessage = select_click_row(1);
 
   let cwc = open_compose_with_forward();
   check_attachment_size(cwc, 0, rawAttachment.length);
+  check_total_attachment_size(cwc, 1);
+
+  close_compose_window(cwc);
 }
 
 function test_forward_b64_attachment() {
   be_in_folder(folder);
-  let curMessage = select_click_row(1);
+  let curMessage = select_click_row(2);
 
   let cwc = open_compose_with_forward();
   check_attachment_size(cwc, 0, b64Size);
+  check_total_attachment_size(cwc, 1);
+
+  close_compose_window(cwc);
 }
 
-// XXX: Test attached emails and files pulled from other emails (this probably
-// requires better drag-and-drop support from Mozmill)
+function test_forward_message_as_attachment() {
+  be_in_folder(folder);
+  let curMessage = select_click_row(0);
+
+  let cwc = open_compose_with_forward_as_attachments();
+  check_attachment_size(cwc, 0, curMessage.messageSize);
+  check_total_attachment_size(cwc, 1);
+
+  close_compose_window(cwc);
+}
+
+function test_forward_message_with_attachments_as_attachment() {
+  be_in_folder(folder);
+  let curMessage = select_click_row(1);
+
+  let cwc = open_compose_with_forward_as_attachments();
+  check_attachment_size(cwc, 0, curMessage.messageSize);
+  check_total_attachment_size(cwc, 1);
+
+  close_compose_window(cwc);
+}
+
+// XXX: Test attached emails dragged onto composer and files pulled from other
+// emails (this probably requires better drag-and-drop support from Mozmill)

@@ -2095,6 +2095,11 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
               else
                 sanitizedSubj.Assign(subject);
 
+              // set the file size
+              PRUint32 messageSize;
+              msgHdr->GetMessageSize(&messageSize);
+              attachment->SetSize(messageSize);
+
               // change all '.' to '_'  see bug #271211
               MsgReplaceChar(sanitizedSubj, ".", '_');
               if (addExtension)
