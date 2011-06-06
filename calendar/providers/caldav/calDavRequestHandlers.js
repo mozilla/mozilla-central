@@ -752,7 +752,7 @@ multigetSyncHandler.prototype = {
             this._reader.onStartRequest(request, context);
         } else {
             let errorMsg = "CalDAV: Error: got status " + responseStatus +
-                               " fetching calendar data for " + thisCalendar.name + ", " + aListener;
+                               " fetching calendar data for " + this.calendar.name + ", " + this.listener;
             this.calendar.notifyGetFailed(errorMsg, this.listener, this.changeLogListener);
             this._reader = null;
         }
