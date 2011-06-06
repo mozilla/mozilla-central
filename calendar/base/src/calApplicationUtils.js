@@ -45,14 +45,14 @@ function openAboutDialog()
   var url = (appInfo.ID == SUNBIRD_ID) ?
     "chrome://sunbird/content/aboutDialog.xul" :
     "chrome://messenger/content/aboutDialog.xul" ;
-  var name = "About";
-#ifdef XP_MACOSX
-  // Define minimizable=no although it does nothing on OS X (bug 287162).
-  // Remove this comment once bug 287162 is fixed
-  window.open(url, name, "centerscreen,chrome,resizable=no,minimizable=no");
+#ifdef XP_WIN
+  var features = "chrome,centerscreen,dependent";
+#elifdef XP_MACOSX
+  var features = "chrome,resizable=no,minimizable=no";
 #else
-  window.openDialog(url, name, "modal,centerscreen,chrome,resizable=no");
+  var features = "chrome,centerscreen,dependent,dialog=no";
 #endif
+  window.openDialog(url, "About", features);
 }
 
 /**
