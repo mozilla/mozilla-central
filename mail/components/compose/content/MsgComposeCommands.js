@@ -1522,24 +1522,26 @@ function ComposeStartup(recycled, aParams)
         composeFields.subject = args.subject;
       if (args.attachment)
       {
-        var attachmentList = args.attachment.split(",");
-        var attachment;
-        var localFile = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
-        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-        ioService = ioService.getService(Components.interfaces.nsIIOService);
-        var fileHandler = ioService.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
-        for (let i = 0; i < attachmentList.length; i++)
+        let attachmentList = args.attachment.split(",");
+        let fileHandler = Services.io.getProtocolHandler("file")
+                                  .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+        for (let [,attachmentName] in Iterator(attachmentList))
         {
-          var attachmentStr = attachmentList[i];
-          attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"].createInstance(Components.interfaces.nsIMsgAttachment);
-          if (/^file:\/\//i.test(attachmentStr))
+          let attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
+                                     .createInstance(Components.interfaces.nsIMsgAttachment);
+          if (/^file:\/\//i.test(attachmentName))
           {
-            attachment.url = encodeURI(attachmentStr);
+            let localFile = fileHandler.getFileFromURLSpec(attachmentName);
+            attachment.url = encodeURI(attachmentName);
+            attachment.size = localFile.fileSize;
           }
           else
           {
-            localFile.initWithPath(attachmentList[i]);
-            attachment.url = fileHandler.getURLSpecFromFile(localFile);;
+            let localFile = Components.classes["@mozilla.org/file/local;1"]
+                                      .createInstance(Components.interfaces.nsILocalFile);
+            localFile.initWithPath(attachmentName);
+            attachment.url = fileHandler.getURLSpecFromFile(localFile);
+            attachment.size = localFile.fileSize;
           }
           composeFields.addAttachment(attachment);
         }
