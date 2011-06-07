@@ -2817,8 +2817,8 @@ function toggleLink() {
  * This function updates dialog controls related to attendees.
  */
 function updateAttendees() {
-    var attendeeRow = document.getElementById("event-grid-attendee-row");
-    var attendeeRow2 = document.getElementById("event-grid-attendee-row-2");
+    let attendeeRow = document.getElementById("event-grid-attendee-row");
+    let attendeeRow2 = document.getElementById("event-grid-attendee-row-2");
     if (window.attendees && window.attendees.length > 0) {
         attendeeRow.removeAttribute('collapsed');
         if (isEvent(window.calendarItem)) { // sending email invitations currently only supported for events
@@ -2827,31 +2827,40 @@ function updateAttendees() {
             attendeeRow2.setAttribute('collapsed', 'true');
         }
 
-        var attendeeNames = "";
-        var numAttendees = window.attendees.length;
-        var regexp = new RegExp("^mailto:(.*)", "i");
-        for (var i = 0; i < numAttendees; i++) {
-            var attendee = window.attendees[i];
-            if (attendee.commonName && attendee.commonName.length) {
-                attendeeNames += (attendee.commonName.search(/[,;]/) != -1) ? '"' + attendee.commonName + '"'
-                                                                            : attendee.commonName;
+        let attendeeNames = [];
+        let attendeeEmails = [];
+        let numAttendees = window.attendees.length;
+        let emailRE = new RegExp("^mailto:(.*)", "i");
+        for (let i = 0; i < numAttendees; i++) {
+            let attendee = window.attendees[i];
+            let name = attendee.commonName;
+            if (name && name.length) {
+                attendeeNames.push(name);
+                let email = attendee.id;
+                if (email && email.length) {
+                    if (emailRE.test(email)) {
+                        name += ' <' + RegExp.$1 + '>';
+                    } else {
+                        name += ' <' + email + '>';
+                    }
+                    attendeeEmails.push(name);
+                }
             } else if (attendee.id && attendee.id.length) {
-                var email = attendee.id;
-                if (regexp.test(email)) {
-                    attendeeNames += RegExp.$1;
+                let email = attendee.id;
+                if (emailRE.test(email)) {
+                    attendeeNames.push(RegExp.$1);
                 } else {
-                    attendeeNames += email;
+                    attendeeNames.push(email);
                 }
             } else {
                 continue;
             }
-            if (i + 1 < numAttendees) {
-                attendeeNames += ', ';
-            }
         }
-        var attendeeList = document.getElementById("attendee-list");
-        var callback = function func() {
-            attendeeList.setAttribute('value', attendeeNames);
+
+        let attendeeList = document.getElementById("attendee-list");
+        let callback = function func() {
+            attendeeList.setAttribute('value', attendeeNames.join(', '));
+            attendeeList.setAttribute('tooltiptext', attendeeEmails.join(', '));
         }
         setTimeout(callback, 1);
     } else {

@@ -710,6 +710,7 @@
               <label id="attendee-list"
                      class="text-link"
                      crop="right"
+                     tooltiptext=""
                      onclick="showAttendeePopup(event)"/>
             </row>
             <row id="event-grid-attendee-row-2" align="center">
