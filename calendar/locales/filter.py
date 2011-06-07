@@ -1,6 +1,6 @@
-import re
 
 def test(mod, path, entity = None):
+  import re
 
   # ignore anyhting but calendar stuff
   if mod not in ("netwerk", "dom", "toolkit", "security/manager",
