@@ -73,6 +73,7 @@
                          completedefaultindex="true"
                          forcecomplete="true"
                          minresultsforpopup="1"
+                         onblur="if (this.localName == 'textbox') document.getBindingParent(this).onBlurInput(event);"
                          ignoreblurwhilesearching="true"
                          oninput="this.setAttribute('dirty', 'true');">
               <xul:image class="person-icon" onclick="this.parentNode.select();"/>
@@ -386,18 +387,22 @@
 
       <method name="appendNewRow">
         <parameter name="aSetFocus"/>
+        <parameter name="aInsertAfter"/>
         <body><![CDATA[
           var listbox =
               document.getAnonymousElementByAttribute(
                   this, "anonid", "listbox");
           var listitem1 = this.getListItem(1);
+          var newNode = null;
 
           if (listbox && listitem1) {
               var newAttendee = this.createAttendee();
               var nextDummy = this.getNextDummyRow();
-              var newNode = listitem1.cloneNode(true);
+              newNode = listitem1.cloneNode(true);
 
-              if (nextDummy) {
+              if (aInsertAfter) {
+                  listbox.insertBefore(newNode, aInsertAfter.nextSibling);
+              } else if (nextDummy) {
                   listbox.replaceChild(newNode, nextDummy);
               } else {
                   listbox.appendChild(newNode);
@@ -459,13 +464,13 @@
 
               // focus on new input widget
               if (aSetFocus) {
-                  this.setFocus(this.mMaxAttendees);
+                  this.setFocus(newNode);
               }
-
-              this.onModify();
           }
+          return newNode;
         ]]></body>
       </method>
+
 
       <property name="attendees">
         <getter><![CDATA[
@@ -577,6 +582,32 @@
           return null;
         ]]></getter>
       </property>
+
+      <method name="onBlurInput">
+        <parameter name="event"/>
+        <body><![CDATA[
+          if (this.mHeaderParser) {
+              var emailAddresses = {};
+              var names = {};
+              var fullNames = {};
+              this.mHeaderParser.parseHeadersWithArray(
+                    event.target.value,
+                    emailAddresses,
+                    names,
+                    fullNames);
+              if (emailAddresses.value.length > 1) {
+                  let firstFullName = fullNames.value.shift();
+                  event.target.value = firstFullName;
+                  let insertAfterItem = this.getListItem(this.getRowByInputElement(event.target));
+                  for each (let full in fullNames.value) {
+                      insertAfterItem = this.appendNewRow(false, insertAfterItem);
+                      let textinput = this.getInputFromListitem(insertAfterItem);
+                      textinput.value = full;
+                  }
+              }
+          }
+        ]]></body>
+      </method>
 
       <method name="onModify">
         <body><![CDATA[
@@ -782,6 +813,13 @@
         ]]></body>
       </method>
 
+      <method name="getInputFromListitem">
+        <parameter name="aListItem"/>
+        <body><![CDATA[
+          return aListItem.getElementsByTagNameNS("*", "textbox")[0];
+        ]]></body>
+      </method>
+
       <method name="getRowByInputElement">
         <parameter name="aElement"/>
         <body><![CDATA[
@@ -829,8 +867,14 @@
         <body><![CDATA[
           var self = this;
           var set_focus = function() {
+              var node;
+              if (typeof aRow == 'number') {
+                node = self.getListItem(aRow);
+              } else {
+                node = aRow;
+              }
+
               // do we need to scroll in order to see the selected row?
-              var node = self.getListItem(aRow);
               var listbox =
                   document.getAnonymousElementByAttribute(
                       self, "anonid", "listbox");
