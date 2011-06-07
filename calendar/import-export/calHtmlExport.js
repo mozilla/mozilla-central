@@ -105,6 +105,7 @@ calHtmlExporter.prototype = {
         html.head.style += "abbr {border: none;}\n";
         html.head.style += ".summarykey {display: none;}\n";
         html.head.style += "div.summary {background: white; font-weight: bold; margin: 0px; padding: 3px;}\n";
+        html.head.style += "div.description { white-space: pre-wrap; }\n";
 
         // Sort aItems
         function sortFunc(a, b) {
@@ -168,35 +169,14 @@ calHtmlExporter.prototype = {
                 );
             }
 
-            // Description, inside a pre to preserve formating when needed.
             let desc = item.getProperty('DESCRIPTION');
             if (desc && desc.length > 0) {
-                let usePre = false;
-                if (desc.indexOf("\n ") >= 0 || desc.indexOf("\n\t") >= 0 ||
-                    desc.indexOf(" ") == 0 || desc.indexOf("\t") == 0)
-                    // (RegExp /^[ \t]/ doesn't work.)
-                    // contains indented preformatted text after beginning or newline
-                    // so preserve indentation with PRE.
-                    usePre = true;
-
                 let descnode =
                     <div>
                         <div class='key'>{prefixDescription}</div>
-                        <div class='value'/>
+                        <div class='value description'>{desc}</div>
                     </div>;
 
-                if (usePre) {
-                    descnode.div[1] = <pre class='description'>{desc}</pre>;
-                } else {
-                    let lines = desc.split('\n');
-                    for (let i in lines) {
-                        descnode.div[1].appendChild(lines[i]);
-                        // Add a new line, except after the last line
-                        if (i != (lines.length-1)) {
-                            descnode.div[1].appendChild(<br/>);
-                        }
-                    }
-                }
                 ev.appendChild(descnode);
             }
             html.body.appendChild(ev);
