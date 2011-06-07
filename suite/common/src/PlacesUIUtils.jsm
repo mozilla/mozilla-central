@@ -1327,9 +1327,6 @@ XPCOMUtils.defineLazyGetter(PlacesUIUtils, "ptm", function() {
     editLivemarkFeedURI: function(aLivemarkId, aFeedURI)
       new PlacesEditLivemarkFeedURITransaction(aLivemarkId, aFeedURI),
 
-    editBookmarkMicrosummary: function(aItemId, aNewMicrosummary)
-      new PlacesEditBookmarkMicrosummaryTransaction(aItemId, aNewMicrosummary),
-
     editItemDateAdded: function(aItemId, aNewDateAdded)
       new PlacesEditItemDateAddedTransaction(aItemId, aNewDateAdded),
 

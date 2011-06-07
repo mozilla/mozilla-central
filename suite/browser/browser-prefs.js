@@ -189,10 +189,6 @@ pref("browser.urlbar.restrict.typed", "~");
 pref("browser.urlbar.match.title", "#");
 pref("browser.urlbar.match.url", "@");
 
-// Whether or not microsummary and generator updates are enabled.
-pref("browser.microsummary.enabled", true);
-pref("browser.microsummary.updateGenerators", true);
-
 pref("browser.history.grouping", "day");
 pref("browser.sessionhistory.max_entries", 50);
 
