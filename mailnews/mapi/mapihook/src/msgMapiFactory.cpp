@@ -67,13 +67,13 @@ STDMETHODIMP CMapiFactory::QueryInterface(const IID& aIid, void** aPpv)
 
 STDMETHODIMP_(ULONG) CMapiFactory::AddRef()
 {
-    return (PR_AtomicIncrement(&m_cRef));
+    return (PR_ATOMIC_INCREMENT(&m_cRef));
 }
 
 STDMETHODIMP_(ULONG) CMapiFactory::Release() 
 {
     PRInt32 temp;
-    temp = PR_AtomicDecrement(&m_cRef);
+    temp = PR_ATOMIC_DECREMENT(&m_cRef);
     if (m_cRef == 0)
     {
         delete this;

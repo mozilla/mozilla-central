@@ -189,7 +189,7 @@ NS_IMETHODIMP_(nsrefcnt) nsAddrDatabase::Release(void)
 {
   // XXX FIX THIS
   NS_PRECONDITION(0 != mRefCnt, "dup release");
-  nsrefcnt count = PR_AtomicDecrement((PRInt32 *)&mRefCnt);
+  nsrefcnt count = NS_AtomicDecrementRefcnt(mRefCnt);
   NS_LOG_RELEASE(this, count,"nsAddrDatabase");
   if (count == 0)    // OK, the cache is no longer holding onto this, so we really want to delete it,
   {                // after removing it from the cache.
