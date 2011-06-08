@@ -142,7 +142,7 @@ function EnableSoundUrl(aCustomSelected)
 {
   EnableElementById("playSoundUrl", aCustomSelected, false);
   EnableElement(gSelectSound, aCustomSelected, false);
-  EnableElementById("previewSound", aCustomSelected, false);
+  EnableElementById("playSoundButton", aCustomSelected, false);
 }
 
 function ReadSoundLocation(aElement)
