@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ * Richard Marti <mozilla@paenglab.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,20 +37,153 @@
 
 #task-actions-category {
     list-style-image: url(chrome://calendar/skin/tasks-actions-aero.png);
-    -moz-image-region: rect(0px, 16px, 16px, 0px);
+    -moz-image-region: rect(0 18px 18px 0);
 }
 
 #task-actions-markcompleted {
     list-style-image: url(chrome://calendar/skin/tasks-actions-aero.png);
-    -moz-image-region: rect(0px, 32px, 16px, 16px);
+    -moz-image-region: rect(0 34px 18px 18px);
 }
 
 #task-actions-priority {
     list-style-image: url(chrome://calendar/skin/tasks-actions-aero.png);
-    -moz-image-region: rect(0px, 48px, 16px, 32px);
+    -moz-image-region: rect(0 52px 18px 34px);
 }
 
 #calendar-delete-task-button {
     list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
-    -moz-image-region: rect(0px, 144px, 18px, 126px);
+    -moz-image-region: rect(0 144px 18px 126px);
+}
+
+#unifinder-search-field,
+#view-task-edit-field {
+  -moz-appearance: none;
+  background-clip: padding-box;
+  border: 1px solid ThreeDDarkShadow;
+  border-radius: 3.5px;
+}
+
+@media all and (-moz-windows-default-theme) {
+  #unifinder-search-field,
+  #view-task-edit-field {
+    border-color: rgba(0, 0, 0, .32);
+  }
+
+  #bottom-events-box >#unifinder-searchBox,
+  #task-addition-box {
+    background-color: #f8f8f8;
+    border-top-width: 0;
+  }
+
+  sidebarheader {
+    -moz-appearance: none;
+    background-color: #f8f8f8;
+    border-bottom: none;
+  }
+
+  #unifinder-search-results-tree > treechildren::-moz-tree-row,
+  #calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-row {
+    border-bottom: 2px solid transparent;
+  }
+
+  #calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-cell {
+    border-right: 1px solid transparent;
+  }
+}
+
+#calsidebar_splitter {
+  border: none;
+  border-left: 1px solid #A9B7C9;
+  min-width: 0;
+  width: 5px;
+  background-color: transparent;
+  margin-top: 0;
+  -moz-margin-end: -5px;
+  position: relative;
+  z-index: 10;
+  -moz-transition: border-width .3s ease-in;
+}
+
+#today-splitter {
+  border: none;
+  border-right: 1px solid #A9B7C9;
+  min-width: 0;
+  width: 5px;
+  background-color: transparent;
+  margin-top: 0;
+  -moz-margin-start: -5px;
+  position: relative;
+  z-index: 10;
+  -moz-transition: border-width .3s ease-in;
+}
+
+/* Until Bug 621351 is fixed we need border-right and border-left in
+ * combination with -moz-locale-dir instead of -moz-border-end and
+ * -moz-border-start for -moz-transition
+ */
+
+#calsidebar_splitter:-moz-locale-dir(rtl) {
+  border-right: 1px solid #A9B7C9;
+  border-left-width: 0;
+}
+
+#today-splitter:-moz-locale-dir(rtl) {
+  border-left: 1px solid #A9B7C9;
+  border-right-width: 0;
+}
+
+#today-splitter[state="collapsed"]:-moz-locale-dir(ltr) {
+  border-right: 1px solid transparent;
+}
+
+#calsidebar_splitter[state="collapsed"]:hover:-moz-locale-dir(rtl),
+#today-splitter[state="collapsed"]:hover:-moz-locale-dir(ltr) {
+  border-right: 4px solid highlight;
+}
+
+#today-splitter[state="collapsed"]:-moz-locale-dir(rtl) {
+  border-left: 1px solid transparent;
+}
+
+#calsidebar_splitter[state="collapsed"]:hover:-moz-locale-dir(ltr),
+#today-splitter[state="collapsed"]:hover:-moz-locale-dir(rtl) {
+  border-left: 4px solid highlight;
+}
+
+#today-splitter > grippy {
+  display: none;
+}
+
+#today-pane-splitter,
+#calendar-view-splitter,
+#calendar-task-view-splitter {
+  border: none;
+  border-bottom: 1px solid #A9B7C9;
+  min-height: 0;
+  height: 5px;
+  background-color: transparent;
+  margin-top: -5px;
+  position: relative;
+  z-index: 10;
+}
+
+#today-pane-panel {
+  -moz-border-start-width: 0;
+}
+
+@media all and (-moz-windows-compositor) {
+  #messengerWindow[sizemode=normal] #today-pane-panel {
+    -moz-border-end: 1px solid rgba(10%, 10%, 10%, .4);
+    border-bottom: 1px solid rgba(10%, 10%, 10%, .4);
+    background-clip: padding-box;
+  }
+
+  sidebarheader {
+    border-top: 1px solid rgba(10%, 10%, 10%, .4);
+  }
+
+  .folderview-cycler {
+    margin-top: -1px;
+    margin-bottom: -1px;
+  }
 }
