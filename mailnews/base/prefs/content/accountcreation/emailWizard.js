@@ -831,10 +831,10 @@ EmailConfigWizard.prototype =
     gEmailWizardLogger.info(debugObject(config, "config"));
     // IMAP / POP dropdown
     var lookForAltType =
-        configFilledIn.incoming.type == "imap" ? "pop3" : "imap";
+        config.incoming.type == "imap" ? "pop3" : "imap";
     var alternative = null;
-    for (let i = 0; i < configFilledIn.incomingAlternatives.length; i++) {
-      let alt = configFilledIn.incomingAlternatives[i];
+    for (let i = 0; i < config.incomingAlternatives.length; i++) {
+      let alt = config.incomingAlternatives[i];
       if (alt.type == lookForAltType) {
         alternative = alt;
         break;
@@ -842,12 +842,11 @@ EmailConfigWizard.prototype =
     }
     if (alternative) {
       _show("result_imappop");
-      // TODO breaks, no idea why
-      //e("result_imappop").value =
-      //    configFilledIn.incoming.type == "imap" ? 1 : 2;
       e("result_select_" + alternative.type).configIncoming = alternative;
-      e("result_select_" + configFilledIn.incoming.type).configIncoming =
-                                                configFilledIn.incoming;
+      e("result_select_" + config.incoming.type).configIncoming =
+          config.incoming;
+      e("result_imappop").value =
+          config.incoming.type == "imap" ? 1 : 2;
     } else {
       _hide("result_imappop");
     }
@@ -855,12 +854,18 @@ EmailConfigWizard.prototype =
     this.switchToMode("result");
   },
 
+  /**
+   * Handle the user switching between IMAP and POP3 settings using the
+   * radio buttons.
+   *
+   * Note: This function must only be called by user action, not by setting
+   *       the value or selectedItem or selectedIndex of the radiogroup!
+   *       This is why we use the oncommand attribute of the radio elements
+   *       instead of the onselect attribute of the radiogroup.
+   */
   onResultIMAPOrPOP3 : function()
   {
     var config = this._currentConfig;
-    if (!config) { // <radiogroup>.onselect is also called on window open
-      return;
-    }
     var radiogroup = e("result_imappop");
     // add current server as best alternative to start of array
     config.incomingAlternatives.unshift(config.incoming);
@@ -868,7 +873,7 @@ EmailConfigWizard.prototype =
     config.incoming = radiogroup.selectedItem.configIncoming;
     // remove newly selected server from list of alternatives
     config.incomingAlternatives = config.incomingAlternatives.filter(
-        function(e) { return e != config.incoming; }); // TODO doesn't work
+        function(e) { return e != config.incoming; });
     this.displayConfigResult(config);
   },
 

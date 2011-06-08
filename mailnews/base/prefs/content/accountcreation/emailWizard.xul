@@ -227,10 +227,11 @@
     </hbox>
 
     <groupbox id="result_area" hidden="true">
-      <radiogroup id="result_imappop" orient="horizontal"
-                  onselect="gEmailConfigWizard.onResultIMAPOrPOP3();">
-        <radio id="result_select_imap" label="&imapLong.label;" value="1"/>
-        <radio id="result_select_pop3" label="&pop3Long.label;" value="2"/>
+      <radiogroup id="result_imappop" orient="horizontal">
+        <radio id="result_select_imap" label="&imapLong.label;" value="1"
+               oncommand="gEmailConfigWizard.onResultIMAPOrPOP3();"/>
+        <radio id="result_select_pop3" label="&pop3Long.label;" value="2"
+               oncommand="gEmailConfigWizard.onResultIMAPOrPOP3();"/>
       </radiogroup>
       <hbox>
         <label class="textbox-label" value="&incoming.label;"/>
