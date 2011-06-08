@@ -212,7 +212,7 @@ function view_init()
     threads_menuitem.setAttribute("disabled", gAccountCentralLoaded);
 
   // Initialize the Message Body menuitem
-  var isFeed = IsFeedItem();
+  var isFeed = gFolderDisplay.selectedMessageIsFeed;
   document.getElementById('viewBodyMenu').hidden = isFeed;
 
   // Initialize the Show Feed Summary menu
@@ -332,11 +332,8 @@ function InitViewMessagesMenu()
 function InitMessageMenu()
 {
   var aMessage = GetFirstSelectedMessage();
-  var isNews = false;
-  if(aMessage) {
-      isNews = IsNewsMessage(aMessage);
-  }
-  var isFeed = IsFeedItem();
+  var isNews = gFolderDisplay.selectedMessageIsNews;
+  var isFeed = gFolderDisplay.selectedMessageIsFeed;
 
   // We show Reply to Newsgroups only for news messages.
   var replyNewsgroupMenuItem = document.getElementById("replyNewsgroupMainMenu");
@@ -473,7 +470,7 @@ function InitViewBodyMenu()
   var html_as = 0;
   var prefer_plaintext = false;
   var disallow_classes = 0;
-  var isFeed = IsFeedItem();
+  var isFeed = gFolderDisplay.selectedMessageIsFeed;
   const defaultIDs = ["bodyAllowHTML",
                       "bodySanitized",
                       "bodyAsPlaintext"];
@@ -536,14 +533,6 @@ function IsNewsMessage(messageUri)
 function IsImapMessage(messageUri)
 {
   return (/^imap-message:/.test(messageUri));
-}
-
-function IsFeedItem()
-{
-  return (GetFirstSelectedMessage() &&
-          ((gMsgFolderSelected &&
-            gMsgFolderSelected.server.type == 'rss') ||
-           'content-base' in currentHeaderData));
 }
 
 function SetMenuItemLabel(menuItemId, customLabel)
@@ -1692,7 +1681,8 @@ function MsgOpenSelectedMessages()
 {
   // Toggle message body (rss summary) and content-base url in message
   // pane per pref, otherwise open summary or web page in new window.
-  if (IsFeedItem() && GetFeedOpenHandler() == 2) {
+  if (gFolderDisplay.selectedMessageIsFeed && GetFeedOpenHandler() == 2)
+  {
     FeedSetContentViewToggle();
     return;
   }
@@ -3095,7 +3085,7 @@ function FeedCheckContentFormat()
   var contentWindowDoc = window.top.content.document;
 
   // Not an rss message
-  if (!IsFeedItem())
+  if (!gFolderDisplay.selectedMessageIsFeed)
     return false;
 
   // Thunderbird 2 rss messages with 'Show article summary' not selected,
