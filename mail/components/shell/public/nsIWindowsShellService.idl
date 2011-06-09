@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -12,14 +12,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Thunderbird Windows Integration.
+ * The Original Code is Shell Service.
  *
  * The Initial Developer of the Original Code is
- *   Scott MacGregor <mscott@mozilla.org>.
- * Portions created by the Initial Developer are Copyright (C) 2006
+ * the Mozilla Foundation.
+ * Portions created by the Initial Developer are Copyright (C) 2011
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *  Siddharth Agarwal <sid.bugzilla@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,45 +36,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef nsMailWinIntegration_h_
-#define nsMailWinIntegration_h_
+#include "nsIShellService.idl"
 
-#include "nsIWindowsShellService.h"
-#include "nsIObserver.h"
-#include "nsString.h"
-
-#include <ole2.h>
-#include <windows.h>
-
-#define NS_MAILWININTEGRATION_CID \
-{0x2ebbe84, 0xc179, 0x4598, {0xaf, 0x18, 0x1b, 0xf2, 0xc4, 0xbc, 0x1d, 0xf9}}
-
-typedef struct {
-  char* keyName;
-  char* valueName;
-  char* valueData;
-
-  PRInt32 flags;
-} SETTING;
-
-class nsWindowsShellService : public nsIWindowsShellService
+[scriptable, uuid(c6bcecde-6f2e-417c-bc30-466f560c3b51)]
+interface nsIWindowsShellService : nsIShellService
 {
-public:
-  nsWindowsShellService();
-  virtual ~nsWindowsShellService() {};
-  NS_HIDDEN_(nsresult) Init();
-
-  NS_DECL_ISUPPORTS
-  NS_DECL_NSISHELLSERVICE
-  NS_DECL_NSIWINDOWSSHELLSERVICE
-
-protected:
-  PRBool TestForDefault(SETTING aSettings[], PRInt32 aSize);
-  PRBool IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultClient);
-
-private:
-  PRBool mCheckedThisSession;
-  nsAutoString mAppLongPath;
- };
-
-#endif
+  /**
+   * Perform some Windows 7+ shortcut maintenance. This is called at program startup.
+   */
+  void shortcutMaintenance();
+};

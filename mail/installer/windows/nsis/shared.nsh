@@ -45,6 +45,8 @@
   ${RegCleanMain} "Software\Mozilla"
   ${RegCleanUninstall}
   ${UpdateProtocolHandlers}
+  ; Win7 taskbar and start menu link maintenance
+  Call FixShortcutAppModelIDs
 
   ; Upgrade the copies of the MAPI DLL's
   ${UpgradeMapiDLLs}
@@ -69,6 +71,9 @@
     ${RegCleanMain} "Software\Mozilla"
     ${RegCleanUninstall}
     ${UpdateProtocolHandlers}
+
+    ; Win7 taskbar and start menu link maintenance
+    Call FixShortcutAppModelIDs
 
     ; Only update the Clients\Mail registry key values if they don't exist or
     ; this installation is the same as the one set in those keys.
@@ -728,6 +733,11 @@
   Push "${FileMainEXE}"
 !macroend
 !define PushFilesToCheck "!insertmacro PushFilesToCheck"
+
+; Helper for updating the shortcut application model IDs.
+Function FixShortcutAppModelIDs
+  ${UpdateShortcutAppModelIDs} "$INSTDIR\${FileMainEXE}" "${AppUserModelID}" $0
+FunctionEnd
 
 ; The !ifdef NO_LOG prevents warnings when compiling the installer.nsi due to
 ; this function only being used by the uninstaller.nsi.

@@ -61,6 +61,10 @@ XPCOMUtils.defineLazyServiceGetter(this, "_taskbarService",
                                    "@mozilla.org/windows-taskbar;1",
                                    "nsIWinTaskbar");
 
+XPCOMUtils.defineLazyServiceGetter(this, "_winShellService",
+                                   "@mozilla.org/mail/shell-service;1",
+                                   "nsIWindowsShellService");
+
 XPCOMUtils.defineLazyGetter(this, "_prefs", function() {
   return Services.prefs.getBranch(PREF_TASKBAR_BRANCH)
                        .QueryInterface(Ci.nsIPrefBranch2);
@@ -103,6 +107,16 @@ let WinTaskbarJumpList = {
     if (!this._initTaskbar())
       return;
 
+    // Win shell shortcut maintenance. If we've gone through an update,
+    // this will update any pinned taskbar shortcuts. Not specific to
+    // jump lists, but this was a convienent place to call it. 
+    try {
+      // dev builds may not have helper.exe, ignore failures.
+      this._shortcutMaintenance();
+    }
+    catch (ex) {
+    }
+
     // Store our task list config data
     this._tasks = gTasks;
 
@@ -128,6 +142,10 @@ let WinTaskbarJumpList = {
     this._shuttingDown = true;
 
     this._free();
+  },
+
+  _shortcutMaintenance: function WTBJL__maintenace() {
+    _winShellService.shortcutMaintenance();
   },
 
   /**

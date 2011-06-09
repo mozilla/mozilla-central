@@ -7,7 +7,9 @@
 # Note - Thunderbird does not set a Vendor in application.ini!
 !define AppName               "Thunderbird"
 !define AppVersion            "@MOZ_APP_VERSION@"
-!define AppUserModelID        "${AppName}.${AppVersion}"
+# The app vendor is blank, and the way app model IDs are formed is with
+# vendor.name.version.
+!define AppUserModelID        ".${AppName}.${AppVersion}"
 !define GREVersion            @MOZILLA_VERSION@
 !define AB_CD                 "@AB_CD@"
 

@@ -114,6 +114,7 @@ VIAddVersionKey "OriginalFilename" "setup.exe"
 !insertmacro RegCleanMain
 !insertmacro RegCleanUninstall
 !insertmacro SetBrandNameVars
+!insertmacro UpdateShortcutAppModelIDs
 !insertmacro UnloadUAC
 !insertmacro WriteRegStr2
 !insertmacro WriteRegDWORD2
@@ -401,6 +402,29 @@ Section "-Application" APP_IDX
   ${LogQuickLaunchShortcut} "${BrandFullName}.lnk"
   ${LogDesktopShortcut} "${BrandFullName}.lnk"
 
+  ; Best effort to update the Win7 taskbar and start menu shortcut app model
+  ; id's. The possible contexts are current user / system and the user that
+  ; elevated the installer.
+  Call FixShortcutAppModelIDs
+  ; If the current context is all also perform Win7 taskbar and start menu link
+  ; maintenance for the current user context.
+  ${If} $TmpVal == "HKLM"
+    SetShellVarContext current  ; Set SHCTX to HKCU
+    Call FixShortcutAppModelIDs
+    SetShellVarContext all  ; Set SHCTX to HKLM
+  ${EndIf}
+
+  ; If running elevated also perform Win7 taskbar and start menu link
+  ; maintenance for the unelevated user context in case that is different than
+  ; the current user.
+  ClearErrors
+  ${GetParameters} $0
+  ${GetOptions} "$0" "/UAC:" $0
+  ${Unless} ${Errors}
+    GetFunctionAddress $0 FixShortcutAppModelIDs
+    UAC::ExecCodeSegment $0
+  ${EndIf}
+
   ; UAC only allows elevating to an Admin account so there is no need to add
   ; the Start Menu or Desktop shortcuts from the original unelevated process
   ; since this will either add it for the user if unelevated or All Users if
@@ -464,6 +488,9 @@ Section "-InstallEndCleanup"
       ${EndIf}
     ${EndIf}
   ${EndUnless}
+
+  ; Win7 taskbar and start menu link maintenance
+  Call FixShortcutAppModelIDs
 
   ; Refresh desktop icons
   System::Call "shell32::SHChangeNotify(i, i, i, i) v (0x08000000, 0, 0, 0)"
