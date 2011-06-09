@@ -166,7 +166,9 @@
         <xul:spacer flex="1"/>
         <xul:label class="headerName" xbl:inherits="value=label" control="headerValue"/>
       </xul:hbox>
-      <xul:textbox class="headerValue plain" anonid="headerValue" flex="1" readonly="true"/>
+      <xul:hbox class="headerValueBox" flex="1" align="start">
+        <xul:textbox class="headerValue plain" anonid="headerValue" flex="1" readonly="true"/>
+      </xul:hbox>
     </content>
 
     <implementation>
@@ -182,7 +184,9 @@
       <xul:hbox class="headerNameBox" align="start">
         <xul:label class="headerName" xbl:inherits="value=label" control="headerValue" flex="1"/>
       </xul:hbox>
-      <xul:textbox class="headerValue plain" anonid="headerValue" flex="1" readonly="true"/>
+      <xul:hbox class="headerValueBox" flex="1" align="start">
+        <xul:textbox class="headerValue plain" anonid="headerValue" flex="1" readonly="true"/>
+      </xul:hbox>
     </content>
 
     <implementation>
@@ -195,10 +199,12 @@
       <xul:hbox class="headerNameBox" align="start">
         <xul:label class="headerName" xbl:inherits="value=label" flex="1"/>
       </xul:hbox>
-      <xul:label onclick="if (event.button != 2) openUILink(event.target.value, event);"
-                 ondragstart="this.parentNode.setDataTransfer(event);"
-                 class="headerValue plain text-link headerValueUrl"
+      <xul:hbox class="headerValueBox" flex="1" align="start">
+        <xul:label onclick="if (event.button != 2) openUILink(event.target.value, event);"
+                   ondragstart="this.parentNode.setDataTransfer(event);"
+                   class="headerValue plain text-link headerValueUrl"
                  anonid="headerValue" flex="1" readonly="true" context="copyUrlPopup"/>
+      </xul:hbox>
     </content>
     
     <implementation>
@@ -220,7 +226,9 @@
       <xul:hbox class="headerNameBox" align="start">
         <xul:label class="headerName" xbl:inherits="value=label" flex="1"/>
       </xul:hbox>
-      <xul:mail-emailaddress class="headerValue" anonid="emailAddressNode"/>
+      <xul:hbox class="headerValueBox" flex="1" align="start">
+        <xul:mail-emailaddress class="headerValue" anonid="emailAddressNode"/>
+      </xul:hbox>
     </content>
 
     <implementation>
@@ -238,7 +246,7 @@
         <xul:label class="headerName" xbl:inherits="value=label"/>
       </xul:hbox>
 
-      <xul:hbox class="headerValueBox" anonid="longEmailAddresses" flex="1"
+      <xul:hbox class="headerValueBox" anonid="longEmailAddresses" flex="1" align="start"
                 onoverflow="if (event.detail != 1) this.parentNode.toggleIcon.collapsed = false;"
                 onunderflow="if (event.detail != 1) this.parentNode.toggleIcon.collapsed = true;">
         <xul:description class="headerValue" anonid="emailAddresses" flex="1"/>
@@ -521,8 +529,8 @@
                    onclick="toggleWrap();"/>
         <xul:label class="headerName" xbl:inherits="value=label"/>
       </xul:hbox>
-      <xul:hbox class="headerValueBox" flex="1">
-      <xul:label class="headerValue" anonid="headerValue" flex="1"/>
+      <xul:hbox class="headerValueBox" flex="1" align="start">
+        <xul:label class="headerValue" anonid="headerValue" flex="1"/>
       </xul:hbox>
     </content>
 
@@ -689,7 +697,9 @@
       <xul:hbox class="headerNameBox" align="start">
         <xul:label class="headerName" xbl:inherits="value=label" flex="1"/>
       </xul:hbox>
-      <xul:label class="headerValue plain" anonid="headerValue" flex="1"/>
+      <xul:hbox class="headerValueBox" flex="1" align="start">
+        <xul:label class="headerValue plain" anonid="headerValue" flex="1"/>
+      </xul:hbox>
     </content>
 
     <implementation>
