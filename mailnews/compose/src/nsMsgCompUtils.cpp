@@ -54,6 +54,8 @@
 #include "nsNetCID.h"
 #include "nsMsgPrompts.h"
 #include "nsMsgUtils.h"
+#include "nsCExternalHandlerService.h"
+#include "nsIMIMEService.h"
 #include "nsComposeStrings.h"
 #include "nsIMsgCompUtils.h"
 #include "nsIMsgMdnGenerator.h"
@@ -1614,39 +1616,84 @@ msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnichar *propose
   else //Let's extract the name from the URL
   {
     nsCString url;
-  attachment->mURL->GetSpec(url);
+    attachment->mURL->GetSpec(url);
 
-  s = url.get();
-  s2 = PL_strchr (s, ':');
-  if (s2) s = s2 + 1;
-  /* If we know the URL doesn't have a sensible file name in it,
-   don't bother emitting a content-disposition. */
-  if (StringBeginsWith (url, NS_LITERAL_CSTRING("news:"), nsCaseInsensitiveCStringComparator()) ||
-    StringBeginsWith (url, NS_LITERAL_CSTRING("snews:"), nsCaseInsensitiveCStringComparator()) ||
-    StringBeginsWith (url, NS_LITERAL_CSTRING("IMAP:"), nsCaseInsensitiveCStringComparator()) ||
-    StringBeginsWith (url, NS_LITERAL_CSTRING("mailbox:"), nsCaseInsensitiveCStringComparator()))
-    return;
+    s = url.get();
+    s2 = PL_strchr (s, ':');
+    if (s2)
+      s = s2 + 1;
+    /* If we know the URL doesn't have a sensible file name in it,
+     don't bother emitting a content-disposition. */
+    if (StringBeginsWith (url, NS_LITERAL_CSTRING("news:"), nsCaseInsensitiveCStringComparator()) ||
+        StringBeginsWith (url, NS_LITERAL_CSTRING("snews:"), nsCaseInsensitiveCStringComparator()) ||
+        StringBeginsWith (url, NS_LITERAL_CSTRING("IMAP:"), nsCaseInsensitiveCStringComparator()) ||
+        StringBeginsWith (url, NS_LITERAL_CSTRING("mailbox:"), nsCaseInsensitiveCStringComparator()))
+      return;
 
-  /* Take the part of the file name after the last / or \ */
-  s2 = PL_strrchr (s, '/');
-  if (s2) s = s2+1;
-  s2 = PL_strrchr (s, '\\');
+    if (StringBeginsWith(url, NS_LITERAL_CSTRING("data:"),
+                         nsCaseInsensitiveCStringComparator()))
+    {
+      PRInt32 endNonData = url.FindChar(',');
+      if (endNonData == -1)
+        return;
+      nsCString nonDataPart(Substring(url, 5, endNonData - 5));
+      PRInt32 filenamePos = nonDataPart.Find("filename=");
+      if (filenamePos != -1)
+      {
+        filenamePos += 9;
+        PRInt32 endFilename = nonDataPart.FindChar(';', filenamePos);
+        if (endFilename == -1)
+          endFilename = endNonData;
+        PR_FREEIF(attachment->m_real_name);
+        attachment->m_real_name = ToNewCString(Substring(nonDataPart, filenamePos,
+                                                         endFilename - filenamePos));
+      }
+      else
+      {
+        // no filename; need to construct one based on the content type.
+        nsCOMPtr<nsIMIMEService> mimeService(do_GetService(NS_MIMESERVICE_CONTRACTID));
+        if (!mimeService)
+          return;
+        nsCOMPtr<nsIMIMEInfo> mimeInfo;
+        nsCString mediaType(Substring(nonDataPart, 0, nonDataPart.FindChar(';')));
+        mimeService->GetFromTypeAndExtension(mediaType, EmptyCString(), getter_AddRefs(mimeInfo));
+        if (!mimeInfo)
+          return;
+        nsCString filename;
+        nsCString extension;
+        mimeInfo->GetPrimaryExtension(extension);
+        unsigned char filePrefix[10];
+        GenerateGlobalRandomBytes(filePrefix, 8);
+        for (PRInt32 i = 0; i < 8; i++)
+          filename.Append(filePrefix[i] + 'a');
+        filename.Append('.');
+        filename.Append(extension);
+        PR_FREEIF(attachment->m_real_name);
+        attachment->m_real_name = ToNewCString(filename);
+      }
+    }
+    else
+    {
+      /* Take the part of the file name after the last / or \ */
+      s2 = PL_strrchr (s, '/');
+      if (s2) s = s2+1;
+      s2 = PL_strrchr (s, '\\');
 
-  if (s2) s = s2+1;
-  /* Copy it into the attachment struct. */
-  PR_FREEIF(attachment->m_real_name);
-  attachment->m_real_name = PL_strdup (s);
-  /* Now trim off any named anchors or search data. */
-  s3 = PL_strchr (attachment->m_real_name, '?');
-  if (s3) *s3 = 0;
-  s3 = PL_strchr (attachment->m_real_name, '#');
-  if (s3) *s3 = 0;
-
-  /* Now lose the %XX crap. */
-  nsCString unescaped_real_name;
-  MsgUnescapeString(nsDependentCString(attachment->m_real_name), 0, unescaped_real_name);
-  NS_Free(attachment->m_real_name);
-  attachment->m_real_name = ToNewCString(unescaped_real_name);
+      if (s2) s = s2+1;
+      /* Copy it into the attachment struct. */
+      PR_FREEIF(attachment->m_real_name);
+      attachment->m_real_name = PL_strdup (s);
+      /* Now trim off any named anchors or search data. */
+      s3 = PL_strchr (attachment->m_real_name, '?');
+      if (s3) *s3 = 0;
+      s3 = PL_strchr (attachment->m_real_name, '#');
+      if (s3) *s3 = 0;
+    }
+    /* Now lose the %XX crap. */
+    nsCString unescaped_real_name;
+    MsgUnescapeString(nsDependentCString(attachment->m_real_name), 0, unescaped_real_name);
+    NS_Free(attachment->m_real_name);
+    attachment->m_real_name = ToNewCString(unescaped_real_name);
   }
 
   /* Now a special case for attaching uuencoded files...
