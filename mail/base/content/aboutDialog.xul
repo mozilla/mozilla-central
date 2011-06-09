@@ -67,8 +67,7 @@
         >
 
   <script type="application/javascript" src="chrome://messenger/content/aboutDialog.js"/>
-  <!-- This one is for openContentTab -->
-  <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/specialTabs.js"/>
   <!-- This one is for openURL -->
   <script type="application/javascript" src="chrome://global/content/contentAreaUtils.js"/>
 
@@ -122,7 +121,7 @@
               &channel.description.start;<label id="currentChannel"/>&channel.description.end;<label id="channelChangeLink" class="text-link" onclick="gChannelSelector.show();">&channel.change;</label>
             </description>
             <description class="text-blurb" id="communityDesc">
-              &community.start2;<label class="text-link" onclick="openURL('http://www.mozilla.org/');" oncommand="openUILink(this.getAttribute('href'), event);">&community.mozillaLink;</label>&community.middle2;<label class="text-link" onclick="openContentTab('about:credits');">&community.creditsLink;</label>&community.end2;
+              &community.start2;<label class="text-link" onclick="openURL('http://www.mozilla.org/');" oncommand="openUILink(this.getAttribute('href'), event);">&community.mozillaLink;</label>&community.middle2;<label class="text-link" onclick="openAboutTab('about:credits');">&community.creditsLink;</label>&community.end2;
             </description>
             <description class="text-blurb" id="contributeDesc">
               &contribute.start;<label class="text-link" onclick="openURL('http://www.mozilla.org/contribute/');">&contribute.getInvolvedLink;</label>&contribute.end;
@@ -164,8 +163,8 @@
     </hbox>
     <vbox id="bottomBox">
       <hbox pack="center">
-        <label class="text-link bottom-link" onclick="openContentTab('about:license');">&bottomLinks.license;</label>
-        <label class="text-link bottom-link" onclick="openContentTab('about:rights');">&bottomLinks.rights;</label>
+        <label class="text-link bottom-link" onclick="openAboutTab('about:license');">&bottomLinks.license;</label>
+        <label class="text-link bottom-link" onclick="openAboutTab('about:rights');">&bottomLinks.rights;</label>
         <label hidden="true" class="text-link bottom-link" onclick="openURL('http://www.mozilla.com/legal/privacy/');">&bottomLinks.privacy;</label>
       </hbox>
       <description id="trademark">

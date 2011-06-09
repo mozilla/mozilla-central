@@ -88,6 +88,30 @@ function init(aEvent)
 #endif
 }
 
+// This function is used to open about: tabs. The caller should ensure the url
+// is only an about: url.
+function openAboutTab(url)
+{
+  let tabmail;
+  // Check existing windows
+  let mailWindow = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                             .getService(Components.interfaces.nsIWindowMediator)
+                             .getMostRecentWindow("mail:3pane");
+  if (mailWindow) {
+    mailWindow.focus();
+    mailWindow.document.getElementById("tabmail")
+              .openTab("contentTab", {contentPage: url,
+                                      clickHandler: "specialTabs.aboutClickHandler(event);"});
+    return;
+  }
+
+  // No existing windows.
+  window.openDialog("chrome://messenger/content/", "_blank",
+                    "chrome,dialog=no,all", null,
+                    { tabType: "contentTab",
+                      tabParams: {contentPage: url, clickHandler: "specialTabs.aboutClickHandler(event);"} });
+}
+
 function openUILink(url, event)
 {
   if (!event.button) {
@@ -147,8 +171,10 @@ function appUpdater()
   this.setupUpdateButton("update.checkInsideButton");
 
   let manualURL = Services.urlFormatter.formatURLPref("app.update.url.manual");
-  document.getElementById("manualLink").href = manualURL;
-  document.getElementById("failedLink").href = manualURL;
+  document.getElementById("manualLink")
+          .setAttribute("onclick", 'openURL("' + manualURL + '");');
+  document.getElementById("failedLink")
+          .setAttribute("onclick", 'openURL("' + manualURL + '");');
 
   if (this.updateDisabledAndLocked) {
     this.selectPanel("adminDisabled");
