@@ -44,6 +44,9 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 const MAPI_STARTUP_ARG = "MapiStartup";
 const MESSAGE_ID_PARAM = "?messageid=";
 
+const CMDLINEHANDLER_CID = Components.ID("{2f86d554-f9d9-4e76-8eb7-243f047333ee}");
+const CMDLINEHANDLER_CONTRACTID = "@mozilla.org/commandlinehandler/general-startup;1?type=mail";
+
 var nsMailNewsCommandLineHandler =
 {
   get _messenger() {
@@ -150,15 +153,10 @@ var nsMailNewsCommandLineHandler =
   helpInfo: "  -mail              Open the mail folder view.\n" +
             "  -mail <URL>        Open the message specified by this URL.\n",
 
-  /* nsIClassInfo */
-  flags: Ci.nsIClassInfo.SINGLETON,
-  implementationLanguage: Ci.nsIProgrammingLanguage.JAVASCRIPT,
-  getHelperForLanguage: function(language) null,
-  getInterfaces: function(count) {
-    let interfaces = [Ci.nsICommandLineHandler];
-    count.value = interfaces.length;
-    return interfaces;
-  },
+  classInfo: XPCOMUtils.generateCI({classID: CMDLINEHANDLER_CID,
+                                    contractID: CMDLINEHANDLER_CONTRACTID,
+                                    interfaces: [Ci.nsICommandLineHandler],
+                                    flags: Ci.nsIClassInfo.SINGLETON}),
 
   /* nsIFactory */
   createInstance: function(outer, iid) {
@@ -169,7 +167,6 @@ var nsMailNewsCommandLineHandler =
   },
 
   QueryInterface: XPCOMUtils.generateQI([Ci.nsICommandLineHandler,
-                                         Ci.nsIClassInfo,
                                          Ci.nsIFactory])
 };
 
@@ -177,7 +174,7 @@ function mailNewsCommandLineHandlerModule() {}
 mailNewsCommandLineHandlerModule.prototype =
 {
   // XPCOM registration
-  classID: Components.ID("{2f86d554-f9d9-4e76-8eb7-243f047333ee}"),
+  classID: CMDLINEHANDLER_CID,
 
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIModule]),
 
