@@ -96,7 +96,6 @@ EXTRA_JS_MODULES = \
 		templateUtils.js \
 		IOUtils.js \
 		mailnewsMigrator.js \
-		dictUtils.js \
 		mailServices.js \
 		$(NULL)
 
