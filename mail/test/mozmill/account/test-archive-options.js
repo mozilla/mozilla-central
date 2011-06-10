@@ -48,6 +48,7 @@ Components.utils.import("resource://mozmill/modules/controller.js", controller);
 var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
 
+var accountManager;
 var defaultIdentity;
 
 function setupModule(module) {
@@ -58,10 +59,66 @@ function setupModule(module) {
   let amh = collector.getModule("account-manager-helpers");
   amh.installInto(module);
 
-  let accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                                 .getService(Components.interfaces.nsIMsgAccountManager);
+  accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                             .getService(Components.interfaces.nsIMsgAccountManager);
 
   defaultIdentity = accountManager.defaultAccount.defaultIdentity;
+}
+
+/**
+ * Check that the archive options button is enabled or disabled appropriately.
+ *
+ * @param amc the account options controller
+ * @param index the indext of the account to check
+ * @param isEnabled true if the button should be enabled, false otherwise
+ */
+function subtest_check_archive_options_enabled(amc, index, isEnabled) {
+  // XXX: This is pretty brittle, and assumes 1) that there are 8 items in each
+  // account's tree, and 2) that the order of the accounts is as we expect.
+  click_account_tree_row(amc, index*8 + 2);
+
+  let iframe = amc.window.document.getElementById("contentFrame");
+  let button = iframe.contentDocument.getElementById("archiveHierarchyButton");
+
+  assert_equals(button.disabled, !isEnabled);
+}
+
+function test_archive_options_enabled() {
+  // First, create an IMAP server
+  let imapServer = accountManager
+    .createIncomingServer("nobody", "example.com", "imap")
+    .QueryInterface(Components.interfaces.nsIImapIncomingServer);
+
+  let identity = accountManager.createIdentity();
+  identity.email = "tinderbox@example.com";
+
+  let account = accountManager.createAccount();
+  account.incomingServer = imapServer;
+  account.addIdentity(identity);
+
+  // Then test that the archive options button is enabled/disabled appropriately
+
+  // Let the default identity archive to our IMAP folder, to ensure that the
+  // archive folder's server is used to determine the enabled/disabled state
+  // of the "archive options" button, *not* the incoming server for that
+  // identity.
+  defaultIdentity.archiveFolder = imapServer.rootFolder.URI;
+
+  imapServer.isGMailServer = false;
+  open_advanced_settings(function(amc) {
+    subtest_check_archive_options_enabled(amc, 1, true);
+  });
+  open_advanced_settings(function(amc) {
+    subtest_check_archive_options_enabled(amc, 0, true);
+  });
+
+  imapServer.isGMailServer = true;
+  open_advanced_settings(function(amc) {
+    subtest_check_archive_options_enabled(amc, 1, false);
+  });
+  open_advanced_settings(function(amc) {
+    subtest_check_archive_options_enabled(amc, 0, false);
+  });
 }
 
 function subtest_initial_state(identity) {

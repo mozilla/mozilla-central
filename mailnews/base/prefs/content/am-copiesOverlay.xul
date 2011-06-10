@@ -111,7 +111,8 @@
                      observes="broadcaster_doFcc"/>
                 <menulist id="msgFccAccountPicker"
                           aria-labelledby="fcc_selectAccount"
-                          observes="broadcaster_doFcc">
+                          observes="broadcaster_doFcc"
+                          oncommand="noteSelectionChange('fcc', 'Account', event)">
                   <menupopup id="msgFccAccountPopup" type="folder" mode="filing"
                              expandFolders="false"/>
                 </menulist>
@@ -124,7 +125,7 @@
                      observes="broadcaster_doFcc"/>
                 <menulist id="msgFccFolderPicker"
                           aria-labelledby="fcc_selectFolder"
-                          oncommand="noteSelectionChange('fcc_selectFolder', event)"
+                          oncommand="noteSelectionChange('fcc', 'Folder', event)"
                           observes="broadcaster_doFcc">
                   <menupopup id="msgFccFolderPopup" type="folder" mode="filing"
                              class="menulist-menupopup"
@@ -214,7 +215,8 @@
                      observes="broadcaster_archiveEnabled"/>
                 <menulist id="msgArchivesAccountPicker"
 	                      aria-labelledby="archive_selectAccount"
-                          observes="broadcaster_archiveEnabled">
+                          observes="broadcaster_archiveEnabled"
+                          oncommand="noteSelectionChange('archive', 'Account', event)">
                 <menupopup id="msgArchivesAccountPopup" type="folder" mode="filing"
                            expandFolders="false"/>
               </menulist>
@@ -227,7 +229,7 @@
                      observes="broadcaster_archiveEnabled"/>
                 <menulist id="msgArchivesFolderPicker"
                           aria-labelledby="archive_selectFolder"
-                          oncommand="noteSelectionChange('archive_selectFolder', event)"
+                          oncommand="noteSelectionChange('archive', 'Folder', event)"
                           observes="broadcaster_archiveEnabled">
                 <menupopup id="msgArchivesFolderPopup" type="folder" mode="filing"
                            class="menulist-menupopup"
@@ -259,8 +261,9 @@
                      oncommand="setPickersState('msgDraftsAccountPicker', 'msgDraftsFolderPicker', event)"
                      value="0" label="&draftsFolderOn.label;"
                      accesskey="&draftsFolderOn.accesskey;"/>
- 	      <menulist id="msgDraftsAccountPicker"
-	                aria-labelledby="draft_selectAccount">
+              <menulist id="msgDraftsAccountPicker"
+	                    aria-labelledby="draft_selectAccount"
+                        oncommand="noteSelectionChange('draft', 'Account', event)">
                 <menupopup id="msgDraftAccountPopup" type="folder" mode="filing"
                            expandFolders="false"/>
               </menulist>
@@ -270,9 +273,9 @@
                      oncommand="setPickersState('msgDraftsFolderPicker', 'msgDraftsAccountPicker', event)"
                      value="1" label="&draftInOtherFolder.label;"
                      accesskey="&draftInOtherFolder.accesskey;"/>
-  	      <menulist id="msgDraftsFolderPicker"
+  	          <menulist id="msgDraftsFolderPicker"
                         aria-labelledby="draft_selectFolder"
-                        oncommand="noteSelectionChange('draft_selectFolder', event)">
+                        oncommand="noteSelectionChange('draft', 'Folder', event)">
                 <menupopup id="msgDraftFolderPopup" type="folder" mode="filing"
                            class="menulist-menupopup"
                            showFileHereLabel="true"
@@ -299,8 +302,9 @@
                      oncommand="setPickersState('msgStationeryAccountPicker', 'msgStationeryFolderPicker', event)"
                      value="0" label="&templatesFolderOn.label;"
                      accesskey="&templatesFolderOn.accesskey;"/>
-  	      <menulist id="msgStationeryAccountPicker"
-                        aria-labelledby="tmpl_selectAccount">
+  	          <menulist id="msgStationeryAccountPicker"
+                        aria-labelledby="tmpl_selectAccount"
+                        oncommand="noteSelectionChange('tmpl', 'Account', event)">
                 <menupopup id="msgFccAccountPopup" type="folder" mode="filing"
                            expandFolders="false"/>
               </menulist>
@@ -312,7 +316,7 @@
                      accesskey="&templateInOtherFolder.accesskey;"/>
               <menulist id="msgStationeryFolderPicker"
                         aria-labelledby="tmpl_selectFolder"
-                        oncommand="noteSelectionChange('tmpl_selectFolder', event)">
+                        oncommand="noteSelectionChange('tmpl', 'Folder', event)">
                 <menupopup id="msgTemplFolderPopup" type="folder" mode="filing"
                            class="menulist-menupopup"
                            showFileHereLabel="true"
