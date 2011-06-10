@@ -1722,6 +1722,10 @@
         ]]>
       </destructor>
 
+      <field name="tabmail" readonly="true">
+        document.getElementById("tabmail");
+      </field>
+
       <field name="mTabstripWidth">0</field>
 
       <field name="mTabstrip">
@@ -2016,8 +2020,7 @@
         if (!draggedTab)
           return;  
 
-        let tabmail = document.getElementById("tabmail");
-        let tab = tabmail.selectedTab;
+        let tab = this.tabmail.selectedTab;
         
         if (!tab || !tab.canClose)
           return;
@@ -2028,7 +2031,7 @@
         dt.mozSetDataAt("application/x-moz-tabmail-tab", draggedTab, 0);
         
         // otherwise we use session restore & JSON to migrate the tab.        
-        let uri = tabmail.persistTab(tab);
+        let uri = this.tabmail.persistTab(tab);
         
         // In case the tab implements session restore, we use JSON to convert
         // it into a string
@@ -2099,12 +2102,10 @@
           if (Date.now() <= this._dragTime + this._dragOverDelay)
             return;
           
-          let tabmail = document.getElementById("tabmail");
-          
-          if (tabmail.tabContainer.selectedItem == tab)
+          if (this.tabmail.tabContainer.selectedItem == tab)
             return;
              
-          tabmail.tabContainer.selectedItem = tab;         
+          this.tabmail.tabContainer.selectedItem = tab;         
           
           return;
         }
@@ -2118,10 +2119,8 @@
            
           if (!draggedTab)
             return;
-
-          let tabmail = document.getElementById("tabmail");
           
-          if (tabmail.tabContainer.getIndexOfItem(draggedTab) == -1)
+          if (this.tabmail.tabContainer.getIndexOfItem(draggedTab) == -1)
             return;
         }
 
@@ -2160,7 +2159,7 @@
         let newIndex = this._getDropIndex(event);
         
         // fix the DropIndex in case it points to tab that can't be closed        
-        let tabInfo = document.getElementById("tabmail").tabInfo;
+        let tabInfo = this.tabmail.tabInfo;
                 
         while ((newIndex < tabInfo.length) && !(tabInfo[newIndex].canClose))
           newIndex++;  
@@ -2217,11 +2216,9 @@
         
         event.stopPropagation();        
         this._tabDropIndicator.collapsed = true;
-      
-        let tabmail = document.getElementById("tabmail");
-        
+
         // Is the tab one of our children?
-        if (tabmail.tabContainer.getIndexOfItem(draggedTab) == -1) {
+        if (this.tabmail.tabContainer.getIndexOfItem(draggedTab) == -1) {
         
           // It's a tab from an other window, so we have to trigger session
           // restore to get our tab
@@ -2241,23 +2238,24 @@
  
           tabmail2.closeTab(draggedTab,true);
           
-          if (! tabmail.restoreTab(draggedJson))
+          if (!this.tabmail.restoreTab(draggedJson))
             return;
                            
-          draggedTab = tabmail.tabContainer.childNodes[tabmail.tabContainer.childNodes.length-1];
+          draggedTab = this.tabmail.tabContainer.childNodes[
+            this.tabmail.tabContainer.childNodes.length - 1];
         }
 
         let idx = this._getDropIndex(event);
         
         // fix the DropIndex in case it points to tab that can't be closed        
-        let tabInfo = tabmail.tabInfo;                
+        let tabInfo = this.tabmail.tabInfo;                
         while ((idx < tabInfo.length) && !(tabInfo[idx].canClose))
           idx++;  
                             
-        tabmail.moveTabTo(draggedTab, idx);
+        this.tabmail.moveTabTo(draggedTab, idx);
                   
-        tabmail.switchToTab(draggedTab);
-        tabmail.updateCurrentTab();          
+        this.tabmail.switchToTab(draggedTab);
+        this.tabmail.updateCurrentTab();          
       ]]></handler>
       
       <handler event="dragend"><![CDATA[
@@ -2297,7 +2295,7 @@
         if (!draggedTab)
           return;
         
-        document.getElementById("tabmail").replaceTabWithWindow(draggedTab);                    
+        this.tabmail.replaceTabWithWindow(draggedTab);                    
                             
       ]]></handler>
       
