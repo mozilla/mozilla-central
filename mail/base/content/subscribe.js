@@ -47,7 +47,6 @@ var gNameField = null;
 var gNameFieldLabel = null;
 var gFolderDelimiter = ".";
 var gStatusFeedback;
-var gMessengerBundle = null;
 var gSubscribeDeck = null;
 var gSearchView = null;
 var gSearchTreeBoxObject = null;
@@ -203,7 +202,6 @@ function SubscribeOnLoad()
 {
   //dump("SubscribeOnLoad()\n");
   gSubscribeBundle = document.getElementById("bundle_subscribe");
-  gMessengerBundle = document.getElementById("bundle_messenger");
 
   gSubscribeTree = document.getElementById("subscribeTree");
   gSearchTree = document.getElementById("searchTree");

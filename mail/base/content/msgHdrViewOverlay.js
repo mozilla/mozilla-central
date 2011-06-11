@@ -60,7 +60,6 @@ var gDummyHeaderIdIndex = 0;
 var gBuildAttachmentsForCurrentMsg = false;
 var gBuildAttachmentPopupForCurrentMsg = true;
 var gBuiltExpandedView = false;
-var gMessengerBundle;
 var gHeadersShowReferences = false;
 // Show the friendly display names for people I know, instead of the name + email address.
 var gShowCondensedEmailAddresses;
@@ -1193,15 +1192,14 @@ function FormatDisplayName(aEmailAddress, aHeaderDisplayName, aContext, aCard)
 
   // If this address is one of the user's identities...
   if (aEmailAddress == identity.email) {
-
+    var brand = document.getElementById("bundle_messenger");
     // ...pick a localized version of the word "You" appropriate to this
     // specific header; fall back to the version used by the "to" header
     // if nothing else is available.
     try {
-      displayName = gMessengerBundle.getString("header" + aContext +
-                                               "FieldYou");
+      displayName = bundle.getString("header" + aContext + "FieldYou");
     } catch (ex) {
-      displayName = gMessengerBundle.getString("headertoFieldYou");
+      displayName = bundle.getString("headertoFieldYou");
     }
 
     // Make sure we have an unambiguous name if there are multiple identities
@@ -1656,8 +1654,9 @@ AttachmentInfo.prototype = {
       return;
 
     if (this.isEmpty) {
-      msgWindow.promptDialog.alert(null, gMessengerBundle.getString(
-        "emptyAttachment"));
+      var prompt = document.getElementById("bundle_messenger")
+                           .getString("emptyAttachment");
+      msgWindow.promptDialog.alert(null, prompt);
     }
     else {
       messenger.openAttachment(this.contentType, this.url,
@@ -1943,6 +1942,7 @@ function createAttachmentDisplayName(aAttachment)
 
 function displayAttachmentsForExpandedView()
 {
+  var bundle = document.getElementById("bundle_messenger");
   var numAttachments = currentAttachments.length;
   var totalSize = 0;
   var attachmentView = document.getElementById('attachmentView');
@@ -1974,8 +1974,8 @@ function displayAttachmentsForExpandedView()
       var item;
       if (attachment.size != null) {
         var size = messenger.formatFileSize(attachment.size);
-        var nameAndSize = gMessengerBundle.getFormattedString(
-          "attachmentNameAndSize", [displayName, size]);
+        var nameAndSize = bundle.getFormattedString("attachmentNameAndSize",
+                                                    [displayName, size]);
         item = attachmentList.appendItem(nameAndSize);
         totalSize += attachment.size;
       }
@@ -2012,7 +2012,7 @@ function displayAttachmentsForExpandedView()
       return !attachment.hasFile;
     });
     if (numAttachments == 1) {
-      let count = gMessengerBundle.getString("attachmentCountSingle");
+      let count = bundle.getString("attachmentCountSingle");
       let name = createAttachmentDisplayName(currentAttachments[0]);
 
       saveAllSingle.hidden = false;
@@ -2023,7 +2023,7 @@ function displayAttachmentsForExpandedView()
       attachmentName.setAttribute("value", name);
     }
     else {
-      let words = gMessengerBundle.getString("attachmentCount");
+      let words = bundle.getString("attachmentCount");
       let count = PluralForm.get(currentAttachments.length, words)
                             .replace("#1", currentAttachments.length);
 
@@ -2037,10 +2037,9 @@ function displayAttachmentsForExpandedView()
     let sizeStr = messenger.formatFileSize(totalSize);
     if (unknownSize) {
       if (totalSize == 0)
-        sizeStr = gMessengerBundle.getString("attachmentSizeUnknown");
+        sizeStr = bundle.getString("attachmentSizeUnknown");
       else
-        sizeStr = gMessengerBundle.getFormattedString("attachmentSizeAtLeast",
-                                                      [sizeStr]);
+        sizeStr = bundle.getFormattedString("attachmentSizeAtLeast", [sizeStr]);
     }
     attachmentSize.setAttribute("value", sizeStr);
 
@@ -2177,10 +2176,8 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
   if (!item)
     return;
 
-  if (!gMessengerBundle)
-    gMessengerBundle = document.getElementById("bundle_messenger");
   function getString(aName) {
-    return gMessengerBundle.getString(aName);
+    return document.getElementById("bundle_messenger").getString(aName);
   }
 
   // Insert the item just before the separator. The separator is the 2nd to
@@ -2195,12 +2192,11 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
     indexOfSeparator++;
 
   var displayName = createAttachmentDisplayName(attachment);
-  var formattedDisplayNameString = gMessengerBundle.getFormattedString(
-                                   "attachmentDisplayNameFormat",
-                                   [attachmentIndex, displayName]);
-
+  var label = document.getElementById("bundle_messenger")
+                      .getFormattedString("attachmentDisplayNameFormat",
+                                          [attachmentIndex, displayName]);
   item.setAttribute("crop", "center");
-  item.setAttribute('label', formattedDisplayNameString);
+  item.setAttribute("label", label);
   item.setAttribute('accesskey', attachmentIndex);
 
   // Each attachment in the list gets its own menupopup with options for

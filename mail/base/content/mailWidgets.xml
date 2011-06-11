@@ -495,7 +495,8 @@
         <body>
           <![CDATA[
             // figure out the right plural for the language we're using
-            let words = gMessengerBundle.getString("headerMoreAddrs");
+            let words = document.getElementById("bundle_messenger")
+                                .getString("headerMoreAddrs");
             let moreForm = PluralForm.get(aNumber, words).replace("#1",
                                                                   aNumber);
 
