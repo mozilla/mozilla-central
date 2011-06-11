@@ -346,16 +346,10 @@ function getBrowser()
 function getHomePage()
 {
   var URIs = [];
-  try {
-    URIs[0] = Services.prefs.getComplexValue("browser.startup.homepage",
-                                             nsIPrefLocalizedString).data;
-    var count = Services.prefs.getIntPref("browser.startup.homepage.count");
-    for (var i = 1; i < count; ++i) {
-      URIs[i] = Services.prefs.getComplexValue("browser.startup.homepage." + i,
-                                               nsIPrefLocalizedString).data;
-    }
-  } catch(e) {
-  }
+  URIs[0] = GetLocalizedStringPref("browser.startup.homepage");
+  var count = Services.prefs.getIntPref("browser.startup.homepage.count");
+  for (var i = 1; i < count; ++i)
+    URIs[i] = GetLocalizedStringPref("browser.startup.homepage." + i);
 
   return URIs;
 }
@@ -833,10 +827,8 @@ function Shutdown()
 
 function Translate()
 {
-  var service = Services.prefs.getComplexValue("browser.translation.service",
-                                               nsIPrefLocalizedString).data;
-  var serviceDomain = Services.prefs.getComplexValue("browser.translation.serviceDomain",
-                                                     nsIPrefLocalizedString).data;
+  var service = GetLocalizedStringPref("browser.translation.service");
+  var serviceDomain = GetLocalizedStringPref("browser.translation.serviceDomain");
   var targetURI = getWebNavigation().currentURI.spec;
 
   // if we're already viewing a translated page, then just reload
@@ -1337,8 +1329,7 @@ function BrowserOpenTab()
           uriToLoad = "about:blank";
           break;
         case 1:
-          uriToLoad = Services.prefs.getComplexValue("browser.startup.homepage",
-                                                     nsIPrefLocalizedString).data;
+          uriToLoad = GetLocalizedStringPref("browser.startup.homepage");
           break;
         case 2:
           uriToLoad = gBrowser ? getWebNavigation().currentURI.spec
