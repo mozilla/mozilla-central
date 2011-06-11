@@ -191,10 +191,13 @@ var gProgressListener = {
   },
 
   // Ignore onLocationChange and onSecurityChange notifications.
-  onLocationChange: function( aWebProgress, aRequest, aLocation, aDownload ) {
+  onLocationChange: function(aWebProgress, aRequest, aLocation, aDownload) {
   },
 
-  onSecurityChange: function( aWebProgress, aRequest, aState, aDownload ) {
+  onLocationChange2: function(aWebProgress, aRequest, aLocation, aDownload, aFlags) {
+  },
+
+  onSecurityChange: function(aWebProgress, aRequest, aState, aDownload) {
   },
 
   // ---------- nsISupports methods ----------

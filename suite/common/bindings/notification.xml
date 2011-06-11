@@ -76,9 +76,21 @@
       </method>
 
       <method name="onLocationChange">
-        <parameter name="aWebProgress" />
-        <parameter name="aRequest" />
-        <parameter name="aLocation" />
+        <parameter name="aWebProgress"/>
+        <parameter name="aRequest"/>
+        <parameter name="aLocation"/>
+        <body>
+          <![CDATA[
+            this.onLocationChange2(aWebProgress, aRequest, aLocation);
+          ]]>
+        </body>
+      </method>
+
+      <method name="onLocationChange2">
+        <parameter name="aWebProgress"/>
+        <parameter name="aRequest"/>
+        <parameter name="aLocation"/>
+        <parameter name="aFlags"/>
         <body>
           <![CDATA[
             var errorPage = aRequest && !Components.isSuccessCode(aRequest.status);

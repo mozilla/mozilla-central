@@ -559,6 +559,10 @@
             mLocationChangeCount : 0,
 
             onLocationChange: function(aWebProgress, aRequest, aLocation) {
+              this.onLocationChange2(aWebProgress, aRequest, aLocation);
+            },
+
+            onLocationChange2: function(aWebProgress, aRequest, aLocation, aFlags) {
               if (aRequest && aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
                 this.mBrowser.mIconURL = "";
                 this.mFeeds = [];
