@@ -283,6 +283,11 @@ toolbar[iconsize="small"] > #sync-button[status=active] {
   padding-bottom: 0px;
 }
 
+#FindToolbar:-moz-lwtheme {
+  -moz-border-top-colors: transparent;
+  -moz-border-bottom-colors: transparent;
+}
+
 /* ::::: fullscreen window controls ::::: */
 
 #window-controls {
