@@ -511,16 +511,20 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchDone(nsresult status)
   if (NS_SUCCEEDED(status))
   {
     PRUint32 count;
-    mHdrsToDelete->GetLength(&count);
+    if (mHdrsToDelete)
+      mHdrsToDelete->GetLength(&count);
     PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("%d messages to delete", count));
 
     if (count > 0) {
       PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("delete messages"));
-      rv = mSearchFolder->DeleteMessages(mHdrsToDelete, nsnull, PR_FALSE /*delete storage*/, PR_FALSE /*isMove*/, nsnull, PR_FALSE /*allowUndo*/);
+      if (mSearchFolder)
+        rv = mSearchFolder->DeleteMessages(mHdrsToDelete, nsnull, PR_FALSE /*delete storage*/, PR_FALSE /*isMove*/, nsnull, PR_FALSE /*allowUndo*/);
     }
   }
-  mHdrsToDelete->Clear();
-  mSearchSession->UnregisterListener(this);
+  if (mHdrsToDelete)
+    mHdrsToDelete->Clear();
+  if (mSearchSession)
+    mSearchSession->UnregisterListener(this);
   // don't cache the session
   // just create another search session next time we search, rather than clearing scopes, terms etc.
   // we also use mSearchSession to determine if the purge service is "busy"

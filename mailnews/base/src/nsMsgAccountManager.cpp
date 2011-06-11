@@ -488,7 +488,7 @@ nsMsgAccountManager::GetIncomingServer(const nsACString& key,
 }
 
 NS_IMETHODIMP
-nsMsgAccountManager::RemoveIncomingServer(nsIMsgIncomingServer *aServer, 
+nsMsgAccountManager::RemoveIncomingServer(nsIMsgIncomingServer *aServer,
                                           PRBool aCleanupFiles)
 {
   NS_ENSURE_ARG_POINTER(aServer);
@@ -671,22 +671,22 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
     {
       nsCOMPtr<nsIMsgIdentity> identity( do_QueryElementAt(identityArray, i, &rv));
       PRBool identityStillUsed = PR_FALSE;
-      // for each identity, see if any existing account still uses it, 
+      // for each identity, see if any existing account still uses it,
       // and if not, clear it.
       if (NS_SUCCEEDED(rv))
       {
         PRUint32 numAccounts;
         m_accounts->Count(&numAccounts);
         PRUint32 index;
-        for (index = 0; index < numAccounts && !identityStillUsed; index++) 
+        for (index = 0; index < numAccounts && !identityStillUsed; index++)
         {
           nsCOMPtr<nsIMsgAccount> existingAccount;
           rv = m_accounts->QueryElementAt(index, NS_GET_IID(nsIMsgAccount),
                                           (void **)getter_AddRefs(existingAccount));
-          if (NS_SUCCEEDED(rv)) 
+          if (NS_SUCCEEDED(rv))
           {
             nsCOMPtr<nsISupportsArray> existingIdentitiesArray;
-  
+
             rv = existingAccount->GetIdentities(getter_AddRefs(existingIdentitiesArray));
             if (existingIdentitiesArray->IndexOf(identity) != kNotFound)
             {
@@ -970,7 +970,7 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
            nsCOMPtr<nsIMsgAccountManager> accountManager =
                     do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
            NS_ENSURE_SUCCESS(rv, PL_DHASH_NEXT);
-           
+
            if (isImap)
              urlListener = do_QueryInterface(accountManager, &rv);
 
@@ -986,7 +986,7 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
                {
                  nsCOMPtr<nsISupports> item;
                  enumerator->GetNext(getter_AddRefs(item));
- 
+
                  nsCOMPtr<nsIMsgFolder> inboxFolder(do_QueryInterface(item));
                  if (!inboxFolder)
                    continue;
@@ -1076,7 +1076,7 @@ nsMsgAccountManager::GetAccounts(nsISupportsArray **_retval)
   NS_NewISupportsArray(getter_AddRefs(accounts));
   PRUint32 numAccounts;
   m_accounts->Count(&numAccounts);
-  for (PRUint32 index = 0; index < numAccounts; index++) 
+  for (PRUint32 index = 0; index < numAccounts; index++)
   {
     nsCOMPtr<nsIMsgAccount> existingAccount = do_QueryElementAt(m_accounts, index, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -1126,7 +1126,7 @@ nsMsgAccountManager::addIdentityIfUnique(nsISupports *element, void *aData)
     return PR_TRUE;
 
   nsISupportsArray *array = (nsISupportsArray*)aData;
-  
+
   nsCString key;
   rv = identity->GetKey(key);
   if (NS_FAILED(rv))
@@ -1141,7 +1141,7 @@ nsMsgAccountManager::addIdentityIfUnique(nsISupports *element, void *aData)
   PRUint32 i;
   for (i = 0; i < count; i++) {
     nsCOMPtr<nsIMsgIdentity> thisIdentity( do_QueryElementAt(array, i, &rv));
-    if (NS_FAILED(rv)) 
+    if (NS_FAILED(rv))
       continue;
 
     nsCString thisKey;
@@ -1623,7 +1623,7 @@ NS_IMETHODIMP
 nsMsgAccountManager::WriteToFolderCache(nsIMsgFolderCache *folderCache)
 {
   m_incomingServers.Enumerate(hashWriteFolderCache, folderCache);
-  return folderCache->Close();
+  return folderCache ? folderCache->Close() : NS_ERROR_FAILURE;
 }
 
 nsresult
@@ -1781,6 +1781,8 @@ NS_IMETHODIMP nsMsgAccountManager::NotifyServerLoaded(nsIMsgIncomingServer *serv
 
 NS_IMETHODIMP nsMsgAccountManager::NotifyServerUnloaded(nsIMsgIncomingServer *server)
 {
+  NS_ENSURE_ARG_POINTER(server);
+
   PRInt32 count = m_incomingServerListeners.Count();
   server->SetFilterList(nsnull); // clear this to cut shutdown leaks. we are always passing valid non-null server here.
 
@@ -1809,6 +1811,8 @@ NS_IMETHODIMP
 nsMsgAccountManager::FindServerByURI(nsIURI *aURI, PRBool aRealFlag,
                                 nsIMsgIncomingServer** aResult)
 {
+  NS_ENSURE_ARG_POINTER(aURI);
+
   nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -2120,6 +2124,8 @@ NS_IMETHODIMP
 nsMsgAccountManager::GetServersForIdentity(nsIMsgIdentity *identity,
                                            nsISupportsArray **_retval)
 {
+  NS_ENSURE_ARG_POINTER(identity);
+
   nsresult rv;
   rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
@@ -2352,7 +2358,7 @@ NS_IMETHODIMP nsMsgAccountManager::GetLocalFoldersServer(nsIMsgIncomingServer **
       rv = FindServer(NS_LITERAL_CSTRING("nobody"), EmptyCString(), NS_LITERAL_CSTRING("none"), aServer);
       if (NS_FAILED(rv) || !*aServer)
       {
-          rv = FindServer(EmptyCString(), NS_LITERAL_CSTRING("Local Folders"), 
+          rv = FindServer(EmptyCString(), NS_LITERAL_CSTRING("Local Folders"),
                           NS_LITERAL_CSTRING("none"), aServer);
           if (NS_FAILED(rv) || !*aServer)
               rv = FindServer(EmptyCString(), EmptyCString(), NS_LITERAL_CSTRING("none"), aServer);
@@ -2400,51 +2406,51 @@ nsMsgAccountManager::CreateLocalMailAccount()
                             NS_LITERAL_CSTRING("Local Folders"),
                             NS_LITERAL_CSTRING("none"), getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   nsString localFoldersName;
   rv = GetLocalFoldersPrettyName(localFoldersName);
   NS_ENSURE_SUCCESS(rv, rv);
   server->SetPrettyName(localFoldersName);
-  
+
   nsCOMPtr<nsINoIncomingServer> noServer;
   noServer = do_QueryInterface(server, &rv);
   if (NS_FAILED(rv)) return rv;
-  
+
   // create the directory structure for old 4.x "Local Mail"
   // under <profile dir>/Mail/Local Folders or
   // <"mail.directory" pref>/Local Folders
   nsCOMPtr <nsIFile> mailDir;
   nsCOMPtr <nsILocalFile> localFile;
   PRBool dirExists;
-    
+
   // we want <profile>/Mail
   rv = NS_GetSpecialDirectory(NS_APP_MAIL_50_DIR, getter_AddRefs(mailDir));
   if (NS_FAILED(rv)) return rv;
   localFile = do_QueryInterface(mailDir);
-  
+
   rv = mailDir->Exists(&dirExists);
   if (NS_SUCCEEDED(rv) && !dirExists)
     rv = mailDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
   if (NS_FAILED(rv)) return rv;
-  
+
   // set the default local path for "none"
   rv = server->SetDefaultLocalPath(localFile);
   if (NS_FAILED(rv)) return rv;
-  
+
   // Create an account when valid server values are established.
   // This will keep the status of accounts sane by avoiding the addition of incomplete accounts.
   nsCOMPtr<nsIMsgAccount> account;
   rv = CreateAccount(getter_AddRefs(account));
   if (NS_FAILED(rv)) return rv;
-  
+
   // notice, no identity for local mail
   // hook the server to the account
   // after we set the server's local path
   // (see bug #66018)
   account->SetIncomingServer(server);
-  
+
   // remember this as the local folders server
-  return SetLocalFoldersServer(server);  
+  return SetLocalFoldersServer(server);
 }
 
   // nsIUrlListener methods
@@ -2528,7 +2534,7 @@ nsMsgAccountManager::GetCleanupInboxInProgress(PRBool *bVal)
 }
 
 void
-nsMsgAccountManager::SetLastServerFound(nsIMsgIncomingServer *server, const nsACString& hostname, 
+nsMsgAccountManager::SetLastServerFound(nsIMsgIncomingServer *server, const nsACString& hostname,
                                         const nsACString& username, const PRInt32 port, const nsACString& type)
 {
   m_lastFindServerResult = server;
@@ -2569,7 +2575,7 @@ nsMsgAccountManager::GetChromePackageName(const nsACString& aExtensionName, nsAC
          break;
 
       nsCString contractidString;
-      rv = catman->GetCategoryEntry(MAILNEWS_ACCOUNTMANAGER_EXTENSIONS, entryString.get(), 
+      rv = catman->GetCategoryEntry(MAILNEWS_ACCOUNTMANAGER_EXTENSIONS, entryString.get(),
                                     getter_Copies(contractidString));
       if (NS_FAILED(rv))
         break;
@@ -2669,7 +2675,7 @@ nsresult VirtualFolderChangeListener::Init()
    */
 
 NS_IMETHODIMP
-VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBool aPreChange, PRUint32 *aStatus, 
+VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBool aPreChange, PRUint32 *aStatus,
                                                  nsIDBChangeListener *aInstigator)
 {
   const PRUint32 kMatch = 0x1;
@@ -2690,7 +2696,7 @@ VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBo
   m_searchSession->ClearScopes();
   NS_ENSURE_SUCCESS(rv, rv);
   aHdrChanged->GetFlags(&flags);
-  
+
   if (aPreChange) // We're looking at the old header, save status
   {
     *aStatus = 0;
@@ -2702,7 +2708,7 @@ VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBo
       *aStatus |= kNew;
     return NS_OK;
   }
-  
+
   // This is the post change section where changes are detected
 
   PRBool wasMatch = *aStatus & kMatch;
@@ -2883,7 +2889,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted
       if (numNewMessages == 1)
         m_virtualFolder->SetHasNewMessages(PR_FALSE);
     }
-    
+
     nsCString searchUri;
     m_virtualFolder->GetURI(searchUri);
     msgDB->UpdateHdrInCache(searchUri.get(), aHdrDeleted, PR_FALSE);
@@ -3356,7 +3362,7 @@ NS_IMETHODIMP nsMsgAccountManager::GetAllFolders(nsIArray **aAllFolders)
   PRUint32 folderCount;
   rv = allDescendents->Count(&folderCount);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   // Create an nsIMutableArray from the nsISupportsArray
   nsCOMPtr<nsIMsgFolder> folder;
   for (i = 0; i < folderCount; i++)
@@ -3715,7 +3721,7 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemEvent(nsIMsgFolder *aFolder, nsIAtom *a
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsMsgAccountManager::FolderUriForPath(nsILocalFile *aLocalPath,
                                                nsACString &aMailboxUri)
 {
@@ -3758,4 +3764,3 @@ nsMsgAccountManager::FolderUriForPath(nsILocalFile *aLocalPath,
   }
   return NS_ERROR_FAILURE;
 }
-

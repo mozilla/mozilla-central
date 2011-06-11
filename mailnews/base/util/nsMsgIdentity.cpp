@@ -162,6 +162,9 @@ nsMsgIdentity::SetSignature(nsILocalFile *sig)
 NS_IMETHODIMP
 nsMsgIdentity::ClearAllValues()
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   return mPrefBranch->DeleteBranch("");
 }
 
@@ -206,6 +209,9 @@ NS_IMPL_IDPREF_STR (DoCcList, "doCcList")
 NS_IMETHODIMP
 nsMsgIdentity::GetDoBcc(PRBool *aValue)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   nsresult rv = mPrefBranch->GetBoolPref("doBcc", aValue);
   if (NS_SUCCEEDED(rv))
     return rv;
@@ -233,6 +239,9 @@ nsMsgIdentity::SetDoBcc(PRBool aValue)
 NS_IMETHODIMP
 nsMsgIdentity::GetDoBccList(nsACString& aValue)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   nsCString val;
   nsresult rv = mPrefBranch->GetCharPref("doBccList", getter_Copies(val));
   aValue = val;
@@ -288,6 +297,9 @@ nsresult
 nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval,
                              const char *folderName, PRUint32 folderflag)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   nsresult rv = mPrefBranch->GetCharPref(prefname, getter_Copies(retval));
   if (NS_SUCCEEDED(rv) && !retval.IsEmpty()) {
     // get the corresponding RDF resource
@@ -332,7 +344,7 @@ nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval,
   nsCOMPtr<nsIMsgAccountManager> accountManager =
   do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   nsCOMPtr<nsISupportsArray> servers;
   rv = accountManager->GetServersForIdentity(this, getter_AddRefs(servers));
   NS_ENSURE_SUCCESS(rv,rv);
@@ -369,6 +381,9 @@ nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval,
 nsresult
 nsMsgIdentity::setFolderPref(const char *prefname, const nsACString& value, PRUint32 folderflag)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   nsCString oldpref;
   nsresult rv;
   nsCOMPtr<nsIRDFResource> res;
@@ -426,6 +441,9 @@ nsMsgIdentity::setFolderPref(const char *prefname, const nsACString& value, PRUi
 
 NS_IMETHODIMP nsMsgIdentity::SetUnicharAttribute(const char *aName, const nsAString& val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   if (!val.IsEmpty()) {
     nsresult rv;
     nsCOMPtr<nsISupportsString> supportsString(
@@ -445,6 +463,9 @@ NS_IMETHODIMP nsMsgIdentity::SetUnicharAttribute(const char *aName, const nsAStr
 
 NS_IMETHODIMP nsMsgIdentity::GetUnicharAttribute(const char *aName, nsAString& val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   nsCOMPtr<nsISupportsString> supportsString;
   if (NS_FAILED(mPrefBranch->GetComplexValue(aName,
                                              NS_GET_IID(nsISupportsString),
@@ -463,6 +484,9 @@ NS_IMETHODIMP nsMsgIdentity::GetUnicharAttribute(const char *aName, nsAString& v
 
 NS_IMETHODIMP nsMsgIdentity::SetCharAttribute(const char *aName, const nsACString& val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   if (!val.IsEmpty())
     return mPrefBranch->SetCharPref(aName, nsCString(val).get());
 
@@ -472,6 +496,9 @@ NS_IMETHODIMP nsMsgIdentity::SetCharAttribute(const char *aName, const nsACStrin
 
 NS_IMETHODIMP nsMsgIdentity::GetCharAttribute(const char *aName, nsACString& val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   nsCString tmpVal;
   if (NS_FAILED(mPrefBranch->GetCharPref(aName, getter_Copies(tmpVal))))
     mDefPrefBranch->GetCharPref(aName, getter_Copies(tmpVal));
@@ -481,12 +508,18 @@ NS_IMETHODIMP nsMsgIdentity::GetCharAttribute(const char *aName, nsACString& val
 
 NS_IMETHODIMP nsMsgIdentity::SetBoolAttribute(const char *aName, PRBool val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   return mPrefBranch->SetBoolPref(aName, val);
 }
 
 NS_IMETHODIMP nsMsgIdentity::GetBoolAttribute(const char *aName, PRBool *val)
 {
   NS_ENSURE_ARG_POINTER(val);
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   *val = PR_FALSE;
 
   if (NS_FAILED(mPrefBranch->GetBoolPref(aName, val)))
@@ -497,12 +530,19 @@ NS_IMETHODIMP nsMsgIdentity::GetBoolAttribute(const char *aName, PRBool *val)
 
 NS_IMETHODIMP nsMsgIdentity::SetIntAttribute(const char *aName, PRInt32 val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   return mPrefBranch->SetIntPref(aName, val);
 }
 
 NS_IMETHODIMP nsMsgIdentity::GetIntAttribute(const char *aName, PRInt32 *val)
 {
   NS_ENSURE_ARG_POINTER(val);
+
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   *val = 0;
 
   if (NS_FAILED(mPrefBranch->GetIntPref(aName, val)))
@@ -561,6 +601,8 @@ NS_IMETHODIMP nsMsgIdentity::GetIntAttribute(const char *aName, PRInt32 *val)
 NS_IMETHODIMP
 nsMsgIdentity::Copy(nsIMsgIdentity *identity)
 {
+    NS_ENSURE_ARG_POINTER(identity);
+
     COPY_IDENTITY_BOOL_VALUE(identity,GetComposeHtml,SetComposeHtml)
     COPY_IDENTITY_STR_VALUE(identity,GetEmail,SetEmail)
     COPY_IDENTITY_STR_VALUE(identity,GetReplyTo,SetReplyTo)
