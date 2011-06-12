@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ * Richard Marti <mozilla@paenglab.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -43,4 +44,23 @@
   margin: 0 !important;
   width: auto !important;
   height: auto !important;
+}
+
+#lightning-button-calendar,
+#lightning-button-calendar:hover,
+#lightning-button-calendar[disabled] {
+  -moz-image-region: rect(0 64px 16px 48px);
+}
+
+#lightning-button-tasks,
+#lightning-button-tasks:hover,
+#lightning-button-tasks[disabled] {
+  -moz-image-region: rect(0 80px 16px 64px);
+}
+
+#lightning-button-calendar > .toolbarbutton-icon,
+#lightning-button-tasks > .toolbarbutton-icon {
+  width: 16px;
+  height: 16px;
+  margin: 1px;
 }
