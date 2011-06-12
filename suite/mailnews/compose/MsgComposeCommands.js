@@ -1246,23 +1246,36 @@ function ComposeStartup(recycled, aParams)
       if (args.attachment)
       {
         var attachmentList = args.attachment.split(",");
-        var localFile = Components.classes["@mozilla.org/file/local;1"]
-                                  .createInstance(Components.interfaces.nsILocalFile);
-        var fileHandler = Services.io.getProtocolHandler("file")
-                                  .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+        var commandLine = Components.classes["@mozilla.org/toolkit/command-line;1"]
+                                    .createInstance();
         for (let i = 0; i < attachmentList.length; i++)
         {
           let attachmentStr = attachmentList[i];
+          let uri = commandLine.resolveURI(attachmentStr);
           let attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
                                      .createInstance(Components.interfaces.nsIMsgAttachment);
 
-          try {
-            localFile.initWithPath(attachmentStr);
-            attachment.url = fileHandler.getURLSpecFromFile(localFile);
-          } catch (e) {
-            attachment.url = encodeURI(attachmentStr);
+          if (uri instanceof Components.interfaces.nsIFileURL)
+          {
+            if (uri.file.exists())
+              attachment.size = uri.file.fileSize;
+            else
+              attachment = null;
           }
-          composeFields.addAttachment(attachment);
+
+          // Only want to attach if a file that exists or it is not a file.
+          if (attachment)
+          {
+            attachment.url = uri.spec;
+            composeFields.addAttachment(attachment);
+          }
+          else
+          {
+            let title = sComposeMsgsBundle.getString("errorFileAttachTitle");
+            let msg = sComposeMsgsBundle.getFormattedString("errorFileAttachMessage",
+                                                            [attachmentStr]);
+            gPromptService.alert(window, title, msg);
+          }
         }
       }
       if (args.newshost)
@@ -1520,10 +1533,9 @@ function ComposeLoad()
       ComposeStartup(false, null);
   }
   catch (ex) {
-    dump("EX: = " + ex + "\n");
+    Components.utils.reportError(ex);
     var errorTitle = sComposeMsgsBundle.getString("initErrorDlogTitle");
-    var errorMsg = sComposeMsgsBundle.getFormattedString("initErrorDlogMessage",
-                                                         [""]);
+    var errorMsg = sComposeMsgsBundle.getString("initErrorDlgMessage");
     gPromptService.alert(window, errorTitle, errorMsg);
 
     MsgComposeCloseWindow(false); // Don't try to recycle a bogus window
