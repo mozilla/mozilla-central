@@ -805,22 +805,27 @@ nsresult nsMapiHook::PopulateCompFieldsForSendDocs(nsIMsgCompFields * aCompField
 
       nsDependentString fileNameNative(leafName.get());
       rv = pFile->CopyTo(pTempDir, fileNameNative);
-      if (NS_FAILED(rv)) return rv ;
+      if (NS_FAILED(rv)) return rv;
 
       // now turn pTempDir into a full file path to the temp file
       pTempDir->Append(fileNameNative);
 
       // this one is a temp file so set the flag for MsgCompose
-      attachment->SetTemporary(PR_TRUE) ;
+      attachment->SetTemporary(PR_TRUE);
 
       // now set the attachment object
-      nsCAutoString pURL ;
+      nsCAutoString pURL;
       NS_GetURLSpecFromFile(pTempDir, pURL);
       attachment->SetUrl(pURL);
 
+      // set the file size
+      PRInt64 fileSize;
+      pFile->GetFileSize(&fileSize);
+      attachment->SetSize(fileSize);
+
       // add the attachment
       rv = aCompFields->AddAttachment (attachment);
-      if (NS_FAILED(rv)) return rv ;
+      if (NS_FAILED(rv)) return rv;
     }
 
     rv = aCompFields->SetBody(Subject) ;
