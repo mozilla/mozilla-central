@@ -1192,7 +1192,7 @@ function FormatDisplayName(aEmailAddress, aHeaderDisplayName, aContext, aCard)
 
   // If this address is one of the user's identities...
   if (aEmailAddress == identity.email) {
-    var brand = document.getElementById("bundle_messenger");
+    var bundle = document.getElementById("bundle_messenger");
     // ...pick a localized version of the word "You" appropriate to this
     // specific header; fall back to the version used by the "to" header
     // if nothing else is available.
