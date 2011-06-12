@@ -3082,11 +3082,11 @@ function FeedSetContentViewToggle()
 // Check message format
 function FeedCheckContentFormat()
 {
-  var contentWindowDoc = window.top.content.document;
-
-  // Not an rss message
+  // Not an rss message. This also rules out no 3pane to get the browser of.
   if (!gFolderDisplay.selectedMessageIsFeed)
     return false;
+
+  var contentWindowDoc = getBrowser().contentDocument;
 
   // Thunderbird 2 rss messages with 'Show article summary' not selected,
   // ie message body constructed to show web page in an iframe, can't show
@@ -3111,7 +3111,7 @@ function FeedSetContentView(val)
   var showSummary;
   var wintype = document.documentElement.getAttribute('windowtype');
   var contentBase = currentHeaderData["content-base"];
-  var contentWindowDoc = window.top.content.document;
+  var contentWindowDoc = getBrowser().contentDocument;
   var divHTML = new XPCNativeWrapper(contentWindowDoc,
                       "getElementsByClassName()")
                       .getElementsByClassName("moz-text-html")[0];
