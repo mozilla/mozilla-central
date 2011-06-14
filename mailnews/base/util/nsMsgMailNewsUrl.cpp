@@ -515,35 +515,38 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetBaseURI(nsIURI **aBaseURI)
 
 NS_IMETHODIMP nsMsgMailNewsUrl::Equals(nsIURI *other, PRBool *_retval)
 {
-  return EqualsInternal(other, eIgnoreRef, _retval);
+  // The passed-in URI might be a mail news url. Pass our inner URL to its
+  // Equals method. The other mail news url will then pass its inner URL to
+  // to the Equals method of our inner URL. Other URIs will return false.
+  if (other)
+    return other->Equals(m_baseURL, _retval);
+
+  return m_baseURL->Equals(other, _retval);
 }
 
 NS_IMETHODIMP nsMsgMailNewsUrl::EqualsExceptRef(nsIURI *other, PRBool *result)
 {
-  return EqualsInternal(other, eIgnoreRef, result);
+  // The passed-in URI might be a mail news url. Pass our inner URL to its
+  // Equals method. The other mail news url will then pass its inner URL to
+  // to the Equals method of our inner URL. Other URIs will return false.
+  if (other)
+    return other->EqualsExceptRef(m_baseURL, result);
+
+  return m_baseURL->EqualsExceptRef(other, result);
 }
 
 NS_IMETHODIMP
 nsMsgMailNewsUrl::CloneIgnoringRef(nsIURI** result)
 {
-  return m_baseURL->CloneIgnoringRef(result);
-}
+  nsCOMPtr<nsIURI> clone;
+  nsresult rv = Clone(getter_AddRefs(clone));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-nsresult nsMsgMailNewsUrl::EqualsInternal(nsIURI *other,
-                                          RefHandlingEnum refHandlingMode,
-                                          PRBool *_retval)
-{
-  nsCOMPtr <nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(other);
-  // we really want to compare the base uris to each other, not our base URI
-  // with the other's real URI.
-  if (mailUrl)
-  {
-    nsCOMPtr <nsIURI> baseURI;
-    mailUrl->GetBaseURI(getter_AddRefs(baseURI));
-    if (baseURI)
-      return m_baseURL->Equals(baseURI, _retval);
-  }
-  return m_baseURL->Equals(other, _retval);
+  rv = clone->SetRef(EmptyCString());
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  clone.forget(result);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgMailNewsUrl::SchemeIs(const char *aScheme, PRBool *_retval)

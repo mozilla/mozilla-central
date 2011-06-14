@@ -49,6 +49,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "nsCRT.h"
+#include "nsAutoPtr.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 // mailto url definition
@@ -657,7 +658,18 @@ NS_IMETHODIMP nsMailtoUrl::Equals(nsIURI *other, PRBool *_retval)
 
 NS_IMETHODIMP nsMailtoUrl::Clone(nsIURI **_retval)
 {
-	return m_baseURL->Clone(_retval);
+  NS_ENSURE_ARG_POINTER(_retval);
+
+  nsRefPtr<nsMailtoUrl> clone = new nsMailtoUrl();
+
+  if (!clone)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  nsresult rv = m_baseURL->Clone(getter_AddRefs(clone->m_baseURL));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  *_retval = clone.forget().get();
+  return NS_OK;
 }	
 
 NS_IMETHODIMP nsMailtoUrl::Resolve(const nsACString &relativePath, nsACString &result) 
@@ -678,13 +690,27 @@ nsMailtoUrl::GetRef(nsACString &result)
 
 NS_IMETHODIMP nsMailtoUrl::EqualsExceptRef(nsIURI *other, PRBool *result)
 {
+  // The passed-in URI might be an nsMailtoUrl. Pass our inner URL to its
+  // Equals method. The other nsMailtoUrl will then pass its inner URL to
+  // to the Equals method of our inner URL. Other URIs will return false.
+  if (other)
+    return other->EqualsExceptRef(m_baseURL, result);
+
   return m_baseURL->EqualsExceptRef(other, result);
 }
 
 NS_IMETHODIMP
 nsMailtoUrl::CloneIgnoringRef(nsIURI** result)
 {
-  return m_baseURL->CloneIgnoringRef(result);
+  nsCOMPtr<nsIURI> clone;
+  nsresult rv = Clone(getter_AddRefs(clone));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = clone->SetRef(EmptyCString());
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  clone.forget(result);
+  return NS_OK;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////

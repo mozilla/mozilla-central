@@ -41,6 +41,7 @@
 #include "nsStringGlue.h"
 #include "nsAbBaseCID.h"
 #include "nsComponentManagerUtils.h"
+#include "nsAutoPtr.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 // addbook url definition
@@ -62,7 +63,7 @@ NS_IMETHODIMP
 nsAddbookUrl::SetSpec(const nsACString &aSpec)
 {
   m_baseURL->SetSpec(aSpec);
-	return ParseUrl();
+  return ParseUrl();
 }
 
 nsresult nsAddbookUrl::ParseUrl()
@@ -173,7 +174,8 @@ NS_IMETHODIMP nsAddbookUrl::GetPath(nsACString &aPath)
 
 NS_IMETHODIMP nsAddbookUrl::SetPath(const nsACString &aPath)
 {
-	return m_baseURL->SetPath(aPath);
+  m_baseURL->SetPath(aPath);
+  return ParseUrl();
 }
 
 NS_IMETHODIMP nsAddbookUrl::GetAsciiHost(nsACString &aHostA)
@@ -209,12 +211,23 @@ NS_IMETHODIMP nsAddbookUrl::Equals(nsIURI *other, PRBool *_retval)
 
 NS_IMETHODIMP nsAddbookUrl::Clone(nsIURI **_retval)
 {
-	return m_baseURL->Clone(_retval);
+  NS_ENSURE_ARG_POINTER(_retval);
+
+  nsRefPtr<nsAddbookUrl> clone = new nsAddbookUrl();
+
+  if (!clone)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  nsresult rv = m_baseURL->Clone(getter_AddRefs(clone->m_baseURL));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  *_retval = clone.forget().get();
+  return NS_OK;
 }	
 
 NS_IMETHODIMP nsAddbookUrl::Resolve(const nsACString &relativePath, nsACString &result) 
 {
-	return m_baseURL->Resolve(relativePath, result);
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
@@ -226,18 +239,36 @@ nsAddbookUrl::GetRef(nsACString &result)
 NS_IMETHODIMP
 nsAddbookUrl::SetRef(const nsACString &aRef)
 {
-  return m_baseURL->SetRef(aRef);
+  m_baseURL->SetRef(aRef);
+  return ParseUrl();
 }
 
-NS_IMETHODIMP nsAddbookUrl::EqualsExceptRef(nsIURI *other, PRBool *result)
+NS_IMETHODIMP nsAddbookUrl::EqualsExceptRef(nsIURI *other, PRBool *_retval)
 {
-  return m_baseURL->EqualsExceptRef(other, result);
+  // The passed-in URI might be an nsMailtoUrl. Pass our inner URL to its
+  // Equals method. The other nsMailtoUrl will then pass its inner URL to
+  // to the Equals method of our inner URL. Other URIs will return false.
+  if (other)
+    return other->EqualsExceptRef(m_baseURL, _retval);
+
+  return m_baseURL->EqualsExceptRef(other, _retval);
 }
 
 NS_IMETHODIMP
-nsAddbookUrl::CloneIgnoringRef(nsIURI** result)
+nsAddbookUrl::CloneIgnoringRef(nsIURI** _retval)
 {
-  return m_baseURL->CloneIgnoringRef(result);
+  NS_ENSURE_ARG_POINTER(_retval);
+
+  nsRefPtr<nsAddbookUrl> clone = new nsAddbookUrl();
+
+  if (!clone)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  nsresult rv = m_baseURL->CloneIgnoringRef(getter_AddRefs(clone->m_baseURL));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  *_retval = clone.forget().get();
+  return NS_OK;
 }
 
 //

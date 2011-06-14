@@ -80,12 +80,6 @@ public:
 
 protected:
   virtual ~nsMsgMailNewsUrl();
-  enum RefHandlingEnum {
-    eIgnoreRef,
-    eHonorRef
-  };
-  nsresult EqualsInternal(nsIURI *other, RefHandlingEnum refHandlingMode,
-                          PRBool *_retval);
 
   nsCOMPtr<nsIURL> m_baseURL;
   nsWeakPtr m_statusFeedbackWeak;
