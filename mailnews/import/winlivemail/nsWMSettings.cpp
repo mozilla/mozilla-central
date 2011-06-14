@@ -72,6 +72,7 @@
 #include "nsIFileStreams.h"
 #include "nsIDOMParser.h"
 #include "nsIDOMElement.h"
+#include "nsIDOM3Node.h"
 #include "nsTArray.h"
 #include <windows.h>
 #include "nsIWindowsRegKey.h"
@@ -240,7 +241,8 @@ nsresult WMSettings::GetValueForTag(nsIDOMDocument *xmlDoc,
   list->Item(0, getter_AddRefs(domNode));
   if (!domNode)
     return NS_ERROR_FAILURE;
-  return domNode->GetTextContent(value);
+  nsCOMPtr<nsIDOM3Node> domChildNode(do_QueryInterface(domNode));
+  return domChildNode->GetTextContent(value);
 }
 
 nsresult WMSettings::MakeXMLdoc(nsIDOMDocument** xmlDoc,
