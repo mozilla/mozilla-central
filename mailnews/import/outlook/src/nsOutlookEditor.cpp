@@ -1079,7 +1079,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::GetSrc(nsAString & aSrc)
 
 NS_IMETHODIMP nsOutlookHTMLImageElement::SetSrc(const nsAString & aSrc)
 {
-  // nsEudoraHTMLImageElement calls UpdateEmbeddedImageReference(m_cid, aSrc)
+  // nsOutlookHTMLImageElement calls UpdateEmbeddedImageReference(m_cid, aSrc)
   // on the editor here, but our editor doen't implement it.
 
   // The nsMsgNend::ProcessMultipartRelated seems to call SetSrc twice.
@@ -1144,6 +1144,63 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::Focus()
 }
 
 NS_IMETHODIMP nsOutlookHTMLImageElement::Click()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetDOMBaseURI(nsAString &aBaseURI)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::CompareDocumentPosition(nsIDOMNode *other, PRUint16 *_retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+  /* attribute DOMString textContent; */
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetTextContent(nsAString & aTextContent)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetTextContent(const nsAString & aTextContent)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::IsSameNode(nsIDOMNode *other, PRBool *_retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::LookupPrefix(const nsAString & namespaceURI, nsAString & _retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::IsDefaultNamespace(const nsAString & namespaceURI, PRBool *_retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::LookupNamespaceURI(const nsAString & prefix, nsAString & _retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::IsEqualNode(nsIDOMNode *arg, PRBool *_retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetUserData(const nsAString & key, nsIVariant *data,
+                          nsIDOMUserDataHandler *handler, nsIVariant **_retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetUserData(const nsAString & key, nsIVariant **_retval NS_OUTPARAM)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

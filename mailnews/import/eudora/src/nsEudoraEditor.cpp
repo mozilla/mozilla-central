@@ -1472,3 +1472,60 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::SetWidth(PRInt32 aWidth)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetDOMBaseURI(nsAString &aBaseURI)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::CompareDocumentPosition(nsIDOMNode *other, PRUint16 *_retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+  /* attribute DOMString textContent; */
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetTextContent(nsAString & aTextContent)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetTextContent(const nsAString & aTextContent)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::IsSameNode(nsIDOMNode *other, PRBool *_retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::LookupPrefix(const nsAString & namespaceURI, nsAString & _retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::IsDefaultNamespace(const nsAString & namespaceURI, PRBool *_retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::LookupNamespaceURI(const nsAString & prefix, nsAString & _retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::IsEqualNode(nsIDOMNode *arg, PRBool *_retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetUserData(const nsAString & key, nsIVariant *data,
+                          nsIDOMUserDataHandler *handler, nsIVariant **_retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetUserData(const nsAString & key, nsIVariant **_retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
