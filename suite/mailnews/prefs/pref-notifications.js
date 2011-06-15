@@ -108,12 +108,15 @@ function ReadSoundLocation(aElement)
 
 function PlaySound()
 {
+  const nsISound = Components.interfaces.nsISound;
   if (!gSound)
     gSound = Components.classes["@mozilla.org/sound;1"]
-                       .createInstance(Components.interfaces.nsISound);
+                       .createInstance(nsISound);
   var soundURL = gSoundUrlPref.value;
   if (soundURL)
     gSound.play(gIOService.newURI(soundURL, null, null));
+  else if (/Mac/.test(navigator.platform))
+    gSound.beep();
   else
-    gSound.playSystemSound("_moz_mailbeep");
+    gSound.playEventSound(nsISound.EVENT_NEW_MAIL_RECEIVED);
 }
