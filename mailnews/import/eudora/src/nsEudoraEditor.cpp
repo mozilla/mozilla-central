@@ -1483,7 +1483,6 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::CompareDocumentPosition(nsIDOMNode *othe
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-  /* attribute DOMString textContent; */
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetTextContent(nsAString & aTextContent)
 {
   return NS_ERROR_NOT_IMPLEMENTED;

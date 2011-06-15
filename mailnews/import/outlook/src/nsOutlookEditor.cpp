@@ -1158,7 +1158,6 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::CompareDocumentPosition(nsIDOMNode *oth
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-  /* attribute DOMString textContent; */
 NS_IMETHODIMP nsOutlookHTMLImageElement::GetTextContent(nsAString & aTextContent)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
