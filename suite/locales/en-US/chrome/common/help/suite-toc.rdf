@@ -861,8 +861,6 @@
         <rdf:li><rdf:Description ID="cookies_prefs" nc:name="Cookie Preferences" nc:link="using_priv_help.xhtml#cookies"/> </rdf:li>
         <rdf:li><rdf:Description ID="cookies_stored" nc:name="Stored Cookies" nc:link="using_priv_help.xhtml#stored_cookies"/> </rdf:li>
         <rdf:li><rdf:Description ID="cookie_sites" nc:name="Cookie Websites" nc:link="using_priv_help.xhtml#cookie_sites"/> </rdf:li>
-        <rdf:li><rdf:Description ID="cookie_notify" nc:name="Cookie Notification" nc:link="using_priv_help.xhtml#cookie_notification"/> </rdf:li>
-
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>

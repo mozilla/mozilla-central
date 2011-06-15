@@ -569,11 +569,6 @@
          nc:link="using_priv_help.xhtml#managing_cookies_site-by-site"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="cookies:notification_icon"
-         nc:name="notification icon"
-         nc:link="using_priv_help.xhtml#cookie_notification"/>
-     </rdf:li>
-     <rdf:li>
        <rdf:Description ID="cookies:preferences"
          nc:name="cookie preferences"
          nc:link="using_priv_help.xhtml#cookies"/>
