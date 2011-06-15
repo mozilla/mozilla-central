@@ -81,7 +81,6 @@ var gMessengerBundle;
 var gPromptService;
 var gOfflinePromptsBundle;
 var gOfflineManager;
-var gWindowManagerInterface;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
 var gCopyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
                              .getService(Components.interfaces.nsIMsgCopyService);
@@ -948,15 +947,6 @@ function GetFirstSelectedMsgFolder()
     return result;
 }
 
-function GetWindowMediator()
-{
-    if (gWindowManagerInterface)
-        return gWindowManagerInterface;
-
-    var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
-    return (gWindowManagerInterface = windowManager.QueryInterface(Components.interfaces.nsIWindowMediator));
-}
-
 function GetInboxFolder(server)
 {
     try {
@@ -1721,7 +1711,7 @@ function MsgOpenSelectedMessages()
 
 function MsgOpenSelectedMessageInExistingWindow()
 {
-    var windowID = GetWindowByWindowType("mail:messageWindow");
+    var windowID = Services.wm.getMostRecentWindow("mail:messageWindow");
     if (!windowID)
       return false;
 
@@ -3033,7 +3023,7 @@ function MsgJunkMailInfo(aCheckFirstUse)
       return;
   }
 
-  var desiredWindow = GetWindowByWindowType("mailnews:junkmailinfo");
+  var desiredWindow = Services.wm.getMostRecentWindow("mailnews:junkmailinfo");
 
   if (desiredWindow)
     desiredWindow.focus();
@@ -3052,15 +3042,9 @@ function MsgFilterList(args)
   OpenOrFocusWindow(args, "mailnews:filterlist", "chrome://messenger/content/FilterListDialog.xul");
 }
 
-function GetWindowByWindowType(windowType)
-{
-  var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator);
-  return windowManager.getMostRecentWindow(windowType);
-}
-
 function OpenOrFocusWindow(args, windowType, chromeURL)
 {
-  var desiredWindow = GetWindowByWindowType(windowType);
+  var desiredWindow = Services.wm.getMostRecentWindow(windowType);
 
   if (desiredWindow) {
     desiredWindow.focus();

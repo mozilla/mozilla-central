@@ -246,9 +246,7 @@ function MailTasksOnLoad(aEvent)
 
   // The MailNews main window will perform biff later in its onload handler,
   // so we don't need to do this here.
-  if (Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                .getService(Components.interfaces.nsIWindowMediator)
-                .getMostRecentWindow("mail:3pane"))
+  if (Services.wm.getMostRecentWindow("mail:3pane"))
     return;
 
   // If we already have a defined biff-state set on the mini-mail icon,

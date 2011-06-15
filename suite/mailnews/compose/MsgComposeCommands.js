@@ -554,9 +554,7 @@ function QuoteSelectedMessage()
 function GetSelectedMessages()
 {
   if (gMsgCompose) {
-    var mailWindow = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService()
-                     .QueryInterface(Components.interfaces.nsIWindowMediator)
-                     .getMostRecentWindow("mail:3pane");
+    var mailWindow = Services.wm.getMostRecentWindow("mail:3pane");
     if (mailWindow) {
       return mailWindow.GetSelectedMessages();
     }
