@@ -1079,7 +1079,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::GetSrc(nsAString & aSrc)
 
 NS_IMETHODIMP nsOutlookHTMLImageElement::SetSrc(const nsAString & aSrc)
 {
-  // nsOutlookHTMLImageElement calls UpdateEmbeddedImageReference(m_cid, aSrc)
+  // nsEudoraHTMLImageElement calls UpdateEmbeddedImageReference(m_cid, aSrc)
   // on the editor here, but our editor doen't implement it.
 
   // The nsMsgNend::ProcessMultipartRelated seems to call SetSrc twice.
