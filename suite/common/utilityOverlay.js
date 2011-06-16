@@ -195,6 +195,15 @@ function GetLocalizedStringPref(aPrefName, aDefaultValue)
   return aDefaultValue;
 }
 
+function GetLocalFilePref(aName)
+{
+  try {
+    return Services.prefs.getComplexValue(aName,
+               Components.interfaces.nsILocalFile);
+  } catch (e) {}
+  return null;
+}
+
 function setOfflineUI(offline)
 {
   var broadcaster = document.getElementById("Communicator:WorkMode");

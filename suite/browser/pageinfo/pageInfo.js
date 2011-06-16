@@ -803,13 +803,9 @@ function selectSaveFolder()
 
   var titleText = gBundle.getString("mediaSelectFolder");
   fp.init(window, titleText, nsIFilePicker.modeGetFolder);
-  try {
-    var initialDir = Services.prefs.getComplexValue("browser.download.dir",
-                                                    nsILocalFile);
-    if (initialDir)
-      fp.displayDirectory = initialDir;
-  }
-  catch (ex) { }
+  var initialDir = GetLocalFilePref("browser.download.dir");
+  if (initialDir)
+    fp.displayDirectory = initialDir;
 
   fp.appendFilters(nsIFilePicker.filterAll);
   var ret = fp.show();

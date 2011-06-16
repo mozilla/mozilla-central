@@ -2525,22 +2525,6 @@ function MsgComposeCloseWindow(recycleIt)
     window.close();
 }
 
-function GetLastAttachDirectory()
-{
-  var lastDirectory;
-
-  try {
-    lastDirectory = sPrefs.getComplexValue(kComposeAttachDirPrefName, Components.interfaces.nsILocalFile);
-  }
-  catch (ex) {
-    // this will fail the first time we attach a file
-    // as we won't have a pref value.
-    lastDirectory = null;
-  }
-
-  return lastDirectory;
-}
-
 // attachedLocalFile must be a nsILocalFile
 function SetLastAttachDirectory(attachedLocalFile)
 {
@@ -2562,7 +2546,7 @@ function AttachFile()
       var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
       fp.init(window, sComposeMsgsBundle.getString("chooseFileToAttach"), nsIFilePicker.modeOpenMultiple);
 
-      var lastDirectory = GetLastAttachDirectory();
+      var lastDirectory = GetLocalFilePref(kComposeAttachDirPrefName);
       if (lastDirectory)
         fp.displayDirectory = lastDirectory;
 
