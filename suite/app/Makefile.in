@@ -221,10 +221,12 @@ endif
 libs:: blocklist.xml
 	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin
 
-# XXX This is a hack to ensure that we get the right xpcshell.ini for our tests.
+# XXX This is a hack to ensure that we get the right xpcshell.ini for our tests
+# and that we can share the core mozilla-central xpcshell.ini.
 # mozilla-central does this in testing/xpcshell-tests which means that it is
 # very hard for anyone to specify anything else.
 libs::
+	cp $(MOZILLA_SRCDIR)/testing/xpcshell/xpcshell.ini $(MOZDEPTH)/_tests/xpcshell/xpcshell-core.ini
 	$(INSTALL) $(topsrcdir)/suite/test/xpcshell.ini $(MOZDEPTH)/_tests/xpcshell
 	cp $(topsrcdir)/suite/test/xpcshell.ini $(MOZDEPTH)/_tests/xpcshell/all-test-dirs.list
 
