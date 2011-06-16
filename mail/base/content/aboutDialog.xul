@@ -136,7 +136,7 @@
                   <menuitem id="releaseMenuitem" label="Release" value="release"/>
                   <menuitem id="betaMenuitem" label="Beta" value="beta"/>
                   <menuseparator/>
-                  <menuitem id="auroraMenuitem" label="Aurora" value="aurora"/>
+                  <menuitem id="auroraMenuitem" label="Earlybird" value="aurora"/>
                 </menupopup>
               </menulist>
               <label id="channelSelectorEnd">&channel.selector.end;</label>
