@@ -350,6 +350,17 @@ NS_IMETHODIMP nsMsgSearchDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRU
 void nsMsgSearchDBView::InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr,
                               nsMsgKey msgKey, PRUint32 flags, PRUint32 level)
 {
+  if ((PRInt32) index < 0)
+  {
+    NS_ERROR("invalid insert index");
+    index = 0;
+    level = 0;
+  }
+  else if (index > m_keys.Length())
+  {
+    NS_ERROR("inserting past end of array");
+    index = m_keys.Length();
+  }
   m_keys.InsertElementAt(index, msgKey);
   m_flags.InsertElementAt(index, flags);
   m_levels.InsertElementAt(index, level);
