@@ -1121,9 +1121,12 @@ SEARCH_NEWLINE:
     if (*buf == '\r' || *buf == '\n')
     {
       char *last = buf - writeOffset;
+      char *saveBuf = buf;
       if (*buf == '\r' && buf[1] == '\n')
         buf++;
       buf++;
+      // null terminate the left-over slop so we don't confuse msg filters.
+      *saveBuf = 0;
       *last = 0;  /* short-circuit const, and null-terminate header. */
     }
 
