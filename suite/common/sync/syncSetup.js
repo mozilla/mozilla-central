@@ -73,7 +73,7 @@ var gSyncSetup = {
   status: {
     password: false,
     email: false,
-    server: false
+    server: true
   },
 
   get _usingMainServers() {
@@ -660,7 +660,7 @@ var gSyncSetup = {
   onServerCommand: function () {
     document.getElementById("TOSRow").hidden = !this._usingMainServers;
     let control = this._updateControl("server");
-    if (control.selectedIndex > 0) {
+    if (control.selectedIndex != 0) {
       // checkServer() will call checkAccount() and checkFields().
       this.checkServer();
       return;
