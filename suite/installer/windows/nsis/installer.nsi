@@ -299,6 +299,12 @@ Section "-Application" APP_IDX
                       "$(ERROR_CREATE_DIRECTORY_PREFIX)" \
                       "$(ERROR_CREATE_DIRECTORY_SUFFIX)"
 
+  ; distribution/extensions must exist for the optional extensions to install
+  ; properly. Ensure it is present on install, no harm if it is empty.
+  ; CreateDirectory creates nested dirs if required. If already present we'll
+  ; Just fix ourselves on ClearErrors below
+  CreateDirectory "$INSTDIR\distribution\extensions"
+
   ; The MAPI DLL's are copied and the copies are then registered to lessen
   ; file in use errors on application update.
   ClearErrors
