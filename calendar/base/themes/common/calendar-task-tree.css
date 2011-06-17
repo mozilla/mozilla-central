@@ -91,7 +91,7 @@
 }
 
 .calendar-task-tree > treechildren::-moz-tree-cell-text(future) {
-    color: MenuText;
+    color: WindowText;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-row(future, selected, focus) {
@@ -105,7 +105,7 @@
 .calendar-task-tree > treechildren::-moz-tree-cell-text(completed) {
     text-decoration: line-through;
     font-style: italic;
-    color: MenuText;
+    color: WindowText;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-row(completed, selected, focus) {
