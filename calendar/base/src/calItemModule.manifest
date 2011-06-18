@@ -6,8 +6,8 @@ contract @mozilla.org/calendar/alarm-service;1 {7a9200dd-6a64-4fff-a798-c5802186
 
 component {4b7ae030-ed79-11d9-8cd6-0800200c9a66} calItemModule.js
 contract @mozilla.org/calendar/alarm-monitor;1 {4b7ae030-ed79-11d9-8cd6-0800200c9a66}
-category alarm-service-startup calendar-alarm-monitor @mozilla.org/calendar/alarm-monitor;1
-category alarm-service-shutdown calendar-alarm-monitor @mozilla.org/calendar/alarm-monitor;1
+category alarm-service-startup calendar-alarm-monitor service,@mozilla.org/calendar/alarm-monitor;1
+category alarm-service-shutdown calendar-alarm-monitor service,@mozilla.org/calendar/alarm-monitor;1
 
 component {5c8dcaa3-170c-4a73-8142-d531156f664d} calItemModule.js
 contract @mozilla.org/calendar/attendee;1 {5c8dcaa3-170c-4a73-8142-d531156f664d}

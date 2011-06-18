@@ -90,6 +90,12 @@ interface calIAlarmService : nsISupports
    */
   void startup();
 
+  /**
+   * Shuts down the alarm service, canceling all timers and removing all
+   * alarms.
+   */
+  void shutdown();
+
   /* add and remove observers that will be notified when an
      alarm has gone off.  It is up to the application to display
      the alarm.

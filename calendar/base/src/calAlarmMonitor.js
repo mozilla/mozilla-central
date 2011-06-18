@@ -73,6 +73,7 @@ calAlarmMonitor.prototype = {
         let ifaces = [
             Components.interfaces.nsISupports,
             Components.interfaces.nsIObserver,
+            Components.interfaces.nsIClassInfo,
             Components.interfaces.calIAlarmServiceObserver
         ];
         aCount.value = ifaces.length;

@@ -327,6 +327,10 @@ calAlarmService.prototype = {
     },
 
     shutdown: function cAS_shutdown() {
+        if (!this.mStarted) {
+            return;
+        }
+
         /* tell people that we're no longer running */
         let notifier = Components.classes["@mozilla.org/embedcomp/appstartup-notifier;1"]
                                  .getService(Components.interfaces.nsIObserver);
@@ -340,16 +344,7 @@ calAlarmService.prototype = {
         let calmgr = cal.getCalendarManager();
         calmgr.removeObserver(this.calendarManagerObserver);
 
-        for each (let calendarItemMap in this.mTimerMap) {
-            for each (let alarmMap in calendarItemMap) {
-                for each (let timer in alarmMap) {
-                    timer.cancel();
-                }
-            }
-        }
-
-        this.mTimerMap = {};
-
+        // Stop observing all calendars. This will also clear the timers.
         for each (let calendar in calmgr.getCalendars({})) {
             this.unobserveCalendar(calendar);
         }
