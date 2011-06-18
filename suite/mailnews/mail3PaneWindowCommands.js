@@ -238,7 +238,7 @@ var DefaultController =
       case "cmd_downloadFlagged":
       case "cmd_downloadSelected":
       case "cmd_synchronizeOffline":
-        return(CheckOnline());
+        return !Services.io.offline;
 
       case "cmd_watchThread":
       case "cmd_killThread":
@@ -464,11 +464,12 @@ var DefaultController =
       case "cmd_close":
         return true;
       case "cmd_downloadFlagged":
-        return(CheckOnline());
+        return !Services.io.offline;
       case "cmd_downloadSelected":
-        return (IsFolderSelected() && CheckOnline() && GetNumSelectedMessages() > 0);
+        return IsFolderSelected() && !Services.io.offline &&
+               GetNumSelectedMessages() > 0;
       case "cmd_synchronizeOffline":
-        return CheckOnline();
+        return !Services.io.offline;
       case "cmd_settingsOffline":
         return IsAccountOfflineEnabled();
       default:

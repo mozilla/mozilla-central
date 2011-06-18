@@ -943,7 +943,7 @@ function loadStartFolder(initialUri)
 
     MsgGetMessagesForAllServers(defaultServer);
 
-    if (CheckForUnsentMessages() && CheckOnline())
+    if (CheckForUnsentMessages() && !Services.io.offline)
     {
         InitPrompts();
         InitServices();

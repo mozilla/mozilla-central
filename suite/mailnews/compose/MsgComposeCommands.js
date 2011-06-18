@@ -86,7 +86,6 @@ var gMessenger = Components.classes["@mozilla.org/messenger;1"]
 var gHideMenus;
 var gMsgCompose;
 var gAccountManager;
-var gIOService;
 var gPromptService;
 var gWindowLocked;
 var gContentChanged;
@@ -95,7 +94,6 @@ var gCurrentIdentity;
 var defaultSaveOperation;
 var gSendOrSaveOperationInProgress;
 var gCloseWindowAfterSave;
-var gIsOffline;
 var gSessionAdded;
 var gCurrentAutocompleteDirectory;
 var gSetupLdapAutocomplete;
@@ -130,7 +128,6 @@ const kComposeAttachDirPrefName = "mail.compose.attach.dir";
 function InitializeGlobalVariables()
 {
   gAccountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-  gIOService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
   gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
 
   gMsgCompose = null;
@@ -141,7 +138,6 @@ function InitializeGlobalVariables()
   gSendOrSaveOperationInProgress = false;
   gAutoSaving = false;
   gCloseWindowAfterSave = false;
-  gIsOffline = gIOService.offline;
   gSessionAdded = false;
   gCurrentAutocompleteDirectory = null;
   gSetupLdapAutocomplete = false;
@@ -166,7 +162,6 @@ InitializeGlobalVariables();
 function ReleaseGlobalVariables()
 {
   gAccountManager = null;
-  gIOService = null;
   gPromptService = null;
   gCurrentIdentity = null;
   gCurrentAutocompleteDirectory = null;
@@ -459,7 +454,7 @@ var defaultController =
       case "cmd_sendWithCheck":
         return !gWindowLocked;
       case "cmd_sendNow":
-        return !(gWindowLocked || gIsOffline);
+        return !(gWindowLocked || Services.io.offline);
       case "cmd_quit":
         return true;
 
@@ -508,7 +503,7 @@ var defaultController =
       case "cmd_sendButton"         :
         if (defaultController.isCommandEnabled(command))
         {
-          if (gIOService && gIOService.offline)
+          if (Services.io.offline)
             SendMessageLater();
           else
             SendMessage();
@@ -666,11 +661,7 @@ var messageComposeOfflineObserver = {
   observe: function(subject, topic, state) {
     // sanity checks
     if (topic != "network:offline-status-changed") return;
-    if (state == "offline")
-      gIsOffline = true;
-    else
-      gIsOffline = false;
-    MessageComposeOfflineStateChanged(gIsOffline);
+    MessageComposeOfflineStateChanged(state == "offline");
 
     try {
         setupLdapAutocompleteSession();
@@ -686,9 +677,8 @@ function AddMessageComposeOfflineObserver()
   var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
   observerService.addObserver(messageComposeOfflineObserver, "network:offline-status-changed", false);
 
-  gIsOffline = gIOService.offline;
   // set the initial state of the send button
-  MessageComposeOfflineStateChanged(gIsOffline);
+  MessageComposeOfflineStateChanged(Services.io.offline);
 }
 
 function RemoveMessageComposeOfflineObserver()
@@ -814,7 +804,7 @@ function setupLdapAutocompleteSession()
         }
     }
 
-    if (autocompleteDirectory && !gIsOffline) {
+    if (autocompleteDirectory && !Services.io.offline) {
         // Add observer on the directory server we are autocompleting against
         // only if current server is different from previous.
         // Remove observer if current server is different from previous
@@ -835,10 +825,8 @@ function setupLdapAutocompleteSession()
               Components.interfaces.nsISupportsString).data;
 
             LDAPSession.serverURL =
-              Components.classes["@mozilla.org/network/io-service;1"]
-                        .getService(Components.interfaces.nsIIOService)
-                        .newURI(url, null, null)
-                        .QueryInterface(Components.interfaces.nsILDAPURL);
+              Services.io.newURI(url, null, null)
+                         .QueryInterface(Components.interfaces.nsILDAPURL);
 
             // get the login to authenticate as, if there is one
             //
@@ -1175,7 +1163,7 @@ function handleMailtoArgs(mailtoUrl)
   if (/^mailto:/i.test(mailtoUrl))
   {
     // if it is a mailto url, turn the mailto url into a MsgComposeParams object....
-    var uri = gIOService.newURI(mailtoUrl, null, null);
+    var uri = Services.io.newURI(mailtoUrl, null, null);
 
     if (uri)
       return sMsgComposeService.getParamsForMailto(uri);
@@ -1956,8 +1944,8 @@ function SendMessageWithCheck()
         }
     }
 
-  GenericSendMessage(gIsOffline ? nsIMsgCompDeliverMode.Later
-                                 : nsIMsgCompDeliverMode.Now);
+  GenericSendMessage(Services.io.offline ? nsIMsgCompDeliverMode.Later
+                                         : nsIMsgCompDeliverMode.Now);
 }
 
 function SendMessageLater()
@@ -2576,9 +2564,7 @@ function AttachFiles(attachments)
       firstAttachedFile = currentFile;
     }
 
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-    ioService = ioService.getService(Components.interfaces.nsIIOService);
-    var fileHandler = ioService.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+    var fileHandler = Services.io.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
     var currentAttachment = fileHandler.getURLSpecFromFile(currentFile);
 
     if (!DuplicateFileCheck(currentAttachment)) {
@@ -3087,9 +3073,7 @@ var attachmentBucketObserver = {
         {
           if (item.flavour.contentType == "application/x-moz-file")
           {
-            let ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                            .getService(Components.interfaces.nsIIOService);
-            let fileHandler = ioService.getProtocolHandler("file")
+            let fileHandler = Services.io.getProtocolHandler("file")
                               .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
             size = rawData.fileSize;
             rawData = fileHandler.getURLSpecFromFile(rawData);
@@ -3125,7 +3109,7 @@ var attachmentBucketObserver = {
               // also skip mailto:, since it doesn't make sense
               // to attach and send mailto urls
               try {
-                let scheme = gIOService.extractScheme(rawData);
+                let scheme = Services.io.extractScheme(rawData);
                 // don't attach mailto: urls
                 if (scheme == "mailto")
                   isValid = false;

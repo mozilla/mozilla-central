@@ -42,7 +42,6 @@ const nsIFileProtocolHandler = Components.interfaces.nsIFileProtocolHandler;
 
 var gSound = null;
 var gSoundUrlPref = null;
-var gIOService = null;
 var gFileHandler = null;
 
 function Startup()
@@ -57,10 +56,8 @@ function Startup()
   var newMailNotificationTrayIconPref = document.getElementById("newMailNotificationTrayIcon");
   newMailNotificationTrayIconPref.hidden = !/^Win/.test(navigator.platform);
 
-  gIOService = Components.classes["@mozilla.org/network/io-service;1"]
-                         .getService(Components.interfaces.nsIIOService);
-  gFileHandler = gIOService.getProtocolHandler("file")
-                           .QueryInterface(nsIFileProtocolHandler);
+  gFileHandler = Services.io.getProtocolHandler("file")
+                            .QueryInterface(nsIFileProtocolHandler);
   gSoundUrlPref = document.getElementById("mail.biff.play_sound.url");
 
   PlaySoundCheck(document.getElementById("mail.biff.play_sound").value);
@@ -114,7 +111,7 @@ function PlaySound()
                        .createInstance(nsISound);
   var soundURL = gSoundUrlPref.value;
   if (soundURL)
-    gSound.play(gIOService.newURI(soundURL, null, null));
+    gSound.play(Services.io.newURI(soundURL, null, null));
   else if (/Mac/.test(navigator.platform))
     gSound.beep();
   else

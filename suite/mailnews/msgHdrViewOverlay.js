@@ -71,7 +71,6 @@ var gMessengerBundle;
 
 // Globals for setFromBuddyIcon().
 var gFileHandler;
-var gIOService = null;
 var gProfileDirURL;
 
 var gExtraExpandedHeaders;
@@ -476,10 +475,8 @@ var messageHeaderSink = {
       var size = null;
       if (isExternalAttachment)
       {
-        var fileHandler = Components.classes["@mozilla.org/network/io-service;1"]
-                                    .getService(Components.interfaces.nsIIOService)
-                                    .getProtocolHandler("file")
-                                    .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+        var fileHandler = Services.io.getProtocolHandler("file")
+                                     .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
         try
         {
           size = fileHandler.getFileFromURLSpec(url).fileSize;
@@ -1073,16 +1070,15 @@ function setFromBuddyIcon(email)
       if (iconURLStr)
       {
         // Lazily create these globals.
-        if (!gIOService) {
-          gIOService = Components.classes["@mozilla.org/network/io-service;1"]
-                                 .getService(Components.interfaces.nsIIOService);
-          gFileHandler = gIOService.getProtocolHandler("file")
-                                   .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+        if (!gFileHandler)
+        {
+          gFileHandler = Services.io.getProtocolHandler("file")
+                                    .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 
           var profileDir = Components.classes["@mozilla.org/file/directory_service;1"]
                                      .getService(Components.interfaces.nsIProperties)
                                      .get("ProfD", Components.interfaces.nsIFile);
-          gProfileDirURL = gIOService.newFileURI(profileDir);
+          gProfileDirURL = Services.io.newFileURI(profileDir);
         }
 
         // If we did have a buddy icon on disk for this screenname,
@@ -1278,7 +1274,8 @@ createNewAttachmentInfo.prototype.detachAttachment = function detachAttachment()
 function CanDetachAttachments()
 {
   var uri = GetLoadedMessage();
-  var canDetach = !IsNewsMessage(uri) && (!IsImapMessage(uri) || CheckOnline());
+  var canDetach = !IsNewsMessage(uri) &&
+                  (!IsImapMessage(uri) || !Services.io.offline);
   if (canDetach && ("content-type" in currentHeaderData))
     canDetach = !ContentTypeIsSMIME(currentHeaderData["content-type"].headerValue);
   return canDetach;

@@ -130,12 +130,10 @@ function menu_new_init()
   var isInbox = msgFolder.isSpecialFolder(
                   Components.interfaces.nsMsgFolderFlags.Inbox, false);
   var isIMAPFolder = serverType == "imap";
-  var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                         .getService(Components.interfaces.nsIIOService);
   var showNew = ((serverType != 'nntp') && canCreateNew) || isInbox;
   ShowMenuItem("menu_newFolder", showNew);
   ShowMenuItem("menu_newVirtualFolder", showNew);
-  EnableMenuItem("menu_newFolder", !isIMAPFolder || !ioService.offline);
+  EnableMenuItem("menu_newFolder", !isIMAPFolder || !Services.io.offline);
   EnableMenuItem("menu_newVirtualFolder", true);
   if (showNew)
     SetMenuItemLabel("menu_newFolder", gMessengerBundle.getString((isServer || isInbox) ? "newFolderMenuItem" : "newSubfolderMenuItem"));
@@ -978,10 +976,8 @@ function GetMessagesForInboxOnServer(server)
 function MsgGetMessage()
 {
   // if offline, prompt for getting messages
-  if(CheckOnline())
+  if (DoGetNewMailWhenOffline())
     GetFolderMessages();
-  else if (DoGetNewMailWhenOffline())
-      GetFolderMessages();
 }
 
 function MsgGetMessagesForAllServers(defaultServer)
@@ -997,7 +993,7 @@ function MsgGetMessagesForAllServers(defaultServer)
   */
 function MsgGetMessagesForAllAuthenticatedAccounts()
 {
-  if (CheckOnline() || DoGetNewMailWhenOffline())
+  if (DoGetNewMailWhenOffline())
     MailTasksGetMessagesForAllServers(false, msgWindow, null);
 }
 
@@ -1010,28 +1006,17 @@ function MsgGetMessagesForAccount(aEvent)
   if (!aEvent)
     return;
 
-  if(CheckOnline())
+  if (DoGetNewMailWhenOffline())
     GetMessagesForAccount(aEvent);
-  else if (DoGetNewMailWhenOffline()) 
-      GetMessagesForAccount(aEvent);
-    }
+}
 
 // if offline, prompt for getNextNMessages
 function MsgGetNextNMessages()
 {
-  var folder;
-  
-  if(CheckOnline()) {
-    folder = GetFirstSelectedMsgFolder();
+  if (DoGetNewMailWhenOffline()) {
+    var folder = GetFirstSelectedMsgFolder();
     if(folder) 
       GetNextNMessages(folder);
-  }
-
-  else if(DoGetNewMailWhenOffline()) {
-      folder = GetFirstSelectedMsgFolder();
-      if(folder) {
-        GetNextNMessages(folder);
-      }
   }
 }
 
@@ -2074,7 +2059,7 @@ function MsgStop()
 function MsgSendUnsentMsgs()
 {
   // if offline, prompt for sendUnsentMessages
-  if(CheckOnline()) {
+  if (!Services.io.offline) {
     SendUnsentMessages();    
   }
   else {
@@ -2328,6 +2313,9 @@ function InitPrompts()
 
 function DoGetNewMailWhenOffline()
 {
+  if (!Services.io.offline)
+    return true;
+
   var sendUnsent = false;
   var goOnline = PromptGetMessagesOffline() == 0;
   if (goOnline)

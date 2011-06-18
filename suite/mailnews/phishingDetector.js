@@ -109,8 +109,7 @@ function isPhishingURL(aLinkNode, aSilentMode, aHref)
   var unobscuredHostName = {};
   var isPhishingURL = false;
 
-  var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-  var hrefURL = ioService.newURI(href, null, null);
+  var hrefURL = Services.io.newURI(href, null, null);
   
   // only check for phishing urls if the url is an http or https link.
   // this prevents us from flagging imap and other internally handled urls
@@ -150,8 +149,7 @@ function misMatchedHostWithLinkText(aLinkNode, aHrefURL, aLinkTextURL)
     // does the link text look like a http url?
      if (linkNodeText.search(/(^http:|^https:)/) != -1)
      {
-       var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-       var linkTextURL  = ioService.newURI(linkNodeText, null, null);
+       var linkTextURL  = Services.io.newURI(linkNodeText, null, null);
        aLinkTextURL.value = linkTextURL;
        // compare hosts, but ignore possible www. prefix
        return !(aHrefURL.host.replace(/^www\./, "") == aLinkTextURL.value.host.replace(/^www\./, ""));

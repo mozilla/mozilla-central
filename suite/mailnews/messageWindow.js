@@ -686,7 +686,7 @@ var MessageWindowController =
       case "cmd_synchronizeOffline":
       case "cmd_downloadFlagged":
       case "cmd_downloadSelected":
-        return CheckOnline();
+        return !Services.io.offline;
       default:
         return false;
     }
@@ -773,7 +773,7 @@ var MessageWindowController =
 			case "cmd_downloadFlagged":
 			case "cmd_downloadSelected":
       case "cmd_synchronizeOffline":
-                return CheckOnline();
+        return !Services.io.offline;
 			case "cmd_settingsOffline":
                 return IsAccountOfflineEnabled();
 			case "cmd_close":

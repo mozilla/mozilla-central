@@ -162,14 +162,6 @@ function PromptDownloadMessages()
   return false;
 }
 
-// online?
-function CheckOnline()
-{
-  var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                         .getService(Components.interfaces.nsIIOService);
-  return (!ioService.offline);
-}
-
 // Init Pref Service & Offline Manager
 function InitServices()
 {
@@ -193,17 +185,12 @@ function GetOfflineMgrService()
 // we change the offline state ourselves
 function MailCheckBeforeOfflineChange()
 {
-  var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                            .getService(Components.interfaces.nsIIOService);
-
-  var goingOnline = ioService.offline;
-
   InitServices();
 
   var prefSendUnsentMessages = gMailOfflinePrefs.getIntPref("offline.send.unsent_messages");
   var prefDownloadMessages   = gMailOfflinePrefs.getIntPref("offline.download.download_messages");
 
-  if(goingOnline) {
+  if (Services.io.offline) {
     switch(prefSendUnsentMessages) { 
     case 0:
       if(CheckForUnsentMessages()) { 

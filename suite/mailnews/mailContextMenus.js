@@ -353,14 +353,11 @@ function SetupNewMenuItem(folder, numSelected, isServer, serverType, specialFold
 {
   var isInbox = specialFolder == "Inbox";
 
-  const ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
-
   let showNew = (numSelected <= 1 && serverType != "nntp" &&
                  folder.canCreateSubfolders) || isInbox;
   ShowMenuItem("folderPaneContext-new", showNew);
   EnableMenuItem("folderPaneContext-new",
-                 folder.server.type != "imap" || !ioService.offline);
+                 folder.server.type != "imap" || !Services.io.offline);
   if (showNew)
   {
     if (isServer || isInbox)
