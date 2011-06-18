@@ -224,9 +224,7 @@ function MailTasksOnLoad(aEvent)
     return;
 
   // initialize biff state
-  const kObserverService = Components.classes["@mozilla.org/observer-service;1"]
-                                     .getService(Components.interfaces.nsIObserverService);
-  kObserverService.addObserver(biffObserver, BIFF_TOPIC, false);
+  Services.obs.addObserver(biffObserver, BIFF_TOPIC, false);
   biffObserver.observe(null, BIFF_TOPIC, null); // init mini-mail icon
   addEventListener("unload", MailTasksOnUnload, false);
 
@@ -261,9 +259,7 @@ function MailTasksOnLoad(aEvent)
 
 function MailTasksOnUnload(aEvent)
 {
-  var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                  .getService(Components.interfaces.nsIObserverService);
-  observerService.removeObserver(biffObserver, BIFF_TOPIC);
+  Services.obs.removeObserver(biffObserver, BIFF_TOPIC);
 }
 
 /**

@@ -674,8 +674,8 @@ var messageComposeOfflineObserver = {
 
 function AddMessageComposeOfflineObserver()
 {
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.addObserver(messageComposeOfflineObserver, "network:offline-status-changed", false);
+  Services.obs.addObserver(messageComposeOfflineObserver,
+                           "network:offline-status-changed", false);
 
   // set the initial state of the send button
   MessageComposeOfflineStateChanged(Services.io.offline);
@@ -683,8 +683,8 @@ function AddMessageComposeOfflineObserver()
 
 function RemoveMessageComposeOfflineObserver()
 {
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.removeObserver(messageComposeOfflineObserver,"network:offline-status-changed");
+  Services.obs.removeObserver(messageComposeOfflineObserver,
+                              "network:offline-status-changed");
 }
 
 function MessageComposeOfflineStateChanged(goingOffline)
@@ -1810,8 +1810,7 @@ function GenericSendMessage( msgType )
       }
 
       // hook for extra compose pre-processing
-      var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-      observerService.notifyObservers(window, "mail:composeOnSend", null);
+      Services.obs.notifyObservers(window, "mail:composeOnSend", null);
 
       var originalCharset = gMsgCompose.compFields.characterSet;
       // Check if the headers of composing mail can be converted to a mail charset.

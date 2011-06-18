@@ -2832,9 +2832,8 @@ function OnMsgParsed(aUrl)
 
   // notify anyone (e.g., extensions) who's interested in when a message is loaded.
   var msgURI = GetLoadedMessage();
-  var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                  .getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(msgWindow.msgHeaderSink, "MsgMsgDisplayed", msgURI);
+  Services.obs.notifyObservers(msgWindow.msgHeaderSink,
+                               "MsgMsgDisplayed", msgURI);
 
   // scale any overflowing images
   var doc = getMessageBrowser().contentDocument;

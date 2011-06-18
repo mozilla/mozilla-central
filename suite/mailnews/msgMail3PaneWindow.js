@@ -761,9 +761,7 @@ function OnLoadMessenger()
 
   window.setTimeout(loadStartFolder, 0, startFolderUri);
 
-  Components.classes["@mozilla.org/observer-service;1"]
-                     .getService(Components.interfaces.nsIObserverService)
-                     .notifyObservers(window, "mail-startup-done", null);
+  Services.obs.notifyObservers(window, "mail-startup-done", null);
 
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadMsgHeaderPane();
@@ -864,13 +862,6 @@ function MailWindowIsClosing()
     }
   }
   return reallyClose;
-}
-
-function NotifyObservers(aSubject, aTopic, aData)
-{
-  Components.classes["@mozilla.org/observer-service;1"]
-            .getService(Components.interfaces.nsIObserverService)
-            .notifyObservers(aSubject, aTopic, aData);
 }
 
 function Create3PaneGlobals()

@@ -165,8 +165,8 @@ function nsMsgDBViewCommandUpdater()
 function UpdateStandAloneMessageCounts()
 {
   // hook for extra toolbar items
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(window, "mail:updateStandAloneMessageCounts", "");
+  Services.obs.notifyObservers(window,
+                               "mail:updateStandAloneMessageCounts", "");
 }
 
 nsMsgDBViewCommandUpdater.prototype = 
@@ -427,8 +427,7 @@ function CreateView(originalView)
   SetUpToolbarButtons(uri);
 
   // hook for extra toolbar items
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(window, "mail:setupToolbarItems", uri);
+  Services.obs.notifyObservers(window, "mail:setupToolbarItems", uri);
 }
 
 function extractMsgKeyFromURI()
@@ -581,8 +580,7 @@ function RerootFolderForStandAlone(uri)
   UpdateMailToolbar("reroot folder in stand alone window");
   
   // hook for extra toolbar items
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(window, "mail:setupToolbarItems", uri);
+  Services.obs.notifyObservers(window, "mail:setupToolbarItems", uri);
 } 
 
 function GetMsgHdrFromUri(messageUri)

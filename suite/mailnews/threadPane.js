@@ -347,10 +347,8 @@ function MsgGroupBySort()
   gDBView.open(msgFolder, sortType, sortOrder, viewFlags, count);
   RerootThreadPane();
   UpdateSortIndicators(sortType, nsMsgViewSortOrder.ascending);
-  Components.classes["@mozilla.org/observer-service;1"]
-            .getService(Components.interfaces.nsIObserverService)
-            .notifyObservers(msgFolder, "MsgCreateDBView",
-             Components.interfaces.nsMsgViewType.eShowAllThreads + ":" + viewFlags);
+  Services.obs.notifyObservers(msgFolder, "MsgCreateDBView",
+      Components.interfaces.nsMsgViewType.eShowAllThreads + ":" + viewFlags);
 }
 
 function MsgSortUnthreaded()
