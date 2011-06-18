@@ -927,18 +927,12 @@ function MsgToggleThreadPane()
 // corresponding page.
 function ShowAccountCentral()
 {
-  try
-  {
-    GetDisplayDeck().selectedPanel = accountCentralBox;
-    let acctCentralPage = pref.getComplexValue("mailnews.account_central_page.url",
-                                               Components.interfaces.nsIPrefLocalizedString).data;
+  GetDisplayDeck().selectedPanel = accountCentralBox;
+  let acctCentralPage = GetLocalizedStringPref("mailnews.account_central_page.url");
+  if (acctCentralPage)
     window.frames["accountCentralPane"].location.href = acctCentralPage;
-  }
-  catch (ex)
-  {
-    dump("Error loading AccountCentral page -> " + ex + "\n");
-    return;
-  }
+  else
+    dump("Error loading AccountCentral page\n");
 }
 
 function ShowingAccountCentral()

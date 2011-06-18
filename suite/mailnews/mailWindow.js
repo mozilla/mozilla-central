@@ -519,8 +519,7 @@ function loadStartPage()
     var startpageenabled = pref.getBoolPref("mailnews.start_page.enabled");
     if (startpageenabled)
     {
-      var startpage = pref.getComplexValue("mailnews.start_page.url",
-                                           Components.interfaces.nsIPrefLocalizedString).data;
+      var startpage = GetLocalizedStringPref("mailnews.start_page.url");
       if (startpage)
       {
         // first, clear out the charset setting.

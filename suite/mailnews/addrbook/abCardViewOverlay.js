@@ -46,8 +46,7 @@ gPrefs = gPrefs.QueryInterface(Components.interfaces.nsIPrefBranch);
 
 var gProfileDirURL;
 
-var gMapItURLFormat = gPrefs.getComplexValue("mail.addr_book.mapit_url.format", 
-                                              Components.interfaces.nsIPrefLocalizedString).data;
+var gMapItURLFormat = GetLocalizedStringPref("mail.addr_book.mapit_url.format");
 
 var gFileHandler = Services.io.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 

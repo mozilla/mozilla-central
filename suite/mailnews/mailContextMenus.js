@@ -502,12 +502,9 @@ function GetMessageIdFromNode(messageIdNode, cleanMessageId)
 // to open it in a browser window (%mid is replaced by the message id)
 function OpenBrowserWithMessageId(messageId)
 {
-  var browserURL = pref.getComplexValue("mailnews.messageid_browser.url",
-                                        Components.interfaces.nsIPrefLocalizedString).data;
-
-  browserURL = browserURL.replace(/%mid/, messageId);
+  var browserURL = GetLocalizedStringPref("mailnews.messageid_browser.url");
   if (browserURL)
-    openAsExternal(browserURL);
+    openAsExternal(browserURL.replace(/%mid/, messageId));
 }
 
 // take the message id from the messageIdNode, search for the

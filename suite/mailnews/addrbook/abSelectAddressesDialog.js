@@ -400,8 +400,7 @@ function onEnterInSearchBar()
     return;
 
   if (!gQueryURIFormat) {
-    gQueryURIFormat = gPrefs.getComplexValue("mail.addr_book.quicksearchquery.format", 
-                                              Components.interfaces.nsIPrefLocalizedString).data;
+    gQueryURIFormat = GetLocalizedStringPref("mail.addr_book.quicksearchquery.format");
   }
   
   var searchURI = selectedNode.value;

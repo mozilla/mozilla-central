@@ -457,14 +457,12 @@ function Restore()
   // add default items (no ordinal strings for those)
   var prefService = Components.classes["@mozilla.org/preferences-service;1"]
                               .getService(Components.interfaces.nsIPrefService);
-  var prefDescription = prefService.getDefaultBranch("mailnews.labels.description.");
   var prefColor       = prefService.getDefaultBranch("mailnews.labels.color.");
-  const kLocalizedString = Components.interfaces.nsIPrefLocalizedString;
   for (var i = 1; i <= 5; ++i)
   {
     // create default tags from the former label defaults
     var key   = "$label" + i;
-    var tag   = prefDescription.getComplexValue(i, kLocalizedString).data;
+    var tag   = GetLocalizedStringPref("mailnews.labels.description." + i);
     var color = prefColor.getCharPref(i);
     var tagInfo = {tag:     tag,
                    key:     key,
