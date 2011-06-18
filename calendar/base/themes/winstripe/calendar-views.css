@@ -710,11 +710,6 @@ calendar-event-box[status="CANCELLED"] .calendar-color-box {
     border-width: 0 0 0 1px;
 }
 
-.tabs-left,
-.tabs-right {
-    border-bottom: 1px solid #D2D2D2;
-}
-
 tab[calview] {
     -moz-appearance: none;
     background-image: url("chrome://calendar/skin/calendar-day-label-back-vertical.png");
