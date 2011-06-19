@@ -460,7 +460,7 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *
     else
     {
       viewThread = static_cast<nsMsgXFViewThread*>(thread.get());
-      thread->GetChildAt(0, getter_AddRefs(threadRoot));
+      thread->GetChildHdrAt(0, getter_AddRefs(threadRoot));
     }
 
     AddMsgToHashTables(msgHdr, thread);

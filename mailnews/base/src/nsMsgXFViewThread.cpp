@@ -295,19 +295,14 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgXFViewThread::GetChildAt(PRInt32 aIndex, nsIMsgDBHdr **aResult)
+NS_IMETHODIMP nsMsgXFViewThread::GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **aResult)
 {
-  if (aIndex >= (PRInt32) m_keys.Length())
+  if (aIndex < 0 || aIndex >= (PRInt32) m_keys.Length())
     return NS_MSG_MESSAGE_NOT_FOUND;
   nsCOMPtr<nsIMsgDatabase> db;
   nsresult rv = m_folders[aIndex]->GetMsgDatabase(getter_AddRefs(db));
   NS_ENSURE_SUCCESS(rv, rv);
   return db->GetMsgHdrForKey(m_keys[aIndex], aResult);
-}
-
-NS_IMETHODIMP nsMsgXFViewThread::GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **aResult)
-{
-  return GetChildAt(aIndex, aResult);
 }
 
 NS_IMETHODIMP nsMsgXFViewThread::RemoveChildAt(PRInt32 aIndex)

@@ -98,7 +98,7 @@ public:
 
   NS_IMETHOD GetNumChildren(PRUint32 *aNumChildren);
   NS_IMETHOD GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult);
-  NS_IMETHOD GetChildAt(PRInt32 aIndex, nsIMsgDBHdr **aResult);
+  NS_IMETHOD GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **aResult);
   NS_IMETHOD RemoveChildAt(PRInt32 aIndex);
 protected:
   virtual void InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr);

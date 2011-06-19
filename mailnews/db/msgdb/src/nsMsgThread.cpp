@@ -487,17 +487,19 @@ NS_IMETHODIMP nsMsgThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgThread::GetChildAt(PRInt32 aIndex, nsIMsgDBHdr **result)
+NS_IMETHODIMP nsMsgThread::GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **result)
 {
-  nsresult rv;
-
+  // mork doesn't seem to handle this correctly, so deal with going off
+  // the end here.
+  if (aIndex < 0 || PRUint32(aIndex) >= m_numChildren)
+    return NS_MSG_MESSAGE_NOT_FOUND;
   mdbOid oid;
-  rv = m_mdbTable->PosToOid( m_mdbDB->GetEnv(), aIndex, &oid);
+  nsresult rv = m_mdbTable->PosToOid( m_mdbDB->GetEnv(), aIndex, &oid);
   NS_ENSURE_SUCCESS(rv, NS_MSG_MESSAGE_NOT_FOUND);
   nsIMdbRow *hdrRow = nsnull;
-  //do I have to release hdrRow?
   rv = m_mdbTable->PosToRow(m_mdbDB->GetEnv(), aIndex, &hdrRow);
   NS_ENSURE_TRUE(NS_SUCCEEDED(rv) && hdrRow, NS_ERROR_FAILURE);
+  // CreateMsgHdr takes ownership of the hdrRow reference.
   rv = m_mdbDB->CreateMsgHdr(hdrRow,  oid.mOid_Id , result);
   return (NS_SUCCEEDED(rv)) ? NS_OK : NS_MSG_MESSAGE_NOT_FOUND;
 }
@@ -528,46 +530,10 @@ NS_IMETHODIMP nsMsgThread::GetChild(nsMsgKey msgKey, nsIMsgDBHdr **result)
   return rv;
 }
 
-
-NS_IMETHODIMP nsMsgThread::GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **result)
-{
-  nsresult rv;
-
-  nsIMdbRow* resultRow;
-  mdb_pos pos = aIndex - 1;
-
-  NS_ENSURE_ARG_POINTER(result);
-
-  *result = nsnull;
-  // mork doesn't seem to handle this correctly, so deal with going off
-  // the end here.
-  if (aIndex > (PRInt32) m_numChildren)
-    return NS_OK;
-
-  nsIMdbTableRowCursor *rowCursor;
-  rv = m_mdbTable->GetTableRowCursor(m_mdbDB->GetEnv(), pos, &rowCursor);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = rowCursor->NextRow(m_mdbDB->GetEnv(), &resultRow, &pos);
-  NS_RELEASE(rowCursor);
-  if (NS_FAILED(rv) || !resultRow)
-    return rv;
-
-  //Get key from row
-  mdbOid outOid;
-  nsMsgKey key=0;
-  if (resultRow->GetOid(m_mdbDB->GetEnv(), &outOid) == NS_OK)
-    key = outOid.mOid_Id;
-
-  return m_mdbDB->CreateMsgHdr(resultRow, key, result);
-}
-
-
 NS_IMETHODIMP nsMsgThread::RemoveChildAt(PRInt32 aIndex)
 {
   return NS_OK;
 }
-
 
 nsresult nsMsgThread::RemoveChild(nsMsgKey msgKey)
 {

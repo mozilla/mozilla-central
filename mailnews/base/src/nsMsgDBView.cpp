@@ -5460,9 +5460,17 @@ nsresult nsMsgDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex st
   if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay && ! (m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
   {
     nsMsgKey parentKey = m_keys[startOfThreadViewIndex];
+    // If the thread is bigger than the hdr cache, expanding the thread
+    // can be slow. Increasing the hdr cache size will help a fair amount.
+    PRUint32 hdrCacheSize;
+    m_db->GetMsgHdrCacheSize(&hdrCacheSize);
+    if (numChildren > hdrCacheSize)
+      m_db->SetMsgHdrCacheSize(numChildren);
     // If this fails, *pNumListed will be 0, and we'll fall back to just
     // enumerating the messages in the thread below.
     rv = ListIdsInThreadOrder(threadHdr, parentKey, 1, &viewIndex, pNumListed);
+    if (numChildren > hdrCacheSize)
+      m_db->SetMsgHdrCacheSize(hdrCacheSize);
   }
   if (! *pNumListed)
   {
@@ -6138,8 +6146,8 @@ nsresult nsMsgDBView::MarkThreadOfMsgRead(nsMsgKey msgId, nsMsgViewIndex msgInde
     if (!threadHdr)
         return NS_MSG_MESSAGE_NOT_FOUND;
 
-    nsCOMPtr <nsIMsgDBHdr> firstHdr;
-    rv = threadHdr->GetChildAt(0, getter_AddRefs(firstHdr));
+    nsCOMPtr<nsIMsgDBHdr> firstHdr;
+    rv = threadHdr->GetChildHdrAt(0, getter_AddRefs(firstHdr));
     NS_ENSURE_SUCCESS(rv, rv);
     nsMsgKey firstHdrId;
     firstHdr->GetMessageKey(&firstHdrId);

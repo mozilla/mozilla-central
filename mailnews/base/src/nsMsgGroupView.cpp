@@ -633,7 +633,7 @@ nsresult nsMsgGroupView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, P
             // grab a copy of the old root node ('A') from the thread so we can
             //  insert it. (offset msgIndexInThread=1 is the right thing; we are
             //  non-dummy.)
-            thread->GetChildAt(msgIndexInThread, &newHdr);
+            thread->GetChildHdrAt(msgIndexInThread, &newHdr);
           } // nothing to do for dummy case, we're already inserting 'B'.
           nsMsgKey msgKey;
           PRUint32 msgFlags;
@@ -730,7 +730,7 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
     {
       // reflect new thread root into view.dummy row.
       nsCOMPtr<nsIMsgDBHdr> hdr;
-      thread->GetChildAt(0, getter_AddRefs(hdr));
+      thread->GetChildHdrAt(0, getter_AddRefs(hdr));
       if (hdr)
       {
         nsMsgKey msgKey;

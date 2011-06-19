@@ -236,15 +236,15 @@ nsresult nsMsgGroupThread::ReparentNonReferenceChildrenOf(nsIMsgDBHdr *topLevelH
 NS_IMETHODIMP nsMsgGroupThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  if (aIndex >= m_keys.Length())
+  if (aIndex < 0 || aIndex >= m_keys.Length())
     return NS_ERROR_INVALID_ARG;
   *aResult = m_keys[aIndex];
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgGroupThread::GetChildAt(PRInt32 aIndex, nsIMsgDBHdr **aResult)
+NS_IMETHODIMP nsMsgGroupThread::GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **aResult)
 {
-  if (aIndex >= m_keys.Length())
+  if (aIndex < 0 || aIndex >= m_keys.Length())
     return NS_MSG_MESSAGE_NOT_FOUND;
   return m_db->GetMsgHdrForKey(m_keys[aIndex], aResult);
 }
@@ -252,16 +252,8 @@ NS_IMETHODIMP nsMsgGroupThread::GetChildAt(PRInt32 aIndex, nsIMsgDBHdr **aResult
 
 NS_IMETHODIMP nsMsgGroupThread::GetChild(nsMsgKey msgKey, nsIMsgDBHdr **aResult)
 {
-  PRUint32 childIndex = m_keys.IndexOf(msgKey);
-  return (childIndex != kNotFound) ? GetChildAt(childIndex, aResult) : NS_MSG_MESSAGE_NOT_FOUND;
+  return GetChildHdrAt((PRInt32) m_keys.IndexOf(msgKey), aResult);
 }
-
-
-NS_IMETHODIMP nsMsgGroupThread::GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **aResult)
-{
-  return GetChildAt(aIndex, aResult);
-}
-
 
 NS_IMETHODIMP nsMsgGroupThread::RemoveChildAt(PRInt32 aIndex)
 {
@@ -302,7 +294,7 @@ NS_IMETHODIMP nsMsgGroupThread::RemoveChildHdr(nsIMsgDBHdr *child, nsIDBChangeAn
   if (m_dummy && wasFirstChild && m_keys.Length() > 1)
   {
     nsIMsgDBHdr *newRootChild;
-    GetChildAt(1, &newRootChild);
+    GetChildHdrAt(1, &newRootChild);
     SetMsgHdrAt(0, newRootChild);
   }
 
@@ -828,9 +820,9 @@ NS_IMETHODIMP nsMsgXFGroupThread::GetNumChildren(PRUint32 *aNumChildren)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgXFGroupThread::GetChildAt(PRInt32 aIndex, nsIMsgDBHdr **aResult)
+NS_IMETHODIMP nsMsgXFGroupThread::GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **aResult)
 {
-  if (aIndex >= m_folders.Count())
+  if (aIndex < 0 || aIndex >= m_folders.Count())
     return NS_MSG_MESSAGE_NOT_FOUND;
   m_folders.ObjectAt(aIndex)->GetMessageHeader(m_keys[aIndex], aResult);
   return NS_OK;

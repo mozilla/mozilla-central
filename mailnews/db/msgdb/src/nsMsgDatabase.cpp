@@ -2175,7 +2175,7 @@ nsMsgDatabase::MarkThreadRead(nsIMsgThread *thread, nsIDBChangeListener *instiga
   {
     nsCOMPtr <nsIMsgDBHdr> child;
 
-    rv = thread->GetChildAt(curChildIndex, getter_AddRefs(child));
+    rv = thread->GetChildHdrAt(curChildIndex, getter_AddRefs(child));
     if (NS_SUCCEEDED(rv) && child)
     {
       PRBool isRead = PR_TRUE;
