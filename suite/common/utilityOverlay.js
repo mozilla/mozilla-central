@@ -204,6 +204,29 @@ function GetLocalFilePref(aName)
   return null;
 }
 
+/**
+  * Returns the Desktop folder.
+  */
+function GetDesktopFolder()
+{
+  return Services.dirsvc.get("Desk", Components.interfaces.nsILocalFile);
+}
+
+/**
+  * Returns the relevant nsIFile directory.
+  */
+function GetSpecialDirectory(aName)
+{
+  return Services.dirsvc.get(aName, Components.interfaces.nsIFile);
+}
+
+function GetUrlbarHistoryFile()
+{
+  var profileDir = GetSpecialDirectory("ProfD");
+  profileDir.append("urlbarhistory.sqlite");
+  return profileDir;
+}
+
 function setOfflineUI(offline)
 {
   var broadcaster = document.getElementById("Communicator:WorkMode");

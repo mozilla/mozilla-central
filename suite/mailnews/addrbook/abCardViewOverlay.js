@@ -367,10 +367,7 @@ function setBuddyIcon(card, buddyIcon)
     if (myScreenName && card.primaryEmail) {
       if (!gProfileDirURL) {
         // lazily create these file urls, and keep them around
-        var dirService = Components.classes["@mozilla.org/file/directory_service;1"]
-            .getService(Components.interfaces.nsIProperties);
-        var profileDir = dirService.get("ProfD", Components.interfaces.nsIFile);
-        gProfileDirURL = Services.io.newFileURI(profileDir);
+        gProfileDirURL = Services.io.newFileURI(GetSpecialDirectory("ProfD"));
       }
 
       // if we did have a buddy icon on disk for this screenname, this would be the file url spec for it

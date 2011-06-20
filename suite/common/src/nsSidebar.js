@@ -57,7 +57,6 @@ const PANELS_RDF_FILE  = "UPnls"; /* directory services property to find panels.
 
 const SIDEBAR_CID      = Components.ID("{22117140-9c6e-11d3-aaf1-00805f8a4905}");
 const CONTAINER_CONTRACTID = "@mozilla.org/rdf/container;1";
-const DIR_SERV_CONTRACTID  = "@mozilla.org/file/directory_service;1"
 const NETSEARCH_CONTRACTID = "@mozilla.org/rdf/datasource;1?name=internetsearch"
 const nsISupports      = Components.interfaces.nsISupports;
 const nsISidebar       = Components.interfaces.nsISidebar;
@@ -369,12 +368,11 @@ function getSidebarDatasourceURI(panels_file_id)
     {
         /* use the fileLocator to look in the profile directory
          * to find 'panels.rdf', which is the
-         * database of the user's currently selected panels. */
-        var directory_service = Components.classes[DIR_SERV_CONTRACTID].getService(Components.interfaces.nsIProperties);
-
-        /* if <profile>/panels.rdf doesn't exist, get will copy
+         * database of the user's currently selected panels.
+         * if <profile>/panels.rdf doesn't exist, get will copy
          *bin/defaults/profile/panels.rdf to <profile>/panels.rdf */
-        var sidebar_file = directory_service.get(panels_file_id, Components.interfaces.nsIFile);
+        var sidebar_file = Services.dirsvc.get(panels_file_id,
+                                               Components.interfaces.nsIFile);
 
         if (!sidebar_file.exists())
         {

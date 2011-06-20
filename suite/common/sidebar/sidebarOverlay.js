@@ -896,15 +896,12 @@ function check_for_missing_panels() {
 
 function sidebar_get_panels_file() {
   try {
-    var locator_service = Components.classes["@mozilla.org/file/directory_service;1"].getService();
-    if (locator_service)
-      locator_service = locator_service.QueryInterface(Components.interfaces.nsIProperties);
     // Use the fileLocator to look in the profile directory to find
     // 'panels.rdf', which is the database of the user's currently
     // selected panels.
     // If <profile>/panels.rdf doesn't exist, GetFileLocation() will copy
     // bin/defaults/profile/panels.rdf to <profile>/panels.rdf
-    var sidebar_file = locator_service.get(PANELS_RDF_FILE, Components.interfaces.nsIFile);
+    var sidebar_file = GetSpecialDirectory(PANELS_RDF_FILE);
     if (!sidebar_file.exists()) {
       // This should not happen, as GetFileLocation() should copy
       // defaults/panels.rdf to the users profile directory

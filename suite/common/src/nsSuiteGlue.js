@@ -647,9 +647,7 @@ SuiteGlue.prototype = {
       else {
         // We have created a new database but we don't have any backup available.
         importBookmarks = true;
-        var dirService = Components.classes["@mozilla.org/file/directory_service;1"]
-                                   .getService(Components.interfaces.nsIProperties);
-        var bookmarksHTMLFile = dirService.get("BMarks", Components.interfaces.nsILocalFile);
+        var bookmarksHTMLFile = Services.dirsvc.get("BMarks", Components.interfaces.nsILocalFile);
         if (bookmarksHTMLFile.exists()) {
           // If bookmarks.html is available in current profile import it...
           importBookmarksHTML = true;
@@ -691,9 +689,7 @@ SuiteGlue.prototype = {
       }
       else {
         // Get bookmarks.html file location.
-        var bookmarksFile = Components.classes["@mozilla.org/file/directory_service;1"]
-                                      .getService(Components.interfaces.nsIProperties)
-                                      .get("BMarks", Components.interfaces.nsILocalFile);
+        var bookmarksFile = Services.dirsvc.get("BMarks", Components.interfaces.nsILocalFile);
         if (bookmarksFile.exists())
           bookmarksURI = Services.io.newFileURI(bookmarksFile);
       }

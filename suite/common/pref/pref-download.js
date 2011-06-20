@@ -131,16 +131,6 @@ function DisplayDownloadDirPref()
 }
 
 /**
-  * Returns the Desktop folder.
-  */
-function GetDesktopFolder()
-{
-  return Components.classes["@mozilla.org/file/directory_service;1"]
-                   .getService(Components.interfaces.nsIProperties)
-                   .get("Desk", Components.interfaces.nsILocalFile);
-}
-
-/**
   * Returns the Downloads folder as determined by the XPCOM directory service
   * via the download manager's attribute defaultDownloadsDirectory.
   */

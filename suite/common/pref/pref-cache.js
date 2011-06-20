@@ -68,12 +68,8 @@ function ReadCacheFolder(aField)
     try
     {
       // no disk cache folder pref set; default to profile directory
-      var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
-                             .getService(Components.interfaces.nsIProperties);
-      if (dirSvc.has("ProfLD"))
-        file = dirSvc.get("ProfLD", Components.interfaces.nsILocalFile);
-      else
-        file = dirSvc.get("ProfD", Components.interfaces.nsILocalFile);
+      file = GetSpecialDirectory(Services.dirsvc.has("ProfLD") ? "ProfLD"
+                                                               : "ProfD");
     }
     catch (ex) {}
   }

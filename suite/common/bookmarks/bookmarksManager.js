@@ -451,10 +451,7 @@ var PlacesOrganizer = {
                     PlacesUIUtils.getString("bookmarksRestoreFilterExtension"));
     fp.appendFilters(Components.interfaces.nsIFilePicker.filterAll);
 
-    var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
-                           .getService(Components.interfaces.nsIProperties);
-    var backupsDir = dirSvc.get("Desk", Components.interfaces.nsILocalFile);
-    fp.displayDirectory = backupsDir;
+    fp.displayDirectory = GetDesktopFolder();
 
     if (fp.show() != Components.interfaces.nsIFilePicker.returnCancel)
       this.restoreBookmarksFromFile(fp.file);

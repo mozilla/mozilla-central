@@ -131,10 +131,7 @@ function createUBHistoryMenu( aParent )
     while (aParent.hasChildNodes())
       aParent.removeChild(aParent.lastChild);
 
-    var file = Components.classes["@mozilla.org/file/directory_service;1"]
-                         .getService(Components.interfaces.nsIProperties)
-                         .get("ProfD", Components.interfaces.nsIFile);
-    file.append("urlbarhistory.sqlite");
+    var file = GetUrlbarHistoryFile();
     if (file.exists()) {
       var connection = Components.classes["@mozilla.org/storage/service;1"]
                                  .getService(Components.interfaces.mozIStorageService)

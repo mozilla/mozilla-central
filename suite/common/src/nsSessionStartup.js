@@ -94,9 +94,8 @@ SessionStartup.prototype = {
                                .getBranch("browser.");
 
     // get file references
-    var dirService = Components.classes["@mozilla.org/file/directory_service;1"]
-                               .getService(Components.interfaces.nsIProperties);
-    let sessionFile = dirService.get("ProfD", Components.interfaces.nsILocalFile);
+    let sessionFile = Services.dirsvc.get("ProfD",
+                                          Components.interfaces.nsILocalFile);
     sessionFile.append("sessionstore.json");
 
     let doResumeSession = prefBranch.getBoolPref("sessionstore.resume_session_once") ||

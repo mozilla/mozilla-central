@@ -275,10 +275,7 @@
     }
 
     // Open or create the urlbar history database.
-    var file = Components.classes["@mozilla.org/file/directory_service;1"]
-                         .getService(Components.interfaces.nsIProperties)
-                         .get("ProfD", Components.interfaces.nsIFile);
-    file.append("urlbarhistory.sqlite");
+    var file = GetUrlbarHistoryFile();
     var connection = Components.classes["@mozilla.org/storage/service;1"]
                                .getService(Components.interfaces.mozIStorageService)
                                .openDatabase(file);

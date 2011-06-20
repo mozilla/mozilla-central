@@ -346,9 +346,7 @@ function EditorExecuteScript(theFile)
 
 function EditorGetScriptFileSpec()
 {
-  var dirServ = Components.classes['@mozilla.org/file/directory_service;1'].createInstance();
-  dirServ = dirServ.QueryInterface(Components.interfaces.nsIProperties);
-  var processDir = dirServ.get("Home", Components.interfaces.nsIFile);
+  var processDir = GetSpecialDirectory("Home");
   processDir.append("journal.js");
   return processDir;
 }
