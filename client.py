@@ -28,6 +28,12 @@ DEFAULTS = {
   'MOZILLA_REPO': 'http://hg.mozilla.org/mozilla-central/',
 }
 
+REPO_SHORT_NAMES = {
+'mozilla-central':  'moz',
+'dom-inspector':    'dom',
+'ldap-sdks':        'ldap',
+}
+
 def get_DEFAULT_tag(index):
   if index in DEFAULTS:
     return DEFAULTS[index]
@@ -90,6 +96,26 @@ except ImportError:
             if cmd is None:
                 cmd = popenargs[0]
                 raise Exception("Command '%s' returned non-zero exit status %i" % (cmd, retcode))
+
+try:
+    from subprocess import check_output
+except ImportError:
+    import subprocess
+    def check_output(*popenargs, **kwargs):
+        if 'stdout' in kwargs:
+            raise ValueError('stdout argument not allowed, it will be overridden.')
+        process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+        output, unused_err = process.communicate()
+        retcode = process.poll()
+        if retcode:
+            cmd = kwargs.get("args")
+            if cmd is None:
+                cmd = popenargs[0]
+            raise CalledProcessError(retcode, cmd, output=output)
+        return output
+
+def check_call_output(cmd, *args, **kwargs):
+    return check_output(cmd, *args, **kwargs)
 
 def check_call_noisy(cmd, retryMax=0, *args, **kwargs):
   """Wrapper around execute_check_call() to allow retries before failing.
@@ -309,6 +335,17 @@ def do_hg_pull(dir, repository, hg, rev):
     check_call([hg, 'parent', '-R', fulldir,
                 '--template=Updated to revision {node}.\n'])
 
+    if options.tinderbox_print and dir != '.':
+        got_rev = check_call_output([hg, 'parent', '-R', fulldir,
+                    '--template={node|short}'])
+
+        url = check_call_output([hg, 'paths', 'default', '-R', fulldir ]).rstrip().rstrip('/')
+        repo_name = url.split('/')[-1]
+        repo_short_name = REPO_SHORT_NAMES.get(repo_name, repo_name)
+
+        print "TinderboxPrint:<a href=%s/rev/%s title='Built from %s revision %s'>%s:%s</a>"  % ( url, got_rev, repo_name, got_rev, repo_short_name, got_rev)
+
+
 def check_retries_option(option, opt_str, value, parser):
   if value < 0:
     raise OptionValueError("%s option value needs to be positive (not '%d')" % (opt_str, value))
@@ -426,6 +463,10 @@ o.add_option("-r", "--rev", dest = "default_rev",
 o.add_option("--apply-patches", dest="apply_patches",
              action="store_true", default=False,
              help="Look for and apply local patches (repo*.patch)")
+
+o.add_option("--tinderbox-print", dest="tinderbox_print",
+             action="store_true", default=False,
+             help="Print repo revisions for Tinderbox")
 
 def fixup_comm_repo_options(options):
     """Check options.comm_repo value.
