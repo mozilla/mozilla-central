@@ -152,6 +152,11 @@ padding: 4px 0px;
     border-bottom: none;
     border-left: none;
   }
+
+  #folderTree treechildren::-moz-tree-cell-text(dropOn) {
+    color: -moz-FieldText;
+  }
+
 }
 
 @media all and (-moz-windows-compositor) {
