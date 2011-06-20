@@ -45,6 +45,7 @@
 <?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-event-dialog.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/calendar-event-dialog.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/datetimepickers/datetimepickers.css"?>
+<?xml-stylesheet type="text/css" href="chrome://messenger/skin/primaryToolbar.css"?>
 
 <!DOCTYPE dialog [
     <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
@@ -586,18 +587,18 @@
         <toolbarpalette id="event-toolbarpalette">
             <toolbarbutton id="button-save"
                            mode="dialog"
-                           class="cal-toolbarbutton-2"
+                           class="cal-event-toolbarbutton toolbarbutton-1"
                            label="&event.toolbar.save.label;"
                            command="cmd_accept"/>
             <toolbarbutton id="button-attendees"
                            mode="dialog"
-                           class="cal-toolbarbutton-2 event-only"
+                           class="cal-event-toolbarbutton toolbarbutton-1 event-only"
                            disable-on-readonly="true"
                            label="&event.toolbar.attendees.label;"
                            command="cmd_attendees"/>
             <toolbarbutton id="button-privacy"
                            mode="dialog"
-                           class="cal-toolbarbutton-2"
+                           class="cal-event-toolbarbutton toolbarbutton-1"
                            type="menu-button"
                            disable-on-readonly="true"
                            label="&event.toolbar.privacy.label;"
@@ -625,13 +626,13 @@
             </toolbarbutton>
             <toolbarbutton id="button-url"
                            mode="dialog"
-                           class="cal-toolbarbutton-2"
+                           class="cal-event-toolbarbutton toolbarbutton-1"
                            label="&event.toolbar.attachments.label;"
                            command="cmd_attach_url"
                            disable-on-readonly="true"/>
             <toolbarbutton id="button-delete"
                            mode="dialog"
-                           class="cal-toolbarbutton-2"
+                           class="cal-event-toolbarbutton toolbarbutton-1"
                            label="&event.toolbar.delete.label;"
                            command="cmd_item_delete"
                            disable-on-readonly="true"/>

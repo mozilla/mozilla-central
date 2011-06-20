@@ -46,6 +46,15 @@
   height: auto !important;
 }
 
+#calendar-tab-button,
+#task-tab-button,
+.tabmail-tab[type="calendar"],
+.tabmail-tab[type="tasks"],
+#lightning-button-calendar,
+#lightning-button-tasks {
+  list-style-image: url(chrome://calendar/skin/icons/mode-switch-icons-aero.png);
+}
+
 #lightning-button-calendar,
 #lightning-button-calendar:hover,
 #lightning-button-calendar[disabled] {

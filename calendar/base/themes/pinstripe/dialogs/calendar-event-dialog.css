@@ -113,22 +113,15 @@ label.label {
  *   Event dialog toolbar buttons
  *-------------------------------------------------------------------*/
 
-.cal-toolbarbutton-2 {
-    -moz-box-orient: vertical;
-    min-width: 0px;
+.cal-event-toolbarbutton {
     list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar.png");
-}
-
-toolbar[mode="full"] .cal-toolbarbutton-2 {
-    min-width: 55px;
 }
 
 /*--------------------------------------------------------------------
  *   Event dialog toolbar buttons - small
  *-------------------------------------------------------------------*/
 
-toolbar[iconsize="small"] .cal-toolbarbutton-2 {
-    -moz-box-orient: vertical;
+toolbar[iconsize="small"] .cal-event-toolbarbutton {
     list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar-small.png");
 }
 

@@ -19,7 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- * Richard Marti <mozilla@paenglab.ch>
+ *   Richard Marti <mozilla@paenglab.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -53,6 +53,14 @@
 #calendar-delete-task-button {
     list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
     -moz-image-region: rect(0 144px 18px 126px);
+}
+
+#calendar-add-task-button {
+  list-style-image: url(chrome://calendar/skin/toolbar-small-aero.png);
+}
+
+#todaypane-new-event-button {
+  list-style-image: url(chrome://calendar/skin/toolbar-small-aero.png);
 }
 
 #unifinder-search-field,
@@ -186,4 +194,16 @@
     margin-top: -1px;
     margin-bottom: -1px;
   }
+}
+
+.cal-event-toolbarbutton {
+    list-style-image: url(chrome://calendar/skin/calendar-event-dialog-toolbar-aero.png);
+}
+
+toolbar[iconsize="small"] .cal-event-toolbarbutton {
+    list-style-image: url(chrome://calendar/skin/calendar-event-dialog-toolbar-small-aero.png);
+}
+
+.occurrence-accept-buttons {
+  list-style-image: url(chrome://calendar/skin/calendar-occurrence-prompt-aero.png);
 }

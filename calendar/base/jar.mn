@@ -138,31 +138,59 @@ calendar.jar:
     skin/calendar/calendar-daypicker.css                   (themes/@THEME@/calendar-daypicker.css)
     skin/calendar/calendar-event-dialog.css                (themes/@THEME@/dialogs/calendar-event-dialog.css)
     skin/calendar/calendar-event-dialog-attendees.png      (themes/@THEME@/dialogs/images/calendar-event-dialog-attendees.png)
-    skin/calendar/calendar-event-dialog-toolbar.png        (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar.png)
-    skin/calendar/calendar-event-dialog-toolbar-small.png  (themes/@THEME@/dialogs/calendar-event-dialog-toolbar-small.png)
     skin/calendar/calendar-event-dialog.png                (themes/@THEME@/dialogs/images/calendar-event-dialog.png)
     skin/calendar/calendar-invitations-dialog-button-images.png  (themes/@THEME@/dialogs/images/calendar-invitations-dialog-button-images.png)
     skin/calendar/calendar-invitations-dialog-list-images.png  (themes/@THEME@/dialogs/images/calendar-invitations-dialog-list-images.png)
     skin/calendar/calendar-management.css                  (themes/@THEME@/calendar-management.css)
-    skin/calendar/calendar-occurrence-prompt.png           (themes/@THEME@/images/calendar-occurrence-prompt.png)
     skin/calendar/calendar-task-tree.css                   (themes/@THEME@/calendar-task-tree.css)
     skin/calendar/calendar-task-view.css                   (themes/@THEME@/calendar-task-view.css)
     skin/calendar/calendar-unifinder.css                   (themes/@THEME@/calendar-unifinder.css)
     skin/calendar/calendar-views.css                       (themes/@THEME@/calendar-views.css)
     skin/calendar/checkbox-images.png                      (themes/@THEME@/images/checkbox-images.png)
     skin/calendar/ok-cancel.png                            (themes/@THEME@/images/ok-cancel.png)
-    skin/calendar/tasks-actions.png                        (themes/@THEME@/images/tasks-actions.png)
     skin/calendar/today-pane.css                           (themes/@THEME@/today-pane.css)
+    skin/calendar/widgets/calendar-widgets.css             (themes/@THEME@/widgets/calendar-widgets.css)
+
+# Following files only add for OSX.
+#ifdef XP_MACOSX
+    skin/calendar/calendar-event-dialog-toolbar.png        (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar.png)
+    skin/calendar/calendar-event-dialog-toolbar-small.png  (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-small.png)
+    skin/calendar/calendar-occurrence-prompt.png           (themes/@THEME@/images/calendar-occurrence-prompt.png)
+    skin/calendar/tasks-actions.png                        (themes/@THEME@/images/tasks-actions.png)
     skin/calendar/toolbar-large.png                        (themes/@THEME@/images/toolbar-large.png)
     skin/calendar/toolbar-small.png                        (themes/@THEME@/images/toolbar-small.png)
-    skin/calendar/widgets/calendar-widgets.css             (themes/@THEME@/widgets/calendar-widgets.css)
-# The following files are added for aero support on windows.
-#ifdef XP_WIN
-% style chrome://calendar/content/calendar-common-sets.xul chrome://calendar/skin/calendar-aero.css os=WINNT osversion>=6
-    skin/calendar/calendar-aero.css                        (themes/@THEME@/calendar-aero.css)
-    skin/calendar/tasks-actions-aero.png                   (themes/@THEME@/images/tasks-actions-aero.png)
+    skin/calendar/sidebar-item.png                         (themes/@THEME@/images/sidebar-item.png)
 #endif
 
-#ifdef XP_MACOSX
-    skin/calendar/sidebar-item.png                         (themes/@THEME@/images/sidebar-item.png)
+# Following files only add for Linux.
+#ifdef XP_UNIX
+#ifndef XP_MACOSX
+    skin/calendar/calendar-event-dialog-toolbar.png        (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-linux.png)
+    skin/calendar/calendar-event-dialog-toolbar-small.png  (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-small-linux.png)
+    skin/calendar/calendar-occurrence-prompt.png           (themes/@THEME@/images/calendar-occurrence-prompt.png)
+    skin/calendar/tasks-actions.png                        (themes/@THEME@/images/tasks-actions-linux.png)
+    skin/calendar/toolbar-large.png                        (themes/@THEME@/images/toolbar-large-linux.png)
+    skin/calendar/toolbar-small.png                        (themes/@THEME@/images/toolbar-small-linux.png)
+#endif
+#endif
+
+# The following files only add for Windows.
+#ifdef XP_WIN
+    skin/calendar/calendar-event-dialog-toolbar.png        (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar.png)
+    skin/calendar/calendar-event-dialog-toolbar-small.png  (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-small.png)
+    skin/calendar/calendar-occurrence-prompt.png           (themes/@THEME@/images/calendar-occurrence-prompt.png)
+    skin/calendar/tasks-actions.png                        (themes/@THEME@/images/tasks-actions.png)
+    skin/calendar/toolbar-large.png                        (themes/@THEME@/images/toolbar-large.png)
+    skin/calendar/toolbar-small.png                        (themes/@THEME@/images/toolbar-small.png)
+# The following files are added for aero support on windows.
+% style chrome://calendar/content/calendar-common-sets.xul chrome://calendar/skin/calendar-aero.css os=WINNT osversion>=6
+% style chrome://calendar/content/calendar-event-dialog.xul chrome://calendar/skin/calendar-aero.css os=WINNT osversion>=6
+% style chrome://calendar/content/calendar-occurrence-prompt.xul chrome://calendar/skin/calendar-aero.css os=WINNT osversion>=6
+    skin/calendar/calendar-aero.css                        (themes/@THEME@/calendar-aero.css)
+    skin/calendar/calendar-event-dialog-toolbar-aero.png   (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-aero.png)
+    skin/calendar/calendar-event-dialog-toolbar-small-aero.png   (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-small-aero.png)
+    skin/calendar/calendar-occurrence-prompt-aero.png      (themes/@THEME@/images/calendar-occurrence-prompt-aero.png)
+    skin/calendar/tasks-actions-aero.png                   (themes/@THEME@/images/tasks-actions-aero.png)
+    skin/calendar/toolbar-large-aero.png                   (themes/@THEME@/images/toolbar-large-aero.png)
+    skin/calendar/toolbar-small-aero.png                   (themes/@THEME@/images/toolbar-small-aero.png)
 #endif
