@@ -2605,8 +2605,10 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   {
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
     nsMsgKey msgKey = newMessageKeys[i];
-    rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(msgHdr));
-    if (!NS_SUCCEEDED(rv))
+    NS_ASSERTION(mDatabase, "null database");
+    if (mDatabase)
+      rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(msgHdr));
+    if (!mDatabase || !NS_SUCCEEDED(rv))
       continue;
     // per-message junk tests.
     PRBool filterMessageForJunk = PR_FALSE;
