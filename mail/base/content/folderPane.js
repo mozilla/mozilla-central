@@ -771,11 +771,7 @@ let gFolderTreeView = {
    * the child lists
    */
   getParentIndex: function ftv_getParentIndex(aIndex) {
-    for (let i = 0; i < this._rowMap.length; i++) {
-      if (this._rowMap[i] == this._rowMap[aIndex]._parent)
-        return i;
-    }
-    return -1;
+    return this._rowMap.indexOf(this._rowMap[aIndex]._parent);
   },
 
   /**
