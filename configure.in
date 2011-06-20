@@ -853,7 +853,7 @@ if test -n "$_WIN32_MSVC"; then
     SKIP_COMPILER_CHECKS=1
     SKIP_LIBRARY_CHECKS=1
 
-    // Since we're using MSVC, we'll be building MAPI
+    dnl Since we're using MSVC, we'll be building MAPI
     MAIL_COMPONENT="$MAIL_COMPONENT msgMapi"
     export MAIL_COMPONENT
     MAIL_MODULE="$MAIL_MODULE MODULE(msgMapiModule)"
