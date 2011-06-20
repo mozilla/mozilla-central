@@ -129,9 +129,6 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/NetUtil.jsm");
 
-XPCOMUtils.defineLazyServiceGetter(this, "cm",
-  "@mozilla.org/cookiemanager;1", "nsICookieManager2");
-
 #ifdef MOZ_CRASH_REPORTER
 XPCOMUtils.defineLazyServiceGetter(this, "CrashReporter",
   "@mozilla.org/xre/app-info;1", "nsICrashReporter");
@@ -2023,7 +2020,7 @@ SessionStoreService.prototype = {
       if (!aWindow._hosts)
         return;
       for (var [host, isPinned] in Iterator(aWindow._hosts)) {
-        var list = cm.getCookiesFromHost(host);
+        var list = Services.cookies.getCookiesFromHost(host);
         while (list.hasMoreElements()) {
           var cookie = list.getNext().QueryInterface(Components.interfaces.nsICookie2);
           // aWindow._hosts will only have hosts with the right privacy rules,
@@ -3078,9 +3075,10 @@ SessionStoreService.prototype = {
     for (let i = 0; i < aCookies.length; i++) {
       var cookie = aCookies[i];
       try {
-        cm.add(cookie.host, cookie.path || "", cookie.name || "",
-                      cookie.value, !!cookie.secure, !!cookie.httponly, true,
-                      "expiry" in cookie ? cookie.expiry : MAX_EXPIRY);
+        Services.cookies.add(cookie.host, cookie.path || "", cookie.name || "",
+                             cookie.value, !!cookie.secure, !!cookie.httponly,
+                             true,
+                             "expiry" in cookie ? cookie.expiry : MAX_EXPIRY);
       }
       catch (ex) { Components.utils.reportError(ex); } // don't let a single cookie stop recovering
     }

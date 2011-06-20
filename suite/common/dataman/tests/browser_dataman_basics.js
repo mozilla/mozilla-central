@@ -8,12 +8,8 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 
 // Happens to match what's used in Data Manager itself.
 var gLocSvc = {
-  cookie: Components.classes["@mozilla.org/cookiemanager;1"]
-                    .getService(Components.interfaces.nsICookieManager2),
   fhist: Components.classes["@mozilla.org/satchel/form-history;1"]
                    .getService(Components.interfaces.nsIFormHistory2),
-  pwd: Components.classes["@mozilla.org/login-manager;1"]
-                 .getService(Components.interfaces.nsILoginManager),
   idn: Components.classes["@mozilla.org/network/idn-service;1"]
                  .getService(Components.interfaces.nsIIDNService),
 };
@@ -37,17 +33,17 @@ function test() {
   let now_epoch = parseInt(Date.now() / 1000);
 
   // Add cookie: not secure, non-HTTPOnly, session
-  gLocSvc.cookie.add("bar.geckoisgecko.org", "", "name0", "value0",
-                     false, false, true, now_epoch + 600);
+  Services.cookies.add("bar.geckoisgecko.org", "", "name0", "value0",
+                       false, false, true, now_epoch + 600);
   // Add cookie: not secure, HTTPOnly, session
-  gLocSvc.cookie.add("foo.geckoisgecko.org", "", "name1", "value1",
-                     false, true, true, now_epoch + 600);
+  Services.cookies.add("foo.geckoisgecko.org", "", "name1", "value1",
+                       false, true, true, now_epoch + 600);
   // Add cookie: secure, HTTPOnly, session
-  gLocSvc.cookie.add("secure.geckoisgecko.org", "", "name2", "value2",
-                     true, true, true, now_epoch + 600);
+  Services.cookies.add("secure.geckoisgecko.org", "", "name2", "value2",
+                       true, true, true, now_epoch + 600);
   // Add cookie: secure, non-HTTPOnly, expiry in an hour
-  gLocSvc.cookie.add("drumbeat.org", "", "name3", "value3",
-                     true, false, false, now_epoch + 3600);
+  Services.cookies.add("drumbeat.org", "", "name3", "value3",
+                       true, false, false, now_epoch + 3600);
 
   // Add a few form history entries
   gLocSvc.fhist.addEntry("akey", "value0");
@@ -62,12 +58,12 @@ function test() {
                              .createInstance(Components.interfaces.nsILoginInfo);
   loginInfo1.init("http://www.geckoisgecko.org", "http://www.geckoisgecko.org", null,
                   "dataman", "mysecret", "user", "pwd");
-  gLocSvc.pwd.addLogin(loginInfo1);
+  Services.logins.addLogin(loginInfo1);
   let loginInfo2 = Components.classes["@mozilla.org/login-manager/loginInfo;1"]
                              .createInstance(Components.interfaces.nsILoginInfo);
   loginInfo2.init("gopher://geckoisgecko.org:4711", null, "foo",
                   "dataman", "mysecret", "", "");
-  gLocSvc.pwd.addLogin(loginInfo2);
+  Services.logins.addLogin(loginInfo2);
 
   //Services.prefs.setBoolPref("data_manager.debug", true);
 
@@ -98,7 +94,7 @@ function test() {
         if (testIndex >= testFuncs.length) {
           // Finish this up!
           Services.obs.removeObserver(testObs, TEST_DONE);
-          gLocSvc.cookie.removeAll();
+          Services.cookies.removeAll();
           gLocSvc.fhist.removeAllEntries();
           finish();
         }
@@ -304,7 +300,7 @@ function test_permissions_panel(aWin) {
                      "test", Services.perms.DENY_ACTION);
   Services.perms.add(Services.io.newURI("http://xul.getpersonas.com/", null, null),
                      "allowXULXBL", Services.perms.ALLOW_ACTION);
-  gLocSvc.pwd.setLoginSavingEnabled("password.getpersonas.com", false);
+  Services.logins.setLoginSavingEnabled("password.getpersonas.com", false);
   is(aWin.gPerms.list.children.length, 10,
      "The correct number of permissions is displayed in the list");
   for (let i = 1; i < aWin.gPerms.list.children.length; i++) {
@@ -618,8 +614,8 @@ function test_idn(aWin) {
   let idnDomain = gLocSvc.idn.convertToDisplayIDN(testDomain, {});
   isnot(testDomain, idnDomain, "Using a valid IDN domain");
   // Add IDN cookie.
-  gLocSvc.cookie.add(testDomain, "", "name0", "value0",
-                     false, false, true, parseInt(Date.now() / 1000) + 600);
+  Services.cookies.add(testDomain, "", "name0", "value0",
+                       false, false, true, parseInt(Date.now() / 1000) + 600);
 
   aWin.document.getElementById("domainSearch").value = "xn--";
   aWin.document.getElementById("domainSearch").doCommand();
@@ -683,7 +679,7 @@ function test_idn(aWin) {
                              .createInstance(Components.interfaces.nsILoginInfo);
   loginInfo1.init("http://" + idnDomain, "http://" + idnDomain, null,
                   "dataman", "mysecret", "user", "pwd");
-  gLocSvc.pwd.addLogin(loginInfo1);
+  Services.logins.addLogin(loginInfo1);
   aWin.gTabs.tabbox.selectedTab = aWin.document.getElementById("passwordsTab");
   is(aWin.gTabs.activePanel, "passwordsPanel",
      "Successfully switched to passwords panel for IDN tests");

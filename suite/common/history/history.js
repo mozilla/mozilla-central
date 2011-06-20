@@ -45,7 +45,6 @@ var gLastDomain;
 var gSearchBox;
 var gPrefService;
 var gIOService;
-var gETLDService;
 var gDeleteByHostname;
 var gDeleteByDomain;
 var gHistoryStatus;
@@ -108,11 +107,7 @@ function historyOnSelect()
     }
     if (gLastHostname) {
       try {
-        if (!gETLDService)
-          gETLDService =
-            Components.classes["@mozilla.org/network/effective-tld-service;1"]
-                      .getService(Components.interfaces.nsIEffectiveTLDService);
-        gLastDomain = gETLDService.getBaseDomainFromHost(gLastHostname);
+        gLastDomain = Services.eTLD.getBaseDomainFromHost(gLastHostname);
       } catch (e) {}
     }
   }

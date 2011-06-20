@@ -6,12 +6,6 @@
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 
-// Happens to match what's used in Data Manager itself.
-var gLocSvc = {
-  cookie: Components.classes["@mozilla.org/cookiemanager;1"]
-                    .getService(Components.interfaces.nsICookieManager2),
-};
-
 const DATAMAN_LOADED = "dataman-loaded";
 
 // See browser_dataman_basics.js.
@@ -21,10 +15,10 @@ var testIndex = 0;
 
 function test() {
   // Add cookies.
-  gLocSvc.cookie.add("getpersonas.com", "", "name0", "value0",
-                     false, false, true, parseInt(Date.now() / 1000) + 600);
-  gLocSvc.cookie.add("drumbeat.org", "", "name1", "value1",
-                     false, false, true, parseInt(Date.now() / 1000) + 600);
+  Services.cookies.add("getpersonas.com", "", "name0", "value0",
+                       false, false, true, parseInt(Date.now() / 1000) + 600);
+  Services.cookies.add("drumbeat.org", "", "name1", "value1",
+                       false, false, true, parseInt(Date.now() / 1000) + 600);
 
   //Services.prefs.setBoolPref("data_manager.debug", true);
 
@@ -48,8 +42,8 @@ function test() {
         if (testIndex >= testFuncs.length) {
           // Finish this up!
           Services.obs.removeObserver(testObs, DATAMAN_LOADED);
-          gLocSvc.cookie.remove("getpersonas.com", "name0", "value0", false);
-          gLocSvc.cookie.remove("drumbeat.org", "name1", "value1", false);
+          Services.cookies.remove("getpersonas.com", "name0", "value0", false);
+          Services.cookies.remove("drumbeat.org", "name1", "value1", false);
           finish();
         }
       }
