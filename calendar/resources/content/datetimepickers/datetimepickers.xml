@@ -397,7 +397,7 @@
           datepicker.mIsReshowing = true;
           try { 
             aEvent.target.parentNode.hidePopup();
-            aEvent.target.parentNode.openPopup();
+            aEvent.target.parentNode.openPopup(aEvent.target);
           } finally {
             datepicker.mIsReshowing = false;
           }
