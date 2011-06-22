@@ -1523,27 +1523,37 @@ function ComposeStartup(recycled, aParams)
       if (args.attachment)
       {
         let attachmentList = args.attachment.split(",");
-        let fileHandler = Services.io.getProtocolHandler("file")
-                                  .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+        let commandLine = Components.classes["@mozilla.org/toolkit/command-line;1"]
+                                    .createInstance();
         for (let [,attachmentName] in Iterator(attachmentList))
         {
+          // resolveURI does all the magic around working out what the
+          // attachment is, including web pages, and generating the correct uri.
+          let uri = commandLine.resolveURI(attachmentName);
           let attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
                                      .createInstance(Components.interfaces.nsIMsgAttachment);
-          if (/^file:\/\//i.test(attachmentName))
+          // If uri is for a file and it exists set the attachment size.
+          if (uri instanceof Components.interfaces.nsIFileURL)
           {
-            let localFile = fileHandler.getFileFromURLSpec(attachmentName);
-            attachment.url = encodeURI(attachmentName);
-            attachment.size = localFile.fileSize;
+            if (uri.file.exists())
+              attachment.size = uri.file.fileSize;
+            else
+              attachment = null;
+          }
+
+          // Only want to attach if a file that exists or it is not a file.
+          if (attachment)
+          {
+            attachment.url = uri.spec;
+            composeFields.addAttachment(attachment);
           }
           else
           {
-            let localFile = Components.classes["@mozilla.org/file/local;1"]
-                                      .createInstance(Components.interfaces.nsILocalFile);
-            localFile.initWithPath(attachmentName);
-            attachment.url = fileHandler.getURLSpecFromFile(localFile);
-            attachment.size = localFile.fileSize;
+            let title = gComposeBundle.getString("errorFileAttachTitle");
+            let msg = gComposeBundle.getFormattedString("errorFileAttachMessage",
+                                                        [attachmentName]);
+            gPromptService.alert(window, title, msg);
           }
-          composeFields.addAttachment(attachment);
         }
       }
       if (args.newshost)
