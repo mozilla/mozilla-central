@@ -136,17 +136,6 @@ MOZCONFIG_LOADER := mozilla/build/autoconf/mozconfig2client-mk
 MOZCONFIG_FINDER := mozilla/build/autoconf/mozconfig-find
 MOZCONFIG_MODULES := mozilla/build/unix/uniq.pl
 
-# We need to give client.py an early chance to run, since we don't necessarely
-# have a mozilla/ checkout yet
-run_for_side_effects := \
-  @if test ! -f .client.run; then \
-    $(shell $(PYTHON) $(TOPSRCDIR)/build/run_client.py $(TOPSRCDIR) > .client.out ); \
-    touch .client.run \
-  else \
-    rm -f .client.run; \
-    true; \
-  fi
-
 run_for_side_effects := \
   $(shell $(TOPSRCDIR)/$(MOZCONFIG_LOADER) $(TOPSRCDIR) $(TOPSRCDIR)/.mozconfig.mk > $(TOPSRCDIR)/.mozconfig.out)
 
@@ -415,10 +404,6 @@ cleansrcdir:
 	   build/autoconf/clean-config.sh; \
 	fi;
 
-checkout co:
-	@$(PYTHON) $(TOPSRCDIR)/build/run_client.py $(TOPSRCDIR) force
-
-
 echo-variable-%:
 	@echo $($*)
 
@@ -427,4 +412,4 @@ echo-variable-%:
 # in parallel.
 .NOTPARALLEL:
 
-.PHONY: checkout co real_checkout depend build profiledbuild maybe_clobber_profiledbuild export libs alldep install clean realclean distclean cleansrcdir pull_all build_all clobber clobber_all pull_and_build_all everything configure preflight_all preflight postflight postflight_all
+.PHONY: checkout real_checkout depend build profiledbuild maybe_clobber_profiledbuild export libs alldep install clean realclean distclean cleansrcdir pull_all build_all clobber clobber_all pull_and_build_all everything configure preflight_all preflight postflight postflight_all
