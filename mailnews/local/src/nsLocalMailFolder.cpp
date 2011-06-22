@@ -293,6 +293,17 @@ nsresult nsMsgLocalMailFolder::CreateChildFromURI(const nsCString &uri, nsIMsgFo
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgLocalMailFolder::CreateLocalSubfolder(const nsAString &aName,
+                                                         nsIMsgFolder **aChild)
+{
+  nsresult rv = CreateSubfolderInternal(aName, nsnull, aChild);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+  if (notifier)
+    notifier->NotifyFolderAdded(*aChild);
+  return rv;
+}
+
 NS_IMETHODIMP nsMsgLocalMailFolder::AddSubfolder(const nsAString &name,
                                                  nsIMsgFolder **child)
 {

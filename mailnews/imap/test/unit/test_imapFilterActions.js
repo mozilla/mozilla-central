@@ -348,7 +348,7 @@ function run_test()
   prefBranch.setBoolPref("mail.biff.show_tray_icon", false);
   prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
 
-  gSubfolder = gLocalIncomingServer.rootFolder.addSubfolder("Subfolder");
+  gSubfolder = gLocalIncomingServer.rootFolder.createLocalSubfolder("Subfolder");
   gIMAPIncomingServer.performExpand(null);
 
   gRootFolder = gIMAPIncomingServer.rootFolder;

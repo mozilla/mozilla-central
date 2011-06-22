@@ -144,8 +144,8 @@ function run_test()
   // We aren't interested in downloading messages automatically
   prefBranch.setBoolPref("mail.server.default.download_on_biff", false);
 
-  gEmptyLocal1 = gLocalIncomingServer.rootFolder.addSubfolder("empty 1");
-  gEmptyLocal2 = gLocalIncomingServer.rootFolder.addSubfolder("empty 2");
+  gEmptyLocal1 = gLocalIncomingServer.rootFolder.createLocalSubfolder("empty 1");
+  gEmptyLocal2 = gLocalIncomingServer.rootFolder.createLocalSubfolder("empty 2");
   gIMAPIncomingServer.performExpand(null);
 
   gRootFolder = gIMAPIncomingServer.rootFolder;

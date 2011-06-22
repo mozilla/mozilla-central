@@ -193,7 +193,19 @@ interface nsIMsgFolder : nsISupports {
   void recursiveDelete(in boolean deleteStorage, in nsIMsgWindow msgWindow);
 
   void createSubfolder(in AString folderName, in nsIMsgWindow msgWindow);
-  nsIMsgFolder addSubfolder(in AString folderName);
+
+  /**
+   * Adds the subfolder with the passed name to the folder hierarchy.
+   * This is used internally during folder discovery; It shouldn't be
+   * used to create folders since it won't create storage for the folder,
+   * especially for imap. Unless you know exactly what you're doing, you
+   * should be using createSubfolder + getChildNamed or createLocalSubfolder.
+   *
+   * @param aFolderName Name of the folder to add.
+   * @returns The folder added.
+   */
+  nsIMsgFolder addSubfolder(in AString aFolderName);
+
   /* this method ensures the storage for the folder exists.
     For local folders, it creates the berkeley mailbox if missing.
     For imap folders, it subscribes to the folder if it exists,

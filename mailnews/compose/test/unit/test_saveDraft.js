@@ -51,7 +51,7 @@ function createMessage() {
     // we don't have to remove the folder because it doen't exist yet
   }
   // Create a new, empty drafts folder
-  gDraftFolder = rootFolder.addSubfolder("Drafts");
+  gDraftFolder = rootFolder.createLocalSubfolder("Drafts");
 
   var progress = Cc["@mozilla.org/messenger/progress;1"]
                    .createInstance(Ci.nsIMsgProgress);

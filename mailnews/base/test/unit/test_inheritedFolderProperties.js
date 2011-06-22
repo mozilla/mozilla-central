@@ -44,10 +44,12 @@ function run_test()
   var rootFolder = gLocalIncomingServer.rootMsgFolder;
 
   // add subfolders to the inbox
-  const subFolder11 = gLocalInboxFolder.addSubfolder("subfolder11");
-  const subFolder12 = gLocalInboxFolder.addSubfolder("subfolder12");
-  const subFolder21 = subFolder11.addSubfolder("subfolder21");
-  const subFolder22 = subFolder12.addSubfolder("subfolder22");
+  const subFolder11 = gLocalInboxFolder.createLocalSubfolder("subfolder11")
+                         .QueryInterface(Ci.nsIMsgLocalMailFolder);
+  const subFolder12 = gLocalInboxFolder.createLocalSubfolder("subfolder12")
+                         .QueryInterface(Ci.nsIMsgLocalMailFolder);
+  const subFolder21 = subFolder11.createLocalSubfolder("subfolder21");
+  const subFolder22 = subFolder12.createLocalSubfolder("subfolder22");
 
   // add a global preference
   const propertyName = "iexist";

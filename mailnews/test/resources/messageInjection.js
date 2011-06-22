@@ -340,7 +340,8 @@ function make_empty_folder(aFolderName, aSpecialFlags) {
   let mis = _messageInjectionSetup;
 
   if (mis.injectionConfig.mode == "local") {
-    testFolder = mis.rootFolder.addSubfolder(aFolderName);
+    let localRoot = mis.rootFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+    testFolder = localRoot.createLocalSubfolder(aFolderName);
     // it seems dumb that we have to set this.
     testFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
     if (aSpecialFlags) {

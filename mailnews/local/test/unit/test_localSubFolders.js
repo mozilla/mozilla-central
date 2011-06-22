@@ -17,7 +17,7 @@ function run_test() {
                        .QueryInterface(Components.interfaces.nsIMsgAccount);
 
   // Get the root folder
-  var root = account.incomingServer.rootFolder;
+  var root = account.incomingServer.rootFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
 
   // Give it a poke so that the directories all exist
   root.subFolders;
@@ -27,7 +27,7 @@ function run_test() {
   // Get the current number of folders
   var numSubFolders = root.numSubFolders;
 
-  var folder = root.addSubfolder("folder1", null);
+  var folder = root.createLocalSubfolder("folder1").QueryInterface(Ci.nsIMsgLocalMailFolder);
 
   do_check_true(root.hasSubFolders);
   do_check_eq(root.numSubFolders, numSubFolders + 1);
@@ -35,7 +35,7 @@ function run_test() {
   do_check_false(folder.hasSubFolders);
   do_check_eq(folder.numSubFolders, 0);
 
-  var folder2 = folder.addSubfolder("folder2", null);
+  var folder2 = folder.createLocalSubfolder("folder2");
 
   do_check_true(folder.hasSubFolders);
   do_check_eq(folder.numSubFolders, 1);
@@ -94,7 +94,7 @@ function run_test() {
 
   // Test - Move folders around
 
-  var folder3 = root.addSubfolder("folder3");
+  var folder3 = root.createLocalSubfolder("folder3");
   var folder3Local = folder3.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder);
   var folder1Local = folder.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder);
 
@@ -120,7 +120,11 @@ function run_test() {
 
   do_check_true(thrown);
 
+  if (folder.filePath.exists())
+    dump("shouldn't exist - folder file path " + folder.URI + "\n");
   do_check_false(folder.filePath.exists());
+  if (folder2.filePath.exists())
+    dump("shouldn't exist - folder2 file path " + folder2.URI + "\n");
   do_check_false(folder2.filePath.exists());
 
   // make sure getting the db doesn't throw an exception

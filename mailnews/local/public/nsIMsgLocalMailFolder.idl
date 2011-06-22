@@ -56,7 +56,7 @@ interface nsIMsgCopyServiceListener;
 struct nsLocalFolderScanState;
 %}
 
-[scriptable, uuid(73d0ae1b-cceb-4a74-a7dd-048b15b20fa7)]
+[scriptable, uuid(d3c496fa-9847-4f1c-94dd-0ce92b598ae3)]
 interface nsIMsgLocalMailFolder : nsISupports {
   /**
    * set the default flags on the subfolders of this folder, such as
@@ -84,6 +84,14 @@ interface nsIMsgLocalMailFolder : nsISupports {
   attribute boolean checkForNewMessagesAfterParsing;
   void markMsgsOnPop3Server(in nsIArray aMessages, in PRInt32 aMark);
   void refreshSizeOnDisk(); // file size on disk has possibly changed - update and notify
+
+  /**
+   * Creates a subfolder to the current folder with the passed in folder name.
+   * @param aFolderName name of the folder to create.
+   *
+   * @return newly created folder.
+   */
+  nsIMsgFolder createLocalSubfolder(in AString aFolderName);
 
   // this adds a message to the end of the folder, parsing it as it goes, and
   // applying filters, if applicable.

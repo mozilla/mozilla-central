@@ -171,11 +171,11 @@ function run_test() {
 
   gLocalIncomingServer = acctMgr.localFoldersServer;
 
-  var rootFolder = gLocalIncomingServer.rootMsgFolder;
+  var rootFolder = gLocalIncomingServer.rootMsgFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
 
   // Note: Inbox is not created automatically when there is no deferred server,
   // so we need to create it.
-  gLocalInboxFolder = rootFolder.addSubfolder("Inbox");
+  gLocalInboxFolder = rootFolder.createLocalSubfolder("Inbox");
   // a local inbox should have a Mail flag!
   gLocalInboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
 

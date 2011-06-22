@@ -71,11 +71,13 @@ function loadLocalMailAccount()
   gLocalMsgAccount = MailServices.accounts.FindAccountForServer(
     gLocalIncomingServer);
 
-  var rootFolder = gLocalIncomingServer.rootMsgFolder;
+  var rootFolder = gLocalIncomingServer.rootMsgFolder
+                     .QueryInterface(Ci.nsIMsgLocalMailFolder);
 
   // Note: Inbox is not created automatically when there is no deferred server,
   // so we need to create it.
-  gLocalInboxFolder = rootFolder.addSubfolder("Inbox");
+  gLocalInboxFolder = rootFolder.createLocalSubfolder("Inbox")
+                       .QueryInterface(Ci.nsIMsgLocalMailFolder);
   // a local inbox should have a Mail flag!
   gLocalInboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
 

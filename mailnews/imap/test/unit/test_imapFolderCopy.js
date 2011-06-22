@@ -136,10 +136,10 @@ function run_test()
   // We aren't interested in downloading messages automatically
   prefBranch.setBoolPref("mail.server.server1.download_on_biff", false);
 
-  gEmptyLocal1 = gLocalIncomingServer.rootFolder.addSubfolder("empty 1");
-  gEmptyLocal2 = gLocalIncomingServer.rootFolder.addSubfolder("empty 2");
-  gEmptyLocal3 = gLocalIncomingServer.rootFolder.addSubfolder("empty 3");
-  gNotEmptyLocal4 = gLocalIncomingServer.rootFolder.addSubfolder("not empty 4");
+  gEmptyLocal1 = gLocalIncomingServer.rootFolder.createLocalSubfolder("empty 1");
+  gEmptyLocal2 = gLocalIncomingServer.rootFolder.createLocalSubfolder("empty 2");
+  gEmptyLocal3 = gLocalIncomingServer.rootFolder.createLocalSubfolder("empty 3");
+  gNotEmptyLocal4 = gLocalIncomingServer.rootFolder.createLocalSubfolder("not empty 4");
 
   let messageGenerator = new MessageGenerator();
   let message = messageGenerator.makeMessage();

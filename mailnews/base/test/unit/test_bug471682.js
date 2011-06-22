@@ -47,7 +47,7 @@ var gHdr; // header of test message in local folder
 
 loadLocalMailAccount();
 // create a subfolder as a target for copies
-var gSubfolder = gLocalInboxFolder.addSubfolder("subfolder");
+var gSubfolder = gLocalInboxFolder.createLocalSubfolder("subfolder");
 
 function run_test()
 {

@@ -114,7 +114,7 @@ function run_test()
   if (!gLocalInboxFolder)
     loadLocalMailAccount();
 
-  gMoveFolder = gLocalIncomingServer.rootFolder.addSubfolder("MoveFolder");
+  gMoveFolder = gLocalIncomingServer.rootFolder.createLocalSubfolder("MoveFolder");
   const mailSession = Cc["@mozilla.org/messenger/services/session;1"]
                         .getService(Ci.nsIMsgMailSession);
 

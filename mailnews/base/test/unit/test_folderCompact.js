@@ -187,10 +187,10 @@ function run_test()
 
   // Create another folder to move and copy messages around, and force initialization.
   var rootFolder = gLocalIncomingServer.rootMsgFolder;
-  gLocalFolder2 = rootFolder.addSubfolder("folder2");
+  gLocalFolder2 = rootFolder.createLocalSubfolder("folder2");
   var folderName = gLocalFolder2.prettiestName;
   // Create a third folder for more testing.
-  gLocalFolder3 = rootFolder.addSubfolder("folder3");
+  gLocalFolder3 = rootFolder.createLocalSubfolder("folder3");
   folderName = gLocalFolder3.prettiestName;
 
   // "Master" do_test_pending(), paired with a do_test_finished() at the end of all the operations.
