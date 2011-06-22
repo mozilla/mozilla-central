@@ -43,7 +43,7 @@
 var MODULE_NAME = 'test-message-commands';
 
 var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['folder-display-helpers'];
+var MODULE_REQUIRES = ['folder-display-helpers', 'content-tab-helpers'];
 
 Components.utils.import("resource:///modules/MailUtils.js");
 
@@ -52,10 +52,14 @@ var archiveSrcFolder = null;
 var archiveURI;
 
 var acctMgr;
+var tagArray;
 
 var setupModule = function(module) {
   let fdh = collector.getModule('folder-display-helpers');
   fdh.installInto(module);
+  let cth = collector.getModule('content-tab-helpers');
+  cth.installInto(module);
+
 
   unreadFolder = create_folder("UnreadFolder");
   archiveSrcFolder = create_folder("ArchiveSrc");
@@ -66,6 +70,9 @@ var setupModule = function(module) {
   // years as well.
   make_new_sets_in_folder(archiveSrcFolder, [{count: 20, age_incr: {weeks: 5}}]);
 
+  let tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
+                             .getService(Components.interfaces.nsIMsgTagService);
+  tagArray = tagService.getAllTags({});
 };
 
 /**
@@ -432,4 +439,46 @@ function test_disabled_archive() {
   assert_true(archiveBtn.collapsed,
               "Multi-message archive button should be disabled when " +
               "archiving is disabled!");
+}
+
+function check_tag_in_message(message, tag, isSet) {
+  let tagSet = message.getStringProperty("keywords").split(" ")
+                      .indexOf(tag.key) != -1;
+  if (isSet)
+    assert_true(tagSet, "Tag '" + tag.name + "' expected on message!");
+  else
+    assert_false(tagSet, "Tag '" + tag.name + "' not expected on message!");
+}
+
+function test_tag_keys() {
+  be_in_folder(unreadFolder);
+  let curMessage = select_click_row(0);
+
+  mc.keypress(null, "1", {});
+  check_tag_in_message(curMessage, tagArray[0], true);
+
+  mc.keypress(null, "2", {});
+  check_tag_in_message(curMessage, tagArray[0], true);
+  check_tag_in_message(curMessage, tagArray[1], true);
+
+  mc.keypress(null, "0", {});
+  check_tag_in_message(curMessage, tagArray[0], false);
+  check_tag_in_message(curMessage, tagArray[1], false);
+}
+
+function test_tag_keys_disabled_in_content_tab() {
+  be_in_folder(unreadFolder);
+  let curMessage = select_click_row(0);
+
+  mc.window.openAddonsMgr('addons://list/theme');
+  mc.sleep(0);
+
+  let tab = mc.tabmail.currentTabInfo;
+  wait_for_content_tab_load(tab);
+  assert_content_tab_has_url(tab, 'about:addons');
+
+  // Make sure pressing the "1" key in a content tab doesn't tag a message
+  check_tag_in_message(curMessage, tagArray[0], false);
+  mc.keypress(null, "1", {});
+  check_tag_in_message(curMessage, tagArray[0], false);
 }

@@ -210,6 +210,16 @@ var DefaultController =
       case "cmd_search":
       case "button_mark":
       case "cmd_tag":
+      case "cmd_removeTags":
+      case "cmd_tag1":
+      case "cmd_tag2":
+      case "cmd_tag3":
+      case "cmd_tag4":
+      case "cmd_tag5":
+      case "cmd_tag6":
+      case "cmd_tag7":
+      case "cmd_tag8":
+      case "cmd_tag9":
       case "cmd_toggleRead":
       case "cmd_markAsRead":
       case "cmd_markAsUnread":
@@ -400,6 +410,16 @@ var DefaultController =
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.deleteJunk);
       case "button_mark":
       case "cmd_tag":
+      case "cmd_removeTags":
+      case "cmd_tag1":
+      case "cmd_tag2":
+      case "cmd_tag3":
+      case "cmd_tag4":
+      case "cmd_tag5":
+      case "cmd_tag6":
+      case "cmd_tag7":
+      case "cmd_tag8":
+      case "cmd_tag9":
       case "cmd_toggleRead":
       case "cmd_markThreadAsRead":
         return GetNumSelectedMessages() > 0;
@@ -785,6 +805,21 @@ var DefaultController =
         return;
       case "cmd_search":
         MsgSearchMessages();
+        return;
+      case "cmd_removeTags":
+        RemoveAllMessageTags();
+        return;
+      case "cmd_tag1":
+      case "cmd_tag2":
+      case "cmd_tag3":
+      case "cmd_tag4":
+      case "cmd_tag5":
+      case "cmd_tag6":
+      case "cmd_tag7":
+      case "cmd_tag8":
+      case "cmd_tag9":
+        var tagNumber = parseInt(command[7]);
+        ToggleMessageTagKey(tagNumber);
         return;
       case "button_mark":
       case "cmd_toggleRead":

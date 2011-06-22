@@ -550,30 +550,27 @@ function RemoveAllMessageTags()
   OnTagsChange();
 }
 
-function ToggleMessageTagKey(index)
+/**
+ * Toggle the state of a message tag on the selected messages (based on the
+ * state of the first selected message, like for starring).
+ *
+ * @param keyNumber the number (1 through 9) associated with the tag
+ */
+function ToggleMessageTagKey(keyNumber)
 {
-  if (GetNumSelectedMessages() < 1)
+  let msgHdr = gFolderDisplay.selectedMessage;
+  if (!msgHdr)
     return;
-  // set the tag state based upon that of the first selected message,
-  // just like we do for markAsRead etc.
-  var msgHdr = gFolderDisplay.selectedMessage;
-  var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                             .getService(Components.interfaces.nsIMsgTagService);
-  var tagArray = tagService.getAllTags({});
-  for (var i = 0; i < tagArray.length; ++i)
-  {
-    var key = tagArray[i].key;
-    if (!--index)
-    {
-      // found the key, now toggle its state
-      var curKeys = msgHdr.getStringProperty("keywords");
-      if (msgHdr.label)
-        curKeys += " $label" + msgHdr.label;
-      var addKey  = (" " + curKeys + " ").indexOf(" " + key + " ") < 0;
-      ToggleMessageTag(key, addKey);
-      return;
-    }
-  }
+
+  let tagArray = MailServices.tags.getAllTags({});
+  let key = tagArray[keyNumber-1].key;
+
+  let curKeys = msgHdr.getStringProperty("keywords").split(" ");
+  if (msgHdr.label)
+    curKeys.push("$label" + msgHdr.label);
+  let addKey = curKeys.indexOf(key) < 0;
+
+  ToggleMessageTag(key, addKey);
 }
 
 function ToggleMessageTagMenu(target)

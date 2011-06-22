@@ -708,6 +708,16 @@ var MessageWindowController =
       case "button_junk":
       case "cmd_shiftDelete":
       case "cmd_tag":
+      case "cmd_removeTags":
+      case "cmd_tag1":
+      case "cmd_tag2":
+      case "cmd_tag3":
+      case "cmd_tag4":
+      case "cmd_tag5":
+      case "cmd_tag6":
+      case "cmd_tag7":
+      case "cmd_tag8":
+      case "cmd_tag9":
       case "button_mark":
       case "cmd_toggleRead":
       case "cmd_markAsRead":
@@ -849,6 +859,16 @@ var MessageWindowController =
       case "cmd_reload":
       case "cmd_find":
       case "cmd_tag":
+      case "cmd_removeTags":
+      case "cmd_tag1":
+      case "cmd_tag2":
+      case "cmd_tag3":
+      case "cmd_tag4":
+      case "cmd_tag5":
+      case "cmd_tag6":
+      case "cmd_tag7":
+      case "cmd_tag8":
+      case "cmd_tag9":
       case "button_mark":
       case "cmd_markAllRead":
       case "cmd_markThreadAsRead":
@@ -1046,6 +1066,21 @@ var MessageWindowController =
       case "cmd_search":
         MsgSearchMessages();
         break;
+      case "cmd_removeTags":
+        RemoveAllMessageTags();
+        return;
+      case "cmd_tag1":
+      case "cmd_tag2":
+      case "cmd_tag3":
+      case "cmd_tag4":
+      case "cmd_tag5":
+      case "cmd_tag6":
+      case "cmd_tag7":
+      case "cmd_tag8":
+      case "cmd_tag9":
+        var tagNumber = parseInt(command[7]);
+        ToggleMessageTagKey(tagNumber);
+        return;
       case "button_mark":
         MsgMarkMsgAsRead();
         return;

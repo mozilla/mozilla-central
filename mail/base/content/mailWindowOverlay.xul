@@ -482,25 +482,25 @@
   <!-- Includes both shifted and not, for Azerty and other layouts where the
        numeric keys are shifted. -->
   <key id="key_tag0" key="&tagCmd0.key;" modifiers="shift any"
-       oncommand="RemoveAllMessageTags();"/>
+       oncommand="goDoCommand('cmd_removeTags');"/>
   <key id="key_tag1" key="&tagCmd1.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(1);"/>
+       oncommand="goDoCommand('cmd_tag1');"/>
   <key id="key_tag2" key="&tagCmd2.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(2);"/>
+       oncommand="goDoCommand('cmd_tag2');"/>
   <key id="key_tag3" key="&tagCmd3.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(3);"/>
+       oncommand="goDoCommand('cmd_tag3');"/>
   <key id="key_tag4" key="&tagCmd4.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(4);"/>
+       oncommand="goDoCommand('cmd_tag4');"/>
   <key id="key_tag5" key="&tagCmd5.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(5);"/>
+       oncommand="goDoCommand('cmd_tag5');"/>
   <key id="key_tag6" key="&tagCmd6.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(6);"/>
+       oncommand="goDoCommand('cmd_tag6');"/>
   <key id="key_tag7" key="&tagCmd7.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(7);"/>
+       oncommand="goDoCommand('cmd_tag7');"/>
   <key id="key_tag8" key="&tagCmd8.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(8);"/>
+       oncommand="goDoCommand('cmd_tag8');"/>
   <key id="key_tag9" key="&tagCmd9.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(9);"/>
+       oncommand="goDoCommand('cmd_tag9');"/>
 
   <!-- Tools Keys -->
   <key id="key_searchMail" key="&searchMailCmd.key;" oncommand="goDoCommand('cmd_search')" modifiers="accel, shift"/>
