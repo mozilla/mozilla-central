@@ -540,6 +540,12 @@ nsresult nsMsgDBView::FetchAuthor(nsIMsgDBHdr * aHdr, nsAString &aSenderString)
                                            aSenderString);
       if (NS_FAILED(rv) || aSenderString.IsEmpty())
         CopyUTF8toUTF16(name, aSenderString);
+
+      // If the name is surrounded by quotes, strip them. In the future, we
+      // may want to handle this in ParseHeaderAddresses.
+      if ((aSenderString.First() == '"' && aSenderString.Last() == '"') ||
+          (aSenderString.First() == '\'' && aSenderString.Last() == '\''))
+        aSenderString = Substring(aSenderString, 1, aSenderString.Length()-2);
     }
   }
 
