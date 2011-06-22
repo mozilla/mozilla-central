@@ -162,8 +162,6 @@ var Sanitizer = {
         var cacheService = Components.classes["@mozilla.org/network/cache-service;1"]
                                      .getService(Components.interfaces.nsICacheService);
         cacheService.evictEntries(Components.interfaces.nsICache.STORE_ANYWHERE);
-
-        Sanitizer._clearPluginData("FLAG_CLEAR_CACHE");
       },
 
       canClear: true
