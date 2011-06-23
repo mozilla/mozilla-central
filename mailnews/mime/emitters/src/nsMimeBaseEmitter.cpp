@@ -922,7 +922,7 @@ nsMimeBaseEmitter::WriteHeaderFieldHTMLPrefix(const nsACString &name)
   else {
     mHTMLHeaders.Append("<br><fieldset class=\"mimeAttachmentHeader\">");
     if (!name.IsEmpty()) {
-      mHTMLHeaders.Append("<legend class=\"mimeAttachmentName\">");
+      mHTMLHeaders.Append("<legend class=\"mimeAttachmentHeaderName\">");
       mHTMLHeaders.Append(name);
       mHTMLHeaders.Append("</legend>");
     }
