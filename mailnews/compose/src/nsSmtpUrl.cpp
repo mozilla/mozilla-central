@@ -110,7 +110,10 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
         *eq = 0;
       }
 
-      switch (NS_ToUpper(*token))
+      nsCString decodedName;
+      MsgUnescapeString(nsDependentCString(token), 0, decodedName);
+
+      switch (NS_ToUpper(decodedName.First()))
       {
         /* DO NOT support attachment= in mailto urls. This poses a security fire hole!!! 
                           case 'A':
@@ -119,7 +122,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
                           break;
                      */
       case 'B':
-        if (!PL_strcasecmp (token, "bcc"))
+        if (decodedName.LowerCaseEqualsLiteral("bcc"))
         {
           if (!escapedBccPart.IsEmpty())
           {
@@ -129,7 +132,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
           else
             escapedBccPart = value; 
         }
-        else if (!PL_strcasecmp (token, "body"))
+        else if (decodedName.LowerCaseEqualsLiteral("body"))
         {
           if (!escapedBodyPart.IsEmpty())
           {
@@ -141,7 +144,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
         }
         break;
       case 'C': 
-        if (!PL_strcasecmp  (token, "cc"))
+        if (decodedName.LowerCaseEqualsLiteral("cc"))
         {
           if (!escapedCcPart.IsEmpty())
           {
@@ -153,14 +156,14 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
         }
         break;
       case 'F': 
-        if (!PL_strcasecmp (token, "followup-to"))
+        if (decodedName.LowerCaseEqualsLiteral("followup-to"))
           escapedFollowUpToPart = value;
-        else if (!PL_strcasecmp (token, "from"))
+        else if (decodedName.LowerCaseEqualsLiteral("from"))
           escapedFromPart = value;
         break;
       case 'H':
-        if (!PL_strcasecmp(token, "html-part") ||
-            !PL_strcasecmp(token, "html-body"))
+        if (decodedName.LowerCaseEqualsLiteral("html-part") ||
+            decodedName.LowerCaseEqualsLiteral("html-body"))
         {
           // escapedHtmlPart holds the body for both html-part and html-body.
           escapedHtmlPart = value;
@@ -168,36 +171,36 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
         }
         break;
       case 'I':
-        if (!PL_strcasecmp (token, "in-reply-to"))
+        if (decodedName.LowerCaseEqualsLiteral("in-reply-to"))
           escapedInReplyToPart = value;
         break;
 
       case 'N':
-        if (!PL_strcasecmp (token, "newsgroups"))
+        if (decodedName.LowerCaseEqualsLiteral("newsgroups"))
           escapedNewsgroupPart = value;
-        else if (!PL_strcasecmp (token, "newshost"))
+        else if (decodedName.LowerCaseEqualsLiteral("newshost"))
           escapedNewsHostPart = value;
         break;
       case 'O':
-        if (!PL_strcasecmp (token, "organization"))
+        if (decodedName.LowerCaseEqualsLiteral("organization"))
           escapedOrganizationPart = value;
         break;
       case 'R':
-        if (!PL_strcasecmp (token, "references"))
+        if (decodedName.LowerCaseEqualsLiteral("references"))
           escapedReferencePart = value;
-        else if (!PL_strcasecmp (token, "reply-to"))
+        else if (decodedName.LowerCaseEqualsLiteral("reply-to"))
           escapedReplyToPart = value;
         break;
       case 'S':
-        if(!PL_strcasecmp (token, "subject"))
+        if(decodedName.LowerCaseEqualsLiteral("subject"))
           escapedSubjectPart = value;
         break;
       case 'P':
-        if (!PL_strcasecmp (token, "priority"))
+        if (decodedName.LowerCaseEqualsLiteral("priority"))
           escapedPriorityPart = PL_strdup(value);
         break;
       case 'T':
-        if (!PL_strcasecmp (token, "to"))
+        if (decodedName.LowerCaseEqualsLiteral("to"))
         {
           if (!escapedToPart.IsEmpty())
           {
