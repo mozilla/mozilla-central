@@ -258,8 +258,6 @@ function MailToolboxCustomizeDone(aEvent, customizePopupId)
         popup.removeChild(popup.lastChild);
     }
   }
-  UpdateJunkButton();
-  UpdateReplyButtons();
 }
 
 function onViewToolbarCommand(aEvent, toolboxId)

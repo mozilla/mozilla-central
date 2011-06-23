@@ -275,9 +275,14 @@ function OnLoadMsgHeaderPane()
   headerViewElement.dispatchEvent(event);
 
   initInlineToolbox("header-view-toolbox", "header-view-toolbar",
-                    "CustomizeHeaderToolbar");
+                    "CustomizeHeaderToolbar", function() {
+                      UpdateJunkButton();
+                      UpdateReplyButtons();
+                    });
   initInlineToolbox("attachment-view-toolbox", "attachment-view-toolbar",
-                    "CustomizeAttachmentToolbar");
+                    "CustomizeAttachmentToolbar", function () {
+                      updateSaveAllAttachmentsButton();
+                    });
 }
 
 /**
@@ -287,12 +292,16 @@ function OnLoadMsgHeaderPane()
  * @param toolboxId the id for the toolbox to initialize
  * @param toolbarId the id for the toolbar to initialize
  * @param popupId the id for the menupopup to initialize
+ * @param customizeChange (optional) a function to call when a toolbar button
+ *        has been added or removed from the toolbar
  */
-function initInlineToolbox(toolboxId, toolbarId, popupId) {
+function initInlineToolbox(toolboxId, toolbarId, popupId, customizeChange) {
   let toolbox = document.getElementById(toolboxId);
   toolbox.customizeDone = function(aEvent) {
     MailToolboxCustomizeDone(aEvent, popupId);
   };
+  if (customizeChange)
+    toolbox.customizeChange = customizeChange;
 
   let toolbarset = document.getElementById("customToolbars");
   toolbox.toolbarset = toolbarset;
@@ -2002,22 +2011,16 @@ function displayAttachmentsForExpandedView()
 
     // Show the appropriate toolbar button and label based on the number of
     // attachments.
-    let saveAllSingle   = document.getElementById("attachmentSaveAllSingle");
-    let saveAllMultiple = document.getElementById("attachmentSaveAllMultiple");
+    updateSaveAllAttachmentsButton();
+
     let attachmentCount = document.getElementById("attachmentCount");
     let attachmentName  = document.getElementById("attachmentName");
     let attachmentSize  = document.getElementById("attachmentSize");
 
-    let allDeleted = currentAttachments.every(function(attachment) {
-      return !attachment.hasFile;
-    });
     if (numAttachments == 1) {
       let count = bundle.getString("attachmentCountSingle");
       let name = createAttachmentDisplayName(currentAttachments[0]);
 
-      saveAllSingle.hidden = false;
-      saveAllSingle.disabled = allDeleted;
-      saveAllMultiple.hidden = true;
       attachmentCount.setAttribute("value", count);
       attachmentName.hidden = false;
       attachmentName.setAttribute("value", name);
@@ -2027,9 +2030,6 @@ function displayAttachmentsForExpandedView()
       let count = PluralForm.get(currentAttachments.length, words)
                             .replace("#1", currentAttachments.length);
 
-      saveAllSingle.hidden = true;
-      saveAllMultiple.hidden = false;
-      saveAllMultiple.disabled = allDeleted;
       attachmentCount.setAttribute("value", count);
       attachmentName.hidden = true;
     }
@@ -2045,6 +2045,29 @@ function displayAttachmentsForExpandedView()
 
     gBuildAttachmentsForCurrentMsg = true;
   }
+}
+
+/**
+ * Update the "save all attachments" button in the attachment pane, showing
+ * the proper button and enabling/disabling it as appropriate.
+ */
+function updateSaveAllAttachmentsButton()
+{
+  let saveAllSingle   = document.getElementById("attachmentSaveAllSingle");
+  let saveAllMultiple = document.getElementById("attachmentSaveAllMultiple");
+
+  // If we can't find the buttons, they're not on the toolbar, so bail out!
+  if (!saveAllSingle || !saveAllMultiple)
+    return;
+
+  let allDeleted = currentAttachments.every(function(attachment) {
+    return !attachment.hasFile;
+  });
+  let single = (currentAttachments.length == 1);
+
+  saveAllSingle.hidden = !single;
+  saveAllMultiple.hidden = single;
+  saveAllSingle.disabled = saveAllMultiple.disabled = allDeleted;
 }
 
 /**

@@ -44,7 +44,8 @@
 var MODULE_NAME = 'test-attachment';
 
 var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['folder-display-helpers', 'compose-helpers'];
+var MODULE_REQUIRES = ['folder-display-helpers', 'compose-helpers',
+                       'window-helpers'];
 
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
@@ -70,6 +71,8 @@ var setupModule = function (module) {
   fdh.installInto(module);
   let composeHelper = collector.getModule('compose-helpers');
   composeHelper.installInto(module);
+  let wh = collector.getModule('window-helpers');
+  wh.installInto(module);
 
   folder = create_folder("AttachmentA");
 
@@ -196,6 +199,37 @@ function test_selected_attachments_are_cleared() {
 
   assert_equals(attachmentList.selectedItems.length, 0,
                 "We had selected items after loading a new message!");
+}
+
+function test_attachment_toolbar_customize() {
+  // This tests that removing the "save all" button from the attachment bar
+  // works correctly (i.e. it doesn't throw an error in the middle of processing
+  // the attachments when loading a later message).
+  be_in_folder(folder);
+
+  // First, select the message with one attachment.
+  select_click_row(2);
+
+  remove_from_toolbar(mc.e("attachment-view-toolbar"), "attachmentSaveAll");
+
+  // Now, select the message with two attachments and ensure that no errors
+  // are thrown.
+  select_click_row(3);
+
+  // Since we are viewing a message with two attachments, the attachment name
+  // element should be hidden. If not, we hit an error!
+  assert_true(mc.e("attachmentName").hidden,
+              "Attachment name should have been hidden!");
+
+  // Also, make sure that the save all button is, in fact, not on the toolbar.
+  // Otherwise, we didn't actually trigger the bug.
+  assert_equals(mc.e("attachmentSaveAllSingle"), null,
+                "'save' button should be null!");
+  assert_equals(mc.e("attachmentSaveAllMultiple"), null,
+                "'save all' button should be null!");
+
+  // Finally, restore the save all button, just to be polite.
+  add_to_toolbar(mc.e("attachment-view-toolbar"), "attachmentSaveAll");
 }
 
 function test_attachments_compose_menu() {

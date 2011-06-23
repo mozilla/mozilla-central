@@ -510,7 +510,8 @@
              defaultmode="full"
              inlinetoolbox="true">
       <toolbarpalette id="attachment-view-toolbar-palette">
-        <toolbaritem id="attachmentSaveAll">
+        <toolbaritem id="attachmentSaveAll"
+                     title="&saveAllAttachmentsButton.label;">
           <toolbarbutton type="menu-button" id="attachmentSaveAllSingle"
                          class="toolbarbutton-1 msgHeaderView-button"
                          label="&saveAttachmentButton.label;"
@@ -542,8 +543,7 @@
                          class="toolbarbutton-1 msgHeaderView-button"
                          label="&saveAllAttachmentsButton.label;"
                          tooltiptext="&saveAllAttachmentsButton.tooltip;"
-                         oncommand="HandleAllAttachments('save'); RestoreFocusAfterHdrButton();"
-                         hidden="true">
+                         oncommand="HandleAllAttachments('save'); RestoreFocusAfterHdrButton();">
             <menupopup id="attachmentSaveAllMultipleMenu"
                        onpopupshowing="onShowSaveAttachmentMenuMultiple();">
               <menuitem id="button-openAllAttachments"

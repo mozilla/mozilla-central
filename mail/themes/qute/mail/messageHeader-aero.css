@@ -177,6 +177,7 @@ html|div#expandedHeadersTopBox {
 
 #attachmentCount {
   margin: 0;
+  padding: 2px 0;
   -moz-margin-start: 2px;
   -moz-margin-end: 1px;
 }
