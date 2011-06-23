@@ -59,7 +59,8 @@ function run_test() {
   let defaultAccount = acctMgr.defaultAccount;
 
   let pop3Server = acctMgr.FindServer("user", "poptest", "pop3");
-  var rootFolder = gLocalIncomingServer.rootMsgFolder;
+  var rootFolder = gLocalIncomingServer.rootMsgFolder
+    .QueryInterface(Ci.nsIMsgLocalMailFolder);
   let pop3Root = pop3Server.rootMsgFolder;
   
   // Note: Inbox is not created automatically when there is no deferred server,
