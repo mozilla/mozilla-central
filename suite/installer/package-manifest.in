@@ -267,6 +267,7 @@
 @BINPATH@/components/suitefeeds.xpt
 @BINPATH@/components/SuiteFeeds.manifest
 @BINPATH@/components/suitemigration.xpt
+@BINPATH@/components/telemetry.xpt
 @BINPATH@/components/toolkitplaces.manifest
 @BINPATH@/components/toolkitprofile.xpt
 #ifdef UNIX_BUT_NOT_MAC
