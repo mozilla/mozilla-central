@@ -57,15 +57,6 @@ MOZ_APP_COMPONENT_MODULES="MODULE(xpAutoComplete) $MAIL_MODULE $LDAP_MODULE"
 MOZ_APP_EXTRA_LIBS="$LDAP_LIBS"
 MOZ_SERVICES_SYNC=1
 
-# Needed for the mozilla-central build side of the system.
-# Can be dropped when we branch MOZILLA_5_0_BRANCH
-MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\).*/\1/;'`
-
-if test "$MOZILLA_BRANCH_VERSION" = "5.0"; then
-  MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version-50.txt
-else
-  MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt
-fi
-
+MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt
 MOZ_APP_VERSION=`cat $MOZ_APP_VERSION_TXT`
 SEAMONKEY_VERSION=$MOZ_APP_VERSION

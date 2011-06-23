@@ -54,21 +54,9 @@ MOZ_APP_COMPONENT_LIBS="xpautocomplete mailcomps $MAIL_COMPONENT $LDAP_COMPONENT
 MOZ_APP_COMPONENT_MODULES="MODULE(xpAutoComplete) MODULE(nsMailCompsModule) $MAIL_MODULE $LDAP_MODULE"
 MOZ_APP_EXTRA_LIBS="$LDAP_LIBS"
 
-# Needed for the mozilla-central build side of the system.
-# Can be dropped/altered when we sort out our equivalent of
-# MOZILLA_5_0_BRANCH
-MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\).*/\1/;'`
-
-if test "$MOZILLA_BRANCH_VERSION" = "5.0"; then
-  MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version-50.txt
-  # Use unofficial branding for the 5.0 branch
-  MOZ_BRANDING_DIRECTORY=mail/branding/unofficial
-else
-  MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt
-  MOZ_BRANDING_DIRECTORY=mail/branding/nightly
-fi
-
+MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt
 MOZ_APP_VERSION=`cat $MOZ_APP_VERSION_TXT`
 THUNDERBIRD_VERSION=$MOZ_APP_VERSION
 
+MOZ_BRANDING_DIRECTORY=mail/branding/nightly
 MOZ_OFFICIAL_BRANDING_DIRECTORY=other-licenses/branding/thunderbird
