@@ -57,6 +57,7 @@
 #include "nsIMsgDatabase.h"
 #include "nsMsgFolderFlags.h"
 #include "nsIMsgHdr.h"
+#include "MailNewsTypes.h"
 #include "nsMsgBaseCID.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgFolder.h"

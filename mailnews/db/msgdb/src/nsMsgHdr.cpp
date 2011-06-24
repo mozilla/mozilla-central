@@ -724,17 +724,17 @@ NS_IMETHODIMP nsMsgHdr::GetMime2DecodedRecipients(nsAString &resultRecipients)
 }
 
 
-NS_IMETHODIMP nsMsgHdr::GetAuthorCollationKey(PRUint8 **resultAuthor, PRUint32 *len)
+NS_IMETHODIMP nsMsgHdr::GetAuthorCollationKey(PRUint32 *len, PRUint8 **resultAuthor)
 {
   return m_mdb->RowCellColumnToAddressCollationKey(GetMDBRow(), m_mdb->m_senderColumnToken, resultAuthor, len);
 }
 
-NS_IMETHODIMP nsMsgHdr::GetSubjectCollationKey(PRUint8 **resultSubject, PRUint32 *len)
+NS_IMETHODIMP nsMsgHdr::GetSubjectCollationKey(PRUint32 *len, PRUint8 **resultSubject)
 {
   return m_mdb->RowCellColumnToCollationKey(GetMDBRow(), m_mdb->m_subjectColumnToken, resultSubject, len);
 }
 
-NS_IMETHODIMP nsMsgHdr::GetRecipientsCollationKey(PRUint8 **resultRecipients, PRUint32 *len)
+NS_IMETHODIMP nsMsgHdr::GetRecipientsCollationKey(PRUint32 *len, PRUint8 **resultRecipients)
 {
   return m_mdb->RowCellColumnToCollationKey(GetMDBRow(), m_mdb->m_recipientsColumnToken, resultRecipients, len);
 }

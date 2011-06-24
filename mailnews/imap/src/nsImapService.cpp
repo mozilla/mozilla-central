@@ -769,15 +769,17 @@ NS_IMETHODIMP nsImapService::CopyMessage(const char *aSrcMailboxURI,
   return rv;
 }
 
-NS_IMETHODIMP nsImapService::CopyMessages(nsTArray<nsMsgKey> &keys, 
-                                          nsIMsgFolder *srcFolder, 
-                                          nsIStreamListener *aMailboxCopy, 
+NS_IMETHODIMP nsImapService::CopyMessages(PRUint32 aNumKeys,
+                                          nsMsgKey*aKeys,
+                                          nsIMsgFolder *srcFolder,
+                                          nsIStreamListener *aMailboxCopy,
                                           PRBool moveMessage,
-                                          nsIUrlListener *aUrlListener, 
+                                          nsIUrlListener *aUrlListener,
                                           nsIMsgWindow *aMsgWindow, 
                                           nsIURI **aURL)
 {
   NS_ENSURE_ARG_POINTER(aMailboxCopy);
+  NS_ENSURE_ARG_POINTER(aKeys);
 
   nsresult rv;
   nsCOMPtr<nsISupports> streamSupport = do_QueryInterface(aMailboxCopy, &rv);
@@ -795,11 +797,10 @@ NS_IMETHODIMP nsImapService::CopyMessages(nsTArray<nsMsgKey> &keys,
       // GetMessage in nsCopyMessageStreamListener will get an unescaped username
       // and be able to find the msg hdr. See bug 259656 for details
       nsCString uri;
-      srcFolder->GenerateMessageURI(keys[0], uri);
+      srcFolder->GenerateMessageURI(aKeys[0], uri);
 
       nsCString messageIds;
-      PRUint32 numKeys = keys.Length();
-      AllocateImapUidString(keys.Elements(), numKeys, nsnull, messageIds);
+      AllocateImapUidString(aKeys, aNumKeys, nsnull, messageIds);
       nsCOMPtr<nsIImapUrl> imapUrl;
       nsCAutoString urlSpec;
       char hierarchyDelimiter = GetHierarchyDelimiter(folder);

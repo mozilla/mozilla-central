@@ -1,5 +1,5 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+ * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -12,15 +12,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is MailNews nsMsgKeyArray
  *
  * The Initial Developer of the Original Code is
- *
- * Portions created by the Initial Developer are Copyright (C) 2008 
+ * the Mozilla Foundation.
+ * Portions created by the Initial Developer are Copyright (C) 2011
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Nick Kreeger <nick.kreeger@park.edu>
+ *   David Bienvenu <bienvenu@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -36,46 +36,59 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef nsMsgBaseUndoTxn_h_
-#define nsMsgBaseUndoTxn_h_
+#include "nsMsgKeyArray.h"
+#include "nsMemory.h"
 
-#include "nsMsgTxn.h"
-#include "nsTArray.h"
-#include "nsCOMPtr.h"
-#include "MailNewsTypes.h"
-#include "nsIMsgFolder.h"
+NS_IMPL_ISUPPORTS1(nsMsgKeyArray, nsIMsgKeyArray)
 
-
-#define NS_MSGREADSTATETXN_IID \
-{ /* 121FCE4A-3EA1-455C-8161-839E1557D0CF */ \
-  0x121FCE4A, 0x3EA1, 0x455C, \
-  { 0x81, 0x61, 0x83, 0x9E, 0x15, 0x57, 0xD0, 0xCF } \
+nsMsgKeyArray::nsMsgKeyArray()
+{
 }
 
-
-//------------------------------------------------------------------------------
-// A mark-all transaction handler. Helper for redo/undo of message read states.
-//------------------------------------------------------------------------------
-class NS_MSG_BASE nsMsgReadStateTxn : public nsMsgTxn
+nsMsgKeyArray::~nsMsgKeyArray()
 {
-public:
-  nsMsgReadStateTxn();
-  virtual ~nsMsgReadStateTxn();
+}
 
-  nsresult Init(nsIMsgFolder *aParentFolder,
-                PRUint32 aNumKeys,
-                nsMsgKey *aMsgKeyArray);
-  NS_IMETHOD UndoTransaction();
-  NS_IMETHOD RedoTransaction();
+NS_IMETHODIMP nsMsgKeyArray::Sort()
+{
+  m_keys.Sort();
+  return NS_OK;
+}
 
-protected:
-  NS_IMETHOD MarkMessages(PRBool aAsRead);
+NS_IMETHODIMP nsMsgKeyArray::GetKeyAt(PRInt32 aIndex, nsMsgKey *aKey)
+{
+  NS_ENSURE_ARG_POINTER(aKey);
+  *aKey = m_keys[aIndex];
+  return NS_OK;
+}
 
-private:
-  nsCOMPtr<nsIMsgFolder> mParentFolder;
-  nsTArray<nsMsgKey>     mMarkedMessages;
-  PRBool                 mWasMarkedRead;
-};
+NS_IMETHODIMP nsMsgKeyArray::GetLength(PRUint32 *aLength)
+{
+  NS_ENSURE_ARG_POINTER(aLength);
+  *aLength = m_keys.Length();
+  return NS_OK;
+}
 
-#endif  // nsMsgBaseUndoTxn_h_
+NS_IMETHODIMP nsMsgKeyArray::SetCapacity(PRUint32 aCapacity)
+{
+  m_keys.SetCapacity(aCapacity);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgKeyArray::AppendElement(nsMsgKey aKey)
+{
+  m_keys.AppendElement(aKey);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgKeyArray::GetArray(PRUint32 *aCount, nsMsgKey **aKeys)
+{
+  NS_ENSURE_ARG_POINTER(aCount);
+  NS_ENSURE_ARG_POINTER(aKeys);
+  *aCount = m_keys.Length();
+  *aKeys =
+    (nsMsgKey *) nsMemory::Clone(&m_keys[0],
+                                 m_keys.Length() * sizeof(nsMsgKey));
+  return (*aKeys) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+}
 

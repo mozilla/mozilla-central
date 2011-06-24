@@ -168,6 +168,8 @@ protected:
   nsresult GetPurgeThreshold(PRInt32 *aThreshold);
   nsresult ApplyRetentionSettings(PRBool deleteViaFolder);
   PRBool   VerifyOfflineMessage(nsIMsgDBHdr *msgHdr, nsIInputStream *fileStream);
+  nsresult AddMarkAllReadUndoAction(nsIMsgWindow *msgWindow,
+                                    nsMsgKey *thoseMarked, PRUint32 numMarked);
 
   nsresult PerformBiffNotifications(void); // if there are new, non spam messages, do biff
   nsresult CloseDBIfFolderNotOpen();

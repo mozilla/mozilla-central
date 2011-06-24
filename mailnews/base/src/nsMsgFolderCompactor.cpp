@@ -38,6 +38,7 @@
 #include "msgCore.h"    // precompiled header...
 #include "nsCOMPtr.h"
 #include "nsIMsgFolder.h"
+#include "nsAutoPtr.h"
 #include "nsILocalFile.h"
 #include "nsNetUtil.h"
 #include "nsIMsgHdr.h"
@@ -48,7 +49,6 @@
 #include "nsISeekableStream.h"
 #include "nsIDBFolderInfo.h"
 #include "nsIDocShell.h"
-#include "nsMsgFolderCompactor.h"
 #include "nsIPrompt.h"
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIMsgLocalMailFolder.h"
@@ -63,6 +63,7 @@
 #include "nsIMsgStatusFeedback.h"
 #include "nsMsgBaseCID.h"
 #include "nsIMsgFolderNotificationService.h"
+#include "nsMsgFolderCompactor.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // nsFolderCompactState
@@ -88,7 +89,6 @@ nsFolderCompactState::nsFolderCompactState()
 nsFolderCompactState::~nsFolderCompactState()
 {
   CloseOutputStream();
-
   if (NS_FAILED(m_status))
   {
     CleanupTempFilesAfterError();
@@ -130,9 +130,10 @@ nsresult
 nsFolderCompactState::InitDB(nsIMsgDatabase *db)
 {
   nsCOMPtr<nsIMsgDatabase> mailDBFactory;
+  nsresult rv = db->ListAllKeys(m_keyArray);
+  NS_ENSURE_SUCCESS(rv, rv);
+  m_size = m_keyArray->m_keys.Length();
 
-  db->ListAllKeys(m_keyArray);
-  nsresult rv;
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
   if (msgDBService) 
   {
@@ -302,7 +303,8 @@ nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgD
   m_file->SetNativeLeafName(NS_LITERAL_CSTRING("nstmp"));
   m_file->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);   //make sure we are not crunching existing nstmp file
   m_window = aMsgWindow;
-  m_keyArray.Clear();
+  m_keyArray = new nsMsgKeyArray;
+  m_size = 0;
   m_totalMsgSize = 0;
   rv = InitDB(db);
   if (NS_FAILED(rv))
@@ -311,9 +313,8 @@ nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgD
     return rv;
   }
 
-  m_size = m_keyArray.Length();
   m_curIndex = 0;
-  
+
   rv = MsgNewBufferedFileOutputStream(getter_AddRefs(m_fileStream), m_file, -1, 00600);
   if (NS_FAILED(rv)) 
     m_folder->ThrowAlertMsg("compactFolderWriteFailed", m_window);
@@ -380,12 +381,13 @@ nsresult nsFolderCompactState::StartCompacting()
                               nsnull);
   if (m_size > 0)
   {
-
+    nsCOMPtr<nsIURI> notUsed;
     ShowCompactingStatusMsg();
     AddRef();
-    rv = m_messageService->CopyMessages(m_keyArray, m_folder, this, PR_FALSE, nsnull, m_window, nsnull);
-    // m_curIndex = m_size;  // advance m_curIndex to the end - we're done
-
+    rv = m_messageService->CopyMessages(m_size, m_keyArray->m_keys.Elements(),
+                                        m_folder, this,
+                                        PR_FALSE, nsnull, m_window,
+                                        getter_AddRefs(notUsed));
   }
   else
   { // no messages to copy with
@@ -666,7 +668,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
     m_statusOffset = 0;
     m_addedHeaderSize = 0;
     m_messageUri.Truncate(); // clear the previous message uri
-    if (NS_SUCCEEDED(BuildMessageURI(m_baseMessageUri.get(), m_keyArray[m_curIndex],
+    if (NS_SUCCEEDED(BuildMessageURI(m_baseMessageUri.get(), m_keyArray->m_keys[m_curIndex],
                                 m_messageUri)))
     {
       rv = GetMessage(getter_AddRefs(m_curSrcHdr));
@@ -887,27 +889,8 @@ nsOfflineStoreCompactState::InitDB(nsIMsgDatabase *db)
 {
   // Start with the list of messages we have offline as the possible
   // message to keep when compacting the offline store.
-  db->ListAllOfflineMsgs(&m_keyArray);
-  // Filter out msgs that have the "pendingRemoval" attribute set.
-  nsCOMPtr<nsIMsgDBHdr> hdr;
-  nsString pendingRemoval;
-  for (PRInt32 i = m_keyArray.Length() - 1; i >= 0; i--)
-  {
-    nsresult rv = db->GetMsgHdrForKey(m_keyArray[i], getter_AddRefs(hdr));
-    NS_ENSURE_SUCCESS(rv, rv);
-    hdr->GetProperty("pendingRemoval", pendingRemoval);
-    if (!pendingRemoval.IsEmpty())
-    {
-      m_keyArray.RemoveElementAt(i);
-      // Turn off offline flag for message, since after the compact is completed;
-      // we won't have the message in the offline store.
-      PRUint32 resultFlags;
-      hdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
-      // We need to clear this in case the user changes the offline retention
-      // settings.
-      hdr->SetStringProperty("pendingRemoval", "");
-    }
-  }
+  db->ListAllOfflineMsgs(m_keyArray);
+  m_size = m_keyArray->m_keys.Length();
   m_db = db;
   return NS_OK;
 }
@@ -921,8 +904,26 @@ nsresult nsOfflineStoreCompactState::CopyNextMessage(PRBool &done)
 {
   while (m_curIndex < m_size)
   {
+    // Filter out msgs that have the "pendingRemoval" attribute set.
+    nsCOMPtr<nsIMsgDBHdr> hdr;
+    nsString pendingRemoval;
+    nsresult rv = m_db->GetMsgHdrForKey(m_keyArray->m_keys[m_curIndex], getter_AddRefs(hdr));
+    NS_ENSURE_SUCCESS(rv, rv);
+    hdr->GetProperty("pendingRemoval", pendingRemoval);
+    if (!pendingRemoval.IsEmpty())
+    {
+      m_curIndex++;
+      // Turn off offline flag for message, since after the compact is completed;
+      // we won't have the message in the offline store.
+      PRUint32 resultFlags;
+      hdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
+      // We need to clear this in case the user changes the offline retention
+      // settings.
+      hdr->SetStringProperty("pendingRemoval", "");
+      continue;
+    }
     m_messageUri.Truncate(); // clear the previous message uri
-    nsresult rv = BuildMessageURI(m_baseMessageUri.get(), m_keyArray[m_curIndex],
+    rv = BuildMessageURI(m_baseMessageUri.get(), m_keyArray->m_keys[m_curIndex],
                                   m_messageUri);
     NS_ENSURE_SUCCESS(rv, rv);
     m_startOfMsg = PR_TRUE;
@@ -1183,7 +1184,7 @@ nsOfflineStoreCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ct
     m_statusOffset = 0;
     m_offlineMsgSize = 0;
     m_messageUri.Truncate(); // clear the previous message uri
-    if (NS_SUCCEEDED(BuildMessageURI(m_baseMessageUri.get(), m_keyArray[m_curIndex],
+    if (NS_SUCCEEDED(BuildMessageURI(m_baseMessageUri.get(), m_keyArray->m_keys[m_curIndex],
                                 m_messageUri)))
     {
       rv = GetMessage(getter_AddRefs(m_curSrcHdr));

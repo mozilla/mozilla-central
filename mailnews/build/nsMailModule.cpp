@@ -99,6 +99,7 @@
 #include "nsMsgBiffManager.h"
 #include "nsMsgPurgeService.h"
 #include "nsStatusBarBiffManager.h"
+#include "nsMsgKeyArray.h"
 #include "nsCopyMessageStreamListener.h"
 #include "nsMsgCopyService.h"
 #include "nsMsgFolderCache.h"
@@ -351,6 +352,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsCopyMessageStreamListener)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgCopyService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgFolderCache)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgStatusFeedback)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgKeyArray)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgWindow,Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgServiceProviderService, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsSubscribeDataSource, Init)
@@ -416,6 +418,7 @@ NS_DEFINE_NAMED_CID(NS_MSGCOPYSERVICE_CID);
 NS_DEFINE_NAMED_CID(NS_MSGFOLDERCACHE_CID);
 NS_DEFINE_NAMED_CID(NS_MSGSTATUSFEEDBACK_CID);
 NS_DEFINE_NAMED_CID(NS_MSGWINDOW_CID);
+NS_DEFINE_NAMED_CID(NS_MSGKEYARRAY_CID);
 #ifdef NS_PRINTING
 NS_DEFINE_NAMED_CID(NS_MSG_PRINTENGINE_CID);
 #endif
@@ -811,6 +814,7 @@ const mozilla::Module::CIDEntry kMailNewsCIDs[] = {
   { &kNS_MSGCOPYSERVICE_CID, false, NULL, nsMsgCopyServiceConstructor},
   { &kNS_MSGFOLDERCACHE_CID, false, NULL, nsMsgFolderCacheConstructor},
   { &kNS_MSGSTATUSFEEDBACK_CID, false, NULL, nsMsgStatusFeedbackConstructor},
+  { &kNS_MSGKEYARRAY_CID, false, NULL, nsMsgKeyArrayConstructor},
   { &kNS_MSGWINDOW_CID, false, NULL, nsMsgWindowConstructor},
 #ifdef NS_PRINTING
   { &kNS_MSG_PRINTENGINE_CID, false, NULL, nsMsgPrintEngineConstructor},
@@ -1007,6 +1011,7 @@ const mozilla::Module::ContractIDEntry kMailNewsContracts[] = {
   { NS_MSGCOPYSERVICE_CONTRACTID, &kNS_MSGCOPYSERVICE_CID },
   { NS_MSGFOLDERCACHE_CONTRACTID, &kNS_MSGFOLDERCACHE_CID },
   { NS_MSGSTATUSFEEDBACK_CONTRACTID, &kNS_MSGSTATUSFEEDBACK_CID },
+  { NS_MSGKEYARRAY_CONTRACTID, &kNS_MSGKEYARRAY_CID },
   { NS_MSGWINDOW_CONTRACTID, &kNS_MSGWINDOW_CID },
 #ifdef NS_PRINTING
   { NS_MSGPRINTENGINE_CONTRACTID, &kNS_MSG_PRINTENGINE_CID },

@@ -52,6 +52,7 @@ endif
 CPPSRCS		= \
 		nsMsgLineBuffer.cpp \
 		nsMsgDBFolder.cpp \
+		nsMsgKeyArray.cpp \
 		nsMsgKeySet.cpp \
 		nsMsgIdentity.cpp \
 		nsMsgIncomingServer.cpp \
@@ -70,6 +71,7 @@ CPPSRCS		= \
 
 EXPORTS		= \
 		nsMsgLineBuffer.h \
+		nsMsgKeyArray.h \
 		nsMsgKeySet.h \
 		nsMsgDBFolder.h \
 		nsMsgDBFolderAtomList.h \

@@ -41,6 +41,7 @@
 #include "nsIMsgDatabase.h"
 #include "nsMsgHdr.h"
 #include "nsStringGlue.h"
+#include "nsAutoPtr.h"
 #include "nsIDBChangeListener.h"
 #include "nsIDBChangeAnnouncer.h"
 #include "nsMsgMessageFlags.h"
@@ -55,7 +56,6 @@
 #include "pldhash.h"
 #include "nsTArray.h"
 #include "nsTObserverArray.h"
-#include "nsAutoPtr.h"
 class ListContext;
 class nsMsgKeySet;
 class nsMsgThread;

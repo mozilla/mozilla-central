@@ -253,7 +253,8 @@ PRBool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, PRBool bRead)
     return PR_TRUE;
 }
 
-NS_IMETHODIMP nsNewsDatabase::MarkAllRead(nsTArray<nsMsgKey> *thoseMarked)
+NS_IMETHODIMP nsNewsDatabase::MarkAllRead(PRUint32 *aNumMarked,
+                                          nsMsgKey **aThoseMarked)
 {
   nsMsgKey lowWater = nsMsgKey_None, highWater;
   nsCString knownArts;
@@ -271,7 +272,7 @@ NS_IMETHODIMP nsNewsDatabase::MarkAllRead(nsTArray<nsMsgKey> *thoseMarked)
   GetHighWaterArticleNum(&highWater);
   if (lowWater > 2)
     m_readSet->AddRange(1, lowWater - 1);
-  nsresult err = nsMsgDatabase::MarkAllRead(thoseMarked);
+  nsresult err = nsMsgDatabase::MarkAllRead(aNumMarked, aThoseMarked);
   if (NS_SUCCEEDED(err) && 1 <= highWater)
     m_readSet->AddRange(1, highWater); // mark everything read in newsrc.
 

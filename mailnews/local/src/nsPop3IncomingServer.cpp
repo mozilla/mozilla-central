@@ -48,6 +48,8 @@
 #include "nsMsgLocalCID.h"
 #include "nsMsgFolderFlags.h"
 #include "nsPop3Protocol.h"
+#include "nsAutoPtr.h"
+#include "nsMsgKeyArray.h"
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgMailNewsUrl.h"
@@ -193,10 +195,10 @@ NS_IMETHODIMP nsPop3IncomingServer::GetDeferredToAccount(nsACString& aRetVal)
                 {
                   // Copy any messages in this sub-folder of the hidden
                   // account to the corresponding folder in Local Folders.
-                  nsTArray<nsMsgKey> keys;
+                  nsRefPtr<nsMsgKeyArray> keys = new nsMsgKeyArray;
                   rv = subFolderDB->ListAllKeys(keys);
                   nsCOMPtr<nsIMutableArray> hdrsToCopy(do_CreateInstance(NS_ARRAY_CONTRACTID));
-                  MsgGetHeadersFromKeys(subFolderDB, keys, hdrsToCopy);
+                  MsgGetHeadersFromKeys(subFolderDB, keys->m_keys, hdrsToCopy);
                   PRUint32 numHdrs = 0;
                   if (hdrsToCopy)
                     hdrsToCopy->GetLength(&numHdrs);

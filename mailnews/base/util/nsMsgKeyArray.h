@@ -1,5 +1,5 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+ * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -12,15 +12,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is MailNews nsMsgKeyArray
  *
  * The Initial Developer of the Original Code is
- *
- * Portions created by the Initial Developer are Copyright (C) 2008 
+ * the Mozilla Foundation.
+ * Portions created by the Initial Developer are Copyright (C) 2011
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Nick Kreeger <nick.kreeger@park.edu>
+ *   David Bienvenu <bienvenu@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -36,46 +36,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef nsMsgBaseUndoTxn_h_
-#define nsMsgBaseUndoTxn_h_
+#ifndef nsMsgKeyArray_h__
+#define nsMsgKeyArray_h__
 
-#include "nsMsgTxn.h"
+#include "nsIMsgKeyArray.h"
 #include "nsTArray.h"
-#include "nsCOMPtr.h"
-#include "MailNewsTypes.h"
-#include "nsIMsgFolder.h"
 
-
-#define NS_MSGREADSTATETXN_IID \
-{ /* 121FCE4A-3EA1-455C-8161-839E1557D0CF */ \
-  0x121FCE4A, 0x3EA1, 0x455C, \
-  { 0x81, 0x61, 0x83, 0x9E, 0x15, 0x57, 0xD0, 0xCF } \
-}
-
-
-//------------------------------------------------------------------------------
-// A mark-all transaction handler. Helper for redo/undo of message read states.
-//------------------------------------------------------------------------------
-class NS_MSG_BASE nsMsgReadStateTxn : public nsMsgTxn
+/*
+ * This class is a thin wrapper around an nsTArray<nsMsgKey>
+ */
+class nsMsgKeyArray : public nsIMsgKeyArray
 {
 public:
-  nsMsgReadStateTxn();
-  virtual ~nsMsgReadStateTxn();
+  nsMsgKeyArray();
+  virtual ~nsMsgKeyArray();
 
-  nsresult Init(nsIMsgFolder *aParentFolder,
-                PRUint32 aNumKeys,
-                nsMsgKey *aMsgKeyArray);
-  NS_IMETHOD UndoTransaction();
-  NS_IMETHOD RedoTransaction();
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIMSGKEYARRAY
 
-protected:
-  NS_IMETHOD MarkMessages(PRBool aAsRead);
-
-private:
-  nsCOMPtr<nsIMsgFolder> mParentFolder;
-  nsTArray<nsMsgKey>     mMarkedMessages;
-  PRBool                 mWasMarkedRead;
+  nsTArray<nsMsgKey> m_keys;
 };
 
-#endif  // nsMsgBaseUndoTxn_h_
-
+#endif

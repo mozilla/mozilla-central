@@ -37,18 +37,12 @@
 
 #include "nsISupports.idl"
 
-%{C++
-#include "MailNewsTypes.h"
-%}
-
 #include "MailNewsTypes2.idl"
-
-[ptr] native octetPtr(PRUint8);
 
 interface nsIMsgFolder;
 interface nsIUTF8StringEnumerator;
 
-[scriptable, uuid(574611fe-f170-4eb4-a30c-a26e2c62703a)]
+[scriptable, uuid(36adf826-73f4-48e7-a444-318242ea8a8e)]
 interface nsIMsgDBHdr : nsISupports
 {
     /* general property routines - I think this can retrieve any
@@ -119,10 +113,13 @@ interface nsIMsgDBHdr : nsISupports
     readonly attribute AString mime2DecodedSubject;
     readonly attribute AString mime2DecodedRecipients;
 
-    [noscript] void getAuthorCollationKey(out octetPtr key, out unsigned long len);
-    [noscript] void getSubjectCollationKey(out octetPtr key, out unsigned long len);
-    [noscript] void getRecipientsCollationKey(out octetPtr key, out unsigned long len);
-    
+    void getAuthorCollationKey(out unsigned long aCount,
+                              [array, size_is(aCount)] out octet aKey);
+    void getSubjectCollationKey(out unsigned long aCount,
+                                [array, size_is(aCount)] out octet aKey);
+    void getRecipientsCollationKey(out unsigned long aCount,
+                                  [array, size_is(aCount)] out octet aKey);
+
     attribute string Charset;
     attribute nsMsgLabelValue label;
     attribute string accountKey;

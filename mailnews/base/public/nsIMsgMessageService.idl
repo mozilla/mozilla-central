@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-
+#include "MailNewsTypes2.idl"
 interface nsIURI;
 interface nsIUrlListener;
 interface nsIStreamListener;
@@ -50,13 +50,9 @@ interface nsICacheEntryDescriptor;
 
 %{C++
 #include "MailNewsTypes.h"
-#include "nsTArray.h"
 %}
 
-[ref] native nsMsgKeyArrayRef(nsTArray<nsMsgKey>);
-
-
-[scriptable, uuid(5f173e8d-0046-4eec-b178-b850a7211654)]
+[scriptable, uuid(ac7b56c2-cf42-4ee3-a3b1-9ae64a90861c)]
 interface nsIMsgMessageService : nsISupports {
      
   /**
@@ -91,10 +87,15 @@ interface nsIMsgMessageService : nsISupports {
    * @param aMoveMessage
    * @param aUrlListener
    * @param aMsgWindow
-   * @param aURL
+   * @returns URI that's run to perform the copy
    */
-  [noscript] void CopyMessages(in nsMsgKeyArrayRef keys, in nsIMsgFolder srcFolder, in nsIStreamListener aCopyListener, in boolean aMoveMessage,
-               in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow, out nsIURI aURL);
+  nsIURI CopyMessages(in unsigned long aNumKeys,
+                      [array, size_is (aNumKeys)] in nsMsgKey aKeys,
+                      in nsIMsgFolder srcFolder,
+                      in nsIStreamListener aCopyListener,
+                      in boolean aMoveMessage,
+                      in nsIUrlListener aUrlListener,
+                      in nsIMsgWindow aMsgWindow);
 
     
   /**

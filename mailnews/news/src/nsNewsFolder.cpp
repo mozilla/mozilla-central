@@ -1683,7 +1683,7 @@ NS_IMETHODIMP nsMsgNewsFolder::RemoveMessages(nsTArray<nsMsgKey> &aMsgKeys)
 {
   nsresult rv = GetDatabase();
   NS_ENSURE_SUCCESS(rv, rv); // if GetDatabase succeeds, mDatabase will be non-null
-  
+
   // Notify listeners of a multiple message delete
   nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
 

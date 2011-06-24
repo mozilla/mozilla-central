@@ -716,8 +716,13 @@ nsNntpService::CopyMessage(const char * aSrcMessageURI, nsIStreamListener * aMai
 }
 
 NS_IMETHODIMP
-nsNntpService::CopyMessages(nsTArray<nsMsgKey> &keys, nsIMsgFolder *srcFolder, nsIStreamListener * aMailboxCopyHandler, PRBool moveMessage,
-               nsIUrlListener * aUrlListener, nsIMsgWindow *aMsgWindow, nsIURI **aURL)
+nsNntpService::CopyMessages(PRUint32 aNumKeys, nsMsgKey *akeys,
+                            nsIMsgFolder *srcFolder,
+                            nsIStreamListener * aMailboxCopyHandler,
+                            PRBool moveMessage,
+                            nsIUrlListener * aUrlListener,
+                            nsIMsgWindow *aMsgWindow,
+                            nsIURI **aURL)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

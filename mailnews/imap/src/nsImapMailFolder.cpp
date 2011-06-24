@@ -64,6 +64,7 @@
 #include "nsImapUtils.h"
 #include "nsMsgUtils.h"
 #include "nsIMsgMailSession.h"
+#include "nsMsgKeyArray.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgLocalCID.h"
 #include "nsImapUndoTxn.h"
@@ -1954,36 +1955,21 @@ nsImapMailFolder::MarkAllMessagesRead(nsIMsgWindow *aMsgWindow)
   nsresult rv = GetDatabase();
   if(NS_SUCCEEDED(rv))
   {
-    nsTArray<nsMsgKey> thoseMarked;
+    nsMsgKey *thoseMarked;
+    PRUint32 numMarked;
     EnableNotifications(allMessageCountNotifications, PR_FALSE, PR_TRUE /*dbBatching*/);
-    rv = mDatabase->MarkAllRead(&thoseMarked);
+    rv = mDatabase->MarkAllRead(&numMarked, &thoseMarked);
     EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_TRUE /*dbBatching*/);
     if (NS_SUCCEEDED(rv))
     {
-      rv = StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, thoseMarked.Elements(),
-                          thoseMarked.Length(), nsnull);
+      rv = StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, thoseMarked,
+                          numMarked, nsnull);
       mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
-      
+
       // Setup a undo-state
       if (aMsgWindow)
-      {
-        nsRefPtr<nsMsgReadStateTxn> readStateTxn = new nsMsgReadStateTxn();    
-        if (!readStateTxn)
-          return NS_ERROR_OUT_OF_MEMORY;
-        
-        rv = readStateTxn->Init(this, thoseMarked);
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        rv = readStateTxn->SetTransactionType(nsIMessenger::eMarkAllMsg);
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        nsCOMPtr<nsITransactionManager> txnMgr;
-        rv = aMsgWindow->GetTransactionManager(getter_AddRefs(txnMgr));
-        NS_ENSURE_SUCCESS(rv, rv);
-        
-        rv = txnMgr->DoTransaction(readStateTxn);
-        NS_ENSURE_SUCCESS(rv, rv);
-      }
+        rv = AddMarkAllReadUndoAction(aMsgWindow, thoseMarked, numMarked);
+      nsMemory::Free(thoseMarked);
     }
   }
   return rv;
@@ -1994,13 +1980,14 @@ NS_IMETHODIMP nsImapMailFolder::MarkThreadRead(nsIMsgThread *thread)
   nsresult rv = GetDatabase();
   if(NS_SUCCEEDED(rv))
   {
-    nsTArray<nsMsgKey> thoseMarked;
-    rv = mDatabase->MarkThreadRead(thread, nsnull, &thoseMarked);
+    nsMsgKey *keys;
+    PRUint32 numKeys;
+    rv = mDatabase->MarkThreadRead(thread, nsnull, &numKeys, &keys);
     if (NS_SUCCEEDED(rv))
     {
-      rv = StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, thoseMarked.Elements(),
-                          thoseMarked.Length(), nsnull);
+      rv = StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, keys, numKeys, nsnull);
       mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
+      nsMemory::Free(keys);
     }
   }
   return rv;
@@ -2726,8 +2713,13 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
       PR_snprintf(intStrBuf, sizeof(intStrBuf), "%llu",  mailboxHighestModSeq);
       dbFolderInfo->SetCharProperty(kModSeqPropertyName, nsDependentCString(intStrBuf));
     }
-    mDatabase->ListAllKeys(existingKeys);
-    PRInt32 keyCount = existingKeys.Length();
+    nsRefPtr<nsMsgKeyArray> keys = new nsMsgKeyArray;
+    if (!keys)
+      return NS_ERROR_OUT_OF_MEMORY;
+    rv = mDatabase->ListAllKeys(keys);
+    NS_ENSURE_SUCCESS(rv, rv);
+    existingKeys.AppendElements(keys->m_keys);
+    PRUint32 keyCount = existingKeys.Length();
     mDatabase->ListAllOfflineDeletes(&existingKeys);
     if (keyCount < existingKeys.Length())
       existingKeys.Sort();

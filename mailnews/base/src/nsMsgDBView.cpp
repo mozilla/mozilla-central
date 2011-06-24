@@ -3765,7 +3765,8 @@ nsMsgDBView::FnSortIdKey(const void *pItem1, const void *pItem2, void *privateDa
 
     nsIMsgDatabase *db = sortInfo->db;
 
-    rv = db->CompareCollationKeys((*p1)->key, (*p1)->dword, (*p2)->key, (*p2)->dword, &retVal);
+    rv = db->CompareCollationKeys((*p1)->dword, (*p1)->key, (*p2)->dword,
+                                  (*p2)->key, &retVal);
     NS_ASSERTION(NS_SUCCEEDED(rv),"compare failed");
 
     if (retVal)
@@ -3790,7 +3791,8 @@ nsMsgDBView::FnSortIdKeyPtr(const void *pItem1, const void *pItem2, void *privat
 
   nsIMsgDatabase *db = sortInfo->db;
 
-  rv = db->CompareCollationKeys((*p1)->key, (*p1)->dword, (*p2)->key, (*p2)->dword, &retVal);
+  rv = db->CompareCollationKeys((*p1)->dword, (*p1)->key, (*p2)->dword,
+                                (*p2)->key, &retVal);
   NS_ASSERTION(NS_SUCCEEDED(rv),"compare failed");
 
   if (retVal)
@@ -4122,16 +4124,16 @@ nsMsgDBView::GetCollationKey(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortTyp
   switch (sortType)
   {
     case nsMsgViewSortType::bySubject:
-        rv = msgHdr->GetSubjectCollationKey(result, len);
+        rv = msgHdr->GetSubjectCollationKey(len, result);
         break;
     case nsMsgViewSortType::byLocation:
         rv = GetLocationCollationKey(msgHdr, result, len);
         break;
     case nsMsgViewSortType::byRecipient:
-        rv = msgHdr->GetRecipientsCollationKey(result, len);
+        rv = msgHdr->GetRecipientsCollationKey(len, result);
         break;
     case nsMsgViewSortType::byAuthor:
-        rv = msgHdr->GetAuthorCollationKey(result, len);
+        rv = msgHdr->GetAuthorCollationKey(len, result);
         break;
     case nsMsgViewSortType::byAccount:
     case nsMsgViewSortType::byTags:
@@ -4147,7 +4149,7 @@ nsMsgDBView::GetCollationKey(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortTyp
             : FetchTags(msgHdr, str);
 
         if (NS_SUCCEEDED(rv) && dbToUse)
-          rv = dbToUse->CreateCollationKey(str, result, len);
+          rv = dbToUse->CreateCollationKey(str, len, result);
       }
       break;
     case nsMsgViewSortType::byCustom:
@@ -4164,7 +4166,7 @@ nsMsgDBView::GetCollationKey(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortTyp
           rv = GetDBForHeader(msgHdr, getter_AddRefs(dbToUse));
           NS_ENSURE_SUCCESS(rv,rv);
         }
-        rv = dbToUse->CreateCollationKey(strKey, result, len);
+        rv = dbToUse->CreateCollationKey(strKey, len, result);
       }
       else
       {
@@ -4205,7 +4207,7 @@ nsMsgDBView::GetLocationCollationKey(nsIMsgDBHdr *msgHdr, PRUint8 **result, PRUi
   rv = folder->GetPrettiestName(locationString);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  return dbToUse->CreateCollationKey(locationString, result, len);
+  return dbToUse->CreateCollationKey(locationString, len, result);
 }
 
 nsresult nsMsgDBView::SaveSortInfo(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder)

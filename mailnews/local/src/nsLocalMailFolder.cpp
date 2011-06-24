@@ -3021,7 +3021,11 @@ nsresult nsMsgLocalMailFolder::CopyMessagesTo(nsIArray *messages, nsTArray<nsMsg
     nsCOMPtr <nsIMsgLocalMailFolder> srcLocalFolder = do_QueryInterface(srcFolder);
     if (srcLocalFolder)
       StartMessage();
-    rv = mCopyState->m_messageService->CopyMessages(keyArray, srcFolder, streamListener, isMove, nsnull, aMsgWindow, nsnull);
+    rv = mCopyState->m_messageService->CopyMessages(keyArray.Length(),
+                                                    keyArray.Elements(),
+                                                    srcFolder, streamListener,
+                                                    isMove, nsnull, aMsgWindow,
+                                                    nsnull);
   }
   return rv;
 }

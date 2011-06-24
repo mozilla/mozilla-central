@@ -43,6 +43,7 @@
 #include "nsIStreamListener.h"
 #include "nsIMsgFolderCompactor.h"
 #include "nsICopyMsgStreamListener.h"
+#include "nsMsgKeyArray.h"
 #include "nsIMsgWindow.h"
 #include "nsIStringBundle.h"
 #include "nsIMsgMessageService.h"
@@ -88,8 +89,9 @@ protected:
   nsCOMPtr<nsIMsgDatabase> m_db; // new database for the compact folder
   nsCOMPtr <nsILocalFile> m_file; // new mailbox for the compact folder
   nsCOMPtr <nsIOutputStream> m_fileStream; // output file stream for writing
-  nsTArray<nsMsgKey> m_keyArray; // all message keys need to be copied over
-  PRInt32 m_size; // size of the message key array
+  // all message keys that need to be copied over
+  nsRefPtr<nsMsgKeyArray> m_keyArray;
+  PRUint32 m_size;
 
    // sum of the sizes of the messages, accumulated as we visit each msg.
   PRUint32 m_totalMsgSize;

@@ -125,16 +125,18 @@ nsresult nsMailboxService::CopyMessage(const char * aSrcMailboxURI,
   return FetchMessage(aSrcMailboxURI, aMailboxCopyHandler, aMsgWindow, aUrlListener, nsnull, mailboxAction, nsnull, aURL);
 }
 
-nsresult nsMailboxService::CopyMessages(nsTArray<nsMsgKey> &msgKeys,
-                              nsIMsgFolder *srcFolder,
-                              nsIStreamListener * aMailboxCopyHandler,
-                              PRBool moveMessage,
-                              nsIUrlListener * aUrlListener,
-                              nsIMsgWindow *aMsgWindow,
-                              nsIURI **aURL)
+nsresult nsMailboxService::CopyMessages(PRUint32 aNumKeys,
+                                        nsMsgKey* aMsgKeys,
+                                        nsIMsgFolder *srcFolder,
+                                        nsIStreamListener * aMailboxCopyHandler,
+                                        PRBool moveMessage,
+                                        nsIUrlListener * aUrlListener,
+                                        nsIMsgWindow *aMsgWindow,
+                                        nsIURI **aURL)
 {
   nsresult rv = NS_OK;
   NS_ENSURE_ARG(srcFolder);
+  NS_ENSURE_ARG(aMsgKeys);
   nsCOMPtr<nsIMailboxUrl> mailboxurl;
 
   nsMailboxAction actionToUse = nsIMailboxUrl::ActionMoveMessage;
@@ -146,7 +148,7 @@ nsresult nsMailboxService::CopyMessages(nsTArray<nsMsgKey> &msgKeys,
   srcFolder->GetMsgDatabase(getter_AddRefs(db));
   if (db)
   {
-    db->GetMsgHdrForKey(msgKeys[0], getter_AddRefs(msgHdr));
+    db->GetMsgHdrForKey(aMsgKeys[0], getter_AddRefs(msgHdr));
     if (msgHdr)
     {
       nsCString uri;
@@ -160,7 +162,7 @@ nsresult nsMailboxService::CopyMessages(nsTArray<nsMsgKey> &msgKeys,
         nsCOMPtr<nsIMailboxUrl> mailboxUrl (do_QueryInterface(url));
         msgUrl->SetMsgWindow(aMsgWindow);
 
-        mailboxUrl->SetMoveCopyMsgKeys(msgKeys.Elements(), msgKeys.Length());
+        mailboxUrl->SetMoveCopyMsgKeys(aMsgKeys, aNumKeys);
         rv = RunMailboxUrl(url, aMailboxCopyHandler);
       }
     }

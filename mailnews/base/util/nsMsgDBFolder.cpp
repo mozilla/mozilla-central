@@ -1415,44 +1415,51 @@ nsMsgDBFolder::AddMessageDispositionState(nsIMsgDBHdr *aMessage, nsMsgDispositio
   return NS_OK;
 }
 
+nsresult nsMsgDBFolder::AddMarkAllReadUndoAction(nsIMsgWindow *msgWindow,
+                                                 nsMsgKey *thoseMarked,
+                                                 PRUint32 numMarked)
+{
+  nsRefPtr<nsMsgReadStateTxn> readStateTxn = new nsMsgReadStateTxn();
+  if (!readStateTxn)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  nsresult rv = readStateTxn->Init(this, numMarked, thoseMarked);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = readStateTxn->SetTransactionType(nsIMessenger::eMarkAllMsg);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsITransactionManager> txnMgr;
+  rv = msgWindow->GetTransactionManager(getter_AddRefs(txnMgr));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = txnMgr->DoTransaction(readStateTxn);
+  NS_ENSURE_SUCCESS(rv, rv);
+  return rv;
+}
+
 NS_IMETHODIMP
 nsMsgDBFolder::MarkAllMessagesRead(nsIMsgWindow *aMsgWindow)
 {
   nsresult rv = GetDatabase();
   m_newMsgs.Clear();
-  
+
   if (NS_SUCCEEDED(rv))
   {
     EnableNotifications(allMessageCountNotifications, PR_FALSE, PR_TRUE /*dbBatching*/);
-    nsTArray<nsMsgKey> thoseMarked;
-    rv = mDatabase->MarkAllRead(&thoseMarked);
+    nsMsgKey *thoseMarked;
+    PRUint32 numMarked;
+    rv = mDatabase->MarkAllRead(&numMarked, &thoseMarked);
     NS_ENSURE_SUCCESS(rv, rv);
     EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_TRUE /*dbBatching*/);
 
     // Setup a undo-state
     if (aMsgWindow)
-    {
-      nsRefPtr<nsMsgReadStateTxn> readStateTxn = new nsMsgReadStateTxn();
-      if (!readStateTxn)
-        return NS_ERROR_OUT_OF_MEMORY;
-
-      rv = readStateTxn->Init(this, thoseMarked);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      rv = readStateTxn->SetTransactionType(nsIMessenger::eMarkAllMsg);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      nsCOMPtr<nsITransactionManager> txnMgr;
-      rv = aMsgWindow->GetTransactionManager(getter_AddRefs(txnMgr));
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      rv = txnMgr->DoTransaction(readStateTxn);
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
+      rv = AddMarkAllReadUndoAction(aMsgWindow, thoseMarked, numMarked);
+    nsMemory::Free(thoseMarked);
   }
 
   SetHasNewMessages(PR_FALSE);
- 
   return rv;
 }
 
@@ -1460,7 +1467,12 @@ NS_IMETHODIMP nsMsgDBFolder::MarkThreadRead(nsIMsgThread *thread)
 {
   nsresult rv = GetDatabase();
   if(NS_SUCCEEDED(rv))
-    return mDatabase->MarkThreadRead(thread, nsnull, nsnull);
+  {
+    nsMsgKey *keys;
+    PRUint32 numKeys;
+    rv = mDatabase->MarkThreadRead(thread, nsnull, &numKeys, &keys);
+    nsMemory::Free(keys);
+  }
   return rv;
 }
 

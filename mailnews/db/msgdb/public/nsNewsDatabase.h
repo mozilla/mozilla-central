@@ -66,7 +66,7 @@ public:
 
   NS_IMETHOD         GetHighWaterArticleNum(nsMsgKey *key);
   NS_IMETHOD         GetLowWaterArticleNum(nsMsgKey *key);
-  NS_IMETHOD         MarkAllRead(nsTArray<nsMsgKey> *thoseMarked);
+  NS_IMETHOD         MarkAllRead(PRUint32 *aNumMarked, nsMsgKey **thoseMarked);
 
   virtual nsresult    ExpireUpTo(nsMsgKey expireKey);
   virtual nsresult    ExpireRange(nsMsgKey startRange, nsMsgKey endRange);

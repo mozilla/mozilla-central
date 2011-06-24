@@ -52,13 +52,14 @@ nsMsgReadStateTxn::~nsMsgReadStateTxn()
 }
 
 nsresult
-nsMsgReadStateTxn::Init(nsIMsgFolder *aParentFolder, 
-                        nsTArray<nsMsgKey> & aMsgKeyArray)
+nsMsgReadStateTxn::Init(nsIMsgFolder *aParentFolder,
+                        PRUint32 aNumKeys,
+                        nsMsgKey *aMsgKeyArray)
 {
   NS_ENSURE_ARG_POINTER(aParentFolder);
 
   mParentFolder = aParentFolder;
-  aMsgKeyArray.SwapElements(mMarkedMessages);
+  mMarkedMessages.AppendElements(aMsgKeyArray, aNumKeys);
 
   return nsMsgTxn::Init();
 }
