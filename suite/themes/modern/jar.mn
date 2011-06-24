@@ -579,6 +579,7 @@ modern.jar:
   skin/modern/mozapps/plugins/pluginDisabled-16.png                (mozapps/plugins/pluginDisabled-16.png)
   skin/modern/mozapps/plugins/pluginGeneric.png                    (mozapps/plugins/pluginGeneric.png)
   skin/modern/mozapps/plugins/pluginGeneric-16.png                 (mozapps/plugins/pluginGeneric-16.png)
+  skin/modern/mozapps/plugins/pluginHelp-16.png                    (mozapps/plugins/pluginHelp-16.png)
   skin/modern/mozapps/plugins/pluginInstallerWizard.css            (mozapps/plugins/pluginInstallerWizard.css)
   skin/modern/mozapps/plugins/pluginProblem.css                    (mozapps/plugins/pluginProblem.css)
   skin/modern/mozapps/update/update.png                            (mozapps/update/update.png)
