@@ -582,28 +582,27 @@
 <ol>
   <li>Open the Edit menu and choose <q>Find in This Page</q>. If the page
     you are viewing contains frames, you may need to click within a frame
-    before you begin your search. You see the <q>Find in this Page</q>
-    dialog box.</li>
+    before you begin your search. You see the <q>Find bar</q>.</li>
   <li>Type the text you want to find.</li>
-  <li>Choose from the following search options: 
-    <ul>
-      <li><strong>Match case</strong>: Choose this to search for a
-        word or phrase that matches the word you typed exactly (including
-        uppercase and lowercase letters).</li>
-      <li><strong>Wrap</strong>: Choose this to allow the browser to
-        search from where the cursor is to the bottom of the page and then
-        continue searching from the top of the page. Note: Normally, the page
-        is searched from the place where you last clicked your mouse to the
-        bottom of the page.</li>
-      <li><strong>Direction</strong>: Choose Up to search from the
-        insertion point backwards to the top of the page. The default
-        is Down.</li>
-    </ul>
-  </li>
-  <li>Click Find Next to begin the search.</li>
+  <li>Click Next to begin the search from where the cursor is forwards
+    to the bottom of the page.</li>
+  <li>Click Previous to begin the search from the cursor backwards to
+    the top of the page.</li>
+  <li>With <strong>Highlight all</strong>, all words or phrases that
+    matched are highlighted on the page.</li>
+  <li>Use <strong>Match case</strong> to limit the search to words or
+    phrases that exactly match what you typed (taking case into
+    account).</li>
 </ol>
 
-<p>To find the same word or phrase again:</p>
+<p>If the search hits the bottom (or top) of the page, it will continue
+  from the other end and indicate on the Find bar that it wrapped.</p>
+
+<p>To find the same word or phrase again, keep pressing Enter while the
+  focus is on the search field, or use the Find Again shortcuts (see
+  the <q>Using Find-as-you-type</q> section below) when the focus
+  is on the page. In both cases, a forward search will be invoked,
+  no matter whether the Previous button was used the last time.</p>
 
 <ul>
   <li>Open the Edit menu and choose Find Again.</li>
@@ -613,7 +612,7 @@
 
 <h2 id="using_find_as_you_type">Using Find-as-you-type</h2>
 
-<p>Other than searching text through the Find dialog, you can also search by
+<p>Other than searching text through the Find bar, you can also search by
   typing directly into a Web page.</p>
 
 <ol>
@@ -625,13 +624,17 @@
         match with the exact string you&apos;ve typed, such as
         <q><tt>oo</tt></q> in <q><tt>woods</tt></q>, it will go there
         first.</p>
-
   </li>
   <li>To search for all text (normal text and linked text), type <kbd>/</kbd>
     before your search string. For example, type <q><kbd>/hello</kbd></q> to
     search any text containing the string <q>hello</q>.</li>
   <li>The status bar (at the bottom of your browser window) displays your
-    search string and whether or not the search is successful.</li>
+    search string and whether or not the search was successful. Please note
+    that this happens only if the <q>Show the find toolbar during find as you
+    type</q> checkbox on the <a href="cs_nav_prefs_advanced.xhtml#fayt">Find
+    As You Type preferences panel</a> is not selected. If the checkbox is
+    selected, then the <q>Find bar</q> is used instead of changing the status
+    bar.</li>
   <li>Use the backspace key to undo the last character typed.</li>
   <li>To cancel a find, change focus or scroll, press Escape, or wait for the
     timeout.</li>
