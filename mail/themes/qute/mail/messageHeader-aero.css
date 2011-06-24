@@ -277,8 +277,8 @@ description[selectable="true"]:focus > descriptionitem[selected="true"] {
 .msgHeaderView-button {
   -moz-appearance: button;
   min-height: 1ex;
-  -moz-margin-start: 2px;
-  -moz-margin-end: 2px;
+  -moz-margin-start: 2px !important;
+  -moz-margin-end: 2px !important;
   margin-top: 1px;
   margin-bottom: 2px;
   vertical-align: middle;
@@ -299,9 +299,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"] {
 }
 
 .msgHeaderView-button[type="menu-button"] {
-  /* important required to override -moz-appearance from msgHdrView-button */
-  -moz-appearance: dualbutton !important;
-  -moz-margin-end: 0 !important;
   /* Need to override both rules from messenger.css and msgHeaderView-button */
   padding: 0 !important;
 }
