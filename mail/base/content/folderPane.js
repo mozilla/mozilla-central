@@ -905,8 +905,10 @@ let gFolderTreeView = {
         this._persistOpenMap[this.mode].push(id);
 
       // Notify the tree of changes
-      if (this._tree)
+      if (this._tree) {
         this._tree.rowCountChanged(aIndex + 1, this._rowMap.length - oldCount);
+        this._tree.invalidateRow(aIndex);
+      }
       // if this was a server that was expanded, let it update its counts
       let folder = this._rowMap[aIndex]._folder;
       if (aExpandServer) {
