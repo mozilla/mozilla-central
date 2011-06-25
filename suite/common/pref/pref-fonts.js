@@ -85,8 +85,8 @@ function BuildFontList(aLanguage, aFontType, aMenuList, aPreference)
   {
     if (defaultFont)
     {
-      var bundlePreferences = document.getElementById("bundleFontsPreferences");
-      var label = bundlePreferences.getFormattedString("labelDefaultFont", [defaultFont]);
+      var prefutilitiesBundle = document.getElementById("bundle_prefutilities");
+      var label = prefutilitiesBundle.getFormattedString("labelDefaultFont", [defaultFont]);
       var menuitem = document.createElement("menuitem");
       menuitem.setAttribute("label", label);
       menuitem.setAttribute("value", ""); // Default Font has a blank value

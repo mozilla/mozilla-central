@@ -60,8 +60,6 @@
                   name="browser.display.languageList"
                   type="wstring"/>
     </preferences>
-    <stringbundle id="bundleFontsPreferences"
-                  src="chrome://communicator/locale/pref/prefutilities.properties"/>
  
     <groupbox>
       <caption align="center">

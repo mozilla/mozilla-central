@@ -38,15 +38,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://services-sync/service.js");
-Components.utils.import("resource://gre/modules/Services.jsm");
 
 const PAGE_NO_ACCOUNT = 0;
 const PAGE_HAS_ACCOUNT = 1;
 const PAGE_NEEDS_UPDATE = 2;
 
 let gSyncPane = {
-  _stringBundle: null,
-
   get page() {
     return document.getElementById("weavePrefsDeck").selectedIndex;
   },
@@ -86,8 +83,6 @@ let gSyncPane = {
       }, gSyncPane);
     }, false);
 
-    this._stringBundle =
-      Services.strings.createBundle("chrome://communicator/locale/pref/prefutilities.properties");
     this.updateWeavePrefs();
   },
 
@@ -110,12 +105,13 @@ let gSyncPane = {
     if (showDialog) {
       let flags = Services.prompt.BUTTON_POS_0 * Services.prompt.BUTTON_TITLE_IS_STRING +
                   Services.prompt.BUTTON_POS_1 * Services.prompt.BUTTON_TITLE_CANCEL;
+      let prefutilitiesBundle = document.getElementById("bundle_prefutilities");
       let buttonChoice =
         Services.prompt.confirmEx(window,
-                                  this._stringBundle.GetStringFromName("stopUsingAccount.title"),
-                                  this._stringBundle.GetStringFromName("differentAccount.label"),
+                                  bundle_prefutilities.getString("stopUsingAccount.title"),
+                                  bundle_prefutilities.getString("differentAccount.label"),
                                   flags,
-                                  this._stringBundle.GetStringFromName("differentAccountConfirm.label"),
+                                  bundle_prefutilities.getString("differentAccountConfirm.label"),
                                   null, null, null, {});
 
       // If the user selects cancel, just bail
