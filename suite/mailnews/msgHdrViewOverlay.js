@@ -1223,8 +1223,20 @@ createNewAttachmentInfo.prototype.viewAttachment = function viewAttachment()
 
 createNewAttachmentInfo.prototype.openAttachment = function openAttachment()
 {
-  if (this.contentType == "text/x-moz-deleted")
-    return;
+  switch (this.contentType)
+  {
+    // As of bug 599119, isTypeSupported returns true for messages, but
+    // attached messages don't open reliably in the browser, so pretend
+    // they're not supported and open a message window for them instead.
+    case "message/rfc822":
+      var url = this.url + "&type=application/x-message-display";
+      window.openDialog("chrome://messenger/content/messageWindow.xul",
+                        "_blank", "all,dialog=no",
+                        Services.io.newURI(url, null, null));
+      return;
+    case "text/x-moz-deleted":
+      return;
+  }
 
   var webNavigationInfo =
         Components.classes["@mozilla.org/webnavigation-info;1"]
