@@ -2196,7 +2196,7 @@ function InitLanguageMenu()
 function OnShowDictionaryMenu(aTarget)
 {
   InitLanguageMenu();
-  var curLang = sPrefs.getComplexValue("spellchecker.dictionary", nsISupportsString).data;
+  var curLang = GetStringPref("spellchecker.dictionary");
   var languages = aTarget.getElementsByAttribute("value", curLang);
   if (languages.length > 0)
     languages[0].setAttribute("checked", true);

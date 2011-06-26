@@ -956,20 +956,15 @@ function get_sidebar_datasource_uri() {
 //     %LOCALE%  -->  Application locale (e.g. en-US).
 //     %SIDEBAR_VERSION% --> Sidebar file format version (e.g. 0.1).
 function get_remote_datasource_url() {
-  let url;
-  try {
-    // Can't use formatURLPref(): replace() needs to be done before formatURL(),
-    // otherwise the latter reports an (ignorable) error.
-    url = prefs.getComplexValue("sidebar.customize.all_panels.url",
-                                Components.interfaces.nsISupportsString)
-               .data
-               .replace(/%SIDEBAR_VERSION%/g, SIDEBAR_VERSION);
-    url = urlFormatter.formatURL(url);
+  // Can't use formatURLPref(): replace() needs to be done before formatURL(),
+  // otherwise the latter reports an (ignorable) error.
+  // "about:blank": formatURLPref() default value.
+  let url = GetStringPref("sidebar.customize.all_panels.url") || "about:blank";
+  if (url != "about:blank") {
+    url = url.replace(/%SIDEBAR_VERSION%/g, SIDEBAR_VERSION);
+    url = Services.urlFormatter.formatURL(url);
     // Convert the %LOCALE% value (in the url) to lower case (e.g. en-us).
     url = url.toLowerCase();
-  } catch(ex) {
-    // "about:blank": formatURLPref() default value.
-    url = "about:blank";
   }
 
   debug("Remote url is " + url);
