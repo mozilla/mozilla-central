@@ -2683,9 +2683,6 @@ SessionStoreService.prototype = {
         // force session history to update its internal index and call reload
         // instead of gotoIndex. c.f. bug 597315
         var sessionHistory = browser.webNavigation.sessionHistory;
-        // delete this after 2.0
-        sessionHistory.QueryInterface(Components.interfaces.nsISHistory_2_0_BRANCH);
-
         sessionHistory.getEntryAtIndex(activeIndex, true);
         sessionHistory.reloadCurrentEntry();
       }
