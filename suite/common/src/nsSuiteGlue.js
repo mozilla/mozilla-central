@@ -486,9 +486,7 @@ SuiteGlue.prototype = {
   _showPluginUpdatePage: function(aWindow) {
     Services.prefs.setBoolPref("plugins.update.notifyUser", false);
 
-    var url = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                        .getService(Components.interfaces.nsIURLFormatter)
-                        .formatURLPref("plugins.update.url");
+    var url = Services.urlFormatter.formatURLPref("plugins.update.url");
 
     aWindow.getBrowser().addTab(url, { focusNewTab: true });
   },
