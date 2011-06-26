@@ -315,7 +315,7 @@
       <menuitem id="spell-add-dictionaries-main"
                 label="&spellAddDictionaries.label;"
                 accesskey="&spellAddDictionaries.accesskey;"
-                oncommand="openDictionaryList();"/>
+                oncommand="gContextMenu.addDictionaries();"/>
       <menu id="spell-dictionaries"
             label="&spellDictionaries.label;"
             accesskey="&spellDictionaries.accesskey;">
@@ -324,7 +324,7 @@
           <menuitem id="spell-add-dictionaries"
                     label="&spellAddDictionaries.label;"
                     accesskey="&spellAddDictionaries.accesskey;"
-                    oncommand="openDictionaryList();"/>
+                    oncommand="gContextMenu.addDictionaries();"/>
         </menupopup>
       </menu>
       <menuseparator hidden="true" id="context-sep-bidi"/>

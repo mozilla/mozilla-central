@@ -162,11 +162,17 @@ function InitLanguageMenu() {
 }
 
 function SelectLanguage(aTarget) {
-  if (aTarget.value != "more-cmd")
-    gLastSelectedLang = aTarget;
-  else {
-    openDictionaryList();
-    if (gLastSelectedLang)
-      document.getElementById("languageMenuList").selectedItem = gLastSelectedLang;
+  try {
+    if (aTarget.value != "more-cmd")
+      gLastSelectedLang = aTarget;
+    else {
+      var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                      .getService(Components.interfaces.nsIURLFormatter);
+      window.open(formatter.formatURLPref("spellchecker.dictionaries.download.url"));
+      if (gLastSelectedLang)
+        document.getElementById("languageMenuList").selectedItem = gLastSelectedLang;
+    }
+  } catch (ex) {
+    dump(ex);
   }
 }

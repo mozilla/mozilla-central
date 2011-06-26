@@ -2188,7 +2188,9 @@ function getNewThemes()
 {
   // get URL for more themes from prefs
   try {
-    openTopWin(Services.urlFormatter.formatURLPref("extensions.getMoreThemesURL"));
+    var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                              .getService(Components.interfaces.nsIURLFormatter);
+    openTopWin(formatter.formatURLPref("extensions.getMoreThemesURL"));
   }
   catch (ex) {
     dump(ex);

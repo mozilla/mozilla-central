@@ -91,9 +91,11 @@ function contentClick(event) {
   if (target.href.lastIndexOf("chrome:", 0) == 0)
     return true;
 
+  var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                  .getService(Components.interfaces.nsIURLFormatter);
   var uri = target.href;
   if (/^x-moz-url-link:/.test(uri))
-    uri = Services.urlFormatter.formatURLPref(RegExp.rightContext);
+    uri = formatter.formatURLPref(RegExp.rightContext);
 
   const loadFlags = Components.interfaces.nsIWebNavigation.LOAD_FLAGS_IS_LINK;
   try {

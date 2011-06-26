@@ -451,17 +451,29 @@ function EditDictionary()
 
 function SelectLanguage()
 {
-  var item = gDialog.LanguageMenulist.selectedItem;
-  if (item.value != "more-cmd") {
-    gSpellChecker.SetCurrentDictionary(item.value);
-    gLastSelectedLang = item;
-  }
-  else {
-    openDictionaryList();
+  try {
+    var item = gDialog.LanguageMenulist.selectedItem;
+    if (item.value != "more-cmd") {
+      gSpellChecker.SetCurrentDictionary(item.value);
+      gLastSelectedLang = item;
+    }
+    else {
+      openURL(getDictionaryURL());
 
-    if (gLastSelectedLang)
-      gDialog.LanguageMenulist.selectedItem = gLastSelectedLang;
+      if (gLastSelectedLang)
+        gDialog.LanguageMenulist.selectedItem = gLastSelectedLang;
+    }
+  } catch (ex) {
+    dump(ex);
   }
+}
+
+function getDictionaryURL()
+{
+  var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                  .getService(Components.interfaces.nsIURLFormatter);
+                  
+  return formatter.formatURLPref("spellchecker.dictionaries.download.url");
 }
 
 function Recheck()
