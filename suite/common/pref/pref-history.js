@@ -47,9 +47,7 @@ function Startup()
       if (!file.exists())
         isBtnDisabled = true;
       else {
-        var connection = Components.classes["@mozilla.org/storage/service;1"]
-                                   .getService(Components.interfaces.mozIStorageService)
-                                   .openDatabase(file);
+        var connection = Services.storage.openDatabase(file);
         isBtnDisabled = !connection.tableExists("urlbarhistory");
         connection.close();
       }

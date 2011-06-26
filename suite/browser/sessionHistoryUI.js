@@ -133,9 +133,7 @@ function createUBHistoryMenu( aParent )
 
     var file = GetUrlbarHistoryFile();
     if (file.exists()) {
-      var connection = Components.classes["@mozilla.org/storage/service;1"]
-                                 .getService(Components.interfaces.mozIStorageService)
-                                 .openDatabase(file);
+      var connection = Services.storage.openDatabase(file);
       try {
         if (connection.tableExists("urlbarhistory")) {
           var statement = connection.createStatement(

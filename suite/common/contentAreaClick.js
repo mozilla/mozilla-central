@@ -276,9 +276,7 @@
 
     // Open or create the urlbar history database.
     var file = GetUrlbarHistoryFile();
-    var connection = Components.classes["@mozilla.org/storage/service;1"]
-                               .getService(Components.interfaces.mozIStorageService)
-                               .openDatabase(file);
+    var connection = Services.storage.openDatabase(file);
     connection.beginTransaction();
     if (!connection.tableExists("urlbarhistory"))
       connection.createTable("urlbarhistory", "url TEXT");
