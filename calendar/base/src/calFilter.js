@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Matthew Mecca <matthew.mecca@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -205,6 +206,7 @@ function getDatesForFilter(aFilter) {
     let duration = cal.createDuration();
     let oneDay = cal.createDuration();
     oneDay.days = 1;
+    let selectedDate = currentView().selectedDay;
 
     let durFilterReg = /next|last\d+\D+$/
     if (durFilterReg.exec(aFilter)) {
@@ -244,8 +246,7 @@ function getDatesForFilter(aFilter) {
             break;
 
         case "current":
-            let selectedDate = currentView().selectedDay;
-            startDate = selectedDate.clone();
+            startDate = selectedDate ? selectedDate.clone() : cal.now();
             startDate.isDate = true;
             endDate = startDate.clone();
             endDate.addDuration(oneDay);
@@ -257,7 +258,7 @@ function getDatesForFilter(aFilter) {
         case "completed":
         case "notstarted":
             // use the later of the current date or the selected date of the current view
-            endDate = currentView().selectedDay.clone();
+            endDate = selectedDate ? selectedDate.clone() : cal.now();
             if (endDate.jsDate < cal.now().jsDate) {
                 endDate = cal.now();
             }
