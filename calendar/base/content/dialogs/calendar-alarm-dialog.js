@@ -272,7 +272,8 @@ function removeWidgetFor(aItem, aAlarm) {
     let hashId = aItem.hashId;
     let alarmRichlist = document.getElementById("alarm-richlist");
     let nodes = alarmRichlist.childNodes;
-    for (let i = nodes.length - 1; i >= 0; --i) {
+    let notfound = true;
+    for (let i = nodes.length - 1; notfound && i >= 0; --i) {
         let widget = nodes[i];
         if (widget.item && widget.item.hashId == hashId &&
             widget.alarm && widget.alarm.icalString == aAlarm.icalString) {
@@ -286,25 +287,33 @@ function removeWidgetFor(aItem, aAlarm) {
             widget.removeEventListener("snooze", onSnoozeAlarm, false);
             widget.removeEventListener("dismiss", onDismissAlarm, false);
             widget.removeEventListener("itemdetails", onItemDetails, false);
-            alarmRichlist.removeChild(widget);
 
-            if (!alarmRichlist.hasChildNodes()) {
-                // check again next round since this removeWidgetFor call may be
-                // followed by an addWidgetFor call (e.g. when refreshing), and
-                // we don't want to close and open the window in that case.
-                function closer() {
-                    if (!alarmRichlist.hasChildNodes()) {
-                        window.close();
-                    }
-                }
-                setTimeout(closer, 0);
-            }
-            break;
+            alarmRichlist.removeChild(widget);
+            closeIfEmpty();
+            notfound = false;
         }
     }
 
     // Update the title
     setupTitle();
+}
+
+/**
+ * Close the alarm dialog if there are no further alarm widgets
+ */
+function closeIfEmpty() {
+    let alarmRichlist = document.getElementById("alarm-richlist");
+    if (!alarmRichlist.hasChildNodes()) {
+        // check again next round since this removeWidgetFor call may be
+        // followed by an addWidgetFor call (e.g. when refreshing), and
+        // we don't want to close and open the window in that case.
+        function closer() {
+            if (!alarmRichlist.hasChildNodes()) {
+                window.close();
+            }
+        }
+        setTimeout(closer, 0);
+    }
 }
 
 /**

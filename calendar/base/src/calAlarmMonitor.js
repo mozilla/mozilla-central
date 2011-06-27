@@ -179,8 +179,14 @@ calAlarmMonitor.prototype = {
     window_onLoad: function cAM_window_onLoad() {
         let calAlarmWindow = this.mWindowOpening;
         this.mWindowOpening = null;
-        for each (let [item, alarm] in this.mAlarms) {
-            calAlarmWindow.addWidgetFor(item, alarm);
+        if (this.mAlarms.length > 0) {
+            for each (let [item, alarm] in this.mAlarms) {
+                calAlarmWindow.addWidgetFor(item, alarm);
+            }
+        } else {
+            // Uh oh, it seems the alarms were removed even before the window
+            // finished loading. Looks like we can close it again
+            calAlarmWindow.closeIfEmpty();
         }
     },
 
