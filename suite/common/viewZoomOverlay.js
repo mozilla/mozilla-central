@@ -410,7 +410,7 @@ function updateZoomMenu() {
   var zoomOther = document.getElementById("menu_zoomOther");
   var label = zoomBundle.getString("labelOther");
   var factorOther = zoomOther.getAttribute("value") ||
-                    zoomBundle.getString("valueOther");
+                    Math.round(ZoomManager.MAX * 100);
   zoomOther.setAttribute("label", label.replace(/%zoom%/, factorOther));
   zoomOther.setAttribute("value", factorOther);
 
