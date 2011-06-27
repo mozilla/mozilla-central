@@ -415,7 +415,7 @@ function updateZoomMenu() {
   zoomOther.setAttribute("value", factorOther);
 
   var popup = document.getElementById("menu_zoomPopup");
-  var item = popup.firstChild;
+  var item = popup.lastChild;
   while (item) {
     if (item.getAttribute("name") == "zoom") {
       if (item.getAttribute("value") == Math.round(ZoomManager.zoom * 100))
@@ -423,7 +423,7 @@ function updateZoomMenu() {
       else
         item.removeAttribute("checked");
     }
-    item = item.nextSibling;
+    item = item.previousSibling;
   }
 }
 
