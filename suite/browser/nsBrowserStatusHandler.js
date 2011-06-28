@@ -455,8 +455,6 @@ nsBrowserStatusHandler.prototype =
   startDocumentLoad : function(aRequest)
   {
     var uri = aRequest.QueryInterface(Components.interfaces.nsIChannel).originalURI;
-    var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                    .getService(Components.interfaces.nsIObserverService);
 
     // clear out search-engine data
     getBrowser().selectedBrowser.engines = null;
@@ -470,7 +468,7 @@ nsBrowserStatusHandler.prototype =
       URLBarSetURI(uri);
 
     try {
-      observerService.notifyObservers(content, "StartDocumentLoad", uri.spec);
+      Services.obs.notifyObservers(content, "StartDocumentLoad", uri.spec);
     } catch (e) {
     }
   },
@@ -493,12 +491,9 @@ nsBrowserStatusHandler.prototype =
       dump('\n'); 
     }
 
-    var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                    .getService(Components.interfaces.nsIObserverService);
-
     var notification = Components.isSuccessCode(aStatus) ? "EndDocumentLoad" : "FailDocumentLoad";
     try {
-      observerService.notifyObservers(content, notification, urlStr);
+      Services.obs.notifyObservers(content, notification, urlStr);
     } catch (e) {
     }
   }

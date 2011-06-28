@@ -682,11 +682,8 @@ nsContextMenu.prototype = {
     const PM = Components.classes["@mozilla.org/PopupWindowManager;1"]
                .getService(Components.interfaces.nsIPopupWindowManager);
     PM.add(this.popupURL, false);
-    if (aAndClose) {
-      const OS = Components.classes["@mozilla.org/observer-service;1"]
-                 .getService(Components.interfaces.nsIObserverService);
-      OS.notifyObservers(window, "popup-perm-close", this.popupURL.spec);
-    }
+    if (aAndClose)
+      Services.obs.notifyObservers(window, "popup-perm-close", this.popupURL.spec);
   },
 
   // Unblock popup windows

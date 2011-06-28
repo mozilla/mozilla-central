@@ -126,9 +126,7 @@ function progressStartup() {
 
   // Send a notification that we finished
   setTimeout(function()
-    Components.classes["@mozilla.org/observer-service;1"]
-              .getService(Components.interfaces.nsIObserverService)
-              .notifyObservers(window, "download-manager-ui-done", null), 0);
+    Services.obs.notifyObservers(window, "download-manager-ui-done", null), 0);
 }
 
 function progressShutdown() {

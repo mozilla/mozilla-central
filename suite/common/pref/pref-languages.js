@@ -45,9 +45,7 @@ var gLanguageTitles = {};
 
 function Startup()
 {
-  var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                  .getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(null, "charsetmenu-selected", "other");
+  Services.obs.notifyObservers(null, "charsetmenu-selected", "other");
 
   var defaultCharsetList = document.getElementById("defaultCharsetList");
   defaultCharsetList.setAttribute("ref", "NC:DecodersRoot");

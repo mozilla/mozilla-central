@@ -911,9 +911,7 @@ var gApplicationsPane = {
     this._rebuildView();
 
     // Notify observers that the UI is now ready
-    Components.classes["@mozilla.org/observer-service;1"]
-              .getService(Components.interfaces.nsIObserverService)
-              .notifyObservers(window, "app-handler-pane-loaded", null);
+    Services.obs.notifyObservers(window, "app-handler-pane-loaded", null);
   },
 
   destroy: function() {

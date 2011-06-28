@@ -39,10 +39,8 @@
 
 function Startup ()
 {
-  var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                  .getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(null, "charsetmenu-selected", "other");
-  observerService.notifyObservers(null, "charsetmenu-selected", "mailedit");
+  Services.obs.notifyObservers(null, "charsetmenu-selected", "other");
+  Services.obs.notifyObservers(null, "charsetmenu-selected", "mailedit");
 
   var viewCharsetList = document.getElementById("viewDefaultCharsetList");
   // Need to set ref attribute once overlay has loaded.

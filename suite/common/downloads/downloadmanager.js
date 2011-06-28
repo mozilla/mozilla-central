@@ -69,9 +69,7 @@ function dmStartup()
   gDownloadTreeView = new DownloadTreeView(gDownloadManager);
   gDownloadTree.view = gDownloadTreeView;
 
-  let obs = Components.classes["@mozilla.org/observer-service;1"]
-                      .getService(Components.interfaces.nsIObserverService);
-  obs.addObserver(gDownloadObserver, "download-manager-remove-download", false);
+  Services.obs.addObserver(gDownloadObserver, "download-manager-remove-download", false);
 
   // The DownloadProgressListener (DownloadProgressListener.js) handles
   // progress notifications.
@@ -97,9 +95,7 @@ function dmStartup()
 function dmShutdown()
 {
   gDownloadManager.removeListener(gDownloadListener);
-  let obs = Components.classes["@mozilla.org/observer-service;1"]
-                      .getService(Components.interfaces.nsIObserverService);
-  obs.removeObserver(gDownloadObserver, "download-manager-remove-download");
+  Services.obs.removeObserver(gDownloadObserver, "download-manager-remove-download");
   window.controllers.removeController(dlTreeController);
 }
 

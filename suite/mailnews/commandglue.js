@@ -368,8 +368,7 @@ function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
 
   UpdateMailToolbar("reroot folder in 3 pane");
   // hook for extra toolbar items
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(window, "mail:updateToolbarItems", null);
+  Services.obs.notifyObservers(window, "mail:updateToolbarItems", null);
   // this is to kick off cross-folder searches for virtual folders.
   if (gSearchSession && !gVirtualFolderTerms) // another var might be better...
   {
