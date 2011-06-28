@@ -34,7 +34,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <locale>
 #include <stack>
 #include <map>
 #include <sstream>
@@ -42,6 +41,8 @@
 #include "rtfDecoder.h"
 
 #define SIZEOF(x) (sizeof(x)/sizeof((x)[0]))
+#define IS_DIGIT(i)   ((i) >= '0' && (i) <= '9')
+#define IS_ALPHA(VAL) (((VAL) >= 'a' && (VAL) <= 'z') || ((VAL) >= 'A' && (VAL) <= 'Z'))
 
 inline int HexToInt(char ch)
 {
@@ -312,21 +313,21 @@ Keyword GetKeyword(std::istream& stream)
   if (stream.get(ch).eof())
     return keyword;
   // Control word; maybe delimiter and value
-  if (std::isalpha(ch, std::locale::classic())) { 
+  if (IS_ALPHA(ch)) { 
     int i = 0;
     do {
       // We take up to 32 characters into account, skipping over extra
       // characters (allowing for some non-conformant implementation).
       if (i < 32)
         keyword.name[i++] = ch;
-    } while (!stream.get(ch).eof() && std::isalpha(ch, std::locale::classic()));
+    } while (!stream.get(ch).eof() && IS_ALPHA(ch));
     keyword.name[i] = 0; // NULL-terminating
-    if (!stream.eof() && (std::isdigit(ch, std::locale::classic()) || (ch == '-'))) { // Value begin
+    if (!stream.eof() && (IS_DIGIT(ch) || (ch == '-'))) { // Value begin
       keyword.hasVal = true;
       bool negative = (ch == '-');
       if (negative) stream.get(ch);
       i = 0;
-      while (!stream.eof() && std::isdigit(ch, std::locale::classic())) {
+      while (!stream.eof() && IS_DIGIT(ch)) {
         // We take into account only 10 digits, skip other. Older specs stated
         // that we must be ready for an arbitrary number of digits.
         if (i++ < 10) 
@@ -336,7 +337,7 @@ Keyword GetKeyword(std::istream& stream)
       if (negative) keyword.val = -keyword.val;
     }
      // End of control word; the space is just a delimiter - skip it
-    if (!stream.eof() && !std::isspace(ch, std::locale::classic()))
+    if (!stream.eof() && !(ch == ' '))
       stream.unget();
   }
   else { // Control symbol
