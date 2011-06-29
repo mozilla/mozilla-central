@@ -671,11 +671,19 @@ function goReleaseNotes()
 {
   // get release notes URL from prefs
   try {
-    var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                              .getService(Components.interfaces.nsIURLFormatter);
-    openUILink(formatter.formatURLPref("app.releaseNotesURL"));
+    openUILink(Services.urlFormatter.formatURLPref("app.releaseNotesURL"));
   }
   catch (ex) { dump(ex); }
+}
+
+function openDictionaryList()
+{
+  try {
+    openAsExternal(Services.urlFormatter.formatURLPref("spellchecker.dictionaries.download.url"));
+  }
+  catch (ex) {
+    dump(ex);
+  }
 }
 
 // Prompt user to restart the browser in safe mode 

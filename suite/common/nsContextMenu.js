@@ -1310,16 +1310,6 @@ nsContextMenu.prototype = {
     return false;
   },
 
-  addDictionaries: function() {
-    try {
-      var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                                .getService(Components.interfaces.nsIURLFormatter);
-      var url = formatter.formatURLPref("spellchecker.dictionaries.download.url");
-      window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", url);
-    }
-    catch (ex) {}
-  },
-
   mediaCommand: function(aCommand) {
     var media = this.target;
 
