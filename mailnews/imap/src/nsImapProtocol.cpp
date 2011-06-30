@@ -3347,7 +3347,10 @@ void nsImapProtocol::FallbackToFetchWholeMsg(const nsCString &messageId, PRUint3
     m_runningUrl->GetStoreOfflineOnFallback(&shouldStoreMsgOffline);
     m_runningUrl->SetStoreResultsOffline(shouldStoreMsgOffline);
   }
-  FetchTryChunking(messageId, kEveryThingRFC822, PR_TRUE, NULL, messageSize, PR_TRUE);
+  FetchTryChunking(messageId,
+                   m_imapAction == nsIImapUrl::nsImapMsgFetchPeek ?
+                     kEveryThingRFC822Peek : kEveryThingRFC822,
+                   PR_TRUE, nsnull, messageSize, PR_TRUE);
 }
 
 void

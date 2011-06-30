@@ -1188,9 +1188,14 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
       // This option is used by the JS Mime Emitter, in case we want a cheap
       // streaming, for example, if we just want a quick look at some header,
       // without having to download all the attachments...
+
+      PRUint32 messageSize = 0;
+      imapMessageSink->GetMessageSizeFromDB(msgKey.get(), &messageSize);
       nsCAutoString additionalHeader(aAdditionalHeader);
-      PRInt32 fetchOnDemand = additionalHeader.Find("&fetchCompleteMessage=false");
-      imapUrl->SetFetchPartsOnDemand(fetchOnDemand != kNotFound);
+      PRBool fetchOnDemand =
+        additionalHeader.Find("&fetchCompleteMessage=false") != kNotFound &&
+          messageSize > (PRUint32) gMIMEOnDemandThreshold;
+      imapUrl->SetFetchPartsOnDemand(fetchOnDemand);
 
       // We need to add the fetch command here for the cache lookup to behave correctly
       rv = AddImapFetchToUrl(url, folder, msgKey, additionalHeader);
