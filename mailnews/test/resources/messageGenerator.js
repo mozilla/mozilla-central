@@ -621,33 +621,16 @@ SyntheticMessage.prototype = {
 };
 
 /**
- * Write a list of messages in mbox format to a file
+ * Write a list of messages to a folder
  *
  * @param aMessages The list of SyntheticMessages instances to write.
- * @param aBaseDir The base directory to start from.
- * @param ... Zero or more relative paths to join to the base directory.
+ * @param aFolder The folder to write to.
  */
-function writeMessagesToMbox (aMessages, aBaseDir) {
-  try {
-    let targetFile = Cc["@mozilla.org/file/local;1"]
-                       .createInstance(Ci.nsILocalFile);
-    targetFile.initWithFile(aBaseDir);
-    for (let iArg = 2; iArg < arguments.length; iArg++)
-      targetFile.appendRelativePath(arguments[iArg]);
-
-    let ostream = Cc["@mozilla.org/network/file-output-stream;1"]
-                    .createInstance(Ci.nsIFileOutputStream);
-    ostream.init(targetFile, -1, -1, 0);
-
-    for (let iMessage = 0; iMessage < aMessages.length; iMessage++) {
-      aMessages[iMessage].writeToMboxStream(ostream);
-    }
-
-    ostream.close();
-  }
-  catch (ex) {
-    do_throw(ex);
-  }
+function addMessagesToFolder (aMessages, aFolder)
+{
+  let localFolder = aFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  for (let [, message] in Iterator(aMessages))
+    localFolder.addMessage(message.toMboxString());
 }
 
 /**

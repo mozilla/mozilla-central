@@ -96,11 +96,9 @@ function run_test()
   // build up a diverse list of messages
   let messages = [];
   messages = messages.concat(scenarioFactory.directReply(10));
-  writeMessagesToMbox(messages, gProfileDir,
-                      "Mail", "Local Folders", "copySource");
-  // We use addSubfolder because we created the copySource folder by writing
-  // messages to it.
-  gCopySource = gLocalIncomingServer.rootMsgFolder.addSubfolder("copySource");
+  gCopySource = gLocalIncomingServer.rootMsgFolder.createLocalSubfolder("copySource");
+  addMessagesToFolder(messages, gCopySource);
+
   updateFolderAndNotify(gCopySource, doTest);
   return true;
 }
