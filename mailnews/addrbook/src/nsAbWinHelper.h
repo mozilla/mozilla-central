@@ -43,7 +43,8 @@
 
 #include "nsStringGlue.h"
 #include "mozilla/Mutex.h"
- 
+#include "nsAutoPtr.h"
+
 struct nsMapiEntry
 {
     ULONG     mByteCount ;
@@ -130,7 +131,8 @@ protected:
     HRESULT mLastError ;
     LPADRBOOK mAddressBook ;
     static PRUint32 mEntryCounter ;
-    static mozilla::Mutex mMutex ;
+    static PRUint32 mUseCount ;
+    static nsAutoPtr<mozilla::Mutex> mMutex ;
 
     // Retrieve the contents of a container, with an optional restriction
     BOOL GetContents(const nsMapiEntry& aParent, LPSRestriction aRestriction, 

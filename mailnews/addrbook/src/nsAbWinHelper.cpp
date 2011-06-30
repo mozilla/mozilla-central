@@ -266,9 +266,9 @@ void nsMapiEntryArray::CleanUp(void)
 
 using namespace mozilla;
 
-PRUint32 nsAbWinHelper::mEntryCounter = 0 ;
-Mutex nsAbWinHelper::mMutex("nsAbWinHelper.mMutex");
-
+PRUint32 nsAbWinHelper::mEntryCounter = 0;
+nsAutoPtr<mozilla::Mutex> nsAbWinHelper::mMutex;
+PRUint32 nsAbWinHelper::mUseCount = 0;
 // There seems to be a deadlock/auto-destruction issue
 // in MAPI when multiple threads perform init/release 
 // operations at the same time. So I've put a mutex
@@ -279,12 +279,17 @@ Mutex nsAbWinHelper::mMutex("nsAbWinHelper.mMutex");
 nsAbWinHelper::nsAbWinHelper(void)
 : mAddressBook(NULL), mLastError(S_OK)
 {
-    MOZ_COUNT_CTOR(nsAbWinHelper) ;
+  if (!mUseCount++)
+    mMutex = new mozilla::Mutex("nsAbWinHelper.mMutex");
+
+  MOZ_COUNT_CTOR(nsAbWinHelper);
 }
 
 nsAbWinHelper::~nsAbWinHelper(void)
 {
-    MOZ_COUNT_DTOR(nsAbWinHelper) ;
+  if (!--mUseCount)
+    mMutex = nsnull;
+  MOZ_COUNT_DTOR(nsAbWinHelper) ;
 }
 
 BOOL nsAbWinHelper::GetFolders(nsMapiEntryArray& aFolders)

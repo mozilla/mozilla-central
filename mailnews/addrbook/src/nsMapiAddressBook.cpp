@@ -145,7 +145,7 @@ nsMapiAddressBook::nsMapiAddressBook(void)
 
 nsMapiAddressBook::~nsMapiAddressBook(void)
 {
-    MutexAutoLock guard(mMutex) ;
+    MutexAutoLock guard(*mMutex) ;
 
     FreeMapiLibrary() ;
     MOZ_COUNT_DTOR(nsMapiAddressBook) ;
@@ -154,7 +154,7 @@ nsMapiAddressBook::~nsMapiAddressBook(void)
 BOOL nsMapiAddressBook::Initialize(void)
 {
     if (mAddressBook) { return TRUE ; }
-    MutexAutoLock guard(mMutex) ;
+    MutexAutoLock guard(*mMutex) ;
 
     if (!LoadMapiLibrary()) {
         PRINTF(("Cannot load library.\n")) ;
