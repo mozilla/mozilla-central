@@ -3,6 +3,7 @@ script cyclic-stringify.js
 script small-codepoints.js
 script parse.js
 script parse-crockford-01.js
+script parse-mega-huge-array.js
 script parse-primitives.js
 script parse-reviver.js
 script parse-syntax-errors-01.js
