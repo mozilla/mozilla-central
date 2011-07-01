@@ -4033,13 +4033,10 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
     return;
 
   // Update quota information
-  if (!DeathSignalReceived())
-  {
-    char *boxName;
-    GetSelectedMailboxName(&boxName);
-    GetQuotaDataIfSupported(boxName);
-    PR_Free(boxName);
-  }
+  char *boxName;
+  GetSelectedMailboxName(&boxName);
+  GetQuotaDataIfSupported(boxName);
+  PR_Free(boxName);
 
   // fetch the flags and uids of all existing messages or new ones
   if (!DeathSignalReceived() && GetServerStateParser().NumberOfMessages())
@@ -4100,7 +4097,7 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
 
       FetchMessage(idsToFetch, kFlags, fetchModifier);
       // lets see if we should expunge during a full sync of flags.
-      if (!DeathSignalReceived()) 
+      if (GetServerStateParser().LastCommandSuccessful())
       {
         // if we did a CHANGEDSINCE fetch, do a sanity check on the msg counts
         // to see if some other client may have done an expunge.
@@ -4143,14 +4140,14 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
       FetchMessage(fetchStr, kFlags);      // only new messages please
     }
   }
-  else if (!DeathSignalReceived())
+  else if (GetServerStateParser().LastCommandSuccessful())
   {
     GetServerStateParser().ResetFlagInfo();
     // the flag state is empty, but not partial.
     m_flagState->SetPartialUIDFetch(PR_FALSE);
   }
 
-  if (!DeathSignalReceived())
+  if (GetServerStateParser().LastCommandSuccessful())
   {
     nsImapAction imapAction;
     nsresult res = m_runningUrl->GetImapAction(&imapAction);
@@ -4164,7 +4161,7 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
   PRUint32 msgCount = 0;
 
   nsImapMailboxSpec *new_spec = GetServerStateParser().CreateCurrentMailboxSpec();
-  if (new_spec && !DeathSignalReceived())
+  if (new_spec && GetServerStateParser().LastCommandSuccessful())
   {
     nsImapAction imapAction;
     nsresult res = m_runningUrl->GetImapAction(&imapAction);
@@ -4189,7 +4186,7 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
   else if (!new_spec)
     HandleMemoryFailure();
 
-  if (!DeathSignalReceived())
+  if (GetServerStateParser().LastCommandSuccessful())
   {
     if (entered_waitForBodyIdsMonitor)
       m_waitForBodyIdsMonitor.Exit();
@@ -4207,10 +4204,10 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
     m_waitForBodyIdsMonitor.Exit();
 
   // wait for a list of bodies to fetch.
-  if (!DeathSignalReceived() && GetServerStateParser().LastCommandSuccessful())
+  if (GetServerStateParser().LastCommandSuccessful())
   {
     WaitForPotentialListOfBodysToFetch(&msgIdList, msgCount);
-    if ( msgCount && !DeathSignalReceived() && GetServerStateParser().LastCommandSuccessful())
+    if ( msgCount && GetServerStateParser().LastCommandSuccessful())
     {
       // Tell the url that it should store the msg fetch results offline,
       // while we're dumping the messages, and then restore the setting.
@@ -4223,7 +4220,7 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
       m_runningUrl->SetStoreResultsOffline(wasStoringOffline);
     }
   }
-  if (DeathSignalReceived())
+  if (!GetServerStateParser().LastCommandSuccessful())
     GetServerStateParser().ResetFlagInfo();
 
   NS_IF_RELEASE(new_spec);
