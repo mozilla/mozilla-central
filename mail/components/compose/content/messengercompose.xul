@@ -339,7 +339,8 @@
            iconsize="small"
            defaulticonsize="small"
 #endif
-           labelalign="end">
+           labelalign="end"
+           defaultlabelalign="end">
 
   <!-- Menu -->
   <!-- if you change the id of the menubar, be sure to update mailCore.js::CustomizeMailToolbar and MailToolboxCustomizeDone -->
