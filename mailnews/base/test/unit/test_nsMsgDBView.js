@@ -50,6 +50,11 @@ function setup_globals(aNextFunc) {
   let msg3 = gMessageGenerator.makeMessage({inReplyTo: msg1});
   let msg4 = gMessageGenerator.makeMessage({inReplyTo: msg2});
   messages = messages.concat([msg1, msg2, msg3, msg4]);
+
+  // test bug 600140, make a thread that Reply message has smaller MsgKey
+  let msgBiggerKey = gMessageGenerator.makeMessage();
+  let msgSmallerKey = gMessageGenerator.makeMessage({inReplyTo: msgBiggerKey});
+  messages = messages.concat([msgSmallerKey, msgBiggerKey]);
   let msgSet = new SyntheticMessageSet(messages);
 
   gTestFolder = make_empty_folder();
@@ -266,11 +271,6 @@ function setup_view(aViewType, aViewFlags, aTestFolder) {
   gDBView.curCustomColumn = "authorFirstLetterCol";
 
   gTreeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
-
-  // Bug 574799
-  if (gDBView.numMsgsInView != aTestFolder.getTotalMessages(false))
-    do_throw("numMsgsInView is " + gDBView.numMsgsInView + " but should be " +
-               aTestFolder.getTotalMessages(false) + "\n");
 }
 
 /**
@@ -455,6 +455,27 @@ function test_sort_columns() {
   // Received
 }
 
+function  test_number_of_messages() {
+  // Bug 574799
+  if (gDBView.numMsgsInView != gTestFolder.getTotalMessages(false))
+    do_throw("numMsgsInView is " + gDBView.numMsgsInView + " but should be " +
+               aTestFolder.getTotalMessages(false) + "\n");
+  // Bug 600140
+  // Maybe elided so open it, now only consider the first one
+  if (gDBView.isContainer(0) && !gDBView.isContainerOpen(0))
+    gDBView.toggleOpenState(0);
+  let numMsgInTree = gTreeView.rowCount;
+  if ((gDBView.viewFlags & ViewFlags.kGroupBySort))
+    for (let iViewIndex = 0; iViewIndex < gTreeView.rowCount; iViewIndex++) {
+      let flags = gDBView.getFlagsAt(iViewIndex);
+      if (flags & MSG_VIEW_FLAG_DUMMY)
+        numMsgInTree--;
+    }
+  if (gDBView.numMsgsInView != numMsgInTree)
+    view_throw("message in tree is " + numMsgInTree + " but should be " +
+             gDBView.numMsgsInView + "\n");
+}
+
 function test_msg_added_to_search_view() {
   // if the view is a non-grouped search view, test adding a header to
   // the search results, and verify it gets put at top.
@@ -516,6 +537,7 @@ function test_expand_collapse() {
   gDBView.toggleOpenState(0);
   if (gDBView.rowCount != oldRowCount + 2)
     view_throw("expanding first item should have aded 2 items");
+  gTestFolder.msgDatabase.MarkHeaderKilled(thirdChild, false, null);
   oldRowCount = gDBView.rowCount;
   gDBView.toggleOpenState(0);
   if (gDBView.rowCount != oldRowCount - 2)
@@ -604,7 +626,8 @@ var view_types = [
 ];
 
 var tests_for_all_views = [
-  test_sort_columns
+  test_sort_columns,
+  test_number_of_messages
 ];
 
 var tests_for_specific_views = {

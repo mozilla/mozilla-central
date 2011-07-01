@@ -608,7 +608,7 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
     // We used to check if this was the first header in the thread, but that's
     // a bit harder in the unreadOnly view. But we'll catch it below.
 
-    // for search view we don't support threaded display so just add it to the view.
+    // if not threaded display just add it to the view.
     if (!(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
       rv = AddHdr(newHdr);
     else // need to find the thread we added this to so we can change the hasnew flag

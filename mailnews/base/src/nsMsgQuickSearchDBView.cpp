@@ -453,10 +453,16 @@ nsresult nsMsgQuickSearchDBView::GetFirstMessageHdrToDisplayInThread(nsIMsgThrea
   PRUint32 numChildren;
   nsresult rv = NS_OK;
   PRUint8 minLevel = 0xff;
-  nsMsgKey threadRootKey;
-
   threadHdr->GetNumChildren(&numChildren);
-  threadHdr->GetThreadKey(&threadRootKey);
+  nsMsgKey threadRootKey;
+  nsCOMPtr<nsIMsgDBHdr> rootParent;
+  PRInt32 rootIndex;
+  threadHdr->GetRootHdr(&rootIndex, getter_AddRefs(rootParent));
+  if (rootParent)
+    rootParent->GetMessageKey(&threadRootKey);
+  else
+    threadHdr->GetThreadKey(&threadRootKey);
+
   if ((PRInt32) numChildren < 0)
     numChildren = 0;
 
