@@ -64,7 +64,8 @@
 }
 
 #unifinder-search-field,
-#view-task-edit-field {
+#view-task-edit-field,
+#unifinder-task-edit-field {
   -moz-appearance: none;
   background-clip: padding-box;
   border: 1px solid ThreeDDarkShadow;
@@ -73,7 +74,8 @@
 
 @media all and (-moz-windows-default-theme) {
   #unifinder-search-field,
-  #view-task-edit-field {
+  #view-task-edit-field,
+  #unifinder-task-edit-field {
     border-color: rgba(0, 0, 0, .32);
   }
 
@@ -186,11 +188,11 @@
     background-clip: padding-box;
   }
 
-  sidebarheader {
+  #today-pane-panel sidebarheader {
     border-top: 1px solid rgba(10%, 10%, 10%, .4);
   }
 
-  .folderview-cycler {
+  #today-pane-panel .folderview-cycler {
     margin-top: -1px;
     margin-bottom: -1px;
   }
