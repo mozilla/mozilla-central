@@ -209,6 +209,36 @@ nsContextMenu.prototype = {
     this.showItem("context-viewbgimage", showView && !this.onStandaloneImage);
     this.showItem("context-sep-viewbgimage", showView && !this.onStandaloneImage);
     this.setItemAttr("context-viewbgimage", "disabled", this.hasBGImage ? null : "true");
+
+    // Hide Block and Unblock menuitems.
+    this.showItem("context-blockimage", false);
+    this.showItem("context-unblockimage", false);
+
+    // Block image depends on whether an image was clicked on.
+    if (this.onImage) {
+      var uri = Services.io.newURI(this.mediaURL, null, null);
+      if (uri instanceof Components.interfaces.nsIURL && uri.host) {
+        var serverLabel = uri.host;
+        // Limit length to max 15 characters.
+        serverLabel = serverLabel.replace(/^www\./i, "");
+        if (serverLabel.length > 15)
+          serverLabel = serverLabel.substr(0, 15) + this.ellipsis;
+
+        // Set label and accesskey for appropriate action and unhide menuitem.
+        var id = "context-blockimage";
+        var attr = "blockImage";
+        if (Services.perms.testPermission(uri, "image") == Services.perms.DENY_ACTION) {
+          id = "context-unblockimage";
+          attr = "unblockImage";
+        }
+        const bundle = document.getElementById("contentAreaCommandsBundle");
+        this.setItemAttr(id, "label",
+                         bundle.getFormattedString(attr, [serverLabel]));
+        this.setItemAttr(id, "accesskey",
+                         bundle.getString(attr + ".accesskey"));
+        this.showItem(id, true);
+      }
+    }
   },
 
   initMiscItems: function() {
@@ -691,6 +721,15 @@ nsContextMenu.prototype = {
     const PM = Components.classes["@mozilla.org/PopupWindowManager;1"]
                .getService(Components.interfaces.nsIPopupWindowManager);
     PM.add(this.popupURL, true);
+  },
+
+  // Block/Unblock image from loading in the future.
+  toggleImageBlocking: function(aBlock) {
+  const uri = Services.io.newURI(this.mediaURL, null, null);
+  if (aBlock)
+    Services.perms.add(uri, "image", Services.perms.DENY_ACTION);
+  else
+    Services.perms.remove(uri.host, "image");
   },
 
   // Open linked-to URL in a new window.

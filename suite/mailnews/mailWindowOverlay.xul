@@ -894,6 +894,10 @@
               label="&viewImageCmd.label;"
               accesskey="&viewImageCmd.accesskey;"
               oncommand="gContextMenu.viewMedia();"/>
+    <menuitem id="context-blockimage"
+              oncommand="gContextMenu.toggleImageBlocking(true);"/>
+    <menuitem id="context-unblockimage"
+              oncommand="gContextMenu.toggleImageBlocking(false);"/>
     <menuitem id="context-addemail"
               label="&AddToAddressBook.label;"
               accesskey="&AddToAddressBook.accesskey;"

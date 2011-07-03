@@ -155,6 +155,10 @@
                 accesskey="&viewImageCmd.accesskey;"
                 oncommand="gContextMenu.viewMedia(event);"
                 onclick="checkForMiddleClick(this, event);"/>
+      <menuitem id="context-blockimage"
+                oncommand="gContextMenu.toggleImageBlocking(true);"/>
+      <menuitem id="context-unblockimage"
+                oncommand="gContextMenu.toggleImageBlocking(false);"/>
       <menuitem id="context-copyimage"
                 label="&copyImageCmd.label;"
                 accesskey="&copyImageCmd.accesskey;"
