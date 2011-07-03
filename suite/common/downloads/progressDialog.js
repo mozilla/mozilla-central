@@ -61,9 +61,7 @@ var gRetrying = false;
 function progressStartup() {
   gDownload = window.arguments[0].QueryInterface(Components.interfaces.nsIDownload);
 
-  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                     .getService(Components.interfaces.nsIWindowMediator);
-  var recentDMWindow = wm.getMostRecentWindow("Download:Manager");
+  var recentDMWindow = Services.wm.getMostRecentWindow("Download:Manager");
   if (recentDMWindow && recentDMWindow.gDownloadTreeView.rowCount > 0) {
     // we have been opened by a download manager, get the end time from there
     let dmtree = recentDMWindow.gDownloadTreeView;

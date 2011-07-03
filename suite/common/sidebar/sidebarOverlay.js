@@ -1101,11 +1101,7 @@ function enable_customize() {
 // Bring up the Sidebar customize dialog.
 function SidebarCustomize() {
   // Use a single sidebar customize dialog
-  var cwindowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
-  var iwindowManager = Components.interfaces.nsIWindowMediator;
-  var windowManager  = cwindowManager.QueryInterface(iwindowManager);
-
-  var customizeWindow = windowManager.getMostRecentWindow('sidebar:customize');
+  var customizeWindow = Services.wm.getMostRecentWindow('sidebar:customize');
 
   if (customizeWindow) {
     debug("Reuse existing customize dialog");

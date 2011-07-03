@@ -107,9 +107,7 @@ function SetHomePageValue(aValue)
 // helper methods for reading current page URIs
 function GetMostRecentBrowser()
 {
-  var windowManager = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                                .getService(Components.interfaces.nsIWindowMediator);
-  var browserWindow = windowManager.getMostRecentWindow("navigator:browser");
+  var browserWindow = Services.wm.getMostRecentWindow("navigator:browser");
   return browserWindow && browserWindow.getBrowser();
 }
 

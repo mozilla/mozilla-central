@@ -38,7 +38,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 const nsIDOMWindowInternal = Components.interfaces.nsIDOMWindowInternal;
-const nsIWindowMediator = Components.interfaces.nsIWindowMediator;
 const nsIWindowDataSource = Components.interfaces.nsIWindowDataSource;
 
 function toNavigator()
@@ -118,9 +117,7 @@ function toOpenWindowByType( inType, uri, features )
   if (uri in window)
     return;
 
-  var topWindow = Components.classes['@mozilla.org/appshell/window-mediator;1']
-                            .getService(nsIWindowMediator)
-                            .getMostRecentWindow(inType);
+  var topWindow = Services.wm.getMostRecentWindow(inType);
   if ( topWindow )
     toOpenWindow( topWindow );
   else
@@ -153,9 +150,7 @@ function OpenBrowserWindow()
     window.openDialog(getBrowserURL(), "_blank",
                       "chrome,all,dialog=no", null,
                       "charset=" + window.content.document.characterSet);
-  } else if (Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                       .getService(Components.interfaces.nsIWindowMediator)
-                       .getMostRecentWindow("navigator:browser")) {
+  } else if (Services.wm.getMostRecentWindow("navigator:browser")) {
     // if a browser window already exists then set startpage to null so
     // navigator.js can check pref for how new window should be opened
     window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", null);
@@ -179,11 +174,8 @@ function OpenBrowserWindow()
 
 function CycleWindow( aType )
 {
-  var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
-  var windowManagerInterface = windowManager.QueryInterface(nsIWindowMediator);
-
-  var topWindowOfType = windowManagerInterface.getMostRecentWindow( aType );
-  var topWindow = windowManagerInterface.getMostRecentWindow( null );
+  var topWindowOfType = Services.wm.getMostRecentWindow(aType);
+  var topWindow = Services.wm.getMostRecentWindow(null);
 
   if ( topWindowOfType == null )
     return null;
@@ -193,7 +185,7 @@ function CycleWindow( aType )
     return topWindowOfType;
   }
 
-  var enumerator = windowManagerInterface.getEnumerator( aType );
+  var enumerator = Services.wm.getEnumerator(aType);
   var firstWindow = enumerator.getNext().QueryInterface(nsIDOMWindowInternal);
   var iWindow = firstWindow;
   while (iWindow != topWindow && enumerator.hasMoreElements())
@@ -257,9 +249,7 @@ function checkFocusedWindow()
 
 function toProfileManager()
 {
-  const wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                         .getService(Components.interfaces.nsIWindowMediator);
-  var promgrWin = wm.getMostRecentWindow( "mozilla:profileSelection" );
+  var promgrWin = Services.wm.getMostRecentWindow("mozilla:profileSelection");
   if (promgrWin) {
     promgrWin.focus();
   } else {
