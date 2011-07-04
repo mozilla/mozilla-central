@@ -760,9 +760,7 @@ var PlacesOrganizer = {
     var placeSpec = PlacesUtils.history.queriesToQueryString(queries,
                                                              queries.length,
                                                              options);
-    var placeURI = Components.classes["@mozilla.org/network/io-service;1"]
-                             .getService(Components.interfaces.nsIIOService)
-                             .newURI(placeSpec, null, null);
+    var placeURI = Services.io.newURI(placeSpec, null, null);
 
     // Prompt the user for a name for the query.
     // XXX - using prompt service for now; will need to make

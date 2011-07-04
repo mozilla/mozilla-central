@@ -870,10 +870,7 @@ function check_for_missing_panels() {
     if (!currTab.is_excluded()) {
       if (currHeader.hasAttribute("prereq") && currHeader.getAttribute("prereq") != "") {
         var prereq_file = currHeader.getAttribute("prereq");
-        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                  .getService(Components.interfaces.nsIIOService);      
-        var uri = ioService.newURI(prereq_file, null, null);
-        var channel = ioService.newChannelFromURI(uri);
+        var channel = Services.io.newChannel(prereq_file, null, null);
         try {
           channel.open();
         }
@@ -940,8 +937,7 @@ function get_sidebar_datasource_uri() {
   try {
     var sidebar_file = sidebar_get_panels_file();
     
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-    var fileHandler = ioService.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+    var fileHandler = Services.io.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
     
     return fileHandler.getURLSpecFromFile(sidebar_file);
   } catch (ex) {

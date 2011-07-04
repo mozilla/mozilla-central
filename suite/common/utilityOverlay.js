@@ -970,6 +970,13 @@ function isElementVisible(aElement)
   return (bo.height > 0 && bo.width > 0);
 }
 
+function makeURLAbsolute(aBase, aUrl)
+{
+  // Construct nsIURL.
+  return Services.io.newURI(aUrl, null,
+                            Services.io.newURI(aBase, null, null)).spec;
+}
+
 function openAsExternal(aURL)
 {
   var loadType = Services.prefs.getIntPref("browser.link.open_external");

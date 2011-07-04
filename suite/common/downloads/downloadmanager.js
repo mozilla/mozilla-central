@@ -249,9 +249,7 @@ function openDownload(aDownload)
   } catch (ex) {
     // If launch fails, try sending it through the system's external
     // file: URL handler
-    var uri = Components.classes["@mozilla.org/network/io-service;1"]
-                        .getService(Components.interfaces.nsIIOService)
-                        .newFileURI(file);
+    var uri = Services.io.newFileURI(file);
     var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
                                 .getService(Components.interfaces.nsIExternalProtocolService);
     protocolSvc.loadUrl(uri);
@@ -276,9 +274,7 @@ function showDownload(aDownload)
     } catch (e) {
       // If launch also fails (probably because it's not implemented), let the
       // OS handler try to open the parent
-      var uri = Components.classes["@mozilla.org/network/io-service;1"]
-                          .getService(Components.interfaces.nsIIOService)
-                          .newFileURI(parent);
+      var uri = Services.io.newFileURI(parent);
       var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
                                   .getService(Components.interfaces.nsIExternalProtocolService);
       protocolSvc.loadUrl(uri);

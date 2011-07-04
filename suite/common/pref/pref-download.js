@@ -46,10 +46,8 @@ var gFPHandler;
 function Startup()
 {
   // Define globals
-  gFPHandler = Components.classes["@mozilla.org/network/io-service;1"]
-                         .getService(Components.interfaces.nsIIOService)
-                         .getProtocolHandler("file")
-                         .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+  gFPHandler = Services.io.getProtocolHandler("file")
+                          .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 
   SetSoundEnabled(document.getElementById("browser.download.finished_download_sound").value);
 

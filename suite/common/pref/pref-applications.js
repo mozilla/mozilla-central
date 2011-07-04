@@ -70,8 +70,6 @@ var categoryMgr = Components.classes["@mozilla.org/categorymanager;1"]
                             .getService(Components.interfaces.nsICategoryManager);
 var mimeSvc = Components.classes["@mozilla.org/mime;1"]
                         .getService(Components.interfaces.nsIMIMEService);
-var ioSvc = Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(Components.interfaces.nsIIOService);
 var converterSvc = Components.classes["@mozilla.org/embeddor.implemented/web-content-handler-registrar;1"]
                              .getService(Components.interfaces.nsIWebContentConverterService);
 var shellSvc = null;
@@ -1765,15 +1763,15 @@ var gApplicationsPane = {
   },
 
   _getIconURLForFile: function(aFile) {
-    var fph = ioSvc.getProtocolHandler("file")
-                   .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+    var fph = Services.io.getProtocolHandler("file")
+                         .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
     var urlSpec = fph.getURLSpecFromFile(aFile);
 
     return "moz-icon://" + urlSpec + "?size=16";
   },
 
   _getIconURLForWebApp: function(aWebAppURITemplate) {
-    var uri = ioSvc.newURI(aWebAppURITemplate, null, null);
+    var uri = Services.io.newURI(aWebAppURITemplate, null, null);
 
     // Unfortunately we need to use favicon.ico here, but we don't know
     // about any other possibility to retrieve an icon for the web app/site

@@ -44,7 +44,6 @@ var gLastHostname;
 var gLastDomain;
 var gSearchBox;
 var gPrefService;
-var gIOService;
 var gDeleteByHostname;
 var gDeleteByDomain;
 var gHistoryStatus;
@@ -97,10 +96,7 @@ function historyOnSelect()
     if (PlacesUtils.nodeIsURI(selectedNode)) {
       try {
         url = selectedNode.uri;
-        if (!gIOService)
-          gIOService = Components.classes["@mozilla.org/network/io-service;1"]
-                                 .getService(Components.interfaces.nsIIOService);
-        gLastHostname = gIOService.newURI(url, null, null).host;
+        gLastHostname = Services.io.newURI(url, null, null).host;
       } catch (e) {}
     } else if (PlacesUtils.nodeIsHost(selectedNode)) {
       gLastHostname = selectedNode.title;

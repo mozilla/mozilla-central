@@ -521,7 +521,7 @@ nsContextMenu.prototype = {
           var computedURL = this.getComputedURL(bodyElt, "background-image");
           if (computedURL) {
             this.hasBGImage = true;
-            this.bgImageURL = this.makeURLAbsolute(bodyElt.baseURI, computedURL);
+            this.bgImageURL = makeURLAbsolute(bodyElt.baseURI, computedURL);
           }
         }
       }
@@ -631,7 +631,7 @@ nsContextMenu.prototype = {
           var bgImgUrl = this.getComputedURL(elem, "background-image");
           if (bgImgUrl) {
             this.hasBGImage = true;
-            this.bgImageURL = this.makeURLAbsolute(elem.baseURI, bgImgUrl);
+            this.bgImageURL = makeURLAbsolute(elem.baseURI, bgImgUrl);
           }
         }
       }
@@ -663,13 +663,7 @@ nsContextMenu.prototype = {
       }
       if (show) {
         // initialize popupURL
-        const IOS = Components.classes["@mozilla.org/network/io-service;1"]
-                    .getService(CI.nsIIOService);
-        this.popupURL = IOS.newURI(window.content.opener.location.href, null, null);
-
-        // but cancel if it's an unsuitable URL
-        const PM = Components.classes["@mozilla.org/PopupWindowManager;1"]
-                   .getService(CI.nsIPopupWindowManager);
+        this.popupURL = Services.io.newURI(window.content.opener.location.href, null, null);
       }
     } catch(e) {
     }
@@ -985,9 +979,7 @@ nsContextMenu.prototype = {
     }
 
     // set up a channel to do the saving
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
-    var channel = ioService.newChannel(linkURL, null, null);
+    var channel = Services.io.newChannel(linkURL, null, null);
     channel.notificationCallbacks = new Callbacks();
     channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE |
                          Components.interfaces.nsIChannel.LOAD_CALL_CONTENT_SNIFFERS;
@@ -1207,7 +1199,7 @@ nsContextMenu.prototype = {
           else {
             text = getAttributeNS("http://www.w3.org/1999/xlink", "href");
             if (text && text.match(/\S/)) {
-              text = this.makeURLAbsolute(this.link.baseURI, text);
+              text = makeURLAbsolute(this.link.baseURI, text);
             }
           }
         }
@@ -1281,16 +1273,6 @@ nsContextMenu.prototype = {
       if (node instanceof Components.interfaces.nsIDOMNSHTMLElement)
         return node.isContentEditable;
     return false;
-  },
-
-  // Convert relative URL to absolute, using document's <base>.
-  makeURLAbsolute: function(aBase, aUrl) {
-    // Construct nsIURL.
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
-    var baseURI  = ioService.newURI(aBase, null, null);
-
-    return ioService.newURI(baseURI.resolve(aUrl), null, null).spec;
   },
 
   toString: function() {
