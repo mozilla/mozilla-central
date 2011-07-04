@@ -11,8 +11,7 @@
 #searchInput {
   background-clip: padding-box;
   border: 1px solid ThreeDDarkShadow;
-  -moz-border-radius: 4px;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, .1) inset, 0 1px 0 rgba(255, 255, 255, .4);
+  -moz-border-radius: 3.5px;
 }
 
 .foldersTree {
@@ -25,7 +24,13 @@
 
 @media all and (-moz-windows-default-theme) {
   #searchInput {
-    border-color: rgba(0, 0, 0, .25) rgba(0, 0, 0, .32) rgba(0, 0, 0, .37);
+    border-color: rgba(0, 0, 0, .32);
+  }
+
+  #searchInput:-moz-lwtheme {
+    background-color: rgba(255, 255, 255, .8);
+    border-color: rgba(0, 0, 0, .32);
+    color: black;
   }
 
   treechildren::-moz-tree-row {
