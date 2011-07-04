@@ -475,16 +475,11 @@ var messageHeaderSink = {
       var size = null;
       if (isExternalAttachment)
       {
-        var fileHandler = Services.io.getProtocolHandler("file")
-                                     .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
-        try
-        {
-          size = fileHandler.getFileFromURLSpec(url).fileSize;
-        }
-        catch(e)
-        {
+        var file = GetFileFromString(url);
+        if (file && file.exists())
+          size = file.fileSize;
+        else
           dump("Couldn't open external attachment!");
-        }
       }
 
       currentAttachments.push(new createNewAttachmentInfo(contentType,

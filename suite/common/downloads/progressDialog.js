@@ -190,7 +190,7 @@ function updateDownload() {
       statusString = gDownloadBundle.getString("notStarted");
       break;
   }
-  var file = getLocalFileFromNativePathOrUrl(gDownload.target.spec);
+  var file = GetFileFromString(gDownload.target.spec);
   if (gDownload.size > 0) {
     document.title = gDownloadBundle.getFormattedString("progressTitlePercent",
                                                         [gDownload.percentComplete,

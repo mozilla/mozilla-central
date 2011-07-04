@@ -40,9 +40,6 @@ Components.utils.import("resource:///modules/DownloadTaskbarIntegration.jsm");
 
 const nsIDownloadManager = Components.interfaces.nsIDownloadManager;
 
-const nsLocalFile = Components.Constructor("@mozilla.org/file/local;1",
-                                           "nsILocalFile", "initWithPath");
-
 var gDownloadTree;
 var gDownloadTreeView;
 var gDownloadManager = Components.classes["@mozilla.org/download-manager;1"]
@@ -294,8 +291,7 @@ function onTreeSelect(aEvent)
   var selectionCount = gDownloadTreeView.selection.count;
   if (selectionCount == 1) {
     var selItemData = gDownloadTreeView.getRowData(gDownloadTree.currentIndex);
-    var file = getLocalFileFromNativePathOrUrl(selItemData.file);
-    gDownloadStatus.label = file.path;
+    gDownloadStatus.label = GetFileFromString(selItemData.file).path;
   } else {
     gDownloadStatus.label = "";
   }
@@ -411,31 +407,6 @@ function onUpdateProgress()
   }
 }
 
-// -- copied from downloads.js: getLocalFileFromNativePathOrUrl()
-// we should be using real URLs all the time, but until
-// bug 239948 is fully fixed, this will do...
-//
-// note, this will thrown an exception if the native path
-// is not valid (for example a native Windows path on a Mac)
-// see bug #392386 for details
-function getLocalFileFromNativePathOrUrl(aPathOrUrl)
-{
-  if (/^file:\/\//.test(aPathOrUrl)) {
-    // if this is a URL, get the file from that
-    var ioSvc = Components.classes["@mozilla.org/network/io-service;1"].
-                getService(Components.interfaces.nsIIOService);
-
-    const fileUrl = ioSvc.newURI(aPathOrUrl, null, null).
-                    QueryInterface(Components.interfaces.nsIFileURL);
-    return fileUrl.file.clone().QueryInterface(Components.interfaces.nsILocalFile);
-  } else {
-    // if it's a pathname, create the nsILocalFile directly
-    var f = new nsLocalFile(aPathOrUrl);
-
-    return f;
-  }
-}
-
 var gDownloadObserver = {
   observe: function(aSubject, aTopic, aData) {
     switch (aTopic) {
@@ -531,7 +502,7 @@ var dlTreeController = {
         // the file its final name until them.
         return selectionCount == 1 &&
                selItemData[0].state == nsIDownloadManager.DOWNLOAD_FINISHED &&
-               getLocalFileFromNativePathOrUrl(selItemData[0].file).exists();
+               GetFileFromString(selItemData[0].file).exists();
       case "cmd_cancel":
         if (!selectionCount)
           return false;
@@ -624,7 +595,7 @@ var dlTreeController = {
         for each (let dldata in selItemData)
           // fake an nsIDownload with the properties needed by that function
           cancelDownload({id: dldata.dlid,
-                          targetFile: getLocalFileFromNativePathOrUrl(dldata.file)});
+                          targetFile: GetFileFromString(dldata.file)});
         break;
       case "cmd_remove":
         for each (let dldata in selItemData)
@@ -635,7 +606,7 @@ var dlTreeController = {
           if (dldata.isActive)
             // fake an nsIDownload with the properties needed by that function
             cancelDownload({id: dldata.dlid,
-                            targetFile: getLocalFileFromNativePathOrUrl(dldata.file)});
+                            targetFile: GetFileFromString(dldata.file)});
           else
             removeDownload(dldata.dlid);
         }
@@ -645,7 +616,7 @@ var dlTreeController = {
         break;
       case "cmd_show":
         // fake an nsIDownload with the properties needed by that function
-        showDownload({targetFile: getLocalFileFromNativePathOrUrl(selItemData[0].file)});
+        showDownload({targetFile: GetFileFromString(selItemData[0].file)});
         break;
       case "cmd_openReferrer":
         openUILink(selItemData[0].referrer);
@@ -714,7 +685,7 @@ var gDownloadDNDObserver = {
       return;
 
     var selItemData = gDownloadTreeView.getRowData(gDownloadTree.currentIndex);
-    var file = getLocalFileFromNativePathOrUrl(selItemData.file);
+    var file = GetFileFromString(selItemData.file);
 
     if (!file.exists())
       return;

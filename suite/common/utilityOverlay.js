@@ -1620,3 +1620,15 @@ function FillInHTMLTooltip(tipElement)
 
   return false;
 }
+
+function GetFileFromString(aString)
+{
+  // If empty string just return null.
+  if (!aString)
+    return null;
+
+  let commandLine = Components.classes["@mozilla.org/toolkit/command-line;1"]
+                              .createInstance(Components.interfaces.nsICommandLine);
+  let uri = commandLine.resolveURI(aString);
+  return uri instanceof Components.interfaces.nsIFileURL ? uri.file : null;
+}

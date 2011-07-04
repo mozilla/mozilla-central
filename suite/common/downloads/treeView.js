@@ -254,7 +254,7 @@ DownloadTreeView.prototype = {
         if (dl.isActive)
           // fake an nsIDownload with the properties needed by that function
           cancelDownload({id: dl.dlid,
-                          targetFile: getLocalFileFromNativePathOrUrl(dl.file)});
+                          targetFile: GetFileFromString(dl.file)});
         else
           removeDownload(dl.dlid);
         break;
