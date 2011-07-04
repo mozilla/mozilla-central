@@ -122,7 +122,7 @@ function run_test() {
   var expectedABs = [kPABData.URI, kCABData.URI];
 
   // Check the OS X Address Book if available
-  if ("@mozilla.org/rdf/resource-factory;1?name=moz-abosxdirectory" in
+  if ("@mozilla.org/addressbook/directory;1?type=moz-abosxdirectory" in
       Components.classes)
     expectedABs.push(kOSXData.URI);
 

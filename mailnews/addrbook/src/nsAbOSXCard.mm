@@ -55,9 +55,8 @@
 #define kABAnniversaryLabel nil
 #endif
 
-NS_IMPL_ISUPPORTS_INHERITED2(nsAbOSXCard,
-                             nsRDFResource,
-                             nsIAbCard,
+NS_IMPL_ISUPPORTS_INHERITED1(nsAbOSXCard,
+                             nsAbCardProperty,
                              nsIAbOSXCard)
 
 #ifdef DEBUG
@@ -88,8 +87,9 @@ SetStringProperty(nsAbOSXCard *aCard, const nsString &aValue,
   }
   else if (!oldValue.Equals(aValue)) {
     aCard->SetPropertyAsAString(aMemberName, aValue);
-    
-    nsISupports *supports = NS_ISUPPORTS_CAST(nsRDFResource*, aCard);
+
+    nsISupports *supports = NS_ISUPPORTS_CAST(nsAbCardProperty*, aCard);
+
     aAbManager->NotifyItemPropertyChanged(supports, aMemberName,
                                           oldValue.get(), aValue.get());
   }
@@ -177,19 +177,28 @@ MapMultiValue(nsAbOSXCard *aCard, ABRecord *aOSXCard,
   return PR_FALSE;
 }
 
-NS_IMETHODIMP
+nsresult
 nsAbOSXCard::Init(const char *aUri)
 {
   if (strncmp(aUri, NS_ABOSXCARD_URI_PREFIX,
               sizeof(NS_ABOSXCARD_URI_PREFIX) - 1) != 0)
     return NS_ERROR_FAILURE;
-  
-  nsresult rv = nsRDFResource::Init(aUri);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
+
+  mURI = aUri;
+
   SetLocalId(nsDependentCString(aUri));
 
   return Update(PR_FALSE);
+}
+
+nsresult
+nsAbOSXCard::GetURI(nsACString &aURI)
+{
+  if (mURI.IsEmpty())
+    return NS_ERROR_NOT_INITIALIZED;
+
+  aURI = mURI;
+  return NS_OK;
 }
 
 nsresult

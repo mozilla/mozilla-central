@@ -41,7 +41,6 @@
 #define nsAbOSXCard_h___
 
 #include "nsAbCardProperty.h"
-#include "nsRDFResource.h"
 
 #define NS_ABOSXCARD_URI_PREFIX NS_ABOSXCARD_PREFIX "://"
 
@@ -54,25 +53,27 @@ class nsIAbOSXCard : public nsISupports
 public:
   NS_DECLARE_STATIC_IID_ACCESSOR(NS_IABOSXCARD_IID)
 
+  virtual nsresult Init(const char *aUri) = 0;
   virtual nsresult Update(PRBool aNotify) = 0;
+  virtual nsresult GetURI(nsACString &aURI) = 0;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIAbOSXCard, NS_IABOSXCARD_IID)
 
-class nsAbOSXCard : public nsRDFResource, 
-                    public nsAbCardProperty,
+class nsAbOSXCard : public nsAbCardProperty,
                     public nsIAbOSXCard
 {
 public:
   NS_DECL_ISUPPORTS_INHERITED
     
-  // nsIRDFResource method
-  NS_IMETHOD Init(const char *aUri);
-
   nsresult Update(PRBool aNotify);
-
+  nsresult GetURI(nsACString &aURI);
+  nsresult Init(const char *aUri);
   // this is needed so nsAbOSXUtils.mm can get at nsAbCardProperty
   friend class nsAbOSXUtils;
+private:
+  nsCString mURI;
+
 };
 
 #endif // nsAbOSXCard_h___

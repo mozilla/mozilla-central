@@ -111,4 +111,3 @@ nsAbLDAPDirFactory::DeleteDirectory(nsIAbDirectory *directory)
   // Address Books. But we still need to return NS_OK from here.
   return NS_OK;
 }
-

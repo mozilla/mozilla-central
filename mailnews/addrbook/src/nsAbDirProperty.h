@@ -86,6 +86,13 @@ protected:
 	nsString m_Description;
 	PRBool   m_IsMailList;
 
+  nsCString mURI;
+  nsCString mQueryString;
+  nsCString mURINoQuery;
+  PRBool mIsValidURI;
+  PRBool mIsQueryURI;
+
+
   /*
    * Note that any derived implementations should ensure that this item
    * (m_DirPrefId) is correctly initialised correctly

@@ -76,7 +76,7 @@
 using namespace mozilla;
 
 nsAbLDAPDirectory::nsAbLDAPDirectory() :
-  nsAbDirectoryRDFResource(),
+  nsAbDirProperty(),
   mPerformingQuery(PR_FALSE),
   mContext(0),
   mLock("nsAbLDAPDirectory.mLock")
@@ -88,9 +88,9 @@ nsAbLDAPDirectory::~nsAbLDAPDirectory()
 {
 }
 
-NS_IMPL_ISUPPORTS_INHERITED4(nsAbLDAPDirectory, nsAbDirectoryRDFResource,
-                             nsIAbDirectory, nsISupportsWeakReference,
-                             nsIAbDirSearchListener, nsIAbLDAPDirectory)
+NS_IMPL_ISUPPORTS_INHERITED3(nsAbLDAPDirectory, nsAbDirProperty,
+                             nsISupportsWeakReference, nsIAbDirSearchListener,
+                             nsIAbLDAPDirectory)
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetPropertiesChromeURI(nsACString &aResult)
 {
@@ -113,7 +113,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::Init(const char* aURI)
   else
     m_DirPrefId = Substring(uri, kLDAPDirectoryRootLen, searchCharLocation - kLDAPDirectoryRootLen);
 
-  return nsAbDirectoryRDFResource::Init(aURI);
+  return nsAbDirProperty::Init(aURI);
 }
 
 nsresult nsAbLDAPDirectory::Initiate()
@@ -228,7 +228,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetLDAPURL(nsILDAPURL** aResult)
   {
     /*
      * A recent change in Mozilla now means that the LDAP Address Book
-     * RDF Resource URI is based on the unique preference name value i.e.  
+     * URI is based on the unique preference name value i.e.
      * [moz-abldapdirectory://prefName]
      * Prior to this valid change it was based on the actual uri i.e. 
      * [moz-abldapdirectory://host:port/basedn]

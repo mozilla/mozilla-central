@@ -42,9 +42,6 @@
 #include "nsIPrefService.h"
 #include "nsAbBSDirectory.h"
 
-#include "nsRDFCID.h"
-#include "nsIRDFService.h"
-
 #include "nsDirPrefs.h"
 #include "nsAbBaseCID.h"
 #include "nsAddrDatabase.h"
@@ -58,8 +55,7 @@
 #include "nsCRTGlue.h"
 
 nsAbBSDirectory::nsAbBSDirectory()
-: nsRDFResource(),
-mInitialized(PR_FALSE)
+: mInitialized(PR_FALSE)
 {
   mServers.Init(13);
 }
@@ -68,7 +64,13 @@ nsAbBSDirectory::~nsAbBSDirectory()
 {
 }
 
-NS_IMPL_ISUPPORTS_INHERITED1(nsAbBSDirectory, nsRDFResource, nsIAbDirectory)
+NS_IMETHODIMP nsAbBSDirectory::Init(const char *aURI)
+{
+  mURI = aURI;
+  return NS_OK;
+}
+
+NS_IMPL_ISUPPORTS_INHERITED0(nsAbBSDirectory, nsAbDirProperty)
 
 nsresult nsAbBSDirectory::CreateDirectoriesFromFactory(const nsACString &aURI,
                                                        DIR_Server *aServer,
@@ -116,8 +118,6 @@ nsresult nsAbBSDirectory::CreateDirectoriesFromFactory(const nsACString &aURI,
 
     mSubDirectories.AppendObject(childDir);
 
-    // Inform the listener, i.e. the RDF directory data
-    // source that a new address book has been added
     if (aNotify && abManager)
       abManager->NotifyDirectoryItemAdded(this, childDir);
   }
@@ -320,9 +320,9 @@ NS_IMETHODIMP nsAbBSDirectory::DeleteDirectory(nsIAbDirectory *directory)
     if (abManager)
       abManager->NotifyDirectoryDeleted(this, d);
 
-    nsCOMPtr<nsIRDFResource> resource(do_QueryInterface (d, &rv));
     nsCString uri;
-    resource->GetValueUTF8(uri);
+    rv = d->GetURI(uri);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIAbDirFactory> dirFactory;
     rv = dirFactoryService->GetDirFactory(uri, getter_AddRefs(dirFactory));
@@ -357,3 +357,13 @@ NS_IMETHODIMP nsAbBSDirectory::UseForAutocomplete(const nsACString &aIdentityKey
   *aResult = PR_TRUE;
   return NS_OK;
 }
+
+NS_IMETHODIMP nsAbBSDirectory::GetURI(nsACString &aURI)
+{
+  if (mURI.IsEmpty())
+    return NS_ERROR_NOT_INITIALIZED;
+
+  aURI = mURI;
+  return NS_OK;
+}
+

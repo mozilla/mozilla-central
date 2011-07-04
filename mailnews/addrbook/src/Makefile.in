@@ -52,8 +52,6 @@ endif
 
 CPPSRCS		= \
 		nsAbManager.cpp \
-		nsAbRDFDataSource.cpp \
-		nsDirectoryDataSource.cpp \
 		nsAbCardProperty.cpp \
 		nsDirPrefs.cpp \
 		nsAddrDatabase.cpp \
@@ -70,7 +68,6 @@ CPPSRCS		= \
                 nsAbDirectoryQuery.cpp    \
                 nsAbDirectoryQueryProxy.cpp    \
                 nsAbBooleanExpression.cpp \
-                nsAbDirectoryRDFResource.cpp \
                 nsAbQueryStringToExpression.cpp \
                 nsAbView.cpp \
                 nsVCard.cpp \

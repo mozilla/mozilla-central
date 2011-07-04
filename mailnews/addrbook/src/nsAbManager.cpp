@@ -50,9 +50,6 @@
 #include "nsAppDirectoryServiceDefs.h"
 #include "plstr.h"
 #include "prmem.h"
-#include "nsIRDFResource.h"
-#include "rdf.h"
-#include "nsIRDFService.h"
 #include "nsIServiceManager.h"
 #include "nsIDOMWindow.h"
 #include "nsIFilePicker.h"
@@ -70,6 +67,9 @@
 #include "nsIObserverService.h"
 #include "nsDirPrefs.h"
 #include "nsThreadUtils.h"
+#include "nsIAbDirFactory.h"
+#include "nsComponentManagerUtils.h"
+#include "nsIIOService.h"
 
 struct ExportAttributesTableStruct
 {
@@ -153,6 +153,7 @@ const ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[] = {
 //
 nsAbManager::nsAbManager()
 {
+  mAbStore.Init();
 }
 
 nsAbManager::~nsAbManager()
@@ -231,22 +232,32 @@ NS_IMETHODIMP nsAbManager::GetDirectories(nsISimpleEnumerator **aResult)
   // created and dumped every time GetDirectories is called. This was causing
   // performance problems, especially with the content policy on messages
   // with lots of urls.
+  nsresult rv;
+  nsCOMPtr<nsIAbDirectory> rootAddressBook;
+  rv = GetRootDirectory(getter_AddRefs(rootAddressBook));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return rootAddressBook->GetChildNodes(aResult);
+}
+
+nsresult
+nsAbManager::GetRootDirectory(nsIAbDirectory **aResult)
+{
+  // We cache the top level AB to ensure that nsIAbDirectory items are not
+  // created and dumped every time GetDirectories is called. This was causing
+  // performance problems, especially with the content policy on messages
+  // with lots of urls.
+  nsresult rv;
+
   if (!mCacheTopLevelAb)
   {
-    nsresult rv;
-    nsCOMPtr<nsIRDFService> rdfService(do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv));
+    nsCOMPtr<nsIAbDirectory> rootAddressBook(do_GetService(NS_ABDIRECTORY_CONTRACTID, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsIRDFResource> parentResource;
-    rv = rdfService->GetResource(NS_LITERAL_CSTRING(kAllDirectoryRoot),
-                                 getter_AddRefs(parentResource));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    mCacheTopLevelAb = do_QueryInterface(parentResource, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    mCacheTopLevelAb = rootAddressBook;
   }
 
-  return mCacheTopLevelAb->GetChildNodes(aResult);
+  NS_IF_ADDREF(*aResult = mCacheTopLevelAb);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbManager::GetDirectory(const nsACString &aURI,
@@ -255,14 +266,55 @@ NS_IMETHODIMP nsAbManager::GetDirectory(const nsACString &aURI,
   NS_ENSURE_ARG_POINTER(aResult);
 
   nsresult rv;
-  nsCOMPtr<nsIRDFService> rdfService(do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIAbDirectory> directory;
 
-  nsCOMPtr<nsIRDFResource> dirResource;
-  rv = rdfService->GetResource(aURI, getter_AddRefs(dirResource));
-  NS_ENSURE_SUCCESS(rv, rv);
+  // Was the directory root requested?
+  if (aURI.Equals(NS_LITERAL_CSTRING(kAllDirectoryRoot)))
+  {
+    rv = GetRootDirectory(getter_AddRefs(directory));
+    NS_ENSURE_SUCCESS(rv, rv);
+    NS_IF_ADDREF(*aResult = directory);
+    return NS_OK;
+  }
 
-  return CallQueryInterface(dirResource, aResult);
+  // Do we have a copy of this directory already within our look-up table?
+  if (!mAbStore.Get(aURI, getter_AddRefs(directory)))
+  {
+    // The directory wasn't in our look-up table, so we need to instantiate
+    // it. First, extract the scheme from the URI...
+
+    nsCAutoString scheme;
+
+    PRInt32 colon = aURI.FindChar(':');
+    if (colon <= 0)
+      return NS_ERROR_MALFORMED_URI;
+    scheme = Substring(aURI, 0, colon);
+
+    // Construct the appropriate nsIAbDirectory...
+    nsCAutoString contractID;
+    contractID.AssignLiteral(NS_AB_DIRECTORY_TYPE_CONTRACTID_PREFIX);
+    contractID.Append(scheme);
+    directory = do_CreateInstance(contractID.get(), &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // Init it with the URI
+    const nsAFlatCString& flatURI = PromiseFlatCString(aURI);
+
+    rv = directory->Init(flatURI.get());
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // Check if this directory was initiated with a search query.  If so,
+    // we don't cache it.
+    PRBool isQuery = PR_FALSE;
+    rv = directory->GetIsQuery(&isQuery);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (!isQuery)
+      mAbStore.Put(aURI, directory);
+  }
+  NS_IF_ADDREF(*aResult = directory);
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbManager::NewAddressBook(const nsAString &aDirName,
@@ -273,17 +325,9 @@ NS_IMETHODIMP nsAbManager::NewAddressBook(const nsAString &aDirName,
 {
   nsresult rv;
 
-  nsCOMPtr<nsIRDFService> rdfService = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
+  nsCOMPtr<nsIAbDirectory> parentDir;
+  rv = GetRootDirectory(getter_AddRefs(parentDir));
   NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIRDFResource> parentResource;
-  rv = rdfService->GetResource(NS_LITERAL_CSTRING(kAllDirectoryRoot),
-                               getter_AddRefs(parentResource));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIAbDirectory> parentDir = do_QueryInterface(parentResource, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
   return parentDir->CreateNewDirectory(aDirName, aURI, aType, aPrefName, aResult);
 }
 
@@ -292,47 +336,43 @@ NS_IMETHODIMP nsAbManager::DeleteAddressBook(const nsACString &aURI)
   // Find the address book
   nsresult rv;
 
-  nsCOMPtr<nsIRDFService> rdfService =
-    do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv);
+  nsCOMPtr<nsIAbDirectory> directory;
+  rv = GetDirectory(aURI, getter_AddRefs(directory));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIRDFResource> directoryResource;
-  rv = rdfService->GetResource(aURI, getter_AddRefs(directoryResource));
+  nsCOMPtr<nsIAbDirectory> rootDirectory;
+  rv = GetRootDirectory(getter_AddRefs(rootDirectory));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIAbDirectory> directory = do_QueryInterface(directoryResource, &rv);
+  // Go through each of the children of the address book
+  // (so, the mailing lists) and remove their entries from
+  // the look up table.
+  nsCOMPtr<nsISimpleEnumerator> enumerator;
+  rv = directory->GetChildNodes(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // Now find the parent directory
-  PRBool isMailList;
-  rv = directory->GetIsMailList(&isMailList);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCString uriToUse;
-  if (!isMailList)
-    // We only accept one layer of address books at the moment.
-    uriToUse.AppendLiteral(kAllDirectoryRoot);
-  else
+  nsCOMPtr<nsISupports> item;
+  nsCOMPtr<nsIAbDirectory> childDirectory;
+  PRBool hasMore = PR_FALSE;
+  while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
   {
-    uriToUse.Append(aURI);
+    rv = enumerator->GetNext(getter_AddRefs(item));
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    PRInt32 pos = uriToUse.RFindChar('/');
+    childDirectory = do_QueryInterface(item, &rv);
+    if (NS_SUCCEEDED(rv))
+    {
+      nsCString childURI;
+      rv = childDirectory->GetURI(childURI);
+      NS_ENSURE_SUCCESS(rv, rv);
 
-    // If we didn't find a / something really bad has happened
-    if (pos == -1)
-      return NS_ERROR_FAILURE;
-
-    uriToUse = StringHead(uriToUse, pos);
+      mAbStore.Remove(childURI);
+    }
   }
 
-  nsCOMPtr<nsIRDFResource> parentResource;
-  rv = rdfService->GetResource(uriToUse, getter_AddRefs(parentResource));
-  NS_ENSURE_SUCCESS(rv, rv);
+  mAbStore.Remove(aURI);
 
-  nsCOMPtr<nsIAbDirectory> parentDir(do_QueryInterface(parentResource, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return parentDir->DeleteDirectory(directory);
+  return rootDirectory->DeleteDirectory(directory);
 }
 
 NS_IMETHODIMP nsAbManager::AddAddressBookListener(nsIAbListener *aListener,
@@ -413,24 +453,14 @@ NS_IMETHODIMP nsAbManager::GetUserProfileDirectory(nsILocalFile **userDir)
 
 NS_IMETHODIMP nsAbManager::MailListNameExists(const PRUnichar *name, PRBool *exist)
 {
+  nsresult rv;
   NS_ENSURE_ARG_POINTER(exist);
 
   *exist = PR_FALSE;
 
-  // Get the rdf service
-    nsresult rv;
-  nsCOMPtr<nsIRDFService> rdfService =
-    do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
   // now get the top-level book
-    nsCOMPtr<nsIRDFResource> resource;
-  rv = rdfService->GetResource(NS_LITERAL_CSTRING("moz-abdirectory://"),
-                                     getter_AddRefs(resource));
-        NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIAbDirectory> topDirectory(do_QueryInterface(resource, &rv));
-        NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIAbDirectory> topDirectory;
+  rv = GetRootDirectory(getter_AddRefs(topDirectory));
 
   // now go through the address books
   nsCOMPtr<nsISimpleEnumerator> enumerator;
@@ -958,18 +988,12 @@ nsresult nsAbManager::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribute
     aResult += MSG_LINEBREAK;
   }
 
-  nsCOMPtr<nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
   nsCString mailListURI;
   rv = aCard->GetMailListURI(getter_Copies(mailListURI));
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr <nsIRDFResource> resource;
-  rv = rdfService->GetResource(mailListURI, getter_AddRefs(resource));
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  nsCOMPtr <nsIAbDirectory> mailList = do_QueryInterface(resource, &rv);
+  nsCOMPtr <nsIAbDirectory> mailList;
+  rv = GetDirectory(mailListURI, getter_AddRefs(mailList));
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCOMPtr<nsIMutableArray> addresses;

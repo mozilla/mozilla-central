@@ -43,7 +43,7 @@
 
 Components.utils.import("resource:///modules/mailServices.js");
 
-var gDirTree = 0;
+var gDirTree;
 var abList = 0;
 var gAbResultsTree = null;
 var gAbView = null;

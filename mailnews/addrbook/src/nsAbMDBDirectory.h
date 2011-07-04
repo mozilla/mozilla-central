@@ -52,7 +52,6 @@
 #include "nsIAbDirectorySearch.h"
 #include "nsIAbDirSearchListener.h"
 #include "nsInterfaceHashtable.h"
-#include "nsAbDirectoryRDFResource.h"
 #include "nsIAddrDBListener.h"
 
 /* 
@@ -60,7 +59,6 @@
  */ 
 
 class nsAbMDBDirectory:
-  public nsAbDirectoryRDFResource, 
   public nsAbMDBDirProperty,	// nsIAbDirectory, nsIAbMDBDirectory
   public nsIAbDirSearchListener,
   public nsIAddrDBListener, 
@@ -73,7 +71,7 @@ public:
   NS_DECL_ISUPPORTS_INHERITED
   NS_DECL_NSIADDRDBLISTENER
 
-  // Override nsAbDirectoryRDFResource::Init
+  // Override nsAbMDBDirProperty::Init
   NS_IMETHOD Init(const char *aUri);
 
   // nsIAbMDBDirectory methods
@@ -129,6 +127,7 @@ protected:
 
   PRInt32 mContext;
   PRBool mPerformingQuery;
+
   nsInterfaceHashtable<nsISupportsHashKey, nsIAbCard> mSearchCache;
 };
 

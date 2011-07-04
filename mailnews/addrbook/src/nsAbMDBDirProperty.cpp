@@ -38,10 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsAbMDBDirProperty.h"	 
-#include "nsIRDFService.h"
-#include "nsIRDFResource.h"
 #include "nsIServiceManager.h"
-#include "nsRDFCID.h"
 #include "nsStringGlue.h"
 #include "nsCOMPtr.h"
 #include "nsAbBaseCID.h"
@@ -53,6 +50,7 @@
 #include "nsComponentManagerUtils.h"
 
 nsAbMDBDirProperty::nsAbMDBDirProperty(void)
+  : nsAbDirProperty()
 {
   m_dbRowID = 0;
 }

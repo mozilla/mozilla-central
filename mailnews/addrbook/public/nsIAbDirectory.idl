@@ -45,10 +45,12 @@ interface nsISimpleEnumerator;
 interface nsIArray;
 interface nsIMutableArray;
 
+/* moz-abdirectory:// is the URI to access nsAbBSDirectory,
+ * which is the root directory for all types of address books
+ * this is used to get all address book directories. */
+
 %{C++
-/* RDF root for all types of address books */
-/* use this to get all directories, create new directory*/
-#define kAllDirectoryRoot          "moz-abdirectory://" 
+#define kAllDirectoryRoot          "moz-abdirectory://"
 
 #define kPersonalAddressbook       "abook.mab"
 #define kPersonalAddressbookUri    "moz-abmdbdirectory://abook.mab"
@@ -63,10 +65,21 @@ interface nsIMutableArray;
 /**
  * A top-level address book directory.
  *
+ * Please note that in order to be properly instantiated by nsIAbManager, every
+ * type of nsIAbDirectory must have a contract ID of the form:
+ *
+ * @mozilla.org/addressbook/directory;1?type=<AB URI Scheme>
+ *
+ * Where AB URI Scheme does not include the ://.  For example, for the Mork-based
+ * address book, the scheme is "moz-abmdbdirectory", so the contract ID for
+ * the Mork-based address book type is:
+ *
+ * @mozilla.org/addressbook/directory;1?type=moz-abmdbdirectory
+ *
  * The UUID of an nsIAbDirectory is its preference ID and its name, concatenated
  * together.
  */
-[scriptable, uuid(1f11f37e-7009-4a51-bbb1-041e9f75120a)]
+[scriptable, uuid(81927b85-11a2-4967-8c90-19ca600cedf0)]
 interface nsIAbDirectory : nsIAbCollection {
 
   /**
@@ -92,7 +105,7 @@ interface nsIAbDirectory : nsIAbCollection {
   // The filename for address books within this directory.
   readonly attribute ACString fileName;
 
-  // The RDF resource URI of the address book
+  // The URI of the address book
   readonly attribute ACString URI;
 
   // The position of the directory on the display.
@@ -119,6 +132,12 @@ interface nsIAbDirectory : nsIAbCollection {
    * was something like moz-abmdbdirectory://abook.mab?....
    */
   readonly attribute boolean isQuery;
+
+  /**
+   * Initializes a directory, pointing to a particular
+   * URI
+   */
+  void init(in string aURI);
 
   // Deletes either a mailing list or a top
   // level directory, which also updates the

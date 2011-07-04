@@ -39,10 +39,7 @@
 #include "nsAbOutlookDirFactory.h"
 #include "nsAbWinHelper.h"
 #include "nsIAbDirectory.h"
-
-#include "nsIRDFService.h"
-#include "nsIRDFResource.h"
-#include "nsRDFResource.h"
+#include "nsIAbManager.h"
 #include "nsEnumeratorUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "nsIMutableArray.h"
@@ -97,20 +94,21 @@ nsAbOutlookDirFactory::GetDirectories(const nsAString &aDirName,
   if (!mapiAddBook->IsOK() || !mapiAddBook->GetFolders(folders)) {
     return NS_ERROR_FAILURE;
   }
-  nsCOMPtr<nsIRDFService> rdf(do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv));
+
+  nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
   nsCAutoString entryId;
   nsCAutoString uri;
-  nsCOMPtr<nsIRDFResource> resource;
 
   for (ULONG i = 0; i < folders.mNbEntries; ++i) {
     folders.mEntries[i].ToString(entryId);
     buildAbWinUri(kOutlookDirectoryScheme, abType, uri);
     uri.Append(entryId);
 
-    rv = rdf->GetResource(uri, getter_AddRefs(resource));
+	nsCOMPtr<nsIAbDirectory> directory;
+	rv = abManager->GetDirectory(uri, getter_AddRefs(directory));
     NS_ENSURE_SUCCESS(rv, rv);
-    directories->AppendElement(resource, PR_FALSE);
+    directories->AppendElement(directory, PR_FALSE);
   }
   return NS_NewArrayEnumerator(aDirectories, directories);
 }

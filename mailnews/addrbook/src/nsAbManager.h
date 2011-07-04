@@ -43,8 +43,10 @@
 #include "nsCOMPtr.h"
 #include "nsICommandLineHandler.h"
 #include "nsIObserver.h"
+#include "nsInterfaceHashtable.h"
+#include "nsIAbDirFactoryService.h"
+#include "nsIAbDirectory.h"
 
-class nsIAbDirectory;
 class nsIAbLDAPAttributeMap;
 
 class nsAbManager : public nsIAbManager,
@@ -64,6 +66,7 @@ public:
   nsresult Init();
 
 private:
+  nsresult GetRootDirectory(nsIAbDirectory **aResult);
   nsresult ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const char *aDelim, PRUint32 aDelimLen, nsILocalFile *aLocalFile);
   nsresult ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *aLocalFile);
   nsresult AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttributeMap *aAttrMap, nsACString &aResult);
@@ -92,6 +95,7 @@ private:
 
   nsTObserverArray<abListener> mListeners;
   nsCOMPtr<nsIAbDirectory> mCacheTopLevelAb;
+  nsInterfaceHashtable<nsCStringHashKey, nsIAbDirectory> mAbStore;
 };
 
 #endif

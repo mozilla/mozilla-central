@@ -41,10 +41,7 @@
 
 #include "nsAbMDBDirFactory.h"
 #include "nsAbUtils.h"
-
-#include "nsIRDFService.h"
-#include "nsIRDFResource.h"
-#include "nsRDFResource.h"
+#include "nsString.h"
 #include "nsServiceManagerUtils.h"
 #include "nsILocalFile.h"
 #include "nsIAbManager.h"
@@ -76,20 +73,14 @@ NS_IMETHODIMP nsAbMDBDirFactory::GetDirectories(const nsAString &aDirName,
   
   nsresult rv;
 
-  nsCOMPtr<nsIRDFService> rdf = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIRDFResource> resource;
-  rv = rdf->GetResource(aURI, getter_AddRefs(resource));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
+  nsCOMPtr<nsIAbDirectory> directory;
+  rv = abManager->GetDirectory(aURI, getter_AddRefs(directory));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = directory->SetDirPrefId(aPrefName);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsILocalFile> dbPath;

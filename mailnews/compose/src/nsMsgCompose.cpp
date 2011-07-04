@@ -113,6 +113,7 @@
 #include "nsArrayUtils.h"
 #include "nsIMsgWindow.h"
 #include "nsITextToSubURI.h"
+#include "nsIAbManager.h"
 
 static void GetReplyHeaderInfo(PRInt32* reply_header_type,
                                nsString& reply_header_locale,
@@ -4471,7 +4472,6 @@ nsresult nsMsgCompose::AttachmentPrettyName(const nsACString & scheme, const cha
 }
 
 nsresult nsMsgCompose::GetABDirectories(const nsACString& aDirUri,
-                                        nsIRDFService *aRDFService,
                                         nsCOMArray<nsIAbDirectory> &aDirArray)
 {
   static PRBool collectedAddressbookFound;
@@ -4479,12 +4479,11 @@ nsresult nsMsgCompose::GetABDirectories(const nsACString& aDirUri,
     collectedAddressbookFound = PR_FALSE;
 
   nsresult rv;
-  nsCOMPtr<nsIRDFResource> resource;
-  rv = aRDFService->GetResource(aDirUri, getter_AddRefs(resource));
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // query interface
-  nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
+  nsCOMPtr<nsIAbDirectory> directory;
+  rv = abManager->GetDirectory(aDirUri, getter_AddRefs(directory));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISimpleEnumerator> subDirectories;
@@ -4530,7 +4529,7 @@ nsresult nsMsgCompose::GetABDirectories(const nsACString& aDirUri,
           }
 
           aDirArray.InsertObjectAt(directory, pos);
-          rv = GetABDirectories(uri, aRDFService, aDirArray);
+          rv = GetABDirectories(uri, aDirArray);
         }
       }
     }
@@ -4666,11 +4665,8 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
   nsCOMPtr<nsISupportsArray> mailListArray(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIRDFService> rdfService(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
   nsCOMArray<nsIAbDirectory> addrbookDirArray;
-  rv = GetABDirectories(NS_LITERAL_CSTRING(kAllDirectoryRoot), rdfService,
+  rv = GetABDirectories(NS_LITERAL_CSTRING(kAllDirectoryRoot),
                         addrbookDirArray);
   if (NS_SUCCEEDED(rv))
   {

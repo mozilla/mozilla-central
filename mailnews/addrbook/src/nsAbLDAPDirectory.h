@@ -40,7 +40,6 @@
 #ifndef nsAbLDAPDirectory_h__
 #define nsAbLDAPDirectory_h__
 
-#include "nsAbDirectoryRDFResource.h"
 #include "nsAbDirProperty.h"
 #include "nsAbLDAPDirectoryModify.h"
 #include "nsIAbDirectoryQuery.h"
@@ -52,7 +51,6 @@
 #include "mozilla/Mutex.h"
 
 class nsAbLDAPDirectory :
-  public nsAbDirectoryRDFResource,    // nsIRDFResource
   public nsAbDirProperty,             // nsIAbDirectory
   public nsAbLDAPDirectoryModify,
   public nsIAbDirectorySearch,

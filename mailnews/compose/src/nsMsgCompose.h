@@ -109,7 +109,6 @@ private:
   nsresult CreateMessage(const char * originalMsgURI, MSG_ComposeType type, nsIMsgCompFields* compFields);
   void CleanUpRecipients(nsString& recipients);
   nsresult GetABDirectories(const nsACString& aDirUri,
-                            nsIRDFService *aRDFService,
                             nsCOMArray<nsIAbDirectory> &aDirArray);
   nsresult BuildMailListArray(nsIAbDirectory* parentDir,
                               nsISupportsArray* array);

@@ -38,8 +38,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsAbMDBDirectory.h" 
-#include "nsIRDFService.h"
-#include "nsRDFCID.h"
 #include "nsStringGlue.h"
 #include "nsCOMPtr.h"
 #include "nsAbBaseCID.h"
@@ -66,7 +64,7 @@
 #include "nsUnicharUtils.h"
 
 nsAbMDBDirectory::nsAbMDBDirectory(void):
-     nsAbDirectoryRDFResource(),
+     nsAbMDBDirProperty(),
      mPerformingQuery(PR_FALSE)
 {
   mSearchCache.Init();
@@ -79,10 +77,8 @@ nsAbMDBDirectory::~nsAbMDBDirectory(void)
   }
 }
 
-NS_IMPL_ISUPPORTS_INHERITED6(nsAbMDBDirectory, nsAbDirectoryRDFResource,
-                             nsIAbDirectory, nsISupportsWeakReference,
+NS_IMPL_ISUPPORTS_INHERITED3(nsAbMDBDirectory, nsAbMDBDirProperty,
                              nsIAbDirSearchListener,
-                             nsIAbMDBDirectory,
                              nsIAbDirectorySearch,
                              nsIAddrDBListener)
 
@@ -157,7 +153,7 @@ NS_IMETHODIMP nsAbMDBDirectory::Init(const char *aUri)
                  "Error, Could not set m_DirPrefId in nsAbMDBDirectory::Init");
   }
 
-  return nsAbDirectoryRDFResource::Init(aUri);
+  return nsAbDirProperty::Init(aUri);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -345,14 +341,11 @@ NS_IMETHODIMP nsAbMDBDirectory::AddDirectory(const char *uriName, nsIAbDirectory
     return NS_ERROR_NOT_INITIALIZED;
 
   nsresult rv = NS_OK;
-  nsCOMPtr<nsIRDFService> rdf(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  nsCOMPtr<nsIRDFResource> res;
-  rv = rdf->GetResource(nsDependentCString(uriName), getter_AddRefs(res));
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(res, &rv));
+  nsCOMPtr<nsIAbDirectory> directory;
+  rv = abManager->GetDirectory(nsDependentCString(uriName), getter_AddRefs(directory));
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (mSubDirectories.IndexOf(directory) == -1)
@@ -483,11 +476,12 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
     rv = database->AddListener(this);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIRDFResource> resource;
-    rv = gRDFService->GetResource(mURINoQuery, getter_AddRefs(resource));
+    nsCOMPtr<nsIAbManager> abManager =
+        do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    
-    nsCOMPtr<nsIAbDirectory> directory = do_QueryInterface(resource, &rv);
+
+    nsCOMPtr<nsIAbDirectory> directory;
+    rv = abManager->GetDirectory(mURINoQuery, getter_AddRefs(directory));
     NS_ENSURE_SUCCESS(rv, rv);
 
     rv = directory->DeleteCards(aCards);
@@ -546,25 +540,21 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
           card->GetIsMailList(&bIsMailList);
           if (bIsMailList)
           {
-            //to do, get mailing list dir side uri and notify rdf to remove it
+            //to do, get mailing list dir side uri and notify nsIAbManager to remove it
             nsCAutoString listUri(mURI);
             listUri.AppendLiteral("/MailList");
             listUri.AppendInt(rowID);
             if (!listUri.IsEmpty())
             {
               nsresult rv = NS_OK;
-              nsCOMPtr<nsIRDFService> rdfService = 
-                       do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
 
-              if (NS_FAILED(rv))
-                return rv;
+              nsCOMPtr<nsIAbManager> abManager =
+                  do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
+              NS_ENSURE_SUCCESS(rv, rv);
 
-              nsCOMPtr<nsIRDFResource> listResource;
-              rv = rdfService->GetResource(listUri,
-                                           getter_AddRefs(listResource));
-              nsCOMPtr<nsIAbDirectory> listDir = do_QueryInterface(listResource, &rv);
-              if (NS_FAILED(rv))
-                return rv;
+              nsCOMPtr<nsIAbDirectory> listDir;
+              rv = abManager->GetDirectory(listUri, getter_AddRefs(listDir));
+              NS_ENSURE_SUCCESS(rv, rv);
 
               PRUint32 dirIndex;
               if (m_AddressList && NS_SUCCEEDED(m_AddressList->IndexOf(0, listDir, &dirIndex)))
@@ -945,12 +935,13 @@ NS_IMETHODIMP nsAbMDBDirectory::StartSearch()
   rv = arguments->SetQuerySubDirectories(PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // Get the directory without the query
-  nsCOMPtr<nsIRDFResource> resource;
-  rv = gRDFService->GetResource(mURINoQuery, getter_AddRefs(resource));
+  nsCOMPtr<nsIAbManager> abManager =
+      do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
+  // Get the directory without the query
+  nsCOMPtr<nsIAbDirectory> directory;
+  rv = abManager->GetDirectory(mURINoQuery, getter_AddRefs(directory));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Bug 280232 - something was causing continuous loops in searching. Add a
@@ -1022,7 +1013,7 @@ nsresult nsAbMDBDirectory::GetAbDatabase()
   if (m_IsMailList)
   {
     // Get the database of the parent directory.
-    nsCString parentURI(mURINoQuery);
+    nsCAutoString parentURI(mURINoQuery);
 
     PRInt32 pos = parentURI.RFindChar('/');
 
@@ -1032,15 +1023,15 @@ nsresult nsAbMDBDirectory::GetAbDatabase()
 
     parentURI = StringHead(parentURI, pos);
 
-    nsCOMPtr<nsIRDFService> rdfService =
-      do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
+    nsCOMPtr<nsIAbManager> abManager =
+        do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIRDFResource> resource;
-    rv = rdfService->GetResource(parentURI, getter_AddRefs(resource));
+    nsCOMPtr<nsIAbDirectory> directory;
+    rv = abManager->GetDirectory(parentURI, getter_AddRefs(directory));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIAbMDBDirectory> mdbDir(do_QueryInterface(resource, &rv));
+    nsCOMPtr<nsIAbMDBDirectory> mdbDir(do_QueryInterface(directory, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
 
     rv = mdbDir->GetDatabase(getter_AddRefs(mDatabase));

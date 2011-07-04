@@ -51,7 +51,7 @@ interface nsIAddrDatabase;
 [scriptable, uuid(744072be-1ba0-46bc-af24-46e22567a2ea)]
 interface nsIAbMDBDirectory : nsISupports {
 
-	// Creates an RDF directory component from the
+	// Creates a directory component from the
 	// uriName, adds it to its children and returns
 	// the component
 	nsIAbDirectory addDirectory(in string uriName);

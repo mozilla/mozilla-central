@@ -49,6 +49,12 @@
   "@mozilla.org/addressbook/directory-factory;1?name="
 
 //
+// The start of the contract ID for address book directory types
+//
+#define NS_AB_DIRECTORY_TYPE_CONTRACTID_PREFIX \
+  "@mozilla.org/addressbook/directory;1?type="
+
+//
 // nsAbManager
 //
 #define NS_ABMANAGER_CONTRACTID \
@@ -60,7 +66,7 @@
 #define NS_ABMANAGER_CID \
 { /* {ad81b321-8a8a-42ca-a508-fe659de84586} */ \
   0xad81b321, 0x8a8a, 0x42ca, \
-	{ 0xa5, 0x08, 0xfe, 0x65, 0x9d, 0x8e, 0x45, 0x86 }	\
+  {0xa5, 0x08, 0xfe, 0x65, 0x9d, 0x8e, 0x45, 0x86} \
 }
 
 //
@@ -69,58 +75,21 @@
 #define NS_ABCONTENTHANDLER_CID \
 { /* {a72ad552-0484-4b5f-8d45-2d79158d22e3} */ \
   0xa72ad552, 0x0484, 0x4b5f, \
-	{ 0x8d, 0x45, 0x2d, 0x79, 0x15, 0x8d, 0x22, 0xe3 }	\
+	{0x8d, 0x45, 0x2d, 0x79, 0x15, 0x8d, 0x22, 0xe3}	\
 }
 
-//
-// nsAbDirectoryDataSource
-//
-#define NS_ABDIRECTORYDATASOURCE_CONTRACTID \
-  NS_RDF_DATASOURCE_CONTRACTID_PREFIX "addressdirectory"
-
-#define NS_ABDIRECTORYDATASOURCE_CID			\
-{ /* 0A79186D-F754-11d2-A2DA-001083003D0C */		\
-    0xa79186d, 0xf754, 0x11d2,				\
-    {0xa2, 0xda, 0x0, 0x10, 0x83, 0x0, 0x3d, 0xc}	\
-}
 
 //
-// nsAbBSDirectory
+// nsAbBSDirectory - the root address book
 //
 #define NS_ABDIRECTORY_CONTRACTID \
-  NS_RDF_RESOURCE_FACTORY_CONTRACTID_PREFIX "moz-abdirectory"
+  NS_AB_DIRECTORY_TYPE_CONTRACTID_PREFIX "moz-abdirectory"
 
-#define NS_ABDIRECTORY_CID             	 			\
-{ /* {012D3C24-1DD2-11B2-BA79-B4AD359FC461}*/			\
-    	0x012D3C24, 0x1DD2, 0x11B2,				\
-	{0xBA, 0x79, 0xB4, 0xAD, 0x35, 0x9F, 0xC4, 0x61}	\
+#define NS_ABDIRECTORY_CID \
+{ /* {012D3C24-1DD2-11B2-BA79-B4AD359FC461}*/ \
+    0x012D3C24, 0x1DD2, 0x11B2, \
+    {0xBA, 0x79, 0xB4, 0xAD, 0x35, 0x9F, 0xC4, 0x61} \
 }
-
-
-//
-// nsAbMDBDirectory
-//
-#define NS_ABMDBDIRECTORY_CONTRACTID \
-  NS_RDF_RESOURCE_FACTORY_CONTRACTID_PREFIX "moz-abmdbdirectory"
-
-#define NS_ABMDBDIRECTORY_CID             		\
-{ /* {e618f894-1dd1-11b2-889c-9aaefaa90dde}*/		\
-    0xe618f894, 0x1dd1, 0x11b2,				\
-    {0x88, 0x9c, 0x9a, 0xae, 0xfa, 0xa9, 0x0d, 0xde}	\
-}
-
-//
-// nsAbMDBCard
-//
-#define NS_ABMDBCARD_CONTRACTID \
-  "@mozilla.org/addressbook/moz-abmdbcard;1"
-
-#define NS_ABMDBCARD_CID				\
-{ /* {f578a5d2-1dd1-11b2-8841-f45cc5e765f8} */		\
-    0xf578a5d2, 0x1dd1, 0x11b2,				\
-    {0x88, 0x41, 0xf4, 0x5c, 0xc5, 0xe7, 0x65, 0xf8}	\
-}
-
 
 
 //
@@ -217,8 +186,10 @@
 //
 // mdb directory factory
 //
+#define NS_ABMDBDIRECTORY "moz-abmdbdirectory"
+
 #define NS_ABMDBDIRFACTORY_CONTRACTID \
-  NS_AB_DIRECTORY_FACTORY_CONTRACTID_PREFIX "moz-abmdbdirectory"
+  NS_AB_DIRECTORY_FACTORY_CONTRACTID_PREFIX NS_ABMDBDIRECTORY
 
 #define NS_ABMDBDIRFACTORY_CID				\
 { /* {E1CB9C8A-722D-43E4-9D7B-7CCAE4B0338A}*/			\
@@ -226,12 +197,36 @@
 	{0x9D, 0x7B, 0x7C, 0xCA, 0xE4, 0xB0, 0x33, 0x8A}	\
 }
 
+//
+// nsAbMDBDirectory
+//
+#define NS_ABMDBDIRECTORY_CONTRACTID \
+  NS_AB_DIRECTORY_TYPE_CONTRACTID_PREFIX NS_ABMDBDIRECTORY
+
+#define NS_ABMDBDIRECTORY_CID \
+{ /* {e618f894-1dd1-11b2-889c-9aaefaa90dde}*/ \
+  0xe618f894, 0x1dd1, 0x11b2, \
+  {0x88, 0x9c, 0x9a, 0xae, 0xfa, 0xa9, 0x0d, 0xde} \
+}
+
+//
+// nsAbMDBCard
+//
+#define NS_ABMDBCARD_CONTRACTID \
+  "@mozilla.org/addressbook/moz-abmdbcard;1"
+
+#define NS_ABMDBCARD_CID				\
+{ /* {f578a5d2-1dd1-11b2-8841-f45cc5e765f8} */		\
+    0xf578a5d2, 0x1dd1, 0x11b2,				\
+    {0x88, 0x41, 0xf4, 0x5c, 0xc5, 0xe7, 0x65, 0xf8}	\
+}
+
 #ifdef XP_WIN
 //
 // nsAbOutlookDirectory
 //
 #define NS_ABOUTLOOKDIRECTORY_CONTRACTID \
-  NS_RDF_RESOURCE_FACTORY_CONTRACTID_PREFIX "moz-aboutlookdirectory"
+  NS_AB_DIRECTORY_TYPE_CONTRACTID_PREFIX "moz-aboutlookdirectory"
 
 #define NS_ABOUTLOOKDIRECTORY_CID                       \
 { /* {9cc57822-0599-4c47-a399-1c6fa185a05c}*/           \
@@ -297,7 +292,7 @@
 // nsAbLDAPDirectory
 //
 #define NS_ABLDAPDIRECTORY_CONTRACTID \
-  NS_RDF_RESOURCE_FACTORY_CONTRACTID_PREFIX "moz-abldapdirectory"
+  NS_AB_DIRECTORY_TYPE_CONTRACTID_PREFIX  "moz-abldapdirectory"
 
 #define NS_ABLDAPDIRECTORY_CID             			\
 { /* {783E2777-66D7-4826-9E4B-8AB58C228A52}*/			\
@@ -432,7 +427,7 @@
 #define NS_ABOSXCARD_PREFIX "moz-abosxcard"
 
 #define NS_ABOSXDIRECTORY_CONTRACTID \
-  NS_RDF_RESOURCE_FACTORY_CONTRACTID_PREFIX NS_ABOSXDIRECTORY_PREFIX
+  NS_AB_DIRECTORY_TYPE_CONTRACTID_PREFIX NS_ABOSXDIRECTORY_PREFIX
 
 #define NS_ABOSXDIRECTORY_CID                            \
 { /* {83781cc6-c682-11d6-bdeb-0005024967b8}*/            \
@@ -444,7 +439,7 @@
 // nsAbOSXCard
 //
 #define NS_ABOSXCARD_CONTRACTID \
-  NS_RDF_RESOURCE_FACTORY_CONTRACTID_PREFIX NS_ABOSXCARD_PREFIX
+  NS_AB_DIRECTORY_TYPE_CONTRACTID_PREFIX NS_ABOSXCARD_PREFIX
 
 #define NS_ABOSXCARD_CID                                 \
 { /* {89bbf582-c682-11d6-bc9d-0005024967b8}*/            \

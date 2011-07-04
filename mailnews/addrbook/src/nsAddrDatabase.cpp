@@ -43,17 +43,14 @@
 #include "nsAddrDatabase.h"
 #include "nsStringGlue.h"
 #include "nsAutoPtr.h"
-#include "nsRDFCID.h"
 #include "nsUnicharUtils.h"
 #include "nsAbBaseCID.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
-#include "nsRDFCID.h"
 #include "nsMsgUtils.h"
 #include "nsMorkCID.h"
 #include "nsIMdbFactoryFactory.h"
-#include "nsIRDFService.h"
 #include "nsIProxyObjectManager.h"
 #include "nsProxiedService.h"
 #include "prprf.h"
@@ -70,6 +67,7 @@
 #include "nsArrayEnumerator.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
+#include "nsIAbManager.h"
 
 #define ID_PAB_TABLE            1
 #define ID_DELETEDCARDS_TABLE           2
@@ -3197,45 +3195,49 @@ NS_IMETHODIMP nsAddrDatabase::GetCardsFromAttribute(nsIAbDirectory *aDirectory,
 
 NS_IMETHODIMP nsAddrDatabase::AddListDirNode(nsIMdbRow * listRow)
 {
-    nsresult rv = NS_OK;
+  nsresult rv = NS_OK;
 
-    static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
-    NS_WITH_PROXIED_SERVICE(nsIRDFService, rdfService, kRDFServiceCID,
-                            NS_PROXY_TO_MAIN_THREAD, &rv);
-    if (NS_SUCCEEDED(rv))
+  NS_WITH_PROXIED_SERVICE(nsIAbManager, abManager, NS_ABMANAGER_CONTRACTID,
+                          NS_PROXY_TO_MAIN_THREAD, &rv);
+
+  if (NS_SUCCEEDED(rv))
+  {
+    nsAutoString parentURI;
+    rv = m_dbName->GetLeafName(parentURI);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    parentURI.Replace(0, 0, NS_LITERAL_STRING(kMDBDirectoryRoot));
+
+    nsCOMPtr<nsIAbDirectory> parentDir;
+    rv = abManager->GetDirectory(NS_ConvertUTF16toUTF8(parentURI),
+                                 getter_AddRefs(parentDir));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr =
+        do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
+
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIAbDirectory> proxiedParentDir = nsnull;
+    rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+                                        NS_GET_IID( nsIAbDirectory),
+                                        parentDir,
+                                        NS_PROXY_SYNC | NS_PROXY_ALWAYS,
+                                        getter_AddRefs(proxiedParentDir));
+    if (proxiedParentDir)
     {
-        nsCOMPtr<nsIRDFResource>    parentResource;
-
-        nsAutoString parentURI;
-        rv = m_dbName->GetLeafName(parentURI);
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        parentURI.Replace(0, 0, NS_LITERAL_STRING(kMDBDirectoryRoot));
-
-        rv = rdfService->GetResource(NS_ConvertUTF16toUTF8(parentURI), getter_AddRefs(parentResource));
-        nsCOMPtr<nsIAbDirectory> parentDir;
-
-        nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
-        rv = proxyObjMgr->GetProxyForObject( NS_PROXY_TO_MAIN_THREAD,
-                                   NS_GET_IID( nsIAbDirectory),
-                                   parentResource,
-                                   NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                                   getter_AddRefs( parentDir));
-        if (parentDir)
-        {
-            m_dbDirectory = do_GetWeakReference(parentDir);
-            nsCOMPtr<nsIAbDirectory> mailList;
-            rv = CreateABList(listRow, getter_AddRefs(mailList));
-            if (mailList)
-            {
-                nsCOMPtr<nsIAbMDBDirectory> dbparentDir(do_QueryInterface(parentDir, &rv));
-                if(NS_SUCCEEDED(rv))
-                    dbparentDir->NotifyDirItemAdded(mailList);
-            }
-        }
+      m_dbDirectory = do_GetWeakReference(parentDir);
+      nsCOMPtr<nsIAbDirectory> mailList;
+      rv = CreateABList(listRow, getter_AddRefs(mailList));
+      if (mailList)
+      {
+        nsCOMPtr<nsIAbMDBDirectory> dbparentDir(do_QueryInterface(parentDir, &rv));
+        if(NS_SUCCEEDED(rv))
+          dbparentDir->NotifyDirItemAdded(mailList);
+      }
     }
-    return rv;
+  }
+  return rv;
 }
 
 NS_IMETHODIMP nsAddrDatabase::FindMailListbyUnicodeName(const PRUnichar *listName, PRBool *exist)

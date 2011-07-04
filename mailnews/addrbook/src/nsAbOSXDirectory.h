@@ -40,14 +40,17 @@
 #ifndef nsAbOSXDirectory_h___
 #define nsAbOSXDirectory_h___
 
+#include "nsISupports.h"
 #include "nsAbBaseCID.h"
-#include "nsAbDirectoryRDFResource.h"
 #include "nsAbDirProperty.h"
 #include "nsIAbDirectoryQuery.h"
 #include "nsIAbDirectorySearch.h"
 #include "nsIAbDirSearchListener.h"
 #include "nsIMutableArray.h"
+#include "nsInterfaceHashtable.h"
+#include "nsAbOSXCard.h"
 
+#include <CoreFoundation/CoreFoundation.h>
 class nsIAbManager;
 class nsIAbBooleanExpression;
 
@@ -74,23 +77,26 @@ public:
   virtual nsresult UnassertDirectory(nsIAbManager *aManager,
                                      nsIAbDirectory *aDirectory) = 0;
   virtual nsresult DeleteUid(const nsACString &aUid) = 0;
+  virtual nsresult GetURI(nsACString &aURI) = 0;
+  virtual nsresult Init(const char *aUri) = 0;
+  virtual nsresult GetCardByUri(const nsACString &aUri, nsIAbOSXCard **aResult) = 0;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIAbOSXDirectory, NS_IABOSXDIRECTORY_IID)
 
-class nsAbOSXDirectory : public nsAbDirectoryRDFResource,
-public nsAbDirProperty,
+class nsAbOSXDirectory : public nsAbDirProperty,
 public nsIAbDirSearchListener,
 public nsIAbOSXDirectory
 {
 public:
+  nsAbOSXDirectory();
   ~nsAbOSXDirectory();
   
   NS_DECL_ISUPPORTS_INHERITED
   NS_DECL_NSIABDIRSEARCHLISTENER
     
-    // nsAbDirectoryRDFResource method
-    NS_IMETHOD Init(const char *aUri);
+  // nsIAbOSXDirectory method
+  NS_IMETHOD Init(const char *aUri);
   
   // nsAbDirProperty methods
   NS_IMETHOD GetReadOnly(PRBool *aReadOnly);
@@ -126,6 +132,11 @@ public:
   nsresult Update();
 
   nsresult DeleteUid(const nsACString &aUid);
+
+  nsresult GetCardByUri(const nsACString &aUri, nsIAbOSXCard **aResult);
+
+  nsresult GetRootOSXDirectory(nsIAbOSXDirectory **aResult);
+
 private:
   nsresult FallbackSearch(nsIAbBooleanExpression *aExpression,
                           nsISimpleEnumerator **aCards);
@@ -141,6 +152,8 @@ private:
   // list of nsIAbCards here. nsIMutableArray is used, because then it is
   // interchangeable with m_AddressList.
   nsCOMPtr<nsIMutableArray> mCardList;
+  nsInterfaceHashtable<nsCStringHashKey, nsIAbOSXCard> mCardStore;
+  nsCOMPtr<nsIAbOSXDirectory> mCacheTopLevelOSXAb;
 };
 
 #endif // nsAbOSXDirectory_h___

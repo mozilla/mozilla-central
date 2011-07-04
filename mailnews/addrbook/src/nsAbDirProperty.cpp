@@ -46,14 +46,15 @@
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "prmem.h"
-#include "rdf.h"
 #include "nsIAbManager.h"
 
 // From nsDirPrefs
 #define kDefaultPosition 1
 
 nsAbDirProperty::nsAbDirProperty(void)
-  : m_LastModifiedDate(0)
+  : m_LastModifiedDate(0),
+    mIsValidURI(PR_FALSE),
+    mIsQueryURI(PR_FALSE)
 {
 	m_IsMailList = PR_FALSE;
 }
@@ -76,7 +77,7 @@ nsAbDirProperty::~nsAbDirProperty(void)
 }
 
 NS_IMPL_ISUPPORTS4(nsAbDirProperty, nsIAbDirectory, nsISupportsWeakReference,
-                   nsIAbCollection, nsIAbItem)
+                              nsIAbCollection, nsIAbItem)
 
 NS_IMETHODIMP nsAbDirProperty::GetUuid(nsACString &uuid)
 {
@@ -192,13 +193,9 @@ NS_IMETHODIMP nsAbDirProperty::GetPosition(PRInt32 *aPosition)
 
 NS_IMETHODIMP nsAbDirProperty::GetLastModifiedDate(PRUint32 *aLastModifiedDate)
 {
-	if (aLastModifiedDate)
-	{
-		*aLastModifiedDate = m_LastModifiedDate;
-		return NS_OK;
-	}
-	else
-		return NS_RDF_NO_VALUE;
+  NS_ENSURE_ARG_POINTER(aLastModifiedDate);
+  *aLastModifiedDate = m_LastModifiedDate;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbDirProperty::SetLastModifiedDate(PRUint32 aLastModifiedDate)
@@ -293,8 +290,25 @@ NS_IMETHODIMP nsAbDirProperty::GetIsQuery(PRBool *aResult)
   return NS_OK;
 }
 
-// nsIAbDirectory NOT IMPLEMENTED methods
+NS_IMETHODIMP
+nsAbDirProperty::Init(const char *aURI)
+{
+  mURINoQuery = aURI;
+  mURI = aURI;
+  mIsValidURI = PR_TRUE;
 
+  PRInt32 searchCharLocation = mURINoQuery.FindChar('?');
+  if (searchCharLocation >= 0)
+  {
+    mQueryString = Substring(mURINoQuery, searchCharLocation + 1);
+    mURINoQuery.SetLength(searchCharLocation);
+    mIsQueryURI = PR_TRUE;
+  }
+
+  return NS_OK;
+}
+
+// nsIAbDirectory NOT IMPLEMENTED methods
 NS_IMETHODIMP
 nsAbDirProperty::GetChildNodes(nsISimpleEnumerator **childList)
 { return NS_ERROR_NOT_IMPLEMENTED; }

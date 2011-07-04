@@ -38,7 +38,6 @@
 #ifndef nsAbOutlookDirectory_h___
 #define nsAbOutlookDirectory_h___
 
-#include "nsAbDirectoryRDFResource.h"
 #include "nsAbDirProperty.h"
 #include "nsIAbDirectoryQuery.h"
 #include "nsIAbDirectorySearch.h"
@@ -50,22 +49,21 @@
 
 struct nsMapiEntry ;
 
-class nsAbOutlookDirectory : public nsAbDirectoryRDFResource, // nsIRDFResource
-                             public nsAbDirProperty, // nsIAbDirectory
+class nsAbOutlookDirectory : public nsAbDirProperty, // nsIAbDirectory
                              public nsIAbDirectoryQuery,
                              public nsIAbDirectorySearch,
                              public nsIAbDirSearchListener,
                              public nsIAbDirectoryQueryResultListener
 {
 public:
-	NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_ISUPPORTS_INHERITED
   NS_DECL_NSIABDIRSEARCHLISTENER
   NS_DECL_NSIABDIRECTORYQUERYRESULTLISTENER
 
   nsAbOutlookDirectory(void);
   virtual ~nsAbOutlookDirectory(void);
-	
-	// nsAbDirProperty methods
+
+  // nsAbDirProperty methods
   NS_IMETHOD GetDirType(PRInt32 *aDirType);
   NS_IMETHOD GetURI(nsACString &aURI);
   NS_IMETHOD GetChildCards(nsISimpleEnumerator **aCards);
@@ -82,7 +80,7 @@ public:
   NS_IMETHOD AddMailList(nsIAbDirectory *aMailList);
   NS_IMETHOD EditMailListToDatabase(nsIAbCard *listCard);
   
-  // nsAbDirectoryRDFResource method
+  // nsAbDirProperty method
   NS_IMETHOD Init(const char *aUri);
   // nsIAbDirectoryQuery methods
   NS_DECL_NSIABDIRECTORYQUERY

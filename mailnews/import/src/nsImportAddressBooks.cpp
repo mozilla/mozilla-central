@@ -49,8 +49,6 @@
 #include "nsIAddrDatabase.h"
 #include "nsIAbManager.h"
 #include "nsIAbLDIFService.h"
-#include "nsIRDFService.h"
-#include "nsRDFCID.h"
 #include "nsAbBaseCID.h"
 #include "nsIStringBundle.h"
 #include "nsImportStringBundle.h"
@@ -62,8 +60,10 @@
 #include "nsIAbMDBDirectory.h"
 #include "nsComponentManagerUtils.h"
 #include "nsXPCOMCIDInternal.h"
+#include "nsISupportsArray.h"
+#include "nsProxiedService.h"
+#include "nsCOMArray.h"
 
-static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static void ImportAddressThread( void *stuff);
 
 
@@ -107,7 +107,8 @@ public:
 
 private:
   nsIImportAddressBooks *    m_pInterface;
-  nsISupportsArray *      m_pBooks;
+  nsISupportsArray *m_pBooks;
+  nsCOMArray<nsIAddrDatabase> m_DBs;
   nsCOMPtr <nsIFile>              m_pLocation;
   nsIImportFieldMap *      m_pFieldMap;
   PRBool            m_autoFind;
@@ -133,6 +134,7 @@ public:
   PRUint32          currentTotal;
   PRUint32          currentSize;
   nsISupportsArray *      books;
+  nsCOMArray<nsIAddrDatabase>* dBs;
   nsIAbLDIFService *ldifService;
   nsIImportAddressBooks *    addressImport;
   nsIImportFieldMap *      fieldMap;
@@ -532,6 +534,113 @@ void nsImportGenericAddressBooks::SetLogs( nsString& success, nsString& error, n
   }
 }
 
+already_AddRefed<nsIAddrDatabase> GetAddressBookFromUri(const char *pUri)
+{
+  if (!pUri)
+    return nsnull;
+
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID);
+  if (!abManager)
+    return nsnull;
+
+  nsCOMPtr<nsIAbDirectory> directory;
+  abManager->GetDirectory(nsDependentCString(pUri),
+                          getter_AddRefs(directory));
+  if (!directory)
+    return nsnull;
+
+  nsCOMPtr<nsIAbMDBDirectory> mdbDirectory = do_QueryInterface(directory);
+  if (!mdbDirectory)
+    return nsnull;
+
+  nsIAddrDatabase *pDatabase = nsnull;
+  mdbDirectory->GetDatabase(&pDatabase);
+  return pDatabase;
+}
+
+already_AddRefed<nsIAddrDatabase> GetAddressBook(const PRUnichar *name,
+                                                 PRBool makeNew)
+{
+  if (!makeNew) {
+    // FIXME: How do I get the list of address books and look for a
+    // specific name.  Major bogosity!
+    // For now, assume we didn't find anything with that name
+  }
+
+  IMPORT_LOG0( "In GetAddressBook\n");
+
+  nsresult rv;
+  nsIAddrDatabase *pDatabase = nsnull;
+  nsCOMPtr<nsILocalFile> dbPath;
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv))
+  {
+    /* Get the profile directory */
+    rv = abManager->GetUserProfileDirectory(getter_AddRefs(dbPath));
+    if (NS_SUCCEEDED(rv))
+    {
+      // Create a new address book file - we don't care what the file
+      // name is, as long as it's unique
+      rv = dbPath->Append(NS_LITERAL_STRING("impab.mab"));
+      if (NS_SUCCEEDED(rv))
+      {
+        rv = dbPath->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 0600);
+
+        if (NS_SUCCEEDED(rv))
+        {
+          IMPORT_LOG0( "Getting the address database factory\n");
+
+          nsCOMPtr<nsIAddrDatabase> addrDBFactory =
+            do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
+          if (NS_FAILED(rv))
+            return nsnull;
+
+          IMPORT_LOG0( "Opening the new address book\n");
+          rv = addrDBFactory->Open(dbPath, PR_TRUE, PR_TRUE,
+                                   &pDatabase);
+        }
+      }
+    }
+  }
+  if (NS_FAILED(rv))
+  {
+    IMPORT_LOG0( "Failed to get the user profile directory from the address book session\n");
+  }
+
+  if (pDatabase && dbPath)
+  {
+    // We made a database, add it to the UI?!?!?!?!?!?!
+    // This is major bogosity again!  Why doesn't the address book
+    // just handle this properly for me?  Uggggg...
+
+    nsCOMPtr<nsIAbDirectory> parentDir;
+    abManager->GetDirectory(NS_LITERAL_CSTRING(kAllDirectoryRoot),
+                            getter_AddRefs(parentDir));
+    if (parentDir)
+    {
+      nsCAutoString URI("moz-abmdbdirectory://");
+      nsCAutoString leafName;
+      rv = dbPath->GetNativeLeafName(leafName);
+      if (NS_FAILED(rv))
+        IMPORT_LOG0( "*** Error: Unable to get name of database file\n");
+      else
+      {
+        URI.Append(leafName);
+        rv = parentDir->CreateDirectoryByURI(nsDependentString(name), URI);
+        if (NS_FAILED(rv))
+          IMPORT_LOG0( "*** Error: Unable to create address book directory\n");
+      }
+    }
+
+    if (NS_SUCCEEDED(rv))
+      IMPORT_LOG0( "Added new address book to the UI\n");
+    else
+      IMPORT_LOG0( "*** Error: An error occurred while adding the address book to the UI\n");
+  }
+
+  return pDatabase;
+}
+
 NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, PRBool *_retval)
 {
   NS_PRECONDITION(_retval != nsnull, "null ptr");
@@ -595,6 +704,28 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
   NS_IF_ADDREF( m_pSuccessLog);
   if (m_pDestinationUri)
     m_pThreadData->pDestinationUri = strdup( m_pDestinationUri);
+
+  PRUint32 count = 0;
+  m_pBooks->Count(&count);
+  // Create/obtain any address books that we need here, so that we don't need
+  // to do so inside the import thread which would just proxy the create
+  // operations back to the main thread anyway.
+  nsCOMPtr<nsIAddrDatabase> db = GetAddressBookFromUri(m_pDestinationUri);
+  for (PRUint32 i = 0; i < count; ++i)
+  {
+    nsCOMPtr<nsIImportABDescriptor> book = do_QueryElementAt(m_pBooks, i);
+    if (book)
+    {
+      if (!db)
+      {
+        nsString name;
+        book->GetPreferredName(name);
+        db = GetAddressBook(name.get(), PR_TRUE);
+      }
+      m_DBs.AppendObject(db);
+    }
+  }
+  m_pThreadData->dBs = &m_DBs;
 
   NS_IF_ADDREF(m_pThreadData->stringBundle = m_stringBundle);
 
@@ -760,172 +891,6 @@ void AddressThreadData::DriverAbort()
 }
 
 
-already_AddRefed<nsIAddrDatabase> GetAddressBookFromUri(const char *pUri)
-{
-  nsIAddrDatabase *  pDatabase = nsnull;
-  if (pUri) {
-    nsresult rv;
-    nsCOMPtr<nsIProxyObjectManager> proxyObjectManager =
-      do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-    if (NS_FAILED(rv))
-      return nsnull;
-
-    nsCOMPtr<nsIRDFService> mainRdfService =
-      do_GetService(kRDFServiceCID, &rv);
-    if (NS_FAILED(rv))
-      return nsnull;
-
-    nsIRDFService *rdfService = nsnull;
-    rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                                               NS_GET_IID(nsIRDFService),
-                                               mainRdfService,
-                                               NS_PROXY_SYNC,
-                                               (void**)&rdfService);
-    if (NS_SUCCEEDED(rv) && rdfService)
-    {
-      nsCOMPtr<nsIRDFResource> resource;
-      rv = rdfService->GetResource(nsDependentCString(pUri),
-                                        getter_AddRefs(resource));
-      if (NS_SUCCEEDED(rv))
-      {
-        nsCOMPtr<nsIAbMDBDirectory> directory = do_QueryInterface(resource, &rv);
-        if (NS_SUCCEEDED(rv))
-          directory->GetDatabase(&pDatabase);
-      }
-    }
-  }
-
-  return pDatabase;
-}
-
-already_AddRefed<nsIAddrDatabase> GetAddressBook(const PRUnichar *name,
-                                                 PRBool makeNew)
-{
-  nsresult      rv = NS_OK;
-
-  if (!makeNew) {
-    // FIXME: How do I get the list of address books and look for a
-    // specific name.  Major bogosity!
-    // For now, assume we didn't find anything with that name
-  }
-
-  IMPORT_LOG0( "In GetAddressBook\n");
-
-  nsIAddrDatabase *  pDatabase = nsnull;
-
-  /* Get the profile directory */
-  nsCOMPtr<nsILocalFile> dbPath;
-
-  nsCOMPtr<nsIProxyObjectManager> proxyObjectManager =
-    do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-  if (NS_FAILED(rv))
-    return nsnull;
-
-  nsCOMPtr<nsIAbManager> abMan = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
-  if (NS_FAILED(rv))
-    return nsnull;
-
-  nsCOMPtr<nsIAbManager> abManager;
-  rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                                             NS_GET_IID(nsIAbManager),
-                                             abMan,
-                                             NS_PROXY_SYNC,
-                                             getter_AddRefs(abManager));
-
-  if (NS_SUCCEEDED(rv))
-    rv = abManager->GetUserProfileDirectory(getter_AddRefs(dbPath));
-  if (NS_SUCCEEDED(rv)) {
-    // Create a new address book file - we don't care what the file
-    // name is, as long as it's unique
-    rv = dbPath->Append(NS_LITERAL_STRING("impab.mab"));
-        if (NS_SUCCEEDED(rv)) {
-          rv = dbPath->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 0600);
-
-          if (NS_SUCCEEDED(rv)) {
-            IMPORT_LOG0( "Getting the address database factory\n");
-
-            nsCOMPtr<nsIAddrDatabase> addrDatabaseFactory =
-              do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
-            if (NS_FAILED(rv))
-              return nsnull;
-
-            nsCOMPtr<nsIAddrDatabase> addrDBFactory;
-            rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                                                       NS_GET_IID(nsIAddrDatabase),
-                                                       addrDatabaseFactory,
-                                                       NS_PROXY_SYNC,
-                                                       getter_AddRefs(addrDBFactory));
-            if (NS_SUCCEEDED(rv) && addrDBFactory) {
-              IMPORT_LOG0( "Opening the new address book\n");
-              nsCOMPtr<nsIAddrDatabase> nonProxyDatabase;
-              rv = addrDBFactory->Open(dbPath, PR_TRUE, PR_TRUE,
-                                       getter_AddRefs(nonProxyDatabase));
-              if (nonProxyDatabase)
-                rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                                                           NS_GET_IID(nsIAddrDatabase),
-                                                           nonProxyDatabase,
-                                                           NS_PROXY_SYNC,
-                                                           (void**)&pDatabase);
-                
-            }
-          }
-        }
-  }
-  if (NS_FAILED(rv)) {
-    IMPORT_LOG0( "Failed to get the user profile directory from the address book session\n");
-  }
-
-
-  if (pDatabase) {
-    // We made a database, add it to the UI?!?!?!?!?!?!
-    // This is major bogosity again!  Why doesn't the address book
-    // just handle this properly for me?  Uggggg...
-
-    nsCOMPtr<nsIAbDirectory> nonProxyParentDir;
-    abManager->GetDirectory(NS_LITERAL_CSTRING(kAllDirectoryRoot),
-                            getter_AddRefs(nonProxyParentDir));
-    nsCOMPtr<nsIAbDirectory> parentDir;
-    /*
-     * TODO
-     * This may not be required in the future since the
-     * primary listeners of the nsIAbDirectory will be
-     * RDF directory datasource which propagates events to
-     * RDF Observers. In the future the RDF directory datasource
-     * will proxy the observers because asynchronous directory
-     * implementations, such as LDAP, will assert results from
-     * a thread other than the UI thread.
-     *
-     */
-    rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                                               NS_GET_IID(nsIAbDirectory),
-                                               nonProxyParentDir,
-                                               NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                                               getter_AddRefs(parentDir));
-    if (parentDir)
-    {
-      nsCAutoString URI("moz-abmdbdirectory://");
-      nsCAutoString leafName;
-      rv = dbPath->GetNativeLeafName(leafName);
-      if (NS_FAILED(rv))
-        IMPORT_LOG0( "*** Error: Unable to get name of database file\n");
-      else
-      {
-        URI.Append(leafName);
-        rv = parentDir->CreateDirectoryByURI(nsDependentString(name), URI);
-        if (NS_FAILED(rv))
-          IMPORT_LOG0( "*** Error: Unable to create address book directory\n");
-      }
-    }
-
-    if (NS_SUCCEEDED(rv))
-      IMPORT_LOG0( "Added new address book to the UI\n");
-    else
-      IMPORT_LOG0( "*** Error: An error occurred while adding the address book to the UI\n");
-  }
-
-  return pDatabase;
-}
-
 void nsImportGenericAddressBooks::ReportError(const PRUnichar *pName,
                                               nsString *pStream,
                                               nsIStringBundle* aBundle)
@@ -948,12 +913,9 @@ static void ImportAddressThread( void *stuff)
   AddressThreadData *pData = (AddressThreadData *)stuff;
   PRUint32  count = 0;
   nsresult   rv = pData->books->Count( &count);
-
   PRUint32          i;
   PRBool            import;
   PRUint32          size;
-  nsCOMPtr<nsIAddrDatabase>  destDB( getter_AddRefs( GetAddressBookFromUri( pData->pDestinationUri)));
-  nsCOMPtr<nsIAddrDatabase> pDestDB;
 
   nsString          success;
   nsString          error;
@@ -979,12 +941,8 @@ static void ImportAddressThread( void *stuff)
       if (size && import) {
         nsString name;
         book->GetPreferredName(name);
-        if (destDB) {
-          pDestDB = destDB;
-        }
-        else {
-          pDestDB = GetAddressBook(name.get(), PR_TRUE);
-        }
+
+        nsCOMPtr<nsIAddrDatabase> db = pData->dBs->ObjectAt(i);
 
         nsCOMPtr<nsIProxyObjectManager> proxyObjectManager =
           do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
@@ -994,7 +952,7 @@ static void ImportAddressThread( void *stuff)
         nsCOMPtr<nsIAddrDatabase> proxyAddrDatabase;
         rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
                                                    NS_GET_IID(nsIAddrDatabase),
-                                                   pDestDB,
+                                                   db,
                                                    NS_PROXY_SYNC | NS_PROXY_ALWAYS,
                                                    getter_AddRefs(proxyAddrDatabase));
         if (NS_FAILED(rv))
@@ -1054,10 +1012,6 @@ static void ImportAddressThread( void *stuff)
           break;
         }
       }
-    }
-
-    if (destDB) {
-      destDB->Close( PR_TRUE);
     }
   }
 

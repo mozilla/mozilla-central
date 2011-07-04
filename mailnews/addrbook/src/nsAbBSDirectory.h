@@ -39,21 +39,21 @@
 #ifndef nsAbBSDirectory_h__
 #define nsAbBSDirectory_h__
 
-#include "nsRDFResource.h"
 #include "nsAbDirProperty.h"
 
 #include "nsDataHashtable.h"
 #include "nsCOMArray.h"
 
-class nsAbBSDirectory : public nsRDFResource, public nsAbDirProperty
+class nsAbBSDirectory : public nsAbDirProperty
 {
 public:
 	NS_DECL_ISUPPORTS_INHERITED
 
 	nsAbBSDirectory();
 	virtual ~nsAbBSDirectory();
-	
+
 	// nsIAbDirectory methods
+  NS_IMETHOD Init(const char *aURI);
 	NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result);
   NS_IMETHOD CreateNewDirectory(const nsAString &aDirName,
                                 const nsACString &aURI,
@@ -63,8 +63,9 @@ public:
   NS_IMETHOD CreateDirectoryByURI(const nsAString &aDisplayName,
                                   const nsACString &aURI);
   NS_IMETHOD DeleteDirectory(nsIAbDirectory *directory);
-	NS_IMETHOD HasDirectory(nsIAbDirectory *dir, PRBool *hasDir);
+  NS_IMETHOD HasDirectory(nsIAbDirectory *dir, PRBool *hasDir);
   NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, PRBool *aResult);
+  NS_IMETHOD GetURI(nsACString &aURI);
 
 protected:
   nsresult EnsureInitialized();

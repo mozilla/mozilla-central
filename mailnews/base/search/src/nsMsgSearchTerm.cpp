@@ -62,7 +62,6 @@
 #include "nsIPrefService.h"
 #include "nsIMsgFilterPlugin.h"
 #include "nsILocalFile.h"
-#include "nsIRDFService.h"
 #include "nsISupportsObsolete.h"
 #include "nsNetCID.h"
 #include "nsIFileStreams.h"
@@ -76,6 +75,8 @@
 #include "nsIMsgTagService.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIMsgFilterService.h"
+#include "nsAbBaseCID.h"
+#include "nsIAbManager.h"
 
 //---------------------------------------------------------------------------
 // nsMsgSearchTerm specifies one criterion, e.g. name contains phil
@@ -1031,14 +1032,10 @@ nsresult nsMsgSearchTerm::InitializeAddressBook()
   }
   if (!mDirectory)
   {
-    nsCOMPtr <nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1",&rv);
+    nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr <nsIRDFResource> resource;
-    rv = rdfService->GetResource(nsDependentCString(m_value.string), getter_AddRefs(resource));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    mDirectory = do_QueryInterface(resource, &rv);
+    rv = abManager->GetDirectory(nsDependentCString(m_value.string), getter_AddRefs(mDirectory));
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
