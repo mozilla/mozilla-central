@@ -516,3 +516,36 @@ function test_still_notify_with_unchanged_biff() {
 }
 test_still_notify_with_unchanged_biff.EXCLUDED_PLATFORMS = ['winnt', 'darwin'];
 
+/**
+ * Test that we don't receive notifications for Draft, Queue, SentMail,
+ * Templates or Junk folders.
+ */
+function test_no_notification_for_uninteresting_folders() {
+  var someFolder = create_folder("Uninteresting Folder");
+  var uninterestingFlags = [Ci.nsMsgFolderFlags.Drafts,
+                            Ci.nsMsgFolderFlags.Queue,
+                            Ci.nsMsgFolderFlags.SentMail,
+                            Ci.nsMsgFolderFlags.Templates,
+                            Ci.nsMsgFolderFlags.Junk,
+                            Ci.nsMsgFolderFlags.Archive];
+
+  for (var i = 0; i < uninterestingFlags.length; i++) {
+    someFolder.flags = uninterestingFlags[i];
+    make_gradually_newer_sets_in_folder(someFolder, [{count: 1}]);
+    assert_false(gMockAlertsService._didNotify,
+                "Showed alert notification.");
+  }
+
+  // However, we want to ensure that Inboxes *always* notify, even
+  // if they possess the flags we consider uninteresting.
+  someFolder.flags = Ci.nsMsgFolderFlags.Inbox;
+
+  for (var i = 0; i < uninterestingFlags.length; i++) {
+    someFolder.flags |= uninterestingFlags[i];
+    make_gradually_newer_sets_in_folder(someFolder, [{count: 1}]);
+    assert_true(gMockAlertsService._didNotify,
+                "Did not show alert notification.");
+    someFolder.flags = someFolder.flags & ~uninterestingFlags[i];
+  }
+}
+test_no_notification_for_uninteresting_folders.EXCLUDED_PLATFORMS = ['winnt', 'darwin'];

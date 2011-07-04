@@ -694,6 +694,23 @@ nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFold
       if (!msgFolder)
         continue;
 
+      PRUint32 flags;
+      rv = msgFolder->GetFlags(&flags);
+
+      if (NS_FAILED(rv))
+        continue;
+
+      // Unless we're dealing with an Inbox, we don't care
+      // about Drafts, Queue, SentMail, Template, or Junk folders
+      if (!(flags & nsMsgFolderFlags::Inbox) &&
+          (flags & nsMsgFolderFlags::Drafts ||
+           flags & nsMsgFolderFlags::Queue ||
+           flags & nsMsgFolderFlags::SentMail ||
+           flags & nsMsgFolderFlags::Templates ||
+           flags & nsMsgFolderFlags::Junk ||
+           flags & nsMsgFolderFlags::Archive))
+        continue;
+
       nsCString folderURI;
       msgFolder->GetURI(folderURI);
       PRBool hasNew = PR_FALSE;
