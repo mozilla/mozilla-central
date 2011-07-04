@@ -42,6 +42,10 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
+# Xcode 2.1 and newer puts its build products in a directory corresponding to
+# the selected build style/configuration.
+XCODE_PRODUCT_DIR = build/$(BUILDSTYLE)
+
 MODULE = mdimporter
 
 include $(topsrcdir)/config/rules.mk
