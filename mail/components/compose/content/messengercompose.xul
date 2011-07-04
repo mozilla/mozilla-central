@@ -763,9 +763,13 @@
                    ondraggesture="nsDragAndDrop.startDrag(event, attachmentBucketDNDObserver);"/>
         </vbox>
       </hbox>
-    </toolbar>   
+    </toolbar>
+  </toolbox>
 
-    <!-- These toolbar items get filled out from the editorOverlay -->
+  <splitter id="compose-toolbar-sizer" onmousedown="awSizerListen()"/>
+
+  <!-- These toolbar items get filled out from the editorOverlay -->
+  <toolbox id="FormatToolbox" mode="icons">
     <toolbar class="chromeclass-toolbar" id="FormatToolbar" persist="collapsed"
              customizable="true" nowindowdrag="true">
       <toolbaritem id="paragraph-select-container"/>
@@ -830,8 +834,6 @@
       <spacer flex="1"/>
     </toolbar>
   </toolbox>
-
-  <splitter id="compose-toolbar-sizer" onmousedown="awSizerListen()"/>
 
   <!-- The mail message body frame -->
   <vbox id="appcontent" flex="1">

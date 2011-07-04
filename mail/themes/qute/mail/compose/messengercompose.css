@@ -448,6 +448,14 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 
 /* ::::: format toolbar ::::: */
 
+#FormatToolbox {
+  border-top-width: 0;
+}
+
+#FormatToolbar {
+  border-top: 1px solid ThreeDHighlight !important;
+}
+
 toolbarbutton.formatting-button {
   list-style-image: url("chrome://messenger/skin/messengercompose/format-buttons.png");
 }

@@ -360,6 +360,10 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
   color: #888a85;
 }
 
+#appcontent {
+  border-top: 1px solid #cccccc;
+}
+
 /* ::::: attachment reminder ::::: */
 
 #attachmentNotificationBox > notification .messageImage {
@@ -386,10 +390,6 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 .listcell-icon {
   -moz-margin-start: 2px;
   margin-top: 2px;
-}
-
-#compose-toolbar-sizer {
-  border-bottom: 1px solid #cccccc;
 }
 
 #msgSubject {
@@ -500,7 +500,7 @@ treechildren::-moz-tree-image(remote-err) {
 #FormatToolbar {
   border-bottom: none;
   background-image: none;
-  padding-top: 5px;
+  padding-top: 2px;
 }
 
 toolbarbutton.formatting-button {
