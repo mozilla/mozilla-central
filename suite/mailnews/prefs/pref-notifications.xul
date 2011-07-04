@@ -120,20 +120,20 @@
                    flex="1"
                    preference="mail.biff.play_sound.url"
                    preference-editable="true"
-                   onsyncfrompreference="return document.getElementById('notifications_pane').ReadSoundLocation(this);"
+                   onsyncfrompreference="return WriteSoundField(this, document.getElementById('notifications_pane').gSoundUrlPref.value);"
                    aria-labelledby="custom"/>
         <hbox align="center">
           <button id="browse"
                   label="&browse.label;"
                   filepickertitle="&browse.title;"
                   accesskey="&browse.accesskey;"
-                  oncommand="SelectSound();">
+                  oncommand="SelectSound(gSoundUrlPref);">
             <observes element="mailnewsSoundFileUrl" attribute="disabled"/>
           </button>
           <button id="playButton"
                   label="&playButton.label;"
                   accesskey="&playButton.accesskey;"
-                  oncommand="PlaySound();">
+                  oncommand="PlaySound(gSoundUrlPref.value, true);">
             <observes element="mailnewsSoundFileUrl" attribute="disabled"/>
           </button>
         </hbox>

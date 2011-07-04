@@ -54,3 +54,51 @@ function EnableElement(aElement, aEnable, aFocus)
   if (enabled && aFocus)
     aElement.focus();
 }
+
+function WriteSoundField(aField, aValue)
+{
+  var file = GetFileFromString(aValue);
+  if (file)
+  {
+    aField.file = file;
+    aField.label = (/Mac/.test(navigator.platform)) ? file.leafName : file.path;
+  }
+}
+
+function SelectSound(aSoundUrlPref)
+{
+  const nsIFilePicker = Components.interfaces.nsIFilePicker;
+  var fp = Components.classes["@mozilla.org/filepicker;1"]
+                     .createInstance(nsIFilePicker);
+  var prefutilitiesBundle = document.getElementById("bundle_prefutilities");
+  fp.init(window, prefutilitiesBundle.getString("choosesound"),
+          nsIFilePicker.modeOpen);
+
+  var file = GetFileFromString(aSoundUrlPref.value);
+  if (file && file.parent && file.parent.exists())
+    fp.displayDirectory = file.parent;
+
+  var filterExts = "*.wav; *.wave";
+  // On Mac, allow AIFF files too.
+  if (/Mac/.test(navigator.platform))
+    filterExts += "; *.aif; *.aiff";
+  fp.appendFilter(prefutilitiesBundle.getString("SoundFiles"), filterExts);
+  fp.appendFilters(nsIFilePicker.filterAll);
+
+  if (fp.show() == nsIFilePicker.returnOK)
+    aSoundUrlPref.value = fp.fileURL.spec;
+}
+
+function PlaySound(aValue, aMail)
+{
+  const nsISound = Components.interfaces.nsISound;
+  var sound = Components.classes["@mozilla.org/sound;1"]
+                        .createInstance(nsISound);
+
+  if (aValue)
+    sound.play(Services.io.newURI(aValue, null, null));
+  else if (aMail && !/Mac/.test(navigator.platform))
+    sound.playEventSound(nsISound.EVENT_NEW_MAIL_RECEIVED);
+  else
+    sound.beep();
+}

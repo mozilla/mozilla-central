@@ -42,13 +42,14 @@ const kDesktop = 0;
 const kDownloads = 1;
 const kUserDir = 2;
 var gFPHandler;
+var gSoundUrlPref;
 
 function Startup()
 {
   // Define globals
   gFPHandler = Services.io.getProtocolHandler("file")
                           .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
-
+  gSoundUrlPref = document.getElementById("browser.download.finished_sound_url");
   SetSoundEnabled(document.getElementById("browser.download.finished_download_sound").value);
 
   // if we don't have the alert service, hide the pref UI for using alerts to
@@ -188,55 +189,4 @@ function SetSoundEnabled(aEnable)
 {
   EnableElementById("downloadSndURL", aEnable, false);
   document.getElementById("downloadSndPlay").disabled = !aEnable;
-}
-
-function BrowseSound()
-{
-  var pref = document.getElementById("browser.download.finished_sound_url");
-
-  const nsIFilePicker = Components.interfaces.nsIFilePicker;
-  const nsILocalFile = Components.interfaces.nsILocalFile;
-  var fp = Components.classes["@mozilla.org/filepicker;1"]
-                     .createInstance(nsIFilePicker);
-  var prefutilitiesBundle = document.getElementById("bundle_prefutilities");
-  var title = prefutilitiesBundle.getString("choosesound");
-  fp.init(window, title, nsIFilePicker.modeOpen);
-
-  if (pref.value)
-    fp.displayDirectory = gFPHandler.getFileFromURLSpec(pref.value)
-                                    .parent.QueryInterface(nsILocalFile);
-
-  var ftype = prefutilitiesBundle.getString("SoundFiles");
-  fp.appendFilter(ftype, "*.wav; *.wave");
-  fp.appendFilters(nsIFilePicker.filterAll);
-
-  if (fp.show() == nsIFilePicker.returnOK)
-    pref.value = fp.fileURL.spec;
-}
-
-function PlaySound()
-{
-  var pref = document.getElementById("browser.download.finished_sound_url");
-  var sound = Components.classes["@mozilla.org/sound;1"]
-                        .createInstance(Components.interfaces.nsISound);
-
-  if (pref.value)
-  {
-    var ioservice = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
-    sound.play(ioservice.newURI(pref.value, null, null));
-  }
-  else
-    sound.beep();
-}
-
-function ReadSndFile(aField)
-{
-  var pref = document.getElementById("browser.download.finished_sound_url");
-  if (pref.value)
-  {
-    var file = gFPHandler.getFileFromURLSpec(pref.value);
-    aField.file = file;
-    aField.label = (/Mac/.test(navigator.platform)) ? file.leafName : file.path;
-  }
 }

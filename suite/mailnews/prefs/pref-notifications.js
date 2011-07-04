@@ -38,11 +38,7 @@
 // The contents of this file will be loaded into the scope of the object
 // <prefpane id="notifications_pane">!
 
-const nsIFileProtocolHandler = Components.interfaces.nsIFileProtocolHandler;
-
-var gSound = null;
 var gSoundUrlPref = null;
-var gFileHandler = null;
 
 function Startup()
 {
@@ -56,8 +52,6 @@ function Startup()
   var newMailNotificationTrayIconPref = document.getElementById("newMailNotificationTrayIcon");
   newMailNotificationTrayIconPref.hidden = !/^Win/.test(navigator.platform);
 
-  gFileHandler = Services.io.getProtocolHandler("file")
-                            .QueryInterface(nsIFileProtocolHandler);
   gSoundUrlPref = document.getElementById("mail.biff.play_sound.url");
 
   PlaySoundCheck(document.getElementById("mail.biff.play_sound").value);
@@ -74,46 +68,4 @@ function PlaySoundCheck(aPlaySound)
 function EnableSoundURL(aEnable)
 {
   EnableElementById("mailnewsSoundFileUrl", aEnable, false);
-}
-
-function SelectSound()
-{
-  var prefBundle = document.getElementById("bundle_prefutilities");
-
-  var nsIFilePicker = Components.interfaces.nsIFilePicker;
-  var fp = Components.classes["@mozilla.org/filepicker;1"]
-                     .createInstance(nsIFilePicker);
-
-  fp.init(window, prefBundle.getString("choosesound"), nsIFilePicker.modeOpen);
-
-  if (gSoundUrlPref.value != "")
-    fp.displayDirectory = gFileHandler.getFileFromURLSpec(gSoundUrlPref.value).parent;
-
-  fp.appendFilter(prefBundle.getString("SoundFiles"), "*.wav; *.wave");
-  fp.appendFilters(nsIFilePicker.filterAll);
-
-  if (fp.show() == nsIFilePicker.returnOK)
-    gSoundUrlPref.value = fp.fileURL.spec;
-}
-
-function ReadSoundLocation(aElement)
-{
-  aElement.value = gSoundUrlPref.value;
-  if (aElement.value)
-    aElement.file = gFileHandler.getFileFromURLSpec(aElement.value);
-}
-
-function PlaySound()
-{
-  const nsISound = Components.interfaces.nsISound;
-  if (!gSound)
-    gSound = Components.classes["@mozilla.org/sound;1"]
-                       .createInstance(nsISound);
-  var soundURL = gSoundUrlPref.value;
-  if (soundURL)
-    gSound.play(Services.io.newURI(soundURL, null, null));
-  else if (/Mac/.test(navigator.platform))
-    gSound.beep();
-  else
-    gSound.playEventSound(nsISound.EVENT_NEW_MAIL_RECEIVED);
 }

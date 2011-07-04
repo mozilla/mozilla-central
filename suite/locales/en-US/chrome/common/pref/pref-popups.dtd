@@ -20,8 +20,6 @@
 <!ENTITY selectSound.accesskey          "o">
 <!ENTITY playSoundButton.label          "Play">
 <!ENTITY playSoundButton.accesskey      "l">
-<!ENTITY selectSound.title              "Select Popup Block Sound">
-<!ENTITY selectSound.filter             "Sounds">
 
 <!ENTITY displayIcon.label              "Display an icon in the browser status bar">
 <!ENTITY displayIcon.accesskey          "D">

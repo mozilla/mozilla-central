@@ -135,20 +135,18 @@
                    flex="1"
                    preference="privacy.popups.sound_url"
                    preference-editable="true"
-                   onsyncfrompreference="return document.getElementById('popups_pane').ReadSoundLocation(this);"
+                   onsyncfrompreference="return WriteSoundField(this, document.getElementById('popups_pane').gSoundUrlPref.value);"
                    aria-labelledby="popupCustomSound"/>
         <button id="selectSound"
                 label="&selectSound.label;"
                 accesskey="&selectSound.accesskey;"
                 preference="pref.advanced.popups.disable_button.select_sound"
-                filepickertitle="&selectSound.title;"
-                filepickerfilter="&selectSound.filter;"
-                oncommand="SelectSound();"/>
+                oncommand="SelectSound(gSoundUrlPref);"/>
         <button id="playSoundButton"
                 label="&playSoundButton.label;"
                 accesskey="&playSoundButton.accesskey;"
                 preference="pref.advanced.popups.disable_button.preview_sound"
-                oncommand="PlaySound();"/>
+                oncommand="PlaySound(gSoundUrlPref.value, false);"/>
       </hbox>
       <hbox>
         <checkbox id="displayIcon"

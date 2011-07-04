@@ -164,18 +164,18 @@
                    flex="1"
                    preference="browser.download.finished_sound_url"
                    preference-editable="true"
-                   onsyncfrompreference="return document.getElementById('download_pane').ReadSndFile(this);"/>
+                   onsyncfrompreference="return WriteSoundField(this, document.getElementById('download_pane').gSoundUrlPref.value);"/>
         <hbox align="center">
           <button id="downloadSndBrowse"
                   label="&browse.label;"
                   accesskey="&browse.accesskey;"
-                  oncommand="BrowseSound();">
+                  oncommand="SelectSound(gSoundUrlPref);">
             <observes element="downloadSndURL" attribute="disabled"/>
           </button>
           <button id="downloadSndPlay"
                   label="&playButton.label;"
                   accesskey="&playButton.accesskey;"
-                  oncommand="PlaySound();"/>
+                  oncommand="PlaySound(gSoundUrlPref.value, false);"/>
         </hbox>
       </hbox>
     </groupbox>

@@ -35,23 +35,11 @@
 *
 * ***** END LICENSE BLOCK ***** */
 
-const nsIFileProtocolHandler = Components.interfaces.nsIFileProtocolHandler;
-
 var gSoundUrlPref;
-var gSelectSound;
-
-var gIOService;
-var gFileHandler;
 
 function Startup()
 {
   gSoundUrlPref = document.getElementById("privacy.popups.sound_url");
-  gSelectSound = document.getElementById("selectSound");
-
-  gIOService = Components.classes["@mozilla.org/network/io-service;1"]
-                         .getService(Components.interfaces.nsIIOService);
-  gFileHandler = gIOService.getProtocolHandler("file")
-                           .QueryInterface(nsIFileProtocolHandler);
 
   SetLists();
 
@@ -141,45 +129,6 @@ function EnableSoundRadio(aSoundChecked)
 function EnableSoundUrl(aCustomSelected)
 {
   EnableElementById("playSoundUrl", aCustomSelected, false);
-  EnableElement(gSelectSound, aCustomSelected, false);
+  EnableElementById("selectSound", aCustomSelected, false);
   EnableElementById("playSoundButton", aCustomSelected, false);
-}
-
-function ReadSoundLocation(aElement)
-{
-  aElement.value = gSoundUrlPref.value;
-  if (aElement.value)
-    aElement.file = gFileHandler.getFileFromURLSpec(aElement.value);
-}
-
-function SelectSound()
-{
-  const nsILocalFile = Components.interfaces.nsILocalFile;
-  const nsIFilePicker = Components.interfaces.nsIFilePicker;
-  var filepicker = Components.classes["@mozilla.org/filepicker;1"]
-                             .createInstance(nsIFilePicker);
-
-  filepicker.init(window,
-                  gSelectSound.getAttribute("filepickertitle"),
-                  nsIFilePicker.modeOpen);
-  if (gSoundUrlPref.value)
-    filepicker.displayDirectory = gFileHandler.getFileFromURLSpec(gSoundUrlPref.value).parent;
-
-  filepicker.appendFilter(gSelectSound.getAttribute("filepickerfilter"),
-                          "*.wav; *.wave");
-  filepicker.appendFilters(nsIFilePicker.filterAll);
-
-  if (filepicker.show() == nsIFilePicker.returnOK)
-    gSoundUrlPref.value = filepicker.fileURL.spec;
-}
-
-function PlaySound()
-{
-  var soundUrl = gSoundUrlPref.value;
-  var sound = Components.classes["@mozilla.org/sound;1"]
-                        .createInstance(Components.interfaces.nsISound);
-  if (soundUrl)
-    sound.play(gIOService.newURI(soundUrl, null, null));
-  else
-    sound.beep();
 }
