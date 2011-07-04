@@ -2098,8 +2098,12 @@
                                                             event.clientY);
           if (!msgFolder || msgFolder.isServer)
             return false;
+
           var asyncResults = {};
-          return document.getAnonymousNodes(this)[0].parseFolder(msgFolder, null, asyncResults);
+          let newMessages = document.getAnonymousNodes(this)[0].parseFolder(msgFolder, null, asyncResults);
+          let addLocation = document.getAnonymousNodes(this)[0].addLocationInfo(msgFolder);
+
+          return newMessages || addLocation;
         ]]>
       </handler>
 
@@ -2123,21 +2127,11 @@
         <parameter name="aOutAsync"/>
         <body>
           <![CDATA[
-            // Use the full newsgroup name as tooltip for abbreviated newsgroups.
-            if ((aFolder.server instanceof Components.interfaces.nsINntpIncomingServer) &&
-                !(aFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) &&
-                aFolder.server.abbreviate) {
-
-              var msgPopup = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "label");
-              msgPopup.setAttribute("value", aFolder.name);
-              document.getAnonymousNodes(this)[0].appendChild(msgPopup);
-              return true;
-            }
-
-            // skip servers, Trash and Junk folders
+            // skip servers, Trash, Junk folders and newsgroups
             if (!aFolder || aFolder.isServer ||
                 aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Junk) ||
-                aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash))
+                aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash) ||
+                (aFolder.server instanceof Components.interfaces.nsINntpIncomingServer))
               return false;
             var pref = Components.classes["@mozilla.org/preferences-service;1"]
                                  .getService(Components.interfaces.nsIPrefBranch);
@@ -2245,6 +2239,40 @@
         </body>
       </method>
 
+      <method name="addLocationInfo">
+        <parameter name="aFolder"/>
+        <body>
+          <![CDATA[
+            // Use the full newsgroup name as tooltip for abbreviated newsgroups.
+            if ((aFolder.server instanceof Components.interfaces.nsINntpIncomingServer) &&
+                !(aFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) &&
+                aFolder.server.abbreviate) {
+
+              let loc = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "folderSummaryLocation");
+              loc.setAttribute("location", aFolder.name);
+              document.getAnonymousNodes(this)[0].appendChild(loc);
+              return true;
+            }
+
+            // Display location info for items in favorite folder pane mode.
+            if (gFolderTreeView.mode == "favorite") {
+              let loc = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "folderSummaryLocation");
+              let midPath = "";
+              let midFolder = aFolder.parent;
+              while (aFolder.server.rootFolder != midFolder) {
+                midPath = midFolder.name + " - " + midPath;
+                midFolder = midFolder.parent;
+              }
+              loc.setAttribute("location", aFolder.server.prettyName + " - " + midPath + aFolder.name);
+              document.getAnonymousNodes(this)[0].appendChild(loc);
+              return true;
+            }
+
+            return false;
+          ]]>
+        </body>
+      </method>
+
       <method name="clear">
         <body>
           <![CDATA[
@@ -2255,6 +2283,14 @@
         </body>
       </method>
     </implementation>
+  </binding>
+
+  <binding id="folderSummary-location">
+    <content>
+      <xul:hbox>
+        <xul:label anonid="location" xbl:inherits="value=location"/>
+      </xul:hbox>
+    </content>
   </binding>
 
   <binding id="folderSummary-message">

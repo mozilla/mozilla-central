@@ -1328,11 +1328,16 @@ let gFolderTreeView = {
 
         // There are no children in this view!
         // And we want to display the account name to distinguish folders w/
-        // the same name.
-        for each (let folder in faves) {
-          folder.__defineGetter__("children", function() []);
-          folder.addServerName = true;
+        // the same name. (only for folders with duplicated names)
+        let uniqueNames = new Object();
+        for each (let item in faves) {
+          item.__defineGetter__("children", function() []);
+          if (!uniqueNames[item._folder.abbreviatedName])
+            uniqueNames[item._folder.abbreviatedName] = 0;
+          uniqueNames[item._folder.abbreviatedName]++;
         }
+        for each (let item in faves)
+          item.addServerName = (uniqueNames[item._folder.abbreviatedName] > 1) ? true : false;
         sortFolderItems(faves);
         return faves;
       },
