@@ -357,10 +357,12 @@ var DefaultController =
             return false;
 
           // Check if we have a collapsed thread selected and are summarizing it.
-          // Also check that we're not displaying a message, which handles the
-          // case where we failed to summarize the selection and fell back to
-          // displaying a message.
-          if (!gMessageDisplay.singleMessageDisplay && command != "cmd_applyFiltersToSelection")
+          // If so, selectedIndices.length won't match numSelected. Also check
+          // that we're not displaying a message, which handles the case
+          // where we failed to summarize the selection and fell back to                  // displaying a message.
+          if (gFolderDisplay.selectedIndices.length != numSelected &&
+              command != "cmd_applyFiltersToSelection" &&
+              gDBView && gDBView.currentlyDisplayedMessage == nsMsgViewIndex_None)
             return false;
           if (command == "cmd_reply" || command == "button_reply" ||
               command == "cmd_replyall" ||command == "button_replyall")
