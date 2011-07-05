@@ -98,6 +98,7 @@ messenger.jar:
 *   content/messenger/baseMenuOverlay.xul           (content/baseMenuOverlay.xul)
     content/messenger/selectionsummaries.js         (content/selectionsummaries.js)
     content/messenger/multimessageview.css          (content/multimessageview.css)
+    content/messenger/multimessageview_print.css    (content/multimessageview_print.css)
     content/messenger/sharedsummary.css             (content/sharedsummary.css)
     content/messenger/multimessageview.xhtml        (content/multimessageview.xhtml)
     content/messenger/glodaFacetTab.js              (content/glodaFacetTab.js)
