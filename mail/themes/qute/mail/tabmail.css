@@ -180,6 +180,8 @@
 
 .tabmail-tabs:-moz-lwtheme {
   padding-top: 1px;
+  background-color: transparent;
+  background-image: none;
 }
 
 .tab-icon-image,
