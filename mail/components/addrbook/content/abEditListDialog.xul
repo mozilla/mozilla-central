@@ -59,21 +59,21 @@
   <script type="application/javascript" src="chrome://messenger/content/addressbook/abMailListDialog.js"/>
 
   <vbox id="editlist">
-    <hbox>
+    <hbox id="ListNameContainer" align="center">
       <spacer flex="1"/>
       <label control="ListName" value="&ListName.label;" accesskey="&ListName.accesskey;" class="CardEditLabel"/>
       <hbox class="CardEditWidth">
         <textbox id="ListName" flex="1"/>
       </hbox>
     </hbox>
-    <hbox>
+    <hbox id="ListNickNameContainer" align="center">
       <spacer flex="1"/>
       <label control="ListNickName" value="&ListNickName.label;" accesskey="&ListNickName.accesskey;" class="CardEditLabel"/>
       <hbox class="CardEditWidth">
         <textbox id="ListNickName" flex="1"/>
       </hbox>
     </hbox>
-    <hbox>
+    <hbox id="ListDescriptionContainer" align="center">
       <spacer flex="1"/>
       <label control="ListDescription" value="&ListDescription.label;" accesskey="&ListDescription.accesskey;" class="CardEditLabel"/>
       <hbox class="CardEditWidth">

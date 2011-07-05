@@ -357,9 +357,21 @@ function AbNewMessage()
     if (composeFields)
     {
       if (DirPaneHasFocus())
-        composeFields.to = GetSelectedAddressesFromDirTree();
+      {
+        var directory = gDirectoryTreeView.getDirectoryAtIndex(gDirTree.currentIndex);
+        if (directory && directory.isMailList &&
+            directory.getBoolValue("HidesRecipients", false))
+          // Bug 669301 (https://bugzilla.mozilla.org/show_bug.cgi?id=669301)
+          // We're using BCC right now to hide recipients from one another.
+          // We should probably use group syntax, but that's broken
+          // right now, so this will have to do.
+          composeFields.bcc = GetSelectedAddressesFromDirTree();
+        else
+          composeFields.to = GetSelectedAddressesFromDirTree();
+      }
       else
         composeFields.to = GetSelectedAddresses();
+
       params.composeFields = composeFields;
       msgComposeService.OpenComposeWindowWithParams(null, params);
     }
@@ -973,7 +985,8 @@ function saveStreamToFile(aIStream, aFile) {
  *
  * @return An nsIFile representation of the photo.
  */
-function savePhoto(aUri) {
+function storePhoto(aUri)
+{
   if (!aUri)
     return false;
 
@@ -1035,3 +1048,5 @@ function makePhotoFile(aDir, aExtension) {
   } while (newFile.exists());
   return newFile;
 }
+
+

@@ -92,7 +92,7 @@ public:
   NS_IMETHOD DeleteCards(nsIArray *cards);
   NS_IMETHOD HasCard(nsIAbCard *cards, PRBool *hasCard);
   NS_IMETHOD HasDirectory(nsIAbDirectory *dir, PRBool *hasDir);
-  NS_IMETHOD AddMailList(nsIAbDirectory *list);
+  NS_IMETHOD AddMailList(nsIAbDirectory *list, nsIAbDirectory **addedList);
   NS_IMETHOD AddCard(nsIAbCard *card, nsIAbCard **addedCard);
   NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
   NS_IMETHOD DropCard(nsIAbCard *card, PRBool needToCopyCard);

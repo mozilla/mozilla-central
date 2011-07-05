@@ -71,7 +71,7 @@
         <!-- This hbox contains two vboxes
              left: Name/Email, right: Phonenumbers -->
         <hbox>
-          <vbox> <!-- This box contains the Names and Emailnames -->
+          <vbox id="namesAndEmailAddresses"> <!-- This box contains the Names and Emailnames -->
 
             <!-- LOCALIZATION NOTE:
                  NameField1, NameField2, PhoneticField1, PhoneticField2
@@ -79,7 +79,7 @@
                  They are configurable in the .dtd file.
               -->
 
-            <hbox align="center">
+            <hbox id="NameField1Container" align="center">
               <spacer flex="1"/>
               <label control="&NameField1.id;" value="&NameField1.label;"
                      accesskey="&NameField1.accesskey;"/>
@@ -98,7 +98,7 @@
                 <textbox id="&PhoneticField1.id;" flex="1" hidden="true"/>
               </hbox>
             </hbox>
-            <hbox align="center">
+            <hbox id="NameField2Container" align="center">
               <spacer flex="1"/>
               <label control="&NameField2.id;" value="&NameField2.label;"
                      accesskey="&NameField2.accesskey;"/>
@@ -117,7 +117,7 @@
                 <textbox id="&PhoneticField2.id;" flex="1" hidden="true"/>
               </hbox>
             </hbox>
-            <hbox align="center">
+            <hbox id="DisplayNameContainer" align="center">
               <spacer flex="1"/>
               <label control="DisplayName" value="&DisplayName.label;"
                      accesskey="&DisplayName.accesskey;" />
@@ -126,7 +126,7 @@
                          oninput="DisplayNameChanged()"/>
               </hbox>
             </hbox>
-            <hbox align="center">
+            <hbox id="PreferDisplayNameContainer" align="center">
               <spacer flex="1"/>
               <hbox class="CardEditWidth">
                 <checkbox id="preferDisplayName"
@@ -135,7 +135,7 @@
               </hbox>
             </hbox>
 
-            <hbox id="nickNameContainer" align="center">
+            <hbox id="NickNameContainer" align="center">
               <spacer flex="1"/>
               <label control="NickName" value="&NickName.label;"
                      accesskey="&NickName.accesskey;"/>
@@ -143,7 +143,7 @@
                 <textbox id="NickName" flex="1"/>
               </hbox>
             </hbox>
-            <hbox align="center">
+            <hbox id="PrimaryEmailContainer" align="center">
               <spacer flex="1"/>
               <label control="PrimaryEmail" value="&PrimaryEmail.label;"
                      accesskey="&PrimaryEmail.accesskey;"/>
@@ -151,7 +151,7 @@
                 <textbox id="PrimaryEmail" flex="1" class="uri-element"/>
               </hbox>
             </hbox>
-            <hbox id="secondaryEmailContainer" align="center">
+            <hbox id="SecondaryEmailContainer" align="center">
               <spacer flex="1"/>
               <label control="SecondEmail" value="&SecondEmail.label;"
                      accesskey="&SecondEmail.accesskey;"/>
@@ -159,7 +159,7 @@
                 <textbox id="SecondEmail" flex="1" class="uri-element"/>
               </hbox>
             </hbox>
-            <hbox id="screenNameContainer" align="center">
+            <hbox id="ScreenNameContainer" align="center">
               <spacer flex="1"/>
               <label control="ScreenName" value="&ScreenName.label;"
                      accesskey="&ScreenName.accesskey;"/>
@@ -169,32 +169,32 @@
             </hbox>
           </vbox> <!-- End of Name/Email -->
           <!-- Phone Number section -->
-          <vbox>
-            <hbox align="center">
+          <vbox id="PhoneNumbers">
+            <hbox id="WorkPhoneContainer" align="center">
               <spacer flex="1"/>
               <label control="WorkPhone" value="&WorkPhone.label;"
                      accesskey="&WorkPhone.accesskey;" />
               <textbox id="WorkPhone" class="PhoneEditWidth"/>
             </hbox>
-            <hbox align="center">
+            <hbox id="HomePhoneContainer" align="center">
               <spacer flex="1"/>
               <label control="HomePhone" value="&HomePhone.label;"
                      accesskey="&HomePhone.accesskey;"/>
               <textbox id="HomePhone" class="PhoneEditWidth"/>
             </hbox>
-            <hbox align="center">
+            <hbox id="FaxNumberContainer" align="center">
               <spacer flex="1"/>
               <label control="FaxNumber" value="&FaxNumber.label;"
                      accesskey="&FaxNumber.accesskey;"/>
               <textbox id="FaxNumber" class="PhoneEditWidth"/>
             </hbox>
-            <hbox align="center">
+            <hbox id="PagerNumberContainer" align="center">
               <spacer flex="1"/>
               <label control="PagerNumber" value="&PagerNumber.label;"
                      accesskey="&PagerNumber.accesskey;"/>
               <textbox id="PagerNumber" class="PhoneEditWidth"/>
             </hbox>
-            <hbox align="center">
+            <hbox id="CellularNumberContainer" align="center">
               <spacer flex="1"/>
               <label control="CellularNumber" value="&CellularNumber.label;"
                      accesskey="&CellularNumber.accesskey;"/>
@@ -241,11 +241,11 @@
             <textbox id="HomeAddress2" flex="1"/>
           </hbox>
         </hbox>
-        <hbox align="center">
+        <hbox id="HomeCityContainer" align="center">
           <spacer flex="1"/>
           <label control="HomeCity" value="&HomeCity.label;"
                  accesskey="&HomeCity.accesskey;"/>
-          <hbox class="AddressCardEditWidth">
+          <hbox id="HomeCityFieldContainer" align="center" class="AddressCardEditWidth">
             <textbox id="HomeCity" flex="1"/>
           </hbox>
         </hbox>
@@ -269,7 +269,7 @@
             <textbox id="HomeCountry" flex="1"/>
           </hbox>
         </hbox>
-        <hbox align="center">
+        <hbox id="WebPage2Container" align="center">
           <spacer flex="1"/>
           <label control="WebPage2" value="&HomeWebPage.label;"
                  accesskey="&HomeWebPage.accesskey;"/>
@@ -299,7 +299,7 @@
 
       <!-- ** Business Address Tab ** -->
       <vbox id="abBusinessTab" >
-        <hbox align="center">
+        <hbox id="JobTitleDepartmentContainer" align="center">
           <spacer flex="1"/>
           <label control="JobTitle" value="&JobTitle.label;"
                  accesskey="&JobTitle.accesskey;"/>
@@ -310,7 +310,7 @@
             <textbox id="Department" flex="1"/>
           </hbox>
         </hbox>
-        <hbox align="center">
+        <hbox id="CompanyContainer" align="center">
           <spacer flex="1"/>
           <label control="Company" value="&Company.label;"
                  accesskey="&Company.accesskey;"/>
@@ -318,7 +318,7 @@
             <textbox id="Company" flex="1"/>
           </hbox>
         </hbox>
-        <hbox align="center">
+        <hbox id="WorkAddressContainer" align="center">
           <spacer flex="1"/>
           <label control="WorkAddress" value="&WorkAddress.label;"
                  accesskey="&WorkAddress.accesskey;"/>
@@ -326,7 +326,7 @@
             <textbox id="WorkAddress" flex="1"/>
           </hbox>
         </hbox>
-        <hbox align="center">
+        <hbox id="WorkAddress2Container" align="center">
           <spacer flex="1"/>
           <label control="WorkAddress2" value="&WorkAddress2.label;"
                  accesskey="&WorkAddress2.accesskey;"/>
@@ -334,15 +334,15 @@
             <textbox id="WorkAddress2" flex="1"/>
           </hbox>
         </hbox>
-        <hbox align="center">
+        <hbox id="WorkCityContainer" align="center">
           <spacer flex="1"/>
           <label control="WorkCity" value="&WorkCity.label;"
                  accesskey="&WorkCity.accesskey;"/>
-          <hbox class="AddressCardEditWidth">
+          <hbox id="WorkCityFieldContainer" class="AddressCardEditWidth" align="center">
             <textbox id="WorkCity" flex="1"/>
           </hbox>
         </hbox>
-        <hbox align="center">
+        <hbox id="WorkStateZipContainer" align="center">
           <spacer flex="1"/>
           <label control="WorkState" value="&WorkState.label;"
                  accesskey="&WorkState.accesskey;"/>
@@ -354,7 +354,7 @@
             <textbox id="WorkZipCode" class="ZipWidth"/>
           </hbox>
         </hbox>
-        <hbox align="center">
+        <hbox id="WorkCountryContainer" align="center">
           <spacer flex="1"/>
           <label control="WorkCountry" value="&WorkCountry.label;"
                  accesskey="&WorkCountry.accesskey;"/>
@@ -362,7 +362,7 @@
             <textbox id="WorkCountry" flex="1"/>
           </hbox>
         </hbox>
-        <hbox align="center">
+        <hbox id="WebPage1Container" align="center">
           <spacer flex="1"/>
           <label control="WebPage1" value="&WorkWebPage.label;"
                  accesskey="&WorkWebPage.accesskey;"/>
@@ -408,34 +408,42 @@
         </description>
         <groupbox flex="1">
           <caption label="&PhotoDesc.label;"/>
-          <radiogroup id="PhotoType" onselect="updatePhoto();">
-            <radio value="generic" label="&GenericPhoto.label;"
-                   accesskey="&GenericPhoto.accesskey;"/>
-            <menulist id="GenericPhotoList" class="indent" flex="1"
-                      oncommand="updatePhoto('generic');">
-              <menupopup>
-                <menuitem label="&DefaultPhoto.label;" selected="true"
-                          value="chrome://messenger/skin/addressbook/icons/contact-generic.png"
-                          image="chrome://messenger/skin/addressbook/icons/contact-generic-tiny.png"/>
-              </menupopup>
-            </menulist>
-            <radio value="file" label="&PhotoFile.label;"
-                   accesskey="&PhotoFile.accesskey;"/>
-            <hbox class="indent">
-              <filefield id="PhotoFile" maxlength="255" flex="1"/>
-              <button oncommand="browsePhoto();" id="BrowsePhoto"
-                      label="&BrowsePhoto.label;"
-                      accesskey="&BrowsePhoto.accesskey;"/>
-            </hbox>
-            <radio value="web" label="&PhotoURL.label;"
-                   accesskey="&PhotoURL.accesskey;"/>
-            <hbox class="indent">
-              <textbox id="PhotoURI" maxlength="255" flex="1"
-                       placeholder="&PhotoURL.placeholder;"/>
-              <button oncommand="updatePhoto('web');" id="UpdatePhoto"
-                      label="&UpdatePhoto.label;"
-                      accesskey="&UpdatePhoto.accesskey;"/>
-            </hbox>
+          <radiogroup id="PhotoType" onselect="onSwitchPhotoType();">
+              <vbox id="GenericPhotoContainer">
+                <radio id="GenericPhotoType" value="generic" label="&GenericPhoto.label;"
+                       accesskey="&GenericPhoto.accesskey;"/>
+                <menulist id="GenericPhotoList" class="indent" flex="1"
+                          oncommand="onSwitchPhotoType('generic');">
+                  <menupopup>
+                    <menuitem label="&DefaultPhoto.label;" selected="true"
+                              value="chrome://messenger/skin/addressbook/icons/contact-generic.png"
+                              image="chrome://messenger/skin/addressbook/icons/contact-generic-tiny.png"/>
+                  </menupopup>
+                </menulist>
+              </vbox>
+
+              <vbox id="FilePhotoContainer">
+                <radio id="FilePhotoType" value="file" label="&PhotoFile.label;"
+                       accesskey="&PhotoFile.accesskey;"/>
+                <hbox class="indent">
+                  <filefield id="PhotoFile" maxlength="255" flex="1"/>
+                   <button oncommand="browsePhoto();" id="BrowsePhoto"
+                          label="&BrowsePhoto.label;"
+                          accesskey="&BrowsePhoto.accesskey;"/>
+                </hbox>
+              </vbox>
+
+              <vbox id="WebPhotoContainer">
+                <radio id="WebPhotoType" value="web" label="&PhotoURL.label;"
+                       accesskey="&PhotoURL.accesskey;"/>
+                <hbox class="indent">
+                  <textbox id="PhotoURI" maxlength="255" flex="1"
+                           placeholder="&PhotoURL.placeholder;"/>
+                  <button oncommand="onSwitchPhotoType('web');" id="UpdatePhoto"
+                          label="&UpdatePhoto.label;"
+                          accesskey="&UpdatePhoto.accesskey;"/>
+                </hbox>
+              </vbox>
           </radiogroup>
         </groupbox>
       </hbox>

@@ -342,7 +342,7 @@ nsAbDirProperty::CreateDirectoryByURI(const nsAString &aDisplayName,
                                       const nsACString &aURI)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
-NS_IMETHODIMP nsAbDirProperty::AddMailList(nsIAbDirectory *list)
+NS_IMETHODIMP nsAbDirProperty::AddMailList(nsIAbDirectory *list, nsIAbDirectory **addedList)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
 NS_IMETHODIMP nsAbDirProperty::EditMailListToDatabase(nsIAbCard *listCard)

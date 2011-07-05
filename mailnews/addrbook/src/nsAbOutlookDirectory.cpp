@@ -427,11 +427,12 @@ NS_IMETHODIMP nsAbOutlookDirectory::DropCard(nsIAbCard *aData, PRBool needToCopy
     return AddCard(aData, getter_AddRefs(addedCard));
 }
 
-NS_IMETHODIMP nsAbOutlookDirectory::AddMailList(nsIAbDirectory *aMailList)
+NS_IMETHODIMP nsAbOutlookDirectory::AddMailList(nsIAbDirectory *aMailList, nsIAbDirectory **addedList)
 {
   if (mIsQueryURI)
     return NS_ERROR_NOT_IMPLEMENTED;
   NS_ENSURE_ARG_POINTER(aMailList);
+  NS_ENSURE_ARG_POINTER(addedList);
   if (m_IsMailList)
     return NS_OK;
   nsAbWinHelperGuard mapiAddBook (mAbWinType);
@@ -486,6 +487,8 @@ NS_IMETHODIMP nsAbOutlookDirectory::AddMailList(nsIAbDirectory *aMailList)
   }
   m_AddressList->AppendElement(newList, PR_FALSE);
   NotifyItemAddition(newList);
+  NS_IF_ADDREF(*addedList = newList);
+
   return rv;
 }
 

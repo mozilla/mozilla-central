@@ -52,6 +52,7 @@ var gMapItURLFormat = gPrefs.getComplexValue("mail.addr_book.mapit_url.format",
 
 var gIOService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
 var gFileHandler = gIOService.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+var gPhotoDisplayHandlers = {};
 
 var zListName;
 var zPrimaryEmail;
@@ -209,7 +210,7 @@ function DisplayCardViewPane(realCard)
   var visible;
 
   // Contact photo
-  cvData.cvPhoto.setAttribute("src", getPhotoURI(card.getProperty("PhotoName")));
+  displayPhoto(card, cvData.cvPhoto);
 
   var titleString;
   if (generatedName == "")
@@ -594,3 +595,59 @@ function openLink(id)
   return false;
 }
 
+/* Display the contact photo from the nsIAbCard in the IMG element.
+ * If the photo cannot be displayed, show the generic contact
+ * photo.
+ */
+function displayPhoto(aCard, aImg)
+{
+  var type = aCard.getProperty("PhotoType", "");
+  if (!gPhotoDisplayHandlers[type] ||
+      !gPhotoDisplayHandlers[type](aCard, aImg))
+    gPhotoDisplayHandlers["generic"](aCard, aImg);
+}
+
+/* In order to display the contact photos in the card view, there
+ * must be a registered photo display handler for the card photo
+ * type.  The generic, file, and web photo types are handled
+ * by default.
+ *
+ * A photo display handler is a function that behaves as follows:
+ *
+ * function(aCard, aImg):
+ *    The function is responsible for determining how to retrieve
+ *    the photo from nsIAbCard aCard, and for displaying it in img
+ *    img element aImg.  Returns true if successful.  If it returns
+ *    false, the generic photo display handler will be called.
+ *
+ * The following display handlers are for the generic, file and
+ * web photo types.
+ */
+
+var genericPhotoDisplayHandler = function(aCard, aImg)
+{
+  aImg.setAttribute("src", defaultPhotoURI);
+  return true;
+}
+
+var photoNameDisplayHandler = function(aCard, aImg)
+{
+  var photoSrc = getPhotoURI(aCard.getProperty("PhotoName"));
+  aImg.setAttribute("src", photoSrc);
+  return true;
+}
+
+/* In order for a photo display handler to be registered for
+ * a particular photo type, it must be registered here.
+ */
+function registerPhotoDisplayHandler(aType, aPhotoDisplayHandler)
+{
+  if (!gPhotoDisplayHandlers[aType])
+    gPhotoDisplayHandlers[aType] = aPhotoDisplayHandler;
+}
+
+registerPhotoDisplayHandler("generic", genericPhotoDisplayHandler);
+// File and Web are treated the same, and therefore use the
+// same handler.
+registerPhotoDisplayHandler("file", photoNameDisplayHandler);
+registerPhotoDisplayHandler("web", photoNameDisplayHandler);

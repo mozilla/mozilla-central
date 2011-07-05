@@ -79,7 +79,7 @@ interface nsIMutableArray;
  * The UUID of an nsIAbDirectory is its preference ID and its name, concatenated
  * together.
  */
-[scriptable, uuid(81927b85-11a2-4967-8c90-19ca600cedf0)]
+[scriptable, uuid(72dc868b-db5b-4daa-b6c6-071be4a05d02)]
 interface nsIAbDirectory : nsIAbCollection {
 
   /**
@@ -218,8 +218,9 @@ interface nsIAbDirectory : nsIAbCollection {
    * for top-level directories.
    *
    * @param  list  The new mailing list to add.
+   * @return The mailing list directory added, which may have been modified.
    */
-  void addMailList(in nsIAbDirectory list);
+  nsIAbDirectory addMailList(in nsIAbDirectory list);
 
   /**
    * Nick Name of the mailing list. This attribute is only really used when
@@ -296,6 +297,15 @@ interface nsIAbDirectory : nsIAbCollection {
   //@}
 
   /**
+   * The following attributes are read from an nsIAbDirectory via the above methods:
+   *
+   * HidesRecipients (Boolean)
+   *    If true, and this nsIAbDirectory is a mailing list, then when sending mail to
+   *    this list, recipients addresses will be hidden from one another by sending
+   *    via BCC.
+   */
+
+  /**
    * @name  setXXXValue
    *
    * Helper functions to set different types of pref values.
@@ -314,4 +324,5 @@ interface nsIAbDirectory : nsIAbCollection {
   void setStringValue(in string aName, in ACString aValue);
   void setLocalizedStringValue(in string aName, in AUTF8String aValue);
   //@}
+
 };

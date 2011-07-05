@@ -626,8 +626,10 @@ NS_IMETHODIMP nsAbMDBDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir
   return rv;
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::AddMailList(nsIAbDirectory *list)
+NS_IMETHODIMP nsAbMDBDirectory::AddMailList(nsIAbDirectory *list, nsIAbDirectory **addedList)
 {
+  NS_ENSURE_ARG_POINTER(addedList);
+
   if (mIsQueryURI)
     return NS_ERROR_NOT_IMPLEMENTED;
 
@@ -677,6 +679,7 @@ NS_IMETHODIMP nsAbMDBDirectory::AddMailList(nsIAbDirectory *list)
     NotifyItemAdded(newList);
   }
 
+  NS_IF_ADDREF(*addedList = newList);
   return rv;
 }
 

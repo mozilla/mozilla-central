@@ -70,6 +70,7 @@
 #include "nsIAbDirFactory.h"
 #include "nsComponentManagerUtils.h"
 #include "nsIIOService.h"
+#include "nsAbQueryStringToExpression.h"
 
 struct ExportAttributesTableStruct
 {
@@ -1278,4 +1279,12 @@ nsAbManager::GenerateUUID(const nsACString &aDirectoryId,
   uuid.Append('#');
   uuid.Append(aLocalId);
   return NS_OK;
+}
+
+NS_IMETHODIMP
+nsAbManager::ConvertQueryStringToExpression(const char *aQueryString,
+                                            nsIAbBooleanExpression **_retval)
+{
+  NS_ENSURE_ARG_POINTER(_retval);
+  return nsAbQueryStringToExpression::Convert(aQueryString, _retval);
 }

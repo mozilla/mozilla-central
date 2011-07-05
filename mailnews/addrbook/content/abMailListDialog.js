@@ -43,6 +43,8 @@ var gEditList;
 var oldListName = "";
 var gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
 var gHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
+var gLoadListeners = [];
+var gSaveListeners = [];
 
 try
 {
@@ -191,9 +193,11 @@ function MailListOKButton()
     var mailList = Components.classes["@mozilla.org/addressbook/directoryproperty;1"].createInstance();
     mailList = mailList.QueryInterface(Components.interfaces.nsIAbDirectory);
 
-    if (GetListValue(mailList, true)) {
-       var parentDirectory = GetDirectoryFromURI(uri);
-       parentDirectory.addMailList(mailList);
+    if (GetListValue(mailList, true))
+    {
+      var parentDirectory = GetDirectoryFromURI(uri);
+      mailList = parentDirectory.addMailList(mailList);
+      NotifySaveListeners(mailList);
     }
     else
       return false;
@@ -244,6 +248,8 @@ function OnLoadNewMailList()
   var listName = document.getElementById('ListName');
   if ( listName )
     setTimeout( function(firstTextBox) { firstTextBox.focus(); }, 0, listName );
+
+  NotifyLoadListeners(directory);
 }
 
 function EditListOKButton()
@@ -259,6 +265,7 @@ function EditListOKButton()
       gListCard.setProperty("Notes", gEditList.description);
     }
 
+    NotifySaveListeners(gEditList);
     gEditList.editMailListToDatabase(gListCard);
 
     return true;  // close the window
@@ -328,6 +335,7 @@ function OnLoadEditList()
   // the first row then appears to be duplicated at the end although it is actually empty.
   // see awAppendNewRow which copies first row and clears it
   setTimeout(AppendLastRow, 0);
+  NotifyLoadListeners(gEditList);
 }
 
 function AppendLastRow()
@@ -566,3 +574,60 @@ function DropListAddress(target, address)
     lastInput.value = address;
     awAppendNewRow(true);
 }
+
+/* Allows extensions to register a listener function for
+ * when a mailing list is loaded.  The listener function
+ * should take two parameters - the first being the
+ * mailing list being loaded, the second one being the
+ * current window document.
+ */
+function RegisterLoadListener(aListener)
+{
+  gLoadListeners.push(aListener);
+}
+
+/* Allows extensions to unload a load listener function.
+ */
+function UnregisterLoadListener(aListener)
+{
+  var fIndex = gLoadListeners.indexOf(aListener);
+  if (fIndex != -1)
+    gLoadListeners.splice(fIndex, 1);
+}
+
+/* Allows extensions to register a listener function for
+ * when a mailing list is saved.  Like a load listener,
+ * the save listener should take two parameters: the first
+ * being a copy of the mailing list that is being saved,
+ * and the second being the current window document.
+ */
+function RegisterSaveListener(aListener)
+{
+  gSaveListeners.push(aListener);
+}
+
+/* Allows extensions to unload a save listener function.
+ */
+function UnregisterSaveListener(aListener)
+{
+  var fIndex = gSaveListeners.indexOf(aListener);
+  if (fIndex != -1)
+    gSaveListeners.splice(fIndex, 1);
+}
+
+/* Notifies all load listeners.
+ */
+function NotifyLoadListeners(aMailingList)
+{
+  for (let i = 0; i < gLoadListeners.length; i++)
+    gLoadListeners[i](aMailingList, document);
+}
+
+/* Notifies all save listeners.
+ */
+function NotifySaveListeners(aMailingList)
+{
+  for (let i = 0; i < gSaveListeners.length; i++)
+    gSaveListeners[i](aMailingList, document);
+}
+

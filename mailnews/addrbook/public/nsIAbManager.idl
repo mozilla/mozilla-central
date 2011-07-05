@@ -44,6 +44,7 @@ interface nsIAbCard;
 interface nsIAbDirectoryProperties;
 interface nsILocalFile;
 interface nsISimpleEnumerator;
+interface nsIAbBooleanExpression;
 
 /**
  * nsIAbManager is an interface to the main address book mananger
@@ -52,7 +53,7 @@ interface nsISimpleEnumerator;
  * It contains the main functions to create and delete address books as well
  * as some helper functions.
  */
-[scriptable, uuid(549bf1f6-ada4-40c5-9f59-4ea9eda4a935)]
+[scriptable, uuid(479919a2-c5f9-4d84-af87-f99c4ecb7f5e)]
 interface nsIAbManager : nsISupports 
 {
   /**
@@ -200,4 +201,14 @@ interface nsIAbManager : nsISupports
    * @return            A string to use for the UUID.
    */
   AUTF8String generateUUID(in AUTF8String directoryId, in AUTF8String localId);
+
+
+  /**
+   * A utility function that converts an nsIAbDirectory query string to an
+   * nsIAbBooleanExpression.
+   *
+   * @param aQueryString The nsIAbDirectory query string
+   * @return an nsIAbBooleanExpression for the query string
+   */
+  nsIAbBooleanExpression convertQueryStringToExpression(in string aQueryString);
 };

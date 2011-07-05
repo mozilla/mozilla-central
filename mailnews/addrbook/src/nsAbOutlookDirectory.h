@@ -77,7 +77,7 @@ public:
   NS_IMETHOD AddCard(nsIAbCard *aData, nsIAbCard **addedCard);
   NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
   NS_IMETHOD DropCard(nsIAbCard *aData, PRBool needToCopyCard);
-  NS_IMETHOD AddMailList(nsIAbDirectory *aMailList);
+  NS_IMETHOD AddMailList(nsIAbDirectory *aMailList, nsIAbDirectory **addedList);
   NS_IMETHOD EditMailListToDatabase(nsIAbCard *listCard);
   
   // nsAbDirProperty method
