@@ -83,8 +83,6 @@ static const wchar_t *sMonths[12] = {
   L"Jan", L"Feb", L"Mar", L"Apr", L"May", L"Jun", L"Jul", L"Aug", L"Sep", L"Oct", L"Nov", L"Dec"
 };
 
-const nsCString CMapiMessage::m_whitespace(kWhitespace);
-
 CMapiMessage::CMapiMessage( LPMESSAGE lpMsg)
   : m_lpMsg(lpMsg), m_pIOService(0), m_dldStateHeadersOnly(false), m_msgFlags(0)
 {

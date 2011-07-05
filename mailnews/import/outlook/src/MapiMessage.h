@@ -296,7 +296,8 @@ private:
   void    FormatDateTime( SYSTEMTIME & tm, nsString& s, bool includeTZ = true);
   void    BuildFromLine( void);
 
-  inline static bool IsSpace( char c) { return( m_whitespace.FindChar( c) != -1);}
+  inline static bool IsSpace( char c) {
+    return c == ' ' || c == '\r' || c == '\n' || c == '\b' || c == '\t';}
   inline static bool IsSpace( wchar_t c) { 
     return ((c & 0xFF) == c) && IsSpace(static_cast<char>(c)); } // Avoid false detections
 };
