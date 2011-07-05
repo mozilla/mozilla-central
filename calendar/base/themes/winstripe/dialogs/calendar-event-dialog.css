@@ -61,13 +61,13 @@ label.label {
 #keepduration-button {
     list-style-image: url(chrome://calendar/skin/event-dialog-keepduration-button.png);
     -moz-image-region: rect(0px 14px 24px 7px);
-    padding: 3px;
-    -moz-padding-start: 6px;
-    -moz-padding-end: 6px;
+    padding-top: 3px;
+    padding-bottom: 3px;
     -moz-margin-start: -3px;
     margin-bottom: -15px;
     position: relative;
     -moz-user-focus: normal;
+    min-width: 21px; 
 }
 
 #keepduration-button[keep="true"] {
@@ -106,7 +106,7 @@ label.label {
 }
 
 #timezone-endtime {
-    -moz-margin-start: 15px;
+    -moz-margin-start: 16px;
 }
 
 /*--------------------------------------------------------------------

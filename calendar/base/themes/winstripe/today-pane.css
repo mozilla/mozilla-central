@@ -99,6 +99,7 @@
 .miniday-nav-buttons {
   margin-top: 2px;
   list-style-image: url("chrome://calendar/skin/widgets/nav-buttons.png");
+  min-width: 19px;
 }
 
 #previous-day-button,
