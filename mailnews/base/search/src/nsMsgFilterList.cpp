@@ -318,8 +318,7 @@ nsMsgFilterList::ApplyFiltersToHdr(nsMsgFilterTypeType filterType,
                                    const char*headers,
                                    PRUint32 headersSize,
                                    nsIMsgFilterHitNotify *listener,
-                                   nsIMsgWindow *msgWindow,
-                                   nsILocalFile *aMessageFile)
+                                   nsIMsgWindow *msgWindow)
 {
   nsCOMPtr <nsIMsgFilter>  filter;
   PRUint32    filterCount = 0;
@@ -329,8 +328,6 @@ nsMsgFilterList::ApplyFiltersToHdr(nsMsgFilterTypeType filterType,
   nsMsgSearchScopeTerm* scope = new nsMsgSearchScopeTerm(nsnull, nsMsgSearchScope::offlineMail, folder);
   scope->AddRef();
   if (!scope) return NS_ERROR_OUT_OF_MEMORY;
-  if (aMessageFile)
-    scope->m_localFile = aMessageFile;
 
   for (PRUint32 filterIndex = 0; filterIndex < filterCount; filterIndex++)
   {

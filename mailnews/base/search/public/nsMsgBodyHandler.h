@@ -4,6 +4,8 @@
 
 #include "nsIMsgSearchScopeTerm.h"
 #include "nsILineInputStream.h"
+#include "nsIMsgDatabase.h"
+
 //---------------------------------------------------------------------------
 // nsMsgBodyHandler: used to retrieve lines from POP and IMAP offline messages.
 // This is a helper class used by nsMsgSearchTerm::MatchBody
@@ -12,7 +14,6 @@ class nsMsgBodyHandler
 {
 public:
   nsMsgBodyHandler (nsIMsgSearchScopeTerm *,
-    PRUint32 offset,
     PRUint32 length,
     nsIMsgDBHdr * msg,
     nsIMsgDatabase * db);
@@ -21,7 +22,7 @@ public:
   // filtering...we need the list of headers and the header size as well
   // if we are doing filtering...if ForFilters is false, headers and
   // headersSize is ignored!!!
-  nsMsgBodyHandler (nsIMsgSearchScopeTerm *, PRUint64 offset,
+  nsMsgBodyHandler (nsIMsgSearchScopeTerm *,
     PRUint32 length, nsIMsgDBHdr * msg, nsIMsgDatabase * db,
     const char * headers /* NULL terminated list of headers */,
     PRUint32 headersSize, PRBool ForFilters);
@@ -56,12 +57,7 @@ protected:
   nsIMsgSearchScopeTerm *m_scope;
   nsCOMPtr <nsILineInputStream> m_fileLineStream;
   nsCOMPtr <nsILocalFile> m_localFile;
-  // local file state
-  //  XP_File  *m_localFile;
-  // need a file stream here, I bet
 
-  // current offset into the mail folder file.
-  PRUint64 m_localFileOffset;
   /**
    * The number of lines in the message.  If |m_lineCountInBodyLines| then this
    * is the number of body lines, otherwise this is the entire number of lines
@@ -83,8 +79,8 @@ protected:
   // Offline IMAP related methods & state
 
 
-  nsIMsgDBHdr * m_msgHdr;
-  nsIMsgDatabase * m_db;
+  nsCOMPtr<nsIMsgDBHdr> m_msgHdr;
+  nsCOMPtr<nsIMsgDatabase> m_db;
 
   // Transformations
   // With the exception of m_isMultipart, these all apply to the various parts

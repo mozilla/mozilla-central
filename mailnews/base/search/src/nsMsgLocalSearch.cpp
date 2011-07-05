@@ -668,14 +668,17 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
           // custom header for ::Content-Type?  But if we do, make sure that change
           // doesn't cause nsMsgFilter::GetTerm() to change, and start making us
           // ask IMAP servers for the Content-Type header on all messages.
-          if ( attrib >= nsMsgSearchAttrib::OtherHeader && attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes)
+          if (attrib >= nsMsgSearchAttrib::OtherHeader &&
+              attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes)
           {
             PRUint32 lineCount;
             msgToMatch->GetLineCount(&lineCount);
             PRUint64 messageOffset;
             msgToMatch->GetMessageOffset(&messageOffset);
-            err = aTerm->MatchArbitraryHeader (scope, messageOffset, lineCount,charset, charsetOverride,
-                                                msgToMatch, db, headers, headerSize, Filtering, &result);
+            err = aTerm->MatchArbitraryHeader(scope, lineCount,charset,
+                                              charsetOverride, msgToMatch, db,
+                                              headers, headerSize, Filtering,
+                                              &result);
           }
           else
             err = NS_ERROR_INVALID_ARG; // ### was SearchError_InvalidAttribute
@@ -802,7 +805,7 @@ void nsMsgSearchOfflineMail::CleanUpScope()
   m_db = nsnull;
 
   if (m_scope)
-    m_scope->SetInputStream(nsnull);
+    m_scope->CloseInputStream();
 }
 
 NS_IMETHODIMP nsMsgSearchOfflineMail::AddResultElement (nsIMsgDBHdr *pHeaders)

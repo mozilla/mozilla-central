@@ -1956,11 +1956,11 @@ void nsParseNewMailState::ApplyFilters(PRBool *pMoved, nsIMsgWindow *msgWindow, 
       nsresult matchTermStatus;
       if (m_filterList)
         matchTermStatus = m_filterList->ApplyFiltersToHdr(nsMsgFilterType::InboxRule,
-                    msgHdr, downloadFolder, m_mailDB, headers, headersSize, this, msgWindow, m_inboxFile);
+                    msgHdr, downloadFolder, m_mailDB, headers, headersSize, this, msgWindow);
       if (!m_msgMovedByFilter && m_deferredToServerFilterList)
       {
         matchTermStatus = m_deferredToServerFilterList->ApplyFiltersToHdr(nsMsgFilterType::InboxRule,
-                    msgHdr, downloadFolder, m_mailDB, headers, headersSize, this, msgWindow, m_inboxFile);
+                    msgHdr, downloadFolder, m_mailDB, headers, headersSize, this, msgWindow);
       }
     }
   }

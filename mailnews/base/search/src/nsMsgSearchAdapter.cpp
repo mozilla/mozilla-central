@@ -127,7 +127,7 @@ NS_IMETHODIMP nsMsgSearchAdapter::ClearScope()
 {
   if (m_scope)
   {
-    m_scope->SetInputStream(nsnull);
+    m_scope->CloseInputStream();
     m_scope = nsnull;
   }
   return NS_OK;

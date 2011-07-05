@@ -63,6 +63,7 @@
 #include "nsIMsgFilterPlugin.h"
 #include "nsILocalFile.h"
 #include "nsISupportsObsolete.h"
+#include "nsISeekableStream.h"
 #include "nsNetCID.h"
 #include "nsIFileStreams.h"
 #include "nsUnicharUtils.h"
@@ -760,7 +761,6 @@ nsresult nsMsgSearchTerm::DeStreamNew (char *inStream, PRInt16 /*length*/)
 // Looks in the MessageDB for the user specified arbitrary header, if it finds the header, it then looks for a match against
 // the value for the header.
 nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
-                                                PRUint64 offset,
                                                 PRUint32 length /* in lines*/,
                                                 const char *charset,
                                                 PRBool charsetOverride,
@@ -787,7 +787,9 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
     // match value with the other info.
     return MatchRfc2047String(dbHdrValue.get(), charset, charsetOverride, pResult);
 
-  nsMsgBodyHandler * bodyHandler = new nsMsgBodyHandler (scope, offset,length, msg, db, headers, headersSize, ForFiltering);
+  nsMsgBodyHandler * bodyHandler =
+    new nsMsgBodyHandler (scope, length, msg, db, headers, headersSize,
+                          ForFiltering);
   if (!bodyHandler)
     return NS_ERROR_OUT_OF_MEMORY;
 
@@ -944,7 +946,7 @@ nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, PRUint64 offs
   if ((length > 0) && (m_operator == nsMsgSearchOp::Is || m_operator == nsMsgSearchOp::Isnt))
     length = PL_strlen (m_value.string);
 
-  nsMsgBodyHandler * bodyHan  = new nsMsgBodyHandler (scope, offset, length, msg, db);
+  nsMsgBodyHandler * bodyHan  = new nsMsgBodyHandler (scope, length, msg, db);
   if (!bodyHan)
     return NS_ERROR_OUT_OF_MEMORY;
 
@@ -1883,49 +1885,44 @@ nsMsgSearchScopeTerm::GetSearchSession(nsIMsgSearchSession** aResult)
     return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgSearchScopeTerm::GetMailFile(nsILocalFile **aLocalFile)
-{
-  NS_ENSURE_ARG_POINTER(aLocalFile);
-  if (!m_localFile)
-  {
-    if (!m_folder)
-     return NS_ERROR_NULL_POINTER;
-
-    m_folder->GetFilePath(getter_AddRefs(m_localFile));
-  }
-  if (m_localFile)
-  {
-    NS_ADDREF(*aLocalFile = m_localFile);
-    return NS_OK;
-  }
-  return NS_ERROR_FAILURE;
-}
-
-NS_IMETHODIMP nsMsgSearchScopeTerm::GetInputStream(nsIInputStream **aInputStream)
+NS_IMETHODIMP
+nsMsgSearchScopeTerm::GetInputStream(nsIMsgDBHdr *aMsgHdr,
+                                     nsIInputStream **aInputStream)
 {
   NS_ENSURE_ARG_POINTER(aInputStream);
-  nsresult rv = NS_OK;
+  NS_ENSURE_ARG_POINTER(aMsgHdr);
+  NS_ENSURE_TRUE(m_folder, NS_ERROR_NULL_POINTER);
+  nsresult rv;
   if (!m_inputStream)
   {
-     nsCOMPtr <nsILocalFile> localFile;
-     rv = GetMailFile(getter_AddRefs(localFile));
-     NS_ENSURE_SUCCESS(rv, rv);
-     nsCOMPtr<nsIFileInputStream> fileStream = do_CreateInstance(NS_LOCALFILEINPUTSTREAM_CONTRACTID, &rv);
-     NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsILocalFile> localFile;
+    rv = m_folder->GetFilePath(getter_AddRefs(localFile));
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIFileInputStream> fileStream = do_CreateInstance(NS_LOCALFILEINPUTSTREAM_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
 
-     rv = fileStream->Init(localFile,  PR_RDONLY, 0664, PR_FALSE);  //just have to read the messages
-     m_inputStream = do_QueryInterface(fileStream);
-
+    rv = fileStream->Init(localFile,  PR_RDONLY, 0664, PR_FALSE);  //just have to read the messages
+    m_inputStream = do_QueryInterface(fileStream);
   }
+  PRUint64 offset;
+  aMsgHdr->GetMessageOffset(&offset);
+  nsCOMPtr<nsISeekableStream> seekableStream(do_QueryInterface(m_inputStream));
+  if (seekableStream)
+    rv = seekableStream->Seek(PR_SEEK_SET, offset);
+  NS_WARN_IF_FALSE(!seekableStream && offset,
+                   "non-zero offset w/ non-seekable stream");
+  NS_ENSURE_SUCCESS(rv, rv);
   NS_IF_ADDREF(*aInputStream = m_inputStream);
   return rv;
 }
 
-NS_IMETHODIMP nsMsgSearchScopeTerm::SetInputStream(nsIInputStream *aInputStream)
+NS_IMETHODIMP nsMsgSearchScopeTerm::CloseInputStream()
 {
-  if (!aInputStream && m_inputStream)
+  if (m_inputStream)
+{
     m_inputStream->Close();
-  m_inputStream = aInputStream;
+    m_inputStream = nsnull;
+  }
   return NS_OK;
 }
 

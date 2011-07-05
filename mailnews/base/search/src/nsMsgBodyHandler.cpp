@@ -48,10 +48,11 @@
 #include "plbase64.h"
 #include "prmem.h"
 
-nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope, PRUint32 offset, PRUint32 numLines, nsIMsgDBHdr* msg, nsIMsgDatabase * db)
+nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope,
+                                    PRUint32 numLines,
+                                    nsIMsgDBHdr* msg, nsIMsgDatabase * db)
 {
   m_scope = scope;
-  m_localFileOffset = offset;
   m_numLocalLines = numLines;
   PRUint32 flags;
   m_lineCountInBodyLines = NS_SUCCEEDED(msg->GetFlags(&flags)) ?
@@ -73,13 +74,12 @@ nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope, PRUint32 offs
 }
 
 nsMsgBodyHandler::nsMsgBodyHandler(nsIMsgSearchScopeTerm * scope,
-                                   PRUint64 offset, PRUint32 numLines,
+                                   PRUint32 numLines,
                                    nsIMsgDBHdr* msg, nsIMsgDatabase* db,
                                    const char * headers, PRUint32 headersSize,
                                    PRBool Filtering)
 {
   m_scope = scope;
-  m_localFileOffset = offset;
   m_numLocalLines = numLines;
   PRUint32 flags;
   m_lineCountInBodyLines = NS_SUCCEEDED(msg->GetFlags(&flags)) ?
@@ -165,12 +165,7 @@ PRInt32 nsMsgBodyHandler::GetNextLine (nsCString &buf)
 void nsMsgBodyHandler::OpenLocalFolder()
 {
   nsCOMPtr <nsIInputStream> inputStream;
-  nsresult rv = m_scope->GetInputStream(getter_AddRefs(inputStream));
-  if (NS_SUCCEEDED(rv))
-  {
-    nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(inputStream);
-    seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, m_localFileOffset);
-  }
+  nsresult rv = m_scope->GetInputStream(m_msgHdr, getter_AddRefs(inputStream));
   m_fileLineStream = do_QueryInterface(inputStream);
 }
 
