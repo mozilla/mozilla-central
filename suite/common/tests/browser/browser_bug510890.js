@@ -52,8 +52,6 @@ function test() {
   // See Bug 518970.
   requestLongerTimeout(2);
   
-  // test setup
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"].getService(Components.interfaces.nsISessionStore);
   waitForExplicitFinish();
   
   function test_basic(callback) {

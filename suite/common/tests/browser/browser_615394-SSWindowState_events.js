@@ -35,10 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://gre/modules/Services.jsm");
-const ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
-
 const stateBackup = ss.getBrowserState();
 const testState = {
   windows: [{
@@ -290,6 +286,7 @@ function test_setWindowState() {
 function test_setBrowserState() {
   // We'll track events per window so we are sure that they are each happening once
   // pre window.
+  let newWindow;
   let windowEvents = {};
   windowEvents[getOuterWindowID(window)] = { busyEventCount: 0, readyEventCount: 0 };
 
@@ -297,9 +294,10 @@ function test_setBrowserState() {
   // the listeners we want here, so do it ourselves.
   function windowObserver(aSubject, aTopic, aData) {
     if (aTopic == "domwindowopened") {
-      let newWindow = aSubject.QueryInterface(Components.interfaces.nsIDOMWindow);
+      newWindow = aSubject.QueryInterface(Components.interfaces.nsIDOMWindow);
       newWindow.addEventListener("load", function() {
         newWindow.removeEventListener("load", arguments.callee, false);
+
         Services.ww.unregisterNotification(windowObserver);
 
         windowEvents[getOuterWindowID(newWindow)] = { busyEventCount: 0, readyEventCount: 0 };
@@ -335,6 +333,8 @@ function test_setBrowserState() {
        "[test_setBrowserState] checked 2 windows");
     window.removeEventListener("SSWindowStateBusy", onSSWindowStateBusy, false);
     window.removeEventListener("SSWindowStateReady", onSSWindowStateReady, false);
+    newWindow.removeEventListener("SSWindowStateBusy", onSSWindowStateBusy, false);
+    newWindow.removeEventListener("SSWindowStateReady", onSSWindowStateReady, false);
     runNextTest();
   });
 }
@@ -346,7 +346,7 @@ function test_undoCloseWindow() {
   function firstWindowObserver(aSubject, aTopic, aData) {
     if (aTopic == "domwindowopened") {
       newWindow = aSubject.QueryInterface(Components.interfaces.nsIDOMWindow);
-      Services.ww.unregisterNotification(windowObserver);
+      Services.ww.unregisterNotification(firstWindowObserver);
     }
   }
   Services.ww.registerNotification(firstWindowObserver);
@@ -360,6 +360,7 @@ function test_undoCloseWindow() {
 
     reopenedWindow.addEventListener("load", function() {
       reopenedWindow.removeEventListener("load", arguments.callee, false);
+
       reopenedWindow.getBrowser().tabContainer.addEventListener("SSTabRestored", onSSTabRestored, false);
     }, false);
   });

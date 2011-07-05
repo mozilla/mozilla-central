@@ -1,9 +1,6 @@
 function test() {
   /** Test for Bug 483330 **/
 
-  // test setup
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
   waitForExplicitFinish();
 
   let tab = getBrowser().addTab();

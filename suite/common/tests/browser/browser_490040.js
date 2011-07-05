@@ -51,23 +51,13 @@ function test() {
   /** Test for Bug 490040, ported by Bug 511640 **/
   is(browserWindowsCount(), 1, "Only one browser window should be open initially");
 
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
-  let os = Components.classes["@mozilla.org/observer-service;1"]
-                     .getService(Components.interfaces.nsIObserverService);
-  let ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                     .getService(Components.interfaces.nsIWindowWatcher);
-
   waitForExplicitFinish();
-
-  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
 
   function testWithState(aState) {
     // Ensure we can store the window if needed.
     let curClosedWindowCount = ss.getClosedWindowCount();
-    gPrefService.setIntPref("browser.sessionstore.max_windows_undo",
-                            curClosedWindowCount + 1);
+    Services.prefs.setIntPref("browser.sessionstore.max_windows_undo",
+                              curClosedWindowCount + 1);
 
     var origWin;
     function windowObserver(aSubject, aTopic, aData) {
@@ -101,7 +91,7 @@ function test() {
           break;
 
         case "domwindowclosed":
-          ww.unregisterNotification(windowObserver);
+          Services.ww.unregisterNotification(windowObserver);
           // Use executeSoon to ensure this happens after SS observer.
           executeSoon(function () {
             is(ss.getClosedWindowCount(),
@@ -113,12 +103,12 @@ function test() {
           break;
       }
     }
-    ww.registerNotification(windowObserver);
-    ww.openWindow(null,
-                  location,
-                  "_blank",
-                  "chrome,all,dialog=no",
-                  null);
+    Services.ww.registerNotification(windowObserver);
+    Services.ww.openWindow(null,
+                           location,
+                           "_blank",
+                           "chrome,all,dialog=no",
+                           null);
   }
 
   // Only windows with open tabs are restorable. Windows where a lone tab is
@@ -170,8 +160,8 @@ function test() {
       testWithState(state);
     }
     else {
-      if (gPrefService.prefHasUserValue("browser.sessionstore.max_windows_undo"))
-        gPrefService.clearUserPref("browser.sessionstore.max_windows_undo");
+      if (Services.prefs.prefHasUserValue("browser.sessionstore.max_windows_undo"))
+        Services.prefs.clearUserPref("browser.sessionstore.max_windows_undo");
       is(browserWindowsCount(), 1, "Only one browser window should be open eventually");
       finish();
     }

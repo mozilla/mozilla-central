@@ -49,10 +49,6 @@ function test() {
   /** Test for Bug 461634, ported by Bug 524345 **/
   is(browserWindowsCount(), 1, "Only one browser window should be open initially");
 
-  // test setup
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"].getService(Components.interfaces.nsISessionStore);
-  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
   waitForExplicitFinish();
 
   const REMEMBER = Date.now(), FORGET = Math.random();
@@ -80,8 +76,8 @@ function test() {
   // open a window and add the above closed tab list
   let newWin = openDialog(location, "", "chrome,all,dialog=no");
   newWin.addEventListener("load", function(aEvent) {
-    gPrefService.setIntPref("browser.sessionstore.max_tabs_undo",
-                            test_state.windows[0]._closedTabs.length);
+    Services.prefs.setIntPref("browser.sessionstore.max_tabs_undo",
+                              test_state.windows[0]._closedTabs.length);
     ss.setWindowState(newWin, JSON.stringify(test_state), true);
 
     let closedTabs = JSON.parse(ss.getClosedTabData(newWin));
@@ -116,7 +112,7 @@ function test() {
     // clean up
     newWin.close();
     is(browserWindowsCount(), 1, "Only one browser window should be open eventually");
-    gPrefService.clearUserPref("browser.sessionstore.max_tabs_undo");
+    Services.prefs.clearUserPref("browser.sessionstore.max_tabs_undo");
     finish();
   }, false);
 }

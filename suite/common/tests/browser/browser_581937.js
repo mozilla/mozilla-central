@@ -38,9 +38,6 @@
  // Tests that an about:blank tab with no history will not be saved into
  // session store and thus, it will not show up in Recently Closed Tabs.
 
- let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
-
 let tab;
 function test() {
   waitForExplicitFinish();

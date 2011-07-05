@@ -37,16 +37,12 @@
 function test() {
   /** Test for Bug 408470 **/
   
-  try {
-    var ss = Components.classes["@mozilla.org/suite/sessionstore;1"].getService(Components.interfaces.nsISessionStore);
-  }
-  catch (ex) { }
   waitForExplicitFinish();
   
   let pendingCount = 1;
   let rootDir = getRootDirectory(gTestPath);
   let testURL = rootDir + "browser_408470_sample.html";
-  let tab = gBrowser.addTab(testURL);
+  let tab = getBrowser().addTab(testURL);
   let window = tab.ownerDocument.defaultView;
   
   tab.linkedBrowser.addEventListener("load", function(aEvent) {
@@ -69,7 +65,7 @@ function test() {
         else
           ok(correct, "restored stylesheet " + ssTitle);
         
-        gBrowser.removeTab(newTab);
+        getBrowser().removeTab(newTab);
         if (--pendingCount == 0)
           finish();
       }, true);
@@ -83,11 +79,11 @@ function test() {
       is(newTab.linkedBrowser.markupDocumentViewer.authorStyleDisabled, true,
          "disabled all stylesheets");
       
-      gBrowser.removeTab(newTab);
+      getBrowser().removeTab(newTab);
       if (--pendingCount == 0)
         finish();
     }, true);
     
-    gBrowser.removeTab(tab);
+    getBrowser().removeTab(tab);
   }, true);
 }

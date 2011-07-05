@@ -38,11 +38,6 @@
 function test() {
   /** Test for Bug 509315 (Wallpaper) **/
 
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
-  let ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                     .getService(Components.interfaces.nsIWindowWatcher);
-
   waitForExplicitFinish();
 
   let state = {
@@ -81,17 +76,17 @@ function test() {
           break;
 
         case "domwindowclosed":
-          ww.unregisterNotification(this);
+          Services.ww.unregisterNotification(this);
           finish();
           break;
       }
     }
   }
-  ww.registerNotification(windowObserver);
-  ww.openWindow(null,
-                location,
-                "_blank",
-                "chrome,all,dialog=no",
-                null);
+  Services.ww.registerNotification(windowObserver);
+  Services.ww.openWindow(null,
+                         location,
+                         "_blank",
+                         "chrome,all,dialog=no",
+                         null);
 
 }

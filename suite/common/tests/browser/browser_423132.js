@@ -51,20 +51,14 @@ function test() {
   // bug 423132, ported by bug 524371.
   is(browserWindowsCount(), 1, "Only one browser window should be open initially");
 
-  // test setup
   waitForExplicitFinish();
 
   let cs = Components.classes["@mozilla.org/cookiemanager;1"].getService(Components.interfaces.nsICookieManager2);
   cs.removeAll();
 
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"].getService(Components.interfaces.nsISessionStore);
-
-  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
-
   // make sure that sessionstore.js can be forced to be created by setting
   // the interval pref to 0
-  gPrefService.setIntPref("browser.sessionstore.interval", 0);
+  Services.prefs.setIntPref("browser.sessionstore.interval", 0);
 
   const testURL = "http://mochi.test:8888/browser/" +
     "suite/common/tests/browser/browser_423132_sample.html";
@@ -113,8 +107,8 @@ function test() {
       is(cookie.path, cookie2.path, "cookie path successfully restored");
 
       // clean up
-      if (gPrefService.prefHasUserValue("browser.sessionstore.interval"))
-        gPrefService.clearUserPref("browser.sessionstore.interval");
+      if (Services.prefs.prefHasUserValue("browser.sessionstore.interval"))
+        Services.prefs.clearUserPref("browser.sessionstore.interval");
       cs.removeAll();
       newWin.close();
       is(browserWindowsCount(), 1, "Only one browser window should be open eventually");

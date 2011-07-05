@@ -38,18 +38,13 @@
 function test() {
   /** Test for Bug 526613, porting done in Bug 548211 **/
 
-  // test setup
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
   let os = Components.classes["@mozilla.org/observer-service;1"]
                      .getService(Components.interfaces.nsIObserverService);
-  let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                     .getService(Components.interfaces.nsIWindowMediator);
   waitForExplicitFinish();
 
   function browserWindowsCount(expected) {
     let count = 0;
-    let e = wm.getEnumerator("navigator:browser");
+    let e = Services.wm.getEnumerator("navigator:browser");
     while (e.hasMoreElements()) {
       if (!e.getNext().closed)
         ++count;
@@ -87,7 +82,7 @@ function test() {
 
       // let the first window be focused (see above)
       function pollMostRecentWindow() {
-        if (wm.getMostRecentWindow("navigator:browser") == window) {
+        if (Services.wm.getMostRecentWindow("navigator:browser") == window) {
           ss.setBrowserState(oldState);
         } else {
           info("waiting for the current window to become active");
@@ -100,11 +95,11 @@ function test() {
     else {
       browserWindowsCount(1);
       ok(!window.closed, "Restoring the old state should have left this window open");
-      os.removeObserver(observer, "sessionstore-browser-state-restored");
+      Services.obs.removeObserver(observer, "sessionstore-browser-state-restored");
         finish();
       }
     }
-  os.addObserver(observer, "sessionstore-browser-state-restored", false);
+  Services.obs.addObserver(observer, "sessionstore-browser-state-restored", false);
 
   // set browser to test state
   ss.setBrowserState(JSON.stringify(testState));

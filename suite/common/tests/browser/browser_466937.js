@@ -37,11 +37,6 @@
 function test() {
   /** Test for Bug 466937 **/
   
-  try {
-    var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                       .getService(Components.interfaces.nsISessionStore);
-  }
-  catch (ex) { }
   waitForExplicitFinish();
   
   var file = Components.classes["@mozilla.org/file/directory_service;1"]

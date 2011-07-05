@@ -37,9 +37,6 @@
 function test() {
   /** Test for Bug 485482, ported by Bug 487922 **/
   
-  var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
-
   waitForExplicitFinish();
   
   let uniqueValue = Math.random();

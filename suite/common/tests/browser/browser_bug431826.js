@@ -1,11 +1,7 @@
-// Workaround until Application.prefs can be used safely. (Bug 534647)
-var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch);
-
 function test() {
   waitForExplicitFinish();
 
-  gBrowser.selectedTab = gBrowser.addTab();
+  getBrowser().selectedTab = gBrowser.addTab();
 
   // Navigate to a site with a broken cert
   window.addEventListener("DOMContentLoaded", testBrokenCert, true);
@@ -24,11 +20,11 @@ function testBrokenCert() {
   ok(expertDiv.hasAttribute("collapsed"), "Expert content should be collapsed by default");
 
   // Tweak the expert mode pref
-  gPrefService.setBoolPref("browser.xul.error_pages.expert_bad_cert", true);
+  Services.prefs.setBoolPref("browser.xul.error_pages.expert_bad_cert", true);
   // Application.prefs.setValue("browser.xul.error_pages.expert_bad_cert", true);
 
   window.addEventListener("DOMContentLoaded", testExpertPref, true);
-  gBrowser.reload();
+  getBrowser().reload();
 }
 
 function testExpertPref() {
@@ -40,9 +36,9 @@ function testExpertPref() {
   ok(!technicalDiv.hasAttribute("collapsed"), "Technical content should not be collapsed with the expert mode pref set");
 
   // Clean up
-  gBrowser.removeCurrentTab();
-  if (gPrefService.prefHasUserValue("browser.xul.error_pages.expert_bad_cert"))
-    gPrefService.clearUserPref("browser.xul.error_pages.expert_bad_cert");
+  getBrowser().removeCurrentTab();
+  if (Services.prefs.prefHasUserValue("browser.xul.error_pages.expert_bad_cert"))
+    Services.prefs.clearUserPref("browser.xul.error_pages.expert_bad_cert");
   // Application.prefs.get("browser.xul.error_pages.expert_bad_cert").reset();
   finish();
 }

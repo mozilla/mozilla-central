@@ -50,8 +50,6 @@ function test() {
   /** Test for Bug 465223 **/
   is(browserWindowsCount(), 1, "Only one browser window should be open initially");
   
-  // test setup
-  let ss = Cc["@mozilla.org/suite/sessionstore;1"].getService(Ci.nsISessionStore);
   waitForExplicitFinish();
   
   let uniqueKey1 = "bug 465223.1";

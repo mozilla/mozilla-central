@@ -39,12 +39,9 @@ function test() {
 
   waitForExplicitFinish();
 
-  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
-
   // Test that starting a new session loads a blank page if Firefox is
   // configured to display a blank page at startup (browser.startup.page = 0)
-  gPrefService.setIntPref("browser.startup.page", 0);
+  Services.prefs.setIntPref("browser.startup.page", 0);
   let tab = getBrowser().addTab("about:sessionrestore");
   getBrowser().selectedTab = tab;
   let browser = tab.linkedBrowser;
@@ -63,8 +60,8 @@ function test() {
       // Test that starting a new session loads the homepage (set to http://mochi.test:8888)
       // if Firefox is configured to display a homepage at startup (browser.startup.page = 1)
       let homepage = "http://mochi.test:8888/";
-      gPrefService.setCharPref("browser.startup.homepage", homepage);
-      gPrefService.setIntPref("browser.startup.page", 1);
+      Services.prefs.setCharPref("browser.startup.homepage", homepage);
+      Services.prefs.setIntPref("browser.startup.page", 1);
       getBrowser().loadURI("about:sessionrestore");
       browser.addEventListener("load", function(aEvent) {
         browser.removeEventListener("load", arguments.callee, true);
@@ -82,9 +79,9 @@ function test() {
           getBrowser().removeTab(tab);
           // we need this if-statement because if there is no user set value, 
           // clearUserPref throws a uncatched exception and finish is not called
-          if (gPrefService.prefHasUserValue("browser.startup.page"))
-            gPrefService.clearUserPref("browser.startup.page");
-          gPrefService.clearUserPref("browser.startup.homepage");
+          if (Services.prefs.prefHasUserValue("browser.startup.page"))
+            Services.prefs.clearUserPref("browser.startup.page");
+          Services.prefs.clearUserPref("browser.startup.homepage");
           finish();
         }, true);
       }, true);

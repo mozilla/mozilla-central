@@ -36,9 +36,7 @@
 
 function browserWindowsCount() {
   let count = 0;
-  let e = Cc["@mozilla.org/appshell/window-mediator;1"]
-            .getService(Ci.nsIWindowMediator)
-            .getEnumerator("navigator:browser");
+  let e = Services.wm.getEnumerator("navigator:browser");
   while (e.hasMoreElements()) {
     if (!e.getNext().closed)
       ++count;
@@ -48,17 +46,10 @@ function browserWindowsCount() {
 
 function test() {
   // make sure we use sessionstore for undoClosetab
-  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
-
-  gPrefService.setIntPref("browser.tabs.max_tabs_undo", 0);
+  Services.prefs.setIntPref("browser.tabs.max_tabs_undo", 0);
 
   /** Test for Bug 491168, ported by Bug 524369 **/
   is(browserWindowsCount(), 1, "Only one browser window should be open initially");
-
-  // test setup
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"].getService(Components.interfaces.nsISessionStore);
-  let ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
 
   waitForExplicitFinish();
 
@@ -93,13 +84,13 @@ function test() {
 
         is(browserWindowsCount(), 1, "Only one browser window should be open eventually");
         // clean up
-        if (gPrefService.prefHasUserValue("browser.tabs.max_tabs_undo"))
-          gPrefService.clearUserPref("browser.tabs.max_tabs_undo");
+        if (Services.prefs.prefHasUserValue("browser.tabs.max_tabs_undo"))
+          Services.prefs.clearUserPref("browser.tabs.max_tabs_undo");
         finish();
       }, true);
     }, true);
   },true);
 
-  let referrerURI = ioService.newURI(REFERRER1, null, null);
+  let referrerURI = Services.io.newURI(REFERRER1, null, null);
   browser.loadURI("http://example.org", referrerURI, null);
 }

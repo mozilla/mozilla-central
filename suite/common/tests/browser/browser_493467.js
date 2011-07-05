@@ -36,9 +36,7 @@
 
 function browserWindowsCount() {
   let count = 0;
-  let e = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                    .getService(Components.interfaces.nsIWindowMediator)
-                    .getEnumerator("navigator:browser");
+  let e = Services.wm.getEnumerator("navigator:browser");
   while (e.hasMoreElements()) {
     if (!e.getNext().closed)
       ++count;
@@ -50,9 +48,6 @@ function test() {
   /** Test for Bug 493467, ported by Bug 524365 **/
 
   is(browserWindowsCount(), 1, "Only one browser window should be open initially");
-
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
 
   let tab = getBrowser().addTab();
   tab.linkedBrowser.stop();

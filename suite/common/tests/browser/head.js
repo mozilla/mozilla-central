@@ -35,9 +35,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://gre/modules/Services.jsm");
-const SS_SVC = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                         .getService(Components.interfaces.nsISessionStore);
+let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                   .getService(Components.interfaces.nsISessionStore);
 
 // This assumes that tests will at least have some state/entries
 function waitForBrowserState(aState, aSetStateCallback) {
@@ -46,6 +45,8 @@ function waitForBrowserState(aState, aSetStateCallback) {
   let expectedTabsRestored = 0;
   let expectedWindows = aState.windows.length;
   let windowsOpen = 1;
+  let listening = false;
+  let windowObserving = false;
 
   aState.windows.forEach(function(winState) expectedTabsRestored += winState.tabs.length);
 
@@ -55,6 +56,7 @@ function waitForBrowserState(aState, aSetStateCallback) {
       windows.forEach(function(win) {
         win.getBrowser().tabContainer.removeEventListener("SSTabRestored", onSSTabRestored, true);
       });
+      listening = false;
       info("running " + aSetStateCallback.name);
       executeSoon(aSetStateCallback);
     }
@@ -68,8 +70,10 @@ function waitForBrowserState(aState, aSetStateCallback) {
       newWindow.addEventListener("load", function() {
         newWindow.removeEventListener("load", arguments.callee, false);
 
-        if (++windowsOpen == expectedWindows)
+        if (++windowsOpen == expectedWindows) {
           Services.ww.unregisterNotification(windowObserver);
+          windowObserving = false;
+        }
 
         // Track this window so we can remove the progress listener later
         windows.push(newWindow);
@@ -80,16 +84,70 @@ function waitForBrowserState(aState, aSetStateCallback) {
   }
 
   // We only want to register the notification if we expect more than 1 window
-  if (expectedWindows > 1)
+  if (expectedWindows > 1) {
+    registerCleanupFunction(function() {
+      if (windowObserving) {
+        Services.ww.unregisterNotification(windowObserver);
+      }
+    });
+    windowObserving = true;
     Services.ww.registerNotification(windowObserver);
+  }
 
+  registerCleanupFunction(function() {
+    if (listening) {
+      windows.forEach(function(win) {
+        win.getBrowser().tabContainer.removeEventListener("SSTabRestored", onSSTabRestored, true);
+      });
+    }
+  });
   // Add the event listener for this window as well.
+  listening = true;
   getBrowser().tabContainer.addEventListener("SSTabRestored", onSSTabRestored, true);
 
   // Finally, call setBrowserState
-  SS_SVC.setBrowserState(JSON.stringify(aState));
+  ss.setBrowserState(JSON.stringify(aState));
 }
 
+// waitForSaveState waits for a state write but not necessarily for the state to
+// turn dirty.
+function waitForSaveState(aSaveStateCallback) {
+  let observing = false;
+  let topic = "sessionstore-state-write";
+
+  let sessionSaveTimeout = 1000 +
+    Services.prefs.getIntPref("browser.sessionstore.interval");
+
+  function removeObserver() {
+    if (!observing)
+      return;
+    Services.obs.removeObserver(observer, topic, false);
+    observing = false;
+  }
+
+  let timeout = setTimeout(function () {
+    removeObserver();
+    aSaveStateCallback();
+  }, sessionSaveTimeout);
+
+  function observer(aSubject, aTopic, aData) {
+    removeObserver();
+    timeout = clearTimeout(timeout);
+    executeSoon(aSaveStateCallback);
+  }
+
+  registerCleanupFunction(function() {
+    removeObserver();
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  });
+
+  observing = true;
+  Services.obs.addObserver(observer, topic, false);
+};
+
+var gUniqueCounter = 0;
 function r() {
-  return Date.now() + Math.random();
+  return Date.now() + "-" + (++gUniqueCounter);
 }

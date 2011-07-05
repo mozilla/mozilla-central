@@ -37,14 +37,6 @@
 function test() {
   /** Test for Bug 448741 **/
   
-  // test setup
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
-  let os = Components.classes["@mozilla.org/observer-service;1"]
-                     .getService(Components.interfaces.nsIObserverService);
-  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
-
   waitForExplicitFinish();
   
   let uniqueName = "bug 448741";
@@ -76,7 +68,7 @@ function test() {
 
     ok(valueWasCleaned, "found and removed the specific tab value");
     aSubject.data = JSON.stringify(state);
-    os.removeObserver(cleaningObserver, aTopic, false);
+    Services.obs.removeObserver(cleaningObserver, aTopic, false);
   }
   
   // make sure that all later observers don't see that value any longer
@@ -87,16 +79,16 @@ function test() {
 
     // clean up
     getBrowser().removeTab(tab);
-    os.removeObserver(checkingObserver, aTopic, false);
-    if (gPrefService.prefHasUserValue("browser.sessionstore.interval"))
-      gPrefService.clearUserPref("browser.sessionstore.interval");
+    Services.obs.removeObserver(checkingObserver, aTopic, false);
+    if (Services.prefs.prefHasUserValue("browser.sessionstore.interval"))
+      Services.prefs.clearUserPref("browser.sessionstore.interval");
     finish();
   }
   
   // last added observers are invoked first
-  os.addObserver(checkingObserver, "sessionstore-state-write", false);
-  os.addObserver(cleaningObserver, "sessionstore-state-write", false);
+  Services.obs.addObserver(checkingObserver, "sessionstore-state-write", false);
+  Services.obs.addObserver(cleaningObserver, "sessionstore-state-write", false);
   
   // trigger an immediate save operation
-  gPrefService.setIntPref("browser.sessionstore.interval", 0);
+  Services.prefs.setIntPref("browser.sessionstore.interval", 0);
 }

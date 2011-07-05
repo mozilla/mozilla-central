@@ -38,10 +38,6 @@
 const TAB_STATE_NEEDS_RESTORE = 1;
 const TAB_STATE_RESTORING = 2;
 
-Components.utils.import("resource://gre/modules/Services.jsm");
-var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                   .getService(Components.interfaces.nsISessionStore);
-
 let stateBackup = ss.getBrowserState();
 
 function cleanup() {
@@ -60,6 +56,7 @@ function test() {
   // Set the pref to 0 so we know exactly how many tabs should be restoring at
   // any given time. This guarantees that a finishing load won't start another.
   Services.prefs.setIntPref("browser.sessionstore.max_concurrent_tabs", 0);
+  Services.prefs.setIntPref("browser.tabs.max_tabs_undo", 0);
 
   // We have our own progress listener for this test, which we'll attach before our state is set
   let progressListener = {

@@ -37,22 +37,16 @@
 function test() {
   /** Test for Bug 447951 **/
   
-  // test setup
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
   waitForExplicitFinish();
   const baseURL = "http://mochi.test:8888/browser/" +
     "suite/common/tests/browser/browser_447951_sample.html#";
-    
-  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
 
   let tab = getBrowser().addTab();
   tab.linkedBrowser.addEventListener("load", function(aEvent) {
     tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
     
     let tabState = { entries: [] };
-    let max_entries = gPrefService.getIntPref("browser.sessionhistory.max_entries");
+    let max_entries = Services.prefs.getIntPref("browser.sessionhistory.max_entries");
     for (let i = 0; i < max_entries; i++)
       tabState.entries.push({ url: baseURL + i });
     

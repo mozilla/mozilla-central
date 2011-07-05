@@ -9,17 +9,7 @@ function test() {
     return false;
   }
   
-  // test setup
-  let tabbrowser = getBrowser();
   waitForExplicitFinish();
-  
-  // component
-  let ssComponent = test(function() Components.classes["@mozilla.org/suite/sessionstore;1"]);
-  ok(ssComponent, "reference the sessionstore component");
-  
-  // service
-  let ss = test(function() ssComponent.getService(Components.interfaces.nsISessionStore));
-  ok(ss, "reference the sessionstore service");
   
   ////////////////////////////
   // setWindowValue, et al. //
@@ -44,7 +34,7 @@ function test() {
   /////////////////////////
   key = "Unique name: " + Math.random();
   value = "Unique value: " + Date.now();
-  let tab = tabbrowser.addTab();
+  let tab = getBrowser().addTab();
   tab.linkedBrowser.stop();
   
   // test adding
@@ -59,7 +49,7 @@ function test() {
   is(ss.getTabValue(tab, key), "", "tab value was deleted");
   
   // clean up
-  tabbrowser.removeTab(tab);
+  getBrowser().removeTab(tab);
   
   /////////////////////////////////////
   // getClosedTabCount, undoCloseTab //
@@ -76,14 +66,14 @@ function test() {
   
   // create a new tab
   let testURL = "about:";
-  tab = tabbrowser.addTab(testURL);
+  tab = getBrowser().addTab(testURL);
   tab.linkedBrowser.addEventListener("load", function(aEvent) {
     this.removeEventListener("load", arguments.callee, true);
     // make sure that the next closed tab will increase getClosedTabCount
     gPrefService.setIntPref("browser.sessionstore.max_tabs_undo", max_tabs_undo + 1);
     
     // remove tab
-    tabbrowser.removeTab(tab);
+    getBrowser().removeTab(tab);
     
     // getClosedTabCount
     var newcount = ss.getClosedTabCount(window);
@@ -100,7 +90,7 @@ function test() {
       // clean up
       if (gPrefService.prefHasUserValue("browser.sessionstore.max_tabs_undo"))
         gPrefService.clearUserPref("browser.sessionstore.max_tabs_undo");
-      tabbrowser.removeTab(tab);
+      getBrowser().removeTab(tab);
       finish();
     }, true);
   }, true);

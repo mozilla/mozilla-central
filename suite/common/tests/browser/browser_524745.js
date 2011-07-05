@@ -49,8 +49,6 @@ function test() {
   /** Test for Bug 524745, ported by bug 558638 **/
   is(browserWindowsCount(), 1, "Only one browser window should be open initially");
 
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
   let uniqKey = "bug524745";
   let uniqVal = Date.now();
 

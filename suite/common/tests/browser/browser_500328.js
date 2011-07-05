@@ -94,8 +94,6 @@ function test() {
   // Tests session restore functionality of history.pushState and
   // history.replaceState().  (Bug 500328)
 
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
   waitForExplicitFinish();
 
   // We open a new blank window, let it load, and then load in

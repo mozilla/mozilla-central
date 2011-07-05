@@ -37,11 +37,6 @@
 function test() {
   /** Test for Bug 339445 **/
 
-  try {
-    var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                       .getService(Components.interfaces.nsISessionStore);
-  }
-  catch (ex) { }
   waitForExplicitFinish();
 
   let testURL = "http://mochi.test:8888/browser/" +
@@ -62,8 +57,8 @@ function test() {
          "sessionStorage value has been duplicated");
 
       // clean up
-      gBrowser.removeTab(tab2);
-      gBrowser.removeTab(tab);
+      getBrowser().removeTab(tab2);
+      getBrowser().removeTab(tab);
 
       finish();
     }, true);

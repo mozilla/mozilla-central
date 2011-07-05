@@ -45,10 +45,7 @@ function test() {
   };
 
   // make sure we do save form data
-  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
-
-  gPrefService.setIntPref("browser.sessionstore.privacy_level", 0);
+  Services.prefs.setIntPref("browser.sessionstore.privacy_level", 0);
   
   let rootDir = getRootDirectory(gTestPath);
   let testURL = rootDir + "browser_454908_sample.html";
@@ -74,8 +71,8 @@ function test() {
       }
       
       // clean up
-      if (gPrefService.prefHasUserValue("browser.sessionstore.privacy_level"))
-        gPrefService.clearUserPref("browser.sessionstore.privacy_level");
+      if (Services.prefs.prefHasUserValue("browser.sessionstore.privacy_level"))
+        Services.prefs.clearUserPref("browser.sessionstore.privacy_level");
       // undoCloseTab can reuse a single blank tab, so we have to
       // make sure not to close the window when closing our last tab
       if (gBrowser.tabContainer.childNodes.length == 1)

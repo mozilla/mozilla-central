@@ -37,12 +37,6 @@
 function test() {
   /** Test for Bug 346337 **/
   
-  try {
-    var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                       .getService(Components.interfaces.nsISessionStore);
-  }
-  catch (ex) { }
-
   var file = Components.classes["@mozilla.org/file/directory_service;1"]
                .getService(Components.interfaces.nsIProperties)
                .get("TmpD", Components.interfaces.nsILocalFile);

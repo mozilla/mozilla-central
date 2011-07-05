@@ -39,8 +39,6 @@ function test() {
   
   waitForExplicitFinish();
   
-  var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
   let testURL = "http://mochi.test:8888/browser/" +
     "suite/common/tests/browser/browser_476161_sample.html";
   let tab = getBrowser().addTab(testURL);
@@ -62,8 +60,8 @@ function test() {
          "input events were only dispatched for modified text fields");
       
       // clean up
-      gBrowser.removeTab(tab2);
-      gBrowser.removeTab(tab);
+      getBrowser().removeTab(tab2);
+      getBrowser().removeTab(tab);
 
       finish();
     }, true);

@@ -35,10 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://gre/modules/Services.jsm");
-var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                   .getService(Components.interfaces.nsISessionStore);
-
 let stateBackup = ss.getBrowserState();
 
 const TAB_STATE_NEEDS_RESTORE = 1;

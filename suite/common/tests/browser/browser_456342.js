@@ -40,13 +40,7 @@ function test() {
   waitForExplicitFinish();
   
   // make sure we do save form data
-  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
-
-  var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
-
-  gPrefService.setIntPref("browser.sessionstore.privacy_level", 0);
+  Services.prefs.setIntPref("browser.sessionstore.privacy_level", 0);
   
   let rootDir = getRootDirectory(gTestPath);
   let testURL = rootDir + "browser_456342_sample.xhtml";
@@ -78,8 +72,8 @@ function test() {
     is(countBad,  0, "Didn't save text for ignored field types");
     
     // clean up
-    if (gPrefService.prefHasUserValue("browser.sessionstore.privacy_level"))
-      gPrefService.clearUserPref("browser.sessionstore.privacy_level");
+    if (Services.prefs.prefHasUserValue("browser.sessionstore.privacy_level"))
+      Services.prefs.clearUserPref("browser.sessionstore.privacy_level");
     finish();
   }, true);
 }

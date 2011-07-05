@@ -52,9 +52,6 @@ function test() {
   if ("nsILocalFileMac" in Components.interfaces)
     return;
 
-  // test setup
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                     .getService(Components.interfaces.nsISessionStore);
   waitForExplicitFinish();
   
   let newWin = openDialog(location, "_blank", "chrome,all,dialog=no");

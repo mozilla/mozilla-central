@@ -47,8 +47,6 @@ function test() {
     }
   }
   
-  let ss = Components.classes["@mozilla.org/suite/sessionstore;1"].getService(Components.interfaces.nsISessionStore);
-  
   // all of the following calls with illegal arguments should throw NS_ERROR_ILLEGAL_VALUE
   ok(test(function() ss.getWindowState({})),
      "Invalid window for getWindowState throws");

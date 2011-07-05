@@ -37,11 +37,6 @@
 function test() {
   /** Test for Bug 463206 **/
   
-  try {
-    var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
-                       .getService(Components.interfaces.nsISessionStore);
-  }
-  catch (ex) { }
   waitForExplicitFinish();
   
   let testURL = "http://mochi.test:8888/browser/" +
