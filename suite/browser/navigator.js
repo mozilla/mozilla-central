@@ -1297,7 +1297,7 @@ function QualifySearchTerm()
 function BrowserOpenWindow()
 {
   //opens a window where users can select a web location to open
-  var params = { browser: window, action: null, url: "" };
+  var params = { action: "0", url: "" };
   openDialog("chrome://communicator/content/openLocation.xul", "_blank", "chrome,modal,titlebar", params);
   var postData = { };
   var url = getShortcutOrURI(params.url, postData);

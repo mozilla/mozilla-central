@@ -2172,7 +2172,7 @@ var nsOpenRemoteCommand =
 
   doCommand: function(aCommand)
   {
-    var params = { browser: null, action: null, url: "" };
+    var params = { action: "2", url: "" };
     openDialog( "chrome://communicator/content/openLocation.xul", "_blank", "chrome,modal,titlebar", params);
     var win = getTopWin();
     switch (params.action) {

@@ -111,8 +111,6 @@ messenger.jar:
     content/messenger/messengercompose/askSendFormat.xul                       (compose/content/askSendFormat.xul)
     content/messenger/messengercompose/sendProgress.xul                        (compose/content/sendProgress.xul)
     content/messenger/messengercompose/sendProgress.js                         (compose/content/sendProgress.js)
-    content/messenger/messengercompose/MsgAttachPage.xul                       (compose/content/MsgAttachPage.xul)
-    content/messenger/messengercompose/MsgAttachPage.js                        (compose/content/MsgAttachPage.js)
     content/messenger/messengercompose/mailComposeEditorOverlay.xul            (compose/content/mailComposeEditorOverlay.xul)
 *   content/messenger/importDialog.js                                          (import/content/importDialog.js)
 *   content/messenger/importDialog.xul                                         (import/content/importDialog.xul)

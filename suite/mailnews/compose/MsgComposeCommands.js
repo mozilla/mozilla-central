@@ -2641,10 +2641,17 @@ function MessageGetNumSelectedAttachments()
 
 function AttachPage()
 {
-  var result = { attachment: null };
-  window.openDialog("chrome://messenger/content/messengercompose/MsgAttachPage.xul", "_blank", "chrome,close,titlebar,modal", result);
-  if (result.attachment)
-    AddAttachment(result.attachment);
+  var params = { action: "4", url: null };
+  window.openDialog("chrome://communicator/content/openLocation.xul",
+                    "_blank", "chrome,close,titlebar,modal", params);
+  if (params.url)
+  {
+    var attachment =
+        Components.classes["@mozilla.org/messengercompose/attachment;1"]
+                  .createInstance(Components.interfaces.nsIMsgAttachment);
+    attachment.url = params.url;
+    AddAttachment(attachment);
+  }
 }
 
 function DuplicateFileCheck(FileUrl)

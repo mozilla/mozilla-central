@@ -273,7 +273,6 @@
   locale/@AB_CD@/messenger/messengercompose/composeMsgs.properties          (%chrome/mailnews/compose/composeMsgs.properties)
   locale/@AB_CD@/messenger/messengercompose/mailComposeEditorOverlay.dtd    (%chrome/mailnews/compose/mailComposeEditorOverlay.dtd)
   locale/@AB_CD@/messenger/messengercompose/messengercompose.dtd            (%chrome/mailnews/compose/messengercompose.dtd)
-  locale/@AB_CD@/messenger/messengercompose/MsgAttachPage.dtd               (%chrome/mailnews/compose/MsgAttachPage.dtd)
   locale/@AB_CD@/messenger/messengercompose/pref-composing_messages.dtd     (%chrome/mailnews/pref/pref-composing_messages.dtd)
   locale/@AB_CD@/messenger/messengercompose/pref-formatting.dtd             (%chrome/mailnews/pref/pref-formatting.dtd)
   locale/@AB_CD@/messenger/messengercompose/sendProgress.dtd                (%chrome/mailnews/compose/sendProgress.dtd)

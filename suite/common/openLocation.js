@@ -24,6 +24,8 @@
  * Contributor(s):
  *   Michael Lowe <michael.lowe@bigfoot.com>
  *   Blake Ross   <blaker@netscape.com>
+ *   Neil Rashbrook <neil@parkwaycc.co.uk>
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -39,101 +41,102 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var browser;
-var dialog = {};
-var pref = null;
-try {
-  pref = Components.classes["@mozilla.org/preferences-service;1"]
-                   .getService(Components.interfaces.nsIPrefBranch);
-} catch (ex) {
-  // not critical, remain silent
-}
+var gInput;
+var gAcceptButton;
+var gLastPref = "general.open_location.last_url";
+var gOpenAppList;
+var gBundle;
+var gAction;
 
 function onLoad()
 {
-  dialog.input          = document.getElementById("dialog.input");
-  dialog.open           = document.documentElement.getButton("accept");
-  dialog.openAppList    = document.getElementById("openAppList");
-  dialog.openTopWindow  = document.getElementById("currentWindow");
-  dialog.openNewWindow  = document.getElementById("newWindow");
-  dialog.openEditWindow = document.getElementById("editWindow");
-  dialog.openNewTab     = document.getElementById("newTab");
-  dialog.bundle         = document.getElementById("openLocationBundle");
+  gInput = document.getElementById("dialog.input");
+  gAcceptButton = document.documentElement.getButton("accept");
+  gOpenAppList = document.getElementById("openAppList");
+  gBundle = document.getElementById("openLocationBundle");
+  gAction = window.arguments[0].action;
+  // Set arguments action to prevent problems on cancel.
+  window.arguments[0].action = "-1";
 
-  browser = window.arguments[0].browser;
-   
-  if (!browser) {
-    // No browser supplied - we are calling from Composer
-    dialog.openAppList.selectedItem = dialog.openEditWindow;
+  switch (gAction) {
+    case "4": // attach web page
+      document.title = gBundle.getString("attachTitle");
+      document.getElementById("enterLabel").value = gBundle.getString("attachEnterLabel");
+      document.getElementById("openWhereBox").setAttribute("hidden", true);
 
-    // Change string to make more sense for Composer
-    dialog.openTopWindow.setAttribute("label", dialog.bundle.getString("existingNavigatorWindow"));
+      // Change accept button text to 'attach'.
+      gAcceptButton.label = gBundle.getString("attachButtonLabel");
+      gLastPref = "mailnews.attach_web_page.last_url";
 
-    // Find most recent browser window
-    var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
-    var windowManagerInterface = windowManager.QueryInterface( Components.interfaces.nsIWindowMediator);
-    if (windowManagerInterface)
-      browser = windowManagerInterface.getMostRecentWindow( "navigator:browser" );
+      break;
 
-    // Disable "current browser" item if no browser is open
-    if (!browser) {
-      dialog.openTopWindow.setAttribute("disabled", "true");
-      dialog.openNewTab.setAttribute("disabled", "true");
-    }
+    case "2": // open web page from composer
+      gOpenAppList.selectedItem = document.getElementById("editWindow");
+      var openTopWindow = document.getElementById("currentTab");
+
+      // Change string to make more sense for Composer.
+      openTopWindow.setAttribute("label",
+                                 gBundle.getString("existingNavigatorWindow"));
+
+      // Disable existing browser and new tab menuitems and create indicator
+      // if no browser windows found.
+      if (!Services.wm.getMostRecentWindow("navigator:browser")) {
+        openTopWindow.setAttribute("disabled", "true");
+        document.getElementById("newTab").setAttribute("disabled", "true");
+        gAction = "-1";
+      }
+      break;
+
+    default: // open web page
+      gOpenAppList.value = Services.prefs.getIntPref("general.open_location.last_window_choice");
   }
-  else {
-    dialog.openAppList.selectedItem = dialog.openTopWindow;
-  }
 
-  if (pref) {
-    try {
-      dialog.openAppList.value = pref.getIntPref("general.open_location.last_window_choice");
-      dialog.input.value = pref.getComplexValue("general.open_location.last_url",
-                                                Components.interfaces.nsISupportsString).data;
-    }
-    catch(ex) {
-    }
-    if (dialog.input.value)
-      dialog.input.select(); // XXX should probably be done automatically
-  }
+  gInput.value = GetStringPref(gLastPref);
+  if (gInput.value)
+    gInput.select(); // XXX should probably be done automatically
 
   doEnabling();
 }
 
 function doEnabling()
 {
-    dialog.open.disabled = !dialog.input.value;
+  gAcceptButton.disabled = !gInput.value;
 }
 
-function open()
+function accept()
 {
   var params = window.arguments[0];
-  params.url = dialog.input.value;
-  params.action = dialog.openAppList.value;
-  if (!browser && params.action != "2")
-    params.action = "1";
+  params.url = gInput.value;
+  if (gAction != "4") { // open web page
+    params.action = gOpenAppList.value;
+    // If there were no browser windows open and not set to open in composer
+    // then set to open in a new window.
+    if (gAction == "-1" && params.action != "2")
+      params.action = "1";
 
-  if (pref) {
-    var str = Components.classes["@mozilla.org/supports-string;1"]
-                        .createInstance(Components.interfaces.nsISupportsString);
-    str.data = dialog.input.value;
-    pref.setComplexValue("general.open_location.last_url",
-                         Components.interfaces.nsISupportsString, str);
-    pref.setIntPref("general.open_location.last_window_choice", dialog.openAppList.value);
+    // If open web page from navigator window, save last window choice.
+    if (gAction == "0")
+      Services.prefs.setIntPref("general.open_location.last_window_choice",
+                                gOpenAppList.value);
   }
+
+  var str = Components.classes["@mozilla.org/supports-string;1"]
+                      .createInstance(Components.interfaces.nsISupportsString);
+  str.data = gInput.value;
+  Services.prefs.setComplexValue(gLastPref,
+                                 Components.interfaces.nsISupportsString, str);
 }
 
-const nsIFilePicker = Components.interfaces.nsIFilePicker;
 function onChooseFile()
 {
+  const nsIFilePicker = Components.interfaces.nsIFilePicker;
   try {
     var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-    fp.init(window, dialog.bundle.getString("chooseFileDialogTitle"), nsIFilePicker.modeOpen);
-    if (dialog.openAppList.value == "2") {
-      // When loading into Composer, direct user to prefer HTML files and text files,
-      // so we call separately to control the order of the filter list
+    fp.init(window, gBundle.getString("chooseFileDialogTitle"), nsIFilePicker.modeOpen);
+    if (window.arguments[0].action != "4" && gOpenAppList.value == "2") {
+      // When loading into Composer, direct user to prefer HTML files and text
+      // files, so we call separately to control the order of the filter list.
       fp.appendFilters(nsIFilePicker.filterHTML | nsIFilePicker.filterText);
-      fp.appendFilters(nsIFilePicker.filterText);
       fp.appendFilters(nsIFilePicker.filterAll);
     }
     else {
@@ -142,18 +145,16 @@ function onChooseFile()
     }
 
     if (fp.show() == nsIFilePicker.returnOK && fp.fileURL.spec && fp.fileURL.spec.length > 0)
-      dialog.input.value = fp.fileURL.spec;
+      gInput.value = fp.fileURL.spec;
   }
   catch(ex) {
   }
   doEnabling();
 }
 
-function useUBHistoryItem(aMenuItem)
+function useUBHistoryItem(aValue)
 {
-  var urlbar = document.getElementById("dialog.input");
-  urlbar.value = aMenuItem.getAttribute("label");
-  urlbar.focus();
+  gInput.value = aValue;
+  gInput.focus();
   doEnabling();
 }
-
