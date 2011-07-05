@@ -76,16 +76,15 @@ nsLDAPConnection::nsLDAPConnection()
       mVersion(nsILDAPConnection::VERSION3),
       mDNSRequest(0)
 {
-  // We have to abort all LDAP pending operation before shutdown.
-  nsCOMPtr<nsIObserverService> obsServ =
-      mozilla::services::GetObserverService();
-  obsServ->AddObserver(this, "profile-change-net-teardown", PR_FALSE);
 }
 
 // destructor
 //
 nsLDAPConnection::~nsLDAPConnection()
 {
+  nsCOMPtr<nsIObserverService> obsServ =
+      mozilla::services::GetObserverService();
+  obsServ->RemoveObserver(this, "profile-change-net-teardown");
   Close();
 }
 
@@ -113,6 +112,12 @@ nsLDAPConnection::Init(nsILDAPURL *aUrl, const nsACString &aBindName,
 {
   NS_ENSURE_ARG_POINTER(aUrl);
   NS_ENSURE_ARG_POINTER(aMessageListener);
+
+  nsCOMPtr<nsIObserverService> obsServ =
+      mozilla::services::GetObserverService();
+
+  // We have to abort all LDAP pending operation before shutdown.
+  obsServ->AddObserver(this, "profile-change-net-teardown", PR_TRUE);
 
   // Save various items that we'll use later
   mBindName.Assign(aBindName);
