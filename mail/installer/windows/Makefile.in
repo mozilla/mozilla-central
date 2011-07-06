@@ -49,7 +49,7 @@ CONFIG_DIR = instgen
 SFX_MODULE = $(topsrcdir)/other-licenses/7zstub/thunderbird/7zSD.sfx
 
 DEFINES += -DMOZ_APP_VERSION=$(MOZ_APP_VERSION)
-PRE_RELEASE_SUFFIX := $(shell $(PYTHON) $(topsrcdir)/mozilla/config/printprereleasesuffix.py $(MOZ_APP_VERSION))
+PRE_RELEASE_SUFFIX := ""
 DEFINES += -DPRE_RELEASE_SUFFIX="$(PRE_RELEASE_SUFFIX)"
 
 ifdef MOZ_UPDATER

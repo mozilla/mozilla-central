@@ -48,7 +48,7 @@ PRE_RELEASE_SUFFIX := $(shell $(PYTHON) $(topsrcdir)/mozilla/config/printprerele
                       $(MOZ_APP_VERSION))
 
 DEFINES += -DMOZ_APP_VERSION=$(MOZ_APP_VERSION) \
-           -DPRE_RELEASE_SUFFIX="$(PRE_RELEASE_SUFFIX)"
+           -DPRE_RELEASE_SUFFIX=""
 
 ifdef MOZILLA_OFFICIAL
 DEFINES += -DOFFICIAL_BUILD=1
