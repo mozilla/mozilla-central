@@ -950,11 +950,10 @@ var GlodaDatastore = {
    *  if it does and it's not up-to-date, fill our authoritative folder uri/id
    *  mapping.
    */
-  _init: function gloda_ds_init(aNsJSON, aNounIDToDef) {
+  _init: function gloda_ds_init(aNounIDToDef) {
     this._log = Log4Moz.repository.getLogger("gloda.datastore");
     this._log.debug("Beginning datastore initialization.");
 
-    this._json = aNsJSON;
     this._nounIDToDef = aNounIDToDef;
 
     let prefService = Cc["@mozilla.org/preferences-service;1"].
@@ -3447,7 +3446,7 @@ var GlodaDatastore = {
     }
 
     //this._log.debug(" load json: " + aItem._jsonText);
-    let jsonDict = this._json.decode(aItem._jsonText);
+    let jsonDict = JSON.parse(aItem._jsonText);
     delete aItem._jsonText;
 
     // Iterate over the attributes on the item

@@ -169,8 +169,7 @@ var Gloda = {
    */
   _init: function gloda_ns_init() {
     this._initLogging();
-    this._json = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-    GlodaDatastore._init(this._json, this._nounIDToDef);
+    GlodaDatastore._init(this._nounIDToDef);
     this._initAttributes();
     this._initMyIdentities();
   },
@@ -2124,7 +2123,7 @@ var Gloda = {
       delete aOldItem[key];
     }
 
-    aItem._jsonText = this._json.encode(jsonDict);
+    aItem._jsonText = JSON.stringify(jsonDict);
     this._log.debug("  json text: " + aItem._jsonText);
 
     if (aIsRecordNew) {

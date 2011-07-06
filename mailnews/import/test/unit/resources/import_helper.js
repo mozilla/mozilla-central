@@ -266,8 +266,7 @@ AbImportHelper.prototype =
     istream.close();
     fis.close();
     // decode the JSON and get the array of cards
-    var nsIJSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-    var arr = nsIJSON.decode(json)[aName];
+    var arr = JSON.parse(json)[aName];
     do_check_true(arr && arr.length > 0);
     return arr;
   }

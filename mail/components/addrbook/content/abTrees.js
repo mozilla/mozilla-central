@@ -133,8 +133,7 @@ directoryTreeView.prototype = {
 
         sstream.close();
         fstream.close();
-        let JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-        this._persistOpenMap = JSON.decode(data);
+        this._persistOpenMap = JSON.parse(data);
       }
     }
 
@@ -149,8 +148,7 @@ directoryTreeView.prototype = {
     // Write out the persistOpenMap to our JSON file
     if (aJSONFile) {
       // Write out our json file...
-      let JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-      let data = JSON.encode(this._persistOpenMap);
+      let data = JSON.stringify(this._persistOpenMap);
       let file = Cc["@mozilla.org/file/directory_service;1"]
                  .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile);
       file.append(aJSONFile);
