@@ -759,12 +759,14 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
   return NS_ERROR_FAILURE;
 }
 
-NS_IMETHODIMP nsMsgComposeService::OpenComposeWindowWithURI(const char * aMsgComposeWindowURL, nsIURI * aURI)
+NS_IMETHODIMP nsMsgComposeService::OpenComposeWindowWithURI(const char * aMsgComposeWindowURL, nsIURI * aURI, nsIMsgIdentity *identity)
 {
   nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams;
   nsresult rv = GetParamsForMailto(aURI, getter_AddRefs(pMsgComposeParams));
-  if (NS_SUCCEEDED(rv))
+  if (NS_SUCCEEDED(rv)) {
+    pMsgComposeParams->SetIdentity(identity);
     rv = OpenComposeWindowWithParams(aMsgComposeWindowURL, pMsgComposeParams);
+  }
   return rv;
 }
 

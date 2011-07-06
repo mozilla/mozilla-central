@@ -47,7 +47,7 @@ interface nsIMsgIdentity;
 interface nsIMsgIncomingServer;
 interface nsIMsgDBHdr;
 
-[scriptable, uuid(b73dae1e-7e97-45aa-8669-dacbb7e9fbd0)]
+[scriptable, uuid(8de65170-a452-11e0-8264-0800200c9a66)]
 interface nsIMsgComposeService : nsISupports {
 
   /* we need a msg window because when we forward inline we may need progress */
@@ -59,12 +59,20 @@ interface nsIMsgComposeService : nsISupports {
                          in nsIMsgIdentity identity, 
                          in nsIMsgWindow aMsgWindow);
 
-    /* use this method to invoke a compose window given a mailto url.
-     aMsgComposeWindowURL --> can be null in most cases. If you have your own chrome
-     url you want to use in brining up a compose window, pass it in here. 
-     aURI --> the mailto url you want to use as the foundation for the data inside
-     the compose window  */
-  void OpenComposeWindowWithURI(in string msgComposeWindowURL, in nsIURI aURI);
+  /**
+   * Open a compose window given a mailto url and (optionally) an identity.
+   *
+   * @param aMsgComposeWindowURL Can be null in most cases. If you have your
+   *                             own chrome url you want to use in bringing up a
+   *                             compose window, pass it in here.
+   * @param aURI                 The mailto url you want to use as the
+   *                             foundation for the data inside the compose
+   *                             window.
+   * @param aIdentity            An optional identity to send the message from.
+   */
+  void OpenComposeWindowWithURI(in string msgComposeWindowURL,
+                                in nsIURI aURI,
+                                [optional] in nsIMsgIdentity aIdentity);
 
   /* ... */
   void OpenComposeWindowWithParams(in string msgComposeWindowURL, in nsIMsgComposeParams params);

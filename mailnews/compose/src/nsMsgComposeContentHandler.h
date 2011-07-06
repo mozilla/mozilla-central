@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsIContentHandler.h"
+#include "nsIMsgIdentity.h"
 
 class nsMsgComposeContentHandler : public nsIContentHandler
 {
@@ -46,4 +47,7 @@ public:
 
 	NS_DECL_ISUPPORTS
   NS_DECL_NSICONTENTHANDLER
+private:
+  nsresult GetBestIdentity(nsIInterfaceRequestor* aWindowContext,
+                           nsIMsgIdentity **identity);
 };
