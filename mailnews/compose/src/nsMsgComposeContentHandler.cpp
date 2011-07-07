@@ -103,6 +103,11 @@ nsresult nsMsgComposeContentHandler::GetBestIdentity(
   rv = msgHdr->GetFolder(getter_AddRefs(folder));
   NS_ENSURE_SUCCESS(rv, rv);
 
+  // nsIMsgDBHdrs from .eml messages have a null folder, so bail out if that's
+  // the case.
+  if (!folder)
+    return NS_ERROR_FAILURE;
+
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = folder->GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
