@@ -136,21 +136,10 @@ MOZCONFIG_LOADER := mozilla/build/autoconf/mozconfig2client-mk
 MOZCONFIG_FINDER := mozilla/build/autoconf/mozconfig-find
 MOZCONFIG_MODULES := mozilla/build/unix/uniq.pl
 
-# We need to give client.py an early chance to run, since we don't necessarely
-# have a mozilla/ checkout yet
-run_for_side_effects := \
-  @if test ! -f .client.run; then \
-    $(shell $(PYTHON) $(TOPSRCDIR)/build/run_client.py $(TOPSRCDIR) > .client.out ); \
-    touch .client.run \
-  else \
-    rm -f .client.run; \
-    true; \
-  fi
-
 run_for_side_effects := \
   $(shell $(TOPSRCDIR)/$(MOZCONFIG_LOADER) $(TOPSRCDIR) $(TOPSRCDIR)/.mozconfig.mk > $(TOPSRCDIR)/.mozconfig.out)
 
-include $(TOPSRCDIR)/.mozconfig.mk
+sinclude $(TOPSRCDIR)/.mozconfig.mk
 
 ifndef MOZ_OBJDIR
   MOZ_OBJDIR = obj-$(CONFIG_GUESS)
@@ -184,6 +173,14 @@ CONFIGURES += $(TOPSRCDIR)/mozilla/js/src/configure
 
 # The default rule is build
 build::
+
+# These targets are candidates for auto-running client.py
+ifndef NO_CLIENT_PY
+$(TOPSRCDIR)/.mozconfig.mk:: run_client_py
+	$(TOPSRCDIR)/$(MOZCONFIG_LOADER) $(TOPSRCDIR) $(TOPSRCDIR)/.mozconfig.mk > $(TOPSRCDIR)/.mozconfig.out
+build 	  		:: run_client_py
+configure 		:: run_client_py
+endif
 
 # Print out any options loaded from mozconfig.
 all build clean depend distclean export libs install realclean::
@@ -328,7 +325,7 @@ endif
 	@touch $(OBJDIR)/Makefile
 
 $(OBJDIR)/Makefile $(OBJDIR)/config.status: $(CONFIG_STATUS_DEPS)
-	@$(MAKE) -f $(TOPSRCDIR)/client.mk configure
+	@$(MAKE) -f $(TOPSRCDIR)/client.mk configure NO_CLIENT_PY=1
 
 ifneq (,$(CONFIG_STATUS))
 $(OBJDIR)/config/autoconf.mk: $(TOPSRCDIR)/config/autoconf.mk.in
@@ -416,8 +413,13 @@ cleansrcdir:
 	fi;
 
 checkout co:
-	@$(PYTHON) $(TOPSRCDIR)/build/run_client.py $(TOPSRCDIR) force
+	@$(PYTHON) $(TOPSRCDIR)/build/run_client.py --force --make $(MAKE) $(TOPSRCDIR)
 
+run_client_py:
+	@$(PYTHON) $(TOPSRCDIR)/build/run_client.py --make $(MAKE) $(TOPSRCDIR)
+
+print_mk_add_options:
+	@$(TOPSRCDIR)/build/print_mk_add_options.sh
 
 echo-variable-%:
 	@echo $($*)
@@ -427,4 +429,4 @@ echo-variable-%:
 # in parallel.
 .NOTPARALLEL:
 
-.PHONY: checkout co real_checkout depend build profiledbuild maybe_clobber_profiledbuild export libs alldep install clean realclean distclean cleansrcdir pull_all build_all clobber clobber_all pull_and_build_all everything configure preflight_all preflight postflight postflight_all
+.PHONY: run_client_py print_mk_add_options checkout co real_checkout depend build profiledbuild maybe_clobber_profiledbuild export libs alldep install clean realclean distclean cleansrcdir pull_all build_all clobber clobber_all pull_and_build_all everything configure preflight_all preflight postflight postflight_all
