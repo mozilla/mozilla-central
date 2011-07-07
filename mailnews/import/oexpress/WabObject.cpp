@@ -35,6 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include <tchar.h>
 #include "nscore.h"
 #include "wabobject.h"
 
@@ -132,8 +133,33 @@ CWAB::CWAB(nsILocalFile *file)
         // Registry.
         // WAB_DLL_PATH_KEY is defined in wabapi.h
         //
-        if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, WAB_DLL_PATH_KEY, 0, KEY_READ, &hKey))
+        if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, WAB_DLL_PATH_KEY, 0, KEY_READ, &hKey)) {
             RegQueryValueEx( hKey, "", NULL, &dwType, (LPBYTE) szWABDllPath, &cbData);
+            if (dwType == REG_EXPAND_SZ) {
+                // Expand the environment variables
+                DWORD bufferSize = ExpandEnvironmentStrings(szWABDllPath, NULL, 0);
+                if (bufferSize && bufferSize < MAX_PATH) {
+                    TCHAR tmp[MAX_PATH];
+                    ExpandEnvironmentStrings(szWABDllPath, tmp, bufferSize);
+                    _tcscpy(szWABDllPath, tmp);
+                }
+                else {
+                    // This is an error condition. Nothing else is initialized yet, so simply return.
+                    return;
+                }
+
+            }
+        }
+        else {
+            if (GetSystemDirectory(szWABDllPath, MAX_PATH)) {
+                _tcsncat(szWABDllPath, WAB_DLL_NAME,
+                         NS_MIN(_tcslen(WAB_DLL_NAME), MAX_PATH - _tcslen(szWABDllPath) - 1));
+            }
+            else {
+                // Yet another error condition.
+                return;
+            }
+        }
 
         if(hKey) RegCloseKey(hKey);
 
