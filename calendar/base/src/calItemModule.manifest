@@ -39,11 +39,11 @@ contract @mozilla.org/calendar/ics-serializer;1 {207a6682-8ff1-4203-9160-729ec28
 component {f41392ab-dcad-4bad-818f-b3d1631c4d93} calItemModule.js
 contract @mozilla.org/calendar/itip-item;1 {f41392ab-dcad-4bad-818f-b3d1631c4d93}
 
-component {1e2fc0e2-bf5f-4d60-9f1e-5e92cf517c0b} calItemModule.js
-contract @mozilla.org/network/protocol;1?name=webcal {1e2fc0e2-bf5f-4d60-9f1e-5e92cf517c0b}
+component {1153c73a-39be-46aa-9ba9-656d188865ca} calItemModule.js
+contract @mozilla.org/network/protocol;1?name=webcal {1153c73a-39be-46aa-9ba9-656d188865ca}
 
-component {b2ee6f91-b061-4527-97a1-b85361775fc1} calItemModule.js
-contract @mozilla.org/network/protocol;1?name=webcals {b2ee6f91-b061-4527-97a1-b85361775fc1}
+component {bdf71224-365d-4493-856a-a7e74026f766} calItemModule.js
+contract @mozilla.org/network/protocol;1?name=webcals {bdf71224-365d-4493-856a-a7e74026f766}
 
 component {04027036-5884-4a30-b4af-f2cad79f6edf} calItemModule.js
 contract @mozilla.org/calendar/recurrence-info;1 {04027036-5884-4a30-b4af-f2cad79f6edf}
