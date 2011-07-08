@@ -65,6 +65,9 @@
 #endif
 #endif
 @BINPATH@/@DLL_PREFIX@mozalloc@DLL_SUFFIX@
+#ifdef MOZ_MEMORY_DARWIN
+@BINPATH@/@DLL_PREFIX@jemalloc@DLL_SUFFIX@
+#endif
 #ifdef XP_MACOSX
 @BINPATH@/XUL
 #else
