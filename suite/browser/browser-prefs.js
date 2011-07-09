@@ -574,6 +574,7 @@ pref("extensions.webservice.discoverURL", "https://services.addons.mozilla.org/%
 
 // getMoreThemes is used by our UI under our switch theme menu
 pref("extensions.getMoreThemesURL", "chrome://branding/locale/brand.properties");
+pref("extensions.getPersonasURL", "chrome://branding/locale/brand.properties");
 pref("extensions.dss.enabled", false);          // Dynamic Skin Switching
 pref("extensions.dss.switchPending", false);    // Non-dynamic switch pending after next
                                                 // restart.

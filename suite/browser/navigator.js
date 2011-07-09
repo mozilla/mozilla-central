@@ -2195,6 +2195,19 @@ function getNewThemes()
   }
 }
 
+function getPersonas()
+{
+  // get URL for more themes from prefs
+  try
+  {
+    openTopWin(Services.urlFormatter.formatURLPref("extensions.getPersonasURL"));
+  }
+  catch (ex)
+  {
+    dump(ex);
+  }
+}
+
 function URLBarFocusHandler(aEvent)
 {
   if (gIgnoreFocus)

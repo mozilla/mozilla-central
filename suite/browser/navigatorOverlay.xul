@@ -368,7 +368,12 @@
           <menupopup id="menu_ViewApplyTheme_Popup"
                      onpopupshowing="checkTheme(this);"
                      oncommand="applyTheme(event.target);">
-            <menuitem label="&getNewThemesCmd.label;" accesskey="&getNewThemesCmd.accesskey;" oncommand="getNewThemes();"/>
+            <menuitem label="&getNewThemesCmd.label;"
+                      accesskey="&getNewThemesCmd.accesskey;"
+                      oncommand="getNewThemes();"/>
+            <menuitem label="&getPersonasCmd.label;"
+                      accesskey="&getPersonasCmd.accesskey;"
+                      oncommand="getPersonas();"/>
             <menuseparator/>
           </menupopup>
         </menu>

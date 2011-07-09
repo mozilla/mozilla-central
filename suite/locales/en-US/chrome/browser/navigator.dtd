@@ -82,6 +82,8 @@
 <!ENTITY applyTheme.accesskey	"A"> 
 <!ENTITY getNewThemesCmd.label "Get New Themes">
 <!ENTITY getNewThemesCmd.accesskey "G">
+<!ENTITY getPersonasCmd.label "Get Personas">
+<!ENTITY getPersonasCmd.accesskey "P">
 <!ENTITY findOnCmd.label "Find in This Page…">
 <!ENTITY findOnCmd.accesskey "f">
 <!ENTITY findOnCmd.commandkey "f">
