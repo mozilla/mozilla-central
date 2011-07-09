@@ -1,111 +1,121 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1302728134000">
   <emItems>
-    <emItem id="langpack-vi-VN@firefox.mozilla.org">
-      <versionRange minVersion="2.0" maxVersion="2.0"/>
-    </emItem>
-    <emItem id="masterfiler@gmail.com">
-      <versionRange severity="3"/>
-    </emItem>
-    <emItem id="msntoolbar@msn.com">
-      <versionRange minVersion=" " maxVersion="6.*"/>
-    </emItem>
-    <emItem id="ShopperReports@ShopperReports.com">
-      <versionRange minVersion="3.1.22.0" maxVersion="3.1.22.0"/>
-    </emItem>
-    <emItem id="support@daemon-tools.cc">
-      <versionRange minVersion=" " maxVersion="1.0.0.5"/>
-    </emItem>
-    <emItem id="support@update-firefox.com"/>
-    <emItem id="{2224e955-00e9-4613-a844-ce69fccaae91}"/>
-    <emItem id="{27182e60-b5f3-411c-b545-b44205977502}">
-      <versionRange minVersion="1.0" maxVersion="1.0"/>
-    </emItem>
-    <emItem id="{3252b9ae-c69a-4eaf-9502-dc9c1f6c009e}">
-      <versionRange minVersion="2.2" maxVersion="2.2"/>
-    </emItem>
-    <emItem id="{3f963a5b-e555-4543-90e2-c3908898db71}">
-      <versionRange minVersion=" " maxVersion="8.5"/>
-    </emItem>
-    <emItem id="{46551EC9-40F0-4e47-8E18-8E5CF550CFB8}">
-      <versionRange minVersion="1.1b1" maxVersion="1.1b1"/>
-    </emItem>
-    <emItem id="{8CE11043-9A15-4207-A565-0C94C42D590D}"/>
-    <emItem id="{AB2CE124-6272-4b12-94A9-7303C7397BD1}">
-      <versionRange minVersion="0.1" maxVersion="5.2.0.7164" severity="1"/>
-    </emItem>
-    <emItem id="{B13721C7-F507-4982-B2E5-502A71474FED}">
-      <versionRange severity="1"/>
-    </emItem>
-    <emItem id="{E8E88AB0-7182-11DF-904E-6045E0D72085}"/>
-  </emItems>
-<pluginItems>
-  <pluginItem>
-    <match name="filename" exp="NPFFAddOn.dll"/>
-    <versionRange>
-    </versionRange>
-  </pluginItem>
-  <pluginItem>
-    <match name="name" exp="^Yahoo Application State Plugin$"/>
-    <match name="description" exp="^Yahoo Application State Plugin$"/>
-    <match name="filename" exp="npYState.dll"/>
-    <versionRange>
-      <targetApplication id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
-        <versionRange minVersion="1.0.0.5" maxVersion="*"/>
-      </targetApplication>
-    </versionRange>
-  </pluginItem>
-  <pluginItem>
-    <match name="name" exp="QuickTime Plug-in 7[.]1[.]"/>
-    <match name="filename" exp="npqtplugin.?[.]dll"/>
-    <versionRange>
-      <targetApplication id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
-        <versionRange minVersion="1.0.0.5" maxVersion="*"/>
-      </targetApplication>
-    </versionRange>
-  </pluginItem>
-  <pluginItem>
-    <match name="filename" exp="NPMySrch.dll"/>
-    <versionRange>
-    </versionRange>
-  </pluginItem>
-  <pluginItem>
-    <match name="name" exp="[0-6]\.0\.[01]\d{2}\.\d+"/>
-    <match name="filename" exp="npdeploytk.dll"/>
-    <versionRange severity="1">
-    </versionRange>
-  </pluginItem>
-</pluginItems>
-<gfxItems>
-  <gfxBlacklistEntry>
-    <os>WINNT 6.1</os>
-    <vendor>0x10de</vendor>
-    <devices>
-      <device>0x0a6c</device>
-    </devices>
-    <feature>DIRECT2D</feature>
-    <featureStatus>BLOCKED_DRIVER_VERSION</featureStatus>
-    <driverVersion>8.17.12.5896</driverVersion>
-    <driverVersionComparator>LESS_THAN_OR_EQUAL</driverVersionComparator>
-  </gfxBlacklistEntry>
-  <gfxBlacklistEntry>
-    <os>WINNT 6.1</os>
-    <vendor>0x10de</vendor>
-    <devices>
-      <device>0x0a6c</device>
-    </devices>
-    <feature>DIRECT3D_9_LAYERS</feature>
-    <featureStatus>BLOCKED_DRIVER_VERSION</featureStatus>
-    <driverVersion>8.17.12.5896</driverVersion>
-    <driverVersionComparator>LESS_THAN_OR_EQUAL</driverVersionComparator>
-  </gfxBlacklistEntry>
-  <gfxBlacklistEntry>
-    <os>WINNT 5.1</os>
-    <vendor>0x10de</vendor>
-    <feature>DIRECT3D_9_LAYERS</feature>
-    <featureStatus>BLOCKED_DRIVER_VERSION</featureStatus>
-    <driverVersion>7.0.0.0</driverVersion>
-    <driverVersionComparator>GREATER_THAN_OR_EQUAL</driverVersionComparator>
-  </gfxBlacklistEntry>
-</gfxItems>
+      <emItem  blockID="i10" id="{8CE11043-9A15-4207-A565-0C94C42D590D}">
+                        </emItem>
+      <emItem  blockID="i17" id="{3252b9ae-c69a-4eaf-9502-dc9c1f6c009e}">
+                        <versionRange  minVersion="2.2" maxVersion="2.2">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i18" id="msntoolbar@msn.com">
+                        <versionRange  minVersion=" " maxVersion="6.*">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i8" id="{B13721C7-F507-4982-B2E5-502A71474FED}">
+                        <versionRange  minVersion=" " severity="1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i13" id="{E8E88AB0-7182-11DF-904E-6045E0D72085}">
+                        </emItem>
+      <emItem  blockID="i3" id="langpack-vi-VN@firefox.mozilla.org">
+                        <versionRange  minVersion="2.0" maxVersion="2.0">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i19" id="{46551EC9-40F0-4e47-8E18-8E5CF550CFB8}">
+                        <versionRange  minVersion="1.1b1" maxVersion="1.1b1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i22" id="ShopperReports@ShopperReports.com">
+                        <versionRange  minVersion="3.1.22.0" maxVersion="3.1.22.0">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i7" id="{2224e955-00e9-4613-a844-ce69fccaae91}">
+                        </emItem>
+      <emItem  blockID="i16" id="{27182e60-b5f3-411c-b545-b44205977502}">
+                        <versionRange  minVersion="1.0" maxVersion="1.0">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i5" id="support@daemon-tools.cc">
+                        <versionRange  minVersion=" " maxVersion="1.0.0.5">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i6" id="{3f963a5b-e555-4543-90e2-c3908898db71}">
+                        <versionRange  minVersion=" " maxVersion="8.5">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i12" id="masterfiler@gmail.com">
+                        <versionRange  severity="3">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i20" id="{AB2CE124-6272-4b12-94A9-7303C7397BD1}">
+                        <versionRange  minVersion="0.1" maxVersion="5.2.0.7164" severity="1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i21" id="support@update-firefox.com">
+                        </emItem>
+    </emItems>
+
+  <pluginItems>
+      <pluginItem  blockID="p28">
+                  <match name="filename" exp="NPFFAddOn.dll" />              <versionRange >
+                  </versionRange>
+          </pluginItem>
+      <pluginItem  blockID="p29">
+      <match name="name" exp="^Yahoo Application State Plugin$" />      <match name="description" exp="^Yahoo Application State Plugin$" />      <match name="filename" exp="npYState.dll" />              <versionRange >
+                      <targetApplication id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+              <versionRange  minVersion="1.0.0.5" maxVersion="*" />
+            </targetApplication>
+                  </versionRange>
+          </pluginItem>
+      <pluginItem  blockID="p30">
+      <match name="name" exp="QuickTime Plug-in 7[.]1[.]" />            <match name="filename" exp="npqtplugin.?[.]dll" />              <versionRange >
+                      <targetApplication id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+              <versionRange  minVersion="1.0.0.5" maxVersion="*" />
+            </targetApplication>
+                  </versionRange>
+          </pluginItem>
+      <pluginItem  blockID="p31">
+                  <match name="filename" exp="NPMySrch.dll" />              <versionRange >
+                  </versionRange>
+          </pluginItem>
+      <pluginItem  blockID="p33">
+      <match name="name" exp="[0-6]\.0\.[01]\d{2}\.\d+" />            <match name="filename" exp="npdeploytk.dll" />              <versionRange  severity="1">
+                  </versionRange>
+          </pluginItem>
+    </pluginItems>
+
+  <gfxItems>
+    <gfxBlacklistEntry  blockID="g35">
+      <os>WINNT 6.1</os>
+      <vendor>0x10de</vendor>
+              <devices>
+                      <device>0x0a6c</device>
+                  </devices>
+            <feature>DIRECT2D</feature>
+      <featureStatus>BLOCKED_DRIVER_VERSION</featureStatus>
+      <driverVersion>8.17.12.5896</driverVersion>
+      <driverVersionComparator>LESS_THAN_OR_EQUAL</driverVersionComparator>
+    </gfxBlacklistEntry>
+    <gfxBlacklistEntry  blockID="g36">
+      <os>WINNT 6.1</os>
+      <vendor>0x10de</vendor>
+              <devices>
+                      <device>0x0a6c</device>
+                  </devices>
+            <feature>DIRECT3D_9_LAYERS</feature>
+      <featureStatus>BLOCKED_DRIVER_VERSION</featureStatus>
+      <driverVersion>8.17.12.5896</driverVersion>
+      <driverVersionComparator>LESS_THAN_OR_EQUAL</driverVersionComparator>
+    </gfxBlacklistEntry>
+    <gfxBlacklistEntry  blockID="g37">
+      <os>WINNT 5.1</os>
+      <vendor>0x10de</vendor>
+            <feature>DIRECT3D_9_LAYERS</feature>
+      <featureStatus>BLOCKED_DRIVER_VERSION</featureStatus>
+      <driverVersion>7.0.0.0</driverVersion>
+      <driverVersionComparator>GREATER_THAN_OR_EQUAL</driverVersionComparator>
+    </gfxBlacklistEntry>
+    </gfxItems>
+
+
 </blocklist>
