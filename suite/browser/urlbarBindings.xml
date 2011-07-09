@@ -327,7 +327,8 @@
           var box = document.createElement("box");
           box.setAttribute("class", "autocomplete-search-engine");
           box.setAttribute("name", aName);
-          box.setAttribute("icon", aIcon);
+          if (aIcon)
+            box.setAttribute("icon", aIcon.spec);
           box.setAttribute("searchBarUrl", aSearchBarUrl);
           box.setAttribute("engineIndex", this.childNodes.length);
           this.mSearchBox.appendChild(box);
