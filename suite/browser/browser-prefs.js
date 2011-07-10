@@ -714,9 +714,6 @@ pref("ui.use_activity_cursor", true);
 
 pref("browser.download.manager.behavior", 1);
 
-// Turn on click-and-hold contextual menus
-pref("ui.click_hold_context_menus", true);
-
 // Use a sheet instead of a popup window for the customize toolbar UI
 pref("toolbar.customization.usesheet", true);
 #endif
