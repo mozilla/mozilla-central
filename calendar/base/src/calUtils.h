@@ -86,7 +86,14 @@ inline nsCOMPtr<calIICSService> getICSService() {
  * Gets the global timezone service.
  */
 inline nsCOMPtr<calITimezoneService> getTimezoneService() {
-    return do_GetService(CAL_TIMEZONESERVICE_CONTRACTID);
+    nsresult rv;
+    nsCOMPtr<calITimezoneService> tzs;
+
+    tzs = do_GetService(CAL_TIMEZONESERVICE_CONTRACTID, &rv);
+    if (NS_FAILED(rv)) {
+        NS_RUNTIMEABORT("Could not load timezone service, brace yourself and prepare for crash");
+    }
+    return tzs;
 }
 
 /**
@@ -128,8 +135,14 @@ inline nsresult log(nsACString const& msg) {
  * Gets the "UTC" timezone.
  */
 inline nsCOMPtr<calITimezone> UTC() {
+    nsresult rv;
     nsCOMPtr<calITimezone> tz;
-    getTimezoneService()->GetUTC(getter_AddRefs(tz));
+
+    rv = getTimezoneService()->GetUTC(getter_AddRefs(tz));
+    if (NS_FAILED(rv)) {
+        NS_RUNTIMEABORT("Could not load UTC timezone, brace yourself and prepare for crash");
+    }
+
     return tz;
 }
 
@@ -137,8 +150,14 @@ inline nsCOMPtr<calITimezone> UTC() {
  * Gets the "floating" timezone
  */
 inline nsCOMPtr<calITimezone> floating() {
+    nsresult rv;
     nsCOMPtr<calITimezone> tz;
-    getTimezoneService()->GetFloating(getter_AddRefs(tz));
+
+    rv = getTimezoneService()->GetFloating(getter_AddRefs(tz));
+    if (NS_FAILED(rv)) {
+        NS_RUNTIMEABORT("Could not load floating timezone, brace yourself and prepare for crash");
+    }
+
     return tz;
 }
 

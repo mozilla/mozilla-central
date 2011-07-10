@@ -78,6 +78,7 @@ protected:
 
     void Normalize();
     void FromIcalTime(icaltimetype const* icalt, calITimezone *tz);
+    void ensureTimezone();
 
     static PRTime IcaltimeToPRTime(icaltimetype const* icalt, icaltimezone const* tz);
     static void PRTimeToIcaltime(PRTime time, PRBool isdate,

@@ -1,4 +1,4 @@
-/* ***** BEGIN LICENSE BLOCK *****
+﻿/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -138,7 +138,7 @@ calDateTime::Reset()
     mWeekday = 4;
     mYearday = 1;
     mIsDate = PR_FALSE;
-    mTimezone = cal::UTC();
+    mTimezone = nsnull;
     mNativeTime = 0;
     mIsValid = PR_TRUE;
     return NS_OK;
@@ -156,9 +156,20 @@ CAL_VALUETYPE_ATTR_GETTER(calDateTime, PRTime, NativeTime)
 CAL_VALUETYPE_ATTR_GETTER(calDateTime, PRInt16, Weekday)
 CAL_VALUETYPE_ATTR_GETTER(calDateTime, PRInt16, Yearday)
 
-CAL_ISUPPORTS_ATTR_GETTER(calDateTime, calITimezone, Timezone)
 
-NS_IMETHODIMP calDateTime::SetTimezone(calITimezone *aValue) {
+NS_IMETHODIMP
+calDateTime::GetTimezone(calITimezone **aResult)
+{
+    NS_ENSURE_ARG_POINTER(aResult);
+    ensureTimezone();
+
+    NS_IF_ADDREF(*aResult = mTimezone);
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+calDateTime::SetTimezone(calITimezone *aValue)
+{
     NS_ENSURE_FALSE(mImmutable, NS_ERROR_OBJECT_IS_IMMUTABLE);
     NS_ENSURE_ARG_POINTER(aValue);
     mTimezone = aValue;
@@ -191,10 +202,11 @@ calDateTime::AddDuration(calIDuration *aDuration)
 {
     NS_ENSURE_FALSE(mImmutable, NS_ERROR_OBJECT_IS_IMMUTABLE);
     NS_ENSURE_ARG_POINTER(aDuration);
+    ensureTimezone();
 
     icaldurationtype idt;
     aDuration->ToIcalDuration(&idt);
-    
+
     icaltimetype itt;
     ToIcalTime(&itt);
 
@@ -228,8 +240,11 @@ NS_IMETHODIMP
 calDateTime::ToString(nsACString & aResult)
 {
     nsCAutoString tzid;
-    mTimezone->GetTzid(tzid);
     char buffer[256];
+
+    ensureTimezone();
+    mTimezone->GetTzid(tzid);
+
     PRUint32 const length = PR_snprintf(
         buffer, sizeof(buffer), "%04hd/%02hd/%02hd %02hd:%02hd:%02hd %s isDate=%01hd",
         mYear, mMonth + 1, mDay, mHour, mMinute, mSecond,
@@ -292,6 +307,7 @@ NS_IMETHODIMP
 calDateTime::GetStartOfWeek(calIDateTime ** aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
+    ensureTimezone();
 
     icaltimetype icalt;
     ToIcalTime(&icalt);
@@ -310,6 +326,7 @@ NS_IMETHODIMP
 calDateTime::GetEndOfWeek(calIDateTime ** aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
+    ensureTimezone();
 
     icaltimetype icalt;
     ToIcalTime(&icalt);
@@ -328,6 +345,7 @@ NS_IMETHODIMP
 calDateTime::GetStartOfMonth(calIDateTime ** aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
+    ensureTimezone();
 
     icaltimetype icalt;
     ToIcalTime(&icalt);
@@ -344,6 +362,7 @@ NS_IMETHODIMP
 calDateTime::GetEndOfMonth(calIDateTime ** aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
+    ensureTimezone();
 
     icaltimetype icalt;
     ToIcalTime(&icalt);
@@ -360,6 +379,7 @@ NS_IMETHODIMP
 calDateTime::GetStartOfYear(calIDateTime ** aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
+    ensureTimezone();
 
     icaltimetype icalt;
     ToIcalTime(&icalt);
@@ -377,6 +397,7 @@ NS_IMETHODIMP
 calDateTime::GetEndOfYear(calIDateTime ** aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
+    ensureTimezone();
 
     icaltimetype icalt;
     ToIcalTime(&icalt);
@@ -424,13 +445,25 @@ calDateTime::SetIcalString(nsACString const& aIcalString)
 void calDateTime::Normalize()
 {
     icaltimetype icalt;
+
+    ensureTimezone();
     ToIcalTime(&icalt);
     FromIcalTime(&icalt, mTimezone);
+}
+
+void
+calDateTime::ensureTimezone()
+{
+    if (mTimezone == nsnull) {
+        mTimezone = cal::UTC();
+    }
 }
 
 NS_IMETHODIMP_(void)
 calDateTime::ToIcalTime(struct icaltimetype * icalt)
 {
+    ensureTimezone();
+
     icalt->year = mYear;
     icalt->month = mMonth + 1;
     icalt->day = mDay;
@@ -555,7 +588,7 @@ void calDateTime::PRTimeToIcaltime(PRTime time, PRBool isdate,
     icalt->month  = et.tm_month + 1;
     icalt->day    = et.tm_mday;
 
-    if (isdate) { 
+    if (isdate) {
         icalt->hour    = 0;
         icalt->minute  = 0;
         icalt->second  = 0;
@@ -647,13 +680,14 @@ calDateTime::GetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
         const jschar *str = JS_GetStringCharsAndLength(cx, idString, &length);
 
         nsDependentString const val(reinterpret_cast<PRUnichar const*>(str), length);
- 
+
         if (val.EqualsLiteral("jsDate")) {
             PRTime tmp, thousand;
             jsdouble msec;
             LL_I2L(thousand, 1000);
             LL_DIV(tmp, mNativeTime, thousand);
             LL_L2D(msec, tmp);
+            ensureTimezone();
 
             JSObject *obj;
             PRBool b;

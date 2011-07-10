@@ -45,6 +45,7 @@
 #include "calDateTime.h"
 #include "calDuration.h"
 #include "calIErrors.h"
+#include "calUtils.h"
 
 extern "C" {
 #include "ical.h"
@@ -438,9 +439,9 @@ nsresult calIcalProperty::getDatetime_(calIcalComponent * parent,
                 // this hides errors from incorrect ics files, which could state
                 // a TZID that is not present in the ics file.
                 // The other way round, it makes this product more error tolerant.
-                cal::getTimezoneService()->GetTimezone(tzid, getter_AddRefs(tz));
+                nsresult rv = cal::getTimezoneService()->GetTimezone(tzid, getter_AddRefs(tz));
 
-                if (!tz) {
+                if (NS_FAILED(rv) || !tz) {
                     icaltimezone const* zone = itt.zone;
                     if (!zone && comp) {
                         // look up parent VCALENDAR for VTIMEZONE:

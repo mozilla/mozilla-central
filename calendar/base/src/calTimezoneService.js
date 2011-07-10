@@ -106,26 +106,16 @@ calStringEnumerator.prototype = {
 function calTimezoneService() {
     this.wrappedJSObject = this;
 
-    // floating
-    this.floating = new calIntrinsicTimezone("floating", null, "", "");
-    this.floating.isFloating = true;
-    // UTC
-    this.UTC = new calIntrinsicTimezone("UTC", null, "", "");
-    this.UTC.isUTC = true;
-
     this.mTimezoneCache = {};
     this.mBlacklist = {};
-    this.mTimezoneCache.floating = this.floating;
-    this.mTimezoneCache.UTC = this.UTC;
-    this.mTimezoneCache.utc = this.UTC;
 }
 calTimezoneService.prototype = {
     mTimezoneCache: null,
     mBlacklist: null,
     mDefaultTimezone: null,
     mHasSetupObservers: false,
-    floating: null,
-    UTC: null,
+    mFloating: null,
+    mUTC: null,
     mDb: null,
 
 
@@ -176,6 +166,27 @@ calTimezoneService.prototype = {
         }
 
         aCompleteListener.onResult(null, Components.results.NS_OK);
+    },
+
+    get UTC() {
+        if (!this.mUTC) {
+            this.mUTC = new calIntrinsicTimezone("UTC", null, "", "");
+            this.mUTC.isUTC = true;
+            this.mTimezoneCache.UTC = this.mUTC;
+            this.mTimezoneCache.utc = this.mUTC;
+        }
+
+        return this.mUTC;
+    },
+
+    get floating() {
+        if (!this.mFloating) {
+            this.mFloating = new calIntrinsicTimezone("floating", null, "", "");
+            this.mFloating.isFloating = true;
+            this.mTimezoneCache.floating = this.mFloating;
+        }
+
+        return this.mFloating;
     },
 
     ensureInitialized: function(aCompleteListener) {
@@ -269,6 +280,10 @@ calTimezoneService.prototype = {
             cal.ERROR(msg);
             showError(msg);
         }
+
+        // Make sure UTC and floating are cached by calling their getters
+        this.UTC;
+        this.floating;
 
         if (aCompleteListener) {
             aCompleteListener.onResult(null, Components.results.NS_OK);

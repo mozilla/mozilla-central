@@ -109,4 +109,10 @@ function run_test() {
     // check aliases
     do_check_eq(getMozTimezone("/mozilla.org/xyz/Pacific/Yap").tzid, "Pacific/Truk");
     do_check_eq(getMozTimezone("Pacific/Yap").tzid, "Pacific/Truk");    
+
+    // A newly created date should be in UTC, as should its clone
+    let utc = cal.createDateTime();
+    do_check_eq(utc.timezone.tzid, "UTC");
+    do_check_eq(utc.clone().timezone.tzid, "UTC");
+    do_check_eq(utc.timezoneOffset, 0);
 }
