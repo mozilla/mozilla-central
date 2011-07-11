@@ -1763,7 +1763,13 @@ calStorageCalendar.prototype = {
                             }
                         } else {
                             if (row.end_date) {
-                                ritem.untilDate = newDateTime(row.end_date, "UTC");
+                                let dtstart = item.startDate || item.entryDate;
+                                let allday = dtstart.isDate && dtstart.timezone == "floating";
+                                let untilDate = newDateTime(row.end_date, allday ? "" : "UTC");
+                                if (allday) {
+                                    untilDate.isDate = true;
+                                }
+                                ritem.untilDate = untilDate;
                             } else {
                                 ritem.untilDate = null;
                             }
