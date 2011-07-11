@@ -108,10 +108,10 @@ let gSyncPane = {
       let prefutilitiesBundle = document.getElementById("bundle_prefutilities");
       let buttonChoice =
         Services.prompt.confirmEx(window,
-                                  bundle_prefutilities.getString("stopUsingAccount.title"),
-                                  bundle_prefutilities.getString("differentAccount.label"),
+                                  prefutilitiesBundle.getString("stopUsingAccount.title"),
+                                  prefutilitiesBundle.getString("differentAccount.label"),
                                   flags,
-                                  bundle_prefutilities.getString("differentAccountConfirm.label"),
+                                  prefutilitiesBundle.getString("differentAccountConfirm.label"),
                                   null, null, null, {});
 
       // If the user selects cancel, just bail
