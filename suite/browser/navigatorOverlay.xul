@@ -25,6 +25,7 @@
    -   Peter Annema <disttsc@bart.nl>
    -   Jeremy M. Dolan <jmd@pobox.com>
    -   Ehsan Akhgari <ehsan.akhgari@gmail.com>
+   -   Ian Neal <iann_bugzilla@blueyonder.co.uk>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -50,6 +51,8 @@
 <!DOCTYPE overlay [
 <!ENTITY % navigatorDTD SYSTEM "chrome://navigator/locale/navigator.dtd" >
 %navigatorDTD;
+<!ENTITY % navigatorOverlayDTD SYSTEM "chrome://navigator/locale/navigatorOverlay.dtd">
+%navigatorOverlayDTD;
 <!ENTITY % contentAreaCommandsDTD SYSTEM "chrome://communicator/locale/contentAreaCommands.dtd" >
 %contentAreaCommandsDTD;
 ]>
@@ -481,7 +484,7 @@
     </menu>
 
     <menu id="tasksMenu">
-      <menupopup id="taskPopup">
+      <menupopup id="taskPopup" onpopupshowing="CheckForVisibility();">
         <menuitem id="menu_searchWeb"
                   label="&searchInternetCmd.label;"
                   accesskey="&searchInternetCmd.accesskey;"
@@ -491,6 +494,97 @@
                   label="&translateMenu.label;"
                   accesskey="&translateMenu.accesskey;"
                   oncommand="Translate();"/>
+        <menu id="menu_cookieManager"
+              label="&cookieCookieManager.label;"
+              accesskey="&cookieCookieManager.accesskey;"
+              oncommand="if (event.target.id) CookieImageAction(event.target);
+                         else toDataManager('|cookies');">
+          <menupopup>
+            <menuitem id="cookie_deny"
+                      label="&cookieBlockCookiesCmd.label;"
+                      accesskey="&cookieBlockCookiesCmd.accesskey;"
+                      title="&cookieMessageTitle.label;"
+                      msg="&cookieBlockCookiesMsg.label;"
+                      type="radio"
+                      name="cookie"/>
+            <menuitem id="cookie_default"
+                      label="&cookieCookiesDefaultCmd.label;"
+                      accesskey="&cookieCookiesDefaultCmd.accesskey;"
+                      title="&cookieMessageTitle.label;"
+                      msg="&cookieCookiesDefaultMsg.label;"
+                      type="radio"
+                      name="cookie"/>
+            <menuitem id="cookie_session"
+                      label="&cookieAllowSessionCookiesCmd.label;"
+                      accesskey="&cookieAllowSessionCookiesCmd.accesskey;"
+                      title="&cookieMessageTitle.label;"
+                      msg="&cookieAllowSessionCookiesMsg.label;"
+                      type="radio"
+                      name="cookie"/>
+            <menuitem id="cookie_allow"
+                      label="&cookieAllowCookiesCmd.label;"
+                      accesskey="&cookieAllowCookiesCmd.accesskey;"
+                      title="&cookieMessageTitle.label;"
+                      msg="&cookieAllowCookiesMsg.label;"
+                      type="radio"
+                      name="cookie"/>
+            <menuseparator/>
+            <menuitem label="&cookieDisplayCookiesCmd.label;"
+                      accesskey="&cookieDisplayCookiesCmd.accesskey;"/>
+          </menupopup>
+        </menu>
+        <menu id="menu_imageManager"
+              label="&cookieImageManager.label;"
+              accesskey="&cookieImageManager.accesskey;"
+              oncommand="if (event.target.id) CookieImageAction(event.target);
+                         else toDataManager('|permissions');">
+          <menupopup>
+            <menuitem id="image_deny"
+                      label="&cookieBlockImagesCmd.label;"
+                      accesskey="&cookieBlockImagesCmd.accesskey;"
+                      title="&cookieImageMessageTitle.label;"
+                      msg="&cookieBlockImagesMsg.label;"
+                      type="radio"
+                      name="image"/>
+            <menuitem id="image_default"
+                      label="&cookieImagesDefaultCmd.label;"
+                      accesskey="&cookieImagesDefaultCmd.accesskey;"
+                      title="&cookieImageMessageTitle.label;"
+                      msg="&cookieImagesDefaultMsg.label;"
+                      type="radio"
+                      name="image"/>
+            <menuitem id="image_allow"
+                      label="&cookieAllowImagesCmd.label;"
+                      accesskey="&cookieAllowImagesCmd.accesskey;"
+                      title="&cookieImageMessageTitle.label;"
+                      msg="&cookieAllowImagesMsg.label;"
+                      type="radio"
+                      name="image"/>
+            <menuseparator/>
+            <menuitem label="&cookieDisplayImagesCmd.label;"
+                      accesskey="&cookieDisplayImagesCmd.accesskey;"/>
+          </menupopup>
+        </menu>
+        <menu id="menu_popupManager"
+              label="&cookiePopupManager.label;"
+              accesskey="&cookiePopupManager.accesskey;"
+              oncommand="popupBlockerMenuCommand(event.target);"
+              onpopupshowing="if (!/Mac/.test(navigator.platform)) return popupBlockerMenuShowing(event);">
+          <menupopup>
+            <menuitem id="AllowPopups"
+                      label="&cookieAllowPopupsCmd.label;"
+                      accesskey="&cookieAllowPopupsCmd.accesskey;"
+                      oncommand="toDataManager(popupHost() + '|permissions|add|popup');"/>
+            <menuitem id="ManagePopups"
+                      label="&cookieManagePopups.label;"
+                      accesskey="&cookieManagePopups.accesskey;"
+                      oncommand="toDataManager('|permissions');"
+                      hidden="true"/>
+            <menuseparator id="popupMenuSeparator" hidden="true"/>
+            <!-- Additional items are generated (except for mac - bug 533097)
+                 by popupBlockerMenuShowing() in navigator.js. -->
+          </menupopup>
+        </menu>
         <menuseparator id="navBeginGlobalItems"/>
         <menuitem id="sanitizeItem"
                   accesskey="&clearPrivateDataCmd.accesskey;"

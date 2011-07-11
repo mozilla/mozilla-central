@@ -3,7 +3,6 @@ comm.jar:
 % override chrome://global/content/license.html chrome://communicator/content/license.html
 % override chrome://mozapps/content/profile/profileSelection.xul chrome://communicator/content/profile/profileSelection.xul
 % override chrome://mozapps/skin/places/defaultFavicon.png chrome://communicator/skin/bookmarks/bookmark-item.png
-% overlay chrome://navigator/content/navigatorOverlay.xul chrome://communicator/content/permissions/permissionsNavigatorOverlay.xul
 % overlay chrome://global/content/console.xul chrome://communicator/content/consoleOverlay.xul
 % overlay chrome://global/content/viewSource.xul chrome://communicator/content/viewSourceOverlay.xul
 % overlay chrome://global/content/viewPartialSource.xul chrome://communicator/content/viewSourceOverlay.xul
@@ -152,7 +151,6 @@ comm.jar:
    content/communicator/permissions/cookieViewer.xul                (permissions/cookieViewer.xul)
    content/communicator/permissions/permissionsManager.js           (permissions/permissionsManager.js)
    content/communicator/permissions/permissionsManager.xul          (permissions/permissionsManager.xul)
-   content/communicator/permissions/permissionsNavigatorOverlay.xul (permissions/permissionsNavigatorOverlay.xul)
    content/communicator/permissions/treeUtils.js                    (permissions/treeUtils.js)
 *  content/communicator/places/browserPlacesViews.js                (places/browserPlacesViews.js)
    content/communicator/places/controller.js                        (places/controller.js)

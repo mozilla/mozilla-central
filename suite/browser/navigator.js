@@ -839,6 +839,70 @@ function Translate()
   }
 }
 
+function GetTypePermFromId(aId)
+{
+  // Get type and action from splitting id, first is type, second is action.
+  var [type, action] = aId.split("_");
+  var perm = "ACCESS_" + action.toUpperCase();
+  return [type, Components.interfaces.nsICookiePermission[perm]];
+}
+
+// Determine which items we need to hide or disable from the task menu.
+function CheckForVisibility()
+{
+  // Determine current state (blocked or unblocked) and
+  // hide appropriate menu item.
+  var uri = getBrowser().currentURI;
+  setRadioButtons(uri, "cookie");
+  setRadioButtons(uri, "image");
+
+  var policy = Services.prefs.getBoolPref("dom.disable_open_during_load");
+  document.getElementById("ManagePopups").hidden = !policy;
+
+  var element = document.getElementById("AllowPopups");
+  if (policy && (Services.perms.testPermission(uri, "popup") != Services.perms.ALLOW_ACTION))
+    element.removeAttribute("disabled");
+  else
+    element.setAttribute("disabled", "true");
+}
+
+function setRadioButtons(aUri, aType)
+{
+  var currentPerm = Services.perms.testPermission(aUri, aType);
+  var items = document.getElementById("menu_" + aType + "Manager")
+                      .getElementsByAttribute("name", aType);
+  for (var i = 0; i < items.length; i++) {
+    var item = items[i];
+    // Get type and perm from id.
+    var [type, perm] = GetTypePermFromId(item.id);
+    item.setAttribute("checked", perm == currentPerm);
+  }
+}
+
+// Perform a Cookie or Image action.
+function CookieImageAction(aElement)
+{
+  var uri = getBrowser().currentURI;
+  // Get type and perm from id.
+  var [type, perm] = GetTypePermFromId(aElement.id);
+  if (Services.perms.testPermission(uri, type) == perm)
+    return;
+
+  Services.perms.add(uri, type, perm);
+
+  Services.prompt.alert(window, aElement.getAttribute("title"),
+                        aElement.getAttribute("msg"));
+}
+
+function popupHost()
+{
+  var hostPort = "";
+  try {
+    hostPort = getBrowser().currentURI.hostPort;
+  } catch (e) {}
+  return hostPort;
+}
+
 function OpenSessionHistoryIn(aWhere, aDelta, aTab)
 {
   var win = aWhere == "window" ? null : window;
@@ -1881,9 +1945,9 @@ function hiddenWindowStartup()
                        'Browser:FindAgain', 'Browser:FindPrev', 'menu_Toolbars',
                        'menuitem_reload', 'menu_UseStyleSheet', 'charsetMenu',
                        'View:PageSource', 'View:PageInfo', 'menu_translate',
-                       'BlockCookies', 'UseCookiesDefault',
-                       'AllowSessionCookies', 'AllowCookies', 'BlockImages',
-                       'UseImagesDefault', 'AllowImages', 'AllowPopups',
+                       'cookie_deny', 'cookie_default',
+                       'cookie_session', 'cookie_allow', 'image_deny',
+                       'image_default', 'image_allow', 'AllowPopups',
                        'menu_zoom', 'cmd_minimizeWindow', 'cmd_zoomWindow'];
   var broadcaster;
 

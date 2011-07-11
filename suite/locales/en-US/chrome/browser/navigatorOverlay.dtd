@@ -35,8 +35,8 @@
 <!ENTITY cookieManagePopups.accesskey "M">
 
 <!ENTITY cookieCookieManager.label "Cookie Manager">
-<!ENTITY cookieCookieManager.accesskey "c">
+<!ENTITY cookieCookieManager.accesskey "C">
 <!ENTITY cookieImageManager.label "Image Manager">
-<!ENTITY cookieImageManager.accesskey "i">
+<!ENTITY cookieImageManager.accesskey "I">
 <!ENTITY cookiePopupManager.label "Popup Manager">
 <!ENTITY cookiePopupManager.accesskey "o">
