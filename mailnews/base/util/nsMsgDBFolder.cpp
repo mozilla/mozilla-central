@@ -837,8 +837,11 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint64 *off
           }
           PRInt32 findPos = MsgFindCharInSet(nsDependentCString(startOfMsg),
                                              ":\n\r", msgOffset);
-          // Check that the first line is a header line, i.e., with a ':' in it
-          if (findPos != -1 && startOfMsg[findPos] == ':')
+          // Check that the first line is a header line, i.e., with a ':' in it.
+          // Or, the line starts with "From " - I've seen IMAP servers return
+          // a bogus "From " line without a ':'.
+          if (findPos != -1 && (startOfMsg[findPos] == ':' ||
+                                !(strncmp(startOfMsg, "From ", 5))))
           {
             *offset += msgOffset;
             *size -= msgOffset;
