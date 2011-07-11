@@ -507,7 +507,7 @@ var gSyncSetup = {
     if (!Weave.Service.isLoggedIn)
       Weave.Service.login();
 
-    Weave.Service.syncOnIdle(1);
+    Weave.Utils.nextTick(Weave.Service.sync, Weave.Service);
   },
 
   onWizardCancel: function () {
