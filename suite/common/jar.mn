@@ -173,7 +173,6 @@ comm.jar:
 *  content/communicator/pref/pref-applications.js                   (pref/pref-applications.js)
 *  content/communicator/pref/pref-applicationManager.js             (pref/pref-applicationManager.js)
    content/communicator/pref/pref-applicationManager.xul            (pref/pref-applicationManager.xul)
-   content/communicator/pref/overrideHandler.js                     (pref/overrideHandler.js)
    content/communicator/pref/pref-cache.js                          (pref/pref-cache.js)
    content/communicator/pref/pref-cache.xul                         (pref/pref-cache.xul)
    content/communicator/pref/pref-colors.js                         (pref/pref-colors.js)
