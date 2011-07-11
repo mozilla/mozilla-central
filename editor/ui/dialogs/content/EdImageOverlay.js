@@ -87,7 +87,6 @@ function ImageStartup()
   gDialog.altTextRadioGroup = document.getElementById( "altTextRadioGroup" );
   gDialog.altTextRadio      = document.getElementById( "altTextRadio" );
   gDialog.noAltTextRadio    = document.getElementById( "noAltTextRadio" );
-  gDialog.customSizeRadio   = document.getElementById( "customSizeRadio" );
   gDialog.actualSizeRadio   = document.getElementById( "actualSizeRadio" );
   gDialog.constrainCheckbox = document.getElementById( "constrainCheckbox" );
   gDialog.widthInput        = document.getElementById( "widthInput" );
@@ -221,8 +220,6 @@ function  SetSizeWidgets(width, height)
 
   if (!gDialog.actualSizeRadio.selected)
   {
-    gDialog.actualSizeRadio.radioGroup.selectedItem = gDialog.customSizeRadio;
-
     // Decide if user's sizes are in the same ratio as actual sizes
     if (gActualWidth && gActualHeight)
     {
@@ -405,8 +402,8 @@ function ChangeImageSrc()
 
 function doDimensionEnabling()
 {
-  // Enabled only if "Custom" is selected
-  var enable = (gDialog.customSizeRadio.selected);
+  // Enabled unless "Actual Size" is selected
+  var enable = !gDialog.actualSizeRadio.selected;
 
   // BUG 74145: After input field is disabled,
   //   setting it enabled causes blinking caret to appear

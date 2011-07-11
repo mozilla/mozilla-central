@@ -149,6 +149,7 @@
         <radio
           id      = "customSizeRadio" 
           label   = "&customSizeRadio.label;"
+          selected = "true"
           accesskey = "&customSizeRadio.accessKey;"
           tooltiptext="&customSizeRadio.tooltip;"
           oncommand = "doDimensionEnabling();" />
