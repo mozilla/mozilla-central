@@ -111,6 +111,7 @@
         <row align="center" id="editBMPanel_folderRow">
           <label value="&editBookmarkOverlay.folder.label;"
                  class="editBMPanel_rowLabel"
+                 accesskey="&editBookmarkOverlay.folder.accesskey;"
                  control="editBMPanel_folderMenuList"
                  observes="paneElementsBroadcaster"/>
           <hbox flex="1" align="center">
