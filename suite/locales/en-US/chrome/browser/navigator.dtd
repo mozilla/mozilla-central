@@ -10,121 +10,29 @@
 <!-- LOCALIZATION NOTE (mainWindow.titlemodifiermenuseparator): DONT_TRANSLATE -->
 <!ENTITY mainWindow.titlemodifiermenuseparator " - ">
 
-<!ENTITY tabCmd.label "Browser Tab">
-<!ENTITY tabCmd.accesskey "T">
-<!ENTITY tabCmd.commandkey "t">
-<!ENTITY openCmd.label "Open Web Location…">
-<!ENTITY openCmd.accesskey "l">
-<!ENTITY openCmd.commandkey "l">
-<!ENTITY openFileCmd.label "Open File…">
-<!ENTITY openFileCmd.accesskey "o">
-<!ENTITY openFileCmd.commandkey "o">
 <!ENTITY editPageCmd.label "Edit Page">
 <!ENTITY editPageCmd.accesskey "E">
 <!ENTITY editPageCmd.commandkey "e">
 
-<!ENTITY uploadFile.label "Upload File…">
-<!ENTITY uploadFile.accesskey "F">
-
-<!ENTITY printSetupCmd.label "Page Setup…">
-<!ENTITY printSetupCmd.accesskey "u">
 <!ENTITY printPreviewCmd.label "Print Preview">
 <!ENTITY printPreviewCmd.accesskey "v">
 <!ENTITY printCmd.label "Print…">
 <!ENTITY printCmd.accesskey "p">
 <!ENTITY printCmd.commandkey "p">
 
-<!ENTITY toolbarsCmd.label "Show/Hide">
-<!ENTITY toolbarsCmd.accesskey "w">
 <!ENTITY navbarCmd.label "Navigation Toolbar">
 <!ENTITY navbarCmd.accesskey "N">
 <!ENTITY personalbarCmd.label "Personal Toolbar">
-<!ENTITY personalbarCmd.accesskey "p">
-<!ENTITY tabbarCmd.label "Tab Bar">
-<!ENTITY tabbarCmd.accesskey "T">
-<!ENTITY taskbarCmd.label "Status Bar">
-<!ENTITY taskbarCmd.accesskey "S">
-<!ENTITY componentbarCmd.label "Component Bar">
-<!ENTITY componentbarCmd.accesskey "C">
+<!ENTITY personalbarCmd.accesskey "P">
 
-<!ENTITY useStyleSheetMenu.label "Use Style">
-<!ENTITY useStyleSheetMenu.accesskey "u">
-<!ENTITY useStyleSheetNone.label "None">
-<!ENTITY useStyleSheetNone.accesskey "N">
-<!ENTITY useStyleSheetPersistentOnly.label "Default Style">
-<!ENTITY useStyleSheetPersistentOnly.accesskey "d">
-<!ENTITY pageSourceCmd.label "Page Source">
-<!ENTITY pageSourceCmd.accesskey "o">
-<!ENTITY pageSourceCmd.commandkey "u">
-<!ENTITY pageInfoCmd.label "Page Info">
-<!ENTITY pageInfoCmd.accesskey "i">
-<!ENTITY pageInfoCmd.commandkey "i">
-<!ENTITY fullScreenCmd.label "Full Screen">
-<!ENTITY fullScreenCmd.accesskey "f">
-<!ENTITY translateMenu.label "Translate Page">
-<!ENTITY translateMenu.accesskey "T">
-
-<!ENTITY closeOtherTabs.label "Close Other Tabs">
-<!ENTITY closeOtherTabs.accesskey "T">
 <!ENTITY closeWindow.label "Close Window">
 <!ENTITY closeWindow.accesskey "W">
 
 <!ENTITY minimizeButton.tooltip       "Minimize">
 <!ENTITY restoreButton.tooltip        "Restore">
 
-<!ENTITY applyTheme.label	"Apply Theme"> 
-<!ENTITY applyTheme.accesskey	"A"> 
-<!ENTITY getNewThemesCmd.label "Get New Themes">
-<!ENTITY getNewThemesCmd.accesskey "G">
-<!ENTITY getPersonasCmd.label "Get Personas">
-<!ENTITY getPersonasCmd.accesskey "P">
-<!ENTITY findOnCmd.label "Find in This Page…">
-<!ENTITY findOnCmd.accesskey "f">
-<!ENTITY findOnCmd.commandkey "f">
-<!ENTITY findAgainCmd.label "Find Again">
-<!ENTITY findAgainCmd.accesskey "g">
-<!ENTITY findAgainCmd.commandkey "g">
-<!ENTITY findPrevCmd.label "Find Previous">
-<!ENTITY findPrevCmd.accesskey "v">
-<!ENTITY findPrevCmd.commandkey "g">
-<!ENTITY findAgainCmd.commandkey2 "VK_F3">
-<!ENTITY findPrevCmd.commandkey2 "VK_F3">
-
-<!ENTITY searchInternetCmd.label "Search the Web">
-<!ENTITY searchInternetCmd.accesskey "S">
-<!ENTITY searchInternet.commandKey "s">
-
-<!ENTITY clearPrivateDataCmd.label "Clear Private Data…">
-<!ENTITY clearPrivateDataCmd.accesskey "e">
-
-<!ENTITY goMenu.label "Go">
-<!ENTITY goMenu.accesskey "g">
-<!ENTITY goHomeCmd.label "Home">
-<!ENTITY goHomeCmd.accesskey "h">
-<!ENTITY recentTabs.label "Recently Closed Tabs">
-<!ENTITY recentTabs.accesskey "C">
-<!ENTITY recentTabs.commandkey "t">
-<!ENTITY recentWindows.label "Recently Closed Windows">
-<!ENTITY recentWindows.accesskey "y">
-<!ENTITY recentWindows.commandkey "y">
-<!ENTITY historyRestoreLastSession.label "Restore Previous Session">
-<!ENTITY historyRestoreLastSession.accesskey "R">
-
-<!ENTITY bookmarksMenu.label "Bookmarks">
-<!ENTITY bookmarksMenu.accesskey "B">
-<!ENTITY addCurPageCmd.label "Bookmark This Page">
-<!ENTITY addCurPageCmd.accesskey "B">
-<!ENTITY addCurPageAsCmd.label "File Bookmark…">
-<!ENTITY addCurPageAsCmd.accesskey "F">
-<!ENTITY addCurPageAsCmd.commandkey "d">
-<!ENTITY addCurTabsAsCmd.label "Bookmark This Group of Tabs…">
-<!ENTITY addCurTabsAsCmd.accesskey "G">
-<!ENTITY manBookmarksCmd.label "Manage Bookmarks…">
-<!ENTITY manBookmarksCmd.accesskey "M">
-<!ENTITY manBookmarksCmd.commandkey "b">
 <!ENTITY feedsMenu.label "Subscribe to This Page">
 <!ENTITY feedsMenu.accesskey "S">
-<!ENTITY emptyItem.label "(Empty)">
 
 <!ENTITY menuBar.tooltip                  "Menu Bar">
 <!ENTITY personalToolbar.tooltip          "Personal Toolbar">
@@ -164,14 +72,4 @@
 <!-- Statusbar -->
 <!ENTITY  statusText.label            "Done">
 
-<!ENTITY historyCmd.label           "History">  
-<!ENTITY historyCmd.accesskey       "i">
-<!ENTITY history.commandKey         "h">
-
 <!ENTITY popupIcon.tooltiptext      "Unblock this website's popups">
-
-<!ENTITY bidiSwitchPageDirectionItem.label        "Switch Page Direction">
-<!ENTITY bidiSwitchPageDirectionItem.accesskey    "g">
-
-<!-- LOCALIZATION NOTE (syncTabsMenu.label): This appears in the Go menu -->
-<!ENTITY syncTabsMenu.label         "Tabs From Other Computers">
