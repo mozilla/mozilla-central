@@ -1003,13 +1003,13 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::GetComplete(PRBool *aResult)
 }
 
 // readonly attribute long naturalWidth
-NS_IMETHODIMP nsOutlookHTMLImageElement::GetNaturalWidth(PRInt32 *aResult)
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetNaturalWidth(PRUint32 *aResult)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 // readonly attribute long naturalHeight
-NS_IMETHODIMP nsOutlookHTMLImageElement::GetNaturalHeight(PRInt32 *aResult)
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetNaturalHeight(PRUint32 *aResult)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1026,12 +1026,12 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetBorder(const nsAString & aBorder)
 }
 
 // attribute long height
-NS_IMETHODIMP nsOutlookHTMLImageElement::GetHeight(PRInt32 *aHeight)
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetHeight(PRUint32 *aHeight)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookHTMLImageElement::SetHeight(PRInt32 aHeight)
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetHeight(PRUint32 aHeight)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1113,12 +1113,12 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetVspace(PRInt32 aVspace)
 }
 
 // attribute long width
-NS_IMETHODIMP nsOutlookHTMLImageElement::GetWidth(PRInt32 *aWidth)
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetWidth(PRUint32 *aWidth)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookHTMLImageElement::SetWidth(PRInt32 aWidth)
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetWidth(PRUint32 aWidth)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
