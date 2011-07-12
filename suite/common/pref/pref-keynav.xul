@@ -37,8 +37,6 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
-
 <!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/pref-keynav.dtd">
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">

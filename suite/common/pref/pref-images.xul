@@ -38,8 +38,6 @@
  the terms of any one of the MPL, the GPL or the LGPL.
 
  ***** END LICENSE BLOCK ***** -->
-<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
-
 <!DOCTYPE overlay [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
 %brandDTD;

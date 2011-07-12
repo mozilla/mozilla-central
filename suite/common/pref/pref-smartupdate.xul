@@ -38,9 +38,7 @@
 
  ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
-
-<!DOCTYPE page [
+<!DOCTYPE overlay [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
 %brandDTD;
 <!ENTITY % prefSmartUpdateDTD SYSTEM "chrome://communicator/locale/pref/pref-smartupdate.dtd">

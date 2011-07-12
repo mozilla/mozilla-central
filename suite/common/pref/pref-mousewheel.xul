@@ -40,8 +40,6 @@
 
  ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?> 
-
 <!DOCTYPE overlay [
 <!ENTITY % platformCommunicatorDTD SYSTEM "chrome://communicator-platform/locale/platformCommunicatorOverlay.dtd" >
 %platformCommunicatorDTD;
