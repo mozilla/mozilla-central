@@ -19,12 +19,6 @@
 <!ENTITY openFileCmd.label "Open File…">
 <!ENTITY openFileCmd.accesskey "o">
 <!ENTITY openFileCmd.commandkey "o">
-<!ENTITY recentTabs.label "Recently Closed Tabs">
-<!ENTITY recentTabs.accesskey "R">
-<!ENTITY recentTabs.commandkey "t">
-<!ENTITY recentWindows.label "Recently Closed Windows">
-<!ENTITY recentWindows.accesskey "y">
-<!ENTITY recentWindows.commandkey "y">
 <!ENTITY editPageCmd.label "Edit Page">
 <!ENTITY editPageCmd.accesskey "E">
 <!ENTITY editPageCmd.commandkey "e">
@@ -107,6 +101,12 @@
 <!ENTITY goMenu.accesskey "g">
 <!ENTITY goHomeCmd.label "Home">
 <!ENTITY goHomeCmd.accesskey "h">
+<!ENTITY recentTabs.label "Recently Closed Tabs">
+<!ENTITY recentTabs.accesskey "C">
+<!ENTITY recentTabs.commandkey "t">
+<!ENTITY recentWindows.label "Recently Closed Windows">
+<!ENTITY recentWindows.accesskey "y">
+<!ENTITY recentWindows.commandkey "y">
 <!ENTITY historyRestoreLastSession.label "Restore Previous Session">
 <!ENTITY historyRestoreLastSession.accesskey "R">
 
