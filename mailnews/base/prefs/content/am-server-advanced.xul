@@ -53,6 +53,7 @@
   <script type="application/javascript" src="am-server-advanced.js"/>
   <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/>
 
+    <label id="serverPrettyName"/>
     <!-- IMAP Panel -->
     <vbox id="imapPanel">
       <hbox>
