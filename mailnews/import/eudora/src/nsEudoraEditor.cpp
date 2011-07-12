@@ -1338,13 +1338,13 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetComplete(PRBool *aResult)
 }
 
 // readonly attribute long naturalWidth
-NS_IMETHODIMP nsEudoraHTMLImageElement::GetNaturalWidth(PRInt32 *aResult)
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetNaturalWidth(PRUint32 *aResult)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 // readonly attribute long naturalHeight
-NS_IMETHODIMP nsEudoraHTMLImageElement::GetNaturalHeight(PRInt32 *aResult)
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetNaturalHeight(PRUint32 *aResult)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1363,13 +1363,13 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::SetBorder(const nsAString & aBorder)
 
 
 // attribute long height
-NS_IMETHODIMP nsEudoraHTMLImageElement::GetHeight(PRInt32 *aHeight)
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetHeight(PRUint32 *aHeight)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 
-NS_IMETHODIMP nsEudoraHTMLImageElement::SetHeight(PRInt32 aHeight)
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetHeight(PRUint32 aHeight)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1462,13 +1462,13 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::SetVspace(PRInt32 aVspace)
 
 
 // attribute long width
-NS_IMETHODIMP nsEudoraHTMLImageElement::GetWidth(PRInt32 *aWidth)
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetWidth(PRUint32 *aWidth)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 
-NS_IMETHODIMP nsEudoraHTMLImageElement::SetWidth(PRInt32 aWidth)
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetWidth(PRUint32 aWidth)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
