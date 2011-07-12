@@ -511,7 +511,6 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("security.enable_ssl2",                    Bool),
   MAKESAMETYPEPREFTRANSFORM("security.enable_ssl3",                    Bool),
   MAKESAMETYPEPREFTRANSFORM("security.enable_tls",                     Bool),
-  MAKESAMETYPEPREFTRANSFORM("security.enable_java",                    Bool),
   MAKESAMETYPEPREFTRANSFORM("security.password_lifetime",              Int),
   MAKESAMETYPEPREFTRANSFORM("security.warn_entering_secure",           Bool),
   MAKESAMETYPEPREFTRANSFORM("security.warn_entering_weak",             Bool),

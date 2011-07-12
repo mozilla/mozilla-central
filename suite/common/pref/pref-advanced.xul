@@ -50,9 +50,6 @@
             script="chrome://communicator/content/pref/pref-advanced.js">
 
     <preferences id="advanced_preferences">
-      <preference id="security.enable_java"
-                  name="security.enable_java"
-                  type="bool"/>
       <preference id="config.use_system_prefs"
                   name="config.use_system_prefs"
                   type="bool"/>
@@ -60,14 +57,6 @@
                   name="shell.checkDefaultClient"
                   type="bool"/>
     </preferences>
-
-    <groupbox id="advancedSettings">
-      <caption label="&prefEnableJava.caption;"/>
-      <checkbox id="advancedJavaAllow"
-                label="&enbJavaCheck.label;"
-                accesskey="&enbJavaCheck.accesskey;"
-                preference="security.enable_java"/>
-    </groupbox>
 
     <groupbox id="systemPrefs">
       <caption id="systemPrefCaption" label="&systemPref.caption;"/>
