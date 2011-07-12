@@ -568,14 +568,14 @@
               accesskey="&contextOpenNewWindow.accesskey;"
               oncommand="MsgOpenNewWindowForMessage();"/>
     <menuseparator id="mailContext-sep-open"/>
-    <menuitem id="mailContext-replySender"
-              label="&contextReplySender.label;"
-              accesskey="&contextReplySender.accesskey;"
-              oncommand="MsgReplySender(event);"/>
     <menuitem id="mailContext-replyNewsgroup"
               label="&contextReplyNewsgroup.label;"
               accesskey="&contextReplyNewsgroup.accesskey;"
               oncommand="MsgReplyGroup(event);"/>
+    <menuitem id="mailContext-replySender"
+              label="&contextReplySender.label;"
+              accesskey="&contextReplySender.accesskey;"
+              oncommand="MsgReplySender(event);"/>
     <menuitem id="mailContext-replySenderAndNewsgroup"
               label="&contextReplySenderAndNewsgroup.label;"
               accesskey="&contextReplySenderAndNewsgroup.accesskey;"
@@ -1497,15 +1497,15 @@
                 accesskey="&replyMsgCmd.accesskey;"
                 key="key_reply"
                 command="cmd_reply"/>
-      <menuitem id="replySenderMainMenu"
-                label="&replySenderCmd.label;"
-                accesskey="&replySenderCmd.accesskey;"
-                command="cmd_replySender"/>
       <menuitem id="replyNewsgroupMainMenu"
                 label="&replyNewsgroupCmd.label;"
                 accesskey="&replyNewsgroupCmd.accesskey;"
                 key="key_reply"
                 command="cmd_replyGroup"/>
+      <menuitem id="replySenderMainMenu"
+                label="&replySenderCmd.label;"
+                accesskey="&replySenderCmd.accesskey;"
+                command="cmd_replySender"/>
       <menuitem id="replyallMainMenu"
                 label="&replyToAllMsgCmd.label;"
                 accesskey="&replyToAllMsgCmd.accesskey;"
@@ -1983,13 +1983,13 @@
                    observes="button_reply"
                    oncommand="MsgReplyMessage(event)">
       <menupopup id="button-replyPopup">
-        <menuitem label="&replySenderCmd.label;"
-                  accesskey="&replySenderCmd.accesskey;"
-                  command="cmd_replySender"/>
         <menuitem label="&replyNewsgroupCmd.label;"
                   accesskey="&replyNewsgroupCmd.accesskey;"
                   command="cmd_replyGroup"
                   default="true"/>
+        <menuitem label="&replySenderCmd.label;"
+                  accesskey="&replySenderCmd.accesskey;"
+                  command="cmd_replySender"/>
       </menupopup>
     </toolbarbutton>
     <toolbarbutton id="button-replyall"
