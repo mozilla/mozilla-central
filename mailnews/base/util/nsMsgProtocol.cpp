@@ -1063,19 +1063,31 @@ public:
           return NS_ERROR_FAILURE;
         protInst = static_cast<nsMsgAsyncWriteProtocol *>(callback.get());
 
-        if (avail == 0)
+        if (avail == 0 && !protInst->mAsyncBuffer.Length())
         {
           // ok, stop writing...
           protInst->mSuspendedWrite = PR_TRUE;
           return NS_OK;
         }
+        protInst->mSuspendedWrite = PR_FALSE;
 
         PRUint32 bytesWritten;
-        rv = aOutStream->WriteFrom(mInStream, NS_MIN(avail, 4096U), &bytesWritten);
-        // if were full at the time, the input stream may be backed up and we need to read any remains from the last ODA call
-        // before we'll get more ODA calls
-        if (protInst->mSuspendedRead)
-          protInst->UnblockPostReader();
+
+        if (avail)
+        {
+          rv = aOutStream->WriteFrom(mInStream, NS_MIN(avail, 4096U), &bytesWritten);
+          // if were full at the time, the input stream may be backed up and we need to read any remains from the last ODA call
+          // before we'll get more ODA calls
+          if (protInst->mSuspendedRead)
+            protInst->UnblockPostReader();
+        }
+        else
+        {
+          rv = aOutStream->Write(protInst->mAsyncBuffer.get(),
+                                 protInst->mAsyncBuffer.Length(),
+                                 &bytesWritten);
+          protInst->mAsyncBuffer.Cut(0, bytesWritten);
+        }
 
         protInst->UpdateProgress(bytesWritten);
 
@@ -1489,6 +1501,7 @@ nsresult nsMsgAsyncWriteProtocol::CloseSocket()
   mAsyncOutStream = 0;
   mProvider = 0;
   mProviderThread = 0;
+  mAsyncBuffer.Truncate();
   return rv;
 }
 
@@ -1518,23 +1531,9 @@ void nsMsgAsyncWriteProtocol::UpdateProgress(PRUint32 aNewBytes)
 
 PRInt32 nsMsgAsyncWriteProtocol::SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging)
 {
-  PRUint32 len = strlen(dataBuffer);
-  PRUint32 cnt;
-  nsresult rv = m_outputStream->Write(dataBuffer, len, &cnt);
-  if (NS_SUCCEEDED(rv) && len==cnt)
-  {
-    if (mSuspendedWrite)
-    {
-      // if we got here then we had suspended the write 'cause we didn't have anymore
-      // data to write (i.e. the pipe went empty). So resume the channel to kick
-      // things off again.
-      mSuspendedWrite = PR_FALSE;
-      mAsyncOutStream->AsyncWait(mProvider, 0, 0, mProviderThread);
-    }
-    return NS_OK;
-  }
-  else
-    return NS_ERROR_FAILURE;
+  this->mAsyncBuffer.Append(dataBuffer);
+  mAsyncOutStream->AsyncWait(mProvider, 0, 0, mProviderThread);
+  return NS_OK;
 }
 
 #define MSGS_URL    "chrome://messenger/locale/messenger.properties"

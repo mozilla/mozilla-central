@@ -225,7 +225,8 @@ public:
   // over ride the following methods from the base class
   virtual nsresult SetupTransportState();
   virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging = PR_FALSE);
-   
+  nsCString mAsyncBuffer;
+
   // if we suspended the asynch write while waiting for more data to write then this will be TRUE
   PRBool mSuspendedWrite;
   nsCOMPtr<nsIRequest>     m_WriteRequest;
