@@ -1942,6 +1942,12 @@ function GetCharsetUIString()
   return "";
 }
 
+// Add-ons can override this to customize the behavior.
+function DoSpellCheckBeforeSend()
+{
+  return getPref("mail.SpellCheckBeforeSend");
+}
+
 function GenericSendMessage( msgType )
 {
   if (gMsgCompose != null)
@@ -1959,7 +1965,7 @@ function GenericSendMessage( msgType )
           msgType == nsIMsgCompDeliverMode.Background)
       {
         //Do we need to check the spelling?
-        if (getPref("mail.SpellCheckBeforeSend"))
+        if (DoSpellCheckBeforeSend())
         {
           // We disable spellcheck for the following -subject line, attachment pane, identity and addressing widget
           // therefore we need to explicitly focus on the mail body when we have to do a spellcheck.
