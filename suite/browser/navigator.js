@@ -847,15 +847,9 @@ function GetTypePermFromId(aId)
   return [type, Components.interfaces.nsICookiePermission[perm]];
 }
 
-// Determine which items we need to hide or disable from the task menu.
-function CheckForVisibility()
+function CheckForVisibility(aEvent)
 {
-  // Determine current state (blocked or unblocked) and
-  // hide appropriate menu item.
   var uri = getBrowser().currentURI;
-  setRadioButtons(uri, "cookie");
-  setRadioButtons(uri, "image");
-
   var policy = Services.prefs.getBoolPref("dom.disable_open_during_load");
   document.getElementById("ManagePopups").hidden = !policy;
 
@@ -864,13 +858,16 @@ function CheckForVisibility()
     element.removeAttribute("disabled");
   else
     element.setAttribute("disabled", "true");
+
+  if (!/Mac/.test(navigator.platform))
+    popupBlockerMenuShowing(aEvent);
 }
 
-function setRadioButtons(aUri, aType)
+// Determine current state and check/uncheck the appropriate menu items.
+function CheckPermissionsMenu(aType, aNode)
 {
-  var currentPerm = Services.perms.testPermission(aUri, aType);
-  var items = document.getElementById("menu_" + aType + "Manager")
-                      .getElementsByAttribute("name", aType);
+  var currentPerm = Services.perms.testPermission(getBrowser().currentURI, aType);
+  var items = aNode.getElementsByAttribute("name", aType);
   for (var i = 0; i < items.length; i++) {
     var item = items[i];
     // Get type and perm from id.

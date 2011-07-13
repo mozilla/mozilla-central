@@ -493,7 +493,7 @@
     </menu>
 
     <menu id="tasksMenu">
-      <menupopup id="taskPopup" onpopupshowing="CheckForVisibility();">
+      <menupopup id="taskPopup">
         <menuitem id="menu_searchWeb"
                   label="&searchInternetCmd.label;"
                   accesskey="&searchInternetCmd.accesskey;"
@@ -508,7 +508,7 @@
               accesskey="&cookieCookieManager.accesskey;"
               oncommand="if (event.target.id) CookieImageAction(event.target);
                          else toDataManager('|cookies');">
-          <menupopup>
+          <menupopup onpopupshowing="CheckPermissionsMenu('cookie', this);">
             <menuitem id="cookie_deny"
                       label="&cookieBlockCookiesCmd.label;"
                       accesskey="&cookieBlockCookiesCmd.accesskey;"
@@ -547,7 +547,7 @@
               accesskey="&cookieImageManager.accesskey;"
               oncommand="if (event.target.id) CookieImageAction(event.target);
                          else toDataManager('|permissions');">
-          <menupopup>
+          <menupopup onpopupshowing="CheckPermissionsMenu('image', this);">
             <menuitem id="image_deny"
                       label="&cookieBlockImagesCmd.label;"
                       accesskey="&cookieBlockImagesCmd.accesskey;"
@@ -577,9 +577,8 @@
         <menu id="menu_popupManager"
               label="&cookiePopupManager.label;"
               accesskey="&cookiePopupManager.accesskey;"
-              oncommand="popupBlockerMenuCommand(event.target);"
-              onpopupshowing="if (!/Mac/.test(navigator.platform)) return popupBlockerMenuShowing(event);">
-          <menupopup>
+              oncommand="popupBlockerMenuCommand(event.target);">
+          <menupopup onpopupshowing="CheckForVisibility(event);">
             <menuitem id="AllowPopups"
                       label="&cookieAllowPopupsCmd.label;"
                       accesskey="&cookieAllowPopupsCmd.accesskey;"
