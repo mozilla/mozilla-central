@@ -153,16 +153,8 @@ endif
 
 testxpcobjdir = $(MOZDEPTH)/_tests/xpcshell
 
-# Test file installation
-ifneq (,$(filter WINNT os2-emx,$(HOST_OS_ARCH)))
-# Windows and OS/2 nsinstall can't recursively copy directories, so use nsinstall.py
-TEST_INSTALLER = $(PYTHON) $(MOZILLA_SRCDIR)/config/nsinstall.py
-else
-TEST_INSTALLER = $(INSTALL)
-endif
-
 define _INSTALL_TESTS
-$(TEST_INSTALLER) $(wildcard $(srcdir)/$(dir)/*) $(testxpcobjdir)/$(relativesrcdir)/$(dir)
+$(DIR_INSTALL) $(wildcard $(srcdir)/$(dir)/*) $(testxpcobjdir)/$(relativesrcdir)/$(dir)
 
 endef # do not remove the blank line!
 
