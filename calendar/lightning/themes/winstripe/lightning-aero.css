@@ -73,3 +73,13 @@
   height: 16px;
   margin: 1px;
 }
+
+#newMsgButton-calendar-menuitem,
+#newMsgButton-task-menuitem,
+#calendar-status-todaypane-button > stack > .toolbarbutton-icon-begin {
+  list-style-image: url(chrome://calendar/skin/toolbar-small-aero.png);
+}
+
+#calendar-status-todaypane-button > stack > .toolbarbutton-day-text {
+  margin-left: 1px;
+}
