@@ -1,20 +1,18 @@
 /* ::::: BUTTONS ::::: */
 
-.larger-button {
-  font-size: 1.1em;
+.important-button {
+  font-weight: bold;
 }
 
-.smaller-button {
-  font-size: 0.85em;
+/* Set the order of the buttons to: (stop|re-test), (continue|create account), cancel */
+#stop_button, #half-manual-test_button {
+  -moz-box-ordinal-group: 1;
 }
-
-#back_button {
-  border: none;
-  -moz-appearance: none;
-  color: -moz-nativehyperlinktext;
-  text-decoration: underline;
-  background-color: inherit;
-  cursor: pointer;
+#next_button, #create_button {
+  -moz-box-ordinal-group: 2;
+}
+#cancel_button {
+  -moz-box-ordinal-group: 3;
 }
 
 .errordescription {

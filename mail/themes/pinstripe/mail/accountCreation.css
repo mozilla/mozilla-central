@@ -1,16 +1,6 @@
 /* Missing:
- * .larger-button
- * .smaller-button
+ * .important-button
  */
-
-#back_button {
-  border: none;
-  -moz-appearance: none;
-  color: -moz-nativehyperlinktext;
-  text-decoration: underline;
-  background-color: inherit;
-  cursor: pointer;
-}
 
 .errordescription {
   -moz-padding-start: 3px;
