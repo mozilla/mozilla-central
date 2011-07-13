@@ -171,10 +171,55 @@ padding: 4px 0px;
     border-left: none;
   }
 
+  menulist {
+    -moz-appearance: none;
+    padding: 1px 5px !important;
+    background: rgba(151, 152, 153, .05)
+                -moz-linear-gradient(rgba(251, 252, 253, .95),
+                rgba(246, 247, 248, .47) 49%, rgba(231, 232, 233, .45) 51%,
+                rgba(225, 226, 229, .3));
+    border-radius: 3.5px;
+    border: 1px solid;
+    border-color: rgba(0, 0, 0, .12) rgba(0, 0, 0, .19) rgba(0, 0, 0, .38);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .3) inset,
+                0 0 0 2px rgba(255, 255, 255, .1) inset;
+    color: black;
+    text-shadow: 0 0 3px white;
+  }
+
+  menulist:not([disabled="true"]):not([open="true"]):hover {
+    background-color: hsla(190, 60%, 70%, .5);
+    border-color: hsla(190, 50%, 65%, .8) hsla(190, 50%, 50%, .8)
+                  hsla(190, 50%, 40%, .8);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .3) inset,
+                0 0 0 2px rgba(255, 255, 255, .1) inset,
+                0 0 5px hsl(190, 90%, 80%);
+    -moz-transition: background-color .4s ease-in,
+                     border-color .3s ease-in,
+                     box-shadow .3s ease-in;
+  }
+
+  menulist[open="true"] {
+    background-color: transparent;
+    border-color: rgba(0, 0, 0, .65) rgba(0, 0, 0, .55) rgba(0, 0, 0, .5);
+    box-shadow: 0 0 9px rgba(0, 0, 0, .4) inset,
+                0 0 3px rgba(0, 0, 0, .4) inset,
+                0 1px 0 rgba(255, 255, 255, .4);
+    text-shadow: none;
+  }
+
+  menulist[disabled="true"] {
+    opacity: .6;
+  }
+
+  menulist > .menulist-label-box {
+    background-color: transparent !important;
+    color: inherit !important;
+  }
+
   #folderTree treechildren::-moz-tree-cell-text(dropOn) {
     color: -moz-FieldText;
   }
-
 }
 
 @media all and (-moz-windows-compositor) {
@@ -191,5 +236,14 @@ padding: 4px 0px;
     border-top-color: threedshadow;
     border-radius: 1px 1px 0 0;
     background-clip: padding-box;
+  }
+
+  #viewPickerLabel:not(:-moz-lwtheme):not(:-moz-window-inactive) {
+    -moz-margin-start: 4px;
+    -moz-margin-end: 0;
+    -moz-padding-start: 2px;
+    -moz-padding-end: 5px;
+    background-color: rgba(255, 255, 255, .3);
+    border-radius: 4px;
   }
 }
