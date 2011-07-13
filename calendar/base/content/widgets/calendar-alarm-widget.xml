@@ -256,7 +256,6 @@
         <xul:textbox anonid="snooze-value-textbox"
                      oninput="updateAccessibleName()"
                      type="number"
-                     hidespinbuttons="true"
                      size="3"/>
         <xul:menulist anonid="snooze-unit-menulist"
                       class="snooze-unit-menulist menuitem-non-iconic"

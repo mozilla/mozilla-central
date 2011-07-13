@@ -44,6 +44,9 @@
 <!-- used for button-text and button-menu-dropmarker classes -->
 <?xml-stylesheet href="chrome://global/skin/button.css" type="text/css"?>
 
+<!-- used for textbox in the menupopup "snooze-menupopup" -->
+<?xml-stylesheet href="chrome://global/skin/spinbuttons.css" type="text/css"?>
+
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 
 <!-- DTD File with all strings specific to the calendar -->
