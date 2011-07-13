@@ -106,6 +106,16 @@ calFilter.prototype = {
         },
         repeating: function cF_filterRepeating(item) {
             return (item.recurrenceInfo != null);
+        },
+        throughcurrent: function cF_filterThroughCurrent(item) {
+            if (!item.completedDate) {
+                return true;
+            }
+            // filter out tasks completed earlier than today
+            let today = cal.now();
+            today.isDate = true;
+
+            return (today.compare(item.completedDate) <= 0);
         }
     },
 
