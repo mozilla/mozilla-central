@@ -217,6 +217,13 @@ padding: 4px 0px;
     color: inherit !important;
   }
 
+  #folderTree treechildren::-moz-tree-cell(dropOn) {
+    background-image: -moz-linear-gradient(rgba(255, 255, 255, .7),
+                                           rgba(255, 255, 255, .45));
+    background-color: Highlight;
+    border-radius: 3px;
+  }
+
   #folderTree treechildren::-moz-tree-cell-text(dropOn) {
     color: -moz-FieldText;
   }
