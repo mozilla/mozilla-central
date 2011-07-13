@@ -564,8 +564,8 @@ window[inlinetoolbox] #wrapper-spring {
 
 .emailDisplayButton {
   margin: 0;
-  -moz-padding-start: 3px !important;
-  -moz-padding-end: 3px !important;
+  -moz-padding-start: 2px !important;
+  -moz-padding-end: 2px !important;
   background-color: transparent;
   border-radius: 2px;
   border: 1px dotted transparent;
@@ -591,7 +591,7 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
 
 .emailSeparator {
   /* this is for the comma in between email addresses/newsgroups */
-  -moz-margin-start: -4px; /* squeeze it inside the bubble, by the star */
+  -moz-margin-start: -3px; /* squeeze it inside the bubble, by the star */
 }
 
 /* Because there's no star for newsgroups like there is for email addresses,
@@ -600,7 +600,7 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
  * using a separate rule here.
  */
 .newsgroupSeparator {
-  -moz-margin-start: -3px;
+  -moz-margin-start: -2px;
 }
 
 .emailDisplayButton:focus {
