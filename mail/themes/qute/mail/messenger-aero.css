@@ -43,7 +43,7 @@
 
   listitem,
   treechildren::-moz-tree-row {
-    min-height: 20px;
+    min-height: 1.7em;
     border-width: 2px !important;
     border-radius: 3px;
   }
