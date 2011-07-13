@@ -1660,6 +1660,12 @@ function GetCharsetUIString()
   return "";
 }
 
+// Add-ons can override this to customize the behavior.
+function DoSpellCheckBeforeSend()
+{
+  return Services.prefs.getBoolPref("mail.SpellCheckBeforeSend");
+}
+
 function GenericSendMessage( msgType )
 {
   dump("GenericSendMessage from XUL\n");
@@ -1679,7 +1685,7 @@ function GenericSendMessage( msgType )
       if (msgType == nsIMsgCompDeliverMode.Now || msgType == nsIMsgCompDeliverMode.Later)
       {
         //Do we need to check the spelling?
-        if (sPrefs.getBoolPref("mail.SpellCheckBeforeSend"))
+        if (DoSpellCheckBeforeSend())
         {
           // We disable spellcheck for the following -subject line, attachment pane, identity and addressing widget
           // therefore we need to explicitly focus on the mail body when we have to do a spellcheck.
