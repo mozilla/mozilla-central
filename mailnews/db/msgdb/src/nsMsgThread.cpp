@@ -988,6 +988,8 @@ NS_IMETHODIMP nsMsgThread::GetRootHdr(PRInt32 *resultIndex, nsIMsgDBHdr **result
       *resultIndex = 0;
     rv = GetChildHdrAt(0, result);
   }
+  if (!*result)
+    return rv;
   // Check that the thread id of the message is this thread.
   nsMsgKey threadId = nsMsgKey_None;
   (void)(*result)->GetThreadId(&threadId);
