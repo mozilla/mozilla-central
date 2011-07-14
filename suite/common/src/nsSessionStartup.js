@@ -163,22 +163,12 @@ SessionStartup.prototype = {
       Services.obs.removeObserver(this, "quit-application");
       break;
     case "sessionstore-windows-restored":
-      Services.obs.removeObserver(this, "sessionstore-windows-restored");
-      // reset session type after restore
-      this._sessionType = Components.interfaces.nsISessionStartup.NO_SESSION;
       // no need in repeating this, since session type won't change
       Services.obs.removeObserver(this, "sessionstore-windows-restored");
-      // We only want to start listening for the purge notification after we've
-      // sessionstore has finished its initial startup. That way we won't observe
-      // the purge notification & clear the old session before sessionstore loads
-      // it (in the case of a crash).
-      Services.obs.addObserver(this, "browser:purge-session-history", true);
-      break;
-    case "browser:purge-session-history":
-      // reset all state on sanitization
+      // free _iniString after nsSessionStore is done with it
       this._iniString = null;
-      // no need in repeating this, since startup state won't change
-      Services.obs.removeObserver(this, "browser:purge-session-history");
+      // reset session type after restore
+      this._sessionType = Components.interfaces.nsISessionStartup.NO_SESSION;
       break;
     }
   },
