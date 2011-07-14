@@ -117,7 +117,13 @@ calRelation.prototype = {
         }
 
         for each (let [key, value] in this.mProperties) {
-            icalatt.setParameter(key, value);
+            try {
+                icalatt.setParameter(key, value);
+            } catch (e if e.result == Components.results.NS_ERROR_ILLEGAL_VALUE) {
+                // Illegal values should be ignored, but we could log them if
+                // the user has enabled logging.
+                cal.LOG("Warning: Invalid relation property value " + key + "=" + value);
+            }
         }
         return icalatt;
     },

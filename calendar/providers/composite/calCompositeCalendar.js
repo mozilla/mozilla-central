@@ -336,13 +336,15 @@ calCompositeCalendar.prototype = {
     },
 
     getProperty: function(aName) {
-        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+        return this.mDefaultCalendar.getProperty(aName);
     },
+
     setProperty: function(aName, aValue) {
-        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+        return this.mDefaultCalendar.setProperty(aName, aValue);
     },
+
     deleteProperty: function(aName) {
-        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+        return this.mDefaultCalendar.deleteProperty(aName);
     },
 
     // void addObserver( in calIObserver observer );

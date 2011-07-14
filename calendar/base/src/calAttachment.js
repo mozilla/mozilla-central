@@ -157,7 +157,13 @@ calAttachment.prototype = {
         var icalatt = icssvc.createIcalProperty("ATTACH");
 
         for each (let [key, value] in this.mProperties) {
-            icalatt.setParameter(key, value);
+            try {
+                icalatt.setParameter(key, value);
+            } catch (e if e.result == Components.results.NS_ERROR_ILLEGAL_VALUE) {
+                // Illegal values should be ignored, but we could log them if
+                // the user has enabled logging.
+                cal.LOG("Warning: Invalid attachment parameter value " + key + "=" + value);
+            }
         }
 
         if (this.mData) {

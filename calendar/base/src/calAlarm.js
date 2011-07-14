@@ -462,8 +462,14 @@ calAlarm.prototype = {
             let propBucket = this.mPropertyParams[propName];
             if (propBucket) {
                 for (let paramName in propBucket) {
-                    icalprop.setParameter(paramName,
-                                          propBucket[paramName]);
+                    try {
+                        icalprop.setParameter(paramName,
+                                              propBucket[paramName]);
+                    } catch (e if e.result == Components.results.NS_ERROR_ILLEGAL_VALUE) {
+                        // Illegal values should be ignored, but we could log them if
+                        // the user has enabled logging.
+                        cal.LOG("Warning: Invalid alarm parameter value " + paramName + "=" + propBucket[paramName]);
+                    }
                 }
             }
             comp.addProperty(icalprop);

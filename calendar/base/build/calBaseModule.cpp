@@ -92,10 +92,22 @@ const mozilla::Module::ContractIDEntry kCalBaseContracts[] = {
     { NULL }
 };
 
+static nsresult
+nsInitBaseModule()
+{
+    // This needs to be done once in the application, we want to make
+    // sure that new parameters are not thrown away
+    ical_set_unknown_token_handling_setting(ICAL_ASSUME_IANA_TOKEN);
+    return NS_OK;
+}
+
 static const mozilla::Module kCalBaseModule = {
     mozilla::Module::kVersion,
     kCalBaseCIDs,
-    kCalBaseContracts
+    kCalBaseContracts,
+    NULL,
+    NULL,
+    nsInitBaseModule
 };
 
 NSMODULE_DEFN(calBaseModule) = &kCalBaseModule;

@@ -209,12 +209,12 @@ calIcalProperty::GetPropertyName(nsACString &name)
 }
 
 static icalparameter*
-FindXParameter(icalproperty *prop, const nsACString &param)
+FindParameter(icalproperty *prop, const nsACString &param, icalparameter_kind kind)
 {
     for (icalparameter *icalparam =
-             icalproperty_get_first_parameter(prop, ICAL_X_PARAMETER);
+             icalproperty_get_first_parameter(prop, kind);
          icalparam;
-         icalparam = icalproperty_get_next_parameter(prop, ICAL_X_PARAMETER)) {
+         icalparam = icalproperty_get_next_parameter(prop, kind)) {
         if (param.Equals(icalparameter_get_xname(icalparam)))
             return icalparam;
     }
@@ -233,9 +233,13 @@ calIcalProperty::GetParameter(const nsACString &param, nsACString &value)
 
     const char *icalstr = nsnull;
     if (paramkind == ICAL_X_PARAMETER) {
-        icalparameter *icalparam = FindXParameter(mProperty, param);
+        icalparameter *icalparam = FindParameter(mProperty, param, ICAL_X_PARAMETER);
         if (icalparam)
             icalstr = icalparameter_get_xvalue(icalparam);
+    } else if (paramkind == ICAL_IANA_PARAMETER) {
+        icalparameter *icalparam = FindParameter(mProperty, param, ICAL_IANA_PARAMETER);
+        if (icalparam)
+            icalstr = icalparameter_get_iana_value(icalparam);
     } else {
         icalstr = icalproperty_get_parameter_as_string(mProperty,
                                                        PromiseFlatCString(param).get());
@@ -263,10 +267,18 @@ calIcalProperty::SetParameter(const nsACString &param, const nsACString &value)
     // X-PARAMETERS doubly so, we walk the list looking for an existing one of
     // that name, and reset its value if found.
     if (paramkind == ICAL_X_PARAMETER) {
-        icalparameter *icalparam = FindXParameter(mProperty, param);
+        icalparameter *icalparam = FindParameter(mProperty, param, ICAL_X_PARAMETER);
         if (icalparam) {
             icalparameter_set_xvalue(icalparam,
                                      PromiseFlatCString(value).get());
+            return NS_OK;
+        }
+        // If not found, fall through to adding a new parameter below.
+    } else if (paramkind == ICAL_IANA_PARAMETER) {
+        icalparameter *icalparam = FindParameter(mProperty, param, ICAL_IANA_PARAMETER);
+        if (icalparam) {
+            icalparameter_set_iana_value(icalparam,
+                                         PromiseFlatCString(value).get());
             return NS_OK;
         }
         // If not found, fall through to adding a new parameter below.
@@ -291,6 +303,8 @@ calIcalProperty::SetParameter(const nsACString &param, const nsACString &value)
     // More nodding would ensue.
     if (paramkind == ICAL_X_PARAMETER)
         icalparameter_set_xname(icalparam, PromiseFlatCString(param).get());
+    else if (paramkind == ICAL_IANA_PARAMETER)
+        icalparameter_set_iana_name(icalparam, PromiseFlatCString(param).get());
     
     icalproperty_add_parameter(mProperty, icalparam);
     // XXX check ical errno
@@ -305,6 +319,8 @@ FillParameterName(icalparameter *icalparam, nsACString &name)
         icalparameter_kind paramkind = icalparameter_isa(icalparam);
         if (paramkind == ICAL_X_PARAMETER)
             propname = icalparameter_get_xname(icalparam);
+        else if (paramkind == ICAL_IANA_PARAMETER)
+            propname = icalparameter_get_iana_name(icalparam);
         else if (paramkind != ICAL_NO_PARAMETER)
             propname = icalparameter_kind_to_string(paramkind);
     }

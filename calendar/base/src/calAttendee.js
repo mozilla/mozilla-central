@@ -138,7 +138,7 @@ calAttendee.prototype = {
     },
 
     get icalProperty() {
-        var icssvc = getIcsService();
+        var icssvc = cal.getIcsService();
         var icalatt;
         if (!this.mIsOrganizer) {
             icalatt = icssvc.createIcalProperty("ATTENDEE");
@@ -146,16 +146,30 @@ calAttendee.prototype = {
             icalatt = icssvc.createIcalProperty("ORGANIZER");
         }
 
-        if (!this.id)
+        if (!this.id) {
             throw Components.results.NS_ERROR_NOT_INITIALIZED;
+        }
         icalatt.valueAsIcalString = this.id;
         for (var i = 0; i < this.icalAttendeePropMap.length; i++) {
             var prop = this.icalAttendeePropMap[i];
-            if (this[prop.cal])
-                icalatt.setParameter(prop.ics, this[prop.cal]);
+            if (this[prop.cal]) {
+                try {
+                    icalatt.setParameter(prop.ics, this[prop.cal]);
+                } catch (e if e.result == Components.results.NS_ERROR_ILLEGAL_VALUE) {
+                    // Illegal values should be ignored, but we could log them if
+                    // the user has enabled logging.
+                    cal.LOG("Warning: Invalid attendee parameter value " + prop.ics + "=" + this[prop.cal]);
+                }
+            }
         }
         for each (let [key, value] in this.mProperties) {
-            icalatt.setParameter(key, value);
+            try {
+                icalatt.setParameter(key, value);
+            } catch (e if e.result == Components.results.NS_ERROR_ILLEGAL_VALUE) {
+                // Illegal values should be ignored, but we could log them if
+                // the user has enabled logging.
+                cal.LOG("Warning: Invalid attendee parameter value " + key + "=" + value);
+            }
         }
         return icalatt;
     },
