@@ -243,6 +243,10 @@ description[selectable="true"]:focus > descriptionitem[selected="true"] {
   margin: 0 !important;
 }
 
+#header-view-toolbar .msgHeaderView-button[disabled="true"] {
+  display: none;
+}
+
 .dateLabel {
   -moz-padding-end: 3px;
   -moz-user-select: text;
@@ -398,11 +402,6 @@ toolbar[iconsize="small"] .hdrArchiveButton {
 toolbar[iconsize="small"] .hdrJunkButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 144px 16px 128px);
-}
-
-.hdrJunkButton[disabled="true"] {
-  background: none;
-  opacity: 0;
 }
 
 .hdrTrashButton {

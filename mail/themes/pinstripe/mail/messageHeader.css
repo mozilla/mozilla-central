@@ -271,6 +271,10 @@ description[selectable="true"]:focus > descriptionitem[selected="true"] {
   margin: 0;
 }
 
+#header-view-toolbar .msgHeaderView-button[disabled="true"] {
+  display: none;
+}
+
 #dateLabel {
   -moz-padding-end: 3px;
   -moz-user-select: text;
@@ -423,11 +427,6 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
   /* large icons are only needed for customization dialog, so use here also small icons */
   list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
   -moz-image-region: rect(0px, 112px, 16px, 96px);
-}
-
-.junkButton[disabled="true"] {
-  background: none;
-  opacity: 0;
 }
 
 .hdrJunkButton {
