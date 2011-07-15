@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsILocalFile.h"
-#include "nsIDOMWindowInternal.h"
+#include "nsIDOMWindow.h"
 #include "nsIProfileMigrator.h"
 #include "nsIPrefService.h"
 #include "nsIServiceManager.h"
