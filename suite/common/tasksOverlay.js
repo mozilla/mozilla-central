@@ -37,7 +37,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const nsIDOMWindowInternal = Components.interfaces.nsIDOMWindowInternal;
 const nsIWindowDataSource = Components.interfaces.nsIWindowDataSource;
 
 function toNavigator()
@@ -186,13 +185,13 @@ function CycleWindow( aType )
   }
 
   var enumerator = Services.wm.getEnumerator(aType);
-  var firstWindow = enumerator.getNext().QueryInterface(nsIDOMWindowInternal);
+  var firstWindow = enumerator.getNext();
   var iWindow = firstWindow;
   while (iWindow != topWindow && enumerator.hasMoreElements())
-    iWindow = enumerator.getNext().QueryInterface(nsIDOMWindowInternal);
+    iWindow = enumerator.getNext();
 
   if (enumerator.hasMoreElements()) {
-    iWindow = enumerator.getNext().QueryInterface(nsIDOMWindowInternal);
+    iWindow = enumerator.getNext();
     toOpenWindow(iWindow);
     return iWindow;
   }

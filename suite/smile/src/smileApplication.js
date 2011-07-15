@@ -239,7 +239,7 @@ BrowserTab.prototype = {
       if (!(aEvent.originalTarget instanceof Components.interfaces.nsIDOMDocument))
         return;
 
-      if (aEvent.originalTarget.defaultView instanceof Components.interfaces.nsIDOMWindowInternal &&
+      if (aEvent.originalTarget.defaultView instanceof Components.interfaces.nsIDOMWindow &&
           aEvent.originalTarget.defaultView.frameElement)
         return;
     }

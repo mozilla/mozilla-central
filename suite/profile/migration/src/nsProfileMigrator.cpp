@@ -37,7 +37,6 @@
 
 #include "nsProfileMigrator.h"
 
-#include "nsIDOMWindowInternal.h"
 #include "nsILocalFile.h"
 #include "nsISupportsPrimitives.h"
 #include "nsISupportsArray.h"
