@@ -286,7 +286,7 @@ var WindowWatcher = {
     this.waitingForOpen = null;
     let xulWindow = this.waitingList[aWindowType];
     let domWindow = xulWindow.docShell.QueryInterface(Ci.nsIInterfaceRequestor)
-                                      .getInterface(Ci.nsIDOMWindowInternal);
+                                      .getInterface(Ci.nsIDOMWindow);
     delete this.waitingList[aWindowType];
     // spin the event loop to make sure any setTimeout 0 calls have gotten their
     //  time in the sun.
@@ -335,7 +335,7 @@ var WindowWatcher = {
       // okay, the window is opened, and we should be in its event loop now.
       let xulWindow = this.waitingList[this.waitingForOpen];
       let domWindow = xulWindow.docShell.QueryInterface(Ci.nsIInterfaceRequestor)
-                                        .getInterface(Ci.nsIDOMWindowInternal);
+                                        .getInterface(Ci.nsIDOMWindow);
       let troller = new controller.MozMillController(domWindow);
       augment_controller(troller, this.waitingForOpen);
 
@@ -512,7 +512,7 @@ var WindowWatcher = {
    */
   onCloseWindow: function WindowWatcher_onCloseWindow(aXULWindow) {
     let domWindow = aXULWindow.docShell.QueryInterface(Ci.nsIInterfaceRequestor)
-                                       .getInterface(Ci.nsIDOMWindowInternal);
+                                       .getInterface(Ci.nsIDOMWindow);
     let windowType =
       domWindow.document.documentElement.getAttribute("windowtype") ||
       domWindow.document.documentElement.getAttribute("id");
@@ -1319,7 +1319,7 @@ function describeEventElementInHierarchy(elem) {
                   .QueryInterface(Ci.nsIDocShellTreeItem);
   while (treeItem) {
     win = treeItem.QueryInterface(Ci.nsIInterfaceRequestor)
-                  .getInterface(Ci.nsIDOMWindowInternal);
+                  .getInterface(Ci.nsIDOMWindow);
     // capture the window itself
     arr.push("in");
     arr.push(normalize_for_json(win));
@@ -1332,7 +1332,7 @@ function describeEventElementInHierarchy(elem) {
     }
     else if (parentTreeItem) {
       let parentWin = parentTreeItem.QueryInterface(Ci.nsIInterfaceRequestor)
-                        .getInterface(Ci.nsIDOMWindowInternal);
+                        .getInterface(Ci.nsIDOMWindow);
       let frame = _findFrameElementForWindowInWindow(win, parentWin);
       arr.push("frame:");
       arr.push(normalize_for_json(frame));
@@ -1702,7 +1702,7 @@ function captureWindowStatesForErrorReporting(normalizeForJsonFunc) {
   let enumerator = windowMediator.getEnumerator(null);
   let iWin=0;
   while (enumerator.hasMoreElements()) {
-    let win = enumerator.getNext().QueryInterface(Ci.nsIDOMWindowInternal);
+    let win = enumerator.getNext().QueryInterface(Ci.nsIDOMWindow);
 
     let winId = win.document.documentElement.getAttribute("windowtype") ||
                 win.document.documentElement.getAttribute("id") ||

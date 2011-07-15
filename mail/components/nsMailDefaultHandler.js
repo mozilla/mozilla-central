@@ -44,7 +44,7 @@ const nsISupports              = Components.interfaces.nsISupports;
 const nsICommandLine           = Components.interfaces.nsICommandLine;
 const nsICommandLineHandler    = Components.interfaces.nsICommandLineHandler;
 const nsICommandLineValidator  = Components.interfaces.nsICommandLineValidator;
-const nsIDOMWindowInternal     = Components.interfaces.nsIDOMWindowInternal;
+const nsIDOMWindow             = Components.interfaces.nsIDOMWindow;
 const nsIFactory               = Components.interfaces.nsIFactory;
 const nsIFileURL               = Components.interfaces.nsIFileURL;
 const nsINetUtil               = Components.interfaces.nsINetUtil;
@@ -342,7 +342,7 @@ var nsMailDefaultHandler = {
 
         var wlist = wmed.getEnumerator("mail:3pane");
         if (wlist.hasMoreElements()) {
-          var window = wlist.getNext().QueryInterface(nsIDOMWindowInternal);
+          var window = wlist.getNext().QueryInterface(nsIDOMWindow);
           window.focus();
           return;
         }
