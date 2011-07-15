@@ -1665,7 +1665,8 @@ NS_IMETHODIMP nsMsgDBView::GetParentIndex(PRInt32 rowIndex, PRInt32 *_retval)
   *_retval = -1;
 
   PRInt32 rowIndexLevel;
-  GetLevel(rowIndex, &rowIndexLevel);
+  nsresult rv = GetLevel(rowIndex, &rowIndexLevel);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   PRInt32 i;
   for(i = rowIndex; i >= 0; i--)

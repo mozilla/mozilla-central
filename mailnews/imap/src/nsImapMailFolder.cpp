@@ -7338,14 +7338,17 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
       notifier->NotifyMsgsMoveCopyCompleted(isMove, msgHdrsCopied, this, destMsgHdrs);
   }
 
-  if (isMove && (deleteToTrash || deleteImmediately))
-    sourceMailDB->DeleteMessages(keysToDelete.Length(), keysToDelete.Elements(), nsnull);
+  if (isMove && NS_SUCCEEDED(rv) && (deleteToTrash || deleteImmediately))
+    sourceMailDB->DeleteMessages(keysToDelete.Length(), keysToDelete.Elements(),
+                                 nsnull);
 
   nsCOMPtr<nsISupports> srcSupport = do_QueryInterface(srcFolder);
   OnCopyCompleted(srcSupport, rv);
 
-  if (NS_SUCCEEDED(rv) && isMove)
-    srcFolder->NotifyFolderEvent(mDeleteOrMoveMsgCompletedAtom);
+  if (isMove)
+    srcFolder->NotifyFolderEvent(NS_SUCCEEDED(rv) ?
+                                 mDeleteOrMoveMsgCompletedAtom :
+                                 mDeleteOrMoveMsgFailedAtom);
   return rv;
 }
 
@@ -7497,10 +7500,12 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
   {
     // complete the copy operation as in offline mode
     rv = CopyMessagesOffline(srcFolder, messages, isMove, msgWindow, listener);
-    
-    NS_ENSURE_SUCCESS(rv,rv);
-  
-    // XXX ebirol
+
+    NS_WARN_IF_FALSE(NS_SUCCEEDED(rv), "error offline copy");
+    // We'll warn if this fails, but we should still try to play back
+    // offline ops, because it's possible the copy got far enough to
+    // create the offline ops.
+
     // We make sure that the source folder is an imap folder by limiting pseudo-offline 
     // operations to the same imap server. If we extend the code to cover non imap folders 
     // in the future (i.e. imap folder->local folder), then the following downcast
