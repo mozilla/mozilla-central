@@ -69,7 +69,7 @@
 #include "nsIDocShellLoadInfo.h"
 #include "nsIMessengerWindowService.h"
 #include "nsIWindowMediator.h"
-#include "nsIDOMWindowInternal.h"
+#include "nsIDOMWindow.h"
 #include "nsIMsgSearchSession.h"
 #include "nsMailDirServiceDefs.h"
 #include "nsIWebNavigation.h"

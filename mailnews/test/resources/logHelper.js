@@ -409,7 +409,7 @@ function _normalize_for_json(aObj, aDepthAllowed, aJsonMeNotNeeded) {
       attrs: objAttrs,
     };
   }
-  else if (aObj instanceof Ci.nsIDOMWindowInternal) {
+  else if (aObj instanceof Ci.nsIDOMWindow) {
     let winId, title;
     if (aObj.document && aObj.document.documentElement) {
       title = aObj.document.title;

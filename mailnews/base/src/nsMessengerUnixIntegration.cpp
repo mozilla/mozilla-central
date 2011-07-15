@@ -54,7 +54,7 @@
 #include "nsIDirectoryService.h"
 #include "nsIWindowWatcher.h"
 #include "nsIWindowMediator.h"
-#include "nsIDOMWindowInternal.h"
+#include "nsIDOMWindow.h"
 #include "nsPIDOMWindow.h"
 #include "nsIDocShell.h"
 #include "nsIBaseWindow.h"
@@ -112,7 +112,7 @@ static void openMailWindow(const nsACString& aFolderUri)
         windowCommands->SelectFolder(aFolderUri);
     }
 
-    nsCOMPtr<nsIDOMWindowInternal> domWindow;
+    nsCOMPtr<nsIDOMWindow> domWindow;
     topMostMsgWindow->GetDomWindow(getter_AddRefs(domWindow));
     domWindow->Focus();
   }

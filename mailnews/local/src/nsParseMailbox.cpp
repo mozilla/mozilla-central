@@ -81,7 +81,6 @@
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIDocShell.h"
 #include "nsIMsgCompose.h"
-#include "nsIDOMWindowInternal.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
 #include "nsIMsgComposeService.h"

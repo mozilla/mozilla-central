@@ -4248,7 +4248,7 @@ nsMsgComposeAndSend::CreateAndSendMessage(
               const nsMsgAttachmentData         *attachments,
               const nsMsgAttachedFile           *preloaded_attachments,
               void                              *relatedPart,
-              nsIDOMWindowInternal              *parentWindow,
+              nsIDOMWindow                      *parentWindow,
               nsIMsgProgress                    *progress,
               nsIMsgSendListener                *aListener,
               const char                        *password,

@@ -207,7 +207,7 @@ interface nsIMsgSend : nsISupports
                               [const] in nsMsgAttachmentData  attachments,
                               [const] in nsMsgAttachedFile    preloaded_attachments,
                               in voidPtr                      relatedPart,
-                              in nsIDOMWindowInternal         parentWindow,
+                              in nsIDOMWindow                 parentWindow,
                               in nsIMsgProgress               progress,
                               in nsIMsgSendListener           aListener,
                               in string                       password,

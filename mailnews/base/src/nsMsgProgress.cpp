@@ -75,7 +75,7 @@ nsMsgProgress::~nsMsgProgress()
   (void)ReleaseListeners();
 }
 
-NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindowInternal *parent, 
+NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindow *parent, 
                                                 nsIMsgWindow *aMsgWindow, 
                                                 const char *dialogURL, 
                                                 PRBool inDisplayModal, 

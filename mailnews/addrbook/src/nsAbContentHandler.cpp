@@ -45,7 +45,7 @@
 #include "nsAutoPtr.h"
 #include "nsISupportsPrimitives.h"
 #include "plstr.h"
-#include "nsIDOMWindowInternal.h"
+#include "nsIDOMWindow.h"
 #include "nsMsgUtils.h"
 #include "nsIMsgVCardService.h"
 #include "nsIAbCard.h"
@@ -104,7 +104,7 @@ nsAbContentHandler::HandleContent(const char *aContentType,
             if (!aWindowContext)
                 return NS_ERROR_FAILURE;
 
-            nsCOMPtr<nsIDOMWindowInternal> parentWindow = do_GetInterface(aWindowContext);
+            nsCOMPtr<nsIDOMWindow> parentWindow = do_GetInterface(aWindowContext);
             if (!parentWindow)
                 return NS_ERROR_FAILURE;
 
@@ -191,7 +191,7 @@ nsAbContentHandler::OnStreamComplete(nsIStreamLoader *aLoader,
                                     getter_AddRefs(cardFromVCard));
       NS_ENSURE_SUCCESS(rv, rv);
 
-      nsCOMPtr<nsIDOMWindowInternal> parentWindow = do_GetInterface(aContext);
+      nsCOMPtr<nsIDOMWindow> parentWindow = do_GetInterface(aContext);
       NS_ENSURE_TRUE(parentWindow, NS_ERROR_FAILURE);
 
       nsCOMPtr<nsIDOMWindow> dialogWindow;

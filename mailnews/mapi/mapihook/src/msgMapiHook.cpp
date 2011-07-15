@@ -54,10 +54,9 @@
 #include "nsIPromptService.h"
 #include "nsIAppStartup.h"
 #include "nsIAppShellService.h"
-#include "nsIDOMWindowInternal.h"
+#include "nsIDOMWindow.h"
 #include "nsINativeAppSupport.h"
 #include "nsIMsgAccountManager.h"
-#include "nsIDOMWindowInternal.h"
 #include "nsMsgBaseCID.h"
 #include "nsIStringBundle.h"
 #include "nsIPrefService.h"
@@ -326,7 +325,7 @@ nsresult nsMapiHook::BlindSendMail (unsigned long aSession, nsIMsgCompFields * a
 
   /** create nsIMsgComposeParams obj and other fields to populate it **/
 
-  nsCOMPtr<nsIDOMWindowInternal>  hiddenWindow;
+  nsCOMPtr<nsIDOMWindow>  hiddenWindow;
   // get parent window
   nsCOMPtr<nsIAppShellService> appService = do_GetService( "@mozilla.org/appshell/appShellService;1", &rv);
   if (NS_FAILED(rv)|| (!appService) ) return rv ;

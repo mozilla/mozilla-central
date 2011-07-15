@@ -702,7 +702,7 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
     nsCOMPtr<nsIMsgWindow> topMsgWindow;
     mailSession->GetTopmostMsgWindow(getter_AddRefs(topMsgWindow));
     
-    nsCOMPtr<nsIDOMWindowInternal> internalDomWin;
+    nsCOMPtr<nsIDOMWindow> internalDomWin;
     if (topMsgWindow)
       topMsgWindow->GetDomWindow(getter_AddRefs(internalDomWin));
     

@@ -89,7 +89,6 @@
 #include "nsIOutputStream.h"
 #include "nsIDocShell.h"
 #include "nsIDocShellLoadInfo.h"
-#include "nsIDOMWindowInternal.h"
 #include "nsIMessengerWindowService.h"
 #include "nsIWindowMediator.h"
 #include "nsIPrompt.h"

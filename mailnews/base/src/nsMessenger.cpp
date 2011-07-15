@@ -308,7 +308,7 @@ nsMessenger::~nsMessenger()
 
 NS_IMPL_ISUPPORTS3(nsMessenger, nsIMessenger, nsISupportsWeakReference, nsIFolderListener)
 
-NS_IMETHODIMP nsMessenger::SetWindow(nsIDOMWindowInternal *aWin, nsIMsgWindow *aMsgWindow)
+NS_IMETHODIMP nsMessenger::SetWindow(nsIDOMWindow *aWin, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
 
@@ -556,7 +556,7 @@ NS_IMETHODIMP nsMessenger::LaunchExternalURL(const nsACString& aURL)
 }
 
 NS_IMETHODIMP
-nsMessenger::LoadURL(nsIDOMWindowInternal *aWin, const nsACString& aURL)
+nsMessenger::LoadURL(nsIDOMWindow *aWin, const nsACString& aURL)
 {
   nsresult rv;
 

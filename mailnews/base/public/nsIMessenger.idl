@@ -43,7 +43,7 @@
 #include "nsIMsgFolder.idl"
 
 interface nsIMsgDBHdr;
-interface nsIDOMWindowInternal;
+interface nsIDOMWindow;
 interface nsITransactionManager;
 interface nsIMsgMessageService;
 interface nsIFile;
@@ -62,13 +62,13 @@ interface nsIMessenger : nsISupports {
 
     readonly attribute nsITransactionManager transactionManager;
 
-    void setWindow(in nsIDOMWindowInternal ptr, in nsIMsgWindow msgWindow);
+    void setWindow(in nsIDOMWindow ptr, in nsIMsgWindow msgWindow);
 
     void openURL(in ACString aURL);
 
     /** load a custom message by url, e.g load a attachment as a email
       */
-    void loadURL(in nsIDOMWindowInternal ptr, in ACString aURL); 
+    void loadURL(in nsIDOMWindow ptr, in ACString aURL); 
 
     void launchExternalURL(in ACString aURL);
 

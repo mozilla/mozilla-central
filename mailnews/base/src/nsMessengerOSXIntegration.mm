@@ -58,7 +58,7 @@
 #include "MailNewsTypes.h"
 #include "nsIWindowMediator.h"
 #include "nsIDOMChromeWindow.h"
-#include "nsIDOMWindowInternal.h"
+#include "nsIDOMWindow.h"
 #include "nsPIDOMWindow.h"
 #include "nsIDocShell.h"
 #include "nsIBaseWindow.h"
@@ -174,7 +174,7 @@ static void openMailWindow(const nsCString& aUri)
     }
 
     FocusAppNative();
-    nsCOMPtr<nsIDOMWindowInternal> domWindow;
+    nsCOMPtr<nsIDOMWindow> domWindow;
     topMostMsgWindow->GetDomWindow(getter_AddRefs(domWindow));
     if (domWindow)
       domWindow->Focus();
@@ -563,7 +563,7 @@ nsMessengerOSXIntegration::BounceDockIcon()
   nsCOMPtr<nsIWindowMediator> mediator(do_GetService(NS_WINDOWMEDIATOR_CONTRACTID));
   if (mediator)
   {
-    nsCOMPtr<nsIDOMWindowInternal> domWindow;
+    nsCOMPtr<nsIDOMWindow> domWindow;
     mediator->GetMostRecentWindow(NS_LITERAL_STRING("mail:3pane").get(), getter_AddRefs(domWindow));
     if (domWindow)
     {

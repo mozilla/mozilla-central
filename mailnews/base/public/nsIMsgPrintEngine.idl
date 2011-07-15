@@ -38,7 +38,7 @@
 #include "nsrootidl.idl"
 #include "nsIMsgStatusFeedback.idl"
 
-interface nsIDOMWindowInternal;
+interface nsIDOMWindow;
 interface nsIPrintSettings;
 interface nsIObserver;
 interface nsIWebBrowserPrint;
@@ -57,8 +57,8 @@ interface nsIMsgPrintEngine : nsISupports {
     const short MNAB_PRINTPREVIEW_ADDRBOOK = 5;
     const short MNAB_END                   = 6;
 
-    void setWindow(in nsIDOMWindowInternal ptr);
-    void setParentWindow(in nsIDOMWindowInternal ptr);
+    void setWindow(in nsIDOMWindow ptr);
+    void setParentWindow(in nsIDOMWindow ptr);
     void showWindow(in boolean aShow);
     void setStatusFeedback(in nsIMsgStatusFeedback feedback);
     void setPrintURICount(in PRInt32 aCount);

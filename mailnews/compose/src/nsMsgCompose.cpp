@@ -778,7 +778,7 @@ nsMsgCompose::GetQuotingToFollow(PRBool* quotingToFollow)
 
 NS_IMETHODIMP
 nsMsgCompose::Initialize(nsIMsgComposeParams *aParams,
-                         nsIDOMWindowInternal *aWindow,
+                         nsIDOMWindow *aWindow,
                          nsIDocShell *aDocShell)
 {
   NS_ENSURE_ARG_POINTER(aParams);
@@ -1038,7 +1038,7 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
                     nsnull,                             // const struct nsMsgAttachmentData  *attachments,
                     nsnull,                             // const struct nsMsgAttachedFile    *preloaded_attachments,
                     nsnull,                             // nsMsgSendPart                     *relatedPart,
-                    m_window,                           // nsIDOMWindowInternal              *parentWindow;
+                    m_window,                           // nsIDOMWindow                      *parentWindow;
                     mProgress,                          // nsIMsgProgress                    *progress,
                     sendListener,                       // listener
                     mSmtpPassword.get(),
@@ -1530,7 +1530,7 @@ nsresult nsMsgCompose::SetBodyModified(PRBool modified)
 }
 
 NS_IMETHODIMP
-nsMsgCompose::GetDomWindow(nsIDOMWindowInternal * *aDomWindow)
+nsMsgCompose::GetDomWindow(nsIDOMWindow * *aDomWindow)
 {
   NS_IF_ADDREF(*aDomWindow = m_window);
   return NS_OK;
@@ -2671,7 +2671,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           // Handle "followup-to: poster" magic keyword here
           if (followUpTo.EqualsLiteral("poster"))
           {
-            nsCOMPtr<nsIDOMWindowInternal> composeWindow;
+            nsCOMPtr<nsIDOMWindow> composeWindow;
             nsCOMPtr<nsIPrompt> prompt;
             compose->GetDomWindow(getter_AddRefs(composeWindow));
             if (composeWindow)
@@ -3513,7 +3513,7 @@ nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aS
       
       // See if there is a composer window
       PRBool hasDomWindow = PR_TRUE;
-      nsCOMPtr<nsIDOMWindowInternal> domWindow;
+      nsCOMPtr<nsIDOMWindow> domWindow;
       rv = msgCompose->GetDomWindow(getter_AddRefs(domWindow));
       if (NS_FAILED(rv) || !domWindow)
         hasDomWindow = PR_FALSE;

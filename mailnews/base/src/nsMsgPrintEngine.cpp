@@ -247,7 +247,7 @@ nsMsgPrintEngine::OnSecurityChange(nsIWebProgress *aWebProgress,
 }
 
 NS_IMETHODIMP    
-nsMsgPrintEngine::SetWindow(nsIDOMWindowInternal *aWin)
+nsMsgPrintEngine::SetWindow(nsIDOMWindow *aWin)
 {
 	if (!aWin)
   {
@@ -286,8 +286,8 @@ nsMsgPrintEngine::SetWindow(nsIDOMWindowInternal *aWin)
   return NS_OK;
 }
 
-/* void setParentWindow (in nsIDOMWindowInternal ptr); */
-NS_IMETHODIMP nsMsgPrintEngine::SetParentWindow(nsIDOMWindowInternal *ptr)
+/* void setParentWindow (in nsIDOMWindow ptr); */
+NS_IMETHODIMP nsMsgPrintEngine::SetParentWindow(nsIDOMWindow *ptr)
 {
   mParentWindow = ptr;
   return NS_OK;

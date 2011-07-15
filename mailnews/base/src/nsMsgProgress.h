@@ -42,7 +42,7 @@
 #include "nsIMsgProgress.h"
 #include "nsCOMPtr.h"
 #include "nsCOMArray.h"
-#include "nsIDOMWindowInternal.h"
+#include "nsIDOMWindow.h"
 #include "nsIMsgStatusFeedback.h"
 #include "nsStringGlue.h"
 #include "nsIMsgWindow.h"

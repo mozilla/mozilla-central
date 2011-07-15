@@ -157,7 +157,7 @@
 #include "nsIMsgHdr.h"
 #include "nsIMsgIdentity.h"
 #include "nsWeakReference.h"
-#include "nsIDOMWindowInternal.h"
+#include "nsIDOMWindow.h"
 #include "nsIMsgComposeSecure.h"
 #include "nsAutoPtr.h"
 #include "nsISupportsArray.h"
@@ -315,7 +315,7 @@ public:
   nsString mSavedToFolderName; // Name of folder we're saving to, used when
                                // displaying error on save.
   // These are needed for callbacks to the FE...
-  nsCOMPtr<nsIDOMWindowInternal>  mParentWindow;
+  nsCOMPtr<nsIDOMWindow>          mParentWindow;
   nsCOMPtr<nsIMsgProgress>        mSendProgress;
   nsCOMPtr<nsIMsgSendListener>    mListener;
   nsCOMPtr<nsIMsgStatusFeedback>  mStatusFeedback;

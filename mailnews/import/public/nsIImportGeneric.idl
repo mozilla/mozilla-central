@@ -43,7 +43,6 @@
 
 #include "nsISupports.idl"
 
-interface nsIDOMWindowInternal;
 interface nsISupportsString;
 
 [scriptable, uuid(d64a87b8-aeb4-da40-fe28-57df1e50c64f)]

@@ -49,7 +49,6 @@ interface nsIMsgSend;
 interface nsIMsgIdentity;
 interface nsIMsgProgress;
 interface nsIDocShell;
-interface nsIDOMWindowInternal;
 interface nsIDOMWindow;
 interface nsIDOMNode;
 interface nsIEditor;
@@ -146,7 +145,7 @@ interface nsIMsgCompose : nsIMsgSendListener {
    *                  for composing.
    */
   void initialize(in nsIMsgComposeParams aParams,
-                  [optional] in nsIDOMWindowInternal aWindow,
+                  [optional] in nsIDOMWindow aWindow,
                   [optional] in nsIDocShell aDocShell); 
 
   /* ... */
@@ -221,7 +220,7 @@ interface nsIMsgCompose : nsIMsgSendListener {
   readonly attribute nsIEditor editor;
 
 	/* ... */
-  readonly attribute nsIDOMWindowInternal domWindow;
+  readonly attribute nsIDOMWindow domWindow;
 
 	/* ... */
   readonly attribute nsIMsgCompFields compFields;

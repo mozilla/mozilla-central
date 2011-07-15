@@ -58,7 +58,7 @@
 #include "nsIDirectoryService.h"
 #include "nsIWindowWatcher.h"
 #include "nsIWindowMediator.h"
-#include "nsIDOMWindowInternal.h"
+#include "nsIDOMWindow.h"
 #include "nsPIDOMWindow.h"
 #include "nsIDocShell.h"
 #include "nsIBaseWindow.h"
@@ -136,7 +136,7 @@ HWND hwndForDOMWindow( nsISupports *window )
   return (HWND)( ppWidget->GetNativeData( NS_NATIVE_WIDGET ) );
 }
 
-static void activateWindow( nsIDOMWindowInternal *win )
+static void activateWindow( nsIDOMWindow *win )
 {
   // Try to get native window handle.
   HWND hwnd = hwndForDOMWindow( win );
@@ -163,7 +163,7 @@ static void openMailWindow(const nsACString& aFolderUri)
   rv = mailSession->GetTopmostMsgWindow(getter_AddRefs(topMostMsgWindow));
   if (topMostMsgWindow)
   {
-    nsCOMPtr<nsIDOMWindowInternal> domWindow;
+    nsCOMPtr<nsIDOMWindow> domWindow;
     topMostMsgWindow->GetDomWindow(getter_AddRefs(domWindow));
     if (domWindow)
     {
@@ -628,7 +628,7 @@ nsresult nsMessengerWinIntegration::AlertClicked()
   rv = mailSession->GetTopmostMsgWindow(getter_AddRefs(topMostMsgWindow));
   if (topMostMsgWindow)
   {
-    nsCOMPtr<nsIDOMWindowInternal> domWindow;
+    nsCOMPtr<nsIDOMWindow> domWindow;
     topMostMsgWindow->GetDomWindow(getter_AddRefs(domWindow));
     if (domWindow)
     {

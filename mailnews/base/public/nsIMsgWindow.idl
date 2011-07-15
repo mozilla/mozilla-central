@@ -41,7 +41,7 @@ interface nsIMsgStatusFeedback;
 interface nsIMsgFolder;
 interface nsITransactionManager;
 interface nsIDocShell;
-interface nsIDOMWindowInternal;
+interface nsIDOMWindow;
 interface nsIMsgHeaderSink;
 interface nsIPrompt;
 interface nsIInterfaceRequestor;
@@ -99,7 +99,7 @@ interface nsIMsgWindow : nsISupports {
   */
   attribute boolean stopped;
 
-  attribute nsIDOMWindowInternal domWindow;
+  attribute nsIDOMWindow domWindow;
 
   void StopUrls();
 

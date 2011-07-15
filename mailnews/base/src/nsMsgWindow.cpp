@@ -42,7 +42,7 @@
 #include "nsIDocShellTreeItem.h"
 #include "nsIDocShellTreeNode.h"
 #include "nsIDOMElement.h"
-#include "nsIDOMWindowInternal.h"
+#include "nsIDOMWindow.h"
 #include "nsTransactionManagerCID.h"
 #include "nsIComponentManager.h"
 #include "nsILoadGroup.h"
@@ -319,7 +319,7 @@ NS_IMETHODIMP nsMsgWindow::SetCharsetOverride(PRBool aCharsetOverride)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgWindow::GetDomWindow(nsIDOMWindowInternal **aWindow)
+NS_IMETHODIMP nsMsgWindow::GetDomWindow(nsIDOMWindow **aWindow)
 {
   NS_ENSURE_ARG_POINTER(aWindow);
   if (mDomWindow)
@@ -329,7 +329,7 @@ NS_IMETHODIMP nsMsgWindow::GetDomWindow(nsIDOMWindowInternal **aWindow)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgWindow::SetDomWindow(nsIDOMWindowInternal * aWindow)
+NS_IMETHODIMP nsMsgWindow::SetDomWindow(nsIDOMWindow * aWindow)
 {
   NS_ENSURE_ARG_POINTER(aWindow);
   mDomWindow = do_GetWeakReference(aWindow);

@@ -78,7 +78,7 @@
 #include "nsIPrefService.h"
 #include "nsMsgI18N.h"
 #include "nsICacheSession.h"
-#include "nsIDOMWindowInternal.h"
+#include "nsIDOMWindow.h"
 #include "nsIMsgFilter.h"
 #include "nsIMsgFilterService.h"
 #include "nsIMsgSearchCustomTerm.h"
@@ -1525,12 +1525,12 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
         nsCOMPtr<nsIPromptService> promptService(do_GetService(NS_PROMPTSERVICE_CONTRACTID, &rv));
         NS_ENSURE_SUCCESS(rv, rv);
 
-        nsCOMPtr<nsIDOMWindowInternal> parentWindow;
+        nsCOMPtr<nsIDOMWindow> parentWindow;
         if (aMsgWindow)
         {
           nsCOMPtr<nsIDocShell> docShell;
           (void) aMsgWindow->GetRootDocShell(getter_AddRefs(docShell));
-          parentWindow = do_QueryInterface(docShell);
+          parentWindow = do_GetInterface(docShell);
         }
 
         nsCOMPtr<nsIStringBundle> bundle;

@@ -122,7 +122,7 @@ private:
   PRBool                                    mConvertStructs;    // for TagConvertible
   
 	nsCOMPtr<nsIEditor>                       m_editor;
-	nsIDOMWindowInternal                      *m_window;
+	nsIDOMWindow                              *m_window;
   nsCOMPtr<nsIDocShell>                     mDocShell;
   nsCOMPtr<nsIBaseWindow>                   m_baseWindow;
 	nsMsgCompFields                           *m_compFields;
