@@ -974,6 +974,17 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetAlign(const nsAString & aAlign)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+// attribute DOMString crossOrigin
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetCrossOrigin(nsAString & aCrossOrigin)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetCrossOrigin(const nsAString & aCrossOrigin)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 // attribute DOMString alt
 NS_IMETHODIMP nsOutlookHTMLImageElement::GetAlt(nsAString & aAlt)
 {

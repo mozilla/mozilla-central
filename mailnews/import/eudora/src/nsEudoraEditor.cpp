@@ -1302,12 +1302,21 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetAlign(nsAString & aAlign)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-
 NS_IMETHODIMP nsEudoraHTMLImageElement::SetAlign(const nsAString & aAlign)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+// attribute DOMString crossOrigin
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetCrossOrigin(nsAString & aCrossOrigin)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetCrossOrigin(const nsAString & aCrossOrigin)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
 
 // attribute DOMString alt
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetAlt(nsAString & aAlt)
