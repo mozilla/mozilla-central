@@ -362,32 +362,47 @@ function registerZoomManager() {
   var parentMenu = zoomMenu.parentNode;
   parentMenu.addEventListener("popupshowing", updateViewMenu, false);
 
-  var accessKeys = zoomBundle.getString("accessKeys").split(",");
-  var zoomFactors = zoomBundle.getString("values").split(",");
-
-  // Make sure the zoom manager has the same values as us
-  Services.prefs.setCharPref("toolkit.zoomManager.zoomValues",
-                             zoomFactors.map(function(aVal) {return aVal/100;})
-                                        .join(","));
+  // initialize menu from toolkit.zoomManager.zoomValues and assign accesskeys
+  var zoomFactors = ZoomManager.zoomValues;
+  var freeKeys = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ];
 
   var insertBefore = document.getElementById("menu_zoomInsertBefore");
   var popup = insertBefore.parentNode;
   for (var i = 0; i < zoomFactors.length; ++i) {
+    var thisFactor = Math.round(zoomFactors[i] * 100);
     var menuItem = document.createElement("menuitem");
     menuItem.setAttribute("type", "radio");
     menuItem.setAttribute("name", "zoom");
 
     var label;
-    if (zoomFactors[i] == 100) {
-      label = zoomBundle.getString("labelOriginal");
+    var accessKey = "";
+    if (thisFactor == 100) {
+      label = zoomBundle.getString("zoom.100.label");
+      accessKey = zoomBundle.getString("zoom.100.accesskey");
       menuItem.setAttribute("key", "key_zoomReset");
     }
-    else
-      label = zoomBundle.getString("label");
+    else if (thisFactor == 200) {
+      label = zoomBundle.getString("zoom.200.label");
+      accessKey = zoomBundle.getString("zoom.200.accesskey");
+    }
+    else {
+      label = zoomBundle.getString("zoom.value.label")
+                        .replace(/%zoom%/, thisFactor);
+      for (var j = 0; j < label.length; ++j) {
+        var testKey = label[j];
+        var indexKey = freeKeys.indexOf(testKey);
+        if (indexKey >= 0) {
+          accessKey = testKey;
+          freeKeys.splice(indexKey, 1);
+          break;
+        }
+      }
+    }
 
-    menuItem.setAttribute("label", label.replace(/%zoom%/, zoomFactors[i]));
-    menuItem.setAttribute("accesskey", accessKeys[i]);
-    menuItem.setAttribute("value", zoomFactors[i]);
+    menuItem.setAttribute("label", label);
+    if (accessKey)
+      menuItem.setAttribute("accesskey", accessKey);
+    menuItem.setAttribute("value", thisFactor);
     popup.insertBefore(menuItem, insertBefore);
   }
 }
@@ -400,18 +415,22 @@ function updateViewMenu() {
   var zoomBundle = document.getElementById("bundle_viewZoom");
   var zoomMenu = document.getElementById("menu_zoom");
   var zoomType = ZoomManager.useFullZoom ? "fullZoom" : "textZoom";
-  var menuLabel = zoomBundle.getString(zoomType)
+  var menuLabel = zoomBundle.getString(zoomType + ".label")
                             .replace(/%zoom%/, Math.round(ZoomManager.zoom * 100));
+  var menuKey = zoomBundle.getString(zoomType + ".accesskey");
   zoomMenu.setAttribute("label", menuLabel);
+  zoomMenu.setAttribute("accesskey", menuKey);
 }
 
 function updateZoomMenu() {
   var zoomBundle = document.getElementById("bundle_viewZoom");
   var zoomOther = document.getElementById("menu_zoomOther");
-  var label = zoomBundle.getString("labelOther");
+  var label = zoomBundle.getString("zoom.other.label");
+  var accesskey = zoomBundle.getString("zoom.other.accesskey");
   var factorOther = zoomOther.getAttribute("value") ||
                     Math.round(ZoomManager.MAX * 100);
   zoomOther.setAttribute("label", label.replace(/%zoom%/, factorOther));
+  zoomOther.setAttribute("accesskey", accesskey);
   zoomOther.setAttribute("value", factorOther);
 
   var popup = document.getElementById("menu_zoomPopup");

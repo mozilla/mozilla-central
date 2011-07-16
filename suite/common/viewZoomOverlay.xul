@@ -64,7 +64,7 @@
     <command id="cmd_fullZoomToggle" oncommand="ZoomManager.toggleZoom();"/>
   </commandset>
 
-  <menu id="menu_zoom" accesskey="&zoomMenu.accesskey;">
+  <menu id="menu_zoom">
     <menupopup id="menu_zoomPopup" onpopupshowing="updateZoomMenu();" oncommand="FullZoom.zoom(event.target.value / 100);">
       <menuitem id="menu_zoomReduce"
                 key="key_zoomReduce"
@@ -81,7 +81,6 @@
       <menuitem id="menu_zoomOther"
                 type="radio"
                 name="zoom"
-                accesskey="&zoomOtherCmd.accesskey;"
                 command="cmd_zoomOther"/>
     </menupopup>
   </menu>
