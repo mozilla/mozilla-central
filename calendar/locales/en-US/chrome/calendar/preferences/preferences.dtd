@@ -23,6 +23,7 @@
    -   ArentJan Banck <ajbanck@planet.nl>
    -   Eric Belhaire <belhaire@ief.u-psud.fr>
    -   Matthew Willis <mattwillis@gmail.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -45,7 +46,7 @@
 <!ENTITY  prefWindow.styleGNOME   "width: 47em; height: 34.5em;">
 
 <!ENTITY  paneGeneral.title       "General">
-<!ENTITY  paneAlarms.title        "Alarms">
+<!ENTITY  paneAlarms.title        "Reminders">
 <!ENTITY  paneCategories.title    "Categories">
 <!ENTITY  paneViews.title         "Views">
 <!ENTITY  paneTimezones.title     "Timezone">

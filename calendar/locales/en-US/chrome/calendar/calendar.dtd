@@ -287,7 +287,7 @@
 
 <!ENTITY calendar.alarm.snoozefor.label             "Snooze for" >
 <!ENTITY calendar.alarm.snoozeallfor.label          "Snooze All for" >
-<!ENTITY calendar.alarm.title.label                 "Calendar Alarm" >
+<!ENTITY calendar.alarm.title.label                 "Calendar Reminders" >
 <!ENTITY calendar.alarm.dismiss.label               "Dismiss" >
 <!ENTITY calendar.alarm.dismissall.label            "Dismiss All" >
 
@@ -321,7 +321,7 @@
 <!ENTITY calendarproperties.refreshInterval.manual.label   "Manually">
 <!ENTITY calendarproperties.name.label                     "Name:">
 <!ENTITY calendarproperties.readonly.label                 "Read Only">
-<!ENTITY calendarproperties.firealarms.label               "Show Alarms">
+<!ENTITY calendarproperties.firealarms.label               "Show Reminders">
 <!ENTITY calendarproperties.cache.label                    "Cache (EXPERIMENTAL)">
 <!ENTITY calendarproperties.enabled.label                  "Switch this calendar on">
 <!ENTITY calendarproperties.forceDisabled.label            "The provider for this calendar could not be found. This often happens if you have disabled or uninstalled certain addons.">

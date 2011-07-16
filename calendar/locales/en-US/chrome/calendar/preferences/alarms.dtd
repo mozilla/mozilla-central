@@ -20,6 +20,7 @@
    -
    - Contributor(s): 
    -   Cédric Corazza <cedric.corazza@wanadoo.fr>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,7 +41,7 @@
    - your editor isn't using UTF-8 encoding and may munge up the document!
   -->
 
-<!ENTITY pref.alarmgoesoff.label "When an alarm goes off:">
+<!ENTITY pref.alarmgoesoff.label "When a Reminder is Due:">
 <!ENTITY pref.playasound "Play a sound">
 <!ENTITY pref.calendar.alarms.playsound.accessKey "s">
 <!ENTITY pref.calendar.alarms.sound.useDefault.label "Use default sound">
@@ -49,20 +50,20 @@
 <!ENTITY pref.calendar.alarms.sound.browse.accessKey "B">
 <!ENTITY pref.calendar.alarms.sound.preview.label "Preview">
 <!ENTITY pref.calendar.alarms.sound.preview.accessKey "P">
-<!ENTITY pref.showalarmbox "Show an alarm box">
+<!ENTITY pref.showalarmbox "Show the reminder dialog">
 <!ENTITY pref.calendar.alarms.showAlarmBox.accessKey "x">
-<!ENTITY pref.missedalarms "Show missed alarms">
+<!ENTITY pref.missedalarms "Show missed reminders">
 <!ENTITY pref.calendar.alarms.missedAlarms.accessKey "m">
-<!ENTITY pref.calendar.alarms.defaults.label "Alarm Defaults">
-<!ENTITY pref.defalarm4events.label "Default alarm setting for events:">
+<!ENTITY pref.calendar.alarms.defaults.label "Reminder Defaults">
+<!ENTITY pref.defalarm4events.label "Default reminder setting for events:">
 <!ENTITY pref.defalarm4events.accesskey "e">
-<!ENTITY pref.defalarm4todos.label "Default alarm setting for tasks:">
+<!ENTITY pref.defalarm4todos.label "Default reminder setting for tasks:">
 <!ENTITY pref.defalarm4todos.accesskey "a">
 <!ENTITY pref.alarm.on "On">
 <!ENTITY pref.alarm.off "Off">
-<!ENTITY pref.defalarmlen4events.label "Default time an alarm goes off before an event:">
+<!ENTITY pref.defalarmlen4events.label "Default time a reminder is set before an event:">
 <!ENTITY pref.defalarmlen4events.accesskey "u">
-<!ENTITY pref.defalarmlen4todos.label "Default time an alarm goes off before a task:">
+<!ENTITY pref.defalarmlen4todos.label "Default time a reminder is set before a task:">
 <!ENTITY pref.defalarmlen4todos.accesskey "o">
-<!ENTITY pref.defaultemail.label "Default address to send alarms to:">
-<!ENTITY pref.defaulttext.label "Default text for alarms:">
+<!ENTITY pref.defaultemail.label "Default address to send reminders to:">
+<!ENTITY pref.defaulttext.label "Default text for reminders :">
