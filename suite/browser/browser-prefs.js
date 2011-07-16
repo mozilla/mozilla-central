@@ -708,13 +708,6 @@ pref("ui.use_activity_cursor", true);
 #endif
 
 #ifdef XP_MACOSX
-// determines the behavior upon starting a download.
-//  0 - open the download manager
-//  1 - open a progress dialog
-//  2 - do nothing
-
-pref("browser.download.manager.behavior", 1);
-
 // Use a sheet instead of a popup window for the customize toolbar UI
 pref("toolbar.customization.usesheet", true);
 #endif
