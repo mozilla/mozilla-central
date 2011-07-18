@@ -80,7 +80,7 @@ function SessionStartup() {
 SessionStartup.prototype = {
 
   // the state to restore at startup
-  _initialState: null,
+  _iniString: null,
   _sessionType: Components.interfaces.nsISessionStartup.NO_SESSION,
 
 /* ........ Global Event Handlers .............. */
@@ -108,13 +108,15 @@ SessionStartup.prototype = {
       return;
 
     // get string containing session state
-    let iniString = this._readStateFile(sessionFile);
-    if (!iniString)
+    this._iniString = this._readStateFile(sessionFile);
+    if (!this._iniString)
       return;
+
+    var initialState;
 
     try {
       // parse the session state into JS objects
-      this._initialState = JSON.parse(iniString);
+      initialState = JSON.parse(this._iniString);
     }
     catch (ex) {
       doResumeSession = false;
@@ -122,19 +124,18 @@ SessionStartup.prototype = {
     }
 
     let lastSessionCrashed =
-      this._initialState && this._initialState.session &&
-      this._initialState.session.state &&
-      this._initialState.session.state == STATE_RUNNING_STR;
+      initialState && initialState.session && initialState.session.state &&
+      initialState.session.state == STATE_RUNNING_STR;
 
     // set the startup type
     if (lastSessionCrashed && resumeFromCrash)
       this._sessionType = Components.interfaces.nsISessionStartup.RECOVER_SESSION;
     else if (!lastSessionCrashed && doResumeSession)
       this._sessionType = Components.interfaces.nsISessionStartup.RESUME_SESSION;
-    else if (this._initialState)
+    else if (initialState)
       this._sessionType = Components.interfaces.nsISessionStartup.DEFER_SESSION;
     else
-      this._initialState = null; // reset the state
+      this._iniString = null; // reset the state string
 
     if (this.doRestore()) {
       // wait for the first browser window to open
@@ -164,8 +165,8 @@ SessionStartup.prototype = {
     case "sessionstore-windows-restored":
       // no need in repeating this, since session type won't change
       Services.obs.removeObserver(this, "sessionstore-windows-restored");
-      // free _initialState after nsSessionStore is done with it
-      this._initialState = null;
+      // free _iniString after nsSessionStore is done with it
+      this._iniString = null;
       // reset session type after restore
       this._sessionType = Components.interfaces.nsISessionStartup.NO_SESSION;
       break;
@@ -178,7 +179,7 @@ SessionStartup.prototype = {
    * Get the session state as a string
    */
   get state() {
-    return this._initialState;
+    return this._iniString;
   },
 
   /**
