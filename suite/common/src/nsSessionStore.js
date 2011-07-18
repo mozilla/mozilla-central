@@ -263,32 +263,30 @@ SessionStoreService.prototype = {
     this._sessionFileBackup.append("sessionstore.bak");
 
     // get string containing session state
-    var iniString;
     var ss = Components.classes["@mozilla.org/suite/sessionstartup;1"]
                        .getService(Components.interfaces.nsISessionStartup);
     try {
       if (ss.sessionType != Components.interfaces.nsISessionStartup.NO_SESSION)
-        iniString = ss.state;
+        this._initialState = ss.state;
     }
     catch(ex) { dump(ex + "\n"); } // no state to restore, which is ok
 
-    if (iniString) {
+    if (this._initialState) {
       try {
         // If we're doing a DEFERRED session, then we want to pull pinned tabs
         // out so they can be restored.
         if (ss.sessionType == Components.interfaces.nsISessionStartup.DEFER_SESSION) {
-          let [iniState, remainingState] = this._prepDataForDeferredRestore(iniString);
+          let [iniState, remainingState] = this._prepDataForDeferredRestore(this._initialState);
           // If we have a iniState with windows, that means that we have windows
           // with app tabs to restore.
           if (iniState.windows.length)
             this._initialState = iniState;
+          else
+            this._initialState = null;
           if (remainingState.windows.length)
             this._lastSessionState = remainingState;
         }
         else {
-          // parse the session state into JS objects
-          this._initialState = JSON.parse(iniString);
-
           let lastSessionCrashed =
             this._initialState.session && this._initialState.session.state &&
             this._initialState.session.state == STATE_RUNNING_STR;
@@ -300,7 +298,7 @@ SessionStoreService.prototype = {
               // replace the crashed session with a restore-page-only session
               let pageData = {
                 url: "about:sessionrestore",
-                formdata: { "#sessionData": iniString }
+                formdata: { "#sessionData": JSON.stringify(this._initialState) }
               };
               this._initialState = { windows: [{ tabs: [{ entries: [pageData] }] }] };
             }
@@ -640,7 +638,7 @@ SessionStoreService.prototype = {
           // We'll cheat a little bit and reuse _prepDataForDeferredRestore
           // even though it wasn't built exactly for this.
           let [appTabsState, normalTabsState] =
-            this._prepDataForDeferredRestore(JSON.stringify({ windows: [closedWindowState] }));
+            this._prepDataForDeferredRestore({ windows: [closedWindowState] });
 
           // These are our pinned tabs, which we should restore
           if (appTabsState.windows.length) {
@@ -3473,12 +3471,11 @@ SessionStoreService.prototype = {
    * this._lastSessionState and will be kept in case the user explicitly wants
    * to restore the previous session (publicly exposed as restoreLastSession).
    *
-   * @param stateString
-   *        The state string, presumably from nsISessionStartup.state
+   * @param state
+   *        The state, presumably from nsISessionStartup.state
    * @returns [defaultState, state]
    */
-  _prepDataForDeferredRestore: function sss_prepDataForDeferredRestore(stateString) {
-    let state = JSON.parse(stateString);
+  _prepDataForDeferredRestore: function sss__prepDataForDeferredRestore(state) {
     let defaultState = { windows: [], selectedWindow: 1 };
 
     state.selectedWindow = state.selectedWindow || 1;
