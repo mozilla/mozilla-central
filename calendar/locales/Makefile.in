@@ -45,6 +45,8 @@ relativesrcdir  = calendar/locales
 
 include $(DEPTH)/config/autoconf.mk
 
+export MOZ_CHROME_FILE_FORMAT=jar
+
 ifeq ($(AB_CD),)
 DIRS = ../timezones
 endif
