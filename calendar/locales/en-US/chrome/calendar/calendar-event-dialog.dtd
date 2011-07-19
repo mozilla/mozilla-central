@@ -192,7 +192,7 @@
 
 <!-- Main page -->
 <!ENTITY event.title.textbox.label                        "Title:" >
-<!ENTITY event.title.textbox.accesskey                    "T">
+<!ENTITY event.title.textbox.accesskey                    "I">
 <!ENTITY event.location.label                             "Location:" >
 <!ENTITY event.location.accesskey                         "L">
 <!ENTITY event.categories.label                           "Category:">
