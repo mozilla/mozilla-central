@@ -222,12 +222,8 @@ function openDownload(aDownload)
       var title = dlbundle.getString("fileExecutableSecurityWarningTitle");
       var dontAsk = dlbundle.getString("fileExecutableSecurityWarningDontAsk");
 
-      var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                .getService(Components.interfaces.nsIPromptService);
       var checkbox = { value: false };
-      var open = promptSvc.confirmCheck(window, title, message, dontAsk, checkbox);
-
-      if (!open)
+      if (!Services.prompt.confirmCheck(window, title, message, dontAsk, checkbox))
         return;
       gPrefService.setBoolPref("browser.download.manager.alertOnEXEOpen", !checkbox.value);
     }

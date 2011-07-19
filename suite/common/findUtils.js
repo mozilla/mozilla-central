@@ -37,7 +37,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var gPromptService;
 var gFindBundle;
 
 function nsFindInstData() {}
@@ -134,13 +133,10 @@ function findAgainInPage(findInstData, reverse)
 
     var found = findInst.findNext();
     if (!found) {
-      if (!gPromptService)
-        gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService()
-                                 .QueryInterface(Components.interfaces.nsIPromptService);
       if (!gFindBundle)
         gFindBundle = document.getElementById("findBundle");
 
-      gPromptService.alert(window, gFindBundle.getString("notFoundTitle"), gFindBundle.getString("notFoundWarning"));
+      Services.prompt.alert(window, gFindBundle.getString("notFoundTitle"), gFindBundle.getString("notFoundWarning"));
     }
 
     // Reset to normal value, otherwise setting can get changed in find dialog

@@ -468,11 +468,9 @@ var PlacesOrganizer = {
     }
 
     // confirm ok to delete existing bookmarks
-    var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                            .getService(Components.interfaces.nsIPromptService);
-    if (!prompts.confirm(null,
-                         PlacesUIUtils.getString("bookmarksRestoreAlertTitle"),
-                         PlacesUIUtils.getString("bookmarksRestoreAlert")))
+    if (!Services.prompt.confirm(null,
+                                 PlacesUIUtils.getString("bookmarksRestoreAlertTitle"),
+                                 PlacesUIUtils.getString("bookmarksRestoreAlert")))
       return;
 
     try {
@@ -487,9 +485,7 @@ var PlacesOrganizer = {
     var brandShortName = document.getElementById("brandStrings")
                                  .getString("brandShortName");
 
-    Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-              .getService(Components.interfaces.nsIPromptService)
-              .alert(window, brandShortName, aMsg);
+    Services.prompt.alert(window, brandShortName, aMsg);
   },
 
   /**
@@ -769,14 +765,12 @@ var PlacesOrganizer = {
     var inputLabel = PlacesUIUtils.getString("saveSearch.inputLabel");
     var defaultText = PlacesUIUtils.getString("saveSearch.inputDefaultText");
 
-    var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                            .getService(Components.interfaces.nsIPromptService);
     var check = {value: false};
     var input = {value: defaultText};
-    var save = prompts.prompt(null, title, inputLabel, input, null, check);
 
     // Don't add the query if the user cancels or clears the seach name.
-    if (!save || input.value == "")
+    if (!Services.prompt.prompt(null, title, inputLabel, input, null, check) ||
+        input.value == "")
      return;
 
     // Add the place: uri as a bookmark under the bookmarks root.

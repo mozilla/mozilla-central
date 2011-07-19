@@ -855,19 +855,18 @@ nsContextMenu.prototype = {
 
   setWallpaper: function() {
     // Confirm since it's annoying if you hit this accidentally.
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                  .getService(Components.interfaces.nsIPromptService);
     var navigatorBundle = document.getElementById("bundle_navigator");
     var promptTitle = navigatorBundle.getString("wallpaperConfirmTitle");
     var promptMsg = navigatorBundle.getString("wallpaperConfirmMsg");
     var promptConfirmButton = navigatorBundle.getString("wallpaperConfirmButton");
 
-    var buttonPressed = promptService.confirmEx(window, promptTitle, promptMsg,
-                                                (promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_0) +
-                                                (promptService.BUTTON_TITLE_CANCEL    * promptService.BUTTON_POS_1),
-                                                promptConfirmButton, null, null, null, {value:0});
-
-    if (buttonPressed != 0)
+    if (Services.prompt.confirmEx(window, promptTitle, promptMsg,
+                                  (Services.prompt.BUTTON_TITLE_IS_STRING *
+                                   Services.prompt.BUTTON_POS_0) +
+                                  (Services.prompt.BUTTON_TITLE_CANCEL *
+                                   Services.prompt.BUTTON_POS_1),
+                                  promptConfirmButton, null, null, null,
+                                  {value: false}) != 0)
       return;
 
     const nsIShellService = Components.interfaces.nsIShellService;
@@ -921,9 +920,7 @@ nsContextMenu.prototype = {
             const title = bundle.GetStringFromName("downloadErrorAlertTitle");
             const msg = bundle.GetStringFromName("downloadErrorGeneric");
 
-            const promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                        .getService(Components.interfaces.nsIPromptService);
-            promptSvc.alert(doc.defaultView, title, msg);
+            Services.prompt.alert(doc.defaultView, title, msg);
           } catch (ex) {}
           return;
         }
