@@ -223,11 +223,6 @@ toolbar[iconsize="small"] .toolbarbutton-1 > .toolbarbutton-icon {
   height: auto !important;
 }
 
-toolbar[iconsize="small"] .toolbarbutton-menubutton-button > .toolbarbutton-text,
-toolbar[iconsize="small"] .toolbarbutton-1 > .toolbarbutton-text {
-  margin: 0 !important;
-}
-
 toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1 .toolbarbutton-text {
   -moz-padding-start: 2px;
 }
