@@ -912,9 +912,7 @@ nsContextMenu.prototype = {
         // some other error occured; notify the user...
         if (!Components.isSuccessCode(aRequest.status)) {
           try {
-            const sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                  .getService(Components.interfaces.nsIStringBundleService);
-            const bundle = sbs.createBundle(
+            const bundle = Services.strings.createBundle(
                     "chrome://mozapps/locale/downloads/downloads.properties");
 
             const title = bundle.GetStringFromName("downloadErrorAlertTitle");
