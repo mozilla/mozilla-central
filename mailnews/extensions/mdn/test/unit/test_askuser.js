@@ -1,6 +1,5 @@
 load("../../../../resources/mailDirService.js");
 load("../../../../resources/mailTestUtils.js");
-
 var gMessenger = Cc["@mozilla.org/messenger;1"].
                    createInstance(Ci.nsIMessenger);
 
@@ -13,8 +12,6 @@ let identity = acctMgr.createIdentity();
 identity.email = "bob@t2.exemple.net";
 localAccount.addIdentity(identity);
 localAccount.defaultIdentity = identity;
-
-
 
 function run_test()
 {
