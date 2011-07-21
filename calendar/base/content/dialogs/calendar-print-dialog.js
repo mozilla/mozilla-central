@@ -50,6 +50,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 /**
  * Gets the calendar view from the opening window
  */
@@ -222,6 +224,13 @@ function getFilter(settings) {
  * dialog UI element has changed, since we'll want to refresh the preview.
  */
 function refreshHtml(finishFunc) {
+    if (document.documentElement.getButton("accept").disabled) {
+        // If the accept button is disabled, then something wants us to not
+        // print. Bail out before refreshing the html, otherwise errors might
+        // occur. Don't call the finish func, its expected to be called on
+        // success.
+        return;
+    }
     getEventsAndDialogSettings(
         function getEventsAndDialogSettings_response(settings) {
             document.title = calGetString("calendar", "PrintPreviewWindowTitle", [settings.title]);
@@ -326,4 +335,17 @@ function printAndClose() {
 function onDatePick() {
     calRadioGroupSelectItem("view-field", "custom-range");
     refreshHtml();
+}
+
+/**
+ * Update the disabled state of the controls on the dialog, if not all print
+ * parameters are set (i.e nothing to print).
+ */
+function updatePrintState() {
+    let columns = document.getElementById("columns-for-events-and-tasks");
+    let cboxes = columns.getElementsByTagName("checkbox");
+
+    // If no checkboxes are checked, disable the print button
+    let someChecked = Array.slice(cboxes).some(function(x) x.checked);
+    document.documentElement.getButton("accept").disabled = !someChecked;
 }
