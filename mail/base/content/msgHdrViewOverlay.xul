@@ -43,8 +43,7 @@
 ]>
 
 <?xml-stylesheet href="chrome://messenger/skin/messageHeader.css" type="text/css"?>
-<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-         xmlns:html="http://www.w3.org/1999/xhtml">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script type="application/javascript"
         src="chrome://messenger/content/msgHdrViewOverlay.js"/>
@@ -162,7 +161,11 @@
       <!-- a convenience box for ease of extension overlaying -->
       <vbox id="expandedHeadersBox" flex="1">
 
-        <html:div id="expandedHeadersTopBox" flex="1">
+        <!-- This hbox has display:block set to imbue it with the HTML layout
+             model. This lets us float the message header toolbar to the right
+             so we don't waste space when the From field and the toolbar could
+             fit alongside each other. -->
+        <hbox id="expandedHeadersTopBox" flex="1">
 
           <toolbox id="header-view-toolbox"
                    class="inline-toolbox"
@@ -289,6 +292,12 @@
                      defaultset="hdrReplyToSenderButton,hdrSmartReplyButton,hdrForwardButton,hdrArchiveButton,hdrJunkButton,hdrTrashButton"/>
           </toolbox>
 
+          <!-- This box ensures that the expandedHeaders grid below is aligned
+               with the bottom of the message header toolbar. Like the
+               expandedHeadersTopBox, this uses display:block to give us HTML
+               layouting. -->
+          <box id="expandedBoxSpacer"/>
+
           <!-- Theoretically, we should be able to replace this grid with just
                an hbox.  Unfortunately, doing that makes it very hard to sync
                the column sizes between the name columns, because for currently
@@ -310,8 +319,7 @@
               </row>
             </rows>
           </grid>
-
-        </html:div>
+        </hbox>
 
         <hbox id="expandedHeadersBottomBox">
 

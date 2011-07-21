@@ -41,7 +41,6 @@
   ======================================================================= */
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
-@namespace html url("http://www.w3.org/1999/xhtml");
 
 /* ::::: for the entire area ::::: */
 .main-header-area {
@@ -78,16 +77,15 @@
   -moz-box-align: baseline;
 }
 
-/* We use pixels here because the height of the button is in pixels. */
-#expandedHeaderRows {
-  padding-top: 14px;
+#expandedHeadersTopBox {
+  /* Use the HTML layout model to allow the message header toolbar to float to
+     the right of the From field. */
+  display: block;
 }
 
-/* Select the div element in the html namespace. */
-html|div#expandedHeadersTopBox {
-  /* Ensure that the space between the from row and the one after is
-     identical to the spacing between the subsequent header lines. */
-  -moz-box-align: end;
+#expandedBoxSpacer {
+  display: block;
+  height: 10px;
 }
 
 #otherActionsButton {
