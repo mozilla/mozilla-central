@@ -48,6 +48,8 @@
 #include "nsITimer.h"
 #include "nsTArray.h"
 #include "nsStringGlue.h"
+#include "nsWeakReference.h"
+#include "nsIObserver.h"
 
 // XXX can't simply byte align arenas, must at least 2-byte align.
 #define PL_ARENA_CONST_ALIGN_MASK 1
@@ -377,15 +379,19 @@ protected:
                                            // the corresponding trait ID
 };
 
-class nsBayesianFilter : public nsIJunkMailPlugin, nsIMsgCorpus {
+class nsBayesianFilter : public nsIJunkMailPlugin, nsIMsgCorpus,
+                         nsIObserver, nsSupportsWeakReference {
 public:
     NS_DECL_ISUPPORTS
     NS_DECL_NSIMSGFILTERPLUGIN
     NS_DECL_NSIJUNKMAILPLUGIN
     NS_DECL_NSIMSGCORPUS
+    NS_DECL_NSIOBSERVER
 
     nsBayesianFilter();
     virtual ~nsBayesianFilter();
+
+    nsresult Init();
 
     nsresult tokenizeMessage(const char* messageURI, nsIMsgWindow *aMsgWindow, TokenAnalyzer* analyzer);
     void classifyMessage(Tokenizer& tokens, const char* messageURI,

@@ -71,6 +71,7 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIStringEnumerator.h"
+#include "nsIObserverService.h"
 
 // needed to mark attachment flag on the db hdr
 #include "nsIMsgHdr.h"
@@ -1223,8 +1224,9 @@ NS_IMETHODIMP TokenStreamListener::OnStopRequest(nsIRequest *aRequest, nsISuppor
 
 /* Implementation file */
 
-NS_IMPL_ISUPPORTS3(nsBayesianFilter, nsIMsgFilterPlugin,
-                   nsIJunkMailPlugin, nsIMsgCorpus)
+NS_IMPL_ISUPPORTS5(nsBayesianFilter, nsIMsgFilterPlugin,
+                   nsIJunkMailPlugin, nsIMsgCorpus, nsISupportsWeakReference,
+                   nsIObserver)
 
 nsBayesianFilter::nsBayesianFilter()
     :   mTrainingDataDirty(PR_FALSE)
@@ -1280,6 +1282,16 @@ nsBayesianFilter::nsBayesianFilter()
     AnalysisPerToken analysisPT(0, 0.0, 0.0);
     mAnalysisStore.AppendElement(analysisPT);
     mNextAnalysisIndex = 1;
+}
+
+nsresult nsBayesianFilter::Init()
+{
+  nsresult rv;
+  nsCOMPtr<nsIObserverService> observerService =
+           do_GetService("@mozilla.org/observer-service;1", &rv);
+  if (NS_SUCCEEDED(rv))
+    observerService->AddObserver(this, "profile-before-change", PR_TRUE);
+  return NS_OK;
 }
 
 void
@@ -1836,6 +1848,15 @@ void nsBayesianFilter::classifyMessage(
   antiTraits.AppendElement(kGoodTrait);
   classifyMessage(tokens, messageURI, proTraits, antiTraits,
     aJunkListener, nsnull, nsnull);
+}
+
+NS_IMETHODIMP
+nsBayesianFilter::Observe(nsISupports *aSubject, const char *aTopic,
+                          const PRUnichar *someData)
+{
+  if (!strcmp(aTopic, "profile-before-change"))
+    Shutdown();
+  return NS_OK;
 }
 
 /* void shutdown (); */

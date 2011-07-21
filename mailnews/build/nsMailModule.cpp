@@ -559,7 +559,7 @@ NS_DEFINE_NAMED_CID(NS_ABLDIFSERVICE_CID);
 ////////////////////////////////////////////////////////////////////////////////
 // bayesian spam filter factories
 ////////////////////////////////////////////////////////////////////////////////
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsBayesianFilter)
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsBayesianFilter, Init)
 
 NS_DEFINE_NAMED_CID(NS_BAYESIANFILTER_CID);
 
