@@ -219,6 +219,7 @@ function testSearch()
   }
   else
   {
+    gSearchSession.unregisterListener(searchListener);
     do_test_finished();
   }
 }
