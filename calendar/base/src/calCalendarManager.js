@@ -271,7 +271,7 @@ calCalendarManager.prototype = {
                     // NOTE: For some reason, this observer call doesn't have
                     // the "cal" namespace defined
                     let ua = httpChannel.getRequestHeader("User-Agent");
-                    let calUAString = getPrefSafe("calendar.useragent.extra");
+                    let calUAString = cal.getPrefSafe("calendar.useragent.extra");
                     if (calUAString && ua.indexOf(calUAString) < 0) {
                         // User-Agent is not a mergeable header. We need to
                         // merge the user agent ourselves.

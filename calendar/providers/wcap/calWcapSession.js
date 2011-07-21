@@ -133,7 +133,7 @@ function calWcapSession(contextId) {
     var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                     .getService(Components.interfaces.nsIObserverService);
     observerService.addObserver(this, "quit-application", false /* don't hold weakly */);
-    getCalendarManager().addObserver(this);
+    cal.getCalendarManager().addObserver(this);
 }
 calWcapSession.prototype = {
     getInterfaces: function ci_wcapSession_getInterfaces(count) {
@@ -326,7 +326,7 @@ calWcapSession.prototype = {
                 function promptAndLoginLoop_resp(err, sessionId) {
                     if (checkErrorCode(err, calIWcapErrors.WCAP_LOGIN_FAILED)) {
                         log("prompting for [user/]pw...", this_);
-                        if (cal.auth.getCredentials(calGetString("wcap", "loginDialog.label"),
+                        if (cal.auth.getCredentials(cal.calGetString("wcap", "loginDialog.label"),
                                                     this_.sessionUri.hostPort,
                                                     outUser,
                                                     outPW,
@@ -400,8 +400,8 @@ calWcapSession.prototype = {
                         log("error: " + errorToString(exc), this_); // log login failure
                     } else if (getErrorModule(err) == NS_ERROR_MODULE_NETWORK) {
                         // server seems unavailable:
-                        err = new Components.Exception(calGetString("wcap", "accessingServerFailedError.text",
-                                                                    [this_.sessionUri.hostPort]), exc);
+                        err = new Components.Exception(cal.calGetString("wcap", "accessingServerFailedError.text",
+                                                                        [this_.sessionUri.hostPort]), exc);
                     }
                 }
                 respFunc(err, sessionId);
@@ -475,8 +475,8 @@ calWcapSession.prototype = {
                             throw err;
                         } else { // soft error; request denied etc.
                                  // map into localized message:
-                            throw new Components.Exception(calGetString("wcap", "accessingServerFailedError.text",
-                                                                        [this_.sessionUri.hostPort]),
+                            throw new Components.Exception(cal.calGetString("wcap", "accessingServerFailedError.text",
+                                                                            [this_.sessionUri.hostPort]),
                                                            calIWcapErrors.WCAP_LOGIN_FAILED);
                         }
                     }
@@ -495,9 +495,9 @@ calWcapSession.prototype = {
                         vars.push(strVers);
 
                         var prompt = getWindowWatcher().getNewPrompter(null);
-                        var labelText = calGetString("wcap", "insufficientWcapVersionConfirmation.label");
+                        var labelText = cal.calGetString("wcap", "insufficientWcapVersionConfirmation.label");
                         if (!prompt.confirm(labelText,
-                                            calGetString("wcap", "insufficientWcapVersionConfirmation.text", vars))) {
+                                            cal.calGetString("wcap", "insufficientWcapVersionConfirmation.text", vars))) {
                             throw new Components.Exception(labelText, calIWcapErrors.WCAP_LOGIN_FAILED);
                         }
                     }
@@ -567,7 +567,7 @@ calWcapSession.prototype = {
                                     cal.setProperty("name", cal.displayName);
                                 } else {
                                     log("registering subscribed calendar: " + cal.calId, this_);
-                                    getCalendarManager().registerCalendar(cal);
+                                    cal.getCalendarManager().registerCalendar(cal);
                                 }
                             }
                             // do only once:
@@ -867,7 +867,7 @@ calWcapSession.prototype = {
 
     getRegisteredCalendars: function calWcapSession_getRegisteredCalendars(asAssocObj) {
         let registeredCalendars = (asAssocObj ? {} : []);
-        let cals = getCalendarManager().getCalendars({});
+        let cals = cal.getCalendarManager().getCalendars({});
         for each (let calendar in cals) {
             calendar = this.belongsTo(calendar);
             if (calendar) {
@@ -1090,7 +1090,7 @@ calWcapSession.prototype = {
             g_bShutdown = true;
             this.logout(null);
             // xxx todo: valid upon notification?
-            getCalendarManager().removeObserver(this);
+            cal.getCalendarManager().removeObserver(this);
             var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                             .getService(Components.interfaces.nsIObserverService);
             observerService.removeObserver(this, "quit-application");
@@ -1147,7 +1147,7 @@ calWcapSession.prototype = {
                 for each (var regCal in registeredCalendars) {
                     try {
                         if (!regCal.isDefaultCalendar) {
-                            getCalendarManager().unregisterCalendar(regCal);
+                            cal.getCalendarManager().unregisterCalendar(regCal);
                         }
                     } catch (exc) {
                         this.notifyError(exc);
@@ -1187,9 +1187,9 @@ function confirmInsecureLogin(uri)
         var prompt = getWindowWatcher().getNewPrompter(null);
         var out_dontAskAgain = { value: false };
         var bConfirmed = prompt.confirmCheck(
-            calGetString("wcap", "noHttpsConfirmation.label"),
-            calGetString("wcap", "noHttpsConfirmation.text", [host]),
-            calGetString("wcap", "noHttpsConfirmation.check.text"),
+            cal.calGetString("wcap", "noHttpsConfirmation.label"),
+            cal.calGetString("wcap", "noHttpsConfirmation.text", [host]),
+            cal.calGetString("wcap", "noHttpsConfirmation.check.text"),
             out_dontAskAgain);
 
         if (out_dontAskAgain.value) {
@@ -1201,7 +1201,7 @@ function confirmInsecureLogin(uri)
             }
             confirmedEntry = (bConfirmed ? "1" : "0");
             confirmedHttpLogins += (encodedHost + ":" + confirmedEntry);
-            setPref("calendar.wcap.confirmed_http_logins", confirmedHttpLogins);
+            cal.setPref("calendar.wcap.confirmed_http_logins", confirmedHttpLogins);
             getPref("calendar.wcap.confirmed_http_logins"); // log written entry
             confirmInsecureLogin.m_confirmedHttpLogins[encodedHost] = confirmedEntry;
         }

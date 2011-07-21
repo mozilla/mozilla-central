@@ -37,13 +37,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 /**
  * Get this window's currently selected calendar.
  *
  * @return      The currently selected calendar.
  */
 function getSelectedCalendar() {
-    return getCompositeCalendar().defaultCalendar;
+    return cal.getCompositeCalendar().defaultCalendar;
 }
 
 /**
@@ -54,7 +56,7 @@ function getSelectedCalendar() {
  * @param aCalendar     The calendar to delete.
  */
 function promptDeleteCalendar(aCalendar) {
-    let calendars = getCalendarManager().getCalendars({});
+    let calendars = cal.getCalendarManager().getCalendars({});
     if (calendars.length <= 1) {
         // If this is the last calendar, don't delete it.
         return;
@@ -81,10 +83,10 @@ function promptDeleteCalendar(aCalendar) {
 function loadCalendarManager() {
     // Set up the composite calendar in the calendar list widget.
     let tree = document.getElementById("calendar-list-tree-widget");
-    tree.compositeCalendar = getCompositeCalendar();
+    tree.compositeCalendar = cal.getCompositeCalendar();
 
     // Create the home calendar if no calendar exists.
-    let calendars = getCalendarManager().getCalendars({});
+    let calendars = cal.getCalendarManager().getCalendars({});
     if (!calendars.length) {
         initHomeCalendar();
     }
@@ -95,8 +97,8 @@ function loadCalendarManager() {
  */
 function initHomeCalendar() {
     let calMgr = cal.getCalendarManager();
-    let composite = getCompositeCalendar();
-    let url = makeURL("moz-storage-calendar://");
+    let composite = cal.getCompositeCalendar();
+    let url = cal.makeURL("moz-storage-calendar://");
     let homeCalendar = calMgr.createCalendar("storage", url);
     homeCalendar.name = calGetString("calendar", "homeCalendarName");
     calMgr.registerCalendar(homeCalendar);
@@ -105,7 +107,7 @@ function initHomeCalendar() {
 
     // Wrapping this in a try/catch block, as if any of the migration code
     // fails, the app may not load.
-    if (getPrefSafe("calendar.migrator.enabled", true)) {
+    if (cal.getPrefSafe("calendar.migrator.enabled", true)) {
         try {
             gDataMigrator.checkAndMigrate();
         } catch (e) {
@@ -120,7 +122,7 @@ function initHomeCalendar() {
  * Called to clean up the calendar manager for a window.
  */
 function unloadCalendarManager() {
-    getCompositeCalendar().setStatusObserver(null, null);
+    cal.getCompositeCalendar().setStatusObserver(null, null);
 }
 
 /**

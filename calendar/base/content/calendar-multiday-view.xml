@@ -2396,14 +2396,14 @@
     <implementation implements="calICalendarView">
       <constructor><![CDATA[
         // get day start/end hour from prefs and set on the view
-        this.setDayStartEndMinutes(getPrefSafe("calendar.view.daystarthour", 8) * 60,
-                                   getPrefSafe("calendar.view.dayendhour", 17) * 60);
+        this.setDayStartEndMinutes(cal.getPrefSafe("calendar.view.daystarthour", 8) * 60,
+                                   cal.getPrefSafe("calendar.view.dayendhour", 17) * 60);
 
         // initially scroll to the day start hour in the view
         this.scrollToMinute(this.mDayStartMin);
 
         // get visible hours from prefs and set on the view
-        let visibleMinutes = getPrefSafe("calendar.view.visiblehours", 9) * 60;
+        let visibleMinutes = cal.getPrefSafe("calendar.view.visiblehours", 9) * 60;
         this.setVisibleMinutes(visibleMinutes);
 
         var self = this;
@@ -2508,8 +2508,8 @@
         <parameter name="aAlarmItem"/>
         <parameter name="aStop"/>
         <body><![CDATA[
-          var showIndicator = getPrefSafe("calendar.alarms.indicator.show", true);
-          var totaltime = getPrefSafe("calendar.alarms.indicator.totaltime", 3600);
+          var showIndicator = cal.getPrefSafe("calendar.alarms.indicator.show", true);
+          var totaltime = cal.getPrefSafe("calendar.alarms.indicator.totaltime", 3600);
 
           if (!aStop && (!showIndicator || totaltime < 1)) {
             // No need to animate if the indicator should not be shown.
@@ -3548,7 +3548,7 @@
       <method name="zoomIn">
         <parameter name="aLevel"/>
         <body><![CDATA[
-          let visibleHours = getPrefSafe("calendar.view.visiblehours", 9);
+          let visibleHours = cal.getPrefSafe("calendar.view.visiblehours", 9);
           visibleHours += (aLevel || 1);
 
           cal.setPref("calendar.view.visiblehours", Math.min(visibleHours, 24));
@@ -3557,7 +3557,7 @@
       <method name="zoomOut">
         <parameter name="aLevel"/>
         <body><![CDATA[
-          let visibleHours = getPrefSafe("calendar.view.visiblehours", 9);
+          let visibleHours = cal.getPrefSafe("calendar.view.visiblehours", 9);
           visibleHours -= (aLevel || 1);
 
           cal.setPref("calendar.view.visiblehours", Math.max(1, visibleHours));

@@ -348,7 +348,7 @@ calTimezoneService.prototype = {
 
     get defaultTimezone() {
         if (!this.mDefaultTimezone) {
-            var prefTzid = getPrefSafe("calendar.timezone.local", null);
+            var prefTzid = cal.getPrefSafe("calendar.timezone.local", null);
             var tzid = prefTzid;
             if (!tzid) {
                 tzid = guessSystemTimezone();
@@ -357,7 +357,7 @@ calTimezoneService.prototype = {
             ASSERT(this.mDefaultTimezone, "Timezone not found: " + tzid);
             // Update prefs if necessary:
             if (this.mDefaultTimezone && this.mDefaultTimezone.tzid != prefTzid) {
-                setPref("calendar.timezone.local", this.mDefaultTimezone.tzid);
+                cal.setPref("calendar.timezone.local", this.mDefaultTimezone.tzid);
             }
 
             // We need to observe the timezone preference to update the default

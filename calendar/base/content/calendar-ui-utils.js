@@ -307,7 +307,7 @@ function sortCalendarArray(calendars) {
 */
 function appendCalendarItems(aItem, aCalendarMenuParent, aCalendarToUse, aOnCommand) {
     let calendarToUse = aCalendarToUse || aItem.calendar;
-    let calendars = sortCalendarArray(getCalendarManager().getCalendars({}));
+    let calendars = sortCalendarArray(cal.getCalendarManager().getCalendars({}));
     let indexToSelect = 0;
     let index = -1;
     for (let i = 0; i < calendars.length; ++i) {
