@@ -1271,6 +1271,8 @@
                         oncommand="MsgBodySanitized()"/>
               <menuitem id="bodyAsPlaintext" type="radio" name="bodyPlaintextVsHTMLPref" label="&bodyAsPlaintext.label;"
                         accesskey="&bodyAsPlaintext.accesskey;" oncommand="MsgBodyAsPlaintext()"/>
+              <menuitem id="bodyAllParts" type="radio" name="bodyPlaintextVsHTMLPref" label="&bodyAllParts.label;"
+                        accesskey="&bodyAllParts.accesskey;" oncommand="MsgBodyAllParts()"/>
             </menupopup>
           </menu>
           <menu id="viewFeedSummary" 

@@ -71,13 +71,8 @@
   problem is what prompted a rewrite of this file into its current
   architecture.
 
-  We need to be capable of streaming the entire MIME part in raw format when
-  nsMimeMessageAttach is set.
-
   ARCHITECTURE
   ------------
-
-  Normal (not nsMimeMessageAttach mode):
 
   Parts are read and queued until we know whether we're going to display
   them. If the first pending part is one we don't know how to display, then we
@@ -109,12 +104,6 @@
   MimeMultipart_parse_line -- we have to check there if the entity is
   multipart/alternative and if so not notify emitters there because
   MimeMultipartAlternative_create_child handles it.
-
-  In nsMimeMessageAttach mode:
-
-  When raw MIME is being output, rather than doing any of our special-case
-  logic, we simply invoke our superclass functions for everything, which causes
-  us to be be output in correct multipart format.
 
   - Jonathan Kamens, 2010-07-23
 */
@@ -216,28 +205,21 @@ MimeMultipartAlternative_flush_children(MimeObject *obj,
     1. Cache contains nothing: do nothing.
 
     2. Finished, and the cache contains one displayable body followed
-       by zero or more non-displayable bodies, and we're not in
-       nsMimeMessageAttach mode: create the first body with output on
-       and the others with output off.
+       by zero or more non-displayable bodies:
 
-    3. Finished, and the cache contains one displayable body followed
-       by zero or more non-displayable bodies, and we're in
-       nsMimeMessageAttach mode: create all cached bodies with output
-       output off.
-
-    4. Finished, and the cache contains one non-displayable body:
+    3. Finished, and the cache contains one non-displayable body:
        create it with output off.
 
-    5. Not finished, and the cache contains one displayable body
+    4. Not finished, and the cache contains one displayable body
        followed by zero or more non-displayable bodies, and the new
        body we're about to create is displayable: create all cached
        bodies with output off.
 
-    6. Not finished, and the cache contains one displayable body
+    5. Not finished, and the cache contains one displayable body
        followed by zero or more non-displayable bodies, and the new
        body we're about to create is non-displayable: do nothing.
 
-    7. Not finished, and the cache contains one non-displayable body:
+    6. Not finished, and the cache contains one non-displayable body:
        create it with output off.
   */
   MimeMultipartAlternative *malt = (MimeMultipartAlternative *) obj;
@@ -249,35 +231,29 @@ MimeMultipartAlternative_flush_children(MimeObject *obj,
 
   have_displayable =
     MimeMultipartAlternative_display_part_p(obj, malt->buffered_hdrs[0]);
-  in_attach = obj->options->format_out == nsMimeOutput::nsMimeMessageAttach;
   
-  if (finished && have_displayable && ! in_attach) {
+  if (finished && have_displayable) {
     /* Case 2 */
     do_flush = PR_TRUE;
     do_display = PR_TRUE;
   }
-  else if (finished && have_displayable && in_attach) {
+  else if (finished && ! have_displayable) {
     /* Case 3 */
     do_flush = PR_TRUE;
     do_display = PR_FALSE;
   }
-  else if (finished && ! have_displayable) {
+  else if (! finished && have_displayable && next_is_displayable) {
     /* Case 4 */
     do_flush = PR_TRUE;
     do_display = PR_FALSE;
   }
-  else if (! finished && have_displayable && next_is_displayable) {
-    /* Case 5 */
-    do_flush = PR_TRUE;
-    do_display = PR_FALSE;
-  }
   else if (! finished && have_displayable && ! next_is_displayable) {
-    /* Case 6 */
+    /* Case 5 */
     do_flush = PR_FALSE;
     do_display = PR_FALSE;
   }
   else if (! finished && ! have_displayable) {
-    /* Case 7 */
+    /* Case 6 */
     do_flush = PR_TRUE;
     do_display = PR_FALSE;
   }
@@ -306,9 +282,6 @@ MimeMultipartAlternative_parse_eof (MimeObject *obj, PRBool abort_p)
 {
   int status = 0;
 
-  if (obj->options->format_out == nsMimeOutput::nsMimeMessageAttach)
-    return ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_eof(obj, abort_p);
-
   if (obj->closed_p) return 0;
 
   status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_eof(obj, abort_p);
@@ -330,9 +303,6 @@ MimeMultipartAlternative_create_child(MimeObject *obj)
 {
   MimeMultipart *mult = (MimeMultipart *) obj;
   MimeMultipartAlternative *malt = (MimeMultipartAlternative *) obj;
-
-  if (obj->options->format_out == nsMimeOutput::nsMimeMessageAttach)
-    return ((MimeMultipartClass*)&MIME_SUPERCLASS)->create_child(obj);
 
   PRBool displayable =
     MimeMultipartAlternative_display_part_p (obj, mult->hdrs);
@@ -372,9 +342,6 @@ MimeMultipartAlternative_parse_child_line (MimeObject *obj,
 {
   MimeMultipartAlternative *malt = (MimeMultipartAlternative *) obj;
 
-  if (obj->options->format_out == nsMimeOutput::nsMimeMessageAttach)
-    return ((MimeMultipartClass*)&MIME_SUPERCLASS)->parse_child_line(obj, line, length, first_line_p);
-
   NS_ASSERTION(malt->pending_parts, "should be pending parts, but there aren't");
   if (!malt->pending_parts)
     return -1;
@@ -390,9 +357,6 @@ MimeMultipartAlternative_close_child(MimeObject *obj)
 {
   MimeMultipartAlternative *malt = (MimeMultipartAlternative *) obj;
   MimeMultipart *mult = (MimeMultipart *) obj;
-
-  if (obj->options->format_out == nsMimeOutput::nsMimeMessageAttach)
-    return ((MimeMultipartClass*)&MIME_SUPERCLASS)->close_child(obj);
 
   /* PR_ASSERT(malt->part_buffer);      Some Mac brokenness trips this...
   if (!malt->part_buffer) return -1; */

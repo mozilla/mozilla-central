@@ -510,32 +510,49 @@ BuildAttachmentList(MimeObject *anObject, nsMsgAttachmentData *aAttachData, cons
   for (i = 0; i < cobj->nchildren ; i++)
   {
     MimeObject    *child = cobj->children[i];
+    char          *ct = child->content_type;
 
     // Skip attachments that are not being output
     if (! child->output_p)
       continue;
     
-    // Skip the first child that's being output if it's in fact a message body
-    PRBool first_output = !found_output;
-    found_output = PR_TRUE;
-    if (first_output)                                   // it's the first child being output
-      if (child->content_type)                          // and it's content-type is one of folowing...
-        if (!PL_strcasecmp (child->content_type, TEXT_PLAIN) ||
-            !PL_strcasecmp (child->content_type, TEXT_HTML) ||
-            !PL_strcasecmp (child->content_type, TEXT_MDL))
-        {
-                              // and it doesn't have a filename
-          if (child->headers) // and finally, be sure it doesn't have a content-disposition: attachment
-          {
-            char * disp = MimeHeaders_get (child->headers, HEADER_CONTENT_DISPOSITION, PR_TRUE, PR_FALSE);
-            if (!MimeHeaders_get_name(child->headers, nsnull) &&
-                (!disp || PL_strcasecmp(disp, "attachment")))
-              continue;
-          }
-          else
-            continue;
-        }
+    // Skip the first child that's being output if it's in fact a message body.
+    // Start by assuming that it is, until proven otherwise in the code below.
+    PRBool skip = PR_TRUE;
+    if (found_output)
+      // not first child being output
+      skip = PR_FALSE;
+    else if (! ct)
+      // no content type so can't be message body
+      skip = PR_FALSE;
+    else if (PL_strcasecmp (ct, TEXT_PLAIN) &&
+             PL_strcasecmp (ct, TEXT_HTML) &&
+             PL_strcasecmp (ct, TEXT_MDL))
+      // not a type we recognize as a message body
+      skip = PR_FALSE;
+    if (skip)
+    {
+      nsIPrefBranch *prefBranch = GetPrefBranch(child->options);
+      PRInt32 html_as = 0;
+      prefBranch->GetIntPref("mailnews.display.html_as", &html_as);
+      if (html_as == 4)
+        // we're displaying all body parts
+        skip = PR_FALSE;
+    }
+    if (skip && child->headers)
+    {
+      char * disp = MimeHeaders_get (child->headers,
+                                     HEADER_CONTENT_DISPOSITION,
+                                     PR_TRUE, PR_FALSE);
+      if (MimeHeaders_get_name(child->headers, nsnull) &&
+          (!disp || PL_strcasecmp(disp, "attachment")))
+        // it has a filename and isn't being displayed inline
+        skip = PR_FALSE;
+    }
 
+    found_output = PR_TRUE;
+    if (skip)
+      continue;
 
     // We should generate an attachment for leaf object only but...
     PRBool isALeafObject = mime_subclass_p(child->clazz, (MimeObjectClass *) &mimeLeafClass);

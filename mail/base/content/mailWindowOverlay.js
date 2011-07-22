@@ -1,3 +1,4 @@
+/* -*- indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -446,7 +447,8 @@ function InitViewBodyMenu()
   var isFeed = gFolderDisplay.selectedMessageIsFeed;
   const defaultIDs = ["bodyAllowHTML",
                       "bodySanitized",
-                      "bodyAsPlaintext"];
+                      "bodyAsPlaintext",
+                      "bodyAllParts"];
   const rssIDs = ["bodyFeedSummaryAllowHTML",
                   "bodyFeedSummarySanitized",
                   "bodyFeedSummaryAsPlaintext"];
@@ -477,7 +479,11 @@ function InitViewBodyMenu()
   var AllowHTML_menuitem = document.getElementById(menuIDs[0]);
   var Sanitized_menuitem = document.getElementById(menuIDs[1]);
   var AsPlaintext_menuitem = document.getElementById(menuIDs[2]);
+  var AllBodyParts_menuitem = document.getElementById(menuIDs[3]);
 
+  document.getElementById("bodyAllParts").hidden = 
+    ! pref.getBoolPref("mailnews.display.show_all_body_parts_menu");
+      
   if (!prefer_plaintext && !html_as && !disallow_classes &&
       AllowHTML_menuitem)
     AllowHTML_menuitem.setAttribute("checked", true);
@@ -487,6 +493,9 @@ function InitViewBodyMenu()
   else if (prefer_plaintext && html_as == 1 && disallow_classes > 0 &&
       AsPlaintext_menuitem)
     AsPlaintext_menuitem.setAttribute("checked", true);
+  else if (!prefer_plaintext && html_as == 4 && !disallow_classes &&
+      AllowHTML_menuitem)
+    AllBodyParts_menuitem.setAttribute("checked", true);
   // else (the user edited prefs/user.js) check none of the radio menu items
 
   if (isFeed) {
@@ -2168,6 +2177,14 @@ function MsgBodyAsPlaintext()
   gPrefBranch.setIntPref("mailnews.display.html_as", 1);
   gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers",
                          gDisallow_classes_no_html);
+  ReloadMessage();
+}
+
+function MsgBodyAllParts()
+{
+  gPrefBranch.setBoolPref("mailnews.display.prefer_plaintext", false);
+  gPrefBranch.setIntPref("mailnews.display.html_as", 4);
+  gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers", 0);
   ReloadMessage();
 }
 

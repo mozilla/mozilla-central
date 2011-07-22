@@ -457,6 +457,7 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
        1 = Use hardcoded blacklist to avoid rendering (incoming) HTML
        2 = ... and images
        3 = ... and some other uncommon content types
+       4 = show all body parts
        100 = Use hardcoded whitelist to avoid even more bugs(buffer overflows).
            This mode will limit the features available (e.g. uncommon
            attachment types and inline images) and is for paranoid users.
@@ -562,7 +563,7 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
           clazz = (MimeObjectClass *)&mimeInlineTextHTMLClass;
           types_of_classes_to_disallow = 0;
         }
-        else if (html_as == 0) // Render sender's HTML
+        else if (html_as == 0 || html_as == 4) // Render sender's HTML
           clazz = (MimeObjectClass *)&mimeInlineTextHTMLClass;
         else if (html_as == 1) // convert HTML to plaintext
           // Do a HTML->TXT->HTML conversion, see mimethpl.h.
@@ -638,10 +639,32 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
     */
     else if (!PL_strncasecmp(content_type,      "multipart/", 10))
     {
+      // When html_as is 4, we want all MIME parts of the message to
+      // show up in the displayed message body, if they are MIME types
+      // that we know how to display, and also in the attachment pane
+      // if it's appropriate to put them there. Both
+      // multipart/alternative and multipart/related play games with
+      // hiding various MIME parts, and we don't want that to happen,
+      // so we prevent that by parsing those MIME types as
+      // multipart/mixed, which won't mess with anything.
+      //
+      // When our output format is nsMimeOutput::nsMimeMessageAttach,
+      // i.e., we are reformatting the message to remove attachments,
+      // we are in a similar boat. The code for deleting
+      // attachments properly in that mode is in mimemult.cpp
+      // functions which are inherited by mimeMultipartMixedClass but
+      // not by mimeMultipartAlternativeClass or
+      // mimeMultipartRelatedClass. Therefore, to ensure that
+      // everything is handled properly, in this context too we parse
+      // those MIME types as multipart/mixed.
+      PRBool basic_formatting = (html_as == 4) ||
+        (opts && opts->format_out == nsMimeOutput::nsMimeMessageAttach);
       if      (!PL_strcasecmp(content_type+10,  "alternative"))
-        clazz = (MimeObjectClass *)&mimeMultipartAlternativeClass;
+        clazz = basic_formatting ? (MimeObjectClass *)&mimeMultipartMixedClass :
+          (MimeObjectClass *)&mimeMultipartAlternativeClass;
       else if (!PL_strcasecmp(content_type+10,  "related"))
-        clazz = (MimeObjectClass *)&mimeMultipartRelatedClass;
+        clazz = basic_formatting ? (MimeObjectClass *)&mimeMultipartMixedClass :
+          (MimeObjectClass *)&mimeMultipartRelatedClass;
       else if (!PL_strcasecmp(content_type+10,  "digest"))
         clazz = (MimeObjectClass *)&mimeMultipartDigestClass;
       else if (!PL_strcasecmp(content_type+10,  "appledouble") ||
