@@ -48,6 +48,7 @@ const kPromptServiceUUID = "{6cc9c9fe-bc0b-432b-a410-253ef8bcc699}";
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource:///modules/Services.jsm");
+Cu.import("resource:///modules/mailServices.js");
 
 let abController = null;
 var addrBook1, addrBook2, addrBook3, addrBook4;
@@ -321,6 +322,55 @@ function test_deleting_contacts_causes_confirm_prompt()
   // The contact should have been deleted.
   assert_equals(abController.window.gAbView.rowCount,
                 totalEntries - toDelete.length);
+
+  Components.manager.QueryInterface(Ci.nsIComponentRegistrar)
+            .unregisterFactory(Components.ID(kPromptServiceUUID),
+                               gMockPromptServiceFactory);
+}
+
+/* Tests that attempting to delete a mailing list causes a
+ * confirmation dialog to be brought up, and that deletion
+ * actually works if the user clicks "OK".
+ */
+function test_deleting_mailing_lists() {
+
+  Components.manager.QueryInterface(Ci.nsIComponentRegistrar)
+            .registerFactory(Components.ID(kPromptServiceUUID),
+                             "Mock Prompt Service",
+                             "@mozilla.org/embedcomp/prompt-service;1",
+                             gMockPromptServiceFactory);
+
+  // Create a new mailing list, and add it to one of our
+  // address books
+  let newList = create_mailing_list("Delete Me!");
+  let addedList = addrBook1.addMailList(newList);
+  let mlURI = addedList.URI;
+
+  // Make sure it got added.
+  assert_true(addrBook1.hasDirectory(addedList));
+
+  // Let's click "cancel" on the confirm dialog box
+  // first.
+  gMockPromptService._return(false);
+
+  abController.window.AbDeleteDirectory(addedList.URI);
+
+  // Test that the confirmation dialog was brought up.
+  assert_true(gMockPromptService._did_confirm);
+
+  // Ensure that the mailing list was not removed.
+  assert_true(addrBook1.hasDirectory(addedList));
+
+  // This time, let's click "OK" on the confirm dialog box
+  gMockPromptService._return(true);
+
+  abController.window.AbDeleteDirectory(addedList.URI);
+
+  // Test that the confirmation dialog was brought up.
+  assert_true(gMockPromptService._did_confirm);
+
+  // Ensure that the mailing list was removed.
+  assert_false(addrBook1.hasDirectory(addedList));
 
   Components.manager.QueryInterface(Ci.nsIComponentRegistrar)
             .unregisterFactory(Components.ID(kPromptServiceUUID),

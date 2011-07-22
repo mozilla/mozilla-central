@@ -373,7 +373,29 @@ NS_IMETHODIMP nsAbManager::DeleteAddressBook(const nsACString &aURI)
 
   mAbStore.Remove(aURI);
 
-  return rootDirectory->DeleteDirectory(directory);
+  PRBool isMailList;
+  rv = directory->GetIsMailList(&isMailList);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (!isMailList)
+    // If we're not a mailing list, then our parent
+    // must be the root address book directory.
+    return rootDirectory->DeleteDirectory(directory);
+
+  nsCString parentUri;
+  parentUri.Append(aURI);
+  PRInt32 pos = parentUri.RFindChar('/');
+
+  // If we didn't find a /, we're in trouble.
+  if (pos == -1)
+    return NS_ERROR_FAILURE;
+
+  parentUri = StringHead(parentUri, pos);
+  nsCOMPtr<nsIAbDirectory> parentDirectory;
+  rv = GetDirectory(parentUri, getter_AddRefs(parentDirectory));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return parentDirectory->DeleteDirectory(directory);
 }
 
 NS_IMETHODIMP nsAbManager::AddAddressBookListener(nsIAbListener *aListener,

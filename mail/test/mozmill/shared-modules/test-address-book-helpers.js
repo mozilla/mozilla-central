@@ -281,21 +281,21 @@ function load_contacts_into_mailing_list(aMailingList, aContacts)
   }
 }
 
-/* given some address book, return the row index for that address book
- * in the tree view.  throws an error if it cannot find the address book.
- * @param aaddrbook an address book to search for
+/* Given some address book, return the row index for that address book
+ * in the tree view.  Throws an error if it cannot find the address book.
+ * @param aAddrBook an address book to search for
  * @return the row index for that address book
  */
-function get_address_book_tree_view_index(aaddrbook)
+function get_address_book_tree_view_index(aAddrBook)
 {
   let addrbooks = abController.window.gDirectoryTreeView._rowMap;
   for (let i = 0; i < addrbooks.length; i++) {
-    if (addrbooks[i]._directory == aaddrbook) {
+    if (addrbooks[i]._directory == aAddrBook) {
       return i;
     }
   }
-  throw error("could not find the index for the address book named "
-              + aaddrbook.dirname);
+  throw Error("Could not find the index for the address book named "
+              + aAddrBook.dirName);
 }
 
 /* Given some contact, return the row index for that contact in the
@@ -398,7 +398,10 @@ function get_name_of_address_book_element_at(aIndex)
   return abController.window.gDirectoryTreeView.getCellText(aIndex, 0);
 }
 
-/* Selects a given address book in the tree view.
+/* Selects a given address book in the tree view.  Assumes that
+ * the parent of aAddrBook in the treeView is not collapsed.
+ * Since mailing lists are technically address books, this will
+ * work for mailing lists too.
  * @param aAddrBook an address book to select
  */
 function select_address_book(aAddrBook)
