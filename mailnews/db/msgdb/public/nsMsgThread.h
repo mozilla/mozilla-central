@@ -52,17 +52,14 @@ public:
   nsMsgThread();
   nsMsgThread(nsMsgDatabase *db, nsIMdbTable *table);
   virtual ~nsMsgThread();
-  
+
   friend class nsMsgThreadEnumerator;
   friend class nsMsgDatabase;
-  
+
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGTHREAD
-    
-  // non-interface methods
-  nsIMdbTable   *GetMDBTable() {return m_mdbTable;}
-  nsIMdbRow		*GetMetaRow() {return m_metaRow;}
-  nsMsgDatabase	*m_mdbDB ;
+
+  nsCOMPtr<nsMsgDatabase> m_mdbDB;
 
 protected:
 
@@ -81,13 +78,13 @@ protected:
   nsresult              ReparentNonReferenceChildrenOf(nsIMsgDBHdr *topLevelHdr, nsMsgKey newParentKey,
                                                        nsIDBChangeAnnouncer *announcer);
   nsresult              ReparentMsgsWithInvalidParent(PRUint32 numChildren, nsMsgKey threadParentKey);
-  
+
   nsMsgKey              m_threadKey; 
-  PRUint32              m_numChildren;		
-  PRUint32              m_numUnreadChildren;	
+  PRUint32              m_numChildren;
+  PRUint32              m_numUnreadChildren;
   PRUint32              m_flags;
-  nsIMdbTable           *m_mdbTable;
-  nsIMdbRow             *m_metaRow;
+  nsCOMPtr<nsIMdbTable> m_mdbTable;
+  nsCOMPtr<nsIMdbRow>   m_metaRow;
   PRBool                m_cachedValuesInitialized;
   nsMsgKey              m_threadRootKey;
   PRUint32              m_newestMsgDate;

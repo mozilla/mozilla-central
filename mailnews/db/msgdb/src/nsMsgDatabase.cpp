@@ -3221,7 +3221,7 @@ NS_IMETHODIMP nsMsgDBThreadEnumerator::GetNext(nsISupports **aItem)
 nsresult nsMsgDBThreadEnumerator::PrefetchNext()
 {
   nsresult rv;
-  nsIMdbTable *table = nsnull;
+  nsCOMPtr<nsIMdbTable> table;
 
   if (!mDB)
     return NS_ERROR_NULL_POINTER;
@@ -3236,7 +3236,7 @@ nsresult nsMsgDBThreadEnumerator::PrefetchNext()
   {
     NS_IF_RELEASE(mResultThread);
     mResultThread = nsnull;
-    rv = mTableCursor->NextTable(mDB->GetEnv(), &table);
+    rv = mTableCursor->NextTable(mDB->GetEnv(), getter_AddRefs(table));
     if (!table)
     {
       mDone = PR_TRUE;
@@ -3257,6 +3257,7 @@ nsresult nsMsgDBThreadEnumerator::PrefetchNext()
     mResultThread = mDB->FindExistingThread(tableId.mOid_Id);
     if (!mResultThread)
       mResultThread = new nsMsgThread(mDB, table);
+
     if (mResultThread)
     {
       PRUint32 numChildren = 0;
@@ -4211,7 +4212,7 @@ nsresult nsMsgDatabase::InitRefHash()
 nsresult nsMsgDatabase::CreateNewThread(nsMsgKey threadId, const char *subject, nsMsgThread **pnewThread)
 {
   nsresult  err = NS_OK;
-  nsIMdbTable    *threadTable;
+  nsCOMPtr<nsIMdbTable> threadTable;
   struct mdbOid threadTableOID;
   struct mdbOid allThreadsTableOID;
 
@@ -4223,13 +4224,12 @@ nsresult nsMsgDatabase::CreateNewThread(nsMsgKey threadId, const char *subject, 
 
   // Under some circumstances, mork seems to reuse an old table when we create one.
   // Prevent problems from that by finding any old table first, and deleting its rows.
-  mdb_err res = GetStore()->GetTable(GetEnv(), &threadTableOID, &threadTable);
+  mdb_err res = GetStore()->GetTable(GetEnv(), &threadTableOID, getter_AddRefs(threadTable));
   if (NS_SUCCEEDED(res) && threadTable)
     threadTable->CutAllRows(GetEnv());
-  NS_IF_RELEASE(threadTable);
 
   err  = GetStore()->NewTableWithOid(GetEnv(), &threadTableOID, m_threadTableKindToken,
-    PR_FALSE, nsnull, &threadTable);
+    PR_FALSE, nsnull, getter_AddRefs(threadTable));
   if (NS_FAILED(err))
     return err;
 
@@ -4238,18 +4238,19 @@ nsresult nsMsgDatabase::CreateNewThread(nsMsgKey threadId, const char *subject, 
 
   // add a row for this thread in the table of all threads that we'll use
   // to do our mapping between subject strings and threads.
-  nsIMdbRow *threadRow = nsnull;
+  nsCOMPtr<nsIMdbRow> threadRow;
 
-  err = m_mdbStore->GetRow(GetEnv(), &allThreadsTableOID, &threadRow);
+  err = m_mdbStore->GetRow(GetEnv(), &allThreadsTableOID,
+                           getter_AddRefs(threadRow));
   if (!threadRow)
   {
-    err  = m_mdbStore->NewRowWithOid(GetEnv(), &allThreadsTableOID, &threadRow);
+    err  = m_mdbStore->NewRowWithOid(GetEnv(), &allThreadsTableOID,
+                                     getter_AddRefs(threadRow));
     if (NS_SUCCEEDED(err) && threadRow)
     {
       if (m_mdbAllThreadsTable)
         m_mdbAllThreadsTable->AddRow(GetEnv(), threadRow);
       err = CharPtrToRowCellColumn(threadRow, m_threadSubjectColumnToken, subject);
-      threadRow->Release();
     }
   }
   else
@@ -4264,7 +4265,6 @@ nsresult nsMsgDatabase::CreateNewThread(nsMsgKey threadId, const char *subject, 
       metaRow->CutAllColumns(GetEnv());
 
     CharPtrToRowCellColumn(threadRow, m_threadSubjectColumnToken, subject);
-    threadRow->Release();
   }
 
 
@@ -4339,36 +4339,32 @@ nsIMsgThread *  nsMsgDatabase::GetThreadForSubject(nsCString &subject)
     else
     {
       nsresult  rv;
-      nsMsgThread *pThread;
+      nsRefPtr<nsMsgThread> pThread;
 
       nsCOMPtr <nsIMdbPortTableCursor> tableCursor;
-      m_mdbStore->GetPortTableCursor(GetEnv(),   m_hdrRowScopeToken, m_threadTableKindToken,
-        getter_AddRefs(tableCursor));
+      m_mdbStore->GetPortTableCursor(GetEnv(), m_hdrRowScopeToken, m_threadTableKindToken,
+                                     getter_AddRefs(tableCursor));
 
-
-        nsIMdbTable *table;
+        nsCOMPtr<nsIMdbTable> table;
 
         while (PR_TRUE)
         {
-          rv = tableCursor->NextTable(GetEnv(), &table);
+          rv = tableCursor->NextTable(GetEnv(), getter_AddRefs(table));
           if (!table)
             break;
           if (NS_FAILED(rv))
             break;
 
           pThread = new nsMsgThread(this, table);
-          if(pThread)
+          if (pThread)
           {
-            // thread object assumes ref for table.
-            NS_ADDREF(pThread);
             nsCString curSubject;
             pThread->GetSubject(curSubject);
             if (subject.Equals(curSubject))
             {
-              NS_ASSERTION(PR_FALSE, "thread with subject exists, but FindRow didn't find it\n");
+              NS_ERROR("thread with subject exists, but FindRow didn't find it\n");
               break;
             }
-            NS_IF_RELEASE (pThread);
           }
           else
             break;
@@ -4511,15 +4507,16 @@ nsMsgHdr * nsMsgDatabase::GetMsgHdrForReference(nsCString &reference)
   return nsnull;
 }
 
-NS_IMETHODIMP nsMsgDatabase::GetMsgHdrForMessageID(const char *msgID, nsIMsgDBHdr **aHdr)
+NS_IMETHODIMP nsMsgDatabase::GetMsgHdrForMessageID(const char *aMsgID, nsIMsgDBHdr **aHdr)
 {
   NS_ENSURE_ARG_POINTER(aHdr);
+  NS_ENSURE_ARG_POINTER(aMsgID);
   nsIMsgDBHdr  *msgHdr = nsnull;
   nsresult rv = NS_OK;
   mdbYarn  messageIdYarn;
 
-  messageIdYarn.mYarn_Buf = (void *) msgID;
-  messageIdYarn.mYarn_Fill = PL_strlen(msgID);
+  messageIdYarn.mYarn_Buf = (void *) aMsgID;
+  messageIdYarn.mYarn_Fill = PL_strlen(aMsgID);
   messageIdYarn.mYarn_Form = 0;
   messageIdYarn.mYarn_Size = messageIdYarn.mYarn_Fill;
 
@@ -4636,8 +4633,9 @@ nsIMsgThread *  nsMsgDatabase::GetThreadForThreadId(nsMsgKey threadId)
     tableId.mOid_Id = threadId;
     tableId.mOid_Scope = m_hdrRowScopeToken;
 
-    nsIMdbTable *threadTable;
-    mdb_err res = m_mdbStore->GetTable(GetEnv(), &tableId, &threadTable);
+    nsCOMPtr<nsIMdbTable> threadTable;
+    mdb_err res = m_mdbStore->GetTable(GetEnv(), &tableId,
+                                       getter_AddRefs(threadTable));
 
     if (NS_SUCCEEDED(res) && threadTable)
     {

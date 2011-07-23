@@ -56,10 +56,7 @@ nsMsgThread::nsMsgThread(nsMsgDatabase *db, nsIMdbTable *table)
   m_mdbTable = table;
   m_mdbDB = db;
   if (db)
-  {
-    db->AddRef();
     db->m_threads.AppendElement(this);
-  }
   else
     NS_ERROR("no db for thread");
 #ifdef DEBUG_David_Bienvenu
@@ -68,7 +65,7 @@ nsMsgThread::nsMsgThread(nsMsgDatabase *db, nsIMdbTable *table)
 #endif
   if (table && db)
   {
-    table->GetMetaRow(db->GetEnv(), nsnull, nsnull, &m_metaRow);
+    table->GetMetaRow(db->GetEnv(), nsnull, nsnull, getter_AddRefs(m_metaRow));
     InitCachedValues();
   }
 }
@@ -80,13 +77,9 @@ void nsMsgThread::Init()
   m_numChildren = 0;
   m_numUnreadChildren = 0;
   m_flags = 0;
-  m_mdbTable = nsnull;
-  m_mdbDB = nsnull;
-  m_metaRow = nsnull;
   m_newestMsgDate = 0;
   m_cachedValuesInitialized = PR_FALSE;
 }
-
 
 nsMsgThread::~nsMsgThread()
 {
@@ -103,9 +96,9 @@ nsMsgThread::~nsMsgThread()
 
 void nsMsgThread::Clear()
 {
-  NS_IF_RELEASE(m_mdbTable);
-  NS_IF_RELEASE(m_metaRow);
-  NS_IF_RELEASE(m_mdbDB);
+  m_mdbTable = nsnull;
+  m_metaRow = nsnull;
+  m_mdbDB = nsnull;
 }
 
 nsresult nsMsgThread::InitCachedValues()
