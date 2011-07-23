@@ -157,16 +157,7 @@ function endTest()
   // Cleanup
   dump(" Exiting mail tests\n");
   if (gInboxListener)
-  {
-    try {
-      gLocalInboxFolder.msgDatabase.RemoveListener(gInboxListener);
-    }
-    catch(e) {}
-    try {
-      gDbService.UnregisterPendingListener(gInboxListener);
-    }
-    catch(e) {}
-  }
+    gDbService.unregisterPendingListener(gInboxListener);
 
   gPOP3Pump = null;
 

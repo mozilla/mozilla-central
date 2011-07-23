@@ -451,16 +451,7 @@ function setupTest(aFilter, aAction)
     }
   }
   if (gInboxListener)
-  {
-    try {
-      gIMAPInbox.msgDatabase.RemoveListener(gInboxListener);
-    }
-    catch(e) {}
-    try {
-      gDbService.UnregisterPendingListener(gInboxListener);
-    }
-    catch(e) {}
-  }
+    gDbService.unregisterPendingListener(gInboxListener);
 
   gInboxListener = new DBListener();
   gDbService.registerPendingListener(gIMAPInbox, gInboxListener);
@@ -507,16 +498,8 @@ function endTest()
 {
   dump(" Exiting mail tests\n");
   if (gInboxListener)
-  {
-    try {
-      gIMAPInbox.msgDatabase.RemoveListener(gInboxListener);
-    }
-    catch(e) {}
-    try {
-      gDbService.UnregisterPendingListener(gInboxListener);
-    }
-    catch(e) {}
-  }
+    gDbService.unregisterPendingListener(gInboxListener);
+  gMailSession.RemoveFolderListener(FolderListener);
   gRootFolder = null;
   gIMAPInbox = null;
   gIMAPTrashFolder = null;

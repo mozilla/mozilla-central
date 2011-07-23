@@ -14,9 +14,9 @@ load("../../../resources/messageInjection.js");
 Components.utils.import("resource:///modules/jsTreeSelection.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 const nsIMFNService = Ci.nsIMsgFolderNotificationService;
-var gMFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-                    .getService(nsIMFNService);
 
 // fake objects needed to get nsMsgDBView to operate on selected messages.
 // Warning: these are partial implementations. If someone adds additional
@@ -50,6 +50,7 @@ var gMessageGenerator = new MessageGenerator();
 var gScenarioFactory = new MessageScenarioFactory(gMessageGenerator);
 
 var gLocalInboxFolder;
+var gListener;
 
 function setup_globals(aNextFunc) {
   // build up a message
@@ -175,8 +176,8 @@ function run_test() {
   let flags =
         nsIMFNService.msgsMoveCopyCompleted |
         nsIMFNService.folderAdded;
-  let listener = new gMFListener();
-  gMFNService.addListener(listener, flags);
+  gListener = new gMFListener();
+  MailServices.mfn.addListener(gListener, flags);
 
   async_run({func: actually_run_test});
 }
@@ -201,6 +202,6 @@ function actually_run_test() {
       yield async_run({func: testFunc});
     }
   }
-
+  MailServices.mfn.removeListener(gListener);
   do_test_finished();
 }
