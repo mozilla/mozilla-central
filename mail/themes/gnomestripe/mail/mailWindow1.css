@@ -50,11 +50,13 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-/* Don't use the listbox appearance as that gives us a blue-grey top border
-   that collides with the primary toolbar border */
-#threadTree, #folderTree {
-  -moz-appearance:  treeview;
-  background-color: -moz-Field;
+#folderTree {
+  border-bottom: 1px solid ThreeDShadow;
+  -moz-border-start: 1px solid ThreeDShadow;
+}
+
+#threadTree {
+  -moz-border-end: 1px solid ThreeDShadow;
 }
 
 #mailContent {
@@ -64,6 +66,10 @@
 
 #tabmail:-moz-lwtheme {
   text-shadow: none;
+}
+
+#folderPaneHeader {
+  border-bottom: 1px solid ThreeDShadow;
 }
 
 #folderUnreadCol,
@@ -295,13 +301,73 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
 
 /* ..... splitter adjustments ..... */
 
-#folderpane_splitter {
-  border-right: none;
+#folderpane_splitter,
+#threadpane-splitter:not([orient="vertical"]) {
+  -moz-appearance: none;
+  border-left: 1px solid ThreeDShadow;
+  /* splitter grip area */
+  width: 5px;
+  margin-top: 0;
+  /* make only the splitter border visible */
+  -moz-margin-end: -5px;
+  /* because of the negative margin needed to make the splitter visible */
+  position: relative;
+  z-index: 10;
+  -moz-transition: border-width .3s ease-in;
 }
 
-#threadpane-splitter {
-  border: none;
-  min-height: 5px;
+#threadpane-splitter:not([orient="vertical"]) {
+  -moz-margin-start: -5px;
+  -moz-margin-end: 0;
+}
+
+/* Until Bug 621351 is fixed we need border-right and border-left in
+ * combination with -moz-locale-dir instead of -moz-border-end and
+ * -moz-border-start for -moz-transition
+ */
+
+#folderpane_splitter:-moz-locale-dir(rtl),
+#threadpane-splitter:not([orient="vertical"]):-moz-locale-dir(ltr) {
+  border-right: 1px solid ThreeDShadow;
+  border-left: none;
+}
+
+#folderpane_splitter[state="collapsed"]:hover:-moz-locale-dir(ltr),
+#threadpane-splitter[state="collapsed"]:not([orient="vertical"]):hover:-moz-locale-dir(rtl) {
+  border-left: 4px solid highlight;
+}
+
+#folderpane_splitter[state="collapsed"]:hover:-moz-locale-dir(rtl),
+#threadpane-splitter[state="collapsed"]:not([orient="vertical"]):hover:-moz-locale-dir(ltr) {
+  border-right: 4px solid highlight;
+}
+
+#threadpane-splitter,
+#attachment-splitter {
+  -moz-appearance: none;
+  border-bottom: 1px solid ThreeDShadow;
+  /* splitter grip area */
+  height: 5px;
+  /* make only the splitter border visible */
+  margin-top: -5px;
+  /* because of the negative margin needed to make the splitter visible */
+  position: relative;
+  z-index: 10;
+  -moz-transition: border-width .3s ease-in;
+}
+
+#attachment-splitter:not([state="collapsed"]) {
+  border-bottom: 1px solid transparent;
+}
+
+#attachment-splitter,
+#threadpane-splitter[state="collapsed"] {
+  -moz-transition: border-color .3s;
+}
+
+#threadpane-splitter[state="collapsed"]:hover,
+#attachment-splitter[state="collapsed"]:hover {
+  border-bottom: 4px solid highlight;
 }
 
 /* ..... tree adjustments ..... */
@@ -313,11 +379,8 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
 /* ..... message pane adjustments ..... */
 
 #messagepanebox {
-  border: 1px solid ThreeDShadow;
-}
-
-#threadpane-splitter[collapsed="true"] + #messagepanebox {
-  border-top: none;
+  border-bottom: 1px solid ThreeDShadow;
+  -moz-border-end: 1px solid ThreeDShadow;
 }
 
 /* ..... status bar adjustments ..... */

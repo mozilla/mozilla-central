@@ -225,9 +225,7 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 /* ::::: special toolbar colors ::::: */
 
 #appcontent {
-  border-top: 1px solid ThreeDShadow;
-  border-left: 1px solid ThreeDShadow;
-  border-right: 1px solid ThreeDHighlight;
+  border: 1px solid ThreeDShadow;
 }
 
 #attachmentbucket-sizer {
@@ -268,10 +266,13 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 }
 
 #compose-toolbar-sizer {
-  border-top-width: 1px;
-  border-left: none;
-  border-right: none;
-  -moz-border-top-colors: ThreeDHighlight;
+  -moz-appearance: none;
+  position: relative;
+  z-index: 10;
+  min-height: 0;
+  height: 5px;
+  margin-top: -5px;
+  border-bottom: 1px solid ThreeDShadow;
 }
 
 #msgSubject {
@@ -669,4 +670,16 @@ toolbarbutton.formatting-button {
 
 #tasksMenuAddressBook {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addrbook.png");
+}
+
+#sidebar-splitter {
+  -moz-appearance: none;
+  -moz-border-start: 1px solid ThreeDShadow;
+  /* splitter grip area */
+  width: 5px;
+  /* make only the splitter border visible */
+  -moz-margin-end: -5px;
+  /* because of the negative margin needed to make the splitter visible */
+  position: relative;
+  z-index: 10;
 }

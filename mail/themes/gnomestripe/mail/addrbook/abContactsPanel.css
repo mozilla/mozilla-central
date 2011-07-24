@@ -65,6 +65,12 @@
   background-color: transparent;
 }
 
+#abResultsTree {
+  -moz-border-end: none;
+  -moz-border-start: 1px solid ThreeDShadow;
+  border-bottom: 1px solid ThreeDShadow;
+}
+
 treechildren::-moz-tree-image(GeneratedName) {
   -moz-margin-end: 2px;
   list-style-image: url("chrome://messenger/skin/addressbook/icons/abcard.png");
