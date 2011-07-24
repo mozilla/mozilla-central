@@ -1001,16 +1001,25 @@ function FocusRingUpdate_Mail()
   }
 }
 
+/**
+ * Determine which pane currently has focus (one of the folder pane, thread
+ * pane, message pane, or multimessage pane).
+ *
+ * @return the focused pane
+ */
 function WhichPaneHasFocus()
 {
   if (top.document.commandDispatcher.focusedWindow == GetMessagePaneFrame())
     return GetMessagePane();
 
-  var currentNode = top.document.commandDispatcher.focusedElement;
+  var panes = [document.getElementById(id) for each (id in [
+    "threadTree", "folderTree", "messagepanebox", "multimessage"
+  ])];
+
+  var currentNode = top.document.activeElement;
+
   while (currentNode) {
-    if (currentNode === document.getElementById('threadTree') ||
-        currentNode === document.getElementById("folderTree") ||
-        currentNode === document.getElementById("messagepanebox"))
+    if (panes.indexOf(currentNode) != -1)
       return currentNode;
 
     currentNode = currentNode.parentNode;
@@ -1122,38 +1131,61 @@ function SetFocusThreadPaneIfNotOnMessagePane()
 }
 
 // 3pane related commands.  Need to go in own file.  Putting here for the moment.
+
+/**
+ * Cycle through the various panes in the 3pane window (in reverse if the shift
+ * key is being held down).
+ *
+ * @param event the event that triggered us
+ */
 function SwitchPaneFocus(event)
 {
-  var folderTree = document.getElementById("folderTree");
-  var threadTree = GetThreadTree();
-  var messagePane = GetMessagePane();
+  let messagePane = GetMessagePane();
 
-  var folderPaneCollapsed = document.getElementById("folderPaneBox").collapsed;
+  // First, build an array of panes to cycle through based on our current state.
+  // This will usually be something like [threadPane, messagePane, folderPane].
+  let panes = [GetThreadTree()];
 
-  var focusedElement = WhichPaneHasFocus();
-  if (focusedElement == null)       // focus not on one of the main three panes (probably toolbar)
-    focusedElement = threadTree;    // treat as if on thread tree
+  if (!IsMessagePaneCollapsed()) {
+    if (gMessageDisplay.singleMessageDisplay)
+      panes.push(messagePane);
+    else
+      panes.push(document.getElementById("multimessage"));
+  }
+
+  if (gFolderDisplay.folderPaneVisible)
+    panes.push(document.getElementById("folderTree"));
+
+  // Find our focused element in the array. If focus is not on one of the main
+  // panes (it's probably on the toolbar), then act as if it's on the thread
+  // tree.
+  let focusedElement = WhichPaneHasFocus();
+  let focusedElementIndex = panes.indexOf(focusedElement);
+  if (focusedElementIndex == -1)
+    focusedElementIndex = 0;
 
   if (event && event.shiftKey)
   {
-    // Reverse traversal: Message -> Thread -> Folder -> Message
-    if (focusedElement == threadTree && !folderPaneCollapsed)
-      folderTree.focus();
-    else if (focusedElement != messagePane && !IsMessagePaneCollapsed())
-      SetFocusMessagePane();
-    else
-      threadTree.focus();
+    focusedElementIndex--;
+    if (focusedElementIndex == -1)
+      focusedElementIndex = panes.length-1;
   }
   else
   {
-    // Forward traversal: Folder -> Thread -> Message -> Folder
-    if (focusedElement == threadTree && !IsMessagePaneCollapsed())
-      SetFocusMessagePane();
-    else if (focusedElement != folderTree && !folderPaneCollapsed)
-      folderTree.focus();
-    else
-      threadTree.focus();
+    focusedElementIndex++;
+    if (focusedElementIndex == panes.length)
+      focusedElementIndex = 0;
   }
+
+  let newElem = panes[focusedElementIndex];
+
+  // We need to handle the message pane specially, since focusing it isn't as
+  // simple as just calling focus(). See SetFocusMessagePane below for more
+  // details.
+  if (newElem == messagePane)
+    SetFocusMessagePane();
+  else
+    newElem.focus();
 }
 
 function SetFocusThreadPane()
