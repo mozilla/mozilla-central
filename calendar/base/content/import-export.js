@@ -73,6 +73,7 @@ function loadEventsFromFile(aCalendar) {
                            .getService(Components.interfaces.nsICategoryManager);
     let catenum = catman.enumerateCategory('cal-importers');
     let currentListLength = 0;
+    let defaultCIDIndex = 0;
     while (catenum.hasMoreElements()) {
         let entry = catenum.getNext();
         entry = entry.QueryInterface(Components.interfaces.nsISupportsCString);
@@ -90,6 +91,7 @@ function loadEventsFromFile(aCalendar) {
             fp.appendFilter(type.description, type.extensionFilter);
             if (type.extensionFilter=="*." + fp.defaultExtension) {
                 fp.filterIndex = currentListLength;
+                defaultCIDIndex = currentListLength;
             }
             contractids.push(contractid);
             currentListLength++;
@@ -100,8 +102,15 @@ function loadEventsFromFile(aCalendar) {
 
     if (rv != nsIFilePicker.returnCancel &&
         fp.file && fp.file.path && fp.file.path.length > 0) {
+
+        let filterIndex = fp.filterIndex;
+        if (fp.filterIndex < 0 || fp.filterIndex > contractids.length) {
+            // For some reason the wrong filter was selected, assume default extension
+            filterIndex = defaultCIDIndex;
+        }
+
         let filePath = fp.file.path;
-        let importer = Components.classes[contractids[fp.filterIndex]]
+        let importer = Components.classes[contractids[filterIndex]]
                                  .getService(Components.interfaces.calIImporter);
 
         const nsIFileInputStream = Components.interfaces.nsIFileInputStream;
@@ -261,6 +270,7 @@ function saveEventsToFile(calendarEventArray, aDefaultFileName) {
                            .getService(Components.interfaces.nsICategoryManager);
     let catenum = catman.enumerateCategory('cal-exporters');
     let currentListLength = 0;
+    let defaultCIDIndex = 0;
     while (catenum.hasMoreElements()) {
         let entry = catenum.getNext();
         entry = entry.QueryInterface(Components.interfaces.nsISupportsCString);
@@ -278,6 +288,7 @@ function saveEventsToFile(calendarEventArray, aDefaultFileName) {
             fp.appendFilter(type.description, type.extensionFilter);
             if (type.extensionFilter=="*." + fp.defaultExtension) {
                 fp.filterIndex = currentListLength;
+                defaultCIDIndex = currentListLength;
             }
             contractids.push(contractid);
             currentListLength++;
@@ -294,7 +305,13 @@ function saveEventsToFile(calendarEventArray, aDefaultFileName) {
         let extension;
         let charset;
 
-        let exporter = Components.classes[contractids[fp.filterIndex]]
+        let filterIndex = fp.filterIndex;
+        if (fp.filterIndex < 0 || fp.filterIndex > contractids.length) {
+            // For some reason the wrong filter was selected, assume default extension
+            filterIndex = defaultCIDIndex;
+        }
+
+        let exporter = Components.classes[contractids[filterIndex]]
                                  .getService(Components.interfaces.calIExporter);
 
         let filePath = fp.file.path;
