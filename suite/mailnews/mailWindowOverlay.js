@@ -84,7 +84,6 @@ var gOfflineManager;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
 var gCopyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
                              .getService(Components.interfaces.nsIMsgCopyService);
-var gWindowReuse  = 0;
 var gMarkViewedMessageAsReadTimer = null; // if the user has configured the app to mark a message as read if it is viewed for more than n seconds
 
 var gTimelineService = null;
@@ -1666,16 +1665,17 @@ function MsgOpenSelectedMessages()
   var indices = GetSelectedIndices(dbView);
   var numMessages = indices.length;
 
-  gWindowReuse = gPrefBranch.getBoolPref("mailnews.reuse_message_window");
   // This is a radio type button pref, currently with only 2 buttons.
   // We need to keep the pref type as 'bool' for backwards compatibility
   // with 4.x migrated prefs.  For future radio button(s), please use another
   // pref (either 'bool' or 'int' type) to describe it.
   //
-  // gWindowReuse values: false, true
+  // mailnews.reuse_message_window values:
   //    false: open new standalone message window for each message
   //    true : reuse existing standalone message window for each message
-  if (gWindowReuse && numMessages == 1 && MsgOpenSelectedMessageInExistingWindow())
+  if (gPrefBranch.getBoolPref("mailnews.reuse_message_window") &&
+      numMessages == 1 &&
+      MsgOpenSelectedMessageInExistingWindow())
     return;
     
   var openWindowWarning = gPrefBranch.getIntPref("mailnews.open_window_warning");
@@ -1720,7 +1720,7 @@ function MsgOpenSelectedMessageInExistingWindow()
         // let's always call CreateView(gDBView)
         // which will clone gDBView
         windowID.CreateView(gDBView);
-        windowID.LoadMessageByMsgKey(msgHdr.messageKey);
+        windowID.OnLoadMessageWindowDelayed(false);
 
         // bring existing window to front
         windowID.focus();
