@@ -664,14 +664,14 @@ NS_IMETHODIMP nsMsgProtocol::SetContentType(const nsACString &aContentType)
 
 NS_IMETHODIMP nsMsgProtocol::GetContentCharset(nsACString &aContentCharset)
 {
-  aContentCharset = m_contentCharset;
+  aContentCharset.Truncate();
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgProtocol::SetContentCharset(const nsACString &aContentCharset)
 {
-  m_contentCharset = aContentCharset;
-  return NS_OK;
+  NS_WARNING("nsMsgProtocol::SetContentCharset() not implemented");
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsMsgProtocol::GetContentLength(PRInt32 *aContentLength)
