@@ -246,8 +246,7 @@
           if (radio && !radio.selected)
             radio.radioGroup.selectedItem = radio;
           if (!aUIUpdateOnly)
-            gLocSvc.pwd.setLoginSavingEnabled(this.host,
-                                              aValue == Services.perms.ALLOW_ACTION);
+            Services.logins.setLoginSavingEnabled(this.host, aValue == Services.perms.ALLOW_ACTION);
         ]]></body>
       </method>
     </implementation>
