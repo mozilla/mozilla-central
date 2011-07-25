@@ -562,7 +562,7 @@ nsresult nsMsgTagService::MigrateLabelsToTags()
 NS_IMETHODIMP nsMsgTagService::IsValidKey(const nsACString &aKey, PRBool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = m_keys.IndexOf(aKey) >= 0;
+  *aResult = m_keys.Contains(aKey);
   return NS_OK;
 }
 
@@ -584,7 +584,7 @@ nsresult nsMsgTagService::RefreshKeyCache()
     }
     nsCAutoString key;
     tag->GetKey(key);
-    if (!m_keys.InsertCStringAt(key, tagIndex)) {
+    if (!m_keys.InsertElementAt(tagIndex, key)) {
       rv = NS_ERROR_FAILURE;
       break;
     }

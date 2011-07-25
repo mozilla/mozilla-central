@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -40,7 +40,6 @@
 
 #include "nsIURI.h"
 #include "nsIMsgParseMailMsgState.h"
-#include "nsVoidArray.h"
 #include "nsIStreamListener.h"
 #include "nsMsgLineBuffer.h"
 #include "nsIMsgHeaderParser.h"
@@ -296,8 +295,8 @@ protected:
   // msg quarantining and moving to other local folders, so we remember the
   // info we'll need to apply them with these vars.
   // these need to be arrays in case we have multiple reply/forward filters.
-  nsCStringArray     m_forwardTo;
-  nsCStringArray     m_replyTemplateUri;
+  nsTArray<nsCString> m_forwardTo;
+  nsTArray<nsCString> m_replyTemplateUri;
   nsCOMPtr <nsIMsgDBHdr> m_msgToForwardOrReply;
 };
 

@@ -73,7 +73,6 @@ protected:
   nsresult BeginSearching();
   nsresult DoNextSearch();
   nsresult BuildUrlQueue ();
-  nsresult AddUrl(const char *url);
   nsresult SearchWOUrls ();
   nsresult GetNextUrl();
   nsresult NotifyListenersDone(nsresult status);
@@ -115,8 +114,8 @@ protected:
   PRUint32 m_idxRunningScope;
   nsMsgSearchType m_searchType;
   PRBool m_handlingError;
-  PRInt32 m_urlQueueIndex;
-  nsCStringArray m_urlQueue;
+  PRUint32 m_urlQueueIndex;
+  nsTArray<nsCString> m_urlQueue;
   nsCOMPtr <nsITimer> m_backgroundTimer;
   PRBool m_searchPaused;
   nsMsgSearchBoolExpression *m_expressionTree;

@@ -1898,10 +1898,10 @@ void nsMsgDBView::RememberDeletedMsgHdr(nsIMsgDBHdr *msgHdr)
 {
   nsCString messageId;
   msgHdr->GetMessageId(getter_Copies(messageId));
-  if (mRecentlyDeletedArrayIndex >= mRecentlyDeletedMsgIds.Count())
-    mRecentlyDeletedMsgIds.AppendCString(messageId);
+  if (mRecentlyDeletedArrayIndex >= mRecentlyDeletedMsgIds.Length())
+    mRecentlyDeletedMsgIds.AppendElement(messageId);
   else
-    mRecentlyDeletedMsgIds.ReplaceCStringAt(messageId, mRecentlyDeletedArrayIndex);
+    mRecentlyDeletedMsgIds[mRecentlyDeletedArrayIndex] = messageId;
   // only remember last 20 deleted msgs.
   mRecentlyDeletedArrayIndex = ++mRecentlyDeletedArrayIndex % 20;
 }
@@ -1910,14 +1910,9 @@ PRBool nsMsgDBView::WasHdrRecentlyDeleted(nsIMsgDBHdr *msgHdr)
 {
   nsCString messageId;
   msgHdr->GetMessageId(getter_Copies(messageId));
-  for (PRInt32 i = 0; i < mRecentlyDeletedMsgIds.Count(); i++)
-  {
-    if (messageId.Equals(*(mRecentlyDeletedMsgIds[i])))
-      return PR_TRUE;
-  }
-  return PR_FALSE;
-
+  return mRecentlyDeletedMsgIds.Contains(messageId);
 }
+
 //add a custom column handler
 NS_IMETHODIMP nsMsgDBView::AddColumnHandler(const nsAString& column, nsIMsgCustomColumnHandler* handler)
 {
@@ -2815,7 +2810,7 @@ PRBool nsMsgDBView::OperateOnMsgsInCollapsedThreads()
   if (mTreeSelection)
   {
     nsCOMPtr<nsITreeBoxObject> selTree;
-    nsresult rv = mTreeSelection->GetTree(getter_AddRefs(selTree));
+    mTreeSelection->GetTree(getter_AddRefs(selTree));
     // no tree means stand-alone message window
     if (!selTree)
       return PR_FALSE;
@@ -2856,7 +2851,6 @@ nsresult nsMsgDBView::GetHeadersFromSelection(PRUint32 *indices,
         rv = ListCollapsedChildren(viewIndex, messageArray);
       continue;
     }
-    nsMsgKey key = m_keys[viewIndex];
     nsCOMPtr<nsIMsgDBHdr> msgHdr;
     rv = GetMsgHdrForViewIndex(viewIndex, getter_AddRefs(msgHdr));
     if (NS_SUCCEEDED(rv) && msgHdr)
@@ -2994,7 +2988,6 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
     rv = GetHeadersFromSelection(indices, numIndices, messages);
     NS_ENSURE_SUCCESS(rv, rv);
     messages->GetLength(&length);
-    PRUint32 numMsgsSelected = length;
 
     if (thisIsImapFolder)
       imapUids.SetLength(length);

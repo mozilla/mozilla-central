@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -43,7 +43,7 @@
 #include "nsIMsgTagService.h"
 #include "nsIPrefBranch.h"
 #include "nsCOMPtr.h"
-#include "nsVoidArray.h"
+#include "nsStringGlue.h"
 
 class nsMsgTag : public nsIMsgTag
 {
@@ -80,12 +80,10 @@ protected:
   nsresult GetUnicharPref(const char *prefName,
                           nsAString &prefValue);
   nsresult MigrateLabelsToTags();
+  nsresult RefreshKeyCache();
 
   nsCOMPtr<nsIPrefBranch> m_tagPrefBranch;
-
-  nsCStringArray m_keys;
-
-  nsresult RefreshKeyCache();
+  nsTArray<nsCString> m_keys;
 };
 
 #endif

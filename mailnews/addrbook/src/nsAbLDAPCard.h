@@ -43,7 +43,6 @@
 
 #include "nsAbCardProperty.h"
 #include "nsIAbLDAPCard.h"
-#include "nsVoidArray.h"
 
 class nsIMutableArray;
 
@@ -58,8 +57,8 @@ public:
   virtual ~nsAbLDAPCard();
 
 protected:
-  nsCStringArray m_attributes;
-  nsCStringArray m_objectClass;
+  nsTArray<nsCString> m_attributes;
+  nsTArray<nsCString> m_objectClass;
 };
 
 #endif

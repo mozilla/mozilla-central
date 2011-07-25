@@ -53,7 +53,6 @@
 #include "nsITreeView.h"
 #include "nsITreeBoxObject.h"
 #include "nsITreeSelection.h"
-#include "nsVoidArray.h"
 #include "nsIMsgFolder.h"
 #include "nsIDateTimeFormat.h"
 #include "nsIMsgHeaderParser.h"
@@ -499,8 +498,8 @@ protected:
   // matches the search criteria (e.g., a saved search over unread messages).
   // We use mRecentlyDeletedArrayIndex to treat the array as a list of the XX
   // most recently deleted msgs.
-  nsCStringArray mRecentlyDeletedMsgIds;
-  PRInt32        mRecentlyDeletedArrayIndex;
+  nsTArray<nsCString> mRecentlyDeletedMsgIds;
+  PRUint32 mRecentlyDeletedArrayIndex;
   void RememberDeletedMsgHdr(nsIMsgDBHdr *msgHdr);
   PRBool WasHdrRecentlyDeleted(nsIMsgDBHdr *msgHdr);
   

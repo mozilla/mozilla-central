@@ -398,7 +398,7 @@ NS_IMETHODIMP nsMsgSearchSession::OnStopRunningUrl(nsIURI *url, nsresult aExitCo
     ReleaseFolderDBRef();
   }
   m_idxRunningScope++;
-  if (++m_urlQueueIndex < m_urlQueue.Count())
+  if (++m_urlQueueIndex < m_urlQueue.Length())
     GetNextUrl();
   else if (m_idxRunningScope < m_scopeList.Length())
     DoNextSearch();
@@ -482,11 +482,11 @@ nsresult nsMsgSearchSession::BuildUrlQueue ()
       (scope->m_attribute != nsMsgSearchScope::news && scope->m_searchServer))
       break;
     nsCOMPtr <nsIMsgSearchAdapter> adapter = do_QueryInterface(scope->m_adapter);
-    nsCString url;
     if (adapter)
     {
+      nsCString url;
       adapter->GetEncoding(getter_Copies(url));
-      AddUrl (url.get());
+      m_urlQueue.AppendElement(url);
     }
   }
 
@@ -509,7 +509,7 @@ nsresult nsMsgSearchSession::GetNextUrl()
   if (stopped)
     return NS_OK;
 
-  m_urlQueue.CStringAt(m_urlQueueIndex, nextUrl);
+  nextUrl = m_urlQueue[m_urlQueueIndex];
   nsMsgSearchScopeTerm *currentTerm = GetRunningScope();
   NS_ENSURE_TRUE(currentTerm, NS_ERROR_NULL_POINTER);
   EnableFolderNotifications(PR_FALSE);
@@ -525,13 +525,6 @@ nsresult nsMsgSearchSession::GetNextUrl()
 
     return rv;
   }
-  return NS_OK;
-}
-
-nsresult nsMsgSearchSession::AddUrl(const char *url)
-{
-  nsCString urlCString(url);
-  m_urlQueue.AppendCString(urlCString);
   return NS_OK;
 }
 

@@ -1371,8 +1371,8 @@ void nsImapServerResponseParser::msg_fetch()
             && fCurrentLineContainedFlagInfo && fFlagState)
           {
             fFlagState->AddUidFlagPair(CurrentResponseUID(), fSavedFlagInfo, fFetchResponseIndex - 1);
-            for (PRInt32 i = 0; i < fCustomFlags.Count(); i++)
-              fFlagState->AddUidCustomFlagPair(CurrentResponseUID(), fCustomFlags.CStringAt(i)->get());
+            for (PRInt32 i = 0; i < fCustomFlags.Length(); i++)
+              fFlagState->AddUidCustomFlagPair(CurrentResponseUID(), fCustomFlags[i].get());
             fCustomFlags.Clear();
           }
           
@@ -1724,7 +1724,7 @@ void nsImapServerResponseParser::flags()
       if (CurrentResponseUID() != nsMsgKey_None)
         fFlagState->AddUidCustomFlagPair(CurrentResponseUID(), flag.get());
       else
-        fCustomFlags.AppendCString(flag);
+        fCustomFlags.AppendElement(flag);
     }
     if (PL_strcasestr(fNextToken, ")"))
     {

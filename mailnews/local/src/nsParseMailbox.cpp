@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -2155,7 +2155,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         {
           nsCString forwardTo;
           filterAction->GetStrValue(forwardTo);
-          m_forwardTo.AppendCString(forwardTo);
+          m_forwardTo.AppendElement(forwardTo);
           m_msgToForwardOrReply = msgHdr;
         }
         break;
@@ -2163,7 +2163,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         {
           nsCString replyTemplateUri;
           filterAction->GetStrValue(replyTemplateUri);
-          m_replyTemplateUri.AppendCString(replyTemplateUri);
+          m_replyTemplateUri.AppendElement(replyTemplateUri);
           m_msgToForwardOrReply = msgHdr;
         }
         break;
@@ -2267,13 +2267,14 @@ nsresult nsParseNewMailState::ApplyForwardAndReplyFilter(nsIMsgWindow *msgWindow
   nsresult rv = NS_OK;
   nsCOMPtr <nsIMsgIncomingServer> server;
 
-  PRInt32 i;
-  for (i = 0; i < m_forwardTo.Count(); i++)
+  PRUint32 i;
+  PRUint32 count = m_forwardTo.Length();
+  for (i = 0; i < count; i++)
   {
-    if (!m_forwardTo[i]->IsEmpty())
+    if (!m_forwardTo[i].IsEmpty())
     {
       nsAutoString forwardStr;
-      CopyASCIItoUTF16(*(m_forwardTo[i]), forwardStr);
+      CopyASCIItoUTF16(m_forwardTo[i], forwardStr);
       rv = m_rootFolder->GetServer(getter_AddRefs(server));
       NS_ENSURE_SUCCESS(rv, rv);
       {
@@ -2288,18 +2289,20 @@ nsresult nsParseNewMailState::ApplyForwardAndReplyFilter(nsIMsgWindow *msgWindow
   }
   m_forwardTo.Clear();
 
-  for (i = 0; i < m_replyTemplateUri.Count(); i++)
+  count = m_replyTemplateUri.Length();
+  for (i = 0; i < count; i++)
   {
-    if (!m_replyTemplateUri[i]->IsEmpty())
+    if (!m_replyTemplateUri[i].IsEmpty())
     {
       // copy this and truncate the original, so we don't accidentally re-use it on the next hdr.
-      nsCAutoString replyTemplateUri(*m_replyTemplateUri[i]);
       rv = m_rootFolder->GetServer(getter_AddRefs(server));
-      if (server && !replyTemplateUri.IsEmpty())
+      if (server)
       {
         nsCOMPtr <nsIMsgComposeService> compService = do_GetService (NS_MSGCOMPOSESERVICE_CONTRACTID) ;
         if (compService)
-          rv = compService->ReplyWithTemplate(m_msgToForwardOrReply, replyTemplateUri.get(), msgWindow, server);
+          rv = compService->ReplyWithTemplate(m_msgToForwardOrReply,
+                                              m_replyTemplateUri[i].get(),
+                                              msgWindow, server);
       }
     }
   }
