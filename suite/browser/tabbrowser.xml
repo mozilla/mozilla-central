@@ -2273,12 +2273,15 @@
         <parameter name="aDestIndex"/>
         <body>
           <![CDATA[
-            this._browsers = null; // invalidate cache
-            this.mLastRelatedIndex = 0;
-
             // for compatibility with extensions
             if (typeof(aSrcIndex) != "number")
               aSrcIndex = this.getTabIndex(aSrcIndex);
+
+            if (aSrcIndex == aDestIndex)
+              return;
+
+            this._browsers = null; // invalidate cache
+            this.mLastRelatedIndex = 0;
 
             this.mTabFilters.splice(aDestIndex, 0, this.mTabFilters.splice(aSrcIndex, 1)[0]);
             this.mTabListeners.splice(aDestIndex, 0, this.mTabListeners.splice(aSrcIndex, 1)[0]);
@@ -2295,8 +2298,6 @@
             var evt = document.createEvent("UIEvents");
             evt.initUIEvent("TabMove", true, false, window, aSrcIndex);
             tab.dispatchEvent(evt);
-
-            return tab;
           ]]>
         </body>
       </method>
