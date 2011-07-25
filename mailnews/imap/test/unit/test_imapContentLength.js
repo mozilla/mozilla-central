@@ -123,5 +123,6 @@ function endTest()
   while (thread.hasPendingEvents())
     thread.processNextEvent(true);
 
+  gMFNService.removeListener(msgFolderListener);
   do_test_finished(); // for the one in run_test()
 }
