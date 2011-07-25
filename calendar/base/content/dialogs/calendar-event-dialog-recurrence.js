@@ -762,8 +762,11 @@ function changeOrderForElements(aPropKey, aPropParams) {
     // Add elements in the right order, removing them from their old parent
     for (var i = 0; i < aPropParams.length; i++) {
         var newEl = document.getElementById(localeOrder[i]);
-        parents[i].appendChild(newEl.parentNode.removeChild(newEl));
-
+        if (newEl) {
+            parents[i].appendChild(newEl.parentNode.removeChild(newEl));
+        } else {
+            cal.ERROR("Localization error, could not find node '" + localeOrder[i] + "'. Please have your localizer check the string '" + aPropKey + "'");
+        }
     }
 }
 
