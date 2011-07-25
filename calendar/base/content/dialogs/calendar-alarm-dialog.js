@@ -304,7 +304,7 @@ function removeWidgetFor(aItem, aAlarm) {
 function closeIfEmpty() {
     let alarmRichlist = document.getElementById("alarm-richlist");
     if (!alarmRichlist.hasChildNodes()) {
-        // check again next round since this removeWidgetFor call may be
+        // check again in a short while since this removeWidgetFor call may be
         // followed by an addWidgetFor call (e.g. when refreshing), and
         // we don't want to close and open the window in that case.
         function closer() {
@@ -312,7 +312,7 @@ function closeIfEmpty() {
                 window.close();
             }
         }
-        setTimeout(closer, 0);
+        setTimeout(closer, 250);
     }
 }
 
