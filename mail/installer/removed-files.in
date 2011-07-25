@@ -110,6 +110,8 @@ components/xptitemp.dat
 components/myspell/en-US.dic
 components/myspell/en-US.aff
 components/myspell/
+D3DCompiler_42.dll
+d3dx9_42.dll
 defaults/isp/dotmac.rdf
 defaults/isp/movemail.rdf
 defaults/isp/rss.rdf
