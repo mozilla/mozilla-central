@@ -873,9 +873,8 @@ let gFolderTreeView = {
 
       // Note that these children may have been open when we were last closed,
       // and if they are, we also have to add those grandchildren to the map
-      let tree = this;
       let oldCount = this._rowMap.length;
-      function recursivelyAddToMap(aChild, aNewIndex) {
+      function recursivelyAddToMap(aChild, aNewIndex, tree) {
         // When we add sub-children, we're going to need to increase our index
         // for the next add item at our own level
         let count = 0;
@@ -885,7 +884,7 @@ let gFolderTreeView = {
             var index = Number(aNewIndex) + Number(i) + 1;
             tree._rowMap.splice(index, 0, child);
 
-            let kidsAdded = recursivelyAddToMap(child, index);
+            let kidsAdded = recursivelyAddToMap(child, index, tree);
             count += kidsAdded;
             // Somehow the aNewIndex turns into a string without this
             aNewIndex = Number(aNewIndex) + kidsAdded;
@@ -893,7 +892,8 @@ let gFolderTreeView = {
         }
         return count;
       }
-      recursivelyAddToMap(this._rowMap[aIndex], aIndex);
+      // work around bug 658534 by passing in "this" instead of let tree = this;
+      recursivelyAddToMap(this._rowMap[aIndex], aIndex, this);
 
       // Add this folder to the persist map
       if (!this._persistOpenMap[this.mode])
