@@ -72,6 +72,9 @@
       <preference id="browser.zoom.full"
                   name="browser.zoom.full"
                   type="bool" inverted="true"/>
+      <preference id="browser.zoom.siteSpecific"
+                  name="browser.zoom.siteSpecific"
+                  type="bool"/>
       <preference id="accessibility.blockautorefresh"
                   name="accessibility.blockautorefresh"
                   type="bool"/>
@@ -115,6 +118,10 @@
                 label="&blockAutoRefresh.label;"
                 accesskey="&blockAutoRefresh.accesskey;"
                 preference="accessibility.blockautorefresh"/>
+      <checkbox id="zoomSiteSpecific"
+                label="&siteSpecific.label;"
+                accesskey="&siteSpecific.accesskey;"
+                preference="browser.zoom.siteSpecific"/>
     </vbox>
 
   </prefpane>
