@@ -581,7 +581,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
     }
     else if (folderOpen == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
     {
-      msgDBService->CreateNewDB(this, getter_AddRefs(mDatabase));
+      rv = msgDBService->CreateNewDB(this, getter_AddRefs(mDatabase));
     }
 
     if (mDatabase)
