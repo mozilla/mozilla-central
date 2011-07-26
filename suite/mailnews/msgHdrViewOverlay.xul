@@ -66,12 +66,15 @@
             disabled="true"/>
   <menuseparator/>
   <menuitem label="&OpenMessageForMsgId.label;"
+            accesskey="&OpenMessageForMsgId.accesskey;"
             oncommand="var messageId = GetMessageIdFromNode(document.popupNode, true);
                        OpenMessageForMessageId(messageId)"/>
   <menuitem label="&OpenBrowserWithMsgId.label;"
+            accesskey="&OpenBrowserWithMsgId.accesskey;"
             oncommand="var messageId = GetMessageIdFromNode(document.popupNode, true);
                        OpenBrowserWithMessageId(messageId)"/>
   <menuitem label="&CopyMessageId.label;"
+            accesskey="&CopyMessageId.accesskey;"
             oncommand="var messageId = GetMessageIdFromNode(document.popupNode, false);
                        CopyString(messageId);"/>
 </menupopup>
