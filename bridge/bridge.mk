@@ -43,6 +43,10 @@ APP_LIBXUL_STATICDIRS += $(DEPTH)$(SUBDIR)/ldap/sdks/c-sdk
 APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/ldap/xpcom
 #endif
 
+#ifdef MOZ_MORK
+APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/db/mork
+#endif
+
 ifdef MOZ_MAIL_NEWS
 APP_LIBXUL_DIRS += \
   $(DEPTH)$(SUBDIR)/mailnews/base \

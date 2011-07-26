@@ -6745,6 +6745,10 @@ dnl Only build Mork if it's required
 AC_SUBST(MOZ_MORK)
 if test "$MOZ_MORK"; then
   AC_DEFINE(MOZ_MORK)
+  MORK_COMPONENT=mork
+  export MORK_COMPONENT
+  MORK_MODULE="MODULE(nsMorkModule)"
+  export MORK_MODULE
 fi
 
 dnl Build the lightweight Mork reader if required

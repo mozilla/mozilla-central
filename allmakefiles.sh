@@ -64,6 +64,10 @@ if [ "$MOZ_LDAP_XPCOM" ]; then
   . "${srcdir}/ldap/makefiles.sh"
 fi
 
+if [ "$MOZ_MORK" ]; then
+  . "${srcdir}/db/makefiles.sh"
+fi
+
 if [ "$MOZ_COMPOSER" ]; then
   . "${srcdir}/editor/ui/makefiles.sh"
 fi
