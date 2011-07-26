@@ -423,6 +423,11 @@ function getTransactionMgr() {
  * @param aListener     (optional) the listener to call when complete.
  */
 function doTransaction(aAction, aItem, aCalendar, aOldItem, aListener) {
+    // This is usually a user-initiated transaction, so make sure the calendar
+    // this transaction is happening on is visible.
+    ensureCalendarVisible(aCalendar);
+
+    // Now use the transaction manager to execute the action
     getTransactionMgr().createAndCommitTxn(aAction,
                                            aItem,
                                            aCalendar,

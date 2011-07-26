@@ -213,6 +213,16 @@ function calendarListSetupContextMenu(event) {
     return true;
 }
 
+/**
+ * Makes sure the passed calendar is visible to the user
+ *
+ * @param aCalendar   The calendar to make visible.
+ */
+function ensureCalendarVisible(aCalendar) {
+    // We use the main window's calendar list to ensure that the calendar is visible
+    document.getElementById("calendar-list-tree-widget").ensureCalendarVisible(aCalendar);
+}
+
 var compositeObserver = {
     QueryInterface: function cO_QueryInterface(aIID) {
         return cal.doQueryInterface(this,

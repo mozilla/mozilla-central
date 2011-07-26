@@ -66,6 +66,7 @@ var calendarViewController = {
     createNewEvent: function (aCalendar, aStartTime, aEndTime, aForceAllday) {
         aCalendar = aCalendar || getSelectedCalendar();
 
+
         // if we're given both times, skip the dialog
         if (aStartTime && aEndTime && !aStartTime.isDate && !aEndTime.isDate) {
             let item = cal.createEvent();
