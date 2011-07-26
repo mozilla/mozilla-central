@@ -276,7 +276,7 @@ var FullZoom = {
     if (typeof this.globalValue != "undefined")
       ZoomManager.zoom = this.globalValue;
     else
-      ZoomManager.reset();
+      ZoomManager.zoom = this._ensureValid(1);
 
     this._removePref();
   },
@@ -307,13 +307,13 @@ var FullZoom = {
     var browser = aBrowser || (getBrowser() && getBrowser().selectedBrowser);
     try {
       if (browser.contentDocument instanceof Components.interfaces.nsIImageDocument)
-        ZoomManager.setZoomForBrowser(browser, 1);
+        ZoomManager.setZoomForBrowser(browser, this._ensureValid(1));
       else if (typeof aValue != "undefined")
         ZoomManager.setZoomForBrowser(browser, this._ensureValid(aValue));
       else if (typeof this.globalValue != "undefined")
         ZoomManager.setZoomForBrowser(browser, this.globalValue);
       else
-        ZoomManager.setZoomForBrowser(browser, 1);
+        ZoomManager.setZoomForBrowser(browser, this._ensureValid(1));
     }
     catch(ex) {}
   },
@@ -338,7 +338,7 @@ var FullZoom = {
 
   _ensureValid: function FullZoom_ensureValid(aValue) {
     if (isNaN(aValue))
-      return 1;
+      aValue = 1;
 
     if (aValue < ZoomManager.MIN)
       return ZoomManager.MIN;
