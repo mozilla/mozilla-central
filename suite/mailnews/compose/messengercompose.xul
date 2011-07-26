@@ -191,7 +191,9 @@
 </keyset>
 <keyset id="editorKeys"/>
 
-  <popupset id="contentAreaContextSet"/>
+  <popupset id="contentAreaContextSet">
+    <menupopup id="contentAreaContextMenu"/>
+  </popupset>
 
   <popupset id="msgComposePopupSet">
     <menupopup id="sidebarPopup"/>
