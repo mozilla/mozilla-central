@@ -5,10 +5,12 @@
 }
 
 .errordescription {
+  color: InfoText;
   background-color: InfoBackground;
   border-radius: 4px;
   margin-top: 3px;
   -moz-padding-start: 3px;
+  -moz-padding-end: 3px;
 }
 
 .initialDesc, .columnHeader {
