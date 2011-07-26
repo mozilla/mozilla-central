@@ -118,9 +118,11 @@ nsMsgXFVirtualFolderDBView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger 
   newMsgDBView->m_searchSession = m_searchSession;
 
   PRInt32 scopeCount;
-  nsCOMPtr <nsIMsgSearchSession> searchSession =
-    do_QueryReferent(m_searchSession);
   nsresult rv;
+  nsCOMPtr <nsIMsgSearchSession> searchSession =
+    do_QueryReferent(m_searchSession, &rv);
+  // It's OK not to have a search session.
+  NS_ENSURE_SUCCESS(rv, NS_OK);
   nsCOMPtr<nsIMsgDBService> msgDBService =
     do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
