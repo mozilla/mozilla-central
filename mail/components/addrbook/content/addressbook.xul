@@ -607,7 +607,7 @@
   <!-- The main address book three pane -->
   <hbox id="abContent" flex="1">
     <vbox id="dirTreeBox" persist="width collapsed">
-      <sidebarheader id="abDirTreeHeader" align="center">
+      <sidebarheader id="abDirTreeHeader" hidden="true" align="center">
         <label id="abDirTreeHeader-title" value="&dirTreeHeader.label;" control="dirTree"/>
       </sidebarheader>
 

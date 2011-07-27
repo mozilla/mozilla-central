@@ -263,7 +263,7 @@
           <box id="messengerBox" orient="horizontal" flex="1" minheight="100" height="100" persist="height">
             <vbox id="folderPaneBox" minwidth="125" width="200" persist="width">
               <label id="folderColumnLabel" hidden="true" value="&folderColumn.label;"/>
-              <sidebarheader id="folderPaneHeader" align="center">
+              <sidebarheader id="folderPaneHeader" hidden="true" align="center">
                 <label id="folderpane-title" crop="end" flex="1"/>
                 <toolbarbutton id="folderview-cycler-prev"
                                dir="prev"
