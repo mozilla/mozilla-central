@@ -886,6 +886,11 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
       m_dataBuffer[m_leftOver] = '\0';
 
       start = m_dataBuffer;
+      // make sure we don't insert another LF, accidentally, by ignoring
+      // second half of CRLF spanning blocks.
+      if (lastCharInPrevBuf == '\r' && *start == '\n')
+        start++;
+
       end = PL_strchr(start, '\r');
       if (!end)
           end = PL_strchr(start, '\n');
@@ -901,10 +906,6 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
       if (!end && count > maxReadCount)
           // must be a very very long line; sorry cannot handle it
           return NS_ERROR_FAILURE;
-
-      // make sure we don't insert another LF, accidentally
-      if (lastCharInPrevBuf == '\r' && *start == '\n')
-          start++;
 
       while (start && end)
       {
