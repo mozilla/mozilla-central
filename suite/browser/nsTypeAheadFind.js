@@ -190,7 +190,6 @@ typeAheadFind.prototype = {
     if (element instanceof Components.interfaces.nsIDOMXULElement ||
         element instanceof Components.interfaces.nsIDOMHTMLEmbedElement ||
         element instanceof Components.interfaces.nsIDOMHTMLObjectElement ||
-        element instanceof Components.interfaces.nsIDOMHTMLIsIndexElement ||
         element instanceof Components.interfaces.nsIDOMHTMLSelectElement ||
         element instanceof Components.interfaces.nsIDOMHTMLTextAreaElement)
       return true;
