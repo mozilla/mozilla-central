@@ -3287,7 +3287,7 @@ nsAddrDatabase::HasRowButDeletedForCharColumn(const PRUnichar *unicodeStr, mdb_c
       findColumn, &sourceYarn,  &outRowId, aFindRow);
 
     // no such card, so bail out early
-    if (NS_SUCCEEDED(rv) && !*aFindRow)
+    if (NS_FAILED(rv) || !*aFindRow)
       return PR_FALSE;
 
     // we might not have loaded the "delete cards" table yet
