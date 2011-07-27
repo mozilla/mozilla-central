@@ -89,7 +89,7 @@
   border-color: rgba(0, 0, 0, .12) rgba(0, 0, 0, .19) rgba(0, 0, 0, .38);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, .3) inset,
               0 0 0 2px rgba(255, 255, 255, .1) inset;
-  color: black;
+  color: ButtonText;
   text-shadow: 0 0 3px white;
 }
 
@@ -261,8 +261,23 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   }
 
   #menubar-items:not(:-moz-lwtheme):not(:-moz-window-inactive) {
-    background-color: rgba(255, 255, 255, .3);
+    background-color: rgba(255, 255, 255, .5);
     border-radius: 4px;
+  }
+
+  /* lesser transparency on Glass background */
+  .toolbarbutton-menubutton-button:not(:-moz-lwtheme),
+  .toolbarbutton-menubutton-dropmarker:not(:-moz-lwtheme),
+  .toolbarbutton-1:not(:-moz-lwtheme) {
+    background-color: rgba(227, 237, 246, .7);
+  }
+
+  /* lesser transparency on Glass background */
+  .toolbarbutton-menubutton-button:not(:-moz-lwtheme):not([disabled="true"]):not(:active):hover,
+  toolbarbutton[type="menu-button"]:not(:-moz-lwtheme):not([open="true"]):not(:active):hover >
+                    .toolbarbutton-menubutton-dropmarker:not([disabled="true"]),
+  .toolbarbutton-1:not(:-moz-lwtheme):not([disabled="true"]):not([checked="true"]):not(:active):hover {
+    background-color: rgba(136, 197, 213, .85);
   }
 
   .toolbarbutton-menubutton-button[disabled="true"],

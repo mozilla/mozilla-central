@@ -183,7 +183,7 @@ padding: 4px 0px;
     border-color: rgba(0, 0, 0, .12) rgba(0, 0, 0, .19) rgba(0, 0, 0, .38);
     box-shadow: 0 0 0 1px rgba(255, 255, 255, .3) inset,
                 0 0 0 2px rgba(255, 255, 255, .1) inset;
-    color: black;
+    color: ButtonText;
     text-shadow: 0 0 3px white;
   }
 
@@ -243,6 +243,16 @@ padding: 4px 0px;
     border-top-color: threedshadow;
     border-radius: 1px 1px 0 0;
     background-clip: padding-box;
+  }
+
+  /* lesser transparency on Glass background */
+  menulist:not(:-moz-lwtheme):not([open="true"]) {
+    background-color: rgba(227, 237, 246, .7);
+  }
+
+  /* lesser transparency on Glass background */
+  menulist:not(:-moz-lwtheme):not([open="true"]):hover {
+    background-color: rgba(136, 197, 213, .85);
   }
 
   #viewPickerLabel:not(:-moz-lwtheme):not(:-moz-window-inactive) {
