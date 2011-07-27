@@ -1871,6 +1871,15 @@ function binaryInsert(itemArray, item, comptor, discardDuplicates) {
     return newIndex;
 }
 
+/**
+ * Gets the cached instance of the composite calendar.
+ *
+ * WARNING: Great care should be taken how this function is called. If it is
+ * called as "cal.getCompositeCalendar()" then it is called through calUtils.jsm
+ * which means there will be one instance per app. If called as
+ * "getCompositeCalendar()" from chrome code, then it will get a window-specific
+ * composite calendar, which is often what is wanted
+ */
 function getCompositeCalendar() {
     if (getCompositeCalendar.mObject === undefined) {
         getCompositeCalendar.mObject = Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]

@@ -45,7 +45,7 @@ Components.utils.import("resource://calendar/modules/calUtils.jsm");
  * @return      The currently selected calendar.
  */
 function getSelectedCalendar() {
-    return cal.getCompositeCalendar().defaultCalendar;
+    return getCompositeCalendar().defaultCalendar;
 }
 
 /**
@@ -83,7 +83,7 @@ function promptDeleteCalendar(aCalendar) {
 function loadCalendarManager() {
     // Set up the composite calendar in the calendar list widget.
     let tree = document.getElementById("calendar-list-tree-widget");
-    tree.compositeCalendar = cal.getCompositeCalendar();
+    tree.compositeCalendar = getCompositeCalendar();
 
     // Create the home calendar if no calendar exists.
     let calendars = cal.getCalendarManager().getCalendars({});
@@ -97,7 +97,7 @@ function loadCalendarManager() {
  */
 function initHomeCalendar() {
     let calMgr = cal.getCalendarManager();
-    let composite = cal.getCompositeCalendar();
+    let composite = getCompositeCalendar();
     let url = cal.makeURL("moz-storage-calendar://");
     let homeCalendar = calMgr.createCalendar("storage", url);
     homeCalendar.name = calGetString("calendar", "homeCalendarName");
@@ -122,7 +122,7 @@ function initHomeCalendar() {
  * Called to clean up the calendar manager for a window.
  */
 function unloadCalendarManager() {
-    cal.getCompositeCalendar().setStatusObserver(null, null);
+    getCompositeCalendar().setStatusObserver(null, null);
 }
 
 /**
