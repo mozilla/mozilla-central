@@ -412,6 +412,7 @@ classic.jar:
   skin/classic/aero/messenger/icons/readcol.svg                    (mail/icons/readcol.svg)
   skin/classic/aero/messenger/icons/unreadmail.png                 (mail/icons/unreadmail.png)
   skin/classic/aero/messenger/icons/search-arrow.gif               (mail/icons/search-arrow.gif)
+  skin/classic/aero/messenger/icons/quick-search-icons.png         (mail/icons/quick-search-icons-aero.png)
   skin/classic/aero/messenger/icons/quick-search-clear.png         (mail/icons/quick-search-clear.png)
   skin/classic/aero/messenger/icons/close-button.png               (mail/icons/close-button.png)
   skin/classic/aero/messenger/icons/remote-blocked.png             (mail/icons/remote-blocked.png)
