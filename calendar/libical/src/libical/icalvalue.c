@@ -311,7 +311,6 @@ static char* icalmemory_strdup_and_quote(const char* unquoted_str)
 
 	    case ';':
 	    case ',':
-	    case '"':
 	    case '\\':{
 		icalmemory_append_char(&str,&str_p,&buf_sz,'\\');
 		icalmemory_append_char(&str,&str_p,&buf_sz,*p);
