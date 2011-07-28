@@ -150,11 +150,11 @@ calICSCalendar.prototype = {
         var channel = cal.getIOService().newChannelFromURI(this.mUri);
 
         if (calInstanceOf(channel, Components.interfaces.nsIHttpChannel)) {
-            this.mHooks = new httpHooks();
+            this.mHooks = new httpHooks(this);
         } else if (calInstanceOf(channel, Components.interfaces.nsIFileChannel)) {
-            this.mHooks = new fileHooks();
+            this.mHooks = new fileHooks(this);
         } else {
-            this.mHooks = new dummyHooks();
+            this.mHooks = new dummyHooks(this);
         }
     },
 
@@ -867,7 +867,8 @@ calICSObserver.prototype = {
 
 // dummyHooks are for transport types that don't have hooks of their own.
 // Also serves as poor-mans interface definition.
-function dummyHooks() {
+function dummyHooks(calendar) {
+    this.mCalendar = calendar;
 }
 
 dummyHooks.prototype = {
@@ -895,7 +896,8 @@ dummyHooks.prototype = {
     }
 };
 
-function httpHooks() {
+function httpHooks(calendar) {
+    this.mCalendar = calendar;
     this.mChannel = null;
 }
 
@@ -915,17 +917,24 @@ httpHooks.prototype = {
     onAfterGet: function(aForceRefresh) {
         var httpchannel = this.mChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
 
-        // 304: Not Modified
-        // Can use the old data, so tell the caller that it can skip parsing.
-        if (httpchannel.responseStatus == 304) {
-            return false;
-        }
+        switch (httpchannel.responseStatus) {
+            case 304:
+                // 304: Not Modified
+                // Can use the old data, so tell the caller that it can skip parsing.
+                return false;
+            case 404:
+                // 404: Not Found
+                // This is a new calendar. Shouldn't try to parse it. But it also
+                // isn't a failure, so don't throw.
+                return false;
 
-        // 404: Not Found
-        // This is a new calendar. Shouldn't try to parse it. But it also
-        // isn't a failure, so don't throw.
-        if (httpchannel.responseStatus == 404) {
-            return false;
+            case 401:
+            case 403:
+                // 401/403: Not Authorized
+                // The user likely cancelled the login dialog.
+                this.mCalendar.setProperty("disabled", "true");
+                this.mCalendar.setProperty("auto-enabled", "true");
+                return false;
         }
 
         try {
@@ -962,7 +971,7 @@ httpHooks.prototype = {
             // Try to do the best we can, by immediatly getting the etag.
 
             var etagListener = {};
-            var thisCalendar = this; // need to reference in callback
+            var thisHook = this; // need to reference in callback
 
             etagListener.onStreamComplete =
                 function ics_etLoSC(aLoader, aContext, aStatus, aResultLength,
@@ -980,9 +989,9 @@ httpHooks.prototype = {
                 }
                 var multistatus = cal.safeNewXML(str);
                 try {
-                    thisCalendar.mEtag = multistatus..D::getetag;
+                    thisHook.mEtag = multistatus..D::getetag;
                 } catch (e) {
-                    thisCalendar.mEtag = null;
+                    thisHook.mEtag = null;
                 }
                 aRespFunc();
             }
@@ -1021,7 +1030,8 @@ httpHooks.prototype = {
     }
 };
 
-function fileHooks() {
+function fileHooks(calendar) {
+    this.mCalendar = calendar;
     this.mChannel = null;
 }
 

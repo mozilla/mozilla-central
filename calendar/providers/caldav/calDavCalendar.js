@@ -1401,6 +1401,15 @@ calDavCalendar.prototype = {
                                                      Components.interfaces.calIErrors.DAV_NOT_DAV);
                 return;
             }
+
+            if (request.responseStatus == 401 || request.responseStatus == 403) {
+                // Auth was cancelled, disable this calendar with auto-enable
+                thisCalendar.setProperty("disabled", "true");
+                thisCalendar.setProperty("auto-enabled", "true");
+                thisCalendar.completeCheckServerInfo(aChangeLogListener, Components.results.NS_ERROR_ABORT);
+                return;
+            }
+
             var wwwauth;
             try {
                 wwwauth = request.getRequestHeader("Authorization");
