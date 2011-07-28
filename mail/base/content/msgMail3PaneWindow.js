@@ -414,7 +414,9 @@ function LoadPostAccountWizard()
   MailMigrator.migrateMail();
 
   accountManager.setSpecialFolders();
-  accountManager.loadVirtualFolders();
+  try {
+    accountManager.loadVirtualFolders();
+  } catch (e) {Components.utils.reportError(e);}
   accountManager.addIncomingServerListener(gThreePaneIncomingServerListener);
 
   gPhishingDetector.init();

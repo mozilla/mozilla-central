@@ -3055,9 +3055,10 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
           rv = rdf->GetResource(buffer, getter_AddRefs(resource));
           NS_ENSURE_SUCCESS(rv, rv);
 
-          virtualFolder = do_QueryInterface(resource, &rv);
-          NS_ENSURE_SUCCESS(rv, rv);
-          if (virtualFolder)
+          virtualFolder = do_QueryInterface(resource);
+          if (!virtualFolder)
+            NS_WARNING("Failed to QI virtual folder, is this leftover from an optional account type?");
+          else
           {
             nsCOMPtr <nsIMsgFolder> grandParent;
             nsCOMPtr <nsIMsgFolder> oldParent;
