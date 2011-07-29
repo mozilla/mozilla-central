@@ -53,9 +53,9 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
         onload="gSyncQuota.init();"
+        onunload="gSyncQuota.uninit();"
         buttons="accept,cancel"
         title="&quota.dialogTitle.label;"
-        ondialogcancel="return true;"
         ondialogaccept="return gSyncQuota.onAccept();">
 
   <script type="application/javascript"
