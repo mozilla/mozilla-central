@@ -96,9 +96,8 @@ SuiteGlue.prototype = {
     }
     delay = delay <= MAX_DELAY ? delay : MAX_DELAY;
 
-    let syncTemp = {};
-    Components.utils.import("resource://services-sync/service.js", syncTemp);
-    syncTemp.Weave.Service.delayedAutoConnect(delay);
+    Components.utils.import("resource://services-sync/main.js");
+    Weave.SyncScheduler.delayedAutoConnect(delay);
   },
 
   // nsIObserver implementation
