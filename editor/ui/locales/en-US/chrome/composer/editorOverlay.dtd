@@ -139,23 +139,6 @@
 <!ENTITY createLinkCmd.accesskey "k">
 <!ENTITY editLinkCmd.label "Edit Link in New Composer">
 <!ENTITY editLinkCmd.accesskey "i">
-<!-- (Toplevel Edit menu uses utilityOverlay) -->
-<!ENTITY undoCmd.label "Undo">
-<!ENTITY undoCmd.accesskey "U">
-<!ENTITY redoCmd.label "Redo">
-<!ENTITY redoCmd.accesskey "R">
-<!ENTITY cutCmd.label "Cut">
-<!ENTITY cutCmd.accesskey "t">
-<!ENTITY copyCmd.label "Copy">
-<!ENTITY copyCmd.accesskey "C">
-<!ENTITY pasteCmd.label "Paste">
-<!ENTITY pasteCmd.accesskey "P">
-<!ENTITY deleteCmd.label "Delete">
-<!ENTITY deleteCmd.accesskey "D">
-<!ENTITY clearCmd.label "Clear">
-<!ENTITY clearCmd.accesskey "l">
-<!ENTITY selectAllCmd.label "Select All">
-<!ENTITY selectAllCmd.accesskey "A">
 
 <!-- Font Face SubMenu -->
 <!ENTITY FontFaceSelect.tooltip "Choose a font">
@@ -396,6 +379,9 @@
 <!ENTITY openToolbarCmd.tooltip "Open a local file">
 <!ENTITY saveToolbarCmd.tooltip "Save file to a local location">
 <!ENTITY publishToolbarCmd.tooltip "Upload file to a remote location">
+<!ENTITY cutToolbarCmd.tooltip "Cut">
+<!ENTITY copyToolbarCmd.tooltip "Copy">
+<!ENTITY pasteToolbarCmd.tooltip "Paste">
 <!ENTITY printToolbarCmd.label "Print">
 <!ENTITY printToolbarCmd.tooltip "Print this page">
 <!ENTITY findToolbarCmd.label "Find">

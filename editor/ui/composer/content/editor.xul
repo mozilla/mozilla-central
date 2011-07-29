@@ -48,12 +48,12 @@
 <?xml-stylesheet href="chrome://editor/skin/editorModeToolbar.css" type="text/css"?> 
 <?xul-overlay href="chrome://editor/content/editorOverlay.xul"?>
 <?xul-overlay href="chrome://editor/content/composerOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/contentAreaContextOverlay.xul"?>
 <?xul-overlay href="chrome://editor/content/EditorContextMenuOverlay.xul"?>
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://global/content/charsetOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/tasksOverlay.xul"?>
-<?xul-overlay href="chrome://communicator/content/contentAreaContextOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/sidebar/sidebarOverlay.xul"?>
 
 <!DOCTYPE window [
@@ -83,15 +83,16 @@
         persist="screenX screenY width height sizemode">
 
   <script type="application/javascript" src="chrome://editor/content/editor.js"/>
-  <script type="application/javascript" src="chrome://editor/content/EditorContextMenu.js"/>
-  <script type="application/javascript" src="chrome://editor/content/StructBarContextMenu.js"/>
   <script type="application/javascript" src="chrome://editor/content/publishprefs.js"/>
   <script type="application/javascript" src="chrome://communicator/content/contentAreaDD.js"/>
   <script type="application/javascript" src="chrome://communicator/content/contentAreaClick.js"/>
   <script type="application/javascript" src="chrome://global/content/printUtils.js"/>
   <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 
-  <popupset id="editorContentContextSet"/>
+  <popupset id="contentAreaContextSet">
+    <menupopup id="contentAreaContextMenu"/>
+  </popupset>
+  <menupopup id="structToolbarContext"/>
   <menupopup id="sidebarPopup"/>
   <menupopup id="popupNotificationMenu"/>
 
@@ -352,12 +353,19 @@
            which breaks deck frame-hiding mechanism 
        -->
       <stack>
-        <editor editortype="html" type="content-primary" id="content-frame"
-                context="editorContentContext" flex="1" tooltip="aHTMLTooltip"/>
+        <editor editortype="html"
+                type="content-primary"
+                id="content-frame"
+                context="contentAreaContextMenu"
+                flex="1"
+                tooltip="aHTMLTooltip"/>
       </stack>
       <vbox>
         <label id="doctype-text" crop="right"/>
-        <editor type="content" id="content-source" context="editorSourceContext" flex="1"/>
+        <editor type="content"
+                id="content-source"
+                context="contentAreaContextMenu"
+                flex="1"/>
       </vbox>
     </deck>
 

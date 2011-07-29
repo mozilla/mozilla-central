@@ -314,6 +314,11 @@ function IsInHTMLSourceMode()
   return (gEditorDisplayMode == kDisplayModeSource);
 }
 
+function IsInPreviewMode()
+{
+  return (gEditorDisplayMode == kDisplayModePreview);
+}
+
 // are we editing HTML (i.e. neither in HTML source mode, nor editing a text file)
 function IsEditingRenderedHTML()
 {

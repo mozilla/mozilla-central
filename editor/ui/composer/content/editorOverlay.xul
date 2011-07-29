@@ -973,7 +973,7 @@
 
   <!-- Next 2 are items to append at the bottom of the formatMenuPopup -->
   <!-- label and accesskey filled in during menu creation -->
-  <menuitem id="objectProperties"   oncommand="goDoCommand('cmd_objectProperties')"   observes="cmd_renderedHTMLEnabler"/>
+  <menuitem id="objectProperties" command="cmd_objectProperties"/>
   <!-- Don't use 'observes', must call command correctly -->
   <menuitem id="colorsAndBackground"
             label="&colorsAndBackground.label;"
@@ -1169,14 +1169,14 @@
                  command="cmd_publish"
                  tooltiptext="&publishToolbarCmd.tooltip;"/>
   <toolbarbutton id="cutButton" class="toolbarbutton-1"
-                 label="&cutCmd.label;" command="cmd_cut"
-                 tooltiptext="&cutCmd.label;"/>
+                 command="cmd_cut"
+                 tooltiptext="&cutToolbarCmd.tooltip;"/>
   <toolbarbutton id="copyButton" class="toolbarbutton-1"
-                 label="&copyCmd.label;" command="cmd_copy"
-                 tooltiptext="&copyCmd.label;"/>
+                 command="cmd_copy"
+                 tooltiptext="&copyToolbarCmd.tooltip;"/>
   <toolbarbutton id="pasteButton" class="toolbarbutton-1"
-                 label="&pasteCmd.label;" command="cmd_paste"
-                 tooltiptext="&pasteCmd.label;"/>
+                 command="cmd_paste"
+                 tooltiptext="&pasteToolbarCmd.tooltip;"/>
 
   <toolbarbutton id="printButton" type="menu-button" class="toolbarbutton-1"
                  label="&printToolbarCmd.label;"

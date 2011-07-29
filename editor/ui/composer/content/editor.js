@@ -2169,18 +2169,19 @@ function EditorInitFileMenu()
 function EditorInitFormatMenu()
 {
   try {
-    InitObjectPropertiesMenuitem("objectProperties");
+    InitObjectPropertiesMenuitem();
     InitRemoveStylesMenuitems("removeStylesMenuitem", "removeLinksMenuitem", "removeNamedAnchorsMenuitem");
   } catch(ex) {}
 }
 
-function InitObjectPropertiesMenuitem(id)
+function InitObjectPropertiesMenuitem()
 {
   // Set strings and enable for the [Object] Properties item
   // Note that we directly do the enabling instead of
-  //  using goSetCommandEnabled since we already have the menuitem
-  var menuItem = document.getElementById(id);
-  if (!menuItem) return null;
+  // using goSetCommandEnabled since we already have the command.
+  var cmd = document.getElementById("cmd_objectProperties");
+  if (!cmd)
+    return null;
 
   var element;
   var menuStr = GetString("AdvancedProperties");
@@ -2192,7 +2193,7 @@ function InitObjectPropertiesMenuitem(id)
   if (element && element.nodeName)
   {
     var objStr = "";
-    menuItem.setAttribute("disabled", "");
+    cmd.removeAttribute("disabled");
     name = element.nodeName.toLowerCase();
     switch (name)
     {
@@ -2202,7 +2203,11 @@ function InitObjectPropertiesMenuitem(id)
         try
         {
           if (GetCurrentEditor().getElementOrParentByTagName("href", element))
+          {
             objStr = GetString("ImageAndLink");
+            // Return "href" so it is detected as a link.
+            name = "href";
+          }
         } catch(e) {}
         
         if (objStr == "")
@@ -2270,11 +2275,11 @@ function InitObjectPropertiesMenuitem(id)
   }
   else
   {
-    // We show generic "Properties" string, but disable menu item
-    menuItem.setAttribute("disabled","true");
+    // We show generic "Properties" string, but disable the command.
+    cmd.setAttribute("disabled", "true");
   }
-  menuItem.setAttribute("label", menuStr);
-  menuItem.setAttribute("accesskey",GetString("ObjectPropertiesAccessKey"));
+  cmd.setAttribute("label", menuStr);
+  cmd.setAttribute("accesskey", GetString("ObjectPropertiesAccessKey"));
   return name;
 }
 
@@ -3358,7 +3363,7 @@ function FillInHTMLTooltipEditor(tooltip)
   const XLinkNS = "http://www.w3.org/1999/xlink";
   var tooltipText = null;
   var node;
-  if (gEditorDisplayMode == kDisplayModePreview) {
+  if (IsInPreviewMode()) {
     for (node = document.tooltipNode; node; node = node.parentNode) {
       if (node.nodeType == Node.ELEMENT_NODE) {
         tooltipText = node.getAttributeNS(XLinkNS, "title");

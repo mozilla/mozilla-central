@@ -37,107 +37,108 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function EditorFillContextMenu(event, contextMenuNode)
+// Overrides the main contentAreaContext onpopupshowing so needs to do
+// everything that does plus call Composer specific code.
+function editorContextPopupShowing(aNode)
 {
-  if ( event.target != contextMenuNode )
-    return;
-
-  // Setup object property menuitem
-  var objectName = InitObjectPropertiesMenuitem("objectProperties_cm");
-  var isInLink = objectName == "href";
-
-  // Special case of an image inside a link
-  if (objectName == "img")
-  try {
-    isInLink = GetCurrentEditor().getElementOrParentByTagName("href", GetObjectForProperties());
-  } catch (e) {}
-
-  InitRemoveStylesMenuitems("removeStylesMenuitem_cm", "removeLinksMenuitem_cm", "removeNamedAnchorsMenuitem_cm");
-
-  var inCell = IsInTableCell();
-  // Set appropriate text for join cells command
-  InitJoinCellMenuitem("joinTableCells_cm");
-
-  // Update enable states for all table commands
-  goUpdateTableMenuItems(document.getElementById("composerTableMenuItems"));
-
-  // Loop through all children to hide disabled items
-  var children = contextMenuNode.childNodes;
-  if (children)
+  gContextMenu = new nsContextMenu(aNode);
+  if (gContextMenu.shouldDisplay)
   {
-    var count = children.length;
-    for (var i = 0; i < count; i++)
-      HideDisabledItem(children[i]);
+    var showExtra = top.document.commandDispatcher.focusedWindow == content;
+    gContextMenu.initEditorItems(showExtra);
+    return true;
   }
-
-  // The above loop will always show all separators and the next two items
-  // Hide "Create Link" if in a link
-  ShowMenuItem("createLink_cm", !isInLink);
-
-  // Hide "Edit link in new Composer" unless in a link
-  ShowMenuItem("editLink_cm", isInLink);
-
-  // Remove separators if all items in immediate group above are hidden
-  // A bit complicated to account if multiple groups are completely hidden!
-  var haveUndo =
-    IsMenuItemShowing("menu_undo_cm") ||
-    IsMenuItemShowing("menu_redo_cm");
-
-  var haveEdit =
-    IsMenuItemShowing("menu_cut_cm")   ||
-    IsMenuItemShowing("menu_copy_cm")  ||
-    IsMenuItemShowing("menu_paste_cm") ||
-    IsMenuItemShowing("menu_pasteNoFormatting_cm") ||
-    IsMenuItemShowing("menu_delete_cm");
-
-  var haveStyle =
-    IsMenuItemShowing("removeStylesMenuitem_cm") ||
-    IsMenuItemShowing("createLink_cm") ||
-    IsMenuItemShowing("removeLinksMenuitem_cm") ||
-    IsMenuItemShowing("removeNamedAnchorsMenuitem_cm");
-
-  var haveProps =
-    IsMenuItemShowing("objectProperties_cm");
-
-  ShowMenuItem("undoredo-separator", haveUndo && haveEdit);
-
-  ShowMenuItem("edit-separator", haveEdit || haveUndo);
-
-  // Note: Item "menu_selectAll_cm" and
-  // following separator are ALWAYS enabled,
-  // so there will always be 1 separator here
-
-  var showStyleSep = haveStyle && (haveProps || inCell);
-  ShowMenuItem("styles-separator", showStyleSep);
-
-  var showPropSep = (haveProps && inCell);
-  ShowMenuItem("property-separator", showPropSep);
-
-  // Remove table submenus if not in table
-  ShowMenuItem("tableInsertMenu_cm",  inCell);
-  ShowMenuItem("tableSelectMenu_cm",  inCell);
-  ShowMenuItem("tableDeleteMenu_cm",  inCell);
-
-  // if we have a mispelled word, show spellchecker context
-  // menuitems as well as the usual context menu
-  InlineSpellCheckerUI.clearSuggestionsFromMenu();
-  InlineSpellCheckerUI.initFromEvent(document.popupRangeParent, document.popupRangeOffset);
-  var onMisspelling = InlineSpellCheckerUI.overMisspelling;
-  document.getElementById('spellCheckSuggestionsSeparator').hidden = !onMisspelling;
-  document.getElementById('spellCheckAddToDictionary').hidden = !onMisspelling;
-  document.getElementById('spellCheckIgnoreWord').hidden = !onMisspelling;
-  var separator = document.getElementById('spellCheckAddSep');
-  separator.hidden = !onMisspelling;
-  document.getElementById('spellCheckNoSuggestions').hidden = !onMisspelling ||
-      InlineSpellCheckerUI.addSuggestionsToMenu(contextMenuNode, separator, 5);
+  return false;
 }
 
-function IsItemOrCommandEnabled( item )
+// Extends the main nsContextMenu for Composer.
+nsContextMenu.prototype.initEditorItems = function (aShow)
 {
+  var isInLink = false;
+  var objectName;
+  var inSourceMode = IsInHTMLSourceMode();
+  var showSpell = !inSourceMode && !IsInPreviewMode() &&
+                  InlineSpellCheckerUI.canSpellCheck;
+  this.showItem("spell-check-enabled", showSpell);
+  this.showItem("spell-separator", showSpell);
+
+  aShow = aShow && !inSourceMode;
+  this.hideDisabledItem("menu_pasteNoFormatting_cm", aShow);
+
+  // Only do this stuff when not in source mode or sidebar.
+  if (aShow)
+  {
+    // Setup object property command element.
+    objectName = InitObjectPropertiesMenuitem();
+    isInLink = objectName == "href";
+
+    InitRemoveStylesMenuitems("removeStylesMenuitem_cm",
+                              "removeLinksMenuitem_cm",
+                              "removeNamedAnchorsMenuitem_cm");
+
+    // Set appropriate text for join cells command.
+    InitJoinCellMenuitem("joinTableCells_cm");
+
+    // Update enable states for all table commands.
+    goUpdateTableMenuItems(document.getElementById("composerTableMenuItems"));
+
+    this.hideDisabledItem("context-undo", true);
+    this.hideDisabledItem("context-redo", true);
+    this.hideDisabledItem("context-cut", true);
+    this.hideDisabledItem("context-copy", true);
+    this.hideDisabledItem("context-paste", true);
+    this.hideDisabledItem("context-delete", true);
+    
+    this.showItem("context-sep-undo",
+                  this.shouldShowSeparator("context-sep-undo"));
+    this.showItem("context-sep-paste",
+                  this.shouldShowSeparator("context-sep-paste"));
+  }
+
+  this.hideDisabledItem("objectProperties_cm", aShow);
+
+  // Show "Create Link" if not in a link and not in source mode or sidebar.
+  this.showItem("createLink_cm", aShow && !isInLink);
+
+  // Show "Edit link in new Composer" if in a link and
+  // not in source mode or sidebar.
+  this.showItem("editLink_cm", aShow && isInLink);
+
+  this.hideDisabledItem("removeStylesMenuitem_cm", aShow);
+  this.hideDisabledItem("removeLinksMenuitem_cm", aShow);
+  this.hideDisabledItem("removeNamedAnchorsMenuitem_cm", aShow);
+
+  this.hideDisabledItem("joinTableCells_cm", aShow);
+  this.hideDisabledItem("splitTableCell_cm", aShow);
+  this.hideDisabledItem("tableOrCellColor_cm", aShow);
+
+  var inCell = aShow && IsInTableCell();
+  // Remove table submenus if not in table.
+  this.showItem("tableInsertMenu_cm", inCell);
+  this.showItem("tableSelectMenu_cm", inCell);
+  this.showItem("tableDeleteMenu_cm", inCell);
+
+  this.showItem("context-sep-selectall", aShow);
+  this.showItem("context-sep-properites", aShow && !!objectName);
+  this.showItem("frame-sep", aShow && IsInTable());
+};
+
+nsContextMenu.prototype.hideDisabledItem = function(aId, aShow)
+{
+  this.showItem(aId, aShow && IsItemOrCommandEnabled(aId));
+};
+
+function IsItemOrCommandEnabled(aId)
+{
+  var item = document.getElementById(aId);
+  if (!item)
+    return false;
+
   var command = item.getAttribute("command");
   if (command) {
     // If possible, query the command controller directly
-    var controller = document.commandDispatcher.getControllerForCommand(command);
+    var controller = document.commandDispatcher
+                             .getControllerForCommand(command);
     if (controller)
       return controller.isCommandEnabled(command);
   }
@@ -145,28 +146,3 @@ function IsItemOrCommandEnabled( item )
   // Fall back on the inefficient observed disabled attribute
   return item.getAttribute("disabled") != "true";
 }
-
-function HideDisabledItem( item )
-{
-  item.hidden = !IsItemOrCommandEnabled(item);
-}
-
-function ShowMenuItem(id, showItem)
-{
-  var item = document.getElementById(id);
-  if (item && !showItem)
-  {
-    item.hidden = true;
-  }
-  // else HideDisabledItem showed the item anyway
-}
-
-function IsMenuItemShowing(menuID)
-{
-  var item = document.getElementById(menuID);
-  if (item)
-    return !item.hidden;
-
-  return false;
-}
-
