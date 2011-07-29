@@ -37,6 +37,9 @@
 
  ***** END LICENSE BLOCK ***** -->
 
+<!-- This overlay requires that the files it overlays has the menupopup
+     contentAreaContextMenu defined for context menus to work correctly in
+     certain custom tabs -->
  
 <?xml-stylesheet href="chrome://communicator/content/sidebar/sidebarOverlay.css" type="text/css"?> 
 <?xml-stylesheet href="chrome://communicator/skin/sidebar/sidebar.css" type="text/css"?> 
@@ -235,7 +238,6 @@
         </hbox>
       </vbox>
     </vbox>
-    <popupset id="contentAreaContextSet"/>
   </vbox>
 
   <!-- Splitter on the right of sidebar -->
