@@ -585,6 +585,7 @@ modern.jar:
   skin/modern/mozapps/plugins/contentPluginCrashed.png             (mozapps/plugins/contentPluginCrashed.png)
   skin/modern/mozapps/plugins/contentPluginDisabled.png            (mozapps/plugins/contentPluginDisabled.png)
   skin/modern/mozapps/plugins/contentPluginDownload.png            (mozapps/plugins/contentPluginDownload.png)
+  skin/modern/mozapps/plugins/contentPluginMissing.png             (mozapps/plugins/contentPluginMissing.png)
   skin/modern/mozapps/plugins/pluginBlocked.png                    (mozapps/plugins/pluginBlocked.png)
   skin/modern/mozapps/plugins/pluginBlocked-16.png                 (mozapps/plugins/pluginBlocked.png)
   skin/modern/mozapps/plugins/pluginDisabled.png                   (mozapps/plugins/pluginDisabled.png)

@@ -370,17 +370,24 @@
         <parameter name="aPref"/>
         <body>
           <![CDATA[
+            var plugin = aEvent.target;
             // Since we are expecting also untrusted events, make sure
             // that the target is a plugin.
-            if (!(aEvent.target instanceof Components.interfaces.nsIObjectLoadingContent))
-              return;
-
-            if (this._prefs.getBoolPref(aPref || "plugins.hide_infobar_for_missing_plugin"))
+            if (!(plugin instanceof Components.interfaces.nsIObjectLoadingContent))
               return;
 
             // Save information on the plugin to give to the plugin finder.
-            var pluginInfo = this.getPluginInfo(aEvent.target);
+            var pluginInfo = this.getPluginInfo(plugin);
             this.missingPlugins[pluginInfo.mimetype] = pluginInfo;
+
+            // Hide the in-content UI if it's too big. The crashed plugin handler already does this.
+            var doc = plugin.ownerDocument;
+            var overlay = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
+            if (this.isTooSmall(plugin, overlay))
+              overlay.style.visibility = "hidden";
+
+            if (this._prefs.getBoolPref(aPref || "plugins.hide_infobar_for_missing_plugin"))
+              return;
 
             var notification;
             var notifications = [
@@ -602,22 +609,12 @@
         </body>
       </method>
 
-      <method name="handleEvent">
-        <parameter name="aEvent"/>
+      <method name="installMissingPlugins">
         <body>
           <![CDATA[
-            if (aEvent.type == "keypress" && aEvent.keyCode != KeyEvent.DOM_VK_RETURN)
-              return;
-
-            var missingPlugins = {};
-            var pluginInfo = this.getPluginInfo(aEvent.target);
-            missingPlugins[pluginInfo.mimetype] = pluginInfo;
-
             window.openDialog("chrome://mozapps/content/plugins/pluginInstallerWizard.xul",
-                              "", "chrome,resizable=yes",
-                              {plugins: missingPlugins, browser: this.activeBrowser});
-            aEvent.preventDefault();
-            aEvent.stopPropagation();
+                              "", "chrome,centerscreen,resizable=yes",
+                              {plugins: this.missingPlugins, browser: this.activeBrowser});
           ]]>
         </body>
       </method>
@@ -1512,11 +1509,6 @@
           var doc = plugin.ownerDocument;
           var overlay = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
 
-          // The binding has role="link" here, since missing/disabled/blocked
-          // plugin UI has a onclick handler on the whole thing. This isn't needed
-          // for the plugin-crashed UI, because we use actual HTML links in the text.
-          overlay.removeAttribute("role");
-
           var status;
           var statusDiv = doc.getAnonymousElementByAttribute(plugin, "class", "submitStatus");
 
@@ -1677,14 +1669,23 @@
 
       <handler event="PluginNotFound">
         <![CDATA[
+          var plugin  = event.target;
           // For broken non-object plugin tags, register a click handler so
           // that the user can click the plugin replacement to get the new
           // plugin. Object tags can, and often do, deal with that themselves,
           // so don't stomp on the page developers toes.
-          if (event.target instanceof Components.interfaces.nsIObjectLoadingContent &&
-              !(event.target instanceof HTMLObjectElement)) {
-            event.target.addEventListener("click", this, true);
-            event.target.addEventListener("keypress", this, true);
+          if (plugin instanceof Components.interfaces.nsIObjectLoadingContent &&
+              !(plugin instanceof HTMLObjectElement)) {
+            // Force a style flush, so that we ensure our binding is attached.
+            plugin.clientTop;
+            // We don't yet check to see if there's actually an installer available.
+            var doc = plugin.ownerDocument;
+            var installStatus = doc.getAnonymousElementByAttribute(plugin, "class", "installStatus");
+            installStatus.setAttribute("status", "ready");
+            var iconStatus = doc.getAnonymousElementByAttribute(plugin, "class", "icon");
+            iconStatus.setAttribute("status", "ready");
+            var installLink = doc.getAnonymousElementByAttribute(plugin, "class", "installPluginLink");
+            this.addLinkClickCallback(installLink, installMissingPlugins);
           }
 
           var messageString = this._stringBundle.GetStringFromName("missingpluginsMessage.title");
@@ -1692,11 +1693,7 @@
             label: this._stringBundle.GetStringFromName("missingpluginsMessage.button.label"),
             accessKey: this._stringBundle.GetStringFromName("missingpluginsMessage.button.accesskey"),
             popup: null,
-            callback: function openPluginInstallerWizard() {
-              window.openDialog("chrome://mozapps/content/plugins/pluginInstallerWizard.xul",
-                                "", "chrome,resizable=yes",
-                                {plugins: this.missingPlugins, browser: this.activeBrowser});
-            }.bind(this)
+            callback: this.installMissingPlugins.bind(this)
           }];
 
           this.pluginUnavailable(event, "missing-plugins", messageString, buttons);
@@ -1715,11 +1712,7 @@
             label: this._stringBundle.GetStringFromName("blockedpluginsMessage.searchButton.label"),
             accessKey: this._stringBundle.GetStringFromName("blockedpluginsMessage.searchButton.accesskey"),
             popup: null,
-            callback: function openPluginInstallerWizard() {
-              window.openDialog("chrome://mozapps/content/plugins/pluginInstallerWizard.xul",
-                                "", "chrome,resizable=yes",
-                                {plugins: this.missingPlugins, browser: this.activeBrowser});
-            }.bind(this)
+            callback: this.installMissingPlugins.bind(this, event)
           }];
 
           this.pluginUnavailable(event, "blocked-plugins", messageString, buttons);
@@ -1728,15 +1721,16 @@
 
       <handler event="PluginDisabled">
         <![CDATA[
+          var plugin  = event.target;
           // Since we are expecting also untrusted events, make sure
           // that the target is a plugin
-          if (event.target instanceof Components.interfaces.nsIObjectLoadingContent &&
+          if (plugin instanceof Components.interfaces.nsIObjectLoadingContent &&
               "toEM" in window) {
-            event.target.addEventListener("click", function(aEvent) {
-              aEvent.preventDefault();
-              aEvent.stopPropagation();
-              window.toEM("addons://list/plugin");
-            }, true);
+            // Force a style flush, so that we ensure our binding is attached.
+            plugin.clientTop;
+            var doc = plugin.ownerDocument;
+            var manageLink = doc.getAnonymousElementByAttribute(plugin, "class", "managePluginsLink");
+            this.addLinkClickCallback(manageLink, window.toEM, "addons://list/plugin");
           }
         ]]>
       </handler>
