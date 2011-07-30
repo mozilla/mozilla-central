@@ -442,23 +442,42 @@ var gDomains = {
       // URI-like, e.g. gopher://example.com and newURI doesn't work there as we
       // need to display entries for schemes that are not supported (any more).
       // nsIURLParser is a fast way to generically ensure a pure host name.
+      var hostName;
       // Return vars for nsIURLParser must all be objects,
       // see bug 568997 for improvements to that interface.
       var schemePos = {}, schemeLen = {}, authPos = {}, authLen = {}, pathPos = {},
           pathLen = {}, usernamePos = {}, usernameLen = {}, passwordPos = {},
           passwordLen = {}, hostnamePos = {}, hostnameLen = {}, port = {};
-      gLocSvc.url.parseURL(aHostname, -1, schemePos, schemeLen, authPos, authLen,
-                          pathPos, pathLen);
-      var auth = aHostname.substring(authPos.value, authPos.value + authLen.value);
-      gLocSvc.url.parseAuthority(auth, authLen.value, usernamePos, usernameLen,
-                                passwordPos, passwordLen, hostnamePos, hostnameLen, port);
-      var hostName = auth.substring(hostnamePos.value, hostnamePos.value + hostnameLen.value);
+      try {
+        gLocSvc.url.parseURL(aHostname, -1, schemePos, schemeLen, authPos, authLen,
+                             pathPos, pathLen);
+        var auth = aHostname.substring(authPos.value, authPos.value + authLen.value);
+        gLocSvc.url.parseAuthority(auth, authLen.value, usernamePos, usernameLen,
+                                   passwordPos, passwordLen, hostnamePos, hostnameLen, port);
+        hostName = auth.substring(hostnamePos.value, hostnamePos.value + hostnameLen.value);
+      }
+      catch (e) {
+        // IPv6 host names can come in without [] around them and therefore
+        // cause an error. Those consist of at least two colons and else only
+        // hexadecimal digits. Fix them by putting [] around them.
+        if (/^[a-f0-9]*:[a-f0-9]*:[a-f0-9:]*$/.test(aHostname)) {
+          gDataman.debugMsg("bare IPv6 address found: " + aHostname);
+          hostName = "[" + aHostname + "]";
+        }
+        else {
+          gDataman.debugError("Error while trying to get hostname from input: " + aHostname);
+          gDataman.debugError(e);
+          hostName = aHostname;
+        }
+      }
 
       var domain;
       try {
         domain = Services.eTLD.getBaseDomainFromHost(hostName);
       }
       catch (e) {
+        gDataman.debugError("Error while trying to get domain from host name: " + hostName);
+        gDataman.debugError(e);
         domain = hostName;
       }
       this.xlcache[aHostname] = domain;
@@ -1136,9 +1155,11 @@ var gCookies = {
   forget: function cookies_forget() {
     for (let i = 0; i < this.cookies.length; i++) {
       if (gDomains.hostMatchesSelected(this.cookies[i].rawHost)) {
-        Services.cookies.remove(this.cookies[i].host, this.cookies[i].name,
-                                this.cookies[i].path, false);
+        // Remove from internal list needs to be before actually deleting.
+        let delCookie = this.cookies[i];
         this.cookies.splice(i, 1);
+        Services.cookies.remove(delCookie.host, delCookie.name,
+                                delCookie.path, false);
       }
     }
     gDomains.removeDomainOrFlag(gDomains.selectedDomain.title, "hasCookies");
@@ -2105,8 +2126,10 @@ var gPasswords = {
   forget: function passwords_forget() {
     for (let i = 0; i < this.allSignons.length; i++) {
       if (gDomains.hostMatchesSelected(this.allSignons[i].hostname)) {
-        Services.logins.removeLogin(this.allSignons[i]);
+        // Remove from internal list needs to be before actually deleting.
+        let delSignon = this.allSignons[i];
         this.allSignons.splice(i, 1);
+        Services.logins.removeLogin(delSignon);
       }
     }
     gDomains.removeDomainOrFlag(gDomains.selectedDomain.title, "hasPasswords");
