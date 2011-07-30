@@ -1712,7 +1712,7 @@
             label: this._stringBundle.GetStringFromName("blockedpluginsMessage.searchButton.label"),
             accessKey: this._stringBundle.GetStringFromName("blockedpluginsMessage.searchButton.accesskey"),
             popup: null,
-            callback: this.installMissingPlugins.bind(this, event)
+            callback: this.installMissingPlugins.bind(this)
           }];
 
           this.pluginUnavailable(event, "blocked-plugins", messageString, buttons);
