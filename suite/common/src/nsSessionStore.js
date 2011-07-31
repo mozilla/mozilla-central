@@ -1664,7 +1664,8 @@ SessionStoreService.prototype = {
     }
 
     if (aEntry.stateData) {
-      entry.stateData = aEntry.stateData;
+      entry.structuredCloneState = aEntry.stateData.getDataAsBase64();
+      entry.structuredCloneVersion = aEntry.stateData.formatVersion;
     }
 
     if (!(aEntry instanceof Components.interfaces.nsISHContainer)) {
@@ -2697,17 +2698,22 @@ SessionStoreService.prototype = {
 
     // Attach data that will be restored on "load" event, after tab is restored.
     if (activeIndex > -1) {
+      let curSHEntry = browser.webNavigation.sessionHistory
+                              .getEntryAtIndex(activeIndex, false)
+                              .QueryInterface(Components.interfaces.nsISHEntry);
+
       // restore those aspects of the currently active documents which are not
       // preserved in the plain history entries (mainly scroll state and text data)
       browser.__SS_restore_data = tabData.entries[activeIndex] || {};
       browser.__SS_restore_pageStyle = tabData.pageStyle || "";
       browser.__SS_restore_tab = aTab;
+      browser.__SS_restore_docIdentifier = curSHEntry.docIdentifier;
 
       didStartLoad = true;
       try {
         // In order to work around certain issues in session history, we need to
         // force session history to update its internal index and call reload
-        // instead of gotoIndex. c.f. bug 597315
+        // instead of gotoIndex. See bug 597315.
         var sessionHistory = browser.webNavigation.sessionHistory;
         sessionHistory.getEntryAtIndex(activeIndex, true);
         sessionHistory.reloadCurrentEntry();
@@ -2828,8 +2834,13 @@ SessionStoreService.prototype = {
     if (aEntry.docshellID)
       shEntry.docshellID = aEntry.docshellID;
 
-    if (aEntry.stateData) {
-      shEntry.stateData = aEntry.stateData;
+    if (aEntry.structuredCloneState && aEntry.structuredCloneVersion) {
+      shEntry.stateData =
+        Components.classes["@mozilla.org/docshell/structured-clone-container;1"]
+                  .createInstance(Components.interfaces.nsIStructuredCloneContainer);
+
+      shEntry.stateData.initFromBase64(aEntry.structuredCloneState,
+                                       aEntry.structuredCloneVersion);
     }
 
     if (aEntry.scroll) {
@@ -2999,12 +3010,19 @@ SessionStoreService.prototype = {
       aBrowser.markupDocumentViewer.authorStyleDisabled = selectedPageStyle == "_nostyle";
     }
 
+    if (aBrowser.__SS_restore_docIdentifier) {
+      let sh = aBrowser.webNavigation.sessionHistory;
+      sh.getEntryAtIndex(sh.index, false).QueryInterface(Components.interfaces.nsISHEntry)
+        .docIdentifier = aBrowser.__SS_restore_docIdentifier;
+    }
+
     // notify the tabbrowser that this document has been completely restored
     this._sendTabRestoredNotification(aBrowser.__SS_restore_tab);
 
     delete aBrowser.__SS_restore_data;
     delete aBrowser.__SS_restore_pageStyle;
     delete aBrowser.__SS_restore_tab;
+    delete aBrowser.__SS_restore_docIdentifier;
   },
 
   /**
