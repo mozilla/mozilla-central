@@ -1144,6 +1144,11 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetAccessKey(const nsAString &aAccessKe
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetAccessKeyLabel(nsAString &aAccessKey)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 NS_IMETHODIMP nsOutlookHTMLImageElement::Blur()
 {
   return NS_ERROR_NOT_IMPLEMENTED;

@@ -1268,6 +1268,11 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::SetAccessKey(const nsAString &aAccessKey
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetAccessKeyLabel(nsAString &aAccessKey)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 NS_IMETHODIMP nsEudoraHTMLImageElement::Blur()
 {
   return NS_ERROR_NOT_IMPLEMENTED;
