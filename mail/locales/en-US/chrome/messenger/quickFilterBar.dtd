@@ -160,15 +160,15 @@
      linux (which use the control key).  This should match the value of
      quickFilterBar.show.key above.
      -->
-<!ENTITY quickFilterBar.textbox.emptyText.keyLabel.nonmac
+<!ENTITY quickFilterBar.textbox.emptyText.keyLabel2.nonmac
          "&lt;Ctrl+Shift+K&gt;">
 
 <!-- LOCALIZATION NOTE (quickFilterBar.textbox.emptyText.keyLabel.mac):
      The description of the key-binding to get into the box on mac systems.
      This should match the value of quickFilterBar.show.key above.
      -->
-<!ENTITY quickFilterBar.textbox.emptyText.keyLabel1.mac
-         "&lt;&#x2318;Shift+K&gt;">
+<!ENTITY quickFilterBar.textbox.emptyText.keyLabel2.mac
+         "&lt;&#x21E7;&#x2318;K&gt;">
 
 <!-- LOCALIZATION NOTE (quickFilterBar.textbox.idealWidth):
      The number of pixels for the ideal width of the quick filter box textbox.

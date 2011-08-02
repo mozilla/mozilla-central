@@ -163,8 +163,8 @@
                  type="search"
                  placeholder=""
                  emptytextbase="&quickFilterBar.textbox.emptyText.base;"
-                 keyLabelNonMac="&quickFilterBar.textbox.emptyText.keyLabel.nonmac;"
-                 keyLabelMac="&quickFilterBar.textbox.emptyText.keyLabel1.mac;"
+                 keyLabelNonMac="&quickFilterBar.textbox.emptyText.keyLabel2.nonmac;"
+                 keyLabelMac="&quickFilterBar.textbox.emptyText.keyLabel2.mac;"
                  timeout="500"
                  width="320"
                  minwidth="280">
