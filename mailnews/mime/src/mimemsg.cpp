@@ -54,6 +54,7 @@
 #include "mimetpfl.h"
 #include "nsINetUtil.h"
 #include "nsMsgUtils.h"
+#include "nsMsgI18N.h"
 
 #define MIME_SUPERCLASS mimeContainerClass
 MimeDefClass(MimeMessage, MimeMessageClass, mimeMessageClass,
@@ -288,6 +289,37 @@ MimeMessage_close_headers (MimeObject *obj)
   int status = 0;
   char *ct = 0;      /* Content-Type header */
   MimeObject *body;
+
+  // Do a proper decoding of the munged subject.
+  if (obj->headers && msg->hdrs && msg->grabSubject) {
+    // nsMsgI18NConvertToUnicode wants nsAStrings...
+    nsDependentCString orig(obj->headers->munged_subject);
+    nsAutoString dest;
+    // First, get the Content-Type, then extract the charset="whatever" part of
+    // it.
+    nsCString charset;
+    nsCString contentType;
+    contentType.Adopt(MimeHeaders_get(msg->hdrs, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE));
+    if (!contentType.IsEmpty())
+      charset.Adopt(MimeHeaders_get_parameter(contentType.get(), "charset", nsnull, nsnull));
+
+    // If we've got a charset, use nsMsgI18NConvertToUnicode to magically decode
+    // the munged subject.
+    if (!charset.IsEmpty()) {
+      nsresult rv = nsMsgI18NConvertToUnicode(charset.get(), orig, dest);
+      // If we managed to convert the string, replace munged_subject with the
+      // UTF8 version of it, otherwise, just forget about it (maybe there was an
+      // improperly encoded string in there).
+      PR_Free(obj->headers->munged_subject);
+      if (NS_SUCCEEDED(rv))
+        obj->headers->munged_subject = ToNewUTF8String(dest);
+      else
+        obj->headers->munged_subject = nsnull;
+    } else {
+      PR_Free(obj->headers->munged_subject);
+      obj->headers->munged_subject = nsnull;
+    }
+  }
 
   if (msg->hdrs)
   {

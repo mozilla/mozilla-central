@@ -434,7 +434,18 @@ function test_sane_bodies() {
 // allUserAttachments representation
 
 var partTachNestedMessages = [
-  msgGen.makeMessage(),
+  // Looks like the synthetic part generator appends the charset=ISO-8859-1 part
+  // all by itself. That allows us to create a non-UTF-8 subject, and ensure the
+  // resulting attachment name is indeed São Paulo.eml.
+  msgGen.makeMessage({
+    subject: "S"+String.fromCharCode(0xe3)+"o Paulo",
+    bodyPart: new SyntheticPartLeaf(
+      "<html><head></head><body>I am HTML! Woo! </body></html>",
+      {
+        contentType: 'text/html',
+      }
+    )
+  }),
   msgGen.makeMessage({
       attachments: [tachImage]
     }),
@@ -465,7 +476,8 @@ var attMessagesParams = [
 var expectedAttachmentsInfo = [
   {
     allAttachmentsContentTypes: [],
-    allUserAttachmentsContentTypes: ["message/rfc822"]
+    allUserAttachmentsContentTypes: ["message/rfc822"],
+    firstAttachmentName: "S\u00e3o Paulo.eml",
   },
   {
     allAttachmentsContentTypes: ["image/png"],
@@ -488,6 +500,12 @@ function test_attachments_correctness () {
     MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
       try {
         let expected = expectedAttachmentsInfo[i];
+        if ("firstAttachmentName" in expected) {
+          let att = aMimeMsg.allUserAttachments[0];
+          do_check_eq(att.name.length, expected.firstAttachmentName.length);
+          for (let i = 0; i < att.name.length; ++i)
+            do_check_eq(att.name.charCodeAt(i), expected.firstAttachmentName.charCodeAt(i));
+        }
 
         do_check_eq(aMimeMsg.allAttachments.length, expected.allAttachmentsContentTypes.length);
         for each (let [j, att] in Iterator(aMimeMsg.allAttachments))
