@@ -213,8 +213,7 @@ function kickOffSearch()
 
     var filter = prefix1 + prefix2 + mailFilter + suffix2 + suffix1;
 
-    var wanted_attributes = new Array();
-    wanted_attributes[0] = CertAttribute;
+    var wanted_attributes = CertAttribute;
 
     // Max search results =>
     // Double number of email addresses, because each person might have
@@ -227,7 +226,7 @@ function kickOffSearch()
 
     getLDAPOperation();
     gLdapOperation.searchExt(gLdapServerURL.dn, gLdapServerURL.scope,
-                             filter, 1, wanted_attributes, 0, maxEntriesWanted);
+                             filter, wanted_attributes, 0, maxEntriesWanted);
   }
   catch (e) {
     window.close();
