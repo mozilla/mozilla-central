@@ -45,7 +45,7 @@ var MODULE_NAME = 'test-message-window';
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
-var folder;
+var folderA, folderB;
 var curMessage;
 
 function setupModule(module) {
@@ -54,21 +54,26 @@ function setupModule(module) {
   let wh = collector.getModule('window-helpers');
   wh.installInto(module);
 
-  folder = create_folder("MessageWindowA");
+  folderA = create_folder("MessageWindowA");
+  folderB = create_folder("MessageWindowB");
   // create three messages in the folder to display
   let msg1 = create_thread(1);
   let msg2 = create_thread(1);
   let thread1 = create_thread(2);
   let thread2 = create_thread(2);
-  add_sets_to_folders([folder], [msg1, msg2, thread1, thread2]);
-  folder.msgDatabase.dBFolderInfo.viewFlags = Ci.nsMsgViewFlagsType.kThreadedDisplay;
+  add_sets_to_folders([folderA], [msg1, msg2, thread1, thread2]);
+  // add two more messages in another folder
+  let msg3 = create_thread(1);
+  let msg4 = create_thread(1);
+  add_sets_to_folders([folderB], [msg3, msg4]);
+  folderA.msgDatabase.dBFolderInfo.viewFlags = Ci.nsMsgViewFlagsType.kThreadedDisplay;
 }
 
 /** The message window controller. */
 var msgc;
 
 function test_open_message_window() {
-  be_in_folder(folder);
+  be_in_folder(folderA);
 
   // select the first message
   curMessage = select_click_row(0);
@@ -119,10 +124,44 @@ function test_delete_single_message() {
  */
 function test_del_collapsed_thread() {
   press_delete(msgc);
-  if (folder.getTotalMessages(false) != 4)
+  if (folderA.getTotalMessages(false) != 4)
     throw new Error("should have only deleted one message");
 
 }
+
+function subtest_say_yes(cwc) {
+  cwc.window.document.documentElement.getButton('accept').doCommand();
+}
+
+/**
+ * Hit n enough times to mark all messages in folder A read, and then accept the
+ * modal dialog saying that we should move to the next folder. Then, assert that
+ * the message displayed in the standalone message window is folder B's first
+ * message (since all messages in folder B were unread).
+ */
+function test_next_unread() {
+  for (let i = 0; i < 3; ++i) {
+    plan_for_message_display(msgc);
+    msgc.keypress(null, "n", {});
+    wait_for_message_display_completion(msgc, true);
+  }
+
+  plan_for_modal_dialog("commonDialog", subtest_say_yes);
+  msgc.keypress(null, "n", {});
+  plan_for_message_display(msgc);
+  wait_for_modal_dialog("commonDialog");
+  wait_for_message_display_completion(msgc, true);
+
+  // move to folder B
+  be_in_folder(folderB);
+
+  // select the first message, and make sure it's not read
+  let msg = select_click_row(0);
+
+  // make sure we've been displaying the right message
+  assert_selected_and_displayed(msgc, msg);
+}
+
 /**
  * Close the window by hitting escape.
  */

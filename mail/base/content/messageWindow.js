@@ -1220,3 +1220,9 @@ function RestoreFocusAfterHdrButton()
   // set focus to the message pane
   window.content.focus();
 }
+
+function SelectFolder (aFolderUri) {
+  gFolderDisplay.clearSelection();
+  gFolderDisplay.treeSelection.currentIndex = -1;
+  gFolderDisplay.show(MailUtils.getFolderForURI(aFolderUri));
+}
