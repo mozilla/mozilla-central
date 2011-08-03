@@ -211,7 +211,18 @@
                              oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
                              observes="button_reply"
                              class="toolbarbutton-1 msgHeaderView-button hdrReplyToSenderButton"/>
-              <toolbaritem id="hdrSmartReplyButton">
+              <toolbaritem id="hdrSmartReplyButton" label="&hdrSmartReplyButton.label;">
+                <!-- This button is a dummy and should only be shown when
+                     customizing the toolbar to distinguish the smart reply
+                     button from the reply to sender button. -->
+                <toolbarbutton id="hdrDummyReplyButton" label="&hdrSmartReplyButton.label;"
+                               hidden="true"
+                               class="toolbarbutton-1 msgHeaderView-button hdrDummyReplyButton"/>
+                <toolbarbutton id="hdrReplyOnlyButton" label="&hdrReplyButton.label;"
+                               tooltiptext="&hdrReplyButton.tooltip;"
+                               oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
+                               observes="button_reply"
+                               class="toolbarbutton-1 msgHeaderView-button hdrReplyOnlyButton"/>
                 <toolbarbutton id="hdrReplyButton" label="&hdrReplyButton.label;"
                                tooltiptext="&hdrReplyButton.tooltip;"
                                oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
@@ -219,12 +230,12 @@
                                class="toolbarbutton-1 msgHeaderView-button hdrReplyButton"
                                type="menu-button">
                   <menupopup id="hdrReplyDropdown">
-                    <menuitem id="hdrReplySubButton"
+                    <menuitem id="hdrReply_ReplySubButton"
                               label="&hdrReplyButton.label;"
                               tooltiptext="&hdrReplyButton.tooltip;"
                               observes="button_reply"/>
-                    <menuseparator id="hdrReplyAllSubButtonSep"/>
-                    <menuitem id="hdrReplyAllSubButton"
+                    <menuseparator id="hdrReplySubSeparator"/>
+                    <menuitem id="hdrReply_ReplyAllSubButton"
                               label="&hdrReplyAllButton.label;"
                               tooltiptext="&hdrReplyAllButton.tooltip;"
                               observes="button_replyall"
@@ -241,7 +252,7 @@
                                type="menu-button"
                                hidden="true">
                   <menupopup id="hdrReplyAllDropdown">
-                    <menuitem id="hdrReplyAllSubButton"
+                    <menuitem id="hdrReplyAll_ReplyAllSubButton"
                               label="&hdrReplyAllButton.label;"
                               tooltiptext="&hdrReplyAllButton.tooltip;"
                               observes="button_replyall"/>
@@ -263,18 +274,18 @@
                                type="menu-button"
                                hidden="true">
                   <menupopup id="hdrReplyListDropdown">
-                    <menuitem id="hdrReplyListSubButton"
+                    <menuitem id="hdrReplyList_ReplyListSubButton"
                               label="&hdrReplyListButton.label;"
                               tooltiptext="&hdrReplyListButton.tooltip;"
                               observes="button_replylist"/>
                     <menuseparator id="hdrReplyListSubSeparator"/>
-                    <menuitem id="hdrReplyAllSubButton"
+                    <menuitem id="hdrRelplyList_ReplyAllSubButton"
                               label="&hdrReplyAllButton.label;"
                               tooltiptext="&hdrReplyAllButton.tooltip;"
                               observes="button_replyall"
                               oncommand="MsgReplyToAllMessage(event); event.stopPropagation();
                                          RestoreFocusAfterHdrButton();"/>
-                    <menuitem id="hdrReplySubButton"
+                    <menuitem id="hdrReplyList_ReplySubButton"
                               label="&hdrReplyButton.label;"
                               tooltiptext="&hdrReplyButton.tooltip;"
                               observes="button_reply"

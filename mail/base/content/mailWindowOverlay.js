@@ -986,64 +986,53 @@ function UpdateReplyButtons()
   if (!gFolderDisplay.selectedMessage)
     return;
 
-  let showReplyAll = IsReplyAllEnabled();
-  let showReplyList = IsReplyListEnabled();
-
-  // If we're in a news item, we should default to Reply.
+  let buttonToShow;
   if (gFolderDisplay.selectedMessageIsNews)
   {
-    showReplyAll = false;
-    showReplyList = false;
+    // News messages always default to the "reply" dual-button.
+    buttonToShow = "reply";
+  }
+  else if (gFolderDisplay.selectedMessageIsFeed)
+  {
+    // RSS items hide all the reply buttons.
+    buttonToShow = null;
+  }
+  else
+  {
+    // Mail messages show the "reply" button (not the dual-button) and
+    // possibly the "reply all" and "reply list" buttons.
+    if (IsReplyListEnabled())
+      buttonToShow = "replyList";
+    else if (IsReplyAllEnabled())
+      buttonToShow = "replyAll";
+    else
+      buttonToShow = "replyOnly";
   }
 
-  let buttonToShow = "reply";
-  if (showReplyList)
-    buttonToShow = "replyList";
-  else if (showReplyAll)
-    buttonToShow = "replyAll";
-
   let smartReplyButton = document.getElementById("hdrSmartReplyButton");
-  let replyButton = document.getElementById("hdrReplyButton");
-  let replyAllButton = document.getElementById("hdrReplyAllButton");
-  let replyAllSubButton = document.getElementById("hdrReplyAllSubButton");
-  let replyAllSubButtonSep = document.getElementById("hdrReplyAllSubButtonSep");
-  let replyListButton = document.getElementById("hdrReplyListButton");
-  let replyToSenderButton = document.getElementById("hdrReplyToSenderButton");
-
   if (smartReplyButton)
   {
+    let replyOnlyButton = document.getElementById("hdrReplyOnlyButton");
+    let replyButton = document.getElementById("hdrReplyButton");
+    let replyAllButton = document.getElementById("hdrReplyAllButton");
+    let replyListButton = document.getElementById("hdrReplyListButton");
+
+    replyOnlyButton.hidden = (buttonToShow != "replyOnly");
     replyButton.hidden = (buttonToShow != "reply");
     replyAllButton.hidden = (buttonToShow != "replyAll");
     replyListButton.hidden = (buttonToShow != "replyList");
-    if (gFolderDisplay.selectedMessageIsNews)
-    {
-      // If it's a news item, show the ReplyAll sub-button and separator.
-      replyAllSubButton.hidden = false;
-      replyAllSubButtonSep.hidden = false;
-     }
-    else if (gFolderDisplay.selectedMessageIsFeed)
-    {
-      // otherwise, if it's an rss item, hide all the Reply buttons.
-      replyButton.hidden = true;
-      replyAllButton.hidden = true;
-      replyListButton.hidden = true;
-      replyAllSubButton.hidden = true;
-      replyAllSubButtonSep.hidden = true;
-    }
-    else
-    {
-      // otherwise, hide the ReplyAll sub-buttons.
-      replyAllSubButton.hidden = true;
-      replyAllSubButtonSep.hidden = true;
-    }
   }
 
+  let replyToSenderButton = document.getElementById("hdrReplyToSenderButton");
   if (replyToSenderButton)
   {
     if (gFolderDisplay.selectedMessageIsFeed)
       replyToSenderButton.hidden = true;
+    else if (smartReplyButton)
+      replyToSenderButton.hidden = buttonToShow == "reply" ||
+                                   buttonToShow == "replyOnly";
     else
-      replyToSenderButton.hidden = (replyButton && !replyButton.hidden);
+      replyToSenderButton.hidden = false;
   }
 
   goUpdateCommand("button_reply");

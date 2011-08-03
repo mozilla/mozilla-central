@@ -357,11 +357,9 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
   display: -moz-box;
 }
 
-.hdrReplyToSenderButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px, 72px, 18px, 54px);
-}
-
+.hdrReplyToSenderButton,
+.hdrDummyReplyButton,
+.hdrReplyOnlyButton,
 .hdrReplyButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px, 72px, 18px, 54px);
@@ -443,6 +441,15 @@ window[inlinetoolbox] #wrapper-spring {
 .inline-toolbox[doCustomization] .inline-toolbar {
   min-width: 100px;
   min-height: 10px;
+}
+
+/* Only show the dummy smart reply button when customizing. */
+.inline-toolbox[doCustomization] #hdrSmartReplyButton > toolbarbutton {
+  display: none;
+}
+
+.inline-toolbox[doCustomization] #hdrDummyReplyButton {
+  display: -moz-box !important;
 }
 
 .msgHeaderView-button,
