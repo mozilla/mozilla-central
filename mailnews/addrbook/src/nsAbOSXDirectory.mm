@@ -519,10 +519,10 @@ nsAbOSXDirectory::Init(const char *aUri)
   nsCOMPtr<nsIMutableArray> cardList;
   PRBool isRootOSXDirectory = PR_FALSE;
 
-  if (mURINoQuery.Length() <= sizeof(NS_ABOSXDIRECTORY_URI_PREFIX))
+  if (!mIsQueryURI && mURINoQuery.Length() <= sizeof(NS_ABOSXDIRECTORY_URI_PREFIX))
     isRootOSXDirectory = PR_TRUE;
 
-  if (isRootOSXDirectory)
+  if (mIsQueryURI || isRootOSXDirectory)
   {
     m_DirPrefId.AssignLiteral("ldap_2.servers.osx");
 
@@ -587,7 +587,13 @@ nsAbOSXDirectory::Init(const char *aUri)
     }
 
     NS_ENSURE_SUCCESS(rv, rv);
-    AssertCard(abManager, card);
+
+    // If we're not a query directory, we're going to want to
+    // tell the AB Manager that we've added some cards so that they
+    // show up in the address book views.
+    if (!mIsQueryURI)
+      AssertCard(abManager, card);
+
   }
 
   return NS_OK;
