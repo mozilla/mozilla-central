@@ -1,3 +1,4 @@
+/* -*- indent-tabs-mode: nil; js-indent-level: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -1329,13 +1330,16 @@ let gFolderTreeView = {
         // the same name. (only for folders with duplicated names)
         let uniqueNames = new Object();
         for each (let item in faves) {
+          let name = item._folder.abbreviatedName.toLowerCase();
           item.__defineGetter__("children", function() []);
-          if (!uniqueNames[item._folder.abbreviatedName])
-            uniqueNames[item._folder.abbreviatedName] = 0;
-          uniqueNames[item._folder.abbreviatedName]++;
+          if (!uniqueNames[name])
+            uniqueNames[name] = 0;
+          uniqueNames[name]++;
         }
-        for each (let item in faves)
-          item.addServerName = (uniqueNames[item._folder.abbreviatedName] > 1) ? true : false;
+        for each (let item in faves) {
+          let name = item._folder.abbreviatedName.toLowerCase();
+          item.addServerName = (uniqueNames[name] > 1) ? true : false;
+        }
         sortFolderItems(faves);
         return faves;
       },
