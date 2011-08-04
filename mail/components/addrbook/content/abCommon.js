@@ -378,30 +378,20 @@ function AbNewMessage()
   }
 }
 
-// XXX todo
-// could this be moved into utilityOverlay.js?
-function goToggleSplitter( id, elementID )
-{
-  var splitter = document.getElementById( id );
-  var element = document.getElementById( elementID );
-  if ( splitter )
-  {
-    var attribValue = splitter.getAttribute("state") ;
-    if ( attribValue == "collapsed" )
-    {
-      splitter.setAttribute("state", "open" );
-      if ( element )
-        element.setAttribute("checked","true")
-    }
-    else
-    {
-      splitter.setAttribute("state", "collapsed");
-      if ( element )
-        element.setAttribute("checked","false")
-    }
-    document.persist(id, 'state');
-    document.persist(elementID, 'checked');
-  }
+/**
+ * Set up items in the View > Layout menupopup.  This function is responsible
+ * for updating the menu items' state to reflect reality.
+ *
+ * @param event the event that caused the View > Layout menupopup to be shown
+ */
+function InitViewLayoutMenuPopup(event) {
+  let dirPaneMenuItem = document.getElementById("menu_showDirectoryPane");
+  dirPaneMenuItem.setAttribute("checked", document.getElementById(
+    "dirTree-splitter").getAttribute("state") != "collapsed");
+
+  let cardPaneMenuItem = document.getElementById("menu_showCardPane");
+  cardPaneMenuItem.setAttribute("checked", document.getElementById(
+    "results-splitter").getAttribute("state") != "collapsed");
 }
 
 // Generate a list of cards from the selected mailing list

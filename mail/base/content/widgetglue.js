@@ -49,22 +49,6 @@ Components.utils.import("resource:///modules/MailUtils.js");
 //The eventual goal is for this file to go away and its contents to be brought into
 //mailWindowOverlay.js.  This is currently being done.
 
-function MsgToggleMessagePane()
-{
-  // Bail without doing anything if we are not a folder tab.
-  let currentTabInfo = document.getElementById("tabmail").currentTabInfo;
-  if (currentTabInfo.mode.name != "folder")
-    return;
-  var splitter = document.getElementById("threadpane-splitter");
-  var state = splitter.getAttribute("state");
-  if (state == "collapsed")
-    splitter.setAttribute("state", "open");
-  else
-    splitter.setAttribute("state", "collapsed")
-  ChangeMessagePaneVisibility(IsMessagePaneCollapsed());
-  SetFocusThreadPaneIfNotOnMessagePane();
-}
-
 // Given a URI we would like to return corresponding message folder here.
 // An additonal input param which specifies whether or not to check folder
 // attributes (like if there exists a parent or is it a server) is also passed

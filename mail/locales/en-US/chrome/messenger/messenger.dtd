@@ -132,6 +132,8 @@
 <!ENTITY messagePaneWide.accesskey "W">
 <!ENTITY messagePaneVertical.label "Vertical View">
 <!ENTITY messagePaneVertical.accesskey "V">
+<!ENTITY showFolderPaneCmd.label "Folder Pane">
+<!ENTITY showFolderPaneCmd.accesskey "F">
 <!ENTITY showMessageCmd.label "Message Pane">
 <!ENTITY showMessageCmd.accesskey "M">
 
