@@ -157,6 +157,7 @@ nsresult nsPop3Service::GetMail(PRBool downloadNewMail,
       : PR_smprintf("pop3://%s@%s:%d/?check", escapedUsername.get(), popHost.get(), popPort);
     rv = BuildPop3Url(urlSpec, aInbox, aPopServer, aUrlListener, getter_AddRefs(url), aMsgWindow);
     PR_Free(urlSpec);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
 
@@ -244,7 +245,8 @@ nsresult nsPop3Service::BuildPop3Url(const char * urlSpec,
   rv = pop3Url->QueryInterface(NS_GET_IID(nsIURI), (void **) aUrl);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  (*aUrl)->SetSpec(nsDependentCString(urlSpec));
+  rv = (*aUrl)->SetSpec(nsDependentCString(urlSpec));
+  NS_ENSURE_SUCCESS(rv,rv);
 
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(pop3Url);
   if (mailnewsurl)

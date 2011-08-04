@@ -1362,7 +1362,8 @@ nsMsgIncomingServer::GetPort(PRInt32 *aPort)
 
   nsresult rv;
   rv = GetIntValue("port", aPort);
-  if (*aPort != PORT_NOT_SET)
+  // We can't use a port of 0, because the URI parsing code fails.
+  if (*aPort != PORT_NOT_SET && *aPort)
     return rv;
 
   // if the port isn't set, use the default
