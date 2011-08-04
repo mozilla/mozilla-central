@@ -418,10 +418,6 @@
                       label="&viewToolbarsMenu.label;" accesskey="&viewToolbarsMenu.accesskey;"
                       onpopupshowing="onViewToolbarsPopupShowing(event, 'ab-toolbox');">
                   <menupopup id="view_toolbars_popup">
-                    <menuitem id="menu_showTaskbar"
-                              label="&showTaskbarCmd.label;" accesskey="&showTaskbarCmd.accesskey;"
-                              oncommand="goToggleToolbar('status-bar', 'menu_showTaskbar')"
-                              type="checkbox" checked="true"/>
                     <menuseparator id="viewMenuBeforeCustomizeABToolbarsSeparator"/>
                     <menuitem id="customizeABToolbars"
                               command="cmd_CustomizeABToolbar"
@@ -429,24 +425,17 @@
                               accesskey="&customizeToolbar.accesskey;"/>
                   </menupopup>
                 </menu>
-                <menu id="menu_Layout"
-                      label="&layoutMenu.label;"
-                      accesskey="&layoutMenu.accesskey;">
-                  <menupopup id="view_layout_popup"
-                             onpopupshowing="InitViewLayoutMenuPopup(event);">
-                    <menuitem id="menu_showDirectoryPane"
-                              label="&showDirectoryPane.label;"
-                              accesskey="&showDirectoryPane.accesskey;"
-                              oncommand="togglePaneSplitter('dirTree-splitter');"
-                              checked="true" type="checkbox"/>
-                    <menuitem id="menu_showCardPane"
-                              label="&showContactPane2.label;"
-                              accesskey="&showContactPane2.accesskey;"
-                              oncommand="togglePaneSplitter('results-splitter');"
-                              checked="true" type="checkbox"/>
-                  </menupopup>
-                </menu>
-                <menuseparator id="viewMenuAfterLayoutSeparator"/>
+                <menuitem id="menu_showTaskbar"
+                          label="&showTaskbarCmd.label;" accesskey="&showTaskbarCmd.accesskey;"
+                          oncommand="goToggleToolbar('status-bar', 'menu_showTaskbar')"
+                          type="checkbox" checked="true"/>
+                <menuseparator id="viewMenuAfterTaskbarSeparator"/>
+                <menuitem id="menu_showCardPane"
+                          label="&showContactPane.label;"
+                          accesskey="&showContactPane.accesskey;"
+                          oncommand="goToggleSplitter('results-splitter', 'menu_showCardPane')"
+                          checked="true" type="checkbox"/>
+                <menuseparator/>
                 <menu id="menu_ShowNameAs" label="&menu_ShowNameAs.label;" accesskey="&menu_ShowNameAs.accesskey;">
                     <menupopup id="menu_ShowNameAsPopup">
                         <menuitem type="radio" name="shownameas"

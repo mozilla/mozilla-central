@@ -52,11 +52,8 @@ Cu.import("resource:///modules/Services.jsm");
 var collectedAddresses;
 
 var abController;
-var windowHelper;
 
 function setupModule() {
-  windowHelper = collector.getModule("window-helpers");
-
   // Ensure all the directories are initialised.
   MailServices.ab.directories;
   collectedAddresses = MailServices.ab
@@ -70,7 +67,6 @@ function installInto(module) {
   module.ensure_card_exists = ensure_card_exists;
   module.ensure_no_card_exists = ensure_no_card_exists;
   module.open_address_book_window = open_address_book_window;
-  module.close_address_book_window = close_address_book_window;
   module.create_mork_address_book = create_mork_address_book;
   module.create_ldap_address_book = create_ldap_address_book;
   module.create_contact = create_contact;
@@ -164,20 +160,7 @@ function get_cards_in_all_address_books_for_email(aEmailAddress)
 function open_address_book_window()
 {
   abController = mozmill.getAddrbkController();
-  windowHelper.augment_controller(abController);
   return abController;
-}
-
-/**
- * Closes the address book interface
- * @param abc the controller for the address book window to close
- * @return the result from wait_for_window_close
- */
-function close_address_book_window(abc)
-{
-  windowHelper.plan_for_window_close(abc);
-  abc.window.close();
-  return windowHelper.wait_for_window_close(abc);
 }
 
 /**
