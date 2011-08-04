@@ -3,22 +3,14 @@
 /* :::: Filter Tab Bar Button :::: */
 
 #qfb-show-filter-bar {
-  list-style-image: url("chrome://messenger/skin/icons/filter.png");
-  -moz-border-start: 2px solid;
-  -moz-border-end: none;
-  -moz-border-left-colors: rgba(0,0,0,0.25) rgba(255,255,255,0.15);
-  -moz-border-right-colors: rgba(0,0,0,0.25) rgba(255,255,255,0.15);
+  list-style-image: url("chrome://messenger/skin/icons/filter.svg");
   margin: 0 0 1px;
   padding: 0 4px;
 }
 
-#qfb-show-filter-bar:hover {
-  background-color: rgba(0,0,0,0.10);
-}
-
-#qfb-show-filter-bar:hover:active,
+#qfb-show-filter-bar:hover,
 #qfb-show-filter-bar[checked] {
-  background-color: rgba(0,0,0,0.20);
+  list-style-image: url("chrome://messenger/skin/icons/filter-hover.svg");
 }
 
 #qfb-show-filter-bar > .toolbarbutton-icon {

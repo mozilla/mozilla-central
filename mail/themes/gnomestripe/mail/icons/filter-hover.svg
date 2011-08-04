@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+   width="18"
+   height="12">
+    <path
+       d="m 4.5,1 c -2.1,0 -3.8,1.6 -3.8,3.7 0,2 1.7,3.7 3.8,3.7 2,0 3.8,-1.6 3.8,-3.7 0,-2 -1.7,-3.7 -3.8,-3.7 z m 2.4,7.2 2.4,3.4 -2.4,-3.4 z"
+       fill="none" stroke="ButtonText" stroke-width="1.3"/>
+    <path
+       d="m 16.5,9 -1.3,1.5 -1.4,-1.5 z "
+       stroke="ButtonText" stroke-width="1.3"/>
+</svg>

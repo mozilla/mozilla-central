@@ -339,10 +339,17 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 }
 
 #MsgHeadersToolbar {
+  -moz-appearance: toolbar;
+  color: WindowText;
   min-height: 132px;
 }
 
 /* ::::: format toolbar ::::: */
+
+#FormatToolbar {
+  -moz-appearance: toolbar;
+  color: WindowText;
+}
 
 toolbarbutton.formatting-button {
   list-style-image: url("chrome://messenger/skin/messengercompose/format-buttons.png");

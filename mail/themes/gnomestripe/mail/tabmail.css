@@ -39,8 +39,7 @@
  */
 
 .tabmail-tabs:not(:-moz-lwtheme) {
-  background-image: -moz-linear-gradient(transparent, transparent 50%,
-                    rgba(0, 0, 0, .05) 90%, rgba(0, 0, 0, .1));
+  -moz-appearance: menubar;
 }
 
 .tabmail-tabs[overflow="true"] {
@@ -79,12 +78,17 @@ tabpanels {
   min-height: 25px; /* reserve space for the sometimes hidden close button */
 }
 
+.tabmail-tab:not(:-moz-lwtheme) {
+  color: MenuText;
+}
+
 .tabmail-tab:hover {
   background-image: -moz-linear-gradient(hsla(0, 0%, 100%, .6),
                     hsla(0, 0%, 100%, .2) 2px, hsla(0, 0%, 75%, .2) 50%);
 }
  
  .tabmail-tab[selected="true"] {
+  color: -moz-DialogText;
   font-weight: bold;
   background-image: -moz-linear-gradient(rgba(255, 255, 255, .8),
                     rgba(255, 255, 255, .5) 2px, rgba(255, 255, 255, .3) 20%,
@@ -235,11 +239,19 @@ tabpanels {
 }
 
 .tabs-alltabs-button > .toolbarbutton-menu-dropmarker {
+  -moz-appearance: none !important;
   margin-bottom: -1px;
+  -moz-padding-start: 0 !important;
+  list-style-image: url("chrome://messenger/skin/icons/dropmarker.svg");
+}
+
+.tabs-alltabs-button:hover > .toolbarbutton-menu-dropmarker {
+  list-style-image: url("chrome://messenger/skin/icons/dropmarker-hover.svg");
 }
 
 .tabs-alltabs-button > .toolbarbutton-icon {
   display: none;
+  -moz-margin-end: 0;
 }
 
 .alltabs-item > .menu-iconic-left {

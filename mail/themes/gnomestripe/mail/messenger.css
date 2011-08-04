@@ -19,6 +19,10 @@ toolbar[printpreview="true"] {
   -moz-binding: url("chrome://global/content/printPreviewBindings.xml#printpreviewtoolbar");
 }
 
+toolbar:not(.inline-toolbar):not(:-moz-lwtheme) {
+  -moz-appearance: menubar;
+}
+
 /*
  * Override the menulist icon forbidding in menu.css so that we can show
  * check-marks. bug 443516
@@ -70,6 +74,19 @@ menulist > menupopup > menu > .menu-iconic-left {
   padding-bottom: 6px;
   -moz-padding-start: 4px;
   -moz-padding-end: 5px;
+}
+
+toolbar:not(.inline-toolbar) toolbarbutton:not(:-moz-lwtheme) {
+  color: MenuText;
+}
+
+toolbarbutton:hover:not([disabled]):not(:-moz-lwtheme) .toolbarbutton-text {
+  color: -moz-buttonhovertext;
+}
+
+toolbarbutton:hover:active:not([disabled]):not(:-moz-lwtheme) .toolbarbutton-text,
+toolbarbutton[open="true"]:not(:-moz-lwtheme) {
+  color: ButtonText;
 }
 
 .toolbarbutton-1:hover:active:not([disabled]),
