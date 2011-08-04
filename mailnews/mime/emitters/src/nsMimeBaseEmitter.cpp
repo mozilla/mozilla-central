@@ -699,7 +699,9 @@ nsMimeBaseEmitter::AddAllHeaders(const nsACString &allheaders)
 ////////////////////////////////////////////////////////////////////////////////
 
 nsresult
-nsMimeBaseEmitter::GenerateDateString(const char * dateString, nsACString &formattedDate)
+nsMimeBaseEmitter::GenerateDateString(const char * dateString,
+                                      nsACString &formattedDate,
+                                      PRBool showDateForToday)
 {
   nsresult rv = NS_OK;
 
@@ -750,11 +752,11 @@ nsMimeBaseEmitter::GenerateDateString(const char * dateString, nsACString &forma
   PRExplodedTime explodedCurrentTime;
   PR_ExplodeTime(PR_Now(), PR_LocalTimeParameters, &explodedCurrentTime);
 
-  // if the message is from today, don't show the date, only the time. (i.e. 3:15 pm)
-  // if the message is from the last week, show the day of the week.   (i.e. Mon 3:15 pm)
-  // in all other cases, show the full date (03/19/01 3:15 pm)
+  // If we want short dates, check if the message is from today, and if so
+  // only show the time (e.g. 3:15 pm).
   nsDateFormatSelector dateFormat = kDateFormatShort;
-  if (explodedCurrentTime.tm_year == explodedCompTime.tm_year &&
+  if (!showDateForToday &&
+      explodedCurrentTime.tm_year == explodedCompTime.tm_year &&
       explodedCurrentTime.tm_month == explodedCompTime.tm_month &&
       explodedCurrentTime.tm_mday == explodedCompTime.tm_mday)
   {
@@ -809,7 +811,7 @@ nsMimeBaseEmitter::GetLocalizedDateString(const char * dateString)
   if (!displayOriginalDate)
   {
     nsCAutoString convertedDateString;
-    nsresult rv = GenerateDateString(dateString, convertedDateString);
+    nsresult rv = GenerateDateString(dateString, convertedDateString, true);
     if (NS_SUCCEEDED(rv))
       i18nValue = strdup(convertedDateString.get());
     else

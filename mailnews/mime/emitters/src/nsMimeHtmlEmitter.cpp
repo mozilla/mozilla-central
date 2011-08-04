@@ -248,7 +248,7 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
 
     if (!PL_strcasecmp("Date", headerInfo->name))
     {
-      GenerateDateString(headerValue, convertedDateString);
+      GenerateDateString(headerValue, convertedDateString, false);
       headerValueEnumerator->Append(convertedDateString);
     }
     else // append the header value as is

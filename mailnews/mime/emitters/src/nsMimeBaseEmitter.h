@@ -173,7 +173,8 @@ protected:
   nsCOMPtr<nsIMimeConverter> mUnicodeConverter;
   nsString            mCharset;
   nsCOMPtr<nsIDateTimeFormat> mDateFormatter;
-  nsresult GenerateDateString(const char * dateString, nsACString& formattedDate);
+  nsresult GenerateDateString(const char * dateString, nsACString& formattedDate,
+                              PRBool showDateForToday);
   // The caller is expected to free the result of GetLocalizedDateString
   char* GetLocalizedDateString(const char * dateString);
 };
