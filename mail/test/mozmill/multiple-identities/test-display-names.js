@@ -52,7 +52,7 @@ var secondIdentity;
 var myEmail = "sender@nul.nul"; // Dictated by messagerInjector.js
 var friendEmail = "carl@sagan.com";
 var friendName = "Carl Sagan";
-var headertoFieldYou;
+var headertoFieldMe;
 var collectedAddresses;
 
 function setupModule(module) {
@@ -99,7 +99,7 @@ function setupModule(module) {
   let bundle = Cc["@mozilla.org/intl/stringbundle;1"]
                  .getService(Ci.nsIStringBundleService).createBundle(
                    "chrome://messenger/locale/messenger.properties");
-  headertoFieldYou = bundle.GetStringFromName("headertoFieldYou");
+  headertoFieldMe = bundle.GetStringFromName("headertoFieldMe");
 }
 
 function ensure_single_identity() {
@@ -137,7 +137,7 @@ function help_test_display_name(message, field, expectedValue) {
 function test_single_identity() {
   ensure_no_card_exists(myEmail);
   ensure_single_identity();
-  help_test_display_name(0, "to", headertoFieldYou);
+  help_test_display_name(0, "to", headertoFieldMe);
 }
 
 function test_single_identity_in_abook() {
@@ -149,7 +149,7 @@ function test_single_identity_in_abook() {
 function test_single_identity_in_abook_no_pdn() {
   ensure_card_exists(myEmail, "President Frankenstein");
   ensure_single_identity();
-  help_test_display_name(0, "to", headertoFieldYou);
+  help_test_display_name(0, "to", headertoFieldMe);
 }
 
 
@@ -157,7 +157,7 @@ function test_single_identity_in_abook_no_pdn() {
 function test_multiple_identities() {
   ensure_no_card_exists(myEmail);
   ensure_multiple_identities();
-  help_test_display_name(0, "to", headertoFieldYou+" <"+myEmail+">");
+  help_test_display_name(0, "to", headertoFieldMe+" <"+myEmail+">");
 }
 
 function test_multiple_identities_in_abook() {
@@ -169,7 +169,7 @@ function test_multiple_identities_in_abook() {
 function test_multiple_identities_in_abook_no_pdn() {
   ensure_card_exists(myEmail, "President Frankenstein");
   ensure_multiple_identities();
-  help_test_display_name(0, "to", headertoFieldYou+" <"+myEmail+">");
+  help_test_display_name(0, "to", headertoFieldMe+" <"+myEmail+">");
 }
 
 

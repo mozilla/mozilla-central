@@ -1202,13 +1202,13 @@ function FormatDisplayName(aEmailAddress, aHeaderDisplayName, aContext, aCard)
   // If this address is one of the user's identities...
   if (aEmailAddress == identity.email) {
     var bundle = document.getElementById("bundle_messenger");
-    // ...pick a localized version of the word "You" appropriate to this
+    // ...pick a localized version of the word "Me" appropriate to this
     // specific header; fall back to the version used by the "to" header
     // if nothing else is available.
     try {
-      displayName = bundle.getString("header" + aContext + "FieldYou");
+      displayName = bundle.getString("header" + aContext + "FieldMe");
     } catch (ex) {
-      displayName = bundle.getString("headertoFieldYou");
+      displayName = bundle.getString("headertoFieldMe");
     }
 
     // Make sure we have an unambiguous name if there are multiple identities
