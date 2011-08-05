@@ -214,18 +214,18 @@ function setupTitle() {
  * the start date of a calendar-alarm-widget.
  *
  * @param aItem                 A calendar item for the comparison of the start date property
- * @param calAlarmWidget        A calendar-alarm-widget for the start date comparison with the given calendar item
+ * @param calAlarmWidget        The alarm widget item for the start date comparison with the given calendar item
  * @return                      1 - if the calendar item starts before the calendar-alarm-widget
  *                             -1 - if the calendar-alarm-widget starts before the calendar item
  *                              0 - otherwise
  */
-function widgetAlarmComptor(aItem, calAlarmWidget) {
+function widgetAlarmComptor(aItem, aWidgetItem) {
 
-    if (aItem == null || calAlarmWidget == null || calAlarmWidget.item == null) return -1;
+    if (aItem == null || aWidgetItem == null) return -1;
 
     // Get the dates to compare
     let aDate = aItem[calGetStartDateProp(aItem)];
-    let bDate = calAlarmWidget.item[calGetStartDateProp(calAlarmWidget.item)];
+    let bDate = aWidgetItem[calGetStartDateProp(aWidgetItem)];
 
     return aDate.compare(bDate);
 }
@@ -241,7 +241,7 @@ function addWidgetFor(aItem, aAlarm) {
     let alarmRichlist = document.getElementById("alarm-richlist");
 
     // Add widgets sorted by start date ascending
-    binaryInsertNode(alarmRichlist, widget, aItem, widgetAlarmComptor, false);
+    cal.binaryInsertNode(alarmRichlist, widget, aItem, widgetAlarmComptor, false);
 
     widget.item = aItem;
     widget.alarm = aAlarm;

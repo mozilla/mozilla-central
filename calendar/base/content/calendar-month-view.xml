@@ -161,10 +161,10 @@
 
   <binding id="calendar-month-day-box" extends="chrome://calendar/content/widgets/calendar-widgets.xml#dragndropContainer">
     <content orient="vertical">
-      <xul:label anonid="day-label" 
+      <xul:label anonid="day-label"
                  crop="end"
                  mousethrough="always"
-                 class="calendar-month-day-box-date-label" 
+                 class="calendar-month-day-box-date-label"
                  xbl:inherits="relation,selected,value"/>
       <xul:vbox anonid="day-items" class="calendar-month-day-box-items-box" flex="1">
         <children/>
@@ -173,14 +173,12 @@
 
     <implementation>
       <field name="mDate">null</field>
-      <!-- mItemData will always be kept sorted in display order -->
-      <field name="mItemData">[]</field>
+      <field name="mItemHash">{}</field>
       <field name="mShowMonthLabel">false</field>
 
-      <property name="date">
-        <getter>return this.mDate;</getter>
-        <setter>this.setDate(val); return val;</setter>
-      </property>
+      <property name="date"
+                onget="return this.mDate"
+                onset="this.setDate(val); return val;"/>
 
       <property name="selected">
         <getter><![CDATA[
@@ -226,7 +224,7 @@
           return val;
         ]]></setter>
       </property>
-      
+
       <method name="setDate">
         <parameter name="aDate"/>
         <body><![CDATA[
@@ -235,10 +233,8 @@
           }
 
           // Remove all the old events
-          this.mItemData = new Array();
-          while (this.hasChildNodes()) {
-              this.removeChild(this.lastChild);
-          }
+          this.mItemHash = {};
+          removeChildren(this);
 
           if (this.mDate && this.mDate.compare(aDate) == 0) {
             return;
@@ -265,77 +261,65 @@
       <method name="addItem">
         <parameter name="aItem"/>
         <body><![CDATA[
-          // XXX This scales badly for adding lots of items: O(N^2)
-          for each (ed in this.mItemData) {
-            if (aItem.hashId == ed.item.hashId)
-            {
-              this.deleteItem(aItem);
-              break;
-            }
+          if (aItem.hashId in this.mItemHash) {
+            this.deleteItem(aItem);
           }
 
           function dayboxItemComparator(a, b) {
-            var aIsEvent = isEvent(a.item);
-            var aIsTodo = isToDo(a.item);
+            let aIsEvent = cal.isEvent(a);
+            let aIsTodo = cal.isToDo(a);
 
-            var bIsEvent = isEvent(b.item);
-            var bIsTodo = isToDo(b.item);
-
-            if ((!aIsEvent && !aIsTodo) || (!bIsEvent && !bIsTodo)) {
-              // XXX ????
-              dump ("Don't know how to sort these two events: " + a.item + " " + b.item + "\n");
-              return 0;
-            }
+            let bIsEvent = cal.isEvent(b);
+            let bIsTodo = cal.isToDo(b);
 
             // sort todos before events
             if (aIsTodo && bIsEvent) return -1;
             if (aIsEvent && bIsTodo) return 1;
 
-            // XXX how do I sort todos?
-            if (aIsTodo && bIsTodo) {
-              return 0;
-            }
-
             if (aIsEvent && bIsEvent) {
               // sort all day events before events with a duration
-              if (a.item.startDate.isDate && !b.item.startDate.isDate) return -1;
-              if (!a.item.startDate.isDate && b.item.startDate.isDate) return 1;
+              if (a.startDate.isDate && !b.startDate.isDate) return -1;
+              if (!a.startDate.isDate && b.startDate.isDate) return 1;
 
-              var cmp;
-
-              cmp = a.item.startDate.compare(b.item.startDate);
+              let cmp = a.startDate.compare(b.startDate);
               if (cmp != 0)
                 return cmp;
 
-              cmp = a.item.endDate.compare(b.item.endDate);
+              cmp = a.endDate.compare(b.endDate);
               if (cmp != 0)
                 return cmp;
 
-              if (a.item.title < b.item.title)
-                return -1;
-              if (a.item.title > b.item.title)
-                return 1;
+              cmp = (a.title > b.title) - (a.title < b.title);
+              return cmp;
             }
 
             return 0;
           }
 
-          // Insert the new item block (while keeping the array sorted),
-          // and then relayout. Use a binary search insertation because the
-          // array is already sorted. Array.Sort would use quicksort which is
-          // not good for this case.
-          binaryInsert(this.mItemData, { item: aItem }, dayboxItemComparator, false);
-          this.relayout();
+          let box = createXULElement("calendar-month-day-box-item");
+          let context = this.getAttribute("item-context") ||
+                        this.getAttribute("context");
+          box.setAttribute("context", context);
+          box.setAttribute("calendar-uri", aItem.calendar.uri.spec);
+          box.setAttribute("calendar-id", aItem.calendar.id);
+
+          cal.binaryInsertNode(this, box, aItem, dayboxItemComparator, false);
+
+          box.calendarView = this.calendarView;
+          box.item = aItem;
+          box.parentBox = this;
+          box.occurrence = aItem;
+
+          this.mItemHash[aItem.hashId] = box;
+          return box;
         ]]></body>
       </method>
 
       <method name="selectItem">
         <parameter name="aItem"/>
         <body><![CDATA[
-          for each (var itd in this.mItemData) {
-              if (aItem && (itd.item.hashId == aItem.hashId)) {
-                  itd.box.selected = true;
-              }
+          if (aItem.hashId in this.mItemHash) {
+            this.mItemHash[aItem.hashId].selected = true;
           }
         ]]></body>
       </method>
@@ -343,10 +327,8 @@
       <method name="unselectItem">
         <parameter name="aItem"/>
         <body><![CDATA[
-          for each (var itd in this.mItemData) {
-              if (aItem && (itd.item.hashId == aItem.hashId)) {
-                  itd.box.selected = false;
-              }
+          if (aItem.hashId in this.mItemHash) {
+            this.mItemHash[aItem.hashId].selected = false;
           }
         ]]></body>
       </method>
@@ -354,59 +336,16 @@
       <method name="deleteItem">
         <parameter name="aItem"/>
         <body><![CDATA[
-          var deleted = [];
-
-          var origLen = this.mItemData.length;
-          this.mItemData = this.mItemData.filter(
-            function(itd) {
-              if (aItem.hashId == itd.item.hashId)
-              {
-                deleted.push(itd);
-                return false;
-              }
-              return true;
-            });
-
-          if (deleted.length > 0) {
-            for each (itd in deleted) {
-              if (itd.box)
-                this.removeChild(itd.box);
-            }
-            // no need to relayout; all we did was delete
-            //this.relayout();
+          if (aItem.hashId in this.mItemHash) {
+            let node =  this.mItemHash[aItem.hashId];
+            node.parentNode.removeChild(node);
+            delete this.mItemHash[aItem.hashId];
           }
         ]]></body>
       </method>
 
-      <method name="relayout">
-        <body><![CDATA[
-          for (var i = 0; i < this.mItemData.length; i++) {
-            var itd = this.mItemData[i];
-
-            if (!itd.box) {
-              // find what element to insert before
-              var before = null;
-              for (var j = i+1; !before && this.mItemData[j]; j++)
-                before = this.mItemData[j].box;
-
-              var box = createXULElement("calendar-month-day-box-item");
-              box.setAttribute("context", this.getAttribute("item-context") || this.getAttribute("context"));
-              box.setAttribute("calendar-uri", itd.item.calendar.uri.spec);
-              box.setAttribute("calendar-id", itd.item.calendar.id);
-
-              this.insertBefore(box, before);
-
-              box.calendarView = this.calendarView;
-              box.item = itd.item;
-              box.parentBox = this;
-              box.occurrence = itd.item;
-              itd.box = box;
-            }
-          }
-        ]]></body>
-      </method>
       <method name="onDropItem">
-        <parameter name="aItem"/>      
+        <parameter name="aItem"/>
         <body><![CDATA[
           return cal.moveItem(aItem, this.mDate);
         ]]></body>
@@ -1049,9 +988,8 @@
         <body><![CDATA[
           let deleteHash = {};
           for each (let box in this.mDateBoxes) {
-            let boxItemData = Array.slice(box.mItemData);
-            for each (let itemData in boxItemData) {
-              let item = itemData.item;
+            for each (let node in box.mItemHash) {
+              let item = node.item;
               if (!deleteHash[item.hashId] && item.calendar.id == aCalendar.id) {
                 deleteHash[item.hashId] = true;
                 this.doDeleteItem(item);
@@ -1077,12 +1015,12 @@
           // boxes.
           let boxes = this.findDayBoxesForItem(aAlarmItem);
           for each (var box in boxes) {
-            for each (var itemData in box.mItemData) {
+            for each (var itemData in box.mItemHash) {
               if (itemData.item.hasSameIds(aAlarmItem)) {
                 if (aStop) {
-                  itemData.box.removeAttribute("flashing");
+                  itemData.removeAttribute("flashing");
                 } else {
-                  itemData.box.setAttribute("flashing", "true");
+                  itemData.setAttribute("flashing", "true");
                 }
               }
             }

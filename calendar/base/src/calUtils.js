@@ -1820,21 +1820,24 @@ function binarySearch(itemArray, newItem, comptor) {
  * @param parentNode           The parent node underneath the new node should be inserted.
  * @param inserNode            The node to insert
  * @param aItem                The calendar item to add a widget for.
- * @param comptor              A comparison function that can compare two nodes.
+ * @param comptor              A comparison function that can compare two items (not DOM Nodes!)
  * @param discardDuplicates    Use the comptor function to check if the item in
  *                               question is already in the array. If so, the
  *                               new item is not inserted.
+ * @param itemAccessor         [optional] A function that receives a DOM node and returns the associated item
+ *                               If null, this function will be used: function(n) n.item
  */
-function binaryInsertNode(parentNode, insertNode, aItem, comptor, discardDuplicates) {
+function binaryInsertNode(parentNode, insertNode, aItem, comptor, discardDuplicates, itemAccessor) {
+    let accessor = itemAccessor || binaryInsertNode.defaultAccessor;
 
     // Get the index of the node before which the inserNode will be inserted
-    var newIndex = binarySearch(parentNode.childNodes, aItem, comptor);
+    let newIndex = binarySearch(Array.map(parentNode.childNodes, accessor), aItem, comptor);
 
     if (newIndex < 0) {
         parentNode.appendChild(insertNode);
         newIndex = 0;
     } else if (!discardDuplicates ||
-        comptor(parentNode.childNodes[Math.min(newIndex, parentNode.childNodes.length - 1)], insertNode) >= 0) {
+        comptor(accessor(parentNode.childNodes[Math.min(newIndex, parentNode.childNodes.length - 1)]), aItem) >= 0) {
 
         // Only add the node if duplicates should not be discarded, or if
         // they should and the childNode[newIndex] == node.
@@ -1843,6 +1846,7 @@ function binaryInsertNode(parentNode, insertNode, aItem, comptor, discardDuplica
     }
     return newIndex;
 }
+binaryInsertNode.defaultAccessor = function(n) n.item;
 
 /**
  * Insert an item into the given array, using binary search. See binarySearch
