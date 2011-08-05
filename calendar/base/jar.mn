@@ -65,7 +65,7 @@ calendar.jar:
 *   content/calendar/calendar-migration-dialog.js          (content/dialogs/calendar-migration-dialog.js)
     content/calendar/calendar-migration-dialog.xul         (content/dialogs/calendar-migration-dialog.xul)
     content/calendar/calendar-occurrence-prompt.xul        (content/dialogs/calendar-occurrence-prompt.xul)
-*   content/calendar/calendar-print-dialog.js              (content/dialogs/calendar-print-dialog.js)
+    content/calendar/calendar-print-dialog.js              (content/dialogs/calendar-print-dialog.js)
     content/calendar/calendar-print-dialog.xul             (content/dialogs/calendar-print-dialog.xul)
     content/calendar/calendar-properties-dialog.xul        (content/dialogs/calendar-properties-dialog.xul)
     content/calendar/calendar-properties-dialog.js         (content/dialogs/calendar-properties-dialog.js)

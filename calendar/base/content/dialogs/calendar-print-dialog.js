@@ -34,6 +34,7 @@
  *   Eduardo Teruo Katayama <eduardo@ime.usp.br>
  *   Glaucus Augustus Grecco Cardoso <glaucus@ime.usp.br>
  *   Francisco Jose Mulero <fjmulero@gmv.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -49,6 +50,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * Gets the calendar view from the opening window
+ */
 function getCalendarView() {
     let theView = window.opener.currentView();
     if (!theView.startDay) {
@@ -57,6 +61,9 @@ function getCalendarView() {
     return theView;
 }
 
+/**
+ * Loads the print dialog, setting up all needed elements.
+ */
 function loadCalendarPrintDialog() {
     // set the datepickers to the currently selected dates
     let theView = getCalendarView();
@@ -130,6 +137,11 @@ function getEventsAndDialogSettings(receiverFunc) {
     }
 }
 
+/**
+ * Retrieves a settings object containing info on what to print
+ *
+ * @return      The settings object with all print settings
+ */
 function getWhatToPrintSettings() {
     let tempTitle = document.getElementById("title-field").value;
     let settings = new Object();
@@ -180,6 +192,12 @@ function getWhatToPrintSettings() {
     return settings;
 }
 
+/**
+ * Sets up the filter for a getItems call based on the javascript settings
+ * object
+ *
+ * @param settings      The settings data to base upon
+ */
 function getFilter(settings) {
     let filter = 0;
     if (settings.printTasks) {
@@ -251,6 +269,28 @@ function refreshHtml(finishFunc) {
     );
 }
 
+/**
+ * This is a nsIWebProgressListener that closes the dialog on completion, makes
+ * sure printing works without issues
+ */
+var closeOnComplete = {
+    onStateChange: function onStateChange(aProgress, aRequest, aStateFlags, aStatus) {
+
+        if (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_STOP) {
+            // The request is complete, close the window.
+            document.documentElement.cancelDialog();
+        }
+    },
+
+    onProgressChange: function() {},
+    onLocationChange: function() {},
+    onStatusChange: function() {},
+    onSecurityChange: function() {}
+};
+
+/**
+ * Prints the document and then closes the window
+ */
 function printAndClose() {
     refreshHtml(
         function finish() {
@@ -263,7 +303,7 @@ function printAndClose() {
             // Start the printing, this is just what PrintUtils does, but we
             // apply our own settings.
             try {
-                webBrowserPrint.print(printSettings, null);
+                webBrowserPrint.print(printSettings, closeOnComplete);
                 if (gPrintSettingsAreGlobal && gSavePrintSettings) {
                     var PSSVC = Components.classes["@mozilla.org/gfx/printsettings-service;1"]
                                           .getService(Components.interfaces.nsIPrintSettingsService);
@@ -272,21 +312,9 @@ function printAndClose() {
                     PSSVC.savePrintSettingsToPrefs(printSettings, false,
                                                    printSettings.kInitSavePrinterName);
                 }
-            } catch (e if e instanceof Components.results.NS_ERROR_ABORT) {
+            } catch (e if e.result == Components.results.NS_ERROR_ABORT) {
                 // Pressing cancel is expressed as an NS_ERROR_ABORT return value,
                 // causing an exception to be thrown which we catch here.
-            }
-
-            let closeDialog = true;
-#ifdef XP_UNIX
-#ifndef XP_MACOSX
-            closeDialog = false;
-#endif
-#endif
-            // XXX: printing fails "printing failed while in preview"
-            //      if dialog is closed too early on Unix
-            if (closeDialog) {
-                document.getElementById("calendar-new-printwindow").cancelDialog();
             }
         });
     return false; // leave open
