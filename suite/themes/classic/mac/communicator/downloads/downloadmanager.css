@@ -64,6 +64,15 @@
   box-shadow: inset rgba(0, 0, 0, 0.3) 0 -6px 10px, inset #000000 0 1px 3px, inset rgba(0, 0, 0, 0.2) 0 1px 3px, 0 1px rgba(255, 255, 255, .4);
 }
 
+#clearListButton:-moz-focusring {
+  border-color: rgba(102, 122, 155, 0.9);
+  box-shadow: inset 0 0 1px -moz-mac-focusring, 0 0 4px 1px -moz-mac-focusring, 0 0 1.5px 1px -moz-mac-focusring;
+}
+
+#clearListButton:-moz-system-metric(mac-graphite-theme):-moz-focusring {
+  border-color: rgba(59, 59, 59, 0.7);
+}
+
 #clearListButton[disabled="true"],
 #clearListButton:-moz-window-inactive {
   border-color: rgba(146, 146, 146, 0.84);
