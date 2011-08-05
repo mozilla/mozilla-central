@@ -44,6 +44,8 @@
 <!-- used for button-text and button-menu-dropmarker classes -->
 <?xml-stylesheet href="chrome://global/skin/button.css" type="text/css"?>
 
+<?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
+
 <!-- DTD File with all strings specific to the calendar -->
 <!DOCTYPE dialog SYSTEM "chrome://calendar/locale/calendar.dtd">
 
@@ -59,6 +61,7 @@
         width="600"
         height="300">
   <script type="application/javascript" src="chrome://calendar/content/calendar-alarm-dialog.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-item-editing.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
 
   <richlistbox id="alarm-richlist" flex="1" onselect="onSelectAlarm(event)"/>

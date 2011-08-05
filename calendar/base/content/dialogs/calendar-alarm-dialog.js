@@ -100,12 +100,14 @@ function onDismissAllAlarms() {
  * @param event     The itemdetails event.
  */
 function onItemDetails(event) {
-    // We want this to happen in a calendar window.
-    let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                       .getService(Components.interfaces.nsIWindowMediator);
-    let calWindow = wm.getMostRecentWindow("calendarMainWindow") ||
-                    wm.getMostRecentWindow("mail:3pane");
-    calWindow.modifyEventWithDialog(event.target.item, null, true);
+    // We want this to happen in a calendar window if possible. Otherwise open
+    // it using our window.
+    let calWindow = cal.getCalendarWindow();
+    if (calWindow) {
+        calWindow.modifyEventWithDialog(event.target.item, null, true);
+    } else {
+        modifyEventWithDialog(event.target.item, null, true);
+    }
 }
 
 /**
@@ -327,4 +329,11 @@ function onSelectAlarm(event) {
         richList.ensureElementIsVisible(richList.getSelectedItem(0));
         richList.userSelectedWidget = true;
     }
+}
+
+function ensureCalendarVisible(aCalendar) {
+    // This function is called on the alarm dialog from calendar-item-editing.js.
+    // Normally, it makes sure that the calendar being edited is made visible,
+    // but the alarm dialog is too far away from the calendar views that it
+    // makes sense to force visiblity for the calendar. Therefore, do nothing.
 }
