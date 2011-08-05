@@ -42,6 +42,7 @@
 
 <?xml-stylesheet href="chrome://messenger/skin/messengercompose/messengercompose.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/attachmentList.css" type="text/css"?>
 <?xul-overlay href="chrome://editor/content/editorOverlay.xul"?>
 #ifdef XP_MACOSX
 <?xul-overlay href="chrome://messenger/content/macMenuOverlay.xul"?>
@@ -312,14 +313,35 @@
 
 </menupopup>
 
-<menupopup id="msgComposeAttachmentContext" onpopupshowing="updateEditItems();">
-  <menuitem label="&openAttachment.label;" accesskey="&openAttachment.accesskey;" command="cmd_openAttachment"/>
-  <menuitem label="&removeAttachment.label;" accesskey="&removeAttachment.accesskey;" command="cmd_delete"/>
-  <menuitem label="&renameAttachment.label;" accesskey="&renameAttachment.accesskey;" command="cmd_renameAttachment"/>
-  <menuitem label="&selectAll.label;" accesskey="&selectAll.accesskey;" command="cmd_selectAll"/>
+<menupopup id="msgComposeAttachmentItemContext"
+           onpopupshowing="updateEditItems();">
+  <menuitem label="&openAttachment.label;"
+            accesskey="&openAttachment.accesskey;"
+            command="cmd_openAttachment"/>
+  <menuitem label="&removeAttachment.label;"
+            accesskey="&removeAttachment.accesskey;"
+            command="cmd_delete"/>
+  <menuitem label="&renameAttachment.label;"
+            accesskey="&renameAttachment.accesskey;"
+            command="cmd_renameAttachment"/>
   <menuseparator/>
-  <menuitem label="&attachFile.label;" accesskey="&attachFile.accesskey;" command="cmd_attachFile"/>
-  <menuitem label="&attachPage.label;" accesskey="&attachPage.accesskey;" command="cmd_attachPage"/>
+  <menuitem label="&selectAll.label;"
+            accesskey="&selectAll.accesskey;"
+            command="cmd_selectAll"/>
+</menupopup>
+
+<menupopup id="msgComposeAttachmentListContext"
+           onpopupshowing="updateEditItems();">
+  <menuitem label="&selectAll.label;"
+            accesskey="&selectAll.accesskey;"
+            command="cmd_selectAll"/>
+  <menuseparator/>
+  <menuitem label="&attachFile.label;"
+            accesskey="&attachFile.accesskey;"
+            command="cmd_attachFile"/>
+  <menuitem label="&attachPage.label;"
+            accesskey="&attachPage.accesskey;"
+            command="cmd_attachPage"/>
 </menupopup>
 
 <menupopup id="toolbar-context-menu"
@@ -755,12 +777,13 @@
                    crop="right" accesskey="&attachments.accesskey;"/>
             <label id="attachmentBucketSize"/>
           </hbox>
-          <listbox seltype="multiple" id="attachmentBucket" flex="1" rows="4"
-                   tabindex="0"
-                   context="msgComposeAttachmentContext"
-                   onkeypress="if (event.keyCode == 8 || event.keyCode == 46) RemoveSelectedAttachment();"
-                   onclick="AttachmentBucketClicked(event);"
-                   ondraggesture="nsDragAndDrop.startDrag(event, attachmentBucketDNDObserver);"/>
+          <attachmentlist orient="vertical" id="attachmentBucket"
+                          seltype="multiple" flex="1" height="0" tabindex="0"
+                          context="msgComposeAttachmentListContext"
+                          itemcontext="msgComposeAttachmentItemContext"
+                          onkeypress="if (event.keyCode == 8 || event.keyCode == 46) RemoveSelectedAttachment();"
+                          onclick="AttachmentBucketClicked(event);"
+                          ondraggesture="nsDragAndDrop.startDrag(event, attachmentBucketDNDObserver);"/>
         </vbox>
       </hbox>
     </toolbar>

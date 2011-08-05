@@ -211,45 +211,8 @@
   list-style-image: url("chrome://messenger/skin/icons/download.png");
 }
 
-/* XXX: Move all of the description attributes to the toolkit */
-
-description[selectable="true"] {
-  margin: 1px 5px 4px;
-}
-
-descriptionitem {
-  border: 1px solid transparent;
-  margin: 1px;
-}
-
-description[selectable="true"]:focus > descriptionitem[current="true"] {
-  border: 1px dotted #F5DB95;
-}
-
-descriptionitem[selected="true"] {
-  background-color: -moz-Dialog;
-  color: -moz-DialogText;
-}
-
-description[selectable="true"]:focus > descriptionitem[selected="true"] {
-  background-color: Highlight;
-  color: HighlightText;
-}
-
-.attachmentBox {
-  width: 15em;
-}
-
-#attachmentView[largeView="true"] .attachmentBox {
-  -moz-box-orient: vertical;
-}
-
 #attachmentView {
   border-top: 1px solid ThreeDShadow;
-}
-
-#attachmentListWrapper[attachmentOverflow="true"] {
-  overflow: auto;
 }
 
 /* ::::: msg header captions ::::: */

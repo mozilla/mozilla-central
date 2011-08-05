@@ -268,7 +268,7 @@ function add_attachment(aComposeWindow, aUrl, aSize) {
  */
 function delete_attachment(aComposeWindow, aIndex) {
   let bucket = aComposeWindow.e('attachmentBucket');
-  let node = bucket.getElementsByTagName('listitem')[aIndex];
+  let node = bucket.getElementsByTagName('attachmentitem')[aIndex];
 
   aComposeWindow.click(new elib.Elem(node));
   aComposeWindow.window.RemoveSelectedAttachment();

@@ -43,17 +43,68 @@
 
 /* ::::: mail xbl bindings ::::: */
 
-description[selectable="true"] {
-  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#extdescription");
+/* attachment list styles */
+
+attachmentlist {
+  -moz-appearance: listbox;
+  -moz-user-focus: normal;
 }
 
-descriptionitem {
-  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#descriptionitem");
+attachmentlist[orient="horizontal"] {
+  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#attachmentlist-horizontal");
 }
 
-.descriptionitem-iconic {
-  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#descriptionitem-iconic");
+attachmentlist[orient="vertical"] {
+  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#attachmentlist-vertical");
 }
+
+.attachmentlist-wrapper {
+  display: block;
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+}
+
+attachmentitem {
+  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#attachmentitem");
+}
+
+.attachmentcell-content {
+  -moz-box-orient: horizontal;
+}
+
+.attachmentcell-text {
+  -moz-box-orient: horizontal;
+}
+
+attachmentitem {
+  width: 15em;
+}
+
+attachmentlist[view="large"] .attachmentcell-content {
+  -moz-box-orient: horizontal;
+}
+
+attachmentlist[view="large"] .attachmentcell-text {
+  -moz-box-align: start;
+  -moz-box-orient: vertical;
+}
+
+attachmentlist[view="tile"] .attachmentcell-content {
+  -moz-box-align: center;
+  -moz-box-orient: vertical;
+}
+
+attachmentlist[view="tile"] .attachmentcell-text {
+  -moz-box-align: center;
+  -moz-box-orient: vertical;
+}
+
+attachmentlist[view="tile"] > attachmentitem {
+  width: 9em;
+}
+
+/* message header widgets */
 
 mail-messageid {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#mail-messageid");

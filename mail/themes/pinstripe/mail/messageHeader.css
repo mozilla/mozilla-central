@@ -145,6 +145,8 @@
 
 #attachmentList {
   margin: 0px;
+  background-color: -moz-Field;
+  color: -moz-FieldText;
 }
 
 #attachmentToggle {
@@ -203,62 +205,56 @@
   padding-bottom: 0px !important;
 }
 
-/* XXX: Move all of the description attributes to the toolkit */
-
-description {
-  margin: 0;
-}
-
-descriptionitem {
-  padding: 0px;
-  margin: 1px;
-  text-decoration: underline;
-  color: blue;
-  border: none !important;
-}
-
-description[selectable="true"]:focus > descriptionitem[selected="true"][current="true"] {
-  border: 1px solid #B8B8B8;
-  background-color: #C8C8C8;
-}
-
-descriptionitem[selected="true"] {
-  border: 1px solid #B8B8B8;
-  background-color: #C8C8C8;
-}
-
-description[selectable="true"]:focus > descriptionitem[selected="true"] {
-  border: 1px solid #B8B8B8;
-  background-color: #C8C8C8;
-}
-
-.descriptioncell-icon {
-}
-
-.attachmentBox {
-  width: 15em;
-}
-
-#attachmentView[largeView="true"] .attachmentBox{
-  -moz-box-orient: vertical;
-}
-
 #attachmentView {
-  background-color: #E6E6E6;
-  border: 1px solid #C8C8C8;
-  border-radius: 7px;
-  margin: 4px;
-  padding: 4px;  
-}
-
-#attachmentListWrapper[attachmentOverflow="true"] {
-  overflow: auto;
+  border-top: 1px solid ThreeDShadow;
 }
 
 #attachment-splitter {
   min-height: 7px;
   border-top: 1px solid #C8C8C8;
   background-color: #E6E6E6;
+}
+
+/* ::::: attachment list ::::: */
+
+.attachmentcell-icon {
+  padding: 1px;
+}
+
+.attachmentcell-name,
+.attachmentcell-size {
+  padding-top: 1px;
+}
+
+.attachmentcell-size {
+  color: GrayText;
+}
+
+attachmentlist:focus > attachmentitem[selected="true"][current="true"] {
+  outline: 1px dotted #F3D982;
+}
+
+attachmentlist:focus > attachmentitem[current="true"] {
+  outline: 1px dotted;
+  outline-offset: -1px;
+}
+
+attachmentitem[selected="true"] {
+  background-color: -moz-CellHighlight;
+  color: -moz-CellHighlightText;
+}
+
+attachmentlist:focus > attachmentitem[selected="true"] {
+  background-color: Highlight;
+  color: HighlightText;
+}
+
+attachmentitem[selected="true"] .attachmentcell-size {
+  color: -moz-CellHighlightText;
+}
+
+attachmentlist:focus >attachmentitem[selected="true"] .attachmentcell-size {
+  color: HighlightText;
 }
 
 /* ::::: msg header captions ::::: */

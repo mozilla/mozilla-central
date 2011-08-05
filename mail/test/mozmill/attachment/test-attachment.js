@@ -69,6 +69,8 @@ const binaryAttachment = textAttachment;
 var setupModule = function (module) {
   let fdh = collector.getModule('folder-display-helpers');
   fdh.installInto(module);
+  let wh = collector.getModule('window-helpers');
+  wh.installInto(module);
   let composeHelper = collector.getModule('compose-helpers');
   composeHelper.installInto(module);
   let wh = collector.getModule('window-helpers');
@@ -137,8 +139,8 @@ function test_attachment_name_click() {
 
   // Ensure the context menu appears when right-clicking the attachment name
   mc.rightClick(mc.eid("attachmentName"));
-  wait_for_popup_to_open(mc.e("attachmentListContext"));
-  close_popup(mc, mc.eid("attachmentListContext"));
+  wait_for_popup_to_open(mc.e("attachmentItemContext"));
+  close_popup(mc, mc.eid("attachmentItemContext"));
 }
 
 function test_attachment_list_expansion() {
@@ -147,24 +149,28 @@ function test_attachment_list_expansion() {
   select_click_row(1);
   assert_selected_and_displayed(1);
 
-  assert_true(mc.e("attachmentListWrapper").collapsed,
-              "Attachment list should start out collapsed!");
+  let attachmentList = mc.e("attachmentList");
+  let attachmentToggle = mc.eid("attachmentToggle");
+  let attachmentBar = mc.eid("attachmentBar");
 
-  mc.click(mc.eid("attachmentToggle"));
-  assert_true(!mc.e("attachmentListWrapper").collapsed,
-              "Attachment list should be expanded after clicking twisty!");
+  assert_true(attachmentList.collapsed, "Attachment list should start out " +
+              "collapsed!");
 
-  mc.click(mc.eid("attachmentToggle"));
-  assert_true(mc.e("attachmentListWrapper").collapsed,
-              "Attachment list should be collapsed after clicking twisty again!");
+  mc.click(attachmentToggle);
+  assert_true(!attachmentList.collapsed, "Attachment list should be expanded " +
+              "after clicking twisty!");
 
-  mc.click(mc.eid("attachmentBar"));
-  assert_true(!mc.e("attachmentListWrapper").collapsed,
-              "Attachment list should be expanded after clicking bar!");
+  mc.click(attachmentToggle);
+  assert_true(attachmentList.collapsed, "Attachment list should be collapsed " +
+              "after clicking twisty again!");
 
-  mc.click(mc.eid("attachmentBar"));
-  assert_true(mc.e("attachmentListWrapper").collapsed,
-              "Attachment list should be collapsed after clicking bar again!");
+  mc.click(attachmentBar);
+  assert_true(!attachmentList.collapsed, "Attachment list should be expanded " +
+              "after clicking bar!");
+
+  mc.click(attachmentBar);
+  assert_true(attachmentList.collapsed, "Attachment list should be collapsed " +
+              "after clicking bar again!");
 }
 
 function test_selected_attachments_are_cleared() {
@@ -183,7 +189,7 @@ function test_selected_attachments_are_cleared() {
 
   // We can just click on the first element, but the second one needs a
   // ctrl-click (or cmd-click for those Mac-heads among us).
-  mc.click(new elib.Elem(attachmentList.children[0]));
+  mc.click(new elib.Elem(attachmentList.children[0]), 5, 5);
   EventUtils.synthesizeMouse(attachmentList.children[1], 5, 5,
                              {accelKey: true}, mc.window);
 
@@ -232,10 +238,55 @@ function test_attachment_toolbar_customize() {
   add_to_toolbar(mc.e("attachment-view-toolbar"), "attachmentSaveAll");
 }
 
+function test_select_all_attachments_key() {
+  be_in_folder(folder);
+
+  // First, select the message with two attachments.
+  select_none();
+  select_click_row(3);
+
+  // Expand the attachment list.
+  mc.click(mc.eid("attachmentToggle"));
+
+  let attachmentList = mc.e("attachmentList");
+  mc.keypress(new elib.Elem(attachmentList), "a", {accelKey: true});
+  assert_equals(attachmentList.selectedItems.length, 2,
+                "Should have selected all attachments!");
+}
+
+function test_delete_attachment_key() {
+  be_in_folder(folder);
+
+  // First, select the message with two attachments.
+  select_none();
+  select_click_row(3);
+
+  // Expand the attachment list.
+  mc.click(mc.eid("attachmentToggle"));
+
+  let firstAttachment = new elib.Elem(mc.e("attachmentList").firstChild);
+  mc.click(firstAttachment, 5, 5);
+
+  // Try deleting with the delete key
+  plan_for_modal_dialog("commonDialog", function(cdc) {
+    cdc.window.document.documentElement.cancelDialog();
+  });
+  mc.keypress(firstAttachment, "VK_DELETE", {});
+  wait_for_modal_dialog("commonDialog");
+
+  // Try deleting with the shift-delete key combo.
+  plan_for_modal_dialog("commonDialog", function(cdc) {
+    cdc.window.document.documentElement.cancelDialog();
+  });
+  mc.keypress(firstAttachment, "VK_DELETE", {shiftKey: true});
+  wait_for_modal_dialog("commonDialog");
+}
+
 function test_attachments_compose_menu() {
   be_in_folder(folder);
 
   // First, select the message with two attachments.
+  select_none();
   select_click_row(3);
 
   let cwc = open_compose_with_forward();

@@ -122,16 +122,16 @@ function setupModule(module) {
  */
 function check_attachment_size(controller, index, expectedSize) {
   let bucket = controller.e('attachmentBucket');
-  let node = bucket.getElementsByTagName('listitem')[index];
+  let node = bucket.getElementsByTagName('attachmentitem')[index];
 
-  // First, let's check that the 'attachmentSize' attribute is correct
+  // First, let's check that the attachment size is correct
   let size = node.attachment.size;
   if (Math.abs(size - expectedSize) > epsilon)
     throw new Error('Reported attachment size ('+size+') not within epsilon ' +
                     'of actual attachment size ('+expectedSize+')');
 
   // Next, make sure that the formatted size in the label is correct
-  let formattedSize = /\((.*?)\)$/.exec(node.getAttribute('label'))[1];
+  let formattedSize = node.getAttribute('size');
   let expectedFormattedSize = messenger.formatFileSize(size);
   if (formattedSize != expectedFormattedSize)
     throw new Error('Formatted attachment size ('+formattedSize+') does not ' +
@@ -145,12 +145,12 @@ function check_attachment_size(controller, index, expectedSize) {
  */
 function check_no_attachment_size(controller, index) {
   let bucket = controller.e('attachmentBucket');
-  let node = bucket.getElementsByTagName('listitem')[index];
+  let node = bucket.getElementsByTagName('attachmentitem')[index];
 
   if (node.attachment.size != -1)
     throw new Error('attachment.size attribute should be -1!');
 
-  if (/\((.*?)\)$/.exec(node.getAttribute('label')))
+  if (node.getAttribute('size') != '')
     throw new Error('Attachment size should not be displayed!');
 }
 
@@ -161,7 +161,7 @@ function check_no_attachment_size(controller, index) {
  */
 function check_total_attachment_size(controller, count) {
   let bucket = controller.e("attachmentBucket");
-  let nodes = bucket.getElementsByTagName("listitem");
+  let nodes = bucket.getElementsByTagName("attachmentitem");
   let sizeNode = controller.e("attachmentBucketSize");
 
   if (nodes.length != count)
@@ -252,7 +252,7 @@ function test_rename_attachment() {
 
   // Now, rename the attachment.
   let bucket = cwc.e("attachmentBucket");
-  let node = bucket.getElementsByTagName("listitem")[0];
+  let node = bucket.getElementsByTagName("attachmentitem")[0];
   cwc.click(new elib.Elem(node));
   plan_for_modal_dialog("commonDialog", subtest_rename_attachment);
   cwc.window.RenameSelectedAttachment();

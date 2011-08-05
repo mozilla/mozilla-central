@@ -43,6 +43,7 @@
 ]>
 
 <?xml-stylesheet href="chrome://messenger/skin/messageHeader.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/attachmentList.css" type="text/css"?>
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script type="application/javascript"
@@ -73,9 +74,9 @@
                        CopyMessageId(messageId);"/>
 </menupopup>
 
-<menupopup id="attachmentListContext"
-           onpopupshowing="return onShowAttachmentContextMenu();"
-           onpopuphiding="return onHideAttachmentContextMenu();">
+<menupopup id="attachmentItemContext"
+           onpopupshowing="return onShowAttachmentItemContextMenu();"
+           onpopuphiding="return onHideAttachmentItemContextMenu();">
   <menuitem id="context-openAttachment"
             label="&openAttachmentCmd.label;"
             accesskey="&openAttachmentCmd.accesskey;"
@@ -93,6 +94,10 @@
             label="&deleteAttachmentCmd.label;"
             accesskey="&deleteAttachmentCmd.accesskey;"
             oncommand="HandleMultipleAttachments(this.parentNode.attachments, 'delete');"/>
+</menupopup>
+
+<menupopup id="attachmentListContext"
+           onpopupshowing="return onShowAttachmentListContextMenu(event);">
   <menuitem id="context-openAllAttachments"
             label="&openAllAttachmentsCmd.label;"
             accesskey="&openAllAttachmentsCmd.accesskey;"
@@ -512,7 +517,7 @@
     <image id="attachmentIcon"/>
     <label id="attachmentCount"/>
     <label id="attachmentName" crop="center" flex="1"
-           context="attachmentListContext"
+           context="attachmentItemContext"
            onclick="if (event.button == 0) { HandleAllAttachments('open'); RestoreFocusAfterHdrButton(); }"
            ondraggesture="nsDragAndDrop.startDrag(event,attachmentNameDNDObserver);"/>
     <label id="attachmentSize"/>
@@ -593,14 +598,11 @@
                defaultset="attachmentSaveAll"/>
     </toolbox>
   </hbox>
-  <box id="attachmentListWrapper" flex="1" collapsed="true">
-    <description selectable="true" id="attachmentList" flex="1"
-                 seltype="multiple" context="attachmentListContext"
-                 onclick="attachmentListClick(event);"
-                 ondraggesture="nsDragAndDrop.startDrag(event,attachmentListDNDObserver);"
-                 ondragover="nsDragAndDrop.dragOver(event, attachmentListDNDObserver);">
-    </description>
-  </box>
+  <attachmentlist orient="horizontal" id="attachmentList" flex="1"
+                  seltype="multiple" context="attachmentListContext"
+                  itemcontext="attachmentItemContext"
+                  ondraggesture="nsDragAndDrop.startDrag(event,attachmentListDNDObserver);"
+                  ondragover="nsDragAndDrop.dragOver(event, attachmentListDNDObserver);"/>
 </vbox>
 
 </overlay>

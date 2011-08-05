@@ -164,6 +164,7 @@
 <menupopup id="mailContext"/>
 <menupopup id="folderPaneContext"/>
 <menupopup id="attachmentListContext"/>
+<menupopup id="attachmentItemContext"/>
 <menupopup id="header-toolbar-context-menu"/>
 <menupopup id="attachment-toolbar-context-menu"/>
 <menupopup id="copyUrlPopup"/>

@@ -2936,27 +2936,17 @@ function AddUrlAttachment(attachment)
     attachment.name = gComposeBundle.getString("partAttachmentSafeName");
 
   var bucket = document.getElementById("attachmentBucket");
-  var item;
+  var item = bucket.appendItem(attachment);
   if (attachment.size != -1)
-  {
-    var size = gMessenger.formatFileSize(attachment.size);
-    var nameAndSize = gComposeBundle.getFormattedString(
-      "attachmentNameAndSize", [attachment.name, size]);
-    item = bucket.appendItem(nameAndSize, "");
     gAttachmentsSize += attachment.size;
-  }
-  else
-    item = bucket.appendItem(attachment.name, "");
 
-  item.attachment = attachment; // Full attachment object stored here.
   try {
     item.setAttribute("tooltiptext", decodeURI(attachment.url));
   }
   catch(e) {
     item.setAttribute("tooltiptext", attachment.url);
   }
-  item.setAttribute("class", "listitem-iconic");
-  item.setAttribute("crop", "center");
+  item.addEventListener("command", OpenSelectedAttachment, false);
 
   // For local file urls, we are better off using the full file url because
   // moz-icon will actually resolve the file url and get the right icon from
@@ -3520,13 +3510,9 @@ function subjectKeyPress(event)
 
 function AttachmentBucketClicked(event)
 {
-  if (event.button != 0)
-    return;
-
-  if (event.originalTarget.localName == "listboxbody")
+  let boundTarget = document.getBindingParent(event.originalTarget);
+  if (event.button == 0 && boundTarget.localName == "scrollbox")
     goDoCommand('cmd_attachFile');
-  else if (event.originalTarget.localName == "listitem" && event.detail == 2)
-    OpenSelectedAttachment();
 }
 
 // we can drag and drop addresses, files, messages and urls into the compose envelope

@@ -16,16 +16,49 @@
   <!-- dummy widget to force this file to load -->
   <binding id="dummy" extends="xul:box"/>
 
-  <!-- temporary holding place for horizontal list -->
-
-  <binding id="extdescription" extends="chrome://global/content/bindings/listbox.xml#listbox-base">
+  <binding id="attachmentlist-base" extends="chrome://global/content/bindings/listbox.xml#listbox-base">
     <implementation>
       <constructor><![CDATA[
-          this.children.filter(function(aChild) aChild.getAttribute("selected") == "true")
-                       .forEach(this.selectedItems.push, this.selectedItems);
+        this.children.filter(function(aChild) aChild.getAttribute("selected") == "true")
+                     .forEach(this.selectedItems.push, this.selectedItems);
+
+        this.children.filter(function(aChild) !aChild.hasAttribute("context"))
+                     .forEach(function(aChild) aChild.setAttribute("context",
+                              this.getAttribute("itemcontext")), this);
+
+        this.sizes = {small: 16, large: 32, tile: 32};
+        this.messenger = Components.classes["@mozilla.org/messenger;1"]
+                                   .createInstance(Components.interfaces.nsIMessenger);
+
       ]]></constructor>
 
       <!-- ///////////////// public members ///////////////// -->
+
+      <property name="view">
+        <getter><![CDATA[
+          return this.getAttribute("view");
+        ]]></getter>
+        <setter><![CDATA[
+          this.setAttribute("view", val);
+          this._setImageSize();
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="orient">
+        <getter><![CDATA[
+          return this.getAttribute("orient");
+        ]]></getter>
+        <setter><![CDATA[
+          // The current item can get messed up when changing orientation.
+          let curr = this.currentItem;
+          this.currentItem = null;
+
+          this.setAttribute("orient", val);
+          this.currentItem = curr;
+          return val;
+        ]]></setter>
+      </property>
 
       <property name="itemCount" readonly="true"
                 onget="return this.children.length;"/>
@@ -49,20 +82,42 @@
       </method>
       <method name="getNumberOfVisibleRows">
         <body><![CDATA[
-          var firstItem = this.children[0] || null;
-          if (!firstItem)
-            return 0; // nothing to be visible
-          var itemsPerRow = Math.floor(this.boxObject.width / firstItem.boxObject.width);
-          var itemsPerCol = Math.floor(this.boxObject.height / firstItem.boxObject.height);
-          return Math.max(itemsPerRow, 1) * Math.max(itemsPerCol, 1);
+          return this._itemsPerRow() * this._itemsPerCol();
         ]]></body>
       </method>
       <method name="getIndexOfFirstVisibleRow">
         <body><![CDATA[
-          //XXXzeniko unimplementable without a way to scroll
+          let children = this.children;
+          if (children.length == 0)
+            return -1;
+
+          // First try to estimate which row is visible, assuming they're all
+          // the same height.
+          let box = this.scrollbox;
+          let estimatedIndex = Math.floor(box.scrollTop /
+                                          children[0].boxObject.height);
+          let offset = children[estimatedIndex].boxObject.screenY -
+                       box.boxObject.screenY;
+
+          if (offset > 0) { // We went too far!
+            for (let i = estimatedIndex - 1; i >= 0; i--) {
+              if (children[i].boxObject.screenY - box.boxObject.screenY <= 0)
+                return i;
+            }
+          }
+          else {
+            for (let i = estimatedIndex; i < this.children.length; i++) {
+              if (children[i].boxObject.screenY + children[i].boxObject.height -
+                  box.boxObject.screenY > 0)
+                return i;
+            }
+          }
+
+          // If we get here, something is very wrong.
+          dump("Couldn't get index of first visible row for attachmentlist!");
+          return -1;
         ]]></body>
       </method>
-
       <method name="ensureIndexIsVisible">
         <parameter name="index"/>
         <body><![CDATA[
@@ -72,48 +127,111 @@
       <method name="ensureElementIsVisible">
         <parameter name="item"/>
         <body><![CDATA[
-          //XXXzeniko unimplementable without a way to scroll
+          let box = this.scrollbox;
+
+          // Are we too far down?
+          if (item.boxObject.screenY < box.boxObject.screenY)
+            box.scrollTop = item.boxObject.y - box.boxObject.y;
+          // ... or not far enough?
+          else if (item.boxObject.screenY + item.boxObject.height >
+                   box.boxObject.screenY + box.boxObject.height)
+            box.scrollTop = item.boxObject.y + item.boxObject.height -
+                            box.boxObject.y - box.boxObject.height;
         ]]></body>
       </method>
       <method name="scrollToIndex">
         <parameter name="index"/>
         <body><![CDATA[
-          //XXXzeniko unimplementable without a way to scroll
+          let box = this.scrollbox;
+          let item = this.getItemAtIndex(index);
+          if (!item)
+            return;
+          box.scrollTop = item.boxObject.y - box.boxObject.y;
         ]]></body>
       </method>
-
       <method name="appendItem">
-        <parameter name="label"/>
-        <parameter name="value"/>
+        <parameter name="attachment"/>
+        <parameter name="name"/>
         <body><![CDATA[
-          // -1 appends due to the way getItemAtIndex is implemented
-          return this.insertItemAt(-1, label, value);
+          // -1 appends due to the way getItemAtIndex is implemented.
+          return this.insertItemAt(-1, attachment, name);
         ]]></body>
       </method>
       <method name="insertItemAt">
         <parameter name="index"/>
-        <parameter name="label"/>
-        <parameter name="value"/>
+        <parameter name="attachment"/>
+        <parameter name="name"/>
         <body><![CDATA[
           const XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-          var item = document.createElementNS(XULNS, "descriptionitem");
-          item.setAttribute("label", label);
+          let item = this.ownerDocument.createElementNS(XULNS, "attachmentitem");
+          item.setAttribute("name", name || attachment.name);
+          if (attachment.size != null && attachment.size != -1)
+            item.setAttribute("size", this.messenger.formatFileSize(
+                              attachment.size));
+
+          // Pick out some nice icons (small and large) for the attachment
+          if (attachment.contentType == "text/x-moz-deleted") {
+            let base = "chrome://messenger/skin/icons/";
+            item.setAttribute("image16", base+"attachment-deleted.png");
+            item.setAttribute("image32", base+"attachment-deleted-large.png");
+          }
+          else {
+            item.setAttribute("image16", "moz-icon://" + attachment.name +
+                              "?size=16&amp;contentType=" +
+                              attachment.contentType);
+            item.setAttribute("image32", "moz-icon://" + attachment.name +
+                              "?size=32&amp;contentType=" +
+                              attachment.contentType);
+          }
+
+          item.setAttribute("imagesize", this.sizes[this.getAttribute("view")] || 16);
+          item.setAttribute("context", this.getAttribute("itemcontext"));
+          item.attachment = attachment;
+
           this.insertBefore(item, this.getItemAtIndex(index));
           return item;
         ]]></body>
       </method>
 
       <method name="scrollOnePage">
-        <parameter name="direction"/>
+        <parameter name="direction"/>  <!-- Must be -1 or 1 -->
         <body><![CDATA[
-          return direction * this.getNumberOfVisibleRows();
+          let pageOffset = this.getNumberOfVisibleRows() * direction;
+          // skip over invisible elements - the user won't care about them
+          for (let i = 0; i != pageOffset; i += direction) {
+            let item = this.getItemAtIndex(this.currentIndex + i);
+            if (item && !this._canUserSelect(item))
+              pageOffset += direction;
+          }
+          let newTop = this.getIndexOfFirstVisibleRow() + pageOffset;
+          if (direction == 1) {
+            let maxTop = this.getRowCount() - this.getNumberOfVisibleRows();
+            for (let i = this.getRowCount(); i >= 0 && i > maxTop; i--) {
+              let item = this.getItemAtIndex(i);
+              if (item && !this._canUserSelect(item))
+                maxTop--;
+            }
+            if (newTop >= maxTop)
+              newTop = maxTop;
+          }
+          if (newTop < 0)
+            newTop = 0;
+          this.scrollToIndex(newTop);
+          return pageOffset;
         ]]></body>
       </method>
+
+      <!-- Get the preferred height (the height that would allow us to fit
+           everything without scrollbars) of the attachmentlist's boxObject. -->
+      <property name="preferredHeight" readonly="true"
+                onget="return this.scrollbox.scrollHeight - this.scrollbox.clientHeight + this.boxObject.height;"/>
 
       <!-- ///////////////// private members ///////////////// -->
 
       <property name="children" readonly="true"
-                onget="return Array.slice(this.getElementsByTagName('descriptionitem'));"/>
+                onget="return Array.slice(this.getElementsByTagName('attachmentitem'));"/>
+      <property name="scrollbox" readonly="true"
+                onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'scrollbox');"/>
 
       <method name="_fireOnSelect">
         <body><![CDATA[
@@ -124,17 +242,59 @@
           }
         ]]></body>
       </method>
+
+      <method name="_itemsPerRow">
+        <body><![CDATA[
+          let firstItem = this.children[0] || null;
+          if (!firstItem)
+            return 0; // nothing to be visible
+
+          let itemsPerRow = Math.floor(this.scrollbox.clientWidth /
+                                       firstItem.boxObject.width);
+          return Math.max(itemsPerRow, 1);
+        ]]></body>
+      </method>
+
+      <method name="_itemsPerCol">
+        <body><![CDATA[
+          let firstItem = this.children[0] || null;
+          if (!firstItem)
+            return 0; // nothing to be visible
+
+          let itemsPerCol = Math.floor(this.scrollbox.clientHeight /
+                                       firstItem.boxObject.height);
+          return Math.max(itemsPerCol, 1);
+        ]]></body>
+      </method>
+
+      <method name="_setImageSize">
+        <body><![CDATA[
+          let children = this.children;
+          let size = this.sizes[this.view] || 16;
+
+          for (let i = 0; i < children.length; i++)
+            children[i].imageSize = size;
+        ]]></body>
+      </method>
     </implementation>
 
     <handlers>
-      <handler event="keypress" keycode="VK_LEFT" modifiers="control shift any"
-               action="this.moveByOffset(-1, !event.ctrlKey, event.shiftKey);"
+      <!-- The spacebar should work just like the arrow keys, except that the
+           focused element doesn't change, so use moveByOffset here. -->
+      <handler event="keypress" key=" " modifiers="control shift any"
+               action="this.moveByOffset(0, !event.ctrlKey, event.shiftKey);"
                phase="target" preventdefault="true"/>
-      <handler event="keypress" keycode="VK_RIGHT" modifiers="control shift any"
-               action="this.moveByOffset(1, !event.ctrlKey, event.shiftKey);"
-               phase="target" preventdefault="true"/>
+      <handler event="keypress" keycode="VK_RETURN"><![CDATA[
+        if (this.currentItem) {
+          this.addItemToSelection(this.currentItem);
+          let event = document.createEvent("Events");
+          event.initEvent("command", true, true);
+          this.currentItem.dispatchEvent(event);
+        }
+      ]]></handler>
       <handler event="click" button="0" phase="target"><![CDATA[
-        if (this.selType != "multiple" || (!event.ctrlKey && !event.shiftKey && !event.metaKey))
+        if (this.selType != "multiple" || (!event.ctrlKey && !event.shiftKey &&
+                                           !event.metaKey))
           this.clearSelection();
       ]]></handler>
       <!-- make sure we keep the focus... -->
@@ -143,21 +303,93 @@
     </handlers>
   </binding>
 
-  <binding id="descriptionitem" extends="chrome://global/content/bindings/listbox.xml#listitem">
+  <binding id="attachmentlist-horizontal" extends="chrome://messenger/content/mailWidgets.xml#attachmentlist-base">
     <content>
-      <xul:hbox class="attachmentBox" xbl:inherits="orient" align="start">
-        <xul:label class="descriptioncell-label" xbl:inherits="value=label,flex=flexlabel,crop,disabled,context" flex="1" dir="ltr" crop="center"/>
-      </xul:hbox>
+      <xul:scrollbox flex="1" anonid="scrollbox" style="overflow: auto;">
+        <xul:hbox flex="1" class="attachmentlist-wrapper">
+          <children includes="attachmentitem"/>
+        </xul:hbox>
+      </xul:scrollbox>
+    </content>
+    <handlers>
+      <handler event="keypress" keycode="VK_LEFT" modifiers="control shift any"
+               action="this.moveByOffset(-1, !event.ctrlKey, event.shiftKey);"
+               phase="target" preventdefault="true"/>
+      <handler event="keypress" keycode="VK_RIGHT" modifiers="control shift any"
+               action="this.moveByOffset(1, !event.ctrlKey, event.shiftKey);"
+               phase="target" preventdefault="true"/>
+      <handler event="keypress" keycode="VK_UP" modifiers="control shift any"
+               action="this.moveByOffset(-this._itemsPerRow(), !event.ctrlKey, event.shiftKey);"
+               phase="target" preventdefault="true"/>
+      <handler event="keypress" keycode="VK_DOWN" modifiers="control shift any"
+               action="this.moveByOffset(this._itemsPerRow(), !event.ctrlKey, event.shiftKey);"
+               phase="target" preventdefault="true"/>
+    </handlers>
+  </binding>
+
+  <binding id="attachmentlist-vertical" extends="chrome://messenger/content/mailWidgets.xml#attachmentlist-base">
+    <content>
+      <xul:scrollbox orient="vertical" flex="1" anonid="scrollbox"
+                     style="overflow: auto;">
+        <children includes="attachmentitem"/>
+      </xul:scrollbox>
     </content>
   </binding>
 
-  <binding id="descriptionitem-iconic"  extends="chrome://global/content/bindings/listbox.xml#listitem">
+  <binding id="attachmentitem" extends="chrome://global/content/bindings/listbox.xml#listitem">
+    <implementation>
+      <constructor><![CDATA[
+        this._updateImage();
+      ]]></constructor>
+
+      <property name="imageSize">
+        <getter><![CDATA[
+          return this.getAttribute("imagesize");
+        ]]></getter>
+        <setter><![CDATA[
+          this.setAttribute("imagesize", val);
+          this._updateImage();
+          return val;
+        ]]></setter>
+      </property>
+
+      <method name="_updateImage">
+        <body><![CDATA[
+          if (!this.hasAttribute("image")) {
+            let icon = document.getAnonymousElementByAttribute(this, "anonid",
+                                                               "icon");
+            let attr = "image"+this.imageSize;
+            if (this.hasAttribute(attr))
+              icon.setAttribute("src", this.getAttribute(attr));
+          }
+        ]]></body>
+      </method>
+    </implementation>
+    <!-- Below, we want the name label to flex but not be any bigger than
+         necessary, so add a spacer with a huge flex value. -->
     <content>
-      <xul:hbox class="attachmentBox" xbl:inherits="orient" align="center">
-        <xul:image class="descriptioncell-icon" xbl:inherits="src=image"/>
-        <xul:label class="descriptioncell-label" xbl:inherits="value=label,flex=flexlabel,crop,disabled,context" flex="1" dir="ltr" crop="center"/>
+      <xul:hbox class="attachmentcell-content" flex="1">
+        <xul:hbox align="center">
+          <xul:image class="attachmentcell-icon" anonid="icon"
+                     xbl:inherits="src=image"/>
+        </xul:hbox>
+        <xul:hbox class="attachmentcell-text" flex="1">
+          <xul:hbox class="attachmentcell-nameselection" flex="1">
+              <xul:label class="attachmentcell-name" xbl:inherits="value=name"
+                         flex="1" crop="center"/>
+          </xul:hbox>
+          <xul:spacer flex="99999"/>
+          <xul:label class="attachmentcell-size" xbl:inherits="value=size"/>
+        </xul:hbox>
       </xul:hbox>
     </content>
+    <handlers>
+      <handler event="click" button="0" clickcount="2"><![CDATA[
+        let event = document.createEvent("Events");
+        event.initEvent("command", true, true);
+        this.dispatchEvent(event);
+      ]]></handler>
+    </handlers>
   </binding>
 
   <!-- Message Pane Widgets -->

@@ -218,16 +218,16 @@ function setupModule(module) {
  */
 function check_attachment_size(index, expectedSize) {
   let list = mc.e('attachmentList');
-  let node = list.getElementsByTagName('descriptionitem')[index];
+  let node = list.getElementsByTagName('attachmentitem')[index];
 
-  // First, let's check that the 'attachmentSize' attribute is correct
-  let size = parseInt(node.getAttribute('attachmentSize'));
+  // First, let's check that the attachment size is correct
+  let size = node.attachment.size;
   if (Math.abs(size - expectedSize) > epsilon)
     throw new Error('Reported attachment size ('+size+') not within epsilon ' +
                     'of actual attachment size ('+expectedSize+')');
 
   // Next, make sure that the formatted size in the label is correct
-  let formattedSize = /\((.*?)\)$/.exec(node.getAttribute('label'))[1];
+  let formattedSize = node.getAttribute('size');
   let expectedFormattedSize = messenger.formatFileSize(size);
   if (formattedSize != expectedFormattedSize)
     throw new Error('Formatted attachment size ('+formattedSize+') does not ' +
@@ -240,13 +240,13 @@ function check_attachment_size(index, expectedSize) {
  */
 function check_no_attachment_size(index) {
   let list = mc.e('attachmentList');
-  let node = list.getElementsByTagName('descriptionitem')[index];
+  let node = list.getElementsByTagName('attachmentitem')[index];
 
-  if (node.getAttribute('attachmentSize') != '')
+  if (node.attachment.size != null)
     throw new Error('attachmentSize attribute of deleted attachment should ' +
                     'be null!');
 
-  if (/\((.*?)\)$/.exec(node.getAttribute('label')))
+  if (node.getAttribute('size') != '')
     throw new Error('Attachment size should not be displayed!');
 }
 
@@ -258,7 +258,7 @@ function check_no_attachment_size(index) {
  */
 function check_total_attachment_size(count, expectedSize, exact) {
   let list = mc.e('attachmentList');
-  let nodes = list.getElementsByTagName('descriptionitem');
+  let nodes = list.getElementsByTagName('attachmentitem');
   let sizeNode = mc.e('attachmentSize');
 
   if (nodes.length != count)
@@ -266,7 +266,7 @@ function check_total_attachment_size(count, expectedSize, exact) {
 
   let size = 0;
   for (let i = 0; i < nodes.length; i++) {
-    let currSize = parseInt(nodes[i].getAttribute('attachmentSize'));
+    let currSize = nodes[i].attachment.size;
     if (!isNaN(currSize))
       size += currSize;
   }

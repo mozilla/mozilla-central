@@ -1774,98 +1774,83 @@ function ContentTypeIsSMIME(contentType)
 }
 
 /**
- * Set up the attachment context menu, showing or hiding the appropriate menu
- * items.
+ * Set up the attachment item context menu, showing or hiding the appropriate
+ * menu items.
  */
-function onShowAttachmentContextMenu()
+function onShowAttachmentItemContextMenu()
 {
-  var attachmentList = document.getElementById('attachmentList');
-  var attachmentName = document.getElementById('attachmentName');
-  var contextMenu = document.getElementById('attachmentListContext');
-
-  var openMenu = document.getElementById('context-openAttachment');
-  var saveMenu = document.getElementById('context-saveAttachment');
-  var menuSeparator = document.getElementById('context-menu-separator');
-  var detachMenu = document.getElementById('context-detachAttachment');
-  var deleteMenu = document.getElementById('context-deleteAttachment');
-
-  var openAllMenu = document.getElementById('context-openAllAttachments');
-  var saveAllMenu = document.getElementById('context-saveAllAttachments');
-  var menuSeparatorAll = document.getElementById('context-menu-separator-all');
-  var detachAllMenu = document.getElementById('context-detachAllAttachments');
-  var deleteAllMenu = document.getElementById('context-deleteAllAttachments');
+  let attachmentList = document.getElementById("attachmentList");
+  let attachmentName = document.getElementById("attachmentName");
+  let contextMenu    = document.getElementById("attachmentItemContext");
+  let openMenu       = document.getElementById("context-openAttachment");
+  let saveMenu       = document.getElementById("context-saveAttachment");
+  let detachMenu     = document.getElementById("context-detachAttachment");
+  let deleteMenu     = document.getElementById("context-deleteAttachment");
 
   // If we opened the context menu from the attachmentName label, just grab
   // the first (and only) attachment as our "selected" attachments.
   var selectedAttachments;
   if (contextMenu.triggerNode == attachmentName) {
     selectedAttachments = [attachmentList.getItemAtIndex(0).attachment];
-    attachmentName.setAttribute('selected', true);
+    attachmentName.setAttribute("selected", true);
   }
   else
     selectedAttachments = [item.attachment for each([, item] in
                            Iterator(attachmentList.selectedItems))];
   contextMenu.attachments = selectedAttachments;
 
-  var selectNone = selectedAttachments.length == 0;
+  var allSelectedDetached = selectedAttachments.every(function(attachment) {
+    return attachment.isExternalAttachment;
+  });
+  var allSelectedDeleted = selectedAttachments.every(function(attachment) {
+    return !attachment.hasFile;
+  });
+  var canDetachSelected = CanDetachAttachments() && !allSelectedDetached &&
+                          !allSelectedDeleted;
 
-  openMenu.hidden = selectNone;
-  saveMenu.hidden = selectNone;
-  menuSeparator.hidden = selectNone;
-  detachMenu.hidden = selectNone;
-  deleteMenu.hidden = selectNone;
-
-  openAllMenu.hidden = !selectNone;
-  saveAllMenu.hidden = !selectNone;
-  menuSeparatorAll.hidden = !selectNone;
-  detachAllMenu.hidden = !selectNone;
-  deleteAllMenu.hidden = !selectNone;
-
-  if (!selectNone)
-  {
-    var allSelectedDetached = selectedAttachments.every(function(attachment) {
-      return attachment.isExternalAttachment;
-    });
-    var allSelectedDeleted = selectedAttachments.every(function(attachment) {
-      return !attachment.hasFile;
-    });
-    var canDetachSelected = CanDetachAttachments() && !allSelectedDetached &&
-                            !allSelectedDeleted;
-
-    openMenu.disabled = allSelectedDeleted;
-    saveMenu.disabled = allSelectedDeleted;
-    detachMenu.disabled = !canDetachSelected;
-    deleteMenu.disabled = !canDetachSelected;
-  }
-  else
-  {
-    var allDetached = currentAttachments.every(function(attachment) {
-      return attachment.isExternalAttachment;
-    });
-    var allDeleted = currentAttachments.every(function(attachment) {
-      return !attachment.hasFile;
-    });
-    var canDetachAll = CanDetachAttachments() && !allDetached && !allDeleted;
-
-    saveAllMenu.disabled = allDeleted;
-    openAllMenu.disabled = allDeleted;
-    detachAllMenu.disabled = !canDetachAll;
-    deleteAllMenu.disabled = !canDetachAll;
-  }
+  openMenu.disabled = allSelectedDeleted;
+  saveMenu.disabled = allSelectedDeleted;
+  detachMenu.disabled = !canDetachSelected;
+  deleteMenu.disabled = !canDetachSelected;
 }
 
 /**
- * Close the attachment context menu, performing any cleanup as necessary.
+ * Close the attachment item context menu, performing any cleanup as necessary.
  */
-function onHideAttachmentContextMenu()
+function onHideAttachmentItemContextMenu()
 {
-  let attachmentName = document.getElementById('attachmentName');
-  let contextMenu = document.getElementById('attachmentListContext');
+  let attachmentName = document.getElementById("attachmentName");
+  let contextMenu = document.getElementById("attachmentListContext");
 
   // If we opened the context menu from the attachmentName label, we need to
   // get rid of the "selected" attribute.
   if (contextMenu.triggerNode == attachmentName)
-    attachmentName.removeAttribute('selected');
+    attachmentName.removeAttribute("selected");
+}
+
+/**
+ * Set up the attachment list context menu, showing or hiding the appropriate
+ * menu items.
+ */
+function onShowAttachmentListContextMenu()
+{
+  var openAllMenu   = document.getElementById("context-openAllAttachments");
+  var saveAllMenu   = document.getElementById("context-saveAllAttachments");
+  var detachAllMenu = document.getElementById("context-detachAllAttachments");
+  var deleteAllMenu = document.getElementById("context-deleteAllAttachments");
+
+  var allDetached = currentAttachments.every(function(attachment) {
+    return attachment.isExternalAttachment;
+  });
+  var allDeleted = currentAttachments.every(function(attachment) {
+    return !attachment.hasFile;
+  });
+  var canDetachAll = CanDetachAttachments() && !allDetached && !allDeleted;
+
+  saveAllMenu.disabled = allDeleted;
+  openAllMenu.disabled = allDeleted;
+  detachAllMenu.disabled = !canDetachAll;
+  deleteAllMenu.disabled = !canDetachAll;
 }
 
 /**
@@ -1923,20 +1908,15 @@ function MessageIdClick(node, event)
   }
 }
 
-// this is our onclick handler for the attachment list.
-// A double click in a listitem simulates "opening" the attachment....
-function attachmentListClick(event)
+/**
+ * This is our oncommand handler for the attachment list items. A double click
+ * or enter press in an attachmentitem simulates "opening" the attachment.
+ *
+ * @param event the event object
+ */
+function attachmentItemCommand(event)
 {
-  // we only care about button 0 (left click) events
-  if (event.button != 0)
-    return;
-
-  if (event.detail == 2) // double click
-  {
-    var target = event.target;
-    if (target.localName == "descriptionitem")
-      target.attachment.open();
-  }
+  HandleSelectedAttachments("open");
 }
 
 function createAttachmentDisplayName(aAttachment)
@@ -1949,65 +1929,106 @@ function createAttachmentDisplayName(aAttachment)
   return aAttachment.name.trimRight();
 }
 
+var AttachmentListController =
+{
+  supportsCommand: function(command)
+  {
+    switch (command)
+    {
+      case "cmd_selectAll":
+      case "cmd_delete":
+      case "cmd_shiftDelete":
+      case "button_delete":
+      case "cmd_saveAsFile":
+        return true;
+      default:
+        return false;
+    }
+  },
+
+  isCommandEnabled: function(command)
+  {
+    switch (command)
+    {
+      case "cmd_selectAll":
+      case "cmd_delete":
+      case "cmd_shiftDelete":
+      case "button_delete":
+      case "cmd_saveAsFile":
+        return true;
+      default:
+        return false;
+    }
+  },
+
+  doCommand: function(command)
+  {
+    // If the user invoked a key short cut then it is possible that we got here
+    // for a command which is really disabled. kick out if the command should
+    // be disabled.
+    if (!this.isCommandEnabled(command)) return;
+
+    var attachmentList = document.getElementById('attachmentList');
+
+    switch (command)
+    {
+      case "cmd_selectAll":
+        attachmentList.selectAll();
+        return;
+      case "cmd_delete":
+      case "cmd_shiftDelete":
+      case "button_delete":
+        HandleSelectedAttachments('delete');
+        return;
+      case "cmd_saveAsFile":
+        HandleSelectedAttachments('saveAs');
+        return;
+    }
+  },
+
+  onEvent: function(event)
+  {}
+};
+
 function displayAttachmentsForExpandedView()
 {
   var bundle = document.getElementById("bundle_messenger");
   var numAttachments = currentAttachments.length;
   var totalSize = 0;
-  var attachmentView = document.getElementById('attachmentView');
-  var attachmentSplitter = document.getElementById('attachment-splitter');
+  var attachmentView = document.getElementById("attachmentView");
+  var attachmentSplitter = document.getElementById("attachment-splitter");
 
-  if (numAttachments <= 0)
-  {
+  if (numAttachments <= 0) {
     attachmentView.collapsed = true;
     attachmentSplitter.collapsed = true;
   }
-  else if (!gBuildAttachmentsForCurrentMsg)
-  {
+  else if (!gBuildAttachmentsForCurrentMsg) {
     attachmentView.collapsed = false;
 
-    var attachmentList = document.getElementById('attachmentList');
+    var attachmentList = document.getElementById("attachmentList");
 
-    var showLargeAttView = Components.classes["@mozilla.org/preferences-service;1"]
+    var viewMode = Components.classes["@mozilla.org/preferences-service;1"]
                              .getService(Components.interfaces.nsIPrefBranch2)
-                             .getBoolPref("mailnews.attachments.display.largeView")
-    attachmentList.setAttribute("largeView", showLargeAttView);
+                             .getIntPref("mailnews.attachments.display.view");
+    var views = ["small", "large", "tile"];
+    attachmentList.view = views[viewMode];
+    attachmentList.controllers.appendController(AttachmentListController);
 
     toggleAttachmentList(false);
 
     var unknownSize = false;
-    for each (let [, attachment] in Iterator(currentAttachments))
-    {
+    for each (let [, attachment] in Iterator(currentAttachments)) {
       // Create a new attachment widget
       var displayName = createAttachmentDisplayName(attachment);
-      var item;
-      if (attachment.size != null) {
-        var size = messenger.formatFileSize(attachment.size);
-        var nameAndSize = bundle.getFormattedString("attachmentNameAndSize",
-                                                    [displayName, size]);
-        item = attachmentList.appendItem(nameAndSize);
-        totalSize += attachment.size;
-      }
-      else {
-        if (!attachment.isDeleted)
-          unknownSize = true;
-        item = attachmentList.appendItem(displayName);
-      }
-
-      item.setAttribute("class", "descriptionitem-iconic");
-
-      setApplicationIconForAttachment(attachment, item, showLargeAttView);
+      var item = attachmentList.appendItem(attachment, displayName);
       item.setAttribute("tooltiptext", attachment.name);
-      item.setAttribute("context", "attachmentListContext");
+      item.addEventListener("command", attachmentItemCommand, false);
 
-      item.attachment = attachment;
-      item.setAttribute("attachmentUrl", attachment.url);
-      item.setAttribute("attachmentContentType", attachment.contentType);
-      item.setAttribute("attachmentUri", attachment.uri);
-      item.setAttribute("attachmentSize", attachment.size);
-
-      attachmentList.appendChild(item);
-    } // for each attachment
+      if (attachment.size !== null)
+        totalSize += attachment.size;
+      else if (!attachment.isDeleted)
+        unknownSize = true;
+    }
 
     // Show the appropriate toolbar button and label based on the number of
     // attachments.
@@ -2079,62 +2100,49 @@ function updateSaveAllAttachmentsButton()
  */
 function toggleAttachmentList(expanded)
 {
-  var attachmentToggle      = document.getElementById("attachmentToggle");
-  var attachmentView        = document.getElementById("attachmentView");
-  var attachmentSplitter    = document.getElementById("attachment-splitter");
-  var attachmentListWrapper = document.getElementById("attachmentListWrapper");
+  var attachmentToggle    = document.getElementById("attachmentToggle");
+  var attachmentView      = document.getElementById("attachmentView");
+  var attachmentList      = document.getElementById("attachmentList");
+  var attachmentSplitter  = document.getElementById("attachment-splitter");
 
   if (expanded === undefined)
     expanded = !attachmentToggle.checked;
   attachmentToggle.checked = expanded;
 
   if (expanded) {
-    attachmentListWrapper.collapsed = false;
+    attachmentList.collapsed = false;
     attachmentSplitter.collapsed = false;
 
-    var attachmentHeight = attachmentView.boxObject.height;
+    var attachmentHeight = attachmentView.boxObject.height -
+      attachmentList.boxObject.height + attachmentList.preferredHeight;
 
     // If the attachments box takes up too much of the message pane, downsize:
     var maxAttachmentHeight = document.getElementById("messagepanebox")
                                       .boxObject.height / 4;
 
-    attachmentListWrapper.setAttribute("attachmentOverflow", "true");
     attachmentView.setAttribute("height", Math.min(attachmentHeight,
                                                    maxAttachmentHeight));
     attachmentView.setAttribute("maxheight", attachmentHeight);
   }
   else {
-    attachmentListWrapper.collapsed = true;
+    attachmentList.collapsed = true;
     attachmentSplitter.collapsed = true;
     attachmentView.removeAttribute("height");
     attachmentView.removeAttribute("maxheight");
-
-    // Switch overflow off so that when we expand again we can get the
-    // preferred size. (Doing this when expanding hits a race condition.)
-    attachmentListWrapper.setAttribute("attachmentOverflow", "false");
   }
 }
 
 /**
- * Show a nice icon next to the attachment.
+ * Pick out a nice icon for the attachment.
  * @param attachment the nsIMsgAttachment object to show icon for
- * @param listitem the listitem currently showing the attachment
- * @param largeView boolean value: 32x32 vs. 16x16 size icon
  */
-function setApplicationIconForAttachment(attachment, listitem, largeView)
+function getIconForAttachment(attachment)
 {
-  // Show a nice icon next to it the attachment.
   if (attachment.isDeleted)
-  {
-    let fn = largeView ? "attachment-deleted-large.png" : "attachment-deleted.png";
-    listitem.setAttribute("image", "chrome://messenger/skin/icons/"+fn);
-  }
+    return "chrome://messenger/skin/icon/attachment-deleted.png";
   else
-  {
-    let iconSize = largeView ? 32 : 16;
-    listitem.setAttribute("image", "moz-icon://" + attachment.name + "?size=" +
-                                   iconSize + "&contentType=" + attachment.contentType);
-  }
+    return "moz-icon://" + attachment.name + "?size=16&amp;contentType=" +
+           attachment.contentType;
 }
 
 // Public method called when we create the attachments file menu
@@ -2206,7 +2214,7 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
   // Insert the item just before the separator. The separator is the 2nd to
   // last element in the popup.
   item.setAttribute('class', 'menu-iconic');
-  setApplicationIconForAttachment(attachment,item, false);
+  item.setAttribute('image', getIconForAttachment(attachment));
 
   var numItemsInPopup = popup.childNodes.length;
   // find the separator
@@ -2301,7 +2309,7 @@ function HandleSelectedAttachments(action)
 /**
  * Perform an action on multiple attachments (e.g. open or save)
  *
- * @param attachments an array of attachment objects to work with
+ * @param attachments an array of AttachmentInfo objects to work with
  * @param action one of "open", "save", "saveAs", "detach", or "delete"
  */
 function HandleMultipleAttachments(attachments, action)
@@ -2417,7 +2425,7 @@ var attachmentListDNDObserver = {
   {
     var target = aEvent.target;
 
-    if (target.localName == "descriptionitem")
+    if (target.localName == "attachmentitem")
       aAttachmentData.data = CreateAttachmentTransferData(target.attachment);
   }
 };
