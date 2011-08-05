@@ -98,6 +98,7 @@
  * please file a bug.
  */
 
+Components.utils.import("resource:///modules/Services.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calStorageHelpers.jsm");
 
@@ -105,7 +106,7 @@ Components.utils.import("resource://calendar/modules/calStorageHelpers.jsm");
 // updater.
 var DB_SCHEMA_VERSION = 19;
 
-var EXPORTED_SYMBOLS = ["DB_SCHEMA_VERSION", "getSql", "getAllSql", "getSqlTable", "upgradeDB"];
+var EXPORTED_SYMBOLS = ["DB_SCHEMA_VERSION", "getSql", "getAllSql", "getSqlTable", "upgradeDB", "backupDB"];
 
 /**
  * Gets the SQL for the given table data and table name. This can be both a real
@@ -206,6 +207,29 @@ function getVersion(db) {
 }
 
 /**
+ * Backup the database and notify the user via error console of the process
+ */
+function backupDB(db, currentVersion) {
+    cal.LOG("Storage: Backing up current database...");
+    try {
+        // Prepare filenames and path
+        let backupFilename = "local.v" + currentVersion + ".sqlite";
+        let backupPath = cal.getCalendarDirectory();
+        backupPath.append("backup");
+        if (!backupPath.exists()) {
+            backupPath.create(CI.nsIFile.DIRECTORY_TYPE, parseInt("0755", 8));
+        }
+
+        // Create a backup file and notify the user via WARN, since LOG will not
+        // be visible unless a pref is set.
+        let file = Services.storage.backupDatabaseFile(db.databaseFile, backupFilename, backupPath);
+        cal.WARN("Storage: Upgrading to v" + DB_SCHEMA_VERSION + ", a backup was written to: " + file.path);
+    } catch (e) {
+        cal.ERROR("Storage: Error creating backup file: " + e);
+    }
+}
+
+/**
  * Upgrade the passed database.
  *
  * @param db        The database to bring up to date.
@@ -224,6 +248,10 @@ function upgradeDB(db) {
     } else {
         let version = getVersion(db);
         if (version < DB_SCHEMA_VERSION) {
+            // First, create a backup
+            backupDB(db, version);
+
+            // Then start the latest upgrader
             cal.LOG("Storage: Preparing to upgrade v" + version +
                     " to v" + DB_SCHEMA_VERSION);
             upgrade["v" + DB_SCHEMA_VERSION](db, version);
