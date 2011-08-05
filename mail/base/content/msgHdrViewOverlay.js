@@ -1820,7 +1820,7 @@ function onShowAttachmentItemContextMenu()
 function onHideAttachmentItemContextMenu()
 {
   let attachmentName = document.getElementById("attachmentName");
-  let contextMenu = document.getElementById("attachmentListContext");
+  let contextMenu = document.getElementById("attachmentItemContext");
 
   // If we opened the context menu from the attachmentName label, we need to
   // get rid of the "selected" attribute.
