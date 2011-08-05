@@ -1945,7 +1945,7 @@ function hiddenWindowStartup()
                        'Browser:FindAgain', 'Browser:FindPrev', 'menu_Toolbars',
                        'menuitem_reload', 'menu_UseStyleSheet', 'charsetMenu',
                        'View:PageSource', 'View:PageInfo', 'menu_translate',
-                       'cookie_deny', 'cookie_default',
+                       'cookie_deny', 'cookie_default', 'View:FullScreen',
                        'cookie_session', 'cookie_allow', 'image_deny',
                        'image_default', 'image_allow', 'AllowPopups',
                        'menu_zoom', 'cmd_minimizeWindow', 'cmd_zoomWindow'];
