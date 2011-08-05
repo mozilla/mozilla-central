@@ -140,6 +140,11 @@ cal.safeNewXML = function calSafeNewXML(aStr) {
  * getInterface: cal.InterfaceRequestor_getInterface,
  * ...
  *
+ * NOTE: If the server only provides one realm for all calendars, be sure that
+ * the |this| object implements calICalendar. In this case the calendar name
+ * will be appended to the realm. If you need that feature disabled, see the
+ * capabilities section of calICalendar.idl
+ *
  * @param aIID      The interface ID to return
  */
 cal.InterfaceRequestor_getInterface = function calInterfaceRequestor_getInterface(aIID) {

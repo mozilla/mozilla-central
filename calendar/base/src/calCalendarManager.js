@@ -191,6 +191,7 @@ calCalendarManager.prototype = {
         this.mCalendarCount = 0;
 
         Services.obs.addObserver(this, "http-on-modify-request", false);
+        Services.obs.addObserver(this, "http-on-examine-response", false);
 
         aCompleteListener.onResult(null, Components.results.NS_OK);
     },
@@ -205,6 +206,7 @@ calCalendarManager.prototype = {
         Services.obs.removeObserver(this, "profile-after-change");
         Services.obs.removeObserver(this, "profile-before-change");
         Services.obs.removeObserver(this, "http-on-modify-request");
+        Services.obs.removeObserver(this, "http-on-examine-response");
         AddonManager.removeAddonListener(gCalendarManagerAddonListener);
 
         aCompleteListener.onResult(null, Components.results.NS_OK);
@@ -259,6 +261,32 @@ calCalendarManager.prototype = {
                     if (calendar instanceof calCachedCalendar) {
                         calendar.onOfflineStatusChanged(aData == "offline");
                     }
+                }
+                break;
+            case "http-on-examine-response":
+                try {
+                    let channel = aSubject.QueryInterface(Components.interfaces.nsIHttpChannel);
+                    if (channel.notificationCallbacks) {
+                        // We use the notification callbacks to get the calendar interface,
+                        // which likely works for our requests since getInterface is called
+                        // from the calendar provider context.
+                        let authHeader = channel.getResponseHeader("WWW-Authenticate");
+                        let calendar = channel.notificationCallbacks
+                                              .getInterface(Components.interfaces.calICalendar);
+                        if (!calendar.getProperty("capabilities.realmrewrite.disabled")) {
+                            // The provider may choose to explicitly disable the
+                            // rewriting, for example if all calendars on a
+                            // domain have the same credentials
+                            authHeader = authHeader.replace(/realm="(.*)"/, 'realm="$1 (' + calendar.name + ')"');
+                            channel.setResponseHeader("WWW-Authenticate", authHeader, false);
+                        }
+                    }
+                } catch (e if e.result == Components.results.NS_NOINTERFACE ||
+                              e.result == Components.results.NS_ERROR_NOT_AVAILABLE) {
+                    // Possible reasons we got here:
+                    // - Its not a http channel (wtf? Oh well)
+                    // - The owner is not a calICalendar (looks like its not our deal)
+                    // - The WWW-Authenticate header is missing (thats ok)
                 }
                 break;
             case "http-on-modify-request":

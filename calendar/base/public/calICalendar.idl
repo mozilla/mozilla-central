@@ -199,6 +199,12 @@ interface calICalendar : nsISupports
    *
    *   capabilities.privacy.values = ["PUBLIC", "CONFIDENTIAL", "PRIVATE"];
    *
+   * The following special capability disables rewriting the WWW-Authenticate
+   * header on HTTP requests to include the calendar name. The default value
+   * is false, i.e rewriting is NOT disabled.
+   *
+   *   capabilities.realmrewrite.disabled = false
+   *
    * @param aName property name
    * @return value (string, integer and boolean values are supported),
    *               else null
