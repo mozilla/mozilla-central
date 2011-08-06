@@ -706,6 +706,10 @@ pref("plugins.hide_infobar_for_outdated_plugin", false);
 pref("plugins.hide_infobar_for_carbon_failure_plugin", false);
 pref("plugins.hide_infobar_for_missing_plugin", false);
 
+#ifdef XP_MACOSX
+pref("plugins.use_layers", true);
+#endif
+
 #ifndef XP_MACOSX
 // Restore the spinner that was removed in bug 481359
 pref("ui.use_activity_cursor", true);
