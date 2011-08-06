@@ -116,10 +116,6 @@ DIRS = ../libical \
        locales \
        $(NULL)
 
-ifdef ENABLE_TESTS
-DIRS += ../test
-endif
-
 # Select a theme from which to pull our skin goodness
 # OS X: pinstripe
 # Others: winstripe
@@ -144,14 +140,6 @@ DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
 # xxx todo: unless our packaging story is revised (bug 406579) we package up timezones.sqlite
 libs::
 	$(NSINSTALL) $(srcdir)/../timezones/timezones.sqlite $(FINAL_TARGET)
-ifdef ENABLE_TESTS
-	$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py \
-		$(MOZDEPTH)/_tests/xpcshell/xpcshell.ini \
-		"[include:calendar/test/unit/xpcshell.ini]"
-	$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py \
-		$(topsrcdir)/mail/test/xpcshell.ini \
-		"[include:calendar/test/unit/xpcshell.ini]"
-endif
 
 include $(topsrcdir)/config/rules.mk
 include $(srcdir)/lightning-packager.mk

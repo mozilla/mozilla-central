@@ -41,21 +41,17 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-(function load_lightning_manifest() {
-  let bindir = Components.classes["@mozilla.org/file/directory_service;1"]
-                         .getService(Components.interfaces.nsIProperties)
-                         .get("CurProcD", Components.interfaces.nsIFile);
-  bindir.append("extensions");
-  bindir.append("{e2fda1a4-762b-4020-b5ad-a41df1933103}");
-  bindir.append("chrome.manifest");
-  Components.manager.autoRegister(bindir);
-})();
+let protHandler = Components.classes["@mozilla.org/network/io-service;1"]
+                     .getService(Components.interfaces.nsIIOService2)
+                     .getProtocolHandler("resource")
+                     .QueryInterface(Components.interfaces.nsIResProtocolHandler);
+protHandler.setSubstitution("calendar", protHandler.getSubstitution("gre"));
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 // we might want to use calUtils.jsm only in the future throughout all tests,
 // but for now source in good old calUtils.js:
-cal.loadScripts(["calUtils.js"], Components.utils.getGlobalForObject(Cc));
+cal.loadScripts(["calUtils.js"], Components.utils.getGlobalForObject(protHandler));
 
 function createDate(aYear, aMonth, aDay, aHasTime, aHour, aMinute, aSecond, aTimezone) {
     var cd = Cc["@mozilla.org/calendar/datetime;1"]
@@ -117,25 +113,19 @@ function getStorageCal() {
     // create URI
     var uri = cal.getIOService().newFileURI(db);
 
-    // Make sure timezone service is initialized
-    Components.classes["@mozilla.org/calendar/timezone-service;1"]
-              .getService(Components.interfaces.calIStartupService)
-              .startup(null);
-
     // create storage calendar
-    var stor = Cc["@mozilla.org/calendar/calendar;1?type=storage"]
+    var cal = Cc["@mozilla.org/calendar/calendar;1?type=storage"]
               .createInstance(Ci.calISyncWriteCalendar);
-    stor.uri = uri;
-    stor.id = cal.getUUID();
+    cal.uri = uri;
 
     // remove existing items
-    var calendar = stor.QueryInterface(Ci.calICalendarProvider);
+    var calendar = cal.QueryInterface(Ci.calICalendarProvider);
     try {
         calendar.deleteCalendar(calendar, null);
     } catch (e) {
         print("*** error purging calendar: " + e);
     }
-    return stor;
+    return cal;
 }
 
 /**

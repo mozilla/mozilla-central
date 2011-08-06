@@ -241,13 +241,12 @@ calStorageCalendar.prototype = {
     prepareInitDB: function cSC_prepareInitDB() {
         if (this.uri.schemeIs("file")) {
             let fileURL = this.uri.QueryInterface(Components.interfaces.nsIFileURL);
-            if (!fileURL) {
-                throw new Components.Exception("Invalid file", Components.results.NS_ERROR_NOT_IMPLEMENTED);
-            }
+            if (!fileURL)
+                throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+
             // open the database
             this.mDB = Services.storage.openDatabase(fileURL.file);
             upgradeDB(this.mDB);
-
         } else if (this.uri.schemeIs("moz-profile-calendar")) {
             // This is an old-style moz-profile-calendar. It requires some
             // migration steps.
@@ -398,8 +397,6 @@ calStorageCalendar.prototype = {
 
             this.mDB = localDB;
             upgradeDB(this.mDB);
-        } else {
-            throw new Components.Exception("Invalid Scheme " + this.uri.spec);
         }
 
         this.initDB();
@@ -2284,10 +2281,10 @@ calStorageCalendar.prototype = {
 
     getMetaData: function cSC_getMetaData(id) {
         let query = this.mSelectMetaData;
-        let value = null;
         try {
             this.prepareStatement(query);
             query.params.item_id = id;
+            let value = null;
 
             if (query.step()) {
                 value = query.row.value;
@@ -2297,7 +2294,6 @@ calStorageCalendar.prototype = {
         } finally {
             query.reset();
         }
-
         return value;
     },
 

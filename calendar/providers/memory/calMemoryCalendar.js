@@ -106,13 +106,13 @@ calMemoryCalendar.prototype = {
         throw NS_ERROR_NOT_IMPLEMENTED;
     },
 
-    deleteCalendar: function mem_deleteCal(calendar, listener) {
-        calendar = calendar.wrappedJSObject;
-        calendar.mItems = {};
-        calendar.mMetaData = new cal.calPropertyBag();
+    deleteCalendar: function mem_deleteCal(cal, listener) {
+        cal = cal.wrappedJSObject;
+        cal.mItems = {};
+        cal.mMetaData = new cal.calPropertyBag();
 
         try {
-            listener.onDeleteCalendar(calendar, Components.results.NS_OK, null);
+            listener.onDeleteCalendar(cal, Components.results.NS_OK, null);
         } catch(ex) {}
     },
 

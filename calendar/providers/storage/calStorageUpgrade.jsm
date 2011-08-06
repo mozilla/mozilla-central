@@ -410,8 +410,7 @@ function ensureUpdatedTimezones(db) {
 
     if (versionComp < 0) {
         // A timezones downgrade has happened!
-        throw new Components.Exception("Attempt to downgrade timezones",
-                                       Components.interfaces.calIErrors.STORAGE_UNKNOWN_TIMEZONES_ERROR);
+        throw Components.interfaces.calIErrors.STORAGE_UNKNOWN_TIMEZONES_ERROR;
     } else if (versionComp > 0) {
         cal.LOG("Timezones have been updated, updating calendar data.");
 
