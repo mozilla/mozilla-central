@@ -118,7 +118,7 @@
               <!-- Lists are built at runtime -->
               <menulist id="AddHTMLAttributeNameInput" editable="true" flex="1"
                         oninput="onInputHTMLAttributeName();"
-                        onchange="onChangeHTMLAttribute();"/>
+                        oncommand="onInputHTMLAttributeName();"/>
               <deck id="AddHTMLAttributeValueDeck" selectedIndex="0">
                 <hbox align="top">
                   <textbox id="AddHTMLAttributeValueTextbox" flex="1"
@@ -126,7 +126,8 @@
                 </hbox>
                 <hbox align="top">
                   <menulist id="AddHTMLAttributeValueMenulist" editable="true" flex="1"
-                            oninput="onInputHTMLAttributeValue();"/>
+                            oninput="onInputHTMLAttributeValue();"
+                            oncommand="onInputHTMLAttributeValue();"/>
                 </hbox>
               </deck>
             </row>
@@ -165,8 +166,7 @@
             </row>
             <row align="top" equalsize="always">
               <textbox id="AddCSSAttributeNameInput" flex="1"
-                oninput="onInputCSSAttributeName();"
-                onchange="onChangeCSSAttribute();"/>
+                oninput="onInputCSSAttributeName();"/>
           	  <textbox id="AddCSSAttributeValueInput" flex="1"
                 oninput="onChangeCSSAttribute();"/>
             </row>
@@ -206,9 +206,7 @@
             <row align="top" equalsize="always">
               <!-- List is built at runtime -->
               <menulist id="AddJSEAttributeNameList" flex="1"
-                oncommand="onSelectJSEAttribute();">
-                <menupopup/>
-              </menulist>
+                oncommand="onSelectJSEAttribute();"/>
           	  <textbox id="AddJSEAttributeValueInput" flex="1"
                 oninput="onInputJSEAttributeValue();"/>
             </row>

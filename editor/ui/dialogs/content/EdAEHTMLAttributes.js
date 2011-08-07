@@ -149,21 +149,6 @@ function BuildHTMLAttributeTable()
   }
 }
 
-// add or select an attribute in the tree widget
-function onChangeHTMLAttribute()
-{
-  var name = TrimString(gDialog.AddHTMLAttributeNameInput.value);
-  if (!name)
-    return;
-
-  var value = TrimString(gDialog.AddHTMLAttributeValueInput.value);
-
-  // First try to update existing attribute
-  // If not found, add new attribute
-  if (!UpdateExistingAttribute( name, value, "HTMLAList" ) && value)
-    AddTreeItem (name, value, "HTMLAList", HTMLAttrs);
-}
-
 function ClearHTMLInputWidgets()
 {
   gDialog.AddHTMLAttributeTree.view.selection.clearSelection();
@@ -236,7 +221,7 @@ function onInputHTMLAttributeName()
       var valueList = gHTMLAttr[valueListName];
 
       listLen = valueList.length;
-      if (listLen > 0)
+      if (listLen == 1)
         newValue = valueList[0];
 
       // Note: For case where "value list" is actually just 
@@ -285,6 +270,9 @@ function onInputHTMLAttributeName()
       newValue = existingValue;
       
     gDialog.AddHTMLAttributeValueInput.value = newValue;
+
+    if (!existingValue)
+      onInputHTMLAttributeValue();
   }
 }
 
