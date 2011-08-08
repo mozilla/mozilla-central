@@ -982,7 +982,8 @@ NS_IMETHODIMP nsPop3Protocol::OnStopRequest(nsIRequest *aRequest, nsISupports * 
     // Check if the connection was dropped before getting back an auth error.
     // If we got the auth error, the next state would be
     // POP3_OBTAIN_PASSWORD_EARLY.
-    if (m_pop3ConData->next_state_after_response == POP3_NEXT_AUTH_STEP &&
+    if ((m_pop3ConData->next_state_after_response == POP3_NEXT_AUTH_STEP ||
+         m_pop3ConData->next_state_after_response == POP3_AUTH_LOGIN_RESPONSE) &&
         m_pop3ConData->next_state != POP3_OBTAIN_PASSWORD_EARLY)
     {
       PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("dropped connection before auth error"));
