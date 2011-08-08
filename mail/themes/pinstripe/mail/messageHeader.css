@@ -44,10 +44,18 @@
 
 /* ::::: for the entire area ::::: */
 .main-header-area {
-  color: rgb(46, 52, 54); /* Aluminium 6 */
-  background-color: rgb(238, 238, 236); /* Aluminium 1 */
-  border-bottom: 2px groove rgb(186,189,182); /* Aluminium 3 */
+  color: #2E3436; /* Aluminium 6 */
+  background: -moz-linear-gradient(top, #909090, #FFFFFF 5px);
+  border-bottom:1px solid #BFBFBF;
   padding: 0.6ex;
+}
+
+.main-header-area:-moz-window-inactive {
+  background: -moz-linear-gradient(top, #CDCDCD, #FFFFFF 5px);
+}
+
+#displayDeck:not([collapsed="true"]) + #threadpane-splitter + #messagepanebox .main-header-area {
+  background: -moz-linear-gradient(top, #E4E4E4, #FFFFFF 5px);
 }
 
 /* ::::: msg header toolbars ::::: */
@@ -480,7 +488,8 @@ window[inlinetoolbox] #wrapper-spring {
 }
 
 .headerName {
-  color: #888a85; /* lower contrast */
+  color: #A1A1A1; /* lower contrast */
+  font-weight: bold;
   text-align: right;
   background-color: transparent;
   padding: 0px;
