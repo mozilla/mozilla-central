@@ -284,9 +284,13 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
     border-top-right-radius: 0;
   }
 
-  #menubar-items:not(:-moz-lwtheme):not(:-moz-window-inactive) {
+  #menubar-items:not(:-moz-lwtheme) {
     background-color: rgba(255, 255, 255, .5);
     border-radius: 4px;
+  }
+
+  menubar > menu:-moz-window-inactive {
+    color: MenuText;
   }
 
   /* lesser transparency on Glass background */
