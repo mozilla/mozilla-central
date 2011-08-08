@@ -286,7 +286,13 @@ uninstall/uninstall.exe
 #endif
 .autoreg
 component.reg
+#ifdef XP_MACOSX
+#ifndef MOZ_MEMORY_DARWIN
 @DLL_PREFIX@jemalloc@DLL_SUFFIX@
+#endif
+#else
+@DLL_PREFIX@jemalloc@DLL_SUFFIX@
+#endif
 #ifdef XP_WIN
   #ifdef MOZ_MEMORY
     Microsoft.VC80.CRT.manifest
