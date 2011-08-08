@@ -216,8 +216,9 @@ Sync(NSString *aUid)
       }
       else {
         nsCOMPtr<nsIAbCard> abCard;
-       // Construct a card
+        // Construct a card
         nsresult rv = CreateCard(card, getter_AddRefs(abCard));
+        NS_ENSURE_SUCCESS(rv, );
         rv = osxDirectory->AssertCard(abManager, abCard);
         NS_ENSURE_SUCCESS(rv, );
       }
