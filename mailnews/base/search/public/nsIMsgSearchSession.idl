@@ -39,7 +39,6 @@
 #include "nsMsgSearchCore.idl"
 #include "nsIMsgSearchValue.idl"
 
-interface nsMsgResultElement;
 interface nsIMsgSearchAdapter;
 interface nsIMsgSearchTerm;
 interface nsIMsgSearchNotify;

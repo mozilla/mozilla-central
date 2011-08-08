@@ -40,7 +40,7 @@
 #include "nsMsgSearchCore.idl"
 #include "nsIMsgSearchScopeTerm.idl"
 
-[ptr] native nsMsgSearchTermArray(nsMsgResultElement);
+[ptr] native nsMsgResultElement(nsMsgResultElement);
 
 %{C++
 class nsMsgResultElement;
