@@ -170,8 +170,8 @@ NS_IMETHODIMP nsImapFlagAndUidState::Reset()
 
 NS_IMETHODIMP nsImapFlagAndUidState::ExpungeByIndex(PRUint32 msgIndex)
 {
-  // protect ourselves in case the server gave us an index key of -1.....
-  if ((PRInt32) msgIndex < 0)
+  // protect ourselves in case the server gave us an index key of -1 or 0
+  if ((PRInt32) msgIndex <= 0)
     return NS_ERROR_INVALID_ARG;
 
   if ((PRUint32) fUids.Length() < msgIndex)
