@@ -11,6 +11,7 @@
 
 <!ENTITY redoCmd.key                    "Y">  
 
+<!ENTITY findCmd.key2                   "VK_F19">
 <!ENTITY findTypeTextCmd.key            "/">
 <!ENTITY findTypeLinksCmd.key           "'">
 

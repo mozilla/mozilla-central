@@ -206,7 +206,7 @@ var DefaultController =
       case "cmd_getMsgsForAuthAccounts":
 			case "cmd_getNextNMessages":
 			case "cmd_find":
-			case "cmd_findAgain":
+      case "cmd_findNext":
 			case "cmd_findPrev":
       case "button_search":
       case "cmd_search":
@@ -410,7 +410,7 @@ var DefaultController =
       case "cmd_markReadByDate":
         return IsFolderSelected();
       case "cmd_find":
-      case "cmd_findAgain":
+      case "cmd_findNext":
       case "cmd_findPrev":
         return IsMessageDisplayedInMessagePane();
         break;
@@ -653,7 +653,7 @@ var DefaultController =
 			case "cmd_find":
 				MsgFind();
 				return;
-			case "cmd_findAgain":
+      case "cmd_findNext":
 				MsgFindAgain(false);
 				return;
 			case "cmd_findPrev":

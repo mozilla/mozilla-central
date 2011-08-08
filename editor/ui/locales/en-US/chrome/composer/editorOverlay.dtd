@@ -91,17 +91,6 @@
 <!ENTITY pasteAsQuotationCmd.accesskey "Q">
 <!ENTITY pasteAsQuotationCmd.key "o">
 <!ENTITY findCmd.label "Find and Replace…">
-<!ENTITY findCmd.accesskey "F">
-<!ENTITY findCmd.key "F">
-<!ENTITY findCmd.key2 "VK_F19">
-<!ENTITY findAgainCmd.label "Find Again">
-<!ENTITY findAgainCmd.accesskey "g">
-<!ENTITY findAgainCmd.key "G">
-<!ENTITY findAgainCmd.key2 "VK_F3">
-<!ENTITY findPrevCmd.label "Find Previous">
-<!ENTITY findPrevCmd.accesskey "v">
-<!ENTITY findPrevCmd.key "G">
-<!ENTITY findPrevCmd.key2 "VK_F3">
 <!ENTITY enableInlineSpellChecker.label "Spellcheck As You Type">
 <!ENTITY enableInlineSpellChecker.accesskey "S">
 <!ENTITY checkSpellingCmd2.label "Check Spelling">

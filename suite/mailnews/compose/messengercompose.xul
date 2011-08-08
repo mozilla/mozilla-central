@@ -166,11 +166,7 @@
   <!-- Edit Menu -->
   <key id="key_rewrap" key="&editRewrapCmd.key;" command="cmd_rewrap" modifiers="accel"/>
   <key id="key_delete2"/>
-  <key id="key_find"  key="&findCmd.key;"  command="cmd_find" modifiers="accel"/>
-  <key id="key_findNext"  key="&findAgainCmd.key;" command="cmd_findNext" modifiers="accel"/>
-  <key id="key_findPrev"  key="&findPrevCmd.key;"  command="cmd_findPrev" modifiers="accel, shift"/>
-  <key keycode="&findAgainCmd.key2;" command="cmd_findNext"/>
-  <key keycode="&findPrevCmd.key2;"  command="cmd_findPrev" modifiers="shift"/>
+  <keyset id="findKeys"/>
 
   <!-- Options Menu -->
   <!-- key id="key_selectAddresses" key="&selectAddressCmd.key;" command="cmd_selectAddress"/ -->
@@ -345,21 +341,9 @@
               <menuseparator id="menuEditAfterDeleteSeparator"/>
               <menuitem id="menu_selectAll"/>
               <menuseparator id="menuEditAfterSelectAllSeparator"/>
-              <menuitem id="menu_findCmd"
-                        label="&findCmd.label;"
-                        accesskey="&findCmd.accesskey;"
-                        key="key_find"
-                        command="cmd_find"/>
-              <menuitem id="menu_findNextCmd"
-                        label="&findAgainCmd.label;"
-                        accesskey="&findAgainCmd.accesskey;"
-                        key="key_findNext"
-                        command="cmd_findNext"/>
-              <menuitem id="menu_findPrevCmd"
-                        label="&findPrevCmd.label;"
-                        accesskey="&findPrevCmd.accesskey;"
-                        key="key_findPrev"
-                        command="cmd_findPrev"/>
+              <menuitem id="menu_find" label="&findCmd.label;"/>
+              <menuitem id="menu_findNext"/>
+              <menuitem id="menu_findPrev"/>
               <menuseparator id="prefSep"/>
               <menuitem id="menu_accountmgr"
                         label="&accountManagerCmd.label;"

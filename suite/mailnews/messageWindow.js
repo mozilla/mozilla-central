@@ -664,7 +664,7 @@ var MessageWindowController =
       case "cmd_editAsNew":
       case "cmd_getNextNMessages":
       case "cmd_find":
-      case "cmd_findAgain":
+      case "cmd_findNext":
       case "cmd_findPrev":
       case "button_search":
       case "cmd_search":
@@ -785,7 +785,7 @@ var MessageWindowController =
       case "cmd_previousFlaggedMsg":
       case "cmd_applyFiltersToSelection":
 				return true;
-			case "cmd_findAgain":
+      case "cmd_findNext":
 			case "cmd_findPrev":
 				return MsgCanFindAgain();
       case "cmd_goBack":
@@ -915,7 +915,7 @@ var MessageWindowController =
 			case "cmd_find":
 				MsgFind();
 				break;
-			case "cmd_findAgain":
+      case "cmd_findNext":
 				MsgFindAgain(false);
 				break;
 			case "cmd_findPrev":

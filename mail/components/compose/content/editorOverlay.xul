@@ -133,8 +133,8 @@
              label="&pasteNoFormatting.label;" accesskey="&pasteNoFormatting.accesskey;"/>
     <command id="cmd_preferences"   oncommand="goDoCommand('cmd_preferences')"/>
     <command id="cmd_find"          oncommand="goDoCommand('cmd_find')"/>
-    <command id="cmd_findNext"      oncommand="goDoCommand('cmd_findNext')"     label="&findAgainCmd.label;"/>
-    <command id="cmd_findPrev"      oncommand="goDoCommand('cmd_findPrev')"     label="&findPrevCmd.label;"/>
+    <command id="cmd_findNext"      oncommand="goDoCommand('cmd_findNext');"/>
+    <command id="cmd_findPrev"      oncommand="goDoCommand('cmd_findPrev');"/>
     <command id="cmd_spelling"      oncommand="goDoCommand('cmd_spelling')"/>
     <command id="cmd_pasteQuote"    oncommand="goDoCommand('cmd_pasteQuote')" label="&pasteAsQuotationCmd.label;"/>
   </commandset>

@@ -104,11 +104,7 @@
     <key id="key_viewPrevSidebarPanel" keycode="VK_PAGE_UP"  oncommand="SidebarGetRelativePanel(-1);"  modifiers="alt" />
 
     <!-- Search Menu -->  
-    <key id="key_find"       key="&findOnCmd.commandkey;"         command="Browser:Find"      modifiers="accel"/>
-    <key id="key_findAgain"  key="&findAgainCmd.commandkey;"      command="Browser:FindAgain" modifiers="accel"/>
-    <key id="key_findPrev"   key="&findPrevCmd.commandkey;"       command="Browser:FindPrev"  modifiers="accel,shift"/>
-    <key keycode="&findAgainCmd.commandkey2;" command="Browser:FindAgain"/>
-    <key keycode="&findPrevCmd.commandkey2;"  command="Browser:FindPrev" modifiers="shift"/>
+    <keyset id="findKeys"/>
     <key id="key_findTypeText"/>
     <key id="key_findTypeLinks"/>
 
@@ -181,9 +177,15 @@
     <command id="cmd_CustomizeToolbars" oncommand="goCustomizeToolbar(getNavToolbox());"/>
  
     <!-- Search Menu -->
-    <command id="Browser:Find" oncommand="BrowserFind();" observes="isImage"/>
-    <command id="Browser:FindAgain" oncommand="BrowserFindAgain(false);" observes="isImage"/>
-    <command id="Browser:FindPrev"  oncommand="BrowserFindAgain(true);"  observes="isImage"/>
+    <command id="cmd_find"
+             oncommand="BrowserFind();"
+             observes="isImage"/>
+    <command id="cmd_findNext"
+             oncommand="BrowserFindAgain(false);"
+             observes="isImage"/>
+    <command id="cmd_findPrev"
+             oncommand="BrowserFindAgain(true);"
+             observes="isImage"/>
     <command id="cmd_findTypeText" observes="isImage"/>
     <command id="cmd_findTypeLinks" observes="isImage"/>
 
@@ -294,9 +296,9 @@
         <menuseparator/>
         <menuitem id="menu_selectAll"/>
         <menuseparator/>
-        <menuitem id="menu_find" label="&findOnCmd.label;" accesskey="&findOnCmd.accesskey;" key="key_find" command="Browser:Find"/>
-        <menuitem id="menu_findAgain" label="&findAgainCmd.label;" accesskey="&findAgainCmd.accesskey;" key="key_findAgain" command="Browser:FindAgain"/>
-        <menuitem id="menu_findPrev"  label="&findPrevCmd.label;"  accesskey="&findPrevCmd.accesskey;" key="key_findPrev" command="Browser:FindPrev"/>
+        <menuitem id="menu_find" label="&findOnCmd.label;"/>
+        <menuitem id="menu_findNext"/>
+        <menuitem id="menu_findPrev"/>
         <menuseparator/> 
         <menuitem id="menu_findTypeLinks"/>
         <menuitem id="menu_findTypeText"/>

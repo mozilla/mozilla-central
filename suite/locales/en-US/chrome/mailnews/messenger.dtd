@@ -273,16 +273,6 @@
 <!ENTITY pageSourceCmd.key "u">
 
 <!ENTITY findCmd.label "Find in This Message…">
-<!ENTITY findCmd.accesskey "F">
-<!ENTITY findCmd.key "f">
-<!ENTITY findAgainCmd.label "Find Again">
-<!ENTITY findAgainCmd.accesskey "g">
-<!ENTITY findAgainCmd.key "g">
-<!ENTITY findAgainCmd.key2 "VK_F3">
-<!ENTITY findPrevCmd.label "Find Previous">
-<!ENTITY findPrevCmd.accesskey "v">
-<!ENTITY findPrevCmd.key "g">
-<!ENTITY findPrevCmd.key2 "VK_F3">
 
 <!-- Go Menu -->
 

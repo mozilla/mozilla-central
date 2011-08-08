@@ -170,7 +170,7 @@
 
 <commandset id="mailEditMenuItems"
             commandupdater="true"
-            events="create-menu-edit"
+            events="create-menu-edit, message-header-pane"
             oncommandupdate="goUpdateMailMenuItems(this)">
 
   <command id="cmd_undo"
@@ -209,7 +209,9 @@
          valueFolder="&folderPropsFolderCmd.label;"
          valueGeneric="&folderPropsCmd.label;"/>
   <command id="cmd_find" oncommand="goDoCommand('cmd_find')" disabled="true"/>
-  <command id="cmd_findAgain" oncommand="goDoCommand('cmd_findAgain')" disabled="true"/>
+  <command id="cmd_findNext"
+           oncommand="goDoCommand('cmd_findNext');"
+           disabled="true"/>
   <command id="cmd_findPrev"  oncommand="goDoCommand('cmd_findPrev')"  disabled="true"/>
   <command id="cmd_findTypeText"/>
   <command id="cmd_findTypeLinks"/>
@@ -396,11 +398,7 @@
        key="&getAllNewMsgCmd2.key;"
        oncommand="goDoCommand('cmd_getMsgsForAuthAccounts');"
        modifiers="accel, shift"/>
-  <key id="key_find" key="&findCmd.key;"  oncommand="goDoCommand('cmd_find')" modifiers="accel"/>
-  <key id="key_findAgain" key="&findAgainCmd.key;"   oncommand="goDoCommand('cmd_findAgain')" modifiers="accel"/>
-  <key id="key_findPrev"  key="&findPrevCmd.key;"    oncommand="goDoCommand('cmd_findPrev')"  modifiers="accel, shift"/>
-  <key keycode="&findAgainCmd.key2;"   oncommand="goDoCommand('cmd_findAgain')"/>
-  <key keycode="&findPrevCmd.key2;"    oncommand="goDoCommand('cmd_findPrev')"  modifiers="shift"/>
+  <keyset id="findKeys"/>
   <key id="key_findTypeText"/>
   <key id="key_findTypeLinks"/>
   <key id="key_stop" keycode="VK_ESCAPE" command="cmd_stop"/>
@@ -1115,20 +1113,9 @@
         </menupopup>
       </menu>
       <menuseparator id="editMenuAfterSelectSeparator"/>
-      <menuitem id="menu_find"
-                label="&findCmd.label;"
-                key="key_find" accesskey="&findCmd.accesskey;"
-                command="cmd_find"/>
-      <menuitem id="menu_findAgain"
-                label="&findAgainCmd.label;"
-                key="key_findAgain"
-                accesskey="&findAgainCmd.accesskey;"
-                command="cmd_findAgain"/>
-      <menuitem id="menu_findPrev"
-                label="&findPrevCmd.label;"
-                key="key_findPrev"
-                accesskey="&findPrevCmd.accesskey;"
-                command="cmd_findPrev"/>
+      <menuitem id="menu_find" label="&findCmd.label;"/>
+      <menuitem id="menu_findNext"/>
+      <menuitem id="menu_findPrev"/>
       <menuseparator id="editMenuAfterFindSeparator"/>
       <menuitem id="menu_findTypeLinks"/>
       <menuitem id="menu_findTypeText"/>

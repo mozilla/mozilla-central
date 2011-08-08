@@ -55,6 +55,19 @@
 <!ENTITY preferencesCmd.label				"Preferences…">
 <!ENTITY preferencesCmd.key					"E">  
 <!ENTITY preferencesCmd.accesskey			"e"> 
+<!ENTITY findCmd.key "F">
+<!-- LOCALIZATION NOTE (findCmd.accesskey): This accesskey should be within
+     findCmd.label found in messengercompose.dtd, messenger.dtd and
+     editorOverlay.dtd and findOnCmd.label found in navigatorOverlay.dtd -->
+<!ENTITY findCmd.accesskey "F">
+<!ENTITY findAgainCmd.label "Find Again">
+<!ENTITY findAgainCmd.key "G">
+<!ENTITY findAgainCmd.accesskey "g">
+<!ENTITY findAgainCmd.key2 "VK_F3">
+<!ENTITY findPrevCmd.label "Find Previous">
+<!ENTITY findPrevCmd.key "G">
+<!ENTITY findPrevCmd.key2 "VK_F3">
+<!ENTITY findPrevCmd.accesskey "v">
 <!ENTITY findTypeTextCmd.label "Find Text As You Type">
 <!ENTITY findTypeTextCmd.accesskey "x">
 <!ENTITY findTypeLinksCmd.label "Find Links As You Type">

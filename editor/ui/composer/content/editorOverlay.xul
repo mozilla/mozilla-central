@@ -96,27 +96,7 @@
          key="&pasteNoFormatting.key;"
          command="cmd_pasteNoFormatting"
          modifiers="accel, shift"/>
-    <key id="findkb"
-         key="&findCmd.key;"
-         command="cmd_find"
-         modifiers="accel"/>
-    <key id="findnextkb"
-         key="&findAgainCmd.key;"
-         command="cmd_findNext"
-         modifiers="accel"/>
-    <key id="findprevkb"
-         key="&findPrevCmd.key;"
-         command="cmd_findPrev"
-         modifiers="accel,shift"/>
-    <key keycode="&findAgainCmd.key2;"
-         command="cmd_findNext"/>
-    <key keycode="&findPrevCmd.key2;"
-         command="cmd_findPrev"
-         modifiers="shift"/>
-#ifdef MOZ_X11
-    <key keycode="&findCmd.key2;"
-         command="cmd_find"/>
-#endif
+    <keyset id="findKeys"/>
     <key id="checkspellingkb"
          key="&checkSpellingCmd2.key;"
          command="cmd_spelling"
@@ -262,8 +242,8 @@
     <command id="cmd_selectAll"/>
     <command id="cmd_preferences"   oncommand="goDoCommand('cmd_preferences')"/>
     <command id="cmd_find"          oncommand="goDoCommand('cmd_find')"/>
-    <command id="cmd_findNext"      oncommand="goDoCommand('cmd_findNext')"     label="&findAgainCmd.label;"/>
-    <command id="cmd_findPrev"      oncommand="goDoCommand('cmd_findPrev')"     label="&findPrevCmd.label;"/>
+    <command id="cmd_findNext"      oncommand="goDoCommand('cmd_findNext');"/>
+    <command id="cmd_findPrev"      oncommand="goDoCommand('cmd_findPrev');"/>
     <command id="cmd_spelling"      oncommand="goDoCommand('cmd_spelling')"/>
     <command id="cmd_checkLinks"    oncommand="goDoCommand('cmd_checkLinks')"/>
     <command id="cmd_pasteQuote"    oncommand="goDoCommand('cmd_pasteQuote')" label="&pasteAsQuotationCmd.label;"/>
@@ -463,19 +443,9 @@
       <menuseparator id="edEditMenuSep2" />
       <menuitem id="menu_selectAll"/>
       <menuseparator id="sep_find"/>
-      <menuitem id="menu_find"
-                label="&findCmd.label;"
-                accesskey="&findCmd.accesskey;"
-                key="findkb"
-                command="cmd_find"/>
-      <menuitem id="menu_findnext"
-                accesskey="&findAgainCmd.accesskey;"
-                key="findnextkb"
-                command="cmd_findNext"/>
-      <menuitem id="menu_findprev"
-                accesskey="&findPrevCmd.accesskey;"
-                key="findprevkb"
-                command="cmd_findPrev"/>
+      <menuitem id="menu_find" label="&findCmd.label;"/>
+      <menuitem id="menu_findNext"/>
+      <menuitem id="menu_findPrev"/>
       <menuseparator id="sep_checkspelling"/>
       <menuitem id="menu_checkspelling"
                 label="&checkSpellingCmd2.label;"

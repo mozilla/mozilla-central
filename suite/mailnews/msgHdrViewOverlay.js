@@ -959,6 +959,8 @@ function ShowMessageHeaderPane()
     el.setAttribute("style", el.getAttribute("style"));
     gFolderJustSwitched = false;    
   }
+
+  document.commandDispatcher.updateCommands("message-header-pane");
 }
 
 function HideMessageHeaderPane()
@@ -975,6 +977,8 @@ function HideMessageHeaderPane()
   node = document.getElementById("msgAttachmentMenu");
   if (node)
     node.setAttribute("disabled", "true");
+
+  document.commandDispatcher.updateCommands("message-header-pane");
 }
 
 function OutputNewsgroups(headerEntry, headerValue)

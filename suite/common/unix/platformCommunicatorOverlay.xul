@@ -36,6 +36,10 @@
 	<!-- Delete Key -->
   <key id="key_delete" keycode="VK_DELETE" command="cmd_delete"/>
 
+  <keyset id="findKeys">
+    <key keycode="&findCmd.key2;"
+         command="cmd_find"/>
+  </keyset>
   <!-- Find As You Type Keys -->
   <key id="key_findTypeText"
        key="&findTypeTextCmd.key;"/>
