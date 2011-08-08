@@ -92,6 +92,7 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsIMsgTraitService.h"
 #include "nsIMessenger.h"
+#include "nsThreadUtils.h"
 #include "nsITransactionManager.h"
 #include "nsMsgReadStateTxn.h"
 #include "nsAutoPtr.h"
@@ -1788,6 +1789,178 @@ nsresult nsMsgDBFolder::CompactOfflineStore(nsIMsgWindow *inWindow, nsIUrlListen
   return folderCompactor->Compact(this, PR_TRUE, aListener, inWindow);
 }
 
+class AutoCompactEvent : public nsRunnable
+{
+public:
+  AutoCompactEvent(nsIMsgWindow *aMsgWindow, nsMsgDBFolder *aFolder)
+    : mMsgWindow(aMsgWindow), mFolder(aFolder)
+  {}
+
+  NS_IMETHOD Run()
+  {
+    if (mFolder)
+      mFolder->HandleAutoCompactEvent(mMsgWindow);
+    return NS_OK;
+  }
+
+private:
+  nsCOMPtr<nsIMsgWindow> mMsgWindow;
+  nsRefPtr<nsMsgDBFolder> mFolder;
+};
+
+nsresult nsMsgDBFolder::HandleAutoCompactEvent(nsIMsgWindow *aWindow)
+{
+  nsresult rv;
+  nsCOMPtr<nsIMsgAccountManager> accountMgr = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv))
+  {
+    nsCOMPtr<nsISupportsArray> allServers;
+    rv = accountMgr->GetAllServers(getter_AddRefs(allServers));
+    NS_ENSURE_SUCCESS(rv, rv);
+    PRUint32 numServers = 0, serverIndex = 0;
+    rv = allServers->Count(&numServers);
+    PRInt32 offlineSupportLevel;
+    if (numServers > 0)
+    {
+      nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, serverIndex);
+      NS_ENSURE_SUCCESS(rv, rv);
+      nsCOMPtr<nsIMutableArray> folderArray = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+      nsCOMPtr<nsIMutableArray> offlineFolderArray = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+      PRInt32 totalExpungedBytes = 0;
+      PRInt32 offlineExpungedBytes = 0;
+      PRInt32 localExpungedBytes = 0;
+      do
+      {
+        nsCOMPtr<nsIMsgFolder> rootFolder;
+        rv = server->GetRootFolder(getter_AddRefs(rootFolder));
+        if(NS_SUCCEEDED(rv) && rootFolder)
+        {
+          rv = server->GetOfflineSupportLevel(&offlineSupportLevel);
+          NS_ENSURE_SUCCESS(rv, rv);
+          nsCOMPtr<nsISupportsArray> allDescendents;
+          NS_NewISupportsArray(getter_AddRefs(allDescendents));
+          rootFolder->ListDescendents(allDescendents);
+          PRUint32 cnt = 0;
+          rv = allDescendents->Count(&cnt);
+          NS_ENSURE_SUCCESS(rv, rv);
+          PRUint32 expungedBytes=0;
+          if (offlineSupportLevel > 0)
+          {
+            PRUint32 flags;
+            for (PRUint32 i = 0; i < cnt; i++)
+            {
+              nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i);
+              expungedBytes = 0;
+              folder->GetFlags(&flags);
+              if (flags & nsMsgFolderFlags::Offline)
+                folder->GetExpungedBytes(&expungedBytes);
+              if (expungedBytes > 0 )
+              {
+                offlineFolderArray->AppendElement(folder, PR_FALSE);
+                offlineExpungedBytes += expungedBytes;
+              }
+            }
+          }
+          else  //pop or local
+          {
+            for (PRUint32 i = 0; i < cnt; i++)
+            {
+              nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i);
+              folder->GetExpungedBytes(&expungedBytes);
+              if (expungedBytes > 0 )
+              {
+                folderArray->AppendElement(folder, PR_FALSE);
+                localExpungedBytes += expungedBytes;
+              }
+            }
+          }
+        }
+        server = do_QueryElementAt(allServers, ++serverIndex);
+      }
+      while (serverIndex < numServers);
+      totalExpungedBytes = localExpungedBytes + offlineExpungedBytes;
+      PRInt32 purgeThreshold;
+      rv = GetPurgeThreshold(&purgeThreshold);
+      NS_ENSURE_SUCCESS(rv, rv);
+      if (totalExpungedBytes > (purgeThreshold * 1024))
+      {
+        PRBool okToCompact = PR_FALSE;
+        nsCOMPtr<nsIPrefService> pref = do_GetService(NS_PREFSERVICE_CONTRACTID);
+        nsCOMPtr<nsIPrefBranch> branch;
+        pref->GetBranch("", getter_AddRefs(branch));
+
+        PRBool askBeforePurge;
+        branch->GetBoolPref(PREF_MAIL_PURGE_ASK, &askBeforePurge);
+        if (askBeforePurge && aWindow)
+        {
+          nsCOMPtr <nsIStringBundle> bundle;
+          rv = GetBaseStringBundle(getter_AddRefs(bundle));
+          NS_ENSURE_SUCCESS(rv, rv);
+          nsString dialogTitle;
+          nsString confirmString;
+          nsString checkboxText;
+          nsString buttonCompactNowText;
+          rv = bundle->GetStringFromName(NS_LITERAL_STRING("autoCompactAllFoldersTitle").get(), getter_Copies(dialogTitle));
+          NS_ENSURE_SUCCESS(rv, rv);
+          rv = bundle->GetStringFromName(NS_LITERAL_STRING("autoCompactAllFolders").get(), getter_Copies(confirmString));
+          NS_ENSURE_SUCCESS(rv, rv);
+          rv = bundle->GetStringFromName(NS_LITERAL_STRING("autoCompactAlwaysAskCheckbox").get(),
+                                                          getter_Copies(checkboxText));
+          NS_ENSURE_SUCCESS(rv, rv);
+          rv = bundle->GetStringFromName(NS_LITERAL_STRING("compactNowButton").get(),
+                                                          getter_Copies(buttonCompactNowText));
+          NS_ENSURE_SUCCESS(rv, rv);
+          PRBool alwaysAsk = PR_TRUE; // "Always ask..." - checked by default.
+          PRInt32 buttonPressed = 0;
+
+          nsCOMPtr<nsIPrompt> dialog;
+          rv = aWindow->GetPromptDialog(getter_AddRefs(dialog));
+          NS_ENSURE_SUCCESS(rv, rv);
+
+          const PRUint32 buttonFlags =
+            (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
+            (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1);
+          rv = dialog->ConfirmEx(dialogTitle.get(), confirmString.get(), buttonFlags,
+                                 buttonCompactNowText.get(), nsnull, nsnull,
+                                 checkboxText.get(), &alwaysAsk, &buttonPressed);
+          NS_ENSURE_SUCCESS(rv, rv);
+          if (!buttonPressed)
+          {
+            okToCompact = PR_TRUE;
+            if (!alwaysAsk) // [ ] Always ask me before compacting folders automatically
+              branch->SetBoolPref(PREF_MAIL_PURGE_ASK, PR_FALSE);
+          }
+        }
+        else
+          okToCompact = aWindow || !askBeforePurge;
+
+        if (okToCompact)
+        {
+          nsCOMPtr <nsIAtom> aboutToCompactAtom = MsgGetAtom("AboutToCompact");
+          NotifyFolderEvent(aboutToCompactAtom);
+
+         if ( localExpungedBytes > 0)
+         {
+            nsCOMPtr<nsIMsgFolderCompactor> folderCompactor =
+              do_CreateInstance(NS_MSGLOCALFOLDERCOMPACTOR_CONTRACTID, &rv);
+            NS_ENSURE_SUCCESS(rv, rv);
+
+            if (offlineExpungedBytes > 0)
+              folderCompactor->CompactFolders(folderArray, offlineFolderArray, nsnull, aWindow);
+            else
+              folderCompactor->CompactFolders(folderArray, nsnull, nsnull, aWindow);
+          }
+          else if (offlineExpungedBytes > 0)
+            CompactAllOfflineStores(nsnull, aWindow, offlineFolderArray);
+        }
+      }
+    }
+  }
+  return rv;
+}
+
 nsresult
 nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
 {
@@ -1801,154 +1974,12 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
   LL_ADD(timeAfterOneHourOfLastPurgeCheck, gtimeOfLastPurgeCheck, oneHour);
   if (LL_CMP(timeAfterOneHourOfLastPurgeCheck, <, timeNow) && prompt)
   {
-   gtimeOfLastPurgeCheck = timeNow;
-   nsCOMPtr<nsIMsgAccountManager> accountMgr = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-   if (NS_SUCCEEDED(rv))
-   {
-     nsCOMPtr<nsISupportsArray> allServers;
-     rv = accountMgr->GetAllServers(getter_AddRefs(allServers));
-     NS_ENSURE_SUCCESS(rv, rv);
-     PRUint32 numServers = 0, serverIndex = 0;
-     rv = allServers->Count(&numServers);
-     PRInt32 offlineSupportLevel;
-     if ( numServers > 0 )
-     {
-       nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, serverIndex);
-       NS_ENSURE_SUCCESS(rv, rv);
-       nsCOMPtr<nsIMutableArray> folderArray = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
-       NS_ENSURE_SUCCESS(rv, rv);
-       nsCOMPtr<nsIMutableArray> offlineFolderArray = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
-       NS_ENSURE_SUCCESS(rv, rv);
-       PRInt32 totalExpungedBytes = 0;
-       PRInt32 offlineExpungedBytes = 0;
-       PRInt32 localExpungedBytes = 0;
-       do
-       {
-         nsCOMPtr<nsIMsgFolder> rootFolder;
-         rv = server->GetRootFolder(getter_AddRefs(rootFolder));
-         if(NS_SUCCEEDED(rv) && rootFolder)
-         {
-           rv = server->GetOfflineSupportLevel(&offlineSupportLevel);
-           NS_ENSURE_SUCCESS(rv, rv);
-           nsCOMPtr<nsISupportsArray> allDescendents;
-           NS_NewISupportsArray(getter_AddRefs(allDescendents));
-           rootFolder->ListDescendents(allDescendents);
-           PRUint32 cnt = 0;
-           rv = allDescendents->Count(&cnt);
-           NS_ENSURE_SUCCESS(rv, rv);
-           PRUint32 expungedBytes=0;
-           if (offlineSupportLevel > 0)
-           {
-             PRUint32 flags;
-             for (PRUint32 i = 0; i < cnt; i++)
-             {
-               nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i);
-               expungedBytes = 0;
-               folder->GetFlags(&flags);
-               if (flags & nsMsgFolderFlags::Offline)
-                 folder->GetExpungedBytes(&expungedBytes);
-               if (expungedBytes > 0 )
-               {
-                 offlineFolderArray->AppendElement(folder, PR_FALSE);
-                 offlineExpungedBytes += expungedBytes;
-               }
-             }
-           }
-           else  //pop or local
-           {
-             for (PRUint32 i = 0; i < cnt; i++)
-             {
-               nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i);
-               folder->GetExpungedBytes(&expungedBytes);
-               if (expungedBytes > 0 )
-               {
-                 folderArray->AppendElement(folder, PR_FALSE);
-                 localExpungedBytes += expungedBytes;
-               }
-             }
-           }
-         }
-         server = do_QueryElementAt(allServers, ++serverIndex);
-       }
-       while (serverIndex < numServers);
-       totalExpungedBytes = localExpungedBytes + offlineExpungedBytes;
-       PRInt32 purgeThreshold;
-       rv = GetPurgeThreshold(&purgeThreshold);
-       NS_ENSURE_SUCCESS(rv, rv);
-       if (totalExpungedBytes > (purgeThreshold * 1024))
-       {
-         PRBool okToCompact = PR_FALSE;
-         nsCOMPtr<nsIPrefService> pref = do_GetService(NS_PREFSERVICE_CONTRACTID);
-         nsCOMPtr<nsIPrefBranch> branch;
-         pref->GetBranch("", getter_AddRefs(branch));
-
-         PRBool askBeforePurge;
-         branch->GetBoolPref(PREF_MAIL_PURGE_ASK, &askBeforePurge);
-         if (askBeforePurge && aWindow)
-         {
-           nsCOMPtr <nsIStringBundle> bundle;
-           rv = GetBaseStringBundle(getter_AddRefs(bundle));
-           NS_ENSURE_SUCCESS(rv, rv);
-           nsString dialogTitle;
-           nsString confirmString;
-           nsString checkboxText;
-           nsString buttonCompactNowText;
-           rv = bundle->GetStringFromName(NS_LITERAL_STRING("autoCompactAllFoldersTitle").get(), getter_Copies(dialogTitle));
-           NS_ENSURE_SUCCESS(rv, rv);
-           rv = bundle->GetStringFromName(NS_LITERAL_STRING("autoCompactAllFolders").get(), getter_Copies(confirmString));
-           NS_ENSURE_SUCCESS(rv, rv);
-           rv = bundle->GetStringFromName(NS_LITERAL_STRING("autoCompactAlwaysAskCheckbox").get(),
-                                                            getter_Copies(checkboxText));
-           NS_ENSURE_SUCCESS(rv, rv);
-           rv = bundle->GetStringFromName(NS_LITERAL_STRING("compactNowButton").get(),
-                                                            getter_Copies(buttonCompactNowText));
-           NS_ENSURE_SUCCESS(rv, rv);
-           PRBool alwaysAsk = PR_TRUE; // "Always ask..." - checked by default.
-           PRInt32 buttonPressed = 0;
-
-           nsCOMPtr<nsIPrompt> dialog;
-           rv = aWindow->GetPromptDialog(getter_AddRefs(dialog));
-           NS_ENSURE_SUCCESS(rv, rv);
-
-          const PRUint32 buttonFlags =
-            (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
-            (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1);
-           rv = dialog->ConfirmEx(dialogTitle.get(), confirmString.get(), buttonFlags,
-                                  buttonCompactNowText.get(), nsnull, nsnull,
-                                  checkboxText.get(), &alwaysAsk, &buttonPressed);
-           NS_ENSURE_SUCCESS(rv, rv);
-           if (!buttonPressed)
-           {
-             okToCompact = PR_TRUE;
-             if (!alwaysAsk) // [ ] Always ask me before compacting folders automatically
-               branch->SetBoolPref(PREF_MAIL_PURGE_ASK, PR_FALSE);
-           }
-         }
-         else
-           okToCompact = aWindow || !askBeforePurge;
-
-         if (okToCompact)
-         {
-            nsCOMPtr <nsIAtom> aboutToCompactAtom = MsgGetAtom("AboutToCompact");
-            NotifyFolderEvent(aboutToCompactAtom);
-
-           if ( localExpungedBytes > 0)
-           {
-               nsCOMPtr<nsIMsgFolderCompactor> folderCompactor =
-                 do_CreateInstance(NS_MSGLOCALFOLDERCOMPACTOR_CONTRACTID, &rv);
-               NS_ENSURE_SUCCESS(rv, rv);
-
-               if (offlineExpungedBytes > 0)
-                 folderCompactor->CompactFolders(folderArray, offlineFolderArray, nsnull, aWindow);
-               else
-                 folderCompactor->CompactFolders(folderArray, nsnull, nsnull, aWindow);
-           }
-           else if (offlineExpungedBytes > 0)
-             CompactAllOfflineStores(nsnull, aWindow, offlineFolderArray);
-         }
-       }
-     }
-   }
+    gtimeOfLastPurgeCheck = timeNow;
+    nsCOMPtr<nsIRunnable> event = new AutoCompactEvent(aWindow, this);
+    // Post this as an event because it can put up an alert, which
+    // might cause issues depending on the stack when we are called.
+    if (event)
+      NS_DispatchToCurrentThread(event);
   }
   return rv;
 }

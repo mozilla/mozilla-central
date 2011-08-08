@@ -112,6 +112,7 @@ public:
   nsresult CreateBackupDirectory(nsILocalFile **result);
   nsresult GetBackupSummaryFile(nsILocalFile **result, const nsACString& newName);
   nsresult GetMsgPreviewTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputStream *stream);
+  nsresult HandleAutoCompactEvent(nsIMsgWindow *aMsgWindow);
 protected:
   
   // this is a little helper function that is not part of the public interface. 
