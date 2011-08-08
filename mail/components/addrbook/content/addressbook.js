@@ -53,7 +53,6 @@ var cvPrefs = 0;
 var gSearchTimer = null;
 var gStatusText = null;
 var gQueryURIFormat = null;
-var gSearchInput;
 var gCardViewBox;
 var gCardViewBoxEmail1;
 var gPreviousDirTreeIndex = -1;
@@ -182,8 +181,6 @@ function OnLoadAddressBook()
 
 function delayedOnLoadAddressBook()
 {
-  gSearchInput = document.getElementById("peopleSearchInput");
-
   verifyAccounts(null, false);   // this will do migration, if we need to.
 
   InitCommonJS();
@@ -469,7 +466,8 @@ function SetStatusText(total)
   try {
     var statusText;
 
-    if (gSearchInput && gSearchInput.value) {
+    var searchInput = document.getElementById("peopleSearchInput");
+    if (searchInput && searchInput.value) {
       if (total == 0)
         statusText = gAddressBookBundle.getString("noMatchFound");
       else
@@ -533,10 +531,11 @@ function onEnterInSearchBar()
    already has a query, like
    moz-abldapdirectory://nsdirectory.netscape.com:389/ou=People,dc=netscape,dc=com?(or(Department,=,Applications))
   */
-  if (gSearchInput.value != "") {
+  var searchInput = document.getElementById("peopleSearchInput");
+  if (searchInput && searchInput.value != "") {
     // replace all instances of @V with the escaped version
     // of what the user typed in the quick search text input
-    searchURI += gQueryURIFormat.replace(/@V/g, encodeURIComponent(gSearchInput.value));
+    searchURI += gQueryURIFormat.replace(/@V/g, encodeURIComponent(searchInput.value));
   }
 
   SetAbView(searchURI);
@@ -554,6 +553,7 @@ function SwitchPaneFocus(event)
   var cardViewBoxEmail1 = GetCardViewBoxEmail1();
   var searchBox         = document.getElementById('search-container');
   var dirTree           = GetDirTree();
+  var searchInput       = document.getElementById('peopleSearchInput');
 
   if (event && event.shiftKey)
   {
@@ -584,8 +584,8 @@ function SwitchPaneFocus(event)
     }
     else if (focusedElement != dirTree && !IsDirPaneCollapsed())
       dirTree.focus();
-    else if (searchBox)
-      gSearchInput.focus();
+    else if (searchBox && searchInput)
+      searchInput.focus();
     else
       gAbResultsTree.focus();
   }

@@ -638,15 +638,20 @@ function GetSelectedDirectory()
 
 function onAbClearSearch()
 {
-  gSearchInput.value = "";
+  var searchInput = document.getElementById("peopleSearchInput");
+  if (searchInput)
+    searchInput.value = "";
   onEnterInSearchBar();
 }
 
 // sets focus into the quick search box
 function QuickSearchFocus()
 {
-  gSearchInput.focus();
-  gSearchInput.select();
+  var searchInput = document.getElementById("peopleSearchInput");
+  if (searchInput) {
+    searchInput.focus();
+    searchInput.select();
+  }
 }
 
 var gQuickSearchFocusEl = null;

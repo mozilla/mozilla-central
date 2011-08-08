@@ -37,8 +37,6 @@
 /**
  * Use of items in this file require:
  *
- * gSearchInput
- *   global variable to be set up pointing to the search input box
  * GetSelectedDirectory()
  *   returns the URI of the selected directory
  * AbResultsPaneDoubleClick(card)

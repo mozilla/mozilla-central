@@ -82,7 +82,8 @@ function addSelectedAddresses(recipientType)
 
 function AddressBookMenuListChange()
 {
-  if (gSearchInput.value && !gSearchInput.showingSearchCriteria) 
+  var searchInput = document.getElementById("peopleSearchInput");
+  if (searchInput.value && !searchInput.showingSearchCriteria)
     onEnterInSearchBar();
   else 
     ChangeDirectoryByURI(document.getElementById('addressbookList').value);
@@ -119,7 +120,6 @@ function AbPanelLoad()
 
   parent.addEventListener("compose-window-close", AbPanelOnComposerClose, true);
   parent.addEventListener("compose-window-reopen", AbPanelOnComposerReOpen, true);
-  gSearchInput = document.getElementById("peopleSearchInput");
 }
 
 function AbPanelUnload()
@@ -168,9 +168,10 @@ function onEnterInSearchBar()
                                               Components.interfaces.nsIPrefLocalizedString).data;
  
   var searchURI = GetSelectedDirectory();
+  var searchInput = document.getElementById("peopleSearchInput");
 
-  if (gSearchInput.value != "")
-    searchURI += gQueryURIFormat.replace(/@V/g, encodeURIComponent(gSearchInput.value));
+  if (searchInput.value != "")
+    searchURI += gQueryURIFormat.replace(/@V/g, encodeURIComponent(searchInput.value));
 
   SetAbView(searchURI);
 }
