@@ -51,8 +51,7 @@
             type="child"
             onload="OnLoadAddLanguages();"
             onbeforeaccept="DoBeforeAccept();"
-            ondialogaccept="return OnAccept();"
-            style="width: 41ch; height: 28em;">
+            ondialogaccept="return OnAccept();">
 
   <script type="application/javascript" src="chrome://communicator/content/pref/pref-languages-add.js"/>
 
@@ -66,9 +65,9 @@
     <stringbundle id="prefLangAddBundle"
                   src="chrome://communicator/locale/pref/pref-languages.properties"/>
  
-    <description>&languages.customize.prefAddLangDescript;</description>
+    <description style="width: 1px;">&languages.customize.prefAddLangDescript;</description>
     <separator class="thin"/>
-    <description>&languages.customize.available.label;</description>
+    <description style="width: 1px;">&languages.customize.available.label;</description>
  
     <listbox id="availableLanguages"
              flex="1"
@@ -81,7 +80,7 @@
       <label value="&languages.customize.others.label;" 
              accesskey="&languages.customize.others.accesskey;" 
              control="otherLanguages"/>
-      <textbox id="otherLanguages" size="6" flex="1"/>
+      <textbox id="otherLanguages" size="12" flex="1"/>
       <label value="&languages.customize.others.examples;" control="otherLanguages"/>
     </hbox>
   </prefpane>

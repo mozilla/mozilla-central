@@ -46,7 +46,6 @@
             type="child"
             onload="AdvancedInit();"
             title="&pref.proxies.advanced.title;"
-            style="width: 54ch;"
             persist="screenX screenY">
 
   <script type="application/javascript"
@@ -97,7 +96,7 @@
 
     <groupbox>
       <caption label="&protocols.caption;"/>
-      <description>&protocols.description;</description>
+      <description style="width: 1px;">&protocols.description;</description>
 
       <grid>
         <columns>
@@ -187,7 +186,7 @@
 
     <groupbox>
       <caption label="&socks.caption;"/>
-      <description>&socks.description;</description>
+      <description style="width: 1px;">&socks.description;</description>
 
       <hbox align="center" pack="end">
         <label value="&socks.label;"
