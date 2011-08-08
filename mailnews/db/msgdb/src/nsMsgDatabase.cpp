@@ -1999,8 +1999,11 @@ nsresult nsMsgDatabase::RemoveHeaderFromDB(nsMsgHdr *msgHdr)
   if (UseCorrectThreading())
     RemoveMsgRefsFromHash(msgHdr);
   nsIMdbRow* row = msgHdr->GetMDBRow();
-  ret = m_mdbAllMsgHeadersTable->CutRow(GetEnv(), row);
-  row->CutAllColumns(GetEnv());
+  if (row)
+  {
+    ret = m_mdbAllMsgHeadersTable->CutRow(GetEnv(), row);
+    row->CutAllColumns(GetEnv());
+  }
   msgHdr->m_initedValues = 0; // invalidate cached values.
   return ret;
 }
