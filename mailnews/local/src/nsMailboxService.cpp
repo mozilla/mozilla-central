@@ -538,7 +538,11 @@ NS_IMETHODIMP nsMailboxService::GetProtocolFlags(PRUint32 *result)
 {
   NS_ENSURE_ARG_POINTER(result);
   *result = URI_STD | URI_FORBIDS_AUTOMATIC_DOCUMENT_REPLACEMENT |
-            URI_DANGEROUS_TO_LOAD;
+            URI_DANGEROUS_TO_LOAD
+#ifdef IS_ORIGIN_IS_FULL_SPEC_DEFINED
+            | ORIGIN_IS_FULL_SPEC
+#endif
+  ;
   return NS_OK;
 }
 
