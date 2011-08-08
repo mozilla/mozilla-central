@@ -225,6 +225,7 @@ libs-%:
 	  $(MAKE) -C ../../mozilla/extensions/venkman/locales libs-$*; \
 	fi
 	@$(MAKE) -C ../../mozilla/extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
+	@$(MAKE) -C ../../mozilla/intl/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref BOTH_MANIFESTS=1
 
 repackage-win32-installer: WIN32_INSTALLER_OUT="$(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe"
@@ -261,6 +262,7 @@ clobber-zip:
 	  $(STAGEDIST)/defaults/pref/suite-l10n.js
 	$(RM) -rf $(STAGEDIST)/searchplugins \
 	  $(STAGEDIST)/dictionaries \
+	  $(STAGEDIST)/hyphenation \
 	  $(STAGEDIST)/defaults/profile \
 	  $(STAGEDIST)/chrome/$(AB_CD) \
 	  $(STAGEDIST)/extensions/langpack-$(AB_CD)@* \

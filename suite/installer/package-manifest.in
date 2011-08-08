@@ -35,6 +35,7 @@
 @BINPATH@/defaults/profile/chrome/*
 @BINPATH@/@PREF_DIR@/suite-l10n.js
 @BINPATH@/dictionaries/*
+@BINPATH@/hyphenation/*
 @BINPATH@/searchplugins/*
 @BINPATH@/update.locale
 @BINPATH@/updater.ini
