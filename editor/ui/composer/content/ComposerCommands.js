@@ -2233,7 +2233,7 @@ var nsPreviewCommand =
         var documentURI = GetDocumentUrl();
         while ( enumerator.hasMoreElements() )
         {
-          browser = enumerator.getNext().QueryInterface(Components.interfaces.nsIDOMWindowInternal);
+          browser = enumerator.getNext();
           if ( browser && (documentURI == browser.getBrowser().currentURI.spec))
             break;
 

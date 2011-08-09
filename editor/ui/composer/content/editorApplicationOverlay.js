@@ -111,7 +111,7 @@ function editPage(url, aFileType)
     var emptyWindow;
     while ( enumerator.hasMoreElements() )
     {
-      var win = enumerator.getNext().QueryInterface(Components.interfaces.nsIDOMWindowInternal);
+      var win = enumerator.getNext();
       if ( win && win.IsWebComposer())
       {
         if (CheckOpenWindowForURIMatch(uri, win))
@@ -161,7 +161,7 @@ function createURI(urlstring)
 function CheckOpenWindowForURIMatch(uri, win)
 {
   try {
-    var contentWindow = win.content;  // need to QI win to nsIDOMWindowInternal?
+    var contentWindow = win.content;
     var contentDoc = contentWindow.document;
     var htmlDoc = contentDoc.QueryInterface(Components.interfaces.nsIDOMHTMLDocument);
     var winuri = createURI(htmlDoc.URL);
