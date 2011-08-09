@@ -159,6 +159,13 @@ var partTachVCard = new SyntheticPartLeaf(tachVCard.body, tachVCard);
 var partRelImage = new SyntheticPartLeaf(relImage.body, relImage);
 
 var messageInfos = [
+  {
+    name: 'uuencode inline',
+    bodyPart: partUUText,
+    subject: "duh",
+    epsilon: 4,
+    checkTotalSize: false,
+  },
   // encoding type specific to newsgroups, not interested, gloda doesn't even
   // treat this as an attachment (probably because gloda requires an attachment
   // to have a content-type, which these yencoded parts don't have), but size IS
@@ -193,7 +200,7 @@ var messageInfos = [
   },
 ];
 
-function check_attachments(aMimeMsg, epsilon) {
+function check_attachments(aMimeMsg, epsilon, checkTotalSize) {
   if (aMimeMsg == null)
     do_throw("We really should have gotten a result!");
 
@@ -243,7 +250,9 @@ function check_attachments(aMimeMsg, epsilon) {
     totalSize += att.size;
   }
 
-  do_check_true(Math.abs(aMimeMsg.size - totalSize) <= epsilon);
+  // undefined means true
+  if (checkTotalSize !== false)
+    do_check_true(Math.abs(aMimeMsg.size - totalSize) <= epsilon);
 
   async_driver();
 }
@@ -258,7 +267,7 @@ function test_message_attachments(info) {
 
   MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
     try {
-      check_attachments(aMimeMsg, info.epsilon);
+      check_attachments(aMimeMsg, info.epsilon, info.checkTotalSize);
     } catch (e) {
       do_throw(e);
     }

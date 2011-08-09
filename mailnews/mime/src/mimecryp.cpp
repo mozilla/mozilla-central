@@ -399,6 +399,11 @@ MimeEncrypted_close_headers (MimeObject *obj)
 {
   MimeEncrypted *enc = (MimeEncrypted *) obj;
 
+  // Notify the JS Mime Emitter that this was an encrypted part that it should
+  // hopefully not analyze for indexing...
+  if (obj->options->notify_nested_bodies)
+    mimeEmitterAddHeaderField(obj->options, "x-jsemitter-encrypted", "1");
+
   if (enc->part_buffer) return -1;
   enc->part_buffer = MimePartBufferCreate();
   if (!enc->part_buffer)

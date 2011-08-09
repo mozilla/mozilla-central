@@ -363,6 +363,18 @@ var GlodaFundAttr = {
       });
 
     // Attachment infos
+    this._attrIsEncrypted = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrFundamental,
+      attributeName: "isEncrypted",
+      singular: true,
+      emptySetIsSignificant: false,
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_NUMBER,
+      });
+
+    // Attachment infos
     this._attrAttachmentInfos = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
@@ -545,6 +557,15 @@ var GlodaFundAttr = {
     if (listIdentities.length)
       aGlodaMessage.mailingLists = listIdentities;
 
+    let findIsEncrypted = function (x)
+      x.isEncrypted || (x.parts ? x.parts.some(findIsEncrypted) : false);
+
+    // -- Encryption
+    aGlodaMessage.isEncrypted = false;
+    if (aMimeMsg) {
+      aGlodaMessage.isEncrypted = findIsEncrypted(aMimeMsg);
+    }
+
     // -- Attachments
     if (aMimeMsg) {
       // nsParseMailbox.cpp puts the attachment flag on msgHdrs as soon as it
@@ -571,10 +592,8 @@ var GlodaFundAttr = {
       }
 
       let aMsgHdr = aRawReps.header;
-      let findIsEncrypted = function (x)
-        x.isEncrypted || (x.parts ? x.parts.some(findIsEncrypted) : false);
       let wasStreamed = aMsgHdr &&
-        !findIsEncrypted(aMimeMsg)
+        !aGlodaMessage.isEncrypted &&
         ((aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline) ||
         (aMsgHdr.folder instanceof Ci.nsIMsgLocalMailFolder));
 

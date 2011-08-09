@@ -435,8 +435,18 @@ function create_thread(aCount) {
  * @param {Object} aArgs An arguments object to be passed to
  *                       MessageGenerator.makeMessage()
  */
- function create_message(aArgs) {
+function create_message(aArgs) {
   return msgGen.makeMessage(aArgs);
+}
+
+/**
+ * Create and return a SyntheticMessage object.
+ *
+ * @param {Object} aArgs An arguments object to be passed to
+ *                       MessageGenerator.makeEncryptedSMimeMessage()
+ */
+function create_encrypted_smime_message(aArgs) {
+  return msgGen.makeEncryptedSMimeMessage(aArgs);
 }
 
 /**

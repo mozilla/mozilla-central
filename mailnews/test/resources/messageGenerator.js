@@ -935,6 +935,25 @@ MessageGenerator.prototype = {
     return msg;
   },
 
+  /**
+   * Create an encrypted SMime message. It's just a wrapper around makeMessage,
+   * that sets the right content-type. Use like makeMessage.
+   */
+  makeEncryptedSMimeMessage:
+      function MessageGenerate_makeEncryptedSMimeMessage(aOptions) {
+    if (!aOptions)
+      aOptions = {};
+    aOptions.clobberHeaders = {
+      'Content-Transfer-Encoding': 'base64',
+      'Content-Disposition': 'attachment; filename="smime.p7m"',
+    }
+    if (!aOptions.body)
+      aOptions.body = {};
+    aOptions.body.contentType = 'application/pkcs7-mime; name="smime.p7m"';
+    let msg = this.makeMessage(aOptions);
+    return msg;
+  },
+
   MAKE_MESSAGES_DEFAULTS: {
     count: 10,
   },

@@ -93,6 +93,7 @@ function MimeMessageEmitter() {
   this._curPart = null;
   this._curAttachment = null;
   this._partMap = {};
+  this._bogusPartTranslation = {};
 
   this._state = kStateUnknown;
 
@@ -133,6 +134,7 @@ MimeMessageEmitter.prototype = {
     this._curPart = null;
     this._curAttachment = null;
     this._partMap = null;
+    this._bogusPartTranslation = null;
   },
 
   setPipe: function mime_emitter_setPipe(aInputStream, aOutputStream) {
@@ -246,6 +248,9 @@ MimeMessageEmitter.prototype = {
           this._placePart(this._curPart);
         }
       }
+      else if (aField == "x-jsemitter-encrypted" && aValue == "1") {
+        this._curPart.isEncrypted = true;
+      }
       // There is no other field to be emitted in the body case other than the
       //  ones we just handled.  (They were explicitly added for the js
       //  emitter.)
@@ -296,11 +301,11 @@ MimeMessageEmitter.prototype = {
   _placePart: function(aPart) {
     let partName = aPart.partName;
     this._partMap[partName] = aPart;
-    let lastDotIndex = partName.lastIndexOf(".");
-    let parentName = partName.substring(0, lastDotIndex);
-    let parentPart = this._partMap[parentName];
+
+    let [storagePartName, parentName, parentPart] = this._findOrCreateParent(partName);
+    let lastDotIndex = storagePartName.lastIndexOf(".");
     if (parentPart !== undefined) {
-      let indexInParent = parseInt(partName.substring(lastDotIndex+1)) - 1;
+      let indexInParent = parseInt(storagePartName.substring(lastDotIndex+1)) - 1;
       // handle out-of-order notification...
       if (indexInParent < parentPart.parts.length)
         parentPart.parts[indexInParent] = aPart;
@@ -313,26 +318,94 @@ MimeMessageEmitter.prototype = {
   },
 
   /**
+   * In case the MIME structure is wrong, (i.e. we have no parent to add the
+   *  current part to), this function recursively makes sure we create the
+   *  missing bits in the hierarchy.
+   * What happens in the case of encrypted emails (mimecryp.cpp):
+   *  1. is the message
+   *  1.1 doesn't exist
+   *  1.1.1 is the multipart/alternative that holds the text/plain and text/html
+   *  1.1.1.1 is text/plain
+   *  1.1.1.2 is text/html
+   * This function fills the missing bits.
+   */
+  _findOrCreateParent: function (aPartName) {
+    let partName = aPartName + "";
+    let parentName = partName.substring(0, partName.lastIndexOf("."));
+    let parentPart;
+    if (parentName in this._partMap) {
+      parentPart = this._partMap[parentName]
+      let lastDotIndex = partName.lastIndexOf(".");
+      let indexInParent = parseInt(partName.substring(lastDotIndex+1)) - 1;
+      if ("parts" in parentPart && indexInParent == parentPart.parts.length - 1)
+        return [partName, parentName, parentPart];
+      else
+        return this._findAnotherContainer(aPartName);
+    } else {
+      // Find the grandparent
+      let [, grandParentName, grandParentPart] = this._findOrCreateParent(parentName);
+      // Create the missing part.
+      let parentPart = new this._mimeMsg.MimeContainer("multipart/fake-container");
+      // Add it to the grandparent, remember we added it in the hierarchy.
+      grandParentPart.parts.push(parentPart);
+      this._partMap[parentName] = parentPart;
+      return [partName, parentName, parentPart];
+    }
+  },
+
+  /**
+   * In the case of UUEncoded attachments, libmime tells us about the attachment
+   *  as a child of a MimeBody. This obviously doesn't make us happy, so in case
+   *  libmime wants us to attach an attachment to something that's not a
+   *  container, we walk up the mime tree to find a suitable container to hold
+   *  the attachment.
+   * The results are cached so that they're consistent accross calls — this
+   *  ensures the call to _replacePart works fine.
+   */
+  _findAnotherContainer: function(aPartName) {
+    if (aPartName in this._bogusPartTranslation)
+      return this._bogusPartTranslation[aPartName];
+
+    let parentName = aPartName + "";
+    let parentPart;
+    while (!(parentPart && "parts" in parentPart) && parentName.length) {
+      parentName = parentName.substring(0, parentName.lastIndexOf("."));
+      parentPart = this._partMap[parentName];
+    }
+    let childIndex = parentPart.parts.length;
+    let fallbackPartName = (parentName ? parentName +"." : "")+(childIndex+1);
+    return (this._bogusPartTranslation[aPartName] = [fallbackPartName, parentName, parentPart]);
+  },
+
+  /**
    * In the case of attachments, we need to replace an existing part with a
    *  more representative part...
    *
    * @param aPart Part to place.
    */
   _replacePart: function(aPart) {
+    // _partMap always maps the libmime names to parts
     let partName = aPart.partName;
     this._partMap[partName] = aPart;
 
-    let parentName = partName.substring(0, partName.lastIndexOf("."));
-    let parentPart = this._partMap[parentName];
+    let [storagePartName, parentName, parentPart] = this._findOrCreateParent(partName);
 
-    let childNamePart = partName.substring(partName.lastIndexOf(".")+1);
+    let childNamePart = storagePartName.substring(storagePartName.lastIndexOf(".")+1);
     let childIndex = parseInt(childNamePart) - 1;
 
-    let oldPart = parentPart.parts[childIndex];
-    parentPart.parts[childIndex] = aPart;
-    // copy over information from the original part
-    aPart.parts = oldPart.parts;
-    aPart.headers = oldPart.headers;
+    // The attachment has been encapsulated properly in a MIME part (most of
+    // the cases). This does not hold for UUencoded-parts for instance (see
+    // test_mime_attachments_size.js for instance).
+    if (childIndex < parentPart.parts.length) {
+      let oldPart = parentPart.parts[childIndex];
+      parentPart.parts[childIndex] = aPart;
+      // copy over information from the original part
+      aPart.parts = oldPart.parts;
+      aPart.headers = oldPart.headers;
+      aPart.isEncrypted = oldPart.isEncrypted;
+    } else {
+      parentPart.parts[childIndex] = aPart;
+    }
   },
 
   // ----- Attachment Routines

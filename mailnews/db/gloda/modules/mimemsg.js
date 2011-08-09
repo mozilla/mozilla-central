@@ -168,6 +168,15 @@ CallbackStreamListener.prototype = {
 let gMessenger = Cc["@mozilla.org/messenger;1"].
                    createInstance(Ci.nsIMessenger);
 
+function stripEncryptedParts(aPart) {
+  if (aPart.parts && aPart.isEncrypted) {
+    aPart.parts = []; // Show an empty container.
+  } else if (aPart.parts) {
+    aPart.parts = aPart.parts.map(stripEncryptedParts);
+  }
+  return aPart;
+}
+
 /**
  * Starts retrieval of a MimeMessage instance for the given message header.
  *  Your callback will be called with the message header you provide and the
@@ -194,6 +203,11 @@ let gMessenger = Cc["@mozilla.org/messenger;1"].
  *     server, and for whatever reason, it isn't available locally, then setting
  *     this option to true will make sure that attachments aren't downloaded.
  *     This makes sure the message is available quickly.
+ * @param [aOptions.examineEncryptedParts] By default, we won't reveal the
+ *     contents of multipart/encrypted parts to the consumers, unless explicitly
+ *     requested. In the case of MIME/PGP messages, for instance, the message
+ *     will appear as an empty multipart/encrypted container, unless this option
+ *     is used.
  */
 function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback,
                              aAllowDownload, aOptions) {
@@ -209,16 +223,35 @@ function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback,
     ? "&fetchCompleteMessage=false"
     : "";
 
+  // So unless the user explictly required that he wants to examine encrypted
+  // parts, give him a stripped-down version of the MimeMsg structure.
+  let wrapCallback = function (aCallback, aCallbackThis) {
+    if (aOptions && aOptions.examineEncryptedParts)
+      return aCallback;
+    else
+      return (function (aMsgHdr, aMimeMsg)
+        aCallback.call(aCallbackThis, aMsgHdr, stripEncryptedParts(aMimeMsg))
+      );
+  };
+
+  // Apparently there used to be an old syntax where the callback was the second
+  // argument...
+  let callback = aCallback ? aCallback : aCallbackThis;
+  let callbackThis = aCallback ? aCallbackThis : null;
+
   // if we're already streaming this msg, just add the callback
   // to the listener.
   let listenerForURI = activeStreamListeners[msgURI];
   if (listenerForURI != undefined) {
-    listenerForURI._callbacks.push(aCallback ? aCallback : aCallbackThis);
-    listenerForURI._callbacksThis.push(aCallback ? aCallbackThis : null);
+    listenerForURI._callbacks.push(wrapCallback(callback, callbackThis));
+    listenerForURI._callbacksThis.push(callbackThis);
     return;
   }
-  let streamListener = new CallbackStreamListener(aMsgHdr,
-                                                  aCallbackThis, aCallback);
+  let streamListener = new CallbackStreamListener(
+    aMsgHdr,
+    callbackThis,
+    wrapCallback(callback, callbackThis)
+  );
 
   try {
     let streamURI = msgService.streamMessage(
@@ -343,6 +376,7 @@ function MimeMessage() {
   this.partName = null;
   this.headers = {};
   this.parts = [];
+  this.isEncrypted = false;
 }
 
 MimeMessage.prototype = {
@@ -439,7 +473,8 @@ MimeMessage.prototype = {
       aIndent = "";
     let nextIndent = aIndent + "  ";
 
-    let s = "Message (" + this.size + " bytes): " + this.headers.subject;
+    let s = "Message "+(this.isEncrypted ? "[encrypted] " : "") +
+      "(" + this.size + " bytes): " + this.headers.subject;
     if (aVerbose)
       s += this._prettyHeaderString(nextIndent);
 
@@ -464,6 +499,7 @@ function MimeContainer(aContentType) {
   this.contentType = aContentType;
   this.headers = {};
   this.parts = [];
+  this.isEncrypted = false;
 }
 
 MimeContainer.prototype = {
@@ -513,7 +549,8 @@ MimeContainer.prototype = {
                                                     aDumpBody) {
     let nextIndent = aIndent + "  ";
 
-    let s = "Container (" + this.size + " bytes): " + this.contentType;
+    let s = "Container "+(this.isEncrypted ? "[encrypted] " : "")+
+      "(" + this.size + " bytes): " + this.contentType;
     if (aVerbose)
       s += this._prettyHeaderString(nextIndent);
 
@@ -544,6 +581,7 @@ function MimeBody(aContentType) {
   this.contentType = aContentType;
   this.headers = {};
   this.body = "";
+  this.isEncrypted = false;
 }
 
 MimeBody.prototype = {
@@ -571,7 +609,8 @@ MimeBody.prototype = {
     return "";
   },
   prettyString: function MimeBody_prettyString(aVerbose, aIndent, aDumpBody) {
-    let s = "Body: " + this.contentType + " (" + this.body.length + " bytes" +
+    let s = "Body: "+(this.isEncrypted ? "[encrypted] " : "")+
+      "" + this.contentType + " (" + this.body.length + " bytes" +
       (aDumpBody ? (": '" + this.body + "'") : "") + ")";
     if (aVerbose)
       s += this._prettyHeaderString(aIndent + "  ");
@@ -599,22 +638,46 @@ function MimeUnknown(aContentType) {
   // Looks like libmime does not always intepret us as an attachment, which
   //  means we'll have to have a default size. Returning undefined would cause
   //  the recursive size computations to fail.
-  this.size = 0;
+  this._size = 0;
+  this.isEncrypted = false;
+  // We want to make sure MimeUnknown has a part property: S/MIME encrypted
+  // messages have a topmost MimeUnknown part, with the encrypted bit set to 1,
+  // and we need to ensure all other encrypted parts are children of this
+  // topmost part.
+  this.parts = [];
 }
 
 MimeUnknown.prototype = {
   __proto__: HeaderHandlerBase,
   get allAttachments() {
-    return []; // we are a leaf
+    return [child.allAttachments for each ([, child] in Iterator(this.parts))]
+      .reduce(function (a, b) a.concat(b), []);
   },
   get allUserAttachments() {
-    return []; // we are a leaf
+    return [child.allUserAttachments for each ([, child] in Iterator(this.parts))]
+      .reduce(function (a, b) a.concat(b), []);
+  },
+  get size() {
+    return this._size + [child.size for each ([, child] in Iterator(this.parts))]
+      .reduce(function (a, b) a + Math.max(b, 0), 0);
+  },
+  set size(aSize) {
+    this._size = aSize;
   },
   prettyString: function MimeUnknown_prettyString(aVerbose, aIndent,
                                                   aDumpBody) {
-    let s = "Unknown: " + this.contentType + " (" + this.size + " bytes)";
+    let nextIndent = aIndent + "  ";
+
+    let s = "Unknown: "+(this.isEncrypted ? "[encrypted] " : "")+
+      "" + this.contentType + " (" + this.size + " bytes)";
     if (aVerbose)
       s += this._prettyHeaderString(aIndent + "  ");
+
+    for (let iPart = 0; iPart < this.parts.length; iPart++) {
+      let part = this.parts[iPart];
+      s += "\n" + nextIndent + (iPart+1) + " " +
+        (part ? part.prettyString(aVerbose, nextIndent, aDumpBody) : "NULL");
+    }
     return s;
   },
   toString: function MimeUnknown_toString() {
@@ -641,8 +704,11 @@ function MimeMessageAttachment(aPartName, aName, aContentType, aUrl,
   this.contentType = aContentType;
   this.url = aUrl;
   this.isExternal = aIsExternal;
+  this.headers = {};
+  this.isEncrypted = false;
   // parts is copied over from the part instance that preceded us
   // headers is copied over from the part instance that preceded us
+  // isEncrypted is copied over from the part instance that preceded us
 }
 
 MimeMessageAttachment.prototype = {
@@ -659,7 +725,8 @@ MimeMessageAttachment.prototype = {
   },
   prettyString: function MimeMessageAttachment_prettyString(aVerbose, aIndent,
                                                             aDumpBody) {
-    let s = "Attachment (" + this.size+" bytes): "
+    let s = "Attachment "+(this.isEncrypted ? "[encrypted] " : "")+
+      "(" + this.size+" bytes): "
       + this.name + ", " + this.contentType;
     if (aVerbose)
       s += this._prettyHeaderString(aIndent + "  ");
