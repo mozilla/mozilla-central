@@ -845,12 +845,13 @@ GlodaIdentity.prototype = {
 /**
  * An attachment, with as much information as we can gather on it
  */
-function GlodaAttachment(aName, aContentType, aSize, aURL) {
+function GlodaAttachment(aName, aContentType, aSize, aURL, aIsExternal) {
   // _datastore set on the prototype by GlodaDatastore
   this._name = aName;
   this._contentType = aContentType;
   this._size = aSize;
   this._url = aURL;
+  this._isExternal = aIsExternal;
 }
 
 GlodaAttachment.prototype = {
@@ -860,6 +861,7 @@ GlodaAttachment.prototype = {
   get contentType() { return this._contentType; },
   get size() { return this._size; },
   get url() { return this._url; },
+  get isExternal() { return this._isExternal; },
 
   toString: function gloda_attachment_toString() {
     return "attachment: " + this._name + ":" + this._contentType;

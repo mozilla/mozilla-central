@@ -612,7 +612,12 @@ var GlodaFundAttr = {
       for each (let [, att] in Iterator(aMimeMsg.allUserAttachments)) {
         if (att.isRealAttachment) {
           attachmentInfos.push(
-            new GlodaAttachment(att.name, att.contentType, att.size, att.url));
+            new GlodaAttachment(att.name,
+                                att.contentType,
+                                att.size,
+                                att.url,
+                                att.isExternal)
+          );
         }
       }
       aGlodaMessage.attachmentInfos = attachmentInfos;

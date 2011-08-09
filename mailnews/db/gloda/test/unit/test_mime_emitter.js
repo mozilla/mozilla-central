@@ -82,6 +82,28 @@ var partEnriched = new SyntheticPartLeaf(
 var partAlternative = new SyntheticPartMultiAlternative([partText, partHtml]);
 var partMailingListFooter = new SyntheticPartLeaf("I am an annoying footer!");
 
+// This is an external attachment, i.e. a mime part that basically says "go find
+// the attachment on disk, assuming it still exists, here's the path to the file
+// on disk". It turns out feed enclosures are presented in the exact same way,
+// so this covers this case as well.
+var tachExternal = {
+  body:
+    'You deleted an attachment from this message. The original MIME headers for the attachment were:\n'+
+    'Content-Type: image/png;\n'+
+    ' name="conversations-bug1.png"\n'+
+    'Content-Transfer-Encoding: base64\n'+
+    'Content-Disposition: attachment;\n'+
+    ' filename="conversations-bug1.png"',
+  contentType: 'image/png',
+  filename: "conversations-bug1.png",
+  charset: null,
+  format: null,
+  encoding: 'base64',
+  extraHeaders: {
+    'X-Mozilla-External-Attachment-URL': 'file:///tmp/conversations-bug1.png',
+    'X-Mozilla-Altered': 'AttachmentDetached; date="Wed Aug 03 11:11:33 2011"',
+  },
+};
 var tachText = {filename: 'bob.txt', body: 'I like cheese!'};
 var partTachText = new SyntheticPartLeaf(tachText.body, tachText);
 var tachInlineText = {filename: 'foo.txt', body: 'Rock the mic',
@@ -451,10 +473,13 @@ var partTachNestedMessages = [
     }),
   msgGen.makeMessage({
       attachments: [tachImage, tachApplication]
-    })
+    }),
 ];
 
 var attMessagesParams = [
+  {
+    attachments: [tachExternal],
+  },
   {
     name: 'attached rfc822',
     bodyPart: new SyntheticPartMultiMixed([partAlternative,
@@ -470,10 +495,14 @@ var attMessagesParams = [
     bodyPart: new SyntheticPartMultiMixed([partAlternative,
                                            partTachApplication,
                                            partTachNestedMessages[2]]),
-  }
+  },
 ];
 
 var expectedAttachmentsInfo = [
+  {
+    allAttachmentsContentTypes: ["image/png"],
+    allUserAttachmentsContentTypes: ["image/png"],
+  },
   {
     allAttachmentsContentTypes: [],
     allUserAttachmentsContentTypes: ["message/rfc822"],
@@ -496,6 +525,7 @@ function test_attachments_correctness () {
     yield add_sets_to_folder(gInbox, [synSet]);
 
     let msgHdr = synSet.getMsgHdr(0);
+    // dump(synMsg.toMboxString()+"\n\n");
 
     MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
       try {

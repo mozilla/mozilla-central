@@ -1358,11 +1358,12 @@ var Gloda = {
             name: x.name,
             contentType: x.contentType,
             size: x.size,
-            url: x.url
+            url: x.url,
+            isExternal: x.isExternal,
           }
         },
       fromJSON: function (x) {
-          return new GlodaAttachment(x.name, x.contentType, x.size, x.url);
+          return new GlodaAttachment(x.name, x.contentType, x.size, x.url, x.isExternal);
         },
       }, this.NOUN_ATTACHMENT);
 

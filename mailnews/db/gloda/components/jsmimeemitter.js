@@ -434,15 +434,10 @@ MimeMessageEmitter.prototype = {
         // we disguise this MimeMessage into something that can be used as a
         // MimeAttachment so that it is transparent for the user code
         this._partMap[partName].url = aUrl;
-        this._partMap[partName].isExternalAttachment = aIsExternalAttachment;
+        this._partMap[partName].isExternal = aIsExternalAttachment;
         this._partMap[partName].name = aName;
         this._partMap[partName].isRealAttachment = true;
       }
-    }
-    else if (aIsExternalAttachment) {
-      // external attachments do not pass their part path information.
-      // both aUrl in this call and the call to addAttachmentField (with
-      // X-Mozilla-PartURL) receive the same thing; the URL to the file on disk.
     }
     else if (partName) {
       let part = new this._mimeMsg.MimeMessageAttachment(partName,

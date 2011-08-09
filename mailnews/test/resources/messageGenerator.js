@@ -119,6 +119,8 @@ function SyntheticPart(aProperties) {
       this._contentId = aProperties.contentId;
     if ("disposition" in aProperties)
       this._forceDisposition = aProperties.disposition;
+    if ("extraHeaders" in aProperties)
+      this._extraHeaders = aProperties.extraHeaders;
   }
 }
 SyntheticPart.prototype = {
@@ -161,6 +163,12 @@ SyntheticPart.prototype = {
   },
   get contentIdHeaderValue() {
     return '<' + this._contentId + '>';
+  },
+  get hasExtraHeaders() {
+    return this._extraHeaders;
+  },
+  get extraHeaders() {
+    return this._extraHeaders;
   },
 };
 
@@ -228,6 +236,9 @@ SyntheticPartMulti.prototype = {
              '\r\n';
       if (part.hasContentId)
         s += 'Content-ID: ' + part.contentIdHeaderValue + '\r\n';
+      if (part.hasExtraHeaders)
+        for each (let [k, v] in Iterator(part.extraHeaders))
+          s += k + ': ' + v + '\r\n';
       s += '\r\n';
       s += part.toMessageString() + '\r\n\r\n';
     }

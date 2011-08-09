@@ -471,6 +471,10 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
     if (tmp->real_type && !strcmp(tmp->real_type, "message/rfc822") &&
            !StringEndsWith(urlString, NS_LITERAL_CSTRING(".eml"), nsCaseInsensitiveCStringComparator()))
       urlString.Append(".eml");
+  } else if (tmp->isExternalAttachment) {
+    // Allows the JS mime emitter to figure out the part information.
+    urlString.Append("?part=");
+    urlString.Append(part);
   }
   nsresult rv = nsMimeNewURI(&(tmp->url), urlString.get(), nsnull);
 
