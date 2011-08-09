@@ -291,7 +291,7 @@ MimeMessage_close_headers (MimeObject *obj)
   MimeObject *body;
 
   // Do a proper decoding of the munged subject.
-  if (obj->headers && msg->hdrs && msg->grabSubject) {
+  if (obj->headers && msg->hdrs && msg->grabSubject && obj->headers->munged_subject) {
     // nsMsgI18NConvertToUnicode wants nsAStrings...
     nsDependentCString orig(obj->headers->munged_subject);
     nsAutoString dest;
