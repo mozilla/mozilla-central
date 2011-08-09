@@ -153,7 +153,7 @@ nsMsgContentPolicy::ShouldAcceptRemoteContentForSender(nsIMsgDBHdr *aMsgHdr)
          !cardForAddress)
   {
     rv = enumerator->GetNext(getter_AddRefs(supports));
-    NS_ENSURE_SUCCESS(rv, rv);
+    NS_ENSURE_SUCCESS(rv, PR_FALSE);
     directory = do_QueryInterface(supports);
     if (directory)
     {

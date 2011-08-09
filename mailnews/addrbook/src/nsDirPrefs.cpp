@@ -367,7 +367,7 @@ static void DIR_InitServer(DIR_Server *server, DirectoryType dirType)
  */
 static PRBool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, PRInt32 position)
  {
-   NS_ENSURE_ARG_POINTER(wholeList);
+   NS_ENSURE_TRUE(wholeList, PR_FALSE);
 
    PRInt32    i, count, num;
    PRBool     resort = PR_FALSE;

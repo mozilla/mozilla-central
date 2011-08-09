@@ -2571,7 +2571,7 @@ PRBool nsImapMailFolder::ShouldCheckAllFolders(nsIImapIncomingServer *imapServer
   PRBool checkAllFolders = PR_FALSE;
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
   // This pref might not exist, which is OK.
   (void) prefBranch->GetBoolPref("mail.check_all_imap_folders_for_new", &checkAllFolders);
 

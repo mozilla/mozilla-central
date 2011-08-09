@@ -1661,7 +1661,8 @@ PRBool nsImapProtocol::ProcessCurrentURL()
           {
             nsCOMPtr<nsISupports> secInfo;
             nsCOMPtr<nsISocketTransport> strans = do_QueryInterface(m_transport, &rv);
-            if (NS_FAILED(rv)) return rv;
+            if (NS_FAILED(rv))
+              return PR_FALSE;
 
             rv = strans->GetSecurityInfo(getter_AddRefs(secInfo));
 

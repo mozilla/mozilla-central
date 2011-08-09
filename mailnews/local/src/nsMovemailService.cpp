@@ -162,7 +162,7 @@ PRBool ObtainSpoolLock(const char *aSpoolName,
                        int aSeconds /* number of seconds to retry */,
                        PRBool *aUsingLockFile)
 {
-  NS_ENSURE_ARG_POINTER(aUsingLockFile);
+  NS_ENSURE_TRUE(aUsingLockFile, PR_FALSE);
 
   /*
    * Locking procedures:

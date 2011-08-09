@@ -168,7 +168,7 @@ PRBool DownloadNewsArticlesToOfflineStore::GetNextHdrToRetrieve()
     nsCOMPtr <nsISupports> supports;
     rv = m_headerEnumerator->GetNext(getter_AddRefs(supports));
     m_newsHeader = do_QueryInterface(supports);
-    NS_ENSURE_SUCCESS(rv,rv);
+    NS_ENSURE_SUCCESS(rv, PR_FALSE);
     PRUint32 hdrFlags;
     m_newsHeader->GetFlags(&hdrFlags);
     if (hdrFlags & nsMsgMessageFlags::Marked)
@@ -216,10 +216,10 @@ PRBool nsNewsDownloader::GetNextHdrToRetrieve()
     m_lastProgressTime = nowMS;
     nsCOMPtr <nsIMsgNewsFolder> newsFolder = do_QueryInterface(m_folder);
     nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    NS_ENSURE_SUCCESS(rv, PR_FALSE);
     nsCOMPtr<nsIStringBundle> bundle;
     rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
-    NS_ENSURE_SUCCESS(rv, rv);
+    NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
     nsAutoString firstStr;
     firstStr.AppendInt(m_numwrote);
@@ -233,7 +233,7 @@ PRBool nsNewsDownloader::GetNextHdrToRetrieve()
     const PRUnichar *formatStrings[3] = { firstStr.get(), totalStr.get(), prettiestName.get() };
     rv = bundle->FormatStringFromName(NS_LITERAL_STRING("downloadingArticlesForOffline").get(),
                                       formatStrings, 3, getter_Copies(statusString));
-    NS_ENSURE_SUCCESS(rv, rv);
+    NS_ENSURE_SUCCESS(rv, PR_FALSE);
     ShowProgress(statusString.get(), percent);
     return PR_TRUE;
   }

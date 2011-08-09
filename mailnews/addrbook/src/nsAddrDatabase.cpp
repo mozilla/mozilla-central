@@ -3268,7 +3268,7 @@ PRBool
 nsAddrDatabase::HasRowButDeletedForCharColumn(const PRUnichar *unicodeStr, mdb_column findColumn, PRBool aIsCard, nsIMdbRow **aFindRow)
 {
   if (!m_mdbStore || !aFindRow || !m_mdbEnv)
-    return NS_ERROR_NULL_POINTER;
+    return PR_FALSE;
 
   mdbYarn    sourceYarn;
 

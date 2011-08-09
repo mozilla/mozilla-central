@@ -794,7 +794,7 @@ static PRBool ContainsDirectory(nsIAbDirectory *parent, nsIAbDirectory *director
   // If parent is a maillist, 'addressLists' contains AbCards.
   PRBool bIsMailList = PR_FALSE;
   nsresult rv = parent->GetIsMailList(&bIsMailList);
-  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
   if (bIsMailList)
     return PR_FALSE;
