@@ -438,6 +438,9 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   // Now, do the right thing with the name!
   if (!tmp->real_name && PL_strcasecmp(tmp->real_type, MESSAGE_RFC822))
   {
+    // Keep in mind that the name was provided by us and this is probably not a
+    // real attachment.
+    tmp->hasFilename = PR_FALSE;
     /* If this attachment doesn't have a name, just give it one... */
     tmp->real_name = MimeGetStringByID(MIME_MSG_DEFAULT_ATTACHMENT_NAME);
     if (tmp->real_name)
@@ -451,6 +454,8 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
     }
     else
       tmp->real_name = mime_part_address(object);
+  } else {
+    tmp->hasFilename = PR_TRUE;
   }
   nsCString urlString(urlSpec);
 
@@ -530,15 +535,9 @@ BuildAttachmentList(MimeObject *anObject, nsMsgAttachmentData *aAttachData, cons
              PL_strcasecmp (ct, TEXT_MDL))
       // not a type we recognize as a message body
       skip = PR_FALSE;
-    if (skip)
-    {
-      nsIPrefBranch *prefBranch = GetPrefBranch(child->options);
-      PRInt32 html_as = 0;
-      prefBranch->GetIntPref("mailnews.display.html_as", &html_as);
-      if (html_as == 4)
-        // we're displaying all body parts
+    // we're displaying all body parts
+    if (child->options->html_as_p == 4)
         skip = PR_FALSE;
-    }
     if (skip && child->headers)
     {
       char * disp = MimeHeaders_get (child->headers,
@@ -682,7 +681,7 @@ NotifyEmittersOfAttachmentList(MimeDisplayOptions     *opt,
 
   while (tmp->url)
   {
-    if (!tmp->real_name)
+    if (!tmp->real_name || (!tmp->hasFilename && (opt->html_as_p != 4 || opt->metadata_only)))
     {
       ++i;
       ++tmp;
@@ -1676,6 +1675,7 @@ mime_bridge_create_display_stream(
     msd->options->m_prefBranch->GetBoolPref("mail.force_user_charset", &(msd->options->force_user_charset));
     msd->options->m_prefBranch->GetBoolPref("mail.inline_attachments", &(msd->options->show_attachment_inline_p));
     msd->options->m_prefBranch->GetBoolPref("mail.reply_quote_inline", &(msd->options->quote_attachment_inline_p));
+    msd->options->m_prefBranch->GetIntPref("mailnews.display.html_as", &(msd->options->html_as_p));
   }
   /* This pref is written down in with the
      opposite sense of what we like to use... */

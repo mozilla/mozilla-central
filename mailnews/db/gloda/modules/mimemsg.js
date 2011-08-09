@@ -622,23 +622,6 @@ MimeUnknown.prototype = {
   }
 };
 
-const MIME_MSG_DEFAULT_ATTACHMENT_NAME = 1040;
-let localizedPartStr;
-
-/**
- * Part names are localized for display purposes; a longer term fix is proposed
- * on bug 554294, although since this will fix that bug, a new bug will likely
- * be filed and referenced by that bug.
- */
-function getLocalizedPartStr() {
-  let stringBundleService = Cc["@mozilla.org/intl/stringbundle;1"]
-                              .getService(Ci.nsIStringBundleService);
-  let mimeBundle = stringBundleService.createBundle(
-                     "chrome://messenger/locale/mime.properties");
-  localizedPartStr = mimeBundle.GetStringFromID(
-                       MIME_MSG_DEFAULT_ATTACHMENT_NAME);
-}
-
 /**
  * @class An attachment proper.  We think it's an attachment because it has a
  *  filename that libmime was able to figure out.
@@ -664,19 +647,9 @@ function MimeMessageAttachment(aPartName, aName, aContentType, aUrl,
 
 MimeMessageAttachment.prototype = {
   __proto__: HeaderHandlerBase,
-  /**
-   * Is this an actual attachment, as far as we can tell?  An example of
-   *  something that's not a real attachment is a mailing list footer that
-   *  gets its own MIME part because the original message had both HTML and text
-   *  as alternatives.
-   * Our super-advanced heuristic is to check whether the attachment name is
-   *  the same as the part name. Beware, this is localized.
-   */
+  // This is a legacy property.
   get isRealAttachment() {
-    if (!localizedPartStr)
-      getLocalizedPartStr();
-    let partName = localizedPartStr.replace("%s", this.partName);
-    return this.name != partName;
+    return true;
   },
   get allAttachments() {
     return [this]; // we are a leaf, so just us.

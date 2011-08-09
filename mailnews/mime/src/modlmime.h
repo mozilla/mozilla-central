@@ -393,6 +393,8 @@ public:
   PRBool quote_attachment_inline_p; /* Whether or not we should include inlined attachments in
                          quotes of replies) */
 
+  PRInt32 html_as_p; /* How we should display HTML, which allows us to know if we should display all body parts */
+
   /**
    * Should StartBody/EndBody events be generated for nested MimeMessages.  If
    *  false (the default value), the events are only generated for the outermost

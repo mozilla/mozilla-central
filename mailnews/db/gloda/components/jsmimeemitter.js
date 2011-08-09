@@ -371,15 +371,11 @@ MimeMessageEmitter.prototype = {
       // both aUrl in this call and the call to addAttachmentField (with
       // X-Mozilla-PartURL) receive the same thing; the URL to the file on disk.
     }
-    else {
-      if (partName) {
-        let part = new this._mimeMsg.MimeMessageAttachment(partName,
-            aName, aContentType, aUrl, aIsExternalAttachment);
-        if (part.isRealAttachment) {
-          // replace the existing part with the attachment...
-          this._replacePart(part);
-        }
-      }
+    else if (partName) {
+      let part = new this._mimeMsg.MimeMessageAttachment(partName,
+          aName, aContentType, aUrl, aIsExternalAttachment);
+      // replace the existing part with the attachment...
+      this._replacePart(part);
     }
   },
   addAttachmentField: function mime_emitter_addAttachmentField(aField, aValue) {

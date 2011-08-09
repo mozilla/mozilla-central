@@ -526,12 +526,51 @@ function test_attachments_correctness () {
   }
 }
 
+var bogusMessage = msgGen.makeMessage({ body: { body: "whatever" } });
+bogusMessage._contentType = "woooooo"; // Breaking abstraction boundaries. Bad.
+
+let weirdMessageInfos = [
+  // This message has a malformed part as an attachment, so it will end up as a
+  // MimeUnknown part. Previously, libmime would emit notifications for this to
+  // be treated as an attachment, name Part 1.2. Now it's not the case anymore,
+  // so we should ensure this message has no attachments.
+  {
+    name: 'MimeUnknown attachment (actually, a message)',
+    bodyPart: new SyntheticPartMultiMixed([
+      partHtml,
+      bogusMessage,
+    ]),
+  },
+];
+
+function test_part12_not_an_attachment() {
+  let synMsg = gMessageGenerator.makeMessage(weirdMessageInfos[0]);
+  let synSet = new SyntheticMessageSet([synMsg]);
+  yield add_sets_to_folder(gInbox, [synSet]);
+
+  let msgHdr = synSet.getMsgHdr(0);
+  // dump(synMsg.toMboxString());
+
+  MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
+    try {
+      do_check_true(aMimeMsg.allUserAttachments.length == 0);
+      do_check_true(aMimeMsg.allAttachments.length == 0);
+    } catch (e) {
+      do_throw(e);
+    }
+    async_driver();
+  });
+
+  yield false;
+}
+
 /* ===== Driver ===== */
 
 var tests = [
   parameterizeTest(test_stream_message, messageInfos),
   test_sane_bodies,
   test_attachments_correctness,
+  test_part12_not_an_attachment,
 ];
 
 var gInbox;

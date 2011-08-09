@@ -118,6 +118,7 @@ struct nsMsgAttachmentData
   PRInt32 size;                  // The size of the attachment. May be 0.
   PRBool  isExternalAttachment;  // Flag for determining if the attachment is external
   PRBool  isDownloaded;          // Flag for determining if the attachment has already been downloaded
+  PRBool  hasFilename;           // Tells whether the name is provided by us or if it's a Part 1.2-like attachment
 };
 
 

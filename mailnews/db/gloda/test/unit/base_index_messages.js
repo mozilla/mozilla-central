@@ -357,6 +357,46 @@ function test_threading() {
                                 allMessageInSameConversation);
 }
 
+/**
+ * Test the bit that says "if we're fulltext-indexing the message and we
+ *  discover it didn't have any attachments, clear the attachment bit from the
+ *  message header".
+ */
+function test_attachment_flag() {
+  // create a synthetic message with attachment
+  let smsg = msgGen.makeMessage({
+    name: 'test message with part 1.2 attachment',
+    bodyPart: new SyntheticPartMultiMixed([
+      new SyntheticPartLeaf({body: 'I like cheese!'}),
+      let (m = msgGen.makeMessage({ body: { body: 'I like wine!' }}))
+      (m._contentType = "roquefort", m)
+    ]),
+  });
+  // save it off for test_attributes_fundamental_from_disk
+  let msgSet = new SyntheticMessageSet([smsg]);
+  let folder = fundamentalFolderHandle = make_empty_folder();
+  yield add_sets_to_folders(folder, [msgSet]);
+
+  // if we need to go offline, let the indexing pass run, then force us offline
+  if (goOffline) {
+    yield wait_for_gloda_indexer(msgSet);
+    yield make_folder_and_contents_offline(folder);
+    // now the next indexer wait will wait for the next indexing pass...
+  }
+
+  yield wait_for_gloda_indexer(msgSet,
+                               {verifier: verify_attachment_flag});
+
+}
+
+function verify_attachment_flag(smsg, gmsg) {
+  // -- attachments. We won't have these if we don't have fulltext results
+  if (expectFulltextResults) {
+    do_check_eq(gmsg.attachmentNames.length, 0);
+    do_check_eq(gmsg.attachmentInfos.length, 0);
+    do_check_false(gmsg.folderMessage.flags & Ci.nsMsgMessageFlags.Attachment);
+  }
+}
 /* ===== Fundamental Attributes (per fundattr.js) ===== */
 
 /**
@@ -404,6 +444,7 @@ function test_attributes_fundamental() {
 
   yield wait_for_gloda_indexer(msgSet,
                                {verifier: verify_attributes_fundamental});
+
 }
 
 function verify_attributes_fundamental(smsg, gmsg) {
@@ -1024,6 +1065,7 @@ var tests = [
   test_event_driven_indexing_does_not_mess_with_filthy_folders,
 
   test_threading,
+  test_attachment_flag,
   test_attributes_fundamental,
   test_attributes_fundamental_from_disk,
   test_attributes_explicit,
