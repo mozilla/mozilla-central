@@ -154,6 +154,50 @@ var tasksCfg = [
     close:            true, // No point, but we don't always update the list on
                             //  shutdown.  Thus true for consistency.
   },
+
+  // Open mailnews
+  {
+    get title()       _getString("taskbar.tasks.mailWindow.label"),
+    get description() _getString("taskbar.tasks.mailWindow.description"),
+    args:             "-mail",
+    iconIndex:        0, // SeaMonkey app icon
+    open:             true,
+    close:            true, // No point, but we don't always update the list on
+                            //  shutdown.  Thus true for consistency.
+  },
+
+  // Compose Message
+  {
+    get title()       _getString("taskbar.tasks.composeMessage.label"),
+    get description() _getString("taskbar.tasks.composeMessage.description"),
+    args:             "-compose",
+    iconIndex:        0, // SeaMonkey app icon
+    open:             true,
+    close:            true, // No point, but we don't always update the list on
+                            //  shutdown.  Thus true for consistency.
+  },
+
+  // Address Book
+  {
+    get title()       _getString("taskbar.tasks.openAddressBook.label"),
+    get description() _getString("taskbar.tasks.openAddressBook.description"),
+    args:             "-addressbook",
+    iconIndex:        0, // SeaMonkey app icon
+    open:             true,
+    close:            true, // No point, but we don't always update the list on
+                            //  shutdown.  Thus true for consistency.
+  },
+
+  // Composer
+  {
+    get title()       _getString("taskbar.tasks.openEditor.label"),
+    get description() _getString("taskbar.tasks.openEditor.description"),
+    args:             "-edit",
+    iconIndex:        0, // SeaMonkey app icon
+    open:             true,
+    close:            true, // No point, but we don't always update the list on
+                            //  shutdown.  Thus true for consistency.
+  },
 ];
 
 /////////////////////////////////////////////////////////////////////////////
