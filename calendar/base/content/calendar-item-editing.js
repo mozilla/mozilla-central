@@ -40,6 +40,18 @@
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
 
 /**
+ * Takes a job and makes sure the dispose function on it is called. If there is
+ * no dispose function or the job is null, ignore it.
+ *
+ * @param job       The job to dispose.
+ */
+function disposeJob(job) {
+    if (job && job.dispose) {
+        job.dispose();
+    }
+}
+
+/**
  * Creates an event with the calendar event dialog.
  *
  * @param calendar      (optional) The calendar to create the event in
@@ -191,7 +203,7 @@ function createTodoWithDialog(calendar, dueDate, summary, todo, initialDate) {
             // the todo must have an entry date if we want to set an alarm
             todo.entryDate = initialDate;
         }
-        
+
         cal.alarms.setDefaultValues(todo);
     }
 
@@ -208,24 +220,30 @@ function createTodoWithDialog(calendar, dueDate, summary, todo, initialDate) {
  *                                           modification.
  * @param aPromptOccurrence     If the user should be prompted to select if the
  *                                parent item or occurrence should be modified.
- * @param initialDate           (optional) The initial date for new task datepickers 
+ * @param initialDate           (optional) The initial date for new task datepickers
  */
 function modifyEventWithDialog(aItem, job, aPromptOccurrence, initialDate) {
-    var onModifyItem = function(item, calendar, originalItem, listener) {
+    let dlg = cal.findItemWindow(aItem);
+    if (dlg) {
+        dlg.focus();
+        disposeJob(job);
+        return;
+    }
+
+    let onModifyItem = function(item, calendar, originalItem, listener) {
         doTransaction('modify', item, calendar, originalItem, listener);
     };
 
-    var item = aItem;
-    var futureItem, response;
+    let item = aItem;
+    let futureItem, response;
     if (aPromptOccurrence !== false) {
         [item, futureItem, response] = promptOccurrenceModification(aItem, true, "edit");
     }
 
     if (item && (response || response === undefined)) {
         openEventDialog(item, item.calendar, "modify", onModifyItem, job, initialDate);
-    } else if (job && job.dispose) {
-        // If the action was canceled and there is a job, dispose it directly.
-        job.dispose();
+    } else {
+        disposeJob(job);
     }
 }
 
@@ -237,9 +255,16 @@ function modifyEventWithDialog(aItem, job, aPromptOccurrence, initialDate) {
  * @param mode              The operation the dialog should do ("new", "modify")
  * @param callback          The callback to call when the dialog has completed.
  * @param job               (optional) The job object for the modification.
- * @param initialDate       (optional) The initial date for new task datepickers  
+ * @param initialDate       (optional) The initial date for new task datepickers
  */
 function openEventDialog(calendarItem, calendar, mode, callback, job, initialDate) {
+    let dlg = cal.findItemWindow(calendarItem);
+    if (dlg) {
+        dlg.focus();
+        disposeJob(job);
+        return;
+    }
+
     // Set up some defaults
     mode = mode || "new";
     calendar = calendar || getSelectedCalendar();
@@ -264,6 +289,7 @@ function openEventDialog(calendarItem, calendar, mode, callback, job, initialDat
         (!isCalendarWritable(calendar) || !isItemSupported(calendar))) {
         // There are no writable calendars or no calendar supports the given
         // item. Don't show the dialog.
+        disposeJob(job);
         return;
     } else if (mode == "new" &&
                (!isCalendarWritable(calendar) || !isItemSupported(calendar))) {

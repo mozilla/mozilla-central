@@ -151,13 +151,18 @@ var calendarViewController = {
      * @see calICalendarViewController
      */
     modifyOccurrence: function (aOccurrence, aNewStartTime, aNewEndTime, aNewTitle) {
+        let dlg = cal.findItemWindow(aOccurrence);
+        if (dlg) {
+            dlg.focus();
+            return;
+        }
 
         aOccurrence = this.finalizePendingModification(aOccurrence);
 
         // if modifying this item directly (e.g. just dragged to new time),
         // then do so; otherwise pop up the dialog
         if (aNewStartTime || aNewEndTime || aNewTitle) {
-            var instance = aOccurrence.clone();
+            let instance = aOccurrence.clone();
 
             if (aNewTitle) {
                 instance.title = aNewTitle;

@@ -43,6 +43,8 @@
  * that loading this file twice in the same scope will throw errors.
  */
 
+Components.utils.import("resource:///modules/Services.jsm");
+
 /**
  * Returns a clean new calIEvent
  *
@@ -133,7 +135,7 @@ function createRelation() {
     return Components.classes["@mozilla.org/calendar/relation;1"].
            createInstance(Components.interfaces.calIRelation);
 }
- 
+
 /* Shortcut to the console service */
 function getConsoleService() {
     return Components.classes["@mozilla.org/consoleservice;1"]
@@ -235,8 +237,8 @@ function calendarDefaultTimezone() {
  *              in most fonts (in case user edits PROFILE/prefs.js).
  *            CSS class names in Gecko 1.8 seem to require lowercase,
  *              no punctuation, and of course no spaces.
- *   nmchar		[_a-zA-Z0-9-]|{nonascii}|{escape}
- *   name		{nmchar}+
+ *   nmchar            [_a-zA-Z0-9-]|{nonascii}|{escape}
+ *   name              {nmchar}+
  *   http://www.w3.org/TR/CSS21/grammar.html#scanner
  *
  * @param aString       The unicode string to format
@@ -1671,7 +1673,7 @@ calPropertyBag.prototype = {
     },
     getProperty: function cpb_getProperty(aName) {
         // avoid strict undefined property warning
-        return (aName in this.mData ? this.mData[aName] : null);      
+        return (aName in this.mData ? this.mData[aName] : null);
     },
     getAllProperties: function cpb_getAllProperties(aOutKeys, aOutValues) {
         var keys = [];
@@ -1901,4 +1903,22 @@ function getCompositeCalendar() {
         }
     }
     return getCompositeCalendar.mObject;
+}
+
+/**
+ * Search for already open item dialog.
+ *
+ * @param aItem     The item of the dialog to search for.
+ */
+function findItemWindow(aItem){
+    let list = Services.wm.getEnumerator("Calendar:EventDialog");
+    while (list.hasMoreElements()) {
+        let dlg = list.getNext();
+        if (dlg.calendarItem &&
+            dlg.mode == "modify" &&
+            dlg.calendarItem.hashId == aItem.hashId) {
+            return dlg;
+        }
+    }
+    return null;
 }
