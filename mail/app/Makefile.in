@@ -143,6 +143,16 @@ WIN32_EXE_LDFLAGS += -ENTRY:wmainCRTStartup
 endif
 
 ifeq ($(OS_ARCH),WINNT)
+# Extract the icons we care about embedding into the EXE
+mailtoolbar = $(topsrcdir)/mail/themes/qute/mail/icons/mail-toolbar-aero.png
+# Each icon is 18x18 in the toolbar, and we want a 16x16 icon here, so we cut
+# off a pixel at each end.
+libs::
+	$(call png2ico,$(mailtoolbar),19,1,16,write-message.ico)
+	$(call png2ico,$(mailtoolbar),37,1,16,address-book.ico)
+
+GARBAGE += write-message.ico address-book.ico
+
 OS_LIBS += $(call EXPAND_LIBNAME,comctl32 comdlg32 uuid shell32 ole32 oleaut32 version winspool)
 OS_LIBS += $(call EXPAND_LIBNAME,usp10 msimg32)
 RCINCLUDE = splash.rc

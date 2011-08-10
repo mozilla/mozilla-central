@@ -89,7 +89,7 @@
 #define SHELL32_DLL NS_LITERAL_CSTRING("shell32.dll")
 #define DOUBLE_QUOTE "\""
 #define MAIL_COMMANDLINE_ARG " -mail"
-#define IDI_MAILBIFF 32767
+#define IDI_MAILBIFF 32576
 #define UNREAD_UPDATE_INTERVAL	(20 * 1000)	// 20 seconds
 #define ALERT_CHROME_URL "chrome://messenger/content/newmailalert.xul"
 #define NEW_MAIL_ALERT_ICON "chrome://messenger/skin/icons/new-mail-alert.png"

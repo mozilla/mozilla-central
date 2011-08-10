@@ -83,7 +83,7 @@ let gTasks = [
     get title()       _getString("taskbar.tasks.composeMessage.label"),
     get description() _getString("taskbar.tasks.composeMessage.description"),
     args:             "-compose",
-    iconIndex:        0, // Tb app icon
+    iconIndex:        2, // Write message icon
   },
 
   // Open address book
@@ -91,7 +91,7 @@ let gTasks = [
     get title()       _getString("taskbar.tasks.openAddressBook.label"),
     get description() _getString("taskbar.tasks.openAddressBook.description"),
     args:             "-addressbook",
-    iconIndex:        0, // Tb app icon
+    iconIndex:        3, // Open address book icon
   },
 ];
 

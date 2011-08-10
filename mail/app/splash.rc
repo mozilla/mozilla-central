@@ -83,10 +83,15 @@ IDC_NONE                CURSOR  DISCARDABLE     "../../mozilla/widget/src/build/
 
 #endif
 
-// For some reason IDI_MAILBIFF needs to be larger than the value of IDI_APPLICATION for static builds
-#define IDI_MAILBIFF 32767
-IDI_MAILBIFF  ICON  "../../mailnews/build/newmail.ico"
-
 // Program icon.
 IDI_APPLICATION ICON THUNDERBIRD_ICO
 
+// For some reason IDI_MAILBIFF needs to be larger than the value of IDI_APPLICATION for static builds
+#define IDI_MAILBIFF 32576
+IDI_MAILBIFF  ICON  "../../mailnews/build/newmail.ico"
+
+// Windows taskbar icons
+#define IDI_WRITE_MESSAGE 32577
+#define IDI_ADDRESS_BOOK  32578
+IDI_WRITE_MESSAGE ICON "write-message.ico"
+IDI_ADDRESS_BOOK  ICON "address-book.ico"
