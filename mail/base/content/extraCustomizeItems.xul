@@ -75,6 +75,7 @@
                  autocompletesearchparam="global"
                  enablehistory="false"
                  timeout="200"
+                 maxlength="192"
                  placeholder=""
                  emptytextbase="&searchAllMessages.label.base;"
                  keyLabelNonMac="&searchAllMessages.keyLabel2.nonmac;"
