@@ -2355,7 +2355,7 @@ function HandleMultipleAttachments(attachments, action)
         // supported. As a workaround, resort to normal detach-'all'. See also
         // the comment on 'detaching a multiple selection of attachments' below.
         if (attachments.length == 1)
-          detachAttachment(attachments[0], true);
+          attachments[0].detach(true);
         else
           messenger.detachAllAttachments(attachmentContentTypeArray.length,
                                          attachmentContentTypeArray,
