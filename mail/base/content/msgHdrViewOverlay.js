@@ -40,6 +40,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 /* This is where functions related to displaying the headers for a selected message in the
    message pane live. */
@@ -415,6 +416,8 @@ function OnAddressBookDataChanged(aAction, aParentDir, aItem) {
 // through our mime converter.
 
 var messageHeaderSink = {
+    QueryInterface: XPCOMUtils.generateQI(
+      [Components.interfaces.nsIMsgHeaderSink]),
     onStartHeaders: function()
     {
       this.mSaveHdr = null;
