@@ -603,7 +603,7 @@ var messageHeaderSink = {
           size = fileHandler.getFileFromURLSpec(url).fileSize;
         }
         catch(e) {
-          dump("Couldn't open external attachment!");
+          Components.utils.reportError("Couldn't open external attachment!");
         }
       }
 
@@ -2294,15 +2294,42 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
   menuitementry = openpopup.appendChild(menuitementry);
 }
 
+/**
+ * Handle all the attachments in this message (save them, open them, etc).
+ *
+ * @param action one of "open", "save", "saveAs", "detach", or "delete"
+ */
 function HandleAllAttachments(action)
 {
   HandleMultipleAttachments(currentAttachments, action);
 }
 
+/**
+ * Try to handle all the attachments in this message (save them, open them,
+ * etc). If the action fails for whatever reason, catch the error and report it.
+ *
+ * @param action one of "open", "save", "saveAs", "detach", or "delete"
+ */
+function TryHandleAllAttachments(action)
+{
+  try {
+    HandleAllAttachments(action)
+  }
+  catch (e) {
+    Components.utils.reportError(e);
+  }
+}
+
+/**
+ * Handle the currently-selected attachments in this message (save them, open
+ * them, etc).
+ *
+ * @param action one of "open", "save", "saveAs", "detach", or "delete"
+ */
 function HandleSelectedAttachments(action)
 {
   var attachmentList = document.getElementById('attachmentList');
-  var selectedAttachments = new Array();
+  var selectedAttachments = [];
   for (var i in attachmentList.selectedItems)
     selectedAttachments.push(attachmentList.selectedItems[i].attachment);
 
@@ -2317,94 +2344,86 @@ function HandleSelectedAttachments(action)
  */
 function HandleMultipleAttachments(attachments, action)
 {
-  try
+  // convert our attachment data into some c++ friendly structs
+  var attachmentContentTypeArray = [];
+  var attachmentUrlArray = [];
+  var attachmentDisplayNameArray = [];
+  var attachmentMessageUriArray = [];
+
+  // populate these arrays..
+  var actionIndex = 0;
+  for each(let [, attachment] in Iterator(attachments))
   {
-    // convert our attachment data into some c++ friendly structs
-    var attachmentContentTypeArray = [];
-    var attachmentUrlArray = [];
-    var attachmentDisplayNameArray = [];
-    var attachmentMessageUriArray = [];
+    // Exclude attachment which are 1) deleted, or 2) detached with missing
+    // external files.
+    if (!attachment.hasFile)
+      continue;
+    attachmentContentTypeArray[actionIndex] = attachment.contentType;
+    attachmentUrlArray[actionIndex] = attachment.url;
+    attachmentDisplayNameArray[actionIndex] = encodeURI(attachment.name);
+    attachmentMessageUriArray[actionIndex] = attachment.uri;
+    ++actionIndex;
+  }
 
-    // populate these arrays..
-    var actionIndex = 0;
-    for each(let [, attachment] in Iterator(attachments))
-    {
-      // Exclude attachment which are 1) deleted, or 2) detached with missing
-      // external files.
-      if (!attachment.hasFile)
-        continue;
-      attachmentContentTypeArray[actionIndex] = attachment.contentType;
-      attachmentUrlArray[actionIndex] = attachment.url;
-      attachmentDisplayNameArray[actionIndex] = encodeURI(attachment.name);
-      attachmentMessageUriArray[actionIndex] = attachment.uri;
-      ++actionIndex;
-    }
-
-    // The list has been built. Now call our action code...
-    switch (action)
-    {
-      case "save":
-        messenger.saveAllAttachments(attachmentContentTypeArray.length,
-                                     attachmentContentTypeArray,
-                                     attachmentUrlArray,
-                                     attachmentDisplayNameArray,
-                                     attachmentMessageUriArray);
-        return;
-      case "detach":
-        // 'detach' on a multiple selection of attachments is so far not really
-        // supported. As a workaround, resort to normal detach-'all'. See also
-        // the comment on 'detaching a multiple selection of attachments' below.
-        if (attachments.length == 1)
-          attachments[0].detach(true);
-        else
-          messenger.detachAllAttachments(attachmentContentTypeArray.length,
-                                         attachmentContentTypeArray,
-                                         attachmentUrlArray,
-                                         attachmentDisplayNameArray,
-                                         attachmentMessageUriArray,
-                                         true); // save
-        return;
-      case "delete":
+  // The list has been built. Now call our action code...
+  switch (action)
+  {
+    case "save":
+      messenger.saveAllAttachments(attachmentContentTypeArray.length,
+                                   attachmentContentTypeArray,
+                                   attachmentUrlArray,
+                                   attachmentDisplayNameArray,
+                                   attachmentMessageUriArray);
+      return;
+    case "detach":
+      // 'detach' on a multiple selection of attachments is so far not really
+      // supported. As a workaround, resort to normal detach-'all'. See also
+      // the comment on 'detaching a multiple selection of attachments' below.
+      if (attachments.length == 1)
+        attachments[0].detach(true);
+      else
         messenger.detachAllAttachments(attachmentContentTypeArray.length,
                                        attachmentContentTypeArray,
                                        attachmentUrlArray,
                                        attachmentDisplayNameArray,
                                        attachmentMessageUriArray,
-                                       false); // don't save
-        return;
-      case "open":
-      case "saveAs":
-        // XXX hack alert. If we sit in tight loop and open/save multiple
-        // attachments, we get chrome errors in layout as we start loading the
-        // first helper app dialog then before it loads, we kick off the next
-        // one and the next one. Subsequent helper app dialogs were failing
-        // because we were still loading the chrome files for the first attempt
-        // (error about the xul cache being empty). For now, work around this by
-        // doing the first helper app dialog right away, then waiting a bit
-        // before we launch the rest.
+                                       true); // save
+      return;
+    case "delete":
+      messenger.detachAllAttachments(attachmentContentTypeArray.length,
+                                     attachmentContentTypeArray,
+                                     attachmentUrlArray,
+                                     attachmentDisplayNameArray,
+                                     attachmentMessageUriArray,
+                                     false); // don't save
+      return;
+    case "open":
+    case "saveAs":
+      // XXX hack alert. If we sit in tight loop and open/save multiple
+      // attachments, we get chrome errors in layout as we start loading the
+      // first helper app dialog then before it loads, we kick off the next
+      // one and the next one. Subsequent helper app dialogs were failing
+      // because we were still loading the chrome files for the first attempt
+      // (error about the xul cache being empty). For now, work around this by
+      // doing the first helper app dialog right away, then waiting a bit
+      // before we launch the rest.
 
-        var actionFunction = null;
-        if (action == "open")
-          actionFunction = function(aAttachment) { aAttachment.open(); };
+      var actionFunction = null;
+      if (action == "open")
+        actionFunction = function(aAttachment) { aAttachment.open(); };
+      else
+        actionFunction = function(aAttachment) { aAttachment.save(); };
+
+      for (var i = 0; i < attachments.length; i++)
+      {
+        if (i == 0)
+          actionFunction(attachments[i]);
         else
-          actionFunction = function(aAttachment) { aAttachment.save(); };
-
-        for (var i = 0; i < attachments.length; i++)
-        {
-          if (i == 0)
-            actionFunction(attachments[i]);
-          else
-            setTimeout(actionFunction, 100, attachments[i]);
-        }
-        return;
-      default:
-        dump ("** unknown HandleMultipleAttachments action: " + action +
-              " **\n");
-    }
-  }
-  catch (ex)
-  {
-    dump ("** failed to handle multiple attachments **\n");
+          setTimeout(actionFunction, 100, attachments[i]);
+      }
+      return;
+    default:
+      throw new Error("unknown HandleMultipleAttachments action: " + action);
   }
 }
 

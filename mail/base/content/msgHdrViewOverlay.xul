@@ -518,7 +518,7 @@
     <label id="attachmentCount"/>
     <label id="attachmentName" crop="center" flex="1"
            context="attachmentItemContext"
-           onclick="if (event.button == 0) { HandleAllAttachments('open'); RestoreFocusAfterHdrButton(); }"
+           onclick="if (event.button == 0) { TryHandleAllAttachments('open'); RestoreFocusAfterHdrButton(); }"
            ondraggesture="nsDragAndDrop.startDrag(event,attachmentNameDNDObserver);"/>
     <label id="attachmentSize"/>
     <!-- Use a very large flex value here so that attachmentCount doesn't take
@@ -540,25 +540,25 @@
                          class="toolbarbutton-1 msgHeaderView-button"
                          label="&saveAttachmentButton.label;"
                          tooltiptext="&saveAttachmentButton.tooltip;"
-                         oncommand="HandleAllAttachments('saveAs'); RestoreFocusAfterHdrButton();"
+                         oncommand="TryHandleAllAttachments('saveAs'); RestoreFocusAfterHdrButton();"
                          hidden="true">
             <menupopup id="attachmentSaveAllSingleMenu"
                        onpopupshowing="onShowSaveAttachmentMenuSingle();">
               <menuitem id="button-openAttachment"
-                        oncommand="HandleAllAttachments('open'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        oncommand="TryHandleAllAttachments('open'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&openAttachmentMenuItem.label;"
                         accesskey="&openAttachmentMenuItem.accesskey;"/>
               <menuitem id="button-saveAttachment"
-                        oncommand="HandleAllAttachments('saveAs'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        oncommand="TryHandleAllAttachments('saveAs'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&saveAsAttachmentMenuItem.label;"
                         accesskey="&saveAsAttachmentMenuItem.accesskey;"/>
               <menuseparator id="button-menu-separator"/>
               <menuitem id="button-detachAttachment"
-                        oncommand="HandleAllAttachments('detach'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        oncommand="TryHandleAllAttachments('detach'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&detachAttachmentMenuItem.label;"
                         accesskey="&detachAttachmentMenuItem.accesskey;"/>
               <menuitem id="button-deleteAttachment"
-                        oncommand="HandleAllAttachments('delete'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        oncommand="TryHandleAllAttachments('delete'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&deleteAttachmentMenuItem.label;"
                         accesskey="&deleteAttachmentMenuItem.accesskey;"/>
             </menupopup>
@@ -567,24 +567,24 @@
                          class="toolbarbutton-1 msgHeaderView-button"
                          label="&saveAllAttachmentsButton.label;"
                          tooltiptext="&saveAllAttachmentsButton.tooltip;"
-                         oncommand="HandleAllAttachments('save'); RestoreFocusAfterHdrButton();">
+                         oncommand="TryHandleAllAttachments('save'); RestoreFocusAfterHdrButton();">
             <menupopup id="attachmentSaveAllMultipleMenu"
                        onpopupshowing="onShowSaveAttachmentMenuMultiple();">
               <menuitem id="button-openAllAttachments"
-                        oncommand="HandleAllAttachments('open'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        oncommand="TryHandleAllAttachments('open'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&openAllAttachmentsMenuItem.label;"
                         accesskey="&openAllAttachmentsMenuItem.accesskey;"/>
               <menuitem id="button-saveAllAttachments"
-                        oncommand="HandleAllAttachments('save'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        oncommand="TryHandleAllAttachments('save'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&saveAllAttachmentsMenuItem.label;"
                         accesskey="&saveAllAttachmentsMenuItem.accesskey;"/>
               <menuseparator id="button-menu-separator-all"/>
               <menuitem id="button-detachAllAttachments"
-                        oncommand="HandleAllAttachments('detach'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        oncommand="TryHandleAllAttachments('detach'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&detachAllAttachmentsMenuItem.label;"
                         accesskey="&detachAllAttachmentsMenuItem.accesskey;"/>
               <menuitem id="button-deleteAllAttachments"
-                        oncommand="HandleAllAttachments('delete'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
+                        oncommand="TryHandleAllAttachments('delete'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
                         label="&deleteAllAttachmentsMenuItem.label;"
                         accesskey="&deleteAllAttachmentsMenuItem.accesskey;"/>
             </menupopup>
