@@ -1031,6 +1031,15 @@ function awSizerResized(aSplitter)
     sib.removeAttribute("height");
 }
 
+function awDocumentKeyPress(event)
+{
+  try {
+    var id = event.target.id;
+    if (id.substr(0, 11) == 'addressCol1')
+      awRecipientKeyPress(event, event.target);
+  } catch (e) { }
+}
+
 function awRecipientInputCommand(event, inputElement)
 {
   gContentChanged=true; 
