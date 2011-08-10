@@ -25,7 +25,7 @@
 <!ENTITY pasteCmd.key            "V">
 <!ENTITY pasteCmd.accesskey          "P">
 <!ENTITY deleteCmd.label          "Delete">
-<!ENTITY deleteCmd.accesskey        "d">
+<!ENTITY deleteCmd.accesskey        "D">
 <!ENTITY selectAllCmd.label          "Select All">
 <!ENTITY selectAllCmd.key          "A">
 <!ENTITY selectAllCmd.accesskey        "A">
