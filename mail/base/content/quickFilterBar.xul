@@ -166,6 +166,7 @@
                  keyLabelNonMac="&quickFilterBar.textbox.emptyText.keyLabel2.nonmac;"
                  keyLabelMac="&quickFilterBar.textbox.emptyText.keyLabel2.mac;"
                  timeout="500"
+                 maxlength="192"
                  width="320"
                  minwidth="280">
         </textbox>
