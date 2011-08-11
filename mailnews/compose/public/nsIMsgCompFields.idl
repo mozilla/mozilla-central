@@ -87,6 +87,11 @@ interface nsIMsgCompFields : nsISupports {
   attribute AString allReply;
   attribute AString listReply;
 
+  /**
+   * Beware that when setting this property, your body must be properly wrapped,
+   * and the line endings must match MSG_LINEBREAK, namely "\r\n" on Windows
+   * and "\n" on Linux and OSX.
+   */
   attribute AString body;
 
   /**
