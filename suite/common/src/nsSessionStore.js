@@ -1659,9 +1659,7 @@ SessionStoreService.prototype = {
       catch (ex) { debug(ex); }
     }
 
-    if (aEntry.docIdentifier) {
-      entry.docIdentifier = aEntry.docIdentifier;
-    }
+    entry.docIdentifier = aEntry.BFCacheEntry.ID;
 
     if (aEntry.stateData) {
       entry.structuredCloneState = aEntry.stateData.getDataAsBase64();
@@ -1677,8 +1675,7 @@ SessionStoreService.prototype = {
       for (var i = 0; i < aEntry.childCount; i++) {
         var child = aEntry.GetChildAt(i);
         if (child) {
-          entry.children.push(this._serializeHistoryEntry(child, aFullData,
-                                                          aIsPinned));
+          entry.children.push(this._serializeHistoryEntry(child, aFullData, aIsPinned));
         }
         else { // to maintain the correct frame order, insert a dummy entry
           entry.children.push({ url: "about:blank" });
@@ -2715,7 +2712,6 @@ SessionStoreService.prototype = {
       browser.__SS_restore_data = tabData.entries[activeIndex] || {};
       browser.__SS_restore_pageStyle = tabData.pageStyle || "";
       browser.__SS_restore_tab = aTab;
-      browser.__SS_restore_docIdentifier = curSHEntry.docIdentifier;
 
       didStartLoad = true;
       try {
@@ -2866,23 +2862,16 @@ SessionStoreService.prototype = {
     }
 
     if (aEntry.docIdentifier) {
-      // Get a new document identifier for this entry to ensure that history
-      // entries after a session restore are considered to have different
-      // documents from the history entries before the session restore.
-      // Document identifiers are 64-bit ints, so JS will loose precision and
-      // start assigning all entries the same doc identifier if these ever get
-      // large enough.
-      //
-      // It's a potential security issue if document identifiers aren't
-      // globally unique, but shEntry.setUniqueDocIdentifier() below guarantees
-      // that we won't re-use a doc identifier within a given instance of the
-      // application.
-      if (!aDocIdentMap[aEntry.docIdentifier]) {
-        shEntry.setUniqueDocIdentifier();
-        aDocIdentMap[aEntry.docIdentifier] = shEntry.docIdentifier;
+      // If we have a serialized document identifier, try to find an SHEntry
+      // which matches that doc identifier and adopt that SHEntry's
+      // BFCacheEntry.  If we don't find a match, insert shEntry as the match
+      // for the document identifier.
+      let matchingEntry = aDocIdentMap[aEntry.docIdentifier];
+      if (!matchingEntry) {
+        aDocIdentMap[aEntry.docIdentifier] = shEntry;
       }
       else {
-        shEntry.docIdentifier = aDocIdentMap[aEntry.docIdentifier];
+        shEntry.adoptBFCacheEntry(matchingEntry);
       }
     }
 
@@ -3018,19 +3007,12 @@ SessionStoreService.prototype = {
       aBrowser.markupDocumentViewer.authorStyleDisabled = selectedPageStyle == "_nostyle";
     }
 
-    if (aBrowser.__SS_restore_docIdentifier) {
-      let sh = aBrowser.webNavigation.sessionHistory;
-      sh.getEntryAtIndex(sh.index, false).QueryInterface(Components.interfaces.nsISHEntry)
-        .docIdentifier = aBrowser.__SS_restore_docIdentifier;
-    }
-
     // notify the tabbrowser that this document has been completely restored
     this._sendTabRestoredNotification(aBrowser.__SS_restore_tab);
 
     delete aBrowser.__SS_restore_data;
     delete aBrowser.__SS_restore_pageStyle;
     delete aBrowser.__SS_restore_tab;
-    delete aBrowser.__SS_restore_docIdentifier;
   },
 
   /**
