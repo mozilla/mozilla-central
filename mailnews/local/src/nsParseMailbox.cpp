@@ -1065,14 +1065,6 @@ int nsParseMailMessageState::ParseHeaders ()
     }
 
     buf = colon + 1;
-    // eliminate trailing blanks after the colon
-    while (*buf == ' ' || *buf == '\t')
-      buf++;
-
-    value = buf;
-    if (header)
-      header->value = value;
-
     PRUint32 writeOffset = 0; // number of characters replaced with a folded space
 
 SEARCH_NEWLINE:
@@ -1108,15 +1100,22 @@ SEARCH_NEWLINE:
       while (buf < buf_end &&
               (*buf == '\n' || *buf == '\r' || *buf == ' ' || *buf == '\t'))
       {
-        *buf++;
+        buf++;
         writeOffset++;
       }
       goto SEARCH_NEWLINE;
     }
 
     if (header)
-      header->length = buf - header->value - writeOffset;
+    {
+      value = colon + 1;
+      // eliminate trailing blanks after the colon
+      while (*value == ' ' || *value == '\t')
+        value++;
 
+      header->value = value;
+      header->length = buf - header->value - writeOffset;
+    }
     if (*buf == '\r' || *buf == '\n')
     {
       char *last = buf - writeOffset;
