@@ -46,7 +46,7 @@
               rgba(255, 255, 255, .4) 1px, rgba(255, 255, 255, .4));
   background-position: -5px -2px;
   background-repeat: no-repeat;
-  background-size: 200%;
+  background-size: -moz-calc(100% + 11px) -moz-calc(100% + 7px);
   border: 0;
   margin: 3px 0 0;
   -moz-margin-end: 1px;
