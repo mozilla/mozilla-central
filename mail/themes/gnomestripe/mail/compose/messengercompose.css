@@ -222,6 +222,10 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
   list-style-image: url("moz-icon://stock/gtk-paste?size=menu&state=disabled");
 }
 
+#priority-button:not(:-moz-lwtheme) > label {
+  color: MenuText;
+}
+
 /* ::::: special toolbar colors ::::: */
 
 #appcontent {

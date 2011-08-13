@@ -50,6 +50,10 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+#viewPickerLabel:not(:-moz-lwtheme) {
+  color: MenuText;
+}
+
 #folderTree {
   border-bottom: 1px solid ThreeDShadow;
   -moz-border-start: 1px solid ThreeDShadow;
