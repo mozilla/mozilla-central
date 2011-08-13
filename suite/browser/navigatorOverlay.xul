@@ -197,10 +197,10 @@
              label="&addCurPageAsCmd.label;" accesskey="&addCurPageAsCmd.accesskey;"
              oncommand="PlacesCommandHook.bookmarkPageAs(gBrowser.selectedBrowser, PlacesUtils.bookmarksMenuFolderId);"/>
     <!-- The command is disabled for the hidden window. Otherwise its enabled
-         state is handled by gBookmarkAllTabsHandler. -->
+         state is handled by BookmarksEventHandler.onPopupShowing. -->
     <command id="Browser:BookmarkAllTabs"
              label="&addCurTabsAsCmd.label;" accesskey="&addCurTabsAsCmd.accesskey;"
-             oncommand="gBookmarkAllTabsHandler.doCommand();"
+             oncommand="PlacesCommandHook.bookmarkCurrentPages();"
              disabled="true"/>
     <command id="Browser:ManageBookmark"
              label="&manBookmarksCmd.label;" accesskey="&manBookmarksCmd.accesskey;"
@@ -458,8 +458,7 @@
                  openInTabs="children"
                  oncommand="BookmarksEventHandler.onCommand(event);"
                  onclick="BookmarksEventHandler.onClick(event);"
-                 onpopupshowing="if (!document.getElementById('bookmarksMenu')._placesView)
-                                   new PlacesMenu(event, 'place:folder=BOOKMARKS_MENU');"
+                 onpopupshowing="BookmarksEventHandler.onPopupShowing(event);"
                  tooltip="bhTooltip" popupsinherittooltip="true">
         <menuitem id="menu_bookmarkThisPage"
                   command="Browser:AddBookmark"

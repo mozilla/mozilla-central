@@ -715,9 +715,6 @@ function Startup()
 
   PlacesToolbarHelper.init();
 
-  // bookmark-all-tabs command
-  gBookmarkAllTabsHandler.init();
-
   gBrowser.mPanelContainer.addEventListener("InstallBrowserTheme", LightWeightThemeWebInstaller, false, true);
   gBrowser.mPanelContainer.addEventListener("PreviewBrowserTheme", LightWeightThemeWebInstaller, false, true);
   gBrowser.mPanelContainer.addEventListener("ResetBrowserThemePreview", LightWeightThemeWebInstaller, false, true);
@@ -1097,35 +1094,6 @@ function BrowserHome(aEvent)
   var where = whereToOpenLink(aEvent, false, true);
   openUILinkArrayIn(homePage, where);
 }
-
-/**
- * This also takes care of updating the command enabled-state when tabs are
- * created or removed.
- */
-var gBookmarkAllTabsHandler = {
-  init: function () {
-    this._command = document.getElementById("Browser:BookmarkAllTabs");
-    gBrowser.tabContainer.addEventListener("TabOpen", this, true);
-    gBrowser.tabContainer.addEventListener("TabClose", this, true);
-  },
-
-  _updateCommandState: function BATH__updateCommandState(aTabClose) {
-    // The TabClose event is fired before the tab is removed from the DOM.
-    // So the only interesting cases are when the number of tabs has just
-    // increased to 2, or is just about to decrease from 2.
-    if (getBrowser().tabs.length == 2)
-      this._command.setAttribute("disabled", aTabClose);
-  },
-
-  doCommand: function BATH_doCommand() {
-    PlacesCommandHook.bookmarkCurrentPages();
-  },
-
-  // nsIDOMEventListener
-  handleEvent: function(aEvent) {
-    this._updateCommandState(aEvent.type == "TabClose");
-  }
-};
 
 const BrowserSearch = {
   addEngine: function(engine, targetDoc) {

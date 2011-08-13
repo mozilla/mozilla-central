@@ -545,6 +545,14 @@ var BookmarksEventHandler = {
       PlacesUIUtils.openNodeWithEvent(target._placesNode, aEvent);
   },
 
+  onPopupShowing: function BEH_onPopupShowing(aEvent) {
+    if (!document.getElementById('bookmarksMenu')._placesView)
+      new PlacesMenu(aEvent, 'place:folder=BOOKMARKS_MENU');
+
+    document.getElementById("Browser:BookmarkAllTabs")
+            .setAttribute("disabled", getBrowser().tabs.length == 1);
+  },
+  
   fillInBHTooltip: function BEH_fillInBHTooltip(aDocument, aEvent) {
     var node;
     var cropped = false;
