@@ -1,4 +1,5 @@
 /* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* vim: set ts=2 sw=2 sts=2 et :*/
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -469,7 +470,8 @@ function InitViewBodyMenu()
   var isFeed = gFolderDisplay.selectedMessageIsFeed;
   const defaultIDs = ["bodyAllowHTML",
                       "bodySanitized",
-                      "bodyAsPlaintext"];
+                      "bodyAsPlaintext",
+                      "bodyAllParts"];
   const rssIDs = ["bodyFeedSummaryAllowHTML",
                   "bodyFeedSummarySanitized",
                   "bodyFeedSummaryAsPlaintext"];
@@ -501,6 +503,12 @@ function InitViewBodyMenu()
   var AllowHTML_menuitem = document.getElementById(menuIDs[0]);
   var Sanitized_menuitem = document.getElementById(menuIDs[1]);
   var AsPlaintext_menuitem = document.getElementById(menuIDs[2]);
+  var AllBodyParts_menuitem;
+  if (!isFeed) {
+    AllBodyParts_menuitem = document.getElementById(menuIDs[3]);
+    AllBodyParts_menuitem.hidden =
+      !pref.getBoolPref("mailnews.display.show_all_body_parts_menu");
+  }
 
   if (!prefer_plaintext && !html_as && !disallow_classes &&
       AllowHTML_menuitem)
@@ -511,6 +519,9 @@ function InitViewBodyMenu()
   else if (prefer_plaintext && html_as == 1 && disallow_classes > 0 &&
       AsPlaintext_menuitem)
     AsPlaintext_menuitem.setAttribute("checked", true);
+  else if (!prefer_plaintext && html_as == 4 && !disallow_classes &&
+      AllBodyParts_menuitem)
+    AllBodyParts_menuitem.setAttribute("checked", true);
   // else (the user edited prefs/user.js) check none of the radio menu items
 
   if (isFeed) {
@@ -2010,6 +2021,15 @@ function MsgBodyAsPlaintext()
                            disallow_classes_no_html);
     ReloadMessage();
     return true;
+}
+
+function MsgBodyAllParts()
+{
+  gPrefBranch.setBoolPref("mailnews.display.prefer_plaintext", false);
+  gPrefBranch.setIntPref("mailnews.display.html_as", 4);
+  gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers", 0);
+  ReloadMessage();
+  return true;
 }
 
 function MsgFeedBodyRenderPrefs(plaintext, html, mime)
