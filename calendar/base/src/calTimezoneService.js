@@ -55,6 +55,12 @@ function calIntrinsicTimezone(tzid, component, latitude, longitude) {
     this.longitude = longitude;
 }
 calIntrinsicTimezone.prototype = {
+    QueryInterface: function QueryInterface(aIID) {
+        return doQueryInterface(this, calIntrinsicTimezone, aIID, [
+            Components.interfaces.calITimezone,
+            Components.interfaces.nsISupports
+        ]);
+    },
     toString: function calIntrinsicTimezone_toString() {
         return (this.component ? this.component.toString() : this.tzid);
     },
