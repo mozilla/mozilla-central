@@ -110,7 +110,6 @@
 @BINPATH@/application.ini
 @BINPATH@/blocklist.xml
 @BINPATH@/platform.ini
-@BINPATH@/README.txt
 #ifdef XP_OS2
 @BINPATH@/@DLL_PREFIX@mozsqlt3@DLL_SUFFIX@
 #else

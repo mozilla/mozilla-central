@@ -228,6 +228,7 @@ mozilla-runtime@BIN_SUFFIX@
   ../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/objects.xib
 #endif
 plugins/
+README.txt
 res/bloatcycle.html
 res/broken-image.gif
 res/cmessage.txt
