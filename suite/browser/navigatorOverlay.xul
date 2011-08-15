@@ -416,14 +416,14 @@
               label="&recentTabs.label;"
               accesskey="&recentTabs.accesskey;">
           <menupopup id="menu_recentTabsPopup"
-                     onpopupshowing="updateRecentTabs(this);"
+                     onpopupshowing="event.stopPropagation(); updateRecentTabs(this);"
                      oncommand="gBrowser.undoCloseTab(event.target.value);"/>
         </menu>
         <menu id="menu_recentWindows"
               label="&recentWindows.label;"
               accesskey="&recentWindows.accesskey;">
           <menupopup id="menu_recentWindowsPopup"
-                     onpopupshowing="updateRecentWindows(this);"
+                     onpopupshowing="event.stopPropagation(); updateRecentWindows(this);"
                      oncommand="undoCloseWindow(event.target.value);"/>
         </menu>
         <menuseparator/>
