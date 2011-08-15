@@ -116,7 +116,8 @@ function test_forward_inline () {
       "<"+oMsgHdr.messageId+">");
     done.value = true;
   });
-  mc.waitForEval("subject.value==true", 30000, 100, done);
+  mc.waitFor(function () done.value == true,
+             "Timeout waiting for message to be streamed", 30000, 100);
 
   press_delete(mc);
 }
@@ -148,7 +149,8 @@ function test_forward_as_attachments () {
       "<"+oMsgHdr0.messageId+"> <"+oMsgHdr1.messageId+">");
     done.value = true;
   });
-  mc.waitForEval("subject.value==true", 30000, 100, done);
+  mc.waitFor(function () done.value == true,
+             "Timeout waiting for message to be streamed", 30000, 100);
 
   press_delete(mc);
 }

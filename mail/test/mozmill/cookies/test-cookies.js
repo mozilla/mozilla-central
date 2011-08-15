@@ -44,52 +44,33 @@
 var MODULE_NAME = 'test-cookies';
 
 var RELATIVE_ROOT = "../shared-modules";
-var MODULE_REQUIRES = ['window-helpers'];
+var MODULE_REQUIRES = ['window-helpers', 'content-tab-helpers', 'folder-display-helpers'];
 
-var controller = {};
-Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
-
-// The main controller.
-var mc;
-
-// The windowHelper module.
-var windowHelper;
-
-var newTab = null;
 
 // RELATIVE_ROOT messes with the collector, so we have to bring the path back
 // so we get the right path for the resources.
 var url = collector.addHttpResource('../cookies/html', 'cookies');
 
 function setupModule(module) {
-  windowHelper = collector.getModule('window-helpers');
-  mc = windowHelper.wait_for_existing_window("mail:3pane");
-  windowHelper.augment_controller(mc);
+  let fdh = collector.getModule("folder-display-helpers");
+  fdh.installInto(module);
+  let wh = collector.getModule('window-helpers');
+  wh.installInto(module);
+  let cth = collector.getModule("content-tab-helpers");
+  cth.installInto(module);
 }
 
 /**
  * Test deleting junk messages with no messages marked as junk.
  */
 function test_load_cookie_page() {
-  newTab = mc.tabmail.openTab("contentTab",
-                              {contentPage: url + "cookietest1.html"});
-
-  if (!newTab)
-    throw new Error("Expected new tab info to be returned from openTab");
-
-  mc.waitForEval("subject.busy == false", 5000, 100, newTab);
+  open_content_tab_with_url(url + "cookietest1.html");
 }
 
 function test_load_cookie_result_page() {
-  newTab = mc.tabmail.openTab("contentTab",
-                              {contentPage: url + "cookietest2.html"});
-
-  if (!newTab)
-    throw new Error("Expected new tab info to be returned from openTab");
-
-  mc.waitForEval("subject.busy == false", 5000, 100, newTab);
+  open_content_tab_with_url(url + "cookietest2.html");
 
   if (mc.window.content.document.title != "Cookie Test 2")
     throw new Error("The cookie test 2 page is not the selected tab or not content-primary");

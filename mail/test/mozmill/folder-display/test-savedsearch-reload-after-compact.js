@@ -89,8 +89,8 @@ function test_setup_virtual_folder_and_compact() {
   };
   otherFolder.compactAll(urlListener, null, false);
 
-  mc.waitForEval("subject.compactDone == true",
-                          10000, 100, urlListener);
+  mc.waitFor(function () urlListener.compactDone,
+             "Timeout waiting for compact to complete", 10000, 100);
 
   // Let the event queue clear.
   mc.sleep(0);
