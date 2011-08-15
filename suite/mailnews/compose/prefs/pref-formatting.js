@@ -40,7 +40,6 @@
 var gListbox;
 var gPref;
 var gError;
-var gPromptService;
 
 function Startup()
 {
@@ -60,21 +59,16 @@ function Startup()
   // Make it easier to access the pref pane from onsync.
   gListbox.html.pane = this;
   gListbox.plaintext.pane = this;
-  gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                             .getService(Components.interfaces.nsIPromptService);
 }
 
 function AddDomain(aType)
 {
   var domains = null;
-  if (gPromptService)
-  {
-    var result = {value: null};
-    if (gPromptService.prompt(window, gListbox[aType].getAttribute("title"),
-                              gListbox[aType].getAttribute("msg"), result,
-                              null, {value: 0}))
-      domains = result.value.replace(/ /g, "").split(",");
-  }
+  var result = {value: null};
+  if (Services.prompt.prompt(window, gListbox[aType].getAttribute("title"),
+                             gListbox[aType].getAttribute("msg"), result,
+                             null, {value: 0}))
+    domains = result.value.replace(/ /g, "").split(",");
 
   if (domains)
   {
@@ -118,7 +112,7 @@ function TidyDomainName(aDomain, aWarn)
     if (aWarn)
     {
       var errorMsg = gError.getAttribute("inverr").replace(/@string@/, aDomain);
-      gPromptService.alert(window, gError.getAttribute("title"), errorMsg);
+      Services.prompt.alert(window, gError.getAttribute("title"), errorMsg);
     }
     return null;
   }

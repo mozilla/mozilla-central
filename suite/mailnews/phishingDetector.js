@@ -241,10 +241,9 @@ function confirmSuspiciousURL(aPhishingType, aSuspiciousHostName)
       return false;
   }
 
-  const nsIPS = Components.interfaces.nsIPromptService;
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(nsIPS);
-  var buttons = nsIPS.STD_YES_NO_BUTTONS + nsIPS.BUTTON_POS_1_DEFAULT;
-  return promptService.confirmEx(window, titleMsg, dialogMsg, buttons, "", "", "", "", {}); /* the yes button is in position 0 */
+  var buttons = Services.prompt.STD_YES_NO_BUTTONS +
+                Services.prompt.BUTTON_POS_1_DEFAULT;
+  return Services.prompt.confirmEx(window, titleMsg, dialogMsg, buttons, "", "", "", "", {}); /* the yes button is in position 0 */
 }
 
 // returns true if the IP address is a local address.

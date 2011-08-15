@@ -39,9 +39,7 @@
 
 var gMailOfflinePrefs = null;
 var gOfflinePromptsBundle;
-var gPromptService;
 var gOfflineManager;
-
 
 function MailOfflineStateChanged(goingOffline)
 {
@@ -81,13 +79,9 @@ function CheckForUnsentMessages()
                    .hasUnsentMessages();
 }
 
-// Init nsIPromptService & strings.
+// Init strings.
 function InitPrompts()
 {
-  if(!gPromptService) {
-    gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService();
-    gPromptService = gPromptService.QueryInterface(Components.interfaces.nsIPromptService);
-  }
   if (!gOfflinePromptsBundle) 
     gOfflinePromptsBundle = document.getElementById("bundle_offlinePrompts");
 }
@@ -98,31 +92,28 @@ function PromptSendMessages()
   InitPrompts();
   InitServices();
 
-  if (gPromptService) {
-    var checkValue = {value:true};
-    var buttonPressed = gPromptService.confirmEx(window, 
-                          gOfflinePromptsBundle.getString('sendMessagesWindowTitle'), 
-                          gOfflinePromptsBundle.getString('sendMessagesLabel2'),
-                          gPromptService.BUTTON_TITLE_IS_STRING * (gPromptService.BUTTON_POS_0 + 
-                            gPromptService.BUTTON_POS_1 + gPromptService.BUTTON_POS_2),
-                          gOfflinePromptsBundle.getString('sendMessagesSendButtonLabel'),
-                          gOfflinePromptsBundle.getString('sendMessagesCancelButtonLabel'),
-                          gOfflinePromptsBundle.getString('sendMessagesNoSendButtonLabel'),
-                          gOfflinePromptsBundle.getString('sendMessagesCheckboxLabel'), 
-                          checkValue);
-    if(buttonPressed == 0) {
+  var checkValue = {value:true};
+  var buttonPressed = Services.prompt.confirmEx(
+      window,
+      gOfflinePromptsBundle.getString('sendMessagesWindowTitle'), 
+      gOfflinePromptsBundle.getString('sendMessagesLabel2'),
+      Services.prompt.BUTTON_TITLE_IS_STRING * (Services.prompt.BUTTON_POS_0 + 
+      Services.prompt.BUTTON_POS_1 + Services.prompt.BUTTON_POS_2),
+      gOfflinePromptsBundle.getString('sendMessagesSendButtonLabel'),
+      gOfflinePromptsBundle.getString('sendMessagesCancelButtonLabel'),
+      gOfflinePromptsBundle.getString('sendMessagesNoSendButtonLabel'),
+      gOfflinePromptsBundle.getString('sendMessagesCheckboxLabel'), 
+      checkValue);
+  switch (buttonPressed) {
+    case 0:
       gMailOfflinePrefs.setIntPref("offline.send.unsent_messages", !checkValue.value);
       gOfflineManager.goOnline(true, true, msgWindow);
       return true;
-    }
-    if(buttonPressed == 1) {
-      return false;
-    }
-    if(buttonPressed == 2) {
+
+    case 2:
       gMailOfflinePrefs.setIntPref("offline.send.unsent_messages", 2*!checkValue.value);
       gOfflineManager.goOnline(false, true, msgWindow);
       return true;
-    }
   }
   return false;
 }
@@ -133,31 +124,28 @@ function PromptDownloadMessages()
   InitPrompts();
   InitServices();
 
-  if(gPromptService) {
-    var checkValue = {value:true};
-    var buttonPressed = gPromptService.confirmEx(window, 
-                          gOfflinePromptsBundle.getString('downloadMessagesWindowTitle'), 
-                          gOfflinePromptsBundle.getString('downloadMessagesLabel'),
-                          gPromptService.BUTTON_TITLE_IS_STRING * (gPromptService.BUTTON_POS_0 + 
-                            gPromptService.BUTTON_POS_1 + gPromptService.BUTTON_POS_2),
-                          gOfflinePromptsBundle.getString('downloadMessagesDownloadButtonLabel'),
-                          gOfflinePromptsBundle.getString('downloadMessagesCancelButtonLabel'),
-                          gOfflinePromptsBundle.getString('downloadMessagesNoDownloadButtonLabel'), 
-                          gOfflinePromptsBundle.getString('downloadMessagesCheckboxLabel'), 
-                          checkValue);
-    if(buttonPressed == 0) {
+  var checkValue = {value:true};
+  var buttonPressed = Services.prompt.confirmEx(
+    window, 
+    gOfflinePromptsBundle.getString('downloadMessagesWindowTitle'), 
+    gOfflinePromptsBundle.getString('downloadMessagesLabel'),
+    Services.prompt.BUTTON_TITLE_IS_STRING * (Services.prompt.BUTTON_POS_0 + 
+    Services.prompt.BUTTON_POS_1 + Services.prompt.BUTTON_POS_2),
+    gOfflinePromptsBundle.getString('downloadMessagesDownloadButtonLabel'),
+    gOfflinePromptsBundle.getString('downloadMessagesCancelButtonLabel'),
+    gOfflinePromptsBundle.getString('downloadMessagesNoDownloadButtonLabel'), 
+    gOfflinePromptsBundle.getString('downloadMessagesCheckboxLabel'), 
+    checkValue);
+  switch (buttonPressed) {
+    case 0:
       gMailOfflinePrefs.setIntPref("offline.download.download_messages", !checkValue.value);
       gOfflineManager.synchronizeForOffline(true, true, false, true, msgWindow);
       return true;
-    }
-    if(buttonPressed == 1) {
-      return false;
-    }
-    if(buttonPressed == 2) {
+
+    case 2:
       gMailOfflinePrefs.setIntPref("offline.download.download_messages", 2*!checkValue.value);
       gOfflineManager.synchronizeForOffline(false, false, false, true, msgWindow);
       return true;
-    }
   }
   return false;
 }

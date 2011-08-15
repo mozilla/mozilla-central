@@ -36,9 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                      .getService(Components.interfaces.nsIPromptService);
-
 function GetNewMessages(selectedFolders, server)
 {
   if (!selectedFolders.length)
@@ -487,11 +484,11 @@ function confirmToProceed(commandName)
   if (!dontAskAgain)
   {
     var checkbox = {value:false};
-    var choice = gPromptService.confirmEx(
+    var choice = Services.prompt.confirmEx(
                    window,
                    gMessengerBundle.getString(commandName+"Title"),
                    gMessengerBundle.getString(commandName+"Message"),
-                   gPromptService.STD_YES_NO_BUTTONS,
+                   Services.prompt.STD_YES_NO_BUTTONS,
                    null, null, null,
                    gMessengerBundle.getString(commandName+"DontAsk"),
                    checkbox);

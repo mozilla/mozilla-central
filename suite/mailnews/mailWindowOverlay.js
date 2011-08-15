@@ -79,7 +79,6 @@ const kMsgForwardAsAttachment = 0;
 const kMsgForwardInline = 2;
 
 var gMessengerBundle;
-var gPromptService;
 var gOfflinePromptsBundle;
 var gOfflineManager;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
@@ -1581,9 +1580,7 @@ function ConfirmUnsubscribe(folder)
     var titleMsg = gMessengerBundle.getString("confirmUnsubscribeTitle");
     var dialogMsg = gMessengerBundle.getFormattedString("confirmUnsubscribeText",
                                         [folder.name], 1);
-
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-    return promptService.confirm(window, titleMsg, dialogMsg);
+    return Services.prompt.confirm(window, titleMsg, dialogMsg);
 }
 
 function MsgUnsubscribe()
@@ -1696,7 +1693,7 @@ function MsgOpenSelectedMessages()
         gMessengerBundle = document.getElementById("bundle_messenger");
     var title = gMessengerBundle.getString("openWindowWarningTitle");
     var text = gMessengerBundle.getFormattedString("openWindowWarningText", [numMessages]);
-    if (!gPromptService.confirm(window, title, text))
+    if (!Services.prompt.confirm(window, title, text))
       return;
   }
 
@@ -2083,7 +2080,7 @@ function MsgSendUnsentMsgs()
     SendUnsentMessages();    
   }
   else {
-    var option = PromptSendMessagesOffline();
+    var option = PromptMessagesOffline("send");
     if(option == 0) {
       if (!gOfflineManager) 
         GetOfflineMgrService();
@@ -2320,13 +2317,9 @@ function IsAccountOfflineEnabled()
   return false;
 }
 
-// init nsIPromptService and strings
+// init strings
 function InitPrompts()
 {
-  if(!gPromptService) {
-    gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService();
-    gPromptService = gPromptService.QueryInterface(Components.interfaces.nsIPromptService);
-  }
   if (!gOfflinePromptsBundle) 
     gOfflinePromptsBundle = document.getElementById("bundle_offlinePrompts");
 }
@@ -2336,74 +2329,46 @@ function DoGetNewMailWhenOffline()
   if (!Services.io.offline)
     return true;
 
-  var sendUnsent = false;
-  var goOnline = PromptGetMessagesOffline() == 0;
-  if (goOnline)
+  if (PromptMessagesOffline("get") == 0)
   {
+    var sendUnsent = false;
     if (this.CheckForUnsentMessages != undefined && CheckForUnsentMessages())
     {
-      var sendUnsentPref = gPrefBranch.getIntPref("offline.send.unsent_messages");
-      switch (sendUnsentPref)
-      {
-        case 0: // ask
-          sendUnsent = gPromptService.confirmEx(window,
-                            gOfflinePromptsBundle.getString('sendMessagesOfflineWindowTitle'),
-                            gOfflinePromptsBundle.getString('sendMessagesLabel2'),
-                            gPromptService.BUTTON_TITLE_IS_STRING * (gPromptService.BUTTON_POS_0 +
-                              gPromptService.BUTTON_POS_1),
-                            gOfflinePromptsBundle.getString('sendMessagesSendButtonLabel'),
-                            gOfflinePromptsBundle.getString('sendMessagesNoSendButtonLabel'),
-                            null, null, {value: 0}) == 0;
-          break;
-        case 1: // always send
-          sendUnsent = true;
-          break;
-      }
+      sendUnsent =
+        gPrefBranch.getIntPref("offline.send.unsent_messages") == 1 ||
+        Services.prompt.confirmEx(
+          window,
+          gOfflinePromptsBundle.getString('sendMessagesOfflineWindowTitle'),
+          gOfflinePromptsBundle.getString('sendMessagesLabel2'),
+          Services.prompt.BUTTON_TITLE_IS_STRING *
+            (Services.prompt.BUTTON_POS_0 + Services.prompt.BUTTON_POS_1),
+          gOfflinePromptsBundle.getString('sendMessagesSendButtonLabel'),
+          gOfflinePromptsBundle.getString('sendMessagesNoSendButtonLabel'),
+          null, null, {value: false}) == 0;
     }
     if (!gOfflineManager) 
       GetOfflineMgrService();
     gOfflineManager.goOnline(sendUnsent /* sendUnsentMessages */, 
                              false /* playbackOfflineImapOperations */, 
                              msgWindow);
- 
+    return true;
   }
-  return goOnline;
+  return false;
 }
 
-// prompt for getting messages when offline
-function PromptGetMessagesOffline()
+// prompt for getting/sending messages when offline
+function PromptMessagesOffline(aPrefix)
 {
-  var buttonPressed = false;
   InitPrompts();
-  if (gPromptService) {
-    var checkValue = {value:false};
-    buttonPressed = gPromptService.confirmEx(window, 
-                            gOfflinePromptsBundle.getString('getMessagesOfflineWindowTitle'), 
-                            gOfflinePromptsBundle.getString('getMessagesOfflineLabel'),
-                            (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_0) +
-                            (gPromptService.BUTTON_TITLE_CANCEL * gPromptService.BUTTON_POS_1),
-                            gOfflinePromptsBundle.getString('getMessagesOfflineGoButtonLabel'),
-                            null, null, null, checkValue);
-  }
-  return buttonPressed;
-}
-
-// prompt for sending messages when offline
-function PromptSendMessagesOffline()
-{
-  var buttonPressed = false;
-  InitPrompts();
-  if (gPromptService) {
-    var checkValue= {value:false};
-    buttonPressed = gPromptService.confirmEx(window, 
-                            gOfflinePromptsBundle.getString('sendMessagesOfflineWindowTitle'), 
-                            gOfflinePromptsBundle.getString('sendMessagesOfflineLabel'),
-                            (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_0) +
-                            (gPromptService.BUTTON_TITLE_CANCEL * gPromptService.BUTTON_POS_1),
-                            gOfflinePromptsBundle.getString('sendMessagesOfflineGoButtonLabel'),
-                            null, null, null, checkValue, buttonPressed);
-  }
-  return buttonPressed;
+  var checkValue = {value:false};
+  return Services.prompt.confirmEx(
+      window,
+      gOfflinePromptsBundle.getString(aPrefix + 'MessagesOfflineWindowTitle'), 
+      gOfflinePromptsBundle.getString(aPrefix + 'MessagesOfflineLabel'),
+      (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0) +
+      (Services.prompt.BUTTON_TITLE_CANCEL * Services.prompt.BUTTON_POS_1),
+      gOfflinePromptsBundle.getString(aPrefix + 'MessagesOfflineGoButtonLabel'),
+      null, null, null, checkValue);
 }
 
 function GetDefaultAccountRootFolder()

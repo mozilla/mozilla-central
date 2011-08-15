@@ -86,7 +86,6 @@ var gMessenger = Components.classes["@mozilla.org/messenger;1"]
 var gHideMenus;
 var gMsgCompose;
 var gAccountManager;
-var gPromptService;
 var gWindowLocked;
 var gContentChanged;
 var gAutoSaving;
@@ -128,7 +127,6 @@ const kComposeAttachDirPrefName = "mail.compose.attach.dir";
 function InitializeGlobalVariables()
 {
   gAccountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-  gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
 
   gMsgCompose = null;
   gWindowLocked = false;
@@ -162,7 +160,6 @@ InitializeGlobalVariables();
 function ReleaseGlobalVariables()
 {
   gAccountManager = null;
-  gPromptService = null;
   gCurrentIdentity = null;
   gCurrentAutocompleteDirectory = null;
   if (gLDAPSession) {
@@ -1260,7 +1257,7 @@ function ComposeStartup(recycled, aParams)
             let title = sComposeMsgsBundle.getString("errorFileAttachTitle");
             let msg = sComposeMsgsBundle.getFormattedString("errorFileAttachMessage",
                                                             [attachmentStr]);
-            gPromptService.alert(window, title, msg);
+            Services.prompt.alert(window, title, msg);
           }
         }
       }
@@ -1522,7 +1519,7 @@ function ComposeLoad()
     Components.utils.reportError(ex);
     var errorTitle = sComposeMsgsBundle.getString("initErrorDlogTitle");
     var errorMsg = sComposeMsgsBundle.getString("initErrorDlgMessage");
-    gPromptService.alert(window, errorTitle, errorMsg);
+    Services.prompt.alert(window, errorTitle, errorMsg);
 
     MsgComposeCloseWindow(false); // Don't try to recycle a bogus window
     return;
@@ -1703,24 +1700,18 @@ function GenericSendMessage( msgType )
         // Check if we have a subject, else ask user for confirmation
         if (subject == "")
         {
-          if (gPromptService)
+          var result = {value:sComposeMsgsBundle.getString("defaultSubject")};
+          if (Services.prompt.prompt(window,
+                  sComposeMsgsBundle.getString("sendMsgTitle"),
+                  sComposeMsgsBundle.getString("subjectDlogMessage"),
+                  result, null, {value:0}))
           {
-            var result = {value:sComposeMsgsBundle.getString("defaultSubject")};
-            if (gPromptService.prompt(
-                    window,
-                    sComposeMsgsBundle.getString("sendMsgTitle"),
-                    sComposeMsgsBundle.getString("subjectDlogMessage"),
-                    result,
-                    null,
-                    {value:0}))
-            {
-              msgCompFields.subject = result.value;
-              var subjectInputElem = document.getElementById("msgSubject");
-              subjectInputElem.value = result.value;
-            }
-            else
-              return;
+            msgCompFields.subject = result.value;
+            var subjectInputElem = document.getElementById("msgSubject");
+            subjectInputElem.value = result.value;
           }
+          else
+            return;
         }
 
         // check if the user tries to send a message to a newsgroup through a mail account
@@ -1747,7 +1738,7 @@ function GenericSendMessage( msgType )
           if (!dontAskAgain)
           {
             var checkbox = {value:false};
-            var okToProceed = gPromptService.confirmCheck(
+            var okToProceed = Services.prompt.confirmCheck(
                                   window,
                                   sComposeMsgsBundle.getString("sendMsgTitle"),
                                   sComposeMsgsBundle.getString("recipientDlogMessage"),
@@ -1913,8 +1904,7 @@ function CheckValidEmailAddress(aTo, aCC, aBCC)
   {
     var errorTitle = sComposeMsgsBundle.getString("sendMsgTitle");
     var errorMsg = sComposeMsgsBundle.getFormattedString("addressInvalid", [invalidStr], 1);
-    if (gPromptService)
-      gPromptService.alert(window, errorTitle, errorMsg);
+    Services.prompt.alert(window, errorTitle, errorMsg);
     return false;
   }
   return true;
@@ -1932,11 +1922,11 @@ function SendMessageWithCheck()
 
     if (warn) {
         var checkValue = {value:false};
-        var buttonPressed = gPromptService.confirmEx(window,
+        var buttonPressed = Services.prompt.confirmEx(window,
               sComposeMsgsBundle.getString('sendMessageCheckWindowTitle'),
               sComposeMsgsBundle.getString('sendMessageCheckLabel'),
-              (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_0) +
-              (gPromptService.BUTTON_TITLE_CANCEL * gPromptService.BUTTON_POS_1),
+              (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0) +
+              (Services.prompt.BUTTON_TITLE_CANCEL * Services.prompt.BUTTON_POS_1),
               sComposeMsgsBundle.getString('sendMessageCheckSendButtonLabel'),
               null, null,
               sComposeMsgsBundle.getString('CheckMsg'),
@@ -2394,30 +2384,23 @@ function ComposeCanClose()
   ReleaseAutoCompleteState();
   if (gSendOrSaveOperationInProgress)
   {
-    var result;
+    var brandShortName = sBrandBundle.getString("brandShortName");
 
-    if (gPromptService)
+    var promptTitle = sComposeMsgsBundle.getString("quitComposeWindowTitle");
+    var promptMsg = sComposeMsgsBundle.getFormattedString("quitComposeWindowMessage2",
+                                                          [brandShortName], 1);
+    var quitButtonLabel = sComposeMsgsBundle.getString("quitComposeWindowQuitButtonLabel2");
+    var waitButtonLabel = sComposeMsgsBundle.getString("quitComposeWindowWaitButtonLabel2");
+
+    if (Services.prompt.confirmEx(window, promptTitle, promptMsg,
+        (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0) +
+        (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_1),
+        waitButtonLabel, quitButtonLabel, null, null, {value:0}) == 1)
     {
-      var brandShortName = sBrandBundle.getString("brandShortName");
-
-      var promptTitle = sComposeMsgsBundle.getString("quitComposeWindowTitle");
-      var promptMsg = sComposeMsgsBundle.getFormattedString("quitComposeWindowMessage2",
-                                                            [brandShortName], 1);
-      var quitButtonLabel = sComposeMsgsBundle.getString("quitComposeWindowQuitButtonLabel2");
-      var waitButtonLabel = sComposeMsgsBundle.getString("quitComposeWindowWaitButtonLabel2");
-
-      result = gPromptService.confirmEx(window, promptTitle, promptMsg,
-          (gPromptService.BUTTON_TITLE_IS_STRING*gPromptService.BUTTON_POS_0) +
-          (gPromptService.BUTTON_TITLE_IS_STRING*gPromptService.BUTTON_POS_1),
-          waitButtonLabel, quitButtonLabel, null, null, {value:0});
-
-      if (result == 1)
-      {
-        gMsgCompose.abort();
-        return true;
-      }
-      return false;
+      gMsgCompose.abort();
+      return true;
     }
+    return false;
   }
 
   // Returns FALSE only if user cancels save action
@@ -2426,33 +2409,28 @@ function ComposeCanClose()
     // call window.focus, since we need to pop up a dialog
     // and therefore need to be visible (to prevent user confusion)
     window.focus();
-    if (gPromptService)
+    switch (Services.prompt.confirmEx(window,
+              sComposeMsgsBundle.getString("saveDlogTitle"),
+              sComposeMsgsBundle.getString("saveDlogMessage"),
+              (Services.prompt.BUTTON_TITLE_SAVE * Services.prompt.BUTTON_POS_0) +
+              (Services.prompt.BUTTON_TITLE_CANCEL * Services.prompt.BUTTON_POS_1) +
+              (Services.prompt.BUTTON_TITLE_DONT_SAVE * Services.prompt.BUTTON_POS_2),
+              null, null, null, null, {value:0}))
     {
-      result = gPromptService.confirmEx(window,
-                              sComposeMsgsBundle.getString("saveDlogTitle"),
-                              sComposeMsgsBundle.getString("saveDlogMessage"),
-                              (gPromptService.BUTTON_TITLE_SAVE * gPromptService.BUTTON_POS_0) +
-                              (gPromptService.BUTTON_TITLE_CANCEL * gPromptService.BUTTON_POS_1) +
-                              (gPromptService.BUTTON_TITLE_DONT_SAVE * gPromptService.BUTTON_POS_2),
-                              null, null, null,
-                              null, {value:0});
-      switch (result)
-      {
-        case 0: //Save
-          // we can close immediately if we already autosaved the draft
-          if (!gContentChanged && !gMsgCompose.bodyModified)
-            break;
-          gCloseWindowAfterSave = true;
-          GenericSendMessage(nsIMsgCompDeliverMode.AutoSaveAsDraft);
-          return false;
-        case 1: //Cancel
-          return false;
-        case 2: //Don't Save
-          // only delete the draft if we didn't start off editing a draft
-          if (!gEditingDraft && gAutoSaveKickedIn)
-            RemoveDraft();            
+      case 0: //Save
+        // we can close immediately if we already autosaved the draft
+        if (!gContentChanged && !gMsgCompose.bodyModified)
           break;
-      }
+        gCloseWindowAfterSave = true;
+        GenericSendMessage(nsIMsgCompDeliverMode.AutoSaveAsDraft);
+        return false;
+      case 1: //Cancel
+        return false;
+      case 2: //Don't Save
+        // only delete the draft if we didn't start off editing a draft
+        if (!gEditingDraft && gAutoSaveKickedIn)
+          RemoveDraft();            
+        break;
     }
 
     SetContentAndBodyAsUnmodified();
@@ -2726,7 +2704,7 @@ function RenameSelectedAttachment()
 
   var item = bucket.getSelectedItem(0);
   var attachmentName = {value: item.attachment.name};
-  if (gPromptService.prompt(
+  if (Services.prompt.prompt(
                      window,
                      sComposeMsgsBundle.getString("renameAttachmentTitle"),
                      sComposeMsgsBundle.getString("renameAttachmentMessage"),
@@ -3189,7 +3167,7 @@ function DisplaySaveFolderDlg(folderURI)
                                                         msgfolder.server.prettyName]);
 
     var CheckMsg = sComposeMsgsBundle.getString("CheckMsg");
-    gPromptService.alertCheck(window, SaveDlgTitle, dlgMsg, CheckMsg, checkbox);
+    Services.prompt.alertCheck(window, SaveDlgTitle, dlgMsg, CheckMsg, checkbox);
     try {
           gCurrentIdentity.showSaveMsgDlg = !checkbox.value;
     }//try

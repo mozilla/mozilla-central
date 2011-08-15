@@ -840,16 +840,14 @@ function MailWindowIsClosing()
     let shouldPrompt = pref.getBoolPref("browser.tabs.warnOnClose");
     if (shouldPrompt)
     {
-      let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                    .getService(Components.interfaces.nsIPromptService);
       // default to true: if it were false, we wouldn't get this far
       let warnOnClose = {value: true};
-      let buttonPressed = promptService.confirmEx(
+      let buttonPressed = Services.prompt.confirmEx(
         window,
         gMessengerBundle.getString('tabs.closeWarningTitle'),
         gMessengerBundle.getFormattedString("tabs.closeWarning", [numtabs], 1),
-        (promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_0) +
-          (promptService.BUTTON_TITLE_CANCEL * promptService.BUTTON_POS_1),
+        (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0) +
+        (Services.prompt.BUTTON_TITLE_CANCEL * Services.prompt.BUTTON_POS_1),
         gMessengerBundle.getString('tabs.closeButton'),
         null,
         null,
@@ -940,13 +938,13 @@ function loadStartFolder(initialUri)
         InitServices();
 
         var sendUnsentWhenGoingOnlinePref = pref.getIntPref("offline.send.unsent_messages");
-        if(gPromptService && sendUnsentWhenGoingOnlinePref == 0) // pref is "ask"
+        if (sendUnsentWhenGoingOnlinePref == 0) // pref is "ask"
         {
-          var buttonPressed = gPromptService.confirmEx(window,
+          var buttonPressed = Services.prompt.confirmEx(window,
                                 gOfflinePromptsBundle.getString('sendMessagesOfflineWindowTitle'),
                                 gOfflinePromptsBundle.getString('sendMessagesLabel2'),
-                                gPromptService.BUTTON_TITLE_IS_STRING * (gPromptService.BUTTON_POS_0 +
-                                  gPromptService.BUTTON_POS_1),
+                                Services.prompt.BUTTON_TITLE_IS_STRING * (Services.prompt.BUTTON_POS_0 +
+                                  Services.prompt.BUTTON_POS_1),
                                 gOfflinePromptsBundle.getString('sendMessagesSendButtonLabel'),
                                 gOfflinePromptsBundle.getString('sendMessagesNoSendButtonLabel'),
                                 null, null, {value:0});

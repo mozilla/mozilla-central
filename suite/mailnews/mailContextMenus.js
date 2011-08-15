@@ -553,10 +553,7 @@ function OpenMessageForMessageId(messageId)
     var errorTitle   = gMessengerBundle.getString("errorOpenMessageForMessageIdTitle");
     var errorMessage = gMessengerBundle.getFormattedString("errorOpenMessageForMessageIdMessage",
                                                            [messageIdStr]);
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                  .getService(Components.interfaces.nsIPromptService);
-
-    promptService.alert(window, errorTitle, errorMessage);
+    Services.prompt.alert(window, errorTitle, errorMessage);
   }
 }
 

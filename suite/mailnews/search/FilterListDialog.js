@@ -47,7 +47,6 @@ var gRunFiltersFolderPickerLabel;
 var gRunFiltersFolderPicker;
 var gRunFiltersButton;
 var gFilterBundle;
-var gPromptService = GetPromptService();
 var gFilterListMsgWindow = null;
 var gFilterTree;
 var gStatusBar;
@@ -312,9 +311,8 @@ function toggleFilter(index)
     var filter = getFilter(index);
     if (filter.unparseable)
     {
-      if (gPromptService)
-        gPromptService.alert(window, null,
-                             gFilterBundle.getString("cannotEnableFilter"));
+      Services.prompt.alert(window, null,
+                            gFilterBundle.getString("cannotEnableFilter"));
       return false;
     }
     filter.enabled = !filter.enabled;
@@ -405,9 +403,9 @@ function onDeleteFilter()
   var sel = gFilterTree.view.selection;
   var selCount = sel.getRangeCount();
   if (!selCount || 
-      gPromptService.confirmEx(window, null, 
+      Services.prompt.confirmEx(window, null, 
                         gFilterBundle.getString("deleteFilterConfirmation"),
-                        gPromptService.STD_YES_NO_BUTTONS,
+                        Services.prompt.STD_YES_NO_BUTTONS,
                         '', '', '', '', {}))
     return;
 
@@ -456,15 +454,12 @@ function onFilterClose()
     var promptMsg = gFilterBundle.getString("promptMsg");;
     var stopButtonLabel = gFilterBundle.getString("stopButtonLabel");
     var continueButtonLabel = gFilterBundle.getString("continueButtonLabel");
-    var result = false;
 
-    if (gPromptService)
-      result = gPromptService.confirmEx(window, promptTitle, promptMsg,
-               (gPromptService.BUTTON_TITLE_IS_STRING*gPromptService.BUTTON_POS_0) +
-               (gPromptService.BUTTON_TITLE_IS_STRING*gPromptService.BUTTON_POS_1),
-               continueButtonLabel, stopButtonLabel, null, null, {value:0});
-
-    if (result)
+    if (Services.prompt.confirmEx(window, promptTitle, promptMsg,
+        (Services.prompt.BUTTON_TITLE_IS_STRING *
+         Services.prompt.BUTTON_POS_0) +
+        (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_1),
+        continueButtonLabel, stopButtonLabel, null, null, {value:0}))
       gFilterListMsgWindow.StopUrls();
     else
       return false;
@@ -706,15 +701,4 @@ function getFirstFolderURI(msgFolder)
     dump(ex + "\n");
   }
   return msgFolder.URI;
-}
-
-function GetPromptService()
-{
-  try {
-    return Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                     .getService(Components.interfaces.nsIPromptService);
-  }
-  catch (e) {
-    return null;
-  }
 }

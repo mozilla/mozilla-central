@@ -56,17 +56,15 @@ function OpenJunkLog()
 function ResetTrainingData()
 {
   // make sure the user really wants to do this
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                .getService(Components.interfaces.nsIPromptService);
   var bundle = document.getElementById("bundleJunkPreferences");
   var title  = bundle.getString("confirmResetJunkTrainingTitle");
   var text   = bundle.getString("confirmResetJunkTrainingText");
 
   // if the user says no, then just fall out
-  if (promptService.confirmEx(window, title, text,
-                              promptService.STD_YES_NO_BUTTONS |
-                              promptService.BUTTON_POS_1_DEFAULT,
-                              "", "", "", null, {}))
+  if (Services.prompt.confirmEx(window, title, text,
+                                Services.prompt.STD_YES_NO_BUTTONS |
+                                Services.prompt.BUTTON_POS_1_DEFAULT,
+                                "", "", "", null, {}))
     return;
 
   // otherwise go ahead and remove the training data

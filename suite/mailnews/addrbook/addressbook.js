@@ -386,26 +386,22 @@ function AbExport()
     MailServices.ab.exportAddressBook(window, directory);
   }
   catch (ex) {
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-
-    if (promptService) {
-      var message;
-      switch (ex.result) {
-        case Components.results.NS_ERROR_FILE_ACCESS_DENIED:
-          message = gAddressBookBundle.getString("failedToExportMessageFileAccessDenied");
-          break;
-        case Components.results.NS_ERROR_FILE_NO_DEVICE_SPACE:
-          message = gAddressBookBundle.getString("failedToExportMessageNoDeviceSpace");
-          break;
-        default:
-          message = ex.message;
-          break;
-      }
-
-      promptService.alert(window,
-        gAddressBookBundle.getString("failedToExportTitle"), 
-        message);
+    var message;
+    switch (ex.result) {
+      case Components.results.NS_ERROR_FILE_ACCESS_DENIED:
+        message = gAddressBookBundle.getString("failedToExportMessageFileAccessDenied");
+        break;
+      case Components.results.NS_ERROR_FILE_NO_DEVICE_SPACE:
+        message = gAddressBookBundle.getString("failedToExportMessageNoDeviceSpace");
+        break;
+      default:
+        message = ex.message;
+        break;
     }
+
+    Services.prompt.alert(window,
+      gAddressBookBundle.getString("failedToExportTitle"), 
+      message);
   }
 }
 
