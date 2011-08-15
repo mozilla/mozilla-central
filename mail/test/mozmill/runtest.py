@@ -202,6 +202,9 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         if os.path.exists(PROFILE_DIR):
             shutil.rmtree(PROFILE_DIR, onerror=rmtree_onerror)
         os.makedirs(PROFILE_DIR)
+        print 'Using profile dir:', PROFILE_DIR
+        if not os.path.exists(PROFILE_DIR):
+            raise Exception('somehow failed to create profile dir!')
 
         if wrapper is not None and hasattr(wrapper, "on_profile_created"):
             # It's a little dangerous to allow on_profile_created access to the
@@ -292,6 +295,30 @@ class ThunderTestRunner(mozrunner.ThunderbirdRunner):
                 print '!!! Exception during killing VNC server:', ex
 
 
+def monkeypatched_15_run_tests(self, tests, sleeptime=0):
+    frame = mozmill.jsbridge.JSObject(self.bridge,
+                "Components.utils.import('resource://mozmill/modules/frame.js')")
+    sleep(sleeptime)
+
+    # transfer persisted data
+    frame.persisted = self.persisted
+
+    if len(tests) == 1 and not os.path.isdir(tests[0]):
+        # tests[0] isn't necessarily an abspath'd path, so do that now
+        test = os.path.abspath(tests[0])
+        frame.runTestFile(test)
+    else:
+        # run the test files
+        for test_dir in self.test_dirs:
+            frame.runTestDirectory(test_dir)
+
+    # Give a second for any callbacks to finish.
+    sleep(1)
+if hasattr(mozmill.MozMill, 'find_tests'):
+    # Monkey-patch run_tests
+    mozmill.MozMill.old_run_tests = mozmill.MozMill.run_tests
+    mozmill.MozMill.run_tests = monkeypatched_15_run_tests
+
 class ThunderTestCLI(mozmill.CLI):
 
     profile_class = ThunderTestProfile
@@ -302,31 +329,47 @@ class ThunderTestCLI(mozmill.CLI):
 
     def __init__(self, *args, **kwargs):
         global SYMBOLS_PATH, TEST_NAME
-        # invoke jsbridge.CLI's constructor directly since we are explicitly
-        #  trying to replace mozmill's CLI constructor here (which hardcodes
-        #  the firefox runner and profile in 1.3 for no clear reason).
-        jsbridge.CLI.__init__(self, *args, **kwargs)
+
+        # mozmill 1.5.4 still explicitly hardcodes references to Firefox; in
+        # order to avoid missing out on initializer logic or needing to copy
+        # it, we monkeypatch mozmill's view of mozrunner.  (Keep in mind that
+        # the python module import process shallow copies dictionaries...)
+        mozmill.mozrunner.FirefoxRunner = self.runner_class
+        mozmill.mozrunner.FirefoxProfile = self.profile_class
+
+        # note: we previously hardcoded a JS bridge timeout of 300 seconds,
+        # but the default is now 60 seconds...
+        mozmill.CLI.__init__(self, *args, **kwargs)
+
         SYMBOLS_PATH = self.options.symbols
-        TEST_NAME = os.path.basename(self.options.test)
+        if isinstance(self.options.test, basestring):
+            test_paths = [self.options.test]
+        else:
+            test_paths = self.options.test
+        TEST_NAME = ', '.join([os.path.basename(t) for t in test_paths])
+
+        test_dirs = self.test_dirs = []
+        for test_file in test_paths:
+            test_file = os.path.abspath(test_file)
+            if not os.path.isdir(test_file):
+                test_file = os.path.dirname(test_file)
+            if not test_file in test_dirs:
+                test_dirs.append(test_file)
+
+        # if we are monkeypatching, give it the test directories.
+        if hasattr(self.mozmill, 'find_tests'):
+            self.mozmill.test_dirs = test_dirs
 
         self._load_wrapper()
-
-        self.mozmill = self.mozmill_class(runner_class=self.runner_class,
-                                          profile_class=self.profile_class,
-                                          jsbridge_port=int(self.options.port),
-                                          jsbridge_timeout=300)
-
-        self.mozmill.add_global_listener(mozmill.LoggerListener())
 
     def _load_wrapper(self):
         global wrapper
         """
         Load the wrapper module if it is present in the test directory.
         """
-        if os.path.isdir(self.options.test):
-            testdir = self.options.test
-        else:
-            testdir = os.path.dirname(self.options.test)
+        if len(self.test_dirs) > 1:
+            raise Exception("Wrapper semantics require only a single test dir")
+        testdir = self.test_dirs[0]
 
         try:
             (fd, path, desc) = imp.find_module(WRAPPER_MODULE_NAME, [testdir])
@@ -339,6 +382,7 @@ class ThunderTestCLI(mozmill.CLI):
             finally:
                 if fd is not None:
                     fd.close()
+
 
 TEST_RESULTS = []
 # Versions of MozMill prior to 1.5 did not output test-pass /
@@ -361,7 +405,15 @@ ORIGINAL_FAILURE_LOGGER = mozmill.LoggerListener.cases['mozmill.fail']
 def logFailure(obj):
     if isinstance(obj, basestring):
         obj = json.loads(obj)
-    ORIGINAL_FAILURE_LOGGER(obj["exception"]["message"])
+    if 'exception' in obj:
+        objex = obj['exception']
+        if 'message' in objex:
+            report_as = objex['message']
+        else:
+            report_as = 'Empty object thrown as an exception somehow'
+    else:
+        report_as = 'No exception provided'
+    ORIGINAL_FAILURE_LOGGER(report_as)
 mozmill.LoggerListener.cases['mozmill.fail'] = logFailure
 
 
@@ -409,8 +461,12 @@ def prettyPrintResults():
         if 'summary' in result:
             testOrSummary = 'SUMMARY'
         if len(result['fails']) == 0:
+            if result.get('skipped', False):
+                kind = 'SKIP'
+            else:
+                kind = 'PASS'
             if result['name'] not in TEST_BLACKLIST:
-                print '%s-PASS | %s' % (testOrSummary, result['name'])
+                print '%s-%s | %s' % (testOrSummary, kind, result['name'])
         else:
             print '%s-UNEXPECTED-FAIL | %s | %s' % (testOrSummary, prettifyFilename(result['filename']), result['name'])
         for failure in result['fails']:

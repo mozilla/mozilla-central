@@ -81,6 +81,7 @@ AC_SUBST(COMM_BUILD)
 dnl export this, so the var is set for mozilla/configure
 MOZCONFIG=`$_AUTOCONF_TOOLS_DIR/mozconfig-find $topsrcdir`
 export MOZCONFIG
+echo "MOZCONFIG = $MOZCONFIG"
 
 MOZ_DEB_TIMESTAMP=`date +"%a, %d  %b %Y %T %z"   2>&1` 
 AC_SUBST(MOZ_DEB_TIMESTAMP)

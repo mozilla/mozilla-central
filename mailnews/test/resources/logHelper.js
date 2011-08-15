@@ -443,6 +443,17 @@ function _normalize_for_json(aObj, aDepthAllowed, aJsonMeNotNeeded) {
       _stringRep: aObj.message,
     };
   }
+  else if (aObj instanceof Ci.nsIException) {
+    return {
+      type: "error",
+      message: "nsIException: " + aObj.name,
+      fileName: aObj.filename,
+      lineNumber: aObj.lineNumber,
+      name: aObj.name,
+      result: aObj.result,
+      stack: null,
+    };
+  }
   else if (aObj instanceof Ci.nsIStackFrame) {
     return {
       type: "stackFrame",
