@@ -43,8 +43,8 @@ var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
 var mozmill = {};
 Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
-var utils = {};
-Cu.import('resource://mozmill/modules/utils.js', utils);
+var controller = {};
+Cu.import('resource://mozmill/modules/controller.js', controller);
 
 const MODULE_NAME = 'content-tab-helpers';
 
@@ -111,10 +111,10 @@ function open_content_tab_with_url(aURL, aClickHandler, aBackground, aController
   let newTab = mc.tabmail.openTab("contentTab", {contentPage: aURL,
                                                  background: aBackground,
                                                  clickHandler: aClickHandler});
-  utils.waitFor(function () (
-                  aController.tabmail.tabContainer.childNodes.length == preCount + 1),
-                "Timeout waiting for the content tab to open with URL: " + aURL,
-                FAST_TIMEOUT, FAST_INTERVAL);
+  if (!controller.waitForEval("subject.childNodes.length == " + (preCount + 1),
+                              FAST_TIMEOUT, FAST_INTERVAL,
+                              aController.tabmail.tabContainer))
+    mark_failure(["Timeout waiting for the content tab to open with URL:", aURL]);
 
   // We append new tabs at the end, so check the last one.
   let expectedNewTab = aController.tabmail.tabInfo[preCount];
@@ -139,10 +139,10 @@ function open_content_tab_with_click(aElem, aController) {
 
   let preCount = aController.tabmail.tabContainer.childNodes.length;
   aController.click(new elib.Elem(aElem));
-  utils.waitFor(function () (
-                  aController.tabmail.tabContainer.childNodes.length == preCount + 1),
-                "Timeout waiting for the content tab to open",
-                FAST_TIMEOUT, FAST_INTERVAL);
+  if (!controller.waitForEval("subject.childNodes.length == " + (preCount + 1),
+                              FAST_TIMEOUT, FAST_INTERVAL,
+                              aController.tabmail.tabContainer))
+    mark_failure(["Timeout waiting for the content tab to open"]);
 
   // We append new tabs at the end, so check the last one.
   let expectedNewTab = aController.tabmail.tabInfo[preCount];
@@ -191,8 +191,9 @@ function wait_for_content_tab_load(aTab) {
     return !(aTab.browser.isLoadingDocument);
   }
 
-  utils.waitFor(isLoadedChecker,
-                "Timeout waiting for the content tab page to load.");
+  if (!controller.waitForEval("subject()", NORMAL_TIMEOUT, FAST_INTERVAL,
+                              isLoadedChecker))
+    mark_failure(["Timeout waiting for the content tab page to load."]);
   // the above may return immediately, meaning the event queue might not get a
   //  chance.  give it a chance now.
   mc.sleep(0);
@@ -268,9 +269,8 @@ function wait_for_content_tab_element_display_value(aTab, aElem, aValue) {
   function isValue() {
     return get_content_tab_element_display(aTab, aElem) == aValue;
   }
-  try {
-    utils.waitFor(isValue);
-  } catch (e if e instanceof utils.TimeoutError) {
+  if (!controller.waitForEval("subject()", NORMAL_TIMEOUT, FAST_INTERVAL,
+                              isValue)) {
     mark_failure(["Timeout waiting for element", aElem, "to have display value",
                   aValue]);
   }

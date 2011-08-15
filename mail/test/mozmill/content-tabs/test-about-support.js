@@ -41,6 +41,9 @@ var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'content-tab-helpers',
                        'compose-helpers', 'window-helpers'];
 
+var controller = {};
+Components.utils.import('resource://mozmill/modules/controller.js', controller);
+
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 function setupModule(module) {
@@ -88,8 +91,11 @@ function open_about_support() {
   assert_content_tab_has_url(tab, "about:support");
   // We have one variable that's asynchronously populated -- wait for it to be
   // populated.
-  mc.waitFor(function () tab.browser.contentWindow.gExtensions !== undefined,
-             "Timeout waiting for about:support's gExtensions to populate.");
+  if (!controller.waitForEval("subject.gExtensions !== undefined",
+                              NORMAL_TIMEOUT, FAST_INTERVAL,
+                              tab.browser.contentWindow)) {
+    mark_failure(["Timeout waiting for about:support's gExtensions to populate."]);
+  }
   return tab;
 }
 

@@ -124,10 +124,8 @@ function setupModule(module)
   // There are 7 address books (Personal, AB 1, AB 2, AB 3, AB 4, LDAP Book
   // and Collected Address Book.  So let's ensure that those address books
   // exist in the tree view before executing our tests.
-  abController.waitFor(
-    function () (abController.window.gDirectoryTreeView.rowCount == 7),
-    "Timeout waiting for all 7 address books to show up in the tree view",
-    1000, 10);
+  abController.waitForEval("subject.window.gDirectoryTreeView.rowCount == 7",
+                           1000, 10, abController);
 }
 
 /* Test that the address book manager automatically sorts

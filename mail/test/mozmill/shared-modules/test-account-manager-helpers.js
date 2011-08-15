@@ -45,8 +45,6 @@ var mozmill = {};
 Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
 var EventUtils = {};
 Cu.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
-var utils = {};
-Cu.import('resource://mozmill/modules/utils.js', utils);
 
 const MODULE_NAME = 'account-manager-helpers';
 const RELATIVE_ROOT = '../shared-modules';
@@ -105,8 +103,8 @@ function open_advanced_settings_from_account_wizard(aCallback, aController) {
  * @param rowIndex the row to click
  */
 function click_account_tree_row(controller, rowIndex) {
-  utils.waitFor(function () controller.window.currentAccount != null,
-                "Timeout waiting for currentAccount to become non-null");
+  controller.waitForEval("subject.currentAccount != null", 6000, 600,
+                         controller.window);
 
   var tree = controller.window.document.getElementById("accounttree");
   var selection = tree.view.selection;
@@ -124,6 +122,6 @@ function click_account_tree_row(controller, rowIndex) {
                              {}, tree.ownerDocument.defaultView);
   controller.sleep(0);
 
-  utils.waitFor(function () controller.window.pendingAccount == null,
-                "Timeout waiting for pendingAccount to become null");
+  controller.waitForEval("subject.pendingAccount == null", 6000, 600,
+                         controller.window);
 }

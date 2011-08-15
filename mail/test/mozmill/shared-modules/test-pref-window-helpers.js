@@ -44,14 +44,17 @@ var Ci = Components.interfaces;
 var Cc = Components.classes;
 var Cu = Components.utils;
 
-var utils = {};
-Cu.import("resource://mozmill/modules/utils.js", utils);
+var controller = {};
+Cu.import("resource://mozmill/modules/controller.js", controller);
 
 const MODULE_NAME = "pref-window-helpers";
 
 const RELATIVE_ROOT = "../shared-modules";
 
 const MODULE_REQUIRES = ["folder-display-helpers", "window-helpers"];
+
+const NORMAL_TIMEOUT = 6000;
+const FAST_INTERVAL = 100;
 
 var fdh;
 var wh;
@@ -88,8 +91,11 @@ function open_pref_window(aPaneID, aCallback) {
       return pane.loaded;
     }
 
-    utils.waitFor(paneLoadedChecker,
-                  "Timed out waiting for prefpane " + aPaneID + " to load.");
+    if (!controller.waitForEval("subject()", NORMAL_TIMEOUT, FAST_INTERVAL,
+                                paneLoadedChecker))
+      throw new Error("Timed out waiting for prefpane " + aPaneID +
+                      " to load.");
+
     aCallback(prefc);
   }
 

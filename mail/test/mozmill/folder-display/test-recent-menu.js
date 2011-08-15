@@ -90,8 +90,8 @@ function test_move_message() {
   };
   MailServices.copy.CopyMessages(folder1, array, folder2, true,
                                  copyListener, mc.window.msgWindow, true);
-  mc.waitFor(function () copyListener.copyDone,
-             "Timeout waiting for copy to complete", 10000, 100);
+  mc.waitForEval("subject.copyDone == true",
+                          10000, 100, copyListener);
   // We've moved a message to aaafolder2 - it should appear in recent list now.
   mc.click_menus_in_sequence(mc.e("mailContext"), [{id: "mailContext-moveMenu"},
                                                    {label: "Recent"}]);

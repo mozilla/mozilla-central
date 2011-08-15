@@ -47,8 +47,7 @@
 var MODULE_NAME = 'test-exposed-in-content-tabs';
 
 var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['folder-display-helpers', 'compose-helpers',
-                       'content-tab-helpers'];
+var MODULE_REQUIRES = ['folder-display-helpers', 'compose-helpers'];
 var jumlib = {};
 Components.utils.import("resource://mozmill/modules/jum.js", jumlib);
 var elib = {};
@@ -75,8 +74,6 @@ var setupModule = function (module) {
   fdh.installInto(module);
   composeHelper = collector.getModule('compose-helpers');
   composeHelper.installInto(module);
-  let cth = collector.getModule('content-tab-helpers');
-  cth.installInto(module);
 
   folder = create_folder("dnsPrefetch");
 };
@@ -200,7 +197,12 @@ function test_dnsPrefetch_contentTab() {
   let dataurl = 'data:text/html,<html><head><title>test dns prefetch</title>' +
     '</head><body>test dns prefetch</body></html>';
 
-  let newTab = open_content_tab_with_url(dataurl);
+  let newTab = mc.tabmail.openTab("contentTab", { contentPage: dataurl });
+
+  mc.waitForEval("subject.busy == false", 5000, 100, newTab);
+
+  if (mc.tabmail.tabContainer.childNodes.length != preCount + 1)
+    throw new Error("The content tab didn't open");
 
   // XXX this should be a check for DNS prefetch being enabled, but bug 545407
   // needs fixing for that to work.

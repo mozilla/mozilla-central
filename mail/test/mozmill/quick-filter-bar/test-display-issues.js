@@ -61,8 +61,7 @@ function setupModule(module) {
 }
 
 function wait_for_resize(width) {
-  mc.waitFor(function () (mc.window.outerWidth == width),
-             "Timeout waiting for resize", 1000, 50);
+  mc.waitForEval("subject.outerWidth == " + width, 1000, 50, mc.window);
 }
 
 function resize_to(width, height) {

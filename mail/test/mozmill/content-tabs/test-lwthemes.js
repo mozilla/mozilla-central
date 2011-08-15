@@ -72,17 +72,15 @@ let AlertWatcher = {
                                                  this.alertActive, false);
   },
   waitForAlert: function(aController) {
-    if (!this.alerted) {
-      aController.waitFor(function () this.alerted, "Timeout waiting for alert",
-                          ALERT_TIMEOUT, 100, this);
-    }
+    if (!this.alerted)
+      aController.waitForEval("subject.alerted", ALERT_TIMEOUT, 100, this);
+
     // Double check the notification box has finished animating.
     let notificationBox =
       mc.tabmail.selectedTab.panel.getElementsByTagName("notificationbox")[0];
     if (notificationBox && notificationBox._animating)
-      aController.waitFor(function () !notificationBox._animating,
-                          "Timeout waiting for notification box animation to finish",
-                          ALERT_TIMEOUT, 100);
+      aController.waitForEval("!subject._animating", ALERT_TIMEOUT, 100,
+                              notificationBox);
 
     aController.window.document.removeEventListener("AlertActive",
                                                     this.alertActive, false);

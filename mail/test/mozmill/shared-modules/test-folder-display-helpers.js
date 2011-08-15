@@ -50,8 +50,6 @@ var frame = {};
 Cu.import('resource://mozmill/modules/frame.js', frame);
 var os = {};
 Cu.import('resource://mozmill/stdlib/os.js', os);
-var utils = {};
-Cu.import('resource://mozmill/modules/utils.js', utils);
 
 Cu.import("resource:///modules/gloda/log4moz.js");
 
@@ -416,6 +414,9 @@ function teardownImporter(customTeardown) {
  * All of our operations are synchronous and just spin until they are happy.
  */
 
+const NORMAL_TIMEOUT = 6000;
+const FAST_INTERVAL = 100;
+
 /**
  * Create a folder and rebuild the folder tree view.
  */
@@ -497,8 +498,9 @@ function enter_folder(aFolder) {
   function isDisplayedFolder() {
     return mc.folderDisplay.displayedFolder == aFolder;
   }
-  utils.waitFor(isDisplayedFolder,
-                "Timeout trying to enter folder" + aFolder.URI);
+  if (!controller.waitForEval('subject()', NORMAL_TIMEOUT, FAST_INTERVAL,
+                              isDisplayedFolder))
+    mark_failure(["Timeout trying to enter folder", aFolder.URI]);
 
   wait_for_all_messages_to_load();
 
@@ -885,13 +887,8 @@ function select_none(aController) {
   function noMessageChecker() {
     return aController.messageDisplay.displayedMessage == null;
   }
-  try {
-    utils.waitFor(noMessageChecker);
-  } catch (e if e instanceof utils.TimeoutError) {
-    mark_failure(["Timeout waiting for displayedMessage to become null.",
-                  "Current value: ",
-                  aController.messageDisplay.displayedMessage]);
-  }
+  controller.sleep('subject()',
+                   NORMAL_TIMEOUT, FAST_INTERVAL, noMessageChecker);
   wait_for_blank_content_pane(aController);
 }
 
@@ -1375,8 +1372,7 @@ function delete_via_popup() {
 
 function wait_for_popup_to_open(popupElem) {
   mark_action("fdh", "wait_for_popup_to_open", [popupElem]);
-  utils.waitFor(function () popupElem.state == "open",
-                "Timeout waiting for popup to open", 1000, 50);
+  mc.waitForEval("subject.state == 'open'", 1000, 50, popupElem);
 }
 
 /**
@@ -1399,8 +1395,9 @@ function close_popup(aController, eid) {
                 ["popup suspiciously already closing..."]);
   else // actually push escape because it's not closing/closed
     aController.keypress(eid, "VK_ESCAPE", {});
-  utils.waitFor(function () elem.state == "closed", "Popup did not close!",
-                1000, 50);
+   if (!controller.waitForEval("subject.state == 'closed'", 1000, 50,
+                               elem))
+     throw new Error("Popup did not close!");
 }
 
 /**
@@ -1455,8 +1452,9 @@ function archive_selected_messages(aController) {
   let messagesDeletedFromView = function() {
     return aController.dbView.rowCount == expectedCount;
   };
-  utils.waitFor(messagesDeletedFromView,
-                "Timeout waiting for messages to be archived");
+  controller.waitForEval('subject()',
+                         NORMAL_TIMEOUT,
+                         FAST_INTERVAL, messagesDeletedFromView);
   wait_for_message_display_completion(
     aController, expectedCount && aController.messageDisplay.visible);
   // The above may return immediately, meaning the event queue might not get a
@@ -1498,8 +1496,9 @@ function press_enter(aController) {
 function wait_for_all_messages_to_load(aController) {
   if (aController == null)
     aController = mc;
-  utils.waitFor(function () aController.folderDisplay.allMessagesLoaded,
-                "Messages never finished loading.  Timed Out.");
+  if (!controller.waitForEval('subject.allMessagesLoaded', NORMAL_TIMEOUT,
+                              FAST_INTERVAL, aController.folderDisplay))
+    mark_failure(["Messages never finished loading.  Timed Out."]);
   // the above may return immediately, meaning the event queue might not get a
   //  chance.  give it a chance now.
   aController.sleep(0);
@@ -1606,8 +1605,9 @@ function wait_for_message_display_completion(aController, aLoadDemanded) {
     // not a mailnews URL, just check the busy flags...
     return !docShell.busyFlags;
   };
-  utils.waitFor(isLoadedChecker,
-                "Timed out waiting for message display completion.");
+  if (!controller.waitForEval('subject()', NORMAL_TIMEOUT, FAST_INTERVAL,
+                              isLoadedChecker))
+    mark_failure(["Timed out waiting for message display completion."]);
   // the above may return immediately, meaning the event queue might not get a
   //  chance.  give it a chance now.
   aController.sleep(0);
@@ -1630,13 +1630,10 @@ function wait_for_blank_content_pane(aController) {
   let isBlankChecker = function() {
     return aController.window.content.location.href == "about:blank";
   };
-  try {
-    utils.waitFor(isBlankChecker);
-  } catch (e if e instanceof utils.TimeoutError) {
+  if (!controller.waitForEval('subject()', NORMAL_TIMEOUT, FAST_INTERVAL,
+                              isBlankChecker))
     mark_failure(["Timeout waiting for blank content pane.  Current location:",
                   aController.window.content.location.href]);
-  }
-
   // the above may return immediately, meaning the event queue might not get a
   //  chance.  give it a chance now.
   aController.sleep(0);
@@ -1670,12 +1667,9 @@ var FolderListener = {
   waitForEvents: function FolderListener_waitForEvents() {
     if (this.sawEvents)
       return;
-    let self = this;
-    try {
-      utils.waitFor(function () self.sawEvents);
-    } catch (e if e instanceof utils.TimeoutError) {
+    if (!controller.waitForEval('subject.sawEvents', NORMAL_TIMEOUT,
+                                FAST_INTERVAL, this))
       mark_failure(["Timeout waiting for events:", this.watchingFor]);
-    }
   },
 
   OnItemEvent: function FolderNotificationHelper_OnItemEvent(

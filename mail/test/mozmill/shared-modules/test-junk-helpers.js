@@ -43,8 +43,8 @@ var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
 var mozmill = {};
 Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
-var utils = {};
-Cu.import("resource://mozmill/modules/utils.js", utils);
+var controller = {};
+Cu.import('resource://mozmill/modules/controller.js', controller);
 
 const MODULE_NAME = 'junk-helpers';
 
@@ -52,6 +52,9 @@ const RELATIVE_ROOT = '../shared-modules';
 
 // we need this for the main controller
 const MODULE_REQUIRES = ['folder-display-helpers'];
+
+const NORMAL_TIMEOUT = 6000;
+const FAST_INTERVAL = 100;
 
 var folderDisplayHelper;
 var mc;
@@ -171,10 +174,11 @@ function delete_mail_marked_as_junk(aNumDeletesExpected, aController) {
     // fine, because we already have all sorts of events when messages are
     // deleted). The only assumption is that deleteJunkInFolder is synchronous
     // if no messages are deleted.
-    utils.waitFor(function () numMessagesDeleted != null,
-                  "Timeout waiting for numMessagesDeleted to turn " +
-                  "non-null. This either means that deleteJunkInFolder " +
-                  "didn't get called or that it didn't return a value.");
+    if (!controller.waitForEval("subject != null", NORMAL_TIMEOUT,
+                                FAST_INTERVAL, numMessagesDeleted))
+      mark_failure(["Timeout waiting for numMessagesDeleted to turn " +
+                    "non-null. This either means that deleteJunkInFolder " +
+                    "didn't get called or that it didn't return a value."]);
 
     // Check the number of deleted messages.
     if (aNumDeletesExpected != numMessagesDeleted)
