@@ -113,7 +113,7 @@ NS_IMETHODIMP nsAppleMailImportModule::GetDescription(PRUnichar **aName)
 
 NS_IMETHODIMP nsAppleMailImportModule::GetSupports(char **aSupports)
 {
-  NS_ENSURE_ARG_POINTER(*aSupports);
+  NS_ENSURE_ARG_POINTER(aSupports);
   *aSupports = strdup(NS_IMPORT_MAIL_STR);
   return NS_OK;
 }

@@ -8537,7 +8537,7 @@ NS_IMETHODIMP nsImapMailFolder::FindOnlineSubFolder(const nsACString& targetOnli
 
 NS_IMETHODIMP nsImapMailFolder::GetFolderNeedsAdded(PRBool *bVal)
 {
-  NS_ENSURE_ARG_POINTER(*bVal);
+  NS_ENSURE_ARG_POINTER(bVal);
   *bVal = m_folderNeedsAdded;
   return NS_OK;
 }
