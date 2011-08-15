@@ -482,8 +482,3 @@ function test_tag_keys_disabled_in_content_tab() {
   mc.keypress(null, "1", {});
   check_tag_in_message(curMessage, tagArray[0], false);
 }
-
-function teardownModule() {
-  // Make sure archiving is enabled at the end
-  enable_archiving(true);
-}

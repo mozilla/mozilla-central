@@ -103,7 +103,7 @@ for directory in f:
         testDirectory = os.path.join(options.dir, directory.rstrip())
     else:
         testDirectory = directory.rstrip()
-    args = [sys.executable, "runtest.py", "-t", testDirectory,
+    args = ["python", "runtest.py", "-t", testDirectory,
             "--binary", options.binary, "--symbols-path", options.symbols]
     print args
     outputPipe = subprocess.PIPE

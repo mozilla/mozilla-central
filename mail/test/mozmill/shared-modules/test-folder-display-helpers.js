@@ -197,27 +197,11 @@ function setupModule() {
   //  can mutate it.  (The jsbridge is a global listener and so is guaranteed
   //  to be invoked after our specific named listener.)
   frame.events.addListener("fail", function(obj) {
-      // normalize nsIExceptions so they look like JS exceptions...
-      rawex = obj.exception;
-      if (obj.exception != null &&
-          (obj.exception instanceof Ci.nsIException)) {
-        obj.exception = {
-          message: "nsIException: " + rawex.message + " (" + rawex.result + ")",
-          fileName: rawex.filename,
-          lineNumber: rawex.lineNumber,
-          name: rawex.name,
-          result: rawex.result,
-          stack: "",
-        };
-      }
-
       // generate the failure notification now so it shows up in the event log
       //  bucket for presentation purposes.
       testHelperModule._xpcshellLogger.info(
         testHelperModule._testLoggerActiveContext,
-        new testHelperModule._Failure(
-          obj.exception ? obj.exception.message : "No Exception!",
-          rawex));
+        new testHelperModule._Failure(obj.exception.message, obj.exception));
 
       try {
         obj.failureContext = {
