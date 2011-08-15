@@ -1166,6 +1166,13 @@ NS_IMETHODIMP nsImapProtocol::CloseStreams()
   return NS_OK;
 }
 
+NS_IMETHODIMP nsImapProtocol::GetUrlWindow(nsIMsgMailNewsUrl *aUrl,
+                                           nsIMsgWindow **aMsgWindow)
+{
+  NS_ENSURE_ARG_POINTER(aUrl);
+  NS_ENSURE_ARG_POINTER(aMsgWindow);
+  return aUrl->GetMsgWindow(aMsgWindow);
+}
 
 NS_IMETHODIMP nsImapProtocol::OnInputStreamReady(nsIAsyncInputStream *inStr)
 {
@@ -8152,11 +8159,13 @@ void nsImapProtocol::Check()
 
 nsresult nsImapProtocol::GetMsgWindow(nsIMsgWindow **aMsgWindow)
 {
-    nsresult rv = NS_OK;
-    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl =
-        do_QueryInterface(m_runningUrl, &rv);
-    if (NS_FAILED(rv)) return rv;
-    return mailnewsUrl->GetMsgWindow(aMsgWindow);
+  nsresult rv;
+  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl =
+      do_QueryInterface(m_runningUrl, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (!m_imapProtocolSink)
+    return NS_ERROR_FAILURE;
+  return m_imapProtocolSink->GetUrlWindow(mailnewsUrl, aMsgWindow);
 }
 
 /**
