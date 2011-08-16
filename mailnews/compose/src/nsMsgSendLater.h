@@ -73,20 +73,22 @@ private:
 class nsMsgSendLater: public nsIMsgSendLater,
                       public nsIFolderListener,
                       public nsIObserver,
+                      public nsIUrlListener,
                       public nsIMsgShutdownTask
 
 {
 public:
-	nsMsgSendLater();
-	virtual     ~nsMsgSendLater();
+  nsMsgSendLater();
+  virtual     ~nsMsgSendLater();
   nsresult Init();
 
-	NS_DECL_ISUPPORTS
+  NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGSENDLATER
   NS_DECL_NSIFOLDERLISTENER
   NS_DECL_NSISTREAMLISTENER
   NS_DECL_NSIREQUESTOBSERVER
   NS_DECL_NSIOBSERVER
+  NS_DECL_NSIURLLISTENER
   NS_DECL_NSIMSGSHUTDOWNTASK
 
   // Methods needed for implementing interface...
@@ -130,6 +132,7 @@ public:
   // Private Information
 private:
   nsresult GetIdentityFromKey(const char *aKey, nsIMsgIdentity **aIdentity);
+  nsresult ReparseDBIfNeeded(nsIUrlListener *aListener);
   nsresult InternalSendMessages(PRBool aUserInitiated,
                                 nsIMsgIdentity *aIdentity);
 
@@ -167,6 +170,8 @@ private:
   char                      *mAccountKey;
 
   PRBool mSendingMessages;
+  PRBool mUserInitiated;
+  nsCOMPtr<nsIMsgIdentity> mIdentity;
 };
 
 

@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Pierre Phaneuf <pp@ludusdesign.com>
+ *   David Bienvenu <dbienvenu@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -59,6 +60,8 @@
 #include "nsIMutableArray.h"
 #include "nsArrayEnumerator.h"
 #include "nsIObserverService.h"
+#include "nsIMsgLocalMailFolder.h"
+#include "nsIMsgDatabase.h"
 
 // Consts for checking and sending mail in milliseconds
 
@@ -66,12 +69,13 @@
 // send it.
 const PRUint32 kInitialMessageSendTime = 1000;
 
-NS_IMPL_ISUPPORTS6(nsMsgSendLater,
+NS_IMPL_ISUPPORTS7(nsMsgSendLater,
                    nsIMsgSendLater,
                    nsIFolderListener,
                    nsIRequestObserver,
                    nsIStreamListener,
                    nsIObserver,
+                   nsIUrlListener,
                    nsIMsgShutdownTask)
 
 nsMsgSendLater::nsMsgSendLater()
@@ -402,6 +406,20 @@ nsMsgSendLater::OnDataAvailable(nsIRequest *request, nsISupports *ctxt, nsIInput
 }
 
 NS_IMETHODIMP
+nsMsgSendLater::OnStartRunningUrl(nsIURI *url)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::OnStopRunningUrl(nsIURI *url, nsresult aExitCode)
+{
+  if (NS_SUCCEEDED(aExitCode))
+    InternalSendMessages(mUserInitiated, mIdentity);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsMsgSendLater::OnStartRequest(nsIRequest *request, nsISupports *ctxt)
 {
   return NS_OK;
@@ -722,6 +740,8 @@ nsMsgSendLater::HasUnsentMessages(nsIMsgIdentity *aIdentity, PRBool *aResult)
                                  getter_AddRefs(mMessageFolder));
     NS_ENSURE_SUCCESS(rv, rv);
   }
+  rv = ReparseDBIfNeeded(nsnull);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   PRInt32 totalMessages;
   rv = mMessageFolder->GetTotalMessages(PR_FALSE, &totalMessages);
@@ -760,6 +780,19 @@ nsMsgSendLater::SendUnsentMessages(nsIMsgIdentity *aIdentity)
   return InternalSendMessages(PR_TRUE, aIdentity);
 }
 
+// Returns NS_OK if the db is OK, an error otherwise, e.g., we had to reparse.
+nsresult nsMsgSendLater::ReparseDBIfNeeded(nsIUrlListener *aListener)
+{
+  // This will kick off a reparse, if needed. So the next time we check if
+  // there are unsent messages, the db will be up to date.
+  nsCOMPtr<nsIMsgDatabase> unsentDB;
+  nsresult rv;
+  nsCOMPtr<nsIMsgLocalMailFolder> locFolder(do_QueryInterface(mMessageFolder, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return locFolder->GetDatabaseWithReparse(aListener, nsnull,
+                                           getter_AddRefs(unsentDB));
+}
+
 nsresult
 nsMsgSendLater::InternalSendMessages(PRBool aUserInitiated,
                                      nsIMsgIdentity *aIdentity)
@@ -784,8 +817,14 @@ nsMsgSendLater::InternalSendMessages(PRBool aUserInitiated,
                                  getter_AddRefs(mMessageFolder));
     NS_ENSURE_SUCCESS(rv, rv);
   }
+  nsCOMPtr<nsIMsgDatabase> unsentDB;
+  // Remember these in case we need to reparse the db.
+  mUserInitiated = aUserInitiated;
+  mIdentity = aIdentity;
+  rv = ReparseDBIfNeeded(this);
+  NS_ENSURE_SUCCESS(rv, rv);
+  mIdentity = nsnull; // don't hold onto the identity since we're a service.
 
-  // ### fix me - if we need to reparse the folder, this will be asynchronous
   nsCOMPtr<nsISimpleEnumerator> enumerator;
   rv = mMessageFolder->GetMessages(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv, rv);
