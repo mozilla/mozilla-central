@@ -353,7 +353,6 @@
 @BINPATH@/components/content_events.xpt
 @BINPATH@/components/content_html.xpt
 @BINPATH@/components/content_htmldoc.xpt
-@BINPATH@/components/content_xmldoc.xpt
 @BINPATH@/components/content_xslt.xpt
 @BINPATH@/components/content_xtf.xpt
 @BINPATH@/components/htmlparser.xpt
@@ -414,7 +413,6 @@
 @BINPATH@/components/nsFormHistory.js
 @BINPATH@/components/nsInputListAutoComplete.js
 @BINPATH@/components/nsLivemarkService.js
-@BINPATH@/components/nsMicrosummaryService.js
 @BINPATH@/components/nsPlacesAutoComplete.js
 @BINPATH@/components/nsPlacesAutoComplete.manifest
 @BINPATH@/components/nsPlacesExpiration.js
@@ -472,9 +470,7 @@
 #endif
 @BINPATH@/components/dom_storage.xpt
 @BINPATH@/components/dom_stylesheets.xpt
-@BINPATH@/components/dom_threads.xpt
 @BINPATH@/components/dom_traversal.xpt
-@BINPATH@/components/dom_views.xpt
 @BINPATH@/components/dom_xbl.xpt
 @BINPATH@/components/dom_xul.xpt
 @BINPATH@/components/dom_loadsave.xpt
@@ -507,6 +503,7 @@
 @BINPATH@/components/necko_cookie.xpt
 @BINPATH@/components/necko_socket.xpt
 @BINPATH@/components/necko_viewsource.xpt
+@BINPATH@/components/necko_websocket.xpt
 @BINPATH@/components/necko_wifi.xpt
 @BINPATH@/components/necko_wyciwyg.xpt
 @BINPATH@/components/nsProxyAutoConfig.js
@@ -535,9 +532,6 @@
 @BINPATH@/components/urlformatter.xpt
 @BINPATH@/components/nsContentPrefService.js
 @BINPATH@/components/nsContentPrefService.manifest
-
-; plugins
-@BINPATH@/components/plugin.xpt
 
 ; [Personal Security Manager]
 @BINPATH@/@DLL_PREFIX@nssckbi@DLL_SUFFIX@
@@ -600,7 +594,6 @@
 @BINPATH@/components/exthandler.xpt
 @BINPATH@/components/exthelper.xpt
 @BINPATH@/components/embed_base.xpt
-@BINPATH@/components/webshell_idls.xpt
 @BINPATH@/components/windowds.xpt
 @BINPATH@/components/dom_xpath.xpt
 @BINPATH@/components/lwbrk.xpt
