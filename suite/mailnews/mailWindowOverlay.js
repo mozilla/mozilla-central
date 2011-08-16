@@ -79,7 +79,6 @@ const kMsgForwardAsAttachment = 0;
 const kMsgForwardInline = 2;
 
 var gMessengerBundle;
-var gOfflinePromptsBundle;
 var gOfflineManager;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
 var gCopyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
@@ -2315,13 +2314,6 @@ function IsAccountOfflineEnabled()
       return selectedFolders[0].supportsOffline;
      
   return false;
-}
-
-// init strings
-function InitPrompts()
-{
-  if (!gOfflinePromptsBundle) 
-    gOfflinePromptsBundle = document.getElementById("bundle_offlinePrompts");
 }
 
 function DoGetNewMailWhenOffline()
