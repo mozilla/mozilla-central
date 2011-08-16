@@ -1905,7 +1905,7 @@ function hiddenWindowStartup()
   // Disable menus which are not appropriate
   var disabledItems = ['cmd_close', 'Browser:SendPage',
                        'Browser:EditPage', 'Browser:SavePage', 'cmd_printSetup',
-                       'Browser:Print', 'canGoBack', 'canGoForward',
+                       'cmd_print', 'canGoBack', 'canGoForward',
                        'Browser:AddBookmark', 'Browser:AddBookmarkAs',
                        'cmd_undo', 'cmd_redo', 'cmd_cut', 'cmd_copy',
                        'cmd_paste', 'cmd_delete', 'cmd_selectAll',

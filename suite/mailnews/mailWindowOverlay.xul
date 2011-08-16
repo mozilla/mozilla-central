@@ -118,7 +118,7 @@
 
 <commandset id="mailFileMenuItems"
             commandupdater="true"
-            events="create-menu-file"
+            events="create-menu-file, message-header-pane"
             oncommandupdate="goUpdateMailMenuItems(this)">
 
     <command id="cmd_getNewMessages" oncommand="goDoCommand('cmd_getNewMessages')" disabled="true"/>
@@ -390,7 +390,7 @@
   <key id="key_killThread" key="&killThreadMenu.key;"                oncommand="goDoCommand('cmd_killThread')" />
   <key id="key_killSubthread" key="&killSubthreadMenu.key;"          oncommand="goDoCommand('cmd_killSubthread')" modifiers="shift" />
   <key id="key_openMessage" key="&openMessageWindowCmd.key;"         oncommand="goDoCommand('cmd_openMessage')" modifiers="accel"/>
-  <key id="key_print" key="&printCmd.key;"                           oncommand="goDoCommand('cmd_print')" modifiers="accel"/>
+  <key id="key_print"/>
   <key id="key_saveAsFile" key="&saveAsFileCmd.key;"                 oncommand="goDoCommand('cmd_saveAsFile')" modifiers="accel"/>
   <key id="key_viewPageSource" key="&pageSourceCmd.key;"             oncommand="goDoCommand('cmd_viewPageSource')" modifiers="accel"/>
   <key id="key_getNewMessages" key="&getNewMsgCmd2.key;"             oncommand="goDoCommand('cmd_getNewMessages')" modifiers="accel"/>
@@ -1078,9 +1078,9 @@
         </menupopup>
       </menu>
       <menuseparator id="fileMenuAfterOfflineSeparator"/>
-      <menuitem id="printSetupMenuItem" label="&printSetupCmd.label;" accesskey="&printSetupCmd.accesskey;" command="cmd_printSetup"/>
-      <menuitem id="printPreviewMenuItem" label="&printPreviewCmd.label;" accesskey="&printPreviewCmd.accesskey;" command="cmd_printpreview"/>
-      <menuitem id="printMenuItem" key="key_print" label="&printCmd.label;" accesskey="&printCmd.accesskey;" command="cmd_print"/>
+      <menuitem id="menu_printSetup"/>
+      <menuitem id="menu_printPreview"/>
+      <menuitem id="menu_print"/>
     </menupopup>
   </menu>
 

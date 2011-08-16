@@ -161,7 +161,7 @@
   <key id="key_save"  key="&saveCmd.key;" command="cmd_saveDefault" modifiers="accel"/>
   <key id="key_send" keycode="&sendCmd.keycode;" observes="cmd_sendWithCheck" modifiers="accel"/>
   <key id="key_sendLater" keycode="&sendLaterCmd.keycode;" observes="cmd_sendLater" modifiers="accel, shift"/>
-  <key id="key_print"  key="&printCmd.key;" command="cmd_print" modifiers="accel"/>
+  <key id="key_print"/>
 
   <!-- Edit Menu -->
   <key id="key_rewrap" key="&editRewrapCmd.key;" command="cmd_rewrap" modifiers="accel"/>
@@ -310,14 +310,8 @@
                         key="key_sendLater"
                         command="cmd_sendLater"/>
               <menuseparator id="menuFileAfterSendLaterSeparator"/>
-              <menuitem id="printSetupMenuItem"
-                        label="&printSetupCmd.label;"
-                        accesskey="&printSetupCmd.accesskey;"
-                        command="cmd_printSetup"/>
-              <menuitem id="printMenuItem"
-                        label="&printCmd.label;"
-                        accesskey="&printCmd.accesskey;"
-                        key="key_print" command="cmd_print"/>
+              <menuitem id="menu_printSetup"/>
+              <menuitem id="menu_print"/>
             </menupopup>
           </menu>
           <menu id="menu_Edit">

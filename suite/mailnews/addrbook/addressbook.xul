@@ -250,7 +250,7 @@
                 </menu>
                 <menuitem id="menu_close"/>
                 <menuseparator/>
-        <menuitem id="printSetupMenuItem" label="&printSetupCmd.label;" accesskey="&printSetupCmd.accesskey;" command="cmd_printSetup"/>
+        <menuitem id="menu_printSetup"/>
         <menuitem id="printPreviewMenuItem"
                   label="&printPreviewContactViewCmd.label;"
                   accesskey="&printPreviewContactViewCmd.accesskey;"

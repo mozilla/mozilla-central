@@ -18,7 +18,6 @@
 <!ENTITY printPreviewCmd.accesskey "v">
 <!ENTITY printCmd.label "Print…">
 <!ENTITY printCmd.accesskey "p">
-<!ENTITY printCmd.commandkey "p">
 
 <!ENTITY navbarCmd.label "Navigation Toolbar">
 <!ENTITY navbarCmd.accesskey "N">

@@ -18,6 +18,13 @@
 <!ENTITY newNavigatorCmd.label "Browser Window">
 <!ENTITY newNavigatorCmd.key "N">
 <!ENTITY newNavigatorCmd.accesskey "B">
+<!ENTITY printSetupCmd.label "Page Setup…">
+<!ENTITY printSetupCmd.accesskey "u">
+<!ENTITY printPreviewCmd.label "Print Preview">
+<!ENTITY printPreviewCmd.accesskey "v">
+<!ENTITY printCmd.label "Print…">
+<!ENTITY printCmd.accesskey "P">
+<!ENTITY printCmd.key "P">
 
 <!ENTITY editMenu.label                   "Edit">
 <!ENTITY editMenu.accesskey               "E">
