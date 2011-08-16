@@ -79,7 +79,7 @@
     <key id="openFileKb"         key="&openFileCmd.commandkey;" command="Browser:OpenFile"  modifiers="accel"/>
     <key id="key_savePage"       key="&savePageCmd.commandkey;" command="Browser:SavePage" modifiers="accel"/>
     <key id="key_editPage"       key="&editPageCmd.commandkey;" command="Browser:EditPage" modifiers="accel"/>
-    <key id="printKb"            key="&printCmd.commandkey;" command="Browser:Print"  modifiers="accel"/>
+    <key id="key_print"/>
     <key id="key_close"/>
     <key id="key_closeWindow"/>
     <key id="key_quit"/>
@@ -148,8 +148,8 @@
     <command id="Browser:UploadFile" oncommand="BrowserUploadFile();"/>
     <command id="Browser:Open" oncommand="BrowserOpenWindow();"/>
     <command id="cmd_printSetup" oncommand="PrintUtils.showPageSetup();"/>
-    <command id="Browser:Print" oncommand="PrintUtils.print();"/>
-    <command id="Browser:PrintPreview" oncommand="BrowserPrintPreview();"/>
+    <command id="cmd_print" oncommand="PrintUtils.print();"/>
+    <command id="cmd_printpreview" oncommand="BrowserPrintPreview();"/>
     <command id="cmd_quit"/>
     <command id="cmd_close" oncommand="BrowserCloseTabOrWindow()"/>
     <command id="cmd_closeOtherTabs" oncommand="BrowserCloseOtherTabs()"/>
@@ -276,9 +276,9 @@
         <menuseparator/>
         <menuitem command="Browser:UploadFile" label="&uploadFile.label;" accesskey="&uploadFile.accesskey;"/>
         <menuseparator/>
-        <menuitem id="printSetupMenuItem" label="&printSetupCmd.label;" accesskey="&printSetupCmd.accesskey;" command="cmd_printSetup"/>
-        <menuitem id="printPreviewMenuItem" label="&printPreviewCmd.label;" accesskey="&printPreviewCmd.accesskey;" command="Browser:PrintPreview"/>
-        <menuitem id="printMenuItem" label="&printCmd.label;" accesskey="&printCmd.accesskey;" key="printKb" command="Browser:Print"/>
+        <menuitem id="menu_printSetup"/>
+        <menuitem id="menu_printPreview"/>
+        <menuitem id="menu_print"/>
         <menuseparator/>
         <menuitem id="offlineGoOfflineCmd"/>
       </menupopup>

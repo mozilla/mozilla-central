@@ -72,10 +72,7 @@
          key="&publishCmd.key;"
          command="cmd_publish"
          modifiers="accel,shift"/>
-    <key id="printkb"
-         key="&printCmd.key;"
-         command="cmd_print"
-         modifiers="accel"/>
+    <key id="key_print"/>
     <key id="key_close"/>
     <key id="key_quit"/>
     <key id="key_undo"/>
@@ -408,15 +405,8 @@
                 command="cmd_revert"/>
       <menuseparator id="fileMenuAfterFileRevertSeparator"/>
       <!-- menuitems are merged in here from composerOverlay.xul -->
-      <menuitem id="printSetupMenuItem"
-                label="&printSetupCmd.label;"
-                accesskey="&printSetupCmd.accesskey;"
-                command="cmd_printSetup"/>
-      <menuitem id="printMenuItem"
-                label="&printCmd.label;"
-                accesskey="&printCmd.accesskey;"
-                key="printkb"
-                command="cmd_print"/>
+      <menuitem id="menu_printSetup"/>
+      <menuitem id="menu_print"/>
       <!-- The Exit/Quit item is merged from platformGlobalOverlay.xul -->
     </menupopup>
   </menu>

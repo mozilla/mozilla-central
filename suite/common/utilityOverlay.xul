@@ -175,6 +175,19 @@
             accesskey="&newNavigatorCmd.accesskey;"
             key="key_newNavigator"
             command="cmd_newNavigator"/>
+  <menuitem id="menu_printSetup"
+            label="&printSetupCmd.label;"
+            accesskey="&printSetupCmd.accesskey;"
+            command="cmd_printSetup"/>
+  <menuitem id="menu_printPreview"
+            label="&printPreviewCmd.label;"
+            accesskey="&printPreviewCmd.accesskey;"
+            command="cmd_printpreview"/>
+  <menuitem id="menu_print"
+            label="&printCmd.label;"
+            accesskey="&printCmd.accesskey;"
+            key="key_print"
+            command="cmd_print"/>
 
   <key id="key_newBlankPage"
        key="&newBlankPageCmd.key;"
@@ -183,6 +196,10 @@
   <key id="key_newNavigator"
        key="&newNavigatorCmd.key;"
        command="cmd_newNavigator"
+       modifiers="accel"/>
+  <key id="key_print"
+       key="&printCmd.key;"
+       command="cmd_print"
        modifiers="accel"/>
 
   <keyset id="findKeys">

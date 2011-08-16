@@ -109,11 +109,8 @@
 <!ENTITY downloadFlaggedCmd.accesskey "G">
 <!ENTITY printCmd.label "Print…">
 <!ENTITY printCmd.accesskey "P">
-<!ENTITY printCmd.key "p">
 <!ENTITY printPreviewCmd.label "Print Preview">
 <!ENTITY printPreviewCmd.accesskey "v">
-<!ENTITY printSetupCmd.label "Page Setup…">
-<!ENTITY printSetupCmd.accesskey "u">
 
 <!-- Edit Menu -->
 <!ENTITY deleteMsgCmd.label "Delete Message">
