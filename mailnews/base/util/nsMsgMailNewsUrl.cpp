@@ -549,6 +549,18 @@ nsMsgMailNewsUrl::CloneIgnoringRef(nsIURI** result)
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsMsgMailNewsUrl::GetSpecIgnoringRef(nsACString &result)
+{
+  return m_baseURL->GetSpecIgnoringRef(result);
+}
+
+NS_IMETHODIMP
+nsMsgMailNewsUrl::GetHasRef(PRBool *result)
+{
+  return m_baseURL->GetHasRef(result);
+}
+
 NS_IMETHODIMP nsMsgMailNewsUrl::SchemeIs(const char *aScheme, PRBool *_retval)
 {
   return m_baseURL->SchemeIs(aScheme, _retval);

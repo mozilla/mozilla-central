@@ -706,3 +706,15 @@ nsLDAPURL::CloneIgnoringRef(nsIURI** result)
 {
   return mBaseURL->CloneIgnoringRef(result);
 }
+
+NS_IMETHODIMP
+nsLDAPURL::GetSpecIgnoringRef(nsACString &result)
+{
+  return mBaseURL->GetSpecIgnoringRef(result);
+}
+
+NS_IMETHODIMP
+nsLDAPURL::GetHasRef(PRBool *result)
+{
+  return mBaseURL->GetHasRef(result);
+}

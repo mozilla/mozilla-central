@@ -716,6 +716,18 @@ nsMailtoUrl::CloneIgnoringRef(nsIURI** result)
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsMailtoUrl::GetSpecIgnoringRef(nsACString &result)
+{
+  return m_baseURL->GetSpecIgnoringRef(result);
+}
+
+NS_IMETHODIMP
+nsMailtoUrl::GetHasRef(PRBool *result)
+{
+  return m_baseURL->GetHasRef(result);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////
 // smtp url definition
 /////////////////////////////////////////////////////////////////////////////////////

@@ -46,7 +46,7 @@ interface nsIAddbookUrlOperation
 	const long AddVCard = 2;
 };
 
-[uuid(ee1d5cc3-5f8c-43f3-b1b8-8d2ea67ce2d8)]
+[uuid(5f965083-e866-4bfb-ba40-13c344395798)]
 interface nsIAddbookUrl : nsIURI {
   readonly attribute long addbookOperation;
 };

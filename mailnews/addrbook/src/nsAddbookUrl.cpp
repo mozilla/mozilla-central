@@ -271,6 +271,18 @@ nsAddbookUrl::CloneIgnoringRef(nsIURI** _retval)
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsAddbookUrl::GetSpecIgnoringRef(nsACString &result)
+{
+  return m_baseURL->GetSpecIgnoringRef(result);
+}
+
+NS_IMETHODIMP
+nsAddbookUrl::GetHasRef(PRBool *result)
+{
+  return m_baseURL->GetHasRef(result);
+}
+
 //
 // Specific nsAddbookUrl operations
 //
