@@ -4124,11 +4124,38 @@ nsMsgDBView::GetCollationKey(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortTyp
         rv = GetLocationCollationKey(msgHdr, result, len);
         break;
     case nsMsgViewSortType::byRecipient:
-        rv = msgHdr->GetRecipientsCollationKey(len, result);
-        break;
+      {
+        nsString recipients;
+        rv = FetchRecipients(msgHdr, recipients);
+        if (NS_SUCCEEDED(rv))
+        {
+          nsCOMPtr <nsIMsgDatabase> dbToUse = m_db;
+          if (!dbToUse) // probably search view
+          {
+            rv = GetDBForHeader(msgHdr, getter_AddRefs(dbToUse));
+            NS_ENSURE_SUCCESS(rv,rv);
+          }
+          rv = dbToUse->CreateCollationKey(recipients, len, result);
+        }
+      }
+      break;
     case nsMsgViewSortType::byAuthor:
+      {
         rv = msgHdr->GetAuthorCollationKey(len, result);
-        break;
+        nsString author;
+        rv = FetchAuthor(msgHdr, author);
+        if (NS_SUCCEEDED(rv))
+        {
+          nsCOMPtr <nsIMsgDatabase> dbToUse = m_db;
+          if (!dbToUse) // probably search view
+          {
+            rv = GetDBForHeader(msgHdr, getter_AddRefs(dbToUse));
+            NS_ENSURE_SUCCESS(rv,rv);
+          }
+          rv = dbToUse->CreateCollationKey(author, len, result);
+        }
+      }
+      break;
     case nsMsgViewSortType::byAccount:
     case nsMsgViewSortType::byTags:
       {
