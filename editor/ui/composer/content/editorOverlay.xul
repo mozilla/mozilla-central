@@ -72,14 +72,11 @@
          key="&publishCmd.key;"
          command="cmd_publish"
          modifiers="accel,shift"/>
-    <key id="closekb"
-         key="&closeCmd.key;"
-         command="cmd_close"
-         modifiers="accel"/>
     <key id="printkb"
          key="&printCmd.key;"
          command="cmd_print"
          modifiers="accel"/>
+    <key id="key_close"/>
     <key id="key_quit"/>
     <key id="key_undo"/>
     <key id="key_redo"/>
@@ -173,9 +170,9 @@
           oncommandupdate="goUpdateComposerMenuItems(this)">
     <command id="cmd_open"                                          oncommand="goDoCommand('cmd_open')"/>
     <command id="cmd_openRemote"   label="&openRemoteCmd.label;"    oncommand="goDoCommand('cmd_openRemote')"/>
-    <command id="cmd_close"        label="&closeCmd.label;"         oncommand="goDoCommand('cmd_close')"/>
     <command id="cmd_printSetup"   oncommand="goDoCommand('cmd_printSetup')"/>
     <command id="cmd_print"        oncommand="goDoCommand('cmd_print')"/>
+    <command id="cmd_close"        oncommand="goDoCommand('cmd_close');"/>
     <command id="cmd_quit"         oncommand="goDoCommand('cmd_quit')"/>
   </commandset>
 
@@ -385,10 +382,7 @@
                                        event.target.getAttribute('fileType'));"/>
           <!-- menuitems appended at runtime -->
       </menu>
-      <menuitem id="menu_close"
-                accesskey="&closeCmd.accesskey;"
-                key="closekb"
-                command="cmd_close"/>
+      <menuitem id="menu_close"/>
       <menuseparator id="fileMenuAfterCloseSeparator"/>
       <menuitem id="saveMenuitem"
                 accesskey="&saveCmd.accesskey;"
