@@ -8224,7 +8224,7 @@ nsresult nsImapProtocol::GetPassword(nsCString &password,
 
 // This is called from the UI thread.
 NS_IMETHODIMP
-nsImapProtocol::OnPromptStart(PRInt32 *aResult)
+nsImapProtocol::OnPromptStart(PRBool *aResult)
 {
   nsresult rv;
   nsCOMPtr<nsIImapIncomingServer> imapServer = do_QueryReferent(m_server, &rv);

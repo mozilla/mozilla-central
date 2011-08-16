@@ -371,7 +371,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
     // Convert only if the source string is not empty
     if (length - (linep - line) > 0)
     {
-      PRBool whattodo = obj->options->whattodo;
+      PRUint32 whattodo = obj->options->whattodo;
       if (plainHTML)
       {
         if (quoting)

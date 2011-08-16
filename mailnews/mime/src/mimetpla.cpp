@@ -368,7 +368,7 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
     NS_ENSURE_SUCCESS(rv, -1);
 
     // Find out, which recognitions to do
-    PRBool whattodo = obj->options->whattodo;
+    PRUint32 whattodo = obj->options->whattodo;
     if (plainHTML)
     {
       if (quoting)

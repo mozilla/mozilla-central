@@ -101,7 +101,7 @@ private:
   nsresult LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutputType aOutType, 
                                nsIMsgIdentity * aIdentity, const char * aOriginalMsgURI, 
                                nsIMsgDBHdr * aOrigMsgHdr, PRBool aForwardInline,
-                               MSG_ComposeFormat format,
+                               PRBool overrideComposeFormat,
                                nsIMsgWindow *aMsgWindow);
 
   nsresult RunMessageThroughMimeDraft(const nsACString& aMsgURI,

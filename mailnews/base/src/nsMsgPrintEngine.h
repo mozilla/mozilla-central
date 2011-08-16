@@ -87,7 +87,7 @@ public:
 protected:
 
   PRBool      FirePrintEvent();
-  PRBool      FireStartNextEvent();
+  nsresult    FireStartNextEvent();
   nsresult    FireThatLoadOperationStartup(const nsString& uri);
   nsresult    FireThatLoadOperation(const nsString& uri);
   void        InitializeDisplayCharset();

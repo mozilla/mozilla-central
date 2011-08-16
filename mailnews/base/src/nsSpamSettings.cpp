@@ -659,7 +659,7 @@ NS_IMETHODIMP nsSpamSettings::GetServerFilterFile(nsIFile ** aFile)
 }
 
 
-NS_IMPL_GETSET(nsSpamSettings, ServerFilterTrustFlags, PRBool, mServerFilterTrustFlags)
+NS_IMPL_GETSET(nsSpamSettings, ServerFilterTrustFlags, PRInt32, mServerFilterTrustFlags)
 
 #define LOG_ENTRY_START_TAG "<p>\n"
 #define LOG_ENTRY_START_TAG_LEN (strlen(LOG_ENTRY_START_TAG))

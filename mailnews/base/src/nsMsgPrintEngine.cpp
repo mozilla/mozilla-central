@@ -741,7 +741,7 @@ nsMsgPrintEngine::FirePrintEvent()
 }
 
 //-----------------------------------------------------------
-PRBool
+nsresult
 nsMsgPrintEngine::FireStartNextEvent()
 {
   nsCOMPtr<nsIRunnable> event = new nsStartNextPrintOpEvent(this);

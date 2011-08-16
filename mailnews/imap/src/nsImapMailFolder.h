@@ -112,7 +112,7 @@ public:
     PRUint32 m_leftOver;
     PRBool m_allowUndo;
     PRBool m_eatLF;
-    PRBool m_newMsgFlags; // only used if there's no m_message
+    PRUint32 m_newMsgFlags; // only used if there's no m_message
     nsCString m_newMsgKeywords; // ditto 
     // If the server supports UIDPLUS, this is the UID for the append,
     // if we're doing an append.

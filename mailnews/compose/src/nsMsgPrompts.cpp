@@ -130,7 +130,6 @@ nsresult
 nsMsgAskBooleanQuestionByString(nsIPrompt * aPrompt, const PRUnichar * msg, PRBool *answer, const PRUnichar * windowTitle)
 {
   nsresult rv;
-  PRInt32 result;
   nsCOMPtr<nsIPrompt> dialog = aPrompt;
 
   if ((!msg) || (!*msg))
@@ -145,11 +144,7 @@ nsMsgAskBooleanQuestionByString(nsIPrompt * aPrompt, const PRUnichar * msg, PRBo
 
   if (dialog)
   {
-    rv = dialog->Confirm(windowTitle, msg, &result);
-    if (result == 1)
-      *answer = PR_TRUE;
-    else
-      *answer = PR_FALSE;
+    rv = dialog->Confirm(windowTitle, msg, answer);
   }
 
   return NS_OK;

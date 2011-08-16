@@ -438,7 +438,7 @@ nsImapUrl::SetExtraStatus(PRInt32 aExtraStatus)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapUrl::GetExtraStatus(PRBool *aResult)
+NS_IMETHODIMP nsImapUrl::GetExtraStatus(PRInt32 *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = m_extraStatus;

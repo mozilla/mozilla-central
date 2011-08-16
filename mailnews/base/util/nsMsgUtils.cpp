@@ -850,7 +850,7 @@ nsresult GetExistingFolder(const nsCString& aFolderURI, nsIMsgFolder **aFolder)
 
 PRBool IsAFromSpaceLine(char *start, const char *end)
 {
-  nsresult rv = PR_FALSE;
+  PRBool rv = PR_FALSE;
   while ((start < end) && (*start == '>'))
     start++;
   // If the leading '>'s are followed by an 'F' then we have a possible case here.

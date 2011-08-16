@@ -292,7 +292,7 @@ nsLDAPOperation::SimpleBind(const nsACString& passwd)
 {
     nsresult rv;
     nsCAutoString bindName;
-    PRBool originalMsgID = mMsgID;
+    PRInt32 originalMsgID = mMsgID;
     // Ugly hack alert:
     // the first time we get called with a passwd, remember it.
     // Then, if we get called again w/o a password, use the
