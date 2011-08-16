@@ -764,6 +764,9 @@ nsresult
 nsMsgSendLater::InternalSendMessages(PRBool aUserInitiated,
                                      nsIMsgIdentity *aIdentity)
 {
+  if (WeAreOffline())
+    return NS_MSG_ERROR_OFFLINE;
+
   // Protect against being called whilst we're already sending.
   if (mSendingMessages)
   {
