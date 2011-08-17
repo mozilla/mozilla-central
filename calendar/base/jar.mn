@@ -150,39 +150,20 @@ calendar.jar:
     skin/calendar/ok-cancel.png                            (themes/@THEME@/images/ok-cancel.png)
     skin/calendar/today-pane.css                           (themes/@THEME@/today-pane.css)
     skin/calendar/widgets/calendar-widgets.css             (themes/@THEME@/widgets/calendar-widgets.css)
+    skin/calendar/calendar-event-dialog-toolbar.png        (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar.png)
+    skin/calendar/calendar-event-dialog-toolbar-small.png  (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-small.png)
+    skin/calendar/calendar-occurrence-prompt.png           (themes/@THEME@/images/calendar-occurrence-prompt.png)
+    skin/calendar/tasks-actions.png                        (themes/@THEME@/images/tasks-actions.png)
+    skin/calendar/toolbar-large.png                        (themes/@THEME@/images/toolbar-large.png)
+    skin/calendar/toolbar-small.png                        (themes/@THEME@/images/toolbar-small.png)
 
 # Following files only add for OSX.
 #ifdef XP_MACOSX
-    skin/calendar/calendar-event-dialog-toolbar.png        (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar.png)
-    skin/calendar/calendar-event-dialog-toolbar-small.png  (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-small.png)
-    skin/calendar/calendar-occurrence-prompt.png           (themes/@THEME@/images/calendar-occurrence-prompt.png)
-    skin/calendar/tasks-actions.png                        (themes/@THEME@/images/tasks-actions.png)
-    skin/calendar/toolbar-large.png                        (themes/@THEME@/images/toolbar-large.png)
-    skin/calendar/toolbar-small.png                        (themes/@THEME@/images/toolbar-small.png)
     skin/calendar/sidebar-item.png                         (themes/@THEME@/images/sidebar-item.png)
 #endif
 
-# Following files only add for Linux.
-#ifdef XP_UNIX
-#ifndef XP_MACOSX
-    skin/calendar/calendar-event-dialog-toolbar.png        (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-linux.png)
-    skin/calendar/calendar-event-dialog-toolbar-small.png  (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-small-linux.png)
-    skin/calendar/calendar-occurrence-prompt.png           (themes/@THEME@/images/calendar-occurrence-prompt.png)
-    skin/calendar/tasks-actions.png                        (themes/@THEME@/images/tasks-actions-linux.png)
-    skin/calendar/toolbar-large.png                        (themes/@THEME@/images/toolbar-large-linux.png)
-    skin/calendar/toolbar-small.png                        (themes/@THEME@/images/toolbar-small-linux.png)
-#endif
-#endif
-
-# The following files only add for Windows.
-#ifdef XP_WIN
-    skin/calendar/calendar-event-dialog-toolbar.png        (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar.png)
-    skin/calendar/calendar-event-dialog-toolbar-small.png  (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-small.png)
-    skin/calendar/calendar-occurrence-prompt.png           (themes/@THEME@/images/calendar-occurrence-prompt.png)
-    skin/calendar/tasks-actions.png                        (themes/@THEME@/images/tasks-actions.png)
-    skin/calendar/toolbar-large.png                        (themes/@THEME@/images/toolbar-large.png)
-    skin/calendar/toolbar-small.png                        (themes/@THEME@/images/toolbar-small.png)
 # The following files are added for aero support on windows.
+#ifdef XP_WIN
 % style chrome://calendar/content/calendar-common-sets.xul chrome://calendar/skin/calendar-aero.css os=WINNT osversion>=6
 % style chrome://calendar/content/calendar-event-dialog.xul chrome://calendar/skin/calendar-aero.css os=WINNT osversion>=6
 % style chrome://calendar/content/calendar-occurrence-prompt.xul chrome://calendar/skin/calendar-aero.css os=WINNT osversion>=6

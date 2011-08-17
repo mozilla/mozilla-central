@@ -1,0 +1,188 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Lightning code.
+ *
+ * The Initial Developer of the Original Code is Oracle Corporation
+ * Portions created by the Initial Developer are Copyright (C) 2005
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Mike Shaver <shaver@mozilla.org>
+ *   Vladimir Vukicevic <vladimir@pobox.com>
+ *   Joey Minta <jminta@gmail.com>
+ *   Simon Paquet <bugzilla@babylonsounds.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Lars Wohlfahrt <thetux.moz@googlemail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#calsidebar_splitter {
+    border-right: none;
+}
+
+#today-splitter {
+    border-right: none;
+}
+
+/* Calendar list rules */
+#calendar-panel {
+    padding: 0px 5px 5px;
+}
+
+/* Lightning preferences icon */
+radio[pane=paneLightning] {
+    list-style-image: url("chrome://calendar/skin/cal-icon32.png");
+}
+
+/* iMIP notification bar */
+#imip-bar > image {
+    list-style-image: url("chrome://calendar/skin/cal-icon32.png");
+    -moz-image-region: rect(0px, 32px, 32px, 0px);
+}
+
+/* ::::: tabs ::::: */
+
+/* ::: new tab buttons ::: */
+#calendar-tab-button {
+    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
+    -moz-image-region: rect(0px 64px 16px 48px);
+}
+
+#calendar-tab-button:hover {
+    -moz-image-region: rect(16px 64px 32px 48px);
+}
+
+#calendar-tab-button[disabled] {
+    -moz-image-region: rect(32px 64px 48px 48px);
+}
+
+#task-tab-button {
+    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
+    -moz-image-region: rect(0px 80px 16px 64px);
+}
+
+#task-tab-button:hover {
+    -moz-image-region: rect(16px 80px 32px 64px);
+}
+
+#task-tab-button[disabled] {
+    -moz-image-region: rect(32px 80px 48px 64px);
+}
+
+/* ::: tab icons ::: */
+.tabmail-tab[type="calendar"] {
+    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
+    -moz-image-region: rect(0px 64px 16px 48px);
+}
+
+.tabmail-tab[type="calendar"][selected="true"] {
+    -moz-image-region: rect(16px 64px 32px 48px);
+}
+
+.tabmail-tab[type="tasks"] {
+    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
+    -moz-image-region: rect(0px 80px 16px 64px);
+}
+
+.tabmail-tab[type="tasks"][selected="true"] {
+    -moz-image-region: rect(16px 80px 32px 64px);
+}
+
+
+/* Lightning sidebar background in calendar and task mode */
+#ltnSidebar {
+  background-color: -moz-field;  
+}
+
+/* Write button */
+#newMsgButton-mail-menuitem {
+  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
+  -moz-image-region: rect(0px 48px 24px 24px);
+}
+
+#newMsgButton-calendar-menuitem {
+  list-style-image: url(chrome://calendar/skin/toolbar-small.png);
+  -moz-image-region: rect(0px 16px 16px 0px);
+}
+
+#newMsgButton-task-menuitem {
+  list-style-image: url(chrome://calendar/skin/toolbar-small.png);
+  -moz-image-region: rect(0px 256px 16px 240px);
+}
+
+/* Today pane button in status bar */
+#calendar-status-todaypane-button,
+#calendar-status-todaypane-button[checked="true"] {
+  min-width: 0;
+  min-height: 0;
+  margin: 1px 0 0;
+  -moz-appearance: none;
+  border-radius: 3px;
+  padding: 1px 2px 0 !important;
+  border: 1px solid transparent;
+}
+
+#calendar-status-todaypane-button:hover {
+  border: 1px solid ThreeDShadow;
+  background-color: transparent !important;
+  background-image: none;
+  -moz-appearance: none;
+}
+
+#calendar-status-todaypane-button > stack > .toolbarbutton-icon-begin {
+  list-style-image: url(chrome://calendar/skin/toolbar-small.png);
+  -moz-image-region: rect(0px 336px 16px 320px);
+}
+
+#calendar-status-todaypane-button > stack > .toolbarbutton-day-text {
+  text-align: center;
+  margin-left: 0px;
+  margin-top: 4px;
+  margin-bottom: -4px;
+  font-size: 7pt;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  text-shadow: none;
+  color: DarkBlue;
+  background-color: transparent;
+}
+
+/* shift the today pane button label up by one pixel to center it */
+#calendar-status-todaypane-button > .toolbarbutton-text {
+  margin: 0 0 1px !important;
+}
+
+#calendar-status-todaypane-button > .toolbarbutton-icon-end {
+  list-style-image: url(chrome://global/skin/icons/collapse.png);
+}
+
+#calendar-status-todaypane-button[checked="true"] > .toolbarbutton-icon-end {
+  list-style-image: url(chrome://global/skin/icons/expand.png);
+}
+
+#calMinimonthBox {
+    margin-top: 3px;
+}

@@ -117,12 +117,18 @@ DIRS = ../libical \
        $(NULL)
 
 # Select a theme from which to pull our skin goodness
+# Linux: gnomesripe
 # OS X: pinstripe
-# Others: winstripe
+# Windows: winstripe
+
+ifneq (,$(filter gtk2 qt,$(MOZ_WIDGET_TOOLKIT)))
+THEME=gnomestripe
+else
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 THEME=pinstripe
 else
 THEME=winstripe
+endif
 endif
 
 DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \

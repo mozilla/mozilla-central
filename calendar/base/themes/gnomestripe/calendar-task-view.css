@@ -1,0 +1,228 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Sun Microsystems code.
+ *
+ * The Initial Developer of the Original Code is Sun Microsystems.
+ * Portions created by the Initial Developer are Copyright (C) 2006
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Michael Buettner <michael.buettner@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Berend Cornelius <berend.cornelius@sun.com> 
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#calendar-task-view-splitter {
+    border: none;
+    min-height: 5px;
+}
+
+#calendar-task-details-container {
+    border-top: 1px solid ThreeDShadow;
+    border-left: 1px solid ThreeDShadow;
+    border-right: 0px;
+    border-bottom: 0px;
+    overflow: hidden;
+}
+
+#calendar-header-name-column,
+#calendar-task-details-attachment-row > hbox {
+    -moz-padding-start: 0.1em;
+}
+
+#calendar-task-details-grid,
+#other-actions-box {
+    padding: 0.1em;
+    -moz-padding-start: 0;
+    -moz-padding-end: 0;
+    padding-bottom: 0.2em;
+}
+
+#calendar-task-details {
+    min-height: 6ex;
+}
+
+#task-addition-box {
+    border-left: 1px solid ThreeDShadow;
+    border-right: 0px;
+    border-bottom: 1px solid ThreeDShadow;
+}
+
+#calendar-task-details-description {
+    -moz-appearance: textfield;
+    border: 1px solid;
+    margin: 0;
+    font-family: serif;
+    font-size: 16px;
+}
+
+.task-details-name {
+    text-align: right;
+    color: #888a85; /* lower contrast */
+    background-color: transparent;
+    border: none;
+}
+
+#calendar-task-details-grid > rows > .item-date-row > .headline {
+    font-weight: normal;
+    color: #888a85; /* lower contrast */
+}
+
+#calendar-task-details-attachment-row {
+    margin-top: 3px;
+}
+
+#calendar-task-details-attachment-rows {
+    max-height: 60px;
+}
+
+.task-details-value {
+    text-align: left;
+    background-color: transparent;
+    border: none;
+    color: black;
+}
+
+#calendar-task-tree {
+    min-height: 98px;
+    border-left: 1px solid ThreeDShadow;
+    border-bottom: 1px solid ThreeDHighlight;
+    border-right: 1px solid ThreeDHighlight;
+}
+
+#calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-row {
+    border-bottom: 1px dotted #AAA;
+}
+
+#calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-cell {
+    border-right: 1px dotted #AAA;
+}
+
+#calendar-task-tree-detail {
+    border: 1px solid ThreeDShadow;
+    margin: 3px;
+}
+
+#view-task-edit-field {
+    margin: 5px;
+}
+
+.task-edit-field[readonly="true"] {
+    color: GrayText;
+}
+
+#calendar-task-details-title {
+    font-weight: bold;
+}
+
+#unifinder-task-edit-field {
+    margin: 3px;
+}
+
+#unifinder-todo-tree > .calendar-task-tree {
+    margin-bottom: 3px;
+}
+
+/* ::::: task actions toolbar ::::: */
+
+#task-actions-toolbox {
+    -moz-appearance: none;
+    border: none;
+}
+
+#task-actions-toolbar {
+    -moz-appearance: none;
+    -moz-box-pack: end;
+    min-height: 0;
+    padding: 0;
+    border: none;
+}
+
+#task-actions-toolbar toolbarpaletteitem toolbarseparator,
+#task-actions-toolbar toolbarseparator {
+    height: 26px;
+}
+
+#task-actions-toolbar toolbarspacer {
+    height: 20px;
+}
+
+window[toolboxId="task-actions-toolbox"] #wrapper-spring {
+    display: none;
+}
+
+window[toolboxId="task-actions-toolbox"] #smallicons,
+window[toolboxId="task-actions-toolbox"] button[icon="add"] {
+    display: none;
+}
+
+window[toolboxId="task-actions-toolbox"] #modelist menuitem:first-child {
+    display: none;
+}
+
+#task-actions-toolbox[doCustomization] {
+    background: grey;
+}
+
+#task-actions-toolbox[doCustomization] #task-actions-toolbar {
+    min-width: 100px;
+    min-height: 10px;
+}
+
+#task-actions-category {
+    list-style-image: url(chrome://calendar/skin/tasks-actions.png);
+    -moz-image-region: rect(0px, 16px, 16px, 0px);
+}
+
+#task-actions-markcompleted {
+    list-style-image: url(chrome://calendar/skin/tasks-actions.png);
+    -moz-image-region: rect(0px, 32px, 16px, 16px);
+}
+
+#task-actions-priority {
+    list-style-image: url(chrome://calendar/skin/tasks-actions.png);
+    -moz-image-region: rect(0px, 48px, 16px, 32px);
+}
+
+#calendar-delete-task-button {
+    list-style-image: url(chrome://calendar/skin/toolbar-small.png);
+    -moz-image-region: rect(0px, 48px, 16px, 32px);
+}
+
+#calendar-add-task-button {
+    list-style-image: url(chrome://calendar/skin/toolbar-small.png);
+    -moz-image-region: rect(0px 256px 16px 240px);
+    -moz-margin-start: 5px;
+}
+
+#calendar-add-task-button[disabled="true"] {
+    -moz-image-region: rect(32px 256px 48px 240px);
+}
+
+#calendar-add-task-button > .toolbarbutton-text {
+    -moz-padding-start: 5px;
+}
