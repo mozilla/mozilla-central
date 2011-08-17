@@ -50,7 +50,7 @@ MODULE_NAME = calBaseModule
 DIRS = public src modules build
 
 # Select a theme from which to pull our skin goodness
-# Linux: gnomesripe
+# Linux: gnomestripe
 # OS X: pinstripe
 # Windows: winstripe
 

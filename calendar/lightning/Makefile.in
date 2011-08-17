@@ -121,7 +121,7 @@ DIRS += ../test
 endif
 
 # Select a theme from which to pull our skin goodness
-# Linux: gnomesripe
+# Linux: gnomestripe
 # OS X: pinstripe
 # Windows: winstripe
 
