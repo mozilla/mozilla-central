@@ -311,7 +311,7 @@ calWcapNetworkRequest.prototype = {
     onStreamComplete: function calWcapNetworkRequest_onStreamComplete(aLoader,
                                                                       aContext,
                                                                       aStatus,
-                                                                      /* nsIUnicharInputStream */ unicharData) {
+                                                                      unicharData) {
         this.m_loader = null;
 
         if (LOG_LEVEL > 0 && this.m_bLogging) {
@@ -322,34 +322,22 @@ calWcapNetworkRequest.prototype = {
             return;
         }
 
-        var result = "";
-        try {
-            if (unicharData) {
-                var str_ = {};
-                while (unicharData.readString(-1, str_)) {
-                    result += str_.value;
-                }
-            }
-            if (LOG_LEVEL > 2 && this.m_bLogging) {
-                log("contentCharset = " + aLoader.charset + "\nrequest result:\n" + result, this);
-            }
-        } catch (exc) {
-            this.execRespFunc(exc);
-            return;
+        if (LOG_LEVEL > 2 && this.m_bLogging) {
+            log("contentCharset = " + aLoader.charset + "\nrequest result:\n" + unicharData, this);
         }
 
         var httpChannel = aLoader.channel.QueryInterface(Components.interfaces.nsIHttpChannel);
         switch (httpChannel.responseStatus / 100) {
             case 2: /* 2xx codes */
                 // Everything worked out, we are done
-                this.execRespFunc(aStatus, result);
+                this.execRespFunc(aStatus, unicharData);
                 break;
             default: {
                 // Something else went wrong
                 var error = ("A request Error Occurred. Status Code: " +
                              httpChannel.responseStatus + " " +
                              httpChannel.responseStatusText + " Body: " +
-                             result);
+                             unicharData);
                 this.execRespFunc(Components.Exception(error, NS_BINDING_FAILED));
                 break;
             }

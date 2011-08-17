@@ -330,18 +330,11 @@ calDNDBaseObserver.prototype = {
                         return charset;
                     },
 
-                    onStreamComplete: function(loader, context, status, unicharData) {
-                        if (unicharData) {
-                            var str = "";
-                            var str_ = {};
-                            while (unicharData.readString(-1, str_)) {
-                                str += str_.value;
-                            }
-                            var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
-                                         .createInstance(Components.interfaces.calIIcsParser);
-                            parser.parseString(str);
-                            self.onDropItems(parser.getItems({}).concat(parser.getParentlessItems({})));
-                        }
+                    onStreamComplete: function(loader, context, status, unicharString) {
+                        var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
+                                     .createInstance(Components.interfaces.calIIcsParser);
+                        parser.parseString(unicharString);
+                        self.onDropItems(parser.getItems({}).concat(parser.getParentlessItems({})));
                     }
                 };
 
