@@ -79,10 +79,9 @@
     border-color: rgba(0, 0, 0, .32);
   }
 
-  #bottom-events-box >#unifinder-searchBox,
+  #bottom-events-box > #unifinder-searchBox,
   #task-addition-box {
     background-color: #f8f8f8;
-    border-top-width: 0;
   }
 
   sidebarheader {

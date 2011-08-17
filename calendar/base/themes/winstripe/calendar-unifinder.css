@@ -84,7 +84,6 @@
 
 /* added for new id ..... search box ..... */
 #unifinder-searchBox {
-    border-top: 1px solid ThreeDHighlight;
     height: 30px;
     background-color: transparent;
 }
