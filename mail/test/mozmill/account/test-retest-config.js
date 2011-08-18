@@ -90,16 +90,18 @@ function test_re_test_config() {
     awc.e("next_button").click();
 
     // Wait for 'edit' button to be enabled
-    awc.waitForEval("subject.disabled == false && subject.hidden == false",
-                    8000, 600, awc.e("create_button"));
+    awc.waitFor(function () (this.disabled == false && this.hidden == false),
+                "Timeout waiting for edit button to be enabled",
+                8000, 600, awc.e("create_button"));
 
     awc.e("manual-edit_button").click();
 
     // Click "re-test" button
     awc.e("half-manual-test_button").click();
 
-    awc.waitForEval("subject.disabled == false", 20000, 600,
-                    awc.e("half-manual-test_button"));
+    awc.waitFor(function () (this.disabled == false),
+                "Timeout waiting for re-test button to be enabled",
+                20000, 600, awc.e("half-manual-test_button"));
 
     // There used to be a "start over" button (line commented out below). Now just
     // changing the value of the email field does the trick.
@@ -110,8 +112,9 @@ function test_re_test_config() {
 
     // Wait for the "continue" button to be back, which means we're back to the
     // original state.
-    awc.waitForEval("subject.hidden == false", 20000, 600,
-                    awc.e("next_button"));
+    awc.waitFor(function () (this.hidden == false),
+                "Timeout waiting for continue button to be visible",
+                20000, 600, awc.e("next_button"));
 
     awc.e("next_button").click();
 

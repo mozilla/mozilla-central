@@ -122,8 +122,9 @@ function test_mail_account_setup() {
     let config = null;
 
     // XXX: This should probably use a notification, once we fix bug 561143.
-    awc.waitForEval("subject._currentConfig != null", 8000, 600,
-                    awc.window.gEmailConfigWizard);
+    awc.waitFor(function () (awc.window.gEmailConfigWizard._currentConfig != null),
+                "Timeout waiting for current config to become non-null",
+                8000, 600);
     config = awc.window.gEmailConfigWizard.getConcreteConfig();
 
     // Open the advanced settings (Account Manager) to create the account
@@ -137,7 +138,8 @@ function test_mail_account_setup() {
 }
 
 function subtest_verify_account(amc) {
-  amc.waitForEval("subject.currentAccount != null", 6000, 600, amc.window);
+  amc.waitFor(function () (amc.window.currentAccount != null),
+              "Timeout waiting for currentAccount to become non-null");
   account = amc.window.currentAccount;
   let identity = account.defaultIdentity;
   incoming = account.incomingServer;
@@ -208,12 +210,14 @@ function test_bad_password_uses_old_settings() {
 
       let config = null;
 
-      awc.waitForEval("subject.disabled == false && subject.hidden == false",
-                      8000, 600, awc.e("create_button"));
+      awc.waitFor(function () (this.disabled == false && this.hidden == false),
+                  "Timeout waiting for create button to be visible and active",
+                  8000, 600, awc.e("create_button"));
       awc.e("create_button").click();
 
-      awc.waitForEval("subject.disabled == false", 8000, 600,
-                      awc.e("create_button"));
+      awc.waitFor(function () (this.disabled == false),
+                  "Timeout waiting for create button to be visible and active",
+                  8000, 600, awc.e("create_button"));
       awc.e("create_button").click();
       awc.e("manual-edit_button").click();
 

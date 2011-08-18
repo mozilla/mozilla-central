@@ -45,7 +45,8 @@
 var MODULE_NAME = 'test-plugins-policy';
 
 var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers', 'compose-helpers'];
+var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers',
+                       'compose-helpers', 'content-tab-helpers'];
 var jumlib = {};
 Components.utils.import("resource://mozmill/modules/jum.js", jumlib);
 var elib = {};
@@ -79,6 +80,8 @@ var setupModule = function (module) {
   wh.installInto(module);
   composeHelper = collector.getModule('compose-helpers');
   composeHelper.installInto(module);
+  let cth = collector.getModule('content-tab-helpers');
+  cth.installInto(module);
 
   folder = create_folder("pluginPolicy");
 };
@@ -220,12 +223,7 @@ function test_checkContentTab() {
   // in the data of what we want.
   let preCount = mc.tabmail.tabContainer.childNodes.length;
 
-  let newTab = mc.tabmail.openTab("contentTab", { contentPage: url + "plugin.html" });
-
-  mc.waitForEval("subject.busy == false", 5000, 100, newTab);
-
-  if (mc.tabmail.tabContainer.childNodes.length != preCount + 1)
-    throw new Error("The content tab didn't open");
+  let newTab = open_content_tab_with_url(url + "plugin.html");
 
   if (!isPluginLoaded(mc.tabmail.getBrowserForSelectedTab().contentDocument))
     throw new Error("Plugin has been unexpectedly blocked in content tab");

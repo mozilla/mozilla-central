@@ -67,7 +67,8 @@ let AlertWatcher = {
   },
   waitForAlert: function(aController) {
     if (!this.alerted) {
-      aController.waitForEval("subject.alerted", ALERT_TIMEOUT, 100, this);
+      aController.waitFor(function () this.alerted, "Timeout waiting for alert",
+                          ALERT_TIMEOUT, 100, this);
     }
     aController.window.document.removeEventListener("AlertActive",
                                                     this.alertActive, false);

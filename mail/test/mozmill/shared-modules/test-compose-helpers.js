@@ -43,6 +43,8 @@ var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
 var mozmill = {};
 Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
+var utils = {};
+Cu.import('resource://mozmill/modules/utils.js', utils);
 
 const MODULE_NAME = 'compose-helpers';
 
@@ -224,8 +226,9 @@ function wait_for_compose_window(aController) {
     editor.commandManager.addCommandObserver(editorObserver,
                                              "obs_documentCreated");
 
-    aController.waitForEval("subject.editorLoaded == true",
-                            10000, 100, editorObserver);
+    utils.waitFor(function () editorObserver.editorLoaded,
+                  "Timeout waiting for compose window editor to load",
+                  10000, 100);
 
     // Let the event queue clear.
     aController.sleep(0);

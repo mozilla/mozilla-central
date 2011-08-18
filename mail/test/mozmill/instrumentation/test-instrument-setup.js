@@ -93,8 +93,9 @@ function test_mail_account_setup() {
   let config = null;
 
   // XXX: This should probably use a notification, once we fix bug 561143.
-  awc.waitForEval("subject._currentConfig != null", 8000, 600,
-                  awc.window.gEmailConfigWizard);
+  awc.waitFor(function () awc.window.gEmailConfigWizard._currentConfig != null,
+              "Timeout waiting for current config to become non-null",
+              8000, 600);
   config = awc.window.gEmailConfigWizard._currentConfig;
   plan_for_window_close(awc);
   awc.e("create_button").click();

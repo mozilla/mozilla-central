@@ -39,7 +39,8 @@ var MODULE_NAME = 'test-compose-mailto';
 
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'compose-helpers',
-                       'window-helpers', 'keyboard-helpers'];
+                       'window-helpers', 'keyboard-helpers',
+                       'content-tab-helpers'];
 var jumlib = {};
 Components.utils.import("resource://mozmill/modules/jum.js", jumlib);
 var elib = {};
@@ -66,6 +67,8 @@ var setupModule = function (module) {
   composeHelper.installInto(module);
   windowHelper = collector.getModule('window-helpers');
   windowHelper.installInto(module);
+  let cth = collector.getModule("content-tab-helpers");
+  cth.installInto(module);
 };
 
 function test_openComposeFromMailToLink() {
@@ -73,14 +76,7 @@ function test_openComposeFromMailToLink() {
     // To open a tab we're going to have to cheat and use tabmail so we can load
   // in the data of what we want.
   gPreCount = mc.tabmail.tabContainer.childNodes.length;
-
-  gNewTab = mc.tabmail.openTab("contentTab", { contentPage: url + "mailtolink.html" });
-
-  mc.waitForEval("subject.busy == false", 5000, 100, gNewTab);
-
-  if (mc.tabmail.tabContainer.childNodes.length != gPreCount + 1)
-    throw new Error("The content tab didn't open");
-
+  gNewTab = open_content_tab_with_url(url + "mailtolink.html");
   gComposeWin = composeHelper.open_compose_with_element_click("mailtolink");
 }
 
