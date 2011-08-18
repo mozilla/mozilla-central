@@ -75,9 +75,22 @@ libs:: $(_HARNESS_FILES)
 
 # Copy the mailnews and mail resources that we require.
 libs::
-	$(INSTALL) $(topsrcdir)/mailnews/test/resources/* $(MOZDEPTH)/_tests/mozmill/resources
-	$(INSTALL) $(topsrcdir)/mailnews/test/fakeserver/* $(MOZDEPTH)/_tests/mozmill/resources
-	$(INSTALL) $(topsrcdir)/mail/base/test/unit/resources/* $(MOZDEPTH)/_tests/mozmill/resources
+	$(INSTALL) $(topsrcdir)/mailnews/test/resources/* $(_DEST_DIR)/resources
+	$(INSTALL) $(topsrcdir)/mailnews/test/fakeserver/* $(_DEST_DIR)/resources
+	$(INSTALL) $(topsrcdir)/mail/base/test/unit/resources/* $(_DEST_DIR)/resources
+
+# Copy MozMill and its dependencies over, and set up a virtualenv. The
+# virtualenv directory is outside because we don't want to bundle it up during
+# stage-package.
+VIRTUALENV_DIR = $(_DEST_DIR)/../mozmill-virtualenv
+mozmill-virtualenv: NSDISTMODE=copy
+mozmill-virtualenv:
+	$(DIR_INSTALL) $(topsrcdir)/mail/test/resources $(_DEST_DIR)
+	rm -rf $(VIRTUALENV_DIR) && \
+	mkdir $(VIRTUALENV_DIR) && \
+	$(PYTHON) $(_DEST_DIR)/resources/installmozmill.py $(VIRTUALENV_DIR)
+
+libs:: mozmill-virtualenv
 
 PKG_STAGE = $(DIST)/test-package-stage
 

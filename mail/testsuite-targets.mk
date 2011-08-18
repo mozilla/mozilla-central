@@ -4,6 +4,12 @@ include $(topsrcdir)/mailnews/testsuite-targets.mk
 # Instructions below this line are for mail/ specific tests.
 
 MOZMILLDIR=$(DEPTH)/mozilla/_tests/mozmill
+ifeq ($(OS_ARCH),WINNT)
+VIRTUALENV_BIN = $(MOZMILLDIR)/../mozmill-virtualenv/Scripts
+else
+VIRTUALENV_BIN = $(MOZMILLDIR)/../mozmill-virtualenv/bin
+endif
+MOZMILLPYTHON = $(call core_abspath,$(VIRTUALENV_BIN)/python$(BIN_SUFFIX))
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 # Mac options
@@ -17,15 +23,18 @@ else
 PROGRAM = ../../../$(DIST)/bin/thunderbird$(BIN_SUFFIX)
 endif
 
+# PYTHONHOME messes very badly with virtualenv setups, so unset it.
 mozmill::
-	cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= $(PYTHON) \
-	runtestlist.py --list=mozmilltests.list --binary=$(PROGRAM) \
+	unset PYTHONHOME && cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= \
+	$(MOZMILLPYTHON) runtestlist.py --list=mozmilltests.list \
+	--binary=$(PROGRAM) \
 	--dir=$(call core_abspath,$(topsrcdir))/mail/test/mozmill \
 	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
 	$(MOZMILL_EXTRA)
 
 mozmill-one::
-	cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= $(PYTHON) runtest.py \
+	unset PYTHONHOME && cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= \
+	$(MOZMILLPYTHON) runtest.py \
 	--test=$(call core_abspath,$(topsrcdir))/mail/test/mozmill/$(SOLO_TEST) \
 	--binary=$(PROGRAM) \
 	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \

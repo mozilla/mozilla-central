@@ -129,8 +129,8 @@ function get_subpage(fc) {
   // broken:
 
   // Lie to mozmill to convince it to not explode because these frames never
-  // get a documentLoaded attribute.
-  contentWindow.documentLoaded = true;
+  // get a mozmillDocumentLoaded attribute.
+  contentWindow.mozmillDocumentLoaded = true;
   // And sleep so the page has a chance to load
   controller.sleep(1000);
   let aController = new controller.MozMillController(contentWindow);

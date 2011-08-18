@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="test.css" type="text/css"?>
+
+<window id="testingonly" 
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+        title="Testing And Debugging Window">
+
+  <script src="test.js"/>
+
+  <vbox id="testCollection">
+    <hbox id="item1"
+          ondragstart="dragStart(event)">
+    </hbox>
+
+    <hbox id="item2"
+          ondrop="drop(event)"
+          ondragover="return false">
+    </hbox>
+  </vbox>
+</window>
