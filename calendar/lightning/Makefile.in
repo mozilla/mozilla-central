@@ -116,6 +116,10 @@ DIRS = ../libical \
        locales \
        $(NULL)
 
+ifdef ENABLE_TESTS
+DIRS += ../test
+endif
+
 # Select a theme from which to pull our skin goodness
 # Linux: gnomesripe
 # OS X: pinstripe
