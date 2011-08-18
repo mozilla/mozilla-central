@@ -44,11 +44,9 @@
 #include "nsAbLDAPReplicationData.h"
 #include "nsILDAPURL.h"
 #include "nsAbBaseCID.h"
-#include "nsProxiedService.h"
 #include "nsAbUtils.h"
 #include "nsDirPrefs.h"
 #include "prmem.h"
-#include "nsXPCOMCIDInternal.h"
 #include "nsComponentManagerUtils.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbLDAPReplicationQuery,
@@ -122,19 +120,6 @@ nsresult nsAbLDAPReplicationQuery::ConnectToLDAPServer()
     if (NS_FAILED(rv))
       return NS_ERROR_UNEXPECTED;
 
-    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // Initiate LDAP message listener to the current thread
-    nsCOMPtr<nsILDAPMessageListener> listener;
-    rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_CURRENT_THREAD,
-                  NS_GET_IID(nsILDAPMessageListener), 
-                  mDp,
-                  NS_PROXY_SYNC | NS_PROXY_ALWAYS, 
-                  getter_AddRefs(listener));
-    if (!listener) 
-        return NS_ERROR_FAILURE;
-
     // this could be a rebind call
     PRInt32 replicationState = nsIAbLDAPProcessReplicationData::kIdle;
     rv = mDataProcessor->GetReplicationState(&replicationState);
@@ -147,7 +132,7 @@ nsresult nsAbLDAPReplicationQuery::ConnectToLDAPServer()
     NS_ENSURE_SUCCESS(rv, rv);
 
     // initialize the LDAP connection
-    return mConnection->Init(mURL, mLogin, listener, nsnull, protocolVersion);
+    return mConnection->Init(mURL, mLogin, mDp, nsnull, protocolVersion);
 }
 
 NS_IMETHODIMP nsAbLDAPReplicationQuery::Init(nsIAbLDAPDirectory *aDirectory,

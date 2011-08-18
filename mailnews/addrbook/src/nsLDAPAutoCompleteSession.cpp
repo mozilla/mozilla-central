@@ -42,7 +42,6 @@
 #include "nsLDAPAutoCompleteSession.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
-#include "nsIProxyObjectManager.h"
 #include "nsILDAPURL.h"
 #include "nsILDAPService.h"
 #include "nspr.h"
@@ -553,7 +552,6 @@ nsresult
 nsLDAPAutoCompleteSession::DoTask()
 {
     nsresult rv; // temp for xpcom return values
-    nsCOMPtr<nsILDAPMessageListener> selfProxy; // for callback
 
     PR_LOG(sLDAPAutoCompleteLogModule, PR_LOG_DEBUG, 
            ("nsLDAPAutoCompleteSession::DoTask entered\n"));
@@ -571,27 +569,8 @@ nsLDAPAutoCompleteSession::DoTask()
         return NS_ERROR_FAILURE;
     }
 
-    // Get a proxy object so the callback happens on the main thread.
-    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-    if (NS_FAILED(rv)) {
-        FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv, UNBOUND);
-        return NS_ERROR_FAILURE;
-    }
-    rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                              NS_GET_IID(nsILDAPMessageListener), 
-                              static_cast<nsILDAPMessageListener *>(this), 
-                              NS_PROXY_ASYNC | NS_PROXY_ALWAYS, 
-                              getter_AddRefs(selfProxy));
-    if (NS_FAILED(rv)) {
-        NS_ERROR("nsLDAPAutoCompleteSession::DoTask(): couldn't "
-                 "create proxy to this object for callback");
-        FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv, 
-                                 BOUND);
-        return NS_ERROR_FAILURE;
-    }
-
     // Initialize the LDAP operation object.
-    rv = mOperation->Init(mConnection, selfProxy, nsnull);
+    rv = mOperation->Init(mConnection, this, nsnull);
     if (NS_FAILED(rv)) {
         NS_ERROR("nsLDAPAutoCompleteSession::DoTask(): couldn't "
                  "initialize LDAP operation");
@@ -814,8 +793,6 @@ nsresult
 nsLDAPAutoCompleteSession::InitConnection()
 {
     nsresult rv;        // temp for xpcom return values
-    nsCOMPtr<nsILDAPMessageListener> selfProxy;
-    
     NS_ASSERTION(!mConnection, "in InitConnection w/ existing connection");
 
     // Create an LDAP connection
@@ -840,29 +817,10 @@ nsLDAPAutoCompleteSession::InitConnection()
         return NS_ERROR_NOT_INITIALIZED;
     }
 
-    // Get a proxy object so the callback happens on the main thread.
-    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-    if (NS_FAILED(rv)) {
-        FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv, UNBOUND);
-        return NS_ERROR_FAILURE;
-    }
-    rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD, 
-                              NS_GET_IID(nsILDAPMessageListener), 
-                              static_cast<nsILDAPMessageListener *>(this), 
-                              NS_PROXY_ASYNC | NS_PROXY_ALWAYS, 
-                              getter_AddRefs(selfProxy));
-    if (NS_FAILED(rv)) {
-        NS_ERROR("nsLDAPAutoCompleteSession::InitConnection(): couldn't "
-                 "create proxy to this object for callback");
-        FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv, 
-                                 UNBOUND);
-        return NS_ERROR_FAILURE;
-    }
-
     // Initialize the connection. This will cause an asynchronous DNS
     // lookup to occur, and we'll finish the binding of the connection
     // in the OnLDAPInit() listener function.
-    rv = mConnection->Init(mDirectoryUrl, mLogin, selfProxy, nsnull, mVersion);
+    rv = mConnection->Init(mDirectoryUrl, mLogin, this, nsnull, mVersion);
     if (NS_FAILED(rv)) {
         switch (rv) {
 

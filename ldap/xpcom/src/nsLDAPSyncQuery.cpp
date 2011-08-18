@@ -39,7 +39,6 @@
 
 #include "nsLDAPSyncQuery.h"
 #include "nsIServiceManager.h"
-#include "nsIProxyObjectManager.h"
 #include "nsXPIDLString.h"
 #include "nsILDAPErrors.h"
 #include "nsThreadUtils.h"
@@ -129,8 +128,6 @@ NS_IMETHODIMP
 nsLDAPSyncQuery::OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus)
 {
     nsresult rv;        // temp for xpcom return values
-    nsCOMPtr<nsILDAPMessageListener> selfProxy;
-
     // create and initialize an LDAP operation (to be used for the bind)
     //  
     mOperation = do_CreateInstance("@mozilla.org/network/ldap-operation;1", 
@@ -140,21 +137,9 @@ nsLDAPSyncQuery::OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus)
         return NS_ERROR_FAILURE;
     }
 
-    // get a proxy object so the callback happens on the main thread
-    //
-    rv = NS_GetProxyForObject(NS_PROXY_TO_CURRENT_THREAD,
-                              NS_GET_IID(nsILDAPMessageListener), 
-                              static_cast<nsILDAPMessageListener *>(this),
-                              NS_PROXY_ASYNC | NS_PROXY_ALWAYS, 
-                              getter_AddRefs(selfProxy));
-    if (NS_FAILED(rv)) {
-        FinishLDAPQuery();
-        return NS_ERROR_FAILURE;
-    }
-
     // our OnLDAPMessage accepts all result callbacks
     //
-    rv = mOperation->Init(mConnection, selfProxy, nsnull);
+    rv = mOperation->Init(mConnection, this, nsnull);
     if (NS_FAILED(rv)) {
         FinishLDAPQuery();
         return NS_ERROR_UNEXPECTED; // this should never happen
@@ -263,10 +248,7 @@ nsLDAPSyncQuery::OnLDAPSearchResult(nsILDAPMessage *aMessage)
 nsresult
 nsLDAPSyncQuery::StartLDAPSearch()
 {
-    nsresult rv; 
-    nsCOMPtr<nsILDAPMessageListener> selfProxy; // for callback
-
-
+    nsresult rv;
     // create and initialize an LDAP operation (to be used for the search
     //  
     mOperation = 
@@ -279,23 +261,9 @@ nsLDAPSyncQuery::StartLDAPSearch()
         return NS_ERROR_FAILURE;
     }
 
-    // get a proxy object so the callback happens on the main thread
-    //
-    rv = NS_GetProxyForObject(NS_PROXY_TO_CURRENT_THREAD, 
-                              NS_GET_IID(nsILDAPMessageListener),
-                              static_cast<nsILDAPMessageListener *>(this),
-                              NS_PROXY_ASYNC | NS_PROXY_ALWAYS,
-                              getter_AddRefs(selfProxy));
-    if (NS_FAILED(rv)) {
-        NS_ERROR("nsLDAPSyncQuery::StartLDAPSearch(): couldn't "
-                 "create proxy to this object for callback");
-        FinishLDAPQuery();
-        return NS_ERROR_FAILURE;
-    }
-
     // initialize the LDAP operation object
     //
-    rv = mOperation->Init(mConnection, selfProxy, nsnull);
+    rv = mOperation->Init(mConnection, this, nsnull);
     if (NS_FAILED(rv)) {
         NS_ERROR("nsLDAPSyncQuery::StartLDAPSearch(): couldn't "
                  "initialize LDAP operation");
@@ -352,9 +320,10 @@ nsLDAPSyncQuery::StartLDAPSearch()
 //
 nsresult nsLDAPSyncQuery::InitConnection()
 {
-    nsCOMPtr<nsILDAPMessageListener> selfProxy;
+    // Because mConnection->Init proxies back to the main thread, this
+    // better be the main thread.
+    NS_ENSURE_TRUE(NS_IsMainThread(), NS_ERROR_FAILURE);
     nsresult rv;        // temp for xpcom return values
-    
     // create an LDAP connection
     //
     mConnection = do_CreateInstance("@mozilla.org/network/ldap-connection;1",
@@ -374,22 +343,7 @@ nsresult nsLDAPSyncQuery::InitConnection()
         FinishLDAPQuery();
         return NS_ERROR_NOT_INITIALIZED;
     }
-
-    // get a proxy object so the callback happens on the main thread
-    //
-    rv = NS_GetProxyForObject(NS_PROXY_TO_CURRENT_THREAD,
-                              NS_GET_IID(nsILDAPMessageListener), 
-                              static_cast<nsILDAPMessageListener *>(this), 
-                              NS_PROXY_ASYNC | NS_PROXY_ALWAYS, 
-                              getter_AddRefs(selfProxy));
-    if (NS_FAILED(rv)) {
-        FinishLDAPQuery();
-        NS_ERROR("nsLDAPSyncQuery::InitConnection(): couldn't "
-                 "create proxy to this object for callback");
-        return NS_ERROR_FAILURE;
-    }
-
-    rv = mConnection->Init(mServerURL, EmptyCString(), selfProxy,
+    rv = mConnection->Init(mServerURL, EmptyCString(), this,
                            nsnull, mProtocolVersion);
     if (NS_FAILED(rv)) {
         FinishLDAPQuery();

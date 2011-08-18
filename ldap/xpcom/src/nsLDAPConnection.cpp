@@ -55,7 +55,6 @@
 #include "nsIDNSService.h"
 #include "nsIDNSRecord.h"
 #include "nsIRequestObserver.h"
-#include "nsIProxyObjectManager.h"
 #include "nsNetError.h"
 #include "nsLDAPOperation.h"
 #include "nsILDAPErrors.h"
@@ -419,6 +418,53 @@ nsLDAPConnection::RemovePendingOperation(PRUint32 aOperationID)
   return NS_OK;
 }
 
+class nsOnLDAPMessageRunnable : public nsRunnable
+{
+public:
+  nsOnLDAPMessageRunnable(nsILDAPMessageListener *aListener,
+                          nsILDAPMessage *aMsg);
+  NS_DECL_NSIRUNNABLE
+private:
+  nsCOMPtr<nsILDAPMessage> m_msg;
+  nsCOMPtr<nsILDAPMessageListener> m_listener;
+};
+
+nsOnLDAPMessageRunnable::nsOnLDAPMessageRunnable(nsILDAPMessageListener *aListener,
+                                                 nsILDAPMessage *aMsg) :
+  m_msg(aMsg), m_listener(aListener)
+{
+}
+
+NS_IMETHODIMP nsOnLDAPMessageRunnable::Run()
+{
+  return m_listener->OnLDAPMessage(m_msg);
+}
+
+class nsOnLDAPInitMessageRunnable : public nsRunnable
+{
+public:
+  nsOnLDAPInitMessageRunnable(nsILDAPMessageListener *aListener,
+                              nsILDAPConnection *aConn,
+                              nsresult aStatus);
+  NS_DECL_NSIRUNNABLE
+private:
+  nsCOMPtr<nsILDAPConnection> m_conn;
+  nsCOMPtr<nsILDAPMessageListener> m_listener;
+  nsresult m_status;
+};
+
+nsOnLDAPInitMessageRunnable::nsOnLDAPInitMessageRunnable(nsILDAPMessageListener *aListener,
+                                                         nsILDAPConnection *aConn,
+                                                         nsresult aStatus) :
+  m_listener(aListener), m_conn(aConn), m_status(aStatus)
+{
+}
+
+NS_IMETHODIMP nsOnLDAPInitMessageRunnable::Run()
+{
+  return m_listener->OnLDAPInit(m_conn, m_status);
+}
+
 nsresult
 nsLDAPConnection::InvokeMessageCallback(LDAPMessage *aMsgHandle,
                                         nsILDAPMessage *aMsg,
@@ -439,8 +485,7 @@ nsLDAPConnection::InvokeMessageCallback(LDAPMessage *aMsgHandle,
 
   static_cast<nsLDAPMessage *>(aMsg)->mOperation = operation;
 
-  // get the message listener object (this may be a proxy for a
-  // callback which should happen on another thread)
+  // get the message listener object.
   nsCOMPtr<nsILDAPMessageListener> listener;
   rv = operation->GetMessageListener(getter_AddRefs(listener));
   if (NS_FAILED(rv))
@@ -449,10 +494,14 @@ nsLDAPConnection::InvokeMessageCallback(LDAPMessage *aMsgHandle,
              "memory corruption: GetMessageListener() returned error");
     return NS_ERROR_UNEXPECTED;
   }
-
-  // invoke the callback
+  // proxy the listener callback to the ui thread.
   if (listener)
-    listener->OnLDAPMessage(aMsg);
+  {
+    nsRefPtr<nsOnLDAPMessageRunnable> runnable =
+      new nsOnLDAPMessageRunnable(listener, aMsg);
+    // invoke the callback
+    NS_DispatchToMainThread(runnable);
+  }
 
   // if requested (ie the operation is done), remove the operation
   // from the connection queue.

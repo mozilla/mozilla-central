@@ -44,13 +44,11 @@
 #include "nsIDOMWindow.h"
 #include "nsIAuthPrompt.h"
 #include "nsIStringBundle.h"
-#include "nsIProxyObjectManager.h"
 #include "nsILDAPMessage.h"
 #include "nsILDAPErrors.h"
 #include "nsILoginManager.h"
 #include "nsILoginInfo.h"
 #include "nsServiceManagerUtils.h"
-#include "nsXPCOMCIDInternal.h"
 #include "nsComponentManagerUtils.h"
 #include "nsMemory.h"
 
@@ -268,24 +266,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     return rv;
   }
 
-  nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsILDAPMessageListener> proxyListener;
-  rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                          NS_GET_IID(nsILDAPMessageListener),
-                            static_cast<nsILDAPMessageListener *>(this),
-                            NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                            getter_AddRefs(proxyListener));
-  if (NS_FAILED(rv))
-  {
-    NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): failed to create proxy for"
-             " listener");
-    InitFailed();
-    return rv;
-  }
-
-  rv = mOperation->Init(mConnection, proxyListener, nsnull);
+  rv = mOperation->Init(mConnection, this, nsnull);
   if (NS_FAILED(rv))
   {
     NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): failed to Initialise operation");

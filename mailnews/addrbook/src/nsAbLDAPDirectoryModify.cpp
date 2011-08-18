@@ -42,12 +42,10 @@
 #include "nsILDAPErrors.h"
 #include "nsILDAPModification.h"
 #include "nsIServiceManager.h"
-#include "nsIProxyObjectManager.h"
 #include "nsIAbLDAPDirectory.h"
 #include "nsIMutableArray.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
-#include "nsXPCOMCIDInternal.h"
 
 #include <stdio.h>
 
@@ -237,17 +235,7 @@ nsresult nsAbModifyLDAPMessageListener::DoTask()
   mModifyOperation = do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsILDAPMessageListener> proxyListener;
-  rv = proxyObjMgr->GetProxyForObject( NS_PROXY_TO_MAIN_THREAD,
-                             NS_GET_IID(nsILDAPMessageListener),
-                             this, NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                             getter_AddRefs(proxyListener));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = mModifyOperation->Init (mConnection, proxyListener, nsnull);
+  rv = mModifyOperation->Init (mConnection, this, nsnull);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // XXX do we need the search controls?
