@@ -125,6 +125,11 @@ NS_IMETHODIMP nsOutlookEditor::GetIsDocumentEditable(PRBool *aIsDocumentEditable
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsOutlookEditor::GetIsSelectionEditable(PRBool *aIsSelectionEditable)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 // readonly attribute nsIDOMDocument document
 NS_IMETHODIMP nsOutlookEditor::GetDocument(nsIDOMDocument * *aDocument)
 {

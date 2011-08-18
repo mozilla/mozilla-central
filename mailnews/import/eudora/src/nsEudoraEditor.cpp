@@ -168,6 +168,10 @@ NS_IMETHODIMP nsEudoraEditor::GetIsDocumentEditable(PRBool *aIsDocumentEditable)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsEudoraEditor::GetIsSelectionEditable(PRBool *aIsSelectionEditable)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
 
 // readonly attribute nsIDOMDocument document
 NS_IMETHODIMP nsEudoraEditor::GetDocument(nsIDOMDocument * *aDocument)
