@@ -166,11 +166,6 @@
 
   <!-- Options Menu -->
   <!-- key id="key_selectAddresses" key="&selectAddressCmd.key;" command="cmd_selectAddress"/ -->
-  <key id="key_checkspelling"
-       key="&checkSpellingCmd2.key;"
-       command="cmd_spelling"
-       modifiers="accel,shift"
-  />
 
   <key id="showHideSidebar"/>
   <!-- Tab/F6 Keys -->

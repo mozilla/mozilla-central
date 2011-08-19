@@ -92,11 +92,10 @@
          command="cmd_pasteNoFormatting"
          modifiers="accel, shift"/>
     <keyset id="findKeys"/>
-    <key id="checkspellingkb"
+    <key id="key_checkspelling"
          key="&checkSpellingCmd2.key;"
          command="cmd_spelling"
-         modifiers="accel,shift"
-         disabled="true"/>
+         modifiers="accel,shift"/>
 
     <key id="boldkb"
          key="&styleBoldCmd.key;"
@@ -435,9 +434,8 @@
       <menuitem id="menu_checkspelling"
                 label="&checkSpellingCmd2.label;"
                 accesskey="&checkSpellingCmd2.accesskey;"
-                key="checkspellingkb"
-                command="cmd_spelling"
-                disabled="true"/>
+                key="key_checkspelling"
+                command="cmd_spelling"/>
       <menuitem id="menu_inlinespellcheck"
                 type="checkbox"
                 label="&enableInlineSpellChecker.label;"
@@ -1151,7 +1149,6 @@
                  tooltiptext="&findToolbarCmd.tooltip;"/>
   <toolbarbutton id="spellingButton"
                  class="toolbarbutton-1"
-                 disabled="true"
                  label="&spellToolbarCmd.label;"
                  command="cmd_spelling"
                  tooltiptext="&spellToolbarCmd.tooltip;"/>
