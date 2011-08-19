@@ -58,6 +58,7 @@ const SETUP_SUCCESS_PAGE            = 8;
 Cu.import("resource://services-sync/main.js");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://gre/modules/PlacesUtils.jsm");
 Cu.import("resource://gre/modules/PluralForm.jsm");
 
 var gSyncSetup = {
@@ -775,7 +776,9 @@ var gSyncSetup = {
         if (this._case1Setup)
           break;
 
-        let places_db = Weave.Svc.History.DBConnection;
+        let places_db = PlacesUtils.history
+                                   .QueryInterface(Ci.nsPIPlacesDatabase)
+                                   .DBConnection;
         if (Weave.Engines.get("history").enabled) {
           let daysOfHistory = 0;
           let stm = places_db.createStatement(
@@ -806,7 +809,7 @@ var gSyncSetup = {
             "FROM moz_bookmarks b " +
             "LEFT JOIN moz_bookmarks t ON " +
             "b.parent = t.id WHERE b.type = 1 AND t.parent <> :tag");
-          stm.params.tag = Weave.Svc.Bookmark.tagsFolder;
+          stm.params.tag = PlacesUtils.tagsFolderId;
           if (stm.executeStep())
             bookmarks = stm.row.bookmarks;
           // Support %S for historical reasons (see bug 600141)
@@ -820,7 +823,7 @@ var gSyncSetup = {
         }
 
         if (Weave.Engines.get("passwords").enabled) {
-          let logins = Weave.Svc.Login.getAllLogins({});
+          let logins = Services.logins.getAllLogins({});
           // Support %S for historical reasons (see bug 600141)
           document.getElementById("passwordCount").value =
             PluralForm.get(logins.length,

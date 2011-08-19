@@ -42,8 +42,8 @@
 let gSyncUtils = {
   _openLink: function (url) {
     if (document.documentElement.id == "change-dialog")
-      Weave.Svc.WinMediator.getMostRecentWindow("navigator:browser")
-                           .openUILinkIn(url, "tab");
+      Services.wm.getMostRecentWindow("navigator:browser")
+                 .openUILinkIn(url, "tab");
     else
       openUILinkIn(url, "tab");
   },
@@ -56,7 +56,7 @@ let gSyncUtils = {
 
   openChange: function openChange(type) {
     // Just re-show the dialog if it's already open
-    let openedDialog = Weave.Svc.WinMediator.getMostRecentWindow("Sync:" + type);
+    let openedDialog = Services.wm.getMostRecentWindow("Sync:" + type);
     if (openedDialog != null) {
       openedDialog.focus();
       return;
@@ -65,7 +65,7 @@ let gSyncUtils = {
     // Open up the change dialog
     let changeXUL = "chrome://communicator/content/sync/syncGenericChange.xul";
     let changeOpt = "centerscreen,chrome,dialog,modal,resizable=no";
-    Weave.Svc.WinWatcher.activeWindow.openDialog(changeXUL, "", changeOpt, type);
+    Services.ww.activeWindow.openDialog(changeXUL, "", changeOpt, type);
   },
 
   changePassword: function () {
