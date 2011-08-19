@@ -266,8 +266,12 @@ function onViewToolbarCommand(aEvent, toolboxId)
   var index = aEvent.originalTarget.getAttribute("toolbarindex");
   var toolbar = toolbox.childNodes[index];
 
-  toolbar.collapsed = aEvent.originalTarget.getAttribute("checked") != "true";
-  document.persist(toolbar.id, "collapsed");
+  var hidingAttribute = toolbar.getAttribute("type") == "menubar" ?
+                        "autohide" : "collapsed";
+
+  toolbar.setAttribute(hidingAttribute,
+                       aEvent.originalTarget.getAttribute("checked") != "true");
+  document.persist(toolbar.id, hidingAttribute);
 }
 
 function onViewToolbarsPopupShowing(aEvent, toolboxId)
@@ -287,14 +291,15 @@ function onViewToolbarsPopupShowing(aEvent, toolboxId)
   for (var i = 0; i < toolbox.childNodes.length; ++i) {
     var toolbar = toolbox.childNodes[i];
     var toolbarName = toolbar.getAttribute("toolbarname");
-    var type = toolbar.getAttribute("type");
-    if (toolbarName && type != "menubar") {
-      var menuItem = document.createElement("menuitem");
+    if (toolbarName) {
+      let menuItem = document.createElement("menuitem");
+      let hidingAttribute = toolbar.getAttribute("type") == "menubar" ?
+                            "autohide" : "collapsed";
       menuItem.setAttribute("toolbarindex", i);
       menuItem.setAttribute("type", "checkbox");
       menuItem.setAttribute("label", toolbarName);
       menuItem.setAttribute("accesskey", toolbar.getAttribute("accesskey"));
-      menuItem.setAttribute("checked", toolbar.getAttribute("collapsed") != "true");
+      menuItem.setAttribute("checked", toolbar.getAttribute(hidingAttribute) != "true");
       popup.insertBefore(menuItem, firstMenuItem);
       menuItem.addEventListener("command",
         function(aEvent) { onViewToolbarCommand(aEvent, toolboxId); }, false);

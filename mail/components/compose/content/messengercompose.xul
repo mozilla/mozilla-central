@@ -372,6 +372,10 @@
 #else
           defaultset="menubar-items,spring"
 #endif
+#ifdef XP_WIN
+          toolbarname="&menubarCmd.label;"
+          accesskey="&menubarCmd.accesskey;"
+#endif
            context="toolbar-context-menu" mode="full">
 
      <toolbaritem id="menubar-items" align="center">

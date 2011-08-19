@@ -53,7 +53,14 @@ var collectedAddresses;
 
 var abController;
 
+var folderDisplayHelper;
+var mc;
+var windowHelper;
+
 function setupModule() {
+  folderDisplayHelper = collector.getModule('folder-display-helpers');
+  mc = folderDisplayHelper.mc;
+  windowHelper = collector.getModule('window-helpers');
   // Ensure all the directories are initialised.
   MailServices.ab.directories;
   collectedAddresses = MailServices.ab
@@ -157,9 +164,17 @@ function get_cards_in_all_address_books_for_email(aEmailAddress)
  * Opens the address book interface
  * @returns a controller for the address book
  */
-function open_address_book_window()
+function open_address_book_window(aController)
 {
-  abController = mozmill.getAddrbkController();
+  if (aController === undefined)
+    aController = mc;
+
+  windowHelper.plan_for_new_window("mail:addressbook");
+  aController.keypress(null, "b", {shiftKey: true, accelKey: true});
+
+  // XXX this should probably be changed to making callers pass in which address
+  // book they want to work with, just like test-compose-helpers.
+  abController = windowHelper.wait_for_new_window("mail:addressbook");
   return abController;
 }
 
