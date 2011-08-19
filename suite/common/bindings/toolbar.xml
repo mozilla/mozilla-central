@@ -147,7 +147,8 @@
         <body>
         <![CDATA[
           const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-          try {
+          var existingGrippy = document.getAnonymousElementByAttribute(this, "id", "moz_tb_collapsed_" + aToolbar.id);
+          if (!existingGrippy) {
             var grippy = document.getAnonymousElementByAttribute(aToolbar, "tbattr", "toolbar-grippy");
             var boxObject = grippy.boxObject.QueryInterface(Components.interfaces.nsIBoxObject);
             var collapsedGrippy = document.createElementNS(XUL_NS, "toolbargrippy");
@@ -164,11 +165,7 @@
               if (collapsedTrayHolder.getAttribute("moz-collapsed") == "true")
                 collapsedTrayHolder.removeAttribute("moz-collapsed");
               document.getAnonymousElementByAttribute(this, "tbattr", "collapsed-tray").appendChild(collapsedGrippy);
-              collapsedGrippy = document.getElementById("moz_tb_collapsed_" + aToolbar.id);
             }
-          }
-          catch (e) {
-            throw e;
           }
         ]]>
         </body>
