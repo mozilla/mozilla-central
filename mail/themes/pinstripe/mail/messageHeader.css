@@ -159,10 +159,15 @@
 
 #attachmentToggle {
   -moz-appearance: treetwisty;
+  -moz-user-focus: normal;
 }
 
 #attachmentToggle[checked="true"] {
   -moz-appearance: treetwistyopen;
+}
+
+#attachmentToggle:focus {
+  outline: 1px dotted Highlight;
 }
 
 #attachmentIcon {

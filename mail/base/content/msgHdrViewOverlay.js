@@ -2100,8 +2100,12 @@ function updateSaveAllAttachmentsButton()
  *
  * @param expanded True if the attachment list should be expanded, false
  *                 otherwise. If |expanded| is not specified, toggle the state.
+ * @param updateFocus (optional) True if the focus should be updated, focusing
+ *                    on the attachmentList when expanding, or the messagepane
+ *                    when collapsing (but only when the attachmentList was
+ *                    originally focused).
  */
-function toggleAttachmentList(expanded)
+function toggleAttachmentList(expanded, updateFocus)
 {
   var attachmentToggle    = document.getElementById("attachmentToggle");
   var attachmentView      = document.getElementById("attachmentView");
@@ -2126,12 +2130,18 @@ function toggleAttachmentList(expanded)
     attachmentView.setAttribute("height", Math.min(attachmentHeight,
                                                    maxAttachmentHeight));
     attachmentView.setAttribute("maxheight", attachmentHeight);
+
+    if (updateFocus)
+      attachmentList.focus();
   }
   else {
     attachmentList.collapsed = true;
     attachmentSplitter.collapsed = true;
     attachmentView.removeAttribute("height");
     attachmentView.removeAttribute("maxheight");
+
+    if (updateFocus && document.activeElement == attachmentList)
+      SetFocusMessagePane();
   }
 }
 

@@ -159,18 +159,22 @@ function test_attachment_list_expansion() {
   mc.click(attachmentToggle);
   assert_true(!attachmentList.collapsed, "Attachment list should be expanded " +
               "after clicking twisty!");
+  assert_attachment_list_focused();
 
   mc.click(attachmentToggle);
   assert_true(attachmentList.collapsed, "Attachment list should be collapsed " +
               "after clicking twisty again!");
+  assert_message_pane_focused();
 
   mc.click(attachmentBar);
   assert_true(!attachmentList.collapsed, "Attachment list should be expanded " +
               "after clicking bar!");
+  assert_attachment_list_focused();
 
   mc.click(attachmentBar);
   assert_true(attachmentList.collapsed, "Attachment list should be collapsed " +
               "after clicking bar again!");
+  assert_message_pane_focused();
 }
 
 function test_selected_attachments_are_cleared() {

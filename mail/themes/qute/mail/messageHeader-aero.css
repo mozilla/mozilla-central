@@ -131,6 +131,7 @@
   margin: 0;
   border: 0;
   background-color: transparent;
+  -moz-user-focus: normal;
 
   list-style-image: url("chrome://global/skin/tree/twisty-clsd.png");
 }
@@ -161,11 +162,6 @@
 
 #attachmentToggle[checked="true"]:hover:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://global/skin/tree/twisty-open-hover-rtl.png");
-}
-
-#attachmentToggle > .button-box {
-  /* Make sure the focus ring is hidden */
-  border: none;
 }
 
 #attachmentIcon {

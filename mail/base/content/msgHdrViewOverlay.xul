@@ -511,9 +511,10 @@
 <vbox id="attachmentView" collapsed="true">
   <hbox align="center" id="attachmentBar"
         context="attachment-toolbar-context-menu"
-        onclick="if (event.button == 0 &amp;&amp; event.originalTarget.id == 'attachmentBar') toggleAttachmentList();">
+        onclick="if (event.button == 0 &amp;&amp; event.originalTarget.id == 'attachmentBar') toggleAttachmentList(undefined, true);">
     <button type="checkbox" id="attachmentToggle"
-            oncommand="toggleAttachmentList(this.checked);"/>
+            onmousedown="event.preventDefault();"
+            oncommand="toggleAttachmentList(this.checked, true);"/>
     <image id="attachmentIcon"/>
     <label id="attachmentCount"/>
     <label id="attachmentName" crop="center" flex="1"
