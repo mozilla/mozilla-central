@@ -157,16 +157,12 @@
 
 <keyset id="tasksKeys">
   <!-- File Menu -->
-  <key id="key_close"/>
   <key id="key_save"  key="&saveCmd.key;" command="cmd_saveDefault" modifiers="accel"/>
   <key id="key_send" keycode="&sendCmd.keycode;" observes="cmd_sendWithCheck" modifiers="accel"/>
   <key id="key_sendLater" keycode="&sendLaterCmd.keycode;" observes="cmd_sendLater" modifiers="accel, shift"/>
-  <key id="key_print"/>
 
   <!-- Edit Menu -->
   <key id="key_rewrap" key="&editRewrapCmd.key;" command="cmd_rewrap" modifiers="accel"/>
-  <key id="key_delete2"/>
-  <keyset id="findKeys"/>
 
   <!-- Options Menu -->
   <!-- key id="key_selectAddresses" key="&selectAddressCmd.key;" command="cmd_selectAddress"/ -->
