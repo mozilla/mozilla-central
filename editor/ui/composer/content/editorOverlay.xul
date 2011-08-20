@@ -64,7 +64,7 @@
     <key id="openremoteeditorkb"
          key="&openRemoteCmd.key;"
          command="cmd_openRemote"  modifiers="accel,shift"/>
-    <key id="savekb"
+    <key id="key_save"
          key="&saveCmd.key;"
          command="cmd_save"
          modifiers="accel"/>
@@ -383,7 +383,7 @@
       <menuseparator id="fileMenuAfterCloseSeparator"/>
       <menuitem id="saveMenuitem"
                 accesskey="&saveCmd.accesskey;"
-                key="savekb"
+                key="key_save"
                 command="cmd_save"/>
       <menuitem id="menu_saveAs"
                 accesskey="&saveAsCmd.accesskey;"

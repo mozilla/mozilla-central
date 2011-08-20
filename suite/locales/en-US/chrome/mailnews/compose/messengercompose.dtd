@@ -14,7 +14,6 @@
 <!ENTITY newMessage.label "Message">  
 <!ENTITY newMessage.accesskey "M">  
 <!ENTITY saveCmd.label "Save">
-<!ENTITY saveCmd.key "S">
 <!ENTITY saveCmd.accesskey "s">
 <!ENTITY saveAsCmd.label "Save As">
 <!ENTITY saveAsCmd.accesskey "A">

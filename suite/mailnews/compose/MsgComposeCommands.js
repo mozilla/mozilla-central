@@ -399,7 +399,7 @@ var defaultController =
       case "cmd_attachFile":
       case "cmd_attachPage":
       case "cmd_close":
-      case "cmd_saveDefault":
+      case "cmd_save":
       case "cmd_saveAsFile":
       case "cmd_saveAsDraft":
       case "cmd_saveAsTemplate":
@@ -440,7 +440,7 @@ var defaultController =
       case "cmd_attachFile":
       case "cmd_attachPage":
       case "cmd_close":
-      case "cmd_saveDefault":
+      case "cmd_save":
       case "cmd_saveAsFile":
       case "cmd_saveAsDraft":
       case "cmd_saveAsTemplate":
@@ -493,7 +493,7 @@ var defaultController =
       case "cmd_attachFile"         : if (defaultController.isCommandEnabled(command)) AttachFile();           break;
       case "cmd_attachPage"         : AttachPage();           break;
       case "cmd_close"              : DoCommandClose();       break;
-      case "cmd_saveDefault"        : Save();                 break;
+      case "cmd_save"               : Save();                 break;
       case "cmd_saveAsFile"         : SaveAsFile(true);       break;
       case "cmd_saveAsDraft"        : SaveAsDraft();          break;
       case "cmd_saveAsTemplate"     : SaveAsTemplate();       break;

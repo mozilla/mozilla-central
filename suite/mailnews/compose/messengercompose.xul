@@ -122,7 +122,7 @@
   <command id="cmd_attachFile" oncommand="goDoCommand('cmd_attachFile')"/>
   <command id="cmd_attachPage" oncommand="goDoCommand('cmd_attachPage')"/>
   <command id="cmd_attachVCard" checked="false" oncommand="ToggleAttachVCard(event.target)"/>
-  <command id="cmd_saveDefault" oncommand="goDoCommand('cmd_saveDefault')"/>
+  <command id="cmd_save" oncommand="goDoCommand('cmd_save')"/>
   <command id="cmd_saveAsFile" oncommand="goDoCommand('cmd_saveAsFile')"/>
   <command id="cmd_saveAsDraft" oncommand="goDoCommand('cmd_saveAsDraft')"/>
   <command id="cmd_saveAsTemplate" oncommand="goDoCommand('cmd_saveAsTemplate')"/>
@@ -157,7 +157,6 @@
 
 <keyset id="tasksKeys">
   <!-- File Menu -->
-  <key id="key_save"  key="&saveCmd.key;" command="cmd_saveDefault" modifiers="accel"/>
   <key id="key_send" keycode="&sendCmd.keycode;" observes="cmd_sendWithCheck" modifiers="accel"/>
   <key id="key_sendLater" keycode="&sendLaterCmd.keycode;" observes="cmd_sendLater" modifiers="accel, shift"/>
 
@@ -270,7 +269,7 @@
                         label="&saveCmd.label;"
                         accesskey="&saveCmd.accesskey;"
                         key="key_save"
-                        command="cmd_saveDefault"/>
+                        command="cmd_save"/>
               <menu id="menu_SaveAsCmd"
                     label="&saveAsCmd.label;"
                     accesskey="&saveAsCmd.accesskey;">
@@ -639,7 +638,7 @@
                      class="toolbarbutton-1"
                      label="&saveButton.label;"
                      tooltiptext="&saveButton.tooltip;"
-                     command="cmd_saveDefault">
+                     command="cmd_save">
         <menupopup id="button-savePopup">
           <menuitem id="button-saveAsFile"
                     label="&saveAsFileCmd.label;"
