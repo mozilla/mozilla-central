@@ -276,19 +276,19 @@
 #category-discover {
   list-style-image: url("chrome://mozapps/skin/extensions/category-discover.png");
 }
-#category-languages {
+#category-locale {
   list-style-image: url("chrome://mozapps/skin/extensions/category-languages.png");
 }
-#category-searchengines {
+#category-searchengine {
   list-style-image: url("chrome://mozapps/skin/extensions/category-searchengines.png");
 }
-#category-extensions {
+#category-extension {
   list-style-image: url("chrome://mozapps/skin/extensions/category-extensions.png");
 }
-#category-themes {
+#category-theme {
   list-style-image: url("chrome://mozapps/skin/extensions/category-themes.png");
 }
-#category-plugins {
+#category-plugin {
   list-style-image: url("chrome://mozapps/skin/extensions/category-plugins.png");
 }
 #category-availableUpdates {
