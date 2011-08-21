@@ -53,7 +53,6 @@ var gSearchInput;
 var gSearchBox;
 var gCardViewBox;
 var gCardViewBoxEmail1;
-var gPreviousDirTreeIndex = -1;
 
 // Constants that correspond to choices
 // in Address Book->View -->Show Name as
@@ -63,65 +62,8 @@ const kFirstNameFirst = 2;
 const kLDAPDirectory = 0; // defined in nsDirPrefs.h
 const kPABDirectory  = 2; // defined in nsDirPrefs.h
 
-// Note: We need to keep this listener as it does not just handle dir
-// pane deletes but also deletes of address books and lists from places like
-// the sidebar and LDAP preference pane.
-var gAddressBookAbListener = {
-  onItemAdded: function(parentDir, item) {
-    // will not be called
-  },
-  onItemRemoved: function(parentDir, item) {
-    // will only be called when an addressbook is deleted
-    try {
-      // If we don't have a record of the previous selection, the only
-      // option is to select the first.
-      if (gPreviousDirTreeIndex == -1) {
-        SelectFirstAddressBook();
-      }
-      else {
-        // Don't reselect if we already have a valid selection, this may be
-        // the case if items are being removed via other methods, e.g. sidebar,
-        // LDAP preference pane etc.
-        if (dirTree.currentIndex == -1) {
-          var directory = item.QueryInterface(Components.interfaces.nsIAbDirectory);
-
-          // If we are a mail list, move the selection up the list before
-          // trying to find the parent. This way we'll end up selecting the
-          // parent address book when we remove a mailing list.
-          //
-          // For simple address books we don't need to move up the list, as
-          // we want to select the next one upon removal.
-          if (directory.isMailList && gPreviousDirTreeIndex > 0)
-            --gPreviousDirTreeIndex;
-
-          // Now get the parent of the row.
-          var newRow = gDirTree.view.getParentIndex(gPreviousDirTreeIndex);
-
-          // if we have no parent (i.e. we are an address book), use the
-          // previous index.
-          if (newRow == -1)
-            newRow = gPreviousDirTreeIndex;
-
-          // Fall back to the first address book if we're not in a valid range
-          if (newRow >= gDirTree.view.rowCount)
-            newRow = 0;
-
-          // Now select the new item.
-          gDirTree.view.selection.select(newRow);
-        }
-      }
-    }
-    catch (ex) {
-    }
-  },
-  onItemPropertyChanged: function(item, property, oldValue, newValue) {
-    // will not be called
-  }
-};
-
 function OnUnloadAddressBook()
 {
-  MailServices.ab.removeAddressBookListener(gAddressBookAbListener);
   MailServices.ab.removeAddressBookListener(gDirectoryTreeView);
 
   // Shutdown the tree view - this will also save the open/collapsed
@@ -180,9 +122,6 @@ function OnLoadAddressBook()
   // directory item is/are removed. In the case of directory items, we are
   // only really interested in mailing list changes and not cards but we have
   // to have both.
-  MailServices.ab.addAddressBookListener(gAddressBookAbListener,
-                                         nsIAbListener.directoryRemoved,
-                                         nsIAbListener.directoryItemRemoved);
   MailServices.ab.addAddressBookListener(gDirectoryTreeView, nsIAbListener.all);
 
   gDirTree.controllers.appendController(DirPaneController);

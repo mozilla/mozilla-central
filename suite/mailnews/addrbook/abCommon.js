@@ -490,7 +490,6 @@ function DirPaneSelectionChange()
 {
   if (gDirectoryTreeView.selection &&
       gDirectoryTreeView.selection.count == 1) {
-    gPreviousDirTreeIndex = gDirTree.currentIndex;
     ChangeDirectoryByURI(GetSelectedDirectory());
   }
 }

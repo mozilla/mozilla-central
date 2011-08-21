@@ -190,7 +190,7 @@ directoryTreeView.prototype =
 
   getIndexOfDirectory: function dtv_getIndexOfDir(aItem)
   {
-    for (var i in this._rowMap)
+    for (var i = 0; i < this._rowMap.length; i++)
       if (this._rowMap[i]._directory == aItem)
         return i;
 
@@ -211,7 +211,6 @@ directoryTreeView.prototype =
    *       this function.
    */
   _rebuild: function dtv__rebuild() {
-    var oldCount = this._rowMap.length;
     this._rowMap = [];
 
     var dirEnum = MailServices.ab.directories;
@@ -233,7 +232,8 @@ directoryTreeView.prototype =
           return "cab";
         if (aDir._directory instanceof Components.interfaces.nsIAbMDBDirectory)
           return "mork";
-        if (aDir._directory instanceof Components.interfaces.nsIAbLDAPDirectory)
+        if ("nsIAbLDAPDirectory" in Components.interfaces &&
+            aDir._directory instanceof Components.interfaces.nsIAbLDAPDirectory)
           return "ldap";
         return "mapi+other";
       }
@@ -282,9 +282,6 @@ directoryTreeView.prototype =
 
     this._rowMap.sort(abSort);
 
-    if (this._tree)
-      this._tree.rowCountChanged(0, this._rowMap.length - oldCount);
-
     this._restoreOpenStates();
   },
 
@@ -293,39 +290,55 @@ directoryTreeView.prototype =
   {
     if (!(aItem instanceof Components.interfaces.nsIAbDirectory))
       return;
-    //xxx we can optimize this later
-    this._rebuild();
 
-    if (!this._tree)
+    var oldCount = this._rowMap.length;
+    var tree = this._tree;
+    this._tree = null;
+    this._rebuild();
+    if (!tree)
       return;
 
-    // Now select this new item
-    var index = this.getIndexOfDirectory(aItem);
-    if (index > -1)
-      this.selection.select(index);
+    this._tree = tree;
+    var itemIndex = this.getIndexOfDirectory(aItem);
+    tree.rowCountChanged(itemIndex, this._rowMap.length - oldCount);
+    var parentIndex = this.getIndexOfDirectory(aParent);
+    if (parentIndex > -1)
+      tree.invalidateRow(parentIndex);
   },
 
   onItemRemoved: function dtv_onItemRemoved(aParent, aItem)
   {
     if (!(aItem instanceof Components.interfaces.nsIAbDirectory))
       return;
-    //xxx we can optimize this later
+
+    var itemIndex = this.getIndexOfDirectory(aItem);
+    var oldCount = this._rowMap.length;
+    var tree = this._tree;
+    this._tree = null;
     this._rebuild();
-
-    if (!this._tree)
+    if (!tree)
       return;
 
-    // If we're deleting a top-level address-book, just select the first book.
-    if (aParent.URI == "moz-abdirectory://")
+    this._tree = tree;
+    tree.rowCountChanged(itemIndex, this._rowMap.length - oldCount);
+    var parentIndex = this.getIndexOfDirectory(aParent);
+    if (parentIndex > -1)
+      tree.invalidateRow(parentIndex);
+
+    if (!this.selection.count)
     {
-      this.selection.select(0);
-      return;
-    }
+      // The previously selected item was a member of the deleted subtree.
+      // Select the parent of the subtree.
+      // If there is no parent, select the next item.
+      // If there is no next item, select the first item.
+      var newIndex = parentIndex;
+      if (newIndex < 0)
+        newIndex = itemIndex;
+      if (newIndex >= this._rowMap.length)
+        newIndex = 0;
 
-    // Now select this parent item.
-    var index = this.getIndexOfDirectory(aParent);
-    if (index > -1)
-      this.selection.select(index);
+      this.selection.select(newIndex);
+    }
   },
 
   onItemPropertyChanged: function dtv_onItemProp(aItem, aProp, aOld, aNew)
