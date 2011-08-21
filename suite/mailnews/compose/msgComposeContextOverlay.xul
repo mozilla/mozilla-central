@@ -36,11 +36,6 @@
 
  ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE overlay [
-<!ENTITY % messengercomposeDTD SYSTEM "chrome://messenger/locale/messengercompose/messengercompose.dtd" >
-%messengercomposeDTD;
-]>
-
 <overlay id="msgComposeContextOverlay"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
@@ -55,8 +50,6 @@
               command="cmd_pasteNoFormatting"/>
     <menuitem id="context-pasteQuote"
               insertafter="context-pasteNoFormatting"
-              label="&pasteQuote.label;"
-              accesskey="&pasteQuote.accesskey;"
               hidden="true"
               command="cmd_pasteQuote"/>
   </menupopup>

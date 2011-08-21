@@ -128,8 +128,6 @@
 <!ENTITY spellCheckIgnoreWord.accesskey "I">
 <!ENTITY spellCheckAddToDictionary.label "Add to Dictionary">
 <!ENTITY spellCheckAddToDictionary.accesskey "n">
-<!ENTITY pasteQuote.label "Paste As Quotation">
-<!ENTITY pasteQuote.accesskey "Q">
 
 <!ENTITY openAttachment.label "Open">
 <!ENTITY openAttachment.accesskey "O">

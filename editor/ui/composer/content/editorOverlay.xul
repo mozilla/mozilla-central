@@ -240,7 +240,10 @@
     <command id="cmd_findPrev"      oncommand="goDoCommand('cmd_findPrev');"/>
     <command id="cmd_spelling"      oncommand="goDoCommand('cmd_spelling')"/>
     <command id="cmd_checkLinks"    oncommand="goDoCommand('cmd_checkLinks')"/>
-    <command id="cmd_pasteQuote"    oncommand="goDoCommand('cmd_pasteQuote')" label="&pasteAsQuotationCmd.label;"/>
+    <command id="cmd_pasteQuote"
+             label="&pasteAsQuotationCmd.label;"
+             accesskey="&pasteAsQuotationCmd.accesskey;"
+             oncommand="goDoCommand('cmd_pasteQuote');"/>
     <command id="cmd_publishSettings"
              oncommand="goDoCommand('cmd_publishSettings');"/>
   </commandset>
@@ -1393,7 +1396,7 @@
   <!-- Paste as quotation is used by mail compose,
        but in composer it has to go in the debug menu
    -->
-  <menuitem id="menu_pasteQuote" accesskey="&pasteAsQuotationCmd.accesskey;"
+  <menuitem id="menu_pasteQuote"
             command="cmd_pasteQuote" key="pastequotationkb"/>
 
 </overlay>
