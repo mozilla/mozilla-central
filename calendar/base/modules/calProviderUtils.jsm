@@ -22,6 +22,7 @@
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Bruno Browning <browning@uwalumni.com>
+ *   Lennart Bublies <Lennart.Bublies@gmx.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -148,30 +149,30 @@ cal.safeNewXML = function calSafeNewXML(aStr) {
  * @param aIID      The interface ID to return
  */
 cal.InterfaceRequestor_getInterface = function calInterfaceRequestor_getInterface(aIID) {
-    // Support Auth Prompt Interfaces
-    if (aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
-        if (!this.calAuthPrompt) {
-            this.calAuthPrompt = new cal.auth.Prompt();
-        }
-        return this.calAuthPrompt;
-    } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider) ||
-               aIID.equals(Components.interfaces.nsIPrompt)) {
-        return Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                         .getService(Components.interfaces.nsIWindowWatcher)
-                         .getNewPrompter(null);
-    } else if (aIID.equals(Components.interfaces.nsIBadCertListener2)) {
-        if (!this.badCertHandler) {
-            this.badCertHandler = new cal.BadCertHandler(this);
-        }
-        return this.badCertHandler;
-    }
-
     try {
         // Try to query the this object for the requested interface but don't
         // throw if it fails since that borks the network code.
         return this.QueryInterface(aIID);
     } catch (e) {
-        Components.returnCode = e;
+        // Support Auth Prompt Interfaces
+        if (aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
+            if (!this.calAuthPrompt) {
+                this.calAuthPrompt = new cal.auth.Prompt();
+            }
+            return this.calAuthPrompt;
+        } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider) ||
+                   aIID.equals(Components.interfaces.nsIPrompt)) {
+            return Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                             .getService(Components.interfaces.nsIWindowWatcher)
+                             .getNewPrompter(null);
+        } else if (aIID.equals(Components.interfaces.nsIBadCertListener2)) {
+            if (!this.badCertHandler) {
+                this.badCertHandler = new cal.BadCertHandler(this);
+            }
+            return this.badCertHandler;
+        } else {
+            Components.returnCode = e;
+        }
     }
     return null;
 };

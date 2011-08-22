@@ -25,6 +25,7 @@
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Simon Vaillancourt <simon.at.orcl@gmail.com>
+ *   Lennart Bublies <Lennart.Bublies@gmx.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -651,11 +652,17 @@ calCalendarManager.prototype = {
     },
 
     registerCalendar: function(calendar) {
-        // bail if this calendar (or one that looks identical to it) is already registered
-        cal.ASSERT(calendar.id === null, "[calCalendarManager::registerCalendar] calendar already registered!", true);
         this.assureCache();
 
-        calendar.id = cal.getUUID();
+        // If the calendar is already registered, bail out
+        cal.ASSERT(!calendar.id || !(calendar.id in this.mCache),
+                   "[calCalendarManager::registerCalendar] calendar already registered!",
+                   true);
+
+        if (!calendar.id) {
+            calendar.id = cal.getUUID();
+        }
+
         cal.setPref(getPrefBranchFor(calendar.id) + "type", calendar.type);
         cal.setPref(getPrefBranchFor(calendar.id) + "uri", calendar.uri.spec);
 
