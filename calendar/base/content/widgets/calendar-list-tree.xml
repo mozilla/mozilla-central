@@ -190,7 +190,8 @@
         var col = {};
         var calendar = this.getCalendarFromEvent(event, col);
         if (event.button != 0 ||
-            (col.value && col.value.id == "calendar-list-tree-checkbox")) {
+            (col.value && col.value.element &&
+             col.value.element.getAttribute("anonid") == "checkbox-treecol")) {
             // Only left clicks that are not on the checkbox column
             return;
         }
@@ -302,7 +303,7 @@
             switch (aName) {
                 case "color":
                     // TODO See other TODO in this file about updateStyleSheetForViews
-                    if (updateStyleSheetForViews) {
+                    if ("updateStyleSheetForViews" in window) {
                         updateStyleSheetForViews(aCalendar);
                     }
                     this.listTree.updateCalendarColor(aCalendar);
@@ -520,7 +521,7 @@
           // all calendar properties. This could be the calendar manager that
           // holds an observer on every calendar anyway, which would then use the
           // global observer service which clients can register with.
-          if (updateStyleSheetForViews) {
+          if ("updateStyleSheetForViews" in window) {
               updateStyleSheetForViews(aCalendar);
           }
 
