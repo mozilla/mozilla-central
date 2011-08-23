@@ -89,16 +89,15 @@ nsresult nsVCardAddress::ImportAddresses(
   nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(inputStream, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
+  nsCOMPtr<nsIAbManager> ab = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   PRBool more = PR_TRUE;
   nsCString record;
   while (!(*pAbort) && more && NS_SUCCEEDED(rv)) {
     rv = ReadRecord(lineStream, record, &more);
     if (NS_SUCCEEDED(rv)) {
       // Parse the vCard and build an nsIAbCard from it
-      nsCOMPtr<nsIAbManager> ab =
-        do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
-      NS_ENSURE_SUCCESS(rv, rv);
-
       nsCOMPtr<nsIAbCard> cardFromVCard;
       rv = ab->EscapedVCardToAbCard(record.get(), getter_AddRefs(cardFromVCard));
       NS_ENSURE_SUCCESS(rv, rv);
