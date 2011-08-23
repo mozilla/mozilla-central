@@ -328,10 +328,9 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
       rv = MsgGetFileStream(m_tmpDownloadFile, getter_AddRefs(m_outFileStream));
       NS_ENSURE_SUCCESS(rv, rv);
     }
-    nsCOMPtr<nsIOutputStream> inboxOutputStream;
-    rv = MsgGetFileStream(path, getter_AddRefs(inboxOutputStream));
+    rv = MsgGetFileStream(path, getter_AddRefs(m_inboxOutputStream));
     NS_ENSURE_SUCCESS(rv, rv);
-    inboxInputStream = do_QueryInterface(inboxOutputStream);
+    inboxInputStream = do_QueryInterface(m_inboxOutputStream);
   }
   else
   {
@@ -420,6 +419,11 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
   {
     m_outFileStream->Close();
     m_outFileStream = 0;
+  }
+  if (m_inboxOutputStream)
+  {
+    m_inboxOutputStream->Close();
+    m_inboxOutputStream = nsnull;
   }
 
   if (m_downloadingToTempFile)
@@ -547,6 +551,11 @@ nsPop3Sink::AbortMailDelivery(nsIPop3Protocol *protocol)
   {
     m_outFileStream->Close();
     m_outFileStream = 0;
+  }
+  if (m_inboxOutputStream)
+  {
+    m_inboxOutputStream->Close();
+    m_inboxOutputStream = nsnull;
   }
 
   if (m_downloadingToTempFile && m_tmpDownloadFile)

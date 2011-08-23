@@ -96,7 +96,9 @@ protected:
 #ifdef DEBUG
     PRInt32 m_fileCounter;
 #endif
-    nsCOMPtr <nsIOutputStream> m_outFileStream;
+    nsCOMPtr <nsIOutputStream> m_outFileStream; // the file we write to, which may be temporary
+    nsCOMPtr <nsIOutputStream> m_inboxOutputStream; // the actual mailbox
+
     PRBool m_buildMessageUri;
     PRBool m_downloadingToTempFile;
     nsCOMPtr <nsILocalFile> m_tmpDownloadFile;
