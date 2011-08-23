@@ -675,16 +675,6 @@ NS_IMETHODIMP nsMsgMailNewsUrl::SetFileName(const nsACString &aFileName)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::GetParam(nsACString &aParam)
-{
-  return m_baseURL->GetParam(aParam);
-}
-
-NS_IMETHODIMP nsMsgMailNewsUrl::SetParam(const nsACString &aParam)
-{
-  return m_baseURL->SetParam(aParam);
-}
-
 NS_IMETHODIMP nsMsgMailNewsUrl::GetQuery(nsACString &aQuery)
 {
   return m_baseURL->GetQuery(aQuery);
