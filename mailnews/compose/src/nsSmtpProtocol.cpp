@@ -748,11 +748,11 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
             (endPos >= 0 ? endPos : responseLength) - startPos));
 
         MsgCompressWhitespace(responseLine);
-        if (responseLine.Equals(NS_LITERAL_CSTRING("STARTTLS"), nsCaseInsensitiveCStringComparator()))
+        if (responseLine.LowerCaseEqualsLiteral("starttls"))
         {
             SetFlag(SMTP_EHLO_STARTTLS_ENABLED);
         }
-        else if (responseLine.Equals(NS_LITERAL_CSTRING("DSN"), nsCaseInsensitiveCStringComparator()))
+        else if (responseLine.LowerCaseEqualsLiteral("dsn"))
         {
             SetFlag(SMTP_EHLO_DSN_ENABLED);
         }

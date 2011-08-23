@@ -67,7 +67,7 @@ nsresult nsAbLDAPReplicationQuery::InitLDAPData()
   // earlier versions of Mozilla could have the fileName associated with the directory
   // to be abook.mab which is the profile's personal addressbook. If the pref points to
   // it, calls nsDirPrefs to generate a new server filename.
-  if (fileName.IsEmpty() || fileName.Equals(NS_LITERAL_CSTRING(kPersonalAddressbook)))
+  if (fileName.IsEmpty() || fileName.EqualsLiteral(kPersonalAddressbook))
   {
     // Ensure fileName is empty for DIR_GenerateAbFileName to work
     // correctly.

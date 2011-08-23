@@ -609,7 +609,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
         nsCString junkPercentStr;
         msgToMatch->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOriginStr));
         msgToMatch->GetStringProperty("junkpercent", getter_Copies(junkPercentStr));
-        if ( junkScoreOriginStr.Equals(NS_LITERAL_CSTRING("plugin")) &&
+        if ( junkScoreOriginStr.EqualsLiteral("plugin") &&
             !junkPercentStr.IsEmpty())
         {
           junkPercent = junkPercentStr.ToInteger(&rv);

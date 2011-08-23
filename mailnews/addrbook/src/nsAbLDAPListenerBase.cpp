@@ -104,7 +104,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
 
   // If mLogin is set, we're expected to use it to get a password.
   //
-  if (!mLogin.IsEmpty() && !mSaslMechanism.Equals(NS_LITERAL_CSTRING("GSSAPI")))
+  if (!mLogin.IsEmpty() && !mSaslMechanism.EqualsLiteral("GSSAPI"))
   {
     // get the string bundle service
     //
@@ -275,7 +275,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
   }
 
   // Try non-password mechanisms first
-  if (mSaslMechanism.Equals(NS_LITERAL_CSTRING("GSSAPI")))
+  if (mSaslMechanism.EqualsLiteral("GSSAPI"))
   {
     nsCAutoString service;
     rv = mDirectoryUrl->GetAsciiHost(service);

@@ -498,7 +498,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   // no need to AND in an empty search term, so leave prefix and suffix empty
   
   nsCAutoString searchFilter;
-  if (urlFilter.Length() && !urlFilter.Equals(NS_LITERAL_CSTRING("(objectclass=*)"))) 
+  if (urlFilter.Length() && !urlFilter.EqualsLiteral("(objectclass=*)"))
   {
     // if urlFilter isn't parenthesized, we need to add in parens so that
     // the filter works as a term to &

@@ -301,7 +301,7 @@ bool CMapiMessage::IsMultipart( void) const
 {
   nsCString left;
   m_mimeContentType.Left( left, 10);
-  if (left.Equals(NS_LITERAL_CSTRING("multipart/"), nsCaseInsensitiveCStringComparator()))
+  if (left.LowerCaseEqualsLiteral("multipart/"))
     return true;
   return false;
 }
@@ -352,11 +352,9 @@ void CMapiMessage::ProcessContentType()
       end++;
     if (end - begin) {
       tStr.Assign(begin, end-begin);
-      if (tStr.Equals(NS_LITERAL_STRING("boundary"),
-                      nsCaseInsensitiveStringComparator()))
+      if (tStr.LowerCaseEqualsLiteral("boundary"))
         haveB = true;
-      else if (tStr.Equals(NS_LITERAL_STRING("charset"),
-                           nsCaseInsensitiveStringComparator()))
+      else if (tStr.LowerCaseEqualsLiteral("charset"))
         haveC = true;
     }
     if (!(*end))

@@ -2187,7 +2187,7 @@ nsMsgDBFolder::GetForcePropertyEmpty(const char *aPropertyName, PRBool *_retval)
   nameEmpty.Append(NS_LITERAL_CSTRING(".empty"));
   nsCString value;
   GetStringProperty(nameEmpty.get(), value);
-  *_retval = value.Equals(NS_LITERAL_CSTRING("true"));
+  *_retval = value.EqualsLiteral("true");
   return NS_OK;
 }
 
@@ -5529,7 +5529,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const 
     }
 
     // If we are message/rfc822, then there's another header block coming up
-    else if (contentType.Equals(NS_LITERAL_STRING("message/rfc822"), nsCaseInsensitiveStringComparator()))
+    else if (contentType.LowerCaseEqualsLiteral("message/rfc822"))
       continue;
 
     // If we are a text part, then we want it
@@ -5537,7 +5537,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const 
     {
       inMsgBody = PR_TRUE;
 
-      if (contentType.Equals(NS_LITERAL_STRING("text/html"), nsCaseInsensitiveStringComparator()))
+      if (contentType.LowerCaseEqualsLiteral("text/html"))
         msgBodyIsHtml = PR_TRUE;
 
       // Also get the charset if required
@@ -5554,7 +5554,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const 
       if (!encodingHdr.IsEmpty())
         mimeHdrParam->GetParameter(encodingHdr, nsnull, EmptyCString(), PR_FALSE, nsnull, encoding);
 
-      if (encoding.Equals(NS_LITERAL_STRING("base64"), nsCaseInsensitiveStringComparator()))
+      if (encoding.LowerCaseEqualsLiteral("base64"))
         isBase64 = PR_TRUE;
     }
 

@@ -2232,7 +2232,7 @@ nsMsgIncomingServer::GetForcePropertyEmpty(const char *aPropertyName, PRBool *_r
   nameEmpty.Append(NS_LITERAL_CSTRING(".empty"));
   nsCString value;
   GetCharValue(nameEmpty.get(), value);
-  *_retval = value.Equals(NS_LITERAL_CSTRING("true"));
+  *_retval = value.EqualsLiteral("true");
   return NS_OK;
 }
 

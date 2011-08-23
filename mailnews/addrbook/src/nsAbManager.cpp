@@ -270,7 +270,7 @@ NS_IMETHODIMP nsAbManager::GetDirectory(const nsACString &aURI,
   nsCOMPtr<nsIAbDirectory> directory;
 
   // Was the directory root requested?
-  if (aURI.Equals(NS_LITERAL_CSTRING(kAllDirectoryRoot)))
+  if (aURI.EqualsLiteral(kAllDirectoryRoot))
   {
     rv = GetRootDirectory(getter_AddRefs(directory));
     NS_ENSURE_SUCCESS(rv, rv);
@@ -914,9 +914,9 @@ nsAbManager::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *aLo
                 value.Truncate();
 
               if (!PL_strcmp(EXPORT_ATTRIBUTES_TABLE[i].abPropertyName, kPreferMailFormatProperty)) {
-                if (value.Equals(NS_LITERAL_STRING("html").get()))
+                if (value.EqualsLiteral("html"))
                   value.AssignLiteral("true");
-                else if (value.Equals(NS_LITERAL_STRING("plaintext").get()))
+                else if (value.EqualsLiteral("plaintext"))
                   value.AssignLiteral("false");
                 else
                   value.Truncate(); // unknown.

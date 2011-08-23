@@ -139,8 +139,7 @@ nsresult nsVCardAddress::ReadRecord(
 
   // read BEGIN:VCARD
   rv = aLineStream->ReadLine(line, &more);
-  if (!line.Equals(NS_LITERAL_CSTRING("BEGIN:VCARD"),
-                   nsCaseInsensitiveCStringComparator())) {
+  if (!line.LowerCaseEqualsLiteral("begin:vcard")) {
     IMPORT_LOG0("*** Expected case-insensitive BEGIN:VCARD at start of vCard\n");
     rv = NS_ERROR_FAILURE;
     *aMore = more;
@@ -158,8 +157,7 @@ nsresult nsVCardAddress::ReadRecord(
     rv = aLineStream->ReadLine(line, &more);
     aRecord.AppendLiteral(MSG_LINEBREAK);
     aRecord.Append(line);
-  } while (!line.Equals(NS_LITERAL_CSTRING("END:VCARD"),
-                        nsCaseInsensitiveCStringComparator()));
+  } while (!line.LowerCaseEqualsLiteral("end:vcard"));
 
   *aMore = more;
   return rv;

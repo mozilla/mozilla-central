@@ -625,7 +625,7 @@ nsLDAPAutoCompleteSession::DoTask()
     // If urlFilter is unset (or set to the default "objectclass=*"), there's
     // no need to AND in an empty search term, so leave prefix and suffix empty.
     nsCAutoString prefix, suffix;
-    if (urlFilter.Length() && !urlFilter.Equals(NS_LITERAL_CSTRING("(objectclass=*)"))) {
+    if (urlFilter.Length() && !urlFilter.EqualsLiteral("(objectclass=*)")) {
 
         // If urlFilter isn't parenthesized, we need to add in parens so that
         // the filter works as a term to &

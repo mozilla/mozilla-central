@@ -492,11 +492,11 @@ NS_IMETHODIMP ImportOutlookMailImpl::GetImportProgress( PRUint32 *pDoneSoFar)
 
 NS_IMETHODIMP ImportOutlookMailImpl::TranslateFolderName(const nsAString & aFolderName, nsAString & _retval)
 {
-  if (aFolderName.Equals(NS_LITERAL_STRING("Deleted Items"), nsCaseInsensitiveStringComparator()))
+  if (aFolderName.LowerCaseEqualsLiteral("deleted items"))
     _retval = NS_LITERAL_STRING(kDestTrashFolderName);
-  else if (aFolderName.Equals(NS_LITERAL_STRING("Sent Items"), nsCaseInsensitiveStringComparator()))
+  else if (aFolderName.LowerCaseEqualsLiteral("sent items"))
     _retval = NS_LITERAL_STRING(kDestSentFolderName);
-  else if (aFolderName.Equals(NS_LITERAL_STRING("Outbox"), nsCaseInsensitiveStringComparator()))
+  else if (aFolderName.LowerCaseEqualsLiteral("outbox"))
     _retval = NS_LITERAL_STRING(kDestUnsentMessagesFolderName);
   else
     _retval = aFolderName;

@@ -2966,8 +2966,8 @@ NS_IMETHODIMP nsImapService::GetListOfFoldersWithPath(nsIImapIncomingServer *aSe
     else
       tokenStr.Assign(tempFolderName);
 
-    if (tokenStr.Equals(NS_LITERAL_CSTRING("INBOX"), nsCaseInsensitiveCStringComparator()) && 
-        !tokenStr.Equals(NS_LITERAL_CSTRING("INBOX")))
+    if (tokenStr.LowerCaseEqualsLiteral("inbox") &&
+        !tokenStr.EqualsLiteral("INBOX"))
       changedStr.Append("INBOX");
     else
       changedStr.Append(tokenStr);

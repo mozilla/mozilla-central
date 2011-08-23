@@ -825,7 +825,7 @@ void nsEudoraWin32::GetAccountName( const char *pSection, nsString& str)
 
   nsCString s(pSection);
 
-  if (s.Equals(NS_LITERAL_CSTRING("Settings"), nsCaseInsensitiveCStringComparator()))
+  if (s.LowerCaseEqualsLiteral("settings"))
   {
     str.AssignLiteral("Eudora ");
     str.Append(NS_ConvertASCIItoUTF16(pSection));
@@ -837,7 +837,7 @@ void nsEudoraWin32::GetAccountName( const char *pSection, nsString& str)
     if (s.Length() > 8)
     {
       s.Left( tStr, 8);
-      if (tStr.Equals(NS_LITERAL_CSTRING("Persona-"), nsCaseInsensitiveCStringComparator()))
+      if (tStr.LowerCaseEqualsLiteral("persona-"))
       {
         s.Right( tStr, s.Length() - 8);
         CopyASCIItoUTF16(tStr, str);
