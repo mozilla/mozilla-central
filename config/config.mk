@@ -364,11 +364,6 @@ MY_RULES	:= $(DEPTH)/config/myrules.mk
 CCC		= $(CXX)
 PURIFY		= purify $(PURIFYOPTIONS)
 QUANTIFY	= quantify $(QUANTIFYOPTIONS)
-ifdef CROSS_COMPILE
-XPIDL_COMPILE 	= $(CYGWIN_WRAPPER) $(LIBXUL_DIST)/host/bin/host_xpidl$(HOST_BIN_SUFFIX)
-else
-XPIDL_COMPILE 	= $(CYGWIN_WRAPPER) $(LIBXUL_DIST)/bin/xpidl$(BIN_SUFFIX)
-endif
 XPIDL_LINK = $(PYTHON) $(SDK_BIN_DIR)/xpt.py link
 
 INCLUDES = \
