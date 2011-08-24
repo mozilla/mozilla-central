@@ -583,7 +583,9 @@ nsMsgAttachmentHandler::PickCharset()
     NS_ENSURE_SUCCESS(rv, rv);
 
     detector->Init(obs);
-    while (isMore && NS_SUCCEEDED(lineInputStream->ReadLine(buffer, &isMore)))
+    while (isMore &&
+           NS_SUCCEEDED(lineInputStream->ReadLine(buffer, &isMore)) &&
+           buffer.Length() > 0)
     {
       detector->DoIt(buffer.get(), buffer.Length(), &dontFeed);
       if (dontFeed)
