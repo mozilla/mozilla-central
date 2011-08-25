@@ -2290,18 +2290,21 @@ function MsgSynchronizeOffline()
 
 function SpaceHit(event)
 {
-  var contentWindow = document.commandDispatcher.focusedWindow;
   // If focus is in chrome, we want to scroll the content window, unless
-  // the focus is on the otherActionsButton popup; if focus is on a
-  // non-link content element like a button, bail so we don't scroll
-  // when the element is going to do something else.
+  // the focus is on an important chrome button like the otherActionsButton
+  // popup; if focus is on a non-link content element like a button, bail so we
+  // don't scroll when the element is going to do something else.
+
+  var contentWindow = document.commandDispatcher.focusedWindow;
   let focusedElement = document.commandDispatcher.focusedElement;
 
   if (!gMessageDisplay.singleMessageDisplay) {
     contentWindow = document.getElementById("multimessage").contentWindow;
   } else if (contentWindow.top == window) {
+    // These elements should always take priority over scrolling.
+    const importantElements = ["otherActionsButton", "attachmentToggle"];
     contentWindow = window.content;
-    if (focusedElement && focusedElement.id == "otherActionsButton")
+    if (focusedElement && importantElements.indexOf(focusedElement.id) != -1)
       return;
   }
   else if (focusedElement && !hRefForClickEvent(event))
