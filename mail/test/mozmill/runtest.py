@@ -84,6 +84,10 @@ WRAPPER_MODULE_NAME = "wrapper"
 # semblance of modularity.
 wrapper = None
 
+# Shall we print out a big blob of base64 to allow post-processors to print out
+# a screenshot at the time the failure happened?
+USE_RICH_FAILURES = False
+
 # We need this because rmtree-ing read-only files fails on Windows
 def rmtree_onerror(func, path, exc_info):
     """
@@ -249,6 +253,9 @@ class ThunderTestRunner(mozrunner.ThunderbirdRunner):
             os.path.isfile(self.VNC_SERVER_PATH) and
             os.path.isfile(os.path.expanduser(self.VNC_PASSWD_PATH)) and
             env.get('MOZMILL_NO_VNC') != '1')
+
+        global USE_RICH_FAILURES
+        USE_RICH_FAILURES = (env.get('MOZMILL_RICH_FAILURES') == '1')
 
         mozrunner.Runner.__init__(self, *args, **kwargs)
 
@@ -475,14 +482,15 @@ def prettyPrintResults():
 
 @atexit.register
 def dumpRichResults():
-    print '##### MOZMILL-RICH-FAILURES-BEGIN #####'
-    for result in TEST_RESULTS:
-        if len(result['fails']) > 0:
-            for failure in result['fails']:
-                failure['fileName'] = prettifyFilename(result['filename'], 2)
-                failure['testName'] = result['name']
-                print json.dumps(failure)
-    print '##### MOZMILL-RICH-FAILURES-END #####'
+    if USE_RICH_FAILURES:
+        print '##### MOZMILL-RICH-FAILURES-BEGIN #####'
+        for result in TEST_RESULTS:
+            if len(result['fails']) > 0:
+                for failure in result['fails']:
+                    failure['fileName'] = prettifyFilename(result['filename'], 2)
+                    failure['testName'] = result['name']
+                    print json.dumps(failure)
+        print '##### MOZMILL-RICH-FAILURES-END #####'
 
 def checkCrashesAtExit():
     if checkForCrashes(os.path.join(PROFILE_DIR, 'minidumps'), SYMBOLS_PATH,
