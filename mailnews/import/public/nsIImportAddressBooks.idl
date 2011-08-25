@@ -104,17 +104,17 @@ interface nsIImportAddressBooks : nsISupports
 
   /*
     If found and userVerify BOTH return false, then it is assumed that this
-    means an error - mail cannot be found on this machine.
+    means an error - address book cannot be found on this machine.
     If userVerify is true, the user will have an opportunity to specify
-    a different location to import mail from.
+    a different location to import address book from.
   */
   void   GetDefaultLocation( out nsIFile location,
                 out boolean  found,
                 out boolean  userVerify);
   /*
     Returns an nsISupportsArray which contains an nsIImportABDescriptor for each
-    mailbox.  The array is not sorted before display to the user.  location is
-    null if GetAutoFind returned true.
+    address book.  The array is not sorted before display to the user.
+    location is null if GetAutoFind returned true.
   */
   nsISupportsArray FindAddressBooks( in nsIFile location);
 
@@ -125,10 +125,10 @@ interface nsIImportAddressBooks : nsISupports
   void InitFieldMap(in nsIImportFieldMap fieldMap);
 
   /**
-   * Import a specific mailbox into the destination file supplied.  If an error
-   * occurs that is non-fatal, the destination will be deleted and other
-   * mailbox's will be imported.  If a fatal error occurs, the destination will
-   * be deleted and the import operation will abort.
+   * Import a specific address book into the destination file supplied.
+   * If an error occurs that is non-fatal, the destination will be deleted and
+   * other adress book will be imported.  If a fatal error occurs, the
+   * destination will be deleted and the import operation will abort.
    *
    * @param aSource         The source data for the import.
    * @param aDestination    The proxy database for the destination of the
