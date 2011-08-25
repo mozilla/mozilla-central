@@ -3126,14 +3126,6 @@ function RenameSelectedAttachment()
   }
 }
 
-function FocusOnFirstAttachment()
-{
-  var bucketList = document.getElementById("attachmentBucket");
-
-  if (bucketList && bucketList.getRowCount())
-    bucketList.selectedIndex = 0;
-}
-
 function AttachmentElementHasItems()
 {
   var element = document.getElementById("attachmentBucket");
@@ -3485,17 +3477,8 @@ function setupAutocomplete()
 
 function subjectKeyPress(event)
 {
-  switch(event.keyCode) {
-  case KeyEvent.DOM_VK_TAB:
-    if (!event.shiftKey) {
-      SetMsgBodyFrameFocus();
-      event.preventDefault();
-    }
-    break;
-  case KeyEvent.DOM_VK_RETURN:
+  if (event.keyCode == KeyEvent.DOM_VK_RETURN)
     SetMsgBodyFrameFocus();
-    break;
-  }
 }
 
 function AttachmentBucketClicked(event)
@@ -3695,7 +3678,6 @@ function SetMsgSubjectElementFocus()
 function SetMsgAttachmentElementFocus()
 {
   GetMsgAttachmentElement().focus();
-  FocusOnFirstAttachment();
 }
 
 function SetMsgBodyFrameFocus()
@@ -3708,7 +3690,7 @@ function SetMsgBodyFrameFocus()
 function GetMsgAddressingWidgetTreeElement()
 {
   if (!gMsgAddressingWidgetTreeElement)
-    gMsgAddressingWidgetTreeElement = document.getElementById("addressingWidgetTree");
+    gMsgAddressingWidgetTreeElement = document.getElementById("addressingWidget");
 
   return gMsgAddressingWidgetTreeElement;
 }
