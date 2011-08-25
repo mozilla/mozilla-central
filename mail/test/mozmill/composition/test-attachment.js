@@ -258,6 +258,8 @@ function test_rename_attachment() {
   cwc.window.RenameSelectedAttachment();
   wait_for_modal_dialog("commonDialog");
 
+  assert_equals(node.getAttribute("name"), "renamed.txt");
+
   check_attachment_size(cwc, 0, size);
   check_total_attachment_size(cwc, 1);
 

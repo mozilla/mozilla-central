@@ -3117,21 +3117,11 @@ function RenameSelectedAttachment()
                      null,
                      {value: 0}))
   {
-    var modifiedAttachmentName = attachmentName.value;
-    if (modifiedAttachmentName == "")
+    if (attachmentName.value == "")
       return; // name was not filled, bail out
 
-    var nameAndSize = modifiedAttachmentName;
-    if (item.attachment.size != -1)
-    {
-      var size = gMessenger.formatFileSize(item.attachment.size);
-      item.label = gComposeBundle.getFormattedString(
-          "attachmentNameAndSize", [modifiedAttachmentName, size]);
-    }
-    else
-      item.label = modifiedAttachmentName;
-
-    item.attachment.name = modifiedAttachmentName;
+    item.attachment.name = attachmentName.value;
+    item.setAttribute("name", attachmentName.value);
     gContentChanged = true;
   }
 }
