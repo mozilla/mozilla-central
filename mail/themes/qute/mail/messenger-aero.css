@@ -37,14 +37,15 @@
     border: 1px solid transparent;
   }
 
-  treechildren::-moz-tree-row(hover) {
+  treechildren::-moz-tree-row(hover),
+  treechildren::-moz-tree-row(current, focus) {
     border: 1px solid Highlight;
   }
 
   listitem,
   treechildren::-moz-tree-row {
     min-height: 1.7em;
-    border-width: 2px !important;
+    color: -moz-FieldText;
     border-radius: 3px;
   }
 
@@ -56,6 +57,7 @@
     background-repeat: no-repeat;
     background-color: Highlight;
     background-size: 100% 100%;
+    border-width: 2px !important;
     -moz-border-top-colors: Highlight rgba(255,255,255,.4) !important;
     -moz-border-right-colors: Highlight rgba(255,255,255,.4) !important;
     -moz-border-left-colors: Highlight rgba(255,255,255,.4) !important;
@@ -63,8 +65,8 @@
   }
 
   listitem[selected="true"][current="true"],
-  treechildren::-moz-tree-row(selected, focus),
-  treechildren::-moz-tree-row(dummy, selected, focus) {
+  treechildren::-moz-tree-row(selected, current),
+  treechildren::-moz-tree-row(dummy, selected, current) {
     background-image: -moz-linear-gradient(rgba(255,255,255,.85), rgba(255,255,255,.6)) !important;
   }
 
