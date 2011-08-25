@@ -295,15 +295,8 @@ component.reg
 @DLL_PREFIX@jemalloc@DLL_SUFFIX@
 #endif
 #ifdef XP_WIN
-  #ifdef MOZ_MEMORY
-    Microsoft.VC80.CRT.manifest
-    msvcm80.dll
-    msvcp80.dll
-    msvcr80.dll
-  #else
-    mozcrt19.dll
-    mozcpp19.dll
-  #endif
+  mozcrt19.dll
+  mozcpp19.dll
 #endif
 #ifdef MOZ_STATIC_JS
 @DLL_PREFIX@mozjs@DLL_SUFFIX@

@@ -885,7 +885,9 @@ ifdef BEOS_ADDON_WORKAROUND
 endif
 else # ! IS_COMPONENT
 ifneq (,$(filter OS2 WINNT WINCE,$(OS_ARCH)))
+ifndef NO_INSTALL_IMPORT_LIBRARY
 	$(INSTALL) $(IFLAGS2) $(IMPORT_LIBRARY) $(DIST)/lib
+endif
 else
 	$(INSTALL) $(IFLAGS2) $(SHARED_LIBRARY) $(DIST)/lib
 endif
