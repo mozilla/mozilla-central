@@ -84,11 +84,22 @@ MessageDisplayWidget.prototype = {
     // when we return to it, we don't display prev selected message.
     if (!this.singleMessageDisplay)
       this.clearDisplay();
+
     // _singleMessageDisplay can be null, so use the property (getter)
     document.getElementById("singlemessage").hidden =
       !this.singleMessageDisplay;
     document.getElementById("multimessage").hidden =
       this.singleMessageDisplay;
+
+    // If the message pane is currently focused, make sure we have the
+    // currently-visible content window (single- or multi-message) focused.
+    if (this.folderDisplay.focusedPane ==
+        document.getElementById("messagepanebox")) {
+      if (this.singleMessageDisplay)
+        document.getElementById("messagepane").focus();
+      else
+        document.getElementById("multimessage").focus();
+    }
   },
 
   /**

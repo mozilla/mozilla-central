@@ -265,6 +265,33 @@ FolderDisplayWidget.prototype = {
   },
 
   /**
+   * Determine which pane currently has focus (one of the folder pane, thread
+   * pane, or message pane). The message pane node is the common ancestor of
+   * the single- and multi-message content windows. When changing focus to the
+   * message pane, be sure to focus the appropriate content window in addition
+   * to the messagepanebox (doing both is required in order to blur the
+   * previously-focused chrome element).
+   *
+   * @return the focused pane
+   */
+  get focusedPane() {
+    let panes = [document.getElementById(id) for each (id in [
+      "threadTree", "folderTree", "messagepanebox"
+    ])];
+
+    let currentNode = top.document.activeElement;
+
+    while (currentNode) {
+      if (panes.indexOf(currentNode) != -1)
+        return currentNode;
+
+      currentNode = currentNode.parentNode;
+    }
+    return null;
+  },
+
+
+  /**
    * Number of headers to tell the message database to cache when we enter a
    *  folder.  This value is being propagated from legacy code which provided
    *  no explanation for its choice.

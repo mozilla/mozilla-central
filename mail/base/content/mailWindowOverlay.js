@@ -1049,8 +1049,7 @@ function UpdateDeleteToolbarButton()
 
   // Never show "Undelete" in the 3-pane for folders, when delete would
   // apply to the selected folder.
-  if (this.WhichPaneHasFocus &&
-      WhichPaneHasFocus() == document.getElementById("folderTree") &&
+  if (gFolderDisplay.focusedPane == document.getElementById("folderTree") &&
       GetNumSelectedMessages() == 0)
     deleteButtonDeck.selectedIndex = 0;
   else

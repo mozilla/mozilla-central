@@ -541,30 +541,7 @@ let mailTabType = {
    *   element.
    */
   saveFocus: function mailTabType_saveFocus(aTab) {
-    let focusedWindow = document.commandDispatcher.focusedWindow.top;
-
-    let messagepane = document.getElementById("messagepane");
-    let multimessage = document.getElementById("multimessage");
-    if (focusedWindow == messagepane.contentWindow) {
-      aTab._focusedElement = messagepane;
-    }
-    else if (focusedWindow == multimessage.contentWindow) {
-      aTab._focusedElement = multimessage;
-    }
-    else {
-      // Look for children as well. This logic is copied from the mail 3pane
-      // version of WhichPaneHasFocus().
-      let focusedElement = document.commandDispatcher.focusedElement;
-      let threadTree = document.getElementById("threadTree");
-      let folderTree = document.getElementById("folderTree");
-      while (focusedElement && focusedElement != threadTree &&
-             focusedElement != folderTree)
-        focusedElement = focusedElement.parentNode;
-
-      // If we still have focusedElement at this point, it's either the thread
-      // tree or the folder tree, so we want to persist it.
-      aTab._focusedElement = focusedElement;
-    }
+    aTab._focusedElement = aTab.folderDisplay.focusedPane;
   },
 
   /**
@@ -574,8 +551,18 @@ let mailTabType = {
     // There seem to be issues with opening multiple messages at once, so allow
     // things to stabilize a bit before proceeding
     let reallyRestoreFocus = function mailTabType_reallyRestoreFocus(aTab) {
-      if ("_focusedElement" in aTab && aTab._focusedElement)
+      if ("_focusedElement" in aTab && aTab._focusedElement) {
         aTab._focusedElement.focus();
+
+        // If we were focused on the message pane, we need to focus on the
+        // appropriate subnode (the single- or multi-message content window).
+        if (aTab._focusedElement == document.getElementById("messagepanebox")) {
+          if (aTab.messageDisplay.singleMessageDisplay)
+            document.getElementById("messagepane").focus();
+          else
+            document.getElementById("multimessage").focus();
+        }
+      }
       aTab._focusedElement = null;
     };
 

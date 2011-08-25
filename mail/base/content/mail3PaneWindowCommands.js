@@ -975,14 +975,12 @@ var gLastFocusedElement=null;
 
 function FocusRingUpdate_Mail()
 {
-  // WhichPaneHasFocus() uses on top.document.commandDispatcher.focusedElement
-  // to determine which pane has focus
   // if the focusedElement is null, we're here on a blur.
   // nsFocusController::Blur() calls nsFocusController::SetFocusedElement(null),
   // which will update any commands listening for "focus".
   // we really only care about nsFocusController::Focus() happens,
   // which calls nsFocusController::SetFocusedElement(element)
-  var currentFocusedElement = WhichPaneHasFocus();
+  var currentFocusedElement = gFolderDisplay.focusedPane;
 
   if (currentFocusedElement != gLastFocusedElement) {
     if (currentFocusedElement)
@@ -999,32 +997,6 @@ function FocusRingUpdate_Mail()
     // and just update cmd_delete and button_delete?
     UpdateMailToolbar("focus");
   }
-}
-
-/**
- * Determine which pane currently has focus (one of the folder pane, thread
- * pane, message pane, or multimessage pane).
- *
- * @return the focused pane
- */
-function WhichPaneHasFocus()
-{
-  if (top.document.commandDispatcher.focusedWindow == GetMessagePaneFrame())
-    return GetMessagePane();
-
-  var panes = [document.getElementById(id) for each (id in [
-    "threadTree", "folderTree", "messagepanebox", "multimessage"
-  ])];
-
-  var currentNode = top.document.activeElement;
-
-  while (currentNode) {
-    if (panes.indexOf(currentNode) != -1)
-      return currentNode;
-
-    currentNode = currentNode.parentNode;
-  }
-  return null;
 }
 
 function RestoreFocusAfterHdrButton()
@@ -1123,7 +1095,7 @@ function IsFolderSelected()
 
 function SetFocusThreadPaneIfNotOnMessagePane()
 {
-  var focusedElement = WhichPaneHasFocus();
+  var focusedElement = gFolderDisplay.focusedPane;
 
   if((focusedElement != GetThreadTree()) &&
      (focusedElement != GetMessagePane()))
@@ -1146,12 +1118,8 @@ function SwitchPaneFocus(event)
   // This will usually be something like [threadPane, messagePane, folderPane].
   let panes = [GetThreadTree()];
 
-  if (!IsMessagePaneCollapsed()) {
-    if (gMessageDisplay.singleMessageDisplay)
-      panes.push(messagePane);
-    else
-      panes.push(document.getElementById("multimessage"));
-  }
+  if (!IsMessagePaneCollapsed())
+    panes.push(messagePane);
 
   if (gFolderDisplay.folderPaneVisible)
     panes.push(document.getElementById("folderTree"));
@@ -1159,7 +1127,7 @@ function SwitchPaneFocus(event)
   // Find our focused element in the array. If focus is not on one of the main
   // panes (it's probably on the toolbar), then act as if it's on the thread
   // tree.
-  let focusedElement = WhichPaneHasFocus();
+  let focusedElement = gFolderDisplay.focusedPane;
   let focusedElementIndex = panes.indexOf(focusedElement);
   if (focusedElementIndex == -1)
     focusedElementIndex = 0;
@@ -1190,17 +1158,24 @@ function SwitchPaneFocus(event)
 
 function SetFocusThreadPane()
 {
-    var threadTree = GetThreadTree();
-    threadTree.focus();
+  var threadTree = GetThreadTree();
+  threadTree.focus();
 }
 
+/**
+ * Set the focus to the currently-active message pane (either the single- or
+ * multi-message).
+ */
 function SetFocusMessagePane()
 {
   // Calling .focus() on content doesn't blur the previously focused chrome
   // element, so we shift focus to the XUL pane first, to not leave another
   // pane looking like it has focus.
   GetMessagePane().focus();
-  GetMessagePaneFrame().focus();
+  if (gMessageDisplay.singleMessageDisplay)
+    GetMessagePaneFrame().focus();
+  else
+    document.getElementById("multimessage").focus();
 }
 
 //
