@@ -71,7 +71,9 @@
 @BINPATH@/@MOZ_D3DCOMPILER_DLL@
 #endif
 #ifdef XP_WIN32
-#ifndef MOZ_MEMORY
+#ifdef MOZ_MEMORY
+@BINPATH@/jemalloc.dll
+#endif
 #ifndef MOZ_DEBUG
 #if _MSC_VER == 1400
 @BINPATH@/Microsoft.VC80.CRT.manifest
@@ -87,10 +89,6 @@
 @BINPATH@/msvcp100.dll
 @BINPATH@/msvcr100.dll
 #endif
-#endif
-#else
-@BINPATH@/mozcrt19.dll
-@BINPATH@/mozcpp19.dll
 #endif
 #endif
 @BINPATH@/@DLL_PREFIX@mozalloc@DLL_SUFFIX@
