@@ -296,7 +296,7 @@ tabpanels {
 
 .tabmail-tab[selected="true"] > .tab-close-button {
   background-image: url("chrome://messenger/skin/icons/tab-middle.png");
-  -moz-image-region: rect(0px, 14px, 14px, 0px);
+  -moz-image-region: rect(0px, 16px, 16px, 0px);
   /* Make this button focusable so clicking on it will not focus the tab while
      it's getting closed */
   -moz-user-focus: normal;
