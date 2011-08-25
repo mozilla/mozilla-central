@@ -1783,7 +1783,7 @@
                    oncommand="goDoCommand('button_next')"
                    tooltiptext="&nextButton.tooltip;"
                    observes="button_next"/>
-    <toolbaritem id="button-junk">
+    <toolbaritem id="button-junk" title="&junkItem.title;">
       <deck id="junk-deck" observes="button_junk">
         <toolbarbutton id="button-isJunk"
                        class="toolbarbutton-1 junk-button"
@@ -1799,7 +1799,7 @@
                        oncommand="goDoCommand('button_junk')"/>
       </deck>
     </toolbaritem>
-    <toolbaritem id="button-delete">
+    <toolbaritem id="button-delete" title="&deleteItem.title;">
       <deck id="delete-deck" observes="button_delete">
          <toolbarbutton id="button-mark-deleted"
                         class="toolbarbutton-1 delete-button"
