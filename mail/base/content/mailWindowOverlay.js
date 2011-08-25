@@ -479,7 +479,8 @@ function InitViewBodyMenu()
   var AllowHTML_menuitem = document.getElementById(menuIDs[0]);
   var Sanitized_menuitem = document.getElementById(menuIDs[1]);
   var AsPlaintext_menuitem = document.getElementById(menuIDs[2]);
-  var AllBodyParts_menuitem = document.getElementById(menuIDs[3]);
+  var AllBodyParts_menuitem = menuIDs[3] ? document.getElementById(menuIDs[3])
+        : null;
 
   document.getElementById("bodyAllParts").hidden = 
     ! pref.getBoolPref("mailnews.display.show_all_body_parts_menu");
@@ -494,7 +495,7 @@ function InitViewBodyMenu()
       AsPlaintext_menuitem)
     AsPlaintext_menuitem.setAttribute("checked", true);
   else if (!prefer_plaintext && html_as == 4 && !disallow_classes &&
-      AllowHTML_menuitem)
+      AllBodyParts_menuitem)
     AllBodyParts_menuitem.setAttribute("checked", true);
   // else (the user edited prefs/user.js) check none of the radio menu items
 
