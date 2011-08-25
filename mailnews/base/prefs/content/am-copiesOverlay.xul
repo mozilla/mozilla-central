@@ -86,7 +86,7 @@
     <label hidden="true" wsm_persist="true" id="identity.tmplFolderPickerMode"
                   pref="true" preftype="int" prefattribute="value"
                   prefstring="mail.identity.%identitykey%.tmpl_folder_picker_mode"/>
-    <groupbox>
+    <groupbox id="copiesGroup">
       <caption label="&sendingPrefix.label;"/>
 
       <hbox align="center">
@@ -182,7 +182,7 @@
 
     </groupbox>
 
-    <groupbox>
+    <groupbox id="archivesGroup">
       <caption label="&archivesTitle.label;"/>
 
       <hbox align="center">
@@ -242,7 +242,7 @@
       </radiogroup>
     </groupbox>
 
-    <groupbox>
+    <groupbox id="foldersGroup">
       <caption label="&specialFolders.label;"/>
 
       <hbox align="center">
