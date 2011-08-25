@@ -46,6 +46,7 @@
 <?xul-overlay href="chrome://communicator/content/contentAreaContextOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/viewZoomOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/msgHdrViewOverlay.xul"?>
+<?xul-overlay href="chrome://messenger/content/mailOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/platformMailnewsOverlay.xul"?>
 
 <!DOCTYPE overlay [
@@ -968,6 +969,7 @@
                     accesskey="&newAccountCmd.accesskey;"
                     oncommand="MsgAccountWizard();"/>
           <menuseparator id="newPopupMenuSeparator"/>
+          <menuitem id="menu_newCard"/>
           <menuitem id="menu_newTab"
                     label="&newTabCmd.label;"
                     accesskey="&newTabCmd.accesskey;"
