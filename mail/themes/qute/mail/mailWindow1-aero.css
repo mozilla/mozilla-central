@@ -162,7 +162,6 @@ padding: 4px 0px;
   #folderTree {
     -moz-appearance: none;
     background-color: #eef3fa;
-    border-top: 1px solid #ffffff;
     border-bottom: none;
     border-left: none;
   }
