@@ -5,9 +5,9 @@
 
 <!-- Entities for Account Type page -->
 
-<!ENTITY accountSetupInfo.label "In order to receive messages, you first need to set up a Mail or Newsgroup account.">
+<!ENTITY accountSetupInfo2.label "In order to receive messages, you first need to set up an account.">
 <!ENTITY accountTypeTitle.label "New Account Setup">
-<!ENTITY accountTypeDesc.label "This Wizard will collect the information necessary to set up a Mail or Newsgroup account. If you do not know the information requested, please contact your System Administrator or Internet Service Provider.">
+<!ENTITY accountTypeDesc2.label "This Wizard will collect the information necessary to set up an account. If you do not know the information requested, please contact your System Administrator or Internet Service Provider.">
 <!ENTITY accountTypeDirections.label "Select the type of account you would like to set up:">
 <!ENTITY accountTypeMail.label "Email account">
 <!ENTITY accountTypeMail.accesskey "m">

@@ -67,8 +67,8 @@
               onpageshow="document.documentElement.canAdvance = true;"
               onpageadvanced="return acctTypePageUnload();">
     <vbox flex="1">
-      <description>&accountSetupInfo.label;</description>
-      <description>&accountTypeDesc.label;</description>
+      <description>&accountSetupInfo2.label;</description>
+      <description>&accountTypeDesc2.label;</description>
       <label control="acctyperadio">&accountTypeDirections.label;</label>
       <separator/>
       <radiogroup id="acctyperadio" >
