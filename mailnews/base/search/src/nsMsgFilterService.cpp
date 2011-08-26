@@ -1066,34 +1066,33 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::OnStopCopy(nsresult aStatus)
 
 PRBool nsMsgFilterAfterTheFact::ContinueExecutionPrompt()
 {
-  PRBool returnVal = PR_FALSE;
   if (!m_curFilter)
-    return returnVal;
-  nsresult rv;
-  nsCOMPtr <nsIStringBundle> bundle;
-  nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  if (bundleService && NS_SUCCEEDED(rv))
-    bundleService->CreateBundle("chrome://messenger/locale/filter.properties",
-                                 getter_AddRefs(bundle));
-  if (NS_SUCCEEDED(rv) && bundle)
+    return PR_FALSE;
+  nsCOMPtr<nsIStringBundle> bundle;
+  nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID);
+  if (!bundleService)
+    return PR_FALSE;
+  bundleService->CreateBundle("chrome://messenger/locale/filter.properties",
+                              getter_AddRefs(bundle));
+  if (!bundle)
+    return PR_FALSE;
+  nsString filterName;
+  m_curFilter->GetFilterName(filterName);
+  nsString formatString;
+  nsString confirmText;
+  const PRUnichar *formatStrings[] =
   {
-    nsString filterName;
-    m_curFilter->GetFilterName(filterName);
-    nsString formatString;
-    nsString confirmText;
-    const PRUnichar *formatStrings[] =
-    {
-      filterName.get()
-    };
-    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("continueFilterExecution").get(),
-                                      formatStrings, 1, getter_Copies(confirmText));
-    if (NS_SUCCEEDED(rv))
-    {
-      rv = DisplayConfirmationPrompt(m_msgWindow, confirmText.get(), &returnVal);
-    }
-  }
+    filterName.get()
+  };
+  nsresult rv = bundle->FormatStringFromName(NS_LITERAL_STRING("continueFilterExecution").get(),
+                                             formatStrings, 1, getter_Copies(confirmText));
+  if (NS_FAILED(rv))
+    return PR_FALSE;
+  PRBool returnVal = PR_FALSE;
+  (void) DisplayConfirmationPrompt(m_msgWindow, confirmText.get(), &returnVal);
   return returnVal;
 }
+
 nsresult
 nsMsgFilterAfterTheFact::DisplayConfirmationPrompt(nsIMsgWindow *msgWindow, const PRUnichar *confirmString, PRBool *confirmed)
 {
