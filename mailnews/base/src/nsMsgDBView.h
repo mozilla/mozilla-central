@@ -216,6 +216,8 @@ protected:
   nsresult FetchLabel(nsIMsgDBHdr *aHdr, nsAString & aLabelString);
   nsresult FetchTags(nsIMsgDBHdr *aHdr, nsAString & aTagString);
   nsresult FetchKeywords(nsIMsgDBHdr *aHdr, nsACString & keywordString);
+  nsresult FetchRowKeywords(nsMsgViewIndex aRow, nsIMsgDBHdr *aHdr,
+                            nsACString & keywordString);
   nsresult FetchAccount(nsIMsgDBHdr * aHdr, nsAString& aAccount);
   nsresult CycleThreadedColumn(nsIDOMElement * aElement);
 

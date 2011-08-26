@@ -907,6 +907,43 @@ nsresult nsMsgDBView::FetchKeywords(nsIMsgDBHdr *aHdr, nsACString &keywordString
   return NS_OK;
 }
 
+// If the row is a collapsed thread, we roll-up the keywords in all the
+// messages in the thread, otherwise, return just the keywords for the row.
+nsresult nsMsgDBView::FetchRowKeywords(nsMsgViewIndex aRow, nsIMsgDBHdr *aHdr,
+                                       nsACString &keywordString)
+{
+  nsresult rv = FetchKeywords(aHdr,keywordString);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
+  {
+    if ((m_flags[aRow] & MSG_VIEW_FLAG_ISTHREAD)
+        && (m_flags[aRow] & nsMsgMessageFlags::Elided))
+    {
+      nsCOMPtr<nsIMsgThread> thread;
+      rv = GetThreadContainingIndex(aRow, getter_AddRefs(thread));
+      if (NS_SUCCEEDED(rv) && thread)
+      {
+        PRUint32 numChildren;
+        thread->GetNumChildren(&numChildren);
+        nsCOMPtr<nsIMsgDBHdr> msgHdr;
+        nsCString moreKeywords;
+        for (long index = 0; index < numChildren; index++)
+        {
+          thread->GetChildHdrAt(index, getter_AddRefs(msgHdr));
+          rv = FetchKeywords(msgHdr, moreKeywords);
+          NS_ENSURE_SUCCESS(rv,rv);
+
+          if (!keywordString.IsEmpty() && !moreKeywords.IsEmpty())
+            keywordString.Append(' ');
+          keywordString.Append(moreKeywords);
+        }
+      }
+    }
+  }
+  return rv;
+}
+
 nsresult nsMsgDBView::FetchTags(nsIMsgDBHdr *aHdr, nsAString &aTagString)
 {
   nsresult rv = NS_OK;
@@ -1424,7 +1461,7 @@ NS_IMETHODIMP nsMsgDBView::GetRowProperties(PRInt32 index, nsISupportsArray *pro
   }
 
   nsCString keywordProperty;
-  FetchKeywords(msgHdr, keywordProperty);
+  FetchRowKeywords(index, msgHdr, keywordProperty);
   if (!keywordProperty.IsEmpty())
     AppendKeywordProperties(keywordProperty, properties, PR_FALSE);
 
@@ -1509,7 +1546,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(PRInt32 aRow, nsITreeColumn *col, n
   }
 
   nsCString keywords;
-  FetchKeywords(msgHdr, keywords);
+  FetchRowKeywords(aRow, msgHdr, keywords);
   if (!keywords.IsEmpty())
     AppendKeywordProperties(keywords, properties, PR_TRUE);
 
