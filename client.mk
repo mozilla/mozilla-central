@@ -109,7 +109,7 @@ endif
 PERL ?= perl
 PYTHON ?= python
 
-CONFIG_GUESS_SCRIPT := $(wildcard $(TOPSRCDIR)/mozilla/build/autoconf/config.guess)
+CONFIG_GUESS_SCRIPT := $(wildcard $(TOPSRCDIR)/build/autoconf/config.guess)
 ifdef CONFIG_GUESS_SCRIPT
   CONFIG_GUESS = $(shell $(CONFIG_GUESS_SCRIPT))
 endif
@@ -132,9 +132,9 @@ endif
 
 # See build pages, http://www.mozilla.org/build/ for how to set up mozconfig.
 
-MOZCONFIG_LOADER := mozilla/build/autoconf/mozconfig2client-mk
-MOZCONFIG_FINDER := mozilla/build/autoconf/mozconfig-find
-MOZCONFIG_MODULES := mozilla/build/unix/uniq.pl
+MOZCONFIG_LOADER := build/autoconf/mozconfig2client-mk
+MOZCONFIG_FINDER := build/autoconf/mozconfig-find
+MOZCONFIG_MODULES := build/unix/uniq.pl
 
 run_for_side_effects := \
   $(shell $(TOPSRCDIR)/$(MOZCONFIG_LOADER) $(TOPSRCDIR) $(TOPSRCDIR)/.mozconfig.mk > $(TOPSRCDIR)/.mozconfig.out)
