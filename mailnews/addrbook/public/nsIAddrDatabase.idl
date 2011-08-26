@@ -231,7 +231,7 @@ interface nsIAddrDatabase : nsIAddrDBAnnouncer {
                                             in AUTF8String uUTF8Value,
                                             in boolean aCaseInsensitive);
 
-  PRBool findMailListbyUnicodeName(in wstring listName);
+  boolean findMailListbyUnicodeName(in wstring listName);
 
   void getCardCount(out PRUint32 count);
 

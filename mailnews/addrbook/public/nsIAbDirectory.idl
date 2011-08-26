@@ -116,7 +116,7 @@ interface nsIAbDirectory : nsIAbCollection {
 
   // Defines whether this directory is a mail
   // list or not
-  attribute PRBool isMailList;
+  attribute boolean isMailList;
 
   // Get the children directories
   readonly attribute nsISimpleEnumerator childNodes;

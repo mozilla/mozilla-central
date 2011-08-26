@@ -83,7 +83,7 @@ interface nsIImportAddressBooks : nsISupports
     are imported from a directory, then return true.  For a 1 to 1 relationship
     between location and address books return false.
   */
-  PRBool  GetSupportsMultiple();
+  boolean GetSupportsMultiple();
 
   /*
     If the address book is not found via a file location.then return true
@@ -94,13 +94,13 @@ interface nsIImportAddressBooks : nsISupports
     If false, GetDefaultLocation will be called.
   */
 
-  PRBool GetAutoFind( out wstring description);
+  boolean GetAutoFind( out wstring description);
 
   /*
     Returns true if the address book needs the user to specify a field map
     for address books imported from this format.
   */
-  PRBool GetNeedsFieldMap( in nsIFile location);
+  boolean GetNeedsFieldMap( in nsIFile location);
 
   /*
     If found and userVerify BOTH return false, then it is assumed that this

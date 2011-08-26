@@ -198,8 +198,8 @@ interface nsIMsgSend : nsISupports
                               in nsIMsgIdentity               aUserIdentity,
                               in string                       aAccountKey,
                               in nsIMsgCompFields             fields,
-                              in PRBool                       digest_p,
-                              in PRBool                       dont_deliver_p,
+                              in boolean                      digest_p,
+                              in boolean                      dont_deliver_p,
                               in nsMsgDeliverMode             mode, 
                               in nsIMsgDBHdr                  msgToReplace,
                               in string               attachment1_type,
@@ -251,8 +251,8 @@ interface nsIMsgSend : nsISupports
                        in string               aAccountKey,
                        in nsIMsgCompFields     aFields,
                        in nsIFile              aSendIFile,
-                       in PRBool               aDeleteSendFileOnCompletion,
-                       in PRBool               aDigest_p,
+                       in boolean              aDeleteSendFileOnCompletion,
+                       in boolean              aDigest_p,
                        in nsMsgDeliverMode     aMode,
                        in nsIMsgDBHdr          aMsgToReplace,
                        in nsIMsgSendListener   aListener,
@@ -267,7 +267,7 @@ interface nsIMsgSend : nsISupports
     nsresult fail(in nsresult failure_code, in wstring error_msg);
 
     /* Disable UI notification (alert message) */
-    void setGUINotificationState(in PRBool aEnableFlag);
+    void setGUINotificationState(in boolean aEnableFlag);
     
     /* Crypto */
     void BeginCryptoEncapsulation();

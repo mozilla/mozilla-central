@@ -114,7 +114,7 @@ interface nsIMimeStreamConverter : nsISupports {
   /**
    * Use the opposite compose format, used for forward inline.
    */
-  attribute PRBool overrideComposeFormat;
+  attribute boolean overrideComposeFormat;
 
   /**
    * This is used for OpenDraft, OpenEditorTemplate and Forward inline (which use OpenDraft)

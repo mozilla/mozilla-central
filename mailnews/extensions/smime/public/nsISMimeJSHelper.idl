@@ -81,7 +81,7 @@ interface nsISMimeJSHelper : nsISupports
                              [array, size_is(count)] out wstring certIssuedInfos,
                              [array, size_is(count)] out wstring certExpiresInfos,
                              [array, size_is(count)] out nsIX509Cert certs,
-                             out PRBool canEncrypt);
+                             out boolean canEncrypt);
 
   /**
    * Obtains a list of email addresses where valid email recipient certificates

@@ -69,7 +69,7 @@ interface nsIMimeEmitter : nsISupports {
     void setPipe(in nsIInputStream inputStream, in nsIOutputStream outStream);
 
     // Header handling routines.
-    void startHeader(in PRBool rootMailHeader, in PRBool headerOnly,
+    void startHeader(in boolean rootMailHeader, in boolean headerOnly,
                      [const] in string msgID, [const] in string outCharset);
     void addHeaderField([const] in string field, [const] in string value);
     void addAllHeaders(in ACString allheaders);
@@ -94,14 +94,14 @@ interface nsIMimeEmitter : nsISupports {
     // Attachment handling routines.
     void startAttachment([const] in AUTF8String name,
                          [const] in string contentType,
-                         [const] in string url, in PRBool aNotDownloaded);
+                         [const] in string url, in boolean aNotDownloaded);
     void addAttachmentField([const] in string field, [const] in string value);
     void endAttachment();
 
     void endAllAttachments();
 
     // Body handling routines.
-    void startBody(in PRBool bodyOnly, [const] in string msgID, [const] in string outCharset);
+    void startBody(in boolean bodyOnly, [const] in string msgID, [const] in string outCharset);
     void writeBody([const] in AUTF8String buf, out PRUint32 amountWritten);
     void endBody();
 

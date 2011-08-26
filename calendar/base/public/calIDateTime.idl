@@ -162,7 +162,7 @@ interface calIDateTime : nsISupports
    * accessing the hour/minute/second fields will return 0, and and setting
    * them is an illegal operation.
    */
-  attribute PRBool isDate;
+  attribute boolean isDate;
 
   /*
    * computed values

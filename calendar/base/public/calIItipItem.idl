@@ -71,7 +71,7 @@ interface calIItipItem : nsISupports
      * this flag, and send the iTIP Item into the iTIP processor, which would
      * handle everything else.
      */
-    attribute PRBool isSend;
+    attribute boolean isSend;
 
     /**
      * Attribute: receivedMethod - method the iTIP item had upon reciept
