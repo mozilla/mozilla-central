@@ -44,7 +44,9 @@ Cu.import('resource://mozmill/modules/elementslib.js', elib);
 var MODULE_NAME = "test-tabmail-dragndrop";
 
 var RELATIVE_ROOT = "../shared-modules";
-var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers"];
+var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers",
+                       'mouse-event-helpers'];
+
 
 var folder;
 let msgHdrsInFolder = [];
@@ -57,6 +59,8 @@ function setupModule(module) {
   fdh.installInto(module);
   let wh = collector.getModule("window-helpers");
   wh.installInto(module);
+  let meh = collector.getModule('mouse-event-helpers');
+  meh.installInto(module);
 
   folder = create_folder("MessageFolder");
   make_new_sets_in_folder(folder, [{count: NUM_MESSAGES_IN_FOLDER}]);
@@ -133,12 +137,12 @@ function test_tab_reorder_tabbar(){
   let tab1 = mc.tabmail.tabContainer.childNodes[1];
   let tab3 = mc.tabmail.tabContainer.childNodes[3];
 
-  let dt = _synthesizeDragStart(mc.window, tab1, mc.tabmail);
+  let dt = synthesize_drag_start(mc.window, tab1, mc.tabmail);
 
   // Drop it onto the third tab ...
-  _synthesizeDragOver(mc.window, tab3, dt);
+  synthesize_drag_over(mc.window, tab3, dt);
 
-  _synthesizeDrop(mc.window, tab3, dt,
+  synthesize_drop(mc.window, tab3, dt,
       { screenX : tab3.boxObject.screenX + (tab3.boxObject.width * 0.75),
         screenY : tab3.boxObject.screenY });
 
@@ -221,11 +225,11 @@ function test_tab_reorder_window(){
   let tabB = mc2.tabmail.tabContainer.childNodes[0];
   assert_true(tabB, "No movable Tab");
 
-  let dt = _synthesizeDragStart(mc.window,tabA,mc.tabmail);
+  let dt = synthesize_drag_start(mc.window,tabA,mc.tabmail);
 
-  _synthesizeDragOver(mc2.window, tabB,dt);
+  synthesize_drag_over(mc2.window, tabB,dt);
 
-  _synthesizeDrop(mc2.window,tabB, dt,
+  synthesize_drop(mc2.window,tabB, dt,
       { screenX : tabB.boxObject.screenX + (tabB.boxObject.width * 0.75),
         screenY : tabB.boxObject.screenY });
 
@@ -270,12 +274,12 @@ function test_tab_reorder_detach(){
   let dropContent = mc.e("tabpanelcontainer");
   let box = dropContent.boxObject;
 
-  let dt = _synthesizeDragStart(mc.window, tab1, mc.tabmail);
+  let dt = synthesize_drag_start(mc.window, tab1, mc.tabmail);
 
-  _synthesizeDragOver(mc.window, dropContent, dt);
+  synthesize_drag_over(mc.window, dropContent, dt);
 
   // notify tab1 drag has ended
-  _synthesizeDragEnd(mc.window, dropContent, tab1, dt,
+  synthesize_drag_end(mc.window, dropContent, tab1, dt,
       { screenX : (box.screenX + box.width / 2 ),
         screenY : (box.screenY + box.height / 2 ) });
 
@@ -481,90 +485,5 @@ function teardownTest(test)
       mc.tabmail.closeOtherTabs(0);
       assert_number_of_tabs_open(1);
   }
-  
-}
 
-/*
- * A set of private helper functions for drag'n'drop
- */
-
-/**
- * Starts a drag new session.
- * @param {} aWindow
- * @param {XULElement} aDispatcher
- *   the element from which the drag session should be started.
- * @param {XULElement} aListener
- *   the element who's drop target should be captured and returned.
- * @return {nsIDataTransfer}
- *   returns the DataTransfer Object of captured by aListener.
- */
-function _synthesizeDragStart(aWindow, aDispatcher, aListener)
-{
-  let dt;
-
-  var trapDrag = function(event) {
-
-    if ( !event.dataTransfer )
-      throw "no DataTransfer";
-
-    dt = event.dataTransfer;
-
-    //event.stopPropagation();
-    event.preventDefault();
-  };
-
-  aListener.addEventListener("dragstart", trapDrag, true);
-
-  EventUtils.synthesizeMouse(aDispatcher, 5, 5, {type:"mousedown"}, aWindow);
-  EventUtils.synthesizeMouse(aDispatcher, 5, 10, {type:"mousemove"}, aWindow);
-  EventUtils.synthesizeMouse(aDispatcher, 5, 15, {type:"mousemove"}, aWindow);
-
-  aListener.removeEventListener("dragstart", trapDrag, true);
-
-  return dt;
-}
-
-function _synthesizeDragOver(aWindow, aDispatcher, aDt, aArgs)
-{
-  _synthesizeDragEvent("dragover", aWindow, aDispatcher, aDt, aArgs);
-}
-
-function _synthesizeDragEnd(aWindow, aDispatcher, aListener, aDt, aArgs)
-{
-  _synthesizeDragEvent("dragend", aWindow, aListener, aDt, aArgs);
-
-  //Ensure drag has ended.
-  EventUtils.synthesizeMouse(aDispatcher, 5, 5, {type:"mousemove"}, aWindow);
-  EventUtils.synthesizeMouse(aDispatcher, 5, 10, {type:"mousemove"}, aWindow);
-  EventUtils.synthesizeMouse(aDispatcher, 5, 5, {type:"mouseup"}, aWindow);
-}
-
-function _synthesizeDrop(aWindow, aDispatcher, aDt, aArgs)
-{
-  _synthesizeDragEvent("drop", aWindow, aDispatcher, aDt, aArgs);
-
-  // Ensure drag has ended.
-  EventUtils.synthesizeMouse(aDispatcher, 5, 5, {type:"mousemove"}, aWindow);
-  EventUtils.synthesizeMouse(aDispatcher, 5, 10, {type:"mousemove"}, aWindow);
-  EventUtils.synthesizeMouse(aDispatcher, 5, 5, {type:"mouseup"}, aWindow);
-}
-
-function _synthesizeDragEvent(aType, aWindow, aDispatcher, aDt, aArgs)
-{
-  let screenX;
-  if (aArgs && ("screenX" in aArgs))
-    screenX = aArgs.screenX;
-  else
-    screenX = aDispatcher.boxObject.ScreenX;;
-
-  let screenY;
-  if (aArgs && ("screenY" in aArgs))
-    screenY = aArgs.screenY;
-  else
-    screenY = aDispatcher.boxObject.ScreenY;
-
-  let event = aWindow.document.createEvent("DragEvents");
-  event.initDragEvent(aType, true, true, aWindow, 0,
-      screenX, screenY, 0, 0, false, false, false, false, 0, null, aDt);
-  aDispatcher.dispatchEvent(event);
 }

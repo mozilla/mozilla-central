@@ -691,53 +691,6 @@ function test_toolbar_collapse_and_expand() {
     mc.window.resizeTo(1024, 768);
   }
 }
-
-/**
- *  Make sure that opening the header toolbar customization dialog
- *  does not break the get messages button in main toolbar
- */
-function test_get_msg_button_customize_header_toolbar(){
-  be_in_folder(folder);
-
-  // select and open the first message
-  let curMessage = select_click_row(0);
-
-  // make sure it loads
-  wait_for_message_display_completion(mc);
-  assert_selected_and_displayed(mc, curMessage);
-
-  // It is necessary to press the Get Message Button to get the popup menu populated
-  mc.click(mc.aid("button-getmsg", {class: "toolbarbutton-menubutton-dropmarker"}));
-  mc.ewait("button-getAllNewMsgSeparator");
-
-  var getMailButtonPopup = mc.eid("button-getMsgPopup").node;
-  var originalServerCount = getMailButtonPopup.childElementCount;
-
-  // Open customization dialog, because it broke the Get Message Button popup menu
-  // see https://bugzilla.mozilla.org/show_bug.cgi?id=565045
-  mc.click(mc.eid("CustomizeHeaderToolbar"));
-  let toolbox = mc.eid("header-view-toolbox").node;
-
-  // Due to differences between OS X and Windows/Linux versions
-  // the "done" button of the customization dialog cannot be
-  // accessed directly
-  toolbox.customizeDone();
-
-  // Press the Get Message Button to populate popup menu again
-  mc.click(mc.aid("button-getmsg", {class: "toolbarbutton-menubutton-dropmarker"}));
-  mc.ewait("button-getAllNewMsgSeparator");
-
-  getMailButtonPopup = mc.eid("button-getMsgPopup").node;
-  var finalServerCount = getMailButtonPopup.childElementCount;
-
-  if (originalServerCount != finalServerCount) {
-    throw new Error("number of entries in Get Message Button popup menu after " +
-                    "header toolbar customization " +
-                    finalServerCount + " <> as before: " +
-                    originalServerCount);
-  }
-}
-
 // Some platforms (notably Mac) don't have a11y, so disable these tests there.
 if ("nsIAccessibleRole" in Ci) {
   /**
