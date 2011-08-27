@@ -288,7 +288,11 @@ uninstall/uninstall.exe
 .autoreg
 component.reg
 #ifdef XP_UNIX
-  #ifndef XP_MACOSX
+  #ifdef XP_MACOSX
+    #ifndef MOZ_MEMORY_DARWIN
+      @DLL_PREFIX@jemalloc@DLL_SUFFIX@
+    #endif
+  #else
     @DLL_PREFIX@jemalloc@DLL_SUFFIX
   #endif
 #endif
@@ -296,9 +300,6 @@ component.reg
   #ifndef MOZ_MEMORY
     @DLL_PREFIX@jemalloc@DLL_SUFFIX@
   #endif
-#endif
-#ifndef MOZ_MEMORY_DARWIN
-  @DLL_PREFIX@jemalloc@DLL_SUFFIX@
 #endif
 #ifdef XP_WIN
   mozcrt19.dll
