@@ -546,7 +546,7 @@ var BookmarksEventHandler = {
   },
 
   onPopupShowing: function BEH_onPopupShowing(aEvent) {
-    if (!document.getElementById('bookmarksMenu')._placesView)
+    if (!aEvent.currentTarget.parentNode._placesView)
       new PlacesMenu(aEvent, 'place:folder=BOOKMARKS_MENU');
 
     document.getElementById("Browser:BookmarkAllTabs")
