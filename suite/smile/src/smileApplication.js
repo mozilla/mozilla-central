@@ -678,7 +678,7 @@ function Application() {
 //=================================================
 // Application implementation
 Application.prototype = {
-  // for nsIClassInfo + XPCOMUtils
+  // for XPCOMUtils
   classID:          Components.ID("{c9ba8f65-c936-4ac6-a859-8936832b0c12}"),
 
   // redefine the default factory for XPCOMUtils
@@ -688,17 +688,16 @@ Application.prototype = {
   QueryInterface : XPCOMUtils.generateQI(
                      [Components.interfaces.smileIApplication,
                       Components.interfaces.extIApplication,
-                      Components.interfaces.nsIObserver,
-                      Components.interfaces.nsIClassInfo]),
+                      Components.interfaces.nsIObserver]),
 
-  getInterfaces : function app_gi(aCount) {
-   var interfaces = [Components.interfaces.smileIApplication,
-                     Components.interfaces.extIApplication,
-                     Components.interfaces.nsIObserver,
-                     Components.interfaces.nsIClassInfo];
-    aCount.value = interfaces.length;
-    return interfaces;
-  },
+  // for nsIClassInfo
+  classInfo: XPCOMUtils.generateCI({
+    classID: Components.ID("{c9ba8f65-c936-4ac6-a859-8936832b0c12}"),
+    contractID: "@mozilla.org/smile/application;1",
+    interfaces: [Components.interfaces.smileIApplication,
+                 Components.interfaces.extIApplication,
+                 Components.interfaces.nsIObserver],
+    flags: Components.interfaces.nsIClassInfo.SINGLETON}),
 
   // for nsIObserver
   observe: function app_observe(aSubject, aTopic, aData) {
