@@ -1781,6 +1781,21 @@ function getShortcutOrURI(aURL, aPostDataRef)
   return shortcutURL;
 }
 
+function getPostDataStream(aStringData, aKeyword, aEncKeyword, aType)
+{
+  var dataStream = Components.classes["@mozilla.org/io/string-input-stream;1"]
+                             .createInstance(Components.interfaces.nsIStringInputStream);
+  aStringData = aStringData.replace(/%s/g, aEncKeyword).replace(/%S/g, aKeyword);
+  dataStream.data = aStringData;
+
+  var mimeStream = Components.classes["@mozilla.org/network/mime-input-stream;1"]
+                             .createInstance(Components.interfaces.nsIMIMEInputStream);
+  mimeStream.addHeader("Content-Type", aType);
+  mimeStream.addContentLength = true;
+  mimeStream.setData(dataStream);
+  return mimeStream.QueryInterface(Components.interfaces.nsIInputStream);
+}
+
 function handleDroppedLink(event, url, name)
 {
   var postData = { };
