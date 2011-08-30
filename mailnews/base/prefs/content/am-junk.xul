@@ -93,19 +93,7 @@
             prefstring="mail.server.%serverkey%.useWhiteList"/>
   <label value="&whitelist.label;" accesskey="&whitelist.accesskey;"
          control="whiteListAbURI"/>
-  <listbox id="whiteListAbURI" rows="5"
-           ref="moz-abdirectory://" datasources="rdf:addressdirectory"
-           sortActive="true" sortDirection="ascending"
-           sortResource="http://home.netscape.com/NC-rdf#DirTreeNameSort">
-    <template>
-      <rule nc:IsRemote="true"/>
-      <rule nc:IsMailList="false">
-        <listitem uri="rdf:*" type="checkbox" class="listitem-iconic"
-                  label="rdf:http://home.netscape.com/NC-rdf#DirName"
-                  value="rdf:http://home.netscape.com/NC-rdf#DirUri"/>
-      </rule>
-    </template>
-  </listbox>
+  <listbox id="whiteListAbURI" rows="5"/>
 
   <vbox>
     <hbox>

@@ -190,6 +190,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mail.server.server2.name' :  "tinderbox@invalid.com",
         'mail.server.server2.type' :  "pop3",
         'mail.server.server2.userName' :  "tinderbox",
+        'mail.server.server2.whiteListAbURI': "",
         'mail.smtp.defaultserver' :  "smtp1",
         'mail.smtpserver.smtp1.hostname' :  "tinderbox",
         'mail.smtpserver.smtp1.username' :  "tinderbox",

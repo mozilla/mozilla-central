@@ -42,6 +42,9 @@ var gPrefBranch = null;
 
 function onInit(aPageId, aServerId)
 {
+  Components.utils.import("resource:///modules/mailServices.js");
+  Components.utils.import("resource:///modules/iteratorUtils.jsm");
+
   // manually adjust several pref UI elements
   document.getElementById('spamLevel').checked =
     document.getElementById('server.spamLevel').value > 0;
@@ -80,17 +83,45 @@ function onInit(aPageId, aServerId)
   // OK for folder to not exist
   catch (e) {}
 
-  // set up the whitelist UI
-  var wList = document.getElementById("whiteListAbURI");
   var currentArray = [];
   if (document.getElementById("server.useWhiteList").checked)
     currentArray = document.getElementById("server.whiteListAbURI").value.split(" ");
 
-  for (var i = 0; i < wList.getRowCount(); i++)
-  {
-    var wlNode = wList.getItemAtIndex(i);
-    wlNode.checked = (currentArray.indexOf(wlNode.id) > -1);
+  // set up the whitelist UI
+  var wList = document.getElementById("whiteListAbURI");
+
+  // Populate the listbox with address books
+  let abItems = [];
+  for (let ab in fixIterator(MailServices.ab.directories,
+                             Components.interfaces.nsIAbDirectory)) {
+    // We skip mailing lists and remote address books.
+    if (ab.isMailList || ab.isRemote)
+      continue;
+
+    let abItem = document.createElement("listitem");
+    abItem.setAttribute("type", "checkbox");
+    abItem.setAttribute("class", "listitem-iconic");
+    abItem.setAttribute("label", ab.dirName);
+    abItem.setAttribute("value", ab.URI);
+
+    // Due to bug 448582, we have to use setAttribute to set the
+    // checked value of the listitem.
+    abItem.setAttribute("checked",  (currentArray.indexOf(ab.URI) != -1));
+
+    abItems.push(abItem);
   }
+
+  // Sort the list
+  function sortFunc(a, b) {
+    return a.getAttribute("label").toLowerCase()
+           > b.getAttribute("label").toLowerCase();
+  }
+
+  abItems.sort(sortFunc);
+
+  // And then append each item to the listbox
+  for (let i = 0; i < abItems.length; i++)
+    wList.appendChild(abItems[i]);
 
   // set up trusted IP headers
   var serverFilterList = document.getElementById("useServerFilterList");
@@ -174,8 +205,10 @@ function onSaveWhiteList()
   for (var i = 0; i < wList.getRowCount(); i++)
   {
     var wlNode = wList.getItemAtIndex(i);
-    if (wlNode.checked)
-      wlArray.push(wlNode.id);
+    if (wlNode.checked) {
+      let abURI = wlNode.getAttribute("value");
+      wlArray.push(abURI);
+    }
   }
   var wlValue = wlArray.join(" ");
   document.getElementById("server.whiteListAbURI").setAttribute("value", wlValue);
