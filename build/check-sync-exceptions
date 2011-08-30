@@ -1,0 +1,12 @@
+merge-installrdf.py
+png2ico.py
+
+# Ignore detritus left lying around by editing tools.
+*~
+.#*
+#*#
+*.orig
+*.rej
+
+# Ignore "compiled" python files
+*.pyc

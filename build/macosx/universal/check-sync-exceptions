@@ -1,0 +1,8 @@
+flight.mk
+
+# Ignore detritus left lying around by editing tools.
+*~
+.#*
+#*#
+*.orig
+*.rej
