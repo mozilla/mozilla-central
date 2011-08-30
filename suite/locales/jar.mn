@@ -42,6 +42,7 @@
   locale/@AB_CD@/communicator/utilityOverlay.properties                     (%chrome/common/utilityOverlay.properties)
   locale/@AB_CD@/communicator/viewZoomOverlay.dtd                           (%chrome/common/viewZoomOverlay.dtd)
   locale/@AB_CD@/communicator/viewZoomOverlay.properties                    (%chrome/common/viewZoomOverlay.properties)
+  locale/@AB_CD@/communicator/about.dtd                                     (%chrome/common/about.dtd)
   locale/@AB_CD@/communicator/aboutSessionRestore.dtd                       (%chrome/common/aboutSessionRestore.dtd)
   locale/@AB_CD@/communicator/aboutSyncTabs.dtd                             (%chrome/common/aboutSyncTabs.dtd)
   locale/@AB_CD@/communicator/bookmarks/bm-props.properties                 (%chrome/common/bookmarks/bm-props.properties)

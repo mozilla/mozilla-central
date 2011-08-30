@@ -8,6 +8,8 @@
 %aboutDTD;
 <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
 %globalDTD;
+<!ENTITY % suiteAboutDTD SYSTEM "chrome://communicator/locale/about.dtd" >
+%suiteAboutDTD;
 ]>
 
 <!-- ***** BEGIN LICENSE BLOCK *****
@@ -66,6 +68,7 @@
   </div>
 
   <ul id="aboutPageList">
+    <li>&channel.description.start;<strong id="currentChannel">default</strong>&channel.description.end;</li>
     <li>&about.credits.beforeLink;<a href="about:credits">&about.credits.linkTitle;</a>&about.credits.afterLink;</li>
     <li>&about.license.beforeTheLink;<a href="about:license">&about.license.linkTitle;</a>&about.license.afterTheLink;</li>
     <li>&about.relnotes.beforeTheLink;<a id="releaseNotesURL" href="">&about.relnotes.linkTitle;</a>&about.relnotes.afterTheLink;</li>
@@ -105,7 +108,18 @@
         listItem.appendChild(document.createTextNode("&about.buildIdentifier;"));
         listItem.appendChild(document.createTextNode(ua));
       }
+
+      // Determine and display current channel.
+      try {
+        var updateChannel =
+            Components.classes["@mozilla.org/preferences-service;1"]
+                      .getService(Components.interfaces.nsIPrefService)
+                      .getDefaultBranch("")
+                      .getCharPref("app.update.channel");
+        document.getElementById("currentChannel").textContent = updateChannel;
+      } catch (ex) {}
     </script>
+
   </ul>
 
 </body>
