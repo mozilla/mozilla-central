@@ -174,6 +174,13 @@ CONFIGURES += $(TOPSRCDIR)/mozilla/js/src/configure
 # The default rule is build
 build::
 
+# These targets are candidates for auto-running client.py
+ifdef  ALWAYS_RUN_CLIENT_PY
+build::                      run_client_py
+configure::                  run_client_py
+endif
+
+
 # Print out any options loaded from mozconfig.
 all build clean depend distclean export libs install realclean::
 	@if test -f .mozconfig.out; then \
@@ -407,9 +414,14 @@ cleansrcdir:
 echo-variable-%:
 	@echo $($*)
 
+checkout co: run_client_py
+
+run_client_py:
+	$(PYTHON) $(TOPSRCDIR)/client.py checkout $(CLIENT_PY_ARGS)
+
 # This makefile doesn't support parallel execution. It does pass
 # MOZ_MAKE_FLAGS to sub-make processes, so they will correctly execute
 # in parallel.
 .NOTPARALLEL:
 
-.PHONY: checkout real_checkout depend build profiledbuild maybe_clobber_profiledbuild export libs alldep install clean realclean distclean cleansrcdir pull_all build_all clobber clobber_all pull_and_build_all everything configure preflight_all preflight postflight postflight_all
+.PHONY: checkout co real_checkout depend build profiledbuild maybe_clobber_profiledbuild export libs alldep install clean realclean distclean cleansrcdir pull_all build_all clobber clobber_all pull_and_build_all everything configure preflight_all preflight postflight postflight_all
