@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Blake Winton <bwinton@latte.ca>
+ *   Mike Conley <mconley@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,7 +43,7 @@ var MODULE_NAME = "test-message-filters";
 
 var RELATIVE_ROOT = "../shared-modules";
 var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers",
-                       "test-nntp-helpers"];
+                       "test-nntp-helpers", "address-book-helpers"];
 
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
@@ -56,6 +57,8 @@ function setupModule(module)
   wh.installInto(module);
   let nh = collector.getModule("test-nntp-helpers");
   nh.installInto(module);
+  let abh = collector.getModule("address-book-helpers");
+  abh.installInto(module);
 
   setupNNTPDaemon();
 
@@ -142,4 +145,52 @@ function test_customize_toolbar_doesnt_double_get_mail_menu()
   toolbox.node.customizeDone();
   assert_equals(menu.node.itemCount, 5,
                 "Incorrect number of items for GetNewMessages after customization");
+}
+
+/*
+ * Test that the address books can appear in the message filter dropdown
+ */
+function test_address_books_appear_in_message_filter_dropdown()
+{
+  // Create a remote address book - we don't want this to appear in the
+  // dropdown.
+  let ldapAb = create_ldap_address_book("Some LDAP Address Book");
+
+  // Sanity check - this LDAP book should be remote.
+  assert_true(ldapAb.isRemote);
+
+  // Open the "Tools » Message Filters…" window,
+  // a.k.a. "tasksMenu » filtersCmd".
+  mc.menus.Tools.filtersCmd.click();
+
+  // We'll assume that the filters dialog is already open from
+  // the previous tests.
+  let filterc = wait_for_existing_window("mailnews:filterlist");
+
+  // Prepare a function to deal with the filter editor once it
+  // has opened
+  function filterEditorOpened(fec) {
+    let searchAttr = fec.e("searchAttr0");
+    let attrList = fec.window.document.getAnonymousNodes(searchAttr)[0];
+    attrList.value = Components.interfaces.nsMsgSearchAttrib.To;
+    let searchOp = fec.e("searchOp0");
+    let opList = fec.window.document.getAnonymousNodes(searchOp)[0];
+    opList.value = Components.interfaces.nsMsgSearchOp.IsInAB;
+    let searchValue = fec.e("searchVal0");
+
+    // The magic number "4" is because the address book list is the
+    // 4th child node of the searchvalue widget.
+    let abList = fec.window.document.getAnonymousNodes(searchValue)[4];
+
+    // We should have 2 address books here - one for the Personal Address
+    // Book, and one for Collected Addresses.  The LDAP address book should
+    // not be shown, since it isn't a local address book.
+    assert_equals(2, abList.itemCount, "Did not display the correct number "
+                  + "of address books in the filter menu list.");
+  }
+
+  // Let's open the filter editor.
+  plan_for_modal_dialog("mailnews:filtereditor", filterEditorOpened);
+  filterc.click(filterc.eid("newButton"));
+  wait_for_modal_dialog("mailnews:filtereditor");
 }
