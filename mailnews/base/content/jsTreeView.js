@@ -190,9 +190,8 @@ PROTO_TREE_VIEW.prototype = {
 
       // Note that these children may have been open when we were last closed,
       // and if they are, we also have to add those grandchildren to the map
-      let tree = this;
       let oldCount = this._rowMap.length;
-      function recursivelyAddToMap(aChild, aNewIndex) {
+      function recursivelyAddToMap(aChild, aNewIndex, tree) {
         // When we add sub-children, we're going to need to increase our index
         // for the next add item at our own level
         let currentCount = tree._rowMap.length;
@@ -200,12 +199,15 @@ PROTO_TREE_VIEW.prototype = {
           for (let [i, child] in Iterator(tree._rowMap[aNewIndex].children)) {
             let index = aNewIndex + i + 1;
             tree._rowMap.splice(index, 0, child);
-            aNewIndex += recursivelyAddToMap(child, index);
+            aNewIndex += recursivelyAddToMap(child, index, tree);
           }
         }
         return tree._rowMap.length - currentCount;
       }
-      recursivelyAddToMap(this._rowMap[aIndex], aIndex);
+
+      // Workaround for bug 682096, by passing this for the recursive function,
+      // as opposed to setting "tree = this" outside of the function.
+      recursivelyAddToMap(this._rowMap[aIndex], aIndex, this);
 
       // Add this container to the persist map
       let id = this._rowMap[aIndex].id;
