@@ -73,6 +73,7 @@ public:
   LPSPropValue  GetListProperty( LPDISTLIST pList, ULONG tag);
   void      FreeProperty( LPSPropValue pVal) { if (pVal) m_lpWABObject->FreeBuffer( pVal);}
   void      GetValueString( LPSPropValue pVal, nsString& val);
+  void      GetValueTime(LPSPropValue pVal, PRTime& val);
 
   void      CStrToUnicode( const char *pStr, nsString& result);
 

@@ -40,6 +40,7 @@
 
 #include "nsString.h"
 #include "nsIFile.h"
+#include <windows.h>
 
 class nsIInputStream;
 
@@ -54,6 +55,8 @@ public:
   static PRBool  ReadIndex( nsIInputStream *pFile, PRUint32 **ppIndex, PRUint32 *pSize);
 
   static nsresult  ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsString& name, nsIFile *inFile, nsIFile *pDestination, PRUint32 *pCount);
+
+  static void FileTimeToPRTime(const FILETIME *filetime, PRTime *prtm);
 
 private:
   typedef struct {

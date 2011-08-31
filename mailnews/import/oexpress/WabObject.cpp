@@ -37,6 +37,7 @@
 
 #include <tchar.h>
 #include "nscore.h"
+#include "nsOE5File.cpp"
 #include "wabobject.h"
 
 enum {
@@ -625,6 +626,16 @@ void CWAB::GetValueString( LPSPropValue pVal, nsString& val)
 }
 
 
+void CWAB::GetValueTime(LPSPropValue pVal, PRTime& val)
+{
+  if (!pVal)
+    return;
+
+  if (PROP_TYPE(pVal->ulPropTag) != PT_SYSTIME)
+    return;
+
+  nsOE5File::FileTimeToPRTime(&pVal->Value.ft, &val);
+}
 
 
 

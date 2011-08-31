@@ -57,6 +57,7 @@ private:
   PRBool    BuildCard( const PRUnichar * pName, nsIMdbRow *card, LPMAILUSER pUser);
   void    SanitizeValue( nsString& val);
   void    SplitString( nsString& val1, nsString& val2);
+  void    SetBirthDay(nsIMdbRow *card, PRTime& birthDay);
 
   CWAB *                m_pWab;
   nsCOMPtr<nsIAddrDatabase>     m_database;

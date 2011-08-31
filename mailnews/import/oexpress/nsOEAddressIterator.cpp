@@ -283,6 +283,20 @@ void nsOEAddressIterator::SplitString( nsString& val1, nsString& val2)
   }
 }
 
+void nsOEAddressIterator::SetBirthDay(nsIMdbRow *newRow, PRTime& birthDay)
+{
+  PRExplodedTime exploded;
+  PR_ExplodeTime(birthDay, PR_LocalTimeParameters, &exploded);
+
+  char stringValue[5];
+  PR_snprintf(stringValue, sizeof(stringValue), "%04d", exploded.tm_year);
+  m_database->AddBirthYear(newRow, stringValue);
+  PR_snprintf(stringValue, sizeof(stringValue), "%02d", exploded.tm_month + 1);
+  m_database->AddBirthMonth(newRow, stringValue);
+  PR_snprintf(stringValue, sizeof(stringValue), "%02d", exploded.tm_mday);
+  m_database->AddBirthDay(newRow, stringValue);
+}
+
 PRBool nsOEAddressIterator::BuildCard( const PRUnichar * pName, nsIMdbRow *newRow, LPMAILUSER pUser)
 {
   
@@ -291,6 +305,7 @@ PRBool nsOEAddressIterator::BuildCard( const PRUnichar * pName, nsIMdbRow *newRo
   nsString    eMail;
   nsString    nickName;
   nsString    middleName;
+  PRTime      birthDay = 0;
   
   LPSPropValue  pProp = m_pWab->GetUserProperty( pUser, PR_EMAIL_ADDRESS);
   if (pProp) {
@@ -349,6 +364,12 @@ PRBool nsOEAddressIterator::BuildCard( const PRUnichar * pName, nsIMdbRow *newRo
       }
     }
   }
+
+  pProp = m_pWab->GetUserProperty(pUser, PR_BIRTHDAY);
+  if (pProp) {
+    m_pWab->GetValueTime(pProp, birthDay);
+    m_pWab->FreeProperty(pProp);
+  }
   
   // We now have the required fields
   // write them out followed by any optional fields!
@@ -366,6 +387,10 @@ PRBool nsOEAddressIterator::BuildCard( const PRUnichar * pName, nsIMdbRow *newRo
   }
   if (!eMail.IsEmpty()) {
     m_database->AddPrimaryEmail( newRow, NS_ConvertUTF16toUTF8(eMail).get());
+  }
+
+  if (birthDay) {
+    SetBirthDay(newRow, birthDay);
   }
   
   // Do all of the extra fields!

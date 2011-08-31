@@ -71,8 +71,7 @@ static char *gSig =
 
 // copied from nsprpub/pr/src/{io/prfile.c | md/windows/w95io.c} :
 // PR_FileTimeToPRTime and _PR_FileTimeToPRTime
-static
-void FileTimeToPRTime(const FILETIME *filetime, PRTime *prtm)
+void nsOE5File::FileTimeToPRTime(const FILETIME *filetime, PRTime *prtm)
 {
 #ifdef __GNUC__
     const PRTime _pr_filetime_offset = 116444736000000000LL;
@@ -371,7 +370,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
         char              buffer[128] = "";
         PRTime            prt;
 
-        FileTimeToPRTime((FILETIME *)&pTime[i], &prt);
+        nsOE5File::FileTimeToPRTime((FILETIME *)&pTime[i], &prt);
         // modeled after nsMsgSend.cpp
         PR_ExplodeTime(prt, PR_LocalTimeParameters, &xpldTime);
         PR_FormatTimeUSEnglish(buffer, sizeof(buffer),
