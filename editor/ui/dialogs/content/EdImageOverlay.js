@@ -119,33 +119,20 @@ function InitImage()
   // Force loading of image from its source and show preview image
   LoadPreviewImage();
 
-  if (globalElement.hasAttribute("title"))
-    gDialog.titleInput.value = globalElement.getAttribute("title");
+  gDialog.titleInput.value = globalElement.getAttribute("title");
 
   var hasAltText = globalElement.hasAttribute("alt");
-  var altText;
-  if (hasAltText)
+  var altText = globalElement.getAttribute("alt");
+  gDialog.altTextInput.value = altText;
+  if (altText || (!hasAltText && globalElement.hasAttribute("src")))
   {
-    altText = globalElement.getAttribute("alt");
-    gDialog.altTextInput.value = altText;
+    gDialog.altTextRadioGroup.selectedItem = gDialog.altTextRadio;
   }
-
-  // Initialize altText widgets during dialog startup 
-  //   or if user enterred altText in Advanced Edit dialog
-  //  (this preserves "Don't use alt text" radio button state)
-  if (!gDialog.altTextRadioGroup.selectedItem || altText)
+  else if (hasAltText)
   {
-    if (gInsertNewImage || !hasAltText || (hasAltText && gDialog.altTextInput.value))
-    {
-      SetAltTextDisabled(false);
-      gDialog.altTextRadioGroup.selectedItem = gDialog.altTextRadio;
-    }
-    else
-    {
-      SetAltTextDisabled(true);
-      gDialog.altTextRadioGroup.selectedItem = gDialog.noAltTextRadio;
-    }
+    gDialog.altTextRadioGroup.selectedItem = gDialog.noAltTextRadio;
   }
+  SetAltTextDisabled(gDialog.altTextRadioGroup.selectedItem == gDialog.noAltTextRadio);
 
   // setup the height and width widgets
   var width = InitPixelOrPercentMenulist(globalElement,
@@ -562,14 +549,21 @@ function ValidateImage()
   if (useAlt)
     alt = TrimString(gDialog.altTextInput.value);
 
-  if (gDoAltTextError && useAlt && !alt)
+  if (alt || !useAlt)
+  {
+    globalElement.setAttribute("alt", alt);
+  }
+  else if (!gDoAltTextError)
+  {
+    globalElement.removeAttribute("alt");
+  }
+  else
   {
     AlertWithTitle(null, GetString("NoAltText"));
     SwitchToValidatePanel();
     gDialog.altTextInput.focus();
     return false;
   }
-  globalElement.setAttribute("alt", alt);
 
   var width = "";
   var height = "";
