@@ -48,7 +48,6 @@
 #include "nsIAbMDBDirectory.h"
 #include "nsAbQueryStringToExpression.h"
 #include "nsAbUtils.h"
-#include "nsIProxyObjectManager.h"
 #include "nsEnumeratorUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "prlog.h"
@@ -971,16 +970,8 @@ NS_IMETHODIMP nsAbOutlookDirectory::StartSearch(void)
 
     retCode = arguments->SetQuerySubDirectories(PR_TRUE) ;
     NS_ENSURE_SUCCESS(retCode, retCode) ;
-    nsCOMPtr<nsIAbDirSearchListener> proxyListener;
 
-    retCode = MsgGetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                                   NS_GET_IID(nsIAbDirSearchListener),
-                                   static_cast<nsIAbDirSearchListener *>(this),
-                                   NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                                   getter_AddRefs(proxyListener));
-    NS_ENSURE_SUCCESS(retCode, retCode);
-
-    return DoQuery(this, arguments, proxyListener, -1, 0, &mSearchContext);
+    return DoQuery(this, arguments, this, -1, 0, &mSearchContext);
 }
 
 NS_IMETHODIMP nsAbOutlookDirectory::StopSearch(void) 

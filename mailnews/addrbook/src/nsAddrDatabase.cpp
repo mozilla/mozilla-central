@@ -51,8 +51,6 @@
 #include "nsMsgUtils.h"
 #include "nsMorkCID.h"
 #include "nsIMdbFactoryFactory.h"
-#include "nsIProxyObjectManager.h"
-#include "nsProxiedService.h"
 #include "prprf.h"
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
@@ -60,7 +58,6 @@
 #include "nsIStringBundle.h"
 #include "nsIFile.h"
 #include "nsEmbedCID.h"
-#include "nsXPCOMCIDInternal.h"
 #include "nsIProperty.h"
 #include "nsIVariant.h"
 #include "nsCOMArray.h"
@@ -3197,8 +3194,7 @@ NS_IMETHODIMP nsAddrDatabase::AddListDirNode(nsIMdbRow * listRow)
 {
   nsresult rv = NS_OK;
 
-  NS_WITH_PROXIED_SERVICE(nsIAbManager, abManager, NS_ABMANAGER_CONTRACTID,
-                          NS_PROXY_TO_MAIN_THREAD, &rv);
+  nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
 
   if (NS_SUCCEEDED(rv))
   {
@@ -3213,18 +3209,7 @@ NS_IMETHODIMP nsAddrDatabase::AddListDirNode(nsIMdbRow * listRow)
                                  getter_AddRefs(parentDir));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr =
-        do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsIAbDirectory> proxiedParentDir = nsnull;
-    rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                                        NS_GET_IID( nsIAbDirectory),
-                                        parentDir,
-                                        NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                                        getter_AddRefs(proxiedParentDir));
-    if (proxiedParentDir)
+    if (parentDir)
     {
       m_dbDirectory = do_GetWeakReference(parentDir);
       nsCOMPtr<nsIAbDirectory> mailList;

@@ -53,19 +53,15 @@
 #include "nsIStringBundle.h"
 #include "nsImportStringBundle.h"
 #include "nsTextFormatter.h"
-#include "nsIProxyObjectManager.h"
 #include "nsServiceManagerUtils.h"
 #include "msgCore.h"
 #include "ImportDebug.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsComponentManagerUtils.h"
-#include "nsXPCOMCIDInternal.h"
 #include "nsISupportsArray.h"
-#include "nsProxiedService.h"
 #include "nsCOMArray.h"
 
 static void ImportAddressThread( void *stuff);
-
 
 class AddressThreadData;
 
@@ -122,7 +118,7 @@ private:
   PRBool            m_doImport;
   AddressThreadData *      m_pThreadData;
   char *            m_pDestinationUri;
-    nsCOMPtr<nsIStringBundle>   m_stringBundle;
+  nsCOMPtr<nsIStringBundle>   m_stringBundle;
 };
 
 class AddressThreadData {
@@ -135,7 +131,7 @@ public:
   PRUint32          currentSize;
   nsISupportsArray *      books;
   nsCOMArray<nsIAddrDatabase>* dBs;
-  nsIAbLDIFService *ldifService;
+  nsCOMPtr<nsIAbLDIFService> ldifService;
   nsIImportAddressBooks *    addressImport;
   nsIImportFieldMap *      fieldMap;
   nsISupportsString *    successLog;
@@ -145,9 +141,6 @@ public:
 
   AddressThreadData();
   ~AddressThreadData();
-  void DriverDelete();
-  void ThreadDelete();
-  void DriverAbort();
 };
 
 
@@ -187,17 +180,12 @@ nsImportGenericAddressBooks::nsImportGenericAddressBooks()
   m_found = PR_FALSE;
   m_userVerify = PR_FALSE;
 
-    nsImportStringBundle::GetStringBundle(IMPORT_MSGS_URL, getter_AddRefs(m_stringBundle));
+  nsImportStringBundle::GetStringBundle(IMPORT_MSGS_URL, getter_AddRefs(m_stringBundle));
 }
 
 
 nsImportGenericAddressBooks::~nsImportGenericAddressBooks()
 {
-  if (m_pThreadData) {
-    m_pThreadData->DriverAbort();
-    m_pThreadData = nsnull;
-  }
-
   if (m_pDestinationUri)
     NS_Free( m_pDestinationUri);
 
@@ -476,11 +464,6 @@ NS_IMETHODIMP nsImportGenericAddressBooks::WantsProgress(PRBool *_retval)
     if (!_retval)
         return NS_ERROR_NULL_POINTER;
 
-  if (m_pThreadData) {
-    m_pThreadData->DriverAbort();
-    m_pThreadData = nsnull;
-  }
-
   GetDefaultLocation();
   GetDefaultBooks();
 
@@ -677,11 +660,6 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
     return NS_OK;
   }
 
-  if (m_pThreadData) {
-    m_pThreadData->DriverAbort();
-    m_pThreadData = nsnull;
-  }
-
   NS_IF_RELEASE( m_pSuccessLog);
   NS_IF_RELEASE( m_pErrorLog);
   m_pSuccessLog = successLog;
@@ -690,7 +668,9 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
   NS_IF_ADDREF( m_pErrorLog);
 
 
-  // kick off the thread to do the import!!!!
+  // create the info need to drive address book import. We're
+  // not going to create a new thread for this since address books
+  // don't tend to be large, and import is rare.
   m_pThreadData = new AddressThreadData();
   m_pThreadData->books = m_pBooks;
   NS_ADDREF( m_pBooks);
@@ -730,44 +710,15 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
   NS_IF_ADDREF(m_pThreadData->stringBundle = m_stringBundle);
 
   nsresult rv;
-  nsCOMPtr<nsIAbLDIFService> ldifService(do_GetService(NS_ABLDIFSERVICE_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  m_pThreadData->ldifService = do_GetService(NS_ABLDIFSERVICE_CONTRACTID, &rv);
 
-  nsCOMPtr<nsIProxyObjectManager> proxyObjectManager =
-    do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIAbLDIFService> proxyLDIFService;
-  rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_CURRENT_THREAD,
-                                             NS_GET_IID(nsIAbLDIFService),
-                                             ldifService,
-                                             NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                                             getter_AddRefs(proxyLDIFService));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  NS_IF_ADDREF(m_pThreadData->ldifService = proxyLDIFService);
-
-  PRThread *pThread = PR_CreateThread( PR_USER_THREAD, &ImportAddressThread, m_pThreadData,
-                  PR_PRIORITY_NORMAL,
-                  PR_LOCAL_THREAD,
-                  PR_UNJOINABLE_THREAD,
-                  0);
-  if (!pThread) {
-    m_pThreadData->ThreadDelete();
-    m_pThreadData->DriverDelete();
-    m_pThreadData = nsnull;
-    *_retval = PR_FALSE;
-    nsImportStringBundle::GetStringByID(IMPORT_ERROR_AB_NOTHREAD,
-                                        m_stringBundle, error);
-    SetLogs( success, error, successLog, errorLog);
-  }
-  else
-    *_retval = PR_TRUE;
+  ImportAddressThread(m_pThreadData);
+  delete m_pThreadData;
+  m_pThreadData = nsnull;
+  *_retval = PR_TRUE;
 
   return( NS_OK);
-
 }
-
 
 NS_IMETHODIMP nsImportGenericAddressBooks::ContinueImport(PRBool *_retval)
 {
@@ -826,7 +777,6 @@ NS_IMETHODIMP nsImportGenericAddressBooks::CancelImport(void)
 {
   if (m_pThreadData) {
     m_pThreadData->abort = PR_TRUE;
-    m_pThreadData->DriverAbort();
     m_pThreadData = nsnull;
   }
 
@@ -863,33 +813,7 @@ AddressThreadData::~AddressThreadData()
   NS_IF_RELEASE(successLog);
   NS_IF_RELEASE(fieldMap);
   NS_IF_RELEASE(stringBundle);
-  NS_IF_RELEASE(ldifService);
 }
-
-void AddressThreadData::DriverDelete( void)
-{
-  driverAlive = PR_FALSE;
-  if (!driverAlive && !threadAlive)
-    delete this;
-}
-
-void AddressThreadData::ThreadDelete()
-{
-  threadAlive = PR_FALSE;
-  if (!driverAlive && !threadAlive)
-    delete this;
-}
-
-void AddressThreadData::DriverAbort()
-{
-  if (abort && !threadAlive) {
-    // FIXME: Do whatever is necessary to abort what has already been imported!
-  }
-  else
-    abort = PR_TRUE;
-  DriverDelete();
-}
-
 
 void nsImportGenericAddressBooks::ReportError(const PRUnichar *pName,
                                               nsString *pStream,
@@ -920,14 +844,6 @@ static void ImportAddressThread( void *stuff)
   nsString          success;
   nsString          error;
 
-    nsCOMPtr<nsIStringBundle> pBundle;
-    rv = nsImportStringBundle::GetStringBundleProxy(pData->stringBundle, getter_AddRefs(pBundle));
-    if (NS_FAILED(rv))
-    {
-      IMPORT_LOG0("*** ImportMailThread: Unable to obtain proxy string service for the import.");
-      pData->abort = PR_TRUE;
-    }
-
   for (i = 0; (i < count) && !(pData->abort); i++) {
     nsCOMPtr<nsIImportABDescriptor> book =
       do_QueryElementAt(pData->books, i);
@@ -944,24 +860,9 @@ static void ImportAddressThread( void *stuff)
 
         nsCOMPtr<nsIAddrDatabase> db = pData->dBs->ObjectAt(i);
 
-        nsCOMPtr<nsIProxyObjectManager> proxyObjectManager =
-          do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-        if (NS_FAILED(rv))
-          return;
-
-        nsCOMPtr<nsIAddrDatabase> proxyAddrDatabase;
-        rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                                                   NS_GET_IID(nsIAddrDatabase),
-                                                   db,
-                                                   NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                                                   getter_AddRefs(proxyAddrDatabase));
-        if (NS_FAILED(rv))
-          return;
-
-
         PRBool fatalError = PR_FALSE;
         pData->currentSize = size;
-        if (proxyAddrDatabase) {
+        if (db) {
           PRUnichar *pSuccess = nsnull;
           PRUnichar *pError = nsnull;
 
@@ -981,7 +882,7 @@ static void ImportAddressThread( void *stuff)
           */
 
           rv = pData->addressImport->ImportAddressBook(book,
-                                                       proxyAddrDatabase,
+                                                       db,
                                                        pData->fieldMap,
                                                        pData->ldifService,
                                                        &pError,
@@ -997,15 +898,14 @@ static void ImportAddressThread( void *stuff)
           }
         }
         else {
-          nsImportGenericAddressBooks::ReportError(name.get(), &error, pBundle);
+          nsImportGenericAddressBooks::ReportError(name.get(), &error, pData->stringBundle);
         }
 
         pData->currentSize = 0;
         pData->currentTotal += size;
 
-        if (!proxyAddrDatabase) {
-          proxyAddrDatabase->Close( PR_TRUE);
-        }
+        if (db)
+          db->Close(PR_TRUE);
 
         if (fatalError) {
           pData->fatalError = PR_TRUE;
@@ -1024,5 +924,4 @@ static void ImportAddressThread( void *stuff)
     // the ones we created?
   }
 
-  pData->ThreadDelete();
 }
