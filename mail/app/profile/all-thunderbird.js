@@ -633,7 +633,10 @@ pref("places.history.enabled", false);
 // allowed cache size it will at most use the size of the database file.
 // Changes to this value are effective after an application restart.
 // Acceptable values are between 0 and 50.
-pref("places.database.cache_to_memory_percentage", 6);
+// In Thunderbird, we're not exercising places much, so it makes sense to make
+// it use a lower percentage of the cache. Plus, we have another more important
+// sqlite database (gloda) that deserves to use cache.
+pref("places.database.cache_to_memory_percentage", 1);
 
 // the (maximum) number of the recent visits to sample
 // when calculating frecency
