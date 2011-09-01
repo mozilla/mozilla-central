@@ -140,6 +140,7 @@
     <textbox id="search-box"
              clickSelectsAll="true"
              type="search"
+             aria-controls="historyTree"
              placeholder="&search.placeholder;"
              oncommand="searchHistory(this.value);"/>
   </toolbar>

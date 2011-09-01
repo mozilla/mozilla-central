@@ -97,6 +97,7 @@
              value="&tabs.otherComputers.label;"/>
       <spacer flex="1"/>
       <textbox type="search"
+               aria-controls="tabsList"
                emptytext="&tabs.searchText.label;"
                oncommand="RemoteTabViewer.filterTabs(event);"/>
     </hbox>

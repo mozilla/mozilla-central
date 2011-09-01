@@ -168,6 +168,7 @@
       <textbox id="domainSearch"
                clickSelectsAll="true"
                type="search"
+               aria-controls="domainTree"
                class="compact"
                placeholder="&domain.search.placeholder;"
                oncommand="gDomains.search(this.value);"/>
@@ -405,6 +406,7 @@
           <textbox id="fdataSearch"
                    clickSelectsAll="true"
                    type="search"
+                   aria-controls="formdataTree"
                    class="compact"
                    placeholder="&fdata.search.placeholder;"
                    oncommand="gFormdata.search(this.value);"/>

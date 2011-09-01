@@ -71,6 +71,7 @@
   <hbox align="center">
     <textbox id="search-box" flex="1" type="search"
              placeholder="&search.placeholder;" clickSelectsAll="true"
+             aria-controls="historyTree"
              oncommand="searchHistory(this.value);"/>
     <toolbarbutton id="viewButton" type="menu" class="tabbable"
                    label="&view.label;">

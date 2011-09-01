@@ -377,6 +377,7 @@
       <textbox id="search-box"
                clickSelectsAll="true"
                type="search"
+               aria-controls="downloadTree"
                class="compact"
                placeholder="&search.placeholder;"
                oncommand="searchDownloads(this.value);"/>
