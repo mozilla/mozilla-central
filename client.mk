@@ -176,8 +176,10 @@ build::
 
 # These targets are candidates for auto-running client.py
 ifdef  ALWAYS_RUN_CLIENT_PY
+ifeq (0,${MAKELEVEL})
 build::                      run_client_py
 configure::                  run_client_py
+endif
 endif
 
 
