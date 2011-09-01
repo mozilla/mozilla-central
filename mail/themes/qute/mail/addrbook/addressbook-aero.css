@@ -46,6 +46,11 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 @namespace html url("http://www.w3.org/1999/xhtml");
 
+#addressbookWindow:-moz-lwtheme {
+  background-repeat: no-repeat;
+  background-position: top right;
+}
+
 /* :::: Toolbar :::: */
 
 #ab-toolbox {
@@ -326,7 +331,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 }
 
 #abContent {
-  -moz-appearance: toolbox;
+  text-shadow: none;
   background-color: -moz-Dialog;
 }
 

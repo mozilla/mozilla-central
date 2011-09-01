@@ -46,6 +46,11 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 @namespace html url("http://www.w3.org/1999/xhtml");
 
+#addressbookWindow:-moz-lwtheme {
+  background-repeat: no-repeat;
+  background-position: top right;
+}
+
 #ab-bar2 {
   padding: 0 4px;
 }
@@ -244,10 +249,13 @@ toolbar[iconsize="small"] #button-abdelete[disabled] {
   -moz-image-region: rect(48px 144px 72px 120px) !important;
 }
 
+#abContent {
+  color: -moz-DialogText;
+  text-shadow: none;
+  background-color: -moz-Dialog;
+}
 
 /* ::::: directory pane icons ::::: */
-
-
 
 #abDirTreeHeader {
   -moz-appearance: treeheadercell;

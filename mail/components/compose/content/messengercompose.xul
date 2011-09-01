@@ -72,7 +72,9 @@
         title="&msgComposeWindow.title;"
         windowtype="msgcompose"
         toggletoolbar="true"
-        persist="screenX screenY width height sizemode"> 
+        persist="screenX screenY width height sizemode"
+        lightweightthemes="true"
+        lightweightthemesfooter="status-bar">
 
 <stringbundleset id="stringbundleset">
   <stringbundle id="bundle_composeMsgs" src="chrome://messenger/locale/messengercompose/composeMsgs.properties"/>

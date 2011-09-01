@@ -67,7 +67,9 @@
         onunload="OnUnloadMessageWindow()"
         persist="width height screenX screenY sizemode"
         toggletoolbar="true"
-        windowtype="mail:messageWindow">
+        windowtype="mail:messageWindow"
+        lightweightthemes="true"
+        lightweightthemesfooter="status-bar">
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>

@@ -63,7 +63,9 @@
     persist="width height screenX screenY sizemode"
     toggletoolbar="true"
     onload="OnLoadAddressBook()"
-    onunload="OnUnloadAddressBook()">
+    onunload="OnUnloadAddressBook()"
+    lightweightthemes="true"
+    lightweightthemesfooter="status-bar">
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>

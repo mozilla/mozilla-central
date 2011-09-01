@@ -45,11 +45,20 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+#msgcomposeWindow:-moz-lwtheme {
+  background-repeat: no-repeat;
+  background-position: top right;
+}
+
 /* Inactive window state */
 #compose-toolbox > toolbar:-moz-window-inactive {
   border-top-color: rgba(255,255,255,0.45);
   border-bottom-color: rgba(0,0,0,0.35);
   background-color: #cfcfcf;
+}
+
+#compose-toolbox > toolbar:-moz-lwtheme {
+  background-color: transparent;
 }
 
 #composeToolbar2 {
@@ -342,6 +351,8 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 }
 
 #MsgHeadersToolbar {
+  color: -moz-DialogText;
+  text-shadow: none;
   background-image: none;
   border-bottom: 0px solid;
 }
@@ -495,11 +506,18 @@ treechildren::-moz-tree-image(remote-err) {
   text-align: start;
 }
 
+/* ::::: compose toolbar sizer ::::: */
+
+#compose-toolbar-sizer {
+  background-color: -moz-Dialog;
+}
+
 /* ::::: format toolbar ::::: */
 
 #FormatToolbar {
   border-bottom: none;
   background-image: none;
+  background-color: -moz-Dialog !important;
   padding-top: 2px;
 }
 
@@ -937,8 +955,8 @@ toolbarbutton.formatting-button > .toolbarbutton-menubutton-dropmarker {
 }
 
 sidebarheader {
+  text-shadow: none;
   border-bottom: 1px solid #A3A3A3;
-        background: url("chrome://global/skin/inset_gradient_1px.png") repeat !important;
 }
 
 #sidebar-box {

@@ -46,6 +46,11 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+#msgcomposeWindow:-moz-lwtheme {
+  background-repeat: no-repeat;
+  background-position: top right;
+}
+
 /* ::::: primary toolbar buttons ::::: */
  
 .toolbarbutton-1 {
@@ -345,6 +350,7 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 #MsgHeadersToolbar {
   -moz-appearance: toolbar;
   color: WindowText;
+  text-shadow: none;
   min-height: 132px;
 }
 
@@ -649,6 +655,12 @@ toolbarbutton.formatting-button {
 
 #sidebar {
   background-color: Window;
+}
+
+#sidebar-box sidebarheader {
+  color: -moz-DialogText;
+  text-shadow: none;
+  background-color: -moz-Dialog;
 }
 
 /** Stock icons for the menu items. */

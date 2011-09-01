@@ -108,7 +108,19 @@ var gRemindLater;
 var gSendDefaultCharset;
 var gCharsetTitle;
 var gCharsetConvertManager;
-var gComposeBundle;
+var _gComposeBundle;
+function getComposeBundle() {
+  // That one has to be lazy. Getting a reference to an element with a XBL
+  // binding attached will cause the XBL constructors to fire if they haven't
+  // already. If we get a reference to the compose bundle at script load-time,
+  // this will cause the XBL constructor that's responsible for the personas to
+  // fire up, thus executing the personas code while the DOM is not fully built.
+  // Since this <script> comes before the <statusbar>, the Personas code will
+  // fail.
+  if (!_gComposeBundle)
+    _gComposeBundle = document.getElementById("bundle_composeMsgs");
+  return _gComposeBundle;
+}
 
 var gLastWindowToHaveFocus;
 var gReceiptOptionChanged;
@@ -148,7 +160,6 @@ function InitializeGlobalVariables()
   gSendDefaultCharset = null;
   gCharsetTitle = null;
   gCharsetConvertManager = Components.classes['@mozilla.org/charset-converter-manager;1'].getService(Components.interfaces.nsICharsetConverterManager);
-  gComposeBundle = document.getElementById("bundle_composeMsgs");
   gMailSession = Components.classes["@mozilla.org/messenger/services/session;1"].getService(Components.interfaces.nsIMsgMailSession);
   gHideMenus = false;
   gRemindLater = false;
@@ -488,7 +499,7 @@ var defaultController =
 
         var hasAttachments = MessageHasAttachments();
         if (hasAttachments) {
-          textValue = gComposeBundle.getString("removeAttachmentMsgs");
+          textValue = getComposeBundle().getString("removeAttachmentMsgs");
           textValue = PluralForm.get(numSelectedAttachments, textValue);
           accesskeyValue = cmdDelete.getAttribute("valueRemoveAttachmentAccessKey");
         }
@@ -1276,7 +1287,7 @@ attachmentWorker.onmessage = function(event)
     msgText.id = "attachmentReminderText";
     msgText.setAttribute("crop", "end");
     msgText.setAttribute("flex", "1");
-    let textValue = gComposeBundle.getString("attachmentReminderKeywordsMsgs");
+    let textValue = getComposeBundle().getString("attachmentReminderKeywordsMsgs");
     textValue = PluralForm.get(keywordsFound.length, textValue)
                           .replace("#1", keywordsFound.length);
     msgText.setAttribute("value", textValue);
@@ -1310,8 +1321,8 @@ attachmentWorker.onmessage = function(event)
     nBox.removeNotification(notification);
   if (msg) {
     var addButton = {
-      accessKey : gComposeBundle.getString("addAttachmentButton.accessskey"),
-      label: gComposeBundle.getString("addAttachmentButton"),
+      accessKey : getComposeBundle().getString("addAttachmentButton.accessskey"),
+      label: getComposeBundle().getString("addAttachmentButton"),
       callback: function (aNotificationBar, aButton)
       {
         goDoCommand("cmd_attachFile");
@@ -1319,8 +1330,8 @@ attachmentWorker.onmessage = function(event)
     };
 
     var remindButton = {
-      accessKey : gComposeBundle.getString("remindLaterButton.accessskey"),
-      label: gComposeBundle.getString("remindLaterButton"),
+      accessKey : getComposeBundle().getString("remindLaterButton.accessskey"),
+      label: getComposeBundle().getString("remindLaterButton"),
       callback: function (aNotificationBar, aButton)
       {
         gRemindLater = true;
@@ -1401,7 +1412,7 @@ function ShouldShowAttachmentNotification(async)
       mailData = mailData.substring(0, sigIndex);
 
     // Ignore forwarded messages (plain text and html compose mode).
-    let fwdText = gComposeBundle.getString("mailnews.reply_header_originalmessage");
+    let fwdText = getComposeBundle().getString("mailnews.reply_header_originalmessage");
     let fwdIndex = mailData.indexOf(fwdText);
     if (fwdIndex > 0)
       mailData = mailData.substring(0, fwdIndex);
@@ -1549,8 +1560,8 @@ function ComposeStartup(recycled, aParams)
           }
           else
           {
-            let title = gComposeBundle.getString("errorFileAttachTitle");
-            let msg = gComposeBundle.getFormattedString("errorFileAttachMessage",
+            let title = getComposeBundle().getString("errorFileAttachTitle");
+            let msg = getComposeBundle().getFormattedString("errorFileAttachMessage",
                                                         [attachmentName]);
             gPromptService.alert(window, title, msg);
           }
@@ -1802,8 +1813,8 @@ function ComposeLoad()
   }
   catch (ex) {
     Components.utils.reportError(ex);
-    gPromptService.alert(window, gComposeBundle.getString("initErrorDlogTitle"),
-                         gComposeBundle.getString("initErrorDlgMessage"));
+    gPromptService.alert(window, getComposeBundle().getString("initErrorDlogTitle"),
+                         getComposeBundle().getString("initErrorDlgMessage"));
 
     MsgComposeCloseWindow(false); // Don't try to recycle a bogus window
     return;
@@ -1996,12 +2007,12 @@ function GenericSendMessage( msgType )
         {
           if (gPromptService.confirmEx(
                 window,
-                gComposeBundle.getString("subjectEmptyTitle"),
-                gComposeBundle.getString("subjectEmptyMessage"),
+                getComposeBundle().getString("subjectEmptyTitle"),
+                getComposeBundle().getString("subjectEmptyMessage"),
                 (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_0) +
                 (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_1),
-                gComposeBundle.getString("sendWithEmptySubjectButton"),
-                gComposeBundle.getString("cancelSendingButton"),
+                getComposeBundle().getString("sendWithEmptySubjectButton"),
+                getComposeBundle().getString("cancelSendingButton"),
                 null, null, {value:0}) == 1)
           {
             GetMsgSubjectElement().focus();
@@ -2019,11 +2030,11 @@ function GenericSendMessage( msgType )
           var flags = gPromptService.BUTTON_POS_0 * gPromptService.BUTTON_TITLE_IS_STRING +
                       gPromptService.BUTTON_POS_1 * gPromptService.BUTTON_TITLE_IS_STRING;
           var hadForgotten = gPromptService.confirmEx(window,
-                               gComposeBundle.getString("attachmentReminderTitle"),
-                               gComposeBundle.getString("attachmentReminderMsg"),
+                               getComposeBundle().getString("attachmentReminderTitle"),
+                               getComposeBundle().getString("attachmentReminderMsg"),
                                flags,
-                               gComposeBundle.getString("attachmentReminderFalseAlarm"),
-                               gComposeBundle.getString("attachmentReminderYesIForgot"),
+                               getComposeBundle().getString("attachmentReminderFalseAlarm"),
+                               getComposeBundle().getString("attachmentReminderYesIForgot"),
                                null, null, {value:0});
           if (hadForgotten)
             return;
@@ -2049,9 +2060,9 @@ function GenericSendMessage( msgType )
             var checkbox = {value:false};
             var okToProceed = gPromptService.confirmCheck(
                                   window,
-                                  gComposeBundle.getString("noNewsgroupSupportTitle"),
-                                  gComposeBundle.getString("recipientDlogMessage"),
-                                  gComposeBundle.getString("CheckMsg"),
+                                  getComposeBundle().getString("noNewsgroupSupportTitle"),
+                                  getComposeBundle().getString("recipientDlogMessage"),
+                                  getComposeBundle().getString("CheckMsg"),
                                   checkbox);
 
             if (!okToProceed)
@@ -2216,8 +2227,8 @@ function CheckValidEmailAddress(to, cc, bcc)
   if (invalidStr)
   {
     if (gPromptService)
-      gPromptService.alert(window, gComposeBundle.getString("addressInvalidTitle"),
-                           gComposeBundle.getFormattedString("addressInvalid",
+      gPromptService.alert(window, getComposeBundle().getString("addressInvalidTitle"),
+                           getComposeBundle().getFormattedString("addressInvalid",
                                                      [invalidStr], 1));
     return false;
   }
@@ -2243,13 +2254,13 @@ function SendMessageWithCheck()
     if (warn) {
         var checkValue = {value:false};
         var buttonPressed = gPromptService.confirmEx(window,
-              gComposeBundle.getString('sendMessageCheckWindowTitle'),
-              gComposeBundle.getString('sendMessageCheckLabel'),
+              getComposeBundle().getString('sendMessageCheckWindowTitle'),
+              getComposeBundle().getString('sendMessageCheckLabel'),
               (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_0) +
               (gPromptService.BUTTON_TITLE_CANCEL * gPromptService.BUTTON_POS_1),
-              gComposeBundle.getString('sendMessageCheckSendButtonLabel'),
+              getComposeBundle().getString('sendMessageCheckSendButtonLabel'),
               null, null,
-              gComposeBundle.getString('CheckMsg'),
+              getComposeBundle().getString('CheckMsg'),
               checkValue);
         if (buttonPressed != 0) {
             return;
@@ -2691,10 +2702,10 @@ function SetComposeWindowTitle()
   var newTitle = GetMsgSubjectElement().value;
 
   if (newTitle == "" )
-    newTitle = gComposeBundle.getString("defaultSubject");
+    newTitle = getComposeBundle().getString("defaultSubject");
 
   newTitle += GetCharsetUIString();
-  document.title = gComposeBundle.getString("windowTitlePrefix") + " " + newTitle;
+  document.title = getComposeBundle().getString("windowTitlePrefix") + " " + newTitle;
 }
 
 // Check for changes to document and allow saving before closing
@@ -2712,11 +2723,11 @@ function ComposeCanClose()
     {
       var brandBundle = document.getElementById("brandBundle");
       var brandShortName = brandBundle.getString("brandShortName");
-      var promptTitle = gComposeBundle.getString("quitComposeWindowTitle");
-      var promptMsg = gComposeBundle.getFormattedString("quitComposeWindowMessage2",
+      var promptTitle = getComposeBundle().getString("quitComposeWindowTitle");
+      var promptMsg = getComposeBundle().getFormattedString("quitComposeWindowMessage2",
                                                 [brandShortName], 1);
-      var quitButtonLabel = gComposeBundle.getString("quitComposeWindowQuitButtonLabel2");
-      var waitButtonLabel = gComposeBundle.getString("quitComposeWindowWaitButtonLabel2");
+      var quitButtonLabel = getComposeBundle().getString("quitComposeWindowQuitButtonLabel2");
+      var waitButtonLabel = getComposeBundle().getString("quitComposeWindowWaitButtonLabel2");
 
       result = gPromptService.confirmEx(window, promptTitle, promptMsg,
           (gPromptService.BUTTON_TITLE_IS_STRING*gPromptService.BUTTON_POS_0) +
@@ -2741,8 +2752,8 @@ function ComposeCanClose()
     if (gPromptService)
     {
       result = gPromptService.confirmEx(window,
-                              gComposeBundle.getString("saveDlogTitle"),
-                              gComposeBundle.getString("saveDlogMessage"),
+                              getComposeBundle().getString("saveDlogTitle"),
+                              getComposeBundle().getString("saveDlogMessage"),
                               (gPromptService.BUTTON_TITLE_SAVE * gPromptService.BUTTON_POS_0) +
                               (gPromptService.BUTTON_TITLE_CANCEL * gPromptService.BUTTON_POS_1) +
                               (gPromptService.BUTTON_TITLE_DONT_SAVE * gPromptService.BUTTON_POS_2),
@@ -2873,7 +2884,7 @@ function AttachFile()
   //Get file using nsIFilePicker and convert to URL
   var fp = Components.classes["@mozilla.org/filepicker;1"]
                      .createInstance(nsIFilePicker);
-  fp.init(window, gComposeBundle.getString("chooseFileToAttach"),
+  fp.init(window, getComposeBundle().getString("chooseFileToAttach"),
           nsIFilePicker.modeOpenMultiple);
 
   var lastDirectory = GetLastAttachDirectory();
@@ -2930,10 +2941,10 @@ function AddUrlAttachment(attachment)
   // We don't want to reveal the .slt path (for mailbox://), or the username
   // or hostname.
   if (/^mailbox-message:|^imap-message:|^news-message:/i.test(attachment.name))
-    attachment.name = gComposeBundle.getString("messageAttachmentSafeName");
+    attachment.name = getComposeBundle().getString("messageAttachmentSafeName");
   // Don't allow file or mail/news protocol uris to leak out either.
   else if (/^file:|^mailbox:|^imap:|^s?news:/i.test(attachment.name))
-    attachment.name = gComposeBundle.getString("partAttachmentSafeName");
+    attachment.name = getComposeBundle().getString("partAttachmentSafeName");
 
   var bucket = document.getElementById("attachmentBucket");
   var item = bucket.appendItem(attachment);
@@ -2994,8 +3005,8 @@ function AttachPage()
    {
       var result = {value:"http://"};
       if (gPromptService.prompt(window,
-                                gComposeBundle.getString("attachPageDlogTitle"),
-                                gComposeBundle.getString("attachPageDlogMessage"),
+                                getComposeBundle().getString("attachPageDlogTitle"),
+                                getComposeBundle().getString("attachPageDlogMessage"),
                                 result,
                                 null,
                                 {value:0}))
@@ -3068,7 +3079,7 @@ function UpdateAttachmentBucket(aShowBucket)
   if (aShowBucket) {
     var count = document.getElementById("attachmentBucket").getRowCount();
 
-    var words = gComposeBundle.getString("attachmentCount");
+    var words = getComposeBundle().getString("attachmentCount");
     var countStr = PluralForm.get(count, words).replace("#1", count);
 
     document.getElementById("attachmentBucketCount").value = countStr;
@@ -3111,8 +3122,8 @@ function RenameSelectedAttachment()
   var attachmentName = {value: item.attachment.name};
   if (gPromptService.prompt(
                      window,
-                     gComposeBundle.getString("renameAttachmentTitle"),
-                     gComposeBundle.getString("renameAttachmentMessage"),
+                     getComposeBundle().getString("renameAttachmentTitle"),
+                     getComposeBundle().getString("renameAttachmentMessage"),
                      attachmentName,
                      null,
                      {value: 0}))
@@ -3640,14 +3651,14 @@ function DisplaySaveFolderDlg(folderURI)
     if (!msgfolder)
       return;
     var checkbox = {value:0};
-    var SaveDlgTitle = gComposeBundle.getString("SaveDialogTitle");
+    var SaveDlgTitle = getComposeBundle().getString("SaveDialogTitle");
     var dlgMsg = bundle.getFormattedString("SaveDialogMsg",
                                            [msgfolder.name,
                                             msgfolder.server.prettyName]);
 
     var CheckMsg = bundle.getString("CheckMsg");
     gPromptService.alertCheck(window, SaveDlgTitle, dlgMsg,
-                              gComposeBundle.getString("CheckMsg"), checkbox);
+                              getComposeBundle().getString("CheckMsg"), checkbox);
     try {
           gCurrentIdentity.showSaveMsgDlg = !checkbox.value;
     }//try

@@ -47,6 +47,7 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 #messagepanebox {
+  text-shadow: none;
   background-color: -moz-dialog;
 }
 

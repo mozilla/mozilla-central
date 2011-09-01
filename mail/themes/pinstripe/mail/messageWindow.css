@@ -49,5 +49,6 @@
 /* ::::: message header borders ::::: */
 
 #messagepanebox {
+  text-shadow: none;
   background-color: #FFFFFF;
 }
