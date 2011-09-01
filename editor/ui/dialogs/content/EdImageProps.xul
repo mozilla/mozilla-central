@@ -82,10 +82,18 @@
         <spacer class="spacer"/>
         <vbox id="LinkLocationBox"/>
         <spacer class="spacer"/>
-        <checkbox id="showLinkBorder"
-                  label="&showImageLinkBorder.label;"
-                  accesskey="&showImageLinkBorder.accessKey;"
-                  oncommand="ToggleShowLinkBorder();"/>
+        <hbox>
+          <checkbox id="showLinkBorder"
+                    label="&showImageLinkBorder.label;"
+                    accesskey="&showImageLinkBorder.accessKey;"
+                    oncommand="ToggleShowLinkBorder();"/>
+          <spacer flex="1"/>
+          <button id="LinkAdvancedEditButton"
+                  label="&LinkAdvancedEditButton.label;"
+                  accesskey="&LinkAdvancedEditButton.accessKey;"
+                  tooltiptext="&LinkAdvancedEditButton.tooltip;"
+                  oncommand="onLinkAdvancedEdit();"/>
+        </hbox>
       </vbox>
     </tabpanels>
   </tabbox>
