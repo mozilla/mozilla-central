@@ -52,6 +52,7 @@
 #include "nsIImportFieldMap.h"
 #include "nsABBaseCID.h"
 #include "nsIAbCard.h"
+#include "prprf.h"
 
 #include "nsOEAddressIterator.h"
 
