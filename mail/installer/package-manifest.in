@@ -572,6 +572,7 @@
 @BINPATH@/components/autocomplete.xpt
 @BINPATH@/components/alerts.xpt
 @BINPATH@/components/jsdservice.xpt
+@BINPATH@/components/jsdebugger.xpt
 @BINPATH@/components/fastfind.xpt
 @BINPATH@/components/find.xpt
 @BINPATH@/components/chardet.xpt
