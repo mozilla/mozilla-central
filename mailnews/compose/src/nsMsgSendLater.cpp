@@ -1408,10 +1408,13 @@ nsMsgSendLater::OnSendStepFinished(nsresult aStatus)
     return PR_TRUE;
   }
   else
+  {
     // XXX we don't currently get a message string from the send service.
     NotifyListenersOnMessageSendError(mTotalSendCount, aStatus, nsnull);
-
-  EndSendMessages(aStatus, nsnull, mTotalSendCount, mTotalSentSuccessfully);
+    nsresult rv = StartNextMailFileSend();
+    if (NS_FAILED(rv))
+      EndSendMessages(rv, nsnull, mTotalSendCount, mTotalSentSuccessfully);
+  }
   return PR_FALSE;
 }
 
