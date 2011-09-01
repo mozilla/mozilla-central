@@ -95,9 +95,7 @@ function search()
     gLdapConnection = Components.classes["@mozilla.org/network/ldap-connection;1"]
       .createInstance().QueryInterface(Components.interfaces.nsILDAPConnection);
 
-    gLdapConnection.init(gLdapServerURL, gLogin,
-      getProxyOnUIThread(new boundListener(),
-                         Components.interfaces.nsILDAPMessageListener),
+    gLdapConnection.init(gLdapServerURL, gLogin, new boundListener(),
       null, Components.interfaces.nsILDAPConnection.VERSION3);
 
   } catch (ex) {
@@ -139,8 +137,7 @@ function getLDAPOperation()
       .createInstance().QueryInterface(Components.interfaces.nsILDAPOperation);
 
     gLdapOperation.init(gLdapConnection,
-                        getProxyOnUIThread(new ldapMessageListener(),
-                            Components.interfaces.nsILDAPMessageListener),
+                        new ldapMessageListener(),
                         null);
 }
 
@@ -304,18 +301,3 @@ ldapMessageListener.prototype.onLDAPMessage =
 ldapMessageListener.prototype.onLDAPInit =
   function(aConn, aStatus) {
   }
-
-
-function getProxyOnUIThread(aObject, aInterface) {
-    var mainThread = Components.
-            classes["@mozilla.org/thread-manager;1"].
-            getService().mainThread;
-
-    var proxyMgr = Components.
-            classes["@mozilla.org/xpcomproxy;1"].
-            getService(Components.interfaces.nsIProxyObjectManager);
-
-    return proxyMgr.getProxyForObject(mainThread,
-            aInterface, aObject, 5);
-    // 5 == NS_PROXY_ALWAYS | NS_PROXY_SYNC
-}
