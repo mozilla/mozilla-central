@@ -98,8 +98,7 @@ interface calICalendarViewController : nsISupports
    *                        confirmation.
    */
   void deleteOccurrences (in PRUint32 aCount,
-                          [array, size_is(aCount)]
-                          in calIItemBase aOccurrences,
+                          [array, size_is(aCount)] in calIItemBase aOccurrences,
                           in boolean aUseParentItems,
                           in boolean aDoNotConfirm);
 };

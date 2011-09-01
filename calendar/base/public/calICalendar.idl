@@ -629,6 +629,5 @@ interface calIOperationListener : nsISupports
                     in nsIIDRef aItemType, 
                     in nsIVariant aDetail,
                     in PRUint32 aCount, 
-                    [array, size_is(aCount), iid_is(aItemType)] 
-                    in nsQIResult aItems ); 
+                    [array, size_is(aCount), iid_is(aItemType)]  in nsQIResult aItems );
 };
