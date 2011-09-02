@@ -54,10 +54,9 @@
 #include "nsAutoPtr.h"
 #include "nsIX509Cert.h"
 #include "nsIMsgHeaderParser.h"
-#include "nsIProxyObjectManager.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
-#include "nsXPCOMCIDInternal.h"
+#include "nsThreadUtils.h"
 
 #define MIME_SUPERCLASS mimeEncryptedClass
 MimeDefClass(MimeEncryptedCMS, MimeEncryptedCMSClass,
@@ -285,6 +284,44 @@ protected:
   nsCString mSenderName;
 };
 
+class SignedStatusRunnable : public nsRunnable
+{
+public:
+  SignedStatusRunnable(nsIMsgSMIMEHeaderSink *aSink, PRInt32 aNestingLevel,
+                       PRInt32 aSignatureStatus, nsIX509Cert *aSignerCert);
+  NS_DECL_NSIRUNNABLE
+protected:
+  nsCOMPtr<nsIMsgSMIMEHeaderSink> m_sink;
+  PRInt32 m_nestingLevel;
+  PRInt32 m_signatureStatus;
+  nsCOMPtr<nsIX509Cert> m_signerCert;
+};
+
+SignedStatusRunnable::SignedStatusRunnable(nsIMsgSMIMEHeaderSink *aSink,
+                                           PRInt32 aNestingLevel,
+                                           PRInt32 aSignatureStatus,
+                                           nsIX509Cert *aSignerCert) :
+  m_sink(aSink), m_nestingLevel(aNestingLevel),
+  m_signatureStatus(aSignatureStatus), m_signerCert(aSignerCert)
+{
+}
+
+NS_IMETHODIMP SignedStatusRunnable::Run()
+{
+  return m_sink->SignedStatus(m_nestingLevel, m_signatureStatus, m_signerCert);
+}
+
+
+nsresult ProxySignedStatus(nsIMsgSMIMEHeaderSink *aSink,
+                           PRInt32 aNestingLevel,
+                           PRInt32 aSignatureStatus,
+                           nsIX509Cert *aSignerCert)
+{
+  nsRefPtr<SignedStatusRunnable> signedStatus =
+    new SignedStatusRunnable(aSink, aNestingLevel, aSignatureStatus, aSignerCert);
+  return NS_DispatchToMainThread(signedStatus, NS_DISPATCH_SYNC);
+}
+
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsSMimeVerificationListener, nsISMimeVerificationListener)
 
 nsSMimeVerificationListener::nsSMimeVerificationListener(const char *aFromAddr, const char *aFromName,
@@ -342,17 +379,7 @@ NS_IMETHODIMP nsSMimeVerificationListener::Notify(nsICMSMessage2 *aVerifiedMessa
       signature_status = nsICMSMessageErrors::SUCCESS;
   }
 
-  nsresult rv;
-  nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIMsgSMIMEHeaderSink> proxySink;
-  rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                                      NS_GET_IID(nsIMsgSMIMEHeaderSink),
-                                      mHeaderSink, NS_PROXY_SYNC,
-                                      getter_AddRefs(proxySink));
-  if (NS_SUCCEEDED(rv))
-    proxySink->SignedStatus(mMimeNestingLevel, signature_status, signerCert);
+  ProxySignedStatus(mHeaderSink, mMimeNestingLevel, signature_status, signerCert);
 
   return NS_OK;
 }
