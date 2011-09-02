@@ -53,7 +53,8 @@
             <label value="&replyTo.label;" control="identity.replyTo"
                    accesskey="&replyTo.accesskey;"/>
             <textbox wsm_persist="true" id="identity.replyTo"
-                     prefstring="mail.identity.%identitykey%.reply_to" class="uri-element"/>
+                     prefstring="mail.identity.%identitykey%.reply_to" class="uri-element"
+                     placeholder="&replyTo.placeholder;"/>
           </row>
           <row align="center">
             <label value="&organization.label;" control="identity.organization"
