@@ -92,7 +92,7 @@ public:
   NS_DECL_NSIMSGSHUTDOWNTASK
 
   // Methods needed for implementing interface...
-  nsresult                  StartNextMailFileSend();
+  nsresult                  StartNextMailFileSend(nsresult prevStatus);
   nsresult                  CompleteMailFileSend();
 
   nsresult                  DeleteCurrentMessage();

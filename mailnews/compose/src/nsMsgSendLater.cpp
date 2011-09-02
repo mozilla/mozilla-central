@@ -261,7 +261,7 @@ nsMsgSendLater::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult s
     // If the send operation failed..try the next one...
     if (NS_FAILED(rv))
     {
-      rv = StartNextMailFileSend();
+      rv = StartNextMailFileSend(rv);
       if (NS_FAILED(rv))
         EndSendMessages(rv, nsnull, mTotalSendCount, mTotalSentSuccessfully);
     }
@@ -284,7 +284,7 @@ nsMsgSendLater::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult s
     nsMsgDisplayMessageByID(promptObject, NS_ERROR_QUEUED_DELIVERY_FAILED);
     
     // Getting the data failed, but we will still keep trying to send the rest...
-    rv = StartNextMailFileSend();
+    rv = StartNextMailFileSend(status);
     if (NS_FAILED(rv))
       EndSendMessages(rv, nsnull, mTotalSendCount, mTotalSentSuccessfully);
   }
@@ -634,7 +634,7 @@ nsMsgSendLater::CompleteMailFileSend()
 }
 
 nsresult
-nsMsgSendLater::StartNextMailFileSend()
+nsMsgSendLater::StartNextMailFileSend(nsresult prevStatus)
 {
   PRBool hasMoreElements = PR_FALSE;
   if ((!mEnumerator) ||
@@ -645,7 +645,7 @@ nsMsgSendLater::StartNextMailFileSend()
     NotifyListenersOnProgress(mTotalSendCount, mMessagesToSend.Count(), 100, 100);
 
     // EndSendMessages resets everything for us
-    EndSendMessages(NS_OK, nsnull, mTotalSendCount, mTotalSentSuccessfully);
+    EndSendMessages(prevStatus, nsnull, mTotalSendCount, mTotalSentSuccessfully);
 
     // XXX Should we be releasing references so that we don't hold onto items
     // unnecessarily.
@@ -869,7 +869,7 @@ nsMsgSendLater::InternalSendMessages(PRBool aUserInitiated,
   // Notify the listeners that we are starting a send.
   NotifyListenersOnStartSending(mMessagesToSend.Count());
 
-  return StartNextMailFileSend();
+  return StartNextMailFileSend(NS_OK);
 }
 
 nsresult nsMsgSendLater::SetOrigMsgDisposition()
@@ -1411,7 +1411,9 @@ nsMsgSendLater::OnSendStepFinished(nsresult aStatus)
   {
     // XXX we don't currently get a message string from the send service.
     NotifyListenersOnMessageSendError(mTotalSendCount, aStatus, nsnull);
-    nsresult rv = StartNextMailFileSend();
+    nsresult rv = StartNextMailFileSend(aStatus);
+    // if this is the last message we're sending, we should report
+    // the status failure.
     if (NS_FAILED(rv))
       EndSendMessages(rv, nsnull, mTotalSendCount, mTotalSentSuccessfully);
   }
@@ -1429,7 +1431,7 @@ nsMsgSendLater::OnCopyStepFinished(nsresult aStatus)
 {
   // Regardless of the success of the copy we will still keep trying
   // to send the rest...
-  nsresult rv = StartNextMailFileSend();
+  nsresult rv = StartNextMailFileSend(aStatus);
   if (NS_FAILED(rv))
     EndSendMessages(rv, nsnull, mTotalSendCount, mTotalSentSuccessfully);
 }
