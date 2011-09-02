@@ -1721,7 +1721,7 @@ void nsImapServerResponseParser::flags()
       if (parenIndex > 0)
         flag.SetLength(parenIndex);
       messageFlags |= kImapMsgCustomKeywordFlag;
-      if (CurrentResponseUID() != nsMsgKey_None)
+      if (CurrentResponseUID() != nsMsgKey_None && CurrentResponseUID() != 0)
         fFlagState->AddUidCustomFlagPair(CurrentResponseUID(), flag.get());
       else
         fCustomFlags.AppendElement(flag);
