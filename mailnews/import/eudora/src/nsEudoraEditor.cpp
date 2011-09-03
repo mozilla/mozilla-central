@@ -1516,6 +1516,11 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::IsSameNode(nsIDOMNode *other, PRBool *_r
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsEudoraHTMLImageElement::Contains(nsIDOMNode* aOther, PRBool* aReturn)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 NS_IMETHODIMP nsEudoraHTMLImageElement::LookupPrefix(const nsAString & namespaceURI, nsAString & _retval NS_OUTPARAM)
 {
   return NS_ERROR_NOT_IMPLEMENTED;

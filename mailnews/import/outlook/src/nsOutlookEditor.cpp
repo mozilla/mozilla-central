@@ -1194,6 +1194,11 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::IsSameNode(nsIDOMNode *other, PRBool *_
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsOutlookHTMLImageElement::Contains(nsIDOMNode* aOther, PRBool* aReturn)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 NS_IMETHODIMP nsOutlookHTMLImageElement::LookupPrefix(const nsAString & namespaceURI, nsAString & _retval NS_OUTPARAM)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
