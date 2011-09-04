@@ -215,7 +215,7 @@ ifeq ($(OS_ARCH),WINNT)
 	$(EXIT_ON_ERROR) \
 	$(PERL) -pe 's/(?<!\r)\n/\r\n/g;' < $(topsrcdir)/suite/installer/license.txt > $(DIST)/bin/license.txt
 else
-	$(INSTALL) $(topsrcdir)/suite/installer/license.txt $(DIST)/bin/
+	$(INSTALL) $(IFLAGS1) $(topsrcdir)/suite/installer/license.txt $(DIST)/bin/
 endif
 
 libs:: blocklist.xml

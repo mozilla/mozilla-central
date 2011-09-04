@@ -92,10 +92,10 @@ endif
 
 ifeq ($(ICON_DIR),gtk)
 libs:: icons/gtk/seamonkey.png
-	$(INSTALL) $^ $(DIST)/bin/chrome/icons/default
+	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin/chrome/icons/default
 
 install:: icons/gtk/seamonkey.png
-	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/chrome/icons/default
+	$(INSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/chrome/icons/default
 
 GARBAGE	+= $(DIST)/bin/chrome/icons/default/seamonkey.png
 
@@ -107,7 +107,7 @@ endif
 DESKTOP_ICON_FILES = $(addsuffix $(ICON_SUFFIX), $(DESKTOP_ICONS) $(DESKTOP_ICONS_SMALL) $(DESKTOP_ICONS_LARGE))
 
 libs:: $(addprefix icons/$(ICON_DIR)/,$(DESKTOP_ICON_FILES))
-	$(INSTALL) $^ $(DIST)/bin/chrome/icons/default
+	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin/chrome/icons/default
 
 install:: $(addprefix icons/$(ICON_DIR)/,$(DESKTOP_ICON_FILES))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/chrome/icons/default
