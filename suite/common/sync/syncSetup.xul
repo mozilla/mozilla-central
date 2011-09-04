@@ -370,11 +370,14 @@
       <description>
         &existingSyncKey.description;
         <label class="text-link"
-               value="&addDevice.showMeHow.label;"
-               href="https://services.mozilla.com/sync/help/manual-setup"/>
+               href="https://services.mozilla.com/sync/help/manual-setup">
+          &addDevice.showMeHow.label;
+        </label>
+        <spacer id="passphraseHelpSpacer"/>
         <label class="text-link"
-               value="&resetSyncKey.label;"
-               onclick="gSyncUtils.resetPassphrase(); return false;"/>
+               onclick="gSyncSetup.resetPassphrase(); return false;">
+          &resetSyncKey.label;
+        </label>
       </description>
     </vbox>
   </wizardpage>

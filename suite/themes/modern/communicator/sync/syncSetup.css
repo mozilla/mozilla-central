@@ -90,6 +90,10 @@ description > .text-link:focus {
   text-align: center;
 }
 
+#passphraseHelpSpacer {
+  width: 0.5em;
+}
+
 #add-device-throbber,
 #login-throbber {
   list-style-image: url("chrome://communicator/skin/icons/loading.gif");

@@ -106,6 +106,10 @@ description > .text-link:focus {
   text-align: center;
 }
 
+#passphraseHelpSpacer {
+  width: 0.5em;
+}
+
 #add-device-throbber,
 #login-throbber {
   list-style-image: url("chrome://global/skin/icons/loading_16.png");
