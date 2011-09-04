@@ -82,8 +82,6 @@ endif
 ifndef LIBXUL_SDK
 # Build a binary bootstrapping with XRE_main
 
-MOZILLA_INTERNAL_API = 1
-
 ifneq (,$(filter OS2 WINCE WINNT,$(OS_ARCH)))
 PROGRAM = $(MOZ_APP_NAME)$(BIN_SUFFIX)
 else
@@ -120,12 +118,7 @@ TK_LIBS := -framework SystemConfiguration -framework CoreAudio -framework AudioT
 endif
 endif
 
-ifdef MOZ_ENABLE_LIBXUL
 APP_XPCOM_LIBS = $(XPCOM_GLUE_LDOPTS)
-else
-MOZILLA_INTERNAL_API = 1
-APP_XPCOM_LIBS = $(XPCOM_LIBS)
-endif
 
 LIBS += \
 	$(STATIC_COMPONENTS_LINKER_PATH) \
