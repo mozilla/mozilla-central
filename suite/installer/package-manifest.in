@@ -108,11 +108,6 @@
 #else
 @BINPATH@/@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
 #endif
-#ifdef UNIX_BUT_NOT_MAC
-@BINPATH@/README
-#else
-@BINPATH@/README.txt
-#endif
 @BINPATH@/license.txt
 @BINPATH@/blocklist.xml
 #ifdef UNIX_BUT_NOT_MAC

@@ -89,8 +89,7 @@ ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
 MOZ_PKG_MAC_DSSTORE=$(_ABS_DIST)/branding/dsstore
 MOZ_PKG_MAC_BACKGROUND=$(_ABS_DIST)/branding/background.png
 MOZ_PKG_MAC_ICON=$(_ABS_DIST)/branding/disk.icns
-MOZ_PKG_MAC_EXTRA=--symlink "/Applications:/ " \
-                  --copy "$(LOCALE_SRCDIR)/installer/mac/README.txt"
+MOZ_PKG_MAC_EXTRA=--symlink "/Applications:/ "
 endif
 
 ifeq (WINNT,$(OS_ARCH))
@@ -117,40 +116,12 @@ $(STAGEDIST): $(DIST)/branding
 $(DIST)/branding:
 	$(NSINSTALL) -D $@
 
-ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
-README_FILES = \
-	installer/mac/README.txt \
-	$(NULL)
-else
-ifeq ($(OS_ARCH),WINNT)
-README_FILES = \
-	installer/windows/README.txt \
-	$(NULL)
-else
-README_FILES = \
-	installer/unix/README \
-	$(NULL)
-endif
-endif
-
 PROFILE_FILES = \
 	localstore.rdf \
 	mimeTypes.rdf \
 	$(NULL)
 
 PROFILE_CHROME = userChrome-example.css userContent-example.css
-
-libs:: $(addprefix $(LOCALE_SRCDIR)/,$(README_FILES))
-ifeq ($(OS_ARCH),WINNT)
-	$(EXIT_ON_ERROR) \
-	for file in $^; do \
-	  $(PERL) -pe 's/(?<!\r)\n/\r\n/g;' < $$file > $(FINAL_TARGET)/`basename $$file`; \
-	done
-else
-ifneq ($(OS_ARCH),OS2)
-	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)
-endif
-endif
 
 NO_JA_JP_MAC_AB_CD := $(if $(filter ja-JP-mac, $(AB_CD)),ja,$(AB_CD))
 
