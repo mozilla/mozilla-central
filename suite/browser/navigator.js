@@ -835,7 +835,7 @@ function Translate()
   if (targetURI.indexOf(serviceDomain) >= 0)
     BrowserReload();
   else {
-    loadURI(encodeURI(service + targetURI));
+    loadURI(encodeURI(service) + encodeURIComponent(targetURI));
   }
 }
 
