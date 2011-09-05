@@ -692,13 +692,8 @@ nsContextMenu.prototype = {
 
   // Returns true if clicked-on link targets a resource that can be saved.
   isLinkSaveable: function() {
-    // We don't do the Right Thing for news/snews yet, so turn them off
-    // until we do.
-    return this.linkProtocol && !(
-           this.linkProtocol == "mailto"     ||
-           this.linkProtocol == "javascript" ||
-           this.linkProtocol == "news"       ||
-           this.linkProtocol == "snews"      );
+    return this.linkProtocol && this.linkProtocol != "mailto" &&
+           this.linkProtocol != "javascript";
   },
 
   // Block popup windows
