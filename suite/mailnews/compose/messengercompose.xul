@@ -119,7 +119,6 @@
   <commandset id="composerListMenuItems"/>
   <commandset id="tasksCommands"/>
   <!-- File Menu -->
-  <command id="cmd_new" oncommand="goDoCommand('cmd_newMessage')"/>
   <command id="cmd_attachFile" oncommand="goDoCommand('cmd_attachFile')"/>
   <command id="cmd_attachPage" oncommand="goDoCommand('cmd_attachPage')"/>
   <command id="cmd_attachVCard" checked="false" oncommand="ToggleAttachVCard(event.target)"/>
@@ -234,11 +233,7 @@
             <menupopup id="menu_FilePopup">
               <menu id="menu_New">
                 <menupopup id="menu_NewPopup">
-                  <menuitem id="menu_NewMessage"
-                            label="&newMessage.label;"
-                            accesskey="&newMessage.accesskey;"
-                            key="key_newMessage"
-                            oncommand="goOpenNewMessage();"/>
+                  <menuitem id="menu_newMessage"/>
                   <menuseparator id="menuNewPopupSeparator"/>
                   <menuitem id="menu_newCard"/>
                   <menuitem id="menu_newNavigator"/>
