@@ -359,7 +359,9 @@
     </menupopup>
 
     <!-- TASK ITEM CONTEXT MENU -->
-    <menupopup id="taskitem-context-menu" onpopupshowing="changeContextMenuForTask(event);">
+    <menupopup id="taskitem-context-menu"
+               onpopupshowing="changeContextMenuForTask(event);"
+               onpopuphiding="handleTaskContextMenuStateChange(event);">
       <menuitem id="task-context-menu-modify"
                 label="&calendar.context.modifyorviewtask.label;"
                 accesskey="&calendar.context.modifyorviewtask.accesskey;"

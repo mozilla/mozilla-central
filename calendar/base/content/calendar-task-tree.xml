@@ -1159,6 +1159,26 @@
         ]]></body>
       </method>
 
+      <method name="updateFocus">
+        <body><![CDATA[
+            let tree = document.getAnonymousElementByAttribute(this, "anonid", "calendar-task-tree");
+            let menuOpen = false;
+
+            // we need to consider the tree focused if the context menu is open.
+            if (this.hasAttribute("context")) {
+                let context = document.getElementById(this.getAttribute("context"));
+                if (context && context.state) {
+                    menuOpen = (context.state == "open") || (context.state == "showing");
+                }
+            }
+
+            let focused = (document.activeElement == tree) || menuOpen;
+
+            calendarController.onSelectionChanged({detail:(focused ? this.selectedTasks : [])});
+            calendarController.todo_tasktree_focused = focused;
+        ]]></body>
+      </method>
+
     </implementation>
 
     <handlers>
@@ -1172,12 +1192,10 @@
         this.mTreeView.onDoubleClick(event);
       ]]></handler>
       <handler event="focus"><![CDATA[
-        calendarController.onSelectionChanged({detail:this.selectedTasks});
-        calendarController.todo_tasktree_focused = true;
+        this.updateFocus();
       ]]></handler>
       <handler event="blur"><![CDATA[
-        calendarController.onSelectionChanged({detail:[]});
-        calendarController.todo_tasktree_focused = false;
+        this.updateFocus();
       ]]></handler>
       <handler event="keypress"><![CDATA[
         this.mTreeView.onKeyPress(event);

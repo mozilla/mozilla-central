@@ -29,6 +29,7 @@
  *                 Michael Buettner <michael.buettner@sun.com>
  *                 Philipp Kewisch <mozilla@kewis.ch>
  *                 Berend Cornelius <berend.cornelius@sun.com>
+ *                 Matthew Mecca <matthew.mecca@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -96,6 +97,8 @@ function addCategoryNames(aEvent) {
  * @param aEvent    The popupshowing event of the opening menu.
  */
 function changeContextMenuForTask(aEvent) {
+    handleTaskContextMenuStateChange(aEvent);
+
     let idnode = document.popupNode.id;
     let sunbird = cal.isSunbird();
     let items = getSelectedTasks(aEvent);
@@ -122,6 +125,19 @@ function changeContextMenuForTask(aEvent) {
 
     let menu = document.getElementById("task-context-menu-attendance-menu");
     setupAttendanceMenu(menu, items);
+}
+
+/**
+ * Notify the task tree that the context menu open state has changed.
+ *
+ * @param aEvent    The popupshowing or popuphiding event of the menu.
+ */
+function handleTaskContextMenuStateChange(aEvent) {
+    let tree = document.popupNode;
+
+    if (tree) {
+        tree.updateFocus();
+    }
 }
 
 /**
