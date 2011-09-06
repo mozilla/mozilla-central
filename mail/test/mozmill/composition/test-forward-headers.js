@@ -41,14 +41,14 @@
 const MODULE_NAME = "test-forward-headers";
 
 const RELATIVE_ROOT = "../shared-modules";
-const MODULE_REQUIRES = ["folder-display-helpers", "compose-helpers", "window-helpers"];
+const MODULE_REQUIRES = ["folder-display-helpers", "compose-helpers", "window-helpers",
+                         "message-helpers"];
 var jumlib = {};
 Components.utils.import("resource://mozmill/modules/jum.js", jumlib);
 var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
 
 var composeHelper = null;
-var windowHelper;
 var cwc = null; // compose window controller
 var folder;
 
@@ -57,11 +57,10 @@ var setupModule = function (module) {
   fdh.installInto(module);
   composeHelper = collector.getModule("compose-helpers");
   composeHelper.installInto(module);
-
-  windowHelper = collector.getModule('window-helpers');
-
   let wh = collector.getModule("window-helpers");
   wh.installInto(module);
+  let mh = collector.getModule("message-helpers");
+  mh.installInto(module);
 
   folder = create_folder("Test");
   thread1 = create_thread(10);
@@ -75,7 +74,7 @@ function forward_selected_messages_and_go_to_drafts_folder(f) {
 
   plan_for_window_close(cwc);
   // mwc is modal window controller
-  windowHelper.plan_for_modal_dialog("commonDialog", function click_save (mwc) {
+  plan_for_modal_dialog("commonDialog", function click_save (mwc) {
       //accept saving
       mwc.window.document.documentElement.getButton('accept').doCommand();
     });
@@ -83,7 +82,7 @@ function forward_selected_messages_and_go_to_drafts_folder(f) {
   // quit -> do you want to save ?
   cwc.keypress(null, "w", {shiftKey: false, accelKey: true});
   // wait for the modal dialog to return
-  windowHelper.wait_for_modal_dialog();
+  wait_for_modal_dialog();
   // actually quite the window
   wait_for_window_close();
 
@@ -108,17 +107,12 @@ function test_forward_inline () {
 
   // test for x-forwarded-message id and exercise the js mime representation as
   // well
-  let done = {};
-  mc.window.MsgHdrToMimeMessage(fMsgHdr, function(aMsgHdr, aMimeMsg) {
+  to_mime_message(fMsgHdr, null, function(aMsgHdr, aMimeMsg) {
     assert_equals(aMimeMsg.headers["x-forwarded-message-id"],
       "<"+oMsgHdr.messageId+">");
     assert_equals(aMimeMsg.headers["references"],
       "<"+oMsgHdr.messageId+">");
-    done.value = true;
   });
-  mc.waitFor(function () done.value == true,
-             "Timeout waiting for message to be streamed", 30000, 100);
-
   press_delete(mc);
 }
 
@@ -141,16 +135,12 @@ function test_forward_as_attachments () {
 
   // test for x-forwarded-message id and exercise the js mime representation as
   // well
-  let done = {};
-  mc.window.MsgHdrToMimeMessage(fMsgHdr, function(aMsgHdr, aMimeMsg) {
+  to_mime_message(fMsgHdr, null, function(aMsgHdr, aMimeMsg) {
     assert_equals(aMimeMsg.headers["x-forwarded-message-id"],
       "<"+oMsgHdr0.messageId+"> <"+oMsgHdr1.messageId+">");
     assert_equals(aMimeMsg.headers["references"],
       "<"+oMsgHdr0.messageId+"> <"+oMsgHdr1.messageId+">");
-    done.value = true;
   });
-  mc.waitFor(function () done.value == true,
-             "Timeout waiting for message to be streamed", 30000, 100);
 
   press_delete(mc);
 }

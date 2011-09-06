@@ -42,13 +42,15 @@
 var MODULE_NAME = "test-display-smime";
 
 var RELATIVE_ROOT = "../shared-modules";
-var MODULE_REQUIRES = ["folder-display-helpers"];
+var MODULE_REQUIRES = ["folder-display-helpers", "message-helpers"];
 
 var folder;
 
 function setupModule(module) {
   let fdh = collector.getModule("folder-display-helpers");
   fdh.installInto(module);
+  let mh = collector.getModule("message-helpers");
+  mh.installInto(module);
 
   folder = create_folder("SMIME_A");
 
@@ -66,8 +68,7 @@ function test_smime_mimemsg() {
   let msgHdr = select_click_row(0);
 
   // Make sure by default, MimeMessages do not include encrypted parts
-  let done = {};
-  mc.window.MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
+  to_mime_message(msgHdr, null, function(aMsgHdr, aMimeMsg) {
     // First make sure the MIME structure is as we expect it to be.
     assert_equals(aMimeMsg.parts.length, 1);
     // Then, make sure the MimeUnknown part there has the encrypted flag
@@ -76,14 +77,11 @@ function test_smime_mimemsg() {
     assert_equals(aMimeMsg.parts[0].parts.length, 0);
     // Make sure we can't see the attachment
     assert_equals(aMimeMsg.allUserAttachments.length, 0);
-    done.value = true;
   }, true, {
   });
-  mc.waitForEval("subject.value==true", 30000, 100, done);
 
   // Now what about we specifically ask to "see" the encrypted parts?
-  done = {};
-  mc.window.MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
+  to_mime_message(msgHdr, null, function(aMsgHdr, aMimeMsg) {
     // First make sure the MIME structure is as we expect it to be.
     assert_equals(aMimeMsg.parts.length, 1);
     // Then, make sure the MimeUnknown part there has the encrypted flag
@@ -96,12 +94,9 @@ function test_smime_mimemsg() {
     assert_equals(aMimeMsg.allUserAttachments.length, 1);
     assert_equals(aMimeMsg.allUserAttachments[0].contentType, "image/jpeg");
     // Extra little bit of testing
-    done.value = true;
   }, true, {
     examineEncryptedParts: true,
   });
-  mc.waitForEval("subject.value==true", 30000, 100, done);
-
 }
 
 var encrypted_blurb =
