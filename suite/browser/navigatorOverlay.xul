@@ -227,7 +227,10 @@
     <broadcaster id="canGoForward" disabled="true"/>
     <broadcaster id="canGoUp"      disabled="true"/>
     <broadcaster id="Communicator:WorkMode"/>
-    <broadcaster id="cmd_viewtaskbar" oncommand="goToggleToolbar('status-bar','cmd_viewtaskbar'); updateWindowResizer();" checked="true"/>
+    <broadcaster id="cmd_viewtaskbar"
+                 checked="true"
+                 oncommand="goToggleToolbar('status-bar', 'cmd_viewtaskbar');
+                            updateWindowState();"/>
     <broadcaster id="cmd_viewcomponentbar" oncommand="goToggleToolbar('component-bar', 'cmd_viewcomponentbar');" checked="true"/>
     <broadcaster id="isImage"/>
   </broadcasterset>

@@ -2698,6 +2698,10 @@
                 onget="return this.mCurrentBrowser.showWindowResizer;"
                 onset="return this.mCurrentBrowser.showWindowResizer = val;"/>
 
+      <property name="docShellIsActive"
+                onget="return this.mCurrentBrowser.docShellIsActive;"
+                onset="return this.mCurrentBrowser.docShellIsActive = val;"/>
+
       <method name="observe">
         <parameter name="aSubject"/>
         <parameter name="aTopic"/>
