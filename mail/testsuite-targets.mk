@@ -23,8 +23,12 @@ else
 PROGRAM = ../../../$(DIST)/bin/thunderbird$(BIN_SUFFIX)
 endif
 
+check-no-solo = $(foreach solo,SOLO_TEST SOLO_FILE,$(if $($(solo)),$(error $(subst SOLOVAR,$(solo),$(1)))))
+find-solo-test = $(if $(and $(SOLO_TEST),$(SOLO_FILE)),$(error Both SOLO_TEST and SOLO_FILE are specified. You may only specify one.),$(if $(SOLO_TEST),$(SOLO_TEST),$(if $(SOLO_FILE),$(SOLO_FILE),$(error SOLO_TEST or SOLO_FILE needs to be specified.))))
+
 # PYTHONHOME messes very badly with virtualenv setups, so unset it.
-mozmill::
+mozmill:
+	$(call check-no-solo,SOLOVAR is specified. Perhaps you meant mozmill-one.)
 	unset PYTHONHOME && cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= \
 	$(MOZMILLPYTHON) runtestlist.py --list=mozmilltests.list \
 	--binary=$(PROGRAM) \
@@ -32,10 +36,11 @@ mozmill::
 	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
 	$(MOZMILL_EXTRA)
 
-mozmill-one::
+mozmill-one: solo-test = $(find-solo-test)
+mozmill-one:
 	unset PYTHONHOME && cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= \
 	$(MOZMILLPYTHON) runtest.py \
-	--test=$(call core_abspath,$(topsrcdir))/mail/test/mozmill/$(SOLO_TEST) \
+	--test=$(call core_abspath,$(topsrcdir))/mail/test/mozmill/$(solo-test) \
 	--binary=$(PROGRAM) \
 	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
 	$(MOZMILL_EXTRA)
