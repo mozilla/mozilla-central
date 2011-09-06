@@ -49,16 +49,6 @@ function LinkToolbarHandler()
 {
   this.items = new Array();
   this.hasItems = false;
-
-  document.addEventListener("load", this.init, true);
-}
-
-LinkToolbarHandler.prototype.init =
-function()
-{
-  document.removeEventListener("load", this.init, true);
-
-  gLanguageBundle = document.getElementById("languageBundle");
 }
 
 LinkToolbarHandler.prototype.handle =
@@ -270,6 +260,8 @@ function()
     prefix += this.media + ": ";
   if (this.hreflang) {
     try {
+      if (!gLanguageBundle)
+        gLanguageBundle = document.getElementById("languageBundle");
       prefix += gLanguageBundle.getString(this.hreflang);
     }
     catch (e) {
