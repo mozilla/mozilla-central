@@ -639,7 +639,7 @@ case "$target" in
                 AC_MSG_RESULT([none needed])
             fi
             ;;
-        x86_64)
+        x86_64-*)
             MIDL_FLAGS="${MIDL_FLAGS} -env x64"
             ;;
         *)
