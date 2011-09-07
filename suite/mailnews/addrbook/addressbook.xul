@@ -39,11 +39,12 @@
  ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://messenger/skin/addressbook/addressbook.css" type="text/css"?> 
+<?xml-stylesheet href="chrome://messenger/skin/addressbook/addressPanes.css"
+                 type="text/css"?>
 
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/tasksOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/contentAreaContextOverlay.xul"?>
-<?xul-overlay href="chrome://messenger/content/addressbook/abDirTreeOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/addressbook/abResultsPaneOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/addressbook/abCardViewOverlay.xul"?>
 
@@ -486,8 +487,28 @@
   <!-- The main address book three pane -->
   <hbox flex="1">
     <vbox id="dirTreeBox" persist="width collapsed">
-      <tree id="dirTree" context="dirTreeContext"
-            style="min-width:150px" flex="1" persist="width"/>
+      <tree id="dirTree"
+            class="abDirectory plain"
+            seltype="single"
+            style="min-width: 150px;"
+            flex="1"
+            persist="width"
+            hidecolumnpicker="true"
+            context="dirTreeContext"
+            onselect="DirPaneSelectionChange(); document.commandDispatcher.updateCommands('addrbook-select');"
+            ondblclick="DirPaneDoubleClick(event);"
+            onclick="DirPaneClick(event);"
+            onblur="goOnEvent(this, 'blur');">
+        <treecols>
+          <treecol id="DirCol"
+                   flex="1"
+                   primary="true"
+                   label="&dirTreeHeader.label;"
+                   crop="center"
+                   persist="width"/>
+        </treecols>
+        <treechildren/>
+      </tree>
     </vbox>
 
     <splitter id="dirTree-splitter" collapse="before" persist="state">

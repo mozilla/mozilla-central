@@ -212,7 +212,6 @@
   locale/@AB_CD@/messenger/addressbook/abAddressBookNameDialog.dtd          (%chrome/mailnews/addressbook/abAddressBookNameDialog.dtd)
   locale/@AB_CD@/messenger/addressbook/abCardOverlay.dtd                    (%chrome/mailnews/addressbook/abCardOverlay.dtd)
   locale/@AB_CD@/messenger/addressbook/abCardViewOverlay.dtd                (%chrome/mailnews/addressbook/abCardViewOverlay.dtd)
-  locale/@AB_CD@/messenger/addressbook/abDirTreeOverlay.dtd                 (%chrome/mailnews/addressbook/abDirTreeOverlay.dtd)
   locale/@AB_CD@/messenger/addressbook/abMailListDialog.dtd                 (%chrome/mailnews/addressbook/abMailListDialog.dtd)
   locale/@AB_CD@/messenger/addressbook/abMainWindow.dtd                     (%chrome/mailnews/addressbook/abMainWindow.dtd)
   locale/@AB_CD@/messenger/addressbook/abNewCardDialog.dtd                  (%chrome/mailnews/addressbook/abNewCardDialog.dtd)
