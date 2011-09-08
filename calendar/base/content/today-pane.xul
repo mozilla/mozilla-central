@@ -179,7 +179,7 @@
                     <toolbarbutton id="miniday-dropdown-button"
                                    tooltiptext="&showselectedday.tooltip;"
                                    type="menu">
-                      <panel id="miniday-month-panel" position="after_start">
+                      <panel id="miniday-month-panel" position="after_end">
                         <minimonth id="todayMinimonth"
                                    flex="1"
                                    onchange="TodayPane.setDaywithjsDate(this.value);
