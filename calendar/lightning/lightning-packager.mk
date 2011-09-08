@@ -102,6 +102,8 @@ repack-l10n-all: AB_CD=all
 repack-l10n-all: L10N_XPI_NAME=lightning-all
 repack-l10n-all: repack-clobber-all $(addprefix libs-,$(shell cat $(topsrcdir)/calendar/locales/shipped-locales))
 
+.PHONY : repack-l10n-all
+
 # Helper target to align names better to targets from other locale Makefiles
 repack-l10n-%:
 	$(MAKE) AB_CD=$* repack-l10n
