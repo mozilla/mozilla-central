@@ -149,8 +149,6 @@ RCFLAGS += -i $(MOZILLA_SRCDIR)/toolkit/xre
 RCFLAGS += -DSEAMONKEY_ICO=\"$(DIST)/branding/seamonkey.ico\"
 endif
 
-LIBS += $(JEMALLOC_LIBS)
-
 include $(topsrcdir)/config/rules.mk
 
 ifdef MOZILLA_OFFICIAL

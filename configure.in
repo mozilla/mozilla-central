@@ -5868,8 +5868,19 @@ if test "$NS_TRACE_MALLOC"; then
     MOZ_MEMORY=
 fi
 
-if test "$MOZ_MEMORY"; then
+if test "${OS_TARGET}" = "WINNT" -o "${OS_TARGET}" = "Darwin" -o "${OS_TARGET}" = "OS2"; then
+  dnl On Windows, OSX and OS2, we want to link all our binaries against mozutils
+  MOZ_UTILS_LDFLAGS='$(call EXPAND_LIBNAME_PATH,mozutils,$(LIBXUL_DIST)/lib)'
+else
+  dnl On other Unix systems, we only want to link executables against mozutils
+  MOZ_UTILS_PROGRAM_LDFLAGS='$(MKSHLIB_FORCE_ALL) $(call EXPAND_LIBNAME_PATH,mozutils,$(LIBXUL_DIST)/lib) $(MKSHLIB_UNFORCE_ALL)'
+  if test -n "$GNU_CC"; then
+    dnl And we need mozutils symbols to be exported.
+    MOZ_UTILS_PROGRAM_LDFLAGS="$MOZ_UTILS_PROGRAM_LDFLAGS -rdynamic"
+  fi
+fi
 
+if test "$MOZ_MEMORY"; then
   dnl Don't try to run compiler tests on Windows  
   if test "$OS_ARCH" = "WINNT"; then
     if test -z "$HAVE_64BIT_OS"; then
@@ -5926,14 +5937,12 @@ if test "$MOZ_MEMORY"; then
     WIN32_CRTDLL_FULLPATH=`lib -nologo -list $WIN32_CRT_LIBS | grep crtdll\\.obj`
     lib -NOLOGO -OUT:crtdll.obj $WIN32_CRT_LIBS -EXTRACT:$WIN32_CRTDLL_FULLPATH
     if grep -q '__imp__\{0,1\}free' crtdll.obj; then
-      MOZ_MEMORY_LDFLAGS='-LIBPATH:$(DIST)/lib -NODEFAULTLIB:msvcrt -NODEFAULTLIB:msvcrtd -NODEFAULTLIB:msvcprt -NODEFAULTLIB:msvcprtd -DEFAULTLIB:mozcrt'
-    else
-      MOZ_MEMORY_LDFLAGS='$(DIST)/../memory/jemalloc/jemalloc.lib'
+      MOZ_UTILS_LDFLAGS='-LIBPATH:$(DIST)/lib -NODEFAULTLIB:msvcrt -NODEFAULTLIB:msvcrtd -NODEFAULTLIB:msvcprt -NODEFAULTLIB:msvcprtd -DEFAULTLIB:mozcrt'
     fi
     rm crtdll.obj
 
     dnl Also pass this to NSPR/NSS
-    DLLFLAGS="$DLLFLAGS $MOZ_MEMORY_LDFLAGS"
+    DLLFLAGS="$DLLFLAGS $MOZ_UTILS_LDFLAGS"
     export DLLFLAGS
     ;;
   *-android*)
@@ -5955,7 +5964,8 @@ if test "$MOZ_MEMORY"; then
   fi
 fi
 AC_SUBST(MOZ_MEMORY)
-AC_SUBST(MOZ_MEMORY_LDFLAGS)
+AC_SUBST(MOZ_UTILS_LDFLAGS)
+AC_SUBST(MOZ_UTILS_PROGRAM_LDFLAGS)
 AC_SUBST(WIN32_CRT_LIBS)
 dnl Need to set this for make because NSS doesn't have configure
 AC_SUBST(DLLFLAGS)

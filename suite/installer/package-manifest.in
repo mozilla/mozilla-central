@@ -71,9 +71,6 @@
 @BINPATH@/@MOZ_D3DCOMPILER_DLL@
 #endif
 #ifdef XP_WIN32
-#ifdef MOZ_MEMORY
-@BINPATH@/jemalloc.dll
-#endif
 #ifndef MOZ_DEBUG
 #if _MSC_VER == 1400
 @BINPATH@/Microsoft.VC80.CRT.manifest
@@ -92,9 +89,7 @@
 #endif
 #endif
 @BINPATH@/@DLL_PREFIX@mozalloc@DLL_SUFFIX@
-#ifdef MOZ_MEMORY_DARWIN
-@BINPATH@/@DLL_PREFIX@jemalloc@DLL_SUFFIX@
-#endif
+@BINPATH@/@DLL_PREFIX@mozutils@DLL_SUFFIX@
 
 [browser]
 ; [Base Browser Files]

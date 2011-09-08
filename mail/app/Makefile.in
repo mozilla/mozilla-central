@@ -172,8 +172,6 @@ endif
 RCFLAGS += -DTHUNDERBIRD_ICO=\"$(DIST)/branding/thunderbird.ico\"
 endif
 
-LIBS += $(JEMALLOC_LIBS)
-
 include $(topsrcdir)/config/rules.mk
 
 ifdef MOZILLA_OFFICIAL
