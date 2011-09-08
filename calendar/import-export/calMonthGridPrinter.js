@@ -120,7 +120,7 @@ calMonthPrinter.prototype = {
         // Feb 1), and similarly whether aEnd falls in the same week as the end of
         // a month.
         let weekStart = cal.getPrefSafe("calendar.week.start", 0);
-        maybeNewStart = start.clone();
+        let maybeNewStart = start.clone();
         maybeNewStart.day = 1;
         maybeNewStart.month = start.month+1;
 
@@ -319,7 +319,7 @@ calMonthPrinter.prototype = {
                 if (!eDate || eDate.compare(dt) == -1) {
                     continue;
                 }
-                itemListIndex = i;
+                let itemListIndex = i;
                 if (!sDate || sDate.compare(dt) == 1) {
                     break;
                 }

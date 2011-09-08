@@ -2065,7 +2065,7 @@
       <method name="selectOccurrence">
         <parameter name="aItem"/>
         <body><![CDATA[
-          for each (itemBox in this.mItemBoxes) {
+          for each (let itemBox in this.mItemBoxes) {
             if (aItem && (itemBox.occurrence.hashId == aItem.hashId)) {
               itemBox.selected = true;
             }
@@ -3204,7 +3204,7 @@
 
           // fix pixels-per-minute
           this.onResize();
-          for each (col in this.mDateColumns) {
+          for each (let col in this.mDateColumns) {
                col.column.endLayoutBatchChange();
           }
 

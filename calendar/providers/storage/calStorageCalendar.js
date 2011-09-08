@@ -2049,7 +2049,7 @@ calStorageCalendar.prototype = {
         if (rec) {
             flags = CAL_ITEM_FLAG.HAS_RECURRENCE;
             var ritems = rec.getRecurrenceItems ({});
-            for (i in ritems) {
+            for (let i in ritems) {
                 var ritem = ritems[i];
                 var ap = this.mInsertRecurrence.params;
                 try {
@@ -2119,7 +2119,7 @@ calStorageCalendar.prototype = {
                 // we need to serialize each exid as a separate
                 // event/todo; setupItemBase will handle
                 // writing the recurrenceId for us
-                for each (exid in exceptions) {
+                for each (let exid in exceptions) {
                     let ex = rec.getExceptionFor(exid);
                     if (!ex)
                         throw Components.results.NS_ERROR_UNEXPECTED;
@@ -2136,7 +2136,7 @@ calStorageCalendar.prototype = {
     writeAttachments: function cSC_writeAttachments(item, olditem) {
         let attachments = item.getAttachments({});
         if (attachments && attachments.length > 0) {
-            for each (att in attachments) {
+            for each (let att in attachments) {
                 let ap = this.mInsertAttachment.params;
                 try {
                     this.prepareStatement(this.mInsertAttachment);

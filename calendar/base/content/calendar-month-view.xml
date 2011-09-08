@@ -583,7 +583,7 @@
           if (this.mSelectedItems.length) {
               for each (var item in this.mSelectedItems) {
                   let oldboxes = this.findDayBoxesForItem(item);
-                  for each (oldbox in oldboxes) {
+                  for each (let oldbox in oldboxes) {
                       oldbox.unselectItem(item);
                   }
               }
@@ -594,7 +594,7 @@
           if (this.mSelectedItems.length) {
               for each (var item in this.mSelectedItems) {
                   let newboxes = this.findDayBoxesForItem(item);
-                  for each (newbox in newboxes) {
+                  for each (let newbox in newboxes) {
                       newbox.selectItem(item);
                   }
               }
@@ -875,7 +875,7 @@
       <method name="findDayBoxForDate">
         <parameter name="aDate"/>
         <body><![CDATA[
-          for each (box in this.mDateBoxes) {
+          for each (let box in this.mDateBoxes) {
             if (box.mDate.compare(aDate) == 0)
               return box;
           }

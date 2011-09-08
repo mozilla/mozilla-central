@@ -530,7 +530,7 @@ calRecurrenceInfo.prototype = {
         }
 
         // Apply positive rules
-        for each (ritem in this.mPositiveRules) {
+        for each (let ritem in this.mPositiveRules) {
             var cur_dates = ritem.getOccurrences(startDate,
                                                  searchStart,
                                                  rangeEnd,
@@ -571,7 +571,7 @@ calRecurrenceInfo.prototype = {
         }
 
         // Apply negative rules
-        for each (ritem in this.mNegativeRules) {
+        for each (let ritem in this.mNegativeRules) {
             var cur_dates = ritem.getOccurrences(startDate,
                                                  searchStart,
                                                  rangeEnd,

@@ -574,7 +574,7 @@
               this.binding.sortItems();
               if (selectedItems != undefined) {
                   this.tree.view.selection.clearSelection();
-                  for each (item in selectedItems){
+                  for each (let item in selectedItems){
                       let index = this.binding.mHash2Index[item.hashId];
                       this.tree.view.selection.toggleSelect(index);
                   }

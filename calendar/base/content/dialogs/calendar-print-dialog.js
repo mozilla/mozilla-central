@@ -170,7 +170,7 @@ function getWhatToPrintSettings() {
             settings.eventList = theView.getSelectedItems({});
         }
         if (settings.printTasks) {
-            selectedTasks = window.opener.document.getElementById("unifinder-todo-tree").selectedTasks;
+            let selectedTasks = window.opener.document.getElementById("unifinder-todo-tree").selectedTasks;
             for each (var task in selectedTasks) {
                 settings.eventList.push(task);
             }

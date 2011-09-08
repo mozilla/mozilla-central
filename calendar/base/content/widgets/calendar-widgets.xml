@@ -408,7 +408,7 @@
       <method name="removeDropShadows">
         <body><![CDATA[
             // method that may be overwritten by derived bindings...
-            for each (shadow in this.calendarView.mDropShadows) {
+            for each (let shadow in this.calendarView.mDropShadows) {
                 cal.removeChildElementsByAttribute(shadow, "class", "dropshadow");
             }
             this.calendarView.mDropShadows = null;
