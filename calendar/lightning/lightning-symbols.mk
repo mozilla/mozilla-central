@@ -32,7 +32,7 @@ endif
 ifeq (,$(filter-out Linux SunOS,$(OS_ARCH)))
 MAKE_SYM_STORE_ARGS := -c --vcs-info
 DUMP_SYMS_BIN ?= $(DIST)/host/bin/dump_syms
-MAKE_SYM_STORE_PATH := $(DIST)/bin
+MAKE_SYM_STORE_PATH := $(DIST)/xpi-stage/lightning
 endif
 
 SYM_STORE_SOURCE_DIRS := $(topsrcdir)
