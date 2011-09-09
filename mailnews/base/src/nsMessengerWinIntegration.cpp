@@ -64,7 +64,6 @@
 #include "nsIBaseWindow.h"
 #include "nsIWidget.h"
 #include "nsWidgetsCID.h"
-#include "nsILookAndFeel.h"
 #include "MailNewsTypes.h"
 #include "nsIMessengerWindowService.h"
 #include "prprf.h"
@@ -77,6 +76,7 @@
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsMsgUtils.h"
+#include "mozilla/LookAndFeel.h"
 
 #include "nsToolkitCompsCID.h"
 #include <stdlib.h>
@@ -118,6 +118,8 @@
 #undef NOTIFYICONDATAW_V2_SIZE
 #define NOTIFYICONDATAW_V2_SIZE sizeof(NOTIFYICONDATAW)
 #endif
+
+using namespace mozilla;
 
 // begin shameless copying from nsNativeAppSupportWin
 HWND hwndForDOMWindow( nsISupports *window )
@@ -567,15 +569,10 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(PRBool aUserInitiat
     nsCOMPtr<nsISupportsPRUint8> scriptableOrigin (do_CreateInstance(NS_SUPPORTS_PRUINT8_CONTRACTID));
     NS_ENSURE_TRUE(scriptableOrigin, NS_ERROR_FAILURE);
     scriptableOrigin->SetData(0);
-    nsCOMPtr<nsILookAndFeel> lookAndFeel = do_GetService("@mozilla.org/widget/lookandfeel;1");
-    if (lookAndFeel)
-    {
-      PRInt32 origin;
-      lookAndFeel->GetMetric(nsILookAndFeel::eMetric_AlertNotificationOrigin,
-                             origin);
-      if (origin && origin >= 0 && origin <= 7)
-        scriptableOrigin->SetData(origin);
-    }
+    PRInt32 origin = LookAndFeel::GetInt(LookAndFeel::eIntID_AlertNotificationOrigin);
+    if (origin && origin >= 0 && origin <= 7)
+      scriptableOrigin->SetData(origin);
+
     rv = argsArray->AppendElement(scriptableOrigin);
     NS_ENSURE_SUCCESS(rv, rv);
 
