@@ -44,6 +44,9 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
+# Calendar builders currently use STRIP_XPI to reduce the binary component in
+# Lightning.
+
 MODULE		= lightning
 
 export XPI_NAME = lightning
@@ -52,7 +55,6 @@ XPI_PKGNAME = lightning
 
 XPI_EM_ID = {e2fda1a4-762b-4020-b5ad-a41df1933103}
 
-STRIP_XPI = 1
 DIST_FILES = install.rdf application.ini
 PREF_JS_EXPORTS = $(srcdir)/content/lightning.js
 
@@ -164,3 +166,5 @@ ident:
 	@printf "buildid "
 	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py \
 	    $(FINAL_TARGET)/application.ini App BuildID
+
+include $(srcdir)/lightning-symbols.mk
