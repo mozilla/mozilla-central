@@ -99,11 +99,8 @@ nsOutlookProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, 
 {
   nsresult rv = NS_OK;
 
-  PRBool aReplace = PR_FALSE;
-
   if (aStartup)
   {
-    aReplace = PR_TRUE;
     rv = aStartup->DoStartup();
     NS_ENSURE_SUCCESS(rv, rv);
   }
