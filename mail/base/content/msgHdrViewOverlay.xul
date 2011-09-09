@@ -188,69 +188,69 @@
                    these buttons are doing the right thing -->
 
               <toolbarbutton id="hdrForwardButton"
-                             label="&hdrForwardButton.label;"
-                             tooltiptext="&hdrForwardButton.tooltip;"
+                             label="&hdrForwardButton1.label;"
+                             tooltiptext="&hdrForwardButton1.tooltip;"
                              oncommand="MsgForwardMessage(event);RestoreFocusAfterHdrButton();"
                              observes="button_forward"
                              class="toolbarbutton-1 msgHeaderView-button hdrForwardButton"/>
               <toolbarbutton id="hdrArchiveButton"
-                             label="&hdrArchiveButton.label;"
-                             tooltiptext="&hdrArchiveButton.tooltip;"
+                             label="&hdrArchiveButton1.label;"
+                             tooltiptext="&hdrArchiveButton1.tooltip;"
                              oncommand="MsgArchiveSelectedMessages(event);RestoreFocusAfterHdrButton();"
                              observes="button_archive"
                              class="toolbarbutton-1 msgHeaderView-button hdrArchiveButton"/>
-              <toolbarbutton id="hdrJunkButton" label="&hdrJunkButton.label;"
-                             tooltiptext="&hdrJunkButton.tooltip;"
+              <toolbarbutton id="hdrJunkButton" label="&hdrJunkButton1.label;"
+                             tooltiptext="&hdrJunkButton1.tooltip;"
                              observes="button_junk"
                              class="toolbarbutton-1 msgHeaderView-button hdrJunkButton"
                              oncommand="goDoCommand('button_junk');RestoreFocusAfterHdrButton();"/>
               <toolbarbutton id="hdrTrashButton"
-                             label="&hdrTrashButton.label;"
-                             tooltiptext="&hdrTrashButton.tooltip;"
+                             label="&hdrTrashButton1.label;"
+                             tooltiptext="&hdrTrashButton1.tooltip;"
                              observes="button_delete"
                              class="toolbarbutton-1 msgHeaderView-button hdrTrashButton"
                              oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' :
                                                     'cmd_delete');RestoreFocusAfterHdrButton();"/>
-              <toolbarbutton id="hdrReplyToSenderButton" label="&hdrReplyButton.label;"
-                             tooltiptext="&hdrReplyButton.tooltip;"
+              <toolbarbutton id="hdrReplyToSenderButton" label="&hdrReplyButton1.label;"
+                             tooltiptext="&hdrReplyButton1.tooltip;"
                              oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
                              observes="button_reply"
                              class="toolbarbutton-1 msgHeaderView-button hdrReplyToSenderButton"/>
-              <toolbaritem id="hdrSmartReplyButton" label="&hdrSmartReplyButton.label;">
+              <toolbaritem id="hdrSmartReplyButton" label="&hdrSmartReplyButton1.label;">
                 <!-- This button is a dummy and should only be shown when
                      customizing the toolbar to distinguish the smart reply
                      button from the reply to sender button. -->
-                <toolbarbutton id="hdrDummyReplyButton" label="&hdrSmartReplyButton.label;"
+                <toolbarbutton id="hdrDummyReplyButton" label="&hdrSmartReplyButton1.label;"
                                hidden="true"
                                class="toolbarbutton-1 msgHeaderView-button hdrDummyReplyButton"/>
-                <toolbarbutton id="hdrReplyOnlyButton" label="&hdrReplyButton.label;"
-                               tooltiptext="&hdrReplyButton.tooltip;"
+                <toolbarbutton id="hdrReplyOnlyButton" label="&hdrReplyButton1.label;"
+                               tooltiptext="&hdrReplyButton1.tooltip;"
                                oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
                                observes="button_reply"
                                class="toolbarbutton-1 msgHeaderView-button hdrReplyOnlyButton"/>
-                <toolbarbutton id="hdrReplyButton" label="&hdrReplyButton.label;"
-                               tooltiptext="&hdrReplyButton.tooltip;"
+                <toolbarbutton id="hdrReplyButton" label="&hdrReplyButton1.label;"
+                               tooltiptext="&hdrReplyButton1.tooltip;"
                                oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
                                observes="button_reply"
                                class="toolbarbutton-1 msgHeaderView-button hdrReplyButton"
                                type="menu-button">
                   <menupopup id="hdrReplyDropdown">
                     <menuitem id="hdrReply_ReplySubButton"
-                              label="&hdrReplyButton.label;"
-                              tooltiptext="&hdrReplyButton.tooltip;"
+                              label="&hdrReplyButton1.label;"
+                              tooltiptext="&hdrReplyButton1.tooltip;"
                               observes="button_reply"/>
                     <menuseparator id="hdrReplySubSeparator"/>
                     <menuitem id="hdrReply_ReplyAllSubButton"
-                              label="&hdrReplyAllButton.label;"
-                              tooltiptext="&hdrReplyAllButton.tooltip;"
+                              label="&hdrReplyAllButton1.label;"
+                              tooltiptext="&hdrReplyAllButton1.tooltip;"
                               observes="button_replyall"
                               oncommand="MsgReplyToAllMessage(event); event.stopPropagation();
                                          RestoreFocusAfterHdrButton();"/>
                   </menupopup>
                 </toolbarbutton>
                 <toolbarbutton id="hdrReplyAllButton"
-                               label="&hdrReplyAllButton.label;"
-                               tooltiptext="&hdrReplyAllButton.tooltip;"
+                               label="&hdrReplyAllButton1.label;"
+                               tooltiptext="&hdrReplyAllButton1.tooltip;"
                                oncommand="MsgReplyToAllMessage(event);RestoreFocusAfterHdrButton();"
                                observes="button_replyall"
                                class="toolbarbutton-1 msgHeaderView-button hdrReplyButton hdrReplyAllButton"
@@ -258,21 +258,21 @@
                                hidden="true">
                   <menupopup id="hdrReplyAllDropdown">
                     <menuitem id="hdrReplyAll_ReplyAllSubButton"
-                              label="&hdrReplyAllButton.label;"
-                              tooltiptext="&hdrReplyAllButton.tooltip;"
+                              label="&hdrReplyAllButton1.label;"
+                              tooltiptext="&hdrReplyAllButton1.tooltip;"
                               observes="button_replyall"/>
                     <menuseparator id="hdrReplyAllSubSeparator"/>
                     <menuitem id="hdrReplySubButton"
-                              label="&hdrReplyButton.label;"
-                              tooltiptext="&hdrReplyButton.tooltip;"
+                              label="&hdrReplyButton1.label;"
+                              tooltiptext="&hdrReplyButton1.tooltip;"
                               observes="button_reply"
                               oncommand="MsgReplyMessage(event); event.stopPropagation();
                                          RestoreFocusAfterHdrButton();"/>
                   </menupopup>
                 </toolbarbutton>
                 <toolbarbutton id="hdrReplyListButton"
-                               label="&hdrReplyListButton.label;"
-                               tooltiptext="&hdrReplyListButton.tooltip;"
+                               label="&hdrReplyListButton1.label;"
+                               tooltiptext="&hdrReplyListButton1.tooltip;"
                                oncommand="MsgReplyToListMessage(event);RestoreFocusAfterHdrButton();"
                                observes="button_replylist"
                                class="toolbarbutton-1 msgHeaderView-button hdrReplyButton hdrReplyListButton"
@@ -280,19 +280,19 @@
                                hidden="true">
                   <menupopup id="hdrReplyListDropdown">
                     <menuitem id="hdrReplyList_ReplyListSubButton"
-                              label="&hdrReplyListButton.label;"
-                              tooltiptext="&hdrReplyListButton.tooltip;"
+                              label="&hdrReplyListButton1.label;"
+                              tooltiptext="&hdrReplyListButton1.tooltip;"
                               observes="button_replylist"/>
                     <menuseparator id="hdrReplyListSubSeparator"/>
                     <menuitem id="hdrRelplyList_ReplyAllSubButton"
-                              label="&hdrReplyAllButton.label;"
-                              tooltiptext="&hdrReplyAllButton.tooltip;"
+                              label="&hdrReplyAllButton1.label;"
+                              tooltiptext="&hdrReplyAllButton1.tooltip;"
                               observes="button_replyall"
                               oncommand="MsgReplyToAllMessage(event); event.stopPropagation();
                                          RestoreFocusAfterHdrButton();"/>
                     <menuitem id="hdrReplyList_ReplySubButton"
-                              label="&hdrReplyButton.label;"
-                              tooltiptext="&hdrReplyButton.tooltip;"
+                              label="&hdrReplyButton1.label;"
+                              tooltiptext="&hdrReplyButton1.tooltip;"
                               observes="button_reply"
                               oncommand="MsgReplyMessage(event); event.stopPropagation();
                                          RestoreFocusAfterHdrButton();"/>
@@ -330,7 +330,7 @@
             <rows id="expandedHeaderRows">
               <row id="expandedfromRow">
                 <label id="expandedfromLabel" class="headerName"
-                       value="&fromField2.label;" control="expandedfromBox"/>
+                       value="&fromField3.label;" control="expandedfromBox"/>
                 <mail-multi-emailHeaderField id="expandedfromBox" flex="1"/>
               </row>
             </rows>
@@ -354,92 +354,92 @@
                    performance hit of creating them dynamically. -->
               <row id="expandedsubjectRow">
                 <label id="expandedsubjectLabel" class="headerName"
-                       value="&subjectField2.label;"
+                       value="&subjectField3.label;"
                        control="expandedsubjectBox"/>
                 <mail-headerfield id="expandedsubjectBox" flex="1"/>
               </row>
               <row id="expandedorganizationRow" collapsed="true">
                 <label id="expandedorganizationLabel" class="headerName"
-                       value="&organizationField2.label;"
+                       value="&organizationField3.label;"
                        control="expandedorganizationBox"/>
                 <mail-headerfield id="expandedorganizationBox"/>
               </row>
               <row id="expandedsenderRow" collapsed="true">
                 <label id="expandedsenderLabel" class="headerName"
-                       value="&senderField2.label;" control="expandedsenderBox"/>
+                       value="&senderField3.label;" control="expandedsenderBox"/>
                 <mail-emailheaderfield id="expandedsenderBox"/>
               </row>
               <row id="expandedreply-toRow" collapsed="true">
                 <label id="expandedreply-toLabel" class="headerName"
-                       value="&replyToField2.label;"
+                       value="&replyToField3.label;"
                        control="expandedreply-toBox"/>
                 <mail-multi-emailHeaderField id="expandedreply-toBox"/>
               </row>
               <row id="expandedtoRow" collapsed="true">
                 <label id="expandedtoLabel" class="headerName"
-                       value="&toField2.label;" control="expandedtoBox"/>
+                       value="&toField3.label;" control="expandedtoBox"/>
                 <mail-multi-emailHeaderField id="expandedtoBox" flex="1"/>
               </row>
               <row id="expandedccRow" collapsed="true">
                 <label id="expandedccLabel" class="headerName"
-                       value="&ccField2.label;" control="expandedccBox"/>
+                       value="&ccField3.label;" control="expandedccBox"/>
                 <mail-multi-emailHeaderField id="expandedccBox" flex="1"/>
               </row>
               <row id="expandedbccRow" collapsed="true">
                 <label id="expandedbccLabel" class="headerName"
-                       value="&bccField2.label;" control="expandedbccBox"/>
+                       value="&bccField3.label;" control="expandedbccBox"/>
                 <mail-multi-emailHeaderField id="expandedbccBox"/>
               </row>
               <row id="expandednewsgroupsRow" collapsed="true">
                 <label id="expandednewsgroupsLabel" class="headerName"
-                       value="&newsgroupsField2.label;"
+                       value="&newsgroupsField3.label;"
                        control="expandednewsgroupsBox"/>
                 <mail-newsgroups-headerfield id="expandednewsgroupsBox"/>
               </row>
               <row id="expandedfollowup-toRow" collapsed="true">
                 <label id="expandedfollowup-toLabel" class="headerName"
-                       value="&followupToField2.label;"
+                       value="&followupToField3.label;"
                        control="expandedfollowup-toBox"/>
                 <mail-newsgroups-headerfield id="expandedfollowup-toBox"/>
               </row>
               <row id="expandeddateRow" collapsed="true">
                 <label id="expandeddateLabel" class="headerName"
-                       value="&dateField2.label;" control="expandeddateBox"/>
+                       value="&dateField3.label;" control="expandeddateBox"/>
                 <mail-headerfield id="expandeddateBox" flex="1"/>
               </row>
               <row id="expandedmessage-idRow" collapsed="true">
                 <label id="expandedmessage-idLabel" class="headerName"
-                       value="&messageIdField2.label;"
+                       value="&messageIdField3.label;"
                        control="expandedmessage-idBox"/>
                 <mail-messageids-headerfield id="expandedmessage-idBox"/>
               </row>
               <row id="expandedin-reply-toRow" collapsed="true">
                 <label id="expandedin-reply-toLabel" class="headerName"
-                       value="&inReplyToField2.label;"
+                       value="&inReplyToField3.label;"
                        control="expandedin-reply-toBox"/>
                 <mail-messageids-headerfield id="expandedin-reply-toBox"/>
               </row>
               <row id="expandedreferencesRow" collapsed="true">
                 <label id="expandedreferencesLabel" class="headerName"
-                       value="&referencesField2.label;"
+                       value="&referencesField3.label;"
                        control="expandedReferencesBox"/>
                 <mail-messageids-headerfield id="expandedreferencesBox"
                                              flex="1"/>
               </row>
               <row id="expandedtagsRow" collapsed="true">
                 <label id="expandedtagsLabel" class="headerName"
-                       value="&tagsHdr2.label;" control="expandedtagsBox"/>
+                       value="&tagsHdr3.label;" control="expandedtagsBox"/>
                 <mail-tagfield id="expandedtagsBox"/>
               </row>
               <row id="expandedcontent-baseRow" collapsed="true">
                 <label id="expandedcontent-baseLabel" class="headerName"
-                       value="&originalWebsite2.label;"
+                       value="&originalWebsite3.label;"
                        control="expandedcontent-baseBox"/>
                 <mail-urlfield id="expandedcontent-baseBox"/>
               </row>
               <row id="expandeduser-agentRow" collapsed="true">
                 <label id="expandeduser-agentLabel" class="headerName"
-                       value="&userAgentField2.label;"
+                       value="&userAgentField3.label;"
                        control="expandeduser-agentBox"/>
                 <mail-headerfield id="expandeduser-agentBox" flex="1"/>
               </row>
@@ -453,41 +453,41 @@
                      aria-readonly="true"/>
             </hbox>
             <button type="menu" id="otherActionsButton"
-                    label="&otherActionsButton.label;"
+                    label="&otherActionsButton1.label;"
                     class="msgHeaderView-button msgHeaderView-flat-button">
               <menupopup id="otherActionsPopup"
                          onpopupshowing="onShowOtherActionsPopup();">
                 <menuitem id="otherActionsOpenConversation"
-                          label="&otherActionsOpenConversation.label;"
-                          accesskey="&otherActionsOpenConversation.accesskey;"
+                          label="&otherActionsOpenConversation1.label;"
+                          accesskey="&otherActionsOpenConversation1.accesskey;"
                           oncommand="gConversationOpener.openConversationForMessages(gFolderDisplay.selectedMessages);"/>
                 <menuitem id="otherActionsOpenInNewWindow"
-                          label="&otherActionsOpenInNewWindow.label;"
-                          accesskey="&otherActionsOpenInNewWindow.accesskey;"
+                          label="&otherActionsOpenInNewWindow1.label;"
+                          accesskey="&otherActionsOpenInNewWindow1.accesskey;"
                           oncommand="MsgOpenNewWindowForMessage();"/>
                 <menuitem id="otherActionsOpenInNewTab"
-                          label="&otherActionsOpenInNewTab.label;"
-                          accesskey="&otherActionsOpenInNewTab.accesskey;"
+                          label="&otherActionsOpenInNewTab1.label;"
+                          accesskey="&otherActionsOpenInNewTab1.accesskey;"
                           oncommand="OpenMessageInNewTab(event);"/>
                 <menuitem id="viewSourceMenuItem"
-                          label="&viewSourceMenuItem.label;"
-                          accesskey="&viewSourceMenuItem.accesskey;"
+                          label="&viewSourceMenuItem1.label;"
+                          accesskey="&viewSourceMenuItem1.accesskey;"
                           oncommand="ViewPageSource(gFolderDisplay.selectedMessageUris);" />
                 <menuseparator id="otherActionsSeparator"/>
                 <menuitem id="markAsReadMenuItem"
-                          label="&markAsReadMenuItem.label;"
-                          accesskey="&markAsReadMenuItem.accesskey;"
+                          label="&markAsReadMenuItem1.label;"
+                          accesskey="&markAsReadMenuItem1.accesskey;"
                           oncommand="MsgMarkMsgAsRead();"/>
                 <menuitem id="markAsUnreadMenuItem"
-                          label="&markAsUnreadMenuItem.label;"
-                          accesskey="&markAsUnreadMenuItem.accesskey;"
+                          label="&markAsUnreadMenuItem1.label;"
+                          accesskey="&markAsUnreadMenuItem1.accesskey;"
                           oncommand="MsgMarkMsgAsRead();"/>
-                <menuitem id="saveAsMenuItem" label="&saveAsMenuItem.label;"
-                          accesskey="&saveAsMenuItem.accesskey;"
+                <menuitem id="saveAsMenuItem" label="&saveAsMenuItem1.label;"
+                          accesskey="&saveAsMenuItem1.accesskey;"
                           oncommand="MsgSaveAsFile();"/>
                 <menuitem id="otherActionsPrint"
-                          label="&otherActionsPrint.label;"
-                          accesskey="&otherActionsPrint.accesskey;"
+                          label="&otherActionsPrint1.label;"
+                          accesskey="&otherActionsPrint1.accesskey;"
                           oncommand="PrintEnginePrint();"/>
               </menupopup>
             </button>
@@ -536,58 +536,58 @@
              inlinetoolbox="true">
       <toolbarpalette id="attachment-view-toolbar-palette">
         <toolbaritem id="attachmentSaveAll"
-                     title="&saveAllAttachmentsButton.label;">
+                     title="&saveAllAttachmentsButton1.label;">
           <toolbarbutton type="menu-button" id="attachmentSaveAllSingle"
                          class="toolbarbutton-1 msgHeaderView-button"
-                         label="&saveAttachmentButton.label;"
-                         tooltiptext="&saveAttachmentButton.tooltip;"
+                         label="&saveAttachmentButton1.label;"
+                         tooltiptext="&saveAttachmentButton1.tooltip;"
                          oncommand="TryHandleAllAttachments('saveAs'); RestoreFocusAfterHdrButton();"
                          hidden="true">
             <menupopup id="attachmentSaveAllSingleMenu"
                        onpopupshowing="onShowSaveAttachmentMenuSingle();">
               <menuitem id="button-openAttachment"
                         oncommand="TryHandleAllAttachments('open'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
-                        label="&openAttachmentMenuItem.label;"
-                        accesskey="&openAttachmentMenuItem.accesskey;"/>
+                        label="&openAttachmentCmd.label;"
+                        accesskey="&openAttachmentCmd.accesskey;"/>
               <menuitem id="button-saveAttachment"
                         oncommand="TryHandleAllAttachments('saveAs'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
-                        label="&saveAsAttachmentMenuItem.label;"
-                        accesskey="&saveAsAttachmentMenuItem.accesskey;"/>
+                        label="&saveAsAttachmentCmd.label;"
+                        accesskey="&saveAsAttachmentCmd.accesskey;"/>
               <menuseparator id="button-menu-separator"/>
               <menuitem id="button-detachAttachment"
                         oncommand="TryHandleAllAttachments('detach'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
-                        label="&detachAttachmentMenuItem.label;"
-                        accesskey="&detachAttachmentMenuItem.accesskey;"/>
+                        label="&detachAttachmentCmd.label;"
+                        accesskey="&detachAttachmentCmd.accesskey;"/>
               <menuitem id="button-deleteAttachment"
                         oncommand="TryHandleAllAttachments('delete'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
-                        label="&deleteAttachmentMenuItem.label;"
-                        accesskey="&deleteAttachmentMenuItem.accesskey;"/>
+                        label="&deleteAttachmentCmd.label;"
+                        accesskey="&deleteAttachmentCmd.accesskey;"/>
             </menupopup>
           </toolbarbutton>
           <toolbarbutton type="menu-button" id="attachmentSaveAllMultiple"
                          class="toolbarbutton-1 msgHeaderView-button"
-                         label="&saveAllAttachmentsButton.label;"
-                         tooltiptext="&saveAllAttachmentsButton.tooltip;"
+                         label="&saveAllAttachmentsButton1.label;"
+                         tooltiptext="&saveAllAttachmentsButton1.tooltip;"
                          oncommand="TryHandleAllAttachments('save'); RestoreFocusAfterHdrButton();">
             <menupopup id="attachmentSaveAllMultipleMenu"
                        onpopupshowing="onShowSaveAttachmentMenuMultiple();">
               <menuitem id="button-openAllAttachments"
                         oncommand="TryHandleAllAttachments('open'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
-                        label="&openAllAttachmentsMenuItem.label;"
-                        accesskey="&openAllAttachmentsMenuItem.accesskey;"/>
+                        label="&openAllAttachmentsCmd.label;"
+                        accesskey="&openAllAttachmentsCmd.accesskey;"/>
               <menuitem id="button-saveAllAttachments"
                         oncommand="TryHandleAllAttachments('save'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
-                        label="&saveAllAttachmentsMenuItem.label;"
-                        accesskey="&saveAllAttachmentsMenuItem.accesskey;"/>
+                        label="&saveAllAttachmentsCmd.label;"
+                        accesskey="&saveAllAttachmentsCmd.accesskey;"/>
               <menuseparator id="button-menu-separator-all"/>
               <menuitem id="button-detachAllAttachments"
                         oncommand="TryHandleAllAttachments('detach'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
-                        label="&detachAllAttachmentsMenuItem.label;"
-                        accesskey="&detachAllAttachmentsMenuItem.accesskey;"/>
+                        label="&detachAllAttachmentsCmd.label;"
+                        accesskey="&detachAllAttachmentsCmd.accesskey;"/>
               <menuitem id="button-deleteAllAttachments"
                         oncommand="TryHandleAllAttachments('delete'); event.stopPropagation(); RestoreFocusAfterHdrButton();"
-                        label="&deleteAllAttachmentsMenuItem.label;"
-                        accesskey="&deleteAllAttachmentsMenuItem.accesskey;"/>
+                        label="&deleteAllAttachmentsCmd.label;"
+                        accesskey="&deleteAllAttachmentsCmd.accesskey;"/>
             </menupopup>
           </toolbarbutton>
         </toolbaritem>

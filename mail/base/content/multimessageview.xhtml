@@ -88,10 +88,11 @@
                 <hbox id="buttonhbox" align="start">
                     <button id="archive"
                             class="button msgHeaderView-button hdrArchiveButton"
-                            onclick="if (event.button == 0) window.top.MsgArchiveSelectedMessages(null);" label="&archive.label;"/>
+                            label="&archiveButton.label;"
+                            onclick="if (event.button == 0) window.top.MsgArchiveSelectedMessages(null);" />
                     <button id="trash"
                             class="button msgHeaderView-button hdrTrashButton"
-                            label="&delete.label;"
+                            label="&deleteButton.label;"
                             onclick="if (event.button == 0) window.top.DefaultController.doCommand('cmd_delete');"/>
                 </hbox>
             </div>
