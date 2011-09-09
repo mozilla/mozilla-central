@@ -122,6 +122,9 @@ nsMsgSearchAttribEntry SearchAttribEntryTable[] =
     {nsMsgSearchAttrib::HasAttachmentStatus, "has attachment status"},
 };
 
+static const unsigned int sNumSearchAttribEntryTable =
+  NS_ARRAY_LENGTH(SearchAttribEntryTable);
+
 // Take a string which starts off with an attribute
 // and return the matching attribute. If the string is not in the table, and it
 // begins with a quote, then we can conclude that it is an arbitrary header.
@@ -136,8 +139,7 @@ nsresult NS_MsgGetAttributeFromString(const char *string, PRInt16 *attrib, nsACS
   // arbitrary headers have a leading quote
   if (*string != '"')
   {
-    for (int idxAttrib = 0; idxAttrib < (int)(sizeof(SearchAttribEntryTable) /
-         sizeof(nsMsgSearchAttribEntry)); idxAttrib++)
+    for (unsigned int idxAttrib = 0; idxAttrib < sNumSearchAttribEntryTable; idxAttrib++)
     {
       if (!PL_strcasecmp(string, SearchAttribEntryTable[idxAttrib].attribName))
       {
@@ -217,7 +219,7 @@ nsresult NS_MsgGetStringForAttribute(PRInt16 attrib, const char **string)
   NS_ENSURE_ARG_POINTER(string);
 
   PRBool found = PR_FALSE;
-  for (int idxAttrib = 0; idxAttrib < (int)(sizeof(SearchAttribEntryTable) / sizeof(nsMsgSearchAttribEntry)); idxAttrib++)
+  for (unsigned int idxAttrib = 0; idxAttrib < sNumSearchAttribEntryTable; idxAttrib++)
   {
     // I'm using the idx's as aliases into MSG_SearchAttribute and
     // MSG_SearchOperator enums which is legal because of the way the
@@ -265,13 +267,16 @@ nsMsgSearchOperatorEntry SearchOperatorEntryTable[] =
   {nsMsgSearchOp::DoesntMatch, "doesn't match"}
 };
 
+static const unsigned int sNumSearchOperatorEntryTable =
+  NS_ARRAY_LENGTH(SearchOperatorEntryTable);
+
 nsresult NS_MsgGetOperatorFromString(const char *string, PRInt16 *op)
 {
   NS_ENSURE_ARG_POINTER(string);
   NS_ENSURE_ARG_POINTER(op);
 
   PRBool found = PR_FALSE;
-  for (unsigned int idxOp = 0; idxOp < sizeof(SearchOperatorEntryTable) / sizeof(nsMsgSearchOperatorEntry); idxOp++)
+  for (unsigned int idxOp = 0; idxOp < sNumSearchOperatorEntryTable; idxOp++)
   {
     // I'm using the idx's as aliases into MSG_SearchAttribute and
     // MSG_SearchOperator enums which is legal because of the way the
@@ -291,7 +296,7 @@ nsresult NS_MsgGetStringForOperator(PRInt16 op, const char **string)
   NS_ENSURE_ARG_POINTER(string);
 
   PRBool found = PR_FALSE;
-  for (unsigned int idxOp = 0; idxOp < sizeof(SearchOperatorEntryTable) / sizeof(nsMsgSearchOperatorEntry); idxOp++)
+  for (unsigned int idxOp = 0; idxOp < sNumSearchOperatorEntryTable; idxOp++)
   {
     // I'm using the idx's as aliases into MSG_SearchAttribute and
     // MSG_SearchOperator enums which is legal because of the way the

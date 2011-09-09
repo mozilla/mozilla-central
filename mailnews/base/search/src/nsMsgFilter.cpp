@@ -60,6 +60,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "nsIMsgFilterService.h"
+#include "nsMemory.h"
 #include "prmem.h"
 
 static const char *kImapPrefix = "//imap:";
@@ -914,11 +915,11 @@ static struct RuleActionsTableEntry ruleActionsTable[] =
   { nsMsgFilterAction::Custom,                  "Custom"},
 };
 
+static const unsigned int sNumActions = NS_ARRAY_LENGTH(ruleActionsTable);
+
 const char *nsMsgFilter::GetActionStr(nsMsgRuleActionType action)
 {
-  int  numActions = sizeof(ruleActionsTable) / sizeof(ruleActionsTable[0]);
-
-  for (int i = 0; i < numActions; i++)
+  for (unsigned int i = 0; i < sNumActions; i++)
   {
     if (action == ruleActionsTable[i].action)
       return ruleActionsTable[i].actionFilingStr;
@@ -927,9 +928,7 @@ const char *nsMsgFilter::GetActionStr(nsMsgRuleActionType action)
 }
 /*static */nsresult nsMsgFilter::GetActionFilingStr(nsMsgRuleActionType action, nsCString &actionStr)
 {
-  int  numActions = sizeof(ruleActionsTable) / sizeof(ruleActionsTable[0]);
-
-  for (int i = 0; i < numActions; i++)
+  for (unsigned int i = 0; i < sNumActions; i++)
   {
     if (action == ruleActionsTable[i].action)
     {
@@ -943,9 +942,7 @@ const char *nsMsgFilter::GetActionStr(nsMsgRuleActionType action)
 
 nsMsgRuleActionType nsMsgFilter::GetActionForFilingStr(nsCString &actionStr)
 {
-  int  numActions = sizeof(ruleActionsTable) / sizeof(ruleActionsTable[0]);
-
-  for (int i = 0; i < numActions; i++)
+  for (unsigned int i = 0; i < sNumActions; i++)
   {
     if (actionStr.Equals(ruleActionsTable[i].actionFilingStr))
       return ruleActionsTable[i].action;

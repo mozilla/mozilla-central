@@ -54,6 +54,7 @@
 #include "nsISupportsObsolete.h"
 #include "nsNetUtil.h"
 #include "nsMsgI18N.h"
+#include "nsMemory.h"
 #include "prmem.h"
 #include <ctype.h>
 
@@ -412,6 +413,9 @@ static FilterFileAttribEntry FilterFileAttribTable[] =
   {nsIMsgFilterList::attribCustomId,  "customId"},
 };
 
+static const unsigned int sNumFilterFileAttribTable =
+  NS_ARRAY_LENGTH(FilterFileAttribTable);
+
 // If we want to buffer file IO, wrap it in here.
 char nsMsgFilterList::ReadChar(nsIInputStream *aStream)
 {
@@ -464,7 +468,7 @@ char nsMsgFilterList::LoadAttrib(nsMsgFilterFileAttribValue &attrib, nsIInputStr
     curChar = ReadChar(aStream);
   }
   attribStr[i] = '\0';
-  for (int tableIndex = 0; tableIndex < (int)(sizeof(FilterFileAttribTable) / sizeof(FilterFileAttribTable[0])); tableIndex++)
+  for (unsigned int tableIndex = 0; tableIndex < sNumFilterFileAttribTable; tableIndex++)
   {
     if (!PL_strcasecmp(attribStr, FilterFileAttribTable[tableIndex].attribName))
     {
@@ -477,7 +481,7 @@ char nsMsgFilterList::LoadAttrib(nsMsgFilterFileAttribValue &attrib, nsIInputStr
 
 const char *nsMsgFilterList::GetStringForAttrib(nsMsgFilterFileAttribValue attrib)
 {
-  for (int tableIndex = 0; tableIndex < (int)(sizeof(FilterFileAttribTable) / sizeof(FilterFileAttribTable[0])); tableIndex++)
+  for (unsigned int tableIndex = 0; tableIndex < sNumFilterFileAttribTable; tableIndex++)
   {
     if (attrib == FilterFileAttribTable[tableIndex].attrib)
       return FilterFileAttribTable[tableIndex].attribName;
