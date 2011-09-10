@@ -37,10 +37,6 @@
 #ifndef nsVCardAddress_h__
 #define nsVCardAddress_h__
 
-#include "nsCOMPtr.h"
-#include "nsStringGlue.h"
-#include "nsIImportFieldMap.h"
-#include "nsIImportService.h"
 #include "prlog.h"
 
 extern PRLogModuleInfo *VCARDLOGMODULE;  // Logging module
@@ -52,7 +48,6 @@ extern PRLogModuleInfo *VCARDLOGMODULE;  // Logging module
 
 class nsIAddrDatabase;
 class nsIFile;
-class nsIInputStream;
 class nsILineInputStream;
 
 class nsVCardAddress {
@@ -71,8 +66,6 @@ public:
 private:
   static nsresult ReadRecord(
       nsILineInputStream *aLineStream, nsCString &aRecord, PRBool *aMore);
-
-  nsCOMPtr<nsIImportService> m_pService;
 };
 
 #endif /* nsVCardAddress_h__ */
