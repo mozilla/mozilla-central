@@ -248,7 +248,7 @@ nsNntpMockChannel::GetContentDispositionFilename(nsAString &aContentDispositionF
 }
 
 NS_IMETHODIMP
-nsNntpMockChannel::GetContentDispositionHeader(nsAString &aContentDispositionHeader)
+nsNntpMockChannel::GetContentDispositionHeader(nsACString &aContentDispositionHeader)
 {
   return NS_ERROR_NOT_AVAILABLE;
 }

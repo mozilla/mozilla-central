@@ -9415,7 +9415,7 @@ nsImapMockChannel::GetContentDispositionFilename(nsAString &aContentDispositionF
 }
 
 NS_IMETHODIMP
-nsImapMockChannel::GetContentDispositionHeader(nsAString &aContentDispositionHeader)
+nsImapMockChannel::GetContentDispositionHeader(nsACString &aContentDispositionHeader)
 {
   return NS_ERROR_NOT_AVAILABLE;
 }

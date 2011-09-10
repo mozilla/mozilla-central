@@ -687,7 +687,7 @@ nsMsgProtocol::GetContentDispositionFilename(nsAString &aContentDispositionFilen
 }
 
 NS_IMETHODIMP
-nsMsgProtocol::GetContentDispositionHeader(nsAString &aContentDispositionHeader)
+nsMsgProtocol::GetContentDispositionHeader(nsACString &aContentDispositionHeader)
 {
   return NS_ERROR_NOT_AVAILABLE;
 }
