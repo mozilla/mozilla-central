@@ -1456,6 +1456,7 @@ var GlodaMsgIndexer = {
         yield aCallbackHandle.pushAndGo(
           this._indexMessage(msgHdr, aCallbackHandle),
           {what: "indexMessage", msgHdr: msgHdr});
+        GlodaIndexer._indexedMessageCount++;
         if (logDebug)
           this._log.debug("<<<  _indexMessage");
       }
