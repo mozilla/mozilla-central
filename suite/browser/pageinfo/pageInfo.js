@@ -803,9 +803,13 @@ function selectSaveFolder()
 
   var titleText = gBundle.getString("mediaSelectFolder");
   fp.init(window, titleText, nsIFilePicker.modeGetFolder);
-  var initialDir = GetLocalFilePref("browser.download.dir");
-  if (initialDir)
-    fp.displayDirectory = initialDir;
+  var initialDir = GetLocalFilePref("browser.download.lastDir");
+  if (!initialDir) {
+    let dnldMgr = Components.classes["@mozilla.org/download-manager;1"]
+                            .getService(Components.interfaces.nsIDownloadManager);
+    initialDir = dnldMgr.userDownloadsDirectory;
+  }
+  fp.displayDirectory = initialDir;
 
   fp.appendFilters(nsIFilePicker.filterAll);
   var ret = fp.show();
