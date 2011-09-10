@@ -52,7 +52,6 @@ PARALLEL_DIRS	+= \
 	db/msgdb \
 	extensions\
 	imap \
-	import \
 	local \
 	mime \
 	news \
@@ -70,7 +69,7 @@ PARALLEL_DIRS += mapi/mapiDLL mapi/mapihook
 endif
 endif
 
-DIRS += build
+DIRS += import build
 
 PREF_JS_EXPORTS = $(srcdir)/mailnews.js
 
