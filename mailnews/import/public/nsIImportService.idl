@@ -42,14 +42,18 @@
  */
 
 #include "nsISupports.idl"
+#include "nsIMsgSend.idl"
 
 interface nsIImportModule;
 interface nsIImportMailboxDescriptor;
 interface nsIImportABDescriptor;
 interface nsIImportGeneric;
 interface nsIImportFieldMap;
+interface nsIMsgSendListener;
+interface nsIMsgCompFields;
+interface nsIMsgSendListener;
 
-[scriptable, uuid(c035e4a5-6dcc-4c70-8ff7-5b740bd2ed2b)]
+[scriptable, uuid(55a52e05-8ce7-4e23-8a2f-a9226b01bcfb)]
 interface nsIImportService : nsISupports
 {
     void DiscoverModules();
@@ -66,6 +70,15 @@ interface nsIImportService : nsISupports
   nsIImportABDescriptor    CreateNewABDescriptor();
   nsIImportGeneric      CreateNewGenericMail();
   nsIImportGeneric      CreateNewGenericAddressBooks();
+  [noscript] void ProxySend(in nsIEditor aEditor, in nsIMsgIdentity aIdentity,
+                            in nsIMsgCompFields aMsgFields,
+                            in nsMsgDeliverMode aDeliverMode,
+                            in string attachment1_type,
+                            in string attachment1_body,
+                            in PRUint32 attachment1_body_length,
+                            [const] in nsMsgAttachedFile loaded_attachments,
+                            in nsIMsgSendListener aListener);
+
 };
 
 %{ C++

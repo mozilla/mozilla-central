@@ -388,14 +388,12 @@ void ImportOutlookMailImpl::ReportSuccess( nsString& name, PRInt32 count, nsStri
   if (!pStream)
     return;
   // load the success string
-  nsIStringBundle *pBundle = nsOutlookStringBundle::GetStringBundleProxy();
-  PRUnichar *pFmt = nsOutlookStringBundle::GetStringByID( OUTLOOKIMPORT_MAILBOX_SUCCESS, pBundle);
+  PRUnichar *pFmt = nsOutlookStringBundle::GetStringByID( OUTLOOKIMPORT_MAILBOX_SUCCESS);
   PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get(), count);
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
   nsOutlookStringBundle::FreeString( pFmt);
   AddLinebreak( pStream);
-  NS_IF_RELEASE( pBundle);
 }
 
 void ImportOutlookMailImpl::ReportError( PRInt32 errorNum, nsString& name, nsString *pStream)
@@ -403,14 +401,12 @@ void ImportOutlookMailImpl::ReportError( PRInt32 errorNum, nsString& name, nsStr
   if (!pStream)
     return;
   // load the error string
-  nsIStringBundle *pBundle = nsOutlookStringBundle::GetStringBundleProxy();
-  PRUnichar *pFmt = nsOutlookStringBundle::GetStringByID( errorNum);
+  PRUnichar *pFmt = nsOutlookStringBundle::GetStringByID(errorNum);
   PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get());
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
   nsOutlookStringBundle::FreeString( pFmt);
   AddLinebreak( pStream);
-  NS_IF_RELEASE( pBundle);
 }
 
 
@@ -432,12 +428,10 @@ NS_IMETHODIMP ImportOutlookMailImpl::ImportMailbox(  nsIImportMailboxDescriptor 
   NS_PRECONDITION(pDestination != nsnull, "null ptr");
   NS_PRECONDITION(fatalError != nsnull, "null ptr");
 
-  nsCOMPtr<nsIStringBundle>  bundle( dont_AddRef( nsOutlookStringBundle::GetStringBundleProxy()));
-
   nsString  success;
   nsString  error;
   if (!pSource || !pDestination || !fatalError) {
-    nsOutlookStringBundle::GetStringByID( OUTLOOKIMPORT_MAILBOX_BADPARAM, error, bundle);
+    nsOutlookStringBundle::GetStringByID( OUTLOOKIMPORT_MAILBOX_BADPARAM, error);
     if (fatalError)
       *fatalError = PR_TRUE;
     SetLogs( success, error, pErrorLog, pSuccessLog);
@@ -566,13 +560,11 @@ NS_IMETHODIMP ImportOutlookAddressImpl::ImportAddressBook(nsIImportABDescriptor 
     NS_PRECONDITION(destination != nsnull, "null ptr");
   NS_PRECONDITION(fatalError != nsnull, "null ptr");
 
-  nsCOMPtr<nsIStringBundle> bundle( dont_AddRef( nsOutlookStringBundle::GetStringBundleProxy()));
-
   nsString  success;
   nsString  error;
     if (!source || !destination || !fatalError) {
     IMPORT_LOG0( "*** Bad param passed to outlook address import\n");
-    nsOutlookStringBundle::GetStringByID( OUTLOOKIMPORT_ADDRESS_BADPARAM, error, bundle);
+    nsOutlookStringBundle::GetStringByID( OUTLOOKIMPORT_ADDRESS_BADPARAM, error);
     if (fatalError)
       *fatalError = PR_TRUE;
     ImportOutlookMailImpl::SetLogs( success, error, pErrorLog, pSuccessLog);
@@ -629,12 +621,10 @@ void ImportOutlookAddressImpl::ReportSuccess( nsString& name, nsString *pStream)
   if (!pStream)
     return;
   // load the success string
-  nsIStringBundle *pBundle = nsOutlookStringBundle::GetStringBundleProxy();
-  PRUnichar *pFmt = nsOutlookStringBundle::GetStringByID( OUTLOOKIMPORT_ADDRESS_SUCCESS, pBundle);
+  PRUnichar *pFmt = nsOutlookStringBundle::GetStringByID(OUTLOOKIMPORT_ADDRESS_SUCCESS);
   PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get());
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
   nsOutlookStringBundle::FreeString( pFmt);
   ImportOutlookMailImpl::AddLinebreak( pStream);
-  NS_IF_RELEASE( pBundle);
 }

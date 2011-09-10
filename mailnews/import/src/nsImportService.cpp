@@ -62,6 +62,9 @@
 #include "nsISupportsPrimitives.h"
 #include "plstr.h"
 #include "prmem.h"
+#include "nsMsgCompCID.h"
+#include "nsThreadUtils.h"
+#include "nsIEditor.h"
 #include "ImportDebug.h"
 #include "nsImportService.h"
 #include "nsImportStringBundle.h"
@@ -313,7 +316,82 @@ NS_IMETHODIMP nsImportService::GetModuleDescription(const char *filter, PRInt32 
   return( NS_ERROR_FAILURE);
 }
 
+class nsProxySendRunnable : public nsRunnable
+{
+public:
+  nsProxySendRunnable(nsIEditor *aEditor, nsIMsgIdentity *aIdentity,
+                       nsIMsgCompFields *aMsgFields,
+                       nsMsgDeliverMode aDeliverMode,
+                       const char *attachment1_type,
+                       const char *attachment1_body,
+                       PRUint32 attachment1_body_length,
+                       const nsMsgAttachedFile *loaded_attachments,
+                       nsIMsgSendListener *aListener);
+  NS_DECL_NSIRUNNABLE
+private:
+  nsCOMPtr<nsIEditor> m_editor;
+  nsCOMPtr<nsIMsgIdentity> m_identity;
+  nsCOMPtr<nsIMsgCompFields> m_compFields;
+  nsMsgDeliverMode m_deliverMode;
+  nsCString m_bodyType;
+  nsCString m_body;
+  PRUint32 m_bodyLength;
+  const nsMsgAttachedFile *m_loadedAttachments;
+  nsCOMPtr<nsIMsgSendListener> m_listener;
 
+};
+
+nsProxySendRunnable::nsProxySendRunnable(nsIEditor *aEditor, nsIMsgIdentity *aIdentity,
+                                         nsIMsgCompFields *aMsgFields,
+                                         nsMsgDeliverMode aDeliverMode,
+                                         const char *aBodyType,
+                                         const char *aBody,
+                                         PRUint32 aBodyLength,
+                                         const nsMsgAttachedFile *aLoadedAttachments,
+                                         nsIMsgSendListener *aListener) :
+  m_editor(aEditor), m_identity(aIdentity), m_compFields(aMsgFields),
+  m_deliverMode(aDeliverMode), m_bodyType(aBodyType),
+  m_body(aBody), m_bodyLength(aBodyLength), m_loadedAttachments(aLoadedAttachments),
+  m_listener(aListener)
+{
+}
+
+NS_IMETHODIMP nsProxySendRunnable::Run()
+{
+  nsresult rv;
+  nsCOMPtr<nsIMsgSend> msgSend = do_CreateInstance(NS_MSGSEND_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return msgSend->CreateAndSendMessage(m_editor, m_identity, nsnull, m_compFields,
+                                       PR_FALSE, PR_TRUE, 
+                                       m_deliverMode, nsnull, m_bodyType.get(), m_body.get(),
+                                       m_bodyLength, nsnull, m_loadedAttachments,
+                                       nsnull, nsnull, nsnull, m_listener, nsnull,
+                                       EmptyCString(), nsnull);
+}
+
+
+NS_IMETHODIMP nsImportService::ProxySend(nsIEditor *aEditor, nsIMsgIdentity *aIdentity,
+                                         nsIMsgCompFields *aMsgFields,
+                                         nsMsgDeliverMode aDeliverMode,
+                                         const char *attachment1_type,
+                                         const char *attachment1_body,
+                                         PRUint32 attachment1_body_length,
+                                         const nsMsgAttachedFile *loaded_attachments,
+                                         nsIMsgSendListener *aListener)
+{
+    nsRefPtr<nsProxySendRunnable> runnable =
+      new nsProxySendRunnable(aEditor, aIdentity,
+                                       aMsgFields,
+                                       aDeliverMode,
+                                       attachment1_type,
+                                       attachment1_body,
+                                       attachment1_body_length,
+                                       loaded_attachments,
+                                       aListener);
+    // invoke the callback
+    return NS_DispatchToMainThread(runnable);
+}
 
 NS_IMETHODIMP nsImportService::GetModule( const char *filter, PRInt32 index, nsIImportModule **_retval)
 {
@@ -531,3 +609,4 @@ void nsImportModuleList::AddModule( const nsCID& cid, const char *pSupports, con
   IMPORT_LOG3( "* nsImportService registered import module: %s, %s, %s\n", NS_LossyConvertUTF16toASCII(pName).get(), NS_LossyConvertUTF16toASCII(pDesc).get(), pSupports);
 #endif
 }
+

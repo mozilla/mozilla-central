@@ -68,8 +68,6 @@
 #include "nsServiceManagerUtils.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsComponentManagerUtils.h"
-#include "nsIProxyObjectManager.h"
-#include "nsXPCOMCIDInternal.h"
 
 #define COMM4XMAIL_MSGS_URL   "chrome://messenger/locale/comm4xMailImportMsgs.properties"
 
@@ -182,31 +180,16 @@ NS_IMETHODIMP nsComm4xMailImport::GetImportInterface(const char *pImportType, ns
 
 ImportComm4xMailImpl::ImportComm4xMailImpl()
 {
-    m_pBundleProxy = nsnull;
 }
 
 nsresult ImportComm4xMailImpl::Initialize()
 {
-    nsCOMPtr <nsIStringBundleService> pBundleService;
-    nsresult rv;
-    nsCOMPtr <nsIStringBundle>  pBundle;
+  nsCOMPtr<nsIStringBundleService> pBundleService;
+  nsresult rv;
 
-    pBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    if (NS_SUCCEEDED(rv) && (pBundleService)) {
-        pBundleService->CreateBundle(COMM4XMAIL_MSGS_URL, getter_AddRefs(pBundle));
-
-	nsCOMPtr<nsIProxyObjectManager> proxyObjectManager =
-	  do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-	if (NS_FAILED(rv))
-	  return nsnull;
-
-	rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-						   NS_GET_IID(nsIStringBundle),
-						   pBundle,
-						   NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-						   getter_AddRefs(m_pBundleProxy));
-    }
-    return rv;
+  pBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  return pBundleService->CreateBundle(COMM4XMAIL_MSGS_URL, getter_AddRefs(m_pBundle));
 }
 
 ImportComm4xMailImpl::~ImportComm4xMailImpl()
@@ -256,7 +239,7 @@ void ImportComm4xMailImpl::ReportStatus( PRInt32 errorNum, nsString& name, nsStr
     if (!pStream) return;
     nsString statusStr;
     const PRUnichar * fmtStr = name.get();
-    nsresult rv = m_pBundleProxy->FormatStringFromID(errorNum, &fmtStr, 1, getter_Copies(statusStr));
+    nsresult rv = m_pBundle->FormatStringFromID(errorNum, &fmtStr, 1, getter_Copies(statusStr));
     if (NS_SUCCEEDED (rv)) {
         pStream->Append (statusStr.get());
         pStream->Append( PRUnichar('\n'));
@@ -286,7 +269,7 @@ NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
     nsString    error;
     if (!pSource || !pDestination || !fatalError) {
         nsString errorString;
-        m_pBundleProxy->GetStringFromID(COMM4XMAILIMPORT_MAILBOX_BADPARAM, getter_Copies(errorString));
+        m_pBundle->GetStringFromID(COMM4XMAILIMPORT_MAILBOX_BADPARAM, getter_Copies(errorString));
         error = errorString;
         if (fatalError)
             *fatalError = PR_TRUE;

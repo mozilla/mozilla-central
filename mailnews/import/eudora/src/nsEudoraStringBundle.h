@@ -45,11 +45,10 @@ class nsIStringBundle;
 
 class nsEudoraStringBundle {
 public:
-  static PRUnichar       *  GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle = nsnull);
-  static void               GetStringByID(PRInt32 stringID, nsString& result, nsIStringBundle *pBundle = nsnull);
+  static PRUnichar       *  GetStringByID(PRInt32 stringID);
+  static void               GetStringByID(PRInt32 stringID, nsString& result);
   static nsString           FormatString(PRInt32 stringID, ...);
   static nsIStringBundle *  GetStringBundle( void); // don't release
-  static nsIStringBundle *  GetStringBundleProxy( void); // release
   static void               FreeString( PRUnichar *pStr) { NS_Free( pStr);}
   static void               Cleanup( void);
 

@@ -755,10 +755,10 @@ void nsEudoraAddress::ExtractNoteField( nsCString& note, nsCString& value, const
   }
 }
 
-void nsEudoraAddress::FormatExtraDataInNoteField(PRInt32 labelStringID, nsIStringBundle* bundle, nsCString& extraData, nsString& noteUTF16)
+void nsEudoraAddress::FormatExtraDataInNoteField(PRInt32 labelStringID, nsCString& extraData, nsString& noteUTF16)
 {
   nsAutoString    label;
-  nsEudoraStringBundle::GetStringByID(labelStringID, label, bundle);
+  nsEudoraStringBundle::GetStringByID(labelStringID, label);
 
   noteUTF16.Append(label);
   noteUTF16.AppendLiteral("\n");
@@ -815,7 +815,6 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
   nsString                    noteUTF16;
   PRBool                      isSecondaryMobileWorkNumber = PR_TRUE;
   PRBool                      isSecondaryFaxWorkNumber = PR_TRUE;
-  nsCOMPtr<nsIStringBundle>   bundle( dont_AddRef(nsEudoraStringBundle::GetStringBundleProxy()) );
 
   if (!note.IsEmpty())
   {
@@ -878,7 +877,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
         // If there were more than one additional email addresses store all the extra
         // ones in the notes field, labeled nicely.
         if ( !stillMoreEmail.IsEmpty() )
-          FormatExtraDataInNoteField(EUDORAIMPORT_ADDRESS_LABEL_OTHEREMAIL, bundle, stillMoreEmail, noteUTF16);
+          FormatExtraDataInNoteField(EUDORAIMPORT_ADDRESS_LABEL_OTHEREMAIL, stillMoreEmail, noteUTF16);
       }
 
       if ( !otherPhone.IsEmpty() )
@@ -887,7 +886,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
         otherPhone.ReplaceSubstring( "\x03", "\n");
 
         // Store other phone numbers in the notes field, labeled nicely
-        FormatExtraDataInNoteField(EUDORAIMPORT_ADDRESS_LABEL_OTHERPHONE, bundle, otherPhone, noteUTF16);
+        FormatExtraDataInNoteField(EUDORAIMPORT_ADDRESS_LABEL_OTHERPHONE, otherPhone, noteUTF16);
       }
 
       if ( !otherWeb.IsEmpty() )
@@ -896,7 +895,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
         otherWeb.ReplaceSubstring( "\x03", "\n");
 
         // Store other web sites in the notes field, labeled nicely
-        FormatExtraDataInNoteField(EUDORAIMPORT_ADDRESS_LABEL_OTHERWEB, bundle, otherWeb, noteUTF16);
+        FormatExtraDataInNoteField(EUDORAIMPORT_ADDRESS_LABEL_OTHERWEB, otherWeb, noteUTF16);
       }
 
       noteUTF16.Append( NS_ConvertASCIItoUTF16(note) );
@@ -1018,7 +1017,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
     {
       stringID = isSecondaryMobileWorkNumber ?
                  EUDORAIMPORT_ADDRESS_LABEL_WORKMOBILE : EUDORAIMPORT_ADDRESS_LABEL_HOMEMOBILE;
-      pFormat.Adopt( nsEudoraStringBundle::GetStringByID(stringID, bundle) );
+      pFormat.Adopt(nsEudoraStringBundle::GetStringByID(stringID));
       pCustomData.Adopt( nsTextFormatter::smprintf(pFormat.get(), NS_ConvertASCIItoUTF16(secondaryMobile).get()) );
       pDb->AddCustom1( newRow, NS_ConvertUTF16toUTF8(pCustomData).get() );
     }
@@ -1028,7 +1027,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
     {
       stringID = isSecondaryFaxWorkNumber ?
                  EUDORAIMPORT_ADDRESS_LABEL_WORKFAX : EUDORAIMPORT_ADDRESS_LABEL_HOMEFAX;
-      pFormat.Adopt( nsEudoraStringBundle::GetStringByID(stringID, bundle) );
+      pFormat.Adopt(nsEudoraStringBundle::GetStringByID(stringID));
       pCustomData.Adopt( nsTextFormatter::smprintf(pFormat.get(), NS_ConvertASCIItoUTF16(secondaryFax).get()) );
       pDb->AddCustom2( newRow, NS_ConvertUTF16toUTF8(pCustomData).get() );
     }

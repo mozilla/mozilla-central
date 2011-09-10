@@ -267,13 +267,7 @@ NS_IMETHODIMP ImportAddressImpl::GetAutoFind(PRUnichar **addrDescription, PRBool
   if (!m_notProxyBundle)
     return NS_ERROR_FAILURE;
 
-  nsCOMPtr<nsIStringBundle> proxy;
-  nsresult rv =
-    nsImportStringBundle::GetStringBundleProxy(m_notProxyBundle,
-                                               getter_AddRefs(proxy));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsImportStringBundle::GetStringByID(TEXTIMPORT_ADDRESS_NAME, proxy, str);
+  nsImportStringBundle::GetStringByID(TEXTIMPORT_ADDRESS_NAME, m_notProxyBundle, str);
   *addrDescription = ToNewUnicode(str);
   return( NS_OK);
 }
@@ -430,19 +424,13 @@ ImportAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
   NS_PRECONDITION(pDestination != nsnull, "null ptr");
   NS_PRECONDITION(fatalError != nsnull, "null ptr");
 
-  nsCOMPtr<nsIStringBundle> pBundle;
-  nsresult rv =
-    nsImportStringBundle::GetStringBundleProxy(m_notProxyBundle,
-                                               getter_AddRefs(pBundle));
-  NS_ENSURE_SUCCESS(rv, rv);
-
   m_bytesImported = 0;
 
   nsString success, error;
   if (!pSource || !pDestination || !fatalError) {
     IMPORT_LOG0( "*** Bad param passed to text address import\n");
     nsImportStringBundle::GetStringByID(TEXTIMPORT_ADDRESS_BADPARAM,
-                                        pBundle,
+                                        m_notProxyBundle,
                                         error);
 
     SetLogs(success, error, pErrorLog, pSuccessLog);
@@ -463,14 +451,14 @@ ImportAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
   pSource->GetSize( &addressSize);
   if (addressSize == 0) {
     IMPORT_LOG0( "Address book size is 0, skipping import.\n");
-    ReportSuccess(name, &success, pBundle);
+    ReportSuccess(name, &success, m_notProxyBundle);
     SetLogs(success, error, pErrorLog, pSuccessLog);
     return NS_OK;
   }
 
   nsCOMPtr<nsIFile> inFile;
   if (NS_FAILED(pSource->GetAbFile(getter_AddRefs(inFile)))) {
-    ReportError(TEXTIMPORT_ADDRESS_BADSOURCEFILE, name, &error, pBundle);
+    ReportError(TEXTIMPORT_ADDRESS_BADSOURCEFILE, name, &error, m_notProxyBundle);
     SetLogs(success, error, pErrorLog, pSuccessLog);
     return NS_ERROR_FAILURE;
   }
@@ -481,6 +469,7 @@ ImportAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
   }
 
   PRBool isLDIF = PR_FALSE;
+  nsresult rv;
   nsCOMPtr<nsIAbLDIFService> ldifService(do_QueryInterface(aSupportService, &rv));
 
     if (NS_SUCCEEDED(rv)) {
@@ -491,7 +480,7 @@ ImportAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
     }
 
   if (NS_FAILED( rv)) {
-    ReportError(TEXTIMPORT_ADDRESS_CONVERTERROR, name, &error, pBundle);
+    ReportError(TEXTIMPORT_ADDRESS_CONVERTERROR, name, &error, m_notProxyBundle);
     SetLogs(success, error, pErrorLog, pSuccessLog);
     return( rv);
   }
@@ -508,11 +497,11 @@ ImportAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
   }
 
   if (NS_SUCCEEDED( rv) && error.IsEmpty()) {
-    ReportSuccess(name, &success, pBundle);
+    ReportSuccess(name, &success, m_notProxyBundle);
     SetLogs(success, error, pErrorLog, pSuccessLog);
   }
   else {
-    ReportError(TEXTIMPORT_ADDRESS_CONVERTERROR, name, &error, pBundle);
+    ReportError(TEXTIMPORT_ADDRESS_CONVERTERROR, name, &error, m_notProxyBundle);
     SetLogs(success, error, pErrorLog, pSuccessLog);
   }
 

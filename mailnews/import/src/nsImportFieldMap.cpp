@@ -76,8 +76,7 @@ nsImportFieldMap::nsImportFieldMap(nsIStringBundle *aBundle)
   // need to init the description array
   m_mozFieldCount = 0;
     m_skipFirstRecord = false;
-  nsCOMPtr<nsIStringBundle> pBundle;
-  nsImportStringBundle::GetStringBundleProxy(aBundle, getter_AddRefs(pBundle));
+  nsCOMPtr<nsIStringBundle> pBundle = aBundle;
 
   nsString *pStr;
   for (PRInt32 i = IMPORT_FIELD_DESC_START; i <= IMPORT_FIELD_DESC_END; i++, m_mozFieldCount++) {

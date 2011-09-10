@@ -103,8 +103,6 @@ private:
 
 
   nsIMsgSendListener *  m_pListener;
-  nsIMsgSend *      m_pMsgSend;
-  nsIMsgSend *      m_pSendProxy;
   nsIMsgCompFields *    m_pMsgFields;
   nsIMsgIdentity *    m_pIdentity;
   char* m_optimizationBuffer;

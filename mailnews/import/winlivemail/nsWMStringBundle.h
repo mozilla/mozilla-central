@@ -43,12 +43,11 @@ class nsIStringBundle;
 
 class nsWMStringBundle {
 public:
-  static PRUnichar     *    GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle = nsnull);
-  static void          GetStringByID(PRInt32 stringID, nsString& result, nsIStringBundle *pBundle = nsnull);
+  static PRUnichar     *    GetStringByID(PRInt32 stringID);
+  static void          GetStringByID(PRInt32 stringID, nsString& result);
   static nsIStringBundle *  GetStringBundle( void); // don't release
   static void          FreeString( PRUnichar *pStr) { NS_Free( pStr);}
   static void          Cleanup( void);
-  static nsIStringBundle *  GetStringBundleProxy( void); // release
 
 private:
   static nsIStringBundle *  m_pBundle;

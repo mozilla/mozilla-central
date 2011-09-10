@@ -390,14 +390,12 @@ void ImportOEMailImpl::ReportSuccess( nsString& name, PRInt32 count, nsString *p
   if (!pStream)
     return;
   // load the success string
-  nsIStringBundle *pBundle = nsOEStringBundle::GetStringBundleProxy();
-  PRUnichar *pFmt = nsOEStringBundle::GetStringByID( OEIMPORT_MAILBOX_SUCCESS, pBundle);
+  PRUnichar *pFmt = nsOEStringBundle::GetStringByID( OEIMPORT_MAILBOX_SUCCESS);
   PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get(), count);
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
   nsOEStringBundle::FreeString( pFmt);
   AddLinebreak( pStream);
-  NS_IF_RELEASE( pBundle);
 }
 
 void ImportOEMailImpl::ReportError( PRInt32 errorNum, nsString& name, nsString *pStream)
@@ -405,14 +403,12 @@ void ImportOEMailImpl::ReportError( PRInt32 errorNum, nsString& name, nsString *
   if (!pStream)
     return;
   // load the error string
-  nsIStringBundle *pBundle = nsOEStringBundle::GetStringBundleProxy();
-  PRUnichar *pFmt = nsOEStringBundle::GetStringByID( errorNum, pBundle);
+  PRUnichar *pFmt = nsOEStringBundle::GetStringByID(errorNum);
   PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get());
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
   nsOEStringBundle::FreeString( pFmt);
   AddLinebreak( pStream);
-  NS_IF_RELEASE( pBundle);
 }
 
 
@@ -434,12 +430,10 @@ NS_IMETHODIMP ImportOEMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSourc
   NS_PRECONDITION(pDestination != nsnull, "null ptr");
   NS_PRECONDITION(fatalError != nsnull, "null ptr");
 
-  nsCOMPtr<nsIStringBundle> bundle( dont_AddRef( nsOEStringBundle::GetStringBundleProxy()));
-
   nsString success;
   nsString error;
   if (!pSource || !pDestination || !fatalError) {
-    nsOEStringBundle::GetStringByID( OEIMPORT_MAILBOX_BADPARAM, error, bundle);
+    nsOEStringBundle::GetStringByID( OEIMPORT_MAILBOX_BADPARAM, error);
     if (fatalError)
       *fatalError = PR_TRUE;
     SetLogs( success, error, pErrorLog, pSuccessLog);
@@ -616,12 +610,11 @@ NS_IMETHODIMP ImportOEAddressImpl::ImportAddressBook(nsIImportABDescriptor *sour
 
   IMPORT_LOG0( "IMPORTING OUTLOOK EXPRESS ADDRESS BOOK\n");
 
-  nsCOMPtr<nsIStringBundle>  bundle( dont_AddRef( nsOEStringBundle::GetStringBundleProxy()));
   nsString success;
   nsString error;
   if (!source || !destination || !fatalError)
   {
-    nsOEStringBundle::GetStringByID( OEIMPORT_ADDRESS_BADPARAM, error, bundle);
+    nsOEStringBundle::GetStringByID( OEIMPORT_ADDRESS_BADPARAM, error);
     if (fatalError)
       *fatalError = PR_TRUE;
     ImportOEMailImpl::SetLogs( success, error, errorLog, successLog);
@@ -666,12 +659,10 @@ void ImportOEAddressImpl::ReportSuccess( nsString& name, nsString *pStream)
   if (!pStream)
     return;
   // load the success string
-  nsIStringBundle *pBundle = nsOEStringBundle::GetStringBundleProxy();
-  PRUnichar *pFmt = nsOEStringBundle::GetStringByID( OEIMPORT_ADDRESS_SUCCESS, pBundle);
+  PRUnichar *pFmt = nsOEStringBundle::GetStringByID( OEIMPORT_ADDRESS_SUCCESS);
   PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get());
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
   nsOEStringBundle::FreeString( pFmt);
   ImportOEMailImpl::AddLinebreak( pStream);
-  NS_IF_RELEASE( pBundle);
 }

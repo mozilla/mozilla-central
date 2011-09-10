@@ -89,7 +89,7 @@ private:
   void      RememberGroupMembers(nsVoidArray &membersArray, nsVoidArray &emailList);
   PRInt32      FindAlias( nsCString& name);
   void      ExtractNoteField( nsCString& note, nsCString& field, const char *pFieldName);
-  void FormatExtraDataInNoteField(PRInt32 labelStringID, nsIStringBundle* bundle, nsCString& extraData, nsString& noteUTF16);
+  void FormatExtraDataInNoteField(PRInt32 labelStringID, nsCString& extraData, nsString& noteUTF16);
   void      SanitizeValue( nsCString& val);
   void      SplitString( nsCString& val1, nsCString& val2);
 

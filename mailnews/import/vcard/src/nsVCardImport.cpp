@@ -238,12 +238,7 @@ NS_IMETHODIMP ImportVCardAddressImpl::GetAutoFind(
   if (!m_notProxyBundle)
     return NS_ERROR_FAILURE;
 
-  nsCOMPtr<nsIStringBundle> proxy;
-  nsresult rv = nsImportStringBundle::GetStringBundleProxy(
-      m_notProxyBundle, getter_AddRefs(proxy));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsImportStringBundle::GetStringByName("vCardImportAddressName", proxy, str);
+  nsImportStringBundle::GetStringByName("vCardImportAddressName", m_notProxyBundle, str);
   *addrDescription = ToNewUnicode(str);
   return NS_OK;
 }
@@ -387,11 +382,6 @@ NS_IMETHODIMP ImportVCardAddressImpl::ImportAddressBook(
   if (!m_notProxyBundle)
     return NS_ERROR_FAILURE;
 
-  nsCOMPtr<nsIStringBundle> proxy;
-  nsresult rv = nsImportStringBundle::GetStringBundleProxy(
-      m_notProxyBundle, getter_AddRefs(proxy));
-  NS_ENSURE_SUCCESS(rv, rv);
-
   m_bytesImported = 0;
   nsString success, error;
   PRBool addrAbort = PR_FALSE;
@@ -402,14 +392,14 @@ NS_IMETHODIMP ImportVCardAddressImpl::ImportAddressBook(
   pSource->GetSize(&addressSize);
   if (addressSize == 0) {
     IMPORT_LOG0("Address book size is 0, skipping import.\n");
-    ReportSuccess(name, &success, proxy);
+    ReportSuccess(name, &success, m_notProxyBundle);
     SetLogs(success, error, pErrorLog, pSuccessLog);
     return NS_OK;
   }
 
   nsCOMPtr<nsIFile> inFile;
   if (NS_FAILED(pSource->GetAbFile(getter_AddRefs(inFile)))) {
-    ReportError("vCardImportAddressBadSourceFile", name, &error, proxy);
+    ReportError("vCardImportAddressBadSourceFile", name, &error, m_notProxyBundle);
     SetLogs(success, error, pErrorLog, pSuccessLog);
     return NS_ERROR_FAILURE;
   }
@@ -419,15 +409,15 @@ NS_IMETHODIMP ImportVCardAddressImpl::ImportAddressBook(
     return NS_ERROR_FAILURE;
   }
 
-  rv = m_vCard.ImportAddresses(
+  nsresult rv = m_vCard.ImportAddresses(
       &addrAbort, name.get(), inFile, pDestination, error, &m_bytesImported);
 
   if (NS_SUCCEEDED(rv) && error.IsEmpty()) {
-    ReportSuccess(name, &success, proxy);
+    ReportSuccess(name, &success, m_notProxyBundle);
     SetLogs(success, error, pErrorLog, pSuccessLog);
   }
   else {
-    ReportError("vCardImportAddressConvertError", name, &error, proxy);
+    ReportError("vCardImportAddressConvertError", name, &error, m_notProxyBundle);
     SetLogs(success, error, pErrorLog, pSuccessLog);
   }
 

@@ -488,14 +488,12 @@ void ImportEudoraMailImpl::ReportSuccess( nsString& name, PRInt32 count, nsStrin
   if (!pStream)
     return;
   // load the success string
-  nsIStringBundle *pBundle = nsEudoraStringBundle::GetStringBundleProxy();
-  PRUnichar *pFmt = nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_MAILBOX_SUCCESS, pBundle);
+  PRUnichar *pFmt = nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_MAILBOX_SUCCESS);
   PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get(), count);
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
   nsEudoraStringBundle::FreeString( pFmt);
   AddLinebreak( pStream);
-  NS_IF_RELEASE( pBundle);
 }
 
 void ImportEudoraMailImpl::ReportError( PRInt32 errorNum, nsString& name, nsString *pStream)
@@ -503,14 +501,12 @@ void ImportEudoraMailImpl::ReportError( PRInt32 errorNum, nsString& name, nsStri
   if (!pStream)
     return;
   // load the error string
-  nsIStringBundle *pBundle = nsEudoraStringBundle::GetStringBundleProxy();
-  PRUnichar *pFmt = nsEudoraStringBundle::GetStringByID( errorNum);
-  PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get());
+  PRUnichar *pFmt = nsEudoraStringBundle::GetStringByID(errorNum);
+  PRUnichar *pText = nsTextFormatter::smprintf(pFmt, name.get());
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
   nsEudoraStringBundle::FreeString( pFmt);
   AddLinebreak( pStream);
-  NS_IF_RELEASE( pBundle);
 }
 
 
@@ -533,14 +529,14 @@ NS_IMETHODIMP ImportEudoraMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
   NS_PRECONDITION(fatalError != nsnull, "null ptr");
 
 
-  nsCOMPtr<nsIStringBundle> bundle( dont_AddRef( nsEudoraStringBundle::GetStringBundleProxy()));
+  nsCOMPtr<nsIStringBundle> bundle( dont_AddRef( nsEudoraStringBundle::GetStringBundle()));
 
   nsString  success;
   nsString  error;
   if (!pSource || !pDestination || !fatalError)
   {
     IMPORT_LOG0( "*** Bad param passed to eudora mailbox import\n");
-    nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_MAILBOX_BADPARAM, error, bundle);
+    nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_MAILBOX_BADPARAM, error);
     if (fatalError)
       *fatalError = PR_TRUE;
     SetLogs( success, error, pErrorLog, pSuccessLog);
@@ -711,14 +707,12 @@ void ImportEudoraAddressImpl::ReportSuccess( nsString& name, nsString *pStream)
   if (!pStream)
     return;
   // load the success string
-  nsIStringBundle *pBundle = nsEudoraStringBundle::GetStringBundleProxy();
-  PRUnichar *pFmt = nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_ADDRESS_SUCCESS, pBundle);
+  PRUnichar *pFmt = nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_ADDRESS_SUCCESS);
   PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get());
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
   nsEudoraStringBundle::FreeString( pFmt);
   ImportEudoraMailImpl::AddLinebreak( pStream);
-  NS_IF_RELEASE( pBundle);
 }
 
 
@@ -735,13 +729,11 @@ ImportEudoraAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
     NS_PRECONDITION(pDestination != nsnull, "null ptr");
     NS_PRECONDITION(fatalError != nsnull, "null ptr");
 
-  nsCOMPtr<nsIStringBundle> bundle( dont_AddRef( nsEudoraStringBundle::GetStringBundleProxy()));
-
   nsString  success;
   nsString  error;
     if (!pSource || !pDestination || !fatalError) {
     IMPORT_LOG0( "*** Bad param passed to eudora address import\n");
-    nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_ADDRESS_BADPARAM, error, bundle);
+    nsEudoraStringBundle::GetStringByID(EUDORAIMPORT_ADDRESS_BADPARAM, error);
     if (fatalError)
       *fatalError = PR_TRUE;
     ImportEudoraMailImpl::SetLogs( success, error, pErrorLog, pSuccessLog);

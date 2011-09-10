@@ -48,8 +48,6 @@
 #include "nsIImportGeneric.h"
 #include "nsILocalFile.h"
 #include "nsIStringBundle.h"
-#include "nsIProxyObjectManager.h"
-#include "nsXPCOMCIDInternal.h"
 #include "nsNetUtil.h"
 #include "nsMsgUtils.h"
 
@@ -173,18 +171,7 @@ nsresult nsAppleMailImportMail::Initialize()
   nsCOMPtr<nsIStringBundleService> bundleService(do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIStringBundle> bundle;
-  rv = bundleService->CreateBundle(APPLEMAIL_MSGS_URL, getter_AddRefs(bundle));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIProxyObjectManager> proxyObjectManager = 
-    do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD, 
-                                               NS_GET_IID(nsIStringBundle),
-                                               bundle, NS_PROXY_SYNC | NS_PROXY_ALWAYS, 
-                                               getter_AddRefs(mBundleProxy));
+  return bundleService->CreateBundle(APPLEMAIL_MSGS_URL, getter_AddRefs(mBundle));
 }
 
 nsAppleMailImportMail::~nsAppleMailImportMail()
@@ -624,7 +611,7 @@ void nsAppleMailImportMail::ReportStatus(PRInt32 aErrorNum, nsString &aName, nsA
   // get (and format, if needed) the error string from the bundle  
   nsAutoString outString;
   const PRUnichar *fmt = { aName.get() };
-  nsresult rv = mBundleProxy->FormatStringFromID(aErrorNum, &fmt, 1, getter_Copies(outString));
+  nsresult rv = mBundle->FormatStringFromID(aErrorNum, &fmt, 1, getter_Copies(outString));
   // write it out the stream
   if (NS_SUCCEEDED(rv))
     aStream.Append(outString + NS_LITERAL_STRING("\n"));

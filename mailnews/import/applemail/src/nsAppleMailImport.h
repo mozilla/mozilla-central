@@ -83,7 +83,7 @@ class nsAppleMailImportModule : public nsIImportModule
 class nsAppleMailImportMail : public nsIImportMail
 {
   public:
-  
+
   nsAppleMailImportMail();
   virtual ~nsAppleMailImportMail();
 
@@ -93,7 +93,7 @@ class nsAppleMailImportMail : public nsIImportMail
   nsresult Initialize();
 
   private:
-  
+
   void FindAccountMailDirs(nsIFile *aRoot, nsISupportsArray *aMailboxDescs, nsIImportService *aImportService);
   nsresult FindMboxDirs(nsILocalFile *aFolder, nsISupportsArray *aMailboxDescs, nsIImportService *aImportService);
   nsresult AddMboxDir(nsILocalFile *aFolder, nsISupportsArray *aMailboxDescs, nsIImportService *aImportService);
@@ -101,8 +101,8 @@ class nsAppleMailImportMail : public nsIImportMail
   // aInfoString is the format to a "foo %s" string. It may be NULL if the error string needs no such format.
   void ReportStatus(PRInt32 aErrorNum, nsString &aName, nsAString &aStream);
   static void SetLogs(const nsAString& success, const nsAString& error, PRUnichar **aOutErrorLog, PRUnichar **aSuccessLog);
-  
-  nsCOMPtr<nsIStringBundle>  mBundleProxy;
+
+  nsCOMPtr<nsIStringBundle>  mBundle;
   PRUint32                   mProgress;
   PRUint16                   mCurDepth;
 };

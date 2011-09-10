@@ -175,8 +175,6 @@ private:
 
   nsVoidArray *      m_pAttachments;
   nsIMsgSendListener *  m_pListener;
-  nsIMsgSend *      m_pMsgSend;
-  nsIMsgSend *      m_pSendProxy;
   nsIMsgCompFields *    m_pMsgFields;
   nsIIOService *      m_pIOService;
   PRInt32          m_headerLen;

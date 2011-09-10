@@ -72,7 +72,7 @@ public:
     NS_DECL_NSIIMPORTMODULE
 
 protected:
-     nsCOMPtr <nsIStringBundle>  m_pBundle;
+     nsCOMPtr<nsIStringBundle>  m_pBundle;
 };
 
 class ImportComm4xMailImpl : public nsIImportMail
@@ -109,7 +109,7 @@ public:
 private:
     nsComm4xMail  m_mail;
     PRUint32      m_bytesDone;
-    nsCOMPtr<nsIStringBundle>  m_pBundleProxy;
+    nsCOMPtr<nsIStringBundle>  m_pBundle;
 };
 
 

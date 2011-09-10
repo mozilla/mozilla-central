@@ -56,8 +56,6 @@ public:
                                 nsString &aResult);
   static nsresult GetStringBundle(const char *aPropertyURL,
                                   nsIStringBundle **aBundle);
-  static nsresult GetStringBundleProxy(nsIStringBundle *aOriginalBundle,
-                                       nsIStringBundle **aProxy);
 };
 
 #define IMPORT_MSGS_URL       "chrome://messenger/locale/importMsgs.properties"

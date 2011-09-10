@@ -51,7 +51,7 @@ nsIStringBundle *  nsOutlookStringBundle::m_pBundle = nsnull;
 nsIStringBundle *nsOutlookStringBundle::GetStringBundle( void)
 {
   if (m_pBundle)
-    return( m_pBundle);
+    return m_pBundle;
 
   nsresult      rv;
   char*        propertyURL = OUTLOOK_MSGS_URL;
@@ -69,39 +69,24 @@ nsIStringBundle *nsOutlookStringBundle::GetStringBundle( void)
   return( sBundle);
 }
 
-nsIStringBundle *nsOutlookStringBundle::GetStringBundleProxy( void)
+void nsOutlookStringBundle::GetStringByID( PRInt32 stringID, nsString& result)
 {
-  if (!m_pBundle)
-    return( nsnull);
-
-  nsIStringBundle *strProxy = nsnull;
-  // create a proxy object if we aren't on the same thread?
-  NS_GetProxyForObject( NS_PROXY_TO_MAIN_THREAD, NS_GET_IID(nsIStringBundle),
-                       m_pBundle, NS_PROXY_SYNC | NS_PROXY_ALWAYS, (void **) &strProxy);
-
-  return( strProxy);
-}
-
-void nsOutlookStringBundle::GetStringByID( PRInt32 stringID, nsString& result, nsIStringBundle *pBundle)
-{
-
-  PRUnichar *ptrv = GetStringByID( stringID, pBundle);
+  PRUnichar *ptrv = GetStringByID(stringID);
   result = ptrv;
   FreeString( ptrv);
 }
 
-PRUnichar *nsOutlookStringBundle::GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle)
+PRUnichar *nsOutlookStringBundle::GetStringByID(PRInt32 stringID)
 {
-  if (!pBundle) {
-    pBundle = GetStringBundle();
-  }
+  if (m_pBundle)
+    m_pBundle = GetStringBundle();
 
-  if (pBundle) {
+  if (m_pBundle) {
     PRUnichar *ptrv = nsnull;
-    nsresult rv = pBundle->GetStringFromID(stringID, &ptrv);
+    nsresult rv = m_pBundle->GetStringFromID(stringID, &ptrv);
 
     if (NS_SUCCEEDED( rv) && ptrv)
-      return( ptrv);
+      return ptrv;
   }
 
   nsString resultString;

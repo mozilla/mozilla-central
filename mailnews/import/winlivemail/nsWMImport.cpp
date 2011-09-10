@@ -240,14 +240,12 @@ void ImportWMMailImpl::ReportSuccess( nsString& name, PRInt32 count, nsString *p
   if (!pStream)
     return;
   // load the success string
-  nsIStringBundle *pBundle = nsWMStringBundle::GetStringBundleProxy();
-  PRUnichar *pFmt = nsWMStringBundle::GetStringByID( WMIMPORT_MAILBOX_SUCCESS, pBundle);
+  PRUnichar *pFmt = nsWMStringBundle::GetStringByID( WMIMPORT_MAILBOX_SUCCESS);
   PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get(), count);
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
   nsWMStringBundle::FreeString( pFmt);
   AddLinebreak( pStream);
-  NS_IF_RELEASE( pBundle);
 }
 
 void ImportWMMailImpl::ReportError( PRInt32 errorNum, nsString& name, nsString *pStream)
@@ -255,14 +253,12 @@ void ImportWMMailImpl::ReportError( PRInt32 errorNum, nsString& name, nsString *
   if (!pStream)
     return;
   // load the error string
-  nsIStringBundle *pBundle = nsWMStringBundle::GetStringBundleProxy();
-  PRUnichar *pFmt = nsWMStringBundle::GetStringByID( errorNum, pBundle);
+  PRUnichar *pFmt = nsWMStringBundle::GetStringByID( errorNum);
   PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get());
   pStream->Append( pText);
   nsTextFormatter::smprintf_free( pText);
   nsWMStringBundle::FreeString( pFmt);
   AddLinebreak( pStream);
-  NS_IF_RELEASE( pBundle);
 }
 
 void ImportWMMailImpl::SetLogs(nsString& success, nsString& error,

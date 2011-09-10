@@ -758,14 +758,6 @@ ImportMailThread( void *stuff)
   nsString  success;
   nsString  error;
 
-  nsCOMPtr<nsIStringBundle> pBundle;
-  rv = nsImportStringBundle::GetStringBundleProxy(pData->stringBundle, getter_AddRefs(pBundle));
-  if (NS_FAILED(rv))
-  {
-    IMPORT_LOG0("*** ImportMailThread: Unable to obtain proxy string service for the import.");
-    pData->abort = PR_TRUE;
-  }
-
   // Initialize the curFolder proxy object
   nsCOMPtr<nsIProxyObjectManager> proxyObjMgr =
     do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
@@ -813,7 +805,9 @@ ImportMailThread( void *stuff)
         rv = curProxy->GetChildNamed( lastName, getter_AddRefs( subFolder));
         if (NS_FAILED( rv)) {
           IMPORT_LOG1("*** ImportMailThread: Failed to get the interface for child folder '%s'.", NS_ConvertUTF16toUTF8(lastName).get());
-          nsImportGenericMail::ReportError(IMPORT_ERROR_MB_FINDCHILD, lastName.get(), &error, pBundle);
+          nsImportGenericMail::ReportError(IMPORT_ERROR_MB_FINDCHILD,
+                                           lastName.get(),
+                                           &error, pData->stringBundle);
           pData->fatalError = PR_TRUE;
           break;
         }
@@ -825,8 +819,8 @@ ImportMailThread( void *stuff)
                                             getter_AddRefs(curProxy));
         if (NS_FAILED( rv)) {
           IMPORT_LOG1("*** ImportMailThread: Failed to get the proxy interface for child folder '%s'.", NS_ConvertUTF16toUTF8(lastName).get());
-          nsImportStringBundle::GetStringByID(IMPORT_ERROR_MB_NOPROXY, pBundle,
-                                               error);
+          nsImportStringBundle::GetStringByID(IMPORT_ERROR_MB_NOPROXY, pData->stringBundle,
+                                              error);
           pData->fatalError = PR_TRUE;
           break;
         }
@@ -841,7 +835,9 @@ ImportMailThread( void *stuff)
           rv = curProxy->GetParent( getter_AddRefs( parFolder));
           if (NS_FAILED( rv)) {
             IMPORT_LOG1("*** ImportMailThread: Failed to get the interface for parent folder '%s'.", lastName.get());
-            nsImportGenericMail::ReportError(IMPORT_ERROR_MB_FINDCHILD, lastName.get(), &error, pBundle);
+            nsImportGenericMail::ReportError(IMPORT_ERROR_MB_FINDCHILD,
+                                             lastName.get(), &error,
+                                             pData->stringBundle);
             pData->fatalError = PR_TRUE;
             break;
           }
@@ -855,8 +851,8 @@ ImportMailThread( void *stuff)
         }
         if (NS_FAILED( rv)) {
           IMPORT_LOG1("*** ImportMailThread: Failed to get the proxy interface for parent folder '%s'.", lastName.get());
-          nsImportStringBundle::GetStringByID(IMPORT_ERROR_MB_NOPROXY, pBundle,
-                                              error);
+          nsImportStringBundle::GetStringByID(IMPORT_ERROR_MB_NOPROXY,
+                                              pData->stringBundle, error);
           pData->fatalError = PR_TRUE;
           break;
         }
@@ -900,7 +896,8 @@ ImportMailThread( void *stuff)
         IMPORT_LOG1("*** ImportMailThread: Failed to locate subfolder '%s' after it's been created.", lastName.get());
 
       if (NS_FAILED( rv)) {
-        nsImportGenericMail::ReportError(IMPORT_ERROR_MB_CREATE, lastName.get(), &error, pBundle);
+        nsImportGenericMail::ReportError(IMPORT_ERROR_MB_CREATE, lastName.get(),
+                                         &error, pData->stringBundle);
       }
 
       if (size && import && newFolder && outBox && NS_SUCCEEDED( rv)) {

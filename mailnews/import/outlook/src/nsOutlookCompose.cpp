@@ -222,8 +222,6 @@ nsresult OutlookSendListener::CreateSendListener( nsIMsgSendListener **ppListene
 nsOutlookCompose::nsOutlookCompose()
 {
   m_pListener = nsnull;
-  m_pMsgSend = nsnull;
-  m_pSendProxy = nsnull;
   m_pMsgFields = nsnull;
   m_pIdentity = nsnull;
 
@@ -233,8 +231,6 @@ nsOutlookCompose::nsOutlookCompose()
 
 nsOutlookCompose::~nsOutlookCompose()
 {
-  NS_IF_RELEASE(m_pSendProxy);
-  NS_IF_RELEASE(m_pMsgSend);
   NS_IF_RELEASE(m_pListener);
   NS_IF_RELEASE(m_pMsgFields);
   if (m_pIdentity) {
@@ -282,22 +278,10 @@ nsresult nsOutlookCompose::CreateComponents( void)
   nsresult rv = NS_OK;
 
   NS_IF_RELEASE(m_pMsgFields);
-  if (!m_pMsgSend) {
-    rv = CallCreateInstance( kMsgSendCID, &m_pMsgSend);
-    if (NS_SUCCEEDED( rv) && m_pMsgSend) {
-      rv = NS_GetProxyForObject( NS_PROXY_TO_MAIN_THREAD, NS_GET_IID(nsIMsgSend),
-                  m_pMsgSend, NS_PROXY_SYNC, (void **)&m_pSendProxy);
-      if (NS_FAILED( rv)) {
-        m_pSendProxy = nsnull;
-        NS_RELEASE(m_pMsgSend);
-      }
-    }
-  }
-  if (!m_pListener && NS_SUCCEEDED( rv)) {
+  if (!m_pListener && NS_SUCCEEDED( rv))
     rv = OutlookSendListener::CreateSendListener( &m_pListener);
-  }
 
-  if (NS_SUCCEEDED(rv) && m_pMsgSend) {
+  if (NS_SUCCEEDED(rv)) {
       rv = CallCreateInstance( kMsgCompFieldsCID, &m_pMsgFields);
     if (NS_SUCCEEDED(rv) && m_pMsgFields) {
       // IMPORT_LOG0( "nsOutlookCompose - CreateComponents succeeded\n");
@@ -379,27 +363,19 @@ nsresult nsOutlookCompose::ComposeTheMessage(nsMsgDeliverMode mode, CMapiMessage
   }
 
   // IMPORT_LOG0( "Outlook compose calling CreateAndSendMessage\n");
-  rv = m_pSendProxy->CreateAndSendMessage(
+  nsCOMPtr<nsIImportService> impService(do_GetService(NS_IMPORTSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = impService->ProxySend(
                     pEditor,                      // editor shell
                     m_pIdentity,                  // dummy identity
-                    nsnull,                       // account key
                     m_pMsgFields,                 // message fields
-                    PR_FALSE,                     // digest = NO
-                    PR_TRUE,                      // dont_deliver = YES, make a file
                     mode,                         // mode
-                    nsnull,                       // no message to replace
                     msg.BodyIsHtml() ? "text/html" : "text/plain",           // body type
                     bodyA.get(),                  // body pointer
                     bodyA.Length(),               // body length
-                    nsnull,                       // remote attachment data
                     pAttach,                      // local attachments
-                    nsnull,                       // related part
-                    nsnull,                       // parent window
-                    nsnull,                       // progress listener
-                    m_pListener,                  // listener
-                    nsnull,                       // password
-                    EmptyCString(),               // originalMsgURI
-                    nsnull);                      // message compose type
+                    m_pListener);              // originalMsgURI
   // IMPORT_LOG0( "Returned from CreateAndSendMessage\n");
 
   OutlookSendListener *pListen = (OutlookSendListener *)m_pListener;
